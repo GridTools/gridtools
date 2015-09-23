@@ -137,7 +137,12 @@ namespace gridtools {
 
         template <typename ValueType, typename MetaDataType>
         struct storage_type {
-            typedef typename backend_traits_t::template storage_traits<ValueType, MetaDataType>::storage_t type;
+            GRIDTOOLS_STATIC_ASSERT(is_meta_storage<MetaDataType>::value, "wrong type for the meta storage");
+
+            typedef typename backend_traits_t::template storage_traits
+            <ValueType
+             , typename backend_traits_t::template meta_storage_traits<MetaDataType, false>::type
+             , false>::storage_t type;
         };
 
         /**
@@ -152,10 +157,14 @@ namespace gridtools {
         template <typename ValueType, typename MetaDataType>
         struct temporary_storage_type
         {
+            GRIDTOOLS_STATIC_ASSERT(is_meta_storage<MetaDataType>::value, "wrong type for the meta storage");
             /** temporary storage must have the same iterator type than the regular storage
              */
         private:
-            typedef typename backend_traits_t::template storage_traits<ValueType, MetaDataType, true>::storage_t temp_storage_t;
+            typedef typename backend_traits_t::template storage_traits<
+            ValueType
+            , typename backend_traits_t::template meta_storage_traits<MetaDataType, true>::type
+            , true>::storage_t temp_storage_t;
         public:
             typedef typename boost::mpl::if_<
                 typename backend_traits_t::template requires_temporary_redundant_halos<s_strategy_id>::type,
@@ -325,6 +334,9 @@ namespace gridtools {
         template <typename ArgList, typename MetaList, typename Coords>
         static void prepare_temporaries(ArgList & arg_list_, MetaList & meta_list_, Coords const& coords_)
         {
+            GRIDTOOLS_STATIC_ASSERT((is_metadata_set<MetaList>::value), "wrong type for the MetaList");
+            GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "wrong type for the coordinates");
+
             _impl::template prepare_temporaries_functor<ArgList, MetaList, Coords, this_type>::
                 prepare_temporaries((arg_list_), meta_list_,  (coords_));
         }

@@ -51,9 +51,9 @@ namespace copy_stencil{
     void handle_error(int_t)
     {std::cout<<"error"<<std::endl;}
 
-    typedef meta_storage< 0,layout_t, false > meta_data_t;
+    typedef storage_info< 0,layout_t> meta_data_t;
 
-    // typedef meta_storage_wrapper<meta_storage<0,layout_t, false> > meta_data_t;
+    // typedef storage_info_wrapper<meta_storage<0,layout_t, false> > meta_data_t;
     bool test(uint_t x, uint_t y, uint_t z) {
 
         meta_data_t meta_data_(x,y,z);

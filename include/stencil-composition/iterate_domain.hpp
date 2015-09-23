@@ -411,6 +411,7 @@ namespace gridtools {
         };
 
         /** @brief method called in the Do methods of the functors.
+
             specialization for the generic accessors placeholders
         */
         template <uint_t I>
@@ -529,7 +530,6 @@ namespace gridtools {
         operator()(Accessor const& accessor) const;
 
 #if defined(CXX11_ENABLED)
-#if !defined(__CUDACC__)
         /** @brief method called in the Do methods of the functors.
 
             Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
@@ -537,8 +537,6 @@ namespace gridtools {
         GT_FUNCTION
         typename accessor_return_type<Accessor>::type::value_type& RESTRICT
         operator()(accessor_mixed<Accessor, Pairs ... > const& accessor) const;
-
-#endif //ifndef __CUDACC__
 
 #endif
 
@@ -802,7 +800,7 @@ namespace gridtools {
                              ]);
     }
 
-#if defined(CXX11_ENABLED) && !defined( __CUDACC__ )
+#if defined(CXX11_ENABLED)
     /** @brief method called in the Do methods of the functors.
 
         Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/

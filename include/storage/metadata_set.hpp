@@ -7,14 +7,6 @@
 */
 
 namespace gridtools{
-
-
-    template<typename T>
-    struct is_pointer : boost::mpl::false_{};
-
-    template<typename T>
-    struct is_pointer<pointer<T> > : boost::mpl::true_{};
-
     /**
        @brief class that given a generic MPL sequence creates a fusion set.
 
@@ -48,6 +40,7 @@ namespace gridtools{
 
         /**
            @brief inserts a new instance in the sequence
+           NOTE: pass by value
         */
         template <typename T>
         GT_FUNCTION

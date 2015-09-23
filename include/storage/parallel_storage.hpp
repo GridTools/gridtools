@@ -11,7 +11,7 @@
 namespace gridtools {
 
     template < typename MetaStorage, typename Partitioner >
-    class parallel_meta_storage
+    class parallel_storage_info
     {
 
     public:
@@ -29,13 +29,13 @@ namespace gridtools {
         metadata_t m_metadata;
 
     public:
-        DISALLOW_COPY_AND_ASSIGN(parallel_meta_storage);
+        DISALLOW_COPY_AND_ASSIGN(parallel_storage_info);
 
-        explicit parallel_meta_storage(partitioner_t const& part)
+        explicit parallel_storage_info(partitioner_t const& part)
             : m_partitioner(&part)
             , m_metadata()
-            {
-            }
+        {
+        }
 
 #ifdef CXX11_ENABLED
 
@@ -61,60 +61,61 @@ namespace gridtools {
 
          */
         template <typename ... UInt>
-        explicit parallel_meta_storage(partitioner_t const& part, UInt const& ... dims_)
+        explicit parallel_storage_info(partitioner_t const& part, UInt const& ... dims_)
             : m_partitioner(&part)
             , m_coordinates()
             , m_coordinates_gcl()
             , m_low_bound()
             , m_up_bound()
             , m_metadata(
-                gt_make_integer_sequence<uint_t, sizeof...(UInt)>::template apply<metadata_t>
+                apply_gt_integer_sequence<typename make_gt_integer_sequence
+                <uint_t, sizeof ... (UInt)>::type >::template apply<metadata_t>
                 (
-                 ([&part]
-                  ( uint_t index_
-                    , array<halo_descriptor, metadata_t::space_dimensions>& coordinates_
-                    , array<halo_descriptor, metadata_t::space_dimensions>& coordinates_gcl_
-                    , array<int_t, metadata_t::space_dimensions>& low_bound_
-                    , array<int_t, metadata_t::space_dimensions>& up_bound_
-                    , UInt const& ... args_ )-> uint_t
-                   { return part.compute_bounds( index_, coordinates_, coordinates_gcl_, low_bound_, up_bound_, args_ ... );}
-                  )
-                  , m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, dims_ ...  )
+                    ([&part]
+                     ( uint_t index_
+                       , array<halo_descriptor, metadata_t::space_dimensions>& coordinates_
+                       , array<halo_descriptor, metadata_t::space_dimensions>& coordinates_gcl_
+                       , array<int_t, metadata_t::space_dimensions>& low_bound_
+                       , array<int_t, metadata_t::space_dimensions>& up_bound_
+                       , UInt const& ... args_ )-> uint_t
+                    { return part.compute_bounds( index_, coordinates_, coordinates_gcl_, low_bound_, up_bound_, args_ ... );}
+                        )
+                    , m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, dims_ ...  )
                 )
-            {
-            }
+        {
+        }
 
         /**
            @brief given the global coordinates returns wether the point belongs to the current partition
-         */
+        */
         template <typename ... UInt>
         bool mine(UInt const& ... coordinates_) const
-            {
-                GRIDTOOLS_STATIC_ASSERT((sizeof ... (UInt) >= metadata_t::space_dimensions), "not enough indices specified in the call to parallel_meta_storage::mine()");
-                GRIDTOOLS_STATIC_ASSERT((sizeof ... (UInt) <= metadata_t::space_dimensions), "too many indices specified in the call to parallel_meta_storage::mine()");
-                uint_t coords[metadata_t::space_dimensions]={coordinates_ ...};
-                bool result=true;
-                for(ushort_t i=0; i<metadata_t::space_dimensions; ++i)
-                    if(coords[i]<m_low_bound[i]+m_coordinates[i].begin() || coords[i]>m_low_bound[i]+m_coordinates[i].end() )
-                        result=false;
-                return result;
-            }
+        {
+            GRIDTOOLS_STATIC_ASSERT((sizeof ... (UInt) >= metadata_t::space_dimensions), "not enough indices specified in the call to parallel_storage_info::mine()");
+            GRIDTOOLS_STATIC_ASSERT((sizeof ... (UInt) <= metadata_t::space_dimensions), "too many indices specified in the call to parallel_storage_info::mine()");
+            uint_t coords[metadata_t::space_dimensions]={coordinates_ ...};
+            bool result=true;
+            for(ushort_t i=0; i<metadata_t::space_dimensions; ++i)
+                if(coords[i]<m_low_bound[i]+m_coordinates[i].begin() || coords[i]>m_low_bound[i]+m_coordinates[i].end() )
+                    result=false;
+            return result;
+        }
 
         /**
            @brief given the global coordinates returns the local index, or -1 if the point is outside the current partition
-         */
+        */
         //TODO generalize for arbitrary dimension
         template <uint_t field_dim=0, uint_t snapshot=0, typename UInt>
         int_t get_local_index( UInt const& i, UInt const& j, UInt const& k ) const
-            {
-                if(mine(i,j,k))
-                    return m_metadata.index((uint_t)(i-m_low_bound[0]), (uint_t)(j-m_low_bound[1]), (uint_t)(k-m_low_bound[2]));
-                else
+        {
+            if(mine(i,j,k))
+                return m_metadata.index((uint_t)(i-m_low_bound[0]), (uint_t)(j-m_low_bound[1]), (uint_t)(k-m_low_bound[2]));
+            else
 #ifndef DNDEBUG
-                    printf("(%d, %d, %d) not available in processor %d \n\n", i, j, k , m_partitioner->template pid<0>()+m_partitioner->template pid<1>()+m_partitioner->template pid<2>());
+                printf("(%d, %d, %d) not available in processor %d \n\n", i, j, k , m_partitioner->template pid<0>()+m_partitioner->template pid<1>()+m_partitioner->template pid<2>());
 #endif
-                return -1;
-            }
+            return -1;
+        }
 #endif
 
         /**
@@ -153,7 +154,7 @@ namespace gridtools {
 
     private:
 
-        parallel_meta_storage();
+        parallel_storage_info();
 
     };
 }//namespace gridtools

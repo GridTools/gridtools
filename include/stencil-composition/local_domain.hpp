@@ -79,7 +79,7 @@ namespace gridtools {
             GT_FUNCTION_WARNING
             void operator()(Key& local_) const {
                 local_ =
-#ifdef __CUDACC__
+#ifdef __CUDACC__ // ugly ifdef. TODO: way to remove it?
                     (typename Key::value_type *) boost::fusion::at_key<Key>(m_actual)->gpu_object_ptr;
 #else
                     boost::fusion::at_key<Key>(m_actual);
@@ -215,18 +215,19 @@ namespace gridtools {
                                           >::type mpl_actual_storages;
 
         /** creates a vector of storage types from the StoragePointers sequence */
-        typedef typename boost::mpl::fold<mpl_storages,
-                                          boost::mpl::vector0<>,
-                                          boost::mpl::if_< is_any_storage<boost::mpl::_2>,
-                                                           boost::mpl::push_back<
-                                                               boost::mpl::_1,
-                                                               storage2metadata<
-                                                                   boost::remove_pointer<
-                                                                       boost::mpl::_2 >
-                                                                   >
-                                                               >
-                                                           , boost::mpl::_1 >
-                                          >::type::type local_metadata_mpl_t;
+        typedef typename boost::mpl::fold
+	<mpl_storages,
+	 boost::mpl::vector0<>,
+	 boost::mpl::if_< is_any_storage<boost::mpl::_2>,
+			  boost::mpl::push_back<
+			      boost::mpl::_1,
+			      storage2metadata<
+				  boost::remove_pointer<
+				      boost::mpl::_2 >
+				  >
+			      >
+			  , boost::mpl::_1 >
+	 >::type::type local_metadata_mpl_t;
 
 
         // convoluted way to filter out the duplicated meta storage types : transform vector to set to map

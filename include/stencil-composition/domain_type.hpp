@@ -29,10 +29,12 @@
 
 /**@file
  @brief This file contains the global list of placeholders to the storages
- */
-
+*/
 namespace gridtools {
 
+    //fwd declaration
+    template<typename T>
+    struct is_arg;
 
     /**
        @brief This struct contains the global list of placeholders to the storages
@@ -47,58 +49,39 @@ namespace gridtools {
     */
 
 
-        template <typename T>
-        struct partitioner_trivial;
-
-        template <typename T>
-        struct is_partitioner_trivial : boost::mpl::false_
-        {};
-
-        template <typename T>
-        struct is_partitioner_trivial<partitioner_trivial<T> > : boost::mpl::true_
-        {};
-
-        template <typename T>
-        struct is_partitioner_trivial<partitioner_trivial<T>* > : boost::mpl::true_
-        {};
+    template <typename T>
+    struct partitioner_trivial;
 
     template <typename T>
-        struct is_partitioner_trivial<partitioner_trivial<T>*&> : boost::mpl::true_
-        {};
+    struct is_partitioner_trivial : boost::mpl::false_
+    {};
 
+    template <typename T>
+    struct is_partitioner_trivial<partitioner_trivial<T> > : boost::mpl::true_
+    {};
 
-        // template<typename T>
-        // struct is_not_tmp_storage : boost::mpl::or_<is_storage<T>, is_partitioner_trivial<T > >{
-        // };
+    template <typename T>
+    struct is_partitioner_trivial<partitioner_trivial<T>* > : boost::mpl::true_
+    {};
 
-    // template<typename T>
-    //     struct is_not_tmp_storage : boost::mpl::or_<is_storage<T>, is_partitioner_trivial<T > >{
-    //     };
+    template <typename T>
+    struct is_partitioner_trivial<partitioner_trivial<T>*&> : boost::mpl::true_
+    {};
 
 
     template<typename T>
     struct is_not_tmp_storage : boost::mpl::or_<is_storage<T>, boost::mpl::not_<is_any_storage<T > > >{
     };
 
-        // template<typename T>
-        // struct is_not_tmp_storage : boost::mpl::or_<is_storage<T>, is_extra_arg<T > >{
-        // };
-
-    // template<>
-        // struct is_partitioner_trivial<gridtools::partitioner_trivial<gridtools::cell_topology<gridtools::topology::cartesian<gridtools::layout_map<0, 1, 2> > > > > : boost::mpl::true_ {};
-
     template <typename Placeholders>
     struct domain_type : public clonable_to_gpu<domain_type<Placeholders> > {
+
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Placeholders, is_arg>::type::value), "wrong type:\
+ the domain_type template argument must be an MPL vector of placeholders (arg<...>)");
         typedef Placeholders original_placeholders;
 
     private:
         BOOST_STATIC_CONSTANT(uint_t, len = boost::mpl::size<original_placeholders>::type::value);
-
-        // typedef typename original_placeholders::fuck fuck;
-
-        // template <typename Lambda, typename True, typename False>
-        // struct lazy_if_is_storage_arg {
-        //     typedef boost::mpl::if_< Lambda::type, True, False >::type type;};
 
         // filter out the metadatas which are the same
         typedef typename boost::mpl::fold<
@@ -157,7 +140,8 @@ namespace gridtools {
         typedef typename boost::mpl::find_if<raw_index_list, boost::mpl::greater<boost::mpl::_1, static_int<len-1> > >::type test;
         //check if the index list contains holes (a common error is to define a list of types with indexes which are not contiguous)
         GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename test::type, boost::mpl::void_ >::value) , "the index list contains holes:\n\
-The numeration of the placeholders is not contiguous. You have to define each arg with a unique identifier ranging from 0 to N without \"holes\".");
+The numeration of the placeholders is not contiguous. \
+You have to define each arg with a unique identifier ranging from 0 to N without \"holes\".");
 
         /**\brief reordering vector
          * defines an mpl::vector of len indexes reordered accodring to range_t (placeholder _2 is vector<>, placeholder _1 is range_t)
@@ -280,6 +264,7 @@ The numeration of the placeholders is not contiguous. You have to define each ar
             : m_storage_pointers()
             , m_metadata_set()
             {
+                GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(), is_arg_storage_pair<StorageArgs>::value ...), "wrong type");
                 assign_pointers(args...);
 
                 //copy of the non-tmp metadata into m_metadata_set
@@ -335,27 +320,6 @@ The numeration of the placeholders is not contiguous. You have to define each ar
             }
         };
 
-        template <ushort_t Index, typename Layout, bool Tmp>
-        struct meta_storage;
-
-        template <typename T>
-        struct meta_storage_wrapper;
-
-        // template<typename T>
-        // struct is_temporary_storage;
-        template<typename T>
-        struct is_tmp_lambda {
-            typename  boost::mpl::false_ type;
-        };
-
-        template<typename T>
-        struct is_tmp_lambda <storage<T> > {
-            typedef static_bool<storage<T>::is_temporary> type;
-        };
-
-// template<typename T>
-        // struct is_partitioner_trivial : boost::mpl::false_{};
-
         /**@brief Constructor from boost::fusion::vector
          * @tparam RealStorage fusion::vector of pointers to storages sorted with increasing indices of the pplaceholders
          * @param real_storage The actual fusion::vector with the values
@@ -365,18 +329,13 @@ The numeration of the placeholders is not contiguous. You have to define each ar
         explicit domain_type(RealStorage const & real_storage_)
             : m_storage_pointers()
             , m_metadata_set()
-            {
-                typedef boost::fusion::filter_view
-                    <arg_list,
-                     is_not_tmp_storage<boost::mpl::_1> > view_type;
-
-            // typedef boost::fusion::filter_view
-            //     <view_type
-            //      , is_partitioner_trivial<boost::mpl::_1> > nested_view_type;
+	{
+	    typedef boost::fusion::filter_view
+		<arg_list,
+		 is_not_tmp_storage<boost::mpl::_1> > view_type;
 
             view_type fview(m_storage_pointers);
 
-#ifdef PEDANTIC
             GRIDTOOLS_STATIC_ASSERT( boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value, "The number of arguments specified when constructing the domain_type is not the same as the number of placeholders to non-temporary storages. Double check the temporary flag in the meta_storage types.");
 #endif
         typedef typename boost::mpl::fold<
@@ -416,8 +375,6 @@ The numeration of the placeholders is not contiguous. You have to define each ar
             boost::fusion::copy(real_storage_, original_fview);
         }
 
-
-#ifdef __CUDACC__
         /** Copy constructor to be used when cloning to GPU
          *
          * @param The object to copy. Typically this will be *this
@@ -428,7 +385,6 @@ The numeration of the placeholders is not contiguous. You have to define each ar
             , m_original_pointers(other.m_original_pointers)
             , m_metadata_set(other.m_metadata_set)
         { }
-#endif
 
 #ifndef NDEBUG
         GT_FUNCTION
@@ -463,7 +419,7 @@ The numeration of the placeholders is not contiguous. You have to define each ar
 
         /** @brief copy the pointers from the device to the host
             NOTE: no need to copy back the metadata since it has not been modified
-         */
+        */
         void finalize_computation() {
             boost::fusion::for_each(m_original_pointers, call_d2h());
             gridtools::for_each<
@@ -473,7 +429,7 @@ The numeration of the placeholders is not contiguous. You have to define each ar
 
         /**
            @brief returning by non-const reference the metadata set
-         */
+        */
         metadata_set_t & metadata_set_view(){return m_metadata_set;}
 
         /**

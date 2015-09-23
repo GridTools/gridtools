@@ -2,8 +2,6 @@
 #include "data_field.hpp"
 #include "meta_storage.hpp"
 #include "common/gpu_clone.hpp"
-//#include "host_tmp_storage.hpp"
-#include "accumulate.hpp"
 #include "common/generic_metafunctions/reverse_pack.hpp"
 
 /**
@@ -67,17 +65,42 @@ namespace gridtools{
         @tparam Number the number of snapshots in each dimension
      */
     template< class Storage, uint_t ... Number >
-    struct field_reversed{
-        typedef storage< data_field< storage_list<base_storage<typename Storage::pointer_type, typename  Storage::meta_data_t, accumulate(add_functor(), ((uint_t)Number) ... )>, Number-1> ... > > type;
+    struct field_reversed;
+
+    /**
+     @brief specialization for the GPU storage
+     the defined type is storage (which is clonable_to_gpu)
+    */
+    template< class BaseStorage, uint_t ... Number >
+    struct field_reversed<storage<BaseStorage>, Number ... >{
+        typedef storage< data_field< storage_list<base_storage<typename BaseStorage::pointer_type, typename  BaseStorage::meta_data_t, accumulate(add_functor(), ((uint_t)Number) ... )>, Number-1> ... > > type;
     };
 
-    /**@brief specialization for no_storage_type_yet (Block strategy)*/
+    /**
+       @brief specialization for the CPU storage (base_storage)
+       the difference being that the type is directly the base_storage (which is not clonable_to_gpu)
+    */
+    template< class PointerType, class MetaData, ushort_t FD, uint_t ... Number >
+    struct field_reversed<base_storage<PointerType, MetaData, FD>, Number ... >{
+        typedef data_field< storage_list<base_storage<PointerType, MetaData, accumulate(add_functor(), ((uint_t)Number) ... )>, Number-1> ... > type;
+    };
+
+    /**@brief specialization for no_storage_type_yet (Block strategy, GPU storage)*/
     template<  typename PointerType
                ,typename MetaData
                ,ushort_t FieldDimension
                ,uint_t ... Number >
     struct field_reversed<no_storage_type_yet<storage<base_storage<PointerType, MetaData, FieldDimension> > >, Number... >{
         typedef no_storage_type_yet<storage<data_field< storage_list<base_storage<PointerType, MetaData, accumulate(add_functor(), ((uint_t)Number) ... ) >, Number-1> ... > > > type;
+    };
+
+    /**@brief specialization for no_storage_type_yet (Block strategy, CPU storage)*/
+    template<  typename PointerType
+               ,typename MetaData
+               ,ushort_t FieldDimension
+               ,uint_t ... Number >
+    struct field_reversed<no_storage_type_yet<base_storage<PointerType, MetaData, FieldDimension> >, Number... >{
+        typedef no_storage_type_yet<data_field< storage_list<base_storage<PointerType, MetaData, accumulate(add_functor(), ((uint_t)Number) ... ) >, Number-1> ... > > type;
     };
 
     /**@brief interface for definig a data field
