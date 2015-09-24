@@ -100,7 +100,8 @@ namespace test_iterate_domain{
                 boost::mpl::vector1<esf_t>,
                 boost::mpl::vector1<range<0,0,0,0> >,
                 boost::mpl::vector0<>,
-                block_size<32,4>
+                block_size<32,4>,
+                gridtools::coordinates<axis>
                 >
             > it_domain_t;
 

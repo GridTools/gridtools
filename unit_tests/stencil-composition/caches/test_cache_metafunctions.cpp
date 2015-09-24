@@ -62,8 +62,16 @@ TEST(cache_metafunctions, extract_ranges_for_caches)
     typedef local_domain< boost::mpl::void_, boost::mpl::void_, esf_args_t, false> local_domain_t;
 
     typedef boost::mpl::vector2< range<-1,2,-2,1>, range<-2,1,-3,2> > ranges_t;
+    typedef gridtools::interval<gridtools::level<0,-2>, gridtools::level<1,1> > axis;
 
-    typedef iterate_domain_arguments< local_domain_t, esf_sequence_t, ranges_t, caches_t, block_size<32,4> > iterate_domain_arguments_t;
+    typedef iterate_domain_arguments<
+        local_domain_t,
+        esf_sequence_t,
+        ranges_t,
+        caches_t,
+        block_size<32,4>,
+        gridtools::coordinates<axis>
+    > iterate_domain_arguments_t;
 
     typedef extract_ranges_for_caches<iterate_domain_arguments_t>::type ranges_map_t;
 
@@ -86,7 +94,16 @@ TEST(cache_metafunctions, get_cache_storage_tuple)
 
     typedef boost::mpl::vector2< range<-1,2,-2,1>, range<-2,1,-3,2> > ranges_t;
 
-    typedef iterate_domain_arguments< local_domain_t, esf_sequence_t, ranges_t, caches_t, block_size<32,4> > iterate_domain_arguments_t;
+    typedef gridtools::interval<gridtools::level<0,-2>, gridtools::level<1,1> > axis;
+
+    typedef iterate_domain_arguments<
+        local_domain_t,
+        esf_sequence_t,
+        ranges_t,
+        caches_t,
+        block_size<32,4>,
+        gridtools::coordinates<axis>
+    > iterate_domain_arguments_t;
 
     typedef extract_ranges_for_caches<iterate_domain_arguments_t>::type ranges_map_t;
 

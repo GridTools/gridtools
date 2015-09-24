@@ -72,7 +72,9 @@ TEST(test_copy_stencil, run) {
                 ),
                 domain, coords
             );
-
+    copy->ready();
+    copy->steady();
+    copy->run();
 
     typedef decltype(
         gridtools::make_mss // mss_descriptor
