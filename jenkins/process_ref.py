@@ -107,7 +107,6 @@ if __name__ == "__main__":
                 if target == 'cpu':
                     nthreads = re.sub('thread','',thread)
                     cmd = 'export OMP_NUM_THREADS='+nthreads+'; '+cmd
-                print cmd
 
                 avg_time = 0
                 times = []
@@ -131,10 +130,11 @@ if __name__ == "__main__":
                     rms = rms + (t-avg_time)*(t-avg_time)
                 rms = math.sqrt(rms) / nrep
 
+
                 copy_ref['stencils'][stencil_name][target][prec][std][thread][data]['time'] = avg_time
                 copy_ref['stencils'][stencil_name][target][prec][std][thread][data]['rms'] = rms
 
-                error = math.fabs(float(extracted_time) - float(exp_time)) / float(exp_time)
+                error = math.fabs(float(extracted_time) - float(exp_time)) / (float(exp_time)+1e-20)
                 if mode == 'c' and error > tolerance:
                     print('Error in conf ['+data+','+prec+','+target+','+std+','+thread+'] : exp_time -> '+ str(exp_time) + '; comp time -> '+ extracted_time+'. Error = '+ str(error*100)+'%')
                     result = False
