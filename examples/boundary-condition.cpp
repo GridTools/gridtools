@@ -106,7 +106,6 @@ int main(int argc, char** argv) {
 
     typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
 
-#pragma GCC diagnostic ignored "-Wwrite-strings"
     // Definition of the actual data fields that are used for input/output
     storage_type in(d1,d2,d3);
     in.initialize(-1);
@@ -117,7 +116,6 @@ int main(int argc, char** argv) {
     storage_type coeff(d1,d2,d3);
     coeff.initialize(8);
     coeff.set_name("coeff");
-#pragma GCC diagnostic pop
 
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {

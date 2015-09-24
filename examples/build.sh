@@ -20,7 +20,7 @@ then
     mkdir -p build;
     cd build;
 
-    eval "../examples/build_$1.sh $2 $3 $4 $5 $6"
+    eval "../examples/build_$1.sh $2 $3 $4 $5 $6 $7"
 else
     echo "ERROR: node $1 not supported"
 fi
