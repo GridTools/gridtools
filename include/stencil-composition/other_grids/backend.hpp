@@ -45,7 +45,7 @@ namespace gridtools {
         using meta_storage_t = meta_storage<LocationType::value, layout_map<0,1,2,3>, false >;
 
         template <typename LocationType, typename ValueType>
-        using storage_t = base_storage<wrap_pointer<ValueType>, meta_storage_t<LocationType>, 1>;
+        using storage_t = storage< base_storage<wrap_pointer<ValueType>, meta_storage_t<LocationType>, 1> >;
 
     };
 

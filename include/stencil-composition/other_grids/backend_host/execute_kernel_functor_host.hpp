@@ -86,7 +86,7 @@ struct execute_kernel_functor_host
         GRIDTOOLS_STATIC_ASSERT((is_range<range_t>::value), "Internal Error: wrong type");
 
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
-//        typedef backend_traits_from_id<enumtype::Host> backend_traits_t;
+        typedef backend_traits_from_id<enumtype::Host> backend_traits_t;
 //#ifdef __VERBOSE__
 //        #pragma omp critical
 //        {
@@ -103,22 +103,22 @@ struct execute_kernel_functor_host
 //        }
 //#endif
 
-//        typename iterate_domain_t::data_pointer_array_t data_pointer;
+        typename iterate_domain_t::data_pointer_array_t data_pointer;
         typedef typename iterate_domain_t::strides_cached_t strides_t;
         strides_t strides;
 
         iterate_domain_t it_domain(m_local_domain);
 
-//        it_domain.set_data_pointer_impl(&data_pointer);
-//        it_domain.set_strides_pointer_impl(&strides);
+        it_domain.set_data_pointer_impl(&data_pointer);
+        it_domain.set_strides_pointer_impl(&strides);
 
-//        it_domain.template assign_storage_pointers<backend_traits_t >();
-//        it_domain.template assign_stride_pointers <backend_traits_t, strides_t>();
+        it_domain.template assign_storage_pointers<backend_traits_t >();
+        it_domain.template assign_stride_pointers <backend_traits_t, strides_t>();
 
-//        typedef typename boost::mpl::front<loop_intervals_t>::type interval;
-//        typedef typename index_to_level<typename interval::first>::type from;
-//        typedef typename index_to_level<typename interval::second>::type to;
-//        typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy;
+        typedef typename boost::mpl::front<loop_intervals_t>::type interval;
+        typedef typename index_to_level<typename interval::first>::type from;
+        typedef typename index_to_level<typename interval::second>::type to;
+        typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy;
 
 //        typedef array<int_t, iterate_domain_t::N_META_STORAGES> array_t;
 //        loop_hierarchy<

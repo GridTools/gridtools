@@ -240,6 +240,76 @@ public:
     iterate_domain(local_domain_t const& local_domain_)
         : local_domain(local_domain_) {}
 
+    /**
+       @brief returns the array of pointers to the raw data
+    */
+    GT_FUNCTION
+    data_pointer_array_t& RESTRICT data_pointer()
+    {
+        return static_cast<IterateDomainImpl*>(this)->data_pointer_impl();
+    }
+
+    /**
+       @brief returns the strides as const reference
+    */
+    GT_FUNCTION
+    strides_cached_t const & RESTRICT strides() const
+    {
+        return static_cast<const IterateDomainImpl*>(this)->strides_impl();
+    }
+
+    /**
+       @brief returns the strides as const reference
+    */
+    GT_FUNCTION
+    strides_cached_t & RESTRICT strides()
+    {
+        return static_cast<IterateDomainImpl*>(this)->strides_impl();
+    }
+
+
+    /** This functon set the addresses of the data values  before the computation
+        begins.
+
+        The EU stands for ExecutionUnit (thich may be a thread or a group of
+        threasd. There are potentially two ids, one over i and one over j, since
+        our execution model is parallel on (i,j). Defaulted to 1.
+    */
+    template<typename BackendType>
+    GT_FUNCTION
+    void assign_storage_pointers(){
+        const uint_t EU_id_i = BackendType::processing_element_i();
+        const uint_t EU_id_j = BackendType::processing_element_j();
+        for_each<typename reversed_range< int_t, 0, N_STORAGES >::type > (
+            assign_storage_functor<
+                BackendType,
+                data_pointer_array_t,
+                typename local_domain_t::local_args_type,
+                typename local_domain_t::local_metadata_type,
+                metadata_map_t
+            >(data_pointer(), local_domain.m_local_args, local_domain.m_local_metadata,  EU_id_i, EU_id_j));
+    }
+
+    /**
+       @brief recursively assignes all the strides
+
+       copies them from the
+       local_domain.m_local_metadata vector, and stores them into an instance of the
+       \ref strides_cached class.
+     */
+    template<typename BackendType, typename Strides>
+    GT_FUNCTION
+    void assign_stride_pointers(){
+        GRIDTOOLS_STATIC_ASSERT((is_strides_cached<Strides>::value), "internal error type");
+        for_each< metadata_map_t > (
+            assign_strides_functor<
+            BackendType,
+            Strides,
+            typename boost::fusion::result_of::as_vector
+            <typename local_domain_t::local_metadata_type>::type
+            >(strides(), local_domain.m_local_metadata));
+    }
+
 
 //private:
 
