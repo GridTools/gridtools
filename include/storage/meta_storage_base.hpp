@@ -189,12 +189,29 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         //####################################################
 
 
+
         /**@brief return the stride for a specific coordinate, given the vector of strides
-           Coordinates 0,1,2 correspond to i,j,k respectively*/
+           Coordinates 0,1,2 correspond to i,j,k respectively
+
+	   static version: the strides vector is passed from outside ordered in decreasing order, and the strides coresponding to
+	   the Coordinate dimension is returned according to the layout map.
+	*/
         template<uint_t Coordinate, typename StridesVector>
         GT_FUNCTION
         static constexpr int_t strides(StridesVector const& RESTRICT strides_){
-            return ((vec_max<typename layout::layout_vector_t>::value < 0) ? 0:(( layout::template at_<Coordinate>::value == vec_max<typename layout::layout_vector_t>::value ) ? 1 : ((strides_[layout::template at_<Coordinate>::value/*+1*/]))));//POL TODO explain the fact that here there was a +1
+            return ((vec_max<typename layout::layout_vector_t>::value < 0) ? 0:(( layout::template at_<Coordinate>::value == vec_max<typename layout::layout_vector_t>::value ) ? 1 : ((strides_[layout::template at_<Coordinate>::value]))));
+        }
+
+        /**@brief return the stride for a specific coordinate, given the vector of strides
+           Coordinates 0,1,2 correspond to i,j,k respectively.
+
+	   non-static version.
+	*/
+        template<uint_t Coordinate>
+        GT_FUNCTION
+        constexpr int_t strides() const {
+	    //NOTE: we access the m_strides vector starting from 1, because m_strides[0] is the total storage dimension.
+            return ((vec_max<typename layout::layout_vector_t>::value < 0) ? 0:(( layout::template at_<Coordinate>::value == vec_max<typename layout::layout_vector_t>::value ) ? 1 : ((m_strides[layout::template at_<Coordinate>::value+1]))));
         }
 
         /**@brief returning the index of the memory address corresponding to the specified (i,j,k) coordinates.
