@@ -10,7 +10,8 @@
 #include "cg.h"
 
 //time t is in ns, returns MFLOPS
-#define FLOPS(numops,X,Y,Z,NT,t) ((double)numops*X*Y*Z*NT*1000/t)
+#define MFLOPS(numops,X,Y,Z,NT,t) ((double)numops*X*Y*Z*NT*1000/t)
+#define MLUPS(X,Y,Z,NT,t) ((double)X*Y*Z*NT*1000/t)
 
 /*
   @file This file shows an implementation of the various stencil operations.
@@ -201,14 +202,10 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
     printf("Running for %d x %d x %d, %d iterations\n",x,y,z,nt);
 
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Block >
-#else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block >
 #else
 #define BACKEND backend<Host, Naive >
-#endif
 #endif
 
     typedef gridtools::layout_map<0,1,2> layout_t;
@@ -394,10 +391,10 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     printf("Print domain A after computation\n");
     TIME_STEPS % 2 == 0 ? in3pt.print() : out3pt.print();
 #endif
-
+ 
     std::cout << "TIME d1point3 TOTAL: " << boost::timer::format(lapse_time1);
     std::cout << "TIME d1point3 RUN:" << boost::timer::format(lapse_time1run);
-    std::cout << "TIME d1point3 MFLOPS: " << FLOPS(5,d1,d2,d3,nt,lapse_time1run.wall) << std::endl << std::endl;
+    std::cout << "TIME d1point3 MFLOPS: " << MFLOPS(5,d1,d2,d3,nt,lapse_time1run.wall) << std::endl << std::endl;
 #endif
 //------------------------------------------------------------------------------
 #ifdef pt7   
@@ -454,7 +451,8 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
     std::cout << "TIME d3point7 TOTAL: " << boost::timer::format(lapse_time2);
     std::cout << "TIME d3point7 RUN:" << boost::timer::format(lapse_time2run);
-    std::cout << "TIME d3point7 MFLOPS: " << FLOPS(10,d1,d2,d3,nt,lapse_time2run.wall) << std::endl << std::endl;
+    std::cout << "TIME d3point7 MFLOPS: " << MFLOPS(10,d1,d2,d3,nt,lapse_time2run.wall) << std::endl;
+    std::cout << "TIME d3point7 MLUPs: " << MLUPS(d1,d2,d3,nt,lapse_time2run.wall) << std::endl << std::endl;
 #endif
 //------------------------------------------------------------------------------
 #ifdef pt7_var    
@@ -509,7 +507,8 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
     std::cout << "TIME d3point7_var TOTAL: " << boost::timer::format(lapse_time3);
     std::cout << "TIME d3point7_var RUN:" << boost::timer::format(lapse_time3run);
-    std::cout << "TIME d3point7_var MFLOPS: " << FLOPS(10,d1,d2,d3,nt,lapse_time3run.wall) << std::endl << std::endl;
+    std::cout << "TIME d3point7_var MFLOPS: " << MFLOPS(10,d1,d2,d3,nt,lapse_time3run.wall) << std::endl;
+    std::cout << "TIME d3point7_var MLUPs: " << MLUPS(d1,d2,d3,nt,lapse_time3run.wall) << std::endl << std::endl;
 #endif
 //------------------------------------------------------------------------------
 #ifdef pt25
@@ -564,7 +563,8 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
     std::cout << "TIME d3point25 TOTAL: " << boost::timer::format(lapse_time40);
     std::cout << "TIME d3point25 RUN:" << boost::timer::format(lapse_time40run);
-    std::cout << "TIME d3point25 MFLOPS: " << FLOPS(37,d1,d2,d3,nt,lapse_time40run.wall) << std::endl << std::endl;
+    std::cout << "TIME d3point25 MFLOPS: " << MFLOPS(37,d1,d2,d3,nt,lapse_time40run.wall) << std::endl;
+    std::cout << "TIME d3point25 MLUPs: " << MLUPS(d1,d2,d3,nt,lapse_time40run.wall) << std::endl << std::endl;
 #endif
 //------------------------------------------------------------------------------
 #ifdef pt25_var
@@ -619,7 +619,9 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
     std::cout << "TIME d3point25_var TOTAL: " << boost::timer::format(lapse_time41);
     std::cout << "TIME d3point25_var RUN:" << boost::timer::format(lapse_time41run);
-    std::cout << "TIME d3point25_var MFLOPS: " << FLOPS(37,d1,d2,d3,nt,lapse_time41run.wall) << std::endl << std::endl;
+    std::cout << "TIME d3point25_var MFLOPS: " << MFLOPS(37,d1,d2,d3,nt,lapse_time41run.wall) << std::endl;
+    std::cout << "TIME d3point25_var MLUPs: " << MLUPS(d1,d2,d3,nt,lapse_time41run.wall) << std::endl << std::endl;
+
 #endif
 //------------------------------------------------------------------------------
 #ifdef pt25_t2
@@ -684,7 +686,8 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
     std::cout << "TIME d3point25_time2 TOTAL: " << boost::timer::format(lapse_time5);
     std::cout << "TIME d3point25_time2 RUN:" << boost::timer::format(lapse_time5run);
-    std::cout << "TIME d3point25_time2 MFLOPS: " << FLOPS(33,d1,d2,d3,nt,lapse_time5run.wall) << std::endl << std::endl;
+    std::cout << "TIME d3point25_time2 MFLOPS: " << MFLOPS(33,d1,d2,d3,nt,lapse_time5run.wall) << std::endl;
+    std::cout << "TIME d3point25_time2 MLUPs: " << MLUPS(d1,d2,d3,nt,lapse_time5run.wall) << std::endl << std::endl;
 #endif
 
     return 1;
