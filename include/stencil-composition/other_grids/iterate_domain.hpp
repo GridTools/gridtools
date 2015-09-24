@@ -310,6 +310,13 @@ public:
             >(strides(), local_domain.m_local_metadata));
     }
 
+    /**@brief method for setting the index array */
+    GT_FUNCTION
+    void set_index(uint_t const index)
+    {
+        m_index = index;
+    }
+
 
 //private:
 

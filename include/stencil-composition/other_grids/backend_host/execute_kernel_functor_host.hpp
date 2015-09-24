@@ -90,10 +90,10 @@ struct execute_kernel_functor_host
 //#ifdef __VERBOSE__
 //        #pragma omp critical
 //        {
-//        std::cout << "I loop " << m_first_pos[0] <<"+"<< range_t::iminus::value << " -> "
-//                  << m_first_pos[0] <<"+"<< m_last_pos[0] <<"+"<< range_t::iplus::value << "\n";
-//        std::cout << "J loop " << m_first_pos[1] <<"+"<< range_t::jminus::value << " -> "
-//                  << m_first_pos[1] <<"+"<< m_last_pos[1] <<"+"<< range_t::jplus::value << "\n";
+        std::cout << "I loop " << m_first_pos[0] <<"+"<< range_t::iminus::value << " -> "
+                  << m_first_pos[0] <<"+"<< m_last_pos[0] <<"+"<< range_t::iplus::value << "\n";
+        std::cout << "J loop " << m_first_pos[1] <<"+"<< range_t::jminus::value << " -> "
+                  << m_first_pos[1] <<"+"<< m_last_pos[1] <<"+"<< range_t::jplus::value << "\n";
 //        std::cout<<"iminus::value: "<<range_t::iminus::value<<std::endl;
 //        std::cout<<"iplus::value: "<<range_t::iplus::value<<std::endl;
 //        std::cout<<"jminus::value: "<<range_t::jminus::value<<std::endl;
@@ -132,7 +132,7 @@ struct execute_kernel_functor_host
 //        );
 
 //        //reset the index
-//        it_domain.set_index(0);
+        it_domain.set_index(0);
 //        ij_loop.initialize(it_domain, m_block_id);
 
 //        //define the kernel functor
