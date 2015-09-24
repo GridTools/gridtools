@@ -14,6 +14,6 @@ gridtools_add_test(tests.storage_info ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/
 set_target_properties(storage_tests PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} LINKER_LANGUAGE CXX )
 target_link_libraries(storage_tests ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
 
-add_executable(test_storage_info ${STENCIL_COMPOSITION_UNITTEST_SOURCES})
+add_executable(test_storage_info test_meta_storage.cpp)
 set_target_properties(test_storage_info PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} LINKER_LANGUAGE CXX )
 target_link_libraries(test_storage_info ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
