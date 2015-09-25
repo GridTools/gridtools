@@ -21,6 +21,8 @@ int main(int argc, char** argv)
     return RUN_ALL_TESTS();
 }
 
+using namespace gridtools;
+
 TEST(Extended4D, Test)
 {
     uint_t x = Options::getInstance().m_size[0];
