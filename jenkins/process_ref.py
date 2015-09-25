@@ -35,6 +35,7 @@ if __name__ == "__main__":
     parser.add_argument('-p',nargs=1, type=str, help='filter only stencils that matches the pattern')
     parser.add_argument('--target', nargs=1, type=str, help='cpu || gpu')
     parser.add_argument('--std', nargs=1, type=str, help='C++ standard')
+    parser.add_argument('--prec', nargs=1, type=str, help='floating point precision')
     parser.add_argument('-m', nargs=1, type=str, help='Mode: u (update reference), c (check reference)')
 
     filter_stencils = [] 
@@ -50,6 +51,8 @@ if __name__ == "__main__":
         parser.error('--target should be specified')
     if not args.std:
         parser.error('--std should be specified')
+    if not args.prec:
+        parser.error('--prec should be specified')
 
     target = args.target[0]
     if target == 'gpu':
@@ -67,6 +70,10 @@ if __name__ == "__main__":
     mode = args.m[0]
     if mode != 'u' and mode != 'c':
         parser.error('-m must be set to c or u')
+
+    prec = args.prec[0]
+    if prec != 'single' and prec != 'double':
+        parser.error('-prec must be set to single or double')
 
     f = open(args.json_file,'r')
     decode = json.load(f)
@@ -91,14 +98,15 @@ if __name__ == "__main__":
         stencil_data = decode['stencils'][stencil_name]
         executable = path+'/'+stencil_data['exec']+'_'+target_suff
 
-        for thread in stencil_data[target][std]: 
-            domain_data = stencil_data[target][std][thread]
+        for thread in stencil_data[target][prec][std]: 
+            domain_data = stencil_data[target][prec][std][thread]
             for data in domain_data:
                 sizes = data.split('x')
                 exp_time = domain_data[data]['time']
                 cmd = executable +' ' + str(sizes[0]) + ' ' + str(sizes[1]) + ' ' + str(sizes[2])
                 if target == 'cpu':
-                    cmd = 'export OMP_NUM_THREADS='+thread+'; '+cmd
+                    nthreads = re.sub('thread','',thread)
+                    cmd = 'export OMP_NUM_THREADS='+nthreads+'; '+cmd
 
                 avg_time = 0
                 times = []
@@ -122,12 +130,13 @@ if __name__ == "__main__":
                     rms = rms + (t-avg_time)*(t-avg_time)
                 rms = math.sqrt(rms) / nrep
 
-                copy_ref['stencils'][stencil_name][target][std][thread][data]['time'] = avg_time
-                copy_ref['stencils'][stencil_name][target][std][thread][data]['rms'] = rms
 
-                error = math.fabs(float(extracted_time) - float(exp_time)) / float(exp_time)
+                copy_ref['stencils'][stencil_name][target][prec][std][thread][data]['time'] = avg_time
+                copy_ref['stencils'][stencil_name][target][prec][std][thread][data]['rms'] = rms
+
+                error = math.fabs(float(extracted_time) - float(exp_time)) / (float(exp_time)+1e-20)
                 if mode == 'c' and error > tolerance:
-                    print('Error in conf ['+data+','+target+','+std+','+thread+'] : exp_time -> '+ str(exp_time) + '; comp time -> '+ extracted_time+'. Error = '+ str(error*100)+'%')
+                    print('Error in conf ['+data+','+prec+','+target+','+std+','+thread+'] : exp_time -> '+ str(exp_time) + '; comp time -> '+ extracted_time+'. Error = '+ str(error*100)+'%')
                     result = False
 
     if mode == 'u':
