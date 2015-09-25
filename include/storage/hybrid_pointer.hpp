@@ -29,8 +29,8 @@ namespace gridtools {
 
         GT_FUNCTION
         explicit  hybrid_pointer(T* p, uint_t size_, bool externally_managed) : wrap_pointer<T>(p, size_, externally_managed), m_gpu_p(NULL), m_pointer_to_use(p), m_size(size_) {
-	  allocate_it(m_size);
-	}
+            allocate_it(m_size);
+        }
 
 
         //GT_FUNCTION
