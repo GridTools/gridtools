@@ -34,9 +34,12 @@ TEST(test_copy_stencil, run) {
 
     using cell_storage_type = typename backend_t::storage_t<trapezoid_2D_t::cells, double>;
 
-    const uint_t d3=6;
-    const uint_t d1=6;
-    const uint_t d2=12;
+    const uint_t halo_nc = 1;
+    const uint_t halo_mc = 2;
+    const uint_t halo_k = 0;
+    const uint_t d3=6+halo_k*2;
+    const uint_t d1=6+halo_nc*2;
+    const uint_t d2=12+halo_mc*2;
     trapezoid_2D_t grid( d1, d2, d3 );
 
     cell_storage_type in_cells = grid.make_storage<trapezoid_2D_t::cells>();
@@ -49,13 +52,12 @@ TEST(test_copy_stencil, run) {
     typedef boost::mpl::vector<p_in_cells, p_out_cells> accessor_list_t;
 
     gridtools::domain_type<accessor_list_t> domain(boost::fusion::make_vector(&in_cells, &out_cells) );
-    uint_t di[5] = {0, 0, 0, d1-1, d1};
-    uint_t dj[5] = {0, 0, 0, d2-1, d2};
+    array<uint_t,2> di = {halo_nc, d1 - halo_nc};
+    array<uint_t,2> dj = {halo_mc, d2 - halo_mc};
 
-    gridtools::coordinates<axis, trapezoid_2D_t> coords(grid);
+    gridtools::coordinates<axis, trapezoid_2D_t> coords(grid, di, dj);
     coords.value_list[0] = 0;
     coords.value_list[1] = d3-1;
-
 
 #ifdef __CUDACC__
         gridtools::computation* copy =
