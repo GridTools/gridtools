@@ -151,13 +151,13 @@ cmake \
 
 echo /tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}.log
 if [[ "$SILENT_BUILD" == "ON" ]]; then
-    make -j8 VERBOSE=1  >& /tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}.log;
+    make -j8  >& /tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}.log;
     if [ $? -ne 0 ] ; then
         cat /tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}.log;
         exit 1
     fi
 else
-    make -j8 VERBOSE=1
+    make -j8 
     if [ $? -ne 0 ] ; then
         exit 1 
     fi 
@@ -182,3 +182,6 @@ then
         #    ../examples/communication/run_communication_tests.sh
     fi
 fi
+
+exit 0
+
