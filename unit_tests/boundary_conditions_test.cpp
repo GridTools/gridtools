@@ -448,18 +448,6 @@ bool twosurfaces() {
         }
     }
 
-#ifndef NDEBUG
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", in(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-#endif
-
     gridtools::array<gridtools::halo_descriptor, 3> halos;
     halos[0] = gridtools::halo_descriptor(1,1,1,d1-2,d1);
     halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
@@ -476,25 +464,12 @@ bool twosurfaces() {
     gridtools::boundary_apply<bc_two>(halos, bc_two()).apply(in);
 #endif
 
-#ifndef NDEBUG
-        for (uint_t i=0; i<d1; ++i) {
-            for (uint_t j=0; j<d2; ++j) {
-                for (uint_t k=0; k<d3; ++k) {
-                    printf("%d ", in(i,j,k));
-                }
-                printf("\n");
-            }
-            printf("\n");
-        }
-#endif
-
             bool result = true;
 
             for (uint_t i=0; i<d1; ++i) {
                 for (uint_t j=0; j<d2; ++j) {
                     for (uint_t k=0; k<1; ++k) {
                         if (in(i,j,k) != i+j+k+1) {
-                            printf("A %d %d %d %d\n", i,j,k, in(i,j,k));
                             result = false;
                         }
                     }
@@ -505,9 +480,6 @@ bool twosurfaces() {
                 for (uint_t j=1; j<d2; ++j) {
                     for (uint_t k=d3-1; k<d3; ++k) {
                         if (in(i,j,k) != 0) {
-#ifndef NDEBUG
-                            printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                             result = false;
                         }
                     }
@@ -518,9 +490,6 @@ bool twosurfaces() {
                 for (uint_t j=0; j<1; ++j) {
                     for (uint_t k=0; k<d3; ++k) {
                         if (in(i,j,k) != i+j+k+1) {
-#ifndef NDEBUG
-                            printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                             result = false;
                         }
                     }
@@ -531,9 +500,6 @@ bool twosurfaces() {
                 for (uint_t j=d2-1; j<d2; ++j) {
                     for (uint_t k=1; k<d3; ++k) {
                         if (in(i,j,k) != 0) {
-#ifndef NDEBUG
-                            printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                             result = false;
                         }
                     }
@@ -544,9 +510,6 @@ bool twosurfaces() {
                 for (uint_t j=1; j<d2; ++j) {
                     for (uint_t k=1; k<d3; ++k) {
                         if (in(i,j,k) != 0) {
-#ifndef NDEBUG
-                            printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                             result = false;
                         }
                     }
@@ -557,9 +520,6 @@ bool twosurfaces() {
                 for (uint_t j=1; j<d2; ++j) {
                     for (uint_t k=1; k<d3; ++k) {
                         if (in(i,j,k) != 0) {
-#ifndef NDEBUG
-                            printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                             result = false;
                         }
                     }
@@ -570,9 +530,6 @@ bool twosurfaces() {
                 for (uint_t j=1; j<d2-1; ++j) {
                     for (uint_t k=1; k<d3-1; ++k) {
                         if (in(i,j,k) != 1) {
-#ifndef NDEBUG
-                            printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                             result = false;
                         }
                     }
@@ -606,18 +563,6 @@ bool usingzero_1() {
         }
     }
 
-#ifndef NDEBUG
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", in(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-#endif
-
     gridtools::array<gridtools::halo_descriptor, 3> halos;
     halos[0] = gridtools::halo_descriptor(1,1,1,d1-2,d1);
     halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
@@ -632,18 +577,6 @@ bool usingzero_1() {
     in.d2h_update();
 #else
     gridtools::boundary_apply<gridtools::zero_boundary>(halos).apply(in);
-#endif
-
-#ifndef NDEBUG
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", in(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
 #endif
 
     bool result = true;
@@ -749,18 +682,6 @@ bool usingzero_2() {
         }
     }
 
-#ifndef NDEBUG
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", in(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-#endif
-
     gridtools::array<gridtools::halo_descriptor, 3> halos;
     halos[0] = gridtools::halo_descriptor(1,1,1,d1-2,d1);
     halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
@@ -778,18 +699,6 @@ bool usingzero_2() {
     out.d2h_update();
 #else
     gridtools::boundary_apply<gridtools::zero_boundary>(halos).apply(in, out);
-#endif
-
-#ifndef NDEBUG
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", in(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
 #endif
 
     bool result = true;
