@@ -22,22 +22,25 @@ def check_output(*popenargs, **kwargs):
 try: subprocess.check_output
 except: subprocess.check_output = check_output
 
+"""
 
+"""
 if __name__ == "__main__":
 
     tolerance = 0.05
 
     parser = argparse.ArgumentParser()
     parser.add_argument("json_file", help="filename containing the stencils json report")
-    parser.add_argument('--filter',nargs=1, type=str, help='filter only stencils that matches the pattern')
+    parser.add_argument('--filter',nargs=1, type=str, help='filter only stencils that matches the pattern. Comma separated list of python regular expressions')
     parser.add_argument('-p',nargs=1, type=str, help='filter only stencils that matches the pattern')
     parser.add_argument('--target', nargs=1, type=str, help='cpu || gpu')
     parser.add_argument('--std', nargs=1, type=str, help='C++ standard')
+    parser.add_argument('-m', nargs=1, type=str, help='Mode: u (update reference), c (check reference)')
 
-    filter_stencils = None    
+    filter_stencils = [] 
     args = parser.parse_args()
     if args.filter:
-        filter_stencils = args.filter
+        filter_stencils = args.filter[0].split(',')
     if args.p:
         path=args.p[0]
     else:
@@ -58,14 +61,33 @@ if __name__ == "__main__":
     if std != "cxx11" and std != "cxx03":
         parser.error('--std should be set to cxx11 or cxx03')
 
+    if not args.m:
+        parser.error('mode -m should be specified')
+
+    mode = args.m[0]
+    if mode != 'u' and mode != 'c':
+        parser.error('-m must be set to c or u')
+
     f = open(args.json_file,'r')
     decode = json.load(f)
 
     result = True
-
     nrep=3
 
+    copy_ref = decode
+
     for stencil_name in decode['stencils']:
+        print('CHECKING :', stencil_name)
+        skip=True
+        for filter_stencil in filter_stencils:
+            filter_re = re.compile(filter_stencil)
+
+            if filter_re.search(stencil_name):
+                skip=False
+        if filter_stencils and skip: 
+            print('Skipping ',stencil_name)
+            continue
+
         stencil_data = decode['stencils'][stencil_name]
         executable = path+'/'+stencil_data['exec']+'_'+target_suff
 
@@ -79,6 +101,7 @@ if __name__ == "__main__":
                     cmd = 'export OMP_NUM_THREADS='+thread+'; '+cmd
 
                 avg_time = 0
+                times = []
                 for i in range(nrep):
                     try:
                         output=subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
@@ -86,6 +109,7 @@ if __name__ == "__main__":
                         if m:
                             extracted_time =  m.group(1)
                             avg_time = avg_time + float(extracted_time)
+                            times.append(float(extracted_time))
                         else:
                             sys.exit('Problem found extracting timings')
 
@@ -93,10 +117,23 @@ if __name__ == "__main__":
                         sys.exit('Command called raised error:\n'+e.output)
 
                 avg_time = avg_time / 3.0
+                rms=0
+                for t in times:
+                    rms = rms + (t-avg_time)*(t-avg_time)
+                rms = math.sqrt(rms) / nrep
+
+                copy_ref['stencils'][stencil_name][target][std][thread][data]['time'] = avg_time
+                copy_ref['stencils'][stencil_name][target][std][thread][data]['rms'] = rms
+
                 error = math.fabs(float(extracted_time) - float(exp_time)) / float(exp_time)
-                if error >   tolerance:
+                if mode == 'c' and error > tolerance:
                     print('Error in conf ['+data+','+target+','+std+','+thread+'] : exp_time -> '+ str(exp_time) + '; comp time -> '+ extracted_time+'. Error = '+ str(error*100)+'%')
                     result = False
+
+    if mode == 'u':
+        fw = open(args.json_file +'.out','w')
+        fw.write(json.dumps(copy_ref,  indent=4, separators=(',', ': ')) )
+        fw.close()
 
     if result:
         print('[OK]')
