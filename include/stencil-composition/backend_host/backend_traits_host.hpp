@@ -45,7 +45,7 @@ namespace gridtools{
          */
         template <typename ValueType, typename MetaData, bool Temp, short_t FieldDim=1>
         struct storage_traits{
-	GRIDTOOLS_STATIC_ASSERT((is_meta_storage<MetaData>::value), "wrong type for the storage_info");
+            GRIDTOOLS_STATIC_ASSERT((is_meta_storage<MetaData>::value), "wrong type for the storage_info");
             typedef storage<base_storage<typename pointer<ValueType>::type, MetaData, FieldDim > >   storage_t;
         };
 
@@ -56,7 +56,7 @@ namespace gridtools{
          */
         template <typename MetaData, bool Temp>
         struct meta_storage_traits{
-	GRIDTOOLS_STATIC_ASSERT((is_meta_storage<MetaData>::value), "wrong type for the storage_info");
+            GRIDTOOLS_STATIC_ASSERT((is_meta_storage<MetaData>::value), "wrong type for the storage_info");
             typedef meta_storage_base<MetaData::index_type::value, typename MetaData::layout, Temp> type;
         };
 
