@@ -72,11 +72,11 @@ public:
         , m_d1(d1)
         , m_d2(d2)
         , m_d3(d3)
-        , m_jac_info(d1, d2, d3, cub::numCubPoints, 3, 3)
-        , m_jac_det_info(d1, d2, d3, cub::numCubPoints)
-        , m_jac(m_jac_info)
-        , m_jac_det(m_jac_det_info)
-        , m_jac_inv(m_jac_info)
+        , m_jac_info(d1, d2, d3, cub::numCubPoints(), 3, 3)
+        , m_jac_det_info(d1, d2, d3, cub::numCubPoints())
+        , m_jac(m_jac_info, "jacobian")
+        , m_jac_det(m_jac_det_info, "jacobian det")
+        , m_jac_inv(m_jac_info, "jacobian inv")
         {        }
 
     jacobian_type const& get_jac() const {return m_jac;}

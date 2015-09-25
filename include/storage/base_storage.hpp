@@ -146,9 +146,11 @@ namespace gridtools {
         /**@brief the parallel storage calls the empty constructor to do lazy initialization*/
         base_storage(MetaData const & meta_data_) :
             is_set( false )
-            , m_name("default_storage")
+            , m_name("empty storage")
             , m_meta_data(meta_data_)
-            {}
+            {
+
+            }
 
         /**
            @brief 3D storage constructor
@@ -156,7 +158,7 @@ namespace gridtools {
         */
         base_storage( MetaData const& meta_data_
                       , value_type const& init// =float_type()
-                      , char const* s="default storage") :
+                      , char const* s="initialized storage") :
             is_set( true )
             , m_name( s )
             , m_meta_data(meta_data_)
@@ -175,8 +177,7 @@ namespace gridtools {
 
            The number of arguments must me equal to the space dimensions of the specific field (template parameter)
         */
-        base_storage( MetaData const& meta_data_, char const* s// ="default storage"
-            ) :
+        base_storage( MetaData const& meta_data_, char const* s) :
             is_set( true )
             , m_name(s)
             , m_meta_data(meta_data_)
@@ -188,7 +189,7 @@ namespace gridtools {
         /**@brief default constructor
            sets all the data members given the storage dimensions
         */
-        base_storage(MetaData const& meta_data_, value_type (*lambda)(uint_t const&, uint_t const&, uint_t const&), char const* s="default storage" ):
+        base_storage(MetaData const& meta_data_, value_type (*lambda)(uint_t const&, uint_t const&, uint_t const&), char const* s="storage initialized with lambda" ):
             is_set( true )
             , m_name(s)
             , m_meta_data(meta_data_)
@@ -202,8 +203,7 @@ namespace gridtools {
            This interface handles the case in which the storage is allocated from the python interface. Since this storege gets freed inside python, it must be instantiated as a
            'managed outside' wrap_pointer. In this way the storage destructor will not free the pointer.*/
         template<typename FloatType>
-        explicit base_storage(MetaData const& meta_data_, FloatType* ptr, char const* s="default storage"
-            ):
+        explicit base_storage(MetaData const& meta_data_, FloatType* ptr, char const* s="storage initialized externally"):
             is_set( true )
             , m_name(s)
             , m_meta_data(meta_data_){

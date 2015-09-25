@@ -36,7 +36,13 @@ namespace gridtools{
         typedef layout_map<2,1,0> layout_t;
         typedef cell<Order, ShapeType> cell_t;
 
-        static const typename basis_select<Order, BasisType, ShapeType>::type hexBasis;                       // create hex basis
+        static const typename basis_select<Order, BasisType, ShapeType>::type
+        hexBasis()                       // create hex basis
+        {
+            static const typename basis_select<Order, BasisType, ShapeType>::type hex_basis;
+            return hex_basis;
+
+        }
         //static const Basis_HDIV_HEX_In_FEM<double, Intrepid::FieldContainer<double> > hexBasis(2, POINTTYPE_EQUISPACED);
 
         // choices for Gauss-Lobatto:
@@ -79,9 +85,6 @@ namespace gridtools{
     //     constexpr static const array<ushort_t, 3> value={0,0,K};
     // };
 
-    template <ushort_t Order, enumtype::Basis BasisType, enumtype::Shape ShapeType>
-    const typename basis_select<Order, BasisType, ShapeType>::type
-    reference_element<Order, BasisType, ShapeType>::hexBasis;
 
     template <ushort_t Order, enumtype::Basis BasisType, enumtype::Shape ShapeType>
     const constexpr int reference_element<Order, BasisType, ShapeType>::spaceDim;// = cellType.getDimension();
@@ -90,7 +93,7 @@ namespace gridtools{
     const int reference_element<Order, BasisType, ShapeType>::numNodes = cell_t::value.getNodeCount();
 
     template <ushort_t Order, enumtype::Basis BasisType, enumtype::Shape ShapeType>
-    const int reference_element<Order, BasisType, ShapeType>::basisCardinality = hexBasis.getCardinality();
+    const int reference_element<Order, BasisType, ShapeType>::basisCardinality = hexBasis().getCardinality();
 //! [fe namespace]
 
 

@@ -66,12 +66,12 @@ namespace intrepid{
             {return *m_phi_at_cub_points_s;}
 
         discretization() :
-            m_cub_points_s_info(cub::numCubPoints, fe::spaceDim,1)
-            , m_cub_weights_s_info(cub::numCubPoints,1,1)
+            m_cub_points_s_info(cub::numCubPoints(), fe::spaceDim,1)
+            , m_cub_weights_s_info(cub::numCubPoints(),1,1)
             , m_grad_at_cub_points_s_info()
             , m_phi_at_cub_points_s_info()
-            , m_cub_points_s(m_cub_points_s_info)
-            , m_cub_weights_s(m_cub_weights_s_info)
+            , m_cub_points_s(m_cub_points_s_info, "cub points")
+            , m_cub_weights_s(m_cub_weights_s_info, "cub weights")
             , m_grad_at_cub_points_s()
             , m_phi_at_cub_points_s()
             {
@@ -80,13 +80,13 @@ namespace intrepid{
         void compute(Intrepid::EOperator const& operator_){
 
             // storage_t<layout_map<0,1,2> > cub_points_i(m_cub_points_s, 2);
-            Intrepid::FieldContainer<double> cub_points_i(cub::numCubPoints, fe::spaceDim);
+            Intrepid::FieldContainer<double> cub_points_i(cub::numCubPoints(), fe::spaceDim);
 
             // storage_t<layout_map<0,1,2> > cub_weights_i(m_cub_weights_s, 1);
-            Intrepid::FieldContainer<double> cub_weights_i(cub::numCubPoints);
+            Intrepid::FieldContainer<double> cub_weights_i(cub::numCubPoints());
 
             //copy the values
-            for (uint_t q=0; q<cub::numCubPoints; ++q)
+            for (uint_t q=0; q<cub::numCubPoints(); ++q)
             {
                 m_cub_weights_s(q,0,0)=cub_weights_i(q);
                 for (uint_t j=0; j<fe::spaceDim; ++j)
@@ -94,10 +94,10 @@ namespace intrepid{
             }
 
             // storage_t<layout_map<0,1,2> > grad_at_cub_points_i(m_grad_at_cub_points_s);
-            Intrepid::FieldContainer<double> grad_at_cub_points_i(fe::basisCardinality, cub::numCubPoints, fe::spaceDim);
+            Intrepid::FieldContainer<double> grad_at_cub_points_i(fe::basisCardinality, cub::numCubPoints(), fe::spaceDim);
 
             // retrieve cub points and weights
-            cub::cub->getCubature(cub_points_i, cub_weights_i);
+            cub::cub()->getCubature(cub_points_i, cub_weights_i);
 
             switch (operator_){
             case Intrepid::OPERATOR_GRAD :
@@ -105,7 +105,7 @@ namespace intrepid{
                 m_grad_at_cub_points_s_info=std::unique_ptr
                     <grad_storage_t_info>
                     (new grad_storage_t_info
-                     (fe::basisCardinality, cub::numCubPoints, fe::spaceDim));
+                     (fe::basisCardinality, cub::numCubPoints(), fe::spaceDim));
 
                 m_grad_at_cub_points_s=std::unique_ptr
                     <grad_storage_t>
@@ -113,9 +113,9 @@ namespace intrepid{
                      (*m_grad_at_cub_points_s_info, "grad at cub points"));
 
                 // evaluate grad operator at cub points
-                fe::hexBasis.getValues(grad_at_cub_points_i, cub_points_i, Intrepid::OPERATOR_GRAD);
+                fe::hexBasis().getValues(grad_at_cub_points_i, cub_points_i, Intrepid::OPERATOR_GRAD);
 
-                for (uint_t q=0; q<cub::numCubPoints; ++q)
+                for (uint_t q=0; q<cub::numCubPoints(); ++q)
                     for (uint_t j=0; j<fe::spaceDim; ++j)
                         for (uint_t i=0; i<fe::basisCardinality; ++i)
                             for (uint_t j=0; j<fe::spaceDim; ++j)
@@ -128,7 +128,7 @@ namespace intrepid{
                 m_phi_at_cub_points_s_info=std::unique_ptr
                     <basis_function_storage_t_info>
                     (new basis_function_storage_t_info
-                     (fe::basisCardinality, cub::numCubPoints, 1));
+                     (fe::basisCardinality, cub::numCubPoints(), 1));
 
                 m_phi_at_cub_points_s=std::unique_ptr
                     <basis_function_storage_t>
@@ -136,12 +136,12 @@ namespace intrepid{
                      (*m_phi_at_cub_points_s_info, "phi at cub points"));
 
                 Intrepid::FieldContainer<double> phi_at_cub_points_i(fe::basisCardinality
-                                                                     , cub::numCubPoints);
+                                                                     , cub::numCubPoints());
 
-                fe::hexBasis.getValues(phi_at_cub_points_i, cub_points_i, Intrepid::OPERATOR_VALUE);
+                fe::hexBasis().getValues(phi_at_cub_points_i, cub_points_i, Intrepid::OPERATOR_VALUE);
 
                 //copy out the values
-                for (uint_t q=0; q<cub::numCubPoints; ++q)
+                for (uint_t q=0; q<cub::numCubPoints(); ++q)
                     // for (uint_t j=0; j<fe::spaceDim; ++j)
                     for (uint_t i=0; i<fe::basisCardinality; ++i){
                         (*m_phi_at_cub_points_s)(i,q,0)=phi_at_cub_points_i(i,q);
@@ -177,14 +177,14 @@ namespace intrepid{
         geometry() :
             //create the local grid
             m_local_grid_s_info(geo_map::basisCardinality, geo_map::spaceDim,1)
-            , m_local_grid_s(m_local_grid_s_info)
+            , m_local_grid_s(m_local_grid_s_info, "local grid")
 #ifdef REORDER
-            , m_local_grid_reordered_s(m_local_grid_s_info)
+            , m_local_grid_reordered_s(m_local_grid_s_info, "local grid reordered")
 #endif
             {
                 // storage_t<layout_map<0,1,2> > local_grid_i(m_local_grid_s, 2);
                 Intrepid::FieldContainer<double> local_grid_i(geo_map::basisCardinality, geo_map::spaceDim);
-                geo_map::hexBasis.getDofCoords(local_grid_i);
+                geo_map::hexBasis().getDofCoords(local_grid_i);
                 for (uint_t i=0; i<geo_map::basisCardinality; ++i)
                     for (uint_t j=0; j<geo_map::spaceDim; ++j)
                         m_local_grid_s(i,j,0)=local_grid_i(i,j);
@@ -258,18 +258,18 @@ namespace intrepid{
     public:
         boundary_cub()
             :
-            m_bd_cub_pts_info(bd_cub::numCubPoints, geo_map::spaceDim-1, 1)
-            , m_bd_cub_weights_info(bd_cub::numCubPoints, 1, 1)
+            m_bd_cub_pts_info(bd_cub::numCubPoints(), geo_map::spaceDim-1, 1)
+            , m_bd_cub_weights_info(bd_cub::numCubPoints(), 1, 1)
             , m_bd_cub_pts(m_bd_cub_pts_info, "bd cub points")
             , m_bd_cub_weights(m_bd_cub_weights_info, "bd cub weights")
             // , m_bd_cub_pts_lifted(bd_cub::numCubPoints, geo_map::spaceDim, 1)
             {
-                Intrepid::FieldContainer<value_t> bd_cub_pts_(bd_cub::numCubPoints, geo_map::spaceDim-1);
-                Intrepid::FieldContainer<value_t> bd_cub_weights_(bd_cub::numCubPoints);
+                Intrepid::FieldContainer<value_t> bd_cub_pts_(bd_cub::numCubPoints(), geo_map::spaceDim-1);
+                Intrepid::FieldContainer<value_t> bd_cub_weights_(bd_cub::numCubPoints());
 
                 bd_cub::cub->getCubature(bd_cub_pts_, bd_cub_weights_);
 
-                for (uint_t i=0; i<bd_cub::numCubPoints; ++i){
+                for (uint_t i=0; i<bd_cub::numCubPoints(); ++i){
                     m_bd_cub_weights(i,0,0)=bd_cub_weights_(i);
                     for (uint_t j=0; j<geo_map::spaceDim-1; ++j){
                         m_bd_cub_pts(i,j,0)=bd_cub_pts_(i,j);
@@ -283,10 +283,10 @@ namespace intrepid{
         */
         Intrepid::FieldContainer<value_t> update_boundary_cub( ushort_t cell_ord_ ){
 
-            Intrepid::FieldContainer<value_t> bd_cub_pts_lifted_(bd_cub::numCubPoints, geo_map::spaceDim);
-            Intrepid::FieldContainer<value_t> bd_cub_pts_(bd_cub::numCubPoints, geo_map::spaceDim-1);
+            Intrepid::FieldContainer<value_t> bd_cub_pts_lifted_(bd_cub::numCubPoints(), geo_map::spaceDim);
+            Intrepid::FieldContainer<value_t> bd_cub_pts_(bd_cub::numCubPoints(), geo_map::spaceDim-1);
 
-            for (uint_t i=0; i<bd_cub::numCubPoints; ++i){
+            for (uint_t i=0; i<bd_cub::numCubPoints(); ++i){
                 for (uint_t j=0; j<geo_map::spaceDim-1; ++j){
                     bd_cub_pts_(i,j)=m_bd_cub_pts(i,j,0);
                 }
@@ -343,9 +343,9 @@ namespace intrepid{
 
         boundary_discr(rule_t & rule_, ushort_t face_ord_):
             m_rule(rule_)
-            , m_grad_at_cub_points_info(geo_map::basisCardinality, rule_t::bd_cub::numCubPoints, shape_property<rule_t::/*bd*/parent_shape>::dimension)
-            , m_phi_at_cub_points_info(geo_map::basisCardinality, rule_t::bd_cub::numCubPoints, 1)
-            , m_ref_face_tg_info(rule_t::bd_cub::numCubPoints, shape_property<rule_t::parent_shape>::dimension, 1)
+            , m_grad_at_cub_points_info(geo_map::basisCardinality, rule_t::bd_cub::numCubPoints(), shape_property<rule_t::/*bd*/parent_shape>::dimension)
+            , m_phi_at_cub_points_info(geo_map::basisCardinality, rule_t::bd_cub::numCubPoints(), 1)
+            , m_ref_face_tg_info(rule_t::bd_cub::numCubPoints(), shape_property<rule_t::parent_shape>::dimension, 1)
             , m_grad_at_cub_points(m_grad_at_cub_points_info, "bd grad at cub")
             , m_phi_at_cub_points(m_phi_at_cub_points_info, "bd phi at cub")
             , m_ref_face_tg_u(m_ref_face_tg_info, "tg u")
@@ -359,31 +359,31 @@ namespace intrepid{
             switch (operator_){
             case Intrepid::OPERATOR_GRAD :
             {
-                Intrepid::FieldContainer<double> grad_at_cub_points(geo_map::basisCardinality, rule_t::bd_cub::numCubPoints, shape_property<rule_t::/*bd*/parent_shape>::dimension);
+                Intrepid::FieldContainer<double> grad_at_cub_points(geo_map::basisCardinality, rule_t::bd_cub::numCubPoints(), shape_property<rule_t::/*bd*/parent_shape>::dimension);
                 // evaluate grad operator at the face cub points
                 //NOTE: geo_map has the parent element basis, not the boundary one
-                geo_map::hexBasis.getValues(grad_at_cub_points, face_quad_, Intrepid::OPERATOR_GRAD);
+                geo_map::hexBasis().getValues(grad_at_cub_points, face_quad_, Intrepid::OPERATOR_GRAD);
 
                 for (uint_t l=0; l<geo_map::basisCardinality; ++l)
-                    for (uint_t i=0; i<rule_t::bd_cub::numCubPoints; ++i)
+                    for (uint_t i=0; i<rule_t::bd_cub::numCubPoints(); ++i)
                         for (uint_t j=0; j<shape_property<rule_t::/*bd*/parent_shape>::dimension; ++j)
                             m_grad_at_cub_points(l,i,j)=grad_at_cub_points(l,i,j);
                 break;
             }
             case Intrepid::OPERATOR_VALUE :
             {
-                Intrepid::FieldContainer<double> phi_at_cub_points(geo_map::basisCardinality, rule_t::bd_cub::numCubPoints);
+                Intrepid::FieldContainer<double> phi_at_cub_points(geo_map::basisCardinality, rule_t::bd_cub::numCubPoints());
                 // evaluate grad operator at the face cub points
-                geo_map::hexBasis.getValues(phi_at_cub_points, face_quad_, Intrepid::OPERATOR_VALUE);
+                geo_map::hexBasis().getValues(phi_at_cub_points, face_quad_, Intrepid::OPERATOR_VALUE);
 
                 for (uint_t j=0; j<geo_map::basisCardinality; ++j)
-                    for (uint_t i=0; i<rule_t::bd_cub::numCubPoints; ++i)
+                    for (uint_t i=0; i<rule_t::bd_cub::numCubPoints(); ++i)
                         m_phi_at_cub_points(i,j,0)=phi_at_cub_points(i,j);
                 break;
             }
             // case Intrepid::OPERATOR_VALUE :
             // {
-            //     geo_map::hexBasis.getValues(m_phi_at_cub_points, face_quad_, Intrepid::OPERATOR_VALUE);
+            //     geo_map::hexBasis().getValues(m_phi_at_cub_points, face_quad_, Intrepid::OPERATOR_VALUE);
             //     break;
             // }
             default : assert(false);
@@ -392,11 +392,11 @@ namespace intrepid{
 
         /**@brief get the 2 tangents on a point in the reference element*/
         void compute_tangents(){
-            Intrepid::FieldContainer<double> tangent_u(rule_t::bd_cub::numCubPoints, shape_property<rule_t::parent_shape>::dimension);
-            Intrepid::FieldContainer<double> tangent_v(rule_t::bd_cub::numCubPoints, shape_property<rule_t::parent_shape>::dimension);
+            Intrepid::FieldContainer<double> tangent_u(rule_t::bd_cub::numCubPoints(), shape_property<rule_t::parent_shape>::dimension);
+            Intrepid::FieldContainer<double> tangent_v(rule_t::bd_cub::numCubPoints(), shape_property<rule_t::parent_shape>::dimension);
             Intrepid::CellTools<value_t>::getReferenceFaceTangents(m_ref_face_tg_u, m_ref_face_tg_v, m_face_ord, geo_map::cell_t::value);
 
-            for (uint_t i=0; i<rule_t::bd_cub::numCubPoints; ++i)
+            for (uint_t i=0; i<rule_t::bd_cub::numCubPoints(); ++i)
                     for (uint_t j=0; j<shape_property<rule_t::parent_shape>::dimension; ++j)
                     {
                         m_ref_face_tg_u(i,j,0)=tangent_u(i,j);

@@ -14,22 +14,34 @@ namespace gridtools{
         static const int cubDegree = Order;
         static const enumtype::Shape shape = CellType;
         // create cubature factory
-        static Intrepid::DefaultCubatureFactory<double,  Intrepid::FieldContainer<double> > cubFactory;
+        static Intrepid::DefaultCubatureFactory<double,  Intrepid::FieldContainer<double> >
+        cubFactory(){
+
+            static Intrepid::DefaultCubatureFactory<double,  Intrepid::FieldContainer<double> > cub_factory;
+            return cub_factory;
+        }
         // create default cubature
-        static const Teuchos::RCP<Intrepid::Cubature<double, Intrepid::FieldContainer<double> > > cub;
+        static Teuchos::RCP<Intrepid::Cubature<double, Intrepid::FieldContainer<double> > >
+        cub(){
+            static const auto cub_=cubFactory().create(cell_t::value, cubature<Order, CellType>::cubDegree);
+            return cub_;
+        }
+        // static Teuchos::RCP<Intrepid::Cubature<double, Intrepid::FieldContainer<double> > > cub;
         // retrieve number of cubature points
-        static const int numCubPoints;
+        static constexpr int numCubPoints(){
+            return cub()->getNumPoints();
+        }
     };
 
-    template <ushort_t Order, enumtype::Shape  CellType>
-    Intrepid::DefaultCubatureFactory<double,  Intrepid::FieldContainer<double> > cubature<Order, CellType>::cubFactory;
+    // template <ushort_t Order, enumtype::Shape  CellType>
+    // Intrepid::DefaultCubatureFactory<double,  Intrepid::FieldContainer<double> > cubature<Order, CellType>::cubFactory;
 
-    template <ushort_t Order, enumtype::Shape CellType>
-    const Teuchos::RCP<Intrepid::Cubature<double, Intrepid::FieldContainer<double> > > cubature<Order, CellType>::
-    cub = cubature<Order, CellType>::cubFactory.create(cell_t::value, cubature<Order, CellType>::cubDegree);
+    // template <ushort_t Order, enumtype::Shape CellType>
+    // const Teuchos::RCP<Intrepid::Cubature<double, Intrepid::FieldContainer<double> > > cubature<Order, CellType>::
+    // cub = cubature<Order, CellType>::cubFactory.create(cell_t::value, cubature<Order, CellType>::cubDegree);
 
-    template <ushort_t Order, enumtype::Shape CellType>
-    const int  cubature<Order, CellType>::numCubPoints = cubature<Order, CellType>::cub->getNumPoints();
+    // template <ushort_t Order, enumtype::Shape CellType>
+    // const int  cubature<Order, CellType>::numCubPoints = cubature<Order, CellType>::cub->getNumPoints();
 //! [quadrature]
 
     template <typename Cubature>

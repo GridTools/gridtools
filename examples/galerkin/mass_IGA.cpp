@@ -4,7 +4,6 @@
 #pragma once
 #define PEDANTIC_DISABLED
 #include "assembly.h"
-#include <common/generic_metafunctions/static_counter.hpp>
 
 int main(){
 

@@ -3,12 +3,12 @@
 namespace gridtools{
 
     template<typename ArrayKnots, typename Quad, typename Storage
-	      , template<typename Q, typename S, uint_t ... I> class InnerFunctor
+	      , template<typename Q, typename S, int ... I> class InnerFunctor
 	     , typename ... Ranges>
     struct nest_loop;
 
     template <typename ArrayKnots, typename Quad, typename Storage
-	      , template<typename Q, typename S, uint_t ... I> class InnerFunctor
+	      , template<typename Q, typename S, int ... I> class InnerFunctor
 	      , typename Range1, typename Range2, typename Range3>
     struct nest_loop<ArrayKnots, Quad, Storage, InnerFunctor, Range1, Range2, Range3>{
 
@@ -32,7 +32,7 @@ namespace gridtools{
     };
 
 
-    template <typename ArrayKnots, typename Quad, typename Storage, template<typename Q, typename S, uint_t ... I> class InnerFunctor, typename Range2, typename Range3>
+    template <typename ArrayKnots, typename Quad, typename Storage, template<typename Q, typename S, int ... I> class InnerFunctor, typename Range2, typename Range3>
     struct nest_loop<ArrayKnots, Quad, Storage, InnerFunctor, Range2, Range3>{
 
 	using array_t=ArrayKnots;
@@ -56,8 +56,8 @@ namespace gridtools{
     };
 
 
-    template <typename ArrayKnots, typename Quad, typename Storage, template<typename Q, typename S, uint_t ... I> class InnerFunctor, uint_t I, typename Range3>
-    struct nest_loop<ArrayKnots, Quad, Storage, InnerFunctor, static_ushort<I>,  Range3>{
+    template <typename ArrayKnots, typename Quad, typename Storage, template<typename Q, typename S, int ... I> class InnerFunctor, int I, typename Range3>
+    struct nest_loop<ArrayKnots, Quad, Storage, InnerFunctor, static_int<I>,  Range3>{
 
 	using array_t=ArrayKnots;
 

@@ -34,7 +34,7 @@ public:
         , m_d2(d2)
         , m_d3(d3)
         , m_grid_info(d1, d2, d3, geo_map::basisCardinality, 3)
-        , m_grid(m_grid_info)
+        , m_grid(m_grid_info, "grid")
         {        }
 
     grid_type const& get_grid() const {return m_grid;}

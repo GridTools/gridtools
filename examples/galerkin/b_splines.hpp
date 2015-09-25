@@ -34,6 +34,13 @@ namespace gridtools{
         using iga_rt::BSpline<Coeff::index,Coeff::order>::BSpline;
     };
 
+    /**
+       @biref functor used to get the values in a point of a multivatiate B-spline
+
+       say that we have a point in 4D (x1,x2,x3,x4) and a tuple of 4 univariate B-spline
+       (sp1, sp2, sp3, sp4), then one can use this functor together with (e.g.)
+       boost::fusion::transform to obtain the vector (sp1(x1),sp2(x2),sp3(x3),sp4(x4) ).
+     */
     template <typename Tuple>
     struct get_val
     {
@@ -44,36 +51,49 @@ namespace gridtools{
             m_vals(vals_)
         {}
 
+        /**
+           @brief evaluation operator
+
+           note that Basis is a univariate B-spline in a specific dimension
+         */
         template<typename Basis>
         double operator()(Basis const& basis_) const
         {
-            // std::cout<<"Basis "<<Basis::dimension<<" for value "<<std::get<Basis::dimension>(m_vals)<<
-            //     " returns "<<basis_.evaluate(std::get<Basis::dimension>(m_vals))<<std::endl;
             return basis_.evaluate(std::get<Basis::dimension>(m_vals));
         }
     };
 
     /**
-       @brief b-spline function
+       @brief generic multivariate b-spline
+
+       This class contains a tuple of univariate B-splines
     */
     template<typename ... Coeff>
     class GenericBSpline
     {
+    private:
         using tuple_t=boost::fusion::vector<BSplineDerived<Coeff> ... >;
-
         tuple_t m_univariate_bsplines;
 
     public:
 
-        // template <typename ... Knots>
-        // GenericBSpline( Knots const& ... knots_ );
+        /**
+           @brief Constructor given a multidimensional array of knots
+
+           @param knots_ an array of array whose dimension depends on the parametric space dimension
+         */
         template <typename Knots>
         GenericBSpline( Knots const& knots_ );
 
-        /** @brief evaluates all the basis on the list of points*/
+        /** @brief evaluates all the basis on a list of points
+
+            @tparam vals_ variadic pack (of length equal to the parametric space dimension) containing the point in
+            which the B-spline is evaluated.
+         */
         template <typename ... Values>
         double evaluate(Values const& ... vals_) const{
-            //check length vals_ == length m_univariate_bsplines
+
+            GRIDTOOLS_STATIC_ASSERT((sizeof...(Values) == sizeof...(Coeff)), "mismatch between the B-splines dimension and the parametric space dimension");
             auto tuple_of_vals = boost::fusion::transform (
                 m_univariate_bsplines
                 , get_val<std::tuple<Values...> >(std::make_tuple(vals_...) ) );
@@ -92,7 +112,7 @@ namespace gridtools{
 
     };
 
-    // //implementation
+    // //old implementation
     // template <typename ... Coeff>
     // template <typename ... Knots>
     // GenericBSpline<Coeff ...>::GenericBSpline( Knots const& ... knots_ ):
@@ -115,6 +135,14 @@ namespace gridtools{
     {
     }
 
+    /**
+       @brief class holding the parametric space
+
+       The parametric space is depending only on the order of the basis,
+       it will be mapped to the deformed configuration by the finite
+       element transformation (thus depending on the position of the
+       knots on the deformed grid)
+     */
     template<ushort_t P, ushort_t Dim>
     struct parametric_space{
 	array<array<double, P+P+1>, Dim> m_knots;
@@ -172,25 +200,33 @@ namespace gridtools{
 
         template <typename Storage>
         void getDofCoords(Storage& /*s*/){
-            // should return the knots coordinate
+            // should fill the input storage with the knots local coordinates
             // to be implemented
             assert(false);
         }
 
         int getCardinality() const
         {
-            //returns the number of basis functions
+            //returns the number of basis functions (P)^dim
             return gt_pow<Dim>::apply(P);
         }
 
 
-        template<uint_t F, uint_t S>
+        /**@brief metafunction to get the first of two template arguments*/
+        template<int F, int S>
         struct lambda_get_first{
-            static const uint_t value=F;
+            static const int value=F;
         };
 
 
-        template <typename Quad, typename Storage, uint_t I, uint_t J>
+        /**
+           @brief functor to evaluate the B-spline basis on the quadrature points.
+
+           It is plugged into a hierarchical loop structure.
+           NOTE: this functor is not generic, is
+         */
+        template <typename Quad, typename Storage, int ... Dims // I, uint_t J
+                  >
         struct functor_get_vals{
 	    using array_t=array<double, P+P+1>;
 
@@ -210,20 +246,18 @@ namespace gridtools{
             template <typename Id>
             void operator()(Id){
 
-                // using layout_t= typename apply_gt_integer_sequence
-                //     <make_gt_itege_sequence
-                //      <sizeof...(Dims...)>::apply_c_tt
-                //      <layout_map, lambda_get_first, Dims..., Id::value>::type;
+                //innermost loop has lower stride <0,1,2,3,....>
+                using layout_t= typename apply_gt_integer_sequence
+                    <typename make_gt_integer_sequence
+                     <int, sizeof...(Dims)+1>::type >::template apply_c_tt
+                     <layout_map, lambda_get_first, Dims..., Id::value>::type;
 
-                // layout_t::fuck();
-                //computing the strides at compile time
-                // constexpr meta_storage_base<0,
-                //                             // layout_t
-                //                             layout_map<0,1,2>
-                //                             > indexing{Dims...,Id::value};
+                // computing the strides at compile time
+                // NOTE: __COUNTER__ is a non standard non very portable solution
+                // though the main compilers implement it
+                constexpr meta_storage_base<__COUNTER__,layout_t,false> indexing{P, P, P};
 
-                // defining the b-spline in I-J
-                spline_tt<I, J, Id::value> basis_(m_knots);
+                spline_tt<Dims ... , Id::value> basis_(m_knots);
 
 		for (int k=0; k< m_quad.dimension(0); ++k)
 		{
@@ -235,9 +269,12 @@ namespace gridtools{
 					      <<std::endl;
 #endif
 		    // define a storage_metadata here! ==> generic dimension/layout
-		     auto storage_index=(I-1)+P*(J-1)+P*P*(Id::value-1);
+                    array<int, sizeof...(Dims)+1> vals_{Dims..., Id::value};
+                    auto storage_index=(vals_[0]-1)*P*P+P*(vals_[1]-1)+(Id::value-1);
+                    std::cout<<"Dims: "<<vals_[0]-1<<", "<<vals_[1]-1<<", "<<vals_[2]-1<<std::endl;
+                    assert(indexing.index(Dims-1 ... , Id::value-1) == storage_index);
                     //accessign the data
-		    m_storage(storage_index,k)=basis_.evaluate(m_quad(k, 0),m_quad(k, 1),m_quad(k, 2));
+		    m_storage(indexing.index(Dims-1 ... , Id::value-1),k)=basis_.evaluate(m_quad(k, 0),m_quad(k, 1),m_quad(k, 2));
 		}
             }
         };
@@ -258,12 +295,13 @@ namespace gridtools{
             switch (op){
             case Intrepid::OPERATOR_VALUE :
 
+                //here we suppose 3 dimensions.
 		//unroll according to dimensions
 		nest_loop
 		    < array<array<double, P+P+1>, Dim>, Quad, Storage, functor_get_vals
-		     , boost::mpl::range_c<uint_t, 1, P+1>
-		     , boost::mpl::range_c<uint_t, 1, P+1>
-		     , boost::mpl::range_c<uint_t, 1, P+1> >
+		     , boost::mpl::range_c<int, 1, P+1>
+		     , boost::mpl::range_c<int, 1, P+1>
+		     , boost::mpl::range_c<int, 1, P+1> >
 		    (quad_points_, storage_, this->m_knots)();
 		break;
 	    default:
