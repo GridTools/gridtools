@@ -1,9 +1,18 @@
 #!/bin/bash
 
 function help {
-   echo "helo"
+   echo "$0 [OPTIONS]"
+   echo "-h      help"
+   echo "-b      build type               [release|debug]"
+   echo "-t      target                   [gpu|cpu]"
+   echo "-f      floating point precision [float|double]"
+   echo "-c      cxx standard             [cxx11|cxx03]"
+   echo "-p      activate python                       "
+   echo "-m      activate mpi                          "
+   echo "-s      activate a silent build               "
+   exit 1
 }
-while getopts "h:b:t:f:s:pm" opt; do
+while getopts "h:b:t:f:c:pms" opt; do
     case "$opt" in
     h|\?)
         help
@@ -15,11 +24,13 @@ while getopts "h:b:t:f:s:pm" opt; do
         ;;
     f) FLOAT_TYPE=$OPTARG
         ;;
-    s) CXXSTD=$OPTARG
+    c) CXX_STD=$OPTARG
         ;;
     p) PYTHON="ON"
         ;;
     m) MPI="ON"
+        ;;
+    s) SILENT_BUILD="ON"
         ;;
     esac
 done
@@ -36,7 +47,7 @@ if [[ "$FLOAT_TYPE" != "float" ]] && [[ "$FLOAT_TYPE" != "double" ]]; then
    help
 fi
 
-if [[ "$CXXSTD" != "cxx11" ]] && [[ "$CXXSTD" != "cxx03" ]]; then
+if [[ "$CXX_STD" != "cxx11" ]] && [[ "$CXX_STD" != "cxx03" ]]; then
    help
 fi
 
@@ -124,7 +135,13 @@ cmake \
 -DENABLE_PERFORMANCE_METERS:BOOL=ON \
  ../
 
-make -j8 >& /tmp/jenkins.log;
+echo /tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}.log
+if [[ "$SILENT_BUILD" == "ON" ]]; then
+    make -j8 >& /tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}.log;
+    if [ $? -ne 0 ] ; then
+        cat /tmp/jenkins.log
+    fi
+fi
 
 sh ./run_tests.sh
 
