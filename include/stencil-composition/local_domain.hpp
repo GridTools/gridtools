@@ -216,18 +216,18 @@ namespace gridtools {
 
         /** creates a vector of storage types from the StoragePointers sequence */
         typedef typename boost::mpl::fold
-	<mpl_storages,
-	 boost::mpl::vector0<>,
-	 boost::mpl::if_< is_any_storage<boost::mpl::_2>,
-			  boost::mpl::push_back<
-			      boost::mpl::_1,
-			      storage2metadata<
-				  boost::remove_pointer<
-				      boost::mpl::_2 >
-				  >
-			      >
-			  , boost::mpl::_1 >
-	 >::type::type local_metadata_mpl_t;
+        <mpl_storages,
+         boost::mpl::vector0<>,
+         boost::mpl::if_< is_any_storage<boost::mpl::_2>,
+                          boost::mpl::push_back<
+                              boost::mpl::_1,
+                              storage2metadata<
+                                  boost::remove_pointer<
+                                      boost::mpl::_2 >
+                                  >
+                              >
+                          , boost::mpl::_1 >
+         >::type::type local_metadata_mpl_t;
 
 
         // convoluted way to filter out the duplicated meta storage types : transform vector to set to map

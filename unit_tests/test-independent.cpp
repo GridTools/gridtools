@@ -195,7 +195,7 @@ void print_mss(MSS)
 
     std::cout << std::endl;
 
-	typedef typename _impl::prefix_on_ranges<ranges_list>::type prefix_ranges;
+    typedef typename _impl::prefix_on_ranges<ranges_list>::type prefix_ranges;
 
     // typedef typename boost::mpl::fold<
     //     ranges_list,
