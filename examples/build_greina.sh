@@ -148,11 +148,16 @@ echo /tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${M
 if [[ "$SILENT_BUILD" == "ON" ]]; then
     make -j8 >& /tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}.log;
     if [ $? -ne 0 ] ; then
-        cat /tmp/jenkins.log
+        cat /tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}.log;
+        exit 1
     fi
 fi
 
 sh ./run_tests.sh
+
+if [ $? -ne 0 ] ; then
+    exit 1
+fi
 
 if [ "x$TARGET" == "xcpu" ]
 then
