@@ -1,5 +1,7 @@
+#include "gtest/gtest.h"
 #include "extended_4D.hpp"
 #include <iostream>
+#include "Options.hpp"
 
 int main(int argc, char** argv)
 {
