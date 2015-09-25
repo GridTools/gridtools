@@ -7,10 +7,6 @@
 #include "storage/hybrid_pointer.hpp"
 
 using namespace gridtools;
-#define _BLABLA(y) #y
-#define BLABLA(z) _BLABLA(z:%d\n)
-#define SIZE(x) printf( BLABLA(x) , sizeof(x) );
-
 
 template <typename t_derived>
 struct base : public clonable_to_gpu<t_derived> {
@@ -45,29 +41,6 @@ struct derived: public base<derived<value_type> > {
 
 };
 
-__host__ __device__
-void printwhatever(derived<uint_t> * ptr) {
-    printf("Ecco %X ", ptr);
-    // printf("%d ", ptr->m_size);
-    // printf("%d ", ptr->data.size);
-    // printf("%X ", ptr->data.pointer_to_use);
-    printf("%X ", ptr->data.get_cpu_p());
-    printf("%X\n", ptr->data.get_gpu_p());
-    for (uint_t i = 0; i < ptr->data.get_size(); ++i) {
-#ifdef __CUDA_ARCH__
-        ptr->data[i]++;
-#endif
-        printf("%d, ", ptr->data[i]);
-    }
-    printf("\n");
-}
-
-template <typename the_type>
-__global__
-void print_on_gpu(the_type * ptr) {
-    printwhatever(ptr);
-}
-
 int main(int argc, char** argv) {
 
     if(argc < 2) {
@@ -82,14 +55,6 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
-    SIZE(uint_t);
-    SIZE(uint_t*);
-    SIZE(derived<uint_t>*);
-    SIZE(derived<uint_t>);
-    SIZE(base<derived<uint_t> >);
-    SIZE(hybrid_pointer<uint_t>);
-
-    std::cout << "Initialize" << std::endl;
     int_t res = EXIT_SUCCESS;
 
     derived<uint_t> a(buffer_size);
@@ -101,46 +66,24 @@ int main(int argc, char** argv) {
     a.clone_to_gpu();
     a.data.update_gpu();
 
-    std::cout << "Printing Beginning " << std::hex
-              << a.data.get_cpu_p() << " "
-              << a.data.get_gpu_p() << " "
-              // << a.data.pointer_to_use << " "
-              // << a.m_size << " "
-              // << a.data.size << " "
-              << std::dec
-              << std::endl;
-
-    printwhatever(&a);
     for(uint_t i = 0; i < a.data.get_size(); ++i) {
         if(a.data[i] != buffer_size - i)
             res = EXIT_FAILURE;
     }
 
-    print_on_gpu<<<1,1>>>(a.gpu_object_ptr);
     for(uint_t i = 0; i < a.data.get_size(); ++i) {
         if(a.data[i] != buffer_size - i)
             res = EXIT_FAILURE;
     }
 
-    std::cout << "Synchronize" << std::endl;
     cudaDeviceSynchronize();
     a.clone_from_gpu();
     a.data.update_cpu();
 
-    printwhatever(&a);
     for(uint_t i = 0; i < a.data.get_size(); ++i) {
         if(a.data[i] != buffer_size - i + 1)
             res = EXIT_FAILURE;
     }
-
-    std::cout << "Printing End " << std::hex
-              << a.data.get_cpu_p() << " "
-              << a.data.get_gpu_p() << " "
-              // << a.data.pointer_to_use << " "
-              // << a.m_size << " "
-              // << a.data.size << " "
-              << std::dec
-              << std::endl;
 
     return res;
 }

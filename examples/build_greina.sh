@@ -157,10 +157,11 @@ if [[ "$SILENT_BUILD" == "ON" ]]; then
         exit 1
     fi
 else
-    make -j8 VERBOSE=1 
+    make -j8 VERBOSE=1
+    if [ $? -ne 0 ] ; then
+        exit 1 
+    fi 
 fi
-
-
 
 sh ./run_tests.sh
 
