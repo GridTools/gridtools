@@ -1,7 +1,7 @@
 list( APPEND SRCFILES interface1 boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore)
 
 if( ENABLE_CXX11)
-    list(APPEND SRCFILES  extended_4D)
+#    list(APPEND SRCFILES  extended_4D)
 endif(ENABLE_CXX11)
 
 set( GTEST_FILES Options.hpp Options.cpp)

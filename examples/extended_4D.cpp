@@ -29,5 +29,5 @@ TEST(Extended4D, Test)
     uint_t y = Options::getInstance().m_size[1];
     uint_t z = Options::getInstance().m_size[2];
 
-    ASSERT_TRUE(extended_4d::test(x, y, z));
+    ASSERT_TRUE( assembly::test(x, y, z));
 }

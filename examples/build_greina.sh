@@ -70,7 +70,7 @@ VENV_PATH=${HOME}/venv_gridtools4py
 # environment setup
 #
 module load gcc/4.8.4
-module load cmake/2.8.12
+module load /home/cosuna/privatemodules/cmake-3.3.2
 module load python/3.4.3
 module load boost/1.56_gcc4.8.4
 module load mvapich2/gcc/64/2.0-gcc-4.8.2-cuda-6.0
@@ -124,6 +124,8 @@ WHERE_=`pwd`
 
 export JENKINS_COMMUNICATION_TESTS=1
 
+HOST_COMPILER=`which g++`
+
 cmake \
 -DCUDA_ARCH:STRING="sm_35" \
 -DCMAKE_BUILD_TYPE:STRING="$BUILD_TYPE" \
@@ -135,8 +137,9 @@ cmake \
 -DGTEST_INCLUDE_DIR:PATH=/users/crosetto/gtest-1.7.0/include \
 -DGNU_COVERAGE:BOOL=OFF \
 -DGCL_ONLY:BOOL=OFF \
--DCMAKE_CXX_COMPILER="g++" \
+-DCMAKE_CXX_COMPILER="${HOST_COMPILER}" \
 -DCMAKE_CXX_FLAGS:STRING="-I${MPI_HOME}/include" \
+-DCUDA_HOST_COMPILER:STRING="${HOST_COMPILER}" \
 -DUSE_MPI:BOOL=$USE_MPI \
 -DUSE_MPI_COMPILER:BOOL=$USE_MPI  \
 -DSINGLE_PRECISION:BOOL=$SINGLE_PRECISION \
@@ -148,12 +151,16 @@ cmake \
 
 echo /tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}.log
 if [[ "$SILENT_BUILD" == "ON" ]]; then
-    make -j8 >& /tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}.log;
+    make -j8 VERBOSE=1  >& /tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}.log;
     if [ $? -ne 0 ] ; then
         cat /tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}.log;
         exit 1
     fi
+else
+    make -j8 VERBOSE=1 
 fi
+
+
 
 sh ./run_tests.sh
 

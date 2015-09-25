@@ -144,7 +144,7 @@ namespace gridtools {
                 {
                     if(m_iterate_domain.is_thread_in_domain_x())
                     {
-                        const int joffset = range_t::jminus::value + m_iterate_domain.block_size_j();
+                        const int joffset = range_t::jminus::value + (int)m_iterate_domain.block_size_j();
 
                         (m_iterate_domain).increment<1>(joffset);
                         functor_t::Do(iterate_domain_evaluator, IntervalType());
