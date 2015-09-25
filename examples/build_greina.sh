@@ -52,6 +52,15 @@ if [[ "$CXX_STD" != "cxx11" ]] && [[ "$CXX_STD" != "cxx03" ]]; then
 fi
 
 
+echo $@
+
+if [ -d "build" ]; then
+    rm -rf build
+fi
+mkdir -p build;
+cd build;
+
+
 #
 # full path to the virtual environment where the Python tests run
 #
