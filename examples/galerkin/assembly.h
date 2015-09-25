@@ -29,8 +29,11 @@ struct assembly<Geometry> : public assembly_base<Geometry> {
 
     //                      dims  x y z  qp
     //                   strides  1 x xy xyz
-    using storage_type=storage_t<gridtools::layout_map<0,1,2,3> >;
-    using jacobian_type=storage_t<gridtools::layout_map<0,1,2,3,4,5> >;
+    using storage_type_info=storage_info< gridtools::layout_map<0,1,2,3> >;
+    using jacobian_type_info=storage_info< gridtools::layout_map<0,1,2,3,4,5> >;
+
+    using storage_type=storage_t< storage_type_info >;
+    using jacobian_type=storage_t< jacobian_type_info >;
     static const int_t edge_points=geo_map::hypercube_t::template boundary_w_dim<1>::n_points::value;
 // [storage_types]
 
@@ -48,6 +51,9 @@ struct assembly<Geometry> : public assembly_base<Geometry> {
 private:
 
     Geometry & m_fe_backend;
+    jacobian_type_info m_jac_info;
+    storage_type_info m_jac_det_info;
+
     jacobian_type m_jac;
     storage_type m_jac_det;
     jacobian_type m_jac_inv;
@@ -66,9 +72,11 @@ public:
         , m_d1(d1)
         , m_d2(d2)
         , m_d3(d3)
-        , m_jac(d1, d2, d3, cub::numCubPoints, 3, 3)
-        , m_jac_det(d1, d2, d3, cub::numCubPoints)
-        , m_jac_inv(d1, d2, d3, cub::numCubPoints, 3, 3)
+        , m_jac_info(d1, d2, d3, cub::numCubPoints, 3, 3)
+        , m_jac_det_info(d1, d2, d3, cub::numCubPoints)
+        , m_jac(m_jac_info)
+        , m_jac_det(m_jac_det_info)
+        , m_jac_inv(m_jac_info)
         {        }
 
     jacobian_type const& get_jac() const {return m_jac;}

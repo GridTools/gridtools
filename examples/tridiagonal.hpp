@@ -182,16 +182,18 @@ bool solver(uint_t x, uint_t y, uint_t z) {
 
     //    typedef gridtools::STORAGE<double, gridtools::layout_map<0,1,2> > storage_type;
     typedef gridtools::layout_map<0,1,2> layout_t;
-    typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
-    typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
+    typedef gridtools::storage_info< layout_t> meta_t;
+    typedef gridtools::BACKEND::storage_type<float_type, meta_t >::type storage_type;
+    typedef gridtools::BACKEND::temporary_storage_type<float_type, meta_t >::type tmp_storage_type;
 
-     // Definition of the actual data fields that are used for input/output
+    // Definition of the actual data fields that are used for input/output
     //storage_type in(d1,d2,d3,-1, "in"));
-    storage_type out(d1,d2,d3,0., "out");
-    storage_type inf(d1,d2,d3,-1., "inf");
-    storage_type diag(d1,d2,d3,3., "diag");
-    storage_type sup(d1,d2,d3,1., "sup");
-    storage_type rhs(d1,d2,d3,3., "rhs");
+    meta_t meta_(d1,d2,d3);
+    storage_type out(meta_,0., "out");
+    storage_type inf(meta_,-1., "inf");
+    storage_type diag(meta_,3., "diag");
+    storage_type sup(meta_,1., "sup");
+    storage_type rhs(meta_,3., "rhs");
     for(int_t i=0; i<d1; ++i)
         for(int_t j=0; j<d2; ++j)
         {
@@ -199,12 +201,14 @@ bool solver(uint_t x, uint_t y, uint_t z) {
             rhs(i, j, 5)=2.;
         }
 // result is 1
+#ifdef __VERBOSE__
     printf("Print OUT field\n");
     out.print();
     printf("Print SUP field\n");
     sup.print();
     printf("Print RHS field\n");
     rhs.print();
+#endif
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
@@ -252,7 +256,7 @@ bool solver(uint_t x, uint_t y, uint_t z) {
 #else
         boost::shared_ptr<gridtools::computation> forward_step =
 #endif
-      gridtools::make_computation<gridtools::BACKEND, layout_t>
+      gridtools::make_computation<gridtools::BACKEND>
         (
             gridtools::make_mss // mss_descriptor
             (
@@ -269,7 +273,7 @@ bool solver(uint_t x, uint_t y, uint_t z) {
 #else
         boost::shared_ptr<gridtools::computation> backward_step =
 #endif
-      gridtools::make_computation<gridtools::BACKEND, layout_t>
+      gridtools::make_computation<gridtools::BACKEND>
       (
             gridtools::make_mss // mss_descriptor
             (
@@ -287,13 +291,6 @@ bool solver(uint_t x, uint_t y, uint_t z) {
 
     forward_step->finalize();
 
-    // printf("Print OUT field (forward)\n");
-    // out.print();
-    // printf("Print SUP field (forward)\n");
-    // sup.print();
-    // printf("Print RHS field (forward)\n");
-    // rhs.print();
-
     backward_step->ready();
     backward_step->steady();
 
@@ -301,15 +298,14 @@ bool solver(uint_t x, uint_t y, uint_t z) {
 
     backward_step->finalize();
 
-
-    //    in.print();
+#ifdef __VERBOSE__
     printf("Print OUT field\n");
     out.print();
     printf("Print SUP field\n");
     sup.print();
     printf("Print RHS field\n");
     rhs.print();
-    //    lap.print();
+#endif
 
     return (out(0,0,0) + out(0,0,1) + out(0,0,2) + out(0,0,3) + out(0,0,4) + out(0,0,5) >6-1e-10) &&
       (out(0,0,0) + out(0,0,1) + out(0,0,2) + out(0,0,3) + out(0,0,4) + out(0,0,5) <6+1e-10);

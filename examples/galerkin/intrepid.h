@@ -28,19 +28,30 @@ namespace intrepid{
         static const enumtype::Shape bd_shape=shape_property<FE::shape>::boundary;
 
         // [test]
-        typedef storage_t<layout_map<0,1,2> >::value_type value_type;
         GRIDTOOLS_STATIC_ASSERT(fe::layout_t::template at_<0>::value < 3 && fe::layout_t::template at_<1>::value < 3 && fe::layout_t::template at_<2>::value < 3,
                                 "the first three numbers in the layout_map must be a permutation of {0,1,2}. ");
-        typedef storage_t<layout_map<0,1,2> > weights_storage_t;
-        typedef storage_t<layout_map<0,1,2> > grad_storage_t;
-        typedef storage_t<layout_map<0,1,2> > basis_function_storage_t;
+        using weights_storage_t_info = storage_info<layout_map<0,1,2> >;
+        using grad_storage_t_info = storage_info<layout_map<0,1,2> >;
+        using basis_function_storage_t_info = storage_info<layout_map<0,1,2> >;
+        using cub_points_storage_t_info = storage_info<layout_map<0,1,2> >;
+        using weights_storage_t        = storage_t< weights_storage_t_info > ;
+        using grad_storage_t           = storage_t< grad_storage_t_info > ;
+        using basis_function_storage_t = storage_t< basis_function_storage_t_info > ;
+        using cub_points_storage_t     = storage_t< cub_points_storage_t_info > ;
 
-        storage_t<layout_map<0,1,2> > m_cub_points_s;
+        cub_points_storage_t_info m_cub_points_s_info;
+        weights_storage_t_info m_cub_weights_s_info;
+        //these 2 are pointers, so that they get initialized on first touch
+        std::unique_ptr<grad_storage_t_info> m_grad_at_cub_points_s_info;
+        std::unique_ptr<basis_function_storage_t_info> m_phi_at_cub_points_s_info;
+
+        cub_points_storage_t m_cub_points_s;
         weights_storage_t m_cub_weights_s;
+        //these 2 are pointers, so that they get initialized on first touch
         std::unique_ptr<grad_storage_t> m_grad_at_cub_points_s;
         std::unique_ptr<basis_function_storage_t> m_phi_at_cub_points_s;
 
-        storage_t<layout_map<0,1,2> > // const
+        cub_points_storage_t // const
         & cub_points()// const
             {return m_cub_points_s;}
         weights_storage_t // const
@@ -55,8 +66,12 @@ namespace intrepid{
             {return *m_phi_at_cub_points_s;}
 
         discretization() :
-            m_cub_points_s(cub::numCubPoints, fe::spaceDim,1)
-            , m_cub_weights_s(cub::numCubPoints,1,1)
+            m_cub_points_s_info(cub::numCubPoints, fe::spaceDim,1)
+            , m_cub_weights_s_info(cub::numCubPoints,1,1)
+            , m_grad_at_cub_points_s_info()
+            , m_phi_at_cub_points_s_info()
+            , m_cub_points_s(m_cub_points_s_info)
+            , m_cub_weights_s(m_cub_weights_s_info)
             , m_grad_at_cub_points_s()
             , m_phi_at_cub_points_s()
             {
@@ -64,57 +79,77 @@ namespace intrepid{
 
         void compute(Intrepid::EOperator const& operator_){
 
-                // storage_t<layout_map<0,1,2> > cub_points_i(m_cub_points_s, 2);
+            // storage_t<layout_map<0,1,2> > cub_points_i(m_cub_points_s, 2);
             Intrepid::FieldContainer<double> cub_points_i(cub::numCubPoints, fe::spaceDim);
 
-                // storage_t<layout_map<0,1,2> > cub_weights_i(m_cub_weights_s, 1);
+            // storage_t<layout_map<0,1,2> > cub_weights_i(m_cub_weights_s, 1);
             Intrepid::FieldContainer<double> cub_weights_i(cub::numCubPoints);
 
-                //copy the values
+            //copy the values
+            for (uint_t q=0; q<cub::numCubPoints; ++q)
+            {
+                m_cub_weights_s(q,0,0)=cub_weights_i(q);
+                for (uint_t j=0; j<fe::spaceDim; ++j)
+                    m_cub_points_s(q,j,0)=cub_points_i(q,j);
+            }
+
+            // storage_t<layout_map<0,1,2> > grad_at_cub_points_i(m_grad_at_cub_points_s);
+            Intrepid::FieldContainer<double> grad_at_cub_points_i(fe::basisCardinality, cub::numCubPoints, fe::spaceDim);
+
+            // retrieve cub points and weights
+            cub::cub->getCubature(cub_points_i, cub_weights_i);
+
+            switch (operator_){
+            case Intrepid::OPERATOR_GRAD :
+            {
+                m_grad_at_cub_points_s_info=std::unique_ptr
+                    <grad_storage_t_info>
+                    (new grad_storage_t_info
+                     (fe::basisCardinality, cub::numCubPoints, fe::spaceDim));
+
+                m_grad_at_cub_points_s=std::unique_ptr
+                    <grad_storage_t>
+                    (new grad_storage_t
+                     (*m_grad_at_cub_points_s_info, "grad at cub points"));
+
+                // evaluate grad operator at cub points
+                fe::hexBasis.getValues(grad_at_cub_points_i, cub_points_i, Intrepid::OPERATOR_GRAD);
+
                 for (uint_t q=0; q<cub::numCubPoints; ++q)
-                {
-                    m_cub_weights_s(q,0,0)=cub_weights_i(q);
                     for (uint_t j=0; j<fe::spaceDim; ++j)
-                        m_cub_points_s(q,j,0)=cub_points_i(q,j);
-                }
+                        for (uint_t i=0; i<fe::basisCardinality; ++i)
+                            for (uint_t j=0; j<fe::spaceDim; ++j)
+                                (*m_grad_at_cub_points_s)(i,q,j)=grad_at_cub_points_i(i,q,j);
+                break;
+            }
 
-                // storage_t<layout_map<0,1,2> > grad_at_cub_points_i(m_grad_at_cub_points_s);
-                Intrepid::FieldContainer<double> grad_at_cub_points_i(fe::basisCardinality, cub::numCubPoints, fe::spaceDim);
+            case Intrepid::OPERATOR_VALUE :
+            {
+                m_phi_at_cub_points_s_info=std::unique_ptr
+                    <basis_function_storage_t_info>
+                    (new basis_function_storage_t_info
+                     (fe::basisCardinality, cub::numCubPoints, 1));
 
-                // retrieve cub points and weights
-                cub::cub->getCubature(cub_points_i, cub_weights_i);
+                m_phi_at_cub_points_s=std::unique_ptr
+                    <basis_function_storage_t>
+                    (new basis_function_storage_t
+                     (*m_phi_at_cub_points_s_info, "phi at cub points"));
 
-                switch (operator_){
-                case Intrepid::OPERATOR_GRAD :
-                {
-                    m_grad_at_cub_points_s=std::unique_ptr<grad_storage_t>(new grad_storage_t(fe::basisCardinality, cub::numCubPoints, fe::spaceDim));
+                Intrepid::FieldContainer<double> phi_at_cub_points_i(fe::basisCardinality
+                                                                     , cub::numCubPoints);
 
-                    // evaluate grad operator at cub points
-                    fe::hexBasis.getValues(grad_at_cub_points_i, cub_points_i, Intrepid::OPERATOR_GRAD);
+                fe::hexBasis.getValues(phi_at_cub_points_i, cub_points_i, Intrepid::OPERATOR_VALUE);
 
-                    for (uint_t q=0; q<cub::numCubPoints; ++q)
-                        for (uint_t j=0; j<fe::spaceDim; ++j)
-                            for (uint_t i=0; i<fe::basisCardinality; ++i)
-                                for (uint_t j=0; j<fe::spaceDim; ++j)
-				    (*m_grad_at_cub_points_s)(i,q,j)=grad_at_cub_points_i(i,q,j);
-                    break;
-                }
-                case Intrepid::OPERATOR_VALUE :
-                {
-                    m_phi_at_cub_points_s=std::unique_ptr<basis_function_storage_t>(new basis_function_storage_t(fe::basisCardinality, cub::numCubPoints, 1));
-                    Intrepid::FieldContainer<double> phi_at_cub_points_i(fe::basisCardinality, cub::numCubPoints);
-
-                    fe::hexBasis.getValues(phi_at_cub_points_i, cub_points_i, Intrepid::OPERATOR_VALUE);
-                    //copy the values
-                    for (uint_t q=0; q<cub::numCubPoints; ++q)
-                        // for (uint_t j=0; j<fe::spaceDim; ++j)
-			for (uint_t i=0; i<fe::basisCardinality; ++i){
-			    (*m_phi_at_cub_points_s)(i,q,0)=phi_at_cub_points_i(i,q);
-			}
-                    break;
-                }
-                default : assert(false);
-                }
+                //copy out the values
+                for (uint_t q=0; q<cub::numCubPoints; ++q)
+                    // for (uint_t j=0; j<fe::spaceDim; ++j)
+                    for (uint_t i=0; i<fe::basisCardinality; ++i){
+                        (*m_phi_at_cub_points_s)(i,q,0)=phi_at_cub_points_i(i,q);
+                    }
+                break;
+            }
+            default : assert(false);
+            }
 
         }
     };
@@ -130,16 +165,21 @@ namespace intrepid{
                                              , geo_map::basis
                                              , shape_property<geo_map::shape>::boundary>;
 
-        storage_t<layout_map<0,1,2> > m_local_grid_s;
+        using local_grid_t_info = storage_info< layout_map<0,1,2> >;
+        using local_grid_t = storage_t< local_grid_t_info >;
+        local_grid_t_info  m_local_grid_s_info;
+        local_grid_t  m_local_grid_s;
 #ifdef REORDER
-        storage_t<layout_map<0,1,2> > m_local_grid_reordered_s;
+        using local_grid_reordered_t = storage_t< local_grid_t_info >;
+        local_grid_reordered_t m_local_grid_reordered_s;
 #endif
 
         geometry() :
             //create the local grid
-            m_local_grid_s(geo_map::basisCardinality, geo_map::spaceDim,1)
+            m_local_grid_s_info(geo_map::basisCardinality, geo_map::spaceDim,1)
+            , m_local_grid_s(m_local_grid_s_info)
 #ifdef REORDER
-            , m_local_grid_reordered_s(geo_map::basisCardinality, geo_map::spaceDim,1)
+            , m_local_grid_reordered_s(m_local_grid_s_info)
 #endif
             {
                 // storage_t<layout_map<0,1,2> > local_grid_i(m_local_grid_s, 2);
@@ -183,7 +223,7 @@ namespace intrepid{
                 super::compute(Intrepid::OPERATOR_GRAD);
             }
 
-        storage_t<layout_map<0,1,2> > const& grid(){return m_local_grid_s;}
+        local_grid_t const& grid(){return m_local_grid_s;}
 
     };
 
@@ -192,8 +232,12 @@ namespace intrepid{
     class boundary_cub // : public Base
     {
     public:
-        typedef storage_t<layout_map<0,1,2> > weights_storage_t;
-        typedef storage_t<layout_map<0,1,2> > points_storage_t;
+
+        using weights_storage_t_info = storage_info<layout_map<0,1,2> >;
+        using cub_points_storage_t_info = storage_info<layout_map<0,1,2> >;
+        using weights_storage_t        = storage_t< weights_storage_t_info > ;
+        using cub_points_storage_t     = storage_t< cub_points_storage_t_info > ;
+
         // typedef storage_t<layout_map<0,1,2> > points_lifted_storage_t;
 
         using geo_map = GeoMap;
@@ -205,15 +249,19 @@ namespace intrepid{
 
         //private:
 
-        points_storage_t m_bd_cub_pts;
+        cub_points_storage_t_info m_bd_cub_pts_info;
+        weights_storage_t_info m_bd_cub_weights_info;
+        cub_points_storage_t m_bd_cub_pts;
         weights_storage_t m_bd_cub_weights;
         // points_lifted_storage_t  m_bd_cub_pts_lifted;
 
     public:
         boundary_cub()
             :
-            m_bd_cub_pts(bd_cub::numCubPoints, geo_map::spaceDim-1, 1)
-            , m_bd_cub_weights(bd_cub::numCubPoints, 1, 1)
+            m_bd_cub_pts_info(bd_cub::numCubPoints, geo_map::spaceDim-1, 1)
+            , m_bd_cub_weights_info(bd_cub::numCubPoints, 1, 1)
+            , m_bd_cub_pts(m_bd_cub_pts_info, "bd cub points")
+            , m_bd_cub_weights(m_bd_cub_weights_info, "bd cub weights")
             // , m_bd_cub_pts_lifted(bd_cub::numCubPoints, geo_map::spaceDim, 1)
             {
                 Intrepid::FieldContainer<value_t> bd_cub_pts_(bd_cub::numCubPoints, geo_map::spaceDim-1);
@@ -267,15 +315,26 @@ namespace intrepid{
         static const enumtype::Shape bd_shape=rule_t::bd_shape;
         // using bd_cub = typename rule_t::bd_cub;
         using cub = typename rule_t::bd_cub;
-        typedef storage_t<layout_map<0,1,2> > grad_storage_t;
-        typedef storage_t<layout_map<0,1,2> > phi_storage_t;
-        typedef storage_t<layout_map<0,1,2> > tangent_storage_t;
+
+        using grad_storage_t_info = storage_info<layout_map<0,1,2> >;
+        using basis_function_storage_t_info = storage_info<layout_map<0,1,2> >;
+        using tangent_storage_t_info = storage_info<layout_map<0,1,2> >;
+
+        using grad_storage_t           = storage_t< grad_storage_t_info > ;
+        using basis_function_storage_t = storage_t< basis_function_storage_t_info > ;
+        using tangent_storage_t = storage_t<tangent_storage_t_info >;
 
         //private:
 
         rule_t & m_rule;
+
+
+        grad_storage_t_info m_grad_at_cub_points_info;
+        basis_function_storage_t_info m_phi_at_cub_points_info;
+        tangent_storage_t_info m_ref_face_tg_info;
+
         grad_storage_t m_grad_at_cub_points;
-        phi_storage_t m_phi_at_cub_points;
+        basis_function_storage_t m_phi_at_cub_points;
         tangent_storage_t m_ref_face_tg_u;
         tangent_storage_t m_ref_face_tg_v;
         ushort_t m_face_ord;
@@ -284,10 +343,13 @@ namespace intrepid{
 
         boundary_discr(rule_t & rule_, ushort_t face_ord_):
             m_rule(rule_)
-            , m_grad_at_cub_points(geo_map::basisCardinality, rule_t::bd_cub::numCubPoints, shape_property<rule_t::/*bd*/parent_shape>::dimension)
-            , m_phi_at_cub_points(geo_map::basisCardinality, rule_t::bd_cub::numCubPoints, 1)
-            , m_ref_face_tg_u(rule_t::bd_cub::numCubPoints, shape_property<rule_t::parent_shape>::dimension, 1)
-            , m_ref_face_tg_v(rule_t::bd_cub::numCubPoints, shape_property<rule_t::parent_shape>::dimension, 1)
+            , m_grad_at_cub_points_info(geo_map::basisCardinality, rule_t::bd_cub::numCubPoints, shape_property<rule_t::/*bd*/parent_shape>::dimension)
+            , m_phi_at_cub_points_info(geo_map::basisCardinality, rule_t::bd_cub::numCubPoints, 1)
+            , m_ref_face_tg_info(rule_t::bd_cub::numCubPoints, shape_property<rule_t::parent_shape>::dimension, 1)
+            , m_grad_at_cub_points(m_grad_at_cub_points_info, "bd grad at cub")
+            , m_phi_at_cub_points(m_phi_at_cub_points_info, "bd phi at cub")
+            , m_ref_face_tg_u(m_ref_face_tg_info, "tg u")
+            , m_ref_face_tg_v(m_ref_face_tg_info, "tg v")
             , m_face_ord(face_ord_)
             {}
 
@@ -348,7 +410,7 @@ namespace intrepid{
         grad_storage_t & local_gradient()
             {return m_grad_at_cub_points;}
 
-        phi_storage_t & phi()
+        basis_function_storage_t & phi()
             {return m_phi_at_cub_points;}
 
 

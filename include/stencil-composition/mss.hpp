@@ -5,6 +5,8 @@
 #include "functor_do_methods.hpp"
 #include "esf.hpp"
 #include "../common/meta_array.hpp"
+#include "caches/cache_metafunctions.hpp"
+#include "sfinae.hpp"
 
 /**
 @file
@@ -13,6 +15,16 @@
 namespace gridtools {
     namespace _impl
     {
+
+        /**@brief Macro defining a sfinae metafunction
+
+           defines a metafunction has_range_type, which returns true if its template argument
+           defines a type called range_type. It also defines a get_range_type metafunction, which
+           can be used to return the range_type only when it is present, without giving compilation
+           errors in case it is not defined.
+         */
+        HAS_TYPE_SFINAE(range_type, has_range_type, get_range_type)
+
         /**@brief wrap type to simplify specialization based on mpl::vectors */
         template <typename MplArray>
         struct wrap_type {
@@ -44,13 +56,14 @@ namespace gridtools {
             template <typename RangeState, typename ArgumentIndex>
             struct update_range {
                 typedef typename boost::mpl::at<typename Functor::arg_list, ArgumentIndex>::type argument_type;
+                GRIDTOOLS_STATIC_ASSERT(has_range_type<argument_type>::type::value, "Found an accessor without range_type. If you are using generic accessors: in the functor definition you should NOT insert the generic accessor types in the arg_list MPL sequence");
                 typedef typename enclosing_range<RangeState, typename argument_type::range_type>::type type;
             };
 
             /**@brief here the ranges for the functors are calculated: iterates over the fields and calls the metafunction above*/
             typedef typename boost::mpl::fold<
                 boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename Functor::arg_list>::type::value >,
-                range<0,0,0,0>,
+                range<0,0,0,0,0,0>,
                 update_range<boost::mpl::_1, boost::mpl::_2>
                 >::type type;
         };
@@ -122,7 +135,7 @@ namespace gridtools {
 
                 typedef typename boost::mpl::fold<
                     IndVector,
-                    range<0,0,0,0>,
+                    range<0,0,0,0,0,0>,
                     enclosing_range<boost::mpl::_1, sum_range<typename PreviousState::range, boost::mpl::_2> >
                 >::type final_range;
 
@@ -133,7 +146,7 @@ namespace gridtools {
 
             typedef typename boost::mpl::reverse_fold<
                 ListOfRanges,
-                state<boost::mpl::vector0<>, range<0,0,0,0> >,
+                state<boost::mpl::vector0<>, range<0,0,0,0,0,0> >,
                 update_state<boost::mpl::_1, boost::mpl::_2>
             >::type final_state;
 
@@ -166,23 +179,30 @@ namespace gridtools {
 
     /** @brief Descriptors for  Multi Stage Stencil (MSS) */
     template <typename ExecutionEngine,
-              typename EsfDescrSequence>
+              typename EsfDescrSequence,
+              typename CacheSequence = boost::mpl::vector0<> >
     struct mss_descriptor {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfDescrSequence, is_esf_descriptor>::value), "Internal Error: invalid type");
+
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value),
+                "Internal Error: invalid type");
+        typedef EsfDescrSequence esf_sequence_t;
+        typedef CacheSequence cache_sequence_t;
     };
 
     template<typename mss>
     struct is_mss_descriptor : boost::mpl::false_{};
 
-    template <typename ExecutionEngine, typename EsfDescrSequence>
-    struct is_mss_descriptor<mss_descriptor<ExecutionEngine, EsfDescrSequence> > : boost::mpl::true_{};
+    template <typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence>
+    struct is_mss_descriptor<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> > : boost::mpl::true_{};
 
     template<typename Mss>
     struct mss_descriptor_esf_sequence {};
 
     template <typename ExecutionEngine,
-              typename EsfDescrSequence>
-    struct mss_descriptor_esf_sequence<mss_descriptor<ExecutionEngine, EsfDescrSequence> >
+              typename EsfDescrSequence,
+              typename CacheSequence>
+    struct mss_descriptor_esf_sequence<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> >
     {
         typedef EsfDescrSequence type;
     };
@@ -191,8 +211,9 @@ namespace gridtools {
     struct mss_descriptor_linear_esf_sequence;
 
     template <typename ExecutionEngine,
-              typename EsfDescrSequence>
-    struct mss_descriptor_linear_esf_sequence<mss_descriptor<ExecutionEngine, EsfDescrSequence> >
+              typename EsfDescrSequence,
+              typename CacheSequence>
+    struct mss_descriptor_linear_esf_sequence<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> >
     {
         template <typename State, typename SubArray>
         struct keep_scanning
@@ -221,8 +242,9 @@ namespace gridtools {
     struct mss_descriptor_execution_engine {};
 
     template <typename ExecutionEngine,
-              typename EsfDescrSequence>
-    struct mss_descriptor_execution_engine<mss_descriptor<ExecutionEngine, EsfDescrSequence> >
+              typename EsfDescrSequence,
+              typename CacheSequence>
+    struct mss_descriptor_execution_engine<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> >
     {
         typedef ExecutionEngine type;
     };

@@ -1,4 +1,5 @@
 #pragma once
+#define PEDANTIC_DISABLED // temporary change
 // [includes]
 #include <gridtools.hpp>
 #include <stencil-composition/make_computation.hpp>
@@ -14,7 +15,7 @@
 
 #include <communication/halo_exchange.hpp>
 
-#include "verifier.hpp"
+#include <tools/verifier.hpp>
 #include "shallow_water_reference.hpp"
 // [includes]
 
@@ -28,7 +29,7 @@
   For an exhaustive description of the shallow water problem refer to: http://www.mathworks.ch/moler/exm/chapters/water.pdf
 
   NOTE: It is the most human readable and efficient solution among the versions implemented, but it must be compiled for the host, with Clang or GCC>=4.9, and with C++11 enabled
- */
+*/
 
 // [namespaces]
 using namespace gridtools;
@@ -37,17 +38,18 @@ using namespace expressions;
 // [namespaces]
 
 namespace shallow_water{
-// This is the definition of the special regions in the "vertical" direction
-// [intervals]
+    // This is the definition of the special regions in the "vertical" direction
+    // [intervals]
     typedef interval<level<0,-1>, level<1,-1> > x_interval;
     typedef interval<level<0,-2>, level<1,1> > axis;
-// [intervals]
+    // [intervals]
 
-// [functor_traits]
+    // [functor_traits]
     /**@brief This traits class defined the necessary typesand functions used by all the functors defining the shallow water model*/
     struct functor_traits{
+
         //! [dimension]
-        typedef Dimension<5> comp;
+        typedef dimension<5> comp;
         //! [dimension]
 
         /**@brief space discretization step in direction i */
@@ -67,14 +69,48 @@ namespace shallow_water{
         static x::Index i;
         static y::Index j;
         //! [index]
+
         typedef decltype(i) i_t;        typedef decltype(j) j_t;
 
     };
     functor_traits::i_t functor_traits::i;
     functor_traits::j_t functor_traits::j;
-// [functor_traits]
+    // [functor_traits]
 
-// [boundary_conditions]
+    // [boundary_conditions]
+    struct bc : functor_traits {
+        typedef accessor<0,range<0, 0, 0, 0>, 5> tmpx; /** (output) is the solution at the cell center, computed at the previous time level */
+        typedef accessor<1,range<0, 0, 0, 0>, 5> tmpy; /** (input) is the solution at the cell center */
+        typedef accessor<2,range<0, 0, 0, 0>, 5> sol;
+        typedef generic_accessor<3> partitioner;
+        using arg_list=boost::mpl::vector<sol, tmpx, tmpy> ;
+
+
+        template <typename Evaluation>
+        GT_FUNCTION
+        static void Do(Evaluation const & eval, x_interval) {
+
+            //![alias]
+            using h=alias<sol, comp>::set<0>;
+            using u=alias<sol, comp>::set<1>;
+            using v=alias<sol, comp>::set<2>;
+
+            uint_t boundary=eval(partitioner())->boundary();
+            std::cout<<eval(partitioner())->at_boundary(0,up())<<std::endl;
+
+            //! [expression]
+            if((eval(partitioner())->at_boundary(0,up())))
+                eval(h())+=10.;
+            if((eval(partitioner())->at_boundary(1,up())))
+                eval(u())+=11.;
+            if((eval(partitioner())->at_boundary(2,up())))
+                eval(v())+=12.;
+            std::cout<<eval(!h())<<std::endl;
+            //! [expression]
+
+        }
+    };
+
     template<uint_t Component=0, uint_t Snapshot=0>
     struct bc_periodic : functor_traits {
         // periodic boundary conditions in I
@@ -83,7 +119,7 @@ namespace shallow_water{
         void operator()(direction<I, minus_, K, typename boost::enable_if_c<I!=minus_>::type>,
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
-            data_field0.template get<Component, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(i,data_field0.template dims<1>()-1-j,k)];
+            data_field0.template get<Snapshot, Component>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(i,data_field0.template dims<1>()-1-j,k)];
         }
 
         // periodic boundary conditions in J
@@ -92,7 +128,7 @@ namespace shallow_water{
         void operator()(direction<minus_, J, K>,
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
-            data_field0.template get<Component, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(data_field0.template dims<0>()-1-i,j,k)];
+            data_field0.template get<Snapshot, Component>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(data_field0.template dims<0>()-1-i,j,k)];
         }
 
         // default: do nothing
@@ -163,7 +199,7 @@ namespace shallow_water{
     struct flux_y        : public functor_traits {
 
         typedef accessor<0,range<0, 0, 0, 0>, 5> tmpy; /** (output) is the flux at the bottom edge of the cell */
-        typedef accessor<1,range<0, 0, 0, -1>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
+        typedef accessor<1 ,range<0, 0, 0, -1>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
         using arg_list=boost::mpl::vector<tmpy, sol> ;
 
         template <typename Evaluation>
@@ -174,6 +210,8 @@ namespace shallow_water{
             using u=alias<sol, comp>::set<1>; using uy=alias<tmpy, comp>::set<1>;
             using v=alias<sol, comp>::set<2>; using vy=alias<tmpy, comp>::set<2>;
 
+
+            // std::cout<<"boundary: "<<eval(sol())->boundary()<<std::endl;
 
             eval(hy())= eval((h() + h(j-1))/2. -
                              (v() - v(j-1))*(dt()/(2*dy())) );
@@ -239,6 +277,7 @@ namespace shallow_water{
                      (pow<2>(vy())    /hy()    +pow<2>(hy())   *((g()/2.))))*((dt()/dy())));
 
 
+            std::cout<<"reuslt: "<<eval(sol())<<std::endl;
         }
 
     };
@@ -247,9 +286,9 @@ namespace shallow_water{
 
     uint_t final_step::current_time=0;
 
-/*
- * The following operators and structs are for debugging only
- */
+    /*
+     * The following operators and structs are for debugging only
+     */
     std::ostream& operator<<(std::ostream& s, flux_x const) {
         return s << "initial step 1: ";
         // initiali_step.to_string();
@@ -259,9 +298,9 @@ namespace shallow_water{
         return s << "initial step 2: ";
     }
 
-/*
- * The following operators and structs are for debugging only
- */
+    /*
+     * The following operators and structs are for debugging only
+     */
     std::ostream& operator<<(std::ostream& s, final_step const) {
         return s << "final step";
     }
@@ -300,8 +339,10 @@ namespace shallow_water{
 //! [layout_map]
 
 //! [storage_type]
-        typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
-        typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
+        typedef gridtools::storage_info< layout_t> storage_info_t;
+        typedef gridtools::storage_info< layout_t> storage_info_tmp_t;
+        typedef gridtools::BACKEND::storage_type<float_type, storage_info_t >::type storage_type;
+        typedef gridtools::BACKEND::temporary_storage_type<float_type, storage_info_tmp_t >::type tmp_storage_type;
         typedef storage_type::pointer_type pointer_type;
 //! [storage_type]
 
@@ -311,6 +352,7 @@ namespace shallow_water{
         typedef field<tmp_storage_type, 1, 1, 1>::type tmp_type;
 //! [fields]
 
+        typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > > > partitioner_t;
 
         // Definition of placeholders. The order of them reflects the order in which the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
@@ -318,7 +360,8 @@ namespace shallow_water{
         typedef arg<0, tmp_type > p_tmpx;
         typedef arg<1, tmp_type > p_tmpy;
         typedef arg<2, sol_type > p_sol;
-        typedef boost::mpl::vector<p_tmpx, p_tmpy, p_sol> accessor_list;
+        typedef arg<3, partitioner_t > p_partitioner;
+        typedef boost::mpl::vector<p_tmpx, p_tmpy, p_sol, p_partitioner> accessor_list;
 //! [args]
 
 //! [proc_grid_dims]
@@ -344,19 +387,19 @@ namespace shallow_water{
 //! [partitioner]
         array<ushort_t, 3> padding={1,1,0};
         array<ushort_t, 3> halo={1,1,0};
-        typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > >, pattern_type::grid_type> partitioner_t;
+
         partitioner_t part(he.comm(), halo, padding);
 //! [partitioner]
 
 //! [parallel_storage]
-        parallel_storage<sol_type, partitioner_t> sol(part);
-        sol.setup(d1, d2, d3);
+        parallel_storage_info< partitioner_t> meta_(part, d1, d2, d3);
+        sol_type sol(meta_.get_metadata(), "sol");
 //! [parallel_storage]
 
 //! [add_halo]
-        he.add_halo<0>(sol.get_halo_gcl<0>());
-        he.add_halo<1>(sol.get_halo_gcl<1>());
-        he.add_halo<2>(sol.get_halo_gcl<2>());
+        he.add_halo<0>(meta_.get_halo_gcl<0>());
+        he.add_halo<1>(meta_.get_halo_gcl<1>());
+        he.add_halo<2>(meta_.get_halo_gcl<2>());
 
         he.setup(3);
 //! [add_halo]
@@ -384,21 +427,21 @@ namespace shallow_water{
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
 //! [domain_type]
         domain_type<accessor_list> domain
-            (boost::fusion::make_vector(&sol));
+            (boost::fusion::make_vector(&sol, &part));
 //! [domain_type]
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
 //! [coordinates]
-        coordinates<axis, partitioner_t> coords(part, sol);
+        coordinates<axis, partitioner_t> coords(part, meta_);
         coords.value_list[0] = 0;
         coords.value_list[1] = d3-1;
 //! [coordinates]
 
 //! [computation]
         auto shallow_water_stencil =
-            make_computation<gridtools::BACKEND, layout_t>
+            make_computation<gridtools::BACKEND>
             (
                 make_mss // mss_descriptor
                 (
@@ -412,10 +455,31 @@ namespace shallow_water{
                 );
 //! [computation]
 
+//! [coordinates_bc]
+        halo_descriptor dj=halo_descriptor(0,1,1,1,2);
+        coordinates<axis> coords_bc(meta_.get_halo_descriptor<0>(), dj);
+        coords_bc.value_list[0] = 0;
+        coords_bc.value_list[1] = d3-1;
+//! [coordinates_bc]
+
+//! [computation_bc]
+        auto bc_eval =
+            make_computation<gridtools::BACKEND>
+            (
+                make_mss // mss_descriptor
+                (
+                    execute<forward>(),
+                    make_esf<bc>(p_tmpx(), p_tmpy(), p_sol(), p_partitioner()))
+                , domain, coords_bc
+                );
+//! [computation_bc]
+
 //! [setup]
         shallow_water_stencil->ready();
+        bc_eval->ready();
 
         shallow_water_stencil->steady();
+        bc_eval->steady();
 //! [setup]
 
         //the following might be runtime value
@@ -423,17 +487,6 @@ namespace shallow_water{
 
         for (;final_step::current_time < total_time; ++final_step::current_time)
         {
-#ifdef CUDA_EXAMPLE
-            /*                        component,snapshot */
-//             boundary_apply_gpu< bc_reflective<0,0> >(halos, bc_reflective<0,0>()).apply(sol);
-//             boundary_apply_gpu< bc_reflective<1,0> >(halos, bc_reflective<1,0>()).apply(sol);
-//             boundary_apply_gpu< bc_reflective<2,0> >(halos, bc_reflective<2,0>()).apply(sol);
-#else
-            /*                    component,snapshot */
-//             boundary_apply< bc_reflective<0,0> >(halos, bc_reflective<0,0>()).apply(sol);
-//             boundary_apply< bc_reflective<1,0> >(halos, bc_reflective<1,0>()).apply(sol);
-//             boundary_apply< bc_reflective<2,0> >(halos, bc_reflective<2,0>()).apply(sol);
-#endif
 //! [exchange]
             std::vector<pointer_type::pointee_t*> vec={sol.fields()[0].get(), sol.fields()[1].get(), sol.fields()[2].get()};
             he.pack(vec);
@@ -448,7 +501,7 @@ namespace shallow_water{
 #endif
 
 #ifndef CUDA_EXAMPLE
-                boost::timer::cpu_timer time;
+            boost::timer::cpu_timer time;
 #endif
 
 //! [run]
@@ -460,18 +513,21 @@ namespace shallow_water{
                 if(PID==0)
                     std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
 #endif
-
         }
+
+        // bcs not yet enabled
+        // bc_eval->run();
 
 //! [finalize]
         he.wait();
 
+        shallow_water_stencil->finalize();
+
         GCL_Finalize();
 
-        shallow_water_stencil->finalize();
+        bool retval=true;
 //! [finalize]
 
-        bool retval=true;
 #ifndef NDEBUG
         myfile<<"############## SOLUTION ################"<<std::endl;
         sol.print(myfile);
@@ -483,7 +539,7 @@ namespace shallow_water{
         {
             reference.iterate();
         }
-        retval=check_result.verify(sol, reference.solution);
+        retval=check_result.verify_parallel(meta_, sol, reference.solution);
         myfile<<"############## REFERENCE ################"<<std::endl;
         reference.solution.print(myfile);
 

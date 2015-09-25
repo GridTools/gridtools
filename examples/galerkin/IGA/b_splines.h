@@ -183,15 +183,26 @@ void test(int_t d1, int_t d2, int_t d3){
     typedef gridtools::layout_map<2,1,0> layout_control_points;
     typedef gridtools::layout_map<3,2,1,0> layout_input;
     typedef gridtools::layout_map<4,3,2,1,0> layout_output;
-    typedef gridtools::BACKEND::storage_type<float_type, layout_parametric >::type knots_storage_type;
-    typedef gridtools::BACKEND::storage_type<float_type, layout_control_points >::type control_storage_type;
-    typedef gridtools::BACKEND::storage_type<float_type, layout_input >::type input_storage_type;
-    typedef gridtools::BACKEND::storage_type<float_type, layout_output >::type output_storage_type;
 
-    knots_storage_type knots(d1,d2);      //2D parametric space
-    control_storage_type points(d1,d2,3);   //control points
-    input_storage_type in(d1,d2,4,4);     //2D parametric evaluation grid with 4x4 points per knot-span (3rd dimension is the local numeration)
-    output_storage_type out(d1,d2,4,4,3);  //resulting b-spline surface
+    typedef gridtools::storage_info< layout_parametric> storage_parametric_info;
+    typedef gridtools::storage_info< layout_control_points> storage_control_points_info;
+    typedef gridtools::layout_map<0,layout_input> storage_input_info;
+    typedef gridtools::layout_map<0,layout_output> storage_output_info;
+
+    typedef gridtools::BACKEND::storage_type<float_type, storage_parametric_info >::type knots_storage_type;
+    typedef gridtools::BACKEND::storage_type<float_type, storage_control_points_info >::type control_storage_type;
+    typedef gridtools::BACKEND::storage_type<float_type, storage_input_info >::type input_storage_type;
+    typedef gridtools::BACKEND::storage_type<float_type, storage_output_info >::type output_storage_type;
+
+    storage_parametric_info knots_info(d1,d2);      //2D parametric space
+    storage_control_points_info points_info(d1,d2,3);   //control points
+    storage_input_info in_info(d1,d2,4,4);     //2D parametric evaluation grid with 4x4 points per knot-span (3rd dimension is the local numeration)
+    storage_output_info out_info(d1,d2,4,4,3);  //resulting b-spline surface
+
+    knots_storage_type knots(knots_info);      //2D parametric space
+    control_storage_type points(points_info);   //control points
+    input_storage_type in(in_info);     //2D parametric evaluation grid with 4x4 points per knot-span (3rd dimension is the local numeration)
+    output_storage_type out(out_info);  //resulting b-spline surface
 
     typedef arg<0, knots_storage_type> p_knots;
     typedef arg<1, control_storage_type> p_points;

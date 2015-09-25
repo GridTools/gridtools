@@ -9,9 +9,13 @@ struct assembly<Boundary, Geometry > : public assembly_base<Geometry> {
     // static const int_t n_faces=geo_map::hypercube_t::template n_boundary_w_dim<Boundary::spaceDim>::value;
     using bd_cub=typename Boundary::cub;
     using super = assembly_base<Geometry>;
-    using face_normals_type=storage_t<gridtools::layout_map<0,1,2,3,4> >;
-    using storage_type=storage_t<gridtools::layout_map<0,1,2,3> >;
-    using jacobian_type=storage_t<gridtools::layout_map<0,1,2,3,4,5> >;
+
+    using face_normals_type_info=storage_info<gridtools::layout_map<0,1,2,3,4> >;
+    using face_normals_type=storage_t< face_normals_type_info >;
+    using storage_info_t=storage_info<gridtools::layout_map<0,1,2,3> >;
+    using storage_type=storage_t< storage_info_t >;
+    using jacobian_type_info=storage_info<gridtools::layout_map<0,1,2,3,4,5> >;
+    using jacobian_type=storage_t< jacobian_type_info >;
 
     typedef arg<super::size+0, jacobian_type >       p_bd_jac;
     typedef arg<super::size+1, jacobian_type >       p_projected_jac;
@@ -21,6 +25,10 @@ struct assembly<Boundary, Geometry > : public assembly_base<Geometry> {
     static const ushort_t size=super::size+5;
 
 private:
+    jacobian_type_info m_jac_info;
+    face_normals_type_info m_normals_info;
+    storage_type_info m_bd_measure_info;
+
     jacobian_type m_bd_jac;
     jacobian_type m_projected_jac;
     face_normals_type m_normals;
@@ -38,10 +46,13 @@ public:
              // Geometry& fe_backend_,
               uint_t d1, uint_t d2, uint_t d3) :
         super( d1, d2, d3)
-        , m_bd_jac(d1, d2, d3, bd_cub::numCubPoints, 3, 3)
-        , m_projected_jac(d1, d2, d3, bd_cub::numCubPoints, 3, 3)
-        , m_normals(d1, d2, d3, bd_cub::numCubPoints, 3)
-        , m_bd_measure(d1, d2, d3, bd_cub::numCubPoints)
+        , m_jac_info(d1, d2, d3, bd_cub::numCubPoints, 3, 3)
+        , m_normals_info(d1, d2, d3, bd_cub::numCubPoints, 3)
+        , m_bd_measure_info(d1, d2, d3, bd_cub::numCubPoints)
+        , m_bd_jac(m_bd_info, "bd jac")
+        , m_projected_jac(m_jac_info, "projected jac")
+        , m_normals(m_normals_info, "normals")
+        , m_bd_measure(m_bd_measure_info, "bd measure")
         , m_bd_backend(bd_backend_)
         {}
 

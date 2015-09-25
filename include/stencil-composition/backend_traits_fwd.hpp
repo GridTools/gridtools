@@ -8,7 +8,7 @@ namespace gridtools {
     struct run_functor;
 
     /**forward declaration*/
-    template <typename PointerType, typename LayoutType, bool B, short_t SpaceDim>
+    template <typename PointerType, typename MetaType, ushort_t Dim>
     struct base_storage;
 
     /**forward declaration*/
@@ -31,5 +31,4 @@ namespace gridtools {
     */
     template< typename Backend >
     struct execute_kernel_functor;
-
 }

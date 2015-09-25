@@ -1,11 +1,8 @@
 #pragma once
 
-#include <gridtools.hpp>
-#include <stencil-composition/backend.hpp>
-#include "stencil-composition/make_computation.hpp"
-#include <stencil-composition/interval.hpp>
+#include <stencil-composition/make_computation.hpp>
 #include "horizontal_diffusion_repository.hpp"
-#include "verifier.hpp"
+#include <tools/verifier.hpp>
 
 #ifdef USE_PAPI_WRAP
 #include <papi_wrap.hpp>
@@ -105,7 +102,7 @@ struct out_function {
     GT_FUNCTION
     static void Do(Domain const & dom, x_out) {
 #if defined( CXX11_ENABLED ) && !defined( CUDA_EXAMPLE )
-       dom(out()) = dom(in()) - dom(coeff()) *
+        dom(out()) = dom(in()) - dom(coeff())  *
            (dom(flx() - flx( -1,0,0) +
             fly() - fly( 0,-1,0))
             );
@@ -159,7 +156,6 @@ bool test(uint_t x, uint_t y, uint_t z) {
 #endif
 #endif
 
-    typedef horizontal_diffusion::repository::layout_ijk layout_t;
 
     typedef horizontal_diffusion::repository::storage_type storage_type;
     typedef horizontal_diffusion::repository::tmp_storage_type tmp_storage_type;
@@ -169,15 +165,10 @@ bool test(uint_t x, uint_t y, uint_t z) {
 
     repository.generate_reference();
 
-
      // Definition of the actual data fields that are used for input/output
     storage_type& in = repository.in();
     storage_type& out = repository.out();
     storage_type& coeff = repository.coeff();
-
-#ifndef SILENT_RUN
-    out.print();
-#endif
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
@@ -204,8 +195,8 @@ bool test(uint_t x, uint_t y, uint_t z) {
     // The constructor takes the horizontal plane dimensions,
     // while the vertical ones are set according the the axis property soon after
     // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
-    uint_t di[5] = {halo_size, halo_size, halo_size, d1-3, d1};
-    uint_t dj[5] = {halo_size, halo_size, halo_size, d2-3, d2};
+    uint_t di[5] = {halo_size, halo_size, halo_size, d1-halo_size-1, d1};
+    uint_t dj[5] = {halo_size, halo_size, halo_size, d2-halo_size-1, d2};
 
     gridtools::coordinates<axis> coords(di, dj);
     coords.value_list[0] = 0;
@@ -264,11 +255,12 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
 #else
         boost::shared_ptr<gridtools::computation> horizontal_diffusion =
 #endif
-        gridtools::make_computation<gridtools::BACKEND, layout_t>
+        gridtools::make_computation<gridtools::BACKEND>
         (
             gridtools::make_mss // mss_descriptor
             (
                 execute<forward>(),
+                define_caches(cache<IJ, p_lap, local>(), cache<IJ, p_flx, local>() ,cache<IJ, p_fly, local>()),
                 gridtools::make_esf<lap_function>(p_lap(), p_in()), // esf_descriptor
                 gridtools::make_independent // independent_esf
                 (
@@ -283,15 +275,11 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
     horizontal_diffusion->ready();
 
     horizontal_diffusion->steady();
-    domain.clone_to_gpu();
 
 #ifdef USE_PAPI_WRAP
     pw_stop_collector(collector_init);
 #endif
 
-#ifndef __CUDACC__
-    boost::timer::cpu_timer time;
-#endif
 #ifdef USE_PAPI
 if( PAPI_start(event_set) != PAPI_OK)
     handle_error(1);
@@ -312,9 +300,6 @@ PAPI_stop(event_set, values);
     pw_stop_collector(collector_execute);
 #endif
 
-#ifndef __CUDACC__
-    boost::timer::cpu_times lapse_time = time.elapsed();
-#endif
     horizontal_diffusion->finalize();
 
 #ifdef CUDA_EXAMPLE
@@ -324,15 +309,12 @@ PAPI_stop(event_set, values);
     verifier verif(1e-9, halo_size);
     bool result = verif.verify(repository.out_ref(), repository.out());
 
-#ifndef SILENT_RUN
-    //    in.print();
-    //    out.print();
-    //    lap.print();
-    std::cout << "SUCCESS? " << std::boolalpha << result << std::endl;
+    if(!result){
+        std::cout << "ERROR"  << std::endl;
+    }
 
-#ifndef __CUDACC__
-    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
-#endif
+#ifdef BENCHMARK
+        std::cout << horizontal_diffusion->print_meter() << std::endl;
 #endif
 
 #ifdef USE_PAPI_WRAP
@@ -340,9 +322,6 @@ PAPI_stop(event_set, values);
 #endif
 
   return result; /// lapse_time.wall<5000000 &&
-// #ifdef USE_PAPI
-//                     values[0]>1000 && //random value
-// #endif
 }
 
 }//namespace horizontal_diffusion

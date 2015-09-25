@@ -95,12 +95,19 @@ int main()
     #endif
 
     // Storage type definition
-    typedef gridtools::BACKEND::storage_type<gridtools::float_type,layout_t_in >::type storage_type_csi;
-    typedef gridtools::BACKEND::storage_type<gridtools::float_type,layout_t_out>::type storage_type_bspline_values;
+    typedef gridtools::storage_info< layout_t_in> storage_type_csi_info;
+    typedef gridtools::BACKEND::storage_type<gridtools::float_type
+                                             , storage_type_csi_info>::type storage_type_csi;
 
-    // Storage container allocation
-    storage_type_csi csi(numPoints,1,1);
-    storage_type_bspline_values bspline_values(numPoints,1,1);
+    typedef gridtools::storage_info< layout_t_out> storage_type_bspline_basis_info;
+    typedef gridtools::BACKEND::storage_type<gridtools::float_type
+                                             , storage_type_bspline_basis_info>::type storage_type_bspline_basis_values;
+
+    // Storage container allocation (sharing the same storage info)
+    storage_type_csi_info csi_info(numPoints,1,1);
+    storage_type_csi csi(csi_info);
+    storage_type_bspline_basis_values bspline_basis_values(csi_info);
+
 
     // Fill csi-storage
     for(unsigned int csiIndex=0;csiIndex<numPoints;++csiIndex)

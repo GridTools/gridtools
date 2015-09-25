@@ -1,6 +1,6 @@
 #pragma once
 #include <iostream>
-#include <common/defs.hpp>
+#include "common/defs.hpp"
 
 /**@file this file implements the management of loops order
 
@@ -8,7 +8,6 @@
    * arbitrary number of nested loops
    * a single kernel functor executed in the innermost loop
    * arbitrary direction of the loop (forward or backward)
-   TODO: test this because probably it doesn't work yet
 
    The memory is addressed by a single index, which must be computed given all the loop indices.
    In order to reduce the computational complexity we want to increment such index in the nested
@@ -44,7 +43,7 @@ namespace gridtools{
 
         /**@brief getter for the step */
         GT_FUNCTION
-        constexpr uint_t step(){return s_step; }
+        constexpr const uint_t step(){return s_step; }
         static const ushort_t s_id=ID;
 
         static const uint_t s_step=Step;
@@ -60,9 +59,9 @@ namespace gridtools{
     template<ushort_t ID, uint_t LowBound, uint_t UpBound, typename Integer=int_t, uint_t Step=1>
     struct static_loop_item{
         typedef Integer value_type;
-        constexpr Integer up_bound() const {return UpBound; }
-        constexpr Integer low_bound() const {return LowBound; }
-        constexpr uint_t step(){return s_step; }
+        constexpr const Integer up_bound() const {return UpBound; }
+        constexpr const Integer low_bound() const {return LowBound; }
+        constexpr const uint_t step(){return s_step; }
         static const uint_t s_step=Step;
         static const  ushort_t s_id=ID;
     };

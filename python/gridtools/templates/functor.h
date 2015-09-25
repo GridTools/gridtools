@@ -1,10 +1,5 @@
 {% block functor %}
 
-//
-// the definition of the operators that compose a multistage stencil
-// is extracted from the AST analysis of the loop comprehensions
-// in Python, which use the 'kernel' function as a starting point
-//
 struct {{ functor.name }}
 {
     //
@@ -16,11 +11,11 @@ struct {{ functor.name }}
     // the input data fields of this functor are marked as 'const'
     //
     {% for p in params -%}
-    typedef {% if functor.scope.is_parameter (p.name, read_only=True) -%}
+    typedef {% if p.read_only -%}
                 const
-            {%- endif %} arg_type<{{ loop.index0 }} {%- if p.range -%}
-                                                        , range<{{ p.range|join(',') }}>
-                                                    {%- endif %} >::type {{ p.name|replace('.', '_') }};
+            {%- endif %} accessor<{{ loop.index0 }} {%- if p.access_pattern -%}
+                                                        , range<{{ p.access_pattern|join(',') }}>
+                                                    {%- endif %} > {{ p.name|replace('.', '_') }};
     {% endfor %}
     //
     // the ordered list of arguments of this functor

@@ -29,11 +29,8 @@ namespace gridtools{
 
         @tparam N number larger than 2, size of the integer sequence
      */
-    template<typename UInt, int N>
+    template<typename UInt, uint_t N>
     struct make_gt_integer_sequence : concat<typename make_gt_integer_sequence<UInt, N/2>::type, typename make_gt_integer_sequence<UInt, N - N/2>::type >::type{};
-
-    // template<> struct make_gt_integer_sequence<U, boost::mpl::integral_c<U, 0>::value> : gt_integer_sequence<U>{};
-    // template<> struct make_gt_integer_sequence<uint_t, 1> : gt_integer_sequence<uint_t,0>{};
 
     template<typename UInt> struct make_gt_integer_sequence<UInt, 0> : gt_integer_sequence<UInt>{};
     template<typename UInt> struct make_gt_integer_sequence<UInt, 1> : gt_integer_sequence<UInt,0>{};

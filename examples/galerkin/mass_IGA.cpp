@@ -4,8 +4,10 @@
 #pragma once
 #define PEDANTIC_DISABLED
 #include "assembly.h"
+#include <common/generic_metafunctions/static_counter.hpp>
 
 int main(){
+
     static const int P=2;
     //the finite elements definitions
     using fe=reference_element<P, enumtype::BSplines, Hexa>;
@@ -33,8 +35,8 @@ int main(){
     //computing the value of the basis functions in the quadrature points
     fe_.compute(Intrepid::OPERATOR_VALUE);
 
-    for(int i=0; i<fe_.basis_function().dims<1>(); ++i){
-        for(int j=0; j<fe_.basis_function().dims<0>(); ++j){
+    for(int i=0; i<fe_.basis_function().meta_data().dims<1>(); ++i){
+        for(int j=0; j<fe_.basis_function().meta_data().dims<0>(); ++j){
             std::cout<<fe_.basis_function()(j,i,0)<<" ";
         }
         std::cout<<std::endl;

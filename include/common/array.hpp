@@ -7,11 +7,13 @@
 */
 
 #include <stddef.h>
+#include <algorithm>
+#include <boost/type_traits/has_trivial_constructor.hpp>
+
 #include "defs.hpp"
 #include "gt_assert.hpp"
 #include "host_device.hpp"
-#include <algorithm>
-#include <boost/type_traits/has_trivial_constructor.hpp>
+#include "generic_metafunctions/accumulate.hpp"
 
 namespace gridtools {
 
@@ -31,18 +33,28 @@ namespace gridtools {
         GT_FUNCTION
         array() {}
 
-// #ifdef CXX11_ENABLED
-        template<typename ... ElTypes>
-        GT_FUNCTION
-        constexpr array(ElTypes const& ... types): _array{(T)types ... } {
-        }
+#ifdef CXX11_ENABLED
 
-        // GT_FUNCTION
-        // array(std::initializer_list<T> c) {
-        //     assert(c.size() == _size);
-        //     std::copy(c.begin(), c.end(), _array);
-        // }
-// #else
+#ifndef __CUDACC__ // NVCC always returns false in the SFINAE
+	// variadic constructor enabled only for arguments of type T
+        template<typename ... ElTypes
+                 , typename = typename boost::enable_if_c<accumulate(logical_and(), boost::is_same<ElTypes, T>::type::value ...), int >
+                 >
+        GT_FUNCTION constexpr
+        array(ElTypes const& ... types): _array{(T)types ... } {
+        }
+#else // nvcc only checks the first argument
+	// variadic constructor enabled only for arguments of type T
+        template<typename First, typename ... ElTypes
+                 , typename = typename boost::enable_if_c<boost::is_same<First, T>::type::value , int >
+                 >
+        GT_FUNCTION
+        // constexpr
+        array(First const& first_, ElTypes const& ... types): _array{(T)first_, (T)types ... } {
+        }
+#endif
+#else
+        //TODO provide a BOOST PP implementation for this
         GT_FUNCTION
         array(T const& i): _array() {
             const_cast<typename boost::remove_const<T>::type*>(_array)[0]=i;
@@ -58,7 +70,73 @@ namespace gridtools {
             const_cast<typename boost::remove_const<T>::type*>(_array)[1]=j;
             const_cast<typename boost::remove_const<T>::type*>(_array)[2]=k;
         }
-// #endif
+        GT_FUNCTION
+        array(T const& i, T const& j, T const& k, T const& l): _array() {
+            const_cast<typename boost::remove_const<T>::type*>(_array)[0]=i;
+            const_cast<typename boost::remove_const<T>::type*>(_array)[1]=j;
+            const_cast<typename boost::remove_const<T>::type*>(_array)[2]=k;
+            const_cast<typename boost::remove_const<T>::type*>(_array)[3]=l;
+        }
+        GT_FUNCTION
+        array(T const& i, T const& j, T const& k, T const& l, T const& p): _array() {
+            const_cast<typename boost::remove_const<T>::type*>(_array)[0]=i;
+            const_cast<typename boost::remove_const<T>::type*>(_array)[1]=j;
+            const_cast<typename boost::remove_const<T>::type*>(_array)[2]=k;
+            const_cast<typename boost::remove_const<T>::type*>(_array)[3]=l;
+            const_cast<typename boost::remove_const<T>::type*>(_array)[4]=p;
+        }
+
+#endif
+
+#ifdef CXX11_ENABLED
+        /** @brief constexpr copy constructor
+
+        */
+        GT_FUNCTION
+        constexpr array( array<T,1> const& other): _array{other[0]} {
+        }
+        GT_FUNCTION
+        constexpr array( array<T,2> const& other): _array{other[0], other[1]} {
+        }
+        GT_FUNCTION
+        constexpr array( array<T,3> const& other): _array{other[0], other[1], other[2]}{
+        }
+        GT_FUNCTION
+        constexpr array( array<T,4> const& other): _array{other[0], other[1], other[2], other[3]} {
+        }
+#else
+        //TODO provide a BOOST PP implementation for this (so ugly :-()
+        GT_FUNCTION
+        array( array<T,1> const& other): _array() {
+            _array[0]=other[0];
+        }
+        GT_FUNCTION
+        array( array<T,2> const& other): _array() {
+            _array[0]=other[0];
+            _array[1]=other[1];
+        }
+        GT_FUNCTION
+        array( array<T,3> const& other): _array() {
+            _array[0]=other[0];
+            _array[1]=other[1];
+            _array[2]=other[2];
+        }
+        GT_FUNCTION
+        array( array<T,4> const& other): _array() {
+            _array[0]=other[0];
+            _array[1]=other[1];
+            _array[2]=other[2];
+            _array[3]=other[3];
+        }
+        GT_FUNCTION
+        array( array<T,5> const& other): _array() {
+            _array[0]=other[0];
+            _array[1]=other[1];
+            _array[2]=other[2];
+            _array[3]=other[3];
+            _array[4]=other[4];
+        }
+#endif
 
         GT_FUNCTION
         T * data() const {
@@ -66,14 +144,15 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        T const & operator[](size_t i) const {
-            assert((i < _size));
+        constexpr T const & operator[](size_t i) const {
+            // assert((i < _size));
             return _array[i];
         }
 
         GT_FUNCTION
+        // constexpr
         T & operator[](size_t i) {
-            assert((i < _size));
+            //assert((i < _size));
             return _array[i];
         }
 

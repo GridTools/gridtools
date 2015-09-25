@@ -5,7 +5,7 @@
 #include "loopintervals.hpp"
 #include "../common/halo_descriptor.hpp"
 #include "../common/gpu_clone.hpp"
-#include <storage/partitioner.hpp>
+#include "storage/partitioner.hpp"
 /**@file
 @brief file containing the size of the horizontal domain
 
@@ -75,6 +75,17 @@ namespace gridtools {
         {
             GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy<partitioner_t>::value, "you have to construct the coordinates with a valid partitioner, or with no partitioner at all.");
         }
+
+        GT_FUNCTION
+        explicit coordinates( array<uint_t, 5>& i, array<uint_t, 5>& j)
+            :
+            m_partitioner(partitioner_dummy())//ok since partitioner_dummy is empty. Generates a warning
+            , m_direction_i(i[minus], i[plus], i[begin], i[end], i[length])
+            , m_direction_j(j[minus], j[plus], j[begin], j[end], j[length])
+        {
+            GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy<partitioner_t>::value, "you have to construct the coordinates with a valid partitioner, or with no partitioner at all.");
+        }
+
 
         GT_FUNCTION
         uint_t i_low_bound() const {

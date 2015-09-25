@@ -26,12 +26,12 @@ namespace functors{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            enumtype::Dimension<4>::Index qp;
-            enumtype::Dimension<5>::Index dimx;
-            enumtype::Dimension<6>::Index dimy;
-            enumtype::Dimension<1>::Index i;
-            enumtype::Dimension<2>::Index j;
-            enumtype::Dimension<3>::Index k;
+            dimension<4>::Index qp;
+            dimension<5>::Index dimx;
+            dimension<6>::Index dimy;
+            dimension<1>::Index i;
+            dimension<2>::Index j;
+            dimension<3>::Index k;
 
             //TODO dimensions should be generic
             for(short_t icoor=0; icoor< shape_property<Geometry::parent_shape>::dimension; ++icoor)
@@ -43,7 +43,7 @@ namespace functors{
                         eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) )=0.;
                                 for (int_t iterNode=0; iterNode < geo_map::basisCardinality ; ++iterNode)
                                 {//reduction/gather
-                                    eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) ) += eval(grid_points(enumtype::Dimension<4>(iterNode), enumtype::Dimension<5>(icoor)) * !dphi(i+iterNode, j+iter_quad, k+jcoor) );
+                                    eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) ) += eval(grid_points(dimension<4>(iterNode), dimension<5>(icoor)) * !dphi(i+iterNode, j+iter_quad, k+jcoor) );
                                 }
                     }
                 }
@@ -67,9 +67,9 @@ namespace functors{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            enumtype::Dimension<4>::Index qp;
-            enumtype::Dimension<5>::Index dimx;
-            enumtype::Dimension<6>::Index dimy;
+            dimension<4>::Index qp;
+            dimension<5>::Index dimx;
+            dimension<6>::Index dimy;
 
             for(short_t q=0; q< cub::numCubPoints; ++q)
             {
@@ -104,9 +104,9 @@ namespace functors{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            enumtype::Dimension<4>::Index qp;
-            using dimx=enumtype::Dimension<5>;
-            using dimy=enumtype::Dimension<6>;
+            dimension<4>::Index qp;
+            using dimx=dimension<5>;
+            using dimy=dimension<6>;
             dimx::Index X;
             dimy::Index Y;
 //! [aliases]
@@ -123,15 +123,15 @@ namespace functors{
             // eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) )=0.;
             for(short_t q=0; q< cub::numCubPoints/*quad_pts*/; ++q)
             {
-                alias<a_, enumtype::Dimension<4> > a(q);
-                alias<b_, enumtype::Dimension<4> > b(q);
-                alias<c_, enumtype::Dimension<4> > c(q);
-                alias<d_, enumtype::Dimension<4> > d(q);
-                alias<e_, enumtype::Dimension<4> > e(q);
-                alias<f_, enumtype::Dimension<4> > f(q);
-                alias<g_, enumtype::Dimension<4> > g(q);
-                alias<h_, enumtype::Dimension<4> > h(q);
-                alias<i_, enumtype::Dimension<4> > i(q);
+                alias<a_, dimension<4> > a(q);
+                alias<b_, dimension<4> > b(q);
+                alias<c_, dimension<4> > c(q);
+                alias<d_, dimension<4> > d(q);
+                alias<e_, dimension<4> > e(q);
+                alias<f_, dimension<4> > f(q);
+                alias<g_, dimension<4> > g(q);
+                alias<h_, dimension<4> > h(q);
+                alias<i_, dimension<4> > i(q);
 
                 assert(eval(a()) == eval(jac(qp+q)));
                 assert(eval(b()) == eval(jac(qp+q, X+1)));
@@ -180,16 +180,16 @@ namespace functors{
         using in=accessor<0, range<-1,0,-1,0> , 5> const;
         using out=accessor<1, range<0,0,0,0> , 5> ;
         using arg_list=boost::mpl::vector<in, out> ;
-        using quad=enumtype::Dimension<4>;
+        using quad=dimension<4>;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            enumtype::x::Index i;
-            enumtype::y::Index j;
-            enumtype::z::Index k;
-            enumtype::Dimension<4>::Index row;
-            enumtype::Dimension<5>::Index col;
+            dimension<1>::Index i;
+            dimension<2>::Index j;
+            dimension<3>::Index k;
+            dimension<4>::Index row;
+            dimension<5>::Index col;
 
             // assembly : this part is specific for tensor product topologies
             // points on the edges

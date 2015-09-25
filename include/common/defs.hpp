@@ -6,6 +6,8 @@
 #else
 #define CXX11_DISABLED
 #endif
+#else
+#define CXX11_DISABLED
 #endif
 
 //defines how many threads participate to the (shared) memory initialization
@@ -26,11 +28,10 @@
 #include <boost/mpl/logical.hpp>
 #include <boost/type_traits.hpp>
 
-#ifdef FUSION_MAX_VECTOR_SIZE
-#undef FUSION_MAX_VECTOR_SIZE
+#ifndef FUSION_MAX_VECTOR_SIZE
+    #define FUSION_MAX_VECTOR_SIZE 20
+    #define FUSION_MAX_MAP_SIZE 20
 #endif
-
-#define FUSION_MAX_VECTOR_SIZE 20
 
 #define GT_MAX_ARGS 20
 #define GT_MAX_INDEPENDENT 3
@@ -71,6 +72,15 @@
   #else
     #define GT_DEFAULT_TILE_J 8
   #endif
+#endif
+
+#if defined(_OPENMP)
+  #include <omp.h>
+#else
+  typedef int omp_int_t;
+  inline omp_int_t omp_get_thread_num() { return 0;}
+  inline omp_int_t omp_get_max_threads() { return 1;}
+  inline double omp_get_wtime() { return 0;}
 #endif
 
 #include <boost/mpl/integral_c.hpp>
@@ -181,9 +191,9 @@ namespace gridtools{
 
 
 #ifdef CXX11_ENABLED
-#define GRIDTOOLS_STATIC_ASSERT(Condition, Message)    static_assert(Condition, "\n\nGRIDTOOLS ERROR=> " Message"\n\n");
+#define GRIDTOOLS_STATIC_ASSERT(Condition, Message)    static_assert(Condition, "\n\nGRIDTOOLS ERROR=> " Message"\n\n")
 #else
-#define GRIDTOOLS_STATIC_ASSERT(Condition, Message)    BOOST_STATIC_ASSERT(Condition);
+#define GRIDTOOLS_STATIC_ASSERT(Condition, Message)    BOOST_STATIC_ASSERT(Condition)
 #endif
 
 
@@ -225,6 +235,8 @@ namespace gridtools{
     using  static_short=boost::mpl::integral_c<short_t,N>;
     template<ushort_t N>
     using  static_ushort=boost::mpl::integral_c<ushort_t,N>;
+    template<bool B>
+    using  static_bool=boost::mpl::integral_c<bool,B>;
 #else
     typedef int                     int_t;
     typedef int                     short_t;
@@ -246,10 +258,20 @@ namespace gridtools{
     struct static_ushort : boost::mpl::integral_c<ushort_t,N>{
         typedef boost::mpl::integral_c<ushort_t,N> type;
     };
+    template<bool B>
+    struct static_bool : boost::mpl::integral_c<bool,B>{
+        typedef boost::mpl::integral_c<bool,B> type;
+    };
+
+#endif
+    template<typename T>
+    struct is_static_integral : boost::mpl::false_{};
+
+    template<typename T, T N>
+    struct is_static_integral<boost::mpl::integral_c<T, N> >: boost::mpl::true_{};
     /**
        @}
      */
 //######################################################
-#endif
 
 }//namespace gridtools

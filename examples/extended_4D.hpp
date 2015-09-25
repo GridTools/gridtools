@@ -1,8 +1,5 @@
 #pragma once
 
-#include <gridtools.hpp>
-#include <stencil-composition/backend.hpp>
-#include <stencil-composition/interval.hpp>
 #include <stencil-composition/make_computation.hpp>
 
 /**
@@ -52,7 +49,7 @@ namespace assembly{
         typedef accessor<3, range<-1, 1, -1, 1> > const f;
         typedef accessor<4, range<-1, 1, -1, 1> > result;
         typedef boost::mpl::vector<phi, psi, jac, f, result> arg_list;
-        using quad=Dimension<4>;
+        using quad=dimension<4>;
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
@@ -100,12 +97,16 @@ namespace assembly{
         //                   strides  1 x xy xyz
         typedef gridtools::layout_map<3,2, 1, 0> layout4_t;
         typedef gridtools::layout_map<2,1,0> layout_t;
-        typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
-        typedef gridtools::BACKEND::storage_type<float_type, layout4_t >::type integration_type;
+        typedef storage_info< layout_t> metadata_t;
+        typedef storage_info< layout4_t> metadata_global_quad_t;
+        typedef storage_info< layout4_t> metadata_local_quad_t;
+        typedef gridtools::BACKEND::storage_type<float_type, metadata_t >::type storage_type;
+        typedef gridtools::BACKEND::storage_type<float_type, metadata_global_quad_t >::type storage_global_quad_t;
+        typedef gridtools::BACKEND::storage_type<float_type, metadata_local_quad_t >::type storage_local_quad_t;
 
-        typedef arg<0, integration_type > p_phi;
-        typedef arg<1, integration_type > p_psi;
-        typedef arg<2, integration_type > p_jac;
+        typedef arg<0, storage_local_quad_t > p_phi;
+        typedef arg<1, storage_local_quad_t > p_psi;
+        typedef arg<2, storage_global_quad_t > p_jac;
         typedef arg<3, storage_type > p_f;
         typedef arg<4, storage_type > p_result;
 
@@ -116,12 +117,15 @@ namespace assembly{
         uint_t b2=2;
         uint_t b3=2;
         //basis functions available in a 2x2x2 cell, because of P1 FE
-        integration_type phi(b1,b2,b3,nbQuadPt);
-        integration_type psi(b1,b2,b3,nbQuadPt);
+        metadata_local_quad_t local_metadata(b1,b2,b3,nbQuadPt);
+
+        storage_local_quad_t phi(local_metadata);
+        storage_local_quad_t psi(local_metadata);
 
         //I might want to treat it as a temporary storage (will use less memory but constantly copying back and forth)
         //Or alternatively computing the values on the quadrature points on the GPU
-        integration_type jac(d1,d2,d3,nbQuadPt);
+        metadata_global_quad_t integration_metadata(d1,d2,d3,nbQuadPt);
+        storage_global_quad_t  jac(integration_metadata);
 
         //the above storage constructors are setting up the storages without allocating the space (might want to change this?). We do it now.
         jac.allocate();
@@ -143,9 +147,10 @@ namespace assembly{
                         phi(i,j,k,q)=10.;
                         psi(i,j,k,q)=11.;
                     }
-        storage_type f(d1, d2, d3, (float_type)1.3, "f");
 
-        storage_type result(d1, d2, d3, (float_type)0., "result");
+        metadata_t meta_(d1, d2, d3);
+        storage_type f(meta_, (float_type)1.3, "f");
+        storage_type result(meta_, (float_type)0., "result");
 
         gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&phi, &psi, &jac, &f, &result));
         /**
@@ -166,7 +171,7 @@ namespace assembly{
 #else
             boost::shared_ptr<gridtools::computation> fe_comp =
 #endif
-            make_computation<gridtools::BACKEND, layout_t>
+            make_computation<gridtools::BACKEND>
             (
                 make_mss //! \todo all the arguments in the call to make_mss are actually dummy.
                 (
@@ -179,8 +184,6 @@ namespace assembly{
         fe_comp->steady();
         fe_comp->run();
         fe_comp->finalize();
-
-        result.print();
 
         bool success(true);
         for(uint_t i=0; i<d1; ++i)

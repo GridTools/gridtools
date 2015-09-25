@@ -230,7 +230,8 @@ int main(){
     //![definitions]
     using namespace enumtype;
     //defining the assembler, based on the Intrepid definitions for the numerics
-    using matrix_type=storage_t<gridtools::layout_map<0,1,2,3,4> >;
+    using matrix_storage_info_t=storage_info< gridtools::layout_map<0,1,2,3,4> >;
+    using matrix_type=storage_t< matrix_storage_info_t >;
     using fe=reference_element<1, Lagrange, Hexa>;
     using geo_map=reference_element<1, Lagrange, Hexa>;
     using cub=cubature<fe::order, fe::shape>;

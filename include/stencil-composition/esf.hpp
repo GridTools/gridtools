@@ -4,7 +4,8 @@
 
 #include "accessor.hpp"
 #include "domain_type.hpp"
-
+#include "common/generic_metafunctions/is_sequence_of.hpp"
+#include "sfinae.hpp"
 /**
    @file
    @brief Descriptors for Elementary Stencil Function (ESF)
@@ -14,13 +15,25 @@ namespace gridtools {
     /**
      * @brief Descriptors for Elementary Stencil Function (ESF)
      */
-    template <typename ESF, typename ArgArray, typename Staggering=staggered<0,0,0,0> >
+    template <typename ESF, typename ArgArray, typename Staggering=staggered<0,0,0,0,0,0> >
     struct esf_descriptor {
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ArgArray, is_arg>::value), "wrong types for the list of parameter placeholders\n"
+                "check the make_esf syntax");
         typedef ESF esf_function;
-        typedef ArgArray args;
+        typedef ArgArray args_t;
         typedef Staggering staggering_t;
 
         //////////////////////Compile time checks ////////////////////////////////////////////////////////////
+
+        /**@brief Macro defining a sfinae metafunction
+
+           defines a metafunction has_range_type, which returns true if its template argument
+           defines a type called arg_list. It also defines a get_arg_list metafunction, which
+           can be used to return the arg_list only when it is present, without giving compilation
+           errors in case it is not defined.
+        */
+        HAS_TYPE_SFINAE(arg_list, has_arg_list, get_arg_list)
+        GRIDTOOLS_STATIC_ASSERT(has_arg_list<esf_function>::type::value, "The type arg_list was not found in a user functor definition. All user functors must have a type alias called \'arg_list\', which is an MPL vector containing the list of accessors defined in the functor (NOTE: the \'generic_accessor\' types are excluded from this list). Example: \n\n using v1=accessor<0>; \n using v2=generic_accessor<1>; \n using v3=accessor<2>; \n using arg_list=boost::mpl::vector<v1, v3>;");
         //checking that all the placeholders have a different index
         /**
          * \brief Get a sequence of the same type as original_placeholders, containing the indexes relative to the placehoolders
@@ -79,7 +92,7 @@ namespace gridtools {
         template <typename Index>
         struct apply {
             typedef typename boost::mpl::if_<
-                is_plchldr_to_temp<typename boost::mpl::at<typename Esf::args, Index>::type>,
+                is_plchldr_to_temp<typename boost::mpl::at<typename Esf::args_t, Index>::type>,
                 typename boost::mpl::if_<
                     boost::is_const<typename boost::mpl::at<typename Esf::esf_function::arg_list, Index>::type>,
                     boost::false_type,
@@ -89,30 +102,4 @@ namespace gridtools {
             >::type type;
         };
     };
-
-    template <typename Esf>
-    struct get_arg_index {
-        template <typename Index>
-        struct apply {
-            typedef typename boost::mpl::at<typename Esf::args, Index>::type type;
-        };
-    };
-
-    template <typename EsfF>
-    struct get_temps_per_functor {
-        typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename EsfF::args>::type::value> range;
-        typedef typename boost::mpl::fold<
-            range,
-            boost::mpl::vector<>,
-            boost::mpl::if_<
-                typename is_written_temp<EsfF>::template apply<boost::mpl::_2>,
-                boost::mpl::push_back<
-                    boost::mpl::_1,
-                    typename get_arg_index<EsfF>::template apply<boost::mpl::_2>
-                >,
-                boost::mpl::_1
-            >
-        >::type type;
-    };
-
 } // namespace gridtools

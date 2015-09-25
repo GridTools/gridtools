@@ -18,7 +18,6 @@
 #endif
 #include <boost/mpl/contains.hpp>
 #include <boost/utility/enable_if.hpp>
-// #include <boost/type_traits.hpp>
 
 #include<communication/GCL.hpp>
 #include "common/gt_assert.hpp"
@@ -26,3 +25,5 @@
 #include "common/host_device.hpp"
 #include "common/array.hpp"
 #include "common/layout_map.hpp"
+#include "common/pointer.hpp"
+#include "common/pointer_metafunctions.hpp"

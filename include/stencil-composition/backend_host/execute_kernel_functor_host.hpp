@@ -55,8 +55,10 @@ struct execute_kernel_functor_host
 
     /**
        @brief core of the kernel execution
+
        @tparam Traits traits class defined in \ref gridtools::_impl::run_functor_traits
     */
+    //Block strategy
     explicit execute_kernel_functor_host(const local_domain_t& local_domain, const coords_t& coords,
             const uint_t first_i, const uint_t first_j, const uint_t last_i, const uint_t last_j,
             const uint_t block_idx_i, const uint_t block_idx_j)
@@ -88,7 +90,7 @@ struct execute_kernel_functor_host
 
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
         typedef backend_traits_from_id<enumtype::Host> backend_traits_t;
-#ifndef NDEBUG
+#ifdef __VERBOSE__
         #pragma omp critical
         {
         std::cout << "I loop " << m_first_pos[0] <<"+"<< range_t::iminus::value << " -> "
@@ -104,20 +106,24 @@ struct execute_kernel_functor_host
         }
 #endif
 
-        array<void* RESTRICT,iterate_domain_t::N_DATA_POINTERS> data_pointer;
-        strides_cached<iterate_domain_t::N_STORAGES-1, typename local_domain_t::esf_args> strides;
+        typename iterate_domain_t::data_pointer_array_t data_pointer;
+        typedef typename iterate_domain_t::strides_cached_t strides_t;
+        strides_t strides;
 
         iterate_domain_t it_domain(m_local_domain);
-        it_domain.template assign_storage_pointers<backend_traits_t >(&data_pointer);
 
-        it_domain.template assign_stride_pointers <backend_traits_from_id<enumtype::Host> >(&strides);
+        it_domain.set_data_pointer_impl(&data_pointer);
+        it_domain.set_strides_pointer_impl(&strides);
+
+        it_domain.template assign_storage_pointers<backend_traits_t >();
+        it_domain.template assign_stride_pointers <backend_traits_t, strides_t>();
 
         typedef typename boost::mpl::front<loop_intervals_t>::type interval;
         typedef typename index_to_level<typename interval::first>::type from;
         typedef typename index_to_level<typename interval::second>::type to;
         typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy;
 
-        typedef array<int_t, iterate_domain_t::N_STORAGES> array_t;
+        typedef array<int_t, iterate_domain_t::N_META_STORAGES> array_t;
         loop_hierarchy<
             array_t, loop_item<0, int_t, 1>, loop_item<1, int_t, 1>
             > ij_loop(
