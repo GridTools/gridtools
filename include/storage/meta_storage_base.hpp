@@ -53,15 +53,15 @@ namespace gridtools {
                >
     struct meta_storage_base<Index, Layout, IsTemporary
 #ifndef CXX11_ENABLED
-			     ,int, int
+                             ,int, int
 #endif
-			     >
+                             >
     {
         typedef meta_storage_base<Index, Layout , IsTemporary
 #ifndef CXX11_ENABLED
-			     ,int, int
+                                  ,int, int
 #endif
-				  > basic_type;
+                                  > basic_type;
         typedef Layout layout;
         typedef static_ushort<Index> index_type;
 
