@@ -1,5 +1,39 @@
 #!/bin/bash
 
+function help {
+   echo "helo"
+}
+while getopts "h:t:f:s:pm" opt; do
+    case "$opt" in
+    h|\?)
+        help
+        exit 0
+        ;;
+    t) TARGET=$OPTARG
+        ;;
+    f) FLOAT_TYPE=$OPTARG
+        ;;
+    s) CXXSTD=$OPTARG
+        ;;
+    p) PYTHON="ON"
+        ;;
+    m) MPI="ON"
+        ;;
+    esac
+done
+
+if [[ "$TARGET" != "gpu" ]] && [[ "$TARGET" != "cpu" ]]; then
+   help
+fi
+
+if [[ "$FLOAT_TYPE" != "float" ]] && [[ "$FLOAT_TYPE" != "double" ]]; then
+   help
+fi
+
+if [[ "$CXXSTD" != "cxx11" ]] && [[ "$CXXSTD" != "cxx03" ]]; then
+   help
+fi
+
 
 #
 # full path to the virtual environment where the Python tests run
@@ -22,8 +56,6 @@ export GRIDTOOLS_ROOT_BUILD=$PWD
 export GRIDTOOLS_ROOT=$PWD/../
 export CUDATOOLKIT_HOME=${CUDA_ROOT}
 
-TARGET=$1
-REAL_TYPE=$2
 CXX_11_ON=$3
 MPI=$4
 PYTHON_ON=$5
@@ -44,8 +76,7 @@ SINGLE_PRECISION=OFF
 fi
 echo "SINGLE_PRECISION=$SINGLE_PRECISION"
 
-if [ "x$CXX_11_ON" == "xcxx11" ]
-then
+if [[ "$CXXSTD" == "xcxx11" ]]; then
 CXX_11=ON
 else
 CXX_11=OFF
@@ -96,7 +127,7 @@ cmake \
 -DPYTHON_INSTALL_PREFIX:STRING="${VENV_PATH}" \
  ../
 
-make -j8;
+make -j8 >& /tmp/jenkins.log;
 
 sh ./run_tests.sh
 
