@@ -190,7 +190,7 @@ TEST(Laplace, test) {
        */
 
 #ifdef __CUDACC__
-    computation* horizontal_diffusion =
+    computation* laplace =
 #else
     boost::shared_ptr<gridtools::computation> laplace =
 #endif
