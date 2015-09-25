@@ -150,6 +150,9 @@ namespace gridtools{
         parametric_space()
 	{
 	    int k=0;
+            //knots span from -2P+1 to 2P+1 with step of 2:
+            //[-2P+1, -2P+3, ..., -1, 1, ..., 2P-1, 2P+1]
+            //for P=2 : [-3, -1, 1, 3, 5]
 	    for(int i=0; i< (P+P+1)*2; i+=2)
 	    {
 #ifdef VERBOSE
