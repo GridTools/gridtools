@@ -253,10 +253,8 @@ namespace gridtools{
     };
 
 
-    template<>
     const ushort_t shape_property<enumtype::Hexa>::dimension;
 
-    template<>
     const ushort_t shape_property<enumtype::Quad>::dimension;
 
 
