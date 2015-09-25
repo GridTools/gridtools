@@ -237,10 +237,10 @@ int main (int argc, char **argv)
 
     // initialization
     for (int i = 0; i<dim1; i++) {
-	    for (int j = 0; j<dim2; j++) {
-	    	for (int k = 0; k<dim3; k++) {
+        for (int j = 0; j<dim2; j++) {
+            for (int k = 0; k<dim3; k++) {
             {% for p in params -%}
-			    {{ p.name }}_buff[i*dim3*dim2 + j*dim3 + k] = i*dim3*dim2 + j*dim3 + k;
+                {{ p.name }}_buff[i*dim3*dim2 + j*dim3 + k] = i*dim3*dim2 + j*dim3 + k;
             {% endfor -%}
             }
         }
@@ -257,15 +257,15 @@ int main (int argc, char **argv)
 
     // output
     for (int i = 0; i<dim1; i++) {
-	    for (int j = 0; j<dim2; j++) {
-	    	for (int k = 0; k<dim3; k++) {
-			        printf ("(%d,%d,%d)", i,j,k);
+        for (int j = 0; j<dim2; j++) {
+            for (int k = 0; k<dim3; k++) {
+                    printf ("(%d,%d,%d)", i,j,k);
                 {% for p in params -%}
                     printf ("\t%.5f", {{ p.name }}_buff[i*dim3*dim2 + j*dim3 + k]);
                 {% endfor -%}
                     printf ("\n");
             }
-		}
+            }
     }
 
 

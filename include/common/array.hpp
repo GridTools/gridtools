@@ -36,7 +36,7 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
 
 #ifndef __CUDACC__ // NVCC always returns false in the SFINAE
-	// variadic constructor enabled only for arguments of type T
+        // variadic constructor enabled only for arguments of type T
         template<typename ... ElTypes
                  , typename = typename boost::enable_if_c<accumulate(logical_and(), boost::is_same<ElTypes, T>::type::value ...), int >
                  >
@@ -44,7 +44,7 @@ namespace gridtools {
         array(ElTypes const& ... types): _array{(T)types ... } {
         }
 #else // nvcc only checks the first argument
-	// variadic constructor enabled only for arguments of type T
+        // variadic constructor enabled only for arguments of type T
         template<typename First, typename ... ElTypes
                  , typename = typename boost::enable_if_c<boost::is_same<First, T>::type::value , int >
                  >

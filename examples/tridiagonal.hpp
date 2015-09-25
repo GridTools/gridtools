@@ -55,7 +55,7 @@ typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
         typedef accessor<4> rhs; //d
 
 #ifndef __CUDACC__
-	static const auto expr_sup=sup{}/(diag{}-sup{z{-1}}*inf{});
+        static const auto expr_sup=sup{}/(diag{}-sup{z{-1}}*inf{});
         static const auto expr_rhs=(rhs{}-inf{}*rhs{z{-1}})/(diag{}-sup{z{-1}}*inf{});
         static const auto expr_out=rhs{}-sup{}*out{0,0,1};
 #endif
