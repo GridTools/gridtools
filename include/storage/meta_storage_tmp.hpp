@@ -16,19 +16,19 @@ namespace gridtools{
     /**
        @class
        @brief specialization for the temporary storages and block strategy
-     */
+    */
     template<ushort_t Index, typename Layout, typename FirstTile,
 #ifdef CXX11_ENABLED
              typename ... Tiles
 #else
-	     uint_t Tile, uint_t Plus, uint_t Minus
+             uint_t Tile, uint_t Plus, uint_t Minus
 #endif
              >
     struct meta_storage_base<Index, Layout, true, FirstTile,
 #ifdef CXX11_ENABLED
                              Tiles...
 #else
-			     tile<Tile, Plus, Minus>
+                             tile<Tile, Plus, Minus>
 #endif
                              > : public meta_storage_base<Index, Layout, false> {
         static const bool is_temporary=true;
@@ -38,7 +38,7 @@ namespace gridtools{
         typedef meta_storage_base<Index, Layout, true, FirstTile, Tiles ...> this_type;
         typedef typename boost::mpl::vector<FirstTile, Tiles ...> tiles_vector_t;
 #else
-	typedef tile<Tile, Plus, Minus> TileJ;
+        typedef tile<Tile, Plus, Minus> TileJ;
         typedef meta_storage_base<Index, Layout, true, FirstTile, TileJ> this_type;
         typedef typename boost::mpl::vector<FirstTile, TileJ> tiles_vector_t;
 #endif
