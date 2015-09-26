@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Options.hpp"
 #include <gridtools.hpp>
 #include <stencil-composition/backend.hpp>
 #include <stencil-composition/make_computation.hpp>
@@ -139,11 +138,8 @@ std::ostream& operator<<(std::ostream& s, out_function const) {
 void handle_error(int)
 {std::cout<<"error"<<std::endl;}
 
-TEST(HorizontalDiffusion, Test)
+bool test(uint_t x, uint_t y, uint_t z)
 {
-    uint_t x = Options::getInstance().m_size[0];
-    uint_t y = Options::getInstance().m_size[1];
-    uint_t z = Options::getInstance().m_size[2];
 
 #ifdef USE_PAPI_WRAP
   int collector_init = pw_new_collector("Init");
@@ -333,7 +329,7 @@ PAPI_stop(event_set, values);
     pw_print();
 #endif
 
-  ASSERT_TRUE(result); /// lapse_time.wall<5000000 &&
+  return result; /// lapse_time.wall<5000000 &&
 }
 
 }//namespace horizontal_diffusion

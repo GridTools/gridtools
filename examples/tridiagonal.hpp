@@ -7,7 +7,6 @@
 #include <stencil-composition/interval.hpp>
 #include <stencil-composition/make_computation.hpp>
 #include <tools/verifier.hpp>
-#include "Options.hpp"
 
 #ifdef USE_PAPI_WRAP
 #include <papi_wrap.hpp>
@@ -161,11 +160,7 @@ std::ostream& operator<<(std::ostream& s, forward_thomas const) {
 }
 
 
-TEST(TridiagonalSolve, test) {
-
-    uint_t d1 = Options::getInstance().m_size[0];
-    uint_t d2 = Options::getInstance().m_size[1];
-    uint_t d3 = Options::getInstance().m_size[2];
+bool test(uint_t d1, uint_t d2, uint_t d3) {
 
 #ifdef USE_PAPI_WRAP
   int collector_init = pw_new_collector("Init");
@@ -291,6 +286,6 @@ TEST(TridiagonalSolve, test) {
 
         //TODO need a proper verification
     bool result=true;
-    ASSERT_TRUE(result);
+    return result;
 }
 }//namespace tridiagonal

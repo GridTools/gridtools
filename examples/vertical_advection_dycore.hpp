@@ -1,5 +1,4 @@
 #pragma once
-#include "gtest/gtest.h"
 #include <gridtools.hpp>
 
 #include <stencil-composition/backend.hpp>
@@ -8,7 +7,6 @@
 #include "vertical_advection_repository.hpp"
 #include <tools/verifier.hpp>
 #include <stencil-composition/make_computation.hpp>
-#include "Options.hpp"
 
 /*
   This file shows an implementation of the "vertical advection" stencil used in COSMO for U field
@@ -187,11 +185,7 @@ std::ostream& operator<<(std::ostream& s, u_backward_function<double> const) {
     return s << "u_backward_function";
 }
 
-TEST(VerticalAdvection, test) {
-
-    uint_t d1 = Options::getInstance().m_size[0];
-    uint_t d2 = Options::getInstance().m_size[1];
-    uint_t d3 = Options::getInstance().m_size[2];
+bool test(uint_t d1, uint_t d2, uint_t d3) {
 
     const int halo_size = 3;
 
@@ -318,8 +312,7 @@ TEST(VerticalAdvection, test) {
     verifier verif(1e-10, halo_size);
     bool result = verif.verify(repository.utens_stage_ref(), repository.utens_stage());
 
-    ASSERT_TRUE(result);
-
+    return result;
 }
 
 }//namespace vertical_advection

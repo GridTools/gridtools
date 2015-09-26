@@ -40,7 +40,7 @@ using namespace gridtools;
 using namespace enumtype;
 using namespace expressions;
 
-namespace assembly{
+namespace extended_4d{
 
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
@@ -85,11 +85,7 @@ namespace assembly{
         return s << "integration";
     }
 
-    TEST(Extended4D, test) {
-
-        uint_t d1 = Options::getInstance().m_size[0];
-        uint_t d2 = Options::getInstance().m_size[1];
-        uint_t d3 = Options::getInstance().m_size[2];
+    bool test(uint_t d1, uint_t d2, uint_t d3) {
 
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<Cuda, Block >
@@ -194,8 +190,8 @@ namespace assembly{
                     }
                 }
 
-        ASSERT_TRUE(success);
+        return success;
     }
 
-}; //namespace assembly
+}; //namespace extended_4d
 #endif //CXX11_ENABLED
