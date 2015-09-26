@@ -90,6 +90,7 @@ struct execute_kernel_functor_host
 //#ifdef __VERBOSE__
 //        #pragma omp critical
 //        {
+        //TODOCOSUNA Ranges in other grid have to become radius
         std::cout << "I loop " << m_first_pos[0] <<"+"<< range_t::iminus::value << " -> "
                   << m_first_pos[0] <<"+"<< m_last_pos[0] <<"+"<< range_t::iplus::value << "\n";
         std::cout << "J loop " << m_first_pos[1] <<"+"<< range_t::jminus::value << " -> "
@@ -133,7 +134,25 @@ struct execute_kernel_functor_host
 
 //        //reset the index
         it_domain.set_index(0);
+
 //        ij_loop.initialize(it_domain, m_block_id);
+
+        it_domain.template initialize<0>(m_first_pos[0] + range_t::iminus::value, m_block_id[0]);
+        it_domain.template initialize<1>(m_first_pos[1] + range_t::jminus::value, m_block_id[1]);
+        it_domain.template initialize<2>( m_coords.template value_at< typename iteration_policy::from >() );
+
+        //initialize color dim
+        it_domain.template initialize<3>(0);
+
+        for(uint_t i=m_first_pos[0]; i <= m_last_pos[0];++i)
+        {
+            for(uint_t j=m_first_pos[1]; j <= m_last_pos[1];++j)
+            {
+                gridtools::for_each< loop_intervals_t >
+                ( _impl::run_f_on_interval<execution_type_t, RunFunctorArguments> (it_domain, m_coords) );
+
+            }
+        }
 
 //        //define the kernel functor
 //        typedef innermost_functor<

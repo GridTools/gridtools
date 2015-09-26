@@ -1,5 +1,6 @@
 #pragma once
 #include "common/defs.hpp"
+#include "iterate_domain.hpp"
 
 namespace gridtools{
     namespace _impl{
@@ -20,9 +21,12 @@ namespace gridtools{
             GT_FUNCTION
             static uint_t increment(uint_t& k){return ++k;}
 
-            template<typename Domain>
+            template<typename IterateDomain>
             GT_FUNCTION
-            static void increment(Domain& dom){dom.template increment<2, static_int<1> >();}
+            static void increment(IterateDomain& eval){
+                GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<IterateDomain>::value), "Error: wrong type");
+                eval.template increment<2, static_int<1> >();
+            }
 
             GT_FUNCTION
             static bool condition(uint_t const& a, uint_t const& b){return a<=b;}//because the k dimension excludes the extremes, so we want to loop on the internal levels (otherwise we should have allocated more memory)

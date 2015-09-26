@@ -222,169 +222,169 @@ namespace gridtools{
         }
     };
 
-//    /**@brief incrementing all the storage pointers to the m_data_pointers array
+    /**@brief incrementing all the storage pointers to the m_data_pointers array
 
-//       @tparam Coordinate direction along which the increment takes place
-//       @tparam Execution policy determining how the increment is done (e.g. increment/decrement)
-//       @tparam StridesCached strides cached type
-//       @tparam StorageSequence sequence of storages
+       @tparam Coordinate direction along which the increment takes place
+       @tparam Execution policy determining how the increment is done (e.g. increment/decrement)
+       @tparam StridesCached strides cached type
+       @tparam StorageSequence sequence of storages
 
-//           This method is responsible of incrementing the index for the memory access at
-//           the location (i,j,k) incremented/decremented by 1 along the 'Coordinate' direction. Such index is shared among all the fields contained in the
-//           same storage class instance, and it is not shared among different storage instances.
+           This method is responsible of incrementing the index for the memory access at
+           the location (i,j,k) incremented/decremented by 1 along the 'Coordinate' direction. Such index is shared among all the fields contained in the
+           same storage class instance, and it is not shared among different storage instances.
 
-//           The actual increment computation is delegated to the storage classes, the reason being that the implementation may depend on the storage type
-//           (e.g. whether the storage is temporary, partiitoned into blocks, ...)
-//    */
-//    template<
-//        uint_t Coordinate,
-//        typename StridesCached,
-//        typename MetaStorageSequence
-//        >
-//    struct increment_index_functor {
+           The actual increment computation is delegated to the storage classes, the reason being that the implementation may depend on the storage type
+           (e.g. whether the storage is temporary, partiitoned into blocks, ...)
+    */
+    template<
+        uint_t Coordinate,
+        typename StridesCached,
+        typename MetaStorageSequence
+        >
+    struct increment_index_functor {
 
-//        GRIDTOOLS_STATIC_ASSERT((is_strides_cached<StridesCached>::value), "internal error: wrong type");
-//        // GRIDTOOLS_STATIC_ASSERT((is_sequence_of<StorageSequence, is_any_iterate_domain_storage_pointer>::value),
-//        //                         "internal error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_strides_cached<StridesCached>::value), "internal error: wrong type");
+        // GRIDTOOLS_STATIC_ASSERT((is_sequence_of<StorageSequence, is_any_iterate_domain_storage_pointer>::value),
+        //                         "internal error: wrong type");
 
-//        GT_FUNCTION
-//        increment_index_functor(MetaStorageSequence const& storages, int_t const& increment,
-//                int_t* RESTRICT index_array, StridesCached &  RESTRICT strides_cached) :
-//            m_storages(storages), m_increment(increment), m_index_array(index_array), m_strides_cached(strides_cached){}
+        GT_FUNCTION
+        increment_index_functor(MetaStorageSequence const& storages, int_t const& increment,
+                int_t* RESTRICT index_array, StridesCached &  RESTRICT strides_cached) :
+            m_storages(storages), m_increment(increment), m_index_array(index_array), m_strides_cached(strides_cached){}
 
-//        template <typename Pair>
-//        GT_FUNCTION
-//        void operator()(Pair const&) const {
+        template <typename Pair>
+        GT_FUNCTION
+        void operator()(Pair const&) const {
 
-//            typedef typename boost::mpl::second<Pair>::type ID;
-//            typedef typename boost::mpl::first<Pair>::type metadata_t;
+            typedef typename boost::mpl::second<Pair>::type ID;
+            typedef typename boost::mpl::first<Pair>::type metadata_t;
 
-//            GRIDTOOLS_STATIC_ASSERT((ID::value < boost::fusion::result_of::size<MetaStorageSequence>::value),
-//                                    "Accessing an index out of bound in fusion tuple");
+            GRIDTOOLS_STATIC_ASSERT((ID::value < boost::fusion::result_of::size<MetaStorageSequence>::value),
+                                    "Accessing an index out of bound in fusion tuple");
 
-//            assert(m_index_array);
-//            boost::fusion::at_c<ID::value>(m_storages)->template increment<Coordinate>(
-//                m_increment,&m_index_array[ID::value], m_strides_cached.template get<ID::value>());
-//        }
+            assert(m_index_array);
+            boost::fusion::at_c<ID::value>(m_storages)->template increment<Coordinate>(
+                m_increment,&m_index_array[ID::value], m_strides_cached.template get<ID::value>());
+        }
 
-//        GT_FUNCTION
-//        increment_index_functor(increment_index_functor const& other) : m_storages(other.m_storages), m_increment(other.m_increment), m_index_array(other.m_index_array), m_strides_cached(other.m_strides_cached){};
-//    private:
-//        increment_index_functor();
+        GT_FUNCTION
+        increment_index_functor(increment_index_functor const& other) : m_storages(other.m_storages), m_increment(other.m_increment), m_index_array(other.m_index_array), m_strides_cached(other.m_strides_cached){};
+    private:
+        increment_index_functor();
 
-//        MetaStorageSequence const& m_storages;
-//        int_t const& m_increment;
-//        int_t* RESTRICT m_index_array;
-//        StridesCached &  RESTRICT m_strides_cached;
-//    };
+        MetaStorageSequence const& m_storages;
+        int_t const& m_increment;
+        int_t* RESTRICT m_index_array;
+        StridesCached &  RESTRICT m_strides_cached;
+    };
 
-//    /**@brief assigning all the storage pointers to the m_data_pointers array
+    /**@brief assigning all the storage pointers to the m_data_pointers array
 
-//       similar to the increment_index class, but assigns the indices, and it does not depend on the storage type
-//    */
-//    template<uint_t ID>
-//    struct set_index_recur{
-//        /**@brief does the actual assignment
-//           This method is responsible of assigning the index for the memory access at
-//           the location (i,j,k). Such index is shared among all the fields contained in the
-//           same storage class instance, and it is not shared among different storage instances.
+       similar to the increment_index class, but assigns the indices, and it does not depend on the storage type
+    */
+    template<uint_t ID>
+    struct set_index_recur{
+        /**@brief does the actual assignment
+           This method is responsible of assigning the index for the memory access at
+           the location (i,j,k). Such index is shared among all the fields contained in the
+           same storage class instance, and it is not shared among different storage instances.
 
-//           This method given an array and an integer id assigns to the current component of the array the input integer.
-//        */
-//        template <typename Array>
-//        GT_FUNCTION
-//        static void set(int_t const& id, Array& index){
-//            GRIDTOOLS_STATIC_ASSERT((is_array<Array>::value), "type is not a gridtools array");
-//            index[ID]=id;
-//            set_index_recur<ID-1>::set(id,index);
-//        }
+           This method given an array and an integer id assigns to the current component of the array the input integer.
+        */
+        template <typename Array>
+        GT_FUNCTION
+        static void set(int_t const& id, Array& index){
+            GRIDTOOLS_STATIC_ASSERT((is_array<Array>::value), "type is not a gridtools array");
+            index[ID]=id;
+            set_index_recur<ID-1>::set(id,index);
+        }
 
-//        /**@brief does the actual assignment
-//           This method is responsible of assigning the index for the memory access at
-//           the location (i,j,k). Such index is shared among all the fields contained in the
-//           same storage class instance, and it is not shared among different storage instances.
+        /**@brief does the actual assignment
+           This method is responsible of assigning the index for the memory access at
+           the location (i,j,k). Such index is shared among all the fields contained in the
+           same storage class instance, and it is not shared among different storage instances.
 
-//           This method given two arrays copies the IDth component of one into the other, i.e. recursively cpoies one array into the other.
-//        */
-//        template<typename Array>
-//        GT_FUNCTION
-//        static void set(Array const& index, Array& out){
-//            GRIDTOOLS_STATIC_ASSERT((is_array<Array>::value), "type is not a gridtools array");
-//            out[ID]=index[ID];
-//            set_index_recur<ID-1>::set(index, out);
-//        }
-//    private:
-//        set_index_recur();
-//        set_index_recur(set_index_recur const&);
-//    };
-
-
-//    /**usual specialization to stop the recursion*/
-//    template<>
-//    struct set_index_recur<0>{
-
-//        template<typename Array>
-//        GT_FUNCTION
-//        static void set( int_t const& id, Array& index/* , ushort_t* lru */){
-//            GRIDTOOLS_STATIC_ASSERT((is_array<Array>::value), "type is not a gridtools array");
-//            index[0]=id;
-//        }
-
-//        template<typename Array>
-//        GT_FUNCTION
-//        static void set(Array const& index, Array& out){
-//            GRIDTOOLS_STATIC_ASSERT((is_array<Array>::value), "type is not a gridtools array");
-//            out[0]=index[0];
-//        }
-//    };
-
-//    /**@brief functor initializing the indeces
-//     *     does the actual assignment
-//     *     This method is responsible of computing the index for the memory access at
-//     *     the location (i,j,k). Such index is shared among all the fields contained in the
-//     *     same storage class instance, and it is not shared among different storage instances.
-//     * @tparam Coordinate direction along which the increment takes place
-//     * @tparam StridesCached strides cached type
-//     * @tparam StorageSequence sequence of storages
-//     */
-//    template<uint_t Coordinate, typename Strides, typename MetaStorageSequence>
-//    struct initialize_index_functor {
-//    private:
-//        GRIDTOOLS_STATIC_ASSERT((is_strides_cached<Strides>::value), "internal error: wrong type");
-//        // GRIDTOOLS_STATIC_ASSERT((is_sequence_of<StorageSequence, is_any_iterate_domain_storage_pointer>::value),
-//        //                         "internal error: wrong type");
+           This method given two arrays copies the IDth component of one into the other, i.e. recursively cpoies one array into the other.
+        */
+        template<typename Array>
+        GT_FUNCTION
+        static void set(Array const& index, Array& out){
+            GRIDTOOLS_STATIC_ASSERT((is_array<Array>::value), "type is not a gridtools array");
+            out[ID]=index[ID];
+            set_index_recur<ID-1>::set(index, out);
+        }
+    private:
+        set_index_recur();
+        set_index_recur(set_index_recur const&);
+    };
 
 
-//        Strides& RESTRICT m_strides;
-//        MetaStorageSequence const & RESTRICT m_storages;
-//        const int_t m_initial_pos;
-//        const uint_t m_block;
-//        int_t* RESTRICT m_index_array;
-//        initialize_index_functor();
-//    public:
-//        GT_FUNCTION
-//        initialize_index_functor(initialize_index_functor const& other) : m_strides(other.m_strides), m_storages(other.m_storages), m_initial_pos(other.m_initial_pos), m_block(other.m_block), m_index_array(other.m_index_array){}
+    /**usual specialization to stop the recursion*/
+    template<>
+    struct set_index_recur<0>{
 
-//        GT_FUNCTION
-//        initialize_index_functor(Strides& RESTRICT strides, MetaStorageSequence const & RESTRICT storages, const int_t initial_pos,
-//            const uint_t block, int_t* RESTRICT index_array) :
-//            m_strides(strides), m_storages(storages), m_initial_pos(initial_pos), m_block(block),
-//            m_index_array(index_array) {}
+        template<typename Array>
+        GT_FUNCTION
+        static void set( int_t const& id, Array& index/* , ushort_t* lru */){
+            GRIDTOOLS_STATIC_ASSERT((is_array<Array>::value), "type is not a gridtools array");
+            index[0]=id;
+        }
 
-//        template <typename Pair>
-//        GT_FUNCTION
-//        void operator()(Pair const&) const {
+        template<typename Array>
+        GT_FUNCTION
+        static void set(Array const& index, Array& out){
+            GRIDTOOLS_STATIC_ASSERT((is_array<Array>::value), "type is not a gridtools array");
+            out[0]=index[0];
+        }
+    };
 
-//            typedef typename boost::mpl::second<Pair>::type id_t;
-//            GRIDTOOLS_STATIC_ASSERT((id_t::value < boost::fusion::result_of::size<MetaStorageSequence>::value),
-//                                    "Accessing an index out of bound in fusion tuple");
+    /**@brief functor initializing the indeces
+     *     does the actual assignment
+     *     This method is responsible of computing the index for the memory access at
+     *     the location (i,j,k). Such index is shared among all the fields contained in the
+     *     same storage class instance, and it is not shared among different storage instances.
+     * @tparam Coordinate direction along which the increment takes place
+     * @tparam StridesCached strides cached type
+     * @tparam StorageSequence sequence of storages
+     */
+    template<uint_t Coordinate, typename Strides, typename MetaStorageSequence>
+    struct initialize_index_functor {
+    private:
+        GRIDTOOLS_STATIC_ASSERT((is_strides_cached<Strides>::value), "internal error: wrong type");
+        // GRIDTOOLS_STATIC_ASSERT((is_sequence_of<StorageSequence, is_any_iterate_domain_storage_pointer>::value),
+        //                         "internal error: wrong type");
 
-//            assert(m_index_array);
 
-//            boost::fusion::at<id_t>(m_storages)->template initialize<Coordinate>(
-//                m_initial_pos, m_block, &m_index_array[id_t::value], m_strides.template get<id_t::value>());
-//        }
-//    };
+        Strides& RESTRICT m_strides;
+        MetaStorageSequence const & RESTRICT m_storages;
+        const int_t m_initial_pos;
+        const uint_t m_block;
+        int_t* RESTRICT m_index_array;
+        initialize_index_functor();
+    public:
+        GT_FUNCTION
+        initialize_index_functor(initialize_index_functor const& other) : m_strides(other.m_strides), m_storages(other.m_storages), m_initial_pos(other.m_initial_pos), m_block(other.m_block), m_index_array(other.m_index_array){}
+
+        GT_FUNCTION
+        initialize_index_functor(Strides& RESTRICT strides, MetaStorageSequence const & RESTRICT storages, const int_t initial_pos,
+            const uint_t block, int_t* RESTRICT index_array) :
+            m_strides(strides), m_storages(storages), m_initial_pos(initial_pos), m_block(block),
+            m_index_array(index_array) {}
+
+        template <typename Pair>
+        GT_FUNCTION
+        void operator()(Pair const&) const {
+
+            typedef typename boost::mpl::second<Pair>::type id_t;
+            GRIDTOOLS_STATIC_ASSERT((id_t::value < boost::fusion::result_of::size<MetaStorageSequence>::value),
+                                    "Accessing an index out of bound in fusion tuple");
+
+            assert(m_index_array);
+
+            boost::fusion::at<id_t>(m_storages)->template initialize<Coordinate>(
+                m_initial_pos, m_block, &m_index_array[id_t::value], m_strides.template get<id_t::value>());
+        }
+    };
 
     /**@brief functor assigning all the storage pointers to the m_data_pointers array
      * This method is responsible of copying the base pointers of the storages inside a local vector

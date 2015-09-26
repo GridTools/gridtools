@@ -222,10 +222,13 @@ struct iterate_domain {
 public:
     typedef array<void* RESTRICT, N_DATA_POINTERS> data_pointer_array_t;
     typedef strides_cached<N_META_STORAGES-1, typename local_domain_t::storage_metadata_vector_t> strides_cached_t;
-
+private:
+    GRIDTOOLS_STATIC_ASSERT((N_META_STORAGES <= grid_t::n_locations::value),"We can not have more meta storages"
+                            "than location types. Data fields for other grids are not yet supported");
     local_domain_t const& local_domain;
-    uint_t m_index;
+    array<int_t,N_META_STORAGES> m_index;
 
+    array<uint_t, 4> m_grid_position;
 public:
 
     /**@brief constructor of the iterate_domain struct
@@ -314,7 +317,72 @@ public:
     GT_FUNCTION
     void set_index(uint_t const index)
     {
-        m_index = index;
+        set_index_recur< N_META_STORAGES-1>::set( index, m_index);
+    }
+
+    /**@brief method for initializing the index */
+    template <ushort_t Coordinate>
+    GT_FUNCTION
+    void initialize(uint_t const initial_pos=0, uint_t const block=0)
+    {
+        for_each< metadata_map_t > (
+            initialize_index_functor<
+            Coordinate,
+            strides_cached_t,
+            typename boost::fusion::result_of::as_vector
+            <typename local_domain_t::local_metadata_type>::type
+            >(strides(), boost::fusion::as_vector(local_domain.m_local_metadata), initial_pos, block, &m_index[0]));
+        static_cast<IterateDomainImpl*>(this)->template initialize_impl<Coordinate>();
+
+        m_grid_position[Coordinate] = initial_pos;
+    }
+
+    /**@brief method for incrementing by 1 the index when moving forward along the given direction
+       \tparam Coordinate dimension being incremented
+       \tparam Execution the policy for the increment (e.g. forward/backward)
+     */
+    template <ushort_t Coordinate, typename Execution>
+    GT_FUNCTION
+    void increment()
+    {
+        for_each< metadata_map_t > (
+            increment_index_functor<
+            Coordinate,
+            strides_cached_t,
+            typename boost::fusion::result_of::as_vector
+            <typename local_domain_t::local_metadata_type>::type
+            >(boost::fusion::as_vector(local_domain.m_local_metadata),
+#ifdef __CUDACC__ //stupid nvcc
+              boost::is_same<Execution, static_int<1> >::type::value? 1 : -1
+#else
+              Execution::value
+#endif
+              , &m_index[0], strides())
+            );
+        static_cast<IterateDomainImpl*>(this)->template increment_impl<Coordinate, Execution>();
+        m_grid_position[Coordinate] += Execution::value;
+
+    }
+
+    /**@brief method for incrementing the index when moving forward along the given direction
+
+       \param steps_ the increment
+       \tparam Coordinate dimension being incremented
+     */
+    template <ushort_t Coordinate>
+    GT_FUNCTION
+    void increment(int_t steps_)
+    {
+        for_each< metadata_map_t > (
+            increment_index_functor<
+                Coordinate,
+                strides_cached_t,
+            typename boost::fusion::result_of::as_vector
+            <typename local_domain_t::local_metadata_type>::type
+            >(boost::fusion::as_vector(local_domain.m_local_metadata), steps_, &m_index[0], strides())
+        );
+        static_cast<IterateDomainImpl*>(this)->template increment_impl<Coordinate>(steps_);
+        m_grid_position[Coordinate] += steps_;
     }
 
 

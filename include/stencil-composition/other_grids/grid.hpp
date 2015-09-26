@@ -599,9 +599,11 @@ namespace gridtools {
         using storage_types = boost::mpl::vector<storage_t<cells, double>*,
                                                  storage_t<edges, double>*,
                                                  storage_t<vertexes, double>* >;
+
         virtual_storage_types m_virtual_storages;
     public:
 
+        using n_locations = static_uint<boost::mpl::size<storage_types>::value >;
         template <typename LocationType>
         uint_t size(LocationType location){return boost::fusion::at_c<LocationType::value >(m_virtual_storages).size();}
 
