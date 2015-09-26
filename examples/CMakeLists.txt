@@ -76,8 +76,8 @@ if(CUDA_FOUND)
              cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu ${GTEST_FILES})
              target_link_libraries(${srcfile}_cuda gcl ${exe_LIBS})
     
-             gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/${srcfile}_block" "77 48 61")
-             gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/${srcfile}_block" "63 55 43")
+             gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/${srcfile}_cuda" "77 48 61")
+             gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/${srcfile}_cuda" "63 55 43")
         endforeach(srcfile)
      endif()
 
