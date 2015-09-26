@@ -73,7 +73,7 @@ if(CUDA_FOUND)
     else()
 
         foreach(srcfile IN LISTS SRCFILES )
-             cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu )
+             cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu ${GTEST_FILES})
              target_link_libraries(${srcfile}_cuda gcl ${exe_LIBS})
     
              gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/${srcfile}_block" "77 48 61")
