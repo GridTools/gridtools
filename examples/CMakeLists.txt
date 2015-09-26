@@ -1,4 +1,4 @@
-list( APPEND SRCFILES interface1 boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore vanilla_laplacian)
+list( APPEND SRCFILES interface1 boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore)
 
 if( ENABLE_CXX11)
     list(APPEND SRCFILES  extended_4D)
@@ -29,6 +29,12 @@ foreach(srcfile IN LISTS SRCFILES )
     gridtools_add_test( tests.${srcfile}_naive ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/${srcfile}_block" "12 33 21")
     gridtools_add_test( tests.${srcfile}_naive ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/${srcfile}_block" "23 11 23")
 endforeach(srcfile)
+
+
+add_executable(vanilla_laplacian  vanilla_laplacian.cpp)
+set_target_properties(vanilla_laplacian PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+target_link_libraries(vanilla_laplacian ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
+
 
 if ( ENABLE_CXX11 )
     if( GCL_MPI )
