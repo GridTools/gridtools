@@ -162,6 +162,10 @@ std::ostream& operator<<(std::ostream& s, forward_thomas const) {
 
 bool test(uint_t d1, uint_t d2, uint_t d3) {
 
+    if(d3 != 6) std::cout << "WARNING: This test is only working with 6 k levels,"
+                             "to guarantee that result can be validated to 1" << std::endl;
+    d3 = 6;
+
 #ifdef USE_PAPI_WRAP
   int collector_init = pw_new_collector("Init");
   int collector_execute = pw_new_collector("Execute");
@@ -193,20 +197,14 @@ bool test(uint_t d1, uint_t d2, uint_t d3) {
     storage_type solution(d1,d2,d3, 1., "sol");
 
     for(int_t i=0; i<d1; ++i)
+    {
         for(int_t j=0; j<d2; ++j)
         {
             rhs(i, j, 0)=4.;
             rhs(i, j, 5)=2.;
         }
+    }
 // result is 1
-#ifdef __VERBOSE__
-    printf("Print OUT field\n");
-    out.print();
-    printf("Print SUP field\n");
-    sup.print();
-    printf("Print RHS field\n");
-    rhs.print();
-#endif
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
