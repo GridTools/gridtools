@@ -190,7 +190,7 @@ bool test(uint_t d1, uint_t d2, uint_t d3) {
     storage_type sup(d1,d2,d3,1., "sup");
     storage_type rhs(d1,d2,d3,3., "rhs");
 
-    storage_type solution(d1,d2,d3,0., "sol");
+    storage_type solution(d1,d2,d3, 1., "sol");
 
     for(int_t i=0; i<d1; ++i)
         for(int_t j=0; j<d2; ++j)
@@ -281,11 +281,9 @@ bool test(uint_t d1, uint_t d2, uint_t d3) {
         std::cout << solver->print_meter() << std::endl;
 #endif
 
-//    verifier verif(1e-9, 0);
-//    bool result = verif.verify(solution, out);
+    verifier verif(1e-9, 0);
+    bool result = verif.verify(solution, out);
 
-        //TODO need a proper verification
-    bool result=true;
     return result;
 }
 }//namespace tridiagonal
