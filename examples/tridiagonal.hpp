@@ -250,7 +250,7 @@ bool test(uint_t d1, uint_t d2, uint_t d3) {
 
 // \todo simplify the following using the auto keyword from C++11
 #ifdef __CUDACC__
-    gridtools::computation* forward_step =
+    gridtools::computation* solver =
 #else
         boost::shared_ptr<gridtools::computation> solver =
 #endif
