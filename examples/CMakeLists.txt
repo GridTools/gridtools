@@ -6,10 +6,10 @@ endif(ENABLE_CXX11)
 
 set( GTEST_FILES Options.hpp Options.cpp)
 
-# boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal  vertical_advection_dycore vanilla_laplacian extended_4D)
-
+set (add_mpi_libs "")
 if( GCL_MPI )
-    list(APPEND SRCFILES copy_stencil_parallel)
+    list(APPEND add_mpi_libs gcl)
+    list(APPEND MPISRCFILES copy_stencil_parallel)
 endif()
 
 add_definitions("-DBENCHMARK")
@@ -21,8 +21,8 @@ foreach(srcfile IN LISTS SRCFILES )
       PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
     set_target_properties(${srcfile}_naive PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
     set_target_properties(${srcfile}_block PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
-    target_link_libraries(${srcfile}_naive ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
-    target_link_libraries(${srcfile}_block ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
+    target_link_libraries(${srcfile}_naive ${exe_LIBS} ${add_mpi_libs} ${MPI_ADDITIONAL_LIBS})
+    target_link_libraries(${srcfile}_block ${exe_LIBS} ${add_mpi_libs} ${MPI_ADDITIONAL_LIBS})
 
     gridtools_add_test( tests.${srcfile}_block ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/${srcfile}_block" "12 33 61")
     gridtools_add_test( tests.${srcfile}_block ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/${srcfile}_block" "23 11 43")
@@ -49,10 +49,6 @@ if ( ENABLE_CXX11 )
          set_target_properties(shallow_water_enhanced PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
     endif()
 
-    # add_executable( unstructured unstructured.cpp )
-    # target_link_libraries(unstructured ${exe_LIBS})
-    # set_target_properties(unstructured PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
-
   endif()
 
 if( NOT ENABLE_CXX11 )
@@ -75,11 +71,6 @@ if(CUDA_FOUND)
     if(COMPILE_TO_PTX)
         CUDA_COMPILE_PTX(generated_files interface1.cu copy_stencil.cu tridiagonal.cu boundary-condition.cu)
     else()
-
-        if( GCL_MPI )
-             cuda_add_executable( copy_stencil_parallel_cuda copy_stencil_parallel.cu )
-             target_link_libraries(copy_stencil_parallel_cuda gcl ${exe_LIBS})
-        endif()
 
         foreach(srcfile IN LISTS SRCFILES )
              cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu )
