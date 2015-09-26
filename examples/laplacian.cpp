@@ -1,4 +1,4 @@
-// [includes]
+#include "gtest/gtest.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <fstream>
@@ -7,7 +7,8 @@
 #include <stencil-composition/backend.hpp>
 #include <stencil-composition/interval.hpp>
 #include <stencil-composition/make_computation.hpp>
-// [includes]
+#include <tools/verifier.hpp>
+#include "Options.hpp"
 
 /*! @file
   @brief  This file shows an implementation of the "laplace" stencil, similar to the one used in COSMO
@@ -21,11 +22,6 @@ using gridtools::uint_t;
 using gridtools::int_t;
 // [namespaces]
 
-
-
-/**
-   @{
-*/
 // [intervals]
 /*!
   @brief This is the definition of the special regions in the "vertical" direction for the laplacian functor
@@ -36,9 +32,7 @@ typedef gridtools::interval<level<0,-1>, level<1,-1> > x_lap;
   @brief This is the definition of the whole vertical axis
 */
 typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
-/**
-   @}
-*/
+
 // [intervals]
 // [functor]
 /**
@@ -77,9 +71,6 @@ struct lap_function {
 };
 
 // [functor]
-/**
-@{
-*/
 
 /*!
  * @brief This operator is used for debugging only
@@ -95,21 +86,13 @@ std::ostream& operator<<(std::ostream& s, lap_function const) {
     /// \param  argc An integer argument count of the command line arguments
     /// \param  argv An argument vector of the command line arguments
     /// \return an integer 0 upon exit success
-int main(int argc, char** argv) {
+TEST(Laplace, test) {
 
-    if (argc != 4) {
-        std::cout << "Usage: laplacian_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields" << std::endl;
-        return 1;
-    }
+    uint_t d1 = Options::getInstance().m_size[0];
+    uint_t d2 = Options::getInstance().m_size[1];
+    uint_t d3 = Options::getInstance().m_size[2];
 
-    /**
-       The following steps are performed:
-
-       - Definition of the domain:
-    */
-    uint_t d1 = atoi(argv[1]); /** d1 cells in the x direction (horizontal)*/
-    uint_t d2 = atoi(argv[2]); /** d2 cells in the y direction (horizontal)*/
-    uint_t d3 = atoi(argv[3]); /** d3 cells in the z direction (vertical)*/
+    uint_t halo_size=2;
 
     using namespace gridtools;
     using namespace enumtype;
@@ -138,17 +121,15 @@ int main(int argc, char** argv) {
     typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
 // [storage_type]
 
-    std::ofstream file_i("full_in");
-    std::ofstream file_o("full_out");
-
 // [storage_initialization]
     /**
         - Instantiation of the actual data fields that are used for input/output
     */
     storage_type in(d1,d2,d3,-1., "in");
     storage_type out(d1,d2,d3,-7.3, "out");
+    storage_type ref(d1,d2,d3,-7.3, "ref");
+
 // [storage_initialization]
-    out.print(file_i);
 
 // [placeholders]
     /**
@@ -183,8 +164,8 @@ int main(int argc, char** argv) {
           The coordinates constructor takes the horizontal plane dimensions,
           while the vertical ones are set according the the axis property soon after
        */
-       uint_t di[5] = {2, 2, 2, d1-2, d1};
-       uint_t dj[5] = {2, 2, 2, d2-2, d2};
+       uint_t di[5] = {halo_size, halo_size, halo_size, d1-halo_size, d1};
+       uint_t dj[5] = {halo_size, halo_size, halo_size, d2-halo_size, d2};
 
        gridtools::coordinates<axis> coords(di,dj);
        coords.value_list[0] = 0;
@@ -211,7 +192,7 @@ int main(int argc, char** argv) {
 #ifdef __CUDACC__
     computation* horizontal_diffusion =
 #else
-    boost::shared_ptr<gridtools::computation> horizontal_diffusion =
+    boost::shared_ptr<gridtools::computation> laplace =
 #endif
       make_computation<gridtools::BACKEND, layout_t>
         (
@@ -231,14 +212,14 @@ int main(int argc, char** argv) {
    @brief This method allocates on the heap the temporary variables
    this method calls heap_allocated_temps::prepare_temporaries(...). It allocates the memory for the list of ranges defined in the temporary placeholders (none).
  */
-    horizontal_diffusion->ready();
+    laplace->ready();
 
 /**
    @brief calls setup_computation and creates the local domains
    the constructors of the local domains get called (\ref gridtools::intermediate::instantiate_local_domain, which only initializes the dom public pointer variable)
    @note the local domains are allocated in the public scope of the \ref gridtools::intermediate struct, only the pointer is passed to the instantiate_local_domain struct
  */
-    horizontal_diffusion->steady();
+    laplace->steady();
 
 #ifndef CUDA_EXAMPLE
     boost::timer::cpu_timer time;
@@ -246,23 +227,53 @@ int main(int argc, char** argv) {
 /**
    Call to gridtools::intermediate::run, which calls Backend::run, does the actual stencil operations on the backend.
  */
-    horizontal_diffusion->run();
+    laplace->run();
 #ifndef CUDA_EXAMPLE
     boost::timer::cpu_times lapse_time = time.elapsed();
 #endif
 
-    horizontal_diffusion->finalize();
+    laplace->finalize();
+
 // [ready_steady_run_finalize]
 
-    //    in.print();
-    out.print();
-    out.print(file_o);
-    //    lap.print();
-#ifndef CUDA_EXAMPLE
-    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
+    // [generate reference]
+    for(size_t i=2; i != d1-2; ++i) {
+        for(size_t j=2; j != d2-2; ++j) {
+            for(size_t k=0; k != d3; ++k) {
+                ref(i,j,k) = 4*in(i,j,k) -
+                        (in(i+1,j,k) + in(i,j+1,k) +
+                         in(i-1, j, k) + in(i,j-1,k));
+            }
+        }
+    }
+
+    verifier verif(1e-9, halo_size);
+    bool result = verif.verify(out, ref);
+
+#ifdef BENCHMARK
+        std::cout << laplace->print_meter() << std::endl;
 #endif
-     return 0;
+
+    ASSERT_TRUE(result);
 }
+
+int main(int argc, char** argv)
+{
+    // Pass command line arguments to googltest
+    ::testing::InitGoogleTest(&argc, argv);
+
+    if (argc != 4) {
+        printf( "Usage: laplace_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields\n" );
+        return 1;
+    }
+
+    for(int i=0; i!=3; ++i) {
+        Options::getInstance().m_size[i] = atoi(argv[i+1]);
+    }
+
+    return RUN_ALL_TESTS();
+}
+
 
 /**
 @}

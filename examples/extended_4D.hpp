@@ -1,9 +1,10 @@
 #pragma once
-
+#include "gtest/gtest.h"
 #include <gridtools.hpp>
 #include <stencil-composition/backend.hpp>
 #include <stencil-composition/interval.hpp>
 #include <stencil-composition/make_computation.hpp>
+#include "Options.hpp"
 
 /**
   @file
@@ -84,7 +85,11 @@ namespace assembly{
         return s << "integration";
     }
 
-    bool test(uint_t d1, uint_t d2, uint_t d3){
+    TEST(Extended4D, test) {
+
+        uint_t d1 = Options::getInstance().m_size[0];
+        uint_t d2 = Options::getInstance().m_size[1];
+        uint_t d3 = Options::getInstance().m_size[2];
 
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<Cuda, Block >
@@ -185,22 +190,11 @@ namespace assembly{
                 for(uint_t k=0; k<d3; ++k)
                 {
                     if (result(i, j, k)!=((1*1.3*10*11*2*2*2)+(2*1.3*10*11*2*2*2))/((i==2&&j==2)?1:2)/ ((k==0||k==5)?2:1) /(((i==1||i==3)&&(j==1||j==3))?2:1)*((i==0||i==4||j==0||j==4)?0:1)) {
-                        std::cout << "error in "
-                                  << i << ", "
-                                  << j << ", "
-                                  << k << ": "
-                                  << "result = " << result(i, j, k)
-                                  << " instead of " << ((1*1.3*10*11*2*2*2)+(2*1.3*10*11*2*2*2))/(((i==1||i==3)&&(j==1||j==3))?2:1)/(((i==1||i==3)&&(j==1||j==3)&&(k==0||k==5))?2:1)*((i==0||i==4||j==0||j==4)?0:1)
-                                  << std::endl;
                         success = false;
                     }
                 }
 
-
-        //jac.print();
-        //phi.print();
-        //psi.print();
-        return success;
+        ASSERT_TRUE(success);
     }
 
 }; //namespace assembly

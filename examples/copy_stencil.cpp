@@ -1,12 +1,20 @@
+#include "gtest/gtest.h"
 #include "copy_stencil.hpp"
 
 int main(int argc, char** argv)
 {
 
+    // Pass command line arguments to googltest
+    ::testing::InitGoogleTest(&argc, argv);
+
     if (argc != 4) {
-        std::cout << "Usage: copy_stencil_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields" << std::endl;
+        printf( "Usage: copy_stencil_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields\n" );
         return 1;
     }
 
-    return !copy_stencil::test(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
+    for(int i=0; i!=3; ++i) {
+        Options::getInstance().m_size[i] = atoi(argv[i+1]);
+    }
+
+    return RUN_ALL_TESTS();
 }

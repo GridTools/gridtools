@@ -1,11 +1,10 @@
 #pragma once
 
-
 #include <gridtools.hpp>
 #include <stencil-composition/backend.hpp>
 #include <stencil-composition/make_computation.hpp>
 #include <stencil-composition/interval.hpp>
-
+#include "Options.hpp"
 
 #ifdef USE_PAPI_WRAP
 #include <papi_wrap.hpp>
@@ -66,7 +65,11 @@ namespace copy_stencil{
     void handle_error(int_t)
     {std::cout<<"error"<<std::endl;}
 
-    bool test(uint_t x, uint_t y, uint_t z) {
+    TEST(CopyStencil, Test)
+    {
+        uint_t x = Options::getInstance().m_size[0];
+        uint_t y = Options::getInstance().m_size[1];
+        uint_t z = Options::getInstance().m_size[2];
 
 #ifdef USE_PAPI_WRAP
         int collector_init = pw_new_collector("Init");
@@ -289,7 +292,6 @@ namespace copy_stencil{
                             success = false;
                         }
                 }
-        if(!success) std::cout << "ERROR" << std::endl;
-        return success;
+        ASSERT_TRUE(success);
     }
 }//namespace copy_stencil

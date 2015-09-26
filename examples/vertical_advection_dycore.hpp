@@ -1,5 +1,5 @@
 #pragma once
-
+#include "gtest/gtest.h"
 #include <gridtools.hpp>
 
 #include <stencil-composition/backend.hpp>
@@ -8,6 +8,7 @@
 #include "vertical_advection_repository.hpp"
 #include <tools/verifier.hpp>
 #include <stencil-composition/make_computation.hpp>
+#include "Options.hpp"
 
 /*
   This file shows an implementation of the "vertical advection" stencil used in COSMO for U field
@@ -186,11 +187,12 @@ std::ostream& operator<<(std::ostream& s, u_backward_function<double> const) {
     return s << "u_backward_function";
 }
 
-bool test(uint_t x, uint_t y, uint_t z) {
+TEST(VerticalAdvection, test) {
 
-    uint_t d1 = x;
-    uint_t d2 = y;
-    uint_t d3 = z;
+    uint_t d1 = Options::getInstance().m_size[0];
+    uint_t d2 = Options::getInstance().m_size[1];
+    uint_t d3 = Options::getInstance().m_size[2];
+
     const int halo_size = 3;
 
     typedef gridtools::layout_map<0,1,2> layout_ijk;
@@ -309,16 +311,15 @@ bool test(uint_t x, uint_t y, uint_t z) {
     repository.update_cpu();
 #endif
 
-    verifier verif(1e-10, halo_size);
-    bool result = verif.verify(repository.utens_stage_ref(), repository.utens_stage());
-
-    if(!result) std::cout << "ERROR" << std::endl;
-
 #ifdef BENCHMARK
     std::cout << vertical_advection->print_meter() << std::endl;
 #endif
 
-    return result;
+    verifier verif(1e-10, halo_size);
+    bool result = verif.verify(repository.utens_stage_ref(), repository.utens_stage());
+
+    ASSERT_TRUE(result);
+
 }
 
 }//namespace vertical_advection
