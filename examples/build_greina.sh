@@ -70,6 +70,7 @@ VENV_PATH=${HOME}/venv_gridtools4py
 # environment setup
 #
 module load gcc/4.8.4
+#we need a decent cmake version in order to pass the HOST_COMPILER to nvcc
 module load /home/cosuna/privatemodules/cmake-3.3.2
 module load python/3.4.3
 module load boost/1.56_gcc4.8.4
