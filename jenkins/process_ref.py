@@ -32,7 +32,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("json_file", help="filename containing the stencils json report")
     parser.add_argument('--filter',nargs=1, type=str, help='filter only stencils that matches the pattern. Comma separated list of python regular expressions')
-    parser.add_argument('-p',nargs=1, type=str, help='filter only stencils that matches the pattern')
+    parser.add_argument('-p',nargs=1, type=str, help='base path to build executables')
     parser.add_argument('--target', nargs=1, type=str, help='cpu || gpu')
     parser.add_argument('--std', nargs=1, type=str, help='C++ standard')
     parser.add_argument('--prec', nargs=1, type=str, help='floating point precision')
@@ -72,8 +72,8 @@ if __name__ == "__main__":
         parser.error('-m must be set to c or u')
 
     prec = args.prec[0]
-    if prec != 'single' and prec != 'double':
-        parser.error('-prec must be set to single or double')
+    if prec != 'float' and prec != 'double':
+        parser.error('-prec must be set to float or double')
 
     f = open(args.json_file,'r')
     decode = json.load(f)
