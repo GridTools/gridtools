@@ -42,7 +42,17 @@ namespace gridtools{
 
     template<ushort_t P>
     struct basis_select<P, enumtype::BSplines, enumtype::Hexa>{
-        using type=b_spline< P, 3 >;
+        using type=b_spline< order<P,P,P> >;
+    };
+
+    template<ushort_t P>
+    struct basis_select<P, enumtype::BSplines, enumtype::Quad>{
+        using type=b_spline< order<P,P> >;
+    };
+
+    template<ushort_t P>
+    struct basis_select<P, enumtype::BSplines, enumtype::Line>{
+        using type=b_spline< order<P> >;
     };
 
     template<>
@@ -78,6 +88,12 @@ namespace gridtools{
     struct shape_select<order, enumtype::Quad>
     {
         using type=shards::Quadrilateral<>;
+    };
+
+    template <ushort_t order>
+    struct shape_select<order, enumtype::Line>
+    {
+        using type=shards::Line<>;
     };
 
     template <enumtype::Shape S>

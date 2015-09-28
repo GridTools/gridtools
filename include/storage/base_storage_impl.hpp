@@ -46,10 +46,11 @@ namespace gridtools{
             template<typename ... UIntType>
             static constexpr array<int_t, MaxIndex> apply(UIntType ... args){
 
+#ifdef PEDANTIC
                 GRIDTOOLS_STATIC_ASSERT((sizeof...(args) > 1), "You are trying to initialize \
 a storage_info with less than 2 dimensions. This is not supported. Set at least 2 dimensions, and \
 initialize them to \'1\' if unused.");
-
+#endif
                 using seq = apply_gt_integer_sequence<typename make_gt_integer_sequence<int_t, sizeof ... (args)>::type >;
                 return seq::template apply<array<int_t, MaxIndex>, lambda>((int_t)args...);
             }

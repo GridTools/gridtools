@@ -291,7 +291,8 @@ namespace gridtools {
                 indices[pos_<I>::value];
         }
 
-
+        template<int_t Index, int_t NDim>
+        struct offset_tuple;
 
         /** Given a tuple and a static index I, the function
             returns the value of the element in the tuple whose position
@@ -309,15 +310,16 @@ namespace gridtools {
             \tparam[in] Indices List of argument where to return the found value
             \param[in] indices List of values (length must be equal to the length of the layout_map length)
         */
-        template <ushort_t I, typename T, T DefaultVal, typename Tuple>
+        template <ushort_t I, typename T, T DefaultVal, int_t Index, int_t NDim>
         GT_FUNCTION
-        static constexpr T find_val(Tuple const& indices) {
-            GRIDTOOLS_STATIC_ASSERT(is_arg_tuple<Tuple>::value, "the find_val method is used with tuples of type other than accessor");
-            GRIDTOOLS_STATIC_ASSERT(Tuple::n_dim-pos_<I>::value-1>=0, "write a message here");
+        static constexpr T find_val(offset_tuple<Index, NDim> const& indices) {
+
+            GRIDTOOLS_STATIC_ASSERT((is_arg_tuple<offset_tuple<Index, NDim> >::value), "the find_val method is used with tuples of type other than accessor");
+            GRIDTOOLS_STATIC_ASSERT((offset_tuple<Index, NDim>::n_dim-pos_<I>::value-1>=0), "write a message here");
             return ((pos_<I>::value >= length)) ?
                 DefaultVal
                 :
-                indices.template get<Tuple::n_dim-pos_<I>::value-1>();
+                indices.template get<offset_tuple<Index, NDim>::n_dim-pos_<I>::value-1>();
             //this calls arg_decorator::get
         }
 

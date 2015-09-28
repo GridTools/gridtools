@@ -8,30 +8,36 @@
 
 namespace gridtools{
 
+    /**struct to wrap the order in each dimension*/
+    template <ushort_t ... P>
+    struct order{
+    };
 
+    template<ushort_t Dim, typename Order, ushort_t I>
+    struct BSplineCoeff;
     /**
        @brief struct containing ID and polynomial order
        \tparam Dim current dimension (for multivariate)
        \tparam I index
        \tparam P order
     */
-    template<ushort_t Dim, ushort_t P, ushort_t I>
-    struct BSplineCoeff{
+    template<ushort_t Dim, ushort_t I, ushort_t ... P>
+    struct BSplineCoeff<Dim, order<P...>, I>{
         static const ushort_t dimension=Dim;
-        static const ushort_t order=P;
+        static const constexpr array<ushort_t, sizeof...(P)> order={P...};
         static const ushort_t index=I;
     };
 
 
     /** @brief just to ease the notation*/
     template <typename Coeff>
-    struct BSplineDerived : iga_rt::BSpline<Coeff::index, Coeff::order>
+    struct BSplineDerived : iga_rt::BSpline<Coeff::index, Coeff::order[Coeff::dimension]>
     {
         static const int index=Coeff::index;
         static const int dimension=Coeff::dimension;
-        using super=iga_rt::BSpline<Coeff::index,Coeff::order>;
+        using super=iga_rt::BSpline<Coeff::index,Coeff::order[Coeff::dimension]>;
         //inheriting constructors
-        using iga_rt::BSpline<Coeff::index,Coeff::order>::BSpline;
+        using iga_rt::BSpline<Coeff::index,Coeff::order[Coeff::dimension]>::BSpline;
     };
 
     /**
@@ -106,7 +112,7 @@ namespace gridtools{
                 tuple_of_vals
                 , state
                 , multiplies()
-                ) ;
+                );
         }
 
 
@@ -131,9 +137,12 @@ namespace gridtools{
         //check that sizeof...(Knots) is same as Coeff
         m_univariate_bsplines(
             GenericBSpline<Coeff ...>::tuple_t(
-                &knots_[Coeff::dimension]...))
+                &std::get<Coeff::dimension>(knots_)...))
     {
     }
+
+    template<typename Order>
+    struct parametric_space;
 
     /**
        @brief class holding the parametric space
@@ -143,31 +152,49 @@ namespace gridtools{
        element transformation (thus depending on the position of the
        knots on the deformed grid)
      */
-    template<ushort_t P, ushort_t Dim>
-    struct parametric_space{
-	array<array<double, P+P+1>, Dim> m_knots;
+    template<ushort_t ... P>
+    struct parametric_space<order<P ... > >{
+        typedef std::tuple<array<double, P+P+1>...> knots_t;
+        static const ushort_t dim = (sizeof...(P));
+        typedef boost::mpl::vector<static_ushort<P>...> orders_t;
+        knots_t m_knots;
+
+        struct assign_knots{
+
+            knots_t & m_knots;
+            assign_knots(knots_t& knots_): m_knots(knots_){}
+
+            template <typename Id>
+            void operator()(Id){
+                //knots span from -2P+1 to 2P+1 with step of 2:
+                //[-2P+1, -2P+3, ..., -1, 1, ..., 2P-1, 2P+1]
+                //for P=2 : [-3, -1, 1, 3, 5]
+                //TODO loop over d dimensions
+                //using index_tuple=typename boost::mpl::size<Id>::type;
+
+                const int vec_size_ = std::get<Id::value>(m_knots).size();
+                int k=0;
+                for(int i=0; i< (vec_size_)*2; i+=2)
+                {
+#ifdef VERBOSE
+                    std::cout<<" knots at "<<(double)((i)-vec_size_+2)<<std::endl;
+#endif
+                    std::get<Id::value>(m_knots)[k]=(double)((i)-vec_size_+2);
+                    k++;
+                }
+
+            }
+        };
 
         parametric_space()
 	{
-	    int k=0;
-            //knots span from -2P+1 to 2P+1 with step of 2:
-            //[-2P+1, -2P+3, ..., -1, 1, ..., 2P-1, 2P+1]
-            //for P=2 : [-3, -1, 1, 3, 5]
-	    for(int i=0; i< (P+P+1)*2; i+=2)
-	    {
-#ifdef VERBOSE
-		std::cout<<" knots at "<<(double)((i)+1.-2.*P)<<std::endl;
-#endif
-		for(int d=0; d<Dim; d++)
-		{
-		    m_knots[d][k]=(double)((i)+1.-2.*P);///factor;
-		}
-		k++;
-	    }
+            for_each<boost::mpl::range_c< ushort_t, 0, sizeof...(P) > >(assign_knots(m_knots));
 	}
     };
 
 
+    template<typename Order>
+    struct b_spline;
     /**
        @class class implementing the B-Splines elemental basis functions
 
@@ -180,13 +207,14 @@ namespace gridtools{
        NOTE: the inheritance makes sure that the knot vectors get initialized
        before the b_splines object.
     */
-    template<ushort_t P, ushort_t Dim>
-    struct b_spline : parametric_space<P, Dim> {
+    template<ushort_t ... P>
+    struct b_spline<order<P...> > : parametric_space<order<P...> > {
 
     private:
 
+        static const ushort_t Dim=sizeof...(P);
 	template<ushort_t T, ushort_t U>
-	using lambda_tt=BSplineCoeff<T, P, U>;
+	using lambda_tt=BSplineCoeff<T, order<P...>, U>;
 
 	using seq=typename make_gt_integer_sequence<ushort_t, Dim>::type;
 
@@ -197,7 +225,7 @@ namespace gridtools{
 
         /** @brief constructor */
         b_spline( ) :
-            parametric_space<P, Dim>()
+            parametric_space<order<P...> >()
         {
         }
 
@@ -208,10 +236,11 @@ namespace gridtools{
             assert(false);
         }
 
-        int getCardinality() const
+        /** compile-time known*/
+        constexpr int getCardinality() const
         {
             //returns the number of basis functions (P)^dim
-            return gt_pow<Dim>::apply(P);
+            return accumulate(multiplies(), P...);
         }
 
 
@@ -228,23 +257,37 @@ namespace gridtools{
            It is plugged into a hierarchical loop structure.
            NOTE: this functor is not generic, is
          */
-        template <typename Quad, typename Storage, int ... Dims // I, uint_t J
+        template <typename ArrayKnots, typename Quad, typename Storage, int ... Dims // I, uint_t J
                   >
         struct functor_get_vals{
-	    using array_t=array<double, P+P+1>;
+	    using array_t=ArrayKnots;
 
 	private:
             Quad const& m_quad;
             Storage& m_storage;
-	    array<array_t, Dim> const& m_knots;
+	    ArrayKnots const& m_knots;
 
 	public:
-            functor_get_vals(Quad const& quad_points_, Storage& storage_, array<array_t, Dim> const& knots_)
+            functor_get_vals(Quad const& quad_points_, Storage& storage_, ArrayKnots const& knots_)
                 :
                 m_quad(quad_points_)
                 , m_storage(storage_)
 		, m_knots(knots_)
 	    {}
+
+            template<typename Id, typename Basis, typename T>
+            struct functor_assign_storage;
+
+            template<typename Id,typename Basis, ushort_t ... Integers>
+            struct functor_assign_storage<Id, Basis, gt_integer_sequence<ushort_t, Integers...> >{
+
+                static void apply(Storage & storage_, Basis const& basis_, Quad const& quad_, int const& k)
+                {
+                    storage_(Id::value-1,k)=basis_.evaluate(quad_(k, Integers)...);
+                }
+
+            };
+
 
             template <typename Id>
             void operator()(Id){
@@ -258,26 +301,28 @@ namespace gridtools{
                 // computing the strides at compile time
                 // NOTE: __COUNTER__ is a non standard non very portable solution
                 // though the main compilers implement it
-                constexpr meta_storage_base<__COUNTER__,layout_t,false> indexing{P, P, P};
+                //TODO generalize
+                constexpr meta_storage_base<__COUNTER__,layout_t,false> indexing{P...};
 
-                spline_tt<Dims ... , Id::value> basis_(m_knots);
+                using basis_t = spline_tt<Dims ... , Id::value>;
+                basis_t basis_(m_knots);
 
 		for (int k=0; k< m_quad.dimension(0); ++k)
 		{
-#ifdef VERBOSE
-		    std::cout<<
-			"evaluation of basis<"<<I<<", "<<J<<", "<<Id::value<<
-			"> on point ("<<m_quad(k, 0)<<", "<<m_quad(k, 1)<<", "<<m_quad(k, 2)<<
-			") gives: "<<basis_.evaluate(m_quad(k, 0),m_quad(k, 1),m_quad(k, 2))
-					      <<std::endl;
-#endif
-		    // define a storage_metadata here! ==> generic dimension/layout
+                    // std::cout<<
+                    //     "evaluation of basis< "<<Id::value<<
+                    //     "> on point ("<<m_quad(k, 0) <<", "<<m_quad(k, 1)//<<", "<<m_quad(k, 2)
+                    //                            <<
+                    //     ") gives: "<<basis_.evaluate(m_quad(k, 0), m_quad(k, 1))
+                    //                            <<std::endl;
+
                     array<int, sizeof...(Dims)+1> vals_{Dims..., Id::value};
-                    auto storage_index=(vals_[0]-1)*P*P+P*(vals_[1]-1)+(Id::value-1);
-                    std::cout<<"Dims: "<<vals_[0]-1<<", "<<vals_[1]-1<<", "<<vals_[2]-1<<std::endl;
-                    assert(indexing.index(Dims-1 ... , Id::value-1) == storage_index);
-                    //accessign the data
-		    m_storage(indexing.index(Dims-1 ... , Id::value-1),k)=basis_.evaluate(m_quad(k, 0),m_quad(k, 1),m_quad(k, 2));
+
+                    functor_assign_storage<static_int<indexing.index(Dims-1 ... , Id::value)>
+                                           , basis_t
+                                           , typename make_gt_integer_sequence<ushort_t, Dim>::type >
+                        ::apply(m_storage, basis_, m_quad, k);
+
 		}
             }
         };
@@ -298,14 +343,13 @@ namespace gridtools{
             switch (op){
             case Intrepid::OPERATOR_VALUE :
 
-                //here we suppose 3 dimensions.
+                GRIDTOOLS_STATIC_ASSERT((sizeof...(P)==Dim), "error");
 		//unroll according to dimensions
-		nest_loop
-		    < array<array<double, P+P+1>, Dim>, Quad, Storage, functor_get_vals
-		     , boost::mpl::range_c<int, 1, P+1>
-		     , boost::mpl::range_c<int, 1, P+1>
-		     , boost::mpl::range_c<int, 1, P+1> >
-		    (quad_points_, storage_, this->m_knots)();
+                nest_loop
+                    < std::tuple<array<double, P+P+1>...>, Quad, Storage, functor_get_vals
+                      , boost::mpl::range_c<int, 1, P+1> ...
+                      >
+                    (quad_points_, storage_, this->m_knots)();
 		break;
 	    default:
 	    {

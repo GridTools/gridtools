@@ -169,13 +169,16 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
          */
         GT_FUNCTION
          constexpr int_t const* strides() const {
-            GRIDTOOLS_STATIC_ASSERT(space_dimensions>1, "one dimensional storage");
+#ifdef PEDANTIC
+            GRIDTOOLS_STATIC_ASSERT(space_dimensions>1, "less than 2D storage, is that what you want?");
+#endif
             return (&m_strides[1]);
         }
 
 #ifdef CXX11_ENABLED
         /**@brief straightforward interface*/
         template <typename ... UInt>
+        constexpr
         GT_FUNCTION
         uint_t index(uint_t const& first, UInt const& ... args_) const { return _index(strides(), first, args_... ); }
 #else

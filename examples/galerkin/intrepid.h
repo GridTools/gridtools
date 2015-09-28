@@ -85,6 +85,12 @@ namespace intrepid{
             // storage_t<layout_map<0,1,2> > cub_weights_i(m_cub_weights_s, 1);
             Intrepid::FieldContainer<double> cub_weights_i(cub::numCubPoints());
 
+            // storage_t<layout_map<0,1,2> > grad_at_cub_points_i(m_grad_at_cub_points_s);
+            Intrepid::FieldContainer<double> grad_at_cub_points_i(fe::basisCardinality, cub::numCubPoints(), fe::spaceDim);
+
+            // retrieve cub points and weights
+            cub::cub()->getCubature(cub_points_i, cub_weights_i);
+
             //copy the values
             for (uint_t q=0; q<cub::numCubPoints(); ++q)
             {
@@ -92,12 +98,6 @@ namespace intrepid{
                 for (uint_t j=0; j<fe::spaceDim; ++j)
                     m_cub_points_s(q,j,0)=cub_points_i(q,j);
             }
-
-            // storage_t<layout_map<0,1,2> > grad_at_cub_points_i(m_grad_at_cub_points_s);
-            Intrepid::FieldContainer<double> grad_at_cub_points_i(fe::basisCardinality, cub::numCubPoints(), fe::spaceDim);
-
-            // retrieve cub points and weights
-            cub::cub()->getCubature(cub_points_i, cub_weights_i);
 
             switch (operator_){
             case Intrepid::OPERATOR_GRAD :
@@ -378,7 +378,9 @@ namespace intrepid{
 
                 for (uint_t j=0; j<geo_map::basisCardinality; ++j)
                     for (uint_t i=0; i<rule_t::bd_cub::numCubPoints(); ++i)
+                    {
                         m_phi_at_cub_points(i,j,0)=phi_at_cub_points(i,j);
+                    }
                 break;
             }
             // case Intrepid::OPERATOR_VALUE :
