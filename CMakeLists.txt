@@ -247,6 +247,8 @@ endif( NOT ENABLE_CACHING )
 set(RECTANGULAR_GRIDS "ON" CACHE BOOL "compile for rectangular grids" )
 if(RECTANGULAR_GRIDS)
     add_definitions( -DRECTANGULAR_GRIDS )
+else()
+    set(ENABLE_CXX11 "ON" CACHE BOOL "Enable examples and tests featuring C++11 features" FORCE)
 endif(RECTANGULAR_GRIDS)
 
 if (ENABLE_PYTHON)

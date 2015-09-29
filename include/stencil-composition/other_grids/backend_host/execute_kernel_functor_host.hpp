@@ -78,7 +78,7 @@ struct execute_kernel_functor_host
     {
         typedef typename RunFunctorArguments::loop_intervals_t loop_intervals_t;
         typedef typename RunFunctorArguments::execution_type_t execution_type_t;
-        using grid_t = coords_t::grid_t;
+        using grid_t = typename coords_t::grid_t;
 
         // in the host backend there should be only one esf per mss
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename RunFunctorArguments::range_sizes_t>::value==1),
