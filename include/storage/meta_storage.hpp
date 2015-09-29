@@ -2,9 +2,7 @@
 
 #include "../common/gpu_clone.hpp"
 #include "meta_storage_tmp.hpp"
-#ifdef __GNUC__
-#include <boost/preprocessor/slot/counter.hpp>
-#endif
+
 /**
    @file
    @brief implementation of a container for the storage meta information
@@ -110,7 +108,7 @@ private:
 #ifdef __COUNTER__
         = __COUNTER__ //incrementing twice
 #else
-        = BOOST_PP_COUNTER
+        = 0
 #endif
         >
     using storage_info = meta_storage_derived<meta_storage_base<Index, Layout, false > >;

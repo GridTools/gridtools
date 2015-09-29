@@ -9,6 +9,10 @@
 #include "../common/generic_metafunctions/gt_integer_sequence.hpp"
 
 namespace gridtools{
+
+    template <typename Tuple>
+    struct is_arg_tuple;
+
     namespace _impl
     {
 
@@ -82,8 +86,8 @@ initialize them to \'1\' if unused.");
         };
 #endif
 
-/**@brief struct to compute the total offset (the sum of the i,j,k indices times their respective strides)
- */
+        /**@brief struct to compute the total offset (the sum of the i,j,k indices times their respective strides)
+         */
         template<ushort_t Id, typename Layout>
         struct compute_offset{
             static const ushort_t space_dimensions = Layout::length;
@@ -108,6 +112,7 @@ initialize them to \'1\' if unused.");
                 return strides_[space_dimensions-Id]*Layout::template find_val<space_dimensions-Id, int, 0>(indices_...)+compute_offset<Id-1, Layout>::apply(strides_, indices_... );
             }
 #endif
+
             /**interface with the coordinates as a tuple
                \param strides the strides
                \param indices tuple of coordinates
@@ -115,6 +120,8 @@ initialize them to \'1\' if unused.");
             template<typename Tuple, typename StridesVector>
             GT_FUNCTION
             static constexpr int_t apply(StridesVector const& RESTRICT strides_, Tuple const&  indices_){
+
+                GRIDTOOLS_STATIC_ASSERT(is_arg_tuple<Tuple>::type::value, "wrong type");
                 return (int_t)strides_[space_dimensions-Id]*Layout::template find_val<space_dimensions-Id, int, 0>(indices_)+compute_offset<Id-1, Layout>::apply(strides_, indices_ );
             }
 

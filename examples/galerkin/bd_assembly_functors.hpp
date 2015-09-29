@@ -21,9 +21,9 @@ namespace functors{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            Dimension<4>::Index qp;
-            Dimension<5>::Index dimx;
-            Dimension<6>::Index dimy;
+            dimension<4>::Index qp;
+            dimension<5>::Index dimx;
+            dimension<6>::Index dimy;
 
             //"projection" on the tangent space:
             //J_{ij} - n_i n_k J_kj + n_i n_j
@@ -69,9 +69,9 @@ namespace functors{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            enumtype::Dimension<4>::Index qp;
-            enumtype::Dimension<5>::Index dimx;
-            enumtype::Dimension<6>::Index dimy;
+            dimension<4>::Index qp;
+            dimension<5>::Index dimx;
+            dimension<6>::Index dimy;
 
             for(short_t q=0; q< cub::numCubPoints; ++q)
             {
@@ -115,9 +115,9 @@ namespace functors{
             x::Index i;
             y::Index j;
             z::Index k;
-            Dimension<4>::Index quad;
-            Dimension<5>::Index dimI;
-            Dimension<6>::Index dimJ;
+            dimension<4>::Index quad;
+            dimension<5>::Index dimI;
+            dimension<6>::Index dimJ;
 
             array<double, 3> tg_u{eval(jac()), eval(jac(dimI+1)), eval(jac(dimI+2))};
             array<double, 3> tg_v{eval(jac(dimJ+1)), eval(jac(dimI+1, dimJ+1)), eval(jac(dimI+2, dimJ+1))};
@@ -165,9 +165,9 @@ namespace functors{
             x::Index i;
             y::Index j;
             z::Index k;
-            Dimension<4>::Index quad;
-            Dimension<5>::Index dimI;
-            Dimension<6>::Index dimJ;
+            dimension<4>::Index quad;
+            dimension<5>::Index dimI;
+            dimension<6>::Index dimJ;
 
             array<double, 3> tg_u;
             array<double, 3> tg_v;

@@ -5,6 +5,47 @@
 #define PEDANTIC_DISABLED
 #include "assembly.h"
 
+// [integration]
+/** The following functor performs the assembly of an elemental laplacian.
+*/
+template <typename FE, typename Cubature>
+struct mass_functor {
+    using fe=FE;
+    using cub=Cubature;
+
+    //![accessors]
+    using jac_det =accessor<0, range<0,0,0,0> , 4> const;
+    using weights =accessor<1, range<0,0,0,0> , 3> const;
+    using mass   =accessor<2, range<0,0,0,0> , 5> ;
+    using phi    =accessor<3, range<0,0,0,0> , 3> const;
+    using psi    =accessor<4, range<0,0,0,0> , 3> const;
+    using arg_list= boost::mpl::vector<jac_det, weights, mass, phi,psi> ;
+    //![accessors]
+
+    //![Do_stiffness]
+    template <typename Evaluation>
+    GT_FUNCTION
+    static void Do(Evaluation const & eval, x_interval) {
+        //quadrature points dimension
+        dimension<4>::Index qp;
+
+        //loop on quadrature nodes, and on nodes of the P1 element (i,j,k) with i,j,k\in {0,1}
+        for(short_t P_i=0; P_i<fe::basisCardinality; ++P_i) // current dof
+        {
+            for(short_t Q_i=0; Q_i<fe::basisCardinality; ++Q_i)
+            {//other dofs whose basis function has nonzero support on the element
+                for(short_t q=0; q<cub::numCubPoints(); ++q){
+                    eval(mass(0,0,0,P_i,Q_i))  +=
+                        eval(!phi(P_i,q,0)*(!psi(Q_i,q,0))*jac_det(qp+q)*!weights(q,0,0));
+                }
+            }
+        }
+    }
+    //![Do_stiffness]
+};
+//[integration]
+
+
 int main(){
 
     //Basis functions:
@@ -53,7 +94,6 @@ int main(){
     fe_.compute(Intrepid::OPERATOR_VALUE);
     fe2_.compute(Intrepid::OPERATOR_VALUE);
     fe3_.compute(Intrepid::OPERATOR_VALUE);
-
 
 
     //check correctness:
@@ -168,11 +208,49 @@ int main(){
      //geometry definitions
      using geo_map=reference_element<1, Lagrange, Hexa>;
      //geometry discretization
-     using geo_t = intrepid::geometry<geo_map, cub>;
+     using geo_cub=cubature<2, geo_map::shape>;
+
+     using geo_t = intrepid::geometry<geo_map, geo_cub>;
      //assembly infrastructure
      using as=assembly<geo_t>;
 
-     //    geo_t geo_;
-     //    as assembler(geo_, P+1, P+1, P+1);
+     uint_t d1=10;
+     uint_t d2=10;
+     uint_t d3=10;
 
+     geo_t geo_;
+     as assembler(geo_, d1, d2, d3);
+
+     geo_.compute(Intrepid::OPERATOR_GRAD);
+
+     using matrix_storage_info_t=storage_info<  gridtools::layout_map<0,1,2,3,4>, __COUNTER__ >;
+     using matrix_type=storage_t< matrix_storage_info_t >;
+     matrix_storage_info_t meta_(d1,d2,d3,fe3::basisCardinality,fe3::basisCardinality);
+     matrix_type mass_(meta_, 0.);
+
+     typedef arg<as::size, matrix_type> p_mass;
+     typedef arg<as::size+1, fe3_t::basis_function_storage_t> p_phi;
+     typedef arg<as::size+2, geo_t::grad_storage_t> p_dphi;
+
+     auto domain_=assembler.template domain< p_mass, p_phi, p_dphi >( mass_, fe3_.basis_function(),  geo_.local_gradient() );
+
+     auto coords=coordinates<axis>({1, 0, 1, d1-1, d1},
+         {1, 0, 1, d2-1, d2});
+     coords.value_list[0] = 0;
+     coords.value_list[1] = d3-1;
+
+     auto computation=make_computation<gridtools::BACKEND>(
+         make_mss
+         (
+             execute<forward>(),
+             make_esf<functors::update_jac<geo_t> >( as::p_grid_points(), as::p_jac(), p_dphi())
+             , make_esf<functors::det<geo_t> >(as::p_jac(), as::p_jac_det())
+             , make_esf<mass_functor<fe3, geo_cub> >(as::p_jac_det(), as::p_weights(), p_mass(), p_phi(), p_phi())
+             // , make_esf<as::assembly_f>(p_mass(), p_assembled_stiffness())
+             ), domain_, coords);
+
+     computation->ready();
+     computation->steady();
+     computation->run();
+     computation->finalize();
 }

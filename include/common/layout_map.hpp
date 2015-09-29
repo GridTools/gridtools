@@ -13,6 +13,7 @@
 #include <tuple>
 #endif
 #include "generic_metafunctions/gt_expand.hpp"
+#include "generic_metafunctions/accumulate.hpp"
 /**
    @file
    @brief definifion of the data layout
@@ -221,9 +222,12 @@ namespace gridtools {
         struct tied_type
         {
             struct type{
-                template<typename ... Indeces>
+                template<typename ... Indices>
                 GT_FUNCTION
-                static constexpr Int value(Indeces ... indices){return std::get< pos_<I>::value >(std::make_tuple(indices...));}
+                static constexpr Int value(Indices ... indices){
+                    GRIDTOOLS_STATIC_ASSERT((accumulate(logical_and(), boost::is_integral<Indices>::type::value ...)), "wrong type");
+                    return std::get< pos_<I>::value >(std::make_tuple(indices...));
+                }
             };
         };
 
@@ -236,8 +240,8 @@ namespace gridtools {
         struct identity
         {
             struct type{
-                template<typename ... Indeces>
-                static constexpr Int value(Indeces ... /*indices*/){return Default;}
+                template<typename ... Indices>
+                static constexpr Int value(Indices ... /*indices*/){return Default;}
             };
         };
 
@@ -268,6 +272,8 @@ namespace gridtools {
                 identity<T, DefaultVal>
                 ,
                 tied_type<I, T> >::type type;
+
+            GRIDTOOLS_STATIC_ASSERT((boost::is_integral<First>::type::value), "wrong type");
 
             return type::value(first, indices...);
         }
@@ -310,16 +316,19 @@ namespace gridtools {
             \tparam[in] Indices List of argument where to return the found value
             \param[in] indices List of values (length must be equal to the length of the layout_map length)
         */
-        template <ushort_t I, typename T, T DefaultVal, int_t Index, int_t NDim>
+        // template <ushort_t I, typename T, T DefaultVal, int_t Index, int_t NDim>
+        // GT_FUNCTION
+        // static constexpr T find_val(offset_tuple<Index, NDim> const& indices) {
+        template <ushort_t I, typename T, T DefaultVal, typename Tuple, typename boost::enable_if<is_arg_tuple<Tuple >, int>::type=0 >
         GT_FUNCTION
-        static constexpr T find_val(offset_tuple<Index, NDim> const& indices) {
+        static constexpr T find_val(Tuple const& indices) {
 
-            GRIDTOOLS_STATIC_ASSERT((is_arg_tuple<offset_tuple<Index, NDim> >::value), "the find_val method is used with tuples of type other than accessor");
-            GRIDTOOLS_STATIC_ASSERT((offset_tuple<Index, NDim>::n_dim-pos_<I>::value-1>=0), "write a message here");
+            GRIDTOOLS_STATIC_ASSERT((is_arg_tuple<Tuple >::value), "the find_val method is used with tuples of type other than accessor");
+            GRIDTOOLS_STATIC_ASSERT((Tuple::n_dim-pos_<I>::value-1>=0), "write a message here");
             return ((pos_<I>::value >= length)) ?
                 DefaultVal
                 :
-                indices.template get<offset_tuple<Index, NDim>::n_dim-pos_<I>::value-1>();
+                indices.template get<Tuple::n_dim-pos_<I>::value-1>();
             //this calls arg_decorator::get
         }
 

@@ -106,11 +106,11 @@ namespace gridtools {
             m_dims(dims_...)
             , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( dims_...))
             {
-                GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes)==space_dimensions, "you tried to initialize\
- a storage with a number of integer arguments different from its number of dimensions. \
-This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
- a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
- by defining the storage type using another layout_map.");
+//                 GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes)==space_dimensions, "you tried to initialize\
+//  a storage with a number of integer arguments different from its number of dimensions. \
+// This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
+//  a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
+//  by defining the storage type using another layout_map.");
             }
 #else
         // non variadic non constexpr constructor
@@ -237,9 +237,10 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
 
            This method returns signed integers of type int_t (used e.g. in iterate_domain)
         */
-        template <typename OffsetTuple, typename StridesVector>
+        template <typename OffsetTuple, typename StridesVector, typename boost::enable_if<is_arg_tuple<OffsetTuple >, int>::type=0>
         GT_FUNCTION
         static constexpr int_t _index(StridesVector const& RESTRICT strides_, OffsetTuple  const& tuple) {
+            GRIDTOOLS_STATIC_ASSERT(is_arg_tuple<OffsetTuple>::type::value, "wrong type");
             return _impl::compute_offset<space_dimensions, layout>::apply(strides_, tuple);
         }
 

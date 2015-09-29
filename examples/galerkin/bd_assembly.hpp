@@ -10,11 +10,11 @@ struct assembly<Boundary, Geometry > : public assembly_base<Geometry> {
     using bd_cub=typename Boundary::cub;
     using super = assembly_base<Geometry>;
 
-    using face_normals_type_info=storage_info<gridtools::layout_map<0,1,2,3,4> >;
+    using face_normals_type_info=storage_info<__COUNTER_, gridtools::layout_map<0,1,2,3,4> >;
     using face_normals_type=storage_t< face_normals_type_info >;
-    using storage_info_t=storage_info<gridtools::layout_map<0,1,2,3> >;
-    using storage_type=storage_t< storage_info_t >;
-    using jacobian_type_info=storage_info<gridtools::layout_map<0,1,2,3,4,5> >;
+    using storage_type_info=storage_info< gridtools::layout_map<0,1,2,3>, __COUNTER__ >;
+    using storage_type=storage_t< storage_type_info >;
+    using jacobian_type_info=storage_info<gridtools::layout_map<0,1,2,3,4,5>, __COUNTER__ >;
     using jacobian_type=storage_t< jacobian_type_info >;
 
     typedef arg<super::size+0, jacobian_type >       p_bd_jac;
@@ -49,7 +49,7 @@ public:
         , m_jac_info(d1, d2, d3, bd_cub::numCubPoints, 3, 3)
         , m_normals_info(d1, d2, d3, bd_cub::numCubPoints, 3)
         , m_bd_measure_info(d1, d2, d3, bd_cub::numCubPoints)
-        , m_bd_jac(m_bd_info, "bd jac")
+        , m_bd_jac(m_jac_info, "bd jac")
         , m_projected_jac(m_jac_info, "projected jac")
         , m_normals(m_normals_info, "normals")
         , m_bd_measure(m_bd_measure_info, "bd measure")

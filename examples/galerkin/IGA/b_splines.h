@@ -184,8 +184,8 @@ void test(int_t d1, int_t d2, int_t d3){
     typedef gridtools::layout_map<3,2,1,0> layout_input;
     typedef gridtools::layout_map<4,3,2,1,0> layout_output;
 
-    typedef gridtools::storage_info< layout_parametric> storage_parametric_info;
-    typedef gridtools::storage_info< layout_control_points> storage_control_points_info;
+    typedef gridtools::storage_info<layout_parametric, __COUNTER__> storage_parametric_info;
+    typedef gridtools::storage_info<layout_control_points, __COUNTER__> storage_control_points_info;
     typedef gridtools::layout_map<0,layout_input> storage_input_info;
     typedef gridtools::layout_map<0,layout_output> storage_output_info;
 

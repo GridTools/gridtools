@@ -379,12 +379,13 @@ You have to define each arg with a unique identifier ranging from 0 to N without
          *
          * @param The object to copy. Typically this will be *this
          */
-        __device__
-        explicit domain_type(domain_type const& other)
+        __device__ __host__
+        domain_type(domain_type const& other)
             : m_storage_pointers(other.m_storage_pointers)
             , m_original_pointers(other.m_original_pointers)
             , m_metadata_set(other.m_metadata_set)
         { }
+
 
 #ifndef NDEBUG
         GT_FUNCTION

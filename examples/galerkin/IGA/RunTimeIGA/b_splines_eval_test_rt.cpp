@@ -95,11 +95,11 @@ int main()
     #endif
 
     // Storage type definition
-    typedef gridtools::storage_info< layout_t_in> storage_type_csi_info;
+    typedef gridtools::storage_info<layout_t_in, __COUNTER__> storage_type_csi_info;
     typedef gridtools::BACKEND::storage_type<gridtools::float_type
                                              , storage_type_csi_info>::type storage_type_csi;
 
-    typedef gridtools::storage_info< layout_t_out> storage_type_bspline_basis_info;
+    typedef gridtools::storage_info<layout_t_out, __COUNTER__> storage_type_bspline_basis_info;
     typedef gridtools::BACKEND::storage_type<gridtools::float_type
                                              , storage_type_bspline_basis_info>::type storage_type_bspline_basis_values;
 

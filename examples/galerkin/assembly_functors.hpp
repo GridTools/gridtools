@@ -38,7 +38,7 @@ namespace functors{
             {
                 for(short_t jcoor=0; jcoor< shape_property<S>::dimension; ++jcoor)
                 {
-                    for(short_t iter_quad=0; iter_quad< cub::numCubPoints/*quad_pts*/; ++iter_quad)
+                    for(short_t iter_quad=0; iter_quad< cub::numCubPoints()/*quad_pts*/; ++iter_quad)
                     {
                         eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) )=0.;
                                 for (int_t iterNode=0; iterNode < geo_map::basisCardinality ; ++iterNode)
@@ -71,7 +71,7 @@ namespace functors{
             dimension<5>::Index dimx;
             dimension<6>::Index dimy;
 
-            for(short_t q=0; q< cub::numCubPoints; ++q)
+            for(short_t q=0; q< cub::numCubPoints(); ++q)
             {
                 eval( jac_det(qp+q) )= eval(
                     (
@@ -121,7 +121,7 @@ namespace functors{
             using i_=alias<jac, dimy, dimx>::set<2,2>;
 //! [aliases]
             // eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) )=0.;
-            for(short_t q=0; q< cub::numCubPoints/*quad_pts*/; ++q)
+            for(short_t q=0; q< cub::numCubPoints()/*quad_pts*/; ++q)
             {
                 alias<a_, dimension<4> > a(q);
                 alias<b_, dimension<4> > b(q);

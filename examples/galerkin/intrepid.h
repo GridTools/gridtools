@@ -30,10 +30,10 @@ namespace intrepid{
         // [test]
         GRIDTOOLS_STATIC_ASSERT(fe::layout_t::template at_<0>::value < 3 && fe::layout_t::template at_<1>::value < 3 && fe::layout_t::template at_<2>::value < 3,
                                 "the first three numbers in the layout_map must be a permutation of {0,1,2}. ");
-        using weights_storage_t_info = storage_info<layout_map<0,1,2> >;
-        using grad_storage_t_info = storage_info<layout_map<0,1,2> >;
-        using basis_function_storage_t_info = storage_info<layout_map<0,1,2> >;
-        using cub_points_storage_t_info = storage_info<layout_map<0,1,2> >;
+        using weights_storage_t_info = storage_info< layout_map<0,1,2> , __COUNTER__>;
+        using grad_storage_t_info = storage_info< layout_map<0,1,2> , __COUNTER__>;
+        using basis_function_storage_t_info = storage_info< layout_map<0,1,2> , __COUNTER__>;
+        using cub_points_storage_t_info = storage_info<layout_map<0,1,2>, __COUNTER__ >;
         using weights_storage_t        = storage_t< weights_storage_t_info > ;
         using grad_storage_t           = storage_t< grad_storage_t_info > ;
         using basis_function_storage_t = storage_t< basis_function_storage_t_info > ;
@@ -165,7 +165,7 @@ namespace intrepid{
                                              , geo_map::basis
                                              , shape_property<geo_map::shape>::boundary>;
 
-        using local_grid_t_info = storage_info< layout_map<0,1,2> >;
+        using local_grid_t_info = storage_info< layout_map<0,1,2>, __COUNTER__ >;
         using local_grid_t = storage_t< local_grid_t_info >;
         local_grid_t_info  m_local_grid_s_info;
         local_grid_t  m_local_grid_s;
@@ -233,8 +233,8 @@ namespace intrepid{
     {
     public:
 
-        using weights_storage_t_info = storage_info<layout_map<0,1,2> >;
-        using cub_points_storage_t_info = storage_info<layout_map<0,1,2> >;
+        using weights_storage_t_info = storage_info<layout_map<0,1,2> , __COUNTER__>;
+        using cub_points_storage_t_info = storage_info< layout_map<0,1,2> , __COUNTER__>;
         using weights_storage_t        = storage_t< weights_storage_t_info > ;
         using cub_points_storage_t     = storage_t< cub_points_storage_t_info > ;
 
@@ -316,9 +316,9 @@ namespace intrepid{
         // using bd_cub = typename rule_t::bd_cub;
         using cub = typename rule_t::bd_cub;
 
-        using grad_storage_t_info = storage_info<layout_map<0,1,2> >;
-        using basis_function_storage_t_info = storage_info<layout_map<0,1,2> >;
-        using tangent_storage_t_info = storage_info<layout_map<0,1,2> >;
+        using grad_storage_t_info = storage_info<layout_map<0,1,2>, __COUNTER__ >;
+        using basis_function_storage_t_info = storage_info<layout_map<0,1,2> , __COUNTER__>;
+        using tangent_storage_t_info = storage_info<layout_map<0,1,2>,  __COUNTER__>;
 
         using grad_storage_t           = storage_t< grad_storage_t_info > ;
         using basis_function_storage_t = storage_t< basis_function_storage_t_info > ;
