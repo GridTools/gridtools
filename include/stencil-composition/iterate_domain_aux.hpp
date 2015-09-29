@@ -591,14 +591,14 @@ namespace gridtools{
             is_accessor<Accessor>,
             boost::mpl::has_key<
                 CachesMap,
-		//TODO: ERROR in Clang:
-		//non-type template argument evaluates to -1, which cannot be narrowed to type 'uint_t'
+                //TODO: ERROR in Clang:
+                //non-type template argument evaluates to -1, which cannot be narrowed to type 'uint_t'
 #ifdef __CUDACC__
                 static_uint<accessor_index_t::value>
 #else // the following is NOT correct!! but compiles
                 static_int<accessor_index_t::value>
 #endif
-		>,
+                >,
             boost::mpl::identity<boost::mpl::false_>
         >::type type;
         BOOST_STATIC_CONSTANT(bool, value=(type::value));
