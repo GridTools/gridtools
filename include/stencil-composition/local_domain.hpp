@@ -23,26 +23,34 @@ namespace gridtools {
 
     namespace local_domain_aux {
 
-        template <typename ArgList>
+        template <typename IndicesList, typename ArgList, typename LocalList >
         struct assign_storage_pointers {
 
             ArgList const& m_arg_list;
+            LocalList & m_local_list;
 
             GT_FUNCTION_WARNING
-            assign_storage_pointers(ArgList const& arg_list_)
+            assign_storage_pointers(ArgList const& arg_list_, LocalList & local_list_)
                 : m_arg_list(arg_list_)
-            {}
+                , m_local_list(local_list_)
+            {
+                // GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ArgList, is_storage>::value), "wrong type");
+                // GRIDTOOLS_STATIC_ASSERT((is_sequence_of<LocalList, is_arg>::value), "wrong type");
+            }
 
-            template <typename ZipElem>
+            template <typename Id>
             GT_FUNCTION_WARNING
-            void operator()(ZipElem const& ze) const {
-                typedef typename boost::remove_reference<typename boost::fusion::result_of::at_c<ZipElem, 0>::type>::type::index_type index;
+            void operator()(Id) const {
 
-                boost::fusion::at_c<1>(ze) =
+                typedef typename boost::remove_reference
+                    <typename boost::mpl::at
+                     <IndicesList, Id>::type>::type::index_type index_t;
+
+                boost::fusion::at_c<Id::value>(m_local_list) =
 #ifdef __CUDACC__ // ugly ifdef. TODO: way to remove it?
-                    boost::fusion::at<index>(m_arg_list)->gpu_object_ptr;
+                    boost::fusion::at_c<index_t::value>(m_arg_list)->gpu_object_ptr;
 #else
-                    boost::fusion::at<index>(m_arg_list);
+                boost::fusion::at_c<index_t::value>(m_arg_list);
 #endif
             }
         };
@@ -296,12 +304,15 @@ namespace gridtools {
         GT_FUNCTION
         void init(ActualArgs const& actual_args_, ActualMetaData const& actual_metadata_)
         {
-            typedef boost::fusion::vector<domain_indices_t const&, local_args_type&> to_zip_t;
-            typedef boost::fusion::zip_view<to_zip_t> zipping_t;
 
-            to_zip_t z(domain_indices_t(), m_local_args);
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<domain_indices_t>::type::value == boost::mpl::size<local_args_type>::type::value), "sizes not matching");
 
-            boost::fusion::for_each(zipping_t(z), local_domain_aux::assign_storage_pointers<ActualArgs>(actual_args_));
+            typedef static_uint<boost::mpl::size<domain_indices_t>::type::value>  size_type;
+            boost::mpl::for_each
+                <boost::mpl::range_c
+                 <uint_t, 0, size_type::value> > (
+                     local_domain_aux::assign_storage_pointers<domain_indices_t
+                     , ActualArgs, local_args_type>(actual_args_, m_local_args));
 
             //assigns the metadata for all the components of m_local_metadata (global to local)
             boost::fusion::for_each(m_local_metadata, local_domain_aux::assign_fusion_maps<local_metadata_type, ActualMetaData>(actual_metadata_));
