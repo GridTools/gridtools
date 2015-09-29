@@ -32,6 +32,8 @@ using namespace enumtype;
 #define POSTFIX
 #endif
 
+static const int _value_ = 1;
+
 namespace positional_copy_stencil{
     // This is the definition of the special regions in the "vertical" direction
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
@@ -40,14 +42,21 @@ namespace positional_copy_stencil{
     // These are the stencil operators that compose the multistage stencil in this test
     template <int V>
     struct init_functor {
-        typedef accessor<0, range<0,0,0,0> > POSTFIX one;
-        typedef accessor<1, range<0,0,0,0> > POSTFIX two;
+        typedef accessor<0> POSTFIX one;
+        typedef accessor<1> POSTFIX two;
         typedef boost::mpl::vector<one, two> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            eval(one()) = static_cast<float_type>(V)*(eval.i()+eval.j()+eval.k());
+            printf("i() %d\n", eval.i());
+            printf("j() %d\n", eval.j());
+            printf("k() %d\n", eval.k());
+            // std::cout << "(eval.i()+eval.j()+eval.k()) "
+            //           << eval.i() << " + "
+            //           << eval.j() << " + "
+            //           << eval.k() << std::endl;
+            eval(one()) = static_cast<float_type>(V)*(0*eval.i()+0*eval.j()+eval.k());
             eval(two()) = -1.1;
         }
     };
@@ -55,8 +64,8 @@ namespace positional_copy_stencil{
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
 
-        typedef const accessor<0, range<0,0,0,0>, 3> POSTFIX in;
-        typedef accessor<1, range<0,0,0,0>, 3> POSTFIX out;
+        typedef const accessor<0> POSTFIX in;
+        typedef accessor<1> POSTFIX out;
         typedef boost::mpl::vector<in,out> arg_list;
 
     /* static const auto expression=in(1,0,0)-out(); */
@@ -155,7 +164,7 @@ namespace positional_copy_stencil{
              gridtools::make_mss // mss_descriptor
              (
               execute<forward>(),
-              gridtools::make_esf<init_functor<31415926> >
+              gridtools::make_esf<init_functor<_value_> >
               (
                p_in(), p_out() // esf_descriptor
                )
@@ -276,13 +285,25 @@ namespace positional_copy_stencil{
             for(uint_t j=0; j<d2; ++j)
                 for(uint_t k=0; k<d3; ++k)
                     {
-                        if (in(i, j, k)!=out(i,j,k)) {
+                        if (in(i, j, k) != out(i,j,k)) {
                             std::cout << "error in "
                                       << i << ", "
                                       << j << ", "
                                       << k << ": "
                                       << "in = " << in(i, j, k)
                                       << ", out = " << out(i, j, k)
+                                      << std::endl;
+                            success = false;
+                        }
+                        if ((static_cast<double>(_value_)*(0*i+0*j+k)) != out(i,j,k)) {
+                            std::cout << "error in "
+                                      << i << ", "
+                                      << j << ", "
+                                      << k << ": "
+                                      << "static_cast<double>(" << _value_ << ")*(i+j+k) = "
+                                      << (static_cast<double>(_value_)*(0*i+0*j+k))
+                                      << ", out = " << out(i, j, k)
+                                      << " [ " << (static_cast<double>(_value_)*(0*i+0*j+k))-out(i, j, k) << " ]"
                                       << std::endl;
                             success = false;
                         }
