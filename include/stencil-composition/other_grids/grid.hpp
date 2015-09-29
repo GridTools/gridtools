@@ -591,6 +591,7 @@ namespace gridtools {
         const gridtools::array<uint_t, 2> m_dims; // Sizes as cells in a multi-dimensional Cell array
 
         static constexpr int Dims = 2;
+        static constexpr int n_colors = 2;
 
         using virtual_storage_types =
             boost::fusion::vector3<

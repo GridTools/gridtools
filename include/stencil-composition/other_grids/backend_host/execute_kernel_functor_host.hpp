@@ -78,6 +78,7 @@ struct execute_kernel_functor_host
     {
         typedef typename RunFunctorArguments::loop_intervals_t loop_intervals_t;
         typedef typename RunFunctorArguments::execution_type_t execution_type_t;
+        using grid_t = coords_t::grid_t;
 
         // in the host backend there should be only one esf per mss
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename RunFunctorArguments::range_sizes_t>::value==1),
@@ -148,9 +149,11 @@ struct execute_kernel_functor_host
         {
             for(uint_t j=m_first_pos[1]; j <= m_last_pos[1];++j)
             {
-                gridtools::for_each< loop_intervals_t >
-                ( _impl::run_f_on_interval<execution_type_t, RunFunctorArguments> (it_domain, m_coords) );
-
+                for(uint_t c=0; c <= grid_t::n_colors; ++c)
+                {
+                    gridtools::for_each< loop_intervals_t >
+                    ( _impl::run_f_on_interval<execution_type_t, RunFunctorArguments> (it_domain, m_coords) );
+                }
             }
         }
 
