@@ -147,7 +147,7 @@ namespace gridtools {
             is_set( false )
             , m_name("default_storage")
             , m_meta_data(meta_data_)
-            {}
+        {}
 
         /**
            @brief 3D storage constructor

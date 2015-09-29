@@ -209,21 +209,29 @@ You have to define each arg with a unique identifier ranging from 0 to N without
         metadata_set_t m_metadata_set;
 
 #ifdef CXX11_ENABLED
-        void assign_pointers() {}
+
+        template <typename MetaDataSequence>
+        void assign_pointers(MetaDataSequence&) {}
 
         /**@brief recursively assignes all the pointers passed as arguments to storages.
          */
-        template <typename Arg0, typename... OtherArgs>
-        void assign_pointers(Arg0 const& arg0, OtherArgs const& ... other_args)
+        template <typename MetaDataSequence, typename ArgStoragePair0, typename... OtherArgs>
+        void assign_pointers(MetaDataSequence& sequence_, ArgStoragePair0 arg0, OtherArgs ... other_args)
         {
-            boost::fusion::at<typename Arg0::arg_type::index_type>(m_storage_pointers) = arg0.ptr;
-            assign_pointers(other_args...);
+            assert(arg0.ptr);
+            printf("pointer: %x", arg0.ptr);
+            boost::fusion::at<typename ArgStoragePair0::arg_type::index_type>(m_storage_pointers) = arg0.ptr;
+            //storing the value of the pointers in a 'backup' fusion vector
+            boost::fusion::at<typename ArgStoragePair0::arg_type::index_type>(m_original_pointers) = arg0.ptr;
+            if (!sequence_.template present<pointer<const typename ArgStoragePair0::storage_type::meta_data_t> >())
+                sequence_.insert(pointer<const typename ArgStoragePair0::storage_type::meta_data_t>(&(arg0.ptr->meta_data())));
+            assign_pointers(sequence_, other_args...);
         }
 
 #endif
     public:
 
-#if defined (CXX11_ENABLED) && !defined (__CUDACC__)
+#if defined (CXX11_ENABLED)
         /** @brief variadic constructor
             construct the domain_type given an arbitrary number of placeholders to the non-temporary
             storages passed as arguments.
@@ -237,17 +245,10 @@ You have to define each arg with a unique identifier ranging from 0 to N without
         domain_type(StorageArgs ... args)
             : m_storage_pointers()
             , m_metadata_set()
-            {
-                GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(), is_arg_storage_pair<StorageArgs>::value ...), "wrong type");
-                assign_pointers(args...);
-
-                //copy of the non-tmp metadata into m_metadata_set
-                typedef boost::fusion::filter_view<arg_list,
-                                                   is_storage<boost::mpl::_1> > view_type;
-
-                view_type fview(m_storage_pointers);
-                boost::fusion::for_each(fview, assign_metadata_set<metadata_set_t >(m_metadata_set));
-            }
+        {
+            GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(), is_arg_storage_pair<StorageArgs>::value ...), "wrong type");
+            assign_pointers(m_metadata_set, args...);
+        }
 #endif
 
 
