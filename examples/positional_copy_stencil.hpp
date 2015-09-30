@@ -54,7 +54,7 @@ namespace positional_copy_stencil{
             //           << eval.i() << " + "
             //           << eval.j() << " + "
             //           << eval.k() << std::endl;
-            eval(one()) = static_cast<float_type>(V)*(0*eval.i()+0*eval.j()+eval.k());
+            eval(one()) = static_cast<float_type>(V)*(1*eval.i()+1*eval.j()+eval.k());
             eval(two()) = -1.1;
         }
     };
@@ -294,7 +294,7 @@ namespace positional_copy_stencil{
                                       << std::endl;
                             success = false;
                         }
-                        if ((static_cast<double>(_value_)*(0*i+0*j+k)) != out(i,j,k)) {
+                        if ((static_cast<double>(_value_)*(1*i+1*j+k)) != out(i,j,k)) {
                             // std::cout << "error in "
                             //           << i << ", "
                             //           << j << ", "
@@ -307,7 +307,7 @@ namespace positional_copy_stencil{
                             std::cout << "[" << i << " "
                                       << j << " "
                                       << k << " "
-                                      <<  (static_cast<double>(_value_)*(0*i+0*j+k))-out(i, j, k) << " ];"
+                                      <<  (static_cast<double>(_value_)*(1*i+1*j+k))-out(i, j, k) << " ];"
                                       << std::endl;
                             success = false;
                         }
