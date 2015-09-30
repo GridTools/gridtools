@@ -148,7 +148,7 @@ struct is_positional_iterate_domain<iterate_domain_evaluator<T,U> > : boost::fal
     positional_iterate_domain_evaluator
 */
 template<typename T, typename U>
-struct is_positional_iterate_domain<positional_iterate_domain_evaluator<T,u> > : boost::true_type {};
+struct is_positional_iterate_domain<positional_iterate_domain_evaluator<T,U> > : boost::true_type {};
 
 
 /**
