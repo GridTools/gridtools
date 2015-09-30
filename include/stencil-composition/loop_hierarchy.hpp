@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include "common/defs.hpp"
+#include "iterate_domain_utils.hpp"
 
 /**@file this file implements the management of loops order
 
@@ -17,17 +18,6 @@
 */
 
 namespace gridtools{
-
-    namespace _impl {
-        template <ushort_t Index, typename IterateDomain, typename VT>
-        typename boost::enable_if<typename is_positional_iterate_domain<IterateDomain>::type, void>::type
-        reset_index_if_positional(IterateDomain & itdom, VT value) {
-            itdom.template reset_index<Index>(value);
-        }
-        template <ushort_t Index, typename IterateDomain, typename VT>
-        typename boost::disable_if<typename is_positional_iterate_domain<IterateDomain>::type, void>::type
-        reset_index_if_positional(IterateDomain &, VT) { }
-    } // namespace _impl
 
     /**@class holding one loop
 

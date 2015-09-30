@@ -5,6 +5,9 @@
 #include "../iterate_domain_aux.hpp"
 #include "shared_iterate_domain.hpp"
 #include "common/gt_assert.hpp"
+#include "../iterate_domain.hpp"
+#include "../iterate_domain_metafunctions.hpp"
+#include "../iterate_domain_utils.hpp"
 
 namespace gridtools {
 
@@ -64,7 +67,10 @@ namespace _impl_cuda {
         typedef typename index_to_level<typename interval::second>::type to;
         typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy;
 
-        it_domain.template initialize<2>( coords->template value_at< iteration_policy::from >() );
+        //        it_domain.template initialize<2>( coords->template value_at< iteration_policy::from >() );
+
+        _impl::reset_index_if_positional<2>(it_domain,
+                                            coords->template value_at< iteration_policy::from >());
 
         //execute the k interval functors
         for_each<typename RunFunctorArguments::loop_intervals_t>
