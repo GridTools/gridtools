@@ -49,9 +49,7 @@ namespace positional_copy_stencil{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            printf("i() %d\n", eval.i());
-            printf("j() %d\n", eval.j());
-            printf("k() %d\n", eval.k());
+            //printf("ijk %d %d %d\n", eval.i(), eval.j(), eval.k());
             // std::cout << "(eval.i()+eval.j()+eval.k()) "
             //           << eval.i() << " + "
             //           << eval.j() << " + "
@@ -268,7 +266,7 @@ namespace positional_copy_stencil{
         copy->finalize();
 
         boost::timer::cpu_times lapse_time = time.elapsed();
-        std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
+        //        std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
         //#ifdef CUDA_EXAMPLE
         //out.data().update_cpu();
         //#endif
@@ -280,6 +278,7 @@ namespace positional_copy_stencil{
         pw_print();
 #endif
 
+        std::cout << "out = [" ;
         bool success = true;
         for(uint_t i=0; i<d1; ++i)
             for(uint_t j=0; j<d2; ++j)
@@ -296,18 +295,24 @@ namespace positional_copy_stencil{
                             success = false;
                         }
                         if ((static_cast<double>(_value_)*(0*i+0*j+k)) != out(i,j,k)) {
-                            std::cout << "error in "
-                                      << i << ", "
-                                      << j << ", "
-                                      << k << ": "
-                                      << "static_cast<double>(" << _value_ << ")*(i+j+k) = "
-                                      << (static_cast<double>(_value_)*(0*i+0*j+k))
-                                      << ", out = " << out(i, j, k)
-                                      << " [ " << (static_cast<double>(_value_)*(0*i+0*j+k))-out(i, j, k) << " ]"
+                            // std::cout << "error in "
+                            //           << i << ", "
+                            //           << j << ", "
+                            //           << k << ": "
+                            //           << "static_cast<double>(" << _value_ << ")*(i+j+k) = "
+                            //           << (static_cast<double>(_value_)*(0*i+0*j+k))
+                            //           << ", out = " << out(i, j, k)
+                            //           << " [ " << (static_cast<double>(_value_)*(0*i+0*j+k))-out(i, j, k) << " ]"
+                            //           << std::endl;
+                            std::cout << "[" << i << " "
+                                      << j << " "
+                                      << k << " "
+                                      <<  (static_cast<double>(_value_)*(0*i+0*j+k))-out(i, j, k) << " ];"
                                       << std::endl;
                             success = false;
                         }
                     }
+        std::cout << "];" << std::endl;
                         //std::cout << "SUCCESS? -> " << std::boolalpha << success << std::endl;
         return success;
 

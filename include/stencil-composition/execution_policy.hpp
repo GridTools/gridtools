@@ -4,6 +4,8 @@
 #include "backend_traits_fwd.hpp"
 #include "run_esf_functor.hpp"
 #include "../gt_for_each/for_each.hpp"
+#include "iterate_domain_evaluator.hpp"
+#include "iterate_domain.hpp"
 
 /**
 @file Implementation of the k loop execution policy
@@ -14,6 +16,35 @@ The policies which are currently considered are
 */
 namespace gridtools{
     namespace _impl{
+
+    template <typename ID>
+    __device__
+    void
+    printk___(ID const& id, typename std::enable_if<is_positional_iterate_domain<ID>::type::value, int>::type =0) {
+        printf("kkk %d %d %d\n", id.i(), id.j(), id.k());
+    }
+    
+    template <typename ID>
+    __device__
+    void
+    printk___(ID const& id, typename std::enable_if<!is_positional_iterate_domain<ID>::type::value, int>::type =0) {
+        //int a = ID::ciao();
+        printf(".");
+    }
+    
+    template <typename ID>
+    __device__
+    void
+    _printk___(ID const& id, typename std::enable_if<is_positional_iterate_domain<ID>::type::value, int>::type =0) {
+        printf("KKK %d %d %d\n", id.i(), id.j(), id.k());
+    }
+    
+    template <typename ID>
+    __device__
+    void
+    _printk___(ID const& id, typename std::enable_if<!is_positional_iterate_domain<ID>::type::value, int>::type =0) {
+        printf(":");
+    }
 
         /**
            @brief   Execution kernel containing the loop over k levels
@@ -51,19 +82,22 @@ namespace gridtools{
 
             GT_FUNCTION
             explicit run_f_on_interval(
-                    iterate_domain_t & iterate_domain,
+                    iterate_domain_t & iterate_domain_,
                     typename RunFunctorArguments::coords_t const& coords):
-                super(iterate_domain, coords){}
+                super(iterate_domain_, coords){}
 
             template<typename IterationPolicy, typename Interval>
             GT_FUNCTION
             void k_loop(int_t from, int_t to) const {
                 typedef typename run_esf_functor_h_t::template apply<RunFunctorArguments, Interval>::type run_esf_functor_t;
 
-                for ( int_t k=from ; k<=to; ++k, IterationPolicy::increment(super::m_domain)) {
+                //printk___(super::m_domain);
+                for ( int_t k=from ; k<=to; ++k) {
+                    //printk___(super::m_domain);
                     gridtools::for_each<boost::mpl::range_c<int, 0, boost::mpl::size<functor_list_t>::value > > (
                         run_esf_functor_t(super::m_domain)
                     );
+                    IterationPolicy::increment(super::m_domain);
                 }
             }
 
