@@ -5,7 +5,6 @@
 #include "../iterate_domain_evaluator.hpp"
 
 namespace gridtools {
-    
     /*
      * @brief main functor that executes (for CUDA) the user functor of an ESF
      * @tparam RunFunctorArguments run functor arguments
@@ -102,8 +101,7 @@ namespace gridtools {
         __device__
         void execute_extra_work(const IterateDomainEvaluator& iterate_domain_evaluator,
                 typename boost::disable_if<MultipleGridPointsPerWarp, int >::type=0) const
-        {
-        }
+        {}
 
         /*
          * @brief executes the extra grid points associated with each CUDA thread.

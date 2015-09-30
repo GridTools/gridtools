@@ -138,6 +138,19 @@ public:
     }
 };
 
+/** Metafunction to query an iterate domain if it's positional. Specialization for
+    iterate_domain_evaluator
+*/
+template<typename T, typename U>
+struct is_positional_iterate_domain<iterate_domain_evaluator<T,U> > : boost::false_type {};
+
+/** Metafunction to query an iterate domain if it's positional. Specialization for
+    positional_iterate_domain_evaluator
+*/
+template<typename T, typename U>
+struct is_positional_iterate_domain<positional_iterate_domain_evaluator<T,u> > : boost::true_type {};
+
+
 /**
  * @struct get_iterate_domain_evaluator
  * metafunction that computes the iterate_domain_evaluator from the iterate domain type

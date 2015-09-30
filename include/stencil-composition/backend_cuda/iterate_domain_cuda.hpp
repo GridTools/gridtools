@@ -198,15 +198,6 @@ template<
 struct is_positional_iterate_domain<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> > :
     is_positional_iterate_domain<IterateDomainBase<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> > > {};
 
-template<
-    typename ...T
->
-struct is_positional_iterate_domain<iterate_domain_evaluator<T...> > : boost::false_type {};
-template<
-    typename ...T
->
-struct is_positional_iterate_domain<positional_iterate_domain_evaluator<T...> > : boost::true_type {};
-
 
 template<template<class> class IterateDomainBase, typename IterateDomainArguments>
 struct iterate_domain_backend_id<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> >

@@ -32,7 +32,7 @@ using namespace enumtype;
 #define POSTFIX
 #endif
 
-static const int _value_ = 1;
+static const int _value_ = 123;
 
 namespace positional_copy_stencil{
     // This is the definition of the special regions in the "vertical" direction
@@ -49,12 +49,7 @@ namespace positional_copy_stencil{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            //printf("ijk %d %d %d\n", eval.i(), eval.j(), eval.k());
-            // std::cout << "(eval.i()+eval.j()+eval.k()) "
-            //           << eval.i() << " + "
-            //           << eval.j() << " + "
-            //           << eval.k() << std::endl;
-            eval(one()) = static_cast<float_type>(V)*(1*eval.i()+1*eval.j()+eval.k());
+            eval(one()) = static_cast<float_type>(V)*(eval.i()+eval.j()+eval.k());
             eval(two()) = -1.1;
         }
     };
@@ -266,19 +261,13 @@ namespace positional_copy_stencil{
         copy->finalize();
 
         boost::timer::cpu_times lapse_time = time.elapsed();
-        //        std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
-        //#ifdef CUDA_EXAMPLE
-        //out.data().update_cpu();
-        //#endif
-#define NX 5
-#define NY 5
-#define NZ 5
+        std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
+
 
 #ifdef USE_PAPI_WRAP
         pw_print();
 #endif
 
-        std::cout << "out = [" ;
         bool success = true;
         for(uint_t i=0; i<d1; ++i)
             for(uint_t j=0; j<d2; ++j)
@@ -294,26 +283,20 @@ namespace positional_copy_stencil{
                                       << std::endl;
                             success = false;
                         }
-                        if ((static_cast<double>(_value_)*(1*i+1*j+k)) != out(i,j,k)) {
-                            // std::cout << "error in "
-                            //           << i << ", "
-                            //           << j << ", "
-                            //           << k << ": "
-                            //           << "static_cast<double>(" << _value_ << ")*(i+j+k) = "
-                            //           << (static_cast<double>(_value_)*(0*i+0*j+k))
-                            //           << ", out = " << out(i, j, k)
-                            //           << " [ " << (static_cast<double>(_value_)*(0*i+0*j+k))-out(i, j, k) << " ]"
-                            //           << std::endl;
-                            std::cout << "[" << i << " "
-                                      << j << " "
-                                      << k << " "
-                                      <<  (static_cast<double>(_value_)*(1*i+1*j+k))-out(i, j, k) << " ];"
-                                      << std::endl;
+                        if ((static_cast<double>(_value_)*(i+j+k)) != out(i,j,k)) {
+                             std::cout << "error in "
+                                      << i << ", "
+                                      << j << ", "
+                                      << k << ": "
+                                      << "static_cast<double>(" << _value_ << ")*(i+j+k) = "
+                                      << (static_cast<double>(_value_)*(i+j+k))
+                                      << ", out = " << out(i, j, k)
+                                      << " [ " << (static_cast<double>(_value_)*(i+j+k))-out(i, j, k) << " ]"
+                                       << std::endl;
                             success = false;
                         }
                     }
-        std::cout << "];" << std::endl;
-                        //std::cout << "SUCCESS? -> " << std::boolalpha << success << std::endl;
+
         return success;
 
     }
