@@ -69,6 +69,42 @@ namespace gridtools {
         static const ushort_t n_width = 1;
         static const ushort_t space_dimensions = layout::length;
 
+
+
+        /**
+           @brief Metafunction for computing the coordinate N from the index
+
+           NOTE: N=0 is the coordinate with stride 1
+
+           The usual 1-to-1 relation to pass from the index \f$ID\f$ to the coordinates \f$c1, c2, c3\f$, involving the strides \f$s1 > s2 > 1\f$, is as follows:
+
+           \f$ID= c1*s1+c2*s2+c3\f$
+
+           while each index identifies three coordinates as follow
+
+           \f$c3=ID%s2\f$
+
+           \f$c2=\frac{ID%s1-c3}{s2}\f$
+
+           \f$c1=\frac{ID-c2-c3}{s1}\f$
+
+           where the % operator defines the integer remain of the division.
+           This can be extended to higher dimensions and can be rewritten as a recurrency formula (implemented via recursion).
+        */
+        template<typename N>
+        struct coord_from_index
+        {
+            static int_t apply(int_t index, int_t* strides_){
+                printf("the coord from index: tile along %d is %d\n ", 0, strides[2]);
+                return index%strides<N::value>(strides_)-coord_from_index<static_int<N::value+1> >::apply();
+            }
+        };
+
+        template <ushort_t Coordinate>
+        int_t index2coord(int_t const& index){
+            return coord_from_index<static_int<Coordinate> >::apply(index, strides());
+        }
+
     protected:
 
          array<int_t, space_dimensions> m_dims;
@@ -193,11 +229,17 @@ namespace gridtools {
 
 
         /**@brief return the stride for a specific coordinate, given the vector of strides
-           Coordinates 0,1,2 correspond to i,j,k respectively*/
+           Coordinates 0,1,2 correspond to i,j,k respectively
+           NOTE: the atrides argument array contains only the strides and has dimension {space_dimensions-1}
+
+           @tparam Coordinate the coordinate of which I want to retrieve the strides (0 for i, 1 for j, 2 for k)
+           @tparam StridesVector the array type for the strides.
+           @param strides_ the array of strides
+        */
         template<uint_t Coordinate, typename StridesVector>
         GT_FUNCTION
         static constexpr int_t strides(StridesVector const& RESTRICT strides_){
-            return ((vec_max<typename layout::layout_vector_t>::value < 0) ? 0:(( layout::template at_<Coordinate>::value == vec_max<typename layout::layout_vector_t>::value ) ? 1 : ((strides_[layout::template at_<Coordinate>::value/*+1*/]))));//POL TODO explain the fact that here there was a +1
+            return ((vec_max<typename layout::layout_vector_t>::value < 0) ? 0:(( layout::template at_<Coordinate>::value == vec_max<typename layout::layout_vector_t>::value ) ? 1 : ((strides_[layout::template at_<Coordinate>::value]))));
         }
 
         /**@brief returning the index of the memory address corresponding to the specified (i,j,k) coordinates.
@@ -307,6 +349,20 @@ namespace gridtools {
             return 0;
         }
 
+    };
+
+
+    template<>
+    template < ushort_t Index
+               , typename Layout
+               , bool IsTemporary
+               >
+    struct meta_storage_base<Index, Layout, IsTemporary>::coord_from_index<static_int<meta_storage_base<Index, Layout, IsTemporary>::space_dimensions-1> >
+    {
+        static int_t apply(int_t index, int_t* strides_){
+            printf("the coord from index: tile along %d is %d\n ", 0, strides[2]);
+            return index%strides<space_dimensions-1>(strides_);
+        }
     };
 
 

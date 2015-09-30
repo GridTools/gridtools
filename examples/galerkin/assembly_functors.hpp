@@ -165,22 +165,15 @@ namespace functors{
 
 
 
-
-
-
-
-
-
     // [assembly]
     template<typename Geometry>
-    struct assembly_f {
+    struct jump_f {
 
         using geo_map=typename Geometry::geo_map;
 
-        using in=accessor<0, range<-1,0,-1,0> , 5> const;
-        using out=accessor<1, range<0,0,0,0> , 5> ;
+        using in=accessor<0, range<> , 4> const;
+        using out=accessor<1, range<> , 4> ;
         using arg_list=boost::mpl::vector<in, out> ;
-        using quad=dimension<4>;
 
         template <typename Evaluation>
         GT_FUNCTION
@@ -189,47 +182,39 @@ namespace functors{
             dimension<2>::Index j;
             dimension<3>::Index k;
             dimension<4>::Index row;
-            dimension<5>::Index col;
 
+
+            //hypothesis here: the cardinality is order^3 (isotropic tensor product element)
+            constexpr meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
             // assembly : this part is specific for tensor product topologies
             // points on the edges
-            static int_t bd_dim=geo_map::hypercube_t::template boundary_w_dim<1>::n_points::value;
+            // static int_t bd_dim=geo_map::hypercube_t::template boundary_w_dim<1>::n_points::value;
+
 
             //for all dofs in a boundary face
-            for(short_t I=0; I<bd_dim; I++)
-                for(short_t J=0; J<bd_dim; J++)
-            //for all dofs in the matching face of a neighbor
-            for(short_t II=0; II<bd_dim; II++)
-                for(short_t JJ=0; JJ<bd_dim; JJ++)
-
+            for(short_t I=0; I<indexing.template dims<0>(); I++)
+                for(short_t J=0; J<indexing.template dims<1>(); J++)
                 {
 
-                    //Hypothesis: the local dofs are ordered according to fe::layout
-                    array<int, 3> strides={bd_dim*bd_dim, bd_dim, 1};
-                    auto dof_x=(geo_map::layout_t::find<1>(&strides[0]))*I+geo_map::layout_t::template find<2>(&strides[0])*J;
-                    auto dof_xx=(geo_map::layout_t::find<1>(&strides[0]))*II+geo_map::layout_t::template find<2>(&strides[0])*JJ;
+                    auto dof_x=indexing.index(0, (int)I, (int)J);
+                    auto dof_xx=indexing.index(indexing.template dims<0>()-1, I, J);
                     //sum the contribution from elem i-1 on the opposite face
-                    eval(out(row+dof_x, col+dof_xx)) += eval(out(i-1
-                                                                 , row+(dof_x+geo_map::layout_t::template find<0>(&strides[0])*(bd_dim-1))
-                                                                 , col+(dof_xx+geo_map::layout_t::template find<0>(&strides[0])*(bd_dim-1))));
+                    eval(out(row+dof_x)) -= eval(out(i-1, row+dof_xx));
 
-                    auto dof_y=geo_map::layout_t::template find<0>(&strides[0])*I+geo_map::layout_t::template find<2>(&strides[0])*J;
-                    auto dof_yy=geo_map::layout_t::template find<0>(&strides[0])*II+geo_map::layout_t::template find<2>(&strides[0])*JJ;
-                    //sum the contribution from elem j-1 on the opposite face
-                    eval(out(row+dof_y, col+dof_yy)) += eval(out(j-1
-                                                     , row+(dof_y+geo_map::layout_t::template find<1>(&strides[0])*bd_dim)
-                                                     , col+(dof_yy+geo_map::layout_t::template find<1>(&strides[0])*bd_dim) ));
+                    auto dof_y=indexing.index(I, 0, J);
+                    auto dof_yy=indexing.index(I, indexing.template dims<1>()-1, J);
+                    //sum the contribution from elem i-1 on the opposite face
+                    eval(out(row+dof_y)) -= eval(out(j-1, row+dof_yy));
 
-                    // auto dof_z=fe::layout_t::find<0>(&strides[0])*I+fe::layout_t::find<1>(&strides[0])*J;
-                    // auto dof_zz=fe::layout_t::find<0>(&strides[0])*II+fe::layout_t::find<1>(&strides[0])*JJ;
-                    // //sum the contribution from elem k-1 on the opposite face
-                    // eval(out(row+dof_z, col+dof_zz)) += eval(out(k-1
-                    //                                  , row+(dof_z+fe::layout_t::find<2>(&strides[0])*bd_dim)
-                    //                                  , col+(dof_zz+fe::layout_t::find<2>(&strides[0])*bd_dim)));
-
+                    auto dof_z=indexing.index(I, J, 0);
+                    auto dof_zz=indexing.index(I, J, indexing.template dims<2>()-1);
+                    //sum the contribution from elem i-1 on the opposite face
+                    eval(out(row+dof_z)) -= eval(out(k-1, row+dof_zz));
                 }
         }
     };
     // [assembly]
+
+
 } // namespace functors
-// } // namespace gridtools
+    // } // namespace gridtools
