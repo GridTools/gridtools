@@ -1,6 +1,5 @@
+#include "gtest/gtest.h"
 #include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <iostream>
 #include <iomanip>
 #include "common/gpu_clone.hpp"
@@ -41,12 +40,22 @@ struct derived: public base<derived<value_type> > {
 
 };
 
+class clone_derived_args : public ::testing::Test{
+public:
+    static uint_t s_buffer_size;   // example instance variable
+
+    static void init(uint_t size){ s_buffer_size = size; }   // process argc and argv in this method, retaining such values as your test requires, as with myArgC above
+};
+
+uint_t clone_derived_args::s_buffer_size = 0;
+
 int main(int argc, char** argv) {
 
     if(argc < 2) {
         printf("ERROR: must pass a buffer size.\n\tUsage: %s [buffer size]\n", argv[0]);
         return EXIT_FAILURE;
     }
+
 
     char *pend = 0;
     uint_t buffer_size = strtol(argv[1], &pend, 10);
@@ -55,25 +64,33 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
-    int_t res = EXIT_SUCCESS;
+    ::testing::InitGoogleTest (&argc, argv);
+    clone_derived_args::init(buffer_size);
 
-    derived<uint_t> a(buffer_size);
+    return RUN_ALL_TESTS();
+}
+
+TEST_F(clone_derived_args, copy_tests)
+{
+    bool res = true;
+
+    derived<uint_t> a(s_buffer_size);
     for(uint_t i = 0; i < a.data.get_size(); ++i) {
-        if(a.data[i] != buffer_size - i)
-            res = EXIT_FAILURE;
+        if(a.data[i] != s_buffer_size - i)
+            res = false;
     }
 
     a.clone_to_gpu();
     a.data.update_gpu();
 
     for(uint_t i = 0; i < a.data.get_size(); ++i) {
-        if(a.data[i] != buffer_size - i)
-            res = EXIT_FAILURE;
+        if(a.data[i] != s_buffer_size - i)
+           res = false;
     }
 
     for(uint_t i = 0; i < a.data.get_size(); ++i) {
-        if(a.data[i] != buffer_size - i)
-            res = EXIT_FAILURE;
+        if(a.data[i] != s_buffer_size - i)
+            res = false;
     }
 
     cudaDeviceSynchronize();
@@ -81,9 +98,9 @@ int main(int argc, char** argv) {
     a.data.update_cpu();
 
     for(uint_t i = 0; i < a.data.get_size(); ++i) {
-        if(a.data[i] != buffer_size - i + 1)
-            res = EXIT_FAILURE;
+        if(a.data[i] != s_buffer_size - i)
+            res = false;
     }
 
-    return res;
+    ASSERT_TRUE(res);
 }
