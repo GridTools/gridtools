@@ -154,11 +154,13 @@ if [[ "$SILENT_BUILD" == "ON" ]]; then
     make -j8  >& /tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}.log;
     if [ $? -ne 0 ] ; then
         cat /tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}.log;
+        echo "Exit with errors"
         exit 1
     fi
 else
     make -j8 
     if [ $? -ne 0 ] ; then
+        echo "Exit with errors"
         exit 1 
     fi 
 fi
@@ -166,6 +168,7 @@ fi
 sh ./run_tests.sh
 
 if [ $? -ne 0 ] ; then
+    echo "Exit with errors"
     exit 1
 fi
 
