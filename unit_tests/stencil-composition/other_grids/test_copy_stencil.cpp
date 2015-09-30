@@ -21,7 +21,7 @@ namespace cs_test{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-//            eval(out())= eval(in());
+            eval(out())= eval(in());
         }
     };
 }

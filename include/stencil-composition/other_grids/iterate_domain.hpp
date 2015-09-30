@@ -4,6 +4,7 @@
 #include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
 #include "stencil-composition/total_storages.hpp"
 #include "stencil-composition/other_grids/iterate_domain_aux.hpp"
+#include "stencil-composition/other_grids/accessor_metafunctions.hpp"
 
 #define _ACCESSOR_H_DEBUG_
 
@@ -219,6 +220,47 @@ struct iterate_domain {
         actual_args_type,
         boost::mpl::size<typename local_domain_t::mpl_storages>::type::value >::value;
 
+    /**@brief local class instead of using the inline (cond)?a:b syntax, because in the latter both branches get compiled (generating sometimes a compile-time overflow) */
+    template <bool condition, typename LocalD, typename Accessor>
+    struct current_storage;
+
+    template < typename LocalD, typename Accessor>
+    struct current_storage<true, LocalD, Accessor>{
+        static const uint_t value=0;
+    };
+
+    template < typename LocalD, typename Accessor>
+    struct current_storage<false, LocalD, Accessor>{
+        static const uint_t value=(total_storages< typename LocalD::local_args_type, Accessor::index_type::value >::value);
+    };
+
+    /**
+     * metafunction that retrieves the arg type associated with an accessor
+     */
+    template<typename Accessor>
+    struct get_arg_from_accessor
+    {
+        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Internal error: wrong type");
+        typedef typename boost::mpl::at<
+            esf_args_t,
+            typename Accessor::index_type
+        >::type type;
+    };
+
+    /**
+     * metafunction that computes the return type of all operator() of an accessor
+     */
+    template<typename Accessor>
+    struct accessor_return_type
+    {
+        typedef typename boost::mpl::eval_if<
+            is_accessor<Accessor>,
+            get_arg_from_accessor<Accessor>,
+            boost::mpl::identity<boost::mpl::void_>
+        >::type type;
+    };
+
+
 public:
     typedef array<void* RESTRICT, N_DATA_POINTERS> data_pointer_array_t;
     typedef strides_cached<N_META_STORAGES-1, typename local_domain_t::storage_metadata_vector_t> strides_cached_t;
@@ -242,6 +284,15 @@ public:
     GT_FUNCTION
     iterate_domain(local_domain_t const& local_domain_)
         : local_domain(local_domain_) {}
+
+    /**
+       @brief returns the array of pointers to the raw data
+    */
+    GT_FUNCTION
+    data_pointer_array_t const& RESTRICT data_pointer() const
+    {
+        return static_cast<const IterateDomainImpl*>(this)->data_pointer_impl();
+    }
 
     /**
        @brief returns the array of pointers to the raw data
@@ -385,6 +436,76 @@ public:
         m_grid_position[Coordinate] += steps_;
     }
 
+    template<typename Accessor>
+    GT_FUNCTION
+    typename accessor_return_type<Accessor>::type::value_type& RESTRICT
+    operator()(Accessor const& accessor) const {
+        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
+        return get_value(accessor, (data_pointer())[current_storage<(Accessor::index_type::value==0)
+                                                , local_domain_t, typename Accessor::type >::value]);
+    }
+
+    /**@brief returns the value of the memory at the given address, plus the offset specified by the arg placeholder
+       \param arg placeholder containing the storage ID and the offsets
+       \param storage_pointer pointer to the first element of the specific data field used
+    */
+    template <typename Accessor, typename StoragePointer>
+    GT_FUNCTION
+    typename accessor_return_type<Accessor>::type::value_type& RESTRICT
+    get_value(Accessor const& accessor , StoragePointer & RESTRICT storage_pointer) const {
+
+        //getting information about the storage
+        typedef typename Accessor::index_type index_t;
+
+#ifndef CXX11_ENABLED
+        typedef typename boost::remove_reference<typename boost::remove_pointer<BOOST_TYPEOF( (boost::fusion::at
+                                                                                      < index_t>(local_domain.m_local_args)) )>::type>::type storage_type;
+        storage_type* const storage_=
+#else
+        auto const storage_ =
+#endif
+            boost::fusion::at
+            < index_t>(local_domain.m_local_args);
+        std::cout << "ST " << storage_ << std::endl;
+
+
+        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
+
+#ifdef CXX11_ENABLED
+        using storage_type = typename std::remove_reference<decltype(*storage_)>::type;
+#endif
+        std::cout << "PP" << std::endl;
+        typename storage_type::value_type * RESTRICT real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
+
+//        //getting information about the metadata
+//        typedef typename boost::mpl::at
+//            <metadata_map_t, typename storage_type::meta_data_t >::type metadata_index_t;
+
+//        pointer<const typename storage_type::meta_data_t> const metadata_ = boost::fusion::at
+//            < metadata_index_t >(local_domain.m_local_metadata);
+        //getting the value
+
+        //the following assert fails when an out of bound access is observed, i.e. either one of
+        //i+offset_i or j+offset_j or k+offset_k is too large.
+        //Most probably this is due to you specifying a positive offset which is larger than expected,
+        //or maybe you did a mistake when specifying the ranges in the placehoders definition
+//        assert(metadata_->size() >  m_index[metadata_index_t::value ] );
+
+        //the following assert fails when an out of bound access is observed,
+        //i.e. when some offset is negative and either one of
+        //i+offset_i or j+offset_j or k+offset_k is too small.
+        //Most probably this is due to you specifying a negative offset which is
+        //smaller than expected, or maybe you did a mistake when specifying the ranges
+        //in the placehoders definition.
+        // If you are running a parallel simulation another common reason for this to happen is
+        // the definition of an halo region which is too small in one direction
+        // std::cout<<"Storage Index: "<<Accessor::index_type::value<<" + "<<(boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))->_index(arg.template n<Accessor::n_dim>())<<std::endl;
+//        assert( (int_t)(m_index[metadata_index_t::value]) >= 0);
+//
+//        return *(real_storage_pointer
+//                 +(m_index[metadata_index_t::value])
+//        );
+    }
 
 //private:
 
