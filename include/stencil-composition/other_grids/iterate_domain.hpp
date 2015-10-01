@@ -466,16 +466,14 @@ public:
 #endif
             boost::fusion::at
             < index_t>(local_domain.m_local_args);
-        std::cout << "ST " << storage_ << std::endl;
-
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
 #ifdef CXX11_ENABLED
         using storage_type = typename std::remove_reference<decltype(*storage_)>::type;
 #endif
-        std::cout << "PP" << std::endl;
-        typename storage_type::value_type * RESTRICT real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
+        typename storage_type::value_type * RESTRICT real_storage_pointer=
+                static_cast<typename storage_type::value_type*>(storage_pointer);
 
 //        //getting information about the metadata
 //        typedef typename boost::mpl::at

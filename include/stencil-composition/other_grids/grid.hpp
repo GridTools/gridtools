@@ -649,9 +649,9 @@ namespace gridtools {
         virtual_storage_types const& virtual_storages() const {return m_virtual_storages;}
 
         template <typename LocationType>
-        storage_t<LocationType, double> make_storage() const {
+        storage_t<LocationType, double> make_storage(char const* name) const {
             return storage_t<LocationType, double>(boost::fusion::at_c<LocationType::value>
-                                                   (m_virtual_storages));
+                                                   (m_virtual_storages), name);
         }
 
         template <typename LocationType>

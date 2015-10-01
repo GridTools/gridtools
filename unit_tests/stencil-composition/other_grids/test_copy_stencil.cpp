@@ -42,8 +42,8 @@ TEST(test_copy_stencil, run) {
     const uint_t d2=12+halo_mc*2;
     trapezoid_2D_t grid( d1, d2, d3 );
 
-    cell_storage_type in_cells = grid.make_storage<trapezoid_2D_t::cells>();
-    cell_storage_type out_cells = grid.make_storage<trapezoid_2D_t::cells>();
+    cell_storage_type in_cells = grid.make_storage<trapezoid_2D_t::cells>("in");
+    cell_storage_type out_cells = grid.make_storage<trapezoid_2D_t::cells>("out");
 
 
     typedef arg<0, cell_storage_type> p_in_cells;
