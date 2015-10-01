@@ -14,7 +14,7 @@ namespace iga_rt
 	 * @tparam N number of basis functions of order P
 	 */
 	template<int P, int N, int RUN_N=N>
-	struct BSplineBasisGenerator
+	struct UnivariateBSplineBasisGenerator
 	{
 		/**
 		 * @brief b-spline generation method
@@ -24,12 +24,12 @@ namespace iga_rt
 		static void generateBSplineBasis(const std::array<double,N+P+1>& i_knots, std::vector<BaseBSpline*>& io_bsplines)
 		{
 			io_bsplines[RUN_N-1] = new BSpline<RUN_N,P>(i_knots.data());
-			BSplineBasisGenerator<P,N,RUN_N-1>::generateBSplineBasis(i_knots, io_bsplines);
+			UnivariateBSplineBasisGenerator<P,N,RUN_N-1>::generateBSplineBasis(i_knots, io_bsplines);
 		}
 	};
 
 	template<int P, int N>
-	struct BSplineBasisGenerator<P,N,0>
+	struct UnivariateBSplineBasisGenerator<P,N,0>
 	{
 		static void generateBSplineBasis(const std::array<double,N+P+1>& i_knots, std::vector<BaseBSpline*>& io_bsplines)
 		{
@@ -126,7 +126,7 @@ namespace iga_rt
 		// TODO: add check on number of nodes
 		// TODO: update interfaces also for other dimensions
 		// TODO: do we have some ad-hoc container in grid tools for array+size?
-		BSplineBasisGenerator<P,N>::generateBSplineBasis(i_knots, m_bsplines);
+		UnivariateBSplineBasisGenerator<P,N>::generateBSplineBasis(i_knots, m_bsplines);
 	}
 
 	template<int P, int N>
