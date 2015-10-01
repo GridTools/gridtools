@@ -475,19 +475,19 @@ public:
         typename storage_type::value_type * RESTRICT real_storage_pointer=
                 static_cast<typename storage_type::value_type*>(storage_pointer);
 
-//        //getting information about the metadata
-//        typedef typename boost::mpl::at
-//            <metadata_map_t, typename storage_type::meta_data_t >::type metadata_index_t;
+        //getting information about the metadata
+        typedef typename boost::mpl::at
+            <metadata_map_t, typename storage_type::meta_data_t >::type metadata_index_t;
 
-//        pointer<const typename storage_type::meta_data_t> const metadata_ = boost::fusion::at
-//            < metadata_index_t >(local_domain.m_local_metadata);
+        pointer<const typename storage_type::meta_data_t> const metadata_ = boost::fusion::at
+            < metadata_index_t >(local_domain.m_local_metadata);
         //getting the value
 
         //the following assert fails when an out of bound access is observed, i.e. either one of
         //i+offset_i or j+offset_j or k+offset_k is too large.
         //Most probably this is due to you specifying a positive offset which is larger than expected,
         //or maybe you did a mistake when specifying the ranges in the placehoders definition
-//        assert(metadata_->size() >  m_index[metadata_index_t::value ] );
+        assert(metadata_->size() >  m_index[metadata_index_t::value ] );
 
         //the following assert fails when an out of bound access is observed,
         //i.e. when some offset is negative and either one of
@@ -498,11 +498,11 @@ public:
         // If you are running a parallel simulation another common reason for this to happen is
         // the definition of an halo region which is too small in one direction
         // std::cout<<"Storage Index: "<<Accessor::index_type::value<<" + "<<(boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))->_index(arg.template n<Accessor::n_dim>())<<std::endl;
-//        assert( (int_t)(m_index[metadata_index_t::value]) >= 0);
-//
-//        return *(real_storage_pointer
-//                 +(m_index[metadata_index_t::value])
-//        );
+        assert( (int_t)(m_index[metadata_index_t::value]) >= 0);
+
+        return *(real_storage_pointer
+                 +(m_index[metadata_index_t::value])
+        );
     }
 
 //private:
