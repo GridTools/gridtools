@@ -1,5 +1,5 @@
 #include <gridtools.hpp>
-#include <common/halo_descriptor.hpp>
+#include "common/halo_descriptor.hpp"
 
 #ifdef __CUDACC__
 #include <boundary-conditions/apply_gpu.hpp>
@@ -17,7 +17,7 @@ using gridtools::minus_;
 using gridtools::zero_;
 using gridtools::plus_;
 
-#include <stencil-composition/backend.hpp>
+#include "stencil-composition/backend.hpp"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -51,11 +51,11 @@ struct bc_basic {
 };
 
 #define SET_TO_ZERO                                     \
-    template <typename Direction, typename DataField0>  \
+    template <typename Direction, typename DataField0> \
     void operator()(Direction,                          \
                     DataField0 & data_field0,           \
                     uint_t i, uint_t j, uint_t k) const {        \
-        data_field0(i,j,k) = 0;                         \
+                        data_field0( i,j,k) = 0;        \
     }
 
 
@@ -76,7 +76,7 @@ struct bc_two {
     void operator()(Direction,
                     DataField0 & data_field0,
                     uint_t i, uint_t j, uint_t k) const {
-        data_field0(i,j,k) = 0;
+        data_field0( i,j,k) = 0;
     }
 
     template <sign I, sign J, sign K, typename DataField0>
@@ -135,10 +135,12 @@ bool basic() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, storage_info<layout_map<0,1,2> > >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3);
+
+    storage_info<layout_map<0,1,2> > meta_(d1,d2,d3);
+    storage_type in(meta_);
     in.allocate();
     in.initialize(-1);
     in.set_name("in");
@@ -169,14 +171,15 @@ bool basic() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
+    meta_.clone_to_gpu();
     in.clone_to_gpu();
     in.h2d_update();
 
-    gridtools::boundary_apply_gpu<bc_basic>(halos, bc_basic()).apply(in);
+    gridtools::boundary_apply_gpu<bc_basic>(halos,  bc_basic()).apply(in);
 
     in.d2h_update();
 #else
-    gridtools::boundary_apply<bc_basic>(halos, bc_basic()).apply(in);
+    gridtools::boundary_apply<bc_basic>(halos,  bc_basic()).apply(in);
 #endif
 
 #ifndef NDEBUG
@@ -272,10 +275,12 @@ bool predicate() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, storage_info<layout_map<0,1,2> > >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3);
+
+    storage_info<layout_map<0,1,2> > meta_(d1,d2,d3);
+    storage_type in(meta_);
     in.allocate();
     in.initialize(-1);
     in.set_name("in");
@@ -307,6 +312,7 @@ bool predicate() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
+    meta_.clone_to_gpu();
     in.clone_to_gpu();
     in.h2d_update();
 
@@ -432,10 +438,12 @@ bool twosurfaces() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, storage_info<layout_map<0,1,2> > >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3);
+
+    storage_info<layout_map<0,1,2> > meta_(d1,d2,d3);
+    storage_type in(meta_);
     in.allocate();
     in.initialize(-1);
     in.set_name("in");
@@ -589,10 +597,12 @@ bool usingzero_1() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, storage_info<layout_map<0,1,2> > >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3);
+
+    storage_info<layout_map<0,1,2> > meta_(d1,d2,d3);
+    storage_type in(meta_);
     in.allocate();
     in.initialize(-1);
     in.set_name("in");
@@ -728,14 +738,16 @@ bool usingzero_2() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, storage_info<layout_map<0,1,2> > >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3);
+
+    storage_info<layout_map<0,1,2> > meta_(d1,d2,d3);
+    storage_type in(meta_);
     in.allocate();
     in.initialize(-1);
     in.set_name("in");
-    storage_type out(d1,d2,d3);
+    storage_type out(meta_);
     out.allocate();
     out.initialize(-1);
     out.set_name("out");
@@ -896,13 +908,16 @@ bool usingvalue_2() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, storage_info<layout_map<0,1,2> > >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3);
+
+    storage_info<layout_map<0,1,2> > meta_(d1,d2,d3);
+    storage_type in(meta_);
+    in.allocate();
     in.initialize(-1);
     in.set_name("in");
-    storage_type out(d1,d2,d3);
+    storage_type out(meta_);
     out.allocate();
     out.initialize(-1);
     out.set_name("out");
@@ -915,18 +930,6 @@ bool usingvalue_2() {
             }
         }
     }
-
-#ifndef NDEBUG
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", in(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-#endif
 
     gridtools::array<gridtools::halo_descriptor, 3> halos;
     halos[0] = gridtools::halo_descriptor(1,1,1,d1-2,d1);
@@ -945,18 +948,6 @@ bool usingvalue_2() {
     out.d2h_update();
 #else
     gridtools::boundary_apply<gridtools::value_boundary<int_t> >(halos, gridtools::value_boundary<int_t>(101)).apply(in, out);
-#endif
-
-#ifndef NDEBUG
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", in(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
 #endif
 
     bool result = true;
@@ -1062,18 +1053,20 @@ bool usingcopy_3() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, storage_info<layout_map<0,1,2> > >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    storage_type src(d1,d2,d3);
+
+    storage_info<layout_map<0,1,2> > meta_(d1,d2,d3);
+    storage_type src(meta_);
     src.allocate();
     src.initialize(-1);
     src.set_name("src");
-    storage_type one(d1,d2,d3);
+    storage_type one(meta_);
     one.allocate();
     one.initialize(-1);
     one.set_name("one");
-    storage_type two(d1,d2,d3);
+    storage_type two(meta_);
     two.allocate();
     two.initialize(-1);
     two.set_name("two");
@@ -1087,39 +1080,6 @@ bool usingcopy_3() {
             }
         }
     }
-
-#ifndef NDEBUG
-    std::cout << "src" << std::endl;
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", src(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-    std::cout << "one" << std::endl;
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", one(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-    std::cout << "two" << std::endl;
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", two(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-#endif
 
     gridtools::array<gridtools::halo_descriptor, 3> halos;
     halos[0] = gridtools::halo_descriptor(1,1,1,d1-2,d1);
@@ -1140,30 +1100,6 @@ bool usingcopy_3() {
     two.d2h_update();
 #else
     gridtools::boundary_apply<gridtools::copy_boundary>(halos).apply(one, two, src);
-#endif
-
-#ifndef NDEBUG
-    std::cout << "OUTPUT" << std::endl;
-    std::cout << "one" << std::endl;
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", one(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-    std::cout << "two" << std::endl;
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", two(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
 #endif
 
     bool result = true;

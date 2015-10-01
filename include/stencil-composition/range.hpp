@@ -14,18 +14,23 @@ namespace gridtools {
      * Class to specify access ranges for stencil functions
      */
     template <int_t IMinus=0, int_t IPlus=0,
-              int_t JMinus=0, int_t JPlus=0>
+              int_t JMinus=0, int_t JPlus=0,
+              int_t KMinus=0, int_t KPlus=0>
     struct range {
 #ifndef CXX11_ENABLED
         typedef boost::mpl::int_<IMinus> iminus;
-        typedef boost::mpl::int_<IPlus> iplus;
+        typedef boost::mpl::int_<IPlus>  iplus;
         typedef boost::mpl::int_<JMinus> jminus;
-        typedef boost::mpl::int_<JPlus> jplus;
+        typedef boost::mpl::int_<JPlus>  jplus;
+        typedef boost::mpl::int_<KMinus> kminus;
+        typedef boost::mpl::int_<KPlus>  kplus;
 #else
         typedef static_int<IMinus> iminus;
-        typedef static_int<IPlus> iplus;
+        typedef static_int<IPlus>  iplus;
         typedef static_int<JMinus> jminus;
-        typedef static_int<JPlus> jplus;
+        typedef static_int<JPlus>  jplus;
+        typedef static_int<KMinus> kminus;
+        typedef static_int<KPlus>  kplus;
 #endif
     };
 
@@ -41,11 +46,21 @@ namespace gridtools {
 
 #else
 
-    template <int_t Coord1, int_t Coord2, int_t Coord3, int_t Coord4>
-    struct staggered : public range<Coord1, Coord2, Coord3, Coord4> {};
+    template <int_t Coord1Minus, int_t Coord1Plus,
+              int_t Coord2Minus, int_t Coord2Plus,
+              int_t Coord3Minus=0, int_t Coord3Plus=0>
+    struct staggered : public range<Coord1Minus, Coord1Plus,
+                                    Coord2Minus, Coord2Plus,
+                                    Coord3Minus, Coord3Plus>
+    {};
 
-    template <int_t Coord1, int_t Coord2, int_t Coord3, int_t Coord4>
-    struct is_staggered<staggered<Coord1, Coord2, Coord3, Coord4> > : public boost::true_type {};
+    template <int_t Coord1Minus, int_t Coord1Plus,
+              int_t Coord2Minus, int_t Coord2Plus,
+              int_t Coord3Minus, int_t Coord3Plus>
+    struct is_staggered<staggered<Coord1Minus, Coord1Plus,
+                                  Coord2Minus, Coord2Plus,
+                                  Coord3Minus, Coord3Plus>
+                        > : public boost::true_type {};
 #endif
     /**
      * Output operator for ranges - for debug purposes
@@ -54,13 +69,15 @@ namespace gridtools {
      * @param n/a Arguemnt to deduce range type
      * @return The ostream
      */
-    template <int_t I1, int_t I2, int_t I3, int_t I4>
-    std::ostream& operator<<(std::ostream &s, range<I1,I2,I3,I4>) {
+    template <int_t I1, int_t I2, int_t I3, int_t I4, int_t I5, int_t I6>
+    std::ostream& operator<<(std::ostream &s, range<I1,I2,I3,I4,I5,I6>) {
         return s << "["
                  << I1 << ", "
                  << I2 << ", "
                  << I3 << ", "
-                 << I4 << "]";
+                 << I4 << ", "
+                 << I5 << ", "
+                 << I6 << "]";
     }
 
     /**
@@ -74,8 +91,8 @@ namespace gridtools {
     /**
      * Metafunction to check if a type is a range - Specialization yielding true
      */
-    template <int_t I, int_t J, int_t K, int_t L>
-    struct is_range<range<I,J,K,L> >
+    template <int_t I, int_t J, int_t K, int_t L, int_t M, int_t N>
+    struct is_range<range<I,J,K,L,M,N> >
       : boost::true_type
     {};
 
@@ -101,7 +118,9 @@ namespace gridtools {
         typedef range<boost::mpl::min<typename Range1::iminus, typename Range2::iminus>::type::value,
                       boost::mpl::max<typename Range1::iplus,  typename Range2::iplus>::type::value,
                       boost::mpl::min<typename Range1::jminus, typename Range2::jminus>::type::value,
-                      boost::mpl::max<typename Range1::jplus,  typename Range2::jplus>::type::value
+                      boost::mpl::max<typename Range1::jplus,  typename Range2::jplus>::type::value,
+                      boost::mpl::min<typename Range1::kminus, typename Range2::kminus>::type::value,
+                      boost::mpl::max<typename Range1::kplus,  typename Range2::kplus>::type::value
                       > type;
     };
 
@@ -117,25 +136,10 @@ namespace gridtools {
         typedef range<boost::mpl::plus<typename Range1::iminus, typename Range2::iminus>::type::value,
                       boost::mpl::plus<typename Range1::iplus,  typename Range2::iplus>::type::value,
                       boost::mpl::plus<typename Range1::jminus, typename Range2::jminus>::type::value,
-                      boost::mpl::plus<typename Range1::jplus,  typename Range2::jplus>::type::value
+                      boost::mpl::plus<typename Range1::jplus,  typename Range2::jplus>::type::value,
+                      boost::mpl::plus<typename Range1::kminus, typename Range2::kminus>::type::value,
+                      boost::mpl::plus<typename Range1::kplus,  typename Range2::kplus>::type::value
                       > type;
-    };
-
-    /**
-     * Metafunction computing the union of two ranges
-     */
-    template <typename Range1,
-              typename Range2>
-    struct union_ranges {
-        GRIDTOOLS_STATIC_ASSERT((is_range<Range1>::value), "Internal Error: invalid type");
-        GRIDTOOLS_STATIC_ASSERT((is_range<Range2>::value), "Internal Error: invalid type");
-
-        typedef range<
-            (Range1::iminus::value < Range2::iminus::value) ? Range1::iminus::value : Range2::iminus::value,
-            (Range1::iplus::value > Range2::iplus::value) ? Range1::iplus::value : Range2::iplus::value,
-            (Range1::jminus::value < Range2::jminus::value) ? Range1::jminus::value : Range2::jminus::value,
-            (Range1::jplus::value < Range2::jplus::value) ? Range1::jplus::value : Range2::jplus::value
-        > type;
     };
 
 } // namespace gridtools

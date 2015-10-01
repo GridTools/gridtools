@@ -3,9 +3,10 @@
 namespace gridtools{
     template <ushort_t Order, enumtype::Shape ShapeType>
     struct cell{
-        static const shards::CellTopology value;
+        static shards::CellTopology value;
+        static const enumtype::Shape shape=ShapeType;
     };
 
     template <ushort_t Order, enumtype::Shape ShapeType>
-    const shards::CellTopology cell<Order, ShapeType>::value = shards::getCellTopologyData< typename shape_select<Order,ShapeType>::type >(); // cell type: hexahedron
+    shards::CellTopology cell<Order, ShapeType>::value = shards::getCellTopologyData< typename shape_select<Order,ShapeType>::type >(); // cell type: hexahedron
 } //namespace gridtools

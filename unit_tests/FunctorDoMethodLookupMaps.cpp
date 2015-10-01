@@ -6,11 +6,11 @@
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/at.hpp>
 #include <iostream>
-#include <common/host_device.hpp>
-#include <stencil-composition/interval.hpp>
-#include <stencil-composition/loopintervals.hpp>
-#include <stencil-composition/functor_do_methods.hpp>
-#include <stencil-composition/functor_do_method_lookup_maps.hpp>
+#include "common/host_device.hpp"
+#include "stencil-composition/interval.hpp"
+#include "stencil-composition/loopintervals.hpp"
+#include "stencil-composition/functor_do_methods.hpp"
+#include "stencil-composition/functor_do_method_lookup_maps.hpp"
 
 using namespace gridtools;
 
@@ -88,7 +88,6 @@ struct PrintDoMethodLookupMap
 
         typedef typename boost::mpl::at<TFunctors, TIndex>::type Functor;
         typedef typename boost::mpl::at<TFunctorDoMethodLookupMaps, static_int<0> >::type DoMethodLookUpMap;
-        // DoMethodLookUpMap::fuck();
 
         // print the functor name
         if(boost::is_same<Functor0, Functor>::value)

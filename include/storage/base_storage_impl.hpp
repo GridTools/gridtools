@@ -1,21 +1,26 @@
 #pragma once
 #include <gridtools.hpp>
-#include <common/defs.hpp>
+#include "common/defs.hpp"
 #include <boost/lexical_cast.hpp>
 #include "../common/gt_assert.hpp"
 #include "../common/is_temporary_storage.hpp"
 #include <iostream>
-#include "accumulate.hpp"
+#include "../common/generic_metafunctions/accumulate.hpp"
+#include "../common/generic_metafunctions/gt_integer_sequence.hpp"
 
 namespace gridtools{
+
+    template <typename Tuple>
+    struct is_arg_tuple;
+
     namespace _impl
     {
 
 #ifdef CXX11_ENABLED
-/**@brief metafunction to recursively compute the next stride
-   ID goes from space_dimensions-2 to 0
-   MaxIndex is space_dimensions-1
-*/
+        /**@brief metafunction to recursively compute the next stride
+           ID goes from space_dimensions-2 to 0
+           MaxIndex is space_dimensions-1
+        */
         template<short_t ID, short_t MaxIndex,  typename Layout>
         struct next_stride{
             template<typename First, typename ... IntTypes>
@@ -25,7 +30,7 @@ namespace gridtools{
             }
         };
 
-/**@brief template specialization to stop the recursion*/
+        /**@brief template specialization to stop the recursion*/
         template< short_t MaxIndex, typename Layout>
         struct next_stride<0, MaxIndex, Layout>{
             template<typename First, typename ... IntTypes>
@@ -35,7 +40,28 @@ namespace gridtools{
             }
         };
 
-/**@brief metafunction to recursively compute all the strides, in a generic arbitrary dimensional storage*/
+        /**@brief functor to assign all the strides */
+        template<int_t MaxIndex,  typename Layout>
+        struct assign_all_strides{
+
+            template <int_t T>
+            using lambda=next_stride<MaxIndex-T, MaxIndex, Layout>;
+
+            template<typename ... UIntType>
+            static constexpr array<int_t, MaxIndex> apply(UIntType ... args){
+
+#ifdef PEDANTIC
+                GRIDTOOLS_STATIC_ASSERT((sizeof...(args) > 1), "You are trying to initialize \
+a storage_info with less than 2 dimensions. This is not supported. Set at least 2 dimensions, and \
+initialize them to \'1\' if unused.");
+#endif
+                using seq = apply_gt_integer_sequence<typename make_gt_integer_sequence<int_t, sizeof ... (args)>::type >;
+                return seq::template apply<array<int_t, MaxIndex>, lambda>((int_t)args...);
+            }
+        };
+
+
+        /**@brief metafunction to recursively compute all the strides, in a generic arbitrary dimensional storage*/
         template<int_t ID, int_t MaxIndex,  typename Layout>
         struct assign_strides{
             template<typename ... UIntType>
@@ -60,8 +86,8 @@ namespace gridtools{
         };
 #endif
 
-/**@brief struct to compute the total offset (the sum of the i,j,k indices times their respective strides)
- */
+        /**@brief struct to compute the total offset (the sum of the i,j,k indices times their respective strides)
+         */
         template<ushort_t Id, typename Layout>
         struct compute_offset{
             static const ushort_t space_dimensions = Layout::length;
@@ -86,6 +112,7 @@ namespace gridtools{
                 return strides_[space_dimensions-Id]*Layout::template find_val<space_dimensions-Id, int, 0>(indices_...)+compute_offset<Id-1, Layout>::apply(strides_, indices_... );
             }
 #endif
+
             /**interface with the coordinates as a tuple
                \param strides the strides
                \param indices tuple of coordinates
@@ -93,6 +120,8 @@ namespace gridtools{
             template<typename Tuple, typename StridesVector>
             GT_FUNCTION
             static constexpr int_t apply(StridesVector const& RESTRICT strides_, Tuple const&  indices_){
+
+                GRIDTOOLS_STATIC_ASSERT(is_arg_tuple<Tuple>::type::value, "wrong type");
                 return (int_t)strides_[space_dimensions-Id]*Layout::template find_val<space_dimensions-Id, int, 0>(indices_)+compute_offset<Id-1, Layout>::apply(strides_, indices_ );
             }
 
@@ -146,13 +175,13 @@ namespace gridtools{
         };
 
         /**@brief recursively advance the ODE finite difference for all the field dimensions*/
-        template<short_t Dimension>
+        template<short_t Dim>
         struct advance_recursive{
             template<typename This>
             GT_FUNCTION
             void apply(This* t){
-                t->template advance<Dimension>();
-                advance_recursive<Dimension-1>::apply(t);
+                t->template advance<Dim>();
+                advance_recursive<Dim-1>::apply(t);
             }
         };
 

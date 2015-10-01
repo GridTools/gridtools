@@ -54,7 +54,7 @@ namespace shallow_water{
     template<uint_t Component=0, uint_t Snapshot=0>
     struct bc_periodic {
 
-        typedef Dimension<5> comp;
+        typedef dimension<5> comp;
         /**@brief space discretization step in direction i */
         GT_FUNCTION
         static float_type dx(){return 1.;}
@@ -254,7 +254,7 @@ namespace shallow_water{
         // using xrange=range<0,-2,0,-2>;
         // using xrange_subdomain=range<0,1,0,0>;
 
-        typedef Dimension<5> comp;
+        typedef dimension<5> comp;
         /**@brief space discretization step in direction i */
         GT_FUNCTION
         static float_type dx(){return 1.;}
@@ -309,7 +309,7 @@ namespace shallow_water{
 
     struct second_step_y {
 
-        typedef Dimension<5> comp;
+        typedef dimension<5> comp;
         /**@brief space discretization step in direction i */
         GT_FUNCTION
         static float_type dx(){return 1.;}
@@ -369,7 +369,7 @@ namespace shallow_water{
         /* typedef range<0,-3,0,-3> xrange; */
         /* typedef range<1,1,1,1> xrange_subdomain; */
 
-        typedef Dimension<5> comp;
+        typedef dimension<5> comp;
         /**@brief space discretization step in direction i */
         GT_FUNCTION
         static float_type dx(){return 1.;}
@@ -529,8 +529,8 @@ namespace shallow_water{
 
             pattern_type he(gridtools::boollist<3>(false,false,false), GCL_WORLD, &dimensions);
 
-	    array<ushort_t, 3> padding(1,1,0);
-	    array<ushort_t, 3> halo(1,1,0);
+            array<ushort_t, 3> padding(1,1,0);
+            array<ushort_t, 3> halo(1,1,0);
             typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > >, pattern_type::grid_type> partitioner_t;
             partitioner_t part(he.comm(), halo, padding);
 

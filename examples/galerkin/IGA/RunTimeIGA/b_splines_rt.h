@@ -107,7 +107,8 @@ namespace iga_rt
 		 * @brief Contructor
 		 * @param i_knots b-spline function knot set
 		 */
-		BSpline(const double* i_knots);
+            template <typename Array>
+            BSpline(const Array* i_knots);
 
 		/**
 		 * @param i_csi Parametric space point value
@@ -178,23 +179,24 @@ namespace iga_rt
 		BSpline<I+1,P-1> m_bIp1Pm1;
 	};
 
-	template <int I, int P>
-	BSpline<I,P>::BSpline(const double* i_knots)
-						 :m_csiI(i_knots[I-1])
-						 ,m_csiIp1(i_knots[I+1-1])
-						 ,m_csiIpP(i_knots[I+P-1])
-						 ,m_csiIpPp1(i_knots[I+P+1-1])
-						 ,m_denIPm1((m_csiIpP!=m_csiI)?(1./(m_csiIpP-m_csiI)):0.)
-						 ,m_denIp1Pm1((m_csiIpPp1!=m_csiIp1)?(1./(m_csiIpPp1-m_csiIp1)):0.)
-						 ,m_bIPm1(i_knots)
-						 ,m_bIp1Pm1(i_knots)
+    template <int I, int P>
+    template <typename Array>
+    BSpline<I, P>::BSpline(const Array* i_knots)
+            :m_csiI((*i_knots)[I-1])
+            ,m_csiIp1((*i_knots)[I+1-1])
+            ,m_csiIpP((*i_knots)[I+P-1])
+            ,m_csiIpPp1((*i_knots)[I+P+1-1])
+            ,m_denIPm1((m_csiIpP!=m_csiI)?(1./(m_csiIpP-m_csiI)):0.)
+            ,m_denIp1Pm1((m_csiIpPp1!=m_csiIp1)?(1./(m_csiIpPp1-m_csiIp1)):0.)
+            ,m_bIPm1(i_knots)
+            ,m_bIp1Pm1(i_knots)
 	{}
 
 
 	template <int I, int P>
 	double BSpline<I,P>::evaluate(const double i_csi) const
 	{
-		return (i_csi-m_csiI)*m_denIPm1*m_bIPm1.evaluate(i_csi) + (m_csiIpPp1-i_csi)*m_denIp1Pm1*m_bIp1Pm1.evaluate(i_csi);
+            return (i_csi-m_csiI)*m_denIPm1*m_bIPm1.evaluate(i_csi) + (m_csiIpPp1-i_csi)*m_denIp1Pm1*m_bIp1Pm1.evaluate(i_csi);
 	}
 
 	template <int I, int P>
@@ -215,14 +217,17 @@ namespace iga_rt
 	public:
 
 		// TODO: add static assert for template parameters check
+                // PAOLO: is accumulate(logical_and(), condition<Pack>...)
+                // see accumulate.hpp
 
 		/**
 		 * @brief Contructor
 		 * @param i_knots b-spline function knot set
 		 */
-		BSpline(const double* i_knots)
-			   :m_csiI(i_knots[I-1])
-			   ,m_csiIp1(i_knots[I+1-1])
+            template <typename Array>
+		BSpline(const Array* i_knots)
+                    :m_csiI((*i_knots)[I-1])
+                    ,m_csiIp1((*i_knots)[I+1-1])
 		{}
 
 		/**
@@ -269,14 +274,16 @@ namespace iga_rt
 	template <int I>
 	double BSpline<I,0>::evaluate(const double i_csi) const
 	{
-		if(i_csi>=m_csiI && i_csi<m_csiIp1)
+            double ret_val(0);
+            if(i_csi>=m_csiI && i_csi<m_csiIp1)
 		{
-			return 1.;
+			ret_val = 1.;
 		}
 		else
 		{
-			return 0;
+			ret_val = 0;
 		}
+            return ret_val;
 	}
 
 	template <int I>

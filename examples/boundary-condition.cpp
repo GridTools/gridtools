@@ -104,19 +104,17 @@ int main(int argc, char** argv) {
     uint_t d2 = atoi(argv[2]);
     uint_t d3 = atoi(argv[3]);
 
-    typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, gridtools::storage_info<gridtools::layout_map<0,1,2> > >::type storage_type;
 
 #pragma GCC diagnostic ignored "-Wwrite-strings"
     // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3);
+    typename storage_type::meta_data_t meta_(d1,d2,d3);
+    storage_type in(meta_, "in");
     in.initialize(-1);
-    in.set_name("in");
-    storage_type out(d1,d2,d3);
+    storage_type out(meta_, "out");
     out.initialize(-7);
-    out.set_name("out");
-    storage_type coeff(d1,d2,d3);
+    storage_type coeff(meta_, "coeff");
     coeff.initialize(8);
-    coeff.set_name("coeff");
 #pragma GCC diagnostic pop
 
     for (uint_t i=0; i<d1; ++i) {
@@ -144,6 +142,7 @@ int main(int argc, char** argv) {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef CUDA_EXAMPLE
+    //TODO also metadata must be copied/used here
     in.clone_to_gpu();
     out.clone_to_gpu();
     in.h2d_update();

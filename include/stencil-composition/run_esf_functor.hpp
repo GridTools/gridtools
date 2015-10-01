@@ -74,14 +74,17 @@ namespace gridtools {
                 //in the functor definition (in the high level interface). This means that we cannot
                 // (although in theory we could) pass placeholders to the computation which are not
                 //also referenced in the functor.
-                // GRIDTOOLS_STATIC_ASSERT( (boost::mpl::size<esf_args_map_t>::value==
-//                     boost::mpl::size<typename boost::mpl::at<run_functor_list_t, Index>::type::arg_list>::value ),
-// 		            "GRIDTOOLS ERROR:\n\
-// check that the number of placeholders passed to the elementary stencil function\n \
-// (constructed during the computation) is the same as the number of arguments referenced\n\
-// in the functor definition (in the high level interface). This means that we cannot\n\
-// (although in theory we could) pass placeholders to the computation which are not\n\
-// also referenced in the functor.");
+
+#ifdef PEDANTIC // we might want to use the same placeholder twice?
+                GRIDTOOLS_STATIC_ASSERT( (boost::mpl::size<esf_args_map_t>::value==
+                    boost::mpl::size<typename boost::mpl::at<run_functor_list_t, Index>::type::arg_list>::value ),
+                                         "GRIDTOOLS ERROR:\n\
+	            check that the number of placeholders passed to the elementary stencil function\n \
+	            (constructed during the computation) is the same as the number of arguments referenced\n \
+	            in the functor definition (in the high level interface). This means that we cannot\n \
+	            (although in theory we could) pass placeholders to the computation which are not\n \
+	            also referenced in the functor.");
+#endif
 
 
                 static_cast<const RunEsfFunctorImpl*>(this)->template do_impl<interval_type, esf_arguments_t>();

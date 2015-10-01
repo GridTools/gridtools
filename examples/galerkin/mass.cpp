@@ -57,7 +57,7 @@ int main(){
 
     mass_.initialize(0.);
 
-    auto computation=make_computation<gridtools::BACKEND, as::layout_t>(
+    auto computation=make_computation<gridtools::BACKEND>(
         make_mss
         (
             execute<forward>(),

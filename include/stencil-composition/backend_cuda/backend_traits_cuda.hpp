@@ -6,6 +6,12 @@
 #include "../block_size.hpp"
 #include "iterate_domain_cuda.hpp"
 #include "strategy_cuda.hpp"
+#ifdef ENABLE_METERS
+  #include "stencil-composition/backend_cuda/timer_cuda.hpp"
+#else
+  #include "stencil-composition/timer_dummy.hpp"
+#endif
+
 
 /**@file
 @brief type definitions and structures specific for the CUDA backend*/
@@ -32,10 +38,22 @@ namespace gridtools{
             typedef hybrid_pointer<T> type;
         };
 
-        template <typename ValueType, typename Layout, bool Temp=false, short_t SpaceDim=1 >
+        template <typename ValueType, typename MetaData, bool Temp=false, short_t SpaceDim=1 >
         struct storage_traits
         {
-            typedef storage< base_storage<typename pointer<ValueType>::type, Layout, Temp, SpaceDim> > storage_t;
+            GRIDTOOLS_STATIC_ASSERT(is_meta_storage<MetaData>::value, "wrong type for the storage_info");
+            typedef storage< base_storage<typename pointer<ValueType>::type, MetaData, SpaceDim> > storage_t;
+        };
+
+        /**
+           @brief storage info type associated to the cuda backend
+
+           the storage info type is meta_storage_derived, which is clonable to GPU.
+         */
+        template <typename MetaData, bool Temp>
+        struct meta_storage_traits{
+            GRIDTOOLS_STATIC_ASSERT((is_meta_storage<MetaData>::value), "wrong type for the storage_info");
+            typedef meta_storage_derived<meta_storage_base<MetaData::index_type::value, typename MetaData::layout, Temp> > type;
         };
 
         template <typename Arguments>
@@ -163,31 +181,43 @@ namespace gridtools{
         /**
          * @brief metafunction that returns the right iterate domain for this backend
          * (depending on whether the local domain is positional or not)
-         * @tparam LocalDomain the local domain
+         * @tparam IterateDomainArguments the iterate domain arguments
          * @return the iterate domain type for this backend
          */
-        template <typename LocalDomain>
+        template <typename IterateDomainArguments>
         struct select_iterate_domain {
-            GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Internal Error: wrong type");
             //indirection in order to avoid instantiation of both types of the eval_if
-            template<typename _LocalDomain>
+            template<typename _IterateDomainArguments>
             struct select_positional_iterate_domain
             {
-                typedef iterate_domain_cuda<positional_iterate_domain, _LocalDomain> type;
+                typedef iterate_domain_cuda<positional_iterate_domain, _IterateDomainArguments> type;
             };
 
-            template<typename _LocalDomain>
+            template<typename _IterateDomainArguments>
             struct select_basic_iterate_domain
             {
-                typedef iterate_domain_cuda<iterate_domain, _LocalDomain> type;
+                typedef iterate_domain_cuda<iterate_domain, _IterateDomainArguments> type;
             };
 
             typedef typename boost::mpl::eval_if<
-                local_domain_is_stateful<LocalDomain>,
-                select_positional_iterate_domain<LocalDomain>,
-                select_basic_iterate_domain<LocalDomain>
+                local_domain_is_stateful<typename IterateDomainArguments::local_domain_t>,
+                select_positional_iterate_domain<IterateDomainArguments>,
+                select_basic_iterate_domain<IterateDomainArguments>
             >::type type;
         };
+
+        template<typename IterateDomainArguments>
+        struct select_iterate_domain_cache
+        {
+            typedef iterate_domain_cache<IterateDomainArguments> type;
+        };
+
+#ifdef ENABLE_METERS
+        typedef timer_cuda performance_meter_t;
+#else
+        typedef timer_dummy performance_meter_t;
+#endif
     };
 
 }//namespace gridtools

@@ -62,7 +62,8 @@ namespace copy_stencil{
         //                   strides  1 x xy
         //                      dims  x y z
         typedef gridtools::layout_map<0,1,2> layout_t;
-        typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
+        typedef storage_info< layout_t> metadata_t;
+        typedef gridtools::BACKEND::storage_type<float_type, metadata_t >::type storage_type;
         typedef storage_type::original_storage::pointer_type pointer_type;
 
 
@@ -95,15 +96,16 @@ namespace copy_stencil{
         //#ifdef CXX11_ENABLED
         array<ushort_t, 3> padding(0,0,0);
         array<ushort_t, 3> halo(1,1,1);
-        typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > >, pattern_type::grid_type> partitioner_t;
+        typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > > > partitioner_t;
         partitioner_t part(he.comm(), halo, padding);
-        parallel_storage<storage_type, partitioner_t> in(part);
-        parallel_storage<storage_type, partitioner_t> out(part);
-        in.setup(d1, d2, d3);
-        out.setup(d1, d2, d3);
+        parallel_storage_info< partitioner_t> meta_(part, d1, d2, d3);
+        auto metadata_=meta_.get_metadata();
 
-        he.add_halo<0>(out.template get_halo_gcl<0>());
-        he.add_halo<1>(out.template get_halo_gcl<1>());
+        storage_type in(metadata_, 0.);
+        storage_type out(metadata_, 0.);
+
+        he.add_halo<0>(meta_.template get_halo_gcl<0>());
+        he.add_halo<1>(meta_.template get_halo_gcl<1>());
         // he.add_halo<0>(1,1,1,d1,d1+2);
         // he.add_halo<1>(1,1,1,d2,d2+2);
 
@@ -112,17 +114,17 @@ namespace copy_stencil{
         he.setup(2);
         printf("halo set up\n");
 
-        for(uint_t i=0; i<in.template dims<0>(); ++i)
-            for(uint_t j=0; j<in.template dims<1>(); ++j)
-                for(uint_t k=0; k<in.template dims<2>(); ++k)
+        for(uint_t i=0; i<metadata_.template dims<0>(); ++i)
+            for(uint_t j=0; j<metadata_.template dims<1>(); ++j)
+                for(uint_t k=0; k<metadata_.template dims<2>(); ++k)
                 {
-                    in(i, j, k) = (i + j + k)*gridtools::PID;
+                    in(i, j, k) = (i + j + k)*(gridtools::PID+1);
                 }
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
-        gridtools::coordinates<axis, partitioner_t> coords(part, out);
+        gridtools::coordinates<axis, partitioner_t> coords(part, meta_);
         //k dimension not partitioned
         coords.value_list[0] = 0;
         coords.value_list[1] = d3-1;
@@ -150,7 +152,7 @@ namespace copy_stencil{
 #else
             boost::shared_ptr<gridtools::computation> copy =
 #endif
-            gridtools::make_computation<gridtools::BACKEND, layout_t>
+            gridtools::make_computation<gridtools::BACKEND>
             (
                 gridtools::make_mss // mss_descriptor
                 (
@@ -195,7 +197,7 @@ namespace copy_stencil{
 
         printf("copy unpacked\n");
 
-        in.print();
+        // in.print();
 
         MPI_Barrier(GCL_WORLD);
         GCL_Finalize();

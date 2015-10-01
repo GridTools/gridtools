@@ -6,11 +6,6 @@
 #include <boost/shared_ptr.hpp>
 
 // GT headers and namespaces
-#include <stencil-composition/backend.hpp>
-#include <stencil-composition/range.hpp>
-#include <stencil-composition/level.hpp>
-#include <stencil-composition/accessor.hpp>
-#include <common/defs.hpp>
 #include <stencil-composition/make_computation.hpp>
 using gridtools::range;
 using gridtools::level;
@@ -42,11 +37,11 @@ struct bspline_basis_struct
 {
     static const int n_args = 2;
 
-    typedef accessor<0, range<0, 0, 0, 0>, 4 > bsline_basis_values;
+    typedef accessor<0, range<0, 0, 0, 0>, 4 > bspline_basis_values;
 
     typedef const accessor<1, range<0, 0, 0, 0>, 3 > csi;
 
-    typedef boost::mpl::vector<bsline_basis_values, csi> arg_list;
+    typedef boost::mpl::vector<bspline_basis_values, csi> arg_list;
 
     template <typename t_domain>
     GT_FUNCTION
@@ -56,7 +51,7 @@ struct bspline_basis_struct
 
     	for(int basis_index=0;basis_index<N;++basis_index)
     	{
-    		dom(bsline_basis_values(Dimension<4>(basis_index))) = basis_function_values[basis_index];
+    		dom(bspline_basis_values(Dimension<4>(basis_index))) = basis_function_values[basis_index];
     	}
     }
 
@@ -65,23 +60,23 @@ struct bspline_basis_struct
 int main()
 {
 
-	////////////////// NON GT-STYLE CODE PART /////////////////////
+    ////////////////// NON GT-STYLE CODE PART /////////////////////
 
-	// Non-GT style b-spline evaluation point preparation
-	constexpr double minCsi(0.);
-	constexpr double maxCsi(6.);
-	constexpr int numPoints(1000);
-	constexpr double deltaCsi =(maxCsi-minCsi)/numPoints;
-	std::vector<double> csiValues(numPoints);
-	double currentCsiValue=minCsi;
-	for(unsigned int csiIndex=0;csiIndex<numPoints;++csiIndex,currentCsiValue+=deltaCsi)
-	{
-		csiValues[csiIndex] = currentCsiValue;
-	}
+    // Non-GT style b-spline evaluation point preparation
+    constexpr double minCsi(0.);
+    constexpr double maxCsi(6.);
+    constexpr int numPoints(1000);
+    constexpr double deltaCsi =(maxCsi-minCsi)/numPoints;
+    std::vector<double> csiValues(numPoints);
+    double currentCsiValue=minCsi;
+    for(unsigned int csiIndex=0;csiIndex<numPoints;++csiIndex,currentCsiValue+=deltaCsi)
+    {
+        csiValues[csiIndex] = currentCsiValue;
+    }
 
-	////////////////// GT-STYLE CODE PART /////////////////////
+    ////////////////// GT-STYLE CODE PART /////////////////////
 
-	// Memory layout definition
+    // Memory layout definition
     typedef gridtools::layout_map<0,1,2> layout_t_in;
     typedef gridtools::layout_map<0,1,2,3> layout_t_out;
 
@@ -97,12 +92,19 @@ int main()
     #endif
 
     // Storage type definition
-    typedef gridtools::BACKEND::storage_type<gridtools::float_type,layout_t_in >::type storage_type_csi;
-    typedef gridtools::BACKEND::storage_type<gridtools::float_type,layout_t_out>::type storage_type_bspline_basis_values;
+    typedef gridtools::storage_info<layout_t_in, __COUNTER__> storage_type_csi_info;
+    typedef gridtools::BACKEND::storage_type<gridtools::float_type
+                                             , storage_type_csi_info>::type storage_type_csi;
+
+    typedef gridtools::storage_info<layout_t_out, __COUNTER__> storage_type_bspline_basis_info;
+    typedef gridtools::BACKEND::storage_type<gridtools::float_type
+                                             , storage_type_bspline_basis_info>::type storage_type_bspline_basis_values;
 
     // Storage container allocation
-    storage_type_csi csi(numPoints,1,1);
-    storage_type_bspline_basis_values bspline_basis_values(numPoints,1,1,N);
+    storage_type_csi_info csi_info(numPoints,1,1);
+    storage_type_csi csi(csi_info);
+    storage_type_bspline_basis_info bspline_basis_info(numPoints,1,1,N);
+    storage_type_bspline_basis_values bspline_basis_values(bspline_basis_info);
 
     // Fill csi-storage
     for(unsigned int csiIndex=0;csiIndex<numPoints;++csiIndex)

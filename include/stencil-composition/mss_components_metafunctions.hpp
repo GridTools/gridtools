@@ -12,7 +12,7 @@ namespace gridtools {
  * @tparam MssArray meta array of MSS
  */
 template<typename MssArray>
-struct split_esfs_into_independent_mss
+struct split_mss_into_independent_esfs
 {
     GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssArray, is_mss_descriptor>::value), "Internal Error: wrong type");
 
@@ -46,7 +46,7 @@ struct split_esfs_into_independent_mss
             >
         >::type,
         boost::mpl::quote1<is_mss_descriptor>
-    >type;
+    > type;
 };
 
 
@@ -93,7 +93,7 @@ struct build_mss_components_array
     typedef typename boost::mpl::eval_if<
         typename backend_traits_from_id<BackendId>::mss_fuse_esfs_strategy,
         boost::mpl::identity<MssDescriptorArray>,
-        split_esfs_into_independent_mss<MssDescriptorArray>
+        split_mss_into_independent_esfs<MssDescriptorArray>
     >::type mss_array_t;
 
     typedef typename boost::mpl::eval_if<
