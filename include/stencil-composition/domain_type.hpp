@@ -25,7 +25,6 @@
 
 #include "domain_type_impl.hpp"
 #include "../storage/metadata_set.hpp"
-#include "../common/generic_metafunctions/static_if.hpp"
 
 /**@file
  @brief This file contains the global list of placeholders to the storages
@@ -48,31 +47,6 @@ namespace gridtools {
      This class reorders the placeholders according to their indices, checks that there's no holes in the numeration,
     */
 
-
-    template <typename T>
-    struct partitioner_trivial;
-
-    template <typename T>
-    struct is_partitioner_trivial : boost::mpl::false_
-    {};
-
-    template <typename T>
-    struct is_partitioner_trivial<partitioner_trivial<T> > : boost::mpl::true_
-    {};
-
-    template <typename T>
-    struct is_partitioner_trivial<partitioner_trivial<T>* > : boost::mpl::true_
-    {};
-
-    template <typename T>
-    struct is_partitioner_trivial<partitioner_trivial<T>*&> : boost::mpl::true_
-    {};
-
-
-    template<typename T>
-    struct is_not_tmp_storage : boost::mpl::or_<is_storage<T>, boost::mpl::not_<is_any_storage<T > > >{
-    };
-
     template <typename Placeholders>
     struct domain_type : public clonable_to_gpu<domain_type<Placeholders> > {
 
@@ -86,8 +60,8 @@ namespace gridtools {
         // filter out the metadatas which are the same
         typedef typename boost::mpl::fold<
             original_placeholders
-            , boost::mpl::set<> // check if the argument is a storage placeholder before extracting the metadata
-            , boost::mpl::if_< is_storage_arg<boost::mpl::_2>, boost::mpl::insert<boost::mpl::_1, arg2metadata<boost::mpl::_2> >, boost::mpl::_1 > >::type original_metadata_set_t;
+            , boost::mpl::set<>
+            , boost::mpl::insert<boost::mpl::_1, arg2metadata<boost::mpl::_2> > >::type original_metadata_set_t;
 
         /** @brief Create an mpl::vector of metadata types*/
         typedef typename boost::mpl::fold<
@@ -235,21 +209,29 @@ You have to define each arg with a unique identifier ranging from 0 to N without
         metadata_set_t m_metadata_set;
 
 #ifdef CXX11_ENABLED
-        void assign_pointers() {}
+
+        template <typename MetaDataSequence>
+        void assign_pointers(MetaDataSequence&) {}
 
         /**@brief recursively assignes all the pointers passed as arguments to storages.
          */
-        template <typename Arg0, typename... OtherArgs>
-        void assign_pointers(Arg0 const& arg0, OtherArgs const& ... other_args)
+        template <typename MetaDataSequence, typename ArgStoragePair0, typename... OtherArgs>
+        void assign_pointers(MetaDataSequence& sequence_, ArgStoragePair0 arg0, OtherArgs ... other_args)
         {
-            boost::fusion::at<typename Arg0::arg_type::index_type>(m_storage_pointers) = arg0.ptr;
-            assign_pointers(other_args...);
+            assert(arg0.ptr);
+            printf("pointer: %x", arg0.ptr);
+            boost::fusion::at<typename ArgStoragePair0::arg_type::index_type>(m_storage_pointers) = arg0.ptr;
+            //storing the value of the pointers in a 'backup' fusion vector
+            boost::fusion::at<typename ArgStoragePair0::arg_type::index_type>(m_original_pointers) = arg0.ptr;
+            if (!sequence_.template present<pointer<const typename ArgStoragePair0::storage_type::meta_data_t> >())
+                sequence_.insert(pointer<const typename ArgStoragePair0::storage_type::meta_data_t>(&(arg0.ptr->meta_data())));
+            assign_pointers(sequence_, other_args...);
         }
 
 #endif
     public:
 
-#if defined (CXX11_ENABLED) && !defined (__CUDACC__)
+#if defined (CXX11_ENABLED)
         /** @brief variadic constructor
             construct the domain_type given an arbitrary number of placeholders to the non-temporary
             storages passed as arguments.
@@ -263,35 +245,11 @@ You have to define each arg with a unique identifier ranging from 0 to N without
         domain_type(StorageArgs ... args)
             : m_storage_pointers()
             , m_metadata_set()
-            {
-                GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(), is_arg_storage_pair<StorageArgs>::value ...), "wrong type");
-                assign_pointers(args...);
-
-                //copy of the non-tmp metadata into m_metadata_set
-                typedef boost::fusion::filter_view<arg_list,
-                                                   is_storage<boost::mpl::_1> > view_type;
-
-                view_type fview(m_storage_pointers);
-                boost::fusion::for_each(fview, assign_metadata_set<metadata_set_t >(m_metadata_set));
-            }
+        {
+            GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(), is_arg_storage_pair<StorageArgs>::value ...), "wrong type");
+            assign_pointers(m_metadata_set, args...);
+        }
 #endif
-
-        template <typename Sequence, typename Arg>
-        struct conditional{
-        private :
-            Sequence& m_seq;
-            Arg const* m_arg;
-        public:
-            conditional(Sequence& seq_, Arg const* arg_): m_seq(seq_), m_arg(arg_){}
-            void operator()()const{
-                if (!m_seq.template present<pointer<const typename Arg::meta_data_t> >())
-                    m_seq.insert(pointer<const typename Arg::meta_data_t>(&m_arg->meta_data()));                 }
-        };
-
-        struct empty{
-            void operator()() const{
-            }
-        };
 
 
         /**
@@ -312,11 +270,10 @@ You have to define each arg with a unique identifier ranging from 0 to N without
 
             template <typename Arg>
             void operator()( Arg const* arg_) const{
-                // filter out the arguments which are not of storage type (and thus do not have an associated metadata)
-                static_if<is_storage<Arg>::type::value>::eval(
-                    conditional<Sequence, Arg>(m_sequence, arg_)
-                    , empty());
-
+                //TODO: is_storage is already taken!!
+                //GRIDTOOLS_STATIC_ASSERT(is_storage<Arg>::value, "wrong type");
+                if (!m_sequence.template present<pointer<const typename Arg::meta_data_t> >())
+                    m_sequence.insert(pointer<const typename Arg::meta_data_t>(&arg_->meta_data()));
             }
         };
 
@@ -329,10 +286,10 @@ You have to define each arg with a unique identifier ranging from 0 to N without
         explicit domain_type(RealStorage const & real_storage_)
             : m_storage_pointers()
             , m_metadata_set()
-	{
-	    typedef boost::fusion::filter_view
-		<arg_list,
-		 is_not_tmp_storage<boost::mpl::_1> > view_type;
+        {
+
+            typedef boost::fusion::filter_view<arg_list,
+                                               is_storage<boost::mpl::_1> > view_type;
 
             view_type fview(m_storage_pointers);
 

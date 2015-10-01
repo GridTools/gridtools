@@ -52,7 +52,7 @@ struct remap_accessor_type<accessor<ID, Range, Number>, ArgsMap >
     > type;
 };
 
-#ifdef CX11_ENABLED
+#ifdef CXX11_ENABLED
     template < typename ArgsMap, template<typename ... > class Expression, typename ... Arguments >
     struct remap_accessor_type<Expression<Arguments ... >, ArgsMap >
     {
@@ -63,7 +63,7 @@ struct remap_accessor_type<accessor<ID, Range, Number>, ArgsMap >
 
         //recursively remapping the template arguments,
         //until the specialization above stops the recursion
-        typedef Expression<remap_accessor_type<Arguments, ArgsMap> ...> type;
+        typedef Expression<typename remap_accessor_type<Arguments, ArgsMap>::type ...> type;
     };
 #endif
 } //namespace gridtools

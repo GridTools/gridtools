@@ -119,41 +119,49 @@ struct wrap_pointer{
 
     __host__ __device__
     operator T*() {
+        assert(m_cpu_p);
         return m_cpu_p;
     }
 
     __host__ __device__
     operator T const*() const {
+        assert(m_cpu_p);
         return m_cpu_p;
     }
 
     __host__ __device__
     T& operator[](uint_t i) {
+        assert(m_cpu_p);
         return m_cpu_p[i];
     }
 
     __host__ __device__
     T const& operator[](uint_t i) const {
+        assert(m_cpu_p);
         return m_cpu_p[i];
         }
 
     __host__ __device__
     T& operator*() {
+        assert(m_cpu_p);
         return *m_cpu_p;
     }
 
     __host__ __device__
     T const& operator*() const {
+        assert(m_cpu_p);
         return *m_cpu_p;
     }
 
     __host__ __device__
     T* operator+(uint_t i) {
+        assert(m_cpu_p);
         return &m_cpu_p[i];
     }
 
     __host__ __device__
     T* const& operator+(uint_t i) const {
+        assert(m_cpu_p);
         return &m_cpu_p[i];
     }
 

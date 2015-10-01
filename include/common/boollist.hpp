@@ -3,8 +3,7 @@
 
 #include <boost/static_assert.hpp>
 #include "defs.hpp"
-#include "gridtools.hpp"
-#include "array.hpp"
+#include <gridtools.hpp>
 /*@file
 @bief  The following class describes a boolean list of length N.
 
@@ -25,11 +24,11 @@ namespace gridtools {
     template <ushort_t I>
     struct boollist
     {
-      static const ushort_t m_size=I;
+      static const ushort_t size=I;
 
     private:
         // const
-        array<bool, I> m_value;
+        bool m_value[I];
 
     public:
 
@@ -38,10 +37,7 @@ namespace gridtools {
 
         GT_FUNCTION
         constexpr bool const& value(ushort_t const& id) const{return m_value[id];}
-        GT_FUNCTION
-        constexpr array<bool, I> const& value() const{return m_value;}
 
-        GT_FUNCTION
         boollist(bool v0)
 #ifdef CXX11_ENABLED
             :m_value{v0}{}
@@ -51,7 +47,6 @@ namespace gridtools {
             }
 #endif
 
-        GT_FUNCTION
         boollist(bool v0, bool v1)
 #ifdef CXX11_ENABLED
             :m_value{v0,v1}{}
@@ -62,7 +57,6 @@ namespace gridtools {
             }
 #endif
 
-        GT_FUNCTION
         boollist(bool v0, bool v1, bool v2)
 #ifdef CXX11_ENABLED
             :m_value{v0,v1,v2}{}
@@ -74,10 +68,9 @@ namespace gridtools {
             }
 #endif
 
-        GT_FUNCTION
         boollist(boollist const& bl)
 #ifdef CXX11_ENABLED
-            :m_value{bl.m_value}
+            :m_value{bl.m_value[0], bl.m_value[1]} //TODO: generalize to arbitrary dimension
             {}
 #else
             {
@@ -86,28 +79,24 @@ namespace gridtools {
             }
 #endif
 
-        GT_FUNCTION
-        void copy_out(bool *arr) const {
-            for (ushort_t i=0; i<I; ++i)
-                arr[i]=m_value[i];
-        }
+      void copy_out(bool *arr) const {
+                for (ushort_t i=0; i<I; ++i)
+                    arr[i]=m_value[i];
+      }
 
         template <typename LayoutMap>
-        GT_FUNCTION
         boollist<LayoutMap::length> permute(typename boost::enable_if_c<LayoutMap::length==1>::type* a=0) const {
             return boollist<LayoutMap::length>(LayoutMap::template find<0>(m_value));
       }
 
         template <typename LayoutMap>
-        GT_FUNCTION
         boollist<LayoutMap::length> permute(typename boost::enable_if_c<LayoutMap::length==2>::type* a=0 ) const {
             return boollist<LayoutMap::length>(LayoutMap::template find<0>(m_value), LayoutMap::template find<1>(m_value));
       }
 
         template <typename LayoutMap>
-        GT_FUNCTION
         boollist<LayoutMap::length> permute(typename boost::enable_if_c<LayoutMap::length==3>::type* a=0 ) const {
-            return boollist<LayoutMap::length>(LayoutMap::template find<0>(&m_value[0]), LayoutMap::template find<1>(&m_value[0]), LayoutMap::template find<2>(&m_value[0]));
+            return boollist<LayoutMap::length>(LayoutMap::template find<0>(m_value), LayoutMap::template find<1>(m_value), LayoutMap::template find<2>(m_value));
       }
     };
 

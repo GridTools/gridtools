@@ -134,16 +134,18 @@ namespace gridtools {
 
         __host__ __device__
         T& operator[](uint_t i) {
-            /* assert(i<size); */
-            /* assert(i>=0); */
+            // assert(m_pointer_to_use);
+            // assert(i<m_size);
+            // assert(i>=0);
             // printf(" [%d %e] ", i, m_pointer_to_use[i]);
             return m_pointer_to_use[i];
         }
 
         __host__ __device__
         T const& operator[](uint_t i) const {
-            /* assert(i<size); */
-            /* assert(i>=0); */
+            // assert(m_pointer_to_use);
+            // assert(i<m_size);
+            // assert(i>=0);
             // printf(" [%d %e] ", i, m_pointer_to_use[i]);
 
             return m_pointer_to_use[i];
@@ -151,21 +153,25 @@ namespace gridtools {
 
         __host__ __device__
         T& operator*() {
+            // assert(m_pointer_to_use);
             return *m_pointer_to_use;
         }
 
         __host__ __device__
         T const& operator*() const {
+            // assert(m_pointer_to_use);
             return *m_pointer_to_use;
         }
 
         __host__ __device__
         T* operator+(uint_t i) {
+            // assert(m_pointer_to_use);
             return &m_pointer_to_use[i];
         }
 
         __host__ __device__
         T* const& operator+(uint_t i) const {
+            // assert(m_pointer_to_use);
             return &m_pointer_to_use[i];
         }
 
