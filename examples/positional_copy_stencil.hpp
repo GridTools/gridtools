@@ -5,8 +5,8 @@
 #include <stencil-composition/make_computation.hpp>
 
 #include <stencil-composition/backend.hpp>
-
 #include <boost/fusion/include/make_vector.hpp>
+#include <tools/verifier.hpp>
 
 #ifdef USE_PAPI_WRAP
 #include <papi_wrap.hpp>
@@ -128,6 +128,7 @@ namespace positional_copy_stencil{
         // Definition of the actual data fields that are used for input/output
         storage_type in(d1,d2,d3,-3.5,"in");
         storage_type out(d1,d2,d3,1.5,"out");
+        storage_type ref(d1,d2,d3,1.5,"ref");
 
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
@@ -269,36 +270,19 @@ namespace positional_copy_stencil{
 #endif
 
         bool success = true;
-        for(uint_t i=0; i<d1; ++i)
-            for(uint_t j=0; j<d2; ++j)
-                for(uint_t k=0; k<d3; ++k)
-                    {
-                        if (in(i, j, k) != out(i,j,k)) {
-                            std::cout << "error in "
-                                      << i << ", "
-                                      << j << ", "
-                                      << k << ": "
-                                      << "in = " << in(i, j, k)
-                                      << ", out = " << out(i, j, k)
-                                      << std::endl;
-                            success = false;
-                        }
-                        if ((static_cast<double>(_value_)*(i+j+k)) != out(i,j,k)) {
-                             std::cout << "error in "
-                                      << i << ", "
-                                      << j << ", "
-                                      << k << ": "
-                                      << "static_cast<double>(" << _value_ << ")*(i+j+k) = "
-                                      << (static_cast<double>(_value_)*(i+j+k))
-                                      << ", out = " << out(i, j, k)
-                                      << " [ " << (static_cast<double>(_value_)*(i+j+k))-out(i, j, k) << " ]"
-                                       << std::endl;
-                            success = false;
-                        }
-                    }
+        for(uint_t i=0; i<d1; ++i) {
+            for(uint_t j=0; j<d2; ++j) {
+                for(uint_t k=0; k<d3; ++k) {
+                    ref(i,j,k) = static_cast<double>(_value_)*(i+j+k);
+                }
+            }
+        }
 
-        return success;
+        verifier verif(1e-15, 0);
+        bool result = verif.verify(in, out) & verif.verify(ref, out);
 
+        return result;
+ 
     }
 
 }//namespace copy_stencil
