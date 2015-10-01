@@ -96,7 +96,7 @@ namespace copy_stencil{
         //#ifdef CXX11_ENABLED
         array<ushort_t, 3> padding(0,0,0);
         array<ushort_t, 3> halo(1,1,1);
-        typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > > > partitioner_t;
+        typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > >, pattern_type::grid_type> partitioner_t;
         partitioner_t part(he.comm(), halo, padding);
         parallel_storage_info< partitioner_t> meta_(part, d1, d2, d3);
         auto metadata_=meta_.get_metadata();

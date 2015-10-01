@@ -1,8 +1,7 @@
-#include "stencil-composition/make_computation.hpp"
+#include "test_cycle_and_swap.hpp"
 
 #include "gtest/gtest.h"
 
-#include "test_cycle_and_swap.hpp"
 
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<Cuda, Block >

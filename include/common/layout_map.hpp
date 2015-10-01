@@ -200,13 +200,13 @@ namespace gridtools {
             \tparam[in] Indices List of values where element is selected
             \param[in] indices  (length must be equal to the length of the layout_map length)
         */
-        template <ushort_t I, typename First, typename Second,  typename... Indices>
+        template <ushort_t I, typename First, typename... Indices>
         GT_FUNCTION
         static constexpr First
-        find(First & first_, Second & second_,  Indices & ... indices) {
-            GRIDTOOLS_STATIC_ASSERT(sizeof...(Indices)+1<length, "Too many arguments");
+        find(First const& first_, Indices const& ... indices) {
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(Indices)+1<=length, "Too many arguments");
 
-            return std::get<pos_<I>::value>(std::tuple<First, Second, Indices...>(first_, second_, indices...));
+            return std::get<pos_<I>::value>(std::tuple<First, Indices...>{first_, indices...});
         }
 
         /* forward declaration*/

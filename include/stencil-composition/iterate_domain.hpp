@@ -539,7 +539,8 @@ namespace gridtools {
         >::type& RESTRICT
         operator()(Accessor const& accessor) const;
 
-#if defined(CXX11_ENABLED)
+
+#if defined(CXX11_ENABLED) && !defined(__CUDACC__)//nvcc compiler bug
         /** @brief method called in the Do methods of the functors.
 
             Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
@@ -811,6 +812,7 @@ namespace gridtools {
     }
 
 #if defined(CXX11_ENABLED)
+#if !defined(__CUDACC__)//nvcc compiler bug
     /** @brief method called in the Do methods of the functors.
 
         Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
@@ -860,7 +862,7 @@ namespace gridtools {
                + current_storage<(Accessor::index_type::value==0), local_domain_t, typename Accessor::type>::value
                              ]);
     }
-
+#endif
 
     /** @brief method called in the Do methods of the functors.
 

@@ -228,18 +228,34 @@ namespace gridtools {
         //####################################################
 
 
+
         /**@brief return the stride for a specific coordinate, given the vector of strides
            Coordinates 0,1,2 correspond to i,j,k respectively
+
+	   static version: the strides vector is passed from outside ordered in decreasing order, and the strides coresponding to
+	   the Coordinate dimension is returned according to the layout map.
            NOTE: the atrides argument array contains only the strides and has dimension {space_dimensions-1}
 
            @tparam Coordinate the coordinate of which I want to retrieve the strides (0 for i, 1 for j, 2 for k)
            @tparam StridesVector the array type for the strides.
            @param strides_ the array of strides
-        */
+	*/
         template<uint_t Coordinate, typename StridesVector>
         GT_FUNCTION
         static constexpr int_t strides(StridesVector const& RESTRICT strides_){
             return ((vec_max<typename layout::layout_vector_t>::value < 0) ? 0:(( layout::template at_<Coordinate>::value == vec_max<typename layout::layout_vector_t>::value ) ? 1 : ((strides_[layout::template at_<Coordinate>::value]))));
+        }
+
+        /**@brief return the stride for a specific coordinate, given the vector of strides
+           Coordinates 0,1,2 correspond to i,j,k respectively.
+
+	   non-static version.
+	*/
+        template<uint_t Coordinate>
+        GT_FUNCTION
+        constexpr int_t strides() const {
+	    //NOTE: we access the m_strides vector starting from 1, because m_strides[0] is the total storage dimension.
+            return ((vec_max<typename layout::layout_vector_t>::value < 0) ? 0:(( layout::template at_<Coordinate>::value == vec_max<typename layout::layout_vector_t>::value ) ? 1 : ((m_strides[layout::template at_<Coordinate>::value+1]))));
         }
 
         /**@brief returning the index of the memory address corresponding to the specified (i,j,k) coordinates.

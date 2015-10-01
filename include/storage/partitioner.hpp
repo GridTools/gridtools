@@ -15,7 +15,7 @@ This file defines a simple partitioner splitting a structured cartesian grid
 namespace gridtools{
 
     struct partitioner_dummy;
-    template <typename GridTopology>
+    template <typename GridTopology, typename Communicator>
     class partitioner_trivial;
 
     template <typename Derived>
@@ -24,8 +24,8 @@ namespace gridtools{
     template<>
     struct space_dimensions<partitioner_dummy>{static const ushort_t value = 3;};
 
-    template<typename TopologyType>
-    struct space_dimensions<partitioner_trivial<TopologyType> >{static const ushort_t value = TopologyType::space_dimensions;};
+    template<typename TopologyType, typename Communicator>
+    struct space_dimensions<partitioner_trivial<TopologyType, Communicator> >{static const ushort_t value = TopologyType::space_dimensions;};
 
 
     /** skeyword to be used at the user interface level when specifyng the boundary conditions*/

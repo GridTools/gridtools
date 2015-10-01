@@ -48,7 +48,7 @@
 #define DEPRECATED(func) func
 #endif
 
-/** Macro do enable additional checks that may catch some errors in user code
+/** Macro to enable additional checks that may catch some errors in user code
  */
 #ifndef PEDANTIC_DISABLED
 #define PEDANTIC

@@ -18,10 +18,10 @@ namespace gridtools {
          .____.
         /    /|
        o____. |
-       |    | .         z
-       |    |/       x__|
-       .____.          /
-                      y
+       |    | .          z
+       |    |/       x__/
+       .____.           |
+                        y
        \endverbatim
 
        - there is one zero parameter: identifies one edge
