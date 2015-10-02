@@ -63,17 +63,23 @@ public:
     explicit iterate_domain_evaluator_base(const iterate_domain_t& iterate_domain) : m_iterate_domain(iterate_domain) {}
 
 
-#ifdef CXX11_ENABLED
     /** shifting the IDs of the placeholders and forwarding to the iterate_domain () operator*/
     template <typename Expression>
     GT_FUNCTION
+#ifdef CXX11_ENABLED
     auto
     operator() (Expression const&  arg) const -> decltype(m_iterate_domain(arg))
+#else
+    typename boost::mpl::at<
+        typename local_domain_t::esf_args,
+        typename Expression::type::index_type
+    >::type::value_type& RESTRICT
+    operator() (Expression const&  arg) const
+#endif
     {
         typedef typename remap_accessor_type<Expression, esf_args_map_t>::type remap_accessor_t;
         return m_iterate_domain(remap_accessor_t(arg));
     }
-#endif
 
 protected:
 };
