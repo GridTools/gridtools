@@ -27,6 +27,15 @@ namespace gridtools {
     template <uint_t I, typename T>
     struct arg;
 
+    template <uint_t I>
+    struct generic_accessor{
+
+        typedef generic_accessor<I> type;
+        // static const ushort_t n_dim=Dim;
+        typedef static_uint<I> index_type;
+        // typedef Range range_type;
+    };
+
     /**
      * @brief Type to be used in elementary stencil functions to specify argument mapping and ranges
      *
@@ -108,6 +117,17 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(x)<=n_dim, "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions of the storage. Check that you are not accessing a non existing dimension, or increase the dimension D of the accessor (accessor<Id, range, D>)");
         }
 #else
+
+        template<typename X, typename Y, typename Z, typename T, typename U, typename V>
+        GT_FUNCTION
+        constexpr accessor_base (X x, Y y, Z z, T t, U u, V v ): m_offsets(x,y,z,y,u,v)
+        {}
+
+        template<typename X, typename Y, typename Z, typename T, typename U>
+        GT_FUNCTION
+        constexpr accessor_base (X x, Y y, Z z, T t, U u ): m_offsets(x,y,z,y, u)
+        {}
+
         template<typename X, typename Y, typename Z, typename T>
         GT_FUNCTION
         constexpr accessor_base (X x, Y y, Z z, T t ): m_offsets(x,y,z,y)

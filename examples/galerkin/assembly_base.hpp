@@ -42,7 +42,7 @@ public:
 
     template <typename ... MPLList>
     gridtools::domain_type< boost::mpl::vector<p_grid_points, MPLList ...> >
-    domain(typename MPLList::storage_type& ...  storages_ ){
+    domain_base(typename MPLList::storage_type& ...  storages_ ){
         return domain_type<boost::mpl::vector<p_grid_points, MPLList ...> >(boost::fusion::make_vector(&m_grid, &storages_ ...));
     }
 

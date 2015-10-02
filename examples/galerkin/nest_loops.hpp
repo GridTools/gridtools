@@ -56,7 +56,7 @@ namespace gridtools{
 	{}
 
 	void operator()(){
-	    boost::mpl::for_each<Range1>(nest_loop<ArrayKnots, Quad, Storage, InnerFunctor, Range2, Range3>(m_quad, m_storage, m_knots));
+	    for_each<Range1>(nest_loop<ArrayKnots, Quad, Storage, InnerFunctor, Range2, Range3>(m_quad, m_storage, m_knots));
 	}
 
 	template <typename Id>

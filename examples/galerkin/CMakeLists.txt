@@ -32,8 +32,25 @@ if(ENABLE_INTREPID)
     find_library( SHARDS_LIB shards ${INTREPID_LIB_DIR})
     message("shards found in " ${SHARDS_LIB})
 
+    if(BLAS_DIR)
+          set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ${BLAS_DIR})
+    endif(BLAS_DIR)
+
+    if(LAPACK_DIR)
+          set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ${LAPACK_DIR})
+    endif(LAPACK_DIR)
+
+    find_package(BLAS REQUIRED)
+    if(NOT BLAS_FOUND)
+           message("BLAS library not found. Set the path to the installation via the BLAS_DIR CMake variable.")
+    endif(NOT BLAS_FOUND)
+
     find_package(LAPACK REQUIRED)
-  endif(NOT INTREPID_LIB_DIR)
+    if(NOT LAPACK_FOUND)
+           message("Lapack library not found. Set the path to the installation via the LAPACK_DIR CMake variable.")
+    endif(NOT LAPACK_FOUND)
+
+ endif(NOT INTREPID_LIB_DIR)
 endif(ENABLE_INTREPID)
 
 target_link_libraries( assembly ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS}  ${INTREPID_LIB} ${TEUCHOS_LIB} ${SHARDS_LIB} )
@@ -41,6 +58,10 @@ target_link_libraries( stiffness ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS}  ${INTRE
 target_link_libraries( mass ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS}  ${INTREPID_LIB} ${TEUCHOS_LIB} ${SHARDS_LIB} )
 target_link_libraries( mass_IGA ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS}  ${INTREPID_LIB} ${TEUCHOS_LIB} ${SHARDS_LIB} )
 target_link_libraries( dg_flux ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS}  ${INTREPID_LIB} ${TEUCHOS_LIB} ${TEUCHOS_NUMERICS_LIB} ${LAPACK_LIBRARIES} ${SHARDS_LIB} )
+
+cuda_add_executable( mass_IGA_cuda mass_IGA.cu )
+target_link_libraries(mass_IGA_cuda ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS} ${INTREPID_LIB} ${TEUCHOS_LIB} ${SHARDS_LIB})
+
 
 add_subdirectory( IGA )
 add_subdirectory( doc )

@@ -4,6 +4,7 @@
 #include <tuple>
 #include "nest_loops.hpp"
 #include <common/generic_metafunctions/gt_integer_sequence.hpp>
+#include <common/generic_metafunctions/gt_get.hpp>
 // #include <storage/meta_storage_base.hpp>
 
 namespace gridtools{
@@ -24,10 +25,9 @@ namespace gridtools{
     template<ushort_t Dim, ushort_t I, ushort_t ... P>
     struct BSplineCoeff<Dim, order<P...>, I>{
         static const ushort_t dimension=Dim;
-        static const constexpr array<ushort_t, sizeof...(P)> order={P...};
+        static const constexpr array<ushort_t, sizeof...(P)> order{P...};
         static const ushort_t index=I;
     };
-
 
     /** @brief just to ease the notation*/
     template <typename Coeff>
@@ -281,7 +281,7 @@ namespace gridtools{
             template<typename Id,typename Basis, ushort_t ... Integers>
             struct functor_assign_storage<Id, Basis, gt_integer_sequence<ushort_t, Integers...> >{
 
-                static void apply(Storage & storage_, Basis const& basis_, Quad const& quad_, int const& k)
+                static void apply( Storage & storage_, Basis const& basis_, Quad const& quad_, int const& k)
                 {
                     storage_(Id::value-1,k)=basis_.evaluate(quad_(k, Integers)...);
                 }
@@ -302,8 +302,12 @@ namespace gridtools{
                 // NOTE: __COUNTER__ is a non standard non very portable solution
                 // though the main compilers implement it
                 //TODO generalize
-                constexpr meta_storage_base<__COUNTER__,layout_t,false> indexing{P...};
 
+#ifdef __CUDACC__ // nvcc crap
+                constexpr gridtools::meta_storage_base<__COUNTER__,layout_t,false> indexing{static_int<2>(), static_int<2>(), static_int<2>()};
+#else
+                constexpr gridtools::meta_storage_base<__COUNTER__,layout_t,false> indexing{P ...};
+#endif
                 using basis_t = spline_tt<Dims ... , Id::value>;
                 basis_t basis_(m_knots);
 
@@ -316,12 +320,14 @@ namespace gridtools{
                     //     ") gives: "<<basis_.evaluate(m_quad(k, 0), m_quad(k, 1))
                     //                            <<std::endl;
 
-                    array<int, sizeof...(Dims)+1> vals_{Dims..., Id::value};
+                    // array<int, sizeof...(Dims)+1> vals_{Dims..., Id::value};
 
-                    functor_assign_storage<static_int<indexing.index(Dims-1 ... , Id::value)>
-                                           , basis_t
-                                           , typename make_gt_integer_sequence<ushort_t, Dim>::type >
-                        ::apply(m_storage, basis_, m_quad, k);
+                    functor_assign_storage<
+                        //static_int<indexing.index(static_int<Dims-1>() ... , static_int<Id::value>())>
+                        static_int<indexing.index(Dims-1 ... , Id::value)>
+                        , basis_t
+                        , typename make_gt_integer_sequence<ushort_t, Dim>::type >
+                        ::apply( m_storage, basis_, m_quad, k);
 
 		}
             }

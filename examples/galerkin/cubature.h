@@ -28,7 +28,8 @@ namespace gridtools{
         }
         // static Teuchos::RCP<Intrepid::Cubature<double, Intrepid::FieldContainer<double> > > cub;
         // retrieve number of cubature points
-        static constexpr int numCubPoints(){
+        static // constexpr
+        int numCubPoints(){
             return cub()->getNumPoints();
         }
     };

@@ -28,7 +28,7 @@ struct accessor_index
  * to the corresponding entry in ArgsMap
  */
 template<typename Accessor, typename ArgsMap>
-struct remap_accessor_type{};
+struct remap_accessor_type;
 
 template < ushort_t ID, typename Range, ushort_t Number, typename ArgsMap>
 struct remap_accessor_type<accessor<ID, Range, Number>, ArgsMap >

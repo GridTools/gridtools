@@ -34,8 +34,9 @@ namespace gridtools{
             second_operand{second_operand}
             {}
 
+        template<typename Arg1, typename Arg2>
         GT_FUNCTION
-        constexpr expr(expr const& other):first_operand(other.first_operand),second_operand(other.second_operand){}
+        constexpr expr(expr<Arg1, Arg2> const& other):first_operand(other.first_operand),second_operand(other.second_operand){}
 
         ArgType1 const first_operand;
         ArgType2 const second_operand;
@@ -60,8 +61,9 @@ namespace gridtools{
             first_operand{first_operand}
             {}
 
+        template<typename Arg1>
         GT_FUNCTION
-        constexpr unary_expr( unary_expr const& other): first_operand(other.first_operand){}
+        constexpr unary_expr( unary_expr<Arg1> const& other): first_operand(other.first_operand){}
 
         ArgType1 const first_operand;
 
@@ -85,8 +87,9 @@ namespace gridtools{
             third_operand{third_operand}
             {}
 
+        template<typename Arg1, typename Arg2, typename Arg3>
         GT_FUNCTION
-        constexpr ternary_expr(ternary_expr const& other) :
+        constexpr ternary_expr(ternary_expr<Arg1, Arg2, Arg3> const& other) :
             first_operand(other.first_operand),
             second_operand(other.second_operand),
             third_operand(other.third_operand){}
@@ -115,8 +118,9 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_plus(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
 
+        template<typename Arg1, typename Arg2>
         GT_FUNCTION
-        constexpr expr_plus(expr_plus const& other):super(other){};
+        constexpr expr_plus(expr_plus<Arg1, Arg2> const& other):super(other){}
 
 #ifndef __CUDACC__
     private:
@@ -145,8 +149,9 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_minus(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
 
+        template<typename Arg1, typename Arg2>
         GT_FUNCTION
-        constexpr expr_minus(expr_minus const& other):super(other){}
+        constexpr expr_minus(expr_minus<Arg1, Arg2> const& other):super(other){}
 
 #ifndef __CUDACC__
     private:
@@ -174,8 +179,9 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_times(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
 
+        template<typename Arg1, typename Arg2>
         GT_FUNCTION
-        constexpr expr_times(expr_times const& other):super(other){}
+        constexpr expr_times(expr_times<Arg1, Arg2> const& other):super(other){}
 #ifndef __CUDACC__
     private:
 #endif
@@ -201,8 +207,9 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_divide(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
 
+        template<typename Arg1, typename Arg2>
         GT_FUNCTION
-        constexpr expr_divide(expr_divide const& other):super(other){}
+        constexpr expr_divide(expr_divide<Arg1, Arg2> const& other):super(other){}
 
 #ifndef __CUDACC__
     private:
@@ -231,8 +238,9 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_exp(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
 
+        template<typename Arg1, typename Arg2>
         GT_FUNCTION
-        constexpr expr_exp(expr_exp const& other):super(other){}
+        constexpr expr_exp(expr_exp<Arg1, Arg2> const& other):super(other){}
 
 #ifndef __CUDACC__
     private:
@@ -264,8 +272,9 @@ namespace gridtools{
         constexpr expr_pow(ArgType1 const& first_operand):super(first_operand){}
         static const int exponent=Exponent;
 
+        template<typename Arg1>
         GT_FUNCTION
-        constexpr expr_pow(expr_pow const& other):super(other) {}
+        constexpr expr_pow(expr_pow<Arg1, Exponent> const& other):super(other) {}
 
 #ifndef __CUDACC__
     private:
@@ -292,8 +301,9 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_larger(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
 
+        template<typename Arg1, typename Arg2>
         GT_FUNCTION
-        constexpr expr_larger(expr_larger const& other):super(other){}
+        constexpr expr_larger(expr_larger<Arg1, Arg2> const& other):super(other){}
 
 #ifndef __CUDACC__
     private:
@@ -319,8 +329,9 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_larger_equal(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
 
+        template<typename Arg1, typename Arg2>
         GT_FUNCTION
-        constexpr expr_larger_equal(expr_larger_equal const& other):super(other){}
+        constexpr expr_larger_equal(expr_larger_equal<Arg1, Arg2> const& other):super(other){}
 
 #ifndef __CUDACC__
     private:
@@ -346,8 +357,9 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_smaller(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
 
+        template<typename Arg1, typename Arg2>
         GT_FUNCTION
-        constexpr expr_smaller(expr_smaller const& other):super(other){}
+        constexpr expr_smaller(expr_smaller<Arg1, Arg2> const& other):super(other){}
 
 #ifndef __CUDACC__
     private:
@@ -373,8 +385,9 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_smaller_equal(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
 
+        template<typename Arg1, typename Arg2>
         GT_FUNCTION
-        constexpr expr_smaller_equal(expr_smaller_equal const& other):super(other){}
+        constexpr expr_smaller_equal(expr_smaller_equal<Arg1, Arg2> const& other):super(other){}
 
 #ifndef __CUDACC__
     private:
@@ -401,8 +414,9 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_and(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
 
+        template<typename Arg1, typename Arg2>
         GT_FUNCTION
-        constexpr expr_and(expr_and const& other):super(other){}
+        constexpr expr_and(expr_and<Arg1, Arg2> const& other):super(other){}
 
 #ifndef __CUDACC__
     private:
@@ -428,8 +442,9 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_or(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
 
+        template<typename Arg1, typename Arg2>
         GT_FUNCTION
-        constexpr expr_or(expr_or const& other):super(other){}
+        constexpr expr_or(expr_or<Arg1, Arg2> const& other):super(other){}
 
 #ifndef __CUDACC__
     private:
@@ -457,8 +472,9 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_if_then_else(ArgType1 const& first_operand, ArgType2 const& second_operand, ArgType3 const& third_operand):super(first_operand, second_operand, third_operand){}
 
+        template<typename Arg1, typename Arg2, typename Arg3>
         GT_FUNCTION
-        constexpr expr_if_then_else(expr_if_then_else const& other):super(other){}
+        constexpr expr_if_then_else(expr_if_then_else<Arg1, Arg2, Arg3> const& other):super(other){}
 
 #ifndef __CUDACC__
     private:
@@ -489,8 +505,9 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_direct_access(ArgType1 const& first_operand):super(first_operand){}
 
+        template<typename Arg1>
         GT_FUNCTION
-        constexpr expr_direct_access(expr_direct_access const& other):super(other) {}
+        constexpr expr_direct_access(expr_direct_access<Arg1> const& other):super(other) {}
 
 #ifndef __CUDACC__
     private:

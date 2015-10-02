@@ -7,6 +7,7 @@
 #include <iostream>
 #include "../common/generic_metafunctions/accumulate.hpp"
 #include "../common/generic_metafunctions/gt_integer_sequence.hpp"
+#include "../common/generic_metafunctions/all_integrals.hpp"
 
 namespace gridtools{
 
@@ -23,10 +24,11 @@ namespace gridtools{
         */
         template<short_t ID, short_t MaxIndex,  typename Layout>
         struct next_stride{
+
             template<typename First, typename ... IntTypes>
             GT_FUNCTION
-            static First constexpr apply ( First first, IntTypes ... args){
-                return Layout::template find_val<MaxIndex-ID,short_t,1>(first, args...) * next_stride<ID-1, MaxIndex, Layout>::apply(first, args...);
+            static constexpr First apply ( First const& first, IntTypes const& ... args){
+                return Layout::template find_val<MaxIndex-ID,short_t,1>(first ,args...) * next_stride<ID-1, MaxIndex, Layout>::apply(first, args...);
             }
         };
 
@@ -35,7 +37,7 @@ namespace gridtools{
         struct next_stride<0, MaxIndex, Layout>{
             template<typename First, typename ... IntTypes>
             GT_FUNCTION
-            static First constexpr apply(First first, IntTypes ... args){
+            static constexpr First apply(First const& first, IntTypes const& ... args){
                 return Layout::template find_val<MaxIndex,short_t,1>(first, args...);
             }
         };
@@ -47,16 +49,25 @@ namespace gridtools{
             template <int_t T>
             using lambda=next_stride<MaxIndex-T, MaxIndex, Layout>;
 
-            template<typename ... UIntType>
-            static constexpr array<int_t, MaxIndex> apply(UIntType ... args){
+            template <typename ... IntType, typename Dummy=all_static_integers<IntType ...> >
+            static constexpr array<int_t, MaxIndex>
+            apply( IntType ... t){
+                using seq = apply_gt_integer_sequence<typename make_gt_integer_sequence<int_t, sizeof ... (t)>::type >;
+                return seq::template apply<array<int_t, MaxIndex>, lambda>( IntType::value ...);
+            }
 
-#ifdef PEDANTIC
-                GRIDTOOLS_STATIC_ASSERT((sizeof...(args) > 1), "You are trying to initialize \
-a storage_info with less than 2 dimensions. This is not supported. Set at least 2 dimensions, and \
-initialize them to \'1\' if unused.");
-#endif
+            template<typename ... IntType, typename Dummy=all_integers<IntType ...> >
+            static constexpr array<int_t, MaxIndex >
+            apply(IntType const& ... args){
+
+// #ifdef PEDANTIC
+//                 GRIDTOOLS_STATIC_ASSERT((sizeof...(args) > 1), "You are trying to initialize \
+// a storage_info with less than 2 dimensions. This is not supported. Set at least 2 dimensions, and \
+// initialize them to \'1\' if unused.");
+// #endif
                 using seq = apply_gt_integer_sequence<typename make_gt_integer_sequence<int_t, sizeof ... (args)>::type >;
-                return seq::template apply<array<int_t, MaxIndex>, lambda>((int_t)args...);
+                return seq::template apply<array<int_t, MaxIndex>, lambda>( (int_t)args...);
+                //return seq::template apply<array<int_t, MaxIndex>, lambda>((int_t)args...);
             }
         };
 
@@ -102,14 +113,25 @@ initialize them to \'1\' if unused.");
             }
 
 #ifdef CXX11_ENABLED
-            /**interface with an the coordinates as variadic arguments
+            /**interface with the coordinates as variadic arguments
                \param strides the strides
                \param indices comma-separated list of coordinates
             */
-            template< typename StridesVector, typename ... UInt>
+            template< typename StridesVector, typename ... UInt, typename Dummy=all_integers<UInt ...> >
             GT_FUNCTION
             static constexpr int_t apply(StridesVector const& RESTRICT strides_, UInt const& ... indices_){
-                return strides_[space_dimensions-Id]*Layout::template find_val<space_dimensions-Id, int, 0>(indices_...)+compute_offset<Id-1, Layout>::apply(strides_, indices_... );
+                return strides_[space_dimensions-Id] * (Layout::template find_val<space_dimensions-Id, int_t, 0>( indices_...))
+                    +  compute_offset<Id-1, Layout>::apply(strides_, indices_... ) ;
+            }
+
+            /**interface with the coordinates as variadic arguments
+               \param strides the strides
+               \param indices comma-separated list of coordinates
+            */
+            template< typename StridesVector, typename ... UInt, typename Dummy=all_static_integers<UInt ...> >
+            GT_FUNCTION
+            static constexpr int_t apply(StridesVector const& strides_, UInt  ... indices_){
+                return strides_[space_dimensions-Id+1]*Layout::template find_val<space_dimensions-Id, int, 0>( UInt::value ... )+compute_offset<Id-1, Layout>::apply(strides_, UInt() ...  );
             }
 #endif
 
@@ -140,11 +162,23 @@ initialize them to \'1\' if unused.");
             }
 
 #ifdef CXX11_ENABLED
-            template<typename StridesVector, typename ... IntType>
+            template<typename StridesVector, typename ... IntType, typename Dummy=all_integers<IntType ...> >
             GT_FUNCTION
             static constexpr int_t apply(StridesVector const& RESTRICT /*strides*/, IntType const& ... indices_){
-                return Layout::template find_val<space_dimensions-1, int, 0>(indices_ ...);
+                return Layout::template find_val<space_dimensions-1, int, 0>( indices_ ...);
             }
+
+
+            /**interface with the coordinates as variadic arguments
+               \param strides the strides
+               \param indices comma-separated list of coordinates
+            */
+            template< typename StridesVector, typename ... UInt, typename Dummy=all_static_integers<UInt ...> >
+            GT_FUNCTION
+            static constexpr int_t apply(StridesVector const& RESTRICT strides_, UInt  ... indices_){
+                return Layout::template find_val<space_dimensions-1, int, 0>(UInt::value ...);
+            }
+
 #endif
             /**interface with the coordinates as a tuple
                \param strides the strides

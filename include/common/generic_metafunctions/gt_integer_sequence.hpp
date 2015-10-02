@@ -14,7 +14,7 @@ namespace gridtools{
        it is consexpr constructable.
      */
     template< typename UInt, UInt... Indices> struct gt_integer_sequence{
-        using type = gt_integer_sequence;
+        using type = gt_integer_sequence<UInt, Indices ...>;
     };
 
 
@@ -77,10 +77,10 @@ namespace gridtools{
 	    using type = Container<Lambda<Indices, ExtraTypes>::value ...>;
 	};
 
-        template<template< typename ... U> class Container, template <UInt TT, UInt UU> class Lambda, UInt ... ExtraTypes>
-        struct apply_tt{
-            using type = Container<Lambda<Indices, ExtraTypes> ...>;
-        };
+        // template<template< typename ... U> class Container, template <UInt TT, UInt UU> class Lambda, UInt ... ExtraTypes>
+        // struct apply_tt{
+        //     using type = Container<Lambda<Indices, ExtraTypes> ...>;
+        // };
 
         /**
            @brief same as before, but with non-static lambda taking as first argument the index

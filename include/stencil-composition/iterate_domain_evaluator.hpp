@@ -62,6 +62,8 @@ public:
     GT_FUNCTION
     explicit iterate_domain_evaluator_base(const iterate_domain_t& iterate_domain) : m_iterate_domain(iterate_domain) {}
 
+    GT_FUNCTION
+    iterate_domain_t const& get() const { return m_iterate_domain;}
 
 #ifdef CXX11_ENABLED
     /** shifting the IDs of the placeholders and forwarding to the iterate_domain () operator*/

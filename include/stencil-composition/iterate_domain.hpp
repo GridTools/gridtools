@@ -483,14 +483,26 @@ namespace gridtools {
 #endif
 
         template<typename Accessor>
-        int_t const* get_storage_dims(Accessor const&){
-            boost::fusion::at_c<Accessor::index_type>(local_domain.local_args).dims();
+        GT_FUNCTION
+        auto get_storage_dims(Accessor ) const ->
+            array<int_t, boost::remove_pointer<typename boost::mpl::at<typename local_domain_t::mpl_storages, typename Accessor::index_type>::type>::type::space_dimensions> const&
+        {
+
+            using storage_type = typename boost::remove_pointer<typename boost::mpl::at<typename local_domain_t::mpl_storages, typename Accessor::index_type>::type>::type;
+            //getting information about the metadata
+            typedef typename boost::mpl::at
+                <metadata_map_t, typename storage_type::meta_data_t >::type metadata_index_t;
+
+            pointer<const typename storage_type::meta_data_t> const metadata_ = boost::fusion::at
+                < metadata_index_t >(local_domain.m_local_metadata);
+
+            return metadata_->get_dims();
         }
 
-        template<typename Accessor>
-        int_t const* get_storage_strides(Accessor const&){
-            boost::fusion::at_c<Accessor::index_type>(local_domain.local_args).strides();
-        }
+        // template<typename Accessor>
+        // int_t const* get_storage_strides(Accessor ) const {
+        //     boost::fusion::at_c<Accessor::index_type>(local_domain.m_local_args).strides();
+        // }
 
         /** @brief method called in the Do methods of the functors.
             specialization for the accessor placeholders

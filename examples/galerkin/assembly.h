@@ -82,21 +82,28 @@ public:
     jacobian_type const& get_jac() const {return m_jac;}
     storage_type const& get_jac_det() const {return m_jac_det;}
     jacobian_type const& get_jac_inv() const {return m_jac_inv;}
+    typename Geometry::weights_storage_t const& get_cub_weights() const {return m_fe_backend.cub_weights();}
+    jacobian_type & jac() {return m_jac;}
+    storage_type & jac_det() {return m_jac_det;}
+    jacobian_type & jac_inv() {return m_jac_inv;}
+    typename Geometry::weights_storage_t & cub_weights() {return m_fe_backend.cub_weights();}
 
     /**
        @brief adds few extra placeholders<->storages items to the domain_type
      */
     template <typename ... MPLList>
-    auto domain(typename MPLList::storage_type& ...  storages_ )
-        -> decltype(super::template domain< p_jac,
+    auto domain( typename MPLList::storage_type& ...  storages_
+        )
+        -> decltype(this->template domain_base< p_jac,
                     p_weights, p_jac_det, p_jac_inv,
                     MPLList ...>
-                    ( m_jac, m_fe_backend.cub_weights(), m_jac_det, m_jac_inv, storages_ ...))
+                    ( m_jac, m_fe_backend.cub_weights(), m_jac_det, m_jac_inv , storages_ ...))
         {
-            return super::template domain< p_jac,
-                                           p_weights, p_jac_det, p_jac_inv,
-                                           MPLList ...>
-                ( m_jac, m_fe_backend.cub_weights(), m_jac_det, m_jac_inv, storages_ ...);
+            return this->template domain_base< p_jac,
+                                               p_weights, p_jac_det, p_jac_inv,
+                                               MPLList ...
+                                               >
+                ( m_jac, m_fe_backend.cub_weights(), m_jac_det, m_jac_inv , storages_ ...);
         }
 
 // [private members]

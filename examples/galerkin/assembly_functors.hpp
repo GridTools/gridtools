@@ -33,15 +33,17 @@ namespace functors{
             dimension<2>::Index j;
             dimension<3>::Index k;
 
+            uint_t const num_cub_points=eval.get().get_storage_dims(dphi())[1];
+            uint_t const basis_cardinality=eval.get().get_storage_dims(dphi())[0];
             //TODO dimensions should be generic
             for(short_t icoor=0; icoor< shape_property<Geometry::parent_shape>::dimension; ++icoor)
             {
                 for(short_t jcoor=0; jcoor< shape_property<S>::dimension; ++jcoor)
                 {
-                    for(short_t iter_quad=0; iter_quad< cub::numCubPoints()/*quad_pts*/; ++iter_quad)
+                    for(short_t iter_quad=0; iter_quad< num_cub_points; ++iter_quad)
                     {
                         eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) )=0.;
-                                for (int_t iterNode=0; iterNode < geo_map::basisCardinality ; ++iterNode)
+                                for (int_t iterNode=0; iterNode < basis_cardinality ; ++iterNode)
                                 {//reduction/gather
                                     eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) ) += eval(grid_points(dimension<4>(iterNode), dimension<5>(icoor)) * !dphi(i+iterNode, j+iter_quad, k+jcoor) );
                                 }
@@ -70,8 +72,9 @@ namespace functors{
             dimension<4>::Index qp;
             dimension<5>::Index dimx;
             dimension<6>::Index dimy;
+            uint_t const num_cub_points=eval.get().get_storage_dims(jac())[3];
 
-            for(short_t q=0; q< cub::numCubPoints(); ++q)
+            for(short_t q=0; q< num_cub_points; ++q)
             {
                 eval( jac_det(qp+q) )= eval(
                     (
@@ -88,6 +91,7 @@ namespace functors{
     };
     //! [det]
 
+#ifndef __CUDACC__
     //! [inv]
     template <typename Geometry>
     struct inv{
@@ -109,6 +113,8 @@ namespace functors{
             using dimy=dimension<6>;
             dimx::Index X;
             dimy::Index Y;
+            uint_t const num_cub_points=eval.get().get_storage_dims(jac())[3];
+
 //! [aliases]
             using a_=alias<jac, dimy, dimx>::set<0,0>;
             using b_=alias<jac, dimy, dimx>::set<0,1>;
@@ -121,7 +127,7 @@ namespace functors{
             using i_=alias<jac, dimy, dimx>::set<2,2>;
 //! [aliases]
             // eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) )=0.;
-            for(short_t q=0; q< cub::numCubPoints()/*quad_pts*/; ++q)
+            for(short_t q=0; q< num_cub_points; ++q)
             {
                 alias<a_, dimension<4> > a(q);
                 alias<b_, dimension<4> > b(q);
@@ -162,7 +168,7 @@ namespace functors{
         }
     };
     // [inv]
-
+#endif //__CUDACC__
 
 
     // [assembly]
@@ -185,7 +191,12 @@ namespace functors{
 
 
             //hypothesis here: the cardinality is order^3 (isotropic tensor product element)
+#ifdef __CUDACC__
+            constexpr meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{static_int<3>(), static_int<3>(), static_int<3>()};
+#else
             constexpr meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
+
+#endif
             // assembly : this part is specific for tensor product topologies
             // points on the edges
             // static int_t bd_dim=geo_map::hypercube_t::template boundary_w_dim<1>::n_points::value;

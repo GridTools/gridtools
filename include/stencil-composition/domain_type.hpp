@@ -35,6 +35,11 @@ namespace gridtools {
     template<typename T>
     struct is_arg;
 
+
+    template<typename T>
+    struct is_not_tmp_storage : boost::mpl::or_<is_storage<T>, boost::mpl::not_<is_any_storage<T > > >{
+    };
+
     /**
        @brief This struct contains the global list of placeholders to the storages
      * @tparam Placeholders list of placeholders of type arg<I,T>

@@ -24,7 +24,7 @@ namespace gridtools {
     template <ushort_t I>
     struct boollist
     {
-      static const ushort_t size=I;
+        static const ushort_t m_size=I;
 
     private:
         // const

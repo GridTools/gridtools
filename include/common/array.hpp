@@ -35,24 +35,24 @@ namespace gridtools {
 
 #ifdef CXX11_ENABLED
 
-#ifndef __CUDACC__ // NVCC always returns false in the SFINAE
-        // variadic constructor enabled only for arguments of type T
-        template<typename ... ElTypes
-                 , typename = typename boost::enable_if_c<accumulate(logical_and(), boost::is_same<ElTypes, T>::type::value ...), int >
-                 >
-        GT_FUNCTION constexpr
-        array(ElTypes const& ... types): _array{(T)types ... } {
-        }
-#else // nvcc only checks the first argument
+// #ifndef __CUDACC__ // NVCC always returns false in the SFINAE
+//         // variadic constructor enabled only for arguments of type T
+//         template<typename ... ElTypes
+//                  , typename = typename boost::enable_if_c<accumulate(logical_and(), boost::is_same<ElTypes, T>::type::value ...), int >
+//                  >
+//         GT_FUNCTION constexpr
+//         array(ElTypes const& ... types): _array{(T)types ... } {
+//         }
+// #else // nvcc only checks the first argument
         // variadic constructor enabled only for arguments of type T
         template<typename First, typename ... ElTypes
                  , typename = typename boost::enable_if_c<boost::is_same<First, T>::type::value , int >
                  >
         GT_FUNCTION
-        // constexpr
+        constexpr
         array(First const& first_, ElTypes const& ... types): _array{(T)first_, (T)types ... } {
         }
-#endif
+// #endif
 #else
         //TODO provide a BOOST PP implementation for this
         GT_FUNCTION
@@ -144,13 +144,17 @@ namespace gridtools {
         }
 
         GT_FUNCTION
+        constexpr T const & get_val(size_t i) const {
+            return _array[i];
+        }
+
+        GT_FUNCTION
         constexpr T const & operator[](size_t i) const {
             // assert((i < _size));
             return _array[i];
         }
 
         GT_FUNCTION
-        // constexpr
         T & operator[](size_t i) {
             //assert((i < _size));
             return _array[i];

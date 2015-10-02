@@ -129,124 +129,124 @@ namespace gridtools{
         };
     };
 
-    // reference normal vectors for the hexahedron
-    // see definitions in Shards_BasicTopologies.hpp
-    template <>
-    struct shape_property<enumtype::Hexa>::normal<21>{
-        static const constexpr array<float_type, 3> value{0, 0, -1};
-    };
+    // // reference normal vectors for the hexahedron
+    // // see definitions in Shards_BasicTopologies.hpp
+    // template <>
+    // struct shape_property<enumtype::Hexa>::normal<21>{
+    //     static const constexpr array<float_type, 3> value{0, 0, -1};
+    // };
 
-    template <>
-    struct shape_property<enumtype::Hexa>::normal<22>{
-        static const  constexpr array<float_type, 3> value{0,0,1};
-    };
-    const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::normal<22>::value;
+    // template <>
+    // struct shape_property<enumtype::Hexa>::normal<22>{
+    //     static const  constexpr array<float_type, 3> value{0,0,1};
+    // };
+    // const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::normal<22>::value;
 
-    template <>
-    struct shape_property<enumtype::Hexa>::normal<23>{
-        static const  constexpr array<float_type, 3> value{-1,0,0};
-    };
-    const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::normal<23>::value;
+    // template <>
+    // struct shape_property<enumtype::Hexa>::normal<23>{
+    //     static const  constexpr array<float_type, 3> value{-1,0,0};
+    // };
+    // const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::normal<23>::value;
 
-    template <>
-    struct shape_property<enumtype::Hexa>::normal<24>{
-        static const  constexpr array<float_type, 3> value{1,0,0};
-    };
-    const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::normal<24>::value;
+    // template <>
+    // struct shape_property<enumtype::Hexa>::normal<24>{
+    //     static const  constexpr array<float_type, 3> value{1,0,0};
+    // };
+    // const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::normal<24>::value;
 
-    template <>
-    struct shape_property<enumtype::Hexa>::normal<25>{
-        static const  constexpr array<float_type, 3> value{0,-1,0};
-    };
-    const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::normal<25>::value;
+    // template <>
+    // struct shape_property<enumtype::Hexa>::normal<25>{
+    //     static const  constexpr array<float_type, 3> value{0,-1,0};
+    // };
+    // const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::normal<25>::value;
 
-    template <>
-    struct shape_property<enumtype::Hexa>::normal<26>{
-        static const  constexpr array<float_type, 3> value{0,1,0};
-    };
-    const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::normal<26>::value;
+    // template <>
+    // struct shape_property<enumtype::Hexa>::normal<26>{
+    //     static const  constexpr array<float_type, 3> value{0,1,0};
+    // };
+    // const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::normal<26>::value;
 
-    // template<enumtype::Shape S, ushort_t U>
-    // const constexpr array<float_type, 3>  shape_property<S>::template normal<U>::value;
-
-
-
-    template <>
-    struct shape_property<enumtype::Hexa>::tangent_u<21>{
-        static const  constexpr array<float_type, 3> value{-1,0,0};
-    };
-    const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::tangent_u<21>::value;
-
-    template <>
-    struct shape_property<enumtype::Hexa>::tangent_v<21>{
-        static const  constexpr array<float_type, 3> value{0,-1,0};
-    };
-    const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::tangent_v<21>::value;
+    // // template<enumtype::Shape S, ushort_t U>
+    // // const constexpr array<float_type, 3>  shape_property<S>::template normal<U>::value;
 
 
-    template <>
-    struct shape_property<enumtype::Hexa>::tangent_u<22>{
-        static const  constexpr array<float_type, 3> value{1,0,0};
-    };
-    const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::tangent_u<22>::value;
 
-    template <>
-    struct shape_property<enumtype::Hexa>::tangent_v<22>{
-        static const  constexpr array<float_type, 3> value{0,-1,0};
-    };
-    const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::tangent_v<22>::value;
+    // template <>
+    // struct shape_property<enumtype::Hexa>::tangent_u<21>{
+    //     static const  constexpr array<float_type, 3> value{-1,0,0};
+    // };
+    // const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::tangent_u<21>::value;
 
-
-    template <>
-    struct shape_property<enumtype::Hexa>::tangent_u<23>{
-        static const  constexpr array<float_type, 3> value{0,0,1};
-    };
-    const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::tangent_u<23>::value;
-
-    template <>
-    struct shape_property<enumtype::Hexa>::tangent_v<23>{
-        static const  constexpr array<float_type, 3> value{0,1,0};
-    };
-    const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::tangent_v<23>::value;
+    // template <>
+    // struct shape_property<enumtype::Hexa>::tangent_v<21>{
+    //     static const  constexpr array<float_type, 3> value{0,-1,0};
+    // };
+    // const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::tangent_v<21>::value;
 
 
-    template <>
-    struct shape_property<enumtype::Hexa>::tangent_u<24>{
-        static const  constexpr array<float_type, 3> value{0,0,1};
-    };
-    const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::tangent_u<24>::value;
+    // template <>
+    // struct shape_property<enumtype::Hexa>::tangent_u<22>{
+    //     static const  constexpr array<float_type, 3> value{1,0,0};
+    // };
+    // const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::tangent_u<22>::value;
 
-    template <>
-    struct shape_property<enumtype::Hexa>::tangent_v<24>{
-        static const  constexpr array<float_type, 3> value{0,-1,0};
-    };
-    const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::tangent_v<24>::value;
-
-
-    template <>
-    struct shape_property<enumtype::Hexa>::tangent_u<25>{
-        static const  constexpr array<float_type, 3> value{0,1,0};
-    };
-    const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::tangent_u<25>::value;
-
-    template <>
-    struct shape_property<enumtype::Hexa>::tangent_v<25>{
-        static const  constexpr array<float_type, 3> value{-1,0,0};
-    };
-    const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::tangent_v<25>::value;
+    // template <>
+    // struct shape_property<enumtype::Hexa>::tangent_v<22>{
+    //     static const  constexpr array<float_type, 3> value{0,-1,0};
+    // };
+    // const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::tangent_v<22>::value;
 
 
-    template <>
-    struct shape_property<enumtype::Hexa>::tangent_u<26>{
-        static const  constexpr array<float_type, 3> value{0,1,0};
-    };
-    const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::tangent_u<26>::value;
+    // template <>
+    // struct shape_property<enumtype::Hexa>::tangent_u<23>{
+    //     static const  constexpr array<float_type, 3> value{0,0,1};
+    // };
+    // const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::tangent_u<23>::value;
 
-    template <>
-    struct shape_property<enumtype::Hexa>::tangent_v<26>{
-        static const  constexpr array<float_type, 3> value{1,0,0};
-    };
-    const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::tangent_v<26>::value;
+    // template <>
+    // struct shape_property<enumtype::Hexa>::tangent_v<23>{
+    //     static const  constexpr array<float_type, 3> value{0,1,0};
+    // };
+    // const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::tangent_v<23>::value;
+
+
+    // template <>
+    // struct shape_property<enumtype::Hexa>::tangent_u<24>{
+    //     static const  constexpr array<float_type, 3> value{0,0,1};
+    // };
+    // const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::tangent_u<24>::value;
+
+    // template <>
+    // struct shape_property<enumtype::Hexa>::tangent_v<24>{
+    //     static const  constexpr array<float_type, 3> value{0,-1,0};
+    // };
+    // const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::tangent_v<24>::value;
+
+
+    // template <>
+    // struct shape_property<enumtype::Hexa>::tangent_u<25>{
+    //     static const  constexpr array<float_type, 3> value{0,1,0};
+    // };
+    // const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::tangent_u<25>::value;
+
+    // template <>
+    // struct shape_property<enumtype::Hexa>::tangent_v<25>{
+    //     static const  constexpr array<float_type, 3> value{-1,0,0};
+    // };
+    // const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::tangent_v<25>::value;
+
+
+    // template <>
+    // struct shape_property<enumtype::Hexa>::tangent_u<26>{
+    //     static const  constexpr array<float_type, 3> value{0,1,0};
+    // };
+    // const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::tangent_u<26>::value;
+
+    // template <>
+    // struct shape_property<enumtype::Hexa>::tangent_v<26>{
+    //     static const  constexpr array<float_type, 3> value{1,0,0};
+    // };
+    // const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::tangent_v<26>::value;
 
 
     template <>

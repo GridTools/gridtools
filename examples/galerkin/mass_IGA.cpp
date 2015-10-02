@@ -1,8 +1,8 @@
 /**
 \file
 */
-#pragma once
 #define PEDANTIC_DISABLED
+#define HAVE_INTREPID_DEBUG
 #include "assembly.h"
 #include "matvec.hpp"
 
@@ -30,13 +30,15 @@ struct mass {
     static void Do(Evaluation const & eval, x_interval) {
         //quadrature points dimension
         dimension<4>::Index qp;
+        uint_t const num_cub_points=eval.get().get_storage_dims(jac_det())[3];
+        uint_t const basis_cardinality=eval.get().get_storage_dims(psi())[0];
 
         //loop on quadrature nodes, and on nodes of the P1 element (i,j,k) with i,j,k\in {0,1}
-        for(short_t P_i=0; P_i<fe::basisCardinality; ++P_i) // current dof
+        for(int P_i=0; P_i<basis_cardinality; ++P_i) // current dof
         {
-            for(short_t Q_i=0; Q_i<fe::basisCardinality; ++Q_i)
+            for(int Q_i=0; Q_i<basis_cardinality; ++Q_i)
             {//other dofs whose basis function has nonzero support on the element
-                for(short_t q=0; q<cub::numCubPoints(); ++q){
+                for(int q=0; q<num_cub_points; ++q){
                     eval(mass_t(0,0,0,P_i,Q_i))  +=
                         eval(!phi(P_i,q,0)*(!psi(Q_i,q,0))*jac_det(qp+q)*!weights(q,0,0));
                 }
@@ -93,7 +95,7 @@ int main(){
     //![instantiation]
 
     //computing the value of the basis functions in the quadrature points
-    fe_.compute(Intrepid::OPERATOR_VALUE);
+    // fe_.compute(Intrepid::OPERATOR_VALUE);
     fe2_.compute(Intrepid::OPERATOR_VALUE);
     fe3_.compute(Intrepid::OPERATOR_VALUE);
 
@@ -106,32 +108,32 @@ int main(){
     iga_rt::BSpline<3,2> test31(&knots);
 
 
-    //partition of unity:
-    std::cout<<"my b spline on "<< fe_.cub_points()(0, 0) <<" : "<<
-        test11.evaluate(fe_.cub_points()(0, 0)) << "+" <<
-        test21.evaluate(fe_.cub_points()(0, 0))
-             <<" = "<<
-        (test11.evaluate(fe_.cub_points()(0, 0))+
-         test21.evaluate(fe_.cub_points()(0, 0)))
-             <<" = "<<fe_.basis_function()(0,0)<<" + "
-             <<fe_.basis_function()(1,0)
-             // <<fe_.basis_function()(2,0)
-             <<std::endl;
+    // //partition of unity:
+    // std::cout<<"my b spline on "<< fe_.cub_points()(0, 0) <<" : "<<
+    //     test11.evaluate(fe_.cub_points()(0, 0)) << "+" <<
+    //     test21.evaluate(fe_.cub_points()(0, 0))
+    //          <<" = "<<
+    //     (test11.evaluate(fe_.cub_points()(0, 0))+
+    //      test21.evaluate(fe_.cub_points()(0, 0)))
+    //          <<" = "<<fe_.basis_function()(0,0)<<" + "
+    //          <<fe_.basis_function()(1,0)
+    //          // <<fe_.basis_function()(2,0)
+    //          <<std::endl;
 
-    std::cout<<"my b spline on "<< fe_.cub_points()(0, 1) <<" : "<<
-        test11.evaluate(fe_.cub_points()(0, 1)) << "+" <<
-        test21.evaluate(fe_.cub_points()(0, 1))
-             <<" = "<<
-        (test11.evaluate(fe_.cub_points()(0, 1))+
-         test21.evaluate(fe_.cub_points()(0, 1)))
-             <<" = "<<fe_.basis_function()(0,1)<<" + "
-             <<fe_.basis_function()(1,1)
-             // <<fe_.basis_function()(2,0)
-             <<std::endl;
+    // std::cout<<"my b spline on "<< fe_.cub_points()(0, 1) <<" : "<<
+    //     test11.evaluate(fe_.cub_points()(0, 1)) << "+" <<
+    //     test21.evaluate(fe_.cub_points()(0, 1))
+    //          <<" = "<<
+    //     (test11.evaluate(fe_.cub_points()(0, 1))+
+    //      test21.evaluate(fe_.cub_points()(0, 1)))
+    //          <<" = "<<fe_.basis_function()(0,1)<<" + "
+    //          <<fe_.basis_function()(1,1)
+    //          // <<fe_.basis_function()(2,0)
+    //          <<std::endl;
 
 
-    assert(test11.evaluate(fe_.cub_points()(0, 0)) == fe_.basis_function()(0,0));
-    assert(test21.evaluate(fe_.cub_points()(0, 0)) == fe_.basis_function()(1,0));
+    // assert(test11.evaluate(fe_.cub_points()(0, 0)) == fe_.basis_function()(0,0));
+    // assert(test21.evaluate(fe_.cub_points()(0, 0)) == fe_.basis_function()(1,0));
 
     // std::cout<<"my b spline: "<<
     //      (
@@ -240,7 +242,26 @@ int main(){
      typedef arg<as::size+2, geo_t::grad_storage_t> p_dphi;
      typedef arg<as::size+3, vector_type> p_vec;
 
-     auto domain_=assembler.template domain< p_mass, p_phi, p_dphi, p_vec >( mass_, fe3_.basis_function(),  geo_.local_gradient(), vector_ );
+#ifndef __CUDACC__ //surprisingly, this does not compile with nvcc
+     auto domain_=assembler.template domain< p_mass
+                                             , p_phi
+                                             , p_dphi
+                                             , p_vec
+                                             >( mass_
+                                                , fe3_.basis_function()
+                                                ,  geo_.local_gradient()
+                                                , vector_
+         );
+#else
+     domain_type<boost::mpl::vector
+                 <as::super::p_grid_points
+                  ,as::p_jac, as::p_weights, as::p_jac_det, as::p_jac_inv,
+                  p_mass , p_phi, p_dphi, p_vec> >
+         domain_
+         ( boost::fusion::make_vector(&assembler.grid()
+                                      , &assembler.jac(), &assembler.cub_weights(), &assembler.jac_det(), &assembler.jac_inv()
+                                      ,  &mass_ , &fe3_.basis_function(),  &geo_.local_gradient(), &vector_));
+#endif
 
      auto coords=coordinates<axis>({1, 0, 1, d1-1, d1},
          {1, 0, 1, d2-1, d2});
@@ -250,12 +271,12 @@ int main(){
      auto computation=make_computation<gridtools::BACKEND>(
          make_mss
          (
-             execute<forward>(),
-             make_esf<functors::update_jac<geo_t> >( as::p_grid_points(), as::p_jac(), p_dphi())
+             execute<forward>()
+             // , make_esf<functors::update_jac<geo_t> >( as::p_grid_points(), as::p_jac(), p_dphi())
              , make_esf<functors::det<geo_t> >(as::p_jac(), as::p_jac_det())
-             , make_esf<functors::mass<fe3, geo_cub> >(as::p_jac_det(), as::p_weights(), p_mass(), p_phi(), p_phi())
-             , make_esf<functors::matvec<geo_t> >(p_vec(), p_mass(), p_vec())//matrix vector product
-             , make_esf<functors::jump_f<geo_t> >(p_vec(), p_vec())//compute the jump
+             // , make_esf<functors::mass<fe3, geo_cub> >(as::p_jac_det(), as::p_weights(), p_mass(), p_phi(), p_phi())
+             // , make_esf<functors::matvec<geo_t> >(p_vec(), p_mass(), p_vec())//matrix vector product
+             // , make_esf<functors::jump_f<geo_t> >(p_vec(), p_vec())//compute the jump
              ), domain_, coords);
 
      computation->ready();

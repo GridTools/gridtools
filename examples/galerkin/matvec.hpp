@@ -15,11 +15,12 @@ namespace functors{
         static void Do(Evaluation const & eval, x_interval) {
             dimension<4>::Index row;
             dimension<5>::Index col;
-
+            uint_t const cardinality_i=eval.get().get_storage_dims(in1())[0];
+            uint_t const cardinality_j=eval.get().get_storage_dims(in1())[1];
 
             //for all dofs in a boundary face
-            for(short_t I=0; I<geo_map::basisCardinality; I++)
-                for(short_t J=0; J<geo_map::basisCardinality; J++)
+            for(short_t I=0; I<cardinality_i; I++)
+                for(short_t J=0; J<cardinality_j; J++)
                 {
                     eval(out(row+I)) = eval(in1(row+I, col+J)*in2(row+J));
                 }

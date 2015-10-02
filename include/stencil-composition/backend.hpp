@@ -122,6 +122,9 @@ namespace gridtools {
     template< enumtype::backend BackendId, enumtype::strategy StrategyType >
     struct backend
     {
+#ifdef __CUDACC__
+        GRIDTOOLS_STATIC_ASSERT(BackendId==enumtype::Cuda, "Beware: you are compiling with nvcc, and most probably want to use the cuda backend, but the backend you are instantiating is another one!!");
+#endif
         typedef backend_traits_from_id<BackendId> backend_traits_t;
         typedef typename backend_traits_t::template select_strategy<StrategyType>::type strategy_traits_t;
 

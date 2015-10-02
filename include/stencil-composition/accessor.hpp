@@ -1,7 +1,9 @@
 #pragma once
-#include "stencil-composition/accessor_impl.hpp"
-#include "stencil-composition/arg.hpp"
-#include "stencil-composition/dimension.hpp"
+#include "accessor_impl.hpp"
+#include "arg.hpp"
+#include "dimension.hpp"
+#include "../common/generic_metafunctions/all_integrals.hpp"
+
 /**
    @file
 
@@ -123,7 +125,6 @@ namespace gridtools {
     struct accessor_mixed{
 
         static const ushort_t n_dim = ArgType::n_dim;
-        typedef ArgType type;
         typedef typename ArgType::base_t base_t;
         typedef typename ArgType::index_type index_type;
         typedef accessor_mixed<ArgType, Pair...> type;
