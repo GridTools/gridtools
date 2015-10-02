@@ -4,6 +4,7 @@ import argparse
 import subprocess
 import re,sys
 import math
+import os
 
 def check_output(*popenargs, **kwargs):
     process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
@@ -103,7 +104,7 @@ if __name__ == "__main__":
             for data in domain_data:
                 sizes = data.split('x')
                 exp_time = domain_data[data]['time']
-                cmd = executable +' ' + str(sizes[0]) + ' ' + str(sizes[1]) + ' ' + str(sizes[2])
+                cmd = ". "+os.getcwd()+"/env.sh; " + executable +' ' + str(sizes[0]) + ' ' + str(sizes[1]) + ' ' + str(sizes[2])
                 if target == 'cpu':
                     nthreads = re.sub('thread','',thread)
                     cmd = 'export OMP_NUM_THREADS='+nthreads+'; '+cmd
