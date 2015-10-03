@@ -269,7 +269,8 @@
                     }
                 }
             },
-            "exec": "build/interface1"
+            "exec": "build/interface1",
+            "stella_filter": ""
         },
         "copy_stencil": {
             "gpu": {
@@ -540,7 +541,8 @@
                     }
                 }
             },
-            "exec": "build/copy_stencil"
+            "exec": "build/copy_stencil",
+            "stella_filter": "--gtest_filter=BasicBenchmarks.copyStencilTest"
         },
         "vertical_advection": {
             "gpu": {
@@ -811,7 +813,8 @@
                     }
                 }
             },
-            "exec": "build/vertical_advection_dycore"
+            "exec": "build/vertical_advection_dycore",
+            "stella_filter": "--gtest_filter=VerticalAdvectionBenchmark.singleTest"
         }
     }
 }

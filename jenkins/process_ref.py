@@ -38,6 +38,7 @@ if __name__ == "__main__":
     parser.add_argument('--std', nargs=1, type=str, help='C++ standard')
     parser.add_argument('--prec', nargs=1, type=str, help='floating point precision')
     parser.add_argument('-m', nargs=1, type=str, help='Mode: u (update reference), c (check reference)')
+    parser.add_argument('--stella_path', nargs=1, type=str, help='path to stella installation dir')
 
     filter_stencils = [] 
     args = parser.parse_args()
@@ -67,6 +68,9 @@ if __name__ == "__main__":
 
     if not args.m:
         parser.error('mode -m should be specified')
+
+    if args.stella_path:
+        stella_exec = args.stella_path
 
     mode = args.m[0]
     if mode != 'u' and mode != 'c':
