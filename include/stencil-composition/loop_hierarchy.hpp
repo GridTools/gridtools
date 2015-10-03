@@ -200,7 +200,7 @@ namespace gridtools{
         /**@brief updating the restore_index with the current value*/
         template <typename IterateDomain>
         GT_FUNCTION
-        void update_index( IterateDomain & it_domain ){
+        void update_index( IterateDomain const & it_domain ){
 #if defined(VERBOSE) && !defined(NDEBUG)
             std::cout<<"updating the index for level "<<First::s_id<<std::endl;
 #endif
