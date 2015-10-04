@@ -6,9 +6,9 @@ endif()
 
 set( GTEST_FILES Options.hpp Options.cpp)
 
-set (add_mpi_libs "")
+set (ADD_MPI_LIBS "")
 if( GCL_MPI )
-    list(APPEND add_mpi_libs gcl)
+    list(APPEND ADD_MPI_LIBS gcl)
     list(APPEND MPISRCFILES copy_stencil_parallel)
 endif()
 
@@ -21,8 +21,8 @@ foreach(srcfile IN LISTS SRCFILES )
       PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
     set_target_properties(${srcfile}_naive PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
     set_target_properties(${srcfile}_block PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
-    target_link_libraries(${srcfile}_naive ${exe_LIBS} ${add_mpi_libs} ${MPI_ADDITIONAL_LIBS})
-    target_link_libraries(${srcfile}_block ${exe_LIBS} ${add_mpi_libs} ${MPI_ADDITIONAL_LIBS})
+    target_link_libraries(${srcfile}_naive ${exe_LIBS} ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS})
+    target_link_libraries(${srcfile}_block ${exe_LIBS} ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS})
 
     gridtools_add_test( tests.${srcfile}_block ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/${srcfile}_block" "12 33 61")
     gridtools_add_test( tests.${srcfile}_block ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/${srcfile}_block" "23 11 43")
