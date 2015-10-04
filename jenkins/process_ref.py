@@ -25,7 +25,7 @@ try: subprocess.check_output
 except: subprocess.check_output = check_output
 
 
-def run_and_extract_times(executable, sizes, filter_=None, stella_format = None):
+def run_and_extract_times(executable, sizes, filter_=None, stella_format = None, verbosity=False):
 
     machine = filter(lambda x: x.isalpha(), socket.gethostname())
 
@@ -50,7 +50,11 @@ def run_and_extract_times(executable, sizes, filter_=None, stella_format = None)
     times = []
     for i in range(nrep):
         try:
+            if verbosity:
+                print(cmd)
             output=subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+            if verbosity:
+                print(output)
             m = re.search('.*\[s\]\s*(\d+(\.\d*)?|\.\d+)',output)
             if m:
                 extracted_time =  m.group(1)
@@ -72,9 +76,23 @@ def run_and_extract_times(executable, sizes, filter_=None, stella_format = None)
 
 def plot_results(gridtools_timers, stella_timers, config):
 
+    stella_avgtime = []
+    gridtools_time = []
+
     for astencil in stella_timers:
+        stella_avgtime.append( astencil[0] )
+#        gridtools_time.append( gridtools_timers[[stencil_name][target][prec][std][thread][data]['time']
 
+    return
 
+def create_dict(adict, props):
+    if not props: return
+
+    current_prop = props.pop()
+    if not adict.has_key(current_prop):
+        adict[current_prop]={}
+
+    create_dict(adict[current_prop], props)
 
 class Config:
     def __init__(self, target, prec, std):
@@ -96,8 +114,10 @@ if __name__ == "__main__":
     parser.add_argument('--std', nargs=1, type=str, help='C++ standard')
     parser.add_argument('--prec', nargs=1, type=str, help='floating point precision')
     parser.add_argument('-m', nargs=1, type=str, help='Mode: u (update reference), c (check reference)')
-    parser.add_argument('--plot', help='plot the comparison timings')
+    parser.add_argument('--plot', action='store_true', help='plot the comparison timings')
     parser.add_argument('--stella_path', nargs=1, type=str, help='path to stella installation dir')
+    parser.add_argument('-v',action='store_true', help='verbosity')
+
 
     filter_stencils = [] 
     args = parser.parse_args()
@@ -130,7 +150,7 @@ if __name__ == "__main__":
 
     stella_exec = None
     if args.stella_path:
-        stella_exec = args.stella_path + '/StandaloneStencils'
+        stella_exec = args.stella_path[0] + '/StandaloneStencils'
 
     mode = args.m[0]
     if mode != 'u' and mode != 'c':
@@ -142,6 +162,9 @@ if __name__ == "__main__":
     if args.plot:
         plot_results = True
 
+    verbose=False
+    if args.v:
+        verbose=True
     config = Config(target,prec,std)
 
     f = open(args.json_file,'r')
@@ -176,10 +199,11 @@ if __name__ == "__main__":
                 sizes = data.split('x')
                 exp_time = domain_data[data]['time']
                 
-                timers_gridtools = run_and_extract_times(executable, sizes)
+                timers_gridtools = run_and_extract_times(executable, sizes, verbosity=verbose)
 
                 if stella_exec and stella_filter:
-                    stella_timers[stencil_name] = run_and_extract_times(stella_exec, sizes, stella_filter)
+                    create_dict(stella_timers, [data, thread, stencil_name] )
+                    stella_timers[stencil_name] = run_and_extract_times(stella_exec, sizes, stella_filter, stella_format=True, verbosity=verbose)
 
                 copy_ref['stencils'][stencil_name][target][prec][std][thread][data]['time'] = timers_gridtools[0]
                 copy_ref['stencils'][stencil_name][target][prec][std][thread][data]['rms'] = timers_gridtools[1]
