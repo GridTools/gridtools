@@ -12,7 +12,7 @@ endif(SUPPRESS_MESSAGES)
 
 SET(VERBOSE "OFF" CACHE BOOL "set verbosity for output")
 if(VERBOSE)
-    add_definitions(-D__VERBOSE__)
+    add_definitions(-DVERBOSE)
 endif(VERBOSE)
 
 
