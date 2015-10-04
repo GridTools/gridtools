@@ -28,7 +28,7 @@
                         }
                     }
                 },
-                "single": {
+                "float": {
                     "cxx11": {
                         "thread": {
                             "256x256x80": {
@@ -162,7 +162,7 @@
                         }
                     }
                 },
-                "single": {
+                "float": {
                     "cxx11": {
                         "2thread": {
                             "256x256x80": {
@@ -269,7 +269,8 @@
                     }
                 }
             },
-            "exec": "build/interface1"
+            "exec": "build/interface1",
+            "stella_filter": ""
         },
         "copy_stencil": {
             "gpu": {
@@ -299,7 +300,7 @@
                         }
                     }
                 },
-                "single": {
+                "float": {
                     "cxx11": {
                         "thread": {
                             "256x256x80": {
@@ -433,7 +434,7 @@
                         }
                     }
                 },
-                "single": {
+                "float": {
                     "cxx11": {
                         "2thread": {
                             "256x256x80": {
@@ -540,7 +541,8 @@
                     }
                 }
             },
-            "exec": "build/copy_stencil"
+            "exec": "build/copy_stencil",
+            "stella_filter": "--gtest_filter=BasicBenchmarks.copyStencilTest"
         },
         "vertical_advection": {
             "gpu": {
@@ -570,7 +572,7 @@
                         }
                     }
                 },
-                "single": {
+                "float": {
                     "cxx11": {
                         "thread": {
                             "256x256x80": {
@@ -704,7 +706,7 @@
                         }
                     }
                 },
-                "single": {
+                "float": {
                     "cxx11": {
                         "2thread": {
                             "256x256x80": {
@@ -811,7 +813,8 @@
                     }
                 }
             },
-            "exec": "build/vertical_advection_dycore"
+            "exec": "build/vertical_advection_dycore",
+            "stella_filter": "--gtest_filter=VerticalAdvectionBenchmark.singleTest"
         }
     }
 }
