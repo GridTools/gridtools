@@ -8,7 +8,7 @@ int main(int argc, char** argv)
     ::testing::InitGoogleTest(&argc, argv);
 
     if (argc != 4) {
-        printf( "Usage: interface1_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields\n" );
+        printf( "Usage: vertical_advection_dycore_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields\n" );
         return 1;
     }
 
