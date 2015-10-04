@@ -5,6 +5,7 @@ import subprocess
 import re,sys
 import math
 import os
+import socket
 
 def check_output(*popenargs, **kwargs):
     process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
@@ -24,9 +25,22 @@ try: subprocess.check_output
 except: subprocess.check_output = check_output
 
 
-def run_and_extract_times(executable, sizes):
+def run_and_extract_times(executable, sizes, filter_=None, stella_format = None):
 
-    cmd = ". "+os.getcwd()+"/env.sh; " + executable +' ' + str(sizes[0]) + ' ' + str(sizes[1]) + ' ' + str(sizes[2])    
+    machine = filter(lambda x: x.isalpha(), socket.gethostname())
+
+    cmd=''
+    if machine != 'greina':
+        print('WARNING: machine '+machine+' not known. Not loading any environment')
+    else:
+        cmd = ". "+os.getcwd()+"/env_"+machine+".sh; "
+
+    if stella_format:
+        cmd = cmd + executable +' --ie ' + str(sizes[0]) + ' --je ' + str(sizes[1]) + ' --ke ' + str(sizes[2])
+    else:
+        cmd = cmd + executable +' ' + str(sizes[0]) + ' ' + str(sizes[1]) + ' ' + str(sizes[2])
+    if filter_:
+        cmd = cmd + ' ' + filter_
     if target == 'cpu':
         nthreads = re.sub('thread','',thread)
         cmd = 'export OMP_NUM_THREADS='+nthreads+'; '+cmd
@@ -103,8 +117,9 @@ if __name__ == "__main__":
     if not args.m:
         parser.error('mode -m should be specified')
 
+    stella_exec = None
     if args.stella_path:
-        stella_exec = args.stella_path
+        stella_exec = args.stella_path + '/StandaloneStencils'
 
     mode = args.m[0]
     if mode != 'u' and mode != 'c':
@@ -123,6 +138,7 @@ if __name__ == "__main__":
     nrep=3
 
     copy_ref = decode
+    stella_timers = {}
 
     for stencil_name in decode['stencils']:
         print('CHECKING :', stencil_name)
@@ -139,20 +155,26 @@ if __name__ == "__main__":
         stencil_data = decode['stencils'][stencil_name]
         executable = path+'/'+stencil_data['exec']+'_'+target_suff
 
+        stella_filter = stencil_data['stella_filter']
+
         for thread in stencil_data[target][prec][std]: 
             domain_data = stencil_data[target][prec][std][thread]
             for data in domain_data:
                 sizes = data.split('x')
                 exp_time = domain_data[data]['time']
                 
-                timers = run_and_extract_times(executable, sizes)
+                timers_gridtools = run_and_extract_times(executable, sizes)
 
-                copy_ref['stencils'][stencil_name][target][prec][std][thread][data]['time'] = timers[0]
-                copy_ref['stencils'][stencil_name][target][prec][std][thread][data]['rms'] = timers[1]
+                if stella_exec and stella_filter:
+                    stella_timers[stencil_name] = run_and_extract_times(stella_exec, sizes, stella_filter)
 
-                error = math.fabs(float(extracted_time) - float(exp_time)) / (float(exp_time)+1e-20)
+                copy_ref['stencils'][stencil_name][target][prec][std][thread][data]['time'] = timers_gridtools[0]
+                copy_ref['stencils'][stencil_name][target][prec][std][thread][data]['rms'] = timers_gridtools[1]
+
+                error = math.fabs(float(timers_gridtools[0]) - float(exp_time)) / (float(exp_time)+1e-20)
                 if mode == 'c' and error > tolerance:
-                    print('Error in conf ['+data+','+prec+','+target+','+std+','+thread+'] : exp_time -> '+ str(exp_time) + '; comp time -> '+ extracted_time+'. Error = '+ str(error*100)+'%')
+                    print('Error in conf ['+data+','+prec+','+target+','+std+','+thread+'] : exp_time -> '+ str(exp_time) + '; comp time -> '+ 
+                        str(timers_gridtools[0])+'. Error = '+ str(error*100)+'%')
                     result = False
 
     if mode == 'u':
