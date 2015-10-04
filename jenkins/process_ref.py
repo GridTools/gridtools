@@ -70,8 +70,19 @@ def run_and_extract_times(executable, sizes, filter_=None, stella_format = None)
 
     return (avg_time,rms)
 
-"""
+def plot_results(gridtools_timers, stella_timers, config):
 
+    for astencil in stella_timers:
+
+
+
+class Config:
+    def __init__(self, target, prec, std):
+        self.target_ = target
+        self.prec_ = prec
+        self.std_ = std
+
+"""
 """
 if __name__ == "__main__":
 
@@ -131,6 +142,8 @@ if __name__ == "__main__":
     if args.plot:
         plot_results = True
 
+    config = Config(target,prec,std)
+
     f = open(args.json_file,'r')
     decode = json.load(f)
 
@@ -181,6 +194,9 @@ if __name__ == "__main__":
         fw = open(args.json_file +'.out','w')
         fw.write(json.dumps(copy_ref,  indent=4, separators=(',', ': ')) )
         fw.close()
+
+    if do_plot:
+        plot_results(copy_ref, stella_timers, config)
 
     if result:
         print('[OK]')
