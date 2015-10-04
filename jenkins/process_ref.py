@@ -22,6 +22,38 @@ def check_output(*popenargs, **kwargs):
 try: subprocess.check_output
 except: subprocess.check_output = check_output
 
+
+def run_and_extract_times(executable, sizes):
+    cmd = executable +' ' + str(sizes[0]) + ' ' + str(sizes[1]) + ' ' + str(sizes[2])
+    if target == 'cpu':
+        nthreads = re.sub('thread','',thread)
+        cmd = 'export OMP_NUM_THREADS='+nthreads+'; '+cmd
+
+    avg_time = 0
+
+    times = []
+    for i in range(nrep):
+        try:
+            output=subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+            m = re.search('.*\[s\]\s*(\d+(\.\d*)?|\.\d+)',output)
+            if m:
+                extracted_time =  m.group(1)
+                avg_time = avg_time + float(extracted_time)
+                times.append(float(extracted_time))
+            else:
+                sys.exit('Problem found extracting timings')
+
+        except subprocess.CalledProcessError, e:
+            sys.exit('Command called raised error:\n'+e.output)
+
+    avg_time = avg_time / 3.0
+    rms=0
+    for t in times:
+        rms = rms + (t-avg_time)*(t-avg_time)
+    rms = math.sqrt(rms) / nrep
+
+    return (avg_time,rms)
+
 """
 
 """
@@ -37,6 +69,8 @@ if __name__ == "__main__":
     parser.add_argument('--std', nargs=1, type=str, help='C++ standard')
     parser.add_argument('--prec', nargs=1, type=str, help='floating point precision')
     parser.add_argument('-m', nargs=1, type=str, help='Mode: u (update reference), c (check reference)')
+    parser.add_argument('--plot', help='plot the comparison timings')
+
 
     filter_stencils = [] 
     args = parser.parse_args()
@@ -74,6 +108,8 @@ if __name__ == "__main__":
     prec = args.prec[0]
     if prec != 'float' and prec != 'double':
         parser.error('-prec must be set to float or double')
+    if args.plot:
+        plot_results = True
 
     f = open(args.json_file,'r')
     decode = json.load(f)
@@ -103,36 +139,11 @@ if __name__ == "__main__":
             for data in domain_data:
                 sizes = data.split('x')
                 exp_time = domain_data[data]['time']
-                cmd = executable +' ' + str(sizes[0]) + ' ' + str(sizes[1]) + ' ' + str(sizes[2])
-                if target == 'cpu':
-                    nthreads = re.sub('thread','',thread)
-                    cmd = 'export OMP_NUM_THREADS='+nthreads+'; '+cmd
+                
+                timers = run_and_extract_times(executable, sizes)
 
-                avg_time = 0
-                times = []
-                for i in range(nrep):
-                    try:
-                        output=subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
-                        m = re.search('.*\[s\]\s*(\d+(\.\d*)?|\.\d+)',output)
-                        if m:
-                            extracted_time =  m.group(1)
-                            avg_time = avg_time + float(extracted_time)
-                            times.append(float(extracted_time))
-                        else:
-                            sys.exit('Problem found extracting timings')
-
-                    except subprocess.CalledProcessError, e:
-                        sys.exit('Command called raised error:\n'+e.output)
-
-                avg_time = avg_time / 3.0
-                rms=0
-                for t in times:
-                    rms = rms + (t-avg_time)*(t-avg_time)
-                rms = math.sqrt(rms) / nrep
-
-
-                copy_ref['stencils'][stencil_name][target][prec][std][thread][data]['time'] = avg_time
-                copy_ref['stencils'][stencil_name][target][prec][std][thread][data]['rms'] = rms
+                copy_ref['stencils'][stencil_name][target][prec][std][thread][data]['time'] = timers[0]
+                copy_ref['stencils'][stencil_name][target][prec][std][thread][data]['rms'] = timers[1]
 
                 error = math.fabs(float(extracted_time) - float(exp_time)) / (float(exp_time)+1e-20)
                 if mode == 'c' and error > tolerance:
