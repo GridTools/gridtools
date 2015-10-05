@@ -28,10 +28,12 @@
 
 /**@file
  @brief This file contains the global list of placeholders to the storages
- */
-
+*/
 namespace gridtools {
 
+    //fwd declaration
+    template<typename T>
+    struct is_arg;
 
     /**
        @brief This struct contains the global list of placeholders to the storages
@@ -47,6 +49,9 @@ namespace gridtools {
 
     template <typename Placeholders>
     struct domain_type : public clonable_to_gpu<domain_type<Placeholders> > {
+
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Placeholders, is_arg>::type::value), "wrong type:\
+ the domain_type template argument must be an MPL vector of placeholders (arg<...>)");
         typedef Placeholders original_placeholders;
 
     private:
@@ -109,7 +114,8 @@ namespace gridtools {
         typedef typename boost::mpl::find_if<raw_index_list, boost::mpl::greater<boost::mpl::_1, static_int<len-1> > >::type test;
         //check if the index list contains holes (a common error is to define a list of types with indexes which are not contiguous)
         GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename test::type, boost::mpl::void_ >::value) , "the index list contains holes:\n\
-The numeration of the placeholders is not contiguous. You have to define each arg with a unique identifier ranging from 0 to N without \"holes\".");
+The numeration of the placeholders is not contiguous. \
+You have to define each arg with a unique identifier ranging from 0 to N without \"holes\".");
 
         /**\brief reordering vector
          * defines an mpl::vector of len indexes reordered accodring to range_t (placeholder _2 is vector<>, placeholder _1 is range_t)
@@ -203,21 +209,29 @@ The numeration of the placeholders is not contiguous. You have to define each ar
         metadata_set_t m_metadata_set;
 
 #ifdef CXX11_ENABLED
-        void assign_pointers() {}
+
+        template <typename MetaDataSequence>
+        void assign_pointers(MetaDataSequence&) {}
 
         /**@brief recursively assignes all the pointers passed as arguments to storages.
          */
-        template <typename Arg0, typename... OtherArgs>
-        void assign_pointers(Arg0 const& arg0, OtherArgs const& ... other_args)
+        template <typename MetaDataSequence, typename ArgStoragePair0, typename... OtherArgs>
+        void assign_pointers(MetaDataSequence& sequence_, ArgStoragePair0 arg0, OtherArgs ... other_args)
         {
-            boost::fusion::at<typename Arg0::arg_type::index_type>(m_storage_pointers) = arg0.ptr;
-            assign_pointers(other_args...);
+            assert(arg0.ptr);
+            printf("pointer: %x", arg0.ptr);
+            boost::fusion::at<typename ArgStoragePair0::arg_type::index_type>(m_storage_pointers) = arg0.ptr;
+            //storing the value of the pointers in a 'backup' fusion vector
+            boost::fusion::at<typename ArgStoragePair0::arg_type::index_type>(m_original_pointers) = arg0.ptr;
+            if (!sequence_.template present<pointer<const typename ArgStoragePair0::storage_type::meta_data_t> >())
+                sequence_.insert(pointer<const typename ArgStoragePair0::storage_type::meta_data_t>(&(arg0.ptr->meta_data())));
+            assign_pointers(sequence_, other_args...);
         }
 
 #endif
     public:
 
-#if defined (CXX11_ENABLED) && !defined (__CUDACC__)
+#if defined (CXX11_ENABLED)
         /** @brief variadic constructor
             construct the domain_type given an arbitrary number of placeholders to the non-temporary
             storages passed as arguments.
@@ -231,16 +245,10 @@ The numeration of the placeholders is not contiguous. You have to define each ar
         domain_type(StorageArgs ... args)
             : m_storage_pointers()
             , m_metadata_set()
-            {
-                assign_pointers(args...);
-
-                //copy of the non-tmp metadata into m_metadata_set
-                typedef boost::fusion::filter_view<arg_list,
-                                                   is_storage<boost::mpl::_1> > view_type;
-
-                view_type fview(m_storage_pointers);
-                boost::fusion::for_each(fview, assign_metadata_set<metadata_set_t >(m_metadata_set));
-            }
+        {
+            GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(), is_arg_storage_pair<StorageArgs>::value ...), "wrong type");
+            assign_pointers(m_metadata_set, args...);
+        }
 #endif
 
 
@@ -262,16 +270,12 @@ The numeration of the placeholders is not contiguous. You have to define each ar
 
             template <typename Arg>
             void operator()( Arg const* arg_) const{
+                //TODO: is_storage is already taken!!
+                //GRIDTOOLS_STATIC_ASSERT(is_storage<Arg>::value, "wrong type");
                 if (!m_sequence.template present<pointer<const typename Arg::meta_data_t> >())
                     m_sequence.insert(pointer<const typename Arg::meta_data_t>(&arg_->meta_data()));
             }
         };
-
-        template <ushort_t Index, typename Layout, bool Tmp>
-        struct meta_storage;
-
-        template <typename T>
-        struct meta_storage_derived;
 
         /**@brief Constructor from boost::fusion::vector
          * @tparam RealStorage fusion::vector of pointers to storages sorted with increasing indices of the pplaceholders
@@ -282,16 +286,14 @@ The numeration of the placeholders is not contiguous. You have to define each ar
         explicit domain_type(RealStorage const & real_storage_)
             : m_storage_pointers()
             , m_metadata_set()
-            {
+        {
 
             typedef boost::fusion::filter_view<arg_list,
-                is_storage<boost::mpl::_1> > view_type;
+                                               is_storage<boost::mpl::_1> > view_type;
 
             view_type fview(m_storage_pointers);
 
-#ifdef PEDANTIC
             GRIDTOOLS_STATIC_ASSERT( boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value, "The number of arguments specified when constructing the domain_type is not the same as the number of placeholders to non-temporary storages. Double check the temporary flag in the meta_storage types.");
-#endif
 
             //NOTE: an error in the line below could mean that the storage type
             // associated to the arg is not the
@@ -310,8 +312,6 @@ The numeration of the placeholders is not contiguous. You have to define each ar
             boost::fusion::copy(real_storage_, original_fview);
         }
 
-
-#ifdef __CUDACC__
         /** Copy constructor to be used when cloning to GPU
          *
          * @param The object to copy. Typically this will be *this
@@ -322,7 +322,6 @@ The numeration of the placeholders is not contiguous. You have to define each ar
             , m_original_pointers(other.m_original_pointers)
             , m_metadata_set(other.m_metadata_set)
         { }
-#endif
 
 #ifndef NDEBUG
         GT_FUNCTION
@@ -357,7 +356,7 @@ The numeration of the placeholders is not contiguous. You have to define each ar
 
         /** @brief copy the pointers from the device to the host
             NOTE: no need to copy back the metadata since it has not been modified
-         */
+        */
         void finalize_computation() {
             boost::fusion::for_each(m_original_pointers, call_d2h());
             gridtools::for_each<
@@ -367,7 +366,7 @@ The numeration of the placeholders is not contiguous. You have to define each ar
 
         /**
            @brief returning by non-const reference the metadata set
-         */
+        */
         metadata_set_t & metadata_set_view(){return m_metadata_set;}
 
         /**

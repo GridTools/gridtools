@@ -5,7 +5,7 @@
 #include "../common/gt_assert.hpp"
 #include "../common/is_temporary_storage.hpp"
 #include <iostream>
-#include "accumulate.hpp"
+#include "../common/generic_metafunctions/accumulate.hpp"
 #include "../common/generic_metafunctions/gt_integer_sequence.hpp"
 
 namespace gridtools{
@@ -45,7 +45,7 @@ namespace gridtools{
 
             template<typename ... UIntType>
             static constexpr array<int_t, MaxIndex> apply(UIntType ... args){
-                using seq = apply_integer_sequence<typename make_integer_sequence<int_t, sizeof ... (args)>::type >;
+                using seq = apply_gt_integer_sequence<typename make_gt_integer_sequence<int_t, sizeof ... (args)>::type >;
                 return seq::template apply<array<int_t, MaxIndex>, lambda>((int_t)args...);
             }
         };

@@ -1,22 +1,13 @@
 #pragma once
 
-#if __cplusplus > 199711L && __cplusplus <= 201103L
+#if __cplusplus > 199711L
 #ifndef CXX11_DISABLE
 #define CXX11_ENABLED
-#define CXX14_DISABLED
-#else
-#if __cplusplus > 201103L
-#define CXX11_ENABLED
-#define CXX14_ENABLED
 #else
 #define CXX11_DISABLED
-#define CXX14_DISABLED
 #endif
-#endif
-#endif
-
-#if((defined(CXX11_DISABLED) && defined(CXX14_ENABLED)))
-#error("Internal error: when CXX14 is ON, also CXX11 must be automatically turned ON");
+#else
+#define CXX11_DISABLED
 #endif
 
 //defines how many threads participate to the (shared) memory initialization
@@ -57,7 +48,7 @@
 #define DEPRECATED(func) func
 #endif
 
-/** Macro do enable additional checks that may catch some errors in user code
+/** Macro to enable additional checks that may catch some errors in user code
  */
 #ifndef PEDANTIC_DISABLED
 #define PEDANTIC
@@ -272,10 +263,15 @@ namespace gridtools{
         typedef boost::mpl::integral_c<bool,B> type;
     };
 
+#endif
+    template<typename T>
+    struct is_static_integral : boost::mpl::false_{};
+
+    template<typename T, T N>
+    struct is_static_integral<boost::mpl::integral_c<T, N> >: boost::mpl::true_{};
     /**
        @}
      */
 //######################################################
-#endif
 
 }//namespace gridtools

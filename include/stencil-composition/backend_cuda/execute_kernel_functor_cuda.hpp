@@ -125,8 +125,6 @@ struct execute_kernel_functor_cuda
         }
 #endif
 
-        //TODO: check: isn't this done also in intermediate.hpp?
-        // m_local_domain.clone_to_gpu();
         m_coords.clone_to_gpu();
 
         local_domain_t *local_domain_gp = m_local_domain.gpu_object_ptr;

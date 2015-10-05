@@ -55,7 +55,7 @@ typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
         typedef accessor<4> rhs; //d
 
 #ifndef __CUDACC__
-	static const auto expr_sup=sup{}/(diag{}-sup{z{-1}}*inf{});
+        static const auto expr_sup=sup{}/(diag{}-sup{z{-1}}*inf{});
         static const auto expr_rhs=(rhs{}-inf{}*rhs{z{-1}})/(diag{}-sup{z{-1}}*inf{});
         static const auto expr_out=rhs{}-sup{}*out{0,0,1};
 #endif
@@ -182,9 +182,9 @@ bool solver(uint_t x, uint_t y, uint_t z) {
 
     //    typedef gridtools::STORAGE<double, gridtools::layout_map<0,1,2> > storage_type;
     typedef gridtools::layout_map<0,1,2> layout_t;
-    typedef gridtools::meta_storage<0, layout_t, false> meta_t;
+    typedef gridtools::storage_info<0, layout_t> meta_t;
     typedef gridtools::BACKEND::storage_type<float_type, meta_t >::type storage_type;
-    typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
+    typedef gridtools::BACKEND::temporary_storage_type<float_type, meta_t >::type tmp_storage_type;
 
     // Definition of the actual data fields that are used for input/output
     //storage_type in(d1,d2,d3,-1, "in"));

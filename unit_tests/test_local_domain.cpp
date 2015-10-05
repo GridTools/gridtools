@@ -54,8 +54,8 @@ TEST(test_local_domain, merge_mss_local_domains) {
 
     typedef layout_map<2,1,0> layout_ijk_t;
     typedef layout_map<0,1,2> layout_kji_t;
-    typedef meta_storage<0, layout_ijk_t, false> meta_ijk_t;
-    typedef meta_storage<0, layout_kji_t, false> meta_kji_t;
+    typedef storage_info<0, layout_ijk_t> meta_ijk_t;
+    typedef storage_info<0, layout_kji_t> meta_kji_t;
     typedef gridtools::backend<Host, Naive >::storage_type<float_type, meta_ijk_t >::type storage_type;
     typedef gridtools::backend<Host, Naive >::storage_type<float_type, meta_kji_t >::type storage_buff_type;
 
