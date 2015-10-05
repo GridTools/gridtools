@@ -35,6 +35,7 @@ struct initialize_all{
     GT_FUNCTION
     static void apply(int_t* offset, X ... x)
     {
+        GRIDTOOLS_STATIC_ASSERT( (accumulate(logical_and(), is_dimension<X>::type::value ...)), "wrong type." );
         offset[ID]=initialize<ID>(x...);
         initialize_all<ID-1>::apply(offset, x...);
     }
@@ -138,7 +139,11 @@ struct offset_tuple : public offset_tuple<Index-1, NDim>
     template <ushort_t Idx, typename... GenericElements>
     GT_FUNCTION
     constexpr offset_tuple ( dimension<Idx> const& t, GenericElements const& ... x):
-        super( t, x... ), m_offset(initialize<super::n_dim-n_args+1>(t, x...)) {}
+        super( t, x... ), m_offset(initialize<super::n_dim-n_args+1>(t, x...)) {
+
+        GRIDTOOLS_STATIC_ASSERT( (Idx <= n_dim ), "overflow in offset_tuple. Check that the accessor dimension is valid." );
+
+    }
 #else
     /**@brief constructor taking an integer as the first argument, and then other optional arguments.
        The integer gets assigned to the current extra dimension and the other arguments are passed to the base class (in order to get assigned to the other dimensions).
@@ -224,7 +229,6 @@ struct offset_tuple<0, NDim>
     template <typename... GenericElements>
     GT_FUNCTION
     constexpr offset_tuple ( GenericElements... x) {
-        GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(),  is_dimension<GenericElements>::type::value ... ), "wrong type for the argument of an offset_tuple" );
     }
 
     //copy ctor

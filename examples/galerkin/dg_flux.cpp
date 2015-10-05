@@ -2,6 +2,7 @@
 \file
 */
 #define PEDANTIC_DISABLED
+#define HAVE_INTREPID_DEBUG
 //! [assembly]
 #include "bd_assembly.hpp"
 //! [assembly]
@@ -14,17 +15,16 @@
 */
 
 template <typename FE, typename BoundaryCubature>
-struct boundary_integral {
+struct integration {
     using fe=FE;
     using bd_cub=BoundaryCubature;
 
-    using jac=accessor< 0, range<0,0,0,0>, 6 >;
-    using jac_det=accessor< 1, range<0,0,0,0>, 4 >;
-    using weights=accessor< 2, range<0,0,0,0>, 3 >;
+    using jac_det=accessor< 0, range<0,0,0,0>, 4 >;
+    using weights=accessor< 1, range<0,0,0,0>, 3 >;
+    using out=accessor< 2, range<0,0,0,0>, 5 >;
     using phi_trace=accessor< 3, range<0,0,0,0>, 3 >;
-    using normals=accessor< 4, range<0,0,0,0>, 5 >;
-    using out=accessor< 5, range<0,0,0,0>, 5 >;
-    using arg_list=boost::mpl::vector<jac, jac_det, weights, phi_trace, normals, out> ;
+    using psi_trace=accessor< 4, range<0,0,0,0>, 3 >;
+    using arg_list=boost::mpl::vector<jac_det, weights, phi_trace, psi_trace, out> ;
 
     /** @brief compute the integral on the boundary of a field times the normals
 
@@ -34,30 +34,21 @@ struct boundary_integral {
     template <typename Evaluation>
     GT_FUNCTION
     static void Do(Evaluation const & eval, x_interval) {
-        x::Index i;
-        y::Index j;
-        z::Index k;
         dimension<4>::Index quad;
-        dimension<5>::Index dimI;
-        dimension<6>::Index dimJ;
         dimension<4>::Index dofI;
         dimension<5>::Index dofJ;
 
         uint_t const num_cub_points=eval.get().get_storage_dims(jac_det())[3];
         uint_t const basis_cardinality = eval.get().get_storage_dims(phi_trace())[3];
 
+        //loop on the basis functions (interpolation in the quadrature point)
         for(short_t P_i=0; P_i<basis_cardinality; ++P_i) // current dof
         {
             for(short_t P_j=0; P_j<basis_cardinality; ++P_j) // current dof
             {
                 float_type partial_sum=0.;
                 for(ushort_t q_=0; q_<num_cub_points; ++q_){
-                    //loop on the basis functions (interpolation in the quadrature point)
-                    float_type inner_product1=0.;
-                    for(ushort_t j_=0; j_<3; ++j_){
-                        inner_product1 += eval(normals(quad+q_, dimJ+j_)*jac(quad+q_)*!phi_trace(dofJ+P_i, quad+q_));
-                    }
-                    partial_sum += (inner_product1) * eval(!weights(quad+q_))*eval(jac_det(quad+q_));
+                    partial_sum += eval(!phi_trace(P_i,q_)*!psi_trace(P_j, q_)*jac_det(quad+q_));
                 }
                 eval(out(dofI+P_i, dofJ+P_j))=partial_sum;
             }
@@ -71,7 +62,7 @@ int main(){
     using namespace enumtype;
     using namespace gridtools;
     //defining the assembler, based on the Intrepid definitions for the numerics
-    using matrix_storage_info_t=storage_info< gridtools::layout_map<0,1,2,3,4> >;
+    using matrix_storage_info_t=storage_info< layout_tt<3,4> >;
     using matrix_type=storage_t< matrix_storage_info_t >;
 
     using fe=reference_element<1, Lagrange, Hexa>;
@@ -122,18 +113,18 @@ int main(){
     //![instantiation_stiffness]
     //defining the stiffness matrix: d1xd2xd3 elements
     matrix_storage_info_t meta_(d1,d2,d3,fe::basisCardinality,fe::basisCardinality);
-    matrix_type flux_(meta_, 0., "flux");
+    matrix_type mass_(meta_, 0., "mass");
 
     //![placeholders]
-    // defining the placeholder for the flux
-    typedef arg<as::size, matrix_type> p_flux;
+    // defining the placeholder for the mass
+    typedef arg<as::size, matrix_type> p_mass;
     // defining the placeholder for the local gradient of the element boundary face
     typedef arg<as::size+1, bd_discr_t::grad_storage_t> p_bd_dphi;
 
     typedef arg<as::size+2, bd_discr_t::basis_function_storage_t> p_bd_phi;
 
     // appending the placeholders to the list of placeholders already in place
-    auto domain=assembler.template domain<p_flux, p_bd_dphi, p_bd_phi>(flux_, bd_discr_.local_gradient(), bd_discr_.phi());
+    auto domain=assembler.template domain<p_mass, p_bd_dphi, p_bd_phi>(mass_, bd_discr_.local_gradient(), bd_discr_.phi());
     //![placeholders]
 
 
@@ -148,9 +139,9 @@ int main(){
         (
             execute<forward>()
             // evaluate the cell Jacobian matrix on the boundary (given the basis functions derivatives in those points)
-            , make_esf<functors::update_jac<bd_discr_t , enumtype::Quad> >(as::p_grid_points(), as::p_bd_jac(), p_bd_dphi())
+            , make_esf<functors::update_jac<bd_discr_t , enumtype::Hexa> >(as::p_grid_points(), as::p_bd_jac(), p_bd_dphi())
             // compute the normals on the quad points from the jacobian above (first 2 columns)
-            , make_esf<functors::compute_face_normals<bd_discr_t> >(as::p_bd_jac(), as::p_normals())
+            , make_esf<functors::compute_face_normals<bd_discr_t> >(as::p_bd_jac(), as::p_ref_normals(), as::p_normals())
             // surface integral:
             // compute the measure for the surface integral
             //            |  / d(phi_x)/du   d(phi_x)/dv  1 \  |
@@ -158,7 +149,7 @@ int main(){
             //            |  \ d(phi_z)/du   d(phi_z)/dv  1 /  |
             , make_esf<functors::measure<bd_discr_t, 2> >(as::p_bd_jac(), as::p_bd_measure())
             // evaluate the integral
-            , make_esf<boundary_integral<fe, bd_cub_t::bd_cub> >(as::p_bd_jac(), as::p_bd_measure(), as::p_bd_weights(), p_bd_phi(), as::p_normals(), p_flux()) //flux
+            , make_esf<integration<fe, bd_cub_t::bd_cub> >(as::p_bd_measure(), as::p_bd_weights(), p_mass(), p_bd_phi(), p_bd_phi()) //mass
             ), domain, coords);
 
     computation->ready();
@@ -166,5 +157,5 @@ int main(){
     computation->run();
     computation->finalize();
     //![computation]
-    intrepid::test(assembler, bd_discr_, flux_);
+    intrepid::test(assembler, bd_discr_, mass_);
 }

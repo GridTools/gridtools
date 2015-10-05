@@ -337,7 +337,9 @@ namespace intrepid{
         basis_function_storage_t m_phi_at_cub_points;
         tangent_storage_t m_ref_face_tg_u;
         tangent_storage_t m_ref_face_tg_v;
+        tangent_storage_t m_ref_normals;
         ushort_t m_face_ord;
+        bool m_tangent_computed;
 
     public:
 
@@ -345,16 +347,21 @@ namespace intrepid{
             m_rule(rule_)
             , m_grad_at_cub_points_info(geo_map::basisCardinality, rule_t::bd_cub::numCubPoints(), shape_property<rule_t::/*bd*/parent_shape>::dimension)
             , m_phi_at_cub_points_info(geo_map::basisCardinality, rule_t::bd_cub::numCubPoints(), 1)
-            , m_ref_face_tg_info(rule_t::bd_cub::numCubPoints(), shape_property<rule_t::parent_shape>::dimension, 1)
-            , m_grad_at_cub_points(m_grad_at_cub_points_info, "bd grad at cub")
-            , m_phi_at_cub_points(m_phi_at_cub_points_info, "bd phi at cub")
-            , m_ref_face_tg_u(m_ref_face_tg_info, "tg u")
-            , m_ref_face_tg_v(m_ref_face_tg_info, "tg v")
+            , m_ref_face_tg_info(shape_property<rule_t::parent_shape>::dimension, 1, 1)
+            , m_grad_at_cub_points(m_grad_at_cub_points_info, 0., "bd grad at cub")
+            , m_phi_at_cub_points(m_phi_at_cub_points_info, 0., "bd phi at cub")
+            , m_ref_face_tg_u(m_ref_face_tg_info, 0., "tg u")
+            , m_ref_face_tg_v(m_ref_face_tg_info, 0., "tg v")
+            , m_ref_normals(m_ref_face_tg_info, 0., "reference normals")
             , m_face_ord(face_ord_)
+            , m_tangent_computed(false)
             {}
 
         void compute(Intrepid::EOperator const& operator_){
             auto face_quad_=m_rule.update_boundary_cub(m_face_ord);
+
+            compute_tangents();
+            compute_normals();
 
             switch (operator_){
             case Intrepid::OPERATOR_GRAD :
@@ -376,44 +383,61 @@ namespace intrepid{
                 // evaluate grad operator at the face cub points
                 geo_map::hexBasis().getValues(phi_at_cub_points, face_quad_, Intrepid::OPERATOR_VALUE);
 
-                for (uint_t j=0; j<geo_map::basisCardinality; ++j)
-                    for (uint_t i=0; i<rule_t::bd_cub::numCubPoints(); ++i)
+                for (uint_t i=0; i<geo_map::basisCardinality; ++i)
+                    for (uint_t j=0; j<rule_t::bd_cub::numCubPoints(); ++j)
                     {
                         m_phi_at_cub_points(i,j,0)=phi_at_cub_points(i,j);
                     }
                 break;
             }
-            // case Intrepid::OPERATOR_VALUE :
-            // {
-            //     geo_map::hexBasis().getValues(m_phi_at_cub_points, face_quad_, Intrepid::OPERATOR_VALUE);
-            //     break;
-            // }
-            default : assert(false);
+
+            default :
+            {
+                std::cout<<"Operator not supported"<<std::endl;
+                assert(false);
+            }
             }
         }
 
         /**@brief get the 2 tangents on a point in the reference element*/
         void compute_tangents(){
-            Intrepid::FieldContainer<double> tangent_u(rule_t::bd_cub::numCubPoints(), shape_property<rule_t::parent_shape>::dimension);
-            Intrepid::FieldContainer<double> tangent_v(rule_t::bd_cub::numCubPoints(), shape_property<rule_t::parent_shape>::dimension);
-            Intrepid::CellTools<value_t>::getReferenceFaceTangents(m_ref_face_tg_u, m_ref_face_tg_v, m_face_ord, geo_map::cell_t::value);
+            Intrepid::FieldContainer<double> tangent_u(shape_property<rule_t::parent_shape>::dimension);
+            Intrepid::FieldContainer<double> tangent_v(shape_property<rule_t::parent_shape>::dimension);
+            Intrepid::CellTools<value_t>::getReferenceFaceTangents(tangent_u, tangent_v, m_face_ord, geo_map::cell_t::value);
 
-            for (uint_t i=0; i<rule_t::bd_cub::numCubPoints(); ++i)
-                    for (uint_t j=0; j<shape_property<rule_t::parent_shape>::dimension; ++j)
-                    {
-                        m_ref_face_tg_u(i,j,0)=tangent_u(i,j);
-                        m_ref_face_tg_v(i,j,0)=tangent_v(i,j);
-                    }
+            for (uint_t j=0; j<shape_property<rule_t::parent_shape>::dimension; ++j)
+            {
+                m_ref_face_tg_u(j,0)=tangent_u(j);
+                m_ref_face_tg_v(j,0)=tangent_v(j);
+            }
+            m_tangent_computed=true;
+        }
+
+        void compute_normals(){
+            assert(m_tangent_computed);
+            array<double, 3> tg_u{m_ref_face_tg_u(0,0), m_ref_face_tg_u(1,0), m_ref_face_tg_u(2,0)};
+            array<double, 3> tg_v{m_ref_face_tg_v(0,0), m_ref_face_tg_v(1,0), m_ref_face_tg_v(2,0)};
+            array<double, 3> normal(vec_product(tg_u, tg_v));
+
+            for (uint_t j=0; j<shape_property<rule_t::parent_shape>::dimension; ++j)
+            {
+                m_ref_normals(j,0)=normal[j];
+            }
+
+
         }
 
         typename rule_t::weights_storage_t & bd_cub_weights()
-            {return m_rule.bd_cub_weights();}
+        {return m_rule.bd_cub_weights();}
 
         grad_storage_t & local_gradient()
-            {return m_grad_at_cub_points;}
+        {return m_grad_at_cub_points;}
 
         basis_function_storage_t & phi()
-            {return m_phi_at_cub_points;}
+        {return m_phi_at_cub_points;}
+
+        tangent_storage_t & ref_normals()
+        {return m_ref_normals;}
 
 
     };

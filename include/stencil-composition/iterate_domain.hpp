@@ -518,6 +518,7 @@ namespace gridtools {
         >::type& RESTRICT
         operator()(Accessor const& accessor) const {
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
+            GRIDTOOLS_STATIC_ASSERT((Accessor::n_dim>2), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
             return get_value(accessor, (data_pointer())[current_storage<(Accessor::index_type::value==0)
                                                     , local_domain_t, typename Accessor::type >::value]);
         }
@@ -532,6 +533,7 @@ namespace gridtools {
         operator()(Accessor const& accessor) const {
 
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
+            GRIDTOOLS_STATIC_ASSERT((Accessor::n_dim>2), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
             return static_cast<IterateDomainImpl const *>(this)->get_cache_value_impl (accessor);
         }
 
@@ -550,6 +552,9 @@ namespace gridtools {
             typename accessor_return_type<Accessor>::type::value_type
         >::type& RESTRICT
         operator()(Accessor const& accessor) const;
+
+        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
+        GRIDTOOLS_STATIC_ASSERT((Accessor::n_dim>4), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
 
 
 #if defined(CXX11_ENABLED) && !defined(__CUDACC__)//nvcc compiler bug

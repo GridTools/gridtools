@@ -34,6 +34,8 @@ namespace gridtools {
     template <typename ESF, typename ... ExtraArgs>
     esf_descriptor<ESF, boost::mpl::vector<ExtraArgs ...> >
     make_esf( ExtraArgs&& ... /*args_*/){
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename ESF::arg_list>::type::value >= sizeof...(ExtraArgs)), "number of arugmantes declared for an ESF is larger than the placeholders passed to make_esf");
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename ESF::arg_list>::type::value <= sizeof...(ExtraArgs)), "number of arugmantes declared for an ESF is smaller than the placeholders passed to make_esf");
         return esf_descriptor<ESF, boost::mpl::vector<ExtraArgs ...> >();
     }
 

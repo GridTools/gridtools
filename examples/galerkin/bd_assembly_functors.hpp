@@ -102,11 +102,9 @@ namespace functors{
         static const auto parent_shape=BdGeometry::parent_shape;
 
         using jac=accessor< 0, range<0,0,0,0>, 6 >;
-        using normals=accessor< 1, range<0,0,0,0>, 5 >;
-        using arg_list=boost::mpl::vector<jac, normals> ;
-
-        compute_face_normals()
-            {}
+        using ref_normals=accessor< 1, range<0,0,0,0>, 3 >;
+        using normals=accessor< 2, range<0,0,0,0>, 5 >;
+        using arg_list=boost::mpl::vector<jac, ref_normals, normals> ;
 
         /** @brief compute the normal vectors in the face quadrature points
 
@@ -122,24 +120,21 @@ namespace functors{
             dimension<4>::Index quad;
             dimension<5>::Index dimI;
             dimension<6>::Index dimJ;
-
             uint_t const num_cub_points=eval.get().get_storage_dims(jac())[3];
 
-            array<double, 3> tg_u{eval(jac()), eval(jac(dimI+1)), eval(jac(dimI+2))};
-            array<double, 3> tg_v{eval(jac(dimJ+1)), eval(jac(dimI+1, dimJ+1)), eval(jac(dimI+2, dimJ+1))};
-
-            array<double, 3> normal(vec_product(tg_u, tg_v));
-
             for(ushort_t q_=0; q_<num_cub_points; ++q_){
-                for(ushort_t j_=0; j_<3; ++j_){
-                    eval(normals(quad+q_, dimJ+j_))=normal[j_];
+                for(ushort_t i_=0; i_<3; ++i_){
+                    double product = 0.;
+                    for(ushort_t j_=0; j_<3; ++j_){
+                        product += eval(jac(quad+q_, dimI+i_, dimJ+j_)) * eval(!ref_normals(j_,0,0));
+                    }
+                    eval(normals(quad+q_, dimI+i_)) = product;
                 }
             }
         }
     };
     // [normals]
 
-    // [normals]
     template<typename BdGeometry, ushort_t faceID>
     struct map_vectors{
         using bd_cub=typename BdGeometry::cub;

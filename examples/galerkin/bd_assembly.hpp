@@ -10,11 +10,11 @@ struct assembly<Boundary, Geometry > : public assembly_base<Geometry> {
     using bd_cub=typename Boundary::cub;
     using super = assembly_base<Geometry>;
 
-    using face_normals_type_info=storage_info< gridtools::layout_map<0,1,2,3,4>, __COUNTER__ >;
+    using face_normals_type_info=storage_info< layout_tt<3,4>, __COUNTER__ >;
     using face_normals_type=storage_t< face_normals_type_info >;
-    using storage_type_info=storage_info< gridtools::layout_map<0,1,2,3>, __COUNTER__ >;
+    using storage_type_info=storage_info< layout_tt<3>, __COUNTER__ >;
     using storage_type=storage_t< storage_type_info >;
-    using jacobian_type_info=storage_info<gridtools::layout_map<0,1,2,3,4,5>, __COUNTER__ >;
+    using jacobian_type_info=storage_info<layout_tt<3,4,5>, __COUNTER__ >;
     using jacobian_type=storage_t< jacobian_type_info >;
 
     typedef arg<super::size+0, jacobian_type >       p_bd_jac;
@@ -22,7 +22,8 @@ struct assembly<Boundary, Geometry > : public assembly_base<Geometry> {
     typedef arg<super::size+2, face_normals_type >                   p_normals;
     typedef arg<super::size+3, storage_type >        p_bd_measure;
     typedef arg<super::size+4, typename Boundary::weights_storage_t> p_bd_weights;
-    static const ushort_t size=super::size+5;
+    typedef arg<super::size+5, typename Boundary::tangent_storage_t> p_ref_normals;
+    static const ushort_t size=super::size+6;
 
 private:
     jacobian_type_info m_jac_info;
@@ -41,6 +42,8 @@ public:
 
 
     face_normals_type const& get_normals() const {return m_normals;}
+
+    typename Boundary::tangent_storage_t const& get_ref_normals() const {return m_bd_backend.ref_normals();}
 
     assembly( Boundary& bd_backend_,
              // Geometry& fe_backend_,
@@ -68,12 +71,14 @@ public:
                     , p_normals
                     , p_bd_measure
                     , p_bd_weights
+                    , p_ref_normals
                     , MPLList ...
                     >( m_bd_jac
                        , m_projected_jac
                        ,  m_normals
                        , m_bd_measure
                        , m_bd_backend.bd_cub_weights()
+                       , m_bd_backend.m_ref_normals
                        , storages_ ...
                         ))
         {
@@ -82,6 +87,7 @@ public:
                                                , p_normals
                                                , p_bd_measure
                                                , p_bd_weights
+                                               , p_ref_normals
                                                ,MPLList ...
                                                >
                 ( m_bd_jac
@@ -89,6 +95,7 @@ public:
                   , m_normals
                   , m_bd_measure
                   , m_bd_backend.bd_cub_weights()
+                  , m_bd_backend.m_ref_normals
                   , storages_ ...
                     );
         }

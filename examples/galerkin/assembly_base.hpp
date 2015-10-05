@@ -11,7 +11,7 @@ using namespace gridtools;
 template <typename Geometry>
 struct assembly_base{
 
-    using grid_type_info=storage_info< layout_t<3,4>, __COUNTER__  >;
+    using grid_type_info=storage_info< layout_tt<3,4>, __COUNTER__  >;
     using grid_type=storage_t< grid_type_info >;
 
     typedef arg<0, grid_type >       p_grid_points;

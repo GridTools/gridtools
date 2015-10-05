@@ -99,7 +99,9 @@ namespace gridtools {
         // by the compiler
         template<uint_t Idx>
         GT_FUNCTION
-        constexpr accessor_base (dimension<Idx> const& x ): m_offsets(x) {}
+        constexpr accessor_base (dimension<Idx> const& x ): m_offsets(x) {
+            GRIDTOOLS_STATIC_ASSERT((Idx <= n_dim), "too high dimension accessor");
+        }
 
         GT_FUNCTION
         constexpr accessor_base (const int_t x ): m_offsets(x) {}
@@ -110,10 +112,18 @@ namespace gridtools {
            language keyword used at the interface level.
         */
 #if defined( CXX11_ENABLED ) && ! defined(__CUDACC__) //cuda messing up
+        template <typename... Whatever, typename Dummy=all_integers<Whatever ...> >
+        GT_FUNCTION
+        constexpr accessor_base ( Whatever... x) : m_offsets( x...)
+        {
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(x)<=n_dim, "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions of the storage. Check that you are not accessing a non existing dimension, or increase the dimension D of the accessor (accessor<Id, range, D>)");
+        }
+
         template <typename... Whatever>
         GT_FUNCTION
         constexpr accessor_base ( Whatever... x) : m_offsets( x...)
         {
+            GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(), (Whatever::direction <= n_dim) ...), "too high dimension for accessor");
             GRIDTOOLS_STATIC_ASSERT(sizeof...(x)<=n_dim, "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions of the storage. Check that you are not accessing a non existing dimension, or increase the dimension D of the accessor (accessor<Id, range, D>)");
         }
 #else

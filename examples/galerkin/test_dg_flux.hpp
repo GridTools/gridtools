@@ -67,7 +67,7 @@ namespace gridtools{
                         for (int q=0; q<cub::numCubPoints(); ++q)
                         {
                             for (int dimx=0; dimx<geo_map::spaceDim; ++dimx)
-                                for (int dimy=0; dimy<geo_map::spaceDim-1; ++dimy)
+                                for (int dimy=0; dimy<geo_map::spaceDim; ++dimy)
                                 {
                                     if(assembly_.get_jac()(i, j, k, q, dimx, dimy) > epsilon+ jac(i*d2*d3+j*d3+k, q, dimx, dimy)/*weighted_measure(i*d2*d3+j*d3+k, q)*/
                                        ||
