@@ -553,9 +553,6 @@ namespace gridtools {
         >::type& RESTRICT
         operator()(Accessor const& accessor) const;
 
-        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
-        GRIDTOOLS_STATIC_ASSERT((Accessor::n_dim>4), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
-
 
 #if defined(CXX11_ENABLED) && !defined(__CUDACC__)//nvcc compiler bug
         /** @brief method called in the Do methods of the functors.
@@ -787,6 +784,8 @@ namespace gridtools {
     iterate_domain<IterateDomainImpl>::operator()(Accessor const& accessor) const {
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
+
+        GRIDTOOLS_STATIC_ASSERT((Accessor::n_dim>4), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
 
 #ifdef CXX11_ENABLED
         using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename Accessor::type::index_type>(local_domain.m_local_args))>::type;
