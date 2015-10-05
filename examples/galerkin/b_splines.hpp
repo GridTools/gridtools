@@ -288,6 +288,14 @@ namespace gridtools{
 
             };
 
+#ifdef __CUDACC__
+            template<int_t PP, int_t NN>
+            struct get_second{
+                typedef static_int<NN> type;
+                constexpr static const int_t value=NN;
+                constexpr static const static_int<NN> value_=static_int<NN>();
+            };
+#endif
 
             template <typename Id>
             void operator()(Id){
@@ -303,8 +311,8 @@ namespace gridtools{
                 // though the main compilers implement it
                 //TODO generalize
 
-#ifdef __CUDACC__ // nvcc crap
-                constexpr gridtools::meta_storage_base<__COUNTER__,layout_t,false> indexing{static_int<2>(), static_int<2>(), static_int<2>()};
+#ifdef __CUDACC__ // nvcc crap (quite amazing)
+                static const constexpr gridtools::meta_storage_base<__COUNTER__,layout_t,false> indexing{get_second<P,2>::value_ ... };
 #else
                 constexpr gridtools::meta_storage_base<__COUNTER__,layout_t,false> indexing{P ...};
 #endif
@@ -323,8 +331,8 @@ namespace gridtools{
                     // array<int, sizeof...(Dims)+1> vals_{Dims..., Id::value};
 
                     functor_assign_storage<
-                        //static_int<indexing.index(static_int<Dims-1>() ... , static_int<Id::value>())>
-                        static_int<indexing.index(Dims-1 ... , Id::value)>
+                        static_int<indexing.index(static_int<Dims-1>() ... , static_int<Id::value>())>
+                        //static_int<indexing.index(Dims-1 ... , Id::value)>
                         , basis_t
                         , typename make_gt_integer_sequence<ushort_t, Dim>::type >
                         ::apply( m_storage, basis_, m_quad, k);

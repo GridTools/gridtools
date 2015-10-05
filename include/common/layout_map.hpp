@@ -151,7 +151,7 @@ namespace gridtools {
         static auto constexpr select(T & ... args) -> typename remove_refref<decltype(std::template get<layout_vector[I]>(std::make_tuple(args ...)))>::type {
 
             GRIDTOOLS_STATIC_ASSERT((accumulate(logical_and(), boost::is_integral<T>::type::value ...)), "wrong type");
-            return  gt_get::template apply<layout_vector[I]>( args ... );
+            return  gt_get<layout_vector[I]>::apply( args ... );
 
         }
 #else //problem determining of the return type with NVCC
@@ -161,7 +161,7 @@ namespace gridtools {
         constexpr
         select(First & f, T & ... args) {
             GRIDTOOLS_STATIC_ASSERT((boost::is_integral<First>::type::value && accumulate(logical_and(), boost::is_integral<T>::type::value ...)), "wrong type");
-            return  gt_get::template apply<boost::mpl::at_c<layout_vector_t, I>::type::value >( f, args... );
+            return  gt_get<boost::mpl::at_c<layout_vector_t, I>::type::value>::apply( f, args... );
         }
 #endif // __CUDACC__
 
@@ -208,7 +208,7 @@ namespace gridtools {
         find(First const& first_, Indices const& ... indices) {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(Indices)+1<=length, "Too many arguments");
 
-            return gt_get::template apply<pos_<I>::value>(first_, indices...);
+            return gt_get<pos_<I>::value>::apply(first_, indices...);
         }
 
 
@@ -225,7 +225,7 @@ namespace gridtools {
                 GT_FUNCTION
                 static constexpr const Int value(Indices const& ... indices){
                     GRIDTOOLS_STATIC_ASSERT((accumulate(logical_and(), boost::is_integral<Indices>::type::value ...)), "wrong type");
-                    return gt_get::template apply< pos_<I>::value>( indices ...);
+                    return gt_get< pos_<I>::value>::apply( indices ...);
                     //std::get< pos_<I>::value >(std::make_tuple(indices...));
                 }
             };

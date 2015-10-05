@@ -15,8 +15,13 @@ namespace functors{
         static void Do(Evaluation const & eval, x_interval) {
             dimension<4>::Index row;
             dimension<5>::Index col;
-            uint_t const cardinality_i=eval.get().get_storage_dims(in1())[0];
-            uint_t const cardinality_j=eval.get().get_storage_dims(in1())[1];
+            uint_t const cardinality_i=eval.get().get_storage_dims(in1())[3];
+            uint_t const cardinality_j=eval.get().get_storage_dims(in1())[4];
+
+#ifndef __CUDACC__
+            assert(cardinality_i==fe::basisCardinality);
+            assert(cardinality_j==fe::basisCardinality);
+#endif
 
             //for all dofs in a boundary face
             for(short_t I=0; I<cardinality_i; I++)

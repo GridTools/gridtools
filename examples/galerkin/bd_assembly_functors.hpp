@@ -25,16 +25,18 @@ namespace functors{
             dimension<5>::Index dimx;
             dimension<6>::Index dimy;
 
+            uint_t const num_cub_points=eval.get().get_storage_dims(jac())[3];
+
             //"projection" on the tangent space:
             //J_{ij} - n_i n_k J_kj + n_i n_j
             for(short_t i=0; i< 3; ++i)
             {
                 for(short_t j=0; j< 3; ++j)
                 {
-                    for(short_t q=0; q< bd_cub::numCubPoints; ++q)
+                    for(short_t q=0; q< num_cub_points; ++q)
                     {
                         float_type inner_product=0.;
-                        for(short_t k=0; k< bd_cub::numCubPoints; ++k)
+                        for(short_t k=0; k< num_cub_points; ++k)
                         {
                             inner_product += eval(jac(dimx+i, dimy+j, qp+q))-
                                 eval(normals(dimx+i, qp+q))*
@@ -73,7 +75,9 @@ namespace functors{
             dimension<5>::Index dimx;
             dimension<6>::Index dimy;
 
-            for(short_t q=0; q< cub::numCubPoints; ++q)
+            uint_t const num_cub_points=eval.get().get_storage_dims(jac_det())[3];
+
+            for(short_t q=0; q< num_cub_points; ++q)
             {
                 eval( jac_det(qp+q) )= eval(
                     (
@@ -119,20 +123,14 @@ namespace functors{
             dimension<5>::Index dimI;
             dimension<6>::Index dimJ;
 
+            uint_t const num_cub_points=eval.get().get_storage_dims(jac())[3];
+
             array<double, 3> tg_u{eval(jac()), eval(jac(dimI+1)), eval(jac(dimI+2))};
             array<double, 3> tg_v{eval(jac(dimJ+1)), eval(jac(dimI+1, dimJ+1)), eval(jac(dimI+2, dimJ+1))};
 
-            // for(ushort_t q_=0; q_<bd_cub::numCubPoints; ++q_){
-            //     for(ushort_t i_=0; i_<shape_property<Geometry::parent_shape>::dimension; ++i_){
-            //         for(ushort_t j_=0; j_<shape_property<Geometry::bd_shape>::dimension; ++j_){
-            //             tg_u[j_]=shape_property<parent_shape>::template tangent_u<faceID>::value[i_]*eval(jac(quad+q_, dimI+i_, dimJ+j_));
-            //             tg_v[j_]=shape_property<parent_shape>::template tangent_v<faceID>::value[i_]*eval(jac(quad+q_, dimI+i_, dimJ+j_));
-            //         }
-            //     }
-
             array<double, 3> normal(vec_product(tg_u, tg_v));
 
-            for(ushort_t q_=0; q_<bd_cub::numCubPoints; ++q_){
+            for(ushort_t q_=0; q_<num_cub_points; ++q_){
                 for(ushort_t j_=0; j_<3; ++j_){
                     eval(normals(quad+q_, dimJ+j_))=normal[j_];
                 }
@@ -169,10 +167,12 @@ namespace functors{
             dimension<5>::Index dimI;
             dimension<6>::Index dimJ;
 
+            uint_t const num_cub_points=eval.get().get_storage_dims(jac())[3];
+
             array<double, 3> tg_u;
             array<double, 3> tg_v;
 
-            for(ushort_t q_=0; q_<bd_cub::numCubPoints; ++q_){
+            for(ushort_t q_=0; q_<num_cub_points; ++q_){
                 for(ushort_t i_=0; i_<3; ++i_){
                     for(ushort_t j_=0; j_<3; ++j_){
                         tg_u[j_]=shape_property<parent_shape>::template tangent_u<faceID>::value[i_]*eval(jac(quad+q_, dimI+i_, dimJ+j_));

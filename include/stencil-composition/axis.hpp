@@ -44,7 +44,6 @@ namespace gridtools {
 
         array<uint_t, size_type::value > value_list;
 
-        GT_FUNCTION
         explicit coordinates( halo_descriptor const& direction_i, halo_descriptor const& direction_j):
             m_partitioner(partitioner_dummy()),
             m_direction_i(direction_i),
@@ -128,15 +127,19 @@ namespace gridtools {
             // return m_k_low_bound;
         }
 
+        GT_FUNCTION
         halo_descriptor const& direction_i() const { return m_direction_i;}
 
+        GT_FUNCTION
         halo_descriptor const& direction_j() const { return m_direction_j;}
 
+        GT_FUNCTION
         const Partitioner & partitioner() const {
             //the partitioner must be set
             return m_partitioner;}
 
         template<typename Flag>
+        GT_FUNCTION
         bool at_boundary(ushort_t const& coordinate_, Flag const& flag_) const
         {
             return m_partitioner.at_boundary(coordinate_, flag_);

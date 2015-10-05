@@ -1,7 +1,6 @@
 /**
 \file
 */
-#pragma once
 #define PEDANTIC_DISABLED
 //! [assembly]
 #include "bd_assembly.hpp"
@@ -38,18 +37,21 @@ struct boundary_integral {
         x::Index i;
         y::Index j;
         z::Index k;
-        Dimension<4>::Index quad;
-        Dimension<5>::Index dimI;
-        Dimension<6>::Index dimJ;
-        Dimension<4>::Index dofI;
-        Dimension<5>::Index dofJ;
+        dimension<4>::Index quad;
+        dimension<5>::Index dimI;
+        dimension<6>::Index dimJ;
+        dimension<4>::Index dofI;
+        dimension<5>::Index dofJ;
 
-        for(short_t P_i=0; P_i<fe::basisCardinality; ++P_i) // current dof
+        uint_t const num_cub_points=eval.get().get_storage_dims(jac_det())[3];
+        uint_t const basis_cardinality = eval.get().get_storage_dims(phi_trace())[3];
+
+        for(short_t P_i=0; P_i<basis_cardinality; ++P_i) // current dof
         {
-            for(short_t P_j=0; P_j<fe::basisCardinality; ++P_j) // current dof
+            for(short_t P_j=0; P_j<basis_cardinality; ++P_j) // current dof
             {
                 float_type partial_sum=0.;
-                for(ushort_t q_=0; q_<bd_cub::numCubPoints; ++q_){
+                for(ushort_t q_=0; q_<num_cub_points; ++q_){
                     //loop on the basis functions (interpolation in the quadrature point)
                     float_type inner_product1=0.;
                     for(ushort_t j_=0; j_<3; ++j_){
@@ -64,7 +66,6 @@ struct boundary_integral {
 };
 // [boundary integration]
 
-
 int main(){
     //![definitions]
     using namespace enumtype;
@@ -72,18 +73,17 @@ int main(){
     //defining the assembler, based on the Intrepid definitions for the numerics
     using matrix_storage_info_t=storage_info< gridtools::layout_map<0,1,2,3,4> >;
     using matrix_type=storage_t< matrix_storage_info_t >;
+
     using fe=reference_element<1, Lagrange, Hexa>;
     using geo_map=reference_element<1, Lagrange, Hexa>;
     using cub=cubature<fe::order, fe::shape>;
     using geo_t = intrepid::geometry<geo_map, cub>;
-    // using discr_t = intrepid::discretization<fe, cub>;
 
     //boundary
-
     using bd_cub_t = intrepid::boundary_cub<geo_map, cub::cubDegree>;
     using bd_discr_t = intrepid::boundary_discr<bd_cub_t>;
     bd_cub_t bd_cub_;
-    bd_discr_t bd_discr_(bd_cub_, 0);
+    bd_discr_t bd_discr_(bd_cub_, 1);
 
     bd_discr_.compute(Intrepid::OPERATOR_GRAD);
 
@@ -116,13 +116,13 @@ int main(){
                     assembler.grid()( i,  j,  k,  point,  0)= (i + geo.grid()(point, 0));
                     assembler.grid()( i,  j,  k,  point,  1)= (j + geo.grid()(point, 1));
                     assembler.grid()( i,  j,  k,  point,  2)= (k + geo.grid()(point, 2));
-                    // std::cout<<"grid point("<<m_grid( i,  j,  k,  point,  0) << ", "<< m_grid( i,  j,  k,  point,  1)<<", "<<m_grid( i,  j,  k,  point,  2)<<")"<<std::endl;
                 }
     //![grid]
 
     //![instantiation_stiffness]
     //defining the stiffness matrix: d1xd2xd3 elements
-    matrix_type flux_(d1,d2,d3,fe::basisCardinality,fe::basisCardinality);
+    matrix_storage_info_t meta_(d1,d2,d3,fe::basisCardinality,fe::basisCardinality);
+    matrix_type flux_(meta_, 0., "flux");
 
     //![placeholders]
     // defining the placeholder for the flux
@@ -130,22 +130,20 @@ int main(){
     // defining the placeholder for the local gradient of the element boundary face
     typedef arg<as::size+1, bd_discr_t::grad_storage_t> p_bd_dphi;
 
-    typedef arg<as::size+2, bd_discr_t::phi_storage_t> p_bd_phi;
+    typedef arg<as::size+2, bd_discr_t::basis_function_storage_t> p_bd_phi;
 
     // appending the placeholders to the list of placeholders already in place
     auto domain=assembler.template domain<p_flux, p_bd_dphi, p_bd_phi>(flux_, bd_discr_.local_gradient(), bd_discr_.phi());
     //![placeholders]
 
 
-    // , m_domain(boost::fusion::make_vector(&m_grid, &m_jac, &m_fe_backend.cub_weights(), &m_jac_det, &m_jac_inv, &m_fe_backend.local_gradient(), &m_fe_bac
-    // , &m_stiffness, &m_assembled_stiffness
     auto coords=coordinates<axis>({1, 0, 1, d1-1, d1},
         {1, 0, 1, d2-1, d2});
     coords.value_list[0] = 0;
     coords.value_list[1] = d3-1;
 
     //![computation]
-    auto computation=make_computation<gridtools::BACKEND, gridtools::layout_map<0,1,2,3> >(
+    auto computation=make_computation< gridtools::BACKEND >(
         make_mss
         (
             execute<forward>()

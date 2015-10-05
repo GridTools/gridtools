@@ -2,7 +2,6 @@
 \file
 */
 #define PEDANTIC_DISABLED
-#define HAVE_INTREPID_DEBUG
 #include "assembly.h"
 #include "matvec.hpp"
 
@@ -32,6 +31,12 @@ struct mass {
         dimension<4>::Index qp;
         uint_t const num_cub_points=eval.get().get_storage_dims(jac_det())[3];
         uint_t const basis_cardinality=eval.get().get_storage_dims(psi())[0];
+
+
+#ifndef __CUDACC__
+        assert(num_cub_points==cub::numCubPoints());
+        assert(basis_cardinality==fe::basisCardinality);
+#endif
 
         //loop on quadrature nodes, and on nodes of the P1 element (i,j,k) with i,j,k\in {0,1}
         for(int P_i=0; P_i<basis_cardinality; ++P_i) // current dof
@@ -272,11 +277,11 @@ int main(){
          make_mss
          (
              execute<forward>()
-             // , make_esf<functors::update_jac<geo_t> >( as::p_grid_points(), as::p_jac(), p_dphi())
+             , make_esf<functors::update_jac<geo_t> >( as::p_grid_points(), as::p_jac(), p_dphi())
              , make_esf<functors::det<geo_t> >(as::p_jac(), as::p_jac_det())
-             // , make_esf<functors::mass<fe3, geo_cub> >(as::p_jac_det(), as::p_weights(), p_mass(), p_phi(), p_phi())
-             // , make_esf<functors::matvec<geo_t> >(p_vec(), p_mass(), p_vec())//matrix vector product
-             // , make_esf<functors::jump_f<geo_t> >(p_vec(), p_vec())//compute the jump
+             , make_esf<functors::mass<fe3, geo_cub> >(as::p_jac_det(), as::p_weights(), p_mass(), p_phi(), p_phi())
+             , make_esf<functors::matvec<geo_t> >(p_vec(), p_mass(), p_vec())//matrix vector product
+             , make_esf<functors::jump_f<geo_t> >(p_vec(), p_vec())//compute the jump
              ), domain_, coords);
 
      computation->ready();

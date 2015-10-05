@@ -18,22 +18,22 @@ namespace gridtools{
             auto d3=assembly_.m_d3;
 
             // [reference & comparison]
-            FieldContainer<double> grad_at_cub_points(fe::basisCardinality, cub::numCubPoints, fe::spaceDim);
+            FieldContainer<double> grad_at_cub_points(fe::basisCardinality, cub::numCubPoints(), fe::spaceDim);
 
             for (uint_t i=0; i<fe::basisCardinality; ++i)
-                for (uint_t j=0; j<cub::numCubPoints; ++j)
+                for (uint_t j=0; j<cub::numCubPoints(); ++j)
                     for (int_t k=0; k<fe::spaceDim; ++k)
                         grad_at_cub_points(i,j,k)=fe_backend_.m_grad_at_cub_points(i,j,k);
 
-            FieldContainer<double> cub_weights(cub::numCubPoints);
+            FieldContainer<double> cub_weights(cub::numCubPoints());
 
-            for(uint_t i=0; i<cub::numCubPoints; ++i)
+            for(uint_t i=0; i<cub::numCubPoints(); ++i)
             {
                 cub_weights(i)=fe_backend_.m_rule.m_bd_cub_weights(i,0,0);
             }
 
-            FieldContainer<double> cub_points(cub::numCubPoints, fe::spaceDim);
-            for(uint_t i=0; i<cub::numCubPoints; ++i)
+            FieldContainer<double> cub_points(cub::numCubPoints(), fe::spaceDim);
+            for(uint_t i=0; i<cub::numCubPoints(); ++i)
             {
                 for(uint_t j=0; j<fe::spaceDim; ++j)
                 {
@@ -56,7 +56,7 @@ namespace gridtools{
                         }
                     }
 
-            FieldContainer<double> jac((d1*d2*d3), cub::numCubPoints, geo_map::spaceDim, geo_map::spaceDim);
+            FieldContainer<double> jac((d1*d2*d3), cub::numCubPoints(), geo_map::spaceDim, geo_map::spaceDim);
             CellTools<double>::setJacobian(jac, cub_points, grid, geo_map::cell_t::value);
 
             auto epsilon=1e-15;
@@ -64,10 +64,10 @@ namespace gridtools{
             for (int i =1; i< d1; ++i)
                 for (int j =1; j< d2; ++j)
                     for (int k =0; k< d3; ++k)
-                        for (int q=0; q<cub::numCubPoints; ++q)
+                        for (int q=0; q<cub::numCubPoints(); ++q)
                         {
                             for (int dimx=0; dimx<geo_map::spaceDim; ++dimx)
-                                for (int dimy=0; dimy<geo_map::spaceDim; ++dimy)
+                                for (int dimy=0; dimy<geo_map::spaceDim-1; ++dimy)
                                 {
                                     if(assembly_.get_jac()(i, j, k, q, dimx, dimy) > epsilon+ jac(i*d2*d3+j*d3+k, q, dimx, dimy)/*weighted_measure(i*d2*d3+j*d3+k, q)*/
                                        ||
@@ -89,9 +89,9 @@ namespace gridtools{
             int worksetSize=d1*d2*d3; //number of cells
             int subcellOrd=1;
             //   Step 2.2.a: Allocate storage for face tangents and face normals
-            FieldContainer<double> worksetFaceTu(worksetSize, cub::numCubPoints, 3/*pCellDim*/);
-            FieldContainer<double> worksetFaceTv(worksetSize, cub::numCubPoints, 3);
-            FieldContainer<double> worksetFaceN(worksetSize, cub::numCubPoints, 3);
+            FieldContainer<double> worksetFaceTu(worksetSize, cub::numCubPoints(), 3/*pCellDim*/);
+            FieldContainer<double> worksetFaceTv(worksetSize, cub::numCubPoints(), 3);
+            FieldContainer<double> worksetFaceN(worksetSize, cub::numCubPoints(), 3);
 
             //   Step 2.2.b: Compute face tangents
             CellTools<double>::getPhysicalFaceTangents(worksetFaceTu,
@@ -107,7 +107,7 @@ namespace gridtools{
             for (int i =1; i< d1; ++i)
                 for (int j =1; j< d2; ++j)
                     for (int k =0; k< d3; ++k)
-                        for (int q=0; q<cub::numCubPoints; ++q)
+                        for (int q=0; q<cub::numCubPoints(); ++q)
                         {
                             for (int dimx=0; dimx<geo_map::spaceDim; ++dimx)
                                 if(worksetFaceN(i*d2*d3+j*d3+k, q, dimx) > epsilon + assembly_.get_normals()(i,j,k, q,dimx)
@@ -121,7 +121,7 @@ namespace gridtools{
                         }
 
 
-            FieldContainer<double> jac_det((d1*d2*d3), cub::numCubPoints);
+            FieldContainer<double> jac_det((d1*d2*d3), cub::numCubPoints());
 
 
         }

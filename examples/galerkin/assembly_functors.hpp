@@ -35,6 +35,11 @@ namespace functors{
 
             uint_t const num_cub_points=eval.get().get_storage_dims(dphi())[1];
             uint_t const basis_cardinality=eval.get().get_storage_dims(dphi())[0];
+
+#ifndef __CUDACC__
+            assert(num_cub_points==cub::numCubPoints());
+            assert(basis_cardinality==fe::basisCardinality);
+#endif
             //TODO dimensions should be generic
             for(short_t icoor=0; icoor< shape_property<Geometry::parent_shape>::dimension; ++icoor)
             {
@@ -74,6 +79,9 @@ namespace functors{
             dimension<6>::Index dimy;
             uint_t const num_cub_points=eval.get().get_storage_dims(jac())[3];
 
+#ifdef __CUDACC__
+            assert(num_cub_points==cub::numCubPoints());
+#endif
             for(short_t q=0; q< num_cub_points; ++q)
             {
                 eval( jac_det(qp+q) )= eval(
@@ -114,6 +122,10 @@ namespace functors{
             dimx::Index X;
             dimy::Index Y;
             uint_t const num_cub_points=eval.get().get_storage_dims(jac())[3];
+
+#ifdef __CUDACC__
+            assert(num_cub_points==cub::numCubPoints());
+#endif
 
 //! [aliases]
             using a_=alias<jac, dimy, dimx>::set<0,0>;
@@ -190,7 +202,7 @@ namespace functors{
             dimension<4>::Index row;
 
 
-            //hypothesis here: the cardinality is order^3 (isotropic tensor product element)
+            //hypothesis here: the cardinaxlity is order^3 (isotropic tensor product element)
 #ifdef __CUDACC__
             constexpr meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{static_int<3>(), static_int<3>(), static_int<3>()};
 #else

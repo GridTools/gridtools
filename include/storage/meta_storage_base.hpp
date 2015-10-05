@@ -132,15 +132,21 @@ namespace gridtools {
         template <class ... IntTypes
                   , typename Dummy = all_integers<IntTypes...>
                   >
-        constexpr meta_storage_base(  IntTypes const& ... dims_  ) :
+        // constexpr
+        meta_storage_base(  IntTypes const& ... dims_  ) :
             m_dims(dims_...)
             , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( dims_...))
             {
-                GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes)==space_dimensions, "you tried to initialize\
-//  a storage with a number of integer arguments different from its number of dimensions. \
-// This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
-//  a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
-//  by defining the storage type using another layout_map.");
+                GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes) >= space_dimensions, "you tried to initialize\
+ a storage with a number of integer arguments smaller than its number of dimensions. \
+ This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
+ a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
+ by defining the storage type using another layout_map.");
+                GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes) <= space_dimensions, "you tried to initialize\
+ a storage with a number of integer arguments larger than its number of dimensions. \
+ This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
+ a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
+ by defining the storage type using another layout_map.");
             }
 
 
@@ -152,10 +158,10 @@ namespace gridtools {
             , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( IntTypes() ...))
             {
                 GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes)==space_dimensions, "you tried to initialize\
-//  a storage with a number of integer arguments different from its number of dimensions. \
-// This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
-//  a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
-//  by defining the storage type using another layout_map.");
+ a storage with a number of integer arguments different from its number of dimensions. \
+ This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
+ a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
+ by defining the storage type using another layout_map.");
             }
 #else
         // non variadic non constexpr constructor

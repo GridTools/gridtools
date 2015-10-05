@@ -1,7 +1,7 @@
 
 include_directories( ../../include/common ) ## Library header files
 
-FILE(GLOB_RECURSE INC_ALL "../../include/common/*.hpp")
+FILE(GLOB_RECURSE INC_ALL "../../include/common/[a-z]*.hpp")
 
 SET(COMMON_UNITTEST_SOURCES meta_array_test.cpp ${INC_ALL})
 

@@ -5,7 +5,6 @@
 @file
 @brief implementing a set
 */
-
 namespace gridtools{
     /**
        @brief class that given a generic MPL sequence creates a fusion set.

@@ -29,8 +29,8 @@ struct assembly<Geometry> : public assembly_base<Geometry> {
 
     //                      dims  x y z  qp
     //                   strides  1 x xy xyz
-    using storage_type_info=storage_info<gridtools::layout_map<0,1,2,3>, __COUNTER__ >;
-    using jacobian_type_info=storage_info<gridtools::layout_map<0,1,2,3,4,5>, __COUNTER__ >;
+    using storage_type_info=storage_info<layout_t<3>, __COUNTER__ >;
+    using jacobian_type_info=storage_infolayout_t<3,4,5>, __COUNTER__ >;
 
     using storage_type=storage_t< storage_type_info >;
     using jacobian_type=storage_t< jacobian_type_info >;
@@ -74,9 +74,9 @@ public:
         , m_d3(d3)
         , m_jac_info(d1, d2, d3, cub::numCubPoints(), 3, 3)
         , m_jac_det_info(d1, d2, d3, cub::numCubPoints())
-        , m_jac(m_jac_info, "jacobian")
-        , m_jac_det(m_jac_det_info, "jacobian det")
-        , m_jac_inv(m_jac_info, "jacobian inv")
+        , m_jac(m_jac_info, 0., "jacobian")
+        , m_jac_det(m_jac_det_info, 0., "jacobian det")
+        , m_jac_inv(m_jac_info, 0., "jacobian inv")
         {        }
 
     jacobian_type const& get_jac() const {return m_jac;}

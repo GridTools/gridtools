@@ -267,7 +267,7 @@ namespace intrepid{
                 Intrepid::FieldContainer<value_t> bd_cub_pts_(bd_cub::numCubPoints(), geo_map::spaceDim-1);
                 Intrepid::FieldContainer<value_t> bd_cub_weights_(bd_cub::numCubPoints());
 
-                bd_cub::cub->getCubature(bd_cub_pts_, bd_cub_weights_);
+                bd_cub::cub()->getCubature(bd_cub_pts_, bd_cub_weights_);
 
                 for (uint_t i=0; i<bd_cub::numCubPoints(); ++i){
                     m_bd_cub_weights(i,0,0)=bd_cub_weights_(i);
@@ -323,7 +323,7 @@ namespace intrepid{
         using grad_storage_t           = storage_t< grad_storage_t_info > ;
         using basis_function_storage_t = storage_t< basis_function_storage_t_info > ;
         using tangent_storage_t = storage_t<tangent_storage_t_info >;
-
+        using weights_storage_t = typename rule_t::weights_storage_t;
         //private:
 
         rule_t & m_rule;
@@ -406,7 +406,7 @@ namespace intrepid{
                     }
         }
 
-        typename rule_t::weights_storage_t & bd_cub_weights() const
+        typename rule_t::weights_storage_t & bd_cub_weights()
             {return m_rule.bd_cub_weights();}
 
         grad_storage_t & local_gradient()

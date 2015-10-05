@@ -11,7 +11,7 @@ using namespace gridtools;
 template <typename Geometry>
 struct assembly_base{
 
-    using grid_type_info=storage_info< gridtools::layout_map<0,1,2,3,4>, __COUNTER__  >;
+    using grid_type_info=storage_info< layout_t<3,4>, __COUNTER__  >;
     using grid_type=storage_t< grid_type_info >;
 
     typedef arg<0, grid_type >       p_grid_points;
@@ -34,7 +34,7 @@ public:
         , m_d2(d2)
         , m_d3(d3)
         , m_grid_info(d1, d2, d3, geo_map::basisCardinality, 3)
-        , m_grid(m_grid_info, "grid")
+        , m_grid(m_grid_info, 0., "grid")
         {        }
 
     grid_type const& get_grid() const {return m_grid;}
