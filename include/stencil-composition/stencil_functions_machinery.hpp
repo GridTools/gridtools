@@ -4,25 +4,25 @@
 
 namespace gridtools {
 
-    template <typename T>
-    struct wrap {
-        T x;
+    // template <typename T>
+    // struct wrap {
+    //     T x;
 
-        wrap(T x) : x(x) {}
+    //     wrap(T x) : x(x) {}
 
-        wrap& operator=(T b) {
-            std::cout << "Assign! " << b << std::endl;
-            x = b;
-            return *this;
-        }
+    //     wrap& operator=(T b) {
+    //         std::cout << "Assign! " << b << std::endl;
+    //         x = b;
+    //         return *this;
+    //     }
 
-        operator double() const {std::cout << "Converting" << std::endl; return x;}
-    };
+    //     operator double() const {std::cout << "Converting" << std::endl; return x;}
+    // };
 
-    template <typename T>
-    std::ostream& operator<<(std::ostream& s, wrap<T> const& a) {
-        return s << a.x;
-    }
+    // template <typename T>
+    // std::ostream& operator<<(std::ostream& s, wrap<T> const& a) {
+    //     return s << a.x;
+    // }
 
     /**
        In the context of stencil_functions, this type represents the
@@ -34,7 +34,7 @@ namespace gridtools {
        passed to the function. One of the indices correspond to the output
        argument which is a scalar and requires special attention.
     */
-    template <typename CallerAggregator, typename PassedAccessors, typename ReturnType, int OutArg>
+    template <typename CallerAggregator, int Offi, int Offj, int Offk, typename PassedAccessors, typename ReturnType, int OutArg>
     struct function_aggregator {
         CallerAggregator const& m_caller_aggregator;
         ReturnType mutable m_result;
@@ -47,41 +47,44 @@ namespace gridtools {
         ReturnType result() const { return m_result; }
 
         template <typename Accessor>
+        constexpr
         typename boost::enable_if_c<(Accessor::index_type::value < OutArg), ReturnType>::type
         operator()(Accessor const& accessor) const {
-            std::cout << accessor.template get<2>()
-                      << ", " << accessor.template get<1>()
-                      << ", " << accessor.template get<0>()
-                      << std::endl;
+            // std::cout << accessor.template get<2>()
+            //           << ", " << accessor.template get<1>()
+            //           << ", " << accessor.template get<0>()
+            //           << std::endl;
             return m_caller_aggregator
                 (typename boost::mpl::at_c<PassedAccessors, Accessor::index_type::value>::type
-                 (accessor.template get<2>(), accessor.template get<1>(), accessor.template get<0>()));
+                 (accessor.template get<2>()+Offi, accessor.template get<1>()+Offj, accessor.template get<0>()+Offk));
         }
 
         template <typename Accessor>
+        constexpr
         typename boost::enable_if_c<(Accessor::index_type::value > OutArg), ReturnType>::type
         operator()(Accessor const& accessor) const {
-            std::cout << accessor.template get<2>()
-                      << ", " << accessor.template get<1>()
-                      << ", " << accessor.template get<0>()
-                      << "  ---> ";
-            std::cout << m_caller_aggregator
-                (typename boost::mpl::at_c<PassedAccessors, Accessor::index_type::value-1>::type(accessor.template get<2>(), accessor.template get<1>(), accessor.template get<0>()))
-                      << std::endl;
+            // std::cout << accessor.template get<2>()
+            //           << ", " << accessor.template get<1>()
+            //           << ", " << accessor.template get<0>()
+            //           << "  ---> ";
+            // std::cout << m_caller_aggregator
+            //     (typename boost::mpl::at_c<PassedAccessors, Accessor::index_type::value-1>::type(accessor.template get<2>()+Offi, accessor.template get<1>()+Offj, accessor.template get<0>()+Offk))
+            //           << std::endl;
             return m_caller_aggregator
-                (typename boost::mpl::at_c<PassedAccessors, Accessor::index_type::value-1>::type(accessor.template get<2>(), accessor.template get<1>(), accessor.template get<0>()));
+                (typename boost::mpl::at_c<PassedAccessors, Accessor::index_type::value-1>::type(accessor.template get<2>()+Offi, accessor.template get<1>()+Offj, accessor.template get<0>()+Offk));
         }
 
         template <typename Accessor>
+        constexpr
         typename boost::enable_if_c<(Accessor::index_type::value == OutArg), ReturnType>::type&
         operator()(Accessor const&) const {
-            std::cout << "Giving the ref (OutArg=" << OutArg << ") " << m_result << std::endl;
+            // std::cout << "Giving the ref (OutArg=" << OutArg << ") " << m_result << std::endl;
             return m_result;
         }
 
     };
 
-    template <typename Evaluator, typename ResultType, typename Functor, int OutArg>
+    template <typename Evaluator, typename ResultType, typename Functor, int OutArg, int Offi, int Offj, int Offk>
     struct insert_argument {
         Evaluator const& eval;
 
@@ -90,10 +93,11 @@ namespace gridtools {
         {}
 
         template <typename ...Args>
-        function_aggregator<Evaluator, typename gridtools::variadic_to_vector<Args...>::type, ResultType, OutArg>
+        constexpr
+        function_aggregator<Evaluator, Offi, Offj, Offk, typename gridtools::variadic_to_vector<Args...>::type, ResultType, OutArg>
         operator()(Args const... args) const &
         {
-            return function_aggregator<Evaluator, typename gridtools::variadic_to_vector<Args...>::type, ResultType, OutArg>(eval);
+            return function_aggregator<Evaluator, Offi, Offj, Offk, typename gridtools::variadic_to_vector<Args...>::type, ResultType, OutArg>(eval);
         }
     };
 
@@ -121,7 +125,7 @@ namespace gridtools {
         return _get_index<Functor>::value;
     }
 
-    template <typename Evaluator, typename Functor, typename Region, int OutArg, typename ResultType>
+    template <typename Evaluator, typename Functor, typename Region, int OutArg, typename ResultType, int Offi, int Offj, int Offk>
     struct call_the_damn_thing {
         Evaluator const& eval;
 
@@ -135,7 +139,8 @@ namespace gridtools {
                 Evaluator,
                 ResultType,
                 Functor,
-                get_index_of_first_non_const<Functor>()>(eval)(args...);
+                get_index_of_first_non_const<Functor>(),
+                Offi, Offj, Offk >(eval)(args...);
             Functor::Do(newargs, Region());
             return newargs.result();
         }
@@ -143,6 +148,18 @@ namespace gridtools {
 
     template <typename Functor, typename ResultType, typename Region, int Offi=0, int Offj=0, int Offk=0>
     struct call {
+
+        // static const int offi = Offi;
+        // static const int offj = Offj;
+        // static const int offk = Offk;
+
+        template <int I, int J, int K>
+        struct at_ {
+            typedef call<Functor, ResultType, Region, I, J, K> type;
+        };
+
+        template <int I, int J, int K>
+        using at = call<Functor, ResultType, Region, I, J, K>;
 
         template <typename Evaluator, typename ...Args>
         static ResultType with(Evaluator const& eval, Args const& ...args) {
@@ -154,7 +171,7 @@ namespace gridtools {
                 Functor,
                 Region,
                 get_index_of_first_non_const<Functor>(),
-                ResultType>(eval)
+                ResultType, Offi, Offj, Offk>(eval)
                 .then_do_it_damn_it(args...);
         }
     };
