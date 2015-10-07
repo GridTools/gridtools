@@ -7,7 +7,7 @@
 #include "horizontal_diffusion_repository.hpp"
 #include <stencil-composition/caches/define_caches.hpp>
 #include <tools/verifier.hpp>
-#include "stencil_functions_machinery.hpp"
+#include <stencil-composition/stencil_functions_machinery.hpp>
 
 #ifdef USE_PAPI_WRAP
 #include <papi_wrap.hpp>
@@ -68,8 +68,11 @@ struct flx_function {
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_flx) {
-        double x = gridtools::invoke_as_function<lap_function, double, x_flx>::call(dom, in());
-        dom(out()) = dom(lap(1,0,0))-x;
+        double _x_ = gridtools::call<lap_function, double, x_flx>/*::at<0,0,0>*/::with(dom, in());
+        // double y = dom(lap(0,0,0));
+        // std::cout << _x_ << "  ====  " << y << "  ( " << _x_-y << " )" << std::endl;
+        // assert(_x_-y == 0.0);
+        dom(out()) = dom(lap(1,0,0))-_x_;
         if (dom(out())*(dom(in(1,0,0))-dom(in(0,0,0))) > 0) {
             dom(out()) = 0.;
         }

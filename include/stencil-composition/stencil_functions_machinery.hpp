@@ -1,8 +1,29 @@
 #pragma once
 
-#include "../include/common/generic_metafunctions/variadic_to_vector.hpp"
+#include "../common/generic_metafunctions/variadic_to_vector.hpp"
 
 namespace gridtools {
+
+    template <typename T>
+    struct wrap {
+        T x;
+
+        wrap(T x) : x(x) {}
+
+        wrap& operator=(T b) {
+            std::cout << "Assign! " << b << std::endl;
+            x = b;
+            return *this;
+        }
+
+        operator double() const {std::cout << "Converting" << std::endl; return x;}
+    };
+
+    template <typename T>
+    std::ostream& operator<<(std::ostream& s, wrap<T> const& a) {
+        return s << a.x;
+    }
+
     /**
        In the context of stencil_functions, this type represents the
        aggregator/domain/evaluator to be passed to a stencil function,
@@ -19,29 +40,42 @@ namespace gridtools {
         ReturnType mutable m_result;
 
         function_aggregator(CallerAggregator const& caller_aggregator)
-            :m_caller_aggregator(caller_aggregator)
+            : m_caller_aggregator(caller_aggregator)
+            , m_result(0.0)
         {}
 
         ReturnType result() const { return m_result; }
 
         template <typename Accessor>
-        typename boost::enable_if_c<(Accessor::index_type::value < OutArg), double>::type
+        typename boost::enable_if_c<(Accessor::index_type::value < OutArg), ReturnType>::type
         operator()(Accessor const& accessor) const {
+            std::cout << accessor.template get<2>()
+                      << ", " << accessor.template get<1>()
+                      << ", " << accessor.template get<0>()
+                      << std::endl;
             return m_caller_aggregator
                 (typename boost::mpl::at_c<PassedAccessors, Accessor::index_type::value>::type
-                 (accessor.template get<0>(), accessor.template get<1>(), accessor.template get<2>()));
+                 (accessor.template get<2>(), accessor.template get<1>(), accessor.template get<0>()));
         }
 
         template <typename Accessor>
-        typename boost::enable_if_c<(Accessor::index_type::value > OutArg), double>::type
+        typename boost::enable_if_c<(Accessor::index_type::value > OutArg), ReturnType>::type
         operator()(Accessor const& accessor) const {
+            std::cout << accessor.template get<2>()
+                      << ", " << accessor.template get<1>()
+                      << ", " << accessor.template get<0>()
+                      << "  ---> ";
+            std::cout << m_caller_aggregator
+                (typename boost::mpl::at_c<PassedAccessors, Accessor::index_type::value-1>::type(accessor.template get<2>(), accessor.template get<1>(), accessor.template get<0>()))
+                      << std::endl;
             return m_caller_aggregator
-                (typename boost::mpl::at_c<PassedAccessors, Accessor::index_type::value-1>::type());
+                (typename boost::mpl::at_c<PassedAccessors, Accessor::index_type::value-1>::type(accessor.template get<2>(), accessor.template get<1>(), accessor.template get<0>()));
         }
 
         template <typename Accessor>
-        typename boost::enable_if_c<(Accessor::index_type::value == OutArg), double>::type&
+        typename boost::enable_if_c<(Accessor::index_type::value == OutArg), ReturnType>::type&
         operator()(Accessor const&) const {
+            std::cout << "Giving the ref (OutArg=" << OutArg << ") " << m_result << std::endl;
             return m_result;
         }
 
@@ -96,22 +130,22 @@ namespace gridtools {
         {}
 
         template <typename ...Args>
-        int then_do_it_damn_it(Args const& ...args) const {
-            //   FakeArg<ResultType> thefake;
+        ResultType then_do_it_damn_it(Args const& ...args) const {
             auto newargs = insert_argument<
                 Evaluator,
                 ResultType,
                 Functor,
-                get_index_of_first_non_const<Functor>()>(eval/*, thefake*/)(args...);
+                get_index_of_first_non_const<Functor>()>(eval)(args...);
             Functor::Do(newargs, Region());
             return newargs.result();
         }
     };
 
-    template <typename Functor, typename ResultType, typename Region>
-    struct invoke_as_function {
+    template <typename Functor, typename ResultType, typename Region, int Offi=0, int Offj=0, int Offk=0>
+    struct call {
+
         template <typename Evaluator, typename ...Args>
-        static ResultType call(Evaluator const& eval, Args const& ...args) {
+        static ResultType with(Evaluator const& eval, Args const& ...args) {
 
             // Here several checks can be performed
 
@@ -119,7 +153,8 @@ namespace gridtools {
                 Evaluator,
                 Functor,
                 Region,
-                get_index_of_first_non_const<Functor>(), ResultType>(eval)
+                get_index_of_first_non_const<Functor>(),
+                ResultType>(eval)
                 .then_do_it_damn_it(args...);
         }
     };
