@@ -253,7 +253,7 @@ if __name__ == "__main__":
     f = open(args.json_file,'r')
     decode = json.load(f)
 
-    result = True
+    error = False
     nrep=3
 
     copy_ref = decode
@@ -295,7 +295,7 @@ if __name__ == "__main__":
                 if mode == 'c' and error > tolerance:
                     print('Error in conf ['+data+','+prec+','+target+','+std+','+thread+'] : exp_time -> '+ str(exp_time) + '; comp time -> '+ 
                         str(timers_gridtools[0])+'. Error = '+ str(error*100)+'%')
-                    result = False
+                    error = True
 
     if mode == 'u':
         fw = open(args.json_file +'.out','w')
@@ -306,11 +306,10 @@ if __name__ == "__main__":
         plotter = Plotter(copy_ref, stella_timers, config)
         plotter.plot_results()
 
-    if result:
+    if not error:
         print('[OK]')
     else:
         print('[FAILED]')
-    sys.exit(result)
+    sys.exit(int(error))
 
-     #   print(domain_data)
 
