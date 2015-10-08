@@ -18,6 +18,7 @@ namespace test_cycle_and_swap{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval){
+            eval(p_i())++;
         }
     };
 
@@ -76,6 +77,7 @@ namespace test_cycle_and_swap{
         i_data.clone_to_gpu();
         comp->run();
         comp->finalize();
+        assert( (i_data(0,0)==2 && i_data.get_value<1,0>(0,0)==0) );
 
         return i_data(0,0)==1;
     }
