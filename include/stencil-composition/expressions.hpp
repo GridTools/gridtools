@@ -512,7 +512,7 @@ namespace gridtools{
         GT_FUNCTION
         auto static constexpr value_int(IterateDomain const& it_domain
                                         , expr_exp<ArgType1, IntType> const& arg)
-            -> decltype(gt_pow<2>::apply(it_domain(arg.first_operand))) && {
+            -> decltype(gt_pow<2>::apply(it_domain(arg.first_operand))) {
             return gt_pow<2>::apply(it_domain(arg.first_operand));
         }
 
