@@ -106,6 +106,7 @@ namespace iga_rt
 	};
 
 
+	// TODO: update doxy
 	template<int... Args>
 	class NDBSplineBasis;
 
