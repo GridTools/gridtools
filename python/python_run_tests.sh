@@ -29,8 +29,7 @@ if [ -n "${CMAKE_SOURCE_DIR}" ] && [ -n "${PYTHON_INSTALL_PREFIX}" ]; then
 fi
 
 echo "Running Python tests ..."
-#nosetests -v -s tests.test_sw tests.test_stencils
-nosetests -v -s tests.test_stencils
+nosetests -v -s tests.test_sw tests.test_stencils
 TEST_STATUS=$?
 if [ ${TEST_STATUS} == 0 ]; then
     echo "All Python tests OK"
