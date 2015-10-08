@@ -9,7 +9,8 @@ SET(STENCIL_COMPOSITION_UNITTEST_SOURCES test_smallstorage_indices test_meta_sto
 #CPU tests
 add_executable(storage_tests ${STENCIL_COMPOSITION_UNITTEST_SOURCES})
 gridtools_add_test(tests.storage ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/storage_tests")
-gridtools_add_test(tests.storage_info ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/storage_info_tests")
+add_executable(storage_info_test test_meta_storage.cpp)
+gridtools_add_test(tests.storage_info ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/storage_info_test")
 
 set_target_properties(storage_tests PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} LINKER_LANGUAGE CXX )
 target_link_libraries(storage_tests ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
