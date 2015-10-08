@@ -24,8 +24,11 @@ target_link_libraries(test_cycle_and_swap ${GTEST_BOTH_LIBRARIES} -lpthread ${ex
 gridtools_add_test(tests.test_cycle_and_swap ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/test_cycle_and_swap")
 
 if (CUDA_FOUND)
+cuda_add_executable(test_cycle_and_swap_cuda test_cycle_and_swap.cu)
+target_link_libraries(test_cycle_and_swap_cuda ${GTEST_BOTH_LIBRARIES} gcl ${exe_LIBS})
 gridtools_add_test(tests_gpu.test_cycle_and_swap ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/test_cycle_and_swap_cuda")
 endif(CUDA_FOUND)
+
 endif(ENABLE_CXX11)
 
 add_subdirectory(caches)

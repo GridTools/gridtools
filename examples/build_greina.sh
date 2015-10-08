@@ -83,7 +83,7 @@ WHERE_=`pwd`
 export JENKINS_COMMUNICATION_TESTS=1
 
 cmake \
--DCUDA_NVCC_FLAGS:STRING=" --exp-relaxed-constexpr "
+-DCUDA_NVCC_FLAGS:STRING=" --relaxed-constexpr " \
 -DCUDA_ARCH:STRING="sm_35" \
 -DCMAKE_BUILD_TYPE:STRING="DEBUG" \
 -DBUILD_SHARED_LIBS:BOOL=ON \
