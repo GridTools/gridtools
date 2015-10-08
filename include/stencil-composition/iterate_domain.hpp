@@ -498,7 +498,7 @@ namespace gridtools {
         /** @brief method called in the Do methods of the functors. */
         template <typename ... Arguments, template<typename ... Args> class Expression >
         GT_FUNCTION
-        auto operator() (Expression<Arguments ... > const& arg) const ->decltype(evaluation::value(*this, arg)) {
+        auto operator() (Expression<Arguments ... > const& arg) const ->decltype(evaluation::value(*this, arg)) & RESTRICT {
             //arg.to_string();
             GRIDTOOLS_STATIC_ASSERT((is_expr<Expression<Arguments ... > >::value), "invalid expression" );
             return evaluation::value((*this), arg);
@@ -509,7 +509,7 @@ namespace gridtools {
         template <typename Argument, template<typename Arg1, typename Arg2> class Expression, typename FloatType
                   , typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
         GT_FUNCTION
-        auto operator() (Expression<Argument, FloatType> const& arg) const ->decltype(evaluation::value_scalar(*this, arg)) {
+        auto operator() (Expression<Argument, FloatType> const& arg) const ->decltype(evaluation::value_scalar(*this, arg)) & RESTRICT {
             GRIDTOOLS_STATIC_ASSERT((is_expr<Expression<Argument, FloatType> >::value), "invalid expression");
             return evaluation::value_scalar((*this), arg);
         }
@@ -520,7 +520,7 @@ namespace gridtools {
         template <typename Argument, template<typename Arg1, typename Arg2> class Expression, typename IntType
                   , typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
         GT_FUNCTION
-        auto operator() (Expression<Argument, IntType> const& arg) const ->decltype(evaluation::value_int((*this), arg)) {
+        auto operator() (Expression<Argument, IntType> const& arg) const ->decltype(evaluation::value_int((*this), arg)) & RESTRICT {
 
             GRIDTOOLS_STATIC_ASSERT((is_expr<Expression<Argument, IntType> >::value), "invalid expression");
             return evaluation::value_int((*this), arg);
