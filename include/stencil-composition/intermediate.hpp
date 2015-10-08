@@ -223,12 +223,10 @@ namespace gridtools {
         {}
     };
 
-
-
     //\todo move inside the traits classes?
 
     /**
-       This functor calls h2d_update on all storages, in order to
+       This functor calls h2d_update on all storages and meta storages, in order to
        get the data prepared in the case of GPU execution.
 
        Returns 0 (GT_NO_ERRORS) on success
@@ -250,7 +248,7 @@ namespace gridtools {
                 boost::mpl::range_c<int, 0, boost::mpl::size<ArgListType>::value >
             > (copy_pointers_functor<ArgListType, typename DomainType::arg_list> (storage_pointers, domain.m_original_pointers));
 
-            boost::fusion::for_each(meta_data_, copy_pointers_set_functor<typename DomainType::metadata_set_t::set_t> (domain.m_metadata_set.sequence_view()));
+            // boost::fusion::for_each(meta_data_, copy_pointers_set_functor<typename DomainType::metadata_set_t::set_t> (domain.m_metadata_set.sequence_view()));
 
             boost::fusion::for_each(storage_pointers, update_pointer());
             boost::fusion::for_each(meta_data_, update_pointer());
@@ -533,10 +531,10 @@ namespace gridtools {
             if(is_storage_ready)
             {
                 //filter the non temporary meta storage pointers among the actual ones
-                typedef boost::fusion::filter_view<typename boost::fusion::result_of::as_set<actual_metadata_set_t>::type,
-                                                   boost::mpl::not_<is_ptr_to_tmp<boost::mpl::_1> > > t_meta_view;
-
-                t_meta_view  meta_view(m_actual_metadata_list.sequence_view());
+                // typedef boost::fusion::filter_view<typename boost::fusion::result_of::as_set<actual_metadata_set_t>::type,
+                //                                    boost::mpl::not_<is_ptr_to_tmp<boost::mpl::_1> > > t_meta_view;
+                //t_meta_view
+                typename boost::fusion::result_of::as_set<actual_metadata_set_t>::type  meta_view(m_actual_metadata_list.sequence_view());
 
                 setup_computation<Backend::s_backend_id>::apply( m_actual_arg_list, meta_view, m_domain );
 #ifdef __VERBOSE__
