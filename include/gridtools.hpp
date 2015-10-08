@@ -8,6 +8,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include "common/defs.hpp"
 #include <boost/mpl/greater.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/range_c.hpp>
@@ -21,7 +22,6 @@
 
 #include<communication/GCL.hpp>
 #include "common/gt_assert.hpp"
-#include "common/defs.hpp"
 #include "common/host_device.hpp"
 #include "common/array.hpp"
 #include "common/layout_map.hpp"

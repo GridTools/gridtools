@@ -14,6 +14,11 @@
 //TODOCOSUNA This IS VERY VERY VERY DANGEROUS HERE
 #define BLOCK_SIZE 32
 
+#if !defined(FUSION_MAX_VECTOR_SIZE) || FUSION_MAX_VECTOR_SIZE<50
+    #define FUSION_MAX_VECTOR_SIZE 50
+    #define FUSION_MAX_MAP_SIZE 50
+#endif
+
 // #include <boost/mpl/map/aux_/item.hpp>
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/insert.hpp>
@@ -27,11 +32,6 @@
 #include <boost/utility/enable_if.hpp>
 #include <boost/mpl/logical.hpp>
 #include <boost/type_traits.hpp>
-
-#ifndef FUSION_MAX_VECTOR_SIZE
-    #define FUSION_MAX_VECTOR_SIZE 20
-    #define FUSION_MAX_MAP_SIZE 20
-#endif
 
 #define GT_MAX_ARGS 20
 #define GT_MAX_INDEPENDENT 3
