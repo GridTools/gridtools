@@ -68,10 +68,13 @@ struct flx_function {
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_flx) {
+#ifdef FUNCTIONS_OFFSETS
+        double _x_ = gridtools::call_offsets<lap_function, x_flx>::with(dom, in(0,0,0));
+        double _y_ = gridtools::call_offsets<lap_function, x_flx>::with(dom, in(1,0,0));
+#else
         double _x_ = gridtools::call<lap_function, x_flx>::at<0,0,0>::with(dom, in());
         double _y_ = gridtools::call<lap_function, x_flx>::at<1,0,0>::with(dom, in());
-        //        double _x_ = gridtools::call_offsets<lap_function, x_flx>::with(dom, in(0,0,0));
-        //double _y_ = gridtools::call_offsets<lap_function, x_flx>::with(dom, in(1,0,0));
+#endif
         // double y = dom(lap(0,0,0));
         // std::cout << _x_ << "  ====  " << y << "  ( " << _x_-y << " )" << std::endl;
         // assert(_x_-y == 0.0);
@@ -94,10 +97,13 @@ struct fly_function {
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_flx) {
+#ifdef FUNCTIONS_OFFSETS
+        double _x_ = gridtools::call_offsets<lap_function, x_flx>::with(dom, in(0,0,0));
+        double _y_ = gridtools::call_offsets<lap_function, x_flx>::with(dom, in(0,1,0));
+#else
         double _x_ = gridtools::call<lap_function, x_flx>::at<0,0,0>::with(dom, in());
         double _y_ = gridtools::call<lap_function, x_flx>::at<0,1,0>::with(dom, in());
-        //double _x_ = gridtools::call_offsets<lap_function, x_flx>::with(dom, in(0,0,0));
-        //double _y_ = gridtools::call_offsets<lap_function, x_flx>::with(dom, in(0,1,0));
+#endif
         dom(out()) = _y_-_x_;
         dom(out()) = dom(out())*(dom(in(0,1,0))-dom(in(0,0,0))) > 0?0.0:dom(out());
     }
