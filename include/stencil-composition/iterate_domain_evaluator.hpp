@@ -53,6 +53,11 @@ protected:
 
 public:
 
+    template <typename Accs>
+    struct accessor_return_type {
+        typedef typename iterate_domain_t::template accessor_return_type<Accs>::type type;
+    };
+
     typedef typename _impl::iterate_domain_evaluator_base_esf_args_map<IterateDomainEvaluatorImpl>::type esf_args_map_t;
 
     GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<iterate_domain_t>::value), "Internal Error: wrong type");
