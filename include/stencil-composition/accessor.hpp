@@ -126,7 +126,6 @@ namespace gridtools {
         static const ushort_t n_dim = ArgType::n_dim;
         typedef typename ArgType::base_t base_t;
         typedef typename ArgType::index_type index_type;
-        typedef accessor_mixed<ArgType, Pair...> type;
     private:
         static constexpr accessor_base<ArgType::index_type::value
                                              , typename ArgType::range_type

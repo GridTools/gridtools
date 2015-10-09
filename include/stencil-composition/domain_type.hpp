@@ -4,6 +4,8 @@
 #include "../common/gt_assert.hpp"
 
 #include <stdio.h>
+#include <boost/fusion/include/as_vector.hpp>
+#include <boost/fusion/container/vector/convert.hpp>
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/include/push_back.hpp>
 #include <boost/fusion/include/value_at.hpp>
@@ -25,15 +27,105 @@
 
 #include "domain_type_impl.hpp"
 #include "../storage/metadata_set.hpp"
+#include "../common/generic_metafunctions/static_if.hpp"
+#include "../common/generic_metafunctions/lazy_range.hpp"
 
 /**@file
- @brief This file contains the global list of placeholders to the storages
+   @brief This file contains the global list of placeholders to the storages
 */
 namespace gridtools {
 
     //fwd declaration
     template<typename T>
     struct is_arg;
+
+
+    template<typename Permutation>
+    struct lambda{
+
+        template<uint_t T, uint_t U>
+        using type = typename boost::mpl::at_c<Permutation, T>::type;
+
+        template<uint_t I>
+        struct get_component{
+
+            template<typename ... Args>
+            static auto apply(Args const& ... args_)
+                ->decltype(std::get< boost::mpl::at_c<Permutation,
+                           I >::type::value
+                           >(std::make_tuple(args_ ...)))
+            {
+                return std::get< boost::mpl::at_c<Permutation,
+                                                  I >::type::value
+                                 >(std::make_tuple(args_ ...));
+            }
+        };
+
+    };
+
+
+    struct sort_struct{
+        template<typename T1, typename T2>
+        struct apply ;
+
+        template<typename T1, typename T2, typename T3, typename T4>
+        struct apply <arg_storage_pair<T1, T2>, arg_storage_pair<T3, T4> > : public
+        boost::mpl::bool_< (T1::index_type::value < T3::index_type::value) >
+        {};
+
+        template<ushort_t I1, typename T1, ushort_t I2, typename T2>
+        struct apply <arg<I1, T1>, arg<I2, T2> > : public
+        boost::mpl::bool_< (I1 < I2) >
+        {};
+
+        template<typename T, T T1, T T2>
+        struct apply <boost::mpl::integral_c<T, T1>, boost::mpl::integral_c<T, T2> > : public
+        boost::mpl::bool_<  (T1 < T2)
+            >
+        {};
+    };
+
+
+    struct extract_storage_ptr{
+
+        template<typename T>
+        struct apply{
+            typedef typename T::storage_type* type;
+        };
+    };
+
+    template<typename ... Args>
+
+    struct sorted_fusion_vector
+    {
+        typedef boost::mpl::vector<Args...> types_t;
+        typedef typename boost::mpl::sort<types_t, sort_struct >::type sorted_t;
+        typedef typename boost::mpl::transform<sorted_t, extract_storage_ptr>::type sort_t;
+
+        typedef typename boost::fusion::result_of::as_vector<sort_t>::type vector_t;
+
+        typedef boost::mpl::vector<static_int<Args::arg_type::index::value>...> sort_id_t;
+        typedef typename lazy_range<static_int<0>, static_int<sizeof...(Args)-1> >::type range_t;
+        typedef typename boost::mpl::sort<range_t, sort_struct >::type permutations_t;
+
+
+        static auto apply(Args const&  ... args_)
+            ->decltype(apply_gt_integer_sequence<typename make_gt_integer_sequence
+                       <uint_t, sizeof...(Args)>::type>
+                       ::template apply<vector_t, lambda<permutations_t>::template get_component >(args_.ptr...)
+                )
+        {
+            return apply_gt_integer_sequence<typename make_gt_integer_sequence
+                                             <uint_t, sizeof...(Args)>::type>
+                ::template apply<vector_t, lambda<permutations_t>::template get_component >(args_.ptr...);
+        }
+
+    };
+
+
+    template<typename T>
+    struct is_not_tmp_storage : boost::mpl::or_<is_storage<T>, boost::mpl::not_<is_any_storage<T > > >{
+    };
 
     /**
        @brief This struct contains the global list of placeholders to the storages
@@ -50,9 +142,11 @@ namespace gridtools {
     template <typename Placeholders>
     struct domain_type : public clonable_to_gpu<domain_type<Placeholders> > {
 
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Placeholders, is_arg>::type::value), "wrong type:\
+        typedef typename boost::mpl::sort<Placeholders, sort_struct >::type placeholders_t;
+
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<placeholders_t, is_arg>::type::value), "wrong type:\
  the domain_type template argument must be an MPL vector of placeholders (arg<...>)");
-        typedef Placeholders original_placeholders;
+        typedef placeholders_t original_placeholders;
 
     private:
         BOOST_STATIC_CONSTANT(uint_t, len = boost::mpl::size<original_placeholders>::type::value);
@@ -60,8 +154,8 @@ namespace gridtools {
         // filter out the metadatas which are the same
         typedef typename boost::mpl::fold<
             original_placeholders
-            , boost::mpl::set<>
-            , boost::mpl::insert<boost::mpl::_1, arg2metadata<boost::mpl::_2> > >::type original_metadata_set_t;
+            , boost::mpl::set<> // check if the argument is a storage placeholder before extracting the metadata
+            , boost::mpl::if_< is_storage_arg<boost::mpl::_2>, boost::mpl::insert<boost::mpl::_1, arg2metadata<boost::mpl::_2> >, boost::mpl::_1 > >::type original_metadata_set_t;
 
         /** @brief Create an mpl::vector of metadata types*/
         typedef typename boost::mpl::fold<
@@ -107,7 +201,7 @@ namespace gridtools {
         /**
          * \brief Definition of a random access sequence of integers between 0 and the size of the placeholder sequence
          e.g. [0,1,2,3,4]
-         */
+        */
         typedef boost::mpl::range_c<uint_t ,0,len> range_t;
 
     private:
@@ -120,7 +214,7 @@ You have to define each arg with a unique identifier ranging from 0 to N without
         /**\brief reordering vector
          * defines an mpl::vector of len indexes reordered accodring to range_t (placeholder _2 is vector<>, placeholder _1 is range_t)
          e.g.[1,3,2,4,0]
-         */
+        */
         typedef typename boost::mpl::fold<range_t,
             boost::mpl::vector<>,
             boost::mpl::push_back<
@@ -219,7 +313,6 @@ You have to define each arg with a unique identifier ranging from 0 to N without
         void assign_pointers(MetaDataSequence& sequence_, ArgStoragePair0 arg0, OtherArgs ... other_args)
         {
             assert(arg0.ptr);
-            printf("pointer: %x", arg0.ptr);
             boost::fusion::at<typename ArgStoragePair0::arg_type::index_type>(m_storage_pointers) = arg0.ptr;
             //storing the value of the pointers in a 'backup' fusion vector
             boost::fusion::at<typename ArgStoragePair0::arg_type::index_type>(m_original_pointers) = arg0.ptr;
@@ -252,6 +345,23 @@ You have to define each arg with a unique identifier ranging from 0 to N without
 #endif
 
 
+        template <typename Sequence, typename Arg>
+        struct conditional{
+        private :
+            Sequence& m_seq;
+            Arg const* m_arg;
+        public:
+            conditional(Sequence& seq_, Arg const* arg_): m_seq(seq_), m_arg(arg_){}
+            void operator()()const{
+                if (!m_seq.template present<pointer<const typename Arg::meta_data_t> >())
+                    m_seq.insert(pointer<const typename Arg::meta_data_t>(&m_arg->meta_data()));                 }
+        };
+
+        struct empty{
+            void operator()() const{
+            }
+        };
+
         /**
            @brief functor to insert a boost fusion sequence to the metadata set
            @tparam Sequence is of type metadata_set
@@ -270,10 +380,11 @@ You have to define each arg with a unique identifier ranging from 0 to N without
 
             template <typename Arg>
             void operator()( Arg const* arg_) const{
-                //TODO: is_storage is already taken!!
-                //GRIDTOOLS_STATIC_ASSERT(is_storage<Arg>::value, "wrong type");
-                if (!m_sequence.template present<pointer<const typename Arg::meta_data_t> >())
-                    m_sequence.insert(pointer<const typename Arg::meta_data_t>(&arg_->meta_data()));
+                // filter out the arguments which are not of storage type (and thus do not have an associated metadata)
+                static_if<is_storage<Arg>::type::value>::eval(
+                    conditional<Sequence, Arg>(m_sequence, arg_)
+                    , empty());
+
             }
         };
 
@@ -287,22 +398,22 @@ You have to define each arg with a unique identifier ranging from 0 to N without
             : m_storage_pointers()
             , m_metadata_set()
         {
-
-            typedef boost::fusion::filter_view<arg_list,
-                                               is_storage<boost::mpl::_1> > view_type;
+            typedef boost::fusion::filter_view
+                <arg_list,
+                 is_not_tmp_storage<boost::mpl::_1> > view_type;
 
             view_type fview(m_storage_pointers);
 
             GRIDTOOLS_STATIC_ASSERT( boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value, "The number of arguments specified when constructing the domain_type is not the same as the number of placeholders to non-temporary storages. Double check the temporary flag in the meta_storage types.");
 
             typedef typename boost::mpl::fold<
-            arg_list_mpl
-            , boost::mpl::vector0<>
-            , boost::mpl::if_<is_not_tmp_storage<boost::mpl::_2>
-                              , boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2 >
-                              , boost::mpl::_1
-            > >
-            ::type view_type_mpl;
+                arg_list_mpl
+                , boost::mpl::vector0<>
+                , boost::mpl::if_<is_not_tmp_storage<boost::mpl::_2>
+                                  , boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2 >
+                                  , boost::mpl::_1
+                                  > >
+                ::type view_type_mpl;
 
             typedef typename boost::mpl::fold<
                 boost::mpl::range_c<uint_t, 0, boost::mpl::size<RealStorage>::type::value>
@@ -313,7 +424,7 @@ You have to define each arg with a unique identifier ranging from 0 to N without
                       >
                 >::type::type storages_matching;
 
-                GRIDTOOLS_STATIC_ASSERT(storages_matching::value, "Error in the definition of the domain_type. The storage type associated to one of the \'arg\' types is not the correct one. Check that the storage_type used when defining each \'arg\' matches the correspondent storage passed as run-time argument of the domain_type constructor");
+            GRIDTOOLS_STATIC_ASSERT(storages_matching::value, "Error in the definition of the domain_type. The storage type associated to one of the \'arg\' types is not the correct one. Check that the storage_type used when defining each \'arg\' matches the correspondent storage passed as run-time argument of the domain_type constructor");
 
             //NOTE: an error in the line below could mean that the storage type
             // associated to the arg is not the
@@ -381,7 +492,7 @@ You have to define each arg with a unique identifier ranging from 0 to N without
             boost::fusion::for_each(m_original_pointers, call_d2h());
             gridtools::for_each<
                 boost::mpl::range_c<int, 0, boost::mpl::size<arg_list>::value >
-            > (copy_pointers_functor<arg_list, arg_list> (m_original_pointers, m_storage_pointers));
+                > (copy_pointers_functor<arg_list, arg_list> (m_original_pointers, m_storage_pointers));
         }
 
         /**

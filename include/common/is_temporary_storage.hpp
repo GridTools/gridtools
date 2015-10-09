@@ -7,7 +7,7 @@
 
 namespace gridtools {
     template <typename T>
-    struct is_storage;
+    struct is_storage : boost::mpl::false_{};
 } // namespace gridtools
 
 
