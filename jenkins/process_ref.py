@@ -99,9 +99,9 @@ class Plotter:
             for adomain in self.stella_avg_times_[astencil]:
                 fig, ax = plt.subplots()
 
-                stella_times = self.stella_avg_times_[astencil][adomain]
+                stella_times = [a/10.0 for a in self.stella_avg_times_[astencil][adomain] ]
                 gridtools_times = self.gridtools_avg_times_[astencil][adomain]
-                stella_err = self.stella_err_[astencil][adomain]
+                stella_err = [err/10.0 for err in self.stella_err_[astencil][adomain] ]
                 gridtools_err = self.gridtools_err_[astencil][adomain]
                 labels = self.labels_[astencil][adomain]
                 
@@ -130,6 +130,7 @@ class Plotter:
 
                 plt.xlabel('Stencil Name')
                 plt.ylabel('Stencil time (s)')
+                plt.title(astencil)
                 plt.xticks(index + bar_width*1.5, labels, rotation=90, fontsize='xx-small')
                 plt.legend()
 
