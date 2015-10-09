@@ -219,10 +219,14 @@ if __name__ == "__main__":
         parser.error('--prec should be specified')
 
     target = args.target[0]
+    stella_suffix=""
     if target == 'gpu':
         target_suff = "cuda"
+        stella_suffix = "CUDA"
     elif target == 'cpu':
         target_suff = "block"
+    else:
+        parser.error('wrong value for --target')
 
     std = args.std[0]
     if std != "cxx11" and std != "cxx03":
@@ -233,7 +237,7 @@ if __name__ == "__main__":
 
     stella_exec = None
     if args.stella_path:
-        stella_exec = args.stella_path[0] + '/StandaloneStencils'
+        stella_exec = args.stella_path[0] + '/StandaloneStencils'+stella_suffix
 
     mode = args.m[0]
     if mode != 'u' and mode != 'c':
