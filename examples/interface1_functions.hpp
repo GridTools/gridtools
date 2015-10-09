@@ -60,7 +60,7 @@ struct lap_function {
 struct flx_function {
 
     typedef accessor<0> out;
-    typedef const accessor<1, range<0, 1, 0, 0> > in;
+    typedef const accessor<1, range<-1, 2, -1, 1> > in;
     //    typedef const accessor<2, range<0, 1, 0, 0> > lap;
 
     typedef boost::mpl::vector<out, in> arg_list;
@@ -68,12 +68,22 @@ struct flx_function {
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_flx) {
+#ifdef MONOLITHIC
+#pragma message "monolithic version";
+        double _x_ = (gridtools::float_type)4.0*dom(in()) -
+            (dom(in( -1, 0, 0)) + dom(in( 0, -1, 0)) +
+             dom(in(0, 1, 0)) + dom(in(1, 0, 0)));
+        double _y_ = (gridtools::float_type)4.0*dom(in(1,0,0)) -
+            (dom(in( 0, 0, 0)) + dom(in( 1, -1, 0)) +
+             dom(in(1, 1, 0)) + dom(in(2, 0, 0)));
+#else
 #ifdef FUNCTIONS_OFFSETS
         double _x_ = gridtools::call_offsets<lap_function, x_flx>::with(dom, in(0,0,0));
         double _y_ = gridtools::call_offsets<lap_function, x_flx>::with(dom, in(1,0,0));
 #else
         double _x_ = gridtools::call<lap_function, x_flx>::at<0,0,0>::with(dom, in());
         double _y_ = gridtools::call<lap_function, x_flx>::at<1,0,0>::with(dom, in());
+#endif
 #endif
         // double y = dom(lap(0,0,0));
         // std::cout << _x_ << "  ====  " << y << "  ( " << _x_-y << " )" << std::endl;
@@ -89,7 +99,7 @@ struct flx_function {
 struct fly_function {
 
     typedef accessor<0> out;
-    typedef const accessor<1, range<0, 0, 0, 1> > in;
+    typedef const accessor<1, range<-1, 1, -1, 2> > in;
     //    typedef const accessor<2, range<0, 0, 0, 1> > lap;
 
     typedef boost::mpl::vector<out, in> arg_list;
@@ -97,12 +107,22 @@ struct fly_function {
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_flx) {
+
+#ifdef MONOLITHIC
+        double _x_ = (gridtools::float_type)4.0*dom(in()) -
+            (dom(in( -1, 0, 0)) + dom(in( 0, -1, 0)) +
+             dom(in(0, 1, 0)) + dom(in(1, 0, 0)));
+        double _y_ = (gridtools::float_type)4.0*dom(in(0,1,0)) -
+            (dom(in( -1, 1, 0)) + dom(in( 0, 0, 0)) +
+             dom(in(0, 2, 0)) + dom(in(1, 1, 0)));
+#else
 #ifdef FUNCTIONS_OFFSETS
         double _x_ = gridtools::call_offsets<lap_function, x_flx>::with(dom, in(0,0,0));
         double _y_ = gridtools::call_offsets<lap_function, x_flx>::with(dom, in(0,1,0));
 #else
         double _x_ = gridtools::call<lap_function, x_flx>::at<0,0,0>::with(dom, in());
         double _y_ = gridtools::call<lap_function, x_flx>::at<0,1,0>::with(dom, in());
+#endif
 #endif
         dom(out()) = _y_-_x_;
         dom(out()) = dom(out())*(dom(in(0,1,0))-dom(in(0,0,0))) > 0?0.0:dom(out());
@@ -224,29 +244,6 @@ bool test(uint_t x, uint_t y, uint_t z) {
     coords.value_list[0] = 0;
     coords.value_list[1] = d3-1;
 
-    /*
-      Here we do lot of stuff
-      1) We pass to the intermediate representation ::run function the description
-      of the stencil, which is a multi-stage stencil (mss)
-      The mss includes (in order of execution) a laplacian, two fluxes which are independent
-      and a final step that is the out_function
-      2) The logical physical domain with the fields to use
-      3) The actual domain dimensions
-     */
-    // gridtools::intermediate::run<gridtools::BACKEND>
-    //     (
-    //      gridtools::make_mss
-    //      (
-    //       gridtools::execute_upward,
-    //       gridtools::make_esf<lap_function>(p_lap(), p_in()),
-    //       gridtools::make_independent
-    //       (
-    //        gridtools::make_esf<flx_function>(p_flx(), p_in(), p_lap()),
-    //        gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap())
-    //        ),
-    //       gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
-    //       ),
-    //      domain, coords);
 
 #ifdef USE_PAPI
 int event_set = PAPI_NULL;
