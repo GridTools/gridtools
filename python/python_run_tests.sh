@@ -9,7 +9,7 @@ PYTHON_INSTALL_PREFIX=$2
 rm -rf /tmp/__gridtools_* > /dev/null 2>&1
 
 #
-# run interactively without arguments
+# run interactively if no arguments given
 #
 if [ -n "${CMAKE_SOURCE_DIR}" ] && [ -n "${PYTHON_INSTALL_PREFIX}" ]; then
     # Looking for PYTHON_INSTALL_PREFIX
