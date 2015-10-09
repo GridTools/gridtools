@@ -4,9 +4,9 @@ CMAKE_SOURCE_DIR=$1
 PYTHON_INSTALL_PREFIX=$2
 
 #
-# remove any files left from the previous run
+# remove files left from the previous runs which are older than two days
 #
-rm -rf /tmp/__gridtools_* > /dev/null 2>&1
+find /tmp -iname '__gridtools_*' -type d -ctime +2 -exec rm -rf {} \; > /dev/null 2>&1
 
 #
 # run interactively if no arguments given
