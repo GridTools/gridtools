@@ -270,7 +270,7 @@
                 }
             },
             "exec": "build/interface1",
-            "stella_filter": ""
+            "stella_filter": "--gtest_filter=HoriDiffBenchmark.4Stages"
         },
         "copy_stencil": {
             "gpu": {

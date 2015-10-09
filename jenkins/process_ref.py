@@ -130,7 +130,7 @@ class Plotter:
 
                 plt.xlabel('Stencil Name')
                 plt.ylabel('Stencil time (s)')
-                plt.title(astencil)
+                plt.title(astencil + ' ' + adomain)
                 plt.xticks(index + bar_width*1.5, labels, rotation=90, fontsize='xx-small')
                 plt.legend()
 
