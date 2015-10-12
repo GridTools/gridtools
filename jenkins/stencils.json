@@ -814,7 +814,7 @@
                     }
                 }
             },
-            "stella_filter": "--gtest_filter=VerticalAdvectionBenchmark.singleTest"
+            "stella_filter": "--gtest_filter=VerticalAdvectionBenchmark.U"
         }
     }
 }

@@ -93,7 +93,7 @@ class Plotter:
 
         self.labels_ = {}
 
-    def plot(self, filename, y1, y1_err, label1, y2, y2_err, label2):
+    def plot(self, filename, title, y1, y1_err, label1, y2, y2_err, label2):
     
         n_groups = len(y1)
         index = np.arange(n_groups)
@@ -118,6 +118,7 @@ class Plotter:
 
         plt.xlabel('Stencil Name')
         plt.ylabel('Stencil time (s)')
+        plt.title(title)
         plt.xticks(index + bar_width*1.5, label2, rotation=90, fontsize='xx-small')
         plt.legend()
 
@@ -136,13 +137,13 @@ class Plotter:
             for adomain in self.stella_avg_times_[astencil]:
                 fig, ax = plt.subplots()
 
-                stella_times = self.stella_avg_times_[astencil][adomain]
+                stella_times = [a/10.0 for a in self.stella_avg_times_[astencil][adomain] ]
                 gridtools_times = self.gridtools_avg_times_[astencil][adomain]
-                stella_err = self.stella_err_[astencil][adomain]
+                stella_err = [err/10.0 for err in self.stella_err_[astencil][adomain] ]
                 gridtools_err = self.gridtools_err_[astencil][adomain]
                 labels = self.labels_[astencil][adomain]
                 
-                self.plot("perf_vs_stella/plot_"+astencil+"_"+adomain+".svg", stella_times, stella_err, "stella", gridtools_times, gridtools_err, "gridtools")
+                self.plot("perf_vs_stella/plot_"+astencil+"_"+adomain+".svg", astencil, stella_times, stella_err, "stella", gridtools_times, gridtools_err, "gridtools")
 
         if not os.path.exists("perf_vs_reference"):
             os.makedirs("perf_vs_reference")
@@ -157,9 +158,7 @@ class Plotter:
                 reference_err = self.reference_err_[astencil][adomain]
                 labels = self.labels_[astencil][adomain]
                 
-                self.plot("perf_vs_reference/plot_"+astencil+"_"+adomain+".svg", gridtools_times, gridtools_err, "gridtools", reference_times, reference_err, "reference")
-
-
+                self.plot("perf_vs_reference/plot_"+astencil+"_"+adomain+".svg", astencil, gridtools_times, gridtools_err, "gridtools", reference_times, reference_err, "reference")
 
     def stella_has_stencil(self, stencil_name):
         return self.stella_timers_.has_key(stencil_name)
@@ -260,10 +259,14 @@ if __name__ == "__main__":
         parser.error('--prec should be specified')
 
     target = args.target[0]
+    stella_suffix=""
     if target == 'gpu':
         target_suff = "cuda"
+        stella_suffix = "CUDA"
     elif target == 'cpu':
         target_suff = "block"
+    else:
+        parser.error('wrong value for --target')
 
     std = args.std[0]
     if std != "cxx11" and std != "cxx03":
@@ -274,7 +277,7 @@ if __name__ == "__main__":
 
     stella_exec = None
     if args.stella_path:
-        stella_exec = args.stella_path[0] + '/StandaloneStencils'
+        stella_exec = args.stella_path[0] + '/StandaloneStencils'+stella_suffix
 
     mode = args.m[0]
     if mode != 'u' and mode != 'c':
