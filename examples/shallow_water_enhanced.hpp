@@ -83,7 +83,7 @@ namespace shallow_water{
         void operator()(direction<I, minus_, K, typename boost::enable_if_c<I!=minus_>::type>,
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
-            data_field0.template get<Component, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(i,data_field0.template dims<1>()-1-j,k)];
+            data_field0.template get<Snapshot, Component>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(i,data_field0.template dims<1>()-1-j,k)];
         }
 
         // periodic boundary conditions in J
@@ -92,7 +92,7 @@ namespace shallow_water{
         void operator()(direction<minus_, J, K>,
                         DataField0 & data_field0,
                         uint_t i, uint_t j, uint_t k) const {
-            data_field0.template get<Component, Snapshot>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(data_field0.template dims<0>()-1-i,j,k)];
+            data_field0.template get<Snapshot, Component>()[data_field0._index(i,j,k)] = data_field0.template get<Component, Snapshot>()[data_field0._index(data_field0.template dims<0>()-1-i,j,k)];
         }
 
         // default: do nothing
@@ -300,8 +300,10 @@ namespace shallow_water{
 //! [layout_map]
 
 //! [storage_type]
-        typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
-        typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
+        typedef gridtools::storage_info<0, layout_t> storage_info_t;
+        typedef gridtools::storage_info<0, layout_t> storage_info_tmp_t;
+        typedef gridtools::BACKEND::storage_type<float_type, storage_info_t >::type storage_type;
+        typedef gridtools::BACKEND::temporary_storage_type<float_type, storage_info_tmp_t >::type tmp_storage_type;
         typedef storage_type::pointer_type pointer_type;
 //! [storage_type]
 
@@ -345,18 +347,19 @@ namespace shallow_water{
         array<ushort_t, 3> padding={1,1,0};
         array<ushort_t, 3> halo={1,1,0};
         typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > >, pattern_type::grid_type> partitioner_t;
+
         partitioner_t part(he.comm(), halo, padding);
 //! [padding_halo]
 
 //! [parallel_storage]
-        parallel_storage<sol_type, partitioner_t> sol(part);
-        sol.setup(d1, d2, d3);
+        parallel_storage_info<storage_info_t, partitioner_t> meta_(part, d1, d2, d3);
+        sol_type sol(meta_.get_metadata(), "sol");
 //! [parallel_storage]
 
 //! [add_halo]
-        he.add_halo<0>(sol.get_halo_gcl<0>());
-        he.add_halo<1>(sol.get_halo_gcl<1>());
-        he.add_halo<2>(sol.get_halo_gcl<2>());
+        he.add_halo<0>(meta_.get_halo_gcl<0>());
+        he.add_halo<1>(meta_.get_halo_gcl<1>());
+        he.add_halo<2>(meta_.get_halo_gcl<2>());
 
         he.setup(3);
 //! [add_halo]
@@ -391,14 +394,14 @@ namespace shallow_water{
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
 //! [coordinates]
-        coordinates<axis, partitioner_t> coords(part, sol);
+        coordinates<axis, partitioner_t> coords(part, meta_);
         coords.value_list[0] = 0;
         coords.value_list[1] = d3-1;
 //! [coordinates]
 
 //! [computation]
         auto shallow_water_stencil =
-            make_computation<gridtools::BACKEND, layout_t>
+            make_computation<gridtools::BACKEND>
             (
                 make_mss // mss_descriptor
                 (
@@ -448,7 +451,7 @@ namespace shallow_water{
 #endif
 
 #ifndef CUDA_EXAMPLE
-                boost::timer::cpu_timer time;
+            boost::timer::cpu_timer time;
 #endif
 
 //! [run]
@@ -466,11 +469,12 @@ namespace shallow_water{
 //! [finalize]
         he.wait();
 
+        shallow_water_stencil->finalize();
+
         GCL_Finalize();
 
         bool retval=true;
 
-        shallow_water_stencil->finalize();
 //! [finalize]
 #ifndef NDEBUG
         myfile<<"############## SOLUTION ################"<<std::endl;
@@ -483,7 +487,7 @@ namespace shallow_water{
         {
             reference.iterate();
         }
-        retval=check_result.verify(sol, reference.solution);
+        retval=check_result.verify_parallel(meta_, sol, reference.solution);
         myfile<<"############## REFERENCE ################"<<std::endl;
         reference.solution.print(myfile);
 

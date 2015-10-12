@@ -1,9 +1,48 @@
 #pragma once
 
-#include <gridtools.hpp>
-#include <stencil-composition/backend.hpp>
-#include <stencil-composition/interval.hpp>
 #include <stencil-composition/make_computation.hpp>
+#include "Options.hpp"
+
+
+using namespace gridtools;
+using namespace enumtype;
+using namespace expressions;
+
+#ifdef CUDA_EXAMPLE
+#define BACKEND backend<Cuda, Block >
+#else
+#ifdef BACKEND_BLOCK
+#define BACKEND backend<Host, Block >
+#else
+#define BACKEND backend<Host, Naive >
+#endif
+#endif
+
+//                      dims  x y z  qp
+//                   strides  1 x xy xyz
+typedef gridtools::layout_map<3,2, 1, 0> layout4_t;
+typedef gridtools::layout_map<2,1,0> layout_t;
+
+#ifdef CUDA_EXAMPLE
+#define BACKEND backend<Cuda, Block >
+#else
+#ifdef BACKEND_BLOCK
+#define BACKEND backend<Host, Block >
+#else
+#define BACKEND backend<Host, Naive >
+#endif
+#endif
+
+typedef storage_info<0, layout_t> metadata_t;
+typedef storage_info<1, layout4_t> metadata_global_quad_t;
+typedef storage_info<2, layout4_t> metadata_local_quad_t;
+typedef gridtools::BACKEND::storage_type<float_type, metadata_t >::type storage_type;
+typedef gridtools::BACKEND::storage_type<float_type, metadata_global_quad_t >::type storage_global_quad_t;
+typedef gridtools::BACKEND::storage_type<float_type, metadata_local_quad_t >::type storage_local_quad_t;
+
+
+#include "extended_4D_verify.hpp"
+
 
 /**
   @file
@@ -33,11 +72,6 @@
 
   In this example we introduce also another syntactic element in the high level expression: the operator exclamation mark (!). This operator prefixed to a placeholder means that the corresponding storage index is not considered, and only the offsets are used to get the absolute address. This allows to perform operations which are not stencil-like. It is used in this case to address the basis functions values.
 */
-#ifdef CXX11_ENABLED
-
-using namespace gridtools;
-using namespace enumtype;
-using namespace expressions;
 
 namespace assembly{
 
@@ -86,25 +120,9 @@ namespace assembly{
 
     bool test(uint_t d1, uint_t d2, uint_t d3){
 
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend<Host, Block >
-#else
-#define BACKEND backend<Host, Naive >
-#endif
-#endif
-        //                      dims  x y z  qp
-        //                   strides  1 x xy xyz
-        typedef gridtools::layout_map<3,2, 1, 0> layout4_t;
-        typedef gridtools::layout_map<2,1,0> layout_t;
-        typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
-        typedef gridtools::BACKEND::storage_type<float_type, layout4_t >::type integration_type;
-
-        typedef arg<0, integration_type > p_phi;
-        typedef arg<1, integration_type > p_psi;
-        typedef arg<2, integration_type > p_jac;
+        typedef arg<0, storage_local_quad_t > p_phi;
+        typedef arg<1, storage_local_quad_t > p_psi;
+        typedef arg<2, storage_global_quad_t > p_jac;
         typedef arg<3, storage_type > p_f;
         typedef arg<4, storage_type > p_result;
 
@@ -115,12 +133,15 @@ namespace assembly{
         uint_t b2=2;
         uint_t b3=2;
         //basis functions available in a 2x2x2 cell, because of P1 FE
-        integration_type phi(b1,b2,b3,nbQuadPt);
-        integration_type psi(b1,b2,b3,nbQuadPt);
+        metadata_local_quad_t local_metadata(b1,b2,b3,nbQuadPt);
+
+        storage_local_quad_t phi(local_metadata);
+        storage_local_quad_t psi(local_metadata);
 
         //I might want to treat it as a temporary storage (will use less memory but constantly copying back and forth)
         //Or alternatively computing the values on the quadrature points on the GPU
-        integration_type jac(d1,d2,d3,nbQuadPt);
+        metadata_global_quad_t integration_metadata(d1,d2,d3,nbQuadPt);
+        storage_global_quad_t  jac(integration_metadata);
 
         //the above storage constructors are setting up the storages without allocating the space (might want to change this?). We do it now.
         jac.allocate();
@@ -142,9 +163,10 @@ namespace assembly{
                         phi(i,j,k,q)=10.;
                         psi(i,j,k,q)=11.;
                     }
-        storage_type f(d1, d2, d3, (float_type)1.3, "f");
 
-        storage_type result(d1, d2, d3, (float_type)0., "result");
+        metadata_t meta_(d1, d2, d3);
+        storage_type f(meta_, (float_type)1.3, "f");
+        storage_type result(meta_, (float_type)0., "result");
 
         gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&phi, &psi, &jac, &f, &result));
         /**
@@ -165,7 +187,7 @@ namespace assembly{
 #else
             boost::shared_ptr<gridtools::computation> fe_comp =
 #endif
-            make_computation<gridtools::BACKEND, layout_t>
+            make_computation<gridtools::BACKEND>
             (
                 make_mss //! \todo all the arguments in the call to make_mss are actually dummy.
                 (
@@ -179,29 +201,7 @@ namespace assembly{
         fe_comp->run();
         fe_comp->finalize();
 
-        bool success(true);
-        for(uint_t i=0; i<d1; ++i)
-            for(uint_t j=0; j<d2; ++j)
-                for(uint_t k=0; k<d3; ++k)
-                {
-                    if (result(i, j, k)!=((1*1.3*10*11*2*2*2)+(2*1.3*10*11*2*2*2))/((i==2&&j==2)?1:2)/ ((k==0||k==5)?2:1) /(((i==1||i==3)&&(j==1||j==3))?2:1)*((i==0||i==4||j==0||j==4)?0:1)) {
-                        std::cout << "error in "
-                                  << i << ", "
-                                  << j << ", "
-                                  << k << ": "
-                                  << "result = " << result(i, j, k)
-                                  << " instead of " << ((1*1.3*10*11*2*2*2)+(2*1.3*10*11*2*2*2))/(((i==1||i==3)&&(j==1||j==3))?2:1)/(((i==1||i==3)&&(j==1||j==3)&&(k==0||k==5))?2:1)*((i==0||i==4||j==0||j==4)?0:1)
-                                  << std::endl;
-                        success = false;
-                    }
-                }
-
-
-        //jac.print();
-        //phi.print();
-        //psi.print();
-        return success;
+        return do_verification(d1,d2,d3,result);
     }
 
-}; //namespace assembly
-#endif //CXX11_ENABLED
+}; //namespace extended_4d

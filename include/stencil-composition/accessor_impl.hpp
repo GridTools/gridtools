@@ -128,6 +128,7 @@ namespace gridtools {
         }
 
         template<short_t Idx>
+        GT_FUNCTION
         constexpr bool end() const {return true;}
 
         template<short_t Idx>
@@ -165,17 +166,10 @@ namespace gridtools {
     {};
 
     /**
-     * Struct to test if an argument is a placeholder to a temporary storage - Specialization yielding true
+     * Struct to test if an argument is a placeholder to a temporary storage
      */
-    template <uint_t I, typename T, typename U, short_t Dim>
-    struct is_plchldr_to_temp<arg<I, base_storage< T, U,  true, Dim> > > : boost::true_type
-    {};
-
-    /**
-     * Struct to test if an argument is a placeholder to a temporary storage - Specialization yielding false
-     */
-    template <uint_t I, typename T, typename U, short_t Dim>
-    struct is_plchldr_to_temp<arg<I, base_storage<  T, U,false, Dim> > > : boost::false_type
+    template <uint_t I, typename T, typename U, ushort_t Dim>
+    struct is_plchldr_to_temp<arg<I, base_storage< T, U, Dim> > > : boost::mpl::bool_<U::is_temporary>
     {};
 
     /**
@@ -264,12 +258,8 @@ namespace gridtools {
     struct is_temporary_storage<no_storage_type_yet<U>  > : public boost::true_type
     {};
 
-    template <typename T, typename U, short_t Dim>
-    struct is_storage<base_storage<T,U,true, Dim>  *  > : public boost::false_type
-    {};
-
-    template <typename T, typename U, short_t Dim>
-    struct is_storage<base_storage<T,U,false, Dim>  *  > : public boost::true_type
+    template <typename T, typename U, ushort_t Dim>
+    struct is_storage<base_storage<T,U,Dim>  *  > : public boost::mpl::bool_< !U::is_temporary >
     {};
 
     template <typename U>
@@ -287,6 +277,11 @@ namespace gridtools {
     //Decorator is the storage
     template <typename BaseType , template <typename T> class Decorator >
     struct is_storage<Decorator<BaseType>  *  > : public is_storage<typename BaseType::basic_type*>
+    {};
+
+    //Decorator is the storage
+    template <typename BaseType , template <typename T> class Decorator >
+    struct is_storage<Decorator<BaseType> > : public is_storage<typename BaseType::basic_type*>
     {};
 
 #ifdef CXX11_ENABLED

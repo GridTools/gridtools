@@ -21,7 +21,7 @@ if (GTEST_FOUND)
         test_domain_indices.cpp
         boundary_conditions_test.cpp
     )
-    set(CXX11_TESTS test_local_domain.cpp test-assign-placeholders.cpp stencil-composition/test_iterate_domain.cpp)
+    set(CXX11_TESTS test_local_domain.cpp test-assign-placeholders.cpp test_data_fields.cpp test_integer_sequence.cpp)
 
     if ( ENABLE_CXX11 )
       set(CXX11_TESTS ${CXX11_TESTS} stencil-composition/test_staggered_keyword.cpp)
@@ -82,8 +82,16 @@ endif()
   endif()
 endif()
 
+add_executable(CopyStencil external_ptr_test/CopyStencil.cpp)
+set_target_properties(CopyStencil PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+target_link_libraries(CopyStencil ${exe_LIBS})
+
+if (CUDA_FOUND)
+   cuda_add_executable( test_cuda_storage test_cuda_storage_exe.cu )
+   target_link_libraries(test_cuda_storage ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
+endif()
+
 add_subdirectory( communication )
 add_subdirectory( common )
 add_subdirectory( stencil-composition )
 add_subdirectory( storage )
-

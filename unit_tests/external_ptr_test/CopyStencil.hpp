@@ -5,21 +5,13 @@
  */
 #pragma once
 
-#include <gridtools.hpp>
-#include <common/defs.hpp>
-#include <stencil-composition/backend_host/backend_host.hpp>
-
-#include <boost/fusion/include/make_vector.hpp>
-
-
+#include <stencil-composition/make_computation.hpp>
 
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block >
 #else
 #define BACKEND backend<Host, Naive >
 #endif
-
-
 
 using gridtools::level;
 using gridtools::accessor;
@@ -87,19 +79,20 @@ bool test (uint_t d1, uint_t d2, uint_t d3,void *in_data_buff,void *out_data_buf
     // C-like memory layout
     //
     typedef gridtools::layout_map<0,1,2> layout_t;
+    typedef gridtools::storage_info<0, layout_t> meta_t;
 
     //
     // define the storage unit used by the backend
     //
-    typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<float_type, meta_t >::type storage_type;
 
+    meta_t meta_((uint_t) 3,(uint_t) 2,(uint_t) 1);
     //
     // parameter data fields use the memory buffers received from NumPy arrays
     //
-    storage_type in_data ((uint_t) 3,(uint_t) 2,(uint_t) 1,
-                                 (float_type *) in_data_buff,
-                                 "in_data");
-    storage_type out_data ((uint_t) 3,(uint_t) 2,(uint_t) 1,
+    storage_type in_data ( meta_, (float_type *) in_data_buff,
+                              "in_data");
+    storage_type out_data ( meta_,
                                  (float_type *) out_data_buff,
                                  "out_data");
 
@@ -149,7 +142,7 @@ bool test (uint_t d1, uint_t d2, uint_t d3,void *in_data_buff,void *out_data_buf
     // 3) the actual domain dimensions
     //
     boost::shared_ptr<gridtools::computation> comp_copystencil =
-      gridtools::make_computation<gridtools::BACKEND, layout_t>
+      gridtools::make_computation<gridtools::BACKEND>
         (
             gridtools::make_mss
             (

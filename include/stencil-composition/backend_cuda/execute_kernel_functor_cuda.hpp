@@ -24,10 +24,10 @@ namespace _impl_cuda {
 
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
         typedef backend_traits_from_id<enumtype::Cuda> backend_traits_t;
-        typedef strides_cached<iterate_domain_t::N_STORAGES-1, typename LocalDomain::esf_args> strides_t;
-        typedef array<void* RESTRICT,iterate_domain_t::N_DATA_POINTERS> data_pointer_t;
+        typedef typename iterate_domain_t::strides_cached_t strides_t;
+        typedef typename iterate_domain_t::data_pointer_array_t data_pointer_array_t;
         typedef shared_iterate_domain<
-            data_pointer_t,
+            data_pointer_array_t,
             strides_t,
             typename iterate_domain_t::iterate_domain_cache_t::ij_caches_tuple_t
         > shared_iterate_domain_t;
@@ -64,9 +64,7 @@ namespace _impl_cuda {
         typedef typename index_to_level<typename interval::second>::type to;
         typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy;
 
-        //setting the initial k level (for backward/parallel iterations it is not 0)
-        if( !(iteration_policy::value==enumtype::forward) )
-            it_domain.initialize<2>( coords->template value_at< iteration_policy::from >() );
+        it_domain.template initialize<2>( coords->template value_at< iteration_policy::from >() );
 
         //execute the k interval functors
         for_each<typename RunFunctorArguments::loop_intervals_t>
@@ -124,7 +122,7 @@ struct execute_kernel_functor_cuda
             std::cout << "maxThreadsPerMultiProcessor "<< prop.maxThreadsPerMultiProcessor <<std::endl;
         }
 #endif
-        m_local_domain.clone_to_gpu();
+
         m_coords.clone_to_gpu();
 
         local_domain_t *local_domain_gp = m_local_domain.gpu_object_ptr;

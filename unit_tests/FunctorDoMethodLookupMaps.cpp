@@ -88,7 +88,6 @@ struct PrintDoMethodLookupMap
 
         typedef typename boost::mpl::at<TFunctors, TIndex>::type Functor;
         typedef typename boost::mpl::at<TFunctorDoMethodLookupMaps, static_int<0> >::type DoMethodLookUpMap;
-        // DoMethodLookUpMap::fuck();
 
         // print the functor name
         if(boost::is_same<Functor0, Functor>::value)

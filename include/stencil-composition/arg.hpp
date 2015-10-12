@@ -10,9 +10,15 @@
 
 namespace gridtools {
 
+    //fwd decl
+    template <typename T> struct is_arg;
+
 /** @brief binding between the placeholder (\tparam ArgType) and the storage (\tparam Storage)*/
 template<typename ArgType, typename Storage>
 struct arg_storage_pair {
+
+    //TODO is_storage is taken!
+    GRIDTOOLS_STATIC_ASSERT(is_arg<ArgType>::value, "wrong type");
     typedef ArgType arg_type;
     typedef Storage storage_type;
 
@@ -26,6 +32,13 @@ struct arg_storage_pair {
         return ptr;
     }
 };
+
+
+    template<typename T>
+    struct is_arg_storage_pair : boost::mpl::false_{};
+
+    template<typename ArgType, typename Storage>
+    struct is_arg_storage_pair<arg_storage_pair<ArgType, Storage> > : boost::mpl::true_{};
 
 /**
  * Type to create placeholders for data fields.
@@ -86,6 +99,20 @@ template <typename Arg>
 struct arg_holds_data_field_h
 {
     typedef typename arg_holds_data_field<typename Arg::type >::type type;
+};
+
+/** @brief metafunction to access the storage type given the arg*/
+template<typename T>
+struct arg2storage {
+    GRIDTOOLS_STATIC_ASSERT(is_arg<T>::value, "wrong type for Arg");
+    typedef typename T::storage_type type;
+};
+
+/** @brief metafunction to access the metadata type given the arg*/
+template<typename T>
+struct arg2metadata {
+    GRIDTOOLS_STATIC_ASSERT(is_arg<T>::value, "wrong type for Arg");
+    typedef typename arg2storage<T>::type::meta_data_t type;
 };
 
 

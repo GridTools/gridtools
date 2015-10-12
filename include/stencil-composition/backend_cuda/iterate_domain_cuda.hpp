@@ -20,8 +20,11 @@ class iterate_domain_cuda : public IterateDomainBase<iterate_domain_cuda<Iterate
 
     typedef IterateDomainBase<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> > super;
     typedef typename IterateDomainArguments::local_domain_t local_domain_t;
+public:
+
     typedef typename super::data_pointer_array_t data_pointer_array_t;
     typedef typename super::strides_cached_t strides_cached_t;
+private:
 
     typedef typename super::iterate_domain_cache_t iterate_domain_cache_t;
 
@@ -197,6 +200,7 @@ template<
 >
 struct is_positional_iterate_domain<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> > :
     is_positional_iterate_domain<IterateDomainBase<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> > > {};
+
 
 template<template<class> class IterateDomainBase, typename IterateDomainArguments>
 struct iterate_domain_backend_id<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> >

@@ -158,7 +158,7 @@ class CopyTest (AccessPatternDetectionTest):
         for backend in BACKENDS:
             stencil_native         = copy.deepcopy (self.stencil)
             stencil_native.backend = backend
-            
+
             #
             # data fields - Py and C++ sets
             #
@@ -532,10 +532,10 @@ class HorizontalDiffusionTest (CopyTest):
         super ( ).setUp ( )
 
         self.domain = (64, 64, 32)
-        self.params = ('out_data', 
+        self.params = ('out_data',
                        'in_data',
                        'in_wgt')
-        self.temps  = ('self.lap', 
+        self.temps  = ('self.lap',
                        'self.fli',
                        'self.flj')
 
@@ -616,7 +616,8 @@ class ChildStencilCallsParentConstructorAndNothingElse (MultiStageStencil):
     Child constructor correctly calls parent constructor and has no other work, comments or docstrings.
     Works correctly--no exceptions.
     """
-    def __init__ (self): super ( ).__init__ ( )
+    def __init__ (self): 
+        super ( ).__init__ ( )
 
 
     def kernel (self, out_cpy, in_cpy):

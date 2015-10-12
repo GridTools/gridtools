@@ -81,7 +81,9 @@ struct wrap_pointer{
   }
 
     GT_FUNCTION
-    void update_gpu() {}//\todo find a way to remove this method
+    void update_gpu() {
+        assert(false);
+    }//\todo find a way to remove this method
 
     GT_FUNCTION
     wrap_pointer(uint_t size, bool externally_managed=false): m_externally_managed(externally_managed) {
@@ -117,41 +119,49 @@ struct wrap_pointer{
 
     __host__ __device__
     operator T*() {
+        assert(m_cpu_p);
         return m_cpu_p;
     }
 
     __host__ __device__
     operator T const*() const {
+        assert(m_cpu_p);
         return m_cpu_p;
     }
 
     __host__ __device__
     T& operator[](uint_t i) {
+        assert(m_cpu_p);
         return m_cpu_p[i];
     }
 
     __host__ __device__
     T const& operator[](uint_t i) const {
+        assert(m_cpu_p);
         return m_cpu_p[i];
         }
 
     __host__ __device__
     T& operator*() {
+        assert(m_cpu_p);
         return *m_cpu_p;
     }
 
     __host__ __device__
     T const& operator*() const {
+        assert(m_cpu_p);
         return *m_cpu_p;
     }
 
     __host__ __device__
     T* operator+(uint_t i) {
+        assert(m_cpu_p);
         return &m_cpu_p[i];
     }
 
     __host__ __device__
     T* const& operator+(uint_t i) const {
+        assert(m_cpu_p);
         return &m_cpu_p[i];
     }
 

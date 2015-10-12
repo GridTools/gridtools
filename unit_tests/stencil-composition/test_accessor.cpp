@@ -1,12 +1,12 @@
 #include "gtest/gtest.h"
 
-#include <boost/mpl/map/map10.hpp>
-#include "stencil-composition/accessor_metafunctions.hpp"
-#include "stencil-composition/iterate_domain_evaluator.hpp"
+// #include <boost/mpl/map/map10.hpp>
+// #include "stencil-composition/accessor_metafunctions.hpp"
+// #include "stencil-composition/iterate_domain_evaluator.hpp"
 
 TEST(accessor, copy_const) {
 
-    using namespace gridtools;
+    // using namespace gridtools;
 //TODOCOSUNA not working due to problems with the copy ctor of the accessors
 
 //    typedef accessor<0, range<-1,0,0,0>, 3> accessor_t;

@@ -120,24 +120,24 @@ struct offset_tuple : public offset_tuple<Index-1, NDim>
     static const int_t n_dim=NDim;
 
     typedef offset_tuple<Index-1, NDim> super;
-    static const ushort_t n_args=super::n_args+1;
+    static const short_t n_args=super::n_args+1;
 
 #ifdef CXX11_ENABLED
 
     /**@brief constructor taking an integer as the first argument, and then other optional arguments.
        The integer gets assigned to the current extra dimension and the other arguments are passed to the base class (in order to get assigned to the other dimensions).
        When this constructor is used all the arguments have to be specified and passed to the function call in order. No check is done on the order*/
-    template <typename... Whatever>
+    template <typename... GenericElements>
     GT_FUNCTION
-    constexpr offset_tuple ( int const& t, Whatever const& ... x): super( x... ), m_offset(t) {}
+    constexpr offset_tuple ( int const& t, GenericElements const& ... x): super( x... ), m_offset(t) {}
 
     /**@brief constructor taking the dimension class as argument.
        This allows to specify the extra arguments out of order. Note that 'dimension' is a
        language keyword used at the interface level.
     */
-    template <ushort_t Idx, typename... Whatever>
+    template <ushort_t Idx, typename... GenericElements>
     GT_FUNCTION
-    constexpr offset_tuple ( dimension<Idx> const& t, Whatever const& ... x):
+    constexpr offset_tuple ( dimension<Idx> const& t, GenericElements const& ... x):
         super( t, x... ), m_offset(initialize<super::n_dim-n_args+1>(t, x...)) {}
 #else
     /**@brief constructor taking an integer as the first argument, and then other optional arguments.
@@ -192,7 +192,9 @@ struct offset_tuple : public offset_tuple<Index-1, NDim>
     constexpr offset_tuple ( ):
         super( ), m_offset(0) {}
 
+
     template<short_t Idx>
+    GT_FUNCTION
     constexpr bool end() const {return Idx==n_args-1? false : super::template end<Idx>();}
 
     /**@brief returns the offset at a specific index Idx*/
@@ -217,14 +219,17 @@ template< int_t NDim >
 struct offset_tuple<0, NDim>
 {
     static const int_t n_dim=NDim;
-    #ifdef CXX11_ENABLED
-    template <typename... Whatever>
+
+#ifdef CXX11_ENABLED
+    template <typename... GenericElements>
     GT_FUNCTION
-    constexpr offset_tuple ( Whatever... x) {}
+    constexpr offset_tuple ( GenericElements... x) {
+        GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(),  is_dimension<GenericElements>::type::value ... ), "wrong type for the argument of an offset_tuple" );
+    }
 
     //copy ctor
     GT_FUNCTION
-    constexpr offset_tuple (const offset_tuple<0, NDim>& other) {}
+    constexpr offset_tuple (const offset_tuple& other) {}
 #else
     template <typename X, typename Y, typename Z,  typename T>
     GT_FUNCTION
@@ -245,7 +250,7 @@ struct offset_tuple<0, NDim>
 
     GT_FUNCTION
     constexpr offset_tuple(){}
-    static const ushort_t n_args=0;
+    static const short_t n_args=0;
 
     template<short_t Idx>
     GT_FUNCTION
