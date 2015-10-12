@@ -77,7 +77,8 @@ def run_and_extract_times(executable, sizes, filter_=None, stella_format = None,
     return (avg_time,rms)
 
 class Plotter:
-    def __init__(self, gridtools_timers, stella_timers, config):
+    def __init__(self, reference_timers, gridtools_timers, stella_timers, config):
+        self.reference_timers_ = reference_timers
         self.gridtools_timers_ = gridtools_timers
         self.stella_timers_ = stella_timers
         self.config_ = config
@@ -87,13 +88,49 @@ class Plotter:
  
         self.gridtools_avg_times_ = {}
         self.gridtools_err_ = {}
+        self.reference_avg_times_ = {}
+        self.reference_err_ = {}
 
         self.labels_ = {}
 
+    def plot(self, filename, y1, y1_err, label1, y2, y2_err, label2):
+    
+        n_groups = len(y1)
+        index = np.arange(n_groups)
+        bar_width = 0.25
+
+        opacity = 0.4
+        error_config = {'ecolor': '0.3'}
+
+        y1_bar = plt.bar(index , y1, yerr = y1_err, width=bar_width,
+              alpha=opacity,
+              color='r',
+              label=label1)
+
+        y1_errbar = plt.errorbar(index +bar_width*0.5, y1, yerr = y1_err, color='r', ls='none')
+
+        y2_bar = plt.bar(index + bar_width, y2, yerr= y2_err, width=bar_width,
+               alpha=opacity,
+               color='b',
+               label=label2)
+        y2_errbar = plt.errorbar(index + bar_width*1.5, y2, yerr= y2_err, color='b', ls='none')
+
+
+        plt.xlabel('Stencil Name')
+        plt.ylabel('Stencil time (s)')
+        plt.xticks(index + bar_width*1.5, label2, rotation=90, fontsize='xx-small')
+        plt.legend()
+
+        plt.tight_layout()
+        plt.savefig(filename, format="svg")
+       
 
     def plot_results(self):
 
         self.extract_metrics()
+
+        if not os.path.exists("perf_vs_stella"):
+            os.makedirs("perf_vs_stella")
 
         for astencil in self.stella_avg_times_:
             for adomain in self.stella_avg_times_[astencil]:
@@ -105,65 +142,70 @@ class Plotter:
                 gridtools_err = self.gridtools_err_[astencil][adomain]
                 labels = self.labels_[astencil][adomain]
                 
+                self.plot("perf_vs_stella/plot_"+astencil+"_"+adomain+".svg", stella_times, stella_err, "stella", gridtools_times, gridtools_err, "gridtools")
 
-                n_groups = len(stella_times)
-                index = np.arange(n_groups)
-                bar_width = 0.25
+        if not os.path.exists("perf_vs_reference"):
+            os.makedirs("perf_vs_reference")
 
-                opacity = 0.4
-                error_config = {'ecolor': '0.3'}
+        for astencil in self.gridtools_avg_times_:
+            for adomain in self.gridtools_avg_times_[astencil]:
+                fig, ax = plt.subplots()
 
-                stella_bar = plt.bar(index , stella_times, yerr = stella_err, width=bar_width,
-                     alpha=opacity,
-                     color='r',
-                     label='stella')
-
-                stella_errbar = plt.errorbar(index +bar_width*0.5, stella_times, yerr = stella_err, color='r', ls='none')
-
-
-                gridtools_bar = plt.bar(index + bar_width, gridtools_times, yerr= gridtools_err, width=bar_width,
-                     alpha=opacity,
-                     color='b',
-                     label='gridtools')
-                gridtools_errbar = plt.errorbar(index + bar_width*1.5, gridtools_times, yerr= gridtools_err, color='b', ls='none')
+                gridtools_times = self.gridtools_avg_times_[astencil][adomain]
+                reference_times = self.reference_avg_times_[astencil][adomain]
+                gridtools_err = self.gridtools_err_[astencil][adomain]
+                reference_err = self.reference_err_[astencil][adomain]
+                labels = self.labels_[astencil][adomain]
+                
+                self.plot("perf_vs_reference/plot_"+astencil+"_"+adomain+".svg", gridtools_times, gridtools_err, "gridtools", reference_times, reference_err, "reference")
 
 
-                plt.xlabel('Stencil Name')
-                plt.ylabel('Stencil time (s)')
-                plt.xticks(index + bar_width*1.5, labels, rotation=90, fontsize='xx-small')
-                plt.legend()
 
-                plt.tight_layout()
-                plt.savefig("plot_"+astencil+"_"+adomain+".svg", format="svg")
-
+    def stella_has_stencil(self, stencil_name):
+        return self.stella_timers_.has_key(stencil_name)
 
     def extract_metrics(self):
 
-        for astencil in self.stella_timers_:
-            self.stella_avg_times_[astencil] = {}
+        for astencil in self.gridtools_timers_['stencils']:
+            if self.stella_has_stencil(astencil):
+                self.stella_avg_times_[astencil] = {}
+                self.stella_err_[astencil] = {}
             self.gridtools_avg_times_[astencil] = {}
             self.labels_[astencil] = {}
-            self.stella_err_[astencil] = {}
             self.gridtools_err_[astencil] = {}
-        
-            for athread_num in self.stella_timers_[astencil]:
-                for adomain in self.stella_timers_[astencil][athread_num]:
-                    if not self.stella_avg_times_[astencil].has_key(adomain):
-                        self.stella_avg_times_[astencil][adomain] = []
+            self.reference_avg_times_[astencil] = {}       
+            self.reference_err_[astencil] = {}
+ 
+            gridtools_this_stencil_data = self.gridtools_timers_['stencils'][astencil][self.config_.target_][self.config_.prec_][self.config_.std_]
+
+            for athread_num in gridtools_this_stencil_data:
+                for adomain in gridtools_this_stencil_data[athread_num]:
+                    if not self.gridtools_avg_times_[astencil].has_key(adomain):
+                        if self.stella_has_stencil(astencil):
+	                    self.stella_avg_times_[astencil][adomain] = []
+                            self.stella_err_[astencil][adomain] = []
                         self.gridtools_avg_times_[astencil][adomain] = []
                         self.labels_[astencil][adomain] = []
-                        self.stella_err_[astencil][adomain] = []
                         self.gridtools_err_[astencil][adomain] = []
+                        self.reference_avg_times_[astencil][adomain] = []
+                        self.reference_err_[astencil][adomain] = []
 
-                    self.stella_avg_times_[astencil][adomain].append( self.stella_timers_[astencil][athread_num][adomain][0])
+                    if self.stella_has_stencil(astencil):
+                        self.stella_avg_times_[astencil][adomain].append( self.stella_timers_[astencil][athread_num][adomain][0])
+                        self.stella_err_[astencil][adomain].append( self.stella_timers_[astencil][athread_num][adomain][1])
+
                     self.gridtools_avg_times_[astencil][adomain].append(
                         self.gridtools_timers_['stencils'][astencil][self.config_.target_][self.config_.prec_][self.config_.std_][athread_num][adomain]['time'])
 
-                    self.stella_err_[astencil][adomain].append( self.stella_timers_[astencil][athread_num][adomain][1])
                     self.gridtools_err_[astencil][adomain].append(
                                             self.gridtools_timers_['stencils'][astencil][self.config_.target_][self.config_.prec_][self.config_.std_][athread_num][adomain]['rms'])
+                    self.reference_avg_times_[astencil][adomain].append(
+                        self.reference_timers_['stencils'][astencil][self.config_.target_][self.config_.prec_][self.config_.std_][athread_num][adomain]['time'])
+
+                    self.reference_err_[astencil][adomain].append(
+                                            self.reference_timers_['stencils'][astencil][self.config_.target_][self.config_.prec_][self.config_.std_][athread_num][adomain]['rms'])
+
                     self.labels_[astencil][adomain].append(str(athread_num))
-            print "HH", astencil
 
         return
 
@@ -303,7 +345,7 @@ if __name__ == "__main__":
         fw.close()
 
     if do_plot:
-        plotter = Plotter(copy_ref, stella_timers, config)
+        plotter = Plotter(decode, copy_ref, stella_timers, config)
         plotter.plot_results()
 
     if not error:
