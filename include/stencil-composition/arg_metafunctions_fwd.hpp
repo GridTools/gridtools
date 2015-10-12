@@ -11,4 +11,6 @@ namespace gridtools {
     template<typename Arg>
     struct arg_holds_data_field;
 
+    template<typename T>
+    struct is_arg_storage_pair;
 }

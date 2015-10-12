@@ -12,6 +12,7 @@
 #include "host_device.hpp"
 #include <algorithm>
 #include <boost/type_traits/has_trivial_constructor.hpp>
+#include "common/generic_metafunctions/accumulate.hpp"
 
 namespace gridtools {
 

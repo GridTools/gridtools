@@ -6,6 +6,7 @@
 #include "storage/base_storage.hpp"
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/filter_view.hpp>
+#include "stencil-composition/coordinates.hpp"
 
 /**
 @file

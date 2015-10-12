@@ -283,14 +283,14 @@ namespace gridtools {
             \tparam[in] Indices List of argument where to return the found value
             \param[in] indices List of values (length must be equal to the length of the layout_map length)
         */
-        template <ushort_t I, typename T, T DefaultVal, typename Tuple>
+        template <ushort_t I, typename T, T DefaultVal, typename Accessor>
         GT_FUNCTION
-        static constexpr T find_val(Tuple const& indices) {
-            GRIDTOOLS_STATIC_ASSERT(is_arg_tuple<Tuple>::value, "the find_val method is used with tuples of arg_type type");
+        static constexpr T find_val(Accessor const& indices) {
+            GRIDTOOLS_STATIC_ASSERT(is_accessor<Accessor>::value, "the find_val method is used with tuples of arg_type type");
             return ((pos_<I>::value >= length)) ?
                 DefaultVal
                 :
-                indices.template get<Tuple::n_dim-pos_<I>::value-1>();
+                indices.template get<Accessor::n_dim-pos_<I>::value-1>();
             //this calls arg_decorator::get
         }
 

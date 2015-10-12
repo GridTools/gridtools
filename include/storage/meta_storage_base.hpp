@@ -1,6 +1,7 @@
 #pragma once
 #include "base_storage_impl.hpp"
 #include "../common/array.hpp"
+#include "common/explode_array.hpp"
 
 /**
    @file
@@ -62,7 +63,7 @@ namespace gridtools {
 #ifndef CXX11_ENABLED
                                   ,int, int
 #endif
-                                  > basic_type;
+                                  > type;
         typedef Layout layout;
         typedef static_ushort<Index> index_type;
 
