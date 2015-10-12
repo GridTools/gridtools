@@ -123,40 +123,40 @@ struct execute_kernel_functor_host
         typedef typename index_to_level<typename interval::second>::type to;
         typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy;
 
-//        typedef array<int_t, iterate_domain_t::N_META_STORAGES> array_t;
-//        loop_hierarchy<
-//            array_t, loop_item<0, int_t, 1>,
-//            loop_item<1, int_t, 1>
-//        > ij_loop(
-//                (int_t) (m_first_pos[0] + range_t::iminus::value),
-//                (int_t) (m_first_pos[0] + m_last_pos[0] + range_t::iplus::value),
-//                (int_t) (m_first_pos[1] + range_t::jminus::value),
-//                (int_t) (m_first_pos[1] + m_last_pos[1] + range_t::jplus::value)
-//        );
-
-//        //reset the index
+        //reset the index
         it_domain.set_index(0);
 
 //        ij_loop.initialize(it_domain, m_block_id);
 
         it_domain.template initialize<0>(m_first_pos[0] + range_t::iminus::value, m_block_id[0]);
-        it_domain.template initialize<1>(m_first_pos[1] + range_t::jminus::value, m_block_id[1]);
-        it_domain.template initialize<2>( m_coords.template value_at< typename iteration_policy::from >() );
-
         //initialize color dim
-        it_domain.template initialize<3>(0);
 
+        it_domain.template initialize<1>(0);
+        it_domain.template initialize<2>(m_first_pos[1] + range_t::jminus::value, m_block_id[1]);
+        it_domain.template initialize<3>( m_coords.template value_at< typename iteration_policy::from >() );
+
+
+        typedef array<int_t, iterate_domain_t::N_META_STORAGES> array_index_t;
+        array_index_t memorized_index;
         for(uint_t i=m_first_pos[0]; i <= m_last_pos[0];++i)
         {
-            for(uint_t j=m_first_pos[1]; j <= m_last_pos[1];++j)
+            for(uint_t c=0; c < grid_t::n_colors; ++c)
             {
-                for(uint_t c=0; c <= grid_t::n_colors; ++c)
+                for(uint_t j=m_first_pos[1]; j <= m_last_pos[1];++j)
                 {
+                    it_domain.get_index(memorized_index);
                     gridtools::for_each< loop_intervals_t >
                     ( _impl::run_f_on_interval<execution_type_t, RunFunctorArguments> (it_domain, m_coords) );
+                    it_domain.set_index(memorized_index);
+                    it_domain.template increment<2, static_int<1> >();
                 }
+                it_domain.template increment<2>( -(m_last_pos[1] - m_first_pos[1]+1));
+                it_domain.template increment<1, static_int<1> >();
             }
+            it_domain.template increment<1, static_int<-grid_t::n_colors>>();
+            it_domain.template increment<0,static_int<1> >();
         }
+        it_domain.template increment<0>( -(m_last_pos[0] - m_first_pos[0]+1));
 
 //        //define the kernel functor
 //        typedef innermost_functor<

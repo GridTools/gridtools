@@ -364,13 +364,6 @@ public:
             >(strides(), local_domain.m_local_metadata));
     }
 
-    /**@brief method for setting the index array */
-    GT_FUNCTION
-    void set_index(uint_t const index)
-    {
-        set_index_recur< N_META_STORAGES-1>::set( index, m_index);
-    }
-
     /**@brief method for initializing the index */
     template <ushort_t Coordinate>
     GT_FUNCTION
@@ -412,7 +405,6 @@ public:
             );
         static_cast<IterateDomainImpl*>(this)->template increment_impl<Coordinate, Execution>();
         m_grid_position[Coordinate] += Execution::value;
-
     }
 
     /**@brief method for incrementing the index when moving forward along the given direction
@@ -434,6 +426,21 @@ public:
         );
         static_cast<IterateDomainImpl*>(this)->template increment_impl<Coordinate>(steps_);
         m_grid_position[Coordinate] += steps_;
+    }
+
+    /**@brief getter for the index array */
+    GT_FUNCTION
+    void get_index(array<int_t, N_META_STORAGES>& index) const
+    {
+        set_index_recur< N_META_STORAGES-1>::set(m_index, index);
+    }
+
+    /**@brief method for setting the index array */
+    template <typename Input>
+    GT_FUNCTION
+    void set_index(Input const& index)
+    {
+        set_index_recur< N_META_STORAGES-1>::set( index, m_index);
     }
 
     template<typename Accessor>

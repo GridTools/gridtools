@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <stencil-composition/stencil-composition.hpp>
+#include "tools/verifier.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
@@ -45,6 +46,8 @@ TEST(test_copy_stencil, run) {
     cell_storage_type in_cells = grid.make_storage<trapezoid_2D_t::cells>("in");
     cell_storage_type out_cells = grid.make_storage<trapezoid_2D_t::cells>("out");
 
+    in_cells.initialize( [](uint_t const& i, uint_t const& j, uint_t const &k) -> double { return i+j*10+k*100; });
+    out_cells.initialize( 1.1 );
 
     typedef arg<0, cell_storage_type> p_in_cells;
     typedef arg<1, cell_storage_type> p_out_cells;
@@ -78,19 +81,18 @@ TEST(test_copy_stencil, run) {
     copy->steady();
     copy->run();
 
-    typedef decltype(
-        gridtools::make_mss // mss_descriptor
-        (
-                enumtype::execute<enumtype::forward>(),
-                gridtools::make_esf<test_functor, trapezoid_2D_t, trapezoid_2D_t::cells>(p_in_cells())
-        )) mss1_t;
+    for(int i=0; i < d1; i++)
+    {
+        for(int j=0; j < d2; j++)
+        {
+            for(int k=0; k < d3; k++)
+            {
+//                std::cout << "VERI " << i << ",0,"<< j << "," << k << ": " << in_cells(i,0,j,k) << " " << out_cells(i,0,j,k) << std::endl;
+//                std::cout << "VERI " << i << ",1,"<< j << "," << k << ": " << in_cells(i,0,j,k) << " " << out_cells(i,0,j,k) << std::endl;
+            }
+        }
+    }
+    verifier ver(1e-10, 0);
 
-    typedef decltype(
-        gridtools::make_mss // mss_descriptor
-        (
-                enumtype::execute<enumtype::forward>(),
-                gridtools::make_esf<test_functor, trapezoid_2D_t, trapezoid_2D_t::cells>(p_out_cells())
-        )) mss2_t;
-
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(ver.verify(in_cells, out_cells));
 }
