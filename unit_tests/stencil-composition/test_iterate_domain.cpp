@@ -4,7 +4,6 @@
 #include "common/defs.hpp"
 #include "stencil-composition/make_computation.hpp"
 #include "stencil-composition/intermediate_metafunctions.hpp"
-#include "stencil-composition/stencil-composition.hpp"
 
 namespace test_iterate_domain{
     using namespace gridtools;
@@ -35,9 +34,9 @@ namespace test_iterate_domain{
         typedef layout_map<0,1,2> layout_kji_t;
         typedef layout_map<0,1> layout_ij_t;
 
-        typedef meta_storage<0, layout_ijkp_t, false> meta_ijkp_t;
-        typedef meta_storage<0, layout_kji_t, false> meta_kji_t;
-        typedef meta_storage<0, layout_ij_t, false> meta_ij_t;
+        typedef storage_info<0, layout_ijkp_t> meta_ijkp_t;
+        typedef storage_info<0, layout_kji_t> meta_kji_t;
+        typedef storage_info<0, layout_ij_t> meta_ij_t;
 
         typedef gridtools::backend<enumtype::Host, enumtype::Naive >::storage_type<float_type, meta_ijkp_t >::type storage_type;
         typedef gridtools::backend<enumtype::Host, enumtype::Naive >::storage_type<float_type, meta_kji_t >::type storage_buff_type;

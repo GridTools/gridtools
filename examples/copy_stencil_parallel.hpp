@@ -62,7 +62,7 @@ namespace copy_stencil{
         //                   strides  1 x xy
         //                      dims  x y z
         typedef gridtools::layout_map<0,1,2> layout_t;
-        typedef meta_storage<0, layout_t, false> metadata_t;
+        typedef storage_info<0, layout_t> metadata_t;
         typedef gridtools::BACKEND::storage_type<float_type, metadata_t >::type storage_type;
         typedef storage_type::original_storage::pointer_type pointer_type;
 
@@ -98,7 +98,7 @@ namespace copy_stencil{
         array<ushort_t, 3> halo(1,1,1);
         typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > >, pattern_type::grid_type> partitioner_t;
         partitioner_t part(he.comm(), halo, padding);
-        parallel_meta_storage<metadata_t, partitioner_t> meta_(part, d1, d2, d3);
+        parallel_storage_info<metadata_t, partitioner_t> meta_(part, d1, d2, d3);
         auto metadata_=meta_.get_metadata();
 
         storage_type in(metadata_, 0.);
@@ -197,7 +197,7 @@ namespace copy_stencil{
 
         printf("copy unpacked\n");
 
-        in.print();
+        // in.print();
 
         MPI_Barrier(GCL_WORLD);
         GCL_Finalize();

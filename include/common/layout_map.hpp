@@ -103,6 +103,7 @@ namespace gridtools {
             using type=T;
         };
 
+#ifndef __CUDACC__
         /** Given a parameter pack of values and a static index, the function
             returns the reference to the value in the position indicated
             at position 'I' in the map.
@@ -118,8 +119,21 @@ namespace gridtools {
         template <ushort_t I, typename ... T>
         GT_FUNCTION
         static auto constexpr select(T & ... args) -> typename remove_refref<decltype(std::template get<layout_vector[I]>(std::make_tuple(args ...)))>::type {
-            return  std::template get<layout_vector[I]>( std::tie(args...) );
+
+            GRIDTOOLS_STATIC_ASSERT((accumulate(logical_and(), boost::is_integral<T>::type::value ...)), "wrong type");
+            return  std::template get<layout_vector[I]>( std::make_tuple(args...) );
+
         }
+#else //problem determining of the return type with NVCC
+        template <ushort_t I, typename First, typename ... T>
+        GT_FUNCTION
+        static First
+        constexpr
+        select(First & f, T & ... args) {
+            GRIDTOOLS_STATIC_ASSERT((boost::is_integral<First>::type::value && accumulate(logical_and(), boost::is_integral<T>::type::value ...)), "wrong type");
+            return  std::template get<boost::mpl::at_c<layout_vector_t, I>::type::value >( std::make_tuple(f, args...) );
+        }
+#endif // __CUDACC__
 
         //returns the dimension corresponding to the given strides (get<0> for stride 1)
         template <ushort_t i>
@@ -158,13 +172,13 @@ namespace gridtools {
             \tparam[in] Indices List of values where element is selected
             \param[in] indices  (length must be equal to the length of the layout_map length)
         */
-        template <ushort_t I, typename... Indices>
+        template <ushort_t I, typename First, typename... Indices>
         GT_FUNCTION
-        static constexpr typename _impl::first_type<Indices...>::type
-        find(Indices & ... indices) {
-            GRIDTOOLS_STATIC_ASSERT(sizeof...(Indices)<=length, "Too many arguments");
+        static constexpr First
+        find(First const& first_, Indices const& ... indices) {
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(Indices)+1<=length, "Too many arguments");
 
-            return std::get<pos_<I>::value>(std::tuple<Indices...>{indices...});
+            return std::get<pos_<I>::value>(std::tuple<First, Indices...>{first_, indices...});
         }
 
 
@@ -218,11 +232,9 @@ namespace gridtools {
             \tparam[in] Indices List of argument where to return the found value
             \param[in] indices List of values (length must be equal to the length of the layout_map length)
         */
-        template <ushort_t I, typename T, T DefaultVal, typename ... Indices, typename First>
+        template <ushort_t I, typename T, T DefaultVal, typename ... Indices, typename First,  typename boost::enable_if<boost::is_integral<T>, int>::type=0>
         GT_FUNCTION
-        static constexpr
-        typename boost::enable_if<boost::is_integral<T>, T>::type
-        find_val(First first, Indices ... indices) {
+        static constexpr T find_val(First first, Indices ... indices) {
             static_assert(sizeof...(Indices)<length, "Too many arguments");
 
             //lazy template instantiation
@@ -245,8 +257,7 @@ namespace gridtools {
         */
         template <ushort_t I, typename T, T DefaultVal, typename Indices>
         GT_FUNCTION
-        static constexpr
-        typename boost::enable_if<boost::is_integral<T>, T>::type
+        static constexpr Indices
         find_val(Indices const * indices) {
             return (pos_<I>::value >= length ) ?
                 DefaultVal
@@ -272,41 +283,14 @@ namespace gridtools {
             \tparam[in] Indices List of argument where to return the found value
             \param[in] indices List of values (length must be equal to the length of the layout_map length)
         */
-        template <ushort_t I, typename T, T DefaultVal, typename Accessor>
+        template <ushort_t I, typename T, T DefaultVal, typename Tuple>
         GT_FUNCTION
-        static constexpr typename std::enable_if<!is_array<Accessor>::value, T>::type
-        find_val(Accessor const& indices) {
-            GRIDTOOLS_STATIC_ASSERT(is_accessor<Accessor>::value, "the find_val method is used with tuples of arg_type type");
+        static constexpr T find_val(Tuple const& indices) {
+            GRIDTOOLS_STATIC_ASSERT(is_arg_tuple<Tuple>::value, "the find_val method is used with tuples of arg_type type");
             return ((pos_<I>::value >= length)) ?
                 DefaultVal
                 :
-                indices.template get<Accessor::n_dim-pos_<I>::value-1>();
-            //this calls arg_decorator::get
-        }
-
-        /** Given a gridtools::array of values tuple and a static index I, the function
-            returns the value of the element in the tuple whose position
-            corresponds to the position of 'I' in the map. If the
-            value is not found a default value is returned, which is
-            passed as template parameter. It works for intergal types.
-
-            \code
-            auto arr=gridtools::array<int, 3ul>{a,b,c};
-            gridtools::layout_map<2,0,1>::find_val<1,int,default>(arr) == c
-            \endcode
-
-            \tparam I Index to be searched in the map
-            \tparam Default_Val Default value returned if the find is not successful
-            \tparam[in] Indices List of argument where to return the found value
-            \param[in] indices List of values (length must be equal to the length of the layout_map length)
-        */
-        template <ushort_t I, typename T, T DefaultVal, typename U, size_t S >
-        GT_FUNCTION
-        static constexpr T find_val(array<U, S> const& indices) {
-            return ((pos_<I>::value >= length)) ?
-                DefaultVal
-                :
-                indices[S-pos_<I>::value-1];
+                indices.template get<Tuple::n_dim-pos_<I>::value-1>();
             //this calls arg_decorator::get
         }
 

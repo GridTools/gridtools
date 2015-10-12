@@ -30,7 +30,7 @@ struct functor1 {
 };
 
 typedef layout_map<0,1> layout_ij_t;
-typedef gridtools::backend<enumtype::Host, enumtype::Naive >::storage_type<float_type, meta_storage<0,layout_ij_t,false> >::type storage_type;
+typedef gridtools::backend<enumtype::Host, enumtype::Naive >::storage_type<float_type, storage_info<0,layout_ij_t> >::type storage_type;
 
 typedef arg<0, storage_type> p_in;
 typedef arg<2, storage_type> p_out;

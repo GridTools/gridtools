@@ -13,7 +13,7 @@
 list( APPEND SRCFILES interface1 boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal  vertical_advection_dycore vanilla_laplacian extended_4D)
 
 if( GCL_MPI AND ENABLE_CXX11 )
-    list(APPEND SRCFILES copy_stencil_parallel)
+    list(APPEND SRCFILES copy_stencil_parallel copy_stencil_single_storage)
 endif()
 
 add_definitions("-DBENCHMARK")

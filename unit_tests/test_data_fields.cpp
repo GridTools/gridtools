@@ -1,14 +1,15 @@
+#ifdef CXX11_ENABLED
 #include "gtest/gtest.h"
 #include "storage/meta_storage.hpp"
 #include "storage/storage.hpp"
-#ifdef CXX11_ENABLED
+#include "storage/wrap_pointer.hpp"
 
 using namespace gridtools;
 
 TEST(storage, test_data_field)
 {
-    typedef base_storage<wrap_pointer<int>, meta_storage<0, layout_map<0,1>, false > > storage_t;
-    meta_storage<0, layout_map<0,1>, false > meta_(1,1);
+    typedef base_storage<wrap_pointer<int>, storage_info<0, layout_map<0,1> > > storage_t;
+    storage_info<0, layout_map<0,1> > meta_(1,1);
 
     field<storage_t, 3,2,4>::type datafield(meta_, 0, "data");
 

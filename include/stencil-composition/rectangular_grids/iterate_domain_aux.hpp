@@ -34,13 +34,13 @@ namespace gridtools{
     template < typename BaseStorage >
     struct is_any_iterate_domain_storage<storage<BaseStorage> > : boost::mpl::true_{};
 
-    template <typename T> struct meta_storage_wrapper;
+    template <typename T> struct meta_storage_derived;
 
     template<typename T>
     struct is_any_iterate_domain_meta_storage : boost::mpl::false_{};
 
     template < typename BaseStorage >
-    struct is_any_iterate_domain_meta_storage<meta_storage_wrapper<BaseStorage> > : boost::mpl::true_{};
+    struct is_any_iterate_domain_meta_storage<meta_storage_derived<BaseStorage> > : boost::mpl::true_{};
 
     /**
      * @brief metafunction that determines if a type is one of the storage types allowed by the iterate domain
@@ -553,8 +553,14 @@ namespace gridtools{
             is_accessor<Accessor>,
             boost::mpl::has_key<
                 CachesMap,
+                //TODO: ERROR in Clang:
+                //non-type template argument evaluates to -1, which cannot be narrowed to type 'uint_t'
+#ifdef __CUDACC__
                 static_uint<accessor_index_t::value>
-            >,
+#else // the following is NOT correct!! but compiles
+                static_int<accessor_index_t::value>
+#endif
+                >,
             boost::mpl::identity<boost::mpl::false_>
         >::type type;
         BOOST_STATIC_CONSTANT(bool, value=(type::value));

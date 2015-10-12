@@ -3,6 +3,7 @@
 #include "../mss_functor.hpp"
 #include "stencil-composition/backend_host/execute_kernel_functor_host.hpp"
 #include "../../storage/meta_storage.hpp"
+#include "../tile.hpp"
 
 namespace gridtools{
 
@@ -66,30 +67,65 @@ namespace gridtools{
             }
         };
 
+        //NOTE: this part is (and should remain) an exact copy-paste in the naive, block, host and cuda versions
+        template <typename Index, typename Layout,
+#ifdef CXX11_ENABLED
+                  typename ... Tiles
+#else
+                  typename TileI, typename TileJ
+#endif
+                  >
+        struct get_tmp_storage_info
+        {
+            GRIDTOOLS_STATIC_ASSERT(is_layout_map<Layout>::value, "wrong type for layout map");
+#ifdef CXX11_ENABLED
+            GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(),  is_tile<Tiles>::type::value ... ), "wrong type for the tiles");
+#else
+            GRIDTOOLS_STATIC_ASSERT((is_tile<TileI>::value && is_tile<TileJ>::value), "wrong type for the tiles");
+#endif
+
+            typedef meta_storage_derived
+            <meta_storage_base
+            <Index::value, Layout, true,
+#ifdef CXX11_ENABLED
+             Tiles ...
+#else
+             TileI, TileJ
+#endif
+             > > type;
+        };
+
         /**
          * @brief metafunction that returns the storage type for the storage type of the temporaries for this strategy.
-         * with the naive algorithms, the temporary storages are like the non temporary ones
          */
-        template <typename Index, typename Layout, typename ... Tiles>
-         struct get_tmp_meta_storage
-         {
-             //#warning "the temporary fields you specified will be allocated (like the non-temporary ones). To avoid this use the Block strategy instead of the Naive."
-             typedef meta_storage<Index::value, Layout, true > type;
-         };
-
-        template <typename Storage, typename ... Tiles>
-         struct get_tmp_storage
-         {
-             //#warning "the temporary fields you specified will be allocated (like the non-temporary ones). To avoid this use the Block strategy instead of the Naive."
-             typedef storage<
+        //NOTE: this part is (and should remain) an exact copy-paste in the naive, block, host and cuda versions
 #ifdef CXX11_ENABLED
-                typename Storage::template my_type
+        template <typename Storage, typename ... Tiles>
 #else
-                 base_storage
+        template <typename Storage, typename TileI, typename TileJ>
 #endif
-                 <typename Storage::pointer_type, typename get_tmp_meta_storage<typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout, Tiles...>::type, Storage::field_dimensions > > type;
-         };
-
+        struct get_tmp_storage
+        {
+#ifdef CXX11_ENABLED
+            GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(),  is_tile<Tiles>::type::value ... ), "wrong type for the tiles");
+#else
+            GRIDTOOLS_STATIC_ASSERT((is_tile<TileI>::value && is_tile<TileJ>::value), "wrong type for the tiles");
+#endif
+            typedef storage<
+#ifdef CXX11_ENABLED
+                typename Storage::template type_tt
+#else
+                base_storage
+#endif
+                <typename Storage::pointer_type, typename get_tmp_storage_info
+                 <typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout,
+#ifdef CXX11_ENABLED
+                  Tiles ...
+#else
+                  TileI, TileJ
+#endif
+                  >::type, Storage::field_dimensions > > type;
+        };
     };
 
     /**
@@ -195,6 +231,7 @@ namespace gridtools{
         };
 
 
+        //NOTE: this part is (and should remain) an exact copy-paste in the naive, block, host and cuda versions
         template <typename Index, typename Layout,
 #ifdef CXX11_ENABLED
                   typename ... Tiles
@@ -204,18 +241,28 @@ namespace gridtools{
                   >
         struct get_tmp_meta_storage
         {
-            typedef meta_storage<Index::value, Layout, true,
+            GRIDTOOLS_STATIC_ASSERT(is_layout_map<Layout>::value, "wrong type for layout map");
 #ifdef CXX11_ENABLED
-                                          Tiles ...
+            GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(),  is_tile<Tiles>::type::value ... ), "wrong type for the tiles");
 #else
-                                          TileI, TileJ
+            GRIDTOOLS_STATIC_ASSERT((is_tile<TileI>::value && is_tile<TileJ>::value), "wrong type for the tiles");
 #endif
-                                          > type;
+
+            typedef meta_storage_derived
+            <meta_storage_base
+            <Index::value, Layout, true,
+#ifdef CXX11_ENABLED
+             Tiles ...
+#else
+             TileI, TileJ
+#endif
+             > > type;
         };
 
         /**
          * @brief metafunction that returns the storage type for the storage type of the temporaries for this strategy.
          */
+        //NOTE: this part is (and should remain) an exact copy-paste in the naive, block, host and cuda versions
 #ifdef CXX11_ENABLED
         template <typename Storage, typename ... Tiles>
 #else
@@ -223,9 +270,14 @@ namespace gridtools{
 #endif
         struct get_tmp_storage
         {
+#ifdef CXX11_ENABLED
+            GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(),  is_tile<Tiles>::type::value ... ), "wrong type for the tiles");
+#else
+            GRIDTOOLS_STATIC_ASSERT((is_tile<TileI>::value && is_tile<TileJ>::value), "wrong type for the tiles");
+#endif
             typedef storage<
 #ifdef CXX11_ENABLED
-                typename Storage::template my_type
+                typename Storage::template type_tt
 #else
                 base_storage
 #endif

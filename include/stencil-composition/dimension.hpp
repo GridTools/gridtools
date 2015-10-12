@@ -63,7 +63,13 @@ namespace gridtools {
     typedef dimension<1> x;
     typedef dimension<2> y;
     typedef dimension<3> z;
-
     /**@}*/
+
+    template <typename T>
+    struct is_dimension : boost::mpl::false_{};
+
+    template<ushort_t Id>
+    struct is_dimension<dimension<Id> > : boost::mpl::true_{};
+
 
 } // namespace gridtools

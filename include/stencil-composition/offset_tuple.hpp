@@ -127,17 +127,17 @@ struct offset_tuple : public offset_tuple<Index-1, NDim>
     /**@brief constructor taking an integer as the first argument, and then other optional arguments.
        The integer gets assigned to the current extra dimension and the other arguments are passed to the base class (in order to get assigned to the other dimensions).
        When this constructor is used all the arguments have to be specified and passed to the function call in order. No check is done on the order*/
-    template <typename... Whatever>
+    template <typename... GenericElements>
     GT_FUNCTION
-    constexpr offset_tuple ( int const& t, Whatever const& ... x): super( x... ), m_offset(t) {}
+    constexpr offset_tuple ( int const& t, GenericElements const& ... x): super( x... ), m_offset(t) {}
 
     /**@brief constructor taking the dimension class as argument.
        This allows to specify the extra arguments out of order. Note that 'dimension' is a
        language keyword used at the interface level.
     */
-    template <ushort_t Idx, typename... Whatever>
+    template <ushort_t Idx, typename... GenericElements>
     GT_FUNCTION
-    constexpr offset_tuple ( dimension<Idx> const& t, Whatever const& ... x):
+    constexpr offset_tuple ( dimension<Idx> const& t, GenericElements const& ... x):
         super( t, x... ), m_offset(initialize<super::n_dim-n_args+1>(t, x...)) {}
 #else
     /**@brief constructor taking an integer as the first argument, and then other optional arguments.
@@ -219,15 +219,17 @@ template< int_t NDim >
 struct offset_tuple<0, NDim>
 {
     static const int_t n_dim=NDim;
-    #ifdef CXX11_ENABLED
-    template <typename... Whatever>
+
+#ifdef CXX11_ENABLED
+    template <typename... GenericElements>
     GT_FUNCTION
-    constexpr offset_tuple ( Whatever... x) {}
+    constexpr offset_tuple ( GenericElements... x) {
+        GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(),  is_dimension<GenericElements>::type::value ... ), "wrong type for the argument of an offset_tuple" );
+    }
 
     //copy ctor
-    template <typename Other>
     GT_FUNCTION
-    constexpr offset_tuple (const Other& other) {}
+    constexpr offset_tuple (const offset_tuple& other) {}
 #else
     template <typename X, typename Y, typename Z,  typename T>
     GT_FUNCTION

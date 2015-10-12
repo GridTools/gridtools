@@ -1,7 +1,6 @@
 #pragma once
 #include "base_storage_impl.hpp"
 #include "../common/array.hpp"
-#include "common/explode_array.hpp"
 
 /**
    @file
@@ -34,11 +33,15 @@ namespace gridtools {
     template < ushort_t Index
                , typename Layout
                , bool IsTemporary
+#ifdef CXX11_ENABLED
                , typename ... Tiles
+#else
+               , typename TileI=int, typename TileJ=int
+#endif
                >
     struct meta_storage_base;
 
-    /**@brief class containing the storage meta information for non temporary storage
+    /**@brief class containing the storage meta information
 
        \tparam Index an index used to differentiate the types also when there's only runtime
        differences (e.g. only the storage dimensions differ)
@@ -49,13 +52,19 @@ namespace gridtools {
                , typename Layout
                , bool IsTemporary
                >
-    struct meta_storage_base<Index, Layout, IsTemporary>
+    struct meta_storage_base<Index, Layout, IsTemporary
+#ifndef CXX11_ENABLED
+                             ,int, int
+#endif
+                             >
     {
-        typedef meta_storage_base<Index, Layout , IsTemporary> type;
+        typedef meta_storage_base<Index, Layout , IsTemporary
+#ifndef CXX11_ENABLED
+                                  ,int, int
+#endif
+                                  > basic_type;
         typedef Layout layout;
         typedef static_ushort<Index> index_type;
-
-        typedef meta_storage_base<Index, Layout , IsTemporary> basic_type;
 
         static const bool is_temporary = IsTemporary;
         static const ushort_t n_width = 1;
@@ -68,8 +77,8 @@ namespace gridtools {
 
     public:
 
-        template <ushort_t I, typename L, bool B, typename ... Ts>
-        friend std::ostream& operator<<(std::ostream &, meta_storage_base<I,L,B,Ts...> const & );
+        template <uint_t T, typename U, bool B, typename ... D>
+        friend std::ostream& operator<<(std::ostream &, meta_storage_base<T,U,B,D...> const & );
 
 #ifdef CXX11_ENABLED
         /**
@@ -126,7 +135,11 @@ d
             m_dims(dims_...)
             , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( dims_...))
             {
-                GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes)==space_dimensions, "you tried to initialize a storage with a number of integer arguments different from its number of dimensions. This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage by defining the storage type using another layout_map.");
+                GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes)==space_dimensions, "you tried to initialize\
+ a storage with a number of integer arguments different from its number of dimensions. \
+This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
+ a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
+ by defining the storage type using another layout_map.");
             }
 #else
         // non variadic non constexpr constructor
@@ -145,11 +158,10 @@ d
             copy constructor, used e.g. to generate the gpu clone of the storage metadata.
          */
         GT_FUNCTION
-        constexpr meta_storage_base( meta_storage_base const&other )
-            : m_dims(other.m_dims)
+        constexpr meta_storage_base( meta_storage_base const& other ) :
+            m_dims(other.m_dims)
             , m_strides(other.m_strides)
             {
-                //GRIDTOOLS_STATIC_ASSERT(is_meta_storage<Other>::type::value, "Type error");
             }
 
         /** @brief prints debugging information */
@@ -191,7 +203,6 @@ d
         }
 
 #ifdef CXX11_ENABLED
-
         /**@brief straightforward interface*/
         template <typename ... UInt>
         GT_FUNCTION
@@ -222,12 +233,29 @@ d
         //####################################################
 
 
+
         /**@brief return the stride for a specific coordinate, given the vector of strides
-           Coordinates 0,1,2 correspond to i,j,k respectively*/
+           Coordinates 0,1,2 correspond to i,j,k respectively
+
+	   static version: the strides vector is passed from outside ordered in decreasing order, and the strides coresponding to
+	   the Coordinate dimension is returned according to the layout map.
+	*/
         template<uint_t Coordinate, typename StridesVector>
         GT_FUNCTION
         static constexpr int_t strides(StridesVector const& RESTRICT strides_){
-            return ((vec_max<typename layout::layout_vector_t>::value < 0) ? 0:(( layout::template at_<Coordinate>::value == vec_max<typename layout::layout_vector_t>::value ) ? 1 : ((strides_[layout::template at_<Coordinate>::value/*+1*/]))));//POL TODO explain the fact that here there was a +1
+            return ((vec_max<typename layout::layout_vector_t>::value < 0) ? 0:(( layout::template at_<Coordinate>::value == vec_max<typename layout::layout_vector_t>::value ) ? 1 : ((strides_[layout::template at_<Coordinate>::value]))));
+        }
+
+        /**@brief return the stride for a specific coordinate, given the vector of strides
+           Coordinates 0,1,2 correspond to i,j,k respectively.
+
+	   non-static version.
+	*/
+        template<uint_t Coordinate>
+        GT_FUNCTION
+        constexpr int_t strides() const {
+	    //NOTE: we access the m_strides vector starting from 1, because m_strides[0] is the total storage dimension.
+            return ((vec_max<typename layout::layout_vector_t>::value < 0) ? 0:(( layout::template at_<Coordinate>::value == vec_max<typename layout::layout_vector_t>::value ) ? 1 : ((m_strides[layout::template at_<Coordinate>::value+1]))));
         }
 
         /**@brief returning the index of the memory address corresponding to the specified (i,j,k) coordinates.
@@ -254,9 +282,7 @@ d
         GT_FUNCTION
         constexpr
         static uint_t _index(StridesVector const& RESTRICT strides_, UInt const& ... dims) {
-#ifndef __CUDACC__
             GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(),  boost::is_integral<UInt>::type::value ...), "you have to pass in arguments of uint_t type");
-#endif
             return _impl::compute_offset<space_dimensions, layout>::apply(strides_, dims ...);
         }
 #endif
@@ -269,7 +295,7 @@ d
 
            This method returns signed integers of type int_t (used e.g. in iterate_domain)
         */
-        template <typename StridesVector, typename OffsetTuple>
+        template <typename OffsetTuple, typename StridesVector>
         GT_FUNCTION
         static constexpr int_t _index(StridesVector const& RESTRICT strides_, OffsetTuple  const& tuple) {
             return _impl::compute_offset<space_dimensions, layout>::apply(strides_, tuple);

@@ -26,3 +26,4 @@
 #include "common/array.hpp"
 #include "common/layout_map.hpp"
 #include "common/pointer.hpp"
+#include "common/pointer_metafunctions.hpp"

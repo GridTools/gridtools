@@ -13,8 +13,8 @@ namespace gridtools {
     /**
      * Class to specify access ranges for stencil functions
      */
-    template <int_t IMinus, int_t IPlus,
-              int_t JMinus, int_t JPlus,
+    template <int_t IMinus=0, int_t IPlus=0,
+              int_t JMinus=0, int_t JPlus=0,
               int_t KMinus=0, int_t KPlus=0>
     struct range {
 #ifndef CXX11_ENABLED

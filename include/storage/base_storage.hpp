@@ -1,6 +1,5 @@
 #pragma once
 #include "base_storage_impl.hpp"
-#include "hybrid_pointer.hpp"
 #include "../common/array.hpp"
 
 /**@file
@@ -20,7 +19,7 @@ namespace gridtools {
 
 #ifdef CXX11_ENABLED
         template < typename PT, typename MD, ushort_t FD >
-        using my_type=typename RegularStorageType::template my_type<PT, MD, FD>;
+        using type_tt=typename RegularStorageType::template type_tt<PT, MD, FD>;
 #endif
 
         typedef RegularStorageType type;
@@ -114,7 +113,7 @@ namespace gridtools {
     {
 #ifdef CXX11_ENABLED
         template < typename PT, typename MD, ushort_t FD >
-        using my_type=base_storage<PT,MD,FD>;
+        using type_tt=base_storage<PT,MD,FD>;
 #endif
 
         GRIDTOOLS_STATIC_ASSERT(is_meta_storage<MetaData>::type::value, "wrong meta_storage type");
@@ -135,11 +134,7 @@ namespace gridtools {
     protected:
         bool is_set;
         const char* m_name;
-#ifdef __CUDACC__ // this is related to the fact that the gridtools::array should not be templated to a const type when CXX11 disabled
-        pointer_type m_fields[field_dimensions];
-#else
         array<pointer_type, field_dimensions> m_fields;
-#endif
         MetaData const& m_meta_data;//should possibly be a constexpr
 
     public:
@@ -152,7 +147,7 @@ namespace gridtools {
             is_set( false )
             , m_name("default_storage")
             , m_meta_data(meta_data_)
-            {}
+        {}
 
         /**
            @brief 3D storage constructor
@@ -262,10 +257,14 @@ namespace gridtools {
             }
 
 
-        /** @brief initializes with a lambda function */
+        /** @brief initializes with a lambda function
+
+            NOTE: valid for 3D storages only
+         */
         GT_FUNCTION
         void initialize(value_type (*lambda)(uint_t const&, uint_t const&, uint_t const&), ushort_t const& dims=field_dimensions)
             {
+                GRIDTOOLS_STATIC_ASSERT(space_dimensions==3, "this initialization is valid for storages with 3 space dimensions");
                 //if this fails  you used the wrong constructor (i.e. the empty one)
                 assert(is_set);
 
@@ -307,13 +306,6 @@ namespace gridtools {
                 m_fields[i].update_cpu();
         }
 
-        /** @brief returns the first memory addres of the data field */
-        GT_FUNCTION
-        const_iterator_type min_addr() const {
-            return &((m_fields[0])[m_meta_data.begin()]);
-        }
-
-
         /** @brief returns the last memry address of the data field */
         GT_FUNCTION
         const_iterator_type max_addr() const {
@@ -324,11 +316,9 @@ namespace gridtools {
         template <typename UInt>
         GT_FUNCTION
         value_type const& operator[](UInt const& index_) const {
-#ifndef __CUDACC__
             assert(index_ < m_meta_data.size());
             assert(is_set);
             GRIDTOOLS_STATIC_ASSERT(boost::is_integral<UInt>::value, "wrong type to the storage [] operator (the argument must be integral)");
-#endif
             return (m_fields[0])[index_];
         }
 
@@ -338,10 +328,8 @@ namespace gridtools {
         template <typename ... UInt>
         GT_FUNCTION
         value_type& operator()(UInt const& ... dims) {
-#ifndef __CUDACC__
             assert(m_meta_data.index(dims...) < m_meta_data.size());
             assert(is_set);
-#endif
             return (m_fields[0])[m_meta_data.index(dims...)];
         }
 
@@ -349,10 +337,8 @@ namespace gridtools {
         template <typename ... UInt>
         GT_FUNCTION
         value_type& operator()(meta_data_t* metadata_, UInt const& ... dims) {
-#ifndef __CUDACC__
-            assert(metadata_->index(dims...) < metadata_->size());
+            assert(metadata_ && metadata_->index(dims...) < metadata_->size());
             assert(is_set);
-#endif
             return (m_fields[0])[metadata_->index(dims...)];
         }
 
@@ -360,10 +346,8 @@ namespace gridtools {
         template <typename ... UInt>
         GT_FUNCTION
         value_type const & operator()(UInt const& ... dims) const {
-#ifndef __CUDACC__
             assert(m_meta_data.index(dims...) < m_meta_data.size());
             assert(is_set);
-#endif
             return (m_fields[0])[m_meta_data.index(dims...)];
         }
 #else //CXX11_ENABLED
@@ -371,10 +355,8 @@ namespace gridtools {
         /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
         GT_FUNCTION
         value_type& operator()( uint_t const& i, uint_t const& j, uint_t const& k) {
-#ifndef __CUDACC__
             assert(m_meta_data.index(i,j,k) < m_meta_data.size());
             assert(is_set);
-#endif
             return (m_fields[0])[m_meta_data.index(i,j,k)];
         }
 
@@ -382,10 +364,8 @@ namespace gridtools {
         /** @brief returns (by const reference) the value of the data field at the coordinates (i, j, k) */
         GT_FUNCTION
         value_type const & operator()( uint_t const& i, uint_t const& j, uint_t const& k) const {
-#ifndef __CUDACC__
             assert(m_meta_data.index(i,j,k) < m_meta_data.size());
             assert(is_set);
-#endif
             return (m_fields[0])[m_meta_data.index(i,j,k)];
         }
 #endif
@@ -403,10 +383,6 @@ namespace gridtools {
         /**@brief printing a portion of the content of the data field*/
         template < typename Stream>
         void print( Stream & stream, uint_t t=0) const {
-            // stream << " (" << m_strides[1] << "x"
-            //        << m_strides[2] << "x"
-            //        << 1 << ")"
-            //        << std::endl;
             stream << "| j" << std::endl;
             stream << "| j" << std::endl;
             stream << "v j" << std::endl;

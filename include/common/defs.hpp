@@ -6,6 +6,8 @@
 #else
 #define CXX11_DISABLED
 #endif
+#else
+#define CXX11_DISABLED
 #endif
 
 //defines how many threads participate to the (shared) memory initialization
@@ -46,7 +48,7 @@
 #define DEPRECATED(func) func
 #endif
 
-/** Macro do enable additional checks that may catch some errors in user code
+/** Macro to enable additional checks that may catch some errors in user code
  */
 #ifndef PEDANTIC_DISABLED
 #define PEDANTIC
@@ -267,10 +269,15 @@ namespace gridtools{
         typedef boost::mpl::integral_c<bool,B> type;
     };
 
+#endif
+    template<typename T>
+    struct is_static_integral : boost::mpl::false_{};
+
+    template<typename T, T N>
+    struct is_static_integral<boost::mpl::integral_c<T, N> >: boost::mpl::true_{};
     /**
        @}
      */
 //######################################################
-#endif
 
 }//namespace gridtools

@@ -3,7 +3,7 @@
 namespace gridtools{
 
     template < typename Partitioner, typename Storage >
-class parallel_meta_storage;
+    class parallel_storage_info;
 }
 
 class verifier
@@ -50,7 +50,7 @@ public:
     }
 
     template<typename Partitioner, typename MetaStorageType, typename StorageType>
-    bool verify_parallel(gridtools::parallel_meta_storage<MetaStorageType, Partitioner> const& metadata_, StorageType const& field1, StorageType const& field2)
+    bool verify_parallel(gridtools::parallel_storage_info<MetaStorageType, Partitioner> const& metadata_, StorageType const& field1, StorageType const& field2)
     {
 
         const gridtools::uint_t idim = metadata_.get_metadata().template dims<0>();

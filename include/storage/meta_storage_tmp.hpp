@@ -1,18 +1,50 @@
 #pragma once
 #include "meta_storage_base.hpp"
 
+/**
+   @file
+   implementation of a class handling the storage meta information in case of temporary storage
+   when using the block strategy
+*/
 namespace gridtools{
 
-    template<ushort_t Index, typename Layout, typename First, typename ... Tiles>
-    struct meta_storage_base<Index, Layout, true, First, Tiles...> : public meta_storage_base<Index, Layout, false> {
+#ifndef CXX11_ENABLED
+    template <uint_t Tile, uint_t Plus, uint_t Minus>
+    struct tile;
+#endif
+
+    /**
+       @class
+       @brief specialization for the temporary storages and block strategy
+    */
+    template<ushort_t Index, typename Layout, typename FirstTile,
+#ifdef CXX11_ENABLED
+             typename ... Tiles
+#else
+             uint_t Tile, uint_t Plus, uint_t Minus
+#endif
+             >
+    struct meta_storage_base<Index, Layout, true, FirstTile,
+#ifdef CXX11_ENABLED
+                             Tiles...
+#else
+                             tile<Tile, Plus, Minus>
+#endif
+                             > : public meta_storage_base<Index, Layout, false> {
         static const bool is_temporary=true;
         typedef  meta_storage_base<Index, Layout, false> super;
 
-        typedef meta_storage_base<Index, Layout, true, First, Tiles ...> this_type;
+#ifdef CXX11_ENABLED
+        typedef meta_storage_base<Index, Layout, true, FirstTile, Tiles ...> this_type;
+        typedef typename boost::mpl::vector<FirstTile, Tiles ...> tiles_vector_t;
+#else
+        typedef tile<Tile, Plus, Minus> TileJ;
+        typedef meta_storage_base<Index, Layout, true, FirstTile, TileJ> this_type;
+        typedef typename boost::mpl::vector<FirstTile, TileJ> tiles_vector_t;
+#endif
         typedef typename super::basic_type basic_type;
         typedef typename super::layout layout;
 
-        typedef typename boost::mpl::vector<First, Tiles ...> tiles_vector_t;
 
         //loss of generality: here we suppose tiling in i-j
         typedef typename boost::mpl::at_c<tiles_vector_t, 0>::type::s_tile_t  tile_i_t;
@@ -34,6 +66,18 @@ namespace gridtools{
 
     public:
 
+        /**
+           @brief constructor
+
+           @param initial_offset_i the initial global i coordinate of the ij block
+           @param initial_offset_j the initial global j coordinate of the ij block
+           @param dim3 the dimension in k direction
+           @param n_i_threads number of threads in the i direction
+           @param n_j_threads number of threads in the j direction
+
+           This constructor creates a storage tile with one peace assigned to each thread.
+           The partition of the storage in tiles is a strategy to enhance data locality.
+         */
         constexpr meta_storage_base( uint_t const& initial_offset_i,
                                      uint_t const& initial_offset_j,
                                      uint_t const& dim3,
