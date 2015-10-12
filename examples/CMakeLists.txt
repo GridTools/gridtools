@@ -1,7 +1,7 @@
-list( APPEND SRCFILES interface1 boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore  copy_stencil_single_storage)
+list( APPEND SRCFILES interface1 boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore)
 
 if( ENABLE_CXX11)
-    list(APPEND SRCFILES  extended_4D)
+    list(APPEND SRCFILES  extended_4D  copy_stencil_single_storage)
 endif()
 
 set( GTEST_FILES Options.hpp Options.cpp)
@@ -72,9 +72,7 @@ if(CUDA_FOUND)
         CUDA_COMPILE_PTX(generated_files interface1.cu copy_stencil.cu tridiagonal.cu boundary-condition.cu)
     else()
 
-        foreach(srcfile IN LISTS SRCFILES )
-             cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu ${GTEST_FILES})
-        foreach(srcfile IN LISTS MPISRCFILES )
+        foreach(srcfile IN LISTS SRCFILES MPISRCFILES )
              cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu ${GTEST_FILES})
              target_link_libraries(${srcfile}_cuda gcl ${exe_LIBS})
 

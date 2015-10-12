@@ -219,7 +219,6 @@ You have to define each arg with a unique identifier ranging from 0 to N without
         void assign_pointers(MetaDataSequence& sequence_, ArgStoragePair0 arg0, OtherArgs ... other_args)
         {
             assert(arg0.ptr);
-            printf("pointer: %x", arg0.ptr);
             boost::fusion::at<typename ArgStoragePair0::arg_type::index_type>(m_storage_pointers) = arg0.ptr;
             //storing the value of the pointers in a 'backup' fusion vector
             boost::fusion::at<typename ArgStoragePair0::arg_type::index_type>(m_original_pointers) = arg0.ptr;
