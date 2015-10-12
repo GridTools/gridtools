@@ -74,7 +74,6 @@ cd build;
 # full path to the virtual environment where the Python tests run
 #
 VENV_PATH=${HOME}/venv_gridtools4py
-rm -rf ${VENV_PATH}
 
 #
 # environment setup
