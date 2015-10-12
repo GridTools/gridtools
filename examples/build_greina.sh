@@ -8,6 +8,7 @@ function exit_if_error {
         rm -rf *
         exit $1
     fi
+}
 
 function help {
    echo "$0 [OPTIONS]"
