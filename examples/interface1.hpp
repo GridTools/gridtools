@@ -134,8 +134,7 @@ std::ostream& operator<<(std::ostream& s, out_function const) {
 void handle_error(int)
 {std::cout<<"error"<<std::endl;}
 
-bool test(uint_t x, uint_t y, uint_t z)
-{
+bool test(uint_t x, uint_t y, uint_t z) {
 
 #ifdef USE_PAPI_WRAP
   int collector_init = pw_new_collector("Init");

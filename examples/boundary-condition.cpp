@@ -53,7 +53,9 @@ struct direction_bc_input {
     void operator()(Direction,
                     DataField0 & data_field0, DataField1 const & data_field1,
                     uint_t i, uint_t j, uint_t k) const {
+        //std::cout << "General implementation AAA" << std::endl;
         data_field0(i,j,k) = data_field1(i,j,k) * value;
+        //printf("*** value = %d\n", value);
     }
 
     // relative coordinates
@@ -62,7 +64,9 @@ struct direction_bc_input {
     void operator()(direction<I, minus_, K>,
                     DataField0 & data_field0, DataField1 const & data_field1,
                     uint_t i, uint_t j, uint_t k) const {
+        // std::cout << "Implementation going A-A" << std::endl;
         data_field0(i,j,k) = 88 * value;
+        //printf("*m* value = %d\n", value);
     }
 
     // relative coordinates
@@ -71,7 +75,9 @@ struct direction_bc_input {
     void operator()(direction<minus_, minus_, K>,
                     DataField0 & data_field0, DataField1 const & data_field1,
                     uint_t i, uint_t j, uint_t k) const {
+        //std::cout << "Implementation going --A" << std::endl;
         data_field0(i,j,k) = 77777 * value;
+        //printf("mm* value = %d\n", value);
     }
 
     template <typename DataField0, typename DataField1>
@@ -79,7 +85,9 @@ struct direction_bc_input {
     void operator()(direction<minus_, minus_, minus_>,
                     DataField0 & data_field0, DataField1 const & data_field1,
                     uint_t i, uint_t j, uint_t k) const {
+        //std::cout << "Implementation going ---" << std::endl;
         data_field0(i,j,k) = 55555 * value;
+        //printf("mmm value = %d\n", value);
     }
 };
 
@@ -98,6 +106,7 @@ int main(int argc, char** argv) {
 
     typedef gridtools::BACKEND::storage_type<int_t, gridtools::storage_info<0,gridtools::layout_map<0,1,2> > >::type storage_type;
 
+#pragma GCC diagnostic ignored "-Wwrite-strings"
     // Definition of the actual data fields that are used for input/output
     typename storage_type::meta_data_t meta_(d1,d2,d3);
     storage_type in(meta_, "in");
@@ -106,6 +115,7 @@ int main(int argc, char** argv) {
     out.initialize(-7);
     storage_type coeff(meta_, "coeff");
     coeff.initialize(8);
+#pragma GCC diagnostic pop
 
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {
@@ -114,6 +124,16 @@ int main(int argc, char** argv) {
                 out(i,j,k) = i+j+k;
             }
         }
+    }
+
+    for (uint_t i=0; i<d1; ++i) {
+        for (uint_t j=0; j<d2; ++j) {
+            for (uint_t k=0; k<d3; ++k) {
+                printf("%d ", in(i,j,k));
+            }
+            printf("\n");
+        }
+        printf("\n");
     }
 
     gridtools::array<gridtools::halo_descriptor, 3> halos;
@@ -135,4 +155,27 @@ int main(int argc, char** argv) {
     gridtools::boundary_apply<direction_bc_input<uint_t> >(halos, direction_bc_input<uint_t>(2)).apply(in, out);
 #endif
 
+    for (uint_t i=0; i<d1; ++i) {
+        for (uint_t j=0; j<d2; ++j) {
+            for (uint_t k=0; k<d3; ++k) {
+                printf("%d ", in(i,j,k));
+            }
+            printf("\n");
+        }
+        printf("\n");
+    }
+
+    // printf("\nNow doing the same but with a stateful user struct:\n\n");
+
+    // gridtools::boundary_apply<direction_bc_input<int> >(halos, direction_bc_input<int>(2)).apply(in, out);
+
+    // for (int i=0; i<d1; ++i) {
+    //     for (int j=0; j<d2; ++j) {
+    //         for (int k=0; k<d3; ++k) {
+    //             printf("%d ", in(i,j,k));
+    //         }
+    //         printf("\n");
+    //     }
+    //     printf("\n");
+    // }
 }

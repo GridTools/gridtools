@@ -3,9 +3,13 @@
 #define SILENT_RUN
 #include "test_domain_indices.hpp"
 #include "boundary_conditions_test.hpp"
+#include "../examples/interface1.hpp"
+#include "../examples/positional_copy_stencil.hpp"
 #include "copies_2D_1D_0D.hpp"
+#include "../examples/tridiagonal.hpp"
 #include "external_ptr_test/CopyStencil.hpp"
 #ifdef CXX11_ENABLED
+#include "../examples/extended_4D.hpp"
 #include "test-assign-placeholders.hpp"
 #endif
 #include "accessor_tests.hpp"
@@ -59,6 +63,10 @@ TEST(stencil, loop_hierarchy) {
 #include "stencil_tests.hpp"
 
 #ifdef CXX11_ENABLED
+TEST(stencil, extended_4D) {
+    EXPECT_EQ(assembly::test(5, 5, 6), true);
+}
+
 TEST(testdomain, assignplchdrs) {
     EXPECT_EQ(assign_placeholders(), true);
 }

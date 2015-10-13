@@ -12,6 +12,14 @@
 #define __Size2 61
 #endif
 
+TEST(TESTCLASS, horizontaldiffusion_block) {
+    EXPECT_EQ(horizontal_diffusion::test(__Size0, __Size1, __Size2), true);
+}
+
+TEST(TESTCLASS, statefulcopies3D) {
+    EXPECT_EQ((positional_copy_stencil::test(__Size0, __Size1, __Size2)), true);
+}
+
 TEST(TESTCLASS, copies3D) {
     EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<0,1,2> , gridtools::layout_map<0,1,2> >(__Size0, __Size1, __Size2)), true);
 }
@@ -82,4 +90,8 @@ TEST(TESTCLASS, copies2DkDst) {
 
 TEST(TESTCLASS, copies2DScalarDst) {
     EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<-1,-1,-1> , gridtools::layout_map<2,0,1> >(__Size0, __Size1, __Size2)), true);
+}
+
+TEST(TESTCLASS, tridiagonal) {
+    EXPECT_EQ(tridiagonal::solver(1, 1, 6), true);
 }

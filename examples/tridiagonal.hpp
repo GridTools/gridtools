@@ -6,7 +6,6 @@
 
 #include <stencil-composition/interval.hpp>
 #include <stencil-composition/make_computation.hpp>
-#include <tools/verifier.hpp>
 
 #ifdef USE_PAPI_WRAP
 #include <papi_wrap.hpp>
@@ -160,16 +159,16 @@ std::ostream& operator<<(std::ostream& s, forward_thomas const) {
 }
 
 
-bool test(uint_t d1, uint_t d2, uint_t d3) {
-
-    if(d3 != 6) std::cout << "WARNING: This test is only working with 6 k levels,"
-                             "to guarantee that result can be validated to 1" << std::endl;
-    d3 = 6;
+bool solver(uint_t x, uint_t y, uint_t z) {
 
 #ifdef USE_PAPI_WRAP
   int collector_init = pw_new_collector("Init");
   int collector_execute = pw_new_collector("Execute");
 #endif
+
+    uint_t d1 = x;
+    uint_t d2 = y;
+    uint_t d3 = z;
 
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<Cuda, Block >
@@ -195,18 +194,21 @@ bool test(uint_t d1, uint_t d2, uint_t d3) {
     storage_type diag(meta_,3., "diag");
     storage_type sup(meta_,1., "sup");
     storage_type rhs(meta_,3., "rhs");
-
-    storage_type solution(meta_,1., "sol");
-
     for(int_t i=0; i<d1; ++i)
-    {
         for(int_t j=0; j<d2; ++j)
         {
             rhs(i, j, 0)=4.;
             rhs(i, j, 5)=2.;
         }
-    }
 // result is 1
+#ifdef __VERBOSE__
+    printf("Print OUT field\n");
+    out.print();
+    printf("Print SUP field\n");
+    sup.print();
+    printf("Print RHS field\n");
+    rhs.print();
+#endif
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
@@ -250,9 +252,9 @@ bool test(uint_t d1, uint_t d2, uint_t d3) {
 
 // \todo simplify the following using the auto keyword from C++11
 #ifdef __CUDACC__
-    gridtools::computation* solver =
+    gridtools::computation* forward_step =
 #else
-        boost::shared_ptr<gridtools::computation> solver =
+        boost::shared_ptr<gridtools::computation> forward_step =
 #endif
       gridtools::make_computation<gridtools::BACKEND>
         (
@@ -260,30 +262,52 @@ bool test(uint_t d1, uint_t d2, uint_t d3) {
             (
                 execute<forward>(),
                 gridtools::make_esf<forward_thomas>(p_out(), p_inf(), p_diag(), p_sup(), p_rhs()) // esf_descriptor
-            ),
+                ),
+            domain, coords
+            );
+
+
+// \todo simplify the following using the auto keyword from C++11
+#ifdef __CUDACC__
+    gridtools::computation* backward_step =
+#else
+        boost::shared_ptr<gridtools::computation> backward_step =
+#endif
+      gridtools::make_computation<gridtools::BACKEND>
+      (
             gridtools::make_mss // mss_descriptor
             (
                 execute<backward>(),
                 gridtools::make_esf<backward_thomas>(p_out(), p_inf(), p_diag(), p_sup(), p_rhs()) // esf_descriptor
-            ),
+                ),
             domain, coords
-        );
+          ) ;
 
-    solver->ready();
-    solver->steady();
+    forward_step->ready();
+    forward_step->steady();
 
 
-    solver->run();
+    forward_step->run();
 
-    solver->finalize();
+    forward_step->finalize();
 
-#ifdef BENCHMARK
-    std::cout << solver->print_meter() << std::endl;
+    backward_step->ready();
+    backward_step->steady();
+
+    backward_step->run();
+
+    backward_step->finalize();
+
+#ifdef __VERBOSE__
+    printf("Print OUT field\n");
+    out.print();
+    printf("Print SUP field\n");
+    sup.print();
+    printf("Print RHS field\n");
+    rhs.print();
 #endif
 
-    verifier verif(1e-9, 0);
-    bool result = verif.verify(solution, out);
-
-    return result;
+    return (out(0,0,0) + out(0,0,1) + out(0,0,2) + out(0,0,3) + out(0,0,4) + out(0,0,5) >6-1e-10) &&
+      (out(0,0,0) + out(0,0,1) + out(0,0,2) + out(0,0,3) + out(0,0,4) + out(0,0,5) <6+1e-10);
 }
 }//namespace tridiagonal

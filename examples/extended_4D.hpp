@@ -1,48 +1,6 @@
 #pragma once
 
 #include <stencil-composition/make_computation.hpp>
-#include "Options.hpp"
-
-
-using namespace gridtools;
-using namespace enumtype;
-using namespace expressions;
-
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend<Host, Block >
-#else
-#define BACKEND backend<Host, Naive >
-#endif
-#endif
-
-//                      dims  x y z  qp
-//                   strides  1 x xy xyz
-typedef gridtools::layout_map<3,2, 1, 0> layout4_t;
-typedef gridtools::layout_map<2,1,0> layout_t;
-
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend<Host, Block >
-#else
-#define BACKEND backend<Host, Naive >
-#endif
-#endif
-
-typedef storage_info<0, layout_t> metadata_t;
-typedef storage_info<1, layout4_t> metadata_global_quad_t;
-typedef storage_info<2, layout4_t> metadata_local_quad_t;
-typedef gridtools::BACKEND::storage_type<float_type, metadata_t >::type storage_type;
-typedef gridtools::BACKEND::storage_type<float_type, metadata_global_quad_t >::type storage_global_quad_t;
-typedef gridtools::BACKEND::storage_type<float_type, metadata_local_quad_t >::type storage_local_quad_t;
-
-
-#include "extended_4D_verify.hpp"
-
 
 /**
   @file
@@ -72,6 +30,11 @@ typedef gridtools::BACKEND::storage_type<float_type, metadata_local_quad_t >::ty
 
   In this example we introduce also another syntactic element in the high level expression: the operator exclamation mark (!). This operator prefixed to a placeholder means that the corresponding storage index is not considered, and only the offsets are used to get the absolute address. This allows to perform operations which are not stencil-like. It is used in this case to address the basis functions values.
 */
+#ifdef CXX11_ENABLED
+
+using namespace gridtools;
+using namespace enumtype;
+using namespace expressions;
 
 namespace assembly{
 
@@ -119,6 +82,26 @@ namespace assembly{
     }
 
     bool test(uint_t d1, uint_t d2, uint_t d3){
+
+#ifdef CUDA_EXAMPLE
+#define BACKEND backend<Cuda, Block >
+#else
+#ifdef BACKEND_BLOCK
+#define BACKEND backend<Host, Block >
+#else
+#define BACKEND backend<Host, Naive >
+#endif
+#endif
+        //                      dims  x y z  qp
+        //                   strides  1 x xy xyz
+        typedef gridtools::layout_map<3,2, 1, 0> layout4_t;
+        typedef gridtools::layout_map<2,1,0> layout_t;
+        typedef storage_info<0, layout_t> metadata_t;
+        typedef storage_info<1, layout4_t> metadata_global_quad_t;
+        typedef storage_info<2, layout4_t> metadata_local_quad_t;
+        typedef gridtools::BACKEND::storage_type<float_type, metadata_t >::type storage_type;
+        typedef gridtools::BACKEND::storage_type<float_type, metadata_global_quad_t >::type storage_global_quad_t;
+        typedef gridtools::BACKEND::storage_type<float_type, metadata_local_quad_t >::type storage_local_quad_t;
 
         typedef arg<0, storage_local_quad_t > p_phi;
         typedef arg<1, storage_local_quad_t > p_psi;
@@ -201,7 +184,29 @@ namespace assembly{
         fe_comp->run();
         fe_comp->finalize();
 
-        return do_verification(d1,d2,d3,result);
+        bool success(true);
+        for(uint_t i=0; i<d1; ++i)
+            for(uint_t j=0; j<d2; ++j)
+                for(uint_t k=0; k<d3; ++k)
+                {
+                    if (result(i, j, k)!=((1*1.3*10*11*2*2*2)+(2*1.3*10*11*2*2*2))/((i==2&&j==2)?1:2)/ ((k==0||k==5)?2:1) /(((i==1||i==3)&&(j==1||j==3))?2:1)*((i==0||i==4||j==0||j==4)?0:1)) {
+                        std::cout << "error in "
+                                  << i << ", "
+                                  << j << ", "
+                                  << k << ": "
+                                  << "result = " << result(i, j, k)
+                                  << " instead of " << ((1*1.3*10*11*2*2*2)+(2*1.3*10*11*2*2*2))/(((i==1||i==3)&&(j==1||j==3))?2:1)/(((i==1||i==3)&&(j==1||j==3)&&(k==0||k==5))?2:1)*((i==0||i==4||j==0||j==4)?0:1)
+                                  << std::endl;
+                        success = false;
+                    }
+                }
+
+
+        //jac.print();
+        //phi.print();
+        //psi.print();
+        return success;
     }
 
-}; //namespace extended_4d
+}; //namespace assembly
+#endif //CXX11_ENABLED

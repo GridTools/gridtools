@@ -1,7 +1,6 @@
 #pragma once
 
 #include <stencil-composition/make_computation.hpp>
-#include "Options.hpp"
 
 /**
   @file
@@ -171,6 +170,9 @@ namespace copy_stencil{
                             success = false;
                         }
                 }
+        if(!success) std::cout << "ERROR" << std::endl;
+        else std::cout << "OK" << std::endl;
+
         return success;
     }
 }//namespace copy_stencil

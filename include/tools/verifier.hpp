@@ -13,7 +13,7 @@ public:
     ~verifier(){}
 
     template<typename storage_type>
-    bool verify(storage_type const& field1, storage_type const& field2) const
+    bool verify(storage_type& field1, storage_type& field2)
     {
         // assert(field1.template dims<0>() == field2.template dims<0>());
         // assert(field1.template dims<1>() == field2.template dims<1>());
@@ -87,7 +87,7 @@ public:
 
 private:
     template<typename value_type>
-    bool compare_below_threashold(value_type expected, value_type actual) const
+    bool compare_below_threashold(value_type expected, value_type actual)
     {
         if (std::fabs(expected) < 1e-3 && std::fabs(actual) < 1e-3)
         {

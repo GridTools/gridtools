@@ -130,7 +130,7 @@ namespace gridtools {
             //if the warps need to compute more grid points than the core of the block
             if(multiple_grid_points_per_warp_t::value) {
                 //JMinus  halo
-                if(range_t::jminus::value != 0 && ((int)threadIdx.y < -range_t::jminus::value))
+                if(range_t::jminus::value != 0 && (threadIdx.y < -range_t::jminus::value))
                 {
                     if(m_iterate_domain.is_thread_in_domain_x())
                     {
@@ -140,11 +140,11 @@ namespace gridtools {
                     }
                 }
                 //JPlus halo
-                else if(range_t::jplus::value != 0 && ((int)threadIdx.y < -range_t::jminus::value + range_t::jplus::value))
+                else if(range_t::jplus::value != 0 && (threadIdx.y < -range_t::jminus::value + range_t::jplus::value))
                 {
                     if(m_iterate_domain.is_thread_in_domain_x())
                     {
-                        const int joffset = range_t::jminus::value + (int)m_iterate_domain.block_size_j();
+                        const int joffset = range_t::jminus::value + m_iterate_domain.block_size_j();
 
                         (m_iterate_domain).increment<1>(joffset);
                         functor_t::Do(iterate_domain_evaluator, IntervalType());
@@ -152,7 +152,7 @@ namespace gridtools {
                     }
                 }
                 //IMinus halo
-                else if(range_t::iminus::value != 0 && ((int)threadIdx.y < -range_t::jminus::value + range_t::jplus::value + 1))
+                else if(range_t::iminus::value != 0 && (threadIdx.y < -range_t::jminus::value + range_t::jplus::value + 1))
                 {
                     const int ioffset = -m_iterate_domain.thread_position_x() -
                         (m_iterate_domain.thread_position_x() % (-range_t::iminus::value))-1;
@@ -169,13 +169,13 @@ namespace gridtools {
                     }
                 }
                 //IPlus halo
-                else if(range_t::iplus::value != 0 && ((int)threadIdx.y < -range_t::jminus::value + range_t::jplus::value +
+                else if(range_t::iplus::value != 0 && (threadIdx.y < -range_t::jminus::value + range_t::jplus::value +
                     (range_t::iminus::value != 0 ? 1 : 0) + 1))
                 {
                     const int ioffset = -m_iterate_domain.thread_position_x() +
-                        m_iterate_domain.block_size_i() + ((int)threadIdx.x % (range_t::iplus::value));
+                        m_iterate_domain.block_size_i() + (threadIdx.x % (range_t::iplus::value));
                     const int joffset = -m_iterate_domain.thread_position_y() +
-                        ((int)threadIdx.x / (range_t::iplus::value) );
+                        (threadIdx.x / (range_t::iplus::value) );
 
                     if(m_iterate_domain.is_thread_in_domain_y(joffset))
                     {
@@ -189,7 +189,7 @@ namespace gridtools {
                 //the remaining warps will compute extra work at the core of the block
                 else
                 {
-                    const int joffset = (int)blockDim.y +
+                    const int joffset = blockDim.y +
                         range_t::jminus::value - range_t::jplus::value -
                         (range_t::iminus::value != 0 ? 1 : 0) - (range_t::iplus::value != 0 ? 1 : 0);
 

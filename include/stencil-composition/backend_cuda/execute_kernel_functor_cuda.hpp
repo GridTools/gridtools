@@ -64,7 +64,9 @@ namespace _impl_cuda {
         typedef typename index_to_level<typename interval::second>::type to;
         typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy;
 
-        it_domain.template initialize<2>( coords->template value_at< iteration_policy::from >() );
+        //setting the initial k level (for backward/parallel iterations it is not 0)
+        if( !(iteration_policy::value==enumtype::forward) )
+            it_domain.initialize<2>( coords->template value_at< iteration_policy::from >() );
 
         //execute the k interval functors
         for_each<typename RunFunctorArguments::loop_intervals_t>

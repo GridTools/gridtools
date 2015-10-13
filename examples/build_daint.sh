@@ -29,21 +29,6 @@ CXX_11=OFF
 fi
 echo "C++ 11 = $CXX_11"
 
-if [ -d fusion ]; then
-    echo "fusion already there, replacing it"
-    rm -rf fusion
-    git clone https://github.com/ericniebler/fusion.git fusion
-else
-    git clone https://github.com/ericniebler/fusion.git fusion
-fi
-
-if [ -d "build" ]; then
-    rm -rf build
-fi
-mkdir -p build;
-cd build;
-
-
 module load cmake
 module load boost/1.56.0
 module unload  PrgEnv-cray
