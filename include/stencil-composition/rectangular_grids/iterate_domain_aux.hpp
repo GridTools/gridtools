@@ -34,13 +34,13 @@ namespace gridtools{
     template < typename BaseStorage >
     struct is_any_iterate_domain_storage<storage<BaseStorage> > : boost::mpl::true_{};
 
-    template <typename T> struct meta_storage_derived;
+    template <typename T> struct meta_storage;
 
     template<typename T>
     struct is_any_iterate_domain_meta_storage : boost::mpl::false_{};
 
     template < typename BaseStorage >
-    struct is_any_iterate_domain_meta_storage<meta_storage_derived<BaseStorage> > : boost::mpl::true_{};
+    struct is_any_iterate_domain_meta_storage<meta_storage<BaseStorage> > : boost::mpl::true_{};
 
     /**
      * @brief metafunction that determines if a type is one of the storage types allowed by the iterate domain

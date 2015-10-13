@@ -48,12 +48,12 @@ namespace gridtools{
         /**
            @brief storage info type associated to the cuda backend
 
-           the storage info type is meta_storage_derived, which is clonable to GPU.
+           the storage info type is meta_storage, which is clonable to GPU.
          */
         template <typename MetaData, bool Temp>
         struct meta_storage_traits{
             GRIDTOOLS_STATIC_ASSERT((is_meta_storage<MetaData>::value), "wrong type for the storage_info");
-            typedef meta_storage_derived<meta_storage_base<MetaData::index_type::value, typename MetaData::layout, Temp> > type;
+            typedef meta_storage<meta_storage_base<MetaData::index_type::value, typename MetaData::layout, Temp> > type;
         };
 
         template <typename Arguments>

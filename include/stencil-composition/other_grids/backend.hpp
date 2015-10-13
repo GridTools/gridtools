@@ -4,8 +4,7 @@
 #include "storage/meta_storage.hpp"
 #include "location_type.hpp"
 #include "stencil-composition/backend_base.hpp"
-
-
+#include "storage/wrap_pointer.hpp"
 
 namespace gridtools {
 
@@ -42,7 +41,7 @@ namespace gridtools {
         static const enumtype::backend s_backend_id =base_t::s_backend_id;
 
         template <typename LocationType>
-        using meta_storage_t = meta_storage<LocationType::value, layout_map<0,1,2,3>, false >;
+        using meta_storage_t = storage_info<LocationType::value, layout_map<0,1,2,3> >;
 
         template <typename LocationType, typename ValueType>
         using storage_t = storage< base_storage<wrap_pointer<ValueType>, meta_storage_t<LocationType>, 1> >;

@@ -20,21 +20,21 @@
 */
 namespace gridtools{
 template < typename BaseStorage >
-struct meta_storage_derived : public BaseStorage, clonable_to_gpu<meta_storage_derived<BaseStorage> >{
+struct meta_storage : public BaseStorage, clonable_to_gpu<meta_storage<BaseStorage> >{
 
     static const bool is_temporary=BaseStorage::is_temporary;
     typedef BaseStorage super;
-    typedef typename BaseStorage::basic_type basic_type;
+    typedef typename BaseStorage::type basic_type;
     typedef typename BaseStorage::index_type index_type;
-    typedef meta_storage_derived<BaseStorage> original_storage;
-    typedef clonable_to_gpu<meta_storage_derived<BaseStorage> > gpu_clone;
+    typedef meta_storage<BaseStorage> original_storage;
+    typedef clonable_to_gpu<meta_storage<BaseStorage> > gpu_clone;
 
     /** @brief copy ctor
 
         forwarding to the base class
     */
     __device__
-    meta_storage_derived(BaseStorage const& other)
+    meta_storage(BaseStorage const& other)
         :  super(other)
         {}
 
@@ -44,7 +44,7 @@ struct meta_storage_derived : public BaseStorage, clonable_to_gpu<meta_storage_d
         forwarding to the base class
     */
     template <class ... UIntTypes>
-    explicit meta_storage_derived(  UIntTypes const& ... args ): super(args ...)
+    explicit meta_storage(  UIntTypes const& ... args ): super(args ...)
         {
         }
 #else
@@ -53,13 +53,13 @@ struct meta_storage_derived : public BaseStorage, clonable_to_gpu<meta_storage_d
 
         forwarding to the base class
     */
-    explicit meta_storage_derived(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3): super(dim1, dim2, dim3) {}
+    explicit meta_storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3): super(dim1, dim2, dim3) {}
 
     /** @brief ctor
 
         forwarding to the base class
     */
-    meta_storage_derived( uint_t const& initial_offset_i,
+    meta_storage( uint_t const& initial_offset_i,
                           uint_t const& initial_offset_j,
                           uint_t const& dim3,
                           uint_t const& n_i_threads,
@@ -72,7 +72,7 @@ private:
 
         should never be called
     */
-    explicit meta_storage_derived(): super(){}
+    explicit meta_storage(): super(){}
 
 };
 
@@ -97,15 +97,15 @@ private:
     template < ushort_t Index
                , typename Layout
                >
-    using storage_info = meta_storage_derived<meta_storage_base<Index, Layout, false > >;
+    using storage_info = meta_storage<meta_storage_base<Index, Layout, false > >;
 #else
 
     template < ushort_t Index
                , typename Layout
                >
-    struct storage_info : public meta_storage_derived<meta_storage_base<Index, Layout, false> > {
+    struct storage_info : public meta_storage<meta_storage_base<Index, Layout, false> > {
 
-        typedef meta_storage_derived<meta_storage_base<Index, Layout, false> > super;
+        typedef meta_storage<meta_storage_base<Index, Layout, false> > super;
 
         storage_info(uint_t const& d1, uint_t const& d2, uint_t const& d3) : super(d1,d2,d3){}
 
@@ -121,10 +121,10 @@ private:
 */
 
     template< typename Storage>
-    struct is_meta_storage<meta_storage_derived<Storage> > : boost::mpl::true_{};
+    struct is_meta_storage<meta_storage<Storage> > : boost::mpl::true_{};
 
     template< typename Storage>
-    struct is_meta_storage<meta_storage_derived<Storage>& > : boost::mpl::true_{};
+    struct is_meta_storage<meta_storage<Storage>& > : boost::mpl::true_{};
 
     template< typename Storage>
     struct is_meta_storage<no_meta_storage_type_yet<Storage> > : is_meta_storage<Storage> {};
@@ -144,14 +144,10 @@ private:
 #endif
 
     template<typename T>
-    struct is_meta_storage_derived : is_meta_storage<typename boost::remove_pointer<T>::type::super>{};
-
-
-    template<typename T>
-    struct is_ptr_to_meta_storage_derived : boost::mpl::false_ {};
+    struct is_ptr_to_meta_storage : boost::mpl::false_ {};
 
     template<typename T>
-    struct is_ptr_to_meta_storage_derived<pointer<const T> > : is_meta_storage_derived<T> {};
+    struct is_ptr_to_meta_storage<pointer<const T> > : is_meta_storage<T> {};
 
 /**@}*/
 

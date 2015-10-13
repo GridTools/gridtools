@@ -72,7 +72,7 @@ namespace gridtools{
 #else
             GRIDTOOLS_STATIC_ASSERT((is_tile<TileI>::value && is_tile<TileJ>::value), "wrong type for the tiles");
 #endif
-            typedef meta_storage_derived
+            typedef meta_storage
             <meta_storage_base
             <Index::value, Layout, true,
 #ifdef CXX11_ENABLED
