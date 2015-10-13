@@ -50,9 +50,15 @@ struct lap_function {
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_lap) {
+#ifdef EXPS
         dom(out()) = (gridtools::float_type)4*dom(in()) -
             (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
              dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)));
+#else
+        dom(out()) = (gridtools::float_type)4*dom(in()) -
+            (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
+             dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)));
+#endif
     }
 };
 
@@ -67,10 +73,13 @@ struct flx_function {
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_flx) {
+#ifdef EXPS
+        dom(out()) = dom(lap(1,0,0)-lap(0,0,0));
+        dom(out()) = (dom(out()*(in(1,0,0)-in(0,0,0))) > 0)?0.0:dom(out());
+#else
         dom(out()) = dom(lap(1,0,0))-dom(lap(0,0,0));
-        if (dom(out())*(dom(in(1,0,0))-dom(in(0,0,0))) > 0) {
-            dom(out()) = 0.;
-        }
+        dom(out()) = (dom(out())*(dom(in(1,0,0))-dom(in(0,0,0))) > 0)?0.0:dom(out());
+#endif
     }
 };
 
@@ -85,10 +94,14 @@ struct fly_function {
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_flx) {
+#ifdef EXPS
+#pragma message "EXPSSSSS"
+        dom(out()) = dom(lap(0,1,0)-lap(0,0,0));
+        dom(out()) = (dom(out()*(in(0,1,0)-in(0,0,0))) > 0)?0.0:dom(out());
+#else
         dom(out()) = dom(lap(0,1,0))-dom(lap(0,0,0));
-        if (dom(out())*(dom(in(0,1,0))-dom(in(0,0,0))) > 0) {
-            dom(out()) = 0.;
-        }
+        dom(out()) = (dom(out())*(dom(in(0,1,0))-dom(in(0,0,0))) > 0)?0.0:dom(out());
+#endif
     }
 };
 
@@ -105,7 +118,7 @@ struct out_function {
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_out) {
-#if defined( CXX11_ENABLED ) && !defined( CUDA_EXAMPLE )
+#ifdef EXPS
        dom(out()) = dom(in()) - dom(coeff()) *
            (dom(flx() - flx( -1,0,0) +
             fly() - fly( 0,-1,0))
