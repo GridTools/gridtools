@@ -16,9 +16,9 @@ namespace gridtools {
         template <int I, int L, typename List>
         struct scan_for_index {
             using type = typename boost::mpl::if_
-                <typename std::is_const<typename boost::mpl::at_c<List, I>::type >::type,
+                <typename boost::is_const<typename boost::mpl::at_c<List, I>::type >::type,
                  typename scan_for_index<I+1, L, List>::type,
-                 std::integral_constant<int, I>
+                 static_int<I>
                  >::type;
         };
 
@@ -44,7 +44,7 @@ namespace gridtools {
         template <typename CurrentCount, typename CurrentArg>
         struct count_if_written {
             typedef typename boost::mpl::if_
-                <typename std::is_const<CurrentArg>::type,
+                <typename boost::is_const<CurrentArg>::type,
                  CurrentCount,
                  static_int<CurrentCount::value+1>
                  >::type type;
@@ -114,6 +114,25 @@ namespace gridtools {
             return *m_result;
         }
 
+        /** @brief method called in the Do methods of the functors. */
+        template <typename ... Arguments, template<typename ... Args> class Expression >
+        GT_FUNCTION
+        constexpr
+        auto operator() (Expression<Arguments ... > const& arg) const ->decltype(evaluation::value(*this, arg)) {
+            //arg.to_string();
+            return evaluation::value((*this), arg);
+        }
+
+        /** @brief method called in the Do methods of the functors.
+            partial specializations for double (or float)*/
+        template <typename Accessor, template<typename Arg1, typename Arg2> class Expression, typename FloatType
+                  , typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
+        GT_FUNCTION
+        constexpr
+        auto operator() (Expression<Accessor, FloatType> const& arg) const ->decltype(evaluation::value_scalar(*this, arg)) {
+            //TODO RENAME ACCESSOR,is not an accessor but an expression, and add an assertion for type
+            return evaluation::value_scalar((*this), arg);
+        }
     };
 
 
@@ -162,7 +181,7 @@ namespace gridtools {
             Functor::Do(function_aggregator
                 <Evaluator,
                  Offi, Offj, Offk,
-                 typename gridtools::variadic_to_vector<Args...>::type,
+                 typename variadic_to_vector<Args...>::type,
                  result_type,
                  _get_index_of_first_non_const<Functor>::value>(eval, result), Region());
 
