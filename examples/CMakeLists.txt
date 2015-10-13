@@ -10,7 +10,7 @@
 
 #TODOCOSUNA RECOVER FILES
 #list( APPEND SRCFILES interface1 boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal  vertical_advection_dycore vanilla_laplacian extended_4D )
-list( APPEND SRCFILES interface1 boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal  vertical_advection_dycore vanilla_laplacian extended_4D)
+list( APPEND SRCFILES interface1 interface1_functions boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal  vertical_advection_dycore vanilla_laplacian extended_4D)
 
 if( GCL_MPI )
     list(APPEND SRCFILES copy_stencil_parallel)
@@ -74,7 +74,7 @@ if(CUDA_FOUND)
              target_link_libraries(copy_stencil_parallel_cuda gcl ${exe_LIBS})
         endif()
 
-        foreach(srcfile interface1 boundary-condition tridiagonal laplacian vertical_advection_dycore copy_stencil )
+        foreach(srcfile interface1 interface1_functions boundary-condition tridiagonal laplacian vertical_advection_dycore copy_stencil )
              cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu )
 
              target_link_libraries(${srcfile}_cuda gcl ${exe_LIBS})
