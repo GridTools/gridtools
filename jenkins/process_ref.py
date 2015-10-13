@@ -8,6 +8,7 @@ import os
 import socket
 import numpy as np
 import matplotlib.pyplot as plt
+import copy
 
 def check_output(*popenargs, **kwargs):
     process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
@@ -301,7 +302,7 @@ if __name__ == "__main__":
     error = False
     nrep=3
 
-    copy_ref = decode
+    copy_ref = copy.deepcopy(decode)
     stella_timers = {}
 
     for stencil_name in decode['stencils']:
