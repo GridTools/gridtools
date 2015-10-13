@@ -7,9 +7,11 @@ endif()
 set( GTEST_FILES Options.hpp Options.cpp)
 
 set (ADD_MPI_LIBS "")
-if( GCL_MPI )
+if( GCL_MPI)
     list(APPEND ADD_MPI_LIBS gcl)
-    list(APPEND MPISRCFILES copy_stencil_parallel)
+    if( ENABLE_CXX11 )
+        list(APPEND MPISRCFILES copy_stencil_parallel)
+    endif()
 endif()
 
 add_definitions("-DBENCHMARK")
@@ -74,7 +76,7 @@ if(CUDA_FOUND)
 
         foreach(srcfile IN LISTS SRCFILES MPISRCFILES )
              cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu ${GTEST_FILES})
-             target_link_libraries(${srcfile}_cuda gcl ${exe_LIBS})
+             target_link_libraries(${srcfile}_cuda ${exe_LIBS} ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} )
 
              gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/${srcfile}_cuda" "77 48 61")
              gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/${srcfile}_cuda" "63 55 43")
