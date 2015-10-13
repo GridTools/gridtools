@@ -59,7 +59,10 @@ namespace gridtools {
         typedef static_uint<I> index_type;
         typedef Range range_type;
 
+    private:
+        offset_tuple<n_dim, n_dim> m_offsets;
 
+    public:
         /**@brief Default constructor
            NOTE: the following constructor when used with the brace initializer produces with nvcc a considerable amount of extra instructions (gcc 4.8.2), and degrades the performances (which is probably a compiler bug, I couldn't reproduce it on a small test).*/
         GT_FUNCTION
@@ -142,9 +145,6 @@ namespace gridtools {
         GT_FUNCTION
         constexpr const offset_tuple<n_dim, n_dim>& offsets() const { return m_offsets;}
 
-    private:
-
-        offset_tuple<n_dim, n_dim> m_offsets;
     };
 
 //################################################################################
