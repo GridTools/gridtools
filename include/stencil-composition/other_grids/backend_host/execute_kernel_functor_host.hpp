@@ -121,7 +121,7 @@ struct execute_kernel_functor_host
         typedef typename boost::mpl::front<loop_intervals_t>::type interval;
         typedef typename index_to_level<typename interval::first>::type from;
         typedef typename index_to_level<typename interval::second>::type to;
-        typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy;
+        typedef _impl::iteration_policy<from, to, zdim_index_t::value, execution_type_t::type::iteration> iteration_policy_t;
 
         //reset the index
         it_domain.set_index(0);
@@ -133,17 +133,20 @@ struct execute_kernel_functor_host
 
         it_domain.template initialize<1>(0);
         it_domain.template initialize<2>(m_first_pos[1] + range_t::jminus::value, m_block_id[1]);
-        it_domain.template initialize<3>( m_coords.template value_at< typename iteration_policy::from >() );
+        it_domain.template initialize<3>( m_coords.template value_at< typename iteration_policy_t::from >() );
 
 
         typedef array<int_t, iterate_domain_t::N_META_STORAGES> array_index_t;
         array_index_t memorized_index;
         for(uint_t i=m_first_pos[0]; i <= m_last_pos[0];++i)
         {
+            std::cout << "FOR I " << i << std::endl;
             for(uint_t c=0; c < grid_t::n_colors; ++c)
             {
+                std::cout << "FOR c " << c << std::endl;
                 for(uint_t j=m_first_pos[1]; j <= m_last_pos[1];++j)
                 {
+                    std::cout << "FOR J " << j << std::endl;
                     it_domain.get_index(memorized_index);
                     gridtools::for_each< loop_intervals_t >
                     ( _impl::run_f_on_interval<execution_type_t, RunFunctorArguments> (it_domain, m_coords) );

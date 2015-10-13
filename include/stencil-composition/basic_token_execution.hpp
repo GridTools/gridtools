@@ -74,13 +74,13 @@ namespace gridtools {
                     "the k interval exceeds the axis you specified for the coordinates instance");
 
 
-                typedef iteration_policy<from_t, to_t, execution_engine::type::iteration> iteration_policy;
+                typedef iteration_policy<from_t, to_t, zdim_index_t::value, execution_engine::type::iteration> iteration_policy_t;
 
                 uint_t const from=m_coords.template value_at<from_t>();
                 uint_t const to=m_coords.template value_at<to_t>();
 
                 static_cast<RunFOnIntervalImpl*>(const_cast<run_f_on_interval_base<RunFOnIntervalImpl>* >(this))->
-                        template k_loop<iteration_policy, Interval>(from, to);
+                        template k_loop<iteration_policy_t, Interval>(from, to);
             }
 
         protected:

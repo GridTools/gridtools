@@ -119,7 +119,7 @@ struct execute_kernel_functor_host
         typedef typename boost::mpl::front<loop_intervals_t>::type interval;
         typedef typename index_to_level<typename interval::first>::type from;
         typedef typename index_to_level<typename interval::second>::type to;
-        typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy;
+        typedef _impl::iteration_policy<from, to, zdim_index_t::value, execution_type_t::type::iteration> iteration_policy_t;
 
         typedef array<int_t, iterate_domain_t::N_META_STORAGES> array_t;
         loop_hierarchy<
@@ -145,7 +145,7 @@ struct execute_kernel_functor_host
                 >,
                 iterate_domain_t,
                 coords_t,
-                iteration_policy
+                iteration_policy_t
         > innermost_functor_t;
 
         //instantiate the kernel functor

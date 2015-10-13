@@ -62,11 +62,11 @@ namespace _impl_cuda {
         typedef typename boost::mpl::front<typename RunFunctorArguments::loop_intervals_t>::type interval;
         typedef typename index_to_level<typename interval::first>::type from;
         typedef typename index_to_level<typename interval::second>::type to;
-        typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy;
+        typedef _impl::iteration_policy<from, to, zdim_index_t::value, execution_type_t::type::iteration> iteration_policy_t;
 
         //setting the initial k level (for backward/parallel iterations it is not 0)
-        if( !(iteration_policy::value==enumtype::forward) )
-            it_domain.initialize<2>( coords->template value_at< iteration_policy::from >() );
+        if( !(iteration_policy_t::value==enumtype::forward) )
+            it_domain.initialize<2>( coords->template value_at< iteration_policy_t::from >() );
 
         //execute the k interval functors
         for_each<typename RunFunctorArguments::loop_intervals_t>
