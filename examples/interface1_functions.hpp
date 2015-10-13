@@ -85,14 +85,8 @@ struct flx_function {
         double _y_ = gridtools::call<lap_function, x_flx>::at<1,0,0>::with(dom, in());
 #endif
 #endif
-        // double y = dom(lap(0,0,0));
-        // std::cout << _x_ << "  ====  " << y << "  ( " << _x_-y << " )" << std::endl;
-        // assert(_x_-y == 0.0);
         dom(out()) = _y_-_x_;
         dom(out()) = dom(out())*(dom(in(1,0,0))-dom(in(0,0,0))) > 0?0.0:dom(out());
-        // if (dom(out())*(dom(in(1,0,0))-dom(in(0,0,0))) > 0) {
-        //     dom(out()) = 0.;
-        // }
     }
 };
 
@@ -142,17 +136,10 @@ struct out_function {
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_out) {
-#if defined( CXX11_ENABLED ) && !defined( CUDA_EXAMPLE )
-       dom(out()) = dom(in()) - dom(coeff()) *
-           (dom(flx() - flx( -1,0,0) +
-            fly() - fly( 0,-1,0))
-            );
-#else
         dom(out()) =  dom(in()) - dom(coeff())*
             (dom(flx()) - dom(flx( -1,0,0)) +
              dom(fly()) - dom(fly( 0,-1,0))
              );
-#endif
     }
 };
 
