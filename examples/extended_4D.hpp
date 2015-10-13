@@ -21,7 +21,7 @@ using namespace expressions;
 //                      dims  x y z  qp
 //                   strides  1 x xy xyz
 typedef gridtools::layout_map<3,2, 1, 0> layout4_t;
-typedef gridtools::layout_map<2,1,0> layout_t;
+typedef gridtools::layout_map<2,1,0,3,4,5> layout_t;
 
 typedef storage_info<__COUNTER__, layout_t> metadata_t;
 typedef storage_info<__COUNTER__, layout4_t> metadata_global_quad_t;
@@ -72,8 +72,8 @@ namespace assembly{
         typedef accessor<0, range<-1, 1, -1, 1> , 4> const phi;
         typedef accessor<1, range<-1, 1, -1, 1> , 4> const psi;//how to detect when index is wrong??
         typedef accessor<2, range<-1, 1, -1, 1> , 4> const jac;
-        typedef accessor<3, range<-1, 1, -1, 1> > const f;
-        typedef accessor<4, range<-1, 1, -1, 1> > result;
+        typedef accessor<3, range<-1, 1, -1, 1> , 6> const f;
+        typedef accessor<4, range<-1, 1, -1, 1>, 6 > result;
         typedef boost::mpl::vector<phi, psi, jac, f, result> arg_list;
         using quad=dimension<4>;
         template <typename Evaluation>
@@ -82,25 +82,31 @@ namespace assembly{
             x::Index i;
             y::Index j;
             z::Index k;
+            dimension<4>::Index di;
+            dimension<5>::Index dj;
+            dimension<6>::Index dk;
             quad::Index qp;
             //projection of f on a (e.g.) P1 FE space:
             //loop on quadrature nodes, and on nodes of the P1 element (i,j,k) with i,j,k\in {0,1}
             //computational complexity in the order of  {(I) x (J) x (K) x (i) x (j) x (k) x (nq)}
             for(short_t I=0; I<2; ++I)
                 for(short_t J=0; J<2; ++J)
-                    for(short_t K=0; K<2; ++K)
-                        for(short_t q=0; q<2; ++q)
-                            eval(result(I,J,K)) +=
+                    for(short_t K=0; K<2; ++K){
+                        //check the initialization to 0
+                        assert(eval(result(di+I,dj+J,dk+K))==0.);
+                        for(short_t q=0; q<2; ++q){
+                            eval(result(di+I,dj+J,dk+K)) +=
                                 eval(!phi(i+I,j+J,k+K,qp+q)*!psi(qp+q)             *jac(qp+q)*f() +
-                                     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1, qp+q)        *jac(qp+q)*f(i+1) +
-                                     !phi(i+I,j+J,k+K,qp+q)*!psi(j+1, qp+q)        *jac(qp+q)*f(j+1) +
-                                     !phi(i+I,j+J,k+K,qp+q)*!psi(k+1, qp+q)        *jac(qp+q)*f(k+1) +
-                                     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1, j+1, qp+q)   *jac(qp+q)*f(i+1, j+1) +
-                                     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1, k+1, qp+q)   *jac(qp+q)*f(i+1, k+1) +
-                                     !phi(i+I,j+J,k+K,qp+q)*!psi(j+1,k+1, qp+q)    *jac(qp+q)*f(j+1,k+1) +
-                                     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1,j+1,k+1, qp+q)*jac(qp+q)*f(i+1,j+1,k+1))
+                                     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1, qp+q)        *jac(qp+q)*f(di+1) +
+                                     !phi(i+I,j+J,k+K,qp+q)*!psi(j+1, qp+q)        *jac(qp+q)*f(dj+1) +
+                                     !phi(i+I,j+J,k+K,qp+q)*!psi(k+1, qp+q)        *jac(qp+q)*f(dk+1) +
+                                     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1, j+1, qp+q)   *jac(qp+q)*f(di+1, dj+1) +
+                                     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1, k+1, qp+q)   *jac(qp+q)*f(di+1, dk+1) +
+                                     !phi(i+I,j+J,k+K,qp+q)*!psi(j+1,k+1, qp+q)    *jac(qp+q)*f(dj+1,dk+1) +
+                                     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1,j+1,k+1, qp+q)*jac(qp+q)*f(di+1,dj+1,dk+1))
                                 /8;
-
+                        }
+                    }
         }
     };
 
@@ -149,7 +155,7 @@ namespace assembly{
                         psi(i,j,k,q)=11.;
                     }
 
-        metadata_t meta_(d1, d2, d3);
+        metadata_t meta_(d1, d2, d3, b1, b2, b3);
         storage_type f(meta_, (float_type)1.3, "f");
         storage_type result(meta_, (float_type)0., "result");
 

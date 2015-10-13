@@ -34,7 +34,7 @@ bool do_verification( int_t d1, int_t d2, int_t d3, Storage const& result_ ){
                     psi(i,j,k,q)=11.;
                 }
 
-    metadata_t meta_(d1, d2, d3);
+    metadata_t meta_(d1, d2, d3, b1, b2, b3);
     storage_type f(meta_, (float_type)1.3, "f");
 
     storage_type reference(meta_, (float_type)0., "result");
@@ -45,19 +45,23 @@ bool do_verification( int_t d1, int_t d2, int_t d3, Storage const& result_ ){
             for(int_t k=0; k<d3-1; ++k)
                 for(short_t I=0; I<2; ++I)
                     for(short_t J=0; J<2; ++J)
-                        for(short_t K=0; K<2; ++K)
-                            for(short_t q=0; q<2; ++q)
-                                reference(i+I,j+J,k+K) +=
-                                    (phi(I,J,K,q)*psi(0,0,0, q)         *jac(i,j,k,q)*f(i,j,k) +
-                                     phi(I,J,K,q)*psi(1,0,0, q)        *jac(i,j,k,q)*f(i+1,j,k) +
-                                     phi(I,J,K,q)*psi(0,1,0, q)        *jac(i,j,k,q)*f(i,j+1,k) +
-                                     phi(I,J,K,q)*psi(0,0,1, q)        *jac(i,j,k,q)*f(i,j,k+1) +
-                                     phi(I,J,K,q)*psi(1,1,0, q)        *jac(i,j,k,q)*f(i+1,j+1,k) +
-                                     phi(I,J,K,q)*psi(1,1,0, q)        *jac(i,j,k,q)*f(i+1,j, k+1) +
-                                     phi(I,J,K,q)*psi(0,1,1, q)        *jac(i,j,k,q)*f(i,j+1,k+1) +
-                                     phi(I,J,K,q)*psi(1,1,1, q)        *jac(i,j,k,q)*f(i+1,j+1,k+1))
-                                     /8
+                        for(short_t K=0; K<2; ++K){
+                            //check the initialization to 0
+                            assert(reference(i,j,k,I,J,K)==0.);
+                            for(short_t q=0; q<2; ++q){
+                                reference(i,j,k,I,J,K) +=
+                                    (phi(I,J,K,q)*psi(0,0,0, q)         *jac(i,j,k,q)*f(i,j,k,0,0,0) +
+                                     phi(I,J,K,q)*psi(1,0,0, q)        *jac(i,j,k,q)*f(i,j,k,1,0,0) +
+                                     phi(I,J,K,q)*psi(0,1,0, q)        *jac(i,j,k,q)*f(i,j,k,0,1,0) +
+                                     phi(I,J,K,q)*psi(0,0,1, q)        *jac(i,j,k,q)*f(i,j,k,0,0,1) +
+                                     phi(I,J,K,q)*psi(1,1,0, q)        *jac(i,j,k,q)*f(i,j,k,1,1,0) +
+                                     phi(I,J,K,q)*psi(1,1,0, q)        *jac(i,j,k,q)*f(i,j,k,1,0,1) +
+                                     phi(I,J,K,q)*psi(0,1,1, q)        *jac(i,j,k,q)*f(i,j,k,0,1,1) +
+                                     phi(I,J,K,q)*psi(1,1,1, q)        *jac(i,j,k,q)*f(i,j,k,1,1,1))
+                                    /8
                                     ;
+                            }
+                        }
 
     verifier verif(1e-1, 0);
     return verif.verify(reference, result_);
