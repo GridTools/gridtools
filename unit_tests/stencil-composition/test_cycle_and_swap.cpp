@@ -13,6 +13,10 @@
 #endif
 #endif
 
-TEST(stencil, test_staggered_keyword){
-    EXPECT_TRUE(test_cycle_and_swap::test());
+TEST(cycle_and_swap, 2D){
+    EXPECT_TRUE(test_cycle_and_swap::test_2D());
+}
+
+TEST(cycle_and_swap, 3D){
+    EXPECT_TRUE(test_cycle_and_swap::test_3D());
 }
