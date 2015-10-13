@@ -9,8 +9,6 @@ bool do_verification( int_t d1, int_t d2, int_t d3, Storage const& result_ ){
     uint_t b2=2;
     uint_t b3=2;
 
-    typedef storage_info<1, layout4_t> metadata_global_quad_t;
-    typedef storage_info<2, layout4_t> metadata_local_quad_t;
     metadata_local_quad_t meta_local_(b1,b2,b3,nbQuadPt);
     storage_local_quad_t phi(meta_local_, 0., "phi");
     storage_local_quad_t psi(meta_local_, 0., "psi");

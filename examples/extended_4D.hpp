@@ -23,19 +23,9 @@ using namespace expressions;
 typedef gridtools::layout_map<3,2, 1, 0> layout4_t;
 typedef gridtools::layout_map<2,1,0> layout_t;
 
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend<Host, Block >
-#else
-#define BACKEND backend<Host, Naive >
-#endif
-#endif
-
-typedef storage_info<0, layout_t> metadata_t;
-typedef storage_info<1, layout4_t> metadata_global_quad_t;
-typedef storage_info<2, layout4_t> metadata_local_quad_t;
+typedef storage_info<__COUNTER__, layout_t> metadata_t;
+typedef storage_info<__COUNTER__, layout4_t> metadata_global_quad_t;
+typedef storage_info<__COUNTER__, layout4_t> metadata_local_quad_t;
 typedef gridtools::BACKEND::storage_type<float_type, metadata_t >::type storage_type;
 typedef gridtools::BACKEND::storage_type<float_type, metadata_global_quad_t >::type storage_global_quad_t;
 typedef gridtools::BACKEND::storage_type<float_type, metadata_local_quad_t >::type storage_local_quad_t;
@@ -135,18 +125,13 @@ namespace assembly{
         //basis functions available in a 2x2x2 cell, because of P1 FE
         metadata_local_quad_t local_metadata(b1,b2,b3,nbQuadPt);
 
-        storage_local_quad_t phi(local_metadata);
-        storage_local_quad_t psi(local_metadata);
+        storage_local_quad_t phi(local_metadata, 0., "phi");
+        storage_local_quad_t psi(local_metadata, 0., "psi");
 
         //I might want to treat it as a temporary storage (will use less memory but constantly copying back and forth)
         //Or alternatively computing the values on the quadrature points on the GPU
         metadata_global_quad_t integration_metadata(d1,d2,d3,nbQuadPt);
-        storage_global_quad_t  jac(integration_metadata);
-
-        //the above storage constructors are setting up the storages without allocating the space (might want to change this?). We do it now.
-        jac.allocate();
-        psi.allocate();
-        phi.allocate();
+        storage_global_quad_t  jac(integration_metadata, 0., "jac");
 
         for(uint_t i=0; i<d1; ++i)
             for(uint_t j=0; j<d2; ++j)
