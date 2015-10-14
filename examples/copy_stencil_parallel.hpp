@@ -67,7 +67,7 @@ namespace copy_stencil{
         typedef storage_type::original_storage::pointer_type pointer_type;
 
 
-        typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<0, 1, 2>,
+        typedef gridtools::halo_exchange_dynamic_ut<layout_t,
                                                     gridtools::layout_map<0, 1, 2>,
                                                     pointer_type::pointee_t,
                                                     MPI_3D_process_grid_t<3> ,

@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __CUDACC__
+#define CUDA_CXX11_BUG_1 //bug present in CUDA 7.5 and below
+#endif
+
 #if __cplusplus > 199711L
 #ifndef CXX11_DISABLE
 #define CXX11_ENABLED

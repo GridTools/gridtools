@@ -468,7 +468,8 @@ namespace shallow_water{
         //                      dims  z y x
         //                   strides xy x 1
         typedef layout_map<2,1,0> layout_t;
-        typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
+        typedef gridtools::storage_info<__COUNTER__, layout_t > meta_storage_t;
+        typedef gridtools::BACKEND::storage_type<float_type, meta_storage_t >::type storage_type;
         typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
 
         /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
@@ -506,9 +507,10 @@ namespace shallow_water{
             array<ushort_t, 3> halo(1,1,0);
             typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > >, pattern_type::grid_type> partitioner_t;
             partitioner_t part(he.comm(), halo, padding);
-            parallel_storage<sol_type, partitioner_t> sol(part);
-            sol.setup(d1, d2, d3);
+            parallel_storage_info<sol_type, partitioner_t> sol(part);
+
             sol.allocate();
+            sol.setup(d1, d2, d3);
 
             he.add_halo<0>(sol.get_halo_gcl<0>());
             he.add_halo<1>(sol.get_halo_gcl<1>());
