@@ -8,7 +8,7 @@ using namespace enumtype;
 
 namespace cs_test{
 
-    using backend_t = ::gridtools::backend<Host, Block >;
+    using backend_t = ::gridtools::backend<Host, Naive >;
     using trapezoid_2D_t = ::gridtools::trapezoid_2D_colored<backend_t>;
 
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
@@ -86,8 +86,9 @@ TEST(test_copy_stencil, run) {
     typedef boost::mpl::vector<p_in_cells, p_out_cells, p_i_cells, p_c_cells, p_j_cells, p_k_cells> accessor_list_t;
 
     gridtools::domain_type<accessor_list_t> domain(boost::fusion::make_vector(&in_cells, &out_cells, &i_cells, &c_cells, &j_cells, &k_cells) );
-    array<uint_t,2> di = {halo_nc, d1 - halo_nc};
-    array<uint_t,2> dj = {halo_mc, d2 - halo_mc};
+    std::cout << "SS " << d1-halo_nc-1 << " " << d2 - halo_mc -1 << std::endl;
+    array<uint_t,5> di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc -1, d1};
+    array<uint_t,5> dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc -1, d2};
 
     gridtools::coordinates<axis, trapezoid_2D_t> coords(grid, di, dj);
     coords.value_list[0] = 0;

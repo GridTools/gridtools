@@ -57,12 +57,12 @@ struct execute_kernel_functor_host
        @tparam Traits traits class defined in \ref gridtools::_impl::run_functor_traits
     */
     explicit execute_kernel_functor_host(const local_domain_t& local_domain, const coords_t& coords,
-            const uint_t first_i, const uint_t first_j, const uint_t last_i, const uint_t last_j,
+            const uint_t first_i, const uint_t first_j, const uint_t loop_size_i, const uint_t loop_size_j,
             const uint_t block_idx_i, const uint_t block_idx_j)
     : m_local_domain(local_domain)
     , m_coords(coords)
     , m_first_pos(first_i, first_j)
-    , m_last_pos(last_i, last_j)
+    , m_loop_size(loop_size_i, loop_size_j)
     , m_block_id(block_idx_i, block_idx_j)
     {}
 
@@ -71,7 +71,9 @@ struct execute_kernel_functor_host
         : m_local_domain(local_domain)
     , m_coords(coords)
     , m_first_pos(coords.i_low_bound(), coords.j_low_bound())
-    , m_last_pos(coords.i_high_bound()-coords.i_low_bound(), coords.j_high_bound()-coords.j_low_bound())
+        //TODO strictling speaking the loop the size is with +1. Recompute the numbers here to be consistent
+        //with the convention, but that require adapint also the rectangular grids
+    , m_loop_size(coords.i_high_bound()-coords.i_low_bound(), coords.j_high_bound()-coords.j_low_bound())
     , m_block_id(0, 0) {}
 
     void operator()()
@@ -93,9 +95,9 @@ struct execute_kernel_functor_host
 //        {
         //TODOCOSUNA Ranges in other grid have to become radius
         std::cout << "I loop " << m_first_pos[0] <<"+"<< range_t::iminus::value << " -> "
-                  << m_first_pos[0] <<"+"<< m_last_pos[0] <<"+"<< range_t::iplus::value << "\n";
+                  << m_first_pos[0] <<"+"<< m_loop_size[0] <<"+"<< range_t::iplus::value << "\n";
         std::cout << "J loop " << m_first_pos[1] <<"+"<< range_t::jminus::value << " -> "
-                  << m_first_pos[1] <<"+"<< m_last_pos[1] <<"+"<< range_t::jplus::value << "\n";
+                  << m_first_pos[1] <<"+"<< m_loop_size[1] <<"+"<< range_t::jplus::value << "\n";
 //        std::cout<<"iminus::value: "<<range_t::iminus::value<<std::endl;
 //        std::cout<<"iplus::value: "<<range_t::iplus::value<<std::endl;
 //        std::cout<<"jminus::value: "<<range_t::jminus::value<<std::endl;
@@ -138,13 +140,13 @@ struct execute_kernel_functor_host
 
         typedef array<int_t, iterate_domain_t::N_META_STORAGES> array_index_t;
         array_index_t memorized_index;
-        for(uint_t i=m_first_pos[0]; i <= m_last_pos[0];++i)
+        for(uint_t i=m_first_pos[0]; i <= m_first_pos[0] + m_loop_size[0];++i)
         {
             std::cout << "FOR I " << i << std::endl;
             for(uint_t c=0; c < grid_t::n_colors; ++c)
             {
-                std::cout << "FOR c " << c << std::endl;
-                for(uint_t j=m_first_pos[1]; j <= m_last_pos[1];++j)
+                std::cout << "FOR c " << c << " " << m_first_pos[1] << " " << m_loop_size[1] << std::endl;
+                for(uint_t j=m_first_pos[1]; j <= m_first_pos[1] + m_loop_size[1];++j)
                 {
                     std::cout << "FOR J " << j << std::endl;
                     it_domain.get_index(memorized_index);
@@ -153,13 +155,13 @@ struct execute_kernel_functor_host
                     it_domain.set_index(memorized_index);
                     it_domain.template increment<2, static_int<1> >();
                 }
-                it_domain.template increment<2>( -(m_last_pos[1] - m_first_pos[1]+1));
+                it_domain.template increment<2>( -(m_loop_size[1]+1));
                 it_domain.template increment<1, static_int<1> >();
             }
             it_domain.template increment<1, static_int<-grid_t::n_colors>>();
             it_domain.template increment<0,static_int<1> >();
         }
-        it_domain.template increment<0>( -(m_last_pos[0] - m_first_pos[0]+1));
+        it_domain.template increment<0>( -(m_loop_size[0]+1));
 
 //        //define the kernel functor
 //        typedef innermost_functor<
@@ -183,7 +185,7 @@ private:
     const local_domain_t& m_local_domain;
     const coords_t& m_coords;
     const gridtools::array<const uint_t, 2> m_first_pos;
-    const gridtools::array<const uint_t, 2> m_last_pos;
+    const gridtools::array<const uint_t, 2> m_loop_size;
     const gridtools::array<const uint_t, 2> m_block_id;
 };
 

@@ -1,4 +1,6 @@
 #pragma once
+#include "stencil-composition/axis.hpp"
+#include "common/halo_descriptor.hpp"
 
 namespace gridtools {
 
@@ -18,32 +20,36 @@ struct coordinates : public clonable_to_gpu<coordinates<Axis, Grid> > {
     array<uint_t, size_type::value > value_list;
 private:
     Grid m_grid;
-    const array<uint_t,2> m_i_bounds, m_j_bounds;
 public:
     GT_FUNCTION
-    explicit coordinates(Grid& grid, array<uint_t, 2>& i, array<uint_t, 2>& j) :
-        m_grid(grid), m_i_bounds(i), m_j_bounds(j)
+    explicit coordinates(Grid& grid, const array<uint_t, 5>& i, const array<uint_t, 5>& j) :
+        m_grid(grid),
+        m_direction_i(i[minus], i[plus], i[begin], i[end], i[length]),
+        m_direction_j(j[minus], j[plus], j[begin], j[end], j[length])
     {}
 
     GT_FUNCTION
     uint_t i_low_bound() const {
-        return m_i_bounds[0];
+        return m_direction_i.begin();
     }
 
     GT_FUNCTION
     uint_t i_high_bound() const {
-        return m_i_bounds[1];
+        return m_direction_i.end();
     }
 
     GT_FUNCTION
     uint_t j_low_bound() const {
-        return m_j_bounds[0];
+        return m_direction_j.begin();
     }
 
     GT_FUNCTION
     uint_t j_high_bound() const {
-        return m_j_bounds[1];
+        return m_direction_j.end();
     }
+
+    halo_descriptor const& direction_i() const { return m_direction_i;}
+    halo_descriptor const& direction_j() const { return m_direction_j;}
 
     template <typename Level>
     GT_FUNCTION
@@ -65,7 +71,8 @@ public:
     }
 
 private:
-
+    halo_descriptor m_direction_i;
+    halo_descriptor m_direction_j;
 
 };
 
