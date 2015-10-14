@@ -639,10 +639,10 @@ namespace gridtools {
         trapezoid_2D_colored(uint_t first_, uint_t second_, UInt ... dims)
             : m_dims{second_, first_},
              m_virtual_storages(
-                v_storage_t<cells>(array<uint_t, v_storage_t<cells>::space_dimensions>{u_size_i(cells(), first_), cells::n_colors, u_size_j(cells() ,second_)/cells::n_colors, dims...}),
-                     v_storage_t<edges>(array<uint_t, v_storage_t<edges>::space_dimensions>{u_size_i(edges(), first_), edges::n_colors, u_size_j(edges() , second_)/edges::n_colors, dims...}),
-                     v_storage_t<vertexes>(array<uint_t, v_storage_t<vertexes>::space_dimensions>{u_size_i(vertexes(), first_), vertexes::n_colors, u_size_j(vertexes() , second_)/vertexes::n_colors, dims...})
-
+                 v_storage_t<cells>(array<uint_t, v_storage_t<cells>::space_dimensions>{first_, cells::n_colors, second_, dims...}),
+                 v_storage_t<edges>(array<uint_t, v_storage_t<edges>::space_dimensions>{first_, edges::n_colors, second_, dims...}),
+                 //here we assume by convention that the dual grid (vertexes) have one more grid point
+                 v_storage_t<vertexes>(array<uint_t, v_storage_t<vertexes>::space_dimensions>{first_, vertexes::n_colors,  second_+1, dims...})
              )
         {}
 
