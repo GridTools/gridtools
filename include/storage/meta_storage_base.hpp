@@ -73,6 +73,7 @@ namespace gridtools {
 
     protected:
 
+        //TODO these two should be uint_t, however it assert the index in iterate domain
          array<int_t, space_dimensions> m_dims;
          array<int_t, space_dimensions> m_strides;
 
@@ -96,11 +97,12 @@ namespace gridtools {
 
 #ifdef CXX11_ENABLED
         constexpr meta_storage_base(array<uint_t, space_dimensions> const& a) :
-            m_dims(space_dimensions),
-            m_strides(explode<
-                   array<int_t, (short_t)(space_dimensions)>,
-                   _impl::assign_all_strides< (short_t)(space_dimensions), layout>
-                   >(a))
+            m_dims(a),
+            m_strides(
+                explode<
+                    array<int_t, (short_t)(space_dimensions)>,
+                    _impl::assign_all_strides< (short_t)(space_dimensions), layout>
+                >(a))
         {}
 #else
          //TODO This is a bug, we should generate a constructor for array of dimensions space_dimensions

@@ -88,7 +88,7 @@ namespace gridtools {
         array(array<Int, E> const& other)
         {
             assert(other.size() == _size);
-            std::copy(&other[0], &other[D], _array);
+            std::copy(other.begin(), other.end(), _array);
         }
 
         GT_FUNCTION
