@@ -358,7 +358,7 @@ namespace gridtools{
 
 #ifdef __CUDACC__
         //constructor for remapping the accessors, needed only for CUDA backend (for the fusion of esfs)
-        template<typename ArgT1, int Exp >
+        template<typename ArgT1>
         GT_FUNCTION
         constexpr expr_direct_access(expr_direct_access<ArgT1> const& other):super(other){
             GRIDTOOLS_STATIC_ASSERT(( !expressions::no_expr_nor_accessor_types< ArgT1, ArgT1 >::type::value), "error: wrong expression type");

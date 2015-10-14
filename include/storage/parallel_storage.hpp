@@ -39,6 +39,8 @@ namespace gridtools {
 
 #ifdef CXX11_ENABLED
 
+#ifndef __CUDACC__
+
         /**
            @brief constructor for the parallel meta storage
 
@@ -84,6 +86,39 @@ namespace gridtools {
                 )
         {
         }
+
+#else
+
+        template <typename ... UInt>
+        explicit parallel_storage_info(partitioner_t const& part, UInt const& ... dims_)
+            : m_partitioner(&part)
+            , m_coordinates()
+            , m_coordinates_gcl()
+            , m_low_bound()
+            , m_up_bound()
+            , m_metadata()
+                // apply_gt_integer_sequence<typename make_gt_integer_sequence
+                // <uint_t, sizeof ... (UInt)>::type >::template apply<metadata_t>
+                // (
+                //     ([&part]
+                //      ( uint_t index_
+                //        , array<halo_descriptor, metadata_t::space_dimensions>& coordinates_
+                //        , array<halo_descriptor, metadata_t::space_dimensions>& coordinates_gcl_
+                //        , array<int_t, metadata_t::space_dimensions>& low_bound_
+                //        , array<int_t, metadata_t::space_dimensions>& up_bound_
+                //        , UInt const& ... args_ )-> uint_t
+                //     { return part.compute_bounds( index_, coordinates_, coordinates_gcl_, low_bound_, up_bound_, args_ ... );}
+                //         )
+                //     , m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, dims_ ...  )
+                // )
+        {
+            auto d1=part.compute_bounds( 0, m_coordinates, m_coordinates, m_low_bound, m_up_bound, dims_ ... );
+            auto d2=part.compute_bounds( 1, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, dims_ ... );
+            auto d3=part.compute_bounds( 2, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, dims_ ... );
+            m_metadata.setup(d1,d2,d3);
+        }
+
+#endif
 
         /**
            @brief given the global coordinates returns wether the point belongs to the current partition
