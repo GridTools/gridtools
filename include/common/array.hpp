@@ -35,6 +35,7 @@ namespace gridtools {
             }
         };
 
+        typedef array<T,D> type;
         static const uint_t _size = (D>0)?D:1;
 
         T _array[_size];
@@ -69,6 +70,17 @@ namespace gridtools {
         template<typename ... ElTypes>
         GT_FUNCTION
         constexpr array(ElTypes const& ... types): _array{(T)types ... } {
+        }
+
+        //TODO provide a constexpr version
+        T operator*(type& other) {
+            //TODO assert T is a primitive
+            T result = 0;
+            for(int i=0; i < n_dimensions; ++i)
+            {
+                result += _array[i] * other[i];
+            }
+            return result;
         }
 
         template <typename Int, size_t E>
@@ -221,6 +233,7 @@ namespace gridtools {
 
         static const uint_t _size = (D>0)?D:1;
 
+        typedef array<T,D> type;
         struct _data_item {
             char _data_storage[sizeof(T)];
 
@@ -255,6 +268,17 @@ namespace gridtools {
             std::copy(c.begin(), c.end(), _array);
         }
 #endif
+
+        //TODO provide a constexpr version
+        T operator*(type& other) {
+            //TODO assert T is a primitive
+            T result = 0;
+            for(int i=0; i < n_dimensions; ++i)
+            {
+                result += _array[i] * other[i];
+            }
+            return result;
+        }
 
         GT_FUNCTION
         T const & operator[](size_t i) const {
