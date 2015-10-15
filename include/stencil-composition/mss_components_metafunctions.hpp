@@ -1,5 +1,6 @@
  #pragma once
 #include <boost/mpl/assert.hpp>
+#include <boost/mpl/copy.hpp>
 #include "mss_metafunctions.hpp"
 #include "mss_components.hpp"
 #include "../common/meta_array.hpp"
