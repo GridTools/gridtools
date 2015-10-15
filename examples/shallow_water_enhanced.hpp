@@ -577,7 +577,7 @@ namespace shallow_water{
         myfile.close();
 #endif
 
-        std::cout<<"SUCCESS?= "<<retval<<std::endl;
+        std::cout<<"shallow water parallel test SUCCESS?= "<<retval<<std::endl;
         return retval;
 //! [main]
     }
