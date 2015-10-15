@@ -178,7 +178,8 @@ namespace gridtools{
                                                                   tile_dimension + ( compute_halo(component,UP)) + (compute_halo(component,LOW)) );
 
 #ifndef NDEBUG
-                std::cout<<"["<<PID<<"]"<<"coordinates ["<< compute_halo(component,LOW)<<" "
+#ifdef VERBOSE
+                    std::cout<<"["<<PID<<"]"<<"coordinates ["<< compute_halo(component,LOW)<<" "
                          <<compute_halo(component,UP) << " "
                          <<compute_halo(component,LOW) << " "
                          << tile_dimension+(compute_halo(component,LOW))-1<<" "
@@ -190,6 +191,7 @@ namespace gridtools{
                          <<"low bounds for component "<< component <<": "<<low_bound[component]<<std::endl
                          <<"pid: "<<m_pid[0]<<" "<<m_pid[1]<<" "<<m_pid[2]<<std::endl
                          <<"component, size: "<<component<<" "<<size_<<std::endl;
+#endif
 #endif
                 return tile_dimension+ compute_halo(component,UP)+compute_halo(component,LOW);
             }
@@ -245,9 +247,13 @@ namespace gridtools{
 
             ushort_t left = boundary()%(ushort_t)((ushort_t)std::pow(2,component_+1)*(ushort_t)flag_);
             ushort_t right = ((component_+(ushort_t)1)*(ushort_t)flag_);
-            // std::cout<<boundary()<<" % ("<<std::pow(2,component_+1)<<" * "<< (ushort_t)flag_<<") < "<<(component_+1)<<" * "<<(ushort_t)flag_<<") ==>"<<
-            //     left<<" < "<<right << " ==> "<<(left<right)
-            //          <<std::endl;
+#ifndef NDEBUG
+#ifdef VERBOSE
+            std::cout<<boundary()<<" % ("<<std::pow(2,component_+1)<<" * "<< (ushort_t)flag_<<") < "<<(component_+1)<<" * "<<(ushort_t)flag_<<") ==>"<<
+                left<<" < "<<right << " ==> "<<(left<right)
+                     <<std::endl;
+#endif
+#endif
             return !(left < right);
         }
 

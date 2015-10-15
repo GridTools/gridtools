@@ -755,9 +755,14 @@ namespace gridtools {
                 (accessor.template get<1>()>=0) );
 
         //snapshot access out of bounds
-        assert(accessor.template get<1>() < storage_type::traits::n_width);
+        assert((Accessor::type::n_dim > metadata_t::space_dimensions+1) ||
+               accessor.template get<0>() < storage_type::traits::n_width);
+        //snapshot access out of bounds
+        assert((Accessor::type::n_dim <= metadata_t::space_dimensions+1) ||
+               accessor.template get<1>() < storage_type::traits::n_width);
         //dimension access out of bounds
-        assert(accessor.template get<0>() < storage_type::traits::n_dimensions);
+        assert((Accessor::type::n_dim <= metadata_t::space_dimensions+1) ||
+               accessor.template get<0>() < storage_type::traits::n_dimensions);
 
 
         return get_value(accessor,

@@ -537,7 +537,7 @@ namespace gridtools {
                 typename boost::fusion::result_of::as_set<actual_metadata_set_t>::type  meta_view(m_actual_metadata_list.sequence_view());
 
                 setup_computation<Backend::s_backend_id>::apply( m_actual_arg_list, meta_view, m_domain );
-#ifdef __VERBOSE__
+#ifdef VERBOSE
                 printf("Setup computation\n");
 #endif
             }
@@ -550,7 +550,7 @@ namespace gridtools {
             boost::fusion::for_each(m_mss_local_domain_list,
                                     _impl::instantiate_mss_local_domain<actual_arg_list_type, actual_metadata_list_type, IsStateful>(m_actual_arg_list, m_actual_metadata_list));
 
-#ifdef __VERBOSE__
+#ifdef VERBOSE
             m_domain.info();
 #endif
         }
