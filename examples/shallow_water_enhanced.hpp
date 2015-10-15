@@ -18,6 +18,9 @@
 #include "shallow_water_reference.hpp"
 // [includes]
 
+// [backend]
+#define BACKEND_BLOCK 1
+//[backend]
 /*
   @file
   @brief This file shows an implementation of the "shallow water" stencil, with periodic boundary conditions
@@ -129,9 +132,10 @@ namespace shallow_water{
             comp::Index c;
             x::Index i;
             //! [expression]
+            eval(tmpx()) =
             eval((sol(i-0) +sol(i-1))/2. -
                  (sol(c+1) - sol(c+1,i-1))*(dt()/(2*dx())));
-            //! [expression]
+            // ! [expression]
 
             eval(tmpx(comp(1)))=
                 eval((sol(comp(1)) +
@@ -192,20 +196,23 @@ namespace shallow_water{
 
 #ifdef CUDA_CXX11_BUG_1
 
-            eval(tmpy())= eval((sol(i-0) + sol(j-1))/2. -
-                             (sol(comp(2)) - sol(comp(2),j-1))*(dt()/(2*dy())) );
+            eval(tmpy())=
+                eval((sol(i-0) + sol(j-1))/2. -
+                     (sol(comp(2)) - sol(comp(2),j-1))*(dt()/(2*dy())) );
 
-            eval(tmpy(comp(1)))=eval( (sol(comp(1)) +
-                              sol(comp(1),j-1))/2. -
-                             (sol(comp(2))*sol(comp(1))/sol(i-0) -
-                              sol(comp(2),j-1)*sol(comp(1),j-1)/sol(j-1))*(dt()/(2*dy())) );
+            eval(tmpy(comp(1)))=
+                eval( (sol(comp(1)) +
+                       sol(comp(1),j-1))/2. -
+                      (sol(comp(2))*sol(comp(1))/sol(i-0) -
+                       sol(comp(2),j-1)*sol(comp(1),j-1)/sol(j-1))*(dt()/(2*dy())) );
 
-            eval(tmpy(comp(2)))=eval((sol(comp(2)) +
-                             sol(comp(2),j-1))/2.-
-                            ((pow<2>(sol(comp(2)))/sol(i-0)+pow<2>(sol(i-0))*g()/2.)  -
-                             (pow<2>(sol(comp(2),j-1))/sol(j-1) +
-                              pow<2>(sol(j-1))*(g()/2.)
-                                 ))*(dt()/(2.*dy())));
+            eval(tmpy(comp(2)))=
+                eval((sol(comp(2)) +
+                      sol(comp(2),j-1))/2.-
+                     ((pow<2>(sol(comp(2)))/sol(i-0)+pow<2>(sol(i-0))*g()/2.)  -
+                      (pow<2>(sol(comp(2),j-1))/sol(j-1) +
+                       pow<2>(sol(j-1))*(g()/2.)
+                          ))*(dt()/(2.*dy())));
 
 #else
             using h=alias<sol, comp>::set<0>; using hy=alias<tmpy, comp>::set<0>;
@@ -359,9 +366,9 @@ namespace shallow_water{
         //           dims  x y z
         //        strides yz z 1
 #ifdef __CUDACC__
-        typedef layout_map<0,1,2> layout_t;
-#else
         typedef layout_map<2,1,0> layout_t;
+#else
+        typedef layout_map<0,1,2> layout_t;
 #endif
 //! [layout_map]
 
@@ -385,6 +392,8 @@ namespace shallow_water{
 //! [args]
         typedef arg<0, tmp_type > p_tmpx;
         typedef arg<1, tmp_type > p_tmpy;
+        // typedef arg<0, sol_type > p_tmpx;
+        // typedef arg<1, sol_type > p_tmpy;
         typedef arg<2, sol_type > p_sol;
         typedef boost::mpl::vector<p_tmpx, p_tmpy, p_sol> accessor_list;
 //! [args]
@@ -420,6 +429,8 @@ namespace shallow_water{
 //! [parallel_storage]
         parallel_storage_info<storage_info_t, partitioner_t> meta_(part, d1, d2, d3);
         sol_type sol(meta_.get_metadata(), "sol");
+        // sol_type tmpx(meta_.get_metadata(), "tmpx");
+        // sol_type tmpy(meta_.get_metadata(), "tmpy");
 //! [parallel_storage]
 
 //! [add_halo]
@@ -453,7 +464,8 @@ namespace shallow_water{
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
 //! [domain_type]
         domain_type<accessor_list> domain
-            (boost::fusion::make_vector(&sol));
+            (boost::fusion::make_vector(// &tmpx, &tmpy,
+                                        &sol));
 //! [domain_type]
 
         // Definition of the physical dimensions of the problem.
