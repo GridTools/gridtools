@@ -188,10 +188,16 @@ then
         then
             mpiexec -np 4 ./build/shallow_water_enhanced 8 8 1 2
             exit_if_error $?
+
+            mpiexec -np 2 ./build/copy_stencil_parallel 62 53 15
+            exit_if_error $?
         fi
         if [ "x$TARGET" == "xgpu" ]
         then
             mpiexec -np 2 ./build/shallow_water_enhanced_cuda 8 8 1 2
+            exit_if_error $?
+
+            mpiexec -np 2 ./build/copy_stencil_parallel_cuda 62 53 15
             exit_if_error $?
         fi
         #TODO not updated to greina
