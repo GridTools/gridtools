@@ -180,13 +180,18 @@ sh ./run_tests.sh
 
 exit_if_error $?
 
-if [ "x$TARGET" == "xcpu" ]
+if [ "$RUN_MPI_TESTS" == "ON" ]
 then
-    if [ "$RUN_MPI_TESTS" == "ON" ]
+    if [ "x$CXX_STD" == "xcxx11" ]
     then
-        if [ "x$CXX_STD" == "xcxx11" ]
+        if [ "x$TARGET" == "xcpu" ]
         then
             mpiexec -np 4 ./build/shallow_water_enhanced 8 8 1 2
+            exit_if_error $?
+        fi
+        if [ "x$TARGET" == "xgpu" ]
+        then
+            mpiexec -np 2 ./build/shallow_water_enhanced_cuda 8 8 1 2
             exit_if_error $?
         fi
         #TODO not updated to greina

@@ -629,6 +629,13 @@ namespace gridtools {
     };
 
 
+
+
+
+
+
+
+
 //    ################## IMPLEMENTATION ##############################
 
 
@@ -795,19 +802,21 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor");
         GRIDTOOLS_STATIC_ASSERT(Accessor::type::n_dim <= Accessor::type::n_dim, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.");
         GRIDTOOLS_STATIC_ASSERT(accessor_mixed_t::template get_constexpr<0>()>=0,
-                                "offset specified for the dimension corresponding to the number of snapshots must be non negative");
+                                "offset specified for the dimension corresponding to the number of field components/snapshots must be non negative");
         GRIDTOOLS_STATIC_ASSERT( (Accessor::type::n_dim <= metadata_t::space_dimensions+1) ||
                                      (accessor_mixed_t::template get_constexpr<1>()>=0),
-                                 "offset specified for the dimension corresponding to the number of field components must be non negative");
+                                 "offset specified for the dimension corresponding to the number of snapshots must be non negative");
         GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_width > 0), "did you define a field dimension with 0 snapshots??");
-        //snapshot access out of bounds
-        GRIDTOOLS_STATIC_ASSERT(accessor_mixed_t::template get_constexpr<0>() < storage_type::traits::n_dimensions, "snapshot access out of bounds");
         //dimension access out of bounds
-        GRIDTOOLS_STATIC_ASSERT(accessor_mixed_t::template get_constexpr<1>() < storage_type::traits::n_width, "dimension access out of bounds");
+        GRIDTOOLS_STATIC_ASSERT(
+            (accessor_mixed_t::template get_constexpr<0>() < storage_type::traits::n_dimensions)
+            || Accessor::type::n_dim <= metadata_t::space_dimensions+1
+            , "field dimension access out of bounds");
+        //snapshot access out of bounds
+        GRIDTOOLS_STATIC_ASSERT(accessor_mixed_t::template get_constexpr<1>() < storage_type::traits::n_width, "snapshot access out of bounds");
 
         return get_value(accessor,
                          (data_pointer())[ //static if
-                             //TODO: re implement offsets in accessor which can be or not constexpr (not in a vector)
                (
                    Accessor::type::n_dim <= metadata_t::space_dimensions+1 ? // static if
                    accessor_mixed_t::template get_constexpr<0>() //offset for the current snapshot
