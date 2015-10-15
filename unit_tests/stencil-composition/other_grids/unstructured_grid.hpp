@@ -20,25 +20,25 @@ namespace gridtools {
             return coord*m_strides;
         }
 
-        std::list<uint_t>& at(const uint_t i, const uint_t c, const uint_t j, const uint_t k)
+        std::list<array<uint_t,4> >& at(const uint_t i, const uint_t c, const uint_t j, const uint_t k)
         {
             return at({i,c,j,k});
         }
-        std::list<uint_t>& at(array<uint_t, 4> const & coord)
+        std::list<array<uint_t,4> >& at(array<uint_t, 4> const & coord)
         {
             assert(index(coord) < m_size);
             return m_neigh_indexes[index(coord)];
         }
 
-        void insert_offset(array<uint_t,4> const & coord, uint_t offset)
+        void insert_neighbour(array<uint_t,4> const & coord, array<uint_t, 4> neighbour)
         {
-            at(coord).push_back(index(coord) + offset);
+            at(coord).push_back(neighbour);
         }
 
     private:
         array<uint_t, 4> m_dims;
         uint_t m_size;
-        std::vector<std::list<uint_t> > m_neigh_indexes;
+        std::vector<std::list<array<uint_t, 4> > > m_neigh_indexes;
         array<uint_t, 4> m_strides;
     };
 
@@ -59,12 +59,12 @@ namespace gridtools {
                 {
                     for(uint_t j=1; j < m_dims[1]-1; ++j)
                     {
-                        m_cell_to_cells.insert_offset({i,0,j,k}, -m_dims[0]);
-                        m_cell_to_cells.insert_offset({i,0,j,k}, m_dims[0]);
-                        m_cell_to_cells.insert_offset({i,0,j,k}, m_dims[0]-1);
-                        m_cell_to_cells.insert_offset({i,1,j,k}, -m_dims[0]);
-                        m_cell_to_cells.insert_offset({i,1,j,k}, -m_dims[0]+1);
-                        m_cell_to_cells.insert_offset({i,1,j,k}, m_dims[0]);
+                        m_cell_to_cells.insert_neighbour({i,0,j,k}, {i,1,j-1,k});
+                        m_cell_to_cells.insert_neighbour({i,0,j,k}, {i-1,1,j,k});
+                        m_cell_to_cells.insert_neighbour({i,0,j,k}, {i,1,j,k});
+                        m_cell_to_cells.insert_neighbour({i,1,j,k}, {i,0,j,k});
+                        m_cell_to_cells.insert_neighbour({i,1,j,k}, {i+1,0,j,k});
+                        m_cell_to_cells.insert_neighbour({i,1,j,k}, {i,0,j+1,k});
                     }
                 }
             }

@@ -83,6 +83,22 @@ namespace gridtools {
             return result;
         }
 
+        array<T, D+1> append_dim(T const &val) const
+        {
+            array<T,D+1> ret;
+            std::copy(begin(), end(), ret.begin());
+            ret[D] = val;
+            return ret;
+        }
+
+        array<T, D+1> prepend_dim(T const &val) const
+        {
+            array<T,D+1> ret;
+            std::copy(begin(), end(), &ret[1]);
+            ret[0] = val;
+            return ret;
+        }
+
         template <typename Int, size_t E>
         GT_FUNCTION
         array(array<Int, E> const& other)
