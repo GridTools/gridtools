@@ -812,8 +812,9 @@ namespace gridtools {
             (accessor_mixed_t::template get_constexpr<0>() < storage_type::traits::n_dimensions)
             || Accessor::type::n_dim <= metadata_t::space_dimensions+1
             , "field dimension access out of bounds");
+
         //snapshot access out of bounds
-        GRIDTOOLS_STATIC_ASSERT(accessor_mixed_t::template get_constexpr<1>() < storage_type::traits::n_width, "snapshot access out of bounds");
+        GRIDTOOLS_STATIC_ASSERT( (accessor_mixed_t::template get_constexpr<1>() < _impl::access<storage_type::n_width-(accessor_mixed_t::template get_constexpr<0>())-1, typename storage_type::traits>::type::n_width), "trying to get a snapshot out of bound" );
 
         return get_value(accessor,
                          (data_pointer())[ //static if
