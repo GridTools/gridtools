@@ -17,11 +17,7 @@ namespace cs_test{
     struct test_functor {
         typedef ro_accessor<0, trapezoid_2D_t::cells, radius<1> > in;
         typedef accessor<1, trapezoid_2D_t::cells> out;
-        typedef ro_accessor<2, trapezoid_2D_t::cells, radius<1> > ipos;
-        typedef ro_accessor<3, trapezoid_2D_t::cells, radius<1> > cpos;
-        typedef ro_accessor<4, trapezoid_2D_t::cells, radius<1> > jpos;
-        typedef ro_accessor<5, trapezoid_2D_t::cells, radius<1> > kpos;
-        typedef boost::mpl::vector6<in, out, ipos, cpos, jpos, kpos> arg_list;
+        typedef boost::mpl::vector2<in, out> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION
@@ -48,10 +44,6 @@ TEST(test_copy_stencil, run) {
     trapezoid_2D_t grid( d1, d2, d3 );
 
     cell_storage_type in_cells = grid.make_storage<trapezoid_2D_t::cells>("in");
-    cell_storage_type i_cells = grid.make_storage<trapezoid_2D_t::cells>("i");
-    cell_storage_type j_cells = grid.make_storage<trapezoid_2D_t::cells>("j");
-    cell_storage_type c_cells = grid.make_storage<trapezoid_2D_t::cells>("c");
-    cell_storage_type k_cells = grid.make_storage<trapezoid_2D_t::cells>("k");
     cell_storage_type out_cells = grid.make_storage<trapezoid_2D_t::cells>("out");
 
     for(int i=0; i < d1; ++i)
@@ -63,10 +55,6 @@ TEST(test_copy_stencil, run) {
                 for(int k=0; k < d3; ++k)
                 {
                     in_cells(i,c,j,k) = i+c*100+j*10000+k*1000000;
-                    i_cells(i,c,j,k) = i;
-                    c_cells(i,c,j,k) = c;
-                    j_cells(i,c,j,k) = j;
-                    k_cells(i,c,j,k) = k;
                 }
             }
         }
@@ -76,14 +64,10 @@ TEST(test_copy_stencil, run) {
 
     typedef arg<0, cell_storage_type> p_in_cells;
     typedef arg<1, cell_storage_type> p_out_cells;
-    typedef arg<2, cell_storage_type> p_i_cells;
-    typedef arg<3, cell_storage_type> p_c_cells;
-    typedef arg<4, cell_storage_type> p_j_cells;
-    typedef arg<5, cell_storage_type> p_k_cells;
 
-    typedef boost::mpl::vector<p_in_cells, p_out_cells, p_i_cells, p_c_cells, p_j_cells, p_k_cells> accessor_list_t;
+    typedef boost::mpl::vector<p_in_cells, p_out_cells> accessor_list_t;
 
-    gridtools::domain_type<accessor_list_t> domain(boost::fusion::make_vector(&in_cells, &out_cells, &i_cells, &c_cells, &j_cells, &k_cells) );
+    gridtools::domain_type<accessor_list_t> domain(boost::fusion::make_vector(&in_cells, &out_cells) );
     array<uint_t,5> di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc -1, d1};
     array<uint_t,5> dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc -1, d2};
 
@@ -102,7 +86,7 @@ TEST(test_copy_stencil, run) {
                 (
                     execute<forward>(),
                     gridtools::make_esf<test_functor, trapezoid_2D_t, trapezoid_2D_t::cells>(
-                        p_in_cells(), p_out_cells(), p_i_cells(), p_c_cells(), p_j_cells(), p_k_cells() )
+                        p_in_cells(), p_out_cells() )
                 ),
                 domain, coords
             );

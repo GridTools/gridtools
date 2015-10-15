@@ -136,7 +136,7 @@ on_neighbors_impl<ValueType
                   , Reduction
                   , Map
                   >
-reduce_on_edges(Reduction function
+on_edges(Reduction function
                 , ValueType initial
                 , Map mapf)
 {
@@ -154,7 +154,7 @@ on_neighbors_impl<ValueType
                   , Reduction
                   , Map
                   >
-reduce_on_cells(Reduction function
+on_cells(Reduction function
                 , ValueType initial
                 , Map mapf)
 {
@@ -172,7 +172,7 @@ on_neighbors_impl<ValueType
                   , Reduction
                   , Map
                   >
-reduce_on_vertexes(Reduction function
+on_vertexes(Reduction function
                 , ValueType initial
                 , Map mapf)
 {
@@ -451,6 +451,57 @@ public:
         return get_value(accessor, (data_pointer())[current_storage<(Accessor::index_type::value==0)
                                                 , local_domain_t, typename Accessor::type >::value]);
     }
+
+    template <typename ValueType
+              , typename LocationTypeT
+              , typename Reduction
+              , typename MapF
+              , typename ...Arg0
+              >
+    double operator()(on_neighbors_impl<ValueType, LocationTypeT, Reduction, map_function<MapF, LocationTypeT, Arg0...>> onneighbors) const {
+        auto current_position = m_ll_indices;
+
+        const auto neighbors = m_grid.neighbors_indices_3(current_position
+                                                          , location_type()
+                                                          , onneighbors.location() );
+#ifdef _ACCESSOR_H_DEBUG_
+        std::cout << "Entry point (on map)" << current_position << " Neighbors: " << neighbors << std::endl;
+#endif
+        double result = onneighbors.value();
+
+        for (int i = 0; i<neighbors.size(); ++i) {
+            result = onneighbors.reduction()( _evaluate(onneighbors.map(), neighbors[i]), result );
+        }
+
+        return result;
+    }
+
+    template <typename ValueType
+              , typename LocationTypeT
+              , typename Reduction
+              , int I
+              , typename L
+              , int R
+              >
+    double operator()(on_neighbors_impl<ValueType, LocationTypeT, Reduction, ro_accessor<I,L,radius<R>>> onneighbors) const {
+        auto current_position = m_ll_indices;
+
+        const auto neighbors = m_grid.neighbors_indices_3(current_position
+                                                          , location_type()
+                                                          , onneighbors.location() );
+#ifdef _ACCESSOR_H_DEBUG_
+        std::cout << "Entry point (on accessor)" << current_position << " Neighbors: " << neighbors << std::endl;
+#endif
+
+        double result = onneighbors.value();
+
+        for (int i = 0; i<neighbors.size(); ++i) {
+            result = onneighbors.reduction()( _evaluate(onneighbors.map(), neighbors[i]), result );
+        }
+
+        return result;
+    }
+
 
     /**@brief returns the value of the memory at the given address, plus the offset specified by the arg placeholder
        \param arg placeholder containing the storage ID and the offsets
