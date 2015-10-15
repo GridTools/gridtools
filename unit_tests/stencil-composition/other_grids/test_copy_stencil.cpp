@@ -27,8 +27,6 @@ namespace cs_test{
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
             eval(out())= eval(in());
-            std::cout << std::setw(5) <<  std::fixed << "VALUE " << eval(ipos()) << " " << eval(cpos()) << " " << eval(jpos())<< " " <<
-                         eval(kpos()) << " " << eval(out()) << " " << eval(in()) << " " << &(eval(out())) << std::endl;
         }
     };
 }
@@ -86,7 +84,6 @@ TEST(test_copy_stencil, run) {
     typedef boost::mpl::vector<p_in_cells, p_out_cells, p_i_cells, p_c_cells, p_j_cells, p_k_cells> accessor_list_t;
 
     gridtools::domain_type<accessor_list_t> domain(boost::fusion::make_vector(&in_cells, &out_cells, &i_cells, &c_cells, &j_cells, &k_cells) );
-    std::cout << "SS " << d1-halo_nc-1 << " " << d2 - halo_mc -1 << std::endl;
     array<uint_t,5> di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc -1, d1};
     array<uint_t,5> dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc -1, d2};
 
@@ -113,17 +110,6 @@ TEST(test_copy_stencil, run) {
     copy->steady();
     copy->run();
 
-    for(int i=0; i < d1; i++)
-    {
-        for(int j=0; j < d2; j++)
-        {
-            for(int k=0; k < d3; k++)
-            {
-                std::cout << std::setw(10) << "VERI " << i << ",0,"<< j << "," << k << ": " << in_cells(i,0,j,k) << " " << out_cells(i,0,j,k) << " " << &(out_cells(i,0,j,k)) << std::endl;
-                std::cout << std::setw(10) << "VERI " << i << ",1,"<< j << "," << k << ": " << in_cells(i,1,j,k) << " " << out_cells(i,1,j,k) << " " << &(out_cells(i,1,j,k)) << std::endl;
-            }
-        }
-    }
     verifier ver(1e-10, 0);
 
     array<array<uint_t, 2>, 4> halos = {{halo_nc, halo_nc},{0,0},{halo_mc, halo_mc},{halo_k, halo_k}};

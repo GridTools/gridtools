@@ -142,13 +142,10 @@ struct execute_kernel_functor_host
         array_index_t memorized_index;
         for(uint_t i=m_first_pos[0]; i <= m_first_pos[0] + m_loop_size[0];++i)
         {
-            std::cout << "FOR I " << i << std::endl;
             for(uint_t c=0; c < grid_t::n_colors; ++c)
             {
-                std::cout << "FOR c " << c << " " << m_first_pos[1] << " " << m_loop_size[1] << std::endl;
                 for(uint_t j=m_first_pos[1]; j <= m_first_pos[1] + m_loop_size[1];++j)
                 {
-                    std::cout << "FOR J " << j << std::endl;
                     it_domain.get_index(memorized_index);
                     gridtools::for_each< loop_intervals_t >
                     ( _impl::run_f_on_interval<execution_type_t, RunFunctorArguments> (it_domain, m_coords) );
@@ -162,24 +159,6 @@ struct execute_kernel_functor_host
             it_domain.template increment<0,static_int<1> >();
         }
         it_domain.template increment<0>( -(m_loop_size[0]+1));
-
-//        //define the kernel functor
-//        typedef innermost_functor<
-//                loop_intervals_t,
-//                _impl::run_f_on_interval<
-//                    execution_type_t,
-//                    RunFunctorArguments
-//                >,
-//                iterate_domain_t,
-//                coords_t,
-//                iteration_policy
-//        > innermost_functor_t;
-
-//        //instantiate the kernel functor
-//        innermost_functor_t f(it_domain, m_coords);
-
-//        //run the nested ij loop
-//        ij_loop.apply(it_domain, f);
     }
 private:
     const local_domain_t& m_local_domain;
