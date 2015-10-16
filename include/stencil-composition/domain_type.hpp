@@ -40,30 +40,6 @@ namespace gridtools {
     struct is_arg;
 
 
-    template<typename Permutation>
-    struct lambda{
-
-        template<uint_t T, uint_t U>
-        using type = typename boost::mpl::at_c<Permutation, T>::type;
-
-        template<uint_t I>
-        struct get_component{
-
-            template<typename ... Args>
-            static auto apply(Args const& ... args_)
-                ->decltype(std::get< boost::mpl::at_c<Permutation,
-                           I >::type::value
-                           >(std::make_tuple(args_ ...)))
-            {
-                return std::get< boost::mpl::at_c<Permutation,
-                                                  I >::type::value
-                                 >(std::make_tuple(args_ ...));
-            }
-        };
-
-    };
-
-
     struct sort_struct{
         template<typename T1, typename T2>
         struct apply ;
@@ -85,47 +61,6 @@ namespace gridtools {
         {};
     };
 
-
-    struct extract_storage_ptr{
-
-        template<typename T>
-        struct apply{
-            typedef typename T::storage_type* type;
-        };
-    };
-
-    template<typename ... Args>
-
-    struct sorted_fusion_vector
-    {
-        typedef boost::mpl::vector<Args...> types_t;
-        typedef typename boost::mpl::sort<types_t, sort_struct >::type sorted_t;
-        typedef typename boost::mpl::transform<sorted_t, extract_storage_ptr>::type sort_t;
-
-        typedef typename boost::fusion::result_of::as_vector<sort_t>::type vector_t;
-
-        typedef boost::mpl::vector<static_int<Args::arg_type::index::value>...> sort_id_t;
-        typedef typename lazy_range<static_int<0>, static_int<sizeof...(Args)-1> >::type range_t;
-        typedef typename boost::mpl::sort<range_t, sort_struct >::type permutations_t;
-
-
-        static auto apply(Args const&  ... args_)
-            ->decltype(apply_gt_integer_sequence<typename make_gt_integer_sequence
-                       <uint_t, sizeof...(Args)>::type>
-                       ::template apply<vector_t, lambda<permutations_t>::template get_component >(args_.ptr...)
-                )
-        {
-            return apply_gt_integer_sequence<typename make_gt_integer_sequence
-                                             <uint_t, sizeof...(Args)>::type>
-                ::template apply<vector_t, lambda<permutations_t>::template get_component >(args_.ptr...);
-        }
-
-    };
-
-
-    template<typename T>
-    struct is_not_tmp_storage : boost::mpl::or_<is_storage<T>, boost::mpl::not_<is_any_storage<T > > >{
-    };
 
     /**
        @brief This struct contains the global list of placeholders to the storages
@@ -372,10 +307,10 @@ You have to define each arg with a unique identifier ranging from 0 to N without
             template <typename Arg>
             void operator()( Arg const* arg_) const{
                 // filter out the arguments which are not of storage type (and thus do not have an associated metadata)
-                pointer<const typename Arg::meta_data_t> ptr(&(arg_->meta_data()));
                 static_if<is_storage<Arg>::type::value>::eval(
-                    insert_if_not_present<Sequence, pointer<const typename Arg::meta_data_t> >
-                    (m_sequence, ptr)
+                    insert_if_not_present<Sequence, Arg >
+                    (m_sequence
+                     , *arg_)
                     , empty());
 
             }

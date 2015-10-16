@@ -161,12 +161,6 @@ namespace gridtools {
 //                              Compile time checks
 //################################################################################
 
-    template <typename T>
-    struct no_storage_type_yet;
-
-    template <typename T>
-    struct storage;
-
     /**
      * Struct to test if an argument is a temporary
      */
@@ -277,10 +271,6 @@ namespace gridtools {
 
     template <typename BaseType >
     struct is_storage<storage<BaseType>  *  > : public is_storage<typename BaseType::basic_type*>
-    {};
-
-    template <typename BaseType >
-    struct is_storage<storage<BaseType> > : public is_storage<typename BaseType::basic_type*>
     {};
 
     template <typename BaseType >

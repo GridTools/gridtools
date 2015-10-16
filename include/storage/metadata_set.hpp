@@ -86,7 +86,7 @@ namespace gridtools{
 
     };
 
-    /** inserts an element in a set if it is not present
+    /** inserts an element in the set if it is not present
 
         used for the metadata_set in the domain_type
     */
@@ -94,12 +94,12 @@ namespace gridtools{
     struct insert_if_not_present{
     private :
         Sequence& m_seq;
-        Arg& m_arg;
+        Arg const& m_arg;
     public:
-        insert_if_not_present(Sequence& seq_, Arg& arg_): m_seq(seq_), m_arg(arg_){}
+        insert_if_not_present(Sequence& seq_, Arg const& arg_): m_seq(seq_), m_arg(arg_){}
         void operator()()const{
-            if (!m_seq.template present< Arg >())
-                m_seq.insert(m_arg);                 }
+            if (!m_seq.template present< pointer<const typename Arg::meta_data_t> >())
+                m_seq.insert(pointer<const typename Arg::meta_data_t>(&(m_arg.meta_data())));                 }
     };
 
     template <typename T>
