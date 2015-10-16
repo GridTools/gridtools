@@ -4,7 +4,7 @@ include_directories( ../../../include/stencil-composition ) ## Library header fi
 FILE(GLOB_RECURSE INC_ALL "../../../nclude/stencil-composition/*.hpp")
 
 if( ENABLE_CXX11 )
-  SET(STENCIL_OTHERGRIDS_UNITTEST_SOURCES test_from_to_mapping.cpp test_make_computation.cpp test_copy_stencil.cpp unstructured_grid.cpp 
+  SET(STENCIL_OTHERGRIDS_UNITTEST_SOURCES test_from_to_mapping.cpp test_make_computation.cpp test_copy_stencil.cpp unstructured_grid.cpp test_extract_location.cpp 
   #test_stencil_on_cells.cpp 
   ${INC_ALL})
 endif( ENABLE_CXX11 )

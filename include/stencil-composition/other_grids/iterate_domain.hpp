@@ -191,14 +191,14 @@ struct extract_location_type
 {
     GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value), "Error: wrong type");
     typedef typename apply_to_sequence<EsfSequence, esf_get_location_type>::type location_type_seq_t;
-    typedef typename vector_to_set<EsfSequence>::type esf_set_t;
+    typedef typename vector_to_set<location_type_seq_t>::type location_type_set_t;
 
-    GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<esf_set_t>::value == 1),
+    GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<location_type_set_t>::value == 1),
         "Error: multiple ESFs were used with different location types."
         " Currently all esf must be specified on the same location type. "
         "Future releases will relax this restriction"
     );
-    typedef typename boost::mpl::front<esf_set_t>::type type;
+    typedef typename boost::mpl::front<location_type_set_t>::type type;
 
 };
 
