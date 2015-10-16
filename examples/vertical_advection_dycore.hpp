@@ -1,5 +1,4 @@
 #pragma once
-
 #include <gridtools.hpp>
 
 #include <stencil-composition/backend.hpp>
@@ -186,11 +185,8 @@ std::ostream& operator<<(std::ostream& s, u_backward_function<double> const) {
     return s << "u_backward_function";
 }
 
-bool test(uint_t x, uint_t y, uint_t z) {
+bool test(uint_t d1, uint_t d2, uint_t d3) {
 
-    uint_t d1 = x;
-    uint_t d2 = y;
-    uint_t d3 = z;
     const int halo_size = 3;
 
     typedef gridtools::layout_map<0,1,2> layout_ijk;
@@ -309,14 +305,12 @@ bool test(uint_t x, uint_t y, uint_t z) {
     repository.update_cpu();
 #endif
 
-    verifier verif(1e-10, halo_size);
-    bool result = verif.verify(repository.utens_stage_ref(), repository.utens_stage());
-
-    if(!result) std::cout << "ERROR" << std::endl;
-
 #ifdef BENCHMARK
     std::cout << vertical_advection->print_meter() << std::endl;
 #endif
+
+    verifier verif(1e-10, halo_size);
+    bool result = verif.verify(repository.utens_stage_ref(), repository.utens_stage());
 
     return result;
 }

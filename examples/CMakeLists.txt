@@ -4,15 +4,15 @@ if( ENABLE_CXX11)
     list(APPEND SRCFILES  extended_4D  copy_stencil_single_storage)
 endif()
 
-# HERE TESTS THAT TRY ALL THE BACKENDS AND CAN BE COMPILED WITH C++98 AND C++11
+set( GTEST_FILES Options.hpp Options.cpp)
 
 set (ADD_MPI_LIBS "")
 
 add_definitions("-DBENCHMARK")
 
 foreach(srcfile IN LISTS SRCFILES )
-    add_executable(${srcfile}_naive   ${srcfile}.cpp )
-    add_executable(${srcfile}_block   ${srcfile}.cpp )
+    add_executable(${srcfile}_naive   ${srcfile}.cpp ${GTEST_FILES})
+    add_executable(${srcfile}_block   ${srcfile}.cpp ${GTEST_FILES})
     set_target_properties(${srcfile}_block
       PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
     set_target_properties(${srcfile}_naive PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
@@ -54,8 +54,9 @@ if(CUDA_FOUND)
              cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu ${GTEST_FILES})
              target_link_libraries(${srcfile}_cuda ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} )
 
-             target_link_libraries(${srcfile}_cuda gcl ${exe_LIBS})
-         endforeach(srcfile)
+             gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/${srcfile}_cuda" "77 48 61")
+             gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/${srcfile}_cuda" "63 55 43")
+        endforeach(srcfile)
      endif()
 
     if( ENABLE_CXX11 )
@@ -67,12 +68,6 @@ if(CUDA_FOUND)
     target_link_libraries(copy_stencil_parallel_cuda ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} )
 
     endif()
-
-
-    foreach(srcfile positional_copy_stencil )
-        cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu OPTIONS -DNDEBUG )
-        target_link_libraries(${srcfile}_cuda ${exe_LIBS})
-    endforeach(srcfile)
 endif()
 
 

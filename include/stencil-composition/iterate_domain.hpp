@@ -579,9 +579,9 @@ namespace gridtools {
             if (Coordinate==1) {
                 m_j+=steps_;
             }
-            base_t::template increment<Coordinate>(steps_);
             if( Coordinate==2)
                 m_k += steps_;
+            base_t::template increment<Coordinate>(steps_);
         }
 
         template <ushort_t Coordinate>
@@ -613,7 +613,6 @@ namespace gridtools {
             if (Coordinate==2) {
                 m_k = lowerbound;
             }
-            base_t::template initialize<Coordinate>(index, block);
         }
 
         GT_FUNCTION
