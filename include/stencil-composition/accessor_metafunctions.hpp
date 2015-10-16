@@ -65,5 +65,21 @@ struct remap_accessor_type<accessor<ID, Range, Number>, ArgsMap >
         //until the specialization above stops the recursion
         typedef Expression<typename remap_accessor_type<Arguments, ArgsMap>::type ...> type;
     };
+
+    template < typename ArgsMap >
+    struct remap_accessor_type<float_type, ArgsMap >
+    {
+        //when a leaf is a float don't do anything
+        typedef float_type type;
+    };
+
+    template < typename ArgsMap, template<typename Acc, int N>class Expression, typename Accessor, int Number >
+    struct remap_accessor_type< Expression<Accessor, Number>, ArgsMap >
+    {
+        //Specialization done to catch also the "pow" expression, for which a template argument is an
+        //integer (the exponent)
+        typedef Expression<typename remap_accessor_type<Accessor, ArgsMap>::type, Number > type;
+    };
+
 #endif
 } //namespace gridtools

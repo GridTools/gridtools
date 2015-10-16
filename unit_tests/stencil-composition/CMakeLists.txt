@@ -23,6 +23,11 @@ set_target_properties(test_cycle_and_swap PROPERTIES COMPILE_FLAGS ${ADDITIONAL_
 target_link_libraries(test_cycle_and_swap ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
 gridtools_add_test(tests.test_cycle_and_swap ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/test_cycle_and_swap")
 
+add_executable(test_iterate_domain test_iterate_domain.cpp)
+set_target_properties(test_iterate_domain PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} LINKER_LANGUAGE CXX )
+target_link_libraries(test_iterate_domain ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
+gridtools_add_test(tests.test_iterate_domain ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/test_cycle_and_swap")
+
 if (CUDA_FOUND)
 cuda_add_executable(test_cycle_and_swap_cuda test_cycle_and_swap.cu)
 target_link_libraries(test_cycle_and_swap_cuda ${GTEST_BOTH_LIBRARIES} gcl ${exe_LIBS})

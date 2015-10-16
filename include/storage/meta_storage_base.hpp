@@ -91,6 +91,27 @@ namespace gridtools {
         */
         constexpr meta_storage_base(){}
 
+#ifndef __CUDACC__
+        template <class ... IntTypes
+                  , typename Dummy = all_integers<IntTypes...>
+                  >
+        void setup(  IntTypes const& ... dims_  ){
+            m_dims=array<int_t, space_dimensions>(dims_ ...);
+            m_strides=array<int_t, space_dimensions>(
+                _impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( dims_...));
+        }
+#else
+        template <class First, class ... IntTypes
+                  , typename Dummy = typename boost::enable_if_c<boost::is_integral<First>::type::value, bool>::type //nvcc does not get it
+                  >
+        void setup(  First first_, IntTypes const& ... dims_  ){
+
+            m_dims=array<int_t, space_dimensions>(first_, dims_ ...);
+            m_strides=array<int_t, space_dimensions>(
+                _impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( first_, dims_...));
+        }
+#endif
+
         /**
            @brief constructor given the space dimensions
 

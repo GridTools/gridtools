@@ -134,7 +134,7 @@ TEST_F(cache_stencil, ij_cache)
     pstencil->ready();
 
     pstencil->steady();
-    domain.clone_to_gpu();
+    domain.clone_to_device();
 
     pstencil->run();
 
@@ -187,7 +187,7 @@ TEST_F(cache_stencil, ij_cache_offset)
     pstencil->ready();
 
     pstencil->steady();
-    domain.clone_to_gpu();
+    domain.clone_to_device();
 
     pstencil->run();
 

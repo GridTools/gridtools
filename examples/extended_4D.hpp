@@ -1,6 +1,38 @@
 #pragma once
 
 #include <stencil-composition/make_computation.hpp>
+#include "Options.hpp"
+
+
+using namespace gridtools;
+using namespace enumtype;
+using namespace expressions;
+
+#ifdef CUDA_EXAMPLE
+#define BACKEND backend<Cuda, Block >
+#else
+#ifdef BACKEND_BLOCK
+#define BACKEND backend<Host, Block >
+#else
+#define BACKEND backend<Host, Naive >
+#endif
+#endif
+
+//                      dims  x y z  qp
+//                   strides  1 x xy xyz
+typedef gridtools::layout_map<3,2, 1, 0> layout4_t;
+typedef gridtools::layout_map<2,1,0,3,4,5> layout_t;
+
+typedef storage_info<__COUNTER__, layout_t> metadata_t;
+typedef storage_info<__COUNTER__, layout4_t> metadata_global_quad_t;
+typedef storage_info<__COUNTER__, layout4_t> metadata_local_quad_t;
+typedef gridtools::BACKEND::storage_type<float_type, metadata_t >::type storage_type;
+typedef gridtools::BACKEND::storage_type<float_type, metadata_global_quad_t >::type storage_global_quad_t;
+typedef gridtools::BACKEND::storage_type<float_type, metadata_local_quad_t >::type storage_local_quad_t;
+
+
+#include "extended_4D_verify.hpp"
+
 
 /**
   @file
@@ -45,8 +77,8 @@ namespace assembly{
         typedef accessor<0, range<-1, 1, -1, 1> , 4> const phi;
         typedef accessor<1, range<-1, 1, -1, 1> , 4> const psi;//how to detect when index is wrong??
         typedef accessor<2, range<-1, 1, -1, 1> , 4> const jac;
-        typedef accessor<3, range<-1, 1, -1, 1> > const f;
-        typedef accessor<4, range<-1, 1, -1, 1> > result;
+        typedef accessor<3, range<-1, 1, -1, 1> , 6> const f;
+        typedef accessor<4, range<-1, 1, -1, 1>, 6 > result;
         typedef boost::mpl::vector<phi, psi, jac, f, result> arg_list;
         using quad=dimension<4>;
         template <typename Evaluation>
@@ -55,25 +87,31 @@ namespace assembly{
             x::Index i;
             y::Index j;
             z::Index k;
+            dimension<4>::Index di;
+            dimension<5>::Index dj;
+            dimension<6>::Index dk;
             quad::Index qp;
             //projection of f on a (e.g.) P1 FE space:
             //loop on quadrature nodes, and on nodes of the P1 element (i,j,k) with i,j,k\in {0,1}
             //computational complexity in the order of  {(I) x (J) x (K) x (i) x (j) x (k) x (nq)}
             for(short_t I=0; I<2; ++I)
                 for(short_t J=0; J<2; ++J)
-                    for(short_t K=0; K<2; ++K)
-                        for(short_t q=0; q<2; ++q)
-                            eval(result(I,J,K)) +=
+                    for(short_t K=0; K<2; ++K){
+                        //check the initialization to 0
+                        assert(eval(result(di+I,dj+J,dk+K))==0.);
+                        for(short_t q=0; q<2; ++q){
+                            eval(result(di+I,dj+J,dk+K)) +=
                                 eval(!phi(i+I,j+J,k+K,qp+q)*!psi(qp+q)             *jac(qp+q)*f() +
-                                     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1, qp+q)        *jac(qp+q)*f(i+1) +
-                                     !phi(i+I,j+J,k+K,qp+q)*!psi(j+1, qp+q)        *jac(qp+q)*f(j+1) +
-                                     !phi(i+I,j+J,k+K,qp+q)*!psi(k+1, qp+q)        *jac(qp+q)*f(k+1) +
-                                     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1, j+1, qp+q)   *jac(qp+q)*f(i+1, j+1) +
-                                     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1, k+1, qp+q)   *jac(qp+q)*f(i+1, k+1) +
-                                     !phi(i+I,j+J,k+K,qp+q)*!psi(j+1,k+1, qp+q)    *jac(qp+q)*f(j+1,k+1) +
-                                     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1,j+1,k+1, qp+q)*jac(qp+q)*f(i+1,j+1,k+1))
+                                     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1, qp+q)        *jac(qp+q)*f(di+1) +
+                                     !phi(i+I,j+J,k+K,qp+q)*!psi(j+1, qp+q)        *jac(qp+q)*f(dj+1) +
+                                     !phi(i+I,j+J,k+K,qp+q)*!psi(k+1, qp+q)        *jac(qp+q)*f(dk+1) +
+                                     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1, j+1, qp+q)   *jac(qp+q)*f(di+1, dj+1) +
+                                     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1, k+1, qp+q)   *jac(qp+q)*f(di+1, dk+1) +
+                                     !phi(i+I,j+J,k+K,qp+q)*!psi(j+1,k+1, qp+q)    *jac(qp+q)*f(dj+1,dk+1) +
+                                     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1,j+1,k+1, qp+q)*jac(qp+q)*f(di+1,dj+1,dk+1))
                                 /8;
-
+                        }
+                    }
         }
     };
 
@@ -118,18 +156,13 @@ namespace assembly{
         //basis functions available in a 2x2x2 cell, because of P1 FE
         metadata_local_quad_t local_metadata(b1,b2,b3,nbQuadPt);
 
-        storage_local_quad_t phi(local_metadata);
-        storage_local_quad_t psi(local_metadata);
+        storage_local_quad_t phi(local_metadata, 0., "phi");
+        storage_local_quad_t psi(local_metadata, 0., "psi");
 
         //I might want to treat it as a temporary storage (will use less memory but constantly copying back and forth)
         //Or alternatively computing the values on the quadrature points on the GPU
         metadata_global_quad_t integration_metadata(d1,d2,d3,nbQuadPt);
-        storage_global_quad_t  jac(integration_metadata);
-
-        //the above storage constructors are setting up the storages without allocating the space (might want to change this?). We do it now.
-        jac.allocate();
-        psi.allocate();
-        phi.allocate();
+        storage_global_quad_t  jac(integration_metadata, 0., "jac");
 
         for(uint_t i=0; i<d1; ++i)
             for(uint_t j=0; j<d2; ++j)
@@ -147,7 +180,7 @@ namespace assembly{
                         psi(i,j,k,q)=11.;
                     }
 
-        metadata_t meta_(d1, d2, d3);
+        metadata_t meta_(d1, d2, d3, b1, b2, b3);
         storage_type f(meta_, (float_type)1.3, "f");
         storage_type result(meta_, (float_type)0., "result");
 

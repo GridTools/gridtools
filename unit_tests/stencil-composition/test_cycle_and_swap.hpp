@@ -74,7 +74,6 @@ namespace test_cycle_and_swap{
         comp->steady();
         comp->run();
         swap<0,0>::with<1,0>::apply(i_data);
-        i_data.clone_to_gpu();
         comp->run();
         comp->finalize();
 

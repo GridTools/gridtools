@@ -34,6 +34,7 @@ namespace gridtools {
         typedef typename type::iterator_type iterator_type;
         typedef typename type::value_type value_type;
         static const ushort_t space_dimensions=RegularStorageType::space_dimensions;
+        static const bool is_temporary=RegularStorageType::is_temporary;
         static void text() {
             std::cout << "text: no_storage_type_yet<" << RegularStorageType() << ">" << std::endl;
         }
@@ -143,11 +144,14 @@ namespace gridtools {
         friend std::ostream& operator<<(std::ostream &, base_storage<T, M, F> const & );
 
         /**@brief the parallel storage calls the empty constructor to do lazy initialization*/
-        base_storage(MetaData const & meta_data_) :
+        base_storage(MetaData const & meta_data_, bool do_allocate=true) :
             is_set( false )
             , m_name("default_storage")
             , m_meta_data(meta_data_)
-        {}
+        {
+            if (do_allocate)
+                allocate();
+        }
 
         /**
            @brief 3D storage constructor
@@ -419,6 +423,11 @@ namespace gridtools {
         pointer_type const* fields() const {return &(m_fields[0]);}
 
         /** @brief returns a const pointer to the data field*/
+        template <typename ID>
+        GT_FUNCTION
+        typename pointer_type::pointee_t* access_value() const {return fields()[ID::value].get();}
+
+        /** @brief returns a non const pointer to the data field*/
         GT_FUNCTION
         pointer_type* fields_view() {return &(m_fields[0]);}
 
@@ -465,16 +474,16 @@ namespace gridtools {
     {};
 
     template <  template <typename T> class  Decorator, typename BaseType>
-    struct is_temporary_storage<Decorator< BaseType > > : is_temporary_storage< typename BaseType::basic_type >
+    struct is_temporary_storage<Decorator< BaseType > > : is_temporary_storage< BaseType >
     {};
     template <  template <typename T> class Decorator, typename BaseType>
-    struct is_temporary_storage<Decorator< BaseType >* > : is_temporary_storage< typename BaseType::basic_type* >
+    struct is_temporary_storage<Decorator< BaseType >* > : is_temporary_storage< BaseType* >
     {};
     template <  template <typename T> class Decorator, typename BaseType>
-    struct is_temporary_storage<Decorator< BaseType >& > : is_temporary_storage< typename BaseType::basic_type& >
+    struct is_temporary_storage<Decorator< BaseType >& > : is_temporary_storage< BaseType& >
     {};
     template <  template <typename T> class Decorator, typename BaseType>
-    struct is_temporary_storage<Decorator< BaseType >*& > : is_temporary_storage< typename BaseType::basic_type*& >
+    struct is_temporary_storage<Decorator< BaseType >*& > : is_temporary_storage< BaseType*& >
     {};
 
 #ifdef CXX11_ENABLED

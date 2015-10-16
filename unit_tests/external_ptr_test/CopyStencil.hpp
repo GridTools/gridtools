@@ -205,7 +205,9 @@ bool test_copystencil_python ( )
 #endif
     }
 
+#ifdef VERBOSE
     std::cout << "Copied " << d1*d2*d3 << " values ... ok!" << std::endl;
+#endif
 
     return EXIT_SUCCESS;
 }

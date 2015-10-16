@@ -97,7 +97,7 @@ struct execute_kernel_functor_cuda
 
     void operator()()
     {
-#ifdef __VERBOSE__
+#ifdef VERBOSE
         short_t count;
         cudaGetDeviceCount ( &count  );
 
@@ -125,7 +125,7 @@ struct execute_kernel_functor_cuda
         }
 #endif
 
-        m_coords.clone_to_gpu();
+        m_coords.clone_to_device();
 
         local_domain_t *local_domain_gp = m_local_domain.gpu_object_ptr;
 
@@ -189,7 +189,7 @@ struct execute_kernel_functor_cuda
             RunFunctorArguments::s_strategy_id
         > run_functor_arguments_cuda_t;
 
-#ifdef __VERBOSE__
+#ifdef VERBOSE
             printf("ntx = %d, nty = %d, ntz = %d\n",ntx, nty, ntz);
             printf("nbx = %d, nby = %d, nbz = %d\n",nbx, nby, nbz);
             printf("nx = %d, ny = %d, nz = 1\n",nx, ny);

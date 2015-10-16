@@ -8,6 +8,19 @@ function exit_if_error {
     fi
 }
 
+function help {
+   echo "$0 [OPTIONS]"
+   echo "-h      help"
+   echo "-b      build type               [release|debug]"
+   echo "-t      target                   [gpu|cpu]"
+   echo "-f      floating point precision [float|double]"
+   echo "-c      cxx standard             [cxx11|cxx03]"
+   echo "-p      activate python                       "
+   echo "-m      activate mpi                          "
+   echo "-s      activate a silent build               "
+   exit 1
+}
+
 #
 # full path to the virtual environment where the Python tests run
 #
@@ -27,7 +40,7 @@ export Boost_NO_BOOST_CMAKE=true
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD:${VENV_PATH}/lib/python3.4/site-packages/PySide-1.2.2-py3.4-linux-x86_64.egg/PySide
 export GRIDTOOLS_ROOT_BUILD=$PWD
 export GRIDTOOLS_ROOT=$PWD/../
-export CUDATOOLKIT_HOME=${CUDA_ROOT}
+export CUDATOOLKIT_HOME=${CUDA_PATH}
 
 TARGET=$1
 REAL_TYPE=$2
@@ -83,7 +96,7 @@ WHERE_=`pwd`
 export JENKINS_COMMUNICATION_TESTS=1
 
 cmake \
--DCUDA_NVCC_FLAGS:STRING=" --relaxed-constexpr " \
+-DCUDA_NVCC_FLAGS:STRING="--relaxed-constexpr" \
 -DCUDA_ARCH:STRING="sm_35" \
 -DCMAKE_BUILD_TYPE:STRING="DEBUG" \
 -DBUILD_SHARED_LIBS:BOOL=ON \
@@ -114,16 +127,43 @@ sh ./run_tests.sh
 
 exit_if_error $?
 
-if [ "x$TARGET" == "xcpu" ]
+if [ "$RUN_MPI_TESTS" == "ON" ]
 then
-    if [ "$RUN_MPI_TESTS" == "ON" ]
+    if [ "x$CXX_STD" == "xcxx11" ]
     then
-        if [ "x$CXX_11_ON" == "xcxx11" ]
+        if [ "x$TARGET" == "xcpu" ]
         then
             mpiexec -np 4 ./build/shallow_water_enhanced 8 8 1 2
             exit_if_error $?
+
+            mpiexec -np 2 ./build/copy_stencil_parallel 62 53 15
+            exit_if_error $?
+        fi
+        if [ "x$TARGET" == "xgpu" ]
+        then
+            if [[ "$BUILD_TYPE" == "debug" ]] ; then
+                mpiexec -np 2 ./build/shallow_water_enhanced_cuda 8 8 1 2
+                exit_if_error $?
+
+                # problems in the execution of the copy_stencil_parallel_cuda
+                # TODO fix
+                # mpiexec -np 2 ./build/copy_stencil_parallel_cuda 62 53 15
+                # exit_if_error $?
+            else
+                # CUDA allocation error with more than 1 GPU in RELEASE mode
+                # (works in debug mode). To be fixed
+                mpiexec -np 1 ./build/shallow_water_enhanced_cuda 8 8 1 2
+                exit_if_error $?
+
+                # problems in the execution of the copy_stencil_parallel_cuda
+                # TODO fix
+                # mpiexec -np 1 ./build/copy_stencil_parallel_cuda 62 53 15
+                # exit_if_error $?
+            fi
         fi
         #TODO not updated to greina
         #    ../examples/communication/run_communication_tests.sh
     fi
 fi
+
+exit 0

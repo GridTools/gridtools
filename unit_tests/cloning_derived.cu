@@ -98,7 +98,7 @@ int main(int argc, char** argv) {
             res = EXIT_FAILURE;
     }
 
-    a.clone_to_gpu();
+    a.clone_to_device();
     a.data.update_gpu();
 
     std::cout << "Printing Beginning " << std::hex
@@ -124,7 +124,7 @@ int main(int argc, char** argv) {
 
     std::cout << "Synchronize" << std::endl;
     cudaDeviceSynchronize();
-    a.clone_from_gpu();
+    a.clone_from_device();
     a.data.update_cpu();
 
     printwhatever(&a);
