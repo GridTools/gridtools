@@ -66,10 +66,13 @@ struct meta_storage_derived : public BaseStorage, clonable_to_gpu<meta_storage_d
         : super(initial_offset_i, initial_offset_j, dim3, n_i_threads, n_j_threads){}
 #endif
 
+#ifndef __CUDACC__
 private:
+#endif
     /** @brief empty ctor
 
         should never be called
+        (only by nvcc because it does not compile the parallel_storage CXX11 version)
     */
     explicit meta_storage_derived(): super(){}
 

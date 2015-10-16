@@ -64,9 +64,7 @@ namespace _impl_cuda {
         typedef typename index_to_level<typename interval::second>::type to;
         typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy;
 
-        //setting the initial k level (for backward/parallel iterations it is not 0)
-        if( !(iteration_policy::value==enumtype::forward) )
-            it_domain.initialize<2>( coords->template value_at< iteration_policy::from >() );
+        it_domain.template initialize<2>( coords->template value_at< iteration_policy::from >() );
 
         //execute the k interval functors
         for_each<typename RunFunctorArguments::loop_intervals_t>
@@ -97,7 +95,7 @@ struct execute_kernel_functor_cuda
 
     void operator()()
     {
-#ifdef __VERBOSE__
+#ifdef VERBOSE
         short_t count;
         cudaGetDeviceCount ( &count  );
 
@@ -189,7 +187,7 @@ struct execute_kernel_functor_cuda
             RunFunctorArguments::s_strategy_id
         > run_functor_arguments_cuda_t;
 
-#ifdef __VERBOSE__
+#ifdef VERBOSE
             printf("ntx = %d, nty = %d, ntz = %d\n",ntx, nty, ntz);
             printf("nbx = %d, nby = %d, nbz = %d\n",nbx, nby, nbz);
             printf("nx = %d, ny = %d, nz = 1\n",nx, ny);

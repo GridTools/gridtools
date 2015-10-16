@@ -637,9 +637,9 @@ namespace gridtools {
             if (Coordinate==1) {
                 m_j+=steps_;
             }
-            base_t::template increment<Coordinate>(steps_);
             if( Coordinate==2)
                 m_k += steps_;
+            base_t::template increment<Coordinate>(steps_);
         }
 
         template <ushort_t Coordinate>
@@ -652,7 +652,25 @@ namespace gridtools {
             if (Coordinate==1) {
                 m_j = index;
             }
-            base_t::template initialize<Coordinate>(index, block);
+            if (Coordinate==2) {
+                m_k = index;
+            }
+           base_t::template initialize<Coordinate>(index, block);
+        }
+
+        template <ushort_t Coordinate>
+        GT_FUNCTION
+        void reset_index(uint_t const& lowerbound=0)
+        {
+            if (Coordinate==0) {
+                m_i = lowerbound;
+            }
+            if (Coordinate==1) {
+                m_j = lowerbound;
+            }
+            if (Coordinate==2) {
+                m_k = lowerbound;
+            }
         }
 
         GT_FUNCTION
@@ -667,6 +685,13 @@ namespace gridtools {
     private:
         uint_t m_i, m_j, m_k;
     };
+
+
+
+
+
+
+
 
 
 //    ################## IMPLEMENTATION ##############################
@@ -778,12 +803,25 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(Accessor::type::n_dim <= Accessor::type::n_dim, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.");
 
         GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: if you need to use a non-rectangular field the constexpr version of the accessors have to be used (so that the current position in the field is computed at compile time). This is achieved by using, e.g., instead of \n\n eval(field(dimension<5>(2))); \n\n the following expression: \n\n typedef alias<field, dimension<5> >::set<2> z_field; \n eval(z_field()); \n");
+        GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_width > 0), "did you define a field dimension with 0 snapshots??");
 
-            //dimension/snapshot offsets must be non negative
+        // std::cout<<" offsets: "<<accessor.template get<0>()<<" , "<<accessor.template get<1>()<<" , "<<accessor.template get<2>()<<" , "<<std::endl;
+
+        //dimension/snapshot offsets must be non negative
         assert(accessor.template get<0>()>=0);
         assert( (Accessor::type::n_dim <= metadata_t::space_dimensions+1) ||
                 (accessor.template get<1>()>=0) );
-             // std::cout<<" offsets: "<<arg.template get<0>()<<" , "<<arg.template get<1>()<<" , "<<arg.template get<2>()<<" , "<<std::endl;
+
+        //snapshot access out of bounds
+        assert((Accessor::type::n_dim > metadata_t::space_dimensions+1) ||
+               accessor.template get<0>() < storage_type::traits::n_width);
+        //snapshot access out of bounds
+        assert((Accessor::type::n_dim <= metadata_t::space_dimensions+1) ||
+               accessor.template get<1>() < storage_type::traits::n_width);
+        //dimension access out of bounds
+        assert((Accessor::type::n_dim <= metadata_t::space_dimensions+1) ||
+               accessor.template get<0>() < storage_type::traits::n_dimensions);
+
 
         return get_value(accessor,
                          (data_pointer())[
@@ -827,14 +865,22 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor");
         GRIDTOOLS_STATIC_ASSERT(Accessor::type::n_dim <= Accessor::type::n_dim, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.");
         GRIDTOOLS_STATIC_ASSERT(accessor_mixed_t::template get_constexpr<0>()>=0,
-                                "offset specified for the dimension corresponding to the number of snapshots must be non negative");
+                                "offset specified for the dimension corresponding to the number of field components/snapshots must be non negative");
         GRIDTOOLS_STATIC_ASSERT( (Accessor::type::n_dim <= metadata_t::space_dimensions+1) ||
                                      (accessor_mixed_t::template get_constexpr<1>()>=0),
-                                 "offset specified for the dimension corresponding to the number of field components must be non negative");
+                                 "offset specified for the dimension corresponding to the number of snapshots must be non negative");
+        GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_width > 0), "did you define a field dimension with 0 snapshots??");
+        //dimension access out of bounds
+        GRIDTOOLS_STATIC_ASSERT(
+            (accessor_mixed_t::template get_constexpr<0>() < storage_type::traits::n_dimensions)
+            || Accessor::type::n_dim <= metadata_t::space_dimensions+1
+            , "field dimension access out of bounds");
+
+        //snapshot access out of bounds
+        GRIDTOOLS_STATIC_ASSERT( (accessor_mixed_t::template get_constexpr<1>() < _impl::access<storage_type::n_width-(accessor_mixed_t::template get_constexpr<0>())-1, typename storage_type::traits>::type::n_width), "trying to get a snapshot out of bound" );
 
         return get_value(accessor,
                          (data_pointer())[ //static if
-                             //TODO: re implement offsets in accessor which can be or not constexpr (not in a vector)
                (
                    Accessor::type::n_dim <= metadata_t::space_dimensions+1 ? // static if
                    accessor_mixed_t::template get_constexpr<0>() //offset for the current snapshot

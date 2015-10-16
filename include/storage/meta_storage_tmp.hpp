@@ -100,7 +100,8 @@ namespace gridtools{
         //copy ctor
         __device__
         constexpr meta_storage_base(meta_storage_base const& other)
-            :  super(other), m_initial_offsets(other.m_initial_offsets)
+        :  super(other)
+        , m_initial_offsets( other.m_initial_offsets )
         {
         }
 

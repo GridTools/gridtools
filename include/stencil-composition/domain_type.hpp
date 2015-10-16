@@ -435,7 +435,7 @@ You have to define each arg with a unique identifier ranging from 0 to N without
             //copy of the non-tmp metadata into m_metadata_set
             boost::fusion::for_each(real_storage_, assign_metadata_set<metadata_set_t >(m_metadata_set));
 
-#ifdef __VERBOSE__
+#ifdef VERBOSE
             std::cout << "\nThese are the view values" << boost::fusion::size(fview) << std::endl;
             boost::fusion::for_each(m_storage_pointers, _debug::print_pointer());
 #endif

@@ -91,16 +91,36 @@ namespace gridtools {
         */
         constexpr meta_storage_base(){}
 
+#ifndef __CUDACC__
+        template <class ... IntTypes
+                  , typename Dummy = all_integers<IntTypes...>
+                  >
+        void setup(  IntTypes const& ... dims_  ){
+            m_dims=array<int_t, space_dimensions>(dims_ ...);
+            m_strides=array<int_t, space_dimensions>(
+                _impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( dims_...));
+        }
+#else
+        template <class First, class ... IntTypes
+                  , typename Dummy = typename boost::enable_if_c<boost::is_integral<First>::type::value, bool>::type //nvcc does not get it
+                  >
+        void setup(  First first_, IntTypes const& ... dims_  ){
+
+            m_dims=array<int_t, space_dimensions>(first_, dims_ ...);
+            m_strides=array<int_t, space_dimensions>(
+                _impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( first_, dims_...));
+        }
+#endif
+
         /**
            @brief constructor given the space dimensions
 
            NOTE: this contructor is constexpr, i.e. the storage metadata information could be used
            at compile-time (e.g. in template metafunctions)
          */
-        template <class ... IntTypes
 #ifndef __CUDACC__
-                  , typename Dummy = all_integers<IntTypes...> //nvcc does not get it
-#endif
+        template <class ... IntTypes
+                  , typename Dummy = all_integers<IntTypes...>
                   >
         constexpr meta_storage_base(  IntTypes const& ... dims_  ) :
             m_dims(dims_...)
@@ -112,7 +132,22 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
  a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
  by defining the storage type using another layout_map.");
             }
-#else
+#else //__CUDACC__ nvcc does not get it: checks only the first argument
+        template <class First, class ... IntTypes
+                  , typename Dummy = typename boost::enable_if_c<boost::is_integral<First>::type::value, bool>::type //nvcc does not get it
+                  >
+        constexpr meta_storage_base( First const& first_,  IntTypes const& ... dims_  ) :
+            m_dims(first_, dims_...)
+            , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( first_, dims_...))
+            {
+                GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes)+1==space_dimensions, "you tried to initialize\
+ a storage with a number of integer arguments different from its number of dimensions. \
+This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
+ a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
+ by defining the storage type using another layout_map.");
+            }
+#endif
+#else //CXX11_ENABLED
         // non variadic non constexpr constructor
         meta_storage_base(  uint_t const& d1, uint_t const& d2, uint_t const& d3 ) :
             m_dims(d1, d2, d3)

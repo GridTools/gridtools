@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __CUDACC__
+#define CUDA_CXX11_BUG_1 //bug present in CUDA 7.5 and below
+#endif
+
 #if __cplusplus > 199711L
 #ifndef CXX11_DISABLE
 #define CXX11_ENABLED
@@ -14,6 +18,11 @@
 //TODOCOSUNA This IS VERY VERY VERY DANGEROUS HERE
 #define BLOCK_SIZE 32
 
+#if !defined(FUSION_MAX_VECTOR_SIZE)
+    #define FUSION_MAX_VECTOR_SIZE 20
+    #define FUSION_MAX_MAP_SIZE 20
+#endif
+
 // #include <boost/mpl/map/aux_/item.hpp>
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/insert.hpp>
@@ -27,11 +36,6 @@
 #include <boost/utility/enable_if.hpp>
 #include <boost/mpl/logical.hpp>
 #include <boost/type_traits.hpp>
-
-#ifndef FUSION_MAX_VECTOR_SIZE
-    #define FUSION_MAX_VECTOR_SIZE 20
-    #define FUSION_MAX_MAP_SIZE 20
-#endif
 
 #define GT_MAX_ARGS 20
 #define GT_MAX_INDEPENDENT 3

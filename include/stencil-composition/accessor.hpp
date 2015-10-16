@@ -109,7 +109,7 @@ namespace gridtools {
 #endif
     };
 
-#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
+#if defined(CXX11_ENABLED) && !defined(CUDA_CXX11_BUG_1)
 
     /**@brief same as accessor but mixing run-time offsets with compile-time ones
 

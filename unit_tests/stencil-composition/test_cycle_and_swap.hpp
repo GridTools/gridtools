@@ -18,6 +18,7 @@ namespace test_cycle_and_swap{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval){
+            eval(p_i())+=eval(p_i());
         }
     };
 
@@ -77,6 +78,6 @@ namespace test_cycle_and_swap{
         comp->run();
         comp->finalize();
 
-        return i_data(0,0)==1;
+        return (i_data(0,0)==2 && i_data.get_value<1,0>(0,0)==0);
     }
 } //namespace test_cycle_and_swap

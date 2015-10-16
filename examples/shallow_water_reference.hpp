@@ -18,7 +18,11 @@ template< typename StorageType, uint_t DimI, uint_t DimJ >
 struct shallow_water_reference{
 
     typedef StorageType storage_type;
+    #ifdef __CUDACC__
+    typedef hybrid_pointer<float_type> pointer_type;
+    #else
     typedef wrap_pointer<float_type> pointer_type;
+    #endif
 
     static constexpr uint_t strides[2]={DimI, 1};
     static constexpr uint_t size=DimI*DimJ;
