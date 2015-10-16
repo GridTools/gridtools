@@ -59,10 +59,6 @@ namespace test_iterate_domain{
         typedef arg<2, field<storage_out_type, 2, 2, 2>::type > p_out;
         typedef boost::mpl::vector<p_in, p_buff, p_out> accessor_list;
 
-        in.allocate();
-        buff.allocate();
-        out.allocate();
-
         gridtools::domain_type<accessor_list> domain((p_in() = in),  (p_buff() = buff), (p_out() = out) );
 
         uint_t di[5] = {0, 0, 0, d1-1, d1};
@@ -280,6 +276,14 @@ namespace test_iterate_domain{
         assert(buff.meta_data().strides(2)==strides.get<1>()[1]);//3D storage
 
         assert(out.meta_data().strides(1)==strides.get<0>()[0]);//2D storage
+
+        //check operator() for runtime data_field arguments
+        assert(it_domain(accessor<2, range<0,0,0,0>, 4>(0,0,0,0) ) == 0);
+        assert(it_domain(accessor<2, range<0,0,0,0>, 4>(0,0,1,0) ) == 1);
+        assert(it_domain(accessor<2, range<0,0,0,0>, 4>(0,0,0,1) ) == 10);
+        assert(it_domain(accessor<2, range<0,0,0,0>, 4>(0,0,1,1) ) == 11);
+        assert(it_domain(accessor<2, range<0,0,0,0>, 4>(0,0,0,2) ) == 20);
+        assert(it_domain(accessor<2, range<0,0,0,0>, 4>(0,0,1,2) ) == 21);
 
         return true;
     }
