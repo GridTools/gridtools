@@ -156,7 +156,7 @@ namespace gridtools {
      * Struct to test if an argument is a temporary
      */
     template <typename T>
-    struct is_plchldr_to_temp;
+    struct is_plchldr_to_temp : boost::mpl::false_{};
 
     /**
      * Struct to test if an argument is a temporary no_storage_type_yet - Specialization yielding true
@@ -178,29 +178,10 @@ namespace gridtools {
      storage class, falls back on the original class type here the
      decorator is the \ref gridtools::storage
     */
-    template <uint_t I, typename BaseType, template <typename T> class Decorator>
-    struct is_plchldr_to_temp<arg<I, Decorator<BaseType> > > : is_plchldr_to_temp<arg<I, typename BaseType::basic_type> >
+
+    template <uint_t I, typename BaseType>
+    struct is_plchldr_to_temp<arg<I, storage<BaseType> > > : is_plchldr_to_temp<arg<I, typename BaseType::basic_type> >
     {};
-
-#ifdef CXX11_ENABLED
-
-    /**
-     * Struct to test if an argument is a temporary
-     no_storage_type_yet - Specialization for a decorator of the
-     storage class, falls back on the original class type here the
-     decorator is the dimension extension, \ref gridtools::data_field
-    */
-    template <uint_t I, typename First, typename ... BaseType, template <typename ... T> class Decorator>
-    struct is_plchldr_to_temp<arg<I, Decorator<First, BaseType ...> > > : is_plchldr_to_temp<arg<I, typename First::basic_type> >
-    {};
-
-#else
-
-    template <uint_t I, typename First, typename B2, typename B3, template <typename  T1, typename  T2, typename  T3> class Decorator>
-    struct is_plchldr_to_temp<arg<I, Decorator<First, B2, B3> > > : is_plchldr_to_temp<arg<I, typename First::basic_type> >
-    {};
-
-#endif
 
     /**
      * Printing type information for debug purposes
@@ -274,29 +255,18 @@ namespace gridtools {
     struct is_temporary_storage<no_storage_type_yet<U>& > : public boost::true_type
     {};
 
-    //Decorator is the storage
-    template <typename BaseType , template <typename T> class Decorator >
-    struct is_storage<Decorator<BaseType>  *  > : public is_storage<typename BaseType::basic_type*>
+
+    template <typename BaseType >
+    struct is_storage<no_storage_type_yet<BaseType> > : public is_storage<typename BaseType::basic_type*>
     {};
 
-    //Decorator is the storage
-    template <typename BaseType , template <typename T> class Decorator >
-    struct is_storage<Decorator<BaseType> > : public is_storage<typename BaseType::basic_type*>
+    template <typename BaseType >
+    struct is_storage<storage<BaseType>  *  > : public is_storage<typename BaseType::basic_type*>
     {};
 
-#ifdef CXX11_ENABLED
-    //Decorator is the integrator
-    template <typename First, typename ... BaseType , template <typename ... T> class Decorator >
-    struct is_storage<Decorator<First, BaseType...>  *  > : public is_storage<typename First::basic_type*>
+    template <typename BaseType >
+    struct is_storage<storage<BaseType> > : public is_storage<typename BaseType::basic_type*>
     {};
-#else
-
-    //Decorator is the integrator
-    template <typename First, typename B2, typename  B3 , template <typename T1, typename T2, typename T3> class Decorator >
-    struct is_storage<Decorator<First, B2, B3>  *  > : public is_storage<typename First::basic_type*>
-    {};
-
-#endif
 
     //Decorator is the integrator
     template <typename BaseType , template <typename T, ushort_t O> class Decorator, ushort_t Order >

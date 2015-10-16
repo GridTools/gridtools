@@ -55,8 +55,10 @@ struct execute_kernel_functor_host
 
     /**
        @brief core of the kernel execution
+
        @tparam Traits traits class defined in \ref gridtools::_impl::run_functor_traits
     */
+    //Block strategy
     explicit execute_kernel_functor_host(const local_domain_t& local_domain, const coords_t& coords,
             const uint_t first_i, const uint_t first_j, const uint_t last_i, const uint_t last_j,
             const uint_t block_idx_i, const uint_t block_idx_j)

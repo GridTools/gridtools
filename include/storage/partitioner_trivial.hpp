@@ -65,7 +65,7 @@ namespace gridtools{
         partitioner_trivial(const communicator_t& comm,
                             const gridtools::array<ushort_t, space_dimensions>& halo,
                             const gridtools::array<ushort_t, space_dimensions>& padding )
-        : m_pid(comm.coordinates()), m_ntasks(&comm.dimensions()[0]), m_halo(&halo[0]), m_pad(&padding[0]), m_comm(comm){
+        : m_pid(&comm.coordinates()[0]), m_ntasks(&comm.dimensions()[0]), m_halo(&halo[0]), m_pad(&padding[0]), m_comm(comm){
 
             m_boundary=0;//bitmap
 
@@ -243,21 +243,19 @@ namespace gridtools{
             return (  m_comm.periodic(component_) || !at_boundary(component_, flag_)) ? m_halo[component_]:m_pad[component_];
         }
 
-        bool at_boundary(ushort_t const& component_, typename super::Flag const& flag_) const {
+        /**to be called from the user interface*/
+        GT_FUNCTION
+        bool at_boundary(ushort_t const& component_, typename super::Flag flag_) const {
 
-            ushort_t left = boundary()%(ushort_t)((ushort_t)std::pow(2,component_+1)*(ushort_t)flag_);
-            ushort_t right = ((component_+(ushort_t)1)*(ushort_t)flag_);
-#ifndef NDEBUG
-#ifdef VERBOSE
-            std::cout<<boundary()<<" % ("<<std::pow(2,component_+1)<<" * "<< (ushort_t)flag_<<") < "<<(component_+1)<<" * "<<(ushort_t)flag_<<") ==>"<<
-                left<<" < "<<right << " ==> "<<(left<right)
-                     <<std::endl;
-#endif
-#endif
-            return !(left < right);
+            return !(
+                boundary()%(ushort_t)((ushort_t)gt_pow<2>::apply(component_+1)*(ushort_t)flag_)
+                <
+                ((component_+(ushort_t)1)*(ushort_t)flag_)
+                );
         }
 
-        uint_t const & boundary() const {
+        GT_FUNCTION
+        uint_t boundary() const {
             return m_boundary;
         }
 
@@ -274,4 +272,5 @@ namespace gridtools{
         communicator_t const& m_comm;
         uint_t m_boundary;
     };
+
 }//namespace gridtools

@@ -121,7 +121,7 @@ namespace gridtools {
         struct extract_actual_types {
 
             template <typename Storage, typename Enable=void>
-            struct check_if_temporary;
+            struct check_if_temporary : boost::mpl::false_{};
 
             template <typename Storage>
             struct check_if_temporary<Storage, typename boost::enable_if_c<is_temporary_storage<Storage>::value>::type> {
@@ -227,13 +227,15 @@ namespace gridtools {
         typedef typename boost::mpl::fold
         <mpl_storages,
          boost::mpl::vector0<>,
-         boost::mpl::push_back<
-             boost::mpl::_1,
-             storage2metadata<
-                 boost::remove_pointer<
-                     boost::mpl::_2 >
-                 >
-             >
+         boost::mpl::if_< is_any_storage<boost::mpl::_2>,
+                          boost::mpl::push_back<
+                              boost::mpl::_1,
+                              storage2metadata<
+                                  boost::remove_pointer<
+                                      boost::mpl::_2 >
+                                  >
+                              >
+                          , boost::mpl::_1 >
          >::type::type local_metadata_mpl_t;
 
 

@@ -206,8 +206,8 @@ then
                 mpiexec -np 1 ./build/shallow_water_enhanced_cuda 8 8 1 2
                 exit_if_error $?
 
-                mpiexec -np 1 ./build/copy_stencil_parallel_cuda 62 53 15
-                exit_if_error $?
+                # mpiexec -np 1 ./build/copy_stencil_parallel_cuda 62 53 15
+                # exit_if_error $?
             fi
         fi
         #TODO not updated to greina
