@@ -139,7 +139,10 @@ struct execute_kernel_functor_host
 
 
         typedef array<int_t, iterate_domain_t::N_META_STORAGES> array_index_t;
+        typedef array<uint_t, 4> array_position_t;
+
         array_index_t memorized_index;
+        array_position_t memorized_position;
         for(uint_t i=m_first_pos[0]; i <= m_first_pos[0] + m_loop_size[0];++i)
         {
             for(uint_t c=0; c < grid_t::n_colors; ++c)
@@ -147,9 +150,12 @@ struct execute_kernel_functor_host
                 for(uint_t j=m_first_pos[1]; j <= m_first_pos[1] + m_loop_size[1];++j)
                 {
                     it_domain.get_index(memorized_index);
+                    it_domain.get_position(memorized_position);
+
                     gridtools::for_each< loop_intervals_t >
                     ( _impl::run_f_on_interval<execution_type_t, RunFunctorArguments> (it_domain, m_coords) );
                     it_domain.set_index(memorized_index);
+                    it_domain.set_position(memorized_position);
                     it_domain.template increment<2, static_int<1> >();
                 }
                 it_domain.template increment<2>( -(m_loop_size[1]+1));

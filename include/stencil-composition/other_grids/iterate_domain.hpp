@@ -448,22 +448,38 @@ public:
             >(boost::fusion::as_vector(local_domain.m_local_metadata), steps_, &m_index[0], strides())
         );
         static_cast<IterateDomainImpl*>(this)->template increment_impl<Coordinate>(steps_);
+
         m_grid_position[Coordinate] += steps_;
     }
 
     /**@brief getter for the index array */
+    //TODO simplify this using just loops
     GT_FUNCTION
     void get_index(array<int_t, N_META_STORAGES>& index) const
     {
         set_index_recur< N_META_STORAGES-1>::set(m_index, index);
     }
 
+    /**@brief getter for the index array */
+    GT_FUNCTION
+    void get_position(array<uint_t, 4>& position) const
+    {
+        position = m_grid_position;
+    }
+
     /**@brief method for setting the index array */
+    //TODO no need for an template parameter here
     template <typename Input>
     GT_FUNCTION
     void set_index(Input const& index)
     {
         set_index_recur< N_META_STORAGES-1>::set( index, m_index);
+    }
+
+    GT_FUNCTION
+    void set_position(array<uint_t, 4> const& position)
+    {
+        m_grid_position = position;
     }
 
     template<typename Accessor>
@@ -482,15 +498,15 @@ public:
               , typename ...Arg0
               >
     double operator()(on_neighbors_impl<ValueType, LocationTypeT, Reduction, map_function<MapF, LocationTypeT, Arg0...>> onneighbors) const {
-//        auto current_position = m_grid_position;
+        auto current_position = m_grid_position;
 
-//        const auto neighbors = grid_t::neighbors_indices_3(current_position
-//                                                          , location_type()
-//                                                          , onneighbors.location() );
+        const auto neighbors = grid_t::neighbors_indices_3(current_position
+                                                          , location_type_t()
+                                                          , onneighbors.location() );
 //#ifdef _ACCESSOR_H_DEBUG_
 //        std::cout << "Entry point (on map)" << current_position << " Neighbors: " << neighbors << std::endl;
 //#endif
-//        double result = onneighbors.value();
+        double result = onneighbors.value();
 
 //        for (int i = 0; i<neighbors.size(); ++i) {
 //            result = onneighbors.reduction()( _evaluate(onneighbors.map(), neighbors[i]), result );
@@ -569,6 +585,8 @@ public:
         //Most probably this is due to you specifying a positive offset which is larger than expected,
         //or maybe you did a mistake when specifying the ranges in the placehoders definition
         assert(metadata_->size() >  m_index[metadata_index_t::value ] );
+
+        metadata_->index(m_grid_position);
 
         //the following assert fails when an out of bound access is observed,
         //i.e. when some offset is negative and either one of
