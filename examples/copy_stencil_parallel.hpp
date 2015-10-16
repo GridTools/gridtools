@@ -215,7 +215,6 @@ namespace copy_stencil{
 #ifdef VERBOSE
         printf("copy unpacked\n");
 #endif
-        // in.print();
 
         MPI_Barrier(GCL_WORLD);
         GCL_Finalize();
