@@ -197,12 +197,22 @@ namespace test_iterate_domain{
         *out.get<0,2>()=20.;
         *out.get<1,2>()=21.;
 
+        //check operator() for runtime data_field arguments
+
         assert(it_domain(accessor<2, range<0,0,0,0>, 4>())==0.);
         assert(it_domain(accessor<2, range<0,0,0,0>, 4>(dimension<3>(1)))==1.);
         assert(it_domain(accessor<2, range<0,0,0,0>, 4>(dimension<4>(1)))==10.);
         assert(it_domain(accessor<2, range<0,0,0,0>, 4>(dimension<4>(1), dimension<3>(1)))==11.);
         assert(it_domain(accessor<2, range<0,0,0,0>, 4>(dimension<4>(2)))==20.);
         assert(it_domain(accessor<2, range<0,0,0,0>, 4>(dimension<4>(2), dimension<3>(1)))==21.);
+
+
+        assert(it_domain(accessor<2, range<0,0,0,0>, 4>(0,0,0,0) ) == 0.);
+        assert(it_domain(accessor<2, range<0,0,0,0>, 4>(0,0,1,0) ) == 1.);
+        assert(it_domain(accessor<2, range<0,0,0,0>, 4>(0,0,0,1) ) == 10.);
+        assert(it_domain(accessor<2, range<0,0,0,0>, 4>(0,0,1,1) ) == 11.);
+        assert(it_domain(accessor<2, range<0,0,0,0>, 4>(0,0,0,2) ) == 20.);
+        assert(it_domain(accessor<2, range<0,0,0,0>, 4>(0,0,1,2) ) == 21.);
 
         //check index initialization and increment
 
@@ -276,14 +286,6 @@ namespace test_iterate_domain{
         assert(buff.meta_data().strides(2)==strides.get<1>()[1]);//3D storage
 
         assert(out.meta_data().strides(1)==strides.get<0>()[0]);//2D storage
-
-        //check operator() for runtime data_field arguments
-        assert(it_domain(accessor<2, range<0,0,0,0>, 4>(0,0,0,0) ) == 0);
-        assert(it_domain(accessor<2, range<0,0,0,0>, 4>(0,0,1,0) ) == 1);
-        assert(it_domain(accessor<2, range<0,0,0,0>, 4>(0,0,0,1) ) == 10);
-        assert(it_domain(accessor<2, range<0,0,0,0>, 4>(0,0,1,1) ) == 11);
-        assert(it_domain(accessor<2, range<0,0,0,0>, 4>(0,0,0,2) ) == 20);
-        assert(it_domain(accessor<2, range<0,0,0,0>, 4>(0,0,1,2) ) == 21);
 
         return true;
     }
