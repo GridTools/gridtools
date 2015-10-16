@@ -155,7 +155,9 @@ namespace gridtools {
         typedef typename boost::mpl::fold<
             original_placeholders
             , boost::mpl::set<> // check if the argument is a storage placeholder before extracting the metadata
-            , boost::mpl::if_< is_storage_arg<boost::mpl::_2>, boost::mpl::insert<boost::mpl::_1, arg2metadata<boost::mpl::_2> >, boost::mpl::_1 > >::type original_metadata_set_t;
+            , boost::mpl::if_< is_storage_arg<boost::mpl::_2>
+                               , boost::mpl::insert<boost::mpl::_1, arg2metadata<boost::mpl::_2> >, boost::mpl::_1 > >
+        ::type original_metadata_set_t;
 
         /** @brief Create an mpl::vector of metadata types*/
         typedef typename boost::mpl::fold<
@@ -345,18 +347,7 @@ You have to define each arg with a unique identifier ranging from 0 to N without
 #endif
 
 
-        template <typename Sequence, typename Arg>
-        struct conditional{
-        private :
-            Sequence& m_seq;
-            Arg const* m_arg;
-        public:
-            conditional(Sequence& seq_, Arg const* arg_): m_seq(seq_), m_arg(arg_){}
-            void operator()()const{
-                if (!m_seq.template present<pointer<const typename Arg::meta_data_t> >())
-                    m_seq.insert(pointer<const typename Arg::meta_data_t>(&m_arg->meta_data()));                 }
-        };
-
+        /**empty functor*/
         struct empty{
             void operator()() const{
             }
@@ -381,8 +372,10 @@ You have to define each arg with a unique identifier ranging from 0 to N without
             template <typename Arg>
             void operator()( Arg const* arg_) const{
                 // filter out the arguments which are not of storage type (and thus do not have an associated metadata)
+                pointer<const typename Arg::meta_data_t> ptr(&(arg_->meta_data()));
                 static_if<is_storage<Arg>::type::value>::eval(
-                    conditional<Sequence, Arg>(m_sequence, arg_)
+                    insert_if_not_present<Sequence, pointer<const typename Arg::meta_data_t> >
+                    (m_sequence, ptr)
                     , empty());
 
             }
