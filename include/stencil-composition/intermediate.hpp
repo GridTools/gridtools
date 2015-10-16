@@ -59,7 +59,7 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain<Elem>::value), "Internal Error: wrong type");
 
                 elem.init(m_arg_list, m_meta_storages.sequence_view(), 0,0,0);
-                elem.clone_to_gpu();
+                elem.clone_to_device();
             }
 
         private:

@@ -48,8 +48,8 @@ The template argument T is supposed to be of mask_object type */
         contains pointes to heap allocated memory have to be worked out differently.
 
         A class should publicly derive from this class passing itself as template argument.
-        At this point an object of the derived class can call clone_to_gpu() and
-        clone_from_gpu() for doing what should be clear now.
+        At this point an object of the derived class can call clone_to_device() and
+        clone_from_device() for doing what should be clear now.
     */
     template <typename DerivedType>
     struct clonable_to_gpu {
@@ -66,7 +66,7 @@ The template argument T is supposed to be of mask_object type */
         /** Member function to update the object to the gpu calling the copy constructor of the
             derived type.
          */
-        void clone_to_gpu() const {
+        void clone_to_device() const {
             const mask_object<const DerivedType> *maskT =
                              reinterpret_cast<const mask_object<const DerivedType>*>
                              ((static_cast<const DerivedType*>(this)));
@@ -78,7 +78,7 @@ The template argument T is supposed to be of mask_object type */
       /** Member function to update the object from the gpu calling the copy constructor of the
           derived type.
       */
-      void clone_from_gpu() {
+      void clone_from_device() {
             mask_object<DerivedType> space;
             cudaMemcpy(&space, gpu_object_ptr, sizeof(DerivedType), cudaMemcpyDeviceToHost);
             DerivedType *x = reconstruct(this, reinterpret_cast<const DerivedType*>(&space));
@@ -93,8 +93,8 @@ The template argument T is supposed to be of mask_object type */
     template <typename DerivedType>
     struct clonable_to_gpu {
         typedef boost::false_type actually_clonable;
-        void clone_to_gpu() const {}
-        void clone_from_gpu() const {}
+        void clone_to_device() const {}
+        void clone_from_device() const {}
     };
 #endif
 } // namespace gridtools
