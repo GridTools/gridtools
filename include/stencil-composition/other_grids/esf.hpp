@@ -25,4 +25,17 @@ struct esf_descriptor
 template<typename Functor, typename Grid, typename LocationType, typename ArgSequence>
 struct is_esf_descriptor<esf_descriptor<Functor, Grid, LocationType, ArgSequence> > : boost::mpl::true_{};
 
+template<typename T>
+struct esf_get_location_type;
+
+template <typename Functor,
+          typename Grid,
+          typename LocationType,
+          typename ArgSequence>
+struct esf_get_location_type<esf_descriptor<Functor, Grid, LocationType, ArgSequence> >
+{
+    typedef LocationType type;
+};
+
+
 } // namespace gridtools

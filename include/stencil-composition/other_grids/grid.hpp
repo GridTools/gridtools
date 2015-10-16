@@ -689,14 +689,14 @@ namespace gridtools {
         // methods returning the neighbors. Specializations according to the location type
         // needed a way to implement static double dispatch
         template<typename Location1, typename Location2, typename Color>
-        typename return_type<typename from<Location1>::template to<Location2>, array<uint_t, 4> >::type const
-        ll_map_index( Location1, Location2, Color, array<uint_t, 3> const& i) const{
+        static typename return_type<typename from<Location1>::template to<Location2>, array<uint_t, 4> >::type const
+        ll_map_index( Location1, Location2, Color, array<uint_t, 3> const& i) {
             return from<Location1>::template to<Location2>::template with_color<Color>::get_index(i);
         }
 
         template<typename Location2> // Works for cells or edges with same code
-        typename return_type<typename from<cells>::template to<Location2>, array<uint_t, 4> >::type
-        neighbors_indices_3(array<uint_t, 4> const& i, cells, Location2) const
+        static typename return_type<typename from<cells>::template to<Location2>, array<uint_t, 4> >::type
+        neighbors_indices_3(array<uint_t, 4> const& i, cells, Location2)
         {
  #ifdef _GRID_H_DEBUG
             std::cout << "neighbors_indices_3 cells to " << Location2() << " "

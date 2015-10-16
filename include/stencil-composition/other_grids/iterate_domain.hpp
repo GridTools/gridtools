@@ -1,6 +1,8 @@
 #pragma once
 #include "location_type.hpp"
 #include <type_traits>
+#include "common/generic_metafunctions/apply_to_sequence.hpp"
+#include "common/generic_metafunctions/vector_to_set.hpp"
 #include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
 #include "stencil-composition/total_storages.hpp"
 #include "stencil-composition/other_grids/iterate_domain_aux.hpp"
@@ -181,6 +183,25 @@ on_vertexes(Reduction function
     return reduce_on_something(function, initial, mapf);
 }
 
+
+
+//TODO move this to the appropiate file
+template<typename EsfSequence>
+struct extract_location_type
+{
+    GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value), "Error: wrong type");
+    typedef typename apply_to_sequence<EsfSequence, esf_get_location_type>::type location_type_seq_t;
+    typedef typename vector_to_set<EsfSequence>::type esf_set_t;
+
+    GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<esf_set_t>::value == 1),
+        "Error: multiple ESFs were used with different location types."
+        " Currently all esf must be specified on the same location type. "
+        "Future releases will relax this restriction"
+    );
+    typedef typename boost::mpl::front<esf_set_t>::type type;
+
+};
+
 /**
    This class is basically the iterate domain. It contains the
    ways to access data and the implementation of iterating on neighbors.
@@ -192,6 +213,8 @@ struct iterate_domain {
     typedef typename iterate_domain_impl_local_domain<IterateDomainImpl>::type local_domain_t;
     typedef typename iterate_domain_impl_arguments<IterateDomainImpl>::type iterate_domain_arguments_t;
     typedef typename iterate_domain_arguments_t::coordinates_t::grid_t grid_t;
+    typedef typename iterate_domain_arguments_t::esf_sequence_t esf_sequence_t;
+    typedef typename extract_location_type<esf_sequence_t>::type location_type_t;
 
     typedef typename local_domain_t::esf_args esf_args_t;
 
@@ -459,21 +482,21 @@ public:
               , typename ...Arg0
               >
     double operator()(on_neighbors_impl<ValueType, LocationTypeT, Reduction, map_function<MapF, LocationTypeT, Arg0...>> onneighbors) const {
-        auto current_position = m_ll_indices;
+//        auto current_position = m_grid_position;
 
-        const auto neighbors = m_grid.neighbors_indices_3(current_position
-                                                          , location_type()
-                                                          , onneighbors.location() );
-#ifdef _ACCESSOR_H_DEBUG_
-        std::cout << "Entry point (on map)" << current_position << " Neighbors: " << neighbors << std::endl;
-#endif
-        double result = onneighbors.value();
+//        const auto neighbors = grid_t::neighbors_indices_3(current_position
+//                                                          , location_type()
+//                                                          , onneighbors.location() );
+//#ifdef _ACCESSOR_H_DEBUG_
+//        std::cout << "Entry point (on map)" << current_position << " Neighbors: " << neighbors << std::endl;
+//#endif
+//        double result = onneighbors.value();
 
-        for (int i = 0; i<neighbors.size(); ++i) {
-            result = onneighbors.reduction()( _evaluate(onneighbors.map(), neighbors[i]), result );
-        }
+//        for (int i = 0; i<neighbors.size(); ++i) {
+//            result = onneighbors.reduction()( _evaluate(onneighbors.map(), neighbors[i]), result );
+//        }
 
-        return result;
+//        return result;
     }
 
     template <typename ValueType
@@ -484,22 +507,22 @@ public:
               , int R
               >
     double operator()(on_neighbors_impl<ValueType, LocationTypeT, Reduction, ro_accessor<I,L,radius<R>>> onneighbors) const {
-        auto current_position = m_ll_indices;
+//        auto current_position = m_ll_indices;
 
-        const auto neighbors = m_grid.neighbors_indices_3(current_position
-                                                          , location_type()
-                                                          , onneighbors.location() );
-#ifdef _ACCESSOR_H_DEBUG_
-        std::cout << "Entry point (on accessor)" << current_position << " Neighbors: " << neighbors << std::endl;
-#endif
+//        const auto neighbors = m_grid.neighbors_indices_3(current_position
+//                                                          , location_type()
+//                                                          , onneighbors.location() );
+//#ifdef _ACCESSOR_H_DEBUG_
+//        std::cout << "Entry point (on accessor)" << current_position << " Neighbors: " << neighbors << std::endl;
+//#endif
 
-        double result = onneighbors.value();
+//        double result = onneighbors.value();
 
-        for (int i = 0; i<neighbors.size(); ++i) {
-            result = onneighbors.reduction()( _evaluate(onneighbors.map(), neighbors[i]), result );
-        }
+//        for (int i = 0; i<neighbors.size(); ++i) {
+//            result = onneighbors.reduction()( _evaluate(onneighbors.map(), neighbors[i]), result );
+//        }
 
-        return result;
+//        return result;
     }
 
 
