@@ -34,7 +34,7 @@ namespace cs_test{
             /**
                This interface checks that the location types are compatible with the accessors
              */
-            eval(out()) = eval(reduce_on_cells(ff, 0.0, in()));
+            eval(out()) = eval(on_cells(ff, 0.0, in()));
         }
     };
 }

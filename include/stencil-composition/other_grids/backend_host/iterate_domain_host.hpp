@@ -22,11 +22,13 @@ namespace gridtools {
     public:
         typedef typename super::data_pointer_array_t data_pointer_array_t;
         typedef typename super::strides_cached_t strides_cached_t;
+        typedef typename super::grid_t grid_t;
+
         typedef boost::mpl::map0<> ij_caches_map_t;
 
         GT_FUNCTION
-        explicit iterate_domain_host(local_domain_t const& local_domain)
-            : super(local_domain), m_data_pointer(0), m_strides(0)
+        explicit iterate_domain_host(local_domain_t const& local_domain, grid_t const& grid)
+            : super(local_domain, grid), m_data_pointer(0), m_strides(0)
         {}
 
         void set_data_pointer_impl(data_pointer_array_t* RESTRICT data_pointer)

@@ -22,11 +22,16 @@ private:
     Grid m_grid;
 public:
     GT_FUNCTION
+    //TODO make grid const
     explicit coordinates(Grid& grid, const array<uint_t, 5>& i, const array<uint_t, 5>& j) :
         m_grid(grid),
         m_direction_i(i[minus], i[plus], i[begin], i[end], i[length]),
         m_direction_j(j[minus], j[plus], j[begin], j[end], j[length])
     {}
+
+    Grid const & grid() const {
+        return m_grid;
+    }
 
     GT_FUNCTION
     uint_t i_low_bound() const {

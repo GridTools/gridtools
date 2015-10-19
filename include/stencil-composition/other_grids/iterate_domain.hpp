@@ -291,6 +291,7 @@ private:
     GRIDTOOLS_STATIC_ASSERT((N_META_STORAGES <= grid_t::n_locations::value),"We can not have more meta storages"
                             "than location types. Data fields for other grids are not yet supported");
     local_domain_t const& local_domain;
+    grid_t const& m_grid;
     array<int_t,N_META_STORAGES> m_index;
 
     array<uint_t, 4> m_grid_position;
@@ -305,8 +306,8 @@ public:
        might be shared among several data fileds)
     */
     GT_FUNCTION
-    iterate_domain(local_domain_t const& local_domain_)
-        : local_domain(local_domain_) {}
+    iterate_domain(local_domain_t const& local_domain_, grid_t const& grid)
+        : local_domain(local_domain_), m_grid(grid) {}
 
     /**
        @brief returns the array of pointers to the raw data
@@ -508,11 +509,11 @@ public:
 //#endif
         double result = onneighbors.value();
 
-//        for (int i = 0; i<neighbors.size(); ++i) {
+        for (int i = 0; i<neighbors.size(); ++i) {
 //            result = onneighbors.reduction()( _evaluate(onneighbors.map(), neighbors[i]), result );
-//        }
+        }
 
-//        return result;
+        return result;
     }
 
     template <typename ValueType
@@ -523,22 +524,22 @@ public:
               , int R
               >
     double operator()(on_neighbors_impl<ValueType, LocationTypeT, Reduction, ro_accessor<I,L,radius<R>>> onneighbors) const {
-//        auto current_position = m_ll_indices;
+        auto current_position = m_grid_position;
 
-//        const auto neighbors = m_grid.neighbors_indices_3(current_position
-//                                                          , location_type()
-//                                                          , onneighbors.location() );
+        const auto neighbors = grid_t::neighbors_indices_3(current_position
+                                                          , location_type_t()
+                                                          , onneighbors.location() );
 //#ifdef _ACCESSOR_H_DEBUG_
 //        std::cout << "Entry point (on accessor)" << current_position << " Neighbors: " << neighbors << std::endl;
 //#endif
 
-//        double result = onneighbors.value();
+        double result = onneighbors.value();
 
-//        for (int i = 0; i<neighbors.size(); ++i) {
-//            result = onneighbors.reduction()( _evaluate(onneighbors.map(), neighbors[i]), result );
-//        }
+        for (int i = 0; i<neighbors.size(); ++i) {
+            result = onneighbors.reduction()( _evaluate(onneighbors.map(), neighbors[i]), result );
+        }
 
-//        return result;
+        return result;
     }
 
 
@@ -802,14 +803,21 @@ public:
 
 //private:
 
-//    template <int I, typename L, int R, typename IndexArray>
-//    double _evaluate(ro_accessor<I,L,radius<R>>, IndexArray const& position) const {
-//#ifdef _ACCESSOR_H_DEBUG_
-//        std::cout << "_evaluate(accessor<I,L>...) " << L() << ", " << position << std::endl;
-//#endif
-//        int offset = m_grid.ll_offset(position, typename accessor<I,L>::location_type());
+    template <int I, typename L, int R, typename IndexArray>
+    double _evaluate(ro_accessor<I,L,radius<R>>, IndexArray const& position) const {
+        typedef ro_accessor<I,L,radius<R>> accessor_t;
+#ifdef _ACCESSOR_H_DEBUG_
+        std::cout << "_evaluate(accessor<I,L>...) " << L() << ", " << position << std::endl;
+#endif
+        int offset = m_grid.ll_offset(position, typename accessor<I,L>::location_type());
+        return get_value(accessor_t(), (data_pointer())
+            [current_storage<
+                (I==0),
+                local_domain_t, typename accessor_t::type >::value
+            ]);
+
 //        return *(boost::fusion::at_c<accessor<I,L>::value>(pointers)+offset);
-//    }
+    }
 
 //    template <typename MapF, typename LT, typename Arg0, typename IndexArray>
 //    double _evaluate(map_function<MapF, LT, Arg0> map, IndexArray const& position) const {

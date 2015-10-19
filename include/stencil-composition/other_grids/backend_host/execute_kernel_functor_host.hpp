@@ -111,7 +111,7 @@ struct execute_kernel_functor_host
         typedef typename iterate_domain_t::strides_cached_t strides_t;
         strides_t strides;
 
-        iterate_domain_t it_domain(m_local_domain);
+        iterate_domain_t it_domain(m_local_domain, m_coords.grid());
 
         it_domain.set_data_pointer_impl(&data_pointer);
         it_domain.set_strides_pointer_impl(&strides);
