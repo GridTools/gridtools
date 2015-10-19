@@ -652,28 +652,17 @@ namespace gridtools {
         //getting information about the storage
         typedef typename Accessor::index_type index_t;
 
-#ifndef CXX11_ENABLED
-        typedef typename boost::remove_reference<typename boost::remove_pointer<BOOST_TYPEOF( (boost::fusion::at
-                                                                                      < index_t>(local_domain.m_local_args)) )>::type>::type storage_type;
-        storage_type* const storage_=
-#else
-        auto const storage_ =
-#endif
-            boost::fusion::at
-            < index_t>(local_domain.m_local_args);
+        typedef local_domain_t::get_storage<index_t>::type storage_t;
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
-#ifdef CXX11_ENABLED
-        using storage_type = typename std::remove_reference<decltype(*storage_)>::type;
-#endif
-        typename storage_type::value_type * RESTRICT real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
+        typename storage_t::value_type * RESTRICT real_storage_pointer=static_cast<typename storage_t::value_type*>(storage_pointer);
 
         //getting information about the metadata
         typedef typename boost::mpl::at
-            <metadata_map_t, typename storage_type::meta_data_t >::type metadata_index_t;
+            <metadata_map_t, typename storage_t::meta_data_t >::type metadata_index_t;
 
-        pointer<const typename storage_type::meta_data_t> const metadata_ = boost::fusion::at
+        pointer<const typename storage_t::meta_data_t> const metadata_ = boost::fusion::at
             < metadata_index_t >(local_domain.m_local_metadata);
         //getting the value
 
