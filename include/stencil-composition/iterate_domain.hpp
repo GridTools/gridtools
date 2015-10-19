@@ -652,7 +652,7 @@ namespace gridtools {
         //getting information about the storage
         typedef typename Accessor::index_type index_t;
 
-        typedef local_domain_t::get_storage<index_t>::type storage_t;
+        typedef typename local_domain_t::template get_storage<index_t>::type storage_t;
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 

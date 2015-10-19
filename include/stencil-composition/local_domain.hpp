@@ -283,14 +283,9 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<mpl_storages>::value > IndexType::value),
                 "Error: Trying to access a storage with index beyond the storages handled by the local domain");
             typedef typename boost::remove_pointer<
-                typename boost::mpl::at<typename local_domain_t::mpl_storages, index_t>::type
+                typename boost::mpl::at<mpl_storages, IndexType>::type
             >::type type;
         };
-
-        typedef typename boost::remove_pointer<
-            typename boost::mpl::at<typename local_domain_t::mpl_storages, index_t>::type
-        >::type storage_t;
-
 
         local_args_type m_local_args;
         local_metadata_type m_local_metadata;
