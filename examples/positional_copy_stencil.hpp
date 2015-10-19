@@ -167,7 +167,7 @@ namespace positional_copy_stencil{
         init->ready();
 
         init->steady();
-        domain.clone_to_gpu();
+        domain.clone_to_device();
         init->run();
 
         init->finalize();
@@ -227,7 +227,7 @@ namespace positional_copy_stencil{
         copy->ready();
 
         copy->steady();
-        domain.clone_to_gpu();
+        domain.clone_to_device();
 
 #ifdef USE_PAPI_WRAP
         pw_stop_collector(collector_init);

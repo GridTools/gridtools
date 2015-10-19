@@ -295,7 +295,7 @@ bool test(uint_t d1, uint_t d2, uint_t d3) {
     vertical_advection->ready();
 
     vertical_advection->steady();
-    domain.clone_to_gpu();
+    domain.clone_to_device();
 
     vertical_advection->run();
 

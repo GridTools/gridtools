@@ -59,10 +59,6 @@ namespace test_iterate_domain{
         typedef arg<2, field<storage_out_type, 2, 2, 2>::type > p_out;
         typedef boost::mpl::vector<p_in, p_buff, p_out> accessor_list;
 
-        in.allocate();
-        buff.allocate();
-        out.allocate();
-
         gridtools::domain_type<accessor_list> domain((p_in() = in),  (p_buff() = buff), (p_out() = out) );
 
         uint_t di[5] = {0, 0, 0, d1-1, d1};
@@ -201,12 +197,22 @@ namespace test_iterate_domain{
         *out.get<0,2>()=20.;
         *out.get<1,2>()=21.;
 
+        //check operator() for runtime data_field arguments
+
         assert(it_domain(accessor<2, range<0,0,0,0>, 4>())==0.);
         assert(it_domain(accessor<2, range<0,0,0,0>, 4>(dimension<3>(1)))==1.);
         assert(it_domain(accessor<2, range<0,0,0,0>, 4>(dimension<4>(1)))==10.);
         assert(it_domain(accessor<2, range<0,0,0,0>, 4>(dimension<4>(1), dimension<3>(1)))==11.);
         assert(it_domain(accessor<2, range<0,0,0,0>, 4>(dimension<4>(2)))==20.);
         assert(it_domain(accessor<2, range<0,0,0,0>, 4>(dimension<4>(2), dimension<3>(1)))==21.);
+
+
+        assert(it_domain(accessor<2, range<0,0,0,0>, 4>(0,0,0,0) ) == 0.);
+        assert(it_domain(accessor<2, range<0,0,0,0>, 4>(0,0,1,0) ) == 1.);
+        assert(it_domain(accessor<2, range<0,0,0,0>, 4>(0,0,0,1) ) == 10.);
+        assert(it_domain(accessor<2, range<0,0,0,0>, 4>(0,0,1,1) ) == 11.);
+        assert(it_domain(accessor<2, range<0,0,0,0>, 4>(0,0,0,2) ) == 20.);
+        assert(it_domain(accessor<2, range<0,0,0,0>, 4>(0,0,1,2) ) == 21.);
 
         //check index initialization and increment
 

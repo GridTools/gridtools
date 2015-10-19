@@ -123,7 +123,7 @@ struct execute_kernel_functor_cuda
         }
 #endif
 
-        m_coords.clone_to_gpu();
+        m_coords.clone_to_device();
 
         local_domain_t *local_domain_gp = m_local_domain.gpu_object_ptr;
 

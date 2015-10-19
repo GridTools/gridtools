@@ -144,11 +144,14 @@ namespace gridtools {
         friend std::ostream& operator<<(std::ostream &, base_storage<T, M, F> const & );
 
         /**@brief the parallel storage calls the empty constructor to do lazy initialization*/
-        base_storage(MetaData const & meta_data_) :
+        base_storage(MetaData const & meta_data_, bool do_allocate=true) :
             is_set( false )
             , m_name("default_storage")
             , m_meta_data(meta_data_)
-        {}
+        {
+            if (do_allocate)
+                allocate();
+        }
 
         /**
            @brief 3D storage constructor

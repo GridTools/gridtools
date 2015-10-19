@@ -76,8 +76,13 @@ namespace gridtools {
 
     public:
 
+#ifdef CXX11_ENABLED
         template <uint_t T, typename U, bool B, typename ... D>
         friend std::ostream& operator<<(std::ostream &, meta_storage_base<T,U,B,D...> const & );
+#else
+        template <uint_t T, typename U, bool B, typename T1, typename T2>
+        friend std::ostream& operator<<(std::ostream &, meta_storage_base<T,U,B,T1,T2> const & );
+#endif
 
 #ifdef CXX11_ENABLED
         /**

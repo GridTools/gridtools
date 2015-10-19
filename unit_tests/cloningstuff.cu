@@ -81,13 +81,13 @@ namespace cloningstuff_test {
         a.p.update_gpu();
 
         // Clone a (and b_object) to gpu
-        a.clone_to_gpu();
+        a.clone_to_device();
 
 #ifdef __CUDACC__
         test<<<1,1>>>(a.gpu_object_ptr);
         cudaDeviceSynchronize();
 #endif
-        a.clone_from_gpu();
+        a.clone_from_device();
 
         bool result = true;
 

@@ -10,9 +10,8 @@
 #include "../common/host_device.hpp"
 #include "../common/defs.hpp"
 #ifdef CXX11_ENABLED
-#include <tuple>
-#endif
 #include "generic_metafunctions/gt_get.hpp"
+#endif
 
 /**
    @file
