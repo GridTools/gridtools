@@ -4,6 +4,8 @@
 #include "../common/gt_assert.hpp"
 
 #include <stdio.h>
+#include <boost/fusion/include/as_vector.hpp>
+#include <boost/fusion/container/vector/convert.hpp>
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/include/push_back.hpp>
 #include <boost/fusion/include/value_at.hpp>
@@ -26,15 +28,39 @@
 #include "domain_type_impl.hpp"
 #include "../storage/metadata_set.hpp"
 #include "../common/generic_metafunctions/static_if.hpp"
+#include "../common/generic_metafunctions/lazy_range.hpp"
 
 /**@file
- @brief This file contains the global list of placeholders to the storages
+   @brief This file contains the global list of placeholders to the storages
 */
 namespace gridtools {
 
     //fwd declaration
     template<typename T>
     struct is_arg;
+
+
+    struct sort_struct{
+        template<typename T1, typename T2>
+        struct apply ;
+
+        template<typename T1, typename T2, typename T3, typename T4>
+        struct apply <arg_storage_pair<T1, T2>, arg_storage_pair<T3, T4> > : public
+        boost::mpl::bool_< (T1::index_type::value < T3::index_type::value) >
+        {};
+
+        template<ushort_t I1, typename T1, ushort_t I2, typename T2>
+        struct apply <arg<I1, T1>, arg<I2, T2> > : public
+        boost::mpl::bool_< (I1 < I2) >
+        {};
+
+        template<typename T, T T1, T T2>
+        struct apply <boost::mpl::integral_c<T, T1>, boost::mpl::integral_c<T, T2> > : public
+        boost::mpl::bool_<  (T1 < T2)
+            >
+        {};
+    };
+
 
     /**
        @brief This struct contains the global list of placeholders to the storages
@@ -51,7 +77,7 @@ namespace gridtools {
     template <typename Placeholders>
     struct domain_type : public clonable_to_gpu<domain_type<Placeholders> > {
 
-        typedef Placeholders placeholders_t;
+        typedef typename boost::mpl::sort<Placeholders, sort_struct >::type placeholders_t;
 
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<placeholders_t, is_arg>::type::value), "wrong type:\
  the domain_type template argument must be an MPL vector of placeholders (arg<...>)");
@@ -281,10 +307,10 @@ You have to define each arg with a unique identifier ranging from 0 to N without
             template <typename Arg>
             void operator()( Arg const* arg_) const{
                 // filter out the arguments which are not of storage type (and thus do not have an associated metadata)
-                pointer<const typename Arg::meta_data_t> ptr(&(arg_->meta_data()));
                 static_if<is_storage<Arg>::type::value>::eval(
-                    insert_if_not_present<Sequence, pointer<const typename Arg::meta_data_t> >
-                    (m_sequence, ptr)
+                    insert_if_not_present<Sequence, Arg >
+                    (m_sequence
+                     , *arg_)
                     , empty());
 
             }

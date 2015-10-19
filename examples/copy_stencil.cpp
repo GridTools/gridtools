@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include "copy_stencil.hpp"
+#include "Options.hpp"
 
 int main(int argc, char** argv)
 {

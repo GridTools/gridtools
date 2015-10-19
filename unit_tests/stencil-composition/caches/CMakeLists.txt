@@ -24,4 +24,3 @@ if(USE_GPU)
 
     gridtools_add_test(tests.caches_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/cache_tests_cuda")
 endif(USE_GPU)
-

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <stencil-composition/make_computation.hpp>
-#include "Options.hpp"
 
 /**
   @file

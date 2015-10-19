@@ -20,8 +20,9 @@ if (GTEST_FOUND)
         tests.cpp
         test_domain_indices.cpp
         boundary_conditions_test.cpp
+        test_bc.cpp
     )
-    set(CXX11_TESTS test_local_domain.cpp test-assign-placeholders.cpp test_data_fields.cpp test_integer_sequence.cpp)
+    set(CXX11_TESTS test_local_domain.cpp test-assign-placeholders.cpp storage/test_data_fields.cpp test_integer_sequence.cpp)
 
     if ( ENABLE_CXX11 )
       set(CXX11_TESTS ${CXX11_TESTS} stencil-composition/test_staggered_keyword.cpp)

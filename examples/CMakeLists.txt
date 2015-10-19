@@ -41,9 +41,8 @@ if ( ENABLE_CXX11 )
         add_executable(copy_stencil_parallel  copy_stencil_parallel.cpp)
         target_link_libraries(copy_stencil_parallel gcl ${ADD_MPI_LIBS} ${exe_LIBS})
         set_target_properties(copy_stencil_parallel PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+     endif()
 endif()
-
-  endif()
 
 if(CUDA_FOUND)
     if(COMPILE_TO_PTX)
@@ -60,13 +59,13 @@ if(CUDA_FOUND)
      endif()
 
     if( ENABLE_CXX11 )
+        if( GCL_MPI )
+          cuda_add_executable(shallow_water_enhanced_cuda  shallow_water_enhanced.cu OPTIONS )
+          target_link_libraries(shallow_water_enhanced_cuda ${exe_LIBS}  gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS})
 
-    cuda_add_executable(shallow_water_enhanced_cuda  shallow_water_enhanced.cu OPTIONS )
-    target_link_libraries(shallow_water_enhanced_cuda ${exe_LIBS}  gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS})
-
-    cuda_add_executable(copy_stencil_parallel_cuda  copy_stencil_parallel.cu)
-    target_link_libraries(copy_stencil_parallel_cuda ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} )
-
+          cuda_add_executable(copy_stencil_parallel_cuda  copy_stencil_parallel.cu)
+          target_link_libraries(copy_stencil_parallel_cuda ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} )
+        endif()
     endif()
 endif()
 

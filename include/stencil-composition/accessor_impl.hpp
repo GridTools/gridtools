@@ -27,6 +27,15 @@ namespace gridtools {
     template <uint_t I, typename T>
     struct arg;
 
+    template <uint_t I>
+    struct generic_accessor{
+
+        typedef generic_accessor<I> type;
+        // static const ushort_t n_dim=Dim;
+        typedef static_uint<I> index_type;
+        // typedef Range range_type;
+    };
+
     /**
      * @brief Type to be used in elementary stencil functions to specify argument mapping and ranges
      *

@@ -28,7 +28,7 @@
   For an exhaustive description of the shallow water problem refer to: http://www.mathworks.ch/moler/exm/chapters/water.pdf
 
   NOTE: It is the most human readable and efficient solution among the versions implemented, but it must be compiled for the host, with Clang or GCC>=4.9, and with C++11 enabled
- */
+*/
 
 // [namespaces]
 using namespace gridtools;
@@ -37,15 +37,16 @@ using namespace expressions;
 // [namespaces]
 
 namespace shallow_water{
-// This is the definition of the special regions in the "vertical" direction
-// [intervals]
+    // This is the definition of the special regions in the "vertical" direction
+    // [intervals]
     typedef interval<level<0,-1>, level<1,-1> > x_interval;
     typedef interval<level<0,-2>, level<1,1> > axis;
-// [intervals]
+    // [intervals]
 
-// [functor_traits]
+    // [functor_traits]
     /**@brief This traits class defined the necessary typesand functions used by all the functors defining the shallow water model*/
     struct functor_traits{
+
         //! [dimension]
         typedef dimension<5> comp;
         //! [dimension]
@@ -67,14 +68,15 @@ namespace shallow_water{
         static x::Index i;
         static y::Index j;
         //! [index]
+
         typedef decltype(i) i_t;        typedef decltype(j) j_t;
 
     };
     functor_traits::i_t functor_traits::i;
     functor_traits::j_t functor_traits::j;
-// [functor_traits]
+    // [functor_traits]
 
-// [boundary_conditions]
+
     template<uint_t Component=0, uint_t Snapshot=0>
     struct bc_periodic : functor_traits {
         // periodic boundary conditions in I
@@ -316,9 +318,9 @@ namespace shallow_water{
 
     uint_t final_step::current_time=0;
 
-/*
- * The following operators and structs are for debugging only
- */
+    /*
+     * The following operators and structs are for debugging only
+     */
     std::ostream& operator<<(std::ostream& s, flux_x const) {
         return s << "initial step 1: ";
         // initiali_step.to_string();
@@ -328,9 +330,9 @@ namespace shallow_water{
         return s << "initial step 2: ";
     }
 
-/*
- * The following operators and structs are for debugging only
- */
+    /*
+     * The following operators and structs are for debugging only
+     */
     std::ostream& operator<<(std::ostream& s, final_step const) {
         return s << "final step";
     }
@@ -504,17 +506,6 @@ namespace shallow_water{
 
         for (;final_step::current_time < total_time; ++final_step::current_time)
         {
-#ifdef CUDA_EXAMPLE
-            /*                        component,snapshot */
-//             boundary_apply_gpu< bc_reflective<0,0> >(halos, bc_reflective<0,0>()).apply(sol);
-//             boundary_apply_gpu< bc_reflective<1,0> >(halos, bc_reflective<1,0>()).apply(sol);
-//             boundary_apply_gpu< bc_reflective<2,0> >(halos, bc_reflective<2,0>()).apply(sol);
-#else
-            /*                    component,snapshot */
-//             boundary_apply< bc_reflective<0,0> >(halos, bc_reflective<0,0>()).apply(sol);
-//             boundary_apply< bc_reflective<1,0> >(halos, bc_reflective<1,0>()).apply(sol);
-//             boundary_apply< bc_reflective<2,0> >(halos, bc_reflective<2,0>()).apply(sol);
-#endif
 //! [exchange]
             //std::vector<pointer_type::pointee_t*> vec={sol.fields()[0].get(), sol.fields()[1].get(), sol.fields()[2].get()};
             std::vector<pointer_type::pointee_t*> vec(3);
@@ -546,7 +537,6 @@ namespace shallow_water{
                 if(PID==0)
                     std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
 #endif
-
         }
 
 //! [finalize]
@@ -557,8 +547,8 @@ namespace shallow_water{
         GCL_Finalize();
 
         bool retval=true;
-
 //! [finalize]
+
 #ifndef NDEBUG
         myfile<<"############## SOLUTION ################"<<std::endl;
         sol.print(myfile);
