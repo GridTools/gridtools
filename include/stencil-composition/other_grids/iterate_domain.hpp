@@ -510,7 +510,7 @@ public:
         double result = onneighbors.value();
 
         for (int i = 0; i<neighbors.size(); ++i) {
-//            result = onneighbors.reduction()( _evaluate(onneighbors.map(), neighbors[i]), result );
+            result = onneighbors.reduction()( _evaluate(onneighbors.map(), neighbors[i]), result );
         }
 
         return result;
@@ -600,6 +600,36 @@ public:
 
         return *(real_storage_pointer+metadata_->index(m_grid_position));
     }
+
+    template <typename Accessor, typename StoragePointer>
+    GT_FUNCTION
+    typename accessor_return_type<Accessor>::type::value_type& RESTRICT
+    get_raw_value(Accessor const& accessor , StoragePointer & RESTRICT storage_pointer, const uint_t offset) const {
+
+        //getting information about the storage
+        typedef typename Accessor::index_type index_t;
+
+#ifndef CXX11_ENABLED
+        typedef typename boost::remove_reference<typename boost::remove_pointer<BOOST_TYPEOF( (boost::fusion::at
+                                                                                      < index_t>(local_domain.m_local_args)) )>::type>::type storage_type;
+        storage_type* const storage_=
+#else
+        auto const storage_ =
+#endif
+            boost::fusion::at
+            < index_t>(local_domain.m_local_args);
+
+        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
+
+#ifdef CXX11_ENABLED
+        using storage_type = typename std::remove_reference<decltype(*storage_)>::type;
+#endif
+        typename storage_type::value_type * RESTRICT real_storage_pointer=
+                static_cast<typename storage_type::value_type*>(storage_pointer);
+
+        return *(real_storage_pointer+offset);
+    }
+
 
 //private:
 
@@ -804,19 +834,16 @@ public:
 //private:
 
     template <int I, typename L, int R, typename IndexArray>
+    //TODO return the right value, instead of double
     double _evaluate(ro_accessor<I,L,radius<R>>, IndexArray const& position) const {
         typedef ro_accessor<I,L,radius<R>> accessor_t;
 #ifdef _ACCESSOR_H_DEBUG_
         std::cout << "_evaluate(accessor<I,L>...) " << L() << ", " << position << std::endl;
 #endif
         int offset = m_grid.ll_offset(position, typename accessor<I,L>::location_type());
-        return get_value(accessor_t(), (data_pointer())
-            [current_storage<
-                (I==0),
-                local_domain_t, typename accessor_t::type >::value
-            ]);
 
-//        return *(boost::fusion::at_c<accessor<I,L>::value>(pointers)+offset);
+        return get_raw_value(accessor_t(), (data_pointer())[current_storage<(I==0)
+                , local_domain_t, typename accessor_t::type >::value], offset);
     }
 
 //    template <typename MapF, typename LT, typename Arg0, typename IndexArray>
