@@ -78,6 +78,7 @@ cd build;
 # full path to the virtual environment where the Python tests run
 #
 VENV_PATH=${HOME}/venv_gridtools4py
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD:${VENV_PATH}/lib/python3.4/site-packages/PySide-1.2.2-py3.4-linux-x86_64.egg/PySide
 
 if [ "x$TARGET" == "xgpu" ]; then
   export USE_GPU=ON
