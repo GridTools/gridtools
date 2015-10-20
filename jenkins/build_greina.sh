@@ -3,7 +3,6 @@
 function exit_if_error {
     if [ "x$1" != "x0" ]
     then
-        cat /tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}.log;
         echo "Exit with errors"
         rm -rf *
         exit $1
@@ -148,14 +147,15 @@ cmake \
 
 exit_if_error $?
 
-make -j8;
-
-exit_if_error $?
-
-echo /tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}.log
+log_file="/tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}.log"
+echo "Log file /tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}.log"
 if [[ "$SILENT_BUILD" == "ON" ]]; then
-    make -j8  >& /tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}.log;
-    exit_if_error $?
+    make -j8  >& ${log_file};
+    error_code=$?
+    if [ ${error_code} -ne 0 ]; then
+        cat ${log_file};
+        exit_if_error ${error_code}
+    fi
 else
     make -j8
     exit_if_error $?
