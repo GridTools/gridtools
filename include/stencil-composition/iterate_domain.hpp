@@ -739,8 +739,7 @@ namespace gridtools {
         //i+offset_i or j+offset_j or k+offset_k is too large.
         //Most probably this is due to you specifying a positive offset which is larger than expected,
         //or maybe you did a mistake when specifying the ranges in the placehoders definition
-        assert(metadata_->size() >  m_index[// Accessor::index_type::value
-                   metadata_index_t::value ]
+        assert(metadata_->size() > m_index[metadata_index_t::value ]
                + metadata_
                ->_index(strides().template get<metadata_index_t::value>(), accessor)
             );
@@ -754,15 +753,13 @@ namespace gridtools {
         // If you are running a parallel simulation another common reason for this to happen is
         // the definition of an halo region which is too small in one direction
         // std::cout<<"Storage Index: "<<Accessor::index_type::value<<" + "<<(boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))->_index(arg.template n<Accessor::n_dim>())<<std::endl;
-        assert( (int_t)(m_index[metadata_index_t::value // Accessor::index_type::value
-                            ])
+        assert( (int_t)(m_index[metadata_index_t::value])
                 + metadata_
                 ->_index(strides().template get<metadata_index_t::value>(), accessor)
                 >= 0);
 
         return *(real_storage_pointer
-                 +(m_index[metadata_index_t::value // Accessor::index_type::value
-                       ])
+                 +(m_index[metadata_index_t::value])
                  +metadata_
                  ->_index(strides().template get<metadata_index_t::value>(), accessor)
             );

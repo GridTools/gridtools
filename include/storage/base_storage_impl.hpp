@@ -64,7 +64,7 @@ namespace gridtools{
             }
         };
 
-/**@brief specialization to stop the recursion*/
+        /**@brief specialization to stop the recursion*/
         template< int_t MaxIndex,  typename Layout>
         struct assign_strides<0, MaxIndex, Layout>{
             template<typename ... UIntType>
@@ -76,7 +76,7 @@ namespace gridtools{
         };
 #endif
 
-/**@brief struct to compute the total offset (the sum of the i,j,k indices times their respective strides)
+        /**@brief struct to compute the total offset (the sum of the i,j,k indices times their respective strides)
  */
         template<ushort_t Id, typename Layout>
         struct compute_offset{
@@ -92,7 +92,7 @@ namespace gridtools{
             }
 
 #ifdef CXX11_ENABLED
-            /**interface with an the coordinates as variadic arguments
+            /**interface with the coordinates as variadic arguments
                \param strides the strides
                \param indices comma-separated list of coordinates
             */
@@ -109,6 +109,7 @@ namespace gridtools{
             template<typename Tuple, typename StridesVector>
             GT_FUNCTION
             static constexpr int_t apply(StridesVector const& RESTRICT strides_, Tuple const&  indices_){
+                // auto sum_ = indices_ + pad;
                 return (int_t)strides_[space_dimensions-Id]*Layout::template find_val<space_dimensions-Id, int, 0>(indices_)+compute_offset<Id-1, Layout>::apply(strides_, indices_ );
             }
 

@@ -2,6 +2,10 @@
 
 #include "../common/gpu_clone.hpp"
 #include "meta_storage_tmp.hpp"
+#include "meta_storage_aligned.hpp"
+#include "align.hpp"
+#include "padding.hpp"
+//#include "../common/generic_metafunctions/repeat_template.hpp"
 
 /**
    @file
@@ -18,68 +22,72 @@
    meta_storage_base is lost (this can be easily avoided on the host)
 */
 namespace gridtools{
-template < typename BaseStorage >
-struct meta_storage_derived : public BaseStorage, clonable_to_gpu<meta_storage_derived<BaseStorage> >{
 
-    static const bool is_temporary=BaseStorage::is_temporary;
-    typedef BaseStorage super;
-    typedef typename BaseStorage::basic_type basic_type;
-    typedef typename BaseStorage::index_type index_type;
-    typedef meta_storage_derived<BaseStorage> original_storage;
-    typedef clonable_to_gpu<meta_storage_derived<BaseStorage> > gpu_clone;
 
-    /** @brief copy ctor
+    template<ushort_t ... T>
+    struct padding;
 
-        forwarding to the base class
-    */
-    __device__
-    meta_storage_derived(BaseStorage const& other)
-        :  super(other)
+    template < typename BaseStorage >
+    struct meta_storage_derived : public BaseStorage, clonable_to_gpu<meta_storage_derived<BaseStorage> >{
+
+        static const bool is_temporary=BaseStorage::is_temporary;
+        typedef BaseStorage super;
+        typedef typename BaseStorage::basic_type basic_type;
+        typedef typename BaseStorage::index_type index_type;
+        typedef meta_storage_derived<BaseStorage> original_storage;
+        typedef clonable_to_gpu<meta_storage_derived<BaseStorage> > gpu_clone;
+
+        /** @brief copy ctor
+
+            forwarding to the base class
+        */
+        __device__
+        meta_storage_derived(BaseStorage const& other)
+            :  super(other)
         {}
 
 #if defined(CXX11_ENABLED)
-    /** @brief ctor
+        /** @brief ctor
 
-        forwarding to the base class
-    */
-    template <class ... UIntTypes>
-    explicit meta_storage_derived(  UIntTypes const& ... args ): super(args ...)
+            forwarding to the base class
+        */
+        template <class ... UIntTypes>
+        explicit meta_storage_derived(  UIntTypes const& ... args ): super(args ...)
         {
         }
 #else
-    //constructor picked in absence of CXX11 or with GCC<4.9
-    /** @brief ctor
+        //constructor picked in absence of CXX11 or with GCC<4.9
+        /** @brief ctor
 
-        forwarding to the base class
-    */
-    explicit meta_storage_derived(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3): super(dim1, dim2, dim3) {}
+            forwarding to the base class
+        */
+        explicit meta_storage_derived(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3): super(dim1, dim2, dim3) {}
 
-    /** @brief ctor
+        /** @brief ctor
 
-        forwarding to the base class
-    */
-    meta_storage_derived( uint_t const& initial_offset_i,
-                          uint_t const& initial_offset_j,
-                          uint_t const& dim3,
-                          uint_t const& n_i_threads,
-                          uint_t const& n_j_threads)
-        : super(initial_offset_i, initial_offset_j, dim3, n_i_threads, n_j_threads){}
+            forwarding to the base class
+        */
+        meta_storage_derived( uint_t const& initial_offset_i,
+                              uint_t const& initial_offset_j,
+                              uint_t const& dim3,
+                              uint_t const& n_i_threads,
+                              uint_t const& n_j_threads)
+            : super(initial_offset_i, initial_offset_j, dim3, n_i_threads, n_j_threads){}
 #endif
 
 #ifndef __CUDACC__
-private:
+    private:
 #endif
-    /** @brief empty ctor
+        /** @brief empty ctor
 
-        should never be called
-        (only by nvcc because it does not compile the parallel_storage CXX11 version)
-    */
-    explicit meta_storage_derived(): super(){}
+            should never be called
+            (only by nvcc because it does not compile the parallel_storage CXX11 version)
+        */
+        explicit meta_storage_derived(): super(){}
 
-};
+    };
 
 
-#ifdef CXX11_ENABLED
     /**
        @brief syntactic sugar for the metadata type definition
 
@@ -95,19 +103,90 @@ private:
 
        NOTE: the information specified here will be used at a later stage
        to define the storage meta information (the meta_storage_base type)
-     */
+    */
+#ifdef CXX11_ENABLED
     template < ushort_t Index
                , typename Layout
+               , typename AlignmentBoundary=aligned<0>
+               , typename Padding=padding<0,0,0>//repeat_template_c<0, Layout::length, padding>
                >
-    using storage_info = meta_storage_derived<meta_storage_base<Index, Layout, false > >;
+    using storage_info = meta_storage_derived<meta_storage_aligned<meta_storage_base<Index, Layout, false>, AlignmentBoundary, Padding > >;
+
+
+    // template < ushort_t Index
+    //            , typename Layout
+    //            , typename ... ExtraArgs
+    //            >
+    // struct storage_info;
+
+
+    // template < ushort_t Index
+    //            , typename Layout
+    //            >
+    // struct storage_info<Index, Layout> : public meta_storage_derived<meta_storage_base<Index, Layout, false> > {
+
+    //     typedef meta_storage_derived<meta_storage_base<Index, Layout, false> > super;
+
+    //     storage_info(uint_t const& d1, uint_t const& d2, uint_t const& d3) : super(d1,d2,d3){}
+
+    //     GT_FUNCTION
+    //     storage_info(storage_info const& t) : super(t){}
+    // };
+
+
+    // template < ushort_t Index
+    //            , typename Layout
+    //            , typename AlignmentBundary
+    //            , typename Padding
+    //            >
+    // struct storage_info<Index, Layout, AlignmentBoundary, Padding> :
+    //     public meta_storage_derived<
+    //     meta_storage_aligned<meta_storage_base<Index, Layout, false>
+    //                          , AlignmentBoundary
+    //                          , Padding> >
+    // {
+    //     typedef meta_storage_derived<
+    //         meta_storage_aligned<meta_storage_base<Index, Layout, false>
+    //                              , AlignmentBoundary
+    //                              , Padding> >  super;
+
+    //     storage_info(uint_t const& d1, uint_t const& d2, uint_t const& d3) : super(d1,d2,d3){}
+
+    //     GT_FUNCTION
+    //     storage_info(storage_info const& t) : super(t){}
+    // };
+
 #else
 
+    // template < ushort_t Index
+    //            , typename Layout
+    //            >
+    // struct storage_info : public meta_storage_derived<meta_storage_base<Index, Layout, false, AlignmentBoundary, Padding> > {
+
+    //     typedef meta_storage_derived<meta_storage_base<Index, Layout, false, AlignmentBoundary, Padding> > super;
+
+    //     storage_info(uint_t const& d1, uint_t const& d2, uint_t const& d3) : super(d1,d2,d3){}
+
+    //     GT_FUNCTION
+    //     storage_info(storage_info const& t) : super(t){}
+    // };
+
+
     template < ushort_t Index
                , typename Layout
+               , typename AlignmentBundary = aligned<0>
+               , typename Padding = padding<0,0,0>
                >
-    struct storage_info : public meta_storage_derived<meta_storage_base<Index, Layout, false> > {
-
-        typedef meta_storage_derived<meta_storage_base<Index, Layout, false> > super;
+    struct storage_info<Index, Layout, AlignmentBoundary, Padding> :
+        public meta_storage_derived<
+        meta_storage_aligned<meta_storage_base<Index, Layout, false>
+                             , AlignmentBoundary
+                             , Padding> >
+    {
+        typedef meta_storage_derived<
+            meta_storage_aligned<meta_storage_base<Index, Layout, false>
+                                 , AlignmentBoundary
+                                 , Padding> >  super;
 
         storage_info(uint_t const& d1, uint_t const& d2, uint_t const& d3) : super(d1,d2,d3){}
 
@@ -122,6 +201,9 @@ private:
     @{
 */
 
+    template <typename T>
+    struct is_meta_storage;
+
     template< typename Storage>
     struct is_meta_storage<meta_storage_derived<Storage> > : boost::mpl::true_{};
 
@@ -135,7 +217,7 @@ private:
     template<ushort_t Index, typename Layout, bool IsTemporary, typename ... Whatever>
     struct is_meta_storage<meta_storage_base<Index, Layout, IsTemporary, Whatever...> > : boost::mpl::true_{};
 #else
-    template<ushort_t Index, typename Layout, bool IsTemporary, typename TileI, typename TileJ>
+    template<ushort_t Index, typename Layout, bool IsTemporary, AlignmentBoundary, typename Padding, typename TileI, typename TileJ>
     struct is_meta_storage<meta_storage_base<Index, Layout, IsTemporary, TileI, TileJ> > : boost::mpl::true_{};
 
     template < ushort_t Index

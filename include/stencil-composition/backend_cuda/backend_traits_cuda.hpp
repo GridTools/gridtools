@@ -50,10 +50,10 @@ namespace gridtools{
 
            the storage info type is meta_storage_derived, which is clonable to GPU.
          */
-        template <typename MetaData, bool Temp>
+        template <typename MetaData, bool Temp, typename Padding >
         struct meta_storage_traits{
             GRIDTOOLS_STATIC_ASSERT((is_meta_storage<MetaData>::value), "wrong type for the storage_info");
-            typedef meta_storage_derived<meta_storage_base<MetaData::index_type::value, typename MetaData::layout, Temp> > type;
+            typedef meta_storage_derived<meta_storage_aligned<meta_storage_base<MetaData::index_type::value, typename MetaData::layout, Temp>, 32, Padding> > type;
         };
 
         template <typename Arguments>

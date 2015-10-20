@@ -57,7 +57,7 @@ namespace gridtools{
         };
 
         //NOTE: this part is (and should remain) an exact copy-paste in the naive, block, host and cuda versions
-        template <typename Index, typename Layout
+        template <typename Index, typename Layout, typename Padding
 #ifdef CXX11_ENABLED
                   , typename ... Tiles
 #else
@@ -73,6 +73,7 @@ namespace gridtools{
             GRIDTOOLS_STATIC_ASSERT((is_tile<TileI>::value && is_tile<TileJ>::value), "wrong type for the tiles");
 #endif
             typedef meta_storage_derived
+            <meta_storage_aligned
             <meta_storage_base
             <Index::value, Layout, true,
 #ifdef CXX11_ENABLED
@@ -80,6 +81,9 @@ namespace gridtools{
 #else
              TileI, TileJ
 #endif
+             >,
+             aligned<32> ,//alignment boundary
+             Padding
              > > type;
         };
 
@@ -107,7 +111,8 @@ namespace gridtools{
                 base_storage
 #endif
                 <typename Storage::pointer_type, typename get_tmp_storage_info
-                 <typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout,
+                 <typename Storage::meta_data_t::index_type
+                  , typename Storage::meta_data_t::layout
 #ifdef CXX11_ENABLED
                   Tiles ...
 #else

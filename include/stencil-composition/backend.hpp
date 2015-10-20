@@ -25,6 +25,7 @@
 #include "../common/meta_array.hpp"
 #include "tile.hpp"
 #include "../storage/meta_storage.hpp"
+#include "../storage/padding.hpp"
 
 /**
    @file
@@ -135,13 +136,14 @@ namespace gridtools {
         typedef uint_t (*query_i_threads_f)(uint_t);
         typedef uint_t (*query_j_threads_f)(uint_t);
 
-        template <typename ValueType, typename MetaDataType>
+        template <typename ValueType, typename MetaDataType, typename Padding=padding<0,0,0> >
         struct storage_type {
             GRIDTOOLS_STATIC_ASSERT(is_meta_storage<MetaDataType>::value, "wrong type for the meta storage");
+            GRIDTOOLS_STATIC_ASSERT(is_padding<Padding>::value, "wrong type for the padding");
 
             typedef typename backend_traits_t::template storage_traits
             <ValueType
-             , typename backend_traits_t::template meta_storage_traits<MetaDataType, false>::type
+             , typename backend_traits_t::template meta_storage_traits<MetaDataType, false, Padding>::type
              , false>::storage_t type;
         };
 
@@ -154,16 +156,18 @@ namespace gridtools {
          * instantiation of the actual storage type). If on the contrary multiple ESFs are not fused, a "standard"
          * storage type will be enough.
          */
-        template <typename ValueType, typename MetaDataType>
+        template <typename ValueType, typename MetaDataType, typename Padding=padding<0,0,0> >
         struct temporary_storage_type
         {
             GRIDTOOLS_STATIC_ASSERT(is_meta_storage<MetaDataType>::value, "wrong type for the meta storage");
+            GRIDTOOLS_STATIC_ASSERT(is_padding<Padding>::value, "wrong type for the padding");
+
             /** temporary storage must have the same iterator type than the regular storage
              */
         private:
             typedef typename backend_traits_t::template storage_traits<
             ValueType
-            , typename backend_traits_t::template meta_storage_traits<MetaDataType, true>::type
+            , typename backend_traits_t::template meta_storage_traits<MetaDataType, true, Padding>::type
             , true>::storage_t temp_storage_t;
         public:
             typedef typename boost::mpl::if_<

@@ -1,6 +1,7 @@
 #pragma once
 #include "base_storage_impl.hpp"
 #include "../common/array.hpp"
+#include "../common/generic_metafunctions/all_integrals.hpp"
 
 /**
    @file
@@ -69,6 +70,8 @@ namespace gridtools {
         static const ushort_t n_width = 1;
         static const ushort_t space_dimensions = layout::length;
 
+
+
     protected:
 
          array<int_t, space_dimensions> m_dims;
@@ -85,11 +88,6 @@ namespace gridtools {
 #endif
 
 #ifdef CXX11_ENABLED
-        /**
-           SFINAE for the case in which all the components of a parameter pack are of integral type
-         */
-        template <typename ... IntTypes>
-        using all_integers=typename boost::enable_if_c<accumulate(logical_and(),  boost::is_integral<IntTypes>::type::value ... ), bool >::type;
 
         /**
            @brief empty constructor
@@ -281,6 +279,38 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
             GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(),  boost::is_integral<UInt>::type::value ...), "you have to pass in arguments of uint_t type");
             return _impl::compute_offset<space_dimensions, layout>::apply(strides_, dims ...);
         }
+
+        // typename <Array>
+        // struct subtract_padding_functor{
+
+        //     subtract_padding_functor(Array const& _) :
+        //     m_dims(array_)
+        //     {}
+
+        //     template<typenmae Id>
+        //     operator ()(Id id_){
+        //         m_dims[Id::value] -= boost::mpl::at<Id, padding_t>
+        //     }
+        // private:
+        //     Array& m_dims;
+        // };
+
+        // /**
+        //    @brief computing index to access the storage in the coordinates passed as parameters.
+
+        //    This method must be called with integral type parameters, and the result will be a positive integer.
+        // */
+        // template <typename StridesVector, typename ... UInt>
+        // GT_FUNCTION
+        // constexpr
+        // static uint_t _index(StridesVector const& RESTRICT strides_, UInt const& ... dims) {
+        //     GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(),  boost::is_integral<UInt>::type::value ...), "you have to pass in arguments of uint_t type");
+        //     array<sizeof ... (UInt)> dims_{dims ...};
+
+        //     boost::mpl::for_each<range_c<uint_t, 0, sizeof ... (UInt)>
+        //                          ( subtract_padding_functor(dims_)) ;
+        //     return _impl::compute_offset<space_dimensions, layout>::apply(strides_, &dims_[0]);
+        // }
 #endif
 
         /**
@@ -347,7 +377,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
 #ifdef CXX11_ENABLED
                 GRIDTOOLS_STATIC_ASSERT(StridesVector::size()==space_dimensions-1, "error: trying to compute the storage index using strides from another storages which does not have the same space dimensions. Sre you explicitly initializing the iteration space by calling base_storage::initialize?");
 #endif
-                    *index_+=strides<Coordinate>(strides_)*steps_;
+                *index_+=strides<Coordinate>(strides_)*(steps_);
             }
         }
 
