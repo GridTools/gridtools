@@ -136,7 +136,7 @@ namespace gridtools {
         typedef uint_t (*query_i_threads_f)(uint_t);
         typedef uint_t (*query_j_threads_f)(uint_t);
 
-        template <typename ValueType, typename MetaDataType, typename Padding=padding<0,0,0> >
+        template <typename ValueType, typename MetaDataType, typename Padding=typename repeat_template_c<0, MetaDataType::layout::length, padding>::type >
         struct storage_type {
             GRIDTOOLS_STATIC_ASSERT(is_meta_storage<MetaDataType>::value, "wrong type for the meta storage");
             GRIDTOOLS_STATIC_ASSERT(is_padding<Padding>::value, "wrong type for the padding");
@@ -156,7 +156,7 @@ namespace gridtools {
          * instantiation of the actual storage type). If on the contrary multiple ESFs are not fused, a "standard"
          * storage type will be enough.
          */
-        template <typename ValueType, typename MetaDataType, typename Padding=padding<0,0,0> >
+        template <typename ValueType, typename MetaDataType, typename Padding=typename repeat_template_c<0, MetaDataType::layout::length, padding>::type >
         struct temporary_storage_type
         {
             GRIDTOOLS_STATIC_ASSERT(is_meta_storage<MetaDataType>::value, "wrong type for the meta storage");
