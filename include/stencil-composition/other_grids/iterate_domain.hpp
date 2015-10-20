@@ -837,9 +837,6 @@ public:
     //TODO return the right value, instead of double
     double _evaluate(ro_accessor<I,L,radius<R>>, IndexArray const& position) const {
         typedef ro_accessor<I,L,radius<R>> accessor_t;
-#ifdef _ACCESSOR_H_DEBUG_
-        std::cout << "_evaluate(accessor<I,L>...) " << L() << ", " << position << std::endl;
-#endif
         int offset = m_grid.ll_offset(position, typename accessor<I,L>::location_type());
 
         return get_raw_value(accessor_t(), (data_pointer())[current_storage<(I==0)

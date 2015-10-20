@@ -338,9 +338,6 @@ initial version of this that should check if all args have the same location typ
             const auto neighbors = m_grid.neighbors_indices_3(current_position
                                                               , location_type()
                                                               , onneighbors.location() );
-#ifdef _ACCESSOR_H_DEBUG_
-            std::cout << "Entry point (on map)" << current_position << " Neighbors: " << neighbors << std::endl;
-#endif
             double result = onneighbors.value();
 
             for (int i = 0; i<neighbors.size(); ++i) {
@@ -363,10 +360,6 @@ initial version of this that should check if all args have the same location typ
             const auto neighbors = m_grid.neighbors_indices_3(current_position
                                                               , location_type()
                                                               , onneighbors.location() );
-#ifdef _ACCESSOR_H_DEBUG_
-            std::cout << "Entry point (on accessor)" << current_position << " Neighbors: " << neighbors << std::endl;
-#endif
-
             double result = onneighbors.value();
 
             for (int i = 0; i<neighbors.size(); ++i) {
@@ -393,27 +386,18 @@ initial version of this that should check if all args have the same location typ
 
         template <int I, typename L, int R, typename IndexArray>
         double _evaluate(ro_accessor<I,L,radius<R>>, IndexArray const& position) const {
-#ifdef _ACCESSOR_H_DEBUG_
-            std::cout << "_evaluate(accessor<I,L>...) " << L() << ", " << position << std::endl;
-#endif
             int offset = m_grid.ll_offset(position, typename accessor<I,L>::location_type());
             return *(boost::fusion::at_c<accessor<I,L>::value>(pointers)+offset);
         }
 
         template <typename MapF, typename LT, typename Arg0, typename IndexArray>
         double _evaluate(map_function<MapF, LT, Arg0> map, IndexArray const& position) const {
-#ifdef _ACCESSOR_H_DEBUG_
-            std::cout << "_evaluate(map_function<MapF, LT, Arg0>...) " << LT() << ", " << position << std::endl;
-#endif
             int offset = m_grid.ll_offset(position, map.location());
             return map.function()(_evaluate(map.template argument<0>(), position));
         }
 
         template <typename MapF, typename LT, typename Arg0, typename Arg1, typename IndexArray>
         double _evaluate(map_function<MapF, LT, Arg0, Arg1> map, IndexArray const& position) const {
-#ifdef _ACCESSOR_H_DEBUG_
-            std::cout << "_evaluate(map_function<MapF, LT, Arg0, Arg1>...) " << LT() << ", " << position << std::endl;
-#endif
             int offset = m_grid.ll_offset(position, map.location());
             return map.function()(_evaluate(map.template argument<0>(), position)
                                   , _evaluate(map.template argument<1>(), position));
@@ -428,10 +412,6 @@ initial version of this that should check if all args have the same location typ
             const auto neighbors = m_grid.neighbors_indices_3(position
                                                               , onn.location()
                                                               , onn.location() );
-
-#ifdef _ACCESSOR_H_DEBUG_
-            std::cout << "_evaluate(on_neighbors_impl<ValueType, ...) " << LocationTypeT() << ", " << position << " Neighbors: " << neighbors << std::endl;
-#endif
 
             double result = onn.value();
 

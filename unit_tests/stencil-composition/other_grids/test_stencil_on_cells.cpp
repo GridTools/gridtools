@@ -2,6 +2,7 @@
 #include <boost/mpl/equal.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 #include "tools/verifier.hpp"
+#include "unstructured_grid.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
@@ -61,6 +62,7 @@ TEST(test_stencil_on_cells, run) {
     cell_storage_type c_cells = grid.make_storage<trapezoid_2D_t::cells>("c");
     cell_storage_type k_cells = grid.make_storage<trapezoid_2D_t::cells>("k");
     cell_storage_type out_cells = grid.make_storage<trapezoid_2D_t::cells>("out");
+    cell_storage_type ref_cells = grid.make_storage<trapezoid_2D_t::cells>("ref");
 
     for(int i=0; i < d1; ++i)
     {
@@ -79,8 +81,8 @@ TEST(test_stencil_on_cells, run) {
             }
         }
     }
-
-    out_cells.initialize( 1.1 );
+    out_cells.initialize(0.0);
+    ref_cells.initialize(0.0);
 
     typedef arg<0, cell_storage_type> p_in_cells;
     typedef arg<1, cell_storage_type> p_out_cells;
@@ -118,8 +120,27 @@ TEST(test_stencil_on_cells, run) {
     copy->steady();
     copy->run();
 
+    unstructured_grid ugrid(d1, d2, d3);
+    for(int i=0; i < d1; ++i)
+    {
+        for(int c=0; c < 2; ++c)
+        {
+            for(int j=0; j < d2; ++j)
+            {
+                for(int k=0; k < d3; ++k)
+                {
+                    auto neighbours = ugrid.neighbours_of({i,c,j,k});
+                    for(auto iter = neighbours.begin(); iter != neighbours.end(); ++iter)
+                    {
+                        ref_cells(i,c,j,k) += in_cells(*iter);
+                    }
+                }
+            }
+        }
+    }
+
     verifier ver(1e-10, 0);
 
     array<array<uint_t, 2>, 4> halos = {{halo_nc, halo_nc},{0,0},{halo_mc, halo_mc},{halo_k, halo_k}};
-    EXPECT_TRUE(ver.verify(in_cells, out_cells, halos));
+    EXPECT_TRUE(ver.verify(ref_cells, out_cells, halos));
 }
