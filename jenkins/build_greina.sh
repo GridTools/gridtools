@@ -22,6 +22,8 @@ function help {
    exit 1
 }
 
+BASEPATH_SCRIPT=$(dirname "${0}")
+
 while getopts "h:b:t:f:c:pms" opt; do
     case "$opt" in
     h|\?)
@@ -75,7 +77,7 @@ cd build;
 #
 VENV_PATH=${HOME}/venv_gridtools4py
 
-source env_greina.sh
+source ${BASEPATH_SCRIPT}/env_greina.sh
 
 if [ "x$TARGET" == "xgpu" ]; then
   export USE_GPU=ON
