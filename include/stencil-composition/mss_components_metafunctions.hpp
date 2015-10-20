@@ -57,7 +57,7 @@ struct split_mss_into_independent_esfs
  * @tparam range_sizes sequence of sequence of ranges
  */
 template<
-    enumtype::backend BackendId,
+    enumtype::platform BackendId,
     typename MssDescriptorArray,
     typename RangeSizes
 >

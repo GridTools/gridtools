@@ -26,7 +26,7 @@ namespace gridtools {
      */
     template<
         typename MssComponentsArray, typename Coords, typename MssLocalDomainArray,
-        enumtype::backend BackendId, enumtype::strategy StrategyId>
+        enumtype::platform BackendId, enumtype::strategy StrategyId>
     struct mss_functor
     {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssLocalDomainArray, is_mss_local_domain>::value), "Internal Error: wrong type");

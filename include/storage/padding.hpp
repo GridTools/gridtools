@@ -9,10 +9,10 @@ namespace gridtools{
      */
     template <uint_t ... Pad >
     struct padding{
-        typedef typename boost::mpl::vector<static_uint<Pad> ... > type;
-
         template<ushort_t Coordinate>
-        static constexpr uint_t get(){return static_if< Coordinate <= sizeof ... (Pad) >::apply(boost::mpl::at_c<type, Coordinate>::type::value, 0);}
+        static constexpr uint_t get(){return gt_get<Coordinate>::apply(Pad ...);
+                // static_if< Coordinate <= sizeof ... (Pad) >::apply(boost::mpl::at_c<type, Coordinate>::type::value, 0);
+        }
     };
 
     template <typename T>

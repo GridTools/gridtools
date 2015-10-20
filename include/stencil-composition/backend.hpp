@@ -50,7 +50,7 @@ namespace gridtools {
                   typename ValueType,
                   uint_t BI, uint_t BJ,
                   typename StrategyTraits,
-                  enumtype::backend BackendID>
+                  enumtype::platform BackendID>
         struct get_storage_type {
             template <typename MapElem>
             struct apply {
@@ -120,7 +120,7 @@ namespace gridtools {
         - - (INTERNAL) for_each that is used to invoke the different things for different stencils in the MSS
         - - (INTERNAL) once_per_block
     */
-    template< enumtype::backend BackendId, enumtype::strategy StrategyType >
+    template< enumtype::platform BackendId, enumtype::strategy StrategyType >
     struct backend
     {
         typedef backend_traits_from_id<BackendId> backend_traits_t;
@@ -128,7 +128,7 @@ namespace gridtools {
 
         typedef backend<BackendId, StrategyType> this_type;
         static const enumtype::strategy s_strategy_id=StrategyType;
-        static const enumtype::backend s_backend_id =BackendId;
+        static const enumtype::platform s_backend_id =BackendId;
 
         /** types of the functions used to compute the thread grid information
             for allocating the temporary storages and such
@@ -136,16 +136,16 @@ namespace gridtools {
         typedef uint_t (*query_i_threads_f)(uint_t);
         typedef uint_t (*query_j_threads_f)(uint_t);
 
-        template <typename ValueType, typename MetaDataType, typename Padding=typename repeat_template_c<0, MetaDataType::layout::length, padding>::type >
+        template <typename ValueType, typename MetaDataType >
         struct storage_type {
             GRIDTOOLS_STATIC_ASSERT(is_meta_storage<MetaDataType>::value, "wrong type for the meta storage");
-            GRIDTOOLS_STATIC_ASSERT(is_padding<Padding>::value, "wrong type for the padding");
 
             typedef typename backend_traits_t::template storage_traits
             <ValueType
              , typename backend_traits_t::template meta_storage_traits<typename MetaDataType::index_type
                                                                        , typename MetaDataType::layout
-                                                                       , false, Padding>::type
+                                                                       , false
+                                                                       , typename MetaDataType::padding_t>::type
              , false>::storage_t type;
         };
 
@@ -169,7 +169,6 @@ namespace gridtools {
         */
         template < ushort_t Index
                    , typename Layout
-                   , typename AlignmentBoundary=aligned<0>
                    , typename Padding=typename repeat_template_c<0, Layout::length, padding>::type
                    >
         using storage_info = typename backend_traits_t::template meta_storage_traits<static_uint<Index>, Layout, false, Padding>::type;
@@ -178,7 +177,6 @@ namespace gridtools {
 
         template < ushort_t Index
                    , typename Layout
-                   , typename AlignmentBundary = aligned<0>
                    , typename Padding = typename repeat_template_c<0, Layout::length, padding>::type
                    >
         struct storage_info<Index, Layout, AlignmentBoundary, Padding> :
@@ -210,18 +208,20 @@ namespace gridtools {
          * instantiation of the actual storage type). If on the contrary multiple ESFs are not fused, a "standard"
          * storage type will be enough.
          */
-        template <typename ValueType, typename MetaDataType, typename Padding=typename repeat_template_c<0, MetaDataType::layout::length, padding>::type >
+        template <typename ValueType, typename MetaDataType >
         struct temporary_storage_type
         {
             GRIDTOOLS_STATIC_ASSERT(is_meta_storage<MetaDataType>::value, "wrong type for the meta storage");
-            GRIDTOOLS_STATIC_ASSERT(is_padding<Padding>::value, "wrong type for the padding");
 
             /** temporary storage must have the same iterator type than the regular storage
              */
         private:
             typedef typename backend_traits_t::template storage_traits<
             ValueType
-            , typename backend_traits_t::template meta_storage_traits<MetaDataType, true, Padding>::type
+            , typename backend_traits_t::template meta_storage_traits<typename MetaDataType::index_type
+                                                                      , typename MetaDataType::layout
+                                                                      , true
+                                                                      , typename MetaDataType::padding_t>::type
             , true>::storage_t temp_storage_t;
         public:
             typedef typename boost::mpl::if_<

@@ -53,7 +53,7 @@ namespace gridtools{
         template <typename IndexType, typename Layout, bool Temp, typename Padding >
         struct meta_storage_traits{
             GRIDTOOLS_STATIC_ASSERT((is_layout_map<Layout>::value), "wrong type for the storage_info");
-            typedef meta_storage_derived<meta_storage_aligned<meta_storage_base<IndexType::value, Layout, Temp>, 32, Padding> > type;
+            typedef meta_storage_derived<meta_storage_aligned<meta_storage_base<IndexType::value, Layout, Temp>, aligned<32>, Padding> > type;
         };
 
         template <typename Arguments>

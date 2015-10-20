@@ -38,7 +38,7 @@ namespace gridtools{
          * @tparam MssComponentsArray a meta array with the mss components of all MSS
          * @tparam BackendId id of the backend
          */
-        template<typename MssComponentsArray, enumtype::backend BackendId>
+        template<typename MssComponentsArray, enumtype::platform BackendId>
         struct fused_mss_loop
         {
             GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
@@ -112,7 +112,8 @@ namespace gridtools{
 #endif
                 <typename Storage::pointer_type, typename get_tmp_storage_info
                  <typename Storage::meta_data_t::index_type
-                  , typename Storage::meta_data_t::layout
+                  , typename Storage::meta_data_t::layout,
+                  typename Storage::meta_data_t::alignment_boundary_t, typename Storage::meta_data_t::padding_t,
 #ifdef CXX11_ENABLED
                   Tiles ...
 #else

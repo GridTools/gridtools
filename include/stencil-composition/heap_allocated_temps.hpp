@@ -20,7 +20,7 @@ namespace gridtools {
         /**
            Specialization for Naive policy
          */
-        template <typename ArgList, typename MetaList, typename Coords, enumtype::backend BackendId>
+        template <typename ArgList, typename MetaList, typename Coords, enumtype::platform BackendId>
         struct prepare_temporaries_functor<ArgList, MetaList, Coords, backend<BackendId, enumtype::/*strategy::*/Naive> >
         {
 
@@ -100,7 +100,7 @@ namespace gridtools {
         /**
            Specialization for Block policy
          */
-        template <typename ArgList, typename MetaList, typename Coords, enumtype::backend BackendId>
+        template <typename ArgList, typename MetaList, typename Coords, enumtype::platform BackendId>
         struct prepare_temporaries_functor
         <ArgList, MetaList, Coords,  backend<BackendId, enumtype::/*strategy::*/Block> >
         {

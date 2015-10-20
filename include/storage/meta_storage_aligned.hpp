@@ -54,7 +54,7 @@ namespace gridtools {
                       , typename Dummy = all_integers<IntTypes...>
                       >
             constexpr meta_storage_aligned(  IntTypes const& ... dims_  ) :
-                super(align<s_alignment_boundary>(dims_+Pad) ...)
+                super(align<s_alignment_boundary>(dims_)+Pad ...)
             {
             }
 
@@ -62,7 +62,7 @@ namespace gridtools {
 
             // non variadic non constexpr constructor
             meta_storage_aligned(  uint_t const& d1, uint_t const& d2, uint_t const& d3 ) :
-                super(align<s_alignment_boundary>(d1+Pad1), align<s_alignment_boundary>(d2+Pad2), align<s_alignment_boundary>(d3+Pad3))
+                super(align<s_alignment_boundary>(d1)+Pad1, align<s_alignment_boundary>(d2)+Pad2, align<s_alignment_boundary>(d3)+Pad3)
             {
             }
 #endif

@@ -205,7 +205,7 @@ namespace gridtools {
     } // namespace _debug
 
     //\todo move inside the traits classes
-    template<enumtype::backend>
+    template<enumtype::platform>
     struct finalize_computation;
 
     template<>
@@ -231,7 +231,7 @@ namespace gridtools {
 
        Returns 0 (GT_NO_ERRORS) on success
     */
-    template<enumtype::backend>
+    template<enumtype::platform>
     struct setup_computation;
 
     template<>
@@ -273,7 +273,7 @@ namespace gridtools {
      * @brief metafunction that create the mss local domain type
      */
     template<
-        enumtype::backend BackendId,
+        enumtype::platform BackendId,
         typename MssComponentsArray,
         typename DomainType,
         typename ActualArgListType,
