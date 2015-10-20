@@ -66,6 +66,8 @@ fi
 
 echo $@
 
+source ${BASEPATH_SCRIPT}/env_greina.sh
+
 if [ -d "build" ]; then
     rm -rf build
 fi
@@ -76,8 +78,6 @@ cd build;
 # full path to the virtual environment where the Python tests run
 #
 VENV_PATH=${HOME}/venv_gridtools4py
-
-source ${BASEPATH_SCRIPT}/env_greina.sh
 
 if [ "x$TARGET" == "xgpu" ]; then
   export USE_GPU=ON
