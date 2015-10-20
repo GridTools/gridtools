@@ -100,13 +100,13 @@ namespace gridtools{
        NOTE: the information specified here will be used at a later stage
        to define the storage meta information (the meta_storage_base type)
     */
-#ifdef CXX11_ENABLED
-    template < ushort_t Index
-               , typename Layout
-               , typename AlignmentBoundary=aligned<0>
-               , typename Padding=typename repeat_template_c<0, Layout::length, padding>::type
-               >
-    using storage_info = meta_storage_derived<meta_storage_aligned<meta_storage_base<Index, Layout, false>, AlignmentBoundary, Padding > >;
+// #ifdef CXX11_ENABLED
+//     template < ushort_t Index
+//                , typename Layout
+//                , typename AlignmentBoundary=aligned<0>
+//                , typename Padding=typename repeat_template_c<0, Layout::length, padding>::type
+//                >
+//     using storage_info = meta_storage_derived<meta_storage_aligned<meta_storage_base<Index, Layout, false>, AlignmentBoundary, Padding > >;
 
 
     // template < ushort_t Index
@@ -152,7 +152,7 @@ namespace gridtools{
     //     storage_info(storage_info const& t) : super(t){}
     // };
 
-#else
+// #else
 
     // template < ushort_t Index
     //            , typename Layout
@@ -168,29 +168,29 @@ namespace gridtools{
     // };
 
 
-    template < ushort_t Index
-               , typename Layout
-               , typename AlignmentBundary = aligned<0>
-               , typename Padding = typename repeat_template_c<0, Layout::length, padding>::type
-               >
-    struct storage_info<Index, Layout, AlignmentBoundary, Padding> :
-        public meta_storage_derived<
-        meta_storage_aligned<meta_storage_base<Index, Layout, false>
-                             , AlignmentBoundary
-                             , Padding> >
-    {
-        typedef meta_storage_derived<
-            meta_storage_aligned<meta_storage_base<Index, Layout, false>
-                                 , AlignmentBoundary
-                                 , Padding> >  super;
+//     template < ushort_t Index
+//                , typename Layout
+//                , typename AlignmentBundary = aligned<0>
+//                , typename Padding = typename repeat_template_c<0, Layout::length, padding>::type
+//                >
+//     struct storage_info<Index, Layout, AlignmentBoundary, Padding> :
+//         public meta_storage_derived<
+//         meta_storage_aligned<meta_storage_base<Index, Layout, false>
+//                              , AlignmentBoundary
+//                              , Padding> >
+//     {
+//         typedef meta_storage_derived<
+//             meta_storage_aligned<meta_storage_base<Index, Layout, false>
+//                                  , AlignmentBoundary
+//                                  , Padding> >  super;
 
-        storage_info(uint_t const& d1, uint_t const& d2, uint_t const& d3) : super(d1,d2,d3){}
+//         storage_info(uint_t const& d1, uint_t const& d2, uint_t const& d3) : super(d1,d2,d3){}
 
-        GT_FUNCTION
-        storage_info(storage_info const& t) : super(t){}
-    };
+//         GT_FUNCTION
+//         storage_info(storage_info const& t) : super(t){}
+//     };
 
-#endif
+// #endif
 
 /** \addtogroup specializations Specializations
     Partial specializations

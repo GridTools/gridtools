@@ -143,9 +143,63 @@ namespace gridtools {
 
             typedef typename backend_traits_t::template storage_traits
             <ValueType
-             , typename backend_traits_t::template meta_storage_traits<MetaDataType, false, Padding>::type
+             , typename backend_traits_t::template meta_storage_traits<typename MetaDataType::index_type
+                                                                       , typename MetaDataType::layout
+                                                                       , false, Padding>::type
              , false>::storage_t type;
         };
+
+#ifdef CXX11_ENABLED
+
+        /**
+           @brief syntactic sugar for the metadata type definition
+
+           \tparam Index an index used to differentiate the types also when there's only runtime
+           differences (e.g. only the storage dimensions differ)
+           \tparam Layout the map of the layout in memory
+           \tparam IsTemporary boolean flag set to true when the storage is a temporary one
+           \tmaram ... Tiles variadic argument containing the information abount the tiles
+           (for the Block strategy)
+
+           syntax example:
+           using metadata_t=storage_info<0,layout_map<0,1,2> >
+
+           NOTE: the information specified here will be used at a later stage
+           to define the storage meta information (the meta_storage_base type)
+        */
+        template < ushort_t Index
+                   , typename Layout
+                   , typename AlignmentBoundary=aligned<0>
+                   , typename Padding=typename repeat_template_c<0, Layout::length, padding>::type
+                   >
+        using storage_info = typename backend_traits_t::template meta_storage_traits<static_uint<Index>, Layout, false, Padding>::type;
+
+#else
+
+        template < ushort_t Index
+                   , typename Layout
+                   , typename AlignmentBundary = aligned<0>
+                   , typename Padding = typename repeat_template_c<0, Layout::length, padding>::type
+                   >
+        struct storage_info<Index, Layout, AlignmentBoundary, Padding> :
+            public typename backend_traits_t::template meta_storage_traits<static_uint<Index>
+                                                                           , Layout
+                                                                           , false
+                                                                           , Padding>::type;
+        {
+            typedef  typename backend_traits_t::template meta_storage_traits<static_uint<Index>
+                                                                           , Layout
+                                                                           , false
+                                                                           , Padding>::type super;
+
+            storage_info(uint_t const& d1, uint_t const& d2, uint_t const& d3) : super(d1,d2,d3){}
+
+            GT_FUNCTION
+            storage_info(storage_info const& t) : super(t){}
+        };
+
+#endif
+
 
         /**
          * @brief metafunction determining the type of a temporary storage (based on the layout)
