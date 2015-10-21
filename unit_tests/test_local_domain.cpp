@@ -54,8 +54,10 @@ TEST(test_local_domain, merge_mss_local_domains) {
 
     typedef layout_map<2,1,0> layout_ijk_t;
     typedef layout_map<0,1,2> layout_kji_t;
-    typedef gridtools::backend<Host, Naive >::storage_type<float_type, layout_ijk_t >::type storage_type;
-    typedef gridtools::backend<Host, Naive >::storage_type<float_type, layout_kji_t >::type storage_buff_type;
+    typedef storage_info<0, layout_ijk_t> meta_ijk_t;
+    typedef storage_info<0, layout_kji_t> meta_kji_t;
+    typedef gridtools::backend<Host, Naive >::storage_type<float_type, meta_ijk_t >::type storage_type;
+    typedef gridtools::backend<Host, Naive >::storage_type<float_type, meta_kji_t >::type storage_buff_type;
 
     typedef arg<0, storage_type> p_in;
     typedef arg<1, storage_buff_type> p_buff;
@@ -66,9 +68,11 @@ TEST(test_local_domain, merge_mss_local_domains) {
     uint_t d2 = 1;
     uint_t d3 = 1;
 
-    storage_type in(d1,d2,d3,-3.5,"in");
-    storage_buff_type buff(d1,d2,d3,1.5,"buff");
-    storage_type out(d1,d2,d3,1.5,"out");
+    meta_ijk_t meta_ijk(d1,d2,d3);
+    storage_type in(meta_ijk,-3.5,"in");
+    meta_kji_t meta_kji(d1,d2,d3);
+    storage_buff_type buff(meta_kji,1.5,"buff");
+    storage_type out(meta_ijk,1.5,"out");
 
     gridtools::domain_type<accessor_list> domain((p_in() = in),  (p_buff() = buff), (p_out() = out) );
 
@@ -79,7 +83,7 @@ TEST(test_local_domain, merge_mss_local_domains) {
     coords.value_list[0] = 0;
     coords.value_list[1] = d3-1;
 
-    typedef typename decltype(make_computation<gridtools::backend<Host, Naive >, layout_ijk_t>
+    typedef typename decltype(make_computation<gridtools::backend<Host, Naive > >
         (
             gridtools::make_mss // mss_descriptor
             (

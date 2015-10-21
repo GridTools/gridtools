@@ -22,22 +22,22 @@ namespace gridtools {
 
         GT_FUNCTION
         explicit  hybrid_pointer() : wrap_pointer<T>((T*)NULL), m_gpu_p(NULL), m_pointer_to_use(NULL), m_size(0) {
-#ifdef __VERBOSE__
+#ifdef VERBOSE
             printf("creating empty hybrid pointer %x \n", this);
 #endif
         }
 
         GT_FUNCTION
         explicit  hybrid_pointer(T* p, uint_t size_, bool externally_managed) : wrap_pointer<T>(p, size_, externally_managed), m_gpu_p(NULL), m_pointer_to_use(p), m_size(size_) {
-	  allocate_it(m_size);
-	}
+            allocate_it(m_size);
+        }
 
 
         //GT_FUNCTION
         explicit hybrid_pointer(uint_t size, bool externally_managed=false) : wrap_pointer<T>(size, externally_managed), m_size(size), m_pointer_to_use (wrap_pointer<T>::m_cpu_p) {
             allocate_it(size);
 
-#ifdef __VERBOSE__
+#ifdef VERBOSE
             printf("allocating hybrid pointer %x \n", this);
             printf(" - %X %X %X %d\n", this->m_cpu_p, m_gpu_p, m_pointer_to_use, m_size);
 #endif
@@ -55,7 +55,7 @@ namespace gridtools {
 #endif
             , m_size(other.m_size)
         {
-#ifdef __VERBOSE__
+#ifdef VERBOSE
             printf("cpy const hybrid pointer: ");
             printf("%X ", this->m_cpu_p);
             printf("%X ", m_gpu_p);
@@ -67,13 +67,12 @@ namespace gridtools {
 
         GT_FUNCTION
         virtual ~hybrid_pointer(){
-#ifdef __VERBOSE__
+#ifdef VERBOSE
             printf("deleting hybrid pointer %x \n", this);
 #endif
 };
 
         void allocate_it(uint_t size) {
-#ifdef __CUDACC__
             cudaError_t err = cudaMalloc(&m_gpu_p, size*sizeof(T));
             if (err != cudaSuccess) {
                 std::cout << "Error allocating storage in "
@@ -82,45 +81,36 @@ namespace gridtools {
                           << size*sizeof(T)
                           << " bytes   " <<  cudaGetErrorString(err)
                           << std::endl;
-#ifdef __VERBOSE__
+#ifdef VERBOSE
                 printf("allocating hybrid pointer %x \n", this);
 #endif
             }
-#endif
         }
 
         void free_it() {
-#ifdef __CUDACC__
             cudaFree(m_gpu_p);
             m_gpu_p=NULL;
-#endif
             wrap_pointer<T>::free_it();
-#ifdef __VERBOSE__
+#ifdef VERBOSE
             printf("freeing hybrid pointer %x \n", this);
 #endif
       }
 
         void update_gpu() const {
-#ifdef __CUDACC__
-#ifdef __VERBOSE__
+#ifdef VERBOSE
             printf("update gpu "); out();
 #endif
             cudaMemcpy(m_gpu_p, this->m_cpu_p, m_size*sizeof(T), cudaMemcpyHostToDevice);
-#endif
         }
 
         void update_cpu() const {
-#ifdef __CUDACC__
-#ifdef __VERBOSE__
+#ifdef VERBOSE
             printf("update cpu "); out();
 #endif
             cudaMemcpy(this->m_cpu_p, m_gpu_p, m_size*sizeof(T), cudaMemcpyDeviceToHost);
-#endif
         }
 
-#ifdef __CUDACC__
         void set(pointee_t const& value, uint_t const& index){cudaMemcpy(&m_pointer_to_use[index], &value, sizeof(pointee_t), cudaMemcpyHostToDevice); }
-#endif
 
         __host__ __device__
         void out() const {
@@ -144,16 +134,18 @@ namespace gridtools {
 
         __host__ __device__
         T& operator[](uint_t i) {
-            /* assert(i<size); */
-            /* assert(i>=0); */
+            // assert(m_pointer_to_use);
+            // assert(i<m_size);
+            // assert(i>=0);
             // printf(" [%d %e] ", i, m_pointer_to_use[i]);
             return m_pointer_to_use[i];
         }
 
         __host__ __device__
         T const& operator[](uint_t i) const {
-            /* assert(i<size); */
-            /* assert(i>=0); */
+            // assert(m_pointer_to_use);
+            // assert(i<m_size);
+            // assert(i>=0);
             // printf(" [%d %e] ", i, m_pointer_to_use[i]);
 
             return m_pointer_to_use[i];
@@ -161,21 +153,25 @@ namespace gridtools {
 
         __host__ __device__
         T& operator*() {
+            // assert(m_pointer_to_use);
             return *m_pointer_to_use;
         }
 
         __host__ __device__
         T const& operator*() const {
+            // assert(m_pointer_to_use);
             return *m_pointer_to_use;
         }
 
         __host__ __device__
         T* operator+(uint_t i) {
+            // assert(m_pointer_to_use);
             return &m_pointer_to_use[i];
         }
 
         __host__ __device__
         T* const& operator+(uint_t i) const {
+            // assert(m_pointer_to_use);
             return &m_pointer_to_use[i];
         }
 

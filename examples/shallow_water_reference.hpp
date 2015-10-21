@@ -18,7 +18,40 @@ template< typename StorageType, uint_t DimI, uint_t DimJ >
 struct shallow_water_reference{
 
     typedef StorageType storage_type;
+    #ifdef __CUDACC__
+    typedef hybrid_pointer<float_type> pointer_type;
+    #else
     typedef wrap_pointer<float_type> pointer_type;
+    #endif
+
+    static constexpr uint_t strides[2]={DimI, 1};
+    static constexpr uint_t size=DimI*DimJ;
+    static constexpr uint_t ip1=strides[0];
+    static constexpr uint_t jp1=strides[1];
+    static constexpr uint_t im1=-strides[0];
+    static constexpr uint_t jm1=-strides[1];
+
+    typename storage_type::meta_data_t solution_meta;
+    storage_type solution;
+    float_type  u_array[size];
+    float_type  v_array[size];
+    float_type  h_array[size];
+    float_type ux_array[size];
+    float_type vx_array[size];
+    float_type hx_array[size];
+    float_type uy_array[size];
+    float_type vy_array[size];
+    float_type hy_array[size];
+
+    pointer_type  u;
+    pointer_type  v;
+    pointer_type  h;
+    pointer_type ux;
+    pointer_type vx;
+    pointer_type hx;
+    pointer_type uy;
+    pointer_type vy;
+    pointer_type hy;
 
     static float_type dx(){return 1.;}
     static float_type dy(){return 1.;}
@@ -31,9 +64,11 @@ struct shallow_water_reference{
         return 1.+height * std::exp(-5*(((i-3)*dx())*(((i-3)*dx()))+((j-7)*dy())*((j-7)*dy())));
     }
 
-    shallow_water_reference() : solution(){
-        solution.setup(DimI, DimJ, static_cast<uint_t>(1));
-    }
+    shallow_water_reference() :
+        solution_meta(DimI, DimJ, static_cast<uint_t>(1))
+        , solution(solution_meta)
+        {
+        }
 
     void setup(){
         u= pointer_type( u_array, size, true);
@@ -138,35 +173,6 @@ struct shallow_water_reference{
             }
 
     }
-
-    static constexpr uint_t strides[2]={DimI, 1};
-    static constexpr uint_t size=DimI*DimJ;
-    static constexpr uint_t ip1=strides[0];
-    static constexpr uint_t jp1=strides[1];
-    static constexpr uint_t im1=-strides[0];
-    static constexpr uint_t jm1=-strides[1];
-
-    storage_type solution;
-    float_type  u_array[size];
-    float_type  v_array[size];
-    float_type  h_array[size];
-    float_type ux_array[size];
-    float_type vx_array[size];
-    float_type hx_array[size];
-    float_type uy_array[size];
-    float_type vy_array[size];
-    float_type hy_array[size];
-
-    pointer_type  u;
-    pointer_type  v;
-    pointer_type  h;
-    pointer_type ux;
-    pointer_type vx;
-    pointer_type hx;
-    pointer_type uy;
-    pointer_type vy;
-    pointer_type hy;
-
 };
 
 template< typename StorageType, uint_t DimI, uint_t DimJ >

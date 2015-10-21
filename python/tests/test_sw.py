@@ -176,74 +176,77 @@ class SWTest (CopyTest):
 
     @attr (lang='c++')
     def test_animation (self, nframe=200):
-        import os
-        import pyqtgraph.opengl as gl
-        from   pyqtgraph.Qt import QtCore, QtGui
-
-        #
-        # make sure X11 is available
-        #
-        if os.environ.get ('DISPLAY') is None:
-            print ("no DISPLAY available, skipping")
+        try: 
+            import os
+            import pyqtgraph.opengl as gl
+            from   pyqtgraph.Qt import QtCore, QtGui
+        except ImportError:
+            print ('skipping')
         else:
             #
-            # get a Qt application context
+            # make sure X11 is available
             #
-            self.qt_app = QtGui.QApplication.instance ( )
-            if self.qt_app is None:
-                self.qt_app = QtGui.QApplication ([])
+            if os.environ.get ('DISPLAY') is None:
+                print ("no DISPLAY available, skipping")
+            else:
+                #
+                # get a Qt application context
+                #
+                self.qt_app = QtGui.QApplication.instance ( )
+                if self.qt_app is None:
+                    self.qt_app = QtGui.QApplication ([])
 
-            ## Create a GL View widget to display data
-            w = gl.GLViewWidget()
-            w.show()
-            w.setWindowTitle ('GridTools example: Shallow Water equation')
-            w.setCameraPosition(distance=90)
+                ## Create a GL View widget to display data
+                w = gl.GLViewWidget()
+                w.show()
+                w.setWindowTitle ('GridTools example: Shallow Water equation')
+                w.setCameraPosition(distance=90)
 
-            ## Add a grid to the view
-            g = gl.GLGridItem()
-            g.setSize (x=self.domain[0] + 2, 
-                       y=self.domain[1] + 2)
-            g.setDepthValue(10)  # draw grid after surfaces since they may be translucent
-            w.addItem(g)
+                ## Add a grid to the view
+                g = gl.GLGridItem()
+                g.setSize (x=self.domain[0] + 2, 
+                           y=self.domain[1] + 2)
+                g.setDepthValue(10)  # draw grid after surfaces since they may be translucent
+                w.addItem(g)
 
-            ## Animated example
-            ## compute surface vertex data
-            x = np.linspace (0, self.domain[0], self.domain[0]).reshape (self.domain[0], 1)
-            y = np.linspace (0, self.domain[1], self.domain[1]).reshape (1, self.domain[1])
+                ## Animated example
+                ## compute surface vertex data
+                x = np.linspace (0, self.domain[0], self.domain[0]).reshape (self.domain[0], 1)
+                y = np.linspace (0, self.domain[1], self.domain[1]).reshape (1, self.domain[1])
 
-            ## create a surface plot, tell it to use the 'heightColor' shader
-            ## since this does not require normal vectors to render (thus we 
-            ## can set computeNormals=False to save time when the mesh updates)
-            self.p4 = gl.GLSurfacePlotItem (shader='heightColor', 
-                                            computeNormals=False, 
-                                            smooth=False)
-            self.p4.shader()['colorMap'] = np.array([0.2, 1, 0.8, 0.2, 0.1, 0.1, 0.2, 0, 2])
-            self.p4.translate (self.domain[0]/-2.0,
-                               self.domain[1]/-2.0,
-                               0)
-            w.addItem(self.p4)
+                ## create a surface plot, tell it to use the 'heightColor' shader
+                ## since this does not require normal vectors to render (thus we 
+                ## can set computeNormals=False to save time when the mesh updates)
+                self.p4 = gl.GLSurfacePlotItem (shader='heightColor', 
+                                                computeNormals=False, 
+                                                smooth=False)
+                self.p4.shader()['colorMap'] = np.array([0.2, 1, 0.8, 0.2, 0.1, 0.1, 0.2, 0, 2])
+                self.p4.translate (self.domain[0]/-2.0,
+                                   self.domain[1]/-2.0,
+                                   0)
+                w.addItem(self.p4)
 
-            self.frame = 0
-            self.stencil.backend = 'c++'
+                self.frame = 0
+                self.stencil.backend = 'c++'
 
-            def update ( ):
-                try:
-                    if (self.stencil.dt * self.frame) % 5 == 0:
-                        self.droplet (self.out_H, val=3.95)
+                def update ( ):
+                    try:
+                        if (self.stencil.dt * self.frame) % 5 == 0:
+                            self.droplet (self.out_H, val=3.95)
 
-                    self.stencil.run (out_H=self.out_H,
-                                      out_U=self.out_U,
-                                      out_V=self.out_V)
-                    self.frame += 1
-                    self.p4.setData (z=self.out_H[:,:,0])
+                        self.stencil.run (out_H=self.out_H,
+                                          out_U=self.out_U,
+                                          out_V=self.out_V)
+                        self.frame += 1
+                        self.p4.setData (z=self.out_H[:,:,0])
 
-                finally:
-                    if self.frame < nframe:
-                        QtCore.QTimer ( ).singleShot (10, update)
-                    else:
-                        self.qt_app.exit ( )
-            update ( )
-            self.qt_app.exec_ ( )
+                    finally:
+                        if self.frame < nframe:
+                            QtCore.QTimer ( ).singleShot (10, update)
+                        else:
+                            self.qt_app.exit ( )
+                update ( )
+                self.qt_app.exec_ ( )
 
 
     def test_data_dependency_detection (self, deps=None, backend='c++'):
