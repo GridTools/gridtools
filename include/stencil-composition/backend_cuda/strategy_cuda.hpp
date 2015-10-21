@@ -72,7 +72,7 @@ namespace gridtools{
 #else
             GRIDTOOLS_STATIC_ASSERT((is_tile<TileI>::value && is_tile<TileJ>::value), "wrong type for the tiles");
 #endif
-            GRIDTOOLS_STATIC_ASSERT(is_padding<Padding>::type::value"wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_padding<Padding>::type::value, "wrong type");
 
             typedef meta_storage_derived
             <meta_storage_tmp
