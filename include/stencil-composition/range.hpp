@@ -17,21 +17,12 @@ namespace gridtools {
               int_t JMinus=0, int_t JPlus=0,
               int_t KMinus=0, int_t KPlus=0>
     struct range {
-#ifndef CXX11_ENABLED
-        typedef boost::mpl::int_<IMinus> iminus;
-        typedef boost::mpl::int_<IPlus>  iplus;
-        typedef boost::mpl::int_<JMinus> jminus;
-        typedef boost::mpl::int_<JPlus>  jplus;
-        typedef boost::mpl::int_<KMinus> kminus;
-        typedef boost::mpl::int_<KPlus>  kplus;
-#else
         typedef static_int<IMinus> iminus;
         typedef static_int<IPlus>  iplus;
         typedef static_int<JMinus> jminus;
         typedef static_int<JPlus>  jplus;
         typedef static_int<KMinus> kminus;
         typedef static_int<KPlus>  kplus;
-#endif
     };
 
     template <typename In>

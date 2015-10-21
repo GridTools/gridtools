@@ -9,6 +9,7 @@ namespace gridtools{
      */
     template <uint_t ... Pad >
     struct padding{
+        static const uint_t size=sizeof ... (Pad);
         template<ushort_t Coordinate>
         static constexpr uint_t get(){return gt_get<Coordinate>::apply(Pad ...);
                 // static_if< Coordinate <= sizeof ... (Pad) >::apply(boost::mpl::at_c<type, Coordinate>::type::value, 0);

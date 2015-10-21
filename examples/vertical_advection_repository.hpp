@@ -20,12 +20,12 @@ public:
 #endif
     typedef gridtools::layout_map<-1,-1,-1> layout_scalar;
 
-    typedef gridtools::storage_info<0,layout_ijk> storage_info_ijk_t;
-    typedef gridtools::storage_info<0,layout_ij> storage_info_ij_t;
-    typedef gridtools::storage_info<0,layout_scalar> storage_info_scalar_t;
+    typedef va_backend::storage_info<0,layout_ijk> storage_info_ijk_t;
+    typedef va_backend::storage_info<0,layout_ij> storage_info_ij_t;
+    typedef va_backend::storage_info<0,layout_scalar> storage_info_scalar_t;
 
-    typedef gridtools::storage_info<0,layout_ijk> storage_info_ijk_tmp_t;
-    typedef gridtools::storage_info<0,layout_scalar> storage_info_scalar_tmp_t;
+    typedef va_backend::storage_info<0,layout_ijk> storage_info_ijk_tmp_t;
+    typedef va_backend::storage_info<0,layout_scalar> storage_info_scalar_tmp_t;
 
     typedef va_backend::storage_type<gridtools::float_type, storage_info_ijk_t >::type storage_type;
     typedef va_backend::storage_type<gridtools::float_type, storage_info_ij_t >::type ij_storage_type;

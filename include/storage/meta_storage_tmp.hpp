@@ -17,29 +17,27 @@ namespace gridtools{
        @class
        @brief specialization for the temporary storages and block strategy
     */
-    template<ushort_t Index, typename Layout, typename FirstTile,
+    template<typename MetaStorageBase, typename FirstTile,
 #ifdef CXX11_ENABLED
              typename ... Tiles
 #else
              uint_t Tile, uint_t Plus, uint_t Minus
 #endif
              >
-    struct meta_storage_base<Index, Layout, true, FirstTile,
-#ifdef CXX11_ENABLED
-                             Tiles...
-#else
-                             tile<Tile, Plus, Minus>
-#endif
-                             > : public meta_storage_base<Index, Layout, false> {
+    struct meta_storage_tmp : public MetaStorageBase {
+
+        GRIDTOOLS_STATIC_ASSERT(is_meta_storage<MetaStorageBase>::type::value, "wrong type");
+        GRIDTOOLS_STATIC_ASSERT(MetaStorageBase::is_temporary==true, "wrong type");
+
         static const bool is_temporary=true;
-        typedef  meta_storage_base<Index, Layout, false> super;
+        typedef  MetaStorageBase super;
 
 #ifdef CXX11_ENABLED
-        typedef meta_storage_base<Index, Layout, true, FirstTile, Tiles ...> this_type;
+        typedef meta_storage_tmp<MetaStorageBase, FirstTile, Tiles ...> this_type;
         typedef typename boost::mpl::vector<FirstTile, Tiles ...> tiles_vector_t;
 #else
         typedef tile<Tile, Plus, Minus> TileJ;
-        typedef meta_storage_base<Index, Layout, true, FirstTile, TileJ> this_type;
+        typedef meta_storage_tmp<MetaStorageBase, FirstTile, TileJ> this_type;
         typedef typename boost::mpl::vector<FirstTile, TileJ> tiles_vector_t;
 #endif
         typedef typename super::basic_type basic_type;
@@ -78,7 +76,7 @@ namespace gridtools{
            This constructor creates a storage tile with one peace assigned to each thread.
            The partition of the storage in tiles is a strategy to enhance data locality.
          */
-        constexpr meta_storage_base( uint_t const& initial_offset_i,
+        constexpr meta_storage_tmp( uint_t const& initial_offset_i,
                                      uint_t const& initial_offset_j,
                                      uint_t const& dim3,
                                      uint_t const& n_i_threads=1,
@@ -99,16 +97,16 @@ namespace gridtools{
 
         //copy ctor
         __device__
-        constexpr meta_storage_base(meta_storage_base const& other)
+        constexpr meta_storage_tmp(meta_storage_tmp const& other)
         :  super(other)
         , m_initial_offsets( other.m_initial_offsets )
         {
         }
 
-        constexpr meta_storage_base() :super() {}
+        constexpr meta_storage_tmp() :super() {}
 
     public:
-        virtual ~meta_storage_base() {}
+        virtual ~meta_storage_tmp() {}
 
 
         /**
@@ -200,5 +198,16 @@ namespace gridtools{
 
     };
 
+
+    template <typename T>
+    struct is_meta_storage;
+
+#ifdef CXX11_ENABLED
+    template< typename MetaStorageBase, typename ... Tiles>
+    struct is_meta_storage<meta_storage_tmp<MetaStorageBase, Tiles ...> > : boost::mpl::true_{};
+#else
+    template< typename MetaStorageBase, typename TileI, typenmae TileJ>
+    struct is_meta_storage<meta_storage_tmp<MetaStorageBase, TileI, TileJ> > : boost::mpl::true_{};
+#endif
 
 }//namespace gridtools

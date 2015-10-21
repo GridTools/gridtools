@@ -15,4 +15,11 @@ namespace gridtools{
     struct aligned{
         static const ushort_t value=Boundary;
     };
+
+    template<typename T>
+    struct is_aligned : boost::mpl::false_{};
+
+    template<ushort_t T>
+    struct is_aligned<aligned<T> > : boost::mpl::true_ {};
+
 }//namespace gridtools

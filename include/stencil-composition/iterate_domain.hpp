@@ -469,6 +469,12 @@ namespace gridtools {
             typedef accessor_mixed<Accessor, Pairs ... > accessor_mixed_t;
             using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename Accessor::type::index_type>(local_domain.m_local_args))>::type;
 
+
+// #ifdef PEDANTIC
+//             GRIDTOOLS_STATIC_ASSERT((!Storage::meta_data_t::padding_t::get<0>() || Accessor::range_t::iminus::value == Storage::meta_data_t::padding_t::get<0>()), "Check that the padding you specified for the storage (I dimension) matches the halo specfied in the corresponding accessor, in the user functor.");
+//             GRIDTOOLS_STATIC_ASSERT((!Storage::meta_data_t::padding_t::get<1>() || Accessor::range_t::jminus::value == Storage::meta_data_t::padding_t::get<1>()), "Check that the padding you specified for the storage (J dimension) matches the halo specfied in the corresponding accessor, in the user functor.");
+// #endif
+
             return get_value(accessor, (data_pointer())[
                                  (
                                      accessor_mixed_t::template get_constexpr<1>() //offset for the current snapshot
@@ -496,6 +502,13 @@ namespace gridtools {
         >::type& RESTRICT
         operator()(Accessor const& accessor) const {
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
+
+
+// #ifdef PEDANTIC
+//             GRIDTOOLS_STATIC_ASSERT((!Storage::meta_data_t::padding_t::get<0>() || Accessor::range_t::iminus::value == Storage::meta_data_t::padding_t::get<0>()), "Check that the padding you specified for the storage (I dimension) matches the halo specfied in the corresponding accessor, in the user functor.");
+//             GRIDTOOLS_STATIC_ASSERT((!Storage::meta_data_t::padding_t::get<1>() || Accessor::range_t::jminus::value == Storage::meta_data_t::padding_t::get<1>()), "Check that the padding you specified for the storage (J dimension) matches the halo specfied in the corresponding accessor, in the user functor.");
+// #endif
+
             return get_value(accessor, (data_pointer())[current_storage<(Accessor::index_type::value==0)
                                                     , local_domain_t, typename Accessor::type >::value]);
         }

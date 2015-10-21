@@ -8,6 +8,14 @@ namespace gridtools {
     template<typename T>
     struct is_padding;
 
+    /**
+       @brief decorator of the meta_storage_base class, adding meta-information about the alignment
+
+       \tparam MetaStorageBase the base class, containing strides and dimensions
+       \tparam AlignmentBoundary a type containing a the alignment boundary. This value is set by the librari (it is not explicitly exposed to the user) and it depends on the backend implementation. The values for Host and Cuda platforms are 0 and 32 respectively.
+       \tparam Padding extra memory space added at the beginning of a specific dimension. This can be used to align an arbitrary iteration point to the alignment boundary. The padding is exposed to the user, and an automatic check triggers an error if the specified padding and the halo region for the corresponding storage (defined by the ranges in the user function) do not match.
+
+     */
     template<typename MetaStorageBase
              , typename AlignmentBoundary
              , typename Padding
@@ -28,8 +36,10 @@ namespace gridtools {
 
         : public MetaStorageBase{
 
+
 #ifdef CXX11_ENABLED
-            typedef Padding<Pad ...> padding_t;//ranges
+            typedef Padding<align<AlignmentBoundary::value>(Pad)-Pad ...> padding_t;//paddings
+            typedef Padding<Pad ...> halo_t;//ranges
 #else
             typedef Padding<Pad1, Pad2, Pad3> padding_t;//ranges
 #endif
@@ -38,10 +48,10 @@ namespace gridtools {
             typedef AlignmentBoundary alignment_boundary_t;
             typedef MetaStorageBase super;
 
-
-
+            GRIDTOOLS_STATIC_ASSERT(is_meta_storage<MetaStorageBase>::type::value, "wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_aligned<alignment_boundary_t>::type::value, "wrong type");
             GRIDTOOLS_STATIC_ASSERT(is_padding<padding_t>::type::value, "wrong type");
-            // GRIDTOOLS_STATIC_ASSERT(boost::mpl::size<Padding>::type::value == space_dimensions, "error in the paddindg size");
+            GRIDTOOLS_STATIC_ASSERT(padding_t::size == super::space_dimensions, "error in the paddindg size");
 
             /**
                @brief constructor given the space dimensions
@@ -54,7 +64,7 @@ namespace gridtools {
                       , typename Dummy = all_integers<IntTypes...>
                       >
             constexpr meta_storage_aligned(  IntTypes const& ... dims_  ) :
-                super(align<s_alignment_boundary>(dims_)+Pad ...)
+                super(align<s_alignment_boundary>(dims_+Pad) ...)
             {
             }
 
@@ -62,8 +72,10 @@ namespace gridtools {
 
             // non variadic non constexpr constructor
             meta_storage_aligned(  uint_t const& d1, uint_t const& d2, uint_t const& d3 ) :
-                super(align<s_alignment_boundary>(d1)+Pad1, align<s_alignment_boundary>(d2)+Pad2, align<s_alignment_boundary>(d3)+Pad3)
+                super(align<s_alignment_boundary>(d1+Pad1), align<s_alignment_boundary>(d2+Pad2), align<s_alignment_boundary>(d3+Pad3))
             {
+
+
             }
 #endif
 

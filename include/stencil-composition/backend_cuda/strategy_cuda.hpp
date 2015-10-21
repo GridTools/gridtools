@@ -72,19 +72,22 @@ namespace gridtools{
 #else
             GRIDTOOLS_STATIC_ASSERT((is_tile<TileI>::value && is_tile<TileJ>::value), "wrong type for the tiles");
 #endif
+            GRIDTOOLS_STATIC_ASSERT(is_padding<Padding>::type::value"wrong type");
+
             typedef meta_storage_derived
-            <meta_storage_aligned
-            <meta_storage_base
-            <Index::value, Layout, true,
+            <meta_storage_tmp
+             <meta_storage_aligned
+              <meta_storage_base
+               <Index::value, Layout, true>,
+              aligned<32> ,//alignment boundary
+              Padding
+              >,
 #ifdef CXX11_ENABLED
-             Tiles ...
+              Tiles ...
 #else
-             TileI, TileJ
+              TileI, TileJ
 #endif
-             >,
-             aligned<32> ,//alignment boundary
-             Padding
-             > > type;
+              > > type;
         };
 
         /**
@@ -113,7 +116,7 @@ namespace gridtools{
                 <typename Storage::pointer_type, typename get_tmp_storage_info
                  <typename Storage::meta_data_t::index_type
                   , typename Storage::meta_data_t::layout,
-                  typename Storage::meta_data_t::alignment_boundary_t, typename Storage::meta_data_t::padding_t,
+                  typename Storage::meta_data_t::padding_t,
 #ifdef CXX11_ENABLED
                   Tiles ...
 #else

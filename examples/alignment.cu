@@ -1,2 +1,2 @@
 #define CUDA_EXAMPLE
-#include alignment.cpp
+#include "alignment.cpp"

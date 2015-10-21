@@ -26,5 +26,4 @@ namespace gridtools
         typedef typename IterateDomainArguments::local_domain_t type;
     };
 
-
 }

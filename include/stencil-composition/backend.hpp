@@ -145,7 +145,7 @@ namespace gridtools {
              , typename backend_traits_t::template meta_storage_traits<typename MetaDataType::index_type
                                                                        , typename MetaDataType::layout
                                                                        , false
-                                                                       , typename MetaDataType::padding_t>::type
+                                                                       , typename MetaDataType::halo_t>::type
              , false>::storage_t type;
         };
 

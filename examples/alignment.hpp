@@ -69,7 +69,6 @@ namespace copy_stencil{
     bool test(uint_t x, uint_t y, uint_t z) {
 
         meta_data_t meta_data_(x,y,z);
-
         uint_t d1 = x;
         uint_t d2 = y;
         uint_t d3 = z;
