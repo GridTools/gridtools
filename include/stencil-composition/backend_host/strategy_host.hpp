@@ -90,11 +90,11 @@ namespace gridtools{
              <meta_storage_base
               <Index::value, Layout, true>
               , aligned<0>, Padding
-              > ,
+              >
 #ifdef CXX11_ENABLED
-              , Tiles ...
+             , Tiles ...
 #else
-              , TileI, TileJ
+             , TileI, TileJ
 #endif
              > type;
         };
