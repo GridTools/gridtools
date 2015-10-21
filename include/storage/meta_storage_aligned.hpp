@@ -37,11 +37,21 @@ namespace gridtools {
         : public MetaStorageBase{
 
 
-#ifdef CXX11_ENABLED
-            typedef Padding<align<AlignmentBoundary::value>(Pad)-Pad ...> padding_t;//paddings
+#if defined(CXX11_ENABLED)
+#ifdef __CUDACC__
+            //nvcc has problems with constexpr functions
+            typedef Padding<align_struct<AlignmentBoundary::value, Pad>::value-Pad ...> padding_t;//paddings
             typedef Padding<Pad ...> halo_t;//ranges
 #else
-            typedef Padding<Pad1, Pad2, Pad3> padding_t;//ranges
+            typedef Padding<align<AlignmentBoundary::value>(Pad)-Pad ...> padding_t;//paddings
+            typedef Padding<Pad ...> halo_t;//ranges
+#endif
+#else
+            typedef Padding<align_struct<AlignmentBoundary::value, Pad1>::value - Pad1
+                            , align_struct<AlignmentBoundary::value, Pad2>::value - Pad2
+                            , align_struct<AlignmentBoundary::value, Pad3>::value - Pad3
+            > padding_t;//paddings
+            typedef Padding<Pad1, Pad2, Pad3> halog_t;
 #endif
             static const ushort_t s_alignment_boundary = AlignmentBoundary::value;
 
@@ -61,13 +71,16 @@ namespace gridtools {
             */
 #ifdef CXX11_ENABLED
             template <class ... IntTypes
+#ifndef __CUDACC__//nvcc does not get it
                       , typename Dummy = all_integers<IntTypes...>
+#else
+                      , typename Dummy = typename boost::enable_if_c<boost::is_integral< typename boost::mpl::at_c<boost::mpl::vector<IntTypes ...>, 0 >::type >::type::value, bool >::type
+#endif
                       >
             constexpr meta_storage_aligned(  IntTypes const& ... dims_  ) :
                 super(align<s_alignment_boundary>(dims_+Pad) ...)
             {
             }
-
 #else
 
             // non variadic non constexpr constructor
@@ -79,7 +92,13 @@ namespace gridtools {
             }
 #endif
 
-            /**
+            //device copy ocnstructor
+            GT_FUNCTION
+            constexpr meta_storage_aligned( meta_storage_aligned const& other ) :
+                super(other){
+            }
+
+/**
                @brief initializing a given coordinate (i.e. multiplying times its stride)
 
                \param steps_ the input coordinate value
