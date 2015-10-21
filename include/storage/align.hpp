@@ -11,6 +11,12 @@ namespace gridtools{
         return AlignmentBoundary ? dimension+AlignmentBoundary-(dimension%AlignmentBoundary) : dimension;
     }
 
+    /**nvcc does not understand that the function above is a constant expression*/
+    template <ushort_t AlignmentBoundary, uint_t Dimension>
+    struct align_struct{
+        static const uint_t value = AlignmentBoundary ? Dimension+AlignmentBoundary-(Dimension%AlignmentBoundary) : Dimension;
+    };
+
     template<ushort_t Boundary>
     struct aligned{
         static const ushort_t value=Boundary;
