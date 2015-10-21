@@ -37,14 +37,9 @@ namespace gridtools {
         : public MetaStorageBase{
 
 #if defined(CXX11_ENABLED)
-#ifdef __CUDACC__
             //nvcc has problems with constexpr functions
-            typedef Padding<align_struct<AlignmentBoundary::value, Pad>::value-Pad ...> padding_t;//paddings
+            typedef Padding<align_all<AlignmentBoundary::value, Pad>::value-Pad ...> padding_t;//paddings
             typedef Padding<Pad ...> halo_t;//ranges
-#else
-            typedef Padding<align<AlignmentBoundary::value>(Pad)-Pad ...> padding_t;//paddings
-            typedef Padding<Pad ...> halo_t;//ranges
-#endif
 #else
             typedef Padding<align_struct<AlignmentBoundary::value, Pad1>::value - Pad1
                             , align_struct<AlignmentBoundary::value, Pad2>::value - Pad2
@@ -53,12 +48,6 @@ namespace gridtools {
             typedef Padding<Pad1, Pad2, Pad3> halo_t;
 #endif
 
-// #ifdef CXX11_ENABLED
-//             typedef Padding<align<AlignmentBoundary::value>(Pad)-Pad ...> padding_t;//paddings
-//             typedef Padding<Pad ...> halo_t;//ranges
-// #else
-//             typedef Padding<Pad1, Pad2, Pad3> padding_t;//ranges
-// #endif
             static const ushort_t s_alignment_boundary = AlignmentBoundary::value;
 
             typedef AlignmentBoundary alignment_boundary_t;
@@ -69,6 +58,10 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(is_padding<padding_t>::type::value, "wrong type");
             GRIDTOOLS_STATIC_ASSERT(padding_t::size == super::space_dimensions, "error in the paddindg size");
 
+
+            /** metafunction to select the dimension with stride 1 and align it */
+            template<uint_t U>
+            using lambda_t = typename align<s_alignment_boundary, typename super::layout>::template do_align<U>;
             /**
                @brief constructor given the space dimensions
 
@@ -83,18 +76,26 @@ namespace gridtools {
                       , typename Dummy = typename boost::enable_if_c<boost::is_integral< typename boost::mpl::at_c<boost::mpl::vector<IntTypes ...>, 0 >::type >::type::value, bool >::type
 #endif
                       >
+            /* applying 'align' to the integer sequence from 1 to space_dimensions. It will select the dimension with stride 1 and align it
+
+               it instanitates a class like
+               super(lambda<0>::apply(d1), lambda<1>::apply(d2), lambda<2>::apply(d3), ...)
+             */
             constexpr meta_storage_aligned(  IntTypes const& ... dims_  ) :
-                super(align<s_alignment_boundary>(dims_+Pad) ...)
+                super(apply_gt_integer_sequence
+                      <typename make_gt_integer_sequence<uint_t, sizeof ... (IntTypes)>::type >::template apply_zipped
+                      <super, lambda_t >(dims_ ...) )
             {
             }
 #else
 
+            /* applying 'align' to the integer sequence from 1 to space_dimensions. It will select the dimension with stride 1 and align it*/
             // non variadic non constexpr constructor
             meta_storage_aligned(  uint_t const& d1, uint_t const& d2, uint_t const& d3 ) :
-                super(align<s_alignment_boundary>(d1+Pad1), align<s_alignment_boundary>(d2+Pad2), align<s_alignment_boundary>(d3+Pad3))
+                super(align<s_alignment_boundary, typename super::layout>::template apply<0>(d1+Pad1)
+                      , align<s_alignment_boundary, typename super::layout>::template apply<1>(d2+Pad2)
+                      , align<s_alignment_boundary, typename super::layout>::template apply<2>(d3+Pad3))
             {
-
-
             }
 #endif
 

@@ -67,6 +67,13 @@ namespace gridtools{
             return Container(Lambda<Indices>::apply(args_...) ...) ;
         }
 
+
+        template<typename Container, template <UInt T> class Lambda, typename ... ExtraTypes>
+        GT_FUNCTION
+        static constexpr Container apply_zipped(ExtraTypes const& ... args_ ){
+            return Container(Lambda<Indices>::apply(args_) ...) ;
+        }
+
         template<template< typename ... U> class Container, template <UInt TT, UInt UU> class Lambda, UInt ... ExtraTypes>
         struct apply_tt{
             using type = Container<Lambda<Indices, ExtraTypes> ...>;
