@@ -145,12 +145,14 @@ namespace gridtools{
         GT_FUNCTION
         static void increment( int_t* RESTRICT index_, StridesVector const& RESTRICT strides_){
             super::template increment<Coordinate, Execution>( index_, strides_);
+            assert(*index_<super::size());
         }
 
         template <uint_t Coordinate, typename StridesVector>
         GT_FUNCTION
         static void increment(const int_t& steps_, int_t* RESTRICT index_, StridesVector const&  RESTRICT strides_){
             super::template increment<Coordinate>( steps_, index_, strides_);
+            assert(*index_<super::size());
         }
 
 

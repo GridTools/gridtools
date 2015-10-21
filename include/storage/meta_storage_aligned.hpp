@@ -89,7 +89,7 @@ namespace gridtools {
             template <uint_t Coordinate, typename StridesVector >
             GT_FUNCTION
             static void initialize(uint_t const& steps_, uint_t const& block_, int_t* RESTRICT index_, StridesVector const& RESTRICT strides_){
-                uint_t steps_padded_ = steps_+padding_t::template get<Coordinate>();
+                uint_t steps_padded_ = steps_+halo_t::template get<Coordinate>();
                 super::template initialize<Coordinate>(steps_padded_, block_, index_, strides_ );
             }
 
