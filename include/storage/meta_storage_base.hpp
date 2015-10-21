@@ -23,7 +23,7 @@ namespace gridtools {
         typedef typename type::index_type index_type;
         typedef typename  type::layout layout;
         typedef typename  type::alignment_boundary_t alignment_boundary_t;
-        typedef typename  type::padding_t padding_t;
+        typedef typename  type::halo_t halo_t;
         static const ushort_t space_dimensions=type::space_dimensions;
         static const bool is_temporary = type::is_temporary;
     };

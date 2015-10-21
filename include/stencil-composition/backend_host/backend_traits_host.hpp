@@ -54,12 +54,12 @@ namespace gridtools{
 
            the storage info type is meta_storage_base, which is not clonable to GPU.
          */
-        template <typename IndexType, typename Layout, bool Temp, typename Padding>
+        template <typename IndexType, typename Layout, bool Temp, typename Halo>
         struct meta_storage_traits{
             GRIDTOOLS_STATIC_ASSERT((is_layout_map<Layout>::value), "wrong type for the storage_info");
-            GRIDTOOLS_STATIC_ASSERT(is_padding<Padding>::type::value, "wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_halo<Halo>::type::value, "wrong type");
 
-            typedef meta_storage_aligned<meta_storage_base<IndexType::value, Layout, Temp>, aligned<0>, Padding> type;
+            typedef meta_storage_aligned<meta_storage_base<IndexType::value, Layout, Temp>, aligned<0>, Halo> type;
 
         };
 

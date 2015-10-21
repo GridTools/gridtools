@@ -8,7 +8,7 @@ namespace gridtools{
         it wraps a boost::mpl::vector of static_uints
      */
     template <uint_t ... Pad >
-    struct padding{
+    struct halo{
         static const uint_t size=sizeof ... (Pad);
         template<ushort_t Coordinate>
         static constexpr uint_t get(){return gt_get<Coordinate>::apply(Pad ...);
@@ -17,9 +17,9 @@ namespace gridtools{
     };
 
     template <typename T>
-    struct is_padding : boost::mpl::false_ {};
+    struct is_halo : boost::mpl::false_ {};
 
     template <uint_t ... Pad>
-    struct is_padding<padding<Pad ...> > : boost::mpl::true_ {};
+    struct is_halo<halo<Pad ...> > : boost::mpl::true_ {};
 
 }//namespace gridtools

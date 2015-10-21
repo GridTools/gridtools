@@ -25,7 +25,7 @@
 #include "../common/meta_array.hpp"
 #include "tile.hpp"
 #include "../storage/meta_storage.hpp"
-#include "../storage/padding.hpp"
+#include "../storage/halo.hpp"
 
 /**
    @file
@@ -169,26 +169,26 @@ namespace gridtools {
         */
         template < ushort_t Index
                    , typename Layout
-                   , typename Padding=typename repeat_template_c<0, Layout::length, padding>::type
+                   , typename Halo=typename repeat_template_c<0, Layout::length, halo>::type
                    >
-        using storage_info = typename backend_traits_t::template meta_storage_traits<static_uint<Index>, Layout, false, Padding>::type;
+        using storage_info = typename backend_traits_t::template meta_storage_traits<static_uint<Index>, Layout, false, Halo>::type;
 
 #else
 
         template < ushort_t Index
                    , typename Layout
-                   , typename Padding = typename repeat_template_c<0, Layout::length, padding>::type
+                   , typename Halo = typename repeat_template_c<0, Layout::length, halo>::type
                    >
-        struct storage_info<Index, Layout, AlignmentBoundary, Padding> :
+        struct storage_info<Index, Layout, AlignmentBoundary, Halo> :
             public typename backend_traits_t::template meta_storage_traits<static_uint<Index>
                                                                            , Layout
                                                                            , false
-                                                                           , Padding>::type;
+                                                                           , Halo>::type;
         {
             typedef  typename backend_traits_t::template meta_storage_traits<static_uint<Index>
                                                                            , Layout
                                                                            , false
-                                                                           , Padding>::type super;
+                                                                           , Halo>::type super;
 
             storage_info(uint_t const& d1, uint_t const& d2, uint_t const& d3) : super(d1,d2,d3){}
 
@@ -221,7 +221,7 @@ namespace gridtools {
             , typename backend_traits_t::template meta_storage_traits<typename MetaDataType::index_type
                                                                       , typename MetaDataType::layout
                                                                       , true
-                                                                      , typename MetaDataType::padding_t>::type
+                                                                      , typename MetaDataType::halo_t>::type
             , true>::storage_t temp_storage_t;
         public:
             typedef typename boost::mpl::if_<
