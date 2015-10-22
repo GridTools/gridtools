@@ -9,7 +9,7 @@ module load mvapich2/gcc/64/2.0-gcc-4.8.2-cuda-6.0
 module load cuda70/toolkit/7.0.28
 export Boost_NO_SYSTEM_PATHS=true
 export Boost_NO_BOOST_CMAKE=true
-export GRIDTOOLS_ROOT_BUILD=$PWD
-export GRIDTOOLS_ROOT=$PWD/../
+export GRIDTOOLS_ROOT_BUILD=$PWD/build
+export GRIDTOOLS_ROOT=$PWD
 export CUDATOOLKIT_HOME=${CUDA_PATH}
 
