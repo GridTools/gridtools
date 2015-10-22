@@ -3,7 +3,9 @@
 #include "../common/gpu_clone.hpp"
 #include "meta_storage_tmp.hpp"
 #include "meta_storage_aligned.hpp"
+#ifdef CXX11_ENABLED
 #include "../common/generic_metafunctions/repeat_template.hpp"
+#endif
 /**
    @file
    @brief implementation of a container for the storage meta information
@@ -211,14 +213,8 @@ namespace gridtools{
     template<ushort_t Index, typename Layout, bool IsTemporary, typename ... Whatever>
     struct is_meta_storage<meta_storage_base<Index, Layout, IsTemporary, Whatever...> > : boost::mpl::true_{};
 #else
-    template<ushort_t Index, typename Layout, bool IsTemporary, AlignmentBoundary, typename Padding, typename TileI, typename TileJ>
+    template<ushort_t Index, typename Layout, bool IsTemporary, typename TileI, typename TileJ>
     struct is_meta_storage<meta_storage_base<Index, Layout, IsTemporary, TileI, TileJ> > : boost::mpl::true_{};
-
-    template < ushort_t Index
-               , typename Layout
-               >
-    struct is_meta_storage<storage_info<Index, Layout> > : boost::mpl::true_{};
-
 #endif
 
     template<typename T>

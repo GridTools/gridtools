@@ -41,9 +41,9 @@ namespace gridtools {
             typedef Halo<align_all<AlignmentBoundary::value, Pad>::value-Pad ...> padding_t;//paddings
             typedef Halo<Pad ...> halo_t;//ranges
 #else
-            typedef Halo<align_struct<AlignmentBoundary::value, Pad1>::value - Pad1
-                            , align_struct<AlignmentBoundary::value, Pad2>::value - Pad2
-                            , align_struct<AlignmentBoundary::value, Pad3>::value - Pad3
+            typedef Halo<align_all<AlignmentBoundary::value, Pad1>::value - Pad1
+                            , align_all<AlignmentBoundary::value, Pad2>::value - Pad2
+                            , align_all<AlignmentBoundary::value, Pad3>::value - Pad3
             > padding_t;//paddings
             typedef Halo<Pad1, Pad2, Pad3> halo_t;
 #endif
@@ -58,29 +58,30 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(is_halo<padding_t>::type::value, "wrong type");
             GRIDTOOLS_STATIC_ASSERT(padding_t::size == super::space_dimensions, "error in the paddindg size");
 
-
+#ifdef CXX11_ENABLED
             /** metafunction to select the dimension with stride 1 and align it */
             template<uint_t U>
             using lambda_t = typename align<s_alignment_boundary, typename super::layout>::template do_align<U>;
+#endif
             /**
                @brief constructor given the space dimensions
 
                NOTE: this contructor is constexpr, i.e. the storage metadata information could be used
                at compile-time (e.g. in template metafunctions)
+
+               applying 'align' to the integer sequence from 1 to space_dimensions. It will select the dimension with stride 1 and align it
+
+               it instanitates a class like
+               super(lambda<0>::apply(d1), lambda<1>::apply(d2), lambda<2>::apply(d3), ...)
             */
 #ifdef CXX11_ENABLED
             template <class ... IntTypes
 #ifndef __CUDACC__//nvcc does not get it
-                       , typename Dummy = all_integers<IntTypes...>
+                      , typename Dummy = all_integers<IntTypes...>
 #else
                       , typename Dummy = typename boost::enable_if_c<boost::is_integral< typename boost::mpl::at_c<boost::mpl::vector<IntTypes ...>, 0 >::type >::type::value, bool >::type
 #endif
                       >
-            /* applying 'align' to the integer sequence from 1 to space_dimensions. It will select the dimension with stride 1 and align it
-
-               it instanitates a class like
-               super(lambda<0>::apply(d1), lambda<1>::apply(d2), lambda<2>::apply(d3), ...)
-             */
             constexpr meta_storage_aligned(  IntTypes const& ... dims_  ) :
                 super(apply_gt_integer_sequence
                       <typename make_gt_integer_sequence<uint_t, sizeof ... (IntTypes)>::type >::template apply_zipped
@@ -92,9 +93,9 @@ namespace gridtools {
             /* applying 'align' to the integer sequence from 1 to space_dimensions. It will select the dimension with stride 1 and align it*/
             // non variadic non constexpr constructor
             meta_storage_aligned(  uint_t const& d1, uint_t const& d2, uint_t const& d3 ) :
-                super(align<s_alignment_boundary, typename super::layout>::template apply<0>(d1+Pad1)
-                      , align<s_alignment_boundary, typename super::layout>::template apply<1>(d2+Pad2)
-                      , align<s_alignment_boundary, typename super::layout>::template apply<2>(d3+Pad3))
+                super(align<s_alignment_boundary, typename super::layout>::template do_align<0>::apply(d1+Pad1)
+                      , align<s_alignment_boundary, typename super::layout>::template do_align<1>::apply(d2+Pad2)
+                      , align<s_alignment_boundary, typename super::layout>::template do_align<2>::apply(d3+Pad3))
             {
             }
 #endif
@@ -104,6 +105,10 @@ namespace gridtools {
             constexpr meta_storage_aligned( meta_storage_aligned const& other ) :
                 super(other){
             }
+
+            //empty constructor
+            GT_FUNCTION
+            constexpr meta_storage_aligned() {}
 
 
             /**

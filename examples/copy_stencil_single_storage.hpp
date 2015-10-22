@@ -51,12 +51,7 @@ namespace copy_stencil{
     void handle_error(int_t)
     {std::cout<<"error"<<std::endl;}
 
-    typedef storage_info< 0,layout_t> meta_data_t;
-
-    // typedef storage_info_wrapper<meta_storage<0,layout_t, false> > meta_data_t;
     bool test(uint_t x, uint_t y, uint_t z) {
-
-        meta_data_t meta_data_(x,y,z);
 
         uint_t d1 = x;
         uint_t d2 = y;
@@ -71,6 +66,9 @@ namespace copy_stencil{
 #define BACKEND backend<Host, Naive >
 #endif
 #endif
+
+        typedef BACKEND::storage_info< 0,layout_t> meta_data_t;
+        meta_data_t meta_data_(x,y,z);
 
         //                   strides  1 x xy
         //                      dims  x y z

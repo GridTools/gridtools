@@ -44,9 +44,9 @@ struct functor{
 
 TEST(test_bc, boundary_conditions) {
 
-    typedef storage_info<0, layout_map<0,1,2> > meta_t;
+    typedef backend<Host, Naive>::storage_info<0, layout_map<0,1,2> > meta_t;
     meta_t meta_(10,10,10);
-    typedef gridtools::backend<Host, Naive>::storage_type<float_type, meta_t >::type storage_type;
+    typedef backend<Host, Naive>::storage_type<float_type, meta_t >::type storage_type;
     storage_type sol_(meta_, 0.);
 
     sol_.initialize(2.);
@@ -64,7 +64,11 @@ TEST(test_bc, boundary_conditions) {
     domain_type<boost::mpl::vector<p_sol, p_bd> > domain
         (boost::fusion::make_vector(&sol_, &bd_));
 
-    auto bc_eval =
+#ifdef __CUDACC__
+    gridtools::computation* bc_evall =
+#else
+        boost::shared_ptr<gridtools::computation> bc_eval =
+#endif
         make_computation<gridtools::backend<Host, Naive> >
         (
             make_mss

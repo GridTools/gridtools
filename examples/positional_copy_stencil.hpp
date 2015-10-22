@@ -108,7 +108,7 @@ namespace positional_copy_stencil{
         //                   strides  1 x xy
         //                      dims  x y z
         typedef gridtools::layout_map<2,1,0> layout_t;
-        typedef gridtools::storage_info<0, layout_t> meta_t;
+        typedef gridtools::BACKEND::storage_info<0, layout_t> meta_t;
 
         typedef gridtools::BACKEND::storage_type<float_type, meta_t >::type storage_type;
 

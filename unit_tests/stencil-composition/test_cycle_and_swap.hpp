@@ -36,7 +36,7 @@ namespace test_cycle_and_swap{
     bool test(){
 
         typedef gridtools::layout_map<0,1> layout_t;
-        typedef gridtools::storage_info<0, layout_t> meta_t;
+        typedef gridtools::BACKEND::storage_info<0, layout_t> meta_t;
         typedef gridtools::BACKEND::storage_type<uint_t, meta_t >::type storage_type;
         typedef typename field<storage_type, 2>::type field_t;
 

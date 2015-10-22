@@ -183,7 +183,7 @@ bool test(uint_t d1, uint_t d2, uint_t d3) {
 
     //    typedef gridtools::STORAGE<double, gridtools::layout_map<0,1,2> > storage_type;
     typedef gridtools::layout_map<0,1,2> layout_t;
-    typedef gridtools::storage_info<0, layout_t> meta_t;
+    typedef gridtools::BACKEND::storage_info<0, layout_t> meta_t;
     typedef gridtools::BACKEND::storage_type<float_type, meta_t >::type storage_type;
     typedef gridtools::BACKEND::temporary_storage_type<float_type, meta_t >::type tmp_storage_type;
 

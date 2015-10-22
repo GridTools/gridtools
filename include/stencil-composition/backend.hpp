@@ -5,7 +5,7 @@
 #include <boost/mpl/reverse.hpp>
 
 #include "gridtools.hpp"
-#include "backend_traits_fwd.hpp"
+ #include "backend_traits_fwd.hpp"
 #include "run_functor_arguments.hpp"
 
 #ifdef __CUDACC__
@@ -177,13 +177,13 @@ namespace gridtools {
 
         template < ushort_t Index
                    , typename Layout
-                   , typename Halo = typename repeat_template_c<0, Layout::length, halo>::type
+                   , typename Halo = halo<0,0,0>
                    >
-        struct storage_info<Index, Layout, AlignmentBoundary, Halo> :
-            public typename backend_traits_t::template meta_storage_traits<static_uint<Index>
+        struct storage_info :
+            public backend_traits_t::template meta_storage_traits<static_uint<Index>
                                                                            , Layout
                                                                            , false
-                                                                           , Halo>::type;
+                                                                           , Halo>::type
         {
             typedef  typename backend_traits_t::template meta_storage_traits<static_uint<Index>
                                                                            , Layout
@@ -195,7 +195,6 @@ namespace gridtools {
             GT_FUNCTION
             storage_info(storage_info const& t) : super(t){}
         };
-
 #endif
 
 
@@ -431,5 +430,35 @@ namespace gridtools {
 
 
     }; // struct backend {
+
+#ifndef CXX11_ENABLED
+
+#ifdef __CUDACC__
+    template < ushort_t Index, typename Layout >
+    struct is_meta_storage<typename gridtools::backend<gridtools::enumtype::Cuda, gridtools::enumtype::Block>::template storage_info<Index, Layout > > : boost::mpl::true_{};
+#else
+    template < ushort_t Index, typename Layout >
+    struct is_meta_storage<typename gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Block>::template storage_info<Index, Layout > > : boost::mpl::true_{};
+
+    template < ushort_t Index, typename Layout >
+    struct is_meta_storage<typename gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Naive>::template storage_info<Index, Layout > > : boost::mpl::true_{};
+#endif
+
+
+#ifdef __CUDACC__
+    template < ushort_t Index, typename Layout, typename Halo >
+    struct is_meta_storage<typename gridtools::backend<gridtools::enumtype::Cuda, gridtools::enumtype::Block>::template storage_info<Index, Layout, Halo > > : boost::mpl::true_{};
+
+    template < ushort_t Index, typename Layout, typename Halo >
+    struct is_meta_storage<typename gridtools::backend<gridtools::enumtype::Cuda, gridtools::enumtype::Naive>::template storage_info<Index, Layout, Halo > > : boost::mpl::true_{};
+#else
+    template < ushort_t Index, typename Layout, typename Halo >
+    struct is_meta_storage<typename gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Block>::template storage_info<Index, Layout, Halo > > : boost::mpl::true_{};
+
+    template < ushort_t Index, typename Layout, typename Halo >
+    struct is_meta_storage<typename gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Naive>::template storage_info<Index, Layout, Halo > > : boost::mpl::true_{};
+#endif
+
+#endif
 
 } // namespace gridtools

@@ -11,7 +11,12 @@ namespace gridtools{
 #ifndef CXX11_ENABLED
     template <uint_t Tile, uint_t Plus, uint_t Minus>
     struct tile;
+
+    template<typename MetaStorageBase,
+             typename TileI, typename TileJ >
+    struct meta_storage_tmp;
 #endif
+
 
     /**
        @class
@@ -24,7 +29,11 @@ namespace gridtools{
              uint_t Tile, uint_t Plus, uint_t Minus
 #endif
              >
-    struct meta_storage_tmp : public MetaStorageBase {
+    struct meta_storage_tmp
+#ifndef CXX11_ENABLED
+    <MetaStorageBase, FirstTile, tile<Tile, Plus, Minus> >
+#endif
+        : public MetaStorageBase {
 
         GRIDTOOLS_STATIC_ASSERT(is_meta_storage<MetaStorageBase>::type::value, "wrong type");
         GRIDTOOLS_STATIC_ASSERT(MetaStorageBase::is_temporary==true, "wrong type");
@@ -206,7 +215,7 @@ namespace gridtools{
     template< typename MetaStorageBase, typename ... Tiles>
     struct is_meta_storage<meta_storage_tmp<MetaStorageBase, Tiles ...> > : boost::mpl::true_{};
 #else
-    template< typename MetaStorageBase, typename TileI, typenmae TileJ>
+    template< typename MetaStorageBase, typename TileI, typename TileJ>
     struct is_meta_storage<meta_storage_tmp<MetaStorageBase, TileI, TileJ> > : boost::mpl::true_{};
 #endif
 

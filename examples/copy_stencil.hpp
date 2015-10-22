@@ -51,6 +51,12 @@ namespace copy_stencil{
     void handle_error(int_t)
     {std::cout<<"error"<<std::endl;}
 
+    bool test(uint_t x, uint_t y, uint_t z) {
+
+        uint_t d1 = x;
+        uint_t d2 = y;
+        uint_t d3 = z;
+
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<Cuda, Block >
 #else
@@ -61,16 +67,9 @@ namespace copy_stencil{
 #endif
 #endif
 
-    typedef padding<2,0,0> padding_t;
-    typedef gridtools::BACKEND::storage_info< 0, layout_t, padding_t > meta_data_t;
-
-    bool test(uint_t x, uint_t y, uint_t z) {
-
+        typedef BACKEND::storage_info< 0, layout_t > meta_data_t;
         meta_data_t meta_data_(x,y,z);
 
-        uint_t d1 = x;
-        uint_t d2 = y;
-        uint_t d3 = z;
         //                   strides  1 x xy
         //                      dims  x y z
         typedef gridtools::BACKEND::storage_type<float_type, meta_data_t >::type storage_t;
@@ -79,9 +78,9 @@ namespace copy_stencil{
         typedef storage_t storage_type;
         storage_type in(meta_data_, "in");
         storage_type out(meta_data_, -1.);
-        for(uint_t i=padding_t::get<0>(); i<d1+padding_t::get<0>(); ++i)
-            for(uint_t j=padding_t::get<1>(); j<d2+padding_t::get<1>(); ++j)
-                for(uint_t k=padding_t::get<2>(); k<d3+padding_t::get<2>(); ++k)
+        for(uint_t i=0; i<d1; ++i)
+            for(uint_t j=0; j<d2; ++j)
+                for(uint_t k=0; k<d3; ++k)
                 {
                     in(i,j,k)=i+j+k;
                 }
@@ -135,7 +134,7 @@ namespace copy_stencil{
                     execute<forward>(),
                     gridtools::make_esf<copy_functor>(
                         p_in() // esf_descriptor
-                        , p_out()
+                        ,p_out()
                         )
                 ),
                 domain, coords
@@ -154,9 +153,9 @@ namespace copy_stencil{
 #endif
 
         bool success = true;
-        for(uint_t i=padding_t::get<0>(); i<d1+padding_t::get<0>(); ++i)
-            for(uint_t j=padding_t::get<1>(); j<d2+padding_t::get<1>(); ++j)
-                for(uint_t k=padding_t::get<2>(); k<d3+padding_t::get<2>(); ++k)
+        for(uint_t i=0; i<d1; ++i)
+            for(uint_t j=0; j<d2; ++j)
+                for(uint_t k=0; k<d3; ++k)
                 {
                         if (in(i, j, k)!=out(i,j,k))
                         {

@@ -118,8 +118,8 @@ TEST(Laplace, test) {
     /**
        - definition of the storage type, depending on the BACKEND which is set as a macro. \todo find another strategy for the backend (policy pattern)?
     */
-    typedef storage_info<0, layout_t> storage_info_t;
-    typedef gridtools::BACKEND::storage_type<float_type, storage_info_t >::type storage_type;
+    typedef BACKEND::storage_info<0, layout_t> storage_info_t;
+    typedef BACKEND::storage_type<float_type, storage_info_t >::type storage_type;
 // [storage_type]
 
 // [storage_initialization]

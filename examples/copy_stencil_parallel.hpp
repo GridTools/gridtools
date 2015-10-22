@@ -62,8 +62,8 @@ namespace copy_stencil{
         //                   strides  1 x xy
         //                      dims  x y z
         typedef gridtools::layout_map<0,1,2> layout_t;
-        typedef storage_info<0, layout_t> metadata_t;
-        typedef gridtools::BACKEND::storage_type<float_type, metadata_t >::type storage_type;
+        typedef BACKEND::storage_info<0, layout_t> metadata_t;
+        typedef BACKEND::storage_type<float_type, metadata_t >::type storage_type;
         typedef storage_type::original_storage::pointer_type pointer_type;
 
 

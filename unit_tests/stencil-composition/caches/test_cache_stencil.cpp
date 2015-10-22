@@ -53,8 +53,8 @@ struct functor2 {
 #endif
 
 typedef layout_map<2,1,0> layout_ijk_t;
-    typedef gridtools::BACKEND::storage_type<float_type, storage_info<0,layout_ijk_t> >::type storage_type;
-    typedef gridtools::BACKEND::temporary_storage_type<float_type, storage_info<0,layout_ijk_t> >::type tmp_storage_type;
+    typedef gridtools::BACKEND::storage_type<float_type, gridtools::BACKEND::storage_info<0,layout_ijk_t> >::type storage_type;
+    typedef gridtools::BACKEND::temporary_storage_type<float_type, gridtools::BACKEND::storage_info<0,layout_ijk_t> >::type tmp_storage_type;
 
 typedef arg<0, storage_type> p_in;
 typedef arg<1, storage_type> p_out;

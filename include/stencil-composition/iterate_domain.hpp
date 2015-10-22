@@ -436,7 +436,7 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
             using storage_type = typename std::remove_reference<decltype(*storage_)>::type;
 #endif
-            auto storage_pointer=(data_pointer())[current_storage<(index_t::value==0), local_domain_t, typename generic_accessor<I>::type >::value];
+            typename storage_type::value_type* storage_pointer=(data_pointer())[current_storage<(index_t::value==0), local_domain_t, typename generic_accessor<I>::type >::value];
 
             typename storage_type::value_type * RESTRICT real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
 
