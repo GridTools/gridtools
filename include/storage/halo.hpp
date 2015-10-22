@@ -12,6 +12,7 @@ namespace gridtools{
     struct halo{
         static const uint_t size=sizeof ... (Pad);
         template<ushort_t Coordinate>
+        GT_FUNCTION
         static constexpr uint_t get(){
             GRIDTOOLS_STATIC_ASSERT((Coordinate>=0), "the halo must be a non negative number");
             GRIDTOOLS_STATIC_ASSERT((Coordinate<sizeof ... (Pad)), "the halo dimension is exceeding the storage dimension");
@@ -24,6 +25,7 @@ namespace gridtools{
     struct halo{
         static const uint_t size=3;
         template<ushort_t Coordinate>
+        GT_FUNCTION
         static constexpr uint_t get(){
             GRIDTOOLS_STATIC_ASSERT(Coordinate>=0, "the halo must be a non negative number");
             GRIDTOOLS_STATIC_ASSERT(Coordinate<3, "the halo dimension is exceeding the storage dimension");

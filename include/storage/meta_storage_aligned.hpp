@@ -85,7 +85,7 @@ namespace gridtools {
             constexpr meta_storage_aligned(  IntTypes const& ... dims_  ) :
                 super(apply_gt_integer_sequence
                       <typename make_gt_integer_sequence<uint_t, sizeof ... (IntTypes)>::type >::template apply_zipped
-                      <super, lambda_t >(dims_ ...) )
+                      <super, lambda_t >(dims_ + Pad ...) )
             {
             }
 #else
