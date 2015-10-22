@@ -13,7 +13,7 @@ typedef interval<level<0,-2>, level<1,1> > axis;
 
    struct implementing the minimal interface in order to be passed as an argument to the user functor.
 */
-struct boundary{
+struct boundary : clonable_to_gpu<boundary> {
 
     boundary(){}
     //device copy constructor
@@ -38,15 +38,21 @@ struct functor{
     template <typename Evaluation>
     GT_FUNCTION
     static void Do(Evaluation const & eval, x_interval) {
-        eval(sol())+=10.;//eval(bd())->value();
+        eval(sol())+=eval(bd())->value();
     }
 };
 
 TEST(test_bc, boundary_conditions) {
 
-    typedef backend<Host, Naive>::storage_info<0, layout_map<0,1,2> > meta_t;
+#ifdef __CUDACC__
+    typedef backend<Host, Naive> backend_t;
+#else
+    typedef backend<Cuda, Block> backend_t;
+#endif
+
+    typedef typename backend_t::storage_info<0, layout_map<0,1,2> > meta
     meta_t meta_(10,10,10);
-    typedef backend<Host, Naive>::storage_type<float_type, meta_t >::type storage_type;
+    typedef backend_t::storage_type<float_type, meta_t >::type storage_type;
     storage_type sol_(meta_, 0.);
 
     sol_.initialize(2.);
@@ -65,7 +71,7 @@ TEST(test_bc, boundary_conditions) {
         (boost::fusion::make_vector(&sol_, &bd_));
 
 #ifdef __CUDACC__
-    gridtools::computation* bc_evall =
+    gridtools::computation* bc_eval =
 #else
         boost::shared_ptr<gridtools::computation> bc_eval =
 #endif

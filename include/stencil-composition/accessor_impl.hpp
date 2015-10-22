@@ -249,11 +249,11 @@ namespace gridtools {
     {};
 
     template <typename T, typename U, ushort_t Dim>
-    struct is_storage<base_storage<T,U,Dim>  *  > : public boost::mpl::bool_< !U::is_temporary >
+    struct is_actual_storage<base_storage<T,U,Dim>  *  > : public boost::mpl::bool_< !U::is_temporary >
     {};
 
     template <typename U>
-    struct is_storage<no_storage_type_yet<U>  *  > : public boost::false_type
+    struct is_actual_storage<no_storage_type_yet<U>  *  > : public boost::false_type
     {};
 
     template <typename U>
@@ -266,20 +266,20 @@ namespace gridtools {
 
 
     template <typename BaseType >
-    struct is_storage<no_storage_type_yet<BaseType> > : public is_storage<typename BaseType::basic_type*>
+    struct is_actual_storage<no_storage_type_yet<BaseType> > : public is_actual_storage<typename BaseType::basic_type*>
     {};
 
     template <typename BaseType >
-    struct is_storage<storage<BaseType>  *  > : public is_storage<typename BaseType::basic_type*>
+    struct is_actual_storage<storage<BaseType>  *  > : public is_actual_storage<typename BaseType::basic_type*>
     {};
 
     template <typename BaseType >
-    struct is_storage<storage<BaseType> > : public is_storage<typename BaseType::basic_type*>
+    struct is_actual_storage<storage<BaseType> > : public is_actual_storage<typename BaseType::basic_type*>
     {};
 
     //Decorator is the integrator
     template <typename BaseType , template <typename T, ushort_t O> class Decorator, ushort_t Order >
-    struct is_storage<Decorator<BaseType, Order>  *  > : public is_storage<typename BaseType::basic_type*>
+    struct is_actual_storage<Decorator<BaseType, Order>  *  > : public is_actual_storage<typename BaseType::basic_type*>
     {};
 
 } // namespace gridtools

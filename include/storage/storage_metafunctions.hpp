@@ -47,7 +47,7 @@ struct storage_holds_data_field : boost::mpl::bool_<(T::field_dimensions > 1)>{}
     struct is_any_storage<no_storage_type_yet<T>*& > : boost::mpl::true_{};
 
     template<typename T>
-    struct is_not_tmp_storage : boost::mpl::or_<is_storage<T>, boost::mpl::not_<is_any_storage<T > > >{
+    struct is_not_tmp_storage : boost::mpl::or_<is_actual_storage<T>, boost::mpl::not_<is_any_storage<T > > >{
     };
 
 }

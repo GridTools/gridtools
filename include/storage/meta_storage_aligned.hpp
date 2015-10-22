@@ -25,11 +25,12 @@ namespace gridtools {
 
     template<typename MetaStorageBase
              , typename AlignmentBoundary
-             , template<ushort_t ... > class  Halo
 #ifdef CXX11_ENABLED
+             , template<ushort_t ... > class  Halo
              , ushort_t ... Pad>
     struct meta_storage_aligned<MetaStorageBase, AlignmentBoundary, Halo<Pad ...> >
 #else
+        , template<ushort_t, ushort_t, ushort_t > class  Halo
         , ushort_t Pad1, ushort_t Pad2, ushort_t Pad3>
         struct meta_storage_aligned<MetaStorageBase, AlignmentBoundary, Halo<Pad1, Pad2, Pad3> >
 #endif

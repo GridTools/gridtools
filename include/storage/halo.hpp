@@ -43,7 +43,12 @@ namespace gridtools{
     template <typename T>
     struct is_halo : boost::mpl::false_ {};
 
+#ifdef CXX11_ENABLED
     template <uint_t ... Pad>
     struct is_halo<halo<Pad ...> > : boost::mpl::true_ {};
+#else
+    template <uint_t Pad1, uint_t Pad2, uint_t Pad3>
+    struct is_halo<halo<Pad1, Pad2, Pad3> > : boost::mpl::true_ {};
+#endif
 
 }//namespace gridtools
