@@ -17,7 +17,7 @@ namespace gridtools {
 template<typename ArgType, typename Storage>
 struct arg_storage_pair {
 
-    //TODO is_storage is taken!
+    GRIDTOOLS_STATIC_ASSERT(is_storage<Storage>::value, "wrong type");
     GRIDTOOLS_STATIC_ASSERT(is_arg<ArgType>::value, "wrong type");
     typedef ArgType arg_type;
     typedef Storage storage_type;

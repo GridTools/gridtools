@@ -92,6 +92,12 @@ namespace gridtools{
     */
     template <typename Sequence, typename Arg>
     struct insert_if_not_present{
+
+#ifdef PEDANTIC //disabling in case of generic accessors
+        GRIDTOOLS_STATIC_ASSERT(is_storage<Arg>::type::value, "if you are using generic accessors disable the pedantic mode. Otherwise most probably you used in the domain_type constructor a storage type which is not supported.");
+#endif
+        GRIDTOOLS_STATIC_ASSERT(is_metadata_set<Sequence>::type::value, "wrong type");
+
     private :
         Sequence& m_seq;
         Arg const& m_arg;

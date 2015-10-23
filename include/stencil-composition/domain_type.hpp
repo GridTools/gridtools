@@ -306,7 +306,7 @@ You have to define each arg with a unique identifier ranging from 0 to N without
             template <typename Arg>
             void operator()( Arg const* arg_) const{
                 // filter out the arguments which are not of storage type (and thus do not have an associated metadata)
-                static_if<is_storage<Arg>::type::value>::eval(
+                static_if<is_actual_storage<Arg>::type::value>::eval(
                     insert_if_not_present<Sequence, Arg >
                     (m_sequence
                      , *arg_)

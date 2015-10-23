@@ -54,7 +54,8 @@ if (GTEST_FOUND)
       gpu_clone.cu
       cloningstuff.cu
       boundary_conditions_test.cu
-    )
+      test_bc.cu
+      )
 
     gridtools_add_test(tests.tests_gpu ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/tests_gpu")
 
