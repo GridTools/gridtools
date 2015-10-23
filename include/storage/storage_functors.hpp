@@ -106,6 +106,8 @@ namespace gridtools {
                    >
         GT_FUNCTION_WARNING
         void operator()(StorageType *& s) const {
+
+            GRIDTOOLS_STATIC_ASSERT(is_storage<StorageType>::value, "wrong type");
             if (s) {
                 copy_data_impl<StorageType>(s);
 

@@ -454,37 +454,7 @@ namespace gridtools {
         operator()(expr_direct_access<Accessor > const& accessor) const {
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
-            return get_value(accessor, (data_pointer())[current_storage<(Accessor::index_type::value==0), local_domain_t, typename Accessor::type >::value]);
-        }
-
-        /** @brief method called in the Do methods of the functors.
-            specialization for the expr_direct_access<accessor> placeholders
-        */
-        template <typename Accessor, typename ... Pairs>
-        GT_FUNCTION
-        typename accessor_return_type<Accessor>::type::value_type& RESTRICT
-        operator()(expr_direct_access<accessor_mixed<Accessor, Pairs ...> > const& accessor) const {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
-
-            typedef accessor_mixed<Accessor, Pairs ... > accessor_mixed_t;
-            using storage_type = typename std::remove_reference<decltype(*boost::fusion::at<typename Accessor::type::index_type>(local_domain.m_local_args))>::type;
-
-
-// #ifdef PEDANTIC
-//             GRIDTOOLS_STATIC_ASSERT((!Storage::meta_data_t::padding_t::get<0>() || Accessor::range_t::iminus::value == Storage::meta_data_t::padding_t::get<0>()), "Check that the padding you specified for the storage (I dimension) matches the halo specfied in the corresponding accessor, in the user functor.");
-//             GRIDTOOLS_STATIC_ASSERT((!Storage::meta_data_t::padding_t::get<1>() || Accessor::range_t::jminus::value == Storage::meta_data_t::padding_t::get<1>()), "Check that the padding you specified for the storage (J dimension) matches the halo specfied in the corresponding accessor, in the user functor.");
-// #endif
-
-            return get_value(accessor, (data_pointer())[
-                                 (
-                                     accessor_mixed_t::template get_constexpr<1>() //offset for the current snapshot
-                                     //hypotheses : storage offsets are known at compile-time
-                                     + compute_storage_offset< typename storage_type::traits
-                                     , accessor_mixed_t::template get_constexpr<0>()
-                                     , storage_type::traits::n_dimensions-1 >::value //stride of the current dimension inside the vector of storages
-                                     )//+ the offset of the other extra dimension
-                                 + current_storage<(Accessor::index_type::value==0), local_domain_t, typename Accessor::type>::value
-                                 ]);
+            return get_value(accessor, (data_pointer())[current_storage<(Accessor::type::index_type::value==0), local_domain_t, typename Accessor::type >::value]);
         }
 #endif
 
@@ -936,9 +906,9 @@ namespace gridtools {
         assert(metadata_
                ->_index(strides().template get<metadata_index_t::value>(), expr.first_operand) >= 0);
 
-        // GRIDTOOLS_STATIC_ASSERT((
-        //                             Accessor::n_dim <= storage_type::meta_data_t::space_dimensions),
-        //                         "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the storage (or decrease the accessor dimensionality).");
+        GRIDTOOLS_STATIC_ASSERT((
+                                    Accessor::n_dim <= storage_type::meta_data_t::space_dimensions),
+                                "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.");
 
         //casting the storage pointer from void* to the sotrage value_type
         typename storage_type::value_type * RESTRICT real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);

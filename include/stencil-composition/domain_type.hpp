@@ -28,7 +28,6 @@
 #include "domain_type_impl.hpp"
 #include "../storage/metadata_set.hpp"
 #include "../common/generic_metafunctions/static_if.hpp"
-#include "../common/generic_metafunctions/lazy_range.hpp"
 
 /**@file
    @brief This file contains the global list of placeholders to the storages

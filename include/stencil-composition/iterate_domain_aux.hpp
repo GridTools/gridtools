@@ -182,8 +182,11 @@ namespace gridtools{
     struct assign_raw_data_functor{
         GRIDTOOLS_STATIC_ASSERT((is_array<DataPointerArray>::value),
                                 "Internal Error: wrong type");
-        // GRIDTOOLS_STATIC_ASSERT((is_any_iterate_domain_storage<Storage>::value),
-        //                         "Internal Error: wrong type");
+#ifdef PEDANTIC
+        GRIDTOOLS_STATIC_ASSERT((is_any_iterate_domain_storage<Storage>::value),
+                                "If you are using generic accessors disable the pedantic mode. \n\
+If you are not using generic accessors then you are using an unsupported storage type ");
+#endif
 
     private:
         DataPointerArray& RESTRICT m_data_pointer_array;
@@ -440,8 +443,11 @@ namespace gridtools{
     struct assign_storage_functor{
 
         GRIDTOOLS_STATIC_ASSERT((is_array<DataPointerArray>::value), "internal error: wrong type");
-        // GRIDTOOLS_STATIC_ASSERT((is_sequence_of<StorageSequence, is_any_iterate_domain_storage_pointer>::value),
-        //                         "internal error: wrong type");
+#ifdef PEDANTIC
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<StorageSequence, is_any_iterate_domain_storage_pointer>::value),
+                                "If you are using generic accessors disable the pedantic mode. \n If you are not using generic accessors then you are using an unsupported storage type ");
+#endif
+
     private:
         DataPointerArray& RESTRICT m_data_pointer_array;
         StorageSequence const & RESTRICT m_storages;
