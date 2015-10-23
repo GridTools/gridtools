@@ -20,6 +20,7 @@
 namespace gridtools {
 
     template<
+        typename BackendId,
         typename LocalDomain,
         typename EsfSequence,
         typename RangeSizes,
@@ -36,6 +37,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_block_size<PhysicalDomainBlockSize>::value), "Iternal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coordinates>::value), "Iternal Error: wrong type");
 
+        typedef BackendId backend_id_t;
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;
         typedef EsfSequence esf_sequence_t;
@@ -47,6 +49,7 @@ namespace gridtools {
     template<typename T> struct is_iterate_domain_arguments : boost::mpl::false_{};
 
     template<
+        typename BackendId,
         typename LocalDomain,
         typename EsfSequence,
         typename RangeSizes,
@@ -55,6 +58,7 @@ namespace gridtools {
         typename Coords>
     struct is_iterate_domain_arguments<
         iterate_domain_arguments<
+            BackendId,
             LocalDomain,
             EsfSequence,
             RangeSizes,
@@ -108,6 +112,7 @@ namespace gridtools {
         typedef typename backend_traits_from_id<backend_id_t::value>::
                 template select_iterate_domain<
                     iterate_domain_arguments<
+                        backend_id_t,
                         LocalDomain,
                         EsfSequence,
                         RangeSizes,

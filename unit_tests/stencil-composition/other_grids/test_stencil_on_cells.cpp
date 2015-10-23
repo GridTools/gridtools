@@ -121,13 +121,13 @@ TEST(test_stencil_on_cells, run) {
     copy->run();
 
     unstructured_grid ugrid(d1, d2, d3);
-    for(int i=0; i < d1; ++i)
+    for(uint_t i=0; i < d1; ++i)
     {
-        for(int c=0; c < 2; ++c)
+        for(uint_t c=0; c < 2; ++c)
         {
-            for(int j=0; j < d2; ++j)
+            for(uint_t j=0; j < d2; ++j)
             {
-                for(int k=0; k < d3; ++k)
+                for(uint_t k=0; k < d3; ++k)
                 {
                     auto neighbours = ugrid.neighbours_of({i,c,j,k});
                     for(auto iter = neighbours.begin(); iter != neighbours.end(); ++iter)

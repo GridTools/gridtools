@@ -34,7 +34,4 @@ namespace gridtools
         typedef IterateDomainArguments type;
     };
 
-    template<typename IterateDomainImpl>
-    struct iterate_domain_backend_id;
-
 }

@@ -207,21 +207,21 @@ struct extract_location_type
    ways to access data and the implementation of iterating on neighbors.
  */
 //template <typename PlcVector, typename GridType, typename LocationType>
-template <typename IterateDomainImpl>
+template <typename IterateDomainArguments>
 struct iterate_domain {
+    GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Wrong Type");
+    typedef typename IterateDomainArguments::backend_id_t backend_id_t;
 
-    typedef typename iterate_domain_impl_local_domain<IterateDomainImpl>::type local_domain_t;
-    typedef typename iterate_domain_impl_arguments<IterateDomainImpl>::type iterate_domain_arguments_t;
-    typedef typename iterate_domain_arguments_t::coordinates_t::grid_t grid_t;
-    typedef typename iterate_domain_arguments_t::esf_sequence_t esf_sequence_t;
+    typedef typename IterateDomainArguments::local_domain_t local_domain_t;
+
+    typedef typename IterateDomainArguments::coordinates_t::grid_t grid_t;
+    typedef typename IterateDomainArguments::esf_sequence_t esf_sequence_t;
     typedef typename extract_location_type<esf_sequence_t>::type location_type_t;
 
     typedef typename local_domain_t::esf_args esf_args_t;
 
-    typedef typename iterate_domain_backend_id< IterateDomainImpl >::type backend_id_t;
-
     typedef typename backend_traits_from_id< backend_id_t::value >::
-            template select_iterate_domain_cache<iterate_domain_arguments_t>::type iterate_domain_cache_t;
+            template select_iterate_domain_cache<IterateDomainArguments>::type iterate_domain_cache_t;
 
     typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
 
@@ -242,6 +242,12 @@ struct iterate_domain {
     static const uint_t N_DATA_POINTERS=total_storages<
         actual_args_type,
         boost::mpl::size<typename local_domain_t::mpl_storages>::type::value >::value;
+
+    typedef array<void* RESTRICT, N_DATA_POINTERS> data_pointer_array_t;
+    typedef strides_cached<N_META_STORAGES-1, typename local_domain_t::storage_metadata_vector_t> strides_cached_t;
+    typedef typename backend_traits_from_id< backend_id_t::value >::
+            template select_iterate_domain_backend<data_pointer_array_t, strides_cached_t>::type iterate_domain_backend_t;
+
 
     /**@brief local class instead of using the inline (cond)?a:b syntax, because in the latter both branches get compiled (generating sometimes a compile-time overflow) */
     template <bool condition, typename LocalD, typename Accessor>
@@ -285,8 +291,8 @@ struct iterate_domain {
 
 
 public:
-    typedef array<void* RESTRICT, N_DATA_POINTERS> data_pointer_array_t;
-    typedef strides_cached<N_META_STORAGES-1, typename local_domain_t::storage_metadata_vector_t> strides_cached_t;
+
+    iterate_domain_backend_t m_iterate_domain_backend;
 private:
     GRIDTOOLS_STATIC_ASSERT((N_META_STORAGES <= grid_t::n_locations::value),"We can not have more meta storages"
                             "than location types. Data fields for other grids are not yet supported");
@@ -315,7 +321,7 @@ public:
     GT_FUNCTION
     data_pointer_array_t const& RESTRICT data_pointer() const
     {
-        return static_cast<const IterateDomainImpl*>(this)->data_pointer_impl();
+        return m_iterate_domain_backend.data_pointer_impl();
     }
 
     /**
@@ -324,7 +330,7 @@ public:
     GT_FUNCTION
     data_pointer_array_t& RESTRICT data_pointer()
     {
-        return static_cast<IterateDomainImpl*>(this)->data_pointer_impl();
+        return m_iterate_domain_backend.data_pointer_impl();
     }
 
     /**
@@ -333,7 +339,7 @@ public:
     GT_FUNCTION
     strides_cached_t const & RESTRICT strides() const
     {
-        return static_cast<const IterateDomainImpl*>(this)->strides_impl();
+        return m_iterate_domain_backend.strides_impl();
     }
 
     /**
@@ -342,7 +348,7 @@ public:
     GT_FUNCTION
     strides_cached_t & RESTRICT strides()
     {
-        return static_cast<IterateDomainImpl*>(this)->strides_impl();
+        return m_iterate_domain_backend.strides_impl();
     }
 
 
@@ -400,10 +406,21 @@ public:
             typename boost::fusion::result_of::as_vector
             <typename local_domain_t::local_metadata_type>::type
             >(strides(), boost::fusion::as_vector(local_domain.m_local_metadata), initial_pos, block, &m_index[0]));
-        static_cast<IterateDomainImpl*>(this)->template initialize_impl<Coordinate>();
+        m_iterate_domain_backend.template initialize_impl<Coordinate>();
 
         m_grid_position[Coordinate] = initial_pos;
     }
+
+    void set_data_pointer(data_pointer_array_t* RESTRICT data_pointer)
+    {
+        m_iterate_domain_backend.set_data_pointer_impl(data_pointer);
+    }
+
+    void set_strides_pointer(strides_cached_t* RESTRICT strides)
+    {
+        m_iterate_domain_backend.set_strides_pointer_impl(strides);
+    }
+
 
     /**@brief method for incrementing by 1 the index when moving forward along the given direction
        \tparam Coordinate dimension being incremented
@@ -427,7 +444,7 @@ public:
 #endif
               , &m_index[0], strides())
             );
-        static_cast<IterateDomainImpl*>(this)->template increment_impl<Coordinate, Execution>();
+        m_iterate_domain_backend.template increment_impl<Coordinate, Execution>();
         m_grid_position[Coordinate] += Execution::value;
     }
 
@@ -448,7 +465,7 @@ public:
             <typename local_domain_t::local_metadata_type>::type
             >(boost::fusion::as_vector(local_domain.m_local_metadata), steps_, &m_index[0], strides())
         );
-        static_cast<IterateDomainImpl*>(this)->template increment_impl<Coordinate>(steps_);
+        m_iterate_domain_backend.template increment_impl<Coordinate>(steps_);
 
         m_grid_position[Coordinate] += steps_;
     }
