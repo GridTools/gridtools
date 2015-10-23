@@ -11,6 +11,8 @@ namespace iga_rt
 	/**
 	 * @class Generic function basis composition base class
 	 * @brief Base class for the composition generic function basis
+	 * @tparam D basis function domain number of dimensions
+	 * @tparam N basis function number
 	 */
 	template<int D, int N>
 	class NDPolinomialParametricBasis
