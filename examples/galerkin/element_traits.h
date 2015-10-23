@@ -43,36 +43,43 @@ namespace gridtools{
     template<ushort_t P>
     struct basis_select<P, enumtype::BSplines, enumtype::Hexa>{
         using type=b_spline< order<P,P,P> >;
+        static type instance(){return type();}
     };
 
     template<ushort_t P>
     struct basis_select<P, enumtype::BSplines, enumtype::Quad>{
         using type=b_spline< order<P,P> >;
+        static type instance(){return type();}
     };
 
     template<ushort_t P>
     struct basis_select<P, enumtype::BSplines, enumtype::Line>{
         using type=b_spline< order<P> >;
+        static type instance(){return type();}
     };
 
     template<>
     struct basis_select<1, enumtype::Lagrange, enumtype::Hexa>{
         using type=Intrepid::Basis_HGRAD_HEX_C1_FEM<double, Intrepid::FieldContainer<double> >;
+        static type instance(){return type();}
     };
 
     template<ushort_t order>
     struct basis_select<order, enumtype::Lagrange, enumtype::Hexa>{
         using type=Intrepid::Basis_HGRAD_HEX_Cn_FEM<double, Intrepid::FieldContainer<double> >;
+        static type instance(){return type(order, Intrepid::POINTTYPE_EQUISPACED);}
     };
 
     template<ushort_t order>
     struct basis_select<order, enumtype::Lagrange, enumtype::Quad>{
         using type=Intrepid::Basis_HGRAD_QUAD_Cn_FEM<double, Intrepid::FieldContainer<double> >;
+        static type instance(){return type(order, Intrepid::POINTTYPE_EQUISPACED);}
     };
 
     template<>
     struct basis_select<1, enumtype::Lagrange, enumtype::Quad>{
         using type=Intrepid::Basis_HGRAD_QUAD_C1_FEM<double, Intrepid::FieldContainer<double> >;
+        static type instance(){return type();}
     };
 
     template <ushort_t order, enumtype::Shape shape>

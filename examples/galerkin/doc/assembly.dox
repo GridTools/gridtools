@@ -5,15 +5,16 @@
 
     This example shows a possible usage of the GridTools library to accelerate a continuous Finite Elements assembly on a structured grid.
 
-    In this file we suppose that the quantities needed to assemble the matrices have been already
+    In this example we suppose that the quantities needed to assemble the matrices have been already
     computed by a third party library. In particulare the input data provided are:
 
     - the "mesh", i.e. the position of the grid points in the current configuration
     - the "basis functions" on the reference element, i.e. those functions whoose span generates the discretized solution space
-    - the "geometric map", i.e. the way in which the nodes of the mesh are interpolated  in order to describe the actual configuration. The geometric map definition can use the same basis functions used
+    - the basis functions for the "geometric map" (i.e. the way in which the nodes of the mesh are interpolated  in order to describe the actual configuration).
+      The geometric map definition can use the same basis functions used
       to  represent the solution (isoparametric concept), or can use other arbitrary basis functions (e.g. polinomials, splines, ...).
-    - the geometric map derivatives, which are used to compute the jacobian matrix of the reference to current domain transformation
-    - the basis functions derivatives, which are used to compute the differential operators (laplacian in this case)
+    - the basis functions derivatives, which are used to compute the jacobian matrix of the reference to current domain transformation
+      and the differential operators (laplacian in this case)
 
     These quantities are all provided as multidimensional arrays. They will be copmuted on the host as preprocessing step, and used on the device to perform the discretization.
     The discretization of the most common differential operators (i.e. linear operators such as mass, stiffness, advection, ...) can be split in 3 stages:

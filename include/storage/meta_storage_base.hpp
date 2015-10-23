@@ -132,7 +132,7 @@ namespace gridtools {
         template <class ... IntTypes
                   , typename Dummy = all_integers<IntTypes...>
                   >
-        // constexpr
+        constexpr
         meta_storage_base(  IntTypes const& ... dims_  ) :
             m_dims(dims_...)
             , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( dims_...))

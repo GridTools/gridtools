@@ -236,8 +236,8 @@ namespace gridtools {
         void allocate(ushort_t const& dims=FieldDimension, ushort_t const& offset=0){
             assert(dims>offset);
             is_set=true;
-            for(ushort_t i=0; i<dims; ++i)
-                m_fields[i+offset]=pointer_type(m_meta_data.size());
+            for(ushort_t i=offset; i<dims; ++i)
+                m_fields[i]=pointer_type(m_meta_data.size());
         }
 
         /** @brief initializes with a constant value */

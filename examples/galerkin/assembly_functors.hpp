@@ -1,6 +1,5 @@
 #pragma once
 
-// namespace gridtools{
 namespace functors{
 
     //watchout: propagating namespace
@@ -38,7 +37,6 @@ namespace functors{
 
 #ifndef __CUDACC__
             assert(num_cub_points==cub::numCubPoints());
-            assert(basis_cardinality==fe::basisCardinality);
 #endif
             //TODO dimensions should be generic
             for(short_t icoor=0; icoor< shape_property<Geometry::parent_shape>::dimension; ++icoor)
@@ -156,10 +154,10 @@ namespace functors{
                 assert(eval(c()) == eval(jac(qp+q, X+2)));
                 assert(eval(d()) == eval(jac(qp+q, Y+1)));
 
-                // std::cout << "JACOBIAN: "<<std::endl;
-                // std::cout<<eval(a())<<" "<<eval(b())<<" "<<eval(c())<<std::endl;
-                // std::cout<<eval(d())<<" "<<eval(e())<<" "<<eval(f())<<std::endl;
-                // std::cout<<eval(g())<<" "<<eval(h())<<" "<<eval(i())<<std::endl;
+                //! std::cout << "JACOBIAN: "<<std::endl;
+                //! std::cout<<eval(a())<<" "<<eval(b())<<" "<<eval(c())<<std::endl;
+                //! std::cout<<eval(d())<<" "<<eval(e())<<" "<<eval(f())<<std::endl;
+                //! std::cout<<eval(g())<<" "<<eval(h())<<" "<<eval(i())<<std::endl;
 
                 eval( jac_inv(qp+q) )           = eval( ( e()*i() - f()*h())/jac_det(qp+q));
                 eval( jac_inv(X+1, qp+q) )      = eval( ( f()*g() - d()*i())/jac_det(qp+q));
@@ -171,10 +169,10 @@ namespace functors{
                 eval( jac_inv(Y+2, X+1, qp+q) ) = eval( ( c()*d() - a()*f())/jac_det(qp+q));
                 eval( jac_inv(Y+2, X+2, qp+q) ) = eval( ( a()*e() - b()*d())/jac_det(qp+q));
 
-                // std::cout << "JACOBIAN INVERSE: "<<std::endl;
-                // std::cout<<eval(jac_inv(qp+q))<<" "<<eval(jac_inv(qp+q, X+1))<<" "<<eval(jac_inv(qp+q, X+2))<<std::endl;
-                // std::cout<<eval(jac_inv(qp+q, Y+1))<<" "<<eval(jac_inv(qp+q, X+1, Y+1))<<" "<<eval(jac_inv(qp+q, X+2, Y+1))<<std::endl;
-                // std::cout<<eval(jac_inv(qp+q, Y+2))<<" "<<eval(jac_inv(qp+q, X+1, Y+2))<<" "<<eval(jac_inv(qp+q, X+2, Y+2))<<std::endl;
+                //! std::cout << "JACOBIAN INVERSE: "<<std::endl;
+                //! std::cout<<eval(jac_inv(qp+q))<<" "<<eval(jac_inv(qp+q, X+1))<<" "<<eval(jac_inv(qp+q, X+2))<<std::endl;
+                //! std::cout<<eval(jac_inv(qp+q, Y+1))<<" "<<eval(jac_inv(qp+q, X+1, Y+1))<<" "<<eval(jac_inv(qp+q, X+2, Y+1))<<std::endl;
+                //! std::cout<<eval(jac_inv(qp+q, Y+2))<<" "<<eval(jac_inv(qp+q, X+1, Y+2))<<" "<<eval(jac_inv(qp+q, X+2, Y+2))<<std::endl;
             }
 
         }
@@ -183,15 +181,23 @@ namespace functors{
 #endif //__CUDACC__
 
 
-    // [assembly]
-    template<typename Geometry>
-    struct jump_f {
+    // [assemble]
+    /**
+       @class functor assembling a matrix
+
+       Given a quantity defined on the grid it loops over the lower boundary dofs of the current element
+       (i.e. the boundary corresponding to a lower index) and computes an operation (\tparam Operator) between the value at the boundary
+       and the corresponding one in the neighboring element.
+     */
+    template<typename Geometry, typename Operator>
+    struct assemble {
 
         using geo_map=typename Geometry::geo_map;
 
-        using in=accessor<0, range<> , 4> const;
-        using out=accessor<1, range<> , 4> ;
-        using arg_list=boost::mpl::vector<in, out> ;
+        using in1=accessor<0, range<> , 4>;
+        using in2=accessor<1, range<> , 4>;
+        using out=accessor<2, range<> , 4> ;
+        using arg_list=boost::mpl::vector<in1, in2, out> ;
 
         template <typename Evaluation>
         GT_FUNCTION
@@ -202,42 +208,41 @@ namespace functors{
             dimension<4>::Index row;
 
 
-            //hypothesis here: the cardinaxlity is order^3 (isotropic tensor product element)
+            //hypothesis here: the cardinaxlity is order^3 (isotropic 3D tensor product element)
 #ifdef __CUDACC__
             constexpr meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{static_int<3>(), static_int<3>(), static_int<3>()};
 #else
             constexpr meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
 
 #endif
-            // assembly : this part is specific for tensor product topologies
-            // points on the edges
-            // static int_t bd_dim=geo_map::hypercube_t::template boundary_w_dim<1>::n_points::value;
 
-
-            //for all dofs in a boundary face
+            //for all dofs in a boundary face (supposing that the dofs per face are the same)
             for(short_t I=0; I<indexing.template dims<0>(); I++)
                 for(short_t J=0; J<indexing.template dims<1>(); J++)
                 {
 
+                    //for each (3) faces
                     auto dof_x=indexing.index(0, (int)I, (int)J);
                     auto dof_xx=indexing.index(indexing.template dims<0>()-1, I, J);
-                    //sum the contribution from elem i-1 on the opposite face
-                    eval(out(row+dof_x)) -= eval(out(i-1, row+dof_xx));
-
                     auto dof_y=indexing.index(I, 0, J);
                     auto dof_yy=indexing.index(I, indexing.template dims<1>()-1, J);
-                    //sum the contribution from elem i-1 on the opposite face
-                    eval(out(row+dof_y)) -= eval(out(j-1, row+dof_yy));
-
                     auto dof_z=indexing.index(I, J, 0);
                     auto dof_zz=indexing.index(I, J, indexing.template dims<2>()-1);
+
                     //sum the contribution from elem i-1 on the opposite face
-                    eval(out(row+dof_z)) -= eval(out(k-1, row+dof_zz));
+                    eval(out(row+dof_x)) += Operator()(eval(in1(row+dof_x)), eval(in2(i-1, row+dof_xx)));
+
+                    //sum the contribution from elem j-1 on the opposite face
+                    eval(out(row+dof_y)) += Operator()(eval(in1(row+dof_y)), eval(in2(j-1, row+dof_yy)));
+
+                    //sum the contribution from elem k-1 on the opposite face
+                    eval(out(row+dof_z)) += Operator()(eval(in1(row+dof_z)), eval(in2(k-1, row+dof_zz)));
+
                 }
         }
     };
-    // [assembly]
+    // [assemble]
+
 
 
 } // namespace functors
-    // } // namespace gridtools

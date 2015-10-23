@@ -92,9 +92,9 @@ private:
 
        NOTE: the information specified here will be used at a later stage
        to define the storage meta information (the meta_storage_base type)
-       NOTE: in order to ease the notation we set the default value of the index
-       to the preprocessor counter __COUNTER__ when available, i.e. all storage_info types
-       will be different unless specifically stated.
+       NOTE: For the user code we suggest for the Index the use of the  preprocessor counter __COUNTER__
+       when available, i.e. all storage_info types
+       would be different unless specifically stated.
        __COUNTER__ is a non standard
        extension which is implemented in several preprocessors (e.g. GCC, Intel, Clang).
        If not defined we set the default index to BOOST_PP_COUNTER. The latter gets incremented
@@ -105,11 +105,6 @@ private:
     template <
         typename Layout
         , ushort_t Index
-#ifdef __COUNTER__
-        = __COUNTER__ //incrementing twice
-#else
-        = 0
-#endif
         >
     using storage_info = meta_storage_derived<meta_storage_base<Index, Layout, false > >;
 #else

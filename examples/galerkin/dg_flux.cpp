@@ -148,8 +148,18 @@ int main(){
             //   det(J) = | |  d(phi_y)/du   d(phi_y)/dv  1  | |
             //            |  \ d(phi_z)/du   d(phi_z)/dv  1 /  |
             , make_esf<functors::measure<bd_discr_t, 2> >(as::p_bd_jac(), as::p_bd_measure())
-            // evaluate the integral
-            , make_esf<integration<fe, bd_cub_t::bd_cub> >(as::p_bd_measure(), as::p_bd_weights(), p_mass(), p_bd_phi(), p_bd_phi()) //mass
+            // evaluate the mass matrix
+            , make_independent< make_esf<integration<fe, bd_cub_t::bd_cub> >(as::p_bd_measure(), as::p_bd_weights(), p_mass(), p_bd_phi(), p_bd_phi()) //mass
+                                // compute the jump : out=in1-in2
+                              , make_esf< functors::assemble<fe, subtract_functor> >(p_jump(), p_u(), p_u())
+                                // compute the average : out=(in1+in2)/2
+                              , make_esf< functors::assemble<fe, average_functor> >(p_average(), p_u(), p_u())
+                              > //jump of u
+            // compute the flux, this line defines the type of approximation we choose for DG
+            // (e.g. upwind, centered, Lax-Wendroff and so on)
+            , make_esf< functors::upwind<fe> >(p_jump(), p_average(), p_u())
+            // integrate the flux: mass*flux
+            , make_esf< functors::matvec >(as::p_mass(), p_flux()) //mass
             ), domain, coords);
 
     computation->ready();

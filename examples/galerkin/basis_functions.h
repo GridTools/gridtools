@@ -47,8 +47,7 @@ namespace gridtools{
         static const typename basis_select<Order, BasisType, ShapeType>::type
         hexBasis()                       // create hex basis
         {
-            static const typename basis_select<Order, BasisType, ShapeType>::type hex_basis;
-            return hex_basis;
+            return basis_select<Order, BasisType, ShapeType>::instance();
 
         }
         //static const Basis_HDIV_HEX_In_FEM<double, Intrepid::FieldContainer<double> > hexBasis(2, POINTTYPE_EQUISPACED);
