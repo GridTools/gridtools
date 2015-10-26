@@ -103,7 +103,7 @@ then
   then
       if [ "x$CXX_11_ON" == "xcxx11" ]
          then
-         mpiexec -np 4 ./build/shallow_water_enhanced 8 8 1 2 > &/tmp/log_${CXX_11_ON}_${TARGET}_${REAL_TYPE}
+         mpiexec -np 4 ./build/shallow_water_enhanced 8 8 1 2 >& /tmp/log_${CXX_11_ON}_${TARGET}_${REAL_TYPE}
 
          exit_if_error $?
 
