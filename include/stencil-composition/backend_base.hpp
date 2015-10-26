@@ -137,7 +137,12 @@ namespace gridtools {
 
         template <typename ValueType, typename MetaDataType>
         struct storage_type {
-            typedef typename backend_traits_t::template storage_traits<ValueType, MetaDataType>::storage_t type;
+            typedef typename backend_traits_t::template
+                storage_traits<
+                    ValueType,
+                    typename backend_traits_t::template meta_storage_traits<MetaDataType, false>::type,
+                    false
+                >::storage_t type;
         };
 
         /**

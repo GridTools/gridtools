@@ -24,6 +24,8 @@ namespace gridtools
 
     template<typename IterateDomainArguments> struct is_iterate_domain<iterate_domain<IterateDomainArguments> > : boost::mpl::true_{};
 
+    template<typename IterateDomainArguments> struct is_iterate_domain<positional_iterate_domain<IterateDomainArguments> > : boost::mpl::true_{};
+
     template<typename T>
     struct is_positional_iterate_domain : boost::mpl::false_{};
 

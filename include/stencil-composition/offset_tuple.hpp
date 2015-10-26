@@ -1,6 +1,7 @@
 #pragma once
 #include "common/defs.hpp"
 #include "stencil-composition/dimension_defs.hpp"
+#include "common/generic_metafunctions/logical_and.hpp"
 
 namespace gridtools {
 

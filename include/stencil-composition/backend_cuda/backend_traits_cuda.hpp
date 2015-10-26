@@ -191,13 +191,13 @@ namespace gridtools{
             template<typename _IterateDomainArguments>
             struct select_positional_iterate_domain
             {
-                typedef iterate_domain_cuda<positional_iterate_domain, _IterateDomainArguments> type;
+                typedef positional_iterate_domain<_IterateDomainArguments> type;
             };
 
             template<typename _IterateDomainArguments>
             struct select_basic_iterate_domain
             {
-                typedef iterate_domain_cuda<iterate_domain, _IterateDomainArguments> type;
+                typedef iterate_domain<_IterateDomainArguments> type;
             };
 
             typedef typename boost::mpl::eval_if<

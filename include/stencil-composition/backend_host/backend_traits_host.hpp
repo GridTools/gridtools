@@ -184,7 +184,6 @@ namespace gridtools{
             typedef iterate_domain_host<DataPointerArray, StridesCached> type;
         };
 
-
         /**
          * @brief metafunction that returns the right iterate domain
          * (depending on whether the local domain is positional or not)

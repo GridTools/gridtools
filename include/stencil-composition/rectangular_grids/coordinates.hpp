@@ -1,4 +1,6 @@
 #pragma once
+#include "storage/partitioner.hpp"
+#include "stencil-composition/axis.hpp"
 
 namespace gridtools {
 

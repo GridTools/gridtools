@@ -29,6 +29,11 @@ struct arg_storage_pair {
     }
 };
 
+template<typename Arg> struct is_arg_storage_pair : boost::mpl::false_{};
+
+template<typename ArgType, typename Storage>
+struct is_arg_storage_pair<arg_storage_pair<ArgType, Storage> > : boost::mpl::true_{};
+
 /**
  * Type to create placeholders for data fields.
  *
