@@ -28,8 +28,8 @@ namespace copy_stencil{
 
 // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
-        typedef const accessor<0> in;
-        typedef accessor<1> out;
+        typedef const accessor<0, enumtype::in> in;
+        typedef accessor<1, enumtype::inout> out;
         typedef boost::mpl::vector<in,out> arg_list;
         /* static const auto expression=in(1,0,0)-out(); */
 

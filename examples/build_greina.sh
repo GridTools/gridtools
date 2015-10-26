@@ -1,5 +1,16 @@
 #!/bin/bash
 
+
+function exit_if_error {
+    if [ "x$1" != "x0" ]
+    then
+        echo "Exit with errors"
+        tail -n 100 /tmp/log_${CXX_11_ON}_${TARGET}_${REAL_TYPE};
+        rm -rf *
+        exit $1
+    fi
+}
+
 module load cmake/2.8.12
 module load /users/crosetto/local/cuda7/7.0.0
 module load boost/1.56_gcc4.8.4
@@ -56,6 +67,8 @@ WHERE_=`pwd`
 
 export JENKINS_COMMUNICATION_TESTS=1
 
+rm /tmp/log_${CXX_11_ON}_${TARGET}_${REAL_TYPE};
+
 cmake \
 -DCUDA_ARCH:STRING="sm_35" \
 -DCMAKE_BUILD_TYPE:STRING="DEBUG" \
@@ -73,11 +86,15 @@ cmake \
 -DCMAKE_CXX_FLAGS:STRING=" -fopenmp -O3  -g -fPIC -DBOOST_RESULT_OF_USE_TR1"  \
 -DSINGLE_PRECISION:BOOL=$SINGLE_PRECISION \
 -DENABLE_CXX11:BOOL=$CXX_11 \
- ../
+ ../ >>& /tmp/log_${CXX_11_ON}_${TARGET}_${REAL_TYPE};
 
-make -j8;
+make -j8 >>& /tmp/log_${CXX_11_ON}_${TARGET}_${REAL_TYPE};
 
-sh ./run_tests.sh
+exit_if_error $?
+
+sh ./run_tests.sh /tmp/log_${CXX_11_ON}_${TARGET}_${REAL_TYPE}
+
+exit_if_error $?
 
 if [ "x$TARGET" == "xcpu" ]
 then
@@ -86,7 +103,10 @@ then
   then
       if [ "x$CXX_11_ON" == "xcxx11" ]
          then
-         mpiexec -np 4 ./build/shallow_water_enhanced 8 8 1 2
+         mpiexec -np 4 ./build/shallow_water_enhanced 8 8 1 2 >> &/tmp/log_${CXX_11_ON}_${TARGET}_${REAL_TYPE}
+
+         exit_if_error $?
+
       fi
 
       #TODO not updated to greina
