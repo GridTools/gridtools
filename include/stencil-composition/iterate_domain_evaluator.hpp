@@ -62,7 +62,6 @@ public:
     GT_FUNCTION
     explicit iterate_domain_evaluator_base(const iterate_domain_t& iterate_domain) : m_iterate_domain(iterate_domain) {}
 
-
     /** shifting the IDs of the placeholders and forwarding to the iterate_domain () operator*/
     template <typename Expression>
     GT_FUNCTION
@@ -70,10 +69,7 @@ public:
     auto
     operator() (Expression const&  arg) const -> decltype(m_iterate_domain(arg))
 #else
-    typename boost::mpl::at<
-        typename local_domain_t::esf_args,
-        typename Expression::type::index_type
-    >::type::value_type& RESTRICT
+    typename  iterate_domain_t::template accessor_return_type<Expression>::type
     operator() (Expression const&  arg) const
 #endif
     {

@@ -26,12 +26,6 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
-#ifdef CXX11_ENABLED
-#define POSTFIX
-#else
-#define POSTFIX
-#endif
-
 namespace positional_copy_stencil{
     // This is the definition of the special regions in the "vertical" direction
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
@@ -40,8 +34,8 @@ namespace positional_copy_stencil{
     // These are the stencil operators that compose the multistage stencil in this test
     template <int V>
     struct init_functor {
-        typedef accessor<0, range<0,0,0,0> > POSTFIX one;
-        typedef accessor<1, range<0,0,0,0> > POSTFIX two;
+        typedef accessor<0, enumtype::inout, range<0,0,0,0> > one;
+        typedef accessor<1, enumtype::inout, range<0,0,0,0> > two;
         typedef boost::mpl::vector<one, two> arg_list;
 
         template <typename Evaluation>
@@ -55,8 +49,8 @@ namespace positional_copy_stencil{
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
 
-        typedef const accessor<0, range<0,0,0,0>, 3> POSTFIX in;
-        typedef accessor<1, range<0,0,0,0>, 3> POSTFIX out;
+        typedef accessor<0, enumtype::in, range<0,0,0,0>, 3> in;
+        typedef accessor<1, enumtype::inout, range<0,0,0,0>, 3> out;
         typedef boost::mpl::vector<in,out> arg_list;
 
     /* static const auto expression=in(1,0,0)-out(); */

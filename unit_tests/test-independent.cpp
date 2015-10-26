@@ -19,13 +19,8 @@ using namespace enumtype;
 typedef uint_t x_all;
 
 struct lap_function {
-#ifdef CXX11_ENABLED
-    typedef accessor<0> out;
-    typedef const accessor<1, range<-1, 1, -1, 1> > in;
-#else
-    typedef accessor<0>::type out;
-    typedef const accessor<1, range<-1, 1, -1, 1> >::type in;
-#endif
+    typedef accessor<0, enumtype::inout> out;
+    typedef accessor<1, enumtype::in, range<-1, 1, -1, 1> > in;
     typedef boost::mpl::vector<out, in> arg_list;
 
     template <typename Domain>
@@ -37,15 +32,9 @@ struct lap_function {
 };
 
 struct flx_function {
-#ifdef CXX11_ENABLED
-    typedef accessor<0> out;
-    typedef const accessor<1, range<0, 1, 0, 0> > in;
-    typedef const accessor<2, range<0, 1, 0, 0> > lap;
-#else
-    typedef accessor<0>::type out;
-    typedef const accessor<1, range<0, 1, 0, 0> >::type in;
-    typedef const accessor<2, range<0, 1, 0, 0> >::type lap;
-#endif
+    typedef accessor<0, enumtype::inout> out;
+    typedef accessor<1, enumtype::in, range<0, 1, 0, 0> > in;
+    typedef accessor<2, enumtype::in, range<0, 1, 0, 0> > lap;
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
     template <typename Domain>
@@ -58,15 +47,9 @@ struct flx_function {
 };
 
 struct fly_function {
-#ifdef CXX11_ENABLED
-    typedef accessor<0> out;
-    typedef const accessor<1, range<0, 0, 0, 1> > in;
-    typedef const accessor<2, range<0, 0, 0, 1> > lap;
-#else
-    typedef accessor<0>::type out;
-    typedef const accessor<1, range<0, 0, 0, 1> >::type in;
-    typedef const accessor<2, range<0, 0, 0, 1> >::type lap;
-#endif
+    typedef accessor<0, enumtype::inout> out;
+    typedef accessor<1, enumtype::in, range<0, 0, 0, 1> > in;
+    typedef accessor<2, enumtype::in,  range<0, 0, 0, 1> > lap;
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
     template <typename Domain>
@@ -79,19 +62,11 @@ struct fly_function {
 };
 
 struct out_function {
-#ifdef CXX11_ENABLED
     typedef accessor<0> out;
-    typedef const accessor<1> in;
-    typedef const accessor<2, range<-1, 0, 0, 0> > flx;
-    typedef const accessor<3, range<0, 0, -1, 0> > fly;
-    typedef const accessor<4> coeff;
-#else
-    typedef accessor<0>::type out;
-    typedef const accessor<1>::type in;
-    typedef const accessor<2, range<-1, 0, 0, 0> >::type flx;
-    typedef const accessor<3, range<0, 0, -1, 0> >::type fly;
-    typedef const accessor<4>::type coeff;
-#endif
+    typedef accessor<1> in;
+    typedef accessor<2, enumtype::in, range<-1, 0, 0, 0> > flx;
+    typedef accessor<3, enumtype::in, range<0, 0, -1, 0> > fly;
+    typedef accessor<4> coeff;
 
     typedef boost::mpl::vector<out,in,flx,fly,coeff> arg_list;
 
