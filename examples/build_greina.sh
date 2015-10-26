@@ -67,8 +67,6 @@ WHERE_=`pwd`
 
 export JENKINS_COMMUNICATION_TESTS=1
 
-rm /tmp/log_${CXX_11_ON}_${TARGET}_${REAL_TYPE};
-
 cmake \
 -DCUDA_ARCH:STRING="sm_35" \
 -DCMAKE_BUILD_TYPE:STRING="DEBUG" \
@@ -86,9 +84,11 @@ cmake \
 -DCMAKE_CXX_FLAGS:STRING=" -fopenmp -O3  -g -fPIC -DBOOST_RESULT_OF_USE_TR1"  \
 -DSINGLE_PRECISION:BOOL=$SINGLE_PRECISION \
 -DENABLE_CXX11:BOOL=$CXX_11 \
- ../ >>& /tmp/log_${CXX_11_ON}_${TARGET}_${REAL_TYPE};
+ ../ >& /tmp/log_${CXX_11_ON}_${TARGET}_${REAL_TYPE};
 
-make -j8 >>& /tmp/log_${CXX_11_ON}_${TARGET}_${REAL_TYPE};
+exit_if_error $?
+
+make -j8 >& /tmp/log_${CXX_11_ON}_${TARGET}_${REAL_TYPE};
 
 exit_if_error $?
 
@@ -103,7 +103,7 @@ then
   then
       if [ "x$CXX_11_ON" == "xcxx11" ]
          then
-         mpiexec -np 4 ./build/shallow_water_enhanced 8 8 1 2 >> &/tmp/log_${CXX_11_ON}_${TARGET}_${REAL_TYPE}
+         mpiexec -np 4 ./build/shallow_water_enhanced 8 8 1 2 > &/tmp/log_${CXX_11_ON}_${TARGET}_${REAL_TYPE}
 
          exit_if_error $?
 
