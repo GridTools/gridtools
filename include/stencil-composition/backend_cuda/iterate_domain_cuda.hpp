@@ -231,6 +231,7 @@ public:
     >::type
     get_cache_value_impl(Accessor const & _accessor) const
     {
+        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
         //        assert(m_pshared_iterate_domain);
         // retrieve the ij cache from the fusion tuple and access the element required give the current thread position within
         // the block and the offsets of the accessor
@@ -248,6 +249,7 @@ public:
     >::type
     get_cache_value_impl(Accessor const & _accessor) const
     {
+        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
         return super::template get_value<Accessor, void * RESTRICT> (_accessor,
                     super::template get_data_pointer<Accessor>(_accessor));
     }
