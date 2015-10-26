@@ -9,8 +9,8 @@
 #include <stencil-composition/interval.hpp>
 
 #include <boost/type_traits.hpp>
-#include "basis_functions.h"
-#include "cubature.h"
+#include "basis_functions.hpp"
+#include "cubature.hpp"
 // [includes]
 
 #define REORDER
@@ -58,11 +58,11 @@ namespace intrepid{
         & cub_weights()// const
             {return m_cub_weights_s;}
         grad_storage_t // const
-        & local_gradient()// const
+        & grad()// const
             {return *m_grad_at_cub_points_s;}
 
         basis_function_storage_t // const
-        & basis_function()// const
+        & val()// const
             {return *m_phi_at_cub_points_s;}
 
         discretization() :
@@ -430,10 +430,10 @@ namespace intrepid{
         typename rule_t::weights_storage_t & bd_cub_weights()
         {return m_rule.bd_cub_weights();}
 
-        grad_storage_t & local_gradient()
+        grad_storage_t & grad()
         {return m_grad_at_cub_points;}
 
-        basis_function_storage_t & phi()
+        basis_function_storage_t & vale()
         {return m_phi_at_cub_points;}
 
         tangent_storage_t & ref_normals()

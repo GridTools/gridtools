@@ -1,6 +1,6 @@
 #pragma once
 // [includes]
-#include "assembly.h"
+#include "assembly.hpp"
 #include "bd_assembly_functors.hpp"
 
 template <typename Boundary, typename Geometry>

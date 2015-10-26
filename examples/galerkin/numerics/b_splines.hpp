@@ -1,5 +1,5 @@
 #pragma once
-#include "IGA/RunTimeIGA/b_splines_rt.h"
+#include "../IGA/RunTimeIGA/b_splines_rt.h"
 #include <boost/fusion/include/accumulate.hpp>
 #include <tuple>
 #include "nest_loops.hpp"

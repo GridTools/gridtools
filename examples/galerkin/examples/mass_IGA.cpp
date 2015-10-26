@@ -2,8 +2,8 @@
 \file
 */
 #define PEDANTIC_DISABLED
-#include "assembly.h"
-#include "matvec.hpp"
+#include "../functors/assembly.hpp"
+#include "../functors/matvec.hpp"
 
 namespace functors{
 // [integration]
@@ -253,8 +253,8 @@ int main(){
                                              , p_dphi
                                              , p_vec
                                              >( mass_
-                                                , fe3_.basis_function()
-                                                ,  geo_.local_gradient()
+                                                , fe3_.val()
+                                                ,  geo_.grad()
                                                 , vector_
          );
 #else
@@ -265,7 +265,7 @@ int main(){
          domain_
          ( boost::fusion::make_vector(&assembler.grid()
                                       , &assembler.jac(), &assembler.cub_weights(), &assembler.jac_det(), &assembler.jac_inv()
-                                      ,  &mass_ , &fe3_.basis_function(),  &geo_.local_gradient(), &vector_));
+                                      ,  &mass_ , &fe3_.val(),  &geo_.grad(), &vector_));
 #endif
 
      auto coords=coordinates<axis>({1, 0, 1, d1-1, d1},
@@ -277,7 +277,7 @@ int main(){
          make_mss
          (
              execute<forward>()
-             , make_esf<functors::update_jac<geo_t> >( as::p_grid_points(), as::p_jac(), p_dphi())
+             , make_esf<functors::update_jac<geo_t> >( as::p_jac(), as::p_grid_points(), p_dphi())
              , make_esf<functors::det<geo_t> >(as::p_jac(), as::p_jac_det())
              , make_esf<functors::mass<fe3, geo_cub> >(as::p_jac_det(), as::p_weights(), p_mass(), p_phi(), p_phi())
              , make_esf<functors::matvec<geo_t> >(p_vec(), p_mass(), p_vec())//matrix vector product

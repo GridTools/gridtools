@@ -2,8 +2,8 @@
 
 #include <stencil-composition/make_computation.hpp>
 // [includes]
-#include "basis_functions.h"
-#include "intrepid.h"
+#include "../numerics/basis_functions.hpp"
+#include "../numerics/intrepid.hpp"
 // [includes]
 #ifdef CXX11_ENABLED
 

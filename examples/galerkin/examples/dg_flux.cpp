@@ -4,9 +4,11 @@
 #define PEDANTIC_DISABLED
 #define HAVE_INTREPID_DEBUG
 //! [assembly]
-#include "bd_assembly.hpp"
+#include "../functors/bd_assembly.hpp"
 //! [assembly]
 #include "test_dg_flux.hpp"
+#include "../functors/dg_fluxes.hpp"
+#include "../functors/matvec.hpp"
 
 
 // [boundary integration]
@@ -62,7 +64,7 @@ int main(){
     using namespace enumtype;
     using namespace gridtools;
     //defining the assembler, based on the Intrepid definitions for the numerics
-    using matrix_storage_info_t=storage_info< layout_tt<3,4> >;
+    using matrix_storage_info_t=storage_info< layout_tt<3,4>,  __COUNTER__ >;
     using matrix_type=storage_t< matrix_storage_info_t >;
 
     using fe=reference_element<1, Lagrange, Hexa>;
@@ -115,6 +117,14 @@ int main(){
     matrix_storage_info_t meta_(d1,d2,d3,fe::basisCardinality,fe::basisCardinality);
     matrix_type mass_(meta_, 0., "mass");
 
+    using vector_storage_info_t=storage_info< layout_tt<3>,  __COUNTER__ >;
+    using vector_type=storage_t< vector_storage_info_t >;
+    vector_storage_info_t vec_meta_(d1,d2,d3,fe::basisCardinality);
+    vector_type u_(vec_meta_, 2., "u");//initial solution
+    vector_type jump_(vec_meta_, 0., "jump");
+    vector_type flux_(vec_meta_, 0., "flux");
+    vector_type integrated_flux_(vec_meta_, 0., "integrated flux");
+
     //![placeholders]
     // defining the placeholder for the mass
     typedef arg<as::size, matrix_type> p_mass;
@@ -122,9 +132,13 @@ int main(){
     typedef arg<as::size+1, bd_discr_t::grad_storage_t> p_bd_dphi;
 
     typedef arg<as::size+2, bd_discr_t::basis_function_storage_t> p_bd_phi;
+    typedef arg<as::size+3, vector_type> p_u;
+    typedef arg<as::size+4, vector_type> p_jump;
+    typedef arg<as::size+5, vector_type> p_flux;
+    typedef arg<as::size+6, vector_type> p_integrated_flux;
 
     // appending the placeholders to the list of placeholders already in place
-    auto domain=assembler.template domain<p_mass, p_bd_dphi, p_bd_phi>(mass_, bd_discr_.local_gradient(), bd_discr_.phi());
+    auto domain=assembler.template domain<p_mass, p_bd_dphi, p_bd_phi, p_u, p_jump, p_flux, p_integrated_flux>(mass_, bd_discr_.grad(), bd_discr_.val(), u_, jump_, flux_, integrated_flux_);
     //![placeholders]
 
 
@@ -139,7 +153,7 @@ int main(){
         (
             execute<forward>()
             // evaluate the cell Jacobian matrix on the boundary (given the basis functions derivatives in those points)
-            , make_esf<functors::update_jac<bd_discr_t , enumtype::Hexa> >(as::p_grid_points(), as::p_bd_jac(), p_bd_dphi())
+            , make_esf<functors::update_jac<bd_discr_t , enumtype::Hexa> >(as::p_grid_points(), p_bd_dphi(), as::p_bd_jac())
             // compute the normals on the quad points from the jacobian above (first 2 columns)
             , make_esf<functors::compute_face_normals<bd_discr_t> >(as::p_bd_jac(), as::p_ref_normals(), as::p_normals())
             // surface integral:
@@ -149,17 +163,13 @@ int main(){
             //            |  \ d(phi_z)/du   d(phi_z)/dv  1 /  |
             , make_esf<functors::measure<bd_discr_t, 2> >(as::p_bd_jac(), as::p_bd_measure())
             // evaluate the mass matrix
-            , make_independent< make_esf<integration<fe, bd_cub_t::bd_cub> >(as::p_bd_measure(), as::p_bd_weights(), p_mass(), p_bd_phi(), p_bd_phi()) //mass
-                                // compute the jump : out=in1-in2
-                              , make_esf< functors::assemble<fe, subtract_functor> >(p_jump(), p_u(), p_u())
-                                // compute the average : out=(in1+in2)/2
-                              , make_esf< functors::assemble<fe, average_functor> >(p_average(), p_u(), p_u())
-                              > //jump of u
+            , make_esf<integration<fe, bd_cub_t::bd_cub> >(as::p_bd_measure(), as::p_bd_weights(), p_mass(), p_bd_phi(), p_bd_phi()) //mass
             // compute the flux, this line defines the type of approximation we choose for DG
             // (e.g. upwind, centered, Lax-Wendroff and so on)
-            , make_esf< functors::upwind<fe> >(p_jump(), p_average(), p_u())
+            // NOTE: if not linear we cannot implement it as a matrix
+            , make_esf<functors::bassi_rebay<bd_discr_t> >(p_u(), p_u(), p_flux())
             // integrate the flux: mass*flux
-            , make_esf< functors::matvec >(as::p_mass(), p_flux()) //mass
+            , make_esf< functors::matvec >( p_flux(), p_mass(), p_integrated_flux() )
             ), domain, coords);
 
     computation->ready();

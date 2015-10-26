@@ -18,9 +18,9 @@ namespace functors{
         using geo_map=typename Geometry::geo_map;
 
         typedef accessor<0, range<0,0,0,0> , 5> const grid_points;
-        typedef accessor<1, range<0,0,0,0> , 6> jac;
-        typedef accessor<2, range<0,0,0,0> , 3> const dphi;
-        typedef boost::mpl::vector< grid_points, jac, dphi> arg_list;
+        typedef accessor<1, range<0,0,0,0> , 3> const dphi;
+        typedef accessor<2, range<0,0,0,0> , 6> jac;
+        typedef boost::mpl::vector< grid_points, dphi, jac> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION
@@ -183,7 +183,7 @@ namespace functors{
 
     // [assemble]
     /**
-       @class functor assembling a matrix
+       @class functor assembling a vector
 
        Given a quantity defined on the grid it loops over the lower boundary dofs of the current element
        (i.e. the boundary corresponding to a lower index) and computes an operation (\tparam Operator) between the value at the boundary
@@ -242,7 +242,6 @@ namespace functors{
         }
     };
     // [assemble]
-
 
 
 } // namespace functors

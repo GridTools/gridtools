@@ -13,10 +13,10 @@ namespace functors{
     struct bd_projection{
         using bd_cub=typename BdGeometry::cub;
 
-        using jac_projected = accessor<0, range<0,0,0,0> , 6> const;
-        using jac =  accessor<1, range<0,0,0,0> , 6>;
-        using normals =  accessor<2, range<0,0,0,0> , 5>;
-        using arg_list= boost::mpl::vector< jac_projected, jac, normals > ;
+        using jac =  accessor<0, range<0,0,0,0> , 6> const;
+        using normals =  accessor<1, range<0,0,0,0> , 5> const;
+        using jac_projected = accessor<2, range<0,0,0,0> , 6>;
+        using arg_list= boost::mpl::vector< jac, normals, jac_projected > ;
 
         template <typename Evaluation>
         GT_FUNCTION

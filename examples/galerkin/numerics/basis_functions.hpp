@@ -7,11 +7,11 @@
 #include <stencil-composition/backend.hpp>
 //! [includes]
 
-#include "tensor_product_element.h"
+#include "tensor_product_element.hpp"
 
-#include "element_traits.h"
+#include "element_traits.hpp"
 
-#include "cell.h"
+#include "cell.hpp"
 namespace gridtools{
 
 //! [storage definition]

@@ -1,5 +1,8 @@
+/**
+\file
+*/
 #pragma once
-#include "bd_assembly.hpp"
+#include "../functors/bd_assembly.hpp"
 #include <Intrepid_CellTools.hpp>
 
 namespace gridtools{
@@ -32,14 +35,7 @@ namespace gridtools{
                 cub_weights(i)=fe_backend_.m_rule.m_bd_cub_weights(i,0,0);
             }
 
-            FieldContainer<double> cub_points(cub::numCubPoints(), fe::spaceDim);
-            for(uint_t i=0; i<cub::numCubPoints(); ++i)
-            {
-                for(uint_t j=0; j<fe::spaceDim; ++j)
-                {
-                    cub_points(i,j)=fe_backend_.m_rule.m_bd_cub_pts(i,j,0);
-                }
-            }
+            auto cub_points=fe_backend_.m_rule.update_boundary_cub(1);
 
             FieldContainer<double> grid(d1*d2*d3, geo_map::basisCardinality, 3);
 

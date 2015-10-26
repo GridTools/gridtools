@@ -1,3 +1,7 @@
+/**
+\file
+*/
+
 #pragma once
 //! [includes]
 #include <Intrepid_Basis.hpp>

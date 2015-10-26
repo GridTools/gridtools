@@ -4,9 +4,9 @@
 #pragma once
 #define PEDANTIC_DISABLED
 //! [assembly]
-#include "assembly.h"
+#include "../functors/assembly.hpp"
 //! [assembly]
-#include "test_assembly.h"
+#include "test_assembly.hpp"
 
 // [integration]
 /** The following functor performs the assembly of an elemental laplacian.
@@ -82,7 +82,7 @@ int main(){
     //![definitions]
     using namespace enumtype;
     //defining the assembler, based on the Intrepid definitions for the numerics
-    using matrix_storage_info_t=storage_info< layout_tt<0,1,2,3,4> , __COUNTER__>;
+    using matrix_storage_info_t=storage_info< layout_tt<3,4> , __COUNTER__>;
     using matrix_type=storage_t< matrix_storage_info_t >;
     using fe=reference_element<1, Lagrange, Hexa>;
     using geo_map=reference_element<1, Lagrange, Hexa>;
@@ -142,7 +142,7 @@ int main(){
 
     // appending the placeholders to the list of placeholders already in place
     // auto domain=assembler.template domain< p_bd_dphi, p_bd_phi, p_flux >( bd_discr_.local_gradient(), bd_discr_.phi(), flux_);
-    auto domain=assembler.template domain<p_dphi, p_stiffness>(fe_.local_gradient(), stiffness_);
+    auto domain=assembler.template domain<p_dphi, p_stiffness>(fe_.grad(), stiffness_);
     //![placeholders]
 
 
@@ -158,7 +158,7 @@ int main(){
         make_mss
         (
             execute<forward>(),
-            make_esf<functors::update_jac<geo_t> >( as::p_grid_points(), as::p_jac(), p_dphi())
+            make_esf<functors::update_jac<geo_t> >( as::p_grid_points(), p_dphi(), as::p_jac())
             , make_esf<functors::det<geo_t> >(as::p_jac(), as::p_jac_det())
             , make_esf<functors::inv<geo_t> >(as::p_jac(), as::p_jac_det(), as::p_jac_inv())
             , make_esf<stiffness<fe, cub> >(as::p_jac_det(), as::p_jac_inv(), as::p_weights(), p_stiffness(), p_dphi(), p_dphi())//stiffness
