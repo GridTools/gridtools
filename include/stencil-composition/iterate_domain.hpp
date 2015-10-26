@@ -464,6 +464,19 @@ namespace gridtools {
         }
 #endif
 
+        /** @brief return a the value in gmem pointed to by an accessor
+        */
+        template<
+            typename ReturnType,
+            typename StoragePointer
+        >
+        GT_FUNCTION
+        ReturnType get_gmem_value(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset) const
+        {
+            return *(storage_pointer+pointer_offset);
+        }
+
+
         /** @brief method called in the Do methods of the functors.
             specialization for the accessor placeholders
 
