@@ -480,9 +480,9 @@ namespace gridtools {
             boost::fusion::for_each(mss_local_domain_list,
                    _impl::instantiate_mss_local_domain<actual_arg_list_type, IsStateful>(actual_arg_list));
 
-#ifdef __VERBOSE__
-            m_domain.info();
-#endif
+// #ifdef __VERBOSE__
+//             m_domain.info();
+// #endif
         }
 
         virtual void finalize () {

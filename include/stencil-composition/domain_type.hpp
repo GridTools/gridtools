@@ -217,10 +217,10 @@ The numeration of the placeholders is not contiguous. You have to define each ar
 // #endif
             boost::fusion::copy(real_storage, fview);
 
-#ifdef __VERBOSE__
-            std::cout << "\nThese are the view values" << boost::fusion::size(fview) << std::endl;
-            boost::fusion::for_each(storage_pointers, _debug::print_pointer());
-#endif
+// #ifdef __VERBOSE__
+//             std::cout << "\nThese are the view values" << boost::fusion::size(fview) << std::endl;
+//             boost::fusion::for_each(storage_pointers, _debug::print_pointer());
+// #endif
 
             view_type original_fview(original_pointers);
             boost::fusion::copy(real_storage, original_fview);
