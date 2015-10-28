@@ -135,7 +135,7 @@ namespace gridtools {
         {
             typedef typename boost::mpl::eval_if<
                 is_accessor<Accessor>,
-                placeholder_holds_data_field_h<get_arg_from_accessor<Accessor> >,
+                arg_holds_data_field_h<get_arg_from_accessor<Accessor> >,
                 boost::mpl::identity<boost::mpl::false_>
             >::type type;
         };
