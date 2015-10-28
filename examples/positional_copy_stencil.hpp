@@ -1,7 +1,7 @@
 #pragma once
 
 #include <boost/timer/timer.hpp>
-#include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
 
 #ifdef USE_PAPI_WRAP

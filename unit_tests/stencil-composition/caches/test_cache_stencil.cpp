@@ -144,9 +144,15 @@ TEST_F(cache_stencil, ij_cache)
     m_out.data().update_cpu();
 #endif
 
-    verifier verif(1e-13, m_halo_size);
-    array<array<uint_t, 2>, 3> halos = {{0,0},{0,0},{0,0}};
+#ifdef CXX11_ENABLED
+    verifier verif(1e-13);
+    array<array<uint_t, 2>, 3> halos({{m_halo_size,m_halo_size},{m_halo_size,m_halo_size},{m_halo_size,m_halo_size}});
     ASSERT_TRUE(verif.verify(m_in, m_out, halos) );
+#else
+    verifier verif(1e-13, m_halo_size);
+    ASSERT_TRUE(verif.verify(m_in, m_out));
+#endif
+
 }
 
 TEST_F(cache_stencil, ij_cache_offset)
