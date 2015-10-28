@@ -117,7 +117,6 @@ namespace gridtools {
             m_strides=array<int_t, space_dimensions>(
                 _impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( first_, dims_...));
         }
-d
 #endif
         template<typename T>
         constexpr meta_storage_base(T const& a)
