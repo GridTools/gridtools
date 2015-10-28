@@ -77,12 +77,19 @@ struct flx_function {
             (dom(in( 0, 0, 0)) + dom(in( 1, -1, 0)) +
              dom(in(1, 1, 0)) + dom(in(2, 0, 0)));
 #else
+#ifdef STENCIL_PROCEDURES
+        double _x_;
+        gridtools::call<lap_function, x_flx>::at<0,0,0>::with(dom, _x_, in());
+        double _y_;
+        gridtools::call<lap_function, x_flx>::at<1,0,0>::with(dom, _y_, in());
+#else
 #ifdef FUNCTIONS_OFFSETS
         double _x_ = gridtools::call_offsets<lap_function, x_flx>::with(dom, in(0,0,0));
         double _y_ = gridtools::call_offsets<lap_function, x_flx>::with(dom, in(1,0,0));
 #else
         double _x_ = gridtools::call<lap_function, x_flx>::at<0,0,0>::with(dom, in());
         double _y_ = gridtools::call<lap_function, x_flx>::at<1,0,0>::with(dom, in());
+#endif
 #endif
 #endif
         dom(out()) = _y_-_x_;
