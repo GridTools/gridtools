@@ -2,7 +2,7 @@
 #include "gtest/gtest.h"
 #include <iostream>
 #include "common/defs.hpp"
-#include "stencil-composition/make_computation.hpp"
+#include "stencil-composition/stencil-composition.hpp"
 #include "stencil-composition/intermediate_metafunctions.hpp"
 
 namespace test_iterate_domain{
@@ -88,17 +88,17 @@ namespace test_iterate_domain{
 
         typedef boost::mpl::front<mss_local_domains_t>::type mss_local_domain1_t;
 
-        typedef iterate_domain_host<
-            iterate_domain,
+        typedef iterate_domain<
             iterate_domain_arguments<
+                enumtype::enum_type<enumtype::backend, enumtype::Host>,
                 boost::mpl::at_c<typename mss_local_domain1_t::fused_local_domain_sequence_t, 0>::type,
                 boost::mpl::vector1<esf_t>,
                 boost::mpl::vector1<range<0,0,0,0> >,
                 boost::mpl::vector0<>,
                 block_size<32,4>,
                 gridtools::coordinates<axis>
-                >
-            > it_domain_t;
+            >
+        > it_domain_t;
 
         mss_local_domain1_t mss_local_domain1=boost::fusion::at_c<0>(computation->mss_local_domain_list());
         auto local_domain1=boost::fusion::at_c<0>(mss_local_domain1.local_domain_list);
@@ -114,8 +114,8 @@ namespace test_iterate_domain{
 
         typedef backend_traits_from_id<enumtype::Host> backend_traits_t;
 
-        it_domain.set_data_pointer_impl(&data_pointer);
-        it_domain.set_strides_pointer_impl(&strides);
+        it_domain.set_data_pointer(&data_pointer);
+        it_domain.set_strides_pointer(&strides);
 
         it_domain.template assign_storage_pointers<backend_traits_t >();
         it_domain.template assign_stride_pointers <backend_traits_t, strides_t>();

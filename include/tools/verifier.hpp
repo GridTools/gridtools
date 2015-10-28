@@ -1,5 +1,6 @@
 #pragma once
 #include "common/array.hpp"
+#include "common/array_addons.hpp"
 
 namespace gridtools{
 
@@ -126,7 +127,7 @@ namespace gridtools{
         ~verifier(){}
 
         template<typename StorageType>
-        bool verify(StorageType& field1, StorageType& field2, const array<array<uint_t, 2>, StorageType::space_dimensions> halos)
+        bool verify(StorageType const& field1, StorageType const& field2, const array<array<uint_t, 2>, StorageType::space_dimensions> halos)
         {
             typename StorageType::meta_data_t const* meta=&field1.meta_data();
 

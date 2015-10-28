@@ -307,8 +307,14 @@ PAPI_stop(event_set, values);
     repository.update_cpu();
 #endif
 
-    verifier verif(1e-9, halo_size);
+#ifdef CXX11_ENABLED
+    verifier verif(1e-13);
+    array<array<uint_t, 2>, 3> halos({{halo_size, halo_size}, {halo_size,halo_size}, {halo_size,halo_size}});
+    bool result = verif.verify(repository.out_ref(), repository.out(), halos);
+#else
+    verifier verif(1e-13, halo_size);
     bool result = verif.verify(repository.out_ref(), repository.out());
+#endif
 
     if(!result){
         std::cout << "ERROR"  << std::endl;
