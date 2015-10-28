@@ -8,6 +8,9 @@ namespace gridtools{
 /**
  * @struct variadic_to_vector
  * metafunction that returns a mpl vector from a pack of variadic arguments
+ * This is a replacement of using type=boost::mpl::vector<Args ...>, but at the moment nvcc
+ * does not properly unpack the last arg of Args... when building the vector. We can eliminate this
+ * metafunction once the vector<Args...> works
  */
 template <typename ...Args> struct variadic_to_vector;
 

@@ -128,14 +128,14 @@ namespace gridtools {
         };
 
         /**
-         * metafunction that determines if a given accessor is associated with an arg holding a data field
+         * metafunction that determines if a given accessor is associated with an placeholder holding a data field
          */
         template<typename Accessor>
         struct accessor_holds_data_field
         {
             typedef typename boost::mpl::eval_if<
                 is_accessor<Accessor>,
-                arg_holds_data_field_h<get_arg_from_accessor<Accessor> >,
+                placeholder_holds_data_field_h<get_arg_from_accessor<Accessor> >,
                 boost::mpl::identity<boost::mpl::false_>
             >::type type;
         };
@@ -463,6 +463,19 @@ namespace gridtools {
             return get_value(accessor, get_data_pointer(accessor));
         }
 #endif
+
+        /** @brief return a the value in gmem pointed to by an accessor
+        */
+        template<
+            typename ReturnType,
+            typename StoragePointer
+        >
+        GT_FUNCTION
+        ReturnType& get_gmem_value(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset) const
+        {
+            return *(storage_pointer+pointer_offset);
+        }
+
 
         /** @brief method called in the Do methods of the functors.
             specialization for the accessor placeholders

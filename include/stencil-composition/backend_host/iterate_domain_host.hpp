@@ -79,7 +79,7 @@ public:
     {
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
 
-        return *(storage_pointer+pointer_offset);
+        return super::template get_gmem_value<ReturnType>(storage_pointer,pointer_offset);
     }
 
 

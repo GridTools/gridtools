@@ -207,19 +207,6 @@ public:
         >::type type;
     };
 
-    /** @brief return a the value in gmem pointed to by an accessor
-    */
-    template<
-        typename ReturnType,
-        typename StoragePointer
-    >
-    GT_FUNCTION
-    ReturnType get_gmem_value_impl(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset) const
-    {
-        return *(storage_pointer+pointer_offset);
-    }
-
-
     /** @brief return a value that was cached
     * specialization where cache is not explicitly disabled by user
     */
@@ -231,6 +218,7 @@ public:
     >::type
     get_cache_value_impl(Accessor const & _accessor) const
     {
+        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
         //        assert(m_pshared_iterate_domain);
         // retrieve the ij cache from the fusion tuple and access the element required give the current thread position within
         // the block and the offsets of the accessor
@@ -248,6 +236,7 @@ public:
     >::type
     get_cache_value_impl(Accessor const & _accessor) const
     {
+        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
         return super::template get_value<Accessor, void * RESTRICT> (_accessor,
                     super::template get_data_pointer<Accessor>(_accessor));
     }
@@ -273,7 +262,7 @@ public:
         // on Kepler use ldg to read directly via read only cache
         return __ldg(storage_pointer + pointer_offset);
 #else
-        return get_gmem_value_impl<ReturnType>(storage_pointer,pointer_offset);
+        return get_gmem_value<ReturnType>(storage_pointer,pointer_offset);
 #endif
     }
 
@@ -293,7 +282,7 @@ public:
     get_value_impl(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset) const
     {
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
-        return get_gmem_value_impl<ReturnType>(storage_pointer,pointer_offset);
+        return get_gmem_value<ReturnType>(storage_pointer,pointer_offset);
     }
 
 private:

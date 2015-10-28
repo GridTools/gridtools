@@ -250,6 +250,14 @@ struct get_cache_storage_tuple
     >::type type;
 };
 
+/**
+ * @struct get_cache_set_for_type
+ * metafunction that computes a set of integers with position of each cache in the local domain,
+ * for all caches of a given type
+ * @tparam cacheType type of cache that is used to filter the sequence of caches
+ * @tparam CacheSequence sequence of caches used to extract the set of their positions
+ * @tparam LocalDomain local domain that contains all parameters
+ */
 template<cache_type cacheType, typename CacheSequence, typename LocalDomain>
 struct get_cache_set_for_type
 {
@@ -268,6 +276,12 @@ struct get_cache_set_for_type
     >::type type;
 };
 
+/**
+ * @struct get_cache_set
+ * metafunction that computes a set of integers with position of each cache in the local domain
+ * @tparam CacheSequence sequence of caches used to extract the set of their positions
+ * @tparam LocalDomain local domain that contains all parameters
+ */
 template<typename CacheSequence, typename LocalDomain>
 struct get_cache_set
 {
