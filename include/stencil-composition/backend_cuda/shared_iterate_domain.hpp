@@ -8,7 +8,6 @@
 #include <boost/mpl/at.hpp>
 #include <boost/fusion/sequence/intrinsic/at_key.hpp>
 #include <boost/fusion/include/at_key.hpp>
-#include "stencil-composition/accessor_metafunctions.hpp"
 #include "stencil-composition/accessor.hpp"
 #include "common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
 

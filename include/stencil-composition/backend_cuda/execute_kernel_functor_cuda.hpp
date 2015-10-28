@@ -2,7 +2,7 @@
 #include "../iteration_policy.hpp"
 #include "../backend_traits_fwd.hpp"
 #include "backend_traits_cuda.hpp"
-#include "../iterate_domain_aux.hpp"
+#include "stencil-composition/iterate_domain.hpp"
 #include "shared_iterate_domain.hpp"
 #include "common/gt_assert.hpp"
 

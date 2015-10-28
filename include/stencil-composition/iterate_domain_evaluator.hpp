@@ -4,10 +4,9 @@
   and remap the arguments to the actual positions in the iterate domain
 */
 
-
 #pragma once
 #include "iterate_domain_metafunctions.hpp"
-#include "accessor_metafunctions.hpp"
+#include "stencil-composition/accessor.hpp"
 
 namespace gridtools {
 
