@@ -471,7 +471,7 @@ namespace gridtools {
             typename StoragePointer
         >
         GT_FUNCTION
-        ReturnType& get_gmem_value(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset) const
+        ReturnType get_gmem_value(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset) const
         {
             return *(storage_pointer+pointer_offset);
         }
