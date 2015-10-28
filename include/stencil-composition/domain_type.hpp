@@ -23,9 +23,12 @@
 #include "storage/storage.hpp"
 #include "../storage/storage_functors.hpp"
 
+#include "common/generic_metafunctions/static_if.hpp"
 #include "domain_type_impl.hpp"
 #include "../storage/metadata_set.hpp"
 #include "stencil-composition/arg_metafunctions.hpp"
+#include "stencil-composition/arg.hpp"
+
 
 /**@file
  @brief This file contains the global list of placeholders to the storages

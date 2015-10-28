@@ -13,8 +13,16 @@
 @brief descriptor of the Multi Stage Stencil (MSS)
 */
 namespace gridtools {
+
     namespace _impl
     {
+
+        struct extract_functor {
+            template <typename T>
+            struct apply {
+                typedef typename T::esf_function type;
+            };
+        };
 
         /**@brief Macro defining a sfinae metafunction
 

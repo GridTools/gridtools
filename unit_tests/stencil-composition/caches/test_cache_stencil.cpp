@@ -145,7 +145,8 @@ TEST_F(cache_stencil, ij_cache)
 #endif
 
     verifier verif(1e-13, m_halo_size);
-    ASSERT_TRUE(verif.verify(m_in, m_out) );
+    array<array<uint_t, 2>, 3> halos = {{0,0},{0,0},{0,0}};
+    ASSERT_TRUE(verif.verify(m_in, m_out, halos) );
 }
 
 TEST_F(cache_stencil, ij_cache_offset)

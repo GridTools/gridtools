@@ -2,7 +2,6 @@
 
 #include "storage/storage.hpp"
 #include "common/layout_map.hpp"
-#include "range.hpp"
 #include <boost/type_traits/integral_constant.hpp>
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/for_each.hpp>
@@ -158,6 +157,12 @@ namespace gridtools {
 //################################################################################
 
     /**
+     * Struct to test if an argument is a temporary
+     */
+    template <typename T>
+    struct is_plchldr_to_temp : boost::mpl::false_{};
+
+    /**
      * Struct to test if an argument is a temporary no_storage_type_yet - Specialization yielding true
      */
     template <uint_t I, typename T>
@@ -181,25 +186,9 @@ namespace gridtools {
     struct is_plchldr_to_temp<arg<I, Decorator<BaseType> > > : is_plchldr_to_temp<arg<I, typename BaseType::basic_type> >
     {};
 
-#ifdef CXX11_ENABLED
-
-    /**
-     * Struct to test if an argument is a temporary
-     no_storage_type_yet - Specialization for a decorator of the
-     storage class, falls back on the original class type here the
-     decorator is the dimension extension, \ref gridtools::data_field
-    */
-    template <uint_t I, typename First, typename ... BaseType, template <typename ... T> class Decorator>
-    struct is_plchldr_to_temp<arg<I, Decorator<First, BaseType ...> > > : is_plchldr_to_temp<arg<I, typename First::basic_type> >
+    template <uint_t I, typename BaseType>
+    struct is_plchldr_to_temp<arg<I, storage<BaseType> > > : is_plchldr_to_temp<arg<I, typename BaseType::basic_type> >
     {};
-
-#else
-
-    template <uint_t I, typename First, typename B2, typename B3, template <typename  T1, typename  T2, typename  T3> class Decorator>
-    struct is_plchldr_to_temp<arg<I, Decorator<First, B2, B3> > > : is_plchldr_to_temp<arg<I, typename First::basic_type> >
-    {};
-
-#endif
 
     /**
      * Printing type information for debug purposes

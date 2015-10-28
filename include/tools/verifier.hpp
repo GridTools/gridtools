@@ -120,7 +120,7 @@ namespace gridtools{
     class verifier
     {
     public:
-        verifier(const double precision, const int halo_size) : m_precision(precision), m_halo_size(halo_size) {}
+        verifier(const double precision, const int halo_size) : m_precision(precision) {}
         ~verifier(){}
 
         template<typename StorageType>
@@ -138,7 +138,8 @@ namespace gridtools{
         }
 
         template<typename Partitioner, typename MetaStorageType, typename StorageType>
-        bool verify_parallel(gridtools::parallel_storage_info<MetaStorageType, Partitioner> const& metadata_, StorageType const& field1, StorageType const& field2)
+        bool verify_parallel(gridtools::parallel_storage_info<MetaStorageType, Partitioner> const& metadata_, StorageType const& field1, StorageType const& field2,
+                              const array<array<uint_t, 2>, StorageType::space_dimensions> halos)
         {
 
             const gridtools::uint_t idim = metadata_.get_metadata().template dims<0>();
@@ -148,9 +149,9 @@ namespace gridtools{
             bool verified = true;
 
             for(gridtools::uint_t f=0; f<StorageType::field_dimensions; ++f)
-                for(gridtools::uint_t i=m_halo_size; i < idim-m_halo_size; ++i)
+                for(gridtools::uint_t i=halos[0][0]; i < idim-halos[0][1]; ++i)
                 {
-                    for(gridtools::uint_t j=m_halo_size; j < jdim-m_halo_size; ++j)
+                    for(gridtools::uint_t j=halos[1][0]; j < jdim-halos[1][1]; ++j)
                     {
                         for(gridtools::uint_t k=0; k < kdim; ++k)
                         {
@@ -175,7 +176,6 @@ namespace gridtools{
 
     private:
         double m_precision;
-        int m_halo_size;
     };
 
 } // namespace gridtools

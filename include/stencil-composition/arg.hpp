@@ -83,6 +83,13 @@ struct is_arg : boost::mpl::false_{};
 template<uint_t I, typename Storage>
 struct is_arg<arg<I, Storage> > : boost::mpl::true_{};
 
+template<typename T>
+struct is_storage_arg : boost::mpl::false_{};
+
+/** true in case of non temporary storage arg*/
+template<uint_t I, typename Storage>
+struct is_storage_arg<arg<I, Storage> > : is_storage<Storage>{};
+
 template <uint_t I, typename Storage>
 struct arg_holds_data_field<arg<I, Storage> >
 {

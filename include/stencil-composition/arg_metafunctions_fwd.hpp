@@ -2,7 +2,7 @@
 
 namespace gridtools {
     template<typename T>
-    struct is_arg : boost::mpl::false_{};
+    struct is_arg;
 
     /**
      * @struct arg_hods_data_field
