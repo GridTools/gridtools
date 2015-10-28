@@ -157,10 +157,15 @@ namespace gridtools {
         template <typename ValueType, typename MetaDataType>
         struct temporary_storage_type
         {
+            GRIDTOOLS_STATIC_ASSERT(is_meta_storage<MetaDataType>::value, "wrong type for the meta storage");
             /** temporary storage must have the same iterator type than the regular storage
              */
         private:
-            typedef typename backend_traits_t::template storage_traits<ValueType, MetaDataType, true>::storage_t temp_storage_t;
+            typedef typename backend_traits_t::template storage_traits<
+                ValueType,
+                typename backend_traits_t::template meta_storage_traits<MetaDataType, true>::type,
+                true
+            >::storage_t temp_storage_t;
         public:
             typedef typename boost::mpl::if_<
                 typename backend_traits_t::template requires_temporary_redundant_halos<s_strategy_id>::type,
@@ -168,7 +173,6 @@ namespace gridtools {
                 temp_storage_t
             >::type type;
         };
-
 
         /**
          * @brief metafunction that computes the map of all the temporaries and their associated ij ranges
