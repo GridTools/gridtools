@@ -53,7 +53,7 @@ struct remap_accessor_type<accessor<ID, Intend, Range, Number>, ArgsMap >
     > type;
 };
 
-#ifdef CX11_ENABLED
+#ifdef CXX11_ENABLED
     template < typename ArgsMap, template<typename ... > class Expression, typename ... Arguments >
     struct remap_accessor_type<Expression<Arguments ... >, ArgsMap >
     {
@@ -64,13 +64,23 @@ struct remap_accessor_type<accessor<ID, Intend, Range, Number>, ArgsMap >
 
         //recursively remapping the template arguments,
         //until the specialization above stops the recursion
-        typedef Expression<remap_accessor_type<Arguments, ArgsMap> ...> type;
+        typedef Expression<typename remap_accessor_type<Arguments, ArgsMap>::type ...> type;
     };
+
+    template < typename ArgsMap >
+    struct remap_accessor_type<float_type, ArgsMap >
+    {
+        //when a leaf is a float don't do anything
+        typedef float_type type;
+    };
+
+    template < typename ArgsMap, template<typename Acc, int N>class Expression, typename Accessor, int Number >
+    struct remap_accessor_type< Expression<Accessor, Number>, ArgsMap >
+    {
+        //Specialization done to catch also the "pow" expression, for which a template argument is an
+        //integer (the exponent)
+        typedef Expression<typename remap_accessor_type<Accessor, ArgsMap>::type, Number > type;
+    };
+
 #endif
-
-template<typename Accessor> struct is_accessor_readonly : boost::mpl::false_{};
-
-template < ushort_t ID, typename Range, ushort_t Number>
-struct is_accessor_readonly<accessor<ID, enumtype::in, Range, Number> > : boost::mpl::true_{};
-
 } //namespace gridtools
