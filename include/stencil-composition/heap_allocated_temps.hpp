@@ -86,7 +86,7 @@ namespace gridtools {
 
             static void prepare_temporaries(ArgList & arg_list, metadata_set_t& metadata_, Coords const& coords) {
 
-#ifdef __VERBOSE__
+#ifdef VERBOSE
                 std::cout << "Prepare ARGUMENTS" << std::endl;
 #endif
 
@@ -179,7 +179,7 @@ namespace gridtools {
             static void prepare_temporaries(ArgList & arg_list, MetaList & metadata_, Coords const& coords) {
                 //static const enumtype::strategy StrategyType = Block;
 
-#ifdef __VERBOSE__
+#ifdef VERBOSE
                 std::cout << "Prepare ARGUMENTS" << std::endl;
 #endif
                 typedef boost::fusion::filter_view<ArgList,

@@ -13,14 +13,18 @@
 @brief descriptor of the Multi Stage Stencil (MSS)
 */
 namespace gridtools {
+    namespace _impl
+    {
 
-    namespace _impl{
-        struct extract_functor {
-            template <typename T>
-            struct apply {
-                typedef typename T::esf_function type;
-            };
-        };
+        /**@brief Macro defining a sfinae metafunction
+
+           defines a metafunction has_range_type, which returns true if its template argument
+           defines a type called range_type. It also defines a get_range_type metafunction, which
+           can be used to return the range_type only when it is present, without giving compilation
+           errors in case it is not defined.
+         */
+        HAS_TYPE_SFINAE(range_type, has_range_type, get_range_type)
+
         /**@brief wrap type to simplify specialization based on mpl::vectors */
         template <typename MplArray>
         struct wrap_type {

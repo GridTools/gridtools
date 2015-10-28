@@ -3,10 +3,7 @@
  * the Python interface to the Gridtools library
  *
  */
-#include <gridtools.hpp>
-#include <stencil-composition/backend.hpp>
 #include <stencil-composition/make_computation.hpp>
-#include <stencil-composition/interval.hpp>
 
 #include "{{ fun_hdr_file }}"
 
@@ -72,13 +69,15 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
     //
     // define the storage unit used by the backend
     //
-    typedef gridtools::BACKEND::storage_type<float_type, gridtools::meta_storage<0, layout_t, false> >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<float_type,
+                                             gridtools::storage_info<__COUNTER__, layout_t> >::type storage_type;
 
     {% if temps %}
     //
     // define a special data type for the temporary, i.e., intermediate buffers
     //
-    typedef gridtools::BACKEND::temporary_storage_type<float_type, gridtools::meta_storage<0, layout_t, true> >::type tmp_storage_type;
+    typedef gridtools::BACKEND::temporary_storage_type<float_type,
+                                                       gridtools::storage_info<__COUNTER__, layout_t> >::type tmp_storage_type;
     {% endif -%}
 
     {% if params %}

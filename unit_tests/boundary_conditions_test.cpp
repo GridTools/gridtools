@@ -153,26 +153,14 @@ bool basic() {
         }
     }
 
-#ifndef NDEBUG
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", in(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-#endif
-
     gridtools::array<gridtools::halo_descriptor, 3> halos;
     halos[0] = gridtools::halo_descriptor(1,1,1,d1-2,d1);
     halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    meta_.clone_to_gpu();
-    in.clone_to_gpu();
+    meta_.clone_to_device();
+    in.clone_to_device();
     in.h2d_update();
 
     gridtools::boundary_apply_gpu<bc_basic>(halos,  bc_basic()).apply(in);
@@ -180,18 +168,6 @@ bool basic() {
     in.d2h_update();
 #else
     gridtools::boundary_apply<bc_basic>(halos,  bc_basic()).apply(in);
-#endif
-
-#ifndef NDEBUG
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", in(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
 #endif
 
     bool result = true;
@@ -294,26 +270,14 @@ bool predicate() {
         }
     }
 
-#ifndef NDEBUG
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", in(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-#endif
-
     gridtools::array<gridtools::halo_descriptor, 3> halos;
     halos[0] = gridtools::halo_descriptor(1,1,1,d1-2,d1);
     halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    meta_.clone_to_gpu();
-    in.clone_to_gpu();
+    meta_.clone_to_device();
+    in.clone_to_device();
     in.h2d_update();
 
     gridtools::boundary_apply_gpu<bc_basic, minus_predicate>(halos, bc_basic(), minus_predicate()).apply(in);
@@ -323,27 +287,12 @@ bool predicate() {
     gridtools::boundary_apply<bc_basic, minus_predicate>(halos, bc_basic(), minus_predicate()).apply(in);
 #endif
 
-#ifndef NDEBUG
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", in(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-#endif
-
     bool result = true;
 
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {
             for (uint_t k=0; k<1; ++k) {
                 if (in(i,j,k) != 0) {
-#ifndef NDEBUG
-                    printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                     result = false;
                 }
             }
@@ -354,9 +303,6 @@ bool predicate() {
         for (uint_t j=1; j<d2; ++j) {
             for (uint_t k=d3-1; k<d3; ++k) {
                 if (in(i,j,k) != i+j+k) {
-#ifndef NDEBUG
-                    printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                     result = false;
                 }
             }
@@ -367,9 +313,6 @@ bool predicate() {
         for (uint_t j=0; j<1; ++j) {
             for (uint_t k=0; k<d3; ++k) {
                 if (in(i,j,k) != 0) {
-#ifndef NDEBUG
-                    printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                     result = false;
                 }
             }
@@ -380,9 +323,6 @@ bool predicate() {
         for (uint_t j=d2-1; j<d2; ++j) {
             for (uint_t k=1; k<d3; ++k) {
                 if (in(i,j,k) != i+j+k) {
-#ifndef NDEBUG
-                    printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                     result = false;
                 }
             }
@@ -393,9 +333,6 @@ bool predicate() {
         for (uint_t j=0; j<d2; ++j) {
             for (uint_t k=0; k<d3; ++k) {
                 if (in(i,j,k) != 0) {
-#ifndef NDEBUG
-                    printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                     result = false;
                 }
             }
@@ -406,9 +343,6 @@ bool predicate() {
         for (uint_t j=1; j<d2; ++j) {
             for (uint_t k=1; k<d3; ++k) {
                 if (in(i,j,k) != i+j+k) {
-#ifndef NDEBUG
-                    printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                     result = false;
                 }
             }
@@ -419,9 +353,6 @@ bool predicate() {
         for (uint_t j=1; j<d2-1; ++j) {
             for (uint_t k=1; k<d3-1; ++k) {
                 if (in(i,j,k) != 0) {
-#ifndef NDEBUG
-                    printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                     result = false;
                 }
             }
@@ -456,25 +387,13 @@ bool twosurfaces() {
         }
     }
 
-#ifndef NDEBUG
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", in(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-#endif
-
     gridtools::array<gridtools::halo_descriptor, 3> halos;
     halos[0] = gridtools::halo_descriptor(1,1,1,d1-2,d1);
     halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    in.clone_to_gpu();
+    in.clone_to_device();
     in.h2d_update();
 
     gridtools::boundary_apply_gpu<bc_two>(halos, bc_two()).apply(in);
@@ -484,25 +403,12 @@ bool twosurfaces() {
     gridtools::boundary_apply<bc_two>(halos, bc_two()).apply(in);
 #endif
 
-#ifndef NDEBUG
-        for (uint_t i=0; i<d1; ++i) {
-            for (uint_t j=0; j<d2; ++j) {
-                for (uint_t k=0; k<d3; ++k) {
-                    printf("%d ", in(i,j,k));
-                }
-                printf("\n");
-            }
-            printf("\n");
-        }
-#endif
-
             bool result = true;
 
             for (uint_t i=0; i<d1; ++i) {
                 for (uint_t j=0; j<d2; ++j) {
                     for (uint_t k=0; k<1; ++k) {
                         if (in(i,j,k) != i+j+k+1) {
-                            printf("A %d %d %d %d\n", i,j,k, in(i,j,k));
                             result = false;
                         }
                     }
@@ -513,9 +419,6 @@ bool twosurfaces() {
                 for (uint_t j=1; j<d2; ++j) {
                     for (uint_t k=d3-1; k<d3; ++k) {
                         if (in(i,j,k) != 0) {
-#ifndef NDEBUG
-                            printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                             result = false;
                         }
                     }
@@ -526,9 +429,6 @@ bool twosurfaces() {
                 for (uint_t j=0; j<1; ++j) {
                     for (uint_t k=0; k<d3; ++k) {
                         if (in(i,j,k) != i+j+k+1) {
-#ifndef NDEBUG
-                            printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                             result = false;
                         }
                     }
@@ -539,9 +439,6 @@ bool twosurfaces() {
                 for (uint_t j=d2-1; j<d2; ++j) {
                     for (uint_t k=1; k<d3; ++k) {
                         if (in(i,j,k) != 0) {
-#ifndef NDEBUG
-                            printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                             result = false;
                         }
                     }
@@ -552,9 +449,6 @@ bool twosurfaces() {
                 for (uint_t j=1; j<d2; ++j) {
                     for (uint_t k=1; k<d3; ++k) {
                         if (in(i,j,k) != 0) {
-#ifndef NDEBUG
-                            printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                             result = false;
                         }
                     }
@@ -565,9 +459,6 @@ bool twosurfaces() {
                 for (uint_t j=1; j<d2; ++j) {
                     for (uint_t k=1; k<d3; ++k) {
                         if (in(i,j,k) != 0) {
-#ifndef NDEBUG
-                            printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                             result = false;
                         }
                     }
@@ -578,9 +469,6 @@ bool twosurfaces() {
                 for (uint_t j=1; j<d2-1; ++j) {
                     for (uint_t k=1; k<d3-1; ++k) {
                         if (in(i,j,k) != 1) {
-#ifndef NDEBUG
-                            printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                             result = false;
                         }
                     }
@@ -616,25 +504,13 @@ bool usingzero_1() {
         }
     }
 
-#ifndef NDEBUG
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", in(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-#endif
-
     gridtools::array<gridtools::halo_descriptor, 3> halos;
     halos[0] = gridtools::halo_descriptor(1,1,1,d1-2,d1);
     halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    in.clone_to_gpu();
+    in.clone_to_device();
     in.h2d_update();
 
     gridtools::boundary_apply_gpu<gridtools::zero_boundary>(halos).apply(in);
@@ -642,18 +518,6 @@ bool usingzero_1() {
     in.d2h_update();
 #else
     gridtools::boundary_apply<gridtools::zero_boundary>(halos).apply(in);
-#endif
-
-#ifndef NDEBUG
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", in(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
 #endif
 
     bool result = true;
@@ -761,26 +625,14 @@ bool usingzero_2() {
         }
     }
 
-#ifndef NDEBUG
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", in(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-#endif
-
     gridtools::array<gridtools::halo_descriptor, 3> halos;
     halos[0] = gridtools::halo_descriptor(1,1,1,d1-2,d1);
     halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    in.clone_to_gpu();
-    out.clone_to_gpu();
+    in.clone_to_device();
+    out.clone_to_device();
     in.h2d_update();
     out.h2d_update();
 
@@ -790,18 +642,6 @@ bool usingzero_2() {
     out.d2h_update();
 #else
     gridtools::boundary_apply<gridtools::zero_boundary>(halos).apply(in, out);
-#endif
-
-#ifndef NDEBUG
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", in(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
 #endif
 
     bool result = true;
@@ -937,8 +777,8 @@ bool usingvalue_2() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    in.clone_to_gpu();
-    out.clone_to_gpu();
+    in.clone_to_device();
+    out.clone_to_device();
     in.h2d_update();
     out.h2d_update();
 
@@ -1087,11 +927,11 @@ bool usingcopy_3() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    one.clone_to_gpu();
+    one.clone_to_device();
     one.h2d_update();
-    two.clone_to_gpu();
+    two.clone_to_device();
     two.h2d_update();
-    src.clone_to_gpu();
+    src.clone_to_device();
     src.h2d_update();
 
     gridtools::boundary_apply_gpu<gridtools::copy_boundary>(halos).apply(one, two, src);
@@ -1108,11 +948,9 @@ bool usingcopy_3() {
         for (uint_t j=0; j<d2; ++j) {
             for (uint_t k=0; k<1; ++k) {
                 if (one(i,j,k) != i+j+k) {
-                    std::cout << "1 one " << i << ", " << j << ", " << k << ": " << one(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
                 if (two(i,j,k) != i+j+k) {
-                    std::cout << "1 two " << i << ", " << j << ", " << k << ": " << two(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
             }
@@ -1123,11 +961,9 @@ bool usingcopy_3() {
         for (uint_t j=0; j<d2; ++j) {
             for (uint_t k=d3-1; k<d3; ++k) {
                 if (one(i,j,k) != i+j+k) {
-                    std::cout << "2 one " << i << ", " << j << ", " << k << ": " << one(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
                 if (two(i,j,k) != i+j+k) {
-                    std::cout << "2 two " << i << ", " << j << ", " << k << ": " << two(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
             }
@@ -1138,11 +974,9 @@ bool usingcopy_3() {
         for (uint_t j=0; j<1; ++j) {
             for (uint_t k=0; k<d3; ++k) {
                 if (one(i,j,k) != i+j+k) {
-                    std::cout << "3 one " << i << ", " << j << ", " << k << ": " << one(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
                 if (two(i,j,k) != i+j+k) {
-                    std::cout << "3 two " << i << ", " << j << ", " << k << ": " << two(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
             }
@@ -1153,11 +987,9 @@ bool usingcopy_3() {
         for (uint_t j=d2-1; j<d2; ++j) {
             for (uint_t k=0; k<d3; ++k) {
                 if (one(i,j,k) != i+j+k) {
-                    std::cout << "4 one " << i << ", " << j << ", " << k << ": " << one(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
                 if (two(i,j,k) != i+j+k) {
-                    std::cout << "4 two " << i << ", " << j << ", " << k << ": " << two(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
             }
@@ -1168,11 +1000,9 @@ bool usingcopy_3() {
         for (uint_t j=0; j<d2; ++j) {
             for (uint_t k=0; k<d3; ++k) {
                 if (one(i,j,k) != i+j+k) {
-                    std::cout << "5 one " << i << ", " << j << ", " << k << ": " << one(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
                 if (two(i,j,k) != i+j+k) {
-                    std::cout << "5 two " << i << ", " << j << ", " << k << ": " << two(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
             }
@@ -1183,11 +1013,9 @@ bool usingcopy_3() {
         for (uint_t j=0; j<d2; ++j) {
             for (uint_t k=0; k<d3; ++k) {
                 if (one(i,j,k) != i+j+k) {
-                    std::cout << "6 one " << i << ", " << j << ", " << k << ": " << one(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
                 if (two(i,j,k) != i+j+k) {
-                    std::cout << "6 two " << i << ", " << j << ", " << k << ": " << two(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
             }
@@ -1198,11 +1026,9 @@ bool usingcopy_3() {
         for (uint_t j=1; j<d2-1; ++j) {
             for (uint_t k=1; k<d3-1; ++k) {
                 if (one(i,j,k) != -1) {
-                    std::cout << "7 one " << i << ", " << j << ", " << k << ": " << one(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
                 if (two(i,j,k) != 0) {
-                    std::cout << "7 two " << i << ", " << j << ", " << k << ": " << two(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
             }

@@ -1,5 +1,8 @@
 #pragma once
 
+#include "storage/storage.hpp"
+#include "common/layout_map.hpp"
+#include "range.hpp"
 #include <boost/type_traits/integral_constant.hpp>
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/for_each.hpp>

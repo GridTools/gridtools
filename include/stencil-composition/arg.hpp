@@ -11,12 +11,17 @@
 
 namespace gridtools {
 
+    //fwd decl
+    template <typename T> struct is_arg;
+
 /** @brief binding between the placeholder (\tparam ArgType) and the storage (\tparam Storage)*/
 template<typename ArgType, typename Storage>
 struct arg_storage_pair {
+
+    //TODO is_storage is taken!
+    GRIDTOOLS_STATIC_ASSERT(is_arg<ArgType>::value, "wrong type");
     typedef ArgType arg_type;
     typedef Storage storage_type;
-    typedef typename Storage::iterator_type index_type;
 
     Storage *ptr;
 
@@ -29,10 +34,12 @@ struct arg_storage_pair {
     }
 };
 
-template<typename Arg> struct is_arg_storage_pair : boost::mpl::false_{};
 
-template<typename ArgType, typename Storage>
-struct is_arg_storage_pair<arg_storage_pair<ArgType, Storage> > : boost::mpl::true_{};
+    template<typename T>
+    struct is_arg_storage_pair : boost::mpl::false_{};
+
+    template<typename ArgType, typename Storage>
+    struct is_arg_storage_pair<arg_storage_pair<ArgType, Storage> > : boost::mpl::true_{};
 
 /**
  * Type to create placeholders for data fields.
@@ -69,6 +76,9 @@ struct arg {
 #endif
     }
 };
+
+template<typename T>
+struct is_arg : boost::mpl::false_{};
 
 template<uint_t I, typename Storage>
 struct is_arg<arg<I, Storage> > : boost::mpl::true_{};

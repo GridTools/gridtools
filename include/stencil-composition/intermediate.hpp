@@ -62,7 +62,7 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain<Elem>::value), "Internal Error: wrong type");
 
                 elem.init(m_arg_list, m_meta_storages.sequence_view(), 0,0,0);
-                elem.clone_to_gpu();
+                elem.clone_to_device();
             }
 
         private:
@@ -226,12 +226,10 @@ namespace gridtools {
         {}
     };
 
-
-
     //\todo move inside the traits classes?
 
     /**
-       This functor calls h2d_update on all storages, in order to
+       This functor calls h2d_update on all storages and meta storages, in order to
        get the data prepared in the case of GPU execution.
 
        Returns 0 (GT_NO_ERRORS) on success
@@ -253,7 +251,7 @@ namespace gridtools {
                 boost::mpl::range_c<int, 0, boost::mpl::size<ArgListType>::value >
             > (copy_pointers_functor<ArgListType, typename DomainType::arg_list> (storage_pointers, domain.m_original_pointers));
 
-            boost::fusion::for_each(meta_data_, copy_pointers_set_functor<typename DomainType::metadata_set_t::set_t> (domain.m_metadata_set.sequence_view()));
+            // boost::fusion::for_each(meta_data_, copy_pointers_set_functor<typename DomainType::metadata_set_t::set_t> (domain.m_metadata_set.sequence_view()));
 
             boost::fusion::for_each(storage_pointers, update_pointer());
             boost::fusion::for_each(meta_data_, update_pointer());
@@ -398,15 +396,18 @@ namespace gridtools {
         typedef typename boost::mpl::fold<
             actual_arg_list_type
             , boost::mpl::set<>
-            , boost::mpl::insert<boost::mpl::_1, pointer
-                                 <boost::add_const
-                                  <storage2metadata
-                                   <boost::remove_pointer<boost::mpl::_2>
-                                    >
-                                   >
-                                  >
-                                 >
-            >::type actual_metadata_set_t;
+            , boost::mpl::if_< is_any_storage<boost::mpl::_2>,
+                               boost::mpl::insert<boost::mpl::_1, pointer
+                                                  <boost::add_const
+                                                   <storage2metadata
+                                                    <boost::remove_pointer<boost::mpl::_2>
+                                                     >
+                                                    >
+                                                   >
+                                                  >,
+                               boost::mpl::_1
+                               >
+                               >::type actual_metadata_set_t;
 
         /** transform the typelist into an mpl vector */
         typedef typename boost::mpl::fold<
@@ -490,11 +491,11 @@ namespace gridtools {
 
             //filter the non temporary storages among the storage pointers in the domain
             typedef boost::fusion::filter_view<typename DomainType::arg_list,
-                                               is_storage<boost::mpl::_1> > t_domain_view;
+                                               is_not_tmp_storage<boost::mpl::_1> > t_domain_view;
 
             //filter the non temporary storages among the placeholders passed to the intermediate
             typedef boost::fusion::filter_view<actual_arg_list_type,
-                                               is_storage<boost::mpl::_1> > t_args_view;
+                                               is_not_tmp_storage<boost::mpl::_1> > t_args_view;
 
             t_domain_view domain_view(domain.m_storage_pointers);
             t_args_view args_view(m_actual_arg_list);
@@ -536,13 +537,13 @@ namespace gridtools {
             if(is_storage_ready)
             {
                 //filter the non temporary meta storage pointers among the actual ones
-                typedef boost::fusion::filter_view<typename boost::fusion::result_of::as_set<actual_metadata_set_t>::type,
-                                                   boost::mpl::not_<is_ptr_to_tmp<boost::mpl::_1> > > t_meta_view;
-
-                t_meta_view  meta_view(m_actual_metadata_list.sequence_view());
+                // typedef boost::fusion::filter_view<typename boost::fusion::result_of::as_set<actual_metadata_set_t>::type,
+                //                                    boost::mpl::not_<is_ptr_to_tmp<boost::mpl::_1> > > t_meta_view;
+                //t_meta_view
+                typename boost::fusion::result_of::as_set<actual_metadata_set_t>::type  meta_view(m_actual_metadata_list.sequence_view());
 
                 setup_computation<Backend::s_backend_id>::apply( m_actual_arg_list, meta_view, m_domain );
-#ifdef __VERBOSE__
+#ifdef VERBOSE
                 printf("Setup computation\n");
 #endif
             }
@@ -555,7 +556,7 @@ namespace gridtools {
             boost::fusion::for_each(m_mss_local_domain_list,
                                     _impl::instantiate_mss_local_domain<actual_arg_list_type, actual_metadata_list_type, IsStateful>(m_actual_arg_list, m_actual_metadata_list));
 
-#ifdef __VERBOSE__
+#ifdef VERBOSE
             m_domain.info();
 #endif
         }

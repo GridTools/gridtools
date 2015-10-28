@@ -31,6 +31,14 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr(expr const& other):first_operand(other.first_operand),second_operand(other.second_operand){}
 
+#ifdef __CUDACC__
+        //constructor for remapping the accessors, needed only for CUDA backend (for the fusion of esfs)
+        //the type of Other is checked by the specific derived expression constructor
+        template<typename Arg1, typename Arg2 >
+        GT_FUNCTION
+        constexpr expr(expr<Arg1, Arg2> const& other):first_operand(other.first_operand),second_operand(other.second_operand){}
+#endif
+
         ArgType1 const first_operand;
         ArgType2 const second_operand;
 #ifndef __CUDACC__
@@ -57,6 +65,14 @@ namespace gridtools{
         GT_FUNCTION
         constexpr unary_expr( unary_expr const& other): first_operand(other.first_operand){}
 
+#ifdef __CUDACC__
+        //constructor for remapping the accessors, needed only for CUDA backend (for the fusion of esfs)
+        //the type of Other is checked by the specific derived expression constructor
+        template<typename Other >
+        GT_FUNCTION
+        constexpr unary_expr(unary_expr<Other> const& other):first_operand(other.first_operand){}
+#endif
+
         ArgType1 const first_operand;
 
 #ifndef __CUDACC__
@@ -73,6 +89,27 @@ namespace gridtools{
     template <typename Arg>
     using is_expr=typename boost::mpl::or_<is_binary_expr<Arg>, is_unary_expr<Arg> >::type;
 
+    template <typename Arg>
+    struct is_accessor;
+
+    namespace expressions{
+
+        template<typename Arg1, typename Arg2 >
+        using both_arithmetic_types = typename boost::mpl::and_<boost::is_arithmetic<Arg1>, boost::is_arithmetic<Arg2> >::type;
+
+        template<typename Arg1, typename Arg2 >
+        using no_expr_types = typename boost::mpl::not_<typename boost::mpl::or_<is_expr<Arg1>, is_expr<Arg2> >::type>::type ;
+
+        template<typename Arg1, typename Arg2 >
+        using no_accessor_types = typename boost::mpl::not_<typename boost::mpl::or_<is_accessor<Arg1>, is_accessor<Arg2> >::type>::type ;
+
+        template<typename Arg1, typename Arg2 >
+        using no_expr_nor_accessor_types = typename boost::mpl::and_<no_accessor_types<Arg1, Arg2>, no_expr_types<Arg1, Arg2> >::type ;
+
+
+    }
+
+
     /**@brief Expression summing two arguments*/
     template <typename ArgType1, typename ArgType2>
     struct expr_plus : public expr<ArgType1, ArgType2>{
@@ -82,6 +119,15 @@ namespace gridtools{
 
         GT_FUNCTION
         constexpr expr_plus(expr_plus const& other):super(other){};
+
+#ifdef __CUDACC__
+        //constructor for remapping the accessors, needed only for CUDA backend (for the fusion of esfs)
+        template<typename ArgT1, typename ArgT2 >
+        GT_FUNCTION
+        constexpr expr_plus(expr_plus<ArgT1, ArgT2> const& other):super(other){
+            GRIDTOOLS_STATIC_ASSERT(( !expressions::no_expr_nor_accessor_types< ArgT1, ArgT2 >::type::value), "error: wrong expression type");
+        }
+#endif
 
 #ifndef __CUDACC__
     private:
@@ -113,6 +159,15 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_minus(expr_minus const& other):super(other){}
 
+#ifdef __CUDACC__
+        //constructor for remapping the accessors, needed only for CUDA backend (for the fusion of esfs)
+        template<typename ArgT1, typename ArgT2 >
+        GT_FUNCTION
+        constexpr expr_minus(expr_minus<ArgT1, ArgT2> const& other):super(other){
+            GRIDTOOLS_STATIC_ASSERT(( !expressions::no_expr_nor_accessor_types< ArgT1, ArgT2 >::type::value), "error: wrong expression type");
+        }
+#endif
+
 #ifndef __CUDACC__
     private:
 #endif
@@ -141,6 +196,16 @@ namespace gridtools{
 
         GT_FUNCTION
         constexpr expr_times(expr_times const& other):super(other){}
+
+#ifdef __CUDACC__
+        //constructor for remapping the accessors, needed only for CUDA backend (for the fusion of esfs)
+        template<typename ArgT1, typename ArgT2 >
+        GT_FUNCTION
+        constexpr expr_times(expr_times<ArgT1, ArgT2> const& other):super(other){
+            GRIDTOOLS_STATIC_ASSERT(( !expressions::no_expr_nor_accessor_types< ArgT1, ArgT2 >::type::value), "error: wrong expression type");
+        }
+#endif
+
 #ifndef __CUDACC__
     private:
 #endif
@@ -168,6 +233,15 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_divide(expr_divide const& other):super(other){}
 
+#ifdef __CUDACC__
+        //constructor for remapping the accessors, needed only for CUDA backend (for the fusion of esfs)
+        template<typename ArgT1, typename ArgT2 >
+        GT_FUNCTION
+        constexpr expr_divide(expr_divide<ArgT1, ArgT2> const& other):super(other){
+            GRIDTOOLS_STATIC_ASSERT(( !expressions::no_expr_nor_accessor_types< ArgT1, ArgT2 >::type::value), "error: wrong expression type");
+        }
+#endif
+
 #ifndef __CUDACC__
     private:
 #endif
@@ -194,6 +268,16 @@ namespace gridtools{
         typedef expr<ArgType1, ArgType2> super;
         GT_FUNCTION
         constexpr expr_exp(ArgType1 const& first_operand, ArgType2 const& second_operand):super(first_operand, second_operand){}
+
+
+#ifdef __CUDACC__
+        //constructor for remapping the accessors, needed only for CUDA backend (for the fusion of esfs)
+        template<typename ArgT1, typename ArgT2 >
+        GT_FUNCTION
+        constexpr expr_exp(expr_exp<ArgT1, ArgT2> const& other):super(other){
+            GRIDTOOLS_STATIC_ASSERT(( !expressions::no_expr_nor_accessor_types< ArgT1, ArgT2 >::type::value), "error: wrong expression type");
+        }
+#endif
 
         GT_FUNCTION
         constexpr expr_exp(expr_exp const& other):super(other){}
@@ -231,6 +315,15 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_pow(expr_pow const& other):super(other) {}
 
+#ifdef __CUDACC__
+        //constructor for remapping the accessors, needed only for CUDA backend (for the fusion of esfs)
+        template<typename ArgT1, int Exp >
+        GT_FUNCTION
+        constexpr expr_pow(expr_pow<ArgT1, Exp> const& other):super(other){
+            GRIDTOOLS_STATIC_ASSERT(( !expressions::no_expr_nor_accessor_types< ArgT1, ArgT1 >::type::value), "error: wrong expression type");
+        }
+#endif
+
 #ifndef __CUDACC__
     private:
 #endif
@@ -263,6 +356,15 @@ namespace gridtools{
         GT_FUNCTION
         constexpr expr_direct_access(expr_direct_access const& other):super(other) {}
 
+#ifdef __CUDACC__
+        //constructor for remapping the accessors, needed only for CUDA backend (for the fusion of esfs)
+        template<typename ArgT1>
+        GT_FUNCTION
+        constexpr expr_direct_access(expr_direct_access<ArgT1> const& other):super(other){
+            GRIDTOOLS_STATIC_ASSERT(( !expressions::no_expr_nor_accessor_types< ArgT1, ArgT1 >::type::value), "error: wrong expression type");
+        }
+#endif
+
 #ifndef __CUDACC__
     private:
 #endif
@@ -281,8 +383,6 @@ namespace gridtools{
     struct is_unary_expr<expr_direct_access<ArgType1> > : boost::mpl::true_ {};
 
 /*@}*/
-        template <typename Arg>
-        struct is_accessor;
 
     /**
        @namespace expressions
@@ -291,19 +391,6 @@ namespace gridtools{
     namespace expressions{
 /**\section operator (Operators Overloaded)
    @{*/
-
-        template<typename Arg1, typename Arg2 >
-        using both_arithmetic_types = typename boost::mpl::and_<boost::is_arithmetic<Arg1>, boost::is_arithmetic<Arg2> >::type;
-
-        template<typename Arg1, typename Arg2 >
-        using no_expr_types = typename boost::mpl::not_<typename boost::mpl::or_<is_expr<Arg1>, is_expr<Arg2> >::type>::type ;
-
-        template<typename Arg1, typename Arg2 >
-        using no_accessor_types = typename boost::mpl::not_<typename boost::mpl::or_<is_accessor<Arg1>, is_accessor<Arg2> >::type>::type ;
-
-        template<typename Arg1, typename Arg2 >
-        using no_expr_nor_accessor_types = typename boost::mpl::and_<no_accessor_types<Arg1, Arg2>, no_expr_types<Arg1, Arg2> >::type ;
-
 
         /** sum expression*/
         template<typename ArgType1, typename ArgType2 ,

@@ -219,7 +219,7 @@ namespace gridtools{
         void impl() const
         {
             BackendType::template once_per_block<PE_ID::value>::assign(
-                m_data_pointer_array[Offset+ID::value], m_storage->fields()[ID::value].get()+m_offset);
+                m_data_pointer_array[Offset+ID::value], m_storage->template access_value<ID>()+m_offset);
         }
     };
 

@@ -12,7 +12,7 @@
 #include "../common/array.hpp"
 #include "stencil-composition/accessor_fwd.hpp"
 #ifdef CXX11_ENABLED
-#include <tuple>
+#include "generic_metafunctions/gt_get.hpp"
 #endif
 
 /**
@@ -121,7 +121,7 @@ namespace gridtools {
         static auto constexpr select(T & ... args) -> typename remove_refref<decltype(std::template get<layout_vector[I]>(std::make_tuple(args ...)))>::type {
 
             GRIDTOOLS_STATIC_ASSERT((accumulate(logical_and(), boost::is_integral<T>::type::value ...)), "wrong type");
-            return  std::template get<layout_vector[I]>( std::make_tuple(args...) );
+            return  gt_get<layout_vector[I]>::apply( args ... );
 
         }
 #else //problem determining of the return type with NVCC
@@ -131,7 +131,7 @@ namespace gridtools {
         constexpr
         select(First & f, T & ... args) {
             GRIDTOOLS_STATIC_ASSERT((boost::is_integral<First>::type::value && accumulate(logical_and(), boost::is_integral<T>::type::value ...)), "wrong type");
-            return  std::template get<boost::mpl::at_c<layout_vector_t, I>::type::value >( std::make_tuple(f, args...) );
+            return  gt_get<boost::mpl::at_c<layout_vector_t, I>::type::value>::apply( f, args... );
         }
 #endif // __CUDACC__
 
@@ -178,7 +178,7 @@ namespace gridtools {
         find(First const& first_, Indices const& ... indices) {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(Indices)+1<=length, "Too many arguments");
 
-            return std::get<pos_<I>::value>(std::tuple<First, Indices...>{first_, indices...});
+            return gt_get<pos_<I>::value>::apply(first_, indices...);
         }
 
 
@@ -189,14 +189,18 @@ namespace gridtools {
         /**@brief traits class allowing the lazy static analysis
 
            hiding a type whithin a templated struct disables its type deduction, so that when a compile-time branch (e.g. using boost::mpl::eval_if) is not taken, it is also not compiled.
-           The following class defines a subclass with a templated method which returns a given element in a tuple.
+           The following struct defines a subclass with a templated method which returns a given element in a tuple.
         */
         template<ushort_t I, typename Int>
         struct tied_type
         {
             struct type{
-                template<typename ... Indeces>
-                static constexpr Int value(Indeces ... indices){return std::get< pos_<I>::value >(std::make_tuple(indices...));}
+                template<typename ... Indices>
+                GT_FUNCTION
+                static constexpr const Int value(Indices const& ... indices){
+                    return gt_get< pos_<I>::value>::apply( indices ...);
+                    //std::get< pos_<I>::value >(std::make_tuple(indices...));
+                }
             };
         };
 
@@ -209,8 +213,9 @@ namespace gridtools {
         struct identity
         {
             struct type{
-                template<typename ... Indeces>
-                static constexpr Int value(Indeces ... /*indices*/){return Default;}
+                template<typename ... Indices>
+                GT_FUNCTION
+                static constexpr Int value(Indices ... /*indices*/){return Default;}
             };
         };
 
@@ -234,14 +239,15 @@ namespace gridtools {
         */
         template <ushort_t I, typename T, T DefaultVal, typename ... Indices, typename First,  typename boost::enable_if<boost::is_integral<T>, int>::type=0>
         GT_FUNCTION
-        static constexpr T find_val(First first, Indices ... indices) {
-            static_assert(sizeof...(Indices)<length, "Too many arguments");
-
+        static constexpr T find_val(First const& first, Indices const& ... indices) {
+            static_assert(sizeof...(Indices)<=length, "Too many arguments");
             //lazy template instantiation
             typedef typename boost::mpl::eval_if_c< (pos_<I>::value >= sizeof ... (Indices) +1 ),
                 identity<T, DefaultVal>
                 ,
                 tied_type<I, T> >::type type;
+
+            GRIDTOOLS_STATIC_ASSERT((boost::is_integral<First>::type::value), "wrong type");
 
             return type::value(first, indices...);
         }

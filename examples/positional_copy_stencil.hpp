@@ -1,6 +1,8 @@
 #pragma once
 
-#include <stencil-composition/stencil-composition.hpp>
+#include <boost/timer/timer.hpp>
+#include <stencil-composition/make_computation.hpp>
+#include <tools/verifier.hpp>
 
 #ifdef USE_PAPI_WRAP
 #include <papi_wrap.hpp>
@@ -20,6 +22,7 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
+static const int _value_ = 1;
 
 namespace positional_copy_stencil{
 #ifdef __CUDACC__
@@ -153,7 +156,7 @@ namespace positional_copy_stencil{
              gridtools::make_mss // mss_descriptor
              (
               execute<forward>(),
-              gridtools::make_esf<init_functor<31415926> >
+              gridtools::make_esf<init_functor<_value_> >
               (
                p_in(), p_out() // esf_descriptor
                )
@@ -164,7 +167,7 @@ namespace positional_copy_stencil{
         init->ready();
 
         init->steady();
-        domain.clone_to_gpu();
+        domain.clone_to_device();
         init->run();
 
         init->finalize();
@@ -224,7 +227,7 @@ namespace positional_copy_stencil{
         copy->ready();
 
         copy->steady();
-        domain.clone_to_gpu();
+        domain.clone_to_device();
 
 #ifdef USE_PAPI_WRAP
         pw_stop_collector(collector_init);
@@ -258,34 +261,27 @@ namespace positional_copy_stencil{
 
         boost::timer::cpu_times lapse_time = time.elapsed();
         std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
-        //#ifdef CUDA_EXAMPLE
-        //out.data().update_cpu();
-        //#endif
-#define NX 5
-#define NY 5
-#define NZ 5
+
 
 #ifdef USE_PAPI_WRAP
         pw_print();
 #endif
 
+        storage_type ref(meta_,1.5,"ref");
+
         bool success = true;
-        for(uint_t i=0; i<d1; ++i)
-            for(uint_t j=0; j<d2; ++j)
-                for(uint_t k=0; k<d3; ++k)
-                    {
-                        if (in(i, j, k)!=out(i,j,k)) {
-                            std::cout << "error in "
-                                      << i << ", "
-                                      << j << ", "
-                                      << k << ": "
-                                      << "in = " << in(i, j, k)
-                                      << ", out = " << out(i, j, k)
-                                      << std::endl;
-                            success = false;
-                        }
-                    }
-        return success;
+        for(uint_t i=0; i<d1; ++i) {
+            for(uint_t j=0; j<d2; ++j) {
+                for(uint_t k=0; k<d3; ++k) {
+                    ref(i,j,k) = static_cast<double>(_value_)*(i+j+k);
+                }
+            }
+        }
+
+        verifier verif(1e-15, 0);
+        bool result = verif.verify(in, out) & verif.verify(ref, out);
+
+        return result;
 
     }
 

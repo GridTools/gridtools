@@ -29,7 +29,6 @@ namespace gridtools {
     template<typename T>
     struct is_meta_storage : boost::mpl::false_{};
 
-
     /**fwd declaration*/
     template < ushort_t Index
                , typename Layout
@@ -79,8 +78,13 @@ namespace gridtools {
 
     public:
 
+#ifdef CXX11_ENABLED
         template <uint_t T, typename U, bool B, typename ... D>
         friend std::ostream& operator<<(std::ostream &, meta_storage_base<T,U,B,D...> const & );
+#else
+        template <uint_t T, typename U, bool B, typename T1, typename T2>
+        friend std::ostream& operator<<(std::ostream &, meta_storage_base<T,U,B,T1,T2> const & );
+#endif
 
 #ifdef CXX11_ENABLED
         /**
@@ -93,6 +97,33 @@ namespace gridtools {
            @brief empty constructor
         */
         constexpr meta_storage_base(){}
+
+#ifndef __CUDACC__
+        template <class ... IntTypes
+                  , typename Dummy = all_integers<IntTypes...>
+                  >
+        void setup(  IntTypes const& ... dims_  ){
+            m_dims=array<int_t, space_dimensions>(dims_ ...);
+            m_strides=array<int_t, space_dimensions>(
+                _impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( dims_...));
+        }
+#else
+        template <class First, class ... IntTypes
+                  , typename Dummy = typename boost::enable_if_c<boost::is_integral<First>::type::value, bool>::type //nvcc does not get it
+                  >
+        void setup(  First first_, IntTypes const& ... dims_  ){
+
+            m_dims=array<int_t, space_dimensions>(first_, dims_ ...);
+            m_strides=array<int_t, space_dimensions>(
+                _impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( first_, dims_...));
+        }
+d
+#endif
+        template<typename T>
+        constexpr meta_storage_base(T const& a)
+        {
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::is_void_<T>::value), "Metastorage Constructor not supported");
+        }
 
 
 #ifdef CXX11_ENABLED
@@ -115,12 +146,6 @@ namespace gridtools {
         }
 d
 #endif
-        template<typename T>
-        constexpr meta_storage_base(T const& a)
-        {
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::is_void_<T>::value), "Metastorage Constructor not supported");
-        }
-
         // variadic constexpr constructor
 
         /**
@@ -129,10 +154,9 @@ d
            NOTE: this contructor is constexpr, i.e. the storage metadata information could be used
            at compile-time (e.g. in template metafunctions)
          */
-        template <class ... IntTypes
 #ifndef __CUDACC__
-                  , typename Dummy = all_integers<IntTypes...> //nvcc does not get it
-#endif
+        template <class ... IntTypes
+                  , typename Dummy = all_integers<IntTypes...>
                   >
         constexpr meta_storage_base(  IntTypes const& ... dims_  ) :
             m_dims(dims_...)
@@ -144,7 +168,22 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
  a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
  by defining the storage type using another layout_map.");
             }
-#else
+#else //__CUDACC__ nvcc does not get it: checks only the first argument
+        template <class First, class ... IntTypes
+                  , typename Dummy = typename boost::enable_if_c<boost::is_integral<First>::type::value, bool>::type //nvcc does not get it
+                  >
+        constexpr meta_storage_base( First const& first_,  IntTypes const& ... dims_  ) :
+            m_dims(first_, dims_...)
+            , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( first_, dims_...))
+            {
+                GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes)+1==space_dimensions, "you tried to initialize\
+ a storage with a number of integer arguments different from its number of dimensions. \
+This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
+ a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
+ by defining the storage type using another layout_map.");
+            }
+#endif
+#else //CXX11_ENABLED
         // non variadic non constexpr constructor
         meta_storage_base(  uint_t const& d1, uint_t const& d2, uint_t const& d3 ) :
             m_dims(d1, d2, d3)
@@ -322,20 +361,6 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
 
             return  _impl::compute_offset<space_dimensions, layout>::apply(strides_, indices);
         }
-
-        // /** @brief method to increment the memory address index by moving forward one step in the given Coordinate direction
-
-        //     SFINAE: design pattern used to avoid the compilation of the overloaded method which are not used (and which would produce a compilation error)
-        // */
-        // template <uint_t Coordinate, enumtype::execution Execution, typename StridesVector>
-        // GT_FUNCTION
-        // static void increment( int_t* RESTRICT index_, StridesVector const& RESTRICT strides_){
-        //     BOOST_STATIC_ASSERT(Coordinate < space_dimensions);
-        //     if(layout::template at_< Coordinate >::value >=0)//static if
-        //     {
-        //         increment_policy<Execution>::apply(*index_ , strides<Coordinate>(strides_));
-        //     }
-        // }
 
         /** @brief method to increment the memory address index by moving forward a given number of step in the given Coordinate direction
             \tparam Coordinate: the dimension which is being incremented (0=i, 1=j, 2=k, ...)

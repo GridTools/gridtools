@@ -49,7 +49,7 @@ bool test_hybrid_pointer() {
         a.p[i] = i;
 
     a.p.update_gpu();
-    a.clone_to_gpu();
+    a.clone_to_device();
 
     reverse<<<1,1>>>(a.gpu_object_ptr, n);
 

@@ -67,7 +67,7 @@ namespace copy_stencil{
         typedef storage_type::original_storage::pointer_type pointer_type;
 
 
-        typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<0, 1, 2>,
+        typedef gridtools::halo_exchange_dynamic_ut<layout_t,
                                                     gridtools::layout_map<0, 1, 2>,
                                                     pointer_type::pointee_t,
                                                     MPI_3D_process_grid_t<3> ,
@@ -79,8 +79,9 @@ namespace copy_stencil{
                                                     gridtools::version_manual> pattern_type;
 
         pattern_type he(pattern_type::grid_type::period_type(true, false, false), GCL_WORLD);
+#ifdef VERBOSE
         printf("halo exchange ok\n");
-
+#endif
 
         /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
 
@@ -112,7 +113,10 @@ namespace copy_stencil{
         he.add_halo<2>(0, 0, 0, d3 - 1, d3);
 
         he.setup(2);
+
+#ifdef VERBOSE
         printf("halo set up\n");
+#endif
 
         for(uint_t i=0; i<metadata_.template dims<0>(); ++i)
             for(uint_t j=0; j<metadata_.template dims<1>(); ++j)
@@ -163,23 +167,33 @@ namespace copy_stencil{
                     ),
                 domain, coords
                 );
+#ifdef VERBOSE
         printf("computation instantiated\n");
+#endif
 
         copy->ready();
 
+#ifdef VERBOSE
         printf("computation ready\n");
+#endif
 
         copy->steady();
 
+#ifdef VERBOSE
         printf("computation steady\n");
+#endif
 
         copy->run();
 
+#ifdef VERBOSE
         printf("computation run\n");
+#endif
 
         copy->finalize();
 
+#ifdef VERBOSE
         printf("computation finalized\n");
+#endif
 
         std::vector<pointer_type::pointee_t*> vec(2);
         vec[0]=in.data().get();
@@ -187,20 +201,25 @@ namespace copy_stencil{
 
         he.pack(vec);
 
+#ifdef VERBOSE
         printf("copy packed \n");
+#endif
 
         he.exchange();
 
+#ifdef VERBOSE
         printf("copy exchanged\n");
-
+#endif
         he.unpack(vec);
 
+#ifdef VERBOSE
         printf("copy unpacked\n");
-
-        // in.print();
+#endif
 
         MPI_Barrier(GCL_WORLD);
         GCL_Finalize();
+
+        printf("copy parallel test executed\n");
 
         return true;
     }

@@ -12,7 +12,7 @@ endif(SUPPRESS_MESSAGES)
 
 SET(VERBOSE "OFF" CACHE BOOL "set verbosity for output")
 if(VERBOSE)
-    add_definitions(-D__VERBOSE__)
+    add_definitions(-DVERBOSE)
 endif(VERBOSE)
 
 
@@ -36,6 +36,9 @@ set(BOOST_FUSION_MAX_SIZE 20 CACHE STRING "max sizes of boost fusion containers"
 add_definitions(-DFUSION_MAX_VECTOR_SIZE=${BOOST_FUSION_MAX_SIZE})
 add_definitions(-DFUSION_MAX_MAP_SIZE=${BOOST_FUSION_MAX_SIZE})
 
+if(ENABLE_CXX11)
+    add_definitions(-DBOOST_RESULT_OF_USE_TR1)
+endif()
 
 # Not sure why it's desirable to specify the build directory, but it seems
 # to break testing with MSVC, so disabling it conditionally.

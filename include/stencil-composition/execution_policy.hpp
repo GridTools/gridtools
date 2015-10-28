@@ -51,18 +51,18 @@ namespace gridtools{
 
             GT_FUNCTION
             explicit run_f_on_interval(
-                    iterate_domain_t & iterate_domain,
+                    iterate_domain_t & iterate_domain_,
                     typename RunFunctorArguments::coords_t const& coords):
-                super(iterate_domain, coords){}
+                super(iterate_domain_, coords){}
 
             template<typename IterationPolicy, typename Interval>
             GT_FUNCTION
             void k_loop(int_t from, int_t to) const {
                 typedef typename run_esf_functor_h_t::template apply<RunFunctorArguments, Interval>::type run_esf_functor_t;
 
-                for ( int_t k=from ; k<=to; ++k, IterationPolicy::increment(this->m_domain)) {
+                for ( int_t k=from ; k<=to; ++k, IterationPolicy::increment(super::m_domain)) {
                     gridtools::for_each<boost::mpl::range_c<int, 0, boost::mpl::size<functor_list_t>::value > > (
-                        run_esf_functor_t(this->m_domain)
+                        run_esf_functor_t(super::m_domain)
                     );
                 }
             }

@@ -182,7 +182,7 @@ namespace copy_stencils_3D_2D_1D_0D {
         copy->ready();
 
         copy->steady();
-        domain.clone_to_gpu();
+        domain.clone_to_device();
 
 #ifdef USE_PAPI_WRAP
         pw_stop_collector(collector_init);
