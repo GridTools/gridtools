@@ -3,7 +3,7 @@
 //(to test the case in which the 3rd dimension is not k)
 #define PEDANTIC_DISABLED
 
-#include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 namespace test_cycle_and_swap{
     using namespace gridtools;

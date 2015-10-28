@@ -28,6 +28,8 @@
 #pragma once
 #include "common/array.hpp"
 
+#ifdef CXX11_ENABLED
+
 namespace gridtools {
 
 template <unsigned K, class R, class F, class Array>
@@ -94,3 +96,5 @@ static auto explode(const Array & a, const Inj& inj)
 
 
 }
+
+#endif

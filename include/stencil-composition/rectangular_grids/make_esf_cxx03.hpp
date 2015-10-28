@@ -6,7 +6,7 @@
 #include <boost/preprocessor/arithmetic/inc.hpp>
 #include <boost/preprocessor/cat.hpp>
 #include <boost/preprocessor/facilities/intercept.hpp>
-#include "mss_metafunctions.hpp"
+#include "stencil-composition/mss_metafunctions.hpp"
 
 namespace gridtools {
 
