@@ -174,7 +174,7 @@ namespace gridtools {
                     (range_t::iminus::value != 0 ? 1 : 0) + 1))
                 {
                     const int ioffset = -iterate_domain_backend.thread_position_x() +
-                        m_iterate_domain.block_size_i() + ((int)threadIdx.x % (range_t::iplus::value));
+                        iterate_domain_backend.block_size_i() + ((int)threadIdx.x % (range_t::iplus::value));
                     const int joffset = -iterate_domain_backend.thread_position_y() +
                         ((int)threadIdx.x / (range_t::iplus::value) );
 

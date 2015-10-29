@@ -225,6 +225,7 @@ namespace gridtools {
         GT_FUNCTION
         const void* data_pointer(ushort_t i){return ( data_pointer() )[i];}
 
+        GT_FUNCTION
         iterate_domain_backend_t& iterate_domain_backend() { return m_iterate_domain_backend;}
 
         void set_data_pointer(data_pointer_array_t* RESTRICT data_pointer)
