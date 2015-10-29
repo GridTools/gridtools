@@ -591,6 +591,8 @@ namespace gridtools {
         const gridtools::array<uint_t, 2> m_dims; // Sizes as cells in a multi-dimensional Cell array
 
         static constexpr int Dims = 2;
+        //TODO this n_colors is used by execute_kernel_functor_host.hpp, but because at the moment
+        // it is not aware of the location type of iteration. In the future it should be extracted from cells or edges, etc.
         static constexpr int n_colors = 2;
 
         using virtual_storage_types =
@@ -639,10 +641,10 @@ namespace gridtools {
         trapezoid_2D_colored(uint_t first_, uint_t second_, UInt ... dims)
             : m_dims{second_, first_},
              m_virtual_storages(
-                 v_storage_t<cells>(array<uint_t, v_storage_t<cells>::space_dimensions>{first_, cells::n_colors, second_, dims...}),
-                 v_storage_t<edges>(array<uint_t, v_storage_t<edges>::space_dimensions>{first_, edges::n_colors, second_, dims...}),
+                 v_storage_t<cells>(array<uint_t, v_storage_t<cells>::space_dimensions>{first_, cells::n_colors::value, second_, dims...}),
+                 v_storage_t<edges>(array<uint_t, v_storage_t<edges>::space_dimensions>{first_, edges::n_colors::value, second_, dims...}),
                  //here we assume by convention that the dual grid (vertexes) have one more grid point
-                 v_storage_t<vertexes>(array<uint_t, v_storage_t<vertexes>::space_dimensions>{first_, vertexes::n_colors,  second_+1, dims...})
+                 v_storage_t<vertexes>(array<uint_t, v_storage_t<vertexes>::space_dimensions>{first_, vertexes::n_colors::value,  second_+1, dims...})
              )
         {}
 
@@ -657,8 +659,10 @@ namespace gridtools {
         template <typename LocationType>
         array<int_t, 4> ll_indices(array<int_t, 3> const& i, LocationType) const {
             // std::cout << " *cells* " << std::endl;
-            auto out = array<int_t, 4>{i[0], i[1]%static_cast<int_t>(LocationType::n_colors), i[1]/static_cast<int>(LocationType::n_colors), i[2]};
-            return array<int_t, 4>{i[0], i[1]%static_cast<int_t>(LocationType::n_colors), i[1]/static_cast<int>(LocationType::n_colors), i[2]};
+            auto out = array<int_t, 4>{i[0], i[1]%static_cast<int_t>(LocationType::n_colors::value),
+                        i[1]/static_cast<int>(LocationType::n_colors::value), i[2]};
+            return array<int_t, 4>{i[0], i[1]%static_cast<int_t>(LocationType::n_colors::value),
+                        i[1]/static_cast<int>(LocationType::n_colors::value), i[2]};
         }
 
         template<typename LocationType>
@@ -703,7 +707,7 @@ namespace gridtools {
                       << i[0] << ", " << i[1] << ", " << i[2] << ", " << i[3]
                       << std::endl;
 #endif
-            switch (i[1]%cells::n_colors) {
+            switch (i[1]%cells::n_colors::value) {
             case 0:
                 return ll_map_index(cells(), Location2(), static_int<0>(), {i[0], i[2], i[3]});
                 // return edge2edges_ll_p0_indices({i[0], i[2]});
@@ -722,7 +726,7 @@ namespace gridtools {
                       << i[0] << ", " << i[1] << ", " << i[2]
                       << std::endl;
 #endif
-            switch (i[1]%edges::n_colors) {
+            switch (i[1]%edges::n_colors::value) {
             case 0:
                 return ll_map_index(edges(), Location2(), static_int<0>(), {i[0], i[2], i[3]});
                 // return edge2edges_ll_p0_indices({i[0], i[2]});

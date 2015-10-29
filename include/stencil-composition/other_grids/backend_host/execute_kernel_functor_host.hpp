@@ -105,6 +105,8 @@ namespace gridtools {
             array_position_t memorized_position;
             for(uint_t i=m_first_pos[0]; i <= m_first_pos[0] + m_loop_size[0];++i)
             {
+                //TODO this n_colors is used by execute_kernel_functor_host.hpp, but because at the moment
+                // it is not aware of the location type of iteration. In the future it should be extracted from cells or edges, etc.
                 for(uint_t c=0; c < grid_t::n_colors; ++c)
                 {
                     for(uint_t j=m_first_pos[1]; j <= m_first_pos[1] + m_loop_size[1];++j)

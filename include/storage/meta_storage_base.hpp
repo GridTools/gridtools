@@ -137,7 +137,6 @@ namespace gridtools {
             m_strides[1]=( (m_strides[0]<=1)?0:layout::template find_val<2,uint_t,1>(m_dims)*layout::template find_val<1,uint_t,1>(m_dims) );
             m_strides[2]=( (m_strides[1]<=1)?0:layout::template find_val<2,uint_t,1>(m_dims) );
         }
-
 #endif
         // variadic constexpr constructor
 

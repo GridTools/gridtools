@@ -106,13 +106,6 @@ namespace gridtools {
             assert(other.size() == _size);
             std::copy(other.begin(), other.end(), _array);
         }
-
-//        GT_FUNCTION
-//        array(std::initializer_list<T> c)
-//        {
-//            assert(c.size() == _size);
-//            std::copy(c.begin(), c.end(), _array);
-//        }
 #else
         //TODO provide a BOOST PP implementation for this
         GT_FUNCTION

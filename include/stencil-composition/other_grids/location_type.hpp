@@ -4,7 +4,7 @@ namespace gridtools {
     template <int I, ushort_t NColors>
     struct location_type {
         static const int value = I;
-        static const uint_t n_colors = NColors; //! <- is the number of locations of this type
+        using n_colors = static_ushort<NColors>; //! <- is the number of locations of this type
     };
 
     template<typename T> struct is_location_type : boost::mpl::false_{};
