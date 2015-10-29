@@ -253,12 +253,15 @@ namespace gridtools {
         struct _data_item {
             char _data_storage[sizeof(T)];
 
-            _data_item() : _data_storage{} {}
+            GT_FUNCTION
+            _data_item() : _data_storage() {}
 
+            GT_FUNCTION
             _data_item(_data_item const& other) {
                 std::copy(&other._data_storage[0], &other._data_storage[sizeof(T)-1], &_data_storage[0]);
             }
 
+            GT_FUNCTION
             _data_item(T const& x) {
                 const char* addr =  reinterpret_cast<const char*>(&x);
                 std::copy(addr, addr+sizeof(T), &_data_storage[0]);
@@ -273,7 +276,7 @@ namespace gridtools {
 
         GT_FUNCTION
         array()
-            : _array{}
+            : _array()
         {}
 
 #ifdef CXX11_ENABLED
