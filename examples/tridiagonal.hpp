@@ -287,7 +287,7 @@ bool test(uint_t d1, uint_t d2, uint_t d3) {
     bool result = verif.verify(solution,out, halos);
 #else
     verifier verif(1e-13, 0);
-    bool result = verif.verify(solution,out;
+    bool result = verif.verify(solution,out);
 #endif
 
     return result;

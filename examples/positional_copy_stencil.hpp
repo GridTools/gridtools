@@ -284,7 +284,7 @@ namespace positional_copy_stencil{
         bool result = verif.verify(ref,out, halos);
 #else
         verifier verif(1e-13, 0);
-        bool result = verif.verify(ref,out;
+        bool result = verif.verify(ref,out);
 #endif
 
         return result;

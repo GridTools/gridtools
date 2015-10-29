@@ -179,6 +179,16 @@ namespace gridtools{
             typedef typename strategy_from_id_cuda<StrategyId>::block_size_t type;
         };
 
+        template<typename DataPointerArray, typename StridesCached, typename IterateDomainCache, typename IterateDomainArguments>
+        struct select_iterate_domain_backend
+        {
+            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_strides_cached<StridesCached>::value), "wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_cache<IterateDomainCache>::value), "Wrong type");
+            typedef iterate_domain_cuda<DataPointerArray, StridesCached, IterateDomainCache, IterateDomainArguments> type;
+        };
+
+
         /**
          * @brief metafunction that returns the right iterate domain for this backend
          * (depending on whether the local domain is positional or not)
