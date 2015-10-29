@@ -94,7 +94,7 @@ TEST(test_copy_stencil, run) {
     copy->steady();
     copy->run();
 
-    verifier ver(1e-10, 0);
+    verifier ver(1e-10);
 
     array<array<uint_t, 2>, 4> halos = {{halo_nc, halo_nc},{0,0},{halo_mc, halo_mc},{halo_k, halo_k}};
     EXPECT_TRUE(ver.verify(in_cells, out_cells, halos));
