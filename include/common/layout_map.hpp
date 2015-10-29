@@ -27,14 +27,9 @@ namespace gridtools {
    @brief Used as template argument in the storage.
    In particular in the \ref gridtools::base_storage class it regulate memory access order, defined at compile-time, by leaving the interface unchanged.
 */
-#if (defined(CXX11_ENABLED) && !defined(__CUDACC__))
+#if defined(CXX11_ENABLED)
 
     namespace _impl {
-
-        template <typename T0, typename... Ts>
-        struct first_type {
-            using type = T0;
-        };
 
         template <int index>
         static int __get(int i) {
@@ -180,7 +175,6 @@ namespace gridtools {
 
             return gt_get<pos_<I>::value>::apply(first_, indices...);
         }
-
 
         /* forward declaration*/
         template <ushort_t I>
@@ -331,7 +325,7 @@ namespace gridtools {
         template <ushort_t I>
         struct at_ {
 #ifdef PEDANTIC
-            static_assert(I<length, "Index out of bound");
+            static_assert(I<length, "Index out of bound: accessing an object with a layout map (a storage) using too many indices.");
 #endif
             static const short_t value = I<length ? layout_vector[I] : -1;
         };
@@ -353,7 +347,7 @@ namespace gridtools {
             template <ushort_t X, bool IsHere>
             struct _find_pos
             {
-                static constexpr ushort_t value = _find_pos<X+1, layout_vector[ (X+1>=length)?X:X+1 ] == I>::value;
+                static constexpr ushort_t value = _find_pos<X+1, boost::mpl::at_c<layout_vector_t,  (X+1>=length)?X:X+1>::type::value == I>::value;
             };
 
             template <ushort_t X>
@@ -373,7 +367,7 @@ namespace gridtools {
                 static constexpr ushort_t value = ~ushort_t();
             };
 
-            static constexpr ushort_t value = _find_pos<0, layout_vector[ 0 ] == I>::value;
+            static constexpr ushort_t value = _find_pos<0, boost::mpl::at_c<layout_vector_t, 0>::type::value == I>::value;
 
         };
 
@@ -913,7 +907,7 @@ namespace gridtools {
 
     };
 
-#endif // (defined(CXX11_ENABLED) && !defined(__CUDACC__))
+#endif // (defined(CXX11_ENABLED)
 
 
     template <typename LM>
