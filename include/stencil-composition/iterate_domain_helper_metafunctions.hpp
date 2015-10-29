@@ -26,7 +26,6 @@ namespace gridtools
     template<typename Accessor, typename IterateDomainArguments>
     struct accessor_return_type
     {
-        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Internal error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Internal error: wrong type");
 
         typedef typename boost::mpl::eval_if<
