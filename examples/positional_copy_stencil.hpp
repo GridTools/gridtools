@@ -269,7 +269,6 @@ namespace positional_copy_stencil{
 
         storage_type ref(meta_,1.5,"ref");
 
-        bool success = true;
         for(uint_t i=0; i<d1; ++i) {
             for(uint_t j=0; j<d2; ++j) {
                 for(uint_t k=0; k<d3; ++k) {
@@ -286,7 +285,6 @@ namespace positional_copy_stencil{
         verifier verif(1e-13, 0);
         bool result = verif.verify(ref,out);
 #endif
-
         return result;
 
     }
