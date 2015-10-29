@@ -11,7 +11,7 @@
 #include "common/gt_assert.hpp"
 #include "stencil-composition/run_functor_arguments.hpp"
 #include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
-#include "stencil-composition/iterate_domain_helper_metafunctions.hpp"
+#include "stencil-composition/iterate_domain_impl.hpp"
 
 /**@file
    @brief file handling the access to the storage.

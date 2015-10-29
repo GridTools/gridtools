@@ -7,7 +7,7 @@
 #include "stencil-composition/total_storages.hpp"
 #include "stencil-composition/other_grids/iterate_domain_aux.hpp"
 #include "stencil-composition/other_grids/accessor_metafunctions.hpp"
-#include "stencil-composition/iterate_domain_helper_metafunctions.hpp"
+#include "stencil-composition/iterate_domain_impl.hpp"
 
 #define _ACCESSOR_H_DEBUG_
 
