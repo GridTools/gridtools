@@ -12,4 +12,7 @@ struct empty_iterate_domain_cache{
     typedef boost::mpl::map0<> ij_caches_map_t;
 };
 
+template<>
+struct is_iterate_domain_cache<empty_iterate_domain_cache> : boost::mpl::true_{};
+
 }

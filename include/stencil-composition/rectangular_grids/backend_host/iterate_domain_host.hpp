@@ -21,7 +21,7 @@ namespace gridtools {
         typedef boost::mpl::map0<> ij_caches_map_t;
 
         GT_FUNCTION
-        explicit iterate_domain_host() : m_data_pointer(0), m_strides(0) {}
+        explicit iterate_domain_host(const int_t block_size_i, const int_t block_size_j) : m_data_pointer(0), m_strides(0) {}
 
         void set_data_pointer_impl(DataPointerArray* RESTRICT data_pointer)
         {

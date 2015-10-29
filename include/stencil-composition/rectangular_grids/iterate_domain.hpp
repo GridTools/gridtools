@@ -11,6 +11,7 @@
 #include "common/gt_assert.hpp"
 #include "stencil-composition/run_functor_arguments.hpp"
 #include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
+#include "stencil-composition/iterate_domain_helper_metafunctions.hpp"
 
 /**@file
    @brief file handling the access to the storage.
@@ -85,7 +86,12 @@ namespace gridtools {
                 template select_iterate_domain_cache<IterateDomainArguments>::type iterate_domain_cache_t;
 
         typedef typename backend_traits_from_id< backend_id_t::value >::
-                template select_iterate_domain_backend<data_pointer_array_t, strides_cached_t>::type iterate_domain_backend_t;
+            template select_iterate_domain_backend<
+                data_pointer_array_t,
+                strides_cached_t,
+                iterate_domain_cache_t,
+                IterateDomainArguments
+            >::type iterate_domain_backend_t;
 
         typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
 
@@ -96,19 +102,6 @@ namespace gridtools {
             >::type::value_type value_type;
 
         /**
-         * metafunction that retrieves the arg type associated with an accessor
-         */
-        template<typename Accessor>
-        struct get_arg_from_accessor
-        {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Internal error: wrong type");
-            typedef typename boost::mpl::at<
-                esf_args_t,
-                typename Accessor::index_type
-            >::type type;
-        };
-
-        /**
          * metafunction that determines if a given accessor is associated with an arg holding a data field
          */
         template<typename Accessor>
@@ -116,7 +109,7 @@ namespace gridtools {
         {
             typedef typename boost::mpl::eval_if<
                 is_accessor<Accessor>,
-                arg_holds_data_field_h<get_arg_from_accessor<Accessor> >,
+                arg_holds_data_field_h<get_arg_from_accessor<Accessor, IterateDomainArguments> >,
                 boost::mpl::identity<boost::mpl::false_>
             >::type type;
         };
@@ -163,11 +156,7 @@ namespace gridtools {
         template<typename Accessor>
         struct accessor_return_type
         {
-            typedef typename boost::mpl::eval_if<
-                is_accessor<Accessor>,
-                get_arg_from_accessor<Accessor>,
-                boost::mpl::identity<boost::mpl::void_>
-            >::type type;
+            typedef typename ::gridtools::accessor_return_type<Accessor, IterateDomainArguments>::type type;
         };
 
     public:
@@ -226,8 +215,8 @@ namespace gridtools {
            might be shared among several data fileds)
         */
         GT_FUNCTION
-        iterate_domain(local_domain_t const& local_domain_)
-            : local_domain(local_domain_) {}
+        iterate_domain(local_domain_t const& local_domain_, const int_t block_size_i=-1, const int_t block_size_j=-1)
+            : local_domain(local_domain_), m_iterate_domain_backend(block_size_i, block_size_j) {}
 
         /**
            @brief returns a single snapshot in the array of raw data pointers
@@ -235,6 +224,8 @@ namespace gridtools {
         */
         GT_FUNCTION
         const void* data_pointer(ushort_t i){return ( data_pointer() )[i];}
+
+        iterate_domain_backend_t& iterate_domain_backend() { return m_iterate_domain_backend;}
 
         void set_data_pointer(data_pointer_array_t* RESTRICT data_pointer)
         {
@@ -536,7 +527,8 @@ namespace gridtools {
         using iterate_domain<IterateDomainImpl>::iterate_domain;
 #else
         GT_FUNCTION
-        positional_iterate_domain(local_domain_t const& local_domain) : base_t(local_domain) {}
+        positional_iterate_domain(local_domain_t const& local_domain, const int_t block_size_i=-1, const int_t block_size_j=-1) :
+            base_t(local_domain, block_size_i, block_size_j) {}
 #endif
 
         /**@brief method for incrementing the index when moving forward along the k direction */

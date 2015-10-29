@@ -16,6 +16,7 @@
 #include "stencil-composition/run_functor_arguments.hpp"
 #include "common/generic_metafunctions/vector_to_map.hpp"
 #include "common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
+#include "stencil-composition/iterate_domain_fwd.hpp"
 
 namespace gridtools {
 
@@ -76,5 +77,8 @@ public:
     // compute an mpl from the previous fusion vector, to be used for compile time meta operations
     typedef typename fusion_map_to_mpl_map<ij_caches_tuple_t>::type ij_caches_map_t;
 };
+
+template<typename IterateDomainArguments> struct is_iterate_domain_cache<iterate_domain_cache<IterateDomainArguments> > :
+        boost::mpl::true_{};
 
 } // namespace gridtools
