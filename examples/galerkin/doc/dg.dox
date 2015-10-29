@@ -1,0 +1,19 @@
+/**
+\page DG
+
+Here we provide the details about the implementation of a Discontinuous Galerkin discretization using GridTools
+
+As in the \ref Galerkin "Finite Element example" we rely on the Intrepid TPL for some of the elemental operations
+rewuired in the discretization. We assume in the following that the user is acquaintad with the \ref Galerkin "continuous case".
+
+The complication coming from the DG implementation wrt the continuous case is mostly due to the boundary integrals which have to be performed in order
+to compute the fluxes across the elements, e.g.
+
+\f[
+    \int_{\partial\hat\Omega_e}{\phi(\hat{\mathbf x})\mathbf n(\hat{\mathbf x})\tilde J(\hat{\mathbf x})}d\hat\Sigma .
+\f]
+
+The measure \f$ \tilde J \f$ is the norm of the cross product of the vectors tangent to the surface \f$ \partial \Omega_e \f$ on the current configuration,
+
+
+*/

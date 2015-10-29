@@ -5,7 +5,7 @@
 #define PEDANTIC_DISABLED
 #include "../functors/assembly.hpp"
 
-    // [integration]
+// [integration]
 template <typename FE, typename Cubature>
 struct integration {
     using jac_det =accessor<0, range<0,0,0,0> , 4> const;
@@ -42,7 +42,7 @@ struct integration {
         }
     }
 };
-    // [integration]
+// [integration]
 
 int main(){
     using matrix_storage_info_t=storage_info< layout_tt<3,4> , __COUNTER__>;

@@ -154,7 +154,7 @@ int main(){
             execute<forward>()
             // evaluate the cell Jacobian matrix on the boundary (given the basis functions derivatives in those points)
             , make_esf<functors::update_jac<bd_discr_t , enumtype::Hexa> >(as::p_grid_points(), p_bd_dphi(), as::p_bd_jac())
-            // compute the normals on the quad points from the jacobian above (first 2 columns)
+            // compute the normals on the quad points from the jacobian above (first 2 columns), unnecessary
             , make_esf<functors::compute_face_normals<bd_discr_t> >(as::p_bd_jac(), as::p_ref_normals(), as::p_normals())
             // surface integral:
             // compute the measure for the surface integral

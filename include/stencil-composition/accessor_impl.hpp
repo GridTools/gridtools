@@ -165,8 +165,8 @@ namespace gridtools {
         GT_FUNCTION
         constexpr
         int_t get() const {
-            GRIDTOOLS_STATIC_ASSERT(Idx<=n_dim, "requested accessor index larger than the available dimensions");
-            GRIDTOOLS_STATIC_ASSERT(Idx>=0, "requested accessor index lower than zero. Check that when you define the accessor you specify the dimenisons which you actually access. e.g. ```accessor<0,range<0,0,0>,5> in;``` has 5 dimensions, and thus can be called with in(Dimensions<5>(-1)). Calling in(Dimensions<6>(-1)) brings you here.");
+            GRIDTOOLS_STATIC_ASSERT(Idx>=0, "requested accessor index lower than zero. Check that when you define the accessor you specify the dimenisons which you actually access. e.g. suppose that a storage linked to the accessor ```in``` has 5 dimensions, and thus can be called with in(Dimensions<5>(-1)). Calling in(Dimensions<6>(-1)) brings you here.");
+            GRIDTOOLS_STATIC_ASSERT(Idx<=n_dim, "requested accessor index larger than the available dimensions. Maybe you made a mistake when setting the accessor dimensionality?");
             return m_offsets.template get<Idx>();
         }
 
@@ -279,6 +279,12 @@ namespace gridtools {
                  << ", NON TEMP" << " > ]";
     }
 
+
+    template <typename Arg>
+    struct is_temporary_storage;
+
+    template <typename Arg>
+    struct is_storage;
 
     /**
        \addtogroup specializations Specializations

@@ -20,6 +20,12 @@
 namespace gridtools{
 namespace intrepid{
 
+    /**
+       @brief defining the finite element discretization
+
+       Given the finite elements space definitions and the quadrature rule it instantiates the useful quantities
+       (e.g. the values of the basis functions and of their derivatives) in the quadrature points.
+     */
     template <typename FE, typename Cub>
     struct discretization{
         using fe=FE;
@@ -155,6 +161,13 @@ namespace intrepid{
     };
 
 
+    /**
+       @brief discretization of the local-to-global map
+
+       This map is what connects the reference to the actual configuration. All the quantities and integrals computed
+       in the reference element get eventually interpolated in the actual configuration using this map. The case in which this class
+       uses the same basis functions as the finite element discretization is called "isoparametric".
+     */
     template < typename GeoMap, typename Cubature >
     struct geometry : public discretization<GeoMap, Cubature>{
 
@@ -174,6 +187,12 @@ namespace intrepid{
         local_grid_reordered_t m_local_grid_reordered_s;
 #endif
 
+        /**
+           @rief constructor
+
+           NOTE: the computation of the derivatives is automatically triggered,
+           since it is always used to compute the metric tensor (i.e. the first fundamental form)
+         */
         geometry() :
             //create the local grid
             m_local_grid_s_info(geo_map::basisCardinality, geo_map::spaceDim,1)
@@ -304,6 +323,11 @@ namespace intrepid{
 
     };
 
+    /**
+       @brief discretization of the boundary entities
+
+       given the quadrature rule, it defines the discrtization of the boundary entities
+     */
     template<typename Rule>
     class boundary_discr{
 
@@ -315,8 +339,9 @@ namespace intrepid{
         static const enumtype::Shape bd_shape=rule_t::bd_shape;
         // using bd_cub = typename rule_t::bd_cub;
         using cub = typename rule_t::bd_cub;
+        using bd_geo_map=reference_element<geo_map::order, geo_map::basis, bd_shape>;
 
-        using grad_storage_t_info = storage_info<layout_map<0,1,2>, __COUNTER__ >;
+        using grad_storage_t_info = storage_info<layout_map<0,1,2,3>, __COUNTER__ >;
         using basis_function_storage_t_info = storage_info<layout_map<0,1,2> , __COUNTER__>;
         using tangent_storage_t_info = storage_info<layout_map<0,1,2>,  __COUNTER__>;
 
@@ -325,6 +350,7 @@ namespace intrepid{
         using tangent_storage_t = storage_t<tangent_storage_t_info >;
         using weights_storage_t = typename rule_t::weights_storage_t;
         //private:
+        static const int n_sub_cells = shape_property<parent_shape>::n_sub_cells;
 
         rule_t & m_rule;
 
@@ -338,93 +364,113 @@ namespace intrepid{
         tangent_storage_t m_ref_face_tg_u;
         tangent_storage_t m_ref_face_tg_v;
         tangent_storage_t m_ref_normals;
-        ushort_t m_face_ord;
+        array<ushort_t, n_sub_cells> m_face_ord;
         bool m_tangent_computed;
 
     public:
 
-        boundary_discr(rule_t & rule_, ushort_t face_ord_):
+        template<typename ... UShort>
+        boundary_discr(rule_t & rule_, UShort ... face_ord_):
             m_rule(rule_)
-            , m_grad_at_cub_points_info(geo_map::basisCardinality, rule_t::bd_cub::numCubPoints(), shape_property<rule_t::/*bd*/parent_shape>::dimension)
-            , m_phi_at_cub_points_info(geo_map::basisCardinality, rule_t::bd_cub::numCubPoints(), 1)
-            , m_ref_face_tg_info(shape_property<rule_t::parent_shape>::dimension, 1, 1)
+            , m_grad_at_cub_points_info(geo_map::basisCardinality, rule_t::bd_cub::numCubPoints(), shape_property<rule_t::/*bd*/parent_shape>::dimension, sizeof ... (UShort))
+            , m_phi_at_cub_points_info(geo_map::basisCardinality, rule_t::bd_cub::numCubPoints(), sizeof ... (UShort))
+            , m_ref_face_tg_info(shape_property<rule_t::parent_shape>::dimension, sizeof ... (UShort), 1)
             , m_grad_at_cub_points(m_grad_at_cub_points_info, 0., "bd grad at cub")
             , m_phi_at_cub_points(m_phi_at_cub_points_info, 0., "bd phi at cub")
             , m_ref_face_tg_u(m_ref_face_tg_info, 0., "tg u")
             , m_ref_face_tg_v(m_ref_face_tg_info, 0., "tg v")
             , m_ref_normals(m_ref_face_tg_info, 0., "reference normals")
-            , m_face_ord(face_ord_)
+            , m_face_ord(face_ord_ ...)
             , m_tangent_computed(false)
-            {}
+            {
+                GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(), boost::is_integral<UShort>::type::value ...),
+                                        "the face ordinals must be of integral type in the boundary discretization constructor");
+
+            }
 
         void compute(Intrepid::EOperator const& operator_){
-            auto face_quad_=m_rule.update_boundary_cub(m_face_ord);
 
             compute_tangents();
             compute_normals();
 
-            switch (operator_){
-            case Intrepid::OPERATOR_GRAD :
-            {
-                Intrepid::FieldContainer<double> grad_at_cub_points(geo_map::basisCardinality, rule_t::bd_cub::numCubPoints(), shape_property<rule_t::/*bd*/parent_shape>::dimension);
-                // evaluate grad operator at the face cub points
-                //NOTE: geo_map has the parent element basis, not the boundary one
-                geo_map::hexBasis().getValues(grad_at_cub_points, face_quad_, Intrepid::OPERATOR_GRAD);
 
-                for (uint_t l=0; l<geo_map::basisCardinality; ++l)
-                    for (uint_t i=0; i<rule_t::bd_cub::numCubPoints(); ++i)
-                        for (uint_t j=0; j<shape_property<rule_t::/*bd*/parent_shape>::dimension; ++j)
-                            m_grad_at_cub_points(l,i,j)=grad_at_cub_points(l,i,j);
-                break;
-            }
-            case Intrepid::OPERATOR_VALUE :
-            {
-                Intrepid::FieldContainer<double> phi_at_cub_points(geo_map::basisCardinality, rule_t::bd_cub::numCubPoints());
-                // evaluate grad operator at the face cub points
-                geo_map::hexBasis().getValues(phi_at_cub_points, face_quad_, Intrepid::OPERATOR_VALUE);
+            for(ushort_t face_=0; face_< m_face_ord.size(); ++face_){
+                auto face_quad_=m_rule.update_boundary_cub(m_face_ord[face_]);
+                switch (operator_){
+                case Intrepid::OPERATOR_GRAD :
+                {
+                    Intrepid::FieldContainer<double> grad_at_cub_points(geo_map::basisCardinality, rule_t::bd_cub::numCubPoints(), shape_property<rule_t::/*bd*/parent_shape>::dimension);
+                    // evaluate grad operator at the face cub points
+                    //NOTE: geo_map has the parent element basis, not the boundary one
+                    geo_map::hexBasis().getValues(grad_at_cub_points, face_quad_, Intrepid::OPERATOR_GRAD);
 
-                for (uint_t i=0; i<geo_map::basisCardinality; ++i)
-                    for (uint_t j=0; j<rule_t::bd_cub::numCubPoints(); ++j)
-                    {
-                        m_phi_at_cub_points(i,j,0)=phi_at_cub_points(i,j);
-                    }
-                break;
-            }
+                    for (uint_t l=0; l<geo_map::basisCardinality; ++l)
+                        for (uint_t i=0; i<rule_t::bd_cub::numCubPoints(); ++i)
+                            for (uint_t j=0; j<shape_property<rule_t::/*bd*/parent_shape>::dimension; ++j)
+                                m_grad_at_cub_points(l,i,j,face_)=grad_at_cub_points(l,i,j);
+                    break;
+                }
+                case Intrepid::OPERATOR_VALUE :
+                {
+                    Intrepid::FieldContainer<double> phi_at_cub_points(geo_map::basisCardinality, rule_t::bd_cub::numCubPoints());
+                    // evaluate grad operator at the face cub points
+                    geo_map::hexBasis().getValues(phi_at_cub_points, face_quad_, Intrepid::OPERATOR_VALUE);
 
-            default :
-            {
-                std::cout<<"Operator not supported"<<std::endl;
-                assert(false);
-            }
+                    for (uint_t i=0; i<geo_map::basisCardinality; ++i)
+                        for (uint_t j=0; j<rule_t::bd_cub::numCubPoints(); ++j)
+                        {
+                            m_phi_at_cub_points(i,j,face_)=phi_at_cub_points(i,j);
+                        }
+                    break;
+                }
+
+                default :
+                {
+                    std::cout<<"Operator not supported"<<std::endl;
+                    assert(false);
+                }
+                }
             }
         }
 
-        /**@brief get the 2 tangents on a point in the reference element*/
-        void compute_tangents(){
-            Intrepid::FieldContainer<double> tangent_u(shape_property<rule_t::parent_shape>::dimension);
-            Intrepid::FieldContainer<double> tangent_v(shape_property<rule_t::parent_shape>::dimension);
-            Intrepid::CellTools<value_t>::getReferenceFaceTangents(tangent_u, tangent_v, m_face_ord, geo_map::cell_t::value);
+        /**@brief get the 2 tangents on the faces of the reference element
 
-            for (uint_t j=0; j<shape_property<rule_t::parent_shape>::dimension; ++j)
-            {
-                m_ref_face_tg_u(j,0)=tangent_u(j);
-                m_ref_face_tg_v(j,0)=tangent_v(j);
+           TODO underlying hypothesis that parent shape is 3D
+         */
+        void compute_tangents(){
+
+            for(ushort_t face_=0; face_< m_face_ord.size(); ++face_){
+                Intrepid::FieldContainer<double> tangent_u(shape_property<rule_t::parent_shape>::dimension);
+                Intrepid::FieldContainer<double> tangent_v(shape_property<rule_t::parent_shape>::dimension);
+                Intrepid::CellTools<value_t>::getReferenceFaceTangents(tangent_u, tangent_v, m_face_ord[face_], geo_map::cell_t::value);
+
+                for (uint_t j=0; j<shape_property<rule_t::parent_shape>::dimension; ++j)
+                {
+                    m_ref_face_tg_u(j,face_)=tangent_u(j);
+                    m_ref_face_tg_v(j,face_)=tangent_v(j);
+                }
             }
             m_tangent_computed=true;
         }
 
+
+        /**@brief get the normals to the faces of the reference element
+
+           TODO underlying hypothesis that parent shape is 3D
+         */
         void compute_normals(){
             assert(m_tangent_computed);
-            array<double, 3> tg_u{m_ref_face_tg_u(0,0), m_ref_face_tg_u(1,0), m_ref_face_tg_u(2,0)};
-            array<double, 3> tg_v{m_ref_face_tg_v(0,0), m_ref_face_tg_v(1,0), m_ref_face_tg_v(2,0)};
-            array<double, 3> normal(vec_product(tg_u, tg_v));
 
-            for (uint_t j=0; j<shape_property<rule_t::parent_shape>::dimension; ++j)
-            {
-                m_ref_normals(j,0)=normal[j];
+            for(ushort_t face_=0; face_< m_face_ord.size(); ++face_){
+                array<double, 3> tg_u{m_ref_face_tg_u(0,face_), m_ref_face_tg_u(1,face_), m_ref_face_tg_u(2,face_)};
+                array<double, 3> tg_v{m_ref_face_tg_v(0,face_), m_ref_face_tg_v(1,face_), m_ref_face_tg_v(2,face_)};
+                array<double, 3> normal(vec_product(tg_u, tg_v));
+
+                for (uint_t j=0; j<shape_property<rule_t::parent_shape>::dimension; ++j)
+                {
+                    m_ref_normals(j,face_)=normal[j];
+                }
             }
-
-
         }
 
         typename rule_t::weights_storage_t & bd_cub_weights()
@@ -433,11 +479,21 @@ namespace intrepid{
         grad_storage_t & grad()
         {return m_grad_at_cub_points;}
 
-        basis_function_storage_t & vale()
+        basis_function_storage_t & val()
         {return m_phi_at_cub_points;}
 
+        /**
+           @brief returns the normals to the element boundaries in the reference configuration
+         */
         tangent_storage_t & ref_normals()
         {return m_ref_normals;}
+
+        /**
+           @brief returns the number of boundaries for which the discretization is defined
+           (normals, tangents, integration rules, ...)
+         */
+        ushort_t n_boundaries()
+        {return m_face_ord.size();}
 
 
     };

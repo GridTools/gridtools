@@ -12,6 +12,8 @@ template <ushort_t N, typename X>
 GT_FUNCTION
 constexpr int_t initialize( X x )
 {
+    GRIDTOOLS_STATIC_ASSERT(is_dimension<X>::value,
+                            "you passed an integer to the accessor instead of an instance of ```dimension<>```.");
     return (X::direction==N? x.value : 0);
 }
 
@@ -25,6 +27,8 @@ template <ushort_t N, typename X, typename ... Rest>
 GT_FUNCTION
 constexpr int_t initialize(X x, Rest ... rest )
 {
+    GRIDTOOLS_STATIC_ASSERT(is_dimension<X>::value,
+                            "you passed an integer to the accessor instead of an instance of ```dimension<>```.");
     return X::direction==N? x.value : initialize<N>(rest...);
 }
 

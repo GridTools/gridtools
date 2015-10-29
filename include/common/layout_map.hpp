@@ -324,6 +324,10 @@ namespace gridtools {
         GT_FUNCTION
         static constexpr T find_val(Tuple const& indices) {
 
+// #ifdef PEDANTIC
+            GRIDTOOLS_STATIC_ASSERT(length >= Tuple::n_dim, "pedantic check: an accessor's dimension is larger than the corresponding storage space dimension");
+            GRIDTOOLS_STATIC_ASSERT(length <= Tuple::n_dim, "pedantic check: an accessor's dimension is smaller than the corresponding storage space dimension");
+// #endif
             GRIDTOOLS_STATIC_ASSERT((is_arg_tuple<Tuple >::value), "the find_val method is used with tuples of type other than accessor");
             GRIDTOOLS_STATIC_ASSERT((Tuple::n_dim-pos_<I>::value-1>=0), "write a message here");
             return ((pos_<I>::value >= length)) ?

@@ -10,7 +10,8 @@ namespace gridtools{
         using namespace Intrepid;
 
         template <typename Boundary, typename Geometry, typename FEBackend, typename MatrixType>
-        bool test(assembly<Boundary, Geometry> const& assembly_, FEBackend const& fe_backend_, MatrixType const& flux_ ){
+        bool test(assembly<Boundary// , Geometry
+                  > const& assembly_, FEBackend const& fe_backend_, MatrixType const& flux_ ){
             using fe = typename Geometry::geo_map;
             using cub= typename Geometry::cub;
             using geo_map = typename Geometry::geo_map;

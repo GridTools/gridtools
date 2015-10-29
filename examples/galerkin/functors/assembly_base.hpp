@@ -11,11 +11,9 @@ using namespace gridtools;
 template <typename Geometry>
 struct assembly_base{
 
+    using geometry_t = Geometry;
     using grid_type_info=storage_info< layout_tt<3,4>, __COUNTER__  >;
     using grid_type=storage_t< grid_type_info >;
-
-    typedef arg<0, grid_type >       p_grid_points;
-    static const ushort_t size=1;
 
     using geo_map=typename Geometry::geo_map;
 
@@ -40,13 +38,35 @@ public:
     grid_type const& get_grid() const {return m_grid;}
     grid_type& grid() {return m_grid;}
 
-    template <typename ... MPLList>
-    gridtools::domain_type< boost::mpl::vector<p_grid_points, MPLList ...> >
-    domain_base(typename MPLList::storage_type& ...  storages_ ){
-        return domain_type<boost::mpl::vector<p_grid_points, MPLList ...> >(boost::fusion::make_vector(&m_grid, &storages_ ...));
-    }
-
 }; //struct assembly
 
+
+template < typename ... Types >
+struct domain_type_tuple;
+
+template < typename Geometry >
+struct domain_type_tuple<assembly_base<Geometry> >{
+
+private:
+    using as_t = assembly_base<Geometry>;
+    as_t & m_as;
+
+public:
+
+    domain_type_tuple(as_t & as_) : m_as(as_) {}
+
+    /**I have to define here the placeholders to the storages used: the temporary storages get internally managed, while
+       non-temporary ones must be instantiated by the user. In this example all the storages are non-temporaries.*/
+
+    typedef arg<0, typename as_t::grid_type >       p_grid_points;
+    static const ushort_t size=1;
+
+    template <typename ... MPLList>
+    gridtools::domain_type< boost::mpl::vector<p_grid_points, MPLList ...> >
+    domain(typename MPLList::storage_type& ...  storages_ ){
+        return domain_type<boost::mpl::vector<p_grid_points, MPLList ...> >(boost::fusion::make_vector(&m_as.grid(), &storages_ ...));
+    }
+
+};
 
 #endif //CXX11_ENABLED
