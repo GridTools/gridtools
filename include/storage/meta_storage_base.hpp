@@ -118,12 +118,6 @@ namespace gridtools {
                 _impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( first_, dims_...));
         }
 #endif
-        template<typename T>
-        constexpr meta_storage_base(T const& a)
-        {
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::is_void_<T>::value), "Metastorage Constructor not supported");
-        }
-
 
 #ifdef CXX11_ENABLED
         constexpr meta_storage_base(array<uint_t, space_dimensions> const& a) :
