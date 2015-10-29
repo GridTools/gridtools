@@ -26,7 +26,7 @@
 #include <cassert>
 #include <boost/mpl/vector.hpp>
 #include "location_type.hpp"
-#include "array_addons.hpp"
+#include "common/array_addons.hpp"
 
 namespace gridtools {
 

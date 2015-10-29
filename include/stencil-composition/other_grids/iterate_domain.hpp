@@ -7,6 +7,7 @@
 #include "stencil-composition/total_storages.hpp"
 #include "stencil-composition/other_grids/iterate_domain_aux.hpp"
 #include "stencil-composition/other_grids/accessor_metafunctions.hpp"
+#include "stencil-composition/iterate_domain_helper_metafunctions.hpp"
 
 #define _ACCESSOR_H_DEBUG_
 
@@ -245,9 +246,14 @@ struct iterate_domain {
 
     typedef array<void* RESTRICT, N_DATA_POINTERS> data_pointer_array_t;
     typedef strides_cached<N_META_STORAGES-1, typename local_domain_t::storage_metadata_vector_t> strides_cached_t;
-    typedef typename backend_traits_from_id< backend_id_t::value >::
-            template select_iterate_domain_backend<data_pointer_array_t, strides_cached_t>::type iterate_domain_backend_t;
 
+    typedef typename backend_traits_from_id< backend_id_t::value >::
+        template select_iterate_domain_backend<
+            data_pointer_array_t,
+            strides_cached_t,
+            iterate_domain_cache_t,
+            IterateDomainArguments
+        >::type iterate_domain_backend_t;
 
     /**@brief local class instead of using the inline (cond)?a:b syntax, because in the latter both branches get compiled (generating sometimes a compile-time overflow) */
     template <bool condition, typename LocalD, typename Accessor>
@@ -282,13 +288,8 @@ struct iterate_domain {
     template<typename Accessor>
     struct accessor_return_type
     {
-        typedef typename boost::mpl::eval_if<
-            is_accessor<Accessor>,
-            get_arg_from_accessor<Accessor>,
-            boost::mpl::identity<boost::mpl::void_>
-        >::type type;
+        typedef typename ::gridtools::accessor_return_type<Accessor, IterateDomainArguments>::type type;
     };
-
 
 public:
 

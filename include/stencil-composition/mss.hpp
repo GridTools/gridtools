@@ -7,6 +7,7 @@
 #include "../common/meta_array.hpp"
 #include "caches/cache_metafunctions.hpp"
 #include "independent_esf.hpp"
+#include "stencil-composition/sfinae.hpp"
 
 /**
 @file
