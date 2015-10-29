@@ -1,11 +1,12 @@
 #pragma once
 #include <boost/mpl/for_each.hpp>
-#include "../backend_traits_fwd.hpp"
+#include "stencil-composition/backend_traits_fwd.hpp"
 #include "execute_kernel_functor_cuda.hpp"
 #include "run_esf_functor_cuda.hpp"
 #include "../block_size.hpp"
 #include "iterate_domain_cuda.hpp"
 #include "strategy_cuda.hpp"
+
 #ifdef ENABLE_METERS
   #include "stencil-composition/backend_cuda/timer_cuda.hpp"
 #else

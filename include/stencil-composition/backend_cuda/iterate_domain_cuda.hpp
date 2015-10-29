@@ -7,8 +7,6 @@
 
 namespace gridtools {
 
-
-
 /**
  * @brief iterate domain class for the CUDA backend
  */
@@ -187,3 +185,5 @@ private:
     // array storing the (i,j) position of the current thread within the block
     array<int, 2> m_thread_pos;
 };
+
+} //namespace gridtools

@@ -143,7 +143,7 @@ namespace gridtools {
             m_strides[1]=( (m_strides[0]<=1)?0:layout::template find_val<2,uint_t,1>(m_dims)*layout::template find_val<1,uint_t,1>(m_dims) );
             m_strides[2]=( (m_strides[1]<=1)?0:layout::template find_val<2,uint_t,1>(m_dims) );
         }
-d
+
 #endif
         // variadic constexpr constructor
 
@@ -280,7 +280,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
 
 	   static version: the strides vector is passed from outside ordered in decreasing order, and the strides coresponding to
 	   the Coordinate dimension is returned according to the layout map.
-	*/
+        */
         template<uint_t Coordinate, typename StridesVector>
         GT_FUNCTION
         static constexpr int_t strides(StridesVector const& RESTRICT strides_){
@@ -291,7 +291,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
            Coordinates 0,1,2 correspond to i,j,k respectively.
 
 	   non-static version.
-	*/
+        */
         template<uint_t Coordinate>
         GT_FUNCTION
         constexpr int_t strides() const {
