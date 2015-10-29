@@ -4,7 +4,6 @@ function exit_if_error {
     if [ "x$1" != "x0" ]
     then
         echo "Exit with errors"
-        rm -rf *
         exit $1
     fi
 }
