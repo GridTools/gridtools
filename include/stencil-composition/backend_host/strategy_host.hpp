@@ -63,7 +63,7 @@ namespace gridtools{
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
                 GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<functor_list_t>::value==1), "Internal Error: wrong size");
 
-                execute_kernel_functor_host<RunFunctorArgs>(local_domain, coords)();
+                GRIDPREFIX::execute_kernel_functor_host<RunFunctorArgs>(local_domain, coords)();
             }
         };
 
@@ -226,7 +226,7 @@ namespace gridtools{
                     last_j = m-NBJ*BJ;
                 }
 
-                execute_kernel_functor_host<RunFunctorArgs>(local_domain, coords, first_i, first_j, last_i, last_j, bi, bj)();
+                GRIDPREFIX::execute_kernel_functor_host<RunFunctorArgs>(local_domain, coords, first_i, first_j, last_i, last_j, bi, bj)();
             }
         };
 
