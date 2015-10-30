@@ -1,4 +1,4 @@
-#from graph_tool.all import *
+#!/usr/bin/env python3
 import json
 import argparse
 import os
