@@ -117,7 +117,6 @@ namespace gridtools {
         template < typename PT, typename MD, ushort_t FD >
         using type_tt=base_storage<PT,MD,FD>;
 #endif
-
         GRIDTOOLS_STATIC_ASSERT(is_meta_storage<MetaData>::type::value, "wrong meta_storage type");
         typedef base_storage<PointerType, MetaData, FieldDimension> type;
         typedef PointerType pointer_type;
@@ -230,11 +229,12 @@ namespace gridtools {
             is_set(other.is_set)
             , m_name(other.m_name)
             , m_fields(other.m_fields)
-            , m_meta_data(other.m_meta_data){
-            }
+            , m_meta_data(other.m_meta_data)
+        {}
 
         void allocate(ushort_t const& dims=FieldDimension, ushort_t const& offset=0){
             assert(dims>offset);
+            assert(dims<=field_dimensions);
             is_set=true;
             for(ushort_t i=0; i<dims; ++i)
                 m_fields[i+offset]=pointer_type(m_meta_data.size());
