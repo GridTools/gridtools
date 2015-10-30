@@ -1,5 +1,4 @@
 #pragma once
-#include "iterate_domain_aux.hpp"
 #include <boost/fusion/include/size.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/vector.hpp>
@@ -12,6 +11,8 @@
 #include "stencil-composition/run_functor_arguments.hpp"
 #include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
 #include "stencil-composition/iterate_domain_impl.hpp"
+#include "stencil-composition/iterate_domain_aux.hpp"
+#include "stencil-composition/rectangular_grids/iterate_domain_aux.hpp"
 
 /**@file
    @brief file handling the access to the storage.
