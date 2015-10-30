@@ -347,9 +347,11 @@ if __name__ == "__main__":
                     error = True
 
     if config.update_:
-        fw = open(args.json_file +'.out','w')
+        outputfilename=args.json_file +'.out'
+        fw = open(outputfilename,'w')
         fw.write(json.dumps(copy_ref,  indent=4, separators=(',', ': ')) )
         fw.close()
+        print("Updated reference file",outputfilename)
 
     if do_plot:
         plotter = Plotter(decode, copy_ref, stella_timers, config)
