@@ -219,10 +219,12 @@ def create_dict(adict, props):
     create_dict(adict[current_prop], props)
 
 class Config:
-    def __init__(self, target, prec, std):
+    def __init__(self, target, prec, std, update, check):
         self.target_ = target
         self.prec_ = prec
         self.std_ = std
+        self.update_ = update
+        self.check_ = check
 
 """
 """
@@ -237,7 +239,8 @@ if __name__ == "__main__":
     parser.add_argument('--target', nargs=1, type=str, help='cpu || gpu')
     parser.add_argument('--std', nargs=1, type=str, help='C++ standard')
     parser.add_argument('--prec', nargs=1, type=str, help='floating point precision')
-    parser.add_argument('-m', nargs=1, type=str, help='Mode: u (update reference), c (check reference)')
+    parser.add_argument('-c', action='store_true', help='check results and validate against a reference')
+    parser.add_argument('-u', action='store_true', help='update reference performance results')
     parser.add_argument('--plot', action='store_true', help='plot the comparison timings')
     parser.add_argument('--stella_path', nargs=1, type=str, help='path to stella installation dir')
     parser.add_argument('-v',action='store_true', help='verbosity')
@@ -273,16 +276,16 @@ if __name__ == "__main__":
     if std != "cxx11" and std != "cxx03":
         parser.error('--std should be set to cxx11 or cxx03')
 
-    if not args.m:
-        parser.error('mode -m should be specified')
-
     stella_exec = None
     if args.stella_path:
         stella_exec = args.stella_path[0] + '/StandaloneStencils'+stella_suffix
 
-    mode = args.m[0]
-    if mode != 'u' and mode != 'c':
-        parser.error('-m must be set to c or u')
+    update = False
+    check = False
+    if args.u:
+        update = True
+    if args.c:
+        check = True
 
     prec = args.prec[0]
     if prec != 'float' and prec != 'double':
@@ -294,7 +297,7 @@ if __name__ == "__main__":
     verbose=False
     if args.v:
         verbose=True
-    config = Config(target,prec,std)
+    config = Config(target,prec,std, update, check)
 
     f = open(args.json_file,'r')
     decode = json.load(f)
@@ -338,15 +341,17 @@ if __name__ == "__main__":
                 copy_ref['stencils'][stencil_name][target][prec][std][thread][data]['rms'] = timers_gridtools[1]
 
                 error = math.fabs(float(timers_gridtools[0]) - float(exp_time)) / (float(exp_time)+1e-20)
-                if mode == 'c' and error > tolerance:
+                if config.check_ and error > tolerance:
                     print('Error in conf ['+data+','+prec+','+target+','+std+','+thread+'] : exp_time -> '+ str(exp_time) + '; comp time -> '+ 
                         str(timers_gridtools[0])+'. Error = '+ str(error*100)+'%')
                     error = True
 
-    if mode == 'u':
-        fw = open(args.json_file +'.out','w')
+    if config.update_:
+        outputfilename=args.json_file +'.out'
+        fw = open(outputfilename,'w')
         fw.write(json.dumps(copy_ref,  indent=4, separators=(',', ': ')) )
         fw.close()
+        print("Updated reference file",outputfilename)
 
     if do_plot:
         plotter = Plotter(decode, copy_ref, stella_timers, config)
