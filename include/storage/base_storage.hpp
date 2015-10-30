@@ -274,6 +274,7 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT(space_dimensions==3, "this initialization is valid for storages with 3 space dimensions");
                 //if this fails  you used the wrong constructor (i.e. the empty one)
                 assert(is_set);
+                assert(dims <= field_dimensions);
 
                 for(ushort_t f=0; f<dims; ++f)
                 {
@@ -426,7 +427,10 @@ namespace gridtools {
         /** @brief returns a const pointer to the data field*/
         template <typename ID>
         GT_FUNCTION
-        typename pointer_type::pointee_t* access_value() const {return fields()[ID::value].get();}
+        typename pointer_type::pointee_t* access_value() const {
+            GRIDTOOLS_STATIC_ASSERT((ID::value < field_dimensions), "Error: trying to access a field storage index beyond the field dimensions");
+            return fields()[ID::value].get();
+        }
 
         /** @brief returns a non const pointer to the data field*/
         GT_FUNCTION
