@@ -362,6 +362,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         template <uint_t Coordinate, typename StridesVector>
         GT_FUNCTION
         static void increment(int_t const& steps_, int_t* RESTRICT index_, StridesVector const& RESTRICT strides_){
+            //TODO assert(index_)
 #ifdef PEDANTIC
             GRIDTOOLS_STATIC_ASSERT(Coordinate < space_dimensions, "you have a storage in the iteration space whoose dimension is lower than the iteration space dimension. This might not be a problem, since trying to increment a nonexisting dimension has no effect. In case you want this feature comment out this assert.");
 

@@ -218,6 +218,7 @@ namespace gridtools{
         GT_FUNCTION
         void impl() const
         {
+            //TODO Add assert for m_storage->template access_value<ID>()
             BackendType::template once_per_block<PE_ID::value>::assign(
                 m_data_pointer_array[Offset+ID::value], m_storage->template access_value<ID>()+m_offset);
         }
