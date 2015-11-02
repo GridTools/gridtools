@@ -262,7 +262,7 @@ public:
         // on Kepler use ldg to read directly via read only cache
         return __ldg(storage_pointer + pointer_offset);
 #else
-        return get_gmem_value<ReturnType>(storage_pointer,pointer_offset);
+        return super::template get_gmem_value<ReturnType>(storage_pointer,pointer_offset);
 #endif
     }
 
@@ -282,7 +282,7 @@ public:
     get_value_impl(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset) const
     {
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
-        return get_gmem_value<ReturnType>(storage_pointer,pointer_offset);
+        return super::template get_gmem_value<ReturnType>(storage_pointer,pointer_offset);
     }
 
 private:
