@@ -81,23 +81,23 @@ if(CUDA_FOUND)
          endforeach(srcfile)
      endif()
 
-    if( NOT ENABLE_CXX11 )
-        if( GCL_MPI )
-            cuda_add_executable(shallow_water_cxx03_cuda  shallow_water_cxx03.cu)
-            target_link_libraries(shallow_water_cxx03_cuda ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
+    # if( NOT ENABLE_CXX11 )
+    #     if( GCL_MPI )
+    #         cuda_add_executable(shallow_water_cxx03_cuda  shallow_water_cxx03.cu)
+    #         target_link_libraries(shallow_water_cxx03_cuda ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
 
-            cuda_add_executable(shallow_water_cxx03_single_storage_cuda  shallow_water_cxx03_single_storage.cu OPTIONS ${ADDITIONAL_CXX_FLAGS})
-            target_link_libraries(shallow_water_cxx03_single_storage_cuda ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
+    #         cuda_add_executable(shallow_water_cxx03_single_storage_cuda  shallow_water_cxx03_single_storage.cu OPTIONS ${ADDITIONAL_CXX_FLAGS})
+    #         target_link_libraries(shallow_water_cxx03_single_storage_cuda ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
 
-            cuda_add_executable(shallow_water_cxx03_cuda_split  shallow_water_cxx03_split.cu OPTIONS ${ADDITIONAL_CXX_FLAGS})
-            target_link_libraries(shallow_water_cxx03_cuda_split ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
-        endif()
-    else()
+    #         cuda_add_executable(shallow_water_cxx03_cuda_split  shallow_water_cxx03_split.cu OPTIONS ${ADDITIONAL_CXX_FLAGS})
+    #         target_link_libraries(shallow_water_cxx03_cuda_split ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
+    #     endif()
+    # else()
 
 #      cuda_add_executable(shallow_water_enhanced_cuda  shallow_water_enhanced.cu OPTIONS )
 #      target_link_libraries(shallow_water_enhanced_cuda ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS})
 
-    endif()
+    # endif()
 
 
     foreach(srcfile positional_copy_stencil )
