@@ -82,11 +82,12 @@ struct remap_accessor_type<accessor<ID, Intend, Range, Number>, ArgsMap >
         typedef Expression<typename remap_accessor_type<Accessor, ArgsMap>::type, Number > type;
     };
 
+#endif
+
 
     template<typename Accessor> struct is_accessor_readonly : boost::mpl::false_{};
 
     template < ushort_t ID, typename Range, ushort_t Number>
     struct is_accessor_readonly<accessor<ID, enumtype::in, Range, Number> > : boost::mpl::true_{};
 
-#endif
 } //namespace gridtools

@@ -72,7 +72,7 @@ public:
     typename boost::mpl::at<
         typename local_domain_t::esf_args,
         typename Expression::type::index_type
-    >::type::value_type& RESTRICT
+    >::type::value_type
     operator() (Expression const&  arg) const
 #endif
     {

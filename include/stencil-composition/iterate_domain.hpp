@@ -490,6 +490,7 @@ namespace gridtools {
             typename accessor_return_type<Accessor>::type
         >::type
         operator()(Accessor const& accessor) const {
+
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
             return get_value(accessor, get_data_pointer(accessor));
         }
