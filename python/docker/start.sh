@@ -1,7 +1,6 @@
 #!/bin/bash
 
-docker run --rm                                     \
-           -it                                      \
-           -P                                       \
-           --privileged                             \
-           gridtools4py:latest
+./nvidia-docker run --rm                                     \
+		    -it                                      \
+		    -P                                       \
+                    gridtools4py:latest
