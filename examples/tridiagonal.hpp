@@ -97,7 +97,7 @@ struct backward_thomas{
     template <typename Domain>
     GT_FUNCTION
     static void shared_kernel(Domain& dom) {
-#ifdef CXX11_ENABLED
+#if defined( CXX11_ENABLED ) && !defined( __CUDACC__ )
         dom(out()) = dom(rhs()-sup()*out(z(1)));
 #else
         dom(out()) = dom(rhs())-dom(sup())*dom(out(0,0,1));
