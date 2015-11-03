@@ -49,11 +49,11 @@ typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 
 #if (defined(CXX11_ENABLED))
     namespace ex{
-        typedef inout_accessor<0> out;
+        typedef accessor<0, enumtype::inout> out;
         typedef accessor<1> inf; //a
         typedef accessor<2> diag; //b
-        typedef inout_accessor<3> sup; //c
-        typedef inout_accessor<4> rhs; //d
+        typedef accessor<3, enumtype::inout> sup; //c
+        typedef accessor<4, enumtype::inout> rhs; //d
 
 #ifndef __CUDACC__
         static const auto expr_sup=sup{}/(diag{}-sup{z{-1}}*inf{});
@@ -73,11 +73,11 @@ typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 
 struct forward_thomas{
 //four vectors: output, and the 3 diagonals
-    typedef inout_accessor<0> out;
+    typedef accessor<0, enumtype::inout> out;
     typedef accessor<1> inf; //a
     typedef accessor<2> diag; //b
-    typedef inout_accessor<3> sup; //c
-    typedef inout_accessor<4> rhs; //d
+    typedef accessor<3, enumtype::inout> sup; //c
+    typedef accessor<4, enumtype::inout> rhs; //d
     typedef boost::mpl::vector<out, inf, diag, sup, rhs> arg_list;
 
     template <typename Domain>
@@ -114,11 +114,11 @@ struct forward_thomas{
 };
 
 struct backward_thomas{
-    typedef inout_accessor<0> out;
+    typedef accessor<0, enumtype::inout> out;
     typedef accessor<1> inf; //a
     typedef accessor<2> diag; //b
-    typedef inout_accessor<3> sup; //c
-    typedef inout_accessor<4> rhs; //d
+    typedef accessor<3, enumtype::inout> sup; //c
+    typedef accessor<4, enumtype::inout> rhs; //d
     typedef boost::mpl::vector<out, inf, diag, sup, rhs> arg_list;
 
 
