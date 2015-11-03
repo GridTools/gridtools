@@ -10,6 +10,7 @@
 #include <boost/mpl/set.hpp>
 #include <boost/mpl/insert.hpp>
 #include <gt_for_each/for_each.hpp>
+#include "arg.hpp"
 template <typename RegularStorageType>
 struct no_storage_type_yet;
 
@@ -119,7 +120,8 @@ namespace gridtools {
         struct l_get_it_type {
             template <typename U>
             struct apply {
-                typedef typename U::storage_type::iterator_type type;
+                GRIDTOOLS_STATIC_ASSERT((is_arg<U>::type::value), "wrong type");
+                typedef typename U::iterator_type type;
             };
         };
 

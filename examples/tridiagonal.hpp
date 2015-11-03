@@ -6,6 +6,7 @@
 
 #include <stencil-composition/interval.hpp>
 #include <stencil-composition/make_computation.hpp>
+#include <tools/verifier.hpp>
 
 #ifdef USE_PAPI_WRAP
 #include <papi_wrap.hpp>
@@ -36,7 +37,7 @@ namespace tridiagonal{
 using namespace gridtools;
 using namespace enumtype;
 
-#if defined( CXX11_ENABLED ) && !defined( __CUDACC__ )
+#ifdef CXX11_ENABLED
 using namespace expressions;
 #endif
 
@@ -46,20 +47,45 @@ typedef gridtools::interval<level<0,-1>, level<0,-1> > x_first;
 typedef gridtools::interval<level<1,-1>, level<1,-1> > x_last;
 typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 
+#if (defined(CXX11_ENABLED))
+    namespace ex{
+        typedef inout_accessor<0> out;
+        typedef accessor<1> inf; //a
+        typedef accessor<2> diag; //b
+        typedef inout_accessor<3> sup; //c
+        typedef inout_accessor<4> rhs; //d
+
+#ifndef __CUDACC__
+        static const auto expr_sup=sup{}/(diag{}-sup{z{-1}}*inf{});
+        static const auto expr_rhs=(rhs{}-inf{}*rhs{z{-1}})/(diag{}-sup{z{-1}}*inf{});
+        static const auto expr_out=rhs{}-sup{}*out{0,0,1};
+#endif
+        // typedef decltype(expr_sup) expr_sup_t;
+
+        // GT_FUNCTION
+        // static const constexpr expr_sup_t x_sup() { return expr_sup; }
+        // GT_FUNCTION
+        // constexpr auto x_rhs() -> decltype(expr_sup) { return expr_rhs; }
+        // GT_FUNCTION
+        // constexpr auto x_out() -> decltype(expr_sup) { return expr_out; }
+    }
+#endif
+
 struct forward_thomas{
 //four vectors: output, and the 3 diagonals
-    typedef accessor<0> inf; //a
-    typedef accessor<1> diag; //b
-    typedef accessor<2, enumtype::inout> sup; //c
-    typedef accessor<3, enumtype::inout> rhs; //d
-    typedef boost::mpl::vector<inf, diag, sup, rhs> arg_list;
+    typedef inout_accessor<0> out;
+    typedef accessor<1> inf; //a
+    typedef accessor<2> diag; //b
+    typedef inout_accessor<3> sup; //c
+    typedef inout_accessor<4> rhs; //d
+    typedef boost::mpl::vector<out, inf, diag, sup, rhs> arg_list;
 
     template <typename Domain>
     GT_FUNCTION
     static void shared_kernel(Domain const& dom) {
-#if defined( CXX11_ENABLED ) && !defined( __CUDACC__ )
-        dom(sup()) =  dom(sup()/(diag()-sup(z(-1))*inf()));
-        dom(rhs()) =  dom((rhs()-inf()*rhs(z(-1)))/(diag()-sup(z(-1))*inf()));
+#if (defined(CXX11_ENABLED) && !defined(__CUDACC__) )
+        dom(sup()) =  dom(ex::expr_sup);
+        dom(rhs()) =  dom(ex::expr_rhs);
 #else
         dom(sup()) = dom(sup())/(dom(diag())-dom(sup(z(-1)))*dom(inf()));
         dom(rhs()) = (dom(rhs())-dom(inf())*dom(rhs(z(-1))))/(dom(diag())-dom(sup(z(-1)))*dom(inf()));
@@ -88,17 +114,19 @@ struct forward_thomas{
 };
 
 struct backward_thomas{
-    typedef accessor<0, enumtype::inout> out;
-    typedef accessor<1> sup; //c
-    typedef accessor<2> rhs; //d
-    typedef boost::mpl::vector<out, sup, rhs> arg_list;
+    typedef inout_accessor<0> out;
+    typedef accessor<1> inf; //a
+    typedef accessor<2> diag; //b
+    typedef inout_accessor<3> sup; //c
+    typedef inout_accessor<4> rhs; //d
+    typedef boost::mpl::vector<out, inf, diag, sup, rhs> arg_list;
 
 
     template <typename Domain>
     GT_FUNCTION
     static void shared_kernel(Domain& dom) {
-#if defined( CXX11_ENABLED ) && !defined( __CUDACC__ )
-        dom(out()) = dom(rhs()-sup()*out(z(1)));
+#if (defined(CXX11_ENABLED) && !defined(__CUDACC__) )
+        dom(out()) = dom(ex::expr_out);
 #else
         dom(out()) = dom(rhs())-dom(sup())*dom(out(0,0,1));
 #endif
@@ -131,16 +159,16 @@ std::ostream& operator<<(std::ostream& s, forward_thomas const) {
 }
 
 
-bool solver(uint_t x, uint_t y, uint_t z) {
+bool test(uint_t d1, uint_t d2, uint_t d3) {
+
+    if(d3 != 6) std::cout << "WARNING: This test is only working with 6 k levels,"
+                             "to guarantee that result can be validated to 1" << std::endl;
+    d3 = 6;
 
 #ifdef USE_PAPI_WRAP
   int collector_init = pw_new_collector("Init");
   int collector_execute = pw_new_collector("Execute");
 #endif
-
-    uint_t d1 = x;
-    uint_t d2 = y;
-    uint_t d3 = z;
 
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<Cuda, Block >
@@ -154,31 +182,30 @@ bool solver(uint_t x, uint_t y, uint_t z) {
 
     //    typedef gridtools::STORAGE<double, gridtools::layout_map<0,1,2> > storage_type;
     typedef gridtools::layout_map<0,1,2> layout_t;
-    typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
-    typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
+    typedef gridtools::storage_info<0, layout_t> meta_t;
+    typedef gridtools::BACKEND::storage_type<float_type, meta_t >::type storage_type;
+    typedef gridtools::BACKEND::temporary_storage_type<float_type, meta_t >::type tmp_storage_type;
 
-     // Definition of the actual data fields that are used for input/output
+    // Definition of the actual data fields that are used for input/output
     //storage_type in(d1,d2,d3,-1, "in"));
-    storage_type out(d1,d2,d3,0., "out");
-    storage_type inf(d1,d2,d3,-1., "inf");
-    storage_type diag(d1,d2,d3,3., "diag");
-    storage_type sup(d1,d2,d3,1., "sup");
-    storage_type rhs(d1,d2,d3,3., "rhs");
+    meta_t meta_(d1,d2,d3);
+    storage_type out(meta_,0., "out");
+    storage_type inf(meta_,-1., "inf");
+    storage_type diag(meta_,3., "diag");
+    storage_type sup(meta_,1., "sup");
+    storage_type rhs(meta_,3., "rhs");
+
+    storage_type solution(meta_,1., "sol");
+
     for(int_t i=0; i<d1; ++i)
+    {
         for(int_t j=0; j<d2; ++j)
         {
             rhs(i, j, 0)=4.;
             rhs(i, j, 5)=2.;
         }
+    }
 // result is 1
-#ifdef __VERBOSE__
-    printf("Print OUT field\n");
-    out.print();
-    printf("Print SUP field\n");
-    sup.print();
-    printf("Print RHS field\n");
-    rhs.print();
-#endif
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
@@ -222,35 +249,40 @@ bool solver(uint_t x, uint_t y, uint_t z) {
 
 // \todo simplify the following using the auto keyword from C++11
 #ifdef __CUDACC__
-    gridtools::computation* tridiag_stencil =
+    gridtools::computation* solver =
 #else
-        boost::shared_ptr<gridtools::computation> tridiag_stencil =
+        boost::shared_ptr<gridtools::computation> solver =
 #endif
-        gridtools::make_computation<gridtools::BACKEND, layout_t>
+      gridtools::make_computation<gridtools::BACKEND>
         (
             gridtools::make_mss // mss_descriptor
             (
                 execute<forward>(),
-                gridtools::make_esf<forward_thomas>(p_inf(), p_diag(), p_sup(), p_rhs()) // esf_descriptor
+                gridtools::make_esf<forward_thomas>(p_out(), p_inf(), p_diag(), p_sup(), p_rhs()) // esf_descriptor
             ),
             gridtools::make_mss // mss_descriptor
             (
                 execute<backward>(),
-                gridtools::make_esf<backward_thomas>(p_out(), p_sup(), p_rhs()) // esf_descriptor
+                gridtools::make_esf<backward_thomas>(p_out(), p_inf(), p_diag(), p_sup(), p_rhs()) // esf_descriptor
             ),
             domain, coords
         );
 
-    tridiag_stencil->ready();
-    tridiag_stencil->steady();
+    solver->ready();
+    solver->steady();
 
 
-    tridiag_stencil->run();
+    solver->run();
 
-    tridiag_stencil->finalize();
+    solver->finalize();
 
-    //TODO VERIFY
-    return (out(0,0,0) + out(0,0,1) + out(0,0,2) + out(0,0,3) + out(0,0,4) + out(0,0,5) >6-1e-10) &&
-      (out(0,0,0) + out(0,0,1) + out(0,0,2) + out(0,0,3) + out(0,0,4) + out(0,0,5) <6+1e-10);
+#ifdef BENCHMARK
+    std::cout << solver->print_meter() << std::endl;
+#endif
+
+    verifier verif(1e-9, 0);
+    bool result = verif.verify(solution, out);
+
+    return result;
 }
 }//namespace tridiagonal

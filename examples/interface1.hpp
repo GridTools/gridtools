@@ -1,11 +1,7 @@
 #pragma once
 
-#include <gridtools.hpp>
-#include <stencil-composition/backend.hpp>
 #include <stencil-composition/make_computation.hpp>
-#include <stencil-composition/interval.hpp>
 #include "horizontal_diffusion_repository.hpp"
-#include <stencil-composition/caches/define_caches.hpp>
 #include <tools/verifier.hpp>
 
 #ifdef USE_PAPI_WRAP
@@ -105,10 +101,17 @@ struct out_function {
     template <typename Evaluation>
     GT_FUNCTION
     static void Do(Evaluation const & eval, x_out) {
-        eval(out()) = eval(in()) - eval(coeff())*
+#if defined( CXX11_ENABLED ) && !defined( CUDA_EXAMPLE )
+        eval(out()) = eval(in()) - eval(coeff())  *
+           (eval(flx() - flx( -1,0,0) +
+            fly() - fly( 0,-1,0))
+            );
+#else
+        eval(out()) =  eval(in()) - eval(coeff())*
             (eval(flx()) - eval(flx( -1,0,0)) +
              eval(fly()) - eval(fly( 0,-1,0))
              );
+#endif
     }
 };
 
@@ -131,7 +134,8 @@ std::ostream& operator<<(std::ostream& s, out_function const) {
 void handle_error(int)
 {std::cout<<"error"<<std::endl;}
 
-bool test(uint_t x, uint_t y, uint_t z) {
+bool test(uint_t x, uint_t y, uint_t z)
+{
 
 #ifdef USE_PAPI_WRAP
   int collector_init = pw_new_collector("Init");
@@ -153,7 +157,6 @@ bool test(uint_t x, uint_t y, uint_t z) {
 #endif
 #endif
 
-    typedef horizontal_diffusion::repository::layout_ijk layout_t;
 
     typedef horizontal_diffusion::repository::storage_type storage_type;
     typedef horizontal_diffusion::repository::tmp_storage_type tmp_storage_type;
@@ -162,7 +165,6 @@ bool test(uint_t x, uint_t y, uint_t z) {
     repository.init_fields();
 
     repository.generate_reference();
-
 
      // Definition of the actual data fields that are used for input/output
     storage_type& in = repository.in();
@@ -185,7 +187,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
     // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-#if defined( CXX11_ENABLED ) && !defined( CUDA_EXAMPLE )
+#if defined( CXX11_ENABLED )
     gridtools::domain_type<accessor_list> domain( (p_out() = out), (p_in() = in), (p_coeff() = coeff));
 #else
     gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&coeff, &in, &out));
@@ -254,7 +256,7 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
 #else
         boost::shared_ptr<gridtools::computation> horizontal_diffusion =
 #endif
-        gridtools::make_computation<gridtools::BACKEND, layout_t>
+        gridtools::make_computation<gridtools::BACKEND>
         (
             gridtools::make_mss // mss_descriptor
             (
@@ -274,7 +276,6 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
     horizontal_diffusion->ready();
 
     horizontal_diffusion->steady();
-    domain.clone_to_gpu();
 
 #ifdef USE_PAPI_WRAP
     pw_stop_collector(collector_init);

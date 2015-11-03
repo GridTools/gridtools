@@ -16,10 +16,9 @@ class iterate_domain_host : public IterateDomainBase<iterate_domain_host<Iterate
 
     typedef IterateDomainBase<iterate_domain_host<IterateDomainBase, IterateDomainArguments> > super;
     typedef typename IterateDomainArguments::local_domain_t local_domain_t;
+public:
     typedef typename super::data_pointer_array_t data_pointer_array_t;
     typedef typename super::strides_cached_t strides_cached_t;
-
-public:
     typedef boost::mpl::map0<> ij_caches_map_t;
 
     GT_FUNCTION

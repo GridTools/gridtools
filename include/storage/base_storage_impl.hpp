@@ -5,17 +5,18 @@
 #include "../common/gt_assert.hpp"
 #include "../common/is_temporary_storage.hpp"
 #include <iostream>
-#include "accumulate.hpp"
+#include "../common/generic_metafunctions/accumulate.hpp"
+#include "../common/generic_metafunctions/gt_integer_sequence.hpp"
 
 namespace gridtools{
     namespace _impl
     {
 
 #ifdef CXX11_ENABLED
-/**@brief metafunction to recursively compute the next stride
-   ID goes from space_dimensions-2 to 0
-   MaxIndex is space_dimensions-1
-*/
+        /**@brief metafunction to recursively compute the next stride
+           ID goes from space_dimensions-2 to 0
+           MaxIndex is space_dimensions-1
+        */
         template<short_t ID, short_t MaxIndex,  typename Layout>
         struct next_stride{
             template<typename First, typename ... IntTypes>
@@ -25,7 +26,7 @@ namespace gridtools{
             }
         };
 
-/**@brief template specialization to stop the recursion*/
+        /**@brief template specialization to stop the recursion*/
         template< short_t MaxIndex, typename Layout>
         struct next_stride<0, MaxIndex, Layout>{
             template<typename First, typename ... IntTypes>
@@ -35,7 +36,22 @@ namespace gridtools{
             }
         };
 
-/**@brief metafunction to recursively compute all the strides, in a generic arbitrary dimensional storage*/
+        /**@brief functor to assign all the strides */
+        template<int_t MaxIndex,  typename Layout>
+        struct assign_all_strides{
+
+            template <int_t T>
+            using lambda=next_stride<MaxIndex-T, MaxIndex, Layout>;
+
+            template<typename ... UIntType>
+            static constexpr array<int_t, MaxIndex> apply(UIntType ... args){
+                using seq = apply_gt_integer_sequence<typename make_gt_integer_sequence<int_t, sizeof ... (args)>::type >;
+                return seq::template apply<array<int_t, MaxIndex>, lambda>((int_t)args...);
+            }
+        };
+
+
+        /**@brief metafunction to recursively compute all the strides, in a generic arbitrary dimensional storage*/
         template<int_t ID, int_t MaxIndex,  typename Layout>
         struct assign_strides{
             template<typename ... UIntType>

@@ -1,5 +1,4 @@
 #pragma once
-
 #include <gridtools.hpp>
 
 #include <stencil-composition/backend.hpp>
@@ -186,11 +185,8 @@ std::ostream& operator<<(std::ostream& s, u_backward_function<double> const) {
     return s << "u_backward_function";
 }
 
-bool test(uint_t x, uint_t y, uint_t z) {
+bool test(uint_t d1, uint_t d2, uint_t d3) {
 
-    uint_t d1 = x;
-    uint_t d2 = y;
-    uint_t d3 = z;
     const int halo_size = 3;
 
     typedef gridtools::layout_map<0,1,2> layout_ijk;
@@ -213,7 +209,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
     typedef arg<2, storage_type> p_wcon;
     typedef arg<3, storage_type> p_u_pos;
     typedef arg<4, storage_type> p_utens;
-    typedef arg<5, storage_type> p_dtr_stage;
+    typedef arg<5, scalar_storage_type> p_dtr_stage;
     typedef arg<6, tmp_storage_type> p_acol;
     typedef arg<7, tmp_storage_type> p_bcol;
     typedef arg<8, tmp_storage_type> p_ccol;
@@ -262,7 +258,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
 #else
         boost::shared_ptr<gridtools::computation> vertical_advection =
 #endif
-        gridtools::make_computation<vertical_advection::va_backend, layout_ijk>
+        gridtools::make_computation<vertical_advection::va_backend>
         (
             gridtools::make_mss // mss_descriptor
             (
@@ -299,7 +295,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
     vertical_advection->ready();
 
     vertical_advection->steady();
-    domain.clone_to_gpu();
+    domain.clone_to_device();
 
     vertical_advection->run();
 
@@ -309,14 +305,12 @@ bool test(uint_t x, uint_t y, uint_t z) {
     repository.update_cpu();
 #endif
 
-    verifier verif(1e-10, halo_size);
-    bool result = verif.verify(repository.utens_stage_ref(), repository.utens_stage());
-
-    if(!result) std::cout << "ERROR" << std::endl;
-
 #ifdef BENCHMARK
     std::cout << vertical_advection->print_meter() << std::endl;
 #endif
+
+    verifier verif(1e-10, halo_size);
+    bool result = verif.verify(repository.utens_stage_ref(), repository.utens_stage());
 
     return result;
 }

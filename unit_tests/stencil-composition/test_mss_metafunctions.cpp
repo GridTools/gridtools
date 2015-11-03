@@ -32,8 +32,8 @@ struct functor1 {
 #endif
 
 typedef layout_map<2,1,0> layout_ijk_t;
-typedef gridtools::BACKEND::storage_type<float_type, layout_ijk_t >::type storage_type;
-typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_ijk_t >::type tmp_storage_type;
+typedef gridtools::BACKEND::storage_type<float_type, storage_info<0,layout_ijk_t> >::type storage_type;
+typedef gridtools::BACKEND::temporary_storage_type<float_type, storage_info<0,layout_ijk_t> >::type tmp_storage_type;
 
 typedef arg<0, storage_type> p_in;
 typedef arg<1, storage_type> p_out;
@@ -41,7 +41,8 @@ typedef arg<2, tmp_storage_type> p_buff;
 
 TEST(mss_metafunctions, extract_mss_caches_and_esfs)
 {
-    storage_type in(10, 10, 10, 1.0, "in"), out(10, 10, 10, 1.0, "out");
+    typename storage_type::meta_data_t meta_(10, 10, 10);
+    storage_type in(meta_, 1.0, "in"), out(meta_, 1.0, "out");
 
     typedef decltype(make_esf<functor1>(p_in(), p_buff())) esf1_t;
     typedef decltype(make_esf<functor1>(p_buff(), p_out())) esf2_t;

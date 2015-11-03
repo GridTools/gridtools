@@ -1,8 +1,7 @@
 #pragma once
 #include "data_field.hpp"
+#include "meta_storage.hpp"
 #include "common/gpu_clone.hpp"
-#include "host_tmp_storage.hpp"
-#include "accumulate.hpp"
 #include "common/generic_metafunctions/reverse_pack.hpp"
 
 /**
@@ -23,132 +22,96 @@ namespace gridtools{
         typedef typename BaseStorage::iterator_type iterator_type;
         typedef typename BaseStorage::value_type value_type;
         static const ushort_t n_args = basic_type::n_width;
+        static const ushort_t space_dimensions = basic_type::space_dimensions;
 
       __device__
       storage(storage const& other)
           :  super(other)
       {}
 
-        explicit storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3, value_type const& value, char const* s="default name"): super(dim1, dim2, dim3, value, s) {
-            GRIDTOOLS_STATIC_ASSERT( boost::is_float<value_type>::value, "The initialization value in the storage constructor must me a floating point number (e.g. 1.0). \nIf you want to store an integer you have to split construction and initialization \n(using the member \"initialize\"). This because otherwise the initialization value would be interpreted as an extra dimension");
-        }
-
-
-        explicit storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3, value_type* ptr, char const* s="default name"): super(dim1, dim2, dim3, ptr, s) {}
-
 #if defined(CXX11_ENABLED)
-//arbitrary dimensional field
-        template <class ... UIntTypes>
-        explicit storage(  UIntTypes const& ... args/*, value_type init, char const* s*/ ):super(args ...)
+        //forwarding constructor
+        template <class ... ExtraArgs>
+        explicit storage(  typename basic_type::meta_data_t const& meta_data_, ExtraArgs const& ... args ):super(meta_data_, args ...)
             {
             }
 #else
-        //constructor picked in absence of CXX11 or which GCC<4.9
-        explicit storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3): super(dim1, dim2, dim3) {}
+        template <class T>
+        explicit storage(  typename basic_type::meta_data_t const& meta_data_, T const& arg1 ):super(meta_data_, arg1)
+            {
+            }
+
+        template <class T, class U>
+        explicit storage(  typename basic_type::meta_data_t const& meta_data_, T const& arg1, U const& arg2 ):super(meta_data_, arg1, arg2)
+            {
+            }
+
 #endif
 
 //    private :
-        explicit storage():super(){}
+        explicit storage(typename basic_type::meta_data_t const& meta_data_):super(meta_data_){}
     };
 
     /**@brief Convenient syntactic sugar for specifying an extended-dimension with extended-width storages, where each dimension has arbitrary size 'Number'.
 
        Annoyngly enough does not work with CUDA 6.5
     */
-#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
+#if defined(CXX11_ENABLED)
 
+    /** @brief syntactic sugar for defining a data field
+
+        Given a storage type and the dimension number it generates the correct data field type
+        @tparam Storage the basic storage used
+        @tparam Number the number of snapshots in each dimension
+     */
     template< class Storage, uint_t ... Number >
-    struct field_reversed{
-        typedef storage< data_field< storage_list<base_storage<typename Storage::pointer_type, typename  Storage::layout, Storage::is_temporary, accumulate(add_functor(), ((uint_t)Number) ... )>, Number-1> ... > > type;
+    struct field_reversed;
+
+    /**
+     @brief specialization for the GPU storage
+     the defined type is storage (which is clonable_to_gpu)
+    */
+    template< class BaseStorage, uint_t ... Number >
+    struct field_reversed<storage<BaseStorage>, Number ... >{
+        typedef storage< data_field< storage_list<base_storage<typename BaseStorage::pointer_type, typename  BaseStorage::meta_data_t, accumulate(add_functor(), ((uint_t)Number) ... )>, Number-1> ... > > type;
     };
 
-    // template< class TmpStorage, uint_t ... Number >
-    // struct tmp_field;
-
-    template < typename PointerType
-               , typename Layout
-               , short_t FieldDimension
-               , uint_t TileI
-               , uint_t TileJ
-               , uint_t MinusI
-               , uint_t MinusJ
-               , uint_t PlusI
-               , uint_t PlusJ
-               , uint_t ... Number >
-    struct field_reversed<host_tmp_storage<base_storage< PointerType, Layout , true, FieldDimension>, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ>, Number... >{
-        typedef storage<host_tmp_storage<data_field< storage_list<base_storage<PointerType, Layout, true, accumulate(add_functor(), ((uint_t)Number) ... )> , Number-1> ... >, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ> > type;
+    /**
+       @brief specialization for the CPU storage (base_storage)
+       the difference being that the type is directly the base_storage (which is not clonable_to_gpu)
+    */
+    template< class PointerType, class MetaData, ushort_t FD, uint_t ... Number >
+    struct field_reversed<base_storage<PointerType, MetaData, FD>, Number ... >{
+        typedef data_field< storage_list<base_storage<PointerType, MetaData, accumulate(add_functor(), ((uint_t)Number) ... )>, Number-1> ... > type;
     };
 
+    /**@brief specialization for no_storage_type_yet (Block strategy, GPU storage)*/
     template<  typename PointerType
-               ,typename Layout
-               ,short_t FieldDimension
+               ,typename MetaData
+               ,ushort_t FieldDimension
                ,uint_t ... Number >
-    struct field_reversed<base_storage<PointerType, Layout, true, FieldDimension>, Number... >{
-        typedef storage< data_field< storage_list<base_storage<PointerType, Layout, true, accumulate(add_functor(), ((uint_t)Number) ... )>, Number-1> ... > > type;
+    struct field_reversed<no_storage_type_yet<storage<base_storage<PointerType, MetaData, FieldDimension> > >, Number... >{
+        typedef no_storage_type_yet<storage<data_field< storage_list<base_storage<PointerType, MetaData, accumulate(add_functor(), ((uint_t)Number) ... ) >, Number-1> ... > > > type;
     };
 
-
+    /**@brief specialization for no_storage_type_yet (Block strategy, CPU storage)*/
     template<  typename PointerType
-               ,typename Layout
-               ,short_t FieldDimension
+               ,typename MetaData
+               ,ushort_t FieldDimension
                ,uint_t ... Number >
-    struct field_reversed<no_storage_type_yet<storage<base_storage<PointerType, Layout, true, FieldDimension> > >, Number... >{
-        typedef no_storage_type_yet<storage<data_field< storage_list<base_storage<PointerType, Layout, true, accumulate(add_functor(), ((uint_t)Number) ... ) >, Number-1> ... > > > type;
+    struct field_reversed<no_storage_type_yet<base_storage<PointerType, MetaData, FieldDimension> >, Number... >{
+        typedef no_storage_type_yet<data_field< storage_list<base_storage<PointerType, MetaData, accumulate(add_functor(), ((uint_t)Number) ... ) >, Number-1> ... > > type;
     };
 
+    /**@brief interface for definig a data field
+
+       @tparam Storage the basic storage type shared by all the snapshots
+       @tparam First  all the subsequent parameters define the dimensionality of the snapshot arrays
+        in all the data field dimensions
+     */
     template< class Storage, uint_t First, uint_t ... Number >
     struct field{
         typedef typename reverse_pack<Number ...>::template apply<field_reversed, Storage, First >::type::type type;
-    };
-
-#else//CXX11_ENABLED
-
-
-    template< class Storage, uint_t Number1, uint_t Number2, uint_t Number3 >
-    struct field{
-        typedef storage< data_field< storage_list<base_storage<typename Storage::pointer_type, typename  Storage::layout, Storage::is_temporary, Number1+Number2+Number3>, Number1-1>, storage_list<base_storage<typename Storage::pointer_type, typename  Storage::layout, Storage::is_temporary, Number1+Number2+Number3>, Number2-1>, storage_list<base_storage<typename Storage::pointer_type, typename  Storage::layout, Storage::is_temporary, Number1+Number2+Number3>, Number3-1> > > type;
-    };
-
-
-    template< class Storage, uint_t Number1>
-    struct field1{
-        typedef storage< data_field1< storage_list<base_storage<typename Storage::pointer_type, typename  Storage::layout, Storage::is_temporary, Number1>, Number1-1> > > type;
-    };
-
-
-
-    // template< class TmpStorage, uint_t ... Number >
-    // struct tmp_field;
-
-    template <  typename PointerType
-               , typename Layout
-               , short_t FieldDimension
-               , uint_t TileI
-               , uint_t TileJ
-               , uint_t MinusI
-               , uint_t MinusJ
-               , uint_t PlusI
-               , uint_t PlusJ
-               , uint_t Number1, uint_t Number2, uint_t Number3 >
-    struct field<host_tmp_storage<base_storage<PointerType, Layout, true, FieldDimension>, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ>, Number1, Number2, Number3 >{
-        typedef storage< host_tmp_storage<data_field< storage_list<base_storage<PointerType, Layout, true, Number1+Number2+Number3>, Number1-1>, storage_list<base_storage<PointerType, Layout, true, Number1+Number2+Number3>, Number2-1>, storage_list<base_storage<PointerType, Layout, true, Number1+Number2+Number3>, Number3-1> >, TileI, TileJ, MinusI, MinusJ, PlusI, PlusJ> > type;
-    };
-
-    template<  typename PointerType
-               ,typename Layout
-               ,short_t FieldDimension
-               , uint_t Number1, uint_t Number2, uint_t Number3 >
-    struct field<base_storage<PointerType, Layout, true, FieldDimension>, Number1, Number2, Number3 >{
-        typedef storage<data_field< storage_list<base_storage<PointerType, Layout, true, Number1+Number2+Number3>, Number1-1>, storage_list<base_storage<PointerType, Layout, true, Number1+Number2+Number3>, Number2-1>, storage_list<base_storage<PointerType, Layout, true, Number1+Number2+Number3>, Number3-1> > > type;
-    };
-
-
-    template<  typename PointerType
-               ,typename Layout
-               ,short_t FieldDimension
-               ,uint_t Number1, uint_t Number2, uint_t Number3 >
-    struct field<no_storage_type_yet<storage<base_storage<PointerType, Layout, true, FieldDimension> > >, Number1, Number2, Number3 >{
-        typedef no_storage_type_yet<storage<data_field< storage_list<base_storage<PointerType, Layout, true, Number1+Number2+Number3 >, Number1-1>, storage_list<base_storage<PointerType, Layout, true, Number1+Number2+Number3 >, Number2-1>, storage_list<base_storage<PointerType, Layout, true, Number1+Number2+Number3 >, Number3-1> > > > type;
     };
 #endif
 
@@ -158,4 +121,5 @@ namespace gridtools{
           << static_cast<T const&>(x) << " > ";
         return s;
     }
+
 }//namespace gridtools

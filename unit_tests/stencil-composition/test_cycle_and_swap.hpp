@@ -13,11 +13,12 @@ namespace test_cycle_and_swap{
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
 
     struct functor{
-        typedef accessor<0, range<>, 3> p_i;
+        typedef inout_accessor<0, range<>, 3> p_i;
         typedef boost::mpl::vector<p_i> arg_list;
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval){
+            eval(p_i())+=eval(p_i());
         }
     };
 
@@ -68,14 +69,14 @@ namespace test_cycle_and_swap{
                 domain, coords
                 );
 
+
         comp->ready();
         comp->steady();
         comp->run();
         swap<0,0>::with<1,0>::apply(i_data);
-        i_data.clone_to_gpu();
         comp->run();
         comp->finalize();
 
-        return i_data(0,0)==1;
+        return (i_data(0,0)==2 && i_data.get_value<1,0>(0,0)==0);
     }
 } //namespace test_cycle_and_swap

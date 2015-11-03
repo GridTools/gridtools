@@ -9,6 +9,7 @@
 #include "caches/cache_metafunctions.hpp"
 #include "../common/generic_metafunctions/variadic_to_vector.hpp"
 #include <boost/mpl/erase_key.hpp>
+#include "sfinae.hpp"
 
 /**
 @file
@@ -17,6 +18,16 @@
 namespace gridtools {
     namespace _impl
     {
+
+        /**@brief Macro defining a sfinae metafunction
+
+           defines a metafunction has_range_type, which returns true if its template argument
+           defines a type called range_type. It also defines a get_range_type metafunction, which
+           can be used to return the range_type only when it is present, without giving compilation
+           errors in case it is not defined.
+         */
+        HAS_TYPE_SFINAE(range_type, has_range_type, get_range_type)
+
         /**@brief wrap type to simplify specialization based on mpl::vectors */
         template <typename MplArray>
         struct wrap_type {
@@ -48,6 +59,7 @@ namespace gridtools {
             template <typename RangeState, typename ArgumentIndex>
             struct update_range {
                 typedef typename boost::mpl::at<typename Functor::arg_list, ArgumentIndex>::type argument_type;
+                GRIDTOOLS_STATIC_ASSERT(has_range_type<argument_type>::type::value, "Found an accessor without range_type. If you are using generic accessors: in the functor definition you should NOT insert the generic accessor types in the arg_list MPL sequence");
                 typedef typename enclosing_range<RangeState, typename argument_type::range_type>::type type;
             };
 

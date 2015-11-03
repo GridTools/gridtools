@@ -3,10 +3,8 @@
 #include <boost/mpl/filter_view.hpp>
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/reverse.hpp>
-#include <boost/mpl/zip_view.hpp>
 
-#include <gridtools.hpp>
-
+#include "gridtools.hpp"
 #include "backend_traits_fwd.hpp"
 #include "run_functor_arguments.hpp"
 
@@ -25,6 +23,8 @@
 #include "mss.hpp"
 #include "axis.hpp"
 #include "../common/meta_array.hpp"
+#include "tile.hpp"
+#include "../storage/meta_storage.hpp"
 
 /**
    @file
@@ -34,18 +34,19 @@
 
 namespace gridtools {
 
+    template<typename T>struct is_meta_storage;
+
     namespace _impl {
 
         /**
            \brief defines a method which associates an
-           host_tmp_storage, whose range depends on an index, to the
+           tmp storage, whose range depends on an index, to the
            element in the Temporaries vector at that index position.
 
            \tparam Temporaries is the vector of temporary placeholder types.
         */
         template <typename TemporariesRangeMap,
                   typename ValueType,
-                  typename LayoutType,
                   uint_t BI, uint_t BJ,
                   typename StrategyTraits,
                   enumtype::backend BackendID>
@@ -56,15 +57,14 @@ namespace gridtools {
                 typedef typename boost::mpl::first<MapElem>::type temporary;
 
                 typedef pair<
-                    typename StrategyTraits::template get_tmp_storage<
-                    typename temporary::storage_type::type,
-                    BI, BJ,
-                    -range_type::iminus::value,
-                    -range_type::jminus::value,
-                    range_type::iplus::value,
-                    range_type::jplus::value>::type, // previously : host_storage_t,
-                    typename temporary::index_type
-                    > type;
+                typename StrategyTraits::template get_tmp_storage<
+                    typename temporary::storage_type
+                    , tile<BI, -range_type::iminus::value, range_type::iplus::value>
+                    , tile<BJ, -range_type::jminus::value, range_type::jplus::value>
+                    >::type
+                    , typename temporary::index_type
+                    >
+                    type;
             };
         };
     } // namespace _impl
@@ -135,9 +135,14 @@ namespace gridtools {
         typedef uint_t (*query_i_threads_f)(uint_t);
         typedef uint_t (*query_j_threads_f)(uint_t);
 
-        template <typename ValueType, typename Layout>
+        template <typename ValueType, typename MetaDataType>
         struct storage_type {
-            typedef typename backend_traits_t::template storage_traits<ValueType, Layout>::storage_t type;
+            GRIDTOOLS_STATIC_ASSERT(is_meta_storage<MetaDataType>::value, "wrong type for the meta storage");
+
+            typedef typename backend_traits_t::template storage_traits
+            <ValueType
+             , typename backend_traits_t::template meta_storage_traits<MetaDataType, false>::type
+             , false>::storage_t type;
         };
 
         /**
@@ -149,13 +154,17 @@ namespace gridtools {
          * instantiation of the actual storage type). If on the contrary multiple ESFs are not fused, a "standard"
          * storage type will be enough.
          */
-        template <typename ValueType, typename Layout>
+        template <typename ValueType, typename MetaDataType>
         struct temporary_storage_type
         {
+            GRIDTOOLS_STATIC_ASSERT(is_meta_storage<MetaDataType>::value, "wrong type for the meta storage");
             /** temporary storage must have the same iterator type than the regular storage
              */
         private:
-            typedef typename backend_traits_t::template storage_traits<ValueType, Layout, true>::storage_t temp_storage_t;
+            typedef typename backend_traits_t::template storage_traits<
+            ValueType
+            , typename backend_traits_t::template meta_storage_traits<MetaDataType, true>::type
+            , true>::storage_t temp_storage_t;
         public:
             typedef typename boost::mpl::if_<
                 typename backend_traits_t::template requires_temporary_redundant_halos<s_strategy_id>::type,
@@ -249,6 +258,7 @@ namespace gridtools {
             >::type type;
         };
 
+
         /**
          * @brief compute a list with all the temporary storage types used by an array of mss
          * @tparam Domain domain
@@ -259,12 +269,11 @@ namespace gridtools {
         template <typename Domain
                   , typename MssComponentsArray
                   , typename ValueType
-                  , typename LayoutType >
+                  >
         struct obtain_temporary_storage_types {
 
             GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
             GRIDTOOLS_STATIC_ASSERT((is_domain_type<Domain>::value), "Internal Error: wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_layout_map<LayoutType>::value), "Internal Error: wrong type");
 
             typedef typename backend_traits_t::template get_block_size<StrategyType>::type block_size_t;
 
@@ -274,7 +283,6 @@ namespace gridtools {
             typedef boost::mpl::filter_view<typename Domain::placeholders,
                                             is_temporary_arg<boost::mpl::_> > temporaries;
             typedef typename obtain_map_ranges_temporaries_mss_array<Domain, MssComponentsArray>::type map_of_ranges;
-
 
             // GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<temporaries>::value == boost::mpl::size<map_of_ranges>::value),
             //         "One of the temporaries was not found in at least one functor of all the MSS.\n Check that all temporaries declared as in the domain are actually used in at least a functor"
@@ -288,7 +296,6 @@ namespace gridtools {
                     typename _impl::get_storage_type<
                         map_of_ranges,
                         ValueType,
-                        LayoutType,
                         tileI,
                         tileJ,
                         strategy_traits_t,
@@ -324,11 +331,14 @@ namespace gridtools {
         }
 
 
-        template <typename ArgList, typename Coords>
-        static void prepare_temporaries(ArgList & arg_list, Coords const& coords)
+        template <typename ArgList, typename MetaList, typename Coords>
+        static void prepare_temporaries(ArgList & arg_list_, MetaList & meta_list_, Coords const& coords_)
         {
-            _impl::template prepare_temporaries_functor<ArgList, Coords, this_type>::
-                prepare_temporaries((arg_list), (coords));
+            GRIDTOOLS_STATIC_ASSERT((is_metadata_set<MetaList>::value), "wrong type for the MetaList");
+            GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "wrong type for the coordinates");
+
+            _impl::template prepare_temporaries_functor<ArgList, MetaList, Coords, this_type>::
+                prepare_temporaries((arg_list_), meta_list_,  (coords_));
         }
 
         /** Initial interface

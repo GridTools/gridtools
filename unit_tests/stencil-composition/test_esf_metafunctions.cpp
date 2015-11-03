@@ -47,8 +47,9 @@ std::ostream& operator<<(std::ostream& s, functor0) { return s << "functor0"; }
 #endif
 
 typedef layout_map<2,1,0> layout_ijk_t;
-typedef gridtools::BACKEND::storage_type<float_type, layout_ijk_t >::type storage_type;
-typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_ijk_t >::type tmp_storage_type;
+typedef storage_info<0, layout_ijk_t> storage_info_ijk_t;
+typedef gridtools::BACKEND::storage_type<float_type, storage_info_ijk_t >::type storage_type;
+typedef gridtools::BACKEND::temporary_storage_type<float_type, storage_info_ijk_t >::type tmp_storage_type;
 
 
 typedef arg<0, storage_type> o0;
@@ -79,4 +80,3 @@ GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, in2>::type, rang
 /* total placeholders (rounded to 10) _SIZE = 10*/
     ASSERT_TRUE(true);
 }
-
