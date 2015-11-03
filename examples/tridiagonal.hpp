@@ -58,8 +58,8 @@ struct forward_thomas{
     GT_FUNCTION
     static void shared_kernel(Domain const& dom) {
 #ifdef CXX11_ENABLED
-        dom(sup()) =  dom(sup()/(diag()-sup(z(-1))*inf()));
-        dom(rhs()) =  dom((rhs()-inf()*rhs(z(-1)))/(diag()-sup(z(-1))*inf()));
+        dom(sup()) =  dom(sup()/(operator-(diag(),sup(z(-1)))*inf()));
+        dom(rhs()) =  dom((operator-(rhs(),operator*(inf(),rhs(z(-1)))))/(operator-(diag(),sup(z(-1))*inf())));
 #else
         dom(sup()) = dom(sup())/(dom(diag())-dom(sup(z(-1)))*dom(inf()));
         dom(rhs()) = (dom(rhs())-dom(inf())*dom(rhs(z(-1))))/(dom(diag())-dom(sup(z(-1)))*dom(inf()));
@@ -98,7 +98,7 @@ struct backward_thomas{
     GT_FUNCTION
     static void shared_kernel(Domain& dom) {
 #ifdef CXX11_ENABLED
-        dom(out()) = dom(rhs()-sup()*out(z(1)));
+        dom(out()) = dom(operator*(operator-(rhs(),sup()),out(z(1))));
 #else
         dom(out()) = dom(rhs())-dom(sup())*dom(out(0,0,1));
 #endif
