@@ -10,19 +10,26 @@ namespace gridtools {
 /**
  * @brief iterate domain class for the CUDA backend
  */
-template<typename DataPointerArray, typename StridesCached, typename IterateDomainCache, typename IterateDomainArguments>
-class iterate_domain_cuda
+template<template<class> class IterateDomainBase, typename IterateDomainArguments>
+class iterate_domain_cuda : public IterateDomainBase<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> > //CRTP
 {
     DISALLOW_COPY_AND_ASSIGN(iterate_domain_cuda);
-    GRIDTOOLS_STATIC_ASSERT((is_strides_cached<StridesCached>::value), "Internal error: wrong type");
     GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Internal error: wrong type");
 
+    typedef IterateDomainBase<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> > super;
+    typedef typename IterateDomainArguments::local_domain_t local_domain_t;
+public:
+
+    typedef typename super::data_pointer_array_t data_pointer_array_t;
+    typedef typename super::strides_cached_t strides_cached_t;
 private:
 
-    typedef shared_iterate_domain<DataPointerArray, StridesCached, typename IterateDomainCache::ij_caches_tuple_t>
+    typedef typename super::iterate_domain_cache_t iterate_domain_cache_t;
+
+    typedef shared_iterate_domain<data_pointer_array_t, strides_cached_t, typename iterate_domain_cache_t::ij_caches_tuple_t>
         shared_iterate_domain_t;
 
-    typedef typename IterateDomainCache::ij_caches_map_t ij_caches_map_t;
+    typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
 
 private:
     const uint_t m_block_size_i;
@@ -32,11 +39,8 @@ private:
 
 public:
     GT_FUNCTION
-    explicit iterate_domain_cuda(const int_t block_size_i, const int_t block_size_j)
-        : m_block_size_i(static_cast<uint_t>(block_size_i)), m_block_size_j(static_cast<uint_t>(block_size_j)) {
-        //ensure that constructor with default values for block sizes (-1) is not called
-        assert(block_size_i > 0 && block_size_j > 0);
-    }
+    explicit iterate_domain_cuda(local_domain_t const& local_domain, const uint_t block_size_i, const uint_t block_size_j)
+        : super(local_domain), m_block_size_i(block_size_i), m_block_size_j(block_size_j) {}
 
     GT_FUNCTION
     uint_t thread_position_x() const
@@ -113,27 +117,27 @@ public:
     }
 
     GT_FUNCTION
-    DataPointerArray const & RESTRICT data_pointer_impl() const
+    data_pointer_array_t const & RESTRICT data_pointer_impl() const
     {
 //        assert(m_pshared_iterate_domain);
         return m_pshared_iterate_domain->data_pointer();
     }
 
     GT_FUNCTION
-    DataPointerArray & RESTRICT data_pointer_impl()
+    data_pointer_array_t & RESTRICT data_pointer_impl()
     {
 //        assert(m_pshared_iterate_domain);
         return m_pshared_iterate_domain->data_pointer();
     }
 
     GT_FUNCTION
-    StridesCached const & RESTRICT strides_impl() const
+    strides_cached_t const & RESTRICT strides_impl() const
     {
 //        assert((m_pshared_iterate_domain);
         return m_pshared_iterate_domain->strides();
     }
     GT_FUNCTION
-    StridesCached & RESTRICT strides_impl()
+    strides_cached_t & RESTRICT strides_impl()
     {
 //        assert((m_pshared_iterate_domain));
         return m_pshared_iterate_domain->strides();
@@ -142,7 +146,7 @@ public:
     // return a value that was cached
     template<typename Accessor>
     GT_FUNCTION
-    typename accessor_return_type<Accessor, IterateDomainArguments>::type::value_type& RESTRICT
+    typename super::template accessor_return_type<Accessor>::type::value_type& RESTRICT
     get_cache_value_impl(Accessor const & _accessor) const
     {
         //        assert(m_pshared_iterate_domain);
@@ -182,4 +186,25 @@ private:
     array<int, 2> m_thread_pos;
 };
 
-} //namespace gridtools
+template<
+    template<class> class IterateDomainBase, typename IterateDomainArguments>
+struct is_iterate_domain<
+    iterate_domain_cuda<IterateDomainBase, IterateDomainArguments>
+> : public boost::mpl::true_{};
+
+template<
+    template<class> class IterateDomainBase,
+    typename IterateDomainArguments
+>
+struct is_positional_iterate_domain<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> > :
+    is_positional_iterate_domain<IterateDomainBase<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> > > {};
+
+
+template<template<class> class IterateDomainBase, typename IterateDomainArguments>
+struct iterate_domain_backend_id<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> >
+{
+    typedef enumtype::enum_type< enumtype::backend, enumtype::Cuda > type;
+};
+
+
+}

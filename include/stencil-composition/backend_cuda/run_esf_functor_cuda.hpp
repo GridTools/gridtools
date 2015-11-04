@@ -62,7 +62,7 @@ namespace gridtools {
 
             //a grid point at the core of the block can be out of range (for last blocks) if domain of computations
             // is not a multiple of the block size
-            if(m_iterate_domain.iterate_domain_backend().is_thread_in_domain())
+            if(m_iterate_domain.is_thread_in_domain())
             {
                 //call the user functor at the core of the block
                 functor_t::Do(iterate_domain_evaluator, IntervalType());
@@ -127,13 +127,12 @@ namespace gridtools {
             typedef typename EsfArguments::functor_t functor_t;
             typedef typename EsfArguments::range_t range_t;
 
-            typename iterate_domain_t::iterate_domain_backend_t& iterate_domain_backend = m_iterate_domain.iterate_domain_backend();
             //if the warps need to compute more grid points than the core of the block
             if(multiple_grid_points_per_warp_t::value) {
                 //JMinus  halo
                 if(range_t::jminus::value != 0 && ((int)threadIdx.y < -range_t::jminus::value))
                 {
-                    if(iterate_domain_backend.is_thread_in_domain_x())
+                    if(m_iterate_domain.is_thread_in_domain_x())
                     {
                         (m_iterate_domain).increment<1>(range_t::jminus::value);
                         functor_t::Do(iterate_domain_evaluator, IntervalType());
@@ -143,9 +142,9 @@ namespace gridtools {
                 //JPlus halo
                 else if(range_t::jplus::value != 0 && ((int)threadIdx.y < -range_t::jminus::value + range_t::jplus::value))
                 {
-                    if(iterate_domain_backend.is_thread_in_domain_x())
+                    if(m_iterate_domain.is_thread_in_domain_x())
                     {
-                        const int joffset = range_t::jminus::value + (int)iterate_domain_backend.block_size_j();
+                        const int joffset = range_t::jminus::value + (int)m_iterate_domain.block_size_j();
 
                         (m_iterate_domain).increment<1>(joffset);
                         functor_t::Do(iterate_domain_evaluator, IntervalType());
@@ -155,12 +154,12 @@ namespace gridtools {
                 //IMinus halo
                 else if(range_t::iminus::value != 0 && ((int)threadIdx.y < -range_t::jminus::value + range_t::jplus::value + 1))
                 {
-                    const int ioffset = -iterate_domain_backend.thread_position_x() -
-                        (iterate_domain_backend.thread_position_x() % (-range_t::iminus::value))-1;
-                    const int joffset = -iterate_domain_backend.thread_position_y() +
-                        (iterate_domain_backend.thread_position_x() / (-range_t::iminus::value) );
+                    const int ioffset = -m_iterate_domain.thread_position_x() -
+                        (m_iterate_domain.thread_position_x() % (-range_t::iminus::value))-1;
+                    const int joffset = -m_iterate_domain.thread_position_y() +
+                        (m_iterate_domain.thread_position_x() / (-range_t::iminus::value) );
 
-                    if(iterate_domain_backend.is_thread_in_domain_y(joffset))
+                    if(m_iterate_domain.is_thread_in_domain_y(joffset))
                     {
                         (m_iterate_domain).increment < 0 > (ioffset);
                         (m_iterate_domain).increment < 1 > (joffset);
@@ -173,12 +172,12 @@ namespace gridtools {
                 else if(range_t::iplus::value != 0 && ((int)threadIdx.y < -range_t::jminus::value + range_t::jplus::value +
                     (range_t::iminus::value != 0 ? 1 : 0) + 1))
                 {
-                    const int ioffset = -iterate_domain_backend.thread_position_x() +
-                        iterate_domain_backend.block_size_i() + ((int)threadIdx.x % (range_t::iplus::value));
-                    const int joffset = -iterate_domain_backend.thread_position_y() +
+                    const int ioffset = -m_iterate_domain.thread_position_x() +
+                        m_iterate_domain.block_size_i() + ((int)threadIdx.x % (range_t::iplus::value));
+                    const int joffset = -m_iterate_domain.thread_position_y() +
                         ((int)threadIdx.x / (range_t::iplus::value) );
 
-                    if(iterate_domain_backend.is_thread_in_domain_y(joffset))
+                    if(m_iterate_domain.is_thread_in_domain_y(joffset))
                     {
                         (m_iterate_domain).increment<0>(ioffset);
                         (m_iterate_domain).increment<1>(joffset);
@@ -194,7 +193,7 @@ namespace gridtools {
                         range_t::jminus::value - range_t::jplus::value -
                         (range_t::iminus::value != 0 ? 1 : 0) - (range_t::iplus::value != 0 ? 1 : 0);
 
-                    if(iterate_domain_backend.is_thread_in_domain(0, joffset))
+                    if(m_iterate_domain.is_thread_in_domain(0, joffset))
                     {
                         (m_iterate_domain).increment<1>(joffset);
                         functor_t::Do(iterate_domain_evaluator, IntervalType());

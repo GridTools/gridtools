@@ -51,6 +51,12 @@
 */
 namespace gridtools {
 
+    template<typename T>
+    struct iterate_domain_impl_ij_caches_map;
+
+    template<typename IterateDomainImpl>
+    struct iterate_domain_backend_id;
+
     /**@brief class managing the memory accesses, indices increment
 
        This class gets instantiated in the backend-specific code, and has a different implementation for
@@ -59,40 +65,17 @@ namespace gridtools {
        the computation/increment of the useful addresses in memory, given the iteration point,
        the storage placeholders/metadatas and their offsets.
      */
-    template <typename IterateDomainArguments>
+    template <typename IterateDomainImpl>
     struct iterate_domain {
-        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Wrong Type");
-        typedef typename IterateDomainArguments::backend_id_t backend_id_t;
-
-        typedef typename IterateDomainArguments::local_domain_t local_domain_t;
+        typedef typename iterate_domain_impl_local_domain<IterateDomainImpl>::type local_domain_t;
+        typedef typename iterate_domain_impl_arguments<IterateDomainImpl>::type iterate_domain_arguments_t;
 
         typedef typename local_domain_t::esf_args esf_args_t;
 
-        typedef typename local_domain_t::storage_metadata_map metadata_map_t;
-        typedef typename local_domain_t::actual_args_type actual_args_type;
-        //the number of different storage metadatas used in the current functor
-        static const uint_t N_META_STORAGES=boost::mpl::size<metadata_map_t>::value;
-        //the number of storages  used in the current functor
-        static const uint_t N_STORAGES=boost::mpl::size<actual_args_type>::value;
-        //the total number of snapshot (one or several per storage)
-        static const uint_t N_DATA_POINTERS=total_storages<
-            actual_args_type,
-            boost::mpl::size<typename local_domain_t::mpl_storages>::type::value >::value;
-
-        typedef array<void* RESTRICT, N_DATA_POINTERS> data_pointer_array_t;
-        typedef strides_cached<N_META_STORAGES-1, typename local_domain_t::storage_metadata_vector_t> strides_cached_t;
-
+        typedef typename iterate_domain_backend_id< IterateDomainImpl >::type backend_id_t;
 
         typedef typename backend_traits_from_id< backend_id_t::value >::
-                template select_iterate_domain_cache<IterateDomainArguments>::type iterate_domain_cache_t;
-
-        typedef typename backend_traits_from_id< backend_id_t::value >::
-            template select_iterate_domain_backend<
-                data_pointer_array_t,
-                strides_cached_t,
-                iterate_domain_cache_t,
-                IterateDomainArguments
-            >::type iterate_domain_backend_t;
+                template select_iterate_domain_cache<iterate_domain_arguments_t>::type iterate_domain_cache_t;
 
         typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
 
@@ -103,6 +86,19 @@ namespace gridtools {
             >::type::value_type value_type;
 
         /**
+         * metafunction that retrieves the arg type associated with an accessor
+         */
+        template<typename Accessor>
+        struct get_arg_from_accessor
+        {
+            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Internal error: wrong type");
+            typedef typename boost::mpl::at<
+                esf_args_t,
+                typename Accessor::index_type
+            >::type type;
+        };
+
+        /**
          * metafunction that determines if a given accessor is associated with an arg holding a data field
          */
         template<typename Accessor>
@@ -110,7 +106,7 @@ namespace gridtools {
         {
             typedef typename boost::mpl::eval_if<
                 is_accessor<Accessor>,
-                arg_holds_data_field_h<get_arg_from_accessor<Accessor, IterateDomainArguments> >,
+                arg_holds_data_field_h<get_arg_from_accessor<Accessor> >,
                 boost::mpl::identity<boost::mpl::false_>
             >::type type;
         };
@@ -157,11 +153,27 @@ namespace gridtools {
         template<typename Accessor>
         struct accessor_return_type
         {
-            typedef typename ::gridtools::accessor_return_type<Accessor, IterateDomainArguments>::type type;
+            typedef typename boost::mpl::eval_if<
+                is_accessor<Accessor>,
+                get_arg_from_accessor<Accessor>,
+                boost::mpl::identity<boost::mpl::void_>
+            >::type type;
         };
 
+        typedef typename local_domain_t::storage_metadata_map metadata_map_t;
+        typedef typename local_domain_t::actual_args_type actual_args_type;
+        //the number of different storage metadatas used in the current functor
+        static const uint_t N_META_STORAGES=boost::mpl::size<metadata_map_t>::value;
+        //the number of storages  used in the current functor
+        static const uint_t N_STORAGES=boost::mpl::size<actual_args_type>::value;
+        //the total number of snapshot (one or several per storage)
+        static const uint_t N_DATA_POINTERS=total_storages<
+            actual_args_type,
+            boost::mpl::size<typename local_domain_t::mpl_storages>::type::value >::value;
+
     public:
-        iterate_domain_backend_t m_iterate_domain_backend;
+        typedef array<void* RESTRICT, N_DATA_POINTERS> data_pointer_array_t;
+        typedef strides_cached<N_META_STORAGES-1, typename local_domain_t::storage_metadata_vector_t> strides_cached_t;
     private:
 
         /**
@@ -170,7 +182,7 @@ namespace gridtools {
         GT_FUNCTION
         data_pointer_array_t& RESTRICT data_pointer()
         {
-            return m_iterate_domain_backend.data_pointer_impl();
+            return static_cast<IterateDomainImpl*>(this)->data_pointer_impl();
         }
 
         /**
@@ -179,7 +191,7 @@ namespace gridtools {
         GT_FUNCTION
         data_pointer_array_t const & RESTRICT data_pointer() const
         {
-            return m_iterate_domain_backend.data_pointer_impl();
+            return static_cast<const IterateDomainImpl*>(this)->data_pointer_impl();
         }
 
         /**
@@ -188,7 +200,7 @@ namespace gridtools {
         GT_FUNCTION
         strides_cached_t& RESTRICT strides()
         {
-            return m_iterate_domain_backend.strides_impl();
+            return static_cast<IterateDomainImpl*>(this)->strides_impl();
         }
 
         /**
@@ -197,7 +209,7 @@ namespace gridtools {
         GT_FUNCTION
         strides_cached_t const & RESTRICT strides() const
         {
-            return m_iterate_domain_backend.strides_impl();
+            return static_cast<const IterateDomainImpl*>(this)->strides_impl();
         }
 
     private:
@@ -216,8 +228,9 @@ namespace gridtools {
            might be shared among several data fileds)
         */
         GT_FUNCTION
-        iterate_domain(local_domain_t const& local_domain_, const int_t block_size_i=-1, const int_t block_size_j=-1)
-            : local_domain(local_domain_), m_iterate_domain_backend(block_size_i, block_size_j) {}
+        iterate_domain(local_domain_t const& local_domain_)
+            : local_domain(local_domain_) {}
+
 
         /**
            @brief returns a single snapshot in the array of raw data pointers
@@ -225,19 +238,6 @@ namespace gridtools {
         */
         GT_FUNCTION
         const void* data_pointer(ushort_t i){return ( data_pointer() )[i];}
-
-        GT_FUNCTION
-        iterate_domain_backend_t& iterate_domain_backend() { return m_iterate_domain_backend;}
-
-        void set_data_pointer(data_pointer_array_t* RESTRICT data_pointer)
-        {
-            m_iterate_domain_backend.set_data_pointer_impl(data_pointer);
-        }
-
-        void set_strides_pointer(strides_cached_t* RESTRICT strides)
-        {
-            m_iterate_domain_backend.set_strides_pointer_impl(strides);
-        }
 
         /** This functon set the addresses of the data values  before the computation
             begins.
@@ -319,7 +319,7 @@ namespace gridtools {
 #endif
                   , &m_index[0], strides())
                 );
-            m_iterate_domain_backend.template increment_impl<Coordinate, Execution>();
+            static_cast<IterateDomainImpl*>(this)->template increment_impl<Coordinate, Execution>();
         }
 
         /**@brief method for incrementing the index when moving forward along the given direction
@@ -339,7 +339,7 @@ namespace gridtools {
                 <typename local_domain_t::local_metadata_type>::type
                 >(boost::fusion::as_vector(local_domain.m_local_metadata), steps_, &m_index[0], strides())
             );
-            m_iterate_domain_backend.template increment_impl<Coordinate>(steps_);
+            static_cast<IterateDomainImpl*>(this)->template increment_impl<Coordinate>(steps_);
         }
 
         /**@brief method for initializing the index */
@@ -354,7 +354,7 @@ namespace gridtools {
                 typename boost::fusion::result_of::as_vector
                 <typename local_domain_t::local_metadata_type>::type
                 >(strides(), boost::fusion::as_vector(local_domain.m_local_metadata), initial_pos, block, &m_index[0]));
-            m_iterate_domain_backend.template initialize_impl<Coordinate>();
+            static_cast<IterateDomainImpl*>(this)->template initialize_impl<Coordinate>();
         }
 
         template <typename T>
@@ -429,7 +429,7 @@ namespace gridtools {
         operator()(Accessor const& accessor) const {
 
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
-            return m_iterate_domain_backend.get_cache_value_impl (accessor);
+            return static_cast<IterateDomainImpl const *>(this)->get_cache_value_impl (accessor);
         }
 
 
@@ -529,8 +529,7 @@ namespace gridtools {
         using iterate_domain<IterateDomainImpl>::iterate_domain;
 #else
         GT_FUNCTION
-        positional_iterate_domain(local_domain_t const& local_domain, const int_t block_size_i=-1, const int_t block_size_j=-1) :
-            base_t(local_domain, block_size_i, block_size_j) {}
+        positional_iterate_domain(local_domain_t const& local_domain) : base_t(local_domain) {}
 #endif
 
         /**@brief method for incrementing the index when moving forward along the k direction */

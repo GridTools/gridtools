@@ -41,7 +41,7 @@ namespace _impl_cuda {
         //Doing construction of the ierate domain and assignment of pointers and strides
         iterate_domain_t it_domain(*l_domain, block_size_i, block_size_j);
 
-        it_domain.iterate_domain_backend().set_shared_iterate_domain_pointer_impl(&shared_iterate_domain);
+        it_domain.set_shared_iterate_domain_pointer_impl(&shared_iterate_domain);
 
         it_domain.template assign_storage_pointers<backend_traits_t >();
         it_domain.template assign_stride_pointers <backend_traits_t, strides_t>();
@@ -63,13 +63,13 @@ namespace _impl_cuda {
         typedef typename index_to_level<typename interval::second>::type to;
         typedef _impl::iteration_policy<from, to, zdim_index_t::value, execution_type_t::type::iteration> iteration_policy_t;
 
-        //setting the initial k level (for backward/parallel iterations it is not 0)
-        if( !(iteration_policy_t::value==enumtype::forward) )
-            it_domain.initialize<2>( coords->template value_at< iteration_policy_t::from >() );
+        it_domain.template initialize<2>( coords->template value_at< iteration_policy_t::from >() );
 
         //execute the k interval functors
         for_each<typename RunFunctorArguments::loop_intervals_t>
-            (_impl::run_f_on_interval<execution_type_t, RunFunctorArguments>(it_domain,*coords) );
+            (_impl::run_f_on_interval<
+             execution_type_t,
+             RunFunctorArguments>(it_domain,*coords) );
     }
 } // namespace _impl_cuda
 
