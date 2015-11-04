@@ -246,6 +246,8 @@ namespace gridtools {
         struct _data_item {
             char _data_storage[sizeof(T)];
 
+//TODO the following breaks CUDA with rectangular grids
+#ifndef RECTANGULAR_GRIDS
             GT_FUNCTION
             _data_item() : _data_storage() {}
 
@@ -259,6 +261,7 @@ namespace gridtools {
                 const char* addr =  reinterpret_cast<const char*>(&x);
                 std::copy(addr, addr+sizeof(T), &_data_storage[0]);
             }
+#endif
         };
 
         _data_item _array[_size];
