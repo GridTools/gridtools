@@ -47,30 +47,6 @@ typedef gridtools::interval<level<0,-1>, level<0,-1> > x_first;
 typedef gridtools::interval<level<1,-1>, level<1,-1> > x_last;
 typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 
-#if (defined(CXX11_ENABLED))
-    namespace ex{
-        typedef accessor<0, enumtype::inout> out;
-        typedef accessor<1> inf; //a
-        typedef accessor<2> diag; //b
-        typedef accessor<3, enumtype::inout> sup; //c
-        typedef accessor<4, enumtype::inout> rhs; //d
-
-#ifndef __CUDACC__
-        static const auto expr_sup=sup{}/(diag{}-sup{z{-1}}*inf{});
-        static const auto expr_rhs=(rhs{}-inf{}*rhs{z{-1}})/(diag{}-sup{z{-1}}*inf{});
-        static const auto expr_out=rhs{}-sup{}*out{0,0,1};
-#endif
-        // typedef decltype(expr_sup) expr_sup_t;
-
-        // GT_FUNCTION
-        // static const constexpr expr_sup_t x_sup() { return expr_sup; }
-        // GT_FUNCTION
-        // constexpr auto x_rhs() -> decltype(expr_sup) { return expr_rhs; }
-        // GT_FUNCTION
-        // constexpr auto x_out() -> decltype(expr_sup) { return expr_out; }
-    }
-#endif
-
 struct forward_thomas{
 //four vectors: output, and the 3 diagonals
     typedef accessor<0, enumtype::inout> out;
@@ -83,12 +59,12 @@ struct forward_thomas{
     template <typename Domain>
     GT_FUNCTION
     static void shared_kernel(Domain const& dom) {
-#if (defined(CXX11_ENABLED) && !defined(__CUDACC__) )
-        dom(sup()) =  dom(ex::expr_sup);
-        dom(rhs()) =  dom(ex::expr_rhs);
+#if (defined(CXX11_ENABLED) && defined(__CUDACC__) )
+        dom(sup{}) = dom(sup{}/(diag{}-sup{z{-1}}*inf{}));
+        dom(rhs{}) = dom((rhs{}-inf{}*rhs{z(-1)})/(diag{}-sup{z(-1)}*inf{}));
 #else
         dom(sup()) = dom(sup())/(dom(diag())-dom(sup(z(-1)))*dom(inf()));
-        dom(rhs()) = (dom(rhs())-dom(inf())*dom(rhs(z(-1))))/(dom(diag())-dom(sup(z(-1)))*dom(inf()));
+        dom(rhs()) = (dom(rhs())-dom(inf())*dom(rhs(z(-1))))/(dom(diag())-dom(sup(z(-1)))*dom(inf{}));
 #endif
     }
 
@@ -125,8 +101,8 @@ struct backward_thomas{
     template <typename Domain>
     GT_FUNCTION
     static void shared_kernel(Domain& dom) {
-#if (defined(CXX11_ENABLED) && !defined(__CUDACC__) )
-        dom(out()) = dom(ex::expr_out);
+#if (defined(CXX11_ENABLED) && defined(__CUDACC__) )
+        dom(out()) = dom(rhs{}-sup{}*out{0,0,1});
 #else
         dom(out()) = dom(rhs())-dom(sup())*dom(out(0,0,1));
 #endif
