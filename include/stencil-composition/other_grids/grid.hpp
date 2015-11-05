@@ -599,6 +599,7 @@ namespace gridtools {
             boost::fusion::vector3<
             v_storage_t<cells>, v_storage_t<edges>, v_storage_t<vertexes>>;
 
+        //TODOMEETING make double a general type
         using storage_types = boost::mpl::vector<storage_t<cells, double>*,
                                                  storage_t<edges, double>*,
                                                  storage_t<vertexes, double>* >;
@@ -650,6 +651,7 @@ namespace gridtools {
 
         virtual_storage_types const& virtual_storages() const {return m_virtual_storages;}
 
+        //TODOMEETING move semantic
         template <typename LocationType>
         storage_t<LocationType, double> make_storage(char const* name) const {
             return storage_t<LocationType, double>(boost::fusion::at_c<LocationType::value>

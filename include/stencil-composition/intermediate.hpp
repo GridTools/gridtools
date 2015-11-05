@@ -370,6 +370,14 @@ namespace gridtools {
 
         typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
 
+        //ifdef RECTANGULAR
+        //select_grd_backend{
+        //  typedef enumtype<recgrid> type;
+        //}
+        // endif
+        //TODOMEETING
+//        typedef select_mss_compute_ranges<GRIDPREFIX>::type mss_compute_ranges;
+
         typedef typename boost::mpl::fold<
             typename MssDescriptorArray::elements,
             boost::mpl::vector0<>,

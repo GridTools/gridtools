@@ -15,6 +15,7 @@ template <typename ArgType, typename ... Pair>
 struct is_accessor<accessor_mixed<ArgType, Pair ... > > : boost::mpl::true_{};
 #endif
 
+//TODOMEETING accessor_index should be common to all grids
 template <typename Accessor>
 struct accessor_index
 {

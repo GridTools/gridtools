@@ -299,6 +299,7 @@ private:
                             "than location types. Data fields for other grids are not yet supported");
     local_domain_t const& local_domain;
     grid_t const& m_grid;
+    //TODOMEETING do we need m_index?
     array<int_t,N_META_STORAGES> m_index;
 
     array<uint_t, 4> m_grid_position;
