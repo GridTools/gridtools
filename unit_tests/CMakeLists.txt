@@ -7,7 +7,7 @@ gridtools_add_test(test.FunctorDoMethods ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/bui
 add_executable(LoopIntervals LoopIntervals.cpp)
 gridtools_add_test(test.LoopIntervals ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/LoopIntervals")
 
-if ( ENABLE_CXX11 )
+if ( ENABLE_CXX11 AND RECTANGULAR_GRIDS)
     add_executable(test-independent test-independent.cpp)
     set_target_properties(test-independent PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
     target_link_libraries(test-independent ${exe_LIBS})
@@ -21,7 +21,7 @@ if (GTEST_FOUND)
         test_domain_indices.cpp
         boundary_conditions_test.cpp
     )
-    set(CXX11_TESTS test_local_domain.cpp test-assign-placeholders.cpp test_data_fields.cpp test_integer_sequence.cpp)
+    set(CXX11_TESTS test-assign-placeholders.cpp test_data_fields.cpp test_integer_sequence.cpp)
 
     if ( ENABLE_CXX11 )
       set(CXX11_TESTS ${CXX11_TESTS} stencil-composition/test_staggered_keyword.cpp)
@@ -82,16 +82,18 @@ endif()
   endif()
 endif()
 
-add_executable(CopyStencil external_ptr_test/CopyStencil.cpp)
-set_target_properties(CopyStencil PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
-target_link_libraries(CopyStencil ${exe_LIBS})
-
 if (CUDA_FOUND)
    cuda_add_executable( test_cuda_storage test_cuda_storage_exe.cu )
    target_link_libraries(test_cuda_storage ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
 endif()
 
-add_subdirectory( communication )
+if(RECTANGULAR_GRIDS)
+    add_executable(CopyStencil external_ptr_test/CopyStencil.cpp)
+    set_target_properties(CopyStencil PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+    target_link_libraries(CopyStencil ${exe_LIBS})
+
+    add_subdirectory( communication )
+endif(RECTANGULAR_GRIDS)
 add_subdirectory( common )
 add_subdirectory( stencil-composition )
 add_subdirectory( storage )

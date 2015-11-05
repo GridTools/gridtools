@@ -23,4 +23,6 @@ target_link_libraries(stencil_composition_tests ${GTEST_BOTH_LIBRARIES} -lpthrea
 add_subdirectory(caches)
 if (NOT RECTANGULAR_GRIDS)
   add_subdirectory(other_grids)
+else()
+  add_subdirectory(rectangular_grids)
 endif()
