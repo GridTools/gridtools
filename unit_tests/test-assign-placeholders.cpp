@@ -1,10 +1,7 @@
 
 #include <gridtools.hpp>
 
-#include "stencil-composition/backend.hpp"
-
-#include "stencil-composition/interval.hpp"
-#include "stencil-composition/make_computation.hpp"
+#include "stencil-composition/stencil-composition.hpp"
 
 /*
   This file shows an implementation of the "horizontal diffusion" stencil, similar to the one used in COSMO

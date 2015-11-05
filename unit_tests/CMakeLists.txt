@@ -23,12 +23,7 @@ if (GTEST_FOUND)
     )
     set(CXX11_TESTS test-assign-placeholders.cpp test_data_fields.cpp test_integer_sequence.cpp)
 
-    if ( ENABLE_CXX11 )
-      set(CXX11_TESTS ${CXX11_TESTS} stencil-composition/test_staggered_keyword.cpp)
-      add_executable(tests ${CXX11_TESTS} ${COMMON_TESTS})
-    else()
-      add_executable(tests ${COMMON_TESTS})
-    endif()
+    add_executable(tests ${COMMON_TESTS})
   # include boost
   include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
   link_directories( ${Boost_LIBRARY_DIRS} )
