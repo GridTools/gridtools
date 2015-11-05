@@ -600,14 +600,6 @@ namespace gridtools {
             using type = typename boost::fusion::result_of::at_c<virtual_storage_types, I>::type;
         };
 
-        //specific for triangular cells
-        static constexpr uint_t u_size_j(cells, int _M) {return _M+4;}
-        static constexpr uint_t u_size_i(cells, int _N) {return _N+2;}
-        static constexpr uint_t u_size_j(edges, int _M) {return 3*(_M/2)+6;}
-        static constexpr uint_t u_size_i(edges, int _N) {return _N+2;}
-        static constexpr uint_t u_size_j(vertexes, int _M) {return _M/2+3;}
-        static constexpr uint_t u_size_i(vertexes, int _N) {return _N+3;}
-
         trapezoid_2D_colored() = delete;
     public :
 
@@ -625,15 +617,14 @@ namespace gridtools {
         virtual_storage_types const& virtual_storages() const {return m_virtual_storages;}
 
         //TODOMEETING move semantic
-        template <typename LocationType>
+        template <typename LocationType, typename ValueType>
         storage_t<LocationType, double> make_storage(char const* name) const {
-            return storage_t<LocationType, double>(boost::fusion::at_c<LocationType::value>
+            return storage_t<LocationType, ValueType>(boost::fusion::at_c<LocationType::value>
                                                    (m_virtual_storages), name);
         }
 
         template <typename LocationType>
         array<int_t, 4> ll_indices(array<int_t, 3> const& i, LocationType) const {
-            // std::cout << " *cells* " << std::endl;
             auto out = array<int_t, 4>{i[0], i[1]%static_cast<int_t>(LocationType::n_colors::value),
                         i[1]/static_cast<int>(LocationType::n_colors::value), i[2]};
             return array<int_t, 4>{i[0], i[1]%static_cast<int_t>(LocationType::n_colors::value),
