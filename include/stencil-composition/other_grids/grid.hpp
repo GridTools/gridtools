@@ -590,11 +590,6 @@ namespace gridtools {
 
         const gridtools::array<uint_t, 2> m_dims; // Sizes as cells in a multi-dimensional Cell array
 
-        static constexpr int Dims = 2;
-        //TODO this n_colors is used by execute_kernel_functor_host.hpp, but because at the moment
-        // it is not aware of the location type of iteration. In the future it should be extracted from cells or edges, etc.
-        static constexpr int n_colors = 2;
-
         using virtual_storage_types =
             boost::fusion::vector3<
             v_storage_t<cells>, v_storage_t<edges>, v_storage_t<vertexes>>;
