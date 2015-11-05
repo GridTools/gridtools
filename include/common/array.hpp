@@ -247,7 +247,7 @@ namespace gridtools {
             char _data_storage[sizeof(T)];
 
 //TODO the following breaks CUDA with rectangular grids
-#if defined(RECTANGULAR_GRIDS) && defined(CXX11_ENABLED) && !defined(__CUDACC__)
+#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
             GT_FUNCTION
             _data_item() : _data_storage() {}
 
