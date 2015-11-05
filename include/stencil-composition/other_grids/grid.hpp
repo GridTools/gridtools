@@ -655,7 +655,6 @@ namespace gridtools {
             return from<Location1>::template to<Location2>::template with_color<Color>::get(*this, i);
         }
 
-
         // methods returning the neighbors. Specializations according to the location type
         // needed a way to implement static double dispatch
         template<typename Location1, typename Location2, typename Color>
