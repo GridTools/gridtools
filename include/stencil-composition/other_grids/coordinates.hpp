@@ -12,7 +12,7 @@ namespace gridtools {
 
         typedef Grid grid_t;
     private:
-        Grid m_grid;
+        Grid& m_grid;
     public:
         GT_FUNCTION
         //TODO make grid const

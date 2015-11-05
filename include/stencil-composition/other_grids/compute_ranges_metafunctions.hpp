@@ -22,6 +22,5 @@ namespace gridtools {
                 (boost::mpl::size<typename mss_descriptor_linear_esf_sequence<MssDescriptor>::type>::value ==
                  boost::mpl::size<type>::value), "Internal Error: wrong size");
         };
-
     }
 }
