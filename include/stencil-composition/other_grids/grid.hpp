@@ -573,15 +573,6 @@ namespace gridtools {
         using edges = location_type<1,3>;
         using vertexes = location_type<2,1>;
 
-        template <typename T>
-        struct pointer_to;
-
-        template <int I, uint_t D>
-        struct pointer_to<location_type<I, D>> {
-            using type = double*;
-        };
-
-        //    private:
         template <typename LocationType>
         using v_storage_t = typename Backend::template meta_storage_t<LocationType>;
 
