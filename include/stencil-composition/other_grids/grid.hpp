@@ -585,15 +585,10 @@ namespace gridtools {
             boost::fusion::vector3<
             v_storage_t<cells>, v_storage_t<edges>, v_storage_t<vertexes>>;
 
-        //TODOMEETING make double a general type
-        using storage_types = boost::mpl::vector<storage_t<cells, double>*,
-                                                 storage_t<edges, double>*,
-                                                 storage_t<vertexes, double>* >;
-
         virtual_storage_types m_virtual_storages;
     public:
 
-        using n_locations = static_uint<boost::mpl::size<storage_types>::value >;
+        using n_locations = static_uint<boost::mpl::size<virtual_storage_types>::value >;
         template <typename LocationType>
         uint_t size(LocationType location){return boost::fusion::at_c<LocationType::value >(m_virtual_storages).size();}
 
@@ -603,14 +598,6 @@ namespace gridtools {
         template <int I, int D>
         struct virtual_storage_type<location_type<I, D> > {
             using type = typename boost::fusion::result_of::at_c<virtual_storage_types, I>::type;
-        };
-
-        template <typename T>
-        struct storage_type;
-
-        template <int I, ushort_t D>
-        struct storage_type<location_type<I, D> > {
-            using type = typename boost::mpl::at_c<storage_types, I>::type;
         };
 
         //specific for triangular cells
