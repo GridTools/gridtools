@@ -4,7 +4,7 @@ import sys
 from setuptools import setup
 
 
-version = "$VERSION"
+version = "${VERSION}"
 
 
 #
@@ -47,6 +47,7 @@ setup (
     url              = 'https://github.com/eth-cscs/gridtools',
     license          = 'COSMO',
     packages         = ['gridtools', 'tests'],
+    package_dir      = {         '' : '${CMAKE_CURRENT_SOURCE_DIR}'},
     package_data     = {         '' : ['README.md'],
                         'gridtools' : ['templates/*'],
                             'tests' : ['*.npy']},
