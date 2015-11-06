@@ -59,12 +59,12 @@ struct forward_thomas{
     template <typename Domain>
     GT_FUNCTION
     static void shared_kernel(Domain const& dom) {
-#if (defined(CXX11_ENABLED) && defined(__CUDACC__) )
+#if (defined(CXX11_ENABLED) )
         dom(sup{}) = dom(sup{}/(diag{}-sup{z{-1}}*inf{}));
         dom(rhs{}) = dom((rhs{}-inf{}*rhs{z(-1)})/(diag{}-sup{z(-1)}*inf{}));
 #else
         dom(sup()) = dom(sup())/(dom(diag())-dom(sup(z(-1)))*dom(inf()));
-        dom(rhs()) = (dom(rhs())-dom(inf())*dom(rhs(z(-1))))/(dom(diag())-dom(sup(z(-1)))*dom(inf{}));
+        dom(rhs()) = (dom(rhs())-dom(inf())*dom(rhs(z(-1))))/(dom(diag())-dom(sup(z(-1)))*dom(inf()));
 #endif
     }
 
@@ -101,7 +101,7 @@ struct backward_thomas{
     template <typename Domain>
     GT_FUNCTION
     static void shared_kernel(Domain& dom) {
-#if (defined(CXX11_ENABLED) && defined(__CUDACC__) )
+#if (defined(CXX11_ENABLED) )
         dom(out()) = dom(rhs{}-sup{}*out{0,0,1});
 #else
         dom(out()) = dom(rhs())-dom(sup())*dom(out(0,0,1));

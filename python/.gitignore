@@ -1,9 +1,12 @@
-venv
-venv2
+astviewer
+build
 cover
+dist
+gridtools4py.egg-info
 styles
 samples
-astviewer
+venv
+venv2
 ShallowWater
 .coverage
 .ipynb_checkpoints
