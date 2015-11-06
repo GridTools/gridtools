@@ -301,7 +301,9 @@ endif(ENABLE_PYTHON)
 
 if(GTEST_FOUND)
     add_subdirectory( unit_tests )
-    add_subdirectory( examples )
+    if(RECTANGULAR_GRIDS)
+        add_subdirectory( examples )
+    endif(RECTANGULAR_GRIDS)
 endif(GTEST_FOUND)
 
 file(APPEND ${TEST_SCRIPT} "exit $res\n")
