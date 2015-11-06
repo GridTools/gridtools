@@ -16,13 +16,13 @@ bool do_verification( int_t d1, int_t d2, int_t d3, Storage const& result_ ){
     uint_t b2=2;
     uint_t b3=2;
 
-    storage_local_quad_t::meta_data_t meta_local_(b1,b2,b3,nbQuadPt);
+    typename storage_local_quad_t::meta_data_t meta_local_(b1,b2,b3,nbQuadPt);
     storage_local_quad_t phi(meta_local_, 0., "phi");
     storage_local_quad_t psi(meta_local_, 0., "psi");
 
     //I might want to treat it as a temporary storage (will use less memory but constantly copying back and forth)
     //Or alternatively computing the values on the quadrature points on the GPU
-    storage_global_quad_t::meta_data_t meta_global_(d1,d2,d3,nbQuadPt);
+    typename storage_global_quad_t::meta_data_t meta_global_(d1,d2,d3,nbQuadPt);
     storage_global_quad_t jac (meta_global_, 0., "jac");
 
     for(uint_t i=0; i<d1; ++i)
