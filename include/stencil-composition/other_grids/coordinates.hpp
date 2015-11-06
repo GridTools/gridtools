@@ -2,6 +2,7 @@
 #include "stencil-composition/axis.hpp"
 #include "common/halo_descriptor.hpp"
 #include "stencil-composition/common_grids/coordinates_cg.hpp"
+#include "stencil-composition/other_grids/grid.hpp"
 
 namespace gridtools {
 
