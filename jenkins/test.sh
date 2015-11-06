@@ -1,0 +1,37 @@
+#!/bin/bash -f
+
+JENKINSPATH=${0%/*}
+source ${JENKINSPATH}/machine_env.sh
+maxsleep=7200
+
+if [ $myhost == "greina" ]; then
+    bash ./run_tests.sh
+    exit $?
+else 
+    source ${JENKINSPATH}/slurmTools.sh
+    source ${JENKINSPATH}/env_${myhost}.sh 
+    launch_job ${JENKINSPATH}/submit.kesch.slurm ${maxsleep} &
+    wait
+   
+    grep 'FAILED' test.out
+    if [ $? -eq 0 ] ; then
+        # echo output to stdout
+        test -f test.out || exitError 6550 ${LINENO} "batch job output file missing"
+        echo "=== test.out BEGIN ==="
+        cat test.out | /bin/sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g"
+        echo "=== test.out END ==="
+        # abort
+        exitError 4654 ${LINENO} "problem with unittests for test data detected"
+  else
+    echo "Unittests successfull (see test.out for detailed log)"
+  fi
+fi
+
+# end timer and report time taken
+T="$(($(date +%s)-T))"
+printf "####### time taken: %02d:%02d:%02d:%02d\n" "$((T/86400))" "$((T/3600%24))" "$((T/60%60))" "$((T%60))"
+
+# no errors encountered
+echo "####### finished: $0 $* (PID=$$ HOST=$HOSTNAME TIME=`date '+%D %H:%M:%S'`)"
+exit 0
+
