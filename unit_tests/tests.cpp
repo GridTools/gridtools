@@ -5,9 +5,6 @@
 #include "boundary_conditions_test.hpp"
 #include "copies_2D_1D_0D.hpp"
 #include "external_ptr_test/CopyStencil.hpp"
-#ifdef CXX11_ENABLED
-#include "test-assign-placeholders.hpp"
-#endif
 #include "accessor_tests.hpp"
 #include "loop_hierarchy_test.hpp"
 
@@ -57,12 +54,6 @@ TEST(stencil, loop_hierarchy) {
 #undef TESTCLASS
 #define TESTCLASS stencil
 #include "stencil_tests.hpp"
-
-#ifdef CXX11_ENABLED
-TEST(testdomain, assignplchdrs) {
-    EXPECT_EQ(assign_placeholders(), true);
-}
-#endif
 
 TEST(testcommon, layoutmap) {
     EXPECT_EQ(test_layout_map(), true);

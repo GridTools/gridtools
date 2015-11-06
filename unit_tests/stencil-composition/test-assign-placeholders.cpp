@@ -1,6 +1,5 @@
-
+#include "gtest/gtest.h"
 #include <gridtools.hpp>
-
 #include "stencil-composition/stencil-composition.hpp"
 
 /*
@@ -11,7 +10,7 @@ using namespace gridtools;
 using namespace enumtype;
 
 
-bool assign_placeholders() {
+TEST(assign_placeholders, test) {
 
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<Cuda, Block >
@@ -57,7 +56,7 @@ bool assign_placeholders() {
 
     gridtools::domain_type<accessor_list> domain( boost::fusion::make_vector(&coeff, &in, &out) );
 
-    return ((boost::fusion::at_c<3>(domain.storage_pointers_view()) == &coeff) &&
+    ASSERT_TRUE((boost::fusion::at_c<3>(domain.storage_pointers_view()) == &coeff) &&
             (boost::fusion::at_c<4>(domain.storage_pointers_view()) == &in) &&
             (boost::fusion::at_c<5>(domain.storage_pointers_view()) == &out));
 }

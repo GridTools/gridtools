@@ -19,9 +19,6 @@ set(COMMON_TESTS
     test_domain_indices.cpp
     boundary_conditions_test.cpp
 )
-if(ENABLE_CXX11)
-    set(COMMON_TESTS ${COMMON_TESTS} test-assign-placeholders.cpp)
-endif(ENABLE_CXX11)
 
 if(RECTANGULAR_GRIDS)
     set(COMMON_TESTS ${COMMON_TESTS} tests.cpp)
