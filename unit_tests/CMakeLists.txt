@@ -15,31 +15,35 @@ if ( ENABLE_CXX11 AND RECTANGULAR_GRIDS)
 
 endif()
 
-if (GTEST_FOUND)
-    set(COMMON_TESTS
-        tests.cpp
-        test_domain_indices.cpp
-        boundary_conditions_test.cpp
-    )
-    set(CXX11_TESTS test-assign-placeholders.cpp test_data_fields.cpp test_integer_sequence.cpp)
+set(COMMON_TESTS
+    test_domain_indices.cpp
+    boundary_conditions_test.cpp
+)
+if(ENABLE_CXX11)
+    set(COMMON_TESTS ${COMMON_TESTS} test-assign-placeholders.cpp test_data_fields.cpp test_integer_sequence.cpp)
+endif(ENABLE_CXX11)
 
-    add_executable(tests ${COMMON_TESTS})
-  # include boost
-  include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
-  link_directories( ${Boost_LIBRARY_DIRS} )
+if(RECTANGULAR_GRIDS)
+    set(COMMON_TESTS ${COMMON_TESTS} tests.cpp)
+endif(RECTANGULAR_GRIDS)
 
-  set_target_properties(tests PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+add_executable(tests ${COMMON_TESTS})
+# include boost
+include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
+link_directories( ${Boost_LIBRARY_DIRS} )
 
-  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+set_target_properties(tests PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     target_link_libraries(tests ${GTEST_BOTH_LIBRARIES} gcl ${exe_LIBS})
-  else()
+else()
     target_link_libraries(tests ${GTEST_BOTH_LIBRARIES} gcl -lpthread ${exe_LIBS})
-  endif()
+endif()
 
 
-  gridtools_add_test(test.tests ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/tests")
+gridtools_add_test(test.tests ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/tests")
 
-  if (CUDA_FOUND)
+if (CUDA_FOUND)
     cuda_add_executable( tests_gpu
       tests.cu
       test_domain.cu
@@ -61,20 +65,19 @@ if (GTEST_FOUND)
     set(ENV{BIN_DIR} ${CMAKE_BINARY_DIR}/build)
     set(ENV{SRC_DIR} ${CMAKE_SOURCE_DIR})
 
-if(GNU_COVERAGE)
-  if(GCOVR_PATH)
-    set( GCOVR_PATH ${GCOVR_PATH}/ )
-  endif( GCOVR_PATH )
-  add_custom_command(TARGET tests
-    POST_BUILD
-    COMMAND echo "running the coverage sampling"
-    COMMAND $ENV{BIN_DIR}/tests
-    COMMAND ${GCOVR_PATH}gcovr  -r $ENV{SRC_DIR}
-    COMMAND ${GCOVR_PATH}gcovr  --branches -r $ENV{SRC_DIR}
-    )
-endif()
+    if(GNU_COVERAGE)
+      if(GCOVR_PATH)
+        set( GCOVR_PATH ${GCOVR_PATH}/ )
+      endif( GCOVR_PATH )
+      add_custom_command(TARGET tests
+        POST_BUILD
+        COMMAND echo "running the coverage sampling"
+        COMMAND $ENV{BIN_DIR}/tests
+        COMMAND ${GCOVR_PATH}gcovr  -r $ENV{SRC_DIR}
+        COMMAND ${GCOVR_PATH}gcovr  --branches -r $ENV{SRC_DIR}
+      )
+    endif()
 
-  endif()
 endif()
 
 if (CUDA_FOUND)

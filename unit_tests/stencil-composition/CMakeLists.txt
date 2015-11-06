@@ -3,11 +3,11 @@ include_directories( ../../include/stencil-composition ) ## Library header files
 
 FILE(GLOB_RECURSE INC_ALL "../../include/stencil-composition/[a-z]*.hpp")
 
-SET(STENCIL_COMPOSITION_UNITTEST_SOURCES test_make_computation.cpp test_accessor.cpp ${INC_ALL})
+SET(STENCIL_COMPOSITION_UNITTEST_SOURCES test_accessor.cpp ${INC_ALL})
 if ( ENABLE_CXX11 )
   if( RECTANGULAR_GRIDS)
     SET(STENCIL_COMPOSITION_UNITTEST_SOURCES ${STENCIL_COMPOSITION_UNITTEST_SOURCES} 
-        test_cycle_and_swap.cpp test_iterate_domain.cpp test_mss_metafunctions.cpp test_make_computation)
+        test_cycle_and_swap.cpp test_iterate_domain.cpp test_mss_metafunctions.cpp)
   endif()
 endif( ENABLE_CXX11 )
 
