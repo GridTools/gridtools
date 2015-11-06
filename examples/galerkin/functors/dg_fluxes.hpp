@@ -70,10 +70,9 @@ namespace functors{
 
         using geo_map=typename Geometry::geo_map;
 
-        using in1=accessor<0, range<> , 4>;
-        using in2=accessor<1, range<> , 4>;
-        using out=accessor<2, range<> , 4> ;
-        using arg_list=boost::mpl::vector<in1, in2, out> ;
+        using in=accessor<0, range<> , 4>;
+        using out=accessor<1, range<> , 4> ;
+        using arg_list=boost::mpl::vector<in, out> ;
 
         template <typename Evaluation>
         GT_FUNCTION
@@ -105,23 +104,23 @@ namespace functors{
                     auto dof_z=indexing.index(I, J, 0);
                     auto dof_zz=indexing.index(I, J, indexing.template dims<2>()-1);
 
-                    const auto N=eval.get().get_storage_dims(in1())[3];
+                    const auto N=eval.get().get_storage_dims(in())[3];
 
                     //initial value
-                    auto c=eval(D(Flux()(in1())));
+                    auto c=eval(D(Flux()(in())));
 
                     //find the maximum
                     for(ushort_t it_=1; it_<N; ++it_)
-                        c=(c>eval(expressions::D(Flux()(in1(row+it_))))) ? c : eval(D(Flux()(in1(row+it_))));
+                        c=(c>eval(expressions::D(Flux()(in(row+it_))))) ? c : eval(D(Flux()(in(row+it_))));
 
                     //average the contribution from elem i-1 on the opposite face
-                    eval(out(row+dof_x)) += (eval(Flux()(in1(row+dof_x))+Flux()(in2(i-1, row+dof_xx)))/2. - c*(eval(in1(row+dof_x)) - eval(in2(i-1, row+dof_xx))))/2.;
+                    eval(out(row+dof_x)) += (eval(Flux()(in(row+dof_x))+Flux()(in(i-1, row+dof_xx)))/2. - c*(eval(in(row+dof_x)) - eval(in(i-1, row+dof_xx))))/2.;
 
                     //average the contribution from elem j-1 on the opposite face
-                    eval(out(row+dof_x)) += (eval(Flux()(in1(row+dof_y))+Flux()(in2(i-1, row+dof_yy))) - c*eval(in1(row+dof_y)) - eval(in2(i-1, row+dof_yy)))/2.;
+                    eval(out(row+dof_x)) += (eval(Flux()(in(row+dof_y))+Flux()(in(i-1, row+dof_yy))) - c*eval(in(row+dof_y)) - eval(in(i-1, row+dof_yy)))/2.;
 
                     //average the contribution from elem k-1 on the opposite face
-                    eval(out(row+dof_x)) += (eval(Flux()(in1(row+dof_z))+Flux()(in2(i-1, row+dof_zz))) - c*(eval(in1(row+dof_z)) - eval(in2(i-1, row+dof_zz))))/2.;
+                    eval(out(row+dof_x)) += (eval(Flux()(in(row+dof_z))+Flux()(in(i-1, row+dof_zz))) - c*(eval(in(row+dof_z)) - eval(in(i-1, row+dof_zz))))/2.;
 
                 }
         }

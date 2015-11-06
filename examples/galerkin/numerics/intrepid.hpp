@@ -15,8 +15,6 @@
 
 #define REORDER
 
-// #include "assembly.h"
-
 namespace gridtools{
 namespace intrepid{
 
@@ -58,28 +56,36 @@ namespace intrepid{
         std::unique_ptr<basis_function_storage_t> m_phi_at_cub_points_s;
 
         cub_points_storage_t // const
-        & cub_points()// const
-            {return m_cub_points_s;}
-        weights_storage_t // const
-        & cub_weights()// const
-            {return m_cub_weights_s;}
-        grad_storage_t // const
-        & grad()// const
-            {return *m_grad_at_cub_points_s;}
+        & cub_points()
+        {return m_cub_points_s;}
 
-        basis_function_storage_t // const
-        & val()// const
-            {return *m_phi_at_cub_points_s;}
+        weights_storage_t& cub_weights()// const
+            {return m_cub_weights_s;}
+        grad_storage_t& grad()// const
+            {
+                //If this assertion fails most probably you have not called
+                //compute with te OPERATOR_GRAD flag
+                assert(m_grad_at_cub_points_s.get());
+                return *m_grad_at_cub_points_s;
+            }
+
+        basis_function_storage_t & val()// const
+            {
+                //If this assertion fails most probably you have not called
+                //compute with te OPERATOR_VALUE flag
+                assert(m_phi_at_cub_points_s.get());
+                return *m_phi_at_cub_points_s;
+            }
 
         discretization() :
             m_cub_points_s_info(cub::numCubPoints(), fe::spaceDim,1)
             , m_cub_weights_s_info(cub::numCubPoints(),1,1)
-            , m_grad_at_cub_points_s_info()
-            , m_phi_at_cub_points_s_info()
+            , m_grad_at_cub_points_s_info(new grad_storage_t_info())//construct empty
+            , m_phi_at_cub_points_s_info(new basis_function_storage_t_info())//construct empty
             , m_cub_points_s(m_cub_points_s_info, "cub points")
             , m_cub_weights_s(m_cub_weights_s_info, "cub weights")
-            , m_grad_at_cub_points_s()
-            , m_phi_at_cub_points_s()
+            , m_grad_at_cub_points_s(new grad_storage_t(*m_grad_at_cub_points_s_info))//construct empty
+            , m_phi_at_cub_points_s(new basis_function_storage_t(*m_phi_at_cub_points_s_info))//construct empty
             {
             }
 

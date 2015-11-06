@@ -113,6 +113,64 @@ namespace functors{
     // };
 
 
+
+// [boundary integration]
+/**
+   This functor computes an integran over a boundary face
+*/
+
+    using namespace expressions;
+    template <typename FE, typename BoundaryCubature>
+    struct bd_mass {
+        using fe=FE;
+        using bd_cub=BoundaryCubature;
+
+        using jac_det=accessor< 0, range<0,0,0,0>, 5 >;
+        using weights=accessor< 1, range<0,0,0,0>, 3 >;
+        using phi_trace=accessor< 2, range<0,0,0,0>, 3 >;
+        using psi_trace=accessor< 3, range<0,0,0,0>, 3 >;
+        using out=accessor< 4, range<0,0,0,0>, 6 >;
+
+        using arg_list=boost::mpl::vector<jac_det, weights, phi_trace, psi_trace, out> ;
+
+        /** @brief compute the integral on the boundary of a field times the normals
+
+            note that we use here the traces of the basis functions, i.e. the basis functions
+            evaluated on the quadrature points of the boundary faces.
+        */
+        template <typename Evaluation>
+        GT_FUNCTION
+        static void Do(Evaluation const & eval, x_interval) {
+            dimension<4>::Index quad;
+            dimension<4>::Index dofI;
+            dimension<5>::Index dofJ;
+
+            uint_t const num_cub_points=eval.get().get_storage_dims(jac_det())[3];
+            uint_t const basis_cardinality = eval.get().get_storage_dims(phi_trace())[0];
+            uint_t const n_faces = eval.get().get_storage_dims(jac_det())[4];
+
+
+            for(short_t face_=0; face_<n_faces; ++face_) // current dof
+            {
+                //loop on the basis functions (interpolation in the quadrature point)
+                //over the whole basis TODO: can be reduced
+                for(short_t P_i=0; P_i<basis_cardinality; ++P_i) // current dof
+                {
+                    for(short_t P_j=0; P_j<basis_cardinality; ++P_j) // current dof
+                    {
+                        float_type partial_sum=0.;
+                        for(ushort_t q_=0; q_<num_cub_points; ++q_){
+                            partial_sum += eval(!phi_trace(P_i,q_,face_)*!psi_trace(P_j, q_, face_)*jac_det(quad+q_, dimension<5>(face_)) * !weights(q_));
+                        }
+                        eval(out(dofI+P_i, dofJ+P_j, dimension<6>(face_)))=partial_sum;
+                    }
+                }
+            }
+        }
+    };
+// [boundary integration]
+
+
     // //! [det]
 
     template<typename Geometry, ushort_t Codimensoin>
@@ -120,7 +178,7 @@ namespace functors{
 
     //! [measure]
     template<typename Geometry>
-    struct measure<Geometry, 2>{
+    struct measure<Geometry, 1>{
         using cub=typename Geometry::cub;
 
         using jac = accessor<0, range<0,0,0,0> , 7> const;

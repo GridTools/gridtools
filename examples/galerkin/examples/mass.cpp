@@ -3,7 +3,7 @@
 */
 #pragma once
 #define PEDANTIC_DISABLED
-#include "../functors/assembly.hpp"
+#include "../numerics/assembly.hpp"
 
 // [integration]
 template <typename FE, typename Cubature>

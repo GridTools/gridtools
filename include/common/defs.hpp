@@ -10,6 +10,14 @@
 #define CXX11_DISABLED
 #endif
 
+//this MUST be included before any boost include
+#ifndef FUSION_MAX_VECTOR_SIZE
+    #define FUSION_MAX_VECTOR_SIZE 60
+    #define FUSION_MAX_MAP_SIZE 60
+    #define BOOST_MPL_LIMIT_VECTOR_SIZE FUSION_MAX_VECTOR_SIZE
+    #define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
+#endif
+
 //defines how many threads participate to the (shared) memory initialization
 //TODOCOSUNA This IS VERY VERY VERY DANGEROUS HERE
 #define BLOCK_SIZE 32
@@ -27,11 +35,6 @@
 #include <boost/utility/enable_if.hpp>
 #include <boost/mpl/logical.hpp>
 #include <boost/type_traits.hpp>
-
-#ifndef FUSION_MAX_VECTOR_SIZE
-    #define FUSION_MAX_VECTOR_SIZE 20
-    #define FUSION_MAX_MAP_SIZE 20
-#endif
 
 #define GT_MAX_ARGS 20
 #define GT_MAX_INDEPENDENT 3

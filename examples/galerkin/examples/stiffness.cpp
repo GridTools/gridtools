@@ -4,7 +4,7 @@
 #pragma once
 #define PEDANTIC_DISABLED
 //! [assembly]
-#include "../functors/assembly.hpp"
+#include "../numerics/assembly.hpp"
 //! [assembly]
 #include "test_assembly.hpp"
 

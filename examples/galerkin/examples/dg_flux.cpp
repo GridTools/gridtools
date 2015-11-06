@@ -4,7 +4,7 @@
 #define PEDANTIC_DISABLED
 #define HAVE_INTREPID_DEBUG
 //! [assembly]
-#include "../functors/bd_assembly.hpp"
+#include "../numerics/bd_assembly.hpp"
 //! [assembly]
 #include "test_dg_flux.hpp"
 #include "../functors/dg_fluxes.hpp"
@@ -83,8 +83,8 @@ int main(){
     //![boundary]
 
 
-    using as=assembly<bd_discr_t, geo_t>;
-
+    using as_base=assembly_base<geo_t>;
+    using as=bd_assembly<bd_discr_t>;
 
     //![definitions]
 
@@ -96,7 +96,11 @@ int main(){
     geo_t geo;
     //![as_instantiation]
     //constructing the integration tools on the boundary
+    as_base assembler_base(d1,d2,d3);
     as assembler(bd_discr_,d1,d2,d3);
+
+    using domain_tuple_t=domain_type_tuple<geo_t, bd_discr_t>
+    domain_tuple_t domain_tuple(assembler_base, assembler);
     //![as_instantiation]
 
     //![grid]
@@ -106,9 +110,9 @@ int main(){
             for (uint_t k=0; k<d3; k++)
                 for (uint_t point=0; point<fe::basisCardinality; point++)
                 {
-                    assembler.grid()( i,  j,  k,  point,  0)= (i + geo.grid()(point, 0));
-                    assembler.grid()( i,  j,  k,  point,  1)= (j + geo.grid()(point, 1));
-                    assembler.grid()( i,  j,  k,  point,  2)= (k + geo.grid()(point, 2));
+                    assembler_base.grid()( i,  j,  k,  point,  0)= (i + geo.grid()(point, 0));
+                    assembler_base.grid()( i,  j,  k,  point,  1)= (j + geo.grid()(point, 1));
+                    assembler_base.grid()( i,  j,  k,  point,  2)= (k + geo.grid()(point, 2));
                 }
     //![grid]
 
@@ -138,7 +142,7 @@ int main(){
     typedef arg<as::size+6, vector_type> p_integrated_flux;
 
     // appending the placeholders to the list of placeholders already in place
-    auto domain=assembler.template domain<p_mass, p_bd_dphi, p_bd_phi, p_u, p_jump, p_flux, p_integrated_flux>(mass_, bd_discr_.grad(), bd_discr_.val(), u_, jump_, flux_, integrated_flux_);
+    auto domain=domain_tuple.template domain<p_mass, p_bd_dphi, p_bd_phi, p_u, p_jump, p_flux, p_integrated_flux>(mass_, bd_discr_.grad(), bd_discr_.val(), u_, jump_, flux_, integrated_flux_);
     //![placeholders]
 
 
@@ -153,7 +157,7 @@ int main(){
         (
             execute<forward>()
             // evaluate the cell Jacobian matrix on the boundary (given the basis functions derivatives in those points)
-            , make_esf<functors::update_jac<bd_discr_t , enumtype::Hexa> >(as::p_grid_points(), p_bd_dphi(), as::p_bd_jac())
+            , make_esf<functors::update_bd_jac<bd_discr_t , enumtype::Hexa> >(as::p_grid_points(), p_bd_dphi(), as::p_bd_jac())
             // compute the normals on the quad points from the jacobian above (first 2 columns), unnecessary
             , make_esf<functors::compute_face_normals<bd_discr_t> >(as::p_bd_jac(), as::p_ref_normals(), as::p_normals())
             // surface integral:

@@ -4,7 +4,7 @@
 #define PEDANTIC_DISABLED
 #define HAVE_INTREPID_DEBUG
 //! [assembly]
-#include "../functors/assembly.hpp"
+#include "../numerics/assembly.hpp"
 //! [assembly]
 #include "gather_reference.hpp"
 #include <tools/verifier.hpp>

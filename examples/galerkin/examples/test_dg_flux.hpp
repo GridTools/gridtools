@@ -2,7 +2,7 @@
 \file
 */
 #pragma once
-#include "../functors/bd_assembly.hpp"
+#include "../numerics/bd_assembly.hpp"
 #include <Intrepid_CellTools.hpp>
 
 namespace gridtools{

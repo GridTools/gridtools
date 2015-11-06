@@ -2,8 +2,8 @@
 
 #include <stencil-composition/make_computation.hpp>
 // [includes]
-#include "../numerics/basis_functions.hpp"
-#include "../numerics/intrepid.hpp"
+#include "basis_functions.hpp"
+#include "intrepid.hpp"
 // [includes]
 #ifdef CXX11_ENABLED
 
@@ -40,14 +40,32 @@ public:
 
 }; //struct assembly
 
-
+//struct definition
 template < typename ... Types >
 struct domain_type_tuple;
 
-template < typename Geometry >
-struct domain_type_tuple<assembly_base<Geometry> >{
+/**
+    default case: just forwarding the args
+    necessary in order to allow arbitrary order of the template arguments
+ */
+template <>
+struct domain_type_tuple<>{
+
+    static const ushort_t size=0;
+
+    template <typename ... MPLList>
+    gridtools::domain_type< boost::mpl::vector<MPLList ...> >
+    domain(typename MPLList::storage_type& ...  storages_ ){
+        return domain_type<boost::mpl::vector< MPLList ...> >(boost::fusion::make_vector(&storages_ ...));
+    }
+
+};
+
+template < typename Geometry, typename ... Rest >
+struct domain_type_tuple<assembly_base<Geometry>, Rest ... > : domain_type_tuple<Rest ...> {
 
 private:
+    using super = domain_type_tuple< Rest ...>;
     using as_t = assembly_base<Geometry>;
     as_t & m_as;
 
@@ -62,9 +80,19 @@ public:
     static const ushort_t size=1;
 
     template <typename ... MPLList>
-    gridtools::domain_type< boost::mpl::vector<p_grid_points, MPLList ...> >
-    domain(typename MPLList::storage_type& ...  storages_ ){
-        return domain_type<boost::mpl::vector<p_grid_points, MPLList ...> >(boost::fusion::make_vector(&m_as.grid(), &storages_ ...));
+    gridtools::domain_type< boost::mpl::vector<p_grid_points
+                                               , typename boost::remove_reference
+                                               <typename boost::remove_pointer<
+                                                    MPLList>::type>::type ...> >
+    domain(typename boost::remove_reference
+               <typename boost::remove_pointer<
+               typename MPLList::storage_type>::type>::type& ...  storages_ ){
+        return super::template domain<p_grid_points
+                                      , typename boost::remove_reference
+                                      <typename boost::remove_pointer<
+                                           MPLList>::type>::type ...
+                                      >
+            (m_as.grid(), storages_ ...);
     }
 
 };

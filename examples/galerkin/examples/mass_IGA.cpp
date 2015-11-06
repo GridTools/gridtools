@@ -2,7 +2,7 @@
 \file
 */
 #define PEDANTIC_DISABLED
-#include "../functors/assembly.hpp"
+#include "../numerics/assembly.hpp"
 #include "../functors/matvec.hpp"
 
 namespace functors{

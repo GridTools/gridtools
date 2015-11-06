@@ -1,78 +1,46 @@
+
+//this MUST be included before any boost include
+#define FUSION_MAX_VECTOR_SIZE 40
+#define FUSION_MAX_MAP_SIZE FUSION_MAX_VECTOR_SIZE
+#define BOOST_MPL_LIMIT_VECTOR_SIZE FUSION_MAX_VECTOR_SIZE
+#define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
+
+
 /**
 \file
 */
 #define PEDANTIC_DISABLED
 #define HAVE_INTREPID_DEBUG
 //! [assembly]
-#include "../functors/bd_assembly.hpp"
+#include "../numerics/bd_assembly.hpp"
 //! [assembly]
 // #include "test_dg_flux.hpp"
 #include "../functors/dg_fluxes.hpp"
 #include "../functors/matvec.hpp"
 
-
-// [boundary integration]
 /**
-   This functor computes an integran over a boundary face
+@brief flux F(u)
+
+in the equation \f$ \frac{\partial u}{\partial t}=F(u) \f$
 */
-
-using namespace expressions;
-template <typename FE, typename BoundaryCubature>
-struct integration {
-    using fe=FE;
-    using bd_cub=BoundaryCubature;
-
-    using jac_det=accessor< 0, range<0,0,0,0>, 5 >;
-    using weights=accessor< 1, range<0,0,0,0>, 3 >;
-    using phi_trace=accessor< 2, range<0,0,0,0>, 3 >;
-    using psi_trace=accessor< 3, range<0,0,0,0>, 3 >;
-    using out=accessor< 4, range<0,0,0,0>, 6 >;
-
-    using arg_list=boost::mpl::vector<jac_det, weights, phi_trace, psi_trace, out> ;
-
-    /** @brief compute the integral on the boundary of a field times the normals
-
-        note that we use here the traces of the basis functions, i.e. the basis functions
-        evaluated on the quadrature points of the boundary faces.
-    */
-    template <typename Evaluation>
-    GT_FUNCTION
-    static void Do(Evaluation const & eval, x_interval) {
-        dimension<4>::Index quad;
-        dimension<4>::Index dofI;
-        dimension<5>::Index dofJ;
-
-        uint_t const num_cub_points=eval.get().get_storage_dims(jac_det())[3];
-        uint_t const basis_cardinality = eval.get().get_storage_dims(phi_trace())[0];
-        uint_t const n_faces = eval.get().get_storage_dims(jac_det())[4];
-
-
-        for(short_t face_=0; face_<n_faces; ++face_) // current dof
-        {
-            //loop on the basis functions (interpolation in the quadrature point)
-            //over the whole basis TODO: can be reduced
-            for(short_t P_i=0; P_i<basis_cardinality; ++P_i) // current dof
-            {
-                for(short_t P_j=0; P_j<basis_cardinality; ++P_j) // current dof
-                {
-                    float_type partial_sum=0.;
-                    for(ushort_t q_=0; q_<num_cub_points; ++q_){
-                        partial_sum += eval(!phi_trace(P_i,q_,face_)*!psi_trace(P_j, q_, face_)*jac_det(quad+q_, dimension<5>(face_)) * !weights(q_));
-                    }
-                    eval(out(dofI+P_i, dofJ+P_j, dimension<6>(face_)))=partial_sum;
-                }
-            }
-        }
-    }
-};
-// [boundary integration]
-
-struct flux{
+struct flux {
     template<typename Arg>
+    GT_FUNCTION
     constexpr auto operator()(Arg const& arg_) -> decltype((Arg()+Arg())/2.){
+        array<double, 3> v;
         return (arg_+arg_)/2.;
     }
 };
+
+/**
+@brief advection vector v
+
+*/
+struct advection_vector {
+    static constexpr array<double, 3> value={1.,1.,1.};
+};
+
+constexpr array<double, 3> advection_vector::value;
 
 int main(){
     //![definitions]
@@ -91,8 +59,6 @@ int main(){
     fe_.compute(Intrepid::OPERATOR_VALUE);
 
     //boundary
-    using bd_matrix_storage_info_t=storage_info< layout_tt<3,4,5>,  __COUNTER__ >;
-    using bd_matrix_type=storage_t< bd_matrix_storage_info_t >;
     using bd_cub_t = intrepid::boundary_cub<geo_map, cub::cubDegree>;
     using bd_discr_t = intrepid::boundary_discr<bd_cub_t>;
     bd_cub_t bd_cub_;
@@ -115,6 +81,8 @@ int main(){
     auto d3=1;
 
     geo_t geo_;
+    geo_.compute(Intrepid::OPERATOR_GRAD);
+    geo_.compute(Intrepid::OPERATOR_VALUE);
     //![as_instantiation]
     //constructing the integration tools on the boundary
 
@@ -144,31 +112,33 @@ int main(){
     //defining the advection matrix: d1xd2xd3 elements
     matrix_storage_info_t meta_(d1,d2,d3,geo_map::basisCardinality,geo_map::basisCardinality);
     matrix_type advection_(meta_, 0., "advection");
+    matrix_type mass_(meta_, 0., "mass");
 
-    /**overdimensioned. Reduce*/
-    bd_matrix_storage_info_t bd_meta_(d1,d2,d3,geo_map::basisCardinality,geo_map::basisCardinality, 6/*faces*/);
-    bd_matrix_type bd_mass_(bd_meta_, 0., "mass");
-
-    using vector_storage_info_t=storage_info< layout_tt<3>,  __COUNTER__ >;
+    using vector_storage_info_t=storage_info< layout_tt<3>,  __COUNTER__ >;//TODO change: iterate on faces
     using vector_type=storage_t< vector_storage_info_t >;
+
     vector_storage_info_t vec_meta_(d1,d2,d3,geo_map::basisCardinality);
     vector_type u_(vec_meta_, 2., "u");//initial solution
-    vector_type flux_(vec_meta_, 0., "flux");
-    vector_type result_(vec_meta_, 0., "result");
+    vector_type result_(vec_meta_, 0., "result");//new solution
 
     //![placeholders]
     // defining the placeholder for the mass
-    typedef arg<domain_tuple_t::size, bd_matrix_type> p_bd_mass;
+    // typedef arg<domain_tuple_t::size, bd_matrix_type> p_bd_mass;
     // defining the placeholder for the local gradient of the element boundary face
-    typedef arg<domain_tuple_t::size+1, bd_discr_t::grad_storage_t> p_bd_dphi;
+    // typedef arg<domain_tuple_t::size+1, bd_discr_t::grad_storage_t> p_bd_dphi;
 
-    typedef arg<domain_tuple_t::size+2, bd_discr_t::basis_function_storage_t> p_bd_phi;
-    typedef arg<domain_tuple_t::size+3, vector_type> p_u;
-    typedef arg<domain_tuple_t::size+4, vector_type> p_flux;
-    typedef arg<domain_tuple_t::size+5, vector_type> p_result;
+    // typedef arg<domain_tuple_t::size+2, bd_discr_t::basis_function_storage_t> p_bd_phi;
+    typedef arg<domain_tuple_t::size, vector_type> p_u;
+    typedef arg<domain_tuple_t::size+1, vector_type> p_result;
+    typedef arg<domain_tuple_t::size+2, matrix_type> p_mass;
+    typedef arg<domain_tuple_t::size+3, matrix_type> p_advection;
+    typedef arg<domain_tuple_t::size+4, typename geo_t::basis_function_storage_t> p_phi;
+    typedef arg<domain_tuple_t::size+5,  typename geo_t::grad_storage_t> p_dphi;
 
     // appending the placeholders to the list of placeholders already in place
-    auto domain=domain_tuple_.template domain<p_bd_mass, p_bd_dphi, p_bd_phi, p_u, p_flux, p_result>(bd_mass_, bd_discr_.grad(), bd_discr_.val(), u_,  flux_, result_);
+    auto domain=domain_tuple_.template domain
+        <p_u, p_result , p_mass, p_advection, p_phi, p_dphi>
+        ( u_, result_, mass_, advection_, geo_.val(), geo_.grad());
     //![placeholders]
 
 
@@ -185,20 +155,37 @@ int main(){
         make_mss
         (
             execute<forward>()
-            // boundary fluxes
-            , make_esf<functors::update_bd_jac<bd_discr_t , enumtype::Hexa> >(dt::p_grid_points(), p_bd_dphi(), dt::p_bd_jac())
-            , make_esf<functors::measure<bd_discr_t, 2> >(dt::p_bd_jac(),
-                                                          dt::p_bd_measure())
-            , make_esf<integration<geo_map, bd_cub_t::bd_cub> >(dt::p_bd_measure(), dt::p_bd_weights(), p_bd_phi(), p_bd_phi(), p_bd_mass()) //mass
-            //, make_esf<functors::bassi_rebay<bd_discr_t> >(p_u(), p_u(), p_flux())
-            , make_esf<functors::lax_friedrich<bd_discr_t, flux > >(p_u(), p_u(), p_flux())
 
-            // // Internal element
-            // , make_esf<functors::update_jac<geo_t , enumtype::Hexa> >(as::p_grid_points(), p_dphi(), as::p_jac())
-            // , make_esf<functors::det<geo_t> >(as::p_jac(), as::p_jac_det())
-            // , make_esf<advection<fe> >(as::p_jac_det(), as::p_weight(), p_phi(), p_dphi(), p_advection()) //advection
-            // // integrate the two contributions
-            // , make_esf< integrate >( p_u(), p_flux(), p_bd_mass(), p_advection(), p_result() )
+            // boundary fluxes
+
+            //computes the jacobian in the boundary points of each element
+            , dt::update_bd_jac<enumtype::Hexa>::esf()
+            //computes the measure of the boundaries with codimension 1 (ok, faces)
+            , dt::measure<1>::esf()
+            //computes the mass on the element boundaries
+            , dt::bd_mass::esf()
+
+            // Internal element
+
+            //compute the Jacobian matrix
+            , dt::update_jac<enumtype::Hexa>::esf()
+            // compute the measure (det(J))
+            , make_esf<functors::det<geo_t> >(dt::p_jac(), dt::p_jac_det())
+            // compute the mass matrix
+            , dt::mass< geo_t, cub >::esf(p_phi(), p_mass()) //mass
+            // compute the advection matrix
+            , dt::advection< geo_t, cub, advection_vector >::esf(p_phi(), p_dphi(), p_advection()) //advection
+
+            // computing flux/discretize
+
+            // compute Lax-Friedrich flux (communication-gather) result=flux;
+            , dt::lax_friedrich<flux>::esf(p_u(), p_result())
+            // result+=M*u
+            , make_esf< functors::matvec >( p_u(), p_mass(), p_result() )
+            // result+=A*u
+            , make_esf< functors::matvec >( p_u(), p_advection(), p_result() )
+            // Optional: assemble the result vector by summing the values on the element boundaries
+            , make_esf< functors::assemble<geo_t, add_functor> >( p_result(), p_result(), p_result() )
             // , make_esf< time_advance >(p_u(), p_result())
             ), domain, coords);
 

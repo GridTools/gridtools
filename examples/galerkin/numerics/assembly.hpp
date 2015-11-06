@@ -2,7 +2,10 @@
 
 // [includes]
 #include "assembly_base.hpp"
-#include "assembly_functors.hpp"
+// #include "assembly_functors.hpp"
+// #include "mass.hpp"
+// #include "advection.hpp"
+// #include "stiffness.hpp"
 // [includes]
 #ifdef CXX11_ENABLED
 
@@ -78,7 +81,7 @@ public:
     jacobian_type & jac_inv() {return m_jac_inv;}
     typename Geometry::weights_storage_t & cub_weights() {return m_fe_backend.cub_weights();}
 
-// [private members]
+    // [private members]
 
 }; //struct assembly
 
@@ -105,38 +108,96 @@ public:
     typedef arg<super::size+1, typename as_t::geometry_t::weights_storage_t >   p_weights;
     typedef arg<super::size+2, typename as_t::storage_type >    p_jac_det;
     typedef arg<super::size+3, typename as_t::jacobian_type >   p_jac_inv;
-    static const uint_t size=super::size+4;
+    typedef arg<super::size+4, typename as_t::geometry_t::basis_function_storage_t> p_phi;
+    typedef arg<super::size+5, typename as_t::geometry_t::grad_storage_t> p_dphi;
+    static const uint_t size=super::size+6;
 
     /**
        @brief adds few extra placeholders<->storages items to the domain_type
      */
     template <typename ... MPLList>
-    auto domain( typename MPLList::storage_type& ...  storages_
+    auto domain( typename boost::remove_reference
+                <typename boost::remove_pointer<
+                 typename MPLList::storage_type>::type>::type& ...  storages_
         )
         -> decltype(super::template domain<
                      p_jac
                     , p_weights
                     , p_jac_det
-                    , p_jac_inv,
-                    MPLList ...>
+                    , p_jac_inv
+                    , p_phi
+                    , p_dphi
+                    , typename boost::remove_reference
+                    <typename boost::remove_pointer<
+                    MPLList>::type>::type ...
+                    >
                     ( m_as.jac()
                       , m_as.fe_backend().cub_weights()
                       , m_as.jac_det()
                       , m_as.jac_inv()
+                      , m_as.fe_backend().val()
+                      , m_as.fe_backend().grad()
                       , storages_ ...))
         {
             return super::template domain<    p_jac
                                               , p_weights
                                               , p_jac_det
                                               , p_jac_inv
-                                              , MPLList ...
+                                              , p_phi
+                                              , p_dphi
+                                              , typename boost::remove_reference
+                                              <typename boost::remove_pointer<
+                                                   MPLList>::type>::type ...
                                               >
                 ( m_as.jac()
                   , m_as.fe_backend().cub_weights()
                   , m_as.jac_det()
                   , m_as.jac_inv()
+                  , m_as.fe_backend().val()
+                  , m_as.fe_backend().grad()
                   , storages_ ...);
         }
+
+
+    template<enumtype::Shape S>
+    struct update_jac{
+        auto static esf() ->
+            decltype(make_esf<functors::update_jac<typename as_t::geometry_t , S> >(typename super::p_grid_points(), p_dphi(), p_jac()))
+        {
+            return make_esf<functors::update_jac<typename as_t::geometry_t , S> >(typename super::p_grid_points(), p_dphi(), p_jac());
+        }
+    };
+
+    //TODO: generalize the foillowing functors
+    template <typename FE, typename Cubature>
+    struct mass{
+        template <typename Phi, typename Mass>
+        auto static esf(Phi, Mass) ->
+            decltype(make_esf<functors::mass<FE , Cubature> >(p_jac_det(), p_weights(), Phi(), Phi(), Mass()))
+        {
+            return make_esf<functors::mass<FE , Cubature> >(p_jac_det(), p_weights(), Phi(), Phi(), Mass());
+        }
+    };
+
+    template <typename FE, typename Cubature>
+    struct stiffness{
+        template<typename DPhi, typename Stiff>
+        auto static esf(DPhi, Stiff) ->
+            decltype(make_esf<functors::stiffness<FE , Cubature> >(p_jac_det(), p_jac_inv(), p_weights(), DPhi(), DPhi(), Stiff()))
+        {
+            return make_esf<functors::stiffness<FE , Cubature> >(typename super::p_jac_det(), p_jac_inv(), p_weights(), DPhi(), DPhi(), Stiff());
+        }
+    };
+
+    template <typename FE, typename Cubature, typename Vector>
+    struct advection{
+        template<typename Phi, typename DPhi, typename Adv>
+        auto static esf(Phi, DPhi, Adv) ->
+            decltype(make_esf<functors::advection<FE , Cubature, Vector> >(p_jac_det(), p_jac_inv(), p_weights(), DPhi(), Phi(), Adv()))
+        {
+            return make_esf<functors::advection<FE , Cubature, Vector> >(p_jac_det(), p_jac_inv(), p_weights(), DPhi(), Phi(), Adv());
+        }
+    };
 
 };
 

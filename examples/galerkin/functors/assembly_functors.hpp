@@ -48,7 +48,8 @@ namespace functors{
                         eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) )=0.;
                                 for (int_t iterNode=0; iterNode < basis_cardinality ; ++iterNode)
                                 {//reduction/gather
-                                    eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) ) += eval(grid_points(dimension<4>(iterNode), dimension<5>(icoor)) * !dphi(i+iterNode, j+iter_quad, k+jcoor) );
+                                    eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) ) +=
+                                        eval(grid_points(dimension<4>(iterNode), dimension<5>(icoor)) * !dphi(i+iterNode, j+iter_quad, k+jcoor));
                                 }
                     }
                 }
@@ -208,7 +209,7 @@ namespace functors{
             dimension<4>::Index row;
 
 
-            //hypothesis here: the cardinaxlity is order^3 (isotropic 3D tensor product element)
+            //hypothesis here: the cardinality is order^3 (isotropic 3D tensor product element)
 #ifdef __CUDACC__
             constexpr meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{static_int<3>(), static_int<3>(), static_int<3>()};
 #else

@@ -333,6 +333,7 @@ namespace gridtools {
         template <typename OffsetTuple, typename StridesVector, typename boost::enable_if<is_arg_tuple<OffsetTuple >, int>::type=0>
         GT_FUNCTION
         static constexpr int_t _index(StridesVector const& RESTRICT strides_, OffsetTuple  const& tuple) {
+            GRIDTOOLS_STATIC_ASSERT(OffsetTuple::n_dim >0 , "The placeholder is most probably not present in the domain_type you are using. Double check that you passed all the placeholders in the domain_type construction");
             GRIDTOOLS_STATIC_ASSERT(is_arg_tuple<OffsetTuple>::type::value, "wrong type");
             return _impl::compute_offset<space_dimensions, layout>::apply(strides_, tuple);
         }

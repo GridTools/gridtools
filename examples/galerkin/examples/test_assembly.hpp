@@ -1,5 +1,5 @@
 #pragma once
-#include "../functors/assembly.hpp"
+#include "../numerics/assembly.hpp"
 
 namespace gridtools{
 namespace intrepid{
