@@ -1,6 +1,0 @@
-/*!
-\page ShallowWater  Finite Differences Shallow Water
-
-This example shows an implementation of the "Shallow Water" stencil using a finite differences technique.
-You can find a reference to a similar implementation in the Matlab manual: <a href=http://www.mathworks.ch/moler/exm/chapters/water.pdf> Shallow water description </a>.
-*/

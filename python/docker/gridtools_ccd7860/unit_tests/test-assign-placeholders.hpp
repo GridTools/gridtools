@@ -1,2 +1,0 @@
-
-bool assign_placeholders();
