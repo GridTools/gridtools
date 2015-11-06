@@ -5,7 +5,7 @@ FILE(GLOB_RECURSE INC_ALL "../../include/stencil-composition/[a-z]*.hpp")
 set(RECGRID_TESTS ${INC_ALL})
 
 if ( ENABLE_CXX11 )
-    set(RECGRID_TESTS test_local_domain.cpp test_staggered_keyword.cpp test_make_computation.cpp)
+    set(RECGRID_TESTS test_local_domain.cpp test_staggered_keyword.cpp test_make_computation.cpp test_cycle_and_swap.cpp)
 
     add_executable(recgrid_stencil_tests ${RECGRID_TESTS})
   # include boost
