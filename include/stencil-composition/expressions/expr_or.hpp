@@ -17,15 +17,13 @@ namespace gridtools{
         constexpr expr_or(){}
 #ifndef __CUDACC__
         static char constexpr op[]=" || ";
-        typedef string_c<print, op> operation;
+>
+        using operation=string_c<Print, op>;
     public:
         //currying and recursion (this gets inherited)
         using to_string = concatenate<tokens::open_par, ArgType1, operation, ArgType2, tokens::closed_par >;
 #endif
     };
-
-    template <typename ArgType1, typename ArgType2>
-    struct is_binary_expr<expr_or<ArgType1, ArgType2> > : boost::mpl::true_ {};
 
     namespace expressions{
 

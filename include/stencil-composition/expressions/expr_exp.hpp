@@ -27,9 +27,6 @@ namespace gridtools{
 #endif
     };
 
-    template <typename ArgType1, typename ArgType2>
-    struct is_binary_expr<expr_exp<ArgType1, ArgType2> > : boost::mpl::true_ {};
-
     namespace expressions{
 
         /** power expression*/
