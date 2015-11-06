@@ -2,6 +2,7 @@
 
 #include <stencil-composition/make_computation.hpp>
 #include "Options.hpp"
+#include "extended_4D_verify.hpp"
 
 
 using namespace gridtools;
@@ -31,7 +32,6 @@ typedef gridtools::BACKEND::storage_type<float_type, metadata_global_quad_t >::t
 typedef gridtools::BACKEND::storage_type<float_type, metadata_local_quad_t >::type storage_local_quad_t;
 
 
-#include "extended_4D_verify.hpp"
 
 
 /**
@@ -93,17 +93,17 @@ namespace assembly{
                 for(short_t J=0; J<2; ++J)
                     for(short_t K=0; K<2; ++K){
                         //check the initialization to 0
-                        assert(eval(result(di+I,dj+J,dk+K))==0.);
+                        assert(eval(result{di+I,dj+J,dk+K})==0.);
                         for(short_t q=0; q<2; ++q){
-                            eval(result(di+I,dj+J,dk+K)) +=
-                                eval(!phi(i+I,j+J,k+K,qp+q)*!psi(qp+q)             *jac(qp+q)*f() +
-                                     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1, qp+q)        *jac(qp+q)*f(di+1) +
-                                     !phi(i+I,j+J,k+K,qp+q)*!psi(j+1, qp+q)        *jac(qp+q)*f(dj+1) +
-                                     !phi(i+I,j+J,k+K,qp+q)*!psi(k+1, qp+q)        *jac(qp+q)*f(dk+1) +
-                                     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1, j+1, qp+q)   *jac(qp+q)*f(di+1, dj+1) +
-                                     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1, k+1, qp+q)   *jac(qp+q)*f(di+1, dk+1) +
-                                     !phi(i+I,j+J,k+K,qp+q)*!psi(j+1,k+1, qp+q)    *jac(qp+q)*f(dj+1,dk+1) +
-                                     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1,j+1,k+1, qp+q)*jac(qp+q)*f(di+1,dj+1,dk+1))
+                            eval(result{di+I,dj+J,dk+K}) +=
+                                eval(!phi{i+I,j+J,k+K,qp+q}*!psi{qp+q}             *jac{qp+q}*f{} +
+                                     !phi{i+I,j+J,k+K,qp+q}*!psi{i+1, qp+q}        *jac{qp+q}*f{di+1} +
+                                     !phi{i+I,j+J,k+K,qp+q}*!psi{j+1, qp+q}        *jac{qp+q}*f{dj+1} +
+                                     !phi{i+I,j+J,k+K,qp+q}*!psi{k+1, qp+q}        *jac{qp+q}*f{dk+1} +
+                                     !phi{i+I,j+J,k+K,qp+q}*!psi{i+1, j+1, qp+q}   *jac{qp+q}*f{di+1, dj+1} +
+                                     !phi{i+I,j+J,k+K,qp+q}*!psi{i+1, k+1, qp+q}   *jac{qp+q}*f{di+1, dk+1} +
+                                     !phi{i+I,j+J,k+K,qp+q}*!psi{j+1,k+1, qp+q}    *jac{qp+q}*f{dj+1,dk+1} +
+                                     !phi{i+I,j+J,k+K,qp+q}*!psi{i+1,j+1,k+1, qp+q}*jac{qp+q}*f{di+1,dj+1,dk+1})
                                 /8;
                         }
                     }
@@ -192,7 +192,7 @@ namespace assembly{
         fe_comp->run();
         fe_comp->finalize();
 
-        return do_verification(d1,d2,d3,result);
+        return do_verification <storage_local_quad_t, storage_global_quad_t> (d1,d2,d3,result);
     }
 
 }; //namespace extended_4d
