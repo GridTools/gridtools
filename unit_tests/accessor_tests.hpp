@@ -1,6 +1,6 @@
 #include <gridtools.hpp>
 #include <stencil-composition/accessor.hpp>
-#include <stencil-composition/expressions.hpp>
+#include <stencil-composition/expressions/expressions.hpp>
 
 namespace interface{
 /** @brief simple interface

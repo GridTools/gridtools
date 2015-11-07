@@ -3,7 +3,7 @@
 #include <boost/fusion/include/size.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/vector.hpp>
-#include "expressions.hpp"
+#include "expressions/expressions.hpp"
 #ifndef CXX11_ENABLED
 #include <boost/typeof/typeof.hpp>
 #endif
