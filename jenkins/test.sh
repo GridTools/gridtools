@@ -10,7 +10,13 @@ if [ $myhost == "greina" ]; then
 else 
     source ${JENKINSPATH}/slurmTools.sh
     source ${JENKINSPATH}/env_${myhost}.sh 
-    launch_job ${JENKINSPATH}/submit.kesch.slurm ${maxsleep} &
+
+    cp ${JENKINSPATH}/submit.kesch.slurm ${JENKINSPATH}/submit.kesch.slurm.test
+    slurm_script="${JENKINSPATH}/submit.kesch.slurm.test"
+    cmd="srun --ntasks=1 -K -u bash ./run_tests.sh"
+    /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm}
+
+    launch_job ${slurm_script} ${maxsleep} &
     wait
    
     grep 'FAILED' test.out

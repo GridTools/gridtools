@@ -2,8 +2,8 @@
 
 JENKINSPATH=${0%/*}
 source ${JENKINSPATH}/machine_env.sh
-
 source ${JENKINSPATH}/env_perftest_${myhost}.sh
+source ${JENKINSPATH}/slurmTools.sh
 
 TEMP=`getopt -o h --long target:,std:,prec: \
              -n 'jenkins_perftest' -- "$@"`
@@ -24,14 +24,33 @@ if [[ -z ${TARGET} || -z ${STD} || -z ${PREC} ]]; then
     echo "Error: some arguments are not set"
     exit 1
 fi
+maxsleep=7200
 
-export GRIDTOOLS_BUILD_PATH=/home/jenkins/workspace/
-export STELLA_BUILD_PATH=/users/jenkins/install/${myhost}
+if [ "$myhost" == "greina" ]; then
+    bash ${JENKINSPATH}/jenkins_perftest_exec.sh --target $TARGET --std $STD --prec $PREC 
+else
 
-export GPATH=${GRIDTOOLS_BUILD_PATH}/GridTools/build_type/release/label/greina/mpi/MPI/python/python_off/real_type/$PREC/std/$STD/target/$TARGET/build
-export STELLA_PATH=${STELLA_BUILD_PATH}/stella/trunk/release_$PREC/bin/
+    cp ${JENKINSPATH}/submit.kesch.slurm ${JENKINSPATH}/submit.kesch.slurm.test
+    slurm_script="${JENKINSPATH}/submit.kesch.slurm.test"
+    cmd="${JENKINSPATH}/jenkins_perftest_exec.sh --target $TARGET --std $STD --prec $PREC"
+    /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm_script}
 
-cd ${JENKINSPATH}/
-cmd="python process_ref.py -p $GPATH --target $TARGET --std $STD --prec $PREC -c -u stencils.json --stella_path $STELLA_PATH -v --plot"
-$cmd
+    launch_job ${slurm_script} ${maxsleep} &
+
+    wait
+ 
+    grep 'Error in conf' test.out
+
+    if [ $? -eq 0 ] ; then
+        # echo output to stdout
+        test -f test.out || exitError 6550 ${LINENO} "batch job output file missing"
+        echo "=== test.out BEGIN ==="
+        cat test.out | /bin/sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g"
+        echo "=== test.out END ==="
+        # abort
+        exitError 4654 ${LINENO} "problem with unittests for test data detected"
+    else
+        echo "Perftests successfull (see test.out for detailed log)"
+    fi
+fi
 

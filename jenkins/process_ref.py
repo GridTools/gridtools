@@ -34,7 +34,7 @@ def run_and_extract_times(executable, sizes, filter_=None, stella_format = None,
     machine = filter(lambda x: x.isalpha(), socket.gethostname())
 
     cmd=''
-    if machine != 'greina':
+    if not re.match(machine,'greina') or not re.match(machine,'kesch'):
         print('WARNING: machine '+machine+' not known. Not loading any environment')
     else:
         cmd = ". "+os.getcwd()+"/env_"+machine+".sh; "
