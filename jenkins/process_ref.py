@@ -245,9 +245,6 @@ if __name__ == "__main__":
     parser.add_argument('--plot', action='store_true', help='plot the comparison timings')
     parser.add_argument('--stella_path', nargs=1, type=str, help='path to stella installation dir')
     parser.add_argument('-v',action='store_true', help='verbosity')
-    parser.add_argument('-r',action='store_true', help='determines that build paths to gridtools and stella executable are relative paths')
-    parser.add_argument('--rstella_path', nargs=1, type=str, help='root dir of build directory for stella installation')
-    parser.add_argument('--rgridtools_path', nargs=1, type=str, help='root dir of build directory for gridtools installation')
 
 
     filter_stencils = [] 
@@ -268,22 +265,9 @@ if __name__ == "__main__":
 
     stella_path = None
     gridtools_path = None
-    if args.r:
-        if (not args.rstella_path and args.stella_path) or not args.rgridtools_path:
-            parser.error('If relative paths for gridtools and stella builds are required by using -r, you need to provide a root directory for gridtools and stella builds')
-        if args.stella_path:
-            if os.path.isabs(args.stella_path[0]):
-                parser.error('stella path should be relative, if -r is specified')
-
-            stella_path = os.path.join(args.rstella_path[0], args.stella_path[0])
-
-        if os.path.isabs(args.p[0]):
-            parser.error('gridtools path should be relative, if -r is specified')
-        gridtools_path = os.path.join(args.rgridtools_path[0], args.p[0])
-    else:
-        if args.stella_path:
-            stella_path = args.stella_path[0]
-        gridtools_path = args.p[0]
+    if args.stella_path:
+        stella_path = args.stella_path[0]
+    gridtools_path = args.p[0]
 
     if stella_path and not os.path.exists(stella_path):
         parser.error('STELLA build path '+stella_path+' does not exists')
