@@ -29,18 +29,10 @@ try: subprocess.check_output
 except: subprocess.check_output = check_output
 
 
-def run_and_extract_times(executable, sizes, filter_=None, stella_format = None, verbosity=False):
-
-    machine = filter(lambda x: x.isalpha(), socket.gethostname())
+def run_and_extract_times(executable, host, sizes, filter_=None, stella_format = None, verbosity=False):
 
     cmd=''
-    if not re.match('greina', machine) and not re.match('kesch', machine):
-        sys.exit('WARNING: machine '+machine+' not known. Not loading any environment')
-    elif re.match('greina', machine):
-        machine='greina'
-    elif re.match('kesch', machine):
-        machine='kesch'
-    cmd = ". "+os.getcwd()+"/env_"+machine+".sh; "
+    cmd = ". "+os.getcwd()+"/env_"+host+".sh; "
 
     if stella_format:
         cmd = cmd + executable +' --ie ' + str(sizes[0]) + ' --je ' + str(sizes[1]) + ' --ke ' + str(sizes[2])
@@ -170,7 +162,7 @@ class Plotter:
 
     def extract_metrics(self):
 
-        for astencil in self.gridtools_timers_['stencils']:
+        for astencil in self.gridtools_timers_:
             if self.stella_has_stencil(astencil):
                 self.stella_avg_times_[astencil] = {}
                 self.stella_err_[astencil] = {}
@@ -180,7 +172,7 @@ class Plotter:
             self.reference_avg_times_[astencil] = {}       
             self.reference_err_[astencil] = {}
  
-            gridtools_this_stencil_data = self.gridtools_timers_['stencils'][astencil][self.config_.target_][self.config_.prec_][self.config_.std_]
+            gridtools_this_stencil_data = self.gridtools_timers_[astencil][self.config_.target_][self.config_.prec_][self.config_.std_]
 
             for athread_num in gridtools_this_stencil_data:
                 for adomain in gridtools_this_stencil_data[athread_num]:
@@ -199,15 +191,15 @@ class Plotter:
                         self.stella_err_[astencil][adomain].append( self.stella_timers_[astencil][athread_num][adomain][1])
 
                     self.gridtools_avg_times_[astencil][adomain].append(
-                        self.gridtools_timers_['stencils'][astencil][self.config_.target_][self.config_.prec_][self.config_.std_][athread_num][adomain]['time'])
+                        self.gridtools_timers_[astencil][self.config_.target_][self.config_.prec_][self.config_.std_][athread_num][adomain]['time'])
 
                     self.gridtools_err_[astencil][adomain].append(
-                                            self.gridtools_timers_['stencils'][astencil][self.config_.target_][self.config_.prec_][self.config_.std_][athread_num][adomain]['rms'])
+                                            self.gridtools_timers_[astencil][self.config_.target_][self.config_.prec_][self.config_.std_][athread_num][adomain]['rms'])
                     self.reference_avg_times_[astencil][adomain].append(
-                        self.reference_timers_['stencils'][astencil][self.config_.target_][self.config_.prec_][self.config_.std_][athread_num][adomain]['time'])
+                        self.reference_timers_[astencil][self.config_.target_][self.config_.prec_][self.config_.std_][athread_num][adomain]['time'])
 
                     self.reference_err_[astencil][adomain].append(
-                                            self.reference_timers_['stencils'][astencil][self.config_.target_][self.config_.prec_][self.config_.std_][athread_num][adomain]['rms'])
+                                            self.reference_timers_[astencil][self.config_.target_][self.config_.prec_][self.config_.std_][athread_num][adomain]['rms'])
 
                     self.labels_[astencil][adomain].append(str(athread_num))
 
@@ -312,7 +304,15 @@ if __name__ == "__main__":
     if args.v:
         verbose=True
 
+    host = filter(lambda x: x.isalpha(), socket.gethostname())
 
+    if not re.match('greina', host) and not re.match('kesch', host):
+        sys.exit('WARNING: host '+host+' not known. Not loading any environment')
+    
+    if re.match('greina', host):
+        host='greina'
+    elif re.match('kesch', host):
+        host='kesch'
 
     config = Config(target,prec,std, update, check)
 
@@ -325,7 +325,7 @@ if __name__ == "__main__":
     copy_ref = copy.deepcopy(decode)
     stella_timers = {}
 
-    for stencil_name in decode['stencils']:
+    for stencil_name in decode[host]['stencils']:
         print('CHECKING :', stencil_name)
         skip=True
         for filter_stencil in filter_stencils:
@@ -337,7 +337,7 @@ if __name__ == "__main__":
             print('Skipping ',stencil_name)
             continue
 
-        stencil_data = decode['stencils'][stencil_name]
+        stencil_data = decode[host]['stencils'][stencil_name]
         executable = gridtools_path+'/'+stencil_data['exec']+'_'+target_suff
 
         stella_filter = stencil_data['stella_filter']
@@ -348,14 +348,14 @@ if __name__ == "__main__":
                 sizes = data.split('x')
                 exp_time = domain_data[data]['time']
                 
-                timers_gridtools = run_and_extract_times(executable, sizes, verbosity=verbose)
+                timers_gridtools = run_and_extract_times(executable, host, sizes, verbosity=verbose)
 
                 if stella_exec and stella_filter:
                     create_dict(stella_timers, [data, thread, stencil_name] )
-                    stella_timers[stencil_name][thread][data] = run_and_extract_times(stella_exec, sizes, stella_filter, stella_format=True, verbosity=verbose)
+                    stella_timers[stencil_name][thread][data] = run_and_extract_times(stella_exec, host, sizes, stella_filter, stella_format=True, verbosity=verbose)
 
-                copy_ref['stencils'][stencil_name][target][prec][std][thread][data]['time'] = timers_gridtools[0]
-                copy_ref['stencils'][stencil_name][target][prec][std][thread][data]['rms'] = timers_gridtools[1]
+                copy_ref[host]['stencils'][stencil_name][target][prec][std][thread][data]['time'] = timers_gridtools[0]
+                copy_ref[host]['stencils'][stencil_name][target][prec][std][thread][data]['rms'] = timers_gridtools[1]
 
                 error = math.fabs(float(timers_gridtools[0]) - float(exp_time)) / (float(exp_time)+1e-20)
                 if config.check_ and error > tolerance:
@@ -371,7 +371,7 @@ if __name__ == "__main__":
         print("Updated reference file",outputfilename)
 
     if do_plot:
-        plotter = Plotter(decode, copy_ref, stella_timers, config)
+        plotter = Plotter(decode[host]['stencils'], copy_ref[host]['stencils'], stella_timers, config)
         plotter.plot_results()
 
     if not error:
