@@ -172,7 +172,7 @@ bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh
 
 exit_if_error $?
 
-if [ "$RUN_MPI_TESTS" == "ON" ]
+if [ "$RUN_MPI_TESTS" == "ON" && ${myhost} -eq "greina" ]
 then
     if [ "x$CXX_STD" == "xcxx11" ]
     then
