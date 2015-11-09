@@ -34,10 +34,13 @@ def run_and_extract_times(executable, sizes, filter_=None, stella_format = None,
     machine = filter(lambda x: x.isalpha(), socket.gethostname())
 
     cmd=''
-    if not re.match(machine,'greina') and not re.match(machine,'kesch'):
+    if not re.match('greina', machine) and not re.match('kesch', machine):
         sys.exit('WARNING: machine '+machine+' not known. Not loading any environment')
-    else:
-        cmd = ". "+os.getcwd()+"/env_"+machine+".sh; "
+    elif re.match('greina', machine):
+        machine='greina'
+    elif re.match('kesch', machine):
+        machine='kesch'
+    cmd = ". "+os.getcwd()+"/env_"+machine+".sh; "
 
     if stella_format:
         cmd = cmd + executable +' --ie ' + str(sizes[0]) + ' --je ' + str(sizes[1]) + ' --ke ' + str(sizes[2])
@@ -95,7 +98,7 @@ class Plotter:
 
         self.labels_ = {}
 
-    def plot(self, filename, title, y1, y1_err, label1, y2, y2_err, label2):
+    def plot(self, filename, title, xtick_labels, y1, y1_err, label1, y2, y2_err, label2):
     
         n_groups = len(y1)
         index = np.arange(n_groups)
@@ -121,7 +124,7 @@ class Plotter:
         plt.xlabel('Stencil Name')
         plt.ylabel('Stencil time (s)')
         plt.title(title)
-        plt.xticks(index + bar_width*1.5, label2, rotation=90, fontsize='xx-small')
+        plt.xticks(index + bar_width*1.5, xtick_labels, rotation=90, fontsize='xx-small')
         plt.legend()
 
         plt.tight_layout()
@@ -145,7 +148,7 @@ class Plotter:
                 gridtools_err = self.gridtools_err_[astencil][adomain]
                 labels = self.labels_[astencil][adomain]
                 
-                self.plot("perf_vs_stella/plot_"+astencil+"_"+adomain+".svg", astencil, stella_times, stella_err, "stella", gridtools_times, gridtools_err, "gridtools")
+                self.plot("perf_vs_stella/plot_"+astencil+"_"+adomain+".svg", astencil, labels, stella_times, stella_err, "stella", gridtools_times, gridtools_err, "gridtools")
 
         if not os.path.exists("perf_vs_reference"):
             os.makedirs("perf_vs_reference")
@@ -160,7 +163,7 @@ class Plotter:
                 reference_err = self.reference_err_[astencil][adomain]
                 labels = self.labels_[astencil][adomain]
                 
-                self.plot("perf_vs_reference/plot_"+astencil+"_"+adomain+".svg", astencil + ' ' + adomain, gridtools_times, gridtools_err, "gridtools", reference_times, reference_err, "reference")
+                self.plot("perf_vs_reference/plot_"+astencil+"_"+adomain+".svg", astencil + ' ' + adomain, labels, gridtools_times, gridtools_err, "gridtools", reference_times, reference_err, "reference")
 
     def stella_has_stencil(self, stencil_name):
         return self.stella_timers_.has_key(stencil_name)
