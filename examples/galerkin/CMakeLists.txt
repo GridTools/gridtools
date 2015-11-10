@@ -78,7 +78,4 @@ target_link_libraries(mass_IGA_cuda  ${exe_LIBS} ${INTREPID_LIB} ${TEUCHOS_LIB} 
 endif(CUDA_FOUND)
 
 add_subdirectory( IGA )
-add_subdirectory( numerics )
-add_subdirectory( functors )
-add_subdirectory( examples )
 add_subdirectory( doc )

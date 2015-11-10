@@ -6,7 +6,7 @@ namespace intrepid{
     using namespace Intrepid;
 
     template <typename Geometry, typename FEBackend, typename MatrixType>
-    bool test(assembly<Geometry> const& assembly_, FEBackend const& fe_backend_, MatrixType const& stiffness_){
+    bool test(assembly_base<Geometry> & assembly_base_, assembly<Geometry> & assembly_, FEBackend const& fe_backend_, MatrixType const& stiffness_){
         using fe = typename Geometry::geo_map;
         using cub= typename Geometry::cub;
         using geo_map = typename Geometry::geo_map;
@@ -49,7 +49,7 @@ namespace intrepid{
                     {
                         for (int d=0; d<3; ++d)
                         {//assign
-                            grid(i*d2*d3+j*d3+k, q, d)=assembly_.get_grid()(i, j, k, q, d);
+                            grid(i*d2*d3+j*d3+k, q, d)=assembly_base_.get_grid()(i, j, k, q, d);
                         }
                     }
                 }
