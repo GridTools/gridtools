@@ -768,6 +768,7 @@ namespace gridtools {
         typedef typename Accessor::index_type index_t;
 
         typedef typename local_domain_t::template get_storage<index_t>::type storage_t;
+        typedef typename get_storage_pointer_accessor<local_domain_t, Accessor>::type storage_pointer_t;
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
@@ -800,17 +801,21 @@ namespace gridtools {
         // If you are running a parallel simulation another common reason for this to happen is
         // the definition of an halo region which is too small in one direction
         // std::cout<<"Storage Index: "<<Accessor::index_type::value<<" + "<<(boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))->_index(arg.template n<Accessor::n_dim>())<<std::endl;
-        assert( (int_t)(m_index[metadata_index_t::value // Accessor::index_type::value
-                            ])
-                + metadata_
-                ->_index(strides().template get<metadata_index_t::value>(), accessor)
+        assert( (int_t)(m_index[metadata_index_t::value])
+                + metadata_->_index(strides().template get<metadata_index_t::value>(), accessor)
                 >= 0);
 
-        return *(real_storage_pointer
-                 +(m_index[metadata_index_t::value])
-                 +metadata_
-                 ->_index(strides().template get<metadata_index_t::value>(), accessor)
-            );
+
+        const uint_t pointer_offset = (m_index[metadata_index_t::value])
+                +metadata_->_index(strides().template get<metadata_index_t::value>(), accessor);
+
+        return static_cast<const IterateDomainImpl*>(this)->template get_value_impl
+        <
+            typename iterate_domain<IterateDomainImpl>::template accessor_return_type<Accessor>::type,
+            Accessor,
+            storage_pointer_t
+        >(real_storage_pointer, pointer_offset);
+
     }
 
 
