@@ -16,7 +16,7 @@ using namespace enumtype;
 typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_interval;
 
 struct functor1 {
-    typedef const accessor<0> in;
+    typedef accessor<0> in;
     typedef accessor<1> out;
     typedef boost::mpl::vector<in,out> arg_list;
 

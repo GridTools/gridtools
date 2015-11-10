@@ -38,8 +38,8 @@ namespace positional_copy_stencil{
     // These are the stencil operators that compose the multistage stencil in this test
     template <int V>
     struct init_functor {
-        typedef accessor<0, range<0,0,0,0> >  one;
-        typedef accessor<1, range<0,0,0,0> >  two;
+        typedef accessor<0, enumtype::inout, range<> >  one;
+        typedef accessor<1, enumtype::inout, range<> >  two;
         typedef boost::mpl::vector<one, two> arg_list;
 
         template <typename Evaluation>
@@ -53,8 +53,8 @@ namespace positional_copy_stencil{
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
 
-        typedef const accessor<0, range<0,0,0,0>, 3>  in;
-        typedef accessor<1, range<0,0,0,0>, 3>  out;
+        typedef accessor<0, enumtype::in, range<>, 3> in;
+        typedef accessor<1, enumtype::inout, range<>, 3> out;
         typedef boost::mpl::vector<in,out> arg_list;
 
     /* static const auto expression=in(1,0,0)-out(); */

@@ -43,9 +43,9 @@ namespace gridtools {
                field dimensions or space dimension will be decided at the
                moment of the storage instantiation (in the main function)
      */
-    template < uint_t ID, typename Range=range<0,0,0,0,0,0>, ushort_t Number=3>
-    struct accessor : public accessor_base<ID, Range, Number> {
-        typedef accessor_base<ID, Range, Number> super;
+    template < uint_t ID, enumtype::intend Intend=enumtype::in, typename Range=range<0,0,0,0,0,0>, ushort_t Number=3>
+    struct accessor : public accessor_base<ID, Intend, Range, Number> {
+        typedef accessor_base<ID, Intend, Range, Number> super;
         typedef typename super::index_type index_type;
 #ifdef CXX11_ENABLED
 
@@ -64,24 +64,24 @@ namespace gridtools {
 
         //move ctor
         GT_FUNCTION
-        constexpr explicit accessor(accessor<ID, Range, Number>&& other) : super(std::move(other)) {}
+        constexpr explicit accessor(accessor<ID, Intend, Range, Number>&& other) : super(std::move(other)) {}
 
         //copy ctor
         GT_FUNCTION
-        constexpr accessor(accessor<ID, Range, Number> const& other) : super(other) {
+        constexpr accessor(accessor<ID, Intend, Range, Number> const& other) : super(other) {
         }
 #endif
 #else
 
         //copy ctor
         GT_FUNCTION
-        constexpr explicit accessor(accessor<ID, Range, Number> const& other) : super(other) {}
+        constexpr explicit accessor(accessor<ID, Intend, Range, Number> const& other) : super(other) {}
 
         //copy ctor from an accessor with different ID
         template<ushort_t OtherID>
         GT_FUNCTION
-        constexpr explicit accessor(const accessor<OtherID, Range, Number>& other) :
-            super(static_cast<accessor_base<OtherID, Range, Number> >(other)) {}
+        constexpr explicit accessor(const accessor<OtherID, Intend, Range, Number>& other) :
+            super(static_cast<accessor_base<OtherID, Intend, Range, Number> >(other)) {}
 
         GT_FUNCTION
         constexpr explicit accessor(): super() {}
@@ -128,11 +128,13 @@ namespace gridtools {
         typedef typename ArgType::index_type index_type;
     private:
         static constexpr accessor_base<ArgType::index_type::value
+                                             , ArgType::intend_t::value
                                              , typename ArgType::range_type
                                              , ArgType::n_dim> s_args_constexpr{
             dimension<Pair::first>{Pair::second} ... };
 
         accessor_base<ArgType::index_type::value
+                      , ArgType::intend_t::value
                       , typename ArgType::range_type
                       , ArgType::n_dim> m_args_runtime;
         typedef boost::mpl::vector<static_int<n_dim-Pair::first> ... > coordinates;
@@ -174,6 +176,7 @@ namespace gridtools {
 
     template <typename ArgType, typename ... Pair>
     constexpr accessor_base<ArgType::index_type::value
+                                  , ArgType::intend_t::value
                                   , typename ArgType::range_type
                                   , ArgType::n_dim> accessor_mixed<ArgType, Pair...>::s_args_constexpr;
 
@@ -223,6 +226,14 @@ namespace gridtools {
         //store the list of offsets which are already known on an array
         int_t m_knowns [sizeof...(Known)];
     };
+#endif
+
+#ifdef CXX11_ENABLED
+    template <uint_t ID, typename Range=range<0,0,0,0,0,0>, ushort_t Number=3>
+    using in_accessor = accessor<ID, enumtype::in, Range, Number>;
+
+    template <uint_t ID, typename Range=range<0,0,0,0,0,0>, ushort_t Number=3>
+    using inout_accessor = accessor<ID, enumtype::inout, Range, Number>;
 #endif
 
 } // namespace gridtools

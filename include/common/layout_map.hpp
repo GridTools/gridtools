@@ -47,7 +47,7 @@ namespace gridtools {
 
 
     // forward declarations
-    template < ushort_t ID, typename Range, ushort_t Number>
+    template < ushort_t ID, enumtype::intend Intend, typename Range, ushort_t Number>
     struct accessor;
 
     template <typename ArgType, typename ... Pair>
@@ -57,8 +57,8 @@ namespace gridtools {
     template <typename T>
     struct is_arg_tuple : boost::false_type {};
 
-    template < ushort_t ID, typename Range, ushort_t Number>
-    struct is_arg_tuple<accessor<ID, Range, Number> > : boost::true_type{};
+    template < ushort_t ID, enumtype::intend Intend, typename Range, ushort_t Number>
+    struct is_arg_tuple<accessor<ID, Intend, Range, Number> > : boost::true_type{};
 
     template <typename ArgType, typename ... Pair>
     struct is_arg_tuple<accessor_mixed<ArgType, Pair ... > > : boost::true_type {};
