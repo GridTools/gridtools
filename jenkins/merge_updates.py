@@ -3,6 +3,8 @@ import json
 import argparse
 import os
 import copy
+import socket
+import re
 
 """
 """
@@ -21,6 +23,15 @@ if __name__ == "__main__":
 
     f.close()
 
+    host = socket.gethostname()
+    if not re.match('greina', host) and not re.match('kesch', host):
+        sys.exit('WARNING: host '+host+' not known. Not loading any environment')
+    if re.match('greina', host):
+        host='greina'
+    elif re.match('kesch', host):
+        host='kesch'
+
+
     if not args.updates:
         parser.error('Need to provide at least one update json report with --updates')
 
@@ -33,28 +44,30 @@ if __name__ == "__main__":
     copy_ref = copy.deepcopy(decode)
     stella_timers = {}
 
-    for stencil in decode['stencils'].items():
-        for target in stencil[1].items():
-            if target[0] != "gpu" and target[0] != "cpu": continue
-            for prec in target[1].items():
-                for std in prec[1].items():
-                    for thread in std[1].items():
-                        for domain in thread[1].items():
-                            ref_time = domain[1]["time"]  
-                            differ = False
-                            cnt=0
-                            for update in update_reports:
-                                update_time = update['stencils'][stencil[0]][target[0]][prec[0]][std[0]][thread[0]][domain[0]]["time"]
-                                update_rms = update['stencils'][stencil[0]][target[0]][prec[0]][std[0]][thread[0]][domain[0]]["rms"]
-                                if update_time != ref_time :
-                                    if differ:
-                                        print("Error: multiple update reports modify the same token of metrics")
-                                        sys.exit(1)
-                                    differ = True
-                                    print("Found update for :"+stencil[0]+","+target[0]+","+prec[0]+","+std[0]+","+thread[0]+","+domain[0]+ " in report "+args.updates[cnt])
-                                    copy_ref['stencils'][stencil[0]][target[0]][prec[0]][std[0]][thread[0]][domain[0]]["time"] = update_time
-                                    copy_ref['stencils'][stencil[0]][target[0]][prec[0]][std[0]][thread[0]][domain[0]]["rms"] = update_rms
-                                cnt=cnt+1
+    for ahost in decode:
+        if ahost != host: continue
+        for stencil in decode[ahost]['stencils'].items():
+            for target in stencil[1].items():
+                if target[0] != "gpu" and target[0] != "cpu": continue
+                for prec in target[1].items():
+                    for std in prec[1].items():
+                        for thread in std[1].items():
+                            for domain in thread[1].items():
+                                ref_time = domain[1]["time"]  
+                                differ = False
+                                cnt=0
+                                for update in update_reports:
+                                    update_time = update[ahost]['stencils'][stencil[0]][target[0]][prec[0]][std[0]][thread[0]][domain[0]]["time"]
+                                    update_rms = update[ahost]['stencils'][stencil[0]][target[0]][prec[0]][std[0]][thread[0]][domain[0]]["rms"]
+                                    if update_time != ref_time :
+                                        if differ:
+                                            print("Error: multiple update reports modify the same token of metrics")
+                                            sys.exit(1)
+                                        differ = True
+                                        print("Found update for :"+stencil[0]+","+target[0]+","+prec[0]+","+std[0]+","+thread[0]+","+domain[0]+ " in report "+args.updates[cnt])
+                                        copy_ref[ahost]['stencils'][stencil[0]][target[0]][prec[0]][std[0]][thread[0]][domain[0]]["time"] = update_time
+                                        copy_ref[ahost]['stencils'][stencil[0]][target[0]][prec[0]][std[0]][thread[0]][domain[0]]["rms"] = update_rms
+                                    cnt=cnt+1
 
     merged_filename = "stencils.json.merge"
     f = open(merged_filename,"w")
