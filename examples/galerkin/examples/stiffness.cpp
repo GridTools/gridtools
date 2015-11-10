@@ -1,7 +1,6 @@
 /**
 \file
 */
-#pragma once
 #define PEDANTIC_DISABLED
 //! [assembly]
 #include "../functors/assembly.hpp"
