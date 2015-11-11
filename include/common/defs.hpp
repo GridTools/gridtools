@@ -135,9 +135,12 @@ namespace gridtools{
         {
             typedef execute_impl<parallel_impl, forward> type;
         };
-        /**
-           @}
+
+        /*
+         * accessor I/O policy
          */
+        enum intend {in, inout} ;
+
     }//namespace enumtype
 
 

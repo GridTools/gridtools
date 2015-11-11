@@ -402,10 +402,11 @@ namespace gridtools{
             return expr_plus<ArgType1, ArgType2 >(arg1, arg2);}
 
         /** minus expression*/
-        template<typename ArgType1, typename ArgType2,
-                 typename boost::disable_if<
-                     no_expr_nor_accessor_types< ArgType1, ArgType2 >
-                     , int >::type=0 >
+        template<typename ArgType1, typename ArgType2//,
+                 // typename boost::disable_if<
+                 //     no_expr_nor_accessor_types< ArgType1, ArgType2 >
+                 //     , int >::type=0
+                 >
         GT_FUNCTION
         constexpr expr_minus<ArgType1, ArgType2 > operator - (ArgType1 arg1, ArgType2 arg2){
             return expr_minus<ArgType1, ArgType2 >(arg1, arg2);}

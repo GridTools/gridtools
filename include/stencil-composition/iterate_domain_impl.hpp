@@ -20,6 +20,13 @@ namespace gridtools
         >::type type;
     };
 
+    template<typename Accessor>
+    struct get_arg_value_type_from_accessor
+    {
+        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Internal error: wrong type");
+        typedef typename get_arg_from_accessor<Accessor>::type::value_type type;
+    };
+
     /**
      * metafunction that computes the return type of all operator() of an accessor
      */
@@ -30,8 +37,14 @@ namespace gridtools
 
         typedef typename boost::mpl::eval_if<
             is_accessor<Accessor>,
-            get_arg_from_accessor<Accessor, IterateDomainArguments>,
+            get_arg_value_type_from_accessor<Accessor>,
             boost::mpl::identity<boost::mpl::void_>
+        >::type accessor_value_type;
+
+        typedef typename boost::mpl::if_<
+            is_accessor_readonly<Accessor>,
+            typename boost::add_const<accessor_value_type >::type,
+            typename boost::add_reference<accessor_value_type>::type RESTRICT
         >::type type;
     };
 

@@ -14,7 +14,6 @@
 @brief descriptor of the Multi Stage Stencil (MSS)
 */
 namespace gridtools {
-
     namespace _impl
     {
 
@@ -123,5 +122,34 @@ namespace gridtools {
         typedef ExecutionEngine type;
     };
 
+    template<typename MssDescriptor>
+    struct mss_compute_range_sizes
+    {
+        GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor<MssDescriptor>::value), "Internal Error: invalid type");
+
+        /**
+         * \brief Here the ranges are calculated recursively, in order for each functor's domain to embed all the domains of the functors he depends on.
+         */
+        typedef typename boost::mpl::fold<
+            typename mss_descriptor_esf_sequence<MssDescriptor>::type,
+            boost::mpl::vector0<>,
+            _impl::traverse_ranges<boost::mpl::_1,boost::mpl::_2>
+        >::type ranges_list;
+
+        /*
+         *  Compute prefix sum to compute bounding boxes for calling a given functor
+         */
+        typedef typename _impl::prefix_on_ranges<ranges_list>::type structured_range_sizes;
+
+        /**
+         * linearize the data flow graph
+         *
+         */
+        typedef typename _impl::linearize_range_sizes<structured_range_sizes>::type type;
+
+        GRIDTOOLS_STATIC_ASSERT(
+            (boost::mpl::size<typename mss_descriptor_linear_esf_sequence<MssDescriptor>::type>::value ==
+             boost::mpl::size<type>::value), "Internal Error: wrong size");
+    };
 
 } // namespace gridtools

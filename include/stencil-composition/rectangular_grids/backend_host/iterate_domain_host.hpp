@@ -70,6 +70,16 @@ namespace gridtools {
         GT_FUNCTION
         void initialize_impl() {}
 
+        template<typename ReturnType, typename Accessor, typename StoragePointer>
+        GT_FUNCTION
+        ReturnType get_value_impl(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset) const
+        {
+            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
+
+            return super::template get_gmem_value<ReturnType>(storage_pointer,pointer_offset);
+        }
+
+
     private:
         DataPointerArray* RESTRICT m_data_pointer;
         StridesCached* RESTRICT m_strides;

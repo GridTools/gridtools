@@ -65,6 +65,10 @@ namespace gridtools {
         typedef typename IterateDomainArguments::backend_id_t backend_id_t;
 
         typedef typename IterateDomainArguments::local_domain_t local_domain_t;
+        // sequence of args types which are readonly through all ESFs/MSSs
+        typedef typename compute_readonly_args_indices<
+            typename iterate_domain_arguments_t::esf_sequence_t
+        >::type readonly_args_indices_t;
 
         typedef typename local_domain_t::esf_args esf_args_t;
 
@@ -86,15 +90,7 @@ namespace gridtools {
         typedef typename backend_traits_from_id< backend_id_t::value >::
                 template select_iterate_domain_cache<IterateDomainArguments>::type iterate_domain_cache_t;
 
-        typedef typename backend_traits_from_id< backend_id_t::value >::
-            template select_iterate_domain_backend<
-                data_pointer_array_t,
-                strides_cached_t,
-                iterate_domain_cache_t,
-                IterateDomainArguments
-            >::type iterate_domain_backend_t;
-
-        typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
+        typedef typename iterate_domain_cache_t::all_caches_t all_caches_t;
 
         GRIDTOOLS_STATIC_ASSERT((is_local_domain<local_domain_t>::value), "Internal Error: wrong type");
         typedef typename boost::remove_pointer<
@@ -371,7 +367,7 @@ namespace gridtools {
         template <typename Accessor, typename StoragePointer>
         GT_FUNCTION
         typename accessor_return_type<Accessor>::type::value_type& RESTRICT
-        get_value(Accessor const& accessor , StoragePointer & RESTRICT storage_pointer) const;
+        get_value(Accessor const& accessor , StoragePointer const & RESTRICT storage_pointer) const;
 
         /**@brief local class instead of using the inline (cond)?a:b syntax, because in the latter both branches get compiled (generating sometimes a compile-time overflow) */
         template <bool condition, typename LocalD, typename Accessor>
@@ -387,6 +383,90 @@ namespace gridtools {
             static const uint_t value=(total_storages< typename LocalD::local_args_type, Accessor::index_type::value >::value);
         };
 
+        /** @brief method returning the data pointer of an accessor
+            specialization for the accessor placeholders for standard storages
+
+            this method is enabled only if the current placeholder dimension does not exceed the number of space dimensions of the storage class.
+            I.e., if we are dealing with storages, not with storage lists or data fields (see concepts page for definitions)
+        */
+        template<typename Accessor>
+        GT_FUNCTION
+        typename boost::disable_if<
+            typename accessor_holds_data_field<Accessor>::type,
+            void* RESTRICT
+        >::type
+        get_data_pointer(Accessor const& accessor) const {
+            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
+            return (data_pointer())[current_storage<(Accessor::index_type::value==0)
+                                  , local_domain_t, typename Accessor::type >::value];
+        }
+
+#ifdef CXX11_ENABLED
+        /** @brief method returning the data pointer of an accessor
+            specialization for the accessor placeholders for expressions
+        */
+        template <typename Accessor>
+        GT_FUNCTION
+        void*
+        get_data_pointer(expr_direct_access<Accessor > const& accessor) const {
+            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
+            return (data_pointer())[current_storage<(Accessor::type::index_type::value==0),
+                    local_domain_t, typename Accessor::type >::value];
+        }
+#endif
+
+        /** @brief method returning the data pointer of an accessor
+            Specialization for the accessor placeholder for extended storages,
+            containg multiple snapshots of data fields with the same dimension and memory layout)
+
+            this method is enabled only if the current placeholder dimension exceeds the number of space dimensions of the storage class.
+            I.e., if we are dealing with  storage lists or data fields (see concepts page for definitions).
+        */
+        template<typename Accessor>
+        GT_FUNCTION
+        typename boost::enable_if<
+            typename accessor_holds_data_field<Accessor>::type,
+            void* RESTRICT
+        >::type
+        get_data_pointer(Accessor const& accessor ) const
+        {
+            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
+
+            typedef typename get_storage_accessor<local_domain_t, Accessor>::type storage_type;
+
+            //if the following assertion fails you have specified a dimension for the extended storage
+            //which does not correspond to the size of the extended placeholder for that storage
+            GRIDTOOLS_STATIC_ASSERT(storage_type::space_dimensions+2/*max. extra dimensions*/>=Accessor::type::n_dim, "the dimension of the accessor exceeds the data field dimension");
+
+
+            //for the moment the extra dimensionality of the storage is limited to max 2
+            //(3 space dim + 2 extra= 5, which gives n_dim==4)
+            GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor");
+            GRIDTOOLS_STATIC_ASSERT(Accessor::type::n_dim <= Accessor::type::n_dim, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.");
+
+            GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: if you need to use a non-rectangular field the constexpr version of the accessors have to be used (so that the current position in the field is computed at compile time). This is achieved by using, e.g., instead of \n\n eval(field(dimension<5>(2))); \n\n the following expression: \n\n typedef alias<field, dimension<5> >::set<2> z_field; \n eval(z_field()); \n");
+
+                //dimension/snapshot offsets must be non negative
+            assert(accessor.template get<0>()>=0);
+            assert( (Accessor::type::n_dim <= storage_type::space_dimensions+1) ||
+                    (accessor.template get<1>()>=0) );
+                 // std::cout<<" offsets: "<<arg.template get<0>()<<" , "<<arg.template get<1>()<<" , "<<arg.template get<2>()<<" , "<<std::endl;
+
+            return (data_pointer())[
+                (
+                     Accessor::type::n_dim <= storage_type::space_dimensions+1 ? // static if
+                         accessor.template get<0>() : //offset for the current dimension
+                         accessor.template get<1>() //offset for the current snapshot
+                             //limitation to "rectangular" vector fields for non-static fields dimensions
+                             +  accessor.template get<0>() //select the dimension
+                             * storage_type::traits::n_width  //stride of the current dimension inside the vector of storages
+                )
+                //+ the offset of the other extra dimension
+                + current_storage<(Accessor::type::index_type::value==0), local_domain_t, typename Accessor::type>::value
+            ];
+        }
+
+
 #ifdef CXX11_ENABLED
         /** @brief method called in the Do methods of the functors.
             specialization for the expr_direct_access<accessor> placeholders
@@ -397,9 +477,22 @@ namespace gridtools {
         operator()(expr_direct_access<Accessor > const& accessor) const {
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
-            return get_value(accessor, (data_pointer())[current_storage<(Accessor::type::index_type::value==0), local_domain_t, typename Accessor::type >::value]);
+            return get_value(accessor, get_data_pointer(accessor));
         }
 #endif
+
+        /** @brief return a the value in gmem pointed to by an accessor
+        */
+        template<
+            typename ReturnType,
+            typename StoragePointer
+        >
+        GT_FUNCTION
+        ReturnType get_gmem_value(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset) const
+        {
+            return *(storage_pointer+pointer_offset);
+        }
+
 
         /** @brief method called in the Do methods of the functors.
             specialization for the accessor placeholders
@@ -410,24 +503,21 @@ namespace gridtools {
         template<typename Accessor>
         GT_FUNCTION
         typename boost::enable_if<
-            typename mem_access_with_standard_accessor<Accessor, ij_caches_map_t>::type,
+            typename mem_access_with_standard_accessor<Accessor, all_caches_t>::type,
             typename accessor_return_type<Accessor>::type::value_type
         >::type& RESTRICT
         operator()(Accessor const& accessor) const {
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
-            return get_value(accessor, (data_pointer())[current_storage<(Accessor::index_type::value==0)
-                                                    , local_domain_t, typename Accessor::type >::value]);
+            return get_value(accessor, get_data_pointer(accessor));
         }
-
 
         template<typename Accessor>
         GT_FUNCTION
         typename boost::enable_if<
-            typename cache_access_accessor<Accessor, ij_caches_map_t>::type,
+            typename cache_access_accessor<Accessor, all_caches_t>::type,
             typename accessor_return_type<Accessor>::type::value_type
         >::type& RESTRICT
         operator()(Accessor const& accessor) const {
-
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
             return m_iterate_domain_backend.get_cache_value_impl (accessor);
         }
@@ -443,14 +533,13 @@ namespace gridtools {
         template<typename Accessor>
         GT_FUNCTION
         typename boost::enable_if<
-            typename mem_access_with_data_field_accessor<Accessor, ij_caches_map_t>::type,
+            typename mem_access_with_data_field_accessor<Accessor, all_caches_t>::type,
             typename accessor_return_type<Accessor>::type::value_type
         >::type& RESTRICT
         operator()(Accessor const& accessor) const;
 
 
-#if defined(CXX11_ENABLED)
-#if !defined(__CUDACC__)
+#if defined(CXX11_ENABLED) && !defined(__CUDACC__)//nvcc compiler bug
         /** @brief method called in the Do methods of the functors.
 
             Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
@@ -458,8 +547,6 @@ namespace gridtools {
         GT_FUNCTION
         typename accessor_return_type<Accessor>::type::value_type& RESTRICT
         operator()(accessor_mixed<Accessor, Pairs ... > const& accessor) const;
-
-#endif //ifndef __CUDACC__
 
 #endif
 
@@ -472,7 +559,7 @@ namespace gridtools {
         template <typename Accessor, typename StoragePointer>
         GT_FUNCTION
         typename accessor_return_type<Accessor>::type::value_type& RESTRICT
-        get_value (expr_direct_access<Accessor> const& accessor, StoragePointer & RESTRICT storage_pointer) const;
+        get_value (expr_direct_access<Accessor> const& accessor, StoragePointer const & RESTRICT storage_pointer) const;
 
 
         /** @brief method called in the Do methods of the functors. */
@@ -621,12 +708,13 @@ namespace gridtools {
     template <typename Accessor, typename StoragePointer>
     GT_FUNCTION
     typename iterate_domain<IterateDomainImpl>::template accessor_return_type<Accessor>::type::value_type& RESTRICT
-    iterate_domain<IterateDomainImpl>::get_value(Accessor const& accessor , StoragePointer & RESTRICT storage_pointer) const {
+    iterate_domain<IterateDomainImpl>::get_value(Accessor const& accessor , StoragePointer const & RESTRICT storage_pointer) const {
 
         //getting information about the storage
         typedef typename Accessor::index_type index_t;
 
         typedef typename local_domain_t::template get_storage<index_t>::type storage_t;
+        typedef typename get_storage_pointer_accessor<local_domain_t, Accessor>::type storage_pointer_t;
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
@@ -659,18 +747,21 @@ namespace gridtools {
         // If you are running a parallel simulation another common reason for this to happen is
         // the definition of an halo region which is too small in one direction
         // std::cout<<"Storage Index: "<<Accessor::index_type::value<<" + "<<(boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))->_index(arg.template n<Accessor::n_dim>())<<std::endl;
-        assert( (int_t)(m_index[metadata_index_t::value // Accessor::index_type::value
-                            ])
-                + metadata_
-                ->_index(strides().template get<metadata_index_t::value>(), accessor)
+        assert( (int_t)(m_index[metadata_index_t::value])
+                + metadata_->_index(strides().template get<metadata_index_t::value>(), accessor)
                 >= 0);
 
-        return *(real_storage_pointer
-                 +(m_index[metadata_index_t::value // Accessor::index_type::value
-                       ])
-                 +metadata_
-                 ->_index(strides().template get<metadata_index_t::value>(), accessor)
-            );
+
+        const uint_t pointer_offset = (m_index[metadata_index_t::value])
+                +metadata_->_index(strides().template get<metadata_index_t::value>(), accessor);
+
+        return m_iterate_domain_backend.template get_value_impl
+        <
+            typename iterate_domain<IterateDomainImpl>::template accessor_return_type<Accessor>::type,
+            Accessor,
+            storage_pointer_t
+        >(real_storage_pointer, pointer_offset);
+
     }
 
 
@@ -683,7 +774,7 @@ namespace gridtools {
         typename iterate_domain<IterateDomainImpl>::
             template mem_access_with_data_field_accessor<
                 Accessor,
-                typename iterate_domain<IterateDomainImpl>::ij_caches_map_t
+                typename iterate_domain<IterateDomainImpl>::all_caches_t
             >::type,
         typename iterate_domain<IterateDomainImpl>::template accessor_return_type<Accessor>::type::value_type
     >::type& RESTRICT
@@ -814,8 +905,7 @@ namespace gridtools {
     template <typename Accessor, typename StoragePointer>
     GT_FUNCTION
     typename iterate_domain<IterateDomainImpl>::template accessor_return_type<Accessor>::type::value_type& RESTRICT
-    iterate_domain<IterateDomainImpl>::get_value (expr_direct_access<Accessor> const& expr, StoragePointer & RESTRICT storage_pointer) const {
-
+    iterate_domain<IterateDomainImpl>::get_value (expr_direct_access<Accessor> const& expr, StoragePointer const & RESTRICT storage_pointer) const {
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
         //getting information about the storage

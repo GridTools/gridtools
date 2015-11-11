@@ -23,8 +23,8 @@ typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_i
 typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1, 1> > axis;
 
 struct functor1 {
-    typedef const accessor<0> in;
-    typedef accessor<1> out;
+    typedef accessor<0, enumtype::in, range<-1,1,-1,1> > in;
+    typedef accessor<1, enumtype::inout> out;
     typedef boost::mpl::vector<in,out> arg_list;
 
     template <typename Evaluation>
@@ -35,8 +35,8 @@ struct functor1 {
 };
 
 struct functor2 {
-    typedef const accessor<0, range<-1,1,-1,1> > in;
-    typedef accessor<1> out;
+    typedef accessor<0, enumtype::in, range<-1,1,-1,1> > in;
+    typedef accessor<1, enumtype::inout> out;
     typedef boost::mpl::vector<in,out> arg_list;
 
     template <typename Evaluation>
@@ -134,7 +134,6 @@ TEST_F(cache_stencil, ij_cache)
     pstencil->ready();
 
     pstencil->steady();
-    domain.clone_to_device();
 
     pstencil->run();
 
@@ -150,9 +149,7 @@ TEST_F(cache_stencil, ij_cache)
     ASSERT_TRUE(verif.verify(m_in, m_out, halos) );
 #else
     verifier verif(1e-13, m_halo_size);
-    ASSERT_TRUE(verif.verify(m_in, m_out));
-#endif
-
+    ASSERT_TRUE(verif.verify(m_in, m_out) );
 }
 
 TEST_F(cache_stencil, ij_cache_offset)
@@ -194,7 +191,6 @@ TEST_F(cache_stencil, ij_cache_offset)
     pstencil->ready();
 
     pstencil->steady();
-    domain.clone_to_device();
 
     pstencil->run();
 

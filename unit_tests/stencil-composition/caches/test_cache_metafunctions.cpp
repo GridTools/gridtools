@@ -20,8 +20,8 @@ using namespace enumtype;
 // This is the definition of the special regions in the "vertical" direction
 typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_interval;
 struct functor1 {
-    typedef const accessor<0, range<0,0,0,0>, 6> in;
-    typedef accessor<1, range<0,0,0,0>, 5> buff;
+    typedef accessor<0, enumtype::in, range<0,0,0,0>, 6> in;
+    typedef accessor<1, enumtype::inout, range<0,0,0,0>, 5> buff;
     typedef boost::mpl::vector<in,buff> arg_list;
 
     template <typename Evaluation>

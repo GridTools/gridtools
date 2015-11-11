@@ -12,4 +12,6 @@ export Boost_NO_BOOST_CMAKE=true
 export GRIDTOOLS_ROOT_BUILD=$PWD/build
 export GRIDTOOLS_ROOT=$PWD
 export CUDATOOLKIT_HOME=${CUDA_PATH}
-
+export GTEST_LIB=/users/crosetto/gtest-1.7.0/libgtest.a
+export GTEST_MAINLIB=/users/crosetto/gtest-1.7.0/libgtest_main.a
+export GTEST_INC=/users/crosetto/gtest-1.7.0/include

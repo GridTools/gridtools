@@ -46,11 +46,11 @@ struct lap_function {
     /**
        @brief placeholder for the output field, index 0. accessor contains a vector of 3 offsets and defines a plus method summing values to the offsets
     */
-    typedef accessor<0, range<-1, 1, -1, 1>, 3 > out;
+    typedef accessor<0, enumtype::inout, range<-1, 1, -1, 1>, 3 > out;
 /**
        @brief  placeholder for the input field, index 1
     */
-    typedef const accessor<1, range<-1, 1, -1, 1>, 3 > in;
+    typedef accessor<1, enumtype::in, range<-1, 1, -1, 1>, 3 > in;
     /**
        @brief MPL vector of the out and in types
     */
@@ -254,8 +254,6 @@ TEST(Laplace, test) {
 #else
     verifier verif(1e-13, halo_size);
     bool result = verif.verify(out, ref);
-#endif
-
 
 #ifdef BENCHMARK
         std::cout << laplace->print_meter() << std::endl;

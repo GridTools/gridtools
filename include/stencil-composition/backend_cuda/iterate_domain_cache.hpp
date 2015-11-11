@@ -76,6 +76,15 @@ public:
 
     // compute an mpl from the previous fusion vector, to be used for compile time meta operations
     typedef typename fusion_map_to_mpl_map<ij_caches_tuple_t>::type ij_caches_map_t;
+
+    typedef typename get_cache_set_for_type<
+        bypass,
+        caches_t,
+        typename IterateDomainArguments::local_domain_t
+    >::type bypass_caches_set_t;
+
+    //associative container with all caches
+    typedef typename get_cache_set<caches_t, typename IterateDomainArguments::local_domain_t>::type all_caches_t;
 };
 
 template<typename IterateDomainArguments> struct is_iterate_domain_cache<iterate_domain_cache<IterateDomainArguments> > :

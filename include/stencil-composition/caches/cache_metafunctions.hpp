@@ -6,6 +6,9 @@
 #pragma once
 
 #include <boost/mpl/copy_if.hpp>
+#include <boost/mpl/pair.hpp>
+#include <boost/mpl/void.hpp>
+#include <boost/mpl/insert.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/range_c.hpp>
@@ -246,5 +249,52 @@ struct get_cache_storage_tuple
         insert_pair_into_fusion_vector<boost::mpl::_1, boost::mpl::_2>
     >::type type;
 };
+
+/**
+ * @struct get_cache_set_for_type
+ * metafunction that computes a set of integers with position of each cache in the local domain,
+ * for all caches of a given type
+ * @tparam cacheType type of cache that is used to filter the sequence of caches
+ * @tparam CacheSequence sequence of caches used to extract the set of their positions
+ * @tparam LocalDomain local domain that contains all parameters
+ */
+template<cache_type cacheType, typename CacheSequence, typename LocalDomain>
+struct get_cache_set_for_type
+{
+
+    typedef typename boost::mpl::fold<
+        CacheSequence,
+        boost::mpl::set0<>,
+        boost::mpl::if_<
+            typename cache_is_type<cacheType>::template apply< boost::mpl::_2 >,
+            boost::mpl::insert<
+                boost::mpl::_1,
+                cache_to_index<boost::mpl::_2, LocalDomain>
+            >,
+            boost::mpl::_1
+        >
+    >::type type;
+};
+
+/**
+ * @struct get_cache_set
+ * metafunction that computes a set of integers with position of each cache in the local domain
+ * @tparam CacheSequence sequence of caches used to extract the set of their positions
+ * @tparam LocalDomain local domain that contains all parameters
+ */
+template<typename CacheSequence, typename LocalDomain>
+struct get_cache_set
+{
+
+    typedef typename boost::mpl::fold<
+        CacheSequence,
+        boost::mpl::set0<>,
+        boost::mpl::insert<
+            boost::mpl::_1,
+            cache_to_index<boost::mpl::_2, LocalDomain>
+        >
+    >::type type;
+};
+
 
 } // namespace gridtools
