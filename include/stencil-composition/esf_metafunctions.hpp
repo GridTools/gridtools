@@ -289,4 +289,7 @@ struct compute_readonly_args_indices
     >::type type;
 };
 
+template <typename T>
+struct is_esf_descriptor<independent_esf<T> > : boost::mpl::true_{};
+
 } //namespace gridtools

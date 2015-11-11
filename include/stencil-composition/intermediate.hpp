@@ -32,6 +32,7 @@
 #include "stencil-composition/compute_ranges_metafunctions.hpp"
 #include "stencil-composition/coordinates.hpp"
 #include "grid_traits.hpp"
+#include "stencil-composition/wrap_type.hpp"
 
 /**
  * @file

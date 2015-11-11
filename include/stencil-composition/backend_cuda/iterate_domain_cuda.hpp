@@ -238,6 +238,18 @@ public:
                     super::template get_data_pointer<Accessor>(_accessor));
     }
 
+    /** @brief return a the value in gmem pointed to by an accessor
+    */
+    template<
+        typename ReturnType,
+        typename StoragePointer
+    >
+    GT_FUNCTION
+    ReturnType get_gmem_value(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset) const
+    {
+        return *(storage_pointer+pointer_offset);
+    }
+
     /** @brief return a the value in memory pointed to by an accessor
     * specialization where the accessor points to an arg which is readonly for all the ESFs in all MSSs
     * Value is read via texture system
@@ -259,7 +271,7 @@ public:
         // on Kepler use ldg to read directly via read only cache
         return __ldg(storage_pointer + pointer_offset);
 #else
-        return super::template get_gmem_value<ReturnType>(storage_pointer,pointer_offset);
+        return get_gmem_value<ReturnType>(storage_pointer,pointer_offset);
 #endif
     }
 
@@ -279,7 +291,7 @@ public:
     get_value_impl(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset) const
     {
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
-        return super::template get_gmem_value<ReturnType>(storage_pointer,pointer_offset);
+        return get_gmem_value<ReturnType>(storage_pointer,pointer_offset);
     }
 
 private:

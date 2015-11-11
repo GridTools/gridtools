@@ -92,6 +92,14 @@ namespace gridtools {
 
         typedef typename iterate_domain_cache_t::all_caches_t all_caches_t;
 
+        typedef typename backend_traits_from_id< backend_id_t::value >::
+            template select_iterate_domain_backend<
+                data_pointer_array_t,
+                strides_cached_t,
+                iterate_domain_cache_t,
+                IterateDomainArguments
+            >::type iterate_domain_backend_t;
+
         GRIDTOOLS_STATIC_ASSERT((is_local_domain<local_domain_t>::value), "Internal Error: wrong type");
         typedef typename boost::remove_pointer<
             typename boost::mpl::at_c<
@@ -480,19 +488,6 @@ namespace gridtools {
             return get_value(accessor, get_data_pointer(accessor));
         }
 #endif
-
-        /** @brief return a the value in gmem pointed to by an accessor
-        */
-        template<
-            typename ReturnType,
-            typename StoragePointer
-        >
-        GT_FUNCTION
-        ReturnType get_gmem_value(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset) const
-        {
-            return *(storage_pointer+pointer_offset);
-        }
-
 
         /** @brief method called in the Do methods of the functors.
             specialization for the accessor placeholders

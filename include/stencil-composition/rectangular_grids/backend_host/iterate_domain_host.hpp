@@ -76,7 +76,7 @@ namespace gridtools {
         {
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
 
-            return super::template get_gmem_value<ReturnType>(storage_pointer,pointer_offset);
+            return *(storage_pointer+pointer_offset);
         }
 
 
