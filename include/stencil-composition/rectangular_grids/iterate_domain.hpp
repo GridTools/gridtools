@@ -67,7 +67,7 @@ namespace gridtools {
         typedef typename IterateDomainArguments::local_domain_t local_domain_t;
         // sequence of args types which are readonly through all ESFs/MSSs
         typedef typename compute_readonly_args_indices<
-            typename iterate_domain_arguments_t::esf_sequence_t
+            typename IterateDomainArguments::esf_sequence_t
         >::type readonly_args_indices_t;
 
         typedef typename local_domain_t::esf_args esf_args_t;

@@ -20,11 +20,13 @@ namespace gridtools
         >::type type;
     };
 
-    template<typename Accessor>
+    template<typename Accessor, typename IterateDomainArguments>
     struct get_arg_value_type_from_accessor
     {
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Internal error: wrong type");
-        typedef typename get_arg_from_accessor<Accessor>::type::value_type type;
+        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Internal error: wrong type");
+
+        typedef typename get_arg_from_accessor<Accessor, IterateDomainArguments>::type::value_type type;
     };
 
     /**
@@ -37,7 +39,7 @@ namespace gridtools
 
         typedef typename boost::mpl::eval_if<
             is_accessor<Accessor>,
-            get_arg_value_type_from_accessor<Accessor>,
+            get_arg_value_type_from_accessor<Accessor, IterateDomainArguments>,
             boost::mpl::identity<boost::mpl::void_>
         >::type accessor_value_type;
 
