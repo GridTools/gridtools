@@ -2,6 +2,8 @@
 
 #include <boost/mpl/contains.hpp>
 #include "stencil-composition/esf.hpp"
+#include "common/generic_metafunctions/is_predicate.hpp"
+#include "common/generic_metafunctions/copy_into_set.hpp"
 
 namespace gridtools {
 
