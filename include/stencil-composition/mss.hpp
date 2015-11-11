@@ -33,21 +33,6 @@ namespace gridtools {
          */
         HAS_TYPE_SFINAE(range_type, has_range_type, get_range_type)
 
-        /**@brief wrap type to simplify specialization based on mpl::vectors */
-        template <typename MplArray>
-        struct wrap_type {
-            typedef MplArray type;
-        };
-
-        /**
-         * @brief compile-time boolean operator returning true if the template argument is a wrap_type
-         * */
-        template <typename T>
-        struct is_wrap_type : boost::false_type {};
-
-        template <typename T>
-        struct is_wrap_type<wrap_type<T> > : boost::true_type{};
-
     }
 
     /** @brief Descriptors for  Multi Stage Stencil (MSS) */
@@ -120,36 +105,6 @@ namespace gridtools {
     struct mss_descriptor_execution_engine<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> >
     {
         typedef ExecutionEngine type;
-    };
-
-    template<typename MssDescriptor>
-    struct mss_compute_range_sizes
-    {
-        GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor<MssDescriptor>::value), "Internal Error: invalid type");
-
-        /**
-         * \brief Here the ranges are calculated recursively, in order for each functor's domain to embed all the domains of the functors he depends on.
-         */
-        typedef typename boost::mpl::fold<
-            typename mss_descriptor_esf_sequence<MssDescriptor>::type,
-            boost::mpl::vector0<>,
-            _impl::traverse_ranges<boost::mpl::_1,boost::mpl::_2>
-        >::type ranges_list;
-
-        /*
-         *  Compute prefix sum to compute bounding boxes for calling a given functor
-         */
-        typedef typename _impl::prefix_on_ranges<ranges_list>::type structured_range_sizes;
-
-        /**
-         * linearize the data flow graph
-         *
-         */
-        typedef typename _impl::linearize_range_sizes<structured_range_sizes>::type type;
-
-        GRIDTOOLS_STATIC_ASSERT(
-            (boost::mpl::size<typename mss_descriptor_linear_esf_sequence<MssDescriptor>::type>::value ==
-             boost::mpl::size<type>::value), "Internal Error: wrong size");
     };
 
 } // namespace gridtools
