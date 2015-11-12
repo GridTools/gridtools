@@ -14,12 +14,7 @@
   @brief  This file shows an implementation of the "laplace" stencil, similar to the one used in COSMO
 */
 // [namespaces]
-using gridtools::level;
-using gridtools::accessor;
-using gridtools::range;
-using gridtools::arg;
-using gridtools::uint_t;
-using gridtools::int_t;
+using namespace gridtools;
 // [namespaces]
 
 // [intervals]
@@ -254,6 +249,7 @@ TEST(Laplace, test) {
 #else
     verifier verif(1e-13, halo_size);
     bool result = verif.verify(out, ref);
+#endif
 
 #ifdef BENCHMARK
         std::cout << laplace->print_meter() << std::endl;

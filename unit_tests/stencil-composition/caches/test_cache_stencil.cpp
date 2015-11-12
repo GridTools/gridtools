@@ -150,6 +150,7 @@ TEST_F(cache_stencil, ij_cache)
 #else
     verifier verif(1e-13, m_halo_size);
     ASSERT_TRUE(verif.verify(m_in, m_out) );
+#endif
 }
 
 TEST_F(cache_stencil, ij_cache_offset)
