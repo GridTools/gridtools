@@ -504,7 +504,7 @@ public:
 
     template<typename Accessor>
     GT_FUNCTION
-    typename accessor_return_type<Accessor>::type::value_type& RESTRICT
+    typename accessor_return_type<Accessor>::type
     operator()(Accessor const& accessor) const {
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
         return get_value(accessor, (data_pointer())[current_storage<(Accessor::index_type::value==0)
@@ -568,7 +568,7 @@ public:
     */
     template <typename Accessor, typename StoragePointer>
     GT_FUNCTION
-    typename accessor_return_type<Accessor>::type::value_type& RESTRICT
+    typename accessor_return_type<Accessor>::type
     get_value(Accessor const& accessor , StoragePointer & RESTRICT storage_pointer) const {
 
         //getting information about the storage
@@ -622,7 +622,7 @@ public:
 
     template <typename Accessor, typename StoragePointer>
     GT_FUNCTION
-    typename accessor_return_type<Accessor>::type::value_type& RESTRICT
+    typename accessor_return_type<Accessor>::type
     get_raw_value(Accessor const& accessor , StoragePointer & RESTRICT storage_pointer, const uint_t offset) const {
 
         //getting information about the storage
