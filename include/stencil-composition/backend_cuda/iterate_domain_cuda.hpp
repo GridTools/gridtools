@@ -17,18 +17,19 @@ class iterate_domain_cuda
     GRIDTOOLS_STATIC_ASSERT((is_strides_cached<StridesCached>::value), "Internal error: wrong type");
     GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Internal error: wrong type");
 
-    typedef IterateDomainBase<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> > super;
     typedef typename IterateDomainArguments::local_domain_t local_domain_t;
-public:
-
-    typedef typename super::data_pointer_array_t data_pointer_array_t;
-    typedef typename super::strides_cached_t strides_cached_t;
 private:
 
     typedef shared_iterate_domain<DataPointerArray, StridesCached, typename IterateDomainCache::ij_caches_tuple_t>
         shared_iterate_domain_t;
 
     typedef typename IterateDomainCache::ij_caches_map_t ij_caches_map_t;
+    typedef typename IterateDomainCache::bypass_caches_set_t bypass_caches_set_t;
+
+    // sequence of args types which are readonly through all ESFs/MSSs
+    typedef typename compute_readonly_args_indices<
+        typename IterateDomainArguments::esf_sequence_t
+    >::type readonly_args_indices_t;
 
 private:
     const uint_t m_block_size_i;
@@ -180,7 +181,7 @@ public:
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
 
         typedef typename boost::mpl::at<
-            local_domain_args_t, boost::mpl::integral_c<int, Accessor::index_type::value>
+            typename local_domain_t::esf_args, boost::mpl::integral_c<int, Accessor::index_type::value>
         >::type arg_t;
 
         typedef typename
@@ -188,7 +189,6 @@ public:
                 readonly_args_indices_t,
                 boost::mpl::integral_c<int, arg_index<arg_t>::value  >
             >::type type;
-
     };
 
     /**
@@ -209,33 +209,13 @@ public:
     */
     template<typename ReturnType, typename Accessor>
     GT_FUNCTION
-    typename boost::disable_if<
-        boost::mpl::has_key<bypass_caches_set_t, static_uint<Accessor::index_type::value> >,
-        ReturnType
-    >::type
-    get_cache_value_impl(Accessor const & _accessor) const
+    ReturnType get_cache_value_impl(Accessor const & _accessor) const
     {
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
         //        assert(m_pshared_iterate_domain);
         // retrieve the ij cache from the fusion tuple and access the element required give the current thread position within
         // the block and the offsets of the accessor
         return m_pshared_iterate_domain->template get_ij_cache<static_uint<Accessor::index_type::value> >().at(m_thread_pos, _accessor.offsets());
-    }
-
-    /** @brief return a value that was cached
-    * specialization where cache is explicitly disabled by user
-    */
-    template<typename ReturnType, typename Accessor>
-    GT_FUNCTION
-    typename boost::enable_if<
-        boost::mpl::has_key<bypass_caches_set_t, static_uint<Accessor::index_type::value> >,
-        ReturnType
-    >::type
-    get_cache_value_impl(Accessor const & _accessor) const
-    {
-        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
-        return super::template get_value<Accessor, void * RESTRICT> (_accessor,
-                    super::template get_data_pointer<Accessor>(_accessor));
     }
 
     /** @brief return a the value in gmem pointed to by an accessor

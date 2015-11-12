@@ -65,10 +65,6 @@ namespace gridtools {
         typedef typename IterateDomainArguments::backend_id_t backend_id_t;
 
         typedef typename IterateDomainArguments::local_domain_t local_domain_t;
-        // sequence of args types which are readonly through all ESFs/MSSs
-        typedef typename compute_readonly_args_indices<
-            typename IterateDomainArguments::esf_sequence_t
-        >::type readonly_args_indices_t;
 
         typedef typename local_domain_t::esf_args esf_args_t;
 
@@ -91,6 +87,7 @@ namespace gridtools {
                 template select_iterate_domain_cache<IterateDomainArguments>::type iterate_domain_cache_t;
 
         typedef typename iterate_domain_cache_t::all_caches_t all_caches_t;
+        typedef typename iterate_domain_cache_t::bypass_caches_set_t bypass_caches_set_t;
 
         typedef typename backend_traits_from_id< backend_id_t::value >::
             template select_iterate_domain_backend<
@@ -120,14 +117,26 @@ namespace gridtools {
         };
 
         /**
+         * metafunction that determines if a given accessor is associated with an arg that is cached
+         */
+        template<typename Accessor>
+        struct cache_access_accessor
+        {
+            typedef typename boost::mpl::and_<
+                typename accessor_is_cached<Accessor, all_caches_t>::type,
+                typename boost::mpl::not_<typename accessor_is_cached<Accessor, bypass_caches_set_t>::type>::type
+            >::type type;
+        };
+
+        /**
          * metafunction that determines if a given accessor is associated with an arg holding a data field
          * and the parameter refers to a storage in main memory (i.e. is not cached)
          */
-        template<typename Accessor, typename CachesMap>
+        template<typename Accessor>
         struct mem_access_with_data_field_accessor
         {
             typedef typename boost::mpl::and_<
-                typename boost::mpl::not_< typename accessor_is_cached<Accessor, CachesMap>::type >::type,
+                typename boost::mpl::not_< typename cache_access_accessor<Accessor>::type >::type,
                 typename accessor_holds_data_field<Accessor>::type
             >::type type;
         };
@@ -137,22 +146,13 @@ namespace gridtools {
          * standard field (i.e. not a data field)
          * and the parameter refers to a storage in main memory (i.e. is not cached)
          */
-        template<typename Accessor, typename CachesMap>
+        template<typename Accessor>
         struct mem_access_with_standard_accessor
         {
             typedef typename boost::mpl::and_<
-                typename boost::mpl::not_< typename accessor_is_cached<Accessor, CachesMap>::type >::type,
+                typename boost::mpl::not_< typename cache_access_accessor<Accessor>::type >::type,
                 typename boost::mpl::not_< typename accessor_holds_data_field<Accessor>::type >::type
             >::type type;
-        };
-
-        /**
-         * metafunction that determines if a given accessor is associated with an arg that is cached
-         */
-        template<typename Accessor, typename CachesMap>
-        struct cache_access_accessor
-        {
-            typedef typename accessor_is_cached<Accessor, CachesMap>::type type;
         };
 
         /**
@@ -498,7 +498,7 @@ namespace gridtools {
         template<typename Accessor>
         GT_FUNCTION
         typename boost::enable_if<
-            typename mem_access_with_standard_accessor<Accessor, all_caches_t>::type,
+            typename mem_access_with_standard_accessor<Accessor>::type,
             typename accessor_return_type<Accessor>::type
         >::type
         operator()(Accessor const& accessor) const {
@@ -509,12 +509,13 @@ namespace gridtools {
         template<typename Accessor>
         GT_FUNCTION
         typename boost::enable_if<
-            typename cache_access_accessor<Accessor, all_caches_t>::type,
+            typename cache_access_accessor<Accessor>::type,
             typename accessor_return_type<Accessor>::type
         >::type
         operator()(Accessor const& accessor) const {
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
-            return m_iterate_domain_backend.get_cache_value_impl (accessor);
+            return m_iterate_domain_backend.
+                    template get_cache_value_impl<typename accessor_return_type<Accessor>::type> (accessor);
         }
 
 
@@ -528,7 +529,7 @@ namespace gridtools {
         template<typename Accessor>
         GT_FUNCTION
         typename boost::enable_if<
-            typename mem_access_with_data_field_accessor<Accessor, all_caches_t>::type,
+            typename mem_access_with_data_field_accessor<Accessor>::type,
             typename accessor_return_type<Accessor>::type
         >::type
         operator()(Accessor const& accessor) const;
@@ -768,8 +769,7 @@ namespace gridtools {
     typename boost::enable_if<
         typename iterate_domain<IterateDomainImpl>::
             template mem_access_with_data_field_accessor<
-                Accessor,
-                typename iterate_domain<IterateDomainImpl>::all_caches_t
+                Accessor
             >::type,
         typename iterate_domain<IterateDomainImpl>::template accessor_return_type<Accessor>::type
     >::type

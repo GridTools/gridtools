@@ -540,29 +540,28 @@ namespace gridtools{
         }
     };
 
+    /**
+     * metafunction that evaluates if an accessor is cached by the backend
+     * the Accessor parameter is either an Accessor or an expressions
+     */
     template<typename Accessor, typename CachesMap>
     struct accessor_is_cached
     {
-        typedef typename boost::mpl::eval_if<
-            is_accessor<Accessor>,
-            accessor_index<Accessor>,
-            boost::mpl::identity<static_int<-1> >
-        >::type accessor_index_t;
+        template<typename Accessor_>
+        struct accessor_is_cached_{
+            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Error: wrong type");
+            typedef typename boost::mpl::has_key<
+                CachesMap,
+                typename accessor_index<Accessor_>::type
+            >::type type;
+        };
 
         typedef typename boost::mpl::eval_if<
             is_accessor<Accessor>,
-            boost::mpl::has_key<
-                CachesMap,
-                //TODO: ERROR in Clang:
-                //non-type template argument evaluates to -1, which cannot be narrowed to type 'uint_t'
-#ifdef __CUDACC__
-                static_uint<accessor_index_t::value>
-#else // the following is NOT correct!! but compiles
-                static_int<accessor_index_t::value>
-#endif
-                >,
+            accessor_is_cached_<Accessor>,
             boost::mpl::identity<boost::mpl::false_>
         >::type type;
+
         BOOST_STATIC_CONSTANT(bool, value=(type::value));
     };
 
