@@ -138,5 +138,5 @@ int main(){
     computation->finalize();
     //![computation]
 
-//    return test_mass(assembler_base, assembler, fe_, mass_)==true;
+    return test_mass(assembler_base, assembler, fe_, mass_)==true;
 }
