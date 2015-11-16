@@ -67,11 +67,10 @@ namespace gridtools {
 
 
     /**
-       @brief cnostructs an mpl vector of esf, linearizig the mss tree.
+       @brief constructs an mpl vector of esf, linearizig the mss tree.
 
        Looping over all the esfs at compile time.
        if found independent esfs, they are also included in the linearized vector with a nested fold.
-       NOTE: nested independent sets are not supported (why?), should trigger an error
      */
     template<typename T>
     struct mss_descriptor_linear_esf_sequence;
@@ -86,7 +85,11 @@ namespace gridtools {
           : boost::mpl::fold<
                 typename SubArray::esf_list,
                 State,
+            boost::mpl::if_<
+                is_independent<boost::mpl::_2>,
+                keep_scanning<boost::mpl::_1, boost::mpl::_2>,
                 boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>
+                >
             >
         {};
 
@@ -107,7 +110,10 @@ namespace gridtools {
 
 
 
+    /**
+       @brief constructs an mpl vector of booleans, linearizig the mss tree and attachnig a true true or false flag depending wether the esf is independent or not
 
+     */
     template<typename T>
     struct is_independent_esf_sequence;
 
@@ -118,10 +124,14 @@ namespace gridtools {
     {
         template <typename State, typename SubArray>
         struct keep_scanning
-          : boost::mpl::fold<
-                typename SubArray::esf_list,
-                State,
-            boost::mpl::insert<boost::mpl::_1, boost::mpl::pair<extract_esf_function<boost::mpl::_2>, boost::mpl::true_> >
+            : boost::mpl::fold<
+            typename SubArray::esf_list,
+            State,
+            boost::mpl::if_<
+                is_independent<boost::mpl::_2>,
+                keep_scanning<boost::mpl::_1, boost::mpl::_2>,
+                boost::mpl::insert<boost::mpl::_1, boost::mpl::pair<extract_esf_function<boost::mpl::_2>, boost::mpl::true_> >
+                >
             >
         {};
 
@@ -138,8 +148,6 @@ namespace gridtools {
 
         typedef typename linearize_esf_array<EsfDescrSequence>::type type;
     };
-
-
 
 
 
