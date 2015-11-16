@@ -18,6 +18,7 @@ struct mss_components
 {
     GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor<MssDescriptor>::value), "Internal Error: wrong type");
     GRIDTOOLS_STATIC_ASSERT((is_sequence_of<RangeSizes, is_range>::value), "Internal Error: wrong type");
+    typedef MssDescriptor mss_descriptor_t;
 
     typedef typename mss_descriptor_execution_engine<MssDescriptor>::type execution_engine_t;
 

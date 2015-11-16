@@ -65,6 +65,14 @@ namespace gridtools {
         typedef EsfDescrSequence type;
     };
 
+
+    /**
+       @brief cnostructs an mpl vector of esf, linearizig the mss tree.
+
+       Looping over all the esfs at compile time.
+       if found independent esfs, they are also included in the linearized vector with a nested fold.
+       NOTE: nested independent sets are not supported (why?), should trigger an error
+     */
     template<typename T>
     struct mss_descriptor_linear_esf_sequence;
 
@@ -95,6 +103,46 @@ namespace gridtools {
 
         typedef typename linearize_esf_array<EsfDescrSequence>::type type;
     };
+
+
+
+
+
+    template<typename T>
+    struct is_independent_esf_sequence;
+
+    template <typename ExecutionEngine,
+              typename EsfDescrSequence,
+              typename CacheSequence>
+    struct is_independent_esf_sequence<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> >
+    {
+        template <typename State, typename SubArray>
+        struct keep_scanning
+          : boost::mpl::fold<
+                typename SubArray::esf_list,
+                State,
+            boost::mpl::insert<boost::mpl::_1, boost::mpl::pair<extract_esf_function<boost::mpl::_2>, boost::mpl::true_> >
+            >
+        {};
+
+        template <typename Array>
+        struct linearize_esf_array : boost::mpl::fold<
+              Array,
+              boost::mpl::map<>,
+              boost::mpl::if_<
+                  is_independent<boost::mpl::_2>,
+                  keep_scanning<boost::mpl::_1, boost::mpl::_2>,
+                  boost::mpl::insert<boost::mpl::_1, boost::mpl::pair<extract_esf_function<boost::mpl::_2>, boost::mpl::false_> >
+              >
+        >{};
+
+        typedef typename linearize_esf_array<EsfDescrSequence>::type type;
+    };
+
+
+
+
+
 
     template<typename Mss>
     struct mss_descriptor_execution_engine {};

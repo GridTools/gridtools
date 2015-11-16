@@ -77,6 +77,9 @@ namespace gridtools {
 
             typedef typename backend_traits_t::template get_block_size<StrategyId>::type block_size_t;
             // compute the struct with all the type arguments for the run functor
+
+            typedef typename is_independent_esf_sequence<typename mss_components_t::mss_descriptor_t>::type is_independent_sequence_t;
+
             typedef run_functor_arguments<
                 BackendId,
                 block_size_t,
@@ -89,6 +92,7 @@ namespace gridtools {
                 range_sizes,
                 local_domain_t,
                 typename mss_components_t::cache_sequence_t,
+                is_independent_sequence_t,
                 Coords,
                 ExecutionEngine,
                 StrategyId

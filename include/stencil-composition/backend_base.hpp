@@ -369,6 +369,6 @@ namespace gridtools {
         }
 
 
-    }; // struct backend {
+    }; // struct backend_base {
 
 } // namespace gridtools

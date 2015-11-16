@@ -86,6 +86,7 @@ namespace gridtools {
         typename RangeSizes,                        // ranges of each ESF
         typename LocalDomain,                       // local domain type
         typename CacheSequence,                     // sequence of user specified caches
+        typename IsIndependentSeq,                  // sequence of boolenans (one per functor), stating if it is contained in a "make_independent" construct
         typename Coords,                            // the coordinates
         typename ExecutionEngine,                   // the execution engine
         enumtype::strategy StrategyId>              // the strategy id
@@ -109,6 +110,7 @@ namespace gridtools {
         typedef RangeSizes range_sizes_t;
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;
+        typedef IsIndependentSeq is_independent_sequence_t;
         typedef typename backend_traits_from_id<backend_id_t::value>::
                 template select_iterate_domain<
                     iterate_domain_arguments<
@@ -140,6 +142,7 @@ namespace gridtools {
         typename RangeSizes,
         typename LocalDomain,
         typename CacheSequence,
+        typename IsIndependentSequence,
         typename Coords,
         typename ExecutionEngine,
         enumtype::strategy StrategyId>
@@ -156,6 +159,7 @@ namespace gridtools {
             RangeSizes,
             LocalDomain,
             CacheSequence,
+            IsIndependentSequence,
             Coords,
             ExecutionEngine,
             StrategyId
@@ -175,6 +179,10 @@ namespace gridtools {
         typedef typename boost::mpl::at<typename RunFunctorArguments::esf_args_map_sequence_t, Index>::type esf_args_map_t;
         typedef typename boost::mpl::at<typename RunFunctorArguments::range_sizes_t, Index>::type range_t;
         typedef typename boost::mpl::at<typename RunFunctorArguments::functors_map_t, Index>::type interval_map_t;
+
+        //global (to the mss) is_independent_sequence map (not local to the esf)
+        typedef typename RunFunctorArguments::is_independent_sequence_t is_independent_sequence_t;
+
         typedef typename index_to_level<
             typename boost::mpl::deref<
                 typename boost::mpl::find_if<

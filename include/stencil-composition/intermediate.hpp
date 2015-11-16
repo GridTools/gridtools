@@ -592,7 +592,6 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(
                     (boost::mpl::size<typename mss_components_array_t::elements>::value == boost::mpl::size<mss_local_domains_t>::value),
                     "Internal Error");
-
             m_meter.start();
             Backend::template run<mss_components_array_t>( m_coords, m_mss_local_domain_list );
             m_meter.pause();
