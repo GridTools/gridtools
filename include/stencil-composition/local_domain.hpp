@@ -44,9 +44,16 @@ namespace gridtools {
 
                 typedef typename boost::remove_reference
                     <typename boost::mpl::at
+                    // <typename boost::mpl::at_
                      <IndicesList, Id>::type>::type::index_type index_t;
 
+                // typedef typename boost::remove_reference
+                //     <typename boost::mpl::at_
+                //      <index_t::value, ArgList>::type>::type key_t;
+
+                // boost::fusion::at_key<key_t>(m_local_list) =
                 boost::fusion::at_c<Id::value>(m_local_list) =
+
 #ifdef __CUDACC__ // ugly ifdef. TODO: way to remove it?
                     boost::fusion::at_c<index_t::value>(m_arg_list)->gpu_object_ptr;
 #else
@@ -265,7 +272,21 @@ namespace gridtools {
                                            >
                                           >::type storage_metadata_map;
 
+        // template<typename T>
+        // struct extract_pointer_type;
 
+        // typedef typename boost::mpl::fold<mpl_storages
+        //                                   , boost::mpl::map0<>
+        //                                   , boost::mpl::insert
+        //                                   <boost::mpl::_1, boost::mpl::pair
+        //                                    <boost::remove_pointer<boost::mpl::_2>,
+        //                                     extract_pointer_type<boost::remove_pointer<boost::mpl::_2> >
+        //                                     >
+        //                                    >
+        //                                   >::type storage_map;
+
+
+        // typedef typename boost::fusion::result_of::as_map<storage_map>::type local_args_type;
         typedef typename boost::fusion::result_of::as_vector<mpl_storages>::type local_args_type;
         typedef typename boost::fusion::result_of::as_vector<mpl_actual_storages>::type actual_args_type;
 
