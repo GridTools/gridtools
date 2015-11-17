@@ -74,7 +74,7 @@ namespace gridtools{
             m_precision(precision),
             m_halos(halos){}
 
-        bool operator()(array<uint_t, NCoord> const &pos)
+        bool operator()(array<int_t, NCoord> const &pos)
         {
             typename StorageType::meta_data_t const* meta=&m_exp_field.meta_data();
 
