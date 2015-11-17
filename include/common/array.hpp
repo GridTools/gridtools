@@ -16,12 +16,15 @@
 
 namespace gridtools {
 
-    template <typename T, size_t D, class ENABLE=void>
+//    template <typename T, size_t D, class ENABLE=void>
+//    class array;
+
+    template <typename T, size_t D>
     class array;
 
     template <typename T, size_t D>
-    class array<T,D, typename boost::enable_if<typename boost::has_trivial_constructor<T>::type>::type> {
-
+//    class array<T,D, typename boost::enable_if<typename boost::has_trivial_constructor<T>::type>::type> {
+    class array<T,D> {
         template<int_t Idx>
         struct get_component{
 
@@ -86,7 +89,11 @@ namespace gridtools {
         array<T, D+1> append_dim(T const &val) const
         {
             array<T,D+1> ret;
-            std::copy(begin(), end(), ret.begin());
+            for(uint_t c=0; c < D; ++c)
+            {
+                ret[c] = operator[c];
+            }
+//            std::copy(begin(), end(), ret.begin());
             ret[D] = val;
             return ret;
         }
@@ -237,87 +244,87 @@ namespace gridtools {
         static constexpr size_t size() {return _size;}
     };
 
-    template <typename T, size_t D>
-    class array<T,D, typename boost::disable_if<typename boost::has_trivial_constructor<T>::type>::type > {
+//    template <typename T, size_t D>
+//    class array<T,D, typename boost::disable_if<typename boost::has_trivial_constructor<T>::type>::type > {
 
-        static const uint_t _size = (D>0)?D:1;
+//        static const uint_t _size = (D>0)?D:1;
 
-        typedef array<T,D> type;
-        struct _data_item {
-            char _data_storage[sizeof(T)];
+//        typedef array<T,D> type;
+//        struct _data_item {
+//            char _data_storage[sizeof(T)];
 
 //TODO the following breaks CUDA with rectangular grids
-#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
-            GT_FUNCTION
-            _data_item() : _data_storage() {}
+//#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
+//            GT_FUNCTION
+//            _data_item() : _data_storage() {}
 
-            GT_FUNCTION
-            _data_item(_data_item const& other) {
-                std::copy(&other._data_storage[0], &other._data_storage[sizeof(T)-1], &_data_storage[0]);
-            }
+//            GT_FUNCTION
+//            _data_item(_data_item const& other) {
+//                std::copy(&other._data_storage[0], &other._data_storage[sizeof(T)-1], &_data_storage[0]);
+//            }
 
-            GT_FUNCTION
-            _data_item(T const& x) {
-                const char* addr =  reinterpret_cast<const char*>(&x);
-                std::copy(addr, addr+sizeof(T), &_data_storage[0]);
-            }
-#endif
-        };
+//            GT_FUNCTION
+//            _data_item(T const& x) {
+//                const char* addr =  reinterpret_cast<const char*>(&x);
+//                std::copy(addr, addr+sizeof(T), &_data_storage[0]);
+//            }
+//#endif
+//        };
 
-        _data_item _array[_size];
+//        _data_item _array[_size];
 
-    public:
-        typedef T value_type;
-        static const size_t n_dimensions=D;
+//    public:
+//        typedef T value_type;
+//        static const size_t n_dimensions=D;
 
-        GT_FUNCTION
-        array()
-            : _array()
-        {}
+//        GT_FUNCTION
+//        array()
+//            : _array()
+//        {}
 
-#ifdef CXX11_ENABLED
-        array(std::initializer_list<T> c)
-            :_array{}
-        {
-            assert(c.size() == _size);
-            std::copy(c.begin(), c.end(), _array);
-        }
-#endif
+//#ifdef CXX11_ENABLED
+//        array(std::initializer_list<T> c)
+//            :_array{}
+//        {
+//            assert(c.size() == _size);
+//            std::copy(c.begin(), c.end(), _array);
+//        }
+//#endif
 
-        //TODO provide a constexpr version
-        T operator*(type& other) {
-            //TODO assert T is a primitive
-            T result = 0;
-            for(int i=0; i < n_dimensions; ++i)
-            {
-                result += _array[i] * other[i];
-            }
-            return result;
-        }
+//        //TODO provide a constexpr version
+//        T operator*(type& other) {
+//            //TODO assert T is a primitive
+//            T result = 0;
+//            for(int i=0; i < n_dimensions; ++i)
+//            {
+//                result += _array[i] * other[i];
+//            }
+//            return result;
+//        }
 
-        GT_FUNCTION
-        T const & operator[](size_t i) const {
-            assert((i < _size));
-            return *(reinterpret_cast<const T*>(&(_array[i])));
-        }
+//        GT_FUNCTION
+//        T const & operator[](size_t i) const {
+//            assert((i < _size));
+//            return *(reinterpret_cast<const T*>(&(_array[i])));
+//        }
 
-        GT_FUNCTION
-        T & operator[](size_t i) {
-            assert((i < _size));
-            return *(reinterpret_cast<T*>(&(_array[i])));
-        }
+//        GT_FUNCTION
+//        T & operator[](size_t i) {
+//            assert((i < _size));
+//            return *(reinterpret_cast<T*>(&(_array[i])));
+//        }
 
-        template <typename A>
-        GT_FUNCTION
-        array& operator=(A const& a) {
-            assert(a.size() == _size);
-            std::copy(a.begin(), a.end(), _array);
-            return *this;
-        }
+//        template <typename A>
+//        GT_FUNCTION
+//        array& operator=(A const& a) {
+//            assert(a.size() == _size);
+//            std::copy(a.begin(), a.end(), _array);
+//            return *this;
+//        }
 
-        GT_FUNCTION
-        static constexpr size_t size() {return _size;}
-    };
+//        GT_FUNCTION
+//        static constexpr size_t size() {return _size;}
+//    };
 
     template<typename T> struct is_array : boost::mpl::false_{};
 
