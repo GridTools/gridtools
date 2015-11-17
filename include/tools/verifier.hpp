@@ -74,7 +74,7 @@ namespace gridtools{
             m_precision(precision),
             m_halos(halos){}
 
-        bool operator()(array<int_t, NCoord> const &pos)
+        bool operator()(array<uint_t, NCoord> const &pos)
         {
             typename StorageType::meta_data_t const* meta=&m_exp_field.meta_data();
 
@@ -111,12 +111,12 @@ namespace gridtools{
         const uint_t halo_minus = halos[NDim-1][0];
         const uint_t halo_plus = halos[NDim-1][1];
 
-        for(int c=halo_minus; c < size-halo_plus; ++c)
+        for(uint_t c=halo_minus; c < size-halo_plus; ++c)
         {
 #ifdef CXX11_ENABLED
-            array<int_t,1> new_pos{c};
+            array<uint_t,1> new_pos{c};
 #else
-            array<int_t,1> new_pos(c);
+            array<uint_t,1> new_pos(c);
 #endif
             verified = verified & next_loop(new_pos);
         }
