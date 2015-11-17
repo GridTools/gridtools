@@ -71,7 +71,7 @@ namespace gridtools{
     struct strides_cached : public strides_cached<ID-1, StorageList> {
         typedef typename  boost::mpl::at_c<StorageList, ID>::type storage_type;
         typedef strides_cached<ID-1, StorageList> super;
-        typedef array<int_t, storage_type::space_dimensions-1> data_array_t;
+        typedef array<uint_t, storage_type::space_dimensions-1> data_array_t;
 
 #ifdef CXX11_ENABLED
         template <short_t Idx>
@@ -131,7 +131,7 @@ namespace gridtools{
         GT_FUNCTION
         strides_cached(){}
 
-        typedef array<int_t, storage_type::space_dimensions-1> data_array_t;
+        typedef array<uint_t, storage_type::space_dimensions-1> data_array_t;
 
         template <short_t Idx>
 #ifdef CXX11_ENABLED
@@ -465,13 +465,13 @@ namespace gridtools{
     struct assign_strides_inner_functor
     {
     private:
-        int_t* RESTRICT m_left;
-        const int_t* RESTRICT m_right;
+        uint_t* RESTRICT m_left;
+        const uint_t* RESTRICT m_right;
 
     public:
 
         GT_FUNCTION
-        assign_strides_inner_functor(int_t* RESTRICT l, const int_t* RESTRICT r) :
+        assign_strides_inner_functor(uint_t* RESTRICT l, const uint_t* RESTRICT r) :
             m_left(l), m_right(r) {}
 
         template <typename ID>
@@ -533,10 +533,13 @@ namespace gridtools{
             GRIDTOOLS_STATIC_ASSERT((std::remove_reference<decltype(m_strides.template get<ID::value>())>::type::size()==meta_storage_type::space_dimensions-1), "internal error: the length of the strides vectors does not match. The bug fairy has no mercy.");
 #endif
 #endif
+            uint_t ao;
             for_each< boost::mpl::range_c< short_t, 0,  meta_storage_type::space_dimensions-1> > (
-            assign_strides_inner_functor<BackendType>
-            (&(m_strides.template get<ID::value>()[0]), &(boost::fusion::template at_c<ID::value>(m_storages)->strides(1)))
-                );
+                assign_strides_inner_functor<BackendType>(
+                    &(m_strides.template get<ID::value>()[0]),
+                    &(boost::fusion::template at_c<ID::value>(m_storages)->strides(1))
+                )
+            );
         }
     };
 

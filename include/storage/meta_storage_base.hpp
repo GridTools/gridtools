@@ -73,8 +73,8 @@ namespace gridtools {
     protected:
 
         //TODO these two should be uint_t, however it assert the index in iterate domain
-         array<int_t, space_dimensions> m_dims;
-         array<int_t, space_dimensions> m_strides;
+         array<uint_t, space_dimensions> m_dims;
+         array<uint_t, space_dimensions> m_strides;
 
     public:
 
@@ -124,7 +124,7 @@ namespace gridtools {
             m_dims(a),
             m_strides(
                 explode<
-                    array<int_t, (short_t)(space_dimensions)>,
+                    array<uint_t, (short_t)(space_dimensions)>,
                     _impl::assign_all_strides< (short_t)(space_dimensions), layout>
                 >(a))
         {}
@@ -224,14 +224,14 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         /**@brief returns the storage strides
          */
         GT_FUNCTION
-         constexpr int_t const& strides(ushort_t i) const {
+         constexpr uint_t const & strides(ushort_t i) const {
             return m_strides[i];
         }
 
         /**@brief returns the storage strides
          */
         GT_FUNCTION
-         constexpr int_t const* strides() const {
+         constexpr uint_t const* strides() const {
             GRIDTOOLS_STATIC_ASSERT(space_dimensions>1, "one dimensional storage");
             return (&m_strides[1]);
         }
