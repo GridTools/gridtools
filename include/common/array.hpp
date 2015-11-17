@@ -1,6 +1,4 @@
-#ifndef _GCL_ARRAY_H_
-#define _GCL_ARRAY_H_
-
+#pragma once
 /**
 @file
 @briefImplementation of an array class
@@ -13,19 +11,20 @@
 #include <algorithm>
 #include <boost/type_traits/has_trivial_constructor.hpp>
 #include "common/generic_metafunctions/accumulate.hpp"
+//#include "common/generic_metafunctions/gt_integer_sequence.hpp"
 
 namespace gridtools {
 
 //    template <typename T, size_t D, class ENABLE=void>
 //    class array;
 
-    template <typename T, size_t D>
-    class array;
+//    template <typename T, size_t D>
+//    class array;
 
     template <typename T, size_t D>
 //    class array<T,D, typename boost::enable_if<typename boost::has_trivial_constructor<T>::type>::type> {
-    class array<T,D> {
-        template<int_t Idx>
+    class array {
+        template<uint_t Idx>
         struct get_component{
 
             GT_FUNCTION
@@ -41,39 +40,40 @@ namespace gridtools {
         typedef array<T,D> type;
         static const uint_t _size = (D>0)?D:1;
 
+        //we make the members public to make this class an aggregate
+    public:
         T _array[_size];
 
-    public:
         typedef T value_type;
         static const size_t n_dimensions=D;
 
-        GT_FUNCTION
-        array() {}
+//        GT_FUNCTION
+//        array() {}
 
 #ifdef CXX11_ENABLED
 
 #ifndef __CUDACC__ // NVCC always returns false in the SFINAE
-        // variadic constructor enabled only for arguments of type T
-        template<typename ... ElTypes
-                 , typename = typename boost::enable_if_c<accumulate(logical_and(), boost::is_same<ElTypes, T>::type::value ...), int >
-                 >
-        GT_FUNCTION constexpr
-        array(ElTypes const& ... types): _array{(T)types ... } {
-        }
+//        // variadic constructor enabled only for arguments of type T
+//        template<typename ... ElTypes
+//                 , typename = typename boost::enable_if_c<accumulate(logical_and(), boost::is_same<ElTypes, T>::type::value ...), int >
+//                 >
+//        GT_FUNCTION constexpr
+//        array(ElTypes const& ... types): _array{(T)types ... } {
+//        }
 #else // nvcc only checks the first argument
-        // variadic constructor enabled only for arguments of type T
-        template<typename First, typename ... ElTypes
-                 , typename = typename boost::enable_if_c<boost::is_same<First, T>::type::value , int >
-                 >
-        GT_FUNCTION
-        // constexpr
-        array(First const& first_, ElTypes const& ... types): _array{(T)first_, (T)types ... } {
-        }
+//        // variadic constructor enabled only for arguments of type T
+//        template<typename First, typename ... ElTypes
+//                 , typename = typename boost::enable_if_c<boost::is_same<First, T>::type::value , int >
+//                 >
+//        GT_FUNCTION
+//        // constexpr
+//        array(First const& first_, ElTypes const& ... types): _array{(T)first_, (T)types ... } {
+//        }
 #endif
-        template<typename ... ElTypes>
-        GT_FUNCTION
-        constexpr array(ElTypes const& ... types): _array{(T)types ... } {
-        }
+//        template<typename ... ElTypes>
+//        GT_FUNCTION
+//        constexpr array(ElTypes const& ... types): _array{(T)types ... } {
+//        }
 
         //TODO provide a constexpr version
         T operator*(type& other) {
@@ -91,9 +91,8 @@ namespace gridtools {
             array<T,D+1> ret;
             for(uint_t c=0; c < D; ++c)
             {
-                ret[c] = operator[c];
+                ret[c] = this->operator[](c);
             }
-//            std::copy(begin(), end(), ret.begin());
             ret[D] = val;
             return ret;
         }
@@ -101,50 +100,46 @@ namespace gridtools {
         array<T, D+1> prepend_dim(T const &val) const
         {
             array<T,D+1> ret;
-            std::copy(begin(), end(), &ret[1]);
+            for(uint_t c=1; c <= D; ++c)
+            {
+                ret[c] = this->operator[](c-1);
+            }
             ret[0] = val;
             return ret;
         }
 
-        template <typename Int, size_t E>
-        GT_FUNCTION
-        array(array<Int, E> const& other)
-        {
-            assert(other.size() == _size);
-            std::copy(other.begin(), other.end(), _array);
-        }
 #else
-        //TODO provide a BOOST PP implementation for this
-        GT_FUNCTION
-        array(T const& i): _array() {
-            const_cast<typename boost::remove_const<T>::type*>(_array)[0]=i;
-        }
-        GT_FUNCTION
-        array(T const& i, T const& j): _array() {
-            const_cast<typename boost::remove_const<T>::type*>(_array)[0]=i;
-            const_cast<typename boost::remove_const<T>::type*>(_array)[1]=j;
-        }
-        GT_FUNCTION
-        array(T const& i, T const& j, T const& k): _array() {
-            const_cast<typename boost::remove_const<T>::type*>(_array)[0]=i;
-            const_cast<typename boost::remove_const<T>::type*>(_array)[1]=j;
-            const_cast<typename boost::remove_const<T>::type*>(_array)[2]=k;
-        }
-        GT_FUNCTION
-        array(T const& i, T const& j, T const& k, T const& l): _array() {
-            const_cast<typename boost::remove_const<T>::type*>(_array)[0]=i;
-            const_cast<typename boost::remove_const<T>::type*>(_array)[1]=j;
-            const_cast<typename boost::remove_const<T>::type*>(_array)[2]=k;
-            const_cast<typename boost::remove_const<T>::type*>(_array)[3]=l;
-        }
-        GT_FUNCTION
-        array(T const& i, T const& j, T const& k, T const& l, T const& p): _array() {
-            const_cast<typename boost::remove_const<T>::type*>(_array)[0]=i;
-            const_cast<typename boost::remove_const<T>::type*>(_array)[1]=j;
-            const_cast<typename boost::remove_const<T>::type*>(_array)[2]=k;
-            const_cast<typename boost::remove_const<T>::type*>(_array)[3]=l;
-            const_cast<typename boost::remove_const<T>::type*>(_array)[4]=p;
-        }
+//        //TODO provide a BOOST PP implementation for this
+//        GT_FUNCTION
+//        array(T const& i): _array() {
+//            const_cast<typename boost::remove_const<T>::type*>(_array)[0]=i;
+//        }
+//        GT_FUNCTION
+//        array(T const& i, T const& j): _array() {
+//            const_cast<typename boost::remove_const<T>::type*>(_array)[0]=i;
+//            const_cast<typename boost::remove_const<T>::type*>(_array)[1]=j;
+//        }
+//        GT_FUNCTION
+//        array(T const& i, T const& j, T const& k): _array() {
+//            const_cast<typename boost::remove_const<T>::type*>(_array)[0]=i;
+//            const_cast<typename boost::remove_const<T>::type*>(_array)[1]=j;
+//            const_cast<typename boost::remove_const<T>::type*>(_array)[2]=k;
+//        }
+//        GT_FUNCTION
+//        array(T const& i, T const& j, T const& k, T const& l): _array() {
+//            const_cast<typename boost::remove_const<T>::type*>(_array)[0]=i;
+//            const_cast<typename boost::remove_const<T>::type*>(_array)[1]=j;
+//            const_cast<typename boost::remove_const<T>::type*>(_array)[2]=k;
+//            const_cast<typename boost::remove_const<T>::type*>(_array)[3]=l;
+//        }
+//        GT_FUNCTION
+//        array(T const& i, T const& j, T const& k, T const& l, T const& p): _array() {
+//            const_cast<typename boost::remove_const<T>::type*>(_array)[0]=i;
+//            const_cast<typename boost::remove_const<T>::type*>(_array)[1]=j;
+//            const_cast<typename boost::remove_const<T>::type*>(_array)[2]=k;
+//            const_cast<typename boost::remove_const<T>::type*>(_array)[3]=l;
+//            const_cast<typename boost::remove_const<T>::type*>(_array)[4]=p;
+//        }
 
 #endif
 
@@ -155,55 +150,78 @@ namespace gridtools {
             TODO: complicated and counter intuitive syntax
         */
         // GT_FUNCTION
-        // constexpr array( array<T,_size> const& other): gt_make_integer_sequence<_size>::template apply<array<T, _size>, get_component> (other) {
+        // constexpr array( array<T,_size> const& other):
+//            gt_make_integer_sequence<_size>::template apply<array<T, _size>, get_component> (other) {
         // }
-        GT_FUNCTION
-        constexpr array( array<T,1> const& other): _array{other[0]} {
-        }
-        GT_FUNCTION
-        constexpr array( array<T,2> const& other): _array{other[0], other[1]} {
-        }
-        GT_FUNCTION
-        constexpr array( array<T,3> const& other): _array{other[0], other[1], other[2]}{
-        }
-        GT_FUNCTION
-        constexpr array( array<T,4> const& other): _array{other[0], other[1], other[2], other[3]} {
-        }
+
+        //calling the array constexpr copy constructor
+//        constexpr gridtools::array<int, 4> out( seq::template apply<gridtools::array<int, 4>, get_component>(0,1,2,3) );
+//        template<typename Container, template <UInt T> class Lambda, typename ... ExtraTypes>
+
+//        GT_FUNCTION
+//        constexpr
+//        array( array<T,D> const& other) : {//:
+//            callint((uint_t)1,(uint_t)2,(uint_t)3,(uint_t)4);
+//            using seq = apply_gt_integer_sequence<typename make_gt_integer_sequence<T, D-1>::type >;
+
+            //            seq::template apply<array<T, D>, get_component,T> ((T)1, (T)1, (T)1, (T)1, (T)1) {
+//            using PP = typename  seq::template apply<array<T, D>, get_component,T>;
+//            using PP = typename seq::PP;
+//            using seq = apply_gt_integer_sequence<typename make_gt_integer_sequence<int_t, sizeof ... (args)>::type >;
+//            return seq::template apply<array<int_t, MaxIndex>, lambda>((int_t)args...);
+//            seq::template apply<array<T, D>, get_component, array<T,D> > (other);
+//        }
+
+//        using seq = apply_gt_integer_sequence<typename make_gt_integer_sequence<int_t, sizeof ... (args)>::type >;
+//        return seq::template apply<array<int_t, MaxIndex>, lambda>((int_t)args...);
+
+//        GT_FUNCTION
+//        constexpr array( array<T,1> const& other): _array{other[0]} {
+//        }
+//        GT_FUNCTION
+//        constexpr array( array<T,2> const& other): _array{other[0], other[1]} {
+//        }
+//        GT_FUNCTION
+//        constexpr array( array<T,3> const& other): _array{other[0], other[1], other[2]}{
+//        }
+//        GT_FUNCTION
+//        constexpr array( array<T,4> const& other): _array{other[0], other[1], other[2], other[3]} {
+//        }
 #else
-        //TODO provide a BOOST PP implementation for this (so ugly :-()
-        GT_FUNCTION
-        array( array<T,1> const& other): _array() {
-            _array[0]=other[0];
-        }
-        GT_FUNCTION
-        array( array<T,2> const& other): _array() {
-            _array[0]=other[0];
-            _array[1]=other[1];
-        }
-        GT_FUNCTION
-        array( array<T,3> const& other): _array() {
-            _array[0]=other[0];
-            _array[1]=other[1];
-            _array[2]=other[2];
-        }
-        GT_FUNCTION
-        array( array<T,4> const& other): _array() {
-            _array[0]=other[0];
-            _array[1]=other[1];
-            _array[2]=other[2];
-            _array[3]=other[3];
-        }
-        GT_FUNCTION
-        array( array<T,5> const& other): _array() {
-            _array[0]=other[0];
-            _array[1]=other[1];
-            _array[2]=other[2];
-            _array[3]=other[3];
-            _array[4]=other[4];
-        }
+//        //TODO provide a BOOST PP implementation for this (so ugly :-()
+//        GT_FUNCTION
+//        array( array<T,1> const& other): _array() {
+//            _array[0]=other[0];
+//        }
+//        GT_FUNCTION
+//        array( array<T,2> const& other): _array() {
+//            _array[0]=other[0];
+//            _array[1]=other[1];
+//        }
+//        GT_FUNCTION
+//        array( array<T,3> const& other): _array() {
+//            _array[0]=other[0];
+//            _array[1]=other[1];
+//            _array[2]=other[2];
+//        }
+//        GT_FUNCTION
+//        array( array<T,4> const& other): _array() {
+//            _array[0]=other[0];
+//            _array[1]=other[1];
+//            _array[2]=other[2];
+//            _array[3]=other[3];
+//        }
+//        GT_FUNCTION
+//        array( array<T,5> const& other): _array() {
+//            _array[0]=other[0];
+//            _array[1]=other[1];
+//            _array[2]=other[2];
+//            _array[3]=other[3];
+//            _array[4]=other[4];
+//        }
 #endif
 
-	GT_FUNCTION
+    GT_FUNCTION
         T const* begin() const {return &_array[0];}
 
         GT_FUNCTION
@@ -328,9 +346,7 @@ namespace gridtools {
 
     template<typename T> struct is_array : boost::mpl::false_{};
 
-    template <typename T, size_t D, class ENABLE>
-    struct is_array <array<T, D, ENABLE> > : boost::mpl::true_{};
+    template <typename T, size_t D>
+    struct is_array <array<T, D> > : boost::mpl::true_{};
 
 } // namespace gridtools
-
-#endif

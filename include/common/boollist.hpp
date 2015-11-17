@@ -1,10 +1,9 @@
-#ifndef _BOOLLIST_H_
-#define _BOOLLIST_H_
+#pragma once
 
 #include <boost/static_assert.hpp>
 #include "defs.hpp"
 #include "gridtools.hpp"
-#include "array.hpp"
+#include "common/array.hpp"
 /*@file
 @bief  The following class describes a boolean list of length N.
 
@@ -112,5 +111,3 @@ namespace gridtools {
     };
 
 }
-
-#endif

@@ -151,7 +151,7 @@ namespace gridtools {
                   , typename Dummy = all_integers<IntTypes...>
                   >
         constexpr meta_storage_base(  IntTypes const& ... dims_  ) :
-            m_dims(dims_...)
+            m_dims{dims_...}
             , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( dims_...))
             {
                 GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes)==space_dimensions, "you tried to initialize\
