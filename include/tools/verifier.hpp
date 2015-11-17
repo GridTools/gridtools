@@ -113,7 +113,11 @@ namespace gridtools{
 
         for(int c=halo_minus; c < size-halo_plus; ++c)
         {
+#ifdef CXX11_ENABLED
+            array<uint_t,1> new_pos{c};
+#else
             array<uint_t,1> new_pos(c);
+#endif
             verified = verified & next_loop(new_pos);
         }
         return verified;
