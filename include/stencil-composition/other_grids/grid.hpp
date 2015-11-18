@@ -127,10 +127,10 @@ namespace gridtools {
         }
 
         static return_t<array<uint_t, 4> > get_index(array<uint_t, 3> const& i){
-            return return_t<array<uint_t, 4> >{
+            return return_t<array<uint_t, 4> >{{
                 { i[0], 0, i[1], i[2]},
                 { i[0], 0, i[1]+1, i[2]},
-                { i[0]+1, 0, i[1], i[2]}};
+                { i[0]+1, 0, i[1], i[2]} }};
         }
     };
 
@@ -150,11 +150,11 @@ namespace gridtools {
         }
 
         static return_t<array<uint_t, 4> > get_index(array<uint_t, 3> const& i){
-            return return_t<array<uint_t, 4> >{
+            return return_t<array<uint_t, 4> >{{
                 { i[0], 1, i[1]-1, i[2]},
                 { i[0], 1, i[1], i[2]},
                 { i[0]-1, 1, i[1], i[2]}
-            };
+            }};
         }
     };
 
@@ -177,14 +177,14 @@ namespace gridtools {
         }
 
         static return_t<array<uint_t, 4> > get_index(array<uint_t, 3> const& i){
-            return return_t<array<uint_t, 4> >{
+            return return_t<array<uint_t, 4> >{{
                 { i[0], 0, i[1]-1, i[2]},
                 { i[0]+1, 0, i[1]-1, i[2]},
                 { i[0]+1, 0, i[1], i[2]},
                 { i[0], 0, i[1]+1, i[2]},
                 { i[0]-1, 0, i[1]+1, i[2]},
                 { i[0]-1, 0, i[1], i[2]},
-            };
+            }};
         }
     };
 
@@ -205,11 +205,11 @@ namespace gridtools {
         }
 
         static return_t<array<uint_t, 4> > get_index(array<uint_t, 3> const& i){
-            return return_t<array<uint_t, 4> >{
+            return return_t<array<uint_t, 4> >{{
                 { i[0], 1, i[1], i[2]},
                 { i[0]+1, 1, i[1]-1, i[2]},
                 { i[0], 2, i[1], i[2]},
-                { i[0], 2, i[1]-1, i[2]}};
+                { i[0], 2, i[1]-1, i[2]} }};
         }
     };
 
@@ -231,11 +231,11 @@ namespace gridtools {
         }
 
         static return_t<array<uint_t, 4>> get_index(array<uint_t, 3> const& i){
-            return return_t<array<uint_t, 4> >{
+            return return_t<array<uint_t, 4> >{{
                 { i[0], 0, i[1], i[2]},
                 { i[0]-1, 0, i[1]+1, i[2]},
                 { i[0], 2, i[1], i[2]},
-                { i[0]-1, 2, i[1], i[2]}};
+                { i[0]-1, 2, i[1], i[2]} }};
         }
     };
 
@@ -257,11 +257,11 @@ namespace gridtools {
         }
 
         static return_t<array<uint_t, 4> > get_index(array<uint_t, 3> const& i){
-            return return_t<array<uint_t, 4> > {
+            return return_t<array<uint_t, 4> > {{
                 { i[0], 0, i[1], i[2]},
                 { i[0], 0, i[1]+1, i[2]},
                 { i[0], 1, i[1], i[2]},
-                { i[0]+1, 1, i[1], i[2]}};
+                { i[0]+1, 1, i[1], i[2]} }};
         }
     };
 
@@ -282,10 +282,10 @@ namespace gridtools {
         }
 
         static return_t<array<uint_t, 4>> get_index(array<uint_t, 3> const& i){
-            return return_t<array<uint_t, 4>>{
+            return return_t<array<uint_t, 4>>{{
                 { i[0], 2, i[1], i[2]},
                 { i[0], 0, i[1]+1, i[2]},
-                { i[0]+1, 1, i[1], i[2]}};
+                { i[0]+1, 1, i[1], i[2]} }};
         }
     };
 
@@ -306,10 +306,10 @@ namespace gridtools {
         }
 
         static return_t<array<uint_t, 4>> get_index(array<uint_t, 3> const& i){
-            return return_t<array<uint_t, 4>>{
+            return return_t<array<uint_t, 4>>{{
                 { i[0], 0, i[1], i[2]},
                 { i[0], 1, i[1], i[2]},
-                { i[0], 2, i[1], i[2]}};
+                { i[0], 2, i[1], i[2]} }};
         }
 
     };
@@ -330,10 +330,10 @@ namespace gridtools {
         }
 
         static return_t<array<uint_t, 4>> get_index(array<uint_t, 3> const& i){
-            return return_t<array<uint_t, 4>>{
+            return return_t<array<uint_t, 4>>{{
                 { i[0], 0, i[1], i[2]},
                 { i[0], 0, i[1]+1, i[2]},
-                { i[0]+1, 0, i[1], i[2]}};
+                { i[0]+1, 0, i[1], i[2]} }};
         }
     };
 
@@ -353,10 +353,10 @@ namespace gridtools {
         }
 
         static return_t<array<uint_t, 4>> get_index(array<uint_t, 3> const& i){
-            return return_t<array<uint_t, 4>>{
+            return return_t<array<uint_t, 4>>{{
                 { i[0]+1, 0, i[1], i[2]},
                 { i[0], 0, i[1]+1, i[2]},
-                { i[0]+1, 0, i[1]+1, i[2]}};
+                { i[0]+1, 0, i[1]+1, i[2]} }};
         }
     };
 
@@ -376,9 +376,9 @@ namespace gridtools {
         }
 
         static return_t<array<uint_t, 4>> get_index(array<uint_t, 3> const& i){
-            return return_t<array<uint_t, 4>>{
+            return return_t<array<uint_t, 4>>{{
                 { i[0], 1, i[1]-1, i[2]},
-                { i[0], 0, i[1], i[2]}};
+                { i[0], 0, i[1], i[2]} }};
         }
     };
 
@@ -398,9 +398,9 @@ namespace gridtools {
         }
 
         static return_t<array<uint_t, 4>> get_index(array<uint_t, 3> const& i){
-            return return_t<array<uint_t, 4>>{
+            return return_t<array<uint_t, 4>>{{
                 { i[0]-1, 1, i[1], i[2]},
-                { i[0], 0, i[1], i[2]}};
+                { i[0], 0, i[1], i[2]} }};
         }
     };
 
@@ -419,9 +419,9 @@ namespace gridtools {
         }
 
         static return_t<array<uint_t, 4>> get_index(array<uint_t, 3> const& i){
-            return return_t<array<uint_t, 4>>{
+            return return_t<array<uint_t, 4>>{{
                 { i[0], 0, i[1], i[2]},
-                { i[0], 1, i[1], i[2]}};
+                { i[0], 1, i[1], i[2]} }};
         }
     };
 
@@ -442,12 +442,12 @@ namespace gridtools {
         }
 
         static return_t<array<uint_t, 4>> get_index(array<uint_t, 3> const& i){
-            return return_t<array<uint_t, 4>>{
+            return return_t<array<uint_t, 4>>{{
                 { i[0], 0, i[1], i[2]},
                 { i[0], 0, i[1]+1, i[2]},
                 { i[0]+1, 0, i[1], i[2]},
                 { i[0]+1, 0, i[1]-1, i[2]},
-            };
+            }};
         }
     };
 
@@ -468,12 +468,12 @@ namespace gridtools {
         }
 
         static return_t<array<uint_t, 4>> get_index(array<uint_t, 3> const& i){
-            return return_t<array<uint_t, 4>>{
+            return return_t<array<uint_t, 4>>{{
                 { i[0], 0, i[1], i[2]},
                 { i[0]-1, 0, i[1]+1, i[2]},
                 { i[0], 0, i[1]+1, i[2]},
                 { i[0]+1, 0, i[1], i[2]},
-            };
+            }};
         }
     };
 
@@ -494,12 +494,12 @@ namespace gridtools {
         }
 
         static return_t<array<uint_t, 4>> get_index(array<uint_t, 3> const& i){
-            return return_t<array<uint_t, 4>>{
+            return return_t<array<uint_t, 4>>{{
                 { i[0], 0, i[1], i[2]},
                 { i[0], 0, i[1]+1, i[2]},
                 { i[0]+1, 0, i[1], i[2]},
                 { i[0]+1, 0, i[1]+1, i[2]},
-            };
+            }};
         }
     };
 
@@ -522,14 +522,14 @@ namespace gridtools {
         }
 
         static return_t<array<uint_t, 4> > get_index(array<uint_t, 3> const& i){
-            return return_t<array<uint_t, 4> >{
+            return return_t<array<uint_t, 4> >{{
                 { i[0]-1, 1, i[1]-1, i[2]},
                 { i[0]-1, 0, i[1], i[2]},
                 { i[0]-1, 1, i[1], i[2]},
                 { i[0], 0, i[1], i[2]},
                 { i[0], 1, i[1]-1, i[2]},
                 { i[0], 0, i[1]-1, i[2]},
-            };
+            }};
         }
     };
 
@@ -552,14 +552,14 @@ namespace gridtools {
         }
 
         static return_t<array<uint_t, 4> > get_index(array<uint_t, 3> const& i){
-            return return_t<array<uint_t, 4> >{
+            return return_t<array<uint_t, 4> >{{
                 { i[0], 1, i[1]-1, i[2]},
                 { i[0]-1, 0, i[1], i[2]},
                 { i[0]-1, 2, i[1], i[2]},
                 { i[0], 1, i[1], i[2]},
                 { i[0], 0, i[1], i[2]},
                 { i[0], 2, i[1]-1, i[2]},
-            };
+            }};
         }
     };
 
