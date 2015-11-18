@@ -1,7 +1,6 @@
 /**
 \file
 */
-#pragma once
 #define PEDANTIC_DISABLED
 //! [assembly]
 #include "../numerics/assembly.hpp"
@@ -97,12 +96,18 @@ int main(){
     //![instantiation]
 
     using as=assembly< geo_t >;
+    using as_base=assembly_base<geo_t>;
 
 
     //![as_instantiation]
     //constructing the integration tools
     as assembler( geo_, d1, d2, d3);
+    as_base assembler_base(d1,d2,d3);
     //![as_instantiation]
+
+    using domain_tuple_t = domain_type_tuple< as, as_base>;
+    domain_tuple_t domain_tuple_ (assembler, assembler_base);
+
 
     //![grid]
     //constructing a structured cartesian grid
@@ -111,9 +116,9 @@ int main(){
             for (uint_t k=0; k<d3; k++)
                 for (uint_t point=0; point<fe::basisCardinality; point++)
                 {
-                    assembler.grid()( i,  j,  k,  point,  0)= (i + geo_.grid()(point, 0));
-                    assembler.grid()( i,  j,  k,  point,  1)= (j + geo_.grid()(point, 1));
-                    assembler.grid()( i,  j,  k,  point,  2)= (k + geo_.grid()(point, 2));
+                    assembler_base.grid()( i,  j,  k,  point,  0)= (i + geo_.grid()(point, 0));
+                    assembler_base.grid()( i,  j,  k,  point,  1)= (j + geo_.grid()(point, 1));
+                    assembler_base.grid()( i,  j,  k,  point,  2)= (k + geo_.grid()(point, 2));
                     // std::cout<<"grid point("<<m_grid( i,  j,  k,  point,  0) << ", "<< m_grid( i,  j,  k,  point,  1)<<", "<<m_grid( i,  j,  k,  point,  2)<<")"<<std::endl;
                 }
     //![grid]
@@ -132,17 +137,17 @@ int main(){
         - adding the fluxes contribution
     */
 
+    using dt = domain_tuple_t;
     //![placeholders]
     // defining the placeholder for the local gradient of the element boundary face
-    typedef arg<as::size, discr_t::grad_storage_t> p_dphi;
+    typedef arg<dt::size, discr_t::grad_storage_t> p_dphi;
     // // defining the placeholder for the local values on the face
     // typedef arg<as::size+4, bd_discr_t::phi_storage_t> p_bd_phi;
     // //output
-    typedef arg<as::size+1, matrix_type> p_stiffness;
+    typedef arg<dt::size+1, matrix_type> p_stiffness;
 
     // appending the placeholders to the list of placeholders already in place
-    // auto domain=assembler.template domain< p_bd_dphi, p_bd_phi, p_flux >( bd_discr_.local_gradient(), bd_discr_.phi(), flux_);
-    auto domain=assembler.template domain<p_dphi, p_stiffness>(fe_.grad(), stiffness_);
+    auto domain=domain_tuple_.template domain<p_dphi, p_stiffness>(fe_.grad(), stiffness_);
     //![placeholders]
 
 
@@ -158,10 +163,10 @@ int main(){
         make_mss
         (
             execute<forward>(),
-            make_esf<functors::update_jac<geo_t> >( as::p_grid_points(), p_dphi(), as::p_jac())
-            , make_esf<functors::det<geo_t> >(as::p_jac(), as::p_jac_det())
-            , make_esf<functors::inv<geo_t> >(as::p_jac(), as::p_jac_det(), as::p_jac_inv())
-            , make_esf<stiffness<fe, cub> >(as::p_jac_det(), as::p_jac_inv(), as::p_weights(), p_stiffness(), p_dphi(), p_dphi())//stiffness
+            make_esf<functors::update_jac<geo_t> >( dt::p_grid_points(), p_dphi(), dt::p_jac())
+            , make_esf<functors::det<geo_t> >(dt::p_jac(), dt::p_jac_det())
+            , make_esf<functors::inv<geo_t> >(dt::p_jac(), dt::p_jac_det(), dt::p_jac_inv())
+            , make_esf<stiffness<fe, cub> >(dt::p_jac_det(), dt::p_jac_inv(), dt::p_weights(), p_stiffness(), p_dphi(), p_dphi())//stiffness
             ), domain, coords);
 
     computation->ready();
@@ -170,5 +175,5 @@ int main(){
     computation->finalize();
     //![computation]
 
-    return test(assembler, fe_, stiffness_)==true;
+    return test(assembler_base, assembler, fe_, stiffness_)==true;
 }
