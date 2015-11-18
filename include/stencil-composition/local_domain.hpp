@@ -44,14 +44,8 @@ namespace gridtools {
 
                 typedef typename boost::remove_reference
                     <typename boost::mpl::at
-                    // <typename boost::mpl::at_
                      <IndicesList, Id>::type>::type::index_type index_t;
 
-                // typedef typename boost::remove_reference
-                //     <typename boost::mpl::at_
-                //      <index_t::value, ArgList>::type>::type key_t;
-
-                // boost::fusion::at_key<key_t>(m_local_list) =
                 boost::fusion::at_c<Id::value>(m_local_list) =
 
 #ifdef __CUDACC__ // ugly ifdef. TODO: way to remove it?
