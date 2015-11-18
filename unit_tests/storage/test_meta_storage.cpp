@@ -4,7 +4,7 @@
 TEST(storage_info, test_interface) {
 #ifdef CXX11_ENABLED
     typedef gridtools::layout_map<0,1,2,3> layout_t;
-    constexpr gridtools::meta_storage_base<0,layout_t,false> meta_{11, 12, 13, 14};
+    constexpr gridtools::meta_storage_base<0,layout_t,false> meta_{(uint_t)11, (uint_t)12, (uint_t)13, (uint_t)14};
     GRIDTOOLS_STATIC_ASSERT((meta_.dims<0>()==11), "error");
     GRIDTOOLS_STATIC_ASSERT((meta_.dims<1>()==12), "error");
     GRIDTOOLS_STATIC_ASSERT((meta_.dims<2>()==13), "error");

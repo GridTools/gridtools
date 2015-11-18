@@ -72,7 +72,13 @@ bool do_verification( int_t d1, int_t d2, int_t d3, Storage const& result_ ){
 
 #ifdef CXX11_ENABLED
     verifier verif(1e-13);
-    array<array<uint_t, 2>, 6> halos(array<uint_t, 2>(0,0), array<uint_t, 2>(0,0), array<uint_t, 2>(0,0), array<uint_t, 2>(0,0), array<uint_t, 2>(0,0), array<uint_t, 2>(0,0));
+    array<array<uint_t, 2>, 6> halos{
+        array<uint_t, 2>{0,0},
+        array<uint_t, 2>{0,0},
+        array<uint_t, 2>{0,0},
+        array<uint_t, 2>{0,0},
+        array<uint_t, 2>{0,0},
+        array<uint_t, 2>{0,0}};
     bool result = verif.verify(reference, result_, halos);
 #else
     verifier verif(1e-13, 0);

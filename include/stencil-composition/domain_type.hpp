@@ -24,6 +24,7 @@
 #include "../storage/storage_functors.hpp"
 
 #include "common/generic_metafunctions/static_if.hpp"
+#include "common/generic_metafunctions/is_variadic_pack_of.hpp"
 #include "domain_type_impl.hpp"
 #include "../storage/metadata_set.hpp"
 #include "stencil-composition/arg_metafunctions.hpp"
@@ -253,7 +254,7 @@ You have to define each arg with a unique identifier ranging from 0 to N without
             : m_storage_pointers()
             , m_metadata_set()
         {
-            GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(), is_arg_storage_pair<StorageArgs>::value ...), "wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair<StorageArgs>::value ...), "wrong type");
             assign_pointers(m_metadata_set, args...);
         }
 #endif

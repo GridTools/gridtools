@@ -309,7 +309,9 @@ PAPI_stop(event_set, values);
 
 #ifdef CXX11_ENABLED
     verifier verif(1e-13);
-    array<array<uint_t, 2>, 3> halos(array<uint_t, 2>(halo_size, halo_size), array<uint_t, 2>(halo_size,halo_size), array<uint_t, 2>(halo_size,halo_size));
+    array<array<uint_t, 2>, 3> halos{array<uint_t, 2>{halo_size, halo_size},
+                                     array<uint_t, 2>{halo_size,halo_size},
+                                     array<uint_t, 2>{halo_size,halo_size}};
     bool result = verif.verify(repository.out_ref(), repository.out(), halos);
 #else
     verifier verif(1e-13, halo_size);

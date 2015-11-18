@@ -1,7 +1,9 @@
 #pragma once
+#include <boost/type_traits/is_unsigned.hpp>
 #include "base_storage_impl.hpp"
 #include "../common/array.hpp"
 #include "common/explode_array.hpp"
+#include "common/generic_metafunctions/is_variadic_pack_of.hpp"
 
 /**
    @file
@@ -91,7 +93,7 @@ namespace gridtools {
            SFINAE for the case in which all the components of a parameter pack are of integral type
          */
         template <typename ... IntTypes>
-        using all_integers=typename boost::enable_if_c<accumulate(logical_and(),  boost::is_integral<IntTypes>::type::value ... ), bool >::type;
+        using all_integers=typename boost::enable_if_c<is_variadic_pack_of(boost::is_integral<IntTypes>::type::value ... ), bool >::type;
 
         /**
            @brief empty constructor
@@ -150,15 +152,19 @@ namespace gridtools {
         template <class ... IntTypes
                   , typename Dummy = all_integers<IntTypes...>
                   >
-        constexpr meta_storage_base(  IntTypes const& ... dims_  ) :
-            m_dims{dims_...}
-            , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( dims_...))
+        constexpr meta_storage_base(IntTypes const& ... dims_  ) :
+            m_dims{(uint_t)dims_...}
+            , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( (uint_t)dims_...))
             {
                 GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes)==space_dimensions, "you tried to initialize\
  a storage with a number of integer arguments different from its number of dimensions. \
 This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
  a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
  by defining the storage type using another layout_map.");
+                GRIDTOOLS_STATIC_ASSERT(
+                    is_variadic_pack_of(boost::is_unsigned<IntTypes>::type::value...),
+                    "Error: Dimensions of metastorage must be specified as unsigned types. "
+                    "Please cast the dimensions provided.");
             }
 #else //__CUDACC__ nvcc does not get it: checks only the first argument
         template <class First, class ... IntTypes
