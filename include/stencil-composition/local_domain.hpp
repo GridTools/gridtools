@@ -272,20 +272,6 @@ namespace gridtools {
                                            >
                                           >::type storage_metadata_map;
 
-        // template<typename T>
-        // struct extract_pointer_type;
-
-        // typedef typename boost::mpl::fold<mpl_storages
-        //                                   , boost::mpl::map0<>
-        //                                   , boost::mpl::insert
-        //                                   <boost::mpl::_1, boost::mpl::pair
-        //                                    <boost::remove_pointer<boost::mpl::_2>,
-        //                                     extract_pointer_type<boost::remove_pointer<boost::mpl::_2> >
-        //                                     >
-        //                                    >
-        //                                   >::type storage_map;
-
-
         // typedef typename boost::fusion::result_of::as_map<storage_map>::type local_args_type;
         typedef typename boost::fusion::result_of::as_vector<mpl_storages>::type local_args_type;
         typedef typename boost::fusion::result_of::as_vector<mpl_actual_storages>::type actual_args_type;

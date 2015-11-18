@@ -116,6 +116,7 @@ namespace gridtools {
     /**
        @brief constructs an mpl vector of booleans, linearizing the mss tree and attachnig a true or false flag depending wether the esf is independent or not
 
+       the code is very similar as in the metafunction above
      */
     template<typename T>
     struct is_independent_esf_sequence;
