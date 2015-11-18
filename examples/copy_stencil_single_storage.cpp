@@ -8,7 +8,7 @@ int main(int argc, char** argv)
     ::testing::InitGoogleTest(&argc, argv);
 
     if (argc != 4) {
-        printf( "Usage: copy_stencil_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields\n" );
+        std::cout << "Usage: copy_stencil_single_storage<whatever> dimx dimy dimz\n where args are integer sizes of the data fields" << std::endl;
         return 1;
     }
 

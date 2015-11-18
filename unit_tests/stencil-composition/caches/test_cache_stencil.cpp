@@ -141,10 +141,7 @@ TEST_F(cache_stencil, ij_cache)
 
 #ifdef CXX11_ENABLED
     verifier verif(1e-13);
-    array<array<uint_t, 2>, 3> halos{
-        array<uint_t, 2>{m_halo_size,m_halo_size},
-        array<uint_t, 2>{m_halo_size,m_halo_size},
-        array<uint_t, 2>{m_halo_size,m_halo_size}};
+    array<array<uint_t, 2>, 3> halos{{ {m_halo_size,m_halo_size}, {m_halo_size,m_halo_size}, {m_halo_size,m_halo_size} }};
     ASSERT_TRUE(verif.verify(m_in, m_out, halos) );
 #else
     verifier verif(1e-13, m_halo_size);
@@ -202,10 +199,7 @@ TEST_F(cache_stencil, ij_cache_offset)
 
 #ifdef CXX11_ENABLED
     verifier verif(1e-13);
-    array<array<uint_t, 2>, 3> halos{
-        array<uint_t, 2>{m_halo_size,m_halo_size},
-        array<uint_t, 2>{m_halo_size,m_halo_size},
-        array<uint_t, 2>{m_halo_size,m_halo_size}};
+    array<array<uint_t, 2>, 3> halos{{ {m_halo_size,m_halo_size}, {m_halo_size,m_halo_size}, {m_halo_size,m_halo_size} }};
     ASSERT_TRUE(verif.verify(ref, m_out, halos) );
 #else
     verifier verif(1e-13, m_halo_size);
