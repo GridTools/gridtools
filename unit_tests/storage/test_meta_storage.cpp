@@ -1,5 +1,7 @@
 #include "gtest/gtest.h"
-#include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/stencil-composition.hpp>
+
+using namespace gridtools;
 
 TEST(storage_info, test_interface) {
 #ifdef CXX11_ENABLED
