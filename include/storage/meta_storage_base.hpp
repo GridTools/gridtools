@@ -114,8 +114,11 @@ namespace gridtools {
                   , typename Dummy = typename boost::enable_if_c<boost::is_integral<First>::type::value, bool>::type //nvcc does not get it
                   >
         void setup(  First first_, IntTypes const& ... dims_  ){
-
+#ifdef CXX11_ENABLED
+            m_dims=array<int_t, space_dimensions>{first_, dims_ ...};
+#else
             m_dims=array<int_t, space_dimensions>(first_, dims_ ...);
+#endif
             m_strides=array<int_t, space_dimensions>(
                 _impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( first_, dims_...));
         }
