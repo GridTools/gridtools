@@ -533,7 +533,6 @@ namespace gridtools{
             GRIDTOOLS_STATIC_ASSERT((std::remove_reference<decltype(m_strides.template get<ID::value>())>::type::size()==meta_storage_type::space_dimensions-1), "internal error: the length of the strides vectors does not match. The bug fairy has no mercy.");
 #endif
 #endif
-            uint_t ao;
             for_each< boost::mpl::range_c< short_t, 0,  meta_storage_type::space_dimensions-1> > (
                 assign_strides_inner_functor<BackendType>(
                     &(m_strides.template get<ID::value>()[0]),

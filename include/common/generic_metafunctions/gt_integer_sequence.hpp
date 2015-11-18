@@ -64,6 +64,7 @@ namespace gridtools{
         static constexpr Container apply(ExtraTypes const& ... args_ ){
             GRIDTOOLS_STATIC_ASSERT((boost::is_same<Container, Container>::value),
                 "ERROR: apply_gt_integer_sequence only accepts a gt_integer_sequence type. Check the call");
+            return Container(args_...);
         }
     };
 
