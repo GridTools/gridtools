@@ -113,7 +113,7 @@ namespace gridtools{
             template<typename Left, typename Right>
             GT_FUNCTION//inline
             static void assign(Left& l, Right const& r){
-                l=r;
+                l=(Left)r;
             }
         };
 
