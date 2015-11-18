@@ -286,7 +286,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         */
         template<uint_t Coordinate, typename StridesVector>
         GT_FUNCTION
-        static constexpr int_t strides(StridesVector const& RESTRICT strides_){
+        static constexpr uint_t strides(StridesVector const& RESTRICT strides_){
             return ((vec_max<typename layout::layout_vector_t>::value < 0) ? 0:(( layout::template at_<Coordinate>::value == vec_max<typename layout::layout_vector_t>::value ) ? 1 : ((strides_[layout::template at_<Coordinate>::value]))));
         }
 
