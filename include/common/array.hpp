@@ -47,8 +47,8 @@ namespace gridtools {
         typedef T value_type;
         static const size_t n_dimensions=D;
 
-//        GT_FUNCTION
-//        array() {}
+        GT_FUNCTION
+        array() {}
 
 #ifdef CXX11_ENABLED
 
@@ -118,9 +118,6 @@ namespace gridtools {
             const_cast<typename boost::remove_const<T>::type*>(_array)[4]=p;
         }
 
-#endif
-
-#ifndef CXX11_ENABLED
         //TODO provide a BOOST PP implementation for this (so ugly :-()
         GT_FUNCTION
         array( array<T,1> const& other): _array() {
