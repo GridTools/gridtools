@@ -51,6 +51,10 @@ namespace gridtools {
         {
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments<EsfArguments>::value), "Internal Error: wrong type");
 
+            //synchronize threads if not independent esf
+            if(!boost::mpl::at<typename EsfArguments::async_map_t, functor_t>::type::value)
+                __syncthreads();
+
             //instantiate the iterate domain evaluator, that will map the calls to arguments to their actual
             // position in the iterate domain
             typedef typename get_iterate_domain_evaluator<iterate_domain_t, typename EsfArguments::esf_args_map_t>::type
@@ -74,10 +78,6 @@ namespace gridtools {
                 EsfArguments,
                 iterate_domain_evaluator_t
             > (iterate_domain_evaluator);
-
-            //synchronize threads if not independent esf
-            if(!boost::mpl::at<typename EsfArguments::async_map_t, functor_t>::type::value)
-                __syncthreads();
 
         }
 
