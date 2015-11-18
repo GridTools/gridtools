@@ -171,7 +171,11 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
                   , typename Dummy = typename boost::enable_if_c<boost::is_integral<First>::type::value, bool>::type //nvcc does not get it
                   >
         constexpr meta_storage_base( First const& first_,  IntTypes const& ... dims_  ) :
+#ifdef CXX11_ENABLED
+            m_dims{first_, dims_...}
+#else
             m_dims(first_, dims_...)
+#endif
             , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( first_, dims_...))
             {
                 GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes)+1==space_dimensions, "you tried to initialize\
