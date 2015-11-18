@@ -76,7 +76,7 @@ namespace gridtools {
         GT_FUNCTION
         boollist(boollist const& bl)
 #ifdef CXX11_ENABLED
-            :m_value{bl.m_value}
+            :m_value(bl.m_value)
             {}
 #else
             {
