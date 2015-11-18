@@ -122,12 +122,12 @@ int main()
     >::type FunctorDoMethodLookupMaps;
 
     typedef typename boost::mpl::transform<typename MssType::linear_esf,
-                                           _impl::extract_functor>::type functors_list;
+                                           _impl::extract_functor>::type functors_list_t;
 
-    struct arguments< functors_list, LoopIntervals, FunctorDoMethodsLookupMaps, range_sizes, LocalDomainList, Coords, ExecutionEngine > arguments_t;
+    struct arguments< functors_list_t, LoopIntervals, FunctorDoMethodsLookupMaps, range_sizes, LocalDomainList, Coords, ExecutionEngine > arguments_t;
 
     struct extra_arguments{
-        typedef functors_list functors_list_t;
+        typedef functors_list_t functors_list_t;
         typedef LoopIntervals loop_intervals_t;
         typedef FunctorDoMethodsLookupMaps functors_map_t
         typedef IntervalMap,

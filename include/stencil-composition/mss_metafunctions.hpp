@@ -17,7 +17,7 @@
 namespace gridtools {
 
 template<
-    typename functors_list,
+    typename FunctorsList,
     typename Coords
 >
 struct mss_intervals
@@ -26,7 +26,7 @@ struct mss_intervals
      *  compute the functor do methods - This is the most computationally intensive part
      */
     typedef typename boost::mpl::transform<
-        functors_list,
+        FunctorsList,
         compute_functor_do_methods<boost::mpl::_, typename Coords::axis_type>
     >::type functor_do_methods; // Vector of vectors - each element is a vector of pairs of actual axis-indices
 

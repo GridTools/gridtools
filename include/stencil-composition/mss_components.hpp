@@ -33,12 +33,17 @@ struct mss_components
 
     /**
      * typename linear_esf is a list of all the esf nodes in the multi-stage descriptor.
-     * functors_list is a list of all the functors of all the esf nodes in the multi-stage descriptor.
+     * functors_list_t is a list of all the functors of all the esf nodes in the multi-stage descriptor.
      */
-    typedef typename boost::mpl::transform<
-        linear_esf_t,
-        _impl::extract_functor
-    >::type functors_list_t;
+        typedef typename  _impl::decorate_with_staggering<
+              _impl::extract_functor::apply<boost::mpl::_1>
+            , _impl::extract_staggering<boost::mpl::_1>
+            > unary_lambda_t;
+
+        typedef typename boost::mpl::transform<
+            linear_esf_t,
+            unary_lambda_t
+            >::type functors_list_t;
 
     typedef RangeSizes range_sizes_t;
     typedef typename MssDescriptor::cache_sequence_t cache_sequence_t;

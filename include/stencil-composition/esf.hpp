@@ -8,6 +8,7 @@
 #include <boost/mpl/at.hpp>
 #include "sfinae.hpp"
 
+#include "stencil-composition/accessor.hpp"
 /**
    @file
    @brief Descriptors for Elementary Stencil Function (ESF)
