@@ -10,7 +10,7 @@ from gridtools.symbol import Scope, SymbolInspector
 
 
 
-class FunctorBody (ast.NodeVisitor):
+class StageBody (ast.NodeVisitor):
     """
     Represents the Do( ) function of a stencil's functor in AST form.-
     """
@@ -32,7 +32,7 @@ class FunctorBody (ast.NodeVisitor):
             if len (nodes) > 0:
                 self.nodes = nodes
         except TypeError:
-            raise TypeError ("FunctorBody expects a list of AST nodes.")
+            raise TypeError ("StageBody expects a list of AST nodes.")
 
 
     def _analyze_assignment (self, lval_node, rval_node):
@@ -42,10 +42,10 @@ class FunctorBody (ast.NodeVisitor):
         :param rval_node: AST node of the expression appearing as RValue
         :return:
         """
-        lvalues = FunctorBody.symbol_inspector.search (lval_node, 
-                                                       self.scope)
-        rvalues = FunctorBody.symbol_inspector.search (rval_node, 
-                                                       self.scope)
+        lvalues = StageBody.symbol_inspector.search (lval_node, 
+                                                     self.scope)
+        rvalues = StageBody.symbol_inspector.search (rval_node, 
+                                                     self.scope)
         for lsymbol in lvalues:
             #
             # lvalues (and their aliases) are read/write
@@ -441,9 +441,9 @@ class FunctorBody (ast.NodeVisitor):
 
 
 
-class FunctorScope (Scope):
+class StageScope (Scope):
     """
-    Functor symbols are organized into scopes that represent code visibility
+    Stage symbols are organized into scopes that represent code visibility
     blocks.-
     """
     def get_ghost_cell (self):
@@ -460,7 +460,7 @@ class FunctorScope (Scope):
 
 
 
-class Functor ( ):
+class Stage ( ):
     """
     Represents a stage inside a stencil.-
     """
@@ -475,7 +475,7 @@ class Functor ( ):
         :return:
         """
         self.name          = name
-        self.scope         = FunctorScope ( )
+        self.scope         = StageScope ( )
         self.stencil_scope = stencil_scope
         #
         # the ghost-cell access pattern of this stage
@@ -491,13 +491,13 @@ class Functor ( ):
         if isinstance (node, ast.For):
             self.node = node 
         else:
-            raise TypeError ("Functor's root AST node should be 'ast.For'")
+            raise TypeError ("Stage's root AST node should be 'ast.For'")
         #
         # the body of this functor
         #
-        self.body = FunctorBody (self.node.body,
-                                 self.scope,
-                                 self.stencil_scope)
+        self.body = StageBody (self.node.body,
+                               self.scope,
+                               self.stencil_scope)
 
 
     def __hash__ (self):

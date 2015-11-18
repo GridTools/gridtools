@@ -482,14 +482,14 @@ class StencilScope (Scope):
         :param suffix: suffix to add to the stage's name
         :return:       the corresponding Stage object
         """
-        from gridtools.functor import Functor
+        from gridtools.stage import Stage
 
         stage_name = '%s_%s_%03d' % (prefix,
                                      suffix,
                                      len (self.stage_execution))
-        stage_obj  = Functor (stage_name,
-                              node,
-                              self)
+        stage_obj  = Stage (stage_name,
+                            node,
+                            self)
         if stage_obj not in self.stage_execution:
             #
             # update the stage execution path
