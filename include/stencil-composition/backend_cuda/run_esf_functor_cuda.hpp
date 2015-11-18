@@ -60,17 +60,6 @@ namespace gridtools {
 
             typedef typename EsfArguments::functor_t functor_t;
 
-            //if this is the fisrt functor of the mss no need to synchronize it
-            if( !boost::is_same<typename boost::mpl::first
-                <typename boost::mpl::front
-                <typename EsfArguments::is_independent_sequence_t>::type
-                >::type, functor_t
-                >::value )
-
-                //synchronize threads if not independent esf
-                if(!boost::mpl::at<typename EsfArguments::is_independent_sequence_t, functor_t>::type::value)
-                    __syncthreads();
-
             //a grid point at the core of the block can be out of range (for last blocks) if domain of computations
             // is not a multiple of the block size
             if(m_iterate_domain.iterate_domain_backend().is_thread_in_domain())
@@ -85,6 +74,10 @@ namespace gridtools {
                 EsfArguments,
                 iterate_domain_evaluator_t
             > (iterate_domain_evaluator);
+
+            //synchronize threads if not independent esf
+            if(!boost::mpl::at<typename EsfArguments::async_map_t, functor_t>::type::value)
+                __syncthreads();
 
         }
 

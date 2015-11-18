@@ -71,6 +71,8 @@ namespace gridtools {
 
        Looping over all the esfs at compile time.
        if found independent esfs, they are also included in the linearized vector with a nested fold.
+
+       NOTE: the nested make_independent calls get also linearized
      */
     template<typename T>
     struct mss_descriptor_linear_esf_sequence;
@@ -80,11 +82,12 @@ namespace gridtools {
               typename CacheSequence>
     struct mss_descriptor_linear_esf_sequence<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> >
     {
+
         template <typename State, typename SubArray>
         struct keep_scanning
-          : boost::mpl::fold<
-                typename SubArray::esf_list,
-                State,
+            : boost::mpl::fold<
+            typename SubArray::esf_list,
+            State,
             boost::mpl::if_<
                 is_independent<boost::mpl::_2>,
                 keep_scanning<boost::mpl::_1, boost::mpl::_2>,
@@ -95,14 +98,14 @@ namespace gridtools {
 
         template <typename Array>
         struct linearize_esf_array : boost::mpl::fold<
-              Array,
-              boost::mpl::vector<>,
-              boost::mpl::if_<
-                  is_independent<boost::mpl::_2>,
-                  keep_scanning<boost::mpl::_1, boost::mpl::_2>,
-                  boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>
-              >
-        >{};
+            Array,
+            boost::mpl::vector<>,
+            boost::mpl::if_<
+                is_independent<boost::mpl::_2>,
+                keep_scanning<boost::mpl::_1, boost::mpl::_2>,
+                boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>
+                >
+            >{};
 
         typedef typename linearize_esf_array<EsfDescrSequence>::type type;
     };
@@ -111,7 +114,7 @@ namespace gridtools {
 
 
     /**
-       @brief constructs an mpl vector of booleans, linearizig the mss tree and attachnig a true true or false flag depending wether the esf is independent or not
+       @brief constructs an mpl vector of booleans, linearizing the mss tree and attachnig a true or false flag depending wether the esf is independent or not
 
      */
     template<typename T>
@@ -130,7 +133,7 @@ namespace gridtools {
             boost::mpl::if_<
                 is_independent<boost::mpl::_2>,
                 keep_scanning<boost::mpl::_1, boost::mpl::_2>,
-                boost::mpl::insert<boost::mpl::_1, boost::mpl::pair<extract_esf_function<boost::mpl::_2>, boost::mpl::true_> >
+                boost::mpl::push_back<boost::mpl::_1, boost::mpl::true_ >
                 >
             >
         {};
@@ -138,17 +141,16 @@ namespace gridtools {
         template <typename Array>
         struct linearize_esf_array : boost::mpl::fold<
               Array,
-              boost::mpl::map<>,
+              boost::mpl::vector<>,
               boost::mpl::if_<
                   is_independent<boost::mpl::_2>,
                   keep_scanning<boost::mpl::_1, boost::mpl::_2>,
-                  boost::mpl::insert<boost::mpl::_1, boost::mpl::pair<extract_esf_function<boost::mpl::_2>, boost::mpl::false_> >
+                  boost::mpl::push_back<boost::mpl::_1, boost::mpl::false_ >
               >
         >{};
 
         typedef typename linearize_esf_array<EsfDescrSequence>::type type;
     };
-
 
 
 

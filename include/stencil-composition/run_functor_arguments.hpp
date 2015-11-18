@@ -110,7 +110,7 @@ namespace gridtools {
         typedef RangeSizes range_sizes_t;
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;
-        typedef IsIndependentSeq is_independent_sequence_t;
+        typedef IsIndependentSeq async_map_t;
         typedef typename backend_traits_from_id<backend_id_t::value>::
                 template select_iterate_domain<
                     iterate_domain_arguments<
@@ -181,7 +181,7 @@ namespace gridtools {
         typedef typename boost::mpl::at<typename RunFunctorArguments::functors_map_t, Index>::type interval_map_t;
 
         //global (to the mss) is_independent_sequence map (not local to the esf)
-        typedef typename RunFunctorArguments::is_independent_sequence_t is_independent_sequence_t;
+        typedef typename RunFunctorArguments::async_map_t async_map_t;
 
         typedef typename index_to_level<
             typename boost::mpl::deref<

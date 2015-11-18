@@ -36,6 +36,14 @@ namespace gridtools {
         mss_functor(MssLocalDomainArray& local_domain_lists, const Coords& coords, const int block_idx, const int block_idy) :
             m_local_domain_lists(local_domain_lists), m_coords(coords), m_block_idx(block_idx), m_block_idy(block_idy) {}
 
+
+        template<typename T1, typename T2, typename Seq, typename NextSeq>
+        struct condition_for_async{
+
+            typedef typename
+            boost::mpl::and_<typename boost::mpl::at<Seq, T2>::type, typename boost::mpl::at<NextSeq, T2>::type>::type type;
+        };
+
         /**
          * \brief given the index of a functor in the functors list ,it calls a kernel on the GPU executing the operations defined on that functor.
          */
@@ -80,6 +88,58 @@ namespace gridtools {
 
             typedef typename is_independent_esf_sequence<typename mss_components_t::mss_descriptor_t>::type is_independent_sequence_t;
 
+
+            /** generates the map of stating which esf has to be synchronized
+
+                this is what the following metafunction does:
+
+                - sets the last booleand of the vector to TRUE (never need to sync the last ESF)
+                - loops over the inner linearized ESFs starting from 0, excluding the last one
+                - if the next ESF is not independent, then this one needs to be synced, otherwise
+                it is not synced
+                , i.e.: if there are 2 independent ESFs in a row, the first one does not need the sync
+
+                NOTE: this could be avoided if our systax at the user level was different, i.e. instead of having
+                  make_mss(
+                     make_esf( esf_0),
+                     make_esf( esf_1),
+                     make_independent(esf_2, esf_3, esf_4, esf_5));
+
+                  we had e.g.
+
+                  make_mss(
+                     make_esf( esf_0 ),
+                     make_esf( esf_1 ),
+                     make_esf( esf_2 ),
+                     make_independent(esf_3, esf_4, esf_5));
+
+                     (which is less intuitive though)
+
+             */
+
+            typedef typename boost::mpl::fold<
+                boost::mpl::range_c<int, 1,boost::mpl::size<esf_sequence_t>::value>
+                , boost::mpl::vector0<>
+                , boost::mpl::push_back<boost::mpl::_1, boost::mpl::at<is_independent_sequence_t,  boost::mpl::_2 > >
+                >::type next_thing;
+
+            typedef typename boost::mpl::transform<
+                esf_sequence_t
+                , extract_esf_function<boost::mpl::_1>
+                >::type extract_functor_t;
+
+
+            typedef typename boost::mpl::fold<
+                boost::mpl::range_c<int, 0, boost::mpl::size<next_thing>::value >
+                , boost::mpl::map< >
+                , boost::mpl::if_<condition_for_async<boost::mpl::_1, boost::mpl::_2, is_independent_sequence_t, next_thing>
+                                  , boost::mpl::insert< boost::mpl::_1, boost::mpl::pair< boost::mpl::at<extract_functor_t, boost::mpl::_2 >, boost::mpl::true_ > >
+                                  , boost::mpl::insert< boost::mpl::_1, boost::mpl::pair< boost::mpl::at<extract_functor_t, boost::mpl::_2 >, boost::mpl::false_ > >
+                                  >
+                >::type async_map_tmp_t;
+
+            typedef typename boost::mpl::insert< async_map_tmp_t,  boost::mpl::pair<typename boost::mpl::at_c<extract_functor_t, boost::mpl::size<next_thing>::value>::type, boost::mpl::true_ > >::type async_map_t;
+
             typedef run_functor_arguments<
                 BackendId,
                 block_size_t,
@@ -92,7 +152,7 @@ namespace gridtools {
                 range_sizes,
                 local_domain_t,
                 typename mss_components_t::cache_sequence_t,
-                is_independent_sequence_t,
+                async_map_t,
                 Coords,
                 ExecutionEngine,
                 StrategyId
