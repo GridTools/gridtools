@@ -170,9 +170,6 @@ namespace copy_stencil{
                 }
             }
         }
-        if(!success) std::cout << "ERROR" << std::endl;
-        else std::cout << "OK" << std::endl;
-
         return success;
     }
 }//namespace copy_stencil
