@@ -2,10 +2,10 @@
 
 // [includes]
 #include "assembly_base.hpp"
-// #include "assembly_functors.hpp"
-// #include "mass.hpp"
-// #include "advection.hpp"
-// #include "stiffness.hpp"
+#include "../functors/assembly_functors.hpp"
+#include "../functors/mass.hpp"
+#include "../functors/advection.hpp"
+#include "../functors/stiffness.hpp"
 // [includes]
 #ifdef CXX11_ENABLED
 

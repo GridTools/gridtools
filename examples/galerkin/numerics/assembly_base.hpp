@@ -3,6 +3,7 @@
 #include <stencil-composition/make_computation.hpp>
 // [includes]
 #include "basis_functions.hpp"
+#include "../functors/assembly_functors.hpp"
 #include "intrepid.hpp"
 // [includes]
 #ifdef CXX11_ENABLED

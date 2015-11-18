@@ -1,4 +1,5 @@
 #pragma once
+#include <stencil-composition/expressions/expressions.hpp>
 
 namespace functors{
 

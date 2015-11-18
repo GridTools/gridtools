@@ -12,7 +12,7 @@
 #include "common/is_temporary_storage.hpp"
 #include "stencil-composition/offset_tuple.hpp"
 #ifdef CXX11_ENABLED
-#include "expressions.hpp"
+#include "expressions/expressions.hpp"
 #endif
 
 namespace gridtools {

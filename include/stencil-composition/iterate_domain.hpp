@@ -577,13 +577,22 @@ namespace gridtools {
         get_value (expr_direct_access<Accessor> const& accessor, StoragePointer & RESTRICT storage_pointer) const;
 
 
+        // template <template<typename ... C> class T, typename ... Args>
+        // GT_FUNCTION
+        // int operator() (T<Args ...> const& arg) const {
+        //     return 4;
+        // }
+
+
         /** @brief method called in the Do methods of the functors. */
         template <typename ... Arguments, template<typename ... Args> class Expression
-                  , typename boost::enable_if< is_expr<Expression<Arguments ... > > , int >::type=0>
+                  , typename boost::enable_if< is_expr<Expression<Arguments ... > > , int >::type=0
+                  >
         GT_FUNCTION
-        auto operator() (Expression<Arguments ... > const& arg) const ->decltype(expressions::evaluation::value(*this, arg)) {
+        auto operator() (Expression<Arguments ... > const& arg)  const ->decltype(expressions::evaluation::value(*this, arg))
+        {
             //arg.to_string();
-            GRIDTOOLS_STATIC_ASSERT((is_expr<Expression<Arguments ... > >::value), "invalid expression" );
+            // GRIDTOOLS_STATIC_ASSERT((is_expr<Expression<Arguments ... > >::value), "invalid expression" );
             return expressions::evaluation::value((*this), arg);
         }
 

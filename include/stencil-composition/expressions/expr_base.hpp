@@ -11,23 +11,28 @@ namespace gridtools{
         This is the base class of a binary expression, containing the instances of the two arguments.
         The expression should be a static constexpr object, instantiated once for all at the beginning of the run.
     */
-    template <typename ... Operands>
+    template <typename First, typename Second>
     struct expr{
 
-        static const ushort_t size=sizeof...(Operands);
+        static const ushort_t size=2;
 
         /**@brief generic expression constructor*/
         GT_FUNCTION
-        constexpr expr(Operands ... const& operands_)
+        constexpr expr(First const& first_ , Second const& second_)
             :
-            m_operands{operands_ ...}
+            first_operand(first_)
+            , second_operand(second_)
         {}
 
-        template<typename ... Args>
+        template<typename Arg1, typename Arg2>
         GT_FUNCTION
-        constexpr expr(expr < Args ... > const& other) : m_operands(other.m_operands){}
+        constexpr expr(expr < Arg1, Arg2 > const& other) :
+            first_operand(other.m_first_operand)
+            , second_operand(other.m_second_operand)
+        {}
 
-        boost::fusion::vector<Operands ...> const m_operands;
+        First const first_operand;
+        Second const second_operand;
 
 #ifndef __CUDACC__
     private:
@@ -41,58 +46,58 @@ namespace gridtools{
     struct is_binary_expr : boost::mpl::bool_ < Arg::size == 2 > {};
 
 
-//     template <typename ArgType1>
-//     struct unary_expr{
-//     /**@brief generic expression constructor*/
-//     GT_FUNCTION
-//     constexpr unary_expr(ArgType1 const& first_operand)
-//         :
-//         first_operand{first_operand}
-//     {}
+    template <typename ArgType1>
+    struct unary_expr{
+    /**@brief generic expression constructor*/
+    GT_FUNCTION
+    constexpr unary_expr(ArgType1 const& first_operand)
+        :
+        first_operand{first_operand}
+    {}
 
-//     template<typename Arg1>
-//     GT_FUNCTION
-//     constexpr unary_expr( unary_expr<Arg1> const& other): first_operand(other.first_operand){}
+    template<typename Arg1>
+    GT_FUNCTION
+    constexpr unary_expr( unary_expr<Arg1> const& other): first_operand(other.first_operand){}
 
-//     ArgType1 const first_operand;
+    ArgType1 const first_operand;
 
-// #ifndef __CUDACC__
-// private:
-// #endif
-//     /**@brief default empty constructor*/
-//     GT_FUNCTION
-//     constexpr unary_expr(){}
-// };
+#ifndef __CUDACC__
+private:
+#endif
+    /**@brief default empty constructor*/
+    GT_FUNCTION
+    constexpr unary_expr(){}
+};
 
-//     template <typename ArgType1, typename ArgType2, typename ArgType3>
-//     struct ternary_expr{
+    template <typename ArgType1, typename ArgType2, typename ArgType3>
+    struct ternary_expr{
 
-//     /**@brief generic expression constructor*/
-//     GT_FUNCTION
-//     constexpr ternary_expr(ArgType1 const& first_operand, ArgType2 const& second_operand, ArgType3 const& third_operand)
-//         :
-//         first_operand{first_operand},
-//         second_operand{second_operand},
-//         third_operand{third_operand}
-//     {}
+        /**@brief generic expression constructor*/
+        GT_FUNCTION
+        constexpr ternary_expr(ArgType1 const& first_operand, ArgType2 const& second_operand, ArgType3 const& third_operand)
+            :
+            first_operand{first_operand},
+            second_operand{second_operand},
+            third_operand{third_operand}
+        {}
 
-//         template<typename Arg1, typename Arg2, typename Arg3>
-//         GT_FUNCTION
-//         constexpr ternary_expr(ternary_expr<Arg1, Arg2, Arg3> const& other) :
-//             first_operand(other.first_operand),
-//             second_operand(other.second_operand),
-//             third_operand(other.third_operand){}
+        template<typename Arg1, typename Arg2, typename Arg3>
+        GT_FUNCTION
+        constexpr ternary_expr(ternary_expr<Arg1, Arg2, Arg3> const& other) :
+            first_operand(other.first_operand),
+            second_operand(other.second_operand),
+            third_operand(other.third_operand){}
 
-//             ArgType1 const first_operand;
-//     ArgType2 const second_operand;
-//     ArgType3 const third_operand;
-// #ifndef __CUDACC__
-// private:
-// #endif
-//     /**@brief default empty constructor*/
-//     GT_FUNCTION
-//     constexpr ternary_expr(){}
-// };
+        ArgType1 const first_operand;
+        ArgType2 const second_operand;
+        ArgType3 const third_operand;
+#ifndef __CUDACC__
+private:
+#endif
+    /**@brief default empty constructor*/
+    GT_FUNCTION
+    constexpr ternary_expr(){}
+};
 
     template < typename Arg>
     struct is_unary_expr : boost::mpl::bool_ < Arg::size == 1 > {};
@@ -103,6 +108,8 @@ namespace gridtools{
     template <typename ... Args>
     struct is_expr<expr <Args ...> > : boost::mpl::true_ {};
 
+    template <typename Arg>
+    struct is_expr<unary_expr <Arg> > : boost::mpl::true_ {};
 
     template <typename Arg>
     struct is_accessor;

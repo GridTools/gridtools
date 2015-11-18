@@ -53,7 +53,7 @@ namespace functors{
                             eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad, dimension<7>(face_) ) )=0.;
                             for (int_t iterNode=0; iterNode < basis_cardinality ; ++iterNode)
                             {//reduction/gather
-                                eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad, dimension<7>(face_)) ) += eval(grid_points(dimension<4>(iterNode), dimension<5>(icoor)) * !dphi(i+iterNode, j+iter_quad, k+jcoor, dimension<4>(face_) ) );
+                                eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad, dimension<7>(face_)) ) += eval(grid_points(dimension<4>(iterNode), dimension<5>(icoor))  * !dphi(i+iterNode, j+iter_quad, k+jcoor, dimension<4>(face_) ) );
                             }
                         }
                     }

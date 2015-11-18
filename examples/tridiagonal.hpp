@@ -182,7 +182,7 @@ bool solver(uint_t x, uint_t y, uint_t z) {
 
     //    typedef gridtools::STORAGE<double, gridtools::layout_map<0,1,2> > storage_type;
     typedef gridtools::layout_map<0,1,2> layout_t;
-    typedef gridtools::storage_info< layout_t> meta_t;
+    typedef gridtools::storage_info< layout_t, 0> meta_t;
     typedef gridtools::BACKEND::storage_type<float_type, meta_t >::type storage_type;
     typedef gridtools::BACKEND::temporary_storage_type<float_type, meta_t >::type tmp_storage_type;
 

@@ -19,15 +19,14 @@
 #include "../functors/matvec.hpp"
 
 /**
-@brief flux F(u)
+   @brief flux F(u)
 
-in the equation \f$ \frac{\partial u}{\partial t}=F(u) \f$
+   in the equation \f$ \frac{\partial u}{\partial t}=F(u) \f$
 */
 struct flux {
     template<typename Arg>
     GT_FUNCTION
     constexpr auto operator()(Arg const& arg_) -> decltype((Arg()+Arg())/2.){
-        array<double, 3> v;
         return (arg_+arg_)/2.;
     }
 };

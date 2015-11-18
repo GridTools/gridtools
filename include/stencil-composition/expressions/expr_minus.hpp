@@ -21,7 +21,7 @@ namespace gridtools{
 
 #ifndef __CUDACC__
         static char constexpr op[]=" - ";
-       using  operation = string_c<Print, op>;
+       using  operation = string_c<print, op>;
     public:
         //currying and recursion (this gets inherited)
         using to_string = concatenate<tokens::open_par, ArgType1, operation, ArgType2, tokens::closed_par >;

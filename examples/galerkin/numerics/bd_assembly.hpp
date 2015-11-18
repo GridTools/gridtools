@@ -7,7 +7,7 @@
 // [includes]
 #include "assembly.hpp"
 #include "../functors/bd_assembly_functors.hpp"
-// #include "../functors/dg_fluxes.hpp"
+#include "../functors/dg_fluxes.hpp"
 
 /**
    @brief Definition of the quantities needed for performing computations on the boundary

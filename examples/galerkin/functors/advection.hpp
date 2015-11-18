@@ -52,7 +52,7 @@ namespace functors{
                                       jac_inv(qp+q, dimx+1, dimy+icoor)*!dphi(P_i,q,(uint_t)1)+
                                       jac_inv(qp+q, dimx+2, dimy+icoor)*!dphi(P_i,q,(uint_t)2))
                                      *
-                                     (!psi(Q_i,q,(uint_t)2)*Vec::value[icoor]));
+                                     (!psi(Q_i,q)*Vec::value[icoor]));
                         }
                         //summing up contributions (times the measure and quad weight)
                         eval(adv(0,0,0,P_i,Q_i)) += inner_product * eval(jac_det(qp+q)*!weights(q,0,0));

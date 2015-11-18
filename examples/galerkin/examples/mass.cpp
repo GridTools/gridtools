@@ -3,7 +3,7 @@
 */
 #pragma once
 #define PEDANTIC_DISABLED
-#include "../functors/assembly.hpp"
+#include "../numerics/assembly.hpp"
 #include "test_assembly.hpp"
 
 // [integration]
