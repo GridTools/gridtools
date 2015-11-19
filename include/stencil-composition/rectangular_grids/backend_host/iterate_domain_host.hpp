@@ -8,12 +8,12 @@
 
 namespace gridtools {
 
-/**
- * @brief iterate domain class for the Host backend
- */
-template<template<class> class IterateDomainBase, typename IterateDomainArguments>
-class iterate_domain_host : public IterateDomainBase<iterate_domain_host<IterateDomainBase, IterateDomainArguments> > //CRTP
-{
+    /**
+     * @brief iterate domain class for the Host backend
+     */
+    template<typename DataPointerArray, typename StridesCached>
+    class iterate_domain_host
+    {
     DISALLOW_COPY_AND_ASSIGN(iterate_domain_host);
     GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Internal error: wrong type");
 

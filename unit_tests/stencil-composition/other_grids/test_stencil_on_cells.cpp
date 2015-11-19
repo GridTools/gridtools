@@ -56,13 +56,13 @@ TEST(test_stencil_on_cells, run) {
     const uint_t d2=12+halo_mc*2;
     trapezoid_2D_t grid( d1, d2, d3 );
 
-    cell_storage_type in_cells = grid.make_storage<trapezoid_2D_t::cells>("in");
-    cell_storage_type i_cells = grid.make_storage<trapezoid_2D_t::cells>("i");
-    cell_storage_type j_cells = grid.make_storage<trapezoid_2D_t::cells>("j");
-    cell_storage_type c_cells = grid.make_storage<trapezoid_2D_t::cells>("c");
-    cell_storage_type k_cells = grid.make_storage<trapezoid_2D_t::cells>("k");
-    cell_storage_type out_cells = grid.make_storage<trapezoid_2D_t::cells>("out");
-    cell_storage_type ref_cells = grid.make_storage<trapezoid_2D_t::cells>("ref");
+    cell_storage_type in_cells = grid.make_storage<trapezoid_2D_t::cells, double>("in");
+    cell_storage_type i_cells = grid.make_storage<trapezoid_2D_t::cells, double>("i");
+    cell_storage_type j_cells = grid.make_storage<trapezoid_2D_t::cells, double>("j");
+    cell_storage_type c_cells = grid.make_storage<trapezoid_2D_t::cells, double>("c");
+    cell_storage_type k_cells = grid.make_storage<trapezoid_2D_t::cells, double>("k");
+    cell_storage_type out_cells = grid.make_storage<trapezoid_2D_t::cells, double>("out");
+    cell_storage_type ref_cells = grid.make_storage<trapezoid_2D_t::cells, double>("ref");
 
     for(int i=0; i < d1; ++i)
     {

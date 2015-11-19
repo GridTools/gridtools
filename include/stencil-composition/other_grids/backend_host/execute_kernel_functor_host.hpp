@@ -1,5 +1,6 @@
 #pragma once
 #include "stencil-composition/backend_host/iterate_domain_host.hpp"
+#include "stencil-composition/other_grids/esf_metafunctions.hpp"
 
 namespace gridtools {
 
@@ -15,6 +16,11 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), "Internal Error: wrong type");
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::coords_t coords_t;
+            typedef typename RunFunctorArguments::esf_sequence_t esf_sequence_t;
+
+            typedef typename extract_esf_location_type<esf_sequence_t>::type location_type_t;
+
+            using n_colors_t = typename location_type_t::n_colors;
 
             /**
             @brief core of the kernel execution
@@ -107,9 +113,7 @@ namespace gridtools {
                 array_position_t memorized_position;
                 for(uint_t i=m_first_pos[0]; i <= m_first_pos[0] + m_loop_size[0];++i)
                 {
-                    //TODO this n_colors is used by execute_kernel_functor_host.hpp, but because at the moment
-                    // it is not aware of the location type of iteration. In the future it should be extracted from cells or edges, etc.
-                    for(uint_t c=0; c < grid_t::n_colors; ++c)
+                    for(uint_t c=0; c < n_colors_t::value; ++c)
                     {
                         for(uint_t j=m_first_pos[1]; j <= m_first_pos[1] + m_loop_size[1];++j)
                         {
@@ -125,7 +129,7 @@ namespace gridtools {
                         it_domain.template increment<2>( -(m_loop_size[1]+1));
                         it_domain.template increment<1, static_int<1> >();
                     }
-                    it_domain.template increment<1, static_int<-grid_t::n_colors>>();
+                    it_domain.template increment<1, static_int<-n_colors_t::value>>();
                     it_domain.template increment<0,static_int<1> >();
                 }
                 it_domain.template increment<0>( -(m_loop_size[0]+1));

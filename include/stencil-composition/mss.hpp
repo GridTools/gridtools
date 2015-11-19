@@ -14,7 +14,6 @@
 @brief descriptor of the Multi Stage Stencil (MSS)
 */
 namespace gridtools {
-
     namespace _impl
     {
 
@@ -33,21 +32,6 @@ namespace gridtools {
            errors in case it is not defined.
          */
         HAS_TYPE_SFINAE(range_type, has_range_type, get_range_type)
-
-        /**@brief wrap type to simplify specialization based on mpl::vectors */
-        template <typename MplArray>
-        struct wrap_type {
-            typedef MplArray type;
-        };
-
-        /**
-         * @brief compile-time boolean operator returning true if the template argument is a wrap_type
-         * */
-        template <typename T>
-        struct is_wrap_type : boost::false_type {};
-
-        template <typename T>
-        struct is_wrap_type<wrap_type<T> > : boost::true_type{};
 
     }
 
@@ -122,6 +106,5 @@ namespace gridtools {
     {
         typedef ExecutionEngine type;
     };
-
 
 } // namespace gridtools

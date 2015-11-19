@@ -1,10 +1,9 @@
-#!/bin/bash
+#!/bin/bash -f
 
 function exit_if_error {
     if [ "x$1" != "x0" ]
     then
         echo "Exit with errors"
-        rm -rf *
         exit $1
     fi
 }
@@ -19,12 +18,14 @@ function help {
    echo "-p      activate python                       "
    echo "-m      activate mpi                          "
    echo "-s      activate a silent build               "
+   echo "-f      force build                           "
    exit 1
 }
 
+INITPATH=$PWD
 BASEPATH_SCRIPT=$(dirname "${0}")
 
-while getopts "h:b:t:f:c:pms" opt; do
+while getopts "h:b:t:f:c:pzms" opt; do
     case "$opt" in
     h|\?)
         help
@@ -43,6 +44,8 @@ while getopts "h:b:t:f:c:pms" opt; do
     m) MPI="ON"
         ;;
     s) SILENT_BUILD="ON"
+        ;;
+    z) FORCE_BUILD="ON"
         ;;
     esac
 done
@@ -66,9 +69,9 @@ fi
 
 echo $@
 
-source ${BASEPATH_SCRIPT}/env_greina.sh
-
-if [ -d "build" ]; then
+source ${BASEPATH_SCRIPT}/machine_env.sh
+source ${BASEPATH_SCRIPT}/env_${myhost}.sh
+if [ $FORCE_BUILD == "ON" ]; then
     rm -rf build
 fi
 mkdir -p build;
@@ -125,15 +128,16 @@ export JENKINS_COMMUNICATION_TESTS=1
 HOST_COMPILER=`which g++`
 
 cmake \
+-DBoost_NO_BOOST_CMAKE="true" \
 -DCUDA_NVCC_FLAGS:STRING="--relaxed-constexpr" \
 -DCUDA_ARCH:STRING="sm_35" \
 -DCMAKE_BUILD_TYPE:STRING="$BUILD_TYPE" \
 -DBUILD_SHARED_LIBS:BOOL=ON \
 -DGPU_ENABLED_FUSION:PATH=../fusion/include \
 -DUSE_GPU:BOOL=$USE_GPU \
--DGTEST_LIBRARY:STRING="/users/crosetto/gtest-1.7.0/libgtest.a" \
--DGTEST_MAIN_LIBRARY:STRING="/users/crosetto/gtest-1.7.0/libgtest_main.a" \
--DGTEST_INCLUDE_DIR:PATH=/users/crosetto/gtest-1.7.0/include \
+-DGTEST_LIBRARY:STRING=${GTEST_LIB} \
+-DGTEST_MAIN_LIBRARY:STRING=${GTEST_MAINLIB} \
+-DGTEST_INCLUDE_DIR:PATH=${GTEST_INC} \
 -DGNU_COVERAGE:BOOL=OFF \
 -DGCL_ONLY:BOOL=OFF \
 -DCMAKE_CXX_COMPILER="${HOST_COMPILER}" \
@@ -164,11 +168,11 @@ else
     exit_if_error $?
 fi
 
-sh ./run_tests.sh
+bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh 
 
 exit_if_error $?
 
-if [ "$RUN_MPI_TESTS" == "ON" ]
+if [ "$RUN_MPI_TESTS" == "ON" && ${myhost} -eq "greina" ]
 then
     if [ "x$CXX_STD" == "xcxx11" ]
     then

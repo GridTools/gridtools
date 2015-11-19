@@ -6,7 +6,9 @@
 #include <boost/fusion/include/size.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <boost/mpl/modulus.hpp>
-#include "gt_for_each/for_each.hpp"
+#include "../gt_for_each/for_each.hpp"
+#include "expressions.hpp"
+#include "stencil-composition/accessor.hpp"
 #include "common/meta_array.hpp"
 #include "common/array.hpp"
 #include "common/generic_metafunctions/static_if.hpp"
@@ -538,4 +540,67 @@ namespace gridtools{
         }
     };
 
-} //namespace gridtools
+    /**
+     * metafunction that evaluates if an accessor is cached by the backend
+     * the Accessor parameter is either an Accessor or an expressions
+     */
+    template<typename Accessor, typename CachesMap>
+    struct accessor_is_cached
+    {
+        template<typename Accessor_>
+        struct accessor_is_cached_{
+            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Error: wrong type");
+            typedef typename boost::mpl::has_key<
+                CachesMap,
+                typename accessor_index<Accessor_>::type
+            >::type type;
+        };
+
+        typedef typename boost::mpl::eval_if<
+            is_accessor<Accessor>,
+            accessor_is_cached_<Accessor>,
+            boost::mpl::identity<boost::mpl::false_>
+        >::type type;
+
+        BOOST_STATIC_CONSTANT(bool, value=(type::value));
+    };
+
+
+    template<typename LocalDomain, typename Accessor>
+    struct get_storage_accessor
+    {
+        GRIDTOOLS_STATIC_ASSERT(is_local_domain<LocalDomain>::value, "Wrong type");
+        GRIDTOOLS_STATIC_ASSERT(is_accessor<Accessor>::value, "Wrong type");
+
+        GRIDTOOLS_STATIC_ASSERT(
+            (boost::mpl::size<typename LocalDomain::local_args_type>::value > Accessor::index_type::value),
+            "Wrong type"
+        );
+
+        typedef typename boost::remove_reference<
+            typename boost::remove_pointer<
+                typename boost::mpl::at<
+                    typename LocalDomain::local_args_type,
+                    typename Accessor::index_type
+                >::type
+            >::type
+        >::type type;
+    };
+
+    template<typename LocalDomain, typename Accessor>
+    struct get_storage_pointer_accessor
+    {
+        GRIDTOOLS_STATIC_ASSERT(is_local_domain<LocalDomain>::value, "Wrong type");
+        GRIDTOOLS_STATIC_ASSERT(is_accessor<Accessor>::value, "Wrong type");
+
+        GRIDTOOLS_STATIC_ASSERT(
+            (boost::mpl::size<typename LocalDomain::local_args_type>::value > Accessor::index_type::value),
+            "Wrong type"
+        );
+
+        typedef typename boost::add_pointer<
+            typename get_storage_accessor<LocalDomain, Accessor>::type::value_type
+        >::type type;
+    };
+
+}//namespace gridtools

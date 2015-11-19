@@ -27,7 +27,7 @@ namespace make_computation_test{
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
 
     struct test_functor {
-        typedef const accessor<0> in;
+        typedef accessor<0> in;
         typedef boost::mpl::vector1<in> arg_list;
 
         template <typename Evaluation>

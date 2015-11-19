@@ -9,7 +9,7 @@
 */
 
 namespace gridtools{
-
+/*
     template<typename Accessor, typename CachesMap>
     struct accessor_is_cached
     {
@@ -35,6 +35,6 @@ namespace gridtools{
         >::type type;
         BOOST_STATIC_CONSTANT(bool, value=(type::value));
     };
-
+*/
 
 }//namespace gridtools

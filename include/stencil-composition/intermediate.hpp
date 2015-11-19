@@ -31,6 +31,8 @@
 #include "../storage/storage_functors.hpp"
 #include "stencil-composition/compute_ranges_metafunctions.hpp"
 #include "stencil-composition/coordinates.hpp"
+#include "grid_traits.hpp"
+#include "stencil-composition/wrap_type.hpp"
 
 /**
  * @file
@@ -370,12 +372,14 @@ namespace gridtools {
 
         typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
 
+        typedef typename select_mss_compute_range_sizes::type mss_compute_range_sizes_t;
+
         typedef typename boost::mpl::fold<
             typename MssDescriptorArray::elements,
             boost::mpl::vector0<>,
             boost::mpl::push_back<
                 boost::mpl::_1,
-                GRIDPREFIX::mss_compute_range_sizes<boost::mpl::_2>
+                mss_compute_range_sizes_t::apply<boost::mpl::_2>
             >
         >::type range_sizes_t;
 
