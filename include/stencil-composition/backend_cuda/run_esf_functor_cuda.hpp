@@ -77,7 +77,7 @@ namespace gridtools {
                 IntervalType,
                 EsfArguments,
                 iterate_domain_evaluator_t
-            > (iterate_domain_evaluator);
+                > (iterate_domain_evaluator);
 
         }
 
