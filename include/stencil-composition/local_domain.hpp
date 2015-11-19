@@ -266,7 +266,6 @@ namespace gridtools {
                                            >
                                           >::type storage_metadata_map;
 
-        // typedef typename boost::fusion::result_of::as_map<storage_map>::type local_args_type;
         typedef typename boost::fusion::result_of::as_vector<mpl_storages>::type local_args_type;
         typedef typename boost::fusion::result_of::as_vector<mpl_actual_storages>::type actual_args_type;
 
