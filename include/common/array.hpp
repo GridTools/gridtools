@@ -18,19 +18,6 @@ namespace gridtools {
     template <typename T, size_t D>
 
     class array {
-        template<uint_t Idx>
-        struct get_component{
-
-            GT_FUNCTION
-            constexpr get_component(){}
-
-            template<typename OtherArray>
-            GT_FUNCTION
-            constexpr T& apply(OtherArray const& other_){
-                return other_[Idx];
-            }
-        };
-
         typedef array<T,D> type;
         static const uint_t _size = (D>0)?D:1;
 
