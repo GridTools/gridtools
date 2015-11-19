@@ -278,8 +278,8 @@ namespace positional_copy_stencil{
         }
 
 #ifdef CXX11_ENABLED
-       verifier verif(1e-13);
-        array<array<uint_t, 2>, 3> halos({{0,0},{0,0},{0,0}});
+        verifier verif(1e-13);
+        array<array<uint_t, 2>, 3> halos{{ {0,0}, {0,0}, {0,0} }};
         bool result = verif.verify(ref,out, halos);
 #else
         verifier verif(1e-13, 0);

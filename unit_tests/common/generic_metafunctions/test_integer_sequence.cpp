@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "../include/common/generic_metafunctions/gt_integer_sequence.hpp"
+#include "common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "common/array.hpp"
 
 template<int Idx>
@@ -14,13 +14,13 @@ struct get_component{
         return std::get<Idx>(std::make_tuple (args_...));
     }
 };
+using namespace gridtools;
 
 TEST(integer_sequence, fill_array) {
 
-    //calling the array constexpr constructor
-    constexpr gridtools::array<int, 4> in{0,1,2,3};
-
-    using seq = gridtools::apply_gt_integer_sequence<gridtools::make_gt_integer_sequence<int, 4>::type >;
+    using seq = gridtools::apply_gt_integer_sequence<
+        typename gridtools::make_gt_integer_sequence<int, 4>::type
+    >;
 
     //calling the array constexpr copy constructor
     constexpr gridtools::array<int, 4> out( seq::template apply<gridtools::array<int, 4>, get_component>(0,1,2,3) );

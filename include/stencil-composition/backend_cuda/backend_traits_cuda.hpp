@@ -112,7 +112,7 @@ namespace gridtools{
                 //TODOCOSUNA if there are more ID than threads in a block????
                 if(threadIdx.x==Id)
                     {
-                        l=r;
+                        l=(Left)r;
                     }
             }
         };

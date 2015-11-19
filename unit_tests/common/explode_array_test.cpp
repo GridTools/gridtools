@@ -30,12 +30,12 @@ struct _impl_index{
 using namespace gridtools;
 
 TEST(explode_array, test_explode_static) {
-    array<int, 3> a(35,23,9);
+    array<int, 3> a{35,23,9};
     ASSERT_TRUE((explode<bool, PackChecker>(a)));
 }
 
 TEST(explode_array, test_explode_with_object) {
-    array<int, 3> a(35,23,9);
+    array<int, 3> a{35,23,9};
     PackChecker checker;
     ASSERT_TRUE(( explode<int, _impl_index>(a, checker)));
 }
