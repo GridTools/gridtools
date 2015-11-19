@@ -18,6 +18,8 @@ class iterate_domain_cuda : public IterateDomainBase<iterate_domain_cuda<Iterate
 
     typedef IterateDomainBase<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> > super;
     typedef typename IterateDomainArguments::local_domain_t local_domain_t;
+    typedef typename local_domain_t::esf_args local_domain_args_t;
+
 public:
 
     typedef typename super::data_pointer_array_t data_pointer_array_t;
@@ -25,11 +27,13 @@ public:
 private:
 
     typedef typename super::iterate_domain_cache_t iterate_domain_cache_t;
+    typedef typename super::readonly_args_indices_t readonly_args_indices_t;
 
     typedef shared_iterate_domain<data_pointer_array_t, strides_cached_t, typename iterate_domain_cache_t::ij_caches_tuple_t>
         shared_iterate_domain_t;
 
     typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
+    typedef typename iterate_domain_cache_t::bypass_caches_set_t bypass_caches_set_t;
 
 private:
     const uint_t m_block_size_i;

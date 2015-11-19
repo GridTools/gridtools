@@ -9,7 +9,8 @@
 */
 
 namespace gridtools{
-/*
+
+    /*
     template<typename Accessor, typename CachesMap>
     struct accessor_is_cached
     {
