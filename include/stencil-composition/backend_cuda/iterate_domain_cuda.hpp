@@ -7,6 +7,8 @@
 
 namespace gridtools {
 
+
+
 /**
  * @brief iterate domain class for the CUDA backend
  */
@@ -19,7 +21,6 @@ class iterate_domain_cuda : public IterateDomainBase<iterate_domain_cuda<Iterate
     typedef IterateDomainBase<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> > super;
     typedef typename IterateDomainArguments::local_domain_t local_domain_t;
     typedef typename local_domain_t::esf_args local_domain_args_t;
-
 public:
 
     typedef typename super::data_pointer_array_t data_pointer_array_t;
@@ -34,6 +35,9 @@ private:
 
     typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
     typedef typename iterate_domain_cache_t::bypass_caches_set_t bypass_caches_set_t;
+
+    using super::get_value;
+    using super::get_data_pointer;
 
 private:
     const uint_t m_block_size_i;
@@ -147,18 +151,6 @@ public:
         return m_pshared_iterate_domain->strides();
     }
 
-    // return a value that was cached
-    template<typename Accessor>
-    GT_FUNCTION
-    typename super::template accessor_return_type<Accessor>::type::value_type& RESTRICT
-    get_cache_value_impl(Accessor const & _accessor) const
-    {
-        //        assert(m_pshared_iterate_domain);
-        // retrieve the ij cache from the fusion tuple and access the element required give the current thread position within
-        // the block and the offsets of the accessor
-        return m_pshared_iterate_domain->template get_ij_cache<static_uint<Accessor::index_type::value> >().at(m_thread_pos, _accessor.offsets());
-    }
-
     template <ushort_t Coordinate, typename Execution>
     GT_FUNCTION
     void increment_impl()
@@ -194,7 +186,7 @@ public:
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
 
         typedef typename boost::mpl::at<
-            typename local_domain_t::esf_args, boost::mpl::integral_c<int, Accessor::index_type::value>
+            local_domain_args_t, boost::mpl::integral_c<int, Accessor::index_type::value>
         >::type arg_t;
 
         typedef typename
@@ -202,6 +194,7 @@ public:
                 readonly_args_indices_t,
                 boost::mpl::integral_c<int, arg_index<arg_t>::value  >
             >::type type;
+
     };
 
     /**
@@ -222,7 +215,11 @@ public:
     */
     template<typename ReturnType, typename Accessor>
     GT_FUNCTION
-    ReturnType get_cache_value_impl(Accessor const & _accessor) const
+    typename boost::disable_if<
+        boost::mpl::has_key<bypass_caches_set_t, static_uint<Accessor::index_type::value> >,
+        ReturnType
+    >::type
+    get_cache_value_impl(Accessor const & _accessor) const
     {
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
         //        assert(m_pshared_iterate_domain);
@@ -231,16 +228,20 @@ public:
         return m_pshared_iterate_domain->template get_ij_cache<static_uint<Accessor::index_type::value> >().at(m_thread_pos, _accessor.offsets());
     }
 
-    /** @brief return a the value in gmem pointed to by an accessor
+    /** @brief return a value that was cached
+    * specialization where cache is explicitly disabled by user
     */
-    template<
-        typename ReturnType,
-        typename StoragePointer
-    >
+    template<typename ReturnType, typename Accessor>
     GT_FUNCTION
-    ReturnType get_gmem_value(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset) const
+    typename boost::enable_if<
+        boost::mpl::has_key<bypass_caches_set_t, static_uint<Accessor::index_type::value> >,
+        ReturnType
+    >::type
+    get_cache_value_impl(Accessor const & _accessor) const
     {
-        return *(storage_pointer+pointer_offset);
+        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
+        return super::template get_value<Accessor, void * RESTRICT> (_accessor,
+                    super::template get_data_pointer<Accessor>(_accessor));
     }
 
     /** @brief return a the value in memory pointed to by an accessor
@@ -264,7 +265,7 @@ public:
         // on Kepler use ldg to read directly via read only cache
         return __ldg(storage_pointer + pointer_offset);
 #else
-        return get_gmem_value<ReturnType>(storage_pointer,pointer_offset);
+        return super::template get_gmem_value<ReturnType>(storage_pointer,pointer_offset);
 #endif
     }
 
@@ -284,14 +285,13 @@ public:
     get_value_impl(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset) const
     {
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
-        return get_gmem_value<ReturnType>(storage_pointer,pointer_offset);
+        return super::template get_gmem_value<ReturnType>(storage_pointer,pointer_offset);
     }
 
 private:
     // array storing the (i,j) position of the current thread within the block
     array<int, 2> m_thread_pos;
 };
-
 
 template<
     template<class> class IterateDomainBase, typename IterateDomainArguments>
@@ -313,4 +313,5 @@ struct iterate_domain_backend_id<iterate_domain_cuda<IterateDomainBase, IterateD
     typedef enumtype::enum_type< enumtype::backend, enumtype::Cuda > type;
 };
 
-} //namespace gridtools
+
+}
