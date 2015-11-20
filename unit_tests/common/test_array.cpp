@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-
+#include "common/defs.hpp"
 #include "common/array.hpp"
 #include "common/array_addons.hpp"
 
