@@ -5,8 +5,6 @@
 
 #include <gridtools.hpp>
 #include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/interval.hpp>
-#include <stencil-composition/make_computation.hpp>
 #include <tools/verifier.hpp>
 #include "Options.hpp"
 
@@ -274,3 +272,8 @@ int main(int argc, char** argv)
 
     return RUN_ALL_TESTS();
 }
+
+
+/**
+@}
+*/

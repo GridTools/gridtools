@@ -96,10 +96,46 @@ struct is_storage_arg : boost::mpl::false_{};
 template<uint_t I, typename Storage>
 struct is_storage_arg<arg<I, Storage> > : is_storage<Storage>{};
 
+/** true in case of non temporary storage arg*/
+template<uint_t I, typename Storage>
+struct arg_index<arg<I, Storage> > : boost::mpl::integral_c<int, I> {};
+
+/**
+ * @struct arg_hods_data_field
+ * metafunction that determines if an arg type is holding the storage type of a data field
+ */
+template<typename Arg>
+struct arg_holds_data_field;
+
 template <uint_t I, typename Storage>
 struct arg_holds_data_field<arg<I, Storage> >
 {
     typedef typename storage_holds_data_field<Storage>::type type;
 };
+
+/**
+ * @struct arg_hods_data_field_h
+ * high order metafunction of arg_holds_data_field
+ */
+template <typename Arg>
+struct arg_holds_data_field_h
+{
+    typedef typename arg_holds_data_field<typename Arg::type >::type type;
+};
+
+/** @brief metafunction to access the storage type given the arg*/
+template<typename T>
+struct arg2storage {
+    GRIDTOOLS_STATIC_ASSERT(is_arg<T>::value, "wrong type for Arg");
+    typedef typename T::storage_type type;
+};
+
+/** @brief metafunction to access the metadata type given the arg*/
+template<typename T>
+struct arg2metadata {
+    GRIDTOOLS_STATIC_ASSERT(is_arg<T>::value, "wrong type for Arg");
+    typedef typename arg2storage<T>::type::meta_data_t type;
+};
+
 
 } // namespace gridtools

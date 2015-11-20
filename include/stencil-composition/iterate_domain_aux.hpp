@@ -24,6 +24,7 @@
 
 namespace gridtools{
 
+
     /**
      * @brief metafunction that determines if a type is one of the storage types allowed by the iterate domain
      */
@@ -465,15 +466,13 @@ namespace gridtools{
     struct assign_strides_inner_functor
     {
     private:
-        //strides are stored in strides_cached class as integers due to vectorization issues
-        //a cast from uint from the stride of the metastorage into int is performed here
         int_t* RESTRICT m_left;
-        const uint_t* RESTRICT m_right;
+        const int_t* RESTRICT m_right;
 
     public:
 
         GT_FUNCTION
-        assign_strides_inner_functor(int_t* RESTRICT l, const uint_t* RESTRICT r) :
+        assign_strides_inner_functor(int_t* RESTRICT l, const int_t* RESTRICT r) :
             m_left(l), m_right(r) {}
 
         template <typename ID>
