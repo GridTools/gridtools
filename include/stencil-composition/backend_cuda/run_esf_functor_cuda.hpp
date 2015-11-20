@@ -51,6 +51,8 @@ namespace gridtools {
         {
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments<EsfArguments>::value), "Internal Error: wrong type");
 
+            typedef typename EsfArguments::functor_t functor_t;
+
             //synchronize threads if not independent esf
             if(!boost::mpl::at<typename EsfArguments::async_map_t, functor_t>::type::value)
                 __syncthreads();
@@ -61,8 +63,6 @@ namespace gridtools {
                 iterate_domain_evaluator_t;
 
             iterate_domain_evaluator_t iterate_domain_evaluator(m_iterate_domain);
-
-            typedef typename EsfArguments::functor_t functor_t;
 
             //a grid point at the core of the block can be out of range (for last blocks) if domain of computations
             // is not a multiple of the block size

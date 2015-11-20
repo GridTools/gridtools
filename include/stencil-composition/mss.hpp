@@ -67,7 +67,11 @@ namespace gridtools {
 
 
 
+    /**
+       @brief pushes an element in a vector based on the fact that an ESF is independent or not
 
+       Helper metafunction, used by other metafunctions
+     */
     template <typename State, typename SubArray, typename VectorComponent>
     struct keep_scanning_lambda
         : boost::mpl::fold<
@@ -81,13 +85,18 @@ namespace gridtools {
         >
     {};
 
+    /**
+       @brief linearizes the ESF tree and returns a vector
+
+       Helper metafunction, used by other metafunctions
+     */
     template <typename Array, typename Argument>
     struct linearize_esf_array_lambda : boost::mpl::fold<
         Array,
         boost::mpl::vector<>,
         boost::mpl::if_<
             is_independent<boost::mpl::_2>,
-            keep_scanning_lambda<boost::mpl::_1, boost::mpl::_2, boost::mpl::true_>,
+            keep_scanning_lambda<boost::mpl::_1, boost::mpl::_2, Argument>,
             boost::mpl::push_back<boost::mpl::_1, Argument >
             >
         >{};
@@ -115,7 +124,17 @@ namespace gridtools {
         {};
 
         template <typename Array>
-        struct linearize_esf_array : linearize_esf_array_lambda<Array, boost::mpl::_2>{};
+        struct linearize_esf_array : boost::mpl::fold<
+              Array,
+              boost::mpl::vector<>,
+              boost::mpl::if_<
+                  is_independent<boost::mpl::_2>,
+                  keep_scanning<boost::mpl::_1, boost::mpl::_2>,
+                  boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>
+              >
+        >{};
+        // template <typename Array>
+        // struct linearize_esf_array : linearize_esf_array_lambda<Array, boost::mpl::_2>{};
 
         typedef typename linearize_esf_array<EsfDescrSequence>::type type;
     };
