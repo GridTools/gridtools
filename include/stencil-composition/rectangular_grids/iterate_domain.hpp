@@ -1,5 +1,4 @@
 #pragma once
-#include "iterate_domain_aux.hpp"
 #include <boost/type_traits/add_const.hpp>
 #include <boost/fusion/include/size.hpp>
 #include <boost/type_traits/is_same.hpp>
@@ -15,6 +14,7 @@
 #include "common/gt_assert.hpp"
 #include "stencil-composition/run_functor_arguments.hpp"
 #include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
+#include "stencil-composition/iterate_domain_aux.hpp"
 
 /**@file
    @brief file handling the access to the storage.
@@ -91,26 +91,6 @@ namespace gridtools {
             >::type::value_type value_type;
 
         /**
-         * metafunction that retrieves the arg type associated with an accessor
-         */
-        template<typename Accessor>
-        struct get_arg_from_accessor
-        {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Internal error: wrong type");
-            typedef typename boost::mpl::at<
-                esf_args_t,
-                typename Accessor::index_type
-            >::type type;
-        };
-
-        template<typename Accessor>
-        struct get_arg_value_type_from_accessor
-        {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Internal error: wrong type");
-            typedef typename get_arg_from_accessor<Accessor>::type::value_type type;
-        };
-
-        /**
          * metafunction that determines if a given accessor is associated with an placeholder holding a data field
          */
         template<typename Accessor>
@@ -118,7 +98,7 @@ namespace gridtools {
         {
             typedef typename boost::mpl::eval_if<
                 is_accessor<Accessor>,
-                arg_holds_data_field_h<get_arg_from_accessor<Accessor> >,
+                arg_holds_data_field_h<get_arg_from_accessor<Accessor, iterate_domain_arguments_t> >,
                 boost::mpl::identity<boost::mpl::false_>
             >::type type;
         };
@@ -165,17 +145,7 @@ namespace gridtools {
         template<typename Accessor>
         struct accessor_return_type
         {
-            typedef typename boost::mpl::eval_if<
-                is_accessor<Accessor>,
-                get_arg_value_type_from_accessor<Accessor>,
-                boost::mpl::identity<boost::mpl::void_>
-            >::type accessor_value_type;
-
-            typedef typename boost::mpl::if_<
-                is_accessor_readonly<Accessor>,
-                typename boost::add_const<accessor_value_type >::type,
-                typename boost::add_reference<accessor_value_type>::type RESTRICT
-            >::type type;
+            typedef typename ::gridtools::accessor_return_type<Accessor, iterate_domain_arguments_t>::type type;
         };
 
         typedef typename local_domain_t::storage_metadata_map metadata_map_t;

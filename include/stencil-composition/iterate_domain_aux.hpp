@@ -607,4 +607,48 @@ namespace gridtools{
         >::type type;
     };
 
+    /**
+     * metafunction that retrieves the arg type associated with an accessor
+     */
+    template<typename Accessor, typename IterateDomainArguments>
+    struct get_arg_from_accessor
+    {
+        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Wrong type");
+
+        typedef typename boost::mpl::at<
+            typename IterateDomainArguments::local_domain_t::esf_args,
+            typename Accessor::index_type
+        >::type type;
+    };
+
+    template<typename Accessor, typename IterateDomainArguments>
+    struct get_arg_value_type_from_accessor
+    {
+        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Wrong type");
+
+        typedef typename get_arg_from_accessor<Accessor, IterateDomainArguments>::type::value_type type;
+    };
+
+
+    /**
+     * metafunction that computes the return type of all operator() of an accessor
+     */
+    template<typename Accessor, typename IterateDomainArguments>
+    struct accessor_return_type
+    {
+        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Wrong type");
+
+        typedef typename boost::mpl::eval_if<
+            is_accessor<Accessor>,
+            get_arg_value_type_from_accessor<Accessor, IterateDomainArguments>,
+            boost::mpl::identity<boost::mpl::void_>
+        >::type accessor_value_type;
+
+        typedef typename boost::mpl::if_<
+            is_accessor_readonly<Accessor>,
+            typename boost::add_const<accessor_value_type >::type,
+            typename boost::add_reference<accessor_value_type>::type RESTRICT
+        >::type type;
+    };
+
 }//namespace gridtools

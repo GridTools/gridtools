@@ -270,19 +270,6 @@ struct iterate_domain {
     };
 
     /**
-     * metafunction that retrieves the arg type associated with an accessor
-     */
-    template<typename Accessor>
-    struct get_arg_from_accessor
-    {
-        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Internal error: wrong type");
-        typedef typename boost::mpl::at<
-            esf_args_t,
-            typename Accessor::index_type
-        >::type type;
-    };
-
-    /**
      * metafunction that computes the return type of all operator() of an accessor
      */
     template<typename Accessor>

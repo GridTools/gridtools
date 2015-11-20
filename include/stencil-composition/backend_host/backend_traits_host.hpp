@@ -178,6 +178,7 @@ namespace gridtools{
             typedef typename strategy_from_id_host<StrategyId>::block_size_t type;
         };
 
+
         /**
          * @brief metafunction that returns the right iterate domain
          * (depending on whether the local domain is positional or not)
@@ -188,11 +189,13 @@ namespace gridtools{
         struct select_iterate_domain {
             GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Internal Error: wrong type");
             //indirection in order to avoid instantiation of both types of the eval_if
+#ifdef RECTANGULAR_GRIDS
             template<typename _IterateDomainArguments>
             struct select_positional_iterate_domain
             {
                 typedef iterate_domain_host<positional_iterate_domain, _IterateDomainArguments> type;
             };
+#endif
 
             template<typename _IterateDomainArguments>
             struct select_basic_iterate_domain
