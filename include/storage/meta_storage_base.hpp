@@ -75,7 +75,6 @@ namespace gridtools {
 
     protected:
 
-        //TODO these two should be uint_t, however it assert the index in iterate domain
          array<uint_t, space_dimensions> m_dims;
          array<uint_t, space_dimensions> m_strides;
 
