@@ -509,12 +509,12 @@ namespace gridtools{
     {
     private:
         int_t* RESTRICT m_left;
-        const int_t* RESTRICT m_right;
+        const uint_t* RESTRICT m_right;
 
     public:
 
         GT_FUNCTION
-        assign_strides_inner_functor(int_t* RESTRICT l, const int_t* RESTRICT r) :
+        assign_strides_inner_functor(int_t* RESTRICT l, const uint_t* RESTRICT r) :
             m_left(l), m_right(r) {}
 
         template <typename ID>
