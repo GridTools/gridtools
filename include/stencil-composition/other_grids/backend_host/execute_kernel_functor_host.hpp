@@ -31,20 +31,20 @@ namespace gridtools {
                                                  const uint_t block_idx_i, const uint_t block_idx_j)
                 : m_local_domain(local_domain)
                 , m_coords(coords)
-                , m_first_pos(first_i, first_j)
-                , m_loop_size(loop_size_i, loop_size_j)
-                , m_block_id(block_idx_i, block_idx_j)
+                , m_first_pos{first_i, first_j}
+                , m_loop_size{loop_size_i, loop_size_j}
+                , m_block_id{block_idx_i, block_idx_j}
             {}
 
             // Naive strategy
             explicit  execute_kernel_functor_host(const local_domain_t& local_domain, const coords_t& coords)
                 : m_local_domain(local_domain)
                 , m_coords(coords)
-                , m_first_pos(coords.i_low_bound(), coords.j_low_bound())
+                , m_first_pos{coords.i_low_bound(), coords.j_low_bound()}
                 //TODO strictling speaking the loop the size is with +1. Recompute the numbers here to be consistent
                 //with the convention, but that require adapint also the rectangular grids
-                , m_loop_size(coords.i_high_bound()-coords.i_low_bound(), coords.j_high_bound()-coords.j_low_bound())
-                , m_block_id(0, 0) {}
+                , m_loop_size{coords.i_high_bound()-coords.i_low_bound(), coords.j_high_bound()-coords.j_low_bound()}
+                , m_block_id{0, 0} {}
 
             void operator()()
             {

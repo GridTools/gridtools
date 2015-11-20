@@ -36,7 +36,7 @@ public:
 
     repository(const uint_t idim, const uint_t jdim, const uint_t kdim, const uint_t halo_size) :
         m_storage_info(idim, jdim, kdim),
-        m_scalar_storage_info(1,1,1), //fake 3D
+        m_scalar_storage_info((uint_t)1,(uint_t)1,(uint_t)1), //fake 3D
         utens_stage_(m_storage_info, -1., "utens_stage"),
         utens_stage_ref_(m_storage_info, -1., "utens_stage_ref"),
         u_stage_(m_storage_info, -1., "u_stage"),
@@ -276,8 +276,8 @@ private:
     storage_type utens_stage_, u_stage_, wcon_, u_pos_, utens_, utens_stage_ref_;
     storage_type ipos_, jpos_, kpos_;
     scalar_storage_type dtr_stage_;
-    const int halo_size_;
-    const int idim_, jdim_, kdim_;
+    const uint_t halo_size_;
+    const uint_t idim_, jdim_, kdim_;
 };
 
 }

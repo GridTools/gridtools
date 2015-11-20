@@ -40,7 +40,7 @@ namespace test_cycle_and_swap{
         typedef gridtools::BACKEND::storage_type<uint_t, meta_t >::type storage_type;
         typedef typename field<storage_type, 2>::type field_t;
 
-        meta_t meta_( 1, 1);
+        meta_t meta_( (uint_t)1, (uint_t)1);
         field_t i_data (meta_);
         i_data.allocate();
         i_data.get_value<0,0>(0,0)=0.;

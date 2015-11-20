@@ -10,6 +10,7 @@
 #include "../sfinae.hpp"
 #include "../../storage/meta_storage.hpp"
 #include "../tile.hpp"
+#include "common/generic_metafunctions/is_variadic_pack_of.hpp"
 
 namespace gridtools{
 
@@ -68,7 +69,7 @@ namespace gridtools{
         {
             GRIDTOOLS_STATIC_ASSERT(is_layout_map<Layout>::value, "wrong type for layout map");
 #ifdef CXX11_ENABLED
-            GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(),  is_tile<Tiles>::type::value ... ), "wrong type for the tiles");
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_tile<Tiles>::type::value ... ), "wrong type for the tiles");
 #else
             GRIDTOOLS_STATIC_ASSERT((is_tile<TileI>::value && is_tile<TileJ>::value), "wrong type for the tiles");
 #endif
@@ -96,7 +97,7 @@ namespace gridtools{
         struct get_tmp_storage
         {
 #ifdef CXX11_ENABLED
-            GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(),  is_tile<Tiles>::type::value ... ), "wrong type for the tiles");
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_tile<Tiles>::type::value ... ), "wrong type for the tiles");
 #else
             GRIDTOOLS_STATIC_ASSERT((is_tile<TileI>::value && is_tile<TileJ>::value), "wrong type for the tiles");
 #endif

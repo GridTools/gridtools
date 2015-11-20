@@ -1,10 +1,3 @@
-/*
- * test_cache_stencil.cpp
- *
- *  Created on: Jul 21, 2015
- *      Author: cosuna
- */
-
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include "common/defs.hpp"
@@ -81,8 +74,13 @@ protected:
 
     cache_stencil() :
         m_halo_size(2), m_d1(32+m_halo_size), m_d2(32+m_halo_size), m_d3(6),
+#ifdef CXX11_ENABLED
+        m_di{m_halo_size, m_halo_size, m_halo_size, m_d1-m_halo_size-1, m_d1},
+        m_dj{m_halo_size, m_halo_size, m_halo_size, m_d2-m_halo_size-1, m_d2},
+#else
         m_di(m_halo_size, m_halo_size, m_halo_size, m_d1-m_halo_size-1, m_d1),
         m_dj(m_halo_size, m_halo_size, m_halo_size, m_d2-m_halo_size-1, m_d2),
+#endif
         m_coords(m_di, m_dj),
         m_meta(m_d1, m_d2, m_d3),
         m_in(m_meta, -8.5, "in"),
@@ -106,8 +104,6 @@ protected:
         }
     }
 };
-
-
 
 TEST_F(cache_stencil, ij_cache)
 {
@@ -145,7 +141,7 @@ TEST_F(cache_stencil, ij_cache)
 
 #ifdef CXX11_ENABLED
     verifier verif(1e-13);
-    array<array<uint_t, 2>, 3> halos({{m_halo_size,m_halo_size},{m_halo_size,m_halo_size},{m_halo_size,m_halo_size}});
+    array<array<uint_t, 2>, 3> halos{{ {m_halo_size,m_halo_size}, {m_halo_size,m_halo_size}, {m_halo_size,m_halo_size} }};
     ASSERT_TRUE(verif.verify(m_in, m_out, halos) );
 #else
     verifier verif(1e-13, m_halo_size);
@@ -203,7 +199,7 @@ TEST_F(cache_stencil, ij_cache_offset)
 
 #ifdef CXX11_ENABLED
     verifier verif(1e-13);
-    array<array<uint_t, 2>, 3> halos({{m_halo_size,m_halo_size},{m_halo_size,m_halo_size},{m_halo_size,m_halo_size}});
+    array<array<uint_t, 2>, 3> halos{{ {m_halo_size,m_halo_size}, {m_halo_size,m_halo_size}, {m_halo_size,m_halo_size} }};
     ASSERT_TRUE(verif.verify(ref, m_out, halos) );
 #else
     verifier verif(1e-13, m_halo_size);
