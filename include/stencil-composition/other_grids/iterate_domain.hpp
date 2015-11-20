@@ -208,21 +208,20 @@ struct extract_location_type
    ways to access data and the implementation of iterating on neighbors.
  */
 //template <typename PlcVector, typename GridType, typename LocationType>
-template <typename IterateDomainArguments>
+template <typename IterateDomainImpl>
 struct iterate_domain {
-    GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Wrong Type");
-    typedef typename IterateDomainArguments::backend_id_t backend_id_t;
+    typedef typename iterate_domain_impl_arguments<IterateDomainImpl>::type iterate_domain_arguments_t;
+    typedef typename iterate_domain_arguments_t::local_domain_t local_domain_t;
 
-    typedef typename IterateDomainArguments::local_domain_t local_domain_t;
-
-    typedef typename IterateDomainArguments::coordinates_t::grid_t grid_t;
-    typedef typename IterateDomainArguments::esf_sequence_t esf_sequence_t;
+    typedef typename iterate_domain_arguments_t::backend_id_t backend_id_t;
+    typedef typename iterate_domain_arguments_t::coordinates_t::grid_t grid_t;
+    typedef typename iterate_domain_arguments_t::esf_sequence_t esf_sequence_t;
     typedef typename extract_location_type<esf_sequence_t>::type location_type_t;
 
     typedef typename local_domain_t::esf_args esf_args_t;
 
     typedef typename backend_traits_from_id< backend_id_t::value >::
-            template select_iterate_domain_cache<IterateDomainArguments>::type iterate_domain_cache_t;
+            template select_iterate_domain_cache<iterate_domain_arguments_t>::type iterate_domain_cache_t;
 
     typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
 
@@ -247,14 +246,6 @@ struct iterate_domain {
     typedef array<void* RESTRICT, N_DATA_POINTERS> data_pointer_array_t;
     typedef strides_cached<N_META_STORAGES-1, typename local_domain_t::storage_metadata_vector_t> strides_cached_t;
 
-    typedef typename backend_traits_from_id< backend_id_t::value >::
-        template select_iterate_domain_backend<
-            data_pointer_array_t,
-            strides_cached_t,
-            iterate_domain_cache_t,
-            IterateDomainArguments
-        >::type iterate_domain_backend_t;
-
     /**@brief local class instead of using the inline (cond)?a:b syntax, because in the latter both branches get compiled (generating sometimes a compile-time overflow) */
     template <bool condition, typename LocalD, typename Accessor>
     struct current_storage;
@@ -275,16 +266,13 @@ struct iterate_domain {
     template<typename Accessor>
     struct accessor_return_type
     {
-        typedef typename ::gridtools::accessor_return_type<Accessor, IterateDomainArguments>::type type;
+        typedef typename ::gridtools::accessor_return_type<Accessor, iterate_domain_arguments_t>::type type;
     };
 
-public:
-
-    iterate_domain_backend_t m_iterate_domain_backend;
 private:
     GRIDTOOLS_STATIC_ASSERT((N_META_STORAGES <= grid_t::n_locations::value),"We can not have more meta storages"
                             "than location types. Data fields for other grids are not yet supported");
-    local_domain_t const& local_domain;
+    local_domain_t const& m_local_domain;
     grid_t const& m_grid;
     //TODOMEETING do we need m_index?
     array<int_t,N_META_STORAGES> m_index;
@@ -302,7 +290,7 @@ public:
     */
     GT_FUNCTION
     iterate_domain(local_domain_t const& local_domain_, grid_t const& grid)
-        : local_domain(local_domain_), m_grid(grid) {}
+        : m_local_domain(local_domain_), m_grid(grid) {}
 
     /**
        @brief returns the array of pointers to the raw data
@@ -310,7 +298,7 @@ public:
     GT_FUNCTION
     data_pointer_array_t const& RESTRICT data_pointer() const
     {
-        return m_iterate_domain_backend.data_pointer_impl();
+        return static_cast<IterateDomainImpl const *>(this)->data_pointer_impl();
     }
 
     /**
@@ -319,7 +307,7 @@ public:
     GT_FUNCTION
     data_pointer_array_t& RESTRICT data_pointer()
     {
-        return m_iterate_domain_backend.data_pointer_impl();
+        return static_cast<IterateDomainImpl*>(this)->data_pointer_impl();
     }
 
     /**
@@ -328,7 +316,7 @@ public:
     GT_FUNCTION
     strides_cached_t const & RESTRICT strides() const
     {
-        return m_iterate_domain_backend.strides_impl();
+        return static_cast<IterateDomainImpl const *>(this)->strides_impl();
     }
 
     /**
@@ -337,7 +325,7 @@ public:
     GT_FUNCTION
     strides_cached_t & RESTRICT strides()
     {
-        return m_iterate_domain_backend.strides_impl();
+        return static_cast<IterateDomainImpl*>(this)->strides_impl();
     }
 
 
@@ -360,7 +348,7 @@ public:
                 typename local_domain_t::local_args_type,
                 typename local_domain_t::local_metadata_type,
                 metadata_map_t
-            >(data_pointer(), local_domain.m_local_args, local_domain.m_local_metadata,  EU_id_i, EU_id_j));
+            >(data_pointer(), m_local_domain.m_local_args, m_local_domain.m_local_metadata,  EU_id_i, EU_id_j));
     }
 
     /**
@@ -380,7 +368,7 @@ public:
             Strides,
             typename boost::fusion::result_of::as_vector
             <typename local_domain_t::local_metadata_type>::type
-            >(strides(), local_domain.m_local_metadata));
+            >(strides(), m_local_domain.m_local_metadata));
     }
 
     /**@brief method for initializing the index */
@@ -394,20 +382,20 @@ public:
             strides_cached_t,
             typename boost::fusion::result_of::as_vector
             <typename local_domain_t::local_metadata_type>::type
-            >(strides(), boost::fusion::as_vector(local_domain.m_local_metadata), initial_pos, block, &m_index[0]));
-        m_iterate_domain_backend.template initialize_impl<Coordinate>();
+            >(strides(), boost::fusion::as_vector(m_local_domain.m_local_metadata), initial_pos, block, &m_index[0]));
+        static_cast<IterateDomainImpl*>(this)->template initialize_impl<Coordinate>();
 
         m_grid_position[Coordinate] = initial_pos;
     }
 
     void set_data_pointer(data_pointer_array_t* RESTRICT data_pointer)
     {
-        m_iterate_domain_backend.set_data_pointer_impl(data_pointer);
+        static_cast<IterateDomainImpl*>(this)->template set_data_pointer_impl(data_pointer);
     }
 
     void set_strides_pointer(strides_cached_t* RESTRICT strides)
     {
-        m_iterate_domain_backend.set_strides_pointer_impl(strides);
+        static_cast<IterateDomainImpl*>(this)->template set_strides_pointer_impl(strides);
     }
 
 
@@ -425,7 +413,7 @@ public:
             strides_cached_t,
             typename boost::fusion::result_of::as_vector
             <typename local_domain_t::local_metadata_type>::type
-            >(boost::fusion::as_vector(local_domain.m_local_metadata),
+            >(boost::fusion::as_vector(m_local_domain.m_local_metadata),
 #ifdef __CUDACC__ //stupid nvcc
               boost::is_same<Execution, static_int<1> >::type::value? 1 : -1
 #else
@@ -433,7 +421,7 @@ public:
 #endif
               , &m_index[0], strides())
             );
-        m_iterate_domain_backend.template increment_impl<Coordinate, Execution>();
+        static_cast<IterateDomainImpl*>(this)->template increment_impl<Coordinate, Execution>();
         m_grid_position[Coordinate] += Execution::value;
     }
 
@@ -452,9 +440,9 @@ public:
                 strides_cached_t,
             typename boost::fusion::result_of::as_vector
             <typename local_domain_t::local_metadata_type>::type
-            >(boost::fusion::as_vector(local_domain.m_local_metadata), steps_, &m_index[0], strides())
+            >(boost::fusion::as_vector(m_local_domain.m_local_metadata), steps_, &m_index[0], strides())
         );
-        m_iterate_domain_backend.template increment_impl<Coordinate>(steps_);
+        static_cast<IterateDomainImpl*>(this)->template increment_impl<Coordinate>(steps_);
 
         m_grid_position[Coordinate] += steps_;
     }
@@ -510,9 +498,6 @@ public:
         const auto neighbors = grid_t::neighbors_indices_3(current_position
                                                           , location_type_t()
                                                           , onneighbors.location() );
-//#ifdef _ACCESSOR_H_DEBUG_
-//        std::cout << "Entry point (on map)" << current_position << " Neighbors: " << neighbors << std::endl;
-//#endif
         double result = onneighbors.value();
 
         for (int i = 0; i<neighbors.size(); ++i) {
@@ -535,10 +520,6 @@ public:
         const auto neighbors = grid_t::neighbors_indices_3(current_position
                                                           , location_type_t()
                                                           , onneighbors.location() );
-//#ifdef _ACCESSOR_H_DEBUG_
-//        std::cout << "Entry point (on accessor)" << current_position << " Neighbors: " << neighbors << std::endl;
-//#endif
-
         double result = onneighbors.value();
 
         for (int i = 0; i<neighbors.size(); ++i) {
@@ -563,13 +544,13 @@ public:
 
 #ifndef CXX11_ENABLED
         typedef typename boost::remove_reference<typename boost::remove_pointer<BOOST_TYPEOF( (boost::fusion::at
-                                                                                      < index_t>(local_domain.m_local_args)) )>::type>::type storage_type;
+               < index_t>(m_local_domain.m_local_args)) )>::type>::type storage_type;
         storage_type* const storage_=
 #else
         auto const storage_ =
 #endif
             boost::fusion::at
-            < index_t>(local_domain.m_local_args);
+            < index_t>(m_local_domain.m_local_args);
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
@@ -584,7 +565,7 @@ public:
             <metadata_map_t, typename storage_type::meta_data_t >::type metadata_index_t;
 
         pointer<const typename storage_type::meta_data_t> const metadata_ = boost::fusion::at
-            < metadata_index_t >(local_domain.m_local_metadata);
+            < metadata_index_t >(m_local_domain.m_local_metadata);
         //getting the value
 
         //the following assert fails when an out of bound access is observed, i.e. either one of
@@ -617,13 +598,13 @@ public:
 
 #ifndef CXX11_ENABLED
         typedef typename boost::remove_reference<typename boost::remove_pointer<BOOST_TYPEOF( (boost::fusion::at
-                                                                                      < index_t>(local_domain.m_local_args)) )>::type>::type storage_type;
+                < index_t>(m_local_domain.m_local_args)) )>::type>::type storage_type;
         storage_type* const storage_=
 #else
         auto const storage_ =
 #endif
             boost::fusion::at
-            < index_t>(local_domain.m_local_args);
+            < index_t>(m_local_domain.m_local_args);
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 

@@ -67,8 +67,8 @@ namespace gridtools {
      */
     template <typename IterateDomainImpl>
     struct iterate_domain {
-        typedef typename iterate_domain_impl_local_domain<IterateDomainImpl>::type local_domain_t;
         typedef typename iterate_domain_impl_arguments<IterateDomainImpl>::type iterate_domain_arguments_t;
+        typedef typename iterate_domain_arguments_t::local_domain_t local_domain_t;
 
         // sequence of args types which are readonly through all ESFs/MSSs
         typedef typename compute_readonly_args_indices<
