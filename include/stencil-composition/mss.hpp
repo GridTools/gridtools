@@ -145,12 +145,12 @@ namespace gridtools {
        the code is very similar as in the metafunction above
      */
     template<typename T>
-    struct is_independent_esf_sequence;
+    struct sequence_of_is_independent_esf;
 
     template <typename ExecutionEngine,
               typename EsfDescrSequence,
               typename CacheSequence>
-    struct is_independent_esf_sequence<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> >
+    struct sequence_of_is_independent_esf<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> >
     {
         template <typename Array>
         struct linearize_esf_array : linearize_esf_array_lambda<Array, boost::mpl::false_> {};

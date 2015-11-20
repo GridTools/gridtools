@@ -86,7 +86,7 @@ namespace gridtools {
             typedef typename backend_traits_t::template get_block_size<StrategyId>::type block_size_t;
             // compute the struct with all the type arguments for the run functor
 
-            typedef typename is_independent_esf_sequence<typename mss_components_t::mss_descriptor_t>::type is_independent_sequence_t;
+            typedef typename sequence_of_is_independent_esf<typename mss_components_t::mss_descriptor_t>::type is_independent_sequence_t;
 
 
             /** generates the map of stating which esf has to be synchronized
@@ -136,9 +136,9 @@ namespace gridtools {
                                   , boost::mpl::insert< boost::mpl::_1, boost::mpl::pair< boost::mpl::at<extract_functor_t, boost::mpl::_2 >, boost::mpl::true_ > >
                                   , boost::mpl::insert< boost::mpl::_1, boost::mpl::pair< boost::mpl::at<extract_functor_t, boost::mpl::_2 >, boost::mpl::false_ > >
                                   >
-                >::type async_map_tmp_t;
+                >::type async_esf_map_tmp_t;
 
-            typedef typename boost::mpl::insert< async_map_tmp_t,  boost::mpl::pair<typename boost::mpl::at_c<extract_functor_t, boost::mpl::size<next_thing>::value>::type, boost::mpl::true_ > >::type async_map_t;
+            typedef typename boost::mpl::insert< async_esf_map_tmp_t,  boost::mpl::pair<typename boost::mpl::at_c<extract_functor_t, boost::mpl::size<next_thing>::value>::type, boost::mpl::true_ > >::type async_esf_map_t;
 
             typedef run_functor_arguments<
                 BackendId,
@@ -152,7 +152,7 @@ namespace gridtools {
                 range_sizes,
                 local_domain_t,
                 typename mss_components_t::cache_sequence_t,
-                async_map_t,
+                async_esf_map_t,
                 Coords,
                 ExecutionEngine,
                 StrategyId
