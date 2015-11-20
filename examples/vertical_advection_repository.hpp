@@ -36,7 +36,7 @@ public:
 
     repository(const uint_t idim, const uint_t jdim, const uint_t kdim, const uint_t halo_size) :
         m_storage_info(idim, jdim, kdim),
-        m_scalar_storage_info((uint_t)1,(uint_t)1,(uint_t)1), //fake 3D
+        m_scalar_storage_info(1,1,1), //fake 3D
         utens_stage_(m_storage_info, -1., "utens_stage"),
         utens_stage_ref_(m_storage_info, -1., "utens_stage_ref"),
         u_stage_(m_storage_info, -1., "u_stage"),

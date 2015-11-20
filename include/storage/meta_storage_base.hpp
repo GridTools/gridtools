@@ -4,6 +4,7 @@
 #include "../common/array.hpp"
 #include "common/explode_array.hpp"
 #include "common/generic_metafunctions/is_variadic_pack_of.hpp"
+#include "common/generic_metafunctions/variadic_assert.hpp"
 
 /**
    @file
@@ -155,7 +156,12 @@ namespace gridtools {
         template <class ... IntTypes
                   , typename Dummy = all_integers<IntTypes...>
                   >
-        constexpr meta_storage_base(IntTypes const& ... dims_  ) :
+//we only use a constexpr in no debug mode, because we want to assert the sizes are uint in debug mode
+//constexpr does not allow code in the body
+#ifdef NDEBUG
+        constexpr
+#endif
+        meta_storage_base(IntTypes const& ... dims_  ) :
             m_dims{(uint_t)dims_...}
             , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( (uint_t)dims_...))
             {
@@ -165,10 +171,14 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
  a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
  by defining the storage type using another layout_map.");
                 GRIDTOOLS_STATIC_ASSERT(
-                    is_variadic_pack_of(boost::is_unsigned<IntTypes>::type::value...),
-                    "Error: Dimensions of metastorage must be specified as unsigned types. "
-                    "Please cast the dimensions provided.");
-            }
+                     is_variadic_pack_of(boost::is_integral<IntTypes>::type::value...),
+                     "Error: Dimensions of metastorage must be specified as integer types. "
+                );
+#ifndef NDEBUG
+                auto check = [](int a) { return a>0; };
+                variadic_assert(check, (int)dims_...);
+#endif
+        }
 #else //__CUDACC__ nvcc does not get it: checks only the first argument
         template <class First, class ... IntTypes
                   , typename Dummy = typename boost::enable_if_c<boost::is_integral<First>::type::value, bool>::type //nvcc does not get it

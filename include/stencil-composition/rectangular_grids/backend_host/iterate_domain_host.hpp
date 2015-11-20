@@ -15,6 +15,7 @@ namespace gridtools {
     class iterate_domain_host : public IterateDomainBase<iterate_domain_host<IterateDomainBase, IterateDomainArguments> > //CRTP
     {
     DISALLOW_COPY_AND_ASSIGN(iterate_domain_host);
+    GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Internal error: wrong type");
 
     typedef IterateDomainBase<iterate_domain_host<IterateDomainBase, IterateDomainArguments> > super;
     typedef typename IterateDomainArguments::local_domain_t local_domain_t;
@@ -73,6 +74,16 @@ public:
     template <ushort_t Coordinate>
     GT_FUNCTION
     void initialize_impl() {}
+
+    template<typename ReturnType, typename Accessor, typename StoragePointer>
+    GT_FUNCTION
+    ReturnType get_value_impl(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset) const
+    {
+        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
+
+        return super::template get_gmem_value<ReturnType>(storage_pointer,pointer_offset);
+    }
+
 
 private:
     data_pointer_array_t* RESTRICT m_data_pointer;
