@@ -84,9 +84,9 @@ VENV_PATH=${HOME}/venv_gridtools4py
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD:${VENV_PATH}/lib/python3.4/site-packages/PySide-1.2.2-py3.4-linux-x86_64.egg/PySide
 
 if [ "x$TARGET" == "xgpu" ]; then
-  export USE_GPU=ON
+    USE_GPU=ON
 else
-  export USE_GPU=OFF
+    USE_GPU=OFF
 fi
 echo "USE_GPU=$USE_GPU"
 
@@ -186,25 +186,18 @@ then
         fi
         if [ "x$TARGET" == "xgpu" ]
         then
-            if [[ "$BUILD_TYPE" == "debug" ]] ; then
-                mpiexec -np 2 ./build/shallow_water_enhanced_cuda 8 8 1 2
-                exit_if_error $?
+            # problems in the execution of the copy_stencil_parallel_cuda
+            # TODO fix
+            # mpiexec -np 2 ./build/copy_stencil_parallel_cuda 62 53 15
+            # exit_if_error $?
+            # CUDA allocation error with more than 1 GPU in RELEASE mode
+            # To be fixed
+            # mpiexec -np 2 ./build/shallow_water_enhanced_cuda 8 8 1 2
+            # exit_if_error $?
 
-                # problems in the execution of the copy_stencil_parallel_cuda
-                # TODO fix
-                # mpiexec -np 2 ./build/copy_stencil_parallel_cuda 62 53 15
-                # exit_if_error $?
-            else
-                # CUDA allocation error with more than 1 GPU in RELEASE mode
-                # (works in debug mode). To be fixed
-                mpiexec -np 1 ./build/shallow_water_enhanced_cuda 8 8 1 2
-                exit_if_error $?
+            mpiexec -np 1 ./build/shallow_water_enhanced_cuda 8 8 1 2
+            exit_if_error $?
 
-                # problems in the execution of the copy_stencil_parallel_cuda
-                # TODO fix
-                # mpiexec -np 1 ./build/copy_stencil_parallel_cuda 62 53 15
-                # exit_if_error $?
-            fi
         fi
         #TODO not updated to greina
         #    ../examples/communication/run_communication_tests.sh
