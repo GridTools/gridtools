@@ -559,7 +559,6 @@ namespace shallow_water{
         bool retval=true;
 
 //! [finalize]
-#ifndef NDEBUG
         myfile<<"############## SOLUTION ################"<<std::endl;
         sol.print(myfile);
 
@@ -576,7 +575,6 @@ namespace shallow_water{
         reference.solution.print(myfile);
 
         myfile.close();
-#endif
 
         std::cout<<"shallow water parallel test SUCCESS?= "<<retval<<std::endl;
         return retval;

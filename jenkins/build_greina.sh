@@ -172,20 +172,20 @@ bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh
 
 exit_if_error $?
 
-if [[ "$RUN_MPI_TESTS" == "ON" && ${myhost} -eq "greina" ]]
-then
-    if [ "x$CXX_STD" == "xcxx11" ]
-    then
-        if [ "x$TARGET" == "xcpu" ]
-        then
-            mpiexec -np 4 ./build/shallow_water_enhanced 8 8 1 2
-            exit_if_error $?
-
-            mpiexec -np 2 ./build/copy_stencil_parallel 62 53 15
-            exit_if_error $?
-        fi
-        if [ "x$TARGET" == "xgpu" ]
-        then
+#if [[ "$RUN_MPI_TESTS" == "ON" && ${myhost} == "greina" ]]
+#then
+#    if [ "x$CXX_STD" == "xcxx11" ]
+#    then
+#        if [ "x$TARGET" == "xcpu" ]
+#        then
+#            mpiexec -np 4 ./build/shallow_water_enhanced 8 8 1 2
+#            exit_if_error $?
+#
+#            mpiexec -np 2 ./build/copy_stencil_parallel 62 53 15
+#            exit_if_error $?
+#        fi
+#        if [ "x$TARGET" == "xgpu" ]
+#        then
             # problems in the execution of the copy_stencil_parallel_cuda
             # TODO fix
             # mpiexec -np 2 ./build/copy_stencil_parallel_cuda 62 53 15
@@ -195,13 +195,13 @@ then
             # mpiexec -np 2 ./build/shallow_water_enhanced_cuda 8 8 1 2
             # exit_if_error $?
 
-            mpiexec -np 1 ./build/shallow_water_enhanced_cuda 8 8 1 2
-            exit_if_error $?
-
-        fi
-        #TODO not updated to greina
-        #    ../examples/communication/run_communication_tests.sh
-    fi
-fi
+#            mpiexec -np 1 ./build/shallow_water_enhanced_cuda 8 8 1 2
+#            exit_if_error $?
+#
+#        fi
+#        #TODO not updated to greina
+#        #    ../examples/communication/run_communication_tests.sh
+#    fi
+#fi
 
 exit 0
