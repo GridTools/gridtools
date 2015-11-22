@@ -559,8 +559,7 @@ namespace shallow_water{
         bool retval=true;
 
 //! [finalize]
-        myfile<<"############## SOLUTION ################"<<std::endl;
-        sol.print(myfile);
+
 
         verifier check_result(1e-8);
         array<array<uint_t, 2>, 3> halos{{ {0,0}, {0,0}, {0,0} }};
@@ -571,11 +570,16 @@ namespace shallow_water{
             reference.iterate();
         }
         retval=check_result.verify_parallel(meta_, sol, reference.solution, halos);
+ 
+#ifndef NDEBUG
+        myfile<<"############## SOLUTION ################"<<std::endl;
+        sol.print(myfile);
+
         myfile<<"############## REFERENCE ################"<<std::endl;
         reference.solution.print(myfile);
 
         myfile.close();
-
+#endif
         std::cout<<"shallow water parallel test SUCCESS?= "<<retval<<std::endl;
         return retval;
 //! [main]
