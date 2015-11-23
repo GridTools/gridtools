@@ -1,5 +1,4 @@
 #pragma once
-#include <stencil-composition/expressions/expressions.hpp>
 
 namespace functors{
 
@@ -49,8 +48,7 @@ namespace functors{
                         eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) )=0.;
                                 for (int_t iterNode=0; iterNode < basis_cardinality ; ++iterNode)
                                 {//reduction/gather
-                                    eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) ) +=
-                                        eval(grid_points(dimension<4>(iterNode), dimension<5>(icoor)) * !dphi(i+iterNode, j+iter_quad, k+jcoor));
+                                    eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) ) += eval(grid_points(dimension<4>(iterNode), dimension<5>(icoor)) * !dphi(i+iterNode, j+iter_quad, k+jcoor) );
                                 }
                     }
                 }
@@ -63,10 +61,9 @@ namespace functors{
     //! [det]
     /** updates the values of the Jacobian matrix. The Jacobian matrix, component (i,j) in the quadrature point q, is computed given the geometric map discretization as \f$ J(i,j,q)=\sum_k\frac{\partial \phi_i(x_k,q)}{\partial x_j} x_k \f$
         where x_k are the points in the geometric element*/
-    template<typename Geometry>
-    struct det{
-        using cub=typename Geometry::cub;
-
+    template<typename det>
+    struct det_base
+	{
         using jac = accessor<0, range<0,0,0,0> , 6> const;
         using jac_det =  accessor<1, range<0,0,0,0> , 4>;
         using arg_list= boost::mpl::vector< jac, jac_det > ;
@@ -74,29 +71,81 @@ namespace functors{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
+        	det::Do(eval);
+        }
+	};
+
+
+    template<typename Geometry, ushort_t Dim=Geometry::geo_map::spaceDim>
+    struct det;
+
+    template<typename Geometry>// TODO: number of dimensions can be derived from Geometry
+    struct det<Geometry,3> : public det_base< det<Geometry,3> >
+    {
+        using cub=typename Geometry::cub;
+        using super=det_base< det<Geometry,3> >;
+        using jacobian= typename super::jac;
+        using jacobian_det=typename super::jac_det;
+
+        template <typename Evaluation>
+        GT_FUNCTION
+        static void Do(Evaluation const & eval, x_interval) {
             dimension<4>::Index qp;
             dimension<5>::Index dimx;
             dimension<6>::Index dimy;
-            uint_t const num_cub_points=eval.get().get_storage_dims(jac())[3];
+            uint_t const num_cub_points=eval.get().get_storage_dims(jacobian())[3];
 
 #ifdef __CUDACC__
             assert(num_cub_points==cub::numCubPoints());
 #endif
             for(short_t q=0; q< num_cub_points; ++q)
             {
-                eval( jac_det(qp+q) )= eval(
+                eval( jacobian_det(qp+q) )= eval(
                     (
-                        jac(        qp+q)*jac(dimx+1, dimy+1, qp+q)*jac(dimx+2, dimy+2, qp+q) +
-                        jac(dimx+1, qp+q)*jac(dimx+2, dimy+1, qp+q)*jac(dimy+2,         qp+q) +
-                        jac(dimy+1, qp+q)*jac(dimx+1, dimy+2, qp+q)*jac(dimx+2,         qp+q) -
-                        jac(dimy+1, qp+q)*jac(dimx+1,         qp+q)*jac(dimx+2, dimy+2, qp+q) -
-                        jac(        qp+q)*jac(dimx+2, dimy+1, qp+q)*jac(dimx+1, dimy+2, qp+q) -
-                        jac(dimy+2, qp+q)*jac(dimx+1, dimy+1, qp+q)*jac(dimx+2,         qp+q)
-                        )
-                    );
+		     jacobian(        qp+q)*jacobian(dimx+1, dimy+1, qp+q)*jacobian(dimx+2, dimy+2, qp+q) +
+		     jacobian(dimx+1, qp+q)*jacobian(dimx+2, dimy+1, qp+q)*jacobian(dimy+2,         qp+q) +
+		     jacobian(dimy+1, qp+q)*jacobian(dimx+1, dimy+2, qp+q)*jacobian(dimx+2,         qp+q) -
+		     jacobian(dimy+1, qp+q)*jacobian(dimx+1,         qp+q)*jacobian(dimx+2, dimy+2, qp+q) -
+		     jacobian(        qp+q)*jacobian(dimx+2, dimy+1, qp+q)*jacobian(dimx+1, dimy+2, qp+q) -
+		     jacobian(dimy+2, qp+q)*jacobian(dimx+1, dimy+1, qp+q)*jacobian(dimx+2,         qp+q)
+		     )
+	        );
             }
         }
     };
+
+
+    template<typename Geometry>
+    struct det<Geometry,2> : public det_base< det<Geometry,2> >
+    {
+        using cub=typename Geometry::cub;
+        using super=det_base< det<Geometry,2> >;
+        using jacobian=typename super::jac;
+        using jacobian_det=typename super::jac_det;
+
+        template <typename Evaluation>
+        GT_FUNCTION
+        static void Do(Evaluation const & eval, x_interval) {
+            dimension<4>::Index qp;
+            dimension<5>::Index dimx;
+            dimension<6>::Index dimy;
+            uint_t const num_cub_points=eval.get().get_storage_dims(jacobian())[3];
+
+#ifdef __CUDACC__
+            assert(num_cub_points==cub::numCubPoints());
+#endif
+            for(short_t q=0; q< num_cub_points; ++q)
+            {
+                eval( jacobian_det(qp+q) )= eval(
+                    (
+		     jacobian(        qp+q)*jacobian(dimx+1, dimy+1, qp+q) -
+		     jacobian(dimx+1, qp+q)*jacobian(dimy+1, qp+q)
+		     )
+		    );
+            }
+        }
+    };
+
     //! [det]
 
 #ifndef __CUDACC__
@@ -210,7 +259,7 @@ namespace functors{
             dimension<4>::Index row;
 
 
-            //hypothesis here: the cardinality is order^3 (isotropic 3D tensor product element)
+            //hypothesis here: the cardinaxlity is order^3 (isotropic 3D tensor product element)
 #ifdef __CUDACC__
             constexpr meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{static_int<3>(), static_int<3>(), static_int<3>()};
 #else
