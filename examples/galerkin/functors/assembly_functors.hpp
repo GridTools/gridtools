@@ -71,7 +71,7 @@ namespace functors{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-        	det::Do(eval);
+        	det::DoCompute(eval);
         }
 	};
 
@@ -89,7 +89,7 @@ namespace functors{
 
         template <typename Evaluation>
         GT_FUNCTION
-        static void Do(Evaluation const & eval, x_interval) {
+        static void DoCompute(Evaluation const & eval) {
             dimension<4>::Index qp;
             dimension<5>::Index dimx;
             dimension<6>::Index dimy;
@@ -125,7 +125,7 @@ namespace functors{
 
         template <typename Evaluation>
         GT_FUNCTION
-        static void Do(Evaluation const & eval, x_interval) {
+        static void DoCompute(Evaluation const & eval) {
             dimension<4>::Index qp;
             dimension<5>::Index dimx;
             dimension<6>::Index dimy;
