@@ -2,7 +2,7 @@
 #include <boost/utility/enable_if.hpp>
 #include "../run_esf_functor.hpp"
 #include "../block_size.hpp"
-#include "../iterate_domain_evaluator.hpp"
+#include "../iterate_domain_remapper.hpp"
 
 namespace gridtools {
     /*
@@ -51,12 +51,12 @@ namespace gridtools {
         {
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments<EsfArguments>::value), "Internal Error: wrong type");
 
-            //instantiate the iterate domain evaluator, that will map the calls to arguments to their actual
+            //instantiate the iterate domain remapper, that will map the calls to arguments to their actual
             // position in the iterate domain
-            typedef typename get_iterate_domain_evaluator<iterate_domain_t, typename EsfArguments::esf_args_map_t>::type
-                    iterate_domain_evaluator_t;
+            typedef typename get_iterate_domain_remapper<iterate_domain_t, typename EsfArguments::esf_args_map_t>::type
+                    iterate_domain_remapper_t;
 
-            iterate_domain_evaluator_t iterate_domain_evaluator(m_iterate_domain);
+            iterate_domain_remapper_t iterate_domain_remapper(m_iterate_domain);
 
             typedef typename EsfArguments::functor_t functor_t;
 
@@ -65,15 +65,15 @@ namespace gridtools {
             if(m_iterate_domain.is_thread_in_domain())
             {
                 //call the user functor at the core of the block
-                functor_t::Do(iterate_domain_evaluator, IntervalType());
+                functor_t::Do(iterate_domain_remapper, IntervalType());
             }
 
             this->template execute_extra_work<
                 multiple_grid_points_per_warp_t,
                 IntervalType,
                 EsfArguments,
-                iterate_domain_evaluator_t
-            > (iterate_domain_evaluator);
+                iterate_domain_remapper_t
+            > (iterate_domain_remapper);
 
             __syncthreads();
 
@@ -90,7 +90,7 @@ namespace gridtools {
          *         of this function is empty)
          * @tparam IntervalType type of the interval
          * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
-         * @tparam IterateDomainEvaluator an iterate domain evaluator that wraps an iterate domain
+         * @tparam IterateDomainEvaluator an iterate domain remapper that wraps an iterate domain
          */
         template<
             typename MultipleGridPointsPerWarp,
@@ -99,7 +99,7 @@ namespace gridtools {
             typename IterateDomainEvaluator
         >
         __device__
-        void execute_extra_work(const IterateDomainEvaluator& iterate_domain_evaluator,
+        void execute_extra_work(const IterateDomainEvaluator& iterate_domain_remapper,
                 typename boost::disable_if<MultipleGridPointsPerWarp, int >::type=0) const
         {}
 
@@ -112,7 +112,7 @@ namespace gridtools {
          *         of this function is empty)
          * @tparam IntervalType type of the interval
          * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
-         * @tparam IterateDomainEvaluator an iterate domain evaluator that wraps an iterate domain
+         * @tparam IterateDomainEvaluator an iterate domain remapper that wraps an iterate domain
          */
         template<
             typename MultipleGridPointsPerWarp,
@@ -121,7 +121,7 @@ namespace gridtools {
             typename IterateDomainEvaluator
         >
         __device__
-        void execute_extra_work(const IterateDomainEvaluator& iterate_domain_evaluator,
+        void execute_extra_work(const IterateDomainEvaluator& iterate_domain_remapper,
                 typename boost::enable_if<MultipleGridPointsPerWarp, int >::type=0) const
         {
             typedef typename EsfArguments::functor_t functor_t;
@@ -135,7 +135,7 @@ namespace gridtools {
                     if(m_iterate_domain.is_thread_in_domain_x())
                     {
                         (m_iterate_domain).increment<1>(range_t::jminus::value);
-                        functor_t::Do(iterate_domain_evaluator, IntervalType());
+                        functor_t::Do(iterate_domain_remapper, IntervalType());
                         (m_iterate_domain).increment<1>(-range_t::jminus::value);
                     }
                 }
@@ -147,7 +147,7 @@ namespace gridtools {
                         const int joffset = range_t::jminus::value + (int)m_iterate_domain.block_size_j();
 
                         (m_iterate_domain).increment<1>(joffset);
-                        functor_t::Do(iterate_domain_evaluator, IntervalType());
+                        functor_t::Do(iterate_domain_remapper, IntervalType());
                         (m_iterate_domain).increment<1>(-joffset);
                     }
                 }
@@ -163,7 +163,7 @@ namespace gridtools {
                     {
                         (m_iterate_domain).increment < 0 > (ioffset);
                         (m_iterate_domain).increment < 1 > (joffset);
-                        functor_t::Do(iterate_domain_evaluator, IntervalType());
+                        functor_t::Do(iterate_domain_remapper, IntervalType());
                         (m_iterate_domain).increment < 0 > (-ioffset);
                         (m_iterate_domain).increment < 1 > (-joffset);
                     }
@@ -181,7 +181,7 @@ namespace gridtools {
                     {
                         (m_iterate_domain).increment<0>(ioffset);
                         (m_iterate_domain).increment<1>(joffset);
-                        functor_t::Do(iterate_domain_evaluator, IntervalType());
+                        functor_t::Do(iterate_domain_remapper, IntervalType());
                         (m_iterate_domain).increment<0>(-ioffset);
                         (m_iterate_domain).increment<1>(-joffset);
                     }
@@ -196,7 +196,7 @@ namespace gridtools {
                     if(m_iterate_domain.is_thread_in_domain(0, joffset))
                     {
                         (m_iterate_domain).increment<1>(joffset);
-                        functor_t::Do(iterate_domain_evaluator, IntervalType());
+                        functor_t::Do(iterate_domain_remapper, IntervalType());
                         (m_iterate_domain).increment<1>(-joffset);
                     }
                 }
