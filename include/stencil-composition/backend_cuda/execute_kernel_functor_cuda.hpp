@@ -2,12 +2,11 @@
 #include "../iteration_policy.hpp"
 #include "../backend_traits_fwd.hpp"
 #include "backend_traits_cuda.hpp"
-#include "../iterate_domain_aux.hpp"
+#include "stencil-composition/iterate_domain.hpp"
 #include "shared_iterate_domain.hpp"
 #include "common/gt_assert.hpp"
 
 namespace gridtools {
-
 
 namespace _impl_cuda {
     template <typename RunFunctorArguments,
@@ -23,6 +22,8 @@ namespace _impl_cuda {
         typedef typename RunFunctorArguments::physical_domain_block_size_t block_size_t;
 
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
+        typedef typename RunFunctorArguments::async_esf_map_t async_esf_map_t;
+
         typedef backend_traits_from_id<enumtype::Cuda> backend_traits_t;
         typedef typename iterate_domain_t::strides_cached_t strides_t;
         typedef typename iterate_domain_t::data_pointer_array_t data_pointer_array_t;
@@ -62,13 +63,15 @@ namespace _impl_cuda {
         typedef typename boost::mpl::front<typename RunFunctorArguments::loop_intervals_t>::type interval;
         typedef typename index_to_level<typename interval::first>::type from;
         typedef typename index_to_level<typename interval::second>::type to;
-        typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy;
+        typedef _impl::iteration_policy<from, to, zdim_index_t::value, execution_type_t::type::iteration> iteration_policy_t;
 
-        it_domain.template initialize<2>( coords->template value_at< iteration_policy::from >() );
+        it_domain.template initialize<zdim_index_t::value>( coords->template value_at< iteration_policy_t::from >() );
 
         //execute the k interval functors
         for_each<typename RunFunctorArguments::loop_intervals_t>
-            (_impl::run_f_on_interval<execution_type_t, RunFunctorArguments>(it_domain,*coords) );
+            (_impl::run_f_on_interval<
+             execution_type_t,
+             RunFunctorArguments>(it_domain,*coords) );
     }
 } // namespace _impl_cuda
 
@@ -182,6 +185,7 @@ struct execute_kernel_functor_cuda
             typename RunFunctorArguments::range_sizes_t,
             typename RunFunctorArguments::local_domain_t,
             typename RunFunctorArguments::cache_sequence_t,
+            typename RunFunctorArguments::async_esf_map_t,
             typename RunFunctorArguments::coords_t,
             typename RunFunctorArguments::execution_type_t,
             RunFunctorArguments::s_strategy_id

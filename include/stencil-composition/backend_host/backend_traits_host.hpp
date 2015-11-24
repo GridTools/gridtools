@@ -1,11 +1,12 @@
 #pragma once
 #include <gt_for_each/for_each.hpp>
-#include "../backend_traits_fwd.hpp"
+#include "stencil-composition/backend_traits_fwd.hpp"
 #include "run_esf_functor_host.hpp"
-#include "../block_size.hpp"
+#include "stencil-composition//block_size.hpp"
 #include "iterate_domain_host.hpp"
 #include "strategy_host.hpp"
 #include "empty_iterate_domain_cache.hpp"
+
 #ifdef ENABLE_METERS
   #include "stencil-composition/backend_host/timer_host.hpp"
 #else
@@ -115,7 +116,7 @@ namespace gridtools{
             template<typename Left, typename Right>
             GT_FUNCTION//inline
             static void assign(Left& l, Right const& r){
-                l=r;
+                l=(Left)r;
             }
         };
 
@@ -180,6 +181,7 @@ namespace gridtools{
             typedef typename strategy_from_id_host<StrategyId>::block_size_t type;
         };
 
+
         /**
          * @brief metafunction that returns the right iterate domain
          * (depending on whether the local domain is positional or not)
@@ -190,11 +192,13 @@ namespace gridtools{
         struct select_iterate_domain {
             GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Internal Error: wrong type");
             //indirection in order to avoid instantiation of both types of the eval_if
+#ifdef RECTANGULAR_GRIDS
             template<typename _IterateDomainArguments>
             struct select_positional_iterate_domain
             {
                 typedef iterate_domain_host<positional_iterate_domain, _IterateDomainArguments> type;
             };
+#endif
 
             template<typename _IterateDomainArguments>
             struct select_basic_iterate_domain
@@ -204,7 +208,11 @@ namespace gridtools{
 
             typedef typename boost::mpl::eval_if<
                 local_domain_is_stateful<typename IterateDomainArguments::local_domain_t>,
+#ifdef RECTANGULAR_GRIDS
                 select_positional_iterate_domain<IterateDomainArguments>,
+#else
+                select_basic_iterate_domain<IterateDomainArguments>,
+#endif
                 select_basic_iterate_domain<IterateDomainArguments>
             >::type type;
         };

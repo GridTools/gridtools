@@ -4,10 +4,9 @@
   and remap the arguments to the actual positions in the iterate domain
 */
 
-
 #pragma once
 #include "iterate_domain_metafunctions.hpp"
-#include "accessor_metafunctions.hpp"
+#include "stencil-composition/accessor.hpp"
 
 namespace gridtools {
 
@@ -50,34 +49,30 @@ DISALLOW_COPY_AND_ASSIGN(iterate_domain_evaluator_base);
     typedef typename _impl::iterate_domain_evaluator_base_iterate_domain<IterateDomainEvaluatorImpl>::type iterate_domain_t;
 protected:
     const iterate_domain_t& m_iterate_domain;
-
 public:
 
     typedef typename _impl::iterate_domain_evaluator_base_esf_args_map<IterateDomainEvaluatorImpl>::type esf_args_map_t;
 
     GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<iterate_domain_t>::value), "Internal Error: wrong type");
-    typedef typename iterate_domain_local_domain<iterate_domain_t>::type local_domain_t;
+    typedef typename iterate_domain_t::esf_args_t esf_args_t;
 
 
     GT_FUNCTION
     explicit iterate_domain_evaluator_base(const iterate_domain_t& iterate_domain) : m_iterate_domain(iterate_domain) {}
 
-
     /** shifting the IDs of the placeholders and forwarding to the iterate_domain () operator*/
-    template <typename Expression>
+    template <typename Accessor>
     GT_FUNCTION
 #ifdef CXX11_ENABLED
     auto
-    operator() (Expression const&  arg) const -> decltype(m_iterate_domain(arg))
+    operator() (Accessor const&  arg) const -> decltype(m_iterate_domain(arg))
 #else
-    typename boost::mpl::at<
-        typename local_domain_t::esf_args,
-        typename Expression::type::index_type
-    >::type::value_type& RESTRICT
-    operator() (Expression const&  arg) const
+    typename iterate_domain_t::template accessor_return_type
+        <Accessor>::type
+    operator() (Accessor const&  arg) const
 #endif
     {
-        typedef typename remap_accessor_type<Expression, esf_args_map_t>::type remap_accessor_t;
+        typedef typename remap_accessor_type<Accessor, esf_args_map_t>::type remap_accessor_t;
         return m_iterate_domain(remap_accessor_t(arg));
     }
 

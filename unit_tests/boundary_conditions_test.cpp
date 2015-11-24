@@ -17,7 +17,7 @@ using gridtools::minus_;
 using gridtools::zero_;
 using gridtools::plus_;
 
-#include "stencil-composition/backend.hpp"
+#include "stencil-composition/stencil-composition.hpp"
 
 #include <stdlib.h>
 #include <stdio.h>

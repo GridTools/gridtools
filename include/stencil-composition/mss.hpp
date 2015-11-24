@@ -6,7 +6,8 @@
 #include "esf.hpp"
 #include "../common/meta_array.hpp"
 #include "caches/cache_metafunctions.hpp"
-#include "sfinae.hpp"
+#include "independent_esf.hpp"
+#include "stencil-composition/sfinae.hpp"
 
 /**
 @file
@@ -16,6 +17,13 @@ namespace gridtools {
     namespace _impl
     {
 
+        struct extract_functor {
+            template <typename T>
+            struct apply {
+                typedef typename T::esf_function type;
+            };
+        };
+
         /**@brief Macro defining a sfinae metafunction
 
            defines a metafunction has_range_type, which returns true if its template argument
@@ -24,156 +32,6 @@ namespace gridtools {
            errors in case it is not defined.
          */
         HAS_TYPE_SFINAE(range_type, has_range_type, get_range_type)
-
-        /**@brief wrap type to simplify specialization based on mpl::vectors */
-        template <typename MplArray>
-        struct wrap_type {
-            typedef MplArray type;
-        };
-
-        /**
-         * @brief compile-time boolean operator returning true if the template argument is a wrap_type
-         * */
-        template <typename T>
-        struct is_wrap_type : boost::false_type {};
-
-        template <typename T>
-        struct is_wrap_type<wrap_type<T> > : boost::true_type{};
-
-
-        struct extract_functor {
-            template <typename T>
-            struct apply {
-                typedef typename T::esf_function type;
-            };
-        };
-
-        template <typename FunctorDesc>
-        struct extract_ranges {
-            typedef typename FunctorDesc::esf_function Functor;
-
-            /**@brief here the ranges for the functors are calculated: the resulting type will be the range (i,j) which is enclosing all the ranges of the field used by the specific functor*/
-            template <typename RangeState, typename ArgumentIndex>
-            struct update_range {
-                typedef typename boost::mpl::at<typename Functor::arg_list, ArgumentIndex>::type argument_type;
-                GRIDTOOLS_STATIC_ASSERT(has_range_type<argument_type>::type::value, "Found an accessor without range_type. If you are using generic accessors: in the functor definition you should NOT insert the generic accessor types in the arg_list MPL sequence");
-                typedef typename enclosing_range<RangeState, typename argument_type::range_type>::type type;
-            };
-
-            /**@brief here the ranges for the functors are calculated: iterates over the fields and calls the metafunction above*/
-            typedef typename boost::mpl::fold<
-                boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename Functor::arg_list>::type::value >,
-                range<0,0,0,0,0,0>,
-                update_range<boost::mpl::_1, boost::mpl::_2>
-                >::type type;
-        };
-
-        template <typename NotIndependentElem>
-        struct from_independents {
-            typedef boost::false_type type;
-        };
-
-        /**@brief specialization for "independent" elementary stencil functions: given the list of  functors inside an elementary stencil function (esf) returns a vector of enclosing ranges, one per functor*/
-        template <typename T>
-        struct from_independents<independent_esf<T> > {
-            typedef typename boost::mpl::fold<
-                typename independent_esf<T>::esf_list,
-                boost::mpl::vector0<>,
-                boost::mpl::push_back<boost::mpl::_1, extract_ranges<boost::mpl::_2> >
-            >::type raw_type;
-
-            typedef wrap_type<raw_type> type;
-        };
-
-        template <typename T>
-        struct extract_ranges<independent_esf<T> >
-        {
-            typedef boost::false_type type;
-        };
-
-
-        /** @brief metafunction returning, given the elementary stencil function "Elem", either the vector of enclosing ranges (in case of "independent" esf), or the single range enclosing all the ranges. */
-        template <typename State, typename Elem>
-            struct traverse_ranges {
-                typedef typename boost::mpl::push_back<
-                    State,
-                    typename boost::mpl::if_<
-                        is_independent<Elem>,
-                        typename from_independents<Elem>::type,
-                        typename extract_ranges<Elem>::type
-                    >::type
-                >::type type;
-        };
-
-        /**@brief prefix sum, scan operation, takes into account the range needed by the current stage plus the range needed by the next stage.*/
-        template <typename ListOfRanges>
-        struct prefix_on_ranges {
-
-            template <typename List, typename Range/*, typename NextRange*/>
-            struct state {
-                typedef List list;
-                typedef Range range;
-                // typedef NextRange next_range;
-            };
-
-            template <typename PreviousState, typename CurrentElement>
-            struct update_state {
-                typedef typename sum_range<typename PreviousState::range,
-                                               CurrentElement>::type new_range;
-                typedef typename boost::mpl::push_front<typename PreviousState::list, typename PreviousState::range>::type new_list;
-                typedef state<new_list, new_range> type;
-            };
-
-            template <typename PreviousState, typename IndVector>
-            struct update_state<PreviousState, wrap_type<IndVector> >
-            {
-                typedef typename boost::mpl::fold<
-                    IndVector,
-                    boost::mpl::vector0<>,
-                    boost::mpl::push_back<boost::mpl::_1, /*sum_range<*/typename PreviousState::range/*, boost::mpl::_2>*/ >
-                >::type raw_ranges;
-
-                typedef typename boost::mpl::fold<
-                    IndVector,
-                    range<0,0,0,0,0,0>,
-                    enclosing_range<boost::mpl::_1, sum_range<typename PreviousState::range, boost::mpl::_2> >
-                >::type final_range;
-
-                typedef typename boost::mpl::push_front<typename PreviousState::list, wrap_type<raw_ranges> >::type new_list;
-
-                typedef state<new_list, final_range> type;
-            };
-
-            typedef typename boost::mpl::reverse_fold<
-                ListOfRanges,
-                state<boost::mpl::vector0<>, range<0,0,0,0,0,0> >,
-                update_state<boost::mpl::_1, boost::mpl::_2>
-            >::type final_state;
-
-            typedef typename final_state::list type;
-        };
-
-        template <typename State, typename SubArray>
-        struct keep_scanning {
-            typedef typename boost::mpl::fold<
-                typename SubArray::type,
-                State,
-                boost::mpl::push_back<boost::mpl::_1,boost::mpl::_2>
-            >::type type;
-        };
-
-        template <typename Array>
-        struct linearize_range_sizes {
-            typedef typename boost::mpl::fold<Array,
-                boost::mpl::vector0<>,
-                boost::mpl::if_<
-                    is_wrap_type<boost::mpl::_2>,
-                    keep_scanning<boost::mpl::_1, boost::mpl::_2>,
-                    boost::mpl::push_back<boost::mpl::_1,boost::mpl::_2>
-                >
-            >::type type;
-        };
-
 
     }
 
@@ -207,6 +65,51 @@ namespace gridtools {
         typedef EsfDescrSequence type;
     };
 
+
+
+    /**
+       @brief pushes an element in a vector based on the fact that an ESF is independent or not
+
+       Helper metafunction, used by other metafunctions
+     */
+    template <typename State, typename SubArray, typename VectorComponent>
+    struct keep_scanning_lambda
+        : boost::mpl::fold<
+        typename SubArray::esf_list,
+        State,
+        boost::mpl::if_<
+            is_independent<boost::mpl::_2>,
+            keep_scanning_lambda<boost::mpl::_1, boost::mpl::_2, VectorComponent>,
+            boost::mpl::push_back<boost::mpl::_1, VectorComponent >
+            >
+        >
+    {};
+
+    /**
+       @brief linearizes the ESF tree and returns a vector
+
+       Helper metafunction, used by other metafunctions
+     */
+    template <typename Array, typename Argument>
+    struct linearize_esf_array_lambda : boost::mpl::fold<
+        Array,
+        boost::mpl::vector<>,
+        boost::mpl::if_<
+            is_independent<boost::mpl::_2>,
+            keep_scanning_lambda<boost::mpl::_1, boost::mpl::_2, Argument>,
+            boost::mpl::push_back<boost::mpl::_1, Argument >
+            >
+        >{};
+
+
+    /**
+       @brief constructs an mpl vector of esf, linearizig the mss tree.
+
+       Looping over all the esfs at compile time.
+       if found independent esfs, they are also included in the linearized vector with a nested fold.
+
+       NOTE: the nested make_independent calls get also linearized
+     */
     template<typename T>
     struct mss_descriptor_linear_esf_sequence;
 
@@ -215,13 +118,9 @@ namespace gridtools {
               typename CacheSequence>
     struct mss_descriptor_linear_esf_sequence<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> >
     {
+
         template <typename State, typename SubArray>
-        struct keep_scanning
-          : boost::mpl::fold<
-                typename SubArray::esf_list,
-                State,
-                boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>
-            >
+        struct keep_scanning : keep_scanning_lambda<State, SubArray, boost::mpl::_2>
         {};
 
         template <typename Array>
@@ -234,9 +133,32 @@ namespace gridtools {
                   boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>
               >
         >{};
+        // template <typename Array>
+        // struct linearize_esf_array : linearize_esf_array_lambda<Array, boost::mpl::_2>{};
 
         typedef typename linearize_esf_array<EsfDescrSequence>::type type;
     };
+
+    /**
+       @brief constructs an mpl vector of booleans, linearizing the mss tree and attachnig a true or false flag depending wether the esf is independent or not
+
+       the code is very similar as in the metafunction above
+     */
+    template<typename T>
+    struct sequence_of_is_independent_esf;
+
+    template <typename ExecutionEngine,
+              typename EsfDescrSequence,
+              typename CacheSequence>
+    struct sequence_of_is_independent_esf<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> >
+    {
+        template <typename Array>
+        struct linearize_esf_array : linearize_esf_array_lambda<Array, boost::mpl::false_> {};
+
+        typedef typename linearize_esf_array<EsfDescrSequence>::type type;
+    };
+
+
 
     template<typename Mss>
     struct mss_descriptor_execution_engine {};
@@ -247,36 +169,6 @@ namespace gridtools {
     struct mss_descriptor_execution_engine<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> >
     {
         typedef ExecutionEngine type;
-    };
-
-    template<typename MssDescriptor>
-    struct mss_compute_range_sizes
-    {
-        GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor<MssDescriptor>::value), "Internal Error: invalid type");
-
-        /**
-         * \brief Here the ranges are calculated recursively, in order for each functor's domain to embed all the domains of the functors he depends on.
-         */
-        typedef typename boost::mpl::fold<
-            typename mss_descriptor_esf_sequence<MssDescriptor>::type,
-            boost::mpl::vector0<>,
-            _impl::traverse_ranges<boost::mpl::_1,boost::mpl::_2>
-        >::type ranges_list;
-
-        /*
-         *  Compute prefix sum to compute bounding boxes for calling a given functor
-         */
-        typedef typename _impl::prefix_on_ranges<ranges_list>::type structured_range_sizes;
-
-        /**
-         * linearize the data flow graph
-         *
-         */
-        typedef typename _impl::linearize_range_sizes<structured_range_sizes>::type type;
-
-        GRIDTOOLS_STATIC_ASSERT(
-            (boost::mpl::size<typename mss_descriptor_linear_esf_sequence<MssDescriptor>::type>::value ==
-             boost::mpl::size<type>::value), "Internal Error: wrong size");
     };
 
 } // namespace gridtools

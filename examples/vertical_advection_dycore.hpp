@@ -1,7 +1,7 @@
 #pragma once
 #include <gridtools.hpp>
 
-#include <stencil-composition/backend.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 #include <boost/fusion/include/make_vector.hpp>
 
 #include "vertical_advection_repository.hpp"
@@ -31,16 +31,16 @@ typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 
 template<typename T>
 struct u_forward_function {
-    typedef const accessor<0> utens_stage;
-    typedef const accessor<1, range<0,1, 0, 0> > wcon;
-    typedef const accessor<2> u_stage;
-    typedef const accessor<3> u_pos;
-    typedef const accessor<4> utens;
-    typedef const accessor<5> dtr_stage;
-    typedef accessor<6> acol;
-    typedef accessor<7> bcol;
-    typedef accessor<8> ccol;
-    typedef accessor<9> dcol;
+    typedef accessor<0> utens_stage;
+    typedef accessor<1, enumtype::in, range<0,1, 0, 0> > wcon;
+    typedef accessor<2> u_stage;
+    typedef accessor<3> u_pos;
+    typedef accessor<4> utens;
+    typedef accessor<5> dtr_stage;
+    typedef accessor<6, enumtype::inout> acol;
+    typedef accessor<7, enumtype::inout> bcol;
+    typedef accessor<8, enumtype::inout> ccol;
+    typedef accessor<9, enumtype::inout> dcol;
 
     typedef boost::mpl::vector<utens_stage, wcon, u_stage, u_pos, utens, dtr_stage, acol, bcol, ccol, dcol> arg_list;
 
@@ -134,12 +134,12 @@ private:
 
 template<typename T>
 struct u_backward_function {
-    typedef accessor<0> utens_stage;
-    typedef const accessor<1> u_pos;
-    typedef const accessor<2> dtr_stage;
+    typedef accessor<0, enumtype::inout> utens_stage;
+    typedef accessor<1> u_pos;
+    typedef accessor<2> dtr_stage;
     typedef accessor<3> ccol;
     typedef accessor<4> dcol;
-    typedef accessor<5> data_col;
+    typedef accessor<5, enumtype::inout> data_col;
 
     typedef boost::mpl::vector<utens_stage, u_pos, dtr_stage, ccol, dcol, data_col> arg_list;
 
@@ -309,8 +309,14 @@ bool test(uint_t d1, uint_t d2, uint_t d3) {
     std::cout << vertical_advection->print_meter() << std::endl;
 #endif
 
-    verifier verif(1e-10, halo_size);
+#ifdef CXX11_ENABLED
+    verifier verif(1e-13);
+    array<array<uint_t, 2>, 3> halos{{ {halo_size, halo_size}, {halo_size,halo_size}, {halo_size,halo_size} }};
+    bool result = verif.verify(repository.utens_stage_ref(), repository.utens_stage(), halos);
+#else
+    verifier verif(1e-13, halo_size);
     bool result = verif.verify(repository.utens_stage_ref(), repository.utens_stage());
+#endif
 
     return result;
 }

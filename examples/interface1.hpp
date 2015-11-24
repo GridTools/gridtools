@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 #include "horizontal_diffusion_repository.hpp"
 #include <tools/verifier.hpp>
 
@@ -38,78 +38,78 @@ typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct lap_function {
-    typedef accessor<0> out;
-    typedef const accessor<1, range<-1, 1, -1, 1>  > in;
+    typedef accessor<0, enumtype::inout> out;
+    typedef accessor<1, enumtype::in, range<-1, 1, -1, 1> > in;
 
     typedef boost::mpl::vector<out, in> arg_list;
 
-    template <typename Domain>
+    template <typename Evaluation>
     GT_FUNCTION
-    static void Do(Domain const & dom, x_lap) {
-        dom(out()) = (gridtools::float_type)4*dom(in()) -
-            (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
-             dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)));
+    static void Do(Evaluation const & eval, x_lap) {
+        eval(out()) = (gridtools::float_type)4*eval(in()) -
+            (eval(in( 1, 0, 0)) + eval(in( 0, 1, 0)) +
+             eval(in(-1, 0, 0)) + eval(in( 0,-1, 0)));
     }
 };
 
 struct flx_function {
 
-    typedef accessor<0> out;
-    typedef const accessor<1, range<0, 1, 0, 0> > in;
-    typedef const accessor<2, range<0, 1, 0, 0> > lap;
+    typedef accessor<0, enumtype::inout> out;
+    typedef accessor<1, enumtype::in, range<0, 1, 0, 0> > in;
+    typedef accessor<2, enumtype::in, range<0, 1, 0, 0> > lap;
 
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
-    template <typename Domain>
+    template <typename Evaluation>
     GT_FUNCTION
-    static void Do(Domain const & dom, x_flx) {
-        dom(out()) = dom(lap(1,0,0))-dom(lap(0,0,0));
-        if (dom(out())*(dom(in(1,0,0))-dom(in(0,0,0))) > 0) {
-            dom(out()) = 0.;
+    static void Do(Evaluation const & eval, x_flx) {
+        eval(out()) = eval(lap(1,0,0))-eval(lap(0,0,0));
+        if (eval(out())*(eval(in(1,0,0))-eval(in(0,0,0))) > 0) {
+            eval(out()) = 0.;
         }
     }
 };
 
 struct fly_function {
 
-    typedef accessor<0> out;
-    typedef const accessor<1, range<0, 0, 0, 1> > in;
-    typedef const accessor<2, range<0, 0, 0, 1> > lap;
+    typedef accessor<0, enumtype::inout> out;
+    typedef accessor<1, enumtype::in, range<0, 0, 0, 1> > in;
+    typedef accessor<2, enumtype::in, range<0, 0, 0, 1> > lap;
 
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
-    template <typename Domain>
+    template <typename Evaluation>
     GT_FUNCTION
-    static void Do(Domain const & dom, x_flx) {
-        dom(out()) = dom(lap(0,1,0))-dom(lap(0,0,0));
-        if (dom(out())*(dom(in(0,1,0))-dom(in(0,0,0))) > 0) {
-            dom(out()) = 0.;
+    static void Do(Evaluation const & eval, x_flx) {
+        eval(out()) = eval(lap(0,1,0))-eval(lap(0,0,0));
+        if (eval(out())*(eval(in(0,1,0))-eval(in(0,0,0))) > 0) {
+            eval(out()) = 0.;
         }
     }
 };
 
 struct out_function {
 
-    typedef accessor<0> out;
-    typedef const accessor<1> in;
-    typedef const accessor<2, range<-1, 0, 0, 0> > flx;
-    typedef const accessor<3, range<0, 0, -1, 0> > fly;
-    typedef const accessor<4> coeff;
+    typedef accessor<0, enumtype::inout> out;
+    typedef accessor<1> in;
+    typedef accessor<2, enumtype::in, range<-1, 0, 0, 0> > flx;
+    typedef accessor<3, enumtype::in, range<0, 0, -1, 0> > fly;
+    typedef accessor<4> coeff;
 
     typedef boost::mpl::vector<out,in,flx,fly,coeff> arg_list;
 
-    template <typename Domain>
+    template <typename Evaluation>
     GT_FUNCTION
-    static void Do(Domain const & dom, x_out) {
+    static void Do(Evaluation const & eval, x_out) {
 #if defined( CXX11_ENABLED ) && !defined( CUDA_EXAMPLE )
-        dom(out()) = dom(in()) - dom(coeff())  *
-           (dom(flx() - flx( -1,0,0) +
+        eval(out()) = eval(in()) - eval(coeff())  *
+           (eval(flx() - flx( -1,0,0) +
             fly() - fly( 0,-1,0))
             );
 #else
-        dom(out()) =  dom(in()) - dom(coeff())*
-            (dom(flx()) - dom(flx( -1,0,0)) +
-             dom(fly()) - dom(fly( 0,-1,0))
+        eval(out()) =  eval(in()) - eval(coeff())*
+            (eval(flx()) - eval(flx( -1,0,0)) +
+             eval(fly()) - eval(fly( 0,-1,0))
              );
 #endif
     }
@@ -307,8 +307,14 @@ PAPI_stop(event_set, values);
     repository.update_cpu();
 #endif
 
-    verifier verif(1e-9, halo_size);
+#ifdef CXX11_ENABLED
+    verifier verif(1e-13);
+    array<array<uint_t, 2>, 3> halos{{ {halo_size, halo_size}, {halo_size,halo_size}, {halo_size,halo_size} }};
+    bool result = verif.verify(repository.out_ref(), repository.out(), halos);
+#else
+    verifier verif(1e-13, halo_size);
     bool result = verif.verify(repository.out_ref(), repository.out());
+#endif
 
     if(!result){
         std::cout << "ERROR"  << std::endl;

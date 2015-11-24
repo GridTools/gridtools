@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stencil-composition/backend.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 #include <storage/partitioner_trivial.hpp>
 #include <storage/parallel_storage.hpp>
 #include <stencil-composition/interval.hpp>
@@ -28,8 +28,8 @@ namespace copy_stencil{
 
 // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
-        typedef const accessor<0> in;
-        typedef accessor<1> out;
+        typedef const accessor<0, enumtype::in> in;
+        typedef accessor<1, enumtype::inout> out;
         typedef boost::mpl::vector<in,out> arg_list;
         /* static const auto expression=in(1,0,0)-out(); */
 
@@ -95,8 +95,8 @@ namespace copy_stencil{
         /* typedef arg<1, vec_storage_type > p_out; */
         // Definition of the actual data fields that are used for input/output
         //#ifdef CXX11_ENABLED
-        array<ushort_t, 3> padding(0,0,0);
-        array<ushort_t, 3> halo(1,1,1);
+        array<ushort_t, 3> padding{0,0,0};
+        array<ushort_t, 3> halo{1,1,1};
         typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > >, pattern_type::grid_type> partitioner_t;
         partitioner_t part(he.comm(), halo, padding);
         parallel_storage_info<metadata_t, partitioner_t> meta_(part, d1, d2, d3);

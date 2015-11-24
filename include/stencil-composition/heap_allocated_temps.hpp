@@ -1,8 +1,13 @@
 #pragma once
 
-#include "backend_fwd.hpp"
+#include "common/defs.hpp"
+#include "stencil-composition/backend_fwd.hpp"
+#include "common/is_temporary_storage.hpp"
+#include "storage/base_storage.hpp"
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/filter_view.hpp>
+#include "stencil-composition/coordinates.hpp"
+#include "storage/metadata_set.hpp"
 
 /**
 @file
@@ -14,14 +19,19 @@ namespace gridtools {
 
         /** prepare temporaries struct, constructing the domain for the temporary fields, with the arguments
             to the constructor depending on the specific strategy */
-        template <typename ArgList, typename MetaList, typename Coords, typename BackendType>
+        template <typename ArgList,
+                  typename MetaList,
+                  typename Coords,
+                  enumtype::backend BackendId,
+                  enumtype::strategy StrategyId>
         struct prepare_temporaries_functor;
 
         /**
            Specialization for Naive policy
          */
+
         template <typename ArgList, typename MetaList, typename Coords, enumtype::platform BackendId>
-        struct prepare_temporaries_functor<ArgList, MetaList, Coords, backend<BackendId, enumtype::/*strategy::*/Naive> >
+        struct prepare_temporaries_functor<ArgList, MetaList, Coords, BackendId, enumtype::Naive>
         {
 
             //TODO check the type of ArgList
@@ -102,7 +112,7 @@ namespace gridtools {
          */
         template <typename ArgList, typename MetaList, typename Coords, enumtype::platform BackendId>
         struct prepare_temporaries_functor
-        <ArgList, MetaList, Coords,  backend<BackendId, enumtype::/*strategy::*/Block> >
+        <ArgList, MetaList, Coords,  BackendId, enumtype::Block >
         {
 
             //TODO implement a check for the ArgList type

@@ -15,10 +15,19 @@
 #include "caches/cache_metafunctions.hpp"
 #include "backend_traits_fwd.hpp"
 #include "esf.hpp"
+#include "stencil-composition/coordinates.hpp"
 
 namespace gridtools {
 
-    template<typename LocalDomain, typename EsfSequence, typename RangeSizes, typename CacheSequence, typename PhysicalDomainBlockSize>
+    template<
+        typename BackendId,
+        typename LocalDomain,
+        typename EsfSequence,
+        typename RangeSizes,
+        typename CacheSequence,
+        typename PhysicalDomainBlockSize,
+        typename Coordinates
+    >
     struct iterate_domain_arguments
     {
         GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Iternal Error: wrong type");
@@ -26,27 +35,37 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value), "Iternal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<RangeSizes, is_range>::value), "Iternal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_block_size<PhysicalDomainBlockSize>::value), "Iternal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coordinates>::value), "Iternal Error: wrong type");
 
+        typedef BackendId backend_id_t;
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;
         typedef EsfSequence esf_sequence_t;
         typedef RangeSizes range_sizes_t;
         typedef PhysicalDomainBlockSize physical_domain_block_size_t;
+        typedef Coordinates coordinates_t;
     };
 
     template<typename T> struct is_iterate_domain_arguments : boost::mpl::false_{};
 
     template<
+        typename BackendId,
         typename LocalDomain,
         typename EsfSequence,
         typename RangeSizes,
         typename CacheSequence,
-        typename PhysicalDomainBlockSize>
+        typename PhysicalDomainBlockSize,
+        typename Coords>
     struct is_iterate_domain_arguments<
-        iterate_domain_arguments<LocalDomain, EsfSequence, RangeSizes, CacheSequence, PhysicalDomainBlockSize> > :
+        iterate_domain_arguments<
+            BackendId,
+            LocalDomain,
+            EsfSequence,
+            RangeSizes,
+            CacheSequence,
+            PhysicalDomainBlockSize,
+            Coords> > :
         boost::mpl::true_{};
-
-
 
     /**
      * @brief type that contains main metadata required to execute a mss kernel. This type will be passed to
@@ -67,6 +86,7 @@ namespace gridtools {
         typename RangeSizes,                        // ranges of each ESF
         typename LocalDomain,                       // local domain type
         typename CacheSequence,                     // sequence of user specified caches
+        typename IsIndependentSeq,                  // sequence of boolenans (one per functor), stating if it is contained in a "make_independent" construct
         typename Coords,                            // the coordinates
         typename ExecutionEngine,                   // the execution engine
         enumtype::strategy StrategyId>              // the strategy id
@@ -90,9 +110,18 @@ namespace gridtools {
         typedef RangeSizes range_sizes_t;
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;
+        typedef IsIndependentSeq async_esf_map_t;
         typedef typename backend_traits_from_id<backend_id_t::value>::
                 template select_iterate_domain<
-                    iterate_domain_arguments<LocalDomain, EsfSequence, RangeSizes, CacheSequence, PhysicalDomainBlockSize>
+                    iterate_domain_arguments<
+                        backend_id_t,
+                        LocalDomain,
+                        EsfSequence,
+                        RangeSizes,
+                        CacheSequence,
+                        PhysicalDomainBlockSize,
+                        Coords
+                    >
                 >::type iterate_domain_t;
         typedef Coords coords_t;
         typedef ExecutionEngine execution_type_t;
@@ -113,6 +142,7 @@ namespace gridtools {
         typename RangeSizes,
         typename LocalDomain,
         typename CacheSequence,
+        typename IsIndependentSequence,
         typename Coords,
         typename ExecutionEngine,
         enumtype::strategy StrategyId>
@@ -129,6 +159,7 @@ namespace gridtools {
             RangeSizes,
             LocalDomain,
             CacheSequence,
+            IsIndependentSequence,
             Coords,
             ExecutionEngine,
             StrategyId
@@ -148,6 +179,10 @@ namespace gridtools {
         typedef typename boost::mpl::at<typename RunFunctorArguments::esf_args_map_sequence_t, Index>::type esf_args_map_t;
         typedef typename boost::mpl::at<typename RunFunctorArguments::range_sizes_t, Index>::type range_t;
         typedef typename boost::mpl::at<typename RunFunctorArguments::functors_map_t, Index>::type interval_map_t;
+
+        //global (to the mss) is_independent_sequence map (not local to the esf)
+        typedef typename RunFunctorArguments::async_esf_map_t async_esf_map_t;
+
         typedef typename index_to_level<
             typename boost::mpl::deref<
                 typename boost::mpl::find_if<

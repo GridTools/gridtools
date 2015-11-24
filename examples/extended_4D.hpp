@@ -1,7 +1,8 @@
 #pragma once
 
-#include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 #include "Options.hpp"
+#include "extended_4D_verify.hpp"
 
 
 using namespace gridtools;
@@ -31,7 +32,6 @@ typedef BACKEND::storage_type<float_type, metadata_global_quad_t >::type storage
 typedef BACKEND::storage_type<float_type, metadata_local_quad_t >::type storage_local_quad_t;
 
 
-#include "extended_4D_verify.hpp"
 
 
 /**
@@ -69,11 +69,11 @@ namespace assembly{
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
     struct integration {
-        typedef accessor<0, range<-1, 1, -1, 1> , 4> const phi;
-        typedef accessor<1, range<-1, 1, -1, 1> , 4> const psi;//how to detect when index is wrong??
-        typedef accessor<2, range<-1, 1, -1, 1> , 4> const jac;
-        typedef accessor<3, range<-1, 1, -1, 1> , 6> const f;
-        typedef accessor<4, range<-1, 1, -1, 1>, 6 > result;
+        typedef in_accessor<0, range<-1, 1, -1, 1> , 4>  phi;
+        typedef in_accessor<1, range<-1, 1, -1, 1> , 4>  psi;//how to detect when index is wrong??
+        typedef in_accessor<2, range<-1, 1, -1, 1> , 4>  jac;
+        typedef in_accessor<3, range<-1, 1, -1, 1> , 6>  f;
+        typedef inout_accessor<4, range<-1, 1, -1, 1>, 6 > result;
         typedef boost::mpl::vector<phi, psi, jac, f, result> arg_list;
         using quad=dimension<4>;
         template <typename Evaluation>
@@ -93,17 +93,17 @@ namespace assembly{
                 for(short_t J=0; J<2; ++J)
                     for(short_t K=0; K<2; ++K){
                         //check the initialization to 0
-                        assert(eval(result(di+I,dj+J,dk+K))==0.);
+                        assert(eval(result{di+I,dj+J,dk+K})==0.);
                         for(short_t q=0; q<2; ++q){
-                            eval(result(di+I,dj+J,dk+K)) +=
-                                eval(!phi(i+I,j+J,k+K,qp+q)*!psi(qp+q)             *jac(qp+q)*f() +
-                                     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1, qp+q)        *jac(qp+q)*f(di+1) +
-                                     !phi(i+I,j+J,k+K,qp+q)*!psi(j+1, qp+q)        *jac(qp+q)*f(dj+1) +
-                                     !phi(i+I,j+J,k+K,qp+q)*!psi(k+1, qp+q)        *jac(qp+q)*f(dk+1) +
-                                     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1, j+1, qp+q)   *jac(qp+q)*f(di+1, dj+1) +
-                                     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1, k+1, qp+q)   *jac(qp+q)*f(di+1, dk+1) +
-                                     !phi(i+I,j+J,k+K,qp+q)*!psi(j+1,k+1, qp+q)    *jac(qp+q)*f(dj+1,dk+1) +
-                                     !phi(i+I,j+J,k+K,qp+q)*!psi(i+1,j+1,k+1, qp+q)*jac(qp+q)*f(di+1,dj+1,dk+1))
+                            eval(result{di+I,dj+J,dk+K}) +=
+                                eval(!phi{i+I,j+J,k+K,qp+q}*!psi{qp+q}             *jac{qp+q}*f{} +
+                                     !phi{i+I,j+J,k+K,qp+q}*!psi{i+1, qp+q}        *jac{qp+q}*f{di+1} +
+                                     !phi{i+I,j+J,k+K,qp+q}*!psi{j+1, qp+q}        *jac{qp+q}*f{dj+1} +
+                                     !phi{i+I,j+J,k+K,qp+q}*!psi{k+1, qp+q}        *jac{qp+q}*f{dk+1} +
+                                     !phi{i+I,j+J,k+K,qp+q}*!psi{i+1, j+1, qp+q}   *jac{qp+q}*f{di+1, dj+1} +
+                                     !phi{i+I,j+J,k+K,qp+q}*!psi{i+1, k+1, qp+q}   *jac{qp+q}*f{di+1, dk+1} +
+                                     !phi{i+I,j+J,k+K,qp+q}*!psi{j+1,k+1, qp+q}    *jac{qp+q}*f{dj+1,dk+1} +
+                                     !phi{i+I,j+J,k+K,qp+q}*!psi{i+1,j+1,k+1, qp+q}*jac{qp+q}*f{di+1,dj+1,dk+1})
                                 /8;
                         }
                     }
@@ -192,7 +192,7 @@ namespace assembly{
         fe_comp->run();
         fe_comp->finalize();
 
-        return do_verification(d1,d2,d3,result);
+        return do_verification <storage_local_quad_t, storage_global_quad_t> (d1,d2,d3,result);
     }
 
 }; //namespace extended_4d

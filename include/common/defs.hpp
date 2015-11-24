@@ -135,9 +135,12 @@ namespace gridtools{
         {
             typedef execute_impl<parallel_impl, forward> type;
         };
-        /**
-           @}
+
+        /*
+         * accessor I/O policy
          */
+        enum intend {in, inout} ;
+
     }//namespace enumtype
 
 
@@ -224,6 +227,12 @@ namespace gridtools{
     typedef double float_type;
 #else
 #error float precision not properly set (4 or 8 bytes supported)
+#endif
+
+#ifdef RECTANGULAR_GRIDS
+    #define GRIDPREFIX recgrid
+#else
+    #define GRIDPREFIX othergrid
 #endif
 
 #ifdef CXX11_ENABLED

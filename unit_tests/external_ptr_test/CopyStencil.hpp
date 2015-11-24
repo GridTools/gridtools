@@ -5,7 +5,7 @@
  */
 #pragma once
 
-#include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block >
@@ -45,8 +45,8 @@ struct functor_4647
     //
     // the input data fields of this functor are marked as 'const'
     //
-    typedef const accessor<0> in_data;
-    typedef accessor<1> out_data;
+    typedef accessor<0> in_data;
+    typedef accessor<1, enumtype::inout> out_data;
     //
     // the ordered list of arguments of this functor
     //

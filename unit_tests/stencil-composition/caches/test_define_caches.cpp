@@ -5,7 +5,7 @@
 
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
-#include "stencil-composition/make_computation.hpp"
+#include "stencil-composition/stencil-composition.hpp"
 #include "stencil-composition/caches/define_caches.hpp"
 
 using namespace gridtools;

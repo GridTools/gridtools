@@ -1,6 +1,6 @@
 
 #pragma once
-#include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 #include <gridtools.hpp>
 #ifdef CUDA_EXAMPLE
@@ -37,14 +37,13 @@ namespace copy_stencils_3D_2D_1D_0D {
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
         static const int n_args = 2;
-        typedef const accessor<0> in;
-        typedef accessor<1> out;
+        typedef accessor<0> in;
+        typedef accessor<1, enumtype::inout> out;
         typedef boost::mpl::vector<in, out> arg_list;
 
         template <typename Domain>
         GT_FUNCTION
         static void Do(Domain const & dom, x_interval) {
-
             dom(out()) = dom(in());
         }
     };

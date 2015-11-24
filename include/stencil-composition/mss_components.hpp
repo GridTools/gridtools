@@ -18,6 +18,7 @@ struct mss_components
 {
     GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor<MssDescriptor>::value), "Internal Error: wrong type");
     GRIDTOOLS_STATIC_ASSERT((is_sequence_of<RangeSizes, is_range>::value), "Internal Error: wrong type");
+    typedef MssDescriptor mss_descriptor_t;
 
     typedef typename mss_descriptor_execution_engine<MssDescriptor>::type execution_engine_t;
 
@@ -28,7 +29,7 @@ struct mss_components
     /** Compute a vector of vectors of temp indices of temporaries initialized by each functor*/
     typedef typename boost::mpl::fold<linear_esf_t,
             boost::mpl::vector<>,
-            boost::mpl::push_back<boost::mpl::_1, esf_get_temps_per_functor<boost::mpl::_2> >
+            boost::mpl::push_back<boost::mpl::_1, esf_get_w_temps_per_functor<boost::mpl::_2> >
     >::type written_temps_per_functor_t;
 
     /**
