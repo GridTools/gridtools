@@ -43,7 +43,7 @@ namespace _impl_cuda {
         //Doing construction of the ierate domain and assignment of pointers and strides
         iterate_domain_t it_domain(*l_domain, block_size_i, block_size_j);
 
-        it_domain.iterate_domain_backend().set_shared_iterate_domain_pointer_impl(&shared_iterate_domain);
+        it_domain.set_shared_iterate_domain_pointer_impl(&shared_iterate_domain);
 
         it_domain.template assign_storage_pointers<backend_traits_t >();
         it_domain.template assign_stride_pointers <backend_traits_t, strides_t>();
@@ -69,7 +69,9 @@ namespace _impl_cuda {
 
         //execute the k interval functors
         for_each<typename RunFunctorArguments::loop_intervals_t>
-            (_impl::run_f_on_interval<execution_type_t, RunFunctorArguments>(it_domain,*coords) );
+            (_impl::run_f_on_interval<
+             execution_type_t,
+             RunFunctorArguments>(it_domain,*coords) );
     }
 } // namespace _impl_cuda
 

@@ -24,6 +24,7 @@
 
 namespace gridtools{
 
+
     /**
      * @brief metafunction that determines if a type is one of the storage types allowed by the iterate domain
      */
@@ -465,13 +466,15 @@ namespace gridtools{
     struct assign_strides_inner_functor
     {
     private:
+        //while the strides are uint type in the storage metadata,
+        // we stored them as int in the strides cached object in order to force vectorization
         int_t* RESTRICT m_left;
-        const int_t* RESTRICT m_right;
+        const uint_t* RESTRICT m_right;
 
     public:
 
         GT_FUNCTION
-        assign_strides_inner_functor(int_t* RESTRICT l, const int_t* RESTRICT r) :
+        assign_strides_inner_functor(int_t* RESTRICT l, const uint_t* RESTRICT r) :
             m_left(l), m_right(r) {}
 
         template <typename ID>
@@ -534,9 +537,11 @@ namespace gridtools{
 #endif
 #endif
             for_each< boost::mpl::range_c< short_t, 0,  meta_storage_type::space_dimensions-1> > (
-            assign_strides_inner_functor<BackendType>
-            (&(m_strides.template get<ID::value>()[0]), &(boost::fusion::template at_c<ID::value>(m_storages)->strides(1)))
-                );
+                assign_strides_inner_functor<BackendType>(
+                    &(m_strides.template get<ID::value>()[0]),
+                    &(boost::fusion::template at_c<ID::value>(m_storages)->strides(1))
+                )
+            );
         }
     };
 
@@ -600,6 +605,50 @@ namespace gridtools{
 
         typedef typename boost::add_pointer<
             typename get_storage_accessor<LocalDomain, Accessor>::type::value_type
+        >::type type;
+    };
+
+    /**
+     * metafunction that retrieves the arg type associated with an accessor
+     */
+    template<typename Accessor, typename IterateDomainArguments>
+    struct get_arg_from_accessor
+    {
+        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Wrong type");
+
+        typedef typename boost::mpl::at<
+            typename IterateDomainArguments::local_domain_t::esf_args,
+            typename Accessor::index_type
+        >::type type;
+    };
+
+    template<typename Accessor, typename IterateDomainArguments>
+    struct get_arg_value_type_from_accessor
+    {
+        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Wrong type");
+
+        typedef typename get_arg_from_accessor<Accessor, IterateDomainArguments>::type::value_type type;
+    };
+
+
+    /**
+     * metafunction that computes the return type of all operator() of an accessor
+     */
+    template<typename Accessor, typename IterateDomainArguments>
+    struct accessor_return_type
+    {
+        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Wrong type");
+
+        typedef typename boost::mpl::eval_if<
+            is_accessor<Accessor>,
+            get_arg_value_type_from_accessor<Accessor, IterateDomainArguments>,
+            boost::mpl::identity<boost::mpl::void_>
+        >::type accessor_value_type;
+
+        typedef typename boost::mpl::if_<
+            is_accessor_readonly<Accessor>,
+            typename boost::add_const<accessor_value_type >::type,
+            typename boost::add_reference<accessor_value_type>::type RESTRICT
         >::type type;
     };
 

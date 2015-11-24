@@ -13,6 +13,7 @@
 #include "stencil-composition/accessor_fwd.hpp"
 #ifdef CXX11_ENABLED
 #include "generic_metafunctions/gt_get.hpp"
+#include "common/generic_metafunctions/is_variadic_pack_of.hpp"
 #endif
 
 /**
@@ -115,7 +116,7 @@ namespace gridtools {
         GT_FUNCTION
         static auto constexpr select(T & ... args) -> typename remove_refref<decltype(std::template get<layout_vector[I]>(std::make_tuple(args ...)))>::type {
 
-            GRIDTOOLS_STATIC_ASSERT((accumulate(logical_and(), boost::is_integral<T>::type::value ...)), "wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_variadic_pack_of(boost::is_integral<T>::type::value ...)), "wrong type");
             return  gt_get<layout_vector[I]>::apply( args ... );
 
         }
@@ -125,7 +126,8 @@ namespace gridtools {
         static First
         constexpr
         select(First & f, T & ... args) {
-            GRIDTOOLS_STATIC_ASSERT((boost::is_integral<First>::type::value && accumulate(logical_and(), boost::is_integral<T>::type::value ...)), "wrong type");
+            GRIDTOOLS_STATIC_ASSERT((boost::is_integral<First>::type::value &&
+                                     is_variadic_pack_of(boost::is_integral<T>::type::value ...)), "wrong type");
             return  gt_get<boost::mpl::at_c<layout_vector_t, I>::type::value>::apply( f, args... );
         }
 #endif // __CUDACC__

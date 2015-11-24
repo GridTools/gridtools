@@ -276,8 +276,8 @@ private:
     storage_type utens_stage_, u_stage_, wcon_, u_pos_, utens_, utens_stage_ref_;
     storage_type ipos_, jpos_, kpos_;
     scalar_storage_type dtr_stage_;
-    const int halo_size_;
-    const int idim_, jdim_, kdim_;
+    const uint_t halo_size_;
+    const uint_t idim_, jdim_, kdim_;
 };
 
 }

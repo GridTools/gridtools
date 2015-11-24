@@ -1,7 +1,10 @@
 #pragma once
+#include <boost/type_traits/is_unsigned.hpp>
 #include "base_storage_impl.hpp"
 #include "../common/array.hpp"
 #include "common/explode_array.hpp"
+#include "common/generic_metafunctions/is_variadic_pack_of.hpp"
+#include "common/generic_metafunctions/variadic_assert.hpp"
 
 /**
    @file
@@ -72,9 +75,8 @@ namespace gridtools {
 
     protected:
 
-        //TODO these two should be uint_t, however it assert the index in iterate domain
-         array<int_t, space_dimensions> m_dims;
-         array<int_t, space_dimensions> m_strides;
+         array<uint_t, space_dimensions> m_dims;
+         array<uint_t, space_dimensions> m_strides;
 
     public:
 
@@ -91,7 +93,7 @@ namespace gridtools {
            SFINAE for the case in which all the components of a parameter pack are of integral type
          */
         template <typename ... IntTypes>
-        using all_integers=typename boost::enable_if_c<accumulate(logical_and(),  boost::is_integral<IntTypes>::type::value ... ), bool >::type;
+        using all_integers=typename boost::enable_if_c<is_variadic_pack_of(boost::is_integral<IntTypes>::type::value ... ), bool >::type;
 
         /**
            @brief empty constructor
@@ -112,9 +114,12 @@ namespace gridtools {
                   , typename Dummy = typename boost::enable_if_c<boost::is_integral<First>::type::value, bool>::type //nvcc does not get it
                   >
         void setup(  First first_, IntTypes const& ... dims_  ){
-
+#ifdef CXX11_ENABLED
+            m_dims=array<uint_t, space_dimensions>{first_, dims_ ...};
+#else
             m_dims=array<int_t, space_dimensions>(first_, dims_ ...);
-            m_strides=array<int_t, space_dimensions>(
+#endif
+            m_strides=array<uint_t, space_dimensions>(
                 _impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( first_, dims_...));
         }
 #endif
@@ -124,7 +129,7 @@ namespace gridtools {
             m_dims(a),
             m_strides(
                 explode<
-                    array<int_t, (short_t)(space_dimensions)>,
+                    array<uint_t, (short_t)(space_dimensions)>,
                     _impl::assign_all_strides< (short_t)(space_dimensions), layout>
                 >(a))
         {}
@@ -150,22 +155,39 @@ namespace gridtools {
         template <class ... IntTypes
                   , typename Dummy = all_integers<IntTypes...>
                   >
-        constexpr meta_storage_base(  IntTypes const& ... dims_  ) :
-            m_dims(dims_...)
-            , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( dims_...))
+//we only use a constexpr in no debug mode, because we want to assert the sizes are uint in debug mode
+//constexpr does not allow code in the body
+#ifdef NDEBUG
+        constexpr
+#endif
+        meta_storage_base(IntTypes const& ... dims_  ) :
+            m_dims{(uint_t)dims_...}
+            , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( (uint_t)dims_...))
             {
                 GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes)==space_dimensions, "you tried to initialize\
  a storage with a number of integer arguments different from its number of dimensions. \
 This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
  a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
  by defining the storage type using another layout_map.");
-            }
+                GRIDTOOLS_STATIC_ASSERT(
+                     is_variadic_pack_of(boost::is_integral<IntTypes>::type::value...),
+                     "Error: Dimensions of metastorage must be specified as integer types. "
+                );
+#ifndef NDEBUG
+                auto check = [](int a) { return a>0; };
+                variadic_assert(check, (int)dims_...);
+#endif
+        }
 #else //__CUDACC__ nvcc does not get it: checks only the first argument
         template <class First, class ... IntTypes
                   , typename Dummy = typename boost::enable_if_c<boost::is_integral<First>::type::value, bool>::type //nvcc does not get it
                   >
         constexpr meta_storage_base( First const& first_,  IntTypes const& ... dims_  ) :
+#ifdef CXX11_ENABLED
+            m_dims{first_, dims_...}
+#else
             m_dims(first_, dims_...)
+#endif
             , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( first_, dims_...))
             {
                 GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes)+1==space_dimensions, "you tried to initialize\
@@ -224,14 +246,14 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         /**@brief returns the storage strides
          */
         GT_FUNCTION
-         constexpr int_t const& strides(ushort_t i) const {
+         constexpr uint_t const & strides(ushort_t i) const {
             return m_strides[i];
         }
 
         /**@brief returns the storage strides
          */
         GT_FUNCTION
-         constexpr int_t const* strides() const {
+         constexpr uint_t const* strides() const {
             GRIDTOOLS_STATIC_ASSERT(space_dimensions>1, "one dimensional storage");
             return (&m_strides[1]);
         }
@@ -276,7 +298,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         */
         template<uint_t Coordinate, typename StridesVector>
         GT_FUNCTION
-        static constexpr int_t strides(StridesVector const& RESTRICT strides_){
+        static constexpr uint_t strides(StridesVector const& RESTRICT strides_){
             return ((vec_max<typename layout::layout_vector_t>::value < 0) ? 0:(( layout::template at_<Coordinate>::value == vec_max<typename layout::layout_vector_t>::value ) ? 1 : ((strides_[layout::template at_<Coordinate>::value]))));
         }
 

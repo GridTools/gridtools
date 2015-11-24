@@ -10,50 +10,55 @@ namespace gridtools {
     /**
  * @brief iterate domain class for the Host backend
  */
-    template<typename DataPointerArray, typename StridesCached>
-    class iterate_domain_host
+    template<template<class> class IterateDomainBase, typename IterateDomainArguments>
+    class iterate_domain_host : public IterateDomainBase<iterate_domain_host<IterateDomainBase, IterateDomainArguments> > //CRTP
     {
         DISALLOW_COPY_AND_ASSIGN(iterate_domain_host);
-        GRIDTOOLS_STATIC_ASSERT((is_strides_cached<StridesCached>::value), "Internal error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Internal error: wrong type");
 
+        typedef IterateDomainBase<iterate_domain_host<IterateDomainBase, IterateDomainArguments> > super;
     public:
+        typedef typename super::data_pointer_array_t data_pointer_array_t;
+        typedef typename super::strides_cached_t strides_cached_t;
+        typedef typename super::local_domain_t local_domain_t;
+        typedef typename super::grid_t grid_t;
         typedef boost::mpl::map0<> ij_caches_map_t;
 
         GT_FUNCTION
-        explicit iterate_domain_host()
-            : m_data_pointer(0), m_strides(0)
+        explicit iterate_domain_host(local_domain_t const& local_domain_, grid_t const& grid)
+            : super(local_domain_, grid), m_data_pointer(0), m_strides(0)
         {}
 
-        void set_data_pointer_impl(DataPointerArray* RESTRICT data_pointer)
+        void set_data_pointer_impl(data_pointer_array_t* RESTRICT data_pointer)
         {
             assert(data_pointer);
             m_data_pointer = data_pointer;
         }
 
-        DataPointerArray& RESTRICT data_pointer_impl()
+        data_pointer_array_t& RESTRICT data_pointer_impl()
         {
             assert(m_data_pointer);
             return *m_data_pointer;
         }
-        DataPointerArray const & RESTRICT data_pointer_impl() const
+        data_pointer_array_t const & RESTRICT data_pointer_impl() const
         {
             assert(m_data_pointer);
             return *m_data_pointer;
         }
 
-        StridesCached& RESTRICT strides_impl()
+        strides_cached_t& RESTRICT strides_impl()
         {
             assert(m_strides);
             return *m_strides;
         }
 
-        StridesCached const & RESTRICT strides_impl() const
+        strides_cached_t const & RESTRICT strides_impl() const
         {
             assert(m_strides);
             return *m_strides;
         }
 
-        void set_strides_pointer_impl(StridesCached* RESTRICT strides)
+        void set_strides_pointer_impl(strides_cached_t* RESTRICT strides)
         {
             assert(strides);
             m_strides = strides;
@@ -72,15 +77,15 @@ namespace gridtools {
         void initialize_impl() {}
 
     private:
-        DataPointerArray* RESTRICT m_data_pointer;
-        StridesCached* RESTRICT m_strides;
+        data_pointer_array_t* RESTRICT m_data_pointer;
+        strides_cached_t* RESTRICT m_strides;
     };
 
-//    template<
-//            template<class> class IterateDomainBase, typename IterateDomainArguments>
-//    struct is_iterate_domain<
-//            iterate_domain_host<IterateDomainBase, IterateDomainArguments>
-//            > : public boost::mpl::true_{};
+    template<
+        template<class> class IterateDomainBase, typename IterateDomainArguments>
+    struct is_iterate_domain<
+        iterate_domain_host<IterateDomainBase, IterateDomainArguments>
+    > : public boost::mpl::true_{};
 
 //    template<
 //            template<class> class IterateDomainBase,

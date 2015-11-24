@@ -113,7 +113,7 @@ namespace gridtools{
             template<typename Left, typename Right>
             GT_FUNCTION//inline
             static void assign(Left& l, Right const& r){
-                l=r;
+                l=(Left)r;
             }
         };
 
@@ -178,14 +178,6 @@ namespace gridtools{
             typedef typename strategy_from_id_host<StrategyId>::block_size_t type;
         };
 
-        template<typename DataPointerArray, typename StridesCached, typename IterateDomainCache, typename IterateDomainArguments>
-        struct select_iterate_domain_backend
-        {
-            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_strides_cached<StridesCached>::value), "wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_cache<IterateDomainCache>::value), "Wrong type");
-            typedef iterate_domain_host<DataPointerArray, StridesCached> type;
-        };
 
         /**
          * @brief metafunction that returns the right iterate domain
@@ -197,16 +189,18 @@ namespace gridtools{
         struct select_iterate_domain {
             GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Internal Error: wrong type");
             //indirection in order to avoid instantiation of both types of the eval_if
+#ifdef RECTANGULAR_GRIDS
             template<typename _IterateDomainArguments>
             struct select_positional_iterate_domain
             {
-                typedef positional_iterate_domain<_IterateDomainArguments> type;
+                typedef iterate_domain_host<positional_iterate_domain, _IterateDomainArguments> type;
             };
+#endif
 
             template<typename _IterateDomainArguments>
             struct select_basic_iterate_domain
             {
-                typedef iterate_domain<IterateDomainArguments> type;
+                typedef iterate_domain_host<iterate_domain, _IterateDomainArguments> type;
             };
 
             typedef typename boost::mpl::eval_if<

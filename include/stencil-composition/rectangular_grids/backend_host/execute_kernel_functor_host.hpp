@@ -63,18 +63,31 @@ namespace gridtools {
                                                  const uint_t block_idx_i, const uint_t block_idx_j)
                 : m_local_domain(local_domain)
                 , m_coords(coords)
+#ifdef CXX11_ENABLED
+                , m_first_pos{first_i, first_j}
+                , m_last_pos{last_i, last_j}
+                , m_block_id{block_idx_i, block_idx_j}
+#else
                 , m_first_pos(first_i, first_j)
                 , m_last_pos(last_i, last_j)
                 , m_block_id(block_idx_i, block_idx_j)
+#endif
             {}
 
             // Naive strategy
             explicit  execute_kernel_functor_host(const local_domain_t& local_domain, const coords_t& coords)
                 : m_local_domain(local_domain)
                 , m_coords(coords)
+#ifdef CXX11_ENABLED
+                , m_first_pos{coords.i_low_bound(), coords.j_low_bound()}
+                , m_last_pos{coords.i_high_bound()-coords.i_low_bound(), coords.j_high_bound()-coords.j_low_bound()}
+                , m_block_id{0, 0}
+#else
                 , m_first_pos(coords.i_low_bound(), coords.j_low_bound())
                 , m_last_pos(coords.i_high_bound()-coords.i_low_bound(), coords.j_high_bound()-coords.j_low_bound())
-                , m_block_id(0, 0) {}
+                , m_block_id(0, 0)
+#endif
+            {}
 
             void operator()()
             {
@@ -111,8 +124,8 @@ namespace gridtools {
 
                 iterate_domain_t it_domain(m_local_domain);
 
-                it_domain.set_data_pointer(&data_pointer);
-                it_domain.set_strides_pointer(&strides);
+        it_domain.set_data_pointer_impl(&data_pointer);
+        it_domain.set_strides_pointer_impl(&strides);
 
                 it_domain.template assign_storage_pointers<backend_traits_t >();
                 it_domain.template assign_stride_pointers <backend_traits_t, strides_t>();

@@ -11,9 +11,9 @@
 #include "functor_do_method_lookup_maps.hpp"
 #include "caches/cache.hpp"
 #include "caches/cache_metafunctions.hpp"
-#include "esf.hpp"
-#include "../common/generic_metafunctions/is_sequence_of.hpp"
-#include "caches/cache_metafunctions.hpp"
+#include "stencil-composition/esf.hpp"
+#include "common/generic_metafunctions/is_sequence_of.hpp"
+#include "stencil-composition/caches/cache_metafunctions.hpp"
 
 namespace gridtools {
 
@@ -54,9 +54,25 @@ struct mss_intervals
  * metafunction that determines if a given type is a valid parameter for mss_descriptor
  */
 template<typename T>
+struct printi{BOOST_MPL_ASSERT_MSG((false), YYYYYYYYYYYY, (T));};
+template <typename T>
+struct testt
+{
+    printi<T> oi;
+};
+
+template<typename T>
 struct is_mss_parameter
 {
+
     typedef typename boost::mpl::or_< is_sequence_of<T, is_cache >, is_esf_descriptor<T> >::type type;
+    typedef typename boost::mpl::eval_if<
+        type,
+        boost::mpl::identity<boost::mpl::true_>,
+        testt<T>
+    >::type OO;
+
+
 };
 
 /**
