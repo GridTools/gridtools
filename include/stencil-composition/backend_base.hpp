@@ -25,6 +25,7 @@
 #include "common/meta_array.hpp"
 #include "stencil-composition/tile.hpp"
 #include "storage/meta_storage.hpp"
+#include "../storage/halo.hpp"
 
 /**
    @file
@@ -49,7 +50,7 @@ namespace gridtools {
                   typename ValueType,
                   uint_t BI, uint_t BJ,
                   typename StrategyTraits,
-                  enumtype::backend BackendID>
+                  enumtype::platform BackendID>
         struct get_storage_type {
             template <typename MapElem>
             struct apply {
@@ -119,7 +120,7 @@ namespace gridtools {
         - - (INTERNAL) for_each that is used to invoke the different things for different stencils in the MSS
         - - (INTERNAL) once_per_block
     */
-    template< enumtype::backend BackendId, enumtype::strategy StrategyId >
+    template< enumtype::platform BackendId, enumtype::strategy StrategyId >
     struct backend_base
     {
         typedef backend_traits_from_id<BackendId> backend_traits_t;
@@ -127,7 +128,7 @@ namespace gridtools {
 
         typedef backend_base<BackendId, StrategyId> this_type;
         static const enumtype::strategy s_strategy_id=StrategyId;
-        static const enumtype::backend s_backend_id =BackendId;
+        static const enumtype::platform s_backend_id =BackendId;
 
         /** types of the functions used to compute the thread grid information
             for allocating the temporary storages and such
@@ -140,10 +141,60 @@ namespace gridtools {
             typedef typename backend_traits_t::template
                 storage_traits<
                     ValueType,
-                    typename backend_traits_t::template meta_storage_traits<MetaDataType, false>::type,
+                typename backend_traits_t::template meta_storage_traits<typename MetaDataType::index_type
+                                                                        , typename MetaDataType::layout
+                                                                        , false
+                                                                        , typename MetaDataType::halo_t>::type,
                     false
                 >::storage_t type;
         };
+
+#ifdef CXX11_ENABLED
+
+        /**
+           @brief syntactic sugar for the metadata type definition
+
+           \tparam Index an index used to differentiate the types also when there's only runtime
+           differences (e.g. only the storage dimensions differ)
+           \tparam Layout the map of the layout in memory
+           \tparam IsTemporary boolean flag set to true when the storage is a temporary one
+           \tmaram ... Tiles variadic argument containing the information abount the tiles
+           (for the Block strategy)
+
+           syntax example:
+           using metadata_t=storage_info<0,layout_map<0,1,2> >
+
+           NOTE: the information specified here will be used at a later stage
+           to define the storage meta information (the meta_storage_base type)
+        */
+        template < ushort_t Index
+                   , typename Layout
+                   , typename Halo=typename repeat_template_c<0, Layout::length, halo>::type
+                   >
+        using storage_info = typename backend_traits_t::template meta_storage_traits<static_uint<Index>, Layout, false, Halo>::type;
+
+#else
+        template < ushort_t Index
+                   , typename Layout
+                   , typename Halo = halo<0,0,0>
+                   >
+        struct storage_info :
+            public backend_traits_t::template meta_storage_traits<static_uint<Index>
+                                                                  , Layout
+                                                                  , false
+                                                                  , Halo>::type
+        {
+            typedef  typename backend_traits_t::template meta_storage_traits<static_uint<Index>
+                                                                             , Layout
+                                                                             , false
+                                                                             , Halo>::type super;
+
+            storage_info(uint_t const& d1, uint_t const& d2, uint_t const& d3) : super(d1,d2,d3){}
+
+                        GT_FUNCTION
+                        storage_info(storage_info const& t) : super(t){}
+        };
+#endif
 
         /**
          * @brief metafunction determining the type of a temporary storage (based on the layout)
@@ -163,8 +214,11 @@ namespace gridtools {
         private:
             typedef typename backend_traits_t::template storage_traits<
                 ValueType,
-                typename backend_traits_t::template meta_storage_traits<MetaDataType, true>::type,
-                true
+            typename backend_traits_t::template meta_storage_traits<typename MetaDataType::index_type
+                                                                    , typename MetaDataType::layout
+                                                                    , true
+                                                                    , typename MetaDataType::halo_t>::type,
+            true
             >::storage_t temp_storage_t;
         public:
             typedef typename boost::mpl::if_<
@@ -364,11 +418,41 @@ namespace gridtools {
 
             n_j_pes()(size): number of threads on the second dimension of the thread grid
         */
-        static query_j_threads_f n_j_pes() {
+     static query_j_threads_f n_j_pes() {
             return &backend_traits_t::n_j_pes;
         }
 
 
     }; // struct backend_base {
+
+#ifndef CXX11_ENABLED
+
+#ifdef __CUDACC__
+    template < ushort_t Index, typename Layout >
+    struct is_meta_storage<typename gridtools::backend<gridtools::enumtype::Cuda, gridtools::enumtype::Block>::template storage_info<Index, Layout > > : boost::mpl::true_{};
+#else
+    template < ushort_t Index, typename Layout >
+    struct is_meta_storage<typename gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Block>::template storage_info<Index, Layout > > : boost::mpl::true_{};
+
+    template < ushort_t Index, typename Layout >
+    struct is_meta_storage<typename gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Naive>::template storage_info<Index, Layout > > : boost::mpl::true_{};
+#endif
+
+
+#ifdef __CUDACC__
+    template < ushort_t Index, typename Layout, typename Halo >
+    struct is_meta_storage<typename gridtools::backend<gridtools::enumtype::Cuda, gridtools::enumtype::Block>::template storage_info<Index, Layout, Halo > > : boost::mpl::true_{};
+
+    template < ushort_t Index, typename Layout, typename Halo >
+    struct is_meta_storage<typename gridtools::backend<gridtools::enumtype::Cuda, gridtools::enumtype::Naive>::template storage_info<Index, Layout, Halo > > : boost::mpl::true_{};
+#else
+    template < ushort_t Index, typename Layout, typename Halo >
+    struct is_meta_storage<typename gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Block>::template storage_info<Index, Layout, Halo > > : boost::mpl::true_{};
+
+    template < ushort_t Index, typename Layout, typename Halo >
+    struct is_meta_storage<typename gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Naive>::template storage_info<Index, Layout, Halo > > : boost::mpl::true_{};
+#endif
+
+#endif
 
 } // namespace gridtools

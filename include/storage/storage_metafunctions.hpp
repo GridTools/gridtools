@@ -35,14 +35,14 @@ struct storage_holds_data_field : boost::mpl::bool_<(T::field_dimensions > 1)>{}
     struct is_temporary_storage<no_storage_type_yet<U>  > : public boost::true_type
     {};
 
-    template<typename T> struct is_storage : boost::mpl::false_{};
+    template<typename T> struct is_actual_storage : boost::mpl::false_{};
 
     template <typename T, typename U, ushort_t Dim>
-    struct is_storage<base_storage<T,U,Dim>  *  > : public boost::mpl::bool_< !U::is_temporary >
+    struct is_actual_storage<base_storage<T,U,Dim>  *  > : public boost::mpl::bool_< !U::is_temporary >
     {};
 
     template <typename U>
-    struct is_storage<no_storage_type_yet<U>  *  > : public boost::false_type
+    struct is_actual_storage<no_storage_type_yet<U>  *  > : public boost::false_type
     {};
 
     template <typename U>
@@ -55,31 +55,31 @@ struct storage_holds_data_field : boost::mpl::bool_<(T::field_dimensions > 1)>{}
 
     //Decorator is the storage
     template <typename BaseType , template <typename T> class Decorator >
-    struct is_storage<Decorator<BaseType>  *  > : public is_storage<typename BaseType::basic_type*>
+    struct is_actual_storage<Decorator<BaseType>  *  > : public is_actual_storage<typename BaseType::basic_type*>
     {};
 
     //Decorator is the storage
     template <typename BaseType , template <typename T> class Decorator >
-    struct is_storage<Decorator<BaseType> > : public is_storage<typename BaseType::basic_type*>
+    struct is_actual_storage<Decorator<BaseType> > : public is_actual_storage<typename BaseType::basic_type*>
     {};
 
 #ifdef CXX11_ENABLED
     //Decorator is the integrator
     template <typename First, typename ... BaseType , template <typename ... T> class Decorator >
-    struct is_storage<Decorator<First, BaseType...>  *  > : public is_storage<typename First::basic_type*>
+    struct is_actual_storage<Decorator<First, BaseType...>  *  > : public is_actual_storage<typename First::basic_type*>
     {};
 #else
 
     //Decorator is the integrator
     template <typename First, typename B2, typename  B3 , template <typename T1, typename T2, typename T3> class Decorator >
-    struct is_storage<Decorator<First, B2, B3>  *  > : public is_storage<typename First::basic_type*>
+    struct is_actual_storage<Decorator<First, B2, B3>  *  > : public is_actual_storage<typename First::basic_type*>
     {};
 
 #endif
 
     //Decorator is the integrator
     template <typename BaseType , template <typename T, ushort_t O> class Decorator, ushort_t Order >
-    struct is_storage<Decorator<BaseType, Order>  *  > : public is_storage<typename BaseType::basic_type*>
+    struct is_actual_storage<Decorator<BaseType, Order>  *  > : public is_actual_storage<typename BaseType::basic_type*>
     {};
 
     template <typename T>

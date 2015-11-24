@@ -458,6 +458,39 @@ namespace gridtools {
             ];
         }
 
+        /** @brief method called in the Do methods of the functors.
+
+            specialization for the generic accessors placeholders
+        */
+        template <uint_t I>
+                GT_FUNCTION
+        typename boost::mpl::at<typename local_domain_t::mpl_storages, static_int<I> >::type
+
+        operator()(generic_accessor<I> const& accessor) const {
+
+            //getting information about the storage
+            typedef typename generic_accessor<I>::index_type index_t;
+
+            #ifndef CXX11_ENABLED
+            typedef typename boost::remove_reference<typename boost::remove_pointer<BOOST_TYPEOF( (boost::fusion::at
+                                                                                                   < index_t>(local_domain.m_local_args)) )>::type>::type storage_type;
+                        storage_type* const storage_=
+                            #else
+                                            auto const storage_ =
+                            #endif
+                            boost::fusion::at
+                            < index_t>(local_domain.m_local_args);
+
+                        #ifdef CXX11_ENABLED
+                        using storage_type = typename std::remove_reference<decltype(*storage_)>::type;
+                        #endif
+                        typename storage_type::value_type* storage_pointer=(data_pointer())[current_storage<(index_t::value==0), local_domain_t, typename generic_accessor<I>::type >::value];
+
+                        typename storage_type::value_type * RESTRICT real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
+
+                        return real_storage_pointer;
+        }
+
 
 #ifdef CXX11_ENABLED
         /** @brief method called in the Do methods of the functors.
