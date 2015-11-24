@@ -295,8 +295,6 @@ namespace gridtools{
             GRIDTOOLS_STATIC_ASSERT(snapshot < super::super::field_dimensions, "nasty error");
             GRIDTOOLS_STATIC_ASSERT((_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot < super::super::field_dimensions), "nasty error");
 #endif
-            printf("in storage %s\n", this->m_name);
-            printf("snapshot: %d, dimension %d\n", snapshot, field_dim);
             return super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot];
         }
 
@@ -309,8 +307,6 @@ namespace gridtools{
             GRIDTOOLS_STATIC_ASSERT(snapshot < super::super::field_dimensions, "nasty error");
             GRIDTOOLS_STATIC_ASSERT((_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot < super::super::field_dimensions), "nasty error");
 #endif
-            printf("in storage %s\n", this->m_name);
-            printf("snapshot: %d, dimension %d\n", snapshot, field_dim);
             return super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot];
         }
 
