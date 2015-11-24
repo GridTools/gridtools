@@ -41,9 +41,9 @@ TEST(test_make_computation, get_mss_array) {
     using backend_t = backend<enumtype::Host, enumtype::Block >;
 
     typedef gridtools::layout_map<2,1,0> layout_t;
-    using trapezoid_2D_t = gridtools::trapezoid_2D_colored<backend_t>;
+    using icosahedral_topology_t = gridtools::icosahedral_topology<backend_t>;
 
-    using cell_storage_type = typename backend_t::storage_t<trapezoid_2D_t::cells, double>;
+    using cell_storage_type = typename backend_t::storage_t<icosahedral_topology_t::cells, double>;
 
     typedef arg<0, cell_storage_type> in_cells;
     typedef arg<1, cell_storage_type> out_cells;
@@ -54,18 +54,18 @@ TEST(test_make_computation, get_mss_array) {
         gridtools::make_mss // mss_descriptor
         (
                 enumtype::execute<enumtype::forward>(),
-                gridtools::make_esf<make_computation_test::test_functor, trapezoid_2D_t, trapezoid_2D_t::cells>(in_cells())
+                gridtools::make_esf<make_computation_test::test_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(in_cells())
         )) mss1_t;
 
     typedef decltype(
         gridtools::make_mss // mss_descriptor
         (
                 enumtype::execute<enumtype::forward>(),
-                gridtools::make_esf<make_computation_test::test_functor, trapezoid_2D_t, trapezoid_2D_t::cells>(out_cells())
+                gridtools::make_esf<make_computation_test::test_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(out_cells())
         )) mss2_t;
 
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis_t;
-    typedef gridtools::coordinates<axis_t, trapezoid_2D_t> coords_t;
+    typedef gridtools::coordinates<axis_t, icosahedral_topology_t> coords_t;
 
     typedef gridtools::domain_type<accessor_list_t> domain_t;
     typedef boost::mpl::vector5<int, domain_t, mss2_t, coords_t, mss1_t> ListTypes;

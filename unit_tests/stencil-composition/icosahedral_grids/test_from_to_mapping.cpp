@@ -4,7 +4,7 @@
 
 using namespace gridtools;
 
-using trapezoid_2D = gridtools::trapezoid_2D_colored<gridtools::backend<enumtype::Host, enumtype::Block>>;
+using icosahedral_topology_t = gridtools::icosahedral_topology<gridtools::backend<enumtype::Host, enumtype::Block>>;
 
 class ll_map_test : public ::testing::TestWithParam<int> {
     // You can implement all the usual fixture class members here.
@@ -15,7 +15,7 @@ class ll_map_test : public ::testing::TestWithParam<int> {
 TEST_P(ll_map_test, cell_to_cell) {
 
     const uint_t d3=GetParam();
-    trapezoid_2D grid( 8, 8, d3 );
+    icosahedral_topology_t grid( 8, 8, d3 );
 
     for (int i = 0; i < d3; i+=2) {
         // cell # 50
@@ -36,7 +36,7 @@ TEST_P(ll_map_test, cell_to_cell) {
 
 TEST_P(ll_map_test, cell_to_edge) {
     const uint_t d3=GetParam();
-    trapezoid_2D grid( 8, 8, d3 );
+    icosahedral_topology_t grid( 8, 8, d3 );
 
     for (int i = 0; i < d3; i+=2) {
         // cell # 50
@@ -57,7 +57,7 @@ TEST_P(ll_map_test, cell_to_edge) {
 
 TEST_P(ll_map_test, cell_to_vertex) {
     const uint_t d3=GetParam();
-    trapezoid_2D grid( 8, 8, d3 );
+    icosahedral_topology_t grid( 8, 8, d3 );
 
     for (int i = 0; i < d3; i+=2) {
         // cell # 50
@@ -78,7 +78,7 @@ TEST_P(ll_map_test, cell_to_vertex) {
 
 TEST_P(ll_map_test, edge_to_edge) {
     const uint_t d3=GetParam();
-    trapezoid_2D grid( 8, 8, d3 );
+    icosahedral_topology_t grid( 8, 8, d3 );
 
     for (int i = 0; i < d3; i+=2) {
         // edge # 51
@@ -106,7 +106,7 @@ TEST_P(ll_map_test, edge_to_edge) {
 
 TEST_P(ll_map_test, edge_to_cell) {
     const uint_t d3=GetParam();
-    trapezoid_2D grid( 8, 8, d3 );
+    icosahedral_topology_t grid( 8, 8, d3 );
 
     for (int i = 0; i < d3; i+=2) {
         // edge # 51
@@ -134,7 +134,7 @@ TEST_P(ll_map_test, edge_to_cell) {
 
 TEST_P(ll_map_test, edge_to_vertex) {
     const uint_t d3=GetParam();
-    trapezoid_2D grid( 8, 8, d3 );
+    icosahedral_topology_t grid( 8, 8, d3 );
 
     for (int i = 0; i < d3; i+=2) {
         // edge # 51
@@ -162,7 +162,7 @@ TEST_P(ll_map_test, edge_to_vertex) {
 
 TEST_P(ll_map_test, vertex_to_vertex) {
     const uint_t d3=GetParam();
-    trapezoid_2D grid( 8, 8, d3 );
+    icosahedral_topology_t grid( 8, 8, d3 );
 
     for (int i = 0; i < d3; i+=2) {
         // vertex # 21
@@ -180,7 +180,7 @@ TEST_P(ll_map_test, vertex_to_vertex) {
 
 TEST_P(ll_map_test, vertex_to_cells) {
     const uint_t d3=GetParam();
-    trapezoid_2D grid( 8, 8, d3 );
+    icosahedral_topology_t grid( 8, 8, d3 );
 
     for (int i = 0; i < d3; i+=2) {
         // vertex # 21
@@ -198,7 +198,7 @@ TEST_P(ll_map_test, vertex_to_cells) {
 
 TEST_P(ll_map_test, vertex_to_edges) {
     const uint_t d3=GetParam();
-    trapezoid_2D grid( 8, 8, d3 );
+    icosahedral_topology_t grid( 8, 8, d3 );
 
     for (int i = 0; i < d3; i+=2) {
         // vertex # 21

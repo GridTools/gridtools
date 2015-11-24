@@ -9,14 +9,14 @@ using namespace enumtype;
 namespace cs_test{
 
     using backend_t = ::gridtools::backend<Host, Naive >;
-    using trapezoid_2D_t = ::gridtools::trapezoid_2D_colored<backend_t>;
+    using icosahedral_topology_t = ::gridtools::icosahedral_topology<backend_t>;
 
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
     struct test_functor {
-        typedef ro_accessor<0, trapezoid_2D_t::cells, radius<1> > in;
-        typedef accessor<1, trapezoid_2D_t::cells> out;
+        typedef ro_accessor<0, icosahedral_topology_t::cells, radius<1> > in;
+        typedef accessor<1, icosahedral_topology_t::cells> out;
         typedef boost::mpl::vector2<in, out> arg_list;
 
         template <typename Evaluation>
@@ -33,7 +33,7 @@ TEST(test_copy_stencil, run) {
 
     typedef gridtools::layout_map<2,1,0> layout_t;
 
-    using cell_storage_type = typename backend_t::storage_t<trapezoid_2D_t::cells, double>;
+    using cell_storage_type = typename backend_t::storage_t<icosahedral_topology_t::cells, double>;
 
     const uint_t halo_nc = 1;
     const uint_t halo_mc = 2;
@@ -41,10 +41,10 @@ TEST(test_copy_stencil, run) {
     const uint_t d3=6+halo_k*2;
     const uint_t d1=6+halo_nc*2;
     const uint_t d2=12+halo_mc*2;
-    trapezoid_2D_t grid( d1, d2, d3 );
+    icosahedral_topology_t grid( d1, d2, d3 );
 
-    cell_storage_type in_cells = grid.make_storage<trapezoid_2D_t::cells, double>("in");
-    cell_storage_type out_cells = grid.make_storage<trapezoid_2D_t::cells, double>("out");
+    cell_storage_type in_cells = grid.make_storage<icosahedral_topology_t::cells, double>("in");
+    cell_storage_type out_cells = grid.make_storage<icosahedral_topology_t::cells, double>("out");
 
     for(int i=0; i < d1; ++i)
     {
@@ -71,7 +71,7 @@ TEST(test_copy_stencil, run) {
     array<uint_t,5> di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc -1, d1};
     array<uint_t,5> dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc -1, d2};
 
-    gridtools::coordinates<axis, trapezoid_2D_t> coords(grid, di, dj);
+    gridtools::coordinates<axis, icosahedral_topology_t> coords(grid, di, dj);
     coords.value_list[0] = 0;
     coords.value_list[1] = d3-1;
 
@@ -85,7 +85,7 @@ TEST(test_copy_stencil, run) {
                 gridtools::make_mss // mss_descriptor
                 (
                     execute<forward>(),
-                    gridtools::make_esf<test_functor, trapezoid_2D_t, trapezoid_2D_t::cells>(
+                    gridtools::make_esf<test_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(
                         p_in_cells(), p_out_cells() )
                 ),
                 domain, coords

@@ -566,7 +566,7 @@ namespace gridtools {
     /**
     */
     template <typename Backend>
-    class trapezoid_2D_colored {
+    class icosahedral_topology {
     public :
 
         using cells = location_type<0,2>;
@@ -600,11 +600,11 @@ namespace gridtools {
             using type = typename boost::fusion::result_of::at_c<virtual_storage_types, I>::type;
         };
 
-        trapezoid_2D_colored() = delete;
+        icosahedral_topology() = delete;
     public :
 
         template<typename ... UInt>
-        trapezoid_2D_colored(uint_t first_, uint_t second_, UInt ... dims)
+        icosahedral_topology(uint_t first_, uint_t second_, UInt ... dims)
             : m_dims{second_, first_},
              m_virtual_storages(
                  v_storage_t<cells>(array<uint_t, v_storage_t<cells>::space_dimensions>{first_, cells::n_colors::value, second_, dims...}),
@@ -718,9 +718,9 @@ namespace gridtools {
 
     };
 
-    template<typename T> struct is_grid : boost::mpl::false_{};
+    template<typename T> struct is_grid_topology : boost::mpl::false_{};
 
     template <typename Backend>
-    struct is_grid<trapezoid_2D_colored<Backend> > : boost::mpl::true_ {};
+    struct is_grid_topology<icosahedral_topology<Backend> > : boost::mpl::true_ {};
 
 } // namespace gridtools

@@ -14,7 +14,7 @@ namespace gridtools {
     {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ArgSequence, is_arg>::value), "wrong types for the list of parameter placeholders\n"
                                                                               "check the make_esf syntax");
-        GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Error: wrong grid type");
+        GRIDTOOLS_STATIC_ASSERT((is_grid_topology<Grid>::value), "Error: wrong grid type");
 
         using esf_function = Functor;
         using grid = Grid;

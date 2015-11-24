@@ -9,7 +9,7 @@ namespace gridtools {
     template <typename Axis, typename Grid>
     struct coordinates : public coordinates_cg<Axis>, public clonable_to_gpu<coordinates<Axis, Grid> > {
         GRIDTOOLS_STATIC_ASSERT((is_interval<Axis>::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_grid_topology<Grid>::value), "Internal Error: wrong type");
 
         typedef Grid grid_t;
     private:
