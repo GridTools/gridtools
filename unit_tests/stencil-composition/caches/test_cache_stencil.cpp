@@ -1,16 +1,7 @@
-/*
- * test_cache_stencil.cpp
- *
- *  Created on: Jul 21, 2015
- *      Author: cosuna
- */
-
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include "common/defs.hpp"
-#include "stencil-composition/make_computation.hpp"
-#include "stencil-composition/caches/cache_metafunctions.hpp"
-#include "stencil-composition/caches/define_caches.hpp"
+#include "stencil-composition/stencil-composition.hpp"
 #include <tools/verifier.hpp>
 
 namespace test_cache_stencil {
@@ -81,8 +72,13 @@ protected:
 
     cache_stencil() :
         m_halo_size(2), m_d1(32+m_halo_size), m_d2(32+m_halo_size), m_d3(6),
+#ifdef CXX11_ENABLED
+        m_di{m_halo_size, m_halo_size, m_halo_size, m_d1-m_halo_size-1, m_d1},
+        m_dj{m_halo_size, m_halo_size, m_halo_size, m_d2-m_halo_size-1, m_d2},
+#else
         m_di(m_halo_size, m_halo_size, m_halo_size, m_d1-m_halo_size-1, m_d1),
         m_dj(m_halo_size, m_halo_size, m_halo_size, m_d2-m_halo_size-1, m_d2),
+#endif
         m_coords(m_di, m_dj),
         m_meta(m_d1, m_d2, m_d3),
         m_in(m_meta, -8.5, "in"),
@@ -106,8 +102,6 @@ protected:
         }
     }
 };
-
-
 
 TEST_F(cache_stencil, ij_cache)
 {
@@ -139,8 +133,18 @@ TEST_F(cache_stencil, ij_cache)
 
     pstencil->finalize();
 
+#ifdef __CUDACC__
+    m_out.data().update_cpu();
+#endif
+
+#ifdef CXX11_ENABLED
+    verifier verif(1e-13);
+    array<array<uint_t, 2>, 3> halos{{ {m_halo_size,m_halo_size}, {m_halo_size,m_halo_size}, {m_halo_size,m_halo_size} }};
+    ASSERT_TRUE(verif.verify(m_in, m_out, halos) );
+#else
     verifier verif(1e-13, m_halo_size);
     ASSERT_TRUE(verif.verify(m_in, m_out) );
+#endif
 }
 
 TEST_F(cache_stencil, ij_cache_offset)
@@ -191,58 +195,12 @@ TEST_F(cache_stencil, ij_cache_offset)
     m_out.data().update_cpu();
 #endif
 
-    verifier verif(1e-13, m_halo_size);
-    ASSERT_TRUE(verif.verify(ref, m_out) );
-}
-
-
-TEST_F(cache_stencil, bypass_cache)
-{
-    typename storage_type::meta_data_t meta_(m_d1, m_d2, m_d3);
-    storage_type ref(meta_,  0.0, "ref");
-
-    for(int i=m_halo_size; i < m_d1-m_halo_size; ++i)
-    {
-        for(int j=m_halo_size; j < m_d2-m_halo_size; ++j)
-        {
-            for(int k=0; k < m_d3; ++k)
-            {
-                ref(i,j,k) = (m_in(i-1,j,k) + m_in(i+1, j,k) + m_in(i,j-1,k) + m_in(i,j+1,k) ) / (float_type)4.0;
-            }
-        }
-    }
-
-    typedef boost::mpl::vector2<p_in, p_out> accessor_list;
-    gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&m_in, &m_out));
-
-#ifdef __CUDACC__
-    gridtools::computation* pstencil =
+#ifdef CXX11_ENABLED
+    verifier verif(1e-13);
+    array<array<uint_t, 2>, 3> halos{{ {m_halo_size,m_halo_size}, {m_halo_size,m_halo_size}, {m_halo_size,m_halo_size} }};
+    ASSERT_TRUE(verif.verify(ref, m_out, halos) );
 #else
-        boost::shared_ptr<gridtools::computation> pstencil =
-#endif
-        make_computation<gridtools::BACKEND>
-        (
-            make_mss // mss_descriptor
-            (
-                execute<forward>(),
-                define_caches(cache<bypass, p_in, local>()),
-                make_esf<functor2>(p_in(), p_out()) // esf_descriptor
-            ),
-            domain, m_coords
-        );
-
-    pstencil->ready();
-
-    pstencil->steady();
-
-    pstencil->run();
-
-    pstencil->finalize();
-
-#ifdef __CUDACC__
-    m_out.data().update_cpu();
-#endif
-
     verifier verif(1e-13, m_halo_size);
-    ASSERT_TRUE(verif.verify(ref, m_out) );
+    ASSERT_TRUE(verif.verify(ref, m_out));
+#endif
 }

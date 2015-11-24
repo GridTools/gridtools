@@ -1,5 +1,5 @@
 #pragma once
-#include "make_stencils.hpp"
+
 #include <boost/mpl/transform.hpp>
 #include "gt_for_each/for_each.hpp"
 #include <boost/fusion/include/transform.hpp>
@@ -14,6 +14,7 @@
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/include/copy.hpp>
 #include <boost/type_traits/remove_const.hpp>
+#include "esf.hpp"
 #include "level.hpp"
 #include "loopintervals.hpp"
 #include "functor_do_methods.hpp"
@@ -28,6 +29,10 @@
 #include "backend_traits_fwd.hpp"
 #include "mss_components_metafunctions.hpp"
 #include "../storage/storage_functors.hpp"
+#include "stencil-composition/compute_ranges_metafunctions.hpp"
+#include "stencil-composition/coordinates.hpp"
+#include "grid_traits.hpp"
+#include "stencil-composition/wrap_type.hpp"
 
 /**
  * @file
@@ -367,12 +372,14 @@ namespace gridtools {
 
         typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
 
+        typedef typename select_mss_compute_range_sizes::type mss_compute_range_sizes_t;
+
         typedef typename boost::mpl::fold<
             typename MssDescriptorArray::elements,
             boost::mpl::vector0<>,
             boost::mpl::push_back<
                 boost::mpl::_1,
-                mss_compute_range_sizes<boost::mpl::_2>
+                mss_compute_range_sizes_t::apply<boost::mpl::_2>
             >
         >::type range_sizes_t;
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 /**
   @file
@@ -78,7 +78,7 @@ namespace copy_stencil{
         // Definition of the actual data fields that are used for input/output
         typedef storage_t storage_type;
         storage_type in(meta_data_, "in");
-        storage_type out(meta_data_, -1.);
+        storage_type out(meta_data_, float_type(-1.));
         for(uint_t i=0; i<d1; ++i)
             for(uint_t j=0; j<d2; ++j)
                 for(uint_t k=0; k<d3; ++k)

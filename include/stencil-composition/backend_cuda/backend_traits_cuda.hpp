@@ -1,11 +1,12 @@
 #pragma once
 #include <boost/mpl/for_each.hpp>
-#include "../backend_traits_fwd.hpp"
+#include "stencil-composition/backend_traits_fwd.hpp"
 #include "execute_kernel_functor_cuda.hpp"
 #include "run_esf_functor_cuda.hpp"
 #include "../block_size.hpp"
 #include "iterate_domain_cuda.hpp"
 #include "strategy_cuda.hpp"
+
 #ifdef ENABLE_METERS
   #include "stencil-composition/backend_cuda/timer_cuda.hpp"
 #else
@@ -48,12 +49,12 @@ namespace gridtools{
         /**
            @brief storage info type associated to the cuda backend
 
-           the storage info type is meta_storage_derived, which is clonable to GPU.
+           the storage info type is meta_storage, which is clonable to GPU.
          */
         template <typename MetaData, bool Temp>
         struct meta_storage_traits{
             GRIDTOOLS_STATIC_ASSERT((is_meta_storage<MetaData>::value), "wrong type for the storage_info");
-            typedef meta_storage_derived<meta_storage_base<MetaData::index_type::value, typename MetaData::layout, Temp> > type;
+            typedef meta_storage<meta_storage_base<MetaData::index_type::value, typename MetaData::layout, Temp> > type;
         };
 
         template <typename Arguments>
@@ -111,7 +112,7 @@ namespace gridtools{
                 //TODOCOSUNA if there are more ID than threads in a block????
                 if(threadIdx.x==Id)
                     {
-                        l=r;
+                        l=(Left)r;
                     }
             }
         };

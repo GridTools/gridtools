@@ -3,7 +3,7 @@
  * the Python interface to the Gridtools library
  *
  */
-#include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 #include "{{ fun_hdr_file }}"
 

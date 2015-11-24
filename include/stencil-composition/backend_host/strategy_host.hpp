@@ -1,7 +1,7 @@
 #pragma once
 #include "../backend_traits_fwd.hpp"
 #include "../mss_functor.hpp"
-#include "execute_kernel_functor_host.hpp"
+#include "stencil-composition/backend_host/execute_kernel_functor_host.hpp"
 #include "../../storage/meta_storage.hpp"
 #include "../tile.hpp"
 
@@ -63,7 +63,7 @@ namespace gridtools{
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
                 GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<functor_list_t>::value==1), "Internal Error: wrong size");
 
-                execute_kernel_functor_host<RunFunctorArgs>(local_domain, coords)();
+                GRIDPREFIX::execute_kernel_functor_host<RunFunctorArgs>(local_domain, coords)();
             }
         };
 
@@ -79,12 +79,12 @@ namespace gridtools{
         {
             GRIDTOOLS_STATIC_ASSERT(is_layout_map<Layout>::value, "wrong type for layout map");
 #ifdef CXX11_ENABLED
-            GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(),  is_tile<Tiles>::type::value ... ), "wrong type for the tiles");
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_tile<Tiles>::type::value ... ), "wrong type for the tiles");
 #else
             GRIDTOOLS_STATIC_ASSERT((is_tile<TileI>::value && is_tile<TileJ>::value), "wrong type for the tiles");
 #endif
 
-            typedef meta_storage_derived
+            typedef meta_storage
             <meta_storage_base
             <Index::value, Layout, true,
 #ifdef CXX11_ENABLED
@@ -107,7 +107,7 @@ namespace gridtools{
         struct get_tmp_storage
         {
 #ifdef CXX11_ENABLED
-            GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(),  is_tile<Tiles>::type::value ... ), "wrong type for the tiles");
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_tile<Tiles>::type::value ... ), "wrong type for the tiles");
 #else
             GRIDTOOLS_STATIC_ASSERT((is_tile<TileI>::value && is_tile<TileJ>::value), "wrong type for the tiles");
 #endif
@@ -226,7 +226,7 @@ namespace gridtools{
                     last_j = m-NBJ*BJ;
                 }
 
-                execute_kernel_functor_host<RunFunctorArgs>(local_domain, coords, first_i, first_j, last_i, last_j, bi, bj)();
+                GRIDPREFIX::execute_kernel_functor_host<RunFunctorArgs>(local_domain, coords, first_i, first_j, last_i, last_j, bi, bj)();
             }
         };
 
@@ -243,12 +243,12 @@ namespace gridtools{
         {
             GRIDTOOLS_STATIC_ASSERT(is_layout_map<Layout>::value, "wrong type for layout map");
 #ifdef CXX11_ENABLED
-            GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(),  is_tile<Tiles>::type::value ... ), "wrong type for the tiles");
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_tile<Tiles>::type::value ... ), "wrong type for the tiles");
 #else
             GRIDTOOLS_STATIC_ASSERT((is_tile<TileI>::value && is_tile<TileJ>::value), "wrong type for the tiles");
 #endif
 
-            typedef meta_storage_derived
+            typedef meta_storage
             <meta_storage_base
             <Index::value, Layout, true,
 #ifdef CXX11_ENABLED
@@ -271,7 +271,7 @@ namespace gridtools{
         struct get_tmp_storage
         {
 #ifdef CXX11_ENABLED
-            GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(),  is_tile<Tiles>::type::value ... ), "wrong type for the tiles");
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_tile<Tiles>::type::value ... ), "wrong type for the tiles");
 #else
             GRIDTOOLS_STATIC_ASSERT((is_tile<TileI>::value && is_tile<TileJ>::value), "wrong type for the tiles");
 #endif

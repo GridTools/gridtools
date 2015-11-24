@@ -1,7 +1,7 @@
 #pragma once
 
 #include <boost/timer/timer.hpp>
-#include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
 
 #ifdef USE_PAPI_WRAP
@@ -269,7 +269,6 @@ namespace positional_copy_stencil{
 
         storage_type ref(meta_,1.5,"ref");
 
-        bool success = true;
         for(uint_t i=0; i<d1; ++i) {
             for(uint_t j=0; j<d2; ++j) {
                 for(uint_t k=0; k<d3; ++k) {
@@ -278,9 +277,14 @@ namespace positional_copy_stencil{
             }
         }
 
-        verifier verif(1e-15, 0);
-        bool result = verif.verify(in, out) & verif.verify(ref, out);
-
+#ifdef CXX11_ENABLED
+        verifier verif(1e-13);
+        array<array<uint_t, 2>, 3> halos{{ {0,0}, {0,0}, {0,0} }};
+        bool result = verif.verify(ref,out, halos);
+#else
+        verifier verif(1e-13, 0);
+        bool result = verif.verify(ref,out);
+#endif
         return result;
 
     }

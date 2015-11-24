@@ -1,9 +1,9 @@
 #pragma once
 
 #include <boost/mpl/contains.hpp>
-#include "esf.hpp"
-#include "stencil-composition/accessor_metafunctions.hpp"
-#include "../common/generic_metafunctions/is_predicate.hpp"
+#include "stencil-composition/esf.hpp"
+#include "stencil-composition/independent_esf.hpp"
+#include "common/generic_metafunctions/is_predicate.hpp"
 #include "common/generic_metafunctions/copy_into_set.hpp"
 
 namespace gridtools {
@@ -87,7 +87,7 @@ struct is_written {
     template <typename Index>
     struct apply {
         typedef typename boost::mpl::if_<
-            is_plchldr<typename boost::mpl::at<typename Esf::args_t, Index>::type>,
+            is_arg<typename boost::mpl::at<typename Esf::args_t, Index>::type>,
             typename boost::mpl::if_<
                 typename is_accessor_readonly<typename boost::mpl::at<typename Esf::esf_function::arg_list, Index>::type>::type,
                 boost::false_type,
@@ -290,4 +290,8 @@ struct compute_readonly_args_indices
     >::type type;
 };
 
+template <typename T>
+struct is_esf_descriptor<independent_esf<T> > : boost::mpl::true_{};
+
 } //namespace gridtools
+

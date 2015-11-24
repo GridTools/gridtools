@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 #include "Options.hpp"
 #include "extended_4D_verify.hpp"
 

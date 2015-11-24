@@ -1,7 +1,7 @@
 #pragma once
 #include <gridtools.hpp>
 
-#include <stencil-composition/backend.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 #include <boost/fusion/include/make_vector.hpp>
 
 #include "vertical_advection_repository.hpp"
@@ -309,8 +309,14 @@ bool test(uint_t d1, uint_t d2, uint_t d3) {
     std::cout << vertical_advection->print_meter() << std::endl;
 #endif
 
-    verifier verif(1e-10, halo_size);
+#ifdef CXX11_ENABLED
+    verifier verif(1e-13);
+    array<array<uint_t, 2>, 3> halos{{ {halo_size, halo_size}, {halo_size,halo_size}, {halo_size,halo_size} }};
+    bool result = verif.verify(repository.utens_stage_ref(), repository.utens_stage(), halos);
+#else
+    verifier verif(1e-13, halo_size);
     bool result = verif.verify(repository.utens_stage_ref(), repository.utens_stage());
+#endif
 
     return result;
 }

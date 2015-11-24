@@ -8,7 +8,7 @@
 #include <boost/mpl/push_back.hpp>
 #include <boost/mpl/lambda.hpp>
 #include "common/gt_assert.hpp"
-#include "stencil-composition/make_computation.hpp"
+#include "stencil-composition/stencil-composition.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
@@ -164,13 +164,13 @@ void print_mss(MSS)
     typedef typename boost::mpl::fold<
         esf_sequence_t,
         boost::mpl::vector<>,
-        _impl::traverse_ranges<boost::mpl::_1, boost::mpl::_2>
+        recgrid::traverse_ranges<boost::mpl::_1, boost::mpl::_2>
     >::type ranges_list;
     boost::mpl::for_each<ranges_list>(print_());
 
     std::cout << std::endl;
 
-    typedef typename _impl::prefix_on_ranges<ranges_list>::type prefix_ranges;
+    typedef typename recgrid::prefix_on_ranges<ranges_list>::type prefix_ranges;
 
     // typedef typename boost::mpl::fold<
     //     ranges_list,

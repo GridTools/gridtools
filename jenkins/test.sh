@@ -14,12 +14,18 @@ else
     cp ${JENKINSPATH}/submit.kesch.slurm ${JENKINSPATH}/submit.kesch.slurm.test
     slurm_script="${JENKINSPATH}/submit.kesch.slurm.test"
     cmd="srun --ntasks=1 -K -u bash ./run_tests.sh"
-    /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm}
+    echo "replacing in ${slurm_script} command by ${cmd}"
+    /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm_script}
 
     launch_job ${slurm_script} ${maxsleep} &
     wait
-   
-    grep 'FAILED' test.out
+  
+    test -e test.out 
+    if [ $? -ne 0 ] ; then
+        # abort
+        exitError 4652 ${LINENO} "Output of test file not found"
+    fi
+    grep 'FAILED\|ERROR' test.out
     if [ $? -eq 0 ] ; then
         # echo output to stdout
         test -f test.out || exitError 6550 ${LINENO} "batch job output file missing"

@@ -4,10 +4,9 @@
   and remap the arguments to the actual positions in the iterate domain
 */
 
-
 #pragma once
 #include "iterate_domain_metafunctions.hpp"
-#include "accessor_metafunctions.hpp"
+#include "stencil-composition/accessor.hpp"
 
 namespace gridtools {
 
@@ -50,13 +49,12 @@ DISALLOW_COPY_AND_ASSIGN(iterate_domain_evaluator_base);
     typedef typename _impl::iterate_domain_evaluator_base_iterate_domain<IterateDomainEvaluatorImpl>::type iterate_domain_t;
 protected:
     const iterate_domain_t& m_iterate_domain;
-
 public:
 
     typedef typename _impl::iterate_domain_evaluator_base_esf_args_map<IterateDomainEvaluatorImpl>::type esf_args_map_t;
 
     GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<iterate_domain_t>::value), "Internal Error: wrong type");
-    typedef typename iterate_domain_local_domain<iterate_domain_t>::type local_domain_t;
+    typedef typename iterate_domain_t::esf_args_t esf_args_t;
 
 
     GT_FUNCTION

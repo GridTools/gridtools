@@ -1,6 +1,8 @@
 #pragma once
 #include "common/defs.hpp"
-#include "stencil-composition/dimension.hpp"
+#include "stencil-composition/dimension_defs.hpp"
+#include "common/generic_metafunctions/logical_and.hpp"
+#include "common/generic_metafunctions/is_variadic_pack_of.hpp"
 
 namespace gridtools {
 
@@ -224,7 +226,7 @@ struct offset_tuple<0, NDim>
     template <typename... GenericElements>
     GT_FUNCTION
     constexpr offset_tuple ( GenericElements... x) {
-        GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(),  is_dimension<GenericElements>::type::value ... ), "wrong type for the argument of an offset_tuple" );
+        GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension<GenericElements>::type::value ... ), "wrong type for the argument of an offset_tuple" );
     }
 
     //copy ctor

@@ -16,6 +16,7 @@
 #include "stencil-composition/run_functor_arguments.hpp"
 #include "common/generic_metafunctions/vector_to_map.hpp"
 #include "common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
+#include "stencil-composition/iterate_domain_fwd.hpp"
 
 namespace gridtools {
 
@@ -85,5 +86,8 @@ public:
     //associative container with all caches
     typedef typename get_cache_set<caches_t, typename IterateDomainArguments::local_domain_t>::type all_caches_t;
 };
+
+template<typename IterateDomainArguments> struct is_iterate_domain_cache<iterate_domain_cache<IterateDomainArguments> > :
+        boost::mpl::true_{};
 
 } // namespace gridtools

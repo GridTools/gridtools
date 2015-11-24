@@ -4,10 +4,7 @@
 #include <fstream>
 
 #include <gridtools.hpp>
-#include <common/defs.hpp>
-#include <stencil-composition/backend.hpp>
-#include <stencil-composition/interval.hpp>
-#include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
 #include "Options.hpp"
 
@@ -16,12 +13,6 @@
 */
 // [namespaces]
 using namespace gridtools;
-using gridtools::level;
-using gridtools::accessor;
-using gridtools::range;
-using gridtools::arg;
-using gridtools::uint_t;
-using gridtools::int_t;
 // [namespaces]
 
 // [intervals]
@@ -249,8 +240,14 @@ TEST(Laplace, test) {
         }
     }
 
-    verifier verif(1e-9, halo_size);
+#ifdef CXX11_ENABLED
+    verifier verif(1e-13);
+    array<array<uint_t, 2>, 3> halos{{ {halo_size,halo_size}, {halo_size,halo_size}, {halo_size,halo_size} }};
+    bool result = verif.verify(out, ref, halos);
+#else
+    verifier verif(1e-13, halo_size);
     bool result = verif.verify(out, ref);
+#endif
 
 #ifdef BENCHMARK
         std::cout << laplace->print_meter() << std::endl;

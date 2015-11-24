@@ -1,16 +1,7 @@
 #define BOOST_NO_CXX11_RVALUE_REFERENCES
 
-#include "stencil-composition/make_computation.hpp"
+#include "stencil-composition/stencil-composition.hpp"
 #include <boost/current_function.hpp>
-
-// #ifdef CUDA_EXAMPLE
-// #include "stencil-composition/backend_cuda.hpp"
-// #else
-// #include "stencil-composition/backend_naive.hpp"
-// #endif
-
-#include <boost/fusion/include/nview.hpp>
-#include <boost/fusion/include/make_vector.hpp>
 
 using namespace gridtools;
 using namespace enumtype;

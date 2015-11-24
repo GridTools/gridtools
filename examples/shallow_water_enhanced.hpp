@@ -4,7 +4,7 @@
 #include <stencil-composition/make_computation.hpp>
 #include <storage/parallel_storage.hpp>
 #include <storage/partitioner_trivial.hpp>
-#include <stencil-composition/backend.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 #ifdef CUDA_EXAMPLE
 #include <boundary-conditions/apply_gpu.hpp>
@@ -399,7 +399,7 @@ namespace shallow_water{
 //! [args]
 
 //! [proc_grid_dims]
-        array<int, 3> dimensions(0,0,0);
+        array<int, 3> dimensions{0,0,0};
         MPI_3D_process_grid_t<3>::dims_create(PROCS, 2, dimensions);
         dimensions[2]=1;
 //! [proc_grid_dims]
@@ -419,8 +419,8 @@ namespace shallow_water{
 //! [pattern_type]
 
 //! [partitioner]
-        array<ushort_t, 3> padding={1,1,0};
-        array<ushort_t, 3> halo={1,1,0};
+        array<ushort_t, 3> padding{1,1,0};
+        array<ushort_t, 3> halo{1,1,0};
         typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > >, pattern_type::grid_type> partitioner_t;
 
         partitioner_t part(he.comm(), halo, padding);
@@ -442,10 +442,14 @@ namespace shallow_water{
 //! [add_halo]
 
 //! [initialization_h]
+#ifdef __CUDACC__
+        sol.template set<0,0>( &bc_periodic<0,0>::droplet );//h
+#else
         if(PID==1)
             sol.template set<0,0>( &bc_periodic<0,0>::droplet );//h
         else
             sol.template set<0,0>( 1.);//h
+#endif
 //! [initialization_h]
 //! [initialization]
         sol.template set<0,1>( 0.);//u
@@ -464,7 +468,7 @@ namespace shallow_water{
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
 //! [domain_type]
         domain_type<accessor_list> domain
-            (boost::fusion::make_vector(// &tmpx, &tmpy,
+            (boost::fusion::make_vector( //&tmpx, &tmpy,
                                         &sol));
 //! [domain_type]
 
@@ -559,24 +563,27 @@ namespace shallow_water{
         bool retval=true;
 
 //! [finalize]
-#ifndef NDEBUG
-        myfile<<"############## SOLUTION ################"<<std::endl;
-        sol.print(myfile);
 
-        verifier check_result(1e-8, 0);
+
+        verifier check_result(1e-8);
+        array<array<uint_t, 2>, 3> halos{{ {0,0}, {0,0}, {0,0} }};
         shallow_water_reference<sol_type, 11, 11> reference;
         reference.setup();
         for (uint_t t=0;t < total_time; ++t)
         {
             reference.iterate();
         }
-        retval=check_result.verify_parallel(meta_, sol, reference.solution);
+        retval=check_result.verify_parallel(meta_, sol, reference.solution, halos);
+
+#ifndef NDEBUG
+        myfile<<"############## SOLUTION ################"<<std::endl;
+        sol.print(myfile);
+
         myfile<<"############## REFERENCE ################"<<std::endl;
         reference.solution.print(myfile);
 
         myfile.close();
 #endif
-
         std::cout<<"shallow water parallel test SUCCESS?= "<<retval<<std::endl;
         return retval;
 //! [main]

@@ -11,6 +11,10 @@ namespace gridtools
 struct empty_iterate_domain_cache{
     typedef boost::mpl::map0<> ij_caches_map_t;
     typedef boost::mpl::set0<> all_caches_t;
+    typedef boost::mpl::set0<> bypass_caches_set_t;
 };
+
+template<>
+struct is_iterate_domain_cache<empty_iterate_domain_cache> : boost::mpl::true_{};
 
 }

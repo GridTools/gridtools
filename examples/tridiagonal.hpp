@@ -2,7 +2,7 @@
 
 #include <gridtools.hpp>
 
-#include <stencil-composition/backend.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 #include <stencil-composition/interval.hpp>
 #include <stencil-composition/make_computation.hpp>
@@ -256,8 +256,14 @@ bool test(uint_t d1, uint_t d2, uint_t d3) {
     std::cout << solver->print_meter() << std::endl;
 #endif
 
-    verifier verif(1e-9, 0);
-    bool result = verif.verify(solution, out);
+#ifdef CXX11_ENABLED
+    verifier verif(1e-13);
+    array<array<uint_t, 2>, 3> halos{{ {0,0}, {0,0}, {0,0} }};
+    bool result = verif.verify(solution,out, halos);
+#else
+    verifier verif(1e-13, 0);
+    bool result = verif.verify(solution,out);
+#endif
 
     return result;
 }

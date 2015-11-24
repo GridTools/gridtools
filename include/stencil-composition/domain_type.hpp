@@ -23,9 +23,13 @@
 #include "storage/storage.hpp"
 #include "../storage/storage_functors.hpp"
 
+#include "common/generic_metafunctions/static_if.hpp"
+#include "common/generic_metafunctions/is_variadic_pack_of.hpp"
 #include "domain_type_impl.hpp"
 #include "../storage/metadata_set.hpp"
-#include "../common/generic_metafunctions/static_if.hpp"
+#include "stencil-composition/arg_metafunctions.hpp"
+#include "stencil-composition/arg.hpp"
+
 
 /**@file
  @brief This file contains the global list of placeholders to the storages
@@ -250,7 +254,7 @@ You have to define each arg with a unique identifier ranging from 0 to N without
             : m_storage_pointers()
             , m_metadata_set()
         {
-            GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(), is_arg_storage_pair<StorageArgs>::value ...), "wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair<StorageArgs>::value ...), "wrong type");
             assign_pointers(m_metadata_set, args...);
         }
 #endif
@@ -306,7 +310,9 @@ You have to define each arg with a unique identifier ranging from 0 to N without
 
             view_type fview(m_storage_pointers);
 
-            GRIDTOOLS_STATIC_ASSERT( boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value, "The number of arguments specified when constructing the domain_type is not the same as the number of placeholders to non-temporary storages. Double check the temporary flag in the meta_storage types.");
+            GRIDTOOLS_STATIC_ASSERT( boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value,
+                "The number of arguments specified when constructing the domain_type is not the same as the number of placeholders "
+                "to non-temporary storages. Double check the temporary flag in the meta_storage types.");
 
             typedef typename boost::mpl::fold<
                 arg_list_mpl

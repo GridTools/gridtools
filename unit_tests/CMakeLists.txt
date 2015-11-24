@@ -7,7 +7,7 @@ gridtools_add_test(test.FunctorDoMethods ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/bui
 add_executable(LoopIntervals LoopIntervals.cpp)
 gridtools_add_test(test.LoopIntervals ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/LoopIntervals")
 
-if ( ENABLE_CXX11 )
+if ( ENABLE_CXX11 AND RECTANGULAR_GRIDS)
     add_executable(test-independent test-independent.cpp)
     set_target_properties(test-independent PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
     target_link_libraries(test-independent ${exe_LIBS})
@@ -15,36 +15,32 @@ if ( ENABLE_CXX11 )
 
 endif()
 
-if (GTEST_FOUND)
-    set(COMMON_TESTS
-        tests.cpp
-        test_domain_indices.cpp
-        boundary_conditions_test.cpp
-    )
-    set(CXX11_TESTS test_local_domain.cpp test-assign-placeholders.cpp test_data_fields.cpp test_integer_sequence.cpp)
+set(COMMON_TESTS
+    test_domain_indices.cpp
+    boundary_conditions_test.cpp
+)
 
-    if ( ENABLE_CXX11 )
-      set(CXX11_TESTS ${CXX11_TESTS} stencil-composition/test_staggered_keyword.cpp)
-      add_executable(tests ${CXX11_TESTS} ${COMMON_TESTS})
-    else()
-      add_executable(tests ${COMMON_TESTS})
-    endif()
-  # include boost
-  include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
-  link_directories( ${Boost_LIBRARY_DIRS} )
+if(RECTANGULAR_GRIDS)
+    set(COMMON_TESTS ${COMMON_TESTS} tests.cpp)
+endif(RECTANGULAR_GRIDS)
 
-  set_target_properties(tests PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+add_executable(tests ${COMMON_TESTS})
+# include boost
+include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
+link_directories( ${Boost_LIBRARY_DIRS} )
 
-  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+set_target_properties(tests PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     target_link_libraries(tests ${GTEST_BOTH_LIBRARIES} gcl ${exe_LIBS})
-  else()
+else()
     target_link_libraries(tests ${GTEST_BOTH_LIBRARIES} gcl -lpthread ${exe_LIBS})
-  endif()
+endif()
 
 
-  gridtools_add_test(test.tests ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/tests")
+gridtools_add_test(test.tests ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/tests")
 
-  if (CUDA_FOUND)
+if (CUDA_FOUND)
     cuda_add_executable( tests_gpu
       tests.cu
       test_domain.cu
@@ -66,32 +62,33 @@ if (GTEST_FOUND)
     set(ENV{BIN_DIR} ${CMAKE_BINARY_DIR}/build)
     set(ENV{SRC_DIR} ${CMAKE_SOURCE_DIR})
 
-if(GNU_COVERAGE)
-  if(GCOVR_PATH)
-    set( GCOVR_PATH ${GCOVR_PATH}/ )
-  endif( GCOVR_PATH )
-  add_custom_command(TARGET tests
-    POST_BUILD
-    COMMAND echo "running the coverage sampling"
-    COMMAND $ENV{BIN_DIR}/tests
-    COMMAND ${GCOVR_PATH}gcovr  -r $ENV{SRC_DIR}
-    COMMAND ${GCOVR_PATH}gcovr  --branches -r $ENV{SRC_DIR}
-    )
-endif()
+    if(GNU_COVERAGE)
+      if(GCOVR_PATH)
+        set( GCOVR_PATH ${GCOVR_PATH}/ )
+      endif( GCOVR_PATH )
+      add_custom_command(TARGET tests
+        POST_BUILD
+        COMMAND echo "running the coverage sampling"
+        COMMAND $ENV{BIN_DIR}/tests
+        COMMAND ${GCOVR_PATH}gcovr  -r $ENV{SRC_DIR}
+        COMMAND ${GCOVR_PATH}gcovr  --branches -r $ENV{SRC_DIR}
+      )
+    endif()
 
-  endif()
 endif()
-
-add_executable(CopyStencil external_ptr_test/CopyStencil.cpp)
-set_target_properties(CopyStencil PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
-target_link_libraries(CopyStencil ${exe_LIBS})
 
 if (CUDA_FOUND)
    cuda_add_executable( test_cuda_storage test_cuda_storage_exe.cu )
    target_link_libraries(test_cuda_storage ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
 endif()
 
-add_subdirectory( communication )
+if(RECTANGULAR_GRIDS)
+    add_executable(CopyStencil external_ptr_test/CopyStencil.cpp)
+    set_target_properties(CopyStencil PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+    target_link_libraries(CopyStencil ${exe_LIBS})
+
+    add_subdirectory( communication )
+endif(RECTANGULAR_GRIDS)
 add_subdirectory( common )
 add_subdirectory( stencil-composition )
 add_subdirectory( storage )
