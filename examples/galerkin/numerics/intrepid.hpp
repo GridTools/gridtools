@@ -58,25 +58,24 @@ namespace intrepid{
         cub_points_storage_t // const
         & cub_points()
         {return m_cub_points_s;}
-
         weights_storage_t& cub_weights()// const
             {return m_cub_weights_s;}
         grad_storage_t& grad()// const
             {
-                //If this assertion fails most probably you have not called
-                //compute with te OPERATOR_GRAD flag
-                assert(m_grad_at_cub_points_s.get());
-                return *m_grad_at_cub_points_s;
+	         //If this assertion fails most probably you have not called
+	         //compute with the OPERATOR_GRAD flag
+	         assert(m_grad_at_cub_points_s.get());
+	         return *m_grad_at_cub_points_s;
             }
 
         basis_function_storage_t & val()// const
             {
-                //If this assertion fails most probably you have not called
-                //compute with te OPERATOR_VALUE flag
-                assert(m_phi_at_cub_points_s.get());
-                return *m_phi_at_cub_points_s;
+	         //If this assertion fails most probably you have not called
+	         //compute with the OPERATOR_VALUE flag
+	         assert(m_phi_at_cub_points_s.get());
+	         return *m_phi_at_cub_points_s;
             }
-
+      
         discretization() :
             m_cub_points_s_info(cub::numCubPoints(), fe::spaceDim,1)
             , m_cub_weights_s_info(cub::numCubPoints(),1,1)
@@ -127,11 +126,11 @@ namespace intrepid{
                 // evaluate grad operator at cub points
                 fe::hexBasis().getValues(grad_at_cub_points_i, cub_points_i, Intrepid::OPERATOR_GRAD);
 
-                for (uint_t q=0; q<cub::numCubPoints(); ++q)
-                    for (uint_t j=0; j<fe::spaceDim; ++j)
-                        for (uint_t i=0; i<fe::basisCardinality; ++i)
-                            for (uint_t j=0; j<fe::spaceDim; ++j)
+                for (uint_t i=0; i<fe::basisCardinality; ++i)
+                	for (uint_t q=0; q<cub::numCubPoints(); ++q)
+                		for (uint_t j=0; j<fe::spaceDim; ++j)
                                 (*m_grad_at_cub_points_s)(i,q,j)=grad_at_cub_points_i(i,q,j);
+
                 break;
             }
 
@@ -221,7 +220,9 @@ namespace intrepid{
 #ifdef REORDER
                 // fill in the reorder vector such that the larger numbers correspond to larger strides
                 for(uint_t i=0; i<geo_map::basisCardinality; ++i){
-                    to_reorder[i]=(m_local_grid_s(i,geo_map::layout_t::template at_<0>::value)+2)*4+(m_local_grid_s(i,geo_map::layout_t::template at_<1>::value)+2)*2+(m_local_grid_s(i,geo_map::layout_t::template at_<2>::value)+2);
+		    to_reorder[i]=(m_local_grid_s(i,geo_map::layout_t::template at_<0>::value*(geo_map::spaceDim-2))+2)*4 +
+		      (m_local_grid_s(i,geo_map::layout_t::template at_<1>::value)+2)*2 +
+		      (m_local_grid_s(i,geo_map::layout_t::template at_<2>::value)+2);
                     permutations[i]=i;
                 }
 
@@ -236,15 +237,13 @@ namespace intrepid{
 
                 //applying the permutation to the grid
                 for(uint_t i=0; i<D; ++i){//few redundant loops
+                	for(uint_t j=0; j<geo_map::spaceDim; ++j)
                     {
-                        m_local_grid_reordered_s(i, 0, 0)=m_local_grid_s(permutations[i],0,0);
-                        m_local_grid_reordered_s(i, 1, 0)=m_local_grid_s(permutations[i],1,0);
-                        m_local_grid_reordered_s(i, 2, 0)=m_local_grid_s(permutations[i],2,0);
+                        m_local_grid_reordered_s(i, j, 0)=m_local_grid_s(permutations[i],j,0);
                     }
                 }
                 //! [reorder]
 #endif
-
                 super::compute(Intrepid::OPERATOR_GRAD);
             }
 
