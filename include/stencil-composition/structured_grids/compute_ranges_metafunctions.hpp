@@ -3,7 +3,7 @@
 
 namespace gridtools {
 
-    namespace recgrid {
+    namespace structgrid {
 
         template <typename FunctorDesc>
         struct extract_ranges {

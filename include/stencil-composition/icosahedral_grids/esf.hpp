@@ -2,7 +2,7 @@
 #include "common/generic_metafunctions/is_sequence_of.hpp"
 #include "stencil-composition/arg.hpp"
 #include "stencil-composition/esf_fwd.hpp"
-#include "stencil-composition/other_grids/grid.hpp"
+#include "stencil-composition/icosahedral_grids/grid.hpp"
 
 namespace gridtools {
 

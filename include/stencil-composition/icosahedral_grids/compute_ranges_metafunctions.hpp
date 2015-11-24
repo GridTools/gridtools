@@ -2,7 +2,7 @@
 
 namespace gridtools {
 
-    namespace othergrid {
+    namespace icosgrid {
 
         template<typename MssDescriptor>
         struct mss_compute_range_sizes

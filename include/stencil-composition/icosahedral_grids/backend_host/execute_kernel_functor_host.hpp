@@ -1,10 +1,10 @@
 #pragma once
 #include "stencil-composition/backend_host/iterate_domain_host.hpp"
-#include "stencil-composition/other_grids/esf_metafunctions.hpp"
+#include "stencil-composition/icosahedral_grids/esf_metafunctions.hpp"
 
 namespace gridtools {
 
-    namespace othergrid {
+    namespace icosgrid {
 
         /**
         * @brief main functor that setups the CUDA kernel for a MSS and launchs it
@@ -142,5 +142,5 @@ namespace gridtools {
             const gridtools::array<const uint_t, 2> m_block_id;
         };
 
-    } // namespace othergrid
+    } // namespace icosgrid
 } //namespace gridtools

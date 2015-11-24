@@ -1,7 +1,7 @@
 #pragma once
 
-#ifdef RECTANGULAR_GRIDS
-    #include "stencil-composition/rectangular_grids/coordinates.hpp"
+#ifdef STRUCTURED_GRIDS
+    #include "stencil-composition/structured_grids/coordinates.hpp"
 #else
-    #include "stencil-composition/other_grids/coordinates.hpp"
+    #include "stencil-composition/icosahedral_grids/coordinates.hpp"
 #endif

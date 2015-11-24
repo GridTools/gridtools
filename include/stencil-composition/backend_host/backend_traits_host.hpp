@@ -189,7 +189,7 @@ namespace gridtools{
         struct select_iterate_domain {
             GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Internal Error: wrong type");
             //indirection in order to avoid instantiation of both types of the eval_if
-#ifdef RECTANGULAR_GRIDS
+#ifdef STRUCTURED_GRIDS
             template<typename _IterateDomainArguments>
             struct select_positional_iterate_domain
             {
@@ -205,7 +205,7 @@ namespace gridtools{
 
             typedef typename boost::mpl::eval_if<
                 local_domain_is_stateful<typename IterateDomainArguments::local_domain_t>,
-#ifdef RECTANGULAR_GRIDS
+#ifdef STRUCTURED_GRIDS
                 select_positional_iterate_domain<IterateDomainArguments>,
 #else
                 select_basic_iterate_domain<IterateDomainArguments>,
