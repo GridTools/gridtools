@@ -36,7 +36,7 @@ namespace gridtools{
     namespace enumtype{
         //! [enums]
         enum Basis {Lagrange, RT, Nedelec, BSplines};
-        enum Shape {Hexa, Quad, Line, Point};
+        enum Shape {Hexa, Quad, Tri, Line, Point};
         //! [enums]
     }
 
@@ -86,6 +86,19 @@ namespace gridtools{
         static type instance(){return type();}
     };
 
+    template<ushort_t order>
+    struct basis_select<order, enumtype::Lagrange, enumtype::Tri>{
+        using type=Intrepid::Basis_HGRAD_TRI_Cn_FEM<double, Intrepid::FieldContainer<double> >;
+        static type instance(){return type(order, Intrepid::POINTTYPE_EQUISPACED);}
+    };
+
+    template<>
+    struct basis_select<1, enumtype::Lagrange, enumtype::Tri>{
+        using type=Intrepid::Basis_HGRAD_TRI_C1_FEM<double, Intrepid::FieldContainer<double> >;
+        static type instance(){return type();}
+    };
+
+
     template <ushort_t order, enumtype::Shape shape>
     struct shape_select;
 
@@ -100,6 +113,13 @@ namespace gridtools{
     {
         using type=shards::Quadrilateral<>;
     };
+
+    template <ushort_t order>
+    struct shape_select<order, enumtype::Tri>
+    {
+        using type=shards::Triangle<>;
+    };
+
 
     template <ushort_t order>
     struct shape_select<order, enumtype::Line>
@@ -268,6 +288,13 @@ namespace gridtools{
     };
 
     template <>
+    struct shape_property<enumtype::Tri>{
+        static const ushort_t dimension=2;
+        static const ushort_t n_sub_cells=3;
+        static const enumtype::Shape boundary=enumtype::Line;
+    };
+
+    template <>
     struct shape_property<enumtype::Line>{
         static const ushort_t dimension=1;
         static const ushort_t n_sub_cells=2;
@@ -284,6 +311,7 @@ namespace gridtools{
 
     const ushort_t shape_property<enumtype::Quad>::dimension;
 
+    const ushort_t shape_property<enumtype::Tri>::dimension;
 
     template <typename FE>
     struct boundary_shape;
@@ -293,6 +321,9 @@ namespace gridtools{
 
     template <uint_t Order, enumtype::Basis BasisType, template<ushort_t O, enumtype::Basis E, enumtype::Shape S > class FE>
     struct boundary_shape<FE<Order, BasisType, enumtype::Quad> > : public FE<Order, BasisType, enumtype::Line>{};
+
+    template <uint_t Order, enumtype::Basis BasisType, template<ushort_t O, enumtype::Basis E, enumtype::Shape S > class FE>
+    struct boundary_shape<FE<Order, BasisType, enumtype::Tri> > : public FE<Order, BasisType, enumtype::Line>{};
 
     template <uint_t Order, enumtype::Basis BasisType, template<ushort_t O, enumtype::Basis E, enumtype::Shape S > class FE>
     struct boundary_shape<FE<Order, BasisType, enumtype::Line> > : public FE<Order, BasisType, enumtype::Point>{};
