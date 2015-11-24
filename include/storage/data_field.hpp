@@ -291,6 +291,12 @@ namespace gridtools{
         {
             GRIDTOOLS_STATIC_ASSERT( (snapshot < _impl::access<n_width-(field_dim)-1, traits>::type::n_width), "trying to get a snapshot out of bound" );
             GRIDTOOLS_STATIC_ASSERT( (field_dim < traits::n_dimensions), "trying to get a field dimension out of bound" );
+#ifdef PEDANTIC
+            GRIDTOOLS_STATIC_ASSERT(snapshot < super::super::field_dimensions, "nasty error");
+            GRIDTOOLS_STATIC_ASSERT((_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot < super::super::field_dimensions), "nasty error");
+#endif
+            printf("in storage %s\n", this->m_name);
+            printf("snapshot: %d, dimension %d\n", snapshot, field_dim);
             return super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot];
         }
 
@@ -299,6 +305,12 @@ namespace gridtools{
         {
             GRIDTOOLS_STATIC_ASSERT( (snapshot < _impl::access<n_width-(field_dim)-1, traits>::type::n_width), "trying to get a snapshot out of bound" );
             GRIDTOOLS_STATIC_ASSERT( (field_dim < traits::n_dimensions), "trying to get a field dimension out of bound" );
+#ifdef PEDANTIC
+            GRIDTOOLS_STATIC_ASSERT(snapshot < super::super::field_dimensions, "nasty error");
+            GRIDTOOLS_STATIC_ASSERT((_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot < super::super::field_dimensions), "nasty error");
+#endif
+            printf("in storage %s\n", this->m_name);
+            printf("snapshot: %d, dimension %d\n", snapshot, field_dim);
             return super::m_fields[_impl::access<n_width-(field_dim), traits>::type::n_fields + snapshot];
         }
 

@@ -442,10 +442,14 @@ namespace shallow_water{
 //! [add_halo]
 
 //! [initialization_h]
+#ifdef __CUDACC__
+        sol.template set<0,0>( &bc_periodic<0,0>::droplet );//h
+#else
         if(PID==1)
             sol.template set<0,0>( &bc_periodic<0,0>::droplet );//h
         else
             sol.template set<0,0>( 1.);//h
+#endif
 //! [initialization_h]
 //! [initialization]
         sol.template set<0,1>( 0.);//u
@@ -464,7 +468,7 @@ namespace shallow_water{
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
 //! [domain_type]
         domain_type<accessor_list> domain
-            (boost::fusion::make_vector(// &tmpx, &tmpy,
+            (boost::fusion::make_vector( //&tmpx, &tmpy,
                                         &sol));
 //! [domain_type]
 
@@ -570,7 +574,7 @@ namespace shallow_water{
             reference.iterate();
         }
         retval=check_result.verify_parallel(meta_, sol, reference.solution, halos);
- 
+
 #ifndef NDEBUG
         myfile<<"############## SOLUTION ################"<<std::endl;
         sol.print(myfile);
