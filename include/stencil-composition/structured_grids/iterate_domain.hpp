@@ -273,15 +273,30 @@ namespace gridtools {
         GT_FUNCTION
         void get_index(array<int_t, N_META_STORAGES>& index) const
         {
-            set_index_recur< N_META_STORAGES-1>::set(m_index, index);
+            for(int_t i=0; i < N_META_STORAGES; ++i)
+            {
+                index[i] = m_index[i];
+            }
         }
 
         /**@brief method for setting the index array */
-        template <typename Input>
+        template <typename Value>
         GT_FUNCTION
-        void set_index(Input const& index)
+        void set_index(array<Value, N_META_STORAGES> const& index)
         {
-            set_index_recur< N_META_STORAGES-1>::set( index, m_index);
+            for(int_t i=0; i < N_META_STORAGES; ++i)
+            {
+                m_index[i] = index[i];
+            }
+        }
+
+        GT_FUNCTION
+        void set_index(const int index)
+        {
+            for(int_t i=0; i < N_META_STORAGES; ++i)
+            {
+                m_index[i] = index;
+            }
         }
 
         /**@brief method for incrementing by 1 the index when moving forward along the given direction
@@ -664,7 +679,7 @@ namespace gridtools {
 
         template <ushort_t Coordinate>
         GT_FUNCTION
-        void reset_index(uint_t const& lowerbound=0)
+        void reset_positional_index(uint_t const& lowerbound=0)
         {
             if (Coordinate==0) {
                 m_i = lowerbound;

@@ -456,7 +456,10 @@ public:
     GT_FUNCTION
     void get_index(array<int_t, N_META_STORAGES>& index) const
     {
-        set_index_recur< N_META_STORAGES-1>::set(m_index, index);
+        for(int_t i=0; i < N_META_STORAGES; ++i)
+        {
+            index[i] = m_index[i];
+        }
     }
 
     /**@brief getter for the index array */
@@ -467,12 +470,23 @@ public:
     }
 
     /**@brief method for setting the index array */
-    //TODO no need for an template parameter here
-    template <typename Input>
+    template<typename Value>
     GT_FUNCTION
-    void set_index(Input const& index)
+    void set_index(array<Value, N_META_STORAGES> const& index)
     {
-        set_index_recur< N_META_STORAGES-1>::set( index, m_index);
+        for(int_t i=0; i < N_META_STORAGES; ++i)
+        {
+            m_index[i] = index[i];
+        }
+    }
+
+    GT_FUNCTION
+    void set_index(int index)
+    {
+        for(int_t i=0; i < N_META_STORAGES; ++i)
+        {
+            m_index[i] = index;
+        }
     }
 
     GT_FUNCTION
