@@ -571,14 +571,14 @@ public:
         //the following assert fails when an out of bound access is observed, i.e. either one of
         //i+offset_i or j+offset_j or k+offset_k is too large.
         //Most probably this is due to you specifying a positive offset which is larger than expected,
-        //or maybe you did a mistake when specifying the ranges in the placehoders definition
+        //or maybe you did a mistake when specifying the extends in the placehoders definition
         assert(metadata_->size() >  metadata_->index(m_grid_position) );
 
         //the following assert fails when an out of bound access is observed,
         //i.e. when some offset is negative and either one of
         //i+offset_i or j+offset_j or k+offset_k is too small.
         //Most probably this is due to you specifying a negative offset which is
-        //smaller than expected, or maybe you did a mistake when specifying the ranges
+        //smaller than expected, or maybe you did a mistake when specifying the extends
         //in the placehoders definition.
         // If you are running a parallel simulation another common reason for this to happen is
         // the definition of an halo region which is too small in one direction

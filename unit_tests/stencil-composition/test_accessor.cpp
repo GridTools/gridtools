@@ -9,9 +9,9 @@ TEST(accessor, copy_const) {
     // using namespace gridtools;
 //TODOCOSUNA not working due to problems with the copy ctor of the accessors
 
-//    typedef accessor<0, range<-1,0,0,0>, 3> accessor_t;
-//    accessor<0, range<-1,0,0,0>, 3> in(1,2,3);
-//    accessor<1, range<-1,0,0,0>, 3> out(in);
+//    typedef accessor<0, extend<-1,0,0,0>, 3> accessor_t;
+//    accessor<0, extend<-1,0,0,0>, 3> in(1,2,3);
+//    accessor<1, extend<-1,0,0,0>, 3> out(in);
 //
 //    ASSERT_TRUE(in.get<0>() == 3 && out.get<0>()==3);
 //    ASSERT_TRUE(in.get<1>() == 2 && out.get<1>()==2);

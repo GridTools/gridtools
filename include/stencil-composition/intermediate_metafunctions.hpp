@@ -58,10 +58,10 @@ namespace gridtools {
     };
 
     template<typename Intermediate>
-    struct intermediate_range_sizes
+    struct intermediate_extend_sizes
     {
         GRIDTOOLS_STATIC_ASSERT((is_intermediate<Intermediate>::value), "Internal Error: wrong type");
-        typedef typename Intermediate::range_sizes_t type;
+        typedef typename Intermediate::extend_sizes_t type;
     };
 
     template<typename T> struct intermediate_layout_type;

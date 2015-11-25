@@ -9,7 +9,7 @@
 
 using gridtools::level;
 using gridtools::accessor;
-using gridtools::range;
+using gridtools::extend;
 using gridtools::arg;
 
 using namespace gridtools;
@@ -30,7 +30,7 @@ namespace copy_stencil{
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
 
-        typedef const accessor<0, enumtype::inout, range<0,0,0,0>, 4> in;
+        typedef const accessor<0, enumtype::inout, extend<0,0,0,0>, 4> in;
         typedef boost::mpl::vector<in> arg_list;
 
         template <typename Evaluation>

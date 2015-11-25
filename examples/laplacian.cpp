@@ -39,11 +39,11 @@ struct lap_function {
     /**
        @brief placeholder for the output field, index 0. accessor contains a vector of 3 offsets and defines a plus method summing values to the offsets
     */
-    typedef accessor<0, enumtype::inout, range<-1, 1, -1, 1>, 3 > out;
+    typedef accessor<0, enumtype::inout, extend<-1, 1, -1, 1>, 3 > out;
 /**
        @brief  placeholder for the input field, index 1
     */
-    typedef accessor<1, enumtype::in, range<-1, 1, -1, 1>, 3 > in;
+    typedef accessor<1, enumtype::in, extend<-1, 1, -1, 1>, 3 > in;
     /**
        @brief MPL vector of the out and in types
     */
@@ -200,7 +200,7 @@ TEST(Laplace, test) {
 // [ready_steady_run_finalize]
 /**
    @brief This method allocates on the heap the temporary variables
-   this method calls heap_allocated_temps::prepare_temporaries(...). It allocates the memory for the list of ranges defined in the temporary placeholders (none).
+   this method calls heap_allocated_temps::prepare_temporaries(...). It allocates the memory for the list of extends defined in the temporary placeholders (none).
  */
     laplace->ready();
 

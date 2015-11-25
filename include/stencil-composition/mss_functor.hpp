@@ -68,8 +68,8 @@ namespace gridtools {
             typedef typename mss_components_t::functors_list_t functors_list_t;
             // sequence of esf descriptors contained in this mss
             typedef typename mss_components_t::linear_esf_t esf_sequence_t;
-            // computed range sizes to know where to compute functot at<i>
-            typedef typename mss_components_t::range_sizes_t range_sizes;
+            // computed extend sizes to know where to compute functot at<i>
+            typedef typename mss_components_t::extend_sizes_t extend_sizes;
             // Map between interval and actual arguments to pass to Do methods
             typedef typename mss_functor_do_method_lookup_maps<mss_components_t, Grid>::type FunctorsMap;
 
@@ -86,7 +86,7 @@ namespace gridtools {
                 local_domain_esf_args_map_t,
                 oriented_loop_intervals_t,
                 FunctorsMap,
-                range_sizes,
+                extend_sizes,
                 local_domain_t,
                 typename mss_components_t::cache_sequence_t,
                 Grid,

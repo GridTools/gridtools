@@ -113,32 +113,32 @@ namespace gridtools {
 
     /**@brief Implementation of introspection
 
-     returning true when the template functor has a type alias called 'xrange'.
-     This type defines a range used in order to arbitrarily extend/shrink the loop bounds
+     returning true when the template functor has a type alias called 'xextend'.
+     This type defines a extend used in order to arbitrarily extend/shrink the loop bounds
      for the current functor at compile-time.
      NOTE: it does not work yet for the blocked strategy. This because in that case it is not trivial
      to modify the loop bounds with 'functor' granularity. Further thinking-refactoring needed for that case
     */
-    HAS_TYPE_SFINAE(xrange, has_xrange, get_xrange)
+    HAS_TYPE_SFINAE(xextend, has_xextend, get_xextend)
 
     /**@brief Implementation of introspection
 
-     returning true when the template functor has a type alias called 'xrange'.
-     This type defines a range used in order to arbitrarily extend/shrink the loop bounds
+     returning true when the template functor has a type alias called 'xextend'.
+     This type defines a extend used in order to arbitrarily extend/shrink the loop bounds
      for the current functor at compile-time.
      NOTE: it does not work yet for the blocked strategy. This because in that case it is not trivial
      to modify the loop bounds with 'functor' granularity. Further thinking-refactoring needed for that case
     */
-    HAS_TYPE_SFINAE(xrange_subdomain, has_xrange_subdomain, get_xrange_subdomain)
+    HAS_TYPE_SFINAE(xextend_subdomain, has_xextend_subdomain, get_xextend_subdomain)
 
 
     /*use with eval_if as follows*/
-    // typedef typename boost::mpl::eval_if_c<has_xrange<functor_type>::type::value
-    //                                        , get_xrange< functor_type >
-    //                                        , boost::mpl::identity<range<0,0,0> > >::type new_range_t;
+    // typedef typename boost::mpl::eval_if_c<has_xextend<functor_type>::type::value
+    //                                        , get_xextend< functor_type >
+    //                                        , boost::mpl::identity<extend<0,0,0> > >::type new_extend_t;
 
-    // typedef typename boost::mpl::eval_if_c<has_xrange_subdomain<functor_type>::type::value
-    //                                        , get_xrange_subdomain< functor_type >
-    //                                        , boost::mpl::identity<range<0,0,0> > >::type xrange_subdomain_t;
+    // typedef typename boost::mpl::eval_if_c<has_xextend_subdomain<functor_type>::type::value
+    //                                        , get_xextend_subdomain< functor_type >
+    //                                        , boost::mpl::identity<extend<0,0,0> > >::type xextend_subdomain_t;
 
 }

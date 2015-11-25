@@ -14,7 +14,7 @@
 
 using gridtools::level;
 using gridtools::accessor;
-using gridtools::range;
+using gridtools::extend;
 using gridtools::arg;
 
 using namespace gridtools;
@@ -32,7 +32,7 @@ typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 template<typename T>
 struct u_forward_function {
     typedef accessor<0> utens_stage;
-    typedef accessor<1, enumtype::in, range<0,1, 0, 0> > wcon;
+    typedef accessor<1, enumtype::in, extend<0,1, 0, 0> > wcon;
     typedef accessor<2> u_stage;
     typedef accessor<3> u_pos;
     typedef accessor<4> utens;

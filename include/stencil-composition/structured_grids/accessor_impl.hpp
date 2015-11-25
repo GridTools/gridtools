@@ -13,7 +13,7 @@
 #include "storage/storage_metafunctions.hpp"
 #include "storage/storage.hpp"
 #include "common/layout_map.hpp"
-#include "stencil-composition/range.hpp"
+#include "stencil-composition/extend.hpp"
 
 #ifdef CXX11_ENABLED
 #include "stencil-composition/expressions.hpp"
@@ -32,9 +32,9 @@ namespace gridtools {
     struct arg;
 
     /**
-     * @brief Type to be used in elementary stencil functions to specify argument mapping and ranges
+     * @brief Type to be used in elementary stencil functions to specify argument mapping and extends
      *
-     One accessor consists substantially of an array of offsets (runtime values), a range and an index (copmpile-time constants). The latter is used to distinguish the types of two different accessors,
+     One accessor consists substantially of an array of offsets (runtime values), a extend and an index (copmpile-time constants). The latter is used to distinguish the types of two different accessors,
      while the offsets are used to calculate the final memory address to be accessed by the stencil in \ref gridtools::iterate_domain.
      * The class also provides the interface for accessing data in the function body.
      The interfaces available to specify the offset in each dimension are covered in the following example, supposing that we have to specify the offsets of a 3D field V:
@@ -48,22 +48,22 @@ namespace gridtools {
      \endverbatim
      *
      * @tparam I Index of the argument in the function argument list
-     * @tparam Range Bounds over which the function access the argument
+     * @tparam Extend Bounds over which the function access the argument
      */
-    template <uint_t I, enumtype::intend Intend, typename Range, ushort_t Dim >
+    template <uint_t I, enumtype::intend Intend, typename Extend, ushort_t Dim >
     struct accessor_base  {
 
         //typedef useful when unnecessary indirections are used
-        typedef accessor_base<I, Intend, Range, Dim> type;
+        typedef accessor_base<I, Intend, Extend, Dim> type;
         template <uint_t II, enumtype::intend It, typename R, ushort_t D>
         friend std::ostream& operator<<(std::ostream& s, accessor_base<II,It,R,D> const& x);
 
-        typedef accessor_base<I, Intend, Range, Dim> base_t;
+        typedef accessor_base<I, Intend, Extend, Dim> base_t;
         static const ushort_t n_dim=Dim;
 
         typedef static_uint<I> index_type;
         typedef enumtype::enum_type<enumtype::intend, Intend> intend_t;
-        typedef Range range_type;
+        typedef Extend extend_type;
 
 
         /**@brief Default constructor
@@ -79,7 +79,7 @@ namespace gridtools {
         //move ctor from another accessor_base with different index
         template<uint_t OtherIndex>
         GT_FUNCTION
-        constexpr accessor_base(accessor_base<OtherIndex, Intend, Range, Dim>&& other) :
+        constexpr accessor_base(accessor_base<OtherIndex, Intend, Extend, Dim>&& other) :
             m_offsets(other.offsets()) {}
 #endif
         //copy ctor
@@ -89,7 +89,7 @@ namespace gridtools {
         //copy ctor from another accessor_base with different index
         template<uint_t OtherIndex>
         GT_FUNCTION
-        constexpr accessor_base(const accessor_base<OtherIndex, Intend, Range, Dim> & other) :
+        constexpr accessor_base(const accessor_base<OtherIndex, Intend, Extend, Dim> & other) :
             m_offsets(other.offsets()){}
 
         //ctor with one argument have to provide specific arguments in order to avoid ambiguous instantiation
@@ -111,7 +111,7 @@ namespace gridtools {
         GT_FUNCTION
         constexpr accessor_base ( Whatever... x) : m_offsets( x...)
         {
-            GRIDTOOLS_STATIC_ASSERT(sizeof...(x)<=n_dim, "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions of the storage. Check that you are not accessing a non existing dimension, or increase the dimension D of the accessor (accessor<Id, range, D>)");
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(x)<=n_dim, "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions of the storage. Check that you are not accessing a non existing dimension, or increase the dimension D of the accessor (accessor<Id, extend, D>)");
         }
 #else
         template<typename X, typename Y, typename Z, typename T>
@@ -130,7 +130,7 @@ namespace gridtools {
 #endif
 
         static  void info() {
-            std::cout << "Arg_type storage with index " << I << " and range " << Range() << " ";
+            std::cout << "Arg_type storage with index " << I << " and extend " << Extend() << " ";
         }
 
         template<short_t Idx>

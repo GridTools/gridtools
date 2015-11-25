@@ -11,12 +11,12 @@
 namespace gridtools {
 
     /**
-     * Class to specify access ranges for stencil functions
+     * Class to specify access extends for stencil functions
      */
     template <int_t IMinus=0, int_t IPlus=0,
               int_t JMinus=0, int_t JPlus=0,
               int_t KMinus=0, int_t KPlus=0>
-    struct range {
+    struct extend {
 #ifndef CXX11_ENABLED
         typedef boost::mpl::int_<IMinus> iminus;
         typedef boost::mpl::int_<IPlus>  iplus;
@@ -39,7 +39,7 @@ namespace gridtools {
 
 #ifdef CXX11_ENABLED
     template <int_t ... Grid>
-    struct staggered : public range<Grid ...> {};
+    struct staggered : public extend<Grid ...> {};
 
     template <int_t ... Grid>
     struct is_staggered<staggered<Grid ...> > : public boost::true_type {};
@@ -49,7 +49,7 @@ namespace gridtools {
     template <int_t Coord1Minus, int_t Coord1Plus,
               int_t Coord2Minus, int_t Coord2Plus,
               int_t Coord3Minus=0, int_t Coord3Plus=0>
-    struct staggered : public range<Coord1Minus, Coord1Plus,
+    struct staggered : public extend<Coord1Minus, Coord1Plus,
                                     Coord2Minus, Coord2Plus,
                                     Coord3Minus, Coord3Plus>
     {};
@@ -63,14 +63,14 @@ namespace gridtools {
                         > : public boost::true_type {};
 #endif
     /**
-     * Output operator for ranges - for debug purposes
+     * Output operator for extends - for debug purposes
      *
      * @param s The ostream
-     * @param n/a Arguemnt to deduce range type
+     * @param n/a Arguemnt to deduce extend type
      * @return The ostream
      */
     template <int_t I1, int_t I2, int_t I3, int_t I4, int_t I5, int_t I6>
-    std::ostream& operator<<(std::ostream &s, range<I1,I2,I3,I4,I5,I6>) {
+    std::ostream& operator<<(std::ostream &s, extend<I1,I2,I3,I4,I5,I6>) {
         return s << "["
                  << I1 << ", "
                  << I2 << ", "
@@ -81,41 +81,41 @@ namespace gridtools {
     }
 
     /**
-     * Metafunction to check if a type is a range
+     * Metafunction to check if a type is a extend
      */
     template <typename T>
-    struct is_range
+    struct is_extend
       : boost::false_type
     {};
 
     /**
-     * Metafunction to check if a type is a range - Specialization yielding true
+     * Metafunction to check if a type is a extend - Specialization yielding true
      */
     template <int_t I, int_t J, int_t K, int_t L, int_t M, int_t N>
-    struct is_range<range<I,J,K,L,M,N> >
+    struct is_extend<extend<I,J,K,L,M,N> >
       : boost::true_type
     {};
 
 
     /**
-     * Metafunction to check if a type is a range - Specialization yielding true
+     * Metafunction to check if a type is a extend - Specialization yielding true
      */
     template <typename T>
-    struct is_range<const T >
-        : is_range<T>
+    struct is_extend<const T >
+        : is_extend<T>
     {};
 
     template<typename T> struct undef_t;
     /**
-     * Metafunction taking two ranges and yielding a range containing them
+     * Metafunction taking two extends and yielding a extend containing them
      */
     template <typename Range1,
               typename Range2>
-    struct enclosing_range {
-        BOOST_MPL_ASSERT((is_range<Range1>));
-        BOOST_MPL_ASSERT((is_range<Range2>));
+    struct enclosing_extend {
+        BOOST_MPL_ASSERT((is_extend<Range1>));
+        BOOST_MPL_ASSERT((is_extend<Range2>));
 
-        typedef range<boost::mpl::min<typename Range1::iminus, typename Range2::iminus>::type::value,
+        typedef extend<boost::mpl::min<typename Range1::iminus, typename Range2::iminus>::type::value,
                       boost::mpl::max<typename Range1::iplus,  typename Range2::iplus>::type::value,
                       boost::mpl::min<typename Range1::jminus, typename Range2::jminus>::type::value,
                       boost::mpl::max<typename Range1::jplus,  typename Range2::jplus>::type::value,
@@ -125,15 +125,15 @@ namespace gridtools {
     };
 
     /**
-     * Metafunction taking two ranges and yielding a range which is the extension of one another
+     * Metafunction taking two extends and yielding a extend which is the extension of one another
      */
     template <typename Range1,
               typename Range2>
-    struct sum_range {
-        BOOST_MPL_ASSERT((boost::mpl::or_<is_range<Range1>, is_staggered<Range1> >));
-        BOOST_MPL_ASSERT((boost::mpl::or_<is_range<Range2>, is_staggered<Range1> >));
+    struct sum_extend {
+        BOOST_MPL_ASSERT((boost::mpl::or_<is_extend<Range1>, is_staggered<Range1> >));
+        BOOST_MPL_ASSERT((boost::mpl::or_<is_extend<Range2>, is_staggered<Range1> >));
 
-        typedef range<boost::mpl::plus<typename Range1::iminus, typename Range2::iminus>::type::value,
+        typedef extend<boost::mpl::plus<typename Range1::iminus, typename Range2::iminus>::type::value,
                       boost::mpl::plus<typename Range1::iplus,  typename Range2::iplus>::type::value,
                       boost::mpl::plus<typename Range1::jminus, typename Range2::jminus>::type::value,
                       boost::mpl::plus<typename Range1::jplus,  typename Range2::jplus>::type::value,

@@ -59,14 +59,14 @@ public:
         is_arg_used_in_esf_sequence<esf_sequence_t, cache_parameter<boost::mpl::_> >
     >::type caches_t;
 
-    //extract a sequence of ranges for each cache
-    typedef typename extract_ranges_for_caches<IterateDomainArguments>::type cache_ranges_map_t;
+    //extract a sequence of extends for each cache
+    typedef typename extract_extends_for_caches<IterateDomainArguments>::type cache_extends_map_t;
 
     //compute the fusion vector of pair<index_type, cache_storage>
     typedef typename get_cache_storage_tuple<
         IJ,
         caches_t,
-        cache_ranges_map_t,
+        cache_extends_map_t,
         typename IterateDomainArguments::physical_domain_block_size_t,
         typename IterateDomainArguments::local_domain_t
     >::type ij_caches_vector_t;

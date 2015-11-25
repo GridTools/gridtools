@@ -136,24 +136,24 @@ struct execute_kernel_functor_cuda
 
         typedef typename RunFunctorArguments::physical_domain_block_size_t block_size_t;
 
-        //compute the union (or enclosing) range for the ranges of all ESFs.
-        //This maximum range of all ESF will determine the size of the CUDA block:
+        //compute the union (or enclosing) extend for the extends of all ESFs.
+        //This maximum extend of all ESF will determine the size of the CUDA block:
         // *  If there are redundant computations to be executed at the IMinus or IPlus halos,
         //    each CUDA thread will execute two grid points (one at the core of the block and
         //    another within one of the halo regions)
         // *  Otherwise each CUDA thread executes only one grid point.
         // Based on the previous we compute the size of the CUDA block required.
         typedef typename boost::mpl::fold<
-            typename RunFunctorArguments::range_sizes_t,
-            range<0,0,0,0,0,0>,
-            enclosing_range<boost::mpl::_1, boost::mpl::_2>
-        >::type maximum_range_t;
+            typename RunFunctorArguments::extend_sizes_t,
+            extend<0,0,0,0,0,0>,
+            enclosing_extend<boost::mpl::_1, boost::mpl::_2>
+        >::type maximum_extend_t;
 
         typedef block_size<
             block_size_t::i_size_t::value,
-            (block_size_t::j_size_t::value - maximum_range_t::jminus::value + maximum_range_t::jplus::value +
-                    (maximum_range_t::iminus::value != 0 ? 1 : 0) + (maximum_range_t::iplus::value != 0 ? 1 : 0)
-            )/ ((maximum_range_t::iminus::value != 0  || maximum_range_t::iplus::value != 0 ) ? 2 : 1)
+            (block_size_t::j_size_t::value - maximum_extend_t::jminus::value + maximum_extend_t::jplus::value +
+                    (maximum_extend_t::iminus::value != 0 ? 1 : 0) + (maximum_extend_t::iplus::value != 0 ? 1 : 0)
+            )/ ((maximum_extend_t::iminus::value != 0  || maximum_extend_t::iplus::value != 0 ) ? 2 : 1)
         > cuda_block_size_t;
 
         //number of grid points that a cuda block covers
@@ -180,7 +180,7 @@ struct execute_kernel_functor_cuda
             typename RunFunctorArguments::esf_args_map_sequence_t,
             typename RunFunctorArguments::loop_intervals_t,
             typename RunFunctorArguments::functors_map_t,
-            typename RunFunctorArguments::range_sizes_t,
+            typename RunFunctorArguments::extend_sizes_t,
             typename RunFunctorArguments::local_domain_t,
             typename RunFunctorArguments::cache_sequence_t,
             typename RunFunctorArguments::grid_t,

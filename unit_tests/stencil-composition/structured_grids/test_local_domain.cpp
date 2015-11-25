@@ -20,7 +20,7 @@
 using namespace gridtools;
 using gridtools::level;
 using gridtools::accessor;
-using gridtools::range;
+using gridtools::extend;
 using gridtools::arg;
 
 using namespace gridtools;

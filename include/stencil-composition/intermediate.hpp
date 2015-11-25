@@ -29,7 +29,7 @@
 #include "backend_traits_fwd.hpp"
 #include "mss_components_metafunctions.hpp"
 #include "../storage/storage_functors.hpp"
-#include "stencil-composition/compute_ranges_metafunctions.hpp"
+#include "stencil-composition/compute_extends_metafunctions.hpp"
 #include "stencil-composition/grid.hpp"
 #include "grid_traits.hpp"
 #include "stencil-composition/wrap_type.hpp"
@@ -188,8 +188,8 @@ namespace gridtools {
             {}
 
             template <int_t I, int_t J, int_t K, int_t L, int_t M, int_t N>
-            void operator()(range<I,J,K,L,M,N> const&) const {
-                std::cout << prefix << range<I,J,K,L,M,N>() << std::endl;
+            void operator()(extend<I,J,K,L,M,N> const&) const {
+                std::cout << prefix << extend<I,J,K,L,M,N>() << std::endl;
             }
 
             template <typename MplVector>
@@ -327,7 +327,7 @@ namespace gridtools {
         /**
          * Takes the domain list of storage pointer types and transform
          * the no_storage_type_yet with the types provided by the
-         * backend with the interface that takes the range sizes. This
+         * backend with the interface that takes the extend sizes. This
          * must be done before getting the local_domain
          */
         typedef typename Backend::template obtain_temporary_storage_types<
@@ -372,21 +372,21 @@ namespace gridtools {
 
         typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
 
-        typedef typename select_mss_compute_range_sizes::type mss_compute_range_sizes_t;
+        typedef typename select_mss_compute_extend_sizes::type mss_compute_extend_sizes_t;
 
         typedef typename boost::mpl::fold<
             typename MssDescriptorArray::elements,
             boost::mpl::vector0<>,
             boost::mpl::push_back<
                 boost::mpl::_1,
-                mss_compute_range_sizes_t::apply<boost::mpl::_2>
+                mss_compute_extend_sizes_t::apply<boost::mpl::_2>
             >
-        >::type range_sizes_t;
+        >::type extend_sizes_t;
 
         typedef typename build_mss_components_array<
             backend_id<Backend>::value,
             MssDescriptorArray,
-            range_sizes_t
+            extend_sizes_t
         >::type mss_components_array_t;
 
         typedef typename create_actual_arg_list<
@@ -470,26 +470,26 @@ namespace gridtools {
 #endif
 #endif
 
-            // Extract the ranges from functors to determine iteration spaces bounds
+            // Extract the extends from functors to determine iteration spaces bounds
 
-            // For each functor collect the minimum enclosing box of the ranges for the arguments
+            // For each functor collect the minimum enclosing box of the extends for the arguments
 
 #ifndef NDEBUG
 //TODO redo
-//            std::cout << "ranges list" << std::endl;
-//            gridtools::for_each<ranges_list>(_debug::print__());
+//            std::cout << "extends list" << std::endl;
+//            gridtools::for_each<extends_list>(_debug::print__());
 #endif
 
 #ifndef NDEBUG
 //TODO redo
-//            std::cout << "range sizes" << std::endl;
-//            gridtools::for_each<structured_range_sizes>(_debug::print__());
+//            std::cout << "extend sizes" << std::endl;
+//            gridtools::for_each<structured_extend_sizes>(_debug::print__());
 //            std::cout << "end1" <<std::endl;
 #endif
 
 #ifndef NDEBUG
 //TODO redo
-//            gridtools::for_each<range_sizes>(_debug::print__());
+//            gridtools::for_each<extend_sizes>(_debug::print__());
 //            std::cout << "end2" <<std::endl;
 #endif
 
@@ -524,7 +524,7 @@ namespace gridtools {
         /**
            @brief This method allocates on the heap the temporary variables.
            Calls heap_allocated_temps::prepare_temporaries(...).
-           It allocates the memory for the list of ranges defined in the temporary placeholders.
+           It allocates the memory for the list of extends defined in the temporary placeholders.
         */
         virtual void ready () {
             Backend::template prepare_temporaries( m_actual_arg_list, m_actual_metadata_list , m_grid);

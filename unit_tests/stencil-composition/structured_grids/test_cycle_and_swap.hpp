@@ -13,7 +13,7 @@ namespace test_cycle_and_swap{
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
 
     struct functor{
-        typedef inout_accessor<0, range<>, 3> p_i;
+        typedef inout_accessor<0, extend<>, 3> p_i;
         typedef boost::mpl::vector<p_i> arg_list;
         template <typename Evaluation>
         GT_FUNCTION
