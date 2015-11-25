@@ -274,8 +274,9 @@ private:
                             "than location types. Data fields for other grids are not yet supported");
     local_domain_t const& m_local_domain;
     grid_topology_t const& m_grid_topology;
+    typedef array<int_t,N_META_STORAGES> array_index_t;
     //TODOMEETING do we need m_index?
-    array<int_t,N_META_STORAGES> m_index;
+    array_index_t m_index;
 
     array<uint_t, 4> m_grid_position;
 public:
@@ -409,17 +410,19 @@ public:
     {
         for_each< metadata_map_t > (
             increment_index_functor<
-            Coordinate,
-            strides_cached_t,
-            typename boost::fusion::result_of::as_vector
-            <typename local_domain_t::local_metadata_type>::type
+                Coordinate,
+                strides_cached_t,
+                typename boost::fusion::result_of::as_vector<
+                    typename local_domain_t::local_metadata_type
+                >::type,
+                array_index_t
             >(boost::fusion::as_vector(m_local_domain.m_local_metadata),
 #ifdef __CUDACC__ //stupid nvcc
-              boost::is_same<Execution, static_int<1> >::type::value? 1 : -1
+              boost::is_same<Execution, static_int<1> >::type::value? 1 : -1,
 #else
-              Execution::value
+              Execution::value,
 #endif
-              , &m_index[0], strides())
+              m_index, strides())
             );
         static_cast<IterateDomainImpl*>(this)->template increment_impl<Coordinate, Execution>();
         m_grid_position[Coordinate] += Execution::value;
@@ -438,9 +441,11 @@ public:
             increment_index_functor<
                 Coordinate,
                 strides_cached_t,
-            typename boost::fusion::result_of::as_vector
-            <typename local_domain_t::local_metadata_type>::type
-            >(boost::fusion::as_vector(m_local_domain.m_local_metadata), steps_, &m_index[0], strides())
+                typename boost::fusion::result_of::as_vector<
+                    typename local_domain_t::local_metadata_type
+                >::type,
+                array_index_t
+            >(boost::fusion::as_vector(m_local_domain.m_local_metadata), steps_, m_index, strides())
         );
         static_cast<IterateDomainImpl*>(this)->template increment_impl<Coordinate>(steps_);
 
