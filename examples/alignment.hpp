@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 /**
   @file
@@ -33,8 +33,8 @@ namespace copy_stencil{
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
 
-        typedef const accessor<0, range<0,0,0,0>, 3> in;
-        typedef accessor<1, range<0,0,0,0>, 3> out;
+        typedef const accessor<0, enumtype::inout, range<0,0,0,0>, 3> in;
+        typedef accessor<1, enumtype::inout, range<0,0,0,0>, 3> out;
         typedef boost::mpl::vector<in,out> arg_list;
 
         template <typename Evaluation>

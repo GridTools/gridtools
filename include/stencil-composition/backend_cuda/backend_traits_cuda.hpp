@@ -54,8 +54,8 @@ namespace gridtools{
         template <typename IndexType, typename Layout, bool Temp, typename Halo >
         struct meta_storage_traits{
             GRIDTOOLS_STATIC_ASSERT(is_halo<Halo>::type::value,"wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_meta_storage<MetaData>::value), "wrong type for the storage_info");
-            typedef meta_storage<meta_storage_base<MetaData::index_type::value, typename MetaData::layout, Temp> > type;
+            // GRIDTOOLS_STATIC_ASSERT((is_layout<Layout>::value), "wrong type for the storage_info");
+            typedef meta_storage<meta_storage_aligned<meta_storage_base<IndexType::value, Layout, Temp>, aligned<32>, Halo> > type;
         };
 
         template <typename Arguments>

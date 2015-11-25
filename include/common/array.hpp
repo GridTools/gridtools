@@ -16,7 +16,6 @@
 namespace gridtools {
 
     template <typename T, size_t D>
-
     class array {
         typedef array<T,D> type;
         static const uint_t _size = (D>0)?D:1;
@@ -168,6 +167,7 @@ namespace gridtools {
             std::copy(a.begin(), a.end(), _array);
             return this;
         }
+
 
         GT_FUNCTION
         static constexpr size_t size() {return _size;}

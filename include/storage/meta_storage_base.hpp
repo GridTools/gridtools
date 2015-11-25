@@ -75,6 +75,7 @@ namespace gridtools {
         static const bool is_temporary = IsTemporary;
         static const ushort_t n_width = 1;
         static const ushort_t space_dimensions = layout::length;
+        typedef meta_storage_base<Index, Layout, IsTemporary> basic_type;
 
 
 

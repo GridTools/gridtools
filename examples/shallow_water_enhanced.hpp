@@ -568,10 +568,6 @@ namespace shallow_water{
         }
         retval=check_result.verify_parallel(meta_, sol, reference.solution, halos);
 
-#ifndef NDEBUG
-        myfile<<"############## SOLUTION ################"<<std::endl;
-        sol.print(myfile);
-
         myfile<<"############## REFERENCE ################"<<std::endl;
         reference.solution.print(myfile);
 

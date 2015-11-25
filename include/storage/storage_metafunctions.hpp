@@ -26,7 +26,6 @@ struct storage_holds_data_field : boost::mpl::bool_<(T::field_dimensions > 1)>{}
         type;
     };
 
-
     /**
        \addtogroup specializations Specializations
        @{

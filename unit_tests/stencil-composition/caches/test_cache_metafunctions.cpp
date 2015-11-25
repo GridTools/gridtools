@@ -65,7 +65,7 @@ TEST(cache_metafunctions, extract_ranges_for_caches)
     typedef gridtools::interval<gridtools::level<0,-2>, gridtools::level<1,1> > axis;
 
     typedef iterate_domain_arguments<
-        enumtype::enum_type<enumtype::backend, enumtype::Host>,
+        enumtype::enum_type<enumtype::platform, enumtype::Host>,
         local_domain_t,
         esf_sequence_t,
         ranges_t,
@@ -98,7 +98,7 @@ TEST(cache_metafunctions, get_cache_storage_tuple)
     typedef gridtools::interval<gridtools::level<0,-2>, gridtools::level<1,1> > axis;
 
     typedef iterate_domain_arguments<
-        enumtype::enum_type<enumtype::backend, enumtype::Host>,
+        enumtype::enum_type<enumtype::platform, enumtype::Host>,
         local_domain_t,
         esf_sequence_t,
         ranges_t,

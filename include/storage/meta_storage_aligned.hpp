@@ -53,6 +53,8 @@ namespace gridtools {
 
             typedef AlignmentBoundary alignment_boundary_t;
             typedef MetaStorageBase super;
+            typedef typename MetaStorageBase::basic_type basic_type;
+            typedef typename MetaStorageBase::index_type index_type;
 
             GRIDTOOLS_STATIC_ASSERT(is_meta_storage<MetaStorageBase>::type::value, "wrong type");
             GRIDTOOLS_STATIC_ASSERT(is_aligned<alignment_boundary_t>::type::value, "wrong type");
@@ -80,19 +82,38 @@ namespace gridtools {
 #ifndef __CUDACC__//nvcc does not get it
                       , typename Dummy = all_integers<IntTypes...>
 #else
-                      , typename Dummy = typename boost::enable_if_c<boost::is_integral< typename boost::mpl::at_c<boost::mpl::vector<IntTypes ...>, 0 >::type >::type::value, bool >::type
+                      , typename Dummy = typename boost::enable_if_c<
+                            boost::is_integral<
+                                typename boost::mpl::at_c<
+                                    boost::mpl::vector<IntTypes ...>, 0 >::type
+                                >::type::value, bool
+                            >::type
 #endif
                       >
+            GT_FUNCTION
             constexpr meta_storage_aligned(  IntTypes const& ... dims_  ) :
                 super(apply_gt_integer_sequence
                       <typename make_gt_integer_sequence<uint_t, sizeof ... (IntTypes)>::type >::template apply_zipped
                       <super, lambda_t >(dims_ + Pad ...) )
             {
             }
+
+            template <class Dims, ushort_t ... Ids  >
+            GT_FUNCTION
+            constexpr meta_storage_aligned( Dims const& dims_, gt_integer_sequence<ushort_t, Ids ...> x= typename make_gt_integer_sequence<ushort_t, Dims::size()>::type() ) :
+                meta_storage_aligned(dims_[Ids]...){}
+
+            template <class Dims, ushort_t i1, ushort_t i2, ushort_t i3  >
+            GT_FUNCTION
+            constexpr meta_storage_aligned( Dims const& dims_, gt_integer_sequence<ushort_t, i1, i2, i3> x= typename make_gt_integer_sequence<ushort_t, 3>::type() ) :
+                meta_storage_aligned(dims_[0], dims_[1], dims_[2]){}
+
+
 #else
 
             /* applying 'align' to the integer sequence from 1 to space_dimensions. It will select the dimension with stride 1 and align it*/
             // non variadic non constexpr constructor
+            GT_FUNCTION
             meta_storage_aligned(  uint_t const& d1, uint_t const& d2, uint_t const& d3 ) :
                 super(align<s_alignment_boundary, typename super::layout>::template do_align<0>::apply(d1+Pad1)
                       , align<s_alignment_boundary, typename super::layout>::template do_align<1>::apply(d2+Pad2)

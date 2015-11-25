@@ -94,6 +94,9 @@ namespace gridtools{
     struct is_metadata_set<metadata_set<T> > : boost::mpl::true_{};
 
 
+    template <typename U>
+    struct is_storage;
+
     /** inserts an element in the set if it is not present
 
         used for the metadata_set in the domain_type

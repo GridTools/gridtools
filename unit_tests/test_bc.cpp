@@ -1,7 +1,7 @@
 #define PEDANTIC_DISABLED
 
 #include "gtest/gtest.h"
-#include "stencil-composition/make_computation.hpp"
+#include "stencil-composition/stencil-composition.hpp"
 using namespace gridtools;
 using namespace enumtype;
 
@@ -31,7 +31,7 @@ struct boundary : clonable_to_gpu<boundary> {
 };
 
 struct functor{
-    typedef accessor<0,range<0,0,0,0> > sol;
+    typedef accessor<0, enumtype::inout, range<0,0,0,0> > sol;
     typedef generic_accessor<1> bd;
     typedef boost::mpl::vector<sol> arg_list;
 
@@ -71,11 +71,11 @@ TEST(test_bc, boundary_conditions) {
         (boost::fusion::make_vector(&sol_, &bd_));
 
 #ifdef __CUDACC__
-    gridtools::computation* bc_eval =
+    computation* bc_eval =
 #else
-        boost::shared_ptr<gridtools::computation> bc_eval =
+        boost::shared_ptr<computation> bc_eval =
 #endif
-        make_computation<gridtools::backend<Host, Naive> >
+        make_computation< backend_t >
         (
             make_mss
             (
