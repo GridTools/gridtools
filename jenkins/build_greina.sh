@@ -182,7 +182,7 @@ bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh
 
 exit_if_error $?
 
-if [[ "$RUN_MPI_TESTS" == "ON" && ${myhost} == "greina" ]]
+if [[ "$RUN_MPI_TESTS" == "ON" && ${myhost} == "greina" && ${STRUCTURED_GRIDS} == "ON" ]]
 then
    if [ "x$CXX_STD" == "xcxx11" ]
    then
