@@ -14,7 +14,7 @@
 
 using gridtools::level;
 using gridtools::accessor;
-using gridtools::range;
+using gridtools::extent;
 using gridtools::arg;
 
 using namespace gridtools;
@@ -32,7 +32,7 @@ typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 template<typename T>
 struct u_forward_function {
     typedef accessor<0> utens_stage;
-    typedef accessor<1, enumtype::in, range<0,1, 0, 0> > wcon;
+    typedef accessor<1, enumtype::in, extent<0,1, 0, 0> > wcon;
     typedef accessor<2> u_stage;
     typedef accessor<3> u_pos;
     typedef accessor<4> utens;
@@ -244,13 +244,13 @@ bool test(uint_t d1, uint_t d2, uint_t d3) {
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
     // while the vertical ones are set according the the axis property soon after
-    // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
+    // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
     uint_t di[5] = {halo_size, halo_size, halo_size, d1-halo_size-1, d1};
     uint_t dj[5] = {halo_size, halo_size, halo_size, d2-halo_size-1, d2};
 
-    gridtools::coordinates<axis> coords(di, dj);
-    coords.value_list[0] = 0;
-    coords.value_list[1] = d3-1;
+    gridtools::grid<axis> grid(di, dj);
+    grid.value_list[0] = 0;
+    grid.value_list[1] = d3-1;
 
 //todo simplify the following using the auto keyword from C++11
 #ifdef __CUDACC__
@@ -289,7 +289,7 @@ bool test(uint_t d1, uint_t d2, uint_t d3) {
                 )
             ),
             domain,
-            coords
+            grid
         );
 
     vertical_advection->ready();

@@ -15,7 +15,7 @@
 
 using gridtools::level;
 using gridtools::accessor;
-using gridtools::range;
+using gridtools::extent;
 using gridtools::arg;
 
 using namespace gridtools;
@@ -124,14 +124,14 @@ bool test (uint_t d1, uint_t d2, uint_t d3,void *in_data_buff,void *out_data_buf
     // while the vertical ones are set according the the axis
     // property soon after this:
     //
-    //      gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
+    //      gridtools::grid<axis> grid(2,d1-2,2,d2-2);
     //
     uint_t di[5] = {0, 0, 0, d1-1, d1};
     uint_t dj[5] = {0, 0, 0, d2-1, d2};
 
-    gridtools::coordinates<axis> coords(di, dj);
-    coords.value_list[0] = 0;
-    coords.value_list[1] = d3-1;
+    gridtools::grid<axis> grid(di, dj);
+    grid.value_list[0] = 0;
+    grid.value_list[1] = d3-1;
 
     //
     // Here we do a lot of stuff
@@ -149,7 +149,7 @@ bool test (uint_t d1, uint_t d2, uint_t d3,void *in_data_buff,void *out_data_buf
                 execute<forward>(),
                 gridtools::make_esf<functor_4647>(p_in_data(), p_out_data())
                 ),
-            domain, coords
+            domain, grid
             );
 
     //

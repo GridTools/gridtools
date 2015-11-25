@@ -179,7 +179,7 @@ namespace gridtools{
 
 #ifndef NDEBUG
 #ifdef VERBOSE
-                    std::cout<<"["<<PID<<"]"<<"coordinates ["<< compute_halo(component,LOW)<<" "
+                    std::cout<<"["<<PID<<"]"<<"grid ["<< compute_halo(component,LOW)<<" "
                          <<compute_halo(component,UP) << " "
                          <<compute_halo(component,LOW) << " "
                          << tile_dimension+(compute_halo(component,LOW))-1<<" "

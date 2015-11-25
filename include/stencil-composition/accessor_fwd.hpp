@@ -1,9 +1,9 @@
 #pragma once
 
-#ifdef RECTANGULAR_GRIDS
-    #include "stencil-composition/rectangular_grids/accessor_fwd.hpp"
+#ifdef STRUCTURED_GRIDS
+    #include "stencil-composition/structured_grids/accessor_fwd.hpp"
 #else
-    #include "stencil-composition/other_grids/accessor_fwd.hpp"
+    #include "stencil-composition/icosahedral_grids/accessor_fwd.hpp"
 #endif
 
 namespace gridtools {

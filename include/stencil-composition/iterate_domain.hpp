@@ -1,7 +1,7 @@
 #pragma once
 
-#ifdef RECTANGULAR_GRIDS
-    #include "rectangular_grids/iterate_domain.hpp"
+#ifdef STRUCTURED_GRIDS
+    #include "structured_grids/iterate_domain.hpp"
 #else
-    #include "other_grids/iterate_domain.hpp"
+    #include "icosahedral_grids/iterate_domain.hpp"
 #endif

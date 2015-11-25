@@ -5,15 +5,15 @@ include_directories( ../../../include/common ) ## Library header files
 
 ### Executables
 #CPU tests
-if(RECTANGULAR_GRIDS)
+if(STRUCTURED_GRIDS)
     set(TEST_SOURCES test_cache_stencil.cpp)
-endif(RECTANGULAR_GRIDS)
+endif(STRUCTURED_GRIDS)
 
 if ( ENABLE_CXX11 )
   set(TEST_SOURCES ${TEST_SOURCES} test_define_caches.cpp)
-  if(RECTANGULAR_GRIDS)
+  if(STRUCTURED_GRIDS)
       set(TEST_SOURCES ${TEST_SOURCES} test_cache_metafunctions.cpp)
-  endif(RECTANGULAR_GRIDS)
+  endif(STRUCTURED_GRIDS)
 endif( ENABLE_CXX11 )
 
 add_executable(cache_tests ${TEST_SOURCES})

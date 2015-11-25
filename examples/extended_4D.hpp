@@ -69,11 +69,11 @@ namespace assembly{
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
     struct integration {
-        typedef in_accessor<0, range<-1, 1, -1, 1> , 4>  phi;
-        typedef in_accessor<1, range<-1, 1, -1, 1> , 4>  psi;//how to detect when index is wrong??
-        typedef in_accessor<2, range<-1, 1, -1, 1> , 4>  jac;
-        typedef in_accessor<3, range<-1, 1, -1, 1> , 6>  f;
-        typedef inout_accessor<4, range<-1, 1, -1, 1>, 6 > result;
+        typedef in_accessor<0, extent<-1, 1, -1, 1> , 4>  phi;
+        typedef in_accessor<1, extent<-1, 1, -1, 1> , 4>  psi;//how to detect when index is wrong??
+        typedef in_accessor<2, extent<-1, 1, -1, 1> , 4>  jac;
+        typedef in_accessor<3, extent<-1, 1, -1, 1> , 6>  f;
+        typedef inout_accessor<4, extent<-1, 1, -1, 1>, 6 > result;
         typedef boost::mpl::vector<phi, psi, jac, f, result> arg_list;
         using quad=dimension<4>;
         template <typename Evaluation>
@@ -162,14 +162,14 @@ namespace assembly{
         gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&phi, &psi, &jac, &f, &result));
         /**
            - Definition of the physical dimensions of the problem.
-           The coordinates constructor takes the horizontal plane dimensions,
+           The grid constructor takes the horizontal plane dimensions,
            hile the vertical ones are set according the the axis property soon after
         */
         uint_t di[5] = {1, 1, 1, d1-3, d1};
         uint_t dj[5] = {1, 1, 1, d2-3, d2};
-        gridtools::coordinates<axis> coords(di,dj);
-        coords.value_list[0] = 0;
-        coords.value_list[1] = d3-2;
+        gridtools::grid<axis> grid(di,dj);
+        grid.value_list[0] = 0;
+        grid.value_list[1] = d3-2;
 
 
 
@@ -185,7 +185,7 @@ namespace assembly{
                     execute<forward>(),//!\todo parameter used only for overloading purpose?
                     make_esf<integration>(p_phi(), p_psi(), p_jac(), p_f(), p_result())
                     ),
-                domain, coords);
+                domain, grid);
 
         fe_comp->ready();
         fe_comp->steady();

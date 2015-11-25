@@ -229,10 +229,10 @@ namespace gridtools{
 #error float precision not properly set (4 or 8 bytes supported)
 #endif
 
-#ifdef RECTANGULAR_GRIDS
-    #define GRIDPREFIX recgrid
+#ifdef STRUCTURED_GRIDS
+    #define GRIDPREFIX strgrid
 #else
-    #define GRIDPREFIX othergrid
+    #define GRIDPREFIX icgrid
 #endif
 
 #ifdef CXX11_ENABLED

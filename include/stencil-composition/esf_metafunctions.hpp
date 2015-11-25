@@ -20,7 +20,7 @@ struct esf_has_parameter_h{
 
 /**
    Given an ESF this metafunction provides the list of placeholders (if Pred derives
-   from false_type), or map between placeholders in this ESF and the ranges
+   from false_type), or map between placeholders in this ESF and the extents
    associated with it (if Pred derives from true_type)
  */
 template<typename Esf, typename Pred=boost::false_type>
@@ -31,14 +31,14 @@ struct esf_args
 
     typedef typename boost::mpl::if_<
         Pred,
-        typename Esf::args_with_ranges,
+        typename Esf::args_with_extents,
         typename Esf::args_t>::type type;
 };
 
 /**
    Given an ESF this metafunction provides the placeholder (if Pred derives
    from false_type) at a given index in the list of placeholders, or mpl::pair of
-   placeholder and range (if Pred derives from true_type)
+   placeholder and extent (if Pred derives from true_type)
  */
 template <typename Esf, typename Pred>
 struct esf_get_arg_at {
@@ -51,7 +51,7 @@ struct esf_get_arg_at {
             Pred,
             typename boost::mpl::pair<
                 placeholder_type,
-                typename boost::mpl::at<typename Esf::args_with_ranges, placeholder_type>::type>::type,
+                typename boost::mpl::at<typename Esf::args_with_extents, placeholder_type>::type>::type,
             typename boost::mpl::at<typename Esf::args_t, Index>::type
             >::type type;
     };
@@ -103,7 +103,7 @@ struct is_written {
     that corresponds to temporary fields that are written by EsfF.
 
     If Pred derives from true_type, ::type provide a mpl::vector of pairs of
-    placeholders and ranges that corresponds to temporary fields that are written by EsfF.
+    placeholders and extents that corresponds to temporary fields that are written by EsfF.
  */
 template <typename EsfF, typename Pred = boost::false_type>
 struct esf_get_w_temps_per_functor {
@@ -129,7 +129,7 @@ struct esf_get_w_temps_per_functor {
     that corresponds to fields that are read by EsfF.
 
     If Pred derives from true_type, ::type provide a mpl::vector of pairs of
-    placeholders and ranges that corresponds to fields that are read by EsfF.
+    placeholders and extents that corresponds to fields that are read by EsfF.
  */
 template <typename EsfF, typename Pred = boost::false_type>
 struct esf_get_r_temps_per_functor {
@@ -155,7 +155,7 @@ struct esf_get_r_temps_per_functor {
     that corresponds to fields (temporary or not) that are written by EsfF.
 
     If Pred derives from true_type, ::type provide a mpl::vector of pairs of
-    placeholders and ranges that corresponds to fields (temporary or not) that are
+    placeholders and extents that corresponds to fields (temporary or not) that are
     written by EsfF.
  */
 template <typename EsfF, typename Pred = boost::false_type>
@@ -197,7 +197,7 @@ struct esf_get_the_only_w_per_functor {
     that corresponds to fields (temporary or not) that are read by EsfF.
 
     If Pred derives from true_type, ::type provide a mpl::vector of pairs of
-    placeholders and ranges that corresponds to fields (temporary or not) that are
+    placeholders and extents that corresponds to fields (temporary or not) that are
     read by EsfF.
  */
 template <typename EsfF, typename Pred = boost::false_type>
