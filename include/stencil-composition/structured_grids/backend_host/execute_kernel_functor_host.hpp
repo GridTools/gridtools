@@ -11,7 +11,7 @@
 
 namespace gridtools {
 
-    namespace structgrid {
+    namespace strgrid {
 
         /**
         * @brief main functor that setups the CUDA kernel for a MSS and launchs it
@@ -175,5 +175,5 @@ namespace gridtools {
             const gridtools::array<const uint_t, 2> m_last_pos;
             const gridtools::array<const uint_t, 2> m_block_id;
         };
-    } // namespace structgrid
+    } // namespace strgrid
 } //namespace gridtools

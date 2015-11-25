@@ -11,9 +11,9 @@ endif( ENABLE_CXX11 )
 
 ### Executables
 #CPU tests
-add_executable(stencil_other_grids_tests ${STENCIL_OTHERGRIDS_UNITTEST_SOURCES})
-gridtools_add_test(tests.stencil_other_grids ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/stencil_other_grids_tests")
+add_executable(icgrid_stencil_tests ${STENCIL_OTHERGRIDS_UNITTEST_SOURCES})
+gridtools_add_test(tests.stencil_icos_grids ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/icgrid_stencil_tests")
 
-set_target_properties(stencil_other_grids_tests PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
-target_link_libraries(stencil_other_grids_tests ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
+set_target_properties(icgrid_stencil_tests PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+target_link_libraries(icgrid_stencil_tests ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
 

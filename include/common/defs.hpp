@@ -230,9 +230,9 @@ namespace gridtools{
 #endif
 
 #ifdef STRUCTURED_GRIDS
-    #define GRIDPREFIX structgrid
+    #define GRIDPREFIX strgrid
 #else
-    #define GRIDPREFIX icosgrid
+    #define GRIDPREFIX icgrid
 #endif
 
 #ifdef CXX11_ENABLED

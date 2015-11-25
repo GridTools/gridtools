@@ -3,7 +3,7 @@
 
 namespace gridtools {
 
-    namespace structgrid {
+    namespace strgrid {
 
         template <typename FunctorDesc>
         struct extract_ranges {

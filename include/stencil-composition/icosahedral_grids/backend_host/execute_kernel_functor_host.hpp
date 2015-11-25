@@ -4,7 +4,7 @@
 
 namespace gridtools {
 
-    namespace icosgrid {
+    namespace icgrid {
 
         /**
         * @brief main functor that setups the CUDA kernel for a MSS and launchs it
@@ -142,5 +142,5 @@ namespace gridtools {
             const gridtools::array<const uint_t, 2> m_block_id;
         };
 
-    } // namespace icosgrid
+    } // namespace icgrid
 } //namespace gridtools

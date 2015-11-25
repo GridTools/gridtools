@@ -1,7 +1,7 @@
 #pragma once
 
 namespace gridtools {
-    namespace icosgrid {
+    namespace icgrid {
         template<typename EsfSequence>
         struct extract_esf_location_type
         {
