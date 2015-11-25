@@ -475,11 +475,11 @@ namespace shallow_water{
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
-//! [coordinates]
-        coordinates<axis, partitioner_t> coords(part, meta_);
-        coords.value_list[0] = 0;
-        coords.value_list[1] = d3-1;
-//! [coordinates]
+//! [grid]
+        grid<axis, partitioner_t> grid(part, meta_);
+        grid.value_list[0] = 0;
+        grid.value_list[1] = d3-1;
+//! [grid]
 
 //! [computation]
         auto shallow_water_stencil =
@@ -493,7 +493,7 @@ namespace shallow_water{
                         make_esf<flux_y>(p_tmpy(), p_sol() )),
                     make_esf<final_step>(p_tmpx(), p_tmpy(), p_sol() )
                     ),
-                domain, coords
+                domain, grid
                 );
 //! [computation]
 

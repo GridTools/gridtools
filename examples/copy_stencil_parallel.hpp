@@ -128,10 +128,10 @@ namespace copy_stencil{
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
-        gridtools::coordinates<axis, partitioner_t> coords(part, meta_);
+        gridtools::grid<axis, partitioner_t> grid(part, meta_);
         //k dimension not partitioned
-        coords.value_list[0] = 0;
-        coords.value_list[1] = d3-1;
+        grid.value_list[0] = 0;
+        grid.value_list[1] = d3-1;
 
 
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
@@ -165,7 +165,7 @@ namespace copy_stencil{
                                                       , p_out()
                         )
                     ),
-                domain, coords
+                domain, grid
                 );
 #ifdef VERBOSE
         printf("computation instantiated\n");

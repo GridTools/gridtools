@@ -310,13 +310,13 @@ namespace shallow_water{
             // Definition of the physical dimensions of the problem.
             // The constructor takes the horizontal plane dimensions,
             // while the vertical ones are set according the the axis property soon after
-            // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
+            // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
             uint_t di[5] = {2, 2, 2, d1-3, d1};
             uint_t dj[5] = {2, 2, 2, d2-3, d2};
 
-            gridtools::coordinates<axis> coords(di, dj);
-            coords.value_list[0] = 0;
-            coords.value_list[1] = d3-1;
+            gridtools::grid<axis> grid(di, dj);
+            grid.value_list[0] = 0;
+            grid.value_list[1] = d3-1;
 
             auto shallow_water_stencil =
                 gridtools::make_computation<gridtools::BACKEND, layout_t>
@@ -327,7 +327,7 @@ namespace shallow_water{
                         gridtools::make_esf<initial_step>(p_tmp(), p_sol() ) ,
                         gridtools::make_esf<final_step>(p_tmp(), p_sol() )
                         ),
-                    domain, coords
+                    domain, grid
                     );
 
             shallow_water_stencil->ready();
