@@ -19,13 +19,14 @@ function help {
    echo "-m      activate mpi                          "
    echo "-s      activate a silent build               "
    echo "-f      force build                           "
+   echo "-i      build for icosahedral grids           "
    exit 1
 }
 
 INITPATH=$PWD
 BASEPATH_SCRIPT=$(dirname "${0}")
 
-while getopts "h:b:t:f:c:pzms" opt; do
+while getopts "h:b:t:f:c:pzmsi" opt; do
     case "$opt" in
     h|\?)
         help
@@ -46,6 +47,8 @@ while getopts "h:b:t:f:c:pzms" opt; do
     s) SILENT_BUILD="ON"
         ;;
     z) FORCE_BUILD="ON"
+        ;;
+    i) ICOSAHEDRAL_GRID="ON"
         ;;
     esac
 done
@@ -127,6 +130,12 @@ export JENKINS_COMMUNICATION_TESTS=1
 
 HOST_COMPILER=`which g++`
 
+if [[ -z ${ICOSAHEDRAL_GRID} ]]; then
+    STRUCTURED_GRIDS="ON"
+else
+    STRUCTURED_GRIDS="OFF"
+fi
+
 cmake \
 -DBoost_NO_BOOST_CMAKE="true" \
 -DCUDA_NVCC_FLAGS:STRING="--relaxed-constexpr" \
@@ -150,6 +159,7 @@ cmake \
 -DENABLE_PYTHON:BOOL=$USE_PYTHON \
 -DPYTHON_INSTALL_PREFIX:STRING="${VENV_PATH}" \
 -DENABLE_PERFORMANCE_METERS:BOOL=ON \
+-DSTRUCTURED_GRIDS:BOOL=${STRUCTURED_GRIDS} \
  ../
 
 exit_if_error $?
