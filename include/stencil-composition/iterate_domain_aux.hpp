@@ -252,7 +252,7 @@ namespace gridtools{
         //                         "internal error: wrong type");
 
         GT_FUNCTION
-        increment_index_functor(MetaStorageSequence const& storages, int_t const& increment,
+        increment_index_functor(MetaStorageSequence const& storages, int_t const increment,
                 ArrayIndex& RESTRICT index_array, StridesCached &  RESTRICT strides_cached) :
             m_storages(storages), m_increment(increment), m_index_array(index_array), m_strides_cached(strides_cached){}
 
@@ -275,7 +275,7 @@ namespace gridtools{
         increment_index_functor();
 
         MetaStorageSequence const& m_storages;
-        int_t const& m_increment;
+        int_t const m_increment;
         ArrayIndex& RESTRICT m_index_array;
         StridesCached &  RESTRICT m_strides_cached;
     };

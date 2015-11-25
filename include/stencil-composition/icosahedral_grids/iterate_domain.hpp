@@ -404,7 +404,7 @@ public:
        \tparam Coordinate dimension being incremented
        \tparam Execution the policy for the increment (e.g. forward/backward)
      */
-    template <ushort_t Coordinate, typename Execution>
+    template <ushort_t Coordinate, typename Steps>
     GT_FUNCTION
     void increment()
     {
@@ -417,15 +417,11 @@ public:
                 >::type,
                 array_index_t
             >(boost::fusion::as_vector(m_local_domain.m_local_metadata),
-#ifdef __CUDACC__ //stupid nvcc
-              boost::is_same<Execution, static_int<1> >::type::value? 1 : -1,
-#else
-              Execution::value,
-#endif
+              Steps::value,
               m_index, strides())
-            );
-        static_cast<IterateDomainImpl*>(this)->template increment_impl<Coordinate, Execution>();
-        m_grid_position[Coordinate] += Execution::value;
+        );
+        static_cast<IterateDomainImpl*>(this)->template increment_impl<Coordinate, Steps>();
+        m_grid_position[Coordinate] += Steps::value;
     }
 
     /**@brief method for incrementing the index when moving forward along the given direction
