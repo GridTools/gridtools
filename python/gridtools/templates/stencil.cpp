@@ -22,7 +22,7 @@
 
 
 using gridtools::level;
-using gridtools::range;
+using gridtools::extent;
 using gridtools::arg;
 
 using namespace gridtools;
