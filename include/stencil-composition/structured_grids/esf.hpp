@@ -23,15 +23,15 @@ namespace gridtools {
                 "check the make_esf syntax");
     private:
 
-        /** Private metafunction that associates (in a mpl::map) placeholders to extends.
-            It returns a mpl::map between placeholders and extends of the local arguments.
+        /** Private metafunction that associates (in a mpl::map) placeholders to extents.
+            It returns a mpl::map between placeholders and extents of the local arguments.
          */
         template <typename Placeholders, typename LocalArgs>
         struct _make_map {
 
             /** Given the list of placeholders (Plcs) and the list of arguemnts of a
                 stencil operator (LocalArgs), this struct will insert the placeholder type
-                (as key) and the corresponding extend into an mpl::map.
+                (as key) and the corresponding extent into an mpl::map.
              */
             template <typename Plcs, typename LArgs>
             struct from {
@@ -41,7 +41,7 @@ namespace gridtools {
                         CurrentMap,
                         typename boost::mpl::pair<
                             typename boost::mpl::at_c<Plcs, Index::value>::type,
-                            typename boost::mpl::at_c<LArgs, Index::value>::type::extend_type
+                            typename boost::mpl::at_c<LArgs, Index::value>::type::extent_type
                             >
                         >::type type;
                 };
@@ -61,15 +61,15 @@ namespace gridtools {
         typedef ESF esf_function;
         typedef ArgArray args_t;
 
-        /** Type member with the mapping between placeholder types (as key) to extends in the operator */
-        typedef typename _make_map<args_t, typename esf_function::arg_list>::type args_with_extends;
+        /** Type member with the mapping between placeholder types (as key) to extents in the operator */
+        typedef typename _make_map<args_t, typename esf_function::arg_list>::type args_with_extents;
         typedef Staggering staggering_t;
 
         //////////////////////Compile time checks ////////////////////////////////////////////////////////////
 
         /**@brief Macro defining a sfinae metafunction
 
-           defines a metafunction has_extend_type, which returns true if its template argument
+           defines a metafunction has_extent_type, which returns true if its template argument
            defines a type called arg_list. It also defines a get_arg_list metafunction, which
            can be used to return the arg_list only when it is present, without giving compilation
            errors in case it is not defined.

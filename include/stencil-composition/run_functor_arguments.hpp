@@ -33,7 +33,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Iternal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), "Iternal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value), "Iternal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ExtendSizes, is_extend>::value), "Iternal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ExtendSizes, is_extent>::value), "Iternal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_block_size<PhysicalDomainBlockSize>::value), "Iternal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Iternal Error: wrong type");
 
@@ -41,7 +41,7 @@ namespace gridtools {
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;
         typedef EsfSequence esf_sequence_t;
-        typedef ExtendSizes extend_sizes_t;
+        typedef ExtendSizes extent_sizes_t;
         typedef PhysicalDomainBlockSize physical_domain_block_size_t;
         typedef Grid grid_t;
     };
@@ -83,7 +83,7 @@ namespace gridtools {
                                                     //    local domain
         typename LoopIntervals,                     // loop intervals
         typename FunctorsMap,                       // functors map
-        typename ExtendSizes,                        // extends of each ESF
+        typename ExtendSizes,                        // extents of each ESF
         typename LocalDomain,                       // local domain type
         typename CacheSequence,                     // sequence of user specified caches
         typename Grid,                            // the grid
@@ -106,7 +106,7 @@ namespace gridtools {
         typedef EsfArgsMapSequence esf_args_map_sequence_t;
         typedef LoopIntervals loop_intervals_t;
         typedef FunctorsMap functors_map_t;
-        typedef ExtendSizes extend_sizes_t;
+        typedef ExtendSizes extent_sizes_t;
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;
         typedef typename backend_traits_from_id<backend_id_t::value>::
@@ -173,7 +173,7 @@ namespace gridtools {
 
         typedef typename boost::mpl::at<typename RunFunctorArguments::functor_list_t, Index>::type functor_t;
         typedef typename boost::mpl::at<typename RunFunctorArguments::esf_args_map_sequence_t, Index>::type esf_args_map_t;
-        typedef typename boost::mpl::at<typename RunFunctorArguments::extend_sizes_t, Index>::type extend_t;
+        typedef typename boost::mpl::at<typename RunFunctorArguments::extent_sizes_t, Index>::type extent_t;
         typedef typename boost::mpl::at<typename RunFunctorArguments::functors_map_t, Index>::type interval_map_t;
         typedef typename index_to_level<
             typename boost::mpl::deref<

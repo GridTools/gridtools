@@ -53,10 +53,10 @@ namespace gridtools {
                 using grid_topology_t = typename grid_t::grid_topology_t;
 
                 // in the host backend there should be only one esf per mss
-                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename RunFunctorArguments::extend_sizes_t>::value==1),
+                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename RunFunctorArguments::extent_sizes_t>::value==1),
                                         "Internal Error: wrong size");
-                typedef typename boost::mpl::back<typename RunFunctorArguments::extend_sizes_t>::type extend_t;
-                GRIDTOOLS_STATIC_ASSERT((is_extend<extend_t>::value), "Internal Error: wrong type");
+                typedef typename boost::mpl::back<typename RunFunctorArguments::extent_sizes_t>::type extent_t;
+                GRIDTOOLS_STATIC_ASSERT((is_extent<extent_t>::value), "Internal Error: wrong type");
 
                 typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
                 typedef backend_traits_from_id<enumtype::Host> backend_traits_t;
@@ -64,14 +64,14 @@ namespace gridtools {
                 //        #pragma omp critical
                 //        {
                 //TODOCOSUNA Extends in other grid have to become radius
-                std::cout << "I loop " << m_first_pos[0] <<"+"<< extend_t::iminus::value << " -> "
-                          << m_first_pos[0] <<"+"<< m_loop_size[0] <<"+"<< extend_t::iplus::value << "\n";
-                std::cout << "J loop " << m_first_pos[1] <<"+"<< extend_t::jminus::value << " -> "
-                          << m_first_pos[1] <<"+"<< m_loop_size[1] <<"+"<< extend_t::jplus::value << "\n";
-                //        std::cout<<"iminus::value: "<<extend_t::iminus::value<<std::endl;
-                //        std::cout<<"iplus::value: "<<extend_t::iplus::value<<std::endl;
-                //        std::cout<<"jminus::value: "<<extend_t::jminus::value<<std::endl;
-                //        std::cout<<"jplus::value: "<<extend_t::jplus::value<<std::endl;
+                std::cout << "I loop " << m_first_pos[0] <<"+"<< extent_t::iminus::value << " -> "
+                          << m_first_pos[0] <<"+"<< m_loop_size[0] <<"+"<< extent_t::iplus::value << "\n";
+                std::cout << "J loop " << m_first_pos[1] <<"+"<< extent_t::jminus::value << " -> "
+                          << m_first_pos[1] <<"+"<< m_loop_size[1] <<"+"<< extent_t::jplus::value << "\n";
+                //        std::cout<<"iminus::value: "<<extent_t::iminus::value<<std::endl;
+                //        std::cout<<"iplus::value: "<<extent_t::iplus::value<<std::endl;
+                //        std::cout<<"jminus::value: "<<extent_t::jminus::value<<std::endl;
+                //        std::cout<<"jplus::value: "<<extent_t::jplus::value<<std::endl;
                 //        std::cout<<"block_id_i: "<<m_block_id[0]<<std::endl;
                 //        std::cout<<"block_id_j: "<<m_block_id[1]<<std::endl;
                 //        }
@@ -98,11 +98,11 @@ namespace gridtools {
                 //reset the index
                 it_domain.set_index(0);
 
-                it_domain.template initialize<0>(m_first_pos[0] + extend_t::iminus::value, m_block_id[0]);
+                it_domain.template initialize<0>(m_first_pos[0] + extent_t::iminus::value, m_block_id[0]);
                 //initialize color dim
 
                 it_domain.template initialize<1>(0);
-                it_domain.template initialize<2>(m_first_pos[1] + extend_t::jminus::value, m_block_id[1]);
+                it_domain.template initialize<2>(m_first_pos[1] + extent_t::jminus::value, m_block_id[1]);
                 it_domain.template initialize<3>( m_grid.template value_at< typename iteration_policy_t::from >() );
 
 

@@ -22,7 +22,7 @@
 
 using gridtools::level;
 using gridtools::accessor;
-using gridtools::range;
+using gridtools::extent;
 using gridtools::arg;
 
 using gridtools::direction;
@@ -42,8 +42,8 @@ namespace shallow_water{
 
     struct functor_traits{
 //#if  !((defined(__GNUC__)) && (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 9))
-        using tmp=arg_extend<accessor<0, range<-1, 1, -1, 1> >, 2>::type ;
-        using sol=arg_extend<accessor<1, range<-1, 1, -1, 1> >, 2>::type ;
+        using tmp=arg_extend<accessor<0, extent<-1, 1, -1, 1> >, 2>::type ;
+        using sol=arg_extend<accessor<1, extent<-1, 1, -1, 1> >, 2>::type ;
         using arg_list=boost::mpl::vector<tmp, sol> ;
         using step=dimension<3> ;
         using comp=dimension<4>;
@@ -85,8 +85,8 @@ namespace shallow_water{
            The compilation runs fine without warnings with GCC >= 4.9 and Clang*/
 #if  (defined(__GNUC__)) && (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
         //shielding the base class aliases
-        typedef arg_extend<accessor<0, range<-1, 1, -1, 1> >, 2>::type tmp;
-        typedef arg_extend<accessor<1, range<-1, 1, -1, 1> >, 2>::type sol;
+        typedef arg_extend<accessor<0, extent<-1, 1, -1, 1> >, 2>::type tmp;
+        typedef arg_extend<accessor<1, extent<-1, 1, -1, 1> >, 2>::type sol;
         typedef boost::mpl::vector<tmp, sol> arg_list;
         typedef dimension<3> step;
         typedef dimension<4> comp;
@@ -141,8 +141,8 @@ namespace shallow_water{
 
     struct final_step        : public functor_traits {
 #if  (defined(__GNUC__)) && (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
-        typedef arg_extend<accessor<0, range<-1, 1, -1, 1> >, 2>::type tmp;
-        typedef arg_extend<accessor<1, range<-1, 1, -1, 1> >, 2>::type sol;
+        typedef arg_extend<accessor<0, extent<-1, 1, -1, 1> >, 2>::type tmp;
+        typedef arg_extend<accessor<1, extent<-1, 1, -1, 1> >, 2>::type sol;
         typedef boost::mpl::vector<tmp, sol> arg_list;
         typedef dimension<3> step;
         typedef dimension<4> comp;

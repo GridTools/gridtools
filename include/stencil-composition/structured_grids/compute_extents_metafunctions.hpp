@@ -6,21 +6,21 @@ namespace gridtools {
     namespace strgrid {
 
         template <typename FunctorDesc>
-        struct extract_extends {
+        struct extract_extents {
             typedef typename FunctorDesc::esf_function Functor;
 
-            /**@brief here the extends for the functors are calculated: the resulting type will be the extend (i,j) which is enclosing all the extends of the field used by the specific functor*/
+            /**@brief here the extents for the functors are calculated: the resulting type will be the extent (i,j) which is enclosing all the extents of the field used by the specific functor*/
             template <typename RangeState, typename ArgumentIndex>
-            struct update_extend {
+            struct update_extent {
                 typedef typename boost::mpl::at<typename Functor::arg_list, ArgumentIndex>::type argument_type;
-                typedef typename enclosing_extend<RangeState, typename argument_type::extend_type>::type type;
+                typedef typename enclosing_extent<RangeState, typename argument_type::extent_type>::type type;
             };
 
-            /**@brief here the extends for the functors are calculated: iterates over the fields and calls the metafunction above*/
+            /**@brief here the extents for the functors are calculated: iterates over the fields and calls the metafunction above*/
             typedef typename boost::mpl::fold<
                 boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename Functor::arg_list>::type::value >,
-                extend<0,0,0,0,0,0>,
-                update_extend<boost::mpl::_1, boost::mpl::_2>
+                extent<0,0,0,0,0,0>,
+                update_extent<boost::mpl::_1, boost::mpl::_2>
                 >::type type;
         };
 
@@ -29,56 +29,56 @@ namespace gridtools {
             typedef boost::false_type type;
         };
 
-        /**@brief specialization for "independent" elementary stencil functions: given the list of  functors inside an elementary stencil function (esf) returns a vector of enclosing extends, one per functor*/
+        /**@brief specialization for "independent" elementary stencil functions: given the list of  functors inside an elementary stencil function (esf) returns a vector of enclosing extents, one per functor*/
         template <typename T>
         struct from_independents<independent_esf<T> > {
             typedef typename boost::mpl::fold<
                 typename independent_esf<T>::esf_list,
                 boost::mpl::vector0<>,
-                boost::mpl::push_back<boost::mpl::_1, extract_extends<boost::mpl::_2> >
+                boost::mpl::push_back<boost::mpl::_1, extract_extents<boost::mpl::_2> >
             >::type raw_type;
 
             typedef _impl::wrap_type<raw_type> type;
         };
 
         template <typename T>
-        struct extract_extends<independent_esf<T> >
+        struct extract_extents<independent_esf<T> >
         {
             typedef boost::false_type type;
         };
 
 
-        /** @brief metafunction returning, given the elementary stencil function "Elem", either the vector of enclosing extends (in case of "independent" esf), or the single extend enclosing all the extends. */
+        /** @brief metafunction returning, given the elementary stencil function "Elem", either the vector of enclosing extents (in case of "independent" esf), or the single extent enclosing all the extents. */
         template <typename State, typename Elem>
-        struct traverse_extends {
+        struct traverse_extents {
             typedef typename boost::mpl::push_back<
                 State,
                 typename boost::mpl::if_<
                     is_independent<Elem>,
                     typename from_independents<Elem>::type,
-                    typename extract_extends<Elem>::type
+                    typename extract_extents<Elem>::type
                 >::type
             >::type type;
         };
 
 
-        /**@brief prefix sum, scan operation, takes into account the extend needed by the current stage plus the extend needed by the next stage.*/
+        /**@brief prefix sum, scan operation, takes into account the extent needed by the current stage plus the extent needed by the next stage.*/
         template <typename ListOfRanges>
-        struct prefix_on_extends {
+        struct prefix_on_extents {
 
             template <typename List, typename Range/*, typename NextRange*/>
             struct state {
                 typedef List list;
-                typedef Range extend;
-                // typedef NextRange next_extend;
+                typedef Range extent;
+                // typedef NextRange next_extent;
             };
 
             template <typename PreviousState, typename CurrentElement>
             struct update_state {
-                typedef typename sum_extend<typename PreviousState::extend,
-                                               CurrentElement>::type new_extend;
-                typedef typename boost::mpl::push_front<typename PreviousState::list, typename PreviousState::extend>::type new_list;
-                typedef state<new_list, new_extend> type;
+                typedef typename sum_extent<typename PreviousState::extent,
+                                               CurrentElement>::type new_extent;
+                typedef typename boost::mpl::push_front<typename PreviousState::list, typename PreviousState::extent>::type new_list;
+                typedef state<new_list, new_extent> type;
             };
 
             template <typename PreviousState, typename IndVector>
@@ -87,23 +87,23 @@ namespace gridtools {
                 typedef typename boost::mpl::fold<
                     IndVector,
                     boost::mpl::vector0<>,
-                    boost::mpl::push_back<boost::mpl::_1, /*sum_extend<*/typename PreviousState::extend/*, boost::mpl::_2>*/ >
-                >::type raw_extends;
+                    boost::mpl::push_back<boost::mpl::_1, /*sum_extent<*/typename PreviousState::extent/*, boost::mpl::_2>*/ >
+                >::type raw_extents;
 
                 typedef typename boost::mpl::fold<
                     IndVector,
-                    extend<0,0,0,0,0,0>,
-                    enclosing_extend<boost::mpl::_1, sum_extend<typename PreviousState::extend, boost::mpl::_2> >
-                >::type final_extend;
+                    extent<0,0,0,0,0,0>,
+                    enclosing_extent<boost::mpl::_1, sum_extent<typename PreviousState::extent, boost::mpl::_2> >
+                >::type final_extent;
 
-                typedef typename boost::mpl::push_front<typename PreviousState::list, _impl::wrap_type<raw_extends> >::type new_list;
+                typedef typename boost::mpl::push_front<typename PreviousState::list, _impl::wrap_type<raw_extents> >::type new_list;
 
-                typedef state<new_list, final_extend> type;
+                typedef state<new_list, final_extent> type;
             };
 
             typedef typename boost::mpl::reverse_fold<
                 ListOfRanges,
-                state<boost::mpl::vector0<>, extend<0,0,0,0,0,0> >,
+                state<boost::mpl::vector0<>, extent<0,0,0,0,0,0> >,
                 update_state<boost::mpl::_1, boost::mpl::_2>
             >::type final_state;
 
@@ -120,7 +120,7 @@ namespace gridtools {
         };
 
         template <typename Array>
-        struct linearize_extend_sizes {
+        struct linearize_extent_sizes {
             typedef typename boost::mpl::fold<Array,
                 boost::mpl::vector0<>,
                 boost::mpl::if_<
@@ -132,29 +132,29 @@ namespace gridtools {
         };
 
         template<typename MssDescriptor>
-        struct mss_compute_extend_sizes
+        struct mss_compute_extent_sizes
         {
             GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor<MssDescriptor>::value), "Internal Error: invalid type");
 
             /**
-             * \brief Here the extends are calculated recursively, in order for each functor's domain to embed all the domains of the functors he depends on.
+             * \brief Here the extents are calculated recursively, in order for each functor's domain to embed all the domains of the functors he depends on.
              */
             typedef typename boost::mpl::fold<
                 typename mss_descriptor_esf_sequence<MssDescriptor>::type,
                 boost::mpl::vector0<>,
-                traverse_extends<boost::mpl::_1,boost::mpl::_2>
-            >::type extends_list;
+                traverse_extents<boost::mpl::_1,boost::mpl::_2>
+            >::type extents_list;
 
             /*
              *  Compute prefix sum to compute bounding boxes for calling a given functor
              */
-            typedef typename prefix_on_extends<extends_list>::type structured_extend_sizes;
+            typedef typename prefix_on_extents<extents_list>::type structured_extent_sizes;
 
             /**
              * linearize the data flow graph
              *
              */
-            typedef typename linearize_extend_sizes<structured_extend_sizes>::type type;
+            typedef typename linearize_extent_sizes<structured_extent_sizes>::type type;
 
             GRIDTOOLS_STATIC_ASSERT(
                 (boost::mpl::size<typename mss_descriptor_linear_esf_sequence<MssDescriptor>::type>::value ==
@@ -162,7 +162,7 @@ namespace gridtools {
         };
 
         template <typename Placeholders>
-        struct compute_extends_of {
+        struct compute_extents_of {
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Placeholders, is_arg>::value), "wrong type");
             template<typename MssDescriptor>
             struct for_mss
@@ -170,12 +170,12 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor<MssDescriptor>::value), "Internal Error: invalid type");
     
                 template <typename PLH>
-                struct map_of_empty_extends {
+                struct map_of_empty_extents {
                     typedef typename boost::mpl::fold<
                         PLH,
                         boost::mpl::map0<>,
                         boost::mpl::insert<boost::mpl::_1,
-                                           boost::mpl::pair<boost::mpl::_2, extend<0,0,0,0,0,0> >
+                                           boost::mpl::pair<boost::mpl::_2, extent<0,0,0,0,0,0> >
                                            >
                         >::type type;
                 };
@@ -184,10 +184,10 @@ namespace gridtools {
                 struct work_on {
                     template <typename PlcRangePair, typename CurrentMap>
                     struct with {
-                        typedef typename sum_extend<CurrentRange, typename PlcRangePair::second>::type candidate_extend;
-                        typedef typename enclosing_extend<candidate_extend, typename boost::mpl::at<CurrentMap, typename PlcRangePair::first>::type>::type extend;
+                        typedef typename sum_extent<CurrentRange, typename PlcRangePair::second>::type candidate_extent;
+                        typedef typename enclosing_extent<candidate_extent, typename boost::mpl::at<CurrentMap, typename PlcRangePair::first>::type>::type extent;
                         typedef typename boost::mpl::erase_key<CurrentMap, typename PlcRangePair::first>::type map_erased;
-                        typedef typename boost::mpl::insert<map_erased, boost::mpl::pair<typename PlcRangePair::first, extend> >::type type; // new map
+                        typedef typename boost::mpl::insert<map_erased, boost::mpl::pair<typename PlcRangePair::first, extent> >::type type; // new map
                     };
                 };
     
@@ -197,17 +197,17 @@ namespace gridtools {
                     typedef typename boost::mpl::pop_front<ESFs>::type rest_of_ESFs;
     
                     typedef typename esf_get_the_only_w_per_functor<current_ESF, boost::false_type>::type output;
-                    // ^^^^ they (must) have the same extend<0,0,0,0,0,0> [so not need for true predicate]
+                    // ^^^^ they (must) have the same extent<0,0,0,0,0,0> [so not need for true predicate]
                     // now assuming there is only one
     
                     typedef typename esf_get_r_per_functor<current_ESF, boost::true_type>::type inputs;
     
-                    typedef typename boost::mpl::at<CurrentMap, output>::type current_extend;
+                    typedef typename boost::mpl::at<CurrentMap, output>::type current_extent;
     
                     typedef typename boost::mpl::fold<
                         inputs,
                         CurrentMap,
-                        typename work_on<current_extend>::template with<boost::mpl::_2,boost::mpl::_1>
+                        typename work_on<current_extent>::template with<boost::mpl::_2,boost::mpl::_1>
                         >::type new_map;
     
                     typedef typename populate_map<rest_of_ESFs, new_map, boost::mpl::size<rest_of_ESFs>::type::value >::type type;
@@ -221,7 +221,7 @@ namespace gridtools {
                 typedef typename boost::mpl::reverse<typename mss_descriptor_esf_sequence<MssDescriptor>::type>::type ESFs;
     
                 typedef typename populate_map<ESFs,
-                                              typename map_of_empty_extends<Placeholders>::type,
+                                              typename map_of_empty_extents<Placeholders>::type,
                                               boost::mpl::size<ESFs>::type::value >::type type;
     
             };

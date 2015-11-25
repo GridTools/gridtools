@@ -118,9 +118,9 @@ namespace shallow_water{
     struct flux_x        : public functor_traits {
 
         //! [accessor]
-        typedef accessor<1, enumtype::inout, extend<0, -1, 0, 0>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
+        typedef accessor<1, enumtype::inout, extent<0, -1, 0, 0>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
         //! [accessor]
-        typedef accessor<0, enumtype::inout, extend<0, 0, 0, 0>, 5> tmpx; /** (output) is the flux computed on the left edge of the cell */
+        typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 5> tmpx; /** (output) is the flux computed on the left edge of the cell */
         using arg_list=boost::mpl::vector<tmpx, sol> ;
 
 
@@ -186,8 +186,8 @@ namespace shallow_water{
     // [flux_y]
     struct flux_y        : public functor_traits {
 
-        typedef accessor<0,enumtype::inout,extend<0, 0, 0, 0>, 5> tmpy; /** (output) is the flux at the bottom edge of the cell */
-        typedef accessor<1,enumtype::inout,extend<0, 0, 0, -1>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
+        typedef accessor<0,enumtype::inout,extent<0, 0, 0, 0>, 5> tmpy; /** (output) is the flux at the bottom edge of the cell */
+        typedef accessor<1,enumtype::inout,extent<0, 0, 0, -1>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
         using arg_list=boost::mpl::vector<tmpy, sol> ;
 
         template <typename Evaluation>
@@ -241,9 +241,9 @@ namespace shallow_water{
     // [final_step]
     struct final_step        : public functor_traits {
 
-        typedef accessor<0, enumtype::inout,extend<0,1,0,1>, 5> tmpx; /** (input) is the flux at the left edge of the cell */
-        typedef accessor<1, enumtype::inout,extend<0,1,0,1>, 5> tmpy; /** (input) is the flux at the bottom edge of the cell */
-        typedef accessor<2,enumtype::inout,extend<0, 0, 0, 0>, 5> sol; /** (output) is the solution at the cell center, computed at the previous time level */
+        typedef accessor<0, enumtype::inout,extent<0,1,0,1>, 5> tmpx; /** (input) is the flux at the left edge of the cell */
+        typedef accessor<1, enumtype::inout,extent<0,1,0,1>, 5> tmpy; /** (input) is the flux at the bottom edge of the cell */
+        typedef accessor<2,enumtype::inout,extent<0, 0, 0, 0>, 5> sol; /** (output) is the solution at the cell center, computed at the previous time level */
         typedef boost::mpl::vector<tmpx, tmpy, sol> arg_list;
         static uint_t current_time;
 

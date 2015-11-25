@@ -2,27 +2,27 @@
 #include "common/gt_assert.hpp"
 #include "common/array.hpp"
 #include "stencil-composition/block_size.hpp"
-#include "stencil-composition/extend.hpp"
+#include "stencil-composition/extent.hpp"
 #include "stencil-composition/offset_tuple.hpp"
 
 namespace gridtools {
 
 /**
  * @struct cache_storage
- * simple storage class for storing caches. Current version assumes only 2D (i,j), but it will be extended
+ * simple storage class for storing caches. Current version assumes only 2D (i,j), but it will be extented
  * in future version to support K and IJK storages. Data is allocated on the stack.
  * The size of the storage is determined by the block size and the extension to this block sizes required for
- *  halo regions (determined by a extend type)
+ *  halo regions (determined by a extent type)
  * @tparam Value value type being stored
  * @tparam BlockSize physical domain block size
- * @tparam Extend extend
+ * @tparam Extend extent
  */
 template <typename Value, typename BlockSize, typename Extend>
 struct cache_storage
 {
 
     GRIDTOOLS_STATIC_ASSERT((is_block_size<BlockSize>::value), "Internal Error: wrong type");
-    GRIDTOOLS_STATIC_ASSERT((is_extend<Extend>::value), "Internal Error: wrong type");
+    GRIDTOOLS_STATIC_ASSERT((is_extent<Extend>::value), "Internal Error: wrong type");
 
     typedef typename BlockSize::i_size_t tile_i;
     typedef typename BlockSize::j_size_t tile_j;

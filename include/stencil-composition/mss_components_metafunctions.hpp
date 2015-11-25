@@ -54,7 +54,7 @@ struct split_mss_into_independent_esfs
  * @brief metafunction that builds the array of mss components
  * @tparam BackendId id of the backend (which decides whether the MSS with multiple ESF are split or not)
  * @tparam MssDescriptorArray meta array of mss descriptors
- * @tparam extend_sizes sequence of sequence of extends
+ * @tparam extent_sizes sequence of sequence of extents
  */
 template<
     enumtype::backend BackendId,
@@ -69,7 +69,7 @@ struct build_mss_components_array
                              boost::mpl::size<ExtendSizes>::value), "Internal Error: wrong size");
 
     template<typename _ExtendSizes_>
-    struct unroll_extend_sizes
+    struct unroll_extent_sizes
     {
         template<typename State, typename Sequence>
         struct insert_unfold
@@ -99,16 +99,16 @@ struct build_mss_components_array
     typedef typename boost::mpl::eval_if<
         typename backend_traits_from_id<BackendId>::mss_fuse_esfs_strategy,
         boost::mpl::identity<ExtendSizes>,
-        unroll_extend_sizes<ExtendSizes>
-    >::type extend_sizes_unrolled_t;
+        unroll_extent_sizes<ExtendSizes>
+    >::type extent_sizes_unrolled_t;
 
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename mss_array_t::elements>::value ==
-        boost::mpl::size<extend_sizes_unrolled_t>::value
+        boost::mpl::size<extent_sizes_unrolled_t>::value
                                 ), "Internal Error: wrong size");
 
     typedef meta_array<
         typename boost::mpl::fold<
-            boost::mpl::range_c<int,0, boost::mpl::size<extend_sizes_unrolled_t>::value>,
+            boost::mpl::range_c<int,0, boost::mpl::size<extent_sizes_unrolled_t>::value>,
             boost::mpl::vector0<>,
             boost::mpl::push_back<
                 boost::mpl::_1,
@@ -118,7 +118,7 @@ struct build_mss_components_array
                         boost::mpl::_2
                     >,
                     boost::mpl::at<
-                        extend_sizes_unrolled_t,
+                        extent_sizes_unrolled_t,
                         boost::mpl::_2
                     >
                 >

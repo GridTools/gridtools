@@ -8,7 +8,7 @@ namespace gridtools {
  * @brief the mss components contains meta data associated to a mss descriptor.
  * All derived metadata is computed in this class
  * @tparam MssDescriptor the mss descriptor
- * @tparam ExtendSizes the extend sizes of all the ESFs in this mss
+ * @tparam ExtendSizes the extent sizes of all the ESFs in this mss
  */
 template<
     typename MssDescriptor,
@@ -17,7 +17,7 @@ template<
 struct mss_components
 {
     GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor<MssDescriptor>::value), "Internal Error: wrong type");
-    GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ExtendSizes, is_extend>::value), "Internal Error: wrong type");
+    GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ExtendSizes, is_extent>::value), "Internal Error: wrong type");
 
     typedef typename mss_descriptor_execution_engine<MssDescriptor>::type execution_engine_t;
 
@@ -40,7 +40,7 @@ struct mss_components
         _impl::extract_functor
     >::type functors_list_t;
 
-    typedef ExtendSizes extend_sizes_t;
+    typedef ExtendSizes extent_sizes_t;
     typedef typename MssDescriptor::cache_sequence_t cache_sequence_t;
 };
 

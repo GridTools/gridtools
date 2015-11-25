@@ -29,7 +29,7 @@
 
 using gridtools::level;
 using gridtools::accessor;
-using gridtools::extend;
+using gridtools::extent;
 using gridtools::arg;
 
 namespace tridiagonal{

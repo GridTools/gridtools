@@ -16,7 +16,7 @@
 
 using gridtools::level;
 using gridtools::accessor;
-using gridtools::extend;
+using gridtools::extent;
 using gridtools::arg;
 
 using namespace gridtools;
@@ -39,7 +39,7 @@ typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
 // These are the stencil operators that compose the multistage stencil in this test
 struct lap_function {
     typedef accessor<0, enumtype::inout> out;
-    typedef accessor<1, enumtype::in, extend<-1, 1, -1, 1> > in;
+    typedef accessor<1, enumtype::in, extent<-1, 1, -1, 1> > in;
 
     typedef boost::mpl::vector<out, in> arg_list;
 
@@ -55,8 +55,8 @@ struct lap_function {
 struct flx_function {
 
     typedef accessor<0, enumtype::inout> out;
-    typedef accessor<1, enumtype::in, extend<0, 1, 0, 0> > in;
-    typedef accessor<2, enumtype::in, extend<0, 1, 0, 0> > lap;
+    typedef accessor<1, enumtype::in, extent<0, 1, 0, 0> > in;
+    typedef accessor<2, enumtype::in, extent<0, 1, 0, 0> > lap;
 
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
@@ -73,8 +73,8 @@ struct flx_function {
 struct fly_function {
 
     typedef accessor<0, enumtype::inout> out;
-    typedef accessor<1, enumtype::in, extend<0, 0, 0, 1> > in;
-    typedef accessor<2, enumtype::in, extend<0, 0, 0, 1> > lap;
+    typedef accessor<1, enumtype::in, extent<0, 0, 0, 1> > in;
+    typedef accessor<2, enumtype::in, extent<0, 0, 0, 1> > lap;
 
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
@@ -92,8 +92,8 @@ struct out_function {
 
     typedef accessor<0, enumtype::inout> out;
     typedef accessor<1> in;
-    typedef accessor<2, enumtype::in, extend<-1, 0, 0, 0> > flx;
-    typedef accessor<3, enumtype::in, extend<0, 0, -1, 0> > fly;
+    typedef accessor<2, enumtype::in, extent<-1, 0, 0, 0> > flx;
+    typedef accessor<3, enumtype::in, extent<0, 0, -1, 0> > fly;
     typedef accessor<4> coeff;
 
     typedef boost::mpl::vector<out,in,flx,fly,coeff> arg_list;

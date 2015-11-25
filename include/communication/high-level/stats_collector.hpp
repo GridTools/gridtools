@@ -257,7 +257,7 @@ public:
                 // allocate memory for receive buffer
                 std::vector<int> recvbuff(size);
 
-                // gather and output the minus extends
+                // gather and output the minus ranges
                 int minus = patterns_[p].halo(i).minus();
                 MPI_Gather(&minus, 1, MPI_INT, &recvbuff[0], 1, MPI_INT, 0, comm_);
                 if(!rank){
@@ -266,7 +266,7 @@ public:
                         stream << recvbuff[r] << " ";
                     stream << std::endl;
                 }
-                // gather and output the plus extends
+                // gather and output the plus ranges
                 int plus = patterns_[p].halo(i).plus();
                 MPI_Gather(&plus, 1, MPI_INT, &recvbuff[0], 1, MPI_INT, 0, comm_);
                 if(!rank){
@@ -275,7 +275,7 @@ public:
                         stream << recvbuff[r] << " ";
                     stream << std::endl;
                 }
-                // gather and output the begin extends
+                // gather and output the begin ranges
                 int begin = patterns_[p].halo(i).begin();
                 MPI_Gather(&begin, 1, MPI_INT, &recvbuff[0], 1, MPI_INT, 0, comm_);
                 if(!rank){
@@ -284,7 +284,7 @@ public:
                         stream << recvbuff[r] << " ";
                     stream << std::endl;
                 }
-                // gather and output the end extends
+                // gather and output the end ranges
                 int end = patterns_[p].halo(i).end();
                 MPI_Gather(&end, 1, MPI_INT, &recvbuff[0], 1, MPI_INT, 0, comm_);
                 if(!rank){
@@ -293,7 +293,7 @@ public:
                         stream << recvbuff[r] << " ";
                     stream << std::endl;
                 }
-                // gather and output the total_length extends
+                // gather and output the total_length ranges
                 int total_length = patterns_[p].halo(i).total_length();
                 MPI_Gather(&total_length, 1, MPI_INT, recvbuff.data(), 1, MPI_INT, 0, comm_);
                 if(!rank){

@@ -30,7 +30,7 @@ namespace gridtools {
 
        \tparam ID the integer unic ID of the field placeholder
 
-       \tparam Extend the extend of i/j indices spanned by the
+       \tparam Extend the extent of i/j indices spanned by the
                placeholder, in the form of <i_minus, i_plus, j_minus,
                j_plus>.  The values are relative to the current
                position. See e.g. horizontal_diffusion::out_function
@@ -43,7 +43,7 @@ namespace gridtools {
                field dimensions or space dimension will be decided at the
                moment of the storage instantiation (in the main function)
      */
-    template < uint_t ID, enumtype::intend Intend=enumtype::in, typename Extend=extend<0,0,0,0,0,0>, ushort_t Number=3>
+    template < uint_t ID, enumtype::intend Intend=enumtype::in, typename Extend=extent<0,0,0,0,0,0>, ushort_t Number=3>
     struct accessor : public accessor_base<ID, Intend, Extend, Number> {
         typedef accessor_base<ID, Intend, Extend, Number> super;
         typedef typename super::index_type index_type;
@@ -129,13 +129,13 @@ namespace gridtools {
     private:
         static constexpr accessor_base<ArgType::index_type::value
                                              , ArgType::intend_t::value
-                                             , typename ArgType::extend_type
+                                             , typename ArgType::extent_type
                                              , ArgType::n_dim> s_args_constexpr{
             dimension<Pair::first>{Pair::second} ... };
 
         accessor_base<ArgType::index_type::value
                       , ArgType::intend_t::value
-                      , typename ArgType::extend_type
+                      , typename ArgType::extent_type
                       , ArgType::n_dim> m_args_runtime;
         typedef boost::mpl::vector<static_int<n_dim-Pair::first> ... > coordinates;
     public:
@@ -177,7 +177,7 @@ namespace gridtools {
     template <typename ArgType, typename ... Pair>
     constexpr accessor_base<ArgType::index_type::value
                                   , ArgType::intend_t::value
-                                  , typename ArgType::extend_type
+                                  , typename ArgType::extent_type
                                   , ArgType::n_dim> accessor_mixed<ArgType, Pair...>::s_args_constexpr;
 
 
@@ -229,10 +229,10 @@ namespace gridtools {
 #endif
 
 #ifdef CXX11_ENABLED
-    template <uint_t ID, typename Extend=extend<0,0,0,0,0,0>, ushort_t Number=3>
+    template <uint_t ID, typename Extend=extent<0,0,0,0,0,0>, ushort_t Number=3>
     using in_accessor = accessor<ID, enumtype::in, Extend, Number>;
 
-    template <uint_t ID, typename Extend=extend<0,0,0,0,0,0>, ushort_t Number=3>
+    template <uint_t ID, typename Extend=extent<0,0,0,0,0,0>, ushort_t Number=3>
     using inout_accessor = accessor<ID, enumtype::inout, Extend, Number>;
 #endif
 

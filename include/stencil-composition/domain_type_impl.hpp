@@ -39,7 +39,7 @@ namespace gridtools {
             }
         };
 
-        struct print_extends {
+        struct print_extents {
             template <typename T>
             void operator()(T const&) const {
                 std::cout << T() << std::endl;
@@ -153,15 +153,15 @@ namespace gridtools {
         };
 
         /**
-         * @brief metafunction that computes the list of extends associated to each functor.
+         * @brief metafunction that computes the list of extents associated to each functor.
          * It assumes the temporary is written only by one esf.
          * TODO This assumption is probably wrong?, a temporary could be written my multiple esf concatenated. The algorithm
-         * we need to use here is find the maximum extend associated to a temporary instead.
+         * we need to use here is find the maximum extent associated to a temporary instead.
          * @tparam TempsPerFunctor vector of vectors containing the list of temporaries written per esf
-         * @tparam ExtendSizes extends associated to each esf (i.e. due to read access patterns of later esf's)
+         * @tparam ExtendSizes extents associated to each esf (i.e. due to read access patterns of later esf's)
          */
         template <typename TempsPerFunctor, typename ExtendSizes>
-        struct associate_extends {
+        struct associate_extents {
             template <typename Temp>
             struct is_temp_there {
                 template <typename TempsInEsf>
@@ -187,15 +187,15 @@ namespace gridtools {
         };
 
         /**
-         * @brief metafunction that computes the list of extends associated to each functor.
+         * @brief metafunction that computes the list of extents associated to each functor.
          * It assumes the temporary is written only by one esf.
          * TODO This assumption is probably wrong?, a temporary could be written my multiple esf concatenated. The algorithm
-         * we need to use here is find the maximum extend associated to a temporary instead.
+         * we need to use here is find the maximum extent associated to a temporary instead.
          * @tparam TempsPerFunctor vector of vectors containing the list of temporaries written per esf
-         * @tparam ExtendSizes extends associated to each esf (i.e. due to read access patterns of later esf's)
+         * @tparam ExtendSizes extents associated to each esf (i.e. due to read access patterns of later esf's)
          */
         template <typename TMap, typename Temp, typename TempsPerFunctor, typename ExtendSizes>
-        struct associate_extends_map {
+        struct associate_extents_map {
             template <typename TTemp>
             struct is_temp_there {
                 template <typename TempsInEsf>

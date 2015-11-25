@@ -16,7 +16,7 @@
 
 using gridtools::level;
 using gridtools::accessor;
-using gridtools::extend;
+using gridtools::extent;
 using gridtools::arg;
 
 using namespace gridtools;
@@ -38,8 +38,8 @@ namespace positional_copy_stencil{
     // These are the stencil operators that compose the multistage stencil in this test
     template <int V>
     struct init_functor {
-        typedef accessor<0, enumtype::inout, extend<> >  one;
-        typedef accessor<1, enumtype::inout, extend<> >  two;
+        typedef accessor<0, enumtype::inout, extent<> >  one;
+        typedef accessor<1, enumtype::inout, extent<> >  two;
         typedef boost::mpl::vector<one, two> arg_list;
 
         template <typename Evaluation>
@@ -53,8 +53,8 @@ namespace positional_copy_stencil{
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
 
-        typedef accessor<0, enumtype::in, extend<>, 3> in;
-        typedef accessor<1, enumtype::inout, extend<>, 3> out;
+        typedef accessor<0, enumtype::in, extent<>, 3> in;
+        typedef accessor<1, enumtype::inout, extent<>, 3> out;
         typedef boost::mpl::vector<in,out> arg_list;
 
     /* static const auto expression=in(1,0,0)-out(); */

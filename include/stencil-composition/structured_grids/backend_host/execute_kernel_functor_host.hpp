@@ -95,24 +95,24 @@ namespace gridtools {
                 typedef typename RunFunctorArguments::execution_type_t execution_type_t;
 
                 // in the host backend there should be only one esf per mss
-                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename RunFunctorArguments::extend_sizes_t>::value==1),
+                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename RunFunctorArguments::extent_sizes_t>::value==1),
                                         "Internal Error: wrong size");
-                typedef typename boost::mpl::back<typename RunFunctorArguments::extend_sizes_t>::type extend_t;
-                GRIDTOOLS_STATIC_ASSERT((is_extend<extend_t>::value), "Internal Error: wrong type");
+                typedef typename boost::mpl::back<typename RunFunctorArguments::extent_sizes_t>::type extent_t;
+                GRIDTOOLS_STATIC_ASSERT((is_extent<extent_t>::value), "Internal Error: wrong type");
 
                 typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
                 typedef backend_traits_from_id<enumtype::Host> backend_traits_t;
 #ifdef VERBOSE
 #pragma omp critical
                 {
-                    std::cout << "I loop " << m_first_pos[0] <<"+"<< extend_t::iminus::value << " -> "
-                              << m_first_pos[0] <<"+"<< m_last_pos[0] <<"+"<< extend_t::iplus::value << "\n";
-                    std::cout << "J loop " << m_first_pos[1] <<"+"<< extend_t::jminus::value << " -> "
-                              << m_first_pos[1] <<"+"<< m_last_pos[1] <<"+"<< extend_t::jplus::value << "\n";
-                    std::cout<<"iminus::value: "<<extend_t::iminus::value<<std::endl;
-                    std::cout<<"iplus::value: "<<extend_t::iplus::value<<std::endl;
-                    std::cout<<"jminus::value: "<<extend_t::jminus::value<<std::endl;
-                    std::cout<<"jplus::value: "<<extend_t::jplus::value<<std::endl;
+                    std::cout << "I loop " << m_first_pos[0] <<"+"<< extent_t::iminus::value << " -> "
+                              << m_first_pos[0] <<"+"<< m_last_pos[0] <<"+"<< extent_t::iplus::value << "\n";
+                    std::cout << "J loop " << m_first_pos[1] <<"+"<< extent_t::jminus::value << " -> "
+                              << m_first_pos[1] <<"+"<< m_last_pos[1] <<"+"<< extent_t::jplus::value << "\n";
+                    std::cout<<"iminus::value: "<<extent_t::iminus::value<<std::endl;
+                    std::cout<<"iplus::value: "<<extent_t::iplus::value<<std::endl;
+                    std::cout<<"jminus::value: "<<extent_t::jminus::value<<std::endl;
+                    std::cout<<"jplus::value: "<<extent_t::jplus::value<<std::endl;
                     std::cout<<"block_id_i: "<<m_block_id[0]<<std::endl;
                     std::cout<<"block_id_j: "<<m_block_id[1]<<std::endl;
                 }
@@ -140,10 +140,10 @@ namespace gridtools {
                         array_t, loop_item<0, int_t, 1>,
                         loop_item<1, int_t, 1>
                         > ij_loop(
-                            (int_t) (m_first_pos[0] + extend_t::iminus::value),
-                        (int_t) (m_first_pos[0] + m_last_pos[0] + extend_t::iplus::value),
-                        (int_t) (m_first_pos[1] + extend_t::jminus::value),
-                        (int_t) (m_first_pos[1] + m_last_pos[1] + extend_t::jplus::value)
+                            (int_t) (m_first_pos[0] + extent_t::iminus::value),
+                        (int_t) (m_first_pos[0] + m_last_pos[0] + extent_t::iplus::value),
+                        (int_t) (m_first_pos[1] + extent_t::jminus::value),
+                        (int_t) (m_first_pos[1] + m_last_pos[1] + extent_t::jplus::value)
                         );
 
                 //reset the index
