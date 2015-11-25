@@ -22,7 +22,7 @@ namespace gridtools {
         template <typename ArgList,
                   typename MetaList,
                   typename Coords,
-                  enumtype::backend BackendId,
+                  enumtype::platform BackendId,
                   enumtype::strategy StrategyId>
         struct prepare_temporaries_functor;
 

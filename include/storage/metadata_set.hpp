@@ -87,6 +87,13 @@ namespace gridtools{
 
     };
 
+    template <typename T>
+    struct is_metadata_set : boost::mpl::false_{};
+
+    template <typename T>
+    struct is_metadata_set<metadata_set<T> > : boost::mpl::true_{};
+
+
     /** inserts an element in the set if it is not present
 
         used for the metadata_set in the domain_type
@@ -108,11 +115,4 @@ namespace gridtools{
             if (!m_seq.template present< pointer<const typename Arg::meta_data_t> >())
                 m_seq.insert(pointer<const typename Arg::meta_data_t>(&(m_arg.meta_data())));                 }
     };
-
-    template <typename T>
-    struct is_metadata_set : boost::mpl::false_{};
-
-    template <typename T>
-    struct is_metadata_set<metadata_set<T> > : boost::mpl::true_{};
-
 }

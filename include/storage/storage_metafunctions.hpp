@@ -35,8 +35,6 @@ struct storage_holds_data_field : boost::mpl::bool_<(T::field_dimensions > 1)>{}
     struct is_temporary_storage<no_storage_type_yet<U>  > : public boost::true_type
     {};
 
-    template<typename T> struct is_actual_storage : boost::mpl::false_{};
-
     template <typename T, typename U, ushort_t Dim>
     struct is_actual_storage<base_storage<T,U,Dim>  *  > : public boost::mpl::bool_< !U::is_temporary >
     {};

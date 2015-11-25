@@ -4,7 +4,7 @@
 
 namespace gridtools{
 
-    template< enumtype::backend BackendId, enumtype::strategy StrategyType >
+    template< enumtype::platform BackendId, enumtype::strategy StrategyType >
     struct backend : public backend_base<BackendId, StrategyType>
     {
         typedef backend_base<BackendId, StrategyType> base_t;
@@ -13,7 +13,7 @@ namespace gridtools{
         using base_t::strategy_traits_t;
 
         static const enumtype::strategy s_strategy_id=base_t::s_strategy_id;
-        static const enumtype::backend s_backend_id =base_t::s_backend_id;
+        static const enumtype::platform s_backend_id =base_t::s_backend_id;
 
     };
 

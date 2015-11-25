@@ -92,7 +92,7 @@ namespace gridtools{
                                      uint_t const& n_j_threads=1)
             : super((tile_i+minus_i+plus_i)*n_i_threads,(tile_j+minus_j+plus_j)*n_j_threads, dim3)
 #ifdef CXX11_ENABLED
-            , m_initial_offsets(initial_offset_i - minus_i, initial_offset_j - minus_j, 0)
+            , m_initial_offsets{initial_offset_i - minus_i, initial_offset_j - minus_j, 0}
 #endif
             {
 #ifndef CXX11_ENABLED
