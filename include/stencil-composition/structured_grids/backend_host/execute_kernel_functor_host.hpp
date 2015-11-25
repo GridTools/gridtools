@@ -38,9 +38,9 @@ namespace gridtools {
 
                 IterateDomain const& it_domain() const { return m_it_domain; }
 
-                innermost_functor(IterateDomain & it_domain, const Grid& grid_):
+                innermost_functor(IterateDomain & it_domain, const Grid& grid):
                     m_it_domain(it_domain),
-                    m_grid(grid_){}
+                    m_grid(grid){}
 
                 void operator() () const {
                     m_it_domain.template initialize<2>( m_grid.template value_at< typename IterationPolicy::from >() );
@@ -58,11 +58,11 @@ namespace gridtools {
             * @brief core of the kernel execution
             * @tparam Traits traits class defined in \ref gridtools::_impl::run_functor_traits
             */
-            explicit execute_kernel_functor_host(const local_domain_t& local_domain, const grid_t& grid_,
+            explicit execute_kernel_functor_host(const local_domain_t& local_domain, const grid_t& grid,
                                                  const uint_t first_i, const uint_t first_j, const uint_t last_i, const uint_t last_j,
                                                  const uint_t block_idx_i, const uint_t block_idx_j)
                 : m_local_domain(local_domain)
-                , m_grid(grid_)
+                , m_grid(grid)
 #ifdef CXX11_ENABLED
                 , m_first_pos{first_i, first_j}
                 , m_last_pos{last_i, last_j}
@@ -75,16 +75,16 @@ namespace gridtools {
             {}
 
             // Naive strategy
-            explicit  execute_kernel_functor_host(const local_domain_t& local_domain, const grid_t& grid_)
+            explicit  execute_kernel_functor_host(const local_domain_t& local_domain, const grid_t& grid)
                 : m_local_domain(local_domain)
-                , m_grid(grid_)
+                , m_grid(grid)
 #ifdef CXX11_ENABLED
-                , m_first_pos{grid_.i_low_bound(), grid_.j_low_bound()}
-                , m_last_pos{grid_.i_high_bound()-grid_.i_low_bound(), grid_.j_high_bound()-grid_.j_low_bound()}
+                , m_first_pos{grid.i_low_bound(), grid.j_low_bound()}
+                , m_last_pos{grid.i_high_bound()-grid.i_low_bound(), grid.j_high_bound()-grid.j_low_bound()}
                 , m_block_id{0, 0}
 #else
-                , m_first_pos(grid_.i_low_bound(), grid_.j_low_bound())
-                , m_last_pos(grid_.i_high_bound()-grid_.i_low_bound(), grid_.j_high_bound()-grid_.j_low_bound())
+                , m_first_pos(grid.i_low_bound(), grid.j_low_bound())
+                , m_last_pos(grid.i_high_bound()-grid.i_low_bound(), grid.j_high_bound()-grid.j_low_bound())
                 , m_block_id(0, 0)
 #endif
             {}

@@ -138,13 +138,13 @@ namespace positional_copy_stencil{
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
-        // gridtools::grid<axis> grid_(2,d1-2,2,d2-2);
+        // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
         uint_t di[5] = {0, 0, 0, d1-1, d1};
         uint_t dj[5] = {0, 0, 0, d2-1, d2};
 
-        gridtools::grid<axis> grid_(di, dj);
-        grid_.value_list[0] = 0;
-        grid_.value_list[1] = d3-1;
+        gridtools::grid<axis> grid(di, dj);
+        grid.value_list[0] = 0;
+        grid.value_list[1] = d3-1;
 
 #ifdef __CUDACC__
         gridtools::computation* init =
@@ -161,7 +161,7 @@ namespace positional_copy_stencil{
                p_in(), p_out() // esf_descriptor
                )
               ),
-             domain, grid_
+             domain, grid
              );
 
         init->ready();
@@ -221,7 +221,7 @@ namespace positional_copy_stencil{
                                                 ,p_out()
                                                 )
               ),
-             domain, grid_
+             domain, grid
              );
 
         copy->ready();

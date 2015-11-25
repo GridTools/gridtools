@@ -159,10 +159,10 @@ namespace gridtools {
     namespace _debug {
         template <typename Grid>
         struct show_pair {
-            Grid grid_;
+            Grid m_grid;
 
-            explicit show_pair(Grid const& grid_)
-                : grid_(grid_)
+            explicit show_pair(Grid const& grid)
+                : m_grid(grid)
             {}
 
             template <typename T>
@@ -171,8 +171,8 @@ namespace gridtools {
                 typedef typename index_to_level<typename T::second>::type to;
                 std::cout << "{ (" << from() << " "
                           << to() << ") "
-                          << "[" << grid_.template value_at<from>() << ", "
-                          << grid_.template value_at<to>() << "] } ";
+                          << "[" << m_grid.template value_at<from>() << ", "
+                          << m_grid.template value_at<to>() << "] } ";
             }
         };
 
@@ -456,8 +456,8 @@ namespace gridtools {
 
     public:
 
-        intermediate(DomainType & domain, Grid const & grid_)
-            : m_domain(domain), m_grid(grid_), m_meter("NoName")
+        intermediate(DomainType & domain, Grid const & grid)
+            : m_domain(domain), m_grid(grid), m_meter("NoName")
         {
             // Each map key is a pair of indices in the axis, value is the corresponding method interval.
 
@@ -465,7 +465,7 @@ namespace gridtools {
 #ifndef __CUDACC__
 //TODO redo
 //            std::cout << "Actual loop bounds ";
-//            gridtools::for_each<loop_intervals_t>(_debug::show_pair<Grid>(grid_));
+//            gridtools::for_each<loop_intervals_t>(_debug::show_pair<Grid>(grid));
 //            std::cout << std::endl;
 #endif
 #endif

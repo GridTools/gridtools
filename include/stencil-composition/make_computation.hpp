@@ -76,7 +76,7 @@ namespace _impl {
     >                                                                           \
     computation* make_computation(                                              \
         BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType),                         \
-        Domain& domain, const Grid& grid_                                    \
+        Domain& domain, const Grid& grid                                    \
     ) {                                                                         \
         return new intermediate<                                                \
             Backend,                                                            \
@@ -84,7 +84,7 @@ namespace _impl {
             BOOST_PP_CAT( boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)> \
             >::type,                                                            \
             Domain, Grid,POSITIONAL_WHEN_DEBUGGING                            \
-        >(boost::ref(domain), grid_);                                          \
+        >(boost::ref(domain), grid);                                          \
     }
 
 #else
@@ -106,7 +106,7 @@ namespace _impl {
         >                                                                       \
     > make_computation(                                                         \
         BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType),                         \
-        Domain& domain, const Grid& grid_                                    \
+        Domain& domain, const Grid& grid                                    \
     ) {                                                                         \
         return boost::make_shared<                                              \
             intermediate<                                                       \
@@ -116,7 +116,7 @@ namespace _impl {
                 >::type,                                                        \
                 Domain, Grid, POSITIONAL_WHEN_DEBUGGING                       \
             >                                                                   \
-        >(boost::ref(domain), grid_);                                          \
+        >(boost::ref(domain), grid);                                          \
     }
 
 #endif // __CUDACC__
@@ -140,7 +140,7 @@ namespace _impl {
     >                                                                           \
     computation* make_positional_computation(                                   \
         BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType),                         \
-        Domain& domain, const Grid& grid_                                    \
+        Domain& domain, const Grid& grid                                    \
     ) {                                                                         \
         return new intermediate<                                                \
             Backend,                                                            \
@@ -148,7 +148,7 @@ namespace _impl {
             BOOST_PP_CAT( boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)> \
             >::type,                                                            \
             Domain, Grid,true                                                 \
-        >(boost::ref(domain), grid_);                                          \
+        >(boost::ref(domain), grid);                                          \
     }
 
 #else
@@ -170,7 +170,7 @@ namespace _impl {
         >                                                                       \
     > make_positional_computation(                                              \
         BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType),                         \
-        Domain& domain, const Grid& grid_                                    \
+        Domain& domain, const Grid& grid                                    \
     ) {                                                                         \
         return boost::make_shared<                                              \
             intermediate<                                                       \
@@ -180,7 +180,7 @@ namespace _impl {
                 >::type,                                                        \
                 Domain, Grid, true                                            \
             >                                                                   \
-        >(boost::ref(domain), grid_);                                          \
+        >(boost::ref(domain), grid);                                          \
     }
 
 #endif // __CUDACC__

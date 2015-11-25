@@ -53,7 +53,7 @@ namespace gridtools {
                 using return_t=typename return_type<from<Location1>::to<Location2>, ValueType >::type;
 
                 template<typename Grid>
-                static return_t<int_t> get(Grid const& grid_, array<uint_t, 2> const& i){
+                static return_t<int_t> get(Grid const& grid, array<uint_t, 2> const& i){
                     //not supported
                     assert(false);
                 }
@@ -118,11 +118,11 @@ namespace gridtools {
         using return_t=typename return_type<from<cells>::to<cells>, ValueType >::type;
 
         template<typename Grid>
-        static return_t<uint_t> get(Grid const& grid_, array<uint_t, 3> const& i){
+        static return_t<uint_t> get(Grid const& grid, array<uint_t, 3> const& i){
             return return_t<uint_t>{
-                boost::fusion::at_c<cells::value>(grid_.virtual_storages()).index(get_index(i)[0]),
-                boost::fusion::at_c<cells::value>(grid_.virtual_storages()).index(get_index(i)[1]),
-                boost::fusion::at_c<cells::value>(grid_.virtual_storages()).index(get_index(i)[2])
+                boost::fusion::at_c<cells::value>(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c<cells::value>(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c<cells::value>(grid.virtual_storages()).index(get_index(i)[2])
             };
         }
 
@@ -141,11 +141,11 @@ namespace gridtools {
         using return_t=typename return_type<from<cells>::to<cells>, ValueType >::type;
 
         template<typename Grid>
-        static return_t<uint_t> get(Grid const& grid_, array<uint_t, 3> const& i){
+        static return_t<uint_t> get(Grid const& grid, array<uint_t, 3> const& i){
             return return_t<uint_t>{
-                boost::fusion::at_c<cells::value>(grid_.virtual_storages()).index(get_index(i)[0]),
-                boost::fusion::at_c<cells::value>(grid_.virtual_storages()).index(get_index(i)[1]),
-                boost::fusion::at_c<cells::value>(grid_.virtual_storages()).index(get_index(i)[2])
+                boost::fusion::at_c<cells::value>(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c<cells::value>(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c<cells::value>(grid.virtual_storages()).index(get_index(i)[2])
             };
         }
 
@@ -165,14 +165,14 @@ namespace gridtools {
         using return_t=typename return_type<from<vertexes>::to<vertexes>, ValueType >::type;
 
         template<typename Grid>
-        static return_t<uint_t> get(Grid const& grid_, array<uint_t, 3> const& i){
+        static return_t<uint_t> get(Grid const& grid, array<uint_t, 3> const& i){
             return return_t<uint_t>{
-                boost::fusion::at_c<vertexes::value>(grid_.virtual_storages()).index(get_index(i)[0]),
-                boost::fusion::at_c<vertexes::value>(grid_.virtual_storages()).index(get_index(i)[1]),
-                boost::fusion::at_c<vertexes::value>(grid_.virtual_storages()).index(get_index(i)[2]),
-                boost::fusion::at_c<vertexes::value>(grid_.virtual_storages()).index(get_index(i)[3]),
-                boost::fusion::at_c<vertexes::value>(grid_.virtual_storages()).index(get_index(i)[4]),
-                boost::fusion::at_c<vertexes::value>(grid_.virtual_storages()).index(get_index(i)[5])
+                boost::fusion::at_c<vertexes::value>(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c<vertexes::value>(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c<vertexes::value>(grid.virtual_storages()).index(get_index(i)[2]),
+                boost::fusion::at_c<vertexes::value>(grid.virtual_storages()).index(get_index(i)[3]),
+                boost::fusion::at_c<vertexes::value>(grid.virtual_storages()).index(get_index(i)[4]),
+                boost::fusion::at_c<vertexes::value>(grid.virtual_storages()).index(get_index(i)[5])
             };
         }
 
@@ -195,12 +195,12 @@ namespace gridtools {
         using return_t= typename return_type<from<edges>::to<edges>, ValueType>::type;
 
         template<typename Grid>
-        static return_t<uint_t> get(Grid const& grid_, array<uint_t, 3> const& i){
+        static return_t<uint_t> get(Grid const& grid, array<uint_t, 3> const& i){
             return return_t<uint_t>{
-                boost::fusion::at_c<edges::value>(grid_.virtual_storages()).index(get_index(i)[0]),
-                boost::fusion::at_c<edges::value>(grid_.virtual_storages()).index(get_index(i)[1]),
-                boost::fusion::at_c<edges::value>(grid_.virtual_storages()).index(get_index(i)[2]),
-                boost::fusion::at_c<edges::value>(grid_.virtual_storages()).index(get_index(i)[3])
+                boost::fusion::at_c<edges::value>(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c<edges::value>(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c<edges::value>(grid.virtual_storages()).index(get_index(i)[2]),
+                boost::fusion::at_c<edges::value>(grid.virtual_storages()).index(get_index(i)[3])
             };
         }
 
@@ -221,12 +221,12 @@ namespace gridtools {
         using return_t= typename return_type<from<edges>::to<edges>, ValueType >::type;
 
         template<typename Grid>
-        static return_t<uint_t> get(Grid const& grid_, array<uint_t, 3> const& i){
+        static return_t<uint_t> get(Grid const& grid, array<uint_t, 3> const& i){
             return return_t<uint_t>{
-                boost::fusion::at_c<edges::value>(grid_.virtual_storages()).index(get_index(i)[0]),
-                boost::fusion::at_c<edges::value>(grid_.virtual_storages()).index(get_index(i)[1]),
-                boost::fusion::at_c<edges::value>(grid_.virtual_storages()).index(get_index(i)[2]),
-                boost::fusion::at_c<edges::value>(grid_.virtual_storages()).index(get_index(i)[3])
+                boost::fusion::at_c<edges::value>(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c<edges::value>(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c<edges::value>(grid.virtual_storages()).index(get_index(i)[2]),
+                boost::fusion::at_c<edges::value>(grid.virtual_storages()).index(get_index(i)[3])
             };
         }
 
@@ -247,12 +247,12 @@ namespace gridtools {
         using return_t= typename return_type<from<edges>::to<edges>, ValueType >::type;
 
         template<typename Grid>
-        static return_t<uint_t> get(Grid const& grid_, array<uint_t, 3> const& i){
+        static return_t<uint_t> get(Grid const& grid, array<uint_t, 3> const& i){
             return return_t<uint_t>{
-                boost::fusion::at_c<edges::value>(grid_.virtual_storages()).index(get_index(i)[0]),
-                boost::fusion::at_c<edges::value>(grid_.virtual_storages()).index(get_index(i)[1]),
-                boost::fusion::at_c<edges::value>(grid_.virtual_storages()).index(get_index(i)[2]),
-                boost::fusion::at_c<edges::value>(grid_.virtual_storages()).index(get_index(i)[3])
+                boost::fusion::at_c<edges::value>(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c<edges::value>(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c<edges::value>(grid.virtual_storages()).index(get_index(i)[2]),
+                boost::fusion::at_c<edges::value>(grid.virtual_storages()).index(get_index(i)[3])
             };
         }
 
@@ -273,11 +273,11 @@ namespace gridtools {
         using return_t= typename return_type<from<cells>::to<edges>, ValueType >::type;
 
         template<typename Grid>
-        static return_t<uint_t> get(Grid const& grid_, array<uint_t, 3> const& i){
+        static return_t<uint_t> get(Grid const& grid, array<uint_t, 3> const& i){
             return return_t<uint_t>{
-                boost::fusion::at_c<edges::value>(grid_.virtual_storages()).index(get_index(i)[0]),
-                boost::fusion::at_c<edges::value>(grid_.virtual_storages()).index(get_index(i)[1]),
-                boost::fusion::at_c<edges::value>(grid_.virtual_storages()).index(get_index(i)[2])
+                boost::fusion::at_c<edges::value>(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c<edges::value>(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c<edges::value>(grid.virtual_storages()).index(get_index(i)[2])
             };
         }
 
@@ -297,11 +297,11 @@ namespace gridtools {
         using return_t= typename return_type<from<cells>::to<edges>, ValueType >::type;
 
         template<typename Grid>
-        static return_t<uint_t> get(Grid const& grid_, array<uint_t, 3> const& i){
+        static return_t<uint_t> get(Grid const& grid, array<uint_t, 3> const& i){
             return return_t<uint_t>{
-                boost::fusion::at_c<edges::value>(grid_.virtual_storages()).index(get_index(i)[0]),
-                boost::fusion::at_c<edges::value>(grid_.virtual_storages()).index(get_index(i)[1]),
-                boost::fusion::at_c<edges::value>(grid_.virtual_storages()).index(get_index(i)[2])
+                boost::fusion::at_c<edges::value>(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c<edges::value>(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c<edges::value>(grid.virtual_storages()).index(get_index(i)[2])
             };
         }
 
@@ -321,11 +321,11 @@ namespace gridtools {
         using return_t= typename return_type<from<cells>::to<vertexes>, ValueType >::type;
 
         template<typename Grid>
-        static return_t<uint_t> get(Grid const& grid_, array<uint_t, 3> const& i){
+        static return_t<uint_t> get(Grid const& grid, array<uint_t, 3> const& i){
             return return_t<uint_t>{
-                boost::fusion::at_c<vertexes::value>(grid_.virtual_storages()).index(get_index(i)[0]),
-                boost::fusion::at_c<vertexes::value>(grid_.virtual_storages()).index(get_index(i)[1]),
-                boost::fusion::at_c<vertexes::value>(grid_.virtual_storages()).index(get_index(i)[2])
+                boost::fusion::at_c<vertexes::value>(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c<vertexes::value>(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c<vertexes::value>(grid.virtual_storages()).index(get_index(i)[2])
             };
         }
 
@@ -344,11 +344,11 @@ namespace gridtools {
         using return_t= typename return_type<from<cells>::to<vertexes>, ValueType >::type;
 
         template<typename Grid>
-        static return_t<uint_t> get(Grid const& grid_, array<uint_t, 3> const& i){
+        static return_t<uint_t> get(Grid const& grid, array<uint_t, 3> const& i){
             return return_t<uint_t>{
-                boost::fusion::at_c<vertexes::value>(grid_.virtual_storages()).index(get_index(i)[0]),
-                boost::fusion::at_c<vertexes::value>(grid_.virtual_storages()).index(get_index(i)[1]),
-                boost::fusion::at_c<vertexes::value>(grid_.virtual_storages()).index(get_index(i)[2])
+                boost::fusion::at_c<vertexes::value>(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c<vertexes::value>(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c<vertexes::value>(grid.virtual_storages()).index(get_index(i)[2])
             };
         }
 
@@ -368,10 +368,10 @@ namespace gridtools {
         using return_t= typename return_type<from<edges>::to<cells>, ValueType >::type;
 
         template<typename Grid>
-        static return_t<uint_t> get(Grid const& grid_, array<uint_t, 3> const& i){
+        static return_t<uint_t> get(Grid const& grid, array<uint_t, 3> const& i){
             return return_t<uint_t>{
-                boost::fusion::at_c<cells::value>(grid_.virtual_storages()).index(get_index(i)[0]),
-                boost::fusion::at_c<cells::value>(grid_.virtual_storages()).index(get_index(i)[1])
+                boost::fusion::at_c<cells::value>(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c<cells::value>(grid.virtual_storages()).index(get_index(i)[1])
             };
         }
 
@@ -390,10 +390,10 @@ namespace gridtools {
         using return_t= typename return_type<from<edges>::to<cells>, ValueType >::type;
 
         template<typename Grid>
-        static return_t<uint_t> get(Grid const& grid_, array<uint_t, 3> const& i){
+        static return_t<uint_t> get(Grid const& grid, array<uint_t, 3> const& i){
             return return_t<uint_t>{
-                boost::fusion::at_c<cells::value>(grid_.virtual_storages()).index(get_index(i)[0]),
-                boost::fusion::at_c<cells::value>(grid_.virtual_storages()).index(get_index(i)[1])
+                boost::fusion::at_c<cells::value>(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c<cells::value>(grid.virtual_storages()).index(get_index(i)[1])
             };
         }
 
@@ -411,10 +411,10 @@ namespace gridtools {
         using return_t= typename return_type<from<edges>::to<cells>, ValueType >::type;
 
         template<typename Grid>
-        static return_t<uint_t> get(Grid const& grid_, array<uint_t, 3> const& i){
+        static return_t<uint_t> get(Grid const& grid, array<uint_t, 3> const& i){
             return return_t<uint_t>{
-                boost::fusion::at_c<cells::value>(grid_.virtual_storages()).index(get_index(i)[0]),
-                boost::fusion::at_c<cells::value>(grid_.virtual_storages()).index(get_index(i)[1])
+                boost::fusion::at_c<cells::value>(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c<cells::value>(grid.virtual_storages()).index(get_index(i)[1])
             };
         }
 
@@ -432,12 +432,12 @@ namespace gridtools {
         using return_t= typename return_type<from<edges>::to<vertexes>, ValueType >::type;
 
         template<typename Grid>
-        static return_t<uint_t> get(Grid const& grid_, array<uint_t, 3> const& i){
+        static return_t<uint_t> get(Grid const& grid, array<uint_t, 3> const& i){
             return return_t<uint_t>{
-                boost::fusion::at_c<vertexes::value>(grid_.virtual_storages()).index(get_index(i)[0]),
-                boost::fusion::at_c<vertexes::value>(grid_.virtual_storages()).index(get_index(i)[1]),
-                boost::fusion::at_c<vertexes::value>(grid_.virtual_storages()).index(get_index(i)[2]),
-                boost::fusion::at_c<vertexes::value>(grid_.virtual_storages()).index(get_index(i)[3])
+                boost::fusion::at_c<vertexes::value>(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c<vertexes::value>(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c<vertexes::value>(grid.virtual_storages()).index(get_index(i)[2]),
+                boost::fusion::at_c<vertexes::value>(grid.virtual_storages()).index(get_index(i)[3])
             };
         }
 
@@ -458,12 +458,12 @@ namespace gridtools {
         using return_t= typename return_type<from<edges>::to<vertexes>, ValueType >::type;
 
         template<typename Grid>
-        static return_t<uint_t> get(Grid const& grid_, array<uint_t, 3> const& i){
+        static return_t<uint_t> get(Grid const& grid, array<uint_t, 3> const& i){
             return return_t<uint_t>{
-                boost::fusion::at_c<vertexes::value>(grid_.virtual_storages()).index(get_index(i)[0]),
-                boost::fusion::at_c<vertexes::value>(grid_.virtual_storages()).index(get_index(i)[1]),
-                boost::fusion::at_c<vertexes::value>(grid_.virtual_storages()).index(get_index(i)[2]),
-                boost::fusion::at_c<vertexes::value>(grid_.virtual_storages()).index(get_index(i)[3])
+                boost::fusion::at_c<vertexes::value>(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c<vertexes::value>(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c<vertexes::value>(grid.virtual_storages()).index(get_index(i)[2]),
+                boost::fusion::at_c<vertexes::value>(grid.virtual_storages()).index(get_index(i)[3])
             };
         }
 
@@ -484,12 +484,12 @@ namespace gridtools {
         using return_t= typename return_type<from<edges>::to<vertexes>, ValueType >::type;
 
         template<typename Grid>
-        static return_t<uint_t> get(Grid const& grid_, array<uint_t, 3> const& i){
+        static return_t<uint_t> get(Grid const& grid, array<uint_t, 3> const& i){
             return return_t<uint_t>{
-                boost::fusion::at_c<vertexes::value>(grid_.virtual_storages()).index(get_index(i)[0]),
-                boost::fusion::at_c<vertexes::value>(grid_.virtual_storages()).index(get_index(i)[1]),
-                boost::fusion::at_c<vertexes::value>(grid_.virtual_storages()).index(get_index(i)[2]),
-                boost::fusion::at_c<vertexes::value>(grid_.virtual_storages()).index(get_index(i)[3])
+                boost::fusion::at_c<vertexes::value>(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c<vertexes::value>(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c<vertexes::value>(grid.virtual_storages()).index(get_index(i)[2]),
+                boost::fusion::at_c<vertexes::value>(grid.virtual_storages()).index(get_index(i)[3])
             };
         }
 
@@ -510,14 +510,14 @@ namespace gridtools {
         using return_t=typename return_type<from<vertexes>::to<cells>, ValueType >::type;
 
         template<typename Grid>
-        static return_t<uint_t> get(Grid const& grid_, array<uint_t, 3> const& i){
+        static return_t<uint_t> get(Grid const& grid, array<uint_t, 3> const& i){
             return return_t<uint_t>{
-                boost::fusion::at_c<cells::value>(grid_.virtual_storages()).index(get_index(i)[0]),
-                boost::fusion::at_c<cells::value>(grid_.virtual_storages()).index(get_index(i)[1]),
-                boost::fusion::at_c<cells::value>(grid_.virtual_storages()).index(get_index(i)[2]),
-                boost::fusion::at_c<cells::value>(grid_.virtual_storages()).index(get_index(i)[3]),
-                boost::fusion::at_c<cells::value>(grid_.virtual_storages()).index(get_index(i)[4]),
-                boost::fusion::at_c<cells::value>(grid_.virtual_storages()).index(get_index(i)[5])
+                boost::fusion::at_c<cells::value>(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c<cells::value>(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c<cells::value>(grid.virtual_storages()).index(get_index(i)[2]),
+                boost::fusion::at_c<cells::value>(grid.virtual_storages()).index(get_index(i)[3]),
+                boost::fusion::at_c<cells::value>(grid.virtual_storages()).index(get_index(i)[4]),
+                boost::fusion::at_c<cells::value>(grid.virtual_storages()).index(get_index(i)[5])
             };
         }
 
@@ -540,14 +540,14 @@ namespace gridtools {
         using return_t=typename return_type<from<vertexes>::to<edges>, ValueType >::type;
 
         template<typename Grid>
-        static return_t<uint_t> get(Grid const& grid_, array<uint_t, 3> const& i){
+        static return_t<uint_t> get(Grid const& grid, array<uint_t, 3> const& i){
             return return_t<uint_t>{
-                boost::fusion::at_c<edges::value>(grid_.virtual_storages()).index(get_index(i)[0]),
-                boost::fusion::at_c<edges::value>(grid_.virtual_storages()).index(get_index(i)[1]),
-                boost::fusion::at_c<edges::value>(grid_.virtual_storages()).index(get_index(i)[2]),
-                boost::fusion::at_c<edges::value>(grid_.virtual_storages()).index(get_index(i)[3]),
-                boost::fusion::at_c<edges::value>(grid_.virtual_storages()).index(get_index(i)[4]),
-                boost::fusion::at_c<edges::value>(grid_.virtual_storages()).index(get_index(i)[5])
+                boost::fusion::at_c<edges::value>(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c<edges::value>(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c<edges::value>(grid.virtual_storages()).index(get_index(i)[2]),
+                boost::fusion::at_c<edges::value>(grid.virtual_storages()).index(get_index(i)[3]),
+                boost::fusion::at_c<edges::value>(grid.virtual_storages()).index(get_index(i)[4]),
+                boost::fusion::at_c<edges::value>(grid.virtual_storages()).index(get_index(i)[5])
             };
         }
 

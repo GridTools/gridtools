@@ -42,7 +42,7 @@ namespace gridtools{
         /**@brief constructor
 
            suppose we are using an MPI cartesian communicator:
-           then we have a grid frame (e.g. the local i,j,k identifying a processor id) and dimensions array (e.g. IxJxK).
+           then we have a coordinates frame (e.g. the local i,j,k identifying a processor id) and dimensions array (e.g. IxJxK).
            The constructor assigns the boundary flag in case the partition is at the boundary of the processors grid,
            regardless whether the communicator is periodic or not in that direction. The boundary assignment follows the convention
            represented in the figure below
@@ -65,18 +65,18 @@ namespace gridtools{
         partitioner_trivial(const communicator_t& comm,
                             const gridtools::array<ushort_t, space_dimensions>& halo,
                             const gridtools::array<ushort_t, space_dimensions>& padding )
-        : m_pid(&comm.grid()[0]), m_ntasks(&comm.dimensions()[0]), m_halo(&halo[0]), m_pad(&padding[0]), m_comm(comm){
+        : m_pid(&comm.coordinates()[0]), m_ntasks(&comm.dimensions()[0]), m_halo(&halo[0]), m_pad(&padding[0]), m_comm(comm){
 
             m_boundary=0;//bitmap
 
             for (ushort_t i=0; i<communicator_t::ndims; ++i)
-                if(comm.grid(i)==comm.dimensions(i)-1) m_boundary  += std::pow(2, i);
+                if(comm.coordinates(i)==comm.dimensions(i)-1) m_boundary  += std::pow(2, i);
             for (ushort_t i=communicator_t::ndims; i<2*(communicator_t::ndims); ++i)
-                if(comm.grid(i%(communicator_t::ndims))==0) m_boundary  += std::pow(2, i);
+                if(comm.coordinates(i%(communicator_t::ndims))==0) m_boundary  += std::pow(2, i);
         }
 
         partitioner_trivial(const communicator_t& comm)
-        : m_pid(comm.grid()),
+        : m_pid(comm.coordinates()),
           m_ntasks(&comm.dimensions()[0]),
           m_halo(NULL),
           m_pad(NULL),
@@ -86,9 +86,9 @@ namespace gridtools{
             m_boundary=0;//bitmap
 
             for (ushort_t i=0; i<communicator_t::ndims; ++i)
-                if(comm.grid(i)==comm.dimensions(i)-1) m_boundary  += std::pow(2, i);
+                if(comm.coordinates(i)==comm.dimensions(i)-1) m_boundary  += std::pow(2, i);
             for (ushort_t i=communicator_t::ndims; i<2*(communicator_t::ndims); ++i)
-                if(comm.grid(i%(communicator_t::ndims))==0) m_boundary  += std::pow(2, i);
+                if(comm.coordinates(i%(communicator_t::ndims))==0) m_boundary  += std::pow(2, i);
         }
 
         void low_up_bounds(int_t& low_bound, int_t& up_bound, ushort_t component, uint_t const size_) const
@@ -142,8 +142,8 @@ namespace gridtools{
 #endif
             uint_t compute_bounds(uint_t component
                                   , array<halo_descriptor
-                                  , space_dimensions>& grid
-                                  , array<halo_descriptor, space_dimensions>& grid_gcl
+                                  , space_dimensions>& coordinates
+                                  , array<halo_descriptor, space_dimensions>& coordinates_gcl
                                   , array<int_t, space_dimensions>& low_bound
                                   , array<int_t, space_dimensions>& up_bound,
 #ifdef CXX11_ENABLED
@@ -165,13 +165,13 @@ namespace gridtools{
 
                     uint_t tile_dimension = up_bound[component]-low_bound[component];
 
-                    grid[component] = halo_descriptor( compute_halo(component,LOW) ,
+                    coordinates[component] = halo_descriptor( compute_halo(component,LOW) ,
                                                               compute_halo(component,UP) ,
                                                               compute_halo(component,LOW) ,
                                                               tile_dimension + ( compute_halo(component,LOW)) - 1,
                                                               tile_dimension + ( compute_halo(component,UP)) + (compute_halo(component,LOW)) );
 
-                    grid_gcl[component] = halo_descriptor( m_halo[component],
+                    coordinates_gcl[component] = halo_descriptor( m_halo[component],
                                                                   m_halo[component],
                                                                   compute_halo(component,LOW),
                                                                   tile_dimension + ( compute_halo(component,LOW)) - 1,
@@ -185,7 +185,7 @@ namespace gridtools{
                          << tile_dimension+(compute_halo(component,LOW))-1<<" "
                          <<( tile_dimension+ compute_halo(component,UP))+(compute_halo(component,LOW))<<"]"
                          << std::endl;
-                std::cout<<"boundary for grid_ definition: "<<boundary()<<std::endl;
+                std::cout<<"boundary for coords definition: "<<boundary()<<std::endl;
                 std::cout<<"partitioning"<<std::endl;
                 std::cout<<"up bounds for component "<< component <<": "<<up_bound[component]<<std::endl
                          <<"low bounds for component "<< component <<": "<<low_bound[component]<<std::endl

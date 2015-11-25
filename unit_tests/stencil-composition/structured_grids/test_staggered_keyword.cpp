@@ -57,9 +57,9 @@ bool test(){
     uint_t di[5] = {0, 0, 5, 30-1, 30};
     uint_t dj[5] = {0, 0, 5, 20-1, 20};
 
-    gridtools::grid<axis> grid_(di, dj);
-    grid_.value_list[0] = 0;
-    grid_.value_list[1] = 1-1;
+    gridtools::grid<axis> grid(di, dj);
+    grid.value_list[0] = 0;
+    grid.value_list[1] = 1-1;
 
     typedef arg<0,storage_type> p_i_data;
     typedef arg<1,storage_type> p_j_data;
@@ -74,7 +74,7 @@ bool test(){
                 execute<forward>(),
                 gridtools::make_esf<functor, staggered<5,5,5,5> >(p_i_data(), p_j_data())
                 ),
-            domain, grid_
+            domain, grid
             );
 
 

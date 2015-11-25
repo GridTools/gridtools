@@ -321,21 +321,21 @@ namespace gridtools {
             typename Grid,
             typename MssLocalDomainArray
         > // List of local domain to be pbassed to functor at<i>
-        static void run(/*Domain const& domain, */Grid const& grid_, MssLocalDomainArray &mss_local_domain_list) {
+        static void run(/*Domain const& domain, */Grid const& grid, MssLocalDomainArray &mss_local_domain_list) {
             // TODO: I would swap the arguments coords and local_domain_list here, for consistency
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssLocalDomainArray, is_mss_local_domain>::value), "Internal Error: wrong type");
             GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
             GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
 
-            strategy_traits_t::template fused_mss_loop<MssComponentsArray, BackendId>::run(mss_local_domain_list, grid_);
+            strategy_traits_t::template fused_mss_loop<MssComponentsArray, BackendId>::run(mss_local_domain_list, grid);
         }
 
 
         template <typename ArgList, typename MetaList, typename Grid>
-        static void prepare_temporaries(ArgList & arg_list_, MetaList & meta_list_, Grid const& grid__)
+        static void prepare_temporaries(ArgList & arg_list_, MetaList & meta_list_, Grid const& grid)
         {
             _impl::template prepare_temporaries_functor<ArgList, MetaList, Grid, BackendId, StrategyId>::
-                prepare_temporaries((arg_list_), meta_list_,  (grid__));
+                prepare_temporaries((arg_list_), meta_list_,  (grid));
         }
 
         /** Initial interface

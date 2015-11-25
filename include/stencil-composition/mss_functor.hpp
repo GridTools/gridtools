@@ -33,8 +33,8 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
 
-        mss_functor(MssLocalDomainArray& local_domain_lists, const Grid& grid_, const int block_idx, const int block_idy) :
-            m_local_domain_lists(local_domain_lists), m_grid(grid_), m_block_idx(block_idx), m_block_idy(block_idy) {}
+        mss_functor(MssLocalDomainArray& local_domain_lists, const Grid& grid, const int block_idx, const int block_idy) :
+            m_local_domain_lists(local_domain_lists), m_grid(grid), m_block_idx(block_idx), m_block_idy(block_idy) {}
 
         /**
          * \brief given the index of a functor in the functors list ,it calls a kernel on the GPU executing the operations defined on that functor.

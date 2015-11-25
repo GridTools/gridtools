@@ -167,9 +167,9 @@ namespace assembly{
         */
         uint_t di[5] = {1, 1, 1, d1-3, d1};
         uint_t dj[5] = {1, 1, 1, d2-3, d2};
-        gridtools::grid<axis> grid_(di,dj);
-        grid_.value_list[0] = 0;
-        grid_.value_list[1] = d3-2;
+        gridtools::grid<axis> grid(di,dj);
+        grid.value_list[0] = 0;
+        grid.value_list[1] = d3-2;
 
 
 
@@ -185,7 +185,7 @@ namespace assembly{
                     execute<forward>(),//!\todo parameter used only for overloading purpose?
                     make_esf<integration>(p_phi(), p_psi(), p_jac(), p_f(), p_result())
                     ),
-                domain, grid_);
+                domain, grid);
 
         fe_comp->ready();
         fe_comp->steady();

@@ -12,7 +12,7 @@ namespace _impl_cuda {
     template <typename RunFunctorArguments,
               typename LocalDomain>
     __global__
-    void do_it_on_gpu(LocalDomain const * RESTRICT l_domain, typename RunFunctorArguments::grid_t const* grid_,
+    void do_it_on_gpu(LocalDomain const * RESTRICT l_domain, typename RunFunctorArguments::grid_t const* grid,
             const int starti, const int startj, const uint_t nx, const uint_t ny) {
 
         assert(l_domain);
@@ -63,13 +63,13 @@ namespace _impl_cuda {
         typedef typename index_to_level<typename interval::second>::type to;
         typedef _impl::iteration_policy<from, to, zdim_index_t::value, execution_type_t::type::iteration> iteration_policy_t;
 
-        it_domain.template initialize<zdim_index_t::value>( grid_->template value_at< iteration_policy_t::from >() );
+        it_domain.template initialize<zdim_index_t::value>( grid->template value_at< iteration_policy_t::from >() );
 
         //execute the k interval functors
         for_each<typename RunFunctorArguments::loop_intervals_t>
             (_impl::run_f_on_interval<
              execution_type_t,
-             RunFunctorArguments>(it_domain,*grid_) );
+             RunFunctorArguments>(it_domain,*grid) );
     }
 } // namespace _impl_cuda
 

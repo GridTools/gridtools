@@ -56,8 +56,8 @@ namespace gridtools {
             typedef typename run_functor_arguments_t::grid_t grid_t;
 
             GT_FUNCTION
-            explicit run_f_on_interval_base(iterate_domain_t & domain, grid_t const& grid_)
-                : m_grid(grid_)
+            explicit run_f_on_interval_base(iterate_domain_t & domain, grid_t const& grid)
+                : m_grid(grid)
                 , m_domain(domain)
             {}
 

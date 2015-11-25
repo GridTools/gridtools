@@ -46,14 +46,14 @@ namespace gridtools{
             typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename MssComponentsArray::elements>::type::value> iter_range;
 
             template<typename LocalDomainListArray, typename Grid>
-            static void run(LocalDomainListArray& local_domain_lists, const Grid& grid_)
+            static void run(LocalDomainListArray& local_domain_lists, const Grid& grid)
             {
                 GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
 
                 typedef backend_traits_from_id< BackendId > backend_traits;
                 gridtools::for_each<iter_range> (
                     mss_functor<MssComponentsArray, Grid, LocalDomainListArray, BackendId, enumtype::Block>
-                            (local_domain_lists, grid_,0,0)
+                            (local_domain_lists, grid,0,0)
                 );
             }
         };

@@ -151,7 +151,7 @@ TEST(Laplace, test) {
         (boost::fusion::make_vector(&in, &out));
 // [domain_type]
 
-// [grid_]
+// [grid]
        /**
           - Definition of the physical dimensions of the problem.
           The grid constructor takes the horizontal plane dimensions,
@@ -160,10 +160,10 @@ TEST(Laplace, test) {
        uint_t di[5] = {halo_size, halo_size, halo_size, d1-halo_size, d1};
        uint_t dj[5] = {halo_size, halo_size, halo_size, d2-halo_size, d2};
 
-       gridtools::grid<axis> grid_(di,dj);
-       grid_.value_list[0] = 0;
-       grid_.value_list[1] = d3;
-// [grid_]
+       gridtools::grid<axis> grid(di,dj);
+       grid.value_list[0] = 0;
+       grid.value_list[1] = d3;
+// [grid]
 
 // [computation]
        /*!
@@ -178,7 +178,7 @@ TEST(Laplace, test) {
 
          3) The actual domain dimensions
 
-         \note in reality this call does nothing at runtime (besides assigning the runtime variables domain and grid_), it only calls the constructor of the intermediate struct which is empty. the work done at compile time is documented in the \ref gridtools::intermediate "intermediate" class.
+         \note in reality this call does nothing at runtime (besides assigning the runtime variables domain and grid), it only calls the constructor of the intermediate struct which is empty. the work done at compile time is documented in the \ref gridtools::intermediate "intermediate" class.
          \todo why is this function even called? It just needs to be compiled, in order to get the return type (use a typedef).
        */
 
@@ -194,7 +194,7 @@ TEST(Laplace, test) {
           execute<forward>(),//!\todo parameter used only for overloading purpose?
           make_esf<lap_function>(p_out(), p_in())//!  \todo elementary stencil function, also here the arguments are dummy.
           ),
-         domain, grid_);
+         domain, grid);
 // [computation]
 
 // [ready_steady_run_finalize]
