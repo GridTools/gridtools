@@ -79,9 +79,9 @@ TEST(test_local_domain, merge_mss_local_domains) {
     uint_t di[5] = {0, 0, 0, d1-1, d1};
     uint_t dj[5] = {0, 0, 0, d2-1, d2};
 
-    gridtools::coordinates<local_domain_stencil::axis> coords(di, dj);
-    coords.value_list[0] = 0;
-    coords.value_list[1] = d3-1;
+    gridtools::grid<local_domain_stencil::axis> grid_(di, dj);
+    grid_.value_list[0] = 0;
+    grid_.value_list[1] = d3-1;
 
     typedef typename decltype(make_computation<gridtools::backend<Host, Naive > >
         (
@@ -91,7 +91,7 @@ TEST(test_local_domain, merge_mss_local_domains) {
                 gridtools::make_esf<local_domain_stencil::dummy_functor>(p_in() ,p_buff()),
                 gridtools::make_esf<local_domain_stencil::dummy_functor>(p_buff() ,p_out())
             ),
-            domain, coords
+            domain, grid_
         )
     )::element_type intermediate_t;
 

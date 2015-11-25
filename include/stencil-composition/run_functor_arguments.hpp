@@ -15,7 +15,7 @@
 #include "caches/cache_metafunctions.hpp"
 #include "backend_traits_fwd.hpp"
 #include "esf.hpp"
-#include "stencil-composition/coordinates.hpp"
+#include "stencil-composition/grid.hpp"
 
 namespace gridtools {
 
@@ -26,7 +26,7 @@ namespace gridtools {
         typename RangeSizes,
         typename CacheSequence,
         typename PhysicalDomainBlockSize,
-        typename Coordinates
+        typename Grid
     >
     struct iterate_domain_arguments
     {
@@ -35,7 +35,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value), "Iternal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<RangeSizes, is_range>::value), "Iternal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_block_size<PhysicalDomainBlockSize>::value), "Iternal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coordinates>::value), "Iternal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Iternal Error: wrong type");
 
         typedef BackendId backend_id_t;
         typedef LocalDomain local_domain_t;
@@ -43,7 +43,7 @@ namespace gridtools {
         typedef EsfSequence esf_sequence_t;
         typedef RangeSizes range_sizes_t;
         typedef PhysicalDomainBlockSize physical_domain_block_size_t;
-        typedef Coordinates coordinates_t;
+        typedef Grid grid_t;
     };
 
     template<typename T> struct is_iterate_domain_arguments : boost::mpl::false_{};
@@ -55,7 +55,7 @@ namespace gridtools {
         typename RangeSizes,
         typename CacheSequence,
         typename PhysicalDomainBlockSize,
-        typename Coords>
+        typename Grid>
     struct is_iterate_domain_arguments<
         iterate_domain_arguments<
             BackendId,
@@ -64,7 +64,7 @@ namespace gridtools {
             RangeSizes,
             CacheSequence,
             PhysicalDomainBlockSize,
-            Coords> > :
+            Grid> > :
         boost::mpl::true_{};
 
     /**
@@ -86,13 +86,13 @@ namespace gridtools {
         typename RangeSizes,                        // ranges of each ESF
         typename LocalDomain,                       // local domain type
         typename CacheSequence,                     // sequence of user specified caches
-        typename Coords,                            // the coordinates
+        typename Grid,                            // the grid
         typename ExecutionEngine,                   // the execution engine
         enumtype::strategy StrategyId>              // the strategy id
     struct run_functor_arguments
     {
         GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: invalid type");
-        GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "Internal Error: invalid type");
+        GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: invalid type");
         GRIDTOOLS_STATIC_ASSERT((is_execution_engine<ExecutionEngine>::value), "Internal Error: invalid type");
         GRIDTOOLS_STATIC_ASSERT((is_block_size<ProcessingElementsBlockSize>::value), "Internal Error: invalid type");
         GRIDTOOLS_STATIC_ASSERT((is_block_size<PhysicalDomainBlockSize>::value), "Internal Error: invalid type");
@@ -118,10 +118,10 @@ namespace gridtools {
                         RangeSizes,
                         CacheSequence,
                         PhysicalDomainBlockSize,
-                        Coords
+                        Grid
                     >
                 >::type iterate_domain_t;
-        typedef Coords coords_t;
+        typedef Grid grid_t;
         typedef ExecutionEngine execution_type_t;
         static const enumtype::strategy s_strategy_id=StrategyId;
     };
@@ -140,7 +140,7 @@ namespace gridtools {
         typename RangeSizes,
         typename LocalDomain,
         typename CacheSequence,
-        typename Coords,
+        typename Grid,
         typename ExecutionEngine,
         enumtype::strategy StrategyId>
     struct is_run_functor_arguments<
@@ -156,7 +156,7 @@ namespace gridtools {
             RangeSizes,
             LocalDomain,
             CacheSequence,
-            Coords,
+            Grid,
             ExecutionEngine,
             StrategyId
         >

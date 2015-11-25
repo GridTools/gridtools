@@ -38,11 +38,11 @@ namespace gridtools {
     struct is_staggered : public boost::false_type {};
 
 #ifdef CXX11_ENABLED
-    template <int_t ... Coords>
-    struct staggered : public range<Coords ...> {};
+    template <int_t ... Grid>
+    struct staggered : public range<Grid ...> {};
 
-    template <int_t ... Coords>
-    struct is_staggered<staggered<Coords ...> > : public boost::true_type {};
+    template <int_t ... Grid>
+    struct is_staggered<staggered<Grid ...> > : public boost::true_type {};
 
 #else
 

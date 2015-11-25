@@ -17,7 +17,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_grid_topology<Grid>::value), "Error: wrong grid type");
 
         using esf_function = Functor;
-        using grid = Grid;
+        using grid_t = Grid;
         using location_type = LocationType;
         using args_t = ArgSequence;
     };

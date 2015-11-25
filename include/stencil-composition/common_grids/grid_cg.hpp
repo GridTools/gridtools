@@ -3,7 +3,7 @@
 namespace gridtools{
 
     template <typename Axis>
-    struct coordinates_cg {
+    struct grid_cg {
         GRIDTOOLS_STATIC_ASSERT((is_interval<Axis>::value), "Internal Error: wrong type");
         typedef Axis axis_type;
 
@@ -15,19 +15,19 @@ namespace gridtools{
         array<uint_t, size_type::value > value_list;
 
         GT_FUNCTION
-        explicit coordinates_cg( halo_descriptor const& direction_i, halo_descriptor const& direction_j):
+        explicit grid_cg( halo_descriptor const& direction_i, halo_descriptor const& direction_j):
             m_direction_i(direction_i),
             m_direction_j(direction_j)
         {}
 
         GT_FUNCTION
-        explicit coordinates_cg( uint_t* i, uint_t* j/*, uint_t* k*/) :
+        explicit grid_cg( uint_t* i, uint_t* j/*, uint_t* k*/) :
             m_direction_i(i[minus], i[plus], i[begin], i[end], i[length]),
             m_direction_j(j[minus], j[plus], j[begin], j[end], j[length])
         {}
 
         GT_FUNCTION
-        explicit coordinates_cg( array<uint_t, 5> const& i, array<uint_t, 5>const& j) :
+        explicit grid_cg( array<uint_t, 5> const& i, array<uint_t, 5>const& j) :
             m_direction_i(i[minus], i[plus], i[begin], i[end], i[length]),
             m_direction_j(j[minus], j[plus], j[begin], j[end], j[length])
         {}

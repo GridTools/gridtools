@@ -214,7 +214,7 @@ struct iterate_domain {
     typedef typename iterate_domain_arguments_t::local_domain_t local_domain_t;
 
     typedef typename iterate_domain_arguments_t::backend_id_t backend_id_t;
-    typedef typename iterate_domain_arguments_t::coordinates_t::grid_t grid_t;
+    typedef typename iterate_domain_arguments_t::grid_t::grid_topology_t grid_topology_t;
     typedef typename iterate_domain_arguments_t::esf_sequence_t esf_sequence_t;
     typedef typename extract_location_type<esf_sequence_t>::type location_type_t;
 
@@ -270,10 +270,10 @@ struct iterate_domain {
     };
 
 private:
-    GRIDTOOLS_STATIC_ASSERT((N_META_STORAGES <= grid_t::n_locations::value),"We can not have more meta storages"
+    GRIDTOOLS_STATIC_ASSERT((N_META_STORAGES <= grid_topology_t::n_locations::value),"We can not have more meta storages"
                             "than location types. Data fields for other grids are not yet supported");
     local_domain_t const& m_local_domain;
-    grid_t const& m_grid;
+    grid_topology_t const& m_grid_topology;
     //TODOMEETING do we need m_index?
     array<int_t,N_META_STORAGES> m_index;
 
@@ -289,8 +289,8 @@ public:
        might be shared among several data fileds)
     */
     GT_FUNCTION
-    iterate_domain(local_domain_t const& local_domain_, grid_t const& grid)
-        : m_local_domain(local_domain_), m_grid(grid) {}
+    iterate_domain(local_domain_t const& local_domain_, grid_topology_t const& grid_topology)
+        : m_local_domain(local_domain_), m_grid_topology(grid_topology) {}
 
     /**
        @brief returns the array of pointers to the raw data
@@ -495,7 +495,7 @@ public:
     double operator()(on_neighbors_impl<ValueType, LocationTypeT, Reduction, map_function<MapF, LocationTypeT, Arg0...>> onneighbors) const {
         auto current_position = m_grid_position;
 
-        const auto neighbors = grid_t::neighbors_indices_3(current_position
+        const auto neighbors = grid_topology_t::neighbors_indices_3(current_position
                                                           , location_type_t()
                                                           , onneighbors.location() );
         double result = onneighbors.value();
@@ -517,7 +517,7 @@ public:
     double operator()(on_neighbors_impl<ValueType, LocationTypeT, Reduction, ro_accessor<I,L,radius<R>>> onneighbors) const {
         auto current_position = m_grid_position;
 
-        const auto neighbors = grid_t::neighbors_indices_3(current_position
+        const auto neighbors = grid_topology_t::neighbors_indices_3(current_position
                                                           , location_type_t()
                                                           , onneighbors.location() );
         double result = onneighbors.value();
@@ -824,7 +824,7 @@ public:
     //TODO return the right value, instead of double
     double _evaluate(ro_accessor<I,L,radius<R>>, IndexArray const& position) const {
         typedef ro_accessor<I,L,radius<R>> accessor_t;
-        int offset = m_grid.ll_offset(position, typename accessor<I,L>::location_type());
+        int offset = m_grid_topology.ll_offset(position, typename accessor<I,L>::location_type());
 
         return get_raw_value(accessor_t(), (data_pointer())[current_storage<(I==0)
                 , local_domain_t, typename accessor_t::type >::value], offset);

@@ -71,7 +71,7 @@ TEST(cache_metafunctions, extract_ranges_for_caches)
         ranges_t,
         caches_t,
         block_size<32,4>,
-        gridtools::coordinates<axis>
+        gridtools::grid<axis>
     > iterate_domain_arguments_t;
 
     typedef extract_ranges_for_caches<iterate_domain_arguments_t>::type ranges_map_t;
@@ -104,7 +104,7 @@ TEST(cache_metafunctions, get_cache_storage_tuple)
         ranges_t,
         caches_t,
         block_size<32,4>,
-        gridtools::coordinates<axis>
+        gridtools::grid<axis>
     > iterate_domain_arguments_t;
 
     typedef extract_ranges_for_caches<iterate_domain_arguments_t>::type ranges_map_t;

@@ -30,7 +30,7 @@
 #include "mss_components_metafunctions.hpp"
 #include "../storage/storage_functors.hpp"
 #include "stencil-composition/compute_ranges_metafunctions.hpp"
-#include "stencil-composition/coordinates.hpp"
+#include "stencil-composition/grid.hpp"
 #include "grid_traits.hpp"
 #include "stencil-composition/wrap_type.hpp"
 
@@ -157,12 +157,12 @@ namespace gridtools {
 
 
     namespace _debug {
-        template <typename Coords>
+        template <typename Grid>
         struct show_pair {
-            Coords coords;
+            Grid grid_;
 
-            explicit show_pair(Coords const& coords)
-                : coords(coords)
+            explicit show_pair(Grid const& grid_)
+                : grid_(grid_)
             {}
 
             template <typename T>
@@ -171,8 +171,8 @@ namespace gridtools {
                 typedef typename index_to_level<typename T::second>::type to;
                 std::cout << "{ (" << from() << " "
                           << to() << ") "
-                          << "[" << coords.template value_at<from>() << ", "
-                          << coords.template value_at<to>() << "] } ";
+                          << "[" << grid_.template value_at<from>() << ", "
+                          << grid_.template value_at<to>() << "] } ";
             }
         };
 
@@ -362,13 +362,13 @@ namespace gridtools {
     template <typename Backend,
               typename MssDescriptorArray,
               typename DomainType,
-              typename Coords,
+              typename Grid,
               bool IsStateful>
     struct intermediate : public computation {
         GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssDescriptorArray, is_mss_descriptor>::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_backend<Backend>::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_domain_type<DomainType>::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
 
         typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
 
@@ -446,7 +446,7 @@ namespace gridtools {
         mss_local_domain_list_t m_mss_local_domain_list;
 
         DomainType & m_domain;
-        const Coords& m_coords;
+        const Grid& m_grid;
 
         actual_arg_list_type m_actual_arg_list;
         actual_metadata_list_type m_actual_metadata_list;
@@ -456,8 +456,8 @@ namespace gridtools {
 
     public:
 
-        intermediate(DomainType & domain, Coords const & coords)
-            : m_domain(domain), m_coords(coords), m_meter("NoName")
+        intermediate(DomainType & domain, Grid const & grid_)
+            : m_domain(domain), m_grid(grid_), m_meter("NoName")
         {
             // Each map key is a pair of indices in the axis, value is the corresponding method interval.
 
@@ -465,7 +465,7 @@ namespace gridtools {
 #ifndef __CUDACC__
 //TODO redo
 //            std::cout << "Actual loop bounds ";
-//            gridtools::for_each<loop_intervals_t>(_debug::show_pair<Coords>(coords));
+//            gridtools::for_each<loop_intervals_t>(_debug::show_pair<Grid>(grid_));
 //            std::cout << std::endl;
 #endif
 #endif
@@ -527,7 +527,7 @@ namespace gridtools {
            It allocates the memory for the list of ranges defined in the temporary placeholders.
         */
         virtual void ready () {
-            Backend::template prepare_temporaries( m_actual_arg_list, m_actual_metadata_list , m_coords);
+            Backend::template prepare_temporaries( m_actual_arg_list, m_actual_metadata_list , m_grid);
             is_storage_ready=true;
         }
         /**
@@ -594,7 +594,7 @@ namespace gridtools {
                     "Internal Error");
 
             m_meter.start();
-            Backend::template run<mss_components_array_t>( m_coords, m_mss_local_domain_list );
+            Backend::template run<mss_components_array_t>( m_grid, m_mss_local_domain_list );
             m_meter.pause();
         }
 

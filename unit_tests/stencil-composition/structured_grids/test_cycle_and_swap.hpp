@@ -49,9 +49,9 @@ namespace test_cycle_and_swap{
         uint_t di[5] = {0, 0, 0, 0, 1};
         uint_t dj[5] = {0, 0, 0, 0, 1};
 
-        gridtools::coordinates<axis> coords(di, dj);
-        coords.value_list[0] = 0;
-        coords.value_list[1] = 0;
+        gridtools::grid<axis> grid_(di, dj);
+        grid_.value_list[0] = 0;
+        grid_.value_list[1] = 0;
 
         typedef arg<0,field_t> p_i_data;
         typedef boost::mpl::vector<p_i_data> accessor_list;
@@ -66,7 +66,7 @@ namespace test_cycle_and_swap{
                     execute<forward>(),
                     gridtools::make_esf<functor>(p_i_data())
                     ),
-                domain, coords
+                domain, grid_
                 );
 
 

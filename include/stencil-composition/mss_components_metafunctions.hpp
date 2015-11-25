@@ -133,7 +133,7 @@ struct build_mss_components_array
  */
 template<
     typename MssComponents,
-    typename Coords
+    typename Grid
 >
 struct mss_functor_do_methods
 {
@@ -144,7 +144,7 @@ struct mss_functor_do_methods
      */
     typedef typename boost::mpl::transform<
         typename MssComponents::functors_list_t,
-        compute_functor_do_methods<boost::mpl::_, typename Coords::axis_type>
+        compute_functor_do_methods<boost::mpl::_, typename Grid::axis_type>
     >::type type; // Vector of vectors - each element is a vector of pairs of actual axis-indices
 };
 
@@ -153,37 +153,37 @@ struct mss_functor_do_methods
  */
 template<
     typename MssComponents,
-    typename Coords
+    typename Grid
 >
 struct mss_loop_intervals
 {
     GRIDTOOLS_STATIC_ASSERT((is_mss_components<MssComponents>::value), "Internal Error: wrong type");
-    GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "Internal Error: wrong type");
+    GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
 
     /**
      *  compute the functor do methods - This is the most computationally intensive part
      */
-    typedef typename mss_functor_do_methods<MssComponents, Coords>::type functor_do_methods;
+    typedef typename mss_functor_do_methods<MssComponents, Grid>::type functor_do_methods;
 
     /**
      * compute the loop intervals
      */
     typedef typename compute_loop_intervals<
         functor_do_methods,
-        typename Coords::axis_type
+        typename Grid::axis_type
     >::type type; // vector of pairs of indices - sorted and contiguous
 };
 
 template<
     typename MssComponents,
-    typename Coords
+    typename Grid
     >
 struct mss_functor_do_method_lookup_maps
 {
     GRIDTOOLS_STATIC_ASSERT((is_mss_components<MssComponents>::value), "Internal Error: wrong type");
-    typedef typename mss_functor_do_methods<MssComponents, Coords>::type functor_do_methods;
+    typedef typename mss_functor_do_methods<MssComponents, Grid>::type functor_do_methods;
 
-    typedef typename mss_loop_intervals<MssComponents, Coords>::type loop_intervals;
+    typedef typename mss_loop_intervals<MssComponents, Grid>::type loop_intervals;
     /**
      * compute the do method lookup maps
      *

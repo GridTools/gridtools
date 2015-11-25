@@ -127,13 +127,13 @@ namespace gridtools{
         struct mss_loop
         {
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), "Internal Error: wrong type");
-            template<typename LocalDomain, typename Coords>
-            static void run(LocalDomain& local_domain, const Coords& coords, const uint_t bi, const uint_t bj)
+            template<typename LocalDomain, typename Grid>
+            static void run(LocalDomain& local_domain, const Grid& grid_, const uint_t bi, const uint_t bj)
             {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type");
-                GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "Internal Error: wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
 
-                execute_kernel_functor_cuda<RunFunctorArgs>(local_domain, coords, bi, bj)();
+                execute_kernel_functor_cuda<RunFunctorArgs>(local_domain, grid_, bi, bj)();
             }
         };
 

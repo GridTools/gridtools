@@ -195,13 +195,13 @@ bool test(uint_t x, uint_t y, uint_t z)
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
     // while the vertical ones are set according the the axis property soon after
-    // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
+    // gridtools::grid<axis> grid_(2,d1-2,2,d2-2);
     uint_t di[5] = {halo_size, halo_size, halo_size, d1-halo_size-1, d1};
     uint_t dj[5] = {halo_size, halo_size, halo_size, d2-halo_size-1, d2};
 
-    gridtools::coordinates<axis> coords(di, dj);
-    coords.value_list[0] = 0;
-    coords.value_list[1] = d3-1;
+    gridtools::grid<axis> grid_(di, dj);
+    grid_.value_list[0] = 0;
+    grid_.value_list[1] = d3-1;
 
     /*
       Here we do lot of stuff
@@ -225,7 +225,7 @@ bool test(uint_t x, uint_t y, uint_t z)
     //        ),
     //       gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
     //       ),
-    //      domain, coords);
+    //      domain, grid_);
 
 #ifdef USE_PAPI
 int event_set = PAPI_NULL;
@@ -270,7 +270,7 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
                 ),
                 gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
             ),
-            domain, coords
+            domain, grid_
         );
 
     horizontal_diffusion->ready();

@@ -42,7 +42,7 @@ public:
 
     /**@brief constructor
        suppose we are using an MPI cartesian communicator:
-       then we have a coordinates (e.g. the local i,j,k identifying a processor id) and dimensions (e.g. IxJxK)
+       then we have a grid (e.g. the local i,j,k identifying a processor id) and dimensions (e.g. IxJxK)
     */
     partitioner(){}
 

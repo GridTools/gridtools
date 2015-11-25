@@ -64,9 +64,9 @@ namespace test_iterate_domain{
         uint_t di[5] = {0, 0, 0, d1-1, d1};
         uint_t dj[5] = {0, 0, 0, d2-1, d2};
 
-        gridtools::coordinates<axis> coords(di, dj);
-        coords.value_list[0] = 0;
-        coords.value_list[1] = d3-1;
+        gridtools::grid<axis> grid_(di, dj);
+        grid_.value_list[0] = 0;
+        grid_.value_list[1] = d3-1;
 
         auto computation = make_computation<gridtools::backend<enumtype::Host, enumtype::Naive > >
             (
@@ -75,7 +75,7 @@ namespace test_iterate_domain{
                     enumtype::execute<enumtype::forward>(),
                     gridtools::make_esf<dummy_functor>(p_in() ,p_buff(), p_out())
                     ),
-                domain, coords
+                domain, grid_
                 );
 
         typedef decltype(gridtools::make_esf<dummy_functor>(p_in() ,p_buff(), p_out())) esf_t;
@@ -97,7 +97,7 @@ namespace test_iterate_domain{
                 boost::mpl::vector1<range<0,0,0,0> >,
                 boost::mpl::vector0<>,
                 block_size<32,4>,
-                gridtools::coordinates<axis>
+                gridtools::grid<axis>
                 >
             > it_domain_t;
 

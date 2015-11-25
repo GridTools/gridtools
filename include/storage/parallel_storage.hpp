@@ -21,8 +21,8 @@ namespace gridtools {
     private:
         partitioner_t const* m_partitioner;
         //these are set by the partitioner
-        array<halo_descriptor, metadata_t::space_dimensions> m_coordinates;
-        array<halo_descriptor, metadata_t::space_dimensions> m_coordinates_gcl;
+        array<halo_descriptor, metadata_t::space_dimensions> m_grid;
+        array<halo_descriptor, metadata_t::space_dimensions> m_grid_gcl;
         //these remember where am I in the storage (also set by the partitioner)
         array<int_t, metadata_t::space_dimensions> m_low_bound;
         array<int_t, metadata_t::space_dimensions> m_up_bound;
@@ -65,8 +65,8 @@ namespace gridtools {
         template <typename ... UInt>
         explicit parallel_storage_info(partitioner_t const& part, UInt const& ... dims_)
             : m_partitioner(&part)
-            , m_coordinates()
-            , m_coordinates_gcl()
+            , m_grid()
+            , m_grid_gcl()
             , m_low_bound()
             , m_up_bound()
             , m_metadata(
@@ -75,14 +75,14 @@ namespace gridtools {
                 (
                     ([&part]
                      ( uint_t index_
-                       , array<halo_descriptor, metadata_t::space_dimensions>& coordinates_
-                       , array<halo_descriptor, metadata_t::space_dimensions>& coordinates_gcl_
+                       , array<halo_descriptor, metadata_t::space_dimensions>& grid_
+                       , array<halo_descriptor, metadata_t::space_dimensions>& grid_gcl_
                        , array<int_t, metadata_t::space_dimensions>& low_bound_
                        , array<int_t, metadata_t::space_dimensions>& up_bound_
                        , UInt const& ... args_ )-> uint_t
-                    { return part.compute_bounds( index_, coordinates_, coordinates_gcl_, low_bound_, up_bound_, args_ ... );}
+                    { return part.compute_bounds( index_, grid_, grid_gcl_, low_bound_, up_bound_, args_ ... );}
                         )
-                    , m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, dims_ ...  )
+                    , m_grid, m_grid_gcl, m_low_bound, m_up_bound, dims_ ...  )
                 )
         {
         }
@@ -92,38 +92,38 @@ namespace gridtools {
         template <typename ... UInt>
         explicit parallel_storage_info(partitioner_t const& part, UInt const& ... dims_)
             : m_partitioner(&part)
-            , m_coordinates()
-            , m_coordinates_gcl()
+            , m_grid()
+            , m_grid_gcl()
             , m_low_bound()
             , m_up_bound()
             , m_metadata()
         {
-            auto d1=part.compute_bounds( 0, m_coordinates, m_coordinates, m_low_bound, m_up_bound, dims_ ... );
-            auto d2=part.compute_bounds( 1, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, dims_ ... );
-            auto d3=part.compute_bounds( 2, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, dims_ ... );
+            auto d1=part.compute_bounds( 0, m_grid, m_grid, m_low_bound, m_up_bound, dims_ ... );
+            auto d2=part.compute_bounds( 1, m_grid, m_grid_gcl, m_low_bound, m_up_bound, dims_ ... );
+            auto d3=part.compute_bounds( 2, m_grid, m_grid_gcl, m_low_bound, m_up_bound, dims_ ... );
             m_metadata.setup(d1,d2,d3);
         }
 
 #endif
 
         /**
-           @brief given the global coordinates returns wether the point belongs to the current partition
+           @brief given the global grid returns wether the point belongs to the current partition
         */
         template <typename ... UInt>
-        bool mine(UInt const& ... coordinates_) const
+        bool mine(UInt const& ... grid_) const
         {
             GRIDTOOLS_STATIC_ASSERT((sizeof ... (UInt) >= metadata_t::space_dimensions), "not enough indices specified in the call to parallel_storage_info::mine()");
             GRIDTOOLS_STATIC_ASSERT((sizeof ... (UInt) <= metadata_t::space_dimensions), "too many indices specified in the call to parallel_storage_info::mine()");
-            uint_t coords[metadata_t::space_dimensions]={coordinates_ ...};
+            uint_t coords[metadata_t::space_dimensions]={grid_ ...};
             bool result=true;
             for(ushort_t i=0; i<metadata_t::space_dimensions; ++i)
-                if(coords[i]<m_low_bound[i]+m_coordinates[i].begin() || coords[i]>m_low_bound[i]+m_coordinates[i].end() )
+                if(coords[i]<m_low_bound[i]+m_grid[i].begin() || coords[i]>m_low_bound[i]+m_grid[i].end() )
                     result=false;
             return result;
         }
 
         /**
-           @brief given the global coordinates returns the local index, or -1 if the point is outside the current partition
+           @brief given the global grid returns the local index, or -1 if the point is outside the current partition
         */
         //TODO generalize for arbitrary dimension
         template <uint_t field_dim=0, uint_t snapshot=0, typename UInt>
@@ -150,14 +150,14 @@ namespace gridtools {
             return m_low_bound[Component]+value;}
 
         /**
-           @brief returns the halo descriptors to be used inside the coordinates object
+           @brief returns the halo descriptors to be used inside the grid object
 
            The halo descriptors are computed in the setup phase using the partitioner
         */
         template<ushort_t dimension>
         halo_descriptor const& get_halo_descriptor() const {
             GRIDTOOLS_STATIC_ASSERT(dimension<metadata_t::space_dimensions, "only positive integers smaller than the number of dimensions are accepted as template arguments of get_halo_descriptor");
-            return m_coordinates[dimension];}
+            return m_grid[dimension];}
 
         /**
            @brief returns the halo descriptors to be used for the communication inside the GCL library
@@ -165,7 +165,7 @@ namespace gridtools {
            The halo descriptors are computed in the setup phase using the partitioner
         */
         template<ushort_t dimension>
-        halo_descriptor const& get_halo_gcl() const {return m_coordinates_gcl[dimension];}
+        halo_descriptor const& get_halo_gcl() const {return m_grid_gcl[dimension];}
 
 
         /**

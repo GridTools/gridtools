@@ -26,43 +26,43 @@ namespace gridtools {
             * is the loop over the third dimension (k), but the generality of the loop hierarchy implementation
             * allows to easily generalize this.
             */
-            template<typename LoopIntervals, typename RunOnInterval, typename IterateDomain, typename Coords, typename  IterationPolicy>
+            template<typename LoopIntervals, typename RunOnInterval, typename IterateDomain, typename Grid, typename  IterationPolicy>
             struct innermost_functor{
 
             private:
 
                 IterateDomain & m_it_domain;
-                const Coords& m_coords;
+                const Grid& m_grid;
 
             public:
 
                 IterateDomain const& it_domain() const { return m_it_domain; }
 
-                innermost_functor(IterateDomain & it_domain, const Coords& coords):
+                innermost_functor(IterateDomain & it_domain, const Grid& grid_):
                     m_it_domain(it_domain),
-                    m_coords(coords){}
+                    m_grid(grid_){}
 
                 void operator() () const {
-                    m_it_domain.template initialize<2>( m_coords.template value_at< typename IterationPolicy::from >() );
+                    m_it_domain.template initialize<2>( m_grid.template value_at< typename IterationPolicy::from >() );
 
                     gridtools::for_each< LoopIntervals >
-                            ( RunOnInterval (m_it_domain, m_coords) );
+                            ( RunOnInterval (m_it_domain, m_grid) );
                 }
             };
 
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), "Internal Error: wrong type");
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
-            typedef typename RunFunctorArguments::coords_t coords_t;
+            typedef typename RunFunctorArguments::grid_t grid_t;
 
             /**
             * @brief core of the kernel execution
             * @tparam Traits traits class defined in \ref gridtools::_impl::run_functor_traits
             */
-            explicit execute_kernel_functor_host(const local_domain_t& local_domain, const coords_t& coords,
+            explicit execute_kernel_functor_host(const local_domain_t& local_domain, const grid_t& grid_,
                                                  const uint_t first_i, const uint_t first_j, const uint_t last_i, const uint_t last_j,
                                                  const uint_t block_idx_i, const uint_t block_idx_j)
                 : m_local_domain(local_domain)
-                , m_coords(coords)
+                , m_grid(grid_)
 #ifdef CXX11_ENABLED
                 , m_first_pos{first_i, first_j}
                 , m_last_pos{last_i, last_j}
@@ -75,16 +75,16 @@ namespace gridtools {
             {}
 
             // Naive strategy
-            explicit  execute_kernel_functor_host(const local_domain_t& local_domain, const coords_t& coords)
+            explicit  execute_kernel_functor_host(const local_domain_t& local_domain, const grid_t& grid_)
                 : m_local_domain(local_domain)
-                , m_coords(coords)
+                , m_grid(grid_)
 #ifdef CXX11_ENABLED
-                , m_first_pos{coords.i_low_bound(), coords.j_low_bound()}
-                , m_last_pos{coords.i_high_bound()-coords.i_low_bound(), coords.j_high_bound()-coords.j_low_bound()}
+                , m_first_pos{grid_.i_low_bound(), grid_.j_low_bound()}
+                , m_last_pos{grid_.i_high_bound()-grid_.i_low_bound(), grid_.j_high_bound()-grid_.j_low_bound()}
                 , m_block_id{0, 0}
 #else
-                , m_first_pos(coords.i_low_bound(), coords.j_low_bound())
-                , m_last_pos(coords.i_high_bound()-coords.i_low_bound(), coords.j_high_bound()-coords.j_low_bound())
+                , m_first_pos(grid_.i_low_bound(), grid_.j_low_bound())
+                , m_last_pos(grid_.i_high_bound()-grid_.i_low_bound(), grid_.j_high_bound()-grid_.j_low_bound())
                 , m_block_id(0, 0)
 #endif
             {}
@@ -158,19 +158,19 @@ namespace gridtools {
                         RunFunctorArguments
                         >,
                         iterate_domain_t,
-                        coords_t,
+                        grid_t,
                         iteration_policy_t
                         > innermost_functor_t;
 
                 //instantiate the kernel functor
-                innermost_functor_t f(it_domain, m_coords);
+                innermost_functor_t f(it_domain, m_grid);
 
                 //run the nested ij loop
                 ij_loop.apply(it_domain, f);
             }
         private:
             const local_domain_t& m_local_domain;
-            const coords_t& m_coords;
+            const grid_t& m_grid;
             const gridtools::array<const uint_t, 2> m_first_pos;
             const gridtools::array<const uint_t, 2> m_last_pos;
             const gridtools::array<const uint_t, 2> m_block_id;

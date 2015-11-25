@@ -313,29 +313,29 @@ namespace gridtools {
          * the loop over the functors list is unrolled at compile-time using the for_each construct.
          * @tparam MssArray  meta array of mss
          * \tparam Domain Domain class (not really useful maybe)
-         * \tparam Coords Coordinate class with domain sizes and splitter coordinates
+         * \tparam Grid Coordinate class with domain sizes and splitter grid
          * \tparam MssLocalDomainArray sequence of mss local domain (containing each the sequence of local domain list)
          */
         template <
             typename MssComponentsArray,
-            typename Coords,
+            typename Grid,
             typename MssLocalDomainArray
         > // List of local domain to be pbassed to functor at<i>
-        static void run(/*Domain const& domain, */Coords const& coords, MssLocalDomainArray &mss_local_domain_list) {
+        static void run(/*Domain const& domain, */Grid const& grid_, MssLocalDomainArray &mss_local_domain_list) {
             // TODO: I would swap the arguments coords and local_domain_list here, for consistency
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssLocalDomainArray, is_mss_local_domain>::value), "Internal Error: wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
             GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
 
-            strategy_traits_t::template fused_mss_loop<MssComponentsArray, BackendId>::run(mss_local_domain_list, coords);
+            strategy_traits_t::template fused_mss_loop<MssComponentsArray, BackendId>::run(mss_local_domain_list, grid_);
         }
 
 
-        template <typename ArgList, typename MetaList, typename Coords>
-        static void prepare_temporaries(ArgList & arg_list_, MetaList & meta_list_, Coords const& coords_)
+        template <typename ArgList, typename MetaList, typename Grid>
+        static void prepare_temporaries(ArgList & arg_list_, MetaList & meta_list_, Grid const& grid__)
         {
-            _impl::template prepare_temporaries_functor<ArgList, MetaList, Coords, BackendId, StrategyId>::
-                prepare_temporaries((arg_list_), meta_list_,  (coords_));
+            _impl::template prepare_temporaries_functor<ArgList, MetaList, Grid, BackendId, StrategyId>::
+                prepare_temporaries((arg_list_), meta_list_,  (grid__));
         }
 
         /** Initial interface
