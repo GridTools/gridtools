@@ -47,7 +47,8 @@ namespace gridtools {
                 };
             };
 
-            typedef typename boost::mpl::range_c<uint_t, 0, boost::mpl::size<Placeholders>::type::value> iter_range;
+            //Note: only the accessors of storage type are considered in the sequence
+            typedef typename boost::mpl::range_c<uint_t, 0, boost::mpl::size<LocalArgs>::type::value> iter_range;
 
             /** Here the iteration begins by filling an empty map */
             typedef typename boost::mpl::fold<

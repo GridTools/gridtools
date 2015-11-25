@@ -26,6 +26,11 @@ if(RECTANGULAR_GRIDS)
 endif(RECTANGULAR_GRIDS)
 
 add_executable(tests ${COMMON_TESTS})
+
+add_executable(test_bc test_bc.cpp)
+set_target_properties(test_bc PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+target_link_libraries(test_bc ${GTEST_BOTH_LIBRARIES} gcl -lpthread ${exe_LIBS})
+
 # include boost
 include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
 link_directories( ${Boost_LIBRARY_DIRS} )

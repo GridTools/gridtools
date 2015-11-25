@@ -45,12 +45,12 @@ struct functor{
 TEST(test_bc, boundary_conditions) {
 
 #ifdef __CUDACC__
-    typedef backend<Host, Naive> backend_t;
-#else
     typedef backend<Cuda, Block> backend_t;
+#else
+    typedef backend<Host, Naive> backend_t;
 #endif
 
-    typedef typename backend_t::storage_info<0, layout_map<0,1,2> > meta
+    typedef typename backend_t::storage_info<0, layout_map<0,1,2> > meta_t;
     meta_t meta_(10,10,10);
     typedef backend_t::storage_type<float_type, meta_t >::type storage_type;
     storage_type sol_(meta_, 0.);

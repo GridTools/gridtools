@@ -98,15 +98,15 @@ namespace gridtools {
             {
             }
 
+            /**@brief Constructor taking an array with the storage dimensions
+
+               forwarding to the variadic constructor
+             */
             template <class Dims, ushort_t ... Ids  >
             GT_FUNCTION
-            constexpr meta_storage_aligned( Dims const& dims_, gt_integer_sequence<ushort_t, Ids ...> x= typename make_gt_integer_sequence<ushort_t, Dims::size()>::type() ) :
-                meta_storage_aligned(dims_[Ids]...){}
-
-            template <class Dims, ushort_t i1, ushort_t i2, ushort_t i3  >
-            GT_FUNCTION
-            constexpr meta_storage_aligned( Dims const& dims_, gt_integer_sequence<ushort_t, i1, i2, i3> x= typename make_gt_integer_sequence<ushort_t, 3>::type() ) :
-                meta_storage_aligned(dims_[0], dims_[1], dims_[2]){}
+            constexpr meta_storage_aligned( Dims const& dims_, gt_integer_sequence<ushort_t, Ids ...> x_= typename make_gt_integer_sequence< ushort_t, sizeof ... (Ids) >::type() ) :
+                meta_storage_aligned(dims_[Ids]...)
+            {}
 
 
 #else

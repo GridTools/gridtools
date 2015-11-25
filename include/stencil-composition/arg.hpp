@@ -58,10 +58,10 @@ struct arg {
     typedef static_uint<I> index;
 
 //location type is only used by other grids, supported only for cxx11
-#ifdef CXX11_ENABLED
-    using location_type = typename Storage::meta_data_t::index_type;
-#endif
-     
+// #ifdef CXX11_ENABLED
+//     using location_type = typename Storage::meta_data_t::index_type;
+// #endif
+
     template<typename Storage2>
     arg_storage_pair<arg<I,Storage>, Storage2>
     operator=(Storage2& ref) {
