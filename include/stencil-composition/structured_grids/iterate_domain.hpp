@@ -339,8 +339,10 @@ namespace gridtools {
                     strides_cached_t,
                     typename boost::fusion::result_of::as_vector<
                         typename local_domain_t::local_metadata_type
-                    >::type
-                >(strides(), boost::fusion::as_vector(local_domain.m_local_metadata), initial_pos, block, &m_index[0]));
+                    >::type,
+                    array_index_t
+                >(strides(), boost::fusion::as_vector(local_domain.m_local_metadata),
+                  initial_pos, block, m_index));
             static_cast<IterateDomainImpl*>(this)->template initialize_impl<Coordinate>();
         }
 
