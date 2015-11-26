@@ -463,9 +463,8 @@ namespace gridtools {
             specialization for the generic accessors placeholders
         */
         template <uint_t I>
-                GT_FUNCTION
+        GT_FUNCTION
         typename boost::mpl::at<typename local_domain_t::mpl_storages, static_int<I> >::type
-
         operator()(generic_accessor<I> const& accessor) const {
 
             //getting information about the storage
