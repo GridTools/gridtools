@@ -4,8 +4,8 @@
 
 using namespace gridtools;
 
-template <typename StorageLocal, typename StorageGlobal, typename Storage>
-bool do_verification( uint_t d1, uint_t d2, uint_t d3, Storage const& result_ ){
+template <typename StorageLocal, typename StorageGlobal, typename Storage, typename Coords>
+bool do_verification( uint_t d1, uint_t d2, uint_t d3, Storage const& result_, Coords const& coords ){
 
     typedef Storage storage_t;
     typedef StorageLocal storage_local_quad_t;
@@ -73,10 +73,10 @@ bool do_verification( uint_t d1, uint_t d2, uint_t d3, Storage const& result_ ){
 #ifdef CXX11_ENABLED
     verifier verif(1e-13);
     array<array<uint_t, 2>, 6> halos{{ {0,0}, {0,0}, {0,0}, {0,0}, {0,0}, {0,0} }};
-    bool result = verif.verify(reference, result_, halos);
+    bool result = verif.verify(coords, reference, result_, halos);
 #else
     verifier verif(1e-13, 0);
-    bool result = verif.verify(reference, result_);
+    bool result = verif.verify(coords, reference, result_);
 #endif
     return result;
 

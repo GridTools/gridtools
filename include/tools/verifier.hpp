@@ -34,7 +34,8 @@ namespace gridtools{
             m_precision(precision),
             m_halos(halos){}
 
-        bool operator()(array<uint_t, NCoord> const &pos)
+        template <typename Coords>
+        bool operator()(Coords const& coords_, array<uint_t, NCoord> const &pos)
         {
             typename StorageType::meta_data_t const* meta=&m_exp_field.meta_data();
 
@@ -44,17 +45,16 @@ namespace gridtools{
             verify_helper<NDim-1, NCoord+1, StorageType> next_loop(m_exp_field, m_actual_field, m_field_id, m_halos, m_precision);
 
             const uint_t halo_minus = m_halos[NDim-1][0];
-            const uint_t halo_plus = m_halos[NDim-1][1];
+            const uint_t halo_plus = m_halos[NDim-1][1] + ( (NDim==3) ? (StorageType::meta_data_t::padding_t::template get<0>()) : 0);
 
             for(int c=halo_minus; c < size-halo_plus; ++c)
             {
-
                 array<uint_t,NCoord+1> new_pos = pos.prepend_dim(c);
-                verified = verified & next_loop(new_pos);
+                verified = verified & next_loop(coords_, new_pos);
             }
             return verified;
-
         }
+
     private:
         StorageType const& m_exp_field;
         StorageType const& m_actual_field;
@@ -74,14 +74,16 @@ namespace gridtools{
             m_precision(precision),
             m_halos(halos){}
 
-        bool operator()(array<uint_t, NCoord> const &pos)
+        template<typename Coords>
+        bool operator()(Coords const& coords_, array<uint_t, NCoord> const &pos)
         {
             typename StorageType::meta_data_t const* meta=&m_exp_field.meta_data();
 
             typename StorageType::value_type expected = m_exp_field.fields()[m_field_id][meta->index(pos)];
             typename StorageType::value_type actual = m_actual_field.fields()[m_field_id][meta->index(pos)];
             bool verified = true;
-            if(!compare_below_threshold(expected, actual, m_precision))
+            if(!compare_below_threshold(expected, actual, m_precision)
+               && pos[2] < coords_.value_at_top())
             {
                 std::cout << "Error in field dimension " << m_field_id << " and position " << pos << " ; expected : " << expected <<
                     " ; actual : " << actual << "  " << std::fabs((expected-actual)/(expected))  << std::endl;
@@ -98,8 +100,8 @@ namespace gridtools{
     };
 
 
-    template<uint_t NDim, typename StorageType>
-    bool verify_functor(StorageType const & exp_field, StorageType const & actual_field, uint_t field_id,
+    template<uint_t NDim, typename Coords, typename StorageType>
+    bool verify_functor(Coords const& coords_, StorageType const & exp_field, StorageType const & actual_field, uint_t field_id,
                         array<array<uint_t, 2>, StorageType::space_dimensions> halos, double precision)
     {
         typename StorageType::meta_data_t const* meta=&exp_field.meta_data();
@@ -109,8 +111,10 @@ namespace gridtools{
         verify_helper<NDim-1, 1, StorageType> next_loop(exp_field, actual_field, field_id, halos, precision);
 
         const uint_t halo_minus = halos[NDim-1][0];
+        //adding the alignment padding to the halo
         const uint_t halo_plus = halos[NDim-1][1];
 
+        printf("halo_plus : %d\n", halo_plus);
         for(uint_t c=halo_minus; c < size-halo_plus; ++c)
         {
 #ifdef CXX11_ENABLED
@@ -118,7 +122,7 @@ namespace gridtools{
 #else
             array<uint_t,1> new_pos(c);
 #endif
-            verified = verified & next_loop(new_pos);
+            verified = verified & next_loop(coords_, new_pos);
         }
         return verified;
 
@@ -130,8 +134,8 @@ namespace gridtools{
         verifier(const double precision) : m_precision(precision) {}
         ~verifier(){}
 
-        template<typename StorageType>
-        bool verify(StorageType const& field1, StorageType const& field2, const array<array<uint_t, 2>, StorageType::space_dimensions> halos)
+        template<typename Coords, typename StorageType>
+        bool verify(Coords const& coords_, StorageType const& field1, StorageType const& field2, const array<array<uint_t, 2>, StorageType::space_dimensions> halos)
         {
             typename StorageType::meta_data_t const* meta=&field1.meta_data();
 
@@ -139,13 +143,13 @@ namespace gridtools{
 
             for(gridtools::uint_t f=0; f<StorageType::field_dimensions; ++f)
             {
-                verified=verify_functor<StorageType::space_dimensions, StorageType>(field1, field2, f, halos, m_precision);
+                verified=verify_functor<StorageType::space_dimensions>(coords_, field1, field2, f, halos, m_precision);
             }
             return verified;
         }
 
-        template<typename Partitioner, typename MetaStorageType, typename StorageType>
-        bool verify_parallel(gridtools::parallel_storage_info<MetaStorageType, Partitioner> const& metadata_, StorageType const& field1, StorageType const& field2,
+        template<typename Coords, typename Partitioner, typename MetaStorageType, typename StorageType>
+        bool verify_parallel(Coords const& coords_, gridtools::parallel_storage_info<MetaStorageType, Partitioner> const& metadata_, StorageType const& field1, StorageType const& field2,
                               const array<array<uint_t, 2>, StorageType::space_dimensions> halos)
         {
 
@@ -160,7 +164,7 @@ namespace gridtools{
                 {
                     for(gridtools::uint_t j=halos[1][0]; j < jdim-halos[1][1]; ++j)
                     {
-                        for(gridtools::uint_t k=0; k < kdim; ++k)
+                        for(gridtools::uint_t k=0; k < coords_.value_at_top(); ++k)
                         {
                             if(metadata_.mine(i,j,k)){
                                 typename StorageType::value_type expected = field2.get_value(i,j,k);
@@ -191,8 +195,8 @@ namespace gridtools{
         verifier(const double precision, const int halo_size) : m_precision(precision), m_halo_size(halo_size) {}
         ~verifier(){}
 
-        template<typename storage_type>
-        bool verify(storage_type const& field1, storage_type const& field2) const
+        template<typename Coords, typename storage_type>
+        bool verify(Coords const& coords_, storage_type const& field1, storage_type const& field2) const
         {
             // assert(field1.template dims<0>() == field2.template dims<0>());
             // assert(field1.template dims<1>() == field2.template dims<1>());
@@ -206,11 +210,17 @@ namespace gridtools{
             bool verified = true;
 
             for(gridtools::uint_t f=0; f<storage_type::field_dimensions; ++f)
-                for(gridtools::uint_t i=m_halo_size; i < idim-m_halo_size; ++i)
+                for(gridtools::uint_t i=m_halo_size;
+                    i < (idim-m_halo_size//-storage_type::meta_data_t::padding_t::template get<0>()
+                        );
+                    ++i)
                 {
-                    for(gridtools::uint_t j=m_halo_size; j < jdim-m_halo_size; ++j)
+                    for(gridtools::uint_t j=m_halo_size;
+                        j < (jdim-m_halo_size// -storage_type::meta_data_t::padding_t::template get<1>()
+                            );
+                        ++j)
                     {
-                        for(gridtools::uint_t k=0; k < kdim; ++k)
+                        for(gridtools::uint_t k=0; k < coords_.value_at_top(); ++k)
                         {
                             typename storage_type::value_type expected = field1.fields()[f][meta->index(i,j,k)];
                             typename storage_type::value_type actual = field2.fields()[f][meta->index(i,j,k)];
@@ -228,8 +238,8 @@ namespace gridtools{
             return verified;
         }
 
-        template<typename Partitioner, typename MetaStorageType, typename StorageType>
-        bool verify_parallel(gridtools::parallel_storage_info<MetaStorageType, Partitioner> const& metadata_, StorageType const& field1, StorageType const& field2)
+        template<typename Coords, typename Partitioner, typename MetaStorageType, typename StorageType>
+        bool verify_parallel(Coords const& coords_, gridtools::parallel_storage_info<MetaStorageType, Partitioner> const& metadata_, StorageType const& field1, StorageType const& field2)
         {
 
             const gridtools::uint_t idim = metadata_.get_metadata().template dims<0>();
@@ -243,7 +253,7 @@ namespace gridtools{
                 {
                     for(gridtools::uint_t j=m_halo_size; j < jdim-m_halo_size; ++j)
                     {
-                        for(gridtools::uint_t k=0; k < kdim; ++k)
+                        for(gridtools::uint_t k=0; k < coords_.value_at_top(); ++k)
                         {
                             if(metadata_.mine(i,j,k)){
                                 typename StorageType::value_type expected = field2.get_value(i,j,k);
