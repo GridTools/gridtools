@@ -22,11 +22,7 @@ namespace gridtools{
 #ifdef PEDANTIC
             GRIDTOOLS_STATIC_ASSERT((Coordinate<sizeof ... (Pad)), "the requested coordinate is larger than the halo dimension");
 #endif
-#ifndef NDEBUG
-            assert((Coordinate<sizeof ... (Pad)));
-#endif
-            return gt_get<Coordinate>::apply(Pad ...);
-                // static_if< Coordinate <= sizeof ... (Pad) >::apply(boost::mpl::at_c<type, Coordinate>::type::value, 0);
+            return (Coordinate<sizeof ... (Pad)) ? gt_get<Coordinate>::apply(Pad ...) : 0;
         }
     };
 #else
@@ -44,7 +40,6 @@ namespace gridtools{
                 return Pad2;
             if(Coordinate==2)
                 return Pad3;
-                // static_if< Coordinate <= sizeof ... (Pad) >::apply(boost::mpl::at_c<type, Coordinate>::type::value, 0);
         }
     };
 #endif
