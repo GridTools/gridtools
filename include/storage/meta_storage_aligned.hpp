@@ -102,9 +102,9 @@ namespace gridtools {
 
                forwarding to the constructor below
              */
-            template <class Array>
+            template <class Array, typename boost::enable_if<is_array<Array>, int >::type = 0 >
             GT_FUNCTION
-            constexpr meta_storage_aligned( Array && dims_ ) :
+            constexpr meta_storage_aligned( Array const& dims_ ) :
                 meta_storage_aligned(dims_, typename make_gt_integer_sequence< ushort_t, 3 >::type())
             {
                 GRIDTOOLS_STATIC_ASSERT(is_array<Array>::value, "type");
@@ -114,11 +114,13 @@ namespace gridtools {
 
                forwarding to the variadic constructor
              */
-            template <class Array, ushort_t ... Ids  >
+            template <typename T, ushort_t ... Ids  >
             GT_FUNCTION
-            constexpr meta_storage_aligned( Array && dims_, gt_integer_sequence<ushort_t, Ids ...> x_ ) :
+            constexpr
+            meta_storage_aligned( array<T, sizeof...(Ids)> const& dims_, gt_integer_sequence<ushort_t, Ids ...> x_ ) :
                 meta_storage_aligned(dims_[Ids]...)
-            {}
+            {
+            }
 
 
 #else
