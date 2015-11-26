@@ -33,7 +33,7 @@ struct map_function {
         , m_arguments(args...)
     {}
 
-    template <int I>
+    template <uint_t I>
     typename std::tuple_element<I, argument_types>::type const&
     argument() const {
         return std::get<I>(m_arguments);
@@ -495,13 +495,13 @@ public:
         m_grid_position = position;
     }
 
-    template<typename Accessor>
+    template<uint_t ID, enumtype::intend intend, typename LocationType, typename Radius>
     GT_FUNCTION
-    typename accessor_return_type<Accessor>::type
-    operator()(Accessor const& accessor) const {
-        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
-        return get_value(accessor, (data_pointer())[current_storage<(Accessor::index_type::value==0)
-                                                , local_domain_t, typename Accessor::type >::value]);
+    typename accessor_return_type<accessor<ID, intend, LocationType, Radius>>::type
+    operator()(accessor<ID, intend, LocationType, Radius> const& accessor_) const {
+        typedef accessor<ID, intend, LocationType, Radius> accessor_t;
+        return get_value(accessor_, (data_pointer())[current_storage<(ID==0)
+                                                , local_domain_t, typename accessor_t::type >::value]);
     }
 
     template <typename ValueType
@@ -528,11 +528,15 @@ public:
     template <typename ValueType
               , typename LocationTypeT
               , typename Reduction
-              , int I
+              , uint_t I
               , typename L
-              , int R
+              , int_t R
               >
-    double operator()(on_neighbors_impl<ValueType, LocationTypeT, Reduction, ro_accessor<I,L,radius<R>>> onneighbors) const {
+    double operator()(on_neighbors_impl<
+                      ValueType,
+                      LocationTypeT,
+                      Reduction,
+                      accessor<I,enumtype::in, L,radius<R>>> onneighbors) const {
         auto current_position = m_grid_position;
 
         const auto neighbors = grid_topology_t::neighbors_indices_3(current_position
@@ -540,7 +544,7 @@ public:
                                                           , onneighbors.location() );
         double result = onneighbors.value();
 
-        for (int i = 0; i<neighbors.size(); ++i) {
+        for (int_t i = 0; i<neighbors.size(); ++i) {
             result = onneighbors.reduction()( _evaluate(onneighbors.map(), neighbors[i]), result );
         }
 
@@ -838,13 +842,14 @@ public:
 
 //private:
 
-    template <int I, typename L, int R, typename IndexArray>
+    template <typename Accessor, typename IndexArray>
     //TODO return the right value, instead of double
-    double _evaluate(ro_accessor<I,L,radius<R>>, IndexArray const& position) const {
-        typedef ro_accessor<I,L,radius<R>> accessor_t;
-        int offset = m_grid_topology.ll_offset(position, typename accessor<I,L>::location_type());
+    double _evaluate(Accessor, IndexArray const& position) const {
+        using accessor_t = Accessor;
+        using location_type_t = typename accessor_t::location_type;
+        int offset = m_grid_topology.ll_offset(position, location_type_t());
 
-        return get_raw_value(accessor_t(), (data_pointer())[current_storage<(I==0)
+        return get_raw_value(accessor_t(), (data_pointer())[current_storage<(accessor_t::index_type::value==0)
                 , local_domain_t, typename accessor_t::type >::value], offset);
     }
 
