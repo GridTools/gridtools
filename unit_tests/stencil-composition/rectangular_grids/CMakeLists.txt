@@ -16,5 +16,9 @@ if ( ENABLE_CXX11 )
     target_link_libraries(recgrid_stencil_tests ${GTEST_BOTH_LIBRARIES} gcl -lpthread ${exe_LIBS})
 
     gridtools_add_test(recgrid_stencil_tests ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/recgrid_stencil_tests")
-endif(ENABLE_CXX11)
 
+    add_executable(test_cycle_and_swap test_cycle_and_swap.cpp)
+    set_target_properties(test_cycle_and_swap PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+    target_link_libraries(test_cycle_and_swap ${GTEST_BOTH_LIBRARIES} gcl -lpthread ${exe_LIBS})
+
+  endif(ENABLE_CXX11)

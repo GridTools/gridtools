@@ -13,9 +13,18 @@ namespace gridtools{
         static const uint_t size=sizeof ... (Pad);
         template<ushort_t Coordinate>
         GT_FUNCTION
-        static constexpr uint_t get(){
+        static
+#ifdef NDEBUG
+        constexpr
+#endif
+        uint_t get(){
             GRIDTOOLS_STATIC_ASSERT((Coordinate>=0), "the halo must be a non negative number");
-            GRIDTOOLS_STATIC_ASSERT((Coordinate<sizeof ... (Pad)), "the halo dimension is exceeding the storage dimension");
+#ifdef PEDANTIC
+            GRIDTOOLS_STATIC_ASSERT((Coordinate<sizeof ... (Pad)), "the requested coordinate is larger than the halo dimension");
+#endif
+#ifndef NDEBUG
+            assert((Coordinate<sizeof ... (Pad)));
+#endif
             return gt_get<Coordinate>::apply(Pad ...);
                 // static_if< Coordinate <= sizeof ... (Pad) >::apply(boost::mpl::at_c<type, Coordinate>::type::value, 0);
         }

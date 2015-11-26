@@ -91,7 +91,7 @@ namespace test_iterate_domain{
         typedef iterate_domain_host<
             iterate_domain,
             iterate_domain_arguments<
-                enumtype::enum_type<enumtype::backend, enumtype::Host>,
+                enumtype::enum_type<enumtype::platform, enumtype::Host>,
                 boost::mpl::at_c<typename mss_local_domain1_t::fused_local_domain_sequence_t, 0>::type,
                 boost::mpl::vector1<esf_t>,
                 boost::mpl::vector1<range<0,0,0,0> >,
