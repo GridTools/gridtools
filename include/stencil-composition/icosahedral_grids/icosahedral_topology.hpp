@@ -30,6 +30,8 @@
 
 namespace gridtools {
 
+    //TODO this is duplicated below
+
     namespace{
         using cells = location_type<0,2>;
         using edges = location_type<1,3>;

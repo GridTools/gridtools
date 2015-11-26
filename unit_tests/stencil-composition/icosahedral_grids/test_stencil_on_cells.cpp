@@ -129,7 +129,9 @@ TEST(test_stencil_on_cells, run) {
             {
                 for(uint_t k=0; k < d3; ++k)
                 {
-                    auto neighbours = ugrid.neighbours_of({i,c,j,k});
+                    auto neighbours = ugrid.neighbours_of<
+                            icosahedral_topology_t::cells,
+                            icosahedral_topology_t::cells>({i,c,j,k});
                     for(auto iter = neighbours.begin(); iter != neighbours.end(); ++iter)
                     {
                         ref_cells(i,c,j,k) += in_cells(*iter);
