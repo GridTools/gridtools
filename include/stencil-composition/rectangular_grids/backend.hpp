@@ -17,4 +17,22 @@ namespace gridtools{
 
     };
 
+#ifndef CXX11_ENABLED
+
+#ifdef __CUDACC__
+    template < ushort_t Index, typename Layout, typename Halo >
+    struct is_meta_storage<typename backend<enumtype::Cuda, enumtype::Block>::template storage_info<Index, Layout, Halo > > : boost::mpl::true_{};
+
+    template < ushort_t Index, typename Layout, typename Halo >
+    struct is_meta_storage<typename backend<enumtype::Cuda, enumtype::Naive>::template storage_info<Index, Layout, Halo > > : boost::mpl::true_{};
+#else
+    template < ushort_t Index, typename Layout, typename Halo >
+    struct is_meta_storage<typename backend<enumtype::Host, enumtype::Block>::template storage_info<Index, Layout, Halo > > : boost::mpl::true_{};
+
+    template < ushort_t Index, typename Layout, typename Halo >
+    struct is_meta_storage<typename backend<enumtype::Host, enumtype::Naive>::template storage_info<Index, Layout, Halo > > : boost::mpl::true_{};
+#endif
+
+#endif
+
 } //namespace gridtools

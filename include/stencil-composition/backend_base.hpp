@@ -425,34 +425,4 @@ namespace gridtools {
 
     }; // struct backend_base {
 
-#ifndef CXX11_ENABLED
-
-#ifdef __CUDACC__
-    template < ushort_t Index, typename Layout >
-    struct is_meta_storage<typename gridtools::backend<gridtools::enumtype::Cuda, gridtools::enumtype::Block>::template storage_info<Index, Layout > > : boost::mpl::true_{};
-#else
-    template < ushort_t Index, typename Layout >
-    struct is_meta_storage<typename gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Block>::template storage_info<Index, Layout > > : boost::mpl::true_{};
-
-    template < ushort_t Index, typename Layout >
-    struct is_meta_storage<typename gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Naive>::template storage_info<Index, Layout > > : boost::mpl::true_{};
-#endif
-
-
-#ifdef __CUDACC__
-    template < ushort_t Index, typename Layout, typename Halo >
-    struct is_meta_storage<typename gridtools::backend<gridtools::enumtype::Cuda, gridtools::enumtype::Block>::template storage_info<Index, Layout, Halo > > : boost::mpl::true_{};
-
-    template < ushort_t Index, typename Layout, typename Halo >
-    struct is_meta_storage<typename gridtools::backend<gridtools::enumtype::Cuda, gridtools::enumtype::Naive>::template storage_info<Index, Layout, Halo > > : boost::mpl::true_{};
-#else
-    template < ushort_t Index, typename Layout, typename Halo >
-    struct is_meta_storage<typename gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Block>::template storage_info<Index, Layout, Halo > > : boost::mpl::true_{};
-
-    template < ushort_t Index, typename Layout, typename Halo >
-    struct is_meta_storage<typename gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Naive>::template storage_info<Index, Layout, Halo > > : boost::mpl::true_{};
-#endif
-
-#endif
-
 } // namespace gridtools
