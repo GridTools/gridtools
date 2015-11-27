@@ -87,11 +87,11 @@ namespace gridtools {
                     for(uint_t j=1; j < m_edgedims[2]-1; ++j)
                     {
                         m_edge_to_edges.insert_neighbour({i,0,j,k}, {i,2,j-1,k});
-                        m_edge_to_edges.insert_neighbour({i,0,j,k}, {i+1,1,j-1,k});
                         m_edge_to_edges.insert_neighbour({i,0,j,k}, {i,1,j,k});
+                        m_edge_to_edges.insert_neighbour({i,0,j,k}, {i+1,1,j-1,k});
                         m_edge_to_edges.insert_neighbour({i,0,j,k}, {i,2,j,k});
 
-                        m_edge_to_edges.insert_neighbour({i,1,j,k}, {i,0,j-1,k});
+                        m_edge_to_edges.insert_neighbour({i,1,j,k}, {i,0,j,k});
                         m_edge_to_edges.insert_neighbour({i,1,j,k}, {i-1,2,j,k});
                         m_edge_to_edges.insert_neighbour({i,1,j,k}, {i-1,0,j+1,k});
                         m_edge_to_edges.insert_neighbour({i,1,j,k}, {i,2,j,k});
