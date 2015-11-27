@@ -51,7 +51,7 @@ TEST(test_stencil_on_edges, run) {
     const uint_t halo_nc = 1;
     const uint_t halo_mc = 1;
     const uint_t halo_k = 0;
-    const uint_t d3=1+halo_k*2;
+    const uint_t d3=6+halo_k*2;
     const uint_t d1=6+halo_nc*2;
     const uint_t d2=6+halo_mc*2;
     icosahedral_topology_t icosahedral_grid( d1, d2, d3 );
@@ -66,13 +66,14 @@ TEST(test_stencil_on_edges, run) {
 
     for(int i=0; i < d1; ++i)
     {
-        for(int c=0; c < 3; ++c)
+        for(int c=0; c < icosahedral_topology_t::edges::n_colors::value; ++c)
         {
             for(int j=0; j < d2; ++j)
             {
                 for(int k=0; k < d3; ++k)
                 {
-                    in_edges(i,c,j,k) = i+c*100+j*10000+k*1000000;
+                    in_edges(i,c,j,k) = (uint_t)in_edges.meta_data().index(array<uint_t,4>
+                    {(uint_t)i,(uint_t)c,(uint_t)j,(uint_t)k});
                     i_edges(i,c,j,k) = i;
                     c_edges(i,c,j,k) = c;
                     j_edges(i,c,j,k) = j;
@@ -123,7 +124,7 @@ TEST(test_stencil_on_edges, run) {
     unstructured_grid ugrid(d1, d2, d3);
     for(uint_t i=0; i < d1; ++i)
     {
-        for(uint_t c=0; c < 3; ++c)
+        for(uint_t c=0; c < icosahedral_topology_t::edges::n_colors::value; ++c)
         {
             for(uint_t j=0; j < d2; ++j)
             {

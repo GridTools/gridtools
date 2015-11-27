@@ -58,7 +58,8 @@ namespace gridtools {
             m_cell_to_cells(m_celldims),
             m_cell_to_edges(m_celldims),
             m_cell_to_vertexes(m_celldims),
-            m_edge_to_edges(m_edgedims)
+            m_edge_to_edges(m_edgedims),
+            m_vertex_to_vertexes(m_vertexdims)
         {
             construct_grid();
         }
@@ -104,6 +105,22 @@ namespace gridtools {
                     }
                 }
             }
+            for(uint_t k=0; k < m_vertexdims[3]; ++k)
+            {
+                for(uint_t i=1; i < m_vertexdims[0]-1; ++i)
+                {
+                    for(uint_t j=1; j < m_vertexdims[2]-1; ++j)
+                    {
+                        m_vertex_to_vertexes.insert_neighbour({i,0,j,k}, {i,0,j-1,k});
+                        m_vertex_to_vertexes.insert_neighbour({i,0,j,k}, {i,0,j+1,k});
+                        m_vertex_to_vertexes.insert_neighbour({i,0,j,k}, {i+1,0,j,k});
+                        m_vertex_to_vertexes.insert_neighbour({i,0,j,k}, {i-1,0,j,k});
+                        m_vertex_to_vertexes.insert_neighbour({i,0,j,k}, {i+1,0,j-1,k});
+                        m_vertex_to_vertexes.insert_neighbour({i,0,j,k}, {i-1,0,j+1,k});
+                    }
+                }
+            }
+
         }
 
         template<typename LocationTypeFrom, typename LocationTypeTo>
@@ -117,7 +134,7 @@ namespace gridtools {
         neighbour_list m_cell_to_edges;
         neighbour_list m_cell_to_vertexes;
         neighbour_list m_edge_to_edges;
-
+        neighbour_list m_vertex_to_vertexes;
     };
 
 }//namespace gridtools

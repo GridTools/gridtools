@@ -49,11 +49,11 @@ TEST(test_stencil_on_cells, run) {
     using cell_storage_type = typename backend_t::storage_t<icosahedral_topology_t::cells, double>;
 
     const uint_t halo_nc = 1;
-    const uint_t halo_mc = 2;
+    const uint_t halo_mc = 1;
     const uint_t halo_k = 0;
     const uint_t d3=6+halo_k*2;
     const uint_t d1=6+halo_nc*2;
-    const uint_t d2=12+halo_mc*2;
+    const uint_t d2=6+halo_mc*2;
     icosahedral_topology_t icosahedral_grid( d1, d2, d3 );
 
     cell_storage_type in_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("in");
@@ -66,13 +66,14 @@ TEST(test_stencil_on_cells, run) {
 
     for(int i=0; i < d1; ++i)
     {
-        for(int c=0; c < 2; ++c)
+        for(int c=0; c < icosahedral_topology_t::cells::n_colors::value; ++c)
         {
             for(int j=0; j < d2; ++j)
             {
                 for(int k=0; k < d3; ++k)
                 {
-                    in_cells(i,c,j,k) = i+c*100+j*10000+k*1000000;
+                    in_cells(i,c,j,k) = in_cells.meta_data().index(array<uint_t,4>
+                        {(uint_t)i,(uint_t)c,(uint_t)j,(uint_t)k});
                     i_cells(i,c,j,k) = i;
                     c_cells(i,c,j,k) = c;
                     j_cells(i,c,j,k) = j;
@@ -123,7 +124,7 @@ TEST(test_stencil_on_cells, run) {
     unstructured_grid ugrid(d1, d2, d3);
     for(uint_t i=0; i < d1; ++i)
     {
-        for(uint_t c=0; c < 2; ++c)
+        for(uint_t c=0; c < icosahedral_topology_t::cells::n_colors::value; ++c)
         {
             for(uint_t j=0; j < d2; ++j)
             {
