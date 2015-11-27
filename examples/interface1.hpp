@@ -2,6 +2,8 @@
 
 #include <stencil-composition/stencil-composition.hpp>
 #include "horizontal_diffusion_repository.hpp"
+#include "cache_flusher.hpp"
+#include "defs.hpp"
 #include <tools/verifier.hpp>
 
 #ifdef USE_PAPI_WRAP
@@ -134,12 +136,14 @@ std::ostream& operator<<(std::ostream& s, out_function const) {
 void handle_error(int)
 {std::cout<<"error"<<std::endl;}
 
-bool test(uint_t x, uint_t y, uint_t z)
+bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps)
 {
 
+    cache_flusher flusher(cache_flusher_size);
+
 #ifdef USE_PAPI_WRAP
-  int collector_init = pw_new_collector("Init");
-  int collector_execute = pw_new_collector("Execute");
+    int collector_init = pw_new_collector("Init");
+    int collector_execute = pw_new_collector("Execute");
 #endif
 
     uint_t d1 = x;
@@ -288,7 +292,10 @@ if( PAPI_start(event_set) != PAPI_OK)
 #ifdef USE_PAPI_WRAP
     pw_start_collector(collector_execute);
 #endif
-    horizontal_diffusion->run();
+    for(uint_t t=0; t < t_steps; ++t){
+        flusher.flush();
+        horizontal_diffusion->run();
+    }
 
 #ifdef USE_PAPI
 double dummy=0.5;
@@ -301,9 +308,7 @@ PAPI_stop(event_set, values);
     pw_stop_collector(collector_execute);
 #endif
 
-    horizontal_diffusion->finalize();
-
-#ifdef CUDA_EXAMPLE
+#ifdef __CUDACC__
     repository.update_cpu();
 #endif
 
@@ -321,7 +326,12 @@ PAPI_stop(event_set, values);
     }
 
 #ifdef BENCHMARK
-        std::cout << horizontal_diffusion->print_meter() << std::endl;
+    for(uint_t t=1; t < t_steps; ++t){
+        flusher.flush();
+        horizontal_diffusion->run();
+    }
+    horizontal_diffusion->finalize();
+    std::cout << horizontal_diffusion->print_meter() << std::endl;
 #endif
 
 #ifdef USE_PAPI_WRAP
