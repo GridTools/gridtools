@@ -56,13 +56,13 @@ TEST(test_stencil_on_cells, run) {
     const uint_t d2=6+halo_mc*2;
     icosahedral_topology_t icosahedral_grid( d1, d2, d3 );
 
-    cell_storage_type in_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("in");
-    cell_storage_type i_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("i");
-    cell_storage_type j_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("j");
-    cell_storage_type c_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("c");
-    cell_storage_type k_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("k");
-    cell_storage_type out_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("out");
-    cell_storage_type ref_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("ref");
+    auto in_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("in");
+    auto i_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("i");
+    auto j_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("j");
+    auto c_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("c");
+    auto k_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("k");
+    auto out_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("out");
+    auto ref_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("ref");
 
     for(int i=0; i < d1; ++i)
     {
