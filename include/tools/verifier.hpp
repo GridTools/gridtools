@@ -45,7 +45,7 @@ namespace gridtools{
             verify_helper<NDim-1, NCoord+1, StorageType> next_loop(m_exp_field, m_actual_field, m_field_id, m_halos, m_precision);
 
             const uint_t halo_minus = m_halos[NDim-1][0];
-            const uint_t halo_plus = m_halos[NDim-1][1] + ( (NDim==3) ? (StorageType::meta_data_t::padding_t::template get<0>()) : 0);
+            const uint_t halo_plus = m_halos[NDim-1][1];
 
             for(int c=halo_minus; c < size-halo_plus; ++c)
             {
@@ -77,17 +77,19 @@ namespace gridtools{
         template<typename Coords>
         bool operator()(Coords const& coords_, array<uint_t, NCoord> const &pos)
         {
-            typename StorageType::meta_data_t const* meta=&m_exp_field.meta_data();
-
-            typename StorageType::value_type expected = m_exp_field.fields()[m_field_id][meta->index(pos)];
-            typename StorageType::value_type actual = m_actual_field.fields()[m_field_id][meta->index(pos)];
             bool verified = true;
-            if(!compare_below_threshold(expected, actual, m_precision)
-               && pos[2] < coords_.value_at_top())
+            if(pos[2] < coords_.value_at_top())
             {
-                std::cout << "Error in field dimension " << m_field_id << " and position " << pos << " ; expected : " << expected <<
-                    " ; actual : " << actual << "  " << std::fabs((expected-actual)/(expected))  << std::endl;
-                verified = false;
+                typename StorageType::meta_data_t const* meta=&m_exp_field.meta_data();
+
+                typename StorageType::value_type expected = m_exp_field.fields()[m_field_id][meta->index(pos)];
+                typename StorageType::value_type actual = m_actual_field.fields()[m_field_id][meta->index(pos)];
+                if(!compare_below_threshold(expected, actual, m_precision))
+                {
+                    std::cout << "Error in field dimension " << m_field_id << " and position " << pos << " ; expected : " << expected <<
+                        " ; actual : " << actual << "  " << std::fabs((expected-actual)/(expected))  << std::endl;
+                    verified = false;
+                }
             }
             return verified;
         }
@@ -111,10 +113,8 @@ namespace gridtools{
         verify_helper<NDim-1, 1, StorageType> next_loop(exp_field, actual_field, field_id, halos, precision);
 
         const uint_t halo_minus = halos[NDim-1][0];
-        //adding the alignment padding to the halo
         const uint_t halo_plus = halos[NDim-1][1];
 
-        printf("halo_plus : %d\n", halo_plus);
         for(uint_t c=halo_minus; c < size-halo_plus; ++c)
         {
 #ifdef CXX11_ENABLED
@@ -210,15 +210,9 @@ namespace gridtools{
             bool verified = true;
 
             for(gridtools::uint_t f=0; f<storage_type::field_dimensions; ++f)
-                for(gridtools::uint_t i=m_halo_size;
-                    i < (idim-m_halo_size//-storage_type::meta_data_t::padding_t::template get<0>()
-                        );
-                    ++i)
+                for(gridtools::uint_t i=m_halo_size; i < idim-m_halo_size; ++i)
                 {
-                    for(gridtools::uint_t j=m_halo_size;
-                        j < (jdim-m_halo_size// -storage_type::meta_data_t::padding_t::template get<1>()
-                            );
-                        ++j)
+                    for(gridtools::uint_t j=m_halo_size; j < jdim-m_halo_size; ++j)
                     {
                         for(gridtools::uint_t k=0; k < coords_.value_at_top(); ++k)
                         {
