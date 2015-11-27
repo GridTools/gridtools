@@ -26,7 +26,7 @@ namespace gridtools {
     template<typename MetaStorageBase
              , typename AlignmentBoundary
 #ifdef CXX11_ENABLED
-             , template<ushort_t ... > class  Halo
+             , template<ushort_t ... P> class  Halo
              , ushort_t ... Pad>
     struct meta_storage_aligned<MetaStorageBase, AlignmentBoundary, Halo<Pad ...> >
 #else
@@ -34,13 +34,13 @@ namespace gridtools {
         , ushort_t Pad1, ushort_t Pad2, ushort_t Pad3>
         struct meta_storage_aligned<MetaStorageBase, AlignmentBoundary, Halo<Pad1, Pad2, Pad3> >
 #endif
-
-        : public MetaStorageBase{
+        : public MetaStorageBase
+        {
 
 #if defined(CXX11_ENABLED)
             //nvcc has problems with constexpr functions
-            typedef Halo<align_all<AlignmentBoundary::value, Pad>::value-Pad ...> padding_t;//paddings
             typedef Halo<Pad ...> halo_t;//ranges
+            typedef Halo<align_all<AlignmentBoundary::value, Pad>::value-Pad ...> padding_t;//paddings
 #else
             typedef Halo<align_all<AlignmentBoundary::value, Pad1>::value - Pad1
                             , align_all<AlignmentBoundary::value, Pad2>::value - Pad2
@@ -123,6 +123,19 @@ namespace gridtools {
             }
 
 
+            /**@brief straightforward interface*/
+            template <typename ... UInt, typename ... IdSequence>
+            GT_FUNCTION
+            uint_t index(UInt const& ... args_
+                         , gt_integer_sequence<IdSequence...> t
+                         = (make_gt_integer_sequence<ushort_t, sizeof ... (Pad)>::type())) const {
+
+                return this->index(align<s_alignment_boundary
+                                   , typename super::layout>::template
+                                   do_align<IdSequence>::apply(args_ + Pad) ...);
+            }
+
+
 #else
 
             /* applying 'align' to the integer sequence from 1 to space_dimensions. It will select the dimension with stride 1 and align it*/
@@ -145,7 +158,6 @@ namespace gridtools {
             //empty constructor
             GT_FUNCTION
             constexpr meta_storage_aligned() {}
-
 
             /**
                @brief initializing a given coordinate (i.e. multiplying times its stride)

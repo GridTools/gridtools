@@ -17,7 +17,7 @@ namespace gridtools{
             //the stride is one when the value in the layout vector is the highest
             static const bool has_stride_one = (LayoutMap::template at_<Coordinate>::value == vec_max<typename LayoutMap::layout_vector_t>::value
                 );
-            static const uint_t value = AlignmentBoundary  && !(Dimension%AlignmentBoundary) && has_stride_one ? Dimension+AlignmentBoundary-(Dimension%AlignmentBoundary) : Dimension;
+            static const uint_t value = AlignmentBoundary  && (Dimension%AlignmentBoundary) && has_stride_one ? Dimension+AlignmentBoundary-(Dimension%AlignmentBoundary) : Dimension;
         };
 
         /** applies the alignment to run-time values*/
@@ -27,7 +27,7 @@ namespace gridtools{
 
             static constexpr uint_t apply(uint_t const& dimension){
                 //the stride is one when the value in the layout vector is the highest
-                return AlignmentBoundary && !(dimension%AlignmentBoundary) && has_stride_one ? dimension+AlignmentBoundary-(dimension%AlignmentBoundary) : dimension;
+                return (AlignmentBoundary && (dimension%AlignmentBoundary) && has_stride_one) ? dimension+AlignmentBoundary-(dimension%AlignmentBoundary) : dimension;
             }
         };
 
@@ -37,7 +37,7 @@ namespace gridtools{
     /**@brief apply alignment to all coordinates regardless of the layout_map*/
     template <ushort_t AlignmentBoundary, ushort_t Dimension>
     struct align_all{
-        static const uint_t value = AlignmentBoundary && !(Dimension%AlignmentBoundary) ? Dimension+AlignmentBoundary-(Dimension%AlignmentBoundary) : Dimension;
+        static const uint_t value = (AlignmentBoundary && (Dimension%AlignmentBoundary)) ? (Dimension+AlignmentBoundary-(Dimension%AlignmentBoundary)) : Dimension;
     };
 
     /** @brief wrapper around the alignment boundary
