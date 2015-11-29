@@ -48,7 +48,8 @@ namespace functors{
                         eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) )=0.;
                                 for (int_t iterNode=0; iterNode < basis_cardinality ; ++iterNode)
                                 {//reduction/gather
-                                    eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) ) += eval(grid_points(dimension<4>(iterNode), dimension<5>(icoor)) * !dphi(i+iterNode, j+iter_quad, k+jcoor) );
+                                    eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) ) += 
+				      eval(grid_points(dimension<4>(iterNode), dimension<5>(icoor)) * !dphi(i+iterNode, j+iter_quad, k+jcoor) );
                                 }
                     }
                 }
@@ -61,8 +62,11 @@ namespace functors{
     //! [det]
     /** updates the values of the Jacobian matrix. The Jacobian matrix, component (i,j) in the quadrature point q, is computed given the geometric map discretization as \f$ J(i,j,q)=\sum_k\frac{\partial \phi_i(x_k,q)}{\partial x_j} x_k \f$
         where x_k are the points in the geometric element*/
-    template<typename det>
-    struct det_base
+    template<typename Geometry, ushort_t Dim=Geometry::geo_map::spaceDim>
+    struct det_impl;
+
+    template<typename Geometry>
+    struct det
 	{
         using jac = accessor<0, range<0,0,0,0> , 6> const;
         using jac_det =  accessor<1, range<0,0,0,0> , 4>;
@@ -71,87 +75,74 @@ namespace functors{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-        	det::DoCompute(eval);
+
+            dimension<4>::Index qp;
+            dimension<5>::Index dimx;
+            dimension<6>::Index dimy;
+            uint_t const num_cub_points=eval.get().get_storage_dims(jac())[3];
+
+#ifdef __CUDACC__
+            assert(num_cub_points==cub::numCubPoints());
+#endif
+
+            for(short_t q=0; q< num_cub_points; ++q)
+            {
+            	det_impl<Geometry>::DoCompute(eval,qp,dimx,dimy,q);
+            }
         }
 	};
 
 
-    template<typename Geometry, ushort_t Dim=Geometry::geo_map::spaceDim>
-    struct det;
-
     template<typename Geometry>// TODO: number of dimensions can be derived from Geometry
-    struct det<Geometry,3> : public det_base< det<Geometry,3> >
+    struct det_impl<Geometry,3> : public det<Geometry>
     {
         using cub=typename Geometry::cub;
-        using super=det_base< det<Geometry,3> >;
+        using super=det<Geometry>;
         using jacobian= typename super::jac;
         using jacobian_det=typename super::jac_det;
 
         template <typename Evaluation>
         GT_FUNCTION
-        static void DoCompute(Evaluation const & eval) {
-            dimension<4>::Index qp;
-            dimension<5>::Index dimx;
-            dimension<6>::Index dimy;
-            uint_t const num_cub_points=eval.get().get_storage_dims(jacobian())[3];
-
-#ifdef __CUDACC__
-            assert(num_cub_points==cub::numCubPoints());
-#endif
-            for(short_t q=0; q< num_cub_points; ++q)
-            {
-                eval( jacobian_det(qp+q) )= eval(
-                    (
-		     jacobian(        qp+q)*jacobian(dimx+1, dimy+1, qp+q)*jacobian(dimx+2, dimy+2, qp+q) +
-		     jacobian(dimx+1, qp+q)*jacobian(dimx+2, dimy+1, qp+q)*jacobian(dimy+2,         qp+q) +
-		     jacobian(dimy+1, qp+q)*jacobian(dimx+1, dimy+2, qp+q)*jacobian(dimx+2,         qp+q) -
-		     jacobian(dimy+1, qp+q)*jacobian(dimx+1,         qp+q)*jacobian(dimx+2, dimy+2, qp+q) -
-		     jacobian(        qp+q)*jacobian(dimx+2, dimy+1, qp+q)*jacobian(dimx+1, dimy+2, qp+q) -
-		     jacobian(dimy+2, qp+q)*jacobian(dimx+1, dimy+1, qp+q)*jacobian(dimx+2,         qp+q)
-		     )
-	        );
-            }
+        static void DoCompute(Evaluation const & eval, const dimension<4>::Index& i_qp, const dimension<5>::Index& i_dimx, const dimension<6>::Index& i_dimy, const short_t i_q) {
+	  eval( jacobian_det(i_qp+i_q) )= eval((
+				jacobian(        i_qp+i_q)*jacobian(i_dimx+1, i_dimy+1, i_qp+i_q)*jacobian(i_dimx+2, i_dimy+2, i_qp+i_q) +
+				jacobian(i_dimx+1, i_qp+i_q)*jacobian(i_dimx+2, i_dimy+1, i_qp+i_q)*jacobian(i_dimy+2,         i_qp+i_q) +
+				jacobian(i_dimy+1, i_qp+i_q)*jacobian(i_dimx+1, i_dimy+2, i_qp+i_q)*jacobian(i_dimx+2,         i_qp+i_q) -
+				jacobian(i_dimy+1, i_qp+i_q)*jacobian(i_dimx+1,         i_qp+i_q)*jacobian(i_dimx+2, i_dimy+2, i_qp+i_q) -
+				jacobian(        i_qp+i_q)*jacobian(i_dimx+2, i_dimy+1, i_qp+i_q)*jacobian(i_dimx+1, i_dimy+2, i_qp+i_q) -
+				jacobian(i_dimy+2, i_qp+i_q)*jacobian(i_dimx+1, i_dimy+1, i_qp+i_q)*jacobian(i_dimx+2,         i_qp+i_q)));
         }
     };
 
 
     template<typename Geometry>
-    struct det<Geometry,2> : public det_base< det<Geometry,2> >
+    struct det_impl<Geometry,2> : public det<Geometry>
     {
         using cub=typename Geometry::cub;
-        using super=det_base< det<Geometry,2> >;
+        using super=det<Geometry>;
         using jacobian=typename super::jac;
         using jacobian_det=typename super::jac_det;
 
         template <typename Evaluation>
         GT_FUNCTION
-        static void DoCompute(Evaluation const & eval) {
-            dimension<4>::Index qp;
-            dimension<5>::Index dimx;
-            dimension<6>::Index dimy;
-            uint_t const num_cub_points=eval.get().get_storage_dims(jacobian())[3];
-
-#ifdef __CUDACC__
-            assert(num_cub_points==cub::numCubPoints());
-#endif
-            for(short_t q=0; q< num_cub_points; ++q)
-            {
-                eval( jacobian_det(qp+q) )= eval(
-                    (
-		     jacobian(        qp+q)*jacobian(dimx+1, dimy+1, qp+q) -
-		     jacobian(dimx+1, qp+q)*jacobian(dimy+1, qp+q)
-		     )
-		    );
-            }
+        static void DoCompute(Evaluation const & eval, const dimension<4>::Index& i_qp, const dimension<5>::Index& i_dimx, const dimension<6>::Index& i_dimy, const short_t i_q) {
+            eval( jacobian_det(i_qp+i_q) )= eval((
+		     jacobian(        i_qp+i_q)*jacobian(i_dimx+1, i_dimy+1, i_qp+i_q) -
+		     jacobian(i_dimx+1, i_qp+i_q)*jacobian(i_dimy+1, i_qp+i_q)));
         }
-    };
 
+    };
     //! [det]
 
 #ifndef __CUDACC__
     //! [inv]
+
+    template <typename Geometry,ushort_t Dim=Geometry::geo_map::spaceDim>
+    struct inv_impl;
+
     template <typename Geometry>
-    struct inv{
+    struct inv
+	{
         using cub=typename Geometry::cub;
 
         //![arguments_inv]
@@ -162,9 +153,26 @@ namespace functors{
         using arg_list = boost::mpl::vector< jac, jac_det, jac_inv>;
         //![arguments_inv]
 
-        template <typename Evaluation>
+    	template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
+        	inv_impl<Geometry>::DoCompute(eval);
+        }
+	};
+
+    template <typename Geometry>
+    struct inv_impl<Geometry,3> : public inv<Geometry>
+    {
+    	using super=inv<Geometry>;
+
+        using jac      = typename super::jac ;
+        using jac_det  = typename super::jac_det ;
+        using jac_inv  = typename super::jac_inv ;
+
+        template <typename Evaluation>
+        GT_FUNCTION
+        static void DoCompute(Evaluation const & eval) {
+
             dimension<4>::Index qp;
             using dimx=dimension<5>;
             using dimy=dimension<6>;
@@ -177,15 +185,15 @@ namespace functors{
 #endif
 
 //! [aliases]
-            using a_=alias<jac, dimy, dimx>::set<0,0>;
-            using b_=alias<jac, dimy, dimx>::set<0,1>;
-            using c_=alias<jac, dimy, dimx>::set<0,2>;
-            using d_=alias<jac, dimy, dimx>::set<1,0>;
-            using e_=alias<jac, dimy, dimx>::set<1,1>;
-            using f_=alias<jac, dimy, dimx>::set<1,2>;
-            using g_=alias<jac, dimy, dimx>::set<2,0>;
-            using h_=alias<jac, dimy, dimx>::set<2,1>;
-            using i_=alias<jac, dimy, dimx>::set<2,2>;
+            using a_=typename alias<jac, dimy, dimx>::template set<0,0>;
+            using b_=typename alias<jac, dimy, dimx>::template set<0,1>;
+            using c_=typename alias<jac, dimy, dimx>::template set<0,2>;
+            using d_=typename alias<jac, dimy, dimx>::template set<1,0>;
+            using e_=typename alias<jac, dimy, dimx>::template set<1,1>;
+            using f_=typename alias<jac, dimy, dimx>::template set<1,2>;
+            using g_=typename alias<jac, dimy, dimx>::template set<2,0>;
+            using h_=typename alias<jac, dimy, dimx>::template set<2,1>;
+            using i_=typename alias<jac, dimy, dimx>::template set<2,2>;
 //! [aliases]
             // eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) )=0.;
             for(short_t q=0; q< num_cub_points; ++q)
@@ -228,6 +236,58 @@ namespace functors{
 
         }
     };
+
+    template <typename Geometry>
+    struct inv_impl<Geometry,2> : public inv<Geometry>
+    {
+    	using super=inv<Geometry>;
+
+        using jac      = typename super::jac ;
+        using jac_det  = typename super::jac_det ;
+        using jac_inv  = typename super::jac_inv ;
+
+        template <typename Evaluation>
+        GT_FUNCTION
+        static void DoCompute(Evaluation const & eval) {
+            dimension<4>::Index qp;
+            using dimx=dimension<5>;
+            using dimy=dimension<6>;
+            dimx::Index X;
+            dimy::Index Y;
+            uint_t const num_cub_points=eval.get().get_storage_dims(jac())[3];
+
+#ifdef __CUDACC__
+            assert(num_cub_points==cub::numCubPoints());
+#endif
+
+//! [aliases]
+            using a_= typename alias<jac, dimy, dimx>::template set<0,0>;
+            using b_= typename alias<jac, dimy, dimx>::template set<0,1>;
+            using c_= typename alias<jac, dimy, dimx>::template set<1,0>;
+            using d_= typename alias<jac, dimy, dimx>::template set<1,1>;
+//! [aliases]
+            // eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) )=0.;
+            for(short_t q=0; q< num_cub_points; ++q)
+            {
+                alias<a_, dimension<4> > a(q);
+                alias<b_, dimension<4> > b(q);
+                alias<c_, dimension<4> > c(q);
+                alias<d_, dimension<4> > d(q);
+
+                assert(eval(a()) == eval(jac(qp+q)));
+                assert(eval(b()) == eval(jac(qp+q, X+1)));
+                assert(eval(c()) == eval(jac(qp+q, Y+1)));
+                assert(eval(d()) == eval(jac(qp+q, X+1,Y+1)));
+
+                eval( jac_inv(qp+q) )           = eval( d()/jac_det(qp+q) );
+                eval( jac_inv(X+1, qp+q) )      = -eval( c()/jac_det(qp+q) );
+                eval( jac_inv(Y+1, qp+q) )      = -eval( b()/jac_det(qp+q) );
+                eval( jac_inv(Y+1, X+1, qp+q) ) = eval( a()/jac_det(qp+q) );
+
+            }
+        }
+    };
+
     // [inv]
 #endif //__CUDACC__
 
