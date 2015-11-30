@@ -107,7 +107,7 @@ namespace gridtools {
 #endif
 
         /**
-           @brief given the global coordinates returns wether the point belongs to the current partition
+           @brief given the global grid returns wether the point belongs to the current partition
         */
         template <typename ... UInt>
         bool mine(UInt const& ... coordinates_) const

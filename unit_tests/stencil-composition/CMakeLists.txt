@@ -18,8 +18,8 @@ set_target_properties(stencil_composition_tests PROPERTIES COMPILE_FLAGS ${ADDIT
 target_link_libraries(stencil_composition_tests ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
 
 add_subdirectory(caches)
-if (NOT RECTANGULAR_GRIDS)
-  add_subdirectory(other_grids)
+if (NOT STRUCTURED_GRIDS)
+  add_subdirectory(icosahedral_grids)
 else()
-  add_subdirectory(rectangular_grids)
+  add_subdirectory(structured_grids)
 endif()

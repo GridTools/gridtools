@@ -6,6 +6,6 @@
 #include "stencil-composition/make_computation.hpp"
 #include "stencil-composition/axis.hpp"
 
-#ifndef RECTANGULAR_GRIDS
-    #include "stencil-composition/other_grids/grid.hpp"
+#ifndef STRUCTURED_GRIDS
+    #include "stencil-composition/icosahedral_grids/grid.hpp"
 #endif

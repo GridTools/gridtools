@@ -1,8 +1,8 @@
 #pragma once
 #include "dimension.hpp"
 
-#ifdef RECTANGULAR_GRIDS
-    #include "rectangular_grids/dimension_defs.hpp"
+#ifdef STRUCTURED_GRIDS
+    #include "structured_grids/dimension_defs.hpp"
 #else
-    #include "other_grids/dimension_defs.hpp"
+    #include "icosahedral_grids/dimension_defs.hpp"
 #endif

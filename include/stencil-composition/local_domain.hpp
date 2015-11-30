@@ -148,7 +148,7 @@ namespace gridtools {
 
     /**
      * This is the base class for local_domains to extract the proper iterators/storages from the full domain
-     * to adapt it for a particular functor. There is one version which provide coordinates to the functor
+     * to adapt it for a particular functor. There is one version which provide grid to the functor
      * and one that does not
      *
      */
@@ -363,7 +363,7 @@ namespace gridtools {
 
     /**
      * This class extract the proper iterators/storages from the full domain
-     * to adapt it for a particular functor. This version does not provide coordinates
+     * to adapt it for a particular functor. This version does not provide grid
      * to the function operator
      *
      * @tparam StoragePointers The mpl vector of the storage pointer types

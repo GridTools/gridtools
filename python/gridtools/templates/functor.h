@@ -13,7 +13,7 @@ struct {{ functor.name }}
                                         {%- else -%}
                                             enumtype::inout
                                         {%- endif %} {%- if p.access_pattern -%}
-                                                          , range<{{ p.access_pattern|join(',') }}>
+                                                          , extent<{{ p.access_pattern|join(',') }}>
                                                      {%- endif %} > {{ p.name|replace('.', '_') }};
     {% endfor %}
     //

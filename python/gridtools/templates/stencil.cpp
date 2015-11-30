@@ -22,7 +22,7 @@
 
 
 using gridtools::level;
-using gridtools::range;
+using gridtools::extent;
 using gridtools::arg;
 
 using namespace gridtools;
@@ -149,9 +149,9 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
     //
     // the vertical dimension of the problem is a property of this object
     //
-    gridtools::coordinates<axis> coords_{{ loop.index0 }}(di_{{ loop.index0 }}, dj_{{ loop.index0 }});
-    coords_{{ loop.index0 }}.value_list[0] = 0;
-    coords_{{ loop.index0 }}.value_list[1] = d3-1;
+    gridtools::grid<axis> grid_{{ loop.index0 }}(di_{{ loop.index0 }}, dj_{{ loop.index0 }});
+    grid_{{ loop.index0 }}.value_list[0] = 0;
+    grid_{{ loop.index0 }}.value_list[1] = d3-1;
 
     //
     // Here we do a lot of stuff
@@ -190,7 +190,7 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
                        {%- endif %}
                 {% endfor -%}
             ),
-            domain, coords_{{ loop.index0 }}
+            domain, grid_{{ loop.index0 }}
       );
     {% endfor %}
 

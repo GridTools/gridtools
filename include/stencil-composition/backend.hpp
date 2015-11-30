@@ -1,7 +1,7 @@
 #pragma once
 
-#ifdef RECTANGULAR_GRIDS
-    #include "stencil-composition/rectangular_grids/backend.hpp"
+#ifdef STRUCTURED_GRIDS
+    #include "stencil-composition/structured_grids/backend.hpp"
 #else
-    #include "stencil-composition/other_grids/backend.hpp"
+    #include "stencil-composition/icosahedral_grids/backend.hpp"
 #endif

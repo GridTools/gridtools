@@ -127,14 +127,15 @@ namespace gridtools{
         struct mss_loop
         {
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), "Internal Error: wrong type");
-            template<typename LocalDomain, typename Coords>
-            static void run(LocalDomain& local_domain, const Coords& coords, const uint_t bi, const uint_t bj)
+            template<typename LocalDomain, typename Grid>
+            static void run(LocalDomain& local_domain, const Grid& grid, const uint_t bi, const uint_t bj)
             {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type");
-                GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "Internal Error: wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
 
                 //each strategy executes a different high level loop for a mss
-                strategy_from_id_host<StrategyId>::template mss_loop<RunFunctorArgs, enumtype::Host>::template run(local_domain, coords, bi, bj);
+                strategy_from_id_host<StrategyId>::template mss_loop<RunFunctorArgs, enumtype::Host>::
+                        template run(local_domain, grid, bi, bj);
             }
         };
 
@@ -189,7 +190,7 @@ namespace gridtools{
         struct select_iterate_domain {
             GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Internal Error: wrong type");
             //indirection in order to avoid instantiation of both types of the eval_if
-#ifdef RECTANGULAR_GRIDS
+#ifdef STRUCTURED_GRIDS
             template<typename _IterateDomainArguments>
             struct select_positional_iterate_domain
             {
@@ -205,7 +206,7 @@ namespace gridtools{
 
             typedef typename boost::mpl::eval_if<
                 local_domain_is_stateful<typename IterateDomainArguments::local_domain_t>,
-#ifdef RECTANGULAR_GRIDS
+#ifdef STRUCTURED_GRIDS
                 select_positional_iterate_domain<IterateDomainArguments>,
 #else
                 select_basic_iterate_domain<IterateDomainArguments>,

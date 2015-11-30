@@ -9,7 +9,7 @@
 
 using gridtools::level;
 using gridtools::accessor;
-using gridtools::range;
+using gridtools::extent;
 using gridtools::arg;
 
 using namespace gridtools;
@@ -30,7 +30,7 @@ namespace copy_stencil{
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
 
-        typedef const accessor<0, enumtype::inout, range<0,0,0,0>, 4> in;
+        typedef const accessor<0, enumtype::inout, extent<0,0,0,0>, 4> in;
         typedef boost::mpl::vector<in> arg_list;
 
         template <typename Evaluation>
@@ -104,13 +104,13 @@ namespace copy_stencil{
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
-        // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
+        // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
         uint_t di[5] = {0, 0, 0, d1-1, d1};
         uint_t dj[5] = {0, 0, 0, d2-1, d2};
 
-        gridtools::coordinates<axis> coords(di, dj);
-        coords.value_list[0] = 0;
-        coords.value_list[1] = d3-1;
+        gridtools::grid<axis> grid(di, dj);
+        grid.value_list[0] = 0;
+        grid.value_list[1] = d3-1;
 
         /*
           Here we do lot of stuff
@@ -137,7 +137,7 @@ namespace copy_stencil{
                         p_in() // esf_descriptor
                         )
                 ),
-                domain, coords
+                domain, grid
             );
 
         copy->ready();

@@ -110,77 +110,77 @@ struct cache_is_type
 };
 
 /**
- * @struct extract_ranges_for_caches
- * metafunction that extracts the ranges associated to each cache of the sequence of caches provided by the user.
- * The range is determined as the enclosing range of all the ranges of esfs that use the cache.
+ * @struct extract_extents_for_caches
+ * metafunction that extracts the extents associated to each cache of the sequence of caches provided by the user.
+ * The extent is determined as the enclosing extent of all the extents of esfs that use the cache.
  * It is used in order to allocate enough memory for each cache storage.
- * @tparam IterateDomainArguments iterate domain arguments type containing sequences of caches, esfs and ranges
- * @return map<cache,range>
+ * @tparam IterateDomainArguments iterate domain arguments type containing sequences of caches, esfs and extents
+ * @return map<cache,extent>
  */
 template<typename IterateDomainArguments>
-struct extract_ranges_for_caches
+struct extract_extents_for_caches
 {
     typedef typename IterateDomainArguments::cache_sequence_t cache_sequence_t;
-    typedef typename IterateDomainArguments::range_sizes_t ranges_t;
+    typedef typename IterateDomainArguments::extent_sizes_t extents_t;
     typedef typename IterateDomainArguments::esf_sequence_t esf_sequence_t;
 
-    //insert the range associated to a Cache into the map of <cache, range>
-    template<typename RangesMap, typename Cache>
-    struct insert_range_for_cache
+    //insert the extent associated to a Cache into the map of <cache, extent>
+    template<typename ExtendsMap, typename Cache>
+    struct insert_extent_for_cache
     {
         GRIDTOOLS_STATIC_ASSERT((is_cache<Cache>::value), "ERROR");
 
-        //update the entry associated to a cache within the map with a new range.
-        // if the key exist we compute and insert the enclosing range, otherwise we just
-        // insert the range into a new entry of the map of <cache, range>
-        template<typename RangesMap_, typename Range>
-        struct update_range_map
+        //update the entry associated to a cache within the map with a new extent.
+        // if the key exist we compute and insert the enclosing extent, otherwise we just
+        // insert the extent into a new entry of the map of <cache, extent>
+        template<typename ExtendsMap_, typename Extend>
+        struct update_extent_map
         {
-            GRIDTOOLS_STATIC_ASSERT((is_range<Range>::value), "ERROR");
+            GRIDTOOLS_STATIC_ASSERT((is_extent<Extend>::value), "ERROR");
 
             typedef typename boost::mpl::if_<
-                boost::mpl::has_key<RangesMap_, Cache>,
-                typename boost::mpl::at<RangesMap_, Cache>::type,
-                range<0,0,0,0>
-            >::type default_range_t;
+                boost::mpl::has_key<ExtendsMap_, Cache>,
+                typename boost::mpl::at<ExtendsMap_, Cache>::type,
+                extent<0,0,0,0>
+            >::type default_extent_t;
 
             typedef typename boost::mpl::insert<
-                typename boost::mpl::erase_key<RangesMap_, Cache>::type,
-                boost::mpl::pair<Cache, typename enclosing_range<default_range_t, Range>::type >
+                typename boost::mpl::erase_key<ExtendsMap_, Cache>::type,
+                boost::mpl::pair<Cache, typename enclosing_extent<default_extent_t, Extend>::type >
             >::type type;
 
         };
 
-        // given an Id within the sequence of esf and ranges, extract the range associated an inserted into
+        // given an Id within the sequence of esf and extents, extract the extent associated an inserted into
         // the map if the cache is used by the esf with that Id.
-        template<typename RangesMap_, typename EsfIdx>
-        struct insert_range_for_cache_esf
+        template<typename ExtendsMap_, typename EsfIdx>
+        struct insert_extent_for_cache_esf
         {
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<ranges_t>::value > EsfIdx::value), "ERROR");
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<extents_t>::value > EsfIdx::value), "ERROR");
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<esf_sequence_t>::value > EsfIdx::value), "ERROR");
 
-            typedef typename boost::mpl::at<ranges_t, EsfIdx>::type range_t;
+            typedef typename boost::mpl::at<extents_t, EsfIdx>::type extent_t;
             typedef typename boost::mpl::at<esf_sequence_t, EsfIdx>::type esf_t;
 
             typedef typename boost::mpl::if_<
                 boost::mpl::contains<typename esf_t::args_t, typename cache_parameter<Cache>::type >,
-                typename update_range_map<RangesMap_, range_t>::type,
-                RangesMap_
+                typename update_extent_map<ExtendsMap_, extent_t>::type,
+                ExtendsMap_
             >::type type;
         };
 
-        //loop over all esfs and insert the range associated to the cache into the map
+        //loop over all esfs and insert the extent associated to the cache into the map
         typedef typename boost::mpl::fold<
             boost::mpl::range_c<int, 0, boost::mpl::size<esf_sequence_t>::value >,
-            RangesMap,
-            insert_range_for_cache_esf<boost::mpl::_1, boost::mpl::_2>
+            ExtendsMap,
+            insert_extent_for_cache_esf<boost::mpl::_1, boost::mpl::_2>
         >::type type;
     };
 
     typedef typename boost::mpl::fold<
         cache_sequence_t,
         boost::mpl::map0<>,
-        insert_range_for_cache<boost::mpl::_1, boost::mpl::_2>
+        insert_extent_for_cache<boost::mpl::_1, boost::mpl::_2>
     >::type type;
 };
 
@@ -192,12 +192,12 @@ struct extract_ranges_for_caches
  * of a given accessor
  * @tparam cacheType type of cache
  * @tparam CacheSequence sequence of caches specified by the user
- * @tparam CacheRangesMap map of <cache, range> determining the range size of each cache
+ * @tparam CacheExtendsMap map of <cache, extent> determining the extent size of each cache
  * @tparam BlockSize the physical domain block size
  * @tparam LocalDomain the fused local domain
  */
 
-template<cache_type cacheType, typename CacheSequence, typename CacheRangesMap, typename BlockSize, typename LocalDomain>
+template<cache_type cacheType, typename CacheSequence, typename CacheExtendsMap, typename BlockSize, typename LocalDomain>
 struct get_cache_storage_tuple
 {
     GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), "Internal Error: Wrong Type");
@@ -213,7 +213,7 @@ struct get_cache_storage_tuple
     template<typename Cache>
     struct get_cache_storage
     {
-        typedef cache_storage<float_type, BlockSize, typename boost::mpl::at<CacheRangesMap, Cache>::type > type;
+        typedef cache_storage<float_type, BlockSize, typename boost::mpl::at<CacheExtendsMap, Cache>::type > type;
     };
 
     //first we build an mpl vector of pairs

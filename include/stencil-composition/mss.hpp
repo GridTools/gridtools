@@ -26,12 +26,12 @@ namespace gridtools {
 
         /**@brief Macro defining a sfinae metafunction
 
-           defines a metafunction has_range_type, which returns true if its template argument
-           defines a type called range_type. It also defines a get_range_type metafunction, which
-           can be used to return the range_type only when it is present, without giving compilation
+           defines a metafunction has_extent_type, which returns true if its template argument
+           defines a type called extent_type. It also defines a get_extent_type metafunction, which
+           can be used to return the extent_type only when it is present, without giving compilation
            errors in case it is not defined.
          */
-        HAS_TYPE_SFINAE(range_type, has_range_type, get_range_type)
+        HAS_TYPE_SFINAE(extent_type, has_extent_type, get_extent_type)
 
     }
 

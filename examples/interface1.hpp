@@ -2,6 +2,8 @@
 
 #include <stencil-composition/stencil-composition.hpp>
 #include "horizontal_diffusion_repository.hpp"
+#include "cache_flusher.hpp"
+#include "defs.hpp"
 #include <tools/verifier.hpp>
 
 #ifdef USE_PAPI_WRAP
@@ -16,7 +18,7 @@
 
 using gridtools::level;
 using gridtools::accessor;
-using gridtools::range;
+using gridtools::extent;
 using gridtools::arg;
 
 using namespace gridtools;
@@ -39,7 +41,7 @@ typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
 // These are the stencil operators that compose the multistage stencil in this test
 struct lap_function {
     typedef accessor<0, enumtype::inout> out;
-    typedef accessor<1, enumtype::in, range<-1, 1, -1, 1> > in;
+    typedef accessor<1, enumtype::in, extent<-1, 1, -1, 1> > in;
 
     typedef boost::mpl::vector<out, in> arg_list;
 
@@ -55,8 +57,8 @@ struct lap_function {
 struct flx_function {
 
     typedef accessor<0, enumtype::inout> out;
-    typedef accessor<1, enumtype::in, range<0, 1, 0, 0> > in;
-    typedef accessor<2, enumtype::in, range<0, 1, 0, 0> > lap;
+    typedef accessor<1, enumtype::in, extent<0, 1, 0, 0> > in;
+    typedef accessor<2, enumtype::in, extent<0, 1, 0, 0> > lap;
 
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
@@ -73,8 +75,8 @@ struct flx_function {
 struct fly_function {
 
     typedef accessor<0, enumtype::inout> out;
-    typedef accessor<1, enumtype::in, range<0, 0, 0, 1> > in;
-    typedef accessor<2, enumtype::in, range<0, 0, 0, 1> > lap;
+    typedef accessor<1, enumtype::in, extent<0, 0, 0, 1> > in;
+    typedef accessor<2, enumtype::in, extent<0, 0, 0, 1> > lap;
 
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
@@ -92,8 +94,8 @@ struct out_function {
 
     typedef accessor<0, enumtype::inout> out;
     typedef accessor<1> in;
-    typedef accessor<2, enumtype::in, range<-1, 0, 0, 0> > flx;
-    typedef accessor<3, enumtype::in, range<0, 0, -1, 0> > fly;
+    typedef accessor<2, enumtype::in, extent<-1, 0, 0, 0> > flx;
+    typedef accessor<3, enumtype::in, extent<0, 0, -1, 0> > fly;
     typedef accessor<4> coeff;
 
     typedef boost::mpl::vector<out,in,flx,fly,coeff> arg_list;
@@ -134,12 +136,14 @@ std::ostream& operator<<(std::ostream& s, out_function const) {
 void handle_error(int)
 {std::cout<<"error"<<std::endl;}
 
-bool test(uint_t x, uint_t y, uint_t z)
+bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps)
 {
 
+    cache_flusher flusher(cache_flusher_size);
+
 #ifdef USE_PAPI_WRAP
-  int collector_init = pw_new_collector("Init");
-  int collector_execute = pw_new_collector("Execute");
+    int collector_init = pw_new_collector("Init");
+    int collector_execute = pw_new_collector("Execute");
 #endif
 
     uint_t d1 = x;
@@ -195,13 +199,13 @@ bool test(uint_t x, uint_t y, uint_t z)
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
     // while the vertical ones are set according the the axis property soon after
-    // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
+    // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
     uint_t di[5] = {halo_size, halo_size, halo_size, d1-halo_size-1, d1};
     uint_t dj[5] = {halo_size, halo_size, halo_size, d2-halo_size-1, d2};
 
-    gridtools::coordinates<axis> coords(di, dj);
-    coords.value_list[0] = 0;
-    coords.value_list[1] = d3-1;
+    gridtools::grid<axis> grid(di, dj);
+    grid.value_list[0] = 0;
+    grid.value_list[1] = d3-1;
 
     /*
       Here we do lot of stuff
@@ -225,7 +229,7 @@ bool test(uint_t x, uint_t y, uint_t z)
     //        ),
     //       gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
     //       ),
-    //      domain, coords);
+    //      domain, grid);
 
 #ifdef USE_PAPI
 int event_set = PAPI_NULL;
@@ -270,7 +274,7 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
                 ),
                 gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
             ),
-            domain, coords
+            domain, grid
         );
 
     horizontal_diffusion->ready();
@@ -288,7 +292,10 @@ if( PAPI_start(event_set) != PAPI_OK)
 #ifdef USE_PAPI_WRAP
     pw_start_collector(collector_execute);
 #endif
-    horizontal_diffusion->run();
+    for(uint_t t=0; t < t_steps; ++t){
+        flusher.flush();
+        horizontal_diffusion->run();
+    }
 
 #ifdef USE_PAPI
 double dummy=0.5;
@@ -301,9 +308,7 @@ PAPI_stop(event_set, values);
     pw_stop_collector(collector_execute);
 #endif
 
-    horizontal_diffusion->finalize();
-
-#ifdef CUDA_EXAMPLE
+#ifdef __CUDACC__
     repository.update_cpu();
 #endif
 
@@ -321,7 +326,12 @@ PAPI_stop(event_set, values);
     }
 
 #ifdef BENCHMARK
-        std::cout << horizontal_diffusion->print_meter() << std::endl;
+    for(uint_t t=1; t < t_steps; ++t){
+        flusher.flush();
+        horizontal_diffusion->run();
+    }
+    horizontal_diffusion->finalize();
+    std::cout << horizontal_diffusion->print_meter() << std::endl;
 #endif
 
 #ifdef USE_PAPI_WRAP
