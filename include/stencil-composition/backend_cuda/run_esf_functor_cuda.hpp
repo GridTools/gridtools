@@ -53,10 +53,6 @@ namespace gridtools {
 
             typedef typename EsfArguments::functor_t functor_t;
 
-            //synchronize threads if not independent esf
-            if(!boost::mpl::at<typename EsfArguments::async_esf_map_t, functor_t>::type::value)
-                __syncthreads();
-
             //instantiate the iterate domain remapper, that will map the calls to arguments to their actual
             // position in the iterate domain
             typedef typename get_iterate_domain_remapper<iterate_domain_t, typename EsfArguments::esf_args_map_t>::type
@@ -79,6 +75,9 @@ namespace gridtools {
                 iterate_domain_remapper_t
                 > (iterate_domain_remapper);
 
+            //synchronize threads if not independent esf
+            if(!boost::mpl::at<typename EsfArguments::async_esf_map_t, functor_t>::type::value)
+                __syncthreads();
         }
 
     private:

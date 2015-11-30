@@ -88,12 +88,11 @@ namespace gridtools {
 
             typedef typename sequence_of_is_independent_esf<typename mss_components_t::mss_descriptor_t>::type is_independent_sequence_t;
 
-
             /** generates the map of stating which esf has to be synchronized
 
                 this is what the following metafunction does:
 
-                - sets the last booleand of the vector to TRUE (never need to sync the last ESF)
+                - sets the last boolean of the vector to TRUE (never need to sync the last ESF)
                 - loops over the inner linearized ESFs starting from 0, excluding the last one
                 - if the next ESF is not independent, then this one needs to be synced, otherwise
                 it is not synced
