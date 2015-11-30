@@ -28,6 +28,7 @@
 
 #include "common/generic_metafunctions/static_if.hpp"
 #include "common/generic_metafunctions/is_variadic_pack_of.hpp"
+#include "common/generic_metafunctions/sort_struct.hpp"
 #include "domain_type_impl.hpp"
 #include "../storage/metadata_set.hpp"
 #include "stencil-composition/arg_metafunctions.hpp"
@@ -42,29 +43,6 @@ namespace gridtools {
     //fwd declaration
     template<typename T>
     struct is_arg;
-
-
-    struct sort_struct{
-        template<typename T1, typename T2>
-        struct apply ;
-
-        template<typename T1, typename T2, typename T3, typename T4>
-        struct apply <arg_storage_pair<T1, T2>, arg_storage_pair<T3, T4> > : public
-        boost::mpl::bool_< (T1::index_type::value < T3::index_type::value) >
-        {};
-
-        template<ushort_t I1, typename T1, ushort_t I2, typename T2>
-        struct apply <arg<I1, T1>, arg<I2, T2> > : public
-        boost::mpl::bool_< (I1 < I2) >
-        {};
-
-        template<typename T, T T1, T T2>
-        struct apply <boost::mpl::integral_c<T, T1>, boost::mpl::integral_c<T, T2> > : public
-        boost::mpl::bool_<  (T1 < T2)
-            >
-        {};
-    };
-
 
     /**
        @brief This struct contains the global list of placeholders to the storages

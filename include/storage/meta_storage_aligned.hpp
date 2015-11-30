@@ -155,7 +155,7 @@ namespace gridtools {
             // non variadic non constexpr constructor
             GT_FUNCTION
             meta_storage_aligned(  uint_t const& d1, uint_t const& d2, uint_t const& d3 ) :
-                super(align<s_alignment_boundary, typename super::layout>::template do_align<0>::apply(d1+\Pad1)
+                super(align<s_alignment_boundary, typename super::layout>::template do_align<0>::apply(d1+Pad1)
                       , align<s_alignment_boundary, typename super::layout>::template do_align<1>::apply(d2+Pad2)
                       , align<s_alignment_boundary, typename super::layout>::template do_align<2>::apply(d3+Pad3))
             {
