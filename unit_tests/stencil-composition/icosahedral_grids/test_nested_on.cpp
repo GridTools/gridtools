@@ -16,35 +16,44 @@ namespace nested_test{
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
     struct nested_stencil {
-        typedef inout_accessor<0, icosahedral_topology_t::cells> out_cells;
-        typedef in_accessor<1, icosahedral_topology_t::cells, radius<2>> in_cells;
-        typedef in_accessor<2, icosahedral_topology_t::edges, radius<1>> in_edges;
-        typedef in_accessor<3, icosahedral_topology_t::cells, radius<1> > ipos;
-        typedef in_accessor<4, icosahedral_topology_t::cells, radius<1> > cpos;
-        typedef in_accessor<5, icosahedral_topology_t::cells, radius<1> > jpos;
-        typedef in_accessor<6, icosahedral_topology_t::cells, radius<1> > kpos;
-        typedef inout_accessor<7, icosahedral_topology_t::edges> out_edges;
+        typedef in_accessor<0, icosahedral_topology_t::cells, radius<2>> in_cells;
+        typedef in_accessor<1, icosahedral_topology_t::edges, radius<1>> in_edges;
+        typedef in_accessor<2, icosahedral_topology_t::cells, radius<1> > ipos;
+        typedef in_accessor<3, icosahedral_topology_t::cells, radius<1> > cpos;
+        typedef in_accessor<4, icosahedral_topology_t::cells, radius<1> > jpos;
+        typedef in_accessor<5, icosahedral_topology_t::cells, radius<1> > kpos;
+        typedef inout_accessor<6, icosahedral_topology_t::edges> out_edges;
 
-        typedef boost::mpl::vector<out_cells, in_cells, in_edges, ipos, cpos, jpos, kpos, out_edges> arg_list;
+        typedef boost::mpl::vector<in_cells, in_edges, ipos, cpos, jpos, kpos, out_edges> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
             auto ff = [](const double _in, const double _res) -> double
                 {
+                std::cout << "INNER FF " << _in << " " << _res << " " << _in+_res+1 << std::endl;
+
                     return _in+_res+1;
                 };
             auto gg = [](const double _in, const double _res) -> double
                 {
+                std::cout << "MAP ON EDGES " << _in << " " << _res << " " << _in+_res+2 << std::endl;
+
                     return _in+_res+2;
                 };
             auto reduction = [](const double _in, const double _res) -> double
                 {
+                std::cout << "RED ON EDGES " << _in << " " << _res << " " << _in+_res+3 << std::endl;
                     return _in+_res+3;
                 };
 
-//            auto x = eval(on_edges(reduction, 0.0, map(gg, in_edges(), on_cells(ff, 0.0, map(identity<double>(), in_cells())))));
-//            auto y = eval(on_edges(reduction, 0.0, map(gg, in_edges(), on_cells(ff, 0.0, in_cells()))));
+            std::cout << "FOR i,c,j,k " << eval(ipos()) << " " << eval(jpos()) << " " <<
+                         eval(cpos()) << " " << eval(kpos()) << std::endl;
+
+//            auto x = eval(on_edges(reduction, 0.0,
+//                map(gg, in_edges(), on_cells(ff, 0.0, map(identity<double>(), in_cells())))));
+            auto y = eval(on_edges(reduction, 0.0,
+                map(gg, in_edges(), on_cells(ff, 0.0, in_cells()))));
             //eval(out()) = eval(reduce_on_edges(reduction, 0.0, edges0::reduce_on_cells(gg, in()), edges1()));
         }
     };
@@ -76,8 +85,7 @@ TEST(test_stencil_nested_on, run) {
     cell_storage_type j_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("j");
     cell_storage_type c_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("c");
     cell_storage_type k_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("k");
-    cell_storage_type out_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("out");
-    cell_storage_type ref_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("ref");
+    edge_storage_type ref_edges = icosahedral_grid.make_storage<icosahedral_topology_t::edges, double>("ref");
 
     for(int i=0; i < d1; ++i)
     {
@@ -89,6 +97,9 @@ TEST(test_stencil_nested_on, run) {
                 {
                     in_cells(i,c,j,k) = in_cells.meta_data().index(array<uint_t,4>
                         {(uint_t)i,(uint_t)c,(uint_t)j,(uint_t)k});
+                    in_edges(i,c,j,k) = in_edges.meta_data().index(array<uint_t,4>
+                        {(uint_t)i,(uint_t)c,(uint_t)j,(uint_t)k});
+
                     i_cells(i,c,j,k) = i;
                     c_cells(i,c,j,k) = c;
                     j_cells(i,c,j,k) = j;
@@ -97,24 +108,22 @@ TEST(test_stencil_nested_on, run) {
             }
         }
     }
-    out_cells.initialize(0.0);
-    ref_cells.initialize(0.0);
+    ref_edges.initialize(0.0);
 
-    typedef arg<0, cell_storage_type> p_out_cells;
-    typedef arg<1, cell_storage_type> p_in_cells;
-    typedef arg<2, edge_storage_type> p_in_edges;
-    typedef arg<3, cell_storage_type> p_i_cells;
-    typedef arg<4, cell_storage_type> p_c_cells;
-    typedef arg<5, cell_storage_type> p_j_cells;
-    typedef arg<6, cell_storage_type> p_k_cells;
-    typedef arg<7, edge_storage_type> p_out_edges;
+    typedef arg<0, cell_storage_type> p_in_cells;
+    typedef arg<1, edge_storage_type> p_in_edges;
+    typedef arg<2, cell_storage_type> p_i_cells;
+    typedef arg<3, cell_storage_type> p_c_cells;
+    typedef arg<4, cell_storage_type> p_j_cells;
+    typedef arg<5, cell_storage_type> p_k_cells;
+    typedef arg<6, edge_storage_type> p_out_edges;
 
     typedef boost::mpl::vector<
-        p_out_cells, p_in_cells, p_in_edges, p_i_cells, p_c_cells, p_j_cells, p_k_cells, p_out_edges
+        p_in_cells, p_in_edges, p_i_cells, p_c_cells, p_j_cells, p_k_cells, p_out_edges
     > accessor_list_t;
 
     gridtools::domain_type<accessor_list_t> domain(boost::fusion::make_vector
-        (&out_cells, &in_cells, &in_edges, &i_cells, &c_cells, &j_cells, &k_cells, &out_edges) );
+        (&in_cells, &in_edges, &i_cells, &c_cells, &j_cells, &k_cells, &out_edges) );
     array<uint_t,5> di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc -1, d1};
     array<uint_t,5> dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc -1, d2};
 
@@ -133,7 +142,7 @@ TEST(test_stencil_nested_on, run) {
                 (
                     execute<forward>(),
                     gridtools::make_esf<nested_stencil, icosahedral_topology_t, icosahedral_topology_t::cells>
-                        (p_out_cells(), p_in_cells(), p_in_edges(), p_i_cells(), p_c_cells(),
+                        (p_in_cells(), p_in_edges(), p_i_cells(), p_c_cells(),
                          p_j_cells(), p_k_cells(), p_out_edges() )
                 ),
                 domain, grid_
@@ -142,29 +151,51 @@ TEST(test_stencil_nested_on, run) {
     copy->steady();
     copy->run();
 
-//    unstructured_grid ugrid(d1, d2, d3);
-//    for(uint_t i=0; i < d1; ++i)
-//    {
-//        for(uint_t c=0; c < icosahedral_topology_t::cells::n_colors::value; ++c)
-//        {
-//            for(uint_t j=0; j < d2; ++j)
-//            {
-//                for(uint_t k=0; k < d3; ++k)
-//                {
+    unstructured_grid ugrid(d1, d2, d3);
+    for(uint_t i=0; i < d1; ++i)
+    {
+        for(uint_t c=0; c < icosahedral_topology_t::edges::n_colors::value; ++c)
+        {
+            for(uint_t j=0; j < d2; ++j)
+            {
+                for(uint_t k=0; k < d3; ++k)
+                {
+                    std::cout << "REFFOR i,c,j,k " << i_cells(i,c,j,k) << " " << c_cells(i,c,j,k) << " " <<
+                        j_cells(i,c,j,k) << " " << k_cells(i,c,j,k) << std::endl;
+
+//                    double acc=0.0;
 //                    auto neighbours = ugrid.neighbours_of<
-//                            icosahedral_topology_t::cells,
-//                            icosahedral_topology_t::cells>({i,c,j,k});
-//                    for(auto iter = neighbours.begin(); iter != neighbours.end(); ++iter)
+//                            icosahedral_topology_t::edges,
+//                            icosahedral_topology_t::edges>({i,c,j,k});
+//                    for(auto edge_iter = neighbours.begin(); edge_iter != neighbours.end(); ++edge_iter)
 //                    {
-//                        ref_cells(i,c,j,k) += in_cells(*iter);
+//                        auto innercell_neighbours = ugrid.neighbours_of<
+//                                icosahedral_topology_t::edges,
+//                                icosahedral_topology_t::cells>(*edge_iter);
+//                        for(auto cell_iter = innercell_neighbours.begin(); cell_iter != innercell_neighbours.end();
+//                            ++edge_iter)
+//                        {
+//                            std::cout << "REF INNER FF " << in_cells(*cell_iter) << " " << acc << " " <<
+//                                     acc +in_cells(*cell_iter) +1 << std::endl;
+
+//                            acc += in_cells(*cell_iter)+1;
+//                        }
+//                        std::cout << "MAP ON EDGES " << acc << " " << in_edges(*edge_iter) << " " <<
+//                               (acc+in_edges(*edge_iter)+2) << std::endl;
+
 //                    }
-//                }
-//            }
-//        }
-//    }
 
-//    verifier ver(1e-10);
+//                    std::cout << "RED ON EDGES " << (acc+in_edges(i,c,j,k)+2) << " " <<
+//                              ref_edges(i,c,j,k) << " " << (acc+in_edges(i,c,j,k)+2)+3 << std::endl;
 
-//    array<array<uint_t, 2>, 4> halos = {{ {halo_nc, halo_nc},{0,0},{halo_mc, halo_mc},{halo_k, halo_k} }};
-//    EXPECT_TRUE(ver.verify(ref_cells, out_cells, halos));
+//                    ref_edges(i,c,j,k) += (acc+in_edges(i,c,j,k)+2)+3;
+                }
+            }
+        }
+    }
+
+    verifier ver(1e-10);
+
+    array<array<uint_t, 2>, 4> halos = {{ {halo_nc, halo_nc},{0,0},{halo_mc, halo_mc},{halo_k, halo_k} }};
+    EXPECT_TRUE(ver.verify(ref_edges, out_edges, halos));
 }

@@ -120,6 +120,7 @@ TEST(test_stencil_on_cells, run) {
     copy->ready();
     copy->steady();
     copy->run();
+    copy->finalize();
 
     unstructured_grid ugrid(d1, d2, d3);
     for(uint_t i=0; i < d1; ++i)

@@ -59,6 +59,7 @@ namespace gridtools {
             m_cell_to_edges(m_celldims),
             m_cell_to_vertexes(m_celldims),
             m_edge_to_edges(m_edgedims),
+            m_edge_to_cells(m_edgedims),
             m_vertex_to_vertexes(m_vertexdims)
         {
             construct_grid();
@@ -102,6 +103,14 @@ namespace gridtools {
                         m_edge_to_edges.insert_neighbour({i,2,j,k}, {i+1,1,j,k});
                         m_edge_to_edges.insert_neighbour({i,2,j,k}, {i,0,j+1,k});
 
+                        m_edge_to_cells.insert_neighbour({i,0,j,k},{i,1,j-1,k});
+                        m_edge_to_cells.insert_neighbour({i,0,j,k},{i,0,j,k});
+
+                        m_edge_to_cells.insert_neighbour({i,1,j,k},{i,0,j,k});
+                        m_edge_to_cells.insert_neighbour({i,1,j,k},{i-1,1,j,k});
+
+                        m_edge_to_cells.insert_neighbour({i,2,j,k},{i,0,j,k});
+                        m_edge_to_cells.insert_neighbour({i,2,j,k},{i,1,j,k});
                     }
                 }
             }
@@ -134,6 +143,7 @@ namespace gridtools {
         neighbour_list m_cell_to_edges;
         neighbour_list m_cell_to_vertexes;
         neighbour_list m_edge_to_edges;
+        neighbour_list m_edge_to_cells;
         neighbour_list m_vertex_to_vertexes;
     };
 

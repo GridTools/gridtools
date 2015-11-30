@@ -56,13 +56,13 @@ TEST(test_stencil_on_edges, run) {
     const uint_t d2=6+halo_mc*2;
     icosahedral_topology_t icosahedral_grid( d1, d2, d3 );
 
-    edge_storage_type in_edges = icosahedral_grid.make_storage<icosahedral_topology_t::edges, double>("in");
-    edge_storage_type i_edges = icosahedral_grid.make_storage<icosahedral_topology_t::edges, double>("i");
-    edge_storage_type j_edges = icosahedral_grid.make_storage<icosahedral_topology_t::edges, double>("j");
-    edge_storage_type c_edges = icosahedral_grid.make_storage<icosahedral_topology_t::edges, double>("c");
-    edge_storage_type k_edges = icosahedral_grid.make_storage<icosahedral_topology_t::edges, double>("k");
-    edge_storage_type out_edges = icosahedral_grid.make_storage<icosahedral_topology_t::edges, double>("out");
-    edge_storage_type ref_edges = icosahedral_grid.make_storage<icosahedral_topology_t::edges, double>("ref");
+    auto in_edges = icosahedral_grid.make_storage<icosahedral_topology_t::edges, double>("in");
+    auto i_edges = icosahedral_grid.make_storage<icosahedral_topology_t::edges, double>("i");
+    auto j_edges = icosahedral_grid.make_storage<icosahedral_topology_t::edges, double>("j");
+    auto c_edges = icosahedral_grid.make_storage<icosahedral_topology_t::edges, double>("c");
+    auto k_edges = icosahedral_grid.make_storage<icosahedral_topology_t::edges, double>("k");
+    auto out_edges = icosahedral_grid.make_storage<icosahedral_topology_t::edges, double>("out");
+    auto ref_edges = icosahedral_grid.make_storage<icosahedral_topology_t::edges, double>("ref");
 
     for(int i=0; i < d1; ++i)
     {
@@ -120,6 +120,7 @@ TEST(test_stencil_on_edges, run) {
     copy->ready();
     copy->steady();
     copy->run();
+    copy->finalize();
 
     unstructured_grid ugrid(d1, d2, d3);
     for(uint_t i=0; i < d1; ++i)

@@ -56,13 +56,13 @@ TEST(test_stencil_on_vertexes, run) {
     const uint_t d2=6+halo_mc*2;
     icosahedral_topology_t icosahedral_grid( d1, d2, d3 );
 
-    vertex_storage_type in_vertexes = icosahedral_grid.make_storage<icosahedral_topology_t::vertexes, double>("in");
-    vertex_storage_type i_vertexes = icosahedral_grid.make_storage<icosahedral_topology_t::vertexes, double>("i");
-    vertex_storage_type j_vertexes = icosahedral_grid.make_storage<icosahedral_topology_t::vertexes, double>("j");
-    vertex_storage_type c_vertexes = icosahedral_grid.make_storage<icosahedral_topology_t::vertexes, double>("c");
-    vertex_storage_type k_vertexes = icosahedral_grid.make_storage<icosahedral_topology_t::vertexes, double>("k");
-    vertex_storage_type out_vertexes = icosahedral_grid.make_storage<icosahedral_topology_t::vertexes, double>("out");
-    vertex_storage_type ref_vertexes = icosahedral_grid.make_storage<icosahedral_topology_t::vertexes, double>("ref");
+    auto in_vertexes = icosahedral_grid.make_storage<icosahedral_topology_t::vertexes, double>("in");
+    auto i_vertexes = icosahedral_grid.make_storage<icosahedral_topology_t::vertexes, double>("i");
+    auto j_vertexes = icosahedral_grid.make_storage<icosahedral_topology_t::vertexes, double>("j");
+    auto c_vertexes = icosahedral_grid.make_storage<icosahedral_topology_t::vertexes, double>("c");
+    auto k_vertexes = icosahedral_grid.make_storage<icosahedral_topology_t::vertexes, double>("k");
+    auto out_vertexes = icosahedral_grid.make_storage<icosahedral_topology_t::vertexes, double>("out");
+    auto ref_vertexes = icosahedral_grid.make_storage<icosahedral_topology_t::vertexes, double>("ref");
 
     for(int i=0; i < d1; ++i)
     {
@@ -120,6 +120,7 @@ TEST(test_stencil_on_vertexes, run) {
     copy->ready();
     copy->steady();
     copy->run();
+    copy->finalize();
 
     unstructured_grid ugrid(d1, d2, d3);
     for(uint_t i=0; i < d1; ++i)
