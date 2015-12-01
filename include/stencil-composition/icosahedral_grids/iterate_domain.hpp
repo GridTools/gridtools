@@ -519,7 +519,7 @@ public:
         double result = onneighbors.value();
 
         for (int i = 0; i<neighbors.size(); ++i) {
-//            result = onneighbors.reduction()( _evaluate(onneighbors.map(), neighbors[i]), result );
+            result = onneighbors.reduction()( _evaluate(onneighbors.map(), neighbors[i]), result);
         }
 
         return result;
@@ -621,10 +621,10 @@ public:
         return *(real_storage_pointer+offset);
     }
 
-    template <typename Accessor, typename IndexArray>
     //TODO return the right value, instead of double
-    double _evaluate(Accessor, IndexArray const& position) const {
-        using accessor_t = Accessor;
+    template <uint_t ID, enumtype::intend Intend, typename LocationType, typename Radius, typename IndexArray >
+    double _evaluate(accessor<ID, Intend, LocationType, Radius>, IndexArray const& position) const {
+        using accessor_t = accessor<ID, Intend, LocationType, Radius>;
         using location_type_t = typename accessor_t::location_type;
         int offset = m_grid_topology.ll_offset(position, location_type_t());
 
@@ -633,16 +633,35 @@ public:
     }
 
     template <typename MapF, typename LT, typename Arg0, typename IndexArray>
-    double _evaluate(map_function<MapF, LT, Arg0> map, IndexArray const& position) const {
+    double _evaluate(map_function<MapF, LT, Arg0> const& map, IndexArray const& position) const {
         int offset = m_grid_topology.ll_offset(position, map.location());
         return map.function()(_evaluate(map.template argument<0>(), position));
     }
 
     template <typename MapF, typename LT, typename Arg0, typename Arg1, typename IndexArray>
-    double _evaluate(map_function<MapF, LT, Arg0, Arg1> map, IndexArray const& position) const {
+    double _evaluate(map_function<MapF, LT, Arg0, Arg1> const& map, IndexArray const& position) const {
         int offset = m_grid_topology.ll_offset(position, map.location());
         return map.function()(_evaluate(map.template argument<0>(), position)
                               , _evaluate(map.template argument<1>(), position));
+    }
+    template <typename ValueType
+              , typename LocationTypeT
+              , typename Reduction
+              , typename Map
+              , typename IndexArray>
+    double _evaluate(on_neighbors_impl<ValueType, LocationTypeT, Reduction, Map > onn, IndexArray const& position) const {
+        using tt = typename grid_topology_t::edges;
+        const auto neighbors = grid_topology_t::neighbors_indices_3(position
+                                                          , tt()
+                                                          , onn.location() );
+        std::cout<< "POSITION " << position<< "  " << neighbors << " " << onn.location() << std::endl;
+        double result = onn.value();
+
+        for (int i = 0; i<neighbors.size(); ++i) {
+            result = onn.reduction()(_evaluate(onn.map(), neighbors[i]), result);
+        }
+
+        return result;
     }
 
 };

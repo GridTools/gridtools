@@ -64,11 +64,11 @@ TEST(test_stencil_on_cells, run) {
     auto out_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("out");
     auto ref_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("ref");
 
-    for(int i=0; i < d1; ++i)
+    for(int i=1; i < d1-1; ++i)
     {
         for(int c=0; c < icosahedral_topology_t::cells::n_colors::value; ++c)
         {
-            for(int j=0; j < d2; ++j)
+            for(int j=1; j < d2-1; ++j)
             {
                 for(int k=0; k < d3; ++k)
                 {
@@ -123,11 +123,11 @@ TEST(test_stencil_on_cells, run) {
     copy->finalize();
 
     unstructured_grid ugrid(d1, d2, d3);
-    for(uint_t i=0; i < d1; ++i)
+    for(uint_t i=halo_nc; i < d1-halo_nc; ++i)
     {
         for(uint_t c=0; c < icosahedral_topology_t::cells::n_colors::value; ++c)
         {
-            for(uint_t j=0; j < d2; ++j)
+            for(uint_t j=halo_mc; j < d2-halo_mc; ++j)
             {
                 for(uint_t k=0; k < d3; ++k)
                 {

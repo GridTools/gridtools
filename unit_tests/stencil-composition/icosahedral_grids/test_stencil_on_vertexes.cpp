@@ -123,11 +123,11 @@ TEST(test_stencil_on_vertexes, run) {
     copy->finalize();
 
     unstructured_grid ugrid(d1, d2, d3);
-    for(uint_t i=0; i < d1; ++i)
+    for(uint_t i=halo_nc; i < d1-halo_nc; ++i)
     {
         for(uint_t c=0; c < icosahedral_topology_t::vertexes::n_colors::value; ++c)
         {
-            for(uint_t j=0; j < d2; ++j)
+            for(uint_t j=halo_mc; j < d2-halo_mc+1; ++j)
             {
                 for(uint_t k=0; k < d3; ++k)
                 {
