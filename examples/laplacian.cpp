@@ -243,10 +243,10 @@ TEST(Laplace, test) {
 #ifdef CXX11_ENABLED
     verifier verif(1e-13);
     array<array<uint_t, 2>, 3> halos{{ {halo_size,halo_size}, {halo_size,halo_size}, {halo_size,halo_size} }};
-    bool result = verif.verify(coords, out, ref, halos);
+    bool result = verif.verify(grid, out, ref, halos);
 #else
     verifier verif(1e-13, halo_size);
-    bool result = verif.verify(coords, out, ref);
+    bool result = verif.verify(grid, out, ref);
 #endif
 
 #ifdef BENCHMARK
