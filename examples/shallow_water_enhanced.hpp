@@ -566,7 +566,7 @@ namespace shallow_water{
         {
             reference.iterate();
         }
-        retval=check_result.verify_parallel(meta_, sol, reference.solution, halos);
+        retval=check_result.verify_parallel(grid, meta_, sol, reference.solution, halos);
 
         myfile<<"############## REFERENCE ################"<<std::endl;
         reference.solution.print(myfile);
