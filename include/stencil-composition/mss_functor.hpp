@@ -87,6 +87,8 @@ namespace gridtools {
             // compute the struct with all the type arguments for the run functor
 
             typedef typename sequence_of_is_independent_esf<typename mss_components_t::mss_descriptor_t>::type is_independent_sequence_t;
+            // sequence of esf descriptors contained in this mss
+            typedef typename mss_components_t::functors_list_t functors_list_t;
 
             /** generates the map of stating which esf has to be synchronized
 
@@ -122,22 +124,17 @@ namespace gridtools {
                 , boost::mpl::push_back<boost::mpl::_1, boost::mpl::at<is_independent_sequence_t,  boost::mpl::_2 > >
                 >::type next_thing;
 
-            typedef typename boost::mpl::transform<
-                esf_sequence_t
-                , extract_esf_function<boost::mpl::_1>
-                >::type extract_functor_t;
-
-
             typedef typename boost::mpl::fold<
                 boost::mpl::range_c<int, 0, boost::mpl::size<next_thing>::value >
                 , boost::mpl::map< >
                 , boost::mpl::if_<condition_for_async<boost::mpl::_1, boost::mpl::_2, is_independent_sequence_t, next_thing>
-                                  , boost::mpl::insert< boost::mpl::_1, boost::mpl::pair< boost::mpl::at<extract_functor_t, boost::mpl::_2 >, boost::mpl::true_ > >
-                                  , boost::mpl::insert< boost::mpl::_1, boost::mpl::pair< boost::mpl::at<extract_functor_t, boost::mpl::_2 >, boost::mpl::false_ > >
+                                  , boost::mpl::insert< boost::mpl::_1, boost::mpl::pair< boost::mpl::at<functors_list_t, boost::mpl::_2 >, boost::mpl::true_ > >
+                                  , boost::mpl::insert< boost::mpl::_1, boost::mpl::pair< boost::mpl::at<functors_list_t, boost::mpl::_2 >, boost::mpl::false_ > >
                                   >
                 >::type async_esf_map_tmp_t;
 
-            typedef typename boost::mpl::insert< async_esf_map_tmp_t,  boost::mpl::pair<typename boost::mpl::at_c<extract_functor_t, boost::mpl::size<next_thing>::value>::type, boost::mpl::true_ > >::type async_esf_map_t;
+            //insert true for the last esf
+            typedef typename boost::mpl::insert< async_esf_map_tmp_t,  boost::mpl::pair<typename boost::mpl::at_c<functors_list_t, boost::mpl::size<next_thing>::value>::type, boost::mpl::true_ > >::type async_esf_map_t;
 
             typedef run_functor_arguments<
                 BackendId,
