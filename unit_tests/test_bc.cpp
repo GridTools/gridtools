@@ -31,7 +31,7 @@ struct boundary : clonable_to_gpu<boundary> {
 };
 
 struct functor{
-    typedef accessor<0, enumtype::inout, range<0,0,0,0> > sol;
+    typedef accessor<0, enumtype::inout, extent<0,0,0,0> > sol;
     typedef generic_accessor<1> bd;
     typedef boost::mpl::vector<sol> arg_list;
 
@@ -61,7 +61,7 @@ TEST(test_bc, boundary_conditions) {
 
     halo_descriptor di=halo_descriptor(0,1,1,9,10);
     halo_descriptor dj=halo_descriptor(0,1,1,1,2);
-    coordinates<axis> coords_bc(di, dj);
+    grid<axis> coords_bc(di, dj);
     coords_bc.value_list[0] = 0;
     coords_bc.value_list[1] = 1;
 
