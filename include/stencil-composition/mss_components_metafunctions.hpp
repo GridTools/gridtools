@@ -143,7 +143,7 @@ struct mss_functor_do_methods
      *  compute the functor do methods - This is the most computationally intensive part
      */
     typedef typename boost::mpl::transform<
-        typename MssComponents::functors_list_t,
+        typename MssComponents::functors_seq_t,
         compute_functor_do_methods<boost::mpl::_, typename Grid::axis_type>
     >::type type; // Vector of vectors - each element is a vector of pairs of actual axis-indices
 };
