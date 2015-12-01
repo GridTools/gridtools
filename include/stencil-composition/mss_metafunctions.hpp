@@ -19,7 +19,7 @@ namespace gridtools {
 
 template<
     typename functors_list,
-    typename Coords
+    typename Grid
 >
 struct mss_intervals
 {
@@ -28,7 +28,7 @@ struct mss_intervals
      */
     typedef typename boost::mpl::transform<
         functors_list,
-        compute_functor_do_methods<boost::mpl::_, typename Coords::axis_type>
+        compute_functor_do_methods<boost::mpl::_, typename Grid::axis_type>
     >::type functor_do_methods; // Vector of vectors - each element is a vector of pairs of actual axis-indices
 
     /**
@@ -36,7 +36,7 @@ struct mss_intervals
      */
     typedef typename compute_loop_intervals<
         functor_do_methods,
-        typename Coords::axis_type
+        typename Grid::axis_type
     >::type loop_intervals_t; // vector of pairs of indices - sorted and contiguous
 
     /**

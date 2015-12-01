@@ -2,7 +2,7 @@
 #include <boost/utility/enable_if.hpp>
 #include "../run_esf_functor.hpp"
 #include "../block_size.hpp"
-#include "../iterate_domain_evaluator.hpp"
+#include "../iterate_domain_remapper.hpp"
 
 namespace gridtools {
     /*
@@ -53,32 +53,30 @@ namespace gridtools {
 
             typedef typename EsfArguments::functor_t functor_t;
 
-            //synchronize threads if not independent esf
-            if(!boost::mpl::at<typename EsfArguments::async_esf_map_t, functor_t>::type::value)
-            __syncthreads();
-
-            //instantiate the iterate domain evaluator, that will map the calls to arguments to their actual
             // position in the iterate domain
-            typedef typename get_iterate_domain_evaluator<iterate_domain_t, typename EsfArguments::esf_args_map_t>::type
-                iterate_domain_evaluator_t;
+            typedef typename get_iterate_domain_remapper<iterate_domain_t, typename EsfArguments::esf_args_map_t>::type
+                    iterate_domain_remapper_t;
 
-            iterate_domain_evaluator_t iterate_domain_evaluator(m_iterate_domain);
+            iterate_domain_remapper_t iterate_domain_remapper(m_iterate_domain);
 
-            //a grid point at the core of the block can be out of range (for last blocks) if domain of computations
+            //a grid point at the core of the block can be out of extent (for last blocks) if domain of computations
             // is not a multiple of the block size
             if(m_iterate_domain.is_thread_in_domain())
             {
                 //call the user functor at the core of the block
-                functor_t::Do(iterate_domain_evaluator, IntervalType());
+                functor_t::Do(iterate_domain_remapper, IntervalType());
             }
 
             this->template execute_extra_work<
                 multiple_grid_points_per_warp_t,
                 IntervalType,
                 EsfArguments,
-                iterate_domain_evaluator_t
-                > (iterate_domain_evaluator);
+                iterate_domain_remapper_t
+                > (iterate_domain_remapper);
 
+            //synchronize threads if not independent esf
+            if(!boost::mpl::at<typename EsfArguments::async_esf_map_t, functor_t>::type::value)
+                __syncthreads();
         }
 
     private:
@@ -92,7 +90,7 @@ namespace gridtools {
          *         of this function is empty)
          * @tparam IntervalType type of the interval
          * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
-         * @tparam IterateDomainEvaluator an iterate domain evaluator that wraps an iterate domain
+         * @tparam IterateDomainEvaluator an iterate domain remapper that wraps an iterate domain
          */
         template<
             typename MultipleGridPointsPerWarp,
@@ -101,7 +99,7 @@ namespace gridtools {
             typename IterateDomainEvaluator
         >
         __device__
-        void execute_extra_work(const IterateDomainEvaluator& iterate_domain_evaluator,
+        void execute_extra_work(const IterateDomainEvaluator& iterate_domain_remapper,
                 typename boost::disable_if<MultipleGridPointsPerWarp, int >::type=0) const
         {}
 
@@ -114,7 +112,7 @@ namespace gridtools {
          *         of this function is empty)
          * @tparam IntervalType type of the interval
          * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
-         * @tparam IterateDomainEvaluator an iterate domain evaluator that wraps an iterate domain
+         * @tparam IterateDomainEvaluator an iterate domain remapper that wraps an iterate domain
          */
         template<
             typename MultipleGridPointsPerWarp,
@@ -123,67 +121,67 @@ namespace gridtools {
             typename IterateDomainEvaluator
         >
         __device__
-        void execute_extra_work(const IterateDomainEvaluator& iterate_domain_evaluator,
+        void execute_extra_work(const IterateDomainEvaluator& iterate_domain_remapper,
                 typename boost::enable_if<MultipleGridPointsPerWarp, int >::type=0) const
         {
             typedef typename EsfArguments::functor_t functor_t;
-            typedef typename EsfArguments::range_t range_t;
+            typedef typename EsfArguments::extent_t extent_t;
 
             //if the warps need to compute more grid points than the core of the block
             if(multiple_grid_points_per_warp_t::value) {
                 //JMinus  halo
-                if(range_t::jminus::value != 0 && ((int)threadIdx.y < -range_t::jminus::value))
+                if(extent_t::jminus::value != 0 && ((int)threadIdx.y < -extent_t::jminus::value))
                 {
                     if(m_iterate_domain.is_thread_in_domain_x())
                     {
-                        (m_iterate_domain).increment<1>(range_t::jminus::value);
-                        functor_t::Do(iterate_domain_evaluator, IntervalType());
-                        (m_iterate_domain).increment<1>(-range_t::jminus::value);
+                        (m_iterate_domain).increment<1>(extent_t::jminus::value);
+                        functor_t::Do(iterate_domain_remapper, IntervalType());
+                        (m_iterate_domain).increment<1>(-extent_t::jminus::value);
                     }
                 }
                 //JPlus halo
-                else if(range_t::jplus::value != 0 && ((int)threadIdx.y < -range_t::jminus::value + range_t::jplus::value))
+                else if(extent_t::jplus::value != 0 && ((int)threadIdx.y < -extent_t::jminus::value + extent_t::jplus::value))
                 {
                     if(m_iterate_domain.is_thread_in_domain_x())
                     {
-                        const int joffset = range_t::jminus::value + (int)m_iterate_domain.block_size_j();
+                        const int joffset = extent_t::jminus::value + (int)m_iterate_domain.block_size_j();
 
                         (m_iterate_domain).increment<1>(joffset);
-                        functor_t::Do(iterate_domain_evaluator, IntervalType());
+                        functor_t::Do(iterate_domain_remapper, IntervalType());
                         (m_iterate_domain).increment<1>(-joffset);
                     }
                 }
                 //IMinus halo
-                else if(range_t::iminus::value != 0 && ((int)threadIdx.y < -range_t::jminus::value + range_t::jplus::value + 1))
+                else if(extent_t::iminus::value != 0 && ((int)threadIdx.y < -extent_t::jminus::value + extent_t::jplus::value + 1))
                 {
                     const int ioffset = -m_iterate_domain.thread_position_x() -
-                        (m_iterate_domain.thread_position_x() % (-range_t::iminus::value))-1;
+                        (m_iterate_domain.thread_position_x() % (-extent_t::iminus::value))-1;
                     const int joffset = -m_iterate_domain.thread_position_y() +
-                        (m_iterate_domain.thread_position_x() / (-range_t::iminus::value) );
+                        (m_iterate_domain.thread_position_x() / (-extent_t::iminus::value) );
 
                     if(m_iterate_domain.is_thread_in_domain_y(joffset))
                     {
                         (m_iterate_domain).increment < 0 > (ioffset);
                         (m_iterate_domain).increment < 1 > (joffset);
-                        functor_t::Do(iterate_domain_evaluator, IntervalType());
+                        functor_t::Do(iterate_domain_remapper, IntervalType());
                         (m_iterate_domain).increment < 0 > (-ioffset);
                         (m_iterate_domain).increment < 1 > (-joffset);
                     }
                 }
                 //IPlus halo
-                else if(range_t::iplus::value != 0 && ((int)threadIdx.y < -range_t::jminus::value + range_t::jplus::value +
-                    (range_t::iminus::value != 0 ? 1 : 0) + 1))
+                else if(extent_t::iplus::value != 0 && ((int)threadIdx.y < -extent_t::jminus::value + extent_t::jplus::value +
+                    (extent_t::iminus::value != 0 ? 1 : 0) + 1))
                 {
                     const int ioffset = -m_iterate_domain.thread_position_x() +
-                        m_iterate_domain.block_size_i() + ((int)threadIdx.x % (range_t::iplus::value));
+                        m_iterate_domain.block_size_i() + ((int)threadIdx.x % (extent_t::iplus::value));
                     const int joffset = -m_iterate_domain.thread_position_y() +
-                        ((int)threadIdx.x / (range_t::iplus::value) );
+                        ((int)threadIdx.x / (extent_t::iplus::value) );
 
                     if(m_iterate_domain.is_thread_in_domain_y(joffset))
                     {
                         (m_iterate_domain).increment<0>(ioffset);
                         (m_iterate_domain).increment<1>(joffset);
-                        functor_t::Do(iterate_domain_evaluator, IntervalType());
+                        functor_t::Do(iterate_domain_remapper, IntervalType());
                         (m_iterate_domain).increment<0>(-ioffset);
                         (m_iterate_domain).increment<1>(-joffset);
                     }
@@ -192,13 +190,13 @@ namespace gridtools {
                 else
                 {
                     const int joffset = (int)blockDim.y +
-                        range_t::jminus::value - range_t::jplus::value -
-                        (range_t::iminus::value != 0 ? 1 : 0) - (range_t::iplus::value != 0 ? 1 : 0);
+                        extent_t::jminus::value - extent_t::jplus::value -
+                        (extent_t::iminus::value != 0 ? 1 : 0) - (extent_t::iplus::value != 0 ? 1 : 0);
 
                     if(m_iterate_domain.is_thread_in_domain(0, joffset))
                     {
                         (m_iterate_domain).increment<1>(joffset);
-                        functor_t::Do(iterate_domain_evaluator, IntervalType());
+                        functor_t::Do(iterate_domain_remapper, IntervalType());
                         (m_iterate_domain).increment<1>(-joffset);
                     }
                 }

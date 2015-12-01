@@ -17,7 +17,7 @@ typedef uint_t x_all;
 
 struct lap_function {
     typedef accessor<0, enumtype::inout> out;
-    typedef accessor<1, enumtype::in, range<-1, 1, -1, 1> > in;
+    typedef accessor<1, enumtype::in, extent<-1, 1, -1, 1> > in;
     typedef boost::mpl::vector<out, in> arg_list;
 
     template <typename Domain>
@@ -30,8 +30,8 @@ struct lap_function {
 
 struct flx_function {
     typedef accessor<0, enumtype::inout> out;
-    typedef accessor<1, enumtype::in, range<0, 1, 0, 0> > in;
-    typedef accessor<2, enumtype::in, range<0, 1, 0, 0> > lap;
+    typedef accessor<1, enumtype::in, extent<0, 1, 0, 0> > in;
+    typedef accessor<2, enumtype::in, extent<0, 1, 0, 0> > lap;
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
     template <typename Domain>
@@ -45,8 +45,8 @@ struct flx_function {
 
 struct fly_function {
     typedef accessor<0, enumtype::inout> out;
-    typedef accessor<1, enumtype::in, range<0, 0, 0, 1> > in;
-    typedef accessor<2, enumtype::in,  range<0, 0, 0, 1> > lap;
+    typedef accessor<1, enumtype::in, extent<0, 0, 0, 1> > in;
+    typedef accessor<2, enumtype::in,  extent<0, 0, 0, 1> > lap;
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
     template <typename Domain>
@@ -61,8 +61,8 @@ struct fly_function {
 struct out_function {
     typedef accessor<0> out;
     typedef accessor<1> in;
-    typedef accessor<2, enumtype::in, range<-1, 0, 0, 0> > flx;
-    typedef accessor<3, enumtype::in, range<0, 0, -1, 0> > fly;
+    typedef accessor<2, enumtype::in, extent<-1, 0, 0, 0> > flx;
+    typedef accessor<3, enumtype::in, extent<0, 0, -1, 0> > fly;
     typedef accessor<4> coeff;
 
     typedef boost::mpl::vector<out,in,flx,fly,coeff> arg_list;
@@ -127,8 +127,8 @@ struct print_ {
     {}
 
     template <uint_t I, uint_t J, uint_t K, uint_t L>
-    void operator()(range<I,J,K,L> const&) const {
-        std::cout << prefix << range<I,J,K,L>() << std::endl;
+    void operator()(extent<I,J,K,L> const&) const {
+        std::cout << prefix << extent<I,J,K,L>() << std::endl;
     }
 
     template <typename MplVector>
@@ -164,21 +164,21 @@ void print_mss(MSS)
     typedef typename boost::mpl::fold<
         esf_sequence_t,
         boost::mpl::vector<>,
-        recgrid::traverse_ranges<boost::mpl::_1, boost::mpl::_2>
-    >::type ranges_list;
-    boost::mpl::for_each<ranges_list>(print_());
+        strgrid::traverse_extents<boost::mpl::_1, boost::mpl::_2>
+    >::type extents_list;
+    boost::mpl::for_each<extents_list>(print_());
 
     std::cout << std::endl;
 
-    typedef typename recgrid::prefix_on_ranges<ranges_list>::type prefix_ranges;
+    typedef typename strgrid::prefix_on_extents<extents_list>::type prefix_extents;
 
     // typedef typename boost::mpl::fold<
-    //     ranges_list,
+    //     extents_list,
     //     boost::mpl::vector<>,
-    //     prefix_on_ranges<boost::mpl::_1,boost::mpl::_2>
-    //     >::type ranges_list;
+    //     prefix_on_extents<boost::mpl::_1,boost::mpl::_2>
+    //     >::type extents_list;
 
-    boost::mpl::for_each<prefix_ranges>(print_());
+    boost::mpl::for_each<prefix_extents>(print_());
 
     std::cout << std::endl;
 }

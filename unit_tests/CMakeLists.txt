@@ -7,7 +7,7 @@ gridtools_add_test(test.FunctorDoMethods ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/bui
 add_executable(LoopIntervals LoopIntervals.cpp)
 gridtools_add_test(test.LoopIntervals ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/LoopIntervals")
 
-if ( ENABLE_CXX11 AND RECTANGULAR_GRIDS)
+if ( ENABLE_CXX11 AND STRUCTURED_GRIDS)
     add_executable(test-independent test-independent.cpp)
     set_target_properties(test-independent PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
     target_link_libraries(test-independent ${exe_LIBS})
@@ -21,9 +21,9 @@ set(COMMON_TESTS
     test_bc.cpp
 )
 
-if(RECTANGULAR_GRIDS)
+if(STRUCTURED_GRIDS)
     set(COMMON_TESTS ${COMMON_TESTS} tests.cpp)
-endif(RECTANGULAR_GRIDS)
+endif(STRUCTURED_GRIDS)
 
 add_executable(tests ${COMMON_TESTS})
 
@@ -89,13 +89,13 @@ if (CUDA_FOUND)
    target_link_libraries(test_cuda_storage ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
 endif()
 
-if(RECTANGULAR_GRIDS)
+if(STRUCTURED_GRIDS)
     add_executable(CopyStencil external_ptr_test/CopyStencil.cpp)
     set_target_properties(CopyStencil PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
     target_link_libraries(CopyStencil ${exe_LIBS})
 
     add_subdirectory( communication )
-endif(RECTANGULAR_GRIDS)
+endif(STRUCTURED_GRIDS)
 add_subdirectory( common )
 add_subdirectory( stencil-composition )
 add_subdirectory( storage )

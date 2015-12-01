@@ -29,8 +29,8 @@
 #include "backend_traits_fwd.hpp"
 #include "mss_components_metafunctions.hpp"
 #include "../storage/storage_functors.hpp"
-#include "stencil-composition/compute_ranges_metafunctions.hpp"
-#include "stencil-composition/coordinates.hpp"
+#include "stencil-composition/compute_extents_metafunctions.hpp"
+#include "stencil-composition/grid.hpp"
 #include "grid_traits.hpp"
 #include "stencil-composition/wrap_type.hpp"
 
@@ -157,12 +157,12 @@ namespace gridtools {
 
 
     namespace _debug {
-        template <typename Coords>
+        template <typename Grid>
         struct show_pair {
-            Coords coords;
+            Grid m_grid;
 
-            explicit show_pair(Coords const& coords)
-                : coords(coords)
+            explicit show_pair(Grid const& grid)
+                : m_grid(grid)
             {}
 
             template <typename T>
@@ -171,8 +171,8 @@ namespace gridtools {
                 typedef typename index_to_level<typename T::second>::type to;
                 std::cout << "{ (" << from() << " "
                           << to() << ") "
-                          << "[" << coords.template value_at<from>() << ", "
-                          << coords.template value_at<to>() << "] } ";
+                          << "[" << m_grid.template value_at<from>() << ", "
+                          << m_grid.template value_at<to>() << "] } ";
             }
         };
 
@@ -188,8 +188,8 @@ namespace gridtools {
             {}
 
             template <int_t I, int_t J, int_t K, int_t L, int_t M, int_t N>
-            void operator()(range<I,J,K,L,M,N> const&) const {
-                std::cout << prefix << range<I,J,K,L,M,N>() << std::endl;
+            void operator()(extent<I,J,K,L,M,N> const&) const {
+                std::cout << prefix << extent<I,J,K,L,M,N>() << std::endl;
             }
 
             template <typename MplVector>
@@ -327,7 +327,7 @@ namespace gridtools {
         /**
          * Takes the domain list of storage pointer types and transform
          * the no_storage_type_yet with the types provided by the
-         * backend with the interface that takes the range sizes. This
+         * backend with the interface that takes the extent sizes. This
          * must be done before getting the local_domain
          */
         typedef typename Backend::template obtain_temporary_storage_types<
@@ -362,31 +362,31 @@ namespace gridtools {
     template <typename Backend,
               typename MssDescriptorArray,
               typename DomainType,
-              typename Coords,
+              typename Grid,
               bool IsStateful>
     struct intermediate : public computation {
         GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssDescriptorArray, is_mss_descriptor>::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_backend<Backend>::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_domain_type<DomainType>::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
 
         typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
 
-        typedef typename select_mss_compute_range_sizes::type mss_compute_range_sizes_t;
+        typedef typename select_mss_compute_extent_sizes::type mss_compute_extent_sizes_t;
 
         typedef typename boost::mpl::fold<
             typename MssDescriptorArray::elements,
             boost::mpl::vector0<>,
             boost::mpl::push_back<
                 boost::mpl::_1,
-                mss_compute_range_sizes_t::apply<boost::mpl::_2>
+                mss_compute_extent_sizes_t::apply<boost::mpl::_2>
             >
-        >::type range_sizes_t;
+        >::type extent_sizes_t;
 
         typedef typename build_mss_components_array<
             backend_id<Backend>::value,
             MssDescriptorArray,
-            range_sizes_t
+            extent_sizes_t
         >::type mss_components_array_t;
 
         typedef typename create_actual_arg_list<
@@ -446,7 +446,7 @@ namespace gridtools {
         mss_local_domain_list_t m_mss_local_domain_list;
 
         DomainType & m_domain;
-        const Coords& m_coords;
+        const Grid& m_grid;
 
         actual_arg_list_type m_actual_arg_list;
         actual_metadata_list_type m_actual_metadata_list;
@@ -456,8 +456,8 @@ namespace gridtools {
 
     public:
 
-        intermediate(DomainType & domain, Coords const & coords)
-            : m_domain(domain), m_coords(coords), m_meter("NoName")
+        intermediate(DomainType & domain, Grid const & grid)
+            : m_domain(domain), m_grid(grid), m_meter("NoName")
         {
             // Each map key is a pair of indices in the axis, value is the corresponding method interval.
 
@@ -465,31 +465,31 @@ namespace gridtools {
 #ifndef __CUDACC__
 //TODO redo
 //            std::cout << "Actual loop bounds ";
-//            gridtools::for_each<loop_intervals_t>(_debug::show_pair<Coords>(coords));
+//            gridtools::for_each<loop_intervals_t>(_debug::show_pair<Grid>(grid));
 //            std::cout << std::endl;
 #endif
 #endif
 
-            // Extract the ranges from functors to determine iteration spaces bounds
+            // Extract the extents from functors to determine iteration spaces bounds
 
-            // For each functor collect the minimum enclosing box of the ranges for the arguments
+            // For each functor collect the minimum enclosing box of the extents for the arguments
 
 #ifndef NDEBUG
 //TODO redo
-//            std::cout << "ranges list" << std::endl;
-//            gridtools::for_each<ranges_list>(_debug::print__());
+//            std::cout << "extents list" << std::endl;
+//            gridtools::for_each<extents_list>(_debug::print__());
 #endif
 
 #ifndef NDEBUG
 //TODO redo
-//            std::cout << "range sizes" << std::endl;
-//            gridtools::for_each<structured_range_sizes>(_debug::print__());
+//            std::cout << "extent sizes" << std::endl;
+//            gridtools::for_each<structured_extent_sizes>(_debug::print__());
 //            std::cout << "end1" <<std::endl;
 #endif
 
 #ifndef NDEBUG
 //TODO redo
-//            gridtools::for_each<range_sizes>(_debug::print__());
+//            gridtools::for_each<extent_sizes>(_debug::print__());
 //            std::cout << "end2" <<std::endl;
 #endif
 
@@ -524,10 +524,10 @@ namespace gridtools {
         /**
            @brief This method allocates on the heap the temporary variables.
            Calls heap_allocated_temps::prepare_temporaries(...).
-           It allocates the memory for the list of ranges defined in the temporary placeholders.
+           It allocates the memory for the list of extents defined in the temporary placeholders.
         */
         virtual void ready () {
-            Backend::template prepare_temporaries( m_actual_arg_list, m_actual_metadata_list , m_coords);
+            Backend::template prepare_temporaries( m_actual_arg_list, m_actual_metadata_list , m_grid);
             is_storage_ready=true;
         }
         /**
@@ -593,7 +593,7 @@ namespace gridtools {
                     (boost::mpl::size<typename mss_components_array_t::elements>::value == boost::mpl::size<mss_local_domains_t>::value),
                     "Internal Error");
             m_meter.start();
-            Backend::template run<mss_components_array_t>( m_coords, m_mss_local_domain_list );
+            Backend::template run<mss_components_array_t>( m_grid, m_mss_local_domain_list );
             m_meter.pause();
         }
 

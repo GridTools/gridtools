@@ -120,9 +120,9 @@ namespace shallow_water{
     struct flux_x        : public functor_traits {
 
         //! [accessor]
-        typedef accessor<1, enumtype::inout, range<0, -1, 0, 0>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
+        typedef accessor<1, enumtype::inout, extent<0, -1, 0, 0>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
         //! [accessor]
-        typedef accessor<0, enumtype::inout, range<0, 0, 0, 0>, 5> tmpx; /** (output) is the flux computed on the left edge of the cell */
+        typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 5> tmpx; /** (output) is the flux computed on the left edge of the cell */
         using arg_list=boost::mpl::vector<tmpx, sol> ;
 
 
@@ -188,8 +188,8 @@ namespace shallow_water{
     // [flux_y]
     struct flux_y        : public functor_traits {
 
-        typedef accessor<0,enumtype::inout,range<0, 0, 0, 0>, 5> tmpy; /** (output) is the flux at the bottom edge of the cell */
-        typedef accessor<1,enumtype::inout,range<0, 0, 0, -1>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
+        typedef accessor<0,enumtype::inout,extent<0, 0, 0, 0>, 5> tmpy; /** (output) is the flux at the bottom edge of the cell */
+        typedef accessor<1,enumtype::inout,extent<0, 0, 0, -1>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
         using arg_list=boost::mpl::vector<tmpy, sol> ;
 
         template <typename Evaluation>
@@ -243,9 +243,9 @@ namespace shallow_water{
     // [final_step]
     struct final_step        : public functor_traits {
 
-        typedef accessor<0, enumtype::inout,range<0,1,0,1>, 5> tmpx; /** (input) is the flux at the left edge of the cell */
-        typedef accessor<1, enumtype::inout,range<0,1,0,1>, 5> tmpy; /** (input) is the flux at the bottom edge of the cell */
-        typedef accessor<2,enumtype::inout,range<0, 0, 0, 0>, 5> sol; /** (output) is the solution at the cell center, computed at the previous time level */
+        typedef accessor<0, enumtype::inout,extent<0,1,0,1>, 5> tmpx; /** (input) is the flux at the left edge of the cell */
+        typedef accessor<1, enumtype::inout,extent<0,1,0,1>, 5> tmpy; /** (input) is the flux at the bottom edge of the cell */
+        typedef accessor<2,enumtype::inout,extent<0, 0, 0, 0>, 5> sol; /** (output) is the solution at the cell center, computed at the previous time level */
         typedef boost::mpl::vector<tmpx, tmpy, sol> arg_list;
         static uint_t current_time;
 
@@ -477,11 +477,11 @@ namespace shallow_water{
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
-//! [coordinates]
-        coordinates<axis, partitioner_t> coords(part, meta_);
-        coords.value_list[0] = 0;
-        coords.value_list[1] = d3-1;
-//! [coordinates]
+//! [grid]
+        grid<axis, partitioner_t> grid(part, meta_);
+        grid.value_list[0] = 0;
+        grid.value_list[1] = d3-1;
+//! [grid]
 
 //! [computation]
         auto shallow_water_stencil =
@@ -495,7 +495,7 @@ namespace shallow_water{
                         make_esf<flux_y>(p_tmpy(), p_sol() )),
                     make_esf<final_step>(p_tmpx(), p_tmpy(), p_sol() )
                     ),
-                domain, coords
+                domain, grid
                 );
 //! [computation]
 

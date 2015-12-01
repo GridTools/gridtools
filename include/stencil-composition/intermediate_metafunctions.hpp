@@ -9,9 +9,9 @@ namespace gridtools {
     template <typename Backend,
               typename MssArray,
               typename DomainType,
-              typename Coords,
+              typename Grid,
               bool IsStateful>
-    struct is_intermediate<intermediate<Backend, MssArray, DomainType, Coords, IsStateful> > :
+    struct is_intermediate<intermediate<Backend, MssArray, DomainType, Grid, IsStateful> > :
         boost::mpl::true_{};
 
     template<typename T> struct intermediate_backend;
@@ -19,9 +19,9 @@ namespace gridtools {
     template <typename Backend,
               typename MssArray,
               typename DomainType,
-              typename Coords,
+              typename Grid,
               bool IsStateful>
-    struct intermediate_backend<intermediate<Backend, MssArray, DomainType, Coords, IsStateful> >
+    struct intermediate_backend<intermediate<Backend, MssArray, DomainType, Grid, IsStateful> >
     {
         typedef Backend type;
     };
@@ -31,9 +31,9 @@ namespace gridtools {
     template <typename Backend,
               typename MssArray,
               typename DomainType,
-              typename Coords,
+              typename Grid,
               bool IsStateful>
-    struct intermediate_domain_type<intermediate<Backend, MssArray, DomainType, Coords, IsStateful> >
+    struct intermediate_domain_type<intermediate<Backend, MssArray, DomainType, Grid, IsStateful> >
     {
         typedef DomainType type;
     };
@@ -43,9 +43,9 @@ namespace gridtools {
     template <typename Backend,
               typename MssArray,
               typename DomainType,
-              typename Coords,
+              typename Grid,
               bool IsStateful>
-    struct intermediate_mss_array<intermediate<Backend, MssArray, DomainType, Coords, IsStateful> >
+    struct intermediate_mss_array<intermediate<Backend, MssArray, DomainType, Grid, IsStateful> >
     {
         typedef MssArray type;
     };
@@ -58,10 +58,10 @@ namespace gridtools {
     };
 
     template<typename Intermediate>
-    struct intermediate_range_sizes
+    struct intermediate_extent_sizes
     {
         GRIDTOOLS_STATIC_ASSERT((is_intermediate<Intermediate>::value), "Internal Error: wrong type");
-        typedef typename Intermediate::range_sizes_t type;
+        typedef typename Intermediate::extent_sizes_t type;
     };
 
     template<typename T> struct intermediate_layout_type;
@@ -71,9 +71,9 @@ namespace gridtools {
     template <typename Backend,
               typename MssArray,
               typename DomainType,
-              typename Coords,
+              typename Grid,
               bool IsStateful>
-    struct intermediate_is_stateful<intermediate<Backend, MssArray, DomainType, Coords, IsStateful> >
+    struct intermediate_is_stateful<intermediate<Backend, MssArray, DomainType, Grid, IsStateful> >
     {
         typedef boost::mpl::bool_<IsStateful> type;
     };

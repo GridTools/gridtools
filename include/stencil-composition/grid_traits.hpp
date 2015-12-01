@@ -1,17 +1,17 @@
 #pragma once
 
-#include "stencil-composition/compute_ranges_metafunctions.hpp"
+#include "stencil-composition/compute_extents_metafunctions.hpp"
 
 namespace gridtools {
-#ifdef RECTANGULAR_GRIDS
-    struct select_mss_compute_range_sizes
+#ifdef STRUCTURED_GRIDS
+    struct select_mss_compute_extent_sizes
     {
-        typedef boost::mpl::quote1<recgrid::mss_compute_range_sizes> type;
+        typedef boost::mpl::quote1<strgrid::mss_compute_extent_sizes> type;
     };
 #else
-    struct select_mss_compute_range_sizes
+    struct select_mss_compute_extent_sizes
     {
-        typedef boost::mpl::quote1<othergrid::mss_compute_range_sizes> type;
+        typedef boost::mpl::quote1<icgrid::mss_compute_extent_sizes> type;
     };
 #endif
 

@@ -14,7 +14,7 @@ typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_i
 typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1, 1> > axis;
 
 struct functor1 {
-    typedef accessor<0, enumtype::in, range<-1,1,-1,1> > in;
+    typedef accessor<0, enumtype::in, extent<-1,1,-1,1> > in;
     typedef accessor<1, enumtype::inout> out;
     typedef boost::mpl::vector<in,out> arg_list;
 
@@ -26,7 +26,7 @@ struct functor1 {
 };
 
 struct functor2 {
-    typedef accessor<0, enumtype::in, range<-1,1,-1,1> > in;
+    typedef accessor<0, enumtype::in, extent<-1,1,-1,1> > in;
     typedef accessor<1, enumtype::inout> out;
     typedef boost::mpl::vector<in,out> arg_list;
 
@@ -66,7 +66,7 @@ protected:
 
     array<uint_t, 5> m_di, m_dj;
 
-    gridtools::coordinates<axis> m_coords;
+    gridtools::grid<axis> m_grid;
     typename storage_type::meta_data_t m_meta;
     storage_type m_in, m_out;
 
@@ -79,13 +79,13 @@ protected:
         m_di(m_halo_size, m_halo_size, m_halo_size, m_d1-m_halo_size-1, m_d1),
         m_dj(m_halo_size, m_halo_size, m_halo_size, m_d2-m_halo_size-1, m_d2),
 #endif
-        m_coords(m_di, m_dj),
+        m_grid(m_di, m_dj),
         m_meta(m_d1, m_d2, m_d3),
         m_in(m_meta, -8.5, "in"),
         m_out(m_meta, 0.0, "out")
     {
-        m_coords.value_list[0] = 0;
-        m_coords.value_list[1] = m_d3-1;
+        m_grid.value_list[0] = 0;
+        m_grid.value_list[1] = m_d3-1;
     }
 
     virtual void SetUp()
@@ -122,7 +122,7 @@ TEST_F(cache_stencil, ij_cache)
                 make_esf<functor1>(p_in(), p_buff()), // esf_descriptor
                 make_esf<functor1>(p_buff(), p_out()) // esf_descriptor
             ),
-            domain, m_coords
+            domain, m_grid
         );
 
     pstencil->ready();
@@ -180,7 +180,7 @@ TEST_F(cache_stencil, ij_cache_offset)
                 make_esf<functor1>(p_in(), p_buff()), // esf_descriptor
                 make_esf<functor2>(p_buff(), p_out()) // esf_descriptor
             ),
-            domain, m_coords
+            domain, m_grid
         );
 
     pstencil->ready();

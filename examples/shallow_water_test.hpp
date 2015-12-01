@@ -22,7 +22,7 @@
 
 using gridtools::level;
 using gridtools::accessor;
-using gridtools::range;
+using gridtools::extent;
 using gridtools::arg;
 
 using gridtools::direction;
@@ -42,8 +42,8 @@ namespace shallow_water{
 
     struct functor_traits{
 //#if  !((defined(__GNUC__)) && (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 9))
-        using tmp=arg_extend<accessor<0, range<-1, 1, -1, 1> >, 2>::type ;
-        using sol=arg_extend<accessor<1, range<-1, 1, -1, 1> >, 2>::type ;
+        using tmp=arg_extend<accessor<0, extent<-1, 1, -1, 1> >, 2>::type ;
+        using sol=arg_extend<accessor<1, extent<-1, 1, -1, 1> >, 2>::type ;
         using arg_list=boost::mpl::vector<tmp, sol> ;
         using step=dimension<3> ;
         using comp=dimension<4>;
@@ -85,8 +85,8 @@ namespace shallow_water{
            The compilation runs fine without warnings with GCC >= 4.9 and Clang*/
 #if  (defined(__GNUC__)) && (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
         //shielding the base class aliases
-        typedef arg_extend<accessor<0, range<-1, 1, -1, 1> >, 2>::type tmp;
-        typedef arg_extend<accessor<1, range<-1, 1, -1, 1> >, 2>::type sol;
+        typedef arg_extend<accessor<0, extent<-1, 1, -1, 1> >, 2>::type tmp;
+        typedef arg_extend<accessor<1, extent<-1, 1, -1, 1> >, 2>::type sol;
         typedef boost::mpl::vector<tmp, sol> arg_list;
         typedef dimension<3> step;
         typedef dimension<4> comp;
@@ -141,8 +141,8 @@ namespace shallow_water{
 
     struct final_step        : public functor_traits {
 #if  (defined(__GNUC__)) && (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
-        typedef arg_extend<accessor<0, range<-1, 1, -1, 1> >, 2>::type tmp;
-        typedef arg_extend<accessor<1, range<-1, 1, -1, 1> >, 2>::type sol;
+        typedef arg_extend<accessor<0, extent<-1, 1, -1, 1> >, 2>::type tmp;
+        typedef arg_extend<accessor<1, extent<-1, 1, -1, 1> >, 2>::type sol;
         typedef boost::mpl::vector<tmp, sol> arg_list;
         typedef dimension<3> step;
         typedef dimension<4> comp;
@@ -310,13 +310,13 @@ namespace shallow_water{
             // Definition of the physical dimensions of the problem.
             // The constructor takes the horizontal plane dimensions,
             // while the vertical ones are set according the the axis property soon after
-            // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
+            // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
             uint_t di[5] = {2, 2, 2, d1-3, d1};
             uint_t dj[5] = {2, 2, 2, d2-3, d2};
 
-            gridtools::coordinates<axis> coords(di, dj);
-            coords.value_list[0] = 0;
-            coords.value_list[1] = d3-1;
+            gridtools::grid<axis> grid(di, dj);
+            grid.value_list[0] = 0;
+            grid.value_list[1] = d3-1;
 
             auto shallow_water_stencil =
                 gridtools::make_computation<gridtools::BACKEND, layout_t>
@@ -327,7 +327,7 @@ namespace shallow_water{
                         gridtools::make_esf<initial_step>(p_tmp(), p_sol() ) ,
                         gridtools::make_esf<final_step>(p_tmp(), p_sol() )
                         ),
-                    domain, coords
+                    domain, grid
                     );
 
             shallow_water_stencil->ready();
