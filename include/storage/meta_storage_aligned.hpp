@@ -128,9 +128,7 @@ namespace gridtools {
             uint_t index_( gt_integer_sequence<ushort_t, IdSequence...> t, UInt const& ... args_
                 ) const {
 
-                return super::index(align<s_alignment_boundary
-                                   , typename super::layout>::template
-                                   do_align<IdSequence>::apply(args_ + Pad) ...);
+                return super::index(args_ + Pad ...);
             }
 
            /**@brief just forwarding the index computation to the base class*/
