@@ -30,7 +30,7 @@ namespace gridtools {
 
        \tparam ID the integer unic ID of the field placeholder
 
-       \tparam Extend the extent of i/j indices spanned by the
+       \tparam Extent the extent of i/j indices spanned by the
                placeholder, in the form of <i_minus, i_plus, j_minus,
                j_plus>.  The values are relative to the current
                position. See e.g. horizontal_diffusion::out_function
@@ -43,9 +43,9 @@ namespace gridtools {
                field dimensions or space dimension will be decided at the
                moment of the storage instantiation (in the main function)
      */
-    template < uint_t ID, enumtype::intend Intend=enumtype::in, typename Extend=extent<0,0,0,0,0,0>, ushort_t Number=3>
-    struct accessor : public accessor_base<ID, Intend, Extend, Number> {
-        typedef accessor_base<ID, Intend, Extend, Number> super;
+    template < uint_t ID, enumtype::intend Intend=enumtype::in, typename Extent=extent<0,0,0,0,0,0>, ushort_t Number=3>
+    struct accessor : public accessor_base<ID, Intend, Extent, Number> {
+        typedef accessor_base<ID, Intend, Extent, Number> super;
         typedef typename super::index_type index_type;
 #ifdef CXX11_ENABLED
 
@@ -64,24 +64,24 @@ namespace gridtools {
 
         //move ctor
         GT_FUNCTION
-        constexpr explicit accessor(accessor<ID, Intend, Extend, Number>&& other) : super(std::move(other)) {}
+        constexpr explicit accessor(accessor<ID, Intend, Extent, Number>&& other) : super(std::move(other)) {}
 
         //copy ctor
         GT_FUNCTION
-        constexpr accessor(accessor<ID, Intend, Extend, Number> const& other) : super(other) {
+        constexpr accessor(accessor<ID, Intend, Extent, Number> const& other) : super(other) {
         }
 #endif
 #else
 
         //copy ctor
         GT_FUNCTION
-        constexpr explicit accessor(accessor<ID, Intend, Extend, Number> const& other) : super(other) {}
+        constexpr explicit accessor(accessor<ID, Intend, Extent, Number> const& other) : super(other) {}
 
         //copy ctor from an accessor with different ID
         template<ushort_t OtherID>
         GT_FUNCTION
-        constexpr explicit accessor(const accessor<OtherID, Intend, Extend, Number>& other) :
-            super(static_cast<accessor_base<OtherID, Intend, Extend, Number> >(other)) {}
+        constexpr explicit accessor(const accessor<OtherID, Intend, Extent, Number>& other) :
+            super(static_cast<accessor_base<OtherID, Intend, Extent, Number> >(other)) {}
 
         GT_FUNCTION
         constexpr explicit accessor(): super() {}
@@ -198,9 +198,9 @@ alias<arg_t, dimension<3> > field1(-3); //records the offset -3 as dynamic value
 
        NOTE: noone checks that you did not specify the same dimension twice. If that happens, the first occurrence of the dimension is chosen
     */
-    template <typename OffsetTuple, typename ... Known>
+    template <typename AccessorType, typename ... Known>
     struct alias{
-        GRIDTOOLS_STATIC_ASSERT(is_offset_tuple<OffsetTuple>::value,
+        GRIDTOOLS_STATIC_ASSERT(is_accessor<AccessorType>::value,
                                 "wrong type. If you want to generalize the alias to something more generic than an offset_tuple remove this assert.");
         GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension<Known>::value ...),
                                 "wrong type");
@@ -218,7 +218,7 @@ alias<arg_t, dimension<3> > field1(-3); //records the offset -3 as dynamic value
            For a usage example check the exaples folder
         */
         template<int ... Args>
-        using set=accessor_mixed< OffsetTuple, pair_<Known::direction,Args> ... >;
+        using set=accessor_mixed< AccessorType, pair_<Known::direction,Args> ... >;
 
         /**@brief constructor
        \param args are the offsets which are already known*/
@@ -233,16 +233,16 @@ alias<arg_t, dimension<3> > field1(-3); //records the offset -3 as dynamic value
 
             \param unknowns are the parameters which were not known beforehand. They might be instances of
             the dimension class. Together with the m_knowns offsets form the arguments to be
-            passed to the OffsetTuple functor (which is normally an instance of offset_tuple)
+            passed to the AccessorType functor (which is normally an instance of offset_tuple)
         */
         template<typename ... Unknowns>
         GT_FUNCTION
-        OffsetTuple/*&&*/ operator() ( Unknowns/*&&*/ ... unknowns  ) const
+        AccessorType/*&&*/ operator() ( Unknowns/*&&*/ ... unknowns  ) const
         {
 #ifdef PEDANTIC //the runtime arguments are not necessarily dimension<>()
             GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension<Unknowns>::value ...), "wrong type");
 #endif
-            return OffsetTuple(dimension<Known::direction> (
+            return AccessorType(dimension<Known::direction> (
                                    m_knowns[boost::mpl::find<dim_vector, Known>::type::pos::value])
                                ... , unknowns ...);
         }
@@ -254,11 +254,11 @@ alias<arg_t, dimension<3> > field1(-3); //records the offset -3 as dynamic value
 #endif
 
 #ifdef CXX11_ENABLED
-    template <uint_t ID, typename Extend=extent<0,0,0,0,0,0>, ushort_t Number=3>
-    using in_accessor = accessor<ID, enumtype::in, Extend, Number>;
+    template <uint_t ID, typename Extent=extent<0,0,0,0,0,0>, ushort_t Number=3>
+    using in_accessor = accessor<ID, enumtype::in, Extent, Number>;
 
-    template <uint_t ID, typename Extend=extent<0,0,0,0,0,0>, ushort_t Number=3>
-    using inout_accessor = accessor<ID, enumtype::inout, Extend, Number>;
+    template <uint_t ID, typename Extent=extent<0,0,0,0,0,0>, ushort_t Number=3>
+    using inout_accessor = accessor<ID, enumtype::inout, Extent, Number>;
 #endif
 
 } // namespace gridtools
