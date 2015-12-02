@@ -128,9 +128,9 @@ namespace gridtools {
         typedef typename ArgType::index_type index_type;
     private:
         static constexpr accessor_base<ArgType::index_type::value
-                                             , ArgType::intend_t::value
-                                             , typename ArgType::extent_type
-                                             , ArgType::n_dim> s_args_constexpr{
+                                       , ArgType::intend_t::value
+                                       , typename ArgType::extent_type
+                                       , ArgType::n_dim> s_args_constexpr{
             dimension<Pair::first>{Pair::second} ... };
 
         accessor_base<ArgType::index_type::value
@@ -157,7 +157,6 @@ namespace gridtools {
         get_constexpr(){
             GRIDTOOLS_STATIC_ASSERT(Idx<s_args_constexpr.n_dim, "the idx must be smaller than the arg dimension");
             GRIDTOOLS_STATIC_ASSERT(Idx>=0, "the idx must be larger than 0");
-
             GRIDTOOLS_STATIC_ASSERT(s_args_constexpr.template get<Idx>()>=0, "there is a negative offset. If you did this on purpose recompile with the PEDANTIC_DISABLED flag on.");
             return s_args_constexpr.template get<Idx>();
         }
