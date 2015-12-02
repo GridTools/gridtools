@@ -158,6 +158,12 @@ namespace gridtools {
                       , align<s_alignment_boundary, typename super::layout>::template do_align<2>::apply(d3+Pad3))
             {
             }
+
+            /**@brief straightforward interface*/
+            GT_FUNCTION
+            uint_t index(uint_t const& i, uint_t const& j, uint_t const&  k) const { return super::index(i+Pad1, j+Pad2, k+Pad3); }
+
+
 #endif
 
             //device copy constructor
@@ -183,6 +189,7 @@ namespace gridtools {
                 uint_t steps_padded_ = steps_+halo_t::template get<Coordinate>();
                 super::template initialize<Coordinate>(steps_padded_, block_, index_, strides_ );
             }
+
 
         };
 
