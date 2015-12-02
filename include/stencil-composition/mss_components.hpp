@@ -44,7 +44,14 @@ struct mss_components
     /*
       @brief attaching an integer index to each functor
 
-      This ensure that the types in the functors_list_t are unique
+      This ensures that the types in the functors_list_t are unique. 
+      It is necessary to have unique types in the functors_list_t, so that we can use the
+      functor types as keys in an MPL map. This is used in particular in the innermost loop, where 
+      we decide at compile-time wether the functors need synchronization or not, based on a map
+      connecting the functors to the "is independent" boolean (set to true if the functor does 
+      not have data dependency with the next one). Since we can have the exact same functor used multiple
+      times in an MSS both as dependent or independent, we cannot use the plain functor type as key for the
+      abovementioned map, and we need to attach a unique index to its type.
     */
     typedef typename boost::mpl::fold<
         boost::mpl::range_c<ushort_t, 0, boost::mpl::size<functors_seq_t>::value >
