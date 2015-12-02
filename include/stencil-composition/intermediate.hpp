@@ -137,7 +137,11 @@ namespace gridtools {
                         tmppairs,
                         has_index_<index>
                         >::type
-                    >::type::first type;
+                    >::type storage_found_t;
+
+                GRIDTOOLS_STATIC_ASSERT((boost::mpl::not_<boost::is_same<storage_found_t, boost::mpl::void_> >::type::value),
+                                        "you probably specified a placeholder in the placeholders list (a user defined mpl vector needed when constructing the domain_type) which is not used in the whole MSS");
+                typedef typename storage_found_t::first type;
             };
 
             template <typename Storage, typename tmppairs, typename index>
@@ -389,6 +393,7 @@ namespace gridtools {
             extent_sizes_t
         >::type mss_components_array_t;
 
+
         typedef typename create_actual_arg_list<
                 Backend,
                 DomainType,
@@ -541,9 +546,6 @@ namespace gridtools {
             if(is_storage_ready)
             {
                 //filter the non temporary meta storage pointers among the actual ones
-                // typedef boost::fusion::filter_view<typename boost::fusion::result_of::as_set<actual_metadata_set_t>::type,
-                //                                    boost::mpl::not_<is_ptr_to_tmp<boost::mpl::_1> > > t_meta_view;
-                //t_meta_view
                 typename boost::fusion::result_of::as_set<actual_metadata_set_t>::type  meta_view(m_actual_metadata_list.sequence_view());
 
                 setup_computation<Backend::s_backend_id>::apply( m_actual_arg_list, meta_view, m_domain );
