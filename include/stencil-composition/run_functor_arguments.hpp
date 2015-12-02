@@ -180,7 +180,7 @@ namespace gridtools {
         typedef typename boost::mpl::at<typename RunFunctorArguments::extent_sizes_t, Index>::type extent_t;
         typedef typename boost::mpl::at<typename RunFunctorArguments::functors_map_t, Index>::type interval_map_t;
 
-        //global (to the mss) is_independent_sequence map (not local to the esf)
+        //global (to the mss) sequence_of_is_independent_t map (not local to the esf)
         typedef typename RunFunctorArguments::async_esf_map_t async_esf_map_t;
 
         typedef typename index_to_level<
