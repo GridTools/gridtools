@@ -29,29 +29,6 @@ constexpr int_t initialize(X x, Rest ... rest )
 {
     return X::direction==N? x.value : initialize<N>(rest...);
 }
-
-template<ushort_t ID>
-struct initialize_all{
-
-    template <typename ... X>
-    GT_FUNCTION
-    static void apply(int_t* offset, X ... x)
-    {
-        offset[ID]=initialize<ID>(x...);
-        initialize_all<ID-1>::apply(offset, x...);
-    }
-};
-
-template<>
-struct initialize_all<0>{
-
-    template <typename ... X>
-    GT_FUNCTION
-    static void apply(int_t* offset, X ... x)
-    {
-        offset[0]=initialize<0>(x...);
-    }
-};
 #else
 
 /**@brief method for initializing the offsets in the placeholder

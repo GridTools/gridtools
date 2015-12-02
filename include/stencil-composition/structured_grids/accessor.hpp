@@ -181,11 +181,29 @@ namespace gridtools {
                                   , ArgType::n_dim> accessor_mixed<ArgType, Pair...>::s_args_constexpr;
 
 
-/**this struct allows the specification of SOME of the arguments before instantiating the offset_tuple.
-   It is a language keyword.
-*/
-    template <typename Callable, typename ... Known>
+    /**
+       @brief this struct allows the specification of SOME of the arguments before instantiating the offset_tuple.
+       It is a language keyword. Usage examples can be found in the unit test \ref accessor_tests.hpp.
+       Possible interfaces:
+       - runtime alias
+\verbatim
+alias<arg_t, dimension<3> > field1(-3); //records the offset -3 as dynamic value
+\endverbatim
+       field1(args...) is then equivalent to arg_t(dimension<3>(-3), args...)
+       - compiletime alias
+\verbatim
+        using field1 = alias<arg_t, dimension<7> >::set<-3>;
+\endverbatim
+       field1(args...) is then equivalent to arg_t(dimension<7>(-3), args...)
+
+       NOTE: noone checks that you did not specify the same dimension twice. If that happens, the first occurrence of the dimension is chosen
+    */
+    template <typename OffsetTuple, typename ... Known>
     struct alias{
+        GRIDTOOLS_STATIC_ASSERT(is_offset_tuple<OffsetTuple>::value,
+                                "wrong type. If you want to generalize the alias to something more generic than an offset_tuple remove this assert.");
+        GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension<Known>::value ...),
+                                "wrong type");
 
         template <int Arg1, int Arg2> struct pair_
         {
@@ -200,7 +218,7 @@ namespace gridtools {
            For a usage example check the exaples folder
         */
         template<int ... Args>
-        using set=accessor_mixed< Callable, pair_<Known::direction,Args> ... >;
+        using set=accessor_mixed< OffsetTuple, pair_<Known::direction,Args> ... >;
 
         /**@brief constructor
        \param args are the offsets which are already known*/
@@ -212,15 +230,22 @@ namespace gridtools {
         typedef boost::mpl::vector<Known...> dim_vector;
 
         /** @brief operator calls the constructor of the offset_tuple
+
             \param unknowns are the parameters which were not known beforehand. They might be instances of
             the dimension class. Together with the m_knowns offsets form the arguments to be
-            passed to the Callable functor (which is normally an instance of offset_tuple)
+            passed to the OffsetTuple functor (which is normally an instance of offset_tuple)
         */
-    template<typename ... Unknowns>
-    GT_FUNCTION
-    Callable/*&&*/ operator() ( Unknowns/*&&*/ ... unknowns  ) const
-    {
-        return Callable(dimension<Known::direction> (m_knowns[boost::mpl::find<dim_vector, Known>::type::pos::value]) ... , unknowns ...);}
+        template<typename ... Unknowns>
+        GT_FUNCTION
+        OffsetTuple/*&&*/ operator() ( Unknowns/*&&*/ ... unknowns  ) const
+        {
+#ifdef PEDANTIC //the runtime arguments are not necessarily dimension<>()
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension<Unknowns>::value ...), "wrong type");
+#endif
+            return OffsetTuple(dimension<Known::direction> (
+                                   m_knowns[boost::mpl::find<dim_vector, Known>::type::pos::value])
+                               ... , unknowns ...);
+        }
 
     private:
         //store the list of offsets which are already known on an array
