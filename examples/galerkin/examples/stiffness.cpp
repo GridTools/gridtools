@@ -6,88 +6,30 @@
 #include "../numerics/assembly.hpp"
 //! [assembly]
 #include "test_assembly.hpp"
-
-// [integration]
-/** The following functor performs the assembly of an elemental laplacian.
-*/
-template <typename FE, typename Cubature>
-struct stiffness {
-    using fe=FE;
-    using cub=Cubature;
-
-    //![accessors]
-    using jac_det =accessor<0, range<0,0,0,0> , 4> const;
-    using jac_inv =accessor<1, range<0,0,0,0> , 6> const;
-    using weights =accessor<2, range<0,0,0,0> , 3> const;
-    using stiff   =accessor<3, range<0,0,0,0> , 5> ;
-    using dphi    =accessor<4, range<0,0,0,0> , 3> const;
-    using dpsi    =accessor<5, range<0,0,0,0> , 3> const;
-    using arg_list= boost::mpl::vector<jac_det, jac_inv, weights, stiff, dphi,dpsi> ;
-    //![accessors]
-
-    //![Do_stiffness]
-    template <typename Evaluation>
-    GT_FUNCTION
-    static void Do(Evaluation const & eval, x_interval) {
-
-        //quadrature points dimension
-        dimension<4>::Index qp;
-        //dimension 'i' in the stiffness matrix
-        dimension<5>::Index dimx;
-        //dimension 'j' in the stiffness matrix
-        dimension<6>::Index dimy;
-
-        //loop on the basis functions
-        for(short_t P_i=0; P_i<fe::basisCardinality; ++P_i) // current dof
-        {
-            //loop on the test functions
-            for(short_t Q_i=0; Q_i<fe::basisCardinality; ++Q_i)
-            {
-                //loop on the cub points
-                for(short_t q=0; q<cub::numCubPoints(); ++q){
-                    //inner product of the gradients
-                    double gradients_inner_product=0.;
-                    for(short_t icoor=0; icoor< fe::spaceDim; ++icoor)
-                    {
-                        gradients_inner_product +=
-                            eval((jac_inv(qp+q, dimx+0, dimy+icoor)*!dphi(P_i,q,(uint_t)0)+
-                                  jac_inv(qp+q, dimx+1, dimy+icoor)*!dphi(P_i,q,(uint_t)1)+
-                                  jac_inv(qp+q, dimx+2, dimy+icoor)*!dphi(P_i,q,(uint_t)2))
-                                 *
-                                 (jac_inv(qp+q, dimx+0, dimy+icoor)*!dphi(Q_i,q,(uint_t)0)+
-                                  jac_inv(qp+q, dimx+1, dimy+icoor)*!dphi(Q_i,q,(uint_t)1)+
-                                  jac_inv(qp+q, dimx+2, dimy+icoor)*!dphi(Q_i,q,(uint_t)2)));
-                    }
-                    //summing up contributions (times the measure and quad weight)
-                    eval(stiff(0,0,0,P_i,Q_i)) += gradients_inner_product * eval(jac_det(qp+q)*!weights(q,0,0));
-                }
-            }
-        }
-    }
-    //![Do_stiffness]
-};
-//[integration]
+#include "../functors/stiffness.hpp"
 
 
 // [boundary integration]
-
-
 int main(){
-    //![definitions]
+
+	//![definitions]
     //dimensions of the problem (in number of elements per dimension)
     auto d1=8;
     auto d2=8;
     auto d3=1;
+    const auto num_dofs = 1;
     //![definitions]
-    using namespace enumtype;
+
+    //![definitions]
     //defining the assembler, based on the Intrepid definitions for the numerics
-    using matrix_storage_info_t=storage_info< layout_tt<3,4> , __COUNTER__>;
+	using matrix_storage_info_t=storage_info< layout_tt<3,4> , __COUNTER__>;
     using matrix_type=storage_t< matrix_storage_info_t >;
     using fe=reference_element<1, Lagrange, Hexa>;
     using geo_map=reference_element<1, Lagrange, Hexa>;
-    using cub=cubature<fe::order, fe::shape>;
+    using cub=cubature<fe::order+1, fe::shape>;
     using geo_t = intrepid::geometry<geo_map, cub>;
     using discr_t = intrepid::discretization<fe, cub>;
+    //![definitions]
 
     //![instantiation]
     geo_t geo_;
@@ -102,12 +44,11 @@ int main(){
     //![as_instantiation]
     //constructing the integration tools
     as assembler( geo_, d1, d2, d3);
-    as_base assembler_base(d1,d2,d3);
+    as_base assembler_base(d1,d2,d3,num_dofs);
     //![as_instantiation]
 
     using domain_tuple_t = domain_type_tuple< as, as_base>;
     domain_tuple_t domain_tuple_ (assembler, assembler_base);
-
 
     //![grid]
     //constructing a structured cartesian grid
@@ -119,9 +60,10 @@ int main(){
                     assembler_base.grid()( i,  j,  k,  point,  0)= (i + geo_.grid()(point, 0));
                     assembler_base.grid()( i,  j,  k,  point,  1)= (j + geo_.grid()(point, 1));
                     assembler_base.grid()( i,  j,  k,  point,  2)= (k + geo_.grid()(point, 2));
-                    // std::cout<<"grid point("<<m_grid( i,  j,  k,  point,  0) << ", "<< m_grid( i,  j,  k,  point,  1)<<", "<<m_grid( i,  j,  k,  point,  2)<<")"<<std::endl;
+                    assembler_base.grid_map()(i,j,k,point)=0;//Global DOF // TODO: assign correct values
                 }
     //![grid]
+
 
     //![instantiation_stiffness]
     //defining the stiffness matrix: d1xd2xd3 elements
@@ -153,8 +95,8 @@ int main(){
 
     // , m_domain(boost::fusion::make_vector(&m_grid, &m_jac, &m_fe_backend.cub_weights(), &m_jac_det, &m_jac_inv, &m_fe_backend.local_gradient(), &m_fe_bac
                                                                                                    // , &m_stiffness, &m_assembled_stiffness
-    auto coords=coordinates<axis>({1, 0, 1, d1-1, d1},
-                            {1, 0, 1, d2-1, d2});
+    auto coords=coordinates<axis>({0, 0, 0, d1-1, d1},
+    							  {0, 0, 0, d2-1, d2});
     coords.value_list[0] = 0;
     coords.value_list[1] = d3-1;
 
@@ -166,7 +108,7 @@ int main(){
             make_esf<functors::update_jac<geo_t> >( dt::p_grid_points(), p_dphi(), dt::p_jac())
             , make_esf<functors::det<geo_t> >(dt::p_jac(), dt::p_jac_det())
             , make_esf<functors::inv<geo_t> >(dt::p_jac(), dt::p_jac_det(), dt::p_jac_inv())
-            , make_esf<stiffness<fe, cub> >(dt::p_jac_det(), dt::p_jac_inv(), dt::p_weights(), p_stiffness(), p_dphi(), p_dphi())//stiffness
+            , make_esf<functors::stiffness<fe, cub> >(dt::p_jac_det(), dt::p_jac_inv(), dt::p_weights(), p_stiffness(), p_dphi(), p_dphi())//stiffness
             ), domain, coords);
 
     computation->ready();
