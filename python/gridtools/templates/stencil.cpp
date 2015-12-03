@@ -69,14 +69,14 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
     //
     // define the storage unit used by the backend
     //
-    typedef meta_storage<meta_storage_base<__COUNTER__, layout_t, false> > meta_data_t;
+    typedef meta_storage_aligned<meta_storage<meta_storage_base<__COUNTER__, layout_t, false> >, aligned<0>, halo<0,0,0> > meta_data_t;
     typedef storage< base_storage<typename BACKEND::backend_traits_t::pointer<float_type>::type, meta_data_t, 1> > storage_type;
 
     {% if temps %}
     //
     // define a special data type for the temporary, i.e., intermediate buffers
     //
-    typedef meta_storage<meta_storage_base<__COUNTER__, layout_t, true> > meta_data_tmp_t;
+    typedef meta_storage_aligned<meta_storage<meta_storage_base<__COUNTER__, layout_t, true> >, aligned<0>, halo<0,0,0> > meta_data_tmp_t;
     typedef storage< base_storage<typename BACKEND::backend_traits_t::pointer<float_type>::type, meta_data_tmp_t, 1> > tmp_storage_type;
     // typedef gridtools::BACKEND::temporary_storage_type<float_type,
     //                                                    meta_storage_tmp_t >::type tmp_storage_type;
