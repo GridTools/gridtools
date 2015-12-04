@@ -3,7 +3,6 @@
 namespace functors{
 
     typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_interval;
-    typedef gridtools::interval<gridtools::level<0,-2>, gridtools::level<1,1> > axis;
 
 // [integration]
     template <typename FE, typename Cubature>
@@ -13,11 +12,8 @@ namespace functors{
         using phi     =accessor<2, range<0,0,0,0> , 3> const;
         using psi     =accessor<3, range<0,0,0,0> , 3> const;
         using mass_t    =accessor<4, range<0,0,0,0> , 5> ;
-        using arg_list= boost::mpl::vector<jac_det, weights, mass_t, phi, psi> ;
+        using arg_list= boost::mpl::vector<jac_det, weights, phi, psi, mass_t> ;
         using quad=dimension<4>;
-
-        using fe=FE;
-        using cub=Cubature;
 
         template <typename Evaluation>
         GT_FUNCTION

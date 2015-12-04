@@ -9,22 +9,23 @@
 #include "../functors/stiffness.hpp"
 
 
+// [boundary integration]
 int main(){
 
 	//![definitions]
     //dimensions of the problem (in number of elements per dimension)
-    auto d1=8;
-    auto d2=8;
+    auto d1=1;
+    auto d2=2;
     auto d3=1;
-    const auto num_dofs = 1;
+    const auto num_dofs = 4;
     //![definitions]
 
     //![definitions]
     //defining the assembler, based on the Intrepid definitions for the numerics
 	using matrix_storage_info_t=storage_info< layout_tt<3,4> , __COUNTER__>;
     using matrix_type=storage_t< matrix_storage_info_t >;
-    using fe=reference_element<1, Lagrange, Hexa>;
-    using geo_map=reference_element<1, Lagrange, Hexa>;
+    using fe=reference_element<1, Lagrange, Tri>;
+    using geo_map=reference_element<1, Lagrange, Tri>;
     using cub=cubature<fe::order+1, fe::shape>;
     using geo_t = intrepid::geometry<geo_map, cub>;
     using discr_t = intrepid::discretization<fe, cub>;
@@ -50,25 +51,50 @@ int main(){
     domain_tuple_t domain_tuple_ (assembler, assembler_base);
 
     //![grid]
-    //constructing a structured cartesian grid
-    for (uint_t i=0; i<d1; i++)
-        for (uint_t j=0; j<d2; j++)
-            for (uint_t k=0; k<d3; k++)
-                for (uint_t point=0; point<fe::basisCardinality; point++)
-                {
-                    assembler_base.grid()( i,  j,  k,  point,  0)= (i + geo_.grid()(point, 0));
-                    assembler_base.grid()( i,  j,  k,  point,  1)= (j + geo_.grid()(point, 1));
-                    assembler_base.grid()( i,  j,  k,  point,  2)= (k + geo_.grid()(point, 2));
-                    assembler_base.grid_map()(i,j,k,point)=0;//Global DOF // TODO: assign correct values
-                }
-    //![grid]
+    // First triangle
+    assembler_base.grid()( 0,  0,  0,  0,  0)= 1.5;
+    assembler_base.grid()( 0,  0,  0,  0,  1)= 0.;
+    assembler_base.grid()( 0,  0,  0,  0,  2)= 0.;
+    assembler_base.grid_map()( 0,  0,  0,  0)= 0;//Global DOF
 
+    assembler_base.grid()( 0,  0,  0,  1,  0)= 2.;
+    assembler_base.grid()( 0,  0,  0,  1,  1)= -1.;
+    assembler_base.grid()( 0,  0,  0,  1,  2)= 0.;
+    assembler_base.grid_map()( 0,  0,  0,  1)= 1;//Global DOF
+
+    assembler_base.grid()( 0,  0,  0,  2,  0)= 2.;
+    assembler_base.grid()( 0,  0,  0,  2,  1)= 1.;
+    assembler_base.grid()( 0,  0,  0,  2,  2)= 0.;
+    assembler_base.grid_map()( 0,  0,  0,  2)= 2;//Global DOF
+
+    // Second triangle
+    assembler_base.grid()( 0,  1,  0,  0,  0)= 2.;
+    assembler_base.grid()( 0,  1,  0,  0,  1)= -1.;
+    assembler_base.grid()( 0,  1,  0,  0,  2)= 0.;
+    assembler_base.grid_map()( 0,  1,  0,  0)= 1;//Global DOF
+
+    assembler_base.grid()( 0,  1,  0,  1,  0)= 2.5;
+    assembler_base.grid()( 0,  1,  0,  1,  1)= 0.;
+    assembler_base.grid()( 0,  1,  0,  1,  2)= 0.;
+    assembler_base.grid_map()( 0,  1,  0,  1)= 3;//Global DOF
+
+    assembler_base.grid()( 0,  1,  0,  2,  0)= 2.;
+    assembler_base.grid()( 0,  1,  0,  2,  1)= 1.;
+    assembler_base.grid()( 0,  1,  0,  2,  2)= 0.;
+    assembler_base.grid_map()( 0,  1,  0,  2)= 2;//Global DOF
+    //![grid]
 
     //![instantiation_stiffness]
     //defining the stiffness matrix: d1xd2xd3 elements
     matrix_storage_info_t meta_(d1,d2,d3,fe::basisCardinality,fe::basisCardinality);
     matrix_type stiffness_(meta_, 0.);
     //![instantiation_stiffness]
+
+    //![instantiation_global_mass]
+    matrix_storage_info_t meta_global_stiffness_(num_dofs,num_dofs,1,1,1);
+    matrix_type global_stiffness_(meta_global_stiffness_,0.,"global_stiffness");
+    //![instantiation_global_mass]
+
 
     /** defining the computation, i.e. for all elements:
         - computing the jacobian
@@ -115,6 +141,28 @@ int main(){
     computation->run();
     computation->finalize();
     //![computation]
+
+    //![global mass matrix assembly]
+	for(unsigned int i=0;i<d1;++i)
+	{
+		for(unsigned int j=0;j<d2;++j)
+		{
+			for(unsigned int k=0;k<d3;++k)
+			{
+				for(auto l_dof1=0;l_dof1<fe::basisCardinality;++l_dof1)
+				{
+					const u_int P=assembler_base.get_grid_map()(i,j,k,l_dof1);
+					for(auto l_dof2=0;l_dof2<fe::basisCardinality;++l_dof2)
+					{
+						const u_int Q=assembler_base.get_grid_map()(i,j,k,l_dof2);
+						global_stiffness_(P,Q,0,0,0) += stiffness_(i,j,k,l_dof1,l_dof2);
+					}
+				}
+			}
+		}
+	}
+    //![global mass matrix assembly]
+
 
     return test(assembler_base, assembler, fe_, stiffness_)==true;
 }
