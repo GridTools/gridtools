@@ -1,6 +1,8 @@
 #pragma once
 
 #include <stencil-composition/stencil-composition.hpp>
+#include "cache_flusher.hpp"
+#include "defs.hpp"
 
 /**
   @file
@@ -53,7 +55,9 @@ namespace copy_stencil{
 
     typedef storage_info< 0, layout_t > meta_data_t;
 
-    bool test(uint_t x, uint_t y, uint_t z) {
+    bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps) {
+
+        cache_flusher flusher(cache_flusher_size);
 
         meta_data_t meta_data_(x,y,z);
 
@@ -147,10 +151,8 @@ namespace copy_stencil{
 
         copy->run();
 
-        copy->finalize();
-
-#ifdef BENCHMARK
-        std::cout << copy->print_meter() << std::endl;
+#ifdef __CUDACC__
+        out.data().update_cpu();
 #endif
 
         bool success = true;
@@ -170,6 +172,16 @@ namespace copy_stencil{
                             success = false;
                         }
                 }
+
+#ifdef BENCHMARK
+        for(uint_t t=1; t < t_steps; ++t){
+            flusher.flush();
+            copy->run();
+        }
+        copy->finalize();
+        std::cout << copy->print_meter() << std::endl;
+#endif
+
         return success;
     }
 }//namespace copy_stencil
