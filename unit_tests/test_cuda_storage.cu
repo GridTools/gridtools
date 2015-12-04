@@ -38,8 +38,8 @@ using namespace gridtools;
 using namespace enumtype;
 bool test_cuda_storage() {
 
-    typedef gridtools::backend<gridtools::enumtype::Cuda, gridtools::enumtype::Block > backend_t;
-    typedef gridtools::backend<Cuda, Block>::storage_type<float_type, storage_info<layout_map<0,1,2> > > ::type storage_type;
+    typedef backend<Cuda, Block > backend_t;
+    typedef backend_t::storage_type<float_type, backend_t::storage_info<0,layout_map<0,1,2> > > ::type storage_type;
 
     uint_t d1 = 3;
     uint_t d2 = 3;
@@ -67,8 +67,8 @@ bool test_cuda_storage() {
     }
 
     data.h2d_update(); //copy to GPU
-    data.clone_to_gpu();
-    meta_.clone_to_gpu();//copy meta information to the GPU
+    data.clone_to_device();
+    meta_.clone_to_device();//copy meta information to the GPU
 #ifdef __CUDACC__
     add_on_gpu<<<1,1>>>(meta_.gpu_object_ptr, data.gpu_object_ptr, d1, d2, d3);
     cudaDeviceSynchronize();

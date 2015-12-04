@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __CUDACC__
+#define CUDA_CXX11_BUG_1 //bug present in CUDA 7.5 and below
+#endif
+
 #if __cplusplus > 199711L
 #ifndef CXX11_DISABLE
 #define CXX11_ENABLED
@@ -21,6 +25,11 @@
 //defines how many threads participate to the (shared) memory initialization
 //TODOCOSUNA This IS VERY VERY VERY DANGEROUS HERE
 #define BLOCK_SIZE 32
+
+#if !defined(FUSION_MAX_VECTOR_SIZE)
+    #define FUSION_MAX_VECTOR_SIZE 20
+    #define FUSION_MAX_MAP_SIZE 20
+#endif
 
 // #include <boost/mpl/map/aux_/item.hpp>
 #include <boost/mpl/map.hpp>
@@ -101,7 +110,7 @@ namespace gridtools{
            @{
          */
         /** enum specifying the type of backend we use */
-        enum backend  {Cuda, Host};
+        enum platform  {Cuda, Host};
 
         enum strategy  {Naive, Block};
 
@@ -134,9 +143,12 @@ namespace gridtools{
         {
             typedef execute_impl<parallel_impl, forward> type;
         };
-        /**
-           @}
+
+        /*
+         * accessor I/O policy
          */
+        enum intend {in, inout} ;
+
     }//namespace enumtype
 
 
@@ -151,28 +163,28 @@ namespace gridtools{
     template<typename T>
     struct is_backend_enum : boost::mpl::false_ {};
 
-// #ifdef CXX11_ENABLED
-//     /** checking that no arithmetic operation is performed on enum types*/
-//     template<>
-//     struct is_backend_enum<enumtype::backend> : boost::mpl::true_ {};
-//     struct error_no_operator_overload{};
+#ifdef CXX11_ENABLED
+    /** checking that no arithmetic operation is performed on enum types*/
+    template<>
+    struct is_backend_enum<enumtype::platform> : boost::mpl::true_ {};
+    struct error_no_operator_overload{};
 
-//     template <typename  ArgType1, typename ArgType2,
-//               typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
-//     error_no_operator_overload operator + (ArgType1 arg1, ArgType2 arg2){}
+    template <typename  ArgType1, typename ArgType2,
+              typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
+    error_no_operator_overload operator + (ArgType1 arg1, ArgType2 arg2){}
 
-//     template <typename  ArgType1, typename ArgType2,
-//               typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
-//     error_no_operator_overload operator - (ArgType1 arg1, ArgType2 arg2){}
+    template <typename  ArgType1, typename ArgType2,
+              typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
+    error_no_operator_overload operator - (ArgType1 arg1, ArgType2 arg2){}
 
-//     template <typename  ArgType1, typename ArgType2,
-//               typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
-//     error_no_operator_overload operator * (ArgType1 arg1, ArgType2 arg2){}
+    template <typename  ArgType1, typename ArgType2,
+              typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
+    error_no_operator_overload operator * (ArgType1 arg1, ArgType2 arg2){}
 
-//     template <typename  ArgType1, typename ArgType2,
-//               typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
-//     error_no_operator_overload operator / (ArgType1 arg1, ArgType2 arg2){}
-// #endif
+    template <typename  ArgType1, typename ArgType2,
+              typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
+    error_no_operator_overload operator / (ArgType1 arg1, ArgType2 arg2){}
+#endif
 
     template<typename T>
     struct is_execution_engine : boost::mpl::false_{};
@@ -223,6 +235,12 @@ namespace gridtools{
     typedef double float_type;
 #else
 #error float precision not properly set (4 or 8 bytes supported)
+#endif
+
+#ifdef STRUCTURED_GRIDS
+    #define GRIDPREFIX strgrid
+#else
+    #define GRIDPREFIX icgrid
 #endif
 
 #ifdef CXX11_ENABLED

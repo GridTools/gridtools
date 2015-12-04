@@ -65,15 +65,17 @@ struct wrap_pointer{
         return *this;
     }
 
-    pointee_t* get() const {return m_cpu_p;}
+    pointee_t * get() const {return m_cpu_p;}
 
     void reset(T* cpu_p){m_cpu_p=cpu_p;}
 
-    bool externally_managed(){return m_externally_managed;}
+    bool reset_managed(bool externally_managed_){m_externally_managed = externally_managed_;}
+
+    bool externally_managed() const {return m_externally_managed;}
 
   GT_FUNCTION
   virtual ~wrap_pointer(){
-#ifdef __VERBOSE__
+#ifdef VERBOSE
 #ifndef __CUDACC__
       std::cout<<"deleting wrap pointer "<<this<<std::endl;
 #endif
@@ -88,7 +90,7 @@ struct wrap_pointer{
     GT_FUNCTION
     wrap_pointer(uint_t size, bool externally_managed=false): m_externally_managed(externally_managed) {
         allocate_it(size);
-#ifdef __VERBOSE__
+#ifdef VERBOSE
             printf("CONSTRUCT pointer - %X %d\n", m_cpu_p, size);
 #endif
         }
@@ -106,7 +108,7 @@ struct wrap_pointer{
     void free_it() {
         if(m_cpu_p && !m_externally_managed)
         {
-#ifdef __VERBOSE__
+#ifdef VERBOSE
 #ifndef __CUDACC__
             std::cout<<"deleting data pointer "<<m_cpu_p<<std::endl;
 #endif

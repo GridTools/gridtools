@@ -45,3 +45,5 @@ unit_tests/cmake_install.cmake
 !src
 !docs
 !mainpage.dox
+!Vagrant_bootstrap.sh
+!Vagrantfile

@@ -49,7 +49,7 @@ namespace gridtools{
            @brief returns the raw pointer (even if it's null)
         */
         GT_FUNCTION
-        T const* get() {return m_t;}
+        T const* get() const {return m_t;}
 
         /**
            @brief access operator

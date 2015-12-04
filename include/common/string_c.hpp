@@ -1,3 +1,5 @@
+#pragma once
+
 #ifdef CXX11_ENABLED
 /**@file
 @brief implementation of a compile time string.
@@ -11,8 +13,8 @@ namespace gridtools{
         static const constexpr char* value=S;
     };
 
-/**@brief this struct allows to perform operations on static char arrays (e.g. print them as concatenated strings)
-*/
+    /**@brief this struct allows to perform operations on static char arrays (e.g. print them as concatenated strings)
+     */
     template <typename Callable, typename ... Known>
     struct string{
 
@@ -26,8 +28,8 @@ namespace gridtools{
             {  Callable::apply(Known::value ...);}
     };
 
-/**@brief this struct allows to perform operations on static char arrays (e.g. print them as concatenated strings)
-*/
+    /**@brief this struct allows to perform operations on static char arrays (e.g. print them as concatenated strings)
+     */
     template <typename Callable, char const* ... Known>
     struct string_c{
 

@@ -1,11 +1,10 @@
 #pragma once
-#define PEDANTIC_DISABLED // temporary change
 // [includes]
 #include <gridtools.hpp>
 #include <stencil-composition/make_computation.hpp>
 #include <storage/parallel_storage.hpp>
 #include <storage/partitioner_trivial.hpp>
-#include <stencil-composition/backend.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 #ifdef CUDA_EXAMPLE
 #include <boundary-conditions/apply_gpu.hpp>
@@ -77,39 +76,6 @@ namespace shallow_water{
     functor_traits::j_t functor_traits::j;
     // [functor_traits]
 
-    // [boundary_conditions]
-    struct bc : functor_traits {
-        typedef accessor<0,range<0, 0, 0, 0>, 5> tmpx; /** (output) is the solution at the cell center, computed at the previous time level */
-        typedef accessor<1,range<0, 0, 0, 0>, 5> tmpy; /** (input) is the solution at the cell center */
-        typedef accessor<2,range<0, 0, 0, 0>, 5> sol;
-        typedef generic_accessor<3> partitioner;
-        using arg_list=boost::mpl::vector<sol, tmpx, tmpy> ;
-
-
-        template <typename Evaluation>
-        GT_FUNCTION
-        static void Do(Evaluation const & eval, x_interval) {
-
-            //![alias]
-            using h=alias<sol, comp>::set<0>;
-            using u=alias<sol, comp>::set<1>;
-            using v=alias<sol, comp>::set<2>;
-
-            uint_t boundary=eval(partitioner())->boundary();
-            std::cout<<eval(partitioner())->at_boundary(0,up())<<std::endl;
-
-            //! [expression]
-            if((eval(partitioner())->at_boundary(0,up())))
-                eval(h())+=10.;
-            if((eval(partitioner())->at_boundary(1,up())))
-                eval(u())+=11.;
-            if((eval(partitioner())->at_boundary(2,up())))
-                eval(v())+=12.;
-            std::cout<<eval(!h())<<std::endl;
-            //! [expression]
-
-        }
-    };
 
     template<uint_t Component=0, uint_t Snapshot=0>
     struct bc_periodic : functor_traits {
@@ -154,9 +120,9 @@ namespace shallow_water{
     struct flux_x        : public functor_traits {
 
         //! [accessor]
-        typedef accessor<1, range<0, -1, 0, 0>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
+        typedef accessor<1, enumtype::inout, extent<0, -1, 0, 0>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
         //! [accessor]
-        typedef accessor<0, range<0, 0, 0, 0>, 5> tmpx; /** (output) is the flux computed on the left edge of the cell */
+        typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 5> tmpx; /** (output) is the flux computed on the left edge of the cell */
         using arg_list=boost::mpl::vector<tmpx, sol> ;
 
 
@@ -164,6 +130,30 @@ namespace shallow_water{
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 
+#ifdef CUDA_CXX11_BUG_1
+            comp::Index c;
+            x::Index i;
+            //! [expression]
+            eval(tmpx()) =
+            eval((sol(i-0) +sol(i-1))/2. -
+                 (sol(c+1) - sol(c+1,i-1))*(dt()/(2*dx())));
+            // ! [expression]
+
+            eval(tmpx(comp(1)))=
+                eval((sol(comp(1)) +
+                      sol(comp(1),i-1))/2.-
+                     ((pow<2>(sol(comp(1)))/sol(i-0)+pow<2>(sol(i-0))*g()/2.)  -
+                      (pow<2>(sol(comp(1),i-1))/sol(i-1) +
+                       pow<2>(sol(i-1))*(g()/2.)
+                          ))*(dt()/(2.*dx())));
+
+            eval(tmpx(comp(2)))=
+                eval( (sol(comp(2)) +
+                       sol(comp(2),i-1))/2. -
+                      (sol(comp(1))*sol(comp(2))/sol(i-0) -
+                       sol(comp(1),i-1)*sol(comp(2),i-1)/sol(i-1))*(dt()/(2*dx())) );
+
+#else
             //![alias]
             using hx=alias<tmpx, comp>::set<0>; using h=alias<sol, comp>::set<0>;
             //![alias]
@@ -189,7 +179,7 @@ namespace shallow_water{
                        v(i-1))/2. -
                       (u()*v()/h() -
                        u(i-1)*v(i-1)/h(i-1))*(dt()/(2*dx())) );
-
+#endif
         }
     };
     // [flux_x]
@@ -198,18 +188,38 @@ namespace shallow_water{
     // [flux_y]
     struct flux_y        : public functor_traits {
 
-        typedef accessor<0,range<0, 0, 0, 0>, 5> tmpy; /** (output) is the flux at the bottom edge of the cell */
-        typedef accessor<1,range<0, 0, 0, -1>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
+        typedef accessor<0,enumtype::inout,extent<0, 0, 0, 0>, 5> tmpy; /** (output) is the flux at the bottom edge of the cell */
+        typedef accessor<1,enumtype::inout,extent<0, 0, 0, -1>, 5> sol; /** (input) is the solution at the cell center, computed at the previous time level */
         using arg_list=boost::mpl::vector<tmpy, sol> ;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 
+#ifdef CUDA_CXX11_BUG_1
+
+            eval(tmpy())=
+                eval((sol(i-0) + sol(j-1))/2. -
+                     (sol(comp(2)) - sol(comp(2),j-1))*(dt()/(2*dy())) );
+
+            eval(tmpy(comp(1)))=
+                eval( (sol(comp(1)) +
+                       sol(comp(1),j-1))/2. -
+                      (sol(comp(2))*sol(comp(1))/sol(i-0) -
+                       sol(comp(2),j-1)*sol(comp(1),j-1)/sol(j-1))*(dt()/(2*dy())) );
+
+            eval(tmpy(comp(2)))=
+                eval((sol(comp(2)) +
+                      sol(comp(2),j-1))/2.-
+                     ((pow<2>(sol(comp(2)))/sol(i-0)+pow<2>(sol(i-0))*g()/2.)  -
+                      (pow<2>(sol(comp(2),j-1))/sol(j-1) +
+                       pow<2>(sol(j-1))*(g()/2.)
+                          ))*(dt()/(2.*dy())));
+
+#else
             using h=alias<sol, comp>::set<0>; using hy=alias<tmpy, comp>::set<0>;
             using u=alias<sol, comp>::set<1>; using uy=alias<tmpy, comp>::set<1>;
             using v=alias<sol, comp>::set<2>; using vy=alias<tmpy, comp>::set<2>;
-
 
             eval(hy())= eval((h() + h(j-1))/2. -
                              (v() - v(j-1))*(dt()/(2*dy())) );
@@ -225,7 +235,7 @@ namespace shallow_water{
                              (pow<2>(v(j-1))/h(j-1) +
                               pow<2>(h(j-1))*(g()/2.)
                                  ))*(dt()/(2.*dy())));
-
+#endif
         }
     };
     // [flux_y]
@@ -233,9 +243,9 @@ namespace shallow_water{
     // [final_step]
     struct final_step        : public functor_traits {
 
-        typedef accessor<0, range<0,1,0,1>, 5> tmpx; /** (input) is the flux at the left edge of the cell */
-        typedef accessor<1, range<0,1,0,1>, 5> tmpy; /** (input) is the flux at the bottom edge of the cell */
-        typedef accessor<2,range<0, 0, 0, 0>, 5> sol; /** (output) is the solution at the cell center, computed at the previous time level */
+        typedef accessor<0, enumtype::inout,extent<0,1,0,1>, 5> tmpx; /** (input) is the flux at the left edge of the cell */
+        typedef accessor<1, enumtype::inout,extent<0,1,0,1>, 5> tmpy; /** (input) is the flux at the bottom edge of the cell */
+        typedef accessor<2,enumtype::inout,extent<0, 0, 0, 0>, 5> sol; /** (output) is the solution at the cell center, computed at the previous time level */
         typedef boost::mpl::vector<tmpx, tmpy, sol> arg_list;
         static uint_t current_time;
 
@@ -248,6 +258,31 @@ namespace shallow_water{
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 
+#ifdef CUDA_CXX11_BUG_1
+
+            eval(sol()) =
+                eval(sol(i-0)-
+                     (tmpx(comp(1),i+1) - tmpx(comp(1)))*(dt()/dx())
+                     -
+                     (tmpy(comp(2),j+1) - tmpy(comp(2)))*(dt()/dy())
+                    );
+
+            eval(sol(comp(1))) =
+                eval(sol(comp(1)) -
+                     (pow<2>(tmpx(comp(1),i+1))  / tmpx(i+1)    + tmpx(i+1)*tmpx(i+1)*((g()/2.))        -
+                     (pow<2>(tmpx(comp(1)))     / tmpx(i-0) +pow<2>(tmpx(i-0) )*((g()/2.))))*((dt()/dx())) -
+                     (tmpy(comp(2),j+1)*tmpy(comp(1),j+1)  / tmpy(j+1)                                        -
+                      tmpy(comp(2))*tmpy(comp(1)) / tmpy(i-0)) *(dt()/dy())
+                    );
+
+            eval(sol(comp(2))) =
+                eval(sol(comp(2)) -
+                     (tmpx(comp(1),i+1)*tmpx(comp(2),i+1) /tmpx(i+1) -
+                     (tmpx(comp(1))*tmpx(comp(2)))      /tmpx(i-0))*((dt()/dx()))-
+                     (pow<2>(tmpy(comp(2),j+1)) /tmpy(j+1) +pow<2>(tmpy(j+1))*((g()/2.)) -
+                     (pow<2>(tmpy(comp(2)))    /tmpy(i-0)    +pow<2>(tmpy(i-0))   *((g()/2.))))*((dt()/dy())));
+
+#else
             using hx=alias<tmpx, comp>::set<0>; using h=alias<sol, comp>::set<0>; using hy=alias<tmpy, comp>::set<0>;
             using ux=alias<tmpx, comp>::set<1>; using u=alias<sol, comp>::set<1>; using uy=alias<tmpy, comp>::set<1>;
             using vx=alias<tmpx, comp>::set<2>; using v=alias<sol, comp>::set<2>; using vy=alias<tmpy, comp>::set<2>;
@@ -273,9 +308,8 @@ namespace shallow_water{
                      (ux()*vx())      /hx())*((dt()/dx()))-
                      (pow<2>(vy(j+1)) /hy(j+1) +pow<2>(hy(j+1))*((g()/2.)) -
                      (pow<2>(vy())    /hy()    +pow<2>(hy())   *((g()/2.))))*((dt()/dy())));
+#endif
 
-
-            std::cout<<"reuslt: "<<eval(sol())<<std::endl;
         }
 
     };
@@ -333,14 +367,17 @@ namespace shallow_water{
 //! [layout_map]
         //           dims  x y z
         //        strides yz z 1
+#ifdef __CUDACC__
+        typedef layout_map<2,1,0> layout_t;
+#else
         typedef layout_map<0,1,2> layout_t;
+#endif
 //! [layout_map]
 
 //! [storage_type]
-        typedef gridtools::storage_info< layout_t> storage_info_t;
-        typedef gridtools::storage_info< layout_t> storage_info_tmp_t;
-        typedef gridtools::BACKEND::storage_type<float_type, storage_info_t >::type storage_type;
-        typedef gridtools::BACKEND::temporary_storage_type<float_type, storage_info_tmp_t >::type tmp_storage_type;
+        typedef BACKEND::storage_info<0, layout_t> storage_info_t;
+        typedef BACKEND::storage_type<float_type, storage_info_t >::type storage_type;
+        typedef BACKEND::temporary_storage_type<float_type, storage_info_t >::type tmp_storage_type;
         typedef storage_type::pointer_type pointer_type;
 //! [storage_type]
 
@@ -356,18 +393,20 @@ namespace shallow_water{
 //! [args]
         typedef arg<0, tmp_type > p_tmpx;
         typedef arg<1, tmp_type > p_tmpy;
+        // typedef arg<0, sol_type > p_tmpx;
+        // typedef arg<1, sol_type > p_tmpy;
         typedef arg<2, sol_type > p_sol;
         typedef boost::mpl::vector<p_tmpx, p_tmpy, p_sol> accessor_list;
 //! [args]
 
 //! [proc_grid_dims]
-        array<int, 3> dimensions(0,0,0);
+        array<int, 3> dimensions{0,0,0};
         MPI_3D_process_grid_t<3>::dims_create(PROCS, 2, dimensions);
         dimensions[2]=1;
 //! [proc_grid_dims]
 
 //! [pattern_type]
-        typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<0, 1, 2>,
+        typedef gridtools::halo_exchange_dynamic_ut<layout_t,
                                                     gridtools::layout_map<0, 1, 2>,
                                                     pointer_type::pointee_t, MPI_3D_process_grid_t<3>,
 #ifdef __CUDACC__
@@ -381,8 +420,8 @@ namespace shallow_water{
 //! [pattern_type]
 
 //! [partitioner]
-        array<ushort_t, 3> padding={1,1,0};
-        array<ushort_t, 3> halo={1,1,0};
+        array<ushort_t, 3> padding{1,1,0};
+        array<ushort_t, 3> halo{1,1,0};
         typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > >, pattern_type::grid_type> partitioner_t;
 
         partitioner_t part(he.comm(), halo, padding);
@@ -391,6 +430,8 @@ namespace shallow_water{
 //! [parallel_storage]
         parallel_storage_info< partitioner_t> meta_(part, d1, d2, d3);
         sol_type sol(meta_.get_metadata(), "sol");
+        // sol_type tmpx(meta_.get_metadata(), "tmpx");
+        // sol_type tmpy(meta_.get_metadata(), "tmpy");
 //! [parallel_storage]
 
 //! [add_halo]
@@ -402,14 +443,18 @@ namespace shallow_water{
 //! [add_halo]
 
 //! [initialization_h]
+#ifdef __CUDACC__
+        sol.template set<0,0>( &bc_periodic<0,0>::droplet );//h
+#else
         if(PID==1)
-            sol.set<0,0>( &bc_periodic<0,0>::droplet );//h
+            sol.template set<0,0>( &bc_periodic<0,0>::droplet );//h
         else
-            sol.set<0,0>( 1.);//h
+            sol.template set<0,0>( 1.);//h
+#endif
 //! [initialization_h]
 //! [initialization]
-        sol.set<0,1>( 0.);//u
-        sol.set<0,2>( 0.);//v
+        sol.template set<0,1>( 0.);//u
+        sol.template set<0,2>( 0.);//v
 //! [initialization]
 
 #ifndef NDEBUG
@@ -424,17 +469,18 @@ namespace shallow_water{
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
 //! [domain_type]
         domain_type<accessor_list> domain
-            (boost::fusion::make_vector(&sol));
+            (boost::fusion::make_vector( //&tmpx, &tmpy,
+                                        &sol));
 //! [domain_type]
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
-//! [coordinates]
-        coordinates<axis, partitioner_t> coords(part, meta_);
-        coords.value_list[0] = 0;
-        coords.value_list[1] = d3-1;
-//! [coordinates]
+//! [grid]
+        grid<axis, partitioner_t> grid(part, meta_);
+        grid.value_list[0] = 0;
+        grid.value_list[1] = d3-1;
+//! [grid]
 
 //! [computation]
         auto shallow_water_stencil =
@@ -448,28 +494,9 @@ namespace shallow_water{
                         make_esf<flux_y>(p_tmpy(), p_sol() )),
                     make_esf<final_step>(p_tmpx(), p_tmpy(), p_sol() )
                     ),
-                domain, coords
+                domain, grid
                 );
 //! [computation]
-
-//! [coordinates_bc]
-        halo_descriptor dj=halo_descriptor(0,1,1,1,2);
-        coordinates<axis> coords_bc(meta_.get_halo_descriptor<0>(), dj);
-        coords_bc.value_list[0] = 0;
-        coords_bc.value_list[1] = d3-1;
-//! [coordinates_bc]
-
-//! [computation_bc]
-        auto bc_eval =
-            make_computation<gridtools::BACKEND>
-            (
-                make_mss // mss_descriptor
-                (
-                    execute<forward>(),
-                    make_esf<bc>(p_tmpx(), p_tmpy(), p_sol(), p_partitioner()))
-                , domain, coords_bc
-                );
-//! [computation_bc]
 
 //! [setup]
         shallow_water_stencil->ready();
@@ -483,7 +510,12 @@ namespace shallow_water{
         for (;final_step::current_time < total_time; ++final_step::current_time)
         {
 //! [exchange]
-            std::vector<pointer_type::pointee_t*> vec={sol.fields()[0].get(), sol.fields()[1].get(), sol.fields()[2].get()};
+            //std::vector<pointer_type::pointee_t*> vec={sol.fields()[0].get(), sol.fields()[1].get(), sol.fields()[2].get()};
+            std::vector<pointer_type::pointee_t*> vec(3);
+            vec[0]=sol.get<0,0>().get();
+            vec[1]=sol.get<0,1>().get();
+            vec[2]=sol.get<0,2>().get();
+
             he.pack(vec);
             he.exchange();
             he.unpack(vec);
@@ -510,9 +542,6 @@ namespace shallow_water{
 #endif
         }
 
-        // bcs not yet enabled
-        // bc_eval->run();
-
 //! [finalize]
         he.wait();
 
@@ -527,21 +556,23 @@ namespace shallow_water{
         myfile<<"############## SOLUTION ################"<<std::endl;
         sol.print(myfile);
 
-        verifier check_result(1e-8, 0);
+
+        verifier check_result(1e-8);
+        array<array<uint_t, 2>, 3> halos{{ {0,0}, {0,0}, {0,0} }};
         shallow_water_reference<sol_type, 11, 11> reference;
         reference.setup();
         for (uint_t t=0;t < total_time; ++t)
         {
             reference.iterate();
         }
-        retval=check_result.verify_parallel(meta_, sol, reference.solution);
+        retval=check_result.verify_parallel(grid, meta_, sol, reference.solution, halos);
+
         myfile<<"############## REFERENCE ################"<<std::endl;
         reference.solution.print(myfile);
 
         myfile.close();
 #endif
-
-        std::cout<<"SUCCESS?= "<<retval<<std::endl;
+        std::cout<<"shallow water parallel test SUCCESS?= "<<retval<<std::endl;
         return retval;
 //! [main]
     }

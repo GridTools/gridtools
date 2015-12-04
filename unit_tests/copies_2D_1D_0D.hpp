@@ -1,6 +1,6 @@
 
 #pragma once
-#include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 #include <gridtools.hpp>
 #ifdef CUDA_EXAMPLE
@@ -23,7 +23,7 @@
 
 using gridtools::level;
 using gridtools::accessor;
-using gridtools::range;
+using gridtools::extent;
 using gridtools::arg;
 
 using namespace gridtools;
@@ -37,14 +37,13 @@ namespace copy_stencils_3D_2D_1D_0D {
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
         static const int n_args = 2;
-        typedef const accessor<0> in;
-        typedef accessor<1> out;
+        typedef accessor<0> in;
+        typedef accessor<1, enumtype::inout> out;
         typedef boost::mpl::vector<in, out> arg_list;
 
         template <typename Domain>
         GT_FUNCTION
         static void Do(Domain const & dom, x_interval) {
-
             dom(out()) = dom(in());
         }
     };
@@ -82,8 +81,8 @@ namespace copy_stencils_3D_2D_1D_0D {
 #endif
 #endif
 
-        typedef storage_info< DstLayout> meta_dst_t;
-        typedef storage_info< SrcLayout> meta_src_t;
+        typedef gridtools::BACKEND::storage_info<0, DstLayout> meta_dst_t;
+        typedef gridtools::BACKEND::storage_info<0, SrcLayout> meta_src_t;
         typedef typename gridtools::BACKEND::storage_type<double, meta_dst_t >::type storage_type;
         typedef typename gridtools::BACKEND::storage_type<double, meta_src_t >::type src_storage_type;
 
@@ -122,13 +121,13 @@ namespace copy_stencils_3D_2D_1D_0D {
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
-        // gridtools::coordinates<axis> coords(??2,d1-2,2,d2-2??);
+        // gridtools::grid<axis> grid_(??2,d1-2,2,d2-2??);
         uint_t di[5] = {0, 0, 0, d1-1, d1};
         uint_t dj[5] = {0, 0, 0, d2-1, d2};
 
-        gridtools::coordinates<axis> coords(di, dj);
-        coords.value_list[0] = 0;
-        coords.value_list[1] = d3-1;
+        gridtools::grid<axis> grid_(di, dj);
+        grid_.value_list[0] = 0;
+        grid_.value_list[1] = d3-1;
 
         /*
           Here we do lot of stuff
@@ -176,13 +175,13 @@ namespace copy_stencils_3D_2D_1D_0D {
               execute<forward>(),
               gridtools::make_esf<copy_functor>(p_in(), p_out()) // esf_descriptor
               ),
-             domain, coords
+             domain, grid_
              );
 
         copy->ready();
 
         copy->steady();
-        domain.clone_to_gpu();
+        domain.clone_to_device();
 
 #ifdef USE_PAPI_WRAP
         pw_stop_collector(collector_init);

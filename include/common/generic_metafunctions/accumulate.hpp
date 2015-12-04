@@ -1,5 +1,7 @@
 #pragma once
 #include <boost/mpl/at.hpp>
+#include "logical_and.hpp"
+
 /**@file @brief implementation of a compile-time accumulator and max
 
    The accumulator allows to perform operations on static const value to
@@ -50,16 +52,6 @@ namespace gridtools{
         template <typename  T1, typename T2>
         GT_FUNCTION
         constexpr T1 operator() (const T1& x, const T2& y) const {return x*y;}
-    };
-
-
-    /**@brief operation to be used inside the accumulator*/
-    struct logical_and {
-    GT_FUNCTION
-    constexpr logical_and(){}
-        template <typename  T>
-        GT_FUNCTION
-        constexpr T operator() (const T& x, const T& y) const {return x&&y;}
     };
 
     /**@brief operation to be used inside the accumulator*/

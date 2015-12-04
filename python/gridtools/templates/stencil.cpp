@@ -3,10 +3,7 @@
  * the Python interface to the Gridtools library
  *
  */
-#include <gridtools.hpp>
-#include <stencil-composition/backend.hpp>
-#include <stencil-composition/make_computation.hpp>
-#include <stencil-composition/interval.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 #include "{{ fun_hdr_file }}"
 
@@ -25,7 +22,7 @@
 
 
 using gridtools::level;
-using gridtools::range;
+using gridtools::extent;
 using gridtools::arg;
 
 using namespace gridtools;
@@ -72,13 +69,16 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
     //
     // define the storage unit used by the backend
     //
-    typedef gridtools::BACKEND::storage_type<float_type, gridtools::meta_storage<0, layout_t, false> >::type storage_type;
+    typedef meta_storage<meta_storage_aligned<meta_storage_base<__COUNTER__, layout_t, false>, aligned<0>, halo<0,0,0> > > meta_data_t;
+    typedef gridtools::BACKEND::storage_type<float_type,
+                                             meta_data_t >::type storage_type;
 
     {% if temps %}
     //
     // define a special data type for the temporary, i.e., intermediate buffers
     //
-    typedef gridtools::BACKEND::temporary_storage_type<float_type, gridtools::meta_storage<0, layout_t, true> >::type tmp_storage_type;
+    typedef gridtools::BACKEND::temporary_storage_type<float_type,
+                                                       meta_data_t >::type tmp_storage_type;
     {% endif -%}
 
     {% if params %}
@@ -150,9 +150,9 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
     //
     // the vertical dimension of the problem is a property of this object
     //
-    gridtools::coordinates<axis> coords_{{ loop.index0 }}(di_{{ loop.index0 }}, dj_{{ loop.index0 }});
-    coords_{{ loop.index0 }}.value_list[0] = 0;
-    coords_{{ loop.index0 }}.value_list[1] = d3-1;
+    gridtools::grid<axis> grid_{{ loop.index0 }}(di_{{ loop.index0 }}, dj_{{ loop.index0 }});
+    grid_{{ loop.index0 }}.value_list[0] = 0;
+    grid_{{ loop.index0 }}.value_list[1] = d3-1;
 
     //
     // Here we do a lot of stuff
@@ -191,7 +191,7 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
                        {%- endif %}
                 {% endfor -%}
             ),
-            domain, coords_{{ loop.index0 }}
+            domain, grid_{{ loop.index0 }}
       );
     {% endfor %}
 

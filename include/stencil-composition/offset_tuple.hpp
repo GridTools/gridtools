@@ -1,6 +1,8 @@
 #pragma once
 #include "common/defs.hpp"
-#include "stencil-composition/dimension.hpp"
+#include "stencil-composition/dimension_defs.hpp"
+#include "common/generic_metafunctions/logical_and.hpp"
+#include "common/generic_metafunctions/is_variadic_pack_of.hpp"
 
 namespace gridtools {
 
@@ -31,30 +33,6 @@ constexpr int_t initialize(X x, Rest ... rest )
                             "you passed an integer to the accessor instead of an instance of ```dimension<>```.");
     return X::direction==N? x.value : initialize<N>(rest...);
 }
-
-template<ushort_t ID>
-struct initialize_all{
-
-    template <typename ... X>
-    GT_FUNCTION
-    static void apply(int_t* offset, X ... x)
-    {
-        GRIDTOOLS_STATIC_ASSERT( (accumulate(logical_and(), is_dimension<X>::type::value ...)), "wrong type." );
-        offset[ID]=initialize<ID>(x...);
-        initialize_all<ID-1>::apply(offset, x...);
-    }
-};
-
-template<>
-struct initialize_all<0>{
-
-    template <typename ... X>
-    GT_FUNCTION
-    static void apply(int_t* offset, X ... x)
-    {
-        offset[0]=initialize<0>(x...);
-    }
-};
 #else
 
 /**@brief method for initializing the offsets in the placeholder
@@ -233,6 +211,7 @@ struct offset_tuple<0, NDim>
     template <typename... GenericElements>
     GT_FUNCTION
     constexpr offset_tuple ( GenericElements... x) {
+        GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension<GenericElements>::type::value ... ), "wrong type for the argument of an offset_tuple" );
     }
 
     //copy ctor

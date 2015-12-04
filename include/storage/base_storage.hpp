@@ -1,6 +1,7 @@
 #pragma once
 #include "base_storage_impl.hpp"
 #include "../common/array.hpp"
+#include "wrap_pointer.hpp"
 
 /**@file
    @brief Implementation of the \ref gridtools::base_storage "main storage class", used by all backends, for temporary and non-temporary storage
@@ -34,6 +35,7 @@ namespace gridtools {
         typedef typename type::iterator_type iterator_type;
         typedef typename type::value_type value_type;
         static const ushort_t space_dimensions=RegularStorageType::space_dimensions;
+        static const bool is_temporary=RegularStorageType::is_temporary;
         static void text() {
             std::cout << "text: no_storage_type_yet<" << RegularStorageType() << ">" << std::endl;
         }
@@ -115,7 +117,6 @@ namespace gridtools {
         template < typename PT, typename MD, ushort_t FD >
         using type_tt=base_storage<PT,MD,FD>;
 #endif
-
         GRIDTOOLS_STATIC_ASSERT(is_meta_storage<MetaData>::type::value, "wrong meta_storage type");
         typedef base_storage<PointerType, MetaData, FieldDimension> type;
         typedef PointerType pointer_type;
@@ -143,13 +144,14 @@ namespace gridtools {
         friend std::ostream& operator<<(std::ostream &, base_storage<T, M, F> const & );
 
         /**@brief the parallel storage calls the empty constructor to do lazy initialization*/
-        base_storage(MetaData const & meta_data_) :
+        base_storage(MetaData const & meta_data_, bool do_allocate=true) :
             is_set( false )
             , m_name("empty storage")
             , m_meta_data(meta_data_)
-            {
-
-            }
+        {
+            if (do_allocate)
+                allocate();
+        }
 
         /**
            @brief 3D storage constructor
@@ -157,7 +159,7 @@ namespace gridtools {
         */
         base_storage( MetaData const& meta_data_
                       , value_type const& init// =float_type()
-                      , char const* s="initialized storage") :
+                      , char const* s="default initialized storage") :
             is_set( true )
             , m_name( s )
             , m_meta_data(meta_data_)
@@ -202,7 +204,8 @@ namespace gridtools {
            This interface handles the case in which the storage is allocated from the python interface. Since this storege gets freed inside python, it must be instantiated as a
            'managed outside' wrap_pointer. In this way the storage destructor will not free the pointer.*/
         template<typename FloatType>
-        explicit base_storage(MetaData const& meta_data_, FloatType* ptr, char const* s="storage initialized externally"):
+        explicit base_storage(MetaData const& meta_data_, FloatType* ptr, char const* s="externally managed storage"
+            ):
             is_set( true )
             , m_name(s)
             , m_meta_data(meta_data_){
@@ -225,16 +228,12 @@ namespace gridtools {
             is_set(other.is_set)
             , m_name(other.m_name)
             , m_fields(other.m_fields)
-            , m_meta_data(other.m_meta_data){
-            }
-#else
-    private:
-        base_storage(base_storage const& other);
-    public:
-#endif
+            , m_meta_data(other.m_meta_data)
+        {}
 
         void allocate(ushort_t const& dims=FieldDimension, ushort_t const& offset=0){
             assert(dims>offset);
+            assert(dims<=field_dimensions);
             is_set=true;
             for(ushort_t i=offset; i<dims; ++i)
                 m_fields[i]=pointer_type(m_meta_data.size());
@@ -280,6 +279,7 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT(space_dimensions==3, "this initialization is valid for storages with 3 space dimensions");
                 //if this fails  you used the wrong constructor (i.e. the empty one)
                 assert(is_set);
+                assert(dims <= field_dimensions);
 
                 for(ushort_t f=0; f<dims; ++f)
                 {
@@ -434,6 +434,14 @@ namespace gridtools {
         pointer_type const* fields() const {return &(m_fields[0]);}
 
         /** @brief returns a const pointer to the data field*/
+        template <typename ID>
+        GT_FUNCTION
+        typename pointer_type::pointee_t* access_value() const {
+            GRIDTOOLS_STATIC_ASSERT((ID::value < field_dimensions), "Error: trying to access a field storage index beyond the field dimensions");
+            return fields()[ID::value].get();
+        }
+
+        /** @brief returns a non const pointer to the data field*/
         GT_FUNCTION
         pointer_type* fields_view() {return &(m_fields[0]);}
 
@@ -480,16 +488,16 @@ namespace gridtools {
     {};
 
     template <  template <typename T> class  Decorator, typename BaseType>
-    struct is_temporary_storage<Decorator< BaseType > > : is_temporary_storage< typename BaseType::basic_type >
+    struct is_temporary_storage<Decorator< BaseType > > : is_temporary_storage< BaseType >
     {};
     template <  template <typename T> class Decorator, typename BaseType>
-    struct is_temporary_storage<Decorator< BaseType >* > : is_temporary_storage< typename BaseType::basic_type* >
+    struct is_temporary_storage<Decorator< BaseType >* > : is_temporary_storage< BaseType* >
     {};
     template <  template <typename T> class Decorator, typename BaseType>
-    struct is_temporary_storage<Decorator< BaseType >& > : is_temporary_storage< typename BaseType::basic_type& >
+    struct is_temporary_storage<Decorator< BaseType >& > : is_temporary_storage< BaseType& >
     {};
     template <  template <typename T> class Decorator, typename BaseType>
-    struct is_temporary_storage<Decorator< BaseType >*& > : is_temporary_storage< typename BaseType::basic_type*& >
+    struct is_temporary_storage<Decorator< BaseType >*& > : is_temporary_storage< BaseType*& >
     {};
 
 #ifdef CXX11_ENABLED

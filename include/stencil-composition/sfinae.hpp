@@ -110,21 +110,4 @@ namespace gridtools {
         will be either true or false wether the class has or not a default constexpr constructor.
      */
     // HAS_CONSTEXPR_CONSTRUCTOR(check)
-
-    /**@brief Implementation of introspection
-
-     returning true when the template functor has a type alias called 'xrange'.
-     This type defines a range used in order to arbitrarily extend/shrink the loop bounds
-     for the current functor at compile-time.
-     NOTE: it does not work yet for the blocked strategy. This because in that case it is not trivial
-     to modify the loop bounds with 'functor' granularity. Further thinking-refactoring needed for that case
-    */
-    HAS_TYPE_SFINAE(xrange, has_xrange, get_xrange)
-
-
-    /*use with eval_if as follows*/
-    // typedef typename boost::mpl::eval_if_c<has_xrange<functor_type>::type::value
-    //                                        , get_xrange< functor_type >
-    //                                        , boost::mpl::identity<range<0,0,0> > >::type new_range_t;
-
 }

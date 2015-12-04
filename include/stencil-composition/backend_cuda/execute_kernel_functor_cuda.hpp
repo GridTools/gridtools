@@ -2,18 +2,17 @@
 #include "../iteration_policy.hpp"
 #include "../backend_traits_fwd.hpp"
 #include "backend_traits_cuda.hpp"
-#include "../iterate_domain_aux.hpp"
+#include "stencil-composition/iterate_domain.hpp"
 #include "shared_iterate_domain.hpp"
 #include "common/gt_assert.hpp"
 
 namespace gridtools {
 
-
 namespace _impl_cuda {
     template <typename RunFunctorArguments,
               typename LocalDomain>
     __global__
-    void do_it_on_gpu(LocalDomain const * RESTRICT l_domain, typename RunFunctorArguments::coords_t const* coords,
+    void do_it_on_gpu(LocalDomain const * RESTRICT l_domain, typename RunFunctorArguments::grid_t const* grid,
             const int starti, const int startj, const uint_t nx, const uint_t ny) {
 
         assert(l_domain);
@@ -23,6 +22,8 @@ namespace _impl_cuda {
         typedef typename RunFunctorArguments::physical_domain_block_size_t block_size_t;
 
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
+        typedef typename RunFunctorArguments::async_esf_map_t async_esf_map_t;
+
         typedef backend_traits_from_id<enumtype::Cuda> backend_traits_t;
         typedef typename iterate_domain_t::strides_cached_t strides_t;
         typedef typename iterate_domain_t::data_pointer_array_t data_pointer_array_t;
@@ -62,15 +63,15 @@ namespace _impl_cuda {
         typedef typename boost::mpl::front<typename RunFunctorArguments::loop_intervals_t>::type interval;
         typedef typename index_to_level<typename interval::first>::type from;
         typedef typename index_to_level<typename interval::second>::type to;
-        typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy;
+        typedef _impl::iteration_policy<from, to, zdim_index_t::value, execution_type_t::type::iteration> iteration_policy_t;
 
-        //setting the initial k level (for backward/parallel iterations it is not 0)
-        if( !(iteration_policy::value==enumtype::forward) )
-            it_domain.initialize<2>( coords->template value_at< iteration_policy::from >() );
+        it_domain.template initialize<zdim_index_t::value>( grid->template value_at< iteration_policy_t::from >() );
 
         //execute the k interval functors
         for_each<typename RunFunctorArguments::loop_intervals_t>
-            (_impl::run_f_on_interval<execution_type_t, RunFunctorArguments>(it_domain,*coords) );
+            (_impl::run_f_on_interval<
+             execution_type_t,
+             RunFunctorArguments>(it_domain,*grid) );
     }
 } // namespace _impl_cuda
 
@@ -84,20 +85,20 @@ struct execute_kernel_functor_cuda
 {
     GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), "Internal Error: wrong type");
     typedef typename RunFunctorArguments::local_domain_t local_domain_t;
-    typedef typename RunFunctorArguments::coords_t coords_t;
+    typedef typename RunFunctorArguments::grid_t grid_t;
 
     //ctor
-    explicit execute_kernel_functor_cuda(const local_domain_t& local_domain, const coords_t& coords,
+    explicit execute_kernel_functor_cuda(const local_domain_t& local_domain, const grid_t& grid,
             const uint_t block_idx_i, const uint_t block_idx_j)
     : m_local_domain(local_domain)
-    , m_coords(coords)
+    , m_grid(grid)
     , m_block_idx_i(block_idx_i)
     , m_block_idx_j(block_idx_j)
     {}
 
     void operator()()
     {
-#ifdef __VERBOSE__
+#ifdef VERBOSE
         short_t count;
         cudaGetDeviceCount ( &count  );
 
@@ -125,36 +126,36 @@ struct execute_kernel_functor_cuda
         }
 #endif
 
-        m_coords.clone_to_gpu();
+        m_grid.clone_to_device();
 
         local_domain_t *local_domain_gp = m_local_domain.gpu_object_ptr;
 
-        coords_t const *coords_gp = m_coords.gpu_object_ptr;
+        grid_t const *grid_gp = m_grid.gpu_object_ptr;
 
         // number of threads
-        const uint_t nx = (uint_t) (m_coords.i_high_bound() - m_coords.i_low_bound() +1);
-        const uint_t ny = (uint_t) (m_coords.j_high_bound() - m_coords.j_low_bound() +1);
+        const uint_t nx = (uint_t) (m_grid.i_high_bound() - m_grid.i_low_bound() +1);
+        const uint_t ny = (uint_t) (m_grid.j_high_bound() - m_grid.j_low_bound() +1);
 
         typedef typename RunFunctorArguments::physical_domain_block_size_t block_size_t;
 
-        //compute the union (or enclosing) range for the ranges of all ESFs.
-        //This maximum range of all ESF will determine the size of the CUDA block:
+        //compute the union (or enclosing) extent for the extents of all ESFs.
+        //This maximum extent of all ESF will determine the size of the CUDA block:
         // *  If there are redundant computations to be executed at the IMinus or IPlus halos,
         //    each CUDA thread will execute two grid points (one at the core of the block and
         //    another within one of the halo regions)
         // *  Otherwise each CUDA thread executes only one grid point.
         // Based on the previous we compute the size of the CUDA block required.
         typedef typename boost::mpl::fold<
-            typename RunFunctorArguments::range_sizes_t,
-            range<0,0,0,0,0,0>,
-            enclosing_range<boost::mpl::_1, boost::mpl::_2>
-        >::type maximum_range_t;
+            typename RunFunctorArguments::extent_sizes_t,
+            extent<0,0,0,0,0,0>,
+            enclosing_extent<boost::mpl::_1, boost::mpl::_2>
+        >::type maximum_extent_t;
 
         typedef block_size<
             block_size_t::i_size_t::value,
-            (block_size_t::j_size_t::value - maximum_range_t::jminus::value + maximum_range_t::jplus::value +
-                    (maximum_range_t::iminus::value != 0 ? 1 : 0) + (maximum_range_t::iplus::value != 0 ? 1 : 0)
-            )/ ((maximum_range_t::iminus::value != 0  || maximum_range_t::iplus::value != 0 ) ? 2 : 1)
+            (block_size_t::j_size_t::value - maximum_extent_t::jminus::value + maximum_extent_t::jplus::value +
+                    (maximum_extent_t::iminus::value != 0 ? 1 : 0) + (maximum_extent_t::iplus::value != 0 ? 1 : 0)
+            )/ ((maximum_extent_t::iminus::value != 0  || maximum_extent_t::iplus::value != 0 ) ? 2 : 1)
         > cuda_block_size_t;
 
         //number of grid points that a cuda block covers
@@ -181,24 +182,25 @@ struct execute_kernel_functor_cuda
             typename RunFunctorArguments::esf_args_map_sequence_t,
             typename RunFunctorArguments::loop_intervals_t,
             typename RunFunctorArguments::functors_map_t,
-            typename RunFunctorArguments::range_sizes_t,
+            typename RunFunctorArguments::extent_sizes_t,
             typename RunFunctorArguments::local_domain_t,
             typename RunFunctorArguments::cache_sequence_t,
-            typename RunFunctorArguments::coords_t,
+            typename RunFunctorArguments::async_esf_map_t,
+            typename RunFunctorArguments::grid_t,
             typename RunFunctorArguments::execution_type_t,
             RunFunctorArguments::s_strategy_id
         > run_functor_arguments_cuda_t;
 
-#ifdef __VERBOSE__
+#ifdef VERBOSE
             printf("ntx = %d, nty = %d, ntz = %d\n",ntx, nty, ntz);
             printf("nbx = %d, nby = %d, nbz = %d\n",nbx, nby, nbz);
             printf("nx = %d, ny = %d, nz = 1\n",nx, ny);
 #endif
 
             _impl_cuda::do_it_on_gpu<run_functor_arguments_cuda_t, local_domain_t><<<blocks, threads>>>//<<<nbx*nby, ntx*nty>>>
-                (local_domain_gp, coords_gp,
-                 m_coords.i_low_bound(),
-                 m_coords.j_low_bound(),
+                (local_domain_gp, grid_gp,
+                 m_grid.i_low_bound(),
+                 m_grid.j_low_bound(),
                  (nx),
                  (ny)
                     );
@@ -209,7 +211,7 @@ struct execute_kernel_functor_cuda
     }
 private:
     const local_domain_t& m_local_domain;
-    const coords_t& m_coords;
+    const grid_t& m_grid;
     const uint_t m_block_idx_i;
     const uint_t m_block_idx_j;
 };

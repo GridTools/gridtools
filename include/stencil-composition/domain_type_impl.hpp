@@ -39,7 +39,7 @@ namespace gridtools {
             }
         };
 
-        struct print_ranges {
+        struct print_extents {
             template <typename T>
             void operator()(T const&) const {
                 std::cout << T() << std::endl;
@@ -153,15 +153,15 @@ namespace gridtools {
         };
 
         /**
-         * @brief metafunction that computes the list of ranges associated to each functor.
+         * @brief metafunction that computes the list of extents associated to each functor.
          * It assumes the temporary is written only by one esf.
          * TODO This assumption is probably wrong?, a temporary could be written my multiple esf concatenated. The algorithm
-         * we need to use here is find the maximum range associated to a temporary instead.
+         * we need to use here is find the maximum extent associated to a temporary instead.
          * @tparam TempsPerFunctor vector of vectors containing the list of temporaries written per esf
-         * @tparam RangeSizes ranges associated to each esf (i.e. due to read access patterns of later esf's)
+         * @tparam ExtendSizes extents associated to each esf (i.e. due to read access patterns of later esf's)
          */
-        template <typename TempsPerFunctor, typename RangeSizes>
-        struct associate_ranges {
+        template <typename TempsPerFunctor, typename ExtendSizes>
+        struct associate_extents {
             template <typename Temp>
             struct is_temp_there {
                 template <typename TempsInEsf>
@@ -182,20 +182,20 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT(( boost::mpl::not_<typename boost::is_same<iter, typename boost::mpl::end<TempsPerFunctor>::type >::type >::type::value ) ,
                                       "Temporary not found in the list of temporaries" );
 
-                typedef typename boost::mpl::at<RangeSizes, typename iter::pos>::type type;
+                typedef typename boost::mpl::at<ExtendSizes, typename iter::pos>::type type;
             };
         };
 
         /**
-         * @brief metafunction that computes the list of ranges associated to each functor.
+         * @brief metafunction that computes the list of extents associated to each functor.
          * It assumes the temporary is written only by one esf.
          * TODO This assumption is probably wrong?, a temporary could be written my multiple esf concatenated. The algorithm
-         * we need to use here is find the maximum range associated to a temporary instead.
+         * we need to use here is find the maximum extent associated to a temporary instead.
          * @tparam TempsPerFunctor vector of vectors containing the list of temporaries written per esf
-         * @tparam RangeSizes ranges associated to each esf (i.e. due to read access patterns of later esf's)
+         * @tparam ExtendSizes extents associated to each esf (i.e. due to read access patterns of later esf's)
          */
-        template <typename TMap, typename Temp, typename TempsPerFunctor, typename RangeSizes>
-        struct associate_ranges_map {
+        template <typename TMap, typename Temp, typename TempsPerFunctor, typename ExtendSizes>
+        struct associate_extents_map {
             template <typename TTemp>
             struct is_temp_there {
                 template <typename TempsInEsf>
@@ -216,7 +216,7 @@ namespace gridtools {
                 TMap,
                 typename boost::mpl::insert<
                     TMap,
-                    boost::mpl::pair<Temp, typename boost::mpl::at<RangeSizes, typename iter::pos>::type>
+                    boost::mpl::pair<Temp, typename boost::mpl::at<ExtendSizes, typename iter::pos>::type>
                     >::type
                 >::type type;
 

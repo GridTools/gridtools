@@ -9,8 +9,11 @@
 #include "../common/gt_assert.hpp"
 #include "../common/host_device.hpp"
 #include "../common/defs.hpp"
+#include "../common/array.hpp"
+#include "stencil-composition/accessor_fwd.hpp"
 #ifdef CXX11_ENABLED
-#include <tuple>
+#include "generic_metafunctions/gt_get.hpp"
+#include "common/generic_metafunctions/is_variadic_pack_of.hpp"
 #endif
 #include "generic_metafunctions/gt_expand.hpp"
 #include "generic_metafunctions/accumulate.hpp"
@@ -150,7 +153,7 @@ namespace gridtools {
         GT_FUNCTION
         static auto constexpr select(T & ... args) -> typename remove_refref<decltype(std::template get<layout_vector[I]>(std::make_tuple(args ...)))>::type {
 
-            GRIDTOOLS_STATIC_ASSERT((accumulate(logical_and(), boost::is_integral<T>::type::value ...)), "wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_variadic_pack_of(boost::is_integral<T>::type::value ...)), "wrong type");
             return  gt_get<layout_vector[I]>::apply( args ... );
 
         }
@@ -160,7 +163,8 @@ namespace gridtools {
         static First
         constexpr
         select(First & f, T & ... args) {
-            GRIDTOOLS_STATIC_ASSERT((boost::is_integral<First>::type::value && accumulate(logical_and(), boost::is_integral<T>::type::value ...)), "wrong type");
+            GRIDTOOLS_STATIC_ASSERT((boost::is_integral<First>::type::value &&
+                                     is_variadic_pack_of(boost::is_integral<T>::type::value ...)), "wrong type");
             return  gt_get<boost::mpl::at_c<layout_vector_t, I>::type::value>::apply( f, args... );
         }
 #endif // __CUDACC__
@@ -317,23 +321,20 @@ namespace gridtools {
             \tparam[in] Indices List of argument where to return the found value
             \param[in] indices List of values (length must be equal to the length of the layout_map length)
         */
-        // template <ushort_t I, typename T, T DefaultVal, int_t Index, int_t NDim>
-        // GT_FUNCTION
-        // static constexpr T find_val(offset_tuple<Index, NDim> const& indices) {
-        template <ushort_t I, typename T, T DefaultVal, typename Tuple, typename boost::enable_if<is_arg_tuple<Tuple >, int>::type=0 >
+        template <ushort_t I, typename T, T DefaultVal, typename Accessor, typename boost::enable_if<is_arg_tuple<Tuple >, int>::type=0 >
         GT_FUNCTION
-        static constexpr T find_val(Tuple const& indices) {
+        static constexpr T find_val(Accessor const& indices) {
 
 // #ifdef PEDANTIC
-            GRIDTOOLS_STATIC_ASSERT(length >= Tuple::n_dim, "pedantic check: an accessor's dimension is larger than the corresponding storage space dimension");
-            GRIDTOOLS_STATIC_ASSERT(length <= Tuple::n_dim, "pedantic check: an accessor's dimension is smaller than the corresponding storage space dimension");
+            GRIDTOOLS_STATIC_ASSERT(length >= Accessor::n_dim, "pedantic check: an accessor's dimension is larger than the corresponding storage space dimension");
+            GRIDTOOLS_STATIC_ASSERT(length <= Accessor::n_dim, "pedantic check: an accessor's dimension is smaller than the corresponding storage space dimension");
 // #endif
-            GRIDTOOLS_STATIC_ASSERT((is_arg_tuple<Tuple >::value), "the find_val method is used with tuples of type other than accessor");
-            GRIDTOOLS_STATIC_ASSERT((Tuple::n_dim-pos_<I>::value-1>=0), "write a message here");
+            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "the find_val method is used with tuples of type other than accessor");
+            GRIDTOOLS_STATIC_ASSERT((Accessor::n_dim-pos_<I>::value-1>=0), "write a message here");
             return ((pos_<I>::value >= length)) ?
                 DefaultVal
                 :
-                indices.template get<Tuple::n_dim-pos_<I>::value-1>();
+                indices.template get<Accessor::n_dim-pos_<I>::value-1>();
             //this calls arg_decorator::get
         }
 

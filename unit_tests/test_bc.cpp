@@ -1,7 +1,7 @@
 #define PEDANTIC_DISABLED
 
 #include "gtest/gtest.h"
-#include "stencil-composition/make_computation.hpp"
+#include "stencil-composition/stencil-composition.hpp"
 using namespace gridtools;
 using namespace enumtype;
 
@@ -13,7 +13,7 @@ typedef interval<level<0,-2>, level<1,1> > axis;
 
    struct implementing the minimal interface in order to be passed as an argument to the user functor.
 */
-struct boundary{
+struct boundary : clonable_to_gpu<boundary> {
 
     boundary(){}
     //device copy constructor
@@ -31,7 +31,7 @@ struct boundary{
 };
 
 struct functor{
-    typedef accessor<0,range<0,0,0,0> > sol;
+    typedef accessor<0, enumtype::inout, extent<0,0,0,0> > sol;
     typedef generic_accessor<1> bd;
     typedef boost::mpl::vector<sol> arg_list;
 
@@ -44,10 +44,16 @@ struct functor{
 
 TEST(test_bc, boundary_conditions) {
 
-    typedef storage_info< layout_map<0,1,2> > meta_t;
+#ifdef __CUDACC__
+    typedef backend<Cuda, Block> backend_t;
+#else
+    typedef backend<Host, Naive> backend_t;
+#endif
+
+    typedef typename backend_t::storage_info<0, layout_map<0,1,2> > meta_t;
     meta_t meta_(10,10,10);
-    typedef gridtools::backend<Host, Naive>::storage_type<float_type, meta_t >::type storage_type;
-    storage_type sol_(meta_);
+    typedef backend_t::storage_type<float_type, meta_t >::type storage_type;
+    storage_type sol_(meta_, 0.);
 
     sol_.initialize(2.);
 
@@ -55,7 +61,7 @@ TEST(test_bc, boundary_conditions) {
 
     halo_descriptor di=halo_descriptor(0,1,1,9,10);
     halo_descriptor dj=halo_descriptor(0,1,1,1,2);
-    coordinates<axis> coords_bc(di, dj);
+    grid<axis> coords_bc(di, dj);
     coords_bc.value_list[0] = 0;
     coords_bc.value_list[1] = 1;
 
@@ -64,8 +70,12 @@ TEST(test_bc, boundary_conditions) {
     domain_type<boost::mpl::vector<p_sol, p_bd> > domain
         (boost::fusion::make_vector(&sol_, &bd_));
 
-    auto bc_eval =
-        make_computation<gridtools::backend<Host, Naive> >
+#ifdef __CUDACC__
+    computation* bc_eval =
+#else
+        boost::shared_ptr<computation> bc_eval =
+#endif
+        make_computation< backend_t >
         (
             make_mss
             (
@@ -74,14 +84,22 @@ TEST(test_bc, boundary_conditions) {
             , domain, coords_bc
             );
 
+    bc_eval->ready();
+    bc_eval->steady();
+    bc_eval->run();
+    bc_eval->finalize();
+
+    bool result=true;
     for (int i=0; i<10; ++i)
         for (int j=0; j<10; ++j)
             for (int k=0; k<10; ++k)
             {
                 double value=2.;
-                if(j==0)
+                if( i>0 && j==1 && k<2)
                     value += 10.;
-                assert(sol_(i,j,k)==value);
+                if(sol_(i,j,k) != value)
+                    result=false;
             }
 
+    EXPECT_TRUE(result);
 }

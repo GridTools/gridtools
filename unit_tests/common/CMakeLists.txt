@@ -5,6 +5,9 @@ FILE(GLOB_RECURSE INC_ALL "../../include/common/[a-z]*.hpp")
 
 SET(COMMON_UNITTEST_SOURCES meta_array_test.cpp ${INC_ALL})
 
+if(ENABLE_CXX11)
+    SET(COMMON_UNITTEST_SOURCES ${COMMON_UNITTEST_SOURCES} test_array.cpp explode_array_test.cpp)
+endif()
 
 ### Executables
 #CPU tests

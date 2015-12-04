@@ -53,11 +53,11 @@ namespace gridtools {
 
             typedef typename run_functor_arguments_t::local_domain_t local_domain_t;
             typedef typename run_functor_arguments_t::iterate_domain_t iterate_domain_t;
-            typedef typename run_functor_arguments_t::coords_t coords_t;
+            typedef typename run_functor_arguments_t::grid_t grid_t;
 
             GT_FUNCTION
-            explicit run_f_on_interval_base(iterate_domain_t & domain, coords_t const& coords)
-                : m_coords(coords)
+            explicit run_f_on_interval_base(iterate_domain_t & domain, grid_t const& grid)
+                : m_grid(grid)
                 , m_domain(domain)
             {}
 
@@ -69,22 +69,22 @@ namespace gridtools {
 
                 //check that the axis specified by the user are containing the k interval
                 GRIDTOOLS_STATIC_ASSERT(
-                    (level_to_index<typename coords_t::axis_type::FromLevel>::value <= Interval::first::value &&
-                    level_to_index<typename coords_t::axis_type::ToLevel>::value >= Interval::second::value) ,
-                    "the k interval exceeds the axis you specified for the coordinates instance");;
+                    (level_to_index<typename grid_t::axis_type::FromLevel>::value <= Interval::first::value &&
+                    level_to_index<typename grid_t::axis_type::ToLevel>::value >= Interval::second::value) ,
+                    "the k interval exceeds the axis you specified for the grid instance");
 
 
-                typedef iteration_policy<from_t, to_t, execution_engine::type::iteration> iteration_policy;
+                typedef iteration_policy<from_t, to_t, zdim_index_t::value, execution_engine::type::iteration> iteration_policy_t;
 
-                uint_t const from=m_coords.template value_at<from_t>();
-                uint_t const to=m_coords.template value_at<to_t>();
+                uint_t const from=m_grid.template value_at<from_t>();
+                uint_t const to=m_grid.template value_at<to_t>();
 
                 static_cast<RunFOnIntervalImpl*>(const_cast<run_f_on_interval_base<RunFOnIntervalImpl>* >(this))->
-                        template k_loop<iteration_policy, Interval>(from, to);
+                        template k_loop<iteration_policy_t, Interval>(from, to);
             }
 
         protected:
-            coords_t const &m_coords;
+            grid_t const &m_grid;
             iterate_domain_t &m_domain;
         };
 

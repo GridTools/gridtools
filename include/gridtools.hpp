@@ -19,9 +19,9 @@
 #include <boost/mpl/contains.hpp>
 #include <boost/utility/enable_if.hpp>
 
+#include "common/defs.hpp"
 #include<communication/GCL.hpp>
 #include "common/gt_assert.hpp"
-#include "common/defs.hpp"
 #include "common/host_device.hpp"
 #include "common/array.hpp"
 #include "common/layout_map.hpp"

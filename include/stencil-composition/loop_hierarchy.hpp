@@ -17,6 +17,17 @@
 
 namespace gridtools{
 
+    namespace _impl {
+        template <ushort_t Index, typename IterateDomain, typename VT>
+        typename boost::enable_if<typename is_positional_iterate_domain<IterateDomain>::type, void>::type
+        reset_index_if_positional(IterateDomain & itdom, VT value) {
+            itdom.template reset_index<Index>(value);
+        }
+        template <ushort_t Index, typename IterateDomain, typename VT>
+        typename boost::disable_if<typename is_positional_iterate_domain<IterateDomain>::type, void>::type
+        reset_index_if_positional(IterateDomain &, VT) { }
+    } // namespace _impl
+
     /**@class holding one loop
 
        It consists of the loop bounds, the step (whose default value is set to 1), the execution type (e.g. forward or backward), and an index identifying the space dimension this loop is acting on.
@@ -187,6 +198,7 @@ namespace gridtools{
 #if defined(VERBOSE) && !defined(NDEBUG)
                 std::cout<<"iteration "<<i<<", index "<<First::s_id<<std::endl;
 #endif
+                _impl::reset_index_if_positional<First::s_id>(it_domain, i);
                 next::apply(it_domain, kernel);
                 it_domain.set_index(restore_index);//redundant in the last iteration
                 it_domain.template increment<First::s_id, static_uint<First::s_step> >();//redundant in the last iteration
@@ -197,7 +209,7 @@ namespace gridtools{
         /**@brief updating the restore_index with the current value*/
         template <typename IterateDomain>
         GT_FUNCTION
-        void update_index( IterateDomain const& it_domain ){
+        void update_index( IterateDomain & it_domain ){
 #if defined(VERBOSE) && !defined(NDEBUG)
             std::cout<<"updating the index for level "<<First::s_id<<std::endl;
 #endif
@@ -234,9 +246,9 @@ namespace gridtools{
 #else
         loop_hierarchy0
 #endif
-(value_type const& up_bound, value_type const& low_bound ): loop(up_bound, low_bound)
-            {
-            }
+            (value_type const& up_bound, value_type const& low_bound ): loop(up_bound, low_bound)
+        {
+        }
 
         GT_FUNCTION
         constexpr
@@ -260,6 +272,7 @@ namespace gridtools{
 #if defined(VERBOSE) && !defined(NDEBUG)
                 std::cout<<"iteration "<<i<<", index (last) "<<First::s_id<<std::endl;
 #endif
+                _impl::reset_index_if_positional<First::s_id>(it_domain, i);
                 kernel();
                 it_domain.set_index(restore_index);//redundant in the last iteration
                 it_domain.template increment<First::s_id, static_uint<First::s_step> >();
@@ -270,11 +283,10 @@ namespace gridtools{
         /**@brief updating the restore_index with the current value*/
         template <typename IterateDomain>
         GT_FUNCTION
-        void update_index( IterateDomain const& it_domain ){
+        void update_index( IterateDomain & it_domain ){
 #if defined(VERBOSE) && !defined(NDEBUG)
             std::cout<<"updating the index for level "<<First::s_id<<std::endl;
 #endif
-
             it_domain.get_index(restore_index);//redundant in the last iteration
         }
 
