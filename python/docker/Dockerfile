@@ -28,7 +28,7 @@ RUN apt-get install -y autotools-dev        \
                        python3-dev          \
                        python3-pip          \
                        qt-sdk               \
-		       qt4-bin-dbg          \
+                       qt4-bin-dbg          \
                        wget                 \
                     --no-install-recommends     && \
     rm -rf /var/lib/apt/lists
@@ -59,7 +59,7 @@ RUN wget -q -O boost_1_58_0.tar.gz 'http://downloads.sourceforge.net/project/boo
     tar xzvf boost_1_58_0.tar.gz                                                        && \
     cd boost_1_58_0                                                                     && \
     ./bootstrap.sh --with-libraries=timer,system,chrono --exec-prefix=/usr/local        && \
-    ./b2 -j4 cxxflags="-std=c++11" install						&& \
+    ./b2 -j4 cxxflags="-std=c++11" install                                              && \
     echo "$BOOST_ROOT/lib" >> /etc/ld.so.conf.d/boost-1.58.0.conf                       && \
     ldconfig -v                                                                         && \
     cd ..                                                                               && \
