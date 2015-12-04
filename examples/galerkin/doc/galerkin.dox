@@ -1,9 +1,9 @@
 /*!
-\page Galerkin  Galerking Discretization of a Laplace Operator
+\page Galerkin  Galerking Discretization
 
-This example shows how GridTools implements the Galerkin Finite Elements discretization, using tensor product brick elements.
+This and the following examples shows how GridTools implements several flavours of the Galerkin Finite Elements discretization, using tensor product brick elements.
 
-The goal of this example is to show as a proof of concept the possibility of using a third party library
+The goal of these examples is to show as a proof of concept the possibility of using a third party library
 (in this case the Intrepid packege in Trilinos) with the numerical tools and basic  definitions already in place, in order to build a custom
 finite elements assembly of a differential operator using gridtools, thus taking advantage of all the advanced multi-platform
 optimizations of the library.
@@ -179,101 +179,11 @@ The Galerkin discretization infrastructure is implemented in several files:
   current one), its determinant, and its inverse. This structure thus depends exclusively on the
   geometric map, and not on the finite elements used for the discretization of the fields.
 
-With all this machinery in place we can easily implement a finite element discretization
-of an arbitrary equation. The following files provide an example of how the user code would look like:
-- \ref mass.cpp "mass.cpp" assembly of a mass matrix
-- \ref stiffness.cpp "stiffness.cpp" assembly of a Laplacian
 
-\section sec_code Code Step by Step
+  \subpage Laplace
 
-We present in what follows the user interface implemented in the file
-\ref gridtools::stiffness.cpp "stiffness.cpp", explaining the syntax and the emphasyzing the
-flexibility of the programming model.
+  \subpage Gather
 
-As usual in GridTools the user program is split in two parts:
-- One defining the kernel functors, which can be arranged in a tree-like structure expressing
-  the dependencies, and are executed on the backend (device).
-- One implementing the main function, executing on the frontend (host), preparing and managing the
-  resourses and the kernel launches.
-
-\subsection ssec_device Device
-
-We begin by describing the first part, in which we implement the main kernel functor. As mentioned in
-the above section, the standard machinery needed to compute the standard finite elements integrals
-(i.e. the Jacobian, its determinant and its inverse) is
-implemented already the library, precisely in the file \ref assembly.hpp "assembly.hpp",
-which is included here.
-
-The remaining part is the computation of the discretized stiffness matrix.
-This computation is performed by means of the following functor
-
-\snippet galerkin/examples/stiffness.cpp integration
-which computes the following local integral
-\f[ \int_{\hat\Omega} (J^{-1}\nabla\phi) \cdot (J^{-1}\nabla\psi) |J|\;d{\hat\Omega} .\f]
-
-The input arguments to this functor (i.e. the \ref gridtools::accessor "accessors"), are listed in the snippet below
-\snippet galerkin/examples/stiffness.cpp accessors
-and represent in order the Jacobian determinant, the Jacobian inverse matrix, the quardature weights, the output stiffness matrix,
-the local gradient of the basis function computed in the cubature points, and the gradient of the test function computed
-in the cubature points. These arguments are gouped as usual in the MPL vector \ref stiffness::arg_list arg_list.
-
-After the arguments definition the Do method is defined as usual, and the innermost loop of the matrix assembly
-is directly exposed in the user code.
-\snippet galerkin/examples/stiffness.cpp Do_stiffness
-
-\subsection ssec_host Host
-
-Let us describe now the part which is concerning the host, which starts with few useful type definitions
-\snippet galerkin/examples/stiffness.cpp definitions
-Here we define the type of storage where the stiffness matrix will be allocated (matrix_type). It consists of a 5D storage, since the first 3
-dimensions identify an element, the 4th identifies a specific degree of freedom in the element, and the last dimension spans the
-space dimensionality.
-
-The second and third type definitions (fe and geo_map) are used by the user to select the discretization used for the solution and for
-the interpolation of the domain. In this case we use Lagrange polynomial of order one for both, just to keep things simple. The three template
-arguments specified are:
-  - the order of the basis (determining the number of degrees of freedom and the accuracy)
-  - \ref gridtools::enumtype::Basis "the type of the basis"
-  - \ref gridtools::enumtype::Shape "the shape of the elemental cell"
-
-In the next line we define the \ref gridtools::cubature "cubature", giving as first template argument the minimum polynomial order that we want it to integrate exactly,
-while the second template argument is the shape type.
-
-Then the types geo_t and discr_t are the structures responsible of computing all the local contributions to the assembly, such as derivatives of the
-basis functions evaluated in the quadrature points.
-
-The last definition is an alias for the \ref assembly "assembly infrastructure", which is responsible for computing the Jacobian-related quantities and
-thus only depends on the geometric map.
-
-We proceed with the instantiation of the instances of type geo_t and discr_t, and specify which operations are to be computed on the basis functions
-(the possible values are OPERATOR_GRAD, OPERATOR_VALUE, OPERATOR_DIV, OPERATOR_CURL, or OPERATOR_DN where N is a number from 1 to 10).
-\snippet galerkin/examples/stiffness.cpp instantiation
-The line
-\verbation
-geo.compute(Intrepid::OPERATOR_GRAD);
-\endverbatim
-is added by default and can therefore be omitted.
-We instantiate also the assembler
-\snippet galerkin/examples/stiffness.cpp instantiation
-
-In the following snippet we compute a equispaced cartesian grid, which would be substituted by user provided grids in the applications.
-\snippet galerkin/examples/stiffness.cpp grid
-
-We then proceed with the instantiation and initialization of the stiffness matrix
-\snippet galerkin/examples/stiffness.cpp instantiation_stiffness
-
-We remark here that one could easily define and instantiate with the same strategy all the needed tools to perform integrals on the elements boundary.
-This can be achieved in the following snippet
-\snippet galerkin/examples/stiffness.cpp boundary
-
-The following part consists in the usual placeholders definitions
-\snippet galerkin/examples/stiffness.cpp placeholders
-We remark that instead of creating an instance of \ref gridtools::domain_type "domain_type" as usually done in GridTools, we call the method
-\ref assembly::domain "assembly::domain" which appends the user defined placeholders to those already defined by the assembler.
-
-The description of the computation defines a series of kernel functors each depending on the previous one
-\snippet galerkin/examples/stiffness.cpp computation
-\ref assembly::update_jac "update_jac", \ref assembly::det "det", and  \ref assembly::inv "inv" are
-provided by the assembly infrastructure, while the stiffness functor is the one we described in the previous section.
+  \subpage DG
 
 */

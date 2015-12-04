@@ -1,5 +1,5 @@
 /**
-\page DG
+\page DG Discontinuous Galerkin
 
 Here we provide the details about the implementation of a Discontinuous Galerkin discretization using GridTools
 

@@ -3,6 +3,7 @@
 #include "arg.hpp"
 #include "dimension.hpp"
 #include "../common/generic_metafunctions/all_integrals.hpp"
+#include "../common/generic_metafunctions/static_if.hpp"
 
 /**
    @file
@@ -167,12 +168,16 @@ namespace gridtools {
         /**@brief returns the offset at a specific index Idx
 
            the lookup for the index Idx is done at compile time, i.e. this method returns in constant time
-         */
+        */
         template<short_t Idx>
         GT_FUNCTION
         constexpr
         const int_t get() const {
-            return boost::is_same<typename boost::mpl::find<coordinates, static_int<Idx> >::type, typename boost::mpl::end<coordinates>::type >::type::value ? m_args_runtime.template get<Idx>() : s_args_constexpr.template get<Idx>() ;
+            return static_if
+                <boost::is_same<typename boost::mpl::find<coordinates, static_int<Idx> >::type
+                                , typename boost::mpl::end<coordinates>::type >::type::value>
+                ( m_args_runtime.template get<Idx>()
+                  , s_args_constexpr.template get<Idx>()) ;
         }
     };
 
@@ -182,9 +187,9 @@ namespace gridtools {
                                   , ArgType::n_dim> accessor_mixed<ArgType, Pair...>::s_args_constexpr;
 
 
-/**this struct allows the specification of SOME of the arguments before instantiating the offset_tuple.
-   It is a language keyword.
-*/
+    /**this struct allows the specification of SOME of the arguments before instantiating the offset_tuple.
+       It is a language keyword.
+    */
     template <typename Callable, typename ... Known>
     struct alias{
 
@@ -204,7 +209,7 @@ namespace gridtools {
         using set=accessor_mixed< Callable, pair_<Known::direction,Args> ... >;
 
         /**@brief constructor
-       \param args are the offsets which are already known*/
+           \param args are the offsets which are already known*/
         template<typename ... Args>
         GT_FUNCTION
         constexpr alias( Args/*&&*/ ... args ): m_knowns{args ...} {
@@ -217,11 +222,11 @@ namespace gridtools {
             the dimension class. Together with the m_knowns offsets form the arguments to be
             passed to the Callable functor (which is normally an instance of offset_tuple)
         */
-    template<typename ... Unknowns>
-    GT_FUNCTION
-    Callable/*&&*/ operator() ( Unknowns/*&&*/ ... unknowns  ) const
-    {
-        return Callable(dimension<Known::direction> (m_knowns[boost::mpl::find<dim_vector, Known>::type::pos::value]) ... , unknowns ...);}
+        template<typename ... Unknowns>
+        GT_FUNCTION
+        Callable/*&&*/ operator() ( Unknowns/*&&*/ ... unknowns  ) const
+        {
+            return Callable(dimension<Known::direction> (m_knowns[boost::mpl::find<dim_vector, Known>::type::pos::value]) ... , unknowns ...);}
 
     private:
         //store the list of offsets which are already known on an array

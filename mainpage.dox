@@ -694,28 +694,12 @@ of a high latency interconnect</b>.</span></p>
  */
 
 /** \page Concepts Concepts
-
-    Concepts are not classes present in the library. They are
-    decsription of interfaces. If the user of the library implements a
-    class according to a concept, that class can be used in the
-    library as any regular library class. For instance, users can
-    define their own 3D processor grids and use them with the halo
-    eachange communication patterns provided by the library.
-
-    \section proc_grid_concept Processor Grid Concept
-
-    A process grid is a class that provides the interfaces of the
-    generic class (concept) \link proc_grid_2D_concept \endlink for 2D
-    case and \link proc_grid_3D_concept \endlink for 3D case
-
-    \section utils_concepts Utils Concepts
-    \link boollist_concept \endlink
 */
 
 /*! \page GDL Galerking Discretization Library
 
     Details can be found in
-    \subpage Details
+    \subpage Galerkin
 
 */
 

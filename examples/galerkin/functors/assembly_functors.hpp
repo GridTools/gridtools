@@ -294,5 +294,56 @@ namespace functors{
     };
     // [assemble]
 
+    /* assigns a field to a constant value**/
+    //[zero]
+    template< ushort_t Dim, typename T, T Value>
+    struct assign;
+
+    template< typename T, T Value>
+    struct assign<3, T, Value>{
+        typedef accessor<2, range<0,0,0,0> , 3> field;
+        typedef boost::mpl::vector< field > arg_list;
+
+        template <typename Evaluation>
+        GT_FUNCTION
+        static void Do(Evaluation const & eval, x_interval) {
+                    eval(field())=Value;
+        }
+    };
+
+    template< typename T, T Value>
+    struct assign<4,T,Value>{
+        typedef accessor<0, range<0,0,0,0> , 4> field;
+        typedef boost::mpl::vector< field > arg_list;
+
+        template <typename Evaluation>
+        GT_FUNCTION
+        static void Do(Evaluation const & eval, x_interval) {
+
+            uint_t const num_=eval.get().get_storage_dims(field())[3];
+
+            for(short_t I=0; I<num_; I++)
+                eval(field(dimension<4>(I)))=Value;
+        }
+    };
+
+    template< typename T, T Value>
+    struct assign<5,T,Value>{
+        typedef accessor<0, range<0,0,0,0> , 5> field;
+        typedef boost::mpl::vector< field > arg_list;
+
+        template <typename Evaluation>
+        GT_FUNCTION
+        static void Do(Evaluation const & eval, x_interval) {
+
+            uint_t const dim_1_=eval.get().get_storage_dims(field())[3];
+            uint_t const dim_2_=eval.get().get_storage_dims(field())[4];
+
+            for(short_t I=0; I<dim_1_; I++)
+                for(short_t J=0; J<dim_2_; J++)
+                    eval(field(dimension<4>(I), dimension<5>(J)))=Value;
+        }
+    };
+    //[zero]
 
 } // namespace functors

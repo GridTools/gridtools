@@ -264,6 +264,12 @@ namespace gridtools {
             }
 
 
+        GT_FUNCTION
+        void swap_pointers(base_storage& other){
+            for(ushort_t i=0; i<field_dimensions; ++i)
+                m_fields[i].swap(other.m_fields[i]);
+        }
+
         /** @brief initializes with a lambda function
 
             NOTE: valid for 3D storages only

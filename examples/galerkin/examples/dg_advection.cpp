@@ -177,8 +177,12 @@ int main(){
 
             // computing flux/discretize
 
+            // initialize result=0
+            , make_esf< functors::assign<4,int,0> >( p_result() )
             // compute Lax-Friedrich flux (communication-gather) result=flux;
             , dt::lax_friedrich<flux>::esf(p_u(), p_result())
+            // integrate the flux: result=M_bd*flux
+            , make_esf< functors::matvec_bd >( p_result(), dt::p_bd_mass(), p_result() )
             // result+=M*u
             , make_esf< functors::matvec >( p_u(), p_mass(), p_result() )
             // result+=A*u
@@ -194,7 +198,8 @@ int main(){
 
     for(int i=0; i<T; ++i){
         computation->run();
-        // computation->cycle();
+        //simple first order time discretization
+        u_.swap_pointers(result_);
     }
     computation->finalize();
     //![computation]

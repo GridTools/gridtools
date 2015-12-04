@@ -190,6 +190,20 @@ namespace gridtools {
         GT_FUNCTION
         int get_size(){return m_size;}
 
+        GT_FUNCTION
+        void swap(hybrid_pointer& other){
+            super::swap(other);
+            T* tmp = m_gpu_p;
+            m_gpu_p = other.m_gpu_p;
+            other.m_gpu_p = tmp;
+            tmp = m_pointer_to_use;
+            m_pointer_to_use = other.m_pointer_to_use;
+            other.m_pointer_to_use = tmp;
+            uint_t tmp_size = m_size;
+            m_size = other.m_size;
+            other.m_size = tmp_size;
+        }
+
         /** the standard = operator */
         hybrid_pointer operator =(hybrid_pointer const& other){
             this->m_cpu_p = other.m_cpu_p;

@@ -3,9 +3,7 @@
 */
 #define PEDANTIC_DISABLED
 #define HAVE_INTREPID_DEBUG
-//! [assembly]
-#include "../numerics/assembly.hpp"
-//! [assembly]
+#include "../functors/assembly_functors.hpp"
 #include "gather_reference.hpp"
 #include <tools/verifier.hpp>
 
@@ -32,9 +30,10 @@ int main(){
 
     //![instantiation_stiffness]
     //defining the stiffness matrix: d1xd2xd3 elements
-    matrix_storage_info_t meta_(d1,d2,d3,geo_map::basisCardinality);
-    matrix_type in_(meta_, 1., "in");
-    matrix_type out_(meta_, 0., "out");
+    matrix_storage_info_t meta_in_(d1,d2,d3,geo_map::basisCardinality);
+    matrix_storage_info_t meta_out_(d1,d2,d3,geo_map::bd_geo_map::basisCardinality*4);
+    matrix_type in_(meta_in_, 1., "in");
+    matrix_type out_(meta_out_, 0., "out");
     for (int i=0; i<d1; ++i)
         for (int j=0; j<d2; ++j)
             for (int k=1; k<d3; ++k)

@@ -69,9 +69,6 @@ struct stiffness {
 //[integration]
 
 
-// [boundary integration]
-
-
 int main(){
     //![definitions]
     //dimensions of the problem (in number of elements per dimension)
