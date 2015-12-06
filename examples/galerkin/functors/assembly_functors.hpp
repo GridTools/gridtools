@@ -352,6 +352,65 @@ namespace functors{
                 }
         }
     };
+
+    // TODO: this is a low performance temporary global assembly functor
+    // Stencil points correspond to global dof pairs (P,Q)
+    struct global_assemble {
+
+        using in=accessor<0, range<0,0,0,0> , 5> ;
+        using in_map=accessor<1, range<0,0,0> , 4>;
+        using out=accessor<2, range<0,0,0,0> , 5> ;
+        using arg_list=boost::mpl::vector<in, in_map, out> ;
+
+        template <typename Evaluation>
+        GT_FUNCTION
+        static void Do(Evaluation const & eval, x_interval) {
+
+        	// Retrieve elements dof grid dimensions and number of dofs per element
+            const uint_t d1=eval.get().get_storage_dims(in())[0];
+            const uint_t d2=eval.get().get_storage_dims(in())[1];
+            const uint_t d3=eval.get().get_storage_dims(in())[2];
+            const uint_t basis_cardinality=eval.get().get_storage_dims(in())[3];
+
+            // Retrieve global dof pair of current stencil point
+            const u_int my_P = eval.i();
+            const u_int my_Q = eval.j()%eval.get().get_storage_dims(out())[0];
+
+            // Loop over element dofs
+        	for(u_int i=0;i<d1;++i)
+        	{
+            	for(u_int j=0;j<d2;++j)
+            	{
+                	for(u_int k=0;k<d3;++k)
+                	{
+                        // Loop over single element dofs
+        				for(u_short l_dof1=0;l_dof1<basis_cardinality;++l_dof1)
+        				{
+        					const u_int P=eval(!in_map(i,j,k,l_dof1));
+
+        					if(P == my_P)
+        					{
+								for(u_short l_dof2=0;l_dof2<basis_cardinality;++l_dof2)
+								{
+									const u_int Q=eval(!in_map(i,j,k,l_dof2));
+
+									if(Q == my_Q)
+									{
+										// Current local dof pair corresponds to global dof
+										// stencil point, update global matrix
+										eval(out(0,0,0,0,0)) += eval(!in(i,j,k,l_dof1,l_dof2));
+									}
+								}
+        					}
+        				}
+                	}
+            	}
+        	}
+
+        }
+    };
+
+
     // [assemble]
 
 
