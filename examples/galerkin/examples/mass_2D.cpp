@@ -19,7 +19,7 @@ int main(){
 
     //![definitions]
     //defining the assembler, based on the Intrepid definitions for the numerics
-	using matrix_storage_info_t=storage_info< layout_tt<3,4> , __COUNTER__>;
+    using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<3,4> >;
     using matrix_type=storage_t< matrix_storage_info_t >;
     using fe=reference_element<1, Lagrange, Tri>;
     using geo_map=reference_element<1, Lagrange, Tri>;
@@ -113,7 +113,7 @@ int main(){
     auto domain=domain_tuple_.template domain<p_phi, p_dphi, p_mass>(fe_.val(), geo_.grad(), mass_);
     //![placeholders]
 
-    auto coords=coordinates<axis>({0, 0, 0, d1-1, d1},
+    auto coords=grid<axis>({0, 0, 0, d1-1, d1},
                             	  {0, 0, 0, d2-1, d2});
     coords.value_list[0] = 0;
     coords.value_list[1] = d3-1;

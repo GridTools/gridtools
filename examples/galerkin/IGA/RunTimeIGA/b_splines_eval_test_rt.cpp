@@ -41,9 +41,9 @@ struct bspline_struct
 {
     static const int n_args = 2;
 
-    typedef accessor<0, range<0, 0, 0, 0>, 3 > bsline_values;
+    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 3 > bsline_values;
 
-    typedef const accessor<1, range<0, 0, 0, 0>, 3 > csi;
+    typedef const accessor<1, enumtype::in, extent<0, 0, 0, 0>, 3 > csi;
 
     typedef boost::mpl::vector<bsline_values, csi> arg_list;
 
@@ -95,11 +95,11 @@ int main()
     #endif
 
     // Storage type definition
-    typedef gridtools::storage_info<layout_t_in, __COUNTER__> storage_type_csi_info;
+    typedef gridtools::storage_info<__COUNTER__, layout_t_in> storage_type_csi_info;
     typedef gridtools::BACKEND::storage_type<gridtools::float_type
                                              , storage_type_csi_info>::type storage_type_csi;
 
-    typedef gridtools::storage_info<layout_t_out, __COUNTER__> storage_type_bspline_basis_info;
+    typedef gridtools::storage_info< __COUNTER__, layout_t_out> storage_type_bspline_basis_info;
     typedef gridtools::BACKEND::storage_type<gridtools::float_type
                                              , storage_type_bspline_basis_info>::type storage_type_bspline_basis_values;
 

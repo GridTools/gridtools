@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 // [includes]
 #include "basis_functions.hpp"
 #include "../functors/assembly_functors.hpp"
@@ -8,13 +8,25 @@
 // [includes]
 #ifdef CXX11_ENABLED
 
+// template <typename ... Args>
+// struct make_domain_type{
+//     typedef typename domain_type<boost::mpl::vector<Args ... > > type;
+// };
+
+// template<typename DomainArgs ..., typename PlaceHolders ...>
+// struct concatenate<make_domain_type<DomainArgs ...>, PlaceHolders ...>{
+//     typedef typename make_domain_type<DomainArgs ..., PlaceHolders ...> type;
+// }
+
+
+
 using namespace gridtools;
 template <typename Geometry>
 struct assembly_base{
 
     using geometry_t = Geometry;
-    using grid_type_info=storage_info< layout_tt<3,4>, __COUNTER__  >;
-    using grid_map_type_info=storage_info< layout_tt<3>, __COUNTER__  >;
+    using grid_type_info=storage_info< __COUNTER__, layout_tt<3,4>  >;
+    using grid_map_type_info=storage_info< __COUNTER__, layout_tt<3>  >;
     using grid_type=storage_t< grid_type_info >;
     using grid_map_type=storage_t< grid_map_type_info >;
 
@@ -32,7 +44,7 @@ private:
 
 public:
 
-    assembly_base( uint_t d1, uint_t d2, uint_t d3, uint_t n_dofs ):
+    assembly_base( uint_t d1, uint_t d2, uint_t d3 ):
         m_d1(d1)
         , m_d2(d2)
         , m_d3(d3)

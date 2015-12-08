@@ -220,7 +220,6 @@ namespace gridtools {
                 m_fields[i].free_it();
         }
 
-#ifdef __CUDACC__
         /**@brief device copy constructor*/
         __device__
         base_storage(base_storage const& other)

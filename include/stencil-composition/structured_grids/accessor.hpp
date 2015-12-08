@@ -173,11 +173,11 @@ namespace gridtools {
         GT_FUNCTION
         constexpr
         const int_t get() const {
-            return static_if
-                <boost::is_same<typename boost::mpl::find<coordinates, static_int<Idx> >::type
-                                , typename boost::mpl::end<coordinates>::type >::type::value>
-                ( m_args_runtime.template get<Idx>()
-                  , s_args_constexpr.template get<Idx>()) ;
+            return
+                boost::is_same<typename boost::mpl::find<coordinates, static_int<Idx> >::type
+                                , typename boost::mpl::end<coordinates>::type >::type::value
+                ? m_args_runtime.template get<Idx>()
+                : s_args_constexpr.template get<Idx>() ;
         }
     };
 

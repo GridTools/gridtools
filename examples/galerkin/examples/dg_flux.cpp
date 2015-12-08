@@ -1,6 +1,14 @@
 /**
 \file
 */
+
+//this MUST be included before any boost include
+#define FUSION_MAX_VECTOR_SIZE 40
+#define FUSION_MAX_MAP_SIZE FUSION_MAX_VECTOR_SIZE
+#define BOOST_MPL_LIMIT_VECTOR_SIZE FUSION_MAX_VECTOR_SIZE
+#define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
+
+
 #define PEDANTIC_DISABLED
 #define HAVE_INTREPID_DEBUG
 //! [assembly]
@@ -21,11 +29,11 @@ struct integration {
     using fe=FE;
     using bd_cub=BoundaryCubature;
 
-    using jac_det=accessor< 0, range<0,0,0,0>, 4 >;
-    using weights=accessor< 1, range<0,0,0,0>, 3 >;
-    using out=accessor< 2, range<0,0,0,0>, 5 >;
-    using phi_trace=accessor< 3, range<0,0,0,0>, 3 >;
-    using psi_trace=accessor< 4, range<0,0,0,0>, 3 >;
+    using jac_det=accessor< 0, enumtype::in, extent<0,0,0,0>, 5 >;
+    using weights=accessor< 1, enumtype::in, extent<0,0,0,0>, 4 >;
+    using out=accessor< 2, enumtype::inout, extent<0,0,0,0>, 6 >;
+    using phi_trace=accessor< 3, enumtype::in, extent<0,0,0,0>, 3 >;
+    using psi_trace=accessor< 4, enumtype::in, extent<0,0,0,0>, 3 >;
     using arg_list=boost::mpl::vector<jac_det, weights, phi_trace, psi_trace, out> ;
 
     /** @brief compute the integral on the boundary of a field times the normals
@@ -40,9 +48,10 @@ struct integration {
         dimension<4>::Index dofI;
         dimension<5>::Index dofJ;
 
-        uint_t const num_cub_points=eval.get().get_storage_dims(jac_det())[3];
-        uint_t const basis_cardinality = eval.get().get_storage_dims(phi_trace())[3];
+        uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac_det());
+        uint_t const basis_cardinality = eval.get().template get_storage_dims<3>(phi_trace());
 
+        //NOTE: missing the loop on the faces for this example
         //loop on the basis functions (interpolation in the quadrature point)
         for(short_t P_i=0; P_i<basis_cardinality; ++P_i) // current dof
         {
@@ -64,7 +73,7 @@ int main(){
     using namespace enumtype;
     using namespace gridtools;
     //defining the assembler, based on the Intrepid definitions for the numerics
-    using matrix_storage_info_t=storage_info< layout_tt<3,4>,  __COUNTER__ >;
+    using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<3,4,5>>;
     using matrix_type=storage_t< matrix_storage_info_t >;
 
     using fe=reference_element<1, Lagrange, Hexa>;
@@ -74,7 +83,7 @@ int main(){
 
     //boundary
     using bd_cub_t = intrepid::boundary_cub<geo_map, cub::cubDegree>;
-    using bd_discr_t = intrepid::boundary_discr<bd_cub_t>;
+    using bd_discr_t = intrepid::boundary_discr<bd_cub_t, 1>;
     bd_cub_t bd_cub_;
     bd_discr_t bd_discr_(bd_cub_, 1);
 
@@ -99,9 +108,12 @@ int main(){
     as_base assembler_base(d1,d2,d3);
     as assembler(bd_discr_,d1,d2,d3);
 
-    using domain_tuple_t=domain_type_tuple<geo_t, bd_discr_t>
-    domain_tuple_t domain_tuple(assembler_base, assembler);
+    using domain_tuple_t=domain_type_tuple<as, as_base>;
+
+
+    domain_tuple_t domain_tuple(assembler, assembler_base);
     //![as_instantiation]
+
 
     //![grid]
     //constructing a structured cartesian grid
@@ -118,36 +130,38 @@ int main(){
 
     //![instantiation_stiffness]
     //defining the stiffness matrix: d1xd2xd3 elements
-    matrix_storage_info_t meta_(d1,d2,d3,fe::basisCardinality,fe::basisCardinality);
+    matrix_storage_info_t meta_(d1,d2,d3,fe::basisCardinality,fe::basisCardinality, 1/*faces*/);
     matrix_type mass_(meta_, 0., "mass");
 
-    using vector_storage_info_t=storage_info< layout_tt<3>,  __COUNTER__ >;
+    using vector_storage_info_t=storage_info< __COUNTER__, layout_tt<3,4> >;
     using vector_type=storage_t< vector_storage_info_t >;
-    vector_storage_info_t vec_meta_(d1,d2,d3,fe::basisCardinality);
+    vector_storage_info_t vec_meta_(d1,d2,d3,fe::basisCardinality, 1/*face*/);
     vector_type u_(vec_meta_, 2., "u");//initial solution
     vector_type jump_(vec_meta_, 0., "jump");
     vector_type flux_(vec_meta_, 0., "flux");
     vector_type integrated_flux_(vec_meta_, 0., "integrated flux");
 
+    //short notation
+    using dt=domain_tuple_t;
+
     //![placeholders]
     // defining the placeholder for the mass
-    typedef arg<as::size, matrix_type> p_mass;
+    typedef arg<dt::size, matrix_type> p_mass;
     // defining the placeholder for the local gradient of the element boundary face
-    typedef arg<as::size+1, bd_discr_t::grad_storage_t> p_bd_dphi;
+    typedef arg<dt::size+1, bd_discr_t::grad_storage_t> p_bd_dphi;
 
-    typedef arg<as::size+2, bd_discr_t::basis_function_storage_t> p_bd_phi;
-    typedef arg<as::size+3, vector_type> p_u;
-    typedef arg<as::size+4, vector_type> p_jump;
-    typedef arg<as::size+5, vector_type> p_flux;
-    typedef arg<as::size+6, vector_type> p_integrated_flux;
+    typedef arg<dt::size+2, bd_discr_t::basis_function_storage_t> p_bd_phi;
+    typedef arg<dt::size+3, vector_type> p_u;
+    typedef arg<dt::size+4, vector_type> p_jump;
+    typedef arg<dt::size+5, vector_type> p_flux;
+    typedef arg<dt::size+6, vector_type> p_integrated_flux;
 
     // appending the placeholders to the list of placeholders already in place
     auto domain=domain_tuple.template domain<p_mass, p_bd_dphi, p_bd_phi, p_u, p_jump, p_flux, p_integrated_flux>(mass_, bd_discr_.grad(), bd_discr_.val(), u_, jump_, flux_, integrated_flux_);
     //![placeholders]
 
-
-    auto coords=coordinates<axis>({1, 0, 1, d1-1, d1},
-        {1, 0, 1, d2-1, d2});
+    auto coords=grid<axis>({1, 0, 1, (uint_t)d1-1, (uint_t)d1},
+        {1, 0, 1, (uint_t)d2-1, (uint_t)d2});
     coords.value_list[0] = 0;
     coords.value_list[1] = d3-1;
 
@@ -157,23 +171,23 @@ int main(){
         (
             execute<forward>()
             // evaluate the cell Jacobian matrix on the boundary (given the basis functions derivatives in those points)
-            , make_esf<functors::update_bd_jac<bd_discr_t , enumtype::Hexa> >(as::p_grid_points(), p_bd_dphi(), as::p_bd_jac())
+            , make_esf<functors::update_bd_jac<bd_discr_t , enumtype::Hexa> >(dt::p_grid_points(), p_bd_dphi(), dt::p_bd_jac())
             // compute the normals on the quad points from the jacobian above (first 2 columns), unnecessary
-            , make_esf<functors::compute_face_normals<bd_discr_t> >(as::p_bd_jac(), as::p_ref_normals(), as::p_normals())
+            , make_esf<functors::compute_face_normals<bd_discr_t> >(dt::p_bd_jac(), dt::p_ref_normals(), dt::p_normals())
             // surface integral:
             // compute the measure for the surface integral
             //            |  / d(phi_x)/du   d(phi_x)/dv  1 \  |
             //   det(J) = | |  d(phi_y)/du   d(phi_y)/dv  1  | |
             //            |  \ d(phi_z)/du   d(phi_z)/dv  1 /  |
-            , make_esf<functors::measure<bd_discr_t, 2> >(as::p_bd_jac(), as::p_bd_measure())
+            , make_esf<functors::measure<bd_discr_t, 1> >(dt::p_bd_jac(), dt::p_bd_measure())
             // evaluate the mass matrix
-            , make_esf<integration<fe, bd_cub_t::bd_cub> >(as::p_bd_measure(), as::p_bd_weights(), p_mass(), p_bd_phi(), p_bd_phi()) //mass
+            , make_esf<integration<fe, bd_cub_t::bd_cub> >(dt::p_bd_measure(), dt::p_bd_weights(), p_mass(), p_bd_phi(), p_bd_phi()) //mass
             // compute the flux, this line defines the type of approximation we choose for DG
             // (e.g. upwind, centered, Lax-Wendroff and so on)
             // NOTE: if not linear we cannot implement it as a matrix
             , make_esf<functors::bassi_rebay<bd_discr_t> >(p_u(), p_u(), p_flux())
             // integrate the flux: mass*flux
-            , make_esf< functors::matvec >( p_flux(), p_mass(), p_integrated_flux() )
+            , make_esf< functors::matvec_BdxBdxBd >( p_flux(), p_mass(), p_integrated_flux() )
             ), domain, coords);
 
     computation->ready();
@@ -181,5 +195,5 @@ int main(){
     computation->run();
     computation->finalize();
     //![computation]
-    intrepid::test(assembler, bd_discr_, mass_);
+    intrepid::template test<geo_t>(assembler_base, assembler, bd_discr_, mass_);
 }

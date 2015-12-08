@@ -6,7 +6,7 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/has_key.hpp>
 #include <boost/mpl/vector.hpp>
-#include "stencil-composition/expressions.hpp"
+#include "../expressions/expressions.hpp"
 #ifndef CXX11_ENABLED
 #include <boost/typeof/typeof.hpp>
 #endif
@@ -510,10 +510,9 @@ namespace gridtools {
 
            Useful to determine the loop bounds, when looping over a dimension from whithin a kernel
          */
-        template<typename Accessor>
+        template<ushort_t Coordinate, typename Accessor>
         GT_FUNCTION
-        auto get_storage_dims(Accessor ) const ->
-            array<int_t, boost::remove_pointer<typename boost::mpl::at<typename local_domain_t::mpl_storages, typename Accessor::index_type>::type>::type::space_dimensions> const&
+        uint_t get_storage_dims(Accessor ) const
         {
 
             using storage_type = typename boost::remove_pointer<typename boost::mpl::at<typename local_domain_t::mpl_storages, typename Accessor::index_type>::type>::type;
@@ -524,7 +523,7 @@ namespace gridtools {
             pointer<const typename storage_type::meta_data_t> const metadata_ = boost::fusion::at
                 < metadata_index_t >(local_domain.m_local_metadata);
 
-            return metadata_->get_dims();
+            return metadata_->template dims<Coordinate>();
         }
 
 
@@ -596,8 +595,25 @@ namespace gridtools {
             Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
         template < typename Accessor, typename ... Pairs>
         GT_FUNCTION
-        typename accessor_return_type<Accessor>::type
+        typename boost::enable_if<
+            typename mem_access_with_data_field_accessor<Accessor, all_caches_t>::type,
+            typename accessor_return_type<Accessor>::type
+        >::type
         operator()(accessor_mixed<Accessor, Pairs ... > const& accessor) const;
+
+
+        template < typename Accessor, typename ... Pairs>
+        GT_FUNCTION
+        typename boost::enable_if<
+            typename mem_access_with_standard_accessor<Accessor, all_caches_t>::type,
+            typename accessor_return_type<Accessor>::type
+        >::type
+        operator()(accessor_mixed<Accessor, Pairs ... > const& accessor) const{
+            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
+            GRIDTOOLS_STATIC_ASSERT((Accessor::n_dim>2), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
+            return get_value(accessor, get_data_pointer(accessor));
+
+        }
 
 #endif
 
@@ -904,7 +920,10 @@ namespace gridtools {
     template <typename IterateDomainImpl>
     template < typename Accessor, typename ... Pairs>
     GT_FUNCTION
-    typename iterate_domain<IterateDomainImpl>::template accessor_return_type<Accessor>::type
+        typename boost::enable_if<
+            typename iterate_domain<IterateDomainImpl>::template mem_access_with_data_field_accessor<Accessor, typename iterate_domain<IterateDomainImpl>::all_caches_t>::type,
+            typename iterate_domain<IterateDomainImpl>::template accessor_return_type<Accessor>::type
+        >::type
     iterate_domain<IterateDomainImpl>::operator()(accessor_mixed<Accessor, Pairs ... > const& accessor) const{
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
@@ -913,6 +932,8 @@ namespace gridtools {
         typedef typename Accessor::index_type index_t;
 
         typedef typename local_domain_t::template get_storage<index_t>::type storage_t;
+
+        GRIDTOOLS_STATIC_ASSERT(is_data_field<storage_t>::value, "Internal error, wrong type of storage: should be a data_field");
 
         typedef accessor_mixed<Accessor, Pairs ... > accessor_mixed_t;
         using metadata_t = typename storage_t::meta_data_t;

@@ -11,9 +11,9 @@ namespace functors{
 
         using geo_map=typename Geometry::geo_map;
 
-        using in1=accessor<0, range<> , 4>;
-        using in2=accessor<1, range<> , 4>;
-        using out=accessor<2, range<> , 4> ;
+        using in1=accessor<0, enumtype::in, extent<> , 5>;
+        using in2=accessor<1, enumtype::in, extent<> , 5>;
+        using out=accessor<2, enumtype::inout, extent<> , 5> ;
         using arg_list=boost::mpl::vector<in1, in2, out> ;
 
         template <typename Evaluation>
@@ -27,9 +27,15 @@ namespace functors{
 
             //hypothesis here: the cardinaxlity is order^3 (isotropic 3D tensor product element)
 #ifdef __CUDACC__
-            constexpr meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{static_int<3>(), static_int<3>(), static_int<3>()};
+#ifdef NDEBUG
+            constexpr
+#endif
+            meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{static_int<3>(), static_int<3>(), static_int<3>()};
 #else
-            constexpr meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
+#ifdef NDEBUG
+            constexpr
+#endif
+            meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
 
 #endif
 
@@ -70,8 +76,8 @@ namespace functors{
 
         using geo_map=typename Geometry::geo_map;
 
-        using in=accessor<0, range<> , 4>;
-        using out=accessor<1, range<> , 4> ;
+        using in=accessor<0, enumtype::in, extent<> , 4>;
+        using out=accessor<1, enumtype::inout, extent<> , 4> ;
         using arg_list=boost::mpl::vector<in, out> ;
 
         template <typename Evaluation>
@@ -85,9 +91,15 @@ namespace functors{
 
             //hypothesis here: the cardinaxlity is order^3 (isotropic 3D tensor product element)
 #ifdef __CUDACC__
-            constexpr meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{static_int<3>(), static_int<3>(), static_int<3>()};
+#ifdef NDEBUG
+            constexpr
+#endif
+            meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{static_int<3>(), static_int<3>(), static_int<3>()};
 #else
-            constexpr meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
+#ifdef NDEBUG
+            constexpr
+#endif
+                meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
 
 #endif
 
@@ -104,7 +116,7 @@ namespace functors{
                     auto dof_z=indexing.index(I, J, 0);
                     auto dof_zz=indexing.index(I, J, indexing.template dims<2>()-1);
 
-                    const auto N=eval.get().get_storage_dims(in())[3];
+                    const auto N=eval.get().template get_storage_dims<3>(in());
 
                     //initial value
                     auto c=eval(D(Flux()(in())));

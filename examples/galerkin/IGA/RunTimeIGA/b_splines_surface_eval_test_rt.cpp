@@ -45,9 +45,9 @@ struct curve_struct
 {
     static const int n_args = 2;
 
-    typedef accessor<0, range<0, 0, 0, 0>, 4> curve_values;
+    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 4> curve_values;
 
-    typedef const accessor<1, range<0, 0, 0, 0>, 3 > csi;
+    typedef const accessor<1, enumtype::in, extent<0, 0, 0, 0>, 3 > csi;
 
     typedef boost::mpl::vector<curve_values, csi> arg_list;
 

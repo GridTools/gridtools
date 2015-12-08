@@ -44,11 +44,6 @@ namespace gridtools {
     template<typename T>
     struct is_arg;
 
-
-    template<typename T>
-    struct is_not_tmp_storage : boost::mpl::or_<is_storage<T>, boost::mpl::not_<is_any_storage<T > > >{
-    };
-
     /**
        @brief This struct contains the global list of placeholders to the storages
      * @tparam Placeholders list of placeholders of type arg<I,T>
@@ -120,7 +115,8 @@ namespace gridtools {
 
 
         //actual check if the user specified placeholder arguments with the same index
-        GRIDTOOLS_STATIC_ASSERT((len == boost::mpl::size<index_set>::type::value ), "you specified two different placeholders with the same index, which is not allowed. check the arg defiintions.");
+        GRIDTOOLS_STATIC_ASSERT((len <= boost::mpl::size<index_set>::type::value ), "you specified two different placeholders with the same index, which is not allowed. check the arg defiintions.");
+        GRIDTOOLS_STATIC_ASSERT((len >= boost::mpl::size<index_set>::type::value ), "something strange is happening.");
 
         /**
          * \brief Definition of a random access sequence of integers between 0 and the size of the placeholder sequence
@@ -353,8 +349,10 @@ You have to define each arg with a unique identifier ranging from 0 to N without
             boost::fusion::for_each(real_storage_, assign_metadata_set<metadata_set_t >(m_metadata_set));
 
 #ifdef VERBOSE
+#ifndef NDEBUG
             std::cout << "\nThese are the view values" << boost::fusion::size(fview) << std::endl;
             boost::fusion::for_each(m_storage_pointers, _debug::print_pointer());
+#endif
 #endif
             view_type original_fview(m_original_pointers);
             boost::fusion::copy(real_storage_, original_fview);

@@ -35,6 +35,10 @@ namespace gridtools{
 
     template <typename MetaData>
     using storage_t = typename gridtools::BACKEND::storage_type<float_type, MetaData >::type;
+
+    template<ushort_t ID, typename Layout>
+    using storage_info = typename BACKEND::storage_info<ID, Layout>;
+
 //! [storage definition]
 //! [fe namespace]
     template <ushort_t Order, enumtype::Basis BasisType, enumtype::Shape ShapeType>

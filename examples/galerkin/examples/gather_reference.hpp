@@ -1,5 +1,7 @@
 #pragma once
 
+using namespace gridtools;
+
 //reference for first order hexahedra
 template <typename Storage>
 void reference_1(Storage & out_, Storage const& in_, uint_t d1, uint_t d2, uint_t d3){

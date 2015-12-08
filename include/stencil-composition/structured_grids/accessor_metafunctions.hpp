@@ -7,6 +7,9 @@ namespace gridtools{
 template<typename T>
 struct is_accessor : boost::mpl::false_{};
 
+template<typename T>
+struct is_accessor<const T> : is_accessor<T>{};
+
 template < ushort_t ID, enumtype::intend Intend, typename Extend, ushort_t Number>
 struct is_accessor<accessor<ID, Intend, Extend, Number> > : boost::mpl::true_{};
 

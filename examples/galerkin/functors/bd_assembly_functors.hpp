@@ -18,9 +18,9 @@ namespace functors{
         using cub=typename Geometry::cub;
         using geo_map=typename Geometry::geo_map;
 
-        typedef accessor<0, range<0,0,0,0> , 5> const grid_points;
-        typedef accessor<1, range<0,0,0,0> , 4> const dphi;
-        typedef accessor<2, range<0,0,0,0> , 7> jac;
+        typedef accessor<0, enumtype::in, extent<0,0,0,0> , 5> const grid_points;
+        typedef accessor<1, enumtype::in, extent<0,0,0,0> , 4> const dphi;
+        typedef accessor<2, enumtype::inout, extent<0,0,0,0> , 7> jac;
         typedef boost::mpl::vector< grid_points, dphi, jac> arg_list;
 
         template <typename Evaluation>
@@ -33,9 +33,9 @@ namespace functors{
             dimension<2>::Index j;
             dimension<3>::Index k;
 
-            uint_t const num_cub_points=eval.get().get_storage_dims(dphi())[1];
-            uint_t const basis_cardinality=eval.get().get_storage_dims(dphi())[0];
-            uint_t const n_faces_=eval.get().get_storage_dims(jac())[6];
+            uint_t const num_cub_points=eval.get().template get_storage_dims<1>(dphi());
+            uint_t const basis_cardinality=eval.get().template get_storage_dims<0>(dphi());
+            uint_t const n_faces_=eval.get().template get_storage_dims<6>(jac());
 
 #ifndef __CUDACC__
             assert(num_cub_points==cub::numCubPoints());
@@ -72,9 +72,9 @@ namespace functors{
     // struct bd_projection{
     //     using bd_cub=typename BdGeometry::cub;
 
-    //     using jac =  accessor<0, range<0,0,0,0> , 6> const;
-    //     using normals =  accessor<1, range<0,0,0,0> , 5> const;
-    //     using jac_projected = accessor<2, range<0,0,0,0> , 6>;
+    //     using jac =  accessor<0, extent<0,0,0,0> , 6> const;
+    //     using normals =  accessor<1, extent<0,0,0,0> , 5> const;
+    //     using jac_projected = accessor<2, extent<0,0,0,0> , 6>;
     //     using arg_list= boost::mpl::vector< jac, normals, jac_projected > ;
 
     //     template <typename Evaluation>
@@ -125,11 +125,11 @@ namespace functors{
         using fe=FE;
         using bd_cub=BoundaryCubature;
 
-        using jac_det=accessor< 0, range<0,0,0,0>, 5 >;
-        using weights=accessor< 1, range<0,0,0,0>, 3 >;
-        using phi_trace=accessor< 2, range<0,0,0,0>, 3 >;
-        using psi_trace=accessor< 3, range<0,0,0,0>, 3 >;
-        using out=accessor< 4, range<0,0,0,0>, 6 >;
+        using jac_det=accessor< 0, enumtype::in, extent<0,0,0,0>, 5 >;
+        using weights=accessor< 1, enumtype::in, extent<0,0,0,0>, 3 >;
+        using phi_trace=accessor< 2, enumtype::in, extent<0,0,0,0>, 3 >;
+        using psi_trace=accessor< 3, enumtype::in, extent<0,0,0,0>, 3 >;
+        using out=accessor< 4, enumtype::inout, extent<0,0,0,0>, 6 >;
 
         using arg_list=boost::mpl::vector<jac_det, weights, phi_trace, psi_trace, out> ;
 
@@ -145,9 +145,9 @@ namespace functors{
             dimension<4>::Index dofI;
             dimension<5>::Index dofJ;
 
-            uint_t const num_cub_points=eval.get().get_storage_dims(jac_det())[3];
-            uint_t const basis_cardinality = eval.get().get_storage_dims(phi_trace())[0];
-            uint_t const n_faces = eval.get().get_storage_dims(jac_det())[4];
+            uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac_det());
+            uint_t const basis_cardinality = eval.get().template get_storage_dims<0>(phi_trace());
+            uint_t const n_faces = eval.get().template get_storage_dims<4>(jac_det());
 
 
             for(short_t face_=0; face_<n_faces; ++face_) // current dof
@@ -181,8 +181,8 @@ namespace functors{
     struct measure<Geometry, 1>{
         using cub=typename Geometry::cub;
 
-        using jac = accessor<0, range<0,0,0,0> , 7> const;
-        using jac_det =  accessor<1, range<0,0,0,0> , 5>;
+        using jac = accessor<0, enumtype::in, extent<0,0,0,0> , 7> const;
+        using jac_det =  accessor<1, enumtype::inout, extent<0,0,0,0> , 5>;
         using arg_list= boost::mpl::vector< jac, jac_det > ;
 
         template <typename Evaluation>
@@ -192,8 +192,8 @@ namespace functors{
             dimension<5>::Index dimx;
             dimension<6>::Index dimy;
 
-            uint_t const num_faces=eval.get().get_storage_dims(jac_det())[4];
-            uint_t const num_cub_points=eval.get().get_storage_dims(jac_det())[3];
+            uint_t const num_faces=eval.get().template get_storage_dims<4>(jac_det());
+            uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac_det());
 
             for(short_t face_=0; face_< num_faces; ++face_)
             {
@@ -225,9 +225,9 @@ namespace functors{
         using bd_cub=typename BdGeometry::cub;
         static const auto parent_shape=BdGeometry::parent_shape;
 
-        using jac=accessor< 0, range<>, 7 >;
-        using ref_normals=accessor< 1, range<>, 2 >;
-        using normals=accessor< 2, range<>, 6 >;
+        using jac=accessor< 0, enumtype::in, extent<>, 7 >;
+        using ref_normals=accessor< 1, enumtype::in, extent<>, 3 >;
+        using normals=accessor< 2, enumtype::inout, extent<>, 6 >;
         using arg_list=boost::mpl::vector<jac, ref_normals, normals> ;
 
         /** @brief compute the normal vectors in the face quadrature points
@@ -245,8 +245,8 @@ namespace functors{
             dimension<5>::Index dimI;
             dimension<6>::Index dimJ;
             dimension<7>::Index f;
-            uint_t const num_cub_points=eval.get().get_storage_dims(jac())[3];
-            uint_t const num_faces=eval.get().get_storage_dims(jac())[6];
+            uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac());
+            uint_t const num_faces=eval.get().template get_storage_dims<6>(jac());
 
             for(ushort_t face_=0; face_<num_faces; ++face_){
                 for(ushort_t q_=0; q_<num_cub_points; ++q_){
@@ -268,8 +268,8 @@ namespace functors{
     //     using bd_cub=typename BdGeometry::cub;
     //     static const auto parent_shape=BdGeometry::parent_shape;
 
-    //     using jac=accessor< 0, range<>, 6 >;
-    //     using normals=accessor< 1, range<>, 5 >;
+    //     using jac=accessor< 0, extent<>, 6 >;
+    //     using normals=accessor< 1, extent<>, 5 >;
     //     using arg_list=boost::mpl::vector<jac, normals> ;
 
     //     map_vectors()

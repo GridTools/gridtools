@@ -57,7 +57,7 @@ namespace gridtools {
 
 
     // forward declarations
-    template < ushort_t ID, typename Range, ushort_t Number>
+    template < ushort_t ID, enumtype::intend Intend, typename Extent, ushort_t Number>
     struct accessor;
 
     template <typename ArgType, typename ... Pair>
@@ -67,8 +67,8 @@ namespace gridtools {
     template <typename T>
     struct is_arg_tuple : boost::false_type {};
 
-    template < ushort_t ID, typename Range, ushort_t Number>
-    struct is_arg_tuple<accessor<ID, Range, Number> > : boost::true_type{};
+    template < ushort_t ID, enumtype::intend Intend, typename Extent, ushort_t Number>
+    struct is_arg_tuple<accessor<ID, Intend, Extent, Number> > : boost::true_type{};
 
     template <typename ArgType, typename ... Pair>
     struct is_arg_tuple<accessor_mixed<ArgType, Pair ... > > : boost::true_type {};
@@ -321,14 +321,12 @@ namespace gridtools {
             \tparam[in] Indices List of argument where to return the found value
             \param[in] indices List of values (length must be equal to the length of the layout_map length)
         */
-        template <ushort_t I, typename T, T DefaultVal, typename Accessor, typename boost::enable_if<is_arg_tuple<Tuple >, int>::type=0 >
+        template <ushort_t I, typename T, T DefaultVal, typename Accessor, typename boost::enable_if<is_arg_tuple< Accessor >, int>::type=0 >
         GT_FUNCTION
         static constexpr T find_val(Accessor const& indices) {
 
-// #ifdef PEDANTIC
             GRIDTOOLS_STATIC_ASSERT(length >= Accessor::n_dim, "pedantic check: an accessor's dimension is larger than the corresponding storage space dimension");
             GRIDTOOLS_STATIC_ASSERT(length <= Accessor::n_dim, "pedantic check: an accessor's dimension is smaller than the corresponding storage space dimension");
-// #endif
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "the find_val method is used with tuples of type other than accessor");
             GRIDTOOLS_STATIC_ASSERT((Accessor::n_dim-pos_<I>::value-1>=0), "write a message here");
             return ((pos_<I>::value >= length)) ?

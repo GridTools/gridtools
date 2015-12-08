@@ -9,17 +9,16 @@ namespace gridtools{
     namespace intrepid{
         using namespace Intrepid;
 
-        template <typename Boundary, typename Geometry, typename FEBackend, typename MatrixType>
-        bool test(assembly<Boundary// , Geometry
-                  > const& assembly_, FEBackend const& fe_backend_, MatrixType const& flux_ ){
+        template <typename Geometry, typename BdAssembly, typename BaseAssembly, typename FEBackend, typename MatrixType>
+        bool test(BaseAssembly const& assembly_base_, BdAssembly const& assembly_, FEBackend const& fe_backend_, MatrixType const& flux_ ){
             using fe = typename Geometry::geo_map;
             using cub= typename Geometry::cub;
             using geo_map = typename Geometry::geo_map;
             using bd_geo_map = typename Geometry::bd_geo_map;
 
-            auto d1=assembly_.m_d1;
-            auto d2=assembly_.m_d2;
-            auto d3=assembly_.m_d3;
+            auto d1=assembly_base_.m_d1;
+            auto d2=assembly_base_.m_d2;
+            auto d3=assembly_base_.m_d3;
 
             // [reference & comparison]
             FieldContainer<double> grad_at_cub_points(fe::basisCardinality, cub::numCubPoints(), fe::spaceDim);
@@ -48,7 +47,7 @@ namespace gridtools{
                         {
                             for (int d=0; d<3; ++d)
                             {//assign
-                                grid(i*d2*d3+j*d3+k, q, d)=assembly_.get_grid()(i, j, k, q, d);
+                                grid(i*d2*d3+j*d3+k, q, d)=assembly_base_.get_grid()(i, j, k, q, d);
                             }
                         }
                     }
@@ -66,13 +65,13 @@ namespace gridtools{
                             for (int dimx=0; dimx<geo_map::spaceDim; ++dimx)
                                 for (int dimy=0; dimy<geo_map::spaceDim; ++dimy)
                                 {
-                                    if(assembly_.get_jac()(i, j, k, q, dimx, dimy) > epsilon+ jac(i*d2*d3+j*d3+k, q, dimx, dimy)/*weighted_measure(i*d2*d3+j*d3+k, q)*/
+                                    if(assembly_.get_bd_jac()(i, j, k, q, dimx, dimy) > epsilon+ jac(i*d2*d3+j*d3+k, q, dimx, dimy)/*weighted_measure(i*d2*d3+j*d3+k, q)*/
                                        ||
-                                       assembly_.get_jac()(i, j, k, q, dimx, dimy) +epsilon < jac(i*d2*d3+j*d3+k, q, dimx, dimy)// weighted_measure(i*d2*d3+j*d3+k, q)
+                                       assembly_.get_bd_jac()(i, j, k, q, dimx, dimy) +epsilon < jac(i*d2*d3+j*d3+k, q, dimx, dimy)// weighted_measure(i*d2*d3+j*d3+k, q)
                                         )
                                     {
                                         std::cout<<"error in i="<<i<<" j="<<j<<" k="<<k<<" q="<<q<<" dimx="<<dimx<<" dimy="<<dimy<<": "
-                                                 <<assembly_.get_jac()(i, j, k, q, dimx, dimy)<<" != "
+                                                 <<assembly_.get_bd_jac()(i, j, k, q, dimx, dimy)<<" != "
                                                  <<jac(i*d3*d2+j*d3+k, q, dimx, dimy)// weighted_measure(i*d2*d3+j*d3+k, q)
                                                  <<std::endl;
                                         // assert(false);

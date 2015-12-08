@@ -563,7 +563,9 @@ namespace gridtools {
                                     _impl::instantiate_mss_local_domain<actual_arg_list_type, actual_metadata_list_type, IsStateful>(m_actual_arg_list, m_actual_metadata_list));
 
 #ifdef VERBOSE
+#ifndef NDEBUG
             m_domain.info();
+#endif
 #endif
         }
 

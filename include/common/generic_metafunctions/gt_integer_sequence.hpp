@@ -16,7 +16,7 @@ namespace gridtools{
        it is consexpr constructable.
      */
     template< typename UInt, UInt... Indices> struct gt_integer_sequence{
-        using type = gt_integer_sequence<UInt, Indices ...>;
+        using type = gt_integer_sequence;
     };
 
 
@@ -113,7 +113,7 @@ namespace gridtools{
         template<typename Container, class Lambda, typename ... ExtraTypes>
         GT_FUNCTION
         static constexpr Container apply(Lambda lambda, ExtraTypes& ... args_ ){
-            return Container(lambda(Indices, args_...) ...) ;
+            return Container{lambda(Indices, args_...) ...} ;
         }
 
     };

@@ -11,12 +11,12 @@ namespace functors{
         using cub=Cubature;
 
         //![accessors]
-        using jac_det =accessor<0, range<0,0,0,0> , 4> const;
-        using jac_inv =accessor<1, range<0,0,0,0> , 6> const;
-        using weights =accessor<2, range<0,0,0,0> , 3> const;
-        using dphi    =accessor<3, range<0,0,0,0> , 3> const;
-        using psi     =accessor<4, range<0,0,0,0> , 3> const;
-        using adv     =accessor<5, range<0,0,0,0> , 5> ;
+        using jac_det =accessor<0, enumtype::in, extent<0,0,0,0> , 4> const;
+        using jac_inv =accessor<1, enumtype::in, extent<0,0,0,0> , 6> const;
+        using weights =accessor<2, enumtype::in, extent<0,0,0,0> , 3> const;
+        using dphi    =accessor<3, enumtype::in, extent<0,0,0,0> , 3> const;
+        using psi     =accessor<4, enumtype::in, extent<0,0,0,0> , 3> const;
+        using adv     =accessor<5, enumtype::inout, extent<0,0,0,0> , 5> ;
         using arg_list= boost::mpl::vector<jac_det, jac_inv, weights, adv, dphi, psi> ;
         //![accessors]
 
@@ -25,8 +25,8 @@ namespace functors{
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 
-            uint_t const num_cub_points=eval.get().get_storage_dims(psi())[1];
-            uint_t const basis_cardinality=eval.get().get_storage_dims(psi())[0];
+            uint_t const num_cub_points=eval.get().template get_storage_dims<1>(psi());
+            uint_t const basis_cardinality=eval.get().template get_storage_dims<0>(psi());
 
             //quadrature points dimension
             dimension<4>::Index qp;

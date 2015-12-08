@@ -1,4 +1,5 @@
 #pragma once
+
 /**
    @file
    @brief Definition of the quantities needed for performing computations on the boundary
@@ -25,15 +26,15 @@ struct bd_assembly {
     using bd_cub=typename Boundary::cub;
     // using super = assembly_base<Geometry>;
 
-    using face_normals_type_info=storage_info< layout_tt<3,4,5>, __COUNTER__ >;
+    using face_normals_type_info=storage_info< __COUNTER__, layout_tt<3,4,5>>;
     using face_normals_type=storage_t< face_normals_type_info >;
-    using storage_type_info=storage_info< layout_tt<3,4>, __COUNTER__ >;
+    using storage_type_info=storage_info< __COUNTER__, layout_tt<3,4> >;
     using storage_type=storage_t< storage_type_info >;
-    using jacobian_type_info=storage_info<layout_tt<3,4,5,6>, __COUNTER__ >;
+    using jacobian_type_info=storage_info<__COUNTER__, layout_tt<3,4,5,6> >;
     using jacobian_type=storage_t< jacobian_type_info >;
-    using bd_matrix_storage_info_t=storage_info< layout_tt<3,4,5>,  __COUNTER__ >;
+    using bd_matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<3,4,5> >;
     using bd_matrix_type=storage_t< bd_matrix_storage_info_t >;
-    using bd_vector_storage_info_t=storage_info< layout_tt<3>,  __COUNTER__ >;//TODO change: iterate on faces
+    using bd_vector_storage_info_t=storage_info< __COUNTER__, layout_tt<3> >;//TODO change: iterate on faces
     using bd_vector_type=storage_t< bd_vector_storage_info_t >;
 
 private:
@@ -59,6 +60,12 @@ public:
     storage_type & bd_measure()  { return m_bd_measure;}
     bd_matrix_type & bd_mass()  { return m_bd_mass;}
     bd_vector_type & flux()  { return m_flux;}
+
+    jacobian_type const& get_bd_jac() const {return m_bd_jac;}
+    face_normals_type const& get_normals() const {return m_normals;}
+    storage_type const& get_bd_measure() const { return m_bd_measure;}
+    bd_matrix_type const& get_bd_mass() const { return m_bd_mass;}
+    bd_vector_type const& get_flux() const { return m_flux;}
 
     typename Boundary::tangent_storage_t const& get_ref_normals() const {return m_bd_backend.ref_normals();}
 
@@ -172,8 +179,8 @@ public:
 
     template<enumtype::Shape S>
     struct update_bd_jac{
-            auto static esf() ->
-                decltype(make_esf<functors::update_bd_jac<typename as_t::boundary_t , S> >(typename super::p_grid_points(), p_bd_dphi(), p_bd_jac()))
+        auto static esf() ->
+            decltype(make_esf<functors::update_bd_jac<typename as_t::boundary_t , S> >(typename super::p_grid_points(), p_bd_dphi(), p_bd_jac()))
         {
             return make_esf<functors::update_bd_jac<typename as_t::boundary_t , S> >(typename super::p_grid_points(), p_bd_dphi(), p_bd_jac());
         }
@@ -181,7 +188,7 @@ public:
 
     template<ushort_t Codimension>
     struct measure{
-            auto static esf() ->
+        auto static esf() ->
             decltype(make_esf<functors::measure<typename as_t::boundary_t , Codimension> >(p_bd_jac(), p_bd_measure()))
         {
             return make_esf<functors::measure<typename as_t::boundary_t, Codimension> >(p_bd_jac(),  p_bd_measure());

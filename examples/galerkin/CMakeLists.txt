@@ -15,6 +15,7 @@ set_target_properties( dg_advection PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FL
 
 set( ENABLE_INTREPID "OFF" CACHE BOOL "Enable support of finite elements discretization from the Intrepid library" )
 if(ENABLE_INTREPID)
+
   if(NOT INTREPID_SOURCE_DIR)
     message("set the INTREPID_SOURCE_DIR to point to the intrepid sources")
   else()

@@ -260,13 +260,13 @@ namespace intrepid{
                             for (int dimx=0; dimx<geo_map::spaceDim; ++dimx)
                                 for (int dimy=0; dimy<geo_map::spaceDim; ++dimy)
                                 {
-                                    if(assembly_.get_jac()(i, j, k, q, dimx, dimy) > epsilon+ jac((i-1)*d2*d3+(j-1)*d3+k, q, dimx, dimy)/*weighted_measure(i*d2*d3+j*d3+k, q)*/
+                                    if(assembly_.get_jac()(i, j, k, q, dimx, dimy) > epsilon+ jac(i*d2*d3+j*d3+k, q, dimx, dimy)/*weighted_measure(i*d2*d3+j*d3+k, q)*/
                                        ||
-                                       assembly_.get_jac()(i, j, k, q, dimx, dimy) +epsilon < jac((i-1)*d2*d3+(j-1)*d3+k, q, dimx, dimy)// weighted_measure(i*d2*d3+j*d3+k, q)
+                                       assembly_.get_jac()(i, j, k, q, dimx, dimy) +epsilon < jac(i*d2*d3+j*d3+k, q, dimx, dimy)// weighted_measure(i*d2*d3+j*d3+k, q)
                                         ){
                                         std::cout<<"error in i="<<i<<" j="<<j<<" k="<<k<<" q="<<q<<" "<<dimx<<" "<<dimy<<": "
                                                  <<assembly_.get_jac()(i, j, k, q, dimx, dimy)<<" != "
-                                                 <<jac((i-1)*d3*d2+j*(j-1)*d3+k, q, dimx, dimy)// weighted_measure(i*d2*d3+j*d3+k, q)
+                                                 <<jac(i*d3*d2+j*d3+k, q, dimx, dimy)// weighted_measure(i*d2*d3+j*d3+k, q)
                                                  <<std::endl;
                                         assert(false);
 
@@ -293,13 +293,13 @@ namespace intrepid{
                     {
                         for (int q=0; q<cub::numCubPoints(); ++q)
                         {
-                            if(assembly_.get_jac_det()(i, j, k, q) > epsilon+ jac_det((i-1)*d2*d3+(j-1)*d3+k, q)
+                            if(assembly_.get_jac_det()(i, j, k, q) > epsilon+ jac_det(i*d2*d3+j*d3+k, q)
                                ||
-                               assembly_.get_jac_det()(i, j, k, q) +epsilon < jac_det((i-1)*d2*d3+(j-1)*d3+k, q)
+                               assembly_.get_jac_det()(i, j, k, q) +epsilon < jac_det(i*d2*d3+j*d3+k, q)
                                 ){
                                 std::cout<<"error in i="<<i<<" j="<<j<<" k="<<k<<" q="<<q<<": "
                                          <<assembly_.get_jac_det()(i, j, k, q)<<" != "
-                                         <<jac_det((i-1)*d2*d3+(j-1)*d3+k, q)
+                                         <<jac_det(i*d2*d3+j*d3+k, q)
                                          <<std::endl;
                                 assert(false);
                             }
@@ -318,7 +318,7 @@ namespace intrepid{
             FunctionSpaceTools::multiplyMeasure<double>(weighted_function_at_cub_points,  // multiply with weighted measure
                                                         weighted_measure,
 							function_at_cub_points);
-	    
+
 
 
             FieldContainer<double> function_at_cub_points_ext((d1*d2*d3),fe::basisCardinality, cub::numCubPoints());

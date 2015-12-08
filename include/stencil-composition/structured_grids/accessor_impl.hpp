@@ -125,11 +125,11 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(x)<=n_dim, "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions of the storage. Check that you are not accessing a non existing dimension, or increase the dimension D of the accessor (accessor<Id, extent, D>)");
         }
 
-        template <typename... Whatever>
+        template <ushort_t ... Idx >
         GT_FUNCTION
-        constexpr accessor_base ( Whatever... x) : m_offsets( x...)
+        constexpr accessor_base ( dimension<Idx>... x) : m_offsets( x...)
         {
-            GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(), (Whatever::direction <= n_dim) ...), "too high dimension for accessor");
+            GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(), (Idx <= n_dim) ...), "too high dimension for accessor");
             GRIDTOOLS_STATIC_ASSERT(sizeof...(x)<=n_dim, "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions of the storage. Check that you are not accessing a non existing dimension, or increase the dimension D of the accessor (accessor<Id, extent, D>)");
         }
 #else

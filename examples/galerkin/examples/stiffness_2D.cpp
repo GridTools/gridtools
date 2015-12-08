@@ -120,7 +120,7 @@ int main(){
 
     // , m_domain(boost::fusion::make_vector(&m_grid, &m_jac, &m_fe_backend.cub_weights(), &m_jac_det, &m_jac_inv, &m_fe_backend.local_gradient(), &m_fe_bac
                                                                                                    // , &m_stiffness, &m_assembled_stiffness
-    auto coords=coordinates<axis>({0, 0, 0, d1-1, d1},
+    auto coords=grid<axis>({0, 0, 0, d1-1, d1},
     							  {0, 0, 0, d2-1, d2});
     coords.value_list[0] = 0;
     coords.value_list[1] = d3-1;

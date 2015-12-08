@@ -48,25 +48,18 @@ namespace gridtools{
             template <uint_t T>
             using lambda=next_stride<MaxIndex-T, MaxIndex, Layout>;
 
-            template <typename ... UIntType, typename Dummy=all_static_integers<UIntType ...> >
-            static constexpr array<uint_t, MaxIndex>
-            apply( UIntType ... t){
-                using seq = apply_gt_integer_sequence<typename make_gt_integer_sequence<uint_t, sizeof ... (t)>::type >;
-                return seq::template apply<array<uint_t, MaxIndex>, lambda>( UIntType::value ...);
-            }
+            // template <typename ... UIntType, typename Dummy=all_static_integers<UIntType ...> >
+            // static constexpr array<uint_t, MaxIndex>
+            // apply( UIntType ... args){
+            //     using seq = apply_gt_integer_sequence<typename make_gt_integer_sequence<uint_t, sizeof ... (args)>::type >;
+            //     return seq::template apply<array<uint_t, MaxIndex>, lambda>( UIntType::value ...);
+            // }
 
             template<typename ... UIntType, typename Dummy=all_integers<UIntType ...> >
             static constexpr array<uint_t, MaxIndex >
-            apply(UIntType const& ... args){
-
-// #ifdef PEDANTIC
-//                 GRIDTOOLS_STATIC_ASSERT((sizeof...(args) > 1), "You are trying to initialize \
-// a storage_info with less than 2 dimensions. This is not supported. Set at least 2 dimensions, and \
-// initialize them to \'1\' if unused.");
-// #endif
+            apply(UIntType ... args){
                 using seq = apply_gt_integer_sequence<typename make_gt_integer_sequence<uint_t, sizeof ... (args)>::type >;
                 return seq::template apply<array<uint_t, MaxIndex>, lambda>( (uint_t)args...);
-                //return seq::template apply<array<uint_t, MaxIndex>, lambda>((uint_t)args...);
             }
         };
 

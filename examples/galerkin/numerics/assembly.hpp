@@ -28,8 +28,8 @@ struct assembly  {
 
     //                      dims  x y z  qp
     //                   strides  1 x xy xyz
-    using storage_type_info=storage_info<layout_tt<3>, __COUNTER__ >;
-    using jacobian_type_info=storage_info<layout_tt<3,4,5>, __COUNTER__ >;
+    using storage_type_info=storage_info<__COUNTER__, layout_tt<3> >;
+    using jacobian_type_info=storage_info<__COUNTER__, layout_tt<3,4,5> >;
 
     using storage_type=storage_t< storage_type_info >;
     using jacobian_type=storage_t< jacobian_type_info >;

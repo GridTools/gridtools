@@ -17,9 +17,9 @@ namespace functors{
         using cub=typename Geometry::cub;
         using geo_map=typename Geometry::geo_map;
 
-        typedef accessor<0, range<0,0,0,0> , 5> const grid_points;
-        typedef accessor<1, range<0,0,0,0> , 3> const dphi;
-        typedef accessor<2, range<0,0,0,0> , 6> jac;
+        typedef accessor<0, enumtype::in, extent<0,0,0,0> , 5> const grid_points;
+        typedef accessor<1, enumtype::in, extent<0,0,0,0> , 3> const dphi;
+        typedef accessor<2, enumtype::inout, extent<0,0,0,0> , 6> jac;
         typedef boost::mpl::vector< grid_points, dphi, jac> arg_list;
 
         template <typename Evaluation>
@@ -32,8 +32,8 @@ namespace functors{
             dimension<2>::Index j;
             dimension<3>::Index k;
 
-            uint_t const num_cub_points=eval.get().get_storage_dims(dphi())[1];
-            uint_t const basis_cardinality=eval.get().get_storage_dims(dphi())[0];
+            uint_t const num_cub_points=eval.get().template get_storage_dims<1>(dphi());
+            uint_t const basis_cardinality=eval.get().template get_storage_dims<0>(dphi());
 
 #ifndef __CUDACC__
             assert(num_cub_points==cub::numCubPoints());
@@ -48,7 +48,7 @@ namespace functors{
                         eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) )=0.;
                                 for (int_t iterNode=0; iterNode < basis_cardinality ; ++iterNode)
                                 {//reduction/gather
-                                    eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) ) += 
+                                    eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) ) +=
 				      eval(grid_points(dimension<4>(iterNode), dimension<5>(icoor)) * !dphi(i+iterNode, j+iter_quad, k+jcoor) );
                                 }
                     }
@@ -68,8 +68,8 @@ namespace functors{
     template<typename Geometry>
     struct det
 	{
-        using jac = accessor<0, range<0,0,0,0> , 6> const;
-        using jac_det =  accessor<1, range<0,0,0,0> , 4>;
+        using jac = accessor<0, enumtype::in, extent<0,0,0,0> , 6> const;
+        using jac_det =  accessor<1, enumtype::inout, extent<0,0,0,0> , 4>;
         using arg_list= boost::mpl::vector< jac, jac_det > ;
 
         template <typename Evaluation>
@@ -79,7 +79,7 @@ namespace functors{
             dimension<4>::Index qp;
             dimension<5>::Index dimx;
             dimension<6>::Index dimy;
-            uint_t const num_cub_points=eval.get().get_storage_dims(jac())[3];
+            uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac());
 
 #ifdef __CUDACC__
             assert(num_cub_points==cub::numCubPoints());
@@ -147,9 +147,9 @@ namespace functors{
 
         //![arguments_inv]
         /**The input arguments to this functors are the matrix and its determinant. */
-        using jac      = accessor<0, range<0,0,0,0> , 6> const ;
-        using jac_det  = accessor<1, range<0,0,0,0> , 4> const ;
-        using jac_inv  = accessor<2, range<0,0,0,0> , 6> ;
+        using jac      = accessor<0, enumtype::in, extent<0,0,0,0> , 6> const ;
+        using jac_det  = accessor<1, enumtype::in, extent<0,0,0,0> , 4> const ;
+        using jac_inv  = accessor<2, enumtype::inout, extent<0,0,0,0> , 6> ;
         using arg_list = boost::mpl::vector< jac, jac_det, jac_inv>;
         //![arguments_inv]
 
@@ -178,7 +178,7 @@ namespace functors{
             using dimy=dimension<6>;
             dimx::Index X;
             dimy::Index Y;
-            uint_t const num_cub_points=eval.get().get_storage_dims(jac())[3];
+            uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac());
 
 #ifdef __CUDACC__
             assert(num_cub_points==cub::numCubPoints());
@@ -254,7 +254,7 @@ namespace functors{
             using dimy=dimension<6>;
             dimx::Index X;
             dimy::Index Y;
-            uint_t const num_cub_points=eval.get().get_storage_dims(jac())[3];
+            uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac());
 
 #ifdef __CUDACC__
             assert(num_cub_points==cub::numCubPoints());
@@ -305,9 +305,9 @@ namespace functors{
 
         using geo_map=typename Geometry::geo_map;
 
-        using in1=accessor<0, range<> , 4>;
-        using in2=accessor<1, range<> , 4>;
-        using out=accessor<2, range<> , 4> ;
+        using in1=accessor<0, enumtype::in, extent<> , 4>;
+        using in2=accessor<1, enumtype::in, extent<> , 4>;
+        using out=accessor<2, enumtype::inout, extent<> , 4> ;
         using arg_list=boost::mpl::vector<in1, in2, out> ;
 
         template <typename Evaluation>
@@ -321,9 +321,15 @@ namespace functors{
 
             //hypothesis here: the cardinaxlity is order^3 (isotropic 3D tensor product element)
 #ifdef __CUDACC__
-            constexpr meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{static_int<3>(), static_int<3>(), static_int<3>()};
+#ifdef NDEBUG
+            constexpr
+#endif
+            meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{static_int<3>(), static_int<3>(), static_int<3>()};
 #else
-            constexpr meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
+#ifdef NDEBUG
+            constexpr
+#endif
+                meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
 
 #endif
 
@@ -361,7 +367,7 @@ namespace functors{
 
     template< typename T, T Value>
     struct assign<3, T, Value>{
-        typedef accessor<2, range<0,0,0,0> , 3> field;
+        typedef accessor<2, enumtype::inout, extent<0,0,0,0> , 3> field;
         typedef boost::mpl::vector< field > arg_list;
 
         template <typename Evaluation>
@@ -373,14 +379,14 @@ namespace functors{
 
     template< typename T, T Value>
     struct assign<4,T,Value>{
-        typedef accessor<0, range<0,0,0,0> , 4> field;
+        typedef accessor<0, enumtype::inout, extent<0,0,0,0> , 4> field;
         typedef boost::mpl::vector< field > arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 
-            uint_t const num_=eval.get().get_storage_dims(field())[3];
+            uint_t const num_=eval.get().template get_storage_dims<3>(field());
 
             for(short_t I=0; I<num_; I++)
                 eval(field(dimension<4>(I)))=Value;
@@ -389,15 +395,15 @@ namespace functors{
 
     template< typename T, T Value>
     struct assign<5,T,Value>{
-        typedef accessor<0, range<0,0,0,0> , 5> field;
+        typedef accessor<0, enumtype::inout, extent<0,0,0,0> , 5> field;
         typedef boost::mpl::vector< field > arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 
-            uint_t const dim_1_=eval.get().get_storage_dims(field())[3];
-            uint_t const dim_2_=eval.get().get_storage_dims(field())[4];
+            uint_t const dim_1_=eval.get().template get_storage_dims<3>(field());
+            uint_t const dim_2_=eval.get().template get_storage_dims<4>(field());
 
             for(short_t I=0; I<dim_1_; I++)
                 for(short_t J=0; J<dim_2_; J++)

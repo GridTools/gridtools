@@ -46,7 +46,7 @@ int main(){
     using namespace enumtype;
     using namespace gridtools;
     //defining the assembler, based on the Intrepid definitions for the numerics
-    using matrix_storage_info_t=storage_info< layout_tt<3,4>,  __COUNTER__ >;
+    using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<3,4> >;
     using matrix_type=storage_t< matrix_storage_info_t >;
 
     using geo_map=reference_element<1, Lagrange, Hexa>;
@@ -101,9 +101,9 @@ int main(){
             for (uint_t k=0; k<d3; k++)
                 for (uint_t point=0; point<geo_map::basisCardinality; point++)
                 {
-                    assembler_base.grid()( i,  j,  k,  point,  0)= (i + geo_.grid()(point, 0));
-                    assembler_base.grid()( i,  j,  k,  point,  1)= (j + geo_.grid()(point, 1));
-                    assembler_base.grid()( i,  j,  k,  point,  2)= (k + geo_.grid()(point, 2));
+                    assembler_base.grid()( i,  j,  k,  point,  0)= (i + geo_.grid()(point, 0, 0));
+                    assembler_base.grid()( i,  j,  k,  point,  1)= (j + geo_.grid()(point, 1, 0));
+                    assembler_base.grid()( i,  j,  k,  point,  2)= (k + geo_.grid()(point, 2, 0));
                 }
     //![grid]
 
@@ -113,7 +113,7 @@ int main(){
     matrix_type advection_(meta_, 0., "advection");
     matrix_type mass_(meta_, 0., "mass");
 
-    using vector_storage_info_t=storage_info< layout_tt<3>,  __COUNTER__ >;//TODO change: iterate on faces
+    using vector_storage_info_t=storage_info< __COUNTER__, layout_tt<3>>;//TODO change: iterate on faces
     using vector_type=storage_t< vector_storage_info_t >;
 
     vector_storage_info_t vec_meta_(d1,d2,d3,geo_map::basisCardinality);
@@ -138,10 +138,11 @@ int main(){
     auto domain=domain_tuple_.template domain
         <p_u, p_result , p_mass, p_advection, p_phi, p_dphi>
         ( u_, result_, mass_, advection_, geo_.val(), geo_.grad());
+
     //![placeholders]
 
 
-    auto coords=coordinates<axis>({1, 0, 1, d1-1, d1},
+    auto coords=grid<axis>({1, 0, 1, (uint_t)d1-1, (uint_t)d1},
         {1, 0, 1, d2-1, d2});
     coords.value_list[0] = 0;
     coords.value_list[1] = d3-1;
@@ -182,7 +183,7 @@ int main(){
             // compute Lax-Friedrich flux (communication-gather) result=flux;
             , dt::lax_friedrich<flux>::esf(p_u(), p_result())
             // integrate the flux: result=M_bd*flux
-            , make_esf< functors::matvec_bd >( p_result(), dt::p_bd_mass(), p_result() )
+            , make_esf< functors::matvec_VolxBdxVol >( p_result(), dt::p_bd_mass(), p_result() )
             // result+=M*u
             , make_esf< functors::matvec >( p_u(), p_mass(), p_result() )
             // result+=A*u

@@ -15,11 +15,11 @@ struct mass {
     using cub=Cubature;
 
     //![accessors]
-    using jac_det =accessor<0, range<0,0,0,0> , 4> const;
-    using weights =accessor<1, range<0,0,0,0> , 3> const;
-    using mass_t   =accessor<2, range<0,0,0,0> , 5> ;
-    using phi    =accessor<3, range<0,0,0,0> , 3> const;
-    using psi    =accessor<4, range<0,0,0,0> , 3> const;
+    using jac_det =accessor<0, enumtype::in, extent<0,0,0,0> , 4> const;
+    using weights =accessor<1, enumtype::in, extent<0,0,0,0> , 3> const;
+    using mass_t   =accessor<2, enumtype::inout, extent<0,0,0,0> , 5> ;
+    using phi    =accessor<3, enumtype::in, extent<0,0,0,0> , 3> const;
+    using psi    =accessor<4, enumtype::in, extent<0,0,0,0> , 3> const;
     using arg_list= boost::mpl::vector<jac_det, weights, mass_t, phi,psi> ;
     //![accessors]
 
@@ -29,8 +29,8 @@ struct mass {
     static void Do(Evaluation const & eval, x_interval) {
         //quadrature points dimension
         dimension<4>::Index qp;
-        uint_t const num_cub_points=eval.get().get_storage_dims(jac_det())[3];
-        uint_t const basis_cardinality=eval.get().get_storage_dims(psi())[0];
+        uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac_det());
+        uint_t const basis_cardinality=eval.get().template get_storage_dims<0>(psi());
 
 
 #ifndef __CUDACC__
@@ -232,12 +232,12 @@ int main(){
 
      geo_.compute(Intrepid::OPERATOR_GRAD);
 
-     using matrix_storage_info_t=storage_info<  layout_tt<3,4>, __COUNTER__ >;
+     using matrix_storage_info_t=storage_info< __COUNTER__,  layout_tt<3,4> >;
      using matrix_type=storage_t< matrix_storage_info_t >;
      matrix_storage_info_t meta_(d1,d2,d3,fe3::basisCardinality,fe3::basisCardinality);
      matrix_type mass_(meta_, 0.);
 
-     using vector_storage_info_t=storage_info<  layout_tt<3>, __COUNTER__ >;
+     using vector_storage_info_t=storage_info< __COUNTER__,  layout_tt<3> >;
      using vector_type=storage_t< vector_storage_info_t >;
      vector_storage_info_t meta_vec_(d1,d2,d3,fe3::basisCardinality);
      vector_type vector_(meta_vec_, 1.);

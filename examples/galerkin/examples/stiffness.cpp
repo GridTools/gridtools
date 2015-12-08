@@ -16,12 +16,11 @@ int main(){
     auto d1=8;
     auto d2=8;
     auto d3=1;
-    const auto num_dofs = 1;
     //![definitions]
 
     //![definitions]
     //defining the assembler, based on the Intrepid definitions for the numerics
-	using matrix_storage_info_t=storage_info< layout_tt<3,4> , __COUNTER__>;
+    using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<3,4> >;
     using matrix_type=storage_t< matrix_storage_info_t >;
     using fe=reference_element<1, Lagrange, Hexa>;
     using geo_map=reference_element<1, Lagrange, Hexa>;
@@ -43,7 +42,7 @@ int main(){
     //![as_instantiation]
     //constructing the integration tools
     as assembler( geo_, d1, d2, d3);
-    as_base assembler_base(d1,d2,d3,num_dofs);
+    as_base assembler_base(d1,d2,d3);
     //![as_instantiation]
 
     using domain_tuple_t = domain_type_tuple< as, as_base>;
@@ -94,7 +93,7 @@ int main(){
 
     // , m_domain(boost::fusion::make_vector(&m_grid, &m_jac, &m_fe_backend.cub_weights(), &m_jac_det, &m_jac_inv, &m_fe_backend.local_gradient(), &m_fe_bac
                                                                                                    // , &m_stiffness, &m_assembled_stiffness
-    auto coords=coordinates<axis>({0, 0, 0, d1-1, d1},
+    auto coords=grid<axis>({0, 0, 0, d1-1, d1},
     							  {0, 0, 0, d2-1, d2});
     coords.value_list[0] = 0;
     coords.value_list[1] = d3-1;
