@@ -6,7 +6,6 @@
 #include "test_assembly.hpp"
 #include "../functors/mass.hpp"
 
-
 int main(){
 
 	//![definitions]
@@ -19,8 +18,10 @@ int main(){
 
     //![definitions]
     //defining the assembler, based on the Intrepid definitions for the numerics
-    using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<3,4> >;
+    using matrix_storage_info_t=storage_info<  __COUNTER__, layout_tt<3,4> >;
+    using global_mass_matrix_storage_info_t=storage_info<  __COUNTER__, layout_tt<3,4> >;
     using matrix_type=storage_t< matrix_storage_info_t >;
+    using global_mass_matrix_type=storage_t< global_mass_matrix_storage_info_t >;
     using fe=reference_element<1, Lagrange, Tri>;
     using geo_map=reference_element<1, Lagrange, Tri>;
     using cub=cubature<fe::order+1, fe::shape>;
@@ -95,8 +96,8 @@ int main(){
     //![instantiation_mass]
 
     //![instantiation_global_mass]
-    matrix_storage_info_t meta_global_mass_(num_dofs,num_dofs,1,1,1);
-    matrix_type global_mass_(meta_global_mass_,0.,"global_mass");
+    global_mass_matrix_storage_info_t meta_global_mass_(num_dofs,num_dofs,1,1,1);
+    global_mass_matrix_type global_mass_gt_(meta_global_mass_,0.,"global_mass_gt");
     //![instantiation_global_mass]
 
     using dt = domain_tuple_t;
@@ -105,12 +106,14 @@ int main(){
     // defining the placeholder for the local basis/test functions
     typedef arg<dt::size, discr_t::basis_function_storage_t> p_phi;
     typedef arg<dt::size+1, discr_t::grad_storage_t> p_dphi;
-    // // defining the placeholder for the mass matrix values
-    typedef arg<dt::size+2, matrix_type> p_mass;
+    // // defining the placeholder for the mass/global matrix values
+    typedef arg<dt::size+2, as_base::grid_map_type> p_grid_map;
+    typedef arg<dt::size+3, matrix_type> p_mass;
+    typedef arg<dt::size+4, global_mass_matrix_type> p_global_mass_gt;
 
 
     // appending the placeholders to the list of placeholders already in place
-    auto domain=domain_tuple_.template domain<p_phi, p_dphi, p_mass>(fe_.val(), geo_.grad(), mass_);
+    auto domain=domain_tuple_.template domain<p_phi, p_dphi, p_grid_map, p_mass, p_global_mass_gt>(fe_.val(), geo_.grad(), assembler_base.grid_map(), mass_, global_mass_gt_);
     //![placeholders]
 
     auto coords=grid<axis>({0, 0, 0, d1-1, d1},
@@ -131,26 +134,23 @@ int main(){
     computation->finalize();
     //![computation]
 
-    //![global mass matrix assembly]
-	for(unsigned int i=0;i<d1;++i)
-	{
-		for(unsigned int j=0;j<d2;++j)
-		{
-			for(unsigned int k=0;k<d3;++k)
-			{
-				for(auto l_dof1=0;l_dof1<fe::basisCardinality;++l_dof1)
-				{
-					const u_int P=assembler_base.get_grid_map()(i,j,k,l_dof1);
-					for(auto l_dof2=0;l_dof2<fe::basisCardinality;++l_dof2)
-					{
-						const u_int Q=assembler_base.get_grid_map()(i,j,k,l_dof2);
-						global_mass_(P,Q,0,0,0) += mass_(i,j,k,l_dof1,l_dof2);
-					}
-				}
-			}
-		}
-	}
-    //![global mass matrix assembly]
+
+    //![assembly_computation]
+    auto assembly_coords=coordinates<axis>({0, 0, 0, num_dofs-1, num_dofs},
+										   {0, 0, 0, num_dofs-1, num_dofs});
+    assembly_coords.value_list[0] = 0;
+    assembly_coords.value_list[1] = 0;
+
+
+    auto assembly_computation=make_computation<gridtools::BACKEND>(make_mss(execute<forward>(),
+    															   make_esf<functors::global_assemble>(p_mass(),p_grid_map(),p_global_mass_gt())),
+														  domain,
+														  assembly_coords);
+    assembly_computation->ready();
+    assembly_computation->steady();
+    assembly_computation->run();
+    assembly_computation->finalize();
+    //![assembly_computation]
 
     //![computation]
     return test_mass(assembler_base, assembler, fe_, mass_)==true;
