@@ -50,7 +50,7 @@ namespace gridtools{
                          , int >::type=0
                    >
         GT_FUNCTION
-        static auto constexpr value_scalar(IterateDomain const& /*it_domain*/
+        static auto constexpr value(IterateDomain const& /*it_domain*/
                                            , expr_exp<FloatType, IntType> const& arg)
             -> decltype(std::pow (arg.first_operand,  arg.second_operand)) {
             return gt_pow<2>::apply(arg.first_operand);

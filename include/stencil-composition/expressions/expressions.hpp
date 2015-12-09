@@ -1,4 +1,5 @@
 #pragma once
+
 #include"common/defs.hpp"
 #include"common/string_c.hpp"
 #include "common/gt_math.hpp"
@@ -45,8 +46,10 @@ namespace gridtools{
         constexpr FloatType  pow (FloatType arg1)
         {return gt_pow<Exponent>::apply(arg1);}
 
-/**Expressions defining the interface for specifiyng a given offset for a specified dimension
-           \tparam Left: argument of type dimension<>::Index, specifying the offset in the given direction*/
+        /**
+           Expressions defining the interface for specifiyng a given offset for a specified dimension
+           \tparam Left: argument of type dimension<>::Index, specifying the offset in the given direction
+        */
         template<typename Left>
         GT_FUNCTION
         constexpr typename Left::super operator +(Left d1, int const&  offset) { return typename Left::super( offset );}
@@ -74,6 +77,9 @@ namespace gridtools{
 
     template <typename Arg1>
     struct is_expr<expr_derivative<Arg1> > : boost::mpl::true_ {};
+
+    template <typename Arg1, int Exponent>
+    struct is_expr<expr_pow<Arg1, Exponent> > : boost::mpl::true_ {};
 
 }//namespace gridtools
 /*@}*/

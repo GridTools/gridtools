@@ -640,15 +640,15 @@ namespace gridtools {
             return expressions::evaluation::value((*this), arg);
         }
 
-        /** @brief method called in the Do methods of the functors.
-            partial specializations for double (or float)*/
-        template <typename Argument, template<typename Arg1, typename Arg2> class Expression, typename FloatType
-                  , typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
-        GT_FUNCTION
-        auto operator() (Expression<Argument, FloatType> const& arg) const ->decltype(expressions::evaluation::value_scalar(*this, arg)) {
-            GRIDTOOLS_STATIC_ASSERT((is_expr<Expression<Argument, FloatType> >::value), "invalid expression");
-            return expressions::evaluation::value_scalar((*this), arg);
-        }
+        // /** @brief method called in the Do methods of the functors.
+        //     partial specializations for double (or float)*/
+        // template <typename Argument, template<typename Arg1, typename Arg2> class Expression, typename FloatType
+        //           , typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
+        // GT_FUNCTION
+        // auto operator() (Expression<Argument, FloatType> const& arg) const ->decltype(expressions::evaluation::value(*this, arg)) {
+        //     GRIDTOOLS_STATIC_ASSERT((is_expr<Expression<Argument, FloatType> >::value), "invalid expression");
+        //     return expressions::evaluation::value((*this), arg);
+        // }
 
         /** @brief method called in the Do methods of the functors.
             partial specializations for int. Here we do not use the typedef int_t, because otherwise the interface would be polluted with casting
@@ -857,7 +857,9 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
+#ifdef PEDANTIC // storages may have less than 3 dimensions in non pedantic mode
         GRIDTOOLS_STATIC_ASSERT((Accessor::n_dim>4), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
+#endif
 
         //getting information about the storage
         typedef typename Accessor::index_type index_t;

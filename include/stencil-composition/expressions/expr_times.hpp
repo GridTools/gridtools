@@ -63,7 +63,7 @@ namespace gridtools{
                         , int >::type=0
                   >
         GT_FUNCTION
-        auto static constexpr value_scalar(IterateDomain const& it_domain
+        auto static constexpr value(IterateDomain const& it_domain
                                            , expr_times<ArgType1, FloatType> const& arg)
             -> decltype(it_domain(arg.first_operand) * arg.second_operand) {
             return it_domain(arg.first_operand) * arg.second_operand;}
@@ -88,7 +88,7 @@ namespace gridtools{
                         , int >::type=0
                   >
         GT_FUNCTION
-        auto static constexpr value_scalar(IterateDomain const& it_domain
+        auto static constexpr value(IterateDomain const& it_domain
                                            , expr_derivative<expr_times<ArgType1, FloatType> > const& arg)
             -> decltype(it_domain(expr_derivative<ArgType1>(arg.first_operand) )*it_domain(arg.second_operand ) ) {
             return it_domain(expr_derivative<ArgType1>(arg.first_operand) * arg.second_operand ) ;}
