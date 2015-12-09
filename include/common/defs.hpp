@@ -14,6 +14,14 @@
 #define CXX11_DISABLED
 #endif
 
+//this MUST be included before any boost include
+#ifndef FUSION_MAX_VECTOR_SIZE
+    #define FUSION_MAX_VECTOR_SIZE 60
+    #define FUSION_MAX_MAP_SIZE 60
+    #define BOOST_MPL_LIMIT_VECTOR_SIZE FUSION_MAX_VECTOR_SIZE
+    #define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
+#endif
+
 //defines how many threads participate to the (shared) memory initialization
 //TODOCOSUNA This IS VERY VERY VERY DANGEROUS HERE
 #define BLOCK_SIZE 32
@@ -159,23 +167,27 @@ namespace gridtools{
     /** checking that no arithmetic operation is performed on enum types*/
     template<>
     struct is_backend_enum<enumtype::platform> : boost::mpl::true_ {};
-    struct error_no_operator_overload{};
 
-    template <typename  ArgType1, typename ArgType2,
-              typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
-    error_no_operator_overload operator + (ArgType1 arg1, ArgType2 arg2){}
+// #ifndef INTREPID_ENABLED
+//     struct error_no_operator_overload{};
 
-    template <typename  ArgType1, typename ArgType2,
-              typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
-    error_no_operator_overload operator - (ArgType1 arg1, ArgType2 arg2){}
+//     template <typename  ArgType1, typename ArgType2,
+//               typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
+//     error_no_operator_overload operator + (ArgType1 arg1, ArgType2 arg2){}
 
-    template <typename  ArgType1, typename ArgType2,
-              typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
-    error_no_operator_overload operator * (ArgType1 arg1, ArgType2 arg2){}
+//     template <typename  ArgType1, typename ArgType2,
+//               typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
+//     error_no_operator_overload operator - (ArgType1 arg1, ArgType2 arg2){}
 
-    template <typename  ArgType1, typename ArgType2,
-              typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
-    error_no_operator_overload operator / (ArgType1 arg1, ArgType2 arg2){}
+//     template <typename  ArgType1, typename ArgType2,
+//               typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
+//     error_no_operator_overload operator * (ArgType1 arg1, ArgType2 arg2){}
+
+//     template <typename  ArgType1, typename ArgType2,
+//               typename boost::enable_if<typename any_enum_type<ArgType1, ArgType2>::type, int  >::type = 0>
+//     error_no_operator_overload operator / (ArgType1 arg1, ArgType2 arg2){}
+// #endif
+
 #endif
 
     template<typename T>

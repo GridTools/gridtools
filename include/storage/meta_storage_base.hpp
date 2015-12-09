@@ -81,8 +81,45 @@ namespace gridtools {
 
     protected:
 
-         array<uint_t, space_dimensions> m_dims;
-         array<uint_t, space_dimensions> m_strides;
+        /**
+           @brief Metafunction for computing the coordinate N from the index
+
+           NOTE: N=0 is the coordinate with stride 1
+
+           The usual 1-to-1 relation to pass from the index \f$ID\f$ to the coordinates \f$c1, c2, c3\f$, involving the strides \f$s1 > s2 > 1\f$, is as follows:
+
+           \f$ID= c1*s1+c2*s2+c3\f$
+
+           while each index identifies three coordinates as follow
+
+           \f$c3=ID%s2\f$
+
+           \f$c2=\frac{ID%s1-c3}{s2}\f$
+
+           \f$c1=\frac{ID-c2-c3}{s1}\f$
+
+           where the % operator defines the integer remain of the division.
+           This can be extended to higher dimensions and can be rewritten as a recurrency formula (implemented via recursion).
+        */
+        // template<typename N>
+        // struct coord_from_index
+        // {
+        //     static int_t apply(int_t index, int_t* strides_){
+        //         printf("the coord from index: tile along %d is %d\n ", 0, strides[2]);
+        //         return index%strides<N::value>(strides_)-coord_from_index<static_int<N::value+1> >::apply();
+        //     }
+        // };
+
+        // template <ushort_t Coordinate>
+        // int_t index2coord(int_t const& index){
+        //     return coord_from_index<static_int<Coordinate> >::apply(index, strides());
+        // }
+
+    public:
+        // protected:
+
+        array<uint_t, space_dimensions> m_dims;
+        array<uint_t, space_dimensions> m_strides;
 
     public:
 
@@ -164,9 +201,32 @@ namespace gridtools {
             m_dims{(uint_t)dims_...}
             , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( (uint_t)dims_...))
             {
+                GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes) >= space_dimensions, "you tried to initialize\
+ a storage with a number of integer arguments smaller than its number of dimensions. \
+ This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
+ a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
+ by defining the storage type using another layout_map.");
+                GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes) <= space_dimensions, "you tried to initialize\
+ a storage with a number of integer arguments larger than its number of dimensions. \
+ This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
+ a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
+ by defining the storage type using another layout_map.");
+            }
+
+
+        template <typename ... IntTypes
+                  , typename Dummy = all_static_integers<IntTypes...>
+                  >
+#ifdef NDEBUG
+        constexpr
+#endif
+        meta_storage_base(  IntTypes ... dims_) :
+            m_dims{IntTypes::value ...}
+            , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( IntTypes() ...))
+            {
                 GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes)==space_dimensions, "you tried to initialize\
  a storage with a number of integer arguments different from its number of dimensions. \
-This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
+ This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
  a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
  by defining the storage type using another layout_map.");
                 GRIDTOOLS_STATIC_ASSERT(
@@ -237,11 +297,14 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         /** @brief returns the dimension fo the field along I*/
         template<ushort_t I>
         GT_FUNCTION
-         constexpr uint_t dims() const {return m_dims[I];}
+        constexpr uint_t dims() const {return m_dims[I];}
+
+        // GT_FUNCTION
+        // array<int_t, space_dimensions> const& get_dims() const {return m_dims;}
 
         /** @brief returns the dimension fo the field along I*/
         GT_FUNCTION
-         constexpr uint_t dims(const ushort_t I) const {return m_dims[I];}
+        constexpr uint_t dims(const ushort_t I) const {return m_dims[I];}
 
         /**@brief returns the storage strides
          */
@@ -254,13 +317,19 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
          */
         GT_FUNCTION
          constexpr uint_t const* strides() const {
-            GRIDTOOLS_STATIC_ASSERT(space_dimensions>1, "one dimensional storage");
+            GRIDTOOLS_STATIC_ASSERT(space_dimensions>1, "less than 2D storage, is that what you want?");
             return (&m_strides[1]);
         }
 
 #ifdef CXX11_ENABLED
         /**@brief straightforward interface*/
-        template <typename ... UInt>
+        template <typename ... UInt, typename Dummy=all_integers<UInt ...>>
+        constexpr
+        GT_FUNCTION
+        uint_t index(UInt const& ... args_) const { return _index( strides(), args_ ...); }
+
+        template <typename ... UInt, typename Dummy=all_static_integers<UInt ...>>
+        constexpr
         GT_FUNCTION
         uint_t index(uint_t const& first, UInt const& ... args_) const {
             return _index(strides(), first, args_... );
@@ -295,7 +364,12 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
 
 	   static version: the strides vector is passed from outside ordered in decreasing order, and the strides coresponding to
 	   the Coordinate dimension is returned according to the layout map.
-        */
+           NOTE: the strides argument array contains only the strides and has dimension {space_dimensions-1}
+
+           @tparam Coordinate the coordinate of which I want to retrieve the strides (0 for i, 1 for j, 2 for k)
+           @tparam StridesVector the array type for the strides.
+           @param strides_ the array of strides
+	*/
         template<uint_t Coordinate, typename StridesVector>
         GT_FUNCTION
         static constexpr uint_t strides(StridesVector const& RESTRICT strides_){
@@ -314,6 +388,28 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
             return ((vec_max<typename layout::layout_vector_t>::value < 0) ? 0:(( layout::template at_<Coordinate>::value == vec_max<typename layout::layout_vector_t>::value ) ? 1 : ((m_strides[layout::template at_<Coordinate>::value+1]))));
         }
 
+// #ifdef CXX11_ENABLED
+//         /**
+//            @brief computing index to access the storage in the coordinates passed as parameters.
+
+//            This method must be called with integral type parameters, and the result will be a positive integer.
+//         */
+//         template <typename StridesVector, typename ... UInt, typename Dummy=all_integers<UInt ...> >
+//         GT_FUNCTION
+//         constexpr
+//         static int_t _index(StridesVector const& RESTRICT strides_, UInt const& ... dims) {
+//             return _impl::compute_offset<space_dimensions, layout>::apply(strides_, dims ...);
+//         }
+
+//         template <typename StridesVector, typename ... UInt, typename Dummy=all_static_integers<UInt ...>>
+//         GT_FUNCTION
+//         constexpr
+//         static int_t _index(StridesVector const& RESTRICT strides_, UInt ... dims) {
+//             return  _impl::compute_offset<space_dimensions, layout>::apply(strides_, dims ...);
+//         }
+
+// #else
+
         /**@brief returning the index of the memory address corresponding to the specified (i,j,k) coordinates.
            This method depends on the strategy used (either naive or blocking). In case of blocking strategy the
            index for temporary storages is computed in the subclass gridtools::host_tmp_storge
@@ -325,7 +421,8 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
             return strides_[0]
                 * layout::template find_val<0,uint_t,0>(i,j,k) +
                 strides_[1] * layout::template find_val<1,uint_t,0>(i,j,k) +
-                layout::template find_val<2,uint_t,0>(i,j,k);
+                layout::template find_val<2,uint_t,0>(i,j,k)
+                ;
         }
 
 #ifdef CXX11_ENABLED
@@ -342,37 +439,6 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
             return _impl::compute_offset<space_dimensions, layout>::apply(strides_, dims ...);
         }
 
-        // typename <Array>
-        // struct subtract_padding_functor{
-
-        //     subtract_padding_functor(Array const& _) :
-        //     m_dims(array_)
-        //     {}
-
-        //     template<typenmae Id>
-        //     operator ()(Id id_){
-        //         m_dims[Id::value] -= boost::mpl::at<Id, padding_t>
-        //     }
-        // private:
-        //     Array& m_dims;
-        // };
-
-        // /**
-        //    @brief computing index to access the storage in the coordinates passed as parameters.
-
-        //    This method must be called with integral type parameters, and the result will be a positive integer.
-        // */
-        // template <typename StridesVector, typename ... UInt>
-        // GT_FUNCTION
-        // constexpr
-        // static uint_t _index(StridesVector const& RESTRICT strides_, UInt const& ... dims) {
-        //     GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(),  boost::is_integral<UInt>::type::value ...), "you have to pass in arguments of uint_t type");
-        //     array<sizeof ... (UInt)> dims_{dims ...};
-
-        //     boost::mpl::for_each<range_c<uint_t, 0, sizeof ... (UInt)>
-        //                          ( subtract_padding_functor(dims_)) ;
-        //     return _impl::compute_offset<space_dimensions, layout>::apply(strides_, &dims_[0]);
-        // }
 #endif
 
         /**
@@ -383,9 +449,11 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
 
            This method returns signed integers of type int_t (used e.g. in iterate_domain)
         */
-        template <typename OffsetTuple, typename StridesVector>
+        template <typename OffsetTuple, typename StridesVector, typename boost::enable_if<is_arg_tuple<OffsetTuple >, int>::type=0>
         GT_FUNCTION
         static constexpr int_t _index(StridesVector const& RESTRICT strides_, OffsetTuple  const& tuple) {
+            GRIDTOOLS_STATIC_ASSERT(OffsetTuple::n_dim >0 , "The placeholder is most probably not present in the domain_type you are using. Double check that you passed all the placeholders in the domain_type construction");
+            GRIDTOOLS_STATIC_ASSERT(is_arg_tuple<OffsetTuple>::type::value, "wrong type");
             return _impl::compute_offset<space_dimensions, layout>::apply(strides_, tuple);
         }
 
@@ -460,6 +528,20 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         }
 
     };
+
+
+    // template<>
+    // template < ushort_t Index
+    //            , typename Layout
+    //            , bool IsTemporary
+    //            >
+    // struct meta_storage_base<Index, Layout, IsTemporary>::coord_from_index<static_int<meta_storage_base<Index, Layout, IsTemporary>::space_dimensions-1> >
+    // {
+    //     static int_t apply(int_t index, int_t* strides_){
+    //         printf("the coord from index: tile along %d is %d\n ", 0, strides[2]);
+    //         return index%strides<space_dimensions-1>(strides_);
+    //     }
+    // };
 
 
 }//namespace gridtools

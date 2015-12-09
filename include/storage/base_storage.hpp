@@ -146,7 +146,7 @@ namespace gridtools {
         /**@brief the parallel storage calls the empty constructor to do lazy initialization*/
         base_storage(MetaData const & meta_data_, bool do_allocate=true) :
             is_set( false )
-            , m_name("default_storage")
+            , m_name("empty storage")
             , m_meta_data(meta_data_)
         {
             if (do_allocate)
@@ -178,8 +178,7 @@ namespace gridtools {
 
            The number of arguments must me equal to the space dimensions of the specific field (template parameter)
         */
-        base_storage( MetaData const& meta_data_, char const* s// ="default storage"
-            ) :
+        base_storage( MetaData const& meta_data_, char const* s) :
             is_set( true )
             , m_name(s)
             , m_meta_data(meta_data_)
@@ -222,9 +221,8 @@ namespace gridtools {
         }
 
         /**@brief device copy constructor*/
-        template<typename T>
         __device__
-        base_storage(T const& other)
+        base_storage(base_storage const& other)
             :
             is_set(other.is_set)
             , m_name(other.m_name)
@@ -236,8 +234,8 @@ namespace gridtools {
             assert(dims>offset);
             assert(dims<=field_dimensions);
             is_set=true;
-            for(ushort_t i=0; i<dims; ++i)
-                m_fields[i+offset]=pointer_type(m_meta_data.size());
+            for(ushort_t i=offset; i<dims; ++i)
+                m_fields[i]=pointer_type(m_meta_data.size());
         }
 
         /** @brief initializes with a constant value */
@@ -263,6 +261,12 @@ namespace gridtools {
                 }
             }
 
+
+        GT_FUNCTION
+        void swap_pointers(base_storage& other){
+            for(ushort_t i=0; i<field_dimensions; ++i)
+                m_fields[i].swap(other.m_fields[i]);
+        }
 
         /** @brief initializes with a lambda function
 
@@ -415,6 +419,10 @@ namespace gridtools {
             }
             stream << std::endl;
         }
+
+        /**@brief returns the data field*/
+        GT_FUNCTION
+        void set(pointer_type ptr_) {m_fields[0]=ptr_;}
 
         /**@brief returns the data field*/
         GT_FUNCTION

@@ -28,7 +28,6 @@ namespace gridtools{
         typedef typename expand_recursively<typename expand_to_gt_integer_sequence<ushort_t, Constant::value, Length::value>::type, Lambda>::type type;
     };
 
-
     template<ushort_t Constant, ushort_t Length, template<ushort_t ... T> class Lambda >
     struct repeat_template_c{
         typedef typename expand_recursively<typename expand_to_gt_integer_sequence<ushort_t, Constant, Length>::type, Lambda>::type type;

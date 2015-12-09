@@ -2,6 +2,8 @@
 #include "stencil-composition/structured_grids/accessor_impl.hpp"
 #include "stencil-composition/arg.hpp"
 #include "stencil-composition/dimension.hpp"
+#include "../../common/generic_metafunctions/all_integrals.hpp"
+#include "../../common/generic_metafunctions/static_if.hpp"
 /**
    @file
 
@@ -60,7 +62,9 @@ namespace gridtools {
         */
         template <typename... ForwardedArgs>
         GT_FUNCTION
-        constexpr accessor ( ForwardedArgs... x): super (x...) {}
+        constexpr accessor ( ForwardedArgs... x): super (x...) {
+            GRIDTOOLS_STATIC_ASSERT( (sizeof...(ForwardedArgs) <= Number), "too many arguments for an accessor. Check that the accessor dimension is valid." );
+        }
 
         //move ctor
         GT_FUNCTION
@@ -169,7 +173,11 @@ namespace gridtools {
         GT_FUNCTION
         constexpr
         const int_t get() const {
-            return boost::is_same<typename boost::mpl::find<coordinates, static_int<Idx> >::type, typename boost::mpl::end<coordinates>::type >::type::value ? m_args_runtime.template get<Idx>() : s_args_constexpr.template get<Idx>() ;
+            return
+                boost::is_same<typename boost::mpl::find<coordinates, static_int<Idx> >::type
+                                , typename boost::mpl::end<coordinates>::type >::type::value
+                ? m_args_runtime.template get<Idx>()
+                : s_args_constexpr.template get<Idx>() ;
         }
     };
 
@@ -220,7 +228,7 @@ alias<arg_t, dimension<3> > field1(-3); //records the offset -3 as dynamic value
         using set=accessor_mixed< AccessorType, pair_<Known::direction,Args> ... >;
 
         /**@brief constructor
-       \param args are the offsets which are already known*/
+           \param args are the offsets which are already known*/
         template<typename ... Args>
         GT_FUNCTION
         constexpr alias( Args/*&&*/ ... args ): m_knowns{args ...} {

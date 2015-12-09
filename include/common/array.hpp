@@ -170,7 +170,7 @@ namespace gridtools {
 
 
         GT_FUNCTION
-        static constexpr size_t size() {return _size;}
+        constexpr static size_t size()  {return _size;}
     };
 
     template<typename T> struct is_array : boost::mpl::false_{};

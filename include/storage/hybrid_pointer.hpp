@@ -193,6 +193,20 @@ namespace gridtools {
         GT_FUNCTION
         int get_size(){return m_size;}
 
+        GT_FUNCTION
+        void swap(hybrid_pointer& other){
+            super::swap(other);
+            T* tmp = m_gpu_p;
+            m_gpu_p = other.m_gpu_p;
+            other.m_gpu_p = tmp;
+            tmp = m_pointer_to_use;
+            m_pointer_to_use = other.m_pointer_to_use;
+            other.m_pointer_to_use = tmp;
+            uint_t tmp_size = m_size;
+            m_size = other.m_size;
+            other.m_size = tmp_size;
+        }
+
         void reset(T* cpu_p){m_cpu_p.reset(cpu_p);}
 
         bool reset_managed(bool externally_managed_){m_cpu_p.reset_managed(externally_managed_);}

@@ -161,12 +161,12 @@ namespace test_iterate_domain{
         *in.get<1,1>()=11.;
         *in.get<0,2>()=20.;
 
-        assert(it_domain(alias<inout_accessor<0, extent<0,0,0,0>, 6>, dimension<5> >::set<0>())==0.);
-        assert(it_domain(alias<inout_accessor<0, extent<0,0,0,0>, 6>, dimension<5> >::set<1>())==1.);
-        assert(it_domain(alias<inout_accessor<0, extent<0,0,0,0>, 6>, dimension<5> >::set<2>())==2.);
-        assert(it_domain(alias<inout_accessor<0, extent<0,0,0,0>, 6>, dimension<6> >::set<1>())==10.);
-        assert(it_domain(alias<inout_accessor<0, extent<0,0,0,0>, 6>, dimension<6>, dimension<5> >::set<1, 1>())==11.);
-        assert(it_domain(alias<inout_accessor<0, extent<0,0,0,0>, 6>, dimension<6> >::set<2>())==20.);
+        assert(it_domain(alias<accessor<0, enumtype::inout, extent<0,0,0,0>, 6>, dimension<5> >::set<0>())==0.);
+        assert(it_domain(alias<accessor<0, enumtype::inout, extent<0,0,0,0>, 6>, dimension<5> >::set<1>())==1.);
+        assert(it_domain(alias<accessor<0, enumtype::inout, extent<0,0,0,0>, 6>, dimension<5> >::set<2>())==2.);
+        assert(it_domain(alias<accessor<0, enumtype::inout, extent<0,0,0,0>, 6>, dimension<6> >::set<1>())==10.);
+        assert(it_domain(alias<accessor<0, enumtype::inout, extent<0,0,0,0>, 6>, dimension<6>, dimension<5> >::set<1, 1>())==11.);
+        assert(it_domain(alias<accessor<0, enumtype::inout, extent<0,0,0,0>, 6>, dimension<6> >::set<2>())==20.);
 
         //using compile-time constexpr accessors (through alias::set) when the data field is not "rectangular"
         *buff.get<0,0>()=0.;//is accessor<1>

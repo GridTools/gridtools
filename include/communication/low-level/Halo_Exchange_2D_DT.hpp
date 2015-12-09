@@ -120,7 +120,7 @@ namespace gridtools {
      \endcode
 
 
-     A running example can be found in the included example. \example Halo_Exchange_test.cpp \example Halo_Exchange_test_2.cpp
+     A running example can be found in the included example. \example test_halo_exchange_3D.cpp \example test_halo_exchange_2D.cpp
    */
   template <typename PROC_GRID, int ALIGN=1 >
   class Halo_Exchange_2D_DT {

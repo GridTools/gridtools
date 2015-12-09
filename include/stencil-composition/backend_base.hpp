@@ -123,6 +123,9 @@ namespace gridtools {
     template< enumtype::platform BackendId, enumtype::strategy StrategyId >
     struct backend_base
     {
+#ifdef __CUDACC__
+        GRIDTOOLS_STATIC_ASSERT(BackendId==enumtype::Cuda, "Beware: you are compiling with nvcc, and most probably want to use the cuda backend, but the backend you are instantiating is another one!!");
+#endif
         typedef backend_traits_from_id<BackendId> backend_traits_t;
         typedef typename backend_traits_t::template select_strategy<StrategyId>::type strategy_traits_t;
 
@@ -418,7 +421,7 @@ namespace gridtools {
 
             n_j_pes()(size): number of threads on the second dimension of the thread grid
         */
-     static query_j_threads_f n_j_pes() {
+        static query_j_threads_f n_j_pes() {
             return &backend_traits_t::n_j_pes;
         }
 

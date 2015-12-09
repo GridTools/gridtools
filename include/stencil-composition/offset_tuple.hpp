@@ -14,6 +14,8 @@ template <ushort_t N, typename X>
 GT_FUNCTION
 constexpr int_t initialize( X x )
 {
+    GRIDTOOLS_STATIC_ASSERT(is_dimension<X>::value,
+                            "you passed an integer to the accessor instead of an instance of ```dimension<>```.");
     return (X::direction==N? x.value : 0);
 }
 
@@ -27,6 +29,8 @@ template <ushort_t N, typename X, typename ... Rest>
 GT_FUNCTION
 constexpr int_t initialize(X x, Rest ... rest )
 {
+    GRIDTOOLS_STATIC_ASSERT(is_dimension<X>::value,
+                            "you passed an integer to the accessor instead of an instance of ```dimension<>```.");
     return X::direction==N? x.value : initialize<N>(rest...);
 }
 #else
@@ -117,7 +121,11 @@ struct offset_tuple : public offset_tuple<Index-1, NDim>
     template <ushort_t Idx, typename... GenericElements>
     GT_FUNCTION
     constexpr offset_tuple ( dimension<Idx> const& t, GenericElements const& ... x):
-        super( t, x... ), m_offset(initialize<super::n_dim-n_args+1>(t, x...)) {}
+        super( t, x... ), m_offset(initialize<super::n_dim-n_args+1>(t, x...)) {
+
+        GRIDTOOLS_STATIC_ASSERT( (Idx <= n_dim ), "overflow in offset_tuple. Check that the accessor dimension is valid." );
+
+    }
 #else
     /**@brief constructor taking an integer as the first argument, and then other optional arguments.
        The integer gets assigned to the current extra dimension and the other arguments are passed to the base class (in order to get assigned to the other dimensions).

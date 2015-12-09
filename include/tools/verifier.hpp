@@ -78,6 +78,7 @@ namespace gridtools{
         bool operator()(Coords const& coords_, array<uint_t, NCoord> const &pos)
         {
             bool verified = true;
+            /* hypothesis: coordinate 2 is along k */
             if(pos[2] < coords_.value_at_top())
             {
                 typename StorageType::meta_data_t const* meta=&m_exp_field.meta_data();
@@ -185,7 +186,51 @@ namespace gridtools{
         }
 
 
-    private:
+
+    // template<typename storage_type>
+    // bool verify_4D(storage_type& field1, storage_type& field2)
+    // {
+    //     GRIDTOOLS_STATIC_ASSERT(storage_type::space_dimensions == 4, "error");
+    //     // assert(field1.template dims<0>() == field2.template dims<0>());
+    //     // assert(field1.template dims<1>() == field2.template dims<1>());
+    //     // assert(field1.template dims<2>() == field2.template dims<2>());
+    //     typename storage_type::meta_data_t const* meta=&field1.meta_data();
+
+    //     const gridtools::uint_t idim = meta->template dims<0>();
+    //     const gridtools::uint_t jdim = meta->template dims<1>();
+    //     const gridtools::uint_t kdim = meta->template  dims<2>();
+    //     const gridtools::uint_t ldim = meta->template  dims<3>();
+
+    //     bool verified = true;
+
+    //     for(gridtools::uint_t f=0; f<storage_type::field_dimensions; ++f)
+    //         for(gridtools::uint_t i=m_halo_size; i < idim-m_halo_size; ++i)
+    //         {
+    //             for(gridtools::uint_t j=m_halo_size; j < jdim-m_halo_size; ++j)
+    //             {
+    //                 for(gridtools::uint_t k=0; k < kdim; ++k)
+    //                 {
+    //                     for(gridtools::uint_t l=0; l < ldim; ++l)
+    //                     {
+    //                         typename storage_type::value_type expected = field1.fields()[f][meta->index(i,j,k,l)];
+    //                         typename storage_type::value_type actual = field2.fields()[f][meta->index(i,j,k,l)];
+
+    //                     if(!compare_below_threashold(expected, actual))
+    //                     {
+    //                         std::cout << "Error in position " << i << " " << j << " " << k << " ; expected : " << expected <<
+    //                             " ; actual : " << actual << "  " << std::fabs((expected-actual)/(expected))  << std::endl;
+    //                         verified = false;
+    //                     }
+    //                     }
+    //                 }
+    //             }
+    //         }
+
+    //     return verified;
+    // }
+
+
+        private:
         double m_precision;
     };
 #else

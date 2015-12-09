@@ -133,8 +133,7 @@ namespace gridtools {
    OUT CODE HERE AS IN 2D CASE
    \endcode
 
-   A running example can be found in the included example. \ example Halo_Exchange_test_3D.cpp
-  */
+     A running example can be found in the included example. \example test_halo_exchange_3D.cpp \example   */
   template <typename PROC_GRID, int ALIGN=1 >
   class Halo_Exchange_3D_DT {
 

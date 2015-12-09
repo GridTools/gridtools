@@ -115,7 +115,8 @@ namespace gridtools {
 
 
         //actual check if the user specified placeholder arguments with the same index
-        GRIDTOOLS_STATIC_ASSERT((len == boost::mpl::size<index_set>::type::value ), "you specified two different placeholders with the same index, which is not allowed. check the arg defiintions.");
+        GRIDTOOLS_STATIC_ASSERT((len <= boost::mpl::size<index_set>::type::value ), "you specified two different placeholders with the same index, which is not allowed. check the arg defiintions.");
+        GRIDTOOLS_STATIC_ASSERT((len >= boost::mpl::size<index_set>::type::value ), "something strange is happening.");
 
         /**
          * \brief Definition of a random access sequence of integers between 0 and the size of the placeholder sequence
@@ -348,8 +349,10 @@ You have to define each arg with a unique identifier ranging from 0 to N without
             boost::fusion::for_each(real_storage_, assign_metadata_set<metadata_set_t >(m_metadata_set));
 
 #ifdef VERBOSE
+#ifndef NDEBUG
             std::cout << "\nThese are the view values" << boost::fusion::size(fview) << std::endl;
             boost::fusion::for_each(m_storage_pointers, _debug::print_pointer());
+#endif
 #endif
             view_type original_fview(m_original_pointers);
             boost::fusion::copy(real_storage_, original_fview);
@@ -359,12 +362,13 @@ You have to define each arg with a unique identifier ranging from 0 to N without
          *
          * @param The object to copy. Typically this will be *this
          */
-        __device__
-        explicit domain_type(domain_type const& other)
+        __device__ __host__
+        domain_type(domain_type const& other)
             : m_storage_pointers(other.m_storage_pointers)
             , m_original_pointers(other.m_original_pointers)
             , m_metadata_set(other.m_metadata_set)
         { }
+
 
 #ifndef NDEBUG
         GT_FUNCTION

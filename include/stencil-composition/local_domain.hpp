@@ -106,7 +106,7 @@ namespace gridtools {
             struct apply {
                 typedef typename boost::remove_reference<
                     typename boost::fusion::result_of::at<StorageList, typename ElemType::index_type>::type
-                                                         >::type type;
+                    >::type type;
             };
         };
 

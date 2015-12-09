@@ -6,7 +6,6 @@
 @file
 @brief implementing a set
 */
-
 namespace gridtools{
 
     /**

@@ -139,8 +139,8 @@ namespace gridtools {
         }
 #endif
 
-        /**
-           @brief given a local (to the current subdomain) index (i,j,k) it returns the global corresponding index
+       /**
+	  @brief given a local (to the current subdomain) index (i,j,k) it returns the global corresponding index
 
            It sums the offsets computed by the partitioner to the local index
         */
@@ -159,13 +159,13 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(dimension<metadata_t::space_dimensions, "only positive integers smaller than the number of dimensions are accepted as template arguments of get_halo_descriptor");
             return m_coordinates[dimension];}
 
-        /**
-           @brief returns the halo descriptors to be used for the communication inside the GCL library
+       /**
+	  @brief returns the halo descriptors to be used for the communication inside the GCL library
 
-           The halo descriptors are computed in the setup phase using the partitioner
-        */
-        template<ushort_t dimension>
-        halo_descriptor const& get_halo_gcl() const {return m_coordinates_gcl[dimension];}
+	  The halo descriptors are computed in the setup phase using the partitioner
+       */
+       template<ushort_t dimension>
+       halo_descriptor const& get_halo_gcl() const {return m_coordinates_gcl[dimension];}
 
 
         /**

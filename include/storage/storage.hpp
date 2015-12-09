@@ -24,10 +24,16 @@ namespace gridtools{
         static const ushort_t n_args = basic_type::n_width;
         static const ushort_t space_dimensions = basic_type::space_dimensions;
 
-      __device__
-      storage(storage const& other)
-          :  super(other)
-      {}
+#ifdef __CUDACC__
+        __device__
+        storage(storage const& other)
+            :  super(other)
+            {}
+#else
+    private:
+        storage(storage const& other);
+    public:
+#endif
 
 #if defined(CXX11_ENABLED)
         //forwarding constructor

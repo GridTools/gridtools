@@ -118,6 +118,17 @@ struct wrap_pointer{
         }
     }
 
+    GT_FUNCTION
+    void swap(wrap_pointer& other){
+
+        T* tmp = m_cpu_p;
+        m_cpu_p = other.m_cpu_p;
+        other.m_cpu_p = tmp;
+
+        bool tmp_bool = m_externally_managed;
+        m_externally_managed = other.m_externally_managed;
+        other.m_externally_managed = tmp_bool;
+    }
 
     __host__ __device__
     operator T*() {

@@ -16,7 +16,7 @@
 #include "stencil-composition/extent.hpp"
 
 #ifdef CXX11_ENABLED
-#include "stencil-composition/expressions.hpp"
+#include "../expressions/expressions.hpp"
 #endif
 
 namespace gridtools {
@@ -105,7 +105,9 @@ namespace gridtools {
         // by the compiler
         template<uint_t Idx>
         GT_FUNCTION
-        constexpr accessor_base (dimension<Idx> const& x ): m_offsets(x) {}
+        constexpr accessor_base (dimension<Idx> const& x ): m_offsets(x) {
+            GRIDTOOLS_STATIC_ASSERT((Idx <= n_dim), "too high dimension accessor");
+        }
 
         GT_FUNCTION
         constexpr accessor_base (const int_t x ): m_offsets(x) {}
@@ -116,13 +118,32 @@ namespace gridtools {
            language keyword used at the interface level.
         */
 #if defined( CXX11_ENABLED ) && ! defined(__CUDACC__) //cuda messing up
-        template <typename... Whatever>
+        template <typename... Whatever, typename Dummy=all_integers<Whatever ...> >
         GT_FUNCTION
         constexpr accessor_base ( Whatever... x) : m_offsets( x...)
         {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(x)<=n_dim, "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions of the storage. Check that you are not accessing a non existing dimension, or increase the dimension D of the accessor (accessor<Id, extent, D>)");
         }
+
+        template <ushort_t ... Idx >
+        GT_FUNCTION
+        constexpr accessor_base ( dimension<Idx>... x) : m_offsets( x...)
+        {
+            GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(), (Idx <= n_dim) ...), "too high dimension for accessor");
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(x)<=n_dim, "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions of the storage. Check that you are not accessing a non existing dimension, or increase the dimension D of the accessor (accessor<Id, extent, D>)");
+        }
 #else
+
+        template<typename X, typename Y, typename Z, typename T, typename U, typename V>
+        GT_FUNCTION
+        constexpr accessor_base (X x, Y y, Z z, T t, U u, V v ): m_offsets(x,y,z,y,u,v)
+        {}
+
+        template<typename X, typename Y, typename Z, typename T, typename U>
+        GT_FUNCTION
+        constexpr accessor_base (X x, Y y, Z z, T t, U u ): m_offsets(x,y,z,y, u)
+        {}
+
         template<typename X, typename Y, typename Z, typename T>
         GT_FUNCTION
         constexpr accessor_base (X x, Y y, Z z, T t ): m_offsets(x,y,z,y)
@@ -150,8 +171,8 @@ namespace gridtools {
         GT_FUNCTION
         constexpr
         int_t get() const {
-            GRIDTOOLS_STATIC_ASSERT(Idx<=n_dim, "requested accessor index larger than the available dimensions");
-            GRIDTOOLS_STATIC_ASSERT(Idx>=0, "requested accessor index lower than zero");
+            GRIDTOOLS_STATIC_ASSERT(Idx>=0, "requested accessor index lower than zero. Check that when you define the accessor you specify the dimenisons which you actually access. e.g. suppose that a storage linked to the accessor ```in``` has 5 dimensions, and thus can be called with in(Dimensions<5>(-1)). Calling in(Dimensions<6>(-1)) brings you here.");
+            GRIDTOOLS_STATIC_ASSERT(Idx<=n_dim, "requested accessor index larger than the available dimensions. Maybe you made a mistake when setting the accessor dimensionality?");
             return m_offsets.template get<Idx>();
         }
 

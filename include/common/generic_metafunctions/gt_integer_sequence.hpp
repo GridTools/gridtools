@@ -93,9 +93,19 @@ namespace gridtools{
         }
 
         template<template< typename ... U> class Container, template <UInt TT, UInt UU> class Lambda, UInt ... ExtraTypes>
-        struct apply_tt{
-            using type = Container<Lambda<Indices, ExtraTypes> ...>;
-        };
+	struct apply_tt{
+	    using type = Container<Lambda<Indices, ExtraTypes> ...>;
+	};
+
+        template<template< UInt ... U> class Container, template <UInt TT, UInt UU> class Lambda, UInt ... ExtraTypes>
+	struct apply_c_tt{
+	    using type = Container<Lambda<Indices, ExtraTypes>::value ...>;
+	};
+
+        // template<template< typename ... U> class Container, template <UInt TT, UInt UU> class Lambda, UInt ... ExtraTypes>
+        // struct apply_tt{
+        //     using type = Container<Lambda<Indices, ExtraTypes> ...>;
+        // };
 
         /**
            @brief same as before, but with non-static lambda taking as first argument the index
@@ -103,7 +113,7 @@ namespace gridtools{
         template<typename Container, class Lambda, typename ... ExtraTypes>
         GT_FUNCTION
         static constexpr Container apply(Lambda lambda, ExtraTypes& ... args_ ){
-            return Container(lambda(Indices, args_...) ...) ;
+            return Container{lambda(Indices, args_...) ...} ;
         }
 
     };

@@ -125,10 +125,9 @@ namespace gridtools {
             /**@brief extra level of indirection necessary for zipping the indices*/
             template <typename ... UInt, ushort_t ... IdSequence>
             GT_FUNCTION
-            uint_t index_( gt_integer_sequence<ushort_t, IdSequence...> t, UInt const& ... args_
+            constexpr uint_t index_( gt_integer_sequence<ushort_t, IdSequence...> t, UInt const& ... args_
                 ) const {
-
-                return super::index(args_ + Pad ...);
+                return super::index(args_ + gt_get<IdSequence>::apply(Pad ...) ...);
             }
 
            /**@brief just forwarding the index computation to the base class*/
@@ -142,10 +141,14 @@ namespace gridtools {
             /**@brief */
             template <typename ... UInt, typename ... IdSequence>
             GT_FUNCTION
-            uint_t index(uint_t const& first_, UInt const& ... args_) const {
+            constexpr uint_t index(uint_t const& first_, UInt const& ... args_) const {
 
                 /**this calls zippes 2 variadic packs*/
-                return index_(typename make_gt_integer_sequence<ushort_t, sizeof ... (Pad)>::type(), first_, args_ ... );
+                return index_(typename make_gt_integer_sequence
+                                       <ushort_t
+                                        , sizeof ... (Pad) - (sizeof ... (Pad) - sizeof ... (UInt)-1)>::type()
+                              , first_
+                              , args_ ... );
                     }
 #else
 
