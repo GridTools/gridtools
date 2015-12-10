@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __CUDACC__
+#define CUDA_CXX11_BUG_1 //bug present in CUDA 7.5 and below
+#endif
+
 #if __cplusplus > 199711L
 #ifndef CXX11_DISABLE
 #define CXX11_ENABLED
@@ -131,9 +135,12 @@ namespace gridtools{
         {
             typedef execute_impl<parallel_impl, forward> type;
         };
-        /**
-           @}
+
+        /*
+         * accessor I/O policy
          */
+        enum intend {in, inout} ;
+
     }//namespace enumtype
 
 
@@ -220,6 +227,12 @@ namespace gridtools{
     typedef double float_type;
 #else
 #error float precision not properly set (4 or 8 bytes supported)
+#endif
+
+#ifdef STRUCTURED_GRIDS
+    #define GRIDPREFIX strgrid
+#else
+    #define GRIDPREFIX icgrid
 #endif
 
 #ifdef CXX11_ENABLED

@@ -1,6 +1,10 @@
 #pragma once
+#include <boost/type_traits/is_unsigned.hpp>
 #include "base_storage_impl.hpp"
 #include "../common/array.hpp"
+#include "common/explode_array.hpp"
+#include "common/generic_metafunctions/is_variadic_pack_of.hpp"
+#include "common/generic_metafunctions/variadic_assert.hpp"
 
 /**
    @file
@@ -61,7 +65,7 @@ namespace gridtools {
 #ifndef CXX11_ENABLED
                                   ,int, int
 #endif
-                                  > basic_type;
+                                  > type;
         typedef Layout layout;
         typedef static_ushort<Index> index_type;
 
@@ -71,25 +75,75 @@ namespace gridtools {
 
     protected:
 
-         array<int_t, space_dimensions> m_dims;
-         array<int_t, space_dimensions> m_strides;
+         array<uint_t, space_dimensions> m_dims;
+         array<uint_t, space_dimensions> m_strides;
 
     public:
 
+#ifdef CXX11_ENABLED
         template <uint_t T, typename U, bool B, typename ... D>
         friend std::ostream& operator<<(std::ostream &, meta_storage_base<T,U,B,D...> const & );
+#else
+        template <uint_t T, typename U, bool B, typename T1, typename T2>
+        friend std::ostream& operator<<(std::ostream &, meta_storage_base<T,U,B,T1,T2> const & );
+#endif
 
 #ifdef CXX11_ENABLED
         /**
            SFINAE for the case in which all the components of a parameter pack are of integral type
          */
         template <typename ... IntTypes>
-        using all_integers=typename boost::enable_if_c<accumulate(logical_and(),  boost::is_integral<IntTypes>::type::value ... ), bool >::type;
+        using all_integers=typename boost::enable_if_c<is_variadic_pack_of(boost::is_integral<IntTypes>::type::value ... ), bool >::type;
 
         /**
            @brief empty constructor
         */
         constexpr meta_storage_base(){}
+
+#ifndef __CUDACC__
+        template <class ... IntTypes
+                  , typename Dummy = all_integers<IntTypes...>
+                  >
+        void setup(  IntTypes const& ... dims_  ){
+            m_dims=array<int_t, space_dimensions>(dims_ ...);
+            m_strides=array<int_t, space_dimensions>(
+                _impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( dims_...));
+        }
+#else
+        template <class First, class ... IntTypes
+                  , typename Dummy = typename boost::enable_if_c<boost::is_integral<First>::type::value, bool>::type //nvcc does not get it
+                  >
+        void setup(  First first_, IntTypes const& ... dims_  ){
+#ifdef CXX11_ENABLED
+            m_dims=array<uint_t, space_dimensions>{first_, dims_ ...};
+#else
+            m_dims=array<int_t, space_dimensions>(first_, dims_ ...);
+#endif
+            m_strides=array<uint_t, space_dimensions>(
+                _impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( first_, dims_...));
+        }
+#endif
+
+#ifdef CXX11_ENABLED
+        constexpr meta_storage_base(array<uint_t, space_dimensions> const& a) :
+            m_dims(a),
+            m_strides(
+                explode<
+                    array<uint_t, (short_t)(space_dimensions)>,
+                    _impl::assign_all_strides< (short_t)(space_dimensions), layout>
+                >(a))
+        {}
+#else
+         //TODO This is a bug, we should generate a constructor for array of dimensions space_dimensions
+        meta_storage_base(array<uint_t, 3> const& a)
+            : m_dims(a)
+        {
+            m_strides[0]=( ((layout::template at_<0>::value < 0)?1:m_dims[0]) * ((layout::template at_<1>::value < 0)?1:m_dims[1]) * ((layout::template at_<2>::value < 0)?1:m_dims[2]) );
+            m_strides[1]=( (m_strides[0]<=1)?0:layout::template find_val<2,uint_t,1>(m_dims)*layout::template find_val<1,uint_t,1>(m_dims) );
+            m_strides[2]=( (m_strides[1]<=1)?0:layout::template find_val<2,uint_t,1>(m_dims) );
+        }
+#endif
+        // variadic constexpr constructor
 
         /**
            @brief constructor given the space dimensions
@@ -101,22 +155,39 @@ namespace gridtools {
         template <class ... IntTypes
                   , typename Dummy = all_integers<IntTypes...>
                   >
-        constexpr meta_storage_base(  IntTypes const& ... dims_  ) :
-            m_dims(dims_...)
-            , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( dims_...))
+//we only use a constexpr in no debug mode, because we want to assert the sizes are uint in debug mode
+//constexpr does not allow code in the body
+#ifdef NDEBUG
+        constexpr
+#endif
+        meta_storage_base(IntTypes const& ... dims_  ) :
+            m_dims{(uint_t)dims_...}
+            , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( (uint_t)dims_...))
             {
                 GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes)==space_dimensions, "you tried to initialize\
  a storage with a number of integer arguments different from its number of dimensions. \
 This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
  a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
  by defining the storage type using another layout_map.");
-            }
+                GRIDTOOLS_STATIC_ASSERT(
+                     is_variadic_pack_of(boost::is_integral<IntTypes>::type::value...),
+                     "Error: Dimensions of metastorage must be specified as integer types. "
+                );
+#ifndef NDEBUG
+                auto check = [](int a) { return a>0; };
+                variadic_assert(check, (int)dims_...);
+#endif
+        }
 #else //__CUDACC__ nvcc does not get it: checks only the first argument
         template <class First, class ... IntTypes
                   , typename Dummy = typename boost::enable_if_c<boost::is_integral<First>::type::value, bool>::type //nvcc does not get it
                   >
         constexpr meta_storage_base( First const& first_,  IntTypes const& ... dims_  ) :
+#ifdef CXX11_ENABLED
+            m_dims{first_, dims_...}
+#else
             m_dims(first_, dims_...)
+#endif
             , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( first_, dims_...))
             {
                 GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes)+1==space_dimensions, "you tried to initialize\
@@ -175,14 +246,14 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         /**@brief returns the storage strides
          */
         GT_FUNCTION
-         constexpr int_t const& strides(ushort_t i) const {
+         constexpr uint_t const & strides(ushort_t i) const {
             return m_strides[i];
         }
 
         /**@brief returns the storage strides
          */
         GT_FUNCTION
-         constexpr int_t const* strides() const {
+         constexpr uint_t const* strides() const {
             GRIDTOOLS_STATIC_ASSERT(space_dimensions>1, "one dimensional storage");
             return (&m_strides[1]);
         }
@@ -191,7 +262,22 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         /**@brief straightforward interface*/
         template <typename ... UInt>
         GT_FUNCTION
-        uint_t index(uint_t const& first, UInt const& ... args_) const { return _index(strides(), first, args_... ); }
+        uint_t index(uint_t const& first, UInt const& ... args_) const {
+            return _index(strides(), first, args_... );
+        }
+
+        struct _impl_index{
+            template<typename ... UIntType>
+            static uint_t apply(const type& me, UIntType ... args){
+                return me.index(args...);
+            }
+        };
+
+        template<size_t S>
+        GT_FUNCTION
+        uint_t index(array<uint, S> a) const {
+            return explode<uint_t, _impl_index>(a, *this);
+        }
 #else
         /**@brief straightforward interface*/
         GT_FUNCTION
@@ -209,10 +295,10 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
 
 	   static version: the strides vector is passed from outside ordered in decreasing order, and the strides coresponding to
 	   the Coordinate dimension is returned according to the layout map.
-	*/
+        */
         template<uint_t Coordinate, typename StridesVector>
         GT_FUNCTION
-        static constexpr int_t strides(StridesVector const& RESTRICT strides_){
+        static constexpr uint_t strides(StridesVector const& RESTRICT strides_){
             return ((vec_max<typename layout::layout_vector_t>::value < 0) ? 0:(( layout::template at_<Coordinate>::value == vec_max<typename layout::layout_vector_t>::value ) ? 1 : ((strides_[layout::template at_<Coordinate>::value]))));
         }
 
@@ -220,7 +306,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
            Coordinates 0,1,2 correspond to i,j,k respectively.
 
 	   non-static version.
-	*/
+        */
         template<uint_t Coordinate>
         GT_FUNCTION
         constexpr int_t strides() const {
@@ -271,6 +357,12 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
             return _impl::compute_offset<space_dimensions, layout>::apply(strides_, tuple);
         }
 
+        template <typename OffsetTuple>
+        GT_FUNCTION
+        constexpr int_t _index(OffsetTuple  const& tuple) {
+            return _impl::compute_offset<space_dimensions, layout>::apply(strides(), tuple);
+        }
+
         /** @brief returns the memory access index of the element with coordinate passed as an array
 
             \param StridesVector the vector of strides, it is a contiguous array of length space_dimenisons-1
@@ -292,6 +384,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         template <uint_t Coordinate, typename StridesVector>
         GT_FUNCTION
         static void increment(int_t const& steps_, int_t* RESTRICT index_, StridesVector const& RESTRICT strides_){
+            //TODO assert(index_)
 #ifdef PEDANTIC
             GRIDTOOLS_STATIC_ASSERT(Coordinate < space_dimensions, "you have a storage in the iteration space whoose dimension is lower than the iteration space dimension. This might not be a problem, since trying to increment a nonexisting dimension has no effect. In case you want this feature comment out this assert.");
 

@@ -23,8 +23,13 @@
 #include "storage/storage.hpp"
 #include "../storage/storage_functors.hpp"
 
+#include "common/generic_metafunctions/static_if.hpp"
+#include "common/generic_metafunctions/is_variadic_pack_of.hpp"
 #include "domain_type_impl.hpp"
 #include "../storage/metadata_set.hpp"
+#include "stencil-composition/arg_metafunctions.hpp"
+#include "stencil-composition/arg.hpp"
+
 
 /**@file
  @brief This file contains the global list of placeholders to the storages
@@ -50,9 +55,11 @@ namespace gridtools {
     template <typename Placeholders>
     struct domain_type : public clonable_to_gpu<domain_type<Placeholders> > {
 
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Placeholders, is_arg>::type::value), "wrong type:\
+        typedef Placeholders placeholders_t;
+
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<placeholders_t, is_arg>::type::value), "wrong type:\
  the domain_type template argument must be an MPL vector of placeholders (arg<...>)");
-        typedef Placeholders original_placeholders;
+        typedef placeholders_t original_placeholders;
 
     private:
         BOOST_STATIC_CONSTANT(uint_t, len = boost::mpl::size<original_placeholders>::type::value);
@@ -60,8 +67,10 @@ namespace gridtools {
         // filter out the metadatas which are the same
         typedef typename boost::mpl::fold<
             original_placeholders
-            , boost::mpl::set<>
-            , boost::mpl::insert<boost::mpl::_1, arg2metadata<boost::mpl::_2> > >::type original_metadata_set_t;
+            , boost::mpl::set<> // check if the argument is a storage placeholder before extracting the metadata
+            , boost::mpl::if_< is_storage_arg<boost::mpl::_2>
+                               , boost::mpl::insert<boost::mpl::_1, arg2metadata<boost::mpl::_2> >, boost::mpl::_1 > >
+        ::type original_metadata_set_t;
 
         /** @brief Create an mpl::vector of metadata types*/
         typedef typename boost::mpl::fold<
@@ -107,7 +116,7 @@ namespace gridtools {
         /**
          * \brief Definition of a random access sequence of integers between 0 and the size of the placeholder sequence
          e.g. [0,1,2,3,4]
-         */
+        */
         typedef boost::mpl::range_c<uint_t ,0,len> range_t;
 
     private:
@@ -120,7 +129,7 @@ You have to define each arg with a unique identifier ranging from 0 to N without
         /**\brief reordering vector
          * defines an mpl::vector of len indexes reordered accodring to range_t (placeholder _2 is vector<>, placeholder _1 is range_t)
          e.g.[1,3,2,4,0]
-         */
+        */
         typedef typename boost::mpl::fold<range_t,
             boost::mpl::vector<>,
             boost::mpl::push_back<
@@ -219,7 +228,6 @@ You have to define each arg with a unique identifier ranging from 0 to N without
         void assign_pointers(MetaDataSequence& sequence_, ArgStoragePair0 arg0, OtherArgs ... other_args)
         {
             assert(arg0.ptr);
-            printf("pointer: %x", arg0.ptr);
             boost::fusion::at<typename ArgStoragePair0::arg_type::index_type>(m_storage_pointers) = arg0.ptr;
             //storing the value of the pointers in a 'backup' fusion vector
             boost::fusion::at<typename ArgStoragePair0::arg_type::index_type>(m_original_pointers) = arg0.ptr;
@@ -246,11 +254,17 @@ You have to define each arg with a unique identifier ranging from 0 to N without
             : m_storage_pointers()
             , m_metadata_set()
         {
-            GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(), is_arg_storage_pair<StorageArgs>::value ...), "wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair<StorageArgs>::value ...), "wrong type");
             assign_pointers(m_metadata_set, args...);
         }
 #endif
 
+
+        /**empty functor*/
+        struct empty{
+            void operator()() const{
+            }
+        };
 
         /**
            @brief functor to insert a boost fusion sequence to the metadata set
@@ -270,10 +284,13 @@ You have to define each arg with a unique identifier ranging from 0 to N without
 
             template <typename Arg>
             void operator()( Arg const* arg_) const{
-                //TODO: is_storage is already taken!!
-                //GRIDTOOLS_STATIC_ASSERT(is_storage<Arg>::value, "wrong type");
-                if (!m_sequence.template present<pointer<const typename Arg::meta_data_t> >())
-                    m_sequence.insert(pointer<const typename Arg::meta_data_t>(&arg_->meta_data()));
+                // filter out the arguments which are not of storage type (and thus do not have an associated metadata)
+                pointer<const typename Arg::meta_data_t> ptr(&(arg_->meta_data()));
+                static_if<is_storage<Arg>::type::value>::eval(
+                    insert_if_not_present<Sequence, pointer<const typename Arg::meta_data_t> >
+                    (m_sequence, ptr)
+                    , empty());
+
             }
         };
 
@@ -287,13 +304,35 @@ You have to define each arg with a unique identifier ranging from 0 to N without
             : m_storage_pointers()
             , m_metadata_set()
         {
-
-            typedef boost::fusion::filter_view<arg_list,
-                                               is_storage<boost::mpl::_1> > view_type;
+            typedef boost::fusion::filter_view
+                <arg_list,
+                 is_not_tmp_storage<boost::mpl::_1> > view_type;
 
             view_type fview(m_storage_pointers);
 
-            GRIDTOOLS_STATIC_ASSERT( boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value, "The number of arguments specified when constructing the domain_type is not the same as the number of placeholders to non-temporary storages. Double check the temporary flag in the meta_storage types.");
+            GRIDTOOLS_STATIC_ASSERT( boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value,
+                "The number of arguments specified when constructing the domain_type is not the same as the number of placeholders "
+                "to non-temporary storages. Double check the temporary flag in the meta_storage types.");
+
+            typedef typename boost::mpl::fold<
+                arg_list_mpl
+                , boost::mpl::vector0<>
+                , boost::mpl::if_<is_not_tmp_storage<boost::mpl::_2>
+                                  , boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2 >
+                                  , boost::mpl::_1
+                                  > >
+                ::type view_type_mpl;
+
+            typedef typename boost::mpl::fold<
+                boost::mpl::range_c<uint_t, 0, boost::mpl::size<RealStorage>::type::value>
+                , boost::mpl::bool_<true>
+                , boost::mpl::and_<
+                    boost::is_same<boost::mpl::at<view_type_mpl, boost::mpl::_2>, boost::mpl::at<RealStorage, boost::mpl::_2> >
+                      , boost::mpl::_1
+                      >
+                >::type::type storages_matching;
+
+            GRIDTOOLS_STATIC_ASSERT(storages_matching::value, "Error in the definition of the domain_type. The storage type associated to one of the \'arg\' types is not the correct one. Check that the storage_type used when defining each \'arg\' matches the correspondent storage passed as run-time argument of the domain_type constructor");
 
             //NOTE: an error in the line below could mean that the storage type
             // associated to the arg is not the
@@ -304,7 +343,7 @@ You have to define each arg with a unique identifier ranging from 0 to N without
             //copy of the non-tmp metadata into m_metadata_set
             boost::fusion::for_each(real_storage_, assign_metadata_set<metadata_set_t >(m_metadata_set));
 
-#ifdef __VERBOSE__
+#ifdef VERBOSE
             std::cout << "\nThese are the view values" << boost::fusion::size(fview) << std::endl;
             boost::fusion::for_each(m_storage_pointers, _debug::print_pointer());
 #endif
@@ -361,7 +400,7 @@ You have to define each arg with a unique identifier ranging from 0 to N without
             boost::fusion::for_each(m_original_pointers, call_d2h());
             gridtools::for_each<
                 boost::mpl::range_c<int, 0, boost::mpl::size<arg_list>::value >
-            > (copy_pointers_functor<arg_list, arg_list> (m_original_pointers, m_storage_pointers));
+                > (copy_pointers_functor<arg_list, arg_list> (m_original_pointers, m_storage_pointers));
         }
 
         /**

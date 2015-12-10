@@ -18,7 +18,11 @@ template< typename StorageType, uint_t DimI, uint_t DimJ >
 struct shallow_water_reference{
 
     typedef StorageType storage_type;
+#ifdef __CUDACC__
+    typedef hybrid_pointer<float_type> pointer_type;
+#else
     typedef wrap_pointer<float_type> pointer_type;
+#endif
 
     static constexpr uint_t strides[2]={DimI, 1};
     static constexpr uint_t size=DimI*DimJ;
@@ -57,7 +61,11 @@ struct shallow_water_reference{
     static constexpr float_type height=2.;
     GT_FUNCTION
     static float_type droplet(uint_t const& i, uint_t const& j){
+#ifndef __CUDACC__
         return 1.+height * std::exp(-5*(((i-3)*dx())*(((i-3)*dx()))+((j-7)*dy())*((j-7)*dy())));
+#else // if CUDA we test the serial case
+        return 1.+height * std::exp(-5*(((i-3)*dx())*(((i-3)*dx()))+((j-3)*dy())*((j-3)*dy())));
+#endif
     }
 
     shallow_water_reference() :

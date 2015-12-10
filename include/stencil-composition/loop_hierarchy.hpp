@@ -8,7 +8,6 @@
    * arbitrary number of nested loops
    * a single kernel functor executed in the innermost loop
    * arbitrary direction of the loop (forward or backward)
-   TODO: test this because probably it doesn't work yet
 
    The memory is addressed by a single index, which must be computed given all the loop indices.
    In order to reduce the computational complexity we want to increment such index in the nested

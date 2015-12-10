@@ -6,7 +6,8 @@
 */
 
 #pragma once
-#include "../storage/storage_metafunctions.hpp"
+#include "storage/storage_metafunctions.hpp"
+#include "stencil-composition/arg_metafunctions_fwd.hpp"
 
 namespace gridtools {
 
@@ -48,25 +49,29 @@ struct arg_storage_pair {
  * @tparam I Integer index (unique) of the data field to identify it
  * @tparam T The type of the storage used to store data
  */
-template <uint_t I, typename T>
+template <uint_t I, typename Storage>
 struct arg {
-    typedef T storage_type;
-    typedef typename T::iterator_type iterator_type;
-    typedef typename T::value_type value_type;
+    typedef Storage storage_type;
+    typedef typename Storage::iterator_type iterator_type;
+    typedef typename Storage::value_type value_type;
     typedef static_uint<I> index_type;
     typedef static_uint<I> index;
 
-    template<typename Storage>
-    arg_storage_pair<arg<I,T>, Storage>
-    operator=(Storage& ref) {
-        GRIDTOOLS_STATIC_ASSERT( (boost::is_same<Storage, T>::value), "there is a mismatch between the storage types used by the arg placeholders and the storages really instantiated. Check that the placeholders you used when constructing the domain_type are in the correctly assigned and that their type match the instantiated storages ones" );
+//location type is only used by other grids, supported only for cxx11
+#ifdef CXX11_ENABLED
+    using location_type = typename Storage::meta_data_t::index_type;
+#endif
+     
+    template<typename Storage2>
+    arg_storage_pair<arg<I,Storage>, Storage2>
+    operator=(Storage2& ref) {
+        GRIDTOOLS_STATIC_ASSERT( (boost::is_same<Storage2, Storage>::value), "there is a mismatch between the storage types used by the arg placeholders and the storages really instantiated. Check that the placeholders you used when constructing the domain_type are in the correctly assigned and that their type match the instantiated storages ones" );
 
-
-        return arg_storage_pair<arg<I,T>, Storage>(&ref);
+        return arg_storage_pair<arg<I,Storage>, Storage2>(&ref);
     }
 
     static void info() {
-#ifdef __VERBOSE__
+#ifdef VERBOSE
         std::cout << "Arg on real storage with index " << I;
 #endif
     }
@@ -77,6 +82,19 @@ struct is_arg : boost::mpl::false_{};
 
 template<uint_t I, typename Storage>
 struct is_arg<arg<I, Storage> > : boost::mpl::true_{};
+
+template<typename T>
+struct arg_index;
+
+/** true in case of non temporary storage arg*/
+template<uint_t I, typename Storage>
+struct arg_index<arg<I, Storage> > : boost::mpl::integral_c<int, I> {};
+
+template<typename T>
+struct is_storage_arg : boost::mpl::false_{};
+
+template<uint_t I, typename Storage>
+struct is_storage_arg<arg<I, Storage> > : is_storage<Storage>{};
 
 /**
  * @struct arg_hods_data_field
@@ -90,30 +108,5 @@ struct arg_holds_data_field<arg<I, Storage> >
 {
     typedef typename storage_holds_data_field<Storage>::type type;
 };
-
-/**
- * @struct arg_hods_data_field_h
- * high order metafunction of arg_holds_data_field
- */
-template <typename Arg>
-struct arg_holds_data_field_h
-{
-    typedef typename arg_holds_data_field<typename Arg::type >::type type;
-};
-
-/** @brief metafunction to access the storage type given the arg*/
-template<typename T>
-struct arg2storage {
-    GRIDTOOLS_STATIC_ASSERT(is_arg<T>::value, "wrong type for Arg");
-    typedef typename T::storage_type type;
-};
-
-/** @brief metafunction to access the metadata type given the arg*/
-template<typename T>
-struct arg2metadata {
-    GRIDTOOLS_STATIC_ASSERT(is_arg<T>::value, "wrong type for Arg");
-    typedef typename arg2storage<T>::type::meta_data_t type;
-};
-
 
 } // namespace gridtools

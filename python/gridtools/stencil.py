@@ -105,7 +105,7 @@ class Stencil (object):
         nx.draw_networkx_labels (G,
                                  pos=pos)
 
-   
+
     @property
     def backend (self):
         return self._backend
@@ -306,7 +306,7 @@ class Stencil (object):
         else:
             logging.warning ("Ignoring unknown direction '%s'" % direction)
 
-    
+
     @property
     def stages (self):
         return nx.topological_sort (self.scope.stage_execution)
@@ -578,7 +578,7 @@ class CombinedStencil (Stencil):
             logging.warning ("Root node could not be found")
             ret_value = self.execution_graph.nodes ( )[0]
         return ret_value
-   
+
 
     def plot_data_graph (self):
         """
@@ -677,7 +677,7 @@ class CombinedStencil (Stencil):
                     lib_params.append (linked_param.ctypes.data_as (ctypes.c_void_p))
             #
             # call the compiled stencil
-            # 
+            #
             self.compiler.run_native (self, **kwargs)
         elif self.backend == 'python':
             #

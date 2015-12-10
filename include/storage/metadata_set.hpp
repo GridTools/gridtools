@@ -1,5 +1,6 @@
 #pragma once
 #include <boost/fusion/include/as_set.hpp>
+#include "common/generic_metafunctions/is_sequence_of.hpp"
 
 /**
 @file
@@ -7,6 +8,7 @@
 */
 
 namespace gridtools{
+
     /**
        @brief class that given a generic MPL sequence creates a fusion set.
 
@@ -85,7 +87,21 @@ namespace gridtools{
 
     };
 
+    /** inserts an element in a set if it is not present
 
+        used for the metadata_set in the domain_type
+    */
+    template <typename Sequence, typename Arg>
+    struct insert_if_not_present{
+    private :
+        Sequence& m_seq;
+        Arg& m_arg;
+    public:
+        insert_if_not_present(Sequence& seq_, Arg& arg_): m_seq(seq_), m_arg(arg_){}
+        void operator()()const{
+            if (!m_seq.template present< Arg >())
+                m_seq.insert(m_arg);                 }
+    };
 
     template <typename T>
     struct is_metadata_set : boost::mpl::false_{};

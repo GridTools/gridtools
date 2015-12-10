@@ -1,16 +1,7 @@
-/*
- * test_cache_stencil.cpp
- *
- *  Created on: Jul 21, 2015
- *      Author: cosuna
- */
-
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include "common/defs.hpp"
-#include "stencil-composition/make_computation.hpp"
-#include "stencil-composition/caches/cache_metafunctions.hpp"
-#include "stencil-composition/caches/define_caches.hpp"
+#include "stencil-composition/stencil-composition.hpp"
 #include <tools/verifier.hpp>
 
 namespace test_cache_stencil {
@@ -23,8 +14,8 @@ typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_i
 typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1, 1> > axis;
 
 struct functor1 {
-    typedef const accessor<0> in;
-    typedef accessor<1> out;
+    typedef accessor<0, enumtype::in, extent<-1,1,-1,1> > in;
+    typedef accessor<1, enumtype::inout> out;
     typedef boost::mpl::vector<in,out> arg_list;
 
     template <typename Evaluation>
@@ -35,8 +26,8 @@ struct functor1 {
 };
 
 struct functor2 {
-    typedef const accessor<0, range<-1,1,-1,1> > in;
-    typedef accessor<1> out;
+    typedef accessor<0, enumtype::in, extent<-1,1,-1,1> > in;
+    typedef accessor<1, enumtype::inout> out;
     typedef boost::mpl::vector<in,out> arg_list;
 
     template <typename Evaluation>
@@ -75,21 +66,26 @@ protected:
 
     array<uint_t, 5> m_di, m_dj;
 
-    gridtools::coordinates<axis> m_coords;
+    gridtools::grid<axis> m_grid;
     typename storage_type::meta_data_t m_meta;
     storage_type m_in, m_out;
 
     cache_stencil() :
         m_halo_size(2), m_d1(32+m_halo_size), m_d2(32+m_halo_size), m_d3(6),
+#ifdef CXX11_ENABLED
+        m_di{m_halo_size, m_halo_size, m_halo_size, m_d1-m_halo_size-1, m_d1},
+        m_dj{m_halo_size, m_halo_size, m_halo_size, m_d2-m_halo_size-1, m_d2},
+#else
         m_di(m_halo_size, m_halo_size, m_halo_size, m_d1-m_halo_size-1, m_d1),
         m_dj(m_halo_size, m_halo_size, m_halo_size, m_d2-m_halo_size-1, m_d2),
-        m_coords(m_di, m_dj),
+#endif
+        m_grid(m_di, m_dj),
         m_meta(m_d1, m_d2, m_d3),
         m_in(m_meta, -8.5, "in"),
         m_out(m_meta, 0.0, "out")
     {
-        m_coords.value_list[0] = 0;
-        m_coords.value_list[1] = m_d3-1;
+        m_grid.value_list[0] = 0;
+        m_grid.value_list[1] = m_d3-1;
     }
 
     virtual void SetUp()
@@ -106,8 +102,6 @@ protected:
         }
     }
 };
-
-
 
 TEST_F(cache_stencil, ij_cache)
 {
@@ -128,13 +122,12 @@ TEST_F(cache_stencil, ij_cache)
                 make_esf<functor1>(p_in(), p_buff()), // esf_descriptor
                 make_esf<functor1>(p_buff(), p_out()) // esf_descriptor
             ),
-            domain, m_coords
+            domain, m_grid
         );
 
     pstencil->ready();
 
     pstencil->steady();
-    domain.clone_to_gpu();
 
     pstencil->run();
 
@@ -144,8 +137,14 @@ TEST_F(cache_stencil, ij_cache)
     m_out.data().update_cpu();
 #endif
 
+#ifdef CXX11_ENABLED
+    verifier verif(1e-13);
+    array<array<uint_t, 2>, 3> halos{{ {m_halo_size,m_halo_size}, {m_halo_size,m_halo_size}, {m_halo_size,m_halo_size} }};
+    ASSERT_TRUE(verif.verify(m_in, m_out, halos) );
+#else
     verifier verif(1e-13, m_halo_size);
     ASSERT_TRUE(verif.verify(m_in, m_out) );
+#endif
 }
 
 TEST_F(cache_stencil, ij_cache_offset)
@@ -181,13 +180,12 @@ TEST_F(cache_stencil, ij_cache_offset)
                 make_esf<functor1>(p_in(), p_buff()), // esf_descriptor
                 make_esf<functor2>(p_buff(), p_out()) // esf_descriptor
             ),
-            domain, m_coords
+            domain, m_grid
         );
 
     pstencil->ready();
 
     pstencil->steady();
-    domain.clone_to_gpu();
 
     pstencil->run();
 
@@ -197,6 +195,12 @@ TEST_F(cache_stencil, ij_cache_offset)
     m_out.data().update_cpu();
 #endif
 
+#ifdef CXX11_ENABLED
+    verifier verif(1e-13);
+    array<array<uint_t, 2>, 3> halos{{ {m_halo_size,m_halo_size}, {m_halo_size,m_halo_size}, {m_halo_size,m_halo_size} }};
+    ASSERT_TRUE(verif.verify(ref, m_out, halos) );
+#else
     verifier verif(1e-13, m_halo_size);
-    ASSERT_TRUE(verif.verify(ref, m_out) );
+    ASSERT_TRUE(verif.verify(ref, m_out));
+#endif
 }

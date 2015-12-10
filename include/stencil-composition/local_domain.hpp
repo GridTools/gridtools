@@ -121,7 +121,7 @@ namespace gridtools {
         struct extract_actual_types {
 
             template <typename Storage, typename Enable=void>
-            struct check_if_temporary;
+            struct check_if_temporary : boost::mpl::false_{};
 
             template <typename Storage>
             struct check_if_temporary<Storage, typename boost::enable_if_c<is_temporary_storage<Storage>::value>::type> {
@@ -147,7 +147,7 @@ namespace gridtools {
 
     /**
      * This is the base class for local_domains to extract the proper iterators/storages from the full domain
-     * to adapt it for a particular functor. There is one version which provide coordinates to the functor
+     * to adapt it for a particular functor. There is one version which provide grid to the functor
      * and one that does not
      *
      */
@@ -227,13 +227,15 @@ namespace gridtools {
         typedef typename boost::mpl::fold
         <mpl_storages,
          boost::mpl::vector0<>,
-         boost::mpl::push_back<
-             boost::mpl::_1,
-             storage2metadata<
-                 boost::remove_pointer<
-                     boost::mpl::_2 >
-                 >
-             >
+         boost::mpl::if_< is_any_storage<boost::mpl::_2>,
+                          boost::mpl::push_back<
+                              boost::mpl::_1,
+                              storage2metadata<
+                                  boost::remove_pointer<
+                                      boost::mpl::_2 >
+                                  >
+                              >
+                          , boost::mpl::_1 >
          >::type::type local_metadata_mpl_t;
 
 
@@ -273,6 +275,17 @@ namespace gridtools {
             typename boost::mpl::transform<storage_metadata_vector_t, pointer<
                                                                      boost::add_const< boost::mpl::_1> > >::type
             >::type local_metadata_type;
+
+        // get a storage from the list of storages
+        template<typename IndexType>
+        struct get_storage
+        {
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<mpl_storages>::value > IndexType::value),
+                "Error: Trying to access a storage with index beyond the storages handled by the local domain");
+            typedef typename boost::remove_pointer<
+                typename boost::mpl::at<mpl_storages, IndexType>::type
+            >::type type;
+        };
 
         local_args_type m_local_args;
         local_metadata_type m_local_metadata;
@@ -350,7 +363,7 @@ namespace gridtools {
 
     /**
      * This class extract the proper iterators/storages from the full domain
-     * to adapt it for a particular functor. This version does not provide coordinates
+     * to adapt it for a particular functor. This version does not provide grid
      * to the function operator
      *
      * @tparam StoragePointers The mpl vector of the storage pointer types

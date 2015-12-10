@@ -9,8 +9,9 @@ module load mvapich2/gcc/64/2.0-gcc-4.8.2-cuda-6.0
 module load cuda70/toolkit/7.0.28
 export Boost_NO_SYSTEM_PATHS=true
 export Boost_NO_BOOST_CMAKE=true
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD:${VENV_PATH}/lib/python3.4/site-packages/PySide-1.2.2-py3.4-linux-x86_64.egg/PySide
-export GRIDTOOLS_ROOT_BUILD=$PWD
-export GRIDTOOLS_ROOT=$PWD/../
-export CUDATOOLKIT_HOME=${CUDA_ROOT}
-
+export GRIDTOOLS_ROOT_BUILD=$PWD/build
+export GRIDTOOLS_ROOT=$PWD
+export CUDATOOLKIT_HOME=${CUDA_PATH}
+export GTEST_LIB=/users/crosetto/gtest-1.7.0/libgtest.a
+export GTEST_MAINLIB=/users/crosetto/gtest-1.7.0/libgtest_main.a
+export GTEST_INC=/users/crosetto/gtest-1.7.0/include

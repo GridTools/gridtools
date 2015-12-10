@@ -5,7 +5,6 @@
 #include "../common/gt_assert.hpp"
 #include "../common/is_temporary_storage.hpp"
 #include <iostream>
-#include "../common/generic_metafunctions/accumulate.hpp"
 #include "../common/generic_metafunctions/gt_integer_sequence.hpp"
 
 namespace gridtools{
@@ -37,43 +36,19 @@ namespace gridtools{
         };
 
         /**@brief functor to assign all the strides */
-        template<int_t MaxIndex,  typename Layout>
+        template<short_t MaxIndex,  typename Layout>
         struct assign_all_strides{
 
-            template <int_t T>
+            template <uint_t T>
             using lambda=next_stride<MaxIndex-T, MaxIndex, Layout>;
 
             template<typename ... UIntType>
-            static constexpr array<int_t, MaxIndex> apply(UIntType ... args){
-                using seq = apply_gt_integer_sequence<typename make_gt_integer_sequence<int_t, sizeof ... (args)>::type >;
-                return seq::template apply<array<int_t, MaxIndex>, lambda>((int_t)args...);
+            static constexpr array<uint_t, MaxIndex> apply(UIntType ... args){
+                using seq = apply_gt_integer_sequence<typename make_gt_integer_sequence<uint_t, sizeof ... (args)>::type >;
+                return seq::template apply<array<uint_t, MaxIndex>, lambda>((uint_t)args...);
             }
         };
 
-
-        /**@brief metafunction to recursively compute all the strides, in a generic arbitrary dimensional storage*/
-        template<int_t ID, int_t MaxIndex,  typename Layout>
-        struct assign_strides{
-            template<typename ... UIntType>
-            GT_FUNCTION
-            static void apply(int_t* strides, UIntType ... args){
-                BOOST_STATIC_ASSERT(MaxIndex>=ID);
-                BOOST_STATIC_ASSERT(ID>=0);
-                strides[MaxIndex-ID] = next_stride<ID, MaxIndex, Layout>::apply(args...);
-                assign_strides<ID-1, MaxIndex, Layout>::apply(strides, args...);
-            }
-        };
-
-/**@brief specialization to stop the recursion*/
-        template< int_t MaxIndex,  typename Layout>
-        struct assign_strides<0, MaxIndex, Layout>{
-            template<typename ... UIntType>
-            GT_FUNCTION
-            static void apply(int_t* strides, UIntType ... args){
-                BOOST_STATIC_ASSERT(MaxIndex>=0);
-                strides[MaxIndex] = next_stride<0, MaxIndex, Layout>::apply(args...);
-            }
-        };
 #endif
 
 /**@brief struct to compute the total offset (the sum of the i,j,k indices times their respective strides)
@@ -88,7 +63,9 @@ namespace gridtools{
             */template<typename IntType, typename StridesVector>
             GT_FUNCTION
             static constexpr int_t apply(StridesVector const& RESTRICT strides_, IntType* indices_){
-                return strides_[space_dimensions-Id]*Layout::template find_val<space_dimensions-Id, int, 0>(indices_)+compute_offset<Id-1, Layout>::apply(strides_, indices_ );
+                return strides_[space_dimensions-Id]
+                    * Layout::template find_val<space_dimensions-Id, int, 0>(indices_)
+                    + compute_offset<Id-1, Layout>::apply(strides_, indices_ );
             }
 
 #ifdef CXX11_ENABLED
@@ -96,10 +73,13 @@ namespace gridtools{
                \param strides the strides
                \param indices comma-separated list of coordinates
             */
-            template< typename StridesVector, typename ... UInt>
+            template< typename StridesVector, typename ... Int>
             GT_FUNCTION
-            static constexpr int_t apply(StridesVector const& RESTRICT strides_, UInt const& ... indices_){
-                return strides_[space_dimensions-Id]*Layout::template find_val<space_dimensions-Id, int, 0>(indices_...)+compute_offset<Id-1, Layout>::apply(strides_, indices_... );
+            static constexpr int_t apply(StridesVector const& RESTRICT strides_, Int const& ... indices_)
+            {
+                return strides_[space_dimensions-Id]
+                    * Layout::template find_val<space_dimensions-Id, int, 0>(indices_...)
+                    + compute_offset<Id-1, Layout>::apply(strides_, indices_... );
             }
 #endif
             /**interface with the coordinates as a tuple
@@ -109,7 +89,9 @@ namespace gridtools{
             template<typename Tuple, typename StridesVector>
             GT_FUNCTION
             static constexpr int_t apply(StridesVector const& RESTRICT strides_, Tuple const&  indices_){
-                return (int_t)strides_[space_dimensions-Id]*Layout::template find_val<space_dimensions-Id, int, 0>(indices_)+compute_offset<Id-1, Layout>::apply(strides_, indices_ );
+                return (int_t)strides_[space_dimensions-Id]
+                    * Layout::template find_val<space_dimensions-Id, uint_t, 0>(indices_)
+                    + compute_offset<Id-1, Layout>::apply(strides_, indices_ );
             }
 
         };

@@ -109,7 +109,7 @@ namespace gridtools {
             if (s) {
                 copy_data_impl<StorageType>(s);
 
-                s->clone_to_gpu();
+                s->clone_to_device();
             }
         }
 
@@ -123,7 +123,7 @@ namespace gridtools {
         GT_FUNCTION_WARNING
         void operator()(pointer<const StorageType>& s) const {
             if (s.get()) {
-                s->clone_to_gpu();
+                s->clone_to_device();
             }
         }
 
@@ -144,31 +144,6 @@ namespace gridtools {
         }
 
     };
-
-
-//     //TODO : This struct is never used
-//     struct call_h2d {
-//         template <typename StorageType>
-//         GT_FUNCTION
-//         void operator()(StorageType * arg) const {
-// #ifndef __CUDA_ARCH__
-//             do_impl<StorageType>(arg,
-//                                  static_cast<typename is_no_storage_type_yet<StorageType>::type*>(0)
-//                 );
-// #endif
-//         }
-//     private:
-//         template <typename StorageType>
-//         GT_FUNCTION
-//         void do_impl(StorageType * arg,
-//                      typename boost::enable_if_c<is_no_storage_type_yet<StorageType>::value>::type* = 0) const {}
-//         template <typename StorageType>
-//         GT_FUNCTION
-//         void do_impl(StorageType * arg,
-//                      typename boost::disable_if_c<is_no_storage_type_yet<StorageType>::value>::type* = 0) const {
-//             arg->h2d_update();
-//         }
-//     };
 
     struct call_d2h {
         template <typename StorageType>

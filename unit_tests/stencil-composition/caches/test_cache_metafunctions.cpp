@@ -11,7 +11,7 @@
 #include "stencil-composition/backend.hpp"
 #include "stencil-composition/caches/cache_metafunctions.hpp"
 #include "stencil-composition/interval.hpp"
-#include "stencil-composition/make_computation.hpp"
+#include "stencil-composition/stencil-composition.hpp"
 #include "common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
 
 using namespace gridtools;
@@ -20,8 +20,8 @@ using namespace enumtype;
 // This is the definition of the special regions in the "vertical" direction
 typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_interval;
 struct functor1 {
-    typedef const accessor<0, range<0,0,0,0>, 6> in;
-    typedef accessor<1, range<0,0,0,0>, 5> buff;
+    typedef accessor<0, enumtype::in, extent<0,0,0,0>, 6> in;
+    typedef accessor<1, enumtype::inout, extent<0,0,0,0>, 5> buff;
     typedef boost::mpl::vector<in,buff> arg_list;
 
     template <typename Evaluation>
@@ -56,22 +56,31 @@ TEST(cache_metafunctions, cache_used_by_esfs)
     ASSERT_TRUE(true);
 }
 
-TEST(cache_metafunctions, extract_ranges_for_caches)
+TEST(cache_metafunctions, extract_extents_for_caches)
 {
     typedef boost::mpl::vector3<p_in, p_buff, p_out> esf_args_t;
     typedef local_domain< boost::mpl::void_, boost::mpl::void_, esf_args_t, false> local_domain_t;
 
-    typedef boost::mpl::vector2< range<-1,2,-2,1>, range<-2,1,-3,2> > ranges_t;
+    typedef boost::mpl::vector2< extent<-1,2,-2,1>, extent<-2,1,-3,2> > extents_t;
+    typedef gridtools::interval<gridtools::level<0,-2>, gridtools::level<1,1> > axis;
 
-    typedef iterate_domain_arguments< local_domain_t, esf_sequence_t, ranges_t, caches_t, block_size<32,4> > iterate_domain_arguments_t;
+    typedef iterate_domain_arguments<
+        enumtype::enum_type<enumtype::backend, enumtype::Host>,
+        local_domain_t,
+        esf_sequence_t,
+        extents_t,
+        caches_t,
+        block_size<32,4>,
+        gridtools::grid<axis>
+    > iterate_domain_arguments_t;
 
-    typedef extract_ranges_for_caches<iterate_domain_arguments_t>::type ranges_map_t;
+    typedef extract_extents_for_caches<iterate_domain_arguments_t>::type extents_map_t;
 
-    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal<ranges_map_t,
+    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal<extents_map_t,
             boost::mpl::map3<
-                boost::mpl::pair<cache1_t, range<-1,2,-2,1> >,
-                boost::mpl::pair<cache2_t, range<-2,2,-3,2> >,
-                boost::mpl::pair<cache3_t, range<-2,1,-3,2> >
+                boost::mpl::pair<cache1_t, extent<-1,2,-2,1> >,
+                boost::mpl::pair<cache2_t, extent<-2,2,-3,2> >,
+                boost::mpl::pair<cache3_t, extent<-2,1,-3,2> >
             > >::value), "ERROR"
     );
 }
@@ -84,13 +93,23 @@ TEST(cache_metafunctions, get_cache_storage_tuple)
     typedef boost::mpl::vector3<p_in, p_buff, p_out> esf_args_t;
     typedef local_domain< storages_tuple_t, metadata_vector_t, esf_args_t, false> local_domain_t;
 
-    typedef boost::mpl::vector2< range<-1,2,-2,1>, range<-2,1,-3,2> > ranges_t;
+    typedef boost::mpl::vector2< extent<-1,2,-2,1>, extent<-2,1,-3,2> > extents_t;
 
-    typedef iterate_domain_arguments< local_domain_t, esf_sequence_t, ranges_t, caches_t, block_size<32,4> > iterate_domain_arguments_t;
+    typedef gridtools::interval<gridtools::level<0,-2>, gridtools::level<1,1> > axis;
 
-    typedef extract_ranges_for_caches<iterate_domain_arguments_t>::type ranges_map_t;
+    typedef iterate_domain_arguments<
+        enumtype::enum_type<enumtype::backend, enumtype::Host>,
+        local_domain_t,
+        esf_sequence_t,
+        extents_t,
+        caches_t,
+        block_size<32,4>,
+        gridtools::grid<axis>
+    > iterate_domain_arguments_t;
 
-    typedef get_cache_storage_tuple<IJ, caches_t, ranges_map_t, block_size<32,4>, local_domain_t>::type cache_storage_tuple_t;
+    typedef extract_extents_for_caches<iterate_domain_arguments_t>::type extents_map_t;
+
+    typedef get_cache_storage_tuple<IJ, caches_t, extents_map_t, block_size<32,4>, local_domain_t>::type cache_storage_tuple_t;
 
     // fusion::result_of::at_key<cache_storage_tuple_t, p_in::index_type> does not compile,
     // therefore we convert into an mpl map and do all the metaprogramming operations on that map
@@ -100,8 +119,8 @@ TEST(cache_metafunctions, get_cache_storage_tuple)
         boost::mpl::equal<
             cache_storage_tuple_t,
             boost::fusion::map<
-                boost::fusion::pair<p_in::index_type, cache_storage<float_type, block_size<32,4>, range<-1,2,-2,1> > >,
-                boost::fusion::pair<p_buff::index_type, cache_storage<float_type, block_size<32,4>, range<-2,2,-3,2> > >
+                boost::fusion::pair<p_in::index_type, cache_storage<float_type, block_size<32,4>, extent<-1,2,-2,1> > >,
+                boost::fusion::pair<p_buff::index_type, cache_storage<float_type, block_size<32,4>, extent<-2,2,-3,2> > >
             >
         >::value),"ERROR");
 }

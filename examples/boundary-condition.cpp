@@ -13,7 +13,7 @@ using gridtools::minus_;
 using gridtools::zero_;
 using gridtools::plus_;
 
-#include <stencil-composition/backend.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 #include <boost/preprocessor/repetition/repeat.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>
@@ -123,8 +123,8 @@ int main(int argc, char** argv) {
 
 #ifdef CUDA_EXAMPLE
     //TODO also metadata must be copied/used here
-    in.clone_to_gpu();
-    out.clone_to_gpu();
+    in.clone_to_device();
+    out.clone_to_device();
     in.h2d_update();
     out.h2d_update();
 

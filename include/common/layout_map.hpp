@@ -9,8 +9,11 @@
 #include "../common/gt_assert.hpp"
 #include "../common/host_device.hpp"
 #include "../common/defs.hpp"
+#include "../common/array.hpp"
+#include "stencil-composition/accessor_fwd.hpp"
 #ifdef CXX11_ENABLED
-#include <tuple>
+#include "generic_metafunctions/gt_get.hpp"
+#include "common/generic_metafunctions/is_variadic_pack_of.hpp"
 #endif
 
 /**
@@ -44,24 +47,6 @@ namespace gridtools {
         }
 
     }//namespace _impl
-
-
-    // forward declarations
-    template < ushort_t ID, typename Range, ushort_t Number>
-    struct accessor;
-
-    template <typename ArgType, typename ... Pair>
-    struct accessor_mixed;
-
-    //template arguments type checking
-    template <typename T>
-    struct is_arg_tuple : boost::false_type {};
-
-    template < ushort_t ID, typename Range, ushort_t Number>
-    struct is_arg_tuple<accessor<ID, Range, Number> > : boost::true_type{};
-
-    template <typename ArgType, typename ... Pair>
-    struct is_arg_tuple<accessor_mixed<ArgType, Pair ... > > : boost::true_type {};
 
     /**
        Layout maps are simple sequences of integers specified
@@ -131,8 +116,8 @@ namespace gridtools {
         GT_FUNCTION
         static auto constexpr select(T & ... args) -> typename remove_refref<decltype(std::template get<layout_vector[I]>(std::make_tuple(args ...)))>::type {
 
-            GRIDTOOLS_STATIC_ASSERT((accumulate(logical_and(), boost::is_integral<T>::type::value ...)), "wrong type");
-            return  std::template get<layout_vector[I]>( std::make_tuple(args...) );
+            GRIDTOOLS_STATIC_ASSERT((is_variadic_pack_of(boost::is_integral<T>::type::value ...)), "wrong type");
+            return  gt_get<layout_vector[I]>::apply( args ... );
 
         }
 #else //problem determining of the return type with NVCC
@@ -141,8 +126,9 @@ namespace gridtools {
         static First
         constexpr
         select(First & f, T & ... args) {
-            GRIDTOOLS_STATIC_ASSERT((boost::is_integral<First>::type::value && accumulate(logical_and(), boost::is_integral<T>::type::value ...)), "wrong type");
-            return  std::template get<boost::mpl::at_c<layout_vector_t, I>::type::value >( std::make_tuple(f, args...) );
+            GRIDTOOLS_STATIC_ASSERT((boost::is_integral<First>::type::value &&
+                                     is_variadic_pack_of(boost::is_integral<T>::type::value ...)), "wrong type");
+            return  gt_get<boost::mpl::at_c<layout_vector_t, I>::type::value>::apply( f, args... );
         }
 #endif // __CUDACC__
 
@@ -189,7 +175,7 @@ namespace gridtools {
         find(First const& first_, Indices const& ... indices) {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(Indices)+1<=length, "Too many arguments");
 
-            return std::get<pos_<I>::value>(std::tuple<First, Indices...>{first_, indices...});
+            return gt_get<pos_<I>::value>::apply(first_, indices...);
         }
 
         /* forward declaration*/
@@ -199,14 +185,18 @@ namespace gridtools {
         /**@brief traits class allowing the lazy static analysis
 
            hiding a type whithin a templated struct disables its type deduction, so that when a compile-time branch (e.g. using boost::mpl::eval_if) is not taken, it is also not compiled.
-           The following class defines a subclass with a templated method which returns a given element in a tuple.
+           The following struct defines a subclass with a templated method which returns a given element in a tuple.
         */
         template<ushort_t I, typename Int>
         struct tied_type
         {
             struct type{
-                template<typename ... Indeces>
-                static constexpr Int value(Indeces ... indices){return std::get< pos_<I>::value >(std::make_tuple(indices...));}
+                template<typename ... Indices>
+                GT_FUNCTION
+                static constexpr const Int value(Indices const& ... indices){
+                    return gt_get< pos_<I>::value>::apply( indices ...);
+                    //std::get< pos_<I>::value >(std::make_tuple(indices...));
+                }
             };
         };
 
@@ -219,8 +209,9 @@ namespace gridtools {
         struct identity
         {
             struct type{
-                template<typename ... Indeces>
-                static constexpr Int value(Indeces ... /*indices*/){return Default;}
+                template<typename ... Indices>
+                GT_FUNCTION
+                static constexpr Int value(Indices ... /*indices*/){return Default;}
             };
         };
 
@@ -244,14 +235,15 @@ namespace gridtools {
         */
         template <ushort_t I, typename T, T DefaultVal, typename ... Indices, typename First,  typename boost::enable_if<boost::is_integral<T>, int>::type=0>
         GT_FUNCTION
-        static constexpr T find_val(First first, Indices ... indices) {
-            static_assert(sizeof...(Indices)<length, "Too many arguments");
-
+        static constexpr T find_val(First const& first, Indices const& ... indices) {
+            static_assert(sizeof...(Indices)<=length, "Too many arguments");
             //lazy template instantiation
             typedef typename boost::mpl::eval_if_c< (pos_<I>::value >= sizeof ... (Indices) +1 ),
                 identity<T, DefaultVal>
                 ,
                 tied_type<I, T> >::type type;
+
+            GRIDTOOLS_STATIC_ASSERT((boost::is_integral<First>::type::value), "wrong type");
 
             return type::value(first, indices...);
         }
@@ -293,14 +285,14 @@ namespace gridtools {
             \tparam[in] Indices List of argument where to return the found value
             \param[in] indices List of values (length must be equal to the length of the layout_map length)
         */
-        template <ushort_t I, typename T, T DefaultVal, typename Tuple>
+        template <ushort_t I, typename T, T DefaultVal, typename Accessor>
         GT_FUNCTION
-        static constexpr T find_val(Tuple const& indices) {
-            GRIDTOOLS_STATIC_ASSERT(is_arg_tuple<Tuple>::value, "the find_val method is used with tuples of arg_type type");
+        static constexpr T find_val(Accessor const& indices) {
+            GRIDTOOLS_STATIC_ASSERT(is_accessor<Accessor>::value, "the find_val method is used with tuples of arg_type type");
             return ((pos_<I>::value >= length)) ?
                 DefaultVal
                 :
-                indices.template get<Tuple::n_dim-pos_<I>::value-1>();
+                indices.template get<Accessor::n_dim-pos_<I>::value-1>();
             //this calls arg_decorator::get
         }
 

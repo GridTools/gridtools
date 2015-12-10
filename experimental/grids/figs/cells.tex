@@ -1,0 +1,25 @@
+\documentclass{article}
+\usepackage{tikz}
+\usepackage[nomessages]{fp}
+
+\begin{document}
+
+\usetikzlibrary{calc}
+
+\input{style}
+
+\begin{tikzpicture}
+	\input{grid}
+
+    \foreach \row in {0, 1,...,\rowsminusone} {
+    	\foreach \col in {0, 1,..., \rowsminusone} {
+			\begin{scope}[cells m]
+	    		\node at ({-\row -0.5 + \rows*0.5 + \col*0.5},{\rows*0.5*sqrt(3)-0.5 + 0.2 - \col*0.5*sqrt(3)}) {\pgfmathparse{-\row+\rowsminusone + \col*(\rows*2)}\pgfmathprintnumber{\pgfmathresult}};
+	    		\node at (-\row + \rows*0.5 + \col*0.5,{\rows*0.5*sqrt(3)-0.5 - \col*0.5*sqrt(3)}) {\pgfmathparse{-\row+\rowsminusone + \col*\rows*2 +\rows}\pgfmathprintnumber{\pgfmathresult}};
+	    	\end{scope}
+    	}
+    }
+
+\end{tikzpicture}
+
+\end{document}

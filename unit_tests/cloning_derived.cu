@@ -80,7 +80,7 @@ TEST_F(clone_derived_args, copy_tests)
             res = false;
     }
 
-    a.clone_to_gpu();
+    a.clone_to_device();
     a.data.update_gpu();
 
     for(uint_t i = 0; i < a.data.get_size(); ++i) {
@@ -94,7 +94,7 @@ TEST_F(clone_derived_args, copy_tests)
     }
 
     cudaDeviceSynchronize();
-    a.clone_from_gpu();
+    a.clone_from_device();
     a.data.update_cpu();
 
     for(uint_t i = 0; i < a.data.get_size(); ++i) {

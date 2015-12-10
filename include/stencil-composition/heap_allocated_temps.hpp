@@ -1,8 +1,13 @@
 #pragma once
 
-#include "backend_fwd.hpp"
+#include "common/defs.hpp"
+#include "stencil-composition/backend_fwd.hpp"
+#include "common/is_temporary_storage.hpp"
+#include "storage/base_storage.hpp"
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/filter_view.hpp>
+#include "stencil-composition/grid.hpp"
+#include "storage/metadata_set.hpp"
 
 /**
 @file
@@ -14,19 +19,23 @@ namespace gridtools {
 
         /** prepare temporaries struct, constructing the domain for the temporary fields, with the arguments
             to the constructor depending on the specific strategy */
-        template <typename ArgList, typename MetaList, typename Coords, typename BackendType>
+        template <typename ArgList,
+                  typename MetaList,
+                  typename Grid,
+                  enumtype::backend BackendId,
+                  enumtype::strategy StrategyId>
         struct prepare_temporaries_functor;
 
         /**
            Specialization for Naive policy
          */
-        template <typename ArgList, typename MetaList, typename Coords, enumtype::backend BackendId>
-        struct prepare_temporaries_functor<ArgList, MetaList, Coords, backend<BackendId, enumtype::/*strategy::*/Naive> >
+        template <typename ArgList, typename MetaList, typename Grid, enumtype::backend BackendId>
+        struct prepare_temporaries_functor<ArgList, MetaList, Grid, BackendId, enumtype::Naive>
         {
 
             //TODO check the type of ArgList
             GRIDTOOLS_STATIC_ASSERT(is_metadata_set<MetaList>::value, "wrong type for metadata");
-            GRIDTOOLS_STATIC_ASSERT(is_coordinates<Coords>::value, "wrong type for coords");
+            GRIDTOOLS_STATIC_ASSERT(is_grid<Grid>::value, "wrong type for grid");
 
             typedef MetaList metadata_set_t;
 
@@ -75,9 +84,9 @@ namespace gridtools {
                 }
             };
 
-            static void prepare_temporaries(ArgList & arg_list, metadata_set_t& metadata_, Coords const& coords) {
+            static void prepare_temporaries(ArgList & arg_list, metadata_set_t& metadata_, Grid const& grid) {
 
-#ifdef __VERBOSE__
+#ifdef VERBOSE
                 std::cout << "Prepare ARGUMENTS" << std::endl;
 #endif
 
@@ -88,9 +97,9 @@ namespace gridtools {
 
                 boost::fusion::for_each(fview,
                                         instantiate_tmps( metadata_,
-                                                          coords.direction_i().total_length(),
-                                                          coords.direction_j().total_length(),
-                                                          coords.value_at_top()-coords.value_at_bottom()+1
+                                                          grid.direction_i().total_length(),
+                                                          grid.direction_j().total_length(),
+                                                          grid.value_at_top()-grid.value_at_bottom()+1
                                             ));
 
             }
@@ -100,14 +109,14 @@ namespace gridtools {
         /**
            Specialization for Block policy
          */
-        template <typename ArgList, typename MetaList, typename Coords, enumtype::backend BackendId>
+        template <typename ArgList, typename MetaList, typename Grid, enumtype::backend BackendId>
         struct prepare_temporaries_functor
-        <ArgList, MetaList, Coords,  backend<BackendId, enumtype::/*strategy::*/Block> >
+        <ArgList, MetaList, Grid,  BackendId, enumtype::Block >
         {
 
             //TODO implement a check for the ArgList type
             GRIDTOOLS_STATIC_ASSERT(is_metadata_set<MetaList>::value, "wrong type for metadata");
-            GRIDTOOLS_STATIC_ASSERT(is_coordinates<Coords>::value, "wrong type for coords");
+            GRIDTOOLS_STATIC_ASSERT(is_grid<Grid>::value, "wrong type for Grid");
 
             typedef backend<BackendId, enumtype/*::strategy*/::Block> backend_type;
             /**
@@ -167,10 +176,10 @@ namespace gridtools {
                 }
             };
 
-            static void prepare_temporaries(ArgList & arg_list, MetaList & metadata_, Coords const& coords) {
+            static void prepare_temporaries(ArgList & arg_list, MetaList & metadata_, Grid const& grid) {
                 //static const enumtype::strategy StrategyType = Block;
 
-#ifdef __VERBOSE__
+#ifdef VERBOSE
                 std::cout << "Prepare ARGUMENTS" << std::endl;
 #endif
                 typedef boost::fusion::filter_view<ArgList,
@@ -180,11 +189,11 @@ namespace gridtools {
                 boost::fusion::for_each(fview,
                                         instantiate_tmps
                                         ( metadata_,
-                                          coords.i_low_bound(),
-                                          coords.j_low_bound(),
-                                          coords.value_at_top()-coords.value_at_bottom()+1,
-                                          backend_type::n_i_pes()(coords.i_high_bound() - coords.i_low_bound()),
-                                          backend_type::n_j_pes()(coords.j_high_bound() - coords.j_low_bound())
+                                          grid.i_low_bound(),
+                                          grid.j_low_bound(),
+                                          grid.value_at_top()-grid.value_at_bottom()+1,
+                                          backend_type::n_i_pes()(grid.i_high_bound() - grid.i_low_bound()),
+                                          backend_type::n_j_pes()(grid.j_high_bound() - grid.j_low_bound())
                                             )
                     );
             }
