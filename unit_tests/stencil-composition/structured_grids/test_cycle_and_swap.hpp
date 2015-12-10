@@ -3,7 +3,7 @@
 //(to test the case in which the 3rd dimension is not k)
 #define PEDANTIC_DISABLED
 
-#include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
 
 using namespace gridtools;
@@ -27,8 +27,8 @@ namespace test_cycle_and_swap{
     };
 
     struct functor_avg{
-        typedef inout_accessor<0, range<>, 5> p_data;
-        typedef dimension<5> time;
+        typedef inout_accessor<0, extent<>, 4> p_data;
+        typedef dimension<4> time;
         static x::Index i;
         static y::Index j; 
 
@@ -57,7 +57,7 @@ namespace test_cycle_and_swap{
 #endif
 #endif
 
-    bool test(){
+    bool test_2D(){
 
         typedef gridtools::layout_map<0,1> layout_t;
         typedef gridtools::storage_info<0, layout_t> meta_t;
@@ -114,11 +114,9 @@ namespace test_cycle_and_swap{
         typedef gridtools::BACKEND::storage_type<uint_t, meta_t >::type storage_type;
         typedef typename field<storage_type, 2>::type field_t;
 
-        typedef typename field<storage_type, 2>::type reference_t;
-
         meta_t meta_( d1, d2, d3);
         field_t i_data (meta_);
-        reference_t reference(meta_);
+        field_t reference(meta_);
 
         i_data.allocate();
         reference.allocate();
@@ -129,9 +127,9 @@ namespace test_cycle_and_swap{
         uint_t di[5] = {halo_size, halo_size, halo_size, d1-halo_size-1, d1};
         uint_t dj[5] = {halo_size, halo_size, halo_size, d2-halo_size-1, d2};
 
-        gridtools::coordinates<axis> coords(di, dj);
-        coords.value_list[0] = 0;
-        coords.value_list[1] = d3-1;
+        gridtools::grid<axis> grid(di, dj);
+        grid.value_list[0] = 0;
+        grid.value_list[1] = d3-1;
 
         typedef arg<0,field_t> p_i_data;
         typedef boost::mpl::vector<p_i_data> accessor_list;
@@ -146,7 +144,7 @@ namespace test_cycle_and_swap{
                     execute<forward>(),
                     gridtools::make_esf<functor_avg>(p_i_data())
                     ),
-                domain, coords
+                domain, grid
                 );
 
         //fill the input (snapshot 0) with some initial data
@@ -193,10 +191,9 @@ namespace test_cycle_and_swap{
         comp->run();
         comp->finalize();
 
-
-        verifier verif(1e-10, halo_size+1);
-
-        return verif.verify<1,0>(reference, i_data );
+        verifier verif(1e-13);
+        array<array<uint_t, 2>, 3> halos{{ {halo_size+1, halo_size+1}, {halo_size+1,halo_size+1}, {halo_size+1,halo_size+1} }};
+        return verif.verify(reference, i_data, halos);
 
     }
 
