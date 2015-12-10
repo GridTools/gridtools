@@ -98,12 +98,13 @@ int main(){
     coords.value_list[1] = d3-1;
 
     //![computation]
-    auto computation=make_computation<gridtools::BACKEND>(make_mss(execute<forward>(),
-    															   make_esf<functors::update_jac<geo_t> >(dt::p_grid_points(), p_dphi(), dt::p_jac()),
-    															   make_esf<functors::det< geo_t > >(dt::p_jac(), dt::p_jac_det()),
-																   make_esf<functors::mass<fe, cub> >(dt::p_jac_det(), dt::p_weights(), p_phi(), p_phi(), p_mass())),
-														  domain,
-														  coords);
+    auto computation=make_computation<gridtools::BACKEND>
+        (make_mss(execute<forward>(),
+                  make_esf<functors::update_jac<geo_t> >(dt::p_grid_points(), p_dphi(), dt::p_jac()),
+                  make_esf<functors::det< geo_t > >(dt::p_jac(), dt::p_jac_det()),
+                  make_esf<functors::mass<fe, cub> >(dt::p_jac_det(), dt::p_weights(), p_phi(), p_phi(), p_mass())),
+         domain,
+         coords);
 
 
     computation->ready();

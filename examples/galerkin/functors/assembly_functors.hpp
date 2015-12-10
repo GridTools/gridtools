@@ -363,9 +363,9 @@ namespace functors{
     // Stencil points correspond to global dof pairs (P,Q)
     struct global_assemble {
 
-        using in=accessor<0, range<0,0,0,0> , 5> ;
-        using in_map=accessor<1, range<0,0,0> , 4>;
-        using out=accessor<2, range<0,0,0,0> , 5> ;
+        using in=accessor<0, enumtype::in, extent<0,0,0,0> , 5> ;
+        using in_map=accessor<1, enumtype::in, extent<0,0,0> , 4>;
+        using out=accessor<2, enumtype::inout, extent<0,0,0,0> , 5> ;
         using arg_list=boost::mpl::vector<in, in_map, out> ;
 
         template <typename Evaluation>
@@ -373,14 +373,15 @@ namespace functors{
         static void Do(Evaluation const & eval, x_interval) {
 
         	// Retrieve elements dof grid dimensions and number of dofs per element
-            const uint_t d1=eval.get().get_storage_dims(in())[0];
-            const uint_t d2=eval.get().get_storage_dims(in())[1];
-            const uint_t d3=eval.get().get_storage_dims(in())[2];
-            const uint_t basis_cardinality=eval.get().get_storage_dims(in())[3];
+            const uint_t d1=eval.get().template get_storage_dims<0>(in());
+            const uint_t d2=eval.get().template get_storage_dims<1>(in());
+            const uint_t d3=eval.get().template get_storage_dims<2>(in());
+            const uint_t basis_cardinality=eval.get().template get_storage_dims<3>(in());
 
             // Retrieve global dof pair of current stencil point
+            // TODO: the computation is positional by default only in debug mode!
             const u_int my_P = eval.i();
-            const u_int my_Q = eval.j()%eval.get().get_storage_dims(out())[0];
+            const u_int my_Q = eval.j()%eval.get().template get_storage_dims<0>(out());
 
             // Loop over element dofs
         	for(u_int i=0;i<d1;++i)
