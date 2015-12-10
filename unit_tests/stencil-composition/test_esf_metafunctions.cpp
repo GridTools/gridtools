@@ -67,7 +67,7 @@ TEST(esf_metafunctions, compute_ranges_of)
     ) mss_t;
     typedef boost::mpl::vector<o0, in0, in1, in2> placeholders;
 
-    typedef gridtools::compute_ranges_of<placeholders>::for_mss<mss_t>::type final_map;
+    typedef gridtools::compute_extents_of<placeholders>::for_mss<mss_t>::type final_map;
 
 GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o0>::type, range<0, 0, 0, 0, 0, 0>>::type::value),
                           "o0 range<0, 0, 0, 0, 0, 0>");
