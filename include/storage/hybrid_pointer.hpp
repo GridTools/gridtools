@@ -193,6 +193,9 @@ namespace gridtools {
         GT_FUNCTION
         int get_size(){return m_size;}
 
+        /**
+           @brief swapping two pointers
+         */
         GT_FUNCTION
         void swap(hybrid_pointer& other){
             super::swap(other);

@@ -388,28 +388,6 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
             return ((vec_max<typename layout::layout_vector_t>::value < 0) ? 0:(( layout::template at_<Coordinate>::value == vec_max<typename layout::layout_vector_t>::value ) ? 1 : ((m_strides[layout::template at_<Coordinate>::value+1]))));
         }
 
-// #ifdef CXX11_ENABLED
-//         /**
-//            @brief computing index to access the storage in the coordinates passed as parameters.
-
-//            This method must be called with integral type parameters, and the result will be a positive integer.
-//         */
-//         template <typename StridesVector, typename ... UInt, typename Dummy=all_integers<UInt ...> >
-//         GT_FUNCTION
-//         constexpr
-//         static int_t _index(StridesVector const& RESTRICT strides_, UInt const& ... dims) {
-//             return _impl::compute_offset<space_dimensions, layout>::apply(strides_, dims ...);
-//         }
-
-//         template <typename StridesVector, typename ... UInt, typename Dummy=all_static_integers<UInt ...>>
-//         GT_FUNCTION
-//         constexpr
-//         static int_t _index(StridesVector const& RESTRICT strides_, UInt ... dims) {
-//             return  _impl::compute_offset<space_dimensions, layout>::apply(strides_, dims ...);
-//         }
-
-// #else
-
         /**@brief returning the index of the memory address corresponding to the specified (i,j,k) coordinates.
            This method depends on the strategy used (either naive or blocking). In case of blocking strategy the
            index for temporary storages is computed in the subclass gridtools::host_tmp_storge

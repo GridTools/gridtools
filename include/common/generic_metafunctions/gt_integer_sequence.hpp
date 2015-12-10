@@ -102,11 +102,6 @@ namespace gridtools{
 	    using type = Container<Lambda<Indices, ExtraTypes>::value ...>;
 	};
 
-        // template<template< typename ... U> class Container, template <UInt TT, UInt UU> class Lambda, UInt ... ExtraTypes>
-        // struct apply_tt{
-        //     using type = Container<Lambda<Indices, ExtraTypes> ...>;
-        // };
-
         /**
            @brief same as before, but with non-static lambda taking as first argument the index
         */
