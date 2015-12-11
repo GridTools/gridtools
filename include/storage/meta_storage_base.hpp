@@ -209,10 +209,9 @@ namespace gridtools {
  by defining the storage type using another layout_map.");
 #ifdef PEDANTIC
                 GRIDTOOLS_STATIC_ASSERT(
-                    accumulate(logical_and(),
-                               IntType(-1)>0 ... ),
+                    (accumulate(logical_and(),
+                                IntTypes(-1)>0 ... )),
                     "Pedantic check: you have to construct the storage_info with unsigned integers");
-                    );
 #endif
             }
 
