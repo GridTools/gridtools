@@ -65,7 +65,7 @@ namespace gridtools {
             if(m_iterate_domain.is_thread_in_domain())
             {
                 //call the user functor at the core of the block
-                functor_t::type::Do(iterate_domain_remapper, IntervalType());
+                functor_t::f_type::Do(iterate_domain_remapper, IntervalType());
             }
 
             this->template execute_extra_work<
@@ -136,7 +136,7 @@ namespace gridtools {
                     if(m_iterate_domain.is_thread_in_domain_x())
                     {
                         (m_iterate_domain).increment<1>(extent_t::jminus::value);
-                        functor_t::type::Do(iterate_domain_remapper, IntervalType());
+                        functor_t::f_type::Do(iterate_domain_remapper, IntervalType());
                         (m_iterate_domain).increment<1>(-extent_t::jminus::value);
                     }
                 }
@@ -148,7 +148,7 @@ namespace gridtools {
                         const int joffset = extent_t::jminus::value + (int)m_iterate_domain.block_size_j();
 
                         (m_iterate_domain).increment<1>(joffset);
-                        functor_t::type::Do(iterate_domain_remapper, IntervalType());
+                        functor_t::f_type::Do(iterate_domain_remapper, IntervalType());
                         (m_iterate_domain).increment<1>(-joffset);
                     }
                 }
@@ -164,7 +164,7 @@ namespace gridtools {
                     {
                         (m_iterate_domain).increment < 0 > (ioffset);
                         (m_iterate_domain).increment < 1 > (joffset);
-                        functor_t::type::Do(iterate_domain_remapper, IntervalType());
+                        functor_t::f_type::Do(iterate_domain_remapper, IntervalType());
                         (m_iterate_domain).increment < 0 > (-ioffset);
                         (m_iterate_domain).increment < 1 > (-joffset);
                     }
@@ -182,7 +182,7 @@ namespace gridtools {
                     {
                         (m_iterate_domain).increment<0>(ioffset);
                         (m_iterate_domain).increment<1>(joffset);
-                        functor_t::type::Do(iterate_domain_remapper, IntervalType());
+                        functor_t::f_type::Do(iterate_domain_remapper, IntervalType());
                         (m_iterate_domain).increment<0>(-ioffset);
                         (m_iterate_domain).increment<1>(-joffset);
                     }
@@ -197,7 +197,7 @@ namespace gridtools {
                     if(m_iterate_domain.is_thread_in_domain(0, joffset))
                     {
                         (m_iterate_domain).increment<1>(joffset);
-                        functor_t::type::Do(iterate_domain_remapper, IntervalType());
+                        functor_t::f_type::Do(iterate_domain_remapper, IntervalType());
                         (m_iterate_domain).increment<1>(-joffset);
                     }
                 }

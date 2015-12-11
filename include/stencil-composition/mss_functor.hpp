@@ -87,8 +87,6 @@ namespace gridtools {
             // compute the struct with all the type arguments for the run functor
 
             typedef typename sequence_of_is_independent_esf<typename mss_components_t::mss_descriptor_t>::type is_independent_sequence_t;
-            // sequence of esf descriptors contained in this mss
-            typedef typename mss_components_t::functors_list_t functors_list_t;
 
             /** generates the map of stating which esf has to be synchronized
 

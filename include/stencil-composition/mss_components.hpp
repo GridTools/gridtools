@@ -4,6 +4,16 @@
 
 namespace gridtools {
 
+
+    /**
+       @brief MPL pair wrapper with more meaningful type names for the specific use case.
+    */
+    template <typename T1, typename T2>
+    struct functor_id_pair{
+        typedef T1 id;
+        typedef T2 f_type;
+    };
+
 /**
  * @brief the mss components contains meta data associated to a mss descriptor.
  * All derived metadata is computed in this class
@@ -40,16 +50,6 @@ struct mss_components
         linear_esf_t,
         _impl::extract_functor
     >::type functors_seq_t;
-
-    /**
-       @brief MPL pair wrapper with more meaningful type names for the specific use case.
-     */
-    template <typename T1, typename T2>
-    struct functor_id_pair : boost::mpl::pair<T1, T2>{
-        typedef boost::mpl::pair<T1, T2> super;
-        typedef typename super::first id;
-        typedef typename super::second type;
-    };
 
     /*
       @brief attaching an integer index to each functor
