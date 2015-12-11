@@ -6,7 +6,7 @@ using namespace gridtools;
 TEST(storage_info, test_interface) {
 #if defined(CXX11_ENABLED) && defined(NDEBUG)
     typedef gridtools::layout_map<0,1,2,3> layout_t;
-    constexpr gridtools::meta_storage_base<0,layout_t,false> meta_{11, 12, 13, 14};
+    constexpr gridtools::meta_storage_base<0,layout_t,false> meta_{11u, 12u, 13u, 14u};
     GRIDTOOLS_STATIC_ASSERT((meta_.dims<0>()==11), "error");
     GRIDTOOLS_STATIC_ASSERT((meta_.dims<1>()==12), "error");
     GRIDTOOLS_STATIC_ASSERT((meta_.dims<2>()==13), "error");
@@ -23,7 +23,7 @@ TEST(storage_info, test_interface) {
     GRIDTOOLS_STATIC_ASSERT((meta_.strides<0>()==14*13*12), "error");
 #else
     typedef gridtools::layout_map<0,1,2> layout_t;
-    gridtools::meta_storage_base<0,layout_t,false> meta_(11, 12, 13);
+    gridtools::meta_storage_base<0,layout_t,false> meta_(11u, 12u, 13u);
     ASSERT_TRUE((meta_.dims<0>()==11));
     ASSERT_TRUE((meta_.dims<1>()==12));
     ASSERT_TRUE((meta_.dims<2>()==13));
