@@ -110,13 +110,4 @@ namespace gridtools {
     template<typename ESF, typename ArgArray, typename Staggering>
     struct is_esf_descriptor<esf_descriptor<ESF, ArgArray, Staggering> > : boost::mpl::true_{};
 
-
-    template<typename T>
-    struct extract_esf_function;
-
-    template<typename ESF, typename ArgArray, typename Staggering>
-    struct extract_esf_function<esf_descriptor<ESF, ArgArray, Staggering> > {
-        typedef ESF type;
-    };
-
 } // namespace gridtools
