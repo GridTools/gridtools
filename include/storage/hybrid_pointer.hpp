@@ -198,7 +198,7 @@ namespace gridtools {
          */
         GT_FUNCTION
         void swap(hybrid_pointer& other){
-            super::swap(other);
+            m_cpu_p.swap(other.m_cpu_p);
             T* tmp = m_gpu_p;
             m_gpu_p = other.m_gpu_p;
             other.m_gpu_p = tmp;
