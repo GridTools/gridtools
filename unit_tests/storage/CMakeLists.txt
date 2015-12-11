@@ -23,6 +23,11 @@ target_link_libraries(storage_info_test ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_
 target_link_libraries(storage_alignment_test ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
 
 if( USE_GPU )
+  gridtools_add_test(tests_gpu.storage_info ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/storage_info_test_cuda")
+  cuda_add_executable(storage_info_test_cuda test_meta_storage.cu)
+  set_target_properties(storage_info_test_cuda PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} LINKER_LANGUAGE CXX )
+  target_link_libraries(storage_info_test_cuda ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
+
   gridtools_add_test(tests_gpu.storage_alignment ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/storage_alignment_test_cuda")
   cuda_add_executable(storage_alignment_test_cuda alignment.cu)
   set_target_properties(storage_alignment_test_cuda PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} LINKER_LANGUAGE CXX )
