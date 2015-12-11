@@ -241,17 +241,19 @@ namespace gridtools{
     template<
         uint_t Coordinate,
         typename StridesCached,
-        typename MetaStorageSequence
-        >
+        typename MetaStorageSequence,
+        typename ArrayIndex
+    >
     struct increment_index_functor {
 
         GRIDTOOLS_STATIC_ASSERT((is_strides_cached<StridesCached>::value), "internal error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_array_of<ArrayIndex,int>::value), "internal error: wrong type");
         // GRIDTOOLS_STATIC_ASSERT((is_sequence_of<StorageSequence, is_any_iterate_domain_storage_pointer>::value),
         //                         "internal error: wrong type");
 
         GT_FUNCTION
         increment_index_functor(MetaStorageSequence const& storages, int_t const& increment,
-                int_t* RESTRICT index_array, StridesCached &  RESTRICT strides_cached) :
+                ArrayIndex& RESTRICT index_array, StridesCached &  RESTRICT strides_cached) :
             m_storages(storages), m_increment(increment), m_index_array(index_array), m_strides_cached(strides_cached){}
 
         template <typename Pair>
@@ -263,8 +265,6 @@ namespace gridtools{
 
             GRIDTOOLS_STATIC_ASSERT((ID::value < boost::fusion::result_of::size<MetaStorageSequence>::value),
                                     "Accessing an index out of bound in fusion tuple");
-
-            assert(m_index_array);
             boost::fusion::at_c<ID::value>(m_storages)->template increment<Coordinate>(
                 m_increment,&m_index_array[ID::value], m_strides_cached.template get<ID::value>());
         }
@@ -276,7 +276,7 @@ namespace gridtools{
 
         MetaStorageSequence const& m_storages;
         int_t const& m_increment;
-        int_t* RESTRICT m_index_array;
+        ArrayIndex& RESTRICT m_index_array;
         StridesCached &  RESTRICT m_strides_cached;
     };
 
