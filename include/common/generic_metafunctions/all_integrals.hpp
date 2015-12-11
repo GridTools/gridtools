@@ -10,12 +10,6 @@ namespace gridtools{
     using all_integers=typename boost::enable_if_c<accumulate(logical_and(),  boost::is_integral<IntTypes>::type::value ... ), bool >::type;
 
     /**
-       SFINAE for the case in which all the components of a parameter pack are of integral type
-    */
-    template <typename ... IntTypes>
-    using not_all_integers=typename boost::disable_if_c<accumulate(logical_and(),  boost::is_integral<IntTypes>::type::value ... ), bool >::type;
-
-    /**
        SFINAE for the case in which all the components of a parameter pack are of static integral type
     */
     template <typename ... IntTypes>

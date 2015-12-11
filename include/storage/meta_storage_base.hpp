@@ -183,7 +183,7 @@ namespace gridtools {
         // variadic constexpr constructor
 
         /**
-           @brief constructor given the space dimensions
+           @brief constructor taking the space dimensions as integers
 
            NOTE: this contructor is constexpr, i.e. the storage metadata information could be used
            at compile-time (e.g. in template metafunctions)
@@ -192,11 +192,7 @@ namespace gridtools {
         template <class ... IntTypes
                   , typename Dummy = all_integers<IntTypes...>
                   >
-//we only use a constexpr in no debug mode, because we want to assert the sizes are uint in debug mode
-//constexpr does not allow code in the body
-#ifdef NDEBUG
         constexpr
-#endif
         meta_storage_base(IntTypes const& ... dims_  ) :
             m_dims{(uint_t)dims_...}
             , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( (uint_t)dims_...))
@@ -211,15 +207,26 @@ namespace gridtools {
  This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
  a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
  by defining the storage type using another layout_map.");
+#ifdef PEDANTIC
+                GRIDTOOLS_STATIC_ASSERT(
+                    accumulate(logical_and(),
+                               IntType(-1)>0 ... ),
+                    "Pedantic check: you have to construct the storage_info with unsigned integers");
+                    );
+#endif
             }
 
 
+        /**
+           @brief constructor taking the space dimensions as static integers
+
+           NOTE: this contructor is constexpr, i.e. the storage metadata information could be used
+           at compile-time (e.g. in template metafunctions)
+         */
         template <typename ... IntTypes
                   , typename Dummy = all_static_integers<IntTypes...>
                   >
-#ifdef NDEBUG
         constexpr
-#endif
         meta_storage_base(  IntTypes ... dims_) :
             m_dims{IntTypes::value ...}
             , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( IntTypes() ...))
@@ -233,10 +240,6 @@ namespace gridtools {
                      is_variadic_pack_of(boost::is_integral<IntTypes>::type::value...),
                      "Error: Dimensions of metastorage must be specified as integer types. "
                 );
-#ifndef NDEBUG
-                auto check = [](int a) { return a>0; };
-                variadic_assert(check, (int)dims_...);
-#endif
         }
 #else //__CUDACC__ nvcc does not get it: checks only the first argument
         template <class First, class ... IntTypes
@@ -256,6 +259,26 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
  a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
  by defining the storage type using another layout_map.");
             }
+
+        template <typename First, typename ... IntTypes
+                  , typename Dummy = typename boost::enable_if_c<is_static_integral<First>::type::value, bool>::type //nvcc does not get it
+                  >
+        constexpr
+        meta_storage_base(  First first_, IntTypes ... dims_) :
+            m_dims{First::value, IntTypes::value ...}
+            , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( First::value, IntTypes::value ...))
+            {
+                GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes)+1==space_dimensions, "you tried to initialize\
+ a storage with a number of integer arguments different from its number of dimensions. \
+ This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
+ a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
+ by defining the storage type using another layout_map.");
+                GRIDTOOLS_STATIC_ASSERT(
+                    is_variadic_pack_of(is_static_integral<IntTypes>::type::value...),
+                    "Error: Dimensions of metastorage must be specified as integer types. "
+                    );
+        }
+
 #endif
 #else //CXX11_ENABLED
         // non variadic non constexpr constructor
@@ -387,28 +410,6 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
 	    //NOTE: we access the m_strides vector starting from 1, because m_strides[0] is the total storage dimension.
             return ((vec_max<typename layout::layout_vector_t>::value < 0) ? 0:(( layout::template at_<Coordinate>::value == vec_max<typename layout::layout_vector_t>::value ) ? 1 : ((m_strides[layout::template at_<Coordinate>::value+1]))));
         }
-
-// #ifdef CXX11_ENABLED
-//         /**
-//            @brief computing index to access the storage in the coordinates passed as parameters.
-
-//            This method must be called with integral type parameters, and the result will be a positive integer.
-//         */
-//         template <typename StridesVector, typename ... UInt, typename Dummy=all_integers<UInt ...> >
-//         GT_FUNCTION
-//         constexpr
-//         static int_t _index(StridesVector const& RESTRICT strides_, UInt const& ... dims) {
-//             return _impl::compute_offset<space_dimensions, layout>::apply(strides_, dims ...);
-//         }
-
-//         template <typename StridesVector, typename ... UInt, typename Dummy=all_static_integers<UInt ...>>
-//         GT_FUNCTION
-//         constexpr
-//         static int_t _index(StridesVector const& RESTRICT strides_, UInt ... dims) {
-//             return  _impl::compute_offset<space_dimensions, layout>::apply(strides_, dims ...);
-//         }
-
-// #else
 
         /**@brief returning the index of the memory address corresponding to the specified (i,j,k) coordinates.
            This method depends on the strategy used (either naive or blocking). In case of blocking strategy the
