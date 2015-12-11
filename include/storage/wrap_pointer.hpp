@@ -69,9 +69,9 @@ struct wrap_pointer{
 
     void reset(T* cpu_p){m_cpu_p=cpu_p;}
 
-    bool reset_managed(bool externally_managed_){m_externally_managed = externally_managed_;}
+    bool set_externally_managed(bool externally_managed_){m_externally_managed = externally_managed_;}
 
-    bool externally_managed() const {return m_externally_managed;}
+    bool is_externally_managed() const {return m_externally_managed;}
 
   GT_FUNCTION
   virtual ~wrap_pointer(){

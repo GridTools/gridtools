@@ -76,7 +76,7 @@ namespace gridtools {
 
 #ifdef PEDANTIC // we might want to use the same placeholder twice?
                 GRIDTOOLS_STATIC_ASSERT( (boost::mpl::size<esf_args_map_t>::value==
-                                          boost::mpl::size<typename boost::mpl::at<run_functor_list_t, Index>::type::second::arg_list>::value ),
+                                          boost::mpl::size<typename boost::mpl::at<run_functor_list_t, Index>::type::f_type::arg_list>::value ),
                                          "GRIDTOOLS ERROR:\n\
 	            check that the number of placeholders passed to the elementary stencil function\n \
 	            (constructed during the computation) is the same as the number of arguments referenced\n \
