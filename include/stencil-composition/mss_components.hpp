@@ -41,14 +41,24 @@ struct mss_components
         _impl::extract_functor
     >::type functors_seq_t;
 
+    /**
+       @brief MPL pair wrapper with more meaningful type names for the specific use case.
+     */
+    template <typename T1, typename T2>
+    struct functor_id_pair : boost::mpl::pair<T1, T2>{
+        typedef boost::mpl::pair<T1, T2> super;
+        typedef typename super::first id;
+        typedef typename super::second type;
+    };
+
     /*
       @brief attaching an integer index to each functor
 
-      This ensures that the types in the functors_list_t are unique. 
+      This ensures that the types in the functors_list_t are unique.
       It is necessary to have unique types in the functors_list_t, so that we can use the
-      functor types as keys in an MPL map. This is used in particular in the innermost loop, where 
+      functor types as keys in an MPL map. This is used in particular in the innermost loop, where
       we decide at compile-time wether the functors need synchronization or not, based on a map
-      connecting the functors to the "is independent" boolean (set to true if the functor does 
+      connecting the functors to the "is independent" boolean (set to true if the functor does
       not have data dependency with the next one). Since we can have the exact same functor used multiple
       times in an MSS both as dependent or independent, we cannot use the plain functor type as key for the
       abovementioned map, and we need to attach a unique index to its type.
@@ -56,7 +66,7 @@ struct mss_components
     typedef typename boost::mpl::fold<
         boost::mpl::range_c<ushort_t, 0, boost::mpl::size<functors_seq_t>::value >
         , boost::mpl::vector0<>
-        , boost::mpl::push_back<boost::mpl::_1, boost::mpl::pair<boost::mpl::_2, boost::mpl::at<functors_seq_t, boost::mpl::_2> > >
+        , boost::mpl::push_back<boost::mpl::_1, functor_id_pair<boost::mpl::_2, boost::mpl::at<functors_seq_t, boost::mpl::_2> > >
         >::type functors_list_t;
 
     typedef ExtentSizes extent_sizes_t;
