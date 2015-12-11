@@ -37,7 +37,10 @@ int main(){
     geo_.compute(Intrepid::OPERATOR_GRAD);
     //![instantiation]
 
-    constexpr meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{3, 3, 1};
+#ifdef NDEBUG
+    constexpr
+#endif
+        meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{3, 3, 1};
     dimension<1>::Index i;
     dimension<2>::Index j;
     dimension<4>::Index row;
@@ -48,7 +51,7 @@ int main(){
     //![as_instantiation]
     //constructing the integration tools
     as assembler(geo_,d1,d2,d3);
-    as_base assembler_base(d1,d2,d3,num_dofs);
+    as_base assembler_base(d1,d2,d3);
     //![as_instantiation]
 
     using domain_tuple_t = domain_type_tuple< as, as_base>;
@@ -136,13 +139,13 @@ int main(){
 
 
     //![assembly_computation]
-    auto assembly_coords=coordinates<axis>({0, 0, 0, num_dofs-1, num_dofs},
+    auto assembly_coords=grid<axis>({0, 0, 0, num_dofs-1, num_dofs},
 										   {0, 0, 0, num_dofs-1, num_dofs});
     assembly_coords.value_list[0] = 0;
     assembly_coords.value_list[1] = 0;
 
 
-    auto assembly_computation=make_computation<gridtools::BACKEND>(make_mss(execute<forward>(),
+    auto assembly_computation=make_positional_computation<gridtools::BACKEND>(make_mss(execute<forward>(),
     															   make_esf<functors::global_assemble>(p_mass(),p_grid_map(),p_global_mass_gt())),
 														  domain,
 														  assembly_coords);

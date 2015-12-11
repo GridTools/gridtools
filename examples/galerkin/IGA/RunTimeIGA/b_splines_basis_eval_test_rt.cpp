@@ -6,12 +6,12 @@
 #include <boost/shared_ptr.hpp>
 
 // GT headers and namespaces
-#include <stencil-composition/make_computation.hpp>
-using gridtools::range;
+#include <stencil-composition/stencil-composition.hpp>
+using gridtools::extent;
 using gridtools::level;
 using gridtools::interval;
 using gridtools::accessor;
-using gridtools::enumtype::Dimension;
+using gridtools::dimension;
 
 
 typedef interval<level<0,-1>, level<1,-1> > x_lap;
@@ -25,10 +25,10 @@ typedef interval<level<0,-1>, level<1,1> > third_axis;
 constexpr int P(2); // b-spline order
 constexpr int N(5); // Number of function
 constexpr int NK(P+N+1);// TODO: check this
-constexpr double knots[NK] = {0,1,2,3,4,5,6,7};
+constexpr const std::array<double, NK> knots{0,1,2,3,4,5,6,7};
 
 // Non-GT type b-spline instance allocation
-b_splines_rt::BSplineBasis<P,N> bspline_basis(knots);
+iga_rt::BSplineBasis<P,N> bspline_basis(knots);
 
 
 ////////////////// GT-STYLE CODE PART /////////////////////
@@ -37,9 +37,9 @@ struct bspline_basis_struct
 {
     static const int n_args = 2;
 
-    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 4 > bspline_basis_values;
+    typedef accessor<0, gridtools::enumtype::inout, extent<0, 0, 0, 0>, 4 > bspline_basis_values;
 
-    typedef const accessor<1, enumtype::in, extent<0, 0, 0, 0>, 3 > csi;
+    typedef const accessor<1, gridtools::enumtype::in, extent<0, 0, 0, 0>, 3 > csi;
 
     typedef boost::mpl::vector<bspline_basis_values, csi> arg_list;
 
@@ -51,7 +51,7 @@ struct bspline_basis_struct
 
     	for(int basis_index=0;basis_index<N;++basis_index)
     	{
-    		dom(bspline_basis_values(Dimension<4>(basis_index))) = basis_function_values[basis_index];
+    		dom(bspline_basis_values(dimension<4>(basis_index))) = basis_function_values[basis_index];
     	}
     }
 
@@ -92,11 +92,11 @@ int main()
     #endif
 
     // Storage type definition
-    typedef gridtools::storage_info<layout_t_in, __COUNTER__> storage_type_csi_info;
+    typedef gridtools::BACKEND::storage_info< __COUNTER__, layout_t_in> storage_type_csi_info;
     typedef gridtools::BACKEND::storage_type<gridtools::float_type
                                              , storage_type_csi_info>::type storage_type_csi;
 
-    typedef gridtools::storage_info<layout_t_out, __COUNTER__> storage_type_bspline_basis_info;
+    typedef gridtools::BACKEND::storage_info< __COUNTER__, layout_t_out> storage_type_bspline_basis_info;
     typedef gridtools::BACKEND::storage_type<gridtools::float_type
                                              , storage_type_bspline_basis_info>::type storage_type_bspline_basis_values;
 
@@ -128,7 +128,7 @@ int main()
     // Domain (coordinates structure+halos) definition
     gridtools::uint_t csi_indexes[5] = {0, 0, 0, numPoints-1, numPoints}; // Knot (csi) domain direction definition
     gridtools::uint_t null_indexes[5] = {0, 0, 0, 0, 1}; // Second domain direction not required
-    gridtools::coordinates<third_axis> coordinates(csi_indexes,null_indexes);
+    gridtools::grid<third_axis> coordinates(csi_indexes,null_indexes);
     coordinates.value_list[0] = 0; // Third (vertical direction) index structure (start)
     coordinates.value_list[1] = 0; // Third (vertical direction) index structure (stop): it must be noted that in this direction the loop stop condition has a "<="
 
@@ -138,7 +138,7 @@ int main()
 #else
     boost::shared_ptr<gridtools::computation> bspline_basis_calculation =
 #endif
-    		gridtools::make_computation<gridtools::BACKEND, layout_t_in>(gridtools::make_mss(gridtools::enumtype::execute<gridtools::enumtype::forward>(),
+    		gridtools::make_computation<gridtools::BACKEND>(gridtools::make_mss(gridtools::enumtype::execute<gridtools::enumtype::forward>(),
     																	 gridtools::make_esf<bspline_basis_struct>(p_bspline_basis_values(),
     		  	  	  	  	  	  	  	  	  	  	  	  	  			 	 	 	 	 	    		     p_csi())),
 																		 domain,

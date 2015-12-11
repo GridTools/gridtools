@@ -5,6 +5,7 @@
 #include "nest_loops.hpp"
 #include <common/generic_metafunctions/gt_integer_sequence.hpp>
 #include <common/generic_metafunctions/gt_get.hpp>
+#include <common/generic_metafunctions/accumulate.hpp>
 // #include <storage/meta_storage_base.hpp>
 
 namespace gridtools{
@@ -67,6 +68,12 @@ namespace gridtools{
         {
             return basis_.evaluate(std::get<Basis::dimension>(m_vals));
         }
+
+        template<typename T>
+        struct result{
+        using type = double;
+        };
+
     };
 
     /**
@@ -81,6 +88,19 @@ namespace gridtools{
         using tuple_t=boost::fusion::vector<BSplineDerived<Coeff> ... >;
         tuple_t m_univariate_bsplines;
 
+        struct multiplies_f{
+
+            template<typename ... Args>
+            double operator()(Args const& ... args_){
+                return multiplies()(args_ ...);
+            }
+
+            template<typename T>
+            struct result{
+                using type = double;
+            };
+
+        };
     public:
 
         /**
@@ -111,7 +131,7 @@ namespace gridtools{
                 //calls the evaluate, and returns a sequence of evaluation
                 tuple_of_vals
                 , state
-                , multiplies()
+                , multiplies_f()
                 );
         }
 
@@ -137,7 +157,7 @@ namespace gridtools{
         //check that sizeof...(Knots) is same as Coeff
         m_univariate_bsplines(
             GenericBSpline<Coeff ...>::tuple_t(
-                &std::get<Coeff::dimension>(knots_)...))
+                &std::get<Coeff::dimension>(knots_)[0]...))
     {
     }
 
@@ -331,8 +351,8 @@ namespace gridtools{
                     // array<int, sizeof...(Dims)+1> vals_{Dims..., Id::value};
 
                     functor_assign_storage<
-                        static_int<indexing.index(static_int<Dims-1>() ... , static_int<Id::value>())>
-                        //static_int<indexing.index(Dims-1 ... , Id::value)>
+                        //static_int<indexing.index(static_int<Dims-1>() ... , static_int<Id::value>())>
+                        static_int<indexing.index(Dims-1 ... , Id::value)>
                         , basis_t
                         , typename make_gt_integer_sequence<ushort_t, Dim>::type >
                         ::apply( m_storage, basis_, m_quad, k);

@@ -118,10 +118,10 @@ namespace iga_rt
 	};
 
 	template<int P, int N>
-	BSplineBasis<P,N>::BSplineBasis(const std::array<double,N+P+1>& i_knots)
-								   :m_bsplines(N,0)
-								   ,m_knots(i_knots)
-                                   ,m_isLastKnotRepeated((i_knots[N+P]==i_knots[N]) ? true : false)// TODO: this check is based on the condition i_knots[i]<=i_knots[i+1] which is not checked anywhere
+	BSplineBasis<P,N>::BSplineBasis( std::array<double,N+P+1> const& i_knots)
+            :m_bsplines(N,0)
+            ,m_knots(i_knots)
+            ,m_isLastKnotRepeated((i_knots[N+P]==i_knots[N]) ? true : false)// TODO: this check is based on the condition i_knots[i]<=i_knots[i+1] which is not checked anywhere
 	{
 		// TODO: add check on number of nodes
 		// TODO: update interfaces also for other dimensions

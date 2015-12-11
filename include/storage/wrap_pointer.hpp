@@ -118,6 +118,9 @@ struct wrap_pointer{
         }
     }
 
+    /**
+       @brief swapping two pointers
+    */
     GT_FUNCTION
     void swap(wrap_pointer& other){
 

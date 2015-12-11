@@ -27,6 +27,10 @@ TEST(storage_info, test_interface) {
     GRIDTOOLS_STATIC_ASSERT((meta_.strides<1>(meta_.strides())==15*14*13), "error");
     GRIDTOOLS_STATIC_ASSERT((meta_.strides<0>(meta_.strides())==15*14*13*12), "error");
 
+    GRIDTOOLS_STATIC_ASSERT((meta_.strides<3>()==1), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_.strides<2>()==14), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_.strides<1>()==14*13), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_.strides<0>()==14*13*12), "error");
 #else // CXX11_ENABLED
 
     gridtools::meta_storage_base<0,layout_t,false> meta_(11, 12, 13, 14, 15);

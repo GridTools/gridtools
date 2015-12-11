@@ -1,4 +1,5 @@
 #pragma once
+#include <utility>
 
 namespace iga_rt
 {
@@ -108,7 +109,7 @@ namespace iga_rt
 		 * @param i_knots b-spline function knot set
 		 */
             template <typename Array>
-            BSpline(const Array* i_knots);
+            BSpline(const Array& i_knots);
 
 		/**
 		 * @param i_csi Parametric space point value
@@ -181,11 +182,11 @@ namespace iga_rt
 
     template <int I, int P>
     template <typename Array>
-    BSpline<I, P>::BSpline(const Array* i_knots)
-            :m_csiI((*i_knots)[I-1])
-            ,m_csiIp1((*i_knots)[I+1-1])
-            ,m_csiIpP((*i_knots)[I+P-1])
-            ,m_csiIpPp1((*i_knots)[I+P+1-1])
+    BSpline<I, P>::BSpline(const Array& i_knots)
+            :m_csiI(i_knots[I-1])
+            ,m_csiIp1(i_knots[I+1-1])
+            ,m_csiIpP(i_knots[I+P-1])
+            ,m_csiIpPp1(i_knots[I+P+1-1])
             ,m_denIPm1((m_csiIpP!=m_csiI)?(1./(m_csiIpP-m_csiI)):0.)
             ,m_denIp1Pm1((m_csiIpPp1!=m_csiIp1)?(1./(m_csiIpPp1-m_csiIp1)):0.)
             ,m_bIPm1(i_knots)
@@ -225,9 +226,9 @@ namespace iga_rt
 		 * @param i_knots b-spline function knot set
 		 */
             template <typename Array>
-		BSpline(const Array* i_knots)
-                    :m_csiI((*i_knots)[I-1])
-                    ,m_csiIp1((*i_knots)[I+1-1])
+		BSpline(const Array& i_knots)
+                    :m_csiI(i_knots[I-1])
+                    ,m_csiIp1(i_knots[I+1-1])
 		{}
 
 		/**
