@@ -186,6 +186,7 @@ bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps)
         simple_hori_diff->run();
     }
 
+    repository.update_cpu();
 
 #ifdef CXX11_ENABLED
     verifier verif(1e-13);
