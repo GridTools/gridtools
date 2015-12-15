@@ -445,8 +445,6 @@ If you are not using generic accessors then you are using an unsupported storage
             pointer<const typename storage_type::meta_data_t> const metadata_ = boost::fusion::at
                 < metadata_index_t >(m_meta_storages);
 
-
-
             //if the following fails, the ID is larger than the number of storage types
             GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size<StorageSequence>::value,
                                     "the ID is larger than the number of storage types");
@@ -661,6 +659,24 @@ If you are not using generic accessors then you are using an unsupported storage
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Wrong type");
 
         typedef typename get_arg_from_accessor<Accessor, IterateDomainArguments>::type::value_type type;
+    };
+
+
+
+    /**
+       @brief partial specialization for the generic_accessor
+
+       for the generic accessor the value_type is the storage object type itself.
+     */
+    template<ushort_t I, enumtype::intend Intend,  typename IterateDomainArguments>
+    struct get_arg_value_type_from_accessor<generic_accessor<I, Intend>, IterateDomainArguments >
+    {
+        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Wrong type");
+
+        typedef typename boost::mpl::at<
+            typename IterateDomainArguments::local_domain_t::mpl_storages,
+            static_int<I>
+        >::type type;
     };
 
 

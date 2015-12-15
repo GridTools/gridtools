@@ -2,15 +2,8 @@
 
 namespace gridtools{
 
-    /** @bief concatenates two integer sequences*/
-    template<class S1, class S2> struct expand;
-
-    template<typename UInt, UInt... I1, UInt... I2>
-    struct expand<gt_integer_sequence<UInt, I1...>, gt_integer_sequence<UInt, I2...>>
-        : gt_integer_sequence<UInt, I1..., I2...>{};
-
     template<typename UInt, UInt C, ushort_t N>
-    struct expand_to_gt_integer_sequence : expand<typename expand_to_gt_integer_sequence<UInt, C, N/2>::type, typename expand_to_gt_integer_sequence<UInt, C, N - N/2>::type >::type{};
+    struct expand_to_gt_integer_sequence : concat<typename expand_to_gt_integer_sequence<UInt, C, N/2>::type, typename expand_to_gt_integer_sequence<UInt, C, N - N/2>::type >::type{};
 
     template<typename UInt, UInt C> struct expand_to_gt_integer_sequence<UInt, C, 0> : gt_integer_sequence<UInt>{};
     template<typename UInt, UInt C> struct expand_to_gt_integer_sequence<UInt, C, 1> : gt_integer_sequence<UInt,C>{};

@@ -462,33 +462,23 @@ namespace gridtools {
 
             specialization for the generic accessors placeholders
         */
-        template <uint_t I>
+        template <uint_t I, enumtype::intend Intend>
         GT_FUNCTION
-        typename boost::mpl::at<typename local_domain_t::mpl_storages, static_int<I> >::type
-        operator()(generic_accessor<I> const& accessor) const {
+        typename accessor_return_type<generic_accessor<I, Intend> >::type
+        operator()(generic_accessor<I, Intend> const& accessor) const {
 
             //getting information about the storage
-            typedef typename generic_accessor<I>::index_type index_t;
+            typedef typename generic_accessor<I, Intend>::index_type index_t;
 
-            #ifndef CXX11_ENABLED
-            typedef typename boost::remove_reference<typename boost::remove_pointer<BOOST_TYPEOF( (boost::fusion::at
-                                                                                                   < index_t>(local_domain.m_local_args)) )>::type>::type storage_type;
-                        storage_type* const storage_=
-                            #else
-                                            auto const storage_ =
-                            #endif
-                            boost::fusion::at
-                            < index_t>(local_domain.m_local_args);
+            typedef typename get_storage_accessor
+                <local_domain_t
+                 , generic_accessor<I, Intend> >
+                ::type storage_type;
 
-                        #ifdef CXX11_ENABLED
-                        using storage_type = typename std::remove_reference<decltype(*storage_)>::type;
-                        #endif
+            storage_type* storage_ = boost::fusion::at
+                < index_t>(local_domain.m_local_args);
 
-                        typename storage_type::value_type * RESTRICT storage_pointer=static_cast<typename storage_type::value_type*>((data_pointer())[current_storage<(index_t::value==0), local_domain_t, typename generic_accessor<I>::type >::value]);
-
-                        typename storage_type::value_type * RESTRICT real_storage_pointer=static_cast<typename storage_type::value_type*>(storage_pointer);
-
-                        return real_storage_pointer;
+            return storage_;
         }
 
 
