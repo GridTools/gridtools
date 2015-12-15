@@ -1,4 +1,4 @@
-list( APPEND SRCFILES interface1 boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore)
+list( APPEND SRCFILES interface1 simple_hori_diff boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore)
 
 if( ENABLE_CXX11)
     list(APPEND SRCFILES  extended_4D  copy_stencil_single_storage)
@@ -46,7 +46,7 @@ endif()
 
 if(CUDA_FOUND)
     if(COMPILE_TO_PTX)
-        CUDA_COMPILE_PTX(generated_files interface1.cu copy_stencil.cu tridiagonal.cu boundary-condition.cu)
+        CUDA_COMPILE_PTX(generated_files interface1.cu simple_hori_diff.cu copy_stencil.cu tridiagonal.cu boundary-condition.cu)
     else()
 
         foreach(srcfile IN LISTS SRCFILES MPISRCFILES )
