@@ -22,12 +22,14 @@ int main(){
 
     //![definitions]
     //defining the assembler, based on the Intrepid definitions for the numerics
-	using matrix_storage_info_t=storage_info< layout_tt<3,4> , __COUNTER__>;
+    using matrix_storage_info_t=storage_info<  __COUNTER__, layout_tt<3,4> >;
+    using global_stiffness_matrix_storage_info_t=storage_info<  __COUNTER__, layout_tt<3,4> >;
     using matrix_type=storage_t< matrix_storage_info_t >;
+    using global_stiffness_matrix_type=storage_t< global_stiffness_matrix_storage_info_t >;
     using fe=reference_element<1, Lagrange, Tri>;
     using geo_map=reference_element<1, Lagrange, Tri>;
     using cub=cubature<fe::order+1, fe::shape>;
-    using geo_t = intrepid::geometry<geo_map, cub>;
+    using geo_t = intrepid::unstructured_geometry<geo_map, cub>;
     using discr_t = intrepid::discretization<fe, cub>;
     //![definitions]
 
@@ -44,7 +46,7 @@ int main(){
     //![as_instantiation]
     //constructing the integration tools
     as assembler( geo_, d1, d2, d3);
-    as_base assembler_base(d1,d2,d3,num_dofs);
+    as_base assembler_base(d1,d2,d3);
     //![as_instantiation]
 
     using domain_tuple_t = domain_type_tuple< as, as_base>;
@@ -91,8 +93,8 @@ int main(){
     //![instantiation_stiffness]
 
     //![instantiation_global_mass]
-    matrix_storage_info_t meta_global_stiffness_(num_dofs,num_dofs,1,1,1);
-    matrix_type global_stiffness_(meta_global_stiffness_,0.,"global_stiffness");
+    global_stiffness_matrix_storage_info_t meta_global_stiffness_(num_dofs,num_dofs,1,1,1);
+    global_stiffness_matrix_type global_stiffness_gt_(meta_global_stiffness_,0.,"global_stiffness_gt");
     //![instantiation_global_mass]
 
 
@@ -111,10 +113,12 @@ int main(){
     // // defining the placeholder for the local values on the face
     // typedef arg<as::size+4, bd_discr_t::phi_storage_t> p_bd_phi;
     // //output
-    typedef arg<dt::size+1, matrix_type> p_stiffness;
+    typedef arg<dt::size+1, as_base::grid_map_type> p_grid_map;
+    typedef arg<dt::size+2, matrix_type> p_stiffness;
+    typedef arg<dt::size+3, global_stiffness_matrix_type> p_global_stiffness_gt;
 
     // appending the placeholders to the list of placeholders already in place
-    auto domain=domain_tuple_.template domain<p_dphi, p_stiffness>(fe_.grad(), stiffness_);
+    auto domain=domain_tuple_.template domain<p_dphi, p_grid_map, p_stiffness, p_global_stiffness_gt>(fe_.grad(), assembler_base.grid_map(), stiffness_, global_stiffness_gt_);
     //![placeholders]
 
 
@@ -122,6 +126,8 @@ int main(){
                                                                                                    // , &m_stiffness, &m_assembled_stiffness
     auto coords=grid<axis>({0, 0, 0, d1-1, d1},
     							  {0, 0, 0, d2-1, d2});
+
+
     coords.value_list[0] = 0;
     coords.value_list[1] = d3-1;
 
@@ -142,26 +148,23 @@ int main(){
     computation->finalize();
     //![computation]
 
-    //![global mass matrix assembly]
-	for(unsigned int i=0;i<d1;++i)
-	{
-		for(unsigned int j=0;j<d2;++j)
-		{
-			for(unsigned int k=0;k<d3;++k)
-			{
-				for(auto l_dof1=0;l_dof1<fe::basisCardinality;++l_dof1)
-				{
-					const u_int P=assembler_base.get_grid_map()(i,j,k,l_dof1);
-					for(auto l_dof2=0;l_dof2<fe::basisCardinality;++l_dof2)
-					{
-						const u_int Q=assembler_base.get_grid_map()(i,j,k,l_dof2);
-						global_stiffness_(P,Q,0,0,0) += stiffness_(i,j,k,l_dof1,l_dof2);
-					}
-				}
-			}
-		}
-	}
-    //![global mass matrix assembly]
+
+    //![assembly_computation]
+    auto assembly_coords=grid<axis>({0, 0, 0, num_dofs-1, num_dofs},
+									{0, 0, 0, num_dofs-1, num_dofs});
+    assembly_coords.value_list[0] = 0;
+    assembly_coords.value_list[1] = 0;
+
+
+    auto assembly_computation=make_computation<gridtools::BACKEND>(make_mss(execute<forward>(),
+    															   make_esf<functors::global_assemble_no_if>(p_stiffness(),p_grid_map(),p_global_stiffness_gt())),
+														  domain,
+														  assembly_coords);
+    assembly_computation->ready();
+    assembly_computation->steady();
+    assembly_computation->run();
+    assembly_computation->finalize();
+    //![assembly_computation]
 
 
     return test(assembler_base, assembler, fe_, stiffness_)==true;
