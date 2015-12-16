@@ -174,55 +174,80 @@ namespace intrepid{
        uses the same basis functions as the finite element discretization is called "isoparametric".
      */
     template < typename GeoMap, typename Cubature >
-    struct geometry : public discretization<GeoMap, Cubature>{
+    struct unstructured_geometry : public discretization<GeoMap, Cubature>{
 
         using geo_map=GeoMap;
         using super=discretization<GeoMap, Cubature>;
 
-        using bd_geo_map = reference_element<geo_map::order
-                                             , geo_map::basis
-                                             , shape_property<geo_map::shape>::boundary>;
+        /**
+           @brief constructor
+
+           NOTE: the computation of the derivatives is automatically triggered,
+           since it is always used to compute the metric tensor (i.e. the first fundamental form)
+         */
+        unstructured_geometry()
+            {
+                super::compute(Intrepid::OPERATOR_GRAD);
+            }
+
+    };
+
+    // TODO: not sure if we want a "is a" relation with the geometry struct
+    // TODO: can we remove the REORDER ifdef in the structured geometry derived class?
+    /**
+     * @brief discretization of the local-to-global map, structured mesh case (allowing dof ordering)
+     */
+    template < typename GeoMap, typename Cubature >
+    struct geometry : public unstructured_geometry<GeoMap, Cubature>{
+
+        using super=geometry<GeoMap, Cubature>;
+
+        using bd_geo_map = reference_element<super::geo_map::order
+                                             , super::geo_map::basis
+                                             , shape_property<super::geo_map::shape>::boundary>;
 
         using local_grid_t_info = storage_info< __COUNTER__, layout_map<0,1,2> >;
         using local_grid_t = storage_t< local_grid_t_info >;
         local_grid_t_info  m_local_grid_s_info;
         local_grid_t  m_local_grid_s;
+
 #ifdef REORDER
         using local_grid_reordered_t = storage_t< local_grid_t_info >;
         local_grid_reordered_t m_local_grid_reordered_s;
 #endif
 
         /**
-           @rief constructor
+           @brief constructor
 
            NOTE: the computation of the derivatives is automatically triggered,
            since it is always used to compute the metric tensor (i.e. the first fundamental form)
          */
         geometry() :
             //create the local grid
-            m_local_grid_s_info(geo_map::basisCardinality, geo_map::spaceDim,1)
+            m_local_grid_s_info(super::geo_map::basisCardinality, super::geo_map::spaceDim,1)
             , m_local_grid_s(m_local_grid_s_info, "local grid")
 #ifdef REORDER
             , m_local_grid_reordered_s(m_local_grid_s_info, "local grid reordered")
 #endif
             {
+#ifdef REORDER
                 // storage_t<layout_map<0,1,2> > local_grid_i(m_local_grid_s, 2);
-                Intrepid::FieldContainer<double> local_grid_i(geo_map::basisCardinality, geo_map::spaceDim);
-                geo_map::hexBasis().getDofCoords(local_grid_i);
-                for (uint_t i=0; i<geo_map::basisCardinality; ++i)
-                    for (uint_t j=0; j<geo_map::spaceDim; ++j)
+                Intrepid::FieldContainer<double> local_grid_i(super::geo_map::basisCardinality, super::geo_map::spaceDim);
+                super::geo_map::hexBasis().getDofCoords(local_grid_i);
+                for (uint_t i=0; i<super::geo_map::basisCardinality; ++i)
+                    for (uint_t j=0; j<super::geo_map::spaceDim; ++j)
                         m_local_grid_s(i,j,0)=local_grid_i(i,j);
 
                 //! [reorder]
-                std::vector<uint_t> permutations( geo_map::basisCardinality );
-                std::vector<uint_t> to_reorder( geo_map::basisCardinality );
+                std::vector<uint_t> permutations( super::geo_map::basisCardinality );
+                std::vector<uint_t> to_reorder( super::geo_map::basisCardinality );
                 //sorting the a vector containing the point coordinates with priority i->j->k, and saving the permutation
-#ifdef REORDER
+
                 // fill in the reorder vector such that the larger numbers correspond to larger strides
-                for(uint_t i=0; i<geo_map::basisCardinality; ++i){
-		    to_reorder[i]=(m_local_grid_s(i,geo_map::layout_t::template at_<0>::value*(geo_map::spaceDim-2))+2)*4 +
-		      (m_local_grid_s(i,geo_map::layout_t::template at_<1>::value)+2)*2 +
-		      (m_local_grid_s(i,geo_map::layout_t::template at_<2>::value)+2);
+                for(uint_t i=0; i<super::geo_map::basisCardinality; ++i){
+		    to_reorder[i]=(m_local_grid_s(i,super::geo_map::layout_t::template at_<0>::value*(super::geo_map::spaceDim-2))+2)*4 +
+		      (m_local_grid_s(i,super::geo_map::layout_t::template at_<1>::value)+2)*2 +
+		      (m_local_grid_s(i,super::geo_map::layout_t::template at_<2>::value)+2);
                     permutations[i]=i;
                 }
 
@@ -233,23 +258,28 @@ namespace intrepid{
 
                 // storage_t<layout_map<0,1,2> >::storage_t  local_grid_reordered_s(geo_map::basisCardinality, geo_map::spaceDim,1);
                 // storage_t<layout_map<0,1,2> >  local_grid_reordered_i(m_local_grid_reordered_s, 2);
-                uint_t D=geo_map::basisCardinality;
+                uint_t D=super::geo_map::basisCardinality;
 
                 //applying the permutation to the grid
                 for(uint_t i=0; i<D; ++i){//few redundant loops
-                	for(uint_t j=0; j<geo_map::spaceDim; ++j)
+                	for(uint_t j=0; j<super::geo_map::spaceDim; ++j)
                     {
                         m_local_grid_reordered_s(i, j, 0)=m_local_grid_s(permutations[i],j,0);
                     }
                 }
                 //! [reorder]
 #endif
-                super::compute(Intrepid::OPERATOR_GRAD);
             }
 
-        local_grid_t const& grid(){return m_local_grid_s;}
+        local_grid_t const& grid() const {return m_local_grid_s;}
+
+#ifdef REORDER
+        local_grid_reordered_t const& reordered_grid() const { return m_local_grid_reordered_s; }
+#endif
+
 
     };
+
 
 
     template<typename GeoMap, ushort_t Order>
