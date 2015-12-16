@@ -7,6 +7,7 @@
 #include <Intrepid_Basis.hpp>
 #include <Intrepid_Types.hpp>
 #include <Intrepid_FieldContainer.hpp>
+#include "Intrepid_HGRAD_TET_COMP12_FEM.hpp"
 #include "Intrepid_HGRAD_TET_Cn_FEM_ORTH.hpp"
 #include "Intrepid_HGRAD_TET_Cn_FEM.hpp"
 #include "Intrepid_HGRAD_TRI_Cn_FEM.hpp"
@@ -36,7 +37,7 @@ namespace gridtools{
     namespace enumtype{
         //! [enums]
         enum Basis {Lagrange, RT, Nedelec, BSplines};
-        enum Shape {Hexa, Quad, Tri, Line, Point};
+        enum Shape {Hexa, Tetra, Quad, Tri, Line, Point};
         //! [enums]
     }
 
@@ -46,6 +47,12 @@ namespace gridtools{
 
     template<ushort_t P>
     struct basis_select<P, enumtype::BSplines, enumtype::Hexa>{
+        using type=b_spline< order<P,P,P> >;
+        static type instance(){return type();}
+    };
+
+    template<ushort_t P>
+    struct basis_select<P, enumtype::BSplines, enumtype::Tetra>{
         using type=b_spline< order<P,P,P> >;
         static type instance(){return type();}
     };
@@ -71,6 +78,18 @@ namespace gridtools{
     template<ushort_t order>
     struct basis_select<order, enumtype::Lagrange, enumtype::Hexa>{
         using type=Intrepid::Basis_HGRAD_HEX_Cn_FEM<double, Intrepid::FieldContainer<double> >;
+        static type instance(){return type(order, Intrepid::POINTTYPE_EQUISPACED);}
+    };
+
+    template<>
+    struct basis_select<1, enumtype::Lagrange, enumtype::Tetra>{
+        using type=Intrepid::Basis_HGRAD_TET_C1_FEM<double, Intrepid::FieldContainer<double> >;
+        static type instance(){return type();}
+    };
+
+    template<ushort_t order>
+    struct basis_select<order, enumtype::Lagrange, enumtype::Tetra>{
+        using type=Intrepid::Basis_HGRAD_TET_Cn_FEM<double, Intrepid::FieldContainer<double> >;
         static type instance(){return type(order, Intrepid::POINTTYPE_EQUISPACED);}
     };
 
@@ -106,6 +125,12 @@ namespace gridtools{
     struct shape_select<order, enumtype::Hexa>
     {
         using type=shards::Hexahedron<>;
+    };
+
+    template <ushort_t order>
+    struct shape_select<order, enumtype::Tetra>
+    {
+        using type=shards::Tetrahedron<>;
     };
 
     template <ushort_t order>
@@ -281,6 +306,13 @@ namespace gridtools{
 
 
     template <>
+    struct shape_property<enumtype::Tetra>{
+        static const ushort_t dimension=3;
+        static const ushort_t n_sub_cells=4;
+        static const enumtype::Shape boundary=enumtype::Tri;
+    };
+
+    template <>
     struct shape_property<enumtype::Quad>{
         static const ushort_t dimension=2;
         static const ushort_t n_sub_cells=4;
@@ -309,6 +341,8 @@ namespace gridtools{
 
     const ushort_t shape_property<enumtype::Hexa>::dimension;
 
+    const ushort_t shape_property<enumtype::Tetra>::dimension;
+
     const ushort_t shape_property<enumtype::Quad>::dimension;
 
     const ushort_t shape_property<enumtype::Tri>::dimension;
@@ -318,6 +352,9 @@ namespace gridtools{
 
     template <uint_t Order, enumtype::Basis BasisType, template<ushort_t O, enumtype::Basis E, enumtype::Shape S > class FE>
     struct boundary_shape<FE<Order, BasisType, enumtype::Hexa> > : public FE<Order, BasisType, enumtype::Quad>{};
+
+    template <uint_t Order, enumtype::Basis BasisType, template<ushort_t O, enumtype::Basis E, enumtype::Shape S > class FE>
+    struct boundary_shape<FE<Order, BasisType, enumtype::Tetra> > : public FE<Order, BasisType, enumtype::Tri>{};
 
     template <uint_t Order, enumtype::Basis BasisType, template<ushort_t O, enumtype::Basis E, enumtype::Shape S > class FE>
     struct boundary_shape<FE<Order, BasisType, enumtype::Quad> > : public FE<Order, BasisType, enumtype::Line>{};
