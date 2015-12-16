@@ -21,10 +21,11 @@ using gridtools::int_t;
 #ifdef __CUDACC__
     typedef gridtools::layout_map<2,1,0> layout_ijk;//stride 1 on i
     typedef gridtools::layout_map<1,0,-1> layout_ij;
+    typedef gridtools::layout_map<-1,0,-1> layout_j;
 #else
     typedef gridtools::layout_map<0,1,2> layout_ijk;//stride 1 on k
     typedef gridtools::layout_map<0,1,-1> layout_ij;
-    typedef gridtools::layout_map<-1,1,-1> layout_j;
+    typedef gridtools::layout_map<-1,0,-1> layout_j;
 #endif
 
     typedef gridtools::layout_map<-1,-1,-1> layout_scalar;

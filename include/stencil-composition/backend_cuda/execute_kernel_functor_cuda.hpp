@@ -9,6 +9,14 @@
 namespace gridtools {
 
 namespace _impl_cuda {
+
+    template<int VBoundary>
+    struct padded_boundary :
+        boost::mpl::integral_c<int, VBoundary <= 1 ? 1 : (VBoundary <= 2 ? 2 : (VBoundary <= 4 ? 4 : 8 ))>
+    {
+        BOOST_STATIC_ASSERT(VBoundary >= 0 && VBoundary <= 8);
+    };
+
     template <typename RunFunctorArguments,
               typename LocalDomain>
     __global__
@@ -20,6 +28,13 @@ namespace _impl_cuda {
         typedef typename RunFunctorArguments::execution_type_t execution_type_t;
 
         typedef typename RunFunctorArguments::physical_domain_block_size_t block_size_t;
+        typedef typename RunFunctorArguments::extent_sizes_t extent_sizes_t;
+
+        typedef typename boost::mpl::fold<
+            extent_sizes_t,
+            extent<0,0,0,0>,
+            enclosing_extent<boost::mpl::_1, boost::mpl::_2>
+        >::type max_extent_t;
 
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
         typedef backend_traits_from_id<enumtype::Cuda> backend_traits_t;
@@ -49,8 +64,30 @@ namespace _impl_cuda {
         __syncthreads();
 
         //computing the global position in the physical domain
-        const int i = blockIdx.x * block_size_t::i_size_t::value + threadIdx.x;
-        const int j = blockIdx.y * block_size_t::j_size_t::value + threadIdx.y;
+        const int jboundary_limit = block_size_t::j_size_t::value - max_extent_t::jminus::value
+            + max_extent_t::jplus::value;
+        const int iminus_limit = jboundary_limit + (max_extent_t::iminus::value<0 ? 1 : 0);
+        const int iplus_limit = iminus_limit + (max_extent_t::iplus::value>0 ? 1 : 0);
+
+        int i=max_extent_t::iminus::value-1;
+        int j=max_extent_t::jminus::value-1;
+        if(threadIdx.y < jboundary_limit)
+        {
+            i = blockIdx.x * block_size_t::i_size_t::value + threadIdx.x;
+            j = blockIdx.y * block_size_t::j_size_t::value + threadIdx.y;
+        }
+        else if(threadIdx.y < iminus_limit)
+        {
+            const int padded_boundary_ = padded_boundary<-max_extent_t::iminus::value>::value;
+            i = -padded_boundary_ + threadIdx.x % padded_boundary_;
+            j = threadIdx.y - jboundary_limit + threadIdx.x / padded_boundary_;
+        }
+        else if(threadIdx.y < iplus_limit)
+        {
+            const int padded_boundary_ = padded_boundary<max_extent_t::iplus::value>::value;
+            i = threadIdx.x % padded_boundary_ + block_size_t::i_size_t::value;
+            j = threadIdx.y - iminus_limit + threadIdx.x / padded_boundary_;
+        }
 
         it_domain.set_index(0);
 
@@ -153,7 +190,7 @@ struct execute_kernel_functor_cuda
             block_size_t::i_size_t::value,
             (block_size_t::j_size_t::value - maximum_extent_t::jminus::value + maximum_extent_t::jplus::value +
                     (maximum_extent_t::iminus::value != 0 ? 1 : 0) + (maximum_extent_t::iplus::value != 0 ? 1 : 0)
-            )/ ((maximum_extent_t::iminus::value != 0  || maximum_extent_t::iplus::value != 0 ) ? 2 : 1)
+            )
         > cuda_block_size_t;
 
         //number of grid points that a cuda block covers

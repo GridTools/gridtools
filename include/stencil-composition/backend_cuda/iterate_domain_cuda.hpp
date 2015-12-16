@@ -56,6 +56,7 @@ public:
         return threadIdx.x;
     }
 
+    template<int_t minus, int_t plus>
     GT_FUNCTION
     uint_t thread_position_y() const
     {
@@ -65,46 +66,55 @@ public:
     /**
      * @brief determines whether the current (i,j) position is within the block size
      */
+    template<typename Extent>
     GT_FUNCTION
     bool is_thread_in_domain() const
     {
-        return threadIdx.x < m_block_size_i && threadIdx.y < m_block_size_j ;
+        return threadIdx.x < (m_block_size_i -Extent::iminus::value+Extent::iplus::value) &&
+            threadIdx.y < (m_block_size_j -Extent::jminus::value+Extent::jplus::value);
     }
 
     /**
      * @brief determines whether the current (i,j) position + an offset is within the block size
      */
+    template<typename Extent>
     GT_FUNCTION
     bool is_thread_in_domain(const int_t i_offset, const int_t j_offset) const
     {
-        return is_thread_in_domain_x(i_offset) &&  is_thread_in_domain_y(j_offset);
+        return is_thread_in_domain_x<Extent::iminus::value, Extent::iplus::value>(i_offset) &&
+            is_thread_in_domain_y<Extent::jminus::value, Extent::jplus::value>(j_offset);
     }
 
     /**
      * @brief determines whether the current (i) position is within the block size
      */
+    template<int_t minus, int_t plus>
     GT_FUNCTION
     bool is_thread_in_domain_x() const
     {
-        return threadIdx.x < m_block_size_i;
+        return threadIdx.x < (m_block_size_i-minus+plus);
     }
 
     /**
      * @brief determines whether the current (i) position + an offset is within the block size
      */
+    template<int_t minus, int_t plus>
     GT_FUNCTION
     bool is_thread_in_domain_x(const int_t i_offset) const
     {
-        return (int_t)threadIdx.x + i_offset >= 0 && (int_t)threadIdx.x + i_offset < m_block_size_i;
+        return (int_t)threadIdx.x + i_offset >= 0 && (int_t)threadIdx.x + i_offset <
+            (m_block_size_i-minus+plus);
     }
 
     /**
      * @brief determines whether the current (j) position is within the block size
      */
+    template<int_t minus, int_t plus>
     GT_FUNCTION
     bool is_thread_in_domain_y(const int_t j_offset) const
     {
-        return (int_t)threadIdx.y + j_offset >= 0 && (int_t)threadIdx.y + j_offset < m_block_size_j;
+        return (int_t)threadIdx.y + j_offset >= 0 && (int_t)threadIdx.y + j_offset <
+            (m_block_size_j-minus+plus);
     }
 
     GT_FUNCTION
@@ -161,7 +171,7 @@ public:
 
     template <ushort_t Coordinate>
     GT_FUNCTION
-    void increment_impl(int_t steps)
+    void increment_impl(const int_t steps)
     {
         if(Coordinate != 0 && Coordinate != 1) return;
         m_thread_pos[Coordinate] += steps;

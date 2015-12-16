@@ -59,21 +59,22 @@ namespace gridtools {
             iterate_domain_remapper_t iterate_domain_remapper(m_iterate_domain);
 
             typedef typename EsfArguments::functor_t functor_t;
+            typedef typename EsfArguments::extent_t extent_t;
 
             //a grid point at the core of the block can be out of extent (for last blocks) if domain of computations
             // is not a multiple of the block size
-            if(m_iterate_domain.is_thread_in_domain())
+            if(m_iterate_domain.template is_thread_in_domain<extent_t>())
             {
                 //call the user functor at the core of the block
                 functor_t::Do(iterate_domain_remapper, IntervalType());
             }
 
-            this->template execute_extra_work<
-                multiple_grid_points_per_warp_t,
-                IntervalType,
-                EsfArguments,
-                iterate_domain_remapper_t
-            > (iterate_domain_remapper);
+//            this->template execute_extra_work<
+//                multiple_grid_points_per_warp_t,
+//                IntervalType,
+//                EsfArguments,
+//                iterate_domain_remapper_t
+//            > (iterate_domain_remapper);
 
             __syncthreads();
 
