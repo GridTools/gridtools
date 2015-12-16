@@ -363,10 +363,10 @@ namespace functors{
     // Stencil points correspond to global dof pairs (P,Q)
     struct global_assemble {
 
-        using in=accessor<0, enumtype::in, extent<0,0,0,0> , 5> ;
-        using in_map=accessor<1, enumtype::in, extent<0,0,0> , 4>;
-        using out=accessor<2, enumtype::inout, extent<0,0,0,0> , 5> ;
-        using arg_list=boost::mpl::vector<in, in_map, out> ;
+    	using in=accessor<0, enumtype::in, extent<0,0,0,0> , 5> ;
+    	using in_map=accessor<1, enumtype::in, extent<0,0,0> , 4>;
+    	using out=accessor<2, enumtype::inout, extent<0,0,0,0> , 5> ;
+    	using arg_list=boost::mpl::vector<in, in_map, out> ;
 
         template <typename Evaluation>
         GT_FUNCTION
@@ -417,6 +417,54 @@ namespace functors{
         }
     };
 
+    // TODO: this is an updated version of the "global_assemble" functor without ifs and conditional branchings
+    struct global_assemble_no_if {
+
+    	using in=accessor<0, enumtype::in, extent<0,0,0,0> , 5> ;
+    	using in_map=accessor<1, enumtype::in, extent<0,0,0> , 4>;
+    	using out=accessor<2, enumtype::inout, extent<0,0,0,0> , 5> ;
+    	using arg_list=boost::mpl::vector<in, in_map, out> ;
+
+        template <typename Evaluation>
+        GT_FUNCTION
+        static void Do(Evaluation const & eval, x_interval) {
+
+        	// Retrieve elements dof grid dimensions and number of dofs per element
+            const uint_t d1=eval.get().template get_storage_dims<0>(in());
+            const uint_t d2=eval.get().template get_storage_dims<1>(in());
+            const uint_t d3=eval.get().template get_storage_dims<2>(in());
+            const uint_t basis_cardinality=eval.get().template get_storage_dims<3>(in());
+
+            // Retrieve global dof pair of current stencil point
+            // TODO: the computation is positional by default only in debug mode!
+            const u_int my_P = eval.i();
+            const u_int my_Q = eval.j()%eval.get().template get_storage_dims<0>(out());
+
+            // Loop over element dofs
+        	for(u_int i=0;i<d1;++i)
+        	{
+            	for(u_int j=0;j<d2;++j)
+            	{
+                	for(u_int k=0;k<d3;++k)
+                	{
+                        // Loop over single element dofs
+        				for(u_short l_dof1=0;l_dof1<basis_cardinality;++l_dof1)
+        				{
+        					// TODO: check next line
+        					const u_int P_fact(eval(!in_map(i,j,k,l_dof1))==my_P);
+
+							for(u_short l_dof2=0;l_dof2<basis_cardinality;++l_dof2)
+							{
+								// Current local dof pair corresponds to global dof
+								// stencil point, update global matrix
+								eval(out(0,0,0,0,0)) += (eval(!in_map(i,j,k,l_dof2))==my_Q)*P_fact*eval(!in(i,j,k,l_dof1,l_dof2));
+							}
+						}
+					}
+				}
+			}
+		}
+    };
 
     // [assemble]
 
