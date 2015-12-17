@@ -16,7 +16,6 @@
 namespace gridtools {
 
     template <typename T, size_t D>
-
     class array {
         typedef array<T,D> type;
         static const uint_t _size = (D>0)?D:1;
@@ -177,5 +176,11 @@ namespace gridtools {
 
     template <typename T, size_t D>
     struct is_array <array<T, D> > : boost::mpl::true_{};
+
+    template<typename Array, typename Value>
+    struct is_array_of : boost::mpl::false_{};
+
+    template<size_t D, typename Value>
+    struct is_array_of<array<Value, D>, Value>  : boost::mpl::true_{};
 
 } // namespace gridtools
