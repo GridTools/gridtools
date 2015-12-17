@@ -92,13 +92,6 @@ namespace gridtools {
             };
         };
 
-        struct l_get_it_pos {
-            template <typename U>
-            struct apply {
-                typedef typename U::pos type;
-            };
-        };
-
         /**
            \brief returns the index chosen when the placeholder U was defined
         */

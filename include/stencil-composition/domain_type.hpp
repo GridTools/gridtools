@@ -63,14 +63,13 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<placeholders_t, is_arg>::type::value), "wrong type:\
  the domain_type template argument must be an MPL vector of placeholders (arg<...>)");
-        typedef placeholders_t original_placeholders;
 
     private:
-        BOOST_STATIC_CONSTANT(uint_t, len = boost::mpl::size<original_placeholders>::type::value);
+        BOOST_STATIC_CONSTANT(uint_t, len = boost::mpl::size<placeholders_t>::type::value);
 
         // filter out the metadatas which are the same
         typedef typename boost::mpl::fold<
-            original_placeholders
+            placeholders_t
             , boost::mpl::set<> // check if the argument is a storage placeholder before extracting the metadata
             , boost::mpl::if_< is_storage_arg<boost::mpl::_2>
                                , boost::mpl::insert<boost::mpl::_1, arg2metadata<boost::mpl::_2> >, boost::mpl::_1 > >
@@ -85,20 +84,20 @@ namespace gridtools {
         BOOST_STATIC_CONSTANT(uint_t, len_meta = boost::mpl::size<original_metadata_t>::type::value);
 
         /**
-         * \brief Get a sequence of the same type of original_placeholders, but containing the storage types for each placeholder
+         * \brief Get a sequence of the same type of placeholders_t, but containing the storage types for each placeholder
          * \todo I would call it instead of l_get_type l_get_storage_type
          */
-        typedef typename boost::mpl::transform<original_placeholders,
+        typedef typename boost::mpl::transform<placeholders_t,
                                                _impl::l_get_type
-                                               >::type raw_storage_list;
+                                               >::type storage_list;
 
 
         /**
-         * \brief Get a sequence of the same type of original_placeholders, but containing the iterator types corresponding to the placeholder's storage type
+         * \brief Get a sequence of the same type of placeholders_t, but containing the iterator types corresponding to the placeholder's storage type
          */
-        typedef typename boost::mpl::transform<original_placeholders,
+        typedef typename boost::mpl::transform<placeholders_t,
                                                _impl::l_get_it_type
-                                               >::type raw_iterators_list;
+                                               >::type iterators_list_mpl;
 
         /** @brief Wrap the meta datas in pointer-to-const types*/
         typedef typename boost::mpl::transform<original_metadata_t,
@@ -109,8 +108,8 @@ namespace gridtools {
 
     public:
 
-        typedef _impl::compute_index_set<original_placeholders> check_holes;
-        typedef typename check_holes::raw_index_list raw_index_list;
+        typedef _impl::compute_index_set<placeholders_t> check_holes;
+        typedef typename check_holes::raw_index_list index_list;
         typedef typename check_holes::index_set index_set;
 
 
@@ -119,72 +118,17 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((len >= boost::mpl::size<index_set>::type::value ), "something strange is happening.");
 
         /**
-         * \brief Definition of a random access sequence of integers between 0 and the size of the placeholder sequence
-         e.g. [0,1,2,3,4]
-        */
-        typedef boost::mpl::range_c<uint_t ,0,len> range_t;
-
-    private:
-        typedef typename boost::mpl::find_if<raw_index_list, boost::mpl::greater<boost::mpl::_1, static_int<len-1> > >::type test;
-        //check if the index list contains holes (a common error is to define a list of types with indexes which are not contiguous)
-        GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename test::type, boost::mpl::void_ >::value) , "the index list contains holes:\n\
-The numeration of the placeholders is not contiguous. \
-You have to define each arg with a unique identifier ranging from 0 to N without \"holes\".");
-
-        /**\brief reordering vector
-         * defines an mpl::vector of len indexes reordered accodring to range_t (placeholder _2 is vector<>, placeholder _1 is range_t)
-         e.g.[1,3,2,4,0]
-        */
-        typedef typename boost::mpl::fold<range_t,
-            boost::mpl::vector<>,
-            boost::mpl::push_back<
-                boost::mpl::_1,
-                boost::mpl::find<raw_index_list, boost::mpl::_2>
-            >
-        >::type iter_list;
-
-    public:
-
-        /**\brief reordered index_list
-         * Defines a mpl::vector of index::pos for the indexes in iter_list
+           @brief MPL vector of storage pointers
          */
-        typedef typename boost::mpl::transform<iter_list, _impl::l_get_it_pos>::type index_list;
+        typedef storage_list arg_list_mpl;
 
         /**
-         * \brief reordering of raw_storage_list
-         creates an mpl::vector of all the storages in raw_storage_list corresponding to the indices in index_list
-        */
-        typedef typename boost::mpl::fold<index_list,
-            boost::mpl::vector<>,
-            boost::mpl::push_back<
-                boost::mpl::_1,
-                boost::mpl::at<raw_storage_list, boost::mpl::_2>
-            >
-        >::type arg_list_mpl;
+           @brief MPL vector of placeholders
 
-
-
-        /**
-         * \brief defines a reordered mpl::vector of placeholders
+           template argument in the class definition reordered according to the arg index
          */
-        typedef typename boost::mpl::fold<index_list,
-            boost::mpl::vector<>,
-            boost::mpl::push_back<
-                boost::mpl::_1,
-                boost::mpl::at<original_placeholders, boost::mpl::_2>
-            >
-        >::type placeholders;
+        typedef placeholders_t placeholders;
 
-    private:
-        typedef typename boost::mpl::fold<index_list,
-            boost::mpl::vector<>,
-            boost::mpl::push_back<
-                boost::mpl::_1,
-                boost::mpl::at<raw_iterators_list, boost::mpl::_2>
-            >
-        >::type iterator_list_mpl;
-
-    public:
         /**
          * Type of fusion::vector of pointers to storages as indicated in Placeholders
          */
@@ -197,7 +141,7 @@ You have to define each arg with a unique identifier ranging from 0 to N without
         /**
          * Type of fusion::vector of pointers to iterators as indicated in Placeholders
          */
-        typedef typename boost::fusion::result_of::as_vector<iterator_list_mpl>::type iterator_list;
+        typedef typename boost::fusion::result_of::as_vector<iterators_list_mpl>::type iterator_list;
 
         /**
            Wrapper for a fusion set of pointers (built from an MPL sequence) containing the
@@ -300,7 +244,7 @@ You have to define each arg with a unique identifier ranging from 0 to N without
         };
 
         /**@brief Constructor from boost::fusion::vector
-         * @tparam RealStorage fusion::vector of pointers to storages sorted with increasing indices of the pplaceholders
+         * @tparam RealStorage fusion::vector of pointers to storages sorted with increasing indices of the placeholders
          * @param real_storage The actual fusion::vector with the values
          TODO: when I have only one placeholder and C++11 enabled this constructor is erroneously picked
          */
