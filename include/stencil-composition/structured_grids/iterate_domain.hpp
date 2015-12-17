@@ -76,12 +76,9 @@ namespace gridtools {
         >::type readonly_args_indices_t;
 
         typedef typename local_domain_t::esf_args esf_args_t;
-
         typedef typename iterate_domain_backend_id< IterateDomainImpl >::type backend_id_t;
-
         typedef typename backend_traits_from_id< backend_id_t::value >::
                 template select_iterate_domain_cache<iterate_domain_arguments_t>::type iterate_domain_cache_t;
-
         typedef typename iterate_domain_cache_t::all_caches_t all_caches_t;
 
         GRIDTOOLS_STATIC_ASSERT((is_local_domain<local_domain_t>::value), "Internal Error: wrong type");
@@ -159,6 +156,8 @@ namespace gridtools {
             actual_args_type,
             boost::mpl::size<typename local_domain_t::mpl_storages>::type::value >::value;
 
+        typedef array<int_t,N_META_STORAGES> array_index_t;
+
     public:
         typedef array<void* RESTRICT, N_DATA_POINTERS> data_pointer_array_t;
         typedef strides_cached<N_META_STORAGES-1, typename local_domain_t::storage_metadata_vector_t> strides_cached_t;
@@ -203,7 +202,7 @@ namespace gridtools {
     private:
 
         local_domain_t const& local_domain;
-        array<int_t,N_META_STORAGES> m_index;
+        array_index_t m_index;
 
     public:
 
@@ -295,18 +294,20 @@ namespace gridtools {
         {
             for_each< metadata_map_t > (
                 increment_index_functor<
-                Coordinate,
-                strides_cached_t,
-                typename boost::fusion::result_of::as_vector
-                <typename local_domain_t::local_metadata_type>::type
+                    Coordinate,
+                    strides_cached_t,
+                    typename boost::fusion::result_of::as_vector<
+                        typename local_domain_t::local_metadata_type
+                    >::type,
+                    array_index_t
                 >(boost::fusion::as_vector(local_domain.m_local_metadata),
 #ifdef __CUDACC__ //stupid nvcc
-                  boost::is_same<Execution, static_int<1> >::type::value? 1 : -1
+                boost::is_same<Execution, static_int<1> >::type::value? 1 : -1,
 #else
-                  Execution::value
+                Execution::value,
 #endif
-                  , &m_index[0], strides())
-                );
+                m_index, strides())
+            );
             static_cast<IterateDomainImpl*>(this)->template increment_impl<Coordinate, Execution>();
         }
 
@@ -323,9 +324,10 @@ namespace gridtools {
                 increment_index_functor<
                     Coordinate,
                     strides_cached_t,
-                typename boost::fusion::result_of::as_vector
-                <typename local_domain_t::local_metadata_type>::type
-                >(boost::fusion::as_vector(local_domain.m_local_metadata), steps_, &m_index[0], strides())
+                    typename boost::fusion::result_of::as_vector
+                        <typename local_domain_t::local_metadata_type>::type,
+                    array_index_t
+                >(boost::fusion::as_vector(local_domain.m_local_metadata), steps_, m_index, strides())
             );
             static_cast<IterateDomainImpl*>(this)->template increment_impl<Coordinate>(steps_);
         }
