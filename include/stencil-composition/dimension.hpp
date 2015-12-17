@@ -1,4 +1,5 @@
 #pragma once
+#include "common/host_device.hpp"
 
 namespace gridtools {
     /**
@@ -29,7 +30,9 @@ namespace gridtools {
         GT_FUNCTION
         constexpr dimension(dimension const& other):value(other.value){}
 
+        //TODO can I rename direction by index?
         static const ushort_t direction=Coordinate;
+        static const ushort_t index=Coordinate;
         int_t value;
 
         /**@brief syntactic sugar for user interface
@@ -58,11 +61,9 @@ namespace gridtools {
         dimension();
     };
 
-    /**Aliases for the first three dimensions (x,y,z)*/
-    typedef dimension<1> x;
-    typedef dimension<2> y;
-    typedef dimension<3> z;
+    template <typename T>
+    struct is_dimension : boost::mpl::false_{};
 
-    /**@}*/
-
+    template<ushort_t Id>
+    struct is_dimension<dimension<Id> > : boost::mpl::true_{};
 } // namespace gridtools

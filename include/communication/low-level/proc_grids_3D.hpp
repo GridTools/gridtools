@@ -34,15 +34,15 @@ namespace gridtools {
 
     private:
         MPI_Comm m_communicator; // Communicator that is associated with the MPI CART!
-        period_type cyclic;
+        period_type m_cyclic;
         int m_nprocs;
         gridtools::array<int, ndims>  m_dimensions;
-        int m_coordinates[ndims];
+        gridtools::array<int, ndims> m_coordinates;
     public:
 
         MPI_3D_process_grid_t( MPI_3D_process_grid_t const& other)
             : m_communicator(other.m_communicator)
-            , cyclic(other.cyclic)
+            , m_cyclic(other.cyclic())
             , m_nprocs(other.m_nprocs)
         {
             for (ushort_t i=0; i<ndims; ++i){
@@ -58,7 +58,7 @@ namespace gridtools {
         */
         MPI_3D_process_grid_t(period_type const &c, MPI_Comm const& comm, gridtools::array<int, ndims> const* dimensions=NULL)
             : m_communicator(comm)
-            , cyclic(c)
+            , m_cyclic(c)
             , m_nprocs(0)
             , m_dimensions()
             , m_coordinates()
@@ -105,9 +105,9 @@ namespace gridtools {
             //int dims[ndims]={0,0,0}, periods[ndims]={true,true,true}, coords[ndims]={0,0,0};
             int period[ndims];
             for (ushort_t i=0; i<ndims; ++i)
-                period[i]=cyclic.value(i);
+                period[i]=m_cyclic.value(i);
             MPI_Cart_create(comm, ndims, &m_dimensions[0], period, false, &m_communicator);
-            MPI_Cart_get(m_communicator, ndims, &m_dimensions[0], period/*does not really care*/, m_coordinates);
+            MPI_Cart_get(m_communicator, ndims, &m_dimensions[0], period/*does not really care*/, &m_coordinates[0]);
         }
 
         /** Returns in t_R and t_C the lenght of the dimensions of the process grid AS PRESCRIBED BY THE CONCEPT
@@ -185,7 +185,7 @@ namespace gridtools {
         int proc(int I, int J, int K) const {
             int _coords[3];
 
-            if (cyclic.value(0))
+            if (m_cyclic.value(0))
                 _coords[0] = (m_coordinates[0]+I)%m_dimensions[0];
             else {
                 _coords[0] = m_coordinates[0]+I;
@@ -193,7 +193,7 @@ namespace gridtools {
                     return -1;
             }
 
-            if (cyclic.value(1))
+            if (m_cyclic.value(1))
                 _coords[1] = (m_coordinates[1]+J)%m_dimensions[1];
             else {
                 _coords[1] = m_coordinates[1]+J;
@@ -201,7 +201,7 @@ namespace gridtools {
                     return -1;
             }
 
-            if (cyclic.value(2))
+            if (m_cyclic.value(2))
                 _coords[2] = (m_coordinates[2]+K)%m_dimensions[2];
             else {
                 _coords[2] = m_coordinates[2]+K;
@@ -216,7 +216,10 @@ namespace gridtools {
             return res;
         }
 
-        int const* coordinates()const {return m_coordinates;}
+        GT_FUNCTION
+        gridtools::array<int, ndims> const&coordinates()const {return m_coordinates;}
+
+        GT_FUNCTION
         gridtools::array<int, ndims> const& dimensions()const {return m_dimensions;}
 
         /** Returns the process ID of the process with absolute coordinates specified by the input gridtools::array of coordinates
@@ -232,7 +235,17 @@ namespace gridtools {
 
         bool periodic (int index) const {
             assert(index<ndims);
-            return cyclic.value(index);
+            return m_cyclic.value(index);
+        }
+
+        array<bool, ndims> periodic () const {
+            GRIDTOOLS_STATIC_ASSERT(period_type::m_size==ndims, "Internal error: dimensions not matching");
+            return m_cyclic.value();
+        }
+
+
+        period_type const& cyclic () const {
+            return m_cyclic;
         }
 
         int const& coordinates(ushort_t const& i)const {return m_coordinates[i];}

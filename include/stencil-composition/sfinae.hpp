@@ -76,37 +76,38 @@ namespace gridtools {
     std::false_type test(...);                                  \
                                                                 \
     template<class T>                                           \
-    struct has_constexpr_name : decltype(detail::check<T>(0)){};
+    struct has_constexpr_name : decltype(test<T>(0)){};
 
 
-    /**@brief Implementation of introspection
-
-     returning true when the template functor has a type alias called 'xrange'.
-     This type defines a range used in order to arbitrarily extend/shrink the loop bounds
-     for the current functor at compile-time.
-     NOTE: it does not work yet for the blocked strategy. This because in that case it is not trivial
-     to modify the loop bounds with 'functor' granularity. Further thinking-refactoring needed for that case
-    */
-    HAS_TYPE_SFINAE(xrange, has_xrange, get_xrange)
-
-    /**@brief Implementation of introspection
-
-     returning true when the template functor has a type alias called 'xrange'.
-     This type defines a range used in order to arbitrarily extend/shrink the loop bounds
-     for the current functor at compile-time.
-     NOTE: it does not work yet for the blocked strategy. This because in that case it is not trivial
-     to modify the loop bounds with 'functor' granularity. Further thinking-refactoring needed for that case
-    */
-    HAS_TYPE_SFINAE(xrange_subdomain, has_xrange_subdomain, get_xrange_subdomain)
+    /** SFINAE method to check if a class has a method named "name" which is constexpr and returns an int*/
+#define HAS_CONSTEXPR_CONSTRUCTOR( name )                        \
+    template<int> struct sfinae_true : std::true_type{};        \
+    template<class T>                                           \
+    sfinae_true<(T().name(), 0)> test(int);                      \
+    template<class>                                             \
+    std::false_type test(...);                                  \
+                                                                \
+    template<class T>                                           \
+    struct has_constexpr_name : decltype(test<T>(0)){};
 
 
-    /*use with eval_if as follows*/
-    // typedef typename boost::mpl::eval_if_c<has_xrange<functor_type>::type::value
-    //                                        , get_xrange< functor_type >
-    //                                        , boost::mpl::identity<range<0,0,0> > >::type new_range_t;
+    template<int> struct sfinae_true : boost::mpl::true_{};
 
-    // typedef typename boost::mpl::eval_if_c<has_xrange_subdomain<functor_type>::type::value
-    //                                        , get_xrange_subdomain< functor_type >
-    //                                        , boost::mpl::identity<range<0,0,0> > >::type xrange_subdomain_t;
+    /** SFINAE method to check if a class has a method named "name" which is constexpr and returns an int*/
+#define HAS_CONSTEXPR_METHOD( instance_, name )                  \
+    sfinae_true<(instance_.name(), 0)> test(int);                      \
+    template<class>                                             \
+    std::false_type test(...);                                  \
+                                                                \
+    template<class T>                                           \
+    struct has_constexpr_name : decltype(test<T>(0)){};
 
+    /** @brief Implementation of introspection
+
+        To use this define a constexpr "check" method in a class C returning and int.
+        Then
+        has_constexpr_check<C>
+        will be either true or false wether the class has or not a default constexpr constructor.
+     */
+    // HAS_CONSTEXPR_CONSTRUCTOR(check)
 }

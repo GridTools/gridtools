@@ -5,10 +5,15 @@ include_directories( ../../../include/common ) ## Library header files
 
 ### Executables
 #CPU tests
-set(TEST_SOURCES test_cache_stencil.cpp)
+if(STRUCTURED_GRIDS)
+    set(TEST_SOURCES test_cache_stencil.cpp)
+endif(STRUCTURED_GRIDS)
 
 if ( ENABLE_CXX11 )
-  set(TEST_SOURCES ${TEST_SOURCES} test_define_caches.cpp test_cache_metafunctions.cpp)
+  set(TEST_SOURCES ${TEST_SOURCES} test_define_caches.cpp)
+  if(STRUCTURED_GRIDS)
+      set(TEST_SOURCES ${TEST_SOURCES} test_cache_metafunctions.cpp)
+  endif(STRUCTURED_GRIDS)
 endif( ENABLE_CXX11 )
 
 add_executable(cache_tests ${TEST_SOURCES})
@@ -19,10 +24,8 @@ target_link_libraries(cache_tests ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
 
 if(USE_GPU)
     set(CUDA_SOURCES test_cache_stencil.cu)
-    message(${CUDA_SOURCES})
     cuda_add_executable(cache_tests_cuda ${CUDA_SOURCES})
     target_link_libraries(cache_tests_cuda ${exe_LIBS})
 
     gridtools_add_test(tests.caches_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/cache_tests_cuda")
 endif(USE_GPU)
-

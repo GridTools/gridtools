@@ -1,13 +1,12 @@
 #pragma once
-
 #include <gridtools.hpp>
 
-#include <stencil-composition/backend.hpp>
-#include <boost/fusion/include/make_vector.hpp>
-
+#include <stencil-composition/stencil-composition.hpp>
 #include "vertical_advection_repository.hpp"
 #include <tools/verifier.hpp>
-#include <stencil-composition/make_computation.hpp>
+
+#include "cache_flusher.hpp"
+#include "defs.hpp"
 
 /*
   This file shows an implementation of the "vertical advection" stencil used in COSMO for U field
@@ -15,7 +14,7 @@
 
 using gridtools::level;
 using gridtools::accessor;
-using gridtools::range;
+using gridtools::extent;
 using gridtools::arg;
 
 using namespace gridtools;
@@ -32,16 +31,16 @@ typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 
 template<typename T>
 struct u_forward_function {
-    typedef const accessor<0> utens_stage;
-    typedef const accessor<1, range<0,1, 0, 0> > wcon;
-    typedef const accessor<2> u_stage;
-    typedef const accessor<3> u_pos;
-    typedef const accessor<4> utens;
-    typedef const accessor<5> dtr_stage;
-    typedef accessor<6> acol;
-    typedef accessor<7> bcol;
-    typedef accessor<8> ccol;
-    typedef accessor<9> dcol;
+    typedef accessor<0> utens_stage;
+    typedef accessor<1, enumtype::in, extent<0,1, 0, 0> > wcon;
+    typedef accessor<2> u_stage;
+    typedef accessor<3> u_pos;
+    typedef accessor<4> utens;
+    typedef accessor<5> dtr_stage;
+    typedef accessor<6, enumtype::inout> acol;
+    typedef accessor<7, enumtype::inout> bcol;
+    typedef accessor<8, enumtype::inout> ccol;
+    typedef accessor<9, enumtype::inout> dcol;
 
     typedef boost::mpl::vector<utens_stage, wcon, u_stage, u_pos, utens, dtr_stage, acol, bcol, ccol, dcol> arg_list;
 
@@ -135,12 +134,12 @@ private:
 
 template<typename T>
 struct u_backward_function {
-    typedef accessor<0> utens_stage;
-    typedef const accessor<1> u_pos;
-    typedef const accessor<2> dtr_stage;
+    typedef accessor<0, enumtype::inout> utens_stage;
+    typedef accessor<1> u_pos;
+    typedef accessor<2> dtr_stage;
     typedef accessor<3> ccol;
     typedef accessor<4> dcol;
-    typedef accessor<5> data_col;
+    typedef accessor<5, enumtype::inout> data_col;
 
     typedef boost::mpl::vector<utens_stage, u_pos, dtr_stage, ccol, dcol, data_col> arg_list;
 
@@ -186,11 +185,9 @@ std::ostream& operator<<(std::ostream& s, u_backward_function<double> const) {
     return s << "u_backward_function";
 }
 
-bool test(uint_t x, uint_t y, uint_t z) {
+bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t_steps) {
 
-    uint_t d1 = x;
-    uint_t d2 = y;
-    uint_t d3 = z;
+    cache_flusher flusher(cache_flusher_size);
     const int halo_size = 3;
 
     typedef gridtools::layout_map<0,1,2> layout_ijk;
@@ -213,7 +210,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
     typedef arg<2, storage_type> p_wcon;
     typedef arg<3, storage_type> p_u_pos;
     typedef arg<4, storage_type> p_utens;
-    typedef arg<5, storage_type> p_dtr_stage;
+    typedef arg<5, scalar_storage_type> p_dtr_stage;
     typedef arg<6, tmp_storage_type> p_acol;
     typedef arg<7, tmp_storage_type> p_bcol;
     typedef arg<8, tmp_storage_type> p_ccol;
@@ -248,13 +245,13 @@ bool test(uint_t x, uint_t y, uint_t z) {
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
     // while the vertical ones are set according the the axis property soon after
-    // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
+    // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
     uint_t di[5] = {halo_size, halo_size, halo_size, d1-halo_size-1, d1};
     uint_t dj[5] = {halo_size, halo_size, halo_size, d2-halo_size-1, d2};
 
-    gridtools::coordinates<axis> coords(di, dj);
-    coords.value_list[0] = 0;
-    coords.value_list[1] = d3-1;
+    gridtools::grid<axis> grid(di, dj);
+    grid.value_list[0] = 0;
+    grid.value_list[1] = d3-1;
 
 //todo simplify the following using the auto keyword from C++11
 #ifdef __CUDACC__
@@ -262,7 +259,7 @@ bool test(uint_t x, uint_t y, uint_t z) {
 #else
         boost::shared_ptr<gridtools::computation> vertical_advection =
 #endif
-        gridtools::make_computation<vertical_advection::va_backend, layout_ijk>
+        gridtools::make_computation<vertical_advection::va_backend>
         (
             gridtools::make_mss // mss_descriptor
             (
@@ -293,28 +290,36 @@ bool test(uint_t x, uint_t y, uint_t z) {
                 )
             ),
             domain,
-            coords
+            grid
         );
 
     vertical_advection->ready();
 
     vertical_advection->steady();
-    domain.clone_to_gpu();
+    domain.clone_to_device();
 
     vertical_advection->run();
 
-    vertical_advection->finalize();
-
-#ifdef CUDA_EXAMPLE
+#ifdef __CUDACC__
     repository.update_cpu();
 #endif
 
-    verifier verif(1e-10, halo_size);
+#ifdef CXX11_ENABLED
+    verifier verif(1e-13);
+    array<array<uint_t, 2>, 3> halos{{ {halo_size, halo_size}, {halo_size,halo_size}, {halo_size,halo_size} }};
+    bool result = verif.verify(repository.utens_stage_ref(), repository.utens_stage(), halos);
+#else
+    verifier verif(1e-13, halo_size);
     bool result = verif.verify(repository.utens_stage_ref(), repository.utens_stage());
+#endif
 
-    if(!result) std::cout << "ERROR" << std::endl;
 
 #ifdef BENCHMARK
+    for(uint_t t=1; t < t_steps; ++t){
+        flusher.flush();
+        vertical_advection->run();
+    }
+    vertical_advection->finalize();
     std::cout << vertical_advection->print_meter() << std::endl;
 #endif
 

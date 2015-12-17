@@ -1,11 +1,11 @@
 
 include_directories( ../../include/stencil-composition ) ## Library header files
 
-FILE(GLOB_RECURSE INC_ALL "../../include/stencil-composition/*.hpp")
+FILE(GLOB_RECURSE INC_ALL "../../include/stencil-composition/[a-z]*.hpp")
 
-SET(STENCIL_COMPOSITION_UNITTEST_SOURCES test_make_computation.cpp test_accessor.cpp ${INC_ALL})
+SET(STENCIL_COMPOSITION_UNITTEST_SOURCES test_accessor.cpp ${INC_ALL})
 if ( ENABLE_CXX11 )
-  SET(STENCIL_COMPOSITION_UNITTEST_SOURCES ${STENCIL_COMPOSITION_UNITTEST_SOURCES} test_iterate_domain.cpp test_mss_metafunctions.cpp)
+  SET(STENCIL_COMPOSITION_UNITTEST_SOURCES ${STENCIL_COMPOSITION_UNITTEST_SOURCES} test-assign-placeholders.cpp)
 endif( ENABLE_CXX11 )
 
 
@@ -18,3 +18,8 @@ set_target_properties(stencil_composition_tests PROPERTIES COMPILE_FLAGS ${ADDIT
 target_link_libraries(stencil_composition_tests ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
 
 add_subdirectory(caches)
+if (NOT STRUCTURED_GRIDS)
+  add_subdirectory(icosahedral_grids)
+else()
+  add_subdirectory(structured_grids)
+endif()

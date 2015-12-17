@@ -12,7 +12,7 @@ endif(SUPPRESS_MESSAGES)
 
 SET(VERBOSE "OFF" CACHE BOOL "set verbosity for output")
 if(VERBOSE)
-    add_definitions(-D__VERBOSE__)
+    add_definitions(-DVERBOSE)
 endif(VERBOSE)
 
 
@@ -36,6 +36,9 @@ set(BOOST_FUSION_MAX_SIZE 20 CACHE STRING "max sizes of boost fusion containers"
 add_definitions(-DFUSION_MAX_VECTOR_SIZE=${BOOST_FUSION_MAX_SIZE})
 add_definitions(-DFUSION_MAX_MAP_SIZE=${BOOST_FUSION_MAX_SIZE})
 
+if(ENABLE_CXX11)
+    add_definitions(-DBOOST_RESULT_OF_USE_TR1)
+endif()
 
 # Not sure why it's desirable to specify the build directory, but it seems
 # to break testing with MSVC, so disabling it conditionally.
@@ -244,41 +247,67 @@ if( NOT ENABLE_CACHING )
     add_definitions( -D__DISABLE_CACHING__ )
 endif( NOT ENABLE_CACHING )
 
+set(STRUCTURED_GRIDS "ON" CACHE BOOL "compile for rectangular grids" )
+if(STRUCTURED_GRIDS)
+    add_definitions( -DSTRUCTURED_GRIDS )
+else()
+    set(ENABLE_CXX11 "ON" CACHE BOOL "Enable examples and tests featuring C++11 features" FORCE)
+    if(USE_GPU)
+        message("USE_GPU can not be used with non rectangular grids")
+        set( USE_GPU "OFF" CACHE BOOL "Compile with GPU support (CUDA)" FORCE)
+    endif(USE_GPU)
+endif(STRUCTURED_GRIDS)
+
 if (ENABLE_PYTHON)
+    message ("PYTHON enabled ")
+    # Retrieving the python major version (major version is written in tmp-file ${CMAKE_SOURCE_DIR}/.python_major_version, full version is in tmp-file ${CMAKE_SOURCE_DIR}/.python_version)
+    execute_process(COMMAND ${CMAKE_SOURCE_DIR}/python/python_version.sh ${CMAKE_SOURCE_DIR} )  
+    # Reading from ${CMAKE_SOURCE_DIR}/.python_major_version (composing the cmd otherwise it doesn't work)
+    set (cmd "cat" )
+    set (filepv "${CMAKE_SOURCE_DIR}/.python_major_version")
+    execute_process ( COMMAND ${cmd} ${filepv} OUTPUT_VARIABLE PYTHON_VERSION_MAJOR )
+    #message( "PYTHON_VERSION_MAJOR is: " ${PYTHON_VERSION_MAJOR} )
+    # Removing tmp-file ${CMAKE_SOURCE_DIR}/.python_major_version
+    execute_process( COMMAND rm -f ${CMAKE_SOURCE_DIR}/.python_major_version) 
+
     find_package(PythonLibs)
     find_package(PythonInterp)
 
     #"from distutils.sysconfig import get_python_lib; print get_python_lib()"
 
     if(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
-      string( REGEX MATCH [0-9]* PYTHON_VERSION_MAJOR "${PYTHONLIBS_VERSION_STRING}")
-      if(${PYTHON_VERSION_MAJOR} GREATER 2)
+     if(${PYTHON_VERSION_MAJOR} GREATER 2)
+        # Set here a check on the GRIDTOOLS_ROOT env var
+        if(NOT EXISTS "$ENV{GRIDTOOLS_ROOT}")
+          set ( ENV{GRIDTOOLS_ROOT} ${CMAKE_SOURCE_DIR} )
+        endif(NOT EXISTS "$ENV{GRIDTOOLS_ROOT}")
 
-      execute_process ( COMMAND ${PYTHON_EXECUTABLE} -c "import site; print(':'.join(site.getsitepackages()))" OUTPUT_VARIABLE PYTHON_SITE_PACKAGES OUTPUT_STRIP_TRAILING_WHITESPACE)
-      message("Python " "${PYTHONLIBS_VERSION_STRING}" " found at " "${PYTHON_SITE_PACKAGES}")
-      message("You should set your GRIDTOOLS_ROOT environment variable to " ${CMAKE_SOURCE_DIR})
-      string( REGEX MATCH [0-9].[0-9]* PYTHON_VERSION "${PYTHONLIBS_VERSION_STRING}")
-
-      set( PYTHON_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/python/" CACHE PATH "Set the installation directory for gridtools4py" )
-      set( PYTHON_SITE_PACKAGES "${PYTHON_SITE_PACKAGES}:${PYTHON_INSTALL_PREFIX}/lib/python${PYTHON_VERSION}/site-packages" )
-      message("You should set your PYTHONPATH environment variable to " ${PYTHON_SITE_PACKAGES})
-
-      add_custom_target(python)
-      add_custom_command(TARGET python
-    		     POST_BUILD
-    		     COMMAND ${CMAKE_SOURCE_DIR}/python/python_install.sh ${PYTHON_SITE_PACKAGES} ${CMAKE_SOURCE_DIR} ${PYTHON_EXECUTABLE} ${PYTHON_INSTALL_PREFIX}
-    		    )
-    endif(${PYTHON_VERSION_MAJOR} GREATER 2)
-
+        # Defining PYTHONLIBS_VERSION_STRING
+        # Reading from ${CMAKE_SOURCE_DIR}/.python_version (composing the cmd otherwise it doesn't work)
+        set (cmd "cat" )
+        set (filepv "${CMAKE_SOURCE_DIR}/.python_version")
+        execute_process ( COMMAND ${cmd} ${filepv} OUTPUT_VARIABLE PYTHONLIBS_VERSION_STRING )
+        # Removing tmp-file ${CMAKE_SOURCE_DIR}/.python_version created by python_version.sh
+        execute_process( COMMAND rm -f ${CMAKE_SOURCE_DIR}/.python_version) 
+        
+        #set( PYTHON_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/python/" CACHE PATH "Set the installation directory for gridtools4py" )
+        set( PYTHON_INSTALL_PREFIX " " CACHE PATH "Set the installation directory for gridtools4py" )
+        set(OUTPUT      "${CMAKE_CURRENT_BINARY_DIR}/python.log")
+        message ("Log file is " ${OUTPUT} )
+        add_subdirectory( python )
+     endif(${PYTHON_VERSION_MAJOR} GREATER 2)
     endif(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
 endif(ENABLE_PYTHON)
 
-add_subdirectory( unit_tests )
-add_subdirectory( examples )
+if(GTEST_FOUND)
+    add_subdirectory( unit_tests )
+    if(STRUCTURED_GRIDS)
+        add_subdirectory( examples )
+    endif(STRUCTURED_GRIDS)
+endif(GTEST_FOUND)
 
 file(APPEND ${TEST_SCRIPT} "exit $res\n")
 file(INSTALL ${TEST_SCRIPT} DESTINATION ${CMAKE_BINARY_DIR}/install
    FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ
 )
-
 

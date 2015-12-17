@@ -5,7 +5,52 @@ import numpy as np
 
 from nose.plugins.attrib import attr
 
-from gridtools import MultiStageStencil, StencilInspector
+from gridtools.stencil  import MultiStageStencil
+from gridtools.compiler import StencilInspector
+
+
+
+
+class AccessPatternDetectionTest (unittest.TestCase):
+    def setUp (self):
+        logging.basicConfig (level=logging.INFO)
+        self.field_access_patterns = dict ( )
+
+
+    def add_expected_offset (self, field, expected_offset):
+        if field not in self.field_access_patterns.keys ( ):
+            self.field_access_patterns[field] = list ( )
+        self.field_access_patterns[field].append (expected_offset)
+
+
+    def automatic_access_pattern_detection (self, stencil):
+        import copy
+
+        acc_ptn = copy.deepcopy (self.field_access_patterns)
+        #
+        # check the access-pattern detection within each stencil stage
+        #
+        for stg in stencil.stages:
+            sc = stg.scope
+            for p in sc.get_all ( ):
+                if not sc.is_alias (p.name):
+                    try:
+                        expected = acc_ptn[p.name]
+                        self.assertIn (sc[p.name].access_pattern, 
+                                       expected,
+                                       "Access offset '%s' of field '%s' does not match any of %s" %
+                                        (sc[p.name].access_pattern, 
+                                         p.name, 
+                                         expected))
+                        #
+                        # remove the correct pattern to avoid finding it twice
+                        #
+                        index = acc_ptn[p.name].index (sc[p.name].access_pattern)
+                        acc_ptn[p.name].pop (index)
+                    except KeyError:
+                        logging.error ("No access offsets given for field '%s'"
+                                       % p.name)
+                        self.assertTrue (False)
 
 
 
@@ -14,22 +59,19 @@ class Copy (MultiStageStencil):
     """
     Definition of a simple copy stencil, as in 'examples/copy_stencil.h'.-
     """
-    def __init__ (self):
-        super (Copy, self).__init__ ( )
-
-    def kernel (self, out_data, in_data):
+    def kernel (self, out_cpy, in_cpy):
         """
         This stencil comprises a single stage.-
         """
         #
         # iterate over the points, excluding halo ones
         #
-        for p in self.get_interior_points (out_data):
-              out_data[p] = in_data[p]
+        for p in self.get_interior_points (out_cpy):
+              out_cpy[p] = in_cpy[p]
 
 
 
-class CopyTest (unittest.TestCase):
+class CopyTest (AccessPatternDetectionTest):
     """
     A test case for the copy stencil defined above.-
     """
@@ -41,87 +83,182 @@ class CopyTest (unittest.TestCase):
 
 
     def setUp (self):
-        logging.basicConfig (level=logging.INFO)
+        super ( ).setUp ( )
 
-        self.domain = (128, 128, 64)
-        self.params = ('out_data', 'in_data')
+        self.domain = (64, 64, 32)
+        self.params = ('out_cpy', 'in_cpy')
         self.temps  = ( )
 
-        self.out_data = np.zeros (self.domain)
-        self.in_data  = np.random.rand (*self.domain)
+        self.out_cpy = np.zeros (self.domain,
+                                 dtype=np.float64,
+                                 order='F')
+        #
+        # workaround because of a bug in the power (**) implemention of NumPy
+        #
+        self.in_cpy = np.random.random_integers (10, 
+                                                 size=self.domain)
+        self.in_cpy = self.in_cpy.astype (np.float64)
+        self.in_cpy = np.asfortranarray (self.in_cpy)
 
         self.stencil = Copy ( )
         self.stencil.set_halo ( (1, 1, 1, 1) )
         self.stencil.set_k_direction ("forward")
 
 
-    def test_automatic_range_detection (self):
-        self.stencil.backend = 'c++'
+    def test_data_dependency_detection (self, deps=None, backend='c++'):
+        self.stencil.backend = backend
         self._run ( )
 
-        scope = self.stencil.inspector.functors[0].scope
-       
-        for p in self.params:
-            self.assertTrue (scope[p].range is None)
+        if deps is None:
+            deps = [ self.params ]
+
+        stencil_deps = self.stencil.scope.data_dependency.edges ( )
+        #
+        # check the data-dependency detection for the whole stencil
+        #
+        while len (deps) > 0:
+            first, second = deps.pop ( )
+            found         = False
+            for sd in stencil_deps:
+                if first == sd[0].name and second == sd[1].name:
+                    found = True
+                    break
+            if not found:
+                self.assertTrue (False,
+                                 "Dependency <%s,%s> not found in %s" % 
+                                 (first, second, stencil_deps))
 
 
-    def test_compare_python_and_native_executions (self):
+    def test_data_dependency_detection_cuda (self, deps=None, backend='cuda'):
+        self.test_data_dependency_detection (deps=deps,
+                                                  backend=backend)
+
+
+    def test_automatic_access_pattern_detection (self):
+        from gridtools import BACKENDS
+
+        #
+        # fields and their ranges
+        #
+        self.add_expected_offset ('in_cpy',  None)
+        self.add_expected_offset ('out_cpy', None)
+
+        for backend in BACKENDS:
+            self.stencil.backend = backend
+            self._run ( )
+            self.automatic_access_pattern_detection (self.stencil)
+
+
+    @attr(lang='cuda')
+    def test_compare_python_cpp_and_cuda_results (self):
         import copy
+        import random
+        from   gridtools import BACKENDS
 
-        stencil_native         = copy.deepcopy (self.stencil)
-        stencil_native.backend = 'c++'
+
+        for backend in BACKENDS:
+            diff                   = 0
+            stencil_native         = copy.deepcopy (self.stencil)
+            stencil_native.backend = backend
+
+            #
+            # data fields - Py and C++ sets
+            #
+            params_py  = dict ( )
+            params_cxx = dict ( )
+            for p in self.params:
+                params_py[p]  = np.random.rand (*self.domain)
+                params_cxx[p] = np.copy (params_py[p])
+            #
+            # apply both stencils 10 times and compare the results
+            # using an error threshold
+            #
+            err  = np.zeros (self.domain)
+            err += 10e-12
+            for i in range (10):
+                self.stencil.run   (**params_py)
+                stencil_native.run (**params_cxx)
+                #
+                # compare field contents
+                #
+                for k in params_py.keys ( ):
+                    diff = np.count_nonzero (np.less (params_py[k] - params_cxx[k], err))
+                    diff = np.prod (params_py[k].shape) - diff
+            print ("%s: %d" % (backend, diff))
+
+
+    def test_ghost_cell_pattern (self, expected_patterns=None, backend='c++'):
+        self.stencil.backend = backend
+        self._run ( )
+
+        if expected_patterns is None:
+            expected_patterns = [ [0,0,0,0] ]
+
+        self.assertEqual (len (self.stencil.stages), len (expected_patterns),
+                          "Found %d stages, but %d ghost-cell patterns were given" %
+                          (len (self.stencil.stages), len (expected_patterns)))
+        for idx in range (len (self.stencil.stages)):
+            self.assertEqual (self.stencil.stages[idx].ghost_cell, 
+                              expected_patterns[idx])
+
+
+    def test_minimum_halo_detection (self, min_halo=[0,0,0,0]):
+        from random    import randint
+        from gridtools import BACKENDS
 
         #
-        # data fields
+        # minimum halo correctly calculated
         #
-        out_field_py  = np.zeros (self.domain)
-        out_field_cxx = np.array (out_field_py)
-        in_field_py   = np.random.rand (*self.domain)
-        in_field_cxx  = np.array (in_field_py)
+        for back in BACKENDS:
+            self.stencil.backend = back
+            self._run ( )
+            self.assertEqual (self.stencil.scope.minimum_halo,
+                              min_halo)
+            #
+            # exception raised in case the provided halo is negative or smaller 
+            # than the minimum required
+            #
+            bad_halo = list (min_halo)
+            for idx in range (len (min_halo)):
+                bad_halo[idx] -= randint (1, 2)
+            with self.assertRaises (ValueError):
+                self.stencil.set_halo (bad_halo)
+                self._run ( )
+            #
+            # execute normally in case the provided halo is bigger 
+            #
+            big_halo = list (min_halo)
+            for idx in range (len (min_halo)):
+                big_halo[idx] += randint (0, 5)
+            self.stencil.set_halo (big_halo)
+            self._run ( )
 
-        #
-        # apply the stencil 10 times
-        #
-        for i in range (10):
-            #
-            # apply the Python version of the stencil
-            #
-            self.stencil.run (out_data=out_field_py,
-                              in_data=in_field_py)
-            #
-            # apply the native version of the stencil
-            #
-            stencil_native.run (out_data=out_field_cxx,
-                                in_data=in_field_cxx)
-            #
-            # compare the field contents
-            #
-            self.assertTrue (np.array_equal (out_field_py, out_field_cxx))
-            self.assertTrue (np.array_equal (in_field_py, in_field_py))
 
-
-    def test_symbol_discovery (self):
-        self.stencil.backend = 'c++'
+    def test_symbol_discovery (self, backend='c++'):
+        self.stencil.backend = backend
         self._run ( )
         #
-        # check input/output fields were correctly discovered
+        # check fields were correctly discovered
         #
-        scope = self.stencil.inspector.stencil_scope
+        scope = self.stencil.scope
         for p in self.params:
             self.assertTrue (scope.is_parameter (p))
         for t in self.temps:
             self.assertTrue (scope.is_temporary (t))
 
 
+    def test_symbol_discovery_cuda (self):
+        self.test_symbol_discovery (backend='cuda')
+
+
     def test_user_stencil_extends_multistagestencil (self):
+        from gridtools.stencil import Stencil
+
         with self.assertRaises (TypeError):
             class DoesNotExtendAndShouldFail (object):
                 pass
-            insp = StencilInspector (DoesNotExtendAndShouldFail)
-
-        insp = self.stencil.inspector
-        insp.analyze ( )
-        self.assertNotEqual (insp, None)
+            stencil = DoesNotExtendAndShouldFail ( )
+            Stencil.compiler.register (DoesNotExtendAndShouldFail ( ))
 
 
     def test_kernel_function (self):
@@ -155,59 +292,137 @@ class CopyTest (unittest.TestCase):
             self.stencil.run ([ getattr (self, p) for p in self.params ])
 
 
-    def test_python_execution (self):
-        self._run ( )
+    @attr(lang='python')
+    def test_python_results (self, out_param=None, result_file=None):
+        import os
 
+        cur_dir = os.path.dirname (os.path.abspath (__file__))
+
+        self.stencil.backend = 'python'
+        self._run ( )
+        #
+        # take halo into account when comparing the results
+        #
         beg_i = self.stencil.halo[0]
         end_i = self.domain[0] - self.stencil.halo[1]
         beg_j = self.stencil.halo[2]
         end_j = self.domain[1] - self.stencil.halo[3]
 
-        self.assertTrue (np.array_equal (self.in_data[beg_i:end_i, beg_j:end_j],
-                                         self.out_data[beg_i:end_i, beg_j:end_j]))
+        if result_file is None:
+            expected  = self.in_cpy
+            out_param = 'out_cpy'
+        else:
+            expected = np.load ('%s/%s' % (cur_dir,
+                                           result_file)) 
+        self.assertTrue (np.array_equal (getattr (self, out_param)[beg_i:end_i, beg_j:end_j],
+                                         expected[beg_i:end_i, beg_j:end_j]))
 
-    @attr(speed='fast')
-    def test_native_execution_performance (self):
+
+    def test_execution_performance_cpp (self, backend='c++'):
         import time
 
-        self.stencil.backend = 'c++'
+        self.stencil.backend = backend
         self._run ( )
-        self.assertTrue ('_FuncPtr' in dir (self.stencil.lib_obj))
 
-        avg_time = 0.0
-        for i in range (30):
-            start = time.time ( )
+        nstep  = 100
+        tstart = time.time ( )
+        for i in range (nstep):
             self._run ( )
-            avg_time += time.time ( ) - start
-        print ("AVG execution time %.3f s" % avg_time)
+        print ('FPS:', nstep / (time.time()-tstart))
 
 
-    def test_k_directions (self):
-        self.stencil.backend = 'c++'
+    def test_execution_performance_cuda (self):
+        self.test_execution_performance_cpp (backend='cuda')
 
+
+    def test_k_directions (self, backend='c++'):
+        self.stencil.backend = backend
         for dir in ('forward', 'backward'):
             self.stencil.set_k_direction (dir)
             self._run ( )
+
+
+    def test_k_directions_cuda (self):
+        self.test_k_directions (backend='cuda')
+
+
+
+class FloatPrecisionTest (CopyTest):
+    """
+    Tests for the exceptions raised by the floating point precision validation.
+    """
+    def test_float_input_type_validation_wrong_data_size (self):
+        with self.assertRaises (TypeError):
+            self.stencil.backend = 'c++'
+            self.in_cpy = self.in_cpy.astype(np.float16)
+            self._run ( )
+
+
+    def test_float_input_type_validation_wrong_data_type (self):
+        with self.assertRaises (TypeError):
+            self.stencil.backend = 'c++'
+            self.in_cpy = self.in_cpy.astype(np.int64)
+            self._run ( )
+
+
+    def test_float_input_type_validation_potentially_correct_type_but_not_the_correct_size (self):
+        with self.assertRaises (TypeError):
+            self.stencil.backend = 'c++'
+            self.in_cpy = self.in_cpy.astype(np.float32)
+            self._run ( )
+
+
+
+
+class Power (MultiStageStencil):
+    """
+    Immitates the CopyStencil using the power operator.-
+    """
+    def kernel (self, out_cpy, in_cpy):
+        #
+        # iterate over the points, excluding halo ones
+        #
+        for p in self.get_interior_points (out_cpy):
+            out_cpy[p] =  5 **  0
+            out_cpy[p] =  5 **  1
+            out_cpy[p] =  5 **  2
+            out_cpy[p] =  5 **  3
+            out_cpy[p] =  5 **  +3
+            out_cpy[p] =  (-5) **  +3
+            out_cpy[p] =  5 ** -1
+            out_cpy[p] =  5 ** -2
+            out_cpy[p] =  5 ** -2*3
+            out_cpy[p] =  5 ** (-2*3)
+            out_cpy[p] = in_cpy[p] ** -1
+            out_cpy[p] = -in_cpy[p] ** -1
+            out_cpy[p] = (-in_cpy[p]) ** -1
+            out_cpy[p] = (-in_cpy[p]) ** -3
+            out_cpy[p] = (in_cpy[p] ** -1) * (in_cpy[p] ** 2)
+            out_cpy[p] = (((-in_cpy[p]) ** -2) * ((-in_cpy[p]) ** 2)) * (in_cpy[p])
+            # The final statement so that we can rerun test
+            out_cpy[p] = (in_cpy[p]**2)*(in_cpy[p] ** -1)
+
+
+
+class PowerTest (CopyTest):
+    def setUp (self):
+        super ( ).setUp ( )
+        self.stencil = Power ( )
+
+
 
 
 class Laplace (MultiStageStencil):
     """
     A Laplacian operator, as the one used in COSMO.-
     """
-    def __init__ (self):
-        super ( ).__init__ ( )
-
-
     def kernel (self, out_data, in_data):
         """
         Stencil's entry point.-
         """
-        #
-        # iterate over the interior points
-        #
         for p in self.get_interior_points (out_data):
-            out_data[p] = 4 * in_data[p] - (
-                          in_data[p + (1,0,0)] + in_data[p + (0,1,0)] +
+            out_data[p] = -4.0 * in_data[p] + (
+                          in_data[p + (1,0,0)]  + in_data[p + (0,1,0)] +
                           in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
 
 
@@ -217,351 +432,431 @@ class LaplaceTest (CopyTest):
     Testing the Laplace operator.-
     """
     def setUp (self):
-        logging.basicConfig (level=logging.INFO)
+        super ( ).setUp ( )
 
         self.domain = (64, 64, 32)
         self.params = ('out_data', 'in_data')
         self.temps  = ( )
 
-        self.out_data  = np.zeros (self.domain)
-        self.in_data   = np.arange (np.prod (self.domain)).reshape (self.domain)
-        self.in_data  /= 7.0
+        self.out_data = np.zeros (self.domain)
+        self.in_data  = np.zeros (self.domain)
+        for i in range (self.domain[0]):
+            for j in range (self.domain[1]):
+                for k in range (self.domain[2]):
+                    self.in_data[i,j,k] = i**3 + j
 
-        self.stencil = Laplace ( ) 
+        self.stencil = Laplace ( )
         self.stencil.set_halo ( (1, 1, 1, 1) )
         self.stencil.set_k_direction ("forward")
 
 
-    def test_automatic_range_detection (self):
-        self.stencil.backend = 'c++'
-        self._run ( )
+    def test_automatic_access_pattern_detection (self):
+        from gridtools import BACKENDS
 
-        scope = self.stencil.inspector.functors[0].scope
-        
-        self.assertEqual (scope['out_data'].range, None)
-        self.assertEqual (scope['in_data'].range, [-1,1,-1,1])
+        #
+        # fields and their ranges
+        #
+        self.add_expected_offset ('in_data',  [-1,1,-1,1])
+        self.add_expected_offset ('out_data', None)
 
-
-    def test_python_execution (self):
-        import os
-
-        self.stencil.backend = 'python'
-        self._run ( )
-
-        cur_dir  = os.path.dirname (os.path.abspath (__file__))
-        expected = np.load ('%s/laplace_result.npy' % cur_dir)
-
-        self.assertTrue (np.array_equal (self.out_data,
-                                         expected))
+        for backend in BACKENDS:
+            self.stencil.backend = backend
+            self._run ( )
+            self.automatic_access_pattern_detection (self.stencil)
 
 
+    def test_minimum_halo_detection (self):
+        super ( ).test_minimum_halo_detection ([1, 1, 1, 1])
 
-class Moving (MultiStageStencil):
-    """
-    Definition a stencil that should move the data over the domain.-
-    """
+
+    @attr(lang='python')
+    def test_python_results (self):
+        self.out_data = np.random.rand (*self.domain)
+        super ( ).test_python_results (out_param='out_data',
+                                       result_file='laplace_result.npy')
+
+
+
+class HorizontalDiffusion (MultiStageStencil):
     def __init__ (self, domain):
-        """
-        A comment to make AST parsing more difficult.-
-        """
-        super (Moving, self).__init__ ( )
-        self.domain = domain
+        super ( ).__init__ ( )
         #
-        # grid size with a halo of one
+        # temporary data fields to share data among the different stages
         #
-        self.n = domain[0] - 2
+        self.lap = np.zeros (domain)
+        self.fli = np.zeros (domain)
+        self.flj = np.zeros (domain)
 
+
+    def stage_flux_i (self, out_fli, in_lap):
+        for p in self.get_interior_points (out_fli,
+                                           ghost_cell=[-1,0,-1,0]):
+            out_fli[p] = in_lap[p + (1,0,0)] - in_lap[p]
+
+
+    def stage_flux_j (self, out_flj, in_lap):
+        for p in self.get_interior_points (out_flj,
+                                           ghost_cell=[-1,0,-1,0]):
+            out_flj[p] = in_lap[p + (0,1,0)] - in_lap[p]
+
+
+    def kernel (self, out_data, in_data, in_wgt):
         #
-        # gravity-accelleration constant
+        # Laplace
         #
-        self.g = 9.8
-
+        for p in self.get_interior_points (self.lap,
+                                           ghost_cell=[-1,1,-1,1]):
+            self.lap[p] = -4.0 * in_data[p] +  (
+                          in_data[p + (-1,0,0)] + in_data[p + (1,0,0)] +
+                          in_data[p + (0,-1,0)] + in_data[p + (0,1,0)] )
         #
-        # timestep
+        # the fluxes are independent, because they depend on 'self.lap'
         #
-        self.dt = 0.02
+        self.stage_flux_i (out_fli = self.fli,
+                           in_lap  = self.lap)
+        self.stage_flux_j (out_flj = self.flj,
+                           in_lap  = self.lap)
 
-        #
-        # space step size (for u, v)
-        #
-        self.dx = 1.0
-        self.dy = 1.0
-
-        #
-        # temporary data fields
-        #
-        self.Hx = np.zeros ((self.n+1, self.n+1, 1))
-        self.Ux = np.zeros ((self.n+1, self.n+1, 1))
-        self.Vx = np.zeros ((self.n+1, self.n+1, 1))
-
-        self.Hy = np.zeros ((self.n+1, self.n+1, 1))
-        self.Uy = np.zeros ((self.n+1, self.n+1, 1))
-        self.Vy = np.zeros ((self.n+1, self.n+1, 1))
-
-
-    def droplet (self, height, width):
-        """
-        A two-dimensional Gaussian of the falling drop into the water:
-
-            height  height of the generated drop;
-            width   width of the generated drop.-
-        """
-        x = np.array ([np.arange (-1, 1 + 2/(width-1), 2/(width-1))] * (width-1))
-        y = np.copy (x)
-        drop = height * np.exp (-5*(x*x + y*y))
-        #
-        # pad the resulting array with zeros
-        #
-        #zeros = np.zeros (shape[:-1])
-        #zeros[:drop.shape[0], :drop.shape[1]] = drop
-        #return zeros.reshape (zeros.shape[0],
-        #                      zeros.shape[1],
-        #                      1)
-        return drop.reshape ((drop.shape[0],
-                              drop.shape[1],
-                              1))
-
-
-    def create_random_drop (self, H):
-        """
-        Disturbs the water surface with a drop.-
-        """
-        drop = self.droplet (5, 11)
-        w = drop.shape[0]
-
-        rand0 = np.random.rand ( )
-        rand1 = np.random.rand ( )
-        rand2 = np.random.rand ( )
-
-        for i in range (w):
-            i_idx = int (i + np.ceil (rand0 * (self.n - w)))
-            for j in range (w):
-                j_idx = int (j + np.ceil (rand1 * (self.n - w)))
-                H[i_idx, j_idx] += rand2 * drop[i, j]
-
-
-    def reflect_borders (self, H, U, V):
-        """
-        Implements the reflective boundary conditions in NumPy.-
-        """
-        H[:,0] =  H[:,1]
-        U[:,0] =  U[:,1]
-        V[:,0] = -V[:,1]
-
-        H[:,self.n+1] =  H[:,self.n]
-        U[:,self.n+1] =  U[:,self.n]
-        V[:,self.n+1] = -V[:,self.n]
-
-        H[0,:] =  H[1,:]
-        U[0,:] = -U[1,:]
-        V[0,:] =  V[1,:]
-
-        H[self.n+1,:] =  H[self.n,:]
-        U[self.n+1,:] = -U[self.n,:]
-        V[self.n+1,:] =  V[self.n,:]
-
-
-    def kernel (self, out_H, out_U, out_V):
-        """
-        This stencil comprises multiple stages.-
-        """
-        #
-        # first half step (stage X direction)
-        #
-        for p in self.get_interior_points (self.Hx):
-            # height
-            self.Hx[p]  = out_H[p + (-1,-1,0)]
-
-            # X momentum
-            self.Ux[p]  = out_U[p + (-1,-1,0)]
-
-            # Y momentum
-            self.Vx[p]  = out_V[p + (-1,-1,0)]
-
-        #
-        # frst half step (stage Y direction)
-        #
-        for p in self.get_interior_points (self.Hy):
-            # height
-            self.Hy[p]  = out_H[p + (1,1,0)]
-
-            # X momentum
-            self.Uy[p]  = out_U[p + (1,1,0)]
-
-            # Y momentum
-            self.Vy[p]  = out_V[p + (1,1,0)]
-
-        #
-        # second half step (stage)
-        #
-        for p in self.get_interior_points (self.Hx):
-            # height
-            out_H[p] = self.Hx[p]
-
-            # X momentum
-            out_U[p] = self.Ux[p]
-
-            # Y momentum
-            out_V[p] = self.Vx[p]
+        for p in self.get_interior_points (out_data):
+            #
+            # Last stage
+            #
+            out_data[p] = in_wgt[p] * (
+                          self.fli[p + (-1,0,0)] - self.fli[p] + 
+                          self.flj[p + (0,-1,0)] - self.flj[p] )
 
 
 
-class MovingTest (CopyTest):
+class HorizontalDiffusionTest (CopyTest):
     """
-    A test case for the Moving stencil defined above.-
+    A test case for the HorizontalDiffusion stencil defined above.-
+    """
+    def setUp (self):
+        super ( ).setUp ( )
+
+        self.domain = (64, 64, 32)
+        self.params = ('out_data',
+                       'in_data',
+                       'in_wgt')
+        self.temps  = ('self.lap',
+                       'self.fli',
+                       'self.flj')
+
+        self.out_data = np.zeros (self.domain)
+        self.in_wgt   = np.ones  (self.domain)
+        self.in_data  = np.zeros (self.domain)
+
+        for i in range (self.domain[0]):
+            for j in range (self.domain[1]):
+                for k in range (self.domain[2]):
+                    self.in_data[i,j,k] = i**5 + j
+
+        self.stencil = HorizontalDiffusion (self.domain)
+        self.stencil.set_halo ( (2, 2, 2, 2) )
+        self.stencil.set_k_direction ("forward")
+
+
+    def test_data_dependency_detection (self, deps=None, backend='c++'):
+        expected_deps = [('out_data', 'in_wgt'),
+                         ('out_data', 'self.flj'),
+                         ('out_data', 'self.fli'),
+                         ('self.fli', 'self.lap'),
+                         ('self.flj', 'self.lap'),
+                         ('self.lap', 'in_data')]
+        super ( ).test_data_dependency_detection (deps=expected_deps)
+        super ( ).test_data_dependency_detection (deps=expected_deps,
+                                                       backend='cuda')
+
+
+    def test_automatic_access_pattern_detection (self):
+        from gridtools import BACKENDS
+
+        #
+        # fields and their ranges
+        #
+        self.add_expected_offset ('in_data',  [-1,1,-1,1])
+        self.add_expected_offset ('in_wgt',   None)
+        self.add_expected_offset ('out_data', None)
+        self.add_expected_offset ('self.fli', None)
+        self.add_expected_offset ('self.fli', [-1,0,0,0])
+        self.add_expected_offset ('self.flj', None)
+        self.add_expected_offset ('self.flj', [0,0,-1,0])
+        self.add_expected_offset ('self.lap', None)
+        self.add_expected_offset ('self.lap', [0,1,0,0])
+        self.add_expected_offset ('self.lap', [0,0,0,1])
+
+        for backend in BACKENDS:
+            self.stencil.backend = backend
+            self._run ( )
+            self.automatic_access_pattern_detection (self.stencil)
+
+
+    def test_ghost_cell_pattern (self):
+        expected_patterns = [ [-1,1,-1,1],
+                              [-1,0,-1,0],
+                              [-1,0,-1,0],
+                                [0,0,0,0] ]
+        super ( ).test_ghost_cell_pattern (expected_patterns,
+                                           backend='c++')
+        super ( ).test_ghost_cell_pattern (expected_patterns,
+                                           backend='cuda')
+
+
+    def test_minimum_halo_detection (self):
+        super ( ).test_minimum_halo_detection ([2, 2, 2, 2])
+
+
+    @attr(lang='python')
+    def test_python_results (self):
+        self.out_data = np.random.rand (*self.domain)
+        super ( ).test_python_results (out_param='out_data',
+                                       result_file='horizontaldiffusion_result.npy')
+
+
+
+class ChildStencilCallsParentConstructorAndNothingElse (MultiStageStencil):
+    """
+    Child constructor correctly calls parent constructor and has no other work, comments or docstrings.
+    Works correctly--no exceptions.
+    """
+    def __init__ (self): 
+        super ( ).__init__ ( )
+
+
+    def kernel (self, out_cpy, in_cpy):
+        """
+        This stencil comprises a single stage.-
+        """
+        #
+        # iterate over the points, excluding halo ones
+        #
+        for p in self.get_interior_points (out_cpy):
+              out_cpy[p] = in_cpy[p]
+
+
+
+class ChildStencilCallsParentConstructorFirst (MultiStageStencil):
+    """
+    Child constructor correctly calls parent constructor before doing any other work.
+    This test shows that it does not matter what arbitrary work is performed after
+    the call to the parent constructor.  If the call to the parent constructor is
+    first, it works.
+    Works correctly--no exceptions.
+    """
+    def __init__ (self):
+        super ( ).__init__ ( )
+        """ This is a Python feature called a docstring.  """
+        """ Here is another docstring """
+        anum = 2
+        bnum = anum * 4
+        cstr = "string" + " operation"
+        dstr = "This RHS is a string."
+        enum = 5
+        # This line is a comment.
+        fnum = 5
+        """
+        These lines resemble a comment but are actually
+        a single string.
+        """
+        gnum = 22
+
+
+    def kernel (self, out_cpy, in_cpy):
+        """
+        This stencil comprises a single stage.-
+        """
+        #
+        # iterate over the points, excluding halo ones
+        #
+        for p in self.get_interior_points (out_cpy):
+              out_cpy[p] = in_cpy[p]
+
+
+
+class ChildStencilCallsParentConstructorAfterComment (MultiStageStencil):
+    """
+    Child constructor correctly calls parent constructor with only a comment coming before it.
+    Works correctly--no exceptions.
+    """
+    def __init__ (self):
+        # This is a comment.
+        super ( ).__init__ ( )
+
+
+    def kernel (self, out_cpy, in_cpy):
+        """
+        This stencil comprises a single stage.-
+        """
+        #
+        # iterate over the points, excluding halo ones
+        #
+        for p in self.get_interior_points (out_cpy):
+              out_cpy[p] = in_cpy[p]
+
+
+
+class ChildStencilCallsParentConstructorAfterMultComments (MultiStageStencil):
+    """
+    Child constructor calls parent constructor before doing any other work.
+    There are only comments preceding it.
+    Works correctly--no exceptions.
+    """
+    def __init__ (self):
+        # This is a comment.
+        # This is another comment.
+        super ( ).__init__ ( )
+
+
+    def kernel (self, out_cpy, in_cpy):
+        """
+        This stencil comprises a single stage.-
+        """
+        #
+        # iterate over the points, excluding halo ones
+        #
+        for p in self.get_interior_points (out_cpy):
+              out_cpy[p] = in_cpy[p]
+
+
+
+class ChildStencilCallsParentConstructorAfterDocString (MultiStageStencil):
+    """
+    Child constructor correctly calls parent constructor before doing any other work.
+    There is only a single string, which is treated by Python as a docstring, that
+    precedes the call.
+    Works correctly--no exceptions.
+    """
+    def __init__ (self):
+        """ This is a Python feature called a docstring.  """
+        super ( ).__init__ ( )
+
+
+    def kernel (self, out_cpy, in_cpy):
+        """
+        This stencil comprises a single stage.-
+        """
+        #
+        # iterate over the points, excluding halo ones
+        #
+        for p in self.get_interior_points (out_cpy):
+              out_cpy[p] = in_cpy[p]
+
+
+
+class ChildStencilCallsParentConstructorAfterMultDocStrings (MultiStageStencil):
+    """
+    Child constructor calls parent constructor before doing any other work
+    but there is more than one docstring and this causes the exception to be raised.
+    Should raise a ReferenceError.
+    """
+    def __init__ (self):
+        """ This is a Python feature called a docstring.  """
+        """ This is another docstring.  """
+        super ( ).__init__ ( )
+
+
+
+class ChildStencilNoCallParentConstructor (MultiStageStencil):
+    """
+    Child constructor does not call the parent constructor at all.
+    Should raise a ReferenceError.
+    """
+    def __init__ (self):
+        """ This is a Python feature called a docstring.  """
+        """ Here is another docstring """
+        pass
+
+
+
+class ChildStencilCallsParentConstructorAfterAssignment (MultiStageStencil):
+    """
+    Child constructor performs a numerical assignment before calling the parent constructor.
+    Should raise a ReferenceError.
+    """
+    def __init__ (self):
+        anum = 1
+        super ( ).__init__ ( )
+
+
+
+class ChildStencilCallsParentConstructorAfterStringAssignment (MultiStageStencil):
+    """
+    Child constructor performs a string assignment before calling the parent constructor.
+    Should raise a ReferenceError.
+    """
+    def __init__ (self):
+        astr = "String assignment"
+        super ( ).__init__ ( )
+
+
+
+class ChildStencilParentConstructorAfterComputation (MultiStageStencil):
+    """
+    Child constructor performs a computation before calling parent constructor.
+    Should raise a ReferenceError.
+    """
+    def __init__ (self):
+        2 * 3
+        super ( ).__init__ ( )
+        # This line is a comment.
+
+
+
+class ChildStencilTest (unittest.TestCase):
+    """
+    A test case for the copy stencil defined above.-
     """
     def setUp (self):
         logging.basicConfig (level=logging.INFO)
 
-        self.domain = (64, 64, 1)
-        self.params = ('out_H', 
-                       'out_U',
-                       'out_V')
-        self.temps  = ('self.Hx', 
-                       'self.Hy',
-                       'self.Ux',
-                       'self.Uy',
-                       'self.Vx',
-                       'self.Vy')
 
-        self.out_H = np.ones  (self.domain)
-        self.out_U = np.zeros (self.domain)
-        self.out_V = np.zeros (self.domain)
+    def _test_child_constructor_call_success (self, stencil):
+        from gridtools.stencil import Stencil
 
-        self.stencil = Moving (self.domain)
-        self.stencil.set_halo ( (1, 1, 1, 1) )
-        self.stencil.set_k_direction ("forward")
+        Stencil.compiler.analyze (stencil)
 
 
-    def test_compare_python_and_native_executions (self):
-        pass
-
-    def test_automatic_range_detection (self):
-        self.stencil.backend = 'c++'
-        self._run ( )
-
-        exp_rng = [-1, 0, -1, 0]
-        scope   = self.stencil.inspector.functors[0].scope
-        self.assertEqual (scope['self.Hx'].range, None)
-        self.assertEqual (scope['self.Ux'].range, None)
-        self.assertEqual (scope['self.Vx'].range, None)
-        self.assertEqual (scope['out_H'].range, exp_rng)
-        self.assertEqual (scope['out_U'].range, exp_rng)
-        self.assertEqual (scope['out_V'].range, exp_rng)
-
-        exp_rng = [0, 1, 0, 1]
-        scope   = self.stencil.inspector.functors[1].scope
-        self.assertEqual (scope['self.Hy'].range, None)
-        self.assertEqual (scope['self.Uy'].range, None)
-        self.assertEqual (scope['self.Vy'].range, None)
-        self.assertEqual (scope['out_H'].range, exp_rng)
-        self.assertEqual (scope['out_U'].range, exp_rng)
-        self.assertEqual (scope['out_V'].range, exp_rng)
-        
-        exp_rng = None
-        scope   = self.stencil.inspector.functors[2].scope
-        self.assertEqual (scope['self.Hx'].range, exp_rng)
-        self.assertEqual (scope['self.Ux'].range, exp_rng)
-        self.assertEqual (scope['self.Vx'].range, exp_rng)
-        self.assertEqual (scope['out_H'].range, exp_rng)
-        self.assertEqual (scope['out_U'].range, exp_rng)
-        self.assertEqual (scope['out_V'].range, exp_rng)
+    def test_child_constructor_calls_parent_constructor_and_nothing_else (self):
+        self._test_child_constructor_call_success (ChildStencilCallsParentConstructorAndNothingElse ( ))
 
 
-    def test_python_execution (self):
-        import os
-
-        self.stencil.backend = 'python'
-        self._run ( )
-
-        cur_dir  = os.path.dirname (os.path.abspath (__file__))
-        #expected = np.load ('%s/laplace_result.npy' % cur_dir)
-
-        #self.assertTrue (np.array_equal (self.out_data,
-        #                                 expected))
-
-        
-    def test_interactive_plot (self):
-        try:
-            import matplotlib.pyplot as plt
-            from matplotlib import animation, cm
-            from mpl_toolkits.mplot3d import axes3d
-
-            #
-            # enable native execution for the stencil
-            #
-            self.stencil.backend = 'c++'
-
-            #
-            # disturb the water surface
-            #
-            self.stencil.create_random_drop (self.out_H)
-
-            #
-            # initialize 3D plot
-            #
-            fig = plt.figure ( )
-            ax = axes3d.Axes3D (fig)
-
-            rng  = np.arange (self.domain[0])
-            X, Y = np.meshgrid (rng, rng)
-            surf = ax.plot_wireframe (X, Y,
-                                    np.squeeze (self.out_H, axis=(2,)),
-                                    rstride=1,
-                                    cstride=1,
-                                    cmap=cm.jet,
-                                    linewidth=1,
-                                    antialiased=False)
-            #
-            # animation update function
-            #
-            def draw_frame (framenumber, swobj):
-                #
-                # a random drop
-                #
-                if framenumber == 0:
-                    self.stencil.create_random_drop (self.out_H)
-
-                #
-                # reflective boundary conditions
-                #
-                swobj.reflect_borders (self.out_H,
-                                       self.out_U,
-                                       self.out_V)
-                #
-                # run the stencil
-                #
-                swobj.run (out_H=self.out_H,
-                           out_U=self.out_U,
-                           out_V=self.out_V)
-
-                ax.cla ( )
-                surf = ax.plot_wireframe (X, Y,
-                                    np.squeeze (self.out_H, axis=(2,)),
-                                    rstride=1,
-                                    cstride=1,
-                                    cmap=cm.jet,
-                                    linewidth=1,
-                                    antialiased=False)
-                return surf,
-
-            anim = animation.FuncAnimation (fig,
-                                            draw_frame,
-                                            fargs=(self.stencil,),
-                                            frames=range (10),
-                                            interval=20,
-                                            blit=False)
-        except ImportError:
-            #
-            # don't run this test if matplotlib is not available
-            #
-            pass
+    def test_child_constructor_calls_parent_constructor_first (self):
+        self._test_child_constructor_call_success (ChildStencilCallsParentConstructorFirst ( ))
 
 
-    def test_k_directions (self):
-        self.stencil.backend = 'c++'
+    def test_child_constructor_calls_parent_constructor_after_comment (self):
+        self._test_child_constructor_call_success (ChildStencilCallsParentConstructorAfterComment ( ))
 
-        for dir in ('forward'):
-            self.stencil.set_k_direction (dir)
-            self._run ( )
+
+    def test_child_constructor_calls_parent_constructor_after_mult_comments (self):
+        self._test_child_constructor_call_success (ChildStencilCallsParentConstructorAfterMultComments ( ))
+
+
+    def test_child_constructor_calls_parent_constructor_after_doc_string (self):
+        self._test_child_constructor_call_success (ChildStencilCallsParentConstructorAfterDocString ( ))
+
+
+    def _test_child_constructor_call_fails (self, stencil):
+        with self.assertRaises (Exception):
+            self._test_child_constructor_call_success (stencil)
+
+
+    def test_child_constructor_calls_parent_constructor_after_mult_doc_strings (self):
+        self._test_child_constructor_call_fails (ChildStencilCallsParentConstructorAfterMultDocStrings ( ))
+
+
+    def test_child_constructor_no_call_parent_constructor (self):
+        self._test_child_constructor_call_fails (ChildStencilNoCallParentConstructor ( ))
+
+
+    def test_child_constructor_calls_parent_constructor_after_assignment (self):
+        self._test_child_constructor_call_fails (ChildStencilCallsParentConstructorAfterAssignment ( ))
+
+
+    def test_child_constructor_calls_parent_constructor_after_string_assignment (self):
+        self._test_child_constructor_call_fails (ChildStencilCallsParentConstructorAfterStringAssignment ( ))
+
+
+    def test_child_constructor_calls_parent_constructor_after_computation (self):
+        self._test_child_constructor_call_fails (ChildStencilParentConstructorAfterComputation ( ))
 
