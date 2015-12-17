@@ -25,7 +25,7 @@ int main(){
     using fe=reference_element<1, Lagrange, Tri>;
     using geo_map=reference_element<1, Lagrange, Tri>;
     using cub=cubature<fe::order+1, fe::shape>;
-    using geo_t = intrepid::geometry<geo_map, cub>;
+    using geo_t = intrepid::unstructured_geometry<geo_map, cub>;
     using discr_t = intrepid::discretization<fe, cub>;
     //![definitions]
 
