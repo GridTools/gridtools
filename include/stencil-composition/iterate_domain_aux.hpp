@@ -216,16 +216,35 @@ If you are not using generic accessors then you are using an unsupported storage
 
         assign_raw_data_functor();
 
-        // implementation of the assignment of the data pointer in case the storage is a temporary storage
-        template<typename ID, typename PE_ID, typename _Storage>
+
+        template<typename ID, typename PE_ID>
         GT_FUNCTION
         void impl() const
+        {
+            impl<ID, PE_ID, Storage>();
+        }
+
+        // implementation of the assignment of the data pointer in case the storage is a temporary storage
+        template<typename ID, typename PE_ID, typename Storage_ >
+        GT_FUNCTION
+        void impl(typename boost::enable_if_c<is_any_storage<Storage_ >::type::value>::type* t=0) const
         {
             //TODO Add assert for m_storage->template access_value<ID>()
             BackendType::template once_per_block<PE_ID::value>::assign(
                 m_data_pointer_array[Offset+ID::value], m_storage->template access_value<ID>()+m_offset);
         }
+
+        template<typename ID, typename PE_ID, typename Storage_>
+        GT_FUNCTION
+        void impl(typename boost::enable_if_c<boost::mpl::not_<typename is_any_storage<Storage_ >::type>::value>::type* t=0) const
+        {
+            //TODO Add assert for m_storage->template access_value<ID>()
+            BackendType::template once_per_block<PE_ID::value>::assign(
+                m_data_pointer_array[Offset+ID::value], m_storage->template access_value<ID>());
+        }
+
     };
+
 
     /**@brief incrementing all the storage pointers to the m_data_pointers array
 
@@ -673,10 +692,11 @@ If you are not using generic accessors then you are using an unsupported storage
     {
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Wrong type");
 
-        typedef typename boost::mpl::at<
-            typename IterateDomainArguments::local_domain_t::mpl_storages,
-            static_int<I>
-        >::type type;
+        typedef typename boost::remove_pointer
+        <typename boost::mpl::at<
+             typename IterateDomainArguments::local_domain_t::mpl_storages,
+             static_int<I>
+             >::type >::type type;
     };
 
 
