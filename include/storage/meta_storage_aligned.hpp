@@ -140,7 +140,7 @@ namespace gridtools {
             }
 
             /**@brief */
-            template <typename ... UInt, typename ... IdSequence>
+            template <typename ... UInt>
             GT_FUNCTION
             uint_t index(uint_t const& first_, UInt const& ... args_) const {
 
