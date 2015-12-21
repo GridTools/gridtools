@@ -290,6 +290,8 @@ if( PAPI_start(event_set) != PAPI_OK)
 #ifdef USE_PAPI_WRAP
     pw_start_collector(collector_execute);
 #endif
+    cache_flusher flusher(cache_flusher_size);
+
     for(uint_t t=0; t < t_steps; ++t){
         flusher.flush();
         horizontal_diffusion->run();
@@ -324,13 +326,14 @@ PAPI_stop(event_set, values);
     }
 
 #ifdef BENCHMARK
-    cache_flusher flusher(cache_flusher_size);
-
     for(uint_t t=1; t < t_steps; ++t){
         flusher.flush();
         horizontal_diffusion->run();
     }
+#endif
+
     horizontal_diffusion->finalize();
+#ifdef BENCHMARK
     std::cout << horizontal_diffusion->print_meter() << std::endl;
 #endif
 

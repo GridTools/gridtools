@@ -306,7 +306,12 @@ if( PAPI_start(event_set) != PAPI_OK)
 #ifdef USE_PAPI_WRAP
     pw_start_collector(collector_execute);
 #endif
-    horizontal_diffusion->run();
+    cache_flusher flusher(cache_flusher_size);
+
+    for(uint_t t=0; t < t_steps; ++t){
+        flusher.flush();
+        horizontal_diffusion->run();
+    }
 
 #ifdef USE_PAPI
 double dummy=0.5;
@@ -319,9 +324,7 @@ PAPI_stop(event_set, values);
     pw_stop_collector(collector_execute);
 #endif
 
-    horizontal_diffusion->finalize();
-
-#ifdef CUDA_EXAMPLE
+#ifdef __CUDACC__
     repository.update_cpu();
 #endif
 
@@ -339,13 +342,14 @@ PAPI_stop(event_set, values);
     }
 
 #ifdef BENCHMARK
-    cache_flusher flusher(cache_flusher_size);
-
     for(uint_t t=1; t < t_steps; ++t){
         flusher.flush();
         horizontal_diffusion->run();
     }
+#endif
+
     horizontal_diffusion->finalize();
+#ifdef BENCHMARK
     std::cout << horizontal_diffusion->print_meter() << std::endl;
 #endif
 
