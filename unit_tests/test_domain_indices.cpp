@@ -1,25 +1,7 @@
 #define BOOST_NO_CXX11_RVALUE_REFERENCES
 
-#include "stencil-composition/accessor.hpp"
-#include "stencil-composition/domain_type.hpp"
-#include "stencil-composition/backend.hpp"
-
-#include <stdio.h>
-#include "common/gt_assert.hpp"
-#include <boost/fusion/include/make_vector.hpp>
-#include <boost/mpl/for_each.hpp>
+#include "stencil-composition/stencil-composition.hpp"
 #include <boost/current_function.hpp>
-
-#include <gridtools.hpp>
-
-// #ifdef CUDA_EXAMPLE
-// #include "stencil-composition/backend_cuda.hpp"
-// #else
-// #include "stencil-composition/backend_naive.hpp"
-// #endif
-
-#include <boost/fusion/include/nview.hpp>
-#include <boost/fusion/include/make_vector.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
@@ -56,32 +38,19 @@ struct print_plchld {
 };
 
 bool test_domain_indices() {
-// #ifdef CUDA_EXAMPLE
-// #define BACKEND backend<Cuda, Block >
-// #else
-// #ifdef BACKEND_BLOCK
-// #define BACKEND backend<Host, Block >
-// #else
-// #define BACKEND backend<Host, Naive >
-// #endif
-// #endif
 
-//     //    typedef gridtools::STORAGE<double, gridtools::layout_map<0,1,2> > storage_type;
-
-//     typedef gridtools::BACKEND::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type;
-//     typedef gridtools::BACKEND::temporary_storage_type<double, gridtools::layout_map<0,1,2> >::type tmp_storage_type;
-// =======
-    typedef gridtools::backend<gridtools::enumtype::Host,gridtools::enumtype::Naive>::storage_type<float_type, gridtools::layout_map<0,1,2> >::type storage_type;
-    typedef gridtools::backend<enumtype::Host,enumtype::Naive>::temporary_storage_type<float_type, gridtools::layout_map<0,1,2> >::type tmp_storage_type;
+    typedef gridtools::backend<enumtype::Host,enumtype::Naive>::storage_type<float_type, storage_info<0,layout_map<0,1,2> > >::type storage_type;
+    typedef gridtools::backend<enumtype::Host,enumtype::Naive>::temporary_storage_type<float_type, storage_info<0,layout_map<0,1,2> > >::type tmp_storage_type;
 
 
     uint_t d1 = 10;
     uint_t d2 = 10;
     uint_t d3 = 10;
 
-    storage_type in(d1,d2,d3,-1., "in");
-    storage_type out(d1,d2,d3,-7.3, "out");
-    storage_type coeff(d1,d2,d3,8., "coeff");
+    storage_info<0, layout_map<0,1,2> > meta_(d1,d2,d3);
+    storage_type in(meta_,-1., "in");
+    storage_type out(meta_,-7.3, "out");
+    storage_type coeff(meta_,8., "coeff");
 
     typedef arg<2, tmp_storage_type > p_lap;
     typedef arg<1, tmp_storage_type > p_flx;
@@ -94,7 +63,7 @@ bool test_domain_indices() {
 
     typedef boost::mpl::vector<p_lap, p_flx, p_fly, p_coeff, p_in, p_out> accessor_list;
 
-    gridtools::domain_type<accessor_list> domain
+    domain_type<accessor_list> domain
        (boost::fusion::make_vector(&out, &in, &coeff /*,&fly, &flx*/));
 
     count = 0;
@@ -103,7 +72,7 @@ bool test_domain_indices() {
     print_plchld pfph;
     count = 0;
     result = true;
-    boost::mpl::for_each<gridtools::domain_type<accessor_list>::placeholders>(pfph);
+    boost::mpl::for_each<domain_type<accessor_list>::placeholders>(pfph);
 
 
     return result;

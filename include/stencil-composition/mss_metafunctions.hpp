@@ -11,51 +11,36 @@
 #include "functor_do_method_lookup_maps.hpp"
 #include "caches/cache.hpp"
 #include "caches/cache_metafunctions.hpp"
-#include "esf.hpp"
-#include "../common/generic_metafunctions/is_sequence_of.hpp"
+#include "stencil-composition/esf.hpp"
+#include "common/generic_metafunctions/is_sequence_of.hpp"
+#include "stencil-composition/caches/cache_metafunctions.hpp"
 
 namespace gridtools {
-
-template<
-    typename functors_list,
-    typename Coords
->
-struct mss_intervals
-{
-    /**
-     *  compute the functor do methods - This is the most computationally intensive part
-     */
-    typedef typename boost::mpl::transform<
-        functors_list,
-        compute_functor_do_methods<boost::mpl::_, typename Coords::axis_type>
-    >::type functor_do_methods; // Vector of vectors - each element is a vector of pairs of actual axis-indices
-
-    /**
-     * compute the loop intervals
-     */
-    typedef typename compute_loop_intervals<
-        functor_do_methods,
-        typename Coords::axis_type
-    >::type loop_intervals_t; // vector of pairs of indices - sorted and contiguous
-
-    /**
-     * compute the do method lookup maps
-     *
-     */
-    typedef typename boost::mpl::transform<
-        functor_do_methods,
-        compute_functor_do_method_lookup_map<boost::mpl::_, loop_intervals_t>
-    >::type functor_do_method_lookup_maps; // vector of maps, indexed by functors indices in Functor vector.
-};
 
 /**
  * @struct is_mss_parameter
  * metafunction that determines if a given type is a valid parameter for mss_descriptor
  */
 template<typename T>
+struct printi{BOOST_MPL_ASSERT_MSG((false), YYYYYYYYYYYY, (T));};
+template <typename T>
+struct testt
+{
+    printi<T> oi;
+};
+
+template<typename T>
 struct is_mss_parameter
 {
+
     typedef typename boost::mpl::or_< is_sequence_of<T, is_cache >, is_esf_descriptor<T> >::type type;
+    typedef typename boost::mpl::eval_if<
+        type,
+        boost::mpl::identity<boost::mpl::true_>,
+        testt<T>
+    >::type OO;
+
+
 };
 
 /**

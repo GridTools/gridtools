@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 #include "common/defs.hpp"
 #include "partitioner.hpp"
 /**
@@ -9,86 +10,144 @@
 
 namespace gridtools {
 
-    template < typename Storage, typename Partitioner >
-    class parallel_storage : public Storage
+    template < typename MetaStorage, typename Partitioner >
+    class parallel_storage_info
     {
 
     public:
         typedef Partitioner partitioner_t;
-        typedef Storage super;
-        typedef Storage storage_t;
-        typedef typename storage_t::basic_type basic_type;
-        typedef parallel_storage<storage_t, partitioner_t> original_storage;
-        typedef clonable_to_gpu<parallel_storage<storage_t, partitioner_t> > gpu_clone;
-        typedef typename storage_t::iterator_type iterator_type;
-        typedef typename storage_t::value_type value_type;
-        static const ushort_t n_args = basic_type::n_width;
+        typedef MetaStorage metadata_t;
 
-        __device__
-        parallel_storage(parallel_storage const& other)
-            :  super(other)
-            {}
+    private:
+        partitioner_t const* m_partitioner;
+        //these are set by the partitioner
+        array<halo_descriptor, metadata_t::space_dimensions> m_coordinates;
+        array<halo_descriptor, metadata_t::space_dimensions> m_coordinates_gcl;
+        //these remember where am I in the storage (also set by the partitioner)
+        array<int_t, metadata_t::space_dimensions> m_low_bound;
+        array<int_t, metadata_t::space_dimensions> m_up_bound;
+        metadata_t m_metadata;
 
-        explicit parallel_storage(partitioner_t const& part)
-            : super()
-            , m_partitioner(&part)
-            {
-            }
+    public:
+        DISALLOW_COPY_AND_ASSIGN(parallel_storage_info);
 
-        /**
-           @brief 3D constructor
-
-           Given the partitioner and the three space dimensions it constructs a storage and allocate the data
-           relative to the current process
-        */
-        void setup(uint_t const& d1, uint_t const& d2, uint_t const& d3)
-            {
-                /**the partitioner must be set at this point*/
-                assert(m_partitioner);
-                uint_t dims[3];
-                m_partitioner->compute_bounds(dims, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound,  d1, d2, d3);
-                super::setup(dims[0], dims[1], dims[2]);
-                super::allocate();
-            }
+        explicit parallel_storage_info(partitioner_t const& part)
+            : m_partitioner(&part)
+            , m_metadata()
+        {
+        }
 
 #ifdef CXX11_ENABLED
 
-        template <typename ... UInt>
-        bool mine(UInt const& ... coordinates_)
-            {
-                GRIDTOOLS_STATIC_ASSERT((sizeof ... (UInt) >= super::space_dimensions), "not enough indices specified in the call to parallel_storage::mine()");
-                GRIDTOOLS_STATIC_ASSERT((sizeof ... (UInt) <= super::space_dimensions), "too many indices specified in the call to parallel_storage::mine()");
-                uint_t coords[super::space_dimensions]={coordinates_ ...};
-                bool result=true;
-                for(ushort_t i=0; i<super::space_dimensions; ++i)
-                    if(coords[i]<m_low_bound[i]+m_coordinates[i].begin() || coords[i]>m_low_bound[i]+m_coordinates[i].end() )
-                        result=false;
-                return result;
-            }
+#ifndef __CUDACC__
 
+        /**
+           @brief constructor for the parallel meta storage
+
+           \param part the partitioner (e.g. \ref gridtools::partitioner_trivial)
+           \param dims_ ... the global dimensions of the storage
+
+           The global dimensions get transformed to local ones during the construction
+           NOTE: very convoluted way to initialize the metadata. it is initialized performing the
+           following unroll operation
+           \code
+           m_metadata(
+           part.compute_bounds(0, .....),
+           part.compute_bounds(1, .....),
+           part.compute_bounds(2, .....),
+           part.compute_bounds(3, .....),
+           .....)
+           \endcode
+           Each call to compute_bounds returns the partitioned dimension and fills an element
+           of the arrays passed as input (corresponding to the dimension passed as first argument).
+
+         */
+        template <typename ... UInt>
+        explicit parallel_storage_info(partitioner_t const& part, UInt const& ... dims_)
+            : m_partitioner(&part)
+            , m_coordinates()
+            , m_coordinates_gcl()
+            , m_low_bound()
+            , m_up_bound()
+            , m_metadata(
+                apply_gt_integer_sequence<typename make_gt_integer_sequence
+                <uint_t, sizeof ... (UInt)>::type >::template apply<metadata_t>
+                (
+                    ([&part]
+                     ( uint_t index_
+                       , array<halo_descriptor, metadata_t::space_dimensions>& coordinates_
+                       , array<halo_descriptor, metadata_t::space_dimensions>& coordinates_gcl_
+                       , array<int_t, metadata_t::space_dimensions>& low_bound_
+                       , array<int_t, metadata_t::space_dimensions>& up_bound_
+                       , UInt const& ... args_ )-> uint_t
+                    { return part.compute_bounds( index_, coordinates_, coordinates_gcl_, low_bound_, up_bound_, args_ ... );}
+                        )
+                    , m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, dims_ ...  )
+                )
+        {
+        }
+
+#else
+
+        template <typename ... UInt>
+        explicit parallel_storage_info(partitioner_t const& part, UInt const& ... dims_)
+            : m_partitioner(&part)
+            , m_coordinates()
+            , m_coordinates_gcl()
+            , m_low_bound()
+            , m_up_bound()
+            , m_metadata()
+        {
+            auto d1=part.compute_bounds( 0, m_coordinates, m_coordinates, m_low_bound, m_up_bound, dims_ ... );
+            auto d2=part.compute_bounds( 1, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, dims_ ... );
+            auto d3=part.compute_bounds( 2, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, dims_ ... );
+            m_metadata.setup(d1,d2,d3);
+        }
+
+#endif
+
+        /**
+           @brief given the global grid returns wether the point belongs to the current partition
+        */
+        template <typename ... UInt>
+        bool mine(UInt const& ... coordinates_) const
+        {
+            GRIDTOOLS_STATIC_ASSERT((sizeof ... (UInt) >= metadata_t::space_dimensions), "not enough indices specified in the call to parallel_storage_info::mine()");
+            GRIDTOOLS_STATIC_ASSERT((sizeof ... (UInt) <= metadata_t::space_dimensions), "too many indices specified in the call to parallel_storage_info::mine()");
+            uint_t coords[metadata_t::space_dimensions]={coordinates_ ...};
+            bool result=true;
+            for(ushort_t i=0; i<metadata_t::space_dimensions; ++i)
+                if(coords[i]<m_low_bound[i]+m_coordinates[i].begin() || coords[i]>m_low_bound[i]+m_coordinates[i].end() )
+                    result=false;
+            return result;
+        }
+
+        /**
+           @brief given the global coordinates returns the local index, or -1 if the point is outside the current partition
+        */
         //TODO generalize for arbitrary dimension
         template <uint_t field_dim=0, uint_t snapshot=0, typename UInt>
-        typename super::value_type get_value( UInt const& i, UInt const& j, UInt const& k )
-            {
-                if(mine(i,j,k))
-                    return super::template get<field_dim, snapshot>()[super::_index(super::strides(), i-m_low_bound[0], j-m_low_bound[1], k-m_low_bound[2])];
-                else
+        int_t get_local_index( UInt const& i, UInt const& j, UInt const& k ) const
+        {
+            if(mine(i,j,k))
+                return m_metadata.index((uint_t)(i-m_low_bound[0]), (uint_t)(j-m_low_bound[1]), (uint_t)(k-m_low_bound[2]));
+            else
 #ifndef DNDEBUG
-                    printf("(%d, %d, %d) not available in processor %d \n\n", i, j, k , m_partitioner->template pid<0>()+m_partitioner->template pid<1>()+m_partitioner->template pid<2>());
+                printf("(%d, %d, %d) not available in processor %d \n\n", i, j, k , m_partitioner->template pid<0>()+m_partitioner->template pid<1>()+m_partitioner->template pid<2>());
 #endif
-                return -1.;
-            }
+            return -1;
+        }
 #endif
 
         /**
            @brief given a local (to the current subdomain) index (i,j,k) it returns the global corresponding index
 
-           It sums the offset given by the partitioner to the local index
+           It sums the offsets computed by the partitioner to the local index
         */
         template<uint_t Component>
         uint_t const& local_to_global(uint_t const& value){
-            GRIDTOOLS_STATIC_ASSERT(Component<super::space_dimensions, "only positive integers smaller than the number of dimensions are accepted as template arguments of local_to_global");
-            return m_partitioner->template global_offset<Component>()+value;}
+            GRIDTOOLS_STATIC_ASSERT(Component<metadata_t::space_dimensions, "only positive integers smaller than the number of dimensions are accepted as template arguments of local_to_global");
+            return m_low_bound[Component]+value;}
 
         /**
            @brief returns the halo descriptors to be used inside the coordinates object
@@ -97,7 +156,7 @@ namespace gridtools {
         */
         template<ushort_t dimension>
         halo_descriptor const& get_halo_descriptor() const {
-            GRIDTOOLS_STATIC_ASSERT(dimension<super::space_dimensions, "only positive integers smaller than the number of dimensions are accepted as template arguments of get_halo_descriptor");
+            GRIDTOOLS_STATIC_ASSERT(dimension<metadata_t::space_dimensions, "only positive integers smaller than the number of dimensions are accepted as template arguments of get_halo_descriptor");
             return m_coordinates[dimension];}
 
         /**
@@ -108,16 +167,15 @@ namespace gridtools {
         template<ushort_t dimension>
         halo_descriptor const& get_halo_gcl() const {return m_coordinates_gcl[dimension];}
 
+
+        /**
+           @brief returns the metadata with the meta information about the partitioned storage
+        */
+        metadata_t const& get_metadata() const {return m_metadata;}
+
     private:
 
-        parallel_storage();
+        parallel_storage_info();
 
-        partitioner_t const* m_partitioner;
-        //these are set by the partitioner
-        halo_descriptor m_coordinates[super::space_dimensions];
-        halo_descriptor m_coordinates_gcl[super::space_dimensions];
-        //these remember where am I on the storage (also set by the partitioner)
-        int_t m_low_bound[super::space_dimensions];
-        int_t m_up_bound[super::space_dimensions];
     };
 }//namespace gridtools

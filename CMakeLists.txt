@@ -12,7 +12,7 @@ endif(SUPPRESS_MESSAGES)
 
 SET(VERBOSE "OFF" CACHE BOOL "set verbosity for output")
 if(VERBOSE)
-    add_definitions(-D__VERBOSE__)
+    add_definitions(-DVERBOSE)
 endif(VERBOSE)
 
 
@@ -36,6 +36,9 @@ set(BOOST_FUSION_MAX_SIZE 20 CACHE STRING "max sizes of boost fusion containers"
 add_definitions(-DFUSION_MAX_VECTOR_SIZE=${BOOST_FUSION_MAX_SIZE})
 add_definitions(-DFUSION_MAX_MAP_SIZE=${BOOST_FUSION_MAX_SIZE})
 
+if(ENABLE_CXX11)
+    add_definitions(-DBOOST_RESULT_OF_USE_TR1)
+endif()
 
 # Not sure why it's desirable to specify the build directory, but it seems
 # to break testing with MSVC, so disabling it conditionally.
@@ -244,6 +247,17 @@ if( NOT ENABLE_CACHING )
     add_definitions( -D__DISABLE_CACHING__ )
 endif( NOT ENABLE_CACHING )
 
+set(STRUCTURED_GRIDS "ON" CACHE BOOL "compile for rectangular grids" )
+if(STRUCTURED_GRIDS)
+    add_definitions( -DSTRUCTURED_GRIDS )
+else()
+    set(ENABLE_CXX11 "ON" CACHE BOOL "Enable examples and tests featuring C++11 features" FORCE)
+    if(USE_GPU)
+        message("USE_GPU can not be used with non rectangular grids")
+        set( USE_GPU "OFF" CACHE BOOL "Compile with GPU support (CUDA)" FORCE)
+    endif(USE_GPU)
+endif(STRUCTURED_GRIDS)
+
 if (ENABLE_PYTHON)
     message ("PYTHON enabled ")
     # Retrieving the python major version (major version is written in tmp-file ${CMAKE_SOURCE_DIR}/.python_major_version, full version is in tmp-file ${CMAKE_SOURCE_DIR}/.python_version)
@@ -285,12 +299,15 @@ if (ENABLE_PYTHON)
     endif(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
 endif(ENABLE_PYTHON)
 
-add_subdirectory( unit_tests )
-add_subdirectory( examples )
+if(GTEST_FOUND)
+    add_subdirectory( unit_tests )
+    if(STRUCTURED_GRIDS)
+        add_subdirectory( examples )
+    endif(STRUCTURED_GRIDS)
+endif(GTEST_FOUND)
 
 file(APPEND ${TEST_SCRIPT} "exit $res\n")
 file(INSTALL ${TEST_SCRIPT} DESTINATION ${CMAKE_BINARY_DIR}/install
    FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ
 )
-
 

@@ -3,19 +3,18 @@
 struct {{ functor.name }}
 {
     //
-    // the number of arguments of this functor 
+    // the arguments of this functor
     //
     static const int n_args = {{ params|length }};
 
-    //
-    // the input data fields of this functor are marked as 'const'
-    //
     {% for p in params -%}
-    typedef {% if p.read_only -%}
-                const
-            {%- endif %} accessor<{{ loop.index0 }} {%- if p.access_pattern -%}
-                                                        , range<{{ p.access_pattern|join(',') }}>
-                                                    {%- endif %} > {{ p.name|replace('.', '_') }};
+    typedef accessor<{{ loop.index0 }}, {% if p.read_only -%}
+                                            enumtype::in
+                                        {%- else -%}
+                                            enumtype::inout
+                                        {%- endif %} {%- if p.access_pattern -%}
+                                                          , extent<{{ p.access_pattern|join(',') }}>
+                                                     {%- endif %} > {{ p.name|replace('.', '_') }};
     {% endfor %}
     //
     // the ordered list of arguments of this functor
@@ -27,7 +26,7 @@ struct {{ functor.name }}
     //
     template <typename Evaluation>
     GT_FUNCTION
-    static void Do(Evaluation const & eval, x_interval) 
+    static void Do(Evaluation const & eval, x_interval)
     {
         {{ functor.body.cpp_src }}
     }
@@ -41,5 +40,5 @@ std::ostream& operator<<(std::ostream& s, {{ functor.name }} const)
 {
     return s << "{{ functor.name }}";
 }
- 
+
 {% endblock %}

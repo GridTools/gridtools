@@ -1,13 +1,13 @@
 #pragma once
 
-#include <gridtools.hpp>
-#include <stencil-composition/backend.hpp>
-#include <stencil-composition/make_computation.hpp>
-#include <stencil-composition/interval.hpp>
+//#include <gridtools.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 #include "horizontal_diffusion_repository.hpp"
 #include <stencil-composition/caches/define_caches.hpp>
 #include <tools/verifier.hpp>
 #include <stencil-composition/stencil_functions_machinery.hpp>
+#include "./cache_flusher.hpp"
+#include "./defs.hpp"
 
 #ifdef USE_PAPI_WRAP
 #include <papi_wrap.hpp>
@@ -21,7 +21,7 @@
 
 using gridtools::level;
 using gridtools::accessor;
-using gridtools::range;
+using gridtools::extent;
 using gridtools::arg;
 
 using namespace gridtools;
@@ -33,7 +33,15 @@ using namespace enumtype;
 using namespace expressions;
 #endif
 
-namespace horizontal_diffusion{
+#ifndef MONOLITHIC
+#ifndef STENCIL_PROCEDURES
+#ifndef FUNCTIONS_OFFSETS
+#define FUNCTIONS_OFFSETS
+#endif
+#endif
+#endif
+
+namespace horizontal_diffusion_functions{
 // This is the definition of the special regions in the "vertical" direction
 typedef gridtools::interval<level<0,-1>, level<1,-1> > x_lap;
 typedef gridtools::interval<level<0,-1>, level<1,-1> > x_flx;
@@ -43,8 +51,8 @@ typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct lap_function {
-    typedef accessor<0> out;
-    typedef const accessor<1, range<-1, 1, -1, 1>  > in;
+    typedef accessor<0, enumtype::inout> out;
+    typedef accessor<1, enumtype::in, extent<-1, 1, -1, 1>  > in;
 
     typedef boost::mpl::vector<out, in> arg_list;
 
@@ -59,8 +67,8 @@ struct lap_function {
 
 struct flx_function {
 
-    typedef accessor<0> out;
-    typedef const accessor<1, range<-1, 2, -1, 1> > in;
+    typedef accessor<0, enumtype::inout> out;
+    typedef accessor<1, enumtype::in, extent<-1, 2, -1, 1> > in;
     //    typedef const accessor<2, range<0, 1, 0, 0> > lap;
 
     typedef boost::mpl::vector<out, in> arg_list;
@@ -99,8 +107,8 @@ struct flx_function {
 
 struct fly_function {
 
-    typedef accessor<0> out;
-    typedef const accessor<1, range<-1, 1, -1, 2> > in;
+    typedef accessor<0, enumtype::inout> out;
+    typedef accessor<1, enumtype::in, extent<-1, 1, -1, 2> > in;
     //    typedef const accessor<2, range<0, 0, 0, 1> > lap;
 
     typedef boost::mpl::vector<out, in> arg_list;
@@ -132,11 +140,11 @@ struct fly_function {
 
 struct out_function {
 
-    typedef accessor<0> out;
-    typedef const accessor<1> in;
-    typedef const accessor<2, range<-1, 0, 0, 0> > flx;
-    typedef const accessor<3, range<0, 0, -1, 0> > fly;
-    typedef const accessor<4> coeff;
+    typedef accessor<0, enumtype::inout> out;
+    typedef accessor<1, enumtype::in> in;
+    typedef accessor<2, enumtype::in, extent<-1, 0, 0, 0> > flx;
+    typedef accessor<3, enumtype::in, extent<0, 0, -1, 0> > fly;
+    typedef accessor<4, enumtype::in> coeff;
 
     typedef boost::mpl::vector<out,in,flx,fly,coeff> arg_list;
 
@@ -169,7 +177,7 @@ std::ostream& operator<<(std::ostream& s, out_function const) {
 void handle_error(int)
 {std::cout<<"error"<<std::endl;}
 
-bool test(uint_t x, uint_t y, uint_t z) {
+    bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps) {
 
 #ifdef USE_PAPI_WRAP
   int collector_init = pw_new_collector("Init");
@@ -190,8 +198,6 @@ bool test(uint_t x, uint_t y, uint_t z) {
 #define BACKEND backend<Host, Naive >
 #endif
 #endif
-
-    typedef horizontal_diffusion::repository::layout_ijk layout_t;
 
     typedef horizontal_diffusion::repository::storage_type storage_type;
     typedef horizontal_diffusion::repository::tmp_storage_type tmp_storage_type;
@@ -230,11 +236,11 @@ bool test(uint_t x, uint_t y, uint_t z) {
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
     // while the vertical ones are set according the the axis property soon after
-    // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
+    // gridtools::grid<axis> coords(2,d1-2,2,d2-2);
     uint_t di[5] = {halo_size, halo_size, halo_size, d1-halo_size-1, d1};
     uint_t dj[5] = {halo_size, halo_size, halo_size, d2-halo_size-1, d2};
 
-    gridtools::coordinates<axis> coords(di, dj);
+    gridtools::grid<axis> coords(di, dj);
     coords.value_list[0] = 0;
     coords.value_list[1] = d3-1;
 
@@ -268,7 +274,7 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
 #else
         boost::shared_ptr<gridtools::computation> horizontal_diffusion =
 #endif
-        gridtools::make_computation<gridtools::BACKEND, layout_t>
+        gridtools::make_computation<gridtools::BACKEND>
         (
             gridtools::make_mss // mss_descriptor
             (
@@ -288,7 +294,6 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
     horizontal_diffusion->ready();
 
     horizontal_diffusion->steady();
-    domain.clone_to_gpu();
 
 #ifdef USE_PAPI_WRAP
     pw_stop_collector(collector_init);
@@ -320,15 +325,28 @@ PAPI_stop(event_set, values);
     repository.update_cpu();
 #endif
 
-    verifier verif(1e-9, halo_size);
+#ifdef CXX11_ENABLED
+    verifier verif(1e-13);
+    array<array<uint_t, 2>, 3> halos{{ {halo_size, halo_size}, {halo_size,halo_size}, {halo_size,halo_size} }};
+    bool result = verif.verify(repository.out_ref(), repository.out(), halos);
+#else
+    verifier verif(1e-13, halo_size);
     bool result = verif.verify(repository.out_ref(), repository.out());
+#endif
 
     if(!result){
         std::cout << "ERROR"  << std::endl;
     }
 
 #ifdef BENCHMARK
-        std::cout << horizontal_diffusion->print_meter() << std::endl;
+    cache_flusher flusher(cache_flusher_size);
+
+    for(uint_t t=1; t < t_steps; ++t){
+        flusher.flush();
+        horizontal_diffusion->run();
+    }
+    horizontal_diffusion->finalize();
+    std::cout << horizontal_diffusion->print_meter() << std::endl;
 #endif
 
 #ifdef USE_PAPI_WRAP
@@ -338,4 +356,4 @@ PAPI_stop(event_set, values);
   return result; /// lapse_time.wall<5000000 &&
 }
 
-}//namespace horizontal_diffusion
+}//namespace horizontal_diffusion_functions
