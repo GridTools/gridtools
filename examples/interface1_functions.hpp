@@ -5,7 +5,7 @@
 #include "horizontal_diffusion_repository.hpp"
 #include <stencil-composition/caches/define_caches.hpp>
 #include <tools/verifier.hpp>
-#include <stencil-composition/stencil_functions_machinery.hpp>
+#include <stencil-composition/structured_grids/call_interfaces.hpp>
 #include "./cache_flusher.hpp"
 #include "./defs.hpp"
 
@@ -36,7 +36,8 @@ using namespace expressions;
 #ifndef MONOLITHIC
 #ifndef STENCIL_PROCEDURES
 #ifndef FUNCTIONS_OFFSETS
-#define FUNCTIONS_OFFSETS
+#define STENCIL_PROCEDURES
+//#define FUNCTIONS_OFFSETS
 #endif
 #endif
 #endif
@@ -59,9 +60,10 @@ struct lap_function {
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_lap) {
-        dom(out()) = (gridtools::float_type)4.0*dom(in()) -
+        auto x = (gridtools::float_type)4.0*dom(in()) -
             (dom(in( -1, 0, 0)) + dom(in( 0, -1, 0)) +
              dom(in(0, 1, 0)) + dom(in(1, 0, 0)));
+        dom(out()) = x;
     }
 };
 
@@ -87,9 +89,9 @@ struct flx_function {
 #else
 #ifdef STENCIL_PROCEDURES
         double _x_;
-        gridtools::call<lap_function, x_flx>::at<0,0,0>::with(dom, _x_, in());
+        gridtools::call_proc<lap_function, x_flx>::at<0,0,0>::with(dom, _x_, in());
         double _y_;
-        gridtools::call<lap_function, x_flx>::at<1,0,0>::with(dom, _y_, in());
+        gridtools::call_proc<lap_function, x_flx>::at<1,0,0>::with(dom, _y_, in());
 #else
 #ifdef FUNCTIONS_OFFSETS
         double _x_ = gridtools::call_offsets<lap_function, x_flx>::with(dom, in(0,0,0));
@@ -105,7 +107,7 @@ struct flx_function {
     }
 };
 
-struct fly_function {
+    struct fly_function {
 
     typedef accessor<0, enumtype::inout> out;
     typedef accessor<1, enumtype::in, extent<-1, 1, -1, 2> > in;
@@ -117,22 +119,22 @@ struct fly_function {
     GT_FUNCTION
     static void Do(Domain const & dom, x_flx) {
 
-#ifdef MONOLITHIC
+        //#ifdef MONOLITHIC
         double _x_ = (gridtools::float_type)4.0*dom(in()) -
             (dom(in( -1, 0, 0)) + dom(in( 0, -1, 0)) +
              dom(in(0, 1, 0)) + dom(in(1, 0, 0)));
         double _y_ = (gridtools::float_type)4.0*dom(in(0,1,0)) -
             (dom(in( -1, 1, 0)) + dom(in( 0, 0, 0)) +
              dom(in(0, 2, 0)) + dom(in(1, 1, 0)));
-#else
-#ifdef FUNCTIONS_OFFSETS
-        double _x_ = gridtools::call_offsets<lap_function, x_flx>::with(dom, in(0,0,0));
-        double _y_ = gridtools::call_offsets<lap_function, x_flx>::with(dom, in(0,1,0));
-#else
-        double _x_ = gridtools::call<lap_function, x_flx>::at<0,0,0>::with(dom, in());
-        double _y_ = gridtools::call<lap_function, x_flx>::at<0,1,0>::with(dom, in());
-#endif
-#endif
+        //#else
+// #ifdef FUNCTIONS_OFFSETS
+//         double _x_ = gridtools::call_offsets<lap_function, x_flx>::with(dom, in(0,0,0));
+//         double _y_ = gridtools::call_offsets<lap_function, x_flx>::with(dom, in(0,1,0));
+// #else
+//         double _x_ = gridtools::call<lap_function, x_flx>::at<0,0,0>::with(dom, in());
+//         double _y_ = gridtools::call<lap_function, x_flx>::at<0,1,0>::with(dom, in());
+// #endif
+// #endif
         dom(out()) = _y_-_x_;
         dom(out()) = dom(out())*(dom(in(0,1,0))-dom(in(0,0,0))) > 0?0.0:dom(out());
     }
@@ -330,7 +332,9 @@ PAPI_stop(event_set, values);
 
 #ifdef CXX11_ENABLED
     verifier verif(1e-13);
-    array<array<uint_t, 2>, 3> halos{{ {halo_size, halo_size}, {halo_size,halo_size}, {halo_size,halo_size} }};
+    array<array<uint_t, 2>, 3> halos{{ {halo_size, halo_size},
+                                       {halo_size,halo_size},
+                                       {halo_size,halo_size} }};
     bool result = verif.verify(repository.out_ref(), repository.out(), halos);
 #else
     verifier verif(1e-13, halo_size);

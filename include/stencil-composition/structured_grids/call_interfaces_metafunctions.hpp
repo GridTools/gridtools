@@ -78,9 +78,13 @@ namespace gridtools {
 
         template <typename Type>
         struct wrap_reference {
-            Type * value;
+            Type * p_value;
 
-            wrap_reference(Type & v) : value(&v) {}
+            wrap_reference(Type const& v)
+                : p_value(const_cast<typename std::decay<Type>::type*>(&v))
+            {}
+
+            Type& value() const {return *p_value;}
         };
 
         template <typename ...Args> struct package_args;
@@ -100,7 +104,12 @@ namespace gridtools {
         template <class T>
         struct package_args<T>
         {
-            typedef boost::mpl::vector<T> type;
+            typedef typename boost::mpl::if_c<
+                is_accessor<T>::value,
+                T,
+                wrap_reference<T>
+                >::type to_pack;
+            typedef boost::mpl::vector<to_pack> type;
         };
 
         template <>
@@ -108,6 +117,20 @@ namespace gridtools {
         {
             typedef boost::mpl::vector<> type;
         };
+
+        template <typename T>
+        inline
+        typename boost::enable_if_c<is_accessor<T>::value, T>::type
+        make_wrap(T const& v) {
+            return v;
+        }
+
+        template <typename T>
+        inline
+        typename boost::enable_if_c<not is_accessor<T>::value, _impl::wrap_reference<T> >::type
+        make_wrap(T const& v) {
+            return _impl::wrap_reference<typename std::decay<T>::type >(v);
+        }
 
 
     } // namespace _impl
