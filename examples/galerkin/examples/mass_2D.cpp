@@ -5,15 +5,21 @@
 #include "../numerics/assembly.hpp"
 #include "test_assembly.hpp"
 #include "../functors/mass.hpp"
+#include "../mesh/dolfin_mesh.hpp"
 
 int main(){
 
+    //![load_mesh]
+    dolfin_mesh mesh("/users/bignamic/Development/GMESHExamples/2D_square.xml");
+    std::cout<<"Mesh loading completed"<<std::endl;
+    //![load_mesh]
+
 	//![definitions]
     //dimensions of the problem (in number of elements per dimension)
-    auto d1=1;
-    auto d2=2;
-    auto d3=1;
-    const auto num_dofs = 4;
+    const u_int d1=1;
+    const u_int d2=mesh.num_elements();
+    const u_int d3=1;
+    const u_int num_dofs=mesh.num_dofs();
     //![definitions]
 
     //![definitions]
@@ -58,39 +64,8 @@ int main(){
     domain_tuple_t domain_tuple_ (assembler, assembler_base);
 
     //![grid]
-    // First triangle
-    assembler_base.grid()( 0,  0,  0,  0,  0)= 1.5;
-    assembler_base.grid()( 0,  0,  0,  0,  1)= 0.;
-    assembler_base.grid()( 0,  0,  0,  0,  2)= 0.;
-    assembler_base.grid_map()( 0,  0,  0,  0)= 0;//Global DOF
-
-    assembler_base.grid()( 0,  0,  0,  1,  0)= 2.;
-    assembler_base.grid()( 0,  0,  0,  1,  1)= -1.;
-    assembler_base.grid()( 0,  0,  0,  1,  2)= 0.;
-    assembler_base.grid_map()( 0,  0,  0,  1)= 1;//Global DOF
-
-    assembler_base.grid()( 0,  0,  0,  2,  0)= 2.;
-    assembler_base.grid()( 0,  0,  0,  2,  1)= 1.;
-    assembler_base.grid()( 0,  0,  0,  2,  2)= 0.;
-    assembler_base.grid_map()( 0,  0,  0,  2)= 2;//Global DOF
-
-    // Second triangle
-    assembler_base.grid()( 0,  1,  0,  0,  0)= 2.;
-    assembler_base.grid()( 0,  1,  0,  0,  1)= -1.;
-    assembler_base.grid()( 0,  1,  0,  0,  2)= 0.;
-    assembler_base.grid_map()( 0,  1,  0,  0)= 1;//Global DOF
-
-    assembler_base.grid()( 0,  1,  0,  1,  0)= 2.5;
-    assembler_base.grid()( 0,  1,  0,  1,  1)= 0.;
-    assembler_base.grid()( 0,  1,  0,  1,  2)= 0.;
-    assembler_base.grid_map()( 0,  1,  0,  1)= 3;//Global DOF
-
-    assembler_base.grid()( 0,  1,  0,  2,  0)= 2.;
-    assembler_base.grid()( 0,  1,  0,  2,  1)= 1.;
-    assembler_base.grid()( 0,  1,  0,  2,  2)= 0.;
-    assembler_base.grid_map()( 0,  1,  0,  2)= 2;//Global DOF
+    mesh.build_grid(assembler_base);
     //![grid]
-
 
     //![instantiation_mass]
     //defining the mass matrix: d1xd2xd3 elements
