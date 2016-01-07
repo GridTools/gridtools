@@ -223,8 +223,12 @@ namespace gridtools{
 
 #if FLOAT_PRECISION == 4
     typedef float float_type;
+    # define ASSERT_REAL_EQ(reference, actual) ASSERT_FLOAT_EQ(reference, actual)
+    # define EXPECT_REAL_EQ(reference, actual) EXPECT_FLOAT_EQ(reference, actual)
 #elif FLOAT_PRECISION == 8
     typedef double float_type;
+    # define ASSERT_REAL_EQ(reference, actual) ASSERT_DOUBLE_EQ(reference, actual)
+    # define EXPECT_REAL_EQ(reference, actual) EXPECT_DOUBLE_EQ(reference, actual)
 #else
 #error float precision not properly set (4 or 8 bytes supported)
 #endif
