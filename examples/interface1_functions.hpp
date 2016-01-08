@@ -36,7 +36,7 @@ using namespace expressions;
 #ifndef MONOLITHIC
 #ifndef STENCIL_PROCEDURES
 #ifndef FUNCTIONS_OFFSETS
-#define STENCIL_PROCEDURES
+//#define STENCIL_PROCEDURES
 //#define FUNCTIONS_OFFSETS
 #endif
 #endif
