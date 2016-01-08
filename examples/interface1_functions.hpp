@@ -33,15 +33,6 @@ using namespace enumtype;
 using namespace expressions;
 #endif
 
-#ifndef MONOLITHIC
-#ifndef STENCIL_PROCEDURES
-#ifndef FUNCTIONS_OFFSETS
-//#define STENCIL_PROCEDURES
-//#define FUNCTIONS_OFFSETS
-#endif
-#endif
-#endif
-
 namespace horizontal_diffusion_functions{
 // This is the definition of the special regions in the "vertical" direction
 typedef gridtools::interval<level<0,-1>, level<1,-1> > x_lap;
@@ -78,7 +69,7 @@ struct flx_function {
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_flx) {
-#ifdef MONOLITHIC
+#ifdef FUNCTIONS_MONOLITHIC
 #pragma message "monolithic version";
         double _x_ = (gridtools::float_type)4.0*dom(in()) -
             (dom(in( -1, 0, 0)) + dom(in( 0, -1, 0)) +
@@ -87,7 +78,7 @@ struct flx_function {
             (dom(in( 0, 0, 0)) + dom(in( 1, -1, 0)) +
              dom(in(1, 1, 0)) + dom(in(2, 0, 0)));
 #else
-#ifdef STENCIL_PROCEDURES
+#ifdef FUNCTIONS_PROCEDURES
         double _x_;
         gridtools::call_proc<lap_function, x_flx>::at<0,0,0>::with(dom, _x_, in());
         double _y_;

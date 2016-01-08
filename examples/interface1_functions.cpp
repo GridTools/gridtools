@@ -2,6 +2,24 @@
 #include "Options.hpp"
 #include "interface1_functions.hpp"
 
+#ifdef FUNCTIONS_MONOLITHIC
+#define F_TESTNAME HorizontalDiffusionFunctionsMONOLITHIC
+#endif
+
+#ifdef FUNCTIONS_CALL
+#define F_TESTNAME HorizontalDiffusionFunctionsCALL
+#endif
+
+#ifdef FUNCTIONS_OFFSETS
+#define F_TESTNAME HorizontalDiffusionFunctionsOFFSETS
+#endif
+
+#ifdef FUNCTIONS_PROCEDURES
+#define F_TESTNAME HorizontalDiffusionFunctionsPROCEDURES
+#endif
+
+
+
 int main(int argc, char** argv)
 {
     // Pass command line arguments to googltest
@@ -23,7 +41,8 @@ int main(int argc, char** argv)
     return RUN_ALL_TESTS();
 }
 
-TEST(HorizontalDiffusion, Test)
+
+TEST(F_TESTNAME, Test)
 {
     uint_t x = Options::getInstance().m_size[0];
     uint_t y = Options::getInstance().m_size[1];
