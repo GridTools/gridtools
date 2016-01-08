@@ -1,5 +1,7 @@
 #pragma once
 
+#include <boost/mpl/count_if.hpp>
+
 namespace gridtools {
     namespace _impl {
         /** Metafunction to compute the index of the first accessor in the
@@ -55,9 +57,19 @@ namespace gridtools {
         };
 
 
-        template <typename Index, typename List>
-        struct is_non_accessor {
-            typedef typename boost::mpl::contains<List, Index>::type type;
+        template <typename ListOfIndices, typename Value>
+        struct contains_value {
+            template <typename TheValue>
+            struct has_value {
+                template <typename Element>
+                struct apply {
+                    static const bool value = Value::value == Element::value;
+                    using type = boost::mpl::bool_<value>;
+                };
+            };
+
+            using cnt = typename boost::mpl::count_if<ListOfIndices, typename has_value<Value>::template apply<boost::mpl::_>>::type;
+            using type = boost::mpl::bool_<cnt::value >= 1>;
             static const bool value = type::value;
         };
 
@@ -92,10 +104,11 @@ namespace gridtools {
         template <class First, typename ...Args>
         struct package_args<First, Args...>
         {
+            using thefirst = typename std::decay<First>::type;
             typedef typename boost::mpl::if_c<
-                is_accessor<First>::value,
-                First,
-                wrap_reference<First>
+                is_accessor<thefirst>::value,
+                thefirst,
+                wrap_reference<thefirst>
                 >::type to_pack;
             typedef typename boost::mpl::push_front<
                 typename package_args<Args...>::type, to_pack>::type type;
@@ -104,10 +117,11 @@ namespace gridtools {
         template <class T>
         struct package_args<T>
         {
+            using thefirst = typename std::decay<T>::type;
             typedef typename boost::mpl::if_c<
-                is_accessor<T>::value,
-                T,
-                wrap_reference<T>
+                is_accessor<thefirst>::value,
+                thefirst,
+                wrap_reference<thefirst>
                 >::type to_pack;
             typedef boost::mpl::vector<to_pack> type;
         };
