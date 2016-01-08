@@ -126,8 +126,6 @@ namespace gridtools {
         typename get_result_type<Evaluator, Functor>::type
         with(Evaluator const& eval, Args const & ...) {
 
-            // TODO: Mauro: The following check does not seem to work. Waiting for next version
-            // accessors to fix this
             static_assert(_impl::can_be_a_function<Functor>::value,
                           "Trying to invoke stencil operator with more than one output as a function\n");
 
@@ -257,8 +255,6 @@ namespace gridtools {
         typename get_result_type<Evaluator, Functor>::type
         with(Evaluator const& eval, Args const& ...args) {
 
-            // TODO: Mauro: The following check does not seem to work. Waiting for next version
-            // accessors to fix this
             static_assert(_impl::can_be_a_function<Functor>::value,
                           "Trying to invoke stencil operator with more than one output as a function\n");
 
