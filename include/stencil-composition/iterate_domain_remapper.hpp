@@ -47,9 +47,15 @@ class iterate_domain_remapper_base
 DISALLOW_COPY_AND_ASSIGN(iterate_domain_remapper_base);
 
     typedef typename _impl::iterate_domain_remapper_base_iterate_domain<IterateDomainEvaluatorImpl>::type iterate_domain_t;
+
 protected:
     const iterate_domain_t& m_iterate_domain;
 public:
+
+#ifdef CXX11_ENABLED
+    template <typename Accessor>
+    using accessor_return_type = typename iterate_domain_t::template accessor_return_type<Accessor>;
+#endif
 
     typedef typename _impl::iterate_domain_remapper_base_esf_args_map<IterateDomainEvaluatorImpl>::type esf_args_map_t;
 
@@ -67,8 +73,7 @@ public:
     auto
     operator() (Accessor const&  arg) const -> decltype(m_iterate_domain(arg))
 #else
-    typename iterate_domain_t::template accessor_return_type
-        <Accessor>::type
+        typename accessor_return_type<Accessor>::type
     operator() (Accessor const&  arg) const
 #endif
     {
