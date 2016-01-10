@@ -28,17 +28,20 @@ struct boundary : clonable_to_gpu<boundary> {
     template<typename ID>
     boundary * access_value() const {return const_cast<boundary*>(this);} //TODO change this?
 
+    // template<typename ID>
+    // boundary const*  access_value() const {return this;} //TODO change this?
+
 };
 
 struct functor{
     typedef accessor<0, enumtype::inout, extent<0,0,0,0> > sol;
-    typedef generic_accessor<1> bd;
+    typedef generic_accessor<1, enumtype::inout> bd;
     typedef boost::mpl::vector<sol> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION
     static void Do(Evaluation const & eval, x_interval) {
-        eval(sol())+=eval(bd())->value();
+        eval(sol())+=eval(bd()).value();
     }
 };
 

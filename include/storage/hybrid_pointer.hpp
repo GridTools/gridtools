@@ -195,15 +195,15 @@ namespace gridtools {
 
         void reset(T* cpu_p){m_cpu_p.reset(cpu_p);}
 
-        bool reset_managed(bool externally_managed_){m_cpu_p.reset_managed(externally_managed_);}
+        bool set_externally_managed(bool externally_managed_){m_cpu_p.set_externally_managed(externally_managed_);}
 
-        bool externally_managed() const {return m_cpu_p.externally_managed();}
+        bool is_externally_managed() const {return m_cpu_p.is_externally_managed();}
 
         /** the standard = operator */
         hybrid_pointer operator =(hybrid_pointer const& other){
             m_gpu_p = other.m_gpu_p;
             m_cpu_p.reset(other.m_cpu_p.get());
-            m_cpu_p.reset_managed(other.externally_managed());
+            m_cpu_p.set_externally_managed(other.is_externally_managed());
             m_pointer_to_use =other.m_pointer_to_use;
             m_size = other.m_size;
         }
