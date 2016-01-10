@@ -60,8 +60,11 @@ RUN chown --recursive docker:docker $HOME
 USER docker
 RUN  echo "CUDATOOLKIT_HOME=/usr/local/cuda" >> $HOME/.profile
 
-# install gridtools4py requirements inside a virtual environment
+# include GridTools source
+ADD gridtools_ccd7860 gridtools
 RUN echo "GRIDTOOLS_ROOT=$HOME/gridtools" >> $HOME/.profile
+
+# install gridtools4py requirements inside a virtual environment
 RUN virtualenv $HOME/venv                                                   && \
     . $HOME/venv/bin/activate                                               && \
     cd $HOME                                                                && \
