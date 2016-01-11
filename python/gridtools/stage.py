@@ -16,9 +16,10 @@ class StageBody (ast.NodeVisitor):
     """
     symbol_inspector = SymbolInspector ( )
 
-    def __init__ (self, nodes, scope, stencil_scope):
+    def __init__ (self, stage_name, nodes, scope, stencil_scope):
         """
         Constructs a functor body object
+        :param stage_name:    user provided name of the stage
         :param nodes:         an AST-node list representing the body of this 
                               functor
         :param scope:         the symbols scope of this functor
@@ -26,6 +27,7 @@ class StageBody (ast.NodeVisitor):
                               to this stage
         :raise TypeError:     if nodes is not iterable
         """
+        self.stage_name    = stage_name
         self.scope         = scope 
         self.stencil_scope = stencil_scope
         try:
@@ -336,7 +338,9 @@ class StageBody (ast.NodeVisitor):
                                       symbol.value,
                                       read_only=symbol.read_only)
         else:
-            raise NameError ("Unkown symbol '%s' in functor" % name)
+            # import ipdb; ipdb.set_trace()
+            raise NameError ("Unknown symbol '%s' in functor '%s'" % (name,
+                                                                      self.stage_name))
         #
         # resolve aliases before trying to inline
         #
@@ -495,7 +499,8 @@ class Stage ( ):
         #
         # the body of this functor
         #
-        self.body = StageBody (self.node.body,
+        self.body = StageBody (self.name,
+                               self.node.body,
                                self.scope,
                                self.stencil_scope)
 

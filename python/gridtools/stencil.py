@@ -89,7 +89,7 @@ class Stencil (object):
         return self.name
 
 
-    def _plot_graph (self, G):
+    def _plot_graph (self, G, outfile):
         """
         Renders graph 'G' using 'matplotlib'.-
         """
@@ -104,6 +104,8 @@ class Stencil (object):
                                 arrows=True)
         nx.draw_networkx_labels (G,
                                  pos=pos)
+        if outfile:
+            plt.savefig(outfile)
 
 
     @property
@@ -153,10 +155,10 @@ class Stencil (object):
             #
             i_dim, j_dim, k_dim = data_field.shape
 
-            start_i = 0     + self.halo[1] + ghost_cell[0]
-            end_i   = i_dim - self.halo[0] + ghost_cell[1]
-            start_j = 0     + self.halo[3] + ghost_cell[2]
-            end_j   = j_dim - self.halo[2] + ghost_cell[3]
+            start_i = 0     + self.halo[0] + ghost_cell[0]
+            end_i   = i_dim - self.halo[1] + ghost_cell[1]
+            start_j = 0     + self.halo[2] + ghost_cell[2]
+            end_j   = j_dim - self.halo[3] + ghost_cell[3]
 
             #
             # calculate 'k' iteration boundaries based 'k_direction'
@@ -171,6 +173,7 @@ class Stencil (object):
                 inc_k   = -1
             else:
                 logging.warning ("Ignoring unknown K direction '%s'" % self.k_direction)
+
             #
             # return the coordinate tuples in the correct order
             #
@@ -208,7 +211,7 @@ class Stencil (object):
             logging.error ("The passed Z field should be 2D")
 
 
-    def plot_data_dependency (self, graph=None):
+    def plot_data_dependency (self, graph=None, outfile=None):
         """
         Renders a data-depencency graph using 'matplotlib'
         :param graph: the graph to render; it renders this stencil's data
@@ -217,7 +220,7 @@ class Stencil (object):
         """
         if graph is None:
             graph = self.scope.data_dependency
-        self._plot_graph (graph)
+        self._plot_graph (graph, outfile)
 
 
     def run (self, *args, **kwargs):
@@ -241,6 +244,7 @@ class Stencil (object):
         #
         # analyze the stencil code
         #
+        self.kernel (**kwargs)
         Stencil.compiler.analyze (self, **kwargs)
         #
         # check the minimum halo has been given
@@ -580,18 +584,18 @@ class CombinedStencil (Stencil):
         return ret_value
 
 
-    def plot_data_graph (self):
+    def plot_data_graph (self, outfile=None):
         """
         Renders the data graph using 'matplotlib'.-
         """
-        self._plot_graph (self.data_graph)
+        self._plot_graph (self.data_graph, outfile)
 
 
-    def plot_execution_graph (self):
+    def plot_execution_graph (self, outfile=None):
         """
         Renders the execution graph using 'matplotlib'.-
         """
-        self._plot_graph (self.execution_graph)
+        self._plot_graph (self.execution_graph, outfile)
 
 
     def resolve (self, **kwargs):
