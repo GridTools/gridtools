@@ -42,7 +42,8 @@ struct function1 {
     template <typename Evaluation>
     GT_FUNCTION
     static void Do(Evaluation const & eval, x_lap) {
-        eval(out()) = (gridtools::float_type)eval(in());
+        eval(out()) = eval(in());
+        //std::cout << "function1" << std::endl;
     }
 };
 
@@ -50,17 +51,14 @@ struct function2 {
 
     typedef accessor<0, enumtype::inout> out;
     typedef accessor<1, enumtype::in> in;
-    typedef accessor<2, enumtype::in> lap;
+    typedef accessor<2, enumtype::in> temp;
 
-    typedef boost::mpl::vector<out, in, lap> arg_list;
+    typedef boost::mpl::vector<out, in, temp> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION
     static void Do(Evaluation const & eval, x_flx) {
-        eval(out()) = eval(lap(1,0,0))-eval(lap(0,0,0));
-        if (eval(out())*(eval(in(1,0,0))-eval(in(0,0,0))) > 0) {
-            eval(out()) = 0.;
-        }
+        eval(out()) = eval(temp())+eval(in());
     }
 };
 
@@ -75,10 +73,7 @@ struct function3 {
     template <typename Evaluation>
     GT_FUNCTION
     static void Do(Evaluation const & eval, x_flx) {
-        eval(out()) = eval(lap(0,1,0))-eval(lap(0,0,0));
-        if (eval(out())*(eval(in(0,1,0))-eval(in(0,0,0))) > 0) {
-            eval(out()) = 0.;
-        }
+        eval(out()) = eval(lap(0,1,0))-eval(in());
     }
 };
 
@@ -95,6 +90,58 @@ std::ostream& operator<<(std::ostream& s, function3 const) {
     return s << "function3";
 }
 
+    
+struct type1 {
+    int i,j,k;
+
+    type1() : i(0), j(0), k(0) {}
+    explicit type1(int i, int j, int k) : i(i), j(j), k(k) {}
+};
+    
+struct type4 {
+    float x,y,z;
+
+    type4() : x(0.), y(0.), z(0.) {}
+    explicit type4(double i, double j, double k) : x(i), y(j), z(k) {}
+
+    type4& operator=(type1 const& a) {
+        std::cout << "assign 4 <- 1" << std::endl;
+        x = a.i;
+        y = a.j;
+        z = a.k;
+        return *this;
+    }
+};
+
+    struct type2 {
+    double xy;
+    type2& operator=(type4 const & x) {
+        xy = x.x+x.y;
+        return *this;
+    }
+};
+    
+struct type3 {
+    double yz;
+
+    type3& operator=(type4 const & x) {
+        yz = x.y+x.z;
+        return *this;
+    }
+};
+    
+
+    type4 operator+(type4 const& a, type1 const& b) {
+        return type4(a.x+static_cast<double>(b.i),
+                     a.y+static_cast<double>(b.j),
+                     a.z+static_cast<double>(b.k));
+    }
+    type4 operator-(type4 const& a, type1 const& b) {
+        return type4(a.x-static_cast<double>(b.i),
+                     a.y-static_cast<double>(b.j),
+                     a.z-static_cast<double>(b.k));
+    }
+    
 bool test(uint_t x, uint_t y, uint_t z)
 {
 
@@ -109,11 +156,6 @@ bool test(uint_t x, uint_t y, uint_t z)
     typedef gridtools::layout_map<0,1,2> layout_type;//stride 1 on k
 #endif
 
-    typedef double type1;
-    typedef double type2;
-    typedef double type3;
-    typedef double type4;
-
     typedef gridtools::storage_info<0, layout_type> storage_info1_t;
     typedef gridtools::storage_info<1, layout_type> storage_info2_t;
     typedef gridtools::storage_info<2, layout_type> storage_info3_t;
@@ -124,9 +166,9 @@ bool test(uint_t x, uint_t y, uint_t z)
 
     typedef the_backend::temporary_storage_type<type4, storage_info1_t >::type tmp_storage_type;
 
-    storage_type1 field1 = storage_type1(storage_info1_t(x,y,z), 0, "field1");
-    storage_type2 field2 = storage_type2(storage_info2_t(x,y,z), 0, "field2");
-    storage_type3 field3 = storage_type3(storage_info3_t(x,y,z), 0, "field3");
+    storage_type1 field1 = storage_type1(storage_info1_t(x,y,z), type1(), "field1");
+    storage_type2 field2 = storage_type2(storage_info2_t(x,y,z), type2(), "field2");
+    storage_type3 field3 = storage_type3(storage_info3_t(x,y,z), type3(), "field3");
 
     typedef arg<0, tmp_storage_type > p_temp;
     typedef arg<1, storage_type1 > p_field1;
