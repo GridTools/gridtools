@@ -196,7 +196,7 @@ namespace gridtools{
         assign_raw_data_functor( assign_raw_data_functor const& other): m_data_pointer_array(other.m_data_pointer_array), m_storage(other.m_storage), m_offset(other.m_offset){}
 
         GT_FUNCTION
-        assign_raw_data_functor(DataPointerArray& RESTRICT data_pointer_array, Storage const * RESTRICT storage, uint const offset_) :
+        assign_raw_data_functor(DataPointerArray& RESTRICT data_pointer_array, Storage const * RESTRICT storage, uint_t const offset_) :
             m_data_pointer_array(data_pointer_array), m_storage(storage), m_offset(offset_) {}
 
         template <typename ID>
