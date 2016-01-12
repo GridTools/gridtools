@@ -73,7 +73,7 @@ public:
     auto
     operator() (Accessor const&  arg) const -> decltype(m_iterate_domain(arg))
 #else
-        typename accessor_return_type<Accessor>::type
+    typename accessor_return_type<Accessor>::type
     operator() (Accessor const&  arg) const
 #endif
     {

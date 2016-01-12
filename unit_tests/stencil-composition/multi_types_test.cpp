@@ -1,5 +1,6 @@
 #include <gridtools.hpp>
 #include <stencil-composition/stencil-composition.hpp>
+#include <stencil-composition/structured_grids/call_interfaces.hpp>
 #include <tools/verifier.hpp>
 #include "gtest/gtest.h"
 
@@ -27,70 +28,10 @@ typedef gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Naive
 #endif
 #endif
 
-typedef gridtools::interval<level<0,-1>, level<1,-1> > x_lap;
-typedef gridtools::interval<level<0,-1>, level<1,-1> > x_flx;
-typedef gridtools::interval<level<0,-1>, level<1,-1> > x_out;
+typedef gridtools::interval<level<0,-1>, level<1,-1> > region;
 
 typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
 
-struct function1 {
-    typedef accessor<0, enumtype::inout> out;
-    typedef accessor<1, enumtype::in > in;
-
-    typedef boost::mpl::vector<out, in> arg_list;
-
-    template <typename Evaluation>
-    GT_FUNCTION
-    static void Do(Evaluation const & eval, x_lap) {
-        eval(out()) = eval(in());
-        //std::cout << "function1" << std::endl;
-    }
-};
-
-struct function2 {
-
-    typedef accessor<0, enumtype::inout> out;
-    typedef accessor<1, enumtype::in> in;
-    typedef accessor<2, enumtype::in> temp;
-
-    typedef boost::mpl::vector<out, in, temp> arg_list;
-
-    template <typename Evaluation>
-    GT_FUNCTION
-    static void Do(Evaluation const & eval, x_flx) {
-        eval(out()) = eval(temp())+eval(in());
-    }
-};
-
-struct function3 {
-
-    typedef accessor<0, enumtype::inout> out;
-    typedef accessor<1, enumtype::in> in;
-    typedef accessor<2, enumtype::in> lap;
-
-    typedef boost::mpl::vector<out, in, lap> arg_list;
-
-    template <typename Evaluation>
-    GT_FUNCTION
-    static void Do(Evaluation const & eval, x_flx) {
-        eval(out()) = eval(lap(0,1,0))-eval(in());
-    }
-};
-
-/*
- * The following operators and structs are for debugging only
- */
-std::ostream& operator<<(std::ostream& s, function1 const) {
-    return s << "function1";
-}
-std::ostream& operator<<(std::ostream& s, function2 const) {
-    return s << "function2";
-}
-std::ostream& operator<<(std::ostream& s, function3 const) {
-    return s << "function3";
-}
-
-    
 struct type1 {
     int i,j,k;
 
@@ -131,17 +72,91 @@ struct type3 {
 };
     
 
-    type4 operator+(type4 const& a, type1 const& b) {
-        return type4(a.x+static_cast<double>(b.i),
-                     a.y+static_cast<double>(b.j),
-                     a.z+static_cast<double>(b.k));
-    }
-    type4 operator-(type4 const& a, type1 const& b) {
-        return type4(a.x-static_cast<double>(b.i),
-                     a.y-static_cast<double>(b.j),
-                     a.z-static_cast<double>(b.k));
-    }
+type4 operator+(type4 const& a, type1 const& b) {
+    return type4(a.x+static_cast<double>(b.i),
+                 a.y+static_cast<double>(b.j),
+                 a.z+static_cast<double>(b.k));
+}
+type4 operator-(type4 const& a, type1 const& b) {
+    return type4(a.x-static_cast<double>(b.i),
+                 a.y-static_cast<double>(b.j),
+                 a.z-static_cast<double>(b.k));
+}
     
+struct function0 {
+    typedef accessor<0, enumtype::in > in;
+    typedef accessor<1, enumtype::inout> out;
+
+    typedef boost::mpl::vector<in, out> arg_list;
+
+    template <typename Evaluation>
+    GT_FUNCTION
+    static void Do(Evaluation const & eval, region) {
+        eval(out()).i = eval(in()).i+1;
+        eval(out()).j = eval(in()).j+1;
+        eval(out()).k = eval(in()).k+1;
+        //std::cout << "function0" << std::endl;
+    }
+};
+
+struct function1 {
+    typedef accessor<0, enumtype::inout> out;
+    typedef accessor<1, enumtype::in > in;
+
+    typedef boost::mpl::vector<out, in> arg_list;
+
+    template <typename Evaluation>
+    GT_FUNCTION
+    static void Do(Evaluation const & eval, region) {
+        auto result = call<function0, region>::with(eval, in());
+        eval(out()) = result;
+        //std::cout << "function1" << std::endl;
+    }
+};
+
+struct function2 {
+
+    typedef accessor<0, enumtype::inout> out;
+    typedef accessor<1, enumtype::in> in;
+    typedef accessor<2, enumtype::in> temp;
+
+    typedef boost::mpl::vector<out, in, temp> arg_list;
+
+    template <typename Evaluation>
+    GT_FUNCTION
+    static void Do(Evaluation const & eval, region) {
+        eval(out()) = eval(temp())+eval(in());
+    }
+};
+
+struct function3 {
+
+    typedef accessor<0, enumtype::inout> out;
+    typedef accessor<1, enumtype::in> lap;
+    typedef accessor<2, enumtype::in> in;
+
+    typedef boost::mpl::vector<out, in, lap> arg_list;
+
+    template <typename Evaluation>
+    GT_FUNCTION
+    static void Do(Evaluation const & eval, region) {
+        eval(out()) = eval(lap(0,1,0))-eval(in());
+    }
+};
+
+/*
+ * The following operators and structs are for debugging only
+ */
+std::ostream& operator<<(std::ostream& s, function1 const) {
+    return s << "function1";
+}
+std::ostream& operator<<(std::ostream& s, function2 const) {
+    return s << "function2";
+}
+std::ostream& operator<<(std::ostream& s, function3 const) {
+    return s << "function3";
+}
+
 bool test(uint_t x, uint_t y, uint_t z)
 {
 
@@ -208,7 +223,7 @@ bool test(uint_t x, uint_t y, uint_t z)
             (
                 execute<backward>(),
                 gridtools::make_esf<function1>(p_temp(), p_field1()),
-                gridtools::make_esf<function3>(p_field3(), p_field1(), p_temp())
+                gridtools::make_esf<function3>(p_field3(), p_temp(), p_field1())
             ),
             domain, grid
         );
