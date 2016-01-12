@@ -114,6 +114,8 @@ namespace gridtools{
 
         enum strategy  {Naive, Block};
 
+        enum grid_type {regular, rectilinear, unstructured};
+
         /** struct in order to perform templated methods partial specialization (Alexantrescu's trick, pre-c++11)*/
         template<typename EnumType, EnumType T>
         struct enum_type

@@ -28,7 +28,8 @@ namespace gridtools{
     struct space_dimensions<partitioner_trivial<TopologyType, Communicator> >{static const ushort_t value = TopologyType::space_dimensions;};
 
 
-    /** skeyword to be used at the user interface level when specifyng the boundary conditions*/
+    /** @brief keyword to be used at the user interface level when specifyng the boundary conditions
+     */
     struct up{
         template <typename Derived>
         static constexpr typename Derived::Flag value(){

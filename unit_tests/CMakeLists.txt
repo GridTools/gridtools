@@ -46,6 +46,7 @@ endif()
 
 gridtools_add_test(test.tests ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/tests")
 
+
 if (CUDA_FOUND)
     cuda_add_executable( tests_gpu
       tests.cu

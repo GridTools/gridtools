@@ -77,14 +77,13 @@ int main(){
     //dimensions of the problem (in number of elements per dimension)
     auto d1=8;
     auto d2=8;
-    auto d3=1;
+    auto d3=8;
 
     geo_t geo_;
     geo_.compute(Intrepid::OPERATOR_GRAD);
     geo_.compute(Intrepid::OPERATOR_VALUE);
     //![as_instantiation]
     //constructing the integration tools on the boundary
-
 
     as_base assembler_base(d1,d2,d3);
     as assembler(geo_,d1,d2,d3);
@@ -101,9 +100,9 @@ int main(){
             for (uint_t k=0; k<d3; k++)
                 for (uint_t point=0; point<geo_map::basisCardinality; point++)
                 {
-                    assembler_base.grid()( i,  j,  k,  point,  0)= (i + geo_.grid()(point, 0, 0));
-                    assembler_base.grid()( i,  j,  k,  point,  1)= (j + geo_.grid()(point, 1, 0));
-                    assembler_base.grid()( i,  j,  k,  point,  2)= (k + geo_.grid()(point, 2, 0));
+                    assembler_base.grid()( i,  j,  k,  point,  0)= (i + geo_.grid()(point, 0, 0))/d1;
+                    assembler_base.grid()( i,  j,  k,  point,  1)= (j + geo_.grid()(point, 1, 0))/d2;
+                    assembler_base.grid()( i,  j,  k,  point,  2)= (k + geo_.grid()(point, 2, 0))/d3;
                 }
     //![grid]
 

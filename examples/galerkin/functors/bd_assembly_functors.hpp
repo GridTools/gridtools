@@ -173,12 +173,15 @@ namespace functors{
 
     // //! [det]
 
-    template<typename Geometry, ushort_t Codimensoin>
-    struct measure;
+    template<typename Geometry, ushort_t SpaceDimension, ushort_t Codimensoin>
+    struct measure_impl;
+
+    template <typename Geometry, ushort_t Codimension>
+    using measure = measure_impl<Geometry, shape_property<Geometry::parent_shape>::dimension, Codimension>;
 
     //! [measure]
     template<typename Geometry>
-    struct measure<Geometry, 1>{
+    struct measure_impl<Geometry, 3, 1>{
         using cub=typename Geometry::cub;
 
         using jac = accessor<0, enumtype::in, extent<0,0,0,0> , 7> const;
@@ -216,7 +219,45 @@ namespace functors{
             }
         }
     };
-        //! [measure]
+
+
+    //avoid the code repetition with the functor above! (easily done)
+    template<typename Geometry>
+    struct measure_impl<Geometry, 2, 1>{
+        using cub=typename Geometry::cub;
+
+        using jac = accessor<0, enumtype::in, extent<0,0,0,0> , 7> const;
+        using jac_det =  accessor<1, enumtype::inout, extent<0,0,0,0> , 5>;
+        using arg_list= boost::mpl::vector< jac, jac_det > ;
+
+        template <typename Evaluation>
+        GT_FUNCTION
+        static void Do(Evaluation const & eval, x_interval) {
+            dimension<4>::Index qp;
+            dimension<5>::Index dimx;
+            dimension<6>::Index dimy;
+
+            uint_t const num_faces=eval.get().template get_storage_dims<4>(jac_det());
+            uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac_det());
+
+            for(short_t face_=0; face_< num_faces; ++face_)
+            {
+                alias<jac, dimension<7> > J(face_);
+                alias<jac_det, dimension<5> > Jdet(face_);
+
+                for(short_t q=0; q< num_cub_points; ++q)
+                {
+                    eval( Jdet(qp+q) )= eval(
+                        (
+                            J(        qp+q)*J(dimx+1, dimy+1, qp+q) - //probably wrong
+                            J(dimy+1, qp+q)*J(dimx+1,         qp+q)
+                            )
+                        );
+                }
+            }
+        }
+    };
+    //! [measure]
 
 
     // [normals]

@@ -43,14 +43,6 @@ int main(){
     geo_.compute(Intrepid::OPERATOR_GRAD);
     //![instantiation]
 
-#ifdef NDEBUG
-    constexpr
-#endif
-        meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{3, 3, 1};
-    dimension<1>::Index i;
-    dimension<2>::Index j;
-    dimension<4>::Index row;
-
     using as=assembly<geo_t>;
     using as_base=assembly_base<geo_t>;
 

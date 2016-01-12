@@ -21,7 +21,7 @@ namespace functors{
         //![accessors]
 
         //![Do_advection]
-        template <typename Evaluation>
+        template <typename Evaluation >
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 
@@ -60,6 +60,6 @@ namespace functors{
                 }
             }
         }
-        //![Do_advection]
+
     };
 }//namespace functors

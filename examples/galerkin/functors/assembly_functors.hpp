@@ -465,7 +465,6 @@ namespace functors{
 			}
 		}
     };
-
     // [assemble]
 
     /* assigns a field to a constant value**/

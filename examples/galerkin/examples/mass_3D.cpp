@@ -9,7 +9,7 @@
 
 int main(){
 
-	//![definitions]
+    //![definitions]
     //dimensions of the problem (in number of elements per dimension)
     auto d1=1;
     auto d2=2;
@@ -132,11 +132,11 @@ int main(){
 
     //![computation]
     auto computation=make_computation<gridtools::BACKEND>(make_mss(execute<forward>(),
-    															   make_esf<functors::update_jac<geo_t> >(dt::p_grid_points(), p_dphi(), dt::p_jac()),
-    															   make_esf<functors::det< geo_t > >(dt::p_jac(), dt::p_jac_det()),
-																   make_esf<functors::mass<fe, cub> >(dt::p_jac_det(), dt::p_weights(), p_phi(), p_phi(), p_mass())),
-														  domain,
-														  coords);
+                                                                   make_esf<functors::update_jac<geo_t> >(dt::p_grid_points(), p_dphi(), dt::p_jac()),
+                                                                   make_esf<functors::det< geo_t > >(dt::p_jac(), dt::p_jac_det()),
+                                                                   make_esf<functors::mass<fe, cub> >(dt::p_jac_det(), dt::p_weights(), p_phi(), p_phi(), p_mass())),
+                                                          domain,
+                                                          coords);
     computation->ready();
     computation->steady();
     computation->run();
@@ -146,21 +146,20 @@ int main(){
 
     //![assembly_computation]
     auto assembly_coords=grid<axis>({0, 0, 0, num_dofs-1, num_dofs},
-									{0, 0, 0, num_dofs-1, num_dofs});
+        {0, 0, 0, num_dofs-1, num_dofs});
     assembly_coords.value_list[0] = 0;
     assembly_coords.value_list[1] = 0;
 
 
     auto assembly_computation=make_computation<gridtools::BACKEND>(make_mss(execute<forward>(),
-    															   make_esf<functors::global_assemble_no_if>(p_mass(),p_grid_map(),p_global_mass_gt())),
-														  domain,
-														  assembly_coords);
+                                                                            make_esf<functors::global_assemble_no_if>(p_mass(),p_grid_map(),p_global_mass_gt())),
+                                                                   domain,
+                                                                   assembly_coords);
     assembly_computation->ready();
     assembly_computation->steady();
     assembly_computation->run();
     assembly_computation->finalize();
     //![assembly_computation]
-
 
     //![computation]
     return test_mass(assembler_base, assembler, fe_, mass_)==true;
