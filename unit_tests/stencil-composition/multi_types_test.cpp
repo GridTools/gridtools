@@ -148,15 +148,15 @@ struct function2 {
 struct function3 {
 
     typedef accessor<0, enumtype::inout> out;
-    typedef accessor<1, enumtype::in> lap;
+    typedef accessor<1, enumtype::in> temp;
     typedef accessor<2, enumtype::in> in;
 
-    typedef boost::mpl::vector<out, in, lap> arg_list;
+    typedef boost::mpl::vector<out, temp, in> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION
     static void Do(Evaluation const & eval, region) {
-        eval(out()) = eval(lap(0,1,0))-eval(in());
+        eval(out()) = eval(temp())-eval(in());
     }
 };
 
