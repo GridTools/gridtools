@@ -90,13 +90,15 @@ namespace gridtools {
 
         template <typename Type>
         struct wrap_reference {
-            Type * p_value;
+            using type = Type;
 
-            wrap_reference(Type const& v)
-                : p_value(const_cast<typename std::decay<Type>::type*>(&v))
+            type * p_value;
+
+            wrap_reference(type const& v)
+                : p_value(const_cast<typename std::decay<type>::type*>(&v))
             {}
 
-            Type& value() const {return *p_value;}
+            type& value() const {return *p_value;}
         };
 
         template <typename ...Args> struct package_args;
