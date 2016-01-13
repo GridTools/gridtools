@@ -65,11 +65,13 @@ struct wrap_pointer{
         return *this;
     }
 
-    pointee_t* get() const {return m_cpu_p;}
+    pointee_t * get() const {return m_cpu_p;}
 
     void reset(T* cpu_p){m_cpu_p=cpu_p;}
 
-    bool externally_managed(){return m_externally_managed;}
+    bool set_externally_managed(bool externally_managed_){m_externally_managed = externally_managed_;}
+
+    bool is_externally_managed() const {return m_externally_managed;}
 
   GT_FUNCTION
   virtual ~wrap_pointer(){

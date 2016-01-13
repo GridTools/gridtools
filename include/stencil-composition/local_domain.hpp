@@ -47,6 +47,7 @@ namespace gridtools {
                      <IndicesList, Id>::type>::type::index_type index_t;
 
                 boost::fusion::at_c<Id::value>(m_local_list) =
+
 #ifdef __CUDACC__ // ugly ifdef. TODO: way to remove it?
                     boost::fusion::at_c<index_t::value>(m_arg_list)->gpu_object_ptr;
 #else
@@ -264,7 +265,6 @@ namespace gridtools {
                                             >
                                            >
                                           >::type storage_metadata_map;
-
 
         typedef typename boost::fusion::result_of::as_vector<mpl_storages>::type local_args_type;
         typedef typename boost::fusion::result_of::as_vector<mpl_actual_storages>::type actual_args_type;

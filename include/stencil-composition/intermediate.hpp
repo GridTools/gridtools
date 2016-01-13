@@ -127,17 +127,21 @@ namespace gridtools {
             struct is_temp<no_storage_type_yet<T> > : public boost::true_type
             { };
 
-            template <bool b, typename Storage, typename tmppairs, typename index>
+            template <bool is_temp, typename Storage, typename tmppairs, typename index>
             struct get_the_type;
 
             template <typename Storage, typename tmppairs, typename index>
             struct get_the_type<true, Storage, tmppairs,index> {
-                typedef typename boost::mpl::deref<
-                    typename boost::mpl::find_if<
-                        tmppairs,
-                        has_index_<index>
-                        >::type
-                    >::type::first type;
+                typedef typename boost::mpl::find_if<
+                    tmppairs,
+                    has_index_<index>
+                >::type iter;
+
+                GRIDTOOLS_STATIC_ASSERT((!boost::is_same<iter, typename boost::mpl::end<tmppairs>::type >::value),
+                    "Could not find a temporary, defined in the user domain_type, in the list of storage types used in all mss/esfs. \n"
+                    " Check that all temporaries are actually used in at least one user functor");
+
+                typedef typename boost::mpl::deref<iter>::type::first type;
             };
 
             template <typename Storage, typename tmppairs, typename index>
@@ -592,7 +596,6 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(
                     (boost::mpl::size<typename mss_components_array_t::elements>::value == boost::mpl::size<mss_local_domains_t>::value),
                     "Internal Error");
-
             m_meter.start();
             Backend::template run<mss_components_array_t>( m_grid, m_mss_local_domain_list );
             m_meter.pause();

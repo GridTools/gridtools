@@ -107,5 +107,9 @@ struct storage_holds_data_field : boost::mpl::bool_<(T::field_dimensions > 1)>{}
     struct is_not_tmp_storage : boost::mpl::or_<is_storage<T>, boost::mpl::not_<is_any_storage<T > > >{
     };
 
+    template < typename T>
+    struct storage_pointer_type{
+        typedef typename  T::pointer_type type;
+    };
 
 }
