@@ -318,7 +318,11 @@ namespace gridtools {
             template <typename Accessor>
             GT_FUNCTION
             constexpr
-            typename boost::enable_if_c<not _impl::contains_value<non_accessor_indices, typename Accessor::index_type>::value, typename CallerAggregator::value_type>::type
+            typename boost::enable_if_c<
+                not _impl::contains_value<non_accessor_indices,
+                                          typename Accessor::index_type>::value,
+                typename CallerAggregator::template accessor_return_type<typename boost::mpl::at_c<PassedArguments, Accessor::index_type::value>::type>::type
+                >::type
             operator()(Accessor const& accessor) const {
                 return m_caller_aggregator
                     (typename boost::mpl::at_c<PassedArguments, Accessor::index_type::value>::type
@@ -333,16 +337,55 @@ namespace gridtools {
                       +boost::fusion::at_c<Accessor::index_type::value>(m_accessors_list).template get<0>()));
             }
 
+            // template <typename Accessor>
+            // GT_FUNCTION
+            // constexpr
+            // typename boost::enable_if_c<
+            //     _impl::contains_value<non_accessor_indices,
+            //                           typename Accessor::index_type>::value,
+            //     typename std::decay<typename boost::fusion::result_of::at_c<accessors_list_t, Accessor::index_type::value>::type>::type::type
+            //     >::type&
+            // operator()(Accessor const&) const {
+            //     // std::cout << "Giving the ref (OutArg=" << OutArg << ") " << m_result << std::endl;
+            //     return (boost::fusion::at_c<Accessor::index_type::value>(m_accessors_list).value());
+            // }
             template <typename Accessor>
             GT_FUNCTION
             constexpr
-            typename boost::enable_if_c<_impl::contains_value<non_accessor_indices, typename Accessor::index_type>::value, typename CallerAggregator::value_type>::type&
+            typename boost::enable_if_c<
+                _impl::contains_value<non_accessor_indices,
+                                      typename Accessor::index_type>::value,
+                typename boost::remove_reference<typename boost::fusion::result_of::at_c<accessors_list_t, Accessor::index_type::value>::type>::type::type
+                >::type&
             operator()(Accessor const&) const {
                 // std::cout << "Giving the ref (OutArg=" << OutArg << ") " << m_result << std::endl;
                 return (boost::fusion::at_c<Accessor::index_type::value>(m_accessors_list).value());
             }
 
+            // /** @brief method called in the Do methods of the functors. */
+            // template <typename ... Arguments, template<typename ... Args> class Expression >
+            // GT_FUNCTION
+            // constexpr
+            // auto operator() (Expression<Arguments ... > const& arg) const
+            //     ->decltype(evaluation::value(*this, arg))
+            // {
+            //     //arg.to_string();
+            //     return evaluation::value((*this), arg);
+            // }
+
+            // /** @brief method called in the Do methods of the functors.
+            //     partial specializations for double (or float)*/
+            // template <typename Accessor, template<typename Arg1, typename Arg2> class Expression, typename FloatType
+            //           , typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
+            // GT_FUNCTION
+            // constexpr
+            // auto operator() (Expression<Accessor, FloatType> const& arg) const
+            //     ->decltype(evaluation::value_scalar(*this, arg)) {
+            //     //TODO RENAME ACCESSOR,is not an accessor but an expression, and add an assertion for type
+            //     return evaluation::value_scalar((*this), arg);
+            // }
         };
+
     } //namespace _impl
 
 
