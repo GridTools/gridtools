@@ -28,6 +28,7 @@ enum cache_type
     K,   // processing of all the K elements is done by same thread, so resources for K caches can be private
          // and do not require synchronization. GPU backend uses registers.
     IJK, // IJK caches is an extension to 3rd dimension of IJ caches. GPU backend uses shared memory
+    bypass // bypass the cache for read only parameters
 };
 
 }

@@ -102,7 +102,7 @@ namespace gridtools{
            @{
          */
         /** enum specifying the type of backend we use */
-        enum backend  {Cuda, Host};
+        enum platform  {Cuda, Host};
 
         enum strategy  {Naive, Block};
 
@@ -135,9 +135,12 @@ namespace gridtools{
         {
             typedef execute_impl<parallel_impl, forward> type;
         };
-        /**
-           @}
+
+        /*
+         * accessor I/O policy
          */
+        enum intend {in, inout} ;
+
     }//namespace enumtype
 
 
@@ -155,7 +158,7 @@ namespace gridtools{
 #ifdef CXX11_ENABLED
     /** checking that no arithmetic operation is performed on enum types*/
     template<>
-    struct is_backend_enum<enumtype::backend> : boost::mpl::true_ {};
+    struct is_backend_enum<enumtype::platform> : boost::mpl::true_ {};
     struct error_no_operator_overload{};
 
     template <typename  ArgType1, typename ArgType2,
@@ -224,6 +227,12 @@ namespace gridtools{
     typedef double float_type;
 #else
 #error float precision not properly set (4 or 8 bytes supported)
+#endif
+
+#ifdef STRUCTURED_GRIDS
+    #define GRIDPREFIX strgrid
+#else
+    #define GRIDPREFIX icgrid
 #endif
 
 #ifdef CXX11_ENABLED

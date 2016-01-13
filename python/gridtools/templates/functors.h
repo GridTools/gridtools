@@ -10,7 +10,7 @@
 
 
 using gridtools::accessor;
-using gridtools::range;
+using gridtools::extent;
 
 using namespace gridtools;
 

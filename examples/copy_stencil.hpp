@@ -1,6 +1,8 @@
 #pragma once
 
-#include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/stencil-composition.hpp>
+#include "cache_flusher.hpp"
+#include "defs.hpp"
 
 /**
   @file
@@ -9,7 +11,7 @@
 
 using gridtools::level;
 using gridtools::accessor;
-using gridtools::range;
+using gridtools::extent;
 using gridtools::arg;
 
 using namespace gridtools;
@@ -30,8 +32,8 @@ namespace copy_stencil{
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
 
-        typedef const accessor<0, range<0,0,0,0>, 3> in;
-        typedef accessor<1, range<0,0,0,0>, 3> out;
+        typedef accessor<0, enumtype::in, extent<>, 3> in;
+        typedef accessor<1, enumtype::inout, extent<>, 3> out;
         typedef boost::mpl::vector<in,out> arg_list;
 
         template <typename Evaluation>
@@ -51,11 +53,9 @@ namespace copy_stencil{
     void handle_error(int_t)
     {std::cout<<"error"<<std::endl;}
 
-    typedef storage_info< 0, layout_t > meta_data_t;
+    bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps) {
 
-    bool test(uint_t x, uint_t y, uint_t z) {
-
-        meta_data_t meta_data_(x,y,z);
+        cache_flusher flusher(cache_flusher_size);
 
         uint_t d1 = x;
         uint_t d2 = y;
@@ -71,14 +71,20 @@ namespace copy_stencil{
 #endif
 #endif
 
+    typedef meta_storage<meta_storage_base<__COUNTER__, layout_t, false> > meta_data_t;
+    typedef storage< base_storage<typename BACKEND::backend_traits_t::pointer<float_type>::type, meta_data_t, 1> > storage_t;
+
+    // typedef BACKEND::storage_info< 0, layout_t > meta_data_t;
+        meta_data_t meta_data_(x,y,z);
+
         //                   strides  1 x xy
         //                      dims  x y z
-        typedef gridtools::BACKEND::storage_type<float_type, meta_data_t >::type storage_t;
+        // typedef gridtools::BACKEND::storage_type<float_type, meta_data_t >::type storage_t;
 
         // Definition of the actual data fields that are used for input/output
         typedef storage_t storage_type;
         storage_type in(meta_data_, "in");
-        storage_type out(meta_data_, -1.);
+        storage_type out(meta_data_, float_type(-1.));
         for(uint_t i=0; i<d1; ++i)
             for(uint_t j=0; j<d2; ++j)
                 for(uint_t k=0; k<d3; ++k)
@@ -104,13 +110,13 @@ namespace copy_stencil{
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
-        // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
+        // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
         uint_t di[5] = {0, 0, 0, d1-1, d1};
         uint_t dj[5] = {0, 0, 0, d2-1, d2};
 
-        gridtools::coordinates<axis> coords(di, dj);
-        coords.value_list[0] = 0;
-        coords.value_list[1] = d3-1;
+        gridtools::grid<axis> grid(di, dj);
+        grid.value_list[0] = 0;
+        grid.value_list[1] = d3-1;
 
         /*
           Here we do lot of stuff
@@ -138,7 +144,7 @@ namespace copy_stencil{
                         ,p_out()
                         )
                 ),
-                domain, coords
+                domain, grid
             );
 
         copy->ready();
@@ -147,10 +153,8 @@ namespace copy_stencil{
 
         copy->run();
 
-        copy->finalize();
-
-#ifdef BENCHMARK
-        std::cout << copy->print_meter() << std::endl;
+#ifdef __CUDACC__
+        out.data().update_cpu();
 #endif
 
         bool success = true;
@@ -170,6 +174,16 @@ namespace copy_stencil{
                             success = false;
                         }
                 }
+
+#ifdef BENCHMARK
+        for(uint_t t=1; t < t_steps; ++t){
+            flusher.flush();
+            copy->run();
+        }
+        copy->finalize();
+        std::cout << copy->print_meter() << std::endl;
+#endif
+
         return success;
     }
 }//namespace copy_stencil

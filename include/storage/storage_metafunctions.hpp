@@ -6,6 +6,7 @@
 */
 
 #include "storage.hpp"
+#include "base_storage.hpp"
 
 namespace gridtools{
 
@@ -16,14 +17,67 @@ namespace gridtools{
 template<typename T>
 struct storage_holds_data_field : boost::mpl::bool_<(T::field_dimensions > 1)>{};
 
-
     /**@brief metafunction to extract the metadata from a storage
+
     */
     template<typename Storage>
     struct storage2metadata{
         typedef typename Storage::meta_data_t
         type;
     };
+
+    /**
+       \addtogroup specializations Specializations
+       @{
+    */
+    template <typename U>
+    struct is_temporary_storage<no_storage_type_yet<U>  > : public boost::true_type
+    {};
+
+    template <typename T, typename U, ushort_t Dim>
+    struct is_actual_storage<base_storage<T,U,Dim>  *  > : public boost::mpl::bool_< !U::is_temporary >
+    {};
+
+    template <typename U>
+    struct is_actual_storage<no_storage_type_yet<U>  *  > : public boost::false_type
+    {};
+
+    template <typename U>
+    struct is_temporary_storage<no_storage_type_yet<U>* > : public boost::true_type
+    {};
+
+    template <typename U>
+    struct is_temporary_storage<no_storage_type_yet<U>& > : public boost::true_type
+    {};
+
+    //Decorator is the storage
+    template <typename BaseType , template <typename T> class Decorator >
+    struct is_actual_storage<Decorator<BaseType>  *  > : public is_actual_storage<typename BaseType::basic_type*>
+    {};
+
+    //Decorator is the storage
+    template <typename BaseType , template <typename T> class Decorator >
+    struct is_actual_storage<Decorator<BaseType> > : public is_actual_storage<typename BaseType::basic_type*>
+    {};
+
+#ifdef CXX11_ENABLED
+    //Decorator is the integrator
+    template <typename First, typename ... BaseType , template <typename ... T> class Decorator >
+    struct is_actual_storage<Decorator<First, BaseType...>  *  > : public is_actual_storage<typename First::basic_type*>
+    {};
+#else
+
+    //Decorator is the integrator
+    template <typename First, typename B2, typename  B3 , template <typename T1, typename T2, typename T3> class Decorator >
+    struct is_actual_storage<Decorator<First, B2, B3>  *  > : public is_actual_storage<typename First::basic_type*>
+    {};
+
+#endif
+
+    //Decorator is the integrator
+    template <typename BaseType , template <typename T, ushort_t O> class Decorator, ushort_t Order >
+    struct is_actual_storage<Decorator<BaseType, Order>  *  > : public is_actual_storage<typename BaseType::basic_type*>
+    {};
 
     template <typename T>
     struct is_any_storage : boost::mpl::false_{};
@@ -47,7 +101,12 @@ struct storage_holds_data_field : boost::mpl::bool_<(T::field_dimensions > 1)>{}
     struct is_any_storage<no_storage_type_yet<T>*& > : boost::mpl::true_{};
 
     template<typename T>
-    struct is_not_tmp_storage : boost::mpl::or_<is_storage<T>, boost::mpl::not_<is_any_storage<T > > >{
+    struct is_not_tmp_storage : boost::mpl::or_<is_actual_storage<T>, boost::mpl::not_<is_any_storage<T > > >{
+    };
+
+    template < typename T>
+    struct storage_pointer_type{
+        typedef typename  T::pointer_type type;
     };
 
 }

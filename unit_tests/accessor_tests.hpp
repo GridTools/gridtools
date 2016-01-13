@@ -1,3 +1,5 @@
+/*@file */
+
 #include <gridtools.hpp>
 #include <stencil-composition/accessor.hpp>
 #include <stencil-composition/expressions.hpp>
@@ -6,7 +8,7 @@ namespace interface{
 /** @brief simple interface
  */
     bool test_trivial() {
-        accessor<0, range<0,0,0,0>, 3> first(3,2,-1);
+        accessor<0, enumtype::inout, extent<0,0,0,0>, 3> first(3,2,-1);
         return first.get<2>()==3 && first.get<1>()==2 && first.get<0>()==-1 ;
 
     }
@@ -14,7 +16,7 @@ namespace interface{
 /** @brief interface with out-of-order optional arguments
  */
     bool test_alternative1() {
-        accessor<0, range<0,0,0,0>, 6> first(dimension<6>(-6), dimension<4>(12));
+        accessor<0, enumtype::inout, extent<0,0,0,0>, 6> first(dimension<6>(-6), dimension<4>(12));
 
         return first.get<5-0>()==0 && first.get<5-1>()==0 && first.get<5-2>()==0 && first.get<5-3>()==12 && first.get<5-4>()==0 && first.get<5-5>()==-6 ;
 
@@ -30,9 +32,9 @@ namespace interface{
 
         constexpr x::Index i;
         constexpr dimension<4>::Index t;
-        constexpr accessor<0, range<0,0,0,0>, 4> first(i-5, t+2, dimension<3>(8));
+        constexpr accessor<0, enumtype::inout, extent<0,0,0,0>, 4> first(i-5, t+2, dimension<3>(8));
 
-        GRIDTOOLS_STATIC_ASSERT(first.get<3-0>()==-5, "holy crap");
+        GRIDTOOLS_STATIC_ASSERT(first.get<3-0>()==-5, "ERROR");
         return first.get<3-0>()==-5 && first.get<3-1>()==0 && first.get<3-2>()==8 && first.get<3-3>()==2 ;
 
     }
@@ -46,12 +48,12 @@ namespace interface{
 
         //mixing compile time and runtime values
         using t=dimension<15>;
-        typedef accessor<0, range<0,0,0,0>, 15> arg_t;
+        typedef accessor<0, enumtype::inout, extent<0,0,0,0>, 15> arg_t;
         using alias_t = alias<arg_t, t, x, dimension<7> >::set<-3, 4, 2>;
 
         alias_t first(dimension<8>(23), z(-5));
 
-        GRIDTOOLS_STATIC_ASSERT(alias_t::get_constexpr<14>()==4, "that's wrong man");
+        GRIDTOOLS_STATIC_ASSERT(alias_t::get_constexpr<14>()==4, "ERROR");
         return first.get<14-6>()==2 && first.get<14-0>()==4 && first.get<14-14>()==-3 && first.get<14-7>()==23 && first.get<14-2>()==-5 ;
     }
 
@@ -64,7 +66,7 @@ namespace interface{
 
         //mixing caompile time and runtime values
         using t=dimension<15>;
-        typedef accessor<0, range<0,0,0,0>, 15> arg_t;
+        typedef accessor<0, enumtype::inout, extent<0,0,0,0>, 15> arg_t;
         alias<arg_t, t> field1(-3); //records the offset -3 as dynamic values
         alias<arg_t, t> field2(-1); //records the offset -1 as static const
 

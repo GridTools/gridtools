@@ -1,8 +1,10 @@
 #include "gtest/gtest.h"
-#include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/stencil-composition.hpp>
+
+using namespace gridtools;
 
 TEST(storage_info, test_interface) {
-#ifdef CXX11_ENABLED
+#if defined(CXX11_ENABLED) && defined(NDEBUG)
     typedef gridtools::layout_map<0,1,2,3> layout_t;
     constexpr gridtools::meta_storage_base<0,layout_t,false> meta_{11, 12, 13, 14};
     GRIDTOOLS_STATIC_ASSERT((meta_.dims<0>()==11), "error");

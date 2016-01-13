@@ -122,4 +122,10 @@ namespace gridtools{
         return s;
     }
 
+    template<typename T>
+    struct is_storage : boost::mpl::false_{};
+
+    template<typename T>
+    struct is_storage<storage<T> > : boost::mpl::true_{};
+
 }//namespace gridtools

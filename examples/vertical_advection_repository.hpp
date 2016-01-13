@@ -20,12 +20,12 @@ public:
 #endif
     typedef gridtools::layout_map<-1,-1,-1> layout_scalar;
 
-    typedef gridtools::storage_info<0,layout_ijk> storage_info_ijk_t;
-    typedef gridtools::storage_info<0,layout_ij> storage_info_ij_t;
-    typedef gridtools::storage_info<0,layout_scalar> storage_info_scalar_t;
+    typedef va_backend::storage_info<0,layout_ijk> storage_info_ijk_t;
+    typedef va_backend::storage_info<0,layout_ij> storage_info_ij_t;
+    typedef va_backend::storage_info<0,layout_scalar> storage_info_scalar_t;
 
-    typedef gridtools::storage_info<0,layout_ijk> storage_info_ijk_tmp_t;
-    typedef gridtools::storage_info<0,layout_scalar> storage_info_scalar_tmp_t;
+    typedef va_backend::storage_info<0,layout_ijk> storage_info_ijk_tmp_t;
+    typedef va_backend::storage_info<0,layout_scalar> storage_info_scalar_tmp_t;
 
     typedef va_backend::storage_type<gridtools::float_type, storage_info_ijk_t >::type storage_type;
     typedef va_backend::storage_type<gridtools::float_type, storage_info_ij_t >::type ij_storage_type;
@@ -276,8 +276,8 @@ private:
     storage_type utens_stage_, u_stage_, wcon_, u_pos_, utens_, utens_stage_ref_;
     storage_type ipos_, jpos_, kpos_;
     scalar_storage_type dtr_stage_;
-    const int halo_size_;
-    const int idim_, jdim_, kdim_;
+    const uint_t halo_size_;
+    const uint_t idim_, jdim_, kdim_;
 };
 
 }

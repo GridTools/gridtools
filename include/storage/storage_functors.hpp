@@ -106,6 +106,11 @@ namespace gridtools {
                    >
         GT_FUNCTION_WARNING
         void operator()(StorageType *& s) const {
+
+#ifdef PEDANTIC
+            GRIDTOOLS_STATIC_ASSERT(is_storage<StorageType>::value, "wrong type");
+#endif
+
             if (s) {
                 copy_data_impl<StorageType>(s);
 
@@ -128,17 +133,30 @@ namespace gridtools {
         }
 
     private:
+
+        //we do not copy data into the gpu in case of a generic accessor
+        template<typename StorageType>
+        GT_FUNCTION_WARNING
+        void copy_data_impl(StorageType *& s,
+                            typename boost::disable_if_c<is_storage<StorageType>::value>::type* = 0
+                            ) const
+        {}
+
         //we do not copy data into the gpu in case of a temporary
         template<typename StorageType>
         GT_FUNCTION_WARNING
         void copy_data_impl(StorageType *& s,
-                            typename boost::enable_if_c<is_temporary_storage<StorageType>::value>::type* = 0) const
+                            typename boost::enable_if_c<is_temporary_storage<StorageType>::value>::type* = 0
+                            , typename boost::enable_if_c<is_storage<StorageType>::value>::type* = 0
+            ) const
         {}
 
         template<typename StorageType>
         GT_FUNCTION_WARNING
         void copy_data_impl(StorageType *& s,
-                            typename boost::disable_if_c<is_temporary_storage<StorageType>::value>::type* = 0) const
+                            typename boost::disable_if_c<is_temporary_storage<StorageType>::value>::type* = 0
+                            , typename boost::enable_if_c<is_storage<StorageType>::value>::type* = 0
+            ) const
         {
             s->copy_data_to_gpu();
         }
@@ -158,14 +176,23 @@ namespace gridtools {
     private:
         template <typename StorageType>
         GT_FUNCTION
-        void do_impl(StorageType * arg,
-                     typename boost::enable_if_c<is_no_storage_type_yet<StorageType>::value>::type* = 0) const {}
+        void do_impl(StorageType * arg
+                     , typename boost::enable_if_c<is_no_storage_type_yet<StorageType>::value>::type* = 0) const {}
         template <typename StorageType>
         GT_FUNCTION
         void do_impl(StorageType * arg,
-                     typename boost::disable_if_c<is_no_storage_type_yet<StorageType>::value>::type* = 0) const {
+                     typename boost::enable_if_c<is_storage<StorageType>::value>::type* = 0
+                     , typename boost::disable_if_c<is_no_storage_type_yet<StorageType>::value>::type* = 0) const {
             arg->d2h_update();
         }
+
+        template <typename StorageType>
+        GT_FUNCTION
+        void do_impl(StorageType * arg,
+                     typename boost::disable_if_c<is_storage<StorageType>::value>::type* = 0
+                     , typename boost::disable_if_c<is_no_storage_type_yet<StorageType>::value>::type* = 0
+            ) const {}
+
     };
 
 } // namespace gridtools

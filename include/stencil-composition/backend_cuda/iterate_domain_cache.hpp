@@ -16,6 +16,7 @@
 #include "stencil-composition/run_functor_arguments.hpp"
 #include "common/generic_metafunctions/vector_to_map.hpp"
 #include "common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
+#include "stencil-composition/iterate_domain_fwd.hpp"
 
 namespace gridtools {
 
@@ -58,14 +59,14 @@ public:
         is_arg_used_in_esf_sequence<esf_sequence_t, cache_parameter<boost::mpl::_> >
     >::type caches_t;
 
-    //extract a sequence of ranges for each cache
-    typedef typename extract_ranges_for_caches<IterateDomainArguments>::type cache_ranges_map_t;
+    //extract a sequence of extents for each cache
+    typedef typename extract_extents_for_caches<IterateDomainArguments>::type cache_extents_map_t;
 
     //compute the fusion vector of pair<index_type, cache_storage>
     typedef typename get_cache_storage_tuple<
         IJ,
         caches_t,
-        cache_ranges_map_t,
+        cache_extents_map_t,
         typename IterateDomainArguments::physical_domain_block_size_t,
         typename IterateDomainArguments::local_domain_t
     >::type ij_caches_vector_t;
@@ -75,6 +76,18 @@ public:
 
     // compute an mpl from the previous fusion vector, to be used for compile time meta operations
     typedef typename fusion_map_to_mpl_map<ij_caches_tuple_t>::type ij_caches_map_t;
+
+    typedef typename get_cache_set_for_type<
+        bypass,
+        caches_t,
+        typename IterateDomainArguments::local_domain_t
+    >::type bypass_caches_set_t;
+
+    //associative container with all caches
+    typedef typename get_cache_set<caches_t, typename IterateDomainArguments::local_domain_t>::type all_caches_t;
 };
+
+template<typename IterateDomainArguments> struct is_iterate_domain_cache<iterate_domain_cache<IterateDomainArguments> > :
+        boost::mpl::true_{};
 
 } // namespace gridtools

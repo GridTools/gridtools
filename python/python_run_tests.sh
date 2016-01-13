@@ -7,6 +7,7 @@ PYTHON_INSTALL_PREFIX=$2
 # remove files left from the previous runs which are older than two days
 #
 find /tmp -iname '__gridtools_*' -type d -ctime +2 -exec rm -rf {} \; > /dev/null 2>&1
+chmod -R go+X /tmp/__gridtools_*
 
 #
 # run interactively if no arguments given
@@ -29,7 +30,7 @@ if [ -n "${CMAKE_SOURCE_DIR}" ] && [ -n "${PYTHON_INSTALL_PREFIX}" ]; then
 fi
 
 echo "Running Python tests ..."
-nosetests -v -s tests.test_sw tests.test_stencils
+nosetests -v -s tests.test_stencils tests.test_ifstatement tests.test_sw
 TEST_STATUS=$?
 if [ ${TEST_STATUS} == 0 ]; then
     echo "All Python tests OK"

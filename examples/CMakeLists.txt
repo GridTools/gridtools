@@ -1,4 +1,4 @@
-list( APPEND SRCFILES interface1 boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore)
+list( APPEND SRCFILES interface1 boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore alignment)
 
 if( ENABLE_CXX11)
     list(APPEND SRCFILES  extended_4D  copy_stencil_single_storage)

@@ -54,22 +54,22 @@ struct split_mss_into_independent_esfs
  * @brief metafunction that builds the array of mss components
  * @tparam BackendId id of the backend (which decides whether the MSS with multiple ESF are split or not)
  * @tparam MssDescriptorArray meta array of mss descriptors
- * @tparam range_sizes sequence of sequence of ranges
+ * @tparam extent_sizes sequence of sequence of extents
  */
 template<
-    enumtype::backend BackendId,
+    enumtype::platform BackendId,
     typename MssDescriptorArray,
-    typename RangeSizes
+    typename ExtendSizes
 >
 struct build_mss_components_array
 {
     GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssDescriptorArray, is_mss_descriptor>::value), "Internal Error: wrong type");
 
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename MssDescriptorArray::elements>::value ==
-                             boost::mpl::size<RangeSizes>::value), "Internal Error: wrong size");
+                             boost::mpl::size<ExtendSizes>::value), "Internal Error: wrong size");
 
-    template<typename _RangeSizes_>
-    struct unroll_range_sizes
+    template<typename _ExtendSizes_>
+    struct unroll_extent_sizes
     {
         template<typename State, typename Sequence>
         struct insert_unfold
@@ -84,7 +84,7 @@ struct build_mss_components_array
             >::type type;
         };
         typedef typename boost::mpl::fold<
-            _RangeSizes_,
+            _ExtendSizes_,
             boost::mpl::vector0<>,
             insert_unfold<boost::mpl::_1, boost::mpl::_2>
         >::type type;
@@ -98,17 +98,17 @@ struct build_mss_components_array
 
     typedef typename boost::mpl::eval_if<
         typename backend_traits_from_id<BackendId>::mss_fuse_esfs_strategy,
-        boost::mpl::identity<RangeSizes>,
-        unroll_range_sizes<RangeSizes>
-    >::type range_sizes_unrolled_t;
+        boost::mpl::identity<ExtendSizes>,
+        unroll_extent_sizes<ExtendSizes>
+    >::type extent_sizes_unrolled_t;
 
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename mss_array_t::elements>::value ==
-        boost::mpl::size<range_sizes_unrolled_t>::value
+        boost::mpl::size<extent_sizes_unrolled_t>::value
                                 ), "Internal Error: wrong size");
 
     typedef meta_array<
         typename boost::mpl::fold<
-            boost::mpl::range_c<int,0, boost::mpl::size<range_sizes_unrolled_t>::value>,
+            boost::mpl::range_c<int,0, boost::mpl::size<extent_sizes_unrolled_t>::value>,
             boost::mpl::vector0<>,
             boost::mpl::push_back<
                 boost::mpl::_1,
@@ -118,7 +118,7 @@ struct build_mss_components_array
                         boost::mpl::_2
                     >,
                     boost::mpl::at<
-                        range_sizes_unrolled_t,
+                        extent_sizes_unrolled_t,
                         boost::mpl::_2
                     >
                 >
@@ -133,7 +133,7 @@ struct build_mss_components_array
  */
 template<
     typename MssComponents,
-    typename Coords
+    typename Grid
 >
 struct mss_functor_do_methods
 {
@@ -143,8 +143,8 @@ struct mss_functor_do_methods
      *  compute the functor do methods - This is the most computationally intensive part
      */
     typedef typename boost::mpl::transform<
-        typename MssComponents::functors_list_t,
-        compute_functor_do_methods<boost::mpl::_, typename Coords::axis_type>
+        typename MssComponents::functors_seq_t,
+        compute_functor_do_methods<boost::mpl::_, typename Grid::axis_type>
     >::type type; // Vector of vectors - each element is a vector of pairs of actual axis-indices
 };
 
@@ -153,37 +153,37 @@ struct mss_functor_do_methods
  */
 template<
     typename MssComponents,
-    typename Coords
+    typename Grid
 >
 struct mss_loop_intervals
 {
     GRIDTOOLS_STATIC_ASSERT((is_mss_components<MssComponents>::value), "Internal Error: wrong type");
-    GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "Internal Error: wrong type");
+    GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
 
     /**
      *  compute the functor do methods - This is the most computationally intensive part
      */
-    typedef typename mss_functor_do_methods<MssComponents, Coords>::type functor_do_methods;
+    typedef typename mss_functor_do_methods<MssComponents, Grid>::type functor_do_methods;
 
     /**
      * compute the loop intervals
      */
     typedef typename compute_loop_intervals<
         functor_do_methods,
-        typename Coords::axis_type
+        typename Grid::axis_type
     >::type type; // vector of pairs of indices - sorted and contiguous
 };
 
 template<
     typename MssComponents,
-    typename Coords
+    typename Grid
     >
 struct mss_functor_do_method_lookup_maps
 {
     GRIDTOOLS_STATIC_ASSERT((is_mss_components<MssComponents>::value), "Internal Error: wrong type");
-    typedef typename mss_functor_do_methods<MssComponents, Coords>::type functor_do_methods;
+    typedef typename mss_functor_do_methods<MssComponents, Grid>::type functor_do_methods;
 
-    typedef typename mss_loop_intervals<MssComponents, Coords>::type loop_intervals;
+    typedef typename mss_loop_intervals<MssComponents, Grid>::type loop_intervals;
     /**
      * compute the do method lookup maps
      *

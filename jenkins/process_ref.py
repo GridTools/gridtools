@@ -9,6 +9,7 @@ import socket
 import numpy as np
 import matplotlib.pyplot as plt
 import copy
+import os.path
 
 def check_output(*popenargs, **kwargs):
     process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
@@ -28,20 +29,15 @@ try: subprocess.check_output
 except: subprocess.check_output = check_output
 
 
-def run_and_extract_times(executable, sizes, filter_=None, stella_format = None, verbosity=False):
-
-    machine = filter(lambda x: x.isalpha(), socket.gethostname())
+def run_and_extract_times(executable, host, sizes, filter_=None, stella_format = None, verbosity=False):
 
     cmd=''
-    if machine != 'greina':
-        print('WARNING: machine '+machine+' not known. Not loading any environment')
-    else:
-        cmd = ". "+os.getcwd()+"/env_"+machine+".sh; "
+    cmd = ". "+os.getcwd()+"/env_"+host+".sh; "
 
     if stella_format:
         cmd = cmd + executable +' --ie ' + str(sizes[0]) + ' --je ' + str(sizes[1]) + ' --ke ' + str(sizes[2])
     else:
-        cmd = cmd + executable +' ' + str(sizes[0]) + ' ' + str(sizes[1]) + ' ' + str(sizes[2])
+        cmd = cmd + executable +' ' + str(sizes[0]) + ' ' + str(sizes[1]) + ' ' + str(sizes[2]) + ' 10'
     if filter_:
         cmd = cmd + ' ' + filter_
     if target == 'cpu':
@@ -94,7 +90,7 @@ class Plotter:
 
         self.labels_ = {}
 
-    def plot(self, filename, title, y1, y1_err, label1, y2, y2_err, label2):
+    def plot(self, filename, title, xtick_labels, y1, y1_err, label1, y2, y2_err, label2):
     
         n_groups = len(y1)
         index = np.arange(n_groups)
@@ -120,7 +116,7 @@ class Plotter:
         plt.xlabel('Stencil Name')
         plt.ylabel('Stencil time (s)')
         plt.title(title)
-        plt.xticks(index + bar_width*1.5, label2, rotation=90, fontsize='xx-small')
+        plt.xticks(index + bar_width*1.5, xtick_labels, rotation=90, fontsize='xx-small')
         plt.legend()
 
         plt.tight_layout()
@@ -138,13 +134,13 @@ class Plotter:
             for adomain in self.stella_avg_times_[astencil]:
                 fig, ax = plt.subplots()
 
-                stella_times = [a/10.0 for a in self.stella_avg_times_[astencil][adomain] ]
+                stella_times = [a for a in self.stella_avg_times_[astencil][adomain] ]
                 gridtools_times = self.gridtools_avg_times_[astencil][adomain]
-                stella_err = [err/10.0 for err in self.stella_err_[astencil][adomain] ]
+                stella_err = [err for err in self.stella_err_[astencil][adomain] ]
                 gridtools_err = self.gridtools_err_[astencil][adomain]
                 labels = self.labels_[astencil][adomain]
                 
-                self.plot("perf_vs_stella/plot_"+astencil+"_"+adomain+".svg", astencil, stella_times, stella_err, "stella", gridtools_times, gridtools_err, "gridtools")
+                self.plot("perf_vs_stella/plot_"+astencil+"_"+adomain+".svg", astencil, labels, stella_times, stella_err, "stella", gridtools_times, gridtools_err, "gridtools")
 
         if not os.path.exists("perf_vs_reference"):
             os.makedirs("perf_vs_reference")
@@ -159,14 +155,14 @@ class Plotter:
                 reference_err = self.reference_err_[astencil][adomain]
                 labels = self.labels_[astencil][adomain]
                 
-                self.plot("perf_vs_reference/plot_"+astencil+"_"+adomain+".svg", astencil + ' ' + adomain, gridtools_times, gridtools_err, "gridtools", reference_times, reference_err, "reference")
+                self.plot("perf_vs_reference/plot_"+astencil+"_"+adomain+".svg", astencil + ' ' + adomain, labels, gridtools_times, gridtools_err, "gridtools", reference_times, reference_err, "reference")
 
     def stella_has_stencil(self, stencil_name):
         return self.stella_timers_.has_key(stencil_name)
 
     def extract_metrics(self):
 
-        for astencil in self.gridtools_timers_['stencils']:
+        for astencil in self.gridtools_timers_:
             if self.stella_has_stencil(astencil):
                 self.stella_avg_times_[astencil] = {}
                 self.stella_err_[astencil] = {}
@@ -176,7 +172,7 @@ class Plotter:
             self.reference_avg_times_[astencil] = {}       
             self.reference_err_[astencil] = {}
  
-            gridtools_this_stencil_data = self.gridtools_timers_['stencils'][astencil][self.config_.target_][self.config_.prec_][self.config_.std_]
+            gridtools_this_stencil_data = self.gridtools_timers_[astencil][self.config_.target_][self.config_.prec_][self.config_.std_]
 
             for athread_num in gridtools_this_stencil_data:
                 for adomain in gridtools_this_stencil_data[athread_num]:
@@ -195,15 +191,15 @@ class Plotter:
                         self.stella_err_[astencil][adomain].append( self.stella_timers_[astencil][athread_num][adomain][1])
 
                     self.gridtools_avg_times_[astencil][adomain].append(
-                        self.gridtools_timers_['stencils'][astencil][self.config_.target_][self.config_.prec_][self.config_.std_][athread_num][adomain]['time'])
+                        self.gridtools_timers_[astencil][self.config_.target_][self.config_.prec_][self.config_.std_][athread_num][adomain]['time'])
 
                     self.gridtools_err_[astencil][adomain].append(
-                                            self.gridtools_timers_['stencils'][astencil][self.config_.target_][self.config_.prec_][self.config_.std_][athread_num][adomain]['rms'])
+                                            self.gridtools_timers_[astencil][self.config_.target_][self.config_.prec_][self.config_.std_][athread_num][adomain]['rms'])
                     self.reference_avg_times_[astencil][adomain].append(
-                        self.reference_timers_['stencils'][astencil][self.config_.target_][self.config_.prec_][self.config_.std_][athread_num][adomain]['time'])
+                        self.reference_timers_[astencil][self.config_.target_][self.config_.prec_][self.config_.std_][athread_num][adomain]['time'])
 
                     self.reference_err_[astencil][adomain].append(
-                                            self.reference_timers_['stencils'][astencil][self.config_.target_][self.config_.prec_][self.config_.std_][athread_num][adomain]['rms'])
+                                            self.reference_timers_[astencil][self.config_.target_][self.config_.prec_][self.config_.std_][athread_num][adomain]['rms'])
 
                     self.labels_[astencil][adomain].append(str(athread_num))
 
@@ -219,10 +215,12 @@ def create_dict(adict, props):
     create_dict(adict[current_prop], props)
 
 class Config:
-    def __init__(self, target, prec, std):
+    def __init__(self, target, prec, std, update, check):
         self.target_ = target
         self.prec_ = prec
         self.std_ = std
+        self.update_ = update
+        self.check_ = check
 
 """
 """
@@ -237,7 +235,8 @@ if __name__ == "__main__":
     parser.add_argument('--target', nargs=1, type=str, help='cpu || gpu')
     parser.add_argument('--std', nargs=1, type=str, help='C++ standard')
     parser.add_argument('--prec', nargs=1, type=str, help='floating point precision')
-    parser.add_argument('-m', nargs=1, type=str, help='Mode: u (update reference), c (check reference)')
+    parser.add_argument('-c', action='store_true', help='check results and validate against a reference')
+    parser.add_argument('-u', action='store_true', help='update reference performance results')
     parser.add_argument('--plot', action='store_true', help='plot the comparison timings')
     parser.add_argument('--stella_path', nargs=1, type=str, help='path to stella installation dir')
     parser.add_argument('-v',action='store_true', help='verbosity')
@@ -259,6 +258,17 @@ if __name__ == "__main__":
     if not args.prec:
         parser.error('--prec should be specified')
 
+    stella_path = None
+    gridtools_path = None
+    if args.stella_path:
+        stella_path = args.stella_path[0]
+    gridtools_path = args.p[0]
+
+    if stella_path and not os.path.exists(stella_path):
+        parser.error('STELLA build path '+stella_path+' does not exists')
+    if not os.path.exists(gridtools_path):
+        parser.error('GridTools build path '+gridtools_path+' does not exists')
+
     target = args.target[0]
     stella_suffix=""
     if target == 'gpu':
@@ -273,16 +283,15 @@ if __name__ == "__main__":
     if std != "cxx11" and std != "cxx03":
         parser.error('--std should be set to cxx11 or cxx03')
 
-    if not args.m:
-        parser.error('mode -m should be specified')
-
     stella_exec = None
     if args.stella_path:
-        stella_exec = args.stella_path[0] + '/StandaloneStencils'+stella_suffix
-
-    mode = args.m[0]
-    if mode != 'u' and mode != 'c':
-        parser.error('-m must be set to c or u')
+        stella_exec = stella_path + '/StandaloneStencils'+stella_suffix
+    update = False
+    check = False
+    if args.u:
+        update = True
+    if args.c:
+        check = True
 
     prec = args.prec[0]
     if prec != 'float' and prec != 'double':
@@ -294,7 +303,18 @@ if __name__ == "__main__":
     verbose=False
     if args.v:
         verbose=True
-    config = Config(target,prec,std)
+
+    host = filter(lambda x: x.isalpha(), socket.gethostname())
+
+    if not re.match('greina', host) and not re.match('kesch', host):
+        sys.exit('WARNING: host '+host+' not known. Not loading any environment')
+    
+    if re.match('greina', host):
+        host='greina'
+    elif re.match('kesch', host):
+        host='kesch'
+
+    config = Config(target,prec,std, update, check)
 
     f = open(args.json_file,'r')
     decode = json.load(f)
@@ -305,7 +325,7 @@ if __name__ == "__main__":
     copy_ref = copy.deepcopy(decode)
     stella_timers = {}
 
-    for stencil_name in decode['stencils']:
+    for stencil_name in decode[host]['stencils']:
         print('CHECKING :', stencil_name)
         skip=True
         for filter_stencil in filter_stencils:
@@ -317,8 +337,8 @@ if __name__ == "__main__":
             print('Skipping ',stencil_name)
             continue
 
-        stencil_data = decode['stencils'][stencil_name]
-        executable = path+'/'+stencil_data['exec']+'_'+target_suff
+        stencil_data = decode[host]['stencils'][stencil_name]
+        executable = gridtools_path+'/'+stencil_data['exec']+'_'+target_suff
 
         stella_filter = stencil_data['stella_filter']
 
@@ -328,28 +348,30 @@ if __name__ == "__main__":
                 sizes = data.split('x')
                 exp_time = domain_data[data]['time']
                 
-                timers_gridtools = run_and_extract_times(executable, sizes, verbosity=verbose)
+                timers_gridtools = run_and_extract_times(executable, host, sizes, verbosity=verbose)
 
                 if stella_exec and stella_filter:
                     create_dict(stella_timers, [data, thread, stencil_name] )
-                    stella_timers[stencil_name][thread][data] = run_and_extract_times(stella_exec, sizes, stella_filter, stella_format=True, verbosity=verbose)
+                    stella_timers[stencil_name][thread][data] = run_and_extract_times(stella_exec, host, sizes, stella_filter, stella_format=True, verbosity=verbose)
 
-                copy_ref['stencils'][stencil_name][target][prec][std][thread][data]['time'] = timers_gridtools[0]
-                copy_ref['stencils'][stencil_name][target][prec][std][thread][data]['rms'] = timers_gridtools[1]
+                copy_ref[host]['stencils'][stencil_name][target][prec][std][thread][data]['time'] = timers_gridtools[0]
+                copy_ref[host]['stencils'][stencil_name][target][prec][std][thread][data]['rms'] = timers_gridtools[1]
 
                 error = math.fabs(float(timers_gridtools[0]) - float(exp_time)) / (float(exp_time)+1e-20)
-                if mode == 'c' and error > tolerance:
+                if config.check_ and error > tolerance:
                     print('Error in conf ['+data+','+prec+','+target+','+std+','+thread+'] : exp_time -> '+ str(exp_time) + '; comp time -> '+ 
                         str(timers_gridtools[0])+'. Error = '+ str(error*100)+'%')
                     error = True
 
-    if mode == 'u':
-        fw = open(args.json_file +'.out','w')
+    if config.update_:
+        outputfilename=args.json_file +'.out'
+        fw = open(outputfilename,'w')
         fw.write(json.dumps(copy_ref,  indent=4, separators=(',', ': ')) )
         fw.close()
+        print("Updated reference file",outputfilename)
 
     if do_plot:
-        plotter = Plotter(decode, copy_ref, stella_timers, config)
+        plotter = Plotter(decode[host]['stencils'], copy_ref[host]['stencils'], stella_timers, config)
         plotter.plot_results()
 
     if not error:

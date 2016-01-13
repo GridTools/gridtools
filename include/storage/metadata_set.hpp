@@ -1,5 +1,6 @@
 #pragma once
 #include <boost/fusion/include/as_set.hpp>
+#include "common/generic_metafunctions/is_sequence_of.hpp"
 
 /**
 @file
@@ -86,12 +87,28 @@ namespace gridtools{
 
     };
 
+    template <typename T>
+    struct is_metadata_set : boost::mpl::false_{};
+
+    template <typename T>
+    struct is_metadata_set<metadata_set<T> > : boost::mpl::true_{};
+
+
+    template <typename U>
+    struct is_storage;
+
     /** inserts an element in the set if it is not present
 
         used for the metadata_set in the domain_type
     */
     template <typename Sequence, typename Arg>
     struct insert_if_not_present{
+
+#ifdef PEDANTIC //disabling in case of generic accessors
+        GRIDTOOLS_STATIC_ASSERT(is_storage<Arg>::type::value, "if you are using generic accessors disable the pedantic mode. Otherwise most probably you used in the domain_type constructor a storage type which is not supported.");
+#endif
+        GRIDTOOLS_STATIC_ASSERT(is_metadata_set<Sequence>::type::value, "wrong type");
+
     private :
         Sequence& m_seq;
         Arg const& m_arg;
@@ -101,11 +118,4 @@ namespace gridtools{
             if (!m_seq.template present< pointer<const typename Arg::meta_data_t> >())
                 m_seq.insert(pointer<const typename Arg::meta_data_t>(&(m_arg.meta_data())));                 }
     };
-
-    template <typename T>
-    struct is_metadata_set : boost::mpl::false_{};
-
-    template <typename T>
-    struct is_metadata_set<metadata_set<T> > : boost::mpl::true_{};
-
 }

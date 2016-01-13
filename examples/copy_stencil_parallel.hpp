@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stencil-composition/backend.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 #include <storage/partitioner_trivial.hpp>
 #include <storage/parallel_storage.hpp>
 #include <stencil-composition/interval.hpp>
@@ -14,7 +14,7 @@
 
 using gridtools::level;
 using gridtools::accessor;
-using gridtools::range;
+using gridtools::extent;
 using gridtools::arg;
 
 using namespace gridtools;
@@ -28,8 +28,8 @@ namespace copy_stencil{
 
 // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
-        typedef const accessor<0> in;
-        typedef accessor<1> out;
+        typedef const accessor<0, enumtype::in> in;
+        typedef accessor<1, enumtype::inout> out;
         typedef boost::mpl::vector<in,out> arg_list;
         /* static const auto expression=in(1,0,0)-out(); */
 
@@ -62,8 +62,8 @@ namespace copy_stencil{
         //                   strides  1 x xy
         //                      dims  x y z
         typedef gridtools::layout_map<0,1,2> layout_t;
-        typedef storage_info<0, layout_t> metadata_t;
-        typedef gridtools::BACKEND::storage_type<float_type, metadata_t >::type storage_type;
+        typedef BACKEND::storage_info<0, layout_t> metadata_t;
+        typedef BACKEND::storage_type<float_type, metadata_t >::type storage_type;
         typedef storage_type::original_storage::pointer_type pointer_type;
 
 
@@ -95,8 +95,8 @@ namespace copy_stencil{
         /* typedef arg<1, vec_storage_type > p_out; */
         // Definition of the actual data fields that are used for input/output
         //#ifdef CXX11_ENABLED
-        array<ushort_t, 3> padding(0,0,0);
-        array<ushort_t, 3> halo(1,1,1);
+        array<ushort_t, 3> padding{0,0,0};
+        array<ushort_t, 3> halo{1,1,1};
         typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > >, pattern_type::grid_type> partitioner_t;
         partitioner_t part(he.comm(), halo, padding);
         parallel_storage_info<metadata_t, partitioner_t> meta_(part, d1, d2, d3);
@@ -128,10 +128,10 @@ namespace copy_stencil{
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
-        gridtools::coordinates<axis, partitioner_t> coords(part, meta_);
+        gridtools::grid<axis, partitioner_t> grid(part, meta_);
         //k dimension not partitioned
-        coords.value_list[0] = 0;
-        coords.value_list[1] = d3-1;
+        grid.value_list[0] = 0;
+        grid.value_list[1] = d3-1;
 
 
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
@@ -165,7 +165,7 @@ namespace copy_stencil{
                                                       , p_out()
                         )
                     ),
-                domain, coords
+                domain, grid
                 );
 #ifdef VERBOSE
         printf("computation instantiated\n");

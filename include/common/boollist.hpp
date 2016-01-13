@@ -1,12 +1,11 @@
-#ifndef _BOOLLIST_H_
-#define _BOOLLIST_H_
+#pragma once
 
 #include <boost/static_assert.hpp>
 #include "defs.hpp"
 #include "gridtools.hpp"
-#include "array.hpp"
+#include "common/array.hpp"
 /*@file
-@bief  The following class describes a boolean list of length N.
+@brief  The following class describes a boolean list of length N.
 
 */
 namespace gridtools {
@@ -77,7 +76,7 @@ namespace gridtools {
         GT_FUNCTION
         boollist(boollist const& bl)
 #ifdef CXX11_ENABLED
-            :m_value{bl.m_value}
+            :m_value(bl.m_value)
             {}
 #else
             {
@@ -112,5 +111,3 @@ namespace gridtools {
     };
 
 }
-
-#endif

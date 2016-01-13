@@ -1,7 +1,9 @@
 #pragma once
-#include "../../gridtools.hpp"
 
 #include <functional>
+#include <boost/proto/traits.hpp>
+#include "common/defs.hpp"
+#include "common/host_device.hpp"
 
 namespace gridtools{
 
@@ -38,10 +40,10 @@ namespace gridtools{
 
     // with CXX14 the gt_integer_sequence from the standard can directly replace this one:
     // template <typename UInt, UInt ... Indices>
-    // using gt_gt_integer_sequence=std::gt_integer_sequence<UInt, Indices ...>;
+    // using gt_integer_sequence=std::integer_sequence<UInt, Indices ...>;
 
     // template<typename UInt, uint_t N>
-    // using gt_make_gt_integer_sequence=std::make_gt_integer_sequence<UInt, N>;
+    // using make_gt_integer_sequence=std::make_integer_sequence<UInt, N>;
 
     /** @brief constructs and returns a Container initialized by Lambda<I>::apply(args_...)
         for all the indices I in the sequence
@@ -54,19 +56,41 @@ namespace gridtools{
         The type of the Container members must correspond to the return types of the apply method in
         the user-defined Lambda functor.
     */
-    template< typename T>
-    struct apply_gt_integer_sequence;
+    template< typename UInt>
+    struct apply_gt_integer_sequence
+    {
+        template<typename Container, template <UInt T> class Lambda, typename ... ExtraTypes>
+        GT_FUNCTION
+        static constexpr Container apply(ExtraTypes const& ... args_ ){
+            GRIDTOOLS_STATIC_ASSERT((boost::is_same<Container, Container>::value),
+                "ERROR: apply_gt_integer_sequence only accepts a gt_integer_sequence type. Check the call");
+            return Container(args_...);
+        }
+    };
 
     template< typename UInt, UInt... Indices>
     struct apply_gt_integer_sequence<gt_integer_sequence<UInt, Indices ...> >
     {
 
-        template<typename Container, template <UInt T> class Lambda, typename ... ExtraTypes>
+        template<typename Container, template <UInt T> class Lambda, typename ... ExtraTypes,
+                 typename boost::disable_if<typename boost::proto::is_aggregate<Container>::type, int  >::type = 0>
         GT_FUNCTION
         static constexpr Container apply(ExtraTypes const& ... args_ ){
             return Container(Lambda<Indices>::apply(args_...) ...) ;
         }
 
+        template<typename Container, template <UInt T> class Lambda, typename ... ExtraTypes,
+                 typename boost::enable_if<typename boost::proto::is_aggregate<Container>::type, int  >::type = 0>
+        GT_FUNCTION
+        static constexpr Container apply(ExtraTypes const& ... args_ ){
+            return Container{Lambda<Indices>::apply(args_...) ...} ;
+        }
+
+        template<typename Container, template <UInt T> class Lambda, typename ... ExtraTypes>
+        GT_FUNCTION
+        static constexpr Container apply_zipped(ExtraTypes const& ... args_ ){
+            return Container(Lambda<Indices>::apply(args_) ...) ;
+        }
 
         template<template< typename ... U> class Container, template <UInt TT, UInt UU> class Lambda, UInt ... ExtraTypes>
         struct apply_tt{
@@ -75,7 +99,7 @@ namespace gridtools{
 
         /**
            @brief same as before, but with non-static lambda taking as first argument the index
-         */
+        */
         template<typename Container, class Lambda, typename ... ExtraTypes>
         GT_FUNCTION
         static constexpr Container apply(Lambda lambda, ExtraTypes& ... args_ ){

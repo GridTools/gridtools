@@ -52,8 +52,8 @@ namespace gridtools{
             GT_FUNCTION
             explicit run_f_on_interval(
                     iterate_domain_t & iterate_domain_,
-                    typename RunFunctorArguments::coords_t const& coords):
-                super(iterate_domain_, coords){}
+                    typename RunFunctorArguments::grid_t const& grid):
+                super(iterate_domain_, grid){}
 
             template<typename IterationPolicy, typename Interval>
             GT_FUNCTION
