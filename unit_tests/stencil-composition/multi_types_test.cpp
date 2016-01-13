@@ -35,18 +35,22 @@ typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
 struct type1 {
     int i,j,k;
 
+    GT_FUNCTION
     type1() : i(0), j(0), k(0) {}
+    GT_FUNCTION
     explicit type1(int i, int j, int k) : i(i), j(j), k(k) {}
 };
-    
+
 struct type4 {
     float x,y,z;
 
+    GT_FUNCTION
     type4() : x(0.), y(0.), z(0.) {}
+    GT_FUNCTION
     explicit type4(double i, double j, double k) : x(i), y(j), z(k) {}
 
+    GT_FUNCTION
     type4& operator=(type1 const& a) {
-        std::cout << "assign 4 <- 1" << std::endl;
         x = a.i;
         y = a.j;
         z = a.k;
@@ -56,33 +60,38 @@ struct type4 {
 
     struct type2 {
     double xy;
+    GT_FUNCTION
     type2& operator=(type4 const & x) {
         xy = x.x+x.y;
         return *this;
     }
 };
-    
+
 struct type3 {
     double yz;
 
+    GT_FUNCTION
     type3& operator=(type4 const & x) {
         yz = x.y+x.z;
         return *this;
     }
 };
-    
 
+
+GT_FUNCTION
 type4 operator+(type4 const& a, type1 const& b) {
     return type4(a.x+static_cast<double>(b.i),
                  a.y+static_cast<double>(b.j),
                  a.z+static_cast<double>(b.k));
 }
+
+GT_FUNCTION
 type4 operator-(type4 const& a, type1 const& b) {
     return type4(a.x-static_cast<double>(b.i),
                  a.y-static_cast<double>(b.j),
                  a.z-static_cast<double>(b.k));
 }
-    
+
 struct function0 {
     typedef accessor<0, enumtype::in > in;
     typedef accessor<1, enumtype::inout> out;
@@ -95,7 +104,6 @@ struct function0 {
         eval(out()).i = eval(in()).i+1;
         eval(out()).j = eval(in()).j+1;
         eval(out()).k = eval(in()).k+1;
-        //std::cout << "function0" << std::endl;
     }
 };
 
@@ -108,9 +116,17 @@ struct function1 {
     template <typename Evaluation>
     GT_FUNCTION
     static void Do(Evaluation const & eval, region) {
+#ifdef FUNCTIONS_PROCEDURES
+        type1 result;
+        call_proc<function0, region>::with(eval, in(), result);
+#else
+#ifdef FUNCTIONS_OFFSETS
+        auto result = call_offsets<function0, region>::with(eval, in());
+#else
         auto result = call<function0, region>::with(eval, in());
+#endif
+#endif
         eval(out()) = result;
-        //std::cout << "function1" << std::endl;
     }
 };
 
@@ -235,7 +251,7 @@ bool test(uint_t x, uint_t y, uint_t z)
     test_computation->run();
 
     bool result = true;
-    
+
 // #ifdef CXX11_ENABLED
 //     verifier verif(1e-13);
 //     array<array<uint_t, 2>, 3> halos{{ {halo_size, halo_size}, {halo_size,halo_size}, {halo_size,halo_size} }};
