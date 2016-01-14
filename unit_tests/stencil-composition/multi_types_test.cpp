@@ -201,9 +201,15 @@ bool test(uint_t x, uint_t y, uint_t z)
 
     typedef the_backend::temporary_storage_type<type4, storage_info1_t >::type tmp_storage_type;
 
-    storage_type1 field1 = storage_type1(storage_info1_t(x,y,z), type1(), "field1");
-    storage_type2 field2 = storage_type2(storage_info2_t(x,y,z), type2(), "field2");
-    storage_type3 field3 = storage_type3(storage_info3_t(x,y,z), type3(), "field3");
+
+    // TODO: Use storage_info as unnamed object - lifetime issues on GPUs
+    storage_info1_t si1(x,y,z);
+    storage_info2_t si2(x,y,z);
+    storage_info3_t si3(x,y,z);
+
+    storage_type1 field1 = storage_type1(si1/*storage_info1_t(x,y,z)*/, type1(), "field1");
+    storage_type2 field2 = storage_type2(si2/*storage_info2_t(x,y,z)*/, type2(), "field2");
+    storage_type3 field3 = storage_type3(si3/*storage_info3_t(x,y,z)*/, type3(), "field3");
 
     for (int i = 0; i < x; ++i) {
         for (int j = 0; j < y; ++j) {
@@ -263,11 +269,11 @@ bool test(uint_t x, uint_t y, uint_t z)
     test_computation->run();
 
 #ifdef __CUDACC__
-        field2.data().update_cpu();
-        field3.data().update_cpu();
+    field2.data().update_cpu();
+    field3.data().update_cpu();
 #endif
 
-        test_computation->finalize();
+    test_computation->finalize();
 
     bool result = true;
 
@@ -304,5 +310,5 @@ bool test(uint_t x, uint_t y, uint_t z)
 } // namespace multi_types_test
 
 TEST(multitypes, multitypes) {
-    EXPECT_TRUE(multi_types_test::test(15, 15, 15));
+    EXPECT_TRUE(multi_types_test::test(4,4, 4));
 }
