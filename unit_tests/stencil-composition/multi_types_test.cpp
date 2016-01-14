@@ -142,6 +142,10 @@ struct function2 {
     GT_FUNCTION
     static void Do(Evaluation const & eval, region) {
         eval(out()) = eval(temp())+eval(in());
+        // std::cout << (eval(temp())+eval(in())).x << ", "
+        //           << (eval(temp())+eval(in())).y << ", "
+        //           << (eval(temp())+eval(in())).z << ": "
+        //           << " " << (eval(out())).xy << std::endl;
     }
 };
 
@@ -179,7 +183,7 @@ bool test(uint_t x, uint_t y, uint_t z)
     uint_t d1 = x;
     uint_t d2 = y;
     uint_t d3 = z;
-    uint_t halo_size = 2;
+    uint_t halo_size = 0;
 
 #ifdef __CUDACC__
     typedef gridtools::layout_map<2,1,0> layout_type;//stride 1 on i
@@ -200,6 +204,14 @@ bool test(uint_t x, uint_t y, uint_t z)
     storage_type1 field1 = storage_type1(storage_info1_t(x,y,z), type1(), "field1");
     storage_type2 field2 = storage_type2(storage_info2_t(x,y,z), type2(), "field2");
     storage_type3 field3 = storage_type3(storage_info3_t(x,y,z), type3(), "field3");
+
+    for (int i = 0; i < x; ++i) {
+        for (int j = 0; j < y; ++j) {
+            for (int k = 0; k < z; ++k) {
+                field1(i,j,k) = type1(i,j,k);
+            }
+        }
+    }
 
     typedef arg<0, tmp_storage_type > p_temp;
     typedef arg<1, storage_type1 > p_field1;
@@ -250,27 +262,47 @@ bool test(uint_t x, uint_t y, uint_t z)
 
     test_computation->run();
 
+#ifdef __CUDACC__
+        field2.data().update_cpu();
+        field3.data().update_cpu();
+#endif
+
+        test_computation->finalize();
+
     bool result = true;
 
-// #ifdef CXX11_ENABLED
-//     verifier verif(1e-13);
-//     array<array<uint_t, 2>, 3> halos{{ {halo_size, halo_size}, {halo_size,halo_size}, {halo_size,halo_size} }};
-//     bool result = verif.verify(repository.out_ref(), repository.out(), halos);
-// #else
-//     verifier verif(1e-13, halo_size);
-//     bool result = verif.verify(repository.out_ref(), repository.out());
-// #endif
+    for (int i = 0; i < x; ++i) {
+        for (int j = 0; j < y; ++j) {
+            for (int k = 0; k < z; ++k) {
+                double xy = static_cast<double>(2*field1(i,j,k).i+1) + static_cast<double>(2*field1(i,j,k).j+1);
+                double yz = 2;
+                if (field2(i,j,k).xy != xy) {
+                    result = false;
+                    std::cout << "(" << i << ", " << j << ", " << k << ") : "
+                              << field2(i,j,k).xy << " != "
+                              << xy << " diff = " << field2(i,j,k).xy-xy
+                              << std::endl;
+                }
+                if (field3(i,j,k).yz != yz) {
+                    result = false;
+                    std::cout << "(" << i << ", " << j << ", " << k << ") : "
+                              << field3(i,j,k).yz << " != "
+                              << yz << " diff = " << field3(i,j,k).yz-yz
+                              << std::endl;
+                }
+            }
+        }
+    }
 
     if(!result){
         std::cout << "ERROR"  << std::endl;
     }
 
-    test_computation->finalize();
 
   return result; /// lapse_time.wall<5000000 &&
 }
 } // namespace multi_types_test
 
 TEST(multitypes, multitypes) {
-    EXPECT_TRUE(multi_types_test::test(10, 13, 31));
+    EXPECT_TRUE(multi_types_test::test(15, 15, 15));
 }
