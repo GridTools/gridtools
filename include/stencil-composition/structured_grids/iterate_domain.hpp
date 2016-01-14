@@ -142,6 +142,7 @@ namespace gridtools {
         template<typename Accessor>
         struct accessor_return_type
         {
+            GRIDTOOLS_STATIC_ASSERT(is_accessor<Accessor>::value, "accessor_return_type expects an accessor as template argument");
             typedef typename ::gridtools::accessor_return_type<Accessor, iterate_domain_arguments_t>::type type;
         };
 
