@@ -52,16 +52,20 @@ protected:
     const iterate_domain_t& m_iterate_domain;
 public:
 
-#ifdef CXX11_ENABLED
-    template <typename Accessor>
-    using accessor_return_type = typename iterate_domain_t::template accessor_return_type<Accessor>;
-#endif
-
     typedef typename _impl::iterate_domain_remapper_base_esf_args_map<IterateDomainEvaluatorImpl>::type esf_args_map_t;
 
     GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<iterate_domain_t>::value), "Internal Error: wrong type");
     typedef typename iterate_domain_t::esf_args_t esf_args_t;
 
+#ifdef CXX11_ENABLED
+    template <typename Accessor>
+    using accessor_return_type = typename iterate_domain_t::template accessor_return_type<typename remap_accessor_type<Accessor, esf_args_map_t>::type>;
+#else
+    template <typename Accessor>
+    struct accessor_return_type {
+        typedef typename iterate_domain_t::template accessor_return_type<typename remap_accessor_type<Accessor, esf_args_map_t>::type>::type type;
+    };
+#endif
 
     GT_FUNCTION
     explicit iterate_domain_remapper_base(const iterate_domain_t& iterate_domain) : m_iterate_domain(iterate_domain) {}
@@ -69,12 +73,13 @@ public:
     /** shifting the IDs of the placeholders and forwarding to the iterate_domain () operator*/
     template <typename Accessor>
     GT_FUNCTION
-#ifdef CXX11_ENABLED
+ #ifdef CXX11_ENABLED
     auto
-    operator() (Accessor const&  arg) const -> decltype(m_iterate_domain(arg))
+    operator() (Accessor const&  arg) const -> decltype(m_iterate_domain(typename remap_accessor_type<Accessor, esf_args_map_t>::type(arg)))
 #else
-    typename accessor_return_type<Accessor>::type
-    operator() (Accessor const&  arg) const
+    typename iterate_domain_t::template accessor_return_type
+        <remap_accessor_type<Accessor, esf_args_map_t>::type>::type
+     operator() (Accessor const&  arg) const
 #endif
     {
         typedef typename remap_accessor_type<Accessor, esf_args_map_t>::type remap_accessor_t;
