@@ -7,4 +7,4 @@ EXE_CMD='for var in $( cat ~/.profile ); do export ${var}; done             && \
          cd $GRIDTOOLS_ROOT/python                                          && \
          ipython notebook --ip=0.0.0.0 --port=8888 --no-browser Gridtools4Py.ipynb'
 echo ">>> IPython notebook listening at ${CONTAINER_IP} <<<"
-ssh -i ssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -YC docker@${CONTAINER_IP} "${EXE_CMD}"
+ssh -XC -i ssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null docker@${CONTAINER_IP} "${EXE_CMD}"
