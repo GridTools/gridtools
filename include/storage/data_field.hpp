@@ -1,6 +1,6 @@
 #pragma once
+#include <boost/mpl/for_each.hpp>
 #include "storage_list.hpp"
-#include "../gt_for_each/for_each.hpp"
 #include "../common/generic_metafunctions/reversed_range.hpp"
 #ifdef CXX11_ENABLED
 namespace gridtools{
@@ -159,7 +159,7 @@ namespace gridtools{
 
             typedef typename reversed_range<ushort_t, 1+impl_::offset_t<Storage, Dim>::value, impl_::width_t<Storage, Dim>::value+impl_::offset_t<Storage, Dim>::value>::type range_t;
 
-            for_each<range_t>(shift<Storage>(storage_));
+            boost::mpl::for_each<range_t>(shift<Storage>(storage_));
 
             //restore the first snapshot
             storage_.fields_view()[impl_::offset_t<Storage, Dim>::value]=tmp;

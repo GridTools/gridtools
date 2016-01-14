@@ -320,7 +320,7 @@ namespace gridtools {
         GT_FUNCTION
         void increment(int_t steps_)
         {
-            for_each< metadata_map_t > (
+            boost::mpl::for_each< metadata_map_t > (
                 increment_index_functor<
                     Coordinate,
                     strides_cached_t,
