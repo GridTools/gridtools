@@ -183,12 +183,12 @@ T& get ( initialized<T>& x )
   return x.data() ;
 }
 
-template<class T>
-BOOST_MPL_GPU_ENABLED
-void swap ( initialized<T> & lhs, initialized<T> & rhs )
-{
-  lhs.swap(rhs) ;
-}
+//template<class T>
+//BOOST_MPL_GPU_ENABLED
+//void swap ( initialized<T> & lhs, initialized<T> & rhs )
+//{
+//  lhs.swap(rhs) ;
+//}
 
 template<class T>
 class value_initialized
@@ -252,12 +252,12 @@ T& get ( value_initialized<T>& x )
   return x.data() ;
 }
 
-template<class T>
-BOOST_MPL_GPU_ENABLED
-void swap ( value_initialized<T> & lhs, value_initialized<T> & rhs )
-{
-  lhs.swap(rhs) ;
-}
+//template<class T>
+//BOOST_MPL_GPU_ENABLED
+//void swap ( value_initialized<T> & lhs, value_initialized<T> & rhs )
+//{
+//  lhs.swap(rhs) ;
+//}
 
 
 class initialized_value_t
