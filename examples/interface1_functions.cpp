@@ -3,19 +3,19 @@
 #include "interface1_functions.hpp"
 
 #ifdef FUNCTIONS_MONOLITHIC
-#define F_TESTNAME HorizontalDiffusionFunctionsMONOLITHIC
+#define FTESTNAME(x) HorizontalDiffusionFunctionsMONOLITHIC
 #endif
 
 #ifdef FUNCTIONS_CALL
-#define F_TESTNAME HorizontalDiffusionFunctionsCALL
+#define FTESTNAME(x) HorizontalDiffusionFunctionsCALL
 #endif
 
 #ifdef FUNCTIONS_OFFSETS
-#define F_TESTNAME HorizontalDiffusionFunctionsOFFSETS
+#define FTESTNAME(x) HorizontalDiffusionFunctionsOFFSETS
 #endif
 
 #ifdef FUNCTIONS_PROCEDURES
-#define F_TESTNAME HorizontalDiffusionFunctionsPROCEDURES
+#define FTESTNAME(x) HorizontalDiffusionFunctionsPROCEDURES
 #endif
 
 
@@ -42,7 +42,7 @@ int main(int argc, char** argv)
 }
 
 
-TEST(F_TESTNAME, Test)
+TEST(FTESTNAME(x), Test)
 {
     uint_t x = Options::getInstance().m_size[0];
     uint_t y = Options::getInstance().m_size[1];
