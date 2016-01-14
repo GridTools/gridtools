@@ -3,10 +3,11 @@
 #include <boost/type_traits/is_const.hpp>
 
 #include "accessor.hpp"
-#include "stencil-composition/domain_type.hpp"
-#include "common/generic_metafunctions/is_sequence_of.hpp"
-#include "stencil-composition/esf_fwd.hpp"
-#include "stencil-composition/sfinae.hpp"
+#include "../domain_type.hpp"
+#include "../../common/generic_metafunctions/is_sequence_of.hpp"
+#include "../esf_fwd.hpp"
+#include "../sfinae.hpp"
+#include "../esf_metafunctions.hpp"
 
 /**
    @file
@@ -22,6 +23,8 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ArgArray, is_arg>::value), "wrong types for the list of parameter placeholders\n"
                 "check the make_esf syntax");
     private:
+
+        GRIDTOOLS_STATIC_ASSERT((check_arg_list<typename ESF::arg_list>::value == true), "There is a problem in the arg_list a the functor. Please, ensure that the accessors are listed in order from index 0 to the last");
 
         /** Private metafunction that associates (in a mpl::map) placeholders to extents.
             It returns a mpl::map between placeholders and extents of the local arguments.

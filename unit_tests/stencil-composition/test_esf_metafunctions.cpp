@@ -1,16 +1,18 @@
-#include "common/defs.hpp"
+#include <stencil-composition/stencil-composition.hpp>
+// #include "common/defs.hpp"
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
-#include "stencil-composition/backend.hpp"
-#include "stencil-composition/caches/cache_metafunctions.hpp"
-#include "stencil-composition/caches/define_caches.hpp"
-#include "stencil-composition/interval.hpp"
-#include "stencil-composition/make_computation.hpp"
+// #include "stencil-composition/backend.hpp"
+// #include "stencil-composition/caches/cache_metafunctions.hpp"
+// #include "stencil-composition/caches/define_caches.hpp"
+// #include "stencil-composition/interval.hpp"
+// #include "stencil-composition/make_computation.hpp"
+#include <stencil-composition/structured_grids/compute_extents_metafunctions.hpp>
 
 using namespace gridtools;
 using namespace gridtools::enumtype;
 using gridtools::accessor;
-using gridtools::range;
+using gridtools::extent;
 using gridtools::layout_map;
 using gridtools::float_type;
 using gridtools::arg;
@@ -26,10 +28,10 @@ struct print_r {
 };
 
 struct functor0{
-    typedef accessor<0, enumtype::in, range<-1, 0, -2, 1, -3, 2>> in0;
-    typedef accessor<1, enumtype::in, range<-3, 2, -2, 0, 0, 2>> in1;
+    typedef accessor<0, enumtype::in, extent<-1, 0, -2, 1, -3, 2>> in0;
+    typedef accessor<1, enumtype::in, extent<-3, 2, -2, 0, 0, 2>> in1;
     typedef accessor<2, enumtype::inout> out;
-    typedef accessor<3, enumtype::in, range<-1, 2, 0, 0, -3, 1>> in3;
+    typedef accessor<3, enumtype::in, extent<-1, 2, 0, 0, -3, 1>> in3;
 
     typedef boost::mpl::vector<in0,in1,out,in3> arg_list;
 
@@ -57,7 +59,7 @@ typedef arg<1, storage_type> in0;
 typedef arg<2, storage_type> in1;
 typedef arg<3, storage_type> in2;
 
-TEST(esf_metafunctions, compute_ranges_of)
+TEST(esf_metafunctions, compute_extents_of)
 {
     typedef decltype(gridtools::make_esf<functor0>(in0(), in1(), o0(), in2())) functor0__;
     typedef decltype( gridtools::make_mss
@@ -67,16 +69,33 @@ TEST(esf_metafunctions, compute_ranges_of)
     ) mss_t;
     typedef boost::mpl::vector<o0, in0, in1, in2> placeholders;
 
-    typedef gridtools::compute_extents_of<placeholders>::for_mss<mss_t>::type final_map;
+    typedef gridtools::strgrid::compute_extents_of<placeholders>::for_mss<mss_t>::type final_map;
 
-GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o0>::type, range<0, 0, 0, 0, 0, 0>>::type::value),
-                          "o0 range<0, 0, 0, 0, 0, 0>");
-GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, in0>::type, range<-1, 0, -2, 1, -3, 2>>::type::value),
-                          "in0 range<-1, 0, -2, 1, -3, 2>");
-GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, in1>::type, range<-3, 2, -2, 0, 0, 2>>::type::value),
-                          "in1 range<-3, 2, -2, 0, 0, 2>");
-GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, in2>::type, range<-1, 2, 0, 0, -3, 1>>::type::value),
-                          "in2 range<-1, 2, 0, 0, -3, 1>");
+GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o0>::type, extent<0, 0, 0, 0, 0, 0>>::type::value),
+                          "o0 extent<0, 0, 0, 0, 0, 0>");
+GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, in0>::type, extent<-1, 0, -2, 1, -3, 2>>::type::value),
+                          "in0 extent<-1, 0, -2, 1, -3, 2>");
+GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, in1>::type, extent<-3, 2, -2, 0, 0, 2>>::type::value),
+                          "in1 extent<-3, 2, -2, 0, 0, 2>");
+GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, in2>::type, extent<-1, 2, 0, 0, -3, 1>>::type::value),
+                          "in2 extent<-1, 2, 0, 0, -3, 1>");
 /* total placeholders (rounded to 10) _SIZE = 10*/
+    ASSERT_TRUE(true);
+}
+
+namespace _for_test {
+    template <int I>
+    struct arg {
+        typedef boost::mpl::int_<I> index_type;
+    };
+} // namespace _for_test
+
+TEST(esf_metafunctions, check_arg_list_order)
+{
+    GRIDTOOLS_STATIC_ASSERT((gridtools::check_arg_list<boost::mpl::vector<_for_test::arg<0>,_for_test::arg<1>,_for_test::arg<2>,_for_test::arg<3> > >::value == true), "Test1 failed");
+
+    GRIDTOOLS_STATIC_ASSERT((gridtools::check_arg_list<boost::mpl::vector<_for_test::arg<0>,_for_test::arg<4>,_for_test::arg<2>,_for_test::arg<3> > >::value == false), "Test1 failed");
+
+    GRIDTOOLS_STATIC_ASSERT((gridtools::check_arg_list<boost::mpl::vector<_for_test::arg<0>,_for_test::arg<0>,_for_test::arg<3>,_for_test::arg<3> > >::value == false), "Test1 failed");
     ASSERT_TRUE(true);
 }

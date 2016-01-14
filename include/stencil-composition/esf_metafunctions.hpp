@@ -8,6 +8,36 @@
 
 namespace gridtools {
 
+    /**
+       Metafunction to check that the arg_list mpl::vector list the
+       different accessors in order!
+     */
+    template <typename ArgList>
+    struct check_arg_list {
+        template <typename Reduced, typename Element>
+        struct _check {
+            typedef typename boost::mpl::if_c<
+                (Element::index_type::value == Reduced::value+1),
+                boost::mpl::int_<Reduced::value+1>,
+                boost::mpl::int_<-Reduced::value-1>
+                >::type type;
+        };
+
+        typedef typename boost::mpl::fold<
+            ArgList,
+            boost::mpl::int_<-1>,
+            _check<boost::mpl::_1, boost::mpl::_2>
+            >::type res_type;
+
+        typedef typename boost::mpl::if_c<
+            (res_type::value+1 == boost::mpl::size<ArgList>::value),
+            boost::true_type,
+            boost::false_type>::type type;
+
+        static const bool value = type::value;
+    };
+
+
 /** Metafunction checking if an ESF has, as argument, a given placeholder
 */
 template<typename Arg>
@@ -294,4 +324,3 @@ template <typename T>
 struct is_esf_descriptor<independent_esf<T> > : boost::mpl::true_{};
 
 } //namespace gridtools
-
