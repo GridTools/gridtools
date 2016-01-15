@@ -452,17 +452,29 @@ If you are not using generic accessors then you are using an unsupported storage
                 const int_t EU_id_i, const int_t EU_id_j) :
             m_data_pointer_array(data_pointer_array), m_storages(storages), m_meta_storages(meta_storages), m_EU_id_i(EU_id_i), m_EU_id_j(EU_id_j) {}
 
+        /**Metafunction used in the enable_if below*/
+        template <typename ID>
+        struct any_supported_accessor_t{
+            typedef is_any_storage<typename boost::mpl::at<StorageSequence, ID>::type> type;
+        };
+
+        /**
+           @brief Overload when the accessor associated with this ID is not a user-defined global accessor
+
+           The storage types used in this case must contain a meta_storage_t type
+           assign the storage pointers in the iterate_domain
+         */
         template <typename ID>
         GT_FUNCTION
-        void operator()(ID const&, typename boost::enable_if<is_any_storage<typename boost::fusion::result_of::at<StorageSequence, ID>::type>, int >::type dummy=0 ) const {
+        void operator()(ID const&, typename boost::enable_if<typename any_supported_accessor_t<ID>::type, int>::type dummy=0 ) const {
             GRIDTOOLS_STATIC_ASSERT((ID::value < boost::fusion::result_of::size<StorageSequence>::value),
                                     "Accessing an index out of bound in fusion tuple");
 
-            typedef typename boost::fusion::result_of::at<StorageSequence, ID>::type storage_ptr_type;
+            typedef typename boost::mpl::at<StorageSequence, ID>::type storage_ptr_type;
             typedef typename storage_ptr_type::value_type storage_type;
 
             typedef typename boost::mpl::at
-                <MetaDataMap, typename storage_type::value_type::meta_data_t >::type metadata_index_t;
+                <MetaDataMap, typename storage_type::meta_data_t >::type metadata_index_t;
 
             pointer<const typename storage_type::meta_data_t> const metadata_ = boost::fusion::at
                 < metadata_index_t >(m_meta_storages);
@@ -480,15 +492,18 @@ If you are not using generic accessors then you are using an unsupported storage
                 >(m_data_pointer_array, boost::fusion::at<ID>(m_storages), metadata_->fields_offset(m_EU_id_i, m_EU_id_j))
             );
         }
+        /**
+           @brief Overload when the accessor associated with this ID is a user-defined global accessor
 
-
+           assigns the storage pointers in the iterate_domain
+         */
         template <typename ID>
         GT_FUNCTION
-        void operator()(ID const&, typename boost::disable_if<is_any_storage<typename boost::fusion::result_of::at<StorageSequence, ID>::type>, int >::type dummy=0 ) const {
+        void operator()(ID const&, typename boost::disable_if<typename any_supported_accessor_t<ID>::type, int >::type dummy=0 ) const {
             GRIDTOOLS_STATIC_ASSERT((ID::value < boost::fusion::result_of::size<StorageSequence>::value),
                                     "Accessing an index out of bound in fusion tuple");
 
-            typedef typename boost::remove_reference<typename boost::fusion::result_of::at<StorageSequence, ID>::type>::type storage_ptr_type;
+            typedef typename boost::remove_reference<typename boost::mpl::at<StorageSequence, ID>::type>::type storage_ptr_type;
             typedef typename storage_ptr_type::value_type storage_type;
 
             //if the following fails, the ID is larger than the number of storage types
