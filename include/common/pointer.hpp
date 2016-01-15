@@ -19,7 +19,8 @@ namespace gridtools{
     struct pointer{
 
     private:
-        T const* m_t;
+        T * m_t;
+
     public:
         typedef T value_type;
 
@@ -34,14 +35,16 @@ namespace gridtools{
          */
         template <typename U>
         GT_FUNCTION
-        pointer(U const* t_): m_t(t_){}
+        pointer(U * t_): m_t(t_){
+            assert(m_t);
+        }
 
         /**
            @brief assign operator
          */
         template <typename U>
         GT_FUNCTION
-        void operator = (U const* t_){
+        void operator = (U * t_){
             m_t=t_;
         }
 
@@ -49,13 +52,13 @@ namespace gridtools{
            @brief returns the raw pointer (even if it's null)
         */
         GT_FUNCTION
-        T const* get() const {return m_t;}
+        T * get() const {return m_t;}
 
         /**
            @brief access operator
          */
         GT_FUNCTION
-        T const* operator -> () const {
+        T * operator -> () const {
             assert(m_t);
             return m_t;
         }
@@ -64,14 +67,15 @@ namespace gridtools{
            @brief dereference operator
          */
         GT_FUNCTION
-        T const& operator * () const {
+        T & operator * () const {
             assert (m_t);
             return *m_t;
         }
 
     };
 
-
+    template <typename T>
+    pointer<T> make_pointer(T& t){return pointer<T>(&t); }
 
     /**@brief deleting the pointers
 
@@ -88,15 +92,4 @@ namespace gridtools{
         }
     };
 
-
-    /** \addtogroup specializations Specializations
-        Partial specializations
-        @{
-    */
-    template<typename T>
-    struct is_ptr_to_tmp : boost::mpl::false_{};
-
-    template<typename T>
-    struct is_ptr_to_tmp<pointer<const T> > : boost::mpl::bool_<T::is_temporary> {};
-    /**@}*/
 }

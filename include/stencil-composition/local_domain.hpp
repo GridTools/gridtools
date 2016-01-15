@@ -34,8 +34,8 @@ namespace gridtools {
                 : m_arg_list(arg_list_)
                 , m_local_list(local_list_)
             {
-                // GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ArgList, is_storage>::value), "wrong type");
-                // GRIDTOOLS_STATIC_ASSERT((is_sequence_of<LocalList, is_arg>::value), "wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ArgList, is_pointer>::value), "wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_sequence_of<LocalList, is_pointer>::value), "wrong type");
             }
 
             template <typename Id>

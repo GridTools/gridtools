@@ -28,7 +28,7 @@
 
 #include "common/generic_metafunctions/static_if.hpp"
 #include "common/generic_metafunctions/is_variadic_pack_of.hpp"
-#include "common/generic_metafunctions/sort_struct.hpp"
+#include "common/generic_metafunctions/arg_comparator.hpp"
 #include "domain_type_impl.hpp"
 #include "../storage/metadata_set.hpp"
 #include "stencil-composition/arg_metafunctions.hpp"
@@ -39,6 +39,15 @@
    @brief This file contains the global list of placeholders to the storages
 */
 namespace gridtools {
+
+
+    namespace _impl {
+        //metafunction to extract the storage type from thepointer
+        template <typename T, typename U>
+        struct matches{
+            typedef typename boost::is_same<typename T::value_type, U>::type type;
+        };
+    }
 
     //fwd declaration
     template<typename T>
@@ -59,7 +68,7 @@ namespace gridtools {
     template <typename Placeholders>
     struct domain_type : public clonable_to_gpu<domain_type<Placeholders> > {
 
-        typedef typename boost::mpl::sort<Placeholders, sort_struct >::type placeholders_t;
+        typedef typename boost::mpl::sort<Placeholders, arg_comparator >::type placeholders_t;
 
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<placeholders_t, is_arg>::type::value), "wrong type:\
  the domain_type template argument must be an MPL vector of placeholders (arg<...>)");
@@ -90,7 +99,6 @@ namespace gridtools {
         typedef typename boost::mpl::transform<placeholders_t,
                                                _impl::l_get_type
                                                >::type storage_list;
-
 
         /**
          * \brief Get a sequence of the same type of placeholders_t, but containing the iterator types corresponding to the placeholder's storage type
@@ -173,9 +181,10 @@ namespace gridtools {
         /**@brief recursively assignes all the pointers passed as arguments to storages.
          */
         template <typename MetaDataSequence, typename ArgStoragePair0, typename... OtherArgs>
-        void assign_pointers(MetaDataSequence& sequence_, ArgStoragePair0 arg0, OtherArgs ... other_args)
+        typename boost::enable_if_c< is_any_storage<typename ArgStoragePair0::storage_type>::type::value
+                                    , void>::type assign_pointers(MetaDataSequence& sequence_, ArgStoragePair0 arg0, OtherArgs ... other_args)
         {
-            assert(arg0.ptr);
+            assert(arg0.ptr.get());
             boost::fusion::at<typename ArgStoragePair0::arg_type::index_type>(m_storage_pointers) = arg0.ptr;
             //storing the value of the pointers in a 'backup' fusion vector
             boost::fusion::at<typename ArgStoragePair0::arg_type::index_type>(m_original_pointers) = arg0.ptr;
@@ -183,6 +192,19 @@ namespace gridtools {
                 sequence_.insert(pointer<const typename ArgStoragePair0::storage_type::meta_data_t>(&(arg0.ptr->meta_data())));
             assign_pointers(sequence_, other_args...);
         }
+
+        /** overload for non-storage types (i.e. arbitrary user-defined types which
+            do not contain necessarily a meta_data)*/
+        template <typename MetaDataSequence, typename ArgStoragePair0, typename... OtherArgs>
+        typename boost::disable_if_c< is_any_storage<typename ArgStoragePair0::storage_type>::type::value
+                                     , void>::type assign_pointers(MetaDataSequence& sequence_, ArgStoragePair0 arg0, OtherArgs ... other_args)
+        {
+            assert(arg0.ptr.get());
+            boost::fusion::at<typename ArgStoragePair0::arg_type::index_type>(m_storage_pointers) = arg0.ptr;
+            boost::fusion::at<typename ArgStoragePair0::arg_type::index_type>(m_original_pointers) = arg0.ptr;
+            assign_pointers(sequence_, other_args...);
+        }
+
 
 #endif
     public:
@@ -233,7 +255,7 @@ namespace gridtools {
             template <typename Arg>
             void operator()( Arg const* arg_) const{
                 // filter out the arguments which are not of storage type (and thus do not have an associated metadata)
-                static_if<is_actual_storage<Arg>::type::value>::eval(
+                static_if<is_actual_storage<pointer<Arg> >::type::value>::eval(
                     insert_if_not_present<Sequence, Arg >
                     (m_sequence
                      , *arg_)
@@ -262,6 +284,7 @@ namespace gridtools {
                 "The number of arguments specified when constructing the domain_type is not the same as the number of placeholders "
                 "to non-temporary storages. Double check the temporary flag in the meta_storage types.");
 
+            //below few metafunctions only to protect the user from mismatched storages
             typedef typename boost::mpl::fold<
                 arg_list_mpl
                 , boost::mpl::vector0<>
@@ -271,16 +294,17 @@ namespace gridtools {
                                   > >
                 ::type view_type_mpl;
 
+            // checking thet all the storages are correct
             typedef typename boost::mpl::fold<
                 boost::mpl::range_c<uint_t, 0, boost::mpl::size<RealStorage>::type::value>
                 , boost::mpl::bool_<true>
                 , boost::mpl::and_<
-                    boost::is_same<boost::mpl::at<view_type_mpl, boost::mpl::_2>, boost::mpl::at<RealStorage, boost::mpl::_2> >
+                      _impl::matches<boost::mpl::at<view_type_mpl, boost::mpl::_2>, boost::remove_pointer<boost::mpl::at<RealStorage, boost::mpl::_2> > >
                       , boost::mpl::_1
                       >
                 >::type::type storages_matching;
 
-            GRIDTOOLS_STATIC_ASSERT(storages_matching::value, "Error in the definition of the domain_type. The storage type associated to one of the \'arg\' types is not the correct one. Check that the storage_type used when defining each \'arg\' matches the correspondent storage passed as run-time argument of the domain_type constructor");
+            GRIDTOOLS_STATIC_ASSERT(storages_matching::value, "Error in the definition of the domain_type. The storage type associated to one of the \'arg\' types is not the correct one. Check that the storage_type used when defining each \'arg\' matches the corresponding storage passed as run-time argument of the domain_type constructor");
 
             //NOTE: an error in the line below could mean that the storage type
             // associated to the arg is not the

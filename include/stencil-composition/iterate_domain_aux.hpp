@@ -48,15 +48,15 @@ namespace gridtools{
     template<typename T>
     struct is_any_iterate_domain_storage_pointer :
             boost::mpl::and_<
-                is_any_iterate_domain_storage< typename boost::remove_pointer<T>::type >,
-                boost::is_pointer<T>
+                is_any_iterate_domain_storage< typename T::value_type >,
+                is_pointer<T>
             > {};
 
     template<typename T>
     struct is_any_iterate_domain_meta_storage_pointer :
             boost::mpl::and_<
-                is_any_iterate_domain_meta_storage< typename boost::remove_pointer<T>::type >,
-                boost::is_pointer<T>
+                is_any_iterate_domain_meta_storage< typename T::value_type >,
+                is_pointer<T>
             > {};
 
     /**
@@ -191,7 +191,7 @@ If you are not using generic accessors then you are using an unsupported storage
 
     private:
         DataPointerArray& RESTRICT m_data_pointer_array;
-        Storage const * RESTRICT m_storage;
+        pointer<Storage> m_storage;
         const uint_t m_offset;
 
     public:
@@ -199,13 +199,13 @@ If you are not using generic accessors then you are using an unsupported storage
         assign_raw_data_functor( assign_raw_data_functor const& other): m_data_pointer_array(other.m_data_pointer_array), m_storage(other.m_storage), m_offset(other.m_offset){}
 
         GT_FUNCTION
-        assign_raw_data_functor(DataPointerArray& RESTRICT data_pointer_array, Storage const * RESTRICT storage, uint const offset_=0) :
+        assign_raw_data_functor(DataPointerArray& RESTRICT data_pointer_array, pointer<Storage> storage, uint const offset_=0) :
             m_data_pointer_array(data_pointer_array), m_storage(storage), m_offset(offset_) {}
 
         template <typename ID>
         GT_FUNCTION
         void operator()(ID const&) const {
-            assert(m_storage);
+            assert(m_storage.get());
             //compute the processing element in charge of doing the copy (i.e. the core in a backend with multiple cores)
             typedef typename boost::mpl::modulus<ID, boost::mpl::int_<BLOCK_SIZE> >::type pe_id_t;
             //provide the implementation that performs the assignment, depending on the type of storage we have
@@ -452,14 +452,10 @@ If you are not using generic accessors then you are using an unsupported storage
             GRIDTOOLS_STATIC_ASSERT((ID::value < boost::fusion::result_of::size<StorageSequence>::value),
                                     "Accessing an index out of bound in fusion tuple");
 
-            typedef typename boost::remove_pointer<
-                typename boost::remove_reference<
-                    typename boost::fusion::result_of::at<StorageSequence, ID>::type
-                 >::type
-            >::type storage_type;
+            typedef typename boost::fusion::result_of::at<StorageSequence, ID>::type::value_type storage_type;
 
             typedef typename boost::mpl::at
-                <MetaDataMap, typename storage_type::meta_data_t >::type metadata_index_t;
+                <MetaDataMap, typename storage_type::value_type::meta_data_t >::type metadata_index_t;
 
             pointer<const typename storage_type::meta_data_t> const metadata_ = boost::fusion::at
                 < metadata_index_t >(m_meta_storages);
@@ -485,24 +481,20 @@ If you are not using generic accessors then you are using an unsupported storage
             GRIDTOOLS_STATIC_ASSERT((ID::value < boost::fusion::result_of::size<StorageSequence>::value),
                                     "Accessing an index out of bound in fusion tuple");
 
-            typedef typename boost::remove_pointer<
-                typename boost::remove_reference<
-                    typename boost::fusion::result_of::at<StorageSequence, ID>::type
-                 >::type
-            >::type storage_type;
+            typedef typename boost::remove_reference<typename boost::fusion::result_of::at<StorageSequence, ID>::type>::type::value_type storage_type;
 
             //if the following fails, the ID is larger than the number of storage types
             GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size<StorageSequence>::value,
                                     "the ID is larger than the number of storage types");
 
-                for_each< typename reversed_range<short_t, 0, storage_type::field_dimensions >::type > (
+            for_each< typename reversed_range<short_t, 0, storage_type::field_dimensions >::type > (
                 assign_raw_data_functor<
-                    total_storages<StorageSequence, ID::value>::value,
-                    BackendType,
-                    DataPointerArray,
-                    storage_type
+                total_storages<StorageSequence, ID::value>::value,
+                BackendType,
+                DataPointerArray,
+                storage_type
                 >(m_data_pointer_array, boost::fusion::at<ID>(m_storages))
-            );
+                );
         }
     };
 
@@ -544,10 +536,10 @@ If you are not using generic accessors then you are using an unsupported storage
        would look like
        for(i=0; i<n_f; ++i)
        for(j=0; j<n_d(i); ++j)
-     * @tparam BackendType the type of backend
-     * @tparam StridesCached strides cached type
-     * @tparam MetaStorageSequence sequence of storages
-    */
+       * @tparam BackendType the type of backend
+       * @tparam StridesCached strides cached type
+       * @tparam MetaStorageSequence sequence of storages
+       */
     template<typename BackendType, typename StridesCached, typename MetaStorageSequence>
     struct assign_strides_functor{
 
@@ -590,8 +582,8 @@ If you are not using generic accessors then you are using an unsupported storage
                 assign_strides_inner_functor<BackendType>(
                     &(m_strides.template get<ID::value>()[0]),
                     &(boost::fusion::template at_c<ID::value>(m_storages)->strides(1))
-                )
-            );
+                    )
+                );
         }
     };
 
@@ -608,14 +600,14 @@ If you are not using generic accessors then you are using an unsupported storage
             typedef typename boost::mpl::has_key<
                 CachesMap,
                 typename accessor_index<Accessor_>::type
-            >::type type;
+                >::type type;
         };
 
         typedef typename boost::mpl::eval_if<
             is_accessor<Accessor>,
             accessor_is_cached_<Accessor>,
             boost::mpl::identity<boost::mpl::false_>
-        >::type type;
+            >::type type;
 
         BOOST_STATIC_CONSTANT(bool, value=(type::value));
     };
@@ -630,16 +622,12 @@ If you are not using generic accessors then you are using an unsupported storage
         GRIDTOOLS_STATIC_ASSERT(
             (boost::mpl::size<typename LocalDomain::local_args_type>::value > Accessor::index_type::value),
             "Wrong type"
-        );
+            );
 
-        typedef typename boost::remove_reference<
-            typename boost::remove_pointer<
-                typename boost::mpl::at<
-                    typename LocalDomain::local_args_type,
-                    typename Accessor::index_type
-                >::type
-            >::type
-        >::type type;
+        typedef typename boost::mpl::at<
+            typename LocalDomain::local_args_type,
+            typename Accessor::index_type
+            >::type type;
     };
 
     template<typename LocalDomain, typename Accessor>
@@ -651,11 +639,11 @@ If you are not using generic accessors then you are using an unsupported storage
         GRIDTOOLS_STATIC_ASSERT(
             (boost::mpl::size<typename LocalDomain::local_args_type>::value > Accessor::index_type::value),
             "Wrong type"
-        );
+            );
 
         typedef typename boost::add_pointer<
-            typename get_storage_accessor<LocalDomain, Accessor>::type::value_type
-        >::type type;
+            typename get_storage_accessor<LocalDomain, Accessor>::type::value_type::value_type
+            >::type type;
     };
 
     /**
@@ -669,7 +657,7 @@ If you are not using generic accessors then you are using an unsupported storage
         typedef typename boost::mpl::at<
             typename IterateDomainArguments::local_domain_t::esf_args,
             typename Accessor::index_type
-        >::type type;
+            >::type type;
     };
 
     template<typename Accessor, typename IterateDomainArguments>
@@ -686,17 +674,16 @@ If you are not using generic accessors then you are using an unsupported storage
        @brief partial specialization for the generic_accessor
 
        for the generic accessor the value_type is the storage object type itself.
-     */
+    */
     template<ushort_t I, enumtype::intend Intend,  typename IterateDomainArguments>
     struct get_arg_value_type_from_accessor<generic_accessor<I, Intend>, IterateDomainArguments >
     {
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Wrong type");
 
-        typedef typename boost::remove_pointer
-        <typename boost::mpl::at<
-             typename IterateDomainArguments::local_domain_t::mpl_storages,
-             static_int<I>
-             >::type >::type type;
+        typedef typename boost::mpl::at<
+            typename IterateDomainArguments::local_domain_t::mpl_storages,
+            static_int<I>
+            >::type::value_type::value_type type;
     };
 
 

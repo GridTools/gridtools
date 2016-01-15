@@ -153,7 +153,7 @@ namespace gridtools {
             struct apply {
                 typedef typename boost::mpl::at<Placeholders, Index>::type::storage_type storage_type;
                 static const bool b = is_temp<storage_type>::value;
-                typedef typename get_the_type<b, storage_type, TmpPairs, Index>::type* type;
+                typedef pointer<typename get_the_type<b, storage_type, TmpPairs, Index>::type> type;
             };
         };
 

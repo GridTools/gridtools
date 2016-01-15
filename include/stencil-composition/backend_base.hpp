@@ -144,7 +144,8 @@ namespace gridtools {
                 typename backend_traits_t::template meta_storage_traits<typename MetaDataType::index_type
                                                                         , typename MetaDataType::layout
                                                                         , false
-                                                                        , typename MetaDataType::halo_t>::type,
+                                                                        , typename MetaDataType::halo_t
+                                                                        , typename MetaDataType::alignment_boundary_t>::type,
                     false
                 >::storage_t type;
         };
@@ -170,24 +171,28 @@ namespace gridtools {
         template < ushort_t Index
                    , typename Layout
                    , typename Halo=typename repeat_template_c<0, Layout::length, halo>::type
+                   , typename AlignmentBoundary = typename backend_traits_t::default_alignment::type
                    >
-        using storage_info = typename backend_traits_t::template meta_storage_traits<static_uint<Index>, Layout, false, Halo>::type;
+        using storage_info = typename backend_traits_t::template meta_storage_traits<static_uint<Index>, Layout, false, Halo, AlignmentBoundary>::type;
 
 #else
         template < ushort_t Index
                    , typename Layout
                    , typename Halo = halo<0,0,0>
+                   , typename AlignmentBoundary = typename backend_traits_t::default_alignment::type
                    >
         struct storage_info :
             public backend_traits_t::template meta_storage_traits<static_uint<Index>
                                                                   , Layout
                                                                   , false
-                                                                  , Halo>::type
+                                                                  , Halo
+                                                                  , AlignmentBoundary>::type
         {
             typedef  typename backend_traits_t::template meta_storage_traits<static_uint<Index>
                                                                              , Layout
                                                                              , false
-                                                                             , Halo>::type super;
+                                                                             , Halo
+                                                                             , AlignmentBoundary>::type super;
 
             storage_info(uint_t const& d1, uint_t const& d2, uint_t const& d3) : super(d1,d2,d3){}
 
@@ -217,7 +222,8 @@ namespace gridtools {
             typename backend_traits_t::template meta_storage_traits<typename MetaDataType::index_type
                                                                     , typename MetaDataType::layout
                                                                     , true
-                                                                    , typename MetaDataType::halo_t>::type,
+                                                                    , typename MetaDataType::halo_t
+                                                                    , typename MetaDataType::alignment_boundary_t>::type,
             true
             >::storage_t temp_storage_t;
         public:

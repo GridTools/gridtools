@@ -76,19 +76,6 @@ public:
         return m_iterate_domain(remap_accessor_t(arg));
     }
 
-#ifndef CXX11_ENABLED
-    /** shifting the IDs of the placeholders and forwarding to the iterate_domain () operator*/
-    template <ushort_t Id, enumtype::intend Intend>
-    GT_FUNCTION
-    typename boost::mpl::at<typename iterate_domain_t::local_domain_t::mpl_storages, static_int<Id> >::type
-    operator() (generic_accessor<Id, Intend> const&  arg) const
-    {
-        typedef typename remap_accessor_type<generic_accessor<Id, Intend>, esf_args_map_t>::type remap_accessor_t;
-        return m_iterate_domain(remap_accessor_t(arg));
-    }
-#endif
-
-protected:
 };
 
 /**

@@ -7,7 +7,7 @@ namespace gridtools{
 
        To be used with e.g. mpl::sort
     */
-    struct sort_struct{
+    struct arg_comparator{
         template<typename T1, typename T2>
         struct apply ;
 
