@@ -91,11 +91,8 @@ namespace gridtools {
                 return evaluation::value_scalar((*this), arg);
             }
         };
-    } // namespace _impl
 
 
-
-    namespace _impl {
         /**
            In the context of stencil_functions, this type represents the
            aggregator/domain/evaluator to be passed to a stencil function,
@@ -115,6 +112,7 @@ namespace gridtools {
             accessors_list_t const& m_accessors_list;
 
             GT_FUNCTION
+            constexpr
             function_aggregator_offsets(CallerAggregator const& caller_aggregator,
                                         ReturnType & result,
                                         accessors_list_t const& list)
@@ -280,6 +278,7 @@ namespace gridtools {
             accessors_list_t const& m_accessors_list;
 
             GT_FUNCTION
+            constexpr
             function_aggregator_procedure_offsets(CallerAggregator const& caller_aggregator,
                                                   accessors_list_t const & list)
                 : m_caller_aggregator(caller_aggregator)
