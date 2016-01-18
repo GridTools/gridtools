@@ -117,22 +117,37 @@ struct flx_function {
     GT_FUNCTION
     static void Do(Domain const & dom, x_flx) {
 
-        //#ifdef MONOLITHIC
+#ifdef FUNCTIONS_MONOLITHIC
+#pragma message "monolithic version";
         double _x_ = (gridtools::float_type)4.0*dom(in()) -
             (dom(in( -1, 0, 0)) + dom(in( 0, -1, 0)) +
              dom(in(0, 1, 0)) + dom(in(1, 0, 0)));
         double _y_ = (gridtools::float_type)4.0*dom(in(0,1,0)) -
             (dom(in( -1, 1, 0)) + dom(in( 0, 0, 0)) +
              dom(in(0, 2, 0)) + dom(in(1, 1, 0)));
-        //#else
-// #ifdef FUNCTIONS_OFFSETS
-//         double _x_ = gridtools::call_offsets<lap_function, x_flx>::with(dom, in(0,0,0));
-//         double _y_ = gridtools::call_offsets<lap_function, x_flx>::with(dom, in(0,1,0));
-// #else
-//         double _x_ = gridtools::call<lap_function, x_flx>::at<0,0,0>::with(dom, in());
-//         double _y_ = gridtools::call<lap_function, x_flx>::at<0,1,0>::with(dom, in());
-// #endif
-// #endif
+#else
+#ifdef FUNCTIONS_PROCEDURES
+        double _x_;
+        gridtools::call_proc<lap_function, x_flx>::at<0,0,0>::with(dom, _x_, in());
+        double _y_;
+        gridtools::call_proc<lap_function, x_flx>::at<0,1,0>::with(dom, _y_, in());
+#else
+#ifdef FUNCTIONS_PROCEDURES_OFFSETS
+        double _x_;
+        gridtools::call_proc<lap_function, x_flx>::with_offsets(dom, _x_, in());
+        double _y_;
+        gridtools::call_proc<lap_function, x_flx>::with_offsets(dom, _y_, in(0,1,0));
+#else
+#ifdef FUNCTIONS_OFFSETS
+        double _x_ = gridtools::call<lap_function, x_flx>::with_offsets(dom, in(0,0,0));
+        double _y_ = gridtools::call<lap_function, x_flx>::with_offsets(dom, in(0,1,0));
+#else
+        double _x_ = gridtools::call<lap_function, x_flx>::at<0,0,0>::with(dom, in());
+        double _y_ = gridtools::call<lap_function, x_flx>::at<0,1,0>::with(dom, in());
+#endif
+#endif
+#endif
+#endif
         dom(out()) = _y_-_x_;
         dom(out()) = dom(out())*(dom(in(0,1,0))-dom(in(0,0,0))) > 0?0.0:dom(out());
     }
