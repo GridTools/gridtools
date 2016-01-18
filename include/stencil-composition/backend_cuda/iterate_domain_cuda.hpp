@@ -30,7 +30,8 @@ private:
     typedef typename super::iterate_domain_cache_t iterate_domain_cache_t;
     typedef typename super::readonly_args_indices_t readonly_args_indices_t;
 
-    typedef shared_iterate_domain<data_pointer_array_t, strides_cached_t, typename iterate_domain_cache_t::ij_caches_tuple_t>
+    //TODO there are two instantiations of these type.. Fix this
+    typedef shared_iterate_domain<data_pointer_array_t, strides_cached_t, typename IterateDomainArguments::max_extent_t, typename iterate_domain_cache_t::ij_caches_tuple_t>
         shared_iterate_domain_t;
 
     typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
@@ -70,8 +71,15 @@ public:
     GT_FUNCTION
     bool is_thread_in_domain() const
     {
-        return threadIdx.x < (m_block_size_i -Extent::iminus::value+Extent::iplus::value) &&
-            threadIdx.y < (m_block_size_j -Extent::jminus::value+Extent::jplus::value);
+        return (m_thread_pos[0] >= Extent::iminus::value && m_thread_pos[0] < ((int)m_block_size_i +Extent::iplus::value) &&
+            m_thread_pos[1] >= Extent::jminus::value && m_thread_pos[1] < ((int)m_block_size_j +Extent::jplus::value) );
+    }
+
+    GT_FUNCTION
+    void set_block_pos(const int_t ipos, const int_t jpos)
+    {
+        m_thread_pos[0] = ipos;
+        m_thread_pos[1] = jpos;
     }
 
     /**
@@ -86,24 +94,13 @@ public:
     }
 
     /**
-     * @brief determines whether the current (i) position is within the block size
-     */
-    template<int_t minus, int_t plus>
-    GT_FUNCTION
-    bool is_thread_in_domain_x() const
-    {
-        return threadIdx.x < (m_block_size_i-minus+plus);
-    }
-
-    /**
      * @brief determines whether the current (i) position + an offset is within the block size
      */
     template<int_t minus, int_t plus>
     GT_FUNCTION
     bool is_thread_in_domain_x(const int_t i_offset) const
     {
-        return (int_t)threadIdx.x + i_offset >= 0 && (int_t)threadIdx.x + i_offset <
-            (m_block_size_i-minus+plus);
+        return m_thread_pos[0] + i_offset >= minus && m_thread_pos[0] +i_offset < (int)m_block_size_i + plus;
     }
 
     /**
@@ -113,8 +110,7 @@ public:
     GT_FUNCTION
     bool is_thread_in_domain_y(const int_t j_offset) const
     {
-        return (int_t)threadIdx.y + j_offset >= 0 && (int_t)threadIdx.y + j_offset <
-            (m_block_size_j-minus+plus);
+        return m_thread_pos[1] + j_offset >= minus && m_thread_pos[1] + j_offset < (int)m_block_size_j + plus; 
     }
 
     GT_FUNCTION

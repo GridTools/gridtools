@@ -30,12 +30,7 @@ namespace _impl_cuda {
         typedef typename RunFunctorArguments::physical_domain_block_size_t block_size_t;
         typedef typename RunFunctorArguments::extent_sizes_t extent_sizes_t;
 
-        typedef typename boost::mpl::fold<
-            extent_sizes_t,
-            extent<0,0,0,0>,
-            enclosing_extent<boost::mpl::_1, boost::mpl::_2>
-        >::type max_extent_t;
-
+        typedef typename RunFunctorArguments::max_extent_t max_extent_t;
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
         typedef backend_traits_from_id<enumtype::Cuda> backend_traits_t;
         typedef typename iterate_domain_t::strides_cached_t strides_t;
@@ -43,6 +38,7 @@ namespace _impl_cuda {
         typedef shared_iterate_domain<
             data_pointer_array_t,
             strides_t,
+            max_extent_t,
             typename iterate_domain_t::iterate_domain_cache_t::ij_caches_tuple_t
         > shared_iterate_domain_t;
 
@@ -71,29 +67,40 @@ namespace _impl_cuda {
 
         int i=max_extent_t::iminus::value-1;
         int j=max_extent_t::jminus::value-1;
+        int iblock=max_extent_t::iminus::value-1;
+        int jblock=max_extent_t::jminus::value-1;
         if(threadIdx.y < jboundary_limit)
         {
             i = blockIdx.x * block_size_t::i_size_t::value + threadIdx.x;
-            j = blockIdx.y * block_size_t::j_size_t::value + threadIdx.y;
+            j = blockIdx.y * block_size_t::j_size_t::value + threadIdx.y + max_extent_t::jminus::value;
+            iblock = threadIdx.x;
+            jblock = threadIdx.y + max_extent_t::jminus::value;
         }
         else if(threadIdx.y < iminus_limit)
         {
             const int padded_boundary_ = padded_boundary<-max_extent_t::iminus::value>::value;
-            i = -padded_boundary_ + threadIdx.x % padded_boundary_;
-            j = threadIdx.y - jboundary_limit + threadIdx.x / padded_boundary_;
+            i = blockIdx.x * block_size_t::i_size_t::value -padded_boundary_ + threadIdx.x % padded_boundary_;
+           // j = threadIdx.y - jboundary_limit + threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
+           // TODO limit here is only one extra thread to deal with left halo. This limits the size of y of block. Put protections and extend this limit
+            j = blockIdx.y* block_size_t::j_size_t::value +  threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
+            iblock = -padded_boundary_ + threadIdx.x % padded_boundary_;
+            jblock = threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
         }
         else if(threadIdx.y < iplus_limit)
         {
             const int padded_boundary_ = padded_boundary<max_extent_t::iplus::value>::value;
-            i = threadIdx.x % padded_boundary_ + block_size_t::i_size_t::value;
-            j = threadIdx.y - iminus_limit + threadIdx.x / padded_boundary_;
+            i = blockIdx.x * block_size_t::i_size_t::value + threadIdx.x % padded_boundary_ + block_size_t::i_size_t::value;
+            j = blockIdx.y* block_size_t::j_size_t::value + threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
+            iblock = threadIdx.x % padded_boundary_ + block_size_t::i_size_t::value;
+            jblock = threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
         }
-
         it_domain.set_index(0);
 
         //initialize the indices
         it_domain.template initialize<0>(i+starti, blockIdx.x);
         it_domain.template initialize<1>(j+startj, blockIdx.y);
+
+        it_domain.set_block_pos(iblock,jblock);
 
         typedef typename boost::mpl::front<typename RunFunctorArguments::loop_intervals_t>::type interval;
         typedef typename index_to_level<typename interval::first>::type from;
@@ -101,7 +108,7 @@ namespace _impl_cuda {
         typedef _impl::iteration_policy<from, to, zdim_index_t::value, execution_type_t::type::iteration> iteration_policy_t;
 
         it_domain.template initialize<zdim_index_t::value>( grid->template value_at< iteration_policy_t::from >() );
-
+        
         //execute the k interval functors
         for_each<typename RunFunctorArguments::loop_intervals_t>
             (_impl::run_f_on_interval<

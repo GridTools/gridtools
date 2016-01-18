@@ -24,6 +24,7 @@ namespace gridtools {
         typename LocalDomain,
         typename EsfSequence,
         typename ExtendSizes,
+        typename MaxExtent,
         typename CacheSequence,
         typename PhysicalDomainBlockSize,
         typename Grid
@@ -42,6 +43,7 @@ namespace gridtools {
         typedef CacheSequence cache_sequence_t;
         typedef EsfSequence esf_sequence_t;
         typedef ExtendSizes extent_sizes_t;
+        typedef MaxExtent max_extent_t;
         typedef PhysicalDomainBlockSize physical_domain_block_size_t;
         typedef Grid grid_t;
     };
@@ -53,6 +55,7 @@ namespace gridtools {
         typename LocalDomain,
         typename EsfSequence,
         typename ExtendSizes,
+        typename MaxExtent,
         typename CacheSequence,
         typename PhysicalDomainBlockSize,
         typename Grid>
@@ -62,6 +65,7 @@ namespace gridtools {
             LocalDomain,
             EsfSequence,
             ExtendSizes,
+            MaxExtent,
             CacheSequence,
             PhysicalDomainBlockSize,
             Grid> > :
@@ -107,6 +111,11 @@ namespace gridtools {
         typedef LoopIntervals loop_intervals_t;
         typedef FunctorsMap functors_map_t;
         typedef ExtendSizes extent_sizes_t;
+        typedef typename boost::mpl::fold<
+            extent_sizes_t,
+            extent<0,0,0,0>,
+            enclosing_extent<boost::mpl::_1, boost::mpl::_2>
+        >::type max_extent_t;
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;
         typedef typename backend_traits_from_id<backend_id_t::value>::
@@ -116,6 +125,7 @@ namespace gridtools {
                         LocalDomain,
                         EsfSequence,
                         ExtendSizes,
+                        max_extent_t,
                         CacheSequence,
                         PhysicalDomainBlockSize,
                         Grid
