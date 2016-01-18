@@ -13,6 +13,11 @@
 struct pretent_aggregator {
     using value_type = double;
 
+    template <typename Accessor>
+    struct accessor_return_type {
+        using type = double;
+    };
+
     template <gridtools::uint_t I, gridtools::enumtype::intend Intent,
               typename Range, gridtools::ushort_t N>
     constexpr
