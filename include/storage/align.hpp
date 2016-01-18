@@ -17,21 +17,15 @@ namespace gridtools{
                 );
             typedef typename boost::mpl::bool_<value>::type type;
         };
-        /** applies the alignment when the dimensions are compile-time constants
-            nvcc does not understand that the functor below can be a constant expression */
-        template<uint_t Coordinate, uint_t Dimension>
-        struct apply_tt{
-            static const uint_t value = AlignmentBoundary  && (Dimension%AlignmentBoundary) && has_stride_one<Coordinate>::value ? Dimension+AlignmentBoundary-(Dimension%AlignmentBoundary) : Dimension;
-        };
 
         /** applies the alignment to run-time values*/
         template<uint_t Coordinate>
         struct do_align{
-            // static const bool has_stride_one = (LayoutMap::template at_<Coordinate>::value == vec_max<typename LayoutMap::layout_vector_t>::value);
 
             static constexpr uint_t apply(uint_t const& dimension, uint_t const& pad){
                 //the stride is one when the value in the layout vector is the highest
-                return (AlignmentBoundary && (dimension%AlignmentBoundary) && has_stride_one<Coordinate>::value) ? dimension+AlignmentBoundary-(dimension%AlignmentBoundary) +
+                return (AlignmentBoundary && ((dimension+pad)%AlignmentBoundary) && has_stride_one<Coordinate>::value)
+                    ? dimension+AlignmentBoundary-(dimension%AlignmentBoundary) +
                     pad+AlignmentBoundary-(pad%AlignmentBoundary)
                     : dimension+pad;
             }
