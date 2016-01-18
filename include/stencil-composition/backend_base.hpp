@@ -57,7 +57,7 @@ namespace gridtools {
                 typedef typename boost::mpl::second<MapElem>::type extent_type;
                 typedef typename boost::mpl::first<MapElem>::type temporary;
 
-                typedef pair<
+                typedef pair_type<
                 typename StrategyTraits::template get_tmp_storage<
                     typename temporary::storage_type
                     , tile<BI, -extent_type::iminus::value, extent_type::iplus::value>
@@ -141,12 +141,13 @@ namespace gridtools {
             typedef typename backend_traits_t::template
                 storage_traits<
                     ValueType,
-                typename backend_traits_t::template meta_storage_traits<typename MetaDataType::index_type
-                                                                        , typename MetaDataType::layout
-                                                                        , false
-                                                                        , typename MetaDataType::halo_t
-                                                                        , typename MetaDataType::alignment_boundary_t>::type,
-                    false
+                typename backend_traits_t::template meta_storage_traits<
+                    typename MetaDataType::index_type
+                    , typename MetaDataType::layout
+                    , false
+                    , typename MetaDataType::halo_t
+                    , typename MetaDataType::alignment_boundary_t>::type,
+                false
                 >::storage_t type;
         };
 

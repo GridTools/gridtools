@@ -117,8 +117,8 @@ namespace gridtools{
                 base_storage
 #endif
                 <typename Storage::pointer_type, typename get_tmp_storage_info
-                 <typename Storage::meta_data_t::index_type
-                  , typename Storage::meta_data_t::layout,
+                 <typename Storage::meta_data_t::index_type,
+                  typename Storage::meta_data_t::layout,
                   typename Storage::meta_data_t::halo_t,
                   typename Storage::meta_data_t::alignment_boundary_t,
 #ifdef CXX11_ENABLED

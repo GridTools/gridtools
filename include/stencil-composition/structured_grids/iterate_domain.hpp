@@ -466,15 +466,15 @@ namespace gridtools {
         */
         template <uint_t I, enumtype::intend Intend>
         GT_FUNCTION
-        typename accessor_return_type<generic_accessor<I, Intend> >::type
-        operator()(generic_accessor<I, Intend> const& accessor) const {
+        typename accessor_return_type<global_accessor<I, Intend> >::type
+        operator()(global_accessor<I, Intend> const& accessor) const {
 
             //getting information about the storage
-            typedef typename generic_accessor<I, Intend>::index_type index_t;
+            typedef typename global_accessor<I, Intend>::index_type index_t;
 
             typedef typename get_storage_accessor
                 <local_domain_t
-                 , generic_accessor<I, Intend> >
+                 , global_accessor<I, Intend> >
                 ::type storage_ptr_type;
 
             storage_ptr_type storage_ = boost::fusion::at

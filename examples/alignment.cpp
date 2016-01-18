@@ -9,7 +9,7 @@ int main(int argc, char** argv)
     ::testing::InitGoogleTest(&argc, argv);
 
     if (argc != 4) {
-        printf( "Usage: copy_stencil_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields\n" );
+        printf( "Usage: alignment_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields\n" );
         return 1;
     }
 
@@ -21,11 +21,11 @@ int main(int argc, char** argv)
 }
 
 
-TEST(CopyStencil, Test)
+TEST(AlignedCopyStencil, Test)
 {
     uint_t x = Options::getInstance().m_size[0];
     uint_t y = Options::getInstance().m_size[1];
     uint_t z = Options::getInstance().m_size[2];
 
-    ASSERT_TRUE(copy_stencil::test(x, y, z));
+    ASSERT_TRUE(aligned_copy_stencil::test(x, y, z));
 }

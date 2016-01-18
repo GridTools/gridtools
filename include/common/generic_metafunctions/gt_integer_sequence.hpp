@@ -45,17 +45,9 @@ namespace gridtools{
     // template<typename UInt, uint_t N>
     // using make_gt_integer_sequence=std::make_integer_sequence<UInt, N>;
 
-    /** @brief constructs and returns a Container initialized by Lambda<I>::apply(args_...)
-        for all the indices I in the sequence
-
-        @tparam Container is the container to be filled
-        @tparam Lambda is a metafunction templated with an integer, whose static member
-        function "apply" returns an element of the container
-        @tparam ExtraTypes are the types of the arguments to the method "apply" (deduced by the compiler)
-
-        The type of the Container members must correspond to the return types of the apply method in
-        the user-defined Lambda functor.
-    */
+    /**
+       @brief generic definition (never instantiated)
+     */
     template< typename UInt>
     struct apply_gt_integer_sequence
     {
@@ -68,10 +60,30 @@ namespace gridtools{
         }
     };
 
+    /** @brief constructs and returns a Container initialized by Lambda<I>::apply(args_...)
+        for all the indices I in the sequence
+
+        @tparam Container is the container to be filled
+        @tparam Lambda is a metafunction templated with an integer, whose static member
+        function "apply" returns an element of the container
+        @tparam ExtraTypes are the types of the arguments to the method "apply" (deduced by the compiler)
+
+        The type of the Container members must correspond to the return types of the apply method in
+        the user-defined Lambda functor.
+    */
     template< typename UInt, UInt... Indices>
     struct apply_gt_integer_sequence<gt_integer_sequence<UInt, Indices ...> >
     {
 
+        /**
+           @brief returns a container constructed by applying a unary lambda function to each argument of the constructor
+           The lambda applied is templated with an index which identifies the current argument. This allow
+           to define specialised behaviour of the lambda for the specific arguments.
+
+           \tparam Container the type of the container to be constructed
+           \tparam Lambda the lambda template callable
+           \tparam ExtraTypes the types of the input arguments to the lambda
+         */
         template<typename Container, template <UInt T> class Lambda, typename ... ExtraTypes,
                  typename boost::disable_if<typename boost::proto::is_aggregate<Container>::type, int  >::type = 0>
         GT_FUNCTION
@@ -79,6 +91,9 @@ namespace gridtools{
             return Container(Lambda<Indices>::apply(args_...) ...) ;
         }
 
+        /**
+           @brief duplicated interface for the case in which the container is an aggregator
+         */
         template<typename Container, template <UInt T> class Lambda, typename ... ExtraTypes,
                  typename boost::enable_if<typename boost::proto::is_aggregate<Container>::type, int  >::type = 0>
         GT_FUNCTION
@@ -86,12 +101,29 @@ namespace gridtools{
             return Container{Lambda<Indices>::apply(args_...) ...} ;
         }
 
+        /**
+          @brief applies a binary lambda to a sequence of pairs, and returns a container constructed
+          using such lambda
+
+          \tparam Container the container type
+          \tparam Lambda the callable lambda type
+          \tparam ExtraArgs the pair types
+          \param pairs_ the input values, i.e. a variadic sequence of pairs (e.g. std::pair)
+        */
         template<typename Container, template <UInt T> class Lambda, typename ... ExtraTypes>
         GT_FUNCTION
-        static constexpr Container apply_zipped(ExtraTypes const& ... args_ ){
-            return Container(Lambda<Indices>::apply(args_) ...) ;
+        static constexpr Container apply_zipped(ExtraTypes const& ... pairs_ ){
+            return Container(Lambda<Indices>::apply(pairs_.first, pairs_.second) ...) ;
         }
 
+        /**
+           @brief applies a templated lambda metafunction to generate
+           a new type which is 'zipping' the integer sequence indices and the input indices
+
+           \tparam Container the output type
+           \tparam Lambda the lambda metafunction, mapping the integer sequence indices to the input indices
+           \tparam ExtraTypes input types
+         */
         template<template< typename ... U> class Container, template <UInt TT, UInt UU> class Lambda, UInt ... ExtraTypes>
         struct apply_tt{
             using type = Container<Lambda<Indices, ExtraTypes> ...>;

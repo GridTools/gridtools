@@ -11,6 +11,7 @@ namespace gridtools{
     template <uint_t ... Pad >
     struct halo{
         static const uint_t size=sizeof ... (Pad);
+
         template<ushort_t Coordinate>
         GT_FUNCTION
         static

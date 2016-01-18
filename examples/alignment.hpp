@@ -4,7 +4,8 @@
 
 /**
   @file
-  This file shows an implementation of the "copy" stencil, simple copy of one field done on the backend
+  This file shows an implementation of the "copy" stencil, simple copy of one field done on the backend,
+  in which a misaligned storage is aligned
 */
 
 using gridtools::level;
@@ -16,7 +17,7 @@ using namespace gridtools;
 using namespace enumtype;
 
 
-namespace copy_stencil{
+namespace aligned_copy_stencil{
 #ifdef __CUDACC__
         typedef gridtools::layout_map<2,1,0> layout_t;//stride 1 on i
 #else
@@ -33,7 +34,7 @@ namespace copy_stencil{
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
 
-        typedef const accessor<0, enumtype::inout, extent<0,0,0,0>, 3> in;
+        typedef accessor<0, enumtype::in, extent<0,0,0,0>, 3> in;
         typedef accessor<1, enumtype::inout, extent<0,0,0,0>, 3> out;
         typedef boost::mpl::vector<in,out> arg_list;
 
@@ -43,16 +44,6 @@ namespace copy_stencil{
             eval(out())=eval(in());
         }
     };
-
-    /*
-     * The following operators and structs are for debugging only
-     */
-    std::ostream& operator<<(std::ostream& s, copy_functor const) {
-        return s << "copy_functor";
-    }
-
-    void handle_error(int_t)
-    {std::cout<<"error"<<std::endl;}
 
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<Cuda, Block >
@@ -64,14 +55,12 @@ namespace copy_stencil{
 #endif
 #endif
 
-    typedef gridtools::BACKEND::storage_info< 0, layout_t, padding_t > meta_data_t;
+    typedef gridtools::BACKEND::storage_info< 0, layout_t, padding_t, aligned<32> > meta_data_t;
 
-    bool test(uint_t x, uint_t y, uint_t z) {
+    bool test(uint_t d1, uint_t d2, uint_t d3) {
 
-        meta_data_t meta_data_(x,y,z);
-        uint_t d1 = x;
-        uint_t d2 = y;
-        uint_t d3 = z;
+        meta_data_t meta_data_(d1,d2,d3);
+
         //                   strides  1 x xy
         //                      dims  x y z
         typedef gridtools::BACKEND::storage_type<float_type, meta_data_t >::type storage_t;
@@ -159,7 +148,7 @@ namespace copy_stencil{
             for(uint_t j=0; j<d2; ++j)
                 for(uint_t k=0; k<d3; ++k)
                 {
-                        if (in(i, j, k)!=out(i,j,k))
+                    if ( in(i, j, k)!=out(i,j,k) || out(i,j,k)!=i+j+k )
                         {
                             std::cout << "error in "
                                       << i << ", "
@@ -173,4 +162,4 @@ namespace copy_stencil{
                 }
         return success;
     }
-}//namespace copy_stencil
+}//namespace aligned_copy_stencil

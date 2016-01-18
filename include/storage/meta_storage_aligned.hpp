@@ -1,6 +1,7 @@
 #pragma once
 #include "align.hpp"
 #include "halo.hpp"
+#include "common/pair.hpp"
 #include "../common/generic_metafunctions/all_integrals.hpp"
 
 namespace gridtools {
@@ -12,8 +13,15 @@ namespace gridtools {
        @brief decorator of the meta_storage_base class, adding meta-information about the alignment
 
        \tparam MetaStorageBase the base class, containing strides and dimensions
-       \tparam AlignmentBoundary a type containing a the alignment boundary. This value is set by the librari (it is not explicitly exposed to the user) and it depends on the backend implementation. The values for Host and Cuda platforms are 0 and 32 respectively.
-       \tparam Padding extra memory space added at the beginning of a specific dimension. This can be used to align an arbitrary iteration point to the alignment boundary. The padding is exposed to the user, and an automatic check triggers an error if the specified padding and the halo region for the corresponding storage (defined by the ranges in the user function) do not match.
+       \tparam AlignmentBoundary a type containing a the alignment boundary.
+       This value is set by the librari (it is not explicitly exposed to the user)
+       and it depends on the backend implementation. The values for Host and Cuda
+       platforms are 0 and 32 respectively.
+       \tparam Padding extra memory space added at the beginning of a specific dimension.
+       This can be used to align an arbitrary iteration point to the alignment boundary.
+       The padding is exposed to the user, and an automatic check triggers an error if the
+       specified padding and the halo region for the corresponding storage (defined by the
+       ranges in the user function) do not match.
 
      */
     template<typename MetaStorageBase
@@ -72,7 +80,8 @@ namespace gridtools {
                NOTE: this contructor is constexpr, i.e. the storage metadata information could be used
                at compile-time (e.g. in template metafunctions)
 
-               applying 'align' to the integer sequence from 1 to space_dimensions. It will select the dimension with stride 1 and align it
+               applying 'align' to the integer sequence from 1 to space_dimensions.
+               It will select the dimension with stride 1 and align it
 
                it instanitates a class like
                super(lambda<0>::apply(d1), lambda<1>::apply(d2), lambda<2>::apply(d3), ...)
@@ -94,7 +103,7 @@ namespace gridtools {
             constexpr meta_storage_aligned(  IntTypes const& ... dims_  ) :
                 super(apply_gt_integer_sequence
                       <typename make_gt_integer_sequence<uint_t, sizeof ... (IntTypes)>::type >::template apply_zipped
-                      <super, lambda_t >(dims_ + Pad ...) )
+                      <super, lambda_t >(make_pair(dims_, Pad) ...) )
             {
             }
 
@@ -122,13 +131,22 @@ namespace gridtools {
             {
             }
 
+            /**
+               @brief metafunction for conditional compilation
+
+               returns padding_t if the ID template argument corresponds with the stride 1 dimension,
+               halo_t otherwise.
+             */
+            template <uint_t ID>
+            struct cond : boost::mpl::if_c<align<s_alignment_boundary, typename super::layout>::template has_stride_one<ID>::value, padding_t, halo_t>::type { };
+
             /**@brief extra level of indirection necessary for zipping the indices*/
             template <typename ... UInt, ushort_t ... IdSequence>
             GT_FUNCTION
             uint_t index_( gt_integer_sequence<ushort_t, IdSequence...> t, UInt const& ... args_
                 ) const {
 
-                return super::index(args_ + Pad ...);
+                return super::index(args_ + cond<IdSequence>::template get<IdSequence>() ...);
             }
 
            /**@brief just forwarding the index computation to the base class*/
@@ -146,22 +164,29 @@ namespace gridtools {
 
                 /**this calls zippes 2 variadic packs*/
                 return index_(typename make_gt_integer_sequence<ushort_t, sizeof ... (Pad)>::type(), first_, args_ ... );
-                    }
+            }
 #else
 
-            /* applying 'align' to the integer sequence from 1 to space_dimensions. It will select the dimension with stride 1 and align it*/
+            /* applying 'align' to the integer sequence from 1 to space_dimensions.
+               It will select the dimension with stride 1 and align it*/
             // non variadic non constexpr constructor
             GT_FUNCTION
             meta_storage_aligned(  uint_t const& d1, uint_t const& d2, uint_t const& d3 ) :
-                super(align<s_alignment_boundary, typename super::layout>::template do_align<0>::apply(d1+Pad1)
-                      , align<s_alignment_boundary, typename super::layout>::template do_align<1>::apply(d2+Pad2)
-                      , align<s_alignment_boundary, typename super::layout>::template do_align<2>::apply(d3+Pad3))
+                super(align<s_alignment_boundary, typename super::layout>::template do_align<0>::apply(d1) +
+                      align<s_alignment_boundary, typename super::layout>::template do_align<0>::apply(Pad1)
+                      , align<s_alignment_boundary, typename super::layout>::template do_align<1>::apply(d2) +
+                      align<s_alignment_boundary, typename super::layout>::template do_align<1>::apply(Pad2)
+                      , align<s_alignment_boundary, typename super::layout>::template do_align<2>::apply(d3) +
+                      align<s_alignment_boundary, typename super::layout>::template do_align<2>::apply(Pad3)
+
+                    )
             {
             }
 
             /**@brief straightforward interface*/
             GT_FUNCTION
-            uint_t index(uint_t const& i, uint_t const& j, uint_t const&  k) const { return super::index(i+Pad1, j+Pad2, k+Pad3); }
+            uint_t index(uint_t const& i, uint_t const& j, uint_t const&  k) const
+            { return super::index(i+Pad1, j+Pad2, k+Pad3); }
 
 
 #endif
@@ -185,8 +210,11 @@ namespace gridtools {
             */
             template <uint_t Coordinate, typename StridesVector >
             GT_FUNCTION
-            static void initialize(uint_t const& steps_, uint_t const& block_, int_t* RESTRICT index_, StridesVector const& RESTRICT strides_){
-                uint_t steps_padded_ = steps_+halo_t::template get<Coordinate>();
+            static void initialize(uint_t const& steps_
+                                   , uint_t const& block_
+                                   , int_t* RESTRICT index_
+                                   , StridesVector const& RESTRICT strides_){
+                uint_t steps_padded_ = steps_+cond<Coordinate>::template get<Coordinate>();
                 super::template initialize<Coordinate>(steps_padded_, block_, index_, strides_ );
             }
 

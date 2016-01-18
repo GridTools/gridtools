@@ -342,37 +342,6 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
             return _impl::compute_offset<space_dimensions, layout>::apply(strides_, dims ...);
         }
 
-        // typename <Array>
-        // struct subtract_padding_functor{
-
-        //     subtract_padding_functor(Array const& _) :
-        //     m_dims(array_)
-        //     {}
-
-        //     template<typenmae Id>
-        //     operator ()(Id id_){
-        //         m_dims[Id::value] -= boost::mpl::at<Id, padding_t>
-        //     }
-        // private:
-        //     Array& m_dims;
-        // };
-
-        // /**
-        //    @brief computing index to access the storage in the coordinates passed as parameters.
-
-        //    This method must be called with integral type parameters, and the result will be a positive integer.
-        // */
-        // template <typename StridesVector, typename ... UInt>
-        // GT_FUNCTION
-        // constexpr
-        // static uint_t _index(StridesVector const& RESTRICT strides_, UInt const& ... dims) {
-        //     GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(),  boost::is_integral<UInt>::type::value ...), "you have to pass in arguments of uint_t type");
-        //     array<sizeof ... (UInt)> dims_{dims ...};
-
-        //     boost::mpl::for_each<range_c<uint_t, 0, sizeof ... (UInt)>
-        //                          ( subtract_padding_functor(dims_)) ;
-        //     return _impl::compute_offset<space_dimensions, layout>::apply(strides_, &dims_[0]);
-        // }
 #endif
 
         /**
