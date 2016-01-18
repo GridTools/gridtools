@@ -90,6 +90,7 @@ namespace gridtools {
         typename ExtendSizes,                        // extents of each ESF
         typename LocalDomain,                       // local domain type
         typename CacheSequence,                     // sequence of user specified caches
+        typename IsIndependentSeq,                  // sequence of boolenans (one per functor), stating if it is contained in a "make_independent" construct
         typename Grid,                            // the grid
         typename ExecutionEngine,                   // the execution engine
         enumtype::strategy StrategyId>              // the strategy id
@@ -118,6 +119,7 @@ namespace gridtools {
         >::type max_extent_t;
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;
+        typedef IsIndependentSeq async_esf_map_t;
         typedef typename backend_traits_from_id<backend_id_t::value>::
                 template select_iterate_domain<
                     iterate_domain_arguments<
@@ -150,6 +152,7 @@ namespace gridtools {
         typename ExtendSizes,
         typename LocalDomain,
         typename CacheSequence,
+        typename IsIndependentSequence,
         typename Grid,
         typename ExecutionEngine,
         enumtype::strategy StrategyId>
@@ -166,6 +169,7 @@ namespace gridtools {
             ExtendSizes,
             LocalDomain,
             CacheSequence,
+            IsIndependentSequence,
             Grid,
             ExecutionEngine,
             StrategyId
@@ -185,6 +189,10 @@ namespace gridtools {
         typedef typename boost::mpl::at<typename RunFunctorArguments::esf_args_map_sequence_t, Index>::type esf_args_map_t;
         typedef typename boost::mpl::at<typename RunFunctorArguments::extent_sizes_t, Index>::type extent_t;
         typedef typename boost::mpl::at<typename RunFunctorArguments::functors_map_t, Index>::type interval_map_t;
+
+        //global (to the mss) is_independent_sequence map (not local to the esf)
+        typedef typename RunFunctorArguments::async_esf_map_t async_esf_map_t;
+
         typedef typename index_to_level<
             typename boost::mpl::deref<
                 typename boost::mpl::find_if<

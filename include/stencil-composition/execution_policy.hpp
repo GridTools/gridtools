@@ -1,9 +1,10 @@
 #pragma once
 #include <boost/static_assert.hpp>
+#include <boost/mpl/for_each.hpp>
 #include "basic_token_execution.hpp"
 #include "backend_traits_fwd.hpp"
 #include "run_esf_functor.hpp"
-#include "../gt_for_each/for_each.hpp"
+
 
 /**
 @file Implementation of the k loop execution policy
@@ -61,7 +62,7 @@ namespace gridtools{
                 typedef typename run_esf_functor_h_t::template apply<RunFunctorArguments, Interval>::type run_esf_functor_t;
 
                 for ( int_t k=from ; k<=to; ++k, IterationPolicy::increment(super::m_domain)) {
-                    gridtools::for_each<boost::mpl::range_c<int, 0, boost::mpl::size<functor_list_t>::value > > (
+                    boost::mpl::for_each<boost::mpl::range_c<int, 0, boost::mpl::size<functor_list_t>::value > > (
                         run_esf_functor_t(super::m_domain)
                     );
                 }

@@ -69,15 +69,10 @@ namespace gridtools {
                 functor_t::Do(iterate_domain_remapper, IntervalType());
             }
 
-//            this->template execute_extra_work<
-//                multiple_grid_points_per_warp_t,
-//                IntervalType,
-//                EsfArguments,
-//                iterate_domain_remapper_t
-//            > (iterate_domain_remapper);
 
-            __syncthreads();
-
+            //synchronize threads if not independent esf
+            if(!boost::mpl::at<typename EsfArguments::async_esf_map_t, functor_t>::type::value)
+                __syncthreads();
         }
 
     private:

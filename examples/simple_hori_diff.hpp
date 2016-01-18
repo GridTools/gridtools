@@ -59,10 +59,10 @@ struct wlap_function {
 struct divflux_function {
 
     typedef accessor<0, enumtype::inout> out;
-    typedef in_accessor<1> in;
-    typedef in_accessor<2, extent<-1, 1, -1, 1> > lap;
-    typedef in_accessor<3> crlato;
-    typedef in_accessor<4> coeff;
+    typedef accessor<1, enumtype::in> in;
+    typedef accessor<2, enumtype::in, extent<-1, 1, -1, 1> > lap;
+    typedef accessor<3, enumtype::in> crlato;
+    typedef accessor<4, enumtype::in> coeff;
 
     typedef boost::mpl::vector<out, in, lap, crlato, coeff> arg_list;
 
@@ -186,6 +186,7 @@ bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps)
         simple_hori_diff->run();
     }
 
+    repository.update_cpu();
 
 #ifdef CXX11_ENABLED
     verifier verif(1e-13);
