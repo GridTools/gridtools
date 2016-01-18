@@ -18,6 +18,9 @@
 #define FTESTNAME(x) HorizontalDiffusionFunctionsPROCEDURES
 #endif
 
+#ifdef FUNCTIONS_PROCEDURES_OFFSETS
+#define FTESTNAME(x) HorizontalDiffusionFunctionsPROCEDURESOFFSETS
+#endif
 
 
 int main(int argc, char** argv)

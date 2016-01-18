@@ -30,7 +30,7 @@ using namespace enumtype;
 //Temporary disable the expressions, as they are intrusive. The operators +,- are overloaded
 //  for any type, which breaks most of the code after using expressions
 #ifdef CXX11_ENABLED
-using namespace expressions;
+//using namespace expressions;
 #endif
 
 namespace horizontal_diffusion_functions{
@@ -84,12 +84,19 @@ struct flx_function {
         double _y_;
         gridtools::call_proc<lap_function, x_flx>::at<1,0,0>::with(dom, _y_, in());
 #else
+#ifdef FUNCTIONS_PROCEDURES_OFFSETS
+        double _x_;
+        gridtools::call_proc<lap_function, x_flx>::with_offsets(dom, _x_, in());
+        double _y_;
+        gridtools::call_proc<lap_function, x_flx>::with_offsets(dom, _y_, in(1,0,0));
+#else
 #ifdef FUNCTIONS_OFFSETS
-        double _x_ = gridtools::call_offsets<lap_function, x_flx>::with(dom, in(0,0,0));
-        double _y_ = gridtools::call_offsets<lap_function, x_flx>::with(dom, in(1,0,0));
+        double _x_ = gridtools::call<lap_function, x_flx>::with_offsets(dom, in(0,0,0));
+        double _y_ = gridtools::call<lap_function, x_flx>::with_offsets(dom, in(1,0,0));
 #else
         double _x_ = gridtools::call<lap_function, x_flx>::at<0,0,0>::with(dom, in());
         double _y_ = gridtools::call<lap_function, x_flx>::at<1,0,0>::with(dom, in());
+#endif
 #endif
 #endif
 #endif

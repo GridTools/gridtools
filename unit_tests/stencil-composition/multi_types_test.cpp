@@ -4,6 +4,21 @@
 #include <tools/verifier.hpp>
 #include "gtest/gtest.h"
 
+#ifdef FUNCTIONS_CALL
+#define FTESTNAME(x) CALL
+#endif
+
+#ifdef FUNCTIONS_OFFSETS
+#define FTESTNAME(x) OFFSETS
+#endif
+
+#ifdef FUNCTIONS_PROCEDURES
+#define FTESTNAME(x) PROCEDURES
+#endif
+
+#ifdef FUNCTIONS_PROCEDURES_OFFSETS
+#define FTESTNAME(x) PROCEDURESOFFSETS
+#endif
 
 namespace multi_types_test {
 using gridtools::level;
@@ -120,10 +135,15 @@ struct function1 {
         type1 result;
         call_proc<function0, region>::with(eval, in(), result);
 #else
+#ifdef FUNCTIONS_PROCEDURES_OFFSETS
+        type1 result;
+        call_proc<function0, region>::with_offsets(eval, in(), result);
+#else
 #ifdef FUNCTIONS_OFFSETS
-        auto result = call_offsets<function0, region>::with(eval, in());
+        auto result = call<function0, region>::with_offsets(eval, in());
 #else
         auto result = call<function0, region>::with(eval, in());
+#endif
 #endif
 #endif
         eval(out()) = result;
@@ -309,6 +329,6 @@ bool test(uint_t x, uint_t y, uint_t z)
 }
 } // namespace multi_types_test
 
-TEST(multitypes, multitypes) {
+TEST(multitypes, FTESTNAME(x)) {
     EXPECT_TRUE(multi_types_test::test(4,4, 4));
 }

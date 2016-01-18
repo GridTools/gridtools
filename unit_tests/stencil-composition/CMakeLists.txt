@@ -3,13 +3,13 @@ include_directories( ../../include/stencil-composition ) ## Library header files
 
 FILE(GLOB_RECURSE INC_ALL "../../include/stencil-composition/[a-z]*.hpp")
 
-SET(STENCIL_COMPOSITION_UNITTEST_SOURCES test_accessor.cpp ${INC_ALL})
+SET(STENCIL_COMPOSITION_UNITTEST_SOURCES test_accessor.cpp test_esf_metafunctions.cpp ${INC_ALL})
 if ( ENABLE_CXX11 )
   SET(STENCIL_COMPOSITION_UNITTEST_SOURCES ${STENCIL_COMPOSITION_UNITTEST_SOURCES} test-assign-placeholders.cpp )
 endif( ENABLE_CXX11 )
 
 if( ENABLE_CXX11 )
-        foreach( variation CALL OFFSETS PROCEDURES )
+        foreach( variation CALL OFFSETS PROCEDURES PROCEDURES_OFFSETS )
             string(TOLOWER ${variation} var_suffix)
             add_executable(multi_types_block_${var_suffix} multi_types_test.cpp)
             add_executable(multi_types_naive_${var_suffix} multi_types_test.cpp)
@@ -24,7 +24,7 @@ endif()
 
 if(CUDA_FOUND)
      if( ENABLE_CXX11 )
-        foreach( variation CALL OFFSETS PROCEDURES )
+        foreach( variation CALL OFFSETS PROCEDURES PROCEDURES_OFFSETS)
             string(TOLOWER ${variation} var_suffix)
             cuda_add_executable(multi_types_cuda_${var_suffix} multi_types_test.cu OPTIONS "-DFUNCTIONS_${variation}")
             target_link_libraries(multi_types_cuda_${var_suffix} ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS})
