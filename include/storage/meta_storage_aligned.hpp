@@ -59,8 +59,9 @@ namespace gridtools {
 
             static const ushort_t s_alignment_boundary = AlignmentBoundary::value;
 
-            typedef AlignmentBoundary alignment_boundary_t;
             typedef MetaStorageBase super;
+            typedef align<s_alignment_boundary, typename super::layout> align_t;
+            typedef AlignmentBoundary alignment_boundary_t;
             typedef typename MetaStorageBase::basic_type basic_type;
             typedef typename MetaStorageBase::index_type index_type;
 
@@ -69,10 +70,19 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(is_halo<padding_t>::type::value, "wrong type");
             GRIDTOOLS_STATIC_ASSERT(padding_t::size == super::space_dimensions, "error in the paddindg size");
 
+            /**
+               @brief metafunction for conditional compilation
+
+               returns padding_t if the ID template argument corresponds with the stride 1 dimension,
+               halo_t otherwise.
+             */
+            template <uint_t ID>
+            struct cond : boost::mpl::if_c<align_t::template has_stride_one<ID>::value, padding_t, halo_t>::type { };
+
 #ifdef CXX11_ENABLED
             /** metafunction to select the dimension with stride 1 and align it */
             template<uint_t U>
-            using lambda_t = typename align<s_alignment_boundary, typename super::layout>::template do_align<U>;
+            using lambda_t = typename align_t::template do_align<U>;
 #endif
             /**
                @brief constructor given the space dimensions
@@ -131,15 +141,6 @@ namespace gridtools {
             {
             }
 
-            /**
-               @brief metafunction for conditional compilation
-
-               returns padding_t if the ID template argument corresponds with the stride 1 dimension,
-               halo_t otherwise.
-             */
-            template <uint_t ID>
-            struct cond : boost::mpl::if_c<align<s_alignment_boundary, typename super::layout>::template has_stride_one<ID>::value, padding_t, halo_t>::type { };
-
             /**@brief extra level of indirection necessary for zipping the indices*/
             template <typename ... UInt, ushort_t ... IdSequence>
             GT_FUNCTION
@@ -172,13 +173,9 @@ namespace gridtools {
             // non variadic non constexpr constructor
             GT_FUNCTION
             meta_storage_aligned(  uint_t const& d1, uint_t const& d2, uint_t const& d3 ) :
-                super(align<s_alignment_boundary, typename super::layout>::template do_align<0>::apply(d1) +
-                      align<s_alignment_boundary, typename super::layout>::template do_align<0>::apply(Pad1)
-                      , align<s_alignment_boundary, typename super::layout>::template do_align<1>::apply(d2) +
-                      align<s_alignment_boundary, typename super::layout>::template do_align<1>::apply(Pad2)
-                      , align<s_alignment_boundary, typename super::layout>::template do_align<2>::apply(d3) +
-                      align<s_alignment_boundary, typename super::layout>::template do_align<2>::apply(Pad3)
-
+                super(align_t::template do_align<0>::apply(d1, Pad1)
+                      , align_t::template do_align<1>::apply(d2, Pad2)
+                      , align_t::template do_align<2>::apply(d3, Pad3)
                     )
             {
             }
@@ -215,6 +212,18 @@ namespace gridtools {
                                    , int_t* RESTRICT index_
                                    , StridesVector const& RESTRICT strides_){
                 uint_t steps_padded_ = steps_+cond<Coordinate>::template get<Coordinate>();
+#ifndef NDEBUG
+#ifdef __CUDACC__
+                if(threadIdx.x==0){
+#endif
+                    if(align_t::template has_stride_one<Coordinate>::value)
+                        printf("%d, is aligned?\n", steps_padded_);
+                    printf("coordinate padding + halo: %d\n", cond<Coordinate>::template get<Coordinate>()+steps_);
+
+#ifdef __CUDACC__
+                }
+#endif
+#endif
                 super::template initialize<Coordinate>(steps_padded_, block_, index_, strides_ );
             }
 

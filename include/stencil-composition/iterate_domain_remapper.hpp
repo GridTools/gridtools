@@ -56,6 +56,10 @@ public:
     GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<iterate_domain_t>::value), "Internal Error: wrong type");
     typedef typename iterate_domain_t::esf_args_t esf_args_t;
 
+    GT_FUNCTION
+    bool check_pointer_alignment(uint_t boundary) const {
+        return m_iterate_domain.check_pointer_alignment(boundary);
+    }
 
     GT_FUNCTION
     explicit iterate_domain_remapper_base(const iterate_domain_t& iterate_domain) : m_iterate_domain(iterate_domain) {}

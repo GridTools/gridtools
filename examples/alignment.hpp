@@ -25,7 +25,7 @@ namespace aligned_copy_stencil{
 #endif
 
     //random padding
-    typedef halo<2,3,4> padding_t;
+    typedef halo<2,0,0> padding_t;
 
     // This is the definition of the special regions in the "vertical" direction
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
@@ -42,6 +42,14 @@ namespace aligned_copy_stencil{
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
             eval(out())=eval(in());
+
+#ifdef DNDEBUG
+            if(!eval.check_pointer_alignment(32))
+            {
+                printf("alignment error \n");
+                exit(-666);
+            }
+#endif
         }
     };
 
@@ -95,7 +103,7 @@ namespace aligned_copy_stencil{
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
         // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
-        uint_t di[5] = {0, 0, 0, d1-1, d1};
+        uint_t di[5] = {2, 0, 2, d1-1, d1};
         uint_t dj[5] = {0, 0, 0, d2-1, d2};
 
         gridtools::grid<axis> coords(di, dj);

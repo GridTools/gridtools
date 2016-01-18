@@ -161,7 +161,7 @@ namespace gridtools {
     public:
         typedef array<void* RESTRICT, N_DATA_POINTERS> data_pointer_array_t;
         typedef strides_cached<N_META_STORAGES-1, typename local_domain_t::storage_metadata_vector_t> strides_cached_t;
-    private:
+    protected:
 
         /**
            @brief returns the array of pointers to the raw data
@@ -199,7 +199,7 @@ namespace gridtools {
             return static_cast<const IterateDomainImpl*>(this)->strides_impl();
         }
 
-    private:
+    protected:
 
         local_domain_t const& local_domain;
         array_index_t m_index;

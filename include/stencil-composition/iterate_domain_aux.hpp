@@ -378,8 +378,8 @@ If you are not using generic accessors then you are using an unsupported storage
     struct initialize_index_functor {
     private:
         GRIDTOOLS_STATIC_ASSERT((is_strides_cached<Strides>::value), "internal error: wrong type");
-        // GRIDTOOLS_STATIC_ASSERT((is_sequence_of<StorageSequence, is_any_iterate_domain_storage_pointer>::value),
-        //                         "internal error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MetaStorageSequence, is_pointer>::value),
+                                "internal error: wrong type");
 
 
         Strides& RESTRICT m_strides;

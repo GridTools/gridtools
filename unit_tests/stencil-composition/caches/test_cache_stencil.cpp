@@ -81,7 +81,7 @@ protected:
 #endif
         m_grid(m_di, m_dj),
         m_meta(m_d1, m_d2, m_d3),
-        m_in(m_meta, 8.5, "in"),
+        m_in(m_meta, 0., "in"),
         m_out(m_meta, 0., "out")
     {
         m_grid.value_list[0] = 0;

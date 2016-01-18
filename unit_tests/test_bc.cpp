@@ -70,7 +70,12 @@ TEST(test_bc, boundary_conditions) {
 
     typedef arg<0, storage_type> p_sol;
     typedef arg<1, boundary> p_bd;
+
+#ifdef CXX11_ENABLED
     domain_type<boost::mpl::vector<p_sol, p_bd> > domain ((p_sol() = sol_), (p_bd() = bd_));
+#else
+    domain_type<boost::mpl::vector<p_sol, p_bd> > domain ( boost::fusion::make_vector( &sol_, &bd_));
+#endif
 
 #ifdef __CUDACC__
     computation* bc_eval =
