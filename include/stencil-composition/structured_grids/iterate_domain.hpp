@@ -137,12 +137,14 @@ namespace gridtools {
         };
 
         /**
-         * metafunction that computes the return type of all operator() of an accessor
+         * metafunction that computes the return type of all operator() of an accessor.
+         *
+         * If the temaplate argument is not an accessor ::type is mpl::void_
+         *
          */
         template<typename Accessor>
         struct accessor_return_type
         {
-            GRIDTOOLS_STATIC_ASSERT(is_accessor<Accessor>::value, "accessor_return_type expects an accessor as template argument");
             typedef typename ::gridtools::accessor_return_type<Accessor, iterate_domain_arguments_t>::type type;
         };
 
