@@ -47,6 +47,8 @@ namespace functors{
                         double inner_product=0.;
                         for(short_t icoor=0; icoor< fe::fe::spaceDim; ++icoor)
                         {
+
+                            //J_{i,j}*d_i(phi_k)*psi_l*a_j
                             inner_product +=
                                 eval((jac_inv(qp+q, dimx+0, dimy+icoor)*!dphi(P_i,q,(uint_t)0)+
                                       jac_inv(qp+q, dimx+1, dimy+icoor)*!dphi(P_i,q,(uint_t)1)+

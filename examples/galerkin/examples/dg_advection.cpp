@@ -1,4 +1,3 @@
-
 //this MUST be included before any boost include
 #define FUSION_MAX_VECTOR_SIZE 40
 #define FUSION_MAX_MAP_SIZE FUSION_MAX_VECTOR_SIZE
@@ -11,9 +10,12 @@
 */
 #define PEDANTIC_DISABLED
 #define HAVE_INTREPID_DEBUG
+
+#include <tools/io.hpp>
 //! [assembly]
 #include "../numerics/bd_assembly.hpp"
 //! [assembly]
+#include "../numerics/tensor_product_element.hpp"
 // #include "test_dg_flux.hpp"
 #include "../functors/dg_fluxes.hpp"
 #include "../functors/matvec.hpp"
@@ -36,7 +38,7 @@ struct flux {
 
 */
 struct advection_vector {
-    static constexpr array<double, 3> value={1.,1.,1.};
+    static constexpr array<double, 3> value={1.,0.,0.};
 };
 
 constexpr array<double, 3> advection_vector::value;
@@ -49,7 +51,8 @@ int main(){
     using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<3,4> >;
     using matrix_type=storage_t< matrix_storage_info_t >;
 
-    using geo_map=reference_element<1, Lagrange, Hexa>;
+    static const ushort_t order=1;
+    using geo_map=reference_element<order, Lagrange, Hexa>;
     using cub=cubature<geo_map::order, geo_map::shape>;
     using geo_t = intrepid::geometry<geo_map, cub>;
 
@@ -95,16 +98,29 @@ int main(){
 
     //![grid]
     //constructing a structured cartesian grid
+
+    gridtools::uint_t ld1=2;
+    gridtools::uint_t ld2=2;
+    gridtools::uint_t ld3=2;
+
     for (uint_t i=0; i<d1; i++)
         for (uint_t j=0; j<d2; j++)
             for (uint_t k=0; k<d3; k++)
                 for (uint_t point=0; point<geo_map::basisCardinality; point++)
                 {
-                    assembler_base.grid()( i,  j,  k,  point,  0)= (i + geo_.grid()(point, 0, 0))/d1;
-                    assembler_base.grid()( i,  j,  k,  point,  1)= (j + geo_.grid()(point, 1, 0))/d2;
-                    assembler_base.grid()( i,  j,  k,  point,  2)= (k + geo_.grid()(point, 2, 0))/d3;
+                    assembler_base.grid()( i,  j,  k,  point,  0)= (i + (1+geo_.grid()(point, 0, 0))/2.)/d1;
+                    assembler_base.grid()( i,  j,  k,  point,  1)= (j + (1+geo_.grid()(point, 1, 0))/2.)/d2;
+                    assembler_base.grid()( i,  j,  k,  point,  2)= (k + (1+geo_.grid()(point, 2, 0))/2.)/d3;
                 }
-    //![grid]
+    // ![grid]
+
+    typedef BACKEND::storage_info<0, gridtools::layout_map<0,1,2> > meta_local_t;
+
+    static const uint_t edge_nodes=gridtools::tensor_product_element<1,order>::n_points::value;
+
+    meta_local_t meta_local_(edge_nodes, edge_nodes, edge_nodes);
+
+    gridtools::io_rectilinear<as_base::grid_type, meta_local_t> io_(assembler_base.grid(), meta_local_);
 
     //![instantiation_stiffness]
     //defining the advection matrix: d1xd2xd3 elements
@@ -117,6 +133,18 @@ int main(){
 
     vector_storage_info_t vec_meta_(d1,d2,d3,geo_map::basisCardinality);
     vector_type u_(vec_meta_, 2., "u");//initial solution
+
+    //initialization
+    for (uint_t i=0; i<d1; i++)
+        for (uint_t j=0; j<d2; j++)
+            for (uint_t k=0; k<d3; k++)
+                for (uint_t point=0; point<geo_map::basisCardinality; point++)
+                {
+                    if(i+j+k>4)
+                        u_(i,j,k,point)=0.;
+                }
+    io_.set_attribute_scalar<0>(u_, "initial condition");
+
     vector_type result_(vec_meta_, 0., "result");//new solution
 
     //![placeholders]
@@ -143,7 +171,7 @@ int main(){
 
     auto coords=grid<axis>({1, 0, 1, (uint_t)d1-1, (uint_t)d1},
         {1, 0, 1, d2-1, d2});
-    coords.value_list[0] = 0;
+    coords.value_list[0] = 1;
     coords.value_list[1] = d3-1;
 
     //short notation
@@ -172,6 +200,8 @@ int main(){
             , make_esf<functors::det<geo_t> >(dt::p_jac(), dt::p_jac_det())
             // compute the mass matrix
             , dt::mass< geo_t, cub >::esf(p_phi(), p_mass()) //mass
+            // compute the jacobian inverse
+            , make_esf<functors::inv<geo_t> >(dt::p_jac(), dt::p_jac_det(), dt::p_jac_inv())
             // compute the advection matrix
             , dt::advection< geo_t, cub, advection_vector >::esf(p_phi(), p_dphi(), p_advection()) //advection
 
@@ -194,7 +224,7 @@ int main(){
 
     computation->ready();
     computation->steady();
-    int T = 4;
+    int T = 1;
 
     for(int i=0; i<T; ++i){
         computation->run();
@@ -202,6 +232,15 @@ int main(){
         u_.swap_pointers(result_);
     }
     computation->finalize();
-    //![computation]
+
+    io_.set_information("Time");
+    io_.set_attribute_scalar<0>(result_, "solution");
+    io_.write("grid");
+
+    spy(mass_, "mass.txt");
+    spy_vec(result_, "sol.txt");
+    spy_vec(u_, "init.txt");
+    spy(advection_, "advection.txt");
+//![computation]
     // intrepid::test(assembler, bd_discr_, bd_mass_);
 }

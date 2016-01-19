@@ -300,15 +300,154 @@ namespace functors{
        (i.e. the boundary corresponding to a lower index) and computes an operation (\tparam Operator) between the value at the boundary
        and the corresponding one in the neighboring element.
      */
-    template<typename Geometry, typename Operator>
+    template<typename Geometry>
     struct assemble {
 
         using geo_map=typename Geometry::geo_map;
 
+        using in2=accessor<0, enumtype::in, extent<> , 4>;
+        using out=accessor<1, enumtype::inout, extent<> , 4> ;
+        using arg_list=boost::mpl::vector<in2, out> ;
+
+        template <typename Evaluation>
+        GT_FUNCTION
+        static void Do(Evaluation const & eval, x_interval) {
+            dimension<1>::Index i;
+            dimension<2>::Index j;
+            dimension<3>::Index k;
+            dimension<4>::Index row;
+
+
+            //hypothesis here: the cardinaxlity is order^3 (isotropic 3D tensor product element)
+#ifdef __CUDACC__
+#ifdef NDEBUG
+            constexpr
+#endif
+            meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{static_int<Geometry::geo_map::order+1>(), static_int<Geometry::geo_map::order+1>(), static_int<Geometry::geo_map::order+1>()};
+#else
+#ifdef NDEBUG
+            constexpr
+#endif
+                meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
+
+#endif
+
+            uint_t N1 = indexing.template dims<0>()-1;
+            uint_t N2 = indexing.template dims<1>()-1;
+            uint_t N3 = indexing.template dims<2>()-1;
+
+            // for all dofs in a boundary face (supposing that the dofs per face are the same)
+            // setting dofs internal to the faces
+            for(short_t I=1; I<indexing.template dims<0>()-1; I++)
+                for(short_t J=1; J<indexing.template dims<1>()-1; J++)
+                {
+
+                    //for each (3) faces
+                    auto dof_x=indexing.index(0, (int)I, (int)J);
+                    auto dof_xx=indexing.index(indexing.template dims<0>()-1, I, J);
+                    auto dof_y=indexing.index(I, 0, J);
+                    auto dof_yy=indexing.index(I, indexing.template dims<1>()-1, J);
+                    auto dof_z=indexing.index(I, J, 0);
+                    auto dof_zz=indexing.index(I, J, indexing.template dims<2>()-1);
+
+                    // z=0 face
+                    //sum the contribution from elem i-1 on the opposite face
+                    eval(out(row+dof_x)) +=  eval(in2(k-1, row+dof_xx));
+
+                    //sum the contribution from elem j-1 on the opposite face
+                    eval(out(row+dof_y)) +=  eval(in2(k-1, row+dof_yy));
+
+
+                    // y=0 face
+                    //sum the contribution from elem i-1 on the opposite face
+                    eval(out(row+dof_x)) += eval(in2(j-1, row+dof_xx));
+
+                    //sum the contribution from elem k-1 on the opposite face
+                    eval(out(row+dof_z)) += eval(in2(j-1, row+dof_zz));
+
+
+                    // x=0 face
+                    //sum the contribution from elem j-1 on the opposite face
+                    eval(out(row+dof_y)) += eval(in2(i-1, row+dof_yy));
+
+                    //sum the contribution from elem k-1 on the opposite face
+                    eval(out(row+dof_z)) += eval(in2(i-1, row+dof_zz));
+
+                }
+
+            //edges: setting nodes internal to the edges
+            for(short_t I=1; I<N1-1; I++)
+            {
+                auto dof_x=indexing.index(I, 0, 0);
+                auto dof_xx=indexing.index(I, N2, N3);
+                auto dof_xy=indexing.index(I, N2, 0);
+                auto dof_xz=indexing.index(I, 0, N3);
+
+                auto dof_y=indexing.index(0, I, 0);
+                auto dof_yy=indexing.index(N1, I, N3);
+                auto dof_yx=indexing.index(N1, I, 0);
+                auto dof_yz=indexing.index(0, I, N3);
+
+                auto dof_z=indexing.index(0, 0, I);
+                auto dof_zz=indexing.index(N1, N2, I);
+                auto dof_zy=indexing.index(0, N2, I);
+                auto dof_zx=indexing.index(N1, 0, I);
+
+                eval(out(row+dof_x)) += eval(in2(j-1,k-1, row+dof_xx))
+                    + eval(in2(k-1, row+dof_xz))
+                    + eval(in2(j-1, row+dof_xy));
+
+                eval(out(row+dof_y)) += eval(in2(i-1,k-1, row+dof_yy))
+                    + eval(in2(i-1, row+dof_yx))
+                    + eval(in2(k-1, row+dof_yz));
+
+                eval(out(row+dof_z)) += eval(in2(j-1,i-1, row+dof_zz))
+                    + eval(in2(j-1, row+dof_zy))
+                    + eval(in2(i-1, row+dof_zx));
+
+            }
+
+            //corner cases, setting (0,0,0)
+            auto dof_111=indexing.index(N1, N2, N3);
+            auto dof_110=indexing.index(N1, N2, 0);
+            auto dof_101=indexing.index(N1, 0, N3);
+            auto dof_100=indexing.index(N1, 0, 0);
+            auto dof_011=indexing.index(0, N2, N3);
+            auto dof_010=indexing.index(0, N1, 0);
+            auto dof_001=indexing.index(0,0,N3);
+            auto dof_000=indexing.index(0,0,0);
+
+            eval(out(row+dof_000)) += eval(in2(i-1,j-1,k-1, row+dof_111))
+                + eval(in2(i-1,j-1, row+dof_110))
+                + eval(in2(i-1,k-1, row+dof_101))
+                + eval(in2(k-1,j-1, row+dof_011))
+                + eval(in2(k-1, row+dof_001))
+                + eval(in2(j-1, row+dof_010))
+                + eval(in2(i-1, row+dof_100));
+
+            // //sum the contribution from elem k-1 on the opposite face
+            // eval(out(row+dof_z)) += Operator()(eval(in1(row+dof_z)), eval(in2(i-1, row+dof_zz)));
+
+        }
+
+    };
+
+
+
+    // [uniform]
+    /**
+       @class functor copying the repeated values on the matching dofs
+
+       used only for post-processing purposes
+     */
+    template<typename Geometry>
+    struct uniform {
+
+        using geo_map=typename Geometry::geo_map;
+
         using in1=accessor<0, enumtype::in, extent<> , 4>;
-        using in2=accessor<1, enumtype::in, extent<> , 4>;
-        using out=accessor<2, enumtype::inout, extent<> , 4> ;
-        using arg_list=boost::mpl::vector<in1, in2, out> ;
+        using out=accessor<1, enumtype::inout, extent<> , 4> ;
+        using arg_list=boost::mpl::vector<in1, out> ;
 
         template <typename Evaluation>
         GT_FUNCTION
@@ -332,10 +471,13 @@ namespace functors{
                 meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
 
 #endif
+            uint_t N1 = indexing.template dims<0>()-1;
+            uint_t N2 = indexing.template dims<1>()-1;
+            uint_t N3 = indexing.template dims<2>()-1;
 
             //for all dofs in a boundary face (supposing that the dofs per face are the same)
-            for(short_t I=0; I<indexing.template dims<0>(); I++)
-                for(short_t J=0; J<indexing.template dims<1>(); J++)
+            for(short_t I=1; I<indexing.template dims<0>()-1; I++)
+                for(short_t J=1; J<indexing.template dims<1>()-1; J++)
                 {
 
                     //for each (3) faces
@@ -346,16 +488,36 @@ namespace functors{
                     auto dof_z=indexing.index(I, J, 0);
                     auto dof_zz=indexing.index(I, J, indexing.template dims<2>()-1);
 
-                    //sum the contribution from elem i-1 on the opposite face
-                    eval(out(row+dof_x)) += Operator()(eval(in1(row+dof_x)), eval(in2(i-1, row+dof_xx)));
+                    //replace the value from elem i-1 on the opposite face
+                    eval(out(i-1, row+dof_xx)) = eval(in1(row+dof_x));
 
-                    //sum the contribution from elem j-1 on the opposite face
-                    eval(out(row+dof_y)) += Operator()(eval(in1(row+dof_y)), eval(in2(j-1, row+dof_yy)));
+                    // //replace the value from elem j-1 on the opposite face
+                    // eval(out(j-1, row+dof_yy)) = eval(in1(row+dof_y));
 
-                    //sum the contribution from elem k-1 on the opposite face
-                    eval(out(row+dof_z)) += Operator()(eval(in1(row+dof_z)), eval(in2(k-1, row+dof_zz)));
+                    // //replace the value from elem k-1 on the opposite face
+                    // eval(out(k-1, row+dof_zz)) = eval(in1(row+dof_z));
 
                 }
+
+            //corner cases, setting (0,0,0)
+            auto dof_111=indexing.index(N1, N2, N3);
+            auto dof_110=indexing.index(N1, N2, 0);
+            auto dof_101=indexing.index(N1, 0, N3);
+            auto dof_100=indexing.index(N1, 0, 0);
+            auto dof_011=indexing.index(0, N2, N3);
+            auto dof_010=indexing.index(0, N1, 0);
+            auto dof_001=indexing.index(0,0,N3);
+            auto dof_000=indexing.index(0,0,0);
+
+            eval(out(i-1,j-1,k-1, row+dof_111)) = eval(in1(row+dof_000));
+            eval(out(i-1,j-1, row+dof_110)) = eval(in1(row+dof_000));;
+            eval(out(i-1,k-1, row+dof_101)) = eval(in1(row+dof_000));;
+            eval(out(k-1,j-1, row+dof_011)) = eval(in1(row+dof_000));;
+            eval(out(k-1, row+dof_001)) = eval(in1(row+dof_000));;
+            eval(out(j-1, row+dof_010)) = eval(in1(row+dof_000));;
+            eval(out(i-1, row+dof_100)) = eval(in1(row+dof_000));;
+
+
         }
     };
 

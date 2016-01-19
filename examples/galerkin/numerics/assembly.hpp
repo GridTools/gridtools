@@ -195,6 +195,7 @@ public:
         auto static esf(Phi, DPhi, Adv) ->
             decltype(make_esf<functors::advection<FE , Cubature, Vector> >(p_jac_det(), p_jac_inv(), p_weights(), DPhi(), Phi(), Adv()))
         {
+            //TODO check that the inverse is computed
             return make_esf<functors::advection<FE , Cubature, Vector> >(p_jac_det(), p_jac_inv(), p_weights(), DPhi(), Phi(), Adv());
         }
     };

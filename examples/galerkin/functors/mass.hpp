@@ -34,9 +34,11 @@ namespace functors{
                 for(short_t Q_i=0; Q_i<basis_cardinality; ++Q_i)
                 {//other dofs whose basis function has nonzero support on the element
                     for(short_t q=0; q<num_cub_points; ++q){
-                         eval(mass_t((uint_t)0,(uint_t)0,(uint_t)0,(uint_t)P_i,(uint_t)Q_i))  +=
-                             eval(!phi(P_i,q,0)*(!psi(Q_i,q,0))*jac_det(qp+q)*!weights(q,0,0));
+                        assert(eval(jac_det(qp+q)));
+                        eval(mass_t((uint_t)0,(uint_t)0,(uint_t)0,(uint_t)P_i,(uint_t)Q_i))  +=
+                            eval(!phi(P_i,q,0)*(!psi(Q_i,q,0))*jac_det(qp+q)*!weights(q,0,0));
                     }
+                    assert( P_i!=Q_i || eval(mass_t((uint_t)0,(uint_t)0,(uint_t)0,(uint_t)P_i,(uint_t)Q_i)));
                 }
             }
         }

@@ -135,7 +135,10 @@ namespace gridtools {
         /**
            @brief empty constructor
         */
-        constexpr meta_storage_base(){}
+        constexpr meta_storage_base():
+            m_dims{0}
+            , m_strides{0}
+        {}
 
 #ifndef __CUDACC__
         template <class ... IntTypes

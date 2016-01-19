@@ -79,12 +79,12 @@ namespace intrepid{
         discretization() :
             m_cub_points_s_info(cub::numCubPoints(), fe::spaceDim,1)
             , m_cub_weights_s_info(cub::numCubPoints(),1,1)
-            , m_grad_at_cub_points_s_info(new grad_storage_t_info())//construct empty
-            , m_phi_at_cub_points_s_info(new basis_function_storage_t_info())//construct empty
+            , m_grad_at_cub_points_s_info()//construct empty
+            , m_phi_at_cub_points_s_info()//construct empty
             , m_cub_points_s(m_cub_points_s_info, "cub points")
             , m_cub_weights_s(m_cub_weights_s_info, "cub weights")
-            , m_grad_at_cub_points_s(new grad_storage_t(*m_grad_at_cub_points_s_info))//construct empty
-            , m_phi_at_cub_points_s(new basis_function_storage_t(*m_phi_at_cub_points_s_info))//construct empty
+            , m_grad_at_cub_points_s()//construct empty
+            , m_phi_at_cub_points_s()//construct empty
             {
             }
 

@@ -16,6 +16,8 @@
 #include <XdmfInformation.hpp>
 #include <XdmfTime.hpp>
 #include <gridtools.hpp>
+#include <iostream>
+#include <fstream>
 
 namespace gridtools{
 
@@ -126,7 +128,7 @@ namespace gridtools{
             for(int_t i=0 ; i<d1 ; ++i)
             {
                 for(int_t l=0 ; l<np1 ; ++l){
-                    points1[i*np1+l] = storage_(i,0,0,l);
+                    points1[i*np1+l] = storage_(i,0,0,l,0);
                     // std::cout<<" points1: "<<points1[i*np1+l];
                 }
             }
@@ -135,7 +137,7 @@ namespace gridtools{
             for(int_t i=0 ; i<d2 ; ++i)
             {
                 for(int_t l=0 ; l<np2 ; ++l){
-                    points2[i*np2+l] = storage_(0,i,0,l*np1);
+                    points2[i*np2+l] = storage_(0,i,0,l*np1,1);
                     // std::cout<<" points2: "<<points2[i*np2+l];
                 }
             }
@@ -144,7 +146,7 @@ namespace gridtools{
             for(int_t i=0 ; i<d3 ; ++i)
             {
                 for(int_t l=0 ; l<np3 ; ++l){
-                    points3[i*np3+l] = storage_(0,0,i,l*np1*np2);
+                    points3[i*np3+l] = storage_(0,0,i,l*np1*np2,2);
                     // std::cout<<" points3: "<<points3[i*np3+l];
                 }
             }
@@ -158,17 +160,79 @@ namespace gridtools{
         }
     };
 
+    template <typename Storage>
+    void spy(Storage const& storage_, char const* name){
 
-    template <typename Storage, typename LocalGridInfo>
+        std::ofstream o_file;
+        o_file.open(name);
+        auto d1=storage_.meta_data().template dims<0>();
+        auto d2=storage_.meta_data().template dims<1>();
+        auto d3=storage_.meta_data().template dims<2>();
+        auto d4=storage_.meta_data().template dims<3>();
+        auto d5 = storage_.meta_data().template dims<4>();
+
+        o_file<<"%%MatrixMarket matrix coordinate real general\n";
+        o_file<<d1*d2*d3*d4<<" "<<d1*d2*d3*d5<<" "<<d1*d2*d3*d4*d5<<"\n";
+        for(int_t k=0 ; k<d3 ; ++k)
+        {
+            for(int_t j=0 ; j<d2 ; ++j)
+            {
+                for(int_t i=0 ; i<d1 ; ++i)
+                {
+                    uint_t offset_=i*d2*d3*d4+j*d3*d4+k*d4;
+                    for(int_t l=0 ; l<d4 ; ++l)
+                    {
+                        for(int_t m=0 ; m<d5 ; ++m)
+                        {
+                            o_file<< offset_+l+1 <<" "<< offset_+m+1 <<" "<<storage_(i,j,k,l,m)<<"\n";
+                        }
+                    }
+                }
+            }
+        }
+
+        o_file.close();
+    }
+
+
+    template <typename Storage>
+    void spy_vec(Storage const& storage_, char const* name){
+
+        std::ofstream o_file;
+        o_file.open(name);
+        auto d1=storage_.meta_data().template dims<0>();
+        auto d2=storage_.meta_data().template dims<1>();
+        auto d3=storage_.meta_data().template dims<2>();
+        auto d4=storage_.meta_data().template dims<3>();
+
+        for(int_t i=0 ; i<d1 ; ++i)
+        {
+            for(int_t j=0 ; j<d2 ; ++j)
+            {
+                for(int_t k=0 ; k<d3 ; ++k)
+                {
+                    //uint_t offset_=i*d2*d3*d4+j*d3*d4+k*d4;
+                    for(int_t l=0 ; l<d4 ; ++l)
+                    {
+                        o_file<<storage_(i,j,k,l)<<"\n";
+                    }
+                }
+            }
+        }
+
+        o_file.close();
+    }
+
+
+        template <typename Storage, typename LocalGridInfo>
     void reindex(Storage const& storage_, LocalGridInfo const& local_grid_info_, typename Storage::value_type * data_){
         auto d1=storage_.meta_data().template dims<0>();
         auto d2=storage_.meta_data().template dims<1>();
         auto d3=storage_.meta_data().template dims<2>();
         auto d4=storage_.meta_data().template dims<3>();
         auto d5=1;
-        if(Storage::space_dimensions==5)
+        if(Storage::space_dimensions>=5)
             d5 = storage_.meta_data().template dims<4>();//space dimension
-
 
         uint_t np1=local_grid_info_.template dims<0>();//n. local points along x
         uint_t np2=local_grid_info_.template dims<1>();//n. local points along y
@@ -188,13 +252,12 @@ namespace gridtools{
                             {
                                 for(int_t dim=0 ; dim<d5 ; ++dim)
                                 {
-                                    data_[ k*np3*d2*np2*d1*np1*d5 + n*d2*np2*d1*np1*d5 + j*np2*d1*np1*d5 + m*d1*np1*d5 + i*np1*d5 + l*d5 + dim] = storage_(i,j,k,l+np1*m+np1*np2*n,dim);
+                                    data_[ k*np3*d2*np2*d1*np1*d5 + n*d2*np2*d1*np1*d5 + j*np2*d1*np1*d5 + m*d1*np1*d5 + i*np1*d5 + l*d5 + dim] = storage_(i,j,k,n+np3*m+np3*np2*l,dim);
                                 //std::cout<<"("<<i<<","<<j<<","<<k<<","<<l<<","<<m<<","<<n<<") = ("<<storage_(i,j,k,l,0)<<","<<storage_(i,j,k,l,1)<<","<<storage_(i,j,k,l,2)<<")"<<std::endl;
                                 }
                             }
                         }
                     }
-
                 }
             }
         }
@@ -252,12 +315,11 @@ namespace gridtools{
             // Grid
             m_grid->setName("Regular Structured Grid");
             this->m_root->insert(m_grid);
-
         }
 
 
-        template<int FieldDim >//cxx11
-        void set_attribute(Storage const& storage_, std::string const& name_){
+        template<int FieldDim, typename ScalarStorage >//cxx11
+        void set_attribute_scalar(ScalarStorage const& storage_, std::string const& name_){
 
             // Attribute
             boost::shared_ptr<XdmfAttribute> attr = XdmfAttribute::New();
@@ -274,7 +336,7 @@ namespace gridtools{
         }
 
         template<int FieldDim, typename VecStorage >//cxx11
-        void set_attribute(VecStorage const& storage_, std::string const& name_){
+        void set_attribute_vector(VecStorage const& storage_, std::string const& name_){
 
             // Attribute
             boost::shared_ptr<XdmfAttribute> attr = XdmfAttribute::New();
@@ -290,7 +352,6 @@ namespace gridtools{
             // The heavy data set name is determined by the writer if not set
             m_grid->insert(attr);
         }
-
 
         void set_information(std::string const& name_){
             // Information
