@@ -20,13 +20,13 @@ namespace gridtools{
 
         //     NOTE: nvcc does not understand that the functor below can be a constant expression
         /** applies the alignment to run-time values*/
-        template<uint_t Coordinate, typename Halo, typename Padding>
+        template<uint_t Coordinate, uint_t Halo, uint_t Padding>
         struct do_align{
 
-            static constexpr uint_t apply(uint_t const& dimension){
+            static constexpr
+            uint_t apply(uint_t const& dimension){
 
-                typedef static_uint<Halo::template get<Coordinate>()+
-                                    Padding::template get<Coordinate>()> offset;
+                typedef static_uint<Halo+Padding> offset;
 
                 //the stride is one when the value in the layout vector is the highest
                 return (AlignmentBoundary && ((dimension+offset::value)%AlignmentBoundary) && has_stride_one<Coordinate>::value)

@@ -29,7 +29,7 @@ namespace aligned_copy_stencil{
     typedef halo<2,0,0> halo_t;
     typedef aligned<32> alignment_t;
 #else
-    typedef aligned<4> alignment_t;
+    typedef aligned<32> alignment_t;
     typedef halo<0,0,2> halo_t;
 #endif
     // This is the definition of the special regions in the "vertical" direction
@@ -46,15 +46,15 @@ namespace aligned_copy_stencil{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            eval(out())=eval(in());
 
-#ifndef DNDEBUG
-            if(!eval.check_pointer_alignment(alignment_t::value))
+#ifndef NDEBUG
+            if(!eval.check_pointer_alignment(0,alignment_t::value))
             {
                 printf("alignment error \n");
                 exit(-666);
             }
 #endif
+            eval(out())=eval(in());
         }
     };
 
@@ -107,13 +107,14 @@ namespace aligned_copy_stencil{
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
-        // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
-        uint_t di[5] = {halo_t::get<0>(), halo_t::get<0>(), 0, d1+halo_t::get<0>()-1, d1+halo_t::get<0>()};
-        uint_t dj[5] = {halo_t::get<0>(), halo_t::get<0>(), 0, d2+halo_t::get<0>()-1, d2+halo_t::get<0>()};
+        // gridtools::coordinates<axis> grid(2,d1-2,2,d2-2);
+        uint_t di[5] = {halo_t::get<0>(), 0, halo_t::get<0>(), d1+halo_t::get<0>()-1, d1+halo_t::get<0>()};
+        uint_t dj[5] = {halo_t::get<1>(), 0, halo_t::get<1>(), d2+halo_t::get<1>()-1, d2+halo_t::get<1>()};
 
-        gridtools::grid<axis> coords(di, dj);
-        coords.value_list[0] = halo_t::get<2>();
-        coords.value_list[1] = d3+halo_t::get<2>()+1;
+        gridtools::grid<axis> grid(di, dj);
+
+        grid.value_list[0] = halo_t::get<2>();
+        grid.value_list[1] = d3+halo_t::get<2>()-1;
 
         /*
           Here we do lot of stuff
@@ -141,7 +142,7 @@ namespace aligned_copy_stencil{
                         , p_out()
                         )
                 ),
-                domain, coords
+                domain, grid
             );
 
         copy->ready();

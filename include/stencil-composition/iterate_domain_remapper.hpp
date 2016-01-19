@@ -57,8 +57,8 @@ public:
     typedef typename iterate_domain_t::esf_args_t esf_args_t;
 
     GT_FUNCTION
-    bool check_pointer_alignment(uint_t boundary) const {
-        return m_iterate_domain.check_pointer_alignment(boundary);
+    bool check_pointer_alignment(uint_t storage_id, uint_t boundary) const {
+        return m_iterate_domain.check_pointer_alignment(storage_id, boundary);
     }
 
     GT_FUNCTION

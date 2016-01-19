@@ -82,7 +82,7 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
             /** metafunction to select the dimension with stride 1 and align it */
             template<uint_t U>
-            using lambda_t = typename align_t::template do_align<U, halo_t, padding_t>;
+            using lambda_t = typename align_t::template do_align<U, (halo_t::template get<U>()), (padding_t::template get<U>())>;
 #endif
             /**
                @brief constructor given the space dimensions
@@ -216,15 +216,18 @@ namespace gridtools {
                                    , StridesVector const& RESTRICT strides_){
                 uint_t steps_padded_ = steps_+cond<Coordinate>::template get<Coordinate>();
 #ifndef NDEBUG
+#ifdef VERBOSE
 #ifdef __CUDACC__
                 if(threadIdx.x==0){
 #endif
                     if(align_t::template has_stride_one<Coordinate>::value)
+                    {
                         printf("%d, is aligned?\n", steps_padded_);
-                    printf("coordinate padding + halo: %d\n", cond<Coordinate>::template get<Coordinate>()+steps_);
-
+                        printf("padding + steps: %d\n", steps_padded_);
+                    }
 #ifdef __CUDACC__
                 }
+#endif
 #endif
 #endif
                 super::template initialize<Coordinate>(steps_padded_, block_, index_, strides_ );

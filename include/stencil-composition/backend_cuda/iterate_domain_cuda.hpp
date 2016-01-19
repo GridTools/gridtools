@@ -42,7 +42,6 @@ private:
 private:
     const uint_t m_block_size_i;
     const uint_t m_block_size_j;
-
     shared_iterate_domain_t* RESTRICT m_pshared_iterate_domain;
 
 public:
@@ -63,19 +62,21 @@ public:
     }
 
     GT_FUNCTION
-    bool check_pointer_alignment(uint_t boundary) const {
+    bool check_pointer_alignment(uint_t storage_id, uint_t boundary) const {
         bool result_=true;
         if(thread_position_x()==0){
             for (ushort_t i=0; i<super::N_DATA_POINTERS; ++i){
                 result_ = (bool)(result_
                                  &&( bool)(((size_t)(super::data_pointer()[i]
-                                                     +super::m_index[i])
+                                                     +super::m_index[storage_id])
                                             & (boundary-1))
                                            == 0));
-                if(!result_){
+                if(!result_)
+                {
                     printf("[storage # %d,", i);
-                    printf("index %d]", super::m_index[i]);
-                    printf(" pointer: %x ", (size_t)super::data_pointer()[i]+super::m_index[i]);
+                    printf("index %d]", super::m_index[storage_id]);
+                    printf(" pointer: %x ", (size_t)super::data_pointer()[i]+super::m_index[storage_id]);
+                    printf(" =  + %d \n", super::m_index[storage_id]);
                     printf("is not aligned to %d \n", boundary);
                     break;
                 }
