@@ -694,7 +694,7 @@ If you are not using generic accessors then you are using an unsupported storage
     /**
        @brief partial specialization for the global_accessor
 
-       for the generic accessor the value_type is the storage object type itself.
+       for the global accessor the value_type is the storage object type itself.
     */
     template<ushort_t I, enumtype::intend Intend,  typename IterateDomainArguments>
     struct get_arg_value_type_from_accessor<global_accessor<I, Intend>, IterateDomainArguments >

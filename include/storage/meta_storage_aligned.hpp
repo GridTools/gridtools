@@ -26,7 +26,7 @@ namespace gridtools {
      */
     template<typename MetaStorageBase
              , typename AlignmentBoundary
-             , typename Halo
+             , typename HaloType
              >
     struct meta_storage_aligned;
 
@@ -34,27 +34,27 @@ namespace gridtools {
     template<typename MetaStorageBase
              , typename AlignmentBoundary
 #ifdef CXX11_ENABLED
-             , template<ushort_t ... P> class  Halo
-             , ushort_t ... Pad>
-    struct meta_storage_aligned<MetaStorageBase, AlignmentBoundary, Halo<Pad ...> >
+             , template<ushort_t ... P> class  HaloType
+             , ushort_t ... Halo>
+    struct meta_storage_aligned<MetaStorageBase, AlignmentBoundary, HaloType<Halo ...> >
 #else
-        , template<ushort_t, ushort_t, ushort_t > class  Halo
-        , ushort_t Pad1, ushort_t Pad2, ushort_t Pad3>
-        struct meta_storage_aligned<MetaStorageBase, AlignmentBoundary, Halo<Pad1, Pad2, Pad3> >
+        , template<ushort_t, ushort_t, ushort_t > class  HaloType
+        , ushort_t Halo1, ushort_t Halo2, ushort_t Halo3>
+        struct meta_storage_aligned<MetaStorageBase, AlignmentBoundary, HaloType<Halo1, Halo2, Halo3> >
 #endif
         : public MetaStorageBase
         {
 
 #if defined(CXX11_ENABLED)
             //nvcc has problems with constexpr functions
-            typedef Halo<Pad ...> halo_t;//ranges
-            typedef Halo<align_all<AlignmentBoundary::value, Pad>::value-Pad ...> padding_t;//paddings
+            typedef HaloType<Halo ...> halo_t;//ranges
+            typedef HaloType<align_all<AlignmentBoundary::value, Halo>::value-Halo ...> padding_t;//paddings
 #else
-            typedef Halo<align_all<AlignmentBoundary::value, Pad1>::value - Pad1
-                            , align_all<AlignmentBoundary::value, Pad2>::value - Pad2
-                            , align_all<AlignmentBoundary::value, Pad3>::value - Pad3
+            typedef HaloType<align_all<AlignmentBoundary::value, Halo1>::value - Halo1
+                            , align_all<AlignmentBoundary::value, Halo2>::value - Halo2
+                            , align_all<AlignmentBoundary::value, Halo3>::value - Halo3
             > padding_t;//paddings
-            typedef Halo<Pad1, Pad2, Pad3> halo_t;
+            typedef HaloType<Halo1, Halo2, Halo3> halo_t;
 #endif
 
             static const ushort_t s_alignment_boundary = AlignmentBoundary::value;
@@ -82,7 +82,7 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
             /** metafunction to select the dimension with stride 1 and align it */
             template<uint_t U>
-            using lambda_t = typename align_t::template do_align<U>;
+            using lambda_t = typename align_t::template do_align<U, halo_t, padding_t>;
 #endif
             /**
                @brief constructor given the space dimensions
@@ -113,7 +113,7 @@ namespace gridtools {
             constexpr meta_storage_aligned(  IntTypes const& ... dims_  ) :
                 super(apply_gt_integer_sequence
                       <typename make_gt_integer_sequence<uint_t, sizeof ... (IntTypes)>::type >::template apply_zipped
-                      <super, lambda_t >(make_pair(dims_, Pad) ...) )
+                      <super, lambda_t >(dims_ ...) )
             {
             }
 
@@ -147,6 +147,9 @@ namespace gridtools {
             uint_t index_( gt_integer_sequence<ushort_t, IdSequence...> t, UInt const& ... args_
                 ) const {
 
+                // uint_t args[3]={args_...};
+                // std::cout<<"args "<<args[0]<<" " <<args[1]<<" " <<args[2]<<"\n";
+                // std::cout<<"args "<<cond<0>::template get<0>()<<" " <<cond<1>::template get<1>()<<" " <<cond<2>::template get<2>()<<"\n";
                 return super::index(args_ + cond<IdSequence>::template get<IdSequence>() ...);
             }
 
@@ -164,7 +167,7 @@ namespace gridtools {
             uint_t index(uint_t const& first_, UInt const& ... args_) const {
 
                 /**this calls zippes 2 variadic packs*/
-                return index_(typename make_gt_integer_sequence<ushort_t, sizeof ... (Pad)>::type(), first_, args_ ... );
+                return index_(typename make_gt_integer_sequence<ushort_t, sizeof ... (Halo)>::type(), first_, args_ ... );
             }
 #else
 
@@ -173,9 +176,9 @@ namespace gridtools {
             // non variadic non constexpr constructor
             GT_FUNCTION
             meta_storage_aligned(  uint_t const& d1, uint_t const& d2, uint_t const& d3 ) :
-                super(align_t::template do_align<0>::apply(d1, Pad1)
-                      , align_t::template do_align<1>::apply(d2, Pad2)
-                      , align_t::template do_align<2>::apply(d3, Pad3)
+                super(align_t::template do_align<0>::apply(d1, Halo1+padding::template get<0>())
+                      , align_t::template do_align<1>::apply(d2, Halo2+padding::template get<1>())
+                      , align_t::template do_align<2>::apply(d3, Halo3+padding::template get<2>())
                     )
             {
             }
@@ -183,7 +186,7 @@ namespace gridtools {
             /**@brief straightforward interface*/
             GT_FUNCTION
             uint_t index(uint_t const& i, uint_t const& j, uint_t const&  k) const
-            { return super::index(i+Pad1, j+Pad2, k+Pad3); }
+            { return super::index(i+Halo1, j+Halo2, k+Halo3); }
 
 
 #endif
@@ -233,8 +236,8 @@ namespace gridtools {
     template <typename T>
     struct is_meta_storage;
 
-    template< typename MetaStorageBase, typename Alignment, typename Halo>
-    struct is_meta_storage<meta_storage_aligned<MetaStorageBase, Alignment, Halo> > : boost::mpl::true_{};
+    template< typename MetaStorageBase, typename Alignment, typename HaloType>
+    struct is_meta_storage<meta_storage_aligned<MetaStorageBase, Alignment, HaloType> > : boost::mpl::true_{};
 
 
 } // namespace gridtools

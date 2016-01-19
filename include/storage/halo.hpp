@@ -15,9 +15,7 @@ namespace gridtools{
         template<ushort_t Coordinate>
         GT_FUNCTION
         static
-#ifdef NDEBUG
         constexpr
-#endif
         uint_t get(){
             GRIDTOOLS_STATIC_ASSERT((Coordinate>=0), "the halo must be a non negative number");
 #ifdef PEDANTIC

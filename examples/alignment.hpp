@@ -25,8 +25,13 @@ namespace aligned_copy_stencil{
 #endif
 
     //random padding
-    typedef halo<2,0,0> padding_t;
-
+#ifdef __CUDACC__
+    typedef halo<2,0,0> halo_t;
+    typedef aligned<32> alignment_t;
+#else
+    typedef aligned<4> alignment_t;
+    typedef halo<0,0,2> halo_t;
+#endif
     // This is the definition of the special regions in the "vertical" direction
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
@@ -43,8 +48,8 @@ namespace aligned_copy_stencil{
         static void Do(Evaluation const & eval, x_interval) {
             eval(out())=eval(in());
 
-#ifdef DNDEBUG
-            if(!eval.check_pointer_alignment(32))
+#ifndef DNDEBUG
+            if(!eval.check_pointer_alignment(alignment_t::value))
             {
                 printf("alignment error \n");
                 exit(-666);
@@ -63,7 +68,7 @@ namespace aligned_copy_stencil{
 #endif
 #endif
 
-    typedef gridtools::BACKEND::storage_info< 0, layout_t, padding_t, aligned<32> > meta_data_t;
+    typedef gridtools::BACKEND::storage_info< 0, layout_t, halo_t, alignment_t > meta_data_t;
 
     bool test(uint_t d1, uint_t d2, uint_t d3) {
 
@@ -77,9 +82,9 @@ namespace aligned_copy_stencil{
         typedef storage_t storage_type;
         storage_type in(meta_data_, "in");
         storage_type out(meta_data_, -1.);
-        for(uint_t i=0; i<d1; ++i)
-            for(uint_t j=0; j<d2; ++j)
-                for(uint_t k=0; k<d3; ++k)
+        for(uint_t i=halo_t::get<0>(); i<d1+halo_t::get<0>(); ++i)
+            for(uint_t j=halo_t::get<1>(); j<d2+halo_t::get<1>(); ++j)
+                for(uint_t k=halo_t::get<2>(); k<d3+halo_t::get<2>(); ++k)
                 {
                     in(i,j,k)=i+j+k;
                 }
@@ -103,12 +108,12 @@ namespace aligned_copy_stencil{
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
         // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
-        uint_t di[5] = {2, 0, 2, d1-1, d1};
-        uint_t dj[5] = {0, 0, 0, d2-1, d2};
+        uint_t di[5] = {halo_t::get<0>(), halo_t::get<0>(), 0, d1+halo_t::get<0>()-1, d1+halo_t::get<0>()};
+        uint_t dj[5] = {halo_t::get<0>(), halo_t::get<0>(), 0, d2+halo_t::get<0>()-1, d2+halo_t::get<0>()};
 
         gridtools::grid<axis> coords(di, dj);
-        coords.value_list[0] = 0;
-        coords.value_list[1] = d3-1;
+        coords.value_list[0] = halo_t::get<2>();
+        coords.value_list[1] = d3+halo_t::get<2>()+1;
 
         /*
           Here we do lot of stuff
@@ -152,11 +157,11 @@ namespace aligned_copy_stencil{
 #endif
 
         bool success = true;
-        for(uint_t i=0; i<d1; ++i)
-            for(uint_t j=0; j<d2; ++j)
-                for(uint_t k=0; k<d3; ++k)
+        for(uint_t i=halo_t::get<0>(); i<d1+halo_t::get<0>(); ++i)
+            for(uint_t j=halo_t::get<1>(); j<d2+halo_t::get<1>(); ++j)
+                for(uint_t k=halo_t::get<2>(); k<d3+halo_t::get<2>(); ++k)
                 {
-                    if ( in(i, j, k)!=out(i,j,k) || out(i,j,k)!=i+j+k )
+                    if ( in(i, j, k) != out(i,j,k) || out(i,j,k)!=i+j+k )
                         {
                             std::cout << "error in "
                                       << i << ", "

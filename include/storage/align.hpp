@@ -18,16 +18,20 @@ namespace gridtools{
             typedef typename boost::mpl::bool_<value>::type type;
         };
 
+        //     NOTE: nvcc does not understand that the functor below can be a constant expression
         /** applies the alignment to run-time values*/
-        template<uint_t Coordinate>
+        template<uint_t Coordinate, typename Halo, typename Padding>
         struct do_align{
 
-            static constexpr uint_t apply(uint_t const& dimension, uint_t const& pad){
+            static constexpr uint_t apply(uint_t const& dimension){
+
+                typedef static_uint<Halo::template get<Coordinate>()+
+                                    Padding::template get<Coordinate>()> offset;
+
                 //the stride is one when the value in the layout vector is the highest
-                return (AlignmentBoundary && ((dimension+pad)%AlignmentBoundary) && has_stride_one<Coordinate>::value)
-                    ? dimension+AlignmentBoundary-(dimension%AlignmentBoundary) +
-                    pad+AlignmentBoundary-(pad%AlignmentBoundary)
-                    : dimension+pad;
+                return (AlignmentBoundary && ((dimension+offset::value)%AlignmentBoundary) && has_stride_one<Coordinate>::value)
+                    ? dimension+offset::value+AlignmentBoundary-((dimension+offset::value)%AlignmentBoundary)
+                    : dimension+offset::value;
             }
         };
 

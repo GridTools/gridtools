@@ -102,18 +102,18 @@ namespace gridtools{
         }
 
         /**
-          @brief applies a binary lambda to a sequence of pairs, and returns a container constructed
+          @brief applies a unary lambda to a sequence of arguments, and returns a container constructed
           using such lambda
 
           \tparam Container the container type
           \tparam Lambda the callable lambda type
-          \tparam ExtraArgs the pair types
-          \param pairs_ the input values, i.e. a variadic sequence of pairs (e.g. std::pair)
+          \tparam ExtraArgs the arguments types
+          \param arg_ the input values, i.e. a variadic sequence.
         */
         template<typename Container, template <UInt T> class Lambda, typename ... ExtraTypes>
         GT_FUNCTION
-        static constexpr Container apply_zipped(ExtraTypes const& ... pairs_ ){
-            return Container(Lambda<Indices>::apply(pairs_.first, pairs_.second) ...) ;
+        static constexpr Container apply_zipped(ExtraTypes const& ... arg_ ){
+            return Container(Lambda<Indices>::apply(arg_) ...) ;
         }
 
         /**

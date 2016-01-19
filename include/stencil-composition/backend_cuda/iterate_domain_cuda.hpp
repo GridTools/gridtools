@@ -67,11 +67,15 @@ public:
         bool result_=true;
         if(thread_position_x()==0){
             for (ushort_t i=0; i<super::N_DATA_POINTERS; ++i){
-                result_ = (bool)(result_ && (bool)((uint_t)(((uint_t)super::data_pointer()[i]+super::m_index[i])%boundary) == 0));
+                result_ = (bool)(result_
+                                 &&( bool)(((size_t)(super::data_pointer()[i]
+                                                     +super::m_index[i])
+                                            & (boundary-1))
+                                           == 0));
                 if(!result_){
                     printf("[storage # %d,", i);
                     printf("index %d]", super::m_index[i]);
-                    printf(" pointer: %d ", (uint_t)super::data_pointer()[i]+super::m_index[i]);
+                    printf(" pointer: %x ", (size_t)super::data_pointer()[i]+super::m_index[i]);
                     printf("is not aligned to %d \n", boundary);
                     break;
                 }
