@@ -28,11 +28,11 @@ struct accessor_index
  * @brief metafunction that given an accesor and a map, it will remap the index of the accessor according
  * to the corresponding entry in ArgsMap
  */
-template<typename Accessor, typename ArgsMap>
+    template<typename Accessor, typename ArgsMap, typename Enable = void>
 struct remap_accessor_type{};
 
 template < ushort_t ID, enumtype::intend Intend, typename Extend, ushort_t Number, typename ArgsMap>
-struct remap_accessor_type<accessor<ID, Intend, Extend, Number>, ArgsMap >
+struct remap_accessor_type<accessor<ID, Intend, Extend, Number>, ArgsMap>
 {
     typedef accessor<ID, Intend, Extend, Number> accessor_t;
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<ArgsMap>::value>0), "Internal Error: wrong size");
@@ -56,7 +56,8 @@ struct remap_accessor_type<accessor<ID, Intend, Extend, Number>, ArgsMap >
 
 #ifdef CXX11_ENABLED
     template < typename ArgsMap, template<typename ... > class Expression, typename ... Arguments >
-    struct remap_accessor_type<Expression<Arguments ... >, ArgsMap >
+    struct remap_accessor_type<Expression<Arguments ... >, ArgsMap,
+                               typename boost::enable_if<typename is_expr<Expression<Arguments ... >>::type, void>::type >
     {
         //Expression is an expression of accessors (e.g. expr_sum<T1, T2>,
         //where T1 and T2 are two accessors).
@@ -66,6 +67,15 @@ struct remap_accessor_type<accessor<ID, Intend, Extend, Number>, ArgsMap >
         //recursively remapping the template arguments,
         //until the specialization above stops the recursion
         typedef Expression<typename remap_accessor_type<Arguments, ArgsMap>::type ...> type;
+    };
+
+    // Workaround needed to prevent nvcc to instantiate the struct in enable_ifs
+    template < typename ArgsMap, template<typename ... > class Expression, typename ... Arguments >
+    struct remap_accessor_type<Expression<Arguments ... >, ArgsMap,
+                               typename boost::disable_if<typename is_expr<Expression<Arguments ... >>::type, void>::type >
+    {
+        // Workaround needed to prevent nvcc to instantiate the struct in enable_ifs
+        typedef boost::mpl::void_ type;
     };
 
     template < typename ArgsMap >
