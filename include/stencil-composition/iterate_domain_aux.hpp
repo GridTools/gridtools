@@ -247,7 +247,7 @@ namespace gridtools{
     struct increment_index_functor {
 
         GRIDTOOLS_STATIC_ASSERT((is_strides_cached<StridesCached>::value), "internal error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_array_of<ArrayIndex,int>::value), "internal error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_array_of<ArrayIndex,int_t>::value), "internal error: wrong type");
         // GRIDTOOLS_STATIC_ASSERT((is_sequence_of<StorageSequence, is_any_iterate_domain_storage_pointer>::value),
         //                         "internal error: wrong type");
 
