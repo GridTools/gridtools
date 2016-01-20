@@ -77,7 +77,7 @@ namespace gridtools {
                halo_t otherwise.
              */
             template <uint_t ID>
-            struct cond : boost::mpl::if_c<align_t::template has_stride_one<ID>::value, padding_t, halo_t>::type { };
+            struct cond : boost::mpl::if_c<align_t::template has_stride_one<ID>::value, padding_t, halo<0,0,0> >::type { };
 
 #ifdef CXX11_ENABLED
             /** metafunction to select the dimension with stride 1 and align it */
@@ -186,7 +186,10 @@ namespace gridtools {
             /**@brief straightforward interface*/
             GT_FUNCTION
             uint_t index(uint_t const& i, uint_t const& j, uint_t const&  k) const
-            { return super::index(i+Halo1, j+Halo2, k+Halo3); }
+            {
+                return super::index(i+cond<0>::template get<0>()
+                                  , j+cond<1>::template get<1>()
+                                  , k+cond<2>::template get<2>()); }
 
 
 #endif
