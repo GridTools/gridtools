@@ -1,12 +1,6 @@
 #include <stencil-composition/stencil-composition.hpp>
-// #include "common/defs.hpp"
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
-// #include "stencil-composition/backend.hpp"
-// #include "stencil-composition/caches/cache_metafunctions.hpp"
-// #include "stencil-composition/caches/define_caches.hpp"
-// #include "stencil-composition/interval.hpp"
-// #include "stencil-composition/make_computation.hpp"
 #include <stencil-composition/structured_grids/compute_extents_metafunctions.hpp>
 
 using namespace gridtools;
@@ -28,10 +22,10 @@ struct print_r {
 };
 
 struct functor0{
-    typedef accessor<0, enumtype::in, extent<-1, 0, -2, 1, -3, 2>> in0;
-    typedef accessor<1, enumtype::in, extent<-3, 2, -2, 0, 0, 2>> in1;
+    typedef accessor<0, enumtype::in, extent<-1, 0, -2, 1, -3, 2> > in0;
+    typedef accessor<1, enumtype::in, extent<-3, 2, -2, 0, 0, 2> > in1;
     typedef accessor<2, enumtype::inout> out;
-    typedef accessor<3, enumtype::in, extent<-1, 2, 0, 0, -3, 1>> in3;
+    typedef accessor<3, enumtype::in, extent<-1, 2, 0, 0, -3, 1> > in3;
 
     typedef boost::mpl::vector<in0,in1,out,in3> arg_list;
 
@@ -71,13 +65,13 @@ TEST(esf_metafunctions, compute_extents_of)
 
     typedef gridtools::strgrid::compute_extents_of<placeholders>::for_mss<mss_t>::type final_map;
 
-GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o0>::type, extent<0, 0, 0, 0, 0, 0>>::type::value),
+GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o0>::type, extent<0, 0, 0, 0, 0, 0> >::type::value),
                           "o0 extent<0, 0, 0, 0, 0, 0>");
-GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, in0>::type, extent<-1, 0, -2, 1, -3, 2>>::type::value),
+GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, in0>::type, extent<-1, 0, -2, 1, -3, 2> >::type::value),
                           "in0 extent<-1, 0, -2, 1, -3, 2>");
-GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, in1>::type, extent<-3, 2, -2, 0, 0, 2>>::type::value),
+GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, in1>::type, extent<-3, 2, -2, 0, 0, 2> >::type::value),
                           "in1 extent<-3, 2, -2, 0, 0, 2>");
-GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, in2>::type, extent<-1, 2, 0, 0, -3, 1>>::type::value),
+GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, in2>::type, extent<-1, 2, 0, 0, -3, 1> >::type::value),
                           "in2 extent<-1, 2, 0, 0, -3, 1>");
 /* total placeholders (rounded to 10) _SIZE = 10*/
     ASSERT_TRUE(true);
