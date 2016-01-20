@@ -161,6 +161,25 @@ namespace gridtools {
     public:
         typedef array<void* RESTRICT, N_DATA_POINTERS> data_pointer_array_t;
         typedef strides_cached<N_META_STORAGES-1, typename local_domain_t::storage_metadata_vector_t> strides_cached_t;
+
+        /**
+           @brief returns the array of pointers to the raw data as const reference
+        */
+        GT_FUNCTION
+        data_pointer_array_t const & RESTRICT data_pointer() const
+        {
+            return static_cast<const IterateDomainImpl*>(this)->data_pointer_impl();
+        }
+
+        /**
+           @brief returns the array of pointers to the raw data as const reference
+        */
+        GT_FUNCTION
+        array_index_t const & RESTRICT index() const
+        {
+            return m_index;
+        }
+
     protected:
 
         /**
@@ -170,15 +189,6 @@ namespace gridtools {
         data_pointer_array_t& RESTRICT data_pointer()
         {
             return static_cast<IterateDomainImpl*>(this)->data_pointer_impl();
-        }
-
-        /**
-           @brief returns the array of pointers to the raw data as const reference
-        */
-        GT_FUNCTION
-        data_pointer_array_t const & RESTRICT data_pointer() const
-        {
-            return static_cast<const IterateDomainImpl*>(this)->data_pointer_impl();
         }
 
         /**

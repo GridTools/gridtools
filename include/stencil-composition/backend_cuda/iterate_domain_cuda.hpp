@@ -61,33 +61,6 @@ public:
         return threadIdx.y;
     }
 
-    /** @brief checking all storages alignment using a specific storage_info
-
-        \param storage_id ordinal number identifying the storage_info checked
-        \param boundary ordinal number identifying the alignment
-     */
-    GT_FUNCTION
-    bool check_pointer_alignment(uint_t storage_id, uint_t boundary) const {
-        bool result_=true;
-        if(thread_position_x()==0){
-            for (ushort_t i=0; i<super::N_DATA_POINTERS; ++i){
-                result_ = (bool)(result_
-                                 &&( bool)(((size_t)(super::data_pointer()[i]
-                                                     +super::m_index[storage_id])
-                                            & (boundary-1))
-                                           == 0));
-                if(!result_)
-                {
-                    printf("[storage # %d,", i);
-                    printf("index %d]", super::m_index[storage_id]);
-                    printf(" pointer: %x ", (size_t)super::data_pointer()[i]+super::m_index[storage_id]);
-                    break;
-                }
-            }
-        }
-        return result_;
-    }
-
     /**
      * @brief determines whether the current (i,j) position is within the block size
      */

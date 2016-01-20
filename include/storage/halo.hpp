@@ -31,16 +31,17 @@ namespace gridtools{
 	static const uint_t s_pad2=Pad2;
 	static const uint_t s_pad3=Pad3;
         static const uint_t size=3;
+
         template<ushort_t Coordinate>
         GT_FUNCTION
         static constexpr uint_t get(){
             GRIDTOOLS_STATIC_ASSERT(Coordinate>=0, "the halo must be a non negative number");
             GRIDTOOLS_STATIC_ASSERT(Coordinate<3, "the halo dimension is exceeding the storage dimension");
-            if(Coordinate==0)
+            if(Coordinate==0u)
                 return Pad1;
-            if(Coordinate==1)
+            if(Coordinate==1u)
                 return Pad2;
-            if(Coordinate==2)
+            if(Coordinate==2u)
                 return Pad3;
         }
     };

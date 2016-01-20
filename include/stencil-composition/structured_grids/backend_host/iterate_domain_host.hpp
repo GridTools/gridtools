@@ -63,25 +63,6 @@ public:
         m_strides = strides;
     }
 
-    bool check_pointer_alignment(uint_t boundary) const {
-        bool result_=true;
-        for (ushort_t i=0; i<super::N_DATA_POINTERS; ++i){
-            result_ = (bool)(result_
-                             &&( bool)(((size_t)(super::data_pointer()[i]
-                                         +super::m_index[i])
-                                        & (boundary-1))
-                                       == 0));
-            if(!result_){
-                printf("[storage # %d,", i);
-                printf("index %d]", super::m_index[i]);
-                printf(" pointer: %x ", (size_t)super::data_pointer()[i]+super::m_index[i]);
-                printf("is not aligned to %d \n", boundary);
-                break;
-            }
-        }
-        return result_;
-    }
-
     template <ushort_t Coordinate, typename Execution>
     GT_FUNCTION
     void increment_impl() {}

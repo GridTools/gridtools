@@ -190,7 +190,6 @@ namespace gridtools {
 
 
 #endif
-
             //device copy constructor
             GT_FUNCTION
             constexpr meta_storage_aligned( meta_storage_aligned const& other ) :

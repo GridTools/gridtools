@@ -45,7 +45,7 @@ template<typename IterateDomainEvaluatorImpl>
 class iterate_domain_remapper_base
 {
 DISALLOW_COPY_AND_ASSIGN(iterate_domain_remapper_base);
-
+public:
     typedef typename _impl::iterate_domain_remapper_base_iterate_domain<IterateDomainEvaluatorImpl>::type iterate_domain_t;
 protected:
     const iterate_domain_t& m_iterate_domain;
@@ -57,12 +57,12 @@ public:
     typedef typename iterate_domain_t::esf_args_t esf_args_t;
 
     GT_FUNCTION
-    bool check_pointer_alignment(uint_t storage_id, uint_t boundary) const {
-        return m_iterate_domain.check_pointer_alignment(storage_id, boundary);
-    }
+    explicit iterate_domain_remapper_base(const iterate_domain_t& iterate_domain) : m_iterate_domain(iterate_domain) {}
 
     GT_FUNCTION
-    explicit iterate_domain_remapper_base(const iterate_domain_t& iterate_domain) : m_iterate_domain(iterate_domain) {}
+    iterate_domain_t const& get_iterate_domain() const {
+        return m_iterate_domain;
+    }
 
     /** shifting the IDs of the placeholders and forwarding to the iterate_domain () operator*/
     template <typename Accessor>

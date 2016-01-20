@@ -30,7 +30,11 @@ namespace aligned_copy_stencil{
     typedef aligned<32> alignment_t;
 #else
     typedef aligned<32> alignment_t;
+#ifdef CXX11_ENABLED
     typedef halo<0,0,2> halo_t;
+#else
+    typedef halo<0,2,0> halo_t;
+#endif
 #endif
     // This is the definition of the special regions in the "vertical" direction
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
@@ -38,6 +42,39 @@ namespace aligned_copy_stencil{
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
+
+
+#ifdef __CUDACC__
+        /** @brief checking all storages alignment using a specific storage_info
+
+            \param storage_id ordinal number identifying the storage_info checked
+            \param boundary ordinal number identifying the alignment
+        */
+        template <typename ItDomain>
+        GT_FUNCTION
+        static bool check_pointer_alignment(ItDomain const& it_domain
+                                     , uint_t storage_id
+                                     , uint_t boundary) {
+            bool result_=true;
+            if(threadIdx.x==0){
+                for (ushort_t i=0; i<ItDomain::iterate_domain_t::N_DATA_POINTERS; ++i){
+                    result_ = (bool)(result_
+                                     &&( bool)(((size_t)(it_domain.get_iterate_domain().data_pointer()[i]
+                                                         +it_domain.get_iterate_domain().index()[storage_id])
+                                                & (boundary-1))
+                                               == 0));
+                    if(!result_)
+                    {
+                        printf("[storage # %d,", i);
+                        printf("index %d]", it_domain.get_iterate_domain().index()[storage_id]);
+                        printf(" pointer: %x ", (size_t)it_domain.get_iterate_domain().data_pointer()[i]+it_domain.get_iterate_domain().index()[storage_id]);
+                        break;
+                    }
+            }
+            }
+            return result_;
+        }
+#endif
 
         typedef accessor<0, enumtype::in, extent<0,0,0,0>, 3> in;
         typedef accessor<1, enumtype::inout, extent<0,0,0,0>, 3> out;
@@ -49,7 +86,7 @@ namespace aligned_copy_stencil{
 
 #ifdef __CUDACC__
 #ifndef NDEBUG
-            if(!eval.check_pointer_alignment(0,alignment_t::value))
+            if(!check_pointer_alignment(eval,0,alignment_t::value))
             {
                 printf("alignment error in some storages with first meta_storage \n");
             }

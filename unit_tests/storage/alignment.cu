@@ -16,7 +16,6 @@ TEST(storage_alignment, test_aligned) {
 
     meta_gpu3_t m3(1,32,63);
 
-    printf("m2.dims<1>()==64: %d \n", m2.dims<1>()==64);
     //check that the dimension with stride 1 is aligned
     ASSERT_TRUE((m1.template dims<0>()==64));
     ASSERT_TRUE((m2.template dims<1>()==64));
@@ -36,8 +35,8 @@ TEST(storage_alignment, test_aligned) {
     tmp_meta_gpu3_t m_block3(0,0,15,1,1);
 
     //check that the dimension with stride 1 is aligned
-    ASSERT_TRUE((m_block1.template dims<0>()==64));//2 blocks wide
-    ASSERT_TRUE((m_block2.template dims<1>()==64));//2 blocks wide
-    ASSERT_TRUE((m_block3.template dims<2>()==32));//1 block wide
+    ASSERT_TRUE((m_block1.template dims<0>()==96));//2 blocks wide
+    ASSERT_TRUE((m_block2.template dims<1>()==96));//2 blocks wide
+    ASSERT_TRUE((m_block3.template dims<2>()==64));//1 block wide
 
 }
