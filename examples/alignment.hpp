@@ -47,12 +47,13 @@ namespace aligned_copy_stencil{
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 
+#ifdef __CUDACC__
 #ifndef NDEBUG
             if(!eval.check_pointer_alignment(0,alignment_t::value))
             {
-                printf("alignment error \n");
-                exit(-666);
+                printf("alignment error in some storages with first meta_storage \n");
             }
+#endif
 #endif
             eval(out())=eval(in());
         }

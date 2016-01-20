@@ -61,6 +61,11 @@ public:
         return threadIdx.y;
     }
 
+    /** @brief checking all storages alignment using a specific storage_info
+
+        \param storage_id ordinal number identifying the storage_info checked
+        \param boundary ordinal number identifying the alignment
+     */
     GT_FUNCTION
     bool check_pointer_alignment(uint_t storage_id, uint_t boundary) const {
         bool result_=true;
@@ -76,8 +81,6 @@ public:
                     printf("[storage # %d,", i);
                     printf("index %d]", super::m_index[storage_id]);
                     printf(" pointer: %x ", (size_t)super::data_pointer()[i]+super::m_index[storage_id]);
-                    printf(" =  + %d \n", super::m_index[storage_id]);
-                    printf("is not aligned to %d \n", boundary);
                     break;
                 }
             }

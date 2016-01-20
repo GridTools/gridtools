@@ -20,12 +20,12 @@ public:
 #endif
     typedef gridtools::layout_map<-1,-1,-1> layout_scalar;
 
-    typedef va_backend::storage_info<0,layout_ijk> storage_info_ijk_t;
-    typedef va_backend::storage_info<0,layout_ij> storage_info_ij_t;
-    typedef va_backend::storage_info<0,layout_scalar> storage_info_scalar_t;
+    typedef va_backend::storage_info<0,layout_ijk,gridtools::halo<3,0,0> > storage_info_ijk_t;
+    typedef va_backend::storage_info<0,layout_ij,gridtools::halo<3,0,0> > storage_info_ij_t;
+    typedef va_backend::storage_info<0,layout_scalar,gridtools::halo<3,0,0> > storage_info_scalar_t;
 
-    typedef va_backend::storage_info<0,layout_ijk> storage_info_ijk_tmp_t;
-    typedef va_backend::storage_info<0,layout_scalar> storage_info_scalar_tmp_t;
+    typedef va_backend::storage_info<0,layout_ijk,gridtools::halo<3,0,0>> storage_info_ijk_tmp_t;
+    typedef va_backend::storage_info<0,layout_scalar,gridtools::halo<3,0,0>> storage_info_scalar_tmp_t;
 
     typedef va_backend::storage_type<gridtools::float_type, storage_info_ijk_t >::type storage_type;
     typedef va_backend::storage_type<gridtools::float_type, storage_info_ij_t >::type ij_storage_type;
@@ -57,8 +57,8 @@ public:
         // set the fields to advect
         const double PI = std::atan(1.)*4.;
 
-        const uint_t i_begin = 0;
-        const uint_t i_end=  idim_;
+        const uint_t i_begin = 3;
+        const uint_t i_end=  idim_+3;
         const uint_t j_begin = 0;
         const uint_t j_end=  jdim_;
         const uint_t k_begin = 0;
@@ -108,7 +108,7 @@ public:
         const bool has_dim2 = TStorage_type::basic_type::layout::template at<2>() != -1;
         for(int k=0; k < (has_dim2 ? kdim_ : 1); ++k)
         {
-            for (int i = 0; i < (has_dim0 ? idim_ : 1); ++i)
+            for (int i = 3; i < (has_dim0 ? idim_+3 : 1); ++i)
             {
                 for (int j = 0; j < (has_dim1 ? jdim_ : 1); ++j)
                 {
