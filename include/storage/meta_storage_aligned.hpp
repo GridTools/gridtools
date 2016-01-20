@@ -13,7 +13,7 @@ namespace gridtools {
        @brief decorator of the meta_storage_base class, adding meta-information about the alignment
 
        \tparam MetaStorageBase the base class, containing strides and dimensions
-       \tparam AlignmentBoundary a type containing a the alignment boundary.
+       \tparam Alignment a type containing a the alignment boundary.
        This value is set by the librari (it is not explicitly exposed to the user)
        and it depends on the backend implementation. The values for Host and Cuda
        platforms are 0 and 32 respectively.
@@ -25,22 +25,22 @@ namespace gridtools {
 
      */
     template<typename MetaStorageBase
-             , typename AlignmentBoundary
+             , typename Alignment
              , typename HaloType
              >
     struct meta_storage_aligned;
 
 
     template<typename MetaStorageBase
-             , typename AlignmentBoundary
+             , typename Alignment
 #ifdef CXX11_ENABLED
              , template<ushort_t ... P> class  HaloType
              , ushort_t ... Halo>
-    struct meta_storage_aligned<MetaStorageBase, AlignmentBoundary, HaloType<Halo ...> >
+    struct meta_storage_aligned<MetaStorageBase, Alignment, HaloType<Halo ...> >
 #else
         , template<ushort_t, ushort_t, ushort_t > class  HaloType
         , ushort_t Halo1, ushort_t Halo2, ushort_t Halo3>
-        struct meta_storage_aligned<MetaStorageBase, AlignmentBoundary, HaloType<Halo1, Halo2, Halo3> >
+        struct meta_storage_aligned<MetaStorageBase, Alignment, HaloType<Halo1, Halo2, Halo3> >
 #endif
         : public MetaStorageBase
         {
@@ -48,25 +48,25 @@ namespace gridtools {
 #if defined(CXX11_ENABLED)
             //nvcc has problems with constexpr functions
             typedef HaloType<Halo ...> halo_t;//ranges
-            typedef HaloType<align_all<AlignmentBoundary::value, Halo>::value-Halo ...> padding_t;//paddings
+            typedef HaloType<align_all<Alignment::value, Halo>::value-Halo ...> padding_t;//paddings
 #else
-            typedef HaloType<align_all<AlignmentBoundary::value, Halo1>::value - Halo1
-                            , align_all<AlignmentBoundary::value, Halo2>::value - Halo2
-                            , align_all<AlignmentBoundary::value, Halo3>::value - Halo3
+            typedef HaloType<align_all<Alignment::value, Halo1>::value - Halo1
+                            , align_all<Alignment::value, Halo2>::value - Halo2
+                            , align_all<Alignment::value, Halo3>::value - Halo3
             > padding_t;//paddings
             typedef HaloType<Halo1, Halo2, Halo3> halo_t;
 #endif
 
-            static const ushort_t s_alignment_boundary = AlignmentBoundary::value;
+            static const ushort_t s_alignment = Alignment::value;
 
             typedef MetaStorageBase super;
-            typedef align<s_alignment_boundary, typename super::layout> align_t;
-            typedef AlignmentBoundary alignment_boundary_t;
+            typedef align<s_alignment, typename super::layout> align_t;
+            typedef Alignment alignment_t;
             typedef typename MetaStorageBase::basic_type basic_type;
             typedef typename MetaStorageBase::index_type index_type;
 
             GRIDTOOLS_STATIC_ASSERT(is_meta_storage<MetaStorageBase>::type::value, "wrong type");
-            GRIDTOOLS_STATIC_ASSERT(is_aligned<alignment_boundary_t>::type::value, "wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_aligned<alignment_t>::type::value, "wrong type");
             GRIDTOOLS_STATIC_ASSERT(is_halo<padding_t>::type::value, "wrong type");
             GRIDTOOLS_STATIC_ASSERT(padding_t::size == super::space_dimensions, "error in the paddindg size");
 

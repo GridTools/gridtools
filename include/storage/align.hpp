@@ -7,7 +7,7 @@ namespace gridtools{
        used internally in the library to allocate the storages. By default only the stride 1 dimension is padded.
        The stride 1 dimension is identified at compile-time given the layout-map.
      */
-    template <ushort_t AlignmentBoundary, typename LayoutMap>
+    template <ushort_t Alignment, typename LayoutMap>
     struct align{
 
         //the stride is one when the value in the layout vector is the highest
@@ -29,8 +29,8 @@ namespace gridtools{
                 typedef static_uint<Halo+Padding> offset;
 
                 //the stride is one when the value in the layout vector is the highest
-                return (AlignmentBoundary && ((dimension+offset::value)%AlignmentBoundary) && has_stride_one<Coordinate>::value)
-                    ? dimension+offset::value+AlignmentBoundary-((dimension+offset::value)%AlignmentBoundary)
+                return (Alignment && ((dimension+offset::value)%Alignment) && has_stride_one<Coordinate>::value)
+                    ? dimension+offset::value+Alignment-((dimension+offset::value)%Alignment)
                     : dimension+offset::value;
             }
         };
@@ -39,9 +39,9 @@ namespace gridtools{
     };
 
     /**@brief apply alignment to all coordinates regardless of the layout_map*/
-    template <ushort_t AlignmentBoundary, ushort_t Dimension>
+    template <ushort_t Alignment, ushort_t Dimension>
     struct align_all{
-        static const uint_t value = (AlignmentBoundary && (Dimension%AlignmentBoundary)) ? (Dimension+AlignmentBoundary-(Dimension%AlignmentBoundary)) : Dimension;
+        static const uint_t value = (Alignment && (Dimension%Alignment)) ? (Dimension+Alignment-(Dimension%Alignment)) : Dimension;
     };
 
     /** @brief wrapper around the alignment boundary
