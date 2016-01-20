@@ -1,5 +1,5 @@
 #pragma once
-#include <gt_for_each/for_each.hpp>
+#include <boost/mpl/for_each.hpp>
 #include "stencil-composition/backend_traits_fwd.hpp"
 #include "run_esf_functor_host.hpp"
 #include "stencil-composition//block_size.hpp"

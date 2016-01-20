@@ -1,6 +1,6 @@
 #include <iostream>
-#include <gt_for_each/for_each.hpp>
 #include <boost/mpl/range_c.hpp>
+#include <boost/mpl/for_each.hpp>
 #include "stencil-composition/level.hpp"
 #include "stencil-composition/interval.hpp"
 #include "stencil-composition/functor_do_methods.hpp"
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
     // test the level to index conversions be enumerating all levels in an range
     // (for test purposes convert the range into levels and back into an index)
     std::cout << "Verify the level index computation:" << std::endl;
-    gridtools::for_each<
+    boost::mpl::for_each<
         boost::mpl::range_c<int, 0, 20>
     >(PrintLevel());
     std::cout << "Done!" << std::endl;
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
 
     // run all methods of functor 0
     std::cout << "Print Functor0 Do methods:" << std::endl;
-    gridtools::for_each<
+    boost::mpl::for_each<
         compute_functor_do_methods<
             Functor0,
             AxisInterval
@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
 
     // run all methods of functor 1
     std::cout << "Print Functor1 Do methods:" << std::endl;
-    gridtools::for_each<
+    boost::mpl::for_each<
         compute_functor_do_methods<
             Functor1,
             AxisInterval
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
 
     // run all methods of functor 2
     std::cout << "Print Functor2 Do methods:" << std::endl;
-    gridtools::for_each<
+    boost::mpl::for_each<
         compute_functor_do_methods<
             Functor2,
             AxisInterval
