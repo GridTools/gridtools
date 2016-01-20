@@ -4,6 +4,23 @@
 #include <tools/verifier.hpp>
 #include "gtest/gtest.h"
 
+#ifdef __CUDACC__
+#ifdef FUNCTIONS_CALL
+#define FTESTNAME(x) CALL_GPU
+#endif
+
+#ifdef FUNCTIONS_OFFSETS
+#define FTESTNAME(x) OFFSETS_GPU
+#endif
+
+#ifdef FUNCTIONS_PROCEDURES
+#define FTESTNAME(x) PROCEDURES_GPU
+#endif
+
+#ifdef FUNCTIONS_PROCEDURES_OFFSETS
+#define FTESTNAME(x) PROCEDURESOFFSETS_GPU
+#endif
+#else
 #ifdef FUNCTIONS_CALL
 #define FTESTNAME(x) CALL
 #endif
@@ -18,6 +35,7 @@
 
 #ifdef FUNCTIONS_PROCEDURES_OFFSETS
 #define FTESTNAME(x) PROCEDURESOFFSETS
+#endif
 #endif
 
 namespace multi_types_test {
