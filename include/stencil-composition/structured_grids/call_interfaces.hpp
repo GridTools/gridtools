@@ -288,10 +288,10 @@ namespace gridtools {
             template <typename Accessor>
             GT_FUNCTION
             constexpr
-            typename boost::lazy_enable_if_c<
+            typename boost::enable_if_c<
                 not _impl::contains_value<non_accessor_indices,
                                           typename Accessor::index_type>::value,
-                typename CallerAggregator::template accessor_return_type<typename boost::mpl::at_c<PassedArguments, Accessor::index_type::value>::type>//::type
+                typename CallerAggregator::template accessor_return_type<typename boost::mpl::at_c<PassedArguments, Accessor::index_type::value>::type>::type
                 >::type
             operator()(Accessor const& accessor) const {
                 return m_caller_aggregator
@@ -310,10 +310,10 @@ namespace gridtools {
             template <typename Accessor>
             GT_FUNCTION
             constexpr
-            typename boost::lazy_enable_if_c<
+            typename boost::enable_if_c<
                 _impl::contains_value<non_accessor_indices,
                                       typename Accessor::index_type>::value,
-                typename boost::remove_reference<typename boost::fusion::result_of::at_c<accessors_list_t, Accessor::index_type::value>::type>::type//::type
+                typename boost::remove_reference<typename boost::fusion::result_of::at_c<accessors_list_t, Accessor::index_type::value>::type>::type::type
                 >::type&
             operator()(Accessor const&) const {
                 // std::cout << "Giving the ref (OutArg=" << OutArg << ") " << m_result << std::endl;
