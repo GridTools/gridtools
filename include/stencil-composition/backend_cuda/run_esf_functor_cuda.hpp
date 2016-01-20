@@ -66,7 +66,7 @@ namespace gridtools {
             if(m_iterate_domain.template is_thread_in_domain<extent_t>())
             {
                 //call the user functor at the core of the block
-                functor_t::Do(iterate_domain_remapper, IntervalType());
+                functor_t::f_type::Do(iterate_domain_remapper, IntervalType());
             }
 
 
