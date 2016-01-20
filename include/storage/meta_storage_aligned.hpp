@@ -176,9 +176,9 @@ namespace gridtools {
             // non variadic non constexpr constructor
             GT_FUNCTION
             meta_storage_aligned(  uint_t const& d1, uint_t const& d2, uint_t const& d3 ) :
-                super(align_t::template do_align<0>::apply(d1, Halo1+padding::template get<0>())
-                      , align_t::template do_align<1>::apply(d2, Halo2+padding::template get<1>())
-                      , align_t::template do_align<2>::apply(d3, Halo3+padding::template get<2>())
+                super(align_t::template do_align<0,(halo_t::s_pad1), (padding_t::s_pad1) >::apply(d1   )
+                      , align_t::template do_align<1,(halo_t::s_pad2), (padding_t::s_pad2) >::apply(d2 )
+                      , align_t::template do_align<2, (halo_t::s_pad3), (padding_t::s_pad3) >::apply(d3)
                     )
             {
             }

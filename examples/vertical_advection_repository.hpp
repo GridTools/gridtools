@@ -24,8 +24,8 @@ public:
     typedef va_backend::storage_info<0,layout_ij,gridtools::halo<3,0,0> > storage_info_ij_t;
     typedef va_backend::storage_info<0,layout_scalar,gridtools::halo<3,0,0> > storage_info_scalar_t;
 
-    typedef va_backend::storage_info<0,layout_ijk,gridtools::halo<3,0,0>> storage_info_ijk_tmp_t;
-    typedef va_backend::storage_info<0,layout_scalar,gridtools::halo<3,0,0>> storage_info_scalar_tmp_t;
+    typedef va_backend::storage_info<0,layout_ijk,gridtools::halo<3,0,0> > storage_info_ijk_tmp_t;
+    typedef va_backend::storage_info<0,layout_scalar,gridtools::halo<3,0,0> > storage_info_scalar_tmp_t;
 
     typedef va_backend::storage_type<gridtools::float_type, storage_info_ijk_t >::type storage_type;
     typedef va_backend::storage_type<gridtools::float_type, storage_info_ij_t >::type ij_storage_type;

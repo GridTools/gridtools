@@ -27,6 +27,9 @@ namespace gridtools{
 #else
     template <uint_t Pad1, uint_t Pad2, uint_t Pad3 >
     struct halo{
+	static const uint_t s_pad1=Pad1;
+	static const uint_t s_pad2=Pad2;
+	static const uint_t s_pad3=Pad3;
         static const uint_t size=3;
         template<ushort_t Coordinate>
         GT_FUNCTION

@@ -202,7 +202,7 @@ If you are not using generic accessors then you are using an unsupported storage
         assign_raw_data_functor( assign_raw_data_functor const& other): m_data_pointer_array(other.m_data_pointer_array), m_storage(other.m_storage), m_offset(other.m_offset){}
 
         GT_FUNCTION
-        assign_raw_data_functor(DataPointerArray& RESTRICT data_pointer_array, pointer<storage_type> storage, uint const offset_=0) :
+        assign_raw_data_functor(DataPointerArray& RESTRICT data_pointer_array, pointer<storage_type> storage, uint_t const offset_) :
             m_data_pointer_array(data_pointer_array), m_storage(storage), m_offset(offset_) {}
 
         template <typename ID>
@@ -516,7 +516,7 @@ If you are not using generic accessors then you are using an unsupported storage
                 BackendType,
                 DataPointerArray,
                 storage_ptr_type
-                >(m_data_pointer_array, boost::fusion::at<ID>(m_storages))
+                >(m_data_pointer_array, boost::fusion::at<ID>(m_storages), 0u/* hardcoded offset */)
                 );
         }
     };
@@ -531,7 +531,7 @@ If you are not using generic accessors then you are using an unsupported storage
     struct assign_strides_inner_functor
     {
     private:
-        //while the strides are uint type in the storage metadata,
+        //while the strides are uint_t type in the storage metadata,
         // we stored them as int in the strides cached object in order to force vectorization
         int_t* RESTRICT m_left;
         const uint_t* RESTRICT m_right;
