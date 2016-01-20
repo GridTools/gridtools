@@ -76,8 +76,13 @@ namespace gridtools {
                returns padding_t if the ID template argument corresponds with the stride 1 dimension,
                halo_t otherwise.
              */
+#ifdef CXX11_ENABLED
             template <uint_t ID>
-            struct cond : boost::mpl::if_c<align_t::template has_stride_one<ID>::value, padding_t, halo<0,0,0> >::type { };
+            struct cond : boost::mpl::if_c<align_t::template has_stride_one<ID>::value, static_uint<padding_t::template get<ID>()> , static_uint<0> >::type { };
+#else
+            template <uint_t ID>
+            struct cond : boost::mpl::if_c<align_t::template has_stride_one<ID>::value, padding_t , halo<0,0,0> >::type { };
+#endif
 
 #ifdef CXX11_ENABLED
             /** metafunction to select the dimension with stride 1 and align it */
@@ -150,7 +155,7 @@ namespace gridtools {
                 // uint_t args[3]={args_...};
                 // std::cout<<"args "<<args[0]<<" " <<args[1]<<" " <<args[2]<<"\n";
                 // std::cout<<"args "<<cond<0>::template get<0>()<<" " <<cond<1>::template get<1>()<<" " <<cond<2>::template get<2>()<<"\n";
-                return super::index(args_ + cond<IdSequence>::template get<IdSequence>() ...);
+                return super::index(args_ + cond<IdSequence>::value ...);
             }
 
            /**@brief just forwarding the index computation to the base class*/
@@ -216,7 +221,12 @@ namespace gridtools {
                                    , uint_t const& block_
                                    , int_t* RESTRICT index_
                                    , StridesVector const& RESTRICT strides_){
-                uint_t steps_padded_ = steps_+cond<Coordinate>::template get<Coordinate>();
+                uint_t steps_padded_ = steps_+
+#ifdef CXX11_ENABLED
+                    cond<Coordinate>::value;
+#else
+                    cond<Coordinate>::template get<Coordinate>();
+#endif
 #ifndef NDEBUG
 #ifdef VERBOSE
 #ifdef __CUDACC__
