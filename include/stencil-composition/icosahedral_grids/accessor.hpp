@@ -11,7 +11,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_location_type<LocationType>::value), "Error: wrong type");
         using type = accessor<ID, Intend, LocationType, Radius>;
         using location_type = LocationType;
-        static const uint value = ID;
+        static const uint_t value = ID;
         using index_type = static_uint<ID>;
 
         location_type location() const {
