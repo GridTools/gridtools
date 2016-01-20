@@ -102,8 +102,8 @@ namespace gridtools {
         static const constexpr short_t layout_vector[sizeof...(Args)]={Args...};
         typedef boost::mpl::vector_c<short_t, Args...> layout_vector_t;
 
-        GRIDTOOLS_STATIC_ASSERT(vec_max<layout_vector_t>::value <= length-1, "specified a template argument too large for a storage layout map");
-        GRIDTOOLS_STATIC_ASSERT(vec_max<layout_vector_t>::value >= length-1, "missing the largest argument in a storage layout map");
+        // GRIDTOOLS_STATIC_ASSERT(vec_max<layout_vector_t>::value <= length-1, "specified a template argument too large for a storage layout map");
+        // GRIDTOOLS_STATIC_ASSERT(vec_max<layout_vector_t>::value >= length-1, "missing the largest argument in a storage layout map");
 
         template <class Layout >
         struct append{

@@ -41,6 +41,19 @@ namespace gridtools {
 
 #ifndef __CUDACC__
 
+
+        template<typename Seq>
+        struct create;
+
+        template<uint_t ... Nums>
+        struct create<gt_integer_sequence<Nums...> >{
+
+            template<typename MetaData, typename Part, typename Grid, typename ... Dims>
+            MetaData apply(Part part_, Grid grid_, Grid grid_gcl_, uint_t low_b_, uint_t up_b_, Dims ... dims_ ){
+                return part_.compute_bounds( Nums, grid_, grid_gcl_, low_b_, up_b_, dims_ ... );
+            }
+        };
+
         /**
            @brief constructor for the parallel meta storage
 
@@ -60,6 +73,22 @@ namespace gridtools {
            \endcode
            Each call to compute_bounds returns the partitioned dimension and fills an element
            of the arrays passed as input (corresponding to the dimension passed as first argument).
+
+         */
+        // template <typename ... UInt>
+        // explicit parallel_storage_info(partitioner_t const& part, UInt const& ... dims_)
+        //     : m_partitioner(&part)
+        //     , m_coordinates()
+        //     , m_coordinates_gcl()
+        //     , m_low_bound()
+        //     , m_up_bound()
+        //     , m_metadata(
+        //         create<typename make_gt_integer_sequence
+        //         <uint_t, sizeof ... (UInt)>::type >::template apply<metadata_t>
+        //         ( part, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, dims_ ...  )
+        //         )
+        // {
+        // }
 
          */
         template <typename ... UInt>

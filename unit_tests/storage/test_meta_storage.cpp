@@ -33,7 +33,7 @@ TEST(storage_info, test_interface) {
     GRIDTOOLS_STATIC_ASSERT((meta_.strides<0>()==14*13*12), "error");
 #else // CXX11_ENABLED
 
-    gridtools::meta_storage_base<0,layout_t,false> meta_(11, 12, 13, 14, 15);
+    gridtools::meta_storage_base<0,layout_t,false> meta_(11u, 12u, 13u, 14u, 15u);
     ASSERT_TRUE((meta_.dims<0>()==11));
     ASSERT_TRUE((meta_.dims<1>()==12));
     ASSERT_TRUE((meta_.dims<2>()==13));
