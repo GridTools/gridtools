@@ -78,7 +78,7 @@ public:
     operator() (Accessor const&  arg) const -> decltype(m_iterate_domain(typename remap_accessor_type<Accessor, esf_args_map_t>::type(arg)))
 #else
     typename iterate_domain_t::template accessor_return_type
-        <remap_accessor_type<Accessor, esf_args_map_t>::type>::type
+        <typename remap_accessor_type<Accessor, esf_args_map_t>::type>::type
      operator() (Accessor const&  arg) const
 #endif
     {

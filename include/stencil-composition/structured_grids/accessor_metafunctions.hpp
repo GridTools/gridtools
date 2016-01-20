@@ -106,7 +106,7 @@ struct remap_accessor_type<accessor<ID, Intend, Extend, Number>, ArgsMap>
        TODO: metafunction convention not completely respected */
     template < typename Accessor >
     struct is_accessor_written {
-        static constexpr bool value = ! is_accessor_readonly<Accessor>::value;
+        static const bool value = ! is_accessor_readonly<Accessor>::value;
         typedef typename boost::mpl::not_<typename is_accessor_readonly<Accessor>::type>::type type;
     };
 
