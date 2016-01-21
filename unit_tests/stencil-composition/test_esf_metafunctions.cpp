@@ -86,10 +86,10 @@ namespace _for_test {
 
 TEST(esf_metafunctions, check_arg_list_order)
 {
-    GRIDTOOLS_STATIC_ASSERT((gridtools::check_arg_list<boost::mpl::vector<_for_test::arg<0>,_for_test::arg<1>,_for_test::arg<2>,_for_test::arg<3> > >::value == true), "Test1 failed");
+    GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::check_arg_list<boost::mpl::vector<_for_test::arg<0>,_for_test::arg<1>,_for_test::arg<2>,_for_test::arg<3> > >::value == true), "Test1 failed");
 
-    GRIDTOOLS_STATIC_ASSERT((gridtools::check_arg_list<boost::mpl::vector<_for_test::arg<0>,_for_test::arg<4>,_for_test::arg<2>,_for_test::arg<3> > >::value == false), "Test1 failed");
+    GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::check_arg_list<boost::mpl::vector<_for_test::arg<0>,_for_test::arg<4>,_for_test::arg<2>,_for_test::arg<3> > >::value == false), "Test1 failed");
 
-    GRIDTOOLS_STATIC_ASSERT((gridtools::check_arg_list<boost::mpl::vector<_for_test::arg<0>,_for_test::arg<0>,_for_test::arg<3>,_for_test::arg<3> > >::value == false), "Test1 failed");
+    GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::check_arg_list<boost::mpl::vector<_for_test::arg<0>,_for_test::arg<0>,_for_test::arg<3>,_for_test::arg<3> > >::value == false), "Test1 failed");
     ASSERT_TRUE(true);
 }
