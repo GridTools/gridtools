@@ -120,8 +120,8 @@ namespace test_cycle_and_swap{
 
         i_data.allocate();
         reference.allocate();
-        i_data.get_value<0,0>(0,0)=0.;
-        i_data.get_value<1,0>(0,0)=1.;
+        i_data.get_value<0,0>(0,0,0)=0.;
+        i_data.get_value<1,0>(0,0,0)=1.;
 
         const uint_t halo_size=1;
         uint_t di[5] = {halo_size, halo_size, halo_size, d1-halo_size-1, d1};

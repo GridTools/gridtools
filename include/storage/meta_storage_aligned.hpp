@@ -1,4 +1,4 @@
-#pragma once
+n#pragma once
 #include "align.hpp"
 #include "halo.hpp"
 #include "common/pair.hpp"
@@ -14,7 +14,7 @@ namespace gridtools {
 
        \tparam MetaStorageBase the base class, containing strides and dimensions
        \tparam Alignment a type containing a the alignment boundary.
-       This value is set by the librari (it is not explicitly exposed to the user)
+       This value is set by the library (it is not explicitly exposed to the user)
        and it depends on the backend implementation. The values for Host and Cuda
        platforms are 0 and 32 respectively.
        \tparam Padding extra memory space added at the beginning of a specific dimension.
@@ -152,11 +152,12 @@ namespace gridtools {
             uint_t index_( gt_integer_sequence<ushort_t, IdSequence...> t, UInt const& ... args_
                 ) const {
 
+                GRIDTOOLS_STATIC_ASSERT(sizeof...(IdSequence) == sizeof...(UInt), "number of arguments used to compute the storage index does not match the storage dimension. Check that you are accessing the storage correctly.");
                 return super::index(args_ + cond<IdSequence>::value ...);
             }
 
            /**@brief just forwarding the index computation to the base class*/
-            template <typename T, ushort_t N>
+            template <typename T, size_t N>
             GT_FUNCTION
             uint_t index( array<T, N> const& t) const {
 
