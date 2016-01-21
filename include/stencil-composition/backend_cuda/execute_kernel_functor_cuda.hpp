@@ -62,10 +62,40 @@ namespace _impl_cuda {
         __syncthreads();
 
         //computing the global position in the physical domain
+        /*
+         *  In a typical cuda block we have the following regions
+         *
+         *    aa bbbbbbbb cc
+         *    aa bbbbbbbb cc
+         *
+         *    hh dddddddd ii
+         *    hh dddddddd ii
+         *    hh dddddddd ii
+         *    hh dddddddd ii
+         *
+         *    ee ffffffff gg
+         *    ee ffffffff gg
+         *
+         * Regions b,d,f have warp (or multiple of warp size)
+         * Size of regions a, c, h, i, e, g are determined by max_extent_t
+         * Regions b,d,f are easily executed by dedicated warps (one warp for each line).
+         * Regions (a,h,e) and (c,i,g) are executed by two specialized warp
+         *
+         */
+        //jboundary_limit determines the number of warps required to execute (b,d,f)
         const int jboundary_limit = block_size_t::j_size_t::value - max_extent_t::jminus::value
             + max_extent_t::jplus::value;
+        //iminus_limit adds to jboundary_limit an additional warp for regions (a,h,e)
         const int iminus_limit = jboundary_limit + (max_extent_t::iminus::value<0 ? 1 : 0);
+        //iminus_limit adds to iminus_limit an additional warp for regions (c,i,g)
         const int iplus_limit = iminus_limit + (max_extent_t::iplus::value>0 ? 1 : 0);
+
+        //The kernel allocate enough warps to execute all halos of all ESFs.
+        // The max_extent_t is the enclosing extent of all the ESFs
+        // (i,j) is the position (in the global domain, minus initial halos which are accounted with istart, jstart args)
+        // of this thread within the physical block
+        // (iblock, jblock) are relative positions of the thread within the block. Grid positions in the halos of the block
+        //   get negative values
 
         int i=max_extent_t::iminus::value-1;
         int j=max_extent_t::jminus::value-1;
@@ -82,8 +112,6 @@ namespace _impl_cuda {
         {
             const int padded_boundary_ = padded_boundary<-max_extent_t::iminus::value>::value;
             i = blockIdx.x * block_size_t::i_size_t::value -padded_boundary_ + threadIdx.x % padded_boundary_;
-           // j = threadIdx.y - jboundary_limit + threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
-           // TODO limit here is only one extra thread to deal with left halo. This limits the size of y of block. Put protections and extend this limit
             j = blockIdx.y* block_size_t::j_size_t::value +  threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
             iblock = -padded_boundary_ + threadIdx.x % padded_boundary_;
             jblock = threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
