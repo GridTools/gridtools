@@ -1,5 +1,5 @@
 #include <iostream>
-#include <gt_for_each/for_each.hpp>
+#include <boost/mpl/for_each.hpp>
 #include <boost/mpl/transform.hpp>
 #include "stencil-composition/interval.hpp"
 #include "stencil-composition/functor_do_methods.hpp"
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
     >::type FunctorDoMethods;
 
     std::cout << "Print the Functor0, Functor1 and Functor2 loop intervals:" << std::endl;
-    gridtools::for_each<
+    boost::mpl::for_each<
         compute_loop_intervals<
             FunctorDoMethods,
             AxisInterval

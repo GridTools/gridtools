@@ -37,7 +37,7 @@ def run_and_extract_times(executable, host, sizes, filter_=None, stella_format =
     if stella_format:
         cmd = cmd + executable +' --ie ' + str(sizes[0]) + ' --je ' + str(sizes[1]) + ' --ke ' + str(sizes[2])
     else:
-        cmd = cmd + executable +' ' + str(sizes[0]) + ' ' + str(sizes[1]) + ' ' + str(sizes[2])
+        cmd = cmd + executable +' ' + str(sizes[0]) + ' ' + str(sizes[1]) + ' ' + str(sizes[2]) + ' 10'
     if filter_:
         cmd = cmd + ' ' + filter_
     if target == 'cpu':
@@ -134,9 +134,9 @@ class Plotter:
             for adomain in self.stella_avg_times_[astencil]:
                 fig, ax = plt.subplots()
 
-                stella_times = [a/10.0 for a in self.stella_avg_times_[astencil][adomain] ]
+                stella_times = [a for a in self.stella_avg_times_[astencil][adomain] ]
                 gridtools_times = self.gridtools_avg_times_[astencil][adomain]
-                stella_err = [err/10.0 for err in self.stella_err_[astencil][adomain] ]
+                stella_err = [err for err in self.stella_err_[astencil][adomain] ]
                 gridtools_err = self.gridtools_err_[astencil][adomain]
                 labels = self.labels_[astencil][adomain]
                 

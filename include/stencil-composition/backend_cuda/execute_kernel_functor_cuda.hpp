@@ -22,6 +22,8 @@ namespace _impl_cuda {
         typedef typename RunFunctorArguments::physical_domain_block_size_t block_size_t;
 
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
+        typedef typename RunFunctorArguments::async_esf_map_t async_esf_map_t;
+
         typedef backend_traits_from_id<enumtype::Cuda> backend_traits_t;
         typedef typename iterate_domain_t::strides_cached_t strides_t;
         typedef typename iterate_domain_t::data_pointer_array_t data_pointer_array_t;
@@ -66,7 +68,7 @@ namespace _impl_cuda {
         it_domain.template initialize<zdim_index_t::value>( grid->template value_at< iteration_policy_t::from >() );
 
         //execute the k interval functors
-        for_each<typename RunFunctorArguments::loop_intervals_t>
+        boost::mpl::for_each<typename RunFunctorArguments::loop_intervals_t>
             (_impl::run_f_on_interval<
              execution_type_t,
              RunFunctorArguments>(it_domain,*grid) );
@@ -183,6 +185,7 @@ struct execute_kernel_functor_cuda
             typename RunFunctorArguments::extent_sizes_t,
             typename RunFunctorArguments::local_domain_t,
             typename RunFunctorArguments::cache_sequence_t,
+            typename RunFunctorArguments::async_esf_map_t,
             typename RunFunctorArguments::grid_t,
             typename RunFunctorArguments::execution_type_t,
             RunFunctorArguments::s_strategy_id

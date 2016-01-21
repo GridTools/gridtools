@@ -1,6 +1,6 @@
 #pragma once
+#include <boost/mpl/for_each.hpp>
 #include "storage_list.hpp"
-#include "../gt_for_each/for_each.hpp"
 #include "../common/generic_metafunctions/reversed_range.hpp"
 #ifdef CXX11_ENABLED
 namespace gridtools{
@@ -48,7 +48,7 @@ namespace gridtools{
     };
 
     template<typename T>
-    struct get_value{
+    struct get_value_{
         using type = static_int<T::value>;
     };
 
@@ -64,7 +64,7 @@ namespace gridtools{
     struct compute_storage_offset{
 
         GRIDTOOLS_STATIC_ASSERT(IdMax>=Id && Id>=0, "Library internal error");
-        typedef typename boost::mpl::eval_if_c<IdMax-Id==0, get_fields<typename Storage::super> , get_value<compute_storage_offset<typename Storage::super, Id+1, IdMax> > >::type type;
+        typedef typename boost::mpl::eval_if_c<IdMax-Id==0, get_fields<typename Storage::super> , get_value_<compute_storage_offset<typename Storage::super, Id+1, IdMax> > >::type type;
         static const uint_t value=type::value;
     };
 
@@ -159,7 +159,7 @@ namespace gridtools{
 
             typedef typename reversed_range<ushort_t, 1+impl_::offset_t<Storage, Dim>::value, impl_::width_t<Storage, Dim>::value+impl_::offset_t<Storage, Dim>::value>::type range_t;
 
-            for_each<range_t>(shift<Storage>(storage_));
+            boost::mpl::for_each<range_t>(shift<Storage>(storage_));
 
             //restore the first snapshot
             storage_.fields_view()[impl_::offset_t<Storage, Dim>::value]=tmp;
@@ -284,7 +284,6 @@ namespace gridtools{
 
            @tparam field_dim the given field dimenisons
            @tparam snapshot the snapshot of dimension field_dim to be set
-           @param field the input storage
         */
         template< short_t snapshot=0, short_t field_dim=0>
         pointer_type& get( )

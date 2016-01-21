@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 #include "Options.hpp"
-#include "interface1.hpp"
+#include "simple_hori_diff.hpp"
 
 int main(int argc, char** argv)
 {

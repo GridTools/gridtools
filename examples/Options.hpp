@@ -9,13 +9,17 @@
 class Options /* singleton */
 { 
 private: 
-    Options() { }
-    Options(const Options&) { }
+    Options() {
+        for(int i=0; i < 4; ++i) {
+            m_size[i] =0;
+        } 
+    }
+    Options(const Options&) {}
     ~Options() { }
 public: 
     static Options& getInstance(); 
 
-    int m_size[3];
+    int m_size[4];
 }; 
 
   
