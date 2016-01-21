@@ -155,6 +155,14 @@ namespace gridtools {
                 return super::index(args_ + cond<IdSequence>::value ...);
             }
 
+           /**@brief just forwarding the index computation to the base class*/
+            template <typename T, ushort_t N>
+            GT_FUNCTION
+            uint_t index( array<T, N> const& t) const {
+
+                return super::index(t);
+            }
+
             /**@brief */
             template <typename ... UInt>
             GT_FUNCTION
