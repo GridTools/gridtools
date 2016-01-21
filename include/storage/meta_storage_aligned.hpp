@@ -152,18 +152,7 @@ namespace gridtools {
             uint_t index_( gt_integer_sequence<ushort_t, IdSequence...> t, UInt const& ... args_
                 ) const {
 
-                // uint_t args[3]={args_...};
-                // std::cout<<"args "<<args[0]<<" " <<args[1]<<" " <<args[2]<<"\n";
-                // std::cout<<"args "<<cond<0>::template get<0>()<<" " <<cond<1>::template get<1>()<<" " <<cond<2>::template get<2>()<<"\n";
                 return super::index(args_ + cond<IdSequence>::value ...);
-            }
-
-           /**@brief just forwarding the index computation to the base class*/
-            template <typename ... Types>
-            GT_FUNCTION
-            uint_t index( Types const& ... t) const {
-
-                return super::index(t ...);
             }
 
             /**@brief */
@@ -171,7 +160,7 @@ namespace gridtools {
             GT_FUNCTION
             uint_t index(uint_t const& first_, UInt const& ... args_) const {
 
-                /**this calls zippes 2 variadic packs*/
+                /**this call zips 2 variadic packs*/
                 return index_(typename make_gt_integer_sequence<ushort_t, sizeof ... (Halo)>::type(), first_, args_ ... );
             }
 #else

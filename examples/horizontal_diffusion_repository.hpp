@@ -44,7 +44,7 @@ class repository
 
     typedef hd_backend::temporary_storage_type<gridtools::float_type, storage_info_scalar_t >::type scalar_storage_type;
     typedef hd_backend::temporary_storage_type<gridtools::float_type, storage_info_ijk_tmp_t >::type tmp_storage_type;
-    typedef hd_backend::temporary_storage_type<gridtools::float_type, storage_info_scalar_tmp_t>::type tmp_scalar_storage_type;
+    typedef hd_backend::temporary_storage_type<gridtools::float_type, storage_info_scalar_tmp_t >::type tmp_scalar_storage_type;
 
     repository(const uint_t idim, const uint_t jdim, const uint_t kdim, const uint_t halo_size):
         m_storage_info_ijk(idim, jdim, kdim),

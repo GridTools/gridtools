@@ -200,6 +200,7 @@ namespace gridtools {
                         GT_FUNCTION
                         storage_info(storage_info const& t) : super(t){}
         };
+
 #endif
 
         /**
@@ -431,5 +432,13 @@ namespace gridtools {
 
 
     }; // struct backend_base {
+
+    template<  template<ushort_t, typename, typename, typename> class StorageInfo
+              , ushort_t Index
+              , typename Layout
+              , typename Halo
+              , typename Alignment
+              >
+    struct is_meta_storage<StorageInfo<Index, Layout, Halo, Alignment> >: boost::mpl::true_{};
 
 } // namespace gridtools
