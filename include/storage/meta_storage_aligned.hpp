@@ -1,4 +1,4 @@
-n#pragma once
+#pragma once
 #include "align.hpp"
 #include "halo.hpp"
 #include "common/pair.hpp"
