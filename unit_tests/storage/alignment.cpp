@@ -46,7 +46,6 @@ TEST(storage_alignment, test_aligned) {
     ASSERT_TRUE((m_block2.template dims<1>()==96));//2 blocks wide
     ASSERT_TRUE((m_block3.template dims<2>()==64));//1 block wide
 
-    std::cout<<"m1 "<<m1.index(0,0,0)<<" m2 "<<m2.index(0,0,0)<<" m3 "<<m3.index(0,0,0)<<"\n";
     //check the parenthesis operator
     ASSERT_TRUE((m1.index(0,0,0) == 31));//2 blocks wide
     ASSERT_TRUE((m2.index(0,0,0) == 30));//2 blocks wide
