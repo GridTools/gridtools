@@ -45,7 +45,7 @@ struct functor{
     }
 };
 
-TEST(test_bc, boundary_conditions) {
+TEST(test_global_accessor, boundary_conditions) {
 
 #ifdef __CUDACC__
     typedef backend<Cuda, Block> backend_t;
