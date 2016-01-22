@@ -34,6 +34,8 @@ namespace gridtools {
             written argument in the argument list of a stencil
             operator, so that it is legal to call it as a
             function.
+
+            User protection
         */
         template <typename Functor>
         struct can_be_a_function {
@@ -57,6 +59,13 @@ namespace gridtools {
         };
 
 
+        /** Metafunction to check if a list of types with value traits
+            contains a type with a given value.
+            This metafunction can search values that are coded in different ways,
+            like boost::mpl::int_ and static_int.
+
+            It may belong to common, but its use may be not so easily explained.
+         */
         template <typename ListOfIndices, typename Value>
         struct contains_value {
             template <typename TheValue>
@@ -74,6 +83,11 @@ namespace gridtools {
         };
 
 
+        /** Metafunction to collect all the indices of a sequence
+            corresponding to non-accessors. Used in calling interface
+            to provide enable_ifs based on accessor indices of the
+            called function.
+         */
         template <typename PArguments>
         struct insert_index_if_not_accessor {
             template <typename Index, typename CurrentState>
@@ -88,6 +102,10 @@ namespace gridtools {
         };
 
 
+        /** Struct to wrap a reference that is passed to a procedure
+            (call_proc). This is used to deduce the type of the arguments
+            required by the called function.
+         */
         template <typename Type>
         struct wrap_reference {
             using type = Type;
@@ -101,6 +119,10 @@ namespace gridtools {
             type& value() const {return *p_value;}
         };
 
+        /** When calling a procedure, a new aggregator has to be
+            produced which keeps the accessors as they are and
+            wrap the references.
+         */
         template <typename ...Args> struct package_args;
 
         template <class First, typename ...Args>
@@ -134,6 +156,10 @@ namespace gridtools {
             typedef boost::mpl::vector<> type;
         };
 
+        /** Maker to wrap an argument if it is not an accessor.
+
+            Used to apply the transformation to a variadic pack.
+         */
         template <typename T>
         inline
         typename boost::enable_if_c<is_accessor<T>::value, T>::type
