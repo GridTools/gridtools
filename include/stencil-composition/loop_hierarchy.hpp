@@ -54,7 +54,7 @@ namespace gridtools{
 
         /**@brief getter for the step */
         GT_FUNCTION
-        constexpr const uint_t step(){return s_step; }
+        constexpr const uint_t step() const {return s_step; }
         static const ushort_t s_id=ID;
 
         static const uint_t s_step=Step;
@@ -72,7 +72,7 @@ namespace gridtools{
         typedef Integer value_type;
         constexpr const Integer up_bound() const {return UpBound; }
         constexpr const Integer low_bound() const {return LowBound; }
-        constexpr const uint_t step(){return s_step; }
+        constexpr const uint_t step() const {return s_step; }
         static const uint_t s_step=Step;
         static const  ushort_t s_id=ID;
     };

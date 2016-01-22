@@ -279,7 +279,11 @@ namespace gridtools {
             }
         }
 
-        /**@brief method for setting the index array */
+        /**@brief method for setting the index array
+        * This method is responsible of assigning the index for the memory access at
+        * the location (i,j,k). Such index is shared among all the fields contained in the
+        * same storage class instance, and it is not shared among different storage instances.
+        */
         template <typename Value>
         GT_FUNCTION
         void set_index(array<Value, N_META_STORAGES> const& index)

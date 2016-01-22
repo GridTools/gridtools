@@ -359,7 +359,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
 
         template <typename OffsetTuple>
         GT_FUNCTION
-        constexpr int_t _index(OffsetTuple  const& tuple) {
+        constexpr int_t _index(OffsetTuple  const& tuple) const {
             return _impl::compute_offset<space_dimensions, layout>::apply(strides(), tuple);
         }
 
