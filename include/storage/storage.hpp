@@ -36,7 +36,9 @@ namespace gridtools{
             {
             }
 #else
-        explicit storage(  typename basic_type::meta_data_t const& meta_data_, bool const& arg1 ):super(meta_data_, arg1)
+
+        template<typename T>
+        explicit storage(  typename basic_type::meta_data_t const& meta_data_, T const& arg1 ):super(meta_data_, arg1)
             {
             }
 
