@@ -145,8 +145,7 @@ namespace gridtools {
 
 
         /**@brief the parallel storage calls the empty constructor to do lazy initialization*/
-        template <typename T>
-        base_storage(MetaData const & meta_data_, T do_allocate=true, typename boost::enable_if<typename boost::is_same<T, bool>::type, int >::type* =0) :
+        base_storage(MetaData const & meta_data_, bool do_allocate=true) :
             is_set( false )
             , m_name("default_storage")
             , m_meta_data(meta_data_)

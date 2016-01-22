@@ -56,7 +56,7 @@ TEST(test_bc, boundary_conditions) {
     typedef typename backend_t::storage_info<0, layout_map<0,1,2> > meta_t;
     meta_t meta_(10,10,10);
     typedef backend_t::storage_type<float_type, meta_t >::type storage_type;
-    storage_type sol_(meta_, 0.);
+    storage_type sol_(meta_, (float_type)0.);
 
     sol_.initialize(2.);
 
