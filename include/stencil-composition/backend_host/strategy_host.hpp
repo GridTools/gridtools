@@ -37,7 +37,7 @@ namespace gridtools{
             static void run(LocalDomainListArray& local_domain_lists, const Grid& grid)
             {
                 typedef backend_traits_from_id< BackendId > backend_traits;
-                gridtools::for_each<iter_range> (mss_functor<MssComponentsArray, Grid, LocalDomainListArray, BackendId, enumtype::Naive> (local_domain_lists, grid,0,0));
+                boost::mpl::for_each<iter_range> (mss_functor<MssComponentsArray, Grid, LocalDomainListArray, BackendId, enumtype::Naive> (local_domain_lists, grid,0,0));
             }
         };
 
@@ -179,7 +179,7 @@ namespace gridtools{
                 #pragma omp for nowait
                     for (uint_t bi = 0; bi <= NBI; ++bi) {
                         for (uint_t bj = 0; bj <= NBJ; ++bj) {
-                            gridtools::for_each<iter_range> (mss_functor<MssComponentsArray, Grid, LocalDomainListArray, BackendId, enumtype::Block> (local_domain_lists, grid,bi,bj));
+                            boost::mpl::for_each<iter_range> (mss_functor<MssComponentsArray, Grid, LocalDomainListArray, BackendId, enumtype::Block> (local_domain_lists, grid,bi,bj));
                         }
                     }
                 }

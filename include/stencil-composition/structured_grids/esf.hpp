@@ -29,6 +29,14 @@ namespace gridtools {
         template <typename Placeholders, typename LocalArgs>
         struct _make_map {
 
+#ifdef PEDANTIC //with global accessors this assertion fails (since they are not in the LocalArgs)
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<Placeholders>::value == boost::mpl::size<LocalArgs>::value),
+                 "Size of placeholder arguments passed to esf \n"
+                 "    make_esf<functor>(arg1(), arg2()) )\n"
+                 "does not match the list of arguments defined within the ESF, like\n"
+                 "    typedef boost::mpl::vector<arg_in, arg_out> arg_list."
+                 );
+#endif
             /** Given the list of placeholders (Plcs) and the list of arguemnts of a
                 stencil operator (LocalArgs), this struct will insert the placeholder type
                 (as key) and the corresponding extent into an mpl::map.

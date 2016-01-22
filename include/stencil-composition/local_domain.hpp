@@ -9,12 +9,12 @@
 #include <boost/fusion/view/zip_view.hpp>
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/utility.hpp>
+#include <boost/mpl/for_each.hpp>
 #include "../common/host_device.hpp"
 #include "../common/gpu_clone.hpp"
 #include "../common/is_temporary_storage.hpp"
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
 #include "arg.hpp"
-#include "../gt_for_each/for_each.hpp"
 #include "../storage/storage_metafunctions.hpp"
 
 #include <boost/fusion/include/as_set.hpp>

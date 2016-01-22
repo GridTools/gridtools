@@ -9,8 +9,8 @@ namespace gridtools{
     {
         typedef backend_base<BackendId, StrategyType> base_t;
 
-        using base_t::backend_traits_t;
-        using base_t::strategy_traits_t;
+        using typename base_t::backend_traits_t;
+        using typename base_t::strategy_traits_t;
 
         static const enumtype::strategy s_strategy_id=base_t::s_strategy_id;
         static const enumtype::platform s_backend_id =base_t::s_backend_id;

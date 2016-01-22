@@ -45,7 +45,7 @@ namespace gridtools {
                 void operator() () const {
                     m_it_domain.template initialize<2>( m_grid.template value_at< typename IterationPolicy::from >() );
 
-                    gridtools::for_each< LoopIntervals >
+                    boost::mpl::for_each< LoopIntervals >
                             ( RunOnInterval (m_it_domain, m_grid) );
                 }
             };
