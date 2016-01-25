@@ -167,7 +167,7 @@ exit_if_error $?
 log_file="/tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}.log"
 echo "Log file /tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}.log"
 if [[ "$SILENT_BUILD" == "ON" ]]; then
-    make -j10  >& ${log_file};
+    make -j5  >& ${log_file};
     error_code=$?
     if [ ${error_code} -ne 0 ]; then
         cat ${log_file};
