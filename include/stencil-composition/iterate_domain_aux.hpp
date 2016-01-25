@@ -204,7 +204,7 @@ namespace gridtools{
         void operator()(ID const&) const {
             assert(m_storage);
             //compute the processing element in charge of doing the copy (i.e. the core in a backend with multiple cores)
-            typedef typename boost::mpl::modulus<ID, boost::mpl::int_<warp_size> >::type pe_id_t;
+            typedef typename boost::mpl::modulus<ID, boost::mpl::int_<enumtype::vector_width> >::type pe_id_t;
             //provide the implementation that performs the assignment, depending on the type of storage we have
             impl<ID, pe_id_t, Storage>();
         }
@@ -482,7 +482,7 @@ namespace gridtools{
         void operator()(ID const&) const {
             assert(m_left);
             assert(m_right);
-            const uint_t pe_id=(ID::value)%warp_size;
+            const uint_t pe_id=(ID::value)%enumtype::vector_width;
             BackendType:: template once_per_block<pe_id>::assign(m_left[ID::value],m_right[ID::value]);
         }
     };

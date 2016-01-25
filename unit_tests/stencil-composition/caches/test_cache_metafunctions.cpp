@@ -64,11 +64,18 @@ TEST(cache_metafunctions, extract_extents_for_caches)
     typedef boost::mpl::vector2< extent<-1,2,-2,1>, extent<-2,1,-3,2> > extents_t;
     typedef gridtools::interval<gridtools::level<0,-2>, gridtools::level<1,1> > axis;
 
+    typedef typename boost::mpl::fold<
+        extents_t,
+        extent<0,0,0,0>,
+        enclosing_extent<boost::mpl::_1, boost::mpl::_2>
+    >::type max_extent_t;
+
     typedef iterate_domain_arguments<
         enumtype::enum_type<enumtype::backend, enumtype::Host>,
         local_domain_t,
         esf_sequence_t,
         extents_t,
+        max_extent_t,
         caches_t,
         block_size<32,4>,
         gridtools::grid<axis>
@@ -94,7 +101,12 @@ TEST(cache_metafunctions, get_cache_storage_tuple)
     typedef local_domain< storages_tuple_t, metadata_vector_t, esf_args_t, false> local_domain_t;
 
     typedef boost::mpl::vector2< extent<-1,2,-2,1>, extent<-2,1,-3,2> > extents_t;
-
+    typedef typename boost::mpl::fold<
+        extents_t,
+        extent<0,0,0,0>,
+        enclosing_extent<boost::mpl::_1, boost::mpl::_2>
+    >::type max_extent_t;
+  
     typedef gridtools::interval<gridtools::level<0,-2>, gridtools::level<1,1> > axis;
 
     typedef iterate_domain_arguments<
@@ -102,6 +114,7 @@ TEST(cache_metafunctions, get_cache_storage_tuple)
         local_domain_t,
         esf_sequence_t,
         extents_t,
+        max_extent_t,
         caches_t,
         block_size<32,4>,
         gridtools::grid<axis>

@@ -137,6 +137,12 @@ namespace gridtools{
          */
         enum intend {in, inout} ;
 
+#ifdef __CUDACC__
+    static const unsigned int vector_width=32;
+#else
+    static const unsigned int vector_width=4;
+#endif
+
     }//namespace enumtype
 
 
@@ -282,9 +288,6 @@ namespace gridtools{
        @}
      */
 
-#ifdef __CUDACC__
-    static const warp_size=32;
-#endif
 //######################################################
 
 }//namespace gridtools
