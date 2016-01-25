@@ -7,6 +7,7 @@
 #pragma once
 #include "iterate_domain_metafunctions.hpp"
 #include "stencil-composition/accessor.hpp"
+#include "iterate_domain_fwd.hpp"
 
 namespace gridtools {
 
@@ -58,6 +59,7 @@ public:
     typedef typename iterate_domain_t::esf_args_t esf_args_t;
 
 #ifdef CXX11_ENABLED
+
     template <typename Accessor>
     using accessor_return_type = typename iterate_domain_t::template accessor_return_type<typename remap_accessor_type<Accessor, esf_args_map_t>::type>;
 #else
@@ -154,6 +156,17 @@ struct is_positional_iterate_domain<iterate_domain_remapper<T,U> > : boost::fals
 */
 template<typename T, typename U>
 struct is_positional_iterate_domain<positional_iterate_domain_remapper<T,U> > : boost::true_type {};
+
+/** Metafunction to query a type is an iterate domain.
+*/
+template<typename T, typename U>
+struct is_iterate_domain<iterate_domain_remapper<T,U> > : boost::true_type {};
+
+/** Metafunction to query if a type is an iterate domain.
+    positional_iterate_domain_remapper
+*/
+template<typename T, typename U>
+struct is_iterate_domain<positional_iterate_domain_remapper<T,U> > : boost::true_type {};
 
 
 /**

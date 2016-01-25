@@ -8,7 +8,6 @@
 #include <stencil-composition/structured_grids/call_interfaces_metafunctions.hpp>
 #include <type_traits>
 #include <tuple>
-#include <common/generic_metafunctions/v_item_to_vector.hpp>
 
 struct pretent_aggregator {
     using value_type = double;

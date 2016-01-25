@@ -7,25 +7,32 @@
 #include "../accessor.hpp"
 #include "call_interfaces_metafunctions.hpp"
 #include "../../common/generic_metafunctions/v_item_to_fusion_vector.hpp"
+#include "../iterate_domain_fwd.hpp" // to statically check arguments
+#include "../interval.hpp" // to check if region is valid
 
 namespace gridtools {
 
-
+    // TODO: stencil functions works only for 3D stencils.
 
     namespace _impl {
         /**
-           In the context of stencil_functions, this type represents the
-           aggregator/domain/evaluator to be passed to a stencil function,
-           called within a stencil operator or another stencil function.
-           Construct a new aggregator/domain from the initial one (which is
-           usually an iterate_domain).  The indices in the seauence
-           UsedIndices indicate which elements of the CallerAggregator are
-           passed to the function. One of the indices correspond to the output
-           argument which is a scalar and requires special attention.
+           In the context of stencil_functions, this type represents
+           the aggregator/domain/evaluator to be passed to a stencil
+           function, called within a stencil operator or another
+           stencil function.  The offsets of the accessors passed here
+           must be 0, but are otherwise ignored.
+
+           \tparam CallerAggregator The argument passed to the callerd, also known as the Evaluator
+           \tparam Offi Offset along the i-direction were the function is evaluated (these are modified by specifying call<...>::at<...>::... )
+           \tparam Offj Offset along the j-direction were the function is evaluated
+           \tparam Offk Offset along the k-direction were the function is evaluated
+           \tparam PassedAccessors The list of accessors the caller need to pass to the function
+           \tparam OutArg The index of the output argument of the function (this is required to be unique and it is check before this is instantiated.
         */
         template <typename CallerAggregator, int Offi, int Offj, int Offk,
                   typename PassedAccessors, typename ReturnType, int OutArg>
         struct function_aggregator {
+
             CallerAggregator const& m_caller_aggregator;
             ReturnType __restrict__ * m_result;
 
@@ -47,17 +54,17 @@ namespace gridtools {
                       accessor.template get<0>()+Offk));
             }
 
-                template <typename Accessor>
-                GT_FUNCTION
-                constexpr
-                typename boost::enable_if_c<(Accessor::index_type::value > OutArg), ReturnType>::type const
-                operator()(Accessor const& accessor) const {
-                    return m_caller_aggregator
-                        (typename boost::mpl::at_c<PassedAccessors, Accessor::index_type::value-1>::type
-                         (accessor.template get<2>()+Offi,
-                          accessor.template get<1>()+Offj,
-                          accessor.template get<0>()+Offk));
-                }
+            template <typename Accessor>
+            GT_FUNCTION
+            constexpr
+            typename boost::enable_if_c<(Accessor::index_type::value > OutArg), ReturnType>::type const
+            operator()(Accessor const& accessor) const {
+                return m_caller_aggregator
+                    (typename boost::mpl::at_c<PassedAccessors, Accessor::index_type::value-1>::type
+                     (accessor.template get<2>()+Offi,
+                      accessor.template get<1>()+Offj,
+                      accessor.template get<0>()+Offk));
+            }
 
             template <typename Accessor>
             GT_FUNCTION
@@ -94,14 +101,18 @@ namespace gridtools {
 
 
         /**
-           In the context of stencil_functions, this type represents the
-           aggregator/domain/evaluator to be passed to a stencil function,
-           called within a stencil operator or another stencil function.
-           Construct a new aggregator/domain from the initial one (which is
-           usually an iterate_domain).  The indices in the seauence
-           UsedIndices indicate which elements of the CallerAggregator are
-           passed to the function. One of the indices correspond to the output
-           argument which is a scalar and requires special attention.
+        /** In the context of stencil_functions, this type represents
+           the aggregator/domain/evaluator to be passed to a stencil
+           function, called within a stencil operator or another
+           stencil function. In this version the accessors passed to
+           the function can have offsets different that 0.
+
+           \tparam CallerAggregator The argument passed to the callerd, also known as the Evaluator
+           \tparam Offi Offset along the i-direction were the function is evaluated (these are modified by specifying call<...>::at<...>::... )
+           \tparam Offj Offset along the j-direction were the function is evaluated
+           \tparam Offk Offset along the k-direction were the function is evaluated
+           \tparam PassedAccessors The list of accessors the caller need to pass to the function
+           \tparam OutArg The index of the output argument of the function (this is required to be unique and it is check before this is instantiated.
         */
         template <typename CallerAggregator, int Offi, int Offj, int Offk,
                   typename PassedAccessors, typename ReturnType, int OutArg>
@@ -139,23 +150,23 @@ namespace gridtools {
                       +boost::fusion::at_c<Accessor::index_type::value>(m_accessors_list).template get<0>()));
             }
 
-                template <typename Accessor>
-                GT_FUNCTION
-                constexpr
-                typename boost::enable_if_c<(Accessor::index_type::value > OutArg), ReturnType>::type const
-                operator()(Accessor const& accessor) const {
-                    return m_caller_aggregator
-                        (typename boost::mpl::at_c<PassedAccessors, Accessor::index_type::value-1>::type
-                         (accessor.template get<2>()
-                          +Offi
-                          +boost::fusion::at_c<Accessor::index_type::value-1>(m_accessors_list).template get<2>(),
-                          accessor.template get<1>()
-                          +Offj
-                          +boost::fusion::at_c<Accessor::index_type::value-1>(m_accessors_list).template get<1>(),
-                          accessor.template get<0>()
-                          +Offk
-                          +boost::fusion::at_c<Accessor::index_type::value-1>(m_accessors_list).template get<0>()));
-                }
+            template <typename Accessor>
+            GT_FUNCTION
+            constexpr
+            typename boost::enable_if_c<(Accessor::index_type::value > OutArg), ReturnType>::type const
+            operator()(Accessor const& accessor) const {
+                return m_caller_aggregator
+                    (typename boost::mpl::at_c<PassedAccessors, Accessor::index_type::value-1>::type
+                     (accessor.template get<2>()
+                      +Offi
+                      +boost::fusion::at_c<Accessor::index_type::value-1>(m_accessors_list).template get<2>(),
+                      accessor.template get<1>()
+                      +Offj
+                      +boost::fusion::at_c<Accessor::index_type::value-1>(m_accessors_list).template get<1>(),
+                      accessor.template get<0>()
+                      +Offk
+                      +boost::fusion::at_c<Accessor::index_type::value-1>(m_accessors_list).template get<0>()));
+            }
 
             template <typename Accessor>
             GT_FUNCTION
@@ -175,17 +186,28 @@ namespace gridtools {
         Usage C++11: call<functor, region>::[at<offseti, offsetj, offsetk>::]with(eval, accessors...);
 
         Usage : call<functor, region>::[at<offseti, offsetj, offsetk>::type::]with(eval, accessors...);
+
+        \tparam Functos The stencil operator to be called
+        \tparam Region The region in which to call it (to take the proper overload). A region with no exact match is not called and will result in compilation error. The user is responsible for calling the proper Do overload)
+        \tparam Offi Offset along the i-direction (usually modified using at<...>)
+        \tparam Offj Offset along the j-direction
+        \tparam Offk Offset along the k-direction
     */
     template <typename Functor, typename Region, int Offi=0, int Offj=0, int Offk=0>
     struct call {
-        template <int I, int J, int K>
-        struct at_ {
-            typedef call<Functor, Region, I, J, K> type;
-        };
 
+        GRIDTOOLS_STATIC_ASSERT((is_interval<Region>::value), "Region should be a valid interval tag to select the Do specialization in the called stencil function,");
+
+        /** This alias is used to move the computation at a certain offset
+         */
         template <int I, int J, int K>
         using at = call<Functor, Region, I, J, K>;
 
+    private:
+        /**
+           Obtain the result tyoe of the function based on it's
+           signature
+         */
         template <typename Eval, typename Funct>
         struct get_result_type {
             typedef accessor<_impl::_get_index_of_first_non_const<Funct>::value> accessor_t;
@@ -196,13 +218,20 @@ namespace gridtools {
             typedef typename std::decay<r_type>::type type;
         };
 
+    public:
+        /** With this interface a stencil function can be invoked and
+            the offsets specified in the passed accessors are used to
+            access values, w.r.t the offsets specified in a optional
+            at<..> statement.
+         */
         template <typename Evaluator, typename ...Args>
         GT_FUNCTION
         static
         typename get_result_type<Evaluator, Functor>::type
         with_offsets(Evaluator const& eval, Args const& ...args) {
 
-            static_assert(_impl::can_be_a_function<Functor>::value,
+            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<Evaluator>::value, "The first argument must be the Evaluator/Aggregator of the stencil operator.");
+            GRIDTOOLS_STATIC_ASSERT(_impl::can_be_a_function<Functor>::value,
                           "Trying to invoke stencil operator with more than one output as a function\n");
 
             typedef typename get_result_type<Evaluator, Functor>::type result_type;
@@ -230,13 +259,17 @@ namespace gridtools {
 
         }
 
+        /** With this interface a stencil function can be invoked and
+            the offsets specified in the passed accessors are ignored.
+         */
         template <typename Evaluator, typename ...Args>
         GT_FUNCTION
         static
         typename get_result_type<Evaluator, Functor>::type
         with(Evaluator const& eval, Args const & ...) {
 
-            static_assert(_impl::can_be_a_function<Functor>::value,
+            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<Evaluator>::value, "The first argument must be the Evaluator/Aggregator of the stencil operator.");
+            GRIDTOOLS_STATIC_ASSERT(_impl::can_be_a_function<Functor>::value,
                           "Trying to invoke stencil operator with more than one output as a function\n");
 
             typedef typename get_result_type<Evaluator, Functor>::type result_type;
@@ -256,6 +289,19 @@ namespace gridtools {
     };
 
     namespace _impl{
+        /**
+           In the context of stencil_functions, this type represents
+           the aggregator/domain/evaluator to be passed to a stencil
+           function, called within a stencil operator or another
+           stencil function. In this version the accessors passed to
+           the function can have offsets different that 0.
+
+           \tparam CallerAggregator The argument passed to the callerd, also known as the Evaluator
+           \tparam Offi Offset along the i-direction were the function is evaluated (these are modified by specifying call<...>::at<...>::... )
+           \tparam Offj Offset along the j-direction were the function is evaluated
+           \tparam Offk Offset along the k-direction were the function is evaluated
+           \tparam PassedArguments The list of accessors and other orguments the caller need to pass to the function
+        */
         template <typename CallerAggregator,
                   int Offi, int Offj, int Offk,
                   typename PassedArguments>
@@ -321,6 +367,19 @@ namespace gridtools {
             }
         };
 
+        /**
+           In the context of stencil_functions, this type represents
+           the aggregator/domain/evaluator to be passed to a stencil
+           function, called within a stencil operator or another
+           stencil function. The offsets of the accessors passed here
+           must be 0, but are otherwise ignored.
+
+           \tparam CallerAggregator The argument passed to the callerd, also known as the Evaluator
+           \tparam Offi Offset along the i-direction were the function is evaluated (these are modified by specifying call<...>::at<...>::... )
+           \tparam Offj Offset along the j-direction were the function is evaluated
+           \tparam Offk Offset along the k-direction were the function is evaluated
+           \tparam PassedArguments The list of accessors and other orguments the caller need to pass to the function
+        */
         template <typename CallerAggregator,
                   int Offi, int Offj, int Offk,
                   typename PassedArguments>
@@ -380,28 +439,47 @@ namespace gridtools {
         } //namespace _impl
 
 
-    /** Main interface for calling stencil operators as functions.
+    /** Main interface for calling stencil operators as functions with
+        side-effects. The interface accepts a list of arguments to be
+        passed to the called function and these arguments can be
+        accessors or simple values.
 
-        Usage : call_proc<functor, region>::[at<offseti, offsetj, offsetk>::]with[_offsets](eval, accessors...);
+        Usage : call_proc<functor, region>::[at<offseti, offsetj, offsetk>::]with[_offsets](eval, accessors_or_values...);
 
-        Usage : call<functor, region>::[at_<offseti, offsetj, offsetk>::type::]with[_offsets](eval, accessors...);
+        Usage : call<functor, region>::[at_<offseti, offsetj, offsetk>::type::]with[_offsets](eval, accessors_of_values...);
+
+        Accessors_or_values referes to a list of arguments that may be
+        accessors of the caller functions or local variables of the
+        type accessed (or converted to) by the accessor in the called
+        function, where the results should be obtained from. The
+        values can also be used by the function as inputs.
+
+        \tparam Functos The stencil operator to be called
+        \tparam Region The region in which to call it (to take the proper overload). A region with no exact match is not called and will result in compilation error. The user is responsible for calling the proper Do overload)
+        \tparam Offi Offset along the i-direction (usually modified using at<...>)
+        \tparam Offj Offset along the j-direction
+        \tparam Offk Offset along the k-direction
     */
     template <typename Functor, typename Region, int Offi=0, int Offj=0, int Offk=0>
     struct call_proc {
 
-        template <int I, int J, int K>
-        struct at_ {
-            typedef call_proc<Functor, Region, I, J, K> type;
-        };
+        GRIDTOOLS_STATIC_ASSERT((is_interval<Region>::value), "Region should be a valid interval tag to select the Do specialization in the called stencil function,");
 
+        /** This alias is used to move the computation at a certain offset
+         */
         template <int I, int J, int K>
         using at = call_proc<Functor, Region, I, J, K>;
 
+        /** With this interface a stencil function can be invoked and
+            the offsets specified in the passed accessors are ignored.
+         */
         template <typename Evaluator, typename ...Args>
         GT_FUNCTION
         static
         void
         with(Evaluator const& eval, Args const & ...args) {
+
+            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<Evaluator>::value, "The first argument must be the Evaluator/Aggregator of the stencil operator.");
 
             typedef _impl::function_aggregator_procedure<
                 Evaluator,
@@ -422,11 +500,18 @@ namespace gridtools {
                  );
         }
 
+        /** With this interface a stencil function can be invoked and
+            the offsets specified in the passed accessors are used to
+            access values, w.r.t the offsets specified in a optional
+            at<..> statement.
+         */
         template <typename Evaluator, typename ...Args>
         GT_FUNCTION
         static
         void
         with_offsets(Evaluator const& eval, Args const & ...args) {
+
+            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<Evaluator>::value, "The first argument must be the Evaluator/Aggregator of the stencil operator.");
 
             typedef _impl::function_aggregator_procedure_offsets<
                 Evaluator,
