@@ -22,6 +22,8 @@ namespace copy_stencil{
 #ifdef __CUDACC__
         typedef gridtools::layout_map<2,1,0> layout_t;//stride 1 on i
 #else
+        //                   strides  1 x xy
+        //                      dims  x y z
         typedef gridtools::layout_map<0,1,2> layout_t;//stride 1 on k
 #endif
 
@@ -53,13 +55,9 @@ namespace copy_stencil{
     void handle_error(int_t)
     {std::cout<<"error"<<std::endl;}
 
-    typedef storage_info< 0, layout_t > meta_data_t;
-
     bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps) {
 
         cache_flusher flusher(cache_flusher_size);
-
-        meta_data_t meta_data_(x,y,z);
 
         uint_t d1 = x;
         uint_t d2 = y;
@@ -75,9 +73,11 @@ namespace copy_stencil{
 #endif
 #endif
 
-        //                   strides  1 x xy
-        //                      dims  x y z
-        typedef gridtools::BACKEND::storage_type<float_type, meta_data_t >::type storage_t;
+        typedef BACKEND::storage_info<__COUNTER__, layout_t> meta_data_t;
+        typedef BACKEND::storage_type<float_type, meta_data_t >::type storage_t;
+
+        meta_data_t meta_data_(x,y,z);
+
 
         // Definition of the actual data fields that are used for input/output
         typedef storage_t storage_type;

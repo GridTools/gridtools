@@ -26,7 +26,7 @@ struct functor1 {
 };
 
 typedef layout_map<0,1> layout_ij_t;
-typedef gridtools::backend<enumtype::Host, enumtype::Naive >::storage_type<float_type, storage_info<0,layout_ij_t> >::type storage_type;
+typedef backend<Host, Naive >::storage_type<float_type, backend<Host, Naive >::storage_info<0,layout_ij_t> >::type storage_type;
 
 typedef arg<0, storage_type> p_in;
 typedef arg<2, storage_type> p_out;
@@ -61,7 +61,7 @@ TEST(cache_metafunctions, extract_extents_for_caches)
     typedef gridtools::interval<gridtools::level<0,-2>, gridtools::level<1,1> > axis;
 
     typedef iterate_domain_arguments<
-        enumtype::enum_type<enumtype::backend, enumtype::Host>,
+        enumtype::enum_type<enumtype::platform, enumtype::Host>,
         local_domain_t,
         esf_sequence_t,
         extents_t,
@@ -94,7 +94,7 @@ TEST(cache_metafunctions, get_cache_storage_tuple)
     typedef gridtools::interval<gridtools::level<0,-2>, gridtools::level<1,1> > axis;
 
     typedef iterate_domain_arguments<
-        enumtype::enum_type<enumtype::backend, enumtype::Host>,
+        enumtype::enum_type<enumtype::platform, enumtype::Host>,
         local_domain_t,
         esf_sequence_t,
         extents_t,

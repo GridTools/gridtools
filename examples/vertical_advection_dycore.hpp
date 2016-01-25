@@ -307,10 +307,10 @@ bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t_steps) {
 #ifdef CXX11_ENABLED
     verifier verif(1e-13);
     array<array<uint_t, 2>, 3> halos{{ {halo_size, halo_size}, {halo_size,halo_size}, {halo_size,halo_size} }};
-    bool result = verif.verify(repository.utens_stage_ref(), repository.utens_stage(), halos);
+    bool result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage(), halos);
 #else
     verifier verif(1e-13, halo_size);
-    bool result = verif.verify(repository.utens_stage_ref(), repository.utens_stage());
+    bool result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage());
 #endif
 
 

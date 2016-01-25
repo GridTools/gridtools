@@ -57,7 +57,7 @@ struct split_mss_into_independent_esfs
  * @tparam extent_sizes sequence of sequence of extents
  */
 template<
-    enumtype::backend BackendId,
+    enumtype::platform BackendId,
     typename MssDescriptorArray,
     typename ExtendSizes
 >

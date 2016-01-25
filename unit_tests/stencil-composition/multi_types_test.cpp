@@ -1,4 +1,5 @@
 #include <gridtools.hpp>
+#include <storage/meta_storage.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 #include <stencil-composition/structured_grids/call_interfaces.hpp>
 #include <tools/verifier.hpp>
@@ -229,9 +230,9 @@ bool test(uint_t x, uint_t y, uint_t z)
     typedef gridtools::layout_map<0,1,2> layout_type;//stride 1 on k
 #endif
 
-    typedef gridtools::storage_info<0, layout_type> storage_info1_t;
-    typedef gridtools::storage_info<1, layout_type> storage_info2_t;
-    typedef gridtools::storage_info<2, layout_type> storage_info3_t;
+    typedef the_backend::storage_info<0, layout_type> storage_info1_t;
+    typedef the_backend::storage_info<1, layout_type> storage_info2_t;
+    typedef the_backend::storage_info<2, layout_type> storage_info3_t;
 
     typedef the_backend::storage_type<type1, storage_info1_t>::type storage_type1;
     typedef the_backend::storage_type<type2, storage_info2_t>::type storage_type2;

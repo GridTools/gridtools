@@ -108,7 +108,7 @@ namespace positional_copy_stencil{
         //                   strides  1 x xy
         //                      dims  x y z
         typedef gridtools::layout_map<2,1,0> layout_t;
-        typedef gridtools::storage_info<0, layout_t> meta_t;
+        typedef gridtools::BACKEND::storage_info<0, layout_t> meta_t;
 
         typedef gridtools::BACKEND::storage_type<float_type, meta_t >::type storage_type;
 
@@ -280,10 +280,10 @@ namespace positional_copy_stencil{
 #ifdef CXX11_ENABLED
         verifier verif(1e-13);
         array<array<uint_t, 2>, 3> halos{{ {0,0}, {0,0}, {0,0} }};
-        bool result = verif.verify(ref,out, halos);
+        bool result = verif.verify(grid, ref,out, halos);
 #else
         verifier verif(1e-13, 0);
-        bool result = verif.verify(ref,out);
+        bool result = verif.verify(grid, ref,out);
 #endif
         return result;
 

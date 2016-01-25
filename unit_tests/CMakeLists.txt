@@ -18,6 +18,7 @@ endif()
 set(COMMON_TESTS
     test_domain_indices.cpp
     boundary_conditions_test.cpp
+    test_global_accessor.cpp
 )
 
 if(STRUCTURED_GRIDS)
@@ -25,6 +26,11 @@ if(STRUCTURED_GRIDS)
 endif(STRUCTURED_GRIDS)
 
 add_executable(tests ${COMMON_TESTS})
+
+add_executable(test_global_accessor test_global_accessor.cpp)
+set_target_properties(test_global_accessor PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+target_link_libraries(test_global_accessor ${GTEST_BOTH_LIBRARIES} gcl -lpthread ${exe_LIBS})
+
 # include boost
 include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
 link_directories( ${Boost_LIBRARY_DIRS} )
@@ -49,7 +55,8 @@ if (CUDA_FOUND)
       gpu_clone.cu
       cloningstuff.cu
       boundary_conditions_test.cu
-    )
+      test_global_accessor.cu
+      )
 
     gridtools_add_test(tests.tests_gpu ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/tests_gpu")
 

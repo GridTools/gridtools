@@ -51,7 +51,7 @@ namespace gridtools{
 
 #endif
 
-/**@brief struct to compute the total offset (the sum of the i,j,k indices times their respective strides)
+        /**@brief struct to compute the total offset (the sum of the i,j,k indices times their respective strides)
  */
         template<ushort_t Id, typename Layout>
         struct compute_offset{
@@ -69,7 +69,7 @@ namespace gridtools{
             }
 
 #ifdef CXX11_ENABLED
-            /**interface with an the coordinates as variadic arguments
+            /**interface with the coordinates as variadic arguments
                \param strides the strides
                \param indices comma-separated list of coordinates
             */

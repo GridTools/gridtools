@@ -34,9 +34,9 @@ namespace test_iterate_domain{
         typedef layout_map<0,1,2> layout_kji_t;
         typedef layout_map<0,1> layout_ij_t;
 
-        typedef storage_info<0, layout_ijkp_t> meta_ijkp_t;
-        typedef storage_info<0, layout_kji_t> meta_kji_t;
-        typedef storage_info<0, layout_ij_t> meta_ij_t;
+        typedef gridtools::backend<enumtype::Host, enumtype::Naive >::storage_info<0, layout_ijkp_t> meta_ijkp_t;
+        typedef gridtools::backend<enumtype::Host, enumtype::Naive >::storage_info<0, layout_kji_t> meta_kji_t;
+        typedef gridtools::backend<enumtype::Host, enumtype::Naive >::storage_info<0, layout_ij_t> meta_ij_t;
 
         typedef gridtools::backend<enumtype::Host, enumtype::Naive >::storage_type<float_type, meta_ijkp_t >::type storage_type;
         typedef gridtools::backend<enumtype::Host, enumtype::Naive >::storage_type<float_type, meta_kji_t >::type storage_buff_type;
@@ -91,7 +91,7 @@ namespace test_iterate_domain{
         typedef iterate_domain_host<
             iterate_domain,
             iterate_domain_arguments<
-                enumtype::enum_type<enumtype::backend, enumtype::Host>,
+                enumtype::enum_type<enumtype::platform, enumtype::Host>,
                 boost::mpl::at_c<typename mss_local_domain1_t::fused_local_domain_sequence_t, 0>::type,
                 boost::mpl::vector1<esf_t>,
                 boost::mpl::vector1<extent<0,0,0,0> >,
