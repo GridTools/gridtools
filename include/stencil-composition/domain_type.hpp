@@ -21,7 +21,6 @@
 #include <boost/mpl/range_c.hpp>
 #include <boost/fusion/view/filter_view.hpp>
 #include <boost/fusion/include/for_each.hpp>
-#include "gt_for_each/for_each.hpp"
 #include "../common/gpu_clone.hpp"
 #include "storage/storage.hpp"
 #include "../storage/storage_functors.hpp"
@@ -370,7 +369,7 @@ namespace gridtools {
         */
         void finalize_computation() {
             boost::fusion::for_each(m_original_pointers, call_d2h());
-            gridtools::for_each<
+            boost::mpl::for_each<
                 boost::mpl::range_c<int, 0, boost::mpl::size<arg_list>::value >
                 > (copy_pointers_functor<arg_list, arg_list> (m_original_pointers, m_storage_pointers));
         }

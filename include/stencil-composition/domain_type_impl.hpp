@@ -9,7 +9,7 @@
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/set.hpp>
 #include <boost/mpl/insert.hpp>
-#include <gt_for_each/for_each.hpp>
+#include <boost/mpl/for_each.hpp>
 #include "arg.hpp"
 template <typename RegularStorageType>
 struct no_storage_type_yet;
@@ -34,7 +34,7 @@ namespace gridtools {
         struct print_tmps {
             template <typename T>
             void operator()(T& ) const {
-                for_each<T>(print_index());
+                boost::mpl::for_each<T>(print_index());
                 std::cout << " --- " << std::endl;
             }
         };

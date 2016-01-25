@@ -51,7 +51,7 @@ namespace gridtools{
                 GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
 
                 typedef backend_traits_from_id< BackendId > backend_traits;
-                gridtools::for_each<iter_range> (
+                boost::mpl::for_each<iter_range> (
                     mss_functor<MssComponentsArray, Grid, LocalDomainListArray, BackendId, enumtype::Block>
                             (local_domain_lists, grid,0,0)
                 );

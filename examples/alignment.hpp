@@ -119,7 +119,7 @@ namespace aligned_copy_stencil{
         // Definition of the actual data fields that are used for input/output
         typedef storage_t storage_type;
         storage_type in(meta_data_, "in");
-        storage_type out(meta_data_, -1.);
+        storage_type out(meta_data_, (float_type)-1.);
         for(uint_t i=halo_t::get<0>(); i<d1+halo_t::get<0>(); ++i)
             for(uint_t j=halo_t::get<1>(); j<d2+halo_t::get<1>(); ++j)
                 for(uint_t k=halo_t::get<2>(); k<d3+halo_t::get<2>(); ++k)

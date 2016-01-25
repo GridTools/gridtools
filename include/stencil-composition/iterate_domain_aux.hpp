@@ -6,7 +6,7 @@
 #include <boost/fusion/include/size.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <boost/mpl/modulus.hpp>
-#include "../gt_for_each/for_each.hpp"
+#include <boost/mpl/for_each.hpp>
 #include "expressions.hpp"
 #include "stencil-composition/accessor.hpp"
 #include "common/meta_array.hpp"
@@ -483,7 +483,7 @@ If you are not using generic accessors then you are using an unsupported storage
             GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size<StorageSequence>::value,
                                     "the ID is larger than the number of storage types");
 
-                for_each< typename reversed_range<short_t, 0, storage_type::field_dimensions >::type > (
+            boost::mpl::for_each< typename reversed_range<short_t, 0, storage_type::field_dimensions >::type > (
                 assign_raw_data_functor<
                     total_storages<StorageSequence, ID::value>::value,
                     BackendType,
@@ -510,7 +510,7 @@ If you are not using generic accessors then you are using an unsupported storage
             GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size<StorageSequence>::value,
                                     "the ID is larger than the number of storage types");
 
-            for_each< typename reversed_range<short_t, 0, storage_type::field_dimensions >::type > (
+            boost::mpl::for_each< typename reversed_range<short_t, 0, storage_type::field_dimensions >::type > (
                 assign_raw_data_functor<
                 total_storages<StorageSequence, ID::value>::value,
                 BackendType,
@@ -599,7 +599,7 @@ If you are not using generic accessors then you are using an unsupported storage
             GRIDTOOLS_STATIC_ASSERT((std::remove_reference<decltype(m_strides.template get<ID::value>())>::type::size()==meta_storage_type::space_dimensions-1), "internal error: the length of the strides vectors does not match. The bug fairy has no mercy.");
 #endif
 #endif
-            for_each< boost::mpl::range_c< short_t, 0,  meta_storage_type::space_dimensions-1> > (
+            boost::mpl::for_each< boost::mpl::range_c< short_t, 0,  meta_storage_type::space_dimensions-1> > (
                 assign_strides_inner_functor<BackendType>(
                     &(m_strides.template get<ID::value>()[0]),
                     &(boost::fusion::template at_c<ID::value>(m_storages)->strides(1))
