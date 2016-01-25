@@ -153,7 +153,7 @@ namespace gridtools {
             struct apply {
                 typedef typename boost::mpl::at<Placeholders, Index>::type::storage_type storage_type;
                 static const bool b = is_temp<storage_type>::value;
-                typedef typename get_the_type<b, storage_type, TmpPairs, Index>::type* type;
+                typedef pointer<typename get_the_type<b, storage_type, TmpPairs, Index>::type> type;
             };
         };
 
@@ -214,7 +214,7 @@ namespace gridtools {
     } // namespace _debug
 
     //\todo move inside the traits classes
-    template<enumtype::backend>
+    template<enumtype::platform>
     struct finalize_computation;
 
     template<>
@@ -240,7 +240,7 @@ namespace gridtools {
 
        Returns 0 (GT_NO_ERRORS) on success
     */
-    template<enumtype::backend>
+    template<enumtype::platform>
     struct setup_computation;
 
     template<>
@@ -282,7 +282,7 @@ namespace gridtools {
      * @brief metafunction that create the mss local domain type
      */
     template<
-        enumtype::backend BackendId,
+        enumtype::platform BackendId,
         typename MssComponentsArray,
         typename DomainType,
         typename ActualArgListType,
@@ -392,6 +392,7 @@ namespace gridtools {
             MssDescriptorArray,
             extent_sizes_t
         >::type mss_components_array_t;
+
 
         typedef typename create_actual_arg_list<
                 Backend,
@@ -545,9 +546,6 @@ namespace gridtools {
             if(is_storage_ready)
             {
                 //filter the non temporary meta storage pointers among the actual ones
-                // typedef boost::fusion::filter_view<typename boost::fusion::result_of::as_set<actual_metadata_set_t>::type,
-                //                                    boost::mpl::not_<is_ptr_to_tmp<boost::mpl::_1> > > t_meta_view;
-                //t_meta_view
                 typename boost::fusion::result_of::as_set<actual_metadata_set_t>::type  meta_view(m_actual_metadata_list.sequence_view());
 
                 setup_computation<Backend::s_backend_id>::apply( m_actual_arg_list, meta_view, m_domain );

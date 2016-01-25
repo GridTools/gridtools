@@ -22,14 +22,14 @@ namespace gridtools {
         template <typename ArgList,
                   typename MetaList,
                   typename Grid,
-                  enumtype::backend BackendId,
+                  enumtype::platform BackendId,
                   enumtype::strategy StrategyId>
         struct prepare_temporaries_functor;
 
         /**
            Specialization for Naive policy
          */
-        template <typename ArgList, typename MetaList, typename Grid, enumtype::backend BackendId>
+        template <typename ArgList, typename MetaList, typename Grid, enumtype::platform BackendId>
         struct prepare_temporaries_functor<ArgList, MetaList, Grid, BackendId, enumtype::Naive>
         {
 
@@ -61,9 +61,9 @@ namespace gridtools {
 
                 // ElemType: an element in the data field place-holders list
                 template <typename ElemType>
-                void operator()(ElemType*&  e) const {
+                void operator()(pointer<ElemType>&  e) const {
 
-                    //TODO no is_storage
+                    GRIDTOOLS_STATIC_ASSERT(is_storage<ElemType>::value, "wrong type");
                     GRIDTOOLS_STATIC_ASSERT(ElemType::is_temporary, "wrong type (not temporary)");
                     GRIDTOOLS_STATIC_ASSERT(is_meta_storage<typename ElemType::meta_data_t>::value, "wrong metadata type");
 
@@ -109,7 +109,7 @@ namespace gridtools {
         /**
            Specialization for Block policy
          */
-        template <typename ArgList, typename MetaList, typename Grid, enumtype::backend BackendId>
+        template <typename ArgList, typename MetaList, typename Grid, enumtype::platform BackendId>
         struct prepare_temporaries_functor
         <ArgList, MetaList, Grid,  BackendId, enumtype::Block >
         {
@@ -149,8 +149,8 @@ namespace gridtools {
 
                 // ElemType: an element in the data field place-holders list
                 template <typename ElemType>
-                void operator()(ElemType*&  e) const {
-                    //TODO no is_storage
+                void operator()(pointer<ElemType>&  e) const {
+                    GRIDTOOLS_STATIC_ASSERT(is_storage<ElemType>::value, "wrong type (not temporary)");
                     GRIDTOOLS_STATIC_ASSERT(ElemType::is_temporary, "wrong type (not temporary)");
                     GRIDTOOLS_STATIC_ASSERT(is_meta_storage<typename ElemType::meta_data_t>::value, "wrong metadata type");
 
@@ -204,7 +204,8 @@ namespace gridtools {
             template <typename Elem>
             GT_FUNCTION
             void operator()(Elem & elem) const {
-                delete elem;
+                delete_pointer d;
+                d(elem);
             }
         };
 
