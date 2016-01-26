@@ -25,20 +25,19 @@ namespace gridtools{
         static const ushort_t space_dimensions = basic_type::space_dimensions;
     private:
         typename super::meta_data_t const* m_device_storage_info;
-        typename super::meta_data_t const* m_device_storage_info_original;
     public:
 
         void clone_to_device() {
             //storage_info has to be cloned first
             assert(m_device_storage_info);
-            m_device_storage_info_original = m_device_storage_info;
             m_device_storage_info = m_device_storage_info->device_pointer();
             clonable_to_gpu<storage<BaseStorage> >::clone_to_device();
         }
 
-        void clone_from_device() {
-            m_device_storage_info = m_device_storage_info_original;
-            clonable_to_gpu<storage<BaseStorage> >::clone_from_device();
+        /** @brief updates the CPU pointer */
+        void d2h_update(){
+            super::d2h_update();
+            m_device_storage_info = (&this->meta_data());
         }
 
         __device__
@@ -104,7 +103,7 @@ namespace gridtools{
         GT_FUNCTION
         value_type& operator()(UInt const& ... dims) {
             //failure here means that you didn't call clone_to_device on the storage_info yet
-            assert(m_device_storage_info);
+            // assert(m_device_storage_info);
             return super::operator()(m_device_storage_info, dims...);
         }
 
@@ -116,7 +115,7 @@ namespace gridtools{
         GT_FUNCTION
         value_type const & operator()(UInt const& ... dims) const {
             //failure here means that you didn't call clone_to_device on the storage_info yet
-            assert(m_device_storage_info);
+            //assert(m_device_storage_info);
             return super::operator()(m_device_storage_info, dims...);
         }
 #else //CXX11_ENABLED
@@ -129,7 +128,7 @@ namespace gridtools{
         GT_FUNCTION
         value_type& operator()( uint_t const& i, uint_t const& j, uint_t const& k) {
             //failure here means that you didn't call clone_to_device on the storage_info yet
-            assert(m_device_storage_info);
+            //assert(m_device_storage_info);
             return super::operator()(m_device_storage_info, i,j,k);
         }
 
@@ -142,7 +141,7 @@ namespace gridtools{
         GT_FUNCTION
         value_type const & operator()( uint_t const& i, uint_t const& j, uint_t const& k) const {
             //failure here means that you didn't call clone_to_device on the storage_info yet
-            assert(m_device_storage_info);
+            //assert(m_device_storage_info);
             return super::operator()(m_device_storage_info, i,j,k);
         }
 #endif
