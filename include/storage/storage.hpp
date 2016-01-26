@@ -23,40 +23,130 @@ namespace gridtools{
         typedef typename BaseStorage::value_type value_type;
         static const ushort_t n_args = basic_type::n_width;
         static const ushort_t space_dimensions = basic_type::space_dimensions;
+    private:
+        typename super::meta_data_t const* m_device_storage_info;
+        typename super::meta_data_t const* m_device_storage_info_original;
+    public:
 
-      __device__
-      storage(storage const& other)
-          :  super(other)
-      {}
+        void clone_to_device() {
+            //storage_info has to be cloned first
+            assert(m_device_storage_info);
+            m_device_storage_info_original = m_device_storage_info;
+            m_device_storage_info = m_device_storage_info->device_pointer();
+            clonable_to_gpu<storage<BaseStorage> >::clone_to_device();
+        }
+
+        void clone_from_device() {
+            m_device_storage_info = m_device_storage_info_original;
+            clonable_to_gpu<storage<BaseStorage> >::clone_from_device();
+        }
+
+        __device__
+        storage(storage const& other)
+            :  super(other)
+            , m_device_storage_info(other.m_device_storage_info)
+        {}
+
+        typename super::meta_data_t* device_storage_info(){
+            return m_device_storage_info;
+        }
 
 #if defined(CXX11_ENABLED)
         //forwarding constructor
         template <class ... ExtraArgs>
-        explicit storage(  typename basic_type::meta_data_t const& meta_data_, ExtraArgs const& ... args ):super(meta_data_, args ...)
-            {
-            }
+        explicit storage(  typename basic_type::meta_data_t const& meta_data_
+                           , ExtraArgs const& ... args )
+            :super(meta_data_, args ...)
+            , m_device_storage_info(&meta_data_)
+        {
+        }
 #else
 
         template<typename T>
-        explicit storage(  typename basic_type::meta_data_t const& meta_data_, T const& arg1 ):super(meta_data_, arg1)
+        explicit storage(  typename basic_type::meta_data_t const& meta_data_, T const& arg1 )
+            :super(meta_data_, arg1)
+            , m_device_storage_info(meta_data_.device_pointer())
             {
             }
 
 
         template <class T, class U>
-        explicit storage(  typename basic_type::meta_data_t const& meta_data_, T const& arg1, U const& arg2 ):super(meta_data_, (value_type) arg1, arg2)
-            {
-            }
+        explicit storage(  typename basic_type::meta_data_t const& meta_data_, T const& arg1, U const& arg2 )
+            :super(meta_data_, (value_type) arg1, arg2)
+            , m_device_storage_info(meta_data_.device_pointer())
+
+        {
+        }
 
         template <class T, class U>
-        explicit storage(  typename basic_type::meta_data_t const& meta_data_, T * arg1, U const& arg2 ):super(meta_data_, (value_type)* arg1, arg2)
-            {
-            }
+        explicit storage(  typename basic_type::meta_data_t const& meta_data_, T * arg1, U const& arg2 )
+            :super(meta_data_, (value_type)* arg1, arg2)
+            , m_device_storage_info(meta_data_.device_pointer())
+        {
+        }
 
 #endif
 
 //    private :
-        explicit storage(typename basic_type::meta_data_t const& meta_data_):super(meta_data_){}
+        explicit storage(typename basic_type::meta_data_t const& meta_data_)
+            :super(meta_data_)
+            , m_device_storage_info(meta_data_.device_pointer())
+        {}
+
+#ifdef CXX11_ENABLED
+
+
+        /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k)
+
+            this api is callable from the device if the associated storage_info has been previously cloned to the device
+         */
+        template <typename ... UInt>
+        __device__
+        value_type& operator()(UInt const& ... dims) {
+            //failure here means that you didn't call clone_to_device on the storage_info yet
+            assert(m_device_storage_info);
+            return super::operator()(m_device_storage_info, dims...);
+        }
+
+        /** @brief returns (by const reference) the value of the data field at the coordinates (i, j, k)
+
+            this api is callable from the device if the associated storage_info has been previously cloned to the device
+         */
+        template <typename ... UInt>
+        __device__
+        value_type const & operator()(UInt const& ... dims) const {
+            //failure here means that you didn't call clone_to_device on the storage_info yet
+            assert(m_device_storage_info);
+            return super::operator()(m_device_storage_info, dims...);
+        }
+#else //CXX11_ENABLED
+
+        /**
+            @brief returns (by reference) the value of the data field at the coordinates (i, j, k)
+
+            this api is callable from the device if the associated storage_info has been previously cloned to the device
+*/
+        __device__
+        value_type& operator()( uint_t const& i, uint_t const& j, uint_t const& k) {
+            //failure here means that you didn't call clone_to_device on the storage_info yet
+            assert(m_device_storage_info);
+            return super::operator()(m_device_storage_info, i,j,k);
+        }
+
+
+        /**
+            @brief returns (by const reference) the value of the data field at the coordinates (i, j, k)
+
+            this api is callable from the device if the associated storage_info has been previously cloned to the device
+        */
+        __device__
+        value_type const & operator()( uint_t const& i, uint_t const& j, uint_t const& k) const {
+            //failure here means that you didn't call clone_to_device on the storage_info yet
+            assert(m_device_storage_info);
+            return super::operator()(m_device_storage_info, i,j,k);
+        }
+#endif
+
     };
 
     /**@brief Convenient syntactic sugar for specifying an extended-dimension with extended-width storages, where each dimension has arbitrary size 'Number'.

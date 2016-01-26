@@ -39,8 +39,9 @@ namespace gridtools{
             forwarding to the base class
         */
         __device__
-        meta_storage(BaseStorage const& other)
-            :  super(other)
+        meta_storage(meta_storage<BaseStorage> const& other)
+            :  super(other),
+               clonable_to_gpu<meta_storage<BaseStorage> >(other)
         {}
 
 #if defined(CXX11_ENABLED)
