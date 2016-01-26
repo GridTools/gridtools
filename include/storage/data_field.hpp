@@ -116,7 +116,6 @@ namespace gridtools{
                 storage_.template get<SnapshotFrom, DimFrom>()=
                     storage_.template get<SnapshotTo, DimTo>();
                 storage_.template get<SnapshotTo, DimTo>()=tmp;
-                storage_.clone_to_device();
             }
         };
     };

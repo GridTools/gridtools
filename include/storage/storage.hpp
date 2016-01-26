@@ -146,6 +146,32 @@ namespace gridtools{
         }
 #endif
 
+
+
+    /**@brief swaps two arbitrary snapshots in two arbitrary data field dimensions
+
+       @tparam SnapshotFrom one snapshot
+       @tparam DimFrom one dimension
+       @tparam SnapshotTo the second snapshot
+       @tparam DimTo the second dimension
+
+       syntax:
+       swap<3,1>::with<4,1>::apply(storage_);
+    */
+    template<ushort_t SnapshotFrom, ushort_t DimFrom=0>
+    struct swap{
+        template<ushort_t SnapshotTo, ushort_t DimTo=0>
+        struct with{
+
+            template<typename Storage>
+            GT_FUNCTION
+            static void apply(Storage& storage_){
+                super::template swap<SnapshotFrom, DimFrom>::template with<SnapshotTo, DimTo>::apply(storage_);
+                storage_.clone_to_device();
+            }
+        };
+    };
+
     };
 
     /**@brief Convenient syntactic sugar for specifying an extended-dimension with extended-width storages, where each dimension has arbitrary size 'Number'.
@@ -218,8 +244,15 @@ namespace gridtools{
         return s;
     }
 
+#ifdef CXX11_ENABLED
+    template<typename T>
+    struct is_storage : boost::mpl::or_<
+        is_data_field<T>
+        , is_storage_list<T> >{};
+#else
     template<typename T>
     struct is_storage : boost::mpl::false_{};
+#endif
 
     template<typename T>
     struct is_storage<storage<T> > : boost::mpl::true_{};

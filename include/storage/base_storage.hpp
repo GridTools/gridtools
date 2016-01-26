@@ -9,6 +9,9 @@
 
 namespace gridtools {
 
+    template<typename T>
+    struct is_storage;
+
     template <typename RegularMetaStorageType>
     struct no_meta_storage_type_yet;
 
@@ -223,9 +226,9 @@ namespace gridtools {
         }
 
         /**@brief device copy constructor*/
-        template<typename T>
+        template<typename T, typename Cond>
         __device__
-        base_storage(T const& other)
+        base_storage(T const& other, typename boost::enable_if<typename is_storage<T>::type, int>::type* =0)
             :
             is_set(other.is_set)
             , m_name(other.m_name)
