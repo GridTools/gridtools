@@ -224,4 +224,7 @@ namespace gridtools{
     template<typename T>
     struct is_storage<storage<T> > : boost::mpl::true_{};
 
+    template < typename PointerType, typename MetaData, ushort_t FieldDimension >
+    struct is_storage<base_storage<PointerType, MetaData, FieldDimension> > : boost::mpl::true_{};
+
 }//namespace gridtools
