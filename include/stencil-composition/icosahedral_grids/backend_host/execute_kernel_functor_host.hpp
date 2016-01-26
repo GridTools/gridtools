@@ -120,7 +120,7 @@ namespace gridtools {
                             it_domain.get_index(memorized_index);
                             it_domain.get_position(memorized_position);
 
-                            gridtools::for_each< loop_intervals_t >
+                            boost::mpl::for_each< loop_intervals_t >
                                     ( _impl::run_f_on_interval<execution_type_t, RunFunctorArguments> (it_domain, m_grid) );
                             it_domain.set_index(memorized_index);
                             it_domain.set_position(memorized_position);
@@ -129,7 +129,7 @@ namespace gridtools {
                         it_domain.template increment<2>( -(m_loop_size[1]+1));
                         it_domain.template increment<1, static_int<1> >();
                     }
-                    it_domain.template increment<1, static_int<-n_colors_t::value>>();
+                    it_domain.template increment<1, static_int<(int)-n_colors_t::value>>();
                     it_domain.template increment<0,static_int<1> >();
                 }
                 it_domain.template increment<0>( -(m_loop_size[0]+1));
