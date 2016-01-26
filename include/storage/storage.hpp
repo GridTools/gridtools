@@ -46,6 +46,7 @@ namespace gridtools{
             , m_device_storage_info(other.m_device_storage_info)
         {}
 
+        GT_FUNCTION
         typename super::meta_data_t* device_storage_info(){
             return m_device_storage_info;
         }

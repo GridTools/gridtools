@@ -475,7 +475,7 @@ If you are not using generic accessors then you are using an unsupported storage
             GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size<StorageSequence>::value,
                                     "the ID is larger than the number of storage types");
 
-            boost::mpl::for_each< typename reversed_range<short_t, 0, storage_type::field_dimensions >::type > (
+            boost::mpl::for_each< typename reversed_range<ushort_t, 0, storage_type::field_dimensions >::type > (
                 assign_raw_data_functor<
                     total_storages<StorageSequence, ID::value>::value,
                     BackendType,
@@ -502,7 +502,7 @@ If you are not using generic accessors then you are using an unsupported storage
             GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size<StorageSequence>::value,
                                     "the ID is larger than the number of storage types");
 
-            boost::mpl::for_each< typename reversed_range<short_t, 0, storage_type::field_dimensions >::type > (
+            boost::mpl::for_each< typename reversed_range<ushort_t, 0, storage_type::field_dimensions >::type > (
                 assign_raw_data_functor<
                 total_storages<StorageSequence, ID::value>::value,
                 BackendType,

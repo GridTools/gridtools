@@ -94,7 +94,7 @@ class repository
                 double y = dy*(double)(j-j_begin);
                 for( uint_t k=k_begin; k<k_end; k++ )
                 {
-                    double z = dz*(double)(k-k_begin);
+                    // double z = dz*(double)(k-k_begin);
                     // in values between 5 and 9
                     in_(i,j,k) = 5. + 8*(2.+cos(PI*(x+1.5*y)) + sin(2*PI*(x+1.5*y)))/4.;
 
