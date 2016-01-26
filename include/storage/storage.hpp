@@ -101,7 +101,7 @@ namespace gridtools{
             this api is callable from the device if the associated storage_info has been previously cloned to the device
          */
         template <typename ... UInt>
-        __device__
+        GT_FUNCTION
         value_type& operator()(UInt const& ... dims) {
             //failure here means that you didn't call clone_to_device on the storage_info yet
             assert(m_device_storage_info);
@@ -113,7 +113,7 @@ namespace gridtools{
             this api is callable from the device if the associated storage_info has been previously cloned to the device
          */
         template <typename ... UInt>
-        __device__
+        GT_FUNCTION
         value_type const & operator()(UInt const& ... dims) const {
             //failure here means that you didn't call clone_to_device on the storage_info yet
             assert(m_device_storage_info);
@@ -126,7 +126,7 @@ namespace gridtools{
 
             this api is callable from the device if the associated storage_info has been previously cloned to the device
 */
-        __device__
+        GT_FUNCTION
         value_type& operator()( uint_t const& i, uint_t const& j, uint_t const& k) {
             //failure here means that you didn't call clone_to_device on the storage_info yet
             assert(m_device_storage_info);
@@ -139,7 +139,7 @@ namespace gridtools{
 
             this api is callable from the device if the associated storage_info has been previously cloned to the device
         */
-        __device__
+        GT_FUNCTION
         value_type const & operator()( uint_t const& i, uint_t const& j, uint_t const& k) const {
             //failure here means that you didn't call clone_to_device on the storage_info yet
             assert(m_device_storage_info);
