@@ -362,11 +362,30 @@ namespace gridtools {
             assert(is_set);
             return (m_fields[0])[m_meta_data.index(dims...)];
         }
+
+        /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
+        template <typename ... UInt>
+        GT_FUNCTION
+        value_type const& operator()(meta_data_t const* metadata_, UInt const& ... dims) const {
+            assert(metadata_ && metadata_->index(dims...) < metadata_->size());
+            assert(is_set);
+            return (m_fields[0])[metadata_->index(dims...)];
+        }
+
+
 #else //CXX11_ENABLED
 
         /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
         GT_FUNCTION
         value_type& operator()(meta_data_t const* metadata_, uint_t i, uint_t j, uint_t k) {
+            assert(metadata_ && metadata_->index(i,j,k) < metadata_->size());
+            assert(is_set);
+            return (m_fields[0])[metadata_->index(i,j,k)];
+        }
+
+        /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
+        GT_FUNCTION
+        value_type const& operator()(meta_data_t const* metadata_, uint_t i, uint_t j, uint_t k) const {
             assert(metadata_ && metadata_->index(i,j,k) < metadata_->size());
             assert(is_set);
             return (m_fields[0])[metadata_->index(i,j,k)];
