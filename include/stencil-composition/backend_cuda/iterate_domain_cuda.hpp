@@ -107,12 +107,12 @@ public:
     }
 
     GT_FUNCTION
-    uint block_size_i()
+    uint_t block_size_i()
     {
         return m_block_size_i;
     }
     GT_FUNCTION
-    uint block_size_j()
+    uint_t block_size_j()
     {
         return m_block_size_j;
     }
