@@ -22,6 +22,11 @@ namespace gridtools {
            stencil function.  The offsets of the accessors passed here
            must be 0, but are otherwise ignored.
 
+           function_aggregator has a single ReturnType which
+           corresponds to the output field of the called
+           stencil_operator. Such operator hasa single
+           output field, as checked by the call template.
+
            \tparam CallerAggregator The argument passed to the callerd, also known as the Evaluator
            \tparam Offi Offset along the i-direction were the function is evaluated (these are modified by specifying call<...>::at<...>::... )
            \tparam Offj Offset along the j-direction were the function is evaluated
@@ -106,6 +111,11 @@ namespace gridtools {
            function, called within a stencil operator or another
            stencil function. In this version the accessors passed to
            the function can have offsets different that 0.
+
+           function_aggregator_offsets has a single ReturnType which
+           corresponds to the output field of the called
+           stencil_operator. Such operator hasa single output field,
+           as checked by the call template.
 
            \tparam CallerAggregator The argument passed to the callerd, also known as the Evaluator
            \tparam Offi Offset along the i-direction were the function is evaluated (these are modified by specifying call<...>::at<...>::... )
@@ -296,6 +306,13 @@ namespace gridtools {
            stencil function. In this version the accessors passed to
            the function can have offsets different that 0.
 
+           function_aggregator_procedure_offsets does not have a
+           single return value, as in
+           function_aggregator_offsets. Here there may be more than
+           one returned values that happens through side-effects. The
+           affected arguments are stored among the PassedArguments
+           template argument.
+
            \tparam CallerAggregator The argument passed to the callerd, also known as the Evaluator
            \tparam Offi Offset along the i-direction were the function is evaluated (these are modified by specifying call<...>::at<...>::... )
            \tparam Offj Offset along the j-direction were the function is evaluated
@@ -373,6 +390,12 @@ namespace gridtools {
            function, called within a stencil operator or another
            stencil function. The offsets of the accessors passed here
            must be 0, but are otherwise ignored.
+
+           function_aggregator_procedure does not have a single return
+           value, as in function_aggregator. Here there may be more
+           than one returned values that happens through
+           side-effects. The affected arguments are stored among the
+           PassedArguments template argument.
 
            \tparam CallerAggregator The argument passed to the callerd, also known as the Evaluator
            \tparam Offi Offset along the i-direction were the function is evaluated (these are modified by specifying call<...>::at<...>::... )
