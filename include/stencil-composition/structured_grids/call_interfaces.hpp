@@ -4,8 +4,8 @@
 #include <boost/fusion/include/vector.hpp>
 #include <boost/fusion/include/as_vector.hpp>
 #include <boost/fusion/include/at_c.hpp>
-#include "../accessor.hpp"
-#include "call_interfaces_metafunctions.hpp"
+#include "./accessor.hpp"
+#include "./call_interfaces_metafunctions.hpp"
 #include "../../common/generic_metafunctions/v_item_to_fusion_vector.hpp"
 #include "../iterate_domain_fwd.hpp" // to statically check arguments
 #include "../interval.hpp" // to check if region is valid
