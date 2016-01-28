@@ -275,7 +275,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
 
         template<size_t S>
         GT_FUNCTION
-        uint_t index(array<uint, S> a) const {
+        uint_t index(array<uint_t, S> a) const {
             return explode<uint_t, _impl_index>(a, *this);
         }
 #else
