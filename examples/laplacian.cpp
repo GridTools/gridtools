@@ -111,8 +111,8 @@ TEST(Laplace, test) {
     /**
        - definition of the storage type, depending on the BACKEND which is set as a macro. \todo find another strategy for the backend (policy pattern)?
     */
-    typedef storage_info<0, layout_t> storage_info_t;
-    typedef gridtools::BACKEND::storage_type<float_type, storage_info_t >::type storage_type;
+    typedef BACKEND::storage_info<0, layout_t> storage_info_t;
+    typedef BACKEND::storage_type<float_type, storage_info_t >::type storage_type;
 // [storage_type]
 
 // [storage_initialization]
@@ -243,10 +243,10 @@ TEST(Laplace, test) {
 #ifdef CXX11_ENABLED
     verifier verif(1e-13);
     array<array<uint_t, 2>, 3> halos{{ {halo_size,halo_size}, {halo_size,halo_size}, {halo_size,halo_size} }};
-    bool result = verif.verify(out, ref, halos);
+    bool result = verif.verify(grid, out, ref, halos);
 #else
     verifier verif(1e-13, halo_size);
-    bool result = verif.verify(out, ref);
+    bool result = verif.verify(grid, out, ref);
 #endif
 
 #ifdef BENCHMARK

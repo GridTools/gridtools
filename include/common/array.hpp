@@ -168,6 +168,7 @@ namespace gridtools {
             return *this;
         }
 
+
         GT_FUNCTION
         static constexpr size_t size() {return _size;}
     };

@@ -42,7 +42,6 @@ private:
 private:
     const uint_t m_block_size_i;
     const uint_t m_block_size_j;
-
     shared_iterate_domain_t* RESTRICT m_pshared_iterate_domain;
 
 public:
@@ -310,7 +309,7 @@ struct is_positional_iterate_domain<iterate_domain_cuda<IterateDomainBase, Itera
 template<template<class> class IterateDomainBase, typename IterateDomainArguments>
 struct iterate_domain_backend_id<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> >
 {
-    typedef enumtype::enum_type< enumtype::backend, enumtype::Cuda > type;
+    typedef enumtype::enum_type< enumtype::platform, enumtype::Cuda > type;
 };
 
 

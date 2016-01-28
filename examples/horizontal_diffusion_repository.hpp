@@ -30,10 +30,10 @@ using gridtools::int_t;
 
     typedef gridtools::layout_map<-1,-1,-1> layout_scalar;
 
-    typedef gridtools::storage_info<0,layout_ijk> storage_info_ijk_t;
-    typedef gridtools::storage_info<1,layout_ij> storage_info_ij_t;
-    typedef gridtools::storage_info<2,layout_j> storage_info_j_t;
-    typedef gridtools::storage_info<3,layout_scalar> storage_info_scalar_t;
+    typedef hd_backend::storage_info<0,layout_ijk, gridtools::halo<2,0,0> > storage_info_ijk_t;
+    typedef hd_backend::storage_info<1,layout_ij, gridtools::halo<2,0,0> > storage_info_ij_t;
+    typedef hd_backend::storage_info<2,layout_j, gridtools::halo<2,0,0> > storage_info_j_t;
+    typedef hd_backend::storage_info<3,layout_scalar, gridtools::halo<2,0,0> > storage_info_scalar_t;
 
 class repository
 {

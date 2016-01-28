@@ -97,7 +97,7 @@ RUN apt-get remove --purge -y libfreetype6-dev  \
                               libzmq-dev        \
                               python3-dev       \
                               qt-sdk            \
-                              xterm			&& \
+                              xterm                 && \
     apt-get autoremove -y
 
 # change ownership to non-root user

@@ -53,7 +53,6 @@ namespace gridtools {
 
             typedef typename EsfArguments::functor_t functor_t;
 
-            //instantiate the iterate domain remapper, that will map the calls to arguments to their actual
             // position in the iterate domain
             typedef typename get_iterate_domain_remapper<iterate_domain_t, typename EsfArguments::esf_args_map_t>::type
                     iterate_domain_remapper_t;

@@ -162,7 +162,7 @@ namespace gridtools {
      * @tparam BackendId id of the backend
      * @tparam LocalDomainSequence sequence of local domains
      */
-    template<enumtype::backend BackendId, typename LocalDomainSequence>
+    template<enumtype::platform BackendId, typename LocalDomainSequence>
     struct fuse_mss_local_domains
     {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<LocalDomainSequence, is_local_domain>::value), "Internal Error: wrong type");
@@ -183,7 +183,7 @@ namespace gridtools {
      * @tparam LocalDomainSequence sequence of local domains
      * @tparam MergedLocalDomainSequence sequence of merged local domains
      */
-    template<enumtype::backend BackendId, typename LocalDomainSequence, typename MergedLocalDomainSequence>
+    template<enumtype::platform BackendId, typename LocalDomainSequence, typename MergedLocalDomainSequence>
     struct generate_args_lookup_map
     {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<LocalDomainSequence, is_local_domain>::value), "Internal Error: wrong type");

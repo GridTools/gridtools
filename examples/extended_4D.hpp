@@ -24,12 +24,12 @@ using namespace expressions;
 typedef gridtools::layout_map<3,2, 1, 0> layout4_t;
 typedef gridtools::layout_map<2,1,0,3,4,5> layout_t;
 
-typedef storage_info<__COUNTER__, layout_t> metadata_t;
-typedef storage_info<__COUNTER__, layout4_t> metadata_global_quad_t;
-typedef storage_info<__COUNTER__, layout4_t> metadata_local_quad_t;
-typedef gridtools::BACKEND::storage_type<float_type, metadata_t >::type storage_type;
-typedef gridtools::BACKEND::storage_type<float_type, metadata_global_quad_t >::type storage_global_quad_t;
-typedef gridtools::BACKEND::storage_type<float_type, metadata_local_quad_t >::type storage_local_quad_t;
+typedef BACKEND::storage_info<__COUNTER__, layout_t> metadata_t;
+typedef BACKEND::storage_info<__COUNTER__, layout4_t> metadata_global_quad_t;
+typedef BACKEND::storage_info<__COUNTER__, layout4_t> metadata_local_quad_t;
+typedef BACKEND::storage_type<float_type, metadata_t >::type storage_type;
+typedef BACKEND::storage_type<float_type, metadata_global_quad_t >::type storage_global_quad_t;
+typedef BACKEND::storage_type<float_type, metadata_local_quad_t >::type storage_local_quad_t;
 
 
 
@@ -192,7 +192,7 @@ namespace assembly{
         fe_comp->run();
         fe_comp->finalize();
 
-        return do_verification <storage_local_quad_t, storage_global_quad_t> (d1,d2,d3,result);
+        return do_verification <storage_local_quad_t, storage_global_quad_t> (d1,d2,d3,result,grid);
     }
 
 }; //namespace extended_4d
