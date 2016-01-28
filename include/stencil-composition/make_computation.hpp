@@ -33,9 +33,6 @@
 #else
 #define POSITIONAL_WHEN_DEBUGGING false
 #endif
-// #else
-// #define POSITIONAL_WHEN_DEBUGGING false
-// #endif
 
 namespace gridtools {
 
