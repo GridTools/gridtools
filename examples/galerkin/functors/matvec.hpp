@@ -2,6 +2,7 @@ namespace functors{
     // [matvec]
 
 
+    // left-multiply x = A b
     struct matvec {
 
         using in1=accessor<0, enumtype::in, extent<> , 4> const;

@@ -109,10 +109,10 @@ namespace gridtools{
 
 
     /** compute ricci symbol*/
-    constexpr ushort_t ricci(ushort_t const& i_, ushort_t const& j_){
+    constexpr short_t ricci(ushort_t const& i_, ushort_t const& j_){
         return i_<j_ ? 1 : i_==j_ ? 0 : -1;
     }
-    constexpr ushort_t ricci(ushort_t const& i_, ushort_t const& j_, ushort_t const& k_){
+    constexpr short_t ricci(ushort_t const& i_, ushort_t const& j_, ushort_t const& k_){
         return ricci(i_,j_)*ricci(j_,k_)*ricci(i_,k_);
     }
 

@@ -143,7 +143,7 @@ namespace gridtools {
             GT_FUNCTION
             constexpr uint_t index(uint_t const& first_, UInt const& ... args_) const {
 
-                /**this calls zippes 2 variadic packs*/
+                /**this call zips 2 variadic packs*/
                 return index_(typename make_gt_integer_sequence
                                        <ushort_t
                                         , sizeof ... (Pad) - (sizeof ... (Pad) - sizeof ... (UInt)-1)>::type()

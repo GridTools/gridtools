@@ -67,6 +67,8 @@ public:
     bd_matrix_type const& get_bd_mass() const { return m_bd_mass;}
     bd_vector_type const& get_flux() const { return m_flux;}
 
+    bd_matrix_storage_info_t const& bd_matrix_info(){return m_bd_storage_info;}
+
     typename Boundary::tangent_storage_t const& get_ref_normals() const {return m_bd_backend.ref_normals();}
 
     bd_assembly( Boundary& bd_backend_,
@@ -177,6 +179,27 @@ public:
                 );
     }
 
+    struct compute_face_normals{
+        // template<typename DPhi, typename Stiff>
+        auto static esf() ->
+            decltype(make_esf<functors::compute_face_normals<typename as_t::boundary_t> >(p_bd_jac(), p_ref_normals(), p_normals()))
+        {
+            return make_esf<functors::compute_face_normals<typename as_t::boundary_t> >(p_bd_jac(), p_ref_normals(), p_normals());
+        }
+    };
+
+
+    struct bd_integrate{
+        template<typename In, typename Out>
+        auto static esf(In, Out) ->
+            decltype(make_esf<functors::bd_integrate<typename as_t::boundary_t> >(p_bd_phi(), p_bd_measure(), p_bd_weights(), In(), Out()))
+        {
+            return make_esf<functors::bd_integrate<typename as_t::boundary_t> >(p_bd_phi(), p_bd_measure(), p_bd_weights(), In(), Out());
+        }
+    };
+
+
+
     template<enumtype::Shape S>
     struct update_bd_jac{
         auto static esf() ->
@@ -211,6 +234,17 @@ public:
             decltype(make_esf<functors::lax_friedrich<typename as_t::boundary_t, Flux> >(Sol(), Result()))
         {
             return make_esf<functors::lax_friedrich<typename as_t::boundary_t, Flux> >(Sol(), Result()); //mass
+        }
+    };
+
+    template<typename Flux >
+    struct upwind {
+
+        template<typename Sol, typename Beta, typename Result>
+        auto static esf(Sol, Beta, Result) ->
+            decltype(make_esf<functors::upwind >(as_t::p_normals(), Sol(), Beta(), Result()))
+        {
+            return make_esf<functors::upwind >(as_t::p_normals(), Sol(), Beta(), Result()); //mass
         }
     };
 

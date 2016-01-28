@@ -67,7 +67,7 @@ int main(){
         make_mss
         (
             execute<forward>()
-            , make_esf< functors::assemble< geo_t, add_functor > >(p_in(), p_in(), p_out())
+            , make_esf< functors::assemble< geo_t > >(p_in(), p_in(), p_out())
             ), domain, coords);
 
     computation->ready();

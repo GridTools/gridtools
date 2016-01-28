@@ -43,6 +43,8 @@ namespace intrepid{
         using basis_function_storage_t = storage_t< basis_function_storage_t_info > ;
         using cub_points_storage_t     = storage_t< cub_points_storage_t_info > ;
 
+    protected:
+        std::vector<uint_t> m_permutations;
         cub_points_storage_t_info m_cub_points_s_info;
         weights_storage_t_info m_cub_weights_s_info;
         //these 2 are pointers, so that they get initialized on first touch
@@ -54,6 +56,8 @@ namespace intrepid{
         //these 2 are pointers, so that they get initialized on first touch
         std::unique_ptr<grad_storage_t> m_grad_at_cub_points_s;
         std::unique_ptr<basis_function_storage_t> m_phi_at_cub_points_s;
+
+    public:
 
         cub_points_storage_t // const
         & cub_points()
@@ -77,7 +81,8 @@ namespace intrepid{
             }
 
         discretization() :
-            m_cub_points_s_info(cub::numCubPoints(), fe::spaceDim,1)
+            m_permutations( fe::basisCardinality )
+            , m_cub_points_s_info(cub::numCubPoints(), fe::spaceDim,1)
             , m_cub_weights_s_info(cub::numCubPoints(),1,1)
             , m_grad_at_cub_points_s_info()//construct empty
             , m_phi_at_cub_points_s_info()//construct empty
@@ -86,6 +91,10 @@ namespace intrepid{
             , m_grad_at_cub_points_s()//construct empty
             , m_phi_at_cub_points_s()//construct empty
             {
+                for(uint_t i=0; i< fe::basisCardinality; ++i){
+                    m_permutations[i]=i;
+                }
+
             }
 
         void compute(Intrepid::EOperator const& operator_){
@@ -129,7 +138,16 @@ namespace intrepid{
                 for (uint_t i=0; i<fe::basisCardinality; ++i)
                 	for (uint_t q=0; q<cub::numCubPoints(); ++q)
                 		for (uint_t j=0; j<fe::spaceDim; ++j)
-                                (*m_grad_at_cub_points_s)(i,q,j)=grad_at_cub_points_i(i,q,j);
+                                (*m_grad_at_cub_points_s)(m_permutations[i],q,j)=grad_at_cub_points_i(i,q,j);
+
+                // for (uint_t q=0; q<cub::numCubPoints(); ++q)
+                //     for (uint_t j=0; j<fe::spaceDim; ++j)
+                //     {
+                //         (*m_grad_at_cub_points_s)(2,q,j)=grad_at_cub_points_i(3,q,j);
+                //         (*m_grad_at_cub_points_s)(3,q,j)=grad_at_cub_points_i(2,q,j);
+                //         (*m_grad_at_cub_points_s)(6,q,j)=grad_at_cub_points_i(7,q,j);
+                //         (*m_grad_at_cub_points_s)(7,q,j)=grad_at_cub_points_i(6,q,j);
+                //     }
 
                 break;
             }
@@ -155,7 +173,7 @@ namespace intrepid{
                 for (uint_t q=0; q<cub::numCubPoints(); ++q)
                     // for (uint_t j=0; j<fe::spaceDim; ++j)
                     for (uint_t i=0; i<fe::basisCardinality; ++i){
-                        (*m_phi_at_cub_points_s)(i,q,0)=phi_at_cub_points_i(i,q);
+                        (*m_phi_at_cub_points_s)(m_permutations[i],q,0)=phi_at_cub_points_i(i,q);
                     }
                 break;
             }
@@ -163,6 +181,9 @@ namespace intrepid{
             }
 
         }
+
+        std::vector<uint_t> const& get_ordering(){return m_permutations;}
+
     };
 
 
@@ -239,7 +260,6 @@ namespace intrepid{
                         m_local_grid_s(i,j,0)=local_grid_i(i,j);
 
                 //! [reorder]
-                std::vector<uint_t> permutations( super::geo_map::basisCardinality );
                 std::vector<uint_t> to_reorder( super::geo_map::basisCardinality );
                 //sorting the a vector containing the point coordinates with priority i->j->k, and saving the permutation
 
@@ -248,10 +268,10 @@ namespace intrepid{
 		    to_reorder[i]=(m_local_grid_s(i,super::geo_map::layout_t::template at_<0>::value*(super::geo_map::spaceDim-2))+2)*4 +
 		      (m_local_grid_s(i,super::geo_map::layout_t::template at_<1>::value)+2)*2 +
 		      (m_local_grid_s(i,super::geo_map::layout_t::template at_<2>::value)+2);
-                    permutations[i]=i;
+                    // m_permutations[i]=i;
                 }
 
-                std::sort(permutations.begin(), permutations.end(),
+                std::sort(this->m_permutations.begin(), this->m_permutations.end(),
                   [&to_reorder](uint_t a, uint_t b){
                       return to_reorder[a]<to_reorder[b];
                   } );
@@ -263,20 +283,19 @@ namespace intrepid{
                 //applying the permutation to the grid
                 for(uint_t i=0; i<D; ++i){//few redundant loops
                 	for(uint_t j=0; j<super::geo_map::spaceDim; ++j)
-                    {
-                        m_local_grid_reordered_s(i, j, 0)=m_local_grid_s(permutations[i],j,0);
-                    }
+                        {
+                            m_local_grid_reordered_s(i, j, 0)=m_local_grid_s(this->m_permutations[i],j,0);
+                        }
                 }
                 //! [reorder]
 #endif
             }
 
-        local_grid_t const& grid() const {return m_local_grid_s;}
-
 #ifdef REORDER
         local_grid_reordered_t const& reordered_grid() const { return m_local_grid_reordered_s; }
+#else
+        local_grid_t const& grid() const {return m_local_grid_s;}
 #endif
-
 
     };
 
@@ -367,6 +386,7 @@ namespace intrepid{
     class boundary_discr{
 
     public:
+        static const constexpr ushort_t s_num_boundaries = Boundaries;
         using value_t=float_type;
         using rule_t = Rule;
         using geo_map = typename rule_t::geo_map;
@@ -409,13 +429,13 @@ namespace intrepid{
             m_rule(rule_)
             , m_grad_at_cub_points_info(geo_map::basisCardinality, rule_t::bd_cub::numCubPoints(), shape_property<rule_t::/*bd*/parent_shape>::dimension, sizeof ... (UShort))
             , m_phi_at_cub_points_info(geo_map::basisCardinality, rule_t::bd_cub::numCubPoints(), sizeof ... (UShort))
-            , m_ref_face_tg_info(shape_property<rule_t::parent_shape>::dimension, sizeof ... (UShort), 1)
+            , m_ref_face_tg_info(shape_property<rule_t::parent_shape>::dimension, sizeof ... (UShort), 1u)
             , m_grad_at_cub_points(m_grad_at_cub_points_info, 0., "bd grad at cub")
             , m_phi_at_cub_points(m_phi_at_cub_points_info, 0., "bd phi at cub")
             , m_ref_face_tg_u(m_ref_face_tg_info, 0., "tg u")
             , m_ref_face_tg_v(m_ref_face_tg_info, 0., "tg v")
             , m_ref_normals(m_ref_face_tg_info, 0., "reference normals")
-            , m_face_ord{face_ord_ ...}
+            , m_face_ord{(ushort_t) face_ord_ ...}
             , m_tangent_computed(false)
             {
                 GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(), boost::is_integral<UShort>::type::value ...),
@@ -423,14 +443,28 @@ namespace intrepid{
 
             }
 
-        void compute(Intrepid::EOperator const& operator_){
+        void compute(Intrepid::EOperator const& operator_, std::vector<uint_t> ordering = {}){
+
 
             compute_tangents();
             compute_normals();
 
 
+            if(!ordering.size())
+            {
+                ordering.resize(geo_map::basisCardinality);
+                for (uint_t dof_=0; dof_<geo_map::basisCardinality; ++dof_){
+                    ordering[dof_]=dof_;
+                }
+            }
+
             for(ushort_t face_=0; face_< m_face_ord.size(); ++face_){
                 auto face_quad_=m_rule.update_boundary_cub(m_face_ord[face_]);
+
+                // std::cout<<"face ord: "<<face_<<"\n";
+                // for(int i=0; i<4; ++i)
+                //     for(int j=0; j<3; ++j)
+                //         std::cout<<" i "<< i << " j "<< j  <<" "<<face_quad_(i,j)<<"\n";
                 switch (operator_){
                 case Intrepid::OPERATOR_GRAD :
                 {
@@ -442,7 +476,9 @@ namespace intrepid{
                     for (uint_t l=0; l<geo_map::basisCardinality; ++l)
                         for (uint_t i=0; i<rule_t::bd_cub::numCubPoints(); ++i)
                             for (uint_t j=0; j<shape_property<rule_t::/*bd*/parent_shape>::dimension; ++j)
-                                m_grad_at_cub_points(l,i,j,face_)=grad_at_cub_points(l,i,j);
+                                m_grad_at_cub_points(
+                                    ordering[l]
+                                    ,i,j,face_)=grad_at_cub_points(l,i,j);
                     break;
                 }
                 case Intrepid::OPERATOR_VALUE :
@@ -454,7 +490,9 @@ namespace intrepid{
                     for (uint_t i=0; i<geo_map::basisCardinality; ++i)
                         for (uint_t j=0; j<rule_t::bd_cub::numCubPoints(); ++j)
                         {
-                            m_phi_at_cub_points(i,j,face_)=phi_at_cub_points(i,j);
+                            m_phi_at_cub_points(
+                                ordering[i]
+                                ,j,face_)=phi_at_cub_points(i,j);
                         }
                     break;
                 }
@@ -532,6 +570,10 @@ namespace intrepid{
 
 
     };
+
+    //external visibility
+    template<typename Rule, ushort_t Boundaries>
+    const constexpr ushort_t boundary_discr< Rule,  Boundaries>::s_num_boundaries;
 
 }//namespace intrepid
 }//namespace gridtools

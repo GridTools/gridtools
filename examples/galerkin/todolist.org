@@ -1,0 +1,17 @@
+* DONE check that the jacobian matrix is correct
+* DONE check that the advection matrix is correct
+* DONE check that the mass matrix is correct
+* DONE check that the stiffness matrix is correct
+* DONE check that the boundary matrices have the correct values
+* DONE check that the face normals are correct
+* DONE paraview export for the vector fields on node
+* DONE assembly for the continuous case
+* TODO paraview export for the vector fields on faces. Is it possible?
+* TODO the quantities living on the faces are oversized, think of a solution
+* TODO check that the boundary integrals works with a unit test
+* TODO check that the upwinf DG flux is correct (compare with DealII)
+* TODO Implement a Richardson solver
+* TODO how do we impose BCs?
+* TODO solve a problem
+* TODO think about a smart user-friendly API
+* TODO think about generalizations (p refinement!)

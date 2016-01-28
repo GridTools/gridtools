@@ -142,7 +142,7 @@ namespace functors{
 
     template <typename Geometry>
     struct inv
-	{
+    {
         using cub=typename Geometry::cub;
 
         //![arguments_inv]
@@ -158,7 +158,7 @@ namespace functors{
         static void Do(Evaluation const & eval, x_interval) {
         	inv_impl<Geometry>::DoCompute(eval);
         }
-	};
+    };
 
     template <typename Geometry>
     struct inv_impl<Geometry,3> : public inv<Geometry>
@@ -323,12 +323,12 @@ namespace functors{
 #ifdef NDEBUG
             constexpr
 #endif
-            meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{static_int<Geometry::geo_map::order+1>(), static_int<Geometry::geo_map::order+1>(), static_int<Geometry::geo_map::order+1>()};
+            meta_storage_base<__COUNTER__,layout_map<2,1,0>,false> indexing{static_int<Geometry::geo_map::order+1>(), static_int<Geometry::geo_map::order+1>(), static_int<Geometry::geo_map::order+1>()};
 #else
 #ifdef NDEBUG
             constexpr
 #endif
-                meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
+                meta_storage_base<__COUNTER__,layout_map<2,1,0>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
 
 #endif
 
@@ -417,7 +417,8 @@ namespace functors{
             auto dof_001=indexing.index(0,0,N3);
             auto dof_000=indexing.index(0,0,0);
 
-            eval(out(row+dof_000)) += eval(in2(i-1,j-1,k-1, row+dof_111))
+            eval(out(// row+dof_000
+                     )) += eval(in2(i-1,j-1,k-1, row+dof_111))
                 + eval(in2(i-1,j-1, row+dof_110))
                 + eval(in2(i-1,k-1, row+dof_101))
                 + eval(in2(k-1,j-1, row+dof_011))
@@ -463,12 +464,12 @@ namespace functors{
 #ifdef NDEBUG
             constexpr
 #endif
-            meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{static_int<3>(), static_int<3>(), static_int<3>()};
+            meta_storage_base<__COUNTER__,layout_map<2,1,0>,false> indexing{static_int<3>(), static_int<3>(), static_int<3>()};
 #else
 #ifdef NDEBUG
             constexpr
 #endif
-                meta_storage_base<__COUNTER__,layout_map<0,1,2>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
+                meta_storage_base<__COUNTER__,layout_map<2,1,0>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
 
 #endif
             uint_t N1 = indexing.template dims<0>()-1;
@@ -479,7 +480,6 @@ namespace functors{
             for(short_t I=1; I<indexing.template dims<0>()-1; I++)
                 for(short_t J=1; J<indexing.template dims<1>()-1; J++)
                 {
-
                     //for each (3) faces
                     auto dof_x=indexing.index(0, (int)I, (int)J);
                     auto dof_xx=indexing.index(indexing.template dims<0>()-1, I, J);
@@ -491,12 +491,11 @@ namespace functors{
                     //replace the value from elem i-1 on the opposite face
                     eval(out(i-1, row+dof_xx)) = eval(in1(row+dof_x));
 
-                    // //replace the value from elem j-1 on the opposite face
-                    // eval(out(j-1, row+dof_yy)) = eval(in1(row+dof_y));
+                    //replace the value from elem j-1 on the opposite face
+                    eval(out(j-1, row+dof_yy)) = eval(in1(row+dof_y));
 
-                    // //replace the value from elem k-1 on the opposite face
-                    // eval(out(k-1, row+dof_zz)) = eval(in1(row+dof_z));
-
+                    //replace the value from elem k-1 on the opposite face
+                    eval(out(k-1, row+dof_zz)) = eval(in1(row+dof_z));
                 }
 
             //corner cases, setting (0,0,0)
@@ -509,14 +508,14 @@ namespace functors{
             auto dof_001=indexing.index(0,0,N3);
             auto dof_000=indexing.index(0,0,0);
 
+            eval(out()) = eval(in1());
             eval(out(i-1,j-1,k-1, row+dof_111)) = eval(in1(row+dof_000));
-            eval(out(i-1,j-1, row+dof_110)) = eval(in1(row+dof_000));;
-            eval(out(i-1,k-1, row+dof_101)) = eval(in1(row+dof_000));;
-            eval(out(k-1,j-1, row+dof_011)) = eval(in1(row+dof_000));;
-            eval(out(k-1, row+dof_001)) = eval(in1(row+dof_000));;
-            eval(out(j-1, row+dof_010)) = eval(in1(row+dof_000));;
-            eval(out(i-1, row+dof_100)) = eval(in1(row+dof_000));;
-
+            eval(out(i-1,j-1, row+dof_110)) = eval(in1(row+dof_000));
+            eval(out(i-1,k-1, row+dof_101)) = eval(in1(row+dof_000));
+            eval(out(k-1,j-1, row+dof_011)) = eval(in1(row+dof_000));
+            eval(out(k-1, row+dof_001)) = eval(in1(row+dof_000));
+            eval(out(j-1, row+dof_010)) = eval(in1(row+dof_000));
+            eval(out(i-1, row+dof_100)) = eval(in1(row+dof_000));
 
         }
     };
@@ -591,7 +590,7 @@ namespace functors{
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 
-        	// Retrieve elements dof grid dimensions and number of dofs per element
+            // Retrieve elements dof grid dimensions and number of dofs per element
             const uint_t d1=eval.get().template get_storage_dims<0>(in());
             const uint_t d2=eval.get().template get_storage_dims<1>(in());
             const uint_t d3=eval.get().template get_storage_dims<2>(in());
@@ -603,29 +602,28 @@ namespace functors{
             const u_int my_Q = eval.j()%eval.get().template get_storage_dims<0>(out());
 
             // Loop over element dofs
-        	for(u_int i=0;i<d1;++i)
-        	{
-            	for(u_int j=0;j<d2;++j)
-            	{
-                	for(u_int k=0;k<d3;++k)
-                	{
+            for(u_int i=0;i<d1;++i)
+            {
+                for(u_int j=0;j<d2;++j)
+                {
+                    for(u_int k=0;k<d3;++k)
+                    {
                         // Loop over single element dofs
-        				for(u_short l_dof1=0;l_dof1<basis_cardinality;++l_dof1)
-        				{
-        					// TODO: check next line
-        					const u_int P_fact(eval(!in_map(i,j,k,l_dof1))==my_P);
-
-							for(u_short l_dof2=0;l_dof2<basis_cardinality;++l_dof2)
-							{
-								// Current local dof pair corresponds to global dof
-								// stencil point, update global matrix
-								eval(out(0,0,0,0,0)) += (eval(!in_map(i,j,k,l_dof2))==my_Q)*P_fact*eval(!in(i,j,k,l_dof1,l_dof2));
-							}
-						}
-					}
-				}
-			}
-		}
+                        for(u_short l_dof1=0;l_dof1<basis_cardinality;++l_dof1)
+                        {
+                            // TODO: check next line
+                            const u_int P_fact(eval(!in_map(i,j,k,l_dof1))==my_P);
+                            for(u_short l_dof2=0;l_dof2<basis_cardinality;++l_dof2)
+                            {
+                                // Current local dof pair corresponds to global dof
+                                // stencil point, update global matrix
+                                eval(out(0,0,0,0,0)) += (eval(!in_map(i,j,k,l_dof2))==my_Q)*P_fact*eval(!in(i,j,k,l_dof1,l_dof2));
+                            }
+                        }
+                    }
+                }
+            }
+        }
     };
     // [assemble]
 

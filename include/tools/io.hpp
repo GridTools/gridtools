@@ -56,6 +56,7 @@ namespace gridtools{
         exampleHeavyWriter->setMode(XdmfHeavyDataWriter::Overwrite);//do this so that the data isn't in the hdf5 file twice.
         m_root->accept(exampleWriter);
 
+        return 0;
         }
 
     protected:
@@ -69,6 +70,10 @@ namespace gridtools{
     template<enumtype::grid_type>
     struct create_grid;
 
+    /**@brief creates a regular grid
+
+       This grid must be fully structured hexahedral grid, with equally sized elements
+    */
     template <>
     struct create_grid<enumtype::regular>{
 
@@ -103,7 +108,10 @@ namespace gridtools{
     };
 
 
+    /**@brief creates a rectilinear grid
 
+       This grid must be fully structured hexahedral grid, but the elements can have different sizes
+    */
     template <>
     struct create_grid<enumtype::rectilinear>{
 
@@ -160,6 +168,14 @@ namespace gridtools{
         }
     };
 
+    /**
+       @brief export a matrix in matrix market format
+
+       This function writes a matrix to a text file in matrix market format.
+       This format can be loaded by Matlab/Octave to see the matrix pattern,
+       and it is a specific format for sparse matrices. It consists of lines with
+       3 entries: the first 2 for the i,j coordinates, and the third for the nonzero matrix value.
+     */
     template <typename Storage>
     void spy(Storage const& storage_, char const* name){
 
@@ -194,7 +210,12 @@ namespace gridtools{
         o_file.close();
     }
 
+    /**
+       @brief exports a vector
 
+       this function writes out a vector in text format, in a newline-separated list
+       which can be loaded (e.g.) by Matlab/Octave
+     */
     template <typename Storage>
     void spy_vec(Storage const& storage_, char const* name){
 
@@ -224,7 +245,12 @@ namespace gridtools{
     }
 
 
-        template <typename Storage, typename LocalGridInfo>
+    /**
+       @brief function to serialize the scalar/vector valued fields living on a mesh into an array
+
+       This is needed in order to write the vector to the output file
+     */
+    template <typename Storage, typename LocalGridInfo>
     void reindex(Storage const& storage_, LocalGridInfo const& local_grid_info_, typename Storage::value_type * data_){
         auto d1=storage_.meta_data().template dims<0>();
         auto d2=storage_.meta_data().template dims<1>();
@@ -252,7 +278,7 @@ namespace gridtools{
                             {
                                 for(int_t dim=0 ; dim<d5 ; ++dim)
                                 {
-                                    data_[ k*np3*d2*np2*d1*np1*d5 + n*d2*np2*d1*np1*d5 + j*np2*d1*np1*d5 + m*d1*np1*d5 + i*np1*d5 + l*d5 + dim] = storage_(i,j,k,n+np3*m+np3*np2*l,dim);
+                                    data_[ k*np3*d2*np2*d1*np1*d5 + n*d2*np2*d1*np1*d5 + j*np2*d1*np1*d5 + m*d1*np1*d5 + i*np1*d5 + l*d5 + dim] = storage_(i,j,k,l+np1*m+np1*np2*n,dim);
                                 //std::cout<<"("<<i<<","<<j<<","<<k<<","<<l<<","<<m<<","<<n<<") = ("<<storage_(i,j,k,l,0)<<","<<storage_(i,j,k,l,1)<<","<<storage_(i,j,k,l,2)<<")"<<std::endl;
                                 }
                             }
@@ -262,6 +288,56 @@ namespace gridtools{
             }
         }
     }
+
+    template <ushort_t Face, typename Storage, typename LocalGridInfo>
+    void reindex_on_face(Storage const& storage_, LocalGridInfo const& local_grid_info_, typename Storage::value_type * data_){
+        auto d1=storage_.meta_data().template dims<0>();
+        auto d2=storage_.meta_data().template dims<1>();
+        auto d3=storage_.meta_data().template dims<2>();
+        auto d4=8;//storage_.meta_data().template dims<3>();
+        auto d5=1;
+        if(Storage::space_dimensions>=5)
+            d5 = storage_.meta_data().template dims<3>();//space dimension
+
+        uint_t np1=local_grid_info_.template dims<0>();//n. local points along x
+        uint_t np2=local_grid_info_.template dims<1>();//n. local points along y
+        uint_t np3=local_grid_info_.template dims<2>();//n. local points along z
+
+        for(int_t k=0 ; k<d3 ; ++k)
+        {
+            for(int_t n=0 ; n<np3 ; ++n)
+            {
+                for(int_t j=0 ; j<d2 ; ++j)
+                {
+                    for(int_t m=0 ; m<np2 ; ++m)
+                    {
+                        for(int_t i=0 ; i<d1 ; ++i)
+                        {
+                            for(int_t l=0 ; l<np1 ; ++l)
+                            {
+                                for(int_t dim=0 ; dim<d5 ; ++dim)
+                                {
+                                    if(Face==0)
+                                        if(!l)
+                                            data_[ k*np3*d2*np2*d1*np1*d5 + n*d2*np2*d1*np1*d5 + j*np2*d1*np1*d5 + m*d1*np1*d5 + i*np1*d5 + l*d5 + dim] = storage_(i,j,k,dim, 0);
+                                    if(Face==2)
+                                        if(!m)
+                                            data_[ k*np3*d2*np2*d1*np1*d5 + n*d2*np2*d1*np1*d5 + j*np2*d1*np1*d5 + m*d1*np1*d5 + i*np1*d5 + l*d5 + dim] = storage_(i,j,k,dim, 2);
+                                    if(Face==4)
+                                        if(!n)
+                                            data_[ k*np3*d2*np2*d1*np1*d5 + n*d2*np2*d1*np1*d5 + j*np2*d1*np1*d5 + m*d1*np1*d5 + i*np1*d5 + l*d5 + dim] = storage_(i,j,k,dim, 4);
+                                    if(l && m && n)
+                                        data_[ k*np3*d2*np2*d1*np1*d5 + n*d2*np2*d1*np1*d5 + j*np2*d1*np1*d5 + m*d1*np1*d5 + i*np1*d5 + l*d5 + dim] = 0.;
+                                //std::cout<<"("<<i<<","<<j<<","<<k<<","<<l<<","<<m<<","<<n<<") = ("<<storage_(i,j,k,l,0)<<","<<storage_(i,j,k,l,1)<<","<<storage_(i,j,k,l,2)<<")"<<std::endl;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 
     template<typename ... Storage>
     struct io_regular ;
@@ -327,7 +403,7 @@ namespace gridtools{
             attr->setCenter(XdmfAttributeCenter::Node());
             attr->setType(XdmfAttributeType::Scalar());
             uint_t total_points = storage_.meta_data().size();
-            typename Storage::value_type data[total_points];
+            typename ScalarStorage::value_type data[total_points];
             reindex(storage_, m_local_grid, data); // loops
             attr->initialize(XdmfArrayType::Float64(), total_points);
             attr->insert(0, data, total_points);
@@ -344,13 +420,63 @@ namespace gridtools{
             attr->setCenter(XdmfAttributeCenter::Node());
             attr->setType(XdmfAttributeType::Vector());
             uint_t total_points = storage_.meta_data().size();
-            typename Storage::value_type data[total_points];
+            typename VecStorage::value_type data[total_points];
             reindex(storage_, m_local_grid, data); // loops
 
             attr->initialize(XdmfArrayType::Float64(), total_points);
             attr->insert(0, data, total_points);
             // The heavy data set name is determined by the writer if not set
             m_grid->insert(attr);
+        }
+
+
+        template<int FieldDim, typename VecStorage >//cxx11
+        void set_attribute_vector_on_face(VecStorage const& storage_, std::string const& name_){
+
+            // Attribute
+            boost::shared_ptr<XdmfAttribute> attr0 = XdmfAttribute::New();
+            attr0->setName(name_ + "face0");
+            attr0->setCenter(XdmfAttributeCenter::Node());
+            attr0->setType(XdmfAttributeType::Vector());
+            uint_t total_points = storage_.meta_data().template dims<0>()
+                *storage_.meta_data().template dims<1>()
+                *storage_.meta_data().template dims<2>()
+                *8//dofs cardinality
+                *storage_.meta_data().template dims<3>();//n_dims
+            typename VecStorage::value_type data[total_points];
+            reindex_on_face<0>(storage_, m_local_grid, data); // loops
+
+            attr0->initialize(XdmfArrayType::Float64(), total_points);
+            attr0->insert(0, data, total_points);
+            // The heavy data set name is determined by the writer if not set
+            m_grid->insert(attr0);
+
+            // Attr1ibute
+            boost::shared_ptr<XdmfAttribute> attr1 = XdmfAttribute::New();
+            attr1->setName(name_ + "face1");
+            attr1->setCenter(XdmfAttributeCenter::Node());
+            attr1->setType(XdmfAttributeType::Vector());
+            typename VecStorage::value_type data1[total_points];
+            reindex_on_face<1>(storage_, m_local_grid, data1); // loops
+
+            attr1->initialize(XdmfArrayType::Float64(), total_points);
+            attr1->insert(0, data, total_points);
+            // The heavy data set name is determined by the writer if not set
+            m_grid->insert(attr1);
+
+            // Attribute
+            boost::shared_ptr<XdmfAttribute> attr2 = XdmfAttribute::New();
+            attr2->setName(name_ + "face2");
+            attr2->setCenter(XdmfAttributeCenter::Node());
+            attr2->setType(XdmfAttributeType::Vector());
+            typename VecStorage::value_type data2[total_points];
+            reindex_on_face<2>(storage_, m_local_grid, data2); // loops
+
+            attr2->initialize(XdmfArrayType::Float64(), total_points);
+            attr2->insert(0, data, total_points);
+            // The heavy data set name is determined by the writer if not set
+            m_grid->insert(attr2);
+
         }
 
         void set_information(std::string const& name_){

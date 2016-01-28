@@ -10,9 +10,9 @@
 #ifdef CXX11_ENABLED
 
 // [namespaces]
-using namespace gridtools;
-using namespace enumtype;
-using namespace expressions;
+// using namespace gridtools;
+// using namespace enumtype;
+// using namespace expressions;
 // [namespaces]
 
 typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_interval;
@@ -189,14 +189,14 @@ public:
         }
     };
 
-    template <typename FE, typename Cubature, typename Vector>
+    template <typename FE, typename Cubature>
     struct advection{
-        template<typename Phi, typename DPhi, typename Adv>
-        auto static esf(Phi, DPhi, Adv) ->
-            decltype(make_esf<functors::advection<FE , Cubature, Vector> >(p_jac_det(), p_jac_inv(), p_weights(), DPhi(), Phi(), Adv()))
+        template<typename Beta, typename Phi, typename DPhi, typename Adv>
+        auto static esf(Beta, Phi, DPhi, Adv) ->
+            decltype(make_esf<functors::advection<FE , Cubature> >(p_jac_det(), p_jac_inv(), p_weights(), Beta(), DPhi(), Phi(), Adv()))
         {
             //TODO check that the inverse is computed
-            return make_esf<functors::advection<FE , Cubature, Vector> >(p_jac_det(), p_jac_inv(), p_weights(), DPhi(), Phi(), Adv());
+            return make_esf<functors::advection<FE , Cubature> >(p_jac_det(), p_jac_inv(), p_weights(), Beta(), DPhi(), Phi(), Adv());
         }
     };
 

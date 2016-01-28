@@ -118,7 +118,6 @@ namespace functors{
 /**
    This functor computes an integran over a boundary face
 */
-
     using namespace expressions;
     template <typename FE, typename BoundaryCubature>
     struct bd_mass {
@@ -160,8 +159,84 @@ namespace functors{
                     {
                         float_type partial_sum=0.;
                         for(ushort_t q_=0; q_<num_cub_points; ++q_){
+                            // auto tmp1=eval(!phi_trace(P_i,q_,face_));
+                            // auto tmp2=eval(!psi_trace(P_j, q_, face_));
+                            // auto tmp3=eval(jac_det(quad+q_, dimension<5>(face_)));
+                            // auto tmp4=eval(!weights(q_));
+                            // std::cout<<tmp1<<"\n";
+                            // std::cout<<tmp2<<"\n";
+                            // std::cout<<tmp3<<"\n";
+                            // std::cout<<tmp4<<"\n";
                             partial_sum += eval(!phi_trace(P_i,q_,face_)*!psi_trace(P_j, q_, face_)*jac_det(quad+q_, dimension<5>(face_)) * !weights(q_));
                         }
+                        eval(out(dofI+P_i, dofJ+P_j, dimension<6>(face_)))=partial_sum;
+                    }
+                }
+            }
+        }
+    };
+// [boundary integration]
+
+// [boundary integration]
+/**
+   This functor computes an integran over a boundary face
+*/
+    using namespace expressions;
+    template <typename FE, typename BoundaryCubature>
+    struct bd_mass_uv {
+        using fe=FE;
+        using bd_cub=BoundaryCubature;
+
+        using jac_det=accessor< 0, enumtype::in, extent<0,0,0,0>, 5 >;
+        using weights=accessor< 1, enumtype::in, extent<0,0,0,0>, 3 >;
+        using phi_trace=accessor< 2, enumtype::in, extent<0,0,0,0>, 3 >;
+        using psi_trace=accessor< 3, enumtype::in, extent<0,0,0,0>, 3 >;
+        using out=accessor< 4, enumtype::inout, extent<0,0,0,0>, 6 >;
+
+        using arg_list=boost::mpl::vector<jac_det, weights, phi_trace, psi_trace, out> ;
+
+        /** @brief compute the integral on the boundary of a field times the normals
+
+            note that we use here the traces of the basis functions, i.e. the basis functions
+            evaluated on the quadrature points of the boundary faces.
+        */
+        template <typename Evaluation>
+        GT_FUNCTION
+        static void Do(Evaluation const & eval, x_interval) {
+            dimension<4>::Index quad;
+            dimension<4>::Index dofI;
+            dimension<5>::Index dofJ;
+
+            uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac_det());
+            uint_t const basis_cardinality = eval.get().template get_storage_dims<0>(phi_trace());
+            uint_t const n_faces = eval.get().template get_storage_dims<4>(jac_det());
+
+
+            for(short_t face_=0; face_<n_faces; ++face_) // current dof
+            {
+                short_t face_opposite_ =
+                    face_==0?1
+                    : face_==1?0
+                    : face_==2?3
+                    : face_==3?2
+                    : face_==4?5
+                    : face_==5?4
+                    : -666;
+                // loop on the basis functions (interpolation in the quadrature point)
+                // over the whole basis TODO: can be reduced to the face dofs when the basis func.
+                // are localized
+                for(short_t P_i=0; P_i<basis_cardinality; ++P_i) // current dof
+                {
+                    for(short_t P_j=0; P_j<basis_cardinality; ++P_j) // current dof
+                    {
+                        float_type partial_sum=0.;
+                        for(ushort_t q_=0; q_<num_cub_points; ++q_){
+                            partial_sum += eval(!phi_trace(P_i,q_,face_)*!psi_trace(P_j, q_, face_opposite_)*jac_det(quad+q_, dimension<5>(face_)) * !weights(q_));
+                        }
+                        //NOTE:
+                        //we leave the local numeration on faces unchanged, so mass(i,i) does not
+                        //correspond to 2 basis func. on the same point. Instead
+                        //if i=point, j=opposite(point), then mass(i,j) is the "diagonal" entry
                         eval(out(dofI+P_i, dofJ+P_j, dimension<6>(face_)))=partial_sum;
                     }
                 }
@@ -263,6 +338,17 @@ namespace functors{
 
 
     // [normals]
+
+    /**
+       Note: the reference normals are ordered as follows:
+       index:                  .____.
+       0 (0,-1,0)             /  0 /|
+       1 (1,0,0)             .____. |5
+       2 (0,1,0)             |    |1.          z
+       3 (-1,0,0)           3|  4 |/       x__/
+       4 (0,0,-1)            .____.           |
+       5 (0,0,1)               2              y
+     */
     template<typename BdGeometry>
     struct compute_face_normals{
         using bd_cub=typename BdGeometry::cub;
@@ -296,14 +382,65 @@ namespace functors{
                     for(ushort_t i_=0; i_<3; ++i_){
                         double product = 0.;
                         for(ushort_t j_=0; j_<3; ++j_){
+                            // auto tmp1=eval(jac(quad+q_, dimI+i_, dimJ+j_, f+face_));
+                            // auto tmp2=eval(!ref_normals(j_,face_));
+                            // std::cout<<"face: "<<face_ <<" => "tmp1<<" * "<<tmp2<<"\n";
                             product += eval(jac(quad+q_, dimI+i_, dimJ+j_, f+face_)) * eval(!ref_normals(j_,face_));
                         }
-                        eval(normals(quad+q_, dimI+i_)) = product;
+                        eval(normals(quad+q_, dimI+i_, dimJ+face_)) = product;
                     }
                 }
             }
         }
     };
+
+
+    /**
+       @brief integrate on face
+     */
+    template<typename BdGeometry>
+    struct bd_integrate{
+        using bd_cub=typename BdGeometry::cub;
+        static const auto parent_shape=BdGeometry::parent_shape;
+
+        using phi_trace=accessor< 0, enumtype::in, extent<>, 3 >;
+        using jac_det=accessor< 1, enumtype::in, extent<>, 5 >;
+        using weights=accessor< 2, enumtype::in, extent<>, 3 >;
+        using in=accessor< 3, enumtype::in, extent<>, 6 >;
+        using out=accessor< 4, enumtype::inout, extent<>, 6 >;
+        using arg_list=boost::mpl::vector<phi_trace, jac_det, weights, in, out> ;
+
+        /** @brief compute the integral of a vector
+
+        */
+        template <typename Evaluation>
+        GT_FUNCTION
+        static void Do(Evaluation const & eval, x_interval) {
+            x::Index i;
+            y::Index j;
+            z::Index k;
+            dimension<4>::Index quad;
+            dimension<4>::Index dimI;
+            dimension<5>::Index sdim;
+            dimension<6>::Index f;
+
+            uint_t const basis_cardinality=eval.get().template get_storage_dims<0>(phi_trace());
+            uint_t const num_cub_points=eval.get().template get_storage_dims<1>(phi_trace());
+            uint_t const num_faces=eval.get().template get_storage_dims<2>(phi_trace());
+
+            for(ushort_t face_=0; face_<num_faces; ++face_){
+                for(ushort_t q_=0; q_<num_cub_points; ++q_){
+                    for(ushort_t i_=0; i_<3; ++i_){
+                        for(ushort_t dof_=0; dof_<basis_cardinality; ++dof_){
+
+                            eval(out(dimI+dof_, sdim+i_, f+face_)) += eval(in(quad+q_, sdim+i_, f+face_)) * eval(!phi_trace(dof_,q_, face_)*jac_det(quad+q_, dimension<5>(face_)) * !weights(q_));
+                        }
+                    }
+                }
+            }
+        }
+    };
+
     // [normals]
 
     // template<typename BdGeometry, ushort_t faceID>
