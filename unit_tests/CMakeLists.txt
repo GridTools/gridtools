@@ -18,18 +18,19 @@ endif()
 set(COMMON_TESTS
     test_domain_indices.cpp
     boundary_conditions_test.cpp
-    test_global_accessor.cpp
 )
 
 if(STRUCTURED_GRIDS)
-    set(COMMON_TESTS ${COMMON_TESTS} tests.cpp)
+    set(COMMON_TESTS ${COMMON_TESTS} tests.cpp test_global_accessor.cpp)
 endif(STRUCTURED_GRIDS)
 
 add_executable(tests ${COMMON_TESTS})
 
+if(STRUCTURED_GRIDS)
 add_executable(test_global_accessor test_global_accessor.cpp)
 set_target_properties(test_global_accessor PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
 target_link_libraries(test_global_accessor ${GTEST_BOTH_LIBRARIES} gcl -lpthread ${exe_LIBS})
+endif(STRUCTURED_GRIDS)
 
 # include boost
 include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )

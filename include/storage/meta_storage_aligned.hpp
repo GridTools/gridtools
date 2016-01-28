@@ -129,7 +129,7 @@ namespace gridtools {
             template <class Array, typename boost::enable_if<is_array<Array>, int >::type = 0 >
             GT_FUNCTION
             constexpr meta_storage_aligned( Array const& dims_ ) :
-                meta_storage_aligned(dims_, typename make_gt_integer_sequence< ushort_t, 3 >::type())
+                meta_storage_aligned(dims_, typename make_gt_integer_sequence< ushort_t, Array::n_dimensions >::type())
             {
                 GRIDTOOLS_STATIC_ASSERT(is_array<Array>::value, "type");
             }

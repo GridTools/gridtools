@@ -31,15 +31,6 @@ namespace gridtools {
     template <uint_t I, typename T, typename Cond>
     struct arg;
 
-    template <uint_t I, enumtype::intend Intend>
-    struct global_accessor{
-
-        typedef global_accessor<I, Intend> type;
-        // static const ushort_t n_dim=Dim;
-        typedef static_uint<I> index_type;
-        // typedef Range range_type;
-    };
-
     /**
      * @brief Type to be used in elementary stencil functions to specify argument mapping and extents
      *
