@@ -57,7 +57,7 @@ TEST(test_make_computation, positional_when_debug) {
 
     typedef layout_map<2,1,0> layout_t;
     typedef BACKEND::storage_type<int, BACKEND::storage_info<0,layout_t> >::type storage_type;
-    storage_type::storage_info_type sinfo(3,3,3);
+    BACKEND::storage_info<0,layout_t> sinfo(3,3,3);
     storage_type a_storage(sinfo, 0, "test");
 
     typedef arg<0, storage_type> p_in;
