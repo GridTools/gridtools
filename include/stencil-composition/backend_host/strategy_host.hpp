@@ -124,9 +124,9 @@ namespace gridtools{
                 base_storage
 #endif
                 <typename Storage::pointer_type, typename get_tmp_storage_info
-                 <typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout,
-                  typename Storage::meta_data_t::halo_t,
-                  typename Storage::meta_data_t::alignment_t,
+                 <typename Storage::storage_info_type::index_type, typename Storage::storage_info_type::layout,
+                  typename Storage::storage_info_type::halo_t,
+                  typename Storage::storage_info_type::alignment_t,
 #ifdef CXX11_ENABLED
                   Tiles ...
 #else
@@ -296,8 +296,8 @@ namespace gridtools{
                 base_storage
 #endif
                 <typename Storage::pointer_type, typename get_tmp_meta_storage
-                 <typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout,
-                  typename Storage::meta_data_t::halo_t,
+                 <typename Storage::storage_info_type::index_type, typename Storage::storage_info_type::layout,
+                  typename Storage::storage_info_type::halo_t,
 #ifdef CXX11_ENABLED
                   Tiles ...
 #else

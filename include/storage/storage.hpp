@@ -17,6 +17,7 @@ namespace gridtools{
     {
         typedef BaseStorage super;
         typedef typename BaseStorage::basic_type basic_type;
+        typedef typename basic_type::storage_info_type storage_info_type;
         typedef storage<BaseStorage> original_storage;
         typedef clonable_to_gpu<storage<BaseStorage> > gpu_clone;
         typedef typename BaseStorage::iterator_type iterator_type;
@@ -32,31 +33,31 @@ namespace gridtools{
 #if defined(CXX11_ENABLED)
         //forwarding constructor
         template <class ... ExtraArgs>
-        explicit storage(  typename basic_type::meta_data_t const& meta_data_, ExtraArgs const& ... args ):super(meta_data_, args ...)
+        explicit storage(  typename basic_type::storage_info_type const& meta_data_, ExtraArgs const& ... args ):super(meta_data_, args ...)
             {
             }
 #else
 
         template<typename T>
-        explicit storage(  typename basic_type::meta_data_t const& meta_data_, T const& arg1 ):super(meta_data_, arg1)
+        explicit storage(  typename basic_type::storage_info_type const& meta_data_, T const& arg1 ):super(meta_data_, arg1)
             {
             }
 
 
         template <class T, class U>
-        explicit storage(  typename basic_type::meta_data_t const& meta_data_, T const& arg1, U const& arg2 ):super(meta_data_, (value_type) arg1, arg2)
+        explicit storage(  typename basic_type::storage_info_type const& meta_data_, T const& arg1, U const& arg2 ):super(meta_data_, (value_type) arg1, arg2)
             {
             }
 
         template <class T, class U>
-        explicit storage(  typename basic_type::meta_data_t const& meta_data_, T * arg1, U const& arg2 ):super(meta_data_, (value_type)* arg1, arg2)
+        explicit storage(  typename basic_type::storage_info_type const& meta_data_, T * arg1, U const& arg2 ):super(meta_data_, (value_type)* arg1, arg2)
             {
             }
 
 #endif
 
 //    private :
-        explicit storage(typename basic_type::meta_data_t const& meta_data_):super(meta_data_){}
+        explicit storage(typename basic_type::storage_info_type const& meta_data_):super(meta_data_){}
     };
 
     /**@brief Convenient syntactic sugar for specifying an extended-dimension with extended-width storages, where each dimension has arbitrary size 'Number'.
@@ -80,7 +81,7 @@ namespace gridtools{
     */
     template< class BaseStorage, uint_t ... Number >
     struct field_reversed<storage<BaseStorage>, Number ... >{
-        typedef storage< data_field< storage_list<base_storage<typename BaseStorage::pointer_type, typename  BaseStorage::meta_data_t, accumulate(add_functor(), ((uint_t)Number) ... )>, Number-1> ... > > type;
+        typedef storage< data_field< storage_list<base_storage<typename BaseStorage::pointer_type, typename  BaseStorage::storage_info_type, accumulate(add_functor(), ((uint_t)Number) ... )>, Number-1> ... > > type;
     };
 
     /**

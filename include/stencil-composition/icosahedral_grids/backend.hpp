@@ -41,10 +41,10 @@ namespace gridtools {
         static const enumtype::platform s_backend_id =base_t::s_backend_id;
 
         template <typename LocationType>
-        using meta_storage_t = storage_info<LocationType::value, layout_map<0,1,2,3> >;
+        using storage_info_type = storage_info<LocationType::value, layout_map<0,1,2,3> >;
 
         template <typename LocationType, typename ValueType>
-        using storage_t = storage< base_storage<wrap_pointer<ValueType>, meta_storage_t<LocationType>, 1> >;
+        using storage_t = storage< base_storage<wrap_pointer<ValueType>, storage_info_type<LocationType>, 1> >;
 
     };
 } // namespace gridtools

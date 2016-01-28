@@ -188,7 +188,7 @@ namespace gridtools{
 
         /**@brief default constructor*/
         template <typename ... ExtraArgs>
-        data_field(typename basic_type::meta_data_t const & meta_data_, ExtraArgs const& ... args_ ): super(meta_data_, args_...){}
+        data_field(typename basic_type::storage_info_type const & meta_data_, ExtraArgs const& ... args_ ): super(meta_data_, args_...){}
 
         /**@brief device copy constructor*/
         template <typename T>

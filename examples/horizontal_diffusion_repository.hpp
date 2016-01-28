@@ -47,6 +47,17 @@ class repository
     typedef hd_backend::temporary_storage_type<gridtools::float_type, storage_info_ijk_t >::type tmp_storage_type;
     typedef hd_backend::temporary_storage_type<gridtools::float_type, storage_info_scalar_t>::type tmp_scalar_storage_type;
 
+    storage_info_ijk_t m_storage_info_ijk;
+    storage_info_j_t m_storage_info_j;
+private:
+
+    storage_info_ij_t m_storage_info_ij;
+    storage_info_scalar_t m_storage_info_scalar;
+    storage_type in_, out_, out_ref_, coeff_;
+    j_storage_type crlato_, crlatu_, crlat0_, crlat1_;
+    const uint_t halo_size_;
+    const uint_t idim_, jdim_, kdim_;
+public:
     repository(const uint_t idim, const uint_t jdim, const uint_t kdim, const uint_t halo_size):
         m_storage_info_ijk(idim, jdim, kdim),
         m_storage_info_ij(idim, jdim, kdim),
@@ -228,16 +239,6 @@ class repository
 
     storage_info_ijk_t& storage_info_ijk() {return m_storage_info_ijk;}
 
-    storage_info_ijk_t m_storage_info_ijk;
-    storage_info_j_t m_storage_info_j;
-private:
-
-    storage_info_ij_t m_storage_info_ij;
-    storage_info_scalar_t m_storage_info_scalar;
-    storage_type in_, out_, out_ref_, coeff_;
-    j_storage_type crlato_, crlatu_, crlat0_, crlat1_;
-    const uint_t halo_size_;
-    const uint_t idim_, jdim_, kdim_;
 };
 
 }

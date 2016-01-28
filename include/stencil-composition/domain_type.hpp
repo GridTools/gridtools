@@ -187,8 +187,8 @@ namespace gridtools {
             boost::fusion::at<typename ArgStoragePair0::arg_type::index_type>(m_storage_pointers) = arg0.ptr;
             //storing the value of the pointers in a 'backup' fusion vector
             boost::fusion::at<typename ArgStoragePair0::arg_type::index_type>(m_original_pointers) = arg0.ptr;
-            if (!sequence_.template present<pointer<const typename ArgStoragePair0::storage_type::meta_data_t> >())
-                sequence_.insert(pointer<const typename ArgStoragePair0::storage_type::meta_data_t>(&(arg0.ptr->meta_data())));
+            if (!sequence_.template present<pointer<const typename ArgStoragePair0::storage_type::storage_info_type> >())
+                sequence_.insert(pointer<const typename ArgStoragePair0::storage_type::storage_info_type>(&(arg0.ptr->meta_data())));
             assign_pointers(sequence_, other_args...);
         }
 
@@ -278,10 +278,9 @@ namespace gridtools {
                  is_not_tmp_storage<boost::mpl::_1> > view_type;
 
             view_type fview(m_storage_pointers);
-
             GRIDTOOLS_STATIC_ASSERT( boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value,
-                "The number of arguments specified when constructing the domain_type is not the same as the number of placeholders "
-                "to non-temporary storages. Double check the temporary flag in the meta_storage types.");
+               "The number of arguments specified when constructing the domain_type is not the same as the number of placeholders "
+               "to non-temporary storages. Double check the temporary flag in the meta_storage types.");
 
             //below few metafunctions only to protect the user from mismatched storages
             typedef typename boost::mpl::fold<

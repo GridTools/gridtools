@@ -24,7 +24,7 @@ namespace gridtools {
 #endif
 
         typedef RegularStorageType type;
-        typedef no_meta_storage_type_yet<typename RegularStorageType::meta_data_t> meta_data_t;
+        typedef no_meta_storage_type_yet<typename RegularStorageType::storage_info_type> storage_info_type;
         typedef typename  type::layout layout;
         typedef typename  type::const_iterator_type const_iterator_type;
         typedef typename  type::basic_type basic_type;
@@ -123,12 +123,12 @@ namespace gridtools {
         typedef typename pointer_type::pointee_t value_type;
         typedef value_type* iterator_type;
         typedef value_type const* const_iterator_type;
-        typedef MetaData meta_data_t;
+        typedef MetaData storage_info_type;
         typedef typename MetaData::layout layout;
-        static const bool is_temporary = meta_data_t::is_temporary;
+        static const bool is_temporary = storage_info_type::is_temporary;
         static const ushort_t n_width = 1;
         static const ushort_t space_dimensions = MetaData::space_dimensions;
-        typedef base_storage<PointerType, MetaData, FieldDimension> basic_type;
+        typedef type basic_type;
         static const ushort_t field_dimensions=FieldDimension;
 
 
@@ -345,7 +345,7 @@ namespace gridtools {
         /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
         template <typename ... UInt>
         GT_FUNCTION
-        value_type& operator()(meta_data_t* metadata_, UInt const& ... dims) {
+        value_type& operator()(storage_info_type* metadata_, UInt const& ... dims) {
             assert(metadata_ && metadata_->index(dims...) < metadata_->size());
             assert(is_set);
             return (m_fields[0])[metadata_->index(dims...)];
@@ -440,7 +440,7 @@ namespace gridtools {
 
         /** @brief returns a const pointer to the data field*/
         GT_FUNCTION
-        meta_data_t const& meta_data() const {return m_meta_data;}
+        storage_info_type const& meta_data() const {return m_meta_data;}
 
     };
 

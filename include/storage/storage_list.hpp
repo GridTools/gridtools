@@ -29,7 +29,7 @@ namespace gridtools{
 
         /**@brief default constructor*/
         template<typename...ExtraArgs>
-        explicit storage_list(typename basic_type::meta_data_t const& meta_data_, ExtraArgs... args_ ): super( meta_data_, args_... ) {
+        explicit storage_list(typename basic_type::storage_info_type const& meta_data_, ExtraArgs... args_ ): super( meta_data_, args_... ) {
         }
 
         /**@brief destructor: frees the pointers to the data fields */
@@ -76,11 +76,11 @@ namespace gridtools{
         typedef Storage super;
 
         //default constructor
-        storage_list(typename basic_type::meta_data_t const& meta_data_): super(meta_data_){}
+        storage_list(typename basic_type::storage_info_type const& meta_data_): super(meta_data_){}
 
         /**@brief default constructor*/
         template<typename ... UIntTypes>
-        explicit storage_list(typename basic_type::meta_data_t const& meta_data_, UIntTypes const& ... args ): Storage( meta_data_, args ... ) {
+        explicit storage_list(typename basic_type::storage_info_type const& meta_data_, UIntTypes const& ... args ): Storage( meta_data_, args ... ) {
         }
 
         /**@brief destructor: frees the pointers to the data fields */

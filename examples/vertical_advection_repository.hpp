@@ -122,9 +122,9 @@ public:
     {
         double dtr_stage = dtr_stage_(0,0,0);
 
-        ij_storage_type::meta_data_t storage_info_ij(idim_, jdim_, (uint_t)1);
+        ij_storage_type::storage_info_type storage_info_ij(idim_, jdim_, (uint_t)1);
         ij_storage_type datacol(storage_info_ij, -1., "datacol");
-        storage_type::meta_data_t storage_info_(idim_, jdim_, kdim_);
+        storage_type::storage_info_type storage_info_(idim_, jdim_, kdim_);
         storage_type ccol(storage_info_, -1., "ccol"), dcol(storage_info_, -1., "dcol");
 
         init_field_to_value(ccol, 0.0);
@@ -271,8 +271,8 @@ public:
     storage_type& u_stage() {return u_stage_;}
     storage_type& utens_stage_ref() {return utens_stage_ref_;}
 private:
-    storage_type::meta_data_t m_storage_info;
-    scalar_storage_type::meta_data_t m_scalar_storage_info;
+    storage_type::storage_info_type m_storage_info;
+    scalar_storage_type::storage_info_type m_scalar_storage_info;
     storage_type utens_stage_, u_stage_, wcon_, u_pos_, utens_, utens_stage_ref_;
     storage_type ipos_, jpos_, kpos_;
     scalar_storage_type dtr_stage_;

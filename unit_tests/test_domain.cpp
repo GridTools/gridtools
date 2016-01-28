@@ -109,7 +109,7 @@ bool test_domain() {
     uint_t d2 = 3;
     uint_t d3 = 3;
 
-    typename storage_type::meta_data_t meta_(d1,d2,d3);
+    typename storage_type::storage_info_type meta_(d1,d2,d3);
     storage_type in(meta_, -1, ("in"));
     storage_type out(meta_,-7.3, ("out"));
     storage_type coeff(meta_,-3.4, ("coeff"));

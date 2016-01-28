@@ -461,8 +461,6 @@ If you are not using generic accessors then you are using an unsupported storage
         /**
            @brief Overload when the accessor associated with this ID is not a user-defined global accessor
 
-           The storage types used in this case must contain a meta_storage_t type
-           assign the storage pointers in the iterate_domain
          */
         template <typename ID>
         GT_FUNCTION
@@ -474,9 +472,9 @@ If you are not using generic accessors then you are using an unsupported storage
             typedef typename storage_ptr_type::value_type storage_type;
 
             typedef typename boost::mpl::at
-                <MetaDataMap, typename storage_type::meta_data_t >::type metadata_index_t;
+                <MetaDataMap, typename storage_type::storage_info_type >::type metadata_index_t;
 
-            pointer<const typename storage_type::meta_data_t> const metadata_ = boost::fusion::at
+            pointer<const typename storage_type::storage_info_type> const metadata_ = boost::fusion::at
                 < metadata_index_t >(m_meta_storages);
 
             //if the following fails, the ID is larger than the number of storage types
