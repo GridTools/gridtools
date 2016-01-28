@@ -1,6 +1,8 @@
 #pragma once
 
 #include <boost/mpl/count_if.hpp>
+#include "../../common/defs.hpp"
+#include "./accessor_metafunctions.hpp"
 
 namespace gridtools {
     namespace _impl {
