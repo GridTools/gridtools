@@ -63,15 +63,6 @@ namespace gridtools{
         constexpr T operator() (const T& x, const T& y) const {return x+y;}
     };
 
-    /**@brief operation to be used inside the accumulator*/
-    struct subtract_functor {
-        GT_FUNCTION
-        constexpr subtract_functor(){}
-        template <class T>
-        GT_FUNCTION
-        constexpr T operator() (const T& x, const T& y) const {return x-y;}
-    };
-
 #ifdef CXX11_ENABLED
     /**@brief accumulator recursive implementation*/
     template<typename Operator, typename First, typename ... Args>
@@ -102,17 +93,6 @@ namespace gridtools{
         return first;
     }
 #endif
-
-
-    /**@brief operation to be used inside the accumulator*/
-    struct average_functor {
-        GT_FUNCTION
-        constexpr average_functor(){}
-        template <class First, class ... T>
-        GT_FUNCTION
-        constexpr First operator() (const First& first_, const T& ... x) const {return accumulate(add_functor(), first_, x ...)/(sizeof...(T)+1);}
-    };
-
 
 #endif
 

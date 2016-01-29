@@ -17,9 +17,9 @@ namespace gridtools {
         GT_FUNCTION
         constexpr dimension(IntType val) : value
 #if( (!defined(CXX11_ENABLED)) )
-                                         (val)
+                                         ((int_t)val)
 #else
-            {val}
+        {(int_t)val}
 #endif
         {
             GRIDTOOLS_STATIC_ASSERT(Coordinate!=0, "The coordinate values passed to the accessor start from 1");
