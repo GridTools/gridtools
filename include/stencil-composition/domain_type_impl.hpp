@@ -73,7 +73,7 @@ namespace gridtools {
         struct print_domain_info {
             template <typename StorageType>
             GT_FUNCTION
-            void operator()(StorageType* s) const {
+            void operator()(pointer<StorageType> s) const {
                 printf("PTR %x\n",  s);
             }
         };
@@ -83,19 +83,12 @@ namespace gridtools {
         struct l_get_type {
             template <typename U, typename Dummy = void>
             struct apply {
-                typedef typename U::storage_type* type;
+                typedef pointer<typename U::storage_type> type;
             };
 
             template <typename TheStorage, typename Dummy>
             struct apply<no_storage_type_yet<TheStorage>, Dummy> {
-                typedef no_storage_type_yet<TheStorage>* type;
-            };
-        };
-
-        struct l_get_it_pos {
-            template <typename U>
-            struct apply {
-                typedef typename U::pos type;
+                typedef pointer< no_storage_type_yet<TheStorage> > type;
             };
         };
 

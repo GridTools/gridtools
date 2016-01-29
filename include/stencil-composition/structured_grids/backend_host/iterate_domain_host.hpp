@@ -106,7 +106,7 @@ struct is_positional_iterate_domain<iterate_domain_host<IterateDomainBase, Itera
 template<template<class> class IterateDomainBase, typename IterateDomainArguments>
 struct iterate_domain_backend_id<iterate_domain_host<IterateDomainBase, IterateDomainArguments> >
 {
-    typedef enumtype::enum_type< enumtype::backend, enumtype::Host > type;
+    typedef enumtype::enum_type< enumtype::platform, enumtype::Host > type;
 };
 
 }  //namespace gridtools

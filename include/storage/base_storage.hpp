@@ -143,6 +143,7 @@ namespace gridtools {
         template <typename T, typename M, bool I, ushort_t F>
         friend std::ostream& operator<<(std::ostream &, base_storage<T, M, F> const & );
 
+
         /**@brief the parallel storage calls the empty constructor to do lazy initialization*/
         base_storage(MetaData const & meta_data_, bool do_allocate=true) :
             is_set( false )

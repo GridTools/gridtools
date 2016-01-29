@@ -98,7 +98,7 @@ namespace gridtools{
            @{
          */
         /** enum specifying the type of backend we use */
-        enum backend  {Cuda, Host};
+        enum platform  {Cuda, Host};
 
         enum strategy  {Naive, Block};
 
@@ -160,7 +160,7 @@ namespace gridtools{
 #ifdef CXX11_ENABLED
     /** checking that no arithmetic operation is performed on enum types*/
     template<>
-    struct is_backend_enum<enumtype::backend> : boost::mpl::true_ {};
+    struct is_backend_enum<enumtype::platform> : boost::mpl::true_ {};
     struct error_no_operator_overload{};
 
     template <typename  ArgType1, typename ArgType2,

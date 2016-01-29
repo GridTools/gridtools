@@ -26,7 +26,7 @@ namespace gridtools {
      */
     template<
         typename MssComponentsArray, typename Grid, typename MssLocalDomainArray,
-        enumtype::backend BackendId, enumtype::strategy StrategyId>
+        enumtype::platform BackendId, enumtype::strategy StrategyId>
     struct mss_functor
     {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssLocalDomainArray, is_mss_local_domain>::value), "Internal Error: wrong type");
@@ -86,7 +86,7 @@ namespace gridtools {
             typedef typename backend_traits_t::template get_block_size<StrategyId>::type block_size_t;
             // compute the struct with all the type arguments for the run functor
 
-            typedef typename sequence_of_is_independent_esf<typename mss_components_t::mss_descriptor_t>::type is_independent_sequence_t;
+            typedef typename sequence_of_is_independent_esf<typename mss_components_t::mss_descriptor_t>::type sequence_of_is_independent_t;
 
             /** generates the map of stating which esf has to be synchronized
 
@@ -119,13 +119,13 @@ namespace gridtools {
             typedef typename boost::mpl::fold<
                 boost::mpl::range_c<int, 1,boost::mpl::size<esf_sequence_t>::value>
                 , boost::mpl::vector0<>
-                , boost::mpl::push_back<boost::mpl::_1, boost::mpl::at<is_independent_sequence_t,  boost::mpl::_2 > >
+                , boost::mpl::push_back<boost::mpl::_1, boost::mpl::at<sequence_of_is_independent_t,  boost::mpl::_2 > >
                 >::type next_thing;
 
             typedef typename boost::mpl::fold<
                 boost::mpl::range_c<int, 0, boost::mpl::size<next_thing>::value >
                 , boost::mpl::map< >
-                , boost::mpl::if_<condition_for_async<boost::mpl::_1, boost::mpl::_2, is_independent_sequence_t, next_thing>
+                , boost::mpl::if_<condition_for_async<boost::mpl::_1, boost::mpl::_2, sequence_of_is_independent_t, next_thing>
                                   , boost::mpl::insert< boost::mpl::_1, boost::mpl::pair< boost::mpl::at<functors_list_t, boost::mpl::_2 >, boost::mpl::true_ > >
                                   , boost::mpl::insert< boost::mpl::_1, boost::mpl::pair< boost::mpl::at<functors_list_t, boost::mpl::_2 >, boost::mpl::false_ > >
                                   >
