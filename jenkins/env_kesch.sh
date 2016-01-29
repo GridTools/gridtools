@@ -17,3 +17,5 @@ export GTEST_MAINLIB=/scratch/cosuna/software/gtest-1.7.0/lib/libgtest_main.a
 export GTEST_INC=/scratch/cosuna/software/gtest-1.7.0/include
 export BOOST_ROOT=/scratch/cosuna/software/boost_1_59_0/
 export BOOST_INCLUDE=/scratch/cosuna/software/boost_1_59_0/include/
+export CUDA_ARCH=sm_37
+

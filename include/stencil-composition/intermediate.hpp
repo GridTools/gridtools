@@ -1,7 +1,7 @@
 #pragma once
 
 #include <boost/mpl/transform.hpp>
-#include "gt_for_each/for_each.hpp"
+#include <boost/mpl/for_each.hpp>
 #include <boost/fusion/include/transform.hpp>
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/copy.hpp>
@@ -127,17 +127,21 @@ namespace gridtools {
             struct is_temp<no_storage_type_yet<T> > : public boost::true_type
             { };
 
-            template <bool b, typename Storage, typename tmppairs, typename index>
+            template <bool is_temp, typename Storage, typename tmppairs, typename index>
             struct get_the_type;
 
             template <typename Storage, typename tmppairs, typename index>
             struct get_the_type<true, Storage, tmppairs,index> {
-                typedef typename boost::mpl::deref<
-                    typename boost::mpl::find_if<
-                        tmppairs,
-                        has_index_<index>
-                        >::type
-                    >::type::first type;
+                typedef typename boost::mpl::find_if<
+                    tmppairs,
+                    has_index_<index>
+                >::type iter;
+
+                GRIDTOOLS_STATIC_ASSERT((!boost::is_same<iter, typename boost::mpl::end<tmppairs>::type >::value),
+                    "Could not find a temporary, defined in the user domain_type, in the list of storage types used in all mss/esfs. \n"
+                    " Check that all temporaries are actually used in at least one user functor");
+
+                typedef typename boost::mpl::deref<iter>::type::first type;
             };
 
             template <typename Storage, typename tmppairs, typename index>
@@ -149,7 +153,7 @@ namespace gridtools {
             struct apply {
                 typedef typename boost::mpl::at<Placeholders, Index>::type::storage_type storage_type;
                 static const bool b = is_temp<storage_type>::value;
-                typedef typename get_the_type<b, storage_type, TmpPairs, Index>::type* type;
+                typedef pointer<typename get_the_type<b, storage_type, TmpPairs, Index>::type> type;
             };
         };
 
@@ -202,7 +206,7 @@ namespace gridtools {
             template <typename MplVector>
             void operator()(_impl::wrap_type<MplVector> const&) const {
                 printf("Independent*\n"); // this whould not be necessary but nvcc s#$ks
-                gridtools::for_each<MplVector>(print__(std::string("    ")));
+                boost::mpl::for_each<MplVector>(print__(std::string("    ")));
                 printf("End Independent*\n");
             }
         };
@@ -210,7 +214,7 @@ namespace gridtools {
     } // namespace _debug
 
     //\todo move inside the traits classes
-    template<enumtype::backend>
+    template<enumtype::platform>
     struct finalize_computation;
 
     template<>
@@ -236,7 +240,7 @@ namespace gridtools {
 
        Returns 0 (GT_NO_ERRORS) on success
     */
-    template<enumtype::backend>
+    template<enumtype::platform>
     struct setup_computation;
 
     template<>
@@ -249,7 +253,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(is_domain_type<DomainType>::value, "wrong domain type");
 
             //copy pointers into the domain original pointers, except for the temporaries.
-            gridtools::for_each<
+            boost::mpl::for_each<
                 boost::mpl::range_c<int, 0, boost::mpl::size<ArgListType>::value >
             > (copy_pointers_functor<ArgListType, typename DomainType::arg_list> (storage_pointers, domain.m_original_pointers));
 
@@ -278,7 +282,7 @@ namespace gridtools {
      * @brief metafunction that create the mss local domain type
      */
     template<
-        enumtype::backend BackendId,
+        enumtype::platform BackendId,
         typename MssComponentsArray,
         typename DomainType,
         typename ActualArgListType,
@@ -388,6 +392,7 @@ namespace gridtools {
             MssDescriptorArray,
             extent_sizes_t
         >::type mss_components_array_t;
+
 
         typedef typename create_actual_arg_list<
                 Backend,
@@ -541,9 +546,6 @@ namespace gridtools {
             if(is_storage_ready)
             {
                 //filter the non temporary meta storage pointers among the actual ones
-                // typedef boost::fusion::filter_view<typename boost::fusion::result_of::as_set<actual_metadata_set_t>::type,
-                //                                    boost::mpl::not_<is_ptr_to_tmp<boost::mpl::_1> > > t_meta_view;
-                //t_meta_view
                 typename boost::fusion::result_of::as_set<actual_metadata_set_t>::type  meta_view(m_actual_metadata_list.sequence_view());
 
                 setup_computation<Backend::s_backend_id>::apply( m_actual_arg_list, meta_view, m_domain );

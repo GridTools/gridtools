@@ -9,12 +9,12 @@
 #include <boost/fusion/view/zip_view.hpp>
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/utility.hpp>
+#include <boost/mpl/for_each.hpp>
 #include "../common/host_device.hpp"
 #include "../common/gpu_clone.hpp"
 #include "../common/is_temporary_storage.hpp"
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
 #include "arg.hpp"
-#include "../gt_for_each/for_each.hpp"
 #include "../storage/storage_metafunctions.hpp"
 
 #include <boost/fusion/include/as_set.hpp>
@@ -34,8 +34,8 @@ namespace gridtools {
                 : m_arg_list(arg_list_)
                 , m_local_list(local_list_)
             {
-                // GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ArgList, is_storage>::value), "wrong type");
-                // GRIDTOOLS_STATIC_ASSERT((is_sequence_of<LocalList, is_arg>::value), "wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ArgList, is_pointer>::value), "wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_sequence_of<LocalList, is_pointer>::value), "wrong type");
             }
 
             template <typename Id>

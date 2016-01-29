@@ -72,7 +72,7 @@ namespace gridtools {
      * all functors involved in the execution of the mss
      */
     template<
-        enumtype::backend BackendId,                // id of the backend
+        enumtype::platform BackendId,                // id of the backend
         typename ProcessingElementsBlockSize,       // block size of grid points updated by computation
                                                     //    in the physical domain
         typename PhysicalDomainBlockSize,           // block size of processing elements (i.e. threads)
@@ -99,7 +99,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_block_size<PhysicalDomainBlockSize>::value), "Internal Error: invalid type");
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value), "Internal Error: invalid type");
 
-        typedef enumtype::enum_type<enumtype::backend, BackendId> backend_id_t;
+        typedef enumtype::enum_type<enumtype::platform, BackendId> backend_id_t;
         typedef ProcessingElementsBlockSize processing_elements_block_size_t;
         typedef PhysicalDomainBlockSize physical_domain_block_size_t;
         typedef FunctorList functor_list_t;
@@ -131,7 +131,7 @@ namespace gridtools {
     template<typename T> struct is_run_functor_arguments : boost::mpl::false_{};
 
     template<
-        enumtype::backend BackendId,
+        enumtype::platform BackendId,
         typename ProcessingElementsBlockSize,
         typename PhysicalDomainBlockSize,
         typename FunctorList,
@@ -180,7 +180,7 @@ namespace gridtools {
         typedef typename boost::mpl::at<typename RunFunctorArguments::extent_sizes_t, Index>::type extent_t;
         typedef typename boost::mpl::at<typename RunFunctorArguments::functors_map_t, Index>::type interval_map_t;
 
-        //global (to the mss) is_independent_sequence map (not local to the esf)
+        //global (to the mss) sequence_of_is_independent_t map (not local to the esf)
         typedef typename RunFunctorArguments::async_esf_map_t async_esf_map_t;
 
         typedef typename index_to_level<

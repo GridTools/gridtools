@@ -36,13 +36,20 @@ namespace gridtools{
             {
             }
 #else
-        template <class T>
+
+        template<typename T>
         explicit storage(  typename basic_type::meta_data_t const& meta_data_, T const& arg1 ):super(meta_data_, arg1)
             {
             }
 
+
         template <class T, class U>
-        explicit storage(  typename basic_type::meta_data_t const& meta_data_, T const& arg1, U const& arg2 ):super(meta_data_, arg1, arg2)
+        explicit storage(  typename basic_type::meta_data_t const& meta_data_, T const& arg1, U const& arg2 ):super(meta_data_, (value_type) arg1, arg2)
+            {
+            }
+
+        template <class T, class U>
+        explicit storage(  typename basic_type::meta_data_t const& meta_data_, T * arg1, U const& arg2 ):super(meta_data_, (value_type)* arg1, arg2)
             {
             }
 
@@ -121,5 +128,11 @@ namespace gridtools{
           << static_cast<T const&>(x) << " > ";
         return s;
     }
+
+    template<typename T>
+    struct is_storage : boost::mpl::false_{};
+
+    template<typename T>
+    struct is_storage<storage<T> > : boost::mpl::true_{};
 
 }//namespace gridtools

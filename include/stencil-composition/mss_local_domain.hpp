@@ -35,7 +35,7 @@ namespace gridtools
     } //namespace _impl
 
     template<
-        enumtype::backend BackendId,
+        enumtype::platform BackendId,
         typename MssComponents,
         typename DomainType,
         typename ActualArgListType,
@@ -68,7 +68,7 @@ namespace gridtools
     template<typename T> struct is_mss_local_domain : boost::mpl::false_{};
 
     template<
-        enumtype::backend BackendId,
+        enumtype::platform BackendId,
         typename MssType,
         typename DomainType,
         typename ActualArgListType,
