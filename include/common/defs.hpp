@@ -14,10 +14,6 @@
 #define CXX11_DISABLED
 #endif
 
-//defines how many threads participate to the (shared) memory initialization
-//TODOCOSUNA This IS VERY VERY VERY DANGEROUS HERE
-#define BLOCK_SIZE 32
-
 #if !defined(FUSION_MAX_VECTOR_SIZE)
     #define FUSION_MAX_VECTOR_SIZE 20
     #define FUSION_MAX_MAP_SIZE 20
@@ -140,6 +136,12 @@ namespace gridtools{
          * accessor I/O policy
          */
         enum intend {in, inout} ;
+
+#ifdef __CUDACC__
+    static const unsigned int vector_width=32;
+#else
+    static const unsigned int vector_width=4;
+#endif
 
     }//namespace enumtype
 
@@ -285,6 +287,7 @@ namespace gridtools{
     /**
        @}
      */
+
 //######################################################
 
 }//namespace gridtools
