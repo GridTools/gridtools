@@ -95,6 +95,11 @@ namespace gridtools{
 
 #ifdef CXX11_ENABLED
 
+        /**
+           explicitly disables the case in which the storage_info is passed by copy.
+        */
+        template <typename ... T>
+        storage(typename basic_type::meta_data_t&&, T...) = delete;
 
         /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k)
 
