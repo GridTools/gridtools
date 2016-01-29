@@ -15,11 +15,8 @@ namespace gridtools {
         template<typename Index_>
         struct get_field_dimensions{
             typedef typename boost::mpl::int_<
-                 boost::remove_pointer<
-                     typename boost::remove_reference<
-                         typename boost::mpl::at<StoragesVector, Index_ >::type
-                     >::type
-                 >::type::field_dimensions
+                boost::mpl::at<StoragesVector, Index_ >::type::value_type
+                ::field_dimensions
              >::type type;
         };
 

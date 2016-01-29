@@ -1,9 +1,5 @@
 #pragma once
 
-#ifndef _IS_TEMPORARY_STORAGE_H_
-#define _IS_TEMPORARY_STORAGE_H_
-#endif
-
 
 namespace gridtools {
     template <typename T>

@@ -28,17 +28,8 @@ namespace gridtools {
     template <ushort_t>
     struct dimension;
 
-    template <uint_t I, typename T>
+    template <uint_t I, typename T, typename Cond>
     struct arg;
-
-    template <uint_t I, enumtype::intend Intend>
-    struct generic_accessor{
-
-        typedef generic_accessor<I, Intend> type;
-        // static const ushort_t n_dim=Dim;
-        typedef static_uint<I> index_type;
-        // typedef Range range_type;
-    };
 
     /**
      * @brief Type to be used in elementary stencil functions to specify argument mapping and extents
@@ -198,8 +189,8 @@ namespace gridtools {
     /**
      * Struct to test if an argument is a placeholder - Specialization yielding true
      */
-    template <uint_t I, typename T>
-    struct is_plchldr<arg<I,T> > : boost::true_type
+    template <uint_t I, typename T, typename C>
+    struct is_plchldr<arg<I,T,C> > : boost::true_type
     {};
 
     /**
@@ -211,15 +202,15 @@ namespace gridtools {
     /**
      * Struct to test if an argument (placeholder) is a temporary no_storage_type_yet - Specialization yielding true
      */
-    template <uint_t I, typename T>
-    struct is_plchldr_to_temp<arg<I, no_storage_type_yet<T> > > : boost::true_type
+    template <uint_t I, typename T, typename C>
+    struct is_plchldr_to_temp<arg<I, no_storage_type_yet<T>, C > > : boost::true_type
     {};
 
     /**
      * Struct to test if an argument is a placeholder to a temporary storage
      */
-    template <uint_t I, typename T, typename U, ushort_t Dim>
-    struct is_plchldr_to_temp<arg<I, base_storage< T, U, Dim> > > : boost::mpl::bool_<U::is_temporary>
+    template <uint_t I, typename T, typename U, ushort_t Dim, typename C>
+    struct is_plchldr_to_temp<arg<I, base_storage< T, U, Dim>, C > > : boost::mpl::bool_<U::is_temporary>
     {};
 
     /**
@@ -228,12 +219,12 @@ namespace gridtools {
      storage class, falls back on the original class type here the
      decorator is the \ref gridtools::storage
     */
-    template <uint_t I, typename BaseType, template <typename T> class Decorator>
-    struct is_plchldr_to_temp<arg<I, Decorator<BaseType> > > : is_plchldr_to_temp<arg<I, typename BaseType::basic_type> >
+    template <uint_t I, typename BaseType, template <typename T> class Decorator, typename C>
+    struct is_plchldr_to_temp<arg<I, Decorator<BaseType>, C > > : is_plchldr_to_temp<arg<I, typename BaseType::basic_type, C> >
     {};
 
-    template <uint_t I, typename BaseType>
-    struct is_plchldr_to_temp<arg<I, storage<BaseType> > > : is_plchldr_to_temp<arg<I, typename BaseType::basic_type> >
+    template <uint_t I, typename BaseType, typename C>
+    struct is_plchldr_to_temp<arg<I, storage<BaseType>, C > > : is_plchldr_to_temp<arg<I, typename BaseType::basic_type, C> >
     {};
 
     /**
@@ -266,8 +257,8 @@ namespace gridtools {
      * @param n/a Type selector for offset_tuple
      * @return ostream
      */
-    template <uint_t I, typename R>
-    std::ostream& operator<<(std::ostream& s, arg<I,no_storage_type_yet<R> > const&) {
+    template <uint_t I, typename R, typename C>
+    std::ostream& operator<<(std::ostream& s, arg<I,no_storage_type_yet<R>, C > const&) {
         return s << "[ arg< " << I
                  << ", temporary<something>" << " > ]";
     }
@@ -278,8 +269,8 @@ namespace gridtools {
      * @param n/a Type selector for arg to a NON temp
      * @return ostream
      */
-    template <uint_t I, typename R>
-    std::ostream& operator<<(std::ostream& s, arg<I,R> const&) {
+    template <uint_t I, typename R, typename C>
+    std::ostream& operator<<(std::ostream& s, arg<I,R,C> const&) {
         return s << "[ arg< " << I
                  << ", NON TEMP" << " > ]";
     }

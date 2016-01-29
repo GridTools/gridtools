@@ -45,7 +45,7 @@ template<typename IterateDomainEvaluatorImpl>
 class iterate_domain_remapper_base
 {
 DISALLOW_COPY_AND_ASSIGN(iterate_domain_remapper_base);
-
+public:
     typedef typename _impl::iterate_domain_remapper_base_iterate_domain<IterateDomainEvaluatorImpl>::type iterate_domain_t;
 protected:
     const iterate_domain_t& m_iterate_domain;
@@ -56,9 +56,13 @@ public:
     GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<iterate_domain_t>::value), "Internal Error: wrong type");
     typedef typename iterate_domain_t::esf_args_t esf_args_t;
 
-
     GT_FUNCTION
     explicit iterate_domain_remapper_base(const iterate_domain_t& iterate_domain) : m_iterate_domain(iterate_domain) {}
+
+    GT_FUNCTION
+    iterate_domain_t const& get_iterate_domain() const {
+        return m_iterate_domain;
+    }
 
     /** shifting the IDs of the placeholders and forwarding to the iterate_domain () operator*/
     template <typename Accessor>
@@ -76,19 +80,6 @@ public:
         return m_iterate_domain(remap_accessor_t(arg));
     }
 
-#ifndef CXX11_ENABLED
-    /** shifting the IDs of the placeholders and forwarding to the iterate_domain () operator*/
-    template <ushort_t Id, enumtype::intend Intend>
-    GT_FUNCTION
-    typename boost::mpl::at<typename iterate_domain_t::local_domain_t::mpl_storages, static_int<Id> >::type
-    operator() (generic_accessor<Id, Intend> const&  arg) const
-    {
-        typedef typename remap_accessor_type<generic_accessor<Id, Intend>, esf_args_map_t>::type remap_accessor_t;
-        return m_iterate_domain(remap_accessor_t(arg));
-    }
-#endif
-
-protected:
 };
 
 /**

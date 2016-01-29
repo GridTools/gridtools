@@ -35,17 +35,17 @@ struct boundary : clonable_to_gpu<boundary> {
 
 struct functor{
     typedef accessor<0, enumtype::inout, extent<0,0,0,0> > sol;
-    typedef generic_accessor<1, enumtype::inout> bd;
+    typedef global_accessor<1, enumtype::inout> bd;
     typedef boost::mpl::vector<sol> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION
     static void Do(Evaluation const & eval, x_interval) {
-        eval(sol())+=eval(bd())->value();
+        eval(sol())+=eval(bd()).value();
     }
 };
 
-TEST(test_bc, boundary_conditions) {
+TEST(test_global_accessor, boundary_conditions) {
 
 #ifdef __CUDACC__
     typedef backend<Cuda, Block> backend_t;
@@ -56,7 +56,7 @@ TEST(test_bc, boundary_conditions) {
     typedef typename backend_t::storage_info<0, layout_map<0,1,2> > meta_t;
     meta_t meta_(10,10,10);
     typedef backend_t::storage_type<float_type, meta_t >::type storage_type;
-    storage_type sol_(meta_, 0.);
+    storage_type sol_(meta_, (float_type)0.);
 
     sol_.initialize(2.);
 
@@ -70,8 +70,12 @@ TEST(test_bc, boundary_conditions) {
 
     typedef arg<0, storage_type> p_sol;
     typedef arg<1, boundary> p_bd;
-    domain_type<boost::mpl::vector<p_sol, p_bd> > domain
-        (boost::fusion::make_vector(&sol_, &bd_));
+
+#ifdef CXX11_ENABLED
+    domain_type<boost::mpl::vector<p_sol, p_bd> > domain ((p_sol() = sol_), (p_bd() = bd_));
+#else
+    domain_type<boost::mpl::vector<p_sol, p_bd> > domain ( boost::fusion::make_vector( &sol_, &bd_));
+#endif
 
 #ifdef __CUDACC__
     computation* bc_eval =

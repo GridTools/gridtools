@@ -22,6 +22,8 @@ namespace copy_stencil{
 #ifdef __CUDACC__
         typedef gridtools::layout_map<2,1,0> layout_t;//stride 1 on i
 #else
+        //                   strides  1 x xy
+        //                      dims  x y z
         typedef gridtools::layout_map<0,1,2> layout_t;//stride 1 on k
 #endif
 
@@ -71,15 +73,11 @@ namespace copy_stencil{
 #endif
 #endif
 
-    typedef meta_storage<meta_storage_base<__COUNTER__, layout_t, false> > meta_data_t;
-    typedef storage< base_storage<typename BACKEND::backend_traits_t::pointer<float_type>::type, meta_data_t, 1> > storage_t;
+        typedef BACKEND::storage_info<__COUNTER__, layout_t> meta_data_t;
+        typedef BACKEND::storage_type<float_type, meta_data_t >::type storage_t;
 
-    // typedef BACKEND::storage_info< 0, layout_t > meta_data_t;
         meta_data_t meta_data_(x,y,z);
 
-        //                   strides  1 x xy
-        //                      dims  x y z
-        // typedef gridtools::BACKEND::storage_type<float_type, meta_data_t >::type storage_t;
 
         // Definition of the actual data fields that are used for input/output
         typedef storage_t storage_type;

@@ -27,34 +27,6 @@ namespace gridtools{
     template<typename TopologyType, typename Communicator>
     struct space_dimensions<partitioner_trivial<TopologyType, Communicator> >{static const ushort_t value = TopologyType::space_dimensions;};
 
-
-    /** skeyword to be used at the user interface level when specifyng the boundary conditions*/
-    struct up{
-        template <typename Derived>
-        static constexpr typename Derived::Flag value(){
-            return Derived::UP;
-        }
-    };
-
-    template<typename T>
-    struct is_up : boost::mpl::false_{};
-
-    template<>
-    struct is_up<up> : boost::mpl::true_{};
-
-    struct down{
-        template <typename Derived>
-        static constexpr typename Derived::Flag const& value(){
-            return Derived::DOWN;
-        }
-    };
-
-    template<typename T>
-    struct is_down : boost::mpl::false_{};
-
-    template<>
-    struct is_down<down> : boost::mpl::true_{};
-
 template <typename Derived>
 class partitioner {
 

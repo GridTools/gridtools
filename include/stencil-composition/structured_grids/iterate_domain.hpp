@@ -161,16 +161,6 @@ namespace gridtools {
     public:
         typedef array<void* RESTRICT, N_DATA_POINTERS> data_pointer_array_t;
         typedef strides_cached<N_META_STORAGES-1, typename local_domain_t::storage_metadata_vector_t> strides_cached_t;
-    private:
-
-        /**
-           @brief returns the array of pointers to the raw data
-        */
-        GT_FUNCTION
-        data_pointer_array_t& RESTRICT data_pointer()
-        {
-            return static_cast<IterateDomainImpl*>(this)->data_pointer_impl();
-        }
 
         /**
            @brief returns the array of pointers to the raw data as const reference
@@ -179,6 +169,26 @@ namespace gridtools {
         data_pointer_array_t const & RESTRICT data_pointer() const
         {
             return static_cast<const IterateDomainImpl*>(this)->data_pointer_impl();
+        }
+
+        /**
+           @brief returns the array of pointers to the raw data as const reference
+        */
+        GT_FUNCTION
+        array_index_t const & RESTRICT index() const
+        {
+            return m_index;
+        }
+
+    protected:
+
+        /**
+           @brief returns the array of pointers to the raw data
+        */
+        GT_FUNCTION
+        data_pointer_array_t& RESTRICT data_pointer()
+        {
+            return static_cast<IterateDomainImpl*>(this)->data_pointer_impl();
         }
 
         /**
@@ -199,7 +209,7 @@ namespace gridtools {
             return static_cast<const IterateDomainImpl*>(this)->strides_impl();
         }
 
-    private:
+    protected:
 
         local_domain_t const& local_domain;
         array_index_t m_index;
@@ -238,7 +248,7 @@ namespace gridtools {
         void assign_storage_pointers(){
             const uint_t EU_id_i = BackendType::processing_element_i();
             const uint_t EU_id_j = BackendType::processing_element_j();
-            for_each<typename reversed_range< int_t, 0, N_STORAGES >::type > (
+            boost::mpl::for_each<typename reversed_range< int_t, 0, N_STORAGES >::type > (
                 assign_storage_functor<
                     BackendType,
                     data_pointer_array_t,
@@ -259,7 +269,7 @@ namespace gridtools {
         GT_FUNCTION
         void assign_stride_pointers(){
             GRIDTOOLS_STATIC_ASSERT((is_strides_cached<Strides>::value), "internal error type");
-            for_each< metadata_map_t > (
+            boost::mpl::for_each< metadata_map_t > (
                 assign_strides_functor<
                 BackendType,
                 Strides,
@@ -292,7 +302,7 @@ namespace gridtools {
         GT_FUNCTION
         void increment()
         {
-            for_each< metadata_map_t > (
+            boost::mpl::for_each< metadata_map_t > (
                 increment_index_functor<
                     Coordinate,
                     strides_cached_t,
@@ -320,7 +330,7 @@ namespace gridtools {
         GT_FUNCTION
         void increment(int_t steps_)
         {
-            for_each< metadata_map_t > (
+            boost::mpl::for_each< metadata_map_t > (
                 increment_index_functor<
                     Coordinate,
                     strides_cached_t,
@@ -337,7 +347,7 @@ namespace gridtools {
         GT_FUNCTION
         void initialize(uint_t const initial_pos=0, uint_t const block=0)
         {
-            for_each< metadata_map_t > (
+            boost::mpl::for_each< metadata_map_t > (
                 initialize_index_functor<
                 Coordinate,
                 strides_cached_t,
@@ -436,7 +446,7 @@ namespace gridtools {
             //for the moment the extra dimensionality of the storage is limited to max 2
             //(3 space dim + 2 extra= 5, which gives n_dim==4)
             GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor");
-            GRIDTOOLS_STATIC_ASSERT(Accessor::type::n_dim <= Accessor::type::n_dim, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.");
+            GRIDTOOLS_STATIC_ASSERT(Accessor::type::n_dim <= storage_type::meta_data_t::space_dimensions, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.");
 
             GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: if you need to use a non-rectangular field the constexpr version of the accessors have to be used (so that the current position in the field is computed at compile time). This is achieved by using, e.g., instead of \n\n eval(field(dimension<5>(2))); \n\n the following expression: \n\n typedef alias<field, dimension<5> >::set<2> z_field; \n eval(z_field()); \n");
 
@@ -466,21 +476,21 @@ namespace gridtools {
         */
         template <uint_t I, enumtype::intend Intend>
         GT_FUNCTION
-        typename accessor_return_type<generic_accessor<I, Intend> >::type
-        operator()(generic_accessor<I, Intend> const& accessor) const {
+        typename accessor_return_type<global_accessor<I, Intend> >::type
+        operator()(global_accessor<I, Intend> const& accessor) const {
 
             //getting information about the storage
-            typedef typename generic_accessor<I, Intend>::index_type index_t;
+            typedef typename global_accessor<I, Intend>::index_type index_t;
 
             typedef typename get_storage_accessor
                 <local_domain_t
-                 , generic_accessor<I, Intend> >
-                ::type storage_type;
+                 , global_accessor<I, Intend> >
+                ::type storage_ptr_type;
 
-            storage_type* storage_ = boost::fusion::at
+            storage_ptr_type storage_ = boost::fusion::at
                 < index_t>(local_domain.m_local_args);
 
-            return storage_;
+            return *storage_;
         }
 
 
@@ -780,7 +790,7 @@ namespace gridtools {
         //getting information about the storage
         typedef typename Accessor::index_type index_t;
 
-        typedef typename local_domain_t::template get_storage<index_t>::type storage_t;
+        typedef typename local_domain_t::template get_storage<index_t>::type::value_type storage_t;
         typedef typename get_storage_pointer_accessor<local_domain_t, Accessor>::type storage_pointer_t;
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
@@ -856,7 +866,7 @@ namespace gridtools {
         //getting information about the storage
         typedef typename Accessor::index_type index_t;
 
-        typedef typename local_domain_t::template get_storage<index_t>::type storage_t;
+        typedef typename local_domain_t::template get_storage<index_t>::type::value_type storage_t;
 
         typedef typename storage_t::meta_data_t metadata_t;
         //if the following assertion fails you have specified a dimension for the extended storage
@@ -867,7 +877,6 @@ namespace gridtools {
         //for the moment the extra dimensionality of the storage is limited to max 2
         //(3 space dim + 2 extra= 5, which gives n_dim==4)
         GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor");
-        GRIDTOOLS_STATIC_ASSERT(Accessor::type::n_dim <= Accessor::type::n_dim, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.");
 
         GRIDTOOLS_STATIC_ASSERT((storage_t::traits::n_fields%storage_t::traits::n_width==0), "You specified a non-rectangular field: if you need to use a non-rectangular field the constexpr version of the accessors have to be used (so that the current position in the field is computed at compile time). This is achieved by using, e.g., instead of \n\n eval(field(dimension<5>(2))); \n\n the following expression: \n\n typedef alias<field, dimension<5> >::set<2> z_field; \n eval(z_field()); \n");
         GRIDTOOLS_STATIC_ASSERT((storage_t::traits::n_width > 0), "did you define a field dimension with 0 snapshots??");
@@ -925,7 +934,7 @@ namespace gridtools {
         //getting information about the storage
         typedef typename Accessor::index_type index_t;
 
-        typedef typename local_domain_t::template get_storage<index_t>::type storage_t;
+        typedef typename local_domain_t::template get_storage<index_t>::type::value_type storage_t;
 
         GRIDTOOLS_STATIC_ASSERT(is_data_field<storage_t>::value, "Internal error, wrong type of storage: should be a data_field");
 
@@ -939,7 +948,6 @@ namespace gridtools {
         //for the moment the extra dimensionality of the storage is limited to max 2
         //(3 space dim + 2 extra= 5, which gives n_dim==4)
         GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor");
-        GRIDTOOLS_STATIC_ASSERT(Accessor::type::n_dim <= Accessor::type::n_dim, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.");
         GRIDTOOLS_STATIC_ASSERT(accessor_mixed_t::template get_constexpr<0>()>=0,
                                 "offset specified for the dimension corresponding to the number of field components/snapshots must be non negative");
         GRIDTOOLS_STATIC_ASSERT( (Accessor::type::n_dim <= metadata_t::space_dimensions+1) ||
@@ -989,7 +997,7 @@ namespace gridtools {
         //getting information about the storage
         typedef typename Accessor::index_type index_t;
 
-        typedef typename local_domain_t::template get_storage<index_t>::type storage_t;
+        typedef typename local_domain_t::template get_storage<index_t>::type::value_type storage_t;
 
         //getting information about the metadata
         typedef typename boost::mpl::at
