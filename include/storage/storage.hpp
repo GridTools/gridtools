@@ -24,6 +24,14 @@ namespace gridtools{
         static const ushort_t n_args = basic_type::n_width;
         static const ushort_t space_dimensions = basic_type::space_dimensions;
 
+#ifdef CXX11_ENABLED
+        /**
+           explicitly disables the case in which the storage_info is passed by copy.
+        */
+        template <typename ... T>
+        storage(typename basic_type::meta_data_t&&, T...) = delete;
+#endif
+
       __device__
       storage(storage const& other)
           :  super(other)

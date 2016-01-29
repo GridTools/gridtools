@@ -222,6 +222,14 @@ namespace gridtools {
                 m_fields[i].free_it();
         }
 
+#ifdef CXX11_ENABLED
+        /**
+           explicitly disables the case in which the storage_info is passed by copy.
+        */
+        template <typename ... T>
+        base_storage(typename basic_type::meta_data_t&&, T...) = delete;
+#endif
+
         /**@brief device copy constructor*/
         template<typename T>
         __device__
