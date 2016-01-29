@@ -43,8 +43,8 @@ struct cache_storage
     Value& RESTRICT at(array<int, 2> const & thread_pos, Offset const & offset)
     {
         GRIDTOOLS_STATIC_ASSERT((is_offset_tuple<Offset>::value), "Error type is not offset tuple");
-        assert(index(thread_pos, offset) < storage_size_t::value &&
-               index(thread_pos, offset) >= 0);
+        assert(index(thread_pos, offset) < storage_size_t::value);
+        assert(index(thread_pos, offset) >= 0);
 
         return m_values[index(thread_pos, offset)];
     }

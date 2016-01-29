@@ -129,7 +129,7 @@ namespace gridtools {
                         it_domain.template increment<2>( -(m_loop_size[1]+1));
                         it_domain.template increment<1, static_int<1> >();
                     }
-                    it_domain.template increment<1, static_int<-n_colors_t::value>>();
+                    it_domain.template increment<1, static_int<(int)-n_colors_t::value>>();
                     it_domain.template increment<0,static_int<1> >();
                 }
                 it_domain.template increment<0>( -(m_loop_size[0]+1));

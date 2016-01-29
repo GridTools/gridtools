@@ -95,6 +95,7 @@ namespace test_iterate_domain{
                 boost::mpl::at_c<typename mss_local_domain1_t::fused_local_domain_sequence_t, 0>::type,
                 boost::mpl::vector1<esf_t>,
                 boost::mpl::vector1<extent<0,0,0,0> >,
+                extent<0,0,0,0>,
                 boost::mpl::vector0<>,
                 block_size<32,4>,
                 gridtools::grid<axis>
