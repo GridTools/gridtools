@@ -70,7 +70,7 @@ struct flx_function {
     GT_FUNCTION
     static void Do(Domain const & dom, x_flx) {
 #ifdef FUNCTIONS_MONOLITHIC
-#pragma message "monolithic version";
+#pragma message "monolithic version"
         double _x_ = (gridtools::float_type)4.0*dom(in()) -
             (dom(in( -1, 0, 0)) + dom(in( 0, -1, 0)) +
              dom(in(0, 1, 0)) + dom(in(1, 0, 0)));
@@ -118,7 +118,7 @@ struct flx_function {
     static void Do(Domain const & dom, x_flx) {
 
 #ifdef FUNCTIONS_MONOLITHIC
-#pragma message "monolithic version";
+#pragma message "monolithic version"
         double _x_ = (gridtools::float_type)4.0*dom(in()) -
             (dom(in( -1, 0, 0)) + dom(in( 0, -1, 0)) +
              dom(in(0, 1, 0)) + dom(in(1, 0, 0)));

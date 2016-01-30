@@ -3,9 +3,9 @@ include_directories( ../../include/stencil-composition ) ## Library header files
 
 FILE(GLOB_RECURSE INC_ALL "../../include/stencil-composition/[a-z]*.hpp")
 
-SET(STENCIL_COMPOSITION_UNITTEST_SOURCES test_accessor.cpp ${INC_ALL})
+SET(STENCIL_COMPOSITION_UNITTEST_SOURCES ${INC_ALL})
 if ( ENABLE_CXX11 )
-  SET(STENCIL_COMPOSITION_UNITTEST_SOURCES ${STENCIL_COMPOSITION_UNITTEST_SOURCES} test-assign-placeholders.cpp  test_esf_metafunctions.cpp )
+  SET(STENCIL_COMPOSITION_UNITTEST_SOURCES ${STENCIL_COMPOSITION_UNITTEST_SOURCES} test-assign-placeholders.cpp )
 endif( ENABLE_CXX11 )
 
 ### Executables
