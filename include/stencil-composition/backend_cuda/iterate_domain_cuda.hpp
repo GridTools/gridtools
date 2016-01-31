@@ -42,7 +42,6 @@ private:
 private:
     const uint_t m_block_size_i;
     const uint_t m_block_size_j;
-
     shared_iterate_domain_t* RESTRICT m_pshared_iterate_domain;
 
 public:
@@ -108,12 +107,12 @@ public:
     }
 
     GT_FUNCTION
-    uint block_size_i()
+    uint_t block_size_i()
     {
         return m_block_size_i;
     }
     GT_FUNCTION
-    uint block_size_j()
+    uint_t block_size_j()
     {
         return m_block_size_j;
     }

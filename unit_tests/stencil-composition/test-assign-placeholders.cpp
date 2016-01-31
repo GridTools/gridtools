@@ -56,7 +56,7 @@ TEST(assign_placeholders, test) {
 
     gridtools::domain_type<accessor_list> domain( boost::fusion::make_vector(&coeff, &in, &out) );
 
-    ASSERT_TRUE((boost::fusion::at_c<3>(domain.storage_pointers_view()) == &coeff) &&
-            (boost::fusion::at_c<4>(domain.storage_pointers_view()) == &in) &&
-            (boost::fusion::at_c<5>(domain.storage_pointers_view()) == &out));
+    ASSERT_TRUE((boost::fusion::at_c<3>(domain.storage_pointers_view()).get() == &coeff ) &&
+                (boost::fusion::at_c<4>(domain.storage_pointers_view()).get() == &in) &&
+                (boost::fusion::at_c<5>(domain.storage_pointers_view()).get() == &out));
 }

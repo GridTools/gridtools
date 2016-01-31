@@ -4,7 +4,8 @@
 
 /**
   @file
-  This file shows an implementation of the "copy" stencil, simple copy of one field done on the backend
+  This file shows an implementation of the "copy" stencil, simple copy of one field done on the backend,
+  in which a misaligned storage is aligned
 */
 
 using gridtools::level;
@@ -16,7 +17,7 @@ using namespace gridtools;
 using namespace enumtype;
 
 
-namespace copy_stencil{
+namespace aligned_copy_stencil{
 #ifdef __CUDACC__
         typedef gridtools::layout_map<2,1,0> layout_t;//stride 1 on i
 #else
@@ -24,8 +25,17 @@ namespace copy_stencil{
 #endif
 
     //random padding
-    typedef halo<2,3,4> padding_t;
-
+#ifdef __CUDACC__
+    typedef halo<2,0,0> halo_t;
+    typedef aligned<32> alignment_t;
+#else
+    typedef aligned<32> alignment_t;
+#ifdef CXX11_ENABLED
+    typedef halo<0,0,2> halo_t;
+#else
+    typedef halo<0,2,0> halo_t;
+#endif
+#endif
     // This is the definition of the special regions in the "vertical" direction
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
@@ -33,26 +43,58 @@ namespace copy_stencil{
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
 
-        typedef const accessor<0, enumtype::inout, extent<0,0,0,0>, 3> in;
+
+#ifdef __CUDACC__
+        /** @brief checking all storages alignment using a specific storage_info
+
+            \param storage_id ordinal number identifying the storage_info checked
+            \param boundary ordinal number identifying the alignment
+        */
+        template <typename ItDomain>
+        GT_FUNCTION
+        static bool check_pointer_alignment(ItDomain const& it_domain
+                                     , uint_t storage_id
+                                     , uint_t boundary) {
+            bool result_=true;
+            if(threadIdx.x==0){
+                for (ushort_t i=0; i<ItDomain::iterate_domain_t::N_DATA_POINTERS; ++i){
+                    result_ = (bool)(result_
+                                     &&( bool)(((size_t)(it_domain.get_iterate_domain().data_pointer()[i]
+                                                         +it_domain.get_iterate_domain().index()[storage_id])
+                                                & (boundary-1))
+                                               == 0));
+                    if(!result_)
+                    {
+                        printf("[storage # %d,", i);
+                        printf("index %d]", it_domain.get_iterate_domain().index()[storage_id]);
+                        printf(" pointer: %x ", (size_t)it_domain.get_iterate_domain().data_pointer()[i]+it_domain.get_iterate_domain().index()[storage_id]);
+                        break;
+                    }
+            }
+            }
+            return result_;
+        }
+#endif
+
+        typedef accessor<0, enumtype::in, extent<0,0,0,0>, 3> in;
         typedef accessor<1, enumtype::inout, extent<0,0,0,0>, 3> out;
         typedef boost::mpl::vector<in,out> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
+
+#ifdef __CUDACC__
+#ifndef NDEBUG
+            if(!check_pointer_alignment(eval,0,alignment_t::value))
+            {
+                printf("alignment error in some storages with first meta_storage \n");
+            }
+#endif
+#endif
             eval(out())=eval(in());
         }
     };
-
-    /*
-     * The following operators and structs are for debugging only
-     */
-    std::ostream& operator<<(std::ostream& s, copy_functor const) {
-        return s << "copy_functor";
-    }
-
-    void handle_error(int_t)
-    {std::cout<<"error"<<std::endl;}
 
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<Cuda, Block >
@@ -64,14 +106,12 @@ namespace copy_stencil{
 #endif
 #endif
 
-    typedef gridtools::BACKEND::storage_info< 0, layout_t, padding_t > meta_data_t;
+    typedef gridtools::BACKEND::storage_info< 0, layout_t, halo_t, alignment_t > meta_data_t;
 
-    bool test(uint_t x, uint_t y, uint_t z) {
+    bool test(uint_t d1, uint_t d2, uint_t d3) {
 
-        meta_data_t meta_data_(x,y,z);
-        uint_t d1 = x;
-        uint_t d2 = y;
-        uint_t d3 = z;
+        meta_data_t meta_data_(d1,d2,d3);
+
         //                   strides  1 x xy
         //                      dims  x y z
         typedef gridtools::BACKEND::storage_type<float_type, meta_data_t >::type storage_t;
@@ -79,10 +119,10 @@ namespace copy_stencil{
         // Definition of the actual data fields that are used for input/output
         typedef storage_t storage_type;
         storage_type in(meta_data_, "in");
-        storage_type out(meta_data_, -1.);
-        for(uint_t i=0; i<d1; ++i)
-            for(uint_t j=0; j<d2; ++j)
-                for(uint_t k=0; k<d3; ++k)
+        storage_type out(meta_data_, (float_type)-1.);
+        for(uint_t i=halo_t::get<0>(); i<d1+halo_t::get<0>(); ++i)
+            for(uint_t j=halo_t::get<1>(); j<d2+halo_t::get<1>(); ++j)
+                for(uint_t k=halo_t::get<2>(); k<d3+halo_t::get<2>(); ++k)
                 {
                     in(i,j,k)=i+j+k;
                 }
@@ -105,13 +145,14 @@ namespace copy_stencil{
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
-        // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
-        uint_t di[5] = {0, 0, 0, d1-1, d1};
-        uint_t dj[5] = {0, 0, 0, d2-1, d2};
+        // gridtools::coordinates<axis> grid(2,d1-2,2,d2-2);
+        uint_t di[5] = {halo_t::get<0>(), 0, halo_t::get<0>(), d1+halo_t::get<0>()-1, d1+halo_t::get<0>()};
+        uint_t dj[5] = {halo_t::get<1>(), 0, halo_t::get<1>(), d2+halo_t::get<1>()-1, d2+halo_t::get<1>()};
 
-        gridtools::grid<axis> coords(di, dj);
-        coords.value_list[0] = 0;
-        coords.value_list[1] = d3-1;
+        gridtools::grid<axis> grid(di, dj);
+
+        grid.value_list[0] = halo_t::get<2>();
+        grid.value_list[1] = d3+halo_t::get<2>()-1;
 
         /*
           Here we do lot of stuff
@@ -139,7 +180,7 @@ namespace copy_stencil{
                         , p_out()
                         )
                 ),
-                domain, coords
+                domain, grid
             );
 
         copy->ready();
@@ -155,11 +196,11 @@ namespace copy_stencil{
 #endif
 
         bool success = true;
-        for(uint_t i=0; i<d1; ++i)
-            for(uint_t j=0; j<d2; ++j)
-                for(uint_t k=0; k<d3; ++k)
+        for(uint_t i=halo_t::get<0>(); i<d1+halo_t::get<0>(); ++i)
+            for(uint_t j=halo_t::get<1>(); j<d2+halo_t::get<1>(); ++j)
+                for(uint_t k=halo_t::get<2>(); k<d3+halo_t::get<2>(); ++k)
                 {
-                        if (in(i, j, k)!=out(i,j,k))
+                    if ( in(i, j, k) != out(i,j,k) || out(i,j,k)!=i+j+k )
                         {
                             std::cout << "error in "
                                       << i << ", "
@@ -173,4 +214,4 @@ namespace copy_stencil{
                 }
         return success;
     }
-}//namespace copy_stencil
+}//namespace aligned_copy_stencil

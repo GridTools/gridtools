@@ -112,7 +112,7 @@ struct offset_tuple : public offset_tuple<Index-1, NDim>
        When this constructor is used all the arguments have to be specified and passed to the function call in order. No check is done on the order*/
     template <typename... GenericElements>
     GT_FUNCTION
-    constexpr offset_tuple ( int const& t, GenericElements const& ... x): super( x... ), m_offset(t) {}
+    constexpr offset_tuple ( int const t, GenericElements const ... x): super( x... ), m_offset(t) {}
 
     /**@brief constructor taking the dimension class as argument.
        This allows to specify the extra arguments out of order. Note that 'dimension' is a
@@ -131,11 +131,11 @@ struct offset_tuple : public offset_tuple<Index-1, NDim>
        The integer gets assigned to the current extra dimension and the other arguments are passed to the base class (in order to get assigned to the other dimensions).
        When this constructor is used all the arguments have to be specified and passed to the function call in order. No check is done on the order*/
     GT_FUNCTION
-    offset_tuple ( int const& i, int const& j, int const& k): super( j, k ), m_offset(i) {}
+    offset_tuple ( int const i, int const j, int const k): super( j, k ), m_offset(i) {}
     GT_FUNCTION
-    offset_tuple ( int const& i, int const& j): super( j ), m_offset(i) {}
+    offset_tuple ( int const i, int const j): super( j ), m_offset(i) {}
     GT_FUNCTION
-    offset_tuple ( int const& i): m_offset(i) {}
+    offset_tuple ( int const i): m_offset(i) {}
 
     /**@brief constructor taking the Dimension class as argument.
        This allows to specify the extra arguments out of order. Note that 'enumtype::dimension' is a
@@ -143,7 +143,7 @@ struct offset_tuple : public offset_tuple<Index-1, NDim>
     */
     template <ushort_t Idx1, ushort_t Idx2, ushort_t Idx3, ushort_t Idx4 >
     GT_FUNCTION
-    offset_tuple ( dimension<Idx1> const& t, dimension<Idx2> const& u, dimension<Idx3> const& v,  dimension<Idx4> const& h ):
+    offset_tuple ( dimension<Idx1> const t, dimension<Idx2> const u, dimension<Idx3> const v,  dimension<Idx4> const& h ):
         super(t, u, v, h), m_offset(initialize<super::n_dim-n_args+1>(t, u, v, h)) {}
 
     /**@brief constructor taking the Dimension class as argument.
@@ -152,7 +152,7 @@ struct offset_tuple : public offset_tuple<Index-1, NDim>
     */
     template <ushort_t Idx1, ushort_t Idx2, ushort_t Idx3 >
     GT_FUNCTION
-    offset_tuple ( dimension<Idx1> const& t, dimension<Idx2> const& u, dimension<Idx3> const& v ):
+    offset_tuple ( dimension<Idx1> const t, dimension<Idx2> const u, dimension<Idx3> const v ):
         super(t, u, v), m_offset(initialize<super::n_dim-n_args+1>(t, u, v)) {}
 
     /**@brief constructor taking the Dimension class as argument.
@@ -161,7 +161,7 @@ struct offset_tuple : public offset_tuple<Index-1, NDim>
     */
     template <ushort_t Idx1, ushort_t Idx2 >
     GT_FUNCTION
-    offset_tuple ( dimension<Idx1> const& t, dimension<Idx2> const& u ):
+    offset_tuple ( dimension<Idx1> const t, dimension<Idx2> const u ):
         super(t,u), m_offset(initialize<super::n_dim-n_args+1>(t, u)) {}
 
     /**@brief constructor taking the Dimension class as argument.
@@ -170,7 +170,7 @@ struct offset_tuple : public offset_tuple<Index-1, NDim>
     */
     template <ushort_t Idx >
     GT_FUNCTION
-    offset_tuple ( dimension<Idx> const& t ) :
+    offset_tuple ( dimension<Idx> const t ) :
         super(t), m_offset(initialize<super::n_dim-n_args+1>(t)) {}
 #endif
 

@@ -165,7 +165,7 @@ namespace gridtools {
         array& operator=(A const& a) {
             assert(a.size() == _size);
             std::copy(a.begin(), a.end(), _array);
-            return this;
+            return *this;
         }
 
 
@@ -177,5 +177,11 @@ namespace gridtools {
 
     template <typename T, size_t D>
     struct is_array <array<T, D> > : boost::mpl::true_{};
+
+    template<typename Array, typename Value>
+    struct is_array_of : boost::mpl::false_{};
+
+    template<size_t D, typename Value>
+    struct is_array_of<array<Value, D>, Value>  : boost::mpl::true_{};
 
 } // namespace gridtools

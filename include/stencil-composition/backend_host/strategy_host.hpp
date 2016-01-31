@@ -37,7 +37,7 @@ namespace gridtools{
             static void run(LocalDomainListArray& local_domain_lists, const Grid& grid)
             {
                 typedef backend_traits_from_id< BackendId > backend_traits;
-                gridtools::for_each<iter_range> (mss_functor<MssComponentsArray, Grid, LocalDomainListArray, BackendId, enumtype::Naive> (local_domain_lists, grid,0,0));
+                boost::mpl::for_each<iter_range> (mss_functor<MssComponentsArray, Grid, LocalDomainListArray, BackendId, enumtype::Naive> (local_domain_lists, grid,0,0));
             }
         };
 
@@ -68,7 +68,7 @@ namespace gridtools{
         };
 
         //NOTE: this part is (and should remain) an exact copy-paste in the naive, block, host and cuda versions
-        template <typename Index, typename Layout, typename Halo,
+        template <typename Index, typename Layout, typename Halo, typename Alignment,
 #ifdef CXX11_ENABLED
                   typename ... Tiles
 #else
@@ -77,6 +77,8 @@ namespace gridtools{
                   >
         struct get_tmp_storage_info
         {
+            GRIDTOOLS_STATIC_ASSERT(is_aligned<Alignment>::type::value,"wrong type");
+
             GRIDTOOLS_STATIC_ASSERT(is_layout_map<Layout>::value, "wrong type for layout map");
 #ifdef CXX11_ENABLED
             GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_tile<Tiles>::type::value ... ), "wrong type for the tiles");
@@ -89,7 +91,7 @@ namespace gridtools{
             <meta_storage_aligned
              <meta_storage_base
               <Index::value, Layout, true>
-              , aligned<0>, Halo
+              , Alignment, Halo
               >
 #ifdef CXX11_ENABLED
              , Tiles ...
@@ -124,6 +126,7 @@ namespace gridtools{
                 <typename Storage::pointer_type, typename get_tmp_storage_info
                  <typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout,
                   typename Storage::meta_data_t::halo_t,
+                  typename Storage::meta_data_t::alignment_t,
 #ifdef CXX11_ENABLED
                   Tiles ...
 #else
@@ -176,7 +179,7 @@ namespace gridtools{
                 #pragma omp for nowait
                     for (uint_t bi = 0; bi <= NBI; ++bi) {
                         for (uint_t bj = 0; bj <= NBJ; ++bj) {
-                            gridtools::for_each<iter_range> (mss_functor<MssComponentsArray, Grid, LocalDomainListArray, BackendId, enumtype::Block> (local_domain_lists, grid,bi,bj));
+                            boost::mpl::for_each<iter_range> (mss_functor<MssComponentsArray, Grid, LocalDomainListArray, BackendId, enumtype::Block> (local_domain_lists, grid,bi,bj));
                         }
                     }
                 }

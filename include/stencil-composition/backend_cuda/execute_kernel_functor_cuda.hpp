@@ -68,7 +68,7 @@ namespace _impl_cuda {
         it_domain.template initialize<zdim_index_t::value>( grid->template value_at< iteration_policy_t::from >() );
 
         //execute the k interval functors
-        for_each<typename RunFunctorArguments::loop_intervals_t>
+        boost::mpl::for_each<typename RunFunctorArguments::loop_intervals_t>
             (_impl::run_f_on_interval<
              execution_type_t,
              RunFunctorArguments>(it_domain,*grid) );

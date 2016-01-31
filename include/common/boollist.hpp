@@ -5,7 +5,7 @@
 #include "gridtools.hpp"
 #include "common/array.hpp"
 /*@file
-@bief  The following class describes a boolean list of length N.
+@brief  The following class describes a boolean list of length N.
 
 */
 namespace gridtools {
