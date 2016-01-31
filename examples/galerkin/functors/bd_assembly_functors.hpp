@@ -1,5 +1,6 @@
 #pragma once
 
+namespace gdl{
 namespace functors{
 
 
@@ -18,20 +19,20 @@ namespace functors{
         using cub=typename Geometry::cub;
         using geo_map=typename Geometry::geo_map;
 
-        typedef accessor<0, enumtype::in, extent<0,0,0,0> , 5> const grid_points;
-        typedef accessor<1, enumtype::in, extent<0,0,0,0> , 4> const dphi;
-        typedef accessor<2, enumtype::inout, extent<0,0,0,0> , 7> jac;
+        typedef gt::accessor<0, enumtype::in, gt::extent<0,0,0,0> , 5> const grid_points;
+        typedef gt::accessor<1, enumtype::in, gt::extent<0,0,0,0> , 4> const dphi;
+        typedef gt::accessor<2, enumtype::inout, gt::extent<0,0,0,0> , 7> jac;
         typedef boost::mpl::vector< grid_points, dphi, jac> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            dimension<4>::Index qp;
-            dimension<5>::Index dimx;
-            dimension<6>::Index dimy;
-            dimension<1>::Index i;
-            dimension<2>::Index j;
-            dimension<3>::Index k;
+            gt::dimension<4>::Index qp;
+            gt::dimension<5>::Index dimx;
+            gt::dimension<6>::Index dimy;
+            gt::dimension<1>::Index i;
+            gt::dimension<2>::Index j;
+            gt::dimension<3>::Index k;
 
             uint_t const num_cub_points=eval.get().template get_storage_dims<1>(dphi());
             uint_t const basis_cardinality=eval.get().template get_storage_dims<0>(dphi());
@@ -50,10 +51,10 @@ namespace functors{
                     {
                         for(short_t iter_quad=0; iter_quad< num_cub_points; ++iter_quad)
                         {
-                            eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad, dimension<7>(face_) ) )=0.;
+                            eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad, gt::dimension<7>(face_) ) )=0.;
                             for (int_t iterNode=0; iterNode < basis_cardinality ; ++iterNode)
                             {//reduction/gather
-                                eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad, dimension<7>(face_)) ) += eval(grid_points(dimension<4>(iterNode), dimension<5>(icoor))  * !dphi(i+iterNode, j+iter_quad, k+jcoor, dimension<4>(face_) ) );
+                                eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad, gt::dimension<7>(face_)) ) += eval(grid_points(gt::dimension<4>(iterNode), gt::dimension<5>(icoor))  * !dphi(i+iterNode, j+iter_quad, k+jcoor, gt::dimension<4>(face_) ) );
                             }
                         }
                     }
@@ -72,9 +73,9 @@ namespace functors{
     // struct bd_projection{
     //     using bd_cub=typename BdGeometry::cub;
 
-    //     using jac =  accessor<0, extent<0,0,0,0> , 6> const;
-    //     using normals =  accessor<1, extent<0,0,0,0> , 5> const;
-    //     using jac_projected = accessor<2, extent<0,0,0,0> , 6>;
+    //     using jac =  gt::accessor<0, gt::extent<0,0,0,0> , 6> const;
+    //     using normals =  gt::accessor<1, gt::extent<0,0,0,0> , 5> const;
+    //     using jac_projected = gt::accessor<2, gt::extent<0,0,0,0> , 6>;
     //     using arg_list= boost::mpl::vector< jac, normals, jac_projected > ;
 
     //     template <typename Evaluation>
@@ -118,17 +119,17 @@ namespace functors{
 /**
    This functor computes an integran over a boundary face
 */
-    using namespace expressions;
+    using namespace gridtools::expressions;
     template <typename FE, typename BoundaryCubature>
     struct bd_mass {
         using fe=FE;
         using bd_cub=BoundaryCubature;
 
-        using jac_det=accessor< 0, enumtype::in, extent<0,0,0,0>, 5 >;
-        using weights=accessor< 1, enumtype::in, extent<0,0,0,0>, 3 >;
-        using phi_trace=accessor< 2, enumtype::in, extent<0,0,0,0>, 3 >;
-        using psi_trace=accessor< 3, enumtype::in, extent<0,0,0,0>, 3 >;
-        using out=accessor< 4, enumtype::inout, extent<0,0,0,0>, 6 >;
+        using jac_det=gt::accessor< 0, enumtype::in, gt::extent<0,0,0,0>, 5 >;
+        using weights=gt::accessor< 1, enumtype::in, gt::extent<0,0,0,0>, 3 >;
+        using phi_trace=gt::accessor< 2, enumtype::in, gt::extent<0,0,0,0>, 3 >;
+        using psi_trace=gt::accessor< 3, enumtype::in, gt::extent<0,0,0,0>, 3 >;
+        using out=gt::accessor< 4, enumtype::inout, gt::extent<0,0,0,0>, 6 >;
 
         using arg_list=boost::mpl::vector<jac_det, weights, phi_trace, psi_trace, out> ;
 
@@ -140,9 +141,9 @@ namespace functors{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            dimension<4>::Index quad;
-            dimension<4>::Index dofI;
-            dimension<5>::Index dofJ;
+            gt::dimension<4>::Index quad;
+            gt::dimension<4>::Index dofI;
+            gt::dimension<5>::Index dofJ;
 
             uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac_det());
             uint_t const basis_cardinality = eval.get().template get_storage_dims<0>(phi_trace());
@@ -161,15 +162,15 @@ namespace functors{
                         for(ushort_t q_=0; q_<num_cub_points; ++q_){
                             // auto tmp1=eval(!phi_trace(P_i,q_,face_));
                             // auto tmp2=eval(!psi_trace(P_j, q_, face_));
-                            // auto tmp3=eval(jac_det(quad+q_, dimension<5>(face_)));
+                            // auto tmp3=eval(jac_det(quad+q_, gt::dimension<5>(face_)));
                             // auto tmp4=eval(!weights(q_));
                             // std::cout<<tmp1<<"\n";
                             // std::cout<<tmp2<<"\n";
                             // std::cout<<tmp3<<"\n";
                             // std::cout<<tmp4<<"\n";
-                            partial_sum += eval(!phi_trace(P_i,q_,face_)*!psi_trace(P_j, q_, face_)*jac_det(quad+q_, dimension<5>(face_)) * !weights(q_));
+                            partial_sum += eval(!phi_trace(P_i,q_,face_)*!psi_trace(P_j, q_, face_)*jac_det(quad+q_, gt::dimension<5>(face_)) * !weights(q_));
                         }
-                        eval(out(dofI+P_i, dofJ+P_j, dimension<6>(face_)))=partial_sum;
+                        eval(out(dofI+P_i, dofJ+P_j, gt::dimension<6>(face_)))=partial_sum;
                     }
                 }
             }
@@ -181,17 +182,18 @@ namespace functors{
 /**
    This functor computes an integran over a boundary face
 */
-    using namespace expressions;
+    using namespace gt::expressions;
+
     template <typename FE, typename BoundaryCubature>
     struct bd_mass_uv {
         using fe=FE;
         using bd_cub=BoundaryCubature;
 
-        using jac_det=accessor< 0, enumtype::in, extent<0,0,0,0>, 5 >;
-        using weights=accessor< 1, enumtype::in, extent<0,0,0,0>, 3 >;
-        using phi_trace=accessor< 2, enumtype::in, extent<0,0,0,0>, 3 >;
-        using psi_trace=accessor< 3, enumtype::in, extent<0,0,0,0>, 3 >;
-        using out=accessor< 4, enumtype::inout, extent<0,0,0,0>, 6 >;
+        using jac_det=gt::accessor< 0, enumtype::in, gt::extent<0,0,0,0>, 5 >;
+        using weights=gt::accessor< 1, enumtype::in, gt::extent<0,0,0,0>, 3 >;
+        using phi_trace=gt::accessor< 2, enumtype::in, gt::extent<0,0,0,0>, 3 >;
+        using psi_trace=gt::accessor< 3, enumtype::in, gt::extent<0,0,0,0>, 3 >;
+        using out=gt::accessor< 4, enumtype::inout, gt::extent<0,0,0,0>, 6 >;
 
         using arg_list=boost::mpl::vector<jac_det, weights, phi_trace, psi_trace, out> ;
 
@@ -203,9 +205,9 @@ namespace functors{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            dimension<4>::Index quad;
-            dimension<4>::Index dofI;
-            dimension<5>::Index dofJ;
+            gt::dimension<4>::Index quad;
+            gt::dimension<4>::Index dofI;
+            gt::dimension<5>::Index dofJ;
 
             uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac_det());
             uint_t const basis_cardinality = eval.get().template get_storage_dims<0>(phi_trace());
@@ -231,13 +233,13 @@ namespace functors{
                     {
                         float_type partial_sum=0.;
                         for(ushort_t q_=0; q_<num_cub_points; ++q_){
-                            partial_sum += eval(!phi_trace(P_i,q_,face_)*!psi_trace(P_j, q_, face_opposite_)*jac_det(quad+q_, dimension<5>(face_)) * !weights(q_));
+                            partial_sum += eval(!phi_trace(P_i,q_,face_)*!psi_trace(P_j, q_, face_opposite_)*jac_det(quad+q_, gt::dimension<5>(face_)) * !weights(q_));
                         }
                         //NOTE:
                         //we leave the local numeration on faces unchanged, so mass(i,i) does not
                         //correspond to 2 basis func. on the same point. Instead
                         //if i=point, j=opposite(point), then mass(i,j) is the "diagonal" entry
-                        eval(out(dofI+P_i, dofJ+P_j, dimension<6>(face_)))=partial_sum;
+                        eval(out(dofI+P_i, dofJ+P_j, gt::dimension<6>(face_)))=partial_sum;
                     }
                 }
             }
@@ -256,24 +258,24 @@ namespace functors{
     struct measure<Geometry, 1>{
         using cub=typename Geometry::cub;
 
-        using jac = accessor<0, enumtype::in, extent<0,0,0,0> , 7> const;
-        using jac_det =  accessor<1, enumtype::inout, extent<0,0,0,0> , 5>;
+        using jac = gt::accessor<0, enumtype::in, gt::extent<0,0,0,0> , 7> const;
+        using jac_det =  gt::accessor<1, enumtype::inout, gt::extent<0,0,0,0> , 5>;
         using arg_list= boost::mpl::vector< jac, jac_det > ;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            dimension<4>::Index qp;
-            dimension<5>::Index dimx;
-            dimension<6>::Index dimy;
+            gt::dimension<4>::Index qp;
+            gt::dimension<5>::Index dimx;
+            gt::dimension<6>::Index dimy;
 
             uint_t const num_faces=eval.get().template get_storage_dims<4>(jac_det());
             uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac_det());
 
             for(short_t face_=0; face_< num_faces; ++face_)
             {
-                alias<jac, dimension<7> > J(face_);
-                alias<jac_det, dimension<5> > Jdet(face_);
+                gt::alias<jac, gt::dimension<7> > J(face_);
+                gt::alias<jac_det, gt::dimension<5> > Jdet(face_);
 
                 for(short_t q=0; q< num_cub_points; ++q)
                 {
@@ -303,24 +305,24 @@ namespace functors{
     // struct measure_impl<Geometry, 2, 1>{
     //     using cub=typename Geometry::cub;
 
-    //     using jac = accessor<0, enumtype::in, extent<0,0,0,0> , 7> const;
-    //     using jac_det =  accessor<1, enumtype::inout, extent<0,0,0,0> , 5>;
+    //     using jac = gt::accessor<0, enumtype::in, gt::extent<0,0,0,0> , 7> const;
+    //     using jac_det =  gt::accessor<1, enumtype::inout, gt::extent<0,0,0,0> , 5>;
     //     using arg_list= boost::mpl::vector< jac, jac_det > ;
 
     //     template <typename Evaluation>
     //     GT_FUNCTION
     //     static void Do(Evaluation const & eval, x_interval) {
-    //         dimension<4>::Index qp;
-    //         dimension<5>::Index dimx;
-    //         dimension<6>::Index dimy;
+    //         gt::dimension<4>::Index qp;
+    //         gt::dimension<5>::Index dimx;
+    //         gt::dimension<6>::Index dimy;
 
     //         uint_t const num_faces=eval.get().template get_storage_dims<4>(jac_det());
     //         uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac_det());
 
     //         for(short_t face_=0; face_< num_faces; ++face_)
     //         {
-    //             alias<jac, dimension<7> > J(face_);
-    //             alias<jac_det, dimension<5> > Jdet(face_);
+    //             alias<jac, gt::dimension<7> > J(face_);
+    //             alias<jac_det, gt::dimension<5> > Jdet(face_);
 
     //             for(short_t q=0; q< num_cub_points; ++q)
     //             {
@@ -354,9 +356,9 @@ namespace functors{
         using bd_cub=typename BdGeometry::cub;
         static const auto parent_shape=BdGeometry::parent_shape;
 
-        using jac=accessor< 0, enumtype::in, extent<>, 7 >;
-        using ref_normals=accessor< 1, enumtype::in, extent<>, 3 >;
-        using normals=accessor< 2, enumtype::inout, extent<>, 6 >;
+        using jac=gt::accessor< 0, enumtype::in, gt::extent<>, 7 >;
+        using ref_normals=gt::accessor< 1, enumtype::in, gt::extent<>, 3 >;
+        using normals=gt::accessor< 2, enumtype::inout, gt::extent<>, 6 >;
         using arg_list=boost::mpl::vector<jac, ref_normals, normals> ;
 
         /** @brief compute the normal vectors in the face quadrature points
@@ -367,13 +369,13 @@ namespace functors{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            x::Index i;
-            y::Index j;
-            z::Index k;
-            dimension<4>::Index quad;
-            dimension<5>::Index dimI;
-            dimension<6>::Index dimJ;
-            dimension<7>::Index f;
+            gt::dimension<1>::Index i;
+            gt::dimension<2>::Index j;
+            gt::dimension<3>::Index k;
+            gt::dimension<4>::Index quad;
+            gt::dimension<5>::Index dimI;
+            gt::dimension<6>::Index dimJ;
+            gt::dimension<7>::Index f;
             uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac());
             uint_t const num_faces=eval.get().template get_storage_dims<6>(jac());
 
@@ -403,11 +405,11 @@ namespace functors{
         using bd_cub=typename BdGeometry::cub;
         static const auto parent_shape=BdGeometry::parent_shape;
 
-        using phi_trace=accessor< 0, enumtype::in, extent<>, 3 >;
-        using jac_det=accessor< 1, enumtype::in, extent<>, 5 >;
-        using weights=accessor< 2, enumtype::in, extent<>, 3 >;
-        using in=accessor< 3, enumtype::in, extent<>, 6 >;
-        using out=accessor< 4, enumtype::inout, extent<>, 6 >;
+        using phi_trace=gt::accessor< 0, enumtype::in, gt::extent<>, 3 >;
+        using jac_det=gt::accessor< 1, enumtype::in, gt::extent<>, 5 >;
+        using weights=gt::accessor< 2, enumtype::in, gt::extent<>, 3 >;
+        using in=gt::accessor< 3, enumtype::in, gt::extent<>, 6 >;
+        using out=gt::accessor< 4, enumtype::inout, gt::extent<>, 6 >;
         using arg_list=boost::mpl::vector<phi_trace, jac_det, weights, in, out> ;
 
         /** @brief compute the integral of a vector
@@ -416,13 +418,13 @@ namespace functors{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            x::Index i;
-            y::Index j;
-            z::Index k;
-            dimension<4>::Index quad;
-            dimension<4>::Index dimI;
-            dimension<5>::Index sdim;
-            dimension<6>::Index f;
+            gt::dimension<1>::Index i;
+            gt::dimension<2>::Index j;
+            gt::dimension<3>::Index k;
+            gt::dimension<4>::Index quad;
+            gt::dimension<4>::Index dimI;
+            gt::dimension<5>::Index sdim;
+            gt::dimension<6>::Index f;
 
             uint_t const basis_cardinality=eval.get().template get_storage_dims<0>(phi_trace());
             uint_t const num_cub_points=eval.get().template get_storage_dims<1>(phi_trace());
@@ -433,7 +435,7 @@ namespace functors{
                     for(ushort_t i_=0; i_<3; ++i_){
                         for(ushort_t dof_=0; dof_<basis_cardinality; ++dof_){
 
-                            eval(out(dimI+dof_, sdim+i_, f+face_)) += eval(in(quad+q_, sdim+i_, f+face_)) * eval(!phi_trace(dof_,q_, face_)*jac_det(quad+q_, dimension<5>(face_)) * !weights(q_));
+                            eval(out(dimI+dof_, sdim+i_, f+face_)) += eval(in(quad+q_, sdim+i_, f+face_)) * eval(!phi_trace(dof_,q_, face_)*jac_det(quad+q_, gt::dimension<5>(face_)) * !weights(q_));
                         }
                     }
                 }
@@ -448,8 +450,8 @@ namespace functors{
     //     using bd_cub=typename BdGeometry::cub;
     //     static const auto parent_shape=BdGeometry::parent_shape;
 
-    //     using jac=accessor< 0, extent<>, 6 >;
-    //     using normals=accessor< 1, extent<>, 5 >;
+    //     using jac=gt::accessor< 0, gt::extent<>, 6 >;
+    //     using normals=gt::accessor< 1, gt::extent<>, 5 >;
     //     using arg_list=boost::mpl::vector<jac, normals> ;
 
     //     map_vectors()
@@ -466,9 +468,9 @@ namespace functors{
     //         x::Index i;
     //         y::Index j;
     //         z::Index k;
-    //         dimension<4>::Index quad;
-    //         dimension<5>::Index dimI;
-    //         dimension<6>::Index dimJ;
+    //         gt::dimension<4>::Index quad;
+    //         gt::dimension<5>::Index dimI;
+    //         gt::dimension<6>::Index dimJ;
 
     //         uint_t const num_cub_points=eval.get().get_storage_dims(jac())[3];
 
@@ -494,3 +496,4 @@ namespace functors{
 
 
 }//namespace functors
+}//namespace gdl

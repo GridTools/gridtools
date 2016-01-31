@@ -1,3 +1,4 @@
+namespace gdl{
 namespace functors{
     // [matvec]
 
@@ -5,16 +6,16 @@ namespace functors{
     // left-multiply x = A b
     struct matvec {
 
-        using in1=accessor<0, enumtype::in, extent<> , 4> const;
-        using in2=accessor<1, enumtype::in, extent<> , 5> const;
-        using out=accessor<2, enumtype::inout, extent<> , 4> ;
+        using in1=gt::accessor<0, enumtype::in, gt::extent<> , 4> const;
+        using in2=gt::accessor<1, enumtype::in, gt::extent<> , 5> const;
+        using out=gt::accessor<2, enumtype::inout, gt::extent<> , 4> ;
         using arg_list=boost::mpl::vector< in2, in1, out > ;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            dimension<4>::Index row;
-            dimension<5>::Index col;
+            gt::dimension<4>::Index row;
+            gt::dimension<5>::Index col;
             uint_t const cardinality_i=eval.get().template get_storage_dims<3>(in2());
             uint_t const cardinality_j=eval.get().template get_storage_dims<4>(in2());
 
@@ -31,17 +32,17 @@ namespace functors{
     // [matvec_bd]
     struct matvec_VolxBdxVol {
 
-        using in1=accessor<0, enumtype::in, extent<> , 4> const;
-        using in2=accessor<1, enumtype::in, extent<> , 6> const;
-        using out=accessor<2, enumtype::inout, extent<> , 4> ;
+        using in1=gt::accessor<0, enumtype::in, gt::extent<> , 4> const;
+        using in2=gt::accessor<1, enumtype::in, gt::extent<> , 6> const;
+        using out=gt::accessor<2, enumtype::inout, gt::extent<> , 4> ;
         using arg_list=boost::mpl::vector< in2, in1, out > ;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            dimension<4>::Index row;
-            dimension<5>::Index col;
-            dimension<6>::Index face;
+            gt::dimension<4>::Index row;
+            gt::dimension<5>::Index col;
+            gt::dimension<6>::Index face;
 
             uint_t const cardinality_i=eval.get().template get_storage_dims<3>(in2());
             uint_t const cardinality_j=eval.get().template get_storage_dims<4>(in2());
@@ -62,17 +63,17 @@ namespace functors{
     // [matvec_bd]
     struct matvec_BdxBdxBd {
 
-        using in1=accessor<0, enumtype::in, extent<> , 5> const;
-        using in2=accessor<1, enumtype::in, extent<> , 6> const;
-        using out=accessor<2, enumtype::inout, extent<> , 5> ;
+        using in1=gt::accessor<0, enumtype::in, gt::extent<> , 5> const;
+        using in2=gt::accessor<1, enumtype::in, gt::extent<> , 6> const;
+        using out=gt::accessor<2, enumtype::inout, gt::extent<> , 5> ;
         using arg_list=boost::mpl::vector< in2, in1, out > ;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            dimension<4>::Index row;
-            dimension<5>::Index col;
-            dimension<6>::Index face;
+            gt::dimension<4>::Index row;
+            gt::dimension<5>::Index col;
+            gt::dimension<6>::Index face;
 
             uint_t const cardinality_i=eval.get().template get_storage_dims<3>(in2());
             uint_t const cardinality_j=eval.get().template get_storage_dims<4>(in2());
@@ -90,4 +91,5 @@ namespace functors{
     };
     // [matvec_bd]
 
-}; //namespace functors
+} //namespace functors
+} //namespace gdl

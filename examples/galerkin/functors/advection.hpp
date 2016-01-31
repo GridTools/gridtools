@@ -1,5 +1,6 @@
 #pragma once
 
+namespace gdl{
 namespace functors{
 
     typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_interval;
@@ -10,16 +11,16 @@ namespace functors{
         using fe=FE;
         using cub=Cubature;
 
-        //![accessors]
-        using jac_det =accessor<0, enumtype::in, extent<0,0,0,0> , 4> const;
-        using jac_inv =accessor<1, enumtype::in, extent<0,0,0,0> , 6> const;
-        using weights =accessor<2, enumtype::in, extent<0,0,0,0> , 3> const;
-        using beta    =accessor<3, enumtype::in, extent<0,0,0,0> , 5> const;
-        using dphi    =accessor<4, enumtype::in, extent<0,0,0,0> , 3> const;
-        using psi     =accessor<5, enumtype::in, extent<0,0,0,0> , 3> const;
-        using adv     =accessor<6, enumtype::inout, extent<0,0,0,0> , 5> ;
+        //![gt::accessors]
+        using jac_det =gt::accessor<0, enumtype::in, gt::extent<0,0,0,0> , 4> const;
+        using jac_inv =gt::accessor<1, enumtype::in, gt::extent<0,0,0,0> , 6> const;
+        using weights =gt::accessor<2, enumtype::in, gt::extent<0,0,0,0> , 3> const;
+        using beta    =gt::accessor<3, enumtype::in, gt::extent<0,0,0,0> , 5> const;
+        using dphi    =gt::accessor<4, enumtype::in, gt::extent<0,0,0,0> , 3> const;
+        using psi     =gt::accessor<5, enumtype::in, gt::extent<0,0,0,0> , 3> const;
+        using adv     =gt::accessor<6, enumtype::inout, gt::extent<0,0,0,0> , 5> ;
         using arg_list= boost::mpl::vector<jac_det, jac_inv, weights, beta, adv, dphi, psi> ;
-        //![accessors]
+        //![gt::accessors]
 
         //![Do_advection]
         template <typename Evaluation >
@@ -30,11 +31,11 @@ namespace functors{
             uint_t const basis_cardinality=eval.get().template get_storage_dims<0>(psi());
 
             //quadrature points dimension
-            dimension<4>::Index qp;
+            gt::dimension<4>::Index qp;
             //dimension 'i' in the advection matrix
-            dimension<5>::Index dimx;
+            gt::dimension<5>::Index dimx;
             //dimension 'j' in the advection matrix
-            dimension<6>::Index dimy;
+            gt::dimension<6>::Index dimy;
 
 
             double inner_product=0.;
@@ -84,3 +85,4 @@ namespace functors{
         }
     };
 }//namespace functors
+}//namespace gdl

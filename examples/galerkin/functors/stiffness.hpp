@@ -1,5 +1,6 @@
 #pragma once
 
+namespace gdl{
 namespace functors{
 
     typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_interval;
@@ -9,15 +10,15 @@ namespace functors{
 
     	using fe=FE;
 
-        //![accessors]
-        using jac_det =accessor<0, enumtype::in, extent<0,0,0,0> , 4> const;
-        using jac_inv =accessor<1, enumtype::in, extent<0,0,0,0> , 6> const;
-        using weights =accessor<2, enumtype::in, extent<0,0,0,0> , 3> const;
-        using stiff   =accessor<3, enumtype::inout, extent<0,0,0,0> , 5> ;
-        using dphi    =accessor<4, enumtype::in, extent<0,0,0,0> , 3> const;
-        using dpsi    =accessor<5, enumtype::in, extent<0,0,0,0> , 3> const;
+        //![gt::accessors]
+        using jac_det =gt::accessor<0, enumtype::in, gt::extent<0,0,0,0> , 4> const;
+        using jac_inv =gt::accessor<1, enumtype::in, gt::extent<0,0,0,0> , 6> const;
+        using weights =gt::accessor<2, enumtype::in, gt::extent<0,0,0,0> , 3> const;
+        using stiff   =gt::accessor<3, enumtype::inout, gt::extent<0,0,0,0> , 5> ;
+        using dphi    =gt::accessor<4, enumtype::in, gt::extent<0,0,0,0> , 3> const;
+        using dpsi    =gt::accessor<5, enumtype::in, gt::extent<0,0,0,0> , 3> const;
         using arg_list= boost::mpl::vector<jac_det, jac_inv, weights, stiff, dphi,dpsi> ;
-        //![accessors]
+        //![gt::accessors]
 
         //![Do_stiffness]
         template <typename Evaluation>
@@ -28,11 +29,11 @@ namespace functors{
             uint_t const basis_cardinality=eval.get().template get_storage_dims<0>(dphi());
 
             //quadrature points dimension
-            dimension<4>::Index qp;
+            gt::dimension<4>::Index qp;
             //dimension 'i' in the stiffness matrix
-            dimension<5>::Index dimx;
+            gt::dimension<5>::Index dimx;
             //dimension 'j' in the stiffness matrix
-            dimension<6>::Index dimy;
+            gt::dimension<6>::Index dimy;
 
             //loop on the basis functions
             for(short_t P_i=0; P_i<basis_cardinality; ++P_i) // current dof
@@ -75,3 +76,4 @@ namespace functors{
         //![Do_stiffness]
     };
 } //namepsace functors
+} //namespace gdl

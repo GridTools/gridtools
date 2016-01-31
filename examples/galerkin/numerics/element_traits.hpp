@@ -32,14 +32,8 @@
 
 //! [includes]
 
-namespace gridtools{
+namespace gdl{
 
-    namespace enumtype{
-        //! [enums]
-        enum Basis {Lagrange, RT, Nedelec, BSplines};
-        enum Shape {Hexa, Tetra, Quad, Tri, Line, Point};
-        //! [enums]
-    }
 
     //! [enums]
     template <ushort_t order, enumtype::Basis basis, enumtype::Shape shape>
@@ -47,25 +41,25 @@ namespace gridtools{
 
     template<ushort_t P>
     struct basis_select<P, enumtype::BSplines, enumtype::Hexa>{
-        using type=b_spline< order<P,P,P> >;
+        using type=gt::b_spline< gt::order<P,P,P> >;
         static type instance(){return type();}
     };
 
     template<ushort_t P>
     struct basis_select<P, enumtype::BSplines, enumtype::Tetra>{
-        using type=b_spline< order<P,P,P> >;
+        using type=gt::b_spline< gt::order<P,P,P> >;
         static type instance(){return type();}
     };
 
     template<ushort_t P>
     struct basis_select<P, enumtype::BSplines, enumtype::Quad>{
-        using type=b_spline< order<P,P> >;
+        using type=gt::b_spline< gt::order<P,P> >;
         static type instance(){return type();}
     };
 
     template<ushort_t P>
     struct basis_select<P, enumtype::BSplines, enumtype::Line>{
-        using type=b_spline< order<P> >;
+        using type=gt::b_spline< gt::order<P> >;
         static type instance(){return type();}
     };
 
@@ -365,4 +359,4 @@ namespace gridtools{
     template <uint_t Order, enumtype::Basis BasisType, template<ushort_t O, enumtype::Basis E, enumtype::Shape S > class FE>
     struct boundary_shape<FE<Order, BasisType, enumtype::Line> > : public FE<Order, BasisType, enumtype::Point>{};
 
-}//namespace gridtools
+}//namespace gdl

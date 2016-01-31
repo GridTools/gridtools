@@ -7,13 +7,13 @@
 #include "../functors/advection.hpp"
 #include "../functors/stiffness.hpp"
 // [includes]
-#ifdef CXX11_ENABLED
 
 // [namespaces]
 // using namespace gridtools;
 // using namespace enumtype;
 // using namespace expressions;
 // [namespaces]
+namespace gdl{
 
 typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_interval;
 typedef gridtools::interval<gridtools::level<0,-2>, gridtools::level<1,1> > axis;
@@ -104,12 +104,12 @@ public:
 
     /**I have to define here the placeholders to the storages used: the temporary storages get internally managed, while
        non-temporary ones must be instantiated by the user. In this example all the storages are non-temporaries.*/
-    typedef arg<super::size+0, typename as_t::jacobian_type >   p_jac;
-    typedef arg<super::size+1, typename as_t::geometry_t::weights_storage_t >   p_weights;
-    typedef arg<super::size+2, typename as_t::storage_type >    p_jac_det;
-    typedef arg<super::size+3, typename as_t::jacobian_type >   p_jac_inv;
-    typedef arg<super::size+4, typename as_t::geometry_t::basis_function_storage_t> p_phi;
-    typedef arg<super::size+5, typename as_t::geometry_t::grad_storage_t> p_dphi;
+    typedef gt::arg<super::size+0, typename as_t::jacobian_type >   p_jac;
+    typedef gt::arg<super::size+1, typename as_t::geometry_t::weights_storage_t >   p_weights;
+    typedef gt::arg<super::size+2, typename as_t::storage_type >    p_jac_det;
+    typedef gt::arg<super::size+3, typename as_t::jacobian_type >   p_jac_inv;
+    typedef gt::arg<super::size+4, typename as_t::geometry_t::basis_function_storage_t> p_phi;
+    typedef gt::arg<super::size+5, typename as_t::geometry_t::grad_storage_t> p_dphi;
     static const uint_t size=super::size+6;
 
     /**
@@ -162,9 +162,9 @@ public:
     template<enumtype::Shape S>
     struct update_jac{
         auto static esf() ->
-            decltype(make_esf<functors::update_jac<typename as_t::geometry_t , S> >(typename super::p_grid_points(), p_dphi(), p_jac()))
+            decltype(gt::make_esf<functors::update_jac<typename as_t::geometry_t , S> >(typename super::p_grid_points(), p_dphi(), p_jac()))
         {
-            return make_esf<functors::update_jac<typename as_t::geometry_t , S> >(typename super::p_grid_points(), p_dphi(), p_jac());
+            return gt::make_esf<functors::update_jac<typename as_t::geometry_t , S> >(typename super::p_grid_points(), p_dphi(), p_jac());
         }
     };
 
@@ -173,9 +173,9 @@ public:
     struct mass{
         template <typename Phi, typename Mass>
         auto static esf(Phi, Mass) ->
-            decltype(make_esf<functors::mass<FE , Cubature> >(p_jac_det(), p_weights(), Phi(), Phi(), Mass()))
+            decltype(gt::make_esf<functors::mass<FE , Cubature> >(p_jac_det(), p_weights(), Phi(), Phi(), Mass()))
         {
-            return make_esf<functors::mass<FE , Cubature> >(p_jac_det(), p_weights(), Phi(), Phi(), Mass());
+            return gt::make_esf<functors::mass<FE , Cubature> >(p_jac_det(), p_weights(), Phi(), Phi(), Mass());
         }
     };
 
@@ -183,9 +183,9 @@ public:
     struct stiffness{
         template<typename DPhi, typename Stiff>
         auto static esf(DPhi, Stiff) ->
-            decltype(make_esf<functors::stiffness<FE , Cubature> >(p_jac_det(), p_jac_inv(), p_weights(), DPhi(), DPhi(), Stiff()))
+            decltype(gt::make_esf<functors::stiffness<FE , Cubature> >(p_jac_det(), p_jac_inv(), p_weights(), DPhi(), DPhi(), Stiff()))
         {
-            return make_esf<functors::stiffness<FE , Cubature> >(typename super::p_jac_det(), p_jac_inv(), p_weights(), DPhi(), DPhi(), Stiff());
+            return gt::make_esf<functors::stiffness<FE , Cubature> >(typename super::p_jac_det(), p_jac_inv(), p_weights(), DPhi(), DPhi(), Stiff());
         }
     };
 
@@ -193,13 +193,13 @@ public:
     struct advection{
         template<typename Beta, typename Phi, typename DPhi, typename Adv>
         auto static esf(Beta, Phi, DPhi, Adv) ->
-            decltype(make_esf<functors::advection<FE , Cubature> >(p_jac_det(), p_jac_inv(), p_weights(), Beta(), DPhi(), Phi(), Adv()))
+            decltype(gt::make_esf<functors::advection<FE , Cubature> >(p_jac_det(), p_jac_inv(), p_weights(), Beta(), DPhi(), Phi(), Adv()))
         {
             //TODO check that the inverse is computed
-            return make_esf<functors::advection<FE , Cubature> >(p_jac_det(), p_jac_inv(), p_weights(), Beta(), DPhi(), Phi(), Adv());
+            return gt::make_esf<functors::advection<FE , Cubature> >(p_jac_det(), p_jac_inv(), p_weights(), Beta(), DPhi(), Phi(), Adv());
         }
     };
 
 };
 
-#endif //CXX11_ENABLED
+}//namespace gdl

@@ -9,7 +9,8 @@
 * TODO paraview export for the vector fields on faces. Is it possible?
 * TODO the quantities living on the faces are oversized, think of a solution
 * TODO check that the boundary integrals works with a unit test
-* TODO check that the upwinf DG flux is correct (compare with DealII)
+* DONE check that the upwind DG flux is correct (compare with DealII)
+* TODO implement other fluxes (Lax-Friedrich, Bassi-Rebay, ...)
 * TODO Implement a Richardson solver
 * TODO how do we impose BCs?
 * TODO solve a problem

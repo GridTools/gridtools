@@ -1,6 +1,6 @@
 #pragma once
 
-namespace gridtools{
+namespace gdl{
     template <int_t N>
     struct factorial{
         static const int_t value=N*factorial<N-1>::value;
@@ -33,18 +33,18 @@ namespace gridtools{
         // number of boundaries with given codimension
         // evaluates to 0 in case sub_dimension >= dimension
         template<int_t sub_dimension>
-        using n_boundary_w_dim= static_int<sub_dimension>=dimension ? 0 : (gt_pow<dimension-sub_dimension>::apply(2))*combinations<dimension, sub_dimension >::value>;
+        using n_boundary_w_dim= static_int<sub_dimension>=dimension ? 0 : (gt::gt_pow<dimension-sub_dimension>::apply(2))*combinations<dimension, sub_dimension >::value>;
 
         // number of vertices
-        using n_vertices = static_int<gt_pow<dimension>::apply(2)>;
+        using n_vertices = static_int<gt::gt_pow<dimension>::apply(2)>;
 
         // total number of points
-        using n_points = static_int<gt_pow<dimension>::apply(2+(order-1))>;
+        using n_points = static_int<gt::gt_pow<dimension>::apply(2+(order-1))>;
 
         // number of "internal" points
         // or on boundary with dimension sub_dim
         template<int_t sub_dimension=dimension>
-        using n_internal_points = static_int< gt_pow<dimension>::apply(2+(order-3)) +  gt_pow<sub_dimension>::apply(2+(order-3)) * n_boundary_w_dim<sub_dimension>::value >;
+        using n_internal_points = static_int< gt::gt_pow<dimension>::apply(2+(order-3)) +  gt::gt_pow<sub_dimension>::apply(2+(order-3)) * n_boundary_w_dim<sub_dimension>::value >;
 
         // number of boundary points
         template<int_t sub_dimension=dimension>

@@ -3,25 +3,27 @@
 
 //! [includes]
 
-#include <gridtools.hpp>
 #include <stencil-composition/backend.hpp>
 //! [includes]
+
+#include "../galerkin_defs.hpp"
 
 #include "tensor_product_element.hpp"
 
 #include "element_traits.hpp"
 
 #include "cell.hpp"
-namespace gridtools{
+
+namespace gdl{
 
 //! [storage definition]
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<enumtype::Cuda, enumtype::Block >
+#define BACKEND gt::backend<gt::enumtype::Cuda, gt::enumtype::Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend<enumtype::Host, enumtype::Block >
+#define BACKEND gt::backend<gt::enumtype::Host, gt::enumtype::Block >
 #else
-#define BACKEND backend<enumtype::Host, enumtype::Naive >
+#define BACKEND gt::backend<gt::enumtype::Host, gt::enumtype::Naive >
 #endif
 #endif
 
@@ -34,7 +36,7 @@ namespace gridtools{
 #endif
 
     template <typename MetaData>
-    using storage_t = typename gridtools::BACKEND::storage_type<float_type, MetaData >::type;
+    using storage_t = typename BACKEND::storage_type<float_type, MetaData >::type;
 
     template<ushort_t ID, typename Layout>
     using storage_info = typename BACKEND::storage_info<ID, Layout>;
@@ -45,7 +47,7 @@ namespace gridtools{
     struct reference_element{
 
         //determining the order of the local dofs
-        typedef layout_map<2,1,0> layout_t;
+        typedef gt::layout_map<2,1,0> layout_t;
         typedef cell<Order, ShapeType> cell_t;
 
         static const typename basis_select<Order, BasisType, ShapeType>::type
@@ -118,12 +120,12 @@ namespace gridtools{
 
     /**compute vector product*/
     template <typename T>
-    constexpr array<T, 3> vec_product(array<T, 3> const& v1, array<T, 3> const& v2)
+    constexpr gt::array<T, 3> vec_product(gt::array<T, 3> const& v1, gt::array<T, 3> const& v2)
     {
-        return array<T,3>{ricci(0,1,2)*v1[1]*v2[2]+ricci(0,2,1)*v1[2]*v2[1],
+        return gt::array<T,3>{ricci(0,1,2)*v1[1]*v2[2]+ricci(0,2,1)*v1[2]*v2[1],
                 ricci(1,0,2)*v1[0]*v2[2]+ricci(1,2,0)*v1[2]*v2[0],
                 ricci(2,0,1)*v1[0]*v2[1]+ricci(2,1,0)*v1[1]*v2[0],
                 };
     }
 
-}//namespace gridtools
+}//namespace gdl

@@ -4,7 +4,7 @@
 #include <Intrepid_Cubature.hpp>
 #include <Intrepid_DefaultCubatureFactory.hpp>
 
-namespace gridtools{
+namespace gdl{
 
 //! [quadrature]
     template <ushort_t Order, enumtype::Shape CellType>
@@ -79,4 +79,4 @@ namespace gridtools{
         cell<Cubature::cubDegree, shape_property<Cubature::shape>::boundary>::value
         , Cubature::cubDegree);
 
-}//namespace gridtools
+}//namespace gdl

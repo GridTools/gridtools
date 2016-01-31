@@ -1,6 +1,7 @@
 #pragma once
 #include "project_on_boundary.hpp"
 
+namespace gdl{
 namespace functors{
     // [bassi rebay]
     /**
@@ -12,18 +13,18 @@ namespace functors{
 
         using geo_map=typename Geometry::geo_map;
 
-        using in1=accessor<0, enumtype::in, extent<> , 5>;
-        using in2=accessor<1, enumtype::in, extent<> , 5>;
-        using out=accessor<2, enumtype::inout, extent<> , 5> ;
+        using in1=gt::accessor<0, enumtype::in, gt::extent<> , 5>;
+        using in2=gt::accessor<1, enumtype::in, gt::extent<> , 5>;
+        using out=gt::accessor<2, enumtype::inout, gt::extent<> , 5> ;
         using arg_list=boost::mpl::vector<in1, in2, out> ;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            dimension<1>::Index i;
-            dimension<2>::Index j;
-            dimension<3>::Index k;
-            dimension<4>::Index row;
+            gt::dimension<1>::Index i;
+            gt::dimension<2>::Index j;
+            gt::dimension<3>::Index k;
+            gt::dimension<4>::Index row;
 
 
             //hypothesis here: the cardinaxlity is order^3 (isotropic 3D tensor product element)
@@ -31,12 +32,12 @@ namespace functors{
 #ifdef NDEBUG
             constexpr
 #endif
-            meta_storage_base<__COUNTER__,layout_map<2,1,0>,false> indexing{static_int<3>(), static_int<3>(), static_int<3>()};
+                gt::meta_storage_base<__COUNTER__,gt::layout_map<2,1,0>,false> indexing{static_int<3>(), static_int<3>(), static_int<3>()};
 #else
 #ifdef NDEBUG
             constexpr
 #endif
-            meta_storage_base<__COUNTER__,layout_map<2,1,0>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
+                gt::meta_storage_base<__COUNTER__,gt::layout_map<2,1,0>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
 
 #endif
 
@@ -77,30 +78,30 @@ namespace functors{
 
         using geo_map=typename Geometry::geo_map;
 
-        using in=accessor<0, enumtype::in, extent<> , 4>;
-        using out=accessor<1, enumtype::inout, extent<> , 4> ;
+        using in=gt::accessor<0, enumtype::in, gt::extent<> , 4>;
+        using out=gt::accessor<1, enumtype::inout, gt::extent<> , 4> ;
         using arg_list=boost::mpl::vector<in, out> ;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            dimension<1>::Index i;
-            dimension<2>::Index j;
-            dimension<3>::Index k;
-            dimension<4>::Index row;
+            gt::dimension<1>::Index i;
+            gt::dimension<2>::Index j;
+            gt::dimension<3>::Index k;
+            gt::dimension<4>::Index row;
 
-
+            using namespace gt::expressions;
             //hypothesis here: the cardinaxlity is order^3 (isotropic 3D tensor product element)
 #ifdef __CUDACC__
 #ifdef NDEBUG
             constexpr
 #endif
-            meta_storage_base<__COUNTER__,layout_map<2,1,0>,false> indexing{static_int<3>(), static_int<3>(), static_int<3>()};
+                gt::meta_storage_base<__COUNTER__,gt::layout_map<2,1,0>,false> indexing{static_int<3>(), static_int<3>(), static_int<3>()};
 #else
 #ifdef NDEBUG
             constexpr
 #endif
-                meta_storage_base<__COUNTER__,layout_map<2,1,0>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
+                gt::meta_storage_base<__COUNTER__,gt::layout_map<2,1,0>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
 
 #endif
 
@@ -124,7 +125,7 @@ namespace functors{
 
                     //find the maximum
                     for(ushort_t it_=1; it_<N; ++it_)
-                        c=(c>eval(expressions::D(Flux()(in(row+it_))))) ? c : eval(D(Flux()(in(row+it_))));
+                        c=(c>eval(D(Flux()(in(row+it_))))) ? c : eval(D(Flux()(in(row+it_))));
 
                     //average the contribution from elem i-1 on the opposite face
                     eval(out(row+dof_x)) += (eval(Flux()(in(row+dof_x))+Flux()(in(i-1, row+dof_xx)))/2. - c*(eval(in(row+dof_x)) - eval(in(i-1, row+dof_xx))))/2.;
@@ -148,25 +149,25 @@ namespace functors{
      */
     struct upwind {
 
-        using in=accessor<0, enumtype::in, extent<> , 4>;
-        using beta_n=accessor<1, enumtype::in, extent<> , 5>;
-        using bd_mass_uu=accessor<2, enumtype::in, extent<> , 6>;
-        using bd_mass_uv=accessor<3, enumtype::in, extent<> , 6>;
-        using out=accessor<4, enumtype::inout, extent<> , 4> ;
+        using in=gt::accessor<0, enumtype::in, gt::extent<> , 4>;
+        using beta_n=gt::accessor<1, enumtype::in, gt::extent<> , 5>;
+        using bd_mass_uu=gt::accessor<2, enumtype::in, gt::extent<> , 6>;
+        using bd_mass_uv=gt::accessor<3, enumtype::in, gt::extent<> , 6>;
+        using out=gt::accessor<4, enumtype::inout, gt::extent<> , 4> ;
         using arg_list=boost::mpl::vector<in, beta_n, bd_mass_uu, bd_mass_uv, out> ;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            dimension<1>::Index i;
-            dimension<2>::Index j;
-            dimension<3>::Index k;
-            dimension<4>::Index row;
-            dimension<5>::Index face;
+            gt::dimension<1>::Index i;
+            gt::dimension<2>::Index j;
+            gt::dimension<3>::Index k;
+            gt::dimension<4>::Index row;
+            gt::dimension<5>::Index face;
 
-            //definitions for the matrix accessor
-            dimension<5>::Index col;
-            dimension<6>::Index Mface;
+            //definitions for the matrix gt::accessor
+            gt::dimension<5>::Index col;
+            gt::dimension<6>::Index Mface;
 
 
             uint_t const num_faces=eval.get().template get_storage_dims<5>(bd_mass_uu());
@@ -213,32 +214,80 @@ namespace functors{
                     : face1_==5?0.
                     : -666.;
 
+
+                uint_t stride_face_=
+                    face1_ == 0?2
+                    : face1_ == 3?1
+                    : face1_ == 4?4
+                    : 666;
+
                 short_t opposite_i = (face1_==1)?1:(face1_==3)?-1:0;
                 short_t opposite_j = (face1_==2)?1:(face1_==0)?-1:0;
                 short_t opposite_k = (face1_==5)?1:(face1_==4)?-1:0;
+
                 // hypothesis: if basis functions are localized n_dofs should be
                 // the #dofs on a face
+
                 for(short_t dof1_=0; dof1_<n_dofs; dof1_++)
                 {//hypothesis: same #dofs on both faces
-                    for(short_t dof2_=0; dof2_<n_dofs; dof2_++)
-                    {
-                        if (eval(beta_n(row+dof1_, face+face1_))>1e-15){ // outflow
+                    for(short_t dof2_=0; dof2_<n_dofs; dof2_++){
+                        if (eval(beta_n(row+dof1_, face+face1_))<-1e-15){ // inflow
                             auto tmp1 = eval(in(row+dof2_));
                             auto tmp2 = eval(bd_mass_uu(row+dof1_, col+dof2_, Mface+face1_));
                             auto tmp3 = eval(bd_mass_uv(row+dof1_, col+dof2_, Mface+face1_));
-                            std::cout<<tmp1<<" * "<<tmp2<<" - "<<tmp1<<" * "<<tmp3<<"\n";
-                            //take the contribution from the current elem: beta_n*Muu
-                            eval(out(row+dof1_)) +=  eval(
-                                // beta_n(row+dof1_, face+face1_) *
+                            auto tmp4 = eval(beta_n(row+dof1_, face+face1_));
+                            auto tmp5 = eval(
                                 in(row+dof2_)
                                 *bd_mass_uu(row+dof1_, col+dof2_, Mface+face1_)
+                                //* -1.
+                                // beta_n(row+dof1_, face+face1_)
                                 -
-                                beta_n(row+dof1_, face+face1_) *
                                 in(row+dof2_)
-                                *bd_mass_uv(row+dof1_, col+dof2_, Mface+face1_));
+                                *bd_mass_uu(row+dof1_, col+dof2_, Mface+face_opposite_)
+                                //* -1.
+                                // beta_n(row+dof1_, face+face1_)
+                                );
+                            std::cout<<tmp4<<" * "<<tmp1<<" * "<<tmp2<<" - "<<tmp4<<" * "<<tmp1<<" * "<<tmp3<<" = "<<tmp5<<"\n";
+                            //take the contribution from the current elem: beta_n*Muu
+                            double bn= face1_==0?0.
+                                : face1_==1?1.
+                                : face1_==2?0.
+                                : face1_==3?-1.
+                                : face1_==4?0.
+                                : face1_==5?0.:
+                                -666;
+
+                            eval(out(row+dof1_)) += (-tmp5);
+                                // eval(
+                                // in(row+dof2_)
+                                // *bd_mass_uu(row+dof1_, col+dof2_, Mface+face1_)// * -1.
+                                // // * bn
+                                // // beta_n(row+dof1_, face+face1_)
+                                // -
+                                // in(row+dof2_)
+                                // *bd_mass_uv(row+dof1_, col+dof2_, Mface+face1_)// * -1.
+                                // // * bn
+                                // // beta_n(row+dof1_, face+face1_)
+                                // );
+
+                            //find a way to get the corresponding dof on the opposite face and you are done
+                            //for x is simply "dof + 1", in general is "dof + stride_face_"
+                            eval(out(opposite_i, opposite_j, opposite_k, dof1_+stride_face_)) += eval(
+                                in(opposite_i, opposite_j, opposite_k, (dof2_+stride_face_))
+                                *bd_mass_uu(opposite_i, opposite_j, opposite_k, (dof1_+stride_face_), (dof2_+stride_face_), face_opposite_) * (1.)
+                                // * bn
+                                // beta_n(row+dof1_, face+face1_)
+                                -
+                                in(opposite_i, opposite_j, opposite_k, (dof2_+stride_face_))
+                                *bd_mass_uu(opposite_i, opposite_j, opposite_k, (dof1_+stride_face_), (dof2_+stride_face_), face1_) * (1.)
+                                // * bn
+                                // beta_n(row+dof1_, face+face1_)
+                                );
+
+
                         }
-                        else if(eval(beta_n(row+dof1_, face+face1_))<-1e-15) // inflow
-                        {
+                        else if(eval(beta_n(row+dof1_, face+face1_))>1e-15) // outflow
+                        {//hypothesis: same #dofs on both faces
                             //take the contribution from the opposite face
                             eval(out(row+dof1_)) += eval(
                                 // beta_n(row+dof1_, face+face_opposite_) *
@@ -248,7 +297,6 @@ namespace functors{
                                 beta_n(row+dof1_, face+face_opposite_) * in(opposite_i, opposite_j, opposite_k, dof2_)
                                 *bd_mass_uv(opposite_i, opposite_j, opposite_k, dof1_, dof2_, face_opposite_));
                         }
-
                     }
                 }
             }
@@ -258,3 +306,4 @@ namespace functors{
 
 
 }//namespace functors
+}//namespace gdl

@@ -11,7 +11,7 @@
 #define PEDANTIC_DISABLED
 #define HAVE_INTREPID_DEBUG
 
-#include <tools/io.hpp>
+#include "../tools/io.hpp"
 //! [assembly]
 #include "../numerics/bd_assembly.hpp"
 //! [assembly]
@@ -34,8 +34,9 @@ struct flux {
 
 int main(){
     //![definitions]
-    using namespace enumtype;
     using namespace gridtools;
+    using namespace gdl;
+    using namespace gdl::enumtype;
     //defining the assembler, based on the Intrepid definitions for the numerics
     using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<3,4> >;
     using matrix_type=storage_t< matrix_storage_info_t >;
@@ -106,11 +107,11 @@ int main(){
 
     typedef BACKEND::storage_info<0, gridtools::layout_map<0,1,2> > meta_local_t;
 
-    static const uint_t edge_nodes=gridtools::tensor_product_element<1,order>::n_points::value;
+    static const uint_t edge_nodes=tensor_product_element<1,order>::n_points::value;
 
     meta_local_t meta_local_(edge_nodes, edge_nodes, edge_nodes);
 
-    gridtools::io_rectilinear<as_base::grid_type, meta_local_t> io_(assembler_base.grid(), meta_local_);
+    io_rectilinear<as_base::grid_type, meta_local_t> io_(assembler_base.grid(), meta_local_);
 
     //![instantiation_stiffness]
     //defining the advection matrix: d1xd2xd3 elements
@@ -144,7 +145,7 @@ int main(){
                 {
                     for (uint_t dim=0; dim<3; dim++)
                         if(dim==0)
-                            beta_(i,j,k,point,dim)=-1.;
+                            beta_(i,j,k,point,dim)=1.;
                     // if(i+j+k>4)
                     // u_(i,j,k,point)=0;
                 }
@@ -242,7 +243,7 @@ int main(){
     coords.value_list[1] = d3-1;
 
     //![computation]
-    auto computation=make_computation< gridtools::BACKEND >(
+    auto computation=make_computation< BACKEND >(
         make_mss
         (
             execute<forward>()
@@ -250,7 +251,7 @@ int main(){
             // boundary fluxes
 
             //computes the jacobian in the boundary points of each element
-            , make_esf<functors::update_bd_jac<as_bd::boundary_t, enumtype::Hexa> >(p_grid_points(), p_bd_dphi(), p_bd_jac())
+            , make_esf<functors::update_bd_jac<as_bd::boundary_t, Hexa> >(p_grid_points(), p_bd_dphi(), p_bd_jac())
             //computes the measure of the boundaries with codimension 1 (ok, faces)
             , make_esf<functors::measure<as_bd::boundary_t, 1> >(p_bd_jac(), p_bd_measure())
             //computes the mass on the element boundaries
@@ -260,7 +261,7 @@ int main(){
             // Internal element
 
             //compute the Jacobian matrix
-            , make_esf<functors::update_jac<as::geometry_t, enumtype::Hexa> >(p_grid_points(), p_dphi(), p_jac())
+            , make_esf<functors::update_jac<as::geometry_t, Hexa> >(p_grid_points(), p_dphi(), p_jac())
             // compute the measure (det(J))
             , make_esf<functors::det<geo_t> >(p_jac(), p_jac_det())
             // compute the mass matrix
@@ -283,6 +284,8 @@ int main(){
             // the normals on the current configuration, i.e. \f$F\hat n\f$
             , make_esf<functors::project_on_boundary>(p_beta(), p_int_normals(), p_bd_mass_uu(), p_beta_n())
 
+            // add the advection term: result+=A*u
+            // , make_esf< functors::matvec >( p_u(), p_advection(), p_result() )
             //compute the upwind flux
             //i.e.:
             //if <beta,n> > 0
@@ -295,7 +298,7 @@ int main(){
             // Optional: assemble the result vector by summing the values on the element boundaries
             // , make_esf< functors::assemble<geo_t> >( p_result(), p_result() )
             // for visualization: the result is replicated
-            , make_esf< functors::uniform<geo_t> >( p_result(), p_result() )
+            // , make_esf< functors::uniform<geo_t> >( p_result(), p_result() )
             // , make_esf< time_advance >(p_u(), p_result())
             ), domain, coords);
 
@@ -309,6 +312,17 @@ int main(){
         //u_.swap_pointers(result_);
     }
     computation->finalize();
+
+    for(int i=0; i<d1; ++i)
+        for(int j=0; j<d1; ++j)
+            for(int k=0; k<d1; ++k)
+                for(int dof=0; dof<8; ++dof)
+                // for(int d=0; d<3; ++d)
+                    //for(int face=0; face<6; ++face)
+                    // std::cout<<"dof"<< dof <<"result==>"<<result_(i,j,k,dof)<<"\n";
+    // std::cout<<"face: "<<face<<", dim:"<<d <<"==>"<<normals_(i,j,k,0,d,face)<<"\n";
+                        //std::cout<<"face: "<<face<<", dim:"<<d <<"==>"<<bd_beta_n_(i,j,k,0,face)<<"\n";
+                        //std::cout<<"face: "<<face<<"==>"<<bd_assembler.normals()(i,j,k,0,d,face)<<"\n";
 
     io_.set_information("Time");
     io_.set_attribute_scalar<0>(result_, "solution");

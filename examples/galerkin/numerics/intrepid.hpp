@@ -15,7 +15,7 @@
 
 #define REORDER
 
-namespace gridtools{
+namespace gdl{
 namespace intrepid{
 
     /**
@@ -34,10 +34,10 @@ namespace intrepid{
         // [test]
         GRIDTOOLS_STATIC_ASSERT(fe::layout_t::template at_<0>::value < 3 && fe::layout_t::template at_<1>::value < 3 && fe::layout_t::template at_<2>::value < 3,
                                 "the first three numbers in the layout_map must be a permutation of {0,1,2}. ");
-        using weights_storage_t_info = storage_info< __COUNTER__, layout_map<0,1,2> >;
-        using grad_storage_t_info = storage_info< __COUNTER__, layout_map<0,1,2> >;
-        using basis_function_storage_t_info = storage_info< __COUNTER__, layout_map<0,1,2> >;
-        using cub_points_storage_t_info = storage_info< __COUNTER__,layout_map<0,1,2> >;
+        using weights_storage_t_info = storage_info< __COUNTER__, gt::layout_map<0,1,2> >;
+        using grad_storage_t_info = storage_info< __COUNTER__, gt::layout_map<0,1,2> >;
+        using basis_function_storage_t_info = storage_info< __COUNTER__, gt::layout_map<0,1,2> >;
+        using cub_points_storage_t_info = storage_info< __COUNTER__,gt::layout_map<0,1,2> >;
         using weights_storage_t        = storage_t< weights_storage_t_info > ;
         using grad_storage_t           = storage_t< grad_storage_t_info > ;
         using basis_function_storage_t = storage_t< basis_function_storage_t_info > ;
@@ -227,7 +227,7 @@ namespace intrepid{
                                              , super::geo_map::basis
                                              , shape_property<super::geo_map::shape>::boundary>;
 
-        using local_grid_t_info = storage_info< __COUNTER__, layout_map<0,1,2> >;
+        using local_grid_t_info = storage_info< __COUNTER__, gt::layout_map<0,1,2> >;
         using local_grid_t = storage_t< local_grid_t_info >;
         local_grid_t_info  m_local_grid_s_info;
         local_grid_t  m_local_grid_s;
@@ -306,8 +306,8 @@ namespace intrepid{
     {
     public:
 
-        using weights_storage_t_info = storage_info< __COUNTER__,layout_map<0,1,2> >;
-        using cub_points_storage_t_info = storage_info< __COUNTER__, layout_map<0,1,2> >;
+        using weights_storage_t_info = storage_info< __COUNTER__,gt::layout_map<0,1,2> >;
+        using cub_points_storage_t_info = storage_info< __COUNTER__, gt::layout_map<0,1,2> >;
         using weights_storage_t        = storage_t< weights_storage_t_info > ;
         using cub_points_storage_t     = storage_t< cub_points_storage_t_info > ;
 
@@ -396,9 +396,9 @@ namespace intrepid{
         using cub = typename rule_t::bd_cub;
         using bd_geo_map=reference_element<geo_map::order, geo_map::basis, bd_shape>;
 
-        using grad_storage_t_info = storage_info< __COUNTER__,layout_map<0,1,2,3> >;
-        using basis_function_storage_t_info = storage_info< __COUNTER__,layout_map<0,1,2> >;
-        using tangent_storage_t_info = storage_info< __COUNTER__,layout_map<0,1,2>>;
+        using grad_storage_t_info = storage_info< __COUNTER__,gt::layout_map<0,1,2,3> >;
+        using basis_function_storage_t_info = storage_info< __COUNTER__,gt::layout_map<0,1,2> >;
+        using tangent_storage_t_info = storage_info< __COUNTER__,gt::layout_map<0,1,2>>;
 
         using grad_storage_t           = storage_t< grad_storage_t_info > ;
         using basis_function_storage_t = storage_t< basis_function_storage_t_info > ;
@@ -419,7 +419,7 @@ namespace intrepid{
         tangent_storage_t m_ref_face_tg_u;
         tangent_storage_t m_ref_face_tg_v;
         tangent_storage_t m_ref_normals;
-        array<ushort_t, Boundaries> m_face_ord;
+        gt::array<ushort_t, Boundaries> m_face_ord;
         bool m_tangent_computed;
 
     public:
@@ -438,7 +438,7 @@ namespace intrepid{
             , m_face_ord{(ushort_t) face_ord_ ...}
             , m_tangent_computed(false)
             {
-                GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(), boost::is_integral<UShort>::type::value ...),
+                GRIDTOOLS_STATIC_ASSERT(accumulate(gt::logical_and(), boost::is_integral<UShort>::type::value ...),
                                         "the face ordinals must be of integral type in the boundary discretization constructor");
 
             }
@@ -535,9 +535,9 @@ namespace intrepid{
             assert(m_tangent_computed);
 
             for(ushort_t face_=0; face_< m_face_ord.size(); ++face_){
-                array<double, 3> tg_u{m_ref_face_tg_u(0,face_), m_ref_face_tg_u(1,face_), m_ref_face_tg_u(2,face_)};
-                array<double, 3> tg_v{m_ref_face_tg_v(0,face_), m_ref_face_tg_v(1,face_), m_ref_face_tg_v(2,face_)};
-                array<double, 3> normal(vec_product(tg_u, tg_v));
+                gt::array<double, 3> tg_u{m_ref_face_tg_u(0,face_), m_ref_face_tg_u(1,face_), m_ref_face_tg_u(2,face_)};
+                gt::array<double, 3> tg_v{m_ref_face_tg_v(0,face_), m_ref_face_tg_v(1,face_), m_ref_face_tg_v(2,face_)};
+                gt::array<double, 3> normal(vec_product(tg_u, tg_v));
 
                 for (uint_t j=0; j<shape_property<rule_t::parent_shape>::dimension; ++j)
                 {
@@ -576,4 +576,4 @@ namespace intrepid{
     const constexpr ushort_t boundary_discr< Rule,  Boundaries>::s_num_boundaries;
 
 }//namespace intrepid
-}//namespace gridtools
+}//namespace gdl

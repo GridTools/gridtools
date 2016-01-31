@@ -1,6 +1,6 @@
 #pragma once
 
-namespace gridtools{
+namespace gdl{
     template <ushort_t Order, enumtype::Shape ShapeType>
     struct cell{
         static shards::CellTopology value;

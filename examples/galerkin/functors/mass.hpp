@@ -1,5 +1,6 @@
 #pragma once
 
+namespace gdl{
 namespace functors{
 
     typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_interval;
@@ -7,13 +8,13 @@ namespace functors{
 // [integration]
     template <typename FE, typename Cubature>
     struct mass {
-        using jac_det =accessor<0, enumtype::in, extent<0,0,0,0> , 4> const;
-        using weights =accessor<1, enumtype::in, extent<0,0,0,0> , 3> const;
-        using phi     =accessor<2, enumtype::in, extent<0,0,0,0> , 3> const;
-        using psi     =accessor<3, enumtype::in, extent<0,0,0,0> , 3> const;
-        using mass_t    =accessor<4, enumtype::inout, extent<0,0,0,0> , 5> ;
+        using jac_det =gt::accessor<0, enumtype::in, gt::extent<0,0,0,0> , 4> const;
+        using weights =gt::accessor<1, enumtype::in, gt::extent<0,0,0,0> , 3> const;
+        using phi     =gt::accessor<2, enumtype::in, gt::extent<0,0,0,0> , 3> const;
+        using psi     =gt::accessor<3, enumtype::in, gt::extent<0,0,0,0> , 3> const;
+        using mass_t    =gt::accessor<4, enumtype::inout, gt::extent<0,0,0,0> , 5> ;
         using arg_list= boost::mpl::vector<jac_det, weights, phi, psi, mass_t> ;
-        using quad=dimension<4>;
+        using quad=gt::dimension<4>;
 
         template <typename Evaluation>
         GT_FUNCTION
@@ -23,8 +24,8 @@ namespace functors{
             uint_t const basis_cardinality=eval.get().template get_storage_dims<0>(phi());
 
             quad::Index qp;
-            dimension<5>::Index dimx;
-            dimension<6>::Index dimy;
+            gt::dimension<5>::Index dimx;
+            gt::dimension<6>::Index dimy;
             // static int_t dd=fe::hypercube_t::boundary_w_codim<2>::n_points::value;
 
             //projection of f on a (e.g.) P1 FE space ReferenceFESpace1:
@@ -45,3 +46,4 @@ namespace functors{
     };
 // [integration]
 }//namespace functors
+}//namespace gdl

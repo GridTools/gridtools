@@ -6,7 +6,6 @@
 #include "../functors/assembly_functors.hpp"
 #include "intrepid.hpp"
 // [includes]
-#ifdef CXX11_ENABLED
 
 // template <typename ... Args>
 // struct make_domain_type{
@@ -19,8 +18,8 @@
 // }
 
 
+namespace gdl{
 
-using namespace gridtools;
 template <typename Geometry>
 struct assembly_base{
 
@@ -77,7 +76,7 @@ struct domain_type_tuple<>{
     template <typename ... MPLList>
     gridtools::domain_type< boost::mpl::vector<MPLList ...> >
     domain(typename MPLList::storage_type& ...  storages_ ){
-        return domain_type<boost::mpl::vector< MPLList ...> >(boost::fusion::make_vector(&storages_ ...));
+        return gt::domain_type<boost::mpl::vector< MPLList ...> >(boost::fusion::make_vector(&storages_ ...));
     }
 
 };
@@ -97,7 +96,7 @@ public:
     /**I have to define here the placeholders to the storages used: the temporary storages get internally managed, while
        non-temporary ones must be instantiated by the user. In this example all the storages are non-temporaries.*/
 
-    typedef arg<0, typename as_t::grid_type >       p_grid_points;
+    typedef gt::arg<0, typename as_t::grid_type >       p_grid_points;
     static const ushort_t size=1;
 
     template <typename ... MPLList>
@@ -118,4 +117,4 @@ public:
 
 };
 
-#endif //CXX11_ENABLED
+}//namespace gdl

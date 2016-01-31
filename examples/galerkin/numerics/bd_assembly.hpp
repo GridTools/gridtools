@@ -10,6 +10,7 @@
 #include "../functors/bd_assembly_functors.hpp"
 #include "../functors/dg_fluxes.hpp"
 
+namespace gdl{
 /**
    @brief Definition of the quantities needed for performing computations on the boundary
 
@@ -102,15 +103,15 @@ public:
     template<typename ... Args>
     domain_type_tuple(as_t & as_, Args & ... args_) : super(args_ ...), m_as(as_) {}
 
-    typedef arg<super::size+0, typename as_t::jacobian_type >       p_bd_jac;
-    typedef arg<super::size+1, typename as_t::face_normals_type >                   p_normals;
-    typedef arg<super::size+2, typename as_t::storage_type >        p_bd_measure;
-    typedef arg<super::size+3, typename as_t::boundary_t::weights_storage_t> p_bd_weights;
-    typedef arg<super::size+4, typename as_t::boundary_t::tangent_storage_t> p_ref_normals;
-    typedef arg<super::size+5, typename as_t::bd_matrix_type> p_bd_mass;
-    typedef arg<super::size+6, typename as_t::boundary_t::basis_function_storage_t> p_bd_phi;
-    typedef arg<super::size+7, typename as_t::boundary_t::grad_storage_t> p_bd_dphi;
-    typedef arg<super::size+8, typename as_t::bd_vector_type> p_flux;
+    typedef gt::arg<super::size+0, typename as_t::jacobian_type >       p_bd_jac;
+    typedef gt::arg<super::size+1, typename as_t::face_normals_type >                   p_normals;
+    typedef gt::arg<super::size+2, typename as_t::storage_type >        p_bd_measure;
+    typedef gt::arg<super::size+3, typename as_t::boundary_t::weights_storage_t> p_bd_weights;
+    typedef gt::arg<super::size+4, typename as_t::boundary_t::tangent_storage_t> p_ref_normals;
+    typedef gt::arg<super::size+5, typename as_t::bd_matrix_type> p_bd_mass;
+    typedef gt::arg<super::size+6, typename as_t::boundary_t::basis_function_storage_t> p_bd_phi;
+    typedef gt::arg<super::size+7, typename as_t::boundary_t::grad_storage_t> p_bd_dphi;
+    typedef gt::arg<super::size+8, typename as_t::bd_vector_type> p_flux;
     static const ushort_t size=super::size+9;
 
     // template <typename ... MPLList>
@@ -182,9 +183,9 @@ public:
     struct compute_face_normals{
         // template<typename DPhi, typename Stiff>
         auto static esf() ->
-            decltype(make_esf<functors::compute_face_normals<typename as_t::boundary_t> >(p_bd_jac(), p_ref_normals(), p_normals()))
+            decltype(gt::make_esf<functors::compute_face_normals<typename as_t::boundary_t> >(p_bd_jac(), p_ref_normals(), p_normals()))
         {
-            return make_esf<functors::compute_face_normals<typename as_t::boundary_t> >(p_bd_jac(), p_ref_normals(), p_normals());
+            return gt::make_esf<functors::compute_face_normals<typename as_t::boundary_t> >(p_bd_jac(), p_ref_normals(), p_normals());
         }
     };
 
@@ -192,9 +193,9 @@ public:
     struct bd_integrate{
         template<typename In, typename Out>
         auto static esf(In, Out) ->
-            decltype(make_esf<functors::bd_integrate<typename as_t::boundary_t> >(p_bd_phi(), p_bd_measure(), p_bd_weights(), In(), Out()))
+            decltype(gt::make_esf<functors::bd_integrate<typename as_t::boundary_t> >(p_bd_phi(), p_bd_measure(), p_bd_weights(), In(), Out()))
         {
-            return make_esf<functors::bd_integrate<typename as_t::boundary_t> >(p_bd_phi(), p_bd_measure(), p_bd_weights(), In(), Out());
+            return gt::make_esf<functors::bd_integrate<typename as_t::boundary_t> >(p_bd_phi(), p_bd_measure(), p_bd_weights(), In(), Out());
         }
     };
 
@@ -203,26 +204,26 @@ public:
     template<enumtype::Shape S>
     struct update_bd_jac{
         auto static esf() ->
-            decltype(make_esf<functors::update_bd_jac<typename as_t::boundary_t , S> >(typename super::p_grid_points(), p_bd_dphi(), p_bd_jac()))
+            decltype(gt::make_esf<functors::update_bd_jac<typename as_t::boundary_t , S> >(typename super::p_grid_points(), p_bd_dphi(), p_bd_jac()))
         {
-            return make_esf<functors::update_bd_jac<typename as_t::boundary_t , S> >(typename super::p_grid_points(), p_bd_dphi(), p_bd_jac());
+            return gt::make_esf<functors::update_bd_jac<typename as_t::boundary_t , S> >(typename super::p_grid_points(), p_bd_dphi(), p_bd_jac());
         }
     };
 
     template<ushort_t Codimension>
     struct measure{
         auto static esf() ->
-            decltype(make_esf<functors::measure<typename as_t::boundary_t , Codimension> >(p_bd_jac(), p_bd_measure()))
+            decltype(gt::make_esf<functors::measure<typename as_t::boundary_t , Codimension> >(p_bd_jac(), p_bd_measure()))
         {
-            return make_esf<functors::measure<typename as_t::boundary_t, Codimension> >(p_bd_jac(),  p_bd_measure());
+            return gt::make_esf<functors::measure<typename as_t::boundary_t, Codimension> >(p_bd_jac(),  p_bd_measure());
         }
     };
 
     struct bd_mass{
             auto static esf() ->
-                decltype(make_esf<functors::bd_mass<typename as_t::boundary_t, typename as_t::bd_cub> >(p_bd_measure(), p_bd_weights(), p_bd_phi(), p_bd_phi(), p_bd_mass()))
+                decltype(gt::make_esf<functors::bd_mass<typename as_t::boundary_t, typename as_t::bd_cub> >(p_bd_measure(), p_bd_weights(), p_bd_phi(), p_bd_phi(), p_bd_mass()))
         {
-            return make_esf<functors::bd_mass<typename as_t::boundary_t, typename as_t::bd_cub> >(p_bd_measure(), p_bd_weights(), p_bd_phi(), p_bd_phi(), p_bd_mass()); //mass
+            return gt::make_esf<functors::bd_mass<typename as_t::boundary_t, typename as_t::bd_cub> >(p_bd_measure(), p_bd_weights(), p_bd_phi(), p_bd_phi(), p_bd_mass()); //mass
         }
     };
 
@@ -231,9 +232,9 @@ public:
 
         template<typename Sol, typename Result>
         auto static esf(Sol, Result) ->
-            decltype(make_esf<functors::lax_friedrich<typename as_t::boundary_t, Flux> >(Sol(), Result()))
+            decltype(gt::make_esf<functors::lax_friedrich<typename as_t::boundary_t, Flux> >(Sol(), Result()))
         {
-            return make_esf<functors::lax_friedrich<typename as_t::boundary_t, Flux> >(Sol(), Result()); //mass
+            return gt::make_esf<functors::lax_friedrich<typename as_t::boundary_t, Flux> >(Sol(), Result()); //mass
         }
     };
 
@@ -242,10 +243,11 @@ public:
 
         template<typename Sol, typename Beta, typename Result>
         auto static esf(Sol, Beta, Result) ->
-            decltype(make_esf<functors::upwind >(as_t::p_normals(), Sol(), Beta(), Result()))
+            decltype(gt::make_esf<functors::upwind >(as_t::p_normals(), Sol(), Beta(), Result()))
         {
-            return make_esf<functors::upwind >(as_t::p_normals(), Sol(), Beta(), Result()); //mass
+            return gt::make_esf<functors::upwind >(as_t::p_normals(), Sol(), Beta(), Result()); //mass
         }
     };
 
 };
+}//namespace gdl

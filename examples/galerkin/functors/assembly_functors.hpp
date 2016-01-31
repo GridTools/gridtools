@@ -1,10 +1,11 @@
 #pragma once
 
-namespace functors{
+namespace gdl{
+    namespace functors{
 
     //watchout: propagating namespace
-    using namespace gridtools;
-    using namespace expressions;
+    // using namespace gridtools;
+    using namespace gridtools::expressions;
 
     typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_interval;
     typedef gridtools::interval<gridtools::level<0,-2>, gridtools::level<1,1> > axis;
@@ -17,20 +18,20 @@ namespace functors{
         using cub=typename Geometry::cub;
         using geo_map=typename Geometry::geo_map;
 
-        typedef accessor<0, enumtype::in, extent<0,0,0,0> , 5> const grid_points;
-        typedef accessor<1, enumtype::in, extent<0,0,0,0> , 3> const dphi;
-        typedef accessor<2, enumtype::inout, extent<0,0,0,0> , 6> jac;
+        typedef gt::accessor<0, enumtype::in, gt::extent<0,0,0,0> , 5> const grid_points;
+        typedef gt::accessor<1, enumtype::in, gt::extent<0,0,0,0> , 3> const dphi;
+        typedef gt::accessor<2, enumtype::inout, gt::extent<0,0,0,0> , 6> jac;
         typedef boost::mpl::vector< grid_points, dphi, jac> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            dimension<4>::Index qp;
-            dimension<5>::Index dimx;
-            dimension<6>::Index dimy;
-            dimension<1>::Index i;
-            dimension<2>::Index j;
-            dimension<3>::Index k;
+            gt::dimension<4>::Index qp;
+            gt::dimension<5>::Index dimx;
+            gt::dimension<6>::Index dimy;
+            gt::dimension<1>::Index i;
+            gt::dimension<2>::Index j;
+            gt::dimension<3>::Index k;
 
             uint_t const num_cub_points=eval.get().template get_storage_dims<1>(dphi());
             uint_t const basis_cardinality=eval.get().template get_storage_dims<0>(dphi());
@@ -49,7 +50,7 @@ namespace functors{
                                 for (int_t iterNode=0; iterNode < basis_cardinality ; ++iterNode)
                                 {//reduction/gather
                                     eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) ) +=
-				      eval(grid_points(dimension<4>(iterNode), dimension<5>(icoor)) * !dphi(i+iterNode, j+iter_quad, k+jcoor) );
+                                        eval(grid_points(gt::dimension<4>(iterNode), gt::dimension<5>(icoor)) * !dphi(i+iterNode, j+iter_quad, k+jcoor) );
                                 }
                     }
                 }
@@ -65,30 +66,30 @@ namespace functors{
     template<typename Geometry, ushort_t Dim=Geometry::geo_map::spaceDim>
     struct det_impl;
 
-    template<typename Geometry>
-    struct det
-	{
-        using jac = accessor<0, enumtype::in, extent<0,0,0,0> , 6> const;
-        using jac_det =  accessor<1, enumtype::inout, extent<0,0,0,0> , 4>;
-        using arg_list= boost::mpl::vector< jac, jac_det > ;
+        template<typename Geometry>
+        struct det
+        {
+            using jac = gt::accessor<0, enumtype::in, gt::extent<0,0,0,0> , 6> const;
+            using jac_det =  gt::accessor<1, enumtype::inout, gt::extent<0,0,0,0> , 4>;
+            using arg_list= boost::mpl::vector< jac, jac_det > ;
 
-        template <typename Evaluation>
-        GT_FUNCTION
-        static void Do(Evaluation const & eval, x_interval) {
+            template <typename Evaluation>
+            GT_FUNCTION
+            static void Do(Evaluation const & eval, x_interval) {
 
-            dimension<4>::Index qp;
-            dimension<5>::Index dimx;
-            dimension<6>::Index dimy;
-            uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac());
+                gt::dimension<4>::Index qp;
+                gt::dimension<5>::Index dimx;
+                gt::dimension<6>::Index dimy;
+                uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac());
 
 #ifdef __CUDACC__
-            assert(num_cub_points==cub::numCubPoints());
+                assert(num_cub_points==cub::numCubPoints());
 #endif
 
-            for(short_t q=0; q< num_cub_points; ++q)
-            {
-            	det_impl<Geometry>::DoCompute(eval,qp,dimx,dimy,q);
-            }
+                for(short_t q=0; q< num_cub_points; ++q)
+                {
+                    det_impl<Geometry>::DoCompute(eval,qp,dimx,dimy,q);
+                }
         }
 	};
 
@@ -103,7 +104,7 @@ namespace functors{
 
         template <typename Evaluation>
         GT_FUNCTION
-        static void DoCompute(Evaluation const & eval, const dimension<4>::Index& i_qp, const dimension<5>::Index& i_dimx, const dimension<6>::Index& i_dimy, const short_t i_q) {
+        static void DoCompute(Evaluation const & eval, const gt::dimension<4>::Index& i_qp, const gt::dimension<5>::Index& i_dimx, const gt::dimension<6>::Index& i_dimy, const short_t i_q) {
 	  eval( jacobian_det(i_qp+i_q) )= eval((
 				jacobian(        i_qp+i_q)*jacobian(i_dimx+1, i_dimy+1, i_qp+i_q)*jacobian(i_dimx+2, i_dimy+2, i_qp+i_q) +
 				jacobian(i_dimx+1, i_qp+i_q)*jacobian(i_dimx+2, i_dimy+1, i_qp+i_q)*jacobian(i_dimy+2,         i_qp+i_q) +
@@ -125,7 +126,7 @@ namespace functors{
 
         template <typename Evaluation>
         GT_FUNCTION
-        static void DoCompute(Evaluation const & eval, const dimension<4>::Index& i_qp, const dimension<5>::Index& i_dimx, const dimension<6>::Index& i_dimy, const short_t i_q) {
+        static void DoCompute(Evaluation const & eval, const gt::dimension<4>::Index& i_qp, const gt::dimension<5>::Index& i_dimx, const gt::dimension<6>::Index& i_dimy, const short_t i_q) {
             eval( jacobian_det(i_qp+i_q) )= eval((
 		     jacobian(        i_qp+i_q)*jacobian(i_dimx+1, i_dimy+1, i_qp+i_q) -
 		     jacobian(i_dimx+1, i_qp+i_q)*jacobian(i_dimy+1, i_qp+i_q)));
@@ -147,9 +148,9 @@ namespace functors{
 
         //![arguments_inv]
         /**The input arguments to this functors are the matrix and its determinant. */
-        using jac      = accessor<0, enumtype::in, extent<0,0,0,0> , 6> const ;
-        using jac_det  = accessor<1, enumtype::in, extent<0,0,0,0> , 4> const ;
-        using jac_inv  = accessor<2, enumtype::inout, extent<0,0,0,0> , 6> ;
+        using jac      = gt::accessor<0, enumtype::in, gt::extent<0,0,0,0> , 6> const ;
+        using jac_det  = gt::accessor<1, enumtype::in, gt::extent<0,0,0,0> , 4> const ;
+        using jac_inv  = gt::accessor<2, enumtype::inout, gt::extent<0,0,0,0> , 6> ;
         using arg_list = boost::mpl::vector< jac, jac_det, jac_inv>;
         //![arguments_inv]
 
@@ -173,9 +174,9 @@ namespace functors{
         GT_FUNCTION
         static void DoCompute(Evaluation const & eval) {
 
-            dimension<4>::Index qp;
-            using dimx=dimension<5>;
-            using dimy=dimension<6>;
+            gt::dimension<4>::Index qp;
+            using dimx=gt::dimension<5>;
+            using dimy=gt::dimension<6>;
             dimx::Index X;
             dimy::Index Y;
             uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac());
@@ -185,28 +186,28 @@ namespace functors{
 #endif
 
 //! [aliases]
-            using a_=typename alias<jac, dimy, dimx>::template set<0,0>;
-            using b_=typename alias<jac, dimy, dimx>::template set<0,1>;
-            using c_=typename alias<jac, dimy, dimx>::template set<0,2>;
-            using d_=typename alias<jac, dimy, dimx>::template set<1,0>;
-            using e_=typename alias<jac, dimy, dimx>::template set<1,1>;
-            using f_=typename alias<jac, dimy, dimx>::template set<1,2>;
-            using g_=typename alias<jac, dimy, dimx>::template set<2,0>;
-            using h_=typename alias<jac, dimy, dimx>::template set<2,1>;
-            using i_=typename alias<jac, dimy, dimx>::template set<2,2>;
+            using a_=typename gt::alias<jac, dimy, dimx>::template set<0,0>;
+            using b_=typename gt::alias<jac, dimy, dimx>::template set<0,1>;
+            using c_=typename gt::alias<jac, dimy, dimx>::template set<0,2>;
+            using d_=typename gt::alias<jac, dimy, dimx>::template set<1,0>;
+            using e_=typename gt::alias<jac, dimy, dimx>::template set<1,1>;
+            using f_=typename gt::alias<jac, dimy, dimx>::template set<1,2>;
+            using g_=typename gt::alias<jac, dimy, dimx>::template set<2,0>;
+            using h_=typename gt::alias<jac, dimy, dimx>::template set<2,1>;
+            using i_=typename gt::alias<jac, dimy, dimx>::template set<2,2>;
 //! [aliases]
             // eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) )=0.;
             for(short_t q=0; q< num_cub_points; ++q)
             {
-                alias<a_, dimension<4> > a(q);
-                alias<b_, dimension<4> > b(q);
-                alias<c_, dimension<4> > c(q);
-                alias<d_, dimension<4> > d(q);
-                alias<e_, dimension<4> > e(q);
-                alias<f_, dimension<4> > f(q);
-                alias<g_, dimension<4> > g(q);
-                alias<h_, dimension<4> > h(q);
-                alias<i_, dimension<4> > i(q);
+                gt::alias<a_, gt::dimension<4> > a(q);
+                gt::alias<b_, gt::dimension<4> > b(q);
+                gt::alias<c_, gt::dimension<4> > c(q);
+                gt::alias<d_, gt::dimension<4> > d(q);
+                gt::alias<e_, gt::dimension<4> > e(q);
+                gt::alias<f_, gt::dimension<4> > f(q);
+                gt::alias<g_, gt::dimension<4> > g(q);
+                gt::alias<h_, gt::dimension<4> > h(q);
+                gt::alias<i_, gt::dimension<4> > i(q);
 
                 assert(eval(a()) == eval(jac(qp+q)));
                 assert(eval(b()) == eval(jac(qp+q, X+1)));
@@ -249,9 +250,9 @@ namespace functors{
         template <typename Evaluation>
         GT_FUNCTION
         static void DoCompute(Evaluation const & eval) {
-            dimension<4>::Index qp;
-            using dimx=dimension<5>;
-            using dimy=dimension<6>;
+            gt::dimension<4>::Index qp;
+            using dimx=gt::dimension<5>;
+            using dimy=gt::dimension<6>;
             dimx::Index X;
             dimy::Index Y;
             uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac());
@@ -261,18 +262,18 @@ namespace functors{
 #endif
 
 //! [aliases]
-            using a_= typename alias<jac, dimy, dimx>::template set<0,0>;
-            using b_= typename alias<jac, dimy, dimx>::template set<0,1>;
-            using c_= typename alias<jac, dimy, dimx>::template set<1,0>;
-            using d_= typename alias<jac, dimy, dimx>::template set<1,1>;
+            using a_= typename gt::alias<jac, dimy, dimx>::template set<0,0>;
+            using b_= typename gt::alias<jac, dimy, dimx>::template set<0,1>;
+            using c_= typename gt::alias<jac, dimy, dimx>::template set<1,0>;
+            using d_= typename gt::alias<jac, dimy, dimx>::template set<1,1>;
 //! [aliases]
             // eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) )=0.;
             for(short_t q=0; q< num_cub_points; ++q)
             {
-                alias<a_, dimension<4> > a(q);
-                alias<b_, dimension<4> > b(q);
-                alias<c_, dimension<4> > c(q);
-                alias<d_, dimension<4> > d(q);
+                gt::alias<a_, gt::dimension<4> > a(q);
+                gt::alias<b_, gt::dimension<4> > b(q);
+                gt::alias<c_, gt::dimension<4> > c(q);
+                gt::alias<d_, gt::dimension<4> > d(q);
 
                 assert(eval(a()) == eval(jac(qp+q)));
                 assert(eval(b()) == eval(jac(qp+q, X+1)));
@@ -305,17 +306,17 @@ namespace functors{
 
         using geo_map=typename Geometry::geo_map;
 
-        using in2=accessor<0, enumtype::in, extent<> , 4>;
-        using out=accessor<1, enumtype::inout, extent<> , 4> ;
+        using in2=gt::accessor<0, enumtype::in, gt::extent<> , 4>;
+        using out=gt::accessor<1, enumtype::inout, gt::extent<> , 4> ;
         using arg_list=boost::mpl::vector<in2, out> ;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            dimension<1>::Index i;
-            dimension<2>::Index j;
-            dimension<3>::Index k;
-            dimension<4>::Index row;
+            gt::dimension<1>::Index i;
+            gt::dimension<2>::Index j;
+            gt::dimension<3>::Index k;
+            gt::dimension<4>::Index row;
 
 
             //hypothesis here: the cardinaxlity is order^3 (isotropic 3D tensor product element)
@@ -323,12 +324,12 @@ namespace functors{
 #ifdef NDEBUG
             constexpr
 #endif
-            meta_storage_base<__COUNTER__,layout_map<2,1,0>,false> indexing{static_int<Geometry::geo_map::order+1>(), static_int<Geometry::geo_map::order+1>(), static_int<Geometry::geo_map::order+1>()};
+                gt::meta_storage_base<__COUNTER__,gt::layout_map<2,1,0>,false> indexing{static_int<Geometry::geo_map::order+1>(), static_int<Geometry::geo_map::order+1>(), static_int<Geometry::geo_map::order+1>()};
 #else
 #ifdef NDEBUG
             constexpr
 #endif
-                meta_storage_base<__COUNTER__,layout_map<2,1,0>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
+                gt::meta_storage_base<__COUNTER__,gt::layout_map<2,1,0>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
 
 #endif
 
@@ -446,17 +447,17 @@ namespace functors{
 
         using geo_map=typename Geometry::geo_map;
 
-        using in1=accessor<0, enumtype::in, extent<> , 4>;
-        using out=accessor<1, enumtype::inout, extent<> , 4> ;
+        using in1=gt::accessor<0, enumtype::in, gt::extent<> , 4>;
+        using out=gt::accessor<1, enumtype::inout, gt::extent<> , 4> ;
         using arg_list=boost::mpl::vector<in1, out> ;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            dimension<1>::Index i;
-            dimension<2>::Index j;
-            dimension<3>::Index k;
-            dimension<4>::Index row;
+            gt::dimension<1>::Index i;
+            gt::dimension<2>::Index j;
+            gt::dimension<3>::Index k;
+            gt::dimension<4>::Index row;
 
 
             //hypothesis here: the cardinaxlity is order^3 (isotropic 3D tensor product element)
@@ -464,12 +465,12 @@ namespace functors{
 #ifdef NDEBUG
             constexpr
 #endif
-            meta_storage_base<__COUNTER__,layout_map<2,1,0>,false> indexing{static_int<3>(), static_int<3>(), static_int<3>()};
+                gt::meta_storage_base<__COUNTER__,gt::layout_map<2,1,0>,false> indexing{static_int<3>(), static_int<3>(), static_int<3>()};
 #else
 #ifdef NDEBUG
             constexpr
 #endif
-                meta_storage_base<__COUNTER__,layout_map<2,1,0>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
+                gt::meta_storage_base<__COUNTER__,gt::layout_map<2,1,0>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
 
 #endif
             uint_t N1 = indexing.template dims<0>()-1;
@@ -524,16 +525,16 @@ namespace functors{
     // Stencil points correspond to global dof pairs (P,Q)
     struct global_assemble {
 
-    	using in=accessor<0, enumtype::in, extent<0,0,0,0> , 5> ;
-    	using in_map=accessor<1, enumtype::in, extent<0,0,0> , 4>;
-    	using out=accessor<2, enumtype::inout, extent<0,0,0,0> , 5> ;
+    	using in=gt::accessor<0, enumtype::in, gt::extent<0,0,0,0> , 5> ;
+    	using in_map=gt::accessor<1, enumtype::in, gt::extent<0,0,0> , 4>;
+    	using out=gt::accessor<2, enumtype::inout, gt::extent<0,0,0,0> , 5> ;
     	using arg_list=boost::mpl::vector<in, in_map, out> ;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 
-        	// Retrieve elements dof grid dimensions and number of dofs per element
+        	// Retrieve elements dof grid gt::dimensions and number of dofs per element
             const uint_t d1=eval.get().template get_storage_dims<0>(in());
             const uint_t d2=eval.get().template get_storage_dims<1>(in());
             const uint_t d3=eval.get().template get_storage_dims<2>(in());
@@ -581,16 +582,16 @@ namespace functors{
     // TODO: this is an updated version of the "global_assemble" functor without ifs and conditional branchings
     struct global_assemble_no_if {
 
-    	using in=accessor<0, enumtype::in, extent<0,0,0,0> , 5> ;
-    	using in_map=accessor<1, enumtype::in, extent<0,0,0> , 4>;
-    	using out=accessor<2, enumtype::inout, extent<0,0,0,0> , 5> ;
+    	using in=gt::accessor<0, enumtype::in, gt::extent<0,0,0,0> , 5> ;
+    	using in_map=gt::accessor<1, enumtype::in, gt::extent<0,0,0> , 4>;
+    	using out=gt::accessor<2, enumtype::inout, gt::extent<0,0,0,0> , 5> ;
     	using arg_list=boost::mpl::vector<in, in_map, out> ;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 
-            // Retrieve elements dof grid dimensions and number of dofs per element
+            // Retrieve elements dof grid gt::dimensions and number of dofs per element
             const uint_t d1=eval.get().template get_storage_dims<0>(in());
             const uint_t d2=eval.get().template get_storage_dims<1>(in());
             const uint_t d3=eval.get().template get_storage_dims<2>(in());
@@ -634,7 +635,7 @@ namespace functors{
 
     template< typename T, T Value>
     struct assign<3, T, Value>{
-        typedef accessor<2, enumtype::inout, extent<0,0,0,0> , 3> field;
+        typedef gt::accessor<2, enumtype::inout, gt::extent<0,0,0,0> , 3> field;
         typedef boost::mpl::vector< field > arg_list;
 
         template <typename Evaluation>
@@ -646,7 +647,7 @@ namespace functors{
 
     template< typename T, T Value>
     struct assign<4,T,Value>{
-        typedef accessor<0, enumtype::inout, extent<0,0,0,0> , 4> field;
+        typedef gt::accessor<0, enumtype::inout, gt::extent<0,0,0,0> , 4> field;
         typedef boost::mpl::vector< field > arg_list;
 
         template <typename Evaluation>
@@ -656,13 +657,13 @@ namespace functors{
             uint_t const num_=eval.get().template get_storage_dims<3>(field());
 
             for(short_t I=0; I<num_; I++)
-                eval(field(dimension<4>(I)))=Value;
+                eval(field(gt::dimension<4>(I)))=Value;
         }
     };
 
     template< typename T, T Value>
     struct assign<5,T,Value>{
-        typedef accessor<0, enumtype::inout, extent<0,0,0,0> , 5> field;
+        typedef gt::accessor<0, enumtype::inout, gt::extent<0,0,0,0> , 5> field;
         typedef boost::mpl::vector< field > arg_list;
 
         template <typename Evaluation>
@@ -674,9 +675,10 @@ namespace functors{
 
             for(short_t I=0; I<dim_1_; I++)
                 for(short_t J=0; J<dim_2_; J++)
-                    eval(field(dimension<4>(I), dimension<5>(J)))=Value;
+                    eval(field(gt::dimension<4>(I), gt::dimension<5>(J)))=Value;
         }
     };
     //[zero]
 
-} // namespace functors
+    } // namespace functors
+}//namespace gdl
