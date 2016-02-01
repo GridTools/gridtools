@@ -224,14 +224,14 @@ alias<arg_t, dimension<3> > field1(-3); //records the offset -3 as dynamic value
            This type alias allows to embed some of the offsets directly inside the type of the accessor placeholder.
            For a usage example check the exaples folder
         */
-        template<int ... Args>
+        template<int_t ... Args>
         using set=accessor_mixed< AccessorType, pair_<Known::direction,Args> ... >;
 
         /**@brief constructor
            \param args are the offsets which are already known*/
         template<typename ... Args>
         GT_FUNCTION
-        constexpr alias( Args/*&&*/ ... args ): m_knowns{args ...} {
+        constexpr alias( Args/*&&*/ ... args ): m_knowns{(int_t)args ...} {
         }
 
         typedef boost::mpl::vector<Known...> dim_vector;

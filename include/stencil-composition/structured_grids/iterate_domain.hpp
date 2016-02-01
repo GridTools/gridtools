@@ -517,7 +517,7 @@ namespace gridtools {
         uint_t get_storage_dims(Accessor ) const
         {
 
-            using storage_type = typename boost::remove_pointer<typename boost::mpl::at<typename local_domain_t::mpl_storages, typename Accessor::index_type>::type>::type;
+            using storage_type = typename boost::remove_pointer<typename boost::mpl::at<typename local_domain_t::mpl_storages, typename Accessor::index_type>::type>::type::value_type;
             //getting information about the metadata
             typedef typename boost::mpl::at
                 <metadata_map_t, typename storage_type::meta_data_t >::type metadata_index_t;
