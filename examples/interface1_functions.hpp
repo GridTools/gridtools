@@ -48,13 +48,13 @@ struct lap_function {
 
     typedef boost::mpl::vector<out, in> arg_list;
 
-    template <typename Domain>
+    template <typename Evaluator>
     GT_FUNCTION
-    static void Do(Domain const & dom, x_lap) {
-        auto x = (gridtools::float_type)4.0*dom(in()) -
-            (dom(in( -1, 0, 0)) + dom(in( 0, -1, 0)) +
-             dom(in(0, 1, 0)) + dom(in(1, 0, 0)));
-        dom(out()) = x;
+    static void Do(Evaluator const & eval, x_lap) {
+        auto x = (gridtools::float_type)4.0*eval(in()) -
+            (eval(in( -1, 0, 0)) + eval(in( 0, -1, 0)) +
+             eval(in(0, 1, 0)) + eval(in(1, 0, 0)));
+        eval(out()) = x;
     }
 };
 
@@ -66,42 +66,42 @@ struct flx_function {
 
     typedef boost::mpl::vector<out, in> arg_list;
 
-    template <typename Domain>
+    template <typename Evaluator>
     GT_FUNCTION
-    static void Do(Domain const & dom, x_flx) {
+    static void Do(Evaluator const & eval, x_flx) {
 #ifdef FUNCTIONS_MONOLITHIC
 #pragma message "monolithic version"
-        double _x_ = (gridtools::float_type)4.0*dom(in()) -
-            (dom(in( -1, 0, 0)) + dom(in( 0, -1, 0)) +
-             dom(in(0, 1, 0)) + dom(in(1, 0, 0)));
-        double _y_ = (gridtools::float_type)4.0*dom(in(1,0,0)) -
-            (dom(in( 0, 0, 0)) + dom(in( 1, -1, 0)) +
-             dom(in(1, 1, 0)) + dom(in(2, 0, 0)));
+        double _x_ = (gridtools::float_type)4.0*eval(in()) -
+            (eval(in( -1, 0, 0)) + eval(in( 0, -1, 0)) +
+             eval(in(0, 1, 0)) + eval(in(1, 0, 0)));
+        double _y_ = (gridtools::float_type)4.0*eval(in(1,0,0)) -
+            (eval(in( 0, 0, 0)) + eval(in( 1, -1, 0)) +
+             eval(in(1, 1, 0)) + eval(in(2, 0, 0)));
 #else
 #ifdef FUNCTIONS_PROCEDURES
         double _x_;
-        gridtools::call_proc<lap_function, x_flx>::at<0,0,0>::with(dom, _x_, in());
+        gridtools::call_proc<lap_function, x_flx>::at<0,0,0>::with(eval, _x_, in());
         double _y_;
-        gridtools::call_proc<lap_function, x_flx>::at<1,0,0>::with(dom, _y_, in());
+        gridtools::call_proc<lap_function, x_flx>::at<1,0,0>::with(eval, _y_, in());
 #else
 #ifdef FUNCTIONS_PROCEDURES_OFFSETS
         double _x_;
-        gridtools::call_proc<lap_function, x_flx>::with_offsets(dom, _x_, in());
+        gridtools::call_proc<lap_function, x_flx>::with_offsets(eval, _x_, in());
         double _y_;
-        gridtools::call_proc<lap_function, x_flx>::with_offsets(dom, _y_, in(1,0,0));
+        gridtools::call_proc<lap_function, x_flx>::with_offsets(eval, _y_, in(1,0,0));
 #else
 #ifdef FUNCTIONS_OFFSETS
-        double _x_ = gridtools::call<lap_function, x_flx>::with_offsets(dom, in(0,0,0));
-        double _y_ = gridtools::call<lap_function, x_flx>::with_offsets(dom, in(1,0,0));
+        double _x_ = gridtools::call<lap_function, x_flx>::with_offsets(eval, in(0,0,0));
+        double _y_ = gridtools::call<lap_function, x_flx>::with_offsets(eval, in(1,0,0));
 #else
-        double _x_ = gridtools::call<lap_function, x_flx>::at<0,0,0>::with(dom, in());
-        double _y_ = gridtools::call<lap_function, x_flx>::at<1,0,0>::with(dom, in());
+        double _x_ = gridtools::call<lap_function, x_flx>::at<0,0,0>::with(eval, in());
+        double _y_ = gridtools::call<lap_function, x_flx>::at<1,0,0>::with(eval, in());
 #endif
 #endif
 #endif
 #endif
-        dom(out()) = _y_-_x_;
-        dom(out()) = dom(out())*(dom(in(1,0,0))-dom(in(0,0,0))) > 0?0.0:dom(out());
+        eval(out()) = _y_-_x_;
+        eval(out()) = eval(out())*(eval(in(1,0,0))-eval(in(0,0,0))) > 0?0.0:eval(out());
     }
 };
 
@@ -113,43 +113,43 @@ struct flx_function {
 
     typedef boost::mpl::vector<out, in> arg_list;
 
-    template <typename Domain>
+    template <typename Evaluator>
     GT_FUNCTION
-    static void Do(Domain const & dom, x_flx) {
+    static void Do(Evaluator const & eval, x_flx) {
 
 #ifdef FUNCTIONS_MONOLITHIC
 #pragma message "monolithic version"
-        double _x_ = (gridtools::float_type)4.0*dom(in()) -
-            (dom(in( -1, 0, 0)) + dom(in( 0, -1, 0)) +
-             dom(in(0, 1, 0)) + dom(in(1, 0, 0)));
-        double _y_ = (gridtools::float_type)4.0*dom(in(0,1,0)) -
-            (dom(in( -1, 1, 0)) + dom(in( 0, 0, 0)) +
-             dom(in(0, 2, 0)) + dom(in(1, 1, 0)));
+        double _x_ = (gridtools::float_type)4.0*eval(in()) -
+            (eval(in( -1, 0, 0)) + eval(in( 0, -1, 0)) +
+             eval(in(0, 1, 0)) + eval(in(1, 0, 0)));
+        double _y_ = (gridtools::float_type)4.0*eval(in(0,1,0)) -
+            (eval(in( -1, 1, 0)) + eval(in( 0, 0, 0)) +
+             eval(in(0, 2, 0)) + eval(in(1, 1, 0)));
 #else
 #ifdef FUNCTIONS_PROCEDURES
         double _x_;
-        gridtools::call_proc<lap_function, x_flx>::at<0,0,0>::with(dom, _x_, in());
+        gridtools::call_proc<lap_function, x_flx>::at<0,0,0>::with(eval, _x_, in());
         double _y_;
-        gridtools::call_proc<lap_function, x_flx>::at<0,1,0>::with(dom, _y_, in());
+        gridtools::call_proc<lap_function, x_flx>::at<0,1,0>::with(eval, _y_, in());
 #else
 #ifdef FUNCTIONS_PROCEDURES_OFFSETS
         double _x_;
-        gridtools::call_proc<lap_function, x_flx>::with_offsets(dom, _x_, in());
+        gridtools::call_proc<lap_function, x_flx>::with_offsets(eval, _x_, in());
         double _y_;
-        gridtools::call_proc<lap_function, x_flx>::with_offsets(dom, _y_, in(0,1,0));
+        gridtools::call_proc<lap_function, x_flx>::with_offsets(eval, _y_, in(0,1,0));
 #else
 #ifdef FUNCTIONS_OFFSETS
-        double _x_ = gridtools::call<lap_function, x_flx>::with_offsets(dom, in(0,0,0));
-        double _y_ = gridtools::call<lap_function, x_flx>::with_offsets(dom, in(0,1,0));
+        double _x_ = gridtools::call<lap_function, x_flx>::with_offsets(eval, in(0,0,0));
+        double _y_ = gridtools::call<lap_function, x_flx>::with_offsets(eval, in(0,1,0));
 #else
-        double _x_ = gridtools::call<lap_function, x_flx>::at<0,0,0>::with(dom, in());
-        double _y_ = gridtools::call<lap_function, x_flx>::at<0,1,0>::with(dom, in());
+        double _x_ = gridtools::call<lap_function, x_flx>::at<0,0,0>::with(eval, in());
+        double _y_ = gridtools::call<lap_function, x_flx>::at<0,1,0>::with(eval, in());
 #endif
 #endif
 #endif
 #endif
-        dom(out()) = _y_-_x_;
-        dom(out()) = dom(out())*(dom(in(0,1,0))-dom(in(0,0,0))) > 0?0.0:dom(out());
+        eval(out()) = _y_-_x_;
+        eval(out()) = eval(out())*(eval(in(0,1,0))-eval(in(0,0,0))) > 0?0.0:eval(out());
     }
 };
 
@@ -163,12 +163,12 @@ struct out_function {
 
     typedef boost::mpl::vector<out,in,flx,fly,coeff> arg_list;
 
-    template <typename Domain>
+    template <typename Evaluator>
     GT_FUNCTION
-    static void Do(Domain const & dom, x_out) {
-        dom(out()) =  dom(in()) - dom(coeff())*
-            (dom(flx()) - dom(flx( -1,0,0)) +
-             dom(fly()) - dom(fly( 0,-1,0))
+    static void Do(Evaluator const & eval, x_out) {
+        eval(out()) =  eval(in()) - eval(coeff())*
+            (eval(flx()) - eval(flx( -1,0,0)) +
+             eval(fly()) - eval(fly( 0,-1,0))
              );
     }
 };
