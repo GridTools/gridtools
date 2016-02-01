@@ -221,7 +221,7 @@ namespace gridtools{
         struct print_pointer {
             template <typename StorageType>
             GT_FUNCTION_WARNING
-            void operator()(StorageType* s) const {
+            void operator()(pointer<StorageType> s) const {
                 printf("Pointer Value %x\n",  s);
             }
         };

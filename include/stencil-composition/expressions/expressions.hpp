@@ -24,14 +24,7 @@
 #include "expr_pow.hpp"
 #include "expr_divide.hpp"
 #include "expr_exp.hpp"
-#include "expr_smaller.hpp"
-#include "expr_smaller_equal.hpp"
-#include "expr_larger.hpp"
-#include "expr_larger_equal.hpp"
 #include "expr_direct_access.hpp"
-#include "expr_and.hpp"
-#include "expr_or.hpp"
-#include "expr_if_then_else.hpp"
 #include "expr_derivative.hpp"
 
 namespace gridtools{

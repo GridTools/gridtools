@@ -180,6 +180,24 @@ if(USE_PAPI)
 endif()
 ##################################################################
 
+#####################look for Xdmf library########################
+if(USE_XDMF)
+  find_package(Xdmf REQUIRED)
+  if(XDMF_FOUND)
+    include_directories( "${XDMF_INCLUDE_DIRS}" )
+    set ( exe_LIBS "${exe_LIBS}" "${XDMF_LIBRARIES}" )
+    message("XDMF found in " "${exe_LIBS}")
+  else()
+    if(XDMF_LIBS)
+      set ( exe_LIBS "${exe_LIBS}" "${XDMF_LIBS}" )
+      message("xdmf libs: " "${XDMF_LIBS}")
+    else()
+      message("Xdmf library not found. set the XDMF_INCLUDE_DIR and XDMF_LIB_DIR to the headers and libraries path.")
+    endif(XDMF_LIBRARIES)
+  endif()
+endif()
+##################################################################
+
 ######################### set the type of floats #################
 set( SINGLE_PRECISION OFF CACHE BOOL "Option determining number of bytes used to represent the floating poit types (see defs.hpp for configuration)" )
 if(SINGLE_PRECISION)
@@ -242,7 +260,7 @@ function(gridtools_add_test test_name test_script test_exec)
 endfunction(gridtools_add_test)
 
 
-set(ENABLE_CACHING "ON" CACHE BOOL "Enable caching functionality" ) 
+set(ENABLE_CACHING "ON" CACHE BOOL "Enable caching functionality" )
 if( NOT ENABLE_CACHING )
     add_definitions( -D__DISABLE_CACHING__ )
 endif( NOT ENABLE_CACHING )
@@ -261,14 +279,14 @@ endif(STRUCTURED_GRIDS)
 if (ENABLE_PYTHON)
     message ("PYTHON enabled ")
     # Retrieving the python major version (major version is written in tmp-file ${CMAKE_SOURCE_DIR}/.python_major_version, full version is in tmp-file ${CMAKE_SOURCE_DIR}/.python_version)
-    execute_process(COMMAND ${CMAKE_SOURCE_DIR}/python/python_version.sh ${CMAKE_SOURCE_DIR} )  
+    execute_process(COMMAND ${CMAKE_SOURCE_DIR}/python/python_version.sh ${CMAKE_SOURCE_DIR} )
     # Reading from ${CMAKE_SOURCE_DIR}/.python_major_version (composing the cmd otherwise it doesn't work)
     set (cmd "cat" )
     set (filepv "${CMAKE_SOURCE_DIR}/.python_major_version")
     execute_process ( COMMAND ${cmd} ${filepv} OUTPUT_VARIABLE PYTHON_VERSION_MAJOR )
     #message( "PYTHON_VERSION_MAJOR is: " ${PYTHON_VERSION_MAJOR} )
     # Removing tmp-file ${CMAKE_SOURCE_DIR}/.python_major_version
-    execute_process( COMMAND rm -f ${CMAKE_SOURCE_DIR}/.python_major_version) 
+    execute_process( COMMAND rm -f ${CMAKE_SOURCE_DIR}/.python_major_version)
 
     find_package(PythonLibs)
     find_package(PythonInterp)
@@ -288,8 +306,8 @@ if (ENABLE_PYTHON)
         set (filepv "${CMAKE_SOURCE_DIR}/.python_version")
         execute_process ( COMMAND ${cmd} ${filepv} OUTPUT_VARIABLE PYTHONLIBS_VERSION_STRING )
         # Removing tmp-file ${CMAKE_SOURCE_DIR}/.python_version created by python_version.sh
-        execute_process( COMMAND rm -f ${CMAKE_SOURCE_DIR}/.python_version) 
-        
+        execute_process( COMMAND rm -f ${CMAKE_SOURCE_DIR}/.python_version)
+
         #set( PYTHON_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/python/" CACHE PATH "Set the installation directory for gridtools4py" )
         set( PYTHON_INSTALL_PREFIX " " CACHE PATH "Set the installation directory for gridtools4py" )
         set(OUTPUT      "${CMAKE_CURRENT_BINARY_DIR}/python.log")
@@ -310,4 +328,3 @@ file(APPEND ${TEST_SCRIPT} "exit $res\n")
 file(INSTALL ${TEST_SCRIPT} DESTINATION ${CMAKE_BINARY_DIR}/install
    FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ
 )
-
