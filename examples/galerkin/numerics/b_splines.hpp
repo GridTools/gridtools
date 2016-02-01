@@ -208,7 +208,7 @@ namespace gridtools{
 
         parametric_space()
 	{
-            for_each<boost::mpl::range_c< ushort_t, 0, sizeof...(P) > >(assign_knots(m_knots));
+            boost::mpl::for_each<boost::mpl::range_c< ushort_t, 0, sizeof...(P) > >(assign_knots(m_knots));
 	}
     };
 

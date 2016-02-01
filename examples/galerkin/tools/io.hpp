@@ -251,7 +251,7 @@ namespace gridtools{
        This is needed in order to write the vector to the output file
      */
     template <typename Storage, typename LocalGridInfo>
-    void reindex(Storage const& storage_, LocalGridInfo const& local_grid_info_, typename Storage::value_type * data_){
+    void reindex_vec(Storage const& storage_, LocalGridInfo const& local_grid_info_, typename Storage::value_type * data_){
         auto d1=storage_.meta_data().template dims<0>();
         auto d2=storage_.meta_data().template dims<1>();
         auto d3=storage_.meta_data().template dims<2>();
@@ -281,6 +281,38 @@ namespace gridtools{
                                     data_[ k*np3*d2*np2*d1*np1*d5 + n*d2*np2*d1*np1*d5 + j*np2*d1*np1*d5 + m*d1*np1*d5 + i*np1*d5 + l*d5 + dim] = storage_(i,j,k,l+np1*m+np1*np2*n,dim);
                                 //std::cout<<"("<<i<<","<<j<<","<<k<<","<<l<<","<<m<<","<<n<<") = ("<<storage_(i,j,k,l,0)<<","<<storage_(i,j,k,l,1)<<","<<storage_(i,j,k,l,2)<<")"<<std::endl;
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    template <typename Storage, typename LocalGridInfo>
+    void reindex(Storage const& storage_, LocalGridInfo const& local_grid_info_, typename Storage::value_type * data_){
+        auto d1=storage_.meta_data().template dims<0>();
+        auto d2=storage_.meta_data().template dims<1>();
+        auto d3=storage_.meta_data().template dims<2>();
+        auto d4=storage_.meta_data().template dims<3>();
+
+        uint_t np1=local_grid_info_.template dims<0>();//n. local points along x
+        uint_t np2=local_grid_info_.template dims<1>();//n. local points along y
+        uint_t np3=local_grid_info_.template dims<2>();//n. local points along z
+
+        for(int_t k=0 ; k<d3 ; ++k)
+        {
+            for(int_t n=0 ; n<np3 ; ++n)
+            {
+                for(int_t j=0 ; j<d2 ; ++j)
+                {
+                    for(int_t m=0 ; m<np2 ; ++m)
+                    {
+                        for(int_t i=0 ; i<d1 ; ++i)
+                        {
+                            for(int_t l=0 ; l<np1 ; ++l)
+                            {
+                                    data_[ k*np3*d2*np2*d1*np1 + n*d2*np2*d1*np1 + j*np2*d1*np1 + m*d1*np1 + i*np1 + l] = storage_(i,j,k,l+np1*m+np1*np2*n);
                             }
                         }
                     }
@@ -421,7 +453,7 @@ namespace gridtools{
             attr->setType(XdmfAttributeType::Vector());
             uint_t total_points = storage_.meta_data().size();
             typename VecStorage::value_type data[total_points];
-            reindex(storage_, m_local_grid, data); // loops
+            reindex_vec(storage_, m_local_grid, data); // loops
 
             attr->initialize(XdmfArrayType::Float64(), total_points);
             attr->insert(0, data, total_points);

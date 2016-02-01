@@ -86,8 +86,8 @@ namespace intrepid{
             , m_cub_weights_s_info(cub::numCubPoints(),1,1)
             , m_grad_at_cub_points_s_info()//construct empty
             , m_phi_at_cub_points_s_info()//construct empty
-            , m_cub_points_s(m_cub_points_s_info, "cub points")
-            , m_cub_weights_s(m_cub_weights_s_info, "cub weights")
+            , m_cub_points_s(m_cub_points_s_info, 0., "cub points")
+            , m_cub_weights_s(m_cub_weights_s_info, 0., "cub weights")
             , m_grad_at_cub_points_s()//construct empty
             , m_phi_at_cub_points_s()//construct empty
             {
@@ -130,7 +130,7 @@ namespace intrepid{
                 m_grad_at_cub_points_s=std::unique_ptr
                     <grad_storage_t>
                     (new grad_storage_t
-                     (*m_grad_at_cub_points_s_info, "grad at cub points"));
+                     (*m_grad_at_cub_points_s_info, 0., "grad at cub points"));
 
                 // evaluate grad operator at cub points
                 fe::hexBasis().getValues(grad_at_cub_points_i, cub_points_i, Intrepid::OPERATOR_GRAD);
@@ -162,7 +162,7 @@ namespace intrepid{
                 m_phi_at_cub_points_s=std::unique_ptr
                     <basis_function_storage_t>
                     (new basis_function_storage_t
-                     (*m_phi_at_cub_points_s_info, "phi at cub points"));
+                     (*m_phi_at_cub_points_s_info, 0., "phi at cub points"));
 
                 Intrepid::FieldContainer<double> phi_at_cub_points_i(fe::basisCardinality
                                                                      , cub::numCubPoints());
@@ -246,9 +246,9 @@ namespace intrepid{
         geometry() :
             //create the local grid
             m_local_grid_s_info(super::geo_map::basisCardinality, super::geo_map::spaceDim,1)
-            , m_local_grid_s(m_local_grid_s_info, "local grid")
+            , m_local_grid_s(m_local_grid_s_info, 0., "local grid")
 #ifdef REORDER
-            , m_local_grid_reordered_s(m_local_grid_s_info, "local grid reordered")
+            , m_local_grid_reordered_s(m_local_grid_s_info, 0., "local grid reordered")
 #endif
             {
 #ifdef REORDER
@@ -265,9 +265,9 @@ namespace intrepid{
 
                 // fill in the reorder vector such that the larger numbers correspond to larger strides
                 for(uint_t i=0; i<super::geo_map::basisCardinality; ++i){
-		    to_reorder[i]=(m_local_grid_s(i,super::geo_map::layout_t::template at_<0>::value*(super::geo_map::spaceDim-2))+2)*4 +
-		      (m_local_grid_s(i,super::geo_map::layout_t::template at_<1>::value)+2)*2 +
-		      (m_local_grid_s(i,super::geo_map::layout_t::template at_<2>::value)+2);
+		    to_reorder[i]=(m_local_grid_s(i,super::geo_map::layout_t::template at_<0>::value*(super::geo_map::spaceDim-2),0)+2)*4 +
+                        (m_local_grid_s(i,super::geo_map::layout_t::template at_<1>::value,0)+2)*2 +
+                        (m_local_grid_s(i,super::geo_map::layout_t::template at_<2>::value,0)+2);
                     // m_permutations[i]=i;
                 }
 
@@ -333,8 +333,8 @@ namespace intrepid{
             :
             m_bd_cub_pts_info(bd_cub::numCubPoints(), geo_map::spaceDim-1, 1)
             , m_bd_cub_weights_info(bd_cub::numCubPoints(), 1, 1)
-            , m_bd_cub_pts(m_bd_cub_pts_info, "bd cub points")
-            , m_bd_cub_weights(m_bd_cub_weights_info, "bd cub weights")
+            , m_bd_cub_pts(m_bd_cub_pts_info, 0., "bd cub points")
+            , m_bd_cub_weights(m_bd_cub_weights_info, 0., "bd cub weights")
             // , m_bd_cub_pts_lifted(bd_cub::numCubPoints, geo_map::spaceDim, 1)
             {
                 Intrepid::FieldContainer<value_t> bd_cub_pts_(bd_cub::numCubPoints(), geo_map::spaceDim-1);
@@ -519,8 +519,8 @@ namespace intrepid{
 
                 for (uint_t j=0; j<shape_property<rule_t::parent_shape>::dimension; ++j)
                 {
-                    m_ref_face_tg_u(j,face_)=tangent_u(j);
-                    m_ref_face_tg_v(j,face_)=tangent_v(j);
+                    m_ref_face_tg_u(j,face_,0)=tangent_u(j);
+                    m_ref_face_tg_v(j,face_,0)=tangent_v(j);
                 }
             }
             m_tangent_computed=true;
@@ -535,13 +535,13 @@ namespace intrepid{
             assert(m_tangent_computed);
 
             for(ushort_t face_=0; face_< m_face_ord.size(); ++face_){
-                gt::array<double, 3> tg_u{m_ref_face_tg_u(0,face_), m_ref_face_tg_u(1,face_), m_ref_face_tg_u(2,face_)};
-                gt::array<double, 3> tg_v{m_ref_face_tg_v(0,face_), m_ref_face_tg_v(1,face_), m_ref_face_tg_v(2,face_)};
+                gt::array<double, 3> tg_u{m_ref_face_tg_u(0,face_,0), m_ref_face_tg_u(1,face_,0), m_ref_face_tg_u(2,face_,0)};
+                gt::array<double, 3> tg_v{m_ref_face_tg_v(0,face_,0), m_ref_face_tg_v(1,face_,0), m_ref_face_tg_v(2,face_,0)};
                 gt::array<double, 3> normal(vec_product(tg_u, tg_v));
 
                 for (uint_t j=0; j<shape_property<rule_t::parent_shape>::dimension; ++j)
                 {
-                    m_ref_normals(j,face_)=normal[j];
+                    m_ref_normals(j,face_,0)=normal[j];
                 }
             }
         }

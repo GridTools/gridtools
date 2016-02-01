@@ -111,11 +111,11 @@ namespace gdl{
 
 
     /** compute ricci symbol*/
-    constexpr short_t ricci(ushort_t const& i_, ushort_t const& j_){
-        return i_<j_ ? 1 : i_==j_ ? 0 : -1;
+    constexpr float_type ricci(ushort_t const& i_, ushort_t const& j_){
+        return (float_type) i_<j_ ? 1 : i_==j_ ? 0 : -1;
     }
-    constexpr short_t ricci(ushort_t const& i_, ushort_t const& j_, ushort_t const& k_){
-        return ricci(i_,j_)*ricci(j_,k_)*ricci(i_,k_);
+    constexpr float_type ricci(ushort_t const& i_, ushort_t const& j_, ushort_t const& k_){
+        return (float_type) ricci(i_,j_)*ricci(j_,k_)*ricci(i_,k_);
     }
 
     /**compute vector product*/

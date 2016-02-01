@@ -313,16 +313,17 @@ int main(){
     }
     computation->finalize();
 
-    for(int i=0; i<d1; ++i)
-        for(int j=0; j<d1; ++j)
-            for(int k=0; k<d1; ++k)
-                for(int dof=0; dof<8; ++dof)
-                // for(int d=0; d<3; ++d)
-                    //for(int face=0; face<6; ++face)
+    // for(int i=0; i<d1; ++i)
+    //     for(int j=0; j<d1; ++j)
+    //         for(int k=0; k<d1; ++k)
+    //             //for(int dof=0; dof<8; ++dof)
+    //             for(int d=0; d<3; ++d)
+    //             for(int face=0; face<6; ++face)
                     // std::cout<<"dof"<< dof <<"result==>"<<result_(i,j,k,dof)<<"\n";
-    // std::cout<<"face: "<<face<<", dim:"<<d <<"==>"<<normals_(i,j,k,0,d,face)<<"\n";
-                        //std::cout<<"face: "<<face<<", dim:"<<d <<"==>"<<bd_beta_n_(i,j,k,0,face)<<"\n";
-                        //std::cout<<"face: "<<face<<"==>"<<bd_assembler.normals()(i,j,k,0,d,face)<<"\n";
+                    //                std::cout<<"face: "<<face<<", dim:"<<d <<"==>"<<normals_(i,j,k,0,d,face)<<"\n";
+                    //std::cout<<"face: "<<face<<", dim:"<<d <<"==>"<<bd_beta_n_(i,j,k,0,face)<<"\n";
+
+                    // std::cout<<"face: "<<face<<"==>"<<bd_assembler.normals()(i,j,k,0,d,face)<<"\n";
 
     io_.set_information("Time");
     io_.set_attribute_scalar<0>(result_, "solution");
