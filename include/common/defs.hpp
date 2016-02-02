@@ -14,10 +14,6 @@
 #define CXX11_DISABLED
 #endif
 
-//defines how many threads participate to the (shared) memory initialization
-//TODOCOSUNA This IS VERY VERY VERY DANGEROUS HERE
-#define BLOCK_SIZE 32
-
 #if !defined(FUSION_MAX_VECTOR_SIZE)
     #define FUSION_MAX_VECTOR_SIZE 20
     #define FUSION_MAX_MAP_SIZE 20
@@ -102,7 +98,7 @@ namespace gridtools{
            @{
          */
         /** enum specifying the type of backend we use */
-        enum backend  {Cuda, Host};
+        enum platform  {Cuda, Host};
 
         enum strategy  {Naive, Block};
 
@@ -141,6 +137,12 @@ namespace gridtools{
          */
         enum intend {in, inout} ;
 
+#ifdef __CUDACC__
+    static const unsigned int vector_width=32;
+#else
+    static const unsigned int vector_width=4;
+#endif
+
     }//namespace enumtype
 
 
@@ -158,7 +160,7 @@ namespace gridtools{
 #ifdef CXX11_ENABLED
     /** checking that no arithmetic operation is performed on enum types*/
     template<>
-    struct is_backend_enum<enumtype::backend> : boost::mpl::true_ {};
+    struct is_backend_enum<enumtype::platform> : boost::mpl::true_ {};
     struct error_no_operator_overload{};
 
     template <typename  ArgType1, typename ArgType2,
@@ -285,6 +287,7 @@ namespace gridtools{
     /**
        @}
      */
+
 //######################################################
 
 }//namespace gridtools

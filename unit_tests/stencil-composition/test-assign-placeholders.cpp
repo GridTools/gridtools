@@ -24,8 +24,8 @@ TEST(assign_placeholders, test) {
 
     //    typedef gridtools::STORAGE<double, gridtools::layout_map<0,1,2> > storage_type;
 
-    typedef gridtools::BACKEND::storage_type<float_type, gridtools::storage_info<0, gridtools::layout_map<0,1,2> > >::type storage_type;
-    typedef gridtools::BACKEND::temporary_storage_type<float_type, gridtools::storage_info<0, gridtools::layout_map<0,1,2> > >::type tmp_storage_type;
+    typedef gridtools::BACKEND::storage_type<float_type, gridtools::BACKEND::storage_info<0, gridtools::layout_map<0,1,2> > >::type storage_type;
+    typedef gridtools::BACKEND::temporary_storage_type<float_type, gridtools::BACKEND::storage_info<0, gridtools::layout_map<0,1,2> > >::type tmp_storage_type;
 
     uint_t d1=5;
     uint_t d2=5;
@@ -56,7 +56,7 @@ TEST(assign_placeholders, test) {
 
     gridtools::domain_type<accessor_list> domain( boost::fusion::make_vector(&coeff, &in, &out) );
 
-    ASSERT_TRUE((boost::fusion::at_c<3>(domain.storage_pointers_view()) == &coeff) &&
-            (boost::fusion::at_c<4>(domain.storage_pointers_view()) == &in) &&
-            (boost::fusion::at_c<5>(domain.storage_pointers_view()) == &out));
+    ASSERT_TRUE((boost::fusion::at_c<3>(domain.storage_pointers_view()).get() == &coeff ) &&
+                (boost::fusion::at_c<4>(domain.storage_pointers_view()).get() == &in) &&
+                (boost::fusion::at_c<5>(domain.storage_pointers_view()).get() == &out));
 }

@@ -26,7 +26,7 @@ using gridtools::int_t;
 struct out_value {
     template <typename T>
     __host__ __device__
-    void operator()(T *x) const {
+    void operator()(gridtools::pointer<T> x) const {
         for (uint_t i=0; i<3; ++i) {
             for (uint_t j=0; j<3; ++j) {
                 for (uint_t k=0; k<3; ++k) {
@@ -103,7 +103,7 @@ bool test_domain() {
 #else
     typedef gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Naive > backend_t;
 #endif
-    typedef typename backend_t::storage_type<double, gridtools::storage_info<0,gridtools::layout_map<0,1,2> > >::type storage_type;
+    typedef typename backend_t::storage_type<double, backend_t::storage_info<0,gridtools::layout_map<0,1,2> > >::type storage_type;
 
     uint_t d1 = 3;
     uint_t d2 = 3;
@@ -168,8 +168,7 @@ bool test_domain() {
         , boost::mpl::insert<boost::mpl::_1, gridtools::pointer
                              <boost::add_const
                               <gridtools::storage2metadata
-                               <boost::remove_pointer<boost::mpl::_2>
-                                >
+                               <boost::mpl::_2>
                                >
                               >
                              >
@@ -245,12 +244,12 @@ bool test_domain() {
 
     cudaFree(arg_list_device_ptr);
 
-    out_value()(&host_in);
-    out_value()(&host_in);
-    out_value()(&host_out);
-    out_value()(&host_out);
-    out_value()(&host_coeff);
-    out_value()(&host_coeff);
+    out_value()(make_pointer(host_in));
+    out_value()(make_pointer(host_in));
+    out_value()(make_pointer(host_out));
+    out_value()(make_pointer(host_out));
+    out_value()(make_pointer(host_coeff));
+    out_value()(make_pointer(host_coeff));
 
     bool failed = false;
     failed |= !the_same(in, host_in);

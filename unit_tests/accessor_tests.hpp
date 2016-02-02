@@ -1,3 +1,5 @@
+/*@file */
+
 #include <gridtools.hpp>
 #include <stencil-composition/accessor.hpp>
 #include <stencil-composition/expressions.hpp>

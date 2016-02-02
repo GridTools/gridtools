@@ -30,7 +30,8 @@ private:
     typedef typename super::iterate_domain_cache_t iterate_domain_cache_t;
     typedef typename super::readonly_args_indices_t readonly_args_indices_t;
 
-    typedef shared_iterate_domain<data_pointer_array_t, strides_cached_t, typename iterate_domain_cache_t::ij_caches_tuple_t>
+    //TODO there are two instantiations of these type.. Fix this
+    typedef shared_iterate_domain<data_pointer_array_t, strides_cached_t, typename IterateDomainArguments::max_extent_t, typename iterate_domain_cache_t::ij_caches_tuple_t>
         shared_iterate_domain_t;
 
     typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
@@ -42,7 +43,6 @@ private:
 private:
     const uint_t m_block_size_i;
     const uint_t m_block_size_j;
-
     shared_iterate_domain_t* RESTRICT m_pshared_iterate_domain;
 
 public:
@@ -56,6 +56,7 @@ public:
         return threadIdx.x;
     }
 
+    template<int_t minus, int_t plus>
     GT_FUNCTION
     uint_t thread_position_y() const
     {
@@ -65,55 +66,59 @@ public:
     /**
      * @brief determines whether the current (i,j) position is within the block size
      */
+    template<typename Extent>
     GT_FUNCTION
     bool is_thread_in_domain() const
     {
-        return threadIdx.x < m_block_size_i && threadIdx.y < m_block_size_j ;
+        return (m_thread_pos[0] >= Extent::iminus::value && m_thread_pos[0] < ((int)m_block_size_i +Extent::iplus::value) &&
+            m_thread_pos[1] >= Extent::jminus::value && m_thread_pos[1] < ((int)m_block_size_j +Extent::jplus::value) );
+    }
+
+    GT_FUNCTION
+    void set_block_pos(const int_t ipos, const int_t jpos)
+    {
+        m_thread_pos[0] = ipos;
+        m_thread_pos[1] = jpos;
     }
 
     /**
      * @brief determines whether the current (i,j) position + an offset is within the block size
      */
+    template<typename Extent>
     GT_FUNCTION
     bool is_thread_in_domain(const int_t i_offset, const int_t j_offset) const
     {
-        return is_thread_in_domain_x(i_offset) &&  is_thread_in_domain_y(j_offset);
-    }
-
-    /**
-     * @brief determines whether the current (i) position is within the block size
-     */
-    GT_FUNCTION
-    bool is_thread_in_domain_x() const
-    {
-        return threadIdx.x < m_block_size_i;
+        return is_thread_in_domain_x<Extent::iminus::value, Extent::iplus::value>(i_offset) &&
+            is_thread_in_domain_y<Extent::jminus::value, Extent::jplus::value>(j_offset);
     }
 
     /**
      * @brief determines whether the current (i) position + an offset is within the block size
      */
+    template<int_t minus, int_t plus>
     GT_FUNCTION
     bool is_thread_in_domain_x(const int_t i_offset) const
     {
-        return (int_t)threadIdx.x + i_offset >= 0 && (int_t)threadIdx.x + i_offset < m_block_size_i;
+        return m_thread_pos[0] + i_offset >= minus && m_thread_pos[0] +i_offset < (int)m_block_size_i + plus;
     }
 
     /**
      * @brief determines whether the current (j) position is within the block size
      */
+    template<int_t minus, int_t plus>
     GT_FUNCTION
     bool is_thread_in_domain_y(const int_t j_offset) const
     {
-        return (int_t)threadIdx.y + j_offset >= 0 && (int_t)threadIdx.y + j_offset < m_block_size_j;
+        return m_thread_pos[1] + j_offset >= minus && m_thread_pos[1] + j_offset < (int)m_block_size_j + plus; 
     }
 
     GT_FUNCTION
-    uint block_size_i()
+    uint_t block_size_i()
     {
         return m_block_size_i;
     }
     GT_FUNCTION
-    uint block_size_j()
+    uint_t block_size_j()
     {
         return m_block_size_j;
     }
@@ -161,7 +166,7 @@ public:
 
     template <ushort_t Coordinate>
     GT_FUNCTION
-    void increment_impl(int_t steps)
+    void increment_impl(const int_t steps)
     {
         if(Coordinate != 0 && Coordinate != 1) return;
         m_thread_pos[Coordinate] += steps;
@@ -310,7 +315,7 @@ struct is_positional_iterate_domain<iterate_domain_cuda<IterateDomainBase, Itera
 template<template<class> class IterateDomainBase, typename IterateDomainArguments>
 struct iterate_domain_backend_id<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> >
 {
-    typedef enumtype::enum_type< enumtype::backend, enumtype::Cuda > type;
+    typedef enumtype::enum_type< enumtype::platform, enumtype::Cuda > type;
 };
 
 

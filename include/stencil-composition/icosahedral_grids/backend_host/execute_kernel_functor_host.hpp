@@ -21,7 +21,6 @@ namespace gridtools {
             typedef typename extract_esf_location_type<esf_sequence_t>::type location_type_t;
 
             using n_colors_t = typename location_type_t::n_colors;
-            using grid_topology_t = typename grid_t::grid_topology_t;
 
             /**
             @brief core of the kernel execution
@@ -45,13 +44,13 @@ namespace gridtools {
                 //TODO strictling speaking the loop the size is with +1. Recompute the numbers here to be consistent
                 //with the convention, but that require adapint also the rectangular grids
                 , m_loop_size{grid.i_high_bound()-grid.i_low_bound(), grid.j_high_bound()-grid.j_low_bound()}
-                , m_block_id{0, 0}
-            {}
+                , m_block_id{0, 0} {}
 
             void operator()()
             {
                 typedef typename RunFunctorArguments::loop_intervals_t loop_intervals_t;
                 typedef typename RunFunctorArguments::execution_type_t execution_type_t;
+                using grid_topology_t = typename grid_t::grid_topology_t;
 
                 // in the host backend there should be only one esf per mss
                 GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename RunFunctorArguments::extent_sizes_t>::value==1),
