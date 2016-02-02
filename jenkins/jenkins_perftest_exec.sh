@@ -5,7 +5,7 @@ source ${JENKINSPATH}/machine_env.sh
 
 source ${JENKINSPATH}/env_perftest_${myhost}.sh
 
-TEMP=`getopt -o h --long target:,std:,prec: \
+TEMP=`getopt -o h --long target:,std:,prec:,jplan: \
              -n 'jenkins_perftest' -- "$@"`
 
 eval set -- "$TEMP"
