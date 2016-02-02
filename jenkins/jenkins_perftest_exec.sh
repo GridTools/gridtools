@@ -15,6 +15,7 @@ while true; do
         --target) TARGET=$2; shift 2;;
         --std) STD=$2; shift 2;;
         --prec) PREC=$2; shift 2;;
+        --jplan) JPLAN=$2; shift 2;;
         -- ) shift; break ;;
         * ) break ;;
     esac
@@ -25,7 +26,13 @@ if [[ -z ${TARGET} || -z ${STD} || -z ${PREC} ]]; then
     exit 1
 fi
 
-export GPATH=${GRIDTOOLS_BUILD_PATH}/GridTools/build_type/release/label/${myhost}/mpi/MPI/python/python_off/real_type/$PREC/std/$STD/target/$TARGET/build
+if [[ ${JPLAN} != "GridTools" && ${JPLAN} != "GridTools_icgrid" && ${JPLAN} != "GridTools_strgrid_PR" 
+    && ${JPLAN} != "GridTools_icgrid_PR" ]]; then
+    echo "JENKINS PLAN not set or not supported : ${JPLAN}"
+    exit 1
+fi
+
+export GPATH=${GRIDTOOLS_BUILD_PATH}/${JPLAN}/build_type/release/label/${myhost}/mpi/MPI/python/python_off/real_type/$PREC/std/$STD/target/$TARGET/build
 export STELLA_PATH=${STELLA_BUILD_PATH}/stella/trunk/release_$PREC/bin/
 
 cd ${JENKINSPATH}/

@@ -15,6 +15,7 @@ while true; do
         --target) TARGET=$2; shift 2;;
         --std) STD=$2; shift 2;;
         --prec) PREC=$2; shift 2;;
+        --jplan) JPLAN=$2; shift 2;;
         -- ) shift; break ;;
         * ) break ;;
     esac
@@ -27,12 +28,12 @@ fi
 maxsleep=7200
 
 if [ "$myhost" == "greina" ]; then
-    bash ${JENKINSPATH}/jenkins_perftest_exec.sh --target $TARGET --std $STD --prec $PREC 
+    bash ${JENKINSPATH}/jenkins_perftest_exec.sh --target $TARGET --std $STD --prec $PREC --jplan $JPLAN
 else
 
     cp ${JENKINSPATH}/submit.kesch.slurm ${JENKINSPATH}/submit.kesch.slurm.test
     slurm_script="${JENKINSPATH}/submit.kesch.slurm.test"
-    cmd="${JENKINSPATH}/jenkins_perftest_exec.sh --target $TARGET --std $STD --prec $PREC"
+    cmd="${JENKINSPATH}/jenkins_perftest_exec.sh --target $TARGET --std $STD --prec $PREC --jplan $JPLAN"
     /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm_script}
 
     launch_job ${slurm_script} ${maxsleep} &
