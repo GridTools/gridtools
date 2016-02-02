@@ -6,7 +6,7 @@
 #include <boost/fusion/include/at_c.hpp>
 #include "./accessor.hpp"
 #include "./call_interfaces_metafunctions.hpp"
-#include "../../common/generic_metafunctions/v_item_to_fusion_vector.hpp"
+#include "../../common/generic_metafunctions/mpl_sequence_to_fusion_vector.hpp"
 #include "../iterate_domain_fwd.hpp" // to statically check arguments
 #include "../interval.hpp" // to check if region is valid
 
@@ -335,7 +335,7 @@ namespace gridtools {
             //        typedef typename wrap_reference<PassedArguments>::type wrapped_accessors
             //typedef typename boost::fusion::result_of::as_vector<wrapped_accessors>::type accessors_list_t;
             typedef typename boost::fusion::result_of::as_vector<
-                typename v_item_to_fusion_vector<PassedArguments>::type>::type accessors_list_t;
+                typename mpl_sequence_to_fusion_vector<PassedArguments>::type>::type accessors_list_t;
 
             CallerAggregator const& m_caller_aggregator;
             accessors_list_t const& m_accessors_list;
@@ -417,7 +417,7 @@ namespace gridtools {
                 >::type non_accessor_indices;
 
             typedef typename boost::fusion::result_of::as_vector<
-                typename v_item_to_fusion_vector<PassedArguments>::type>::type accessors_list_t;
+                typename mpl_sequence_to_fusion_vector<PassedArguments>::type>::type accessors_list_t;
 
             CallerAggregator const& m_caller_aggregator;
             accessors_list_t const& m_accessors_list;

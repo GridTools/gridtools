@@ -4,7 +4,7 @@
 
 namespace gridtools{
     template <typename VItemVector>
-    struct v_item_to_fusion_vector {
+    struct mpl_sequence_to_fusion_vector {
         typedef typename boost::mpl::fold<
             VItemVector,
             boost::fusion::vector<>,
