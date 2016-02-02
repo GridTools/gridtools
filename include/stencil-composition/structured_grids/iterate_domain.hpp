@@ -70,6 +70,7 @@ namespace gridtools {
         typedef typename iterate_domain_impl_arguments<IterateDomainImpl>::type iterate_domain_arguments_t;
         typedef typename iterate_domain_arguments_t::local_domain_t local_domain_t;
 
+        typedef typename iterate_domain_arguments_t::processing_elements_block_size_t processing_elements_block_size_t;
         // sequence of args types which are readonly through all ESFs/MSSs
         typedef typename compute_readonly_args_indices<
             typename iterate_domain_arguments_t::esf_sequence_t
@@ -254,7 +255,8 @@ namespace gridtools {
                     data_pointer_array_t,
                     typename local_domain_t::local_args_type,
                     typename local_domain_t::local_metadata_type,
-                    metadata_map_t
+                    metadata_map_t,
+                    processing_elements_block_size_t
                 >(data_pointer(), local_domain.m_local_args, local_domain.m_local_metadata,  EU_id_i, EU_id_j));
         }
 
@@ -271,10 +273,10 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_strides_cached<Strides>::value), "internal error type");
             boost::mpl::for_each< metadata_map_t > (
                 assign_strides_functor<
-                BackendType,
-                Strides,
-                typename boost::fusion::result_of::as_vector
-                <typename local_domain_t::local_metadata_type>::type
+                    BackendType,
+                    Strides,
+                    typename boost::fusion::result_of::as_vector<typename local_domain_t::local_metadata_type>::type,
+                    processing_elements_block_size_t
                 >(strides(), local_domain.m_local_metadata));
         }
 
