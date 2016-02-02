@@ -283,10 +283,7 @@ namespace gridtools {
         GT_FUNCTION
         void get_index(array<int_t, N_META_STORAGES>& index) const
         {
-            for(int_t i=0; i < N_META_STORAGES; ++i)
-            {
-                index[i] = m_index[i];
-            }
+            set_index_recur< N_META_STORAGES-1>::set(m_index, index);
         }
 
         /**@brief method for setting the index array
@@ -294,6 +291,7 @@ namespace gridtools {
         * the location (i,j,k). Such index is shared among all the fields contained in the
         * same storage class instance, and it is not shared among different storage instances.
         */
+        // TODO implement the recursive one, as below, performance is better
         template <typename Value>
         GT_FUNCTION
         void set_index(array<Value, N_META_STORAGES> const& index)
@@ -307,10 +305,7 @@ namespace gridtools {
         GT_FUNCTION
         void set_index(const int index)
         {
-            for(int_t i=0; i < N_META_STORAGES; ++i)
-            {
-                m_index[i] = index;
-            }
+            set_index_recur< N_META_STORAGES-1>::set( index, m_index);
         }
 
         /**@brief method for incrementing by 1 the index when moving forward along the given direction
