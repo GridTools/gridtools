@@ -410,8 +410,6 @@ If you are not using generic accessors then you are using an unsupported storage
             GRIDTOOLS_STATIC_ASSERT((id_t::value < boost::fusion::result_of::size<MetaStorageSequence>::value),
                                     "Accessing an index out of bound in fusion tuple");
 
-            assert(m_index_array);
-
             boost::fusion::at<id_t>(m_storages)->template initialize<Coordinate>(
                 m_initial_pos, m_block, &m_index_array[id_t::value], m_strides.template get<id_t::value>());
         }
