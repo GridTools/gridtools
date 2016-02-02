@@ -146,5 +146,5 @@ TEST(test_stencil_on_vertexes, run) {
     verifier ver(1e-10);
 
     array<array<uint_t, 2>, 4> halos = {{ {halo_nc, halo_nc},{0,0},{halo_mc, halo_mc},{halo_k, halo_k} }};
-    EXPECT_TRUE(ver.verify(ref_vertexes, out_vertexes, halos));
+    EXPECT_TRUE(ver.verify(grid_, ref_vertexes, out_vertexes, halos));
 }
