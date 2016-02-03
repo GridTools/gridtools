@@ -63,7 +63,7 @@ struct flx_function {
     typedef boost::mpl::vector<out, in> arg_list;
 
     template <typename Evaluator>
-    __device__ //GT_FUNCTION
+    GT_FUNCTION
     static void Do(Evaluator const & eval, x_flx) {
 #ifdef FUNCTIONS_MONOLITHIC
 #pragma message "monolithic version"
@@ -98,7 +98,6 @@ struct flx_function {
 #endif
         eval(out()) = _y_-_x_;
         eval(out()) = (eval(out())*(eval(in(1,0,0))-eval(in(0,0,0))) > 0.0)?0.0:eval(out());
-        __syncthreads();
     }
 };
 
@@ -111,7 +110,7 @@ struct flx_function {
     typedef boost::mpl::vector<out, in> arg_list;
 
     template <typename Evaluator>
-    __device__ //GT_FUNCTION
+    GT_FUNCTION
     static void Do(Evaluator const & eval, x_flx) {
 
 #ifdef FUNCTIONS_MONOLITHIC
@@ -147,7 +146,6 @@ struct flx_function {
 #endif
         eval(out()) = _y_-_x_;
         eval(out()) = (eval(out())*(eval(in(0,1,0))-eval(in(0,0,0))) > 0.0)?0.0:eval(out());
-        __syncthreads();
     }
 };
 
@@ -162,7 +160,7 @@ struct out_function {
     typedef boost::mpl::vector<out,in,flx,fly,coeff> arg_list;
 
     template <typename Evaluator>
-    __device__ //GT_FUNCTION
+    GT_FUNCTION
     static void Do(Evaluator const & eval, x_out) {
         eval(out()) =  eval(in()) - eval(coeff())*
             (eval(flx()) - eval(flx( -1,0,0)) +
