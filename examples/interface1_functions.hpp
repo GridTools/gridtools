@@ -9,10 +9,6 @@
 #include "./cache_flusher.hpp"
 #include "./defs.hpp"
 
-#ifdef USE_PAPI_WRAP
-#include <papi_wrap.hpp>
-#include <papi.hpp>
-#endif
 
 /**
   @file
@@ -67,41 +63,42 @@ struct flx_function {
     typedef boost::mpl::vector<out, in> arg_list;
 
     template <typename Evaluator>
-    GT_FUNCTION
+    __device__ //GT_FUNCTION
     static void Do(Evaluator const & eval, x_flx) {
 #ifdef FUNCTIONS_MONOLITHIC
 #pragma message "monolithic version"
-        double _x_ = (gridtools::float_type)4.0*eval(in()) -
+        gridtools::float_type _x_ = (gridtools::float_type)4.0*eval(in()) -
             (eval(in( -1, 0, 0)) + eval(in( 0, -1, 0)) +
              eval(in(0, 1, 0)) + eval(in(1, 0, 0)));
-        double _y_ = (gridtools::float_type)4.0*eval(in(1,0,0)) -
+        gridtools::float_type _y_ = (gridtools::float_type)4.0*eval(in(1,0,0)) -
             (eval(in( 0, 0, 0)) + eval(in( 1, -1, 0)) +
              eval(in(1, 1, 0)) + eval(in(2, 0, 0)));
 #else
 #ifdef FUNCTIONS_PROCEDURES
-        double _x_;
+        gridtools::float_type _x_;
         gridtools::call_proc<lap_function, x_flx>::at<0,0,0>::with(eval, _x_, in());
-        double _y_;
+        gridtools::float_type _y_;
         gridtools::call_proc<lap_function, x_flx>::at<1,0,0>::with(eval, _y_, in());
 #else
 #ifdef FUNCTIONS_PROCEDURES_OFFSETS
-        double _x_;
+        gridtools::float_type _x_;
         gridtools::call_proc<lap_function, x_flx>::with_offsets(eval, _x_, in());
-        double _y_;
+        gridtools::float_type _y_;
         gridtools::call_proc<lap_function, x_flx>::with_offsets(eval, _y_, in(1,0,0));
 #else
 #ifdef FUNCTIONS_OFFSETS
-        double _x_ = gridtools::call<lap_function, x_flx>::with_offsets(eval, in(0,0,0));
-        double _y_ = gridtools::call<lap_function, x_flx>::with_offsets(eval, in(1,0,0));
+        gridtools::float_type _x_ = gridtools::call<lap_function, x_flx>::with_offsets(eval, in(0,0,0));
+        gridtools::float_type _y_ = gridtools::call<lap_function, x_flx>::with_offsets(eval, in(1,0,0));
 #else
-        double _x_ = gridtools::call<lap_function, x_flx>::at<0,0,0>::with(eval, in());
-        double _y_ = gridtools::call<lap_function, x_flx>::at<1,0,0>::with(eval, in());
+        gridtools::float_type _x_ = gridtools::call<lap_function, x_flx>::at<0,0,0>::with(eval, in());
+        gridtools::float_type _y_ = gridtools::call<lap_function, x_flx>::at<1,0,0>::with(eval, in());
 #endif
 #endif
 #endif
 #endif
         eval(out()) = _y_-_x_;
-        eval(out()) = eval(out())*(eval(in(1,0,0))-eval(in(0,0,0))) > 0?0.0:eval(out());
+        eval(out()) = (eval(out())*(eval(in(1,0,0))-eval(in(0,0,0))) > 0.0)?0.0:eval(out());
+        __syncthreads();
     }
 };
 
@@ -114,42 +111,43 @@ struct flx_function {
     typedef boost::mpl::vector<out, in> arg_list;
 
     template <typename Evaluator>
-    GT_FUNCTION
+    __device__ //GT_FUNCTION
     static void Do(Evaluator const & eval, x_flx) {
 
 #ifdef FUNCTIONS_MONOLITHIC
 #pragma message "monolithic version"
-        double _x_ = (gridtools::float_type)4.0*eval(in()) -
+        gridtools::float_type _x_ = (gridtools::float_type)4.0*eval(in()) -
             (eval(in( -1, 0, 0)) + eval(in( 0, -1, 0)) +
              eval(in(0, 1, 0)) + eval(in(1, 0, 0)));
-        double _y_ = (gridtools::float_type)4.0*eval(in(0,1,0)) -
+        gridtools::float_type _y_ = (gridtools::float_type)4.0*eval(in(0,1,0)) -
             (eval(in( -1, 1, 0)) + eval(in( 0, 0, 0)) +
              eval(in(0, 2, 0)) + eval(in(1, 1, 0)));
 #else
 #ifdef FUNCTIONS_PROCEDURES
-        double _x_;
+        gridtools::float_type _x_;
         gridtools::call_proc<lap_function, x_flx>::at<0,0,0>::with(eval, _x_, in());
-        double _y_;
+        gridtools::float_type _y_;
         gridtools::call_proc<lap_function, x_flx>::at<0,1,0>::with(eval, _y_, in());
 #else
 #ifdef FUNCTIONS_PROCEDURES_OFFSETS
-        double _x_;
+        gridtools::float_type _x_;
         gridtools::call_proc<lap_function, x_flx>::with_offsets(eval, _x_, in());
-        double _y_;
+        gridtools::float_type _y_;
         gridtools::call_proc<lap_function, x_flx>::with_offsets(eval, _y_, in(0,1,0));
 #else
 #ifdef FUNCTIONS_OFFSETS
-        double _x_ = gridtools::call<lap_function, x_flx>::with_offsets(eval, in(0,0,0));
-        double _y_ = gridtools::call<lap_function, x_flx>::with_offsets(eval, in(0,1,0));
+        gridtools::float_type _x_ = gridtools::call<lap_function, x_flx>::with_offsets(eval, in(0,0,0));
+        gridtools::float_type _y_ = gridtools::call<lap_function, x_flx>::with_offsets(eval, in(0,1,0));
 #else
-        double _x_ = gridtools::call<lap_function, x_flx>::at<0,0,0>::with(eval, in());
-        double _y_ = gridtools::call<lap_function, x_flx>::at<0,1,0>::with(eval, in());
+        gridtools::float_type _x_ = gridtools::call<lap_function, x_flx>::at<0,0,0>::with(eval, in());
+        gridtools::float_type _y_ = gridtools::call<lap_function, x_flx>::at<0,1,0>::with(eval, in());
 #endif
 #endif
 #endif
 #endif
         eval(out()) = _y_-_x_;
-        eval(out()) = eval(out())*(eval(in(0,1,0))-eval(in(0,0,0))) > 0?0.0:eval(out());
+        eval(out()) = (eval(out())*(eval(in(0,1,0))-eval(in(0,0,0))) > 0.0)?0.0:eval(out());
+        __syncthreads();
     }
 };
 
@@ -164,7 +162,7 @@ struct out_function {
     typedef boost::mpl::vector<out,in,flx,fly,coeff> arg_list;
 
     template <typename Evaluator>
-    GT_FUNCTION
+    __device__ //GT_FUNCTION
     static void Do(Evaluator const & eval, x_out) {
         eval(out()) =  eval(in()) - eval(coeff())*
             (eval(flx()) - eval(flx( -1,0,0)) +
@@ -194,10 +192,6 @@ void handle_error(int)
 
     bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps) {
 
-#ifdef USE_PAPI_WRAP
-  int collector_init = pw_new_collector("Init");
-  int collector_execute = pw_new_collector("Execute");
-#endif
 
     uint_t d1 = x;
     uint_t d2 = y;
@@ -260,29 +254,6 @@ void handle_error(int)
     grid.value_list[1] = d3-1;
 
 
-#ifdef USE_PAPI
-int event_set = PAPI_NULL;
-int retval;
-long long values[1] = {-1};
-
-
-/* Initialize the PAPI library */
-retval = PAPI_library_init(PAPI_VER_CURRENT);
-if (retval != PAPI_VER_CURRENT) {
-  fprintf(stderr, "PAPI library init error!\n");
-  exit(1);
-}
-
-if( PAPI_create_eventset(&event_set) != PAPI_OK)
-    handle_error(1);
-if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operations
-    handle_error(1);
-#endif
-
-#ifdef USE_PAPI_WRAP
-    pw_start_collector(collector_init);
-#endif
-
 // \todo simplify the following using the auto keyword from C++11
 #ifdef __CUDACC__
     gridtools::computation* horizontal_diffusion =
@@ -298,9 +269,9 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
                 // gridtools::make_esf<lap_function>(p_lap(), p_in()), // esf_descriptor
                 gridtools::make_independent // independent_esf
                 (
-                    gridtools::make_esf<flx_function>(p_flx(), p_in()),
-                    gridtools::make_esf<fly_function>(p_fly(), p_in())
-                 ),
+                gridtools::make_esf<flx_function>(p_flx(), p_in()),
+                gridtools::make_esf<fly_function>(p_fly(), p_in())
+                ),
                 gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
             ),
             domain, grid
@@ -310,17 +281,6 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
 
     horizontal_diffusion->steady();
 
-#ifdef USE_PAPI_WRAP
-    pw_stop_collector(collector_init);
-#endif
-
-#ifdef USE_PAPI
-if( PAPI_start(event_set) != PAPI_OK)
-    handle_error(1);
-#endif
-#ifdef USE_PAPI_WRAP
-    pw_start_collector(collector_execute);
-#endif
     cache_flusher flusher(cache_flusher_size);
 
     for(uint_t t=0; t < t_steps; ++t){
@@ -328,29 +288,18 @@ if( PAPI_start(event_set) != PAPI_OK)
         horizontal_diffusion->run();
     }
 
-#ifdef USE_PAPI
-double dummy=0.5;
-if( PAPI_read(event_set, values) != PAPI_OK)
-    handle_error(1);
-printf("%f After reading the counters: %lld\n", dummy, values[0]);
-PAPI_stop(event_set, values);
-#endif
-#ifdef USE_PAPI_WRAP
-    pw_stop_collector(collector_execute);
-#endif
-
 #ifdef __CUDACC__
     repository.update_cpu();
 #endif
 
-#ifdef CXX11_ENABLED
     verifier verif(1e-13);
+
+#ifdef CXX11_ENABLED
     array<array<uint_t, 2>, 3> halos{{ {halo_size, halo_size},
                                        {halo_size,halo_size},
                                        {halo_size,halo_size} }};
     bool result = verif.verify(grid, repository.out_ref(), repository.out(), halos);
 #else
-    verifier verif(1e-13, halo_size);
     bool result = verif.verify(repository.out_ref(), repository.out());
 #endif
 
@@ -368,10 +317,6 @@ PAPI_stop(event_set, values);
     horizontal_diffusion->finalize();
 #ifdef BENCHMARK
     std::cout << horizontal_diffusion->print_meter() << std::endl;
-#endif
-
-#ifdef USE_PAPI_WRAP
-    pw_print();
 #endif
 
   return result; /// lapse_time.wall<5000000 &&
