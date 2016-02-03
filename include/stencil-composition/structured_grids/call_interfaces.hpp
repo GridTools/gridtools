@@ -38,6 +38,7 @@ namespace gridtools {
                   typename PassedAccessors, typename ReturnType, int OutArg>
         struct function_aggregator {
 
+            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<CallerAggregator>::value, "The first argument must be an iterate_domain");
             CallerAggregator const& m_caller_aggregator;
             ReturnType __restrict__ * m_result;
 
@@ -127,6 +128,8 @@ namespace gridtools {
         template <typename CallerAggregator, int Offi, int Offj, int Offk,
                   typename PassedAccessors, typename ReturnType, int OutArg>
         struct function_aggregator_offsets {
+            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<CallerAggregator>::value, "The first argument must be an iterate_domain");
+
             typedef typename boost::fusion::result_of::as_vector<PassedAccessors>::type accessors_list_t;
             CallerAggregator const& m_caller_aggregator;
             ReturnType __restrict__ * m_result;
@@ -324,6 +327,8 @@ namespace gridtools {
                   typename PassedArguments>
         struct function_aggregator_procedure_offsets {
 
+            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<CallerAggregator>::value, "The first argument must be an iterate_domain");
+
             // Collect the indices of the arguments that are not accessors among
             // the PassedArguments
             typedef typename boost::mpl::fold<
@@ -407,6 +412,8 @@ namespace gridtools {
                   int Offi, int Offj, int Offk,
                   typename PassedArguments>
         struct function_aggregator_procedure {
+
+            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<CallerAggregator>::value, "The first argument must be an iterate_domain");
 
             // Collect the indices of the arguments that are not accessors among
             // the PassedArguments

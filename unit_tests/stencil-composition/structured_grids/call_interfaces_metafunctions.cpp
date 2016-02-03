@@ -27,6 +27,12 @@ struct pretent_aggregator {
     }
 };
 
+namespace gridtools {
+template <>
+struct is_iterate_domain<pretent_aggregator> {
+    static const bool value = true;
+};
+}
 
 struct pretent_function {
     typedef gridtools::accessor<0,  gridtools::enumtype::in> a0;
