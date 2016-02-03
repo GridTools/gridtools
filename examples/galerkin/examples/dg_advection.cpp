@@ -31,8 +31,59 @@ struct flux {
     }
 };
 
+namespace gdl{
+    using namespace gt::expressions;
+    struct residual{
 
-int main(){
+        using rhs=gt::accessor<0, enumtype::in, gt::extent<> , 4>;
+        using Ax=gt::accessor<1, enumtype::in, gt::extent<> , 4>;
+        using res=gt::accessor<2, enumtype::inout, gt::extent<> , 4>;
+        using arg_list=boost::mpl::vector<rhs, Ax, res> ;
+
+        template <typename Evaluation>
+        GT_FUNCTION
+        static void Do(Evaluation const & eval, x_interval) {
+            gt::dimension<4>::Index I;
+
+            uint_t const n_dofs=eval.get().template get_storage_dims<3>(rhs());
+
+            for(uint_t i=0; i<n_dofs; ++i)
+                eval(res(I+i)) = eval( res(I+i) -
+                                      Ax(I+i) + rhs(I+i)
+                    );
+        }
+    };
+
+    struct bc_functor{
+
+        using bc=gt::accessor<0, enumtype::in, gt::extent<> , 4>;
+        using result=gt::accessor<1, enumtype::inout, gt::extent<> , 4>;
+        using arg_list=boost::mpl::vector<bc, result> ;
+
+        template <typename Evaluation>
+        GT_FUNCTION
+        static void Do(Evaluation const & eval, x_interval) {
+        gt::dimension<4>::Index I;
+
+        //assign the points on face 3 (x=0)
+        //TODO hardcoded
+        // eval(result()) = eval(bc());
+        // eval(result(I+2)) = eval(bc(I+2));
+        // eval(result(I+4)) = eval(bc(I+4));
+        // eval(result(I+6)) = eval(bc(I+6));
+
+        eval(result(I+1)) = eval(bc());
+        eval(result(I+3)) = eval(bc(I+2));
+        eval(result(I+5)) = eval(bc(I+4));
+        eval(result(I+7)) = eval(bc(I+6));
+        }
+    };
+}
+
+int main( int argc, char ** argv){
+
+    int it_ = atoi(argv[1]);
+
     //![definitions]
     using namespace gridtools;
     using namespace gdl;
@@ -69,9 +120,9 @@ int main(){
     //![definitions]
 
     //dimensions of the problem (in number of elements per dimension)
-    auto d1=4;
-    auto d2=4;
-    auto d3=4;
+    auto d1=8;
+    auto d2=8;
+    auto d3=8;
 
     geo_t geo_;
     geo_.compute(Intrepid::OPERATOR_GRAD);
@@ -134,7 +185,7 @@ int main(){
     bd_scalar_storage_info_t bd_scalar_meta_(d1,d2,d3, bd_discr_t::geo_map::basisCardinality, bd_discr_t::s_num_boundaries );
     bd_vector_storage_info_t bd_vector_meta_(d1,d2,d3, bd_discr_t::geo_map::basisCardinality, 3, bd_discr_t::s_num_boundaries );
 
-    scalar_type u_(scalar_meta_, 1., "u");//initial solution
+    scalar_type u_(scalar_meta_, 0., "u");//initial solution
     vector_type beta_(vec_meta_, 0., "beta");
 
     // initialization
@@ -145,9 +196,10 @@ int main(){
                 {
                     for (uint_t dim=0; dim<3; dim++)
                         if(dim==0)
-                            beta_(i,j,k,point,dim)=1.;
+                            beta_(i,j,k,point,dim)=-1.;
                     // if(i+j+k>4)
-                    // u_(i,j,k,point)=0;
+                    if( i==2 && j>3 && j<6 )
+                        u_(i,j,k,point)=1.;//point;
                 }
 
     io_.set_attribute_scalar<0>(u_, "initial condition");
@@ -243,7 +295,7 @@ int main(){
     coords.value_list[1] = d3-1;
 
     //![computation]
-    auto computation=make_computation< BACKEND >(
+    auto compute_assembly=make_computation< BACKEND >(
         make_mss
         (
             execute<forward>()
@@ -274,7 +326,7 @@ int main(){
             // computing flux/discretize
 
             // initialize result=0
-            , make_esf< functors::assign<4,int,0> >( p_result() )
+            //, make_esf< functors::assign<4,int,0> >( p_result() )
             // compute the face normals: \f$ n=J*(\hat n) \f$
             , make_esf<functors::compute_face_normals<as_bd::boundary_t> >(p_bd_jac(), p_ref_normals(), p_normals())
             // interpolate the normals \f$ n=\sum_i <n,\phi_i>\phi_i(x) \f$
@@ -283,17 +335,7 @@ int main(){
             // note that beta is defined in the current space, so we take the scalar product with
             // the normals on the current configuration, i.e. \f$F\hat n\f$
             , make_esf<functors::project_on_boundary>(p_beta(), p_int_normals(), p_bd_mass_uu(), p_beta_n())
-
-            // add the advection term: result+=A*u
-            // , make_esf< functors::matvec >( p_u(), p_advection(), p_result() )
-            //compute the upwind flux
-            //i.e.:
-            //if <beta,n> > 0
-            // result= <beta,n> * [(u+ * v+) - (u+ * v-)]
-            //if beta*n<0
-            // result= <beta,n> * [(u- * v-) - (u- * v+)]
-            // where + means "this element" and - "the neighbour"
-            , make_esf<functors::upwind>(p_u(), p_beta_n(), p_bd_mass_uu(), p_bd_mass_uv(),  p_result())
+            //, make_esf<functors::upwind>(p_u(), p_beta_n(), p_bd_mass_uu(), p_bd_mass_uv(),  p_result())
 
             // Optional: assemble the result vector by summing the values on the element boundaries
             // , make_esf< functors::assemble<geo_t> >( p_result(), p_result() )
@@ -302,16 +344,109 @@ int main(){
             // , make_esf< time_advance >(p_u(), p_result())
             ), domain, coords);
 
-    computation->ready();
-    computation->steady();
-    int T = 1;
+    compute_assembly->ready();
+    compute_assembly->steady();
+    compute_assembly->run();
 
-    for(int i=0; i<T; ++i){
-        computation->run();
-        //simple first order time discretization
-        //u_.swap_pointers(result_);
+    struct it{
+        typedef  arg<0, typename as_bd::bd_matrix_type> p_bd_mass_uu;
+        typedef  arg<1, typename as_bd::bd_matrix_type> p_bd_mass_uv;
+        typedef  arg<2, scalar_type> p_u;
+        typedef  arg<3, scalar_type> p_result;
+        typedef  arg<4, matrix_type> p_mass;
+        typedef  arg<5, matrix_type> p_advection;
+        typedef  arg<6, bd_scalar_type> p_beta_n;
+        typedef  arg<7, scalar_type> p_rhs;
+    };
+
+    scalar_type rhs_(scalar_meta_, 0., "rhs");//zero rhs
+
+    typedef typename boost::mpl::vector< it::p_bd_mass_uu, it::p_bd_mass_uv, it::p_u, it::p_result, it::p_mass, it::p_advection, it::p_beta_n, it::p_rhs > mpl_list_iteration;
+
+    domain_type<mpl_list_iteration> domain_iteration(boost::fusion::make_vector( &bd_assembler.bd_mass()
+                                                                                 , &bd_mass_uv_
+                                                                                 , &u_
+                                                                                 , &result_
+                                                                                 , &mass_
+                                                                                 , &advection_
+                                                                                 , &bd_beta_n_
+                                                                                 , &rhs_
+                                                         ));
+
+    auto iteration=make_computation< BACKEND >(
+        make_mss
+        (
+            execute<forward>()
+            , make_esf< functors::assign<4,int,0> >( it::p_result() )
+            // add the advection term: result+=A*u
+            , make_esf< functors::matvec>( it::p_u(), it::p_advection(), it::p_result() )
+            //compute the upwind flux
+            //i.e.:
+            //if <beta,n> > 0
+            // result= <beta,n> * [(u+ * v+) - (u+ * v-)]
+            //if beta*n<0
+            // result= <beta,n> * [(u- * v-) - (u- * v+)]
+            // where + means "this element" and - "the neighbour"
+            , make_esf< functors::upwind>(it::p_u(), it::p_beta_n(), it::p_bd_mass_uu(), it::p_bd_mass_uv(),  it::p_result())
+            // add the advection term (for time dependent problem): result+=A*u
+            //, make_esf< functors::matvec>( it::p_u(), it::p_mass(), it::p_result() )
+            , make_esf<residual>(it::p_rhs(), it::p_result(), it::p_u()) //updating u = u - (Ax-rhs)
+            ),
+        domain_iteration, coords);
+
+    auto coords_bc=grid<axis>({0u,0u,0u,0u,1u},
+        {1u, 0u, 1u, (uint_t)d2-1u, (uint_t)d2});
+    coords_bc.value_list[0] = 1;
+    coords_bc.value_list[1] = d3-1;
+
+    using bc_storage_info_t=storage_info< __COUNTER__, gt::layout_map<-1,0,1,2> >;
+    using bc_storage_t = storage_t< bc_storage_info_t >;
+    bc_storage_info_t bc_meta_(1,d2,d3, geo_map::basisCardinality);
+    bc_storage_t bc_(bc_meta_, 0.);
+
+    /** boundary condition computation */
+    struct bc {
+        typedef  arg<0, bc_storage_t > p_bc;
+        typedef  arg<1, scalar_type> p_result;
+    };
+
+    typedef typename boost::mpl::vector< bc::p_bc, bc::p_result> mpl_list_bc;
+
+    domain_type<mpl_list_bc> domain_bc(boost::fusion::make_vector(  &bc_
+                                                                   ,&u_
+                                           ));
+
+    //initialization of the boundary condition
+    for(uint_t j=0; j<d2; ++j)
+        for(uint_t k=0; k<d3; ++k)
+            for(uint_t dof=0; dof<geo_map::basisCardinality; ++dof)
+                bc_(666, j, k, dof) = 1.;
+
+    auto apply_bc_x0=make_computation< BACKEND >(
+        make_mss
+        (
+            execute<forward>()
+            , make_esf< bc_functor >( bc::p_bc(), bc::p_result() )
+            ),
+        domain_bc, coords_bc);
+
+    int n_it_ = it_;
+
+    iteration->ready();
+    iteration->steady();
+
+    apply_bc_x0->ready();
+    apply_bc_x0->steady();
+
+    for(int i=0; i<n_it_; ++i){ // Richardson iterations
+        //apply_bc_x0->run();
+        iteration->run();
     }
-    computation->finalize();
+    //apply_bc_x0->run();
+
+    apply_bc_x0->finalize();
+    iteration->finalize();
+    compute_assembly->finalize();
 
     // for(int i=0; i<d1; ++i)
     //     for(int j=0; j<d1; ++j)
@@ -319,14 +454,15 @@ int main(){
     //             //for(int dof=0; dof<8; ++dof)
     //             for(int d=0; d<3; ++d)
     //             for(int face=0; face<6; ++face)
-                    // std::cout<<"dof"<< dof <<"result==>"<<result_(i,j,k,dof)<<"\n";
-                    //                std::cout<<"face: "<<face<<", dim:"<<d <<"==>"<<normals_(i,j,k,0,d,face)<<"\n";
-                    //std::cout<<"face: "<<face<<", dim:"<<d <<"==>"<<bd_beta_n_(i,j,k,0,face)<<"\n";
+    // std::cout<<"dof"<< dof <<"result==>"<<result_(i,j,k,dof)<<"\n";
+    //                std::cout<<"face: "<<face<<", dim:"<<d <<"==>"<<normals_(i,j,k,0,d,face)<<"\n";
+    //std::cout<<"face: "<<face<<", dim:"<<d <<"==>"<<bd_beta_n_(i,j,k,0,face)<<"\n";
 
-                    // std::cout<<"face: "<<face<<"==>"<<bd_assembler.normals()(i,j,k,0,d,face)<<"\n";
+    // std::cout<<"face: "<<face<<"==>"<<bd_assembler.normals()(i,j,k,0,d,face)<<"\n";
 
     io_.set_information("Time");
-    io_.set_attribute_scalar<0>(result_, "solution");
+    io_.set_attribute_scalar<0>(result_, "Ax");
+    io_.set_attribute_scalar<0>(u_, "solution");
     // io_.set_attribute_vector_on_face<0>(face_vec, "normals");
     io_.write("grid");
 

@@ -141,7 +141,7 @@ namespace functors{
     };
     // [lax friedrich]
 
-
+#define FOR_DEBUG 1
     // [upwind]
     /**
        @class functor assembling the upwind flux
@@ -181,7 +181,8 @@ namespace functors{
             //NOTE: we only loop on the 3 faces touching (0,0,0)
             for(short_t face1_ : {0,3,4})
             {
-                /**see the face numbering:
+
+                /** see the face numbering:
 
                    index:                  .____.
                    0 (0,-1,0)             /  0 /|
@@ -204,6 +205,7 @@ namespace functors{
                     : -666;
 
 
+#ifdef FOR_DEBUG
                 /////////FOR DEBUGGING//////////////
                 double bn=
                     face1_==0?0.
@@ -213,7 +215,8 @@ namespace functors{
                     : face1_==4?0.
                     : face1_==5?0.
                     : -666.;
-
+                /////////////////////////////////////
+#endif
 
                 uint_t stride_face_=
                     face1_ == 0?2
@@ -231,54 +234,96 @@ namespace functors{
                 for(short_t dof1_=0; dof1_<n_dofs; dof1_++)
                 {//hypothesis: same #dofs on both faces
                     for(short_t dof2_=0; dof2_<n_dofs; dof2_++){
-                        if (eval(beta_n(row+dof1_, face+face1_))<-1e-15){ // inflow
 
-                            eval(out(row+dof1_)) +=eval(
-                                in(row+dof2_)
-                                *bd_mass_uu(row+dof1_, col+dof2_, Mface+face1_)// * -1.
+                        if (eval(beta_n(row+dof1_, face+face1_)) < -1e-15)
+                        {
+                            auto val = eval(
+                                in(opposite_i, opposite_j, opposite_k, dof2_+stride_face_)
+                                * bd_mass_uu(opposite_i, opposite_j, opposite_k, dof1_+stride_face_, dof2_+stride_face_, face_opposite_)
+#ifdef FOR_DEBUG
                                 * bn
-                                // beta_n(row+dof1_, face+face1_)
+#else
+                                * beta_n(row+dof1_, face+face1_)
+#endif
                                 -
-                                in(row+dof2_)
-                                *bd_mass_uu(row+dof1_, col+dof2_, Mface+face_opposite_)// * -1.
+                                in(0,0,0, dof2_)
+                                * bd_mass_uu(0,0,0, dof1_+stride_face_, (dof2_), face1_)
+#ifdef FOR_DEBUG
                                 * bn
-                                // beta_n(row+dof1_, face+face1_)
+#else
+                                * beta_n(row+dof1_, face+face1_)
+#endif
                                 );
 
+                            eval(out(row+dof1_)) += val;
+                            //simple rule: always integrate on one face
+                            eval(out(opposite_i, opposite_j, opposite_k, dof1_+stride_face_)) -= val;
+
+                            // auto tmp=eval(in(opposite_i, opposite_j, opposite_k, dof2_+stride_face_));
+                            // auto tmp1=eval(bd_mass_uu(row+dof1_, col+(dof2_), Mface+face1_));
+                            // auto tmp2=eval(in(row+dof2_));
+                            // auto tmp3=eval(out(row+dof1_));
+                            // auto tmp4=eval(bd_mass_uu(opposite_i, opposite_j, opposite_k, dof1_+stride_face_, (dof2_+stride_face_), face_opposite_));
+                            // if(tmp4)
+                            //     std::cout<<tmp<<" "<<tmp1<<" "<<tmp2<<" "<<tmp3<<" "<<tmp4<<"\n";
+
+                        }
+                        else if (eval(beta_n(row+dof1_, face+face1_)) > 1e-15)
+                        { // inflow
+
+                            auto val = eval(
+                                in(row+dof2_)
+                                *bd_mass_uu(row+dof1_, col+dof2_, Mface+face1_)
+#ifdef FOR_DEBUG
+                                * -bn
+#else
+                                * beta_n(row+dof1_, face+face1_)
+#endif
+                                -
+                                in(opposite_i, opposite_j, opposite_k, dof2_+stride_face_)
+                                *bd_mass_uu(opposite_i, opposite_j, opposite_k, dof1_, (dof2_), face_opposite_)
+#ifdef FOR_DEBUG
+                                * -bn
+#else
+                                * beta_n(row+dof1_, face+face1_)
+#endif
+                                );
+
+                            eval(out(row+dof1_)) += val;
+
+                            //simple rule: always integrate on one face
+                            eval(out(opposite_i, opposite_j, opposite_k, dof1_+stride_face_)) -= val;
                             //find a way to get the corresponding dof on the opposite face and you are done
                             //for x is simply "dof + 1", in general is "dof + stride_face_"
-                            eval(out(opposite_i, opposite_j, opposite_k, dof1_+stride_face_)) += eval(
-                                in(opposite_i, opposite_j, opposite_k, (dof2_))
-                                *bd_mass_uu(opposite_i, opposite_j, opposite_k, (dof1_+stride_face_), (dof2_), face_opposite_)
-                                * (-bn)
-                                // beta_n(row+dof1_, face+face1_)
-                                -
-                                in(opposite_i, opposite_j, opposite_k, (dof2_))
-                                *bd_mass_uu(opposite_i, opposite_j, opposite_k, (dof1_+stride_face_), (dof2_), face1_)
-                                * (-bn)
-                                // beta_n(row+dof1_, face+face1_)
-                                );
+//                             eval(out(opposite_i, opposite_j, opposite_k, dof1_+stride_face_)) += eval(
+//                                 in(opposite_i, opposite_j, opposite_k, (dof2_+stride_face_))
+//                                 *bd_mass_uu(opposite_i, opposite_j, opposite_k, (dof1_+stride_face_), (dof2_+stride_face_), face_opposite_)
+// #ifdef FOR_DEBUG
+//                                 * (-bn)
+// #else
+//                                 * beta_n(row+(dof1_+stride_face_), face+stride_face_)* (-1.)
+// #endif
+//                                 -
+//                                 in(0,0,0,dof2_)
+//                                 *bd_mass_uu(opposite_i, opposite_j, opposite_k, (dof1_+stride_face_), (dof2_+stride_face_), face_opposite_)
+// #ifdef FOR_DEBUG
+//                                 * (-bn)
+// #else
+//                                 *(beta_n(row+(dof1_+stride_face_), face+face_opposite_)*(-1.))
+// #endif
+//                                 );
 
 
-                        }
-                        else if(eval(beta_n(row+dof1_, face+face1_))>1e-15) // outflow
-                        {//hypothesis: same #dofs on both faces
-                            //take the contribution from the opposite face
-                            // eval(out(row+dof1_)) += eval(
-                            //     // beta_n(row+dof1_, face+face_opposite_) *
-                            //     in(opposite_i, opposite_j, opposite_k, dof2_)
-                            //     *bd_mass_uu(opposite_i, opposite_j, opposite_k, dof1_, dof2_, face_opposite_)
-                            //     -
-                            //     beta_n(row+dof1_, face+face_opposite_) * in(opposite_i, opposite_j, opposite_k, dof2_)
-                            //     *bd_mass_uv(opposite_i, opposite_j, opposite_k, dof1_, dof2_, face_opposite_));
                         }
                     }
+                    //time discretization: TODO change
+#ifndef FOR_DEBUG
+                    eval(out(row+dof1_)) = eval(out(row+dof1_));
+#endif
                 }
             }
         }
     };
-            // [upwind]
-
-
+    // [upwind]
 }//namespace functors
 }//namespace gdl

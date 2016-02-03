@@ -73,6 +73,16 @@ struct wrap_pointer{
 
     bool is_externally_managed() const {return m_externally_managed;}
 
+    /**empty method kept for compatibility reasons (avoiding #ifdefs)*/
+    void update_cpu(){
+        assert(false);
+    }
+
+    /**empty method kept for compatibility reasons*/
+    void update_gpu(){
+        assert(false);
+    }
+
   GT_FUNCTION
   virtual ~wrap_pointer(){
 #ifdef VERBOSE
@@ -81,11 +91,6 @@ struct wrap_pointer{
 #endif
 #endif
   }
-
-    GT_FUNCTION
-    void update_gpu() {
-        assert(false);
-    }//\todo find a way to remove this method
 
     GT_FUNCTION
     wrap_pointer(uint_t size, bool externally_managed=false): m_externally_managed(externally_managed) {

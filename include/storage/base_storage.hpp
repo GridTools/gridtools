@@ -308,13 +308,6 @@ namespace gridtools {
             m_name=string;
         }
 
-        /** @brief copies the data field to the GPU */
-        GT_FUNCTION_WARNING
-        void copy_data_to_gpu() const {
-            for (uint_t i=0; i<field_dimensions; ++i)
-                m_fields[i].update_gpu();
-        }
-
         static void text() {
             std::cout << BOOST_CURRENT_FUNCTION << std::endl;
         }

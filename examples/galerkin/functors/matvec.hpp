@@ -11,6 +11,7 @@ namespace functors{
         using out=gt::accessor<2, enumtype::inout, gt::extent<> , 4> ;
         using arg_list=boost::mpl::vector< in2, in1, out > ;
 
+
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
@@ -21,10 +22,12 @@ namespace functors{
 
             //for all dofs in a boundary face
             for(short_t I=0; I<cardinality_i; I++)
+            {
                 for(short_t J=0; J<cardinality_j; J++)
                 {
                     eval(out(row+I)) += eval(in2(row+I, col+J)*in1(row+J));
                 }
+            }
         }
     };
     // [matvec]
