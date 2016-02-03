@@ -296,10 +296,7 @@ namespace gridtools {
         GT_FUNCTION
         void set_index(array<Value, N_META_STORAGES> const& index)
         {
-            for(int_t i=0; i < N_META_STORAGES; ++i)
-            {
-                m_index[i] = index[i];
-            }
+            set_index_recur< N_META_STORAGES-1>::set( index, m_index);
         }
 
         GT_FUNCTION
