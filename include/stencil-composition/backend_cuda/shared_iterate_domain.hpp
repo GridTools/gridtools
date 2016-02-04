@@ -21,7 +21,7 @@ namespace gridtools {
  * @tparam StridesType strides cached type
  * @tparam IJCachesTuple fusion map of <index_type, cache_storage>
  */
-template<typename DataPointerArray, typename StridesType, typename IJCachesTuple>
+template<typename DataPointerArray, typename StridesType, typename MaxExtent, typename IJCachesTuple>
 class shared_iterate_domain
 {
     GRIDTOOLS_STATIC_ASSERT((is_strides_cached<StridesType>::value), "Internal Error: wrong type");
