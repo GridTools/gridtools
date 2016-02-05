@@ -626,6 +626,590 @@ namespace gdl{
             }
         }
     };
+
+
+    /**
+      @class hexahedron mesh matrix assemble functor
+      @tparam Number of single hexahedron dofs along x direction
+      @tparam Number of single hexahedron dofs along y direction
+      @tparam Number of single hexahedron dofs along z direction
+
+      hypotheses:
+      - dof number is the same along each element direction (total number of dofs pre element is n_dofs^3)
+      - reference frame axes are defined as follows
+
+							z
+						       /
+							-x
+						       |
+						       y
+
+
+      - dofs are ordered in the input matrix according to the following rule
+
+						     4----5
+						    /    /|
+						   0----1 |
+						   |    | 7
+						   |    |/
+						   2----3
+
+	(not represented internal dofs follow the same rule
+
+      - each hexahedron is responsible for the assemble of a set of contributions related to the dof pairs shared with the
+	adjacent hexaedrons in negative x,y and z direction (each hexahedron takes contribution from 7 adjacent hexahedrons).
+	Particularly, considering a single face the dofs are grouped as follows
+
+						F--B--B--B--G			------x
+						|	    |			|
+						C--A--A--A--E			|
+						|	    |			y
+						C--A--A--A--E
+						|	    |
+						C--A--A--A--E
+						|	    |
+						H--D--D--D--I
+
+	The assemble (gathering) is performed for heach hexahedron on the following dof group pairs (and their symmetric pair):
+
+	------------------------------------------------------------------------------
+		Loop_number	|	Group_pair		|	Number_contr
+	------------------------------------------------------------------------------
+		1 		|	(A,A)			|	2
+		2		|	(A,F+B+G)		|	2
+		3		|	(A,H+D+I)		|	2
+		4		|	(C,B+A+D+G+E+I)		|	2
+		5		|	(B,H+D+I)		|	2
+		6		|	(E,B+A+D)		|	2
+		7		|	(F,D+I)			|	2
+		8		|	(G,H+D)			|	2
+		9		|	(F,E)			|	2
+		10		|	(H,E)			|	2
+		11		|	(F,B+G)			|	4
+		12		|	(G,B)			|	4
+		13		|	(B,B)			|	4
+	-------------------------------------------------------
+
+	The same calculation is performed for the faces on xz and xy planes. Moreover, a final "corner" dof pair is included in
+	the calculation of the considered hexahedron, namely the (F,F) pair.
+
+
+	As it can be seen some contributions are missing (e.g. (G,E)): those pairs are included in the calculations of the adjacent
+	(in positive x/y/z direction) hexahedron.
+
+     */
+    template <ushort_t N_DOF0, ushort_t N_DOF1, ushort_t N_DOF2>
+    struct hexahedron_assemble {
+
+      // TODO: matrix symmetry hypothesis not required here (but we know that matrix for this functor are symmetric)
+      // TODO: extend to non isotropic dof distribution case
+      // TODO: implement index pair "indexing" object
+
+      using matrix_in_storage_info_t=gridtools::storage_info< __COUNTER__, gridtools::layout_tt<3> >;
+
+      using in2=accessor<0, enumtype::in, extent<> , 4>;
+      using out=accessor<1, enumtype::inout, extent<> , 4> ;
+      using arg_list=boost::mpl::vector<in2, out> ;
+
+      template <typename Evaluation>
+      GT_FUNCTION
+      static void Do(Evaluation const & eval, x_interval) {
+	dimension<1>::Index k;
+	dimension<2>::Index j;
+	dimension<3>::Index i;
+	dimension<4>::Index row;
+
+	constexpr meta_storage_base<__COUNTER__,layout_map<2,1,0>,false> indexing{N_DOF0, N_DOF1, N_DOF2};
+	constexpr uint_t n_dof{indexing.template dims<0>()*indexing.template dims<1>()*indexing.template dims<2>()};
+
+	// 1 (A,A)
+	for(short_t I1=1; I1<indexing.template dims<0>()-1; I1++)
+	  for(short_t J1=1; J1<indexing.template dims<1>()-1; J1++)
+	    for(short_t I2=1; I2<indexing.template dims<0>()-1; I2++)
+	      for(short_t J2=1; J2<indexing.template dims<1>()-1; J2++)
+	      {
+		auto dof_z= indexing.index(I1,J1,0)*n_dof + indexing.index(I2,J2,0);
+
+		auto dof_y= indexing.index(J1,0,I1)*n_dof + indexing.index(J2,0,I2);
+
+		auto dof_x= indexing.index(0,I1,J1)*n_dof + indexing.index(0,I2,J2);
+
+
+		auto dof_zz= indexing.index(I1,J1,indexing.template dims<2>()-1)*n_dof + indexing.index(I2,J2,indexing.template dims<2>()-1);
+
+		auto dof_yy= indexing.index(J1,indexing.template dims<1>()-1,I1)*n_dof + indexing.index(J2,indexing.template dims<1>()-1,I2);
+
+		auto dof_xx= indexing.index(indexing.template dims<0>()-1,I1,J1)*n_dof + indexing.index(indexing.template dims<0>()-1,I2,J2);
+
+		eval(out(row+dof_z)) += eval(in2(i-1,row+dof_zz));
+
+		eval(out(row+dof_y)) += eval(in2(j-1,row+dof_yy));
+
+		eval(out(row+dof_x)) += eval(in2(k-1,row+dof_xx));
+
+	      }
+
+	// 2 (A,F+B+G)+(F+B+G,A)
+	short_t J2=0;
+	for(short_t I1=1; I1<indexing.template dims<0>()-1; I1++)
+	  for(short_t J1=1; J1<indexing.template dims<1>()-1; J1++)
+	    for(short_t I2=0; I2<indexing.template dims<0>(); I2++)
+	    {
+	      auto dof_z= indexing.index(I1,J1,0)*n_dof + indexing.index(I2,J2,0);
+	      auto dof_z_s= indexing.index(I2,J2,0)*n_dof + indexing.index(I1,J1,0);
+
+	      auto dof_y= indexing.index(J1,0,I1)*n_dof + indexing.index(J2,0,I2);
+	      auto dof_y_s= indexing.index(J2,0,I2)*n_dof + indexing.index(J1,0,I1);
+
+	      auto dof_x= indexing.index(0,I1,J1)*n_dof + indexing.index(0,I2,J2);
+	      auto dof_x_s= indexing.index(0,I2,J2)*n_dof + indexing.index(0,I1,J1);
+
+
+	      auto dof_zz= indexing.index(I1,J1,indexing.template dims<2>()-1)*n_dof + indexing.index(I2,J2,indexing.template dims<2>()-1);
+	      auto dof_zz_s= indexing.index(I2,J2,indexing.template dims<2>()-1)*n_dof + indexing.index(I1,J1,indexing.template dims<2>()-1);
+
+	      auto dof_yy= indexing.index(J1,indexing.template dims<1>()-1,I1)*n_dof + indexing.index(J2,indexing.template dims<1>()-1,I2);
+	      auto dof_yy_s= indexing.index(J2,indexing.template dims<1>()-1,I2)*n_dof + indexing.index(J1,indexing.template dims<1>()-1,I1);
+
+	      auto dof_xx= indexing.index(indexing.template dims<0>()-1,I1,J1)*n_dof + indexing.index(indexing.template dims<0>()-1,I2,J2);
+	      auto dof_xx_s= indexing.index(indexing.template dims<0>()-1,I2,J2)*n_dof + indexing.index(indexing.template dims<0>()-1,I1,J1);
+
+
+	      eval(out(row+dof_z)) += eval(in2(i-1,row+dof_zz));
+	      eval(out(row+dof_z_s)) += eval(in2(i-1,row+dof_zz_s));
+	      eval(out(row+dof_y)) += eval(in2(j-1,row+dof_yy));
+	      eval(out(row+dof_y_s)) += eval(in2(j-1,row+dof_yy_s));
+	      eval(out(row+dof_x)) += eval(in2(k-1,row+dof_xx));
+	      eval(out(row+dof_x_s)) += eval(in2(k-1,row+dof_xx_s));
+	    }
+
+	// 3 (A,H+D+I)+(H+D+I,A)
+	J2=indexing.template dims<1>()-1;
+	for(short_t I1=1; I1<indexing.template dims<0>()-1; I1++)
+	  for(short_t J1=1; J1<indexing.template dims<1>()-1; J1++)
+	    for(short_t I2=0; I2<indexing.template dims<0>(); I2++)
+	    {
+	      auto dof_z= indexing.index(I1,J1,0)*n_dof + indexing.index(I2,J2,0);
+	      auto dof_z_s= indexing.index(I2,J2,0)*n_dof + indexing.index(I1,J1,0);
+
+	      auto dof_y= indexing.index(J1,0,I1)*n_dof + indexing.index(J2,0,I2);
+	      auto dof_y_s= indexing.index(J2,0,I2)*n_dof + indexing.index(J1,0,I1);
+
+	      auto dof_x= indexing.index(0,I1,J1)*n_dof + indexing.index(0,I2,J2);
+	      auto dof_x_s= indexing.index(0,I2,J2)*n_dof + indexing.index(0,I1,J1);
+
+
+	      auto dof_zz= indexing.index(I1,J1,indexing.template dims<2>()-1)*n_dof + indexing.index(I2,J2,indexing.template dims<2>()-1);
+	      auto dof_zz_s= indexing.index(I2,J2,indexing.template dims<2>()-1)*n_dof + indexing.index(I1,J1,indexing.template dims<2>()-1);
+
+	      auto dof_yy= indexing.index(J1,indexing.template dims<1>()-1,I1)*n_dof + indexing.index(J2,indexing.template dims<1>()-1,I2);
+	      auto dof_yy_s= indexing.index(J2,indexing.template dims<1>()-1,I2)*n_dof + indexing.index(J1,indexing.template dims<1>()-1,I1);
+
+	      auto dof_xx= indexing.index(indexing.template dims<0>()-1,I1,J1)*n_dof + indexing.index(indexing.template dims<0>()-1,I2,J2);
+	      auto dof_xx_s= indexing.index(indexing.template dims<0>()-1,I2,J2)*n_dof + indexing.index(indexing.template dims<0>()-1,I1,J1);
+
+	      eval(out(row+dof_z)) += eval(in2(i-1,row+dof_zz));
+	      eval(out(row+dof_z_s)) += eval(in2(i-1,row+dof_zz_s));
+	      eval(out(row+dof_y)) += eval(in2(j-1,row+dof_yy));
+	      eval(out(row+dof_y_s)) += eval(in2(j-1,row+dof_yy_s));
+	      eval(out(row+dof_x)) += eval(in2(k-1,row+dof_xx));
+	      eval(out(row+dof_x_s)) += eval(in2(k-1,row+dof_xx_s));
+	    }
+
+	// 4 (C,B+A+D+G+E+I)+(B+A+D+G+E+I,C)
+	short_t I1=0;
+	for(short_t J1=1; J1<indexing.template dims<1>()-1; J1++)
+	  for(short_t I2=1; I2<indexing.template dims<0>(); I2++)
+	    for(short_t J2=0; J2<indexing.template dims<1>(); J2++)
+	    {
+	      auto dof_z= indexing.index(I1,J1,0)*n_dof + indexing.index(I2,J2,0);
+	      auto dof_z_s= indexing.index(I2,J2,0)*n_dof + indexing.index(I1,J1,0);
+
+	      auto dof_y= indexing.index(J1,0,I1)*n_dof + indexing.index(J2,0,I2);
+	      auto dof_y_s= indexing.index(J2,0,I2)*n_dof + indexing.index(J1,0,I1);
+
+	      auto dof_x= indexing.index(0,I1,J1)*n_dof + indexing.index(0,I2,J2);
+	      auto dof_x_s= indexing.index(0,I2,J2)*n_dof + indexing.index(0,I1,J1);
+
+
+	      auto dof_zz= indexing.index(I1,J1,indexing.template dims<2>()-1)*n_dof + indexing.index(I2,J2,indexing.template dims<2>()-1);
+	      auto dof_zz_s= indexing.index(I2,J2,indexing.template dims<2>()-1)*n_dof + indexing.index(I1,J1,indexing.template dims<2>()-1);
+
+	      auto dof_yy= indexing.index(J1,indexing.template dims<1>()-1,I1)*n_dof + indexing.index(J2,indexing.template dims<1>()-1,I2);
+	      auto dof_yy_s= indexing.index(J2,indexing.template dims<1>()-1,I2)*n_dof + indexing.index(J1,indexing.template dims<1>()-1,I1);
+
+	      auto dof_xx= indexing.index(indexing.template dims<0>()-1,I1,J1)*n_dof + indexing.index(indexing.template dims<0>()-1,I2,J2);
+	      auto dof_xx_s= indexing.index(indexing.template dims<0>()-1,I2,J2)*n_dof + indexing.index(indexing.template dims<0>()-1,I1,J1);
+
+	      eval(out(row+dof_z)) += eval(in2(i-1,row+dof_zz));
+	      eval(out(row+dof_z_s)) += eval(in2(i-1,row+dof_zz_s));
+	      eval(out(row+dof_y)) += eval(in2(j-1,row+dof_yy));
+	      eval(out(row+dof_y_s)) += eval(in2(j-1,row+dof_yy_s));
+	      eval(out(row+dof_x)) += eval(in2(k-1,row+dof_xx));
+	      eval(out(row+dof_x_s)) += eval(in2(k-1,row+dof_xx_s));
+	    }
+
+	// 5 (B,H+D+I)+(H+D+I,B)
+	short_t J1=0;
+	J2=indexing.template dims<1>() - 1;
+	for(short_t I1=1; I1<indexing.template dims<0>()-1; I1++)
+	  for(short_t I2=0; I2<indexing.template dims<0>(); I2++)
+	  {
+	    auto dof_z= indexing.index(I1,J1,0)*n_dof + indexing.index(I2,J2,0);
+	    auto dof_z_s= indexing.index(I2,J2,0)*n_dof + indexing.index(I1,J1,0);
+
+	    auto dof_y= indexing.index(J1,0,I1)*n_dof + indexing.index(J2,0,I2);
+	    auto dof_y_s= indexing.index(J2,0,I2)*n_dof + indexing.index(J1,0,I1);
+
+	    auto dof_x= indexing.index(0,I1,J1)*n_dof + indexing.index(0,I2,J2);
+	    auto dof_x_s= indexing.index(0,I2,J2)*n_dof + indexing.index(0,I1,J1);
+
+
+	    auto dof_zz= indexing.index(I1,J1,indexing.template dims<2>()-1)*n_dof + indexing.index(I2,J2,indexing.template dims<2>()-1);
+	    auto dof_zz_s= indexing.index(I2,J2,indexing.template dims<2>()-1)*n_dof + indexing.index(I1,J1,indexing.template dims<2>()-1);
+
+	    auto dof_yy= indexing.index(J1,indexing.template dims<1>()-1,I1)*n_dof + indexing.index(J2,indexing.template dims<1>()-1,I2);
+	    auto dof_yy_s= indexing.index(J2,indexing.template dims<1>()-1,I2)*n_dof + indexing.index(J1,indexing.template dims<1>()-1,I1);
+
+	    auto dof_xx= indexing.index(indexing.template dims<0>()-1,I1,J1)*n_dof + indexing.index(indexing.template dims<0>()-1,I2,J2);
+	    auto dof_xx_s= indexing.index(indexing.template dims<0>()-1,I2,J2)*n_dof + indexing.index(indexing.template dims<0>()-1,I1,J1);
+
+	    eval(out(row+dof_z)) += eval(in2(i-1,row+dof_zz));
+	    eval(out(row+dof_z_s)) += eval(in2(i-1,row+dof_zz_s));
+	    eval(out(row+dof_y)) += eval(in2(j-1,row+dof_yy));
+	    eval(out(row+dof_y_s)) += eval(in2(j-1,row+dof_yy_s));
+	    eval(out(row+dof_x)) += eval(in2(k-1,row+dof_xx));
+	    eval(out(row+dof_x_s)) += eval(in2(k-1,row+dof_xx_s));
+	  }
+
+
+	// 6 (E,B+A+D)+(B+A+D,E)
+	I1=indexing.template dims<0>()-1;
+	  for(short_t J1=1; J1<indexing.template dims<1>()-1; J1++)
+	    for(short_t I2=1; I2<indexing.template dims<0>()-1; I2++)
+	      for(short_t J2=0; J2<indexing.template dims<1>(); J2++)
+	      {
+		auto dof_z= indexing.index(I1,J1,0)*n_dof + indexing.index(I2,J2,0);
+		auto dof_z_s= indexing.index(I2,J2,0)*n_dof + indexing.index(I1,J1,0);
+
+		auto dof_y= indexing.index(J1,0,I1)*n_dof + indexing.index(J2,0,I2);
+		auto dof_y_s= indexing.index(J2,0,I2)*n_dof + indexing.index(J1,0,I1);
+
+		auto dof_x= indexing.index(0,I1,J1)*n_dof + indexing.index(0,I2,J2);
+		auto dof_x_s= indexing.index(0,I2,J2)*n_dof + indexing.index(0,I1,J1);
+
+
+		auto dof_zz= indexing.index(I1,J1,indexing.template dims<2>()-1)*n_dof + indexing.index(I2,J2,indexing.template dims<2>()-1);
+		auto dof_zz_s= indexing.index(I2,J2,indexing.template dims<2>()-1)*n_dof + indexing.index(I1,J1,indexing.template dims<2>()-1);
+
+		auto dof_yy= indexing.index(J1,indexing.template dims<1>()-1,I1)*n_dof + indexing.index(J2,indexing.template dims<1>()-1,I2);
+		auto dof_yy_s= indexing.index(J2,indexing.template dims<1>()-1,I2)*n_dof + indexing.index(J1,indexing.template dims<1>()-1,I1);
+
+		auto dof_xx= indexing.index(indexing.template dims<0>()-1,I1,J1)*n_dof + indexing.index(indexing.template dims<0>()-1,I2,J2);
+		auto dof_xx_s= indexing.index(indexing.template dims<0>()-1,I2,J2)*n_dof + indexing.index(indexing.template dims<0>()-1,I1,J1);
+
+		eval(out(row+dof_z)) += eval(in2(i-1,row+dof_zz));
+		eval(out(row+dof_z_s)) += eval(in2(i-1,row+dof_zz_s));
+		eval(out(row+dof_y)) += eval(in2(j-1,row+dof_yy));
+		eval(out(row+dof_y_s)) += eval(in2(j-1,row+dof_yy_s));
+		eval(out(row+dof_x)) += eval(in2(k-1,row+dof_xx));
+		eval(out(row+dof_x_s)) += eval(in2(k-1,row+dof_xx_s));
+	      }
+
+
+
+      // 7 (F,D+I)+(D+I,F)
+      I1=0;
+      J1=0;
+      J2=indexing.template dims<1>() - 1;
+      for(short_t I2=1; I2<indexing.template dims<0>(); I2++)
+      {
+	auto dof_z= indexing.index(I1,J1,0)*n_dof + indexing.index(I2,J2,0);
+	auto dof_z_s= indexing.index(I2,J2,0)*n_dof + indexing.index(I1,J1,0);
+
+	auto dof_y= indexing.index(J1,0,I1)*n_dof + indexing.index(J2,0,I2);
+	auto dof_y_s= indexing.index(J2,0,I2)*n_dof + indexing.index(J1,0,I1);
+
+	auto dof_x= indexing.index(0,I1,J1)*n_dof + indexing.index(0,I2,J2);
+	auto dof_x_s= indexing.index(0,I2,J2)*n_dof + indexing.index(0,I1,J1);
+
+
+	auto dof_zz= indexing.index(I1,J1,indexing.template dims<2>()-1)*n_dof + indexing.index(I2,J2,indexing.template dims<2>()-1);
+	auto dof_zz_s= indexing.index(I2,J2,indexing.template dims<2>()-1)*n_dof + indexing.index(I1,J1,indexing.template dims<2>()-1);
+
+	auto dof_yy= indexing.index(J1,indexing.template dims<1>()-1,I1)*n_dof + indexing.index(J2,indexing.template dims<1>()-1,I2);
+	auto dof_yy_s= indexing.index(J2,indexing.template dims<1>()-1,I2)*n_dof + indexing.index(J1,indexing.template dims<1>()-1,I1);
+
+	auto dof_xx= indexing.index(indexing.template dims<0>()-1,I1,J1)*n_dof + indexing.index(indexing.template dims<0>()-1,I2,J2);
+	auto dof_xx_s= indexing.index(indexing.template dims<0>()-1,I2,J2)*n_dof + indexing.index(indexing.template dims<0>()-1,I1,J1);
+
+	eval(out(row+dof_z)) += eval(in2(i-1,row+dof_zz));
+	eval(out(row+dof_z_s)) += eval(in2(i-1,row+dof_zz_s));
+	eval(out(row+dof_y)) += eval(in2(j-1,row+dof_yy));
+	eval(out(row+dof_y_s)) += eval(in2(j-1,row+dof_yy_s));
+	eval(out(row+dof_x)) += eval(in2(k-1,row+dof_xx));
+	eval(out(row+dof_x_s)) += eval(in2(k-1,row+dof_xx_s));
+      }
+
+      // 8 (G,H+D)+(H+D,G)
+      I1=indexing.template dims<1>() - 1;
+      J1=0;
+      J2=indexing.template dims<1>() - 1;
+      for(short_t I2=0; I2<indexing.template dims<0>()-1; I2++)
+      {
+	auto dof_z= indexing.index(I1,J1,0)*n_dof + indexing.index(I2,J2,0);
+	auto dof_z_s= indexing.index(I2,J2,0)*n_dof + indexing.index(I1,J1,0);
+
+	auto dof_y= indexing.index(J1,0,I1)*n_dof + indexing.index(J2,0,I2);
+	auto dof_y_s= indexing.index(J2,0,I2)*n_dof + indexing.index(J1,0,I1);
+
+	auto dof_x= indexing.index(0,I1,J1)*n_dof + indexing.index(0,I2,J2);
+	auto dof_x_s= indexing.index(0,I2,J2)*n_dof + indexing.index(0,I1,J1);
+
+
+	auto dof_zz= indexing.index(I1,J1,indexing.template dims<2>()-1)*n_dof + indexing.index(I2,J2,indexing.template dims<2>()-1);
+	auto dof_zz_s= indexing.index(I2,J2,indexing.template dims<2>()-1)*n_dof + indexing.index(I1,J1,indexing.template dims<2>()-1);
+
+	auto dof_yy= indexing.index(J1,indexing.template dims<1>()-1,I1)*n_dof + indexing.index(J2,indexing.template dims<1>()-1,I2);
+	auto dof_yy_s= indexing.index(J2,indexing.template dims<1>()-1,I2)*n_dof + indexing.index(J1,indexing.template dims<1>()-1,I1);
+
+	auto dof_xx= indexing.index(indexing.template dims<0>()-1,I1,J1)*n_dof + indexing.index(indexing.template dims<0>()-1,I2,J2);
+	auto dof_xx_s= indexing.index(indexing.template dims<0>()-1,I2,J2)*n_dof + indexing.index(indexing.template dims<0>()-1,I1,J1);
+
+	eval(out(row+dof_z)) += eval(in2(i-1,row+dof_zz));
+	eval(out(row+dof_z_s)) += eval(in2(i-1,row+dof_zz_s));
+	eval(out(row+dof_y)) += eval(in2(j-1,row+dof_yy));
+	eval(out(row+dof_y_s)) += eval(in2(j-1,row+dof_yy_s));
+	eval(out(row+dof_x)) += eval(in2(k-1,row+dof_xx));
+	eval(out(row+dof_x_s)) += eval(in2(k-1,row+dof_xx_s));
+      }
+
+      // 9 (F,E)+(E,F)
+      I1=0;
+      J1=0;
+      short_t I2=indexing.template dims<0>()-1;
+      for(short_t J2=1; J2<indexing.template dims<1>()-1; J2++)
+      {
+	auto dof_z= indexing.index(I1,J1,0)*n_dof + indexing.index(I2,J2,0);
+	auto dof_z_s= indexing.index(I2,J2,0)*n_dof + indexing.index(I1,J1,0);
+
+	auto dof_y= indexing.index(J1,0,I1)*n_dof + indexing.index(J2,0,I2);
+	auto dof_y_s= indexing.index(J2,0,I2)*n_dof + indexing.index(J1,0,I1);
+
+	auto dof_x= indexing.index(0,I1,J1)*n_dof + indexing.index(0,I2,J2);
+	auto dof_x_s= indexing.index(0,I2,J2)*n_dof + indexing.index(0,I1,J1);
+
+
+	auto dof_zz= indexing.index(I1,J1,indexing.template dims<2>()-1)*n_dof + indexing.index(I2,J2,indexing.template dims<2>()-1);
+	auto dof_zz_s= indexing.index(I2,J2,indexing.template dims<2>()-1)*n_dof + indexing.index(I1,J1,indexing.template dims<2>()-1);
+
+	auto dof_yy= indexing.index(J1,indexing.template dims<1>()-1,I1)*n_dof + indexing.index(J2,indexing.template dims<1>()-1,I2);
+	auto dof_yy_s= indexing.index(J2,indexing.template dims<1>()-1,I2)*n_dof + indexing.index(J1,indexing.template dims<1>()-1,I1);
+
+	auto dof_xx= indexing.index(indexing.template dims<0>()-1,I1,J1)*n_dof + indexing.index(indexing.template dims<0>()-1,I2,J2);
+	auto dof_xx_s= indexing.index(indexing.template dims<0>()-1,I2,J2)*n_dof + indexing.index(indexing.template dims<0>()-1,I1,J1);
+
+	eval(out(row+dof_z)) += eval(in2(i-1,row+dof_zz));
+	eval(out(row+dof_z_s)) += eval(in2(i-1,row+dof_zz_s));
+	eval(out(row+dof_y)) += eval(in2(j-1,row+dof_yy));
+	eval(out(row+dof_y_s)) += eval(in2(j-1,row+dof_yy_s));
+	eval(out(row+dof_x)) += eval(in2(k-1,row+dof_xx));
+	eval(out(row+dof_x_s)) += eval(in2(k-1,row+dof_xx_s));
+      }
+
+      // 10 (H,E)+(E,H)
+      I1=0;
+      J1=indexing.template dims<1>()-1;
+      I2=indexing.template dims<0>()-1;
+      for(short_t J2=1; J2<indexing.template dims<1>()-1; J2++)
+      {
+	auto dof_z= indexing.index(I1,J1,0)*n_dof + indexing.index(I2,J2,0);
+	auto dof_z_s= indexing.index(I2,J2,0)*n_dof + indexing.index(I1,J1,0);
+
+	auto dof_y= indexing.index(J1,0,I1)*n_dof + indexing.index(J2,0,I2);
+	auto dof_y_s= indexing.index(J2,0,I2)*n_dof + indexing.index(J1,0,I1);
+
+	auto dof_x= indexing.index(0,I1,J1)*n_dof + indexing.index(0,I2,J2);
+	auto dof_x_s= indexing.index(0,I2,J2)*n_dof + indexing.index(0,I1,J1);
+
+
+	auto dof_zz= indexing.index(I1,J1,indexing.template dims<2>()-1)*n_dof + indexing.index(I2,J2,indexing.template dims<2>()-1);
+	auto dof_zz_s= indexing.index(I2,J2,indexing.template dims<2>()-1)*n_dof + indexing.index(I1,J1,indexing.template dims<2>()-1);
+
+	auto dof_yy= indexing.index(J1,indexing.template dims<1>()-1,I1)*n_dof + indexing.index(J2,indexing.template dims<1>()-1,I2);
+	auto dof_yy_s= indexing.index(J2,indexing.template dims<1>()-1,I2)*n_dof + indexing.index(J1,indexing.template dims<1>()-1,I1);
+
+	auto dof_xx= indexing.index(indexing.template dims<0>()-1,I1,J1)*n_dof + indexing.index(indexing.template dims<0>()-1,I2,J2);
+	auto dof_xx_s= indexing.index(indexing.template dims<0>()-1,I2,J2)*n_dof + indexing.index(indexing.template dims<0>()-1,I1,J1);
+
+	eval(out(row+dof_z)) += eval(in2(i-1,row+dof_zz));
+	eval(out(row+dof_z_s)) += eval(in2(i-1,row+dof_zz_s));
+	eval(out(row+dof_y)) += eval(in2(j-1,row+dof_yy));
+	eval(out(row+dof_y_s)) += eval(in2(j-1,row+dof_yy_s));
+	eval(out(row+dof_x)) += eval(in2(k-1,row+dof_xx));
+	eval(out(row+dof_x_s)) += eval(in2(k-1,row+dof_xx_s));
+      }
+
+      // 11 (F,B+G)+(B+G,F)
+      I1=0;
+      J1=0;
+      J2=0;
+      for(short_t I2=1; I2<indexing.template dims<0>(); I2++)
+      {
+	auto dof_z= indexing.index(I1,J1,0)*n_dof + indexing.index(I2,J2,0);
+	auto dof_z_s= indexing.index(I2,J2,0)*n_dof + indexing.index(I1,J1,0);
+
+	auto dof_y= indexing.index(J1,0,I1)*n_dof + indexing.index(J2,0,I2);
+	auto dof_y_s= indexing.index(J2,0,I2)*n_dof + indexing.index(J1,0,I1);
+
+	auto dof_x= indexing.index(0,I1,J1)*n_dof + indexing.index(0,I2,J2);
+	auto dof_x_s= indexing.index(0,I2,J2)*n_dof + indexing.index(0,I1,J1);
+
+
+	auto dof_zz= indexing.index(I1,J1,indexing.template dims<2>()-1)*n_dof + indexing.index(I2,J2,indexing.template dims<2>()-1);
+	auto dof_zz_s= indexing.index(I2,J2,indexing.template dims<2>()-1)*n_dof + indexing.index(I1,J1,indexing.template dims<2>()-1);
+
+	auto dof_zy= indexing.index(I1,indexing.template dims<1>()-1,0)*n_dof + indexing.index(I2,indexing.template dims<1>()-1,0);
+	auto dof_zy_s= indexing.index(I2,indexing.template dims<1>()-1,0)*n_dof + indexing.index(I1,indexing.template dims<1>()-1,0);
+
+	auto dof_zyz= indexing.index(I1,indexing.template dims<1>()-1,indexing.template dims<2>()-1)*n_dof + indexing.index(I2,indexing.template dims<1>()-1,indexing.template dims<2>()-1);
+	auto dof_zyz_s= indexing.index(I2,indexing.template dims<1>()-1,indexing.template dims<2>()-1)*n_dof + indexing.index(I1,indexing.template dims<1>()-1,indexing.template dims<2>()-1);
+
+
+	auto dof_yy= indexing.index(J1,indexing.template dims<1>()-1,I1)*n_dof + indexing.index(J2,indexing.template dims<1>()-1,I2);
+	auto dof_yy_s= indexing.index(J2,indexing.template dims<1>()-1,I2)*n_dof + indexing.index(J1,indexing.template dims<1>()-1,I1);
+
+	auto dof_yx= indexing.index(indexing.template dims<0>()-1,0,I1)*n_dof + indexing.index(indexing.template dims<0>()-1,0,I2);
+	auto dof_yx_s= indexing.index(indexing.template dims<0>()-1,0,I2)*n_dof + indexing.index(indexing.template dims<0>()-1,0,I1);
+
+	auto dof_yxy= indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,I1)*n_dof + indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,I2);
+	auto dof_yxy_s= indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,I2)*n_dof + indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,I1);
+
+	auto dof_xx= indexing.index(indexing.template dims<0>()-1,I1,J1)*n_dof + indexing.index(indexing.template dims<0>()-1,I2,J2);
+	auto dof_xx_s= indexing.index(indexing.template dims<0>()-1,I2,J2)*n_dof + indexing.index(indexing.template dims<0>()-1,I1,J1);
+
+	auto dof_xz= indexing.index(0,I1,indexing.template dims<2>()-1)*n_dof + indexing.index(0,I2,indexing.template dims<2>()-1);
+	auto dof_xz_s= indexing.index(0,I2,indexing.template dims<2>()-1)*n_dof + indexing.index(0,I1,indexing.template dims<2>()-1);
+
+	auto dof_xzx= indexing.index(indexing.template dims<0>()-1,I1,indexing.template dims<2>()-1)*n_dof + indexing.index(indexing.template dims<0>()-1,I2,indexing.template dims<2>()-1);
+	auto dof_xzx_s= indexing.index(indexing.template dims<0>()-1,I2,indexing.template dims<2>()-1)*n_dof + indexing.index(indexing.template dims<0>()-1,I1,indexing.template dims<2>()-1);
+
+	eval(out(row+dof_z)) += eval(in2(i-1,row+dof_zz)) + eval(in2(j-1,row+dof_zy)) + eval(in2(i-1,j-1,row+dof_zyz));
+	eval(out(row+dof_z_s)) += eval(in2(i-1,row+dof_zz_s)) + eval(in2(j-1,row+dof_zy_s)) + eval(in2(i-1,j-1,row+dof_zyz_s));
+	eval(out(row+dof_y)) += eval(in2(j-1,row+dof_yy)) + eval(in2(k-1,row+dof_yx)) + eval(in2(j-1,k-1,row+dof_yxy));
+	eval(out(row+dof_y_s)) += eval(in2(j-1,row+dof_yy_s)) + eval(in2(k-1,row+dof_yx_s)) + eval(in2(j-1,k-1,row+dof_yxy_s));
+	eval(out(row+dof_x)) += eval(in2(k-1,row+dof_xx)) + eval(in2(i-1,row+dof_xz)) + eval(in2(i-1,k-1,row+dof_xzx));
+	eval(out(row+dof_x_s)) += eval(in2(k-1,row+dof_xx_s)) + eval(in2(i-1,row+dof_xz_s)) + eval(in2(i-1,k-1,row+dof_xzx_s));
+      }
+
+      // 12 (G,B)+(B,G)
+      I1=indexing.template dims<0>()-1;
+      J1=0;
+      J2=0;
+      for(short_t I2=1; I2<indexing.template dims<0>()-1; I2++)
+      {
+	auto dof_z= indexing.index(I1,J1,0)*n_dof + indexing.index(I2,J2,0);
+	auto dof_z_s= indexing.index(I2,J2,0)*n_dof + indexing.index(I1,J1,0);
+
+	auto dof_y= indexing.index(J1,0,I1)*n_dof + indexing.index(J2,0,I2);
+	auto dof_y_s= indexing.index(J2,0,I2)*n_dof + indexing.index(J1,0,I1);
+
+	auto dof_x= indexing.index(0,I1,J1)*n_dof + indexing.index(0,I2,J2);
+	auto dof_x_s= indexing.index(0,I2,J2)*n_dof + indexing.index(0,I1,J1);
+
+
+	auto dof_zz= indexing.index(I1,J1,indexing.template dims<2>()-1)*n_dof + indexing.index(I2,J2,indexing.template dims<2>()-1);
+	auto dof_zz_s= indexing.index(I2,J2,indexing.template dims<2>()-1)*n_dof + indexing.index(I1,J1,indexing.template dims<2>()-1);
+
+	auto dof_zy= indexing.index(I1,indexing.template dims<1>()-1,0)*n_dof + indexing.index(I2,indexing.template dims<1>()-1,0);
+	auto dof_zy_s= indexing.index(I2,indexing.template dims<1>()-1,0)*n_dof + indexing.index(I1,indexing.template dims<1>()-1,0);
+
+	auto dof_zyz= indexing.index(I1,indexing.template dims<1>()-1,indexing.template dims<2>()-1)*n_dof + indexing.index(I2,indexing.template dims<1>()-1,indexing.template dims<2>()-1);
+	auto dof_zyz_s= indexing.index(I2,indexing.template dims<1>()-1,indexing.template dims<2>()-1)*n_dof + indexing.index(I1,indexing.template dims<1>()-1,indexing.template dims<2>()-1);
+
+
+	auto dof_yy= indexing.index(J1,indexing.template dims<1>()-1,I1)*n_dof + indexing.index(J2,indexing.template dims<1>()-1,I2);
+	auto dof_yy_s= indexing.index(J2,indexing.template dims<1>()-1,I2)*n_dof + indexing.index(J1,indexing.template dims<1>()-1,I1);
+
+	auto dof_yx= indexing.index(indexing.template dims<0>()-1,0,I1)*n_dof + indexing.index(indexing.template dims<0>()-1,0,I2);
+	auto dof_yx_s= indexing.index(indexing.template dims<0>()-1,0,I2)*n_dof + indexing.index(indexing.template dims<0>()-1,0,I1);
+
+	auto dof_yxy= indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,I1)*n_dof + indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,I2);
+	auto dof_yxy_s= indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,I2)*n_dof + indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,I1);
+
+	auto dof_xx= indexing.index(indexing.template dims<0>()-1,I1,J1)*n_dof + indexing.index(indexing.template dims<0>()-1,I2,J2);
+	auto dof_xx_s= indexing.index(indexing.template dims<0>()-1,I2,J2)*n_dof + indexing.index(indexing.template dims<0>()-1,I1,J1);
+
+	auto dof_xz= indexing.index(0,I1,indexing.template dims<2>()-1)*n_dof + indexing.index(0,I2,indexing.template dims<2>()-1);
+	auto dof_xz_s= indexing.index(0,I2,indexing.template dims<2>()-1)*n_dof + indexing.index(0,I1,indexing.template dims<2>()-1);
+
+	auto dof_xzx= indexing.index(indexing.template dims<0>()-1,I1,indexing.template dims<2>()-1)*n_dof + indexing.index(indexing.template dims<0>()-1,I2,indexing.template dims<2>()-1);
+	auto dof_xzx_s= indexing.index(indexing.template dims<0>()-1,I2,indexing.template dims<2>()-1)*n_dof + indexing.index(indexing.template dims<0>()-1,I1,indexing.template dims<2>()-1);
+
+	eval(out(row+dof_z)) += eval(in2(i-1,row+dof_zz)) + eval(in2(j-1,row+dof_zy)) + eval(in2(i-1,j-1,row+dof_zyz));
+	eval(out(row+dof_z_s)) += eval(in2(i-1,row+dof_zz_s)) + eval(in2(j-1,row+dof_zy_s)) + eval(in2(i-1,j-1,row+dof_zyz_s));
+	eval(out(row+dof_y)) += eval(in2(j-1,row+dof_yy)) + eval(in2(k-1,row+dof_yx)) + eval(in2(j-1,k-1,row+dof_yxy));
+	eval(out(row+dof_y_s)) += eval(in2(j-1,row+dof_yy_s)) + eval(in2(k-1,row+dof_yx_s)) + eval(in2(j-1,k-1,row+dof_yxy_s));
+	eval(out(row+dof_x)) += eval(in2(k-1,row+dof_xx)) + eval(in2(i-1,row+dof_xz)) + eval(in2(i-1,k-1,row+dof_xzx));
+	eval(out(row+dof_x_s)) += eval(in2(k-1,row+dof_xx_s)) + eval(in2(i-1,row+dof_xz_s)) + eval(in2(i-1,k-1,row+dof_xzx_s));
+
+      }
+
+      // 13 (B,B)
+      J1=0;
+      J2=0;
+      for(short_t I1=1; I1<indexing.template dims<0>()-1; I1++)
+	for(short_t I2=1; I2<indexing.template dims<0>()-1; I2++)
+	{
+
+	  auto dof_z= indexing.index(I1,J1,0)*n_dof + indexing.index(I2,J2,0);
+
+	  auto dof_y= indexing.index(J1,0,I1)*n_dof + indexing.index(J2,0,I2);
+
+	  auto dof_x= indexing.index(0,I1,J1)*n_dof + indexing.index(0,I2,J2);
+
+	  auto dof_zz= indexing.index(I1,J1,indexing.template dims<2>()-1)*n_dof + indexing.index(I2,J2,indexing.template dims<2>()-1);
+
+	  auto dof_zy= indexing.index(I1,indexing.template dims<1>()-1,0)*n_dof + indexing.index(I2,indexing.template dims<1>()-1,0);
+
+	  auto dof_zyz= indexing.index(I1,indexing.template dims<1>()-1,indexing.template dims<2>()-1)*n_dof + indexing.index(I2,indexing.template dims<1>()-1,indexing.template dims<2>()-1);
+
+	  auto dof_yy= indexing.index(J1,indexing.template dims<1>()-1,I1)*n_dof + indexing.index(J2,indexing.template dims<1>()-1,I2);
+
+	  auto dof_yx= indexing.index(indexing.template dims<0>()-1,0,I1)*n_dof + indexing.index(indexing.template dims<0>()-1,0,I2);
+
+	  auto dof_yxy= indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,I1)*n_dof + indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,I2);
+
+	  auto dof_xx= indexing.index(indexing.template dims<0>()-1,I1,J1)*n_dof + indexing.index(indexing.template dims<0>()-1,I2,J2);
+
+	  auto dof_xz= indexing.index(0,I1,indexing.template dims<2>()-1)*n_dof + indexing.index(0,I2,indexing.template dims<2>()-1);
+
+	  auto dof_xzx= indexing.index(indexing.template dims<0>()-1,I1,indexing.template dims<2>()-1)*n_dof + indexing.index(indexing.template dims<0>()-1,I2,indexing.template dims<2>()-1);
+
+	  eval(out(row+dof_z)) += eval(in2(i-1,row+dof_zz)) + eval(in2(j-1,row+dof_zy)) + eval(in2(i-1,j-1,row+dof_zyz));
+	  eval(out(row+dof_y)) += eval(in2(j-1,row+dof_yy)) + eval(in2(k-1,row+dof_yx)) + eval(in2(j-1,k-1,row+dof_yxy));
+	  eval(out(row+dof_x)) += eval(in2(k-1,row+dof_xx)) + eval(in2(i-1,row+dof_xz)) + eval(in2(i-1,k-1,row+dof_xzx));
+	}
+
+
+	// 14 (F,F)
+	auto dof_001= indexing.index(0,0,indexing.template dims<2>()-1)*n_dof + indexing.index(0,0,indexing.template dims<2>()-1);
+	auto dof_010= indexing.index(0,indexing.template dims<1>()-1,0)*n_dof + indexing.index(0,indexing.template dims<1>()-1,0);
+	auto dof_011= indexing.index(0,indexing.template dims<1>()-1,indexing.template dims<2>()-1)*n_dof + indexing.index(0,indexing.template dims<1>()-1,indexing.template dims<2>()-1);
+	auto dof_100= indexing.index(indexing.template dims<0>()-1,0,0)*n_dof + indexing.index(indexing.template dims<0>()-1,0,0);
+	auto dof_101= indexing.index(indexing.template dims<0>()-1,0,indexing.template dims<2>()-1)*n_dof + indexing.index(indexing.template dims<0>()-1,0,indexing.template dims<2>()-1);
+	auto dof_110= indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,0)*n_dof + indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,0);
+	auto dof_111= indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,indexing.template dims<2>()-1)*n_dof + indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,indexing.template dims<2>()-1);
+
+	eval(out(row+0)) += eval(in2(i-1,row+dof_001)) +
+						eval(in2(j-1,row+dof_010)) +
+						eval(in2(i-1,j-1,row+dof_011)) +
+						eval(in2(k-1,row+dof_100)) +
+						eval(in2(i-1,k-1,row+dof_101)) +
+						eval(in2(j-1,k-1,row+dof_110)) +
+						eval(in2(i-1,j-1,k-1,row+dof_111));
+        }
+    };
     // [assemble]
 
     /* assigns a field to a constant value**/
