@@ -705,21 +705,19 @@ namespace gdl{
       // TODO: extend to non isotropic dof distribution case
       // TODO: implement index pair "indexing" object
 
-      using matrix_in_storage_info_t=gridtools::storage_info< __COUNTER__, gridtools::layout_tt<3> >;
-
-      using in2=accessor<0, enumtype::in, extent<> , 4>;
-      using out=accessor<1, enumtype::inout, extent<> , 4> ;
+      using in2=gt::accessor<0, enumtype::in, gt::extent<> , 4>;
+      using out=gt::accessor<1, enumtype::inout, gt::extent<> , 4> ;
       using arg_list=boost::mpl::vector<in2, out> ;
 
       template <typename Evaluation>
       GT_FUNCTION
       static void Do(Evaluation const & eval, x_interval) {
-	dimension<1>::Index k;
-	dimension<2>::Index j;
-	dimension<3>::Index i;
-	dimension<4>::Index row;
+        gt::dimension<1>::Index k;
+        gt::dimension<2>::Index j;
+        gt::dimension<3>::Index i;
+        gt::dimension<4>::Index row;
 
-	constexpr meta_storage_base<__COUNTER__,layout_map<2,1,0>,false> indexing{N_DOF0, N_DOF1, N_DOF2};
+	constexpr gt::meta_storage_base<__COUNTER__,gt::layout_map<2,1,0>,false> indexing{N_DOF0, N_DOF1, N_DOF2};
 	constexpr uint_t n_dof{indexing.template dims<0>()*indexing.template dims<1>()*indexing.template dims<2>()};
 
 	// 1 (A,A)
