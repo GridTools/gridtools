@@ -84,6 +84,24 @@ namespace gridtools {
         return condition<Mss1, Mss2, Condition>(cond);
     }
 
+    // template < typename FirstCondition, typename ... Conditions, typename First, typename ... Cases>
+    // condition<First, switch_<Conditions ..., Cases ... >, FirstCondition >
+    // switch_(Condition const& cond, Case&& ...){
+    //     GRIDTOOLS_STATIC_ASSERT(is_conditional<Condition>::value,
+    //                             "you have to pass to gridtools::if_ an instance of type \"conditional\" as first argument.");
+    //     return condition<Mss1, Mss2, Condition>(cond);
+    // }
+
+
+    // template < typename Case, typename ... Mss>
+    // case<Mss1, Mss2, Case>
+    // case_(Case const& cond, Mss&& ...){
+    //     GRIDTOOLS_STATIC_ASSERT(is_conditional<Condition>::value,
+    //                             "you have to pass to gridtools::if_ an instance of type \"conditional\" as first argument.");
+    //     return condition<Mss1, Mss2, Condition>(cond);
+    // }
+
+
     template <typename ... EsfDescr >
     independent_esf< boost::mpl::vector<EsfDescr ...> >
     make_independent(EsfDescr&& ... ) {

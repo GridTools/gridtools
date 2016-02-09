@@ -41,6 +41,9 @@
 
 namespace gridtools {
 
+    template<typename T>
+    struct if_condition_extract_index_t;
+
         namespace _impl{
 
         /** @brief Functor used to instantiate the local domains to be passed to each
@@ -417,6 +420,19 @@ namespace gridtools {
 
     };
 
+    template<typename Vec>
+    struct extract_mss_domains{
+        typedef Vec type;
+    };
+
+    template<typename Vec1, typename Vec2, typename Cond>
+    struct extract_mss_domains<condition<Vec1, Vec2, Cond> >{
+
+        GRIDTOOLS_STATIC_ASSERT((boost::is_same<Vec1, Vec2>::type::value), "The case in which 2 different mss are enabled/disabled using conditionals is supported only when they work with the same placeholders. Here you are trying to switch between MSS for which the type (or the order) of the placeholders is not the same");
+        //consider the first one
+        typedef Vec1 type;
+    };
+
     template<typename Array1, typename Array2, typename Cond>
     struct compute_extent_sizes<condition<Array1, Array2, Cond> >{
 
@@ -498,7 +514,7 @@ namespace gridtools {
             >::type mss_local_domains_t;
 
         /** creates a fusion vector of local domains*/
-        typedef typename boost::fusion::result_of::as_vector<typename mss_local_domains_t::first>::type mss_local_domain_list_t;
+        typedef typename boost::fusion::result_of::as_vector<typename extract_mss_domains<mss_local_domains_t>::type >::type mss_local_domain_list_t;
 
         struct printtypes {
             template <typename T>
@@ -656,7 +672,11 @@ namespace gridtools {
             // GRIDTOOLS_STATIC_ASSERT(
             //     (boost::mpl::size<typename mss_components_array_t::first>::value == boost::mpl::size<typename mss_local_domains_t::first>::value),
             //     "Internal Error");
-            typedef typename boost::fusion::result_of::has_key<conditionals_set_t, conditional<mss_components_array_t::index_t::index_value> >::type is_present_t;
+            typedef typename boost::fusion::result_of::has_key<conditionals_set_t,
+                                                               typename if_condition_extract_index_t<
+                                                                   mss_components_array_t
+                                                                   >::type
+                                                               >::type is_present_t;
 
             m_meter.start();
             // conditionals_set_t::fuck();

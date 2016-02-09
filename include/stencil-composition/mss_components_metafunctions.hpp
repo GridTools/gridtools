@@ -66,6 +66,7 @@ struct split_mss_into_independent_esfs
 >
 struct build_mss_components_array
 {
+
     GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssDescriptorArray, is_mss_descriptor>::value), "Internal Error: wrong type");
 
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename MssDescriptorArray::elements>::value ==
@@ -107,6 +108,9 @@ struct build_mss_components_array
         unroll_extent_sizes<ExtentSizes>
     >::type extent_sizes_unrolled_t;
 
+    GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename mss_array_t::elements>::value ==
+        boost::mpl::size<extent_sizes_unrolled_t>::value
+                                ), "Internal Error: wrong size");
 
     typedef meta_array<
         typename boost::mpl::fold<
@@ -128,7 +132,8 @@ struct build_mss_components_array
         >::type,
         boost::mpl::quote1<is_mss_components>
     > type;
-};
+
+    };
 
 
 /**

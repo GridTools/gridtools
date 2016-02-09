@@ -24,13 +24,16 @@ namespace gridtools {
     struct condition;
 
     template<typename Vector, typename ... Mss>
-    struct meta_array_vector{
+    struct meta_array_vector;
+
+    template<typename Vector>
+    struct meta_array_vector<Vector>{
         typedef Vector type;
     };
 
     template<typename Vector, typename First, typename ... Mss>
     struct meta_array_vector<Vector, First, Mss...>{
-        typedef typename boost::mpl::push_front<Vector, First>::type type;
+        typedef typename boost::mpl::push_front<typename meta_array_vector<Vector, Mss ...>::type , First>::type type;
     };
 
     template<typename Vector, typename Mss1, typename Mss2, typename Cond, typename ... Mss>

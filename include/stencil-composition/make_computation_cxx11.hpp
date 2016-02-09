@@ -1,32 +1,18 @@
 #pragma once
 
-#include <memory>
-
-#include "stencil-composition/backend.hpp"
-#include "stencil-composition/esf.hpp"
-#include "stencil-composition/mss_metafunctions.hpp"
-#ifndef __CUDACC__
-#include <boost/make_shared.hpp>
-#endif
-#include "intermediate.hpp"
-#include "../common/meta_array.hpp"
-#include "caches/define_caches.hpp"
-
-#ifndef NDEBUG
-
-#ifndef __CUDACC__
-#define POSITIONAL_WHEN_DEBUGGING true
-#ifndef SUPPRESS_MESSAGES
-#pragma message (">>\n>> In debug mode each computation is positional,\n>> so the loop indices can be queried from within\n>> the operator functions")
-#endif
-#else
-#define POSITIONAL_WHEN_DEBUGGING false
-#endif
-#else
-#define POSITIONAL_WHEN_DEBUGGING false
-#endif
 
 namespace gridtools {
+
+    template<typename T>
+    struct if_condition_extract_index_t{
+        typedef T type;
+    };
+
+
+    template<typename T1, typename T2, typename Cond>
+    struct if_condition_extract_index_t<condition<T1, T2, Cond> > {
+        typedef Cond type;
+    };
 
     template <typename Conditional>
     struct fill_conditionals_set;
@@ -106,7 +92,7 @@ namespace gridtools {
 
     template<typename ConditionalsSet, typename First, typename ... Mss>
     static void fill_conditionals(ConditionalsSet& set_, First const& first_, Mss const& ... args_){
-        fill_conditionals_set<typename boost::mpl::has_key<ConditionalsSet, typename First::index_t>::type >::apply(set_, first_, args_ ...);
+        fill_conditionals_set<typename boost::mpl::has_key<ConditionalsSet, typename if_condition_extract_index_t<First>::type>::type >::apply(set_, first_, args_ ...);
         fill_conditionals(set_, args_ ...);
     }
 
