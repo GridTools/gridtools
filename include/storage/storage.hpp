@@ -251,6 +251,10 @@ namespace gridtools{
     }
 
 #ifdef CXX11_ENABLED
+
+    template <typename T>
+    struct is_storage_list;
+
     template<typename T>
     struct is_storage : boost::mpl::or_<
         is_data_field<T>

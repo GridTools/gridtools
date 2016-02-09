@@ -28,6 +28,9 @@
 #include "common/generic_metafunctions/static_if.hpp"
 #include "common/generic_metafunctions/is_variadic_pack_of.hpp"
 #include "common/generic_metafunctions/arg_comparator.hpp"
+#ifdef CXX11_ENABLED
+#include "common/generic_metafunctions/is_fusion_vector.hpp"
+#endif
 #include "domain_type_impl.hpp"
 #include "../storage/metadata_set.hpp"
 #include "stencil-composition/arg_metafunctions.hpp"
@@ -67,6 +70,8 @@ namespace gridtools {
     template <typename Placeholders>
     struct domain_type : public clonable_to_gpu<domain_type<Placeholders> > {
 
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<Placeholders>::type::value>0),
+                                "The domain_type must be constructed with at least one storage placeholder. If you don't use any storage you are probably trying to do something which is not a stencil operation, aren't you?");
         typedef typename boost::mpl::sort<Placeholders, arg_comparator >::type placeholders_t;
 
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<placeholders_t, is_arg>::type::value), "wrong type:\
@@ -223,7 +228,10 @@ namespace gridtools {
             : m_storage_pointers()
             , m_metadata_set()
         {
-            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair<StorageArgs>::value ...), "wrong type");
+            // GRIDTOOLS_STATIC_ASSERT((boost::mpl::if_c<(sizeof ... (StorageArgs) > 0)
+            //                          , (boost::mpl::bool<is_variadic_pack_of(is_arg_storage_pair<StorageArgs>::value ...) >)
+            //                          , (boost::mpl::true_)>::type::value)
+            //                         , "wrong type");
             assign_pointers(m_metadata_set, args...);
         }
 #endif
@@ -273,6 +281,11 @@ namespace gridtools {
             : m_storage_pointers()
             , m_metadata_set()
         {
+
+#ifdef CXX11_ENABLED
+            GRIDTOOLS_STATIC_ASSERT(is_fusion_vector<RealStorage>::value, "the argument passed to the domain type constructor must be a fusion vector, or a pair (placeholder = storage), see the domain_type constructors");
+#endif
+
             typedef boost::fusion::filter_view
                 <arg_list,
                  is_not_tmp_storage<boost::mpl::_1> > view_type;

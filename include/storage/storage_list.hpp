@@ -97,5 +97,13 @@ namespace gridtools{
             : super(other)
             {}
     };
+
+
+    template <typename T>
+    struct is_storage_list : boost::mpl::false_{};
+
+    template <typename ... T>
+    struct is_storage_list<storage_list<T...> > : boost::mpl::true_{};
+
 }//namespace gridtools
 #endif

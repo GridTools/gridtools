@@ -19,6 +19,33 @@
 
 namespace gridtools {
 
+
+    template <typename Mss1, typename Mss2, typename Cond>
+    struct condition;
+
+    template<typename Vector, typename ... Mss>
+    struct meta_array_vector{
+        typedef Vector type;
+    };
+
+    template<typename Vector, typename First, typename ... Mss>
+    struct meta_array_vector<Vector, First, Mss...>{
+        typedef typename boost::mpl::push_front<Vector, First>::type type;
+    };
+
+    template<typename Vector, typename Mss1, typename Mss2, typename Cond, typename ... Mss>
+    struct meta_array_vector<Vector, condition<Mss1, Mss2, Cond>, Mss ... > {
+        typedef condition<
+            typename meta_array_vector<
+                typename boost::mpl::push_front<Vector
+                                                , Mss1>::type>::type
+            , typename meta_array_vector<
+                  typename  boost::mpl::push_front<Vector
+                                                   , Mss2>::type>::type
+            , Cond
+            > type;
+    };
+
 /**
  * @brief wrapper class around a sequence of types. The goal of the class is to identify that a type is an array of types that
  * fulfil a predicate
@@ -43,6 +70,42 @@ struct meta_array{
 
     typedef sequence_t elements;
 };
+
+    //first order
+    template<typename Sequence1, typename Sequence2, typename Cond, typename TPred>
+    struct meta_array<condition<Sequence1, Sequence2, Cond>, TPred >{
+        typedef Sequence1 sequence1_t;
+        typedef Sequence2 sequence2_t;
+        BOOST_STATIC_ASSERT((boost::mpl::is_sequence<sequence1_t>::value));
+        BOOST_STATIC_ASSERT((boost::mpl::is_sequence<sequence2_t>::value));
+
+        //check that predicate returns true for all elements
+        typedef typename boost::mpl::fold<
+            sequence1_t,
+            boost::mpl::true_,
+            boost::mpl::and_<
+                boost::mpl::_1,
+                typename TPred::template apply<boost::mpl::_2>
+                >
+            >::type is_array_of_pred1;
+
+        // BOOST_STATIC_ASSERT((is_array_of_pred1::value));
+
+        //check that predicate returns true for all elements
+        typedef typename boost::mpl::fold<
+            sequence2_t,
+            boost::mpl::true_,
+            boost::mpl::and_<
+                boost::mpl::_1,
+                typename TPred::template apply<boost::mpl::_2>
+        >
+            >::type is_array_of_pred2;
+
+        // BOOST_STATIC_ASSERT((is_array_of_pred2::value));
+
+        typedef condition<sequence1_t, sequence2_t, Cond> elements;
+    };
+
 
 //type traits for meta_array
 template<typename T> struct is_meta_array : boost::mpl::false_{};
