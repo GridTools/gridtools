@@ -726,4 +726,7 @@ If you are not using generic accessors then you are using an unsupported storage
         >::type type;
     };
 
+    template<typename IterateDomainImpl>
+    struct iterate_domain_backend_id;
+
 }//namespace gridtools
