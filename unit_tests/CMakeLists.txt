@@ -48,16 +48,23 @@ endif()
 gridtools_add_test(test.tests ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/tests")
 
 if (CUDA_FOUND)
-    cuda_add_executable( tests_gpu
-      tests.cu
+    set(GPU_SOURCES tests.cu
       test_domain.cu
       test_cuda_storage.cu
       test_hybrid_pointer.cu
       gpu_clone.cu
       cloningstuff.cu
-      boundary_conditions_test.cu
-      test_global_accessor.cu
+    )
+    if(STRUCTURED_GRIDS)
+      set(GPU_SOURCES ${GPU_SOURCES}
+        boundary_conditions_test.cu
+        test_global_accessor.cu
       )
+    endif(STRUCTURED_GRIDS)
+
+    cuda_add_executable( tests_gpu
+      ${GPU_SOURCES}
+    )
 
     gridtools_add_test(tests.tests_gpu ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/tests_gpu")
 
