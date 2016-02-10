@@ -392,17 +392,6 @@ public:
         m_grid_position[Coordinate] = initial_pos;
     }
 
-    void set_data_pointer(data_pointer_array_t* RESTRICT data_pointer)
-    {
-        static_cast<IterateDomainImpl*>(this)->template set_data_pointer_impl(data_pointer);
-    }
-
-    void set_strides_pointer(strides_cached_t* RESTRICT strides)
-    {
-        static_cast<IterateDomainImpl*>(this)->template set_strides_pointer_impl(strides);
-    }
-
-
     /**@brief method for incrementing by 1 the index when moving forward along the given direction
        \tparam Coordinate dimension being incremented
        \tparam Execution the policy for the increment (e.g. forward/backward)
