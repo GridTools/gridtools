@@ -14,6 +14,6 @@ namespace gridtools{
     template<typename Accessor> struct is_accessor_readonly : boost::mpl::false_{};
 
     template <int ID, typename LocationType, typename Radius>
-    struct is_accessor_readonly<ro_accessor<ID, LocationType, Radius> > : boost::mpl::true_{};
+    struct is_accessor_readonly<accessor<ID, enumtype::in, LocationType, Radius> > : boost::mpl::true_{};
 
 } //namespace gridtools
