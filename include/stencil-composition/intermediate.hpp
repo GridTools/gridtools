@@ -384,12 +384,24 @@ namespace gridtools {
     struct run_conditionally<boost::mpl::true_, MssComponentsArray, Backend>
     {
         template<typename ConditionalSet, typename Grid, typename MssLocalDomainList>
+        static void apply(ConditionalSet const& /**/, Grid const& grid_, MssLocalDomainList const& mss_local_domain_list_){
+                Backend::template run<MssComponentsArray>( grid_, mss_local_domain_list_ );
+        }
+    };
+
+
+    template <typename Array1, typename Array2, typename Cond, typename Backend>
+    struct run_conditionally<boost::mpl::true_, condition<Array1, Array2, Cond>, Backend>
+    {
+        template<typename ConditionalSet, typename Grid, typename MssLocalDomainList>
         static void apply(ConditionalSet const& conditionals_set_, Grid const& grid_, MssLocalDomainList const& mss_local_domain_list_){
-            std::cout<<"true? "<<boost::fusion::at_key< typename MssComponentsArray::index_t >(conditionals_set_).value()<<std::endl;
-            if(boost::fusion::at_key< typename MssComponentsArray::index_t >(conditionals_set_).value())
-                Backend::template run<typename MssComponentsArray::first>( grid_, mss_local_domain_list_ );
+            // std::cout<<"true? "<<boost::fusion::at_key< Cond >(conditionals_set_).value()<<std::endl;
+            if(boost::fusion::at_key< Cond >(conditionals_set_).value())
+            {
+                run_conditionally<boost::mpl::true_, Array1, Backend>::apply( conditionals_set_,  grid_, mss_local_domain_list_ );
+            }
             else
-                Backend::template run<typename MssComponentsArray::second>( grid_, mss_local_domain_list_ );
+                run_conditionally<boost::mpl::true_, Array2, Backend>::apply( conditionals_set_, grid_, mss_local_domain_list_ );
         }
     };
 
@@ -428,9 +440,10 @@ namespace gridtools {
     template<typename Vec1, typename Vec2, typename Cond>
     struct extract_mss_domains<condition<Vec1, Vec2, Cond> >{
 
-        GRIDTOOLS_STATIC_ASSERT((boost::is_same<Vec1, Vec2>::type::value), "The case in which 2 different mss are enabled/disabled using conditionals is supported only when they work with the same placeholders. Here you are trying to switch between MSS for which the type (or the order) of the placeholders is not the same");
+        // TODO: how to do the check described below?
+        // GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename extract_mss_domains<Vec1>::type, typename extract_mss_domains<Vec2>::type>::type::value), "The case in which 2 different mss are enabled/disabled using conditionals is supported only when they work with the same placeholders. Here you are trying to switch between MSS for which the type (or the order) of the placeholders is not the same");
         //consider the first one
-        typedef Vec1 type;
+        typedef typename extract_mss_domains<Vec1>::type type;
     };
 
     template<typename Array1, typename Array2, typename Cond>

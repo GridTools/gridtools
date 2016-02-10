@@ -46,22 +46,31 @@ namespace gridtools {
 
     template <typename Mss1, typename Mss2, typename Tag>
     struct condition{
+
+        typedef Mss1 first_t;
+        typedef Mss2 second_t;
+        typedef Tag index_t;
+
     private:
         bool m_value;
+        first_t m_first;
+        second_t m_second;
     public:
 
         constexpr condition(){};
 
         template <uint_t ID>
-        constexpr condition(conditional<ID> const& cond) : m_value(cond.value()) {
+        constexpr condition(conditional<ID> const& cond, first_t const& first_, second_t const& second_)
+            : m_value(cond.value())
+            ,m_first(first_)
+            ,m_second(second_)
+        {
             GRIDTOOLS_STATIC_ASSERT((Tag::index_t::value==ID), "misformed input");
         }
 
         constexpr bool value() const {return m_value;}
-
-        typedef Mss1 first;
-        typedef Mss2 second;
-        typedef Tag index_t;
+        constexpr second_t const& second() const {return m_second;}
+        constexpr first_t const& first() const {return m_first;}
     };
 
     template<typename T>
@@ -78,10 +87,10 @@ namespace gridtools {
 
     template <typename Mss1, typename Mss2, typename Condition>
     condition<Mss1, Mss2, Condition>
-    if_(Condition const& cond, Mss1&&, Mss2&&){
+    if_(Condition const& cond, Mss1 const& mss1_, Mss2 const& mss2_){
         GRIDTOOLS_STATIC_ASSERT(is_conditional<Condition>::value,
                                 "you have to pass to gridtools::if_ an instance of type \"conditional\" as first argument.");
-        return condition<Mss1, Mss2, Condition>(cond);
+        return condition<Mss1, Mss2, Condition>(cond, mss1_, mss2_);
     }
 
     // template < typename FirstCondition, typename ... Conditions, typename First, typename ... Cases>

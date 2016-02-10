@@ -20,13 +20,18 @@ namespace gridtools {
     template <>
     struct fill_conditionals_set<boost::mpl::true_>{
         /**@brief recursively assigning all the conditional in the corresponding fusion vector*/
-        template<typename ConditionalsSet, typename First, typename ... Mss>
-        static void apply(ConditionalsSet& set_, First const& first_, Mss const& ... args_){
+        template<typename ConditionalsSet, typename First, typename Second, typename ... Mss>
+        static void apply(ConditionalsSet& set_, First const& first_, Second second_, Mss const& ... args_){
 
             // if(is_condition<First>::value)
             boost::fusion::at_key<First>(set_)=conditional<First::index_t::value>(first_.value());
 
-            // fill_conditionals_set<boost::mpl::has_key<ConditionalSet, Second> >::apply(set_, second_, args_ ...);
+            /*binary subtree traversal*/
+            fill_conditionals_set< typename is_condition<typename First::first_t>::type >::apply(set_, first_.first());
+            fill_conditionals_set< typename is_condition<typename First::second_t>::type >::apply(set_, first_.second());
+
+            /*go to other branch*/
+            fill_conditionals_set<boost::mpl::has_key<ConditionalsSet, typename Second::index_t> >::apply(set_, second_, args_ ...);
         }
 
         /**recursion anchor*/
@@ -35,6 +40,10 @@ namespace gridtools {
 
             //if(is_conditional<First>::value)
             boost::fusion::at_key<typename First::index_t>(set_) = conditional<First::index_t::index_value>(first_.value());
+
+            /*binary subtree traversal*/
+            fill_conditionals_set< typename is_condition<typename First::first_t>::type >::apply(set_, first_.first());
+            fill_conditionals_set< typename is_condition<typename First::second_t>::type >::apply(set_, first_.second());
 
         }
     };
@@ -96,6 +105,24 @@ namespace gridtools {
         fill_conditionals(set_, args_ ...);
     }
 
+
+    /**reaching a leaf, while recursively constructing the conditinals_set*/
+    template<typename Vec, typename Mss>
+    struct construct_conditionals_set{
+        typedef Vec type;
+
+    };
+
+    /**recursively traverse the binary tree to construct the conditionals_set*/
+    template<typename Vec, typename Mss1, typename Mss2, typename Cond>
+    struct construct_conditionals_set<Vec, condition<Mss1, Mss2, Cond> >{
+        typedef typename construct_conditionals_set<
+            typename construct_conditionals_set<
+                typename boost::mpl::push_back<Vec, Cond >::type, Mss1>::type
+            , Mss2>::type type;
+    };
+
+
     template <
         typename Backend,
         typename Domain,
@@ -107,13 +134,15 @@ namespace gridtools {
         const Grid& grid,
         Mss ... args_
         ) {
+
+        /*TODO traverse the subtree*/
         typedef typename boost::mpl::fold< boost::mpl::vector<Mss ...>
                                            , boost::mpl::vector0<>
                                            , boost::mpl::if_<
                                                is_condition<boost::mpl::_2>
-                                                 , boost::mpl::push_back<
+                                                 , construct_conditionals_set<
                                                      boost::mpl::_1
-                                                       , condition_to_conditional<boost::mpl::_2> >
+                                                       , boost::mpl::_2 >
                                                  , boost::mpl::_1>
                                            >::type conditionals_set_mpl_t;
 

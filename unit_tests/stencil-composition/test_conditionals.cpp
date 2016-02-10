@@ -44,7 +44,7 @@ namespace test_conditionals{
     int test(){
 
         conditional<0> cond(3>5);
-        conditional<1> cond2(4>5);
+        conditional<1> cond2(4<5);
 
         grid<axis> grid_({0,0,0,1,2},{0,0,0,1,2});
         grid_.value_list[0] = 0;
@@ -66,30 +66,17 @@ namespace test_conditionals{
                 ,
                 make_mss(
                     enumtype::execute<enumtype::forward>()
-                    , make_esf<functor1>( p_dummy() ))
-                , make_mss(
-                    enumtype::execute<enumtype::forward>()
-                    , make_esf<functor1>( p_dummy() ))
+                    , make_esf<functor2>( p_dummy() ))
+                , if_( cond2
+                       , make_mss(
+                           enumtype::execute<enumtype::forward>()
+                           , make_esf<functor1>( p_dummy() ))
+                       , make_mss(
+                           enumtype::execute<enumtype::forward>()
+                           , make_esf<functor2>( p_dummy() ))
+                    )
                 )
             );
-
-        // auto comp_ = make_computation < backend<enumtype::Host, enumtype::Naive> > (
-        //     domain_, grid_,
-        //     if_(cond
-        //         ,
-        //         make_mss(
-        //             enumtype::execute<enumtype::forward>()
-        //             , make_esf<functor1>( p_dummy() ))
-        //         , if_( cond2
-        //                , make_mss(
-        //                    enumtype::execute<enumtype::forward>()
-        //                    , make_esf<functor2>( p_dummy() ))
-        //                , make_mss(
-        //                    enumtype::execute<enumtype::forward>()
-        //                    , make_esf<functor1>( p_dummy() ))
-        //             )
-        //         )
-        //     );
 
         comp_->ready();
         comp_->steady();
