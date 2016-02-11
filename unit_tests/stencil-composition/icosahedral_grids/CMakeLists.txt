@@ -18,3 +18,10 @@ gridtools_add_test(tests.stencil_icos_grids ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/
 set_target_properties(icgrid_stencil_tests PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
 target_link_libraries(icgrid_stencil_tests ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
 
+if(USE_GPU)
+    set(CUDA_SOURCES test_stencil_on_cells.cu)
+    cuda_add_executable(icgrid_stencil_tests_gpu ${CUDA_SOURCES})
+    target_link_libraries(icgrid_stencil_tests_gpu ${exe_LIBS})
+
+    gridtools_add_test(tests.icgrid_stencil_tests_gpu ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/icgrid_stencil_tests_gpu")
+endif(USE_GPU)
