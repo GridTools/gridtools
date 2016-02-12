@@ -78,7 +78,7 @@ struct meta_array{
     struct meta_array<condition<Sequence1, Sequence2, Cond>, TPred >{
         typedef Sequence1 sequence1_t;
         typedef Sequence2 sequence2_t;
-        typedef condition<typename meta_array<sequence1_t>::type, typename meta_array<sequence2_t>::type, Cond> elements;
+        typedef condition<sequence1_t, sequence2_t, Cond> elements;
     };
 
 

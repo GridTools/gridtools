@@ -692,8 +692,6 @@ namespace gridtools {
                                                                >::type is_present_t;
 
             m_meter.start();
-            // conditionals_set_t::fuck();
-            // mss_components_array_t::fuck();
             // if( is_present_t::value )
             // {
             run_conditionally<is_present_t, mss_components_array_t, Backend>::apply(m_conditionals_set, m_grid, m_mss_local_domain_list);
@@ -706,8 +704,19 @@ namespace gridtools {
         virtual std::string print_meter() { return m_meter.to_string();}
 
         mss_local_domain_list_t const& mss_local_domain_list() const {return m_mss_local_domain_list; }
-
-
     };
+
+
+    template<uint_t Id>
+    void reset_conditional(conditional<Id>& cond_, conditional<Id> const& new_cond_){
+        cond_.value()=new_cond_.value();
+    }
+
+    template<uint_t Id, typename T>
+    void reset_conditional(switch_variable<Id, T>& cond_, switch_variable<Id, T> const& new_cond_){
+        for (int_t i=0; i<cond_.num_conditions(); ++i)
+            cond_.conditions()[i]= (new_cond_.value() == i);
+    }
+
 
 } // namespace gridtools

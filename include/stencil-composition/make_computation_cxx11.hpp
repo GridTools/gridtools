@@ -39,7 +39,7 @@ namespace gridtools {
         static void apply(ConditionalsSet& set_, First const& first_){
 
             //if(is_conditional<First>::value)
-            boost::fusion::at_key<typename First::index_t>(set_) = conditional<First::index_t::index_value>(first_.value());
+            boost::fusion::at_key<typename First::index_t>(set_) = first_.value();
 
             /*binary subtree traversal*/
             fill_conditionals_set< typename is_condition<typename First::first_t>::type >::apply(set_, first_.first());
@@ -135,7 +135,7 @@ namespace gridtools {
         Mss ... args_
         ) {
 
-        /*TODO traverse the subtree*/
+        /* traversing also the subtrees of the control flow*/
         typedef typename boost::mpl::fold< boost::mpl::vector<Mss ...>
                                            , boost::mpl::vector0<>
                                            , boost::mpl::if_<
