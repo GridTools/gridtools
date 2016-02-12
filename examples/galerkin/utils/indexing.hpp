@@ -17,10 +17,14 @@ namespace gdl {
     template <uint_t Size0,uint_t Size1,uint_t Size2 = 0>
     struct pair_indexing
     {
+        // TODO: generic interfaces required including 2D case
         constexpr inline uint_t index(uint_t i_i1, uint_t i_j1, uint_t i_k1, uint_t i_i2, uint_t i_j2, uint_t i_k2)
         {
             return m_single_indexing.index(i_i1,i_j1,i_k1)*s_total_size + m_single_indexing.index(i_i2,i_j2,i_k2);
         }
+
+        template <uint_t DIR>
+        constexpr inline uint_t dims(void) {  return m_single_indexing.template dims<DIR>(); }
 
         constexpr static uint_t s_total_size{Size0*Size1*Size2};
 
