@@ -41,6 +41,30 @@ namespace test_conditionals{
         }
     };
 
+    struct functor3{
+
+        typedef accessor<0> p_dummy;
+        typedef boost::mpl::vector1<p_dummy> arg_list;
+
+        template <typename Evaluation>
+        GT_FUNCTION
+        static void Do(Evaluation const & eval, x_interval) {
+            printf("3\n");
+        }
+    };
+
+    struct functor4{
+
+        typedef accessor<0> p_dummy;
+        typedef boost::mpl::vector1<p_dummy> arg_list;
+
+        template <typename Evaluation>
+        GT_FUNCTION
+        static void Do(Evaluation const & eval, x_interval) {
+            printf("4\n");
+        }
+    };
+
     int test(){
 
         switch_variable<0,int> cond(3);
@@ -61,27 +85,34 @@ namespace test_conditionals{
         domain_type< arg_list > domain_(boost::fusion::make_vector(&dummy));
 
         auto comp_ = make_computation < backend<enumtype::Host, enumtype::Naive> > (
-            domain_, grid_,
-            switch_(cond
-                    ,
+            domain_, grid_
+            , make_mss(
+                enumtype::execute<enumtype::forward>()
+                , make_esf<functor3>( p_dummy() ))
+            , switch_(cond
+                      ,
                     case_(0
                           , make_mss(
                               enumtype::execute<enumtype::forward>()
                               , make_esf<functor2>( p_dummy() )) )
-                    , case_(1
-                          , make_mss(
-                           enumtype::execute<enumtype::forward>()
-                           , make_esf<functor1>( p_dummy() )))
-                    , default_(
-                        make_mss(
-                            enumtype::execute<enumtype::forward>()
-                            , make_esf<functor2>( p_dummy() )))
+                      , case_(1
+                              , make_mss(
+                                  enumtype::execute<enumtype::forward>()
+                                  , make_esf<functor1>( p_dummy() )))
+                      , default_(
+                          make_mss(
+                              enumtype::execute<enumtype::forward>()
+                              , make_esf<functor2>( p_dummy() )))
                 )
+            , make_mss(
+                enumtype::execute<enumtype::forward>()
+                , make_esf<functor4>( p_dummy() ))
             );
 
         comp_->ready();
         comp_->steady();
         comp_->run();
+        std::cout<<"\n\n\n";
         reset_conditional(cond, new_cond);
         comp_->run();
         comp_->finalize();

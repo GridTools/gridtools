@@ -385,7 +385,7 @@ namespace gridtools {
     {
         template<typename ConditionalSet, typename Grid, typename MssLocalDomainList>
         static void apply(ConditionalSet const& /**/, Grid const& grid_, MssLocalDomainList const& mss_local_domain_list_){
-                Backend::template run<MssComponentsArray>( grid_, mss_local_domain_list_ );
+            Backend::template run<MssComponentsArray>( grid_, mss_local_domain_list_ );
         }
     };
 
@@ -411,6 +411,7 @@ namespace gridtools {
     {
         template<typename ConditionalSet, typename Grid, typename MssLocalDomainList>
         static void apply(ConditionalSet const& , Grid const& grid_, MssLocalDomainList const& mss_local_domain_list_){
+            MssComponentsArray::fuck();
 
             Backend::template run<MssComponentsArray>( grid_, mss_local_domain_list_ );
         }
@@ -685,6 +686,9 @@ namespace gridtools {
             // GRIDTOOLS_STATIC_ASSERT(
             //     (boost::mpl::size<typename mss_components_array_t::first>::value == boost::mpl::size<typename mss_local_domains_t::first>::value),
             //     "Internal Error");
+
+            //typedef allowing compile-time dispatch: we separate the path when the first
+            //multi stage stencil is a conditional
             typedef typename boost::fusion::result_of::has_key<conditionals_set_t,
                                                                typename if_condition_extract_index_t<
                                                                    mss_components_array_t
@@ -692,12 +696,7 @@ namespace gridtools {
                                                                >::type is_present_t;
 
             m_meter.start();
-            // if( is_present_t::value )
-            // {
             run_conditionally<is_present_t, mss_components_array_t, Backend>::apply(m_conditionals_set, m_grid, m_mss_local_domain_list);
-            // }
-            // else
-            //     Backend::template run<mss_components_array_t>( m_grid, m_mss_local_domain_list );
             m_meter.pause();
         }
 
@@ -713,9 +712,9 @@ namespace gridtools {
     }
 
     template<uint_t Id, typename T>
-    void reset_conditional(switch_variable<Id, T>& cond_, switch_variable<Id, T> const& new_cond_){
+    void reset_conditional( switch_variable<Id, T>& cond_, switch_variable<Id, T> const& new_cond_){
         for (int_t i=0; i<cond_.num_conditions(); ++i)
-            cond_.conditions()[i]= (new_cond_.value() == i);
+            cond_.conditions()[i]= (new_cond_.value() == cond_.cases()[i]);
     }
 
 

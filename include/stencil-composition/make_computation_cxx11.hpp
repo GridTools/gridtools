@@ -17,6 +17,8 @@ namespace gridtools {
     template <typename Conditional>
     struct fill_conditionals_set;
 
+
+    /**@brief state machine with 2 states, determined by the template argument*/
     template <>
     struct fill_conditionals_set<boost::mpl::true_>{
         /**@brief recursively assigning all the conditional in the corresponding fusion vector*/
@@ -24,14 +26,14 @@ namespace gridtools {
         static void apply(ConditionalsSet& set_, First const& first_, Second second_, Mss const& ... args_){
 
             // if(is_condition<First>::value)
-            boost::fusion::at_key<First>(set_)=conditional<First::index_t::value>(first_.value());
+            boost::fusion::at_key<typename First::index_t>(set_)=conditional<First::index_t::index_value>(first_.value());
 
             /*binary subtree traversal*/
             fill_conditionals_set< typename is_condition<typename First::first_t>::type >::apply(set_, first_.first());
             fill_conditionals_set< typename is_condition<typename First::second_t>::type >::apply(set_, first_.second());
 
             /*go to other branch*/
-            fill_conditionals_set<boost::mpl::has_key<ConditionalsSet, typename Second::index_t> >::apply(set_, second_, args_ ...);
+            fill_conditionals_set< typename is_condition<Second>::type >::apply(set_, second_, args_ ...);
         }
 
         /**recursion anchor*/

@@ -33,7 +33,7 @@ namespace gridtools {
 
     template<typename Vector, typename First, typename ... Mss>
     struct meta_array_vector<Vector, First, Mss...>{
-        typedef typename meta_array_vector<typename boost::mpl::push_front<Vector , First>::type, Mss ...>::type type;
+        typedef typename meta_array_vector<typename boost::mpl::push_back<Vector , First>::type, Mss ...>::type type;
     };
 
     template<typename Vector, typename Mss1, typename Mss2, typename Cond, typename ... Mss>
