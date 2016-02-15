@@ -271,6 +271,10 @@ struct iterate_domain {
         typedef typename ::gridtools::accessor_return_type<Accessor, iterate_domain_arguments_t>::type type;
     };
 
+    typedef typename compute_readonly_args_indices<
+        typename iterate_domain_arguments_t::esf_sequence_t
+    >::type readonly_args_indices_t;
+
 private:
     GRIDTOOLS_STATIC_ASSERT((N_META_STORAGES <= grid_topology_t::n_locations::value),"We can not have more meta storages"
                             "than location types. Data fields for other grids are not yet supported");
