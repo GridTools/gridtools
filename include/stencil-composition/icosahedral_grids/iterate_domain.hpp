@@ -535,7 +535,7 @@ public:
                       ValueType,
                       LocationTypeT,
                       Reduction,
-                      accessor<I,enumtype::in, L,radius<R>>> onneighbors) const {
+                      accessor<I,enumtype::in, L,extent<R>>> onneighbors) const {
         auto current_position = m_grid_position;
 
         const auto neighbors = grid_topology_t::neighbors_indices_3(current_position

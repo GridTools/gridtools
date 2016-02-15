@@ -16,12 +16,12 @@ namespace cs_test{
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
     struct test_on_cells_functor {
-        typedef in_accessor<0, icosahedral_topology_t::cells, radius<1> > in;
+        typedef in_accessor<0, icosahedral_topology_t::cells, extent<1> > in;
         typedef inout_accessor<1, icosahedral_topology_t::cells> out;
-        typedef in_accessor<2, icosahedral_topology_t::cells, radius<1> > ipos;
-        typedef in_accessor<3, icosahedral_topology_t::cells, radius<1> > cpos;
-        typedef in_accessor<4, icosahedral_topology_t::cells, radius<1> > jpos;
-        typedef in_accessor<5, icosahedral_topology_t::cells, radius<1> > kpos;
+        typedef in_accessor<2, icosahedral_topology_t::cells, extent<1> > ipos;
+        typedef in_accessor<3, icosahedral_topology_t::cells, extent<1> > cpos;
+        typedef in_accessor<4, icosahedral_topology_t::cells, extent<1> > jpos;
+        typedef in_accessor<5, icosahedral_topology_t::cells, extent<1> > kpos;
         typedef boost::mpl::vector6<in, out, ipos, cpos, jpos, kpos> arg_list;
 
         template <typename Evaluation>

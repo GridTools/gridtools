@@ -27,7 +27,7 @@ namespace make_computation_test{
     using icosahedral_topology_t = gridtools::icosahedral_topology<backend_t>;
 
     struct test_functor {
-        using in = in_accessor<0, icosahedral_topology_t::cells, radius<1> >;
+        using in = in_accessor<0, icosahedral_topology_t::cells, extent<1> >;
         using arg_list = boost::mpl::vector1<in>;
 
         template <typename Evaluation>
