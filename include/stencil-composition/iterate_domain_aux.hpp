@@ -366,27 +366,30 @@ If you are not using generic accessors then you are using an unsupported storage
      * @tparam StridesCached strides cached type
      * @tparam StorageSequence sequence of storages
      */
-    template<uint_t Coordinate, typename Strides, typename MetaStorageSequence>
+    template<uint_t Coordinate, typename Strides, typename MetaStorageSequence, typename ArrayIndex>
     struct initialize_index_functor {
     private:
         GRIDTOOLS_STATIC_ASSERT((is_strides_cached<Strides>::value), "internal error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MetaStorageSequence, is_pointer>::value),
                                 "internal error: wrong type");
-
+        GRIDTOOLS_STATIC_ASSERT((is_array_of<ArrayIndex, int>::value), "internal error: wrong type");
 
         Strides& RESTRICT m_strides;
         MetaStorageSequence const & RESTRICT m_storages;
         const int_t m_initial_pos;
         const uint_t m_block;
-        int_t* RESTRICT m_index_array;
+        ArrayIndex& RESTRICT m_index_array;
         initialize_index_functor();
     public:
         GT_FUNCTION
-        initialize_index_functor(initialize_index_functor const& other) : m_strides(other.m_strides), m_storages(other.m_storages), m_initial_pos(other.m_initial_pos), m_block(other.m_block), m_index_array(other.m_index_array){}
+        initialize_index_functor(initialize_index_functor const& other) :
+            m_strides(other.m_strides), m_storages(other.m_storages),
+            m_initial_pos(other.m_initial_pos), m_block(other.m_block),
+            m_index_array(other.m_index_array){}
 
         GT_FUNCTION
-        initialize_index_functor(Strides& RESTRICT strides, MetaStorageSequence const & RESTRICT storages, const int_t initial_pos,
-            const uint_t block, int_t* RESTRICT index_array) :
+        initialize_index_functor(Strides& RESTRICT strides, MetaStorageSequence const & RESTRICT storages,
+            const int_t initial_pos, const uint_t block, ArrayIndex& RESTRICT index_array) :
             m_strides(strides), m_storages(storages), m_initial_pos(initial_pos), m_block(block),
             m_index_array(index_array) {}
 
@@ -397,7 +400,6 @@ If you are not using generic accessors then you are using an unsupported storage
             typedef typename boost::mpl::second<Pair>::type id_t;
             GRIDTOOLS_STATIC_ASSERT((id_t::value < boost::fusion::result_of::size<MetaStorageSequence>::value),
                                     "Accessing an index out of bound in fusion tuple");
-            assert(m_index_array);
 
             boost::fusion::at<id_t>(m_storages)->template initialize<Coordinate>(
                 m_initial_pos, m_block, &m_index_array[id_t::value], m_strides.template get<id_t::value>());

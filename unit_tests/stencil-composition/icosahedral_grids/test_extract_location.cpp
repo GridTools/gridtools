@@ -14,7 +14,7 @@ namespace el_test{
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
     struct test_functor {
-        typedef ro_accessor<0, icosahedral_topology_t::cells, radius<1> > in;
+        typedef in_accessor<0, icosahedral_topology_t::cells, radius<1> > in;
         typedef boost::mpl::vector<in> arg_list;
 
         template <typename Evaluation>
