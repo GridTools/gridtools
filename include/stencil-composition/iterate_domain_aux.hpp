@@ -175,16 +175,18 @@ namespace gridtools{
        @tparam StrategyType the type of strategy
        @tparam DataPointerArray gridtools array of data pointers
        @tparam Storage any of the storage type handled by the iterate domain
+       @tparam PEBlockSize the processing elements block size
        To clarify the meaning of the two template indices, supposing that we have a 'rectangular' vector field, NxM, where N is the constant number of
        snapshots per storage, while M is the number of storages. Then 'Number' would be an index between 0 and N, while Offset would have the form n*M, where
        0<n<N is the index of the previous storage.
     */
-    template<uint_t Offset, typename BackendType, typename DataPointerArray, typename StoragePtr>
+    template<uint_t Offset, typename BackendType, typename DataPointerArray, typename StoragePtr, typename PEBlockSize>
     struct assign_raw_data_functor{
         GRIDTOOLS_STATIC_ASSERT((is_array<DataPointerArray>::value),
                                 "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_pointer<StoragePtr>::value),
                                 "You are using an unsupported storage type ");
+        GRIDTOOLS_STATIC_ASSERT((is_block_size<PEBlockSize>::value), "Error: wrong type");
         typedef typename StoragePtr::value_type storage_type;
 #ifdef PEDANTIC
         GRIDTOOLS_STATIC_ASSERT((is_any_iterate_domain_storage<storage_type>::value),
@@ -209,40 +211,30 @@ If you are not using generic accessors then you are using an unsupported storage
         GT_FUNCTION
         void operator()(ID const&) const {
             assert(m_storage.get());
-            //compute the processing element in charge of doing the copy (i.e. the core in a backend with multiple cores)
-            typedef typename boost::mpl::modulus<ID, boost::mpl::int_<enumtype::vector_width> >::type pe_id_t;
             //provide the implementation that performs the assignment, depending on the type of storage we have
-            impl<ID, pe_id_t, storage_type>();
+            impl<ID, storage_type>();
         }
 
     private:
 
         assign_raw_data_functor();
 
-
-        template<typename ID, typename PE_ID>
-        GT_FUNCTION
-        void impl() const
-        {
-            impl<ID, PE_ID, storage_type>();
-        }
-
         // implementation of the assignment of the data pointer in case the storage is a temporary storage
-        template<typename ID, typename PE_ID, typename Storage_ >
+        template<typename ID, typename Storage_ >
         GT_FUNCTION
         void impl(typename boost::enable_if_c<is_any_storage<Storage_ >::type::value>::type* t=0) const
         {
             //TODO Add assert for m_storage->template access_value<ID>()
-            BackendType::template once_per_block<PE_ID::value>::assign(
+            BackendType::template once_per_block<ID::value, PEBlockSize>::assign(
                 m_data_pointer_array[Offset+ID::value], m_storage->template access_value<ID>()+m_offset);
         }
 
-        template<typename ID, typename PE_ID, typename Storage_>
+        template<typename ID, typename Storage_>
         GT_FUNCTION
         void impl(typename boost::enable_if_c<boost::mpl::not_<typename is_any_storage<Storage_ >::type>::value>::type* t=0) const
         {
             //TODO Add assert for m_storage->template access_value<ID>()
-            BackendType::template once_per_block<PE_ID::value>::assign(
+            BackendType::template once_per_block<ID::value, PEBlockSize>::assign(
                 m_data_pointer_array[Offset+ID::value], m_storage->template access_value<ID>());
         }
 
@@ -300,7 +292,7 @@ If you are not using generic accessors then you are using an unsupported storage
         increment_index_functor();
 
         MetaStorageSequence const& m_storages;
-        int_t const m_increment;
+        const int_t m_increment;
         ArrayIndex& RESTRICT m_index_array;
         StridesCached &  RESTRICT m_strides_cached;
     };
@@ -378,10 +370,9 @@ If you are not using generic accessors then you are using an unsupported storage
     struct initialize_index_functor {
     private:
         GRIDTOOLS_STATIC_ASSERT((is_strides_cached<Strides>::value), "internal error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MetaStorageSequence, is_pointer>::value),
+                                "internal error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_array_of<ArrayIndex, int>::value), "internal error: wrong type");
-        // GRIDTOOLS_STATIC_ASSERT((is_sequence_of<StorageSequence, is_any_iterate_domain_storage_pointer>::value),
-        //                         "internal error: wrong type");
-
 
         Strides& RESTRICT m_strides;
         MetaStorageSequence const & RESTRICT m_storages;
@@ -425,14 +416,17 @@ If you are not using generic accessors then you are using an unsupported storage
      * @tparam BackendType the type of backend
      * @tparam DataPointerArray gridtools array of data pointers
      * @tparam StorageSequence sequence of any of the storage types handled by the iterate domain
+     * @tparam PEBlockSize the processing elements block size
      * */
-    template<typename BackendType, typename DataPointerArray, typename StorageSequence, typename MetaStorageSequence, typename MetaDataMap>
+    template<typename BackendType, typename DataPointerArray, typename StorageSequence,
+             typename MetaStorageSequence, typename MetaDataMap, typename PEBlockSize>
     struct assign_storage_functor{
 
         GRIDTOOLS_STATIC_ASSERT((is_array<DataPointerArray>::value), "internal error: wrong type");
 
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<StorageSequence, is_pointer>::value),
                                 "You are using an unsupported storage type ");
+        GRIDTOOLS_STATIC_ASSERT((is_block_size<PEBlockSize>::value), "Error: wrong type");
 #ifdef PEDANTIC
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<StorageSequence, is_any_iterate_domain_storage_pointer>::value),
                                 "If you are using generic accessors disable the pedantic mode. \n If you are not using generic accessors then you are using an unsupported storage type ");
@@ -481,8 +475,6 @@ If you are not using generic accessors then you are using an unsupported storage
             pointer<const typename storage_type::meta_data_t> const metadata_ = boost::fusion::at
                 < metadata_index_t >(m_meta_storages);
 
-
-
             //if the following fails, the ID is larger than the number of storage types
             GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size<StorageSequence>::value,
                                     "the ID is larger than the number of storage types");
@@ -492,7 +484,8 @@ If you are not using generic accessors then you are using an unsupported storage
                     total_storages<StorageSequence, ID::value>::value,
                     BackendType,
                     DataPointerArray,
-                    storage_ptr_type
+                    storage_ptr_type,
+                    PEBlockSize
                 >(m_data_pointer_array, boost::fusion::at<ID>(m_storages), metadata_->fields_offset(m_EU_id_i, m_EU_id_j))
             );
         }
@@ -516,10 +509,11 @@ If you are not using generic accessors then you are using an unsupported storage
 
             boost::mpl::for_each< typename reversed_range<short_t, 0, storage_type::field_dimensions >::type > (
                 assign_raw_data_functor<
-                total_storages<StorageSequence, ID::value>::value,
-                BackendType,
-                DataPointerArray,
-                storage_ptr_type
+                    total_storages<StorageSequence, ID::value>::value,
+                    BackendType,
+                    DataPointerArray,
+                    storage_ptr_type,
+                    PEBlockSize
                 >(m_data_pointer_array, boost::fusion::at<ID>(m_storages), 0u/* hardcoded offset */)
                 );
         }
@@ -531,9 +525,10 @@ If you are not using generic accessors then you are using an unsupported storage
 
        @tparam BackendType the type of backend
     */
-    template<typename BackendType>
+    template<typename BackendType, typename PEBlockSize>
     struct assign_strides_inner_functor
     {
+        GRIDTOOLS_STATIC_ASSERT((is_block_size<PEBlockSize>::value), "Error: wrong type");
     private:
         //while the strides are uint_t type in the storage metadata,
         // we stored them as int in the strides cached object in order to force vectorization
@@ -551,8 +546,7 @@ If you are not using generic accessors then you are using an unsupported storage
         void operator()(ID const&) const {
             assert(m_left);
             assert(m_right);
-            const uint_t pe_id=(ID::value)%enumtype::vector_width;
-            BackendType:: template once_per_block<pe_id>::assign(m_left[ID::value],m_right[ID::value]);
+            BackendType:: template once_per_block<ID::value, PEBlockSize>::assign(m_left[ID::value],m_right[ID::value]);
         }
     };
 
@@ -566,13 +560,12 @@ If you are not using generic accessors then you are using an unsupported storage
        * @tparam BackendType the type of backend
        * @tparam StridesCached strides cached type
        * @tparam MetaStorageSequence sequence of storages
+       * @tparam PEBlockSize the processing elements block size
        */
-    template<typename BackendType, typename StridesCached, typename MetaStorageSequence>
+    template<typename BackendType, typename StridesCached, typename MetaStorageSequence, typename PEBlockSize>
     struct assign_strides_functor{
 
         GRIDTOOLS_STATIC_ASSERT((is_strides_cached<StridesCached>::value), "internal error: wrong type");
-        // GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MetaStorageSequence, is_any_iterate_domain_meta_storage_pointer>::value),
-        //                         "internal error: wrong type");
 
     private:
         StridesCached& RESTRICT m_strides;
@@ -606,7 +599,7 @@ If you are not using generic accessors then you are using an unsupported storage
 #endif
 #endif
             boost::mpl::for_each< boost::mpl::range_c< short_t, 0,  meta_storage_type::space_dimensions-1> > (
-                assign_strides_inner_functor<BackendType>(
+                assign_strides_inner_functor<BackendType, PEBlockSize>(
                     &(m_strides.template get<ID::value>()[0]),
                     &(boost::fusion::template at_c<ID::value>(m_storages)->strides(1))
                 )
