@@ -286,10 +286,21 @@ namespace gridtools {
             set_index_recur< N_META_STORAGES-1>::set(m_index, index);
         }
 
-        /**@brief method for setting the index array */
-        template <typename Input>
+        /**@brief method for setting the index array
+        * This method is responsible of assigning the index for the memory access at
+        * the location (i,j,k). Such index is shared among all the fields contained in the
+        * same storage class instance, and it is not shared among different storage instances.
+        */
+        // TODO implement the recursive one, as below, performance is better
+        template <typename Value>
         GT_FUNCTION
-        void set_index(Input const& index)
+        void set_index(array<Value, N_META_STORAGES> const& index)
+        {
+            set_index_recur< N_META_STORAGES-1>::set( index, m_index);
+        }
+
+        GT_FUNCTION
+        void set_index(const int index)
         {
             set_index_recur< N_META_STORAGES-1>::set( index, m_index);
         }
@@ -298,7 +309,7 @@ namespace gridtools {
            \tparam Coordinate dimension being incremented
            \tparam Execution the policy for the increment (e.g. forward/backward)
          */
-        template <ushort_t Coordinate, typename Execution>
+        template <ushort_t Coordinate, typename Steps>
         GT_FUNCTION
         void increment()
         {
@@ -311,14 +322,10 @@ namespace gridtools {
                     >::type,
                     array_index_t
                 >(boost::fusion::as_vector(local_domain.m_local_metadata),
-#ifdef __CUDACC__ //stupid nvcc
-                boost::is_same<Execution, static_int<1> >::type::value? 1 : -1,
-#else
-                Execution::value,
-#endif
+                Steps::value,
                 m_index, strides())
             );
-            static_cast<IterateDomainImpl*>(this)->template increment_impl<Coordinate, Execution>();
+            static_cast<IterateDomainImpl*>(this)->template increment_impl<Coordinate, Steps>();
         }
 
         /**@brief method for incrementing the index when moving forward along the given direction
@@ -349,11 +356,14 @@ namespace gridtools {
         {
             boost::mpl::for_each< metadata_map_t > (
                 initialize_index_functor<
-                Coordinate,
-                strides_cached_t,
-                typename boost::fusion::result_of::as_vector
-                <typename local_domain_t::local_metadata_type>::type
-                >(strides(), boost::fusion::as_vector(local_domain.m_local_metadata), initial_pos, block, &m_index[0]));
+                    Coordinate,
+                    strides_cached_t,
+                    typename boost::fusion::result_of::as_vector<
+                        typename local_domain_t::local_metadata_type
+                    >::type,
+                    array_index_t
+                >(strides(), boost::fusion::as_vector(local_domain.m_local_metadata),
+                  initial_pos, block, m_index));
             static_cast<IterateDomainImpl*>(this)->template initialize_impl<Coordinate>();
         }
 
@@ -698,7 +708,7 @@ namespace gridtools {
 
         template <ushort_t Coordinate>
         GT_FUNCTION
-        void reset_index(uint_t const& lowerbound=0)
+        void reset_positional_index(uint_t const& lowerbound=0)
         {
             if (Coordinate==0) {
                 m_i = lowerbound;
