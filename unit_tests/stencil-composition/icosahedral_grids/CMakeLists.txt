@@ -19,7 +19,8 @@ set_target_properties(icgrid_stencil_tests PROPERTIES COMPILE_FLAGS ${ADDITIONAL
 target_link_libraries(icgrid_stencil_tests ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
 
 if(USE_GPU)
-    set(CUDA_SOURCES test_stencil_on_cells.cu)
+    set(CUDA_SOURCES test_copy_stencil.cu )
+#test_stencil_on_cells.cu)
     cuda_add_executable(icgrid_stencil_tests_gpu ${CUDA_SOURCES})
     target_link_libraries(icgrid_stencil_tests_gpu ${exe_LIBS})
 
