@@ -13,8 +13,8 @@ namespace gridtools{
 
     template<typename Accessor> struct is_accessor_readonly : boost::mpl::false_{};
 
-    template <int ID, typename LocationType, typename Radius>
-    struct is_accessor_readonly<accessor<ID, enumtype::in, LocationType, Radius> > : boost::mpl::true_{};
+    template <int ID, typename LocationType, typename Extent>
+    struct is_accessor_readonly<accessor<ID, enumtype::in, LocationType, Extent> > : boost::mpl::true_{};
 
 
     /**
@@ -24,10 +24,10 @@ namespace gridtools{
     template<typename Accessor, typename ArgsMap>
     struct remap_accessor_type{};
 
-    template <uint_t ID, enumtype::intend Intend, typename LocationType, typename Radius, typename ArgsMap >
-    struct remap_accessor_type<accessor<ID, Intend, LocationType, Radius>, ArgsMap >
+    template <uint_t ID, enumtype::intend Intend, typename LocationType, typename Extent, typename ArgsMap >
+    struct remap_accessor_type<accessor<ID, Intend, LocationType, Extent>, ArgsMap >
     {
-        typedef accessor<ID, Intend, LocationType, Radius> accessor_t;
+        typedef accessor<ID, Intend, LocationType, Extent> accessor_t;
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<ArgsMap>::value>0), "Internal Error: wrong size");
         //check that the key type is an int (otherwise the later has_key would never find the key)
         GRIDTOOLS_STATIC_ASSERT((
@@ -44,7 +44,7 @@ namespace gridtools{
             boost::mpl::at<ArgsMap, index_type_t >::type::value,
             Intend,
             LocationType,
-            Radius
+            Extent
         > type;
     };
 

@@ -494,11 +494,11 @@ public:
         m_grid_position = position;
     }
 
-    template<uint_t ID, enumtype::intend intend, typename LocationType, typename Radius>
+    template<uint_t ID, enumtype::intend intend, typename LocationType, typename Extent>
     GT_FUNCTION
-    typename accessor_return_type<accessor<ID, intend, LocationType, Radius>>::type
-    operator()(accessor<ID, intend, LocationType, Radius> const& accessor_) const {
-        typedef accessor<ID, intend, LocationType, Radius> accessor_t;
+    typename accessor_return_type<accessor<ID, intend, LocationType, Extent>>::type
+    operator()(accessor<ID, intend, LocationType, Extent> const& accessor_) const {
+        typedef accessor<ID, intend, LocationType, Extent> accessor_t;
         return get_value(accessor_, (data_pointer())[current_storage<(ID==0)
                                                 , local_domain_t, typename accessor_t::type >::value]);
     }
@@ -621,9 +621,9 @@ public:
     }
 
     //TODO return the right value, instead of double
-    template <uint_t ID, enumtype::intend Intend, typename LocationType, typename Radius, typename IndexArray >
-    double _evaluate(accessor<ID, Intend, LocationType, Radius>, IndexArray const& position) const {
-        using accessor_t = accessor<ID, Intend, LocationType, Radius>;
+    template <uint_t ID, enumtype::intend Intend, typename LocationType, typename Extent, typename IndexArray >
+    double _evaluate(accessor<ID, Intend, LocationType, Extent>, IndexArray const& position) const {
+        using accessor_t = accessor<ID, Intend, LocationType, Extent>;
         using location_type_t = typename accessor_t::location_type;
         int offset = m_grid_topology.ll_offset(position, location_type_t());
 
