@@ -4,6 +4,7 @@
 #include "stencil-composition/block_size.hpp"
 #include "stencil-composition/extent.hpp"
 #include "stencil-composition/offset_tuple.hpp"
+#include "../extent.hpp"
 
 namespace gridtools {
 

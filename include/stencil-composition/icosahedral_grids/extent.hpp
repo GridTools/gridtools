@@ -7,4 +7,7 @@ namespace gridtools{
         static const int value = R;
     };
 
+    template<typename T> struct is_extent: boost::mpl::false_{};
+
+    template<int R> struct is_extent<extent<R> > : boost::mpl::true_{};
 } // namespace gridtools
