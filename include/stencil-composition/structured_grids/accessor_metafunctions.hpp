@@ -1,6 +1,7 @@
 #pragma once
 
 #include "accessor.hpp"
+#include "../global_accessor.hpp"
 
 namespace gridtools{
 

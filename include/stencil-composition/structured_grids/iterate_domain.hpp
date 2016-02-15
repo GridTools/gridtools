@@ -54,6 +54,9 @@
 
 namespace gridtools {
 
+    template<typename IterateDomainImpl>
+    struct iterate_domain_backend_id;
+
     /**@brief class managing the memory accesses, indices increment
 
        This class gets instantiated in the backend-specific code, and has a different implementation for

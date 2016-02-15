@@ -203,6 +203,9 @@ struct extract_location_type
 
 };
 
+template<typename IterateDomainImpl>
+struct iterate_domain_backend_id;
+
 /**
    This class is basically the iterate domain. It contains the
    ways to access data and the implementation of iterating on neighbors.
