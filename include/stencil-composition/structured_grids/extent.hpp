@@ -118,18 +118,18 @@ namespace gridtools {
     /**
      * Metafunction taking two extents and yielding a extent which is the extension of one another
      */
-    template <typename Range1,
-              typename Range2>
+    template <typename Extent1,
+              typename Extent2>
     struct sum_extent {
-        BOOST_MPL_ASSERT((boost::mpl::or_<is_extent<Range1>, is_staggered<Range1> >));
-        BOOST_MPL_ASSERT((boost::mpl::or_<is_extent<Range2>, is_staggered<Range1> >));
+        BOOST_MPL_ASSERT((boost::mpl::or_<is_extent<Extent1>, is_staggered<Extent1> >));
+        BOOST_MPL_ASSERT((boost::mpl::or_<is_extent<Extent2>, is_staggered<Extent1> >));
 
-        typedef extent<boost::mpl::plus<typename Range1::iminus, typename Range2::iminus>::type::value,
-                      boost::mpl::plus<typename Range1::iplus,  typename Range2::iplus>::type::value,
-                      boost::mpl::plus<typename Range1::jminus, typename Range2::jminus>::type::value,
-                      boost::mpl::plus<typename Range1::jplus,  typename Range2::jplus>::type::value,
-                      boost::mpl::plus<typename Range1::kminus, typename Range2::kminus>::type::value,
-                      boost::mpl::plus<typename Range1::kplus,  typename Range2::kplus>::type::value
+        typedef extent<boost::mpl::plus<typename Extent1::iminus, typename Extent2::iminus>::type::value,
+                      boost::mpl::plus<typename Extent1::iplus,  typename Extent2::iplus>::type::value,
+                      boost::mpl::plus<typename Extent1::jminus, typename Extent2::jminus>::type::value,
+                      boost::mpl::plus<typename Extent1::jplus,  typename Extent2::jplus>::type::value,
+                      boost::mpl::plus<typename Extent1::kminus, typename Extent2::kminus>::type::value,
+                      boost::mpl::plus<typename Extent1::kplus,  typename Extent2::kplus>::type::value
                       > type;
     };
 
