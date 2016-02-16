@@ -381,6 +381,10 @@ namespace gridtools {
     template <typename IsPresent, typename MssComponentsArray, typename Backend>
     struct run_conditionally;
 
+    /**@brief calls the run method when conditionals are defined
+
+       specialization for when the next MSS is not a conditional
+    */
     template <typename MssComponentsArray, typename Backend>
     struct run_conditionally<boost::mpl::true_, MssComponentsArray, Backend>
     {
@@ -391,6 +395,11 @@ namespace gridtools {
     };
 
 
+    /**
+       @brief calls the run method when conditionals are defined
+
+       specialization for when the next MSS is a conditional
+     */
     template <typename Array1, typename Array2, typename Cond, typename Backend>
     struct run_conditionally<boost::mpl::true_, condition<Array1, Array2, Cond>, Backend>
     {
@@ -406,7 +415,12 @@ namespace gridtools {
         }
     };
 
+    /**@brief calls the run method when no conditional is defined
 
+       the 2 cases are separated into 2 different partial template specialization, because
+       the fusion::at_key doesn't compile when the key is not present in the set
+       (i.e. the present situation).
+     */
     template <typename MssComponentsArray, typename Backend>
     struct run_conditionally<boost::mpl::false_, MssComponentsArray, Backend>
     {

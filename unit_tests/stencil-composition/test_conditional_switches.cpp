@@ -33,8 +33,9 @@ namespace test_conditional_switches{
 
     int test(){
 
-        switch_variable<50,int> cond(0);
-        switch_variable<50,int> new_cond(3);
+        switch_variable<0,int> cond(0);
+        switch_variable<0,int> new_cond(5);
+        switch_variable<3,int> nested_cond_(1);
         switch_variable<1,int> other_cond_(1);
         switch_variable<1,int> new_other_cond_(2);
 
@@ -80,9 +81,25 @@ namespace test_conditional_switches{
                                enumtype::execute<enumtype::forward>()
                                , make_esf<functor<5> >( p_dummy() )))
                       , case_(5,
-                           make_mss(
-                               enumtype::execute<enumtype::forward>()
-                               , make_esf<functor<6> >( p_dummy() )))
+                              switch_(nested_cond_
+                                      , case_(2,
+                                              make_mss(
+                                                  enumtype::execute<enumtype::forward>()
+                                                  , make_esf<functor<1000> >( p_dummy() )))
+                                      , case_(1,
+                                              make_mss(
+                                                  enumtype::execute<enumtype::forward>()
+                                                  , make_esf<functor<2000> >( p_dummy() )))
+                                      , default_(
+                                          make_mss(
+                                              enumtype::execute<enumtype::forward>()
+                                              , make_esf<functor<3000> >( p_dummy() )))
+                                  )
+                          )
+                      , case_(6,
+                              make_mss(
+                                  enumtype::execute<enumtype::forward>()
+                                  , make_esf<functor<6> >( p_dummy() )))
                       , default_(
                           make_mss(
                               enumtype::execute<enumtype::forward>()

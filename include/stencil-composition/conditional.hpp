@@ -51,7 +51,7 @@ namespace gridtools{
       which is constructed by the user). Thus in this case the address of the conditional is stored
       in a pointer, accessed and modified but not constructed/descructed by this class.
 */
-    template <uint_t Tag>
+    template <uint_t Tag, uint_t SwitchId>
     class switch_conditional{
 
         //weak pointer, viewing the boolean condition
@@ -59,7 +59,9 @@ namespace gridtools{
 
     public:
         typedef static_uint<Tag> index_t;
+        typedef static_uint<SwitchId> switch_id_t;
         static const uint_t index_value = index_t::value;
+        static const uint_t switch_id_value = switch_id_t::value;
 
         /**
            @brief default constructor
@@ -119,6 +121,6 @@ namespace gridtools{
     template <uint_t Tag>
     struct is_conditional<conditional<Tag> >:boost::mpl::true_ {};
 
-    template <uint_t Tag>
-    struct is_conditional<switch_conditional<Tag> >:boost::mpl::true_ {};
+    template <uint_t Tag, uint_t SwitchId>
+    struct is_conditional<switch_conditional<Tag, SwitchId> >:boost::mpl::true_ {};
 }
