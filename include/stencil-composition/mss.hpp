@@ -35,6 +35,8 @@ namespace gridtools {
 
     }
 
+    template<typename T> struct is_cache;
+
     /** @brief Descriptors for  Multi Stage Stencil (MSS) */
     template <typename ExecutionEngine,
               typename EsfDescrSequence,

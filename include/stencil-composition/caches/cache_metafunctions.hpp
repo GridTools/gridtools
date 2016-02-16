@@ -31,6 +31,7 @@
 #include "stencil-composition/local_domain.hpp"
 
 #include "common/generic_metafunctions/is_there_in_sequence_if.hpp"
+#include "../grid_traits.hpp"
 
 namespace gridtools {
 
@@ -123,6 +124,7 @@ struct extract_extents_for_caches
     typedef typename IterateDomainArguments::cache_sequence_t cache_sequence_t;
     typedef typename IterateDomainArguments::extent_sizes_t extents_t;
     typedef typename IterateDomainArguments::esf_sequence_t esf_sequence_t;
+    typedef typename IterateDomainArguments::grid_id_t grid_id_t;
 
     //insert the extent associated to a Cache into the map of <cache, extent>
     template<typename ExtendsMap, typename Cache>
@@ -141,7 +143,7 @@ struct extract_extents_for_caches
             typedef typename boost::mpl::if_<
                 boost::mpl::has_key<ExtendsMap_, Cache>,
                 typename boost::mpl::at<ExtendsMap_, Cache>::type,
-                extent<0,0,0,0>
+                typename grid_traits_from_id<grid_id_t::value>::null_extent_t
             >::type default_extent_t;
 
             typedef typename boost::mpl::insert<
