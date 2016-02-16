@@ -1,4 +1,5 @@
 #pragma once
+#include "../mss.hpp"
 
 namespace gridtools {
 
@@ -15,7 +16,7 @@ namespace gridtools {
             typedef typename boost::mpl::fold<
                 typename mss_descriptor_esf_sequence<MssDescriptor>::type,
                 boost::mpl::vector0<>,
-                boost::mpl::push_back<boost::mpl::_1, extent<0,0,0,0> >
+                boost::mpl::push_back<boost::mpl::_1, extent<0> >
             >::type type;
 
             GRIDTOOLS_STATIC_ASSERT(
