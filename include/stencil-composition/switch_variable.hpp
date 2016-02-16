@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include "condition.hpp"
 
 /**@file*/
@@ -31,13 +32,14 @@ namespace gridtools{
         typedef static_uint<Tag> index_t;
         static const uint_t index_value = index_t::value;
 
-        std::vector<short_t> m_conditions;
-        std::vector<T> m_cases;
+        std::unique_ptr<std::vector<short_t> > m_conditions;//generated conditions
+        std::unique_ptr<std::vector<T> > m_cases;//all possible cases (redundant)
 
         /**@brief enpty constructor*/
         constexpr switch_variable () //try to avoid this?
             : m_value()
-            , m_conditions(0)
+            , m_conditions(new std::vector<short_t>())
+            , m_cases(std::vector<T>())
         {}
 
         /**@brief constructor
@@ -46,22 +48,30 @@ namespace gridtools{
          */
         constexpr switch_variable (T const& c)
             : m_value(c)
-            , m_conditions(0)
+            , m_conditions(new std::vector<short_t>())
+            , m_cases(new std::vector<T>())
         {}
 
+        ~switch_variable(){
+        }
+
         /**@brief API to insert a condition*/
-        void push_back_condition( int c){m_conditions.push_back(c);}
+        void push_back_condition( short_t c){m_conditions->push_back((short_t)c);}
         /**@brief API to insert a case value*/
-        void push_back_case( T c){m_cases.push_back(c);}
+        void push_back_case( T c){m_cases->push_back(c);}
         /**@brief returns by non const reference the std::vector of condiitons*/
-        std::vector<int>& conditions( ){return m_conditions;}
+        std::vector<short_t>& conditions( ){return *m_conditions;}
         /**@brief returns by non const reference the std::vector of cases*/
-        std::vector<int>& cases( ){return m_cases;}
+        std::vector<T>& cases( ){return *m_cases;}
         /**@brief returns the number of cases for the switch associated to this variable*/
-        uint_t num_conditions( ){return m_conditions.size();}
+        uint_t num_conditions( ){return m_conditions->size();}
 
         /**@brief returns the value of the switch_variable*/
         constexpr T value() const {return m_value;}
+
+    private:
+        switch_variable( switch_variable const & );
+
     };
 
 

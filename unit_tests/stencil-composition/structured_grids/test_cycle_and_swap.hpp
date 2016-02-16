@@ -85,12 +85,12 @@ namespace test_cycle_and_swap{
         auto comp =
             gridtools::make_computation<gridtools::BACKEND>
             (
+                domain, grid,
                 gridtools::make_mss
                 (
                     execute<forward>(),
                     gridtools::make_esf<functor>(p_i_data())
-                    ),
-                domain, grid
+                    )
                 );
 
 
@@ -139,12 +139,12 @@ namespace test_cycle_and_swap{
         auto comp =
             gridtools::make_computation<gridtools::BACKEND>
             (
+                domain, grid,
                 gridtools::make_mss
                 (
                     execute<forward>(),
                     gridtools::make_esf<functor_avg>(p_i_data())
-                    ),
-                domain, grid
+                    )
                 );
 
         //fill the input (snapshot 0) with some initial data

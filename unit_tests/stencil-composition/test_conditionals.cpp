@@ -1,3 +1,4 @@
+#include "gtest/gtest.h"
 #include <stencil-composition/stencil-composition.hpp>
 
 namespace test_conditionals{
@@ -86,6 +87,6 @@ namespace test_conditionals{
     }
 }//namespace test_conditional
 
-int main(){
+TEST(stencil_composition, conditionals){
     test_conditionals::test();
 }

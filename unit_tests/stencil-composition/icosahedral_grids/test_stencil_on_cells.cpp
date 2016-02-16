@@ -101,20 +101,24 @@ TEST(test_stencil_on_cells, run) {
     grid_.value_list[0] = 0;
     grid_.value_list[1] = d3-1;
 
-#ifdef __CUDACC__
-        gridtools::computation* copy =
+#ifdef CXX11_ENABLED
+    auto
 #else
-            boost::shared_ptr<gridtools::computation> copy =
+#ifdef __CUDACC__
+        gridtools::computation*
+#else
+            boost::shared_ptr<gridtools::computation>
 #endif
-            gridtools::make_computation<backend_t >
+#endif
+        copy = gridtools::make_computation<backend_t >
             (
+                domain, grid_,
                 gridtools::make_mss // mss_descriptor
                 (
                     execute<forward>(),
                     gridtools::make_esf<test_on_cells_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(
                         p_in_cells(), p_out_cells(), p_i_cells(), p_c_cells(), p_j_cells(), p_k_cells() )
-                ),
-                domain, grid_
+                )
             );
     copy->ready();
     copy->steady();

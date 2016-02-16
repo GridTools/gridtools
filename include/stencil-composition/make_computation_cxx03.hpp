@@ -33,8 +33,8 @@ namespace _impl {
         typename Grid                                                         \
     >                                                                           \
     computation* make_computation(                                              \
-        BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType),                         \
-        Domain& domain, const Grid& grid                                    \
+        Domain& domain, const Grid& grid,                               \
+        BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)                         \
     ) {                                                                         \
         return new intermediate<                                                \
             Backend,                                                            \
@@ -63,8 +63,8 @@ namespace _impl {
             Domain, Grid ,POSITIONAL_WHEN_DEBUGGING                           \
         >                                                                       \
     > make_computation(                                                         \
-        BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType),                         \
-        Domain& domain, const Grid& grid                                    \
+        Domain& domain, const Grid& grid,                               \
+        BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)                         \
     ) {                                                                         \
         return boost::make_shared<                                              \
             intermediate<                                                       \
@@ -97,8 +97,8 @@ namespace _impl {
         typename Grid                                                         \
     >                                                                           \
     computation* make_positional_computation(                                   \
-        BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType),                         \
-        Domain& domain, const Grid& grid                                    \
+        Domain& domain, const Grid& grid,                               \
+        BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)                         \
     ) {                                                                         \
         return new intermediate<                                                \
             Backend,                                                            \
@@ -127,10 +127,10 @@ namespace _impl {
             Domain, Grid ,true                                                \
         >                                                                       \
     > make_positional_computation(                                              \
-        BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType),                         \
+        Domain& domain, const Grid& grid,                               \
+        BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)                         \
 
 
-        Domain& domain, const Grid& grid                             \
     ) {                                                                         \
         return boost::make_shared<                                              \
             intermediate<                                                       \

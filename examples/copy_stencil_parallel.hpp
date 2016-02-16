@@ -151,21 +151,25 @@ namespace copy_stencil{
         */
 
 // \todo simplify the following using the auto keyword from C++11
-#ifdef __CUDACC__
-        gridtools::computation* copy =
+#ifdef CXX11_ENABLED
+        auto
 #else
-            boost::shared_ptr<gridtools::computation> copy =
+#ifdef __CUDACC__
+            gridtools::computation*
+#else
+            boost::shared_ptr<gridtools::computation>
 #endif
-            gridtools::make_computation<gridtools::BACKEND>
+#endif
+            copy = gridtools::make_computation<gridtools::BACKEND>
             (
+                domain, grid,
                 gridtools::make_mss // mss_descriptor
                 (
                     execute<forward>(),
                     gridtools::make_esf<copy_functor>(p_in() // esf_descriptor
                                                       , p_out()
                         )
-                    ),
-                domain, grid
+                    )
                 );
 #ifdef VERBOSE
         printf("computation instantiated\n");

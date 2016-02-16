@@ -77,18 +77,22 @@ TEST(test_global_accessor, boundary_conditions) {
     domain_type<boost::mpl::vector<p_sol, p_bd> > domain ( boost::fusion::make_vector( &sol_, &bd_));
 #endif
 
-#ifdef __CUDACC__
-    computation* bc_eval =
+#ifdef CXX11_ENABLED
+    auto
 #else
-        boost::shared_ptr<computation> bc_eval =
+#ifdef __CUDACC__
+        computation*
+#else
+        boost::shared_ptr<computation>
 #endif
-        make_computation< backend_t >
+#endif
+        bc_eval = make_computation< backend_t >
         (
-            make_mss
+            domain, coords_bc
+            , make_mss
             (
                 execute<forward>(),
                 make_esf<functor>(p_sol(), p_bd()))
-            , domain, coords_bc
             );
 
     bc_eval->ready();

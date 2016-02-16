@@ -282,9 +282,10 @@ namespace gridtools {
             , m_metadata_set()
         {
 
-#ifdef CXX11_ENABLED
-            GRIDTOOLS_STATIC_ASSERT(is_fusion_vector<RealStorage>::value, "the argument passed to the domain type constructor must be a fusion vector, or a pair (placeholder = storage), see the domain_type constructors");
-#endif
+            //TODO: how to check the assertion below?
+// #ifdef CXX11_ENABLED
+//             GRIDTOOLS_STATIC_ASSERT(is_fusion_vector<RealStorage>::value, "the argument passed to the domain type constructor must be a fusion vector, or a pair (placeholder = storage), see the domain_type constructors");
+// #endif
 
             typedef boost::fusion::filter_view
                 <arg_list,

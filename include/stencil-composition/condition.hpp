@@ -18,11 +18,10 @@ namespace gridtools{
 
         constexpr condition(){};
 
-        template <uint_t ID>
-        constexpr condition(conditional<ID> const& cond, first_t const& first_, second_t const& second_)
+        constexpr condition(index_t cond, first_t const& first_, second_t const& second_)
             : m_value(cond)
-            ,m_first(first_)
-            ,m_second(second_)
+            , m_first(first_)
+            , m_second(second_)
         {
         }
 

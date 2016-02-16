@@ -181,20 +181,24 @@ TEST(Laplace, test) {
          \note in reality this call does nothing at runtime (besides assigning the runtime variables domain and grid), it only calls the constructor of the intermediate struct which is empty. the work done at compile time is documented in the \ref gridtools::intermediate "intermediate" class.
          \todo why is this function even called? It just needs to be compiled, in order to get the return type (use a typedef).
        */
-
-#ifdef __CUDACC__
-    computation* laplace =
+#ifdef CXX11_ENABLED
+       auto
 #else
-    boost::shared_ptr<gridtools::computation> laplace =
+#ifdef __CUDACC__
+       computation*
+#else
+       boost::shared_ptr<gridtools::computation>
 #endif
-      make_computation<gridtools::BACKEND>
+#endif
+       laplace = make_computation<gridtools::BACKEND>
         (
+         domain, grid,
          make_mss //! \todo all the arguments in the call to make_mss are actually dummy.
          (
           execute<forward>(),//!\todo parameter used only for overloading purpose?
           make_esf<lap_function>(p_out(), p_in())//!  \todo elementary stencil function, also here the arguments are dummy.
-          ),
-         domain, grid);
+          )
+         );
 // [computation]
 
 // [ready_steady_run_finalize]

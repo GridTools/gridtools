@@ -487,6 +487,7 @@ namespace shallow_water{
         auto shallow_water_stencil =
             make_computation<gridtools::BACKEND>
             (
+                domain, grid,
                 make_mss // mss_descriptor
                 (
                     execute<forward>(),
@@ -494,8 +495,7 @@ namespace shallow_water{
                         make_esf<flux_x> (p_tmpx(), p_sol() ),
                         make_esf<flux_y>(p_tmpy(), p_sol() )),
                     make_esf<final_step>(p_tmpx(), p_tmpy(), p_sol() )
-                    ),
-                domain, grid
+                    )
                 );
 //! [computation]
 

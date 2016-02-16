@@ -1,6 +1,7 @@
+#include "gtest/gtest.h"
 #include <stencil-composition/stencil-composition.hpp>
 
-namespace test_conditionals{
+namespace test_conditional_switches{
     using namespace gridtools;
 
 
@@ -17,7 +18,8 @@ namespace test_conditionals{
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
-    struct functor1{
+    template<uint_t Id>
+    struct functor{
 
         typedef accessor<0> p_dummy;
         typedef boost::mpl::vector1<p_dummy> arg_list;
@@ -25,50 +27,16 @@ namespace test_conditionals{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            printf("1\n");
-        }
-    };
-
-    struct functor2{
-
-        typedef accessor<0> p_dummy;
-        typedef boost::mpl::vector1<p_dummy> arg_list;
-
-        template <typename Evaluation>
-        GT_FUNCTION
-        static void Do(Evaluation const & eval, x_interval) {
-            printf("2\n");
-        }
-    };
-
-    struct functor3{
-
-        typedef accessor<0> p_dummy;
-        typedef boost::mpl::vector1<p_dummy> arg_list;
-
-        template <typename Evaluation>
-        GT_FUNCTION
-        static void Do(Evaluation const & eval, x_interval) {
-            printf("3\n");
-        }
-    };
-
-    struct functor4{
-
-        typedef accessor<0> p_dummy;
-        typedef boost::mpl::vector1<p_dummy> arg_list;
-
-        template <typename Evaluation>
-        GT_FUNCTION
-        static void Do(Evaluation const & eval, x_interval) {
-            printf("4\n");
+            printf("%d\n", Id);
         }
     };
 
     int test(){
 
-        switch_variable<0,int> cond(3);
-        switch_variable<0,int> new_cond(1);
+        switch_variable<50,int> cond(0);
+        switch_variable<50,int> new_cond(3);
+        switch_variable<1,int> other_cond_(1);
+        switch_variable<1,int> new_other_cond_(2);
 
         grid<axis> grid_({0,0,0,1,2},{0,0,0,1,2});
         grid_.value_list[0] = 0;
@@ -88,25 +56,55 @@ namespace test_conditionals{
             domain_, grid_
             , make_mss(
                 enumtype::execute<enumtype::forward>()
-                , make_esf<functor3>( p_dummy() ))
+                , make_esf<functor<0> >( p_dummy() ))
             , switch_(cond
                       ,
-                    case_(0
-                          , make_mss(
-                              enumtype::execute<enumtype::forward>()
-                              , make_esf<functor2>( p_dummy() )) )
-                      , case_(1
-                              , make_mss(
-                                  enumtype::execute<enumtype::forward>()
-                                  , make_esf<functor1>( p_dummy() )))
+                      case_(0
+                            , make_mss(
+                                enumtype::execute<enumtype::forward>()
+                                , make_esf<functor<1> >( p_dummy() )) )
+                      , case_(1,
+                           make_mss(
+                               enumtype::execute<enumtype::forward>()
+                               , make_esf<functor<2> >( p_dummy() )))
+                      , case_(2,
+                           make_mss(
+                               enumtype::execute<enumtype::forward>()
+                               , make_esf<functor<3> >( p_dummy() )))
+                      , case_(3,
+                           make_mss(
+                               enumtype::execute<enumtype::forward>()
+                               , make_esf<functor<4> >( p_dummy() )))
+                      , case_(4,
+                           make_mss(
+                               enumtype::execute<enumtype::forward>()
+                               , make_esf<functor<5> >( p_dummy() )))
+                      , case_(5,
+                           make_mss(
+                               enumtype::execute<enumtype::forward>()
+                               , make_esf<functor<6> >( p_dummy() )))
                       , default_(
                           make_mss(
                               enumtype::execute<enumtype::forward>()
-                              , make_esf<functor2>( p_dummy() )))
+                              , make_esf<functor<7> >( p_dummy() )))
+                )
+            ,  switch_(other_cond_
+                       , case_(2,
+                               make_mss(
+                                   enumtype::execute<enumtype::forward>()
+                                   , make_esf<functor<10> >( p_dummy() )))
+                       , case_(1,
+                               make_mss(
+                                   enumtype::execute<enumtype::forward>()
+                                   , make_esf<functor<20> >( p_dummy() )))
+                       , default_(
+                           make_mss(
+                               enumtype::execute<enumtype::forward>()
+                               , make_esf<functor<30> >( p_dummy() )))
                 )
             , make_mss(
                 enumtype::execute<enumtype::forward>()
-                , make_esf<functor4>( p_dummy() ))
+                , make_esf<functor<400> >( p_dummy() ))
             );
 
         comp_->ready();
@@ -114,12 +112,13 @@ namespace test_conditionals{
         comp_->run();
         std::cout<<"\n\n\n";
         reset_conditional(cond, new_cond);
+        reset_conditional(other_cond_, new_other_cond_);
         comp_->run();
         comp_->finalize();
         return 0;
     }
 }//namespace test_conditional
 
-int main(){
-    test_conditionals::test();
+TEST(stencil_composition, conditional_switch){
+    test_conditional_switches::test();
 }

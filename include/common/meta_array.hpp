@@ -6,6 +6,7 @@
  */
 
 #pragma once
+#include <boost/mpl/push_back.hpp>
 #include <boost/mpl/lambda.hpp>
 #include <boost/mpl/is_sequence.hpp>
 #include <boost/mpl/eval_if.hpp>
