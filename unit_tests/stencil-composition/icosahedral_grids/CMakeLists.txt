@@ -1,7 +1,8 @@
 
 if( ENABLE_CXX11 )
   SET(STENCIL_OTHERGRIDS_UNITTEST_SOURCES test_from_to_mapping.cpp test_make_computation.cpp test_copy_stencil.cpp unstructured_grid.cpp test_extract_location.cpp 
-         test_stencil_on_cells.cpp 
+         test_stencil_on_cells.cpp test_stencil_on_edges.cpp test_stencil_on_vertexes.cpp 
+#         test_nested_on
          ${INC_ALL})
 
   ### Executables

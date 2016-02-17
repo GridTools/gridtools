@@ -74,6 +74,7 @@ TEST(cache_metafunctions, extract_extents_for_caches)
         max_extent_t,
         caches_t,
         block_size<32,4>,
+        block_size<32,4>,
         gridtools::grid<axis>
     > iterate_domain_arguments_t;
 
@@ -112,6 +113,7 @@ TEST(cache_metafunctions, get_cache_storage_tuple)
         extents_t,
         max_extent_t,
         caches_t,
+        block_size<32,4>,
         block_size<32,4>,
         gridtools::grid<axis>
     > iterate_domain_arguments_t;

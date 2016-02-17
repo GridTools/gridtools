@@ -15,8 +15,8 @@ namespace cs_test{
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
     struct test_functor {
-        typedef ro_accessor<0, icosahedral_topology_t::cells, radius<1> > in;
-        typedef accessor<1, icosahedral_topology_t::cells> out;
+        typedef in_accessor<0, icosahedral_topology_t::cells, radius<1> > in;
+        typedef inout_accessor<1, icosahedral_topology_t::cells> out;
         typedef boost::mpl::vector2<in, out> arg_list;
 
         template <typename Evaluation>
