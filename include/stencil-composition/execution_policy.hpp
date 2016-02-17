@@ -3,6 +3,7 @@
 #include <boost/mpl/for_each.hpp>
 #include "basic_token_execution.hpp"
 #include "backend_traits_fwd.hpp"
+#include "run_functor_arguments_fwd.hpp"
 
 /**
 @file Implementation of the k loop execution policy
@@ -12,6 +13,7 @@ The policies which are currently considered are
  - parallel: the operations on each k level are executed in parallel. This is feasable only if there are no dependencies between levels.
 */
 namespace gridtools{
+
     namespace _impl{
 
         /**

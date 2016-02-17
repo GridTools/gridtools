@@ -8,6 +8,7 @@
 #include <boost/fusion/include/filter_view.hpp>
 #include "stencil-composition/grid.hpp"
 #include "storage/metadata_set.hpp"
+#include "backend_ids.hpp"
 
 /**
 @file

@@ -1,6 +1,7 @@
 #pragma once
 #include <boost/mpl/at.hpp>
 #include "backend.hpp"
+#include "run_functor_arguments_fwd.hpp"
 
 namespace gridtools {
     namespace _impl

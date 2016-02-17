@@ -159,10 +159,11 @@ namespace gridtools{
         typedef boost::mpl::quote2<run_esf_functor_cuda> run_esf_functor_h_t;
 
         // metafunction that contains the strategy from id metafunction corresponding to this backend
-        template<enumtype::strategy StrategyId>
+        template<typename BackendIds>
         struct select_strategy
         {
-            typedef strategy_from_id_cuda<StrategyId> type;
+            GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), "Error");
+            typedef strategy_from_id_cuda<BackendIds::s_strategy_id> type;
         };
 
         /*

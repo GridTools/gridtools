@@ -14,6 +14,7 @@ namespace gridtools {
 
     template <>
     struct grid_traits_from_id<enumtype::structured> {
+
         struct select_mss_compute_extent_sizes {
             typedef boost::mpl::quote1< strgrid::mss_compute_extent_sizes > type;
         };
