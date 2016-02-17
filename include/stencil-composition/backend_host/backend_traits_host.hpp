@@ -131,11 +131,12 @@ namespace gridtools{
          * @brief main execution of a mss. Defines the IJ loop bounds of this particular block
          * and sequentially executes all the functors in the mss
          * @tparam RunFunctorArgs run functor arguments
-         * @tparam StrategyId id of the strategy
          */
-        template<typename RunFunctorArgs, enumtype::strategy StrategyId>
+        template<typename RunFunctorArgs>
         struct mss_loop
         {
+            typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
+
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), "Internal Error: wrong type");
             template<typename LocalDomain, typename Grid>
             static void run(LocalDomain& local_domain, const Grid& grid, const uint_t bi, const uint_t bj)
@@ -144,7 +145,7 @@ namespace gridtools{
                 GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
 
                 //each strategy executes a different high level loop for a mss
-                strategy_from_id_host<StrategyId>::template mss_loop<RunFunctorArgs, enumtype::Host>::
+                strategy_from_id_host<backend_ids_t::s_strategy_id>::template mss_loop<RunFunctorArgs>::
                         template run(local_domain, grid, bi, bj);
             }
         };
@@ -162,10 +163,11 @@ namespace gridtools{
         typedef boost::mpl::quote2<run_esf_functor_host> run_esf_functor_h_t;
 
         // metafunction that contains the strategy from id metafunction corresponding to this backend
-        template<enumtype::strategy StrategyId>
+        template<typename BackendIds>
         struct select_strategy
         {
-            typedef strategy_from_id_host<StrategyId> type;
+            GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), "Error");
+            typedef strategy_from_id_host<BackendIds::s_strategy_id> type;
         };
 
         /*

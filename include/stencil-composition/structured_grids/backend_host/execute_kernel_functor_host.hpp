@@ -8,6 +8,8 @@
 #pragma once
 #include "stencil-composition/backend_host/iterate_domain_host.hpp"
 #include "stencil-composition/loop_hierarchy.hpp"
+#include "../../iteration_policy.hpp"
+#include "../../execution_policy.hpp"
 
 namespace gridtools {
 

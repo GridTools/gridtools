@@ -1,5 +1,7 @@
 #pragma once
+#include <boost/mpl/reverse.hpp>
 #include "stencil-composition/wrap_type.hpp"
+#include "../mss.hpp"
 
 namespace gridtools {
 

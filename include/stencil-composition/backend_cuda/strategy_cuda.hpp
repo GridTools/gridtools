@@ -39,10 +39,12 @@ namespace gridtools{
          * @tparam MssComponentsArray a meta array with the mss components of all MSS
          * @tparam BackendId id of the backend
          */
-        template<typename MssComponentsArray, enumtype::platform BackendId>
+        template<typename MssComponentsArray, typename BackendIds>
         struct fused_mss_loop
         {
             GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), "Error");
+
             typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename MssComponentsArray::elements>::type::value> iter_range;
 
             template<typename LocalDomainListArray, typename Grid>
@@ -50,9 +52,8 @@ namespace gridtools{
             {
                 GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
 
-                typedef backend_traits_from_id< BackendId > backend_traits;
                 boost::mpl::for_each<iter_range> (
-                    mss_functor<MssComponentsArray, Grid, LocalDomainListArray, BackendId, enumtype::Block>
+                    mss_functor<MssComponentsArray, Grid, LocalDomainListArray, BackendIds>
                             (local_domain_lists, grid,0,0)
                 );
             }

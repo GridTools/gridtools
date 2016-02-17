@@ -358,7 +358,6 @@ namespace gridtools {
 
     };
 
-
     /**
      * @class
      *  @brief structure collecting helper metafunctions
@@ -375,16 +374,27 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
 
         typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
+        typedef typename Backend::backend_ids_t backend_ids_t;
 
-        typedef typename select_mss_compute_extent_sizes::type mss_compute_extent_sizes_t;
+        typedef grid_traits_from_id<backend_ids_t::s_grid_type_id> grid_traits_t;
+
+        typedef typename grid_traits_t::select_mss_compute_extent_sizes::type
+            mss_compute_extent_sizes_t;
+
+        template<typename T1, typename T2>
+        struct _push_extent_ {
+            typedef typename mss_compute_extent_sizes_t::template apply<T2>::type mss_extent_t;
+
+            typedef typename boost::mpl::push_back<
+                T1,
+                mss_extent_t
+            >::type type;
+        };
 
         typedef typename boost::mpl::fold<
             typename MssDescriptorArray::elements,
             boost::mpl::vector0<>,
-            boost::mpl::push_back<
-                boost::mpl::_1,
-                mss_compute_extent_sizes_t::apply<boost::mpl::_2>
-            >
+            _push_extent_<boost::mpl::_1, boost::mpl::_2>
         >::type extent_sizes_t;
 
         typedef typename build_mss_components_array<
@@ -392,7 +402,6 @@ namespace gridtools {
             MssDescriptorArray,
             extent_sizes_t
         >::type mss_components_array_t;
-
 
         typedef typename create_actual_arg_list<
                 Backend,

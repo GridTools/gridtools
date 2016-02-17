@@ -3,8 +3,6 @@
 #include <boost/mpl/for_each.hpp>
 #include "basic_token_execution.hpp"
 #include "backend_traits_fwd.hpp"
-#include "run_esf_functor.hpp"
-
 
 /**
 @file Implementation of the k loop execution policy
@@ -39,7 +37,7 @@ namespace gridtools{
         {
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), "Internal Error: wrong type");
 
-            typedef typename backend_traits_from_id<RunFunctorArguments::backend_id_t::value >::run_esf_functor_h_t run_esf_functor_h_t;
+            typedef typename backend_traits_from_id<RunFunctorArguments::backend_ids_t::s_backend_id >::run_esf_functor_h_t run_esf_functor_h_t;
             typedef run_f_on_interval_base<
                         run_f_on_interval<
                             typename enumtype::execute<IterationType>,

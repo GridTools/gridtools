@@ -21,17 +21,16 @@ namespace gridtools {
      * @tparam TMssArray meta array containing all the mss descriptors
      * @tparam Grid grid
      * @tparam MssLocalDomainArray sequence of mss local domain (each contains the local domain list of a mss)
-     * @tparam BackendId id of backend
-     * @tparam StrategyId id of strategy
+     * @tparam BackendIds ids of backends
      */
     template<
-        typename MssComponentsArray, typename Grid, typename MssLocalDomainArray,
-        enumtype::platform BackendId, enumtype::strategy StrategyId>
+        typename MssComponentsArray, typename Grid, typename MssLocalDomainArray, typename BackendIds>
     struct mss_functor
     {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssLocalDomainArray, is_mss_local_domain>::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), "Error");
 
         mss_functor(MssLocalDomainArray& local_domain_lists, const Grid& grid, const int block_idx, const int block_idy) :
             m_local_domain_lists(local_domain_lists), m_grid(grid), m_block_idx(block_idx), m_block_idy(block_idy) {}
@@ -81,9 +80,9 @@ namespace gridtools {
             // Map between interval and actual arguments to pass to Do methods
             typedef typename mss_functor_do_method_lookup_maps<mss_components_t, Grid>::type FunctorsMap;
 
-            typedef backend_traits_from_id< BackendId > backend_traits_t;
+            typedef backend_traits_from_id< BackendIds::s_backend_id > backend_traits_t;
 
-            typedef typename backend_traits_t::template get_block_size<StrategyId>::type block_size_t;
+            typedef typename backend_traits_t::template get_block_size<BackendIds::s_strategy_id>::type block_size_t;
             // compute the struct with all the type arguments for the run functor
 
             typedef typename sequence_of_is_independent_esf<typename mss_components_t::mss_descriptor_t>::type sequence_of_is_independent_t;
@@ -132,10 +131,10 @@ namespace gridtools {
                 >::type async_esf_map_tmp_t;
 
             //insert true for the last esf
-            typedef typename boost::mpl::insert< async_esf_map_tmp_t,  boost::mpl::pair<typename boost::mpl::at_c<functors_list_t, boost::mpl::size<next_thing>::value>::type, boost::mpl::true_ > >::type async_esf_map_t;
+            typedef typename boost::mpl::insert< async_esf_map_tmp_t,  boost::mpl::pair<typename boost::mpl::at_c<functors_list_t, boost::mpl::size<next_thing>::value>::type, boost::mpl::true_ > >::type async_esf_map_t;                    
 
             typedef run_functor_arguments<
-                BackendId,
+                BackendIds,
                 block_size_t,
                 block_size_t,
                 functors_list_t,
@@ -148,14 +147,13 @@ namespace gridtools {
                 typename mss_components_t::cache_sequence_t,
                 async_esf_map_t,
                 Grid,
-                ExecutionEngine,
-                StrategyId
+                ExecutionEngine
             > run_functor_args_t;
 
             typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<functors_list_t>::type::value> iter_range;
 
             //now the corresponding backend has to execute all the functors of the mss
-            backend_traits_from_id<BackendId>::template mss_loop<run_functor_args_t, StrategyId>::
+            backend_traits_from_id<BackendIds::s_backend_id>::template mss_loop<run_functor_args_t>::
                     template run(local_domain, m_grid, m_block_idx, m_block_idy);
         }
 

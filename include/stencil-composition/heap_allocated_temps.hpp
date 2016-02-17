@@ -22,16 +22,19 @@ namespace gridtools {
         template <typename ArgList,
                   typename MetaList,
                   typename Grid,
-                  enumtype::platform BackendId,
+                  typename BackendIds,
                   enumtype::strategy StrategyId>
         struct prepare_temporaries_functor;
 
         /**
            Specialization for Naive policy
          */
-        template <typename ArgList, typename MetaList, typename Grid, enumtype::platform BackendId>
-        struct prepare_temporaries_functor<ArgList, MetaList, Grid, BackendId, enumtype::Naive>
+        template <typename ArgList, typename MetaList, typename Grid, typename BackendIds>
+        struct prepare_temporaries_functor<ArgList, MetaList, Grid, BackendIds, enumtype::Naive>
         {
+
+            GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((BackendIds::s_strategy_id == enumtype::Naive), "Error");
 
             //TODO check the type of ArgList
             GRIDTOOLS_STATIC_ASSERT(is_metadata_set<MetaList>::value, "wrong type for metadata");
@@ -109,16 +112,18 @@ namespace gridtools {
         /**
            Specialization for Block policy
          */
-        template <typename ArgList, typename MetaList, typename Grid, enumtype::platform BackendId>
-        struct prepare_temporaries_functor
-        <ArgList, MetaList, Grid,  BackendId, enumtype::Block >
+        template <typename ArgList, typename MetaList, typename Grid, typename BackendIds>
+        struct prepare_temporaries_functor<ArgList, MetaList, Grid,  BackendIds, enumtype::Block >
         {
 
             //TODO implement a check for the ArgList type
             GRIDTOOLS_STATIC_ASSERT(is_metadata_set<MetaList>::value, "wrong type for metadata");
             GRIDTOOLS_STATIC_ASSERT(is_grid<Grid>::value, "wrong type for Grid");
+            GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((BackendIds::s_strategy_id == enumtype::Block), "Error");
 
-            typedef backend<BackendId, enumtype/*::strategy*/::Block> backend_type;
+
+            typedef backend<BackendIds::s_backend_id, BackendIds::s_grid_type_id, enumtype/*::strategy*/::Block> backend_type;
             /**
                @brief instantiate the \ref gridtools::domain_type for the temporary storages
             */

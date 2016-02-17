@@ -120,15 +120,20 @@ namespace gridtools {
         - - (INTERNAL) for_each that is used to invoke the different things for different stencils in the MSS
         - - (INTERNAL) once_per_block
     */
-    template< enumtype::platform BackendId, enumtype::strategy StrategyId >
+    template< enumtype::platform BackendId, enumtype::grid_type GridId, enumtype::strategy StrategyId >
     struct backend_base
     {
-        typedef backend_traits_from_id<BackendId> backend_traits_t;
-        typedef typename backend_traits_t::template select_strategy<StrategyId>::type strategy_traits_t;
+        typedef backend_base<BackendId, GridId, StrategyId> this_type;
 
-        typedef backend_base<BackendId, StrategyId> this_type;
+        typedef backend_ids<BackendId, GridId, StrategyId> backend_ids_t;
+
+        typedef backend_traits_from_id<BackendId> backend_traits_t;
+        typedef grid_traits_from_id<GridId> grid_traits_t;
+        typedef typename backend_traits_t::template select_strategy<backend_ids_t>::type strategy_traits_t;
+
         static const enumtype::strategy s_strategy_id=StrategyId;
         static const enumtype::platform s_backend_id =BackendId;
+        static const enumtype::grid_type s_grid_type_id = GridId;
 
         /** types of the functions used to compute the thread grid information
             for allocating the temporary storages and such
@@ -389,14 +394,14 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
             GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
 
-            strategy_traits_t::template fused_mss_loop<MssComponentsArray, BackendId>::run(mss_local_domain_list, grid);
+            strategy_traits_t::template fused_mss_loop<MssComponentsArray, backend_ids_t>::run(mss_local_domain_list, grid);
         }
 
 
         template <typename ArgList, typename MetaList, typename Grid>
         static void prepare_temporaries(ArgList & arg_list_, MetaList & meta_list_, Grid const& grid)
         {
-            _impl::template prepare_temporaries_functor<ArgList, MetaList, Grid, BackendId, StrategyId>::
+            _impl::template prepare_temporaries_functor<ArgList, MetaList, Grid, backend_ids_t, backend_ids_t::s_strategy_id>::
                 prepare_temporaries((arg_list_), meta_list_,  (grid));
         }
 

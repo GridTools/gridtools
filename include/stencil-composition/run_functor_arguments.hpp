@@ -17,12 +17,12 @@
 #include "esf.hpp"
 #include "stencil-composition/grid.hpp"
 #include "grid_traits.hpp"
+#include "backend_ids.hpp"
 
 namespace gridtools {
 
     template<
-        typename BackendId,
-        typename GridId,
+        typename BackendIds,
         typename LocalDomain,
         typename EsfSequence,
         typename ExtendSizes,
@@ -34,9 +34,7 @@ namespace gridtools {
     >
     struct iterate_domain_arguments
     {
-        //TODO fix this
-//        GRIDTOOLS_STATIC_ASSERT((enumtype::is_enum<BackendId>::of_type<enumtype::platform>::value), "Internal Error: wrong type");
-//        GRIDTOOLS_STATIC_ASSERT((enumtype::is_enum<GridId>::of_type<enumtype::grid_type>::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Iternal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), "Iternal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value), "Iternal Error: wrong type");
@@ -45,8 +43,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_block_size<PhysicalDomainBlockSize>::value), "Iternal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Iternal Error: wrong type");
 
-        typedef BackendId backend_id_t;
-        typedef GridId grid_id_t;
+        typedef BackendIds backend_ids_t;
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;
         typedef EsfSequence esf_sequence_t;
@@ -60,8 +57,7 @@ namespace gridtools {
     template<typename T> struct is_iterate_domain_arguments : boost::mpl::false_{};
 
     template<
-        typename BackendId,
-        typename GridId,
+        typename BackendIds,
         typename LocalDomain,
         typename EsfSequence,
         typename ExtendSizes,
@@ -72,8 +68,7 @@ namespace gridtools {
         typename Grid>
     struct is_iterate_domain_arguments<
         iterate_domain_arguments<
-            BackendId,
-            GridId,
+            BackendIds,
             LocalDomain,
             EsfSequence,
             ExtendSizes,
@@ -89,8 +84,7 @@ namespace gridtools {
      * all functors involved in the execution of the mss
      */
     template<
-        enumtype::platform BackendId,               // id of the backend
-        enumtype::grid_type GridId,                 // type of grid
+        typename BackendIds,                        // id of the different backends
         typename ProcessingElementsBlockSize,       // block size of grid points updated by computation
                                                     //    in the physical domain
         typename PhysicalDomainBlockSize,           // block size of processing elements (i.e. threads)
@@ -106,10 +100,11 @@ namespace gridtools {
         typename CacheSequence,                     // sequence of user specified caches
         typename IsIndependentSeq,                  // sequence of boolenans (one per functor), stating if it is contained in a "make_independent" construct
         typename Grid,                            // the grid
-        typename ExecutionEngine,                   // the execution engine
-        enumtype::strategy StrategyId>              // the strategy id
+        typename ExecutionEngine                   // the execution engine
+    >
     struct run_functor_arguments
     {
+        GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), "Internal Error: invalid type");
         GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: invalid type");
         GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: invalid type");
         GRIDTOOLS_STATIC_ASSERT((is_execution_engine<ExecutionEngine>::value), "Internal Error: invalid type");
@@ -117,8 +112,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_block_size<PhysicalDomainBlockSize>::value), "Internal Error: invalid type");
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value), "Internal Error: invalid type");
 
-        typedef enumtype::enum_type<enumtype::platform, BackendId> backend_id_t;
-        typedef enumtype::enum_type<enumtype::grid_type, GridId> grid_id_t;
+        typedef BackendIds backend_ids_t;
         typedef ProcessingElementsBlockSize processing_elements_block_size_t;
         typedef PhysicalDomainBlockSize physical_domain_block_size_t;
         typedef FunctorList functor_list_t;
@@ -129,17 +123,16 @@ namespace gridtools {
         typedef ExtendSizes extent_sizes_t;
         typedef typename boost::mpl::fold<
             extent_sizes_t,
-            typename grid_traits_from_id<GridId>::null_extent_t,
+            typename grid_traits_from_id<backend_ids_t::s_grid_type_id>::null_extent_t,
             enclosing_extent<boost::mpl::_1, boost::mpl::_2>
         >::type max_extent_t;
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;
         typedef IsIndependentSeq async_esf_map_t;
-        typedef typename backend_traits_from_id<backend_id_t::value>::
+        typedef typename backend_traits_from_id<backend_ids_t::s_backend_id>::
                 template select_iterate_domain<
                     iterate_domain_arguments<
-                        backend_id_t,
-                        grid_id_t,
+                        BackendIds,
                         LocalDomain,
                         EsfSequence,
                         ExtendSizes,
@@ -152,14 +145,13 @@ namespace gridtools {
                 >::type iterate_domain_t;
         typedef Grid grid_t;
         typedef ExecutionEngine execution_type_t;
-        static const enumtype::strategy s_strategy_id=StrategyId;
+        static const enumtype::strategy s_strategy_id=backend_ids_t::s_strategy_id;
     };
 
     template<typename T> struct is_run_functor_arguments : boost::mpl::false_{};
 
     template<
-        enumtype::platform BackendId,
-        enumtype::grid_type GridId,
+        typename BackendIds,
         typename ProcessingElementsBlockSize,
         typename PhysicalDomainBlockSize,
         typename FunctorList,
@@ -172,12 +164,11 @@ namespace gridtools {
         typename CacheSequence,
         typename IsIndependentSequence,
         typename Grid,
-        typename ExecutionEngine,
-        enumtype::strategy StrategyId>
+        typename ExecutionEngine
+    >
     struct is_run_functor_arguments<
         run_functor_arguments<
-            BackendId,
-            GridId,
+            BackendIds,
             ProcessingElementsBlockSize,
             PhysicalDomainBlockSize,
             FunctorList,
@@ -190,8 +181,7 @@ namespace gridtools {
             CacheSequence,
             IsIndependentSequence,
             Grid,
-            ExecutionEngine,
-            StrategyId
+            ExecutionEngine
         >
     > : boost::mpl::true_{};
 

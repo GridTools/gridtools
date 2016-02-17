@@ -156,6 +156,14 @@ namespace gridtools{
     static const unsigned int vector_width=4;
 #endif
 
+#ifdef STRUCTURED_GRIDS
+    #define GRIDBACKEND enumtype::structured
+//        #define GRIDPREFIX strgrid
+#else
+    #define GRIDBACKEND enumtype::icosahedral
+//        #define GRIDPREFIX icgrid
+#endif
+
     }//namespace enumtype
 
 
@@ -247,12 +255,6 @@ namespace gridtools{
     # define EXPECT_REAL_EQ(reference, actual) EXPECT_DOUBLE_EQ(reference, actual)
 #else
 #error float precision not properly set (4 or 8 bytes supported)
-#endif
-
-#ifdef STRUCTURED_GRIDS
-    #define GRIDPREFIX strgrid
-#else
-    #define GRIDPREFIX icgrid
 #endif
 
 #ifdef CXX11_ENABLED
