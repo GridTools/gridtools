@@ -124,8 +124,10 @@ struct remap_accessor_type<global_accessor<ID, Intend>, ArgsMap >
 
     template<typename Accessor> struct is_accessor_readonly: boost::mpl::false_{};
 
+#if defined(CXX11_ENABLED) && !defined(CUDA_CXX11_BUG_1)
     template <typename Accessor, typename ... Pair>
     struct is_accessor_readonly<accessor_mixed<Accessor, Pair ... > > : is_accessor_readonly<Accessor> {};
+#endif
 
     template < ushort_t ID, typename Extend, ushort_t Number>
     struct is_accessor_readonly<accessor<ID, enumtype::in, Extend, Number> > : boost::mpl::true_{};
