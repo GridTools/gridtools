@@ -147,4 +147,50 @@ TEST(call_interfaces_metafunctions, call_pretent_procedure) {
     EXPECT_TRUE(a3 == 1667);
 }
 
+
+struct actual_function {
+    typedef gridtools::accessor<0,  gridtools::enumtype::in> a0;
+    typedef gridtools::accessor<1,  gridtools::enumtype::inout> a1;
+    typedef gridtools::accessor<2,  gridtools::enumtype::in> a2;
+
+    typedef boost::mpl::vector<a0,a1,a2> arg_list;
+
+};
+
+struct another_function {
+    typedef gridtools::accessor<0, gridtools::enumtype::inout> out;
+    typedef gridtools::accessor<1, gridtools::enumtype::in, gridtools::extent<-1, 1, -1, 1> > in;
+
+    typedef boost::mpl::vector<out, in> arg_list;
+};
+
+struct non_function_swap {
+    typedef gridtools::accessor<1, gridtools::enumtype::inout> out;
+    typedef gridtools::accessor<0, gridtools::enumtype::inout> in;
+
+    typedef boost::mpl::vector<in, out> arg_list;
+};
+
+struct another_non_function {
+
+    typedef gridtools::accessor<0, gridtools::enumtype::inout> out;
+    typedef gridtools::accessor<1, gridtools::enumtype::in, gridtools::extent<0, 1, 0, 0> > in;
+    typedef gridtools::accessor<2, gridtools::enumtype::inout> lap;
+
+    typedef boost::mpl::vector<out, in, lap> arg_list;
+};
+
+TEST(call_interfaces_metafunctions, check_if_function) {
+    GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::can_be_a_function<actual_function>::value == true), "");
+    GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::_get_index_of_first_non_const<actual_function>::value == 1), "");
+
+    GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::can_be_a_function<another_function>::value == true), "");
+    GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::_get_index_of_first_non_const<another_function>::value == 0), "");
+
+    GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::can_be_a_function<non_function_swap>::value == false), "");
+    GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::_get_index_of_first_non_const<non_function_swap>::value == 0), "");
+
+    GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::can_be_a_function<another_non_function>::value == false), "");
+    GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::_get_index_of_first_non_const<another_non_function>::value == 0), "");
+}
 #endif

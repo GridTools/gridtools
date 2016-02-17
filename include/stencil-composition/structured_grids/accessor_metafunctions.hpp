@@ -122,13 +122,22 @@ struct remap_accessor_type<global_accessor<ID, Intend>, ArgsMap >
 #endif
 
 
-    template<typename Accessor> struct is_accessor_readonly : boost::mpl::false_{};
+    template<typename Accessor> struct is_accessor_readonly: boost::mpl::false_{};
+
+    template <typename Accessor, typename ... Pair>
+    struct is_accessor_readonly<accessor_mixed<Accessor, Pair ... > > : is_accessor_readonly<Accessor> {};
 
     template < ushort_t ID, typename Extend, ushort_t Number>
     struct is_accessor_readonly<accessor<ID, enumtype::in, Extend, Number> > : boost::mpl::true_{};
 
+    template < ushort_t ID, typename Extend, ushort_t Number>
+    struct is_accessor_readonly<accessor<ID, enumtype::inout, Extend, Number> > : boost::mpl::false_{};
+
     template < ushort_t ID>
     struct is_accessor_readonly<global_accessor<ID, enumtype::in> > : boost::mpl::true_{};
+
+    template < ushort_t ID>
+    struct is_accessor_readonly<global_accessor<ID, enumtype::inout> > : boost::mpl::true_{};
 
     /* Is written is actually "can be written", since it checks if not read olnly.
        TODO: metafunction convention not completely respected */

@@ -1,6 +1,9 @@
 #pragma once
 
 #include <boost/mpl/count_if.hpp>
+#include <boost/mpl/find_if.hpp>
+#include <boost/mpl/if.hpp>
+#include <boost/type_traits/is_same.hpp>
 #include "../../common/defs.hpp"
 #include "./accessor_metafunctions.hpp"
 
@@ -12,24 +15,18 @@ namespace gridtools {
         template <typename Functor>
         struct _get_index_of_first_non_const {
 
-            template <int I, int L, typename List>
-            struct scan_for_index {
-                using type = typename boost::mpl::if_
-                    <typename is_accessor_readonly<typename boost::mpl::at_c<List, I>::type >::type,
-                     typename scan_for_index<I+1, L, List>::type,
-                     static_int<I>
-                     >::type;
-            };
+            typedef typename boost::mpl::find_if<
+                typename Functor::arg_list,
+                is_accessor_written<typename boost::mpl::_>
+                >::type iter;
 
-            template <int I, typename List>
-            struct scan_for_index<I, I, List> {
-                using type = static_int<-1>;
-            };
+            typedef typename boost::mpl::if_<
+                typename boost::is_same<iter, typename boost::mpl::end<typename Functor::arg_list>::type>::type,
+                boost::mpl::int_<-1>,
+                typename iter::pos
+                >::type result;
 
-            static const int value = scan_for_index
-                <0,
-                 boost::mpl::size<typename Functor::arg_list>::value,
-                 typename Functor::arg_list>::type::value;
+            static const int value = result::value;
         };
 
         /** Metafunction to check that there is only one
@@ -41,21 +38,10 @@ namespace gridtools {
         */
         template <typename Functor>
         struct can_be_a_function {
-
-            template <typename CurrentCount, typename CurrentArg>
-            struct count_if_written {
-                typedef typename boost::mpl::if_
-                <typename is_accessor_written<CurrentArg>::type,
-                 CurrentCount,
-                 static_int<CurrentCount::value+1>
-                 >::type type;
-            };
-
-            typedef typename boost::mpl::fold
-            <typename Functor::arg_list,
-             static_int<0>,
-             count_if_written<boost::mpl::_1, boost::mpl::_2>
-             >::type type;
+            typedef typename boost::mpl::count_if<
+                typename Functor::arg_list,
+                is_accessor_written<boost::mpl::_>
+                >::type type;
 
             static const bool value = type::value==1;
         };
