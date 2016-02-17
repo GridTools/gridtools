@@ -152,7 +152,7 @@ namespace copy_stencil{
         copy->run();
 
 #ifdef __CUDACC__
-        out.data().update_cpu();
+        out.d2h_update();
 #endif
 
         bool success = true;

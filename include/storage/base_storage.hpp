@@ -244,6 +244,14 @@ namespace gridtools {
                 m_fields[i+offset]=pointer_type(m_meta_data.size());
         }
 
+        /**
+           releasing the pointers to the data, and deliting them in case they need to be deleted
+         */
+        void release(){
+            for(ushort_t i=0; i<field_dimensions; ++i)
+                m_fields[i].free_it();
+        }
+
         /** @brief initializes with a constant value */
         GT_FUNCTION
         void initialize(value_type const& init, ushort_t const& dims=field_dimensions)

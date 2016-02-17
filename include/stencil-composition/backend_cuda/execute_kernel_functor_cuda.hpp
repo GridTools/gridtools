@@ -72,6 +72,8 @@ namespace _impl_cuda {
             (_impl::run_f_on_interval<
              execution_type_t,
              RunFunctorArguments>(it_domain,*grid) );
+
+        __syncthreads();
     }
 } // namespace _impl_cuda
 
