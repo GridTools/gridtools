@@ -5,12 +5,12 @@
 #include <boost/mpl/has_key.hpp>
 #include "../level.hpp"
 
-#include "backend_traits_cuda.hpp"
 #include "../mss_functor.hpp"
 #include "../sfinae.hpp"
 #include "../../storage/meta_storage.hpp"
 #include "../tile.hpp"
 #include "common/generic_metafunctions/is_variadic_pack_of.hpp"
+#include "execute_kernel_functor_cuda.hpp"
 
 namespace gridtools{
 

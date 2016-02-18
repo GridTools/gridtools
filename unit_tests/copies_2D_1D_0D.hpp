@@ -71,12 +71,6 @@ namespace copy_stencils_3D_2D_1D_0D {
         uint_t d2 = y;
         uint_t d3 = z;
 
-#ifdef STRUCTURED_GRIDS
-#define GRIDBACKEND enumtype::structured
-#else
-#define GRIDBACKEND enumtype::icosahedral
-#endif
-
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend<Cuda, GRIDBACKEND, Block >
 #else

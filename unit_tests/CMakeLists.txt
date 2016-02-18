@@ -47,7 +47,7 @@ endif()
 
 gridtools_add_test(test.tests ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/tests")
 
-if (CUDA_FOUND)
+if (CUDA_FOUND AND STRUCTURED_GRIDS)
     set(GPU_SOURCES tests.cu
       test_domain.cu
       test_cuda_storage.cu
