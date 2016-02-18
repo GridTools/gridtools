@@ -6,12 +6,12 @@
 namespace horizontal_diffusion {
 
 #ifdef CUDA_EXAMPLE
-typedef gridtools::backend<gridtools::enumtype::Cuda, gridtools::enumtype::Block > hd_backend;
+typedef gridtools::backend<gridtools::enumtype::Cuda, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block > hd_backend;
 #else
 #ifdef BACKEND_BLOCK
-typedef gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Block > hd_backend;
+typedef gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block > hd_backend;
 #else
-typedef gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Naive > hd_backend;
+typedef gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Naive > hd_backend;
 #endif
 #endif
 

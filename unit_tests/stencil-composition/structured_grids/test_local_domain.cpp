@@ -33,7 +33,7 @@ namespace local_domain_stencil{
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct dummy_functor {
-        typedef const accessor<0> in;
+        typedef accessor<0> in;
         typedef accessor<1> out;
         typedef boost::mpl::vector<in,out> arg_list;
 
@@ -54,10 +54,10 @@ TEST(test_local_domain, merge_mss_local_domains) {
 
     typedef layout_map<2,1,0> layout_ijk_t;
     typedef layout_map<0,1,2> layout_kji_t;
-    typedef backend<Host, Naive >::storage_info<0, layout_ijk_t> meta_ijk_t;
-    typedef backend<Host, Naive >::storage_info<0, layout_kji_t> meta_kji_t;
-    typedef backend<Host, Naive >::storage_type<float_type, meta_ijk_t >::type storage_type;
-    typedef backend<Host, Naive >::storage_type<float_type, meta_kji_t >::type storage_buff_type;
+    typedef backend<Host, GRIDBACKEND, Naive >::storage_info<0, layout_ijk_t> meta_ijk_t;
+    typedef backend<Host, GRIDBACKEND, Naive >::storage_info<0, layout_kji_t> meta_kji_t;
+    typedef backend<Host, GRIDBACKEND, Naive >::storage_type<float_type, meta_ijk_t >::type storage_type;
+    typedef backend<Host, GRIDBACKEND, Naive >::storage_type<float_type, meta_kji_t >::type storage_buff_type;
 
     typedef arg<0, storage_type> p_in;
     typedef arg<1, storage_buff_type> p_buff;
@@ -83,7 +83,7 @@ TEST(test_local_domain, merge_mss_local_domains) {
     grid.value_list[0] = 0;
     grid.value_list[1] = d3-1;
 
-    typedef typename decltype(make_computation<gridtools::backend<Host, Naive > >
+    typedef typename decltype(make_computation<gridtools::backend<Host, GRIDBACKEND, Naive > >
         (
             gridtools::make_mss // mss_descriptor
             (

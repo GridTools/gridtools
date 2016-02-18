@@ -40,7 +40,7 @@ TEST(test_make_computation_other_grid, get_mss_array) {
 
     using namespace gridtools;
 
-    #define BACKEND backend<enumtype::Host, enumtype::Block >
+    #define BACKEND backend<enumtype::Host, enumtype::structured, enumtype::Block >
 
     typedef gridtools::layout_map<2,1,0> layout_t;
     typedef gridtools::BACKEND::storage_type<float_type, gridtools::BACKEND::storage_info<0,layout_t> >::type storage_type;

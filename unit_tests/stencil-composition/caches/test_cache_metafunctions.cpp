@@ -13,6 +13,7 @@
 #include "stencil-composition/interval.hpp"
 #include "stencil-composition/stencil-composition.hpp"
 #include "common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
+#include "stencil-composition/caches/extract_extent_caches.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
@@ -30,7 +31,8 @@ struct functor1 {
 };
 
 typedef layout_map<0,1> layout_ij_t;
-typedef backend<Host, Naive >::storage_type<float_type, backend<Host, Naive >::storage_info<0,layout_ij_t> >::type storage_type;
+typedef backend<Host, GRIDBACKEND, Naive >::
+    storage_type<float_type, backend<Host, GRIDBACKEND, Naive >::storage_info<0,layout_ij_t> >::type storage_type;
 
 typedef arg<0, storage_type> p_in;
 typedef arg<2, storage_type> p_out;
@@ -71,7 +73,7 @@ TEST(cache_metafunctions, extract_extents_for_caches)
     >::type max_extent_t;
 
     typedef iterate_domain_arguments<
-        enumtype::enum_type<enumtype::platform, enumtype::Host>,
+        backend_ids<Cuda, GRIDBACKEND, Block>,
         local_domain_t,
         esf_sequence_t,
         extents_t,
@@ -111,7 +113,7 @@ TEST(cache_metafunctions, get_cache_storage_tuple)
     typedef gridtools::interval<gridtools::level<0,-2>, gridtools::level<1,1> > axis;
 
     typedef iterate_domain_arguments<
-        enumtype::enum_type<enumtype::platform, enumtype::Host>,
+        backend_ids<Cuda, GRIDBACKEND, Block>,
         local_domain_t,
         esf_sequence_t,
         extents_t,

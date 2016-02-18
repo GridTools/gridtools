@@ -63,7 +63,7 @@ namespace copy_stencil{
         uint_t d2 = y;
         uint_t d3 = z;
 
-#ifdef CUDA_EXAMPLE
+#ifdef __CUDACC__
 #define BACKEND backend<Cuda, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK

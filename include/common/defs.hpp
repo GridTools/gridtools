@@ -156,15 +156,15 @@ namespace gridtools{
     static const unsigned int vector_width=4;
 #endif
 
+    }//namespace enumtype
+
 #ifdef STRUCTURED_GRIDS
-    #define GRIDBACKEND enumtype::structured
+    #define GRIDBACKEND structured
 //        #define GRIDPREFIX strgrid
 #else
-    #define GRIDBACKEND enumtype::icosahedral
+    #define GRIDBACKEND icosahedral
 //        #define GRIDPREFIX icgrid
 #endif
-
-    }//namespace enumtype
 
 
     template<typename Arg >
