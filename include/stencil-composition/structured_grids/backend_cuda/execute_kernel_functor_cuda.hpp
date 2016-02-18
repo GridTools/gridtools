@@ -1,9 +1,9 @@
 #pragma once
-#include "../iteration_policy.hpp"
-#include "../backend_traits_fwd.hpp"
-#include "backend_traits_cuda.hpp"
+#include "../../iteration_policy.hpp"
+#include "../../backend_traits_fwd.hpp"
+#include "../../backend_cuda/backend_traits_cuda.hpp"
 #include "stencil-composition/iterate_domain.hpp"
-#include "shared_iterate_domain.hpp"
+#include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "common/gt_assert.hpp"
 
 namespace gridtools {

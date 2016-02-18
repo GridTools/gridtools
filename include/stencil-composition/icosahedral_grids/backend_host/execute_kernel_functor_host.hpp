@@ -96,7 +96,7 @@ namespace gridtools {
                 //reset the index
                 it_domain.set_index(0);
 
-                //TODO work on extending the loops using the extent
+                //TODO FUSING work on extending the loops using the extent
 //                it_domain.template initialize<0>(m_first_pos[0] + extent_t::iminus::value, m_block_id[0]);
                 it_domain.template initialize<0>(m_first_pos[0], m_block_id[0]);
 

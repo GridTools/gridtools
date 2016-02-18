@@ -23,36 +23,36 @@ namespace _impl_iccuda {
     void do_it_on_gpu(LocalDomain const * RESTRICT l_domain, typename RunFunctorArguments::grid_t const* grid,
             const int starti, const int startj, const uint_t nx, const uint_t ny) {
 
-//        assert(l_domain);
-//        typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
-//        typedef typename RunFunctorArguments::execution_type_t execution_type_t;
+        assert(l_domain);
+        typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
+        typedef typename RunFunctorArguments::execution_type_t execution_type_t;
 
-//        typedef typename RunFunctorArguments::physical_domain_block_size_t block_size_t;
-//        typedef typename RunFunctorArguments::extent_sizes_t extent_sizes_t;
+        typedef typename RunFunctorArguments::physical_domain_block_size_t block_size_t;
+        typedef typename RunFunctorArguments::extent_sizes_t extent_sizes_t;
 
-//        typedef typename RunFunctorArguments::max_extent_t max_extent_t;
-//        typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
-//        typedef typename RunFunctorArguments::async_esf_map_t async_esf_map_t;
+        typedef typename RunFunctorArguments::max_extent_t max_extent_t;
+        typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
+        typedef typename RunFunctorArguments::async_esf_map_t async_esf_map_t;
 
-//        typedef backend_traits_from_id<enumtype::Cuda> backend_traits_t;
-//        typedef typename iterate_domain_t::strides_cached_t strides_t;
-//        typedef typename iterate_domain_t::data_pointer_array_t data_pointer_array_t;
-//        typedef shared_iterate_domain<
-//            data_pointer_array_t,
-//            strides_t,
-//            max_extent_t,
-//            typename iterate_domain_t::iterate_domain_cache_t::ij_caches_tuple_t
-//        > shared_iterate_domain_t;
+        typedef backend_traits_from_id<enumtype::Cuda> backend_traits_t;
+        typedef typename iterate_domain_t::strides_cached_t strides_t;
+        typedef typename iterate_domain_t::data_pointer_array_t data_pointer_array_t;
+        typedef shared_iterate_domain<
+            data_pointer_array_t,
+            strides_t,
+            max_extent_t,
+            typename iterate_domain_t::iterate_domain_cache_t::ij_caches_tuple_t
+        > shared_iterate_domain_t;
 
-//        const uint_t block_size_i = (blockIdx.x+1) * block_size_t::i_size_t::value < nx ?
-//                block_size_t::i_size_t::value : nx - blockIdx.x * block_size_t::i_size_t::value ;
-//        const uint_t block_size_j = (blockIdx.y+1) * block_size_t::j_size_t::value < ny ?
-//                block_size_t::j_size_t::value : ny - blockIdx.y * block_size_t::j_size_t::value ;
+        const uint_t block_size_i = (blockIdx.x+1) * block_size_t::i_size_t::value < nx ?
+                block_size_t::i_size_t::value : nx - blockIdx.x * block_size_t::i_size_t::value ;
+        const uint_t block_size_j = (blockIdx.y+1) * block_size_t::j_size_t::value < ny ?
+                block_size_t::j_size_t::value : ny - blockIdx.y * block_size_t::j_size_t::value ;
 
-//        __shared__ shared_iterate_domain_t shared_iterate_domain;
+        __shared__ shared_iterate_domain_t shared_iterate_domain;
 
-//        //Doing construction of the ierate domain and assignment of pointers and strides
-//        iterate_domain_t it_domain(*l_domain, block_size_i, block_size_j);
+        //Doing construction of the ierate domain and assignment of pointers and strides
+        iterate_domain_t it_domain(*l_domain, block_size_i, block_size_j);
 
 //        it_domain.set_shared_iterate_domain_pointer_impl(&shared_iterate_domain);
 
@@ -238,7 +238,7 @@ struct execute_kernel_functor_cuda
 //            )
 //        > cuda_block_size_t;
 
-        //TODO used max extent when fusing esfs
+        //TODO FUSING used max extent when fusing esfs
         typedef block_size<
             block_size_t::i_size_t::value,
             (block_size_t::j_size_t::value)

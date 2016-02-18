@@ -223,11 +223,11 @@ public:
     >::type
     get_cache_value_impl(Accessor const & _accessor) const
     {
-        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
-        //        assert(m_pshared_iterate_domain);
-        // retrieve the ij cache from the fusion tuple and access the element required give the current thread position within
-        // the block and the offsets of the accessor
-        return m_pshared_iterate_domain->template get_ij_cache<static_uint<Accessor::index_type::value> >().at(m_thread_pos, _accessor.offsets());
+//        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
+//        //        assert(m_pshared_iterate_domain);
+//        // retrieve the ij cache from the fusion tuple and access the element required give the current thread position within
+//        // the block and the offsets of the accessor
+//        return m_pshared_iterate_domain->template get_ij_cache<static_uint<Accessor::index_type::value> >().at(m_thread_pos, _accessor.offsets());
     }
 
     /** @brief return a value that was cached
@@ -241,9 +241,9 @@ public:
     >::type
     get_cache_value_impl(Accessor const & _accessor) const
     {
-        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
-        return super::template get_value<Accessor, void * RESTRICT> (_accessor,
-                    super::template get_data_pointer<Accessor>(_accessor));
+//        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
+//        return super::template get_value<Accessor, void * RESTRICT> (_accessor,
+//                    super::template get_data_pointer<Accessor>(_accessor));
     }
 
     /** @brief return a the value in memory pointed to by an accessor
@@ -262,13 +262,13 @@ public:
     >::type
     get_value_impl(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset) const
     {
-        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
-#if __CUDA_ARCH__ >= 350
-        // on Kepler use ldg to read directly via read only cache
-        return __ldg(storage_pointer + pointer_offset);
-#else
-        return super::template get_gmem_value<ReturnType>(storage_pointer,pointer_offset);
-#endif
+//        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
+//#if __CUDA_ARCH__ >= 350
+//        // on Kepler use ldg to read directly via read only cache
+//        return __ldg(storage_pointer + pointer_offset);
+//#else
+//        return super::template get_gmem_value<ReturnType>(storage_pointer,pointer_offset);
+//#endif
     }
 
     /** @brief return a the value in memory pointed to by an accessor
@@ -286,8 +286,8 @@ public:
     >::type
     get_value_impl(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset) const
     {
-        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
-        return super::template get_gmem_value<ReturnType>(storage_pointer,pointer_offset);
+//        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
+//        return super::template get_gmem_value<ReturnType>(storage_pointer,pointer_offset);
     }
 
 private:

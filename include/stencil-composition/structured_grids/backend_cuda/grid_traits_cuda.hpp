@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../backend_cuda/execute_kernel_functor_cuda_fwd.hpp"
+#include "execute_kernel_functor_cuda_fwd.hpp"
 #include "../../run_functor_arguments_fwd.hpp"
 
 namespace gridtools {
