@@ -116,8 +116,10 @@ namespace gridtools{
             return 0;
         }
 
-        template <uint_t Id>
+        template <uint_t Id, typename BlockSize>
         struct once_per_block {
+            GRIDTOOLS_STATIC_ASSERT((is_block_size<BlockSize>::value), "Error: wrong type");
+
             template<typename Left, typename Right>
             GT_FUNCTION//inline
             static void assign(Left& l, Right const& r){

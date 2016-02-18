@@ -217,7 +217,8 @@ namespace copy_stencils_3D_2D_1D_0D {
         copy->finalize();
 
 #ifdef CUDA_EXAMPLE
-        out.data().update_cpu();
+        out.d2h_update();
+        in.d2h_update();
 #endif
 
 #ifdef USE_PAPI_WRAP

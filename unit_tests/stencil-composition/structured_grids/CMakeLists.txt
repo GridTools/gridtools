@@ -26,7 +26,11 @@ if(CUDA_FOUND)
     if(ENABLE_CXX11)
         set(RECGRID_CUDA_TESTS test_cycle_and_swap.cu)
 
-        cuda_add_executable(strgrid_stencil_tests_cuda ${RECGRID_CUDA_TESTS})
+        cuda_add_executable(test_cycle_and_swap_cuda ${RECGRID_CUDA_TESTS})
+        set_target_properties(test_cycle_and_swap_cuda PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+        target_link_libraries(test_cycle_and_swap_cuda ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
+
+cuda_add_executable(strgrid_stencil_tests_cuda ${RECGRID_CUDA_TESTS})
         set_target_properties(strgrid_stencil_tests_cuda PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
         target_link_libraries(strgrid_stencil_tests_cuda ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
         gridtools_add_test(strgrid_stencil_tests_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/strgrid_stencil_tests_cuda")

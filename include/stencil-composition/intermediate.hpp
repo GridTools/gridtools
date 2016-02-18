@@ -261,8 +261,6 @@ namespace gridtools {
                 boost::mpl::range_c<int, 0, boost::mpl::size<ArgListType>::value >
             > (copy_pointers_functor<ArgListType, typename DomainType::arg_list> (storage_pointers, domain.m_original_pointers));
 
-            // boost::fusion::for_each(meta_data_, copy_pointers_set_functor<typename DomainType::metadata_set_t::set_t> (domain.m_metadata_set.sequence_view()));
-
             boost::fusion::for_each(storage_pointers, update_pointer());
             boost::fusion::for_each(meta_data_, update_pointer());
 

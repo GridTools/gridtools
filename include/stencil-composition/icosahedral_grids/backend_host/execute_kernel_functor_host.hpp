@@ -111,11 +111,18 @@ namespace gridtools {
 
                 array_index_t memorized_index;
                 array_position_t memorized_position;
+                int addon =0;
+                //the iterate domain over vertexes has one more grid point
+                //TODO specify the loop bounds from the grid_tolopogy to avoid this hack here
+                if(location_type_t::value == grid_topology_t::vertexes::value){
+                    addon++;
+                }
+
                 for(uint_t i=m_first_pos[0]; i <= m_first_pos[0] + m_loop_size[0];++i)
                 {
                     for(uint_t c=0; c < n_colors_t::value; ++c)
                     {
-                        for(uint_t j=m_first_pos[1]; j <= m_first_pos[1] + m_loop_size[1];++j)
+                        for(uint_t j=m_first_pos[1]; j <= m_first_pos[1] + m_loop_size[1]+addon;++j)
                         {
                             it_domain.get_index(memorized_index);
                             it_domain.get_position(memorized_position);
@@ -126,10 +133,10 @@ namespace gridtools {
                             it_domain.set_position(memorized_position);
                             it_domain.template increment<2, static_int<1> >();
                         }
-                        it_domain.template increment<2>( -(m_loop_size[1]+1));
+                        it_domain.template increment<2>( -(m_loop_size[1]+1+addon));
                         it_domain.template increment<1, static_int<1> >();
                     }
-                    it_domain.template increment<1, static_int<-n_colors_t::value>>();
+                    it_domain.template increment<1, static_int< -((int_t) n_colors_t::value) >>();
                     it_domain.template increment<0,static_int<1> >();
                 }
                 it_domain.template increment<0>( -(m_loop_size[0]+1));

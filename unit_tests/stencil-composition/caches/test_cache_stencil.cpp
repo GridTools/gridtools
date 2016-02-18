@@ -139,7 +139,7 @@ TEST_F(cache_stencil, ij_cache)
     pstencil->finalize();
 
 #ifdef __CUDACC__
-    m_out.data().update_cpu();
+    m_out.d2h_update();
 #endif
 #ifdef CXX11_ENABLED
     verifier verif(1e-13);
@@ -201,7 +201,7 @@ TEST_F(cache_stencil, ij_cache_offset)
     pstencil->finalize();
 
 #ifdef __CUDACC__
-    m_out.data().update_cpu();
+    m_out.d2h_update();
 #endif
 
 #ifdef CXX11_ENABLED

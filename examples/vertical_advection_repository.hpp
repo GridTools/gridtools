@@ -225,7 +225,7 @@ public:
     void update_cpu()
     {
 #ifdef CUDA_EXAMPLE
-        utens_stage_.data().update_cpu();
+        utens_stage_.d2h_update();
 #endif
     }
 

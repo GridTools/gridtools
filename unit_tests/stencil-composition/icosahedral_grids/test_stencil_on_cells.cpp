@@ -16,12 +16,12 @@ namespace cs_test{
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
     struct test_on_cells_functor {
-        typedef ro_accessor<0, icosahedral_topology_t::cells, radius<1> > in;
-        typedef accessor<1, icosahedral_topology_t::cells> out;
-        typedef ro_accessor<2, icosahedral_topology_t::cells, radius<1> > ipos;
-        typedef ro_accessor<3, icosahedral_topology_t::cells, radius<1> > cpos;
-        typedef ro_accessor<4, icosahedral_topology_t::cells, radius<1> > jpos;
-        typedef ro_accessor<5, icosahedral_topology_t::cells, radius<1> > kpos;
+        typedef in_accessor<0, icosahedral_topology_t::cells, radius<1> > in;
+        typedef inout_accessor<1, icosahedral_topology_t::cells> out;
+        typedef in_accessor<2, icosahedral_topology_t::cells, radius<1> > ipos;
+        typedef in_accessor<3, icosahedral_topology_t::cells, radius<1> > cpos;
+        typedef in_accessor<4, icosahedral_topology_t::cells, radius<1> > jpos;
+        typedef in_accessor<5, icosahedral_topology_t::cells, radius<1> > kpos;
         typedef boost::mpl::vector6<in, out, ipos, cpos, jpos, kpos> arg_list;
 
         template <typename Evaluation>
@@ -49,30 +49,31 @@ TEST(test_stencil_on_cells, run) {
     using cell_storage_type = typename backend_t::storage_t<icosahedral_topology_t::cells, double>;
 
     const uint_t halo_nc = 1;
-    const uint_t halo_mc = 2;
+    const uint_t halo_mc = 1;
     const uint_t halo_k = 0;
     const uint_t d3=6+halo_k*2;
     const uint_t d1=6+halo_nc*2;
-    const uint_t d2=12+halo_mc*2;
+    const uint_t d2=6+halo_mc*2;
     icosahedral_topology_t icosahedral_grid( d1, d2, d3 );
 
-    cell_storage_type in_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("in");
-    cell_storage_type i_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("i");
-    cell_storage_type j_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("j");
-    cell_storage_type c_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("c");
-    cell_storage_type k_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("k");
-    cell_storage_type out_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("out");
-    cell_storage_type ref_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("ref");
+    auto in_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("in");
+    auto i_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("i");
+    auto j_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("j");
+    auto c_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("c");
+    auto k_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("k");
+    auto out_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("out");
+    auto ref_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("ref");
 
-    for(int i=0; i < d1; ++i)
+    for(int i=1; i < d1-1; ++i)
     {
-        for(int c=0; c < 2; ++c)
+        for(int c=0; c < icosahedral_topology_t::cells::n_colors::value; ++c)
         {
-            for(int j=0; j < d2; ++j)
+            for(int j=1; j < d2-1; ++j)
             {
                 for(int k=0; k < d3; ++k)
                 {
-                    in_cells(i,c,j,k) = i+c*100+j*10000+k*1000000;
+                    in_cells(i,c,j,k) = in_cells.meta_data().index(array<uint_t,4>
+                        {(uint_t)i,(uint_t)c,(uint_t)j,(uint_t)k});
                     i_cells(i,c,j,k) = i;
                     c_cells(i,c,j,k) = c;
                     j_cells(i,c,j,k) = j;
@@ -123,17 +124,20 @@ TEST(test_stencil_on_cells, run) {
     copy->ready();
     copy->steady();
     copy->run();
+    copy->finalize();
 
     unstructured_grid ugrid(d1, d2, d3);
-    for(uint_t i=0; i < d1; ++i)
+    for(uint_t i=halo_nc; i < d1-halo_nc; ++i)
     {
-        for(uint_t c=0; c < 2; ++c)
+        for(uint_t c=0; c < icosahedral_topology_t::cells::n_colors::value; ++c)
         {
-            for(uint_t j=0; j < d2; ++j)
+            for(uint_t j=halo_mc; j < d2-halo_mc; ++j)
             {
                 for(uint_t k=0; k < d3; ++k)
                 {
-                    auto neighbours = ugrid.neighbours_of({i,c,j,k});
+                    auto neighbours = ugrid.neighbours_of<
+                            icosahedral_topology_t::cells,
+                            icosahedral_topology_t::cells>({i,c,j,k});
                     for(auto iter = neighbours.begin(); iter != neighbours.end(); ++iter)
                     {
                         ref_cells(i,c,j,k) += in_cells(*iter);
