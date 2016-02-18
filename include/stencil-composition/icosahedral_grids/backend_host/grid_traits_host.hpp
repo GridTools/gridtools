@@ -1,15 +1,17 @@
 #pragma once
+#include "../grid_traits_backend_fwd.hpp"
 #include "execute_kernel_functor_host.hpp"
 
 namespace gridtools {
 
     namespace icgrid {
-        struct grid_traits_host {
+        template <>
+        struct grid_traits_arch< enumtype::Host > {
             template < typename RunFunctorArguments >
             struct kernel_functor_executer {
                 GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), "Error");
-                typedef icgrid::execute_kernel_functor_host< RunFunctorArgs > type;
-            }
+                typedef execute_kernel_functor_host< RunFunctorArguments > type;
+            };
         };
     }
 }

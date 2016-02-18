@@ -13,7 +13,7 @@ namespace gridtools {
         using location_type = LocationType;
         static const uint_t value = ID;
         using index_type = static_uint<ID>;
-
+        using extent_t = Extent;
         location_type location() const {
             return location_type();
         }

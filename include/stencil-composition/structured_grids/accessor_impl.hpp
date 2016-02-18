@@ -63,8 +63,7 @@ namespace gridtools {
 
         typedef static_uint<I> index_type;
         typedef enumtype::enum_type<enumtype::intend, Intend> intend_t;
-        typedef Extend extent_type;
-
+        typedef Extend extent_t;
 
         /**@brief Default constructor
            NOTE: the following constructor when used with the brace initializer produces with nvcc a considerable amount of extra instructions (gcc 4.8.2), and degrades the performances (which is probably a compiler bug, I couldn't reproduce it on a small test).*/

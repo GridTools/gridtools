@@ -129,13 +129,13 @@ namespace gridtools {
     private:
         static constexpr accessor_base<ArgType::index_type::value
                                        , ArgType::intend_t::value
-                                       , typename ArgType::extent_type
+                                       , typename ArgType::extent_t
                                        , ArgType::n_dim> s_args_constexpr{
             dimension<Pair::first>{Pair::second} ... };
 
         accessor_base<ArgType::index_type::value
                       , ArgType::intend_t::value
-                      , typename ArgType::extent_type
+                      , typename ArgType::extent_t
                       , ArgType::n_dim> m_args_runtime;
         typedef boost::mpl::vector<static_int<n_dim-Pair::first> ... > coordinates;
     public:
@@ -176,7 +176,7 @@ namespace gridtools {
     template <typename ArgType, typename ... Pair>
     constexpr accessor_base<ArgType::index_type::value
                                   , ArgType::intend_t::value
-                                  , typename ArgType::extent_type
+                                  , typename ArgType::extent_t
                                   , ArgType::n_dim> accessor_mixed<ArgType, Pair...>::s_args_constexpr;
 
 

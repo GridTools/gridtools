@@ -9,12 +9,12 @@ using namespace enumtype;
 namespace cs_test{
 
 #ifdef __CUDACC__
-  using backend_t = ::gridtools::backend<Cuda, Block >;
+  using backend_t = ::gridtools::backend<Cuda, GRIDBACKEND, Block >;
 #else
   #ifdef BACKEND_BLOCK
-    using backend_t = ::gridtools::backend<Host, Block >;
+    using backend_t = ::gridtools::backend<Host, GRIDBACKEND, Block >;
   #else
-    using backend_t = ::gridtools::backend<Host, Naive >;
+    using backend_t = ::gridtools::backend<Host, GRIDBACKEND, Naive >;
   #endif
 #endif
 

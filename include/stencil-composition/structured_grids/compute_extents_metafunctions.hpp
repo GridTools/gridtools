@@ -15,7 +15,7 @@ namespace gridtools {
             template <typename RangeState, typename ArgumentIndex>
             struct update_extent {
                 typedef typename boost::mpl::at<typename Functor::arg_list, ArgumentIndex>::type argument_type;
-                typedef typename enclosing_extent<RangeState, typename argument_type::extent_type>::type type;
+                typedef typename enclosing_extent<RangeState, typename argument_type::extent_t>::type type;
             };
 
             /**@brief here the extents for the functors are calculated: iterates over the fields and calls the metafunction above*/

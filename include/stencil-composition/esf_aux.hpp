@@ -31,7 +31,7 @@ namespace gridtools {
                     CurrentMap,
                     typename boost::mpl::pair<
                         typename boost::mpl::at_c<Plcs, Index::value>::type,
-                        typename boost::mpl::at_c<LArgs, Index::value>::type::extent_type
+                        typename boost::mpl::at_c<LArgs, Index::value>::type::extent_t
                     >
                 >::type type;
             };

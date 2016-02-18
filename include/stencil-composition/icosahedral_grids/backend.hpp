@@ -12,7 +12,8 @@ namespace gridtools {
        The backend is, as usual, declaring what the storage types are
      */
     template<enumtype::platform BackendId, enumtype::strategy StrategyType >
-    struct backend : public backend_base<BackendId, StrategyType>{
+    struct backend<BackendId, enumtype::icosahedral, StrategyType> :
+            public backend_base<BackendId, enumtype::icosahedral, StrategyType>{
     public:
         // template <typename LocationType, typename X, typename LayoutMap>
         // struct _storage_type;
@@ -32,7 +33,7 @@ namespace gridtools {
         //     using type = base_storage<wrap_pointer<double>, LayoutMap, location_type<2, NColors> >;
         // };
 
-        typedef backend_base<BackendId, StrategyType> base_t;
+        typedef backend_base<BackendId, enumtype::icosahedral, StrategyType> base_t;
 
         using typename base_t::backend_traits_t;
         using typename base_t::strategy_traits_t;
@@ -42,11 +43,17 @@ namespace gridtools {
 
         //TODO storage and meta_storage have to be moved to backend_traits_from_id, that has to be templated with grid
         template <typename LocationType>
-        using meta_storage_t = typename backend_base<BackendId, StrategyType>::template
+        using meta_storage_t = typename base_t::template
             storage_info<LocationType::value, layout_map<0,1,2,3> >;
 
         template <typename LocationType, typename ValueType>
-        using storage_t = storage< base_storage< typename base_t::backend_traits_t::pointer<ValueType>::type, meta_storage_t<LocationType>, 1> >;
+        using storage_t = storage<
+            base_storage<
+                typename base_t::backend_traits_t::template pointer<ValueType>::type,
+                meta_storage_t<LocationType>,
+                1
+            >
+        >;
 
     };
 } // namespace gridtools

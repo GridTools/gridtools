@@ -218,14 +218,14 @@ struct iterate_domain {
 
     typedef typename iterate_domain_arguments_t::processing_elements_block_size_t processing_elements_block_size_t;
 
-    typedef typename iterate_domain_arguments_t::backend_id_t backend_id_t;
+    typedef typename iterate_domain_arguments_t::backend_ids_t backend_ids_t;
     typedef typename iterate_domain_arguments_t::grid_t::grid_topology_t grid_topology_t;
     typedef typename iterate_domain_arguments_t::esf_sequence_t esf_sequence_t;
     typedef typename extract_location_type<esf_sequence_t>::type location_type_t;
 
     typedef typename local_domain_t::esf_args esf_args_t;
 
-    typedef typename backend_traits_from_id< backend_id_t::value >::
+    typedef typename backend_traits_from_id< backend_ids_t::s_backend_id >::
             template select_iterate_domain_cache<iterate_domain_arguments_t>::type iterate_domain_cache_t;
 
     typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;

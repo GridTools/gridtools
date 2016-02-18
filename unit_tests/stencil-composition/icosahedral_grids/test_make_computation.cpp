@@ -23,7 +23,7 @@ using namespace gridtools;
 namespace make_computation_test{
 
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
-    using backend_t = backend<enumtype::Host, enumtype::Block >;
+    using backend_t = backend<enumtype::Host, enumtype::icosahedral, enumtype::Block >;
     using icosahedral_topology_t = gridtools::icosahedral_topology<backend_t>;
 
     struct test_functor {

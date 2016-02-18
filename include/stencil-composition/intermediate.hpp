@@ -191,11 +191,6 @@ namespace gridtools {
                 : prefix(s)
             {}
 
-            template <int_t I, int_t J, int_t K, int_t L, int_t M, int_t N>
-            void operator()(extent<I,J,K,L,M,N> const&) const {
-                std::cout << prefix << extent<I,J,K,L,M,N>() << std::endl;
-            }
-
             template <typename MplVector>
             void operator()(MplVector const&) const {
                 // std::cout << "Independent" << std::endl;

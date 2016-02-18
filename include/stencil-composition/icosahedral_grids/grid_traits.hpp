@@ -7,7 +7,7 @@
 namespace gridtools {
 
     template <>
-    struct grid_traits_from_id< icosahedral > {
+    struct grid_traits_from_id< enumtype::icosahedral > {
         struct select_mss_compute_extent_sizes {
             typedef boost::mpl::quote1< icgrid::mss_compute_extent_sizes > type;
         };
@@ -16,7 +16,7 @@ namespace gridtools {
 
         template < enumtype::platform BackendId >
         struct with_arch {
-            typedef icgrid::grid_traits< BackendId > type;
+            typedef icgrid::grid_traits_arch< BackendId > type;
         };
     };
 }

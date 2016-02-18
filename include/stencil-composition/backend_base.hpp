@@ -54,14 +54,14 @@ namespace gridtools {
         struct get_storage_type {
             template <typename MapElem>
             struct apply {
-                typedef typename boost::mpl::second<MapElem>::type extent_type;
+                typedef typename boost::mpl::second<MapElem>::type extent_t;
                 typedef typename boost::mpl::first<MapElem>::type temporary;
 
                 typedef pair_type<
                 typename StrategyTraits::template get_tmp_storage<
                     typename temporary::storage_type
-                    , tile<BI, -extent_type::iminus::value, extent_type::iplus::value>
-                    , tile<BJ, -extent_type::jminus::value, extent_type::jplus::value>
+                    , tile<BI, -extent_t::iminus::value, extent_t::iplus::value>
+                    , tile<BJ, -extent_t::jminus::value, extent_t::jplus::value>
                     >::type
                     , typename temporary::index_type
                     >

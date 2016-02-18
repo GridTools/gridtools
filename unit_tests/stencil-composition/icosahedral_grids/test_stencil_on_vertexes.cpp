@@ -9,7 +9,7 @@ using namespace enumtype;
 
 namespace vs_test{
 
-    using backend_t = ::gridtools::backend<Host, Naive >;
+    using backend_t = ::gridtools::backend<Host, icosahedral, Naive >;
     using icosahedral_topology_t = ::gridtools::icosahedral_topology<backend_t>;
 
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;

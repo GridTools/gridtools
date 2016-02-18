@@ -1,6 +1,8 @@
 #pragma once
 #include "stencil-composition/backend_host/iterate_domain_host.hpp"
 #include "stencil-composition/icosahedral_grids/esf_metafunctions.hpp"
+#include "../../iteration_policy.hpp"
+#include "../../execution_policy.hpp"
 
 namespace gridtools {
 
@@ -64,10 +66,6 @@ namespace gridtools {
                 //        #pragma omp critical
                 //        {
                 //TODOCOSUNA Extends in other grid have to become radius
-                std::cout << "I loop " << m_first_pos[0] <<"+"<< extent_t::iminus::value << " -> "
-                          << m_first_pos[0] <<"+"<< m_loop_size[0] <<"+"<< extent_t::iplus::value << "\n";
-                std::cout << "J loop " << m_first_pos[1] <<"+"<< extent_t::jminus::value << " -> "
-                          << m_first_pos[1] <<"+"<< m_loop_size[1] <<"+"<< extent_t::jplus::value << "\n";
                 //        std::cout<<"iminus::value: "<<extent_t::iminus::value<<std::endl;
                 //        std::cout<<"iplus::value: "<<extent_t::iplus::value<<std::endl;
                 //        std::cout<<"jminus::value: "<<extent_t::jminus::value<<std::endl;
@@ -98,11 +96,15 @@ namespace gridtools {
                 //reset the index
                 it_domain.set_index(0);
 
-                it_domain.template initialize<0>(m_first_pos[0] + extent_t::iminus::value, m_block_id[0]);
+                //TODO work on extending the loops using the extent
+//                it_domain.template initialize<0>(m_first_pos[0] + extent_t::iminus::value, m_block_id[0]);
+                it_domain.template initialize<0>(m_first_pos[0], m_block_id[0]);
+
                 //initialize color dim
 
                 it_domain.template initialize<1>(0);
-                it_domain.template initialize<2>(m_first_pos[1] + extent_t::jminus::value, m_block_id[1]);
+//                it_domain.template initialize<2>(m_first_pos[1] + extent_t::jminus::value, m_block_id[1]);
+                it_domain.template initialize<2>(m_first_pos[1], m_block_id[1]);
                 it_domain.template initialize<3>( m_grid.template value_at< typename iteration_policy_t::from >() );
 
 
