@@ -140,10 +140,7 @@ bool basic() {
     // Definition of the actual data fields that are used for input/output
 
     gridtools::BACKEND::storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
-    storage_type in(meta_);
-    in.allocate();
-    in.initialize(-1);
-    in.set_name("in");
+    storage_type in(meta_, 0., "in");
 
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {
@@ -256,11 +253,7 @@ bool predicate() {
     // Definition of the actual data fields that are used for input/output
 
     gridtools::BACKEND::storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
-    storage_type in(meta_);
-    in.allocate();
-    in.initialize(-1);
-    in.set_name("in");
-
+    storage_type in(meta_, -1, "in");
 
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {
@@ -374,10 +367,7 @@ bool twosurfaces() {
     // Definition of the actual data fields that are used for input/output
 
     gridtools::BACKEND::storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
-    storage_type in(meta_);
-    in.allocate();
-    in.initialize(-1);
-    in.set_name("in");
+    storage_type in(meta_, -1, "in");
 
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {
@@ -490,10 +480,7 @@ bool usingzero_1() {
     // Definition of the actual data fields that are used for input/output
 
     gridtools::BACKEND::storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
-    storage_type in(meta_);
-    in.allocate();
-    in.initialize(-1);
-    in.set_name("in");
+    storage_type in(meta_, -1, "in");
 
 
     for (uint_t i=0; i<d1; ++i) {
@@ -607,14 +594,8 @@ bool usingzero_2() {
     // Definition of the actual data fields that are used for input/output
 
     gridtools::BACKEND::storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
-    storage_type in(meta_);
-    in.allocate();
-    in.initialize(-1);
-    in.set_name("in");
-    storage_type out(meta_);
-    out.allocate();
-    out.initialize(-1);
-    out.set_name("out");
+    storage_type in(meta_, -1, "in");
+    storage_type out(meta_, -1, "out");
 
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {
@@ -753,14 +734,8 @@ bool usingvalue_2() {
     // Definition of the actual data fields that are used for input/output
 
     gridtools::BACKEND::storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
-    storage_type in(meta_);
-    in.allocate();
-    in.initialize(-1);
-    in.set_name("in");
-    storage_type out(meta_);
-    out.allocate();
-    out.initialize(-1);
-    out.set_name("out");
+    storage_type in(meta_, -1, "in");
+    storage_type out(meta_, -1, "out");
 
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {
@@ -898,18 +873,9 @@ bool usingcopy_3() {
     // Definition of the actual data fields that are used for input/output
 
     gridtools::BACKEND::storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
-    storage_type src(meta_);
-    src.allocate();
-    src.initialize(-1);
-    src.set_name("src");
-    storage_type one(meta_);
-    one.allocate();
-    one.initialize(-1);
-    one.set_name("one");
-    storage_type two(meta_);
-    two.allocate();
-    two.initialize(-1);
-    two.set_name("two");
+    storage_type src(meta_, -1, "src");
+    storage_type one(meta_, -1, "one");
+    storage_type two(meta_, -1, "two");
 
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {

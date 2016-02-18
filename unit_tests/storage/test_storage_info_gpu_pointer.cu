@@ -36,7 +36,9 @@ TEST(storage_info, test_pointer) {
         for(int j=0; j<12; ++j)
             for(int k=0; k<13; ++k)
                 if (st_(i,j,k) != (double)i+j+k)
+                {
                     ret=false;
+                }
 
     ASSERT_TRUE(ret);
 }

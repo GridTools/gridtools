@@ -148,7 +148,7 @@ namespace gridtools {
 
 
         /**@brief the parallel storage calls the empty constructor to do lazy initialization*/
-        base_storage(MetaData const & meta_data_, bool do_allocate=true) :
+        base_storage(MetaData const & meta_data_, char const* s="default uninitialized storage", bool do_allocate=true) :
             is_set( false )
             , m_name("default_storage")
             , m_meta_data(meta_data_)
@@ -171,26 +171,6 @@ namespace gridtools {
                 allocate( );
                 initialize(init, 1);
             }
-
-        /**@brief generic multidimensional constructor
-
-           There are two possible types of storage dimension. One (space dimension) defines the number of indexes
-           used to access a contiguous chunk of data. The other (field dimension) defines the number of pointers
-           to the data chunks (i.e. the number of snapshots) contained in the storage. This constructor
-           allows to create a storage with arbitrary space dimensions. The extra dimensions can be
-           used e.g. to perform extra inner loops, besides the standard ones on i,j and k.
-
-           The number of arguments must me equal to the space dimensions of the specific field (template parameter)
-        */
-        base_storage( MetaData const& meta_data_, char const* s// ="default storage"
-            ) :
-            is_set( true )
-            , m_name(s)
-            , m_meta_data(meta_data_)
-            {
-                allocate();
-            }
-
 
         /**@brief default constructor
            sets all the data members given the storage dimensions
@@ -226,7 +206,7 @@ namespace gridtools {
         }
 
         /**@brief device copy constructor*/
-        template<typename T, typename Cond>
+        template<typename T>
         __device__
         base_storage(T const& other, typename boost::enable_if<typename is_storage<T>::type, int>::type* =0)
             :
@@ -301,13 +281,6 @@ namespace gridtools {
         GT_FUNCTION
         void set_name(char const* const& string){
             m_name=string;
-        }
-
-        /** @brief copies the data field to the GPU */
-        GT_FUNCTION_WARNING
-        void copy_data_to_gpu() const {
-            for (uint_t i=0; i<field_dimensions; ++i)
-                m_fields[i].update_gpu();
         }
 
         static void text() {
@@ -479,6 +452,13 @@ namespace gridtools {
         /** @brief returns a const pointer to the data field*/
         GT_FUNCTION
         meta_data_t const& meta_data() const {return m_meta_data;}
+
+        /**
+           @brief API for compatibility with backends other than host
+           avoids the introduction of #ifdefs
+         */
+        void clone_to_device() {}
+
 
     };
 

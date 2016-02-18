@@ -40,8 +40,7 @@ namespace gridtools{
         */
         __device__
         meta_storage(meta_storage<BaseStorage> const& other)
-            :  super(other),
-               clonable_to_gpu<meta_storage<BaseStorage> >(other)
+            :  super(other)
         {}
 
 #if defined(CXX11_ENABLED)

@@ -144,8 +144,10 @@ namespace gridtools {
 
         void set(pointee_t const& value, uint_t const& index)
         {
-            cudaMemcpy(&m_pointer_to_use[index], &value, sizeof(pointee_t), cudaMemcpyHostToDevice);
-            m_up_to_date=false;
+            if(m_up_to_date){//do not copy if the last version is already on the device
+                cudaMemcpy(&m_pointer_to_use[index], &value, sizeof(pointee_t), cudaMemcpyHostToDevice);
+                m_up_to_date=false;
+            }
         }
 
         __host__ __device__
@@ -212,7 +214,9 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        T* get_gpu_p(){return m_gpu_p;};
+        T* get_gpu_p(){
+            assert(on_device());
+            return m_gpu_p;};
 
         GT_FUNCTION
         T* get_cpu_p(){
@@ -223,7 +227,10 @@ namespace gridtools {
         T* get_pointer_to_use(){return m_pointer_to_use;}
 
         GT_FUNCTION
-        pointee_t* get() const {return m_gpu_p;}
+        pointee_t* get() const {
+            assert(on_device());
+            return m_gpu_p;
+        }
 
         GT_FUNCTION
         int get_size(){return m_size;}
@@ -244,15 +251,27 @@ namespace gridtools {
         GT_FUNCTION
         void swap(hybrid_pointer& other){
             m_cpu_p.swap(other.m_cpu_p);
-            T* tmp = m_gpu_p;
+
+            {T* tmp = m_gpu_p;
             m_gpu_p = other.m_gpu_p;
-            other.m_gpu_p = tmp;
-            tmp = m_pointer_to_use;
+            other.m_gpu_p = tmp;}
+
+            {T* tmp2 = m_pointer_to_use;
             m_pointer_to_use = other.m_pointer_to_use;
-            other.m_pointer_to_use = tmp;
-            uint_t tmp_size = m_size;
+            other.m_pointer_to_use = tmp2;}
+
+            {uint_t tmp_size = m_size;
             m_size = other.m_size;
-            other.m_size = tmp_size;
+            other.m_size = tmp_size;}
+
+            {bool tmp_allocated = m_allocated;
+            m_allocated = other.m_allocated;
+            other.m_allocated = tmp_allocated;}
+
+            {bool tmp_up_to_date = m_up_to_date;
+            m_up_to_date = other.m_up_to_date;
+            other.m_up_to_date = tmp_up_to_date;}
+
         }
 
         void reset(T* cpu_p){m_cpu_p.reset(cpu_p);}
@@ -268,6 +287,8 @@ namespace gridtools {
             m_cpu_p.set_externally_managed(other.is_externally_managed());
             m_pointer_to_use =other.m_pointer_to_use;
             m_size = other.m_size;
+            m_allocated = other.m_allocated;
+            m_up_to_date = other.m_up_to_date;
         }
     private:
         /** disable equal operator and constructor from raw pointer*/

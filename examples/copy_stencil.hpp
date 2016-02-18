@@ -153,6 +153,7 @@ namespace copy_stencil{
 
 #ifdef __CUDACC__
         out.d2h_update();
+        in.d2h_update();
 #endif
 
         bool success = true;

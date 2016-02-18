@@ -136,6 +136,9 @@ else
     STRUCTURED_GRIDS="OFF"
 fi
 
+echo "Printing ENV"
+env
+
 cmake \
 -DBoost_NO_BOOST_CMAKE="true" \
 -DCUDA_NVCC_FLAGS:STRING="--relaxed-constexpr" \

@@ -211,9 +211,9 @@ bool test_domain() {
 #endif
     domain.finalize_computation();
 
-    coeff.data().update_cpu();
-    in.data().update_cpu();
-    out.data().update_cpu();
+    coeff.d2h_update();
+    in.d2h_update();
+    out.d2h_update();
 
     boost::fusion::copy(domain.m_storage_pointers, actual_arg_list);
 
@@ -238,9 +238,9 @@ bool test_domain() {
 
     domain.finalize_computation();
 
-    coeff.data().update_cpu();
-    in.data().update_cpu();
-    out.data().update_cpu();
+    coeff.d2h_update();
+    in.d2h_update();
+    out.d2h_update();
 
     cudaFree(arg_list_device_ptr);
 

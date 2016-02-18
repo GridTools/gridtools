@@ -25,25 +25,70 @@ namespace gridtools{
         static const ushort_t space_dimensions = basic_type::space_dimensions;
     private:
         typename super::meta_data_t const* m_device_storage_info;
+        bool m_on_host;
+
+        /**@brief change the storage state to host
+
+           do nothing if the storage is already in host stage
+         */
+        GT_FUNCTION
+        void on_host(){
+            if(!m_on_host){
+                m_device_storage_info = (&this->meta_data());
+                m_on_host = true;
+            }
+        }
+
+        /**@brief change the storage state to device
+
+           do nothing if the storage is already in device stage
+         */
+        GT_FUNCTION
+        void on_device(){
+            if(m_on_host){
+                m_device_storage_info = this->m_meta_data.device_pointer();
+                m_on_host = false;
+            }
+        }
+
     public:
 
+        /**@brief calls the device copy constructor to update the device copy of the storage object.
+
+           Such copy constructor is not supposed to copy the storage data. A shallow copy is made of the pointers
+           contained in the m_fields data member. For this reason the call to clone_to_gpu has as side-effect a small kernel launch, but
+           it is not a costly transfer from the host to the device.
+        */
         void clone_to_device() {
-            //storage_info has to be cloned first
             assert(m_device_storage_info);
-            m_device_storage_info = m_device_storage_info->device_pointer();
+            assert(m_device_storage_info->device_pointer());
+
+            on_device();
             clonable_to_gpu<storage<BaseStorage> >::clone_to_device();
         }
 
         /** @brief updates the CPU pointer */
         void d2h_update(){
             super::d2h_update();
-            m_device_storage_info = (&this->meta_data());
+            on_host();
         }
 
+        /** @brief updates the CPU pointer */
+        void h2d_update(){
+                super::h2d_update();
+                on_device();
+        }
+
+        /**@brief device copy constructor
+
+           used by clone_to_device, to copy the object to the device (see \ref gridtools::clonable_to_gpu)
+           NOTE: the actual raw data of the storage is not copied, a shallow copy is made for the pointers in the m_fields data member.
+         */
         __device__
         storage(storage const& other)
             :  super(other)
             , m_device_storage_info(other.m_device_storage_info)
+            , m_on_host(false)
         {}
 
         GT_FUNCTION
@@ -58,6 +103,7 @@ namespace gridtools{
                            , ExtraArgs const& ... args )
             :super(meta_data_, args ...)
             , m_device_storage_info(&meta_data_)
+            , m_on_host(true)
         {
         }
 #else
@@ -66,15 +112,16 @@ namespace gridtools{
         explicit storage(  typename basic_type::meta_data_t const& meta_data_, T const& arg1 )
             :super(meta_data_, arg1)
             , m_device_storage_info(meta_data_.device_pointer())
-            {
-            }
+            , m_on_host(true)
+        {
+        }
 
 
         template <class T, class U>
         explicit storage(  typename basic_type::meta_data_t const& meta_data_, T const& arg1, U const& arg2 )
             :super(meta_data_, (value_type) arg1, arg2)
             , m_device_storage_info(meta_data_.device_pointer())
-
+            , m_on_host(true)
         {
         }
 
@@ -82,6 +129,7 @@ namespace gridtools{
         explicit storage(  typename basic_type::meta_data_t const& meta_data_, T * arg1, U const& arg2 )
             :super(meta_data_, (value_type)* arg1, arg2)
             , m_device_storage_info(meta_data_.device_pointer())
+            , m_on_host(true)
         {
         }
 
@@ -104,7 +152,12 @@ namespace gridtools{
         GT_FUNCTION
         value_type& operator()(UInt const& ... dims) {
             //failure here means that you didn't call clone_to_device on the storage_info yet
-            // assert(m_device_storage_info);
+#ifdef CUDA_ARCH
+            assert(!m_on_host);
+#else
+            assert(m_on_host);
+#endif
+            assert(m_device_storage_info);
             return super::operator()(m_device_storage_info, dims...);
         }
 
@@ -116,7 +169,12 @@ namespace gridtools{
         GT_FUNCTION
         value_type const & operator()(UInt const& ... dims) const {
             //failure here means that you didn't call clone_to_device on the storage_info yet
-            //assert(m_device_storage_info);
+#ifdef CUDA_ARCH
+            assert(!m_on_host);
+#else
+            assert(m_on_host);
+#endif
+            assert(m_device_storage_info);
             return super::operator()(m_device_storage_info, dims...);
         }
 #else //CXX11_ENABLED
@@ -245,14 +303,19 @@ namespace gridtools{
         return s;
     }
 
-#ifdef CXX11_ENABLED
-    template<typename T>
-    struct is_storage : boost::mpl::or_<
-        is_data_field<T>
-        , is_storage_list<T> >{};
-#else
     template<typename T>
     struct is_storage : boost::mpl::false_{};
+
+#ifdef CXX11_ENABLED
+    template <typename T>
+    struct is_storage_list;
+
+    template<typename T, uint_t U>
+    struct is_storage<storage_list<T, U> > : boost::mpl::true_{};
+
+    template<typename ... T>
+    struct is_storage<data_field<T ...> > : boost::mpl::true_{};
+
 #endif
 
     template<typename T>

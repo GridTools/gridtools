@@ -111,11 +111,12 @@ namespace gridtools{
             GT_FUNCTION
             static void apply(Storage& storage_){
                 GRIDTOOLS_STATIC_ASSERT(is_data_field<Storage>::value,
-                                        "\"swap\" can only be called with instanced of type \"data_field\" ");
+                                        "\"swap\" can only be called with instances of type \"data_field\" ");
                 typename Storage::pointer_type tmp=storage_.template get<SnapshotFrom, DimFrom>();
                 storage_.template get<SnapshotFrom, DimFrom>()=
                     storage_.template get<SnapshotTo, DimTo>();
                 storage_.template get<SnapshotTo, DimTo>()=tmp;
+                storage_.clone_to_device();
             }
         };
     };
