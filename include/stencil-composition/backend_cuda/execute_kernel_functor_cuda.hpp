@@ -252,7 +252,7 @@ struct execute_kernel_functor_cuda
         //re-create the run functor arguments, replacing the processing elements block size
         // with the corresponding, recently computed, block size
         typedef run_functor_arguments<
-            RunFunctorArguments::backend_id_t::value,
+            typename RunFunctorArguments::backend_ids_t,
             cuda_block_size_t,
             typename RunFunctorArguments::physical_domain_block_size_t,
             typename RunFunctorArguments::functor_list_t,
@@ -265,8 +265,7 @@ struct execute_kernel_functor_cuda
             typename RunFunctorArguments::cache_sequence_t,
             typename RunFunctorArguments::async_esf_map_t,
             typename RunFunctorArguments::grid_t,
-            typename RunFunctorArguments::execution_type_t,
-            RunFunctorArguments::s_strategy_id
+            typename RunFunctorArguments::execution_type_t
         > run_functor_arguments_cuda_t;
 
 #ifdef VERBOSE

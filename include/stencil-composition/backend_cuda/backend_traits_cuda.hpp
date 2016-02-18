@@ -129,10 +129,8 @@ namespace gridtools{
         /**
          * @brief main execution of a mss.
          * @tparam RunFunctorArgs run functor arguments
-         * @tparam StrategyId id of the strategy (ignored for the CUDA backend as for the moment there is only one way
-         *     scheduling the work)
          */
-        template<typename RunFunctorArgs, enumtype::strategy StrategyId>
+        template<typename RunFunctorArgs>
         struct mss_loop
         {
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), "Internal Error: wrong type");
