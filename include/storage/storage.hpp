@@ -308,18 +308,11 @@ namespace gridtools{
         return s;
     }
 
-#ifdef CXX11_ENABLED
-
     template <typename T>
-    struct is_storage_list;
+    struct is_storage : boost::mpl::false_{};
 
     template<typename T>
-    struct is_storage : boost::mpl::or_<
-        is_data_field<T>
-        , is_storage_list<T> >{};
-#else
-    template<typename T>
-    struct is_storage : boost::mpl::false_{};
+    struct is_storage<storage<T> > : boost::mpl::true_{};
 
 #ifdef CXX11_ENABLED
     template <typename T>
@@ -332,9 +325,6 @@ namespace gridtools{
     struct is_storage<data_field<T ...> > : boost::mpl::true_{};
 
 #endif
-
-    template<typename T>
-    struct is_storage<storage<T> > : boost::mpl::true_{};
 
     template < typename PointerType, typename MetaData, ushort_t FieldDimension >
     struct is_storage<base_storage<PointerType, MetaData, FieldDimension> > : boost::mpl::true_{};

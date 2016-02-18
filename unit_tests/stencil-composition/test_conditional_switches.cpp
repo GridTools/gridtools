@@ -21,17 +21,17 @@ namespace test_conditional_switches{
     template<uint_t Id>
     struct functor{
 
-        typedef accessor<0> p_dummy;
+        typedef accessor<0, enumtype::inout> p_dummy;
         typedef boost::mpl::vector1<p_dummy> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            printf("%d\n", Id);
+            eval(p_dummy())+=Id;
         }
     };
 
-    int test(){
+    bool test(){
 
         switch_variable<0,int> cond(0);
         switch_variable<0,int> new_cond(5);
@@ -124,18 +124,26 @@ namespace test_conditional_switches{
                 , make_esf<functor<400> >( p_dummy() ))
             );
 
+        bool result=true;
+
         comp_->ready();
         comp_->steady();
         comp_->run();
-        std::cout<<"\n\n\n";
+#ifdef __CUDACC__
+        dummy.d2h_update();
+#endif
+        result = result && (dummy(0,0,0)==421);
+
         reset_conditional(cond, new_cond);
         reset_conditional(other_cond_, new_other_cond_);
         comp_->run();
         comp_->finalize();
-        return 0;
+        result = result && (dummy(0,0,0)==2831);
+
+        return result;
     }
 }//namespace test_conditional
 
 TEST(stencil_composition, conditional_switch){
-    test_conditional_switches::test();
+    EXPECT_TRUE(test_conditional_switches::test());
 }

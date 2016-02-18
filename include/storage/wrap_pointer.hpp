@@ -88,6 +88,11 @@ struct wrap_pointer{
     }//\todo find a way to remove this method
 
     GT_FUNCTION
+    void update_cpu() {
+        assert(false);
+    }//\todo find a way to remove this method
+
+    GT_FUNCTION
     wrap_pointer(uint_t size, bool externally_managed=false): m_externally_managed(externally_managed) {
         allocate_it(size);
 #ifdef VERBOSE

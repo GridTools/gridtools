@@ -18,34 +18,23 @@ namespace test_conditionals{
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
-    struct functor1{
+    template<uint_t Id>
+    struct functor{
 
-        typedef accessor<0> p_dummy;
+        typedef accessor<0, enumtype::inout> p_dummy;
         typedef boost::mpl::vector1<p_dummy> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            printf("1\n");
+            eval(p_dummy())=+Id;
         }
     };
 
-    struct functor2{
+    bool test(){
 
-        typedef accessor<0> p_dummy;
-        typedef boost::mpl::vector1<p_dummy> arg_list;
-
-        template <typename Evaluation>
-        GT_FUNCTION
-        static void Do(Evaluation const & eval, x_interval) {
-            printf("2\n");
-        }
-    };
-
-    int test(){
-
-        conditional<0> cond(3>5);
-        conditional<1> cond2(4<5);
+        conditional<0> cond(false);
+        conditional<1> cond2(true);
 
         grid<axis> grid_({0,0,0,1,2},{0,0,0,1,2});
         grid_.value_list[0] = 0;
@@ -67,26 +56,28 @@ namespace test_conditionals{
                 ,
                 make_mss(
                     enumtype::execute<enumtype::forward>()
-                    , make_esf<functor2>( p_dummy() ))
+                    , make_esf<functor<0> >( p_dummy() ))
                 , if_( cond2
                        , make_mss(
                            enumtype::execute<enumtype::forward>()
-                           , make_esf<functor1>( p_dummy() ))
+                           , make_esf<functor<1> >( p_dummy() ))
                        , make_mss(
                            enumtype::execute<enumtype::forward>()
-                           , make_esf<functor2>( p_dummy() ))
+                           , make_esf<functor<2> >( p_dummy() ))
                     )
                 )
             );
 
+        bool result=true;
         comp_->ready();
         comp_->steady();
         comp_->run();
         comp_->finalize();
-        return 0;
+        result = result && (dummy(0,0,0)==1);
+        return result;
     }
 }//namespace test_conditional
 
 TEST(stencil_composition, conditionals){
-    test_conditionals::test();
+    EXPECT_TRUE(test_conditionals::test());
 }

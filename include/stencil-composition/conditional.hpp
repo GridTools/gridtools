@@ -36,7 +36,12 @@ namespace gridtools{
         {}
 
         /**@brief returns the boolean condition*/
-        bool value() const {
+        bool const& value() const {
+            return m_value;
+        }
+
+        /**@brief returns the boolean condition*/
+        bool& value() {
             return m_value;
         }
     };

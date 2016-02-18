@@ -109,7 +109,7 @@ struct build_mss_components_array
 
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename mss_array_t::elements>::value ==
         boost::mpl::size<extent_sizes_unrolled_t>::value
-                                ), "Internal Error: wrong size");
+                                ), "wrong size of the arg_type vector defined inside at least one of the user functions");
 
     typedef meta_array<
         typename boost::mpl::fold<
