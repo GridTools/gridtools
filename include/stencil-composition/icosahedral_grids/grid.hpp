@@ -21,6 +21,7 @@ namespace gridtools {
             grid_cg<Axis>(i,j), m_grid_topology(grid_topology)
         {}
 
+        GT_FUNCTION
         GridTopology const & grid_topology() const {
             return m_grid_topology;
         }

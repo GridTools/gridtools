@@ -18,6 +18,8 @@ class iterate_domain_cuda : public IterateDomainBase<iterate_domain_cuda<Iterate
 
     typedef IterateDomainBase<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> > super;
     typedef typename IterateDomainArguments::local_domain_t local_domain_t;
+    typedef typename super::grid_topology_t grid_topology_t;
+
     typedef typename local_domain_t::esf_args local_domain_args_t;
 public:
 
@@ -34,8 +36,8 @@ private:
     typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
     typedef typename iterate_domain_cache_t::bypass_caches_set_t bypass_caches_set_t;
 
-    using super::get_value;
-    using super::get_data_pointer;
+//    using super::get_value;
+//    using super::get_data_pointer;
 
 private:
     const uint_t m_block_size_i;
@@ -44,8 +46,9 @@ private:
 
 public:
     GT_FUNCTION
-    explicit iterate_domain_cuda(local_domain_t const& local_domain, const uint_t block_size_i, const uint_t block_size_j)
-        : super(local_domain), m_block_size_i(block_size_i), m_block_size_j(block_size_j) {}
+    explicit iterate_domain_cuda(local_domain_t const& local_domain, grid_topology_t const& grid_topology,
+                                 const uint_t block_size_i, const uint_t block_size_j)
+        : super(local_domain, grid_topology), m_block_size_i(block_size_i), m_block_size_j(block_size_j) {}
 
     GT_FUNCTION
     uint_t thread_position_x() const
