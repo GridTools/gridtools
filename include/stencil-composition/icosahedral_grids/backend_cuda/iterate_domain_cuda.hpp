@@ -70,8 +70,8 @@ public:
     GT_FUNCTION
     bool is_thread_in_domain() const
     {
-        return (m_thread_pos[0] >= Extent::iminus::value && m_thread_pos[0] < ((int)m_block_size_i +Extent::iplus::value) &&
-            m_thread_pos[1] >= Extent::jminus::value && m_thread_pos[1] < ((int)m_block_size_j +Extent::jplus::value) );
+        return (m_thread_pos[0] >= -Extent::value && m_thread_pos[0] < ((int)m_block_size_i + Extent::value) &&
+            m_thread_pos[1] >= -Extent::value && m_thread_pos[1] < ((int)m_block_size_j +Extent::value) );
     }
 
     GT_FUNCTION
