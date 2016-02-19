@@ -16,7 +16,7 @@
         template<typename ConditionalsSet, typename First, typename Second, \
                  BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename MssType) \
                  > \
-        static void apply(ConditionalsSet& set_, First const& first_, Second second_, \
+        static void apply(ConditionalsSet& set_, First first_, Second second_, \
                           BOOST_PP_ENUM(BOOST_PP_INC(n), _PAIR_, Mss) \
             ){ \
             boost::fusion::at_key<typename First::index_t>(set_)=first_.value(); \
@@ -32,7 +32,7 @@
         template<typename ConditionalsSet, typename First, typename Second, \
                  BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename MssType) \
                  > \
-        static void apply(ConditionalsSet& set_, First const& first_, Second second_, \
+        static void apply(ConditionalsSet& set_, First first_, Second second_, \
                           BOOST_PP_ENUM(BOOST_PP_INC(n), _PAIR_, Mss) \
             ){ \
             fill_conditionals_set< typename is_condition<Second>::type >::apply(set_, second_ \
@@ -46,7 +46,7 @@
      */
 #define _FILL_CONDITIONALS_(z,n,nil) \
     template<typename ConditionalsSet, typename First, BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename MssType)> \
-    static void fill_conditionals(ConditionalsSet& set_, First const& first_, BOOST_PP_ENUM(BOOST_PP_INC(n), _PAIR_CONST_REF_, Mss)){ \
+    static void fill_conditionals(ConditionalsSet& set_, First first_, BOOST_PP_ENUM(BOOST_PP_INC(n), _PAIR_CONST_REF_, Mss)){ \
         fill_conditionals_set<typename boost::mpl::has_key<ConditionalsSet, typename if_condition_extract_index_t<First>::type>::type >::apply(set_, first_, BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssValue)); \
         fill_conditionals(set_, BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssValue)); \
     }
@@ -88,7 +88,7 @@ namespace gridtools{
 
         /**recursion anchor*/
         template<typename ConditionalsSet, typename First>
-        static void apply(ConditionalsSet& set_, First const& first_){
+        static void apply(ConditionalsSet& set_, First first_){
 
             //if(is_conditional<First>::value)
             boost::fusion::at_key<typename First::index_t>(set_) = first_.value();
@@ -98,6 +98,21 @@ namespace gridtools{
             fill_conditionals_set< typename is_condition<typename First::second_t>::type >::apply(set_, first_.second());
 
         }
+
+        /**recursion anchor*/
+        template<typename ConditionalsSet, typename First, typename Second>
+        static void apply(ConditionalsSet& set_, First first_, Second second_){
+
+            //if(is_conditional<First>::value)
+            boost::fusion::at_key<typename First::index_t>(set_) = first_.value();
+
+            /*binary subtree traversal*/
+            fill_conditionals_set< typename is_condition<typename First::first_t>::type >::apply(set_, first_.first());
+            fill_conditionals_set< typename is_condition<typename First::second_t>::type >::apply(set_, first_.second());
+
+            fill_conditionals_set< typename is_condition<Second>::type >::apply(set_, second_ );  \
+        }
+
     };
 
 
@@ -113,7 +128,14 @@ namespace gridtools{
 
         /**recursion anchor*/
         template<typename ConditionalsSet, typename First>
-        static void apply(ConditionalsSet& set_, First const& first_){
+        static void apply(ConditionalsSet& set_, First first_){
+        }
+
+        /**recursion anchor*/
+        template<typename ConditionalsSet, typename First, typename Second>
+        static void apply(ConditionalsSet& set_, First first_, Second second_){
+
+            fill_conditionals_set< typename is_condition<Second>::type >::apply(set_, second_ );  \
         }
 
     };
