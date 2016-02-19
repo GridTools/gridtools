@@ -32,10 +32,11 @@
 
 //conditional selection of stencils to be executed
 //#define pt3
+#define pt5
 //#define pt7
 //#define pt7_var
 //#define pt25
-#define pt25_var
+//#define pt25_var
 //#define pt25_t2
  
 using gridtools::level;
@@ -52,8 +53,12 @@ using namespace expressions;
 // This is the definition of the special regions in the "vertical" direction
 // The K dimension can be split into logical splitters. They lie in between array elements.
 // A level represent an element on the third coordinate, such that level<2,1> represent
-// the array index ofllowing splitter<2>, while lavel<2,-1> represents the array value
-// before splitter<2>.
+// the array index following splitter<2>, while level<2,-1> represents the array value
+// before splitter<2>. Absolute placement of splitters is determined by
+// uint_t di[5] = {0, 0, 0, d1-1, d1};
+// uint_t dj[5] = {0, 0, 0, d2-1, d2};
+// gridtools::coordinates<axis> coords(di, dj);
+// coords.value_list[0] = 0; //absolute position of level<0,-1>
 typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
 typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 
@@ -66,7 +71,22 @@ struct d1point3{
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_interval) {
-        dom(out()) = 3.0*dom(in()) - 1.0/3.0 * (dom(in(x(-1)))+dom(in(x(+1))));
+        dom(out()) = 3.0 * dom(in())
+                     - 0.3333 * (dom(in(x(-1))) + dom(in(x(+1))));
+    }
+};
+
+struct d2point5{
+    typedef accessor<0> out;
+    typedef const accessor<1, range<-1,1,-1,1> > in; // access four neighbours
+    typedef boost::mpl::vector<out, in> arg_list;
+
+    template <typename Domain>
+    GT_FUNCTION
+    static void Do(Domain const & dom, x_interval){
+        dom(out()) = 4.0 * dom(in())
+                     - 0.25 * (dom(in(x(-1))) + dom(in(x(1))))
+                     - 0.25 * (dom(in(y(-1))) + dom(in(y(1))));
     }
 };
 
@@ -218,14 +238,21 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     //--------------------------------------------------------------------------
     // Definition of the actual data fields that are used for input/output
 #ifdef pt3
-    //3pt stencil
-    storage_type out3pt(d1,1,1,1., "domain3pt_out");
+    //3pt 1D stencil
+    storage_type out3pt(d1,1,1,1., "domain3pt_out"); //initial value set to 1.0
     storage_type in3pt(d1,1,1,1., "domain3pt_in");
     storage_type *ptr_in3pt = &in3pt, *ptr_out3pt = &out3pt;
 #endif
 
+#ifdef pt5
+    //5pt 2D stencil
+    storage_type out5pt(d1,d2,1,1.,"domain5pt_out"); //initial value set to 1.0
+    storage_type in5pt(d1,d2,1,1.,"domain5pt_in");
+    storage_type *ptr_in5pt = &in5pt, *ptr_out5pt = &out5pt;
+#endif    
+
 #ifdef pt7
-    //7pt stencil with symmetry
+    //7pt 3D stencil with symmetry
     storage_type out7pt(d1,d2,d3,1., "domain7pt_out");
     storage_type in7pt(d1,d2,d3,1., "domain7pt_in");
     storage_type *ptr_in7pt = &in7pt, *ptr_out7pt = &out7pt;
@@ -294,7 +321,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     typedef arg<0, storage_type > p_out; //domain
     typedef arg<1, storage_type > p_in;
     typedef arg<2, storage_type > p_in_old;
-    typedef arg<2, coeff_type > p_coeff;
+    typedef arg<2, coeff_type >   p_coeff;
     typedef arg<3, storage_type > p_alpha;
 
     // An array of placeholders to be passed to the domain
@@ -307,24 +334,30 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
     // while the vertical ones are set according the the axis property soon after
-    uint_t dii[5] = {0, 0, 1, d1-2, d1};
-    uint_t djj[5] = {0, 0, 0, 0, 1};
-    gridtools::coordinates<axis> coords1d3pt(dii, djj);
+    uint_t di1d[5] = {0, 0, 1, d1-2, d1};
+    uint_t dj1d[5] = {0, 0, 0, 0, 1};
+    gridtools::coordinates<axis> coords1d3pt(di1d, dj1d);
     coords1d3pt.value_list[0] = 0; //specifying index of the splitter<0,-1>
     coords1d3pt.value_list[1] = 0; //specifying index of the splitter<1,-1>
 
+    uint_t di2d[5] = {0, 0, 1, d1-2, d1};
+    uint_t dj2d[5] = {0, 0, 1, d2-2, d2};
+    gridtools::coordinates<axis> coords2d5pt(di2d, dj2d);
+    coords2d5pt.value_list[0] = 1; //specifying index of the splitter<0,-1>
+    coords2d5pt.value_list[1] = 1; //specifying index of the splitter<1,-1>
+
+
     //Informs the library that the iteration space in the first two dimensions
     //is from 1 to d1-2 (included) in I (or x) direction
-    uint_t di[5] = {0, 0, 1, d1-2, d1};
+    uint_t di3d[5] = {0, 0, 1, d1-2, d1};
     //and 1 to d2-2 on J (or y) direction
-    uint_t dj[5] = {0, 0, 1, d2-2, d2};
-    gridtools::coordinates<axis> coords3d7pt(di, dj);
+    uint_t dj3d[5] = {0, 0, 1, d2-2, d2};
+    gridtools::coordinates<axis> coords3d7pt(di3d, dj3d);
     coords3d7pt.value_list[0] = 1; //specifying index of the splitter<0,-1>
     coords3d7pt.value_list[1] = d3-2; //specifying index of the splitter<1,-1>
 
     //domain for 25pt stencil
     uint_t di25[5] = {0, 0, 4, d1-5, d1};
-    //and and 0 to 0 on J (or y) direction
     uint_t dj25[5] = {0, 0, 4, d2-5, d2};
     gridtools::coordinates<axis> coords3d25pt(di25, dj25);
     coords3d25pt.value_list[0] = 4; //specifying index of the splitter<0,-1>
@@ -345,7 +378,6 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     boost::timer::cpu_times lapse_time1run = {0,0,0};
     boost::timer::cpu_timer time1;
 
-    //TODO: exclude ready, steady,finalize from time measurement (only run)
     for(int i=0; i<TIME_STEPS; i++){
 
         // construction of the domain
@@ -397,12 +429,67 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     std::cout << "TIME d1point3 MFLOPS: " << MFLOPS(5,d1,d2,d3,nt,lapse_time1run.wall) << std::endl << std::endl;
 #endif
 //------------------------------------------------------------------------------
+#ifdef pt5
+    //start timer
+    boost::timer::cpu_times lapse_time11run = {0,0,0};
+    boost::timer::cpu_timer time11;
+
+    for(int i=0; i<TIME_STEPS; i++){
+
+        // construction of the domain
+        gridtools::domain_type<accessor_list> domain2d
+            (boost::fusion::make_vector(ptr_out5pt, ptr_in5pt));
+
+        //instantiate stencil
+        #ifdef __CUDACC__
+            gridtools::computation* stencil_step_11 =
+        #else
+                boost::shared_ptr<gridtools::computation> stencil_step_11 =
+        #endif
+              gridtools::make_computation<gridtools::BACKEND, layout_t>
+                (
+                    gridtools::make_mss // mss_descriptor
+                    (
+                        execute<forward>(),
+                        gridtools::make_esf<d2point5>(p_out(), p_in()) // esf_descriptor
+                        ),
+                    domain2d, coords2d5pt
+                    );
+
+        //prepare and run single step of stencil computation
+        stencil_step_11->ready();
+        stencil_step_11->steady();
+
+        boost::timer::cpu_timer time11run;
+        stencil_step_11->run();
+        lapse_time11run = lapse_time11run + time11run.elapsed();
+        
+        stencil_step_11->finalize();
+
+        //swap input and output fields
+        storage_type* tmp = ptr_out5pt;
+        ptr_out5pt = ptr_in5pt;
+        ptr_in5pt = tmp;
+    }
+
+    boost::timer::cpu_times lapse_time11 = time11.elapsed();
+    
+
+#ifdef DEBUG
+    printf("Print domain A after computation\n");
+    TIME_STEPS % 2 == 0 ? in5pt.print() : out5pt.print();
+#endif
+ 
+    std::cout << "TIME d2point5 TOTAL: " << boost::timer::format(lapse_time11);
+    std::cout << "TIME d2point5 RUN:" << boost::timer::format(lapse_time11run);
+    std::cout << "TIME d2point5 MFLOPS: " << MFLOPS(7,d1,d2,d3,nt,lapse_time11run.wall) << std::endl << std::endl;
+#endif
+//------------------------------------------------------------------------------
 #ifdef pt7   
     //start timer
     boost::timer::cpu_times lapse_time2run = {0,0,0};
     boost::timer::cpu_timer time2;
 
-    //TODO: exclude ready, steady,finalize from time measurement (only run)
     for(int i=0; i < TIME_STEPS; i++) {
 
         // construction of the domain.
@@ -460,7 +547,6 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     boost::timer::cpu_times lapse_time3run = {0,0,0};
     boost::timer::cpu_timer time3;
 
-    //TODO: exclude ready, steady,finalize from time measurement (only run)
     for(int i=0; i < TIME_STEPS; i++) {
 
         // construction of the domain.
@@ -516,7 +602,6 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     boost::timer::cpu_times lapse_time40run = {0,0,0};
     boost::timer::cpu_timer time40;
 
-    //TODO: exclude ready, steady,finalize from time measurement (only run)
     for(int i=0; i < TIME_STEPS; i++) {
 
         // construction of the domain.
@@ -572,7 +657,6 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     boost::timer::cpu_times lapse_time41run = {0,0,0};
     boost::timer::cpu_timer time41;
 
-    //TODO: exclude ready, steady,finalize from time measurement (only run)
     for(int i=0; i < TIME_STEPS; i++) {
 
         // construction of the domain.
@@ -629,7 +713,6 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     boost::timer::cpu_times lapse_time5run = {0,0,0};
     boost::timer::cpu_timer time5;
 
-    //TODO: exclude ready, steady,finalize from time measurement (only run)
     for(int i=0; i < TIME_STEPS; i++) {
 
         // construction of the domain.
