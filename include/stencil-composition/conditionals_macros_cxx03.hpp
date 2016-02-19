@@ -153,8 +153,8 @@ namespace gridtools {
     _POINTER_ make_computation_impl (
         Domain& domain,
         Grid const& grid,
-        Mss2 mss1_,
-        Mss1 mss2_
+        Mss1 mss1_,
+        Mss2 mss2_
         ) {
         typedef typename boost::mpl::fold<
             boost::mpl::vector<Mss1, Mss2>

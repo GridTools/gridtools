@@ -40,20 +40,20 @@ namespace _impl {
 #endif
 
 
-#define _MAKE_COMPUTATION(z, n, nil) \
-        template < \
-            typename Backend, \
-            typename Domain, \
-            typename Grid, \
-            BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename MssType) \
-            > \
-        _POINTER_ make_computation ( \
-            Domain& domain, \
-            const Grid& grid, \
-            BOOST_PP_ENUM(BOOST_PP_INC(n), _PAIR_, Mss) \
-            ) { \
-            return make_computation_impl<POSITIONAL_WHEN_DEBUGGING, Backend>(domain, grid, BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssValue) ); \
-        }
+#define _MAKE_COMPUTATION(z, n, nil)                                    \
+    template <                                                          \
+                   typename Backend,                                    \
+                   typename Domain,                                     \
+                   typename Grid,                                       \
+                   BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename MssType) \
+                                                                        > \
+    _POINTER_ make_computation (                                        \
+        Domain& domain,                                                 \
+        const Grid& grid,                                               \
+        BOOST_PP_ENUM(BOOST_PP_INC(n), _PAIR_, Mss)                     \
+        ) {                                                             \
+        return make_computation_impl<POSITIONAL_WHEN_DEBUGGING, Backend>(domain, grid, BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssValue) ); \
+    }
 
     BOOST_PP_REPEAT(GT_MAX_MSS, _MAKE_COMPUTATION, _)
 #undef _MAKE_COMPUTATION

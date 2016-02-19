@@ -257,9 +257,9 @@ bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t_steps) {
     auto
 #else
 #ifdef __CUDACC__
-    gridtools::computation*
+        gridtools::computation*
 #else
-    boost::shared_ptr<gridtools::computation>
+        boost::shared_ptr<gridtools::computation>
 #endif
 #endif
         vertical_advection = gridtools::make_computation<vertical_advection::va_backend>
@@ -270,31 +270,31 @@ bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t_steps) {
             (
                 execute<forward>(),
                 gridtools::make_esf<u_forward_function<double> >(
-                        p_utens_stage(),
-                        p_wcon(),
-                        p_u_stage(),
-                        p_u_pos(),
-                        p_utens(),
-                        p_dtr_stage(),
-                        p_acol(),
-                        p_bcol(),
-                        p_ccol(),
-                        p_dcol()
-                ) // esf_descriptor
-            ),
+                    p_utens_stage(),
+                    p_wcon(),
+                    p_u_stage(),
+                    p_u_pos(),
+                    p_utens(),
+                    p_dtr_stage(),
+                    p_acol(),
+                    p_bcol(),
+                    p_ccol(),
+                    p_dcol()
+                    ) // esf_descriptor
+                ),
             gridtools::make_mss
             (
                 execute<backward>(),
                 gridtools::make_esf<u_backward_function<double> >(
-                        p_utens_stage(),
-                        p_u_pos(),
-                        p_dtr_stage(),
-                        p_ccol(),
-                        p_dcol(),
-                        p_data_col()
+                    p_utens_stage(),
+                    p_u_pos(),
+                    p_dtr_stage(),
+                    p_ccol(),
+                    p_dcol(),
+                    p_data_col()
+                    )
                 )
-            )
-        );
+            );
 
     vertical_advection->ready();
 
