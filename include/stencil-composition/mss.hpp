@@ -166,6 +166,11 @@ namespace gridtools {
     template<typename Mss>
     struct mss_descriptor_execution_engine {};
 
+    template<typename Mss1, typename Mss2, typename Cond>
+    struct mss_descriptor_execution_engine<condition<Mss1, Mss2, Cond> > {
+        typedef typename mss_descriptor_execution_engine<Mss1>::type type;
+    };
+
     template <typename ExecutionEngine,
               typename EsfDescrSequence,
               typename CacheSequence>

@@ -50,23 +50,28 @@ namespace test_conditionals{
         typedef boost::mpl::vector1<p_dummy> arg_list;
         domain_type< arg_list > domain_(boost::fusion::make_vector(&dummy));
 
-        auto comp_ = make_computation < backend<enumtype::Host, enumtype::Naive> > (
-            domain_, grid_,
-            if_(cond
-                ,
-                make_mss(
-                    enumtype::execute<enumtype::forward>()
-                    , make_esf<functor<0> >( p_dummy() ))
-                , if_( cond2
-                       , make_mss(
-                           enumtype::execute<enumtype::forward>()
-                           , make_esf<functor<1> >( p_dummy() ))
-                       , make_mss(
-                           enumtype::execute<enumtype::forward>()
-                           , make_esf<functor<2> >( p_dummy() ))
+#ifdef CXX11_ENABLED
+        auto
+#else
+            boost::shared_ptr<computation>
+#endif
+            comp_ = make_computation < backend<enumtype::Host, enumtype::Naive> > (
+                domain_, grid_,
+                if_(cond
+                    ,
+                    make_mss(
+                        enumtype::execute<enumtype::forward>()
+                        , make_esf<functor<0> >( p_dummy() ))
+                    , if_( cond2
+                           , make_mss(
+                               enumtype::execute<enumtype::forward>()
+                               , make_esf<functor<1> >( p_dummy() ))
+                           , make_mss(
+                               enumtype::execute<enumtype::forward>()
+                               , make_esf<functor<2> >( p_dummy() ))
+                        )
                     )
-                )
-            );
+                );
 
         bool result=true;
         comp_->ready();

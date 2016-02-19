@@ -78,7 +78,7 @@ namespace gridtools{
         /**@brief do nothing in case this branch is not a conditional, and pass to the next branch*/
         template<typename ConditionalsSet, typename First, typename Second, typename ... Mss>
         static void apply(ConditionalsSet& set_, First const& first_, Second const& second_, Mss const& ... args_){
-            fill_conditionals_set< typename is_condition<Second>::type >::apply(set_, second_);
+            fill_conditionals_set< typename is_condition<Second>::type >::apply(set_, second_, args_ ...);
         }
 
         /**recursion anchor*/

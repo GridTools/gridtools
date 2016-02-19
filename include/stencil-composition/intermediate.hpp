@@ -565,7 +565,7 @@ namespace gridtools {
 
     public:
 
-        intermediate(DomainType & domain, Grid const & grid, ConditionalsSet const& conditionals_)
+        intermediate(DomainType & domain, Grid const & grid, ConditionalsSet conditionals_)
             : m_domain(domain), m_grid(grid), m_meter("NoName"), m_conditionals_set(conditionals_)
         {
             // Each map key is a pair of indices in the axis, value is the corresponding method interval.

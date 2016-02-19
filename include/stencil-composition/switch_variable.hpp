@@ -1,5 +1,9 @@
 #pragma once
+#ifdef CXX11_ENABLED
 #include <memory>
+#else
+#include <boost/scoped_ptr.hpp>
+#endif
 #include "condition.hpp"
 
 /**@file*/
@@ -32,9 +36,13 @@ namespace gridtools{
         typedef static_uint<Tag> index_t;
         static const uint_t index_value = index_t::value;
 
+#ifdef CXX11_ENABLED
         std::unique_ptr<std::vector<short_t> > m_conditions;//generated conditions
         std::unique_ptr<std::vector<T> > m_cases;//all possible cases (redundant)
-
+#else
+        boost::scoped_ptr<std::vector<short_t> > m_conditions;//generated conditions
+        boost::scoped_ptr<std::vector<T> > m_cases;//all possible cases (redundant)
+#endif
         /**@brief enpty constructor*/
         constexpr switch_variable () //try to avoid this?
             : m_value()
