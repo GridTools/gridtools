@@ -111,7 +111,7 @@ namespace gridtools{
         template<typename T>
         explicit storage(  typename basic_type::meta_data_t const& meta_data_, T const& arg1 )
             :super(meta_data_, arg1)
-            , m_device_storage_info(meta_data_.device_pointer())
+            , m_device_storage_info(&meta_data_)
             , m_on_host(true)
         {
         }
@@ -120,7 +120,7 @@ namespace gridtools{
         template <class T, class U>
         explicit storage(  typename basic_type::meta_data_t const& meta_data_, T const& arg1, U const& arg2 )
             :super(meta_data_, (value_type) arg1, arg2)
-            , m_device_storage_info(meta_data_.device_pointer())
+            , m_device_storage_info(&meta_data_)
             , m_on_host(true)
         {
         }
@@ -128,7 +128,7 @@ namespace gridtools{
         template <class T, class U>
         explicit storage(  typename basic_type::meta_data_t const& meta_data_, T * arg1, U const& arg2 )
             :super(meta_data_, (value_type)* arg1, arg2)
-            , m_device_storage_info(meta_data_.device_pointer())
+            , m_device_storage_info(&meta_data_)
             , m_on_host(true)
         {
         }
@@ -138,7 +138,7 @@ namespace gridtools{
 //    private :
         explicit storage(typename basic_type::meta_data_t const& meta_data_)
             :super(meta_data_)
-            , m_device_storage_info(meta_data_.device_pointer())
+            , m_device_storage_info(&meta_data_)
         {}
 
 #ifdef CXX11_ENABLED
@@ -191,6 +191,12 @@ namespace gridtools{
 */
         GT_FUNCTION
         value_type& operator()( uint_t const& i, uint_t const& j, uint_t const& k) {
+#ifdef CUDA_ARCH
+            assert(!m_on_host);
+#else
+            assert(m_on_host);
+#endif
+            assert(m_device_storage_info);
             //failure here means that you didn't call clone_to_device on the storage_info yet
             //assert(m_device_storage_info);
             return super::operator()(m_device_storage_info, i,j,k);
@@ -204,6 +210,12 @@ namespace gridtools{
         */
         GT_FUNCTION
         value_type const & operator()( uint_t const& i, uint_t const& j, uint_t const& k) const {
+#ifdef CUDA_ARCH
+            assert(!m_on_host);
+#else
+            assert(m_on_host);
+#endif
+            assert(m_device_storage_info);
             //failure here means that you didn't call clone_to_device on the storage_info yet
             //assert(m_device_storage_info);
             return super::operator()(m_device_storage_info, i,j,k);
