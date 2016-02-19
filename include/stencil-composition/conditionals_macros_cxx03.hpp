@@ -51,7 +51,7 @@ namespace gridtools {
  \
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<conditionals_check_t>::type::value \
                                      == boost::mpl::size<conditionals_set_mpl_t>::type::value), \
-                                    "Either you yoused the same switch_variable (or conditional) twice, or you used in the same computation two or more switch_variable (or conditional) with the same index. The index Id in condition_variable<Type, Id> (or conditional<Id>) must be unique to the computation, and can be used only in one switch_ statement."); \
+                                    "Either you you used the same switch_variable (or conditional) twice, or you used in the same computation two or more switch_variable (or conditional) with the same index. The index Id in condition_variable<Type, Id> (or conditional<Id>) must be unique to the computation, and can be used only in one switch_ statement."); \
  \
             typedef typename boost::fusion::result_of::as_set<conditionals_set_mpl_t>::type conditionals_set_t; \
             conditionals_set_t conditionals_set_; \
