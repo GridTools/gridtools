@@ -5,6 +5,7 @@
 #include "location_type.hpp"
 #include "stencil-composition/backend_base.hpp"
 #include "storage/wrap_pointer.hpp"
+#include "icosahedral_grid_traits.hpp"
 
 namespace gridtools {
 
@@ -44,7 +45,12 @@ namespace gridtools {
         //TODO storage and meta_storage have to be moved to backend_traits_from_id, that has to be templated with grid
         template <typename LocationType>
         using meta_storage_t = typename base_t::template
-            storage_info<LocationType::value, layout_map<0,1,2,3> >;
+            storage_info<LocationType::value, layout_map<
+                icgrid::grid_traits_arch<BackendId>::dim_i_t::value,
+                icgrid::grid_traits_arch<BackendId>::dim_c_t::value,
+                icgrid::grid_traits_arch<BackendId>::dim_j_t::value,
+                icgrid::grid_traits_arch<BackendId>::dim_k_t::value
+            > >;
 
         template <typename LocationType, typename ValueType>
         using storage_t = storage<

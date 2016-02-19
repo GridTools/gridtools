@@ -15,10 +15,10 @@ namespace gridtools {
                 typedef execute_kernel_functor_cuda< RunFunctorArguments > type;
             };
 
-            static_uint<0> dim_i_t;
-            static_uint<1> dim_c_t;
-            static_uint<2> dim_j_t;
-            static_uint<3> dim_k_t;
+            typedef static_uint<0> dim_i_t;
+            typedef static_uint<1> dim_c_t;
+            typedef static_uint<2> dim_j_t;
+            typedef static_uint<3> dim_k_t;
 
         };
     }
