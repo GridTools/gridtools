@@ -319,7 +319,7 @@ if __name__ == "__main__":
     f = open(args.json_file,'r')
     decode = json.load(f)
 
-    error = False
+    failed = False
     nrep=3
 
     copy_ref = copy.deepcopy(decode)
@@ -361,7 +361,7 @@ if __name__ == "__main__":
                 if config.check_ and error > tolerance:
                     print('Error in conf ['+data+','+prec+','+target+','+std+','+thread+'] : exp_time -> '+ str(exp_time) + '; comp time -> '+ 
                         str(timers_gridtools[0])+'. Error = '+ str(error*100)+'%')
-                    error = True
+                    failed = True
 
     if config.update_:
         outputfilename=args.json_file +'.out'
@@ -374,10 +374,10 @@ if __name__ == "__main__":
         plotter = Plotter(decode[host]['stencils'], copy_ref[host]['stencils'], stella_timers, config)
         plotter.plot_results()
 
-    if not error:
+    if not failed:
         print('[OK]')
     else:
         print('[FAILED]')
-    sys.exit(int(error))
+    sys.exit(int(333))
 
 
