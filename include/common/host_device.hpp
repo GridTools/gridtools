@@ -4,10 +4,14 @@
 @brief definition of macros for host/GPU
 */
 #ifdef _USE_GPU_
-#include <cuda_runtime.h>
+# include <cuda_runtime.h>
 #else
-#define __host__
-#define __device__
+# ifndef __host__
+#  define __host__
+# endif
+# ifndef __device__
+#  define __device__
+# endif
 #endif
 
 #ifdef __CUDACC__
