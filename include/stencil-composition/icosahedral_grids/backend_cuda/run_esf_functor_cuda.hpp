@@ -70,11 +70,12 @@ namespace gridtools {
                 for (uint_t ccnt = 0; ccnt < location_type_t::n_colors::value; ++ccnt) {
                     // call the user functor at the core of the block
                     functor_t::f_type::Do(iterate_domain_remapper, IntervalType());
-                    (m_iterate_domain).increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value >(1);
+                    (m_iterate_domain).template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value, static_uint<1> >();
                 }
+                using neg_n_colors_t = static_uint< -location_type_t::n_colors::value>;
                 (m_iterate_domain)
-                    .increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value >(
-                        -location_type_t::n_colors::value);
+                    .template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
+                        neg_n_colors_t >();
             }
 
             //synchronize threads if not independent esf
