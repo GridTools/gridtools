@@ -70,12 +70,7 @@ computation->finalize();
         //choose an ID which should be unique: to pick a very large number we cast a negative number to an unsigned
         //ID is unique
         typedef switch_conditional<(uint_t) - (sizeof...(Cases)), Condition::index_value> conditional_t;
-        // short_t* cond_ptr = &cond_.m_conditions.back();
-        // std::cout<<"here, true or false? "<<cond_.m_conditions.back()<<"\n";
-        // switch_conditional<(uint_t) - (sizeof...(Cases)+Condition::index_value)> c(cond_ptr);
-        // std::cout<<"and here, true or false? "<<c.value()<<"\n";
 
-        // short_t t= 1;//cond_.m_conditions.back()?1:0;
         uint_t rec_depth_=0;
         if((short_t)cond_.value()==(short_t)first_.value())
             cond_.push_back_condition(1);
@@ -107,8 +102,6 @@ computation->finalize();
         //allows us to modify the switch at a later stage
         cond_.push_back_case(first_.value());
         //choose an ID which should be unique: to pick a very large number we cast a negative number to an unsigned
-        //TODO: if we want to allow multiple/nested switches we should insure/check that the
-        //ID is unique
         typedef switch_conditional<(uint_t) - (sizeof...(Cases)), Condition::index_value> conditional_t;
         recursion_depth_++;
 

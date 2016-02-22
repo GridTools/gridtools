@@ -18,7 +18,7 @@ set_target_properties(stencil_composition_tests PROPERTIES COMPILE_FLAGS ${ADDIT
 target_link_libraries(stencil_composition_tests ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
 
 add_executable(test_conditionals test_conditionals.cpp)
-set_target_properties(test_conditionals PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+set_target_properties(test_conditionals PROPERTIES COMPILE_FLAGS "${ADDITIONAL_CXX_FLAGS}" )
 target_link_libraries(test_conditionals ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
 
 if (ENABLE_CXX11)

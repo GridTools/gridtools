@@ -1,7 +1,14 @@
 #pragma once
 #include "conditional.hpp"
-
+/**@file*/
 namespace gridtools{
+
+    /**@brief structure containing a conditional and the two branches
+
+       This structure is the record associated to a conditional, it contains two multi-stage stencils,
+       possibly containing other conditionals themselves. One branch or the other will be eventually
+       executed, depending on the content of the m_value member variable.
+     */
     template <typename Mss1, typename Mss2, typename Tag>
     struct condition{
 
@@ -35,4 +42,5 @@ namespace gridtools{
 
     template <typename Mss1, typename Mss2, typename Tag>
     struct is_condition<condition<Mss1, Mss2, Tag> >:boost::mpl::true_ {};
+
 }

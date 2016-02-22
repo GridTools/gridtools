@@ -1,13 +1,13 @@
 #pragma once
 /**@file
 
-   This files contains several helper constructs/functions in order to deal with the conditionals.
+   This file contains several helper constructs/functions in order to deal with the conditionals.
    They are used when calling @ref gridtools::make_computation
 */
 
 namespace gridtools{
 
-    /**@brief simple metafunction extracting th etemplate argument*/
+    /**@brief simple metafunction extracting the etemplate argument if it is not a @ref gridtools::condition*/
     template<typename T>
     struct if_condition_extract_index_t{
         typedef T type;
@@ -16,7 +16,7 @@ namespace gridtools{
 
     /**@brief specialization for @ref gridtools::condition type
 
-       In case of @ref gridtools::condition then the type extracted is the conditional (gridtools::condition::index_t)
+       In case of @ref gridtools::condition then the type extracted is the conditional (@ref gridtools::condition::index_t)
      */
     template<typename T1, typename T2, typename Cond>
     struct if_condition_extract_index_t<condition<T1, T2, Cond> > {

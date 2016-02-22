@@ -1,6 +1,13 @@
 #pragma once
-
+/**@file*/
 namespace gridtools{
+
+    /**@brief construct for storing a case in a @ref gridtools::switch_ statement
+
+       It stores a runtime value associated to the branch, which has to be compared with the value in a
+       @ref gridtools::switch_variable, and the corresponding multi-stage stencil
+       to be executed in case the condition holds.
+     */
     template <typename T, typename Mss>
     struct case_type {
     private:
@@ -21,6 +28,11 @@ namespace gridtools{
     private:
         Mss m_mss;
 
+    /**@brief construct for storing the default case in a @ref gridtools::switch_ statement
+
+       It stores a multi-stage stencil
+       to be executed in case none of the other conditions holds.
+     */
     public:
         typedef Mss mss_t;
 

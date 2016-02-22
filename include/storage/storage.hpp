@@ -75,8 +75,8 @@ namespace gridtools{
 
         /** @brief updates the CPU pointer */
         void h2d_update(){
-                super::h2d_update();
-                on_device();
+            super::h2d_update();
+            on_device();
         }
 
         /**@brief device copy constructor

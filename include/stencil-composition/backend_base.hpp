@@ -26,6 +26,7 @@
 #include "stencil-composition/tile.hpp"
 #include "storage/meta_storage.hpp"
 #include "../storage/halo.hpp"
+#include "condition.hpp"
 
 /**
    @file
@@ -330,7 +331,6 @@ namespace gridtools {
             typedef condition<type1, type2, Cond> type;
         };
 
-
         /**
          * @brief compute a list with all the temporary storage types used by an array of mss
          * @tparam Domain domain
@@ -344,7 +344,7 @@ namespace gridtools {
                   >
         struct obtain_temporary_storage_types {
 
-            // GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_condition<MssComponentsArray>::value || is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
             GRIDTOOLS_STATIC_ASSERT((is_domain_type<Domain>::value), "Internal Error: wrong type");
 
             typedef typename backend_traits_t::template get_block_size<StrategyId>::type block_size_t;
