@@ -17,6 +17,9 @@
 #include "../common/boollist.hpp"
 #include "low-level/gcl_arch.hpp"
 
+#ifdef _GCL_GPU_
+#include "cuda_runtime.h"
+#endif
 
 #ifdef _GCL_GPU_
 
