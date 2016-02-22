@@ -160,18 +160,22 @@ namespace gridtools {
             it_domain.set_index(0);
 
             // initialize the indices
-            it_domain.template initialize< 0 >(i + starti, blockIdx.x);
-            it_domain.template initialize< 1 >(j + startj, blockIdx.y);
+            it_domain.template initialize< grid_traits_from_id<enumtype::icosahedral>::dim_i_t::value >(i + starti, blockIdx.x);
+            //initialize to color 0
+            it_domain.template initialize< grid_traits_from_id<enumtype::icosahedral>::dim_c_t::value >(0, 0);
+            it_domain.template initialize< grid_traits_from_id<enumtype::icosahedral>::dim_j_t::value >(j + startj, blockIdx.y);
 
             it_domain.set_block_pos(iblock, jblock);
 
             typedef typename boost::mpl::front< typename RunFunctorArguments::loop_intervals_t >::type interval;
             typedef typename index_to_level< typename interval::first >::type from;
             typedef typename index_to_level< typename interval::second >::type to;
-            typedef _impl::iteration_policy< from, to, zdim_index_t::value, execution_type_t::type::iteration >
-                iteration_policy_t;
+            typedef _impl::iteration_policy< from,
+                to,
+                grid_traits_from_id< enumtype::icosahedral >::dim_k_t::value,
+                execution_type_t::type::iteration > iteration_policy_t;
 
-            it_domain.template initialize< zdim_index_t::value >(grid->template value_at< iteration_policy_t::from >());
+            it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_k_t::value >(grid->template value_at< iteration_policy_t::from >());
 
             // execute the k interval functors
             boost::mpl::for_each< typename RunFunctorArguments::loop_intervals_t >(

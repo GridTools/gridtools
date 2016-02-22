@@ -46,10 +46,10 @@ namespace gridtools {
         template <typename LocationType>
         using meta_storage_t = typename base_t::template
             storage_info<LocationType::value, layout_map<
-                icgrid::grid_traits_arch<BackendId>::dim_i_t::value,
-                icgrid::grid_traits_arch<BackendId>::dim_c_t::value,
-                icgrid::grid_traits_arch<BackendId>::dim_j_t::value,
-                icgrid::grid_traits_arch<BackendId>::dim_k_t::value
+                grid_traits_from_id<enumtype::icosahedral>::dim_i_t::value,
+                grid_traits_from_id<enumtype::icosahedral>::dim_c_t::value,
+                grid_traits_from_id<enumtype::icosahedral>::dim_j_t::value,
+                grid_traits_from_id<enumtype::icosahedral>::dim_k_t::value
             > >;
 
         template <typename LocationType, typename ValueType>

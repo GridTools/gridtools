@@ -27,6 +27,10 @@ namespace gridtools {
             typedef strgrid::grid_traits_arch<BackendId> type;
         };
 
+        typedef static_uint<0> dim_i_t;
+        typedef static_uint<1> dim_j_t;
+        typedef static_uint<2> dim_k_t;
+
     };
 
 }

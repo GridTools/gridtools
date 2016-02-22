@@ -3,6 +3,7 @@
 #include "stencil-composition/icosahedral_grids/esf_metafunctions.hpp"
 #include "../../iteration_policy.hpp"
 #include "../../execution_policy.hpp"
+#include "../../grid_traits_fwd.hpp"
 
 namespace gridtools {
 
@@ -91,21 +92,24 @@ namespace gridtools {
                 typedef typename boost::mpl::front<loop_intervals_t>::type interval;
                 typedef typename index_to_level<typename interval::first>::type from;
                 typedef typename index_to_level<typename interval::second>::type to;
-                typedef _impl::iteration_policy<from, to, zdim_index_t::value, execution_type_t::type::iteration> iteration_policy_t;
+                typedef _impl::iteration_policy< from,
+                    to,
+                    grid_traits_from_id< enumtype::icosahedral >::dim_k_t::value,
+                    execution_type_t::type::iteration > iteration_policy_t;
 
                 //reset the index
                 it_domain.set_index(0);
 
                 //TODO FUSING work on extending the loops using the extent
 //                it_domain.template initialize<0>(m_first_pos[0] + extent_t::iminus::value, m_block_id[0]);
-                it_domain.template initialize<0>(m_first_pos[0], m_block_id[0]);
+                it_domain.template initialize<grid_traits_from_id< enumtype::icosahedral >::dim_i_t::value >(m_first_pos[0], m_block_id[0]);
 
                 //initialize color dim
 
-                it_domain.template initialize<1>(0);
+                it_domain.template initialize<grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value>(0);
 //                it_domain.template initialize<2>(m_first_pos[1] + extent_t::jminus::value, m_block_id[1]);
-                it_domain.template initialize<2>(m_first_pos[1], m_block_id[1]);
-                it_domain.template initialize<3>( m_grid.template value_at< typename iteration_policy_t::from >() );
+                it_domain.template initialize<grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value>(m_first_pos[1], m_block_id[1]);
+                it_domain.template initialize<grid_traits_from_id< enumtype::icosahedral >::dim_k_t::value>( m_grid.template value_at< typename iteration_policy_t::from >() );
 
 
                 typedef array<int_t, iterate_domain_t::N_META_STORAGES> array_index_t;
