@@ -137,8 +137,6 @@ namespace gridtools{
         template<typename Grid, typename StorageType>
         bool verify(Grid const& grid_, StorageType const& field1, StorageType const& field2, const array<array<uint_t, 2>, StorageType::space_dimensions> halos)
         {
-            typename StorageType::meta_data_t const* meta=&field1.meta_data();
-
             bool verified = true;
 
             for(gridtools::uint_t f=0; f<StorageType::field_dimensions; ++f)
