@@ -137,16 +137,28 @@ namespace gridtools {
                                     ( _impl::run_f_on_interval<execution_type_t, RunFunctorArguments> (it_domain, m_grid) );
                             it_domain.set_index(memorized_index);
                             it_domain.set_position(memorized_position);
-                            it_domain.template increment<2, static_int<1> >();
+                            it_domain.template increment<
+                                grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value,
+                                static_int<1>
+                            >();
                         }
-                        it_domain.template increment<2>( -(m_loop_size[1]+1+addon));
-                        it_domain.template increment<1, static_int<1> >();
+                        it_domain.template increment<
+                            grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value
+                        >( -(m_loop_size[1]+1+addon));
+                        it_domain.template increment<
+                            grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
+                            static_int<1>
+                        >();
                     }
-                    it_domain.template increment<1, static_int< -((int_t) n_colors_t::value) >>();
-                    it_domain.template increment<0,static_int<1> >();
+                    it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
+                        static_int< -((int_t)n_colors_t::value) > >();
+                    it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_i_t::value,
+                        static_int< 1 > >();
                 }
-                it_domain.template increment<0>( -(m_loop_size[0]+1));
+                it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_i_t::value >(
+                    -(m_loop_size[0] + 1));
             }
+
         private:
             const local_domain_t& m_local_domain;
             const grid_t& m_grid;
