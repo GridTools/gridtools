@@ -106,6 +106,20 @@ struct d3point7{
     }
 };
 
+// Addition of two grids, c = a + b
+struct add{
+    typedef accessor<0> c;
+    typedef const accessor<1, range<0,0,0,0> > a;
+    typedef const accessor<2, range<0,0,0,0> > b;
+    typedef boost::mpl::vector<c,a,b> arg_list;
+
+    template <typename Domain>
+    GT_FUNCTION
+    static void Do(Domain const & dom, x_interval) {
+        dom(c()) = dom(a()) + dom(b());
+    }
+};
+
 // 1st order in time, 7-point variable-coefficient stencil in 3D, with no coefficient symmetry.
 struct d3point7_var{
     typedef accessor<0> out;
@@ -255,7 +269,18 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     //7pt 3D stencil with symmetry
     storage_type out7pt(d1,d2,d3,1., "domain7pt_out");
     storage_type in7pt(d1,d2,d3,1., "domain7pt_in");
+    storage_type constant(d1,d2,d3,10., "constant");
     storage_type *ptr_in7pt = &in7pt, *ptr_out7pt = &out7pt;
+
+    for(uint_t i=0; i<d1; ++i)
+        for(uint_t j=0; j<d2; ++j)
+            for(uint_t k=0; k<d3; ++k)
+            {
+                if(i==j) //diagonal point
+                    constant(i,j,k) = 100.0;
+                else //off-diagonal point
+                    constant(i,j,k) = 10.0;
+            }
 #endif
 
 #ifdef pt7_var
@@ -263,7 +288,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     storage_type out7pt_var(d1,d2,d3,1., "domain_out");
     storage_type in7pt_var(d1,d2,d3,1., "domain_in");
     storage_type *ptr_in7pt_var = &in7pt_var, *ptr_out7pt_var = &out7pt_var;
-    coeff_type coeff7pt_var(d1,d2,d3,7);
+    coeff_type coeff7pt_var(d1,d2,d3,7.);
     coeff7pt_var.allocate();
     for(uint_t i=0; i<d1; ++i)
         for(uint_t j=0; j<d2; ++j)
@@ -289,7 +314,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     storage_type out25pt_var(d1,d2,d3,1., "domain_out");
     storage_type in25pt_var(d1,d2,d3,1., "domain_in");
     storage_type *ptr_in25pt_var = &in25pt_var, *ptr_out25pt_var = &out25pt_var;
-    coeff_type coeff25pt_var(d1,d2,d3,13);
+    coeff_type coeff25pt_var(d1,d2,d3,13.);
     coeff25pt_var.allocate();
     for(uint_t i=0; i<d1; ++i)
         for(uint_t j=0; j<d2; ++j)
@@ -327,6 +352,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
     typedef boost::mpl::vector<p_out, p_in> accessor_list;
+    typedef boost::mpl::vector<p_out, p_in, p_in_old> accessor_list_add;
     typedef boost::mpl::vector<p_out, p_in, p_coeff> accessor_list_var;
     typedef boost::mpl::vector<p_out, p_in, p_in_old, p_alpha> accessor_list_time2;
 
@@ -343,8 +369,8 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     uint_t di2d[5] = {0, 0, 1, d1-2, d1};
     uint_t dj2d[5] = {0, 0, 1, d2-2, d2};
     gridtools::coordinates<axis> coords2d5pt(di2d, dj2d);
-    coords2d5pt.value_list[0] = 1; //specifying index of the splitter<0,-1>
-    coords2d5pt.value_list[1] = 1; //specifying index of the splitter<1,-1>
+    coords2d5pt.value_list[0] = 0; //specifying index of the splitter<0,-1>
+    coords2d5pt.value_list[1] = 0; //specifying index of the splitter<1,-1>
 
 
     //Informs the library that the iteration space in the first two dimensions
@@ -475,10 +501,10 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     boost::timer::cpu_times lapse_time11 = time11.elapsed();
     
 
-#ifdef DEBUG
+//#ifdef DEBUG
     printf("Print domain A after computation\n");
     TIME_STEPS % 2 == 0 ? in5pt.print() : out5pt.print();
-#endif
+//#endif
  
     std::cout << "TIME d2point5 TOTAL: " << boost::timer::format(lapse_time11);
     std::cout << "TIME d2point5 RUN:" << boost::timer::format(lapse_time11run);
@@ -492,11 +518,15 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
     for(int i=0; i < TIME_STEPS; i++) {
 
-        // construction of the domain.
+        // construction of the domain for the A*x
         gridtools::domain_type<accessor_list> domain3d
             (boost::fusion::make_vector(ptr_out7pt, ptr_in7pt));
 
-        //instantiate stencil
+        // construction of the domain for the out = out + in
+        gridtools::domain_type<accessor_list_add> domain3dadd
+            (boost::fusion::make_vector(ptr_out7pt, &constant, ptr_in7pt));
+
+        //instantiate stencil for mat-vec multiplication
         #ifdef __CUDACC__
             gridtools::computation* stencil_step_2 =
         #else
@@ -507,20 +537,20 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
                     gridtools::make_mss // mss_descriptor
                     (
                         execute<forward>(),
-                        gridtools::make_esf<d3point7>(p_out(), p_in()) // esf_descriptor
-                        ),
-                    domain3d, coords3d7pt
-                    );
+                        gridtools::make_esf<d3point7>(p_out(), p_in()), // esf_descriptor
+                        gridtools::make_esf<add>(p_out(), p_in(), p_in_old()) // esf_descriptor
+                    ),
+                    domain3dadd, coords3d7pt
+                );
 
         //prepare and run single step of stencil computation
         stencil_step_2->ready();
         stencil_step_2->steady();
-
         boost::timer::cpu_timer time2run;
         stencil_step_2->run();
         lapse_time2run = lapse_time2run + time2run.elapsed();
-
         stencil_step_2->finalize();
+
 
         //swap input and output fields
         storage_type* tmp = ptr_out7pt;
@@ -531,10 +561,10 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     boost::timer::cpu_times lapse_time2 = time2.elapsed();
 
 
-#ifdef DEBUG
+//#ifdef DEBUG
     printf("Print domain B after computation\n");
     TIME_STEPS % 2 == 0 ? in7pt.print() : out7pt.print();
-#endif
+//#endif
 
     std::cout << "TIME d3point7 TOTAL: " << boost::timer::format(lapse_time2);
     std::cout << "TIME d3point7 RUN:" << boost::timer::format(lapse_time2run);
