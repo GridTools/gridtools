@@ -32,7 +32,9 @@ if [[ ${JPLAN} != "GridTools" && ${JPLAN} != "GridTools_icgrid" && ${JPLAN} != "
     exit 1
 fi
 
-export GPATH=${GRIDTOOLS_BUILD_PATH}/${JPLAN}/build_type/release/label/${myhost}/mpi/MPI/python/python_off/real_type/$PREC/std/$STD/target/$TARGET/build
+if [ -z "$GPATH" ]; then
+    export GPATH=${GRIDTOOLS_BUILD_PATH}/${JPLAN}/build_type/release/label/${myhost}/mpi/MPI/python/python_off/real_type/$PREC/std/$STD/target/$TARGET/build
+fi
 export STELLA_PATH=${STELLA_BUILD_PATH}/stella/trunk/release_$PREC/bin/
 
 cd ${JENKINSPATH}/
