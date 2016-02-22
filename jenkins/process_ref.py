@@ -378,6 +378,6 @@ if __name__ == "__main__":
         print('[OK]')
     else:
         print('[FAILED]')
-    sys.exit(int(333))
+    sys.exit(int(failed))
 
 
