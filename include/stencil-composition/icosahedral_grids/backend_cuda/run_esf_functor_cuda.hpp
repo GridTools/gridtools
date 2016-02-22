@@ -50,6 +50,8 @@ namespace gridtools {
         void do_impl() const
         {
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments<EsfArguments>::value), "Internal Error: wrong type");
+            typedef typename esf_get_location_type<typename EsfArguments::esf_t>::type location_type_t;
+
 
             //instantiate the iterate domain remapper, that will map the calls to arguments to their actual
             // position in the iterate domain
@@ -65,10 +67,15 @@ namespace gridtools {
             // is not a multiple of the block size
             if(m_iterate_domain.template is_thread_in_domain<extent_t>())
             {
-                //call the user functor at the core of the block
-                functor_t::f_type::Do(iterate_domain_remapper, IntervalType());
+                for (uint_t ccnt = 0; ccnt < location_type_t::n_colors::value; ++ccnt) {
+                    // call the user functor at the core of the block
+                    functor_t::f_type::Do(iterate_domain_remapper, IntervalType());
+                    (m_iterate_domain).increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value >(1);
+                }
+                (m_iterate_domain)
+                    .increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value >(
+                        -location_type_t::n_colors::value);
             }
-
 
             //synchronize threads if not independent esf
             if(!boost::mpl::at<typename EsfArguments::async_esf_map_t, functor_t>::type::value)
