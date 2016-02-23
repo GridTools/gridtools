@@ -32,8 +32,8 @@
 
 //conditional selection of stencils to be executed
 //#define pt3
-#define pt5
-//#define pt7
+//#define pt5
+#define pt7
 //#define pt7_var
 //#define pt25
 //#define pt25_var
@@ -519,12 +519,12 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     for(int i=0; i < TIME_STEPS; i++) {
 
         // construction of the domain for the A*x
-        gridtools::domain_type<accessor_list> domain3d
-            (boost::fusion::make_vector(ptr_out7pt, ptr_in7pt));
+        //gridtools::domain_type<accessor_list> domain3d
+            //(boost::fusion::make_vector(ptr_out7pt, ptr_in7pt));
 
         // construction of the domain for the out = out + in
         gridtools::domain_type<accessor_list_add> domain3dadd
-            (boost::fusion::make_vector(ptr_out7pt, &constant, ptr_in7pt));
+            (boost::fusion::make_vector(ptr_out7pt, ptr_in7pt, &constant));
 
         //instantiate stencil for mat-vec multiplication
         #ifdef __CUDACC__
@@ -538,7 +538,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
                     (
                         execute<forward>(),
                         gridtools::make_esf<d3point7>(p_out(), p_in()), // esf_descriptor
-                        gridtools::make_esf<add>(p_out(), p_in(), p_in_old()) // esf_descriptor
+                        gridtools::make_esf<add>(p_in(), p_out(), p_in_old()) // esf_descriptor
                     ),
                     domain3dadd, coords3d7pt
                 );
@@ -564,6 +564,8 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 //#ifdef DEBUG
     printf("Print domain B after computation\n");
     TIME_STEPS % 2 == 0 ? in7pt.print() : out7pt.print();
+    printf("Print domain B after addition\n");
+    TIME_STEPS % 2 == 0 ? out7pt.print() : in7pt.print();
 //#endif
 
     std::cout << "TIME d3point7 TOTAL: " << boost::timer::format(lapse_time2);
