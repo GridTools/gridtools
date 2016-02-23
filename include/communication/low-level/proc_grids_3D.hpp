@@ -55,6 +55,9 @@ namespace gridtools {
         /** Constructor that takes an MPI CART communicator, already configured, and use it to set up the process grid.
             \param c Object containing information about periodicities as defined in \ref boollist_concept
             \param comm MPI Communicator describing the MPI 3D computing grid
+            \param dimensions Array containing the preferred size of the cartesian communicator
+                              in any direction. See the documentation of MPI_Dims_create for more info.
+                              NULL (default) means no preference.
         */
         MPI_3D_process_grid_t(period_type const &c, MPI_Comm const& comm, gridtools::array<int, ndims> const* dimensions=NULL)
             : m_communicator(comm)
@@ -65,18 +68,12 @@ namespace gridtools {
         {
             for (ushort_t i=0; i<ndims; ++i){
                 m_coordinates[i]=0;
-                m_dimensions[i]=0;
+                m_dimensions[i] = dimensions ? (*dimensions)[i] : 0;
             }
 
             MPI_Comm_size(comm, &m_nprocs);
 
-            if(!dimensions)
-                MPI_Dims_create(m_nprocs, ndims, &m_dimensions[0]);
-            else{
-                for (ushort_t i=0; i<ndims; ++i){
-                    m_dimensions[i]=(*dimensions)[i];
-                }
-            }
+            MPI_Dims_create(m_nprocs, ndims, &m_dimensions[0]);
 
             create(comm);
         }
