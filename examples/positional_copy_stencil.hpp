@@ -1,12 +1,8 @@
 #pragma once
 
-#include <gridtools.hpp>
 #include <boost/timer/timer.hpp>
-#include <stencil-composition/make_computation.hpp>
-
-#include <stencil-composition/backend.hpp>
-
-#include <boost/fusion/include/make_vector.hpp>
+#include <stencil-composition/stencil-composition.hpp>
+#include <tools/verifier.hpp>
 
 #ifdef USE_PAPI_WRAP
 #include <papi_wrap.hpp>
@@ -20,19 +16,21 @@
 
 using gridtools::level;
 using gridtools::accessor;
-using gridtools::range;
+using gridtools::extent;
 using gridtools::arg;
 
 using namespace gridtools;
 using namespace enumtype;
 
-#ifdef CXX11_ENABLED
-#define POSTFIX
-#else
-#define POSTFIX
-#endif
+static const int _value_ = 1;
 
 namespace positional_copy_stencil{
+#ifdef __CUDACC__
+        typedef gridtools::layout_map<2,1,0> layout_t;//stride 1 on i
+#else
+        typedef gridtools::layout_map<0,1,2> layout_t;//stride 1 on k
+#endif
+
     // This is the definition of the special regions in the "vertical" direction
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
@@ -40,8 +38,8 @@ namespace positional_copy_stencil{
     // These are the stencil operators that compose the multistage stencil in this test
     template <int V>
     struct init_functor {
-        typedef accessor<0, range<0,0,0,0> > POSTFIX one;
-        typedef accessor<1, range<0,0,0,0> > POSTFIX two;
+        typedef accessor<0, enumtype::inout, extent<> >  one;
+        typedef accessor<1, enumtype::inout, extent<> >  two;
         typedef boost::mpl::vector<one, two> arg_list;
 
         template <typename Evaluation>
@@ -55,8 +53,8 @@ namespace positional_copy_stencil{
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
 
-        typedef const accessor<0, range<0,0,0,0>, 3> POSTFIX in;
-        typedef accessor<1, range<0,0,0,0>, 3> POSTFIX out;
+        typedef accessor<0, enumtype::in, extent<>, 3> in;
+        typedef accessor<1, enumtype::inout, extent<>, 3> out;
         typedef boost::mpl::vector<in,out> arg_list;
 
     /* static const auto expression=in(1,0,0)-out(); */
@@ -110,7 +108,9 @@ namespace positional_copy_stencil{
         //                   strides  1 x xy
         //                      dims  x y z
         typedef gridtools::layout_map<2,1,0> layout_t;
-        typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
+        typedef gridtools::BACKEND::storage_info<0, layout_t> meta_t;
+
+        typedef gridtools::BACKEND::storage_type<float_type, meta_t >::type storage_type;
 
         // Definition of placeholders. The order of them reflect the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
@@ -124,8 +124,9 @@ namespace positional_copy_stencil{
         /* typedef arg<1, vec_field_type > p_out; */
 
         // Definition of the actual data fields that are used for input/output
-        storage_type in(d1,d2,d3,-3.5,"in");
-        storage_type out(d1,d2,d3,1.5,"out");
+        meta_t meta_(d1,d2,d3);
+        storage_type in(meta_,-3.5,"in");
+        storage_type out(meta_,1.5,"out");
 
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
@@ -137,36 +138,36 @@ namespace positional_copy_stencil{
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
-        // gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
+        // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
         uint_t di[5] = {0, 0, 0, d1-1, d1};
         uint_t dj[5] = {0, 0, 0, d2-1, d2};
 
-        gridtools::coordinates<axis> coords(di, dj);
-        coords.value_list[0] = 0;
-        coords.value_list[1] = d3-1;
+        gridtools::grid<axis> grid(di, dj);
+        grid.value_list[0] = 0;
+        grid.value_list[1] = d3-1;
 
 #ifdef __CUDACC__
         gridtools::computation* init =
 #else
             boost::shared_ptr<gridtools::computation> init =
 #endif
-            gridtools::make_positional_computation<gridtools::BACKEND, layout_t>
+            gridtools::make_positional_computation<gridtools::BACKEND>
             (
              gridtools::make_mss // mss_descriptor
              (
               execute<forward>(),
-              gridtools::make_esf<init_functor<31415926> >
+              gridtools::make_esf<init_functor<_value_> >
               (
                p_in(), p_out() // esf_descriptor
                )
               ),
-             domain, coords
+             domain, grid
              );
 
         init->ready();
 
         init->steady();
-        domain.clone_to_gpu();
+        domain.clone_to_device();
         init->run();
 
         init->finalize();
@@ -210,7 +211,7 @@ namespace positional_copy_stencil{
 #else
         boost::shared_ptr<gridtools::computation> copy =
 #endif
-            gridtools::make_computation<gridtools::BACKEND, layout_t>
+            gridtools::make_computation<gridtools::BACKEND>
             (
              gridtools::make_mss // mss_descriptor
              (
@@ -220,13 +221,13 @@ namespace positional_copy_stencil{
                                                 ,p_out()
                                                 )
               ),
-             domain, coords
+             domain, grid
              );
 
         copy->ready();
 
         copy->steady();
-        domain.clone_to_gpu();
+        domain.clone_to_device();
 
 #ifdef USE_PAPI_WRAP
         pw_stop_collector(collector_init);
@@ -260,35 +261,31 @@ namespace positional_copy_stencil{
 
         boost::timer::cpu_times lapse_time = time.elapsed();
         std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
-        //#ifdef CUDA_EXAMPLE
-        //out.data().update_cpu();
-        //#endif
-#define NX 5
-#define NY 5
-#define NZ 5
+
 
 #ifdef USE_PAPI_WRAP
         pw_print();
 #endif
 
-        bool success = true;
-        for(uint_t i=0; i<d1; ++i)
-            for(uint_t j=0; j<d2; ++j)
-                for(uint_t k=0; k<d3; ++k)
-                    {
-                        if (in(i, j, k)!=out(i,j,k)) {
-                            std::cout << "error in "
-                                      << i << ", "
-                                      << j << ", "
-                                      << k << ": "
-                                      << "in = " << in(i, j, k)
-                                      << ", out = " << out(i, j, k)
-                                      << std::endl;
-                            success = false;
-                        }
-                    }
-                        //std::cout << "SUCCESS? -> " << std::boolalpha << success << std::endl;
-        return success;
+        storage_type ref(meta_,1.5,"ref");
+
+        for(uint_t i=0; i<d1; ++i) {
+            for(uint_t j=0; j<d2; ++j) {
+                for(uint_t k=0; k<d3; ++k) {
+                    ref(i,j,k) = static_cast<double>(_value_)*(i+j+k);
+                }
+            }
+        }
+
+#ifdef CXX11_ENABLED
+        verifier verif(1e-13);
+        array<array<uint_t, 2>, 3> halos{{ {0,0}, {0,0}, {0,0} }};
+        bool result = verif.verify(grid, ref,out, halos);
+#else
+        verifier verif(1e-13, 0);
+        bool result = verif.verify(grid, ref,out);
+#endif
+        return result;
 
     }
 

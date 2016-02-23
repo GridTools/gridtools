@@ -5,13 +5,7 @@
  */
 #pragma once
 
-#include <gridtools.hpp>
-#include <common/defs.hpp>
-#include <stencil-composition/backend_host/backend_host.hpp>
-
-#include <boost/fusion/include/make_vector.hpp>
-
-
+#include <stencil-composition/stencil-composition.hpp>
 
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block >
@@ -19,11 +13,9 @@
 #define BACKEND backend<Host, Naive >
 #endif
 
-
-
 using gridtools::level;
 using gridtools::accessor;
-using gridtools::range;
+using gridtools::extent;
 using gridtools::arg;
 
 using namespace gridtools;
@@ -53,8 +45,8 @@ struct functor_4647
     //
     // the input data fields of this functor are marked as 'const'
     //
-    typedef const accessor<0> in_data;
-    typedef accessor<1> out_data;
+    typedef accessor<0> in_data;
+    typedef accessor<1, enumtype::inout> out_data;
     //
     // the ordered list of arguments of this functor
     //
@@ -87,19 +79,20 @@ bool test (uint_t d1, uint_t d2, uint_t d3,void *in_data_buff,void *out_data_buf
     // C-like memory layout
     //
     typedef gridtools::layout_map<0,1,2> layout_t;
+    typedef gridtools::BACKEND::storage_info<0, layout_t> meta_t;
 
     //
     // define the storage unit used by the backend
     //
-    typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<float_type, meta_t >::type storage_type;
 
+    meta_t meta_((uint_t) 3,(uint_t) 2,(uint_t) 1);
     //
     // parameter data fields use the memory buffers received from NumPy arrays
     //
-    storage_type in_data ((uint_t) 3,(uint_t) 2,(uint_t) 1,
-                                 (float_type *) in_data_buff,
-                                 "in_data");
-    storage_type out_data ((uint_t) 3,(uint_t) 2,(uint_t) 1,
+    storage_type in_data ( meta_, (float_type *) in_data_buff,
+                              "in_data");
+    storage_type out_data ( meta_,
                                  (float_type *) out_data_buff,
                                  "out_data");
 
@@ -131,14 +124,14 @@ bool test (uint_t d1, uint_t d2, uint_t d3,void *in_data_buff,void *out_data_buf
     // while the vertical ones are set according the the axis
     // property soon after this:
     //
-    //      gridtools::coordinates<axis> coords(2,d1-2,2,d2-2);
+    //      gridtools::grid<axis> grid(2,d1-2,2,d2-2);
     //
     uint_t di[5] = {0, 0, 0, d1-1, d1};
     uint_t dj[5] = {0, 0, 0, d2-1, d2};
 
-    gridtools::coordinates<axis> coords(di, dj);
-    coords.value_list[0] = 0;
-    coords.value_list[1] = d3-1;
+    gridtools::grid<axis> grid(di, dj);
+    grid.value_list[0] = 0;
+    grid.value_list[1] = d3-1;
 
     //
     // Here we do a lot of stuff
@@ -149,14 +142,14 @@ bool test (uint_t d1, uint_t d2, uint_t d3,void *in_data_buff,void *out_data_buf
     // 3) the actual domain dimensions
     //
     boost::shared_ptr<gridtools::computation> comp_copystencil =
-      gridtools::make_computation<gridtools::BACKEND, layout_t>
+      gridtools::make_computation<gridtools::BACKEND>
         (
             gridtools::make_mss
             (
                 execute<forward>(),
                 gridtools::make_esf<functor_4647>(p_in_data(), p_out_data())
                 ),
-            domain, coords
+            domain, grid
             );
 
     //
@@ -212,7 +205,9 @@ bool test_copystencil_python ( )
 #endif
     }
 
+#ifdef VERBOSE
     std::cout << "Copied " << d1*d2*d3 << " values ... ok!" << std::endl;
+#endif
 
     return EXIT_SUCCESS;
 }

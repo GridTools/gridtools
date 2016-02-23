@@ -1,4 +1,5 @@
 #pragma once
+#include <boost/mpl/zip_view.hpp>
 
 namespace gridtools {
 
@@ -50,10 +51,11 @@ namespace gridtools {
         typedef boost::mpl::vector1<
             local_domain<
                 typename local_domain_storage_pointers<typename boost::mpl::front<LocalDomainSequence>::type>::type,
+                typename meta_storage_pointers<typename boost::mpl::front<LocalDomainSequence>::type>::type,
                 merged_esf_args_t,
                 local_domain_is_stateful< typename boost::mpl::front<LocalDomainSequence>::type >::value
-            >
-        > type;
+                >
+            > type;
     };
 
     /**
@@ -160,7 +162,7 @@ namespace gridtools {
      * @tparam BackendId id of the backend
      * @tparam LocalDomainSequence sequence of local domains
      */
-    template<enumtype::backend BackendId, typename LocalDomainSequence>
+    template<enumtype::platform BackendId, typename LocalDomainSequence>
     struct fuse_mss_local_domains
     {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<LocalDomainSequence, is_local_domain>::value), "Internal Error: wrong type");
@@ -169,6 +171,7 @@ namespace gridtools {
             merge_local_domain_sequence<LocalDomainSequence>,
             boost::mpl::identity<LocalDomainSequence>
         >::type fused_mss_local_domains_t;
+
         typedef typename boost::fusion::result_of::as_vector<fused_mss_local_domains_t>::type type;
 
     };
@@ -180,7 +183,7 @@ namespace gridtools {
      * @tparam LocalDomainSequence sequence of local domains
      * @tparam MergedLocalDomainSequence sequence of merged local domains
      */
-    template<enumtype::backend BackendId, typename LocalDomainSequence, typename MergedLocalDomainSequence>
+    template<enumtype::platform BackendId, typename LocalDomainSequence, typename MergedLocalDomainSequence>
     struct generate_args_lookup_map
     {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<LocalDomainSequence, is_local_domain>::value), "Internal Error: wrong type");

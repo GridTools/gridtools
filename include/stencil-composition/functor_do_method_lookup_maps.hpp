@@ -91,25 +91,25 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(!boost::mpl::empty<TDoMethods>::value, " check that the collection of Do methods is not empty");
         GRIDTOOLS_STATIC_ASSERT(!boost::mpl::empty<TLoopIntervals>::value, " check that the collection of loop intervals is not empty");
 
-        // compute the ranged spanned by all do methods
+        // compute the extentd spanned by all do methods
         typedef boost::mpl::pair<
             typename boost::mpl::front<TDoMethods>::type::first,
             typename boost::mpl::back<TDoMethods>::type::second
-            > DoRange;
+            > DoExtend;
 
-        // compute the range spanned by all loop intervals
+        // compute the extent spanned by all loop intervals
         typedef boost::mpl::pair<
             typename boost::mpl::front<TLoopIntervals>::type::first,
             typename boost::mpl::back<TLoopIntervals>::type::second
-            > LoopRange;
+            > LoopExtend;
 
-        // make sure the do range is a sub interval of the loop range
-        GRIDTOOLS_STATIC_ASSERT((is_sub_interval<DoRange, LoopRange>::value), "make sure the do range is a sub interval of the loop range");
+        // make sure the do extent is a sub interval of the loop extent
+        GRIDTOOLS_STATIC_ASSERT((is_sub_interval<DoExtend, LoopExtend>::value), "make sure the do extent is a sub interval of the loop extent");
 
         // extract all loop intervals inside the functor do method interval
         typedef typename boost::mpl::copy_if<
             TLoopIntervals,
-            is_sub_interval<boost::mpl::_, DoRange>
+            is_sub_interval<boost::mpl::_, DoExtend>
             >::type LoopIntervals;
 
         // check there is a loop interval for every functor

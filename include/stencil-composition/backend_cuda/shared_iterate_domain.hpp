@@ -8,7 +8,6 @@
 #include <boost/mpl/at.hpp>
 #include <boost/fusion/sequence/intrinsic/at_key.hpp>
 #include <boost/fusion/include/at_key.hpp>
-#include "stencil-composition/accessor_metafunctions.hpp"
 #include "stencil-composition/accessor.hpp"
 #include "common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
 
@@ -22,7 +21,7 @@ namespace gridtools {
  * @tparam StridesType strides cached type
  * @tparam IJCachesTuple fusion map of <index_type, cache_storage>
  */
-template<typename DataPointerArray, typename StridesType, typename IJCachesTuple>
+template<typename DataPointerArray, typename StridesType, typename MaxExtent, typename IJCachesTuple>
 class shared_iterate_domain
 {
     GRIDTOOLS_STATIC_ASSERT((is_strides_cached<StridesType>::value), "Internal Error: wrong type");

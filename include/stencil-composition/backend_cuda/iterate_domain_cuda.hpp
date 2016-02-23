@@ -20,20 +20,29 @@ class iterate_domain_cuda : public IterateDomainBase<iterate_domain_cuda<Iterate
 
     typedef IterateDomainBase<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> > super;
     typedef typename IterateDomainArguments::local_domain_t local_domain_t;
+    typedef typename local_domain_t::esf_args local_domain_args_t;
+public:
+
     typedef typename super::data_pointer_array_t data_pointer_array_t;
     typedef typename super::strides_cached_t strides_cached_t;
+private:
 
     typedef typename super::iterate_domain_cache_t iterate_domain_cache_t;
+    typedef typename super::readonly_args_indices_t readonly_args_indices_t;
 
-    typedef shared_iterate_domain<data_pointer_array_t, strides_cached_t, typename iterate_domain_cache_t::ij_caches_tuple_t>
+    //TODO there are two instantiations of these type.. Fix this
+    typedef shared_iterate_domain<data_pointer_array_t, strides_cached_t, typename IterateDomainArguments::max_extent_t, typename iterate_domain_cache_t::ij_caches_tuple_t>
         shared_iterate_domain_t;
 
     typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
+    typedef typename iterate_domain_cache_t::bypass_caches_set_t bypass_caches_set_t;
+
+    using super::get_value;
+    using super::get_data_pointer;
 
 private:
     const uint_t m_block_size_i;
     const uint_t m_block_size_j;
-
     shared_iterate_domain_t* RESTRICT m_pshared_iterate_domain;
 
 public:
@@ -47,6 +56,7 @@ public:
         return threadIdx.x;
     }
 
+    template<int_t minus, int_t plus>
     GT_FUNCTION
     uint_t thread_position_y() const
     {
@@ -56,55 +66,59 @@ public:
     /**
      * @brief determines whether the current (i,j) position is within the block size
      */
+    template<typename Extent>
     GT_FUNCTION
     bool is_thread_in_domain() const
     {
-        return threadIdx.x < m_block_size_i && threadIdx.y < m_block_size_j ;
+        return (m_thread_pos[0] >= Extent::iminus::value && m_thread_pos[0] < ((int)m_block_size_i +Extent::iplus::value) &&
+            m_thread_pos[1] >= Extent::jminus::value && m_thread_pos[1] < ((int)m_block_size_j +Extent::jplus::value) );
+    }
+
+    GT_FUNCTION
+    void set_block_pos(const int_t ipos, const int_t jpos)
+    {
+        m_thread_pos[0] = ipos;
+        m_thread_pos[1] = jpos;
     }
 
     /**
      * @brief determines whether the current (i,j) position + an offset is within the block size
      */
+    template<typename Extent>
     GT_FUNCTION
     bool is_thread_in_domain(const int_t i_offset, const int_t j_offset) const
     {
-        return is_thread_in_domain_x(i_offset) &&  is_thread_in_domain_y(j_offset);
-    }
-
-    /**
-     * @brief determines whether the current (i) position is within the block size
-     */
-    GT_FUNCTION
-    bool is_thread_in_domain_x() const
-    {
-        return threadIdx.x < m_block_size_i;
+        return is_thread_in_domain_x<Extent::iminus::value, Extent::iplus::value>(i_offset) &&
+            is_thread_in_domain_y<Extent::jminus::value, Extent::jplus::value>(j_offset);
     }
 
     /**
      * @brief determines whether the current (i) position + an offset is within the block size
      */
+    template<int_t minus, int_t plus>
     GT_FUNCTION
     bool is_thread_in_domain_x(const int_t i_offset) const
     {
-        return (int_t)threadIdx.x + i_offset >= 0 && (int_t)threadIdx.x + i_offset < m_block_size_i;
+        return m_thread_pos[0] + i_offset >= minus && m_thread_pos[0] +i_offset < (int)m_block_size_i + plus;
     }
 
     /**
      * @brief determines whether the current (j) position is within the block size
      */
+    template<int_t minus, int_t plus>
     GT_FUNCTION
     bool is_thread_in_domain_y(const int_t j_offset) const
     {
-        return (int_t)threadIdx.y + j_offset >= 0 && (int_t)threadIdx.y + j_offset < m_block_size_j;
+        return m_thread_pos[1] + j_offset >= minus && m_thread_pos[1] + j_offset < (int)m_block_size_j + plus; 
     }
 
     GT_FUNCTION
-    uint block_size_i()
+    uint_t block_size_i()
     {
         return m_block_size_i;
     }
     GT_FUNCTION
-    uint block_size_j()
+    uint_t block_size_j()
     {
         return m_block_size_j;
     }
@@ -142,18 +156,6 @@ public:
         return m_pshared_iterate_domain->strides();
     }
 
-    // return a value that was cached
-    template<typename Accessor>
-    GT_FUNCTION
-    typename super::template accessor_return_type<Accessor>::type::value_type& RESTRICT
-    get_cache_value_impl(Accessor const & _accessor) const
-    {
-        //        assert(m_pshared_iterate_domain);
-        // retrieve the ij cache from the fusion tuple and access the element required give the current thread position within
-        // the block and the offsets of the accessor
-        return m_pshared_iterate_domain->template get_ij_cache<static_uint<Accessor::index_type::value> >().at(m_thread_pos, _accessor.offsets());
-    }
-
     template <ushort_t Coordinate, typename Execution>
     GT_FUNCTION
     void increment_impl()
@@ -164,7 +166,7 @@ public:
 
     template <ushort_t Coordinate>
     GT_FUNCTION
-    void increment_impl(int_t steps)
+    void increment_impl(const int_t steps)
     {
         if(Coordinate != 0 && Coordinate != 1) return;
         m_thread_pos[Coordinate] += steps;
@@ -178,6 +180,117 @@ public:
             m_thread_pos[Coordinate]=threadIdx.x;
         else if(Coordinate == 1)
             m_thread_pos[Coordinate]=threadIdx.y;
+    }
+
+    /** @brief metafunction that determines if an arg is pointing to a field which is read only by all ESFs
+    */
+    template<typename Accessor>
+    struct accessor_points_to_readonly_arg
+    {
+
+        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
+
+        typedef typename boost::mpl::at<
+            local_domain_args_t, boost::mpl::integral_c<int, Accessor::index_type::value>
+        >::type arg_t;
+
+        typedef typename
+            boost::mpl::has_key<
+                readonly_args_indices_t,
+                boost::mpl::integral_c<int, arg_index<arg_t>::value  >
+            >::type type;
+
+    };
+
+    /**
+    * @brief metafunction that determines if an accessor has to be read from texture memory
+    */
+    template<typename Accessor>
+    struct accessor_read_from_texture
+    {
+        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
+        typedef typename boost::mpl::and_<
+            typename accessor_points_to_readonly_arg<Accessor>::type,
+            typename boost::mpl::not_< typename boost::mpl::has_key<bypass_caches_set_t, static_uint<Accessor::index_type::value> >::type >::type
+        >::type type;
+    };
+
+    /** @brief return a value that was cached
+    * specialization where cache is not explicitly disabled by user
+    */
+    template<typename ReturnType, typename Accessor>
+    GT_FUNCTION
+    typename boost::disable_if<
+        boost::mpl::has_key<bypass_caches_set_t, static_uint<Accessor::index_type::value> >,
+        ReturnType
+    >::type
+    get_cache_value_impl(Accessor const & _accessor) const
+    {
+        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
+        //        assert(m_pshared_iterate_domain);
+        // retrieve the ij cache from the fusion tuple and access the element required give the current thread position within
+        // the block and the offsets of the accessor
+        return m_pshared_iterate_domain->template get_ij_cache<static_uint<Accessor::index_type::value> >().at(m_thread_pos, _accessor.offsets());
+    }
+
+    /** @brief return a value that was cached
+    * specialization where cache is explicitly disabled by user
+    */
+    template<typename ReturnType, typename Accessor>
+    GT_FUNCTION
+    typename boost::enable_if<
+        boost::mpl::has_key<bypass_caches_set_t, static_uint<Accessor::index_type::value> >,
+        ReturnType
+    >::type
+    get_cache_value_impl(Accessor const & _accessor) const
+    {
+        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
+        return super::template get_value<Accessor, void * RESTRICT> (_accessor,
+                    super::template get_data_pointer<Accessor>(_accessor));
+    }
+
+    /** @brief return a the value in memory pointed to by an accessor
+    * specialization where the accessor points to an arg which is readonly for all the ESFs in all MSSs
+    * Value is read via texture system
+    */
+    template<
+        typename ReturnType,
+        typename Accessor,
+        typename StoragePointer
+    >
+    GT_FUNCTION
+    typename boost::enable_if<
+        typename accessor_read_from_texture<Accessor>::type,
+        ReturnType
+    >::type
+    get_value_impl(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset) const
+    {
+        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
+#if __CUDA_ARCH__ >= 350
+        // on Kepler use ldg to read directly via read only cache
+        return __ldg(storage_pointer + pointer_offset);
+#else
+        return super::template get_gmem_value<ReturnType>(storage_pointer,pointer_offset);
+#endif
+    }
+
+    /** @brief return a the value in memory pointed to by an accessor
+    * specialization where the accessor points to an arg which is not readonly for all the ESFs in all MSSs
+    */
+    template<
+        typename ReturnType,
+        typename Accessor,
+        typename StoragePointer
+    >
+    GT_FUNCTION
+    typename boost::disable_if<
+        typename accessor_read_from_texture<Accessor>::type,
+        ReturnType
+    >::type
+    get_value_impl(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset) const
+    {
+        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
+        return super::template get_gmem_value<ReturnType>(storage_pointer,pointer_offset);
     }
 
 private:
@@ -198,10 +311,11 @@ template<
 struct is_positional_iterate_domain<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> > :
     is_positional_iterate_domain<IterateDomainBase<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> > > {};
 
+
 template<template<class> class IterateDomainBase, typename IterateDomainArguments>
 struct iterate_domain_backend_id<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> >
 {
-    typedef enumtype::enum_type< enumtype::backend, enumtype::Cuda > type;
+    typedef enumtype::enum_type< enumtype::platform, enumtype::Cuda > type;
 };
 
 

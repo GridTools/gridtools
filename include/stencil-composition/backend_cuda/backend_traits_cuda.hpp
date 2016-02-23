@@ -1,11 +1,12 @@
 #pragma once
 #include <boost/mpl/for_each.hpp>
-#include "../backend_traits_fwd.hpp"
+#include "stencil-composition/backend_traits_fwd.hpp"
 #include "execute_kernel_functor_cuda.hpp"
 #include "run_esf_functor_cuda.hpp"
 #include "../block_size.hpp"
 #include "iterate_domain_cuda.hpp"
 #include "strategy_cuda.hpp"
+
 #ifdef ENABLE_METERS
   #include "stencil-composition/backend_cuda/timer_cuda.hpp"
 #else
@@ -38,10 +39,28 @@ namespace gridtools{
             typedef hybrid_pointer<T> type;
         };
 
-        template <typename ValueType, typename Layout, bool Temp=false, short_t SpaceDim=1 >
+        template <typename ValueType, typename MetaData, bool Temp=false, short_t SpaceDim=1 >
         struct storage_traits
         {
-            typedef storage< base_storage<typename pointer<ValueType>::type, Layout, Temp, SpaceDim> > storage_t;
+            GRIDTOOLS_STATIC_ASSERT(is_meta_storage<MetaData>::value, "wrong type for the storage_info");
+            typedef storage< base_storage<typename pointer<ValueType>::type, MetaData, SpaceDim> > storage_t;
+        };
+
+        struct default_alignment{
+            typedef aligned<32> type;
+        };
+
+        /**
+           @brief storage info type associated to the cuda backend
+
+           the storage info type is meta_storage, which is clonable to GPU.
+         */
+        template <typename IndexType, typename Layout, bool Temp, typename Halo, typename Alignment >
+        struct meta_storage_traits{
+            GRIDTOOLS_STATIC_ASSERT(is_aligned<Alignment>::type::value,"wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_halo<Halo>::type::value,"wrong type");
+            // GRIDTOOLS_STATIC_ASSERT((is_layout<Layout>::value), "wrong type for the storage_info");
+            typedef meta_storage<meta_storage_aligned<meta_storage_base<IndexType::value, Layout, Temp>, Alignment, Halo> > type;
         };
 
         template <typename Arguments>
@@ -91,16 +110,19 @@ namespace gridtools{
         /**
            @brief assigns the two given values using the given thread Id whithin the block
         */
-        template <uint_t Id>
+        template <uint_t Id, typename BlockSize>
         struct once_per_block {
+            GRIDTOOLS_STATIC_ASSERT((is_block_size<BlockSize>::value), "Error: wrong type");
+
             template<typename Left, typename Right>
             GT_FUNCTION
             static void assign(Left& l, Right const& r){
-                //TODOCOSUNA if there are more ID than threads in a block????
-                if(threadIdx.x==Id)
-                    {
-                        l=r;
-                    }
+                assert(blockDim.z==1);
+                const uint_t pe_elem = threadIdx.y * BlockSize::i_size_t::value + threadIdx.x;
+                if( Id%(BlockSize::i_size_t::value * BlockSize::j_size_t::value) == pe_elem)
+                {
+                    l=(Left)r;
+                }
             }
         };
 
@@ -114,13 +136,13 @@ namespace gridtools{
         struct mss_loop
         {
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), "Internal Error: wrong type");
-            template<typename LocalDomain, typename Coords>
-            static void run(LocalDomain& local_domain, const Coords& coords, const uint_t bi, const uint_t bj)
+            template<typename LocalDomain, typename Grid>
+            static void run(LocalDomain& local_domain, const Grid& grid, const uint_t bi, const uint_t bj)
             {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type");
-                GRIDTOOLS_STATIC_ASSERT((is_coordinates<Coords>::value), "Internal Error: wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
 
-                execute_kernel_functor_cuda<RunFunctorArgs>(local_domain, coords, bi, bj)();
+                execute_kernel_functor_cuda<RunFunctorArgs>(local_domain, grid, bi, bj)();
             }
         };
 

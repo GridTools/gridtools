@@ -15,7 +15,7 @@
 #include <boost/preprocessor/cat.hpp>
 #include <boost/preprocessor/facilities/intercept.hpp>
 
-#include "common/defs.hpp"
+#include "stencil-composition/backend.hpp"
 #include "stencil-composition/esf.hpp"
 #include "stencil-composition/mss_metafunctions.hpp"
 #ifndef __CUDACC__
@@ -23,6 +23,7 @@
 #endif
 #include "intermediate.hpp"
 #include "../common/meta_array.hpp"
+#include "caches/define_caches.hpp"
 
 #ifndef NDEBUG
 
@@ -69,23 +70,21 @@ namespace _impl {
 #define _MAKE_COMPUTATION(z, n, nil)                                            \
     template <                                                                  \
         typename Backend,                                                       \
-        typename LayoutType,                                                    \
         BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename MssType),                \
         typename Domain,                                                        \
-        typename Coords                                                         \
+        typename Grid                                                         \
     >                                                                           \
     computation* make_computation(                                              \
         BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType),                         \
-        Domain& domain, const Coords& coords                                    \
+        Domain& domain, const Grid& grid                                    \
     ) {                                                                         \
         return new intermediate<                                                \
             Backend,                                                            \
-            LayoutType,                                                         \
             typename _impl::get_mss_array<                                      \
             BOOST_PP_CAT( boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)> \
             >::type,                                                            \
-            Domain, Coords,POSITIONAL_WHEN_DEBUGGING                            \
-        >(boost::ref(domain), coords);                                          \
+            Domain, Grid,POSITIONAL_WHEN_DEBUGGING                            \
+        >(boost::ref(domain), grid);                                          \
     }
 
 #else
@@ -93,34 +92,31 @@ namespace _impl {
 #define _MAKE_COMPUTATION(z, n, nil)                                            \
     template <                                                                  \
         typename Backend,                                                       \
-        typename LayoutType,                                                    \
         BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename MssType),                \
         typename Domain,                                                        \
-        typename Coords                                                         \
+        typename Grid                                                         \
     >                                                                           \
     boost::shared_ptr<                                                          \
         intermediate<                                                           \
             Backend,                                                            \
-            LayoutType,                                                         \
             typename _impl::get_mss_array<                                      \
             BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)> \
             >::type,                                                            \
-            Domain, Coords ,POSITIONAL_WHEN_DEBUGGING                           \
+            Domain, Grid ,POSITIONAL_WHEN_DEBUGGING                           \
         >                                                                       \
     > make_computation(                                                         \
         BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType),                         \
-        Domain& domain, const Coords& coords                                    \
+        Domain& domain, const Grid& grid                                    \
     ) {                                                                         \
         return boost::make_shared<                                              \
             intermediate<                                                       \
                 Backend,                                                        \
-                LayoutType,                                                     \
                 typename _impl::get_mss_array<                                  \
                 BOOST_PP_CAT( boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)> \
                 >::type,                                                        \
-                Domain, Coords, POSITIONAL_WHEN_DEBUGGING                       \
+                Domain, Grid, POSITIONAL_WHEN_DEBUGGING                       \
             >                                                                   \
-        >(boost::ref(domain), coords);                                          \
+        >(boost::ref(domain), grid);                                          \
     }
 
 #endif // __CUDACC__
@@ -138,23 +134,21 @@ namespace _impl {
 #define _MAKE_POSITIONAL_COMPUTATION(z, n, nil)                                 \
     template <                                                                  \
         typename Backend,                                                       \
-        typename LayoutType,                                                    \
         BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename MssType),                \
         typename Domain,                                                        \
-        typename Coords                                                         \
+        typename Grid                                                         \
     >                                                                           \
     computation* make_positional_computation(                                   \
         BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType),                         \
-        Domain& domain, const Coords& coords                                    \
+        Domain& domain, const Grid& grid                                    \
     ) {                                                                         \
         return new intermediate<                                                \
             Backend,                                                            \
-            LayoutType,                                                         \
             typename _impl::get_mss_array<                                      \
             BOOST_PP_CAT( boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)> \
             >::type,                                                            \
-            Domain, Coords,true                                                 \
-        >(boost::ref(domain), coords);                                          \
+            Domain, Grid,true                                                 \
+        >(boost::ref(domain), grid);                                          \
     }
 
 #else
@@ -162,34 +156,31 @@ namespace _impl {
 #define _MAKE_POSITIONAL_COMPUTATION(z, n, nil)                                 \
     template <                                                                  \
         typename Backend,                                                       \
-        typename LayoutType,                                                    \
         BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename MssType),                \
         typename Domain,                                                        \
-        typename Coords                                                         \
+        typename Grid                                                         \
     >                                                                            \
     boost::shared_ptr<                                                          \
         intermediate<                                                           \
             Backend,                                                            \
-            LayoutType,                                                         \
             typename _impl::get_mss_array<                                      \
             BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)> \
             >::type,                                                            \
-            Domain, Coords ,true                                                \
+            Domain, Grid ,true                                                \
         >                                                                       \
     > make_positional_computation(                                              \
         BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType),                         \
-        Domain& domain, const Coords& coords                                    \
+        Domain& domain, const Grid& grid                                    \
     ) {                                                                         \
         return boost::make_shared<                                              \
             intermediate<                                                       \
                 Backend,                                                        \
-                LayoutType,                                                     \
                 typename _impl::get_mss_array<                                  \
                 BOOST_PP_CAT( boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)> \
                 >::type,                                                        \
-                Domain, Coords, true                                            \
+                Domain, Grid, true                                            \
             >                                                                   \
-        >(boost::ref(domain), coords);                                          \
+        >(boost::ref(domain), grid);                                          \
     }
 
 #endif // __CUDACC__

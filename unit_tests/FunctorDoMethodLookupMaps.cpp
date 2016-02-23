@@ -2,9 +2,9 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/pair.hpp>
-#include "gt_for_each/for_each.hpp"
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/at.hpp>
+#include <boost/mpl/for_each.hpp>
 #include <iostream>
 #include "common/host_device.hpp"
 #include "stencil-composition/interval.hpp"
@@ -88,7 +88,6 @@ struct PrintDoMethodLookupMap
 
         typedef typename boost::mpl::at<TFunctors, TIndex>::type Functor;
         typedef typename boost::mpl::at<TFunctorDoMethodLookupMaps, static_int<0> >::type DoMethodLookUpMap;
-        // DoMethodLookUpMap::fuck();
 
         // print the functor name
         if(boost::is_same<Functor0, Functor>::value)
@@ -105,7 +104,7 @@ struct PrintDoMethodLookupMap
         }
 
         // print the map
-        gridtools::for_each<
+        boost::mpl::for_each<
             TLoopIntervals
         >(PrintLoopInterval<DoMethodLookUpMap>());
     }

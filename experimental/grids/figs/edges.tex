@@ -1,0 +1,30 @@
+\documentclass{article}
+\usepackage{tikz}
+\usetikzlibrary{calc} 
+\usepackage[nomessages]{fp}
+
+\begin{document}
+
+\usetikzlibrary{calc}
+	
+\input{style}
+
+\begin{tikzpicture}
+    \input{grid}
+
+    \foreach \row in {0, 1,...,\rowsminusone} {
+        \foreach \col in {0, 1,..., \rowsminusone} {
+          \begin{scope}[edges left]
+            \node at ({-\row -0.5 + \rows*0.5 + \col*0.5 - 0.3},{\rows*0.5*sqrt(3)-0.5  - \col*0.5*sqrt(3)}) {\pgfmathparse{-\row+\rowsminusone + \col*(\rows*3)}\pgfmathprintnumber{\pgfmathresult}};
+          \end{scope}
+          \begin{scope}[edges top]
+            \node at ({-\row -0.5 + \rows*0.5 + \col*0.5 + 0},{\rows*0.5*sqrt(3)-0.5  - \col*0.5*sqrt(3)+0.5}) {\pgfmathparse{-\row+\rowsminusone +\rows+ \col*(\rows*3)}\pgfmathprintnumber{\pgfmathresult}};
+          \end{scope}
+           \begin{scope}[edges right]
+            \node at ({-\row -0.5 + \rows*0.5 + \col*0.5 + 0.2},{\rows*0.5*sqrt(3)-0.5  - \col*0.5*sqrt(3)}) {\pgfmathparse{-\row+\rowsminusone +\rows*2+ \col*(\rows*3)}\pgfmathprintnumber{\pgfmathresult}};
+          \end{scope}
+        }
+    }
+\end{tikzpicture}
+
+\end{document}

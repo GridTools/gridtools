@@ -8,7 +8,7 @@ namespace gridtools {
     struct run_functor;
 
     /**forward declaration*/
-    template <typename PointerType, typename LayoutType, bool B, short_t SpaceDim>
+    template <typename PointerType, typename MetaType, ushort_t Dim>
     struct base_storage;
 
     /**forward declaration*/
@@ -16,7 +16,7 @@ namespace gridtools {
     struct storage;
 
     /**forward declaration*/
-    template<enumtype::backend T>
+    template<enumtype::platform T>
     struct backend_traits_from_id;
 
     /**

@@ -1,9 +1,10 @@
 #pragma once
 #include <boost/static_assert.hpp>
+#include <boost/mpl/for_each.hpp>
 #include "basic_token_execution.hpp"
 #include "backend_traits_fwd.hpp"
 #include "run_esf_functor.hpp"
-#include "../gt_for_each/for_each.hpp"
+
 
 /**
 @file Implementation of the k loop execution policy
@@ -51,18 +52,18 @@ namespace gridtools{
 
             GT_FUNCTION
             explicit run_f_on_interval(
-                    iterate_domain_t & iterate_domain,
-                    typename RunFunctorArguments::coords_t const& coords):
-                super(iterate_domain, coords){}
+                    iterate_domain_t & iterate_domain_,
+                    typename RunFunctorArguments::grid_t const& grid):
+                super(iterate_domain_, grid){}
 
             template<typename IterationPolicy, typename Interval>
             GT_FUNCTION
             void k_loop(int_t from, int_t to) const {
                 typedef typename run_esf_functor_h_t::template apply<RunFunctorArguments, Interval>::type run_esf_functor_t;
 
-                for ( int_t k=from ; k<=to; ++k, IterationPolicy::increment(this->m_domain)) {
-                    gridtools::for_each<boost::mpl::range_c<int, 0, boost::mpl::size<functor_list_t>::value > > (
-                        run_esf_functor_t(this->m_domain)
+                for ( int_t k=from ; k<=to; ++k, IterationPolicy::increment(super::m_domain)) {
+                    boost::mpl::for_each<boost::mpl::range_c<int, 0, boost::mpl::size<functor_list_t>::value > > (
+                        run_esf_functor_t(super::m_domain)
                     );
                 }
             }

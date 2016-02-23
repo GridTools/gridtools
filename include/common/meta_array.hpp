@@ -24,13 +24,14 @@ namespace gridtools {
  * fulfil a predicate
  * (without having to inspect each element of the sequence)
  */
-template<typename sequence, typename TPred>
+template<typename Sequence, typename TPred>
 struct meta_array{
-    BOOST_STATIC_ASSERT((boost::mpl::is_sequence<sequence>::value));
+    typedef Sequence sequence_t;
+    BOOST_STATIC_ASSERT((boost::mpl::is_sequence<sequence_t>::value));
 
     //check that predicate returns true for all elements
     typedef typename boost::mpl::fold<
-        sequence,
+        sequence_t,
         boost::mpl::true_,
         boost::mpl::and_<
             boost::mpl::_1,
@@ -40,18 +41,18 @@ struct meta_array{
 
     BOOST_STATIC_ASSERT((is_array_of_pred::value));
 
-    typedef sequence elements;
+    typedef sequence_t elements;
 };
 
 //type traits for meta_array
 template<typename T> struct is_meta_array : boost::mpl::false_{};
 
-template<typename sequence, typename TPred> struct is_meta_array< meta_array<sequence, TPred> > : boost::mpl::true_{};
+template<typename Sequence, typename TPred> struct is_meta_array< meta_array<Sequence, TPred> > : boost::mpl::true_{};
 
 template<typename T, template<typename> class pred> struct is_meta_array_of : boost::mpl::false_{};
 
-template<typename sequence, typename pred, template<typename> class pred_query>
-struct is_meta_array_of< meta_array<sequence, pred>, pred_query>
+template<typename Sequence, typename pred, template<typename> class pred_query>
+struct is_meta_array_of< meta_array<Sequence, pred>, pred_query>
 {
     typedef typename boost::is_same<boost::mpl::quote1<pred_query>, pred >::type type;
     BOOST_STATIC_CONSTANT(bool, value=(type::value));

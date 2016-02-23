@@ -3,10 +3,7 @@
  * the Python interface to the Gridtools library
  *
  */
-#include <gridtools.hpp>
-#include <stencil-composition/backend.hpp>
-#include <stencil-composition/make_computation.hpp>
-#include <stencil-composition/interval.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 #include "{{ fun_hdr_file }}"
 
@@ -25,7 +22,7 @@
 
 
 using gridtools::level;
-using gridtools::range;
+using gridtools::extent;
 using gridtools::arg;
 
 using namespace gridtools;
@@ -38,7 +35,7 @@ using namespace enumtype;
 //
 extern "C"
 {
-    void run_{{ stencil_name }} (uint_t dim1, uint_t dim2, uint_t dim3, 
+    void run_{{ stencil_name }} (uint_t dim1, uint_t dim2, uint_t dim3,
                       {%- for p in params %}
                       float_type *{{ p.name }}_buff
                           {%- if not loop.last -%}
@@ -72,21 +69,26 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
     //
     // define the storage unit used by the backend
     //
-    typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
+    typedef meta_storage<meta_storage_aligned<meta_storage_base<__COUNTER__, layout_t, false>, aligned<0>, halo<0,0,0> > > meta_data_t;
+    typedef gridtools::BACKEND::storage_type<float_type,
+                                             meta_data_t >::type storage_type;
 
     {% if temps %}
     //
     // define a special data type for the temporary, i.e., intermediate buffers
     //
-    typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
+    typedef gridtools::BACKEND::temporary_storage_type<float_type,
+                                                       meta_data_t >::type tmp_storage_type;
     {% endif -%}
 
     {% if params %}
     //
     // parameter data fields use the memory buffers received from NumPy arrays
     //
+    typename storage_type::meta_data_t meta_(d1, d2, d3);
+
     {% for p in params -%}
-    storage_type {{ p.name }} (d1, d2, d3,
+    storage_type {{ p.name }} (meta_,
                          (float_type *) {{ p.name }}_buff,
                           "{{ p.name }}");
     {% endfor %}
@@ -148,9 +150,9 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
     //
     // the vertical dimension of the problem is a property of this object
     //
-    gridtools::coordinates<axis> coords_{{ loop.index0 }}(di_{{ loop.index0 }}, dj_{{ loop.index0 }});
-    coords_{{ loop.index0 }}.value_list[0] = 0;
-    coords_{{ loop.index0 }}.value_list[1] = d3-1;
+    gridtools::grid<axis> grid_{{ loop.index0 }}(di_{{ loop.index0 }}, dj_{{ loop.index0 }});
+    grid_{{ loop.index0 }}.value_list[0] = 0;
+    grid_{{ loop.index0 }}.value_list[1] = d3-1;
 
     //
     // Here we do a lot of stuff
@@ -161,14 +163,14 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
     // 3) the actual domain dimensions
     //
 #ifdef __CUDACC__
-    gridtools::computation* 
+    gridtools::computation*
 #else
-    boost::shared_ptr<gridtools::computation> 
+    boost::shared_ptr<gridtools::computation>
 #endif
     {% set inside_independent_block = False %}
 
     comp_{{ s.name|lower }} =
-      gridtools::make_computation<gridtools::BACKEND, layout_t>
+      gridtools::make_computation<gridtools::BACKEND>
       (
             gridtools::make_mss
             (
@@ -189,7 +191,7 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
                        {%- endif %}
                 {% endfor -%}
             ),
-            domain, coords_{{ loop.index0 }}
+            domain, grid_{{ loop.index0 }}
       );
     {% endfor %}
 
@@ -235,15 +237,15 @@ int main (int argc, char **argv)
 
     // initialization
     for (int i = 0; i<dim1; i++) {
-	    for (int j = 0; j<dim2; j++) {
-	    	for (int k = 0; k<dim3; k++) {
+        for (int j = 0; j<dim2; j++) {
+            for (int k = 0; k<dim3; k++) {
             {% for p in params -%}
-			    {{ p.name }}_buff[i*dim3*dim2 + j*dim3 + k] = i*dim3*dim2 + j*dim3 + k;
+                {{ p.name }}_buff[i*dim3*dim2 + j*dim3 + k] = i*dim3*dim2 + j*dim3 + k;
             {% endfor -%}
             }
         }
     }
- 				
+
     // execution
     run (dim1, dim2, dim3,
           {%- for p in params %}
@@ -252,18 +254,18 @@ int main (int argc, char **argv)
               ,
               {%- endif -%}
           {% endfor -%});
-    
+
     // output
     for (int i = 0; i<dim1; i++) {
-	    for (int j = 0; j<dim2; j++) {
-	    	for (int k = 0; k<dim3; k++) {
-			        printf ("(%d,%d,%d)", i,j,k);
+        for (int j = 0; j<dim2; j++) {
+            for (int k = 0; k<dim3; k++) {
+                    printf ("(%d,%d,%d)", i,j,k);
                 {% for p in params -%}
                     printf ("\t%.5f", {{ p.name }}_buff[i*dim3*dim2 + j*dim3 + k]);
                 {% endfor -%}
                     printf ("\n");
             }
-		}
+            }
     }
 
 

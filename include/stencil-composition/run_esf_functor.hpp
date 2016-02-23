@@ -64,9 +64,8 @@ namespace gridtools {
             typedef typename esf_arguments_t::esf_args_map_t esf_args_map_t;
             typedef typename esf_arguments_t::functor_t functor_t;
 
-            if (
-                boost::mpl::has_key<interval_map_t, interval_t>::type::value
-                ) {
+            if ( boost::mpl::has_key<interval_map_t, interval_t>::type::value )
+            {
                 typedef typename boost::mpl::at<interval_map_t, interval_t>::type interval_type;
 
                 //check that the number of placeholders passed to the elementary stencil function
@@ -74,14 +73,17 @@ namespace gridtools {
                 //in the functor definition (in the high level interface). This means that we cannot
                 // (although in theory we could) pass placeholders to the computation which are not
                 //also referenced in the functor.
+
+#ifdef PEDANTIC // we might want to use the same placeholder twice?
                 GRIDTOOLS_STATIC_ASSERT( (boost::mpl::size<esf_args_map_t>::value==
-                    boost::mpl::size<typename boost::mpl::at<run_functor_list_t, Index>::type::arg_list>::value ),
-		            "GRIDTOOLS ERROR:\n\
-		            check that the number of placeholders passed to the elementary stencil function\n \
-		            (constructed during the computation) is the same as the number of arguments referenced\n\
-		            in the functor definition (in the high level interface). This means that we cannot\n\
-		            (although in theory we could) pass placeholders to the computation which are not\n\
-		            also referenced in the functor.");
+                                          boost::mpl::size<typename boost::mpl::at<run_functor_list_t, Index>::type::f_type::arg_list>::value ),
+                                         "GRIDTOOLS ERROR:\n\
+	            check that the number of placeholders passed to the elementary stencil function\n \
+	            (constructed during the computation) is the same as the number of arguments referenced\n \
+	            in the functor definition (in the high level interface). This means that we cannot\n \
+	            (although in theory we could) pass placeholders to the computation which are not\n \
+	            also referenced in the functor.");
+#endif
 
 
                 static_cast<const RunEsfFunctorImpl*>(this)->template do_impl<interval_type, esf_arguments_t>();
