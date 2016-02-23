@@ -173,7 +173,6 @@ namespace gdl {
                    ushort_t& io_I1, ushort_t& io_J1, ushort_t& io_K1, ushort_t& io_i1, ushort_t& io_j1, ushort_t& io_k1,
                    ushort_t& io_I2, ushort_t& io_J2, ushort_t& io_K2, ushort_t& io_i2, ushort_t& io_j2, ushort_t& io_k2) const
         {
-
             if(i_Id1<m_total_dof0)
             {
                 io_I1 = i_Id1/s_max_dof_index0;
@@ -274,26 +273,27 @@ namespace gdl {
       @tparam basis cardinality in y direction
       @tparam basis cardinality in z direction
      */
-    // TODO: should I extend a gridtools::storage_t or composition is better here (maybe all depends on the implemented logic, see comment above):
-    //       maybe the "is-a" relationship is the correct one if we plan to pass this stuff to a GT function, right?
     // TODO: add template parameter for grid traits (we need different access strategy for different 2D/3D gride types)
     // TODO: update parameter names according to GT rules
     template <typename MetaData, ushort_t BasisCardinality0, ushort_t BasisCardinality1 = BasisCardinality0, ushort_t BasisCardinality2 = BasisCardinality0>
-    struct assemble_storage : public storage_t< MetaData >{
+    struct assemble_storage : public storage_t< MetaData >::basic_type {
 
         GRIDTOOLS_STATIC_ASSERT((BasisCardinality0==BasisCardinality1), "GDL Error: basis cardinality in first and second direction must be the same");
         GRIDTOOLS_STATIC_ASSERT((BasisCardinality0==BasisCardinality2), "GDL Error: basis cardinality in first and second direction must be the same");
 
         using storage_metadata = MetaData;
-        using super = storage_t< MetaData >;
-        using type = typename super::type;
-        using dof_pair_indexing_t = pair_indexing<BasisCardinality0,BasisCardinality1,BasisCardinality2>;
+        using base_storage_type = typename storage_t< MetaData >::basic_type;
+        using indexing_t = gt::meta_storage_base<__COUNTER__,gt::layout_map<2,1,0>,false>;
 
     private:
 
         const global_to_local_dof_translator<BasisCardinality0,BasisCardinality1,BasisCardinality2> m_local_dof;
         // TODO: this should be a constrexpr
-        const dof_pair_indexing_t m_dof_pair_indexing;
+        const indexing_t m_indexing;
+
+        const uint_t s_max_dof_2;
+        const uint_t s_max_dof_1;
+
 
     public:
 
@@ -304,22 +304,13 @@ namespace gdl {
          */
         template <typename ... ExtraArgs>
         assemble_storage(const MetaData& i_storage_info, ExtraArgs const &... i_args):
-                         super(i_storage_info, i_args ...),
-                         m_local_dof(i_storage_info.template dims<0>(),i_storage_info.template dims<1>(),i_storage_info.template dims<2>())
+                         base_storage_type(i_storage_info, i_args ...),
+                         m_local_dof(i_storage_info.template dims<0>(),i_storage_info.template dims<1>(),i_storage_info.template dims<2>()),
+                         m_indexing(BasisCardinality0,BasisCardinality1,BasisCardinality2),
+                         s_max_dof_1((BasisCardinality0-1)*i_storage_info.template dims<0>()),
+                         s_max_dof_2((BasisCardinality1-1)*i_storage_info.template dims<1>())
                          {}
 
-        /**
-          @brief internal storage access method
-          @return GT storage object instance
-         */
-        // TODO: can't we directly use an extended storage like this in GT functors?
-        inline storage_t< MetaData >& get_storage(void) { return dynamic_cast<storage_t< MetaData >&>(*this); }
-
-        /**
-          @brief internal storage access method (const version)
-          @return GT storage object instance
-         */
-        inline storage_t< MetaData > const & get_storage(void) const { return dynamic_cast<storage_t< MetaData > const &>(*this); }
 
         /**
           @brief global dof base data access method
@@ -334,7 +325,9 @@ namespace gdl {
         // TODO: more generic interface needed (2D grids will have 4 indexes)
         // TODO: other access tipe should be possible: (dof1,dof2) for example
         // TODO: add input check
-        float_type get_value(ushort_t i_Id1, ushort_t i_Jd1, ushort_t i_Kd1, ushort_t i_Id2, ushort_t i_Jd2, ushort_t i_Kd2) const
+        // TODO: this should be const
+        GT_FUNCTION
+        float_type get_value(ushort_t i_Id1, ushort_t i_Jd1, ushort_t i_Kd1, ushort_t i_Id2, ushort_t i_Jd2, ushort_t i_Kd2) //const
         {
             ushort_t I1;
             ushort_t J1;
@@ -350,9 +343,34 @@ namespace gdl {
             ushort_t k2;
 
             if(m_local_dof.apply(i_Id1,i_Jd1,i_Kd1,i_Id2,i_Jd2,i_Kd2,I1,J1,K1,i1,j1,k1,I2,J2,K2,i2,j2,k2))
-                return get_storage()(I1,J1,K1,m_dof_pair_indexing.index(i1,j1,k1,i2,j2,k2));
+                return base_storage_type::operator()(I1,J1,K1,m_indexing.index(i1,j1,k1),m_indexing.index(i2,j2,k2));
 
             return 0;
         }
+
+        /**
+          @brief global dof base data access method
+          @param first dof
+          @param second dof
+          @return assemble matrix value for the provided global dof pair
+         */
+        // TODO: add input check
+        // TODO: this should be const
+        GT_FUNCTION
+        float_type get_value(uint_t i_I, uint_t i_J) //const
+        {
+
+            const ushort_t k1 = i_I/(s_max_dof_1*s_max_dof_2);
+            const ushort_t k2 = i_J/(s_max_dof_1*s_max_dof_2);
+
+            const ushort_t j1 = (i_I%(s_max_dof_1*s_max_dof_2))/s_max_dof_1;
+            const ushort_t j2 = (i_J%(s_max_dof_1*s_max_dof_2))/s_max_dof_1;
+
+            const ushort_t i1 = (i_I%(s_max_dof_1*s_max_dof_2))%s_max_dof_1;
+            const ushort_t i2 = (i_J%(s_max_dof_1*s_max_dof_2))%s_max_dof_1;
+
+            return get_value(i1, j1, k1, i2, j2, k2);
+        }
+
     };
 }
