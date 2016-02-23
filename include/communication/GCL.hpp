@@ -7,10 +7,6 @@
 #include <mpi.h>
 #endif
 
-#ifdef _GCL_GPU_
-#define _USE_GPU_
-#endif
-
 #include "../common/host_device.hpp"
 
 
