@@ -2,8 +2,13 @@
 #define _GCL_H_
 
 #include <iostream>
+
 #ifdef _GCL_MPI_
 #include <mpi.h>
+#endif
+
+#ifdef _GCL_GPU_
+#define _USE_GPU_
 #endif
 
 #include "../common/host_device.hpp"
@@ -17,9 +22,6 @@
 #include "../common/boollist.hpp"
 #include "low-level/gcl_arch.hpp"
 
-#ifdef _GCL_GPU_
-#include "cuda_runtime.h"
-#endif
 
 #ifdef _GCL_GPU_
 
