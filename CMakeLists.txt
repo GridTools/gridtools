@@ -192,15 +192,11 @@ endif()
 ##################################################################
 
 set( GCL_MPI "${USE_MPI}" )
-set( GCL_GPU "${USE_GPU}" )
 set( GCL_ONLY "OFF" CACHE BOOL "If on only library is build but not the examples and tests" )
 set( USE_MPI_COMPILER "OFF" CACHE BOOL "On rosa turn this flag off since compiler takes care of mpi already" )
 set( HOST_SPECIFIC_OPTIONS "" CACHE STRING "Options passed only to HOST COMPILER and not ACCELERATOR COMPILER" )
 
 
-if( "${GCL_GPU}" STREQUAL "ON" )
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GCL_GPU_")
-else()
 set (CUDA_LIBRARIES "")
 endif()
 

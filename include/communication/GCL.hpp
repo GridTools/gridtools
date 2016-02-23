@@ -23,7 +23,7 @@
 #include "low-level/gcl_arch.hpp"
 
 
-#ifdef _GCL_GPU_
+#ifdef _USE_GPU_
 
 // workaround that uses host buffering to avoid bad sends for messages larger than 512 kB on Cray systems
 //#define HOSTWORKAROUND
@@ -39,7 +39,7 @@ inline bool checkCudaStatus( cudaError_t status ) {
 }
 #endif
 
-#ifdef _GCL_GPU_
+#ifdef _USE_GPU_
 #ifdef GCL_MULTI_STREAMS
 #ifdef GCL_USE_3
 #ifndef SUPPRESS_MESSAGES

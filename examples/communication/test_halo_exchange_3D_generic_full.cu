@@ -346,7 +346,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1m, int H1p, int H2m, int
     file << "RESULT: FAILED!\n";
 }
 
-#ifdef _GCL_GPU_
+#ifdef _USE_GPU_
 /* device_binding added by Devendar Bureddy, OSU */
 
 void
@@ -388,7 +388,7 @@ device_binding ()
 
 int main(int argc, char** argv) {
 
-#ifdef _GCL_GPU_
+#ifdef _USE_GPU_
   device_binding();
 #endif
 

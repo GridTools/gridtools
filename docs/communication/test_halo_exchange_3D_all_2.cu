@@ -1,4 +1,4 @@
-#ifdef _GCL_GPU_
+#ifdef _USE_GPU_
 #include "cuda.h"
 #endif
 #include <mpi.h>
@@ -33,7 +33,7 @@ double lapse_time4;
 #define B_ADD 1
 #define C_ADD 2
 
-#ifdef _GCL_GPU_
+#ifdef _USE_GPU_
 typedef gridtools::gcl_gpu arch_type;
 #else
 typedef gridtools::gcl_cpu arch_type;
@@ -139,7 +139,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1, int H2, int H3, triple
 
   printbuff(file,a, DIM1+2*H1, DIM2+2*H2, DIM3+2*H3);
 
-#ifdef _GCL_GPU_
+#ifdef _USE_GPU_
   file << "GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU \n";
 
   triple_t<USE_DOUBLE>* gpu_a = 0;
@@ -395,7 +395,7 @@ void run(ST & file, int DIM1, int DIM2, int DIM3, int H1, int H2, int H3, triple
     file << "RESULT: FAILED!\n";
 }
 
-#ifdef _GCL_GPU_
+#ifdef _USE_GPU_
 /* device_binding added by Devendar Bureddy, OSU */
 
 void
@@ -437,7 +437,7 @@ device_binding ()
 
 int main(int argc, char** argv) {
 
-#ifdef _GCL_GPU_
+#ifdef _USE_GPU_
   device_binding();
 #endif
 
