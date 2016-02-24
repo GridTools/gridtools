@@ -6,6 +6,7 @@
 #include "../domain_type.hpp"
 #include "../../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../esf_fwd.hpp"
+#include "../esf_aux.hpp"
 #include "../sfinae.hpp"
 
 /**

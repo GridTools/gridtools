@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../iterate_domain.hpp"
-#include "../iterate_domain_metafunctions.hpp"
-#include "iterate_domain_cache.hpp"
-#include "shared_iterate_domain.hpp"
 #include <boost/type_traits/is_arithmetic.hpp>
+#include "../../iterate_domain.hpp"
+#include "../../iterate_domain_metafunctions.hpp"
+#include "../../backend_cuda/iterate_domain_cache.hpp"
+#include "../../backend_cuda/shared_iterate_domain.hpp"
 
 namespace gridtools {
 
@@ -333,13 +333,6 @@ template<
 >
 struct is_positional_iterate_domain<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> > :
     is_positional_iterate_domain<IterateDomainBase<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> > > {};
-
-
-template<template<class> class IterateDomainBase, typename IterateDomainArguments>
-struct iterate_domain_backend_id<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> >
-{
-    typedef enumtype::enum_type< enumtype::platform, enumtype::Cuda > type;
-};
 
 
 }

@@ -1,14 +1,13 @@
 #pragma once
-#include "../iteration_policy.hpp"
-#include "../backend_traits_fwd.hpp"
-#include "backend_traits_cuda.hpp"
+#include "../../iteration_policy.hpp"
+#include "../../backend_traits_fwd.hpp"
 #include "stencil-composition/iterate_domain.hpp"
-#include "shared_iterate_domain.hpp"
+#include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "common/gt_assert.hpp"
 
 namespace gridtools {
 
-namespace _impl_cuda {
+namespace _impl_strcuda {
 
     template<int VBoundary>
     struct padded_boundary :
@@ -153,8 +152,10 @@ namespace _impl_cuda {
 
         __syncthreads();
     }
-} // namespace _impl_cuda
+} // namespace _impl_strcuda
 
+
+namespace strgrid {
 
 /**
  * @brief main functor that setups the CUDA kernel for a MSS and launchs it
@@ -254,7 +255,7 @@ struct execute_kernel_functor_cuda
         //re-create the run functor arguments, replacing the processing elements block size
         // with the corresponding, recently computed, block size
         typedef run_functor_arguments<
-            RunFunctorArguments::backend_id_t::value,
+            typename RunFunctorArguments::backend_ids_t,
             cuda_block_size_t,
             typename RunFunctorArguments::physical_domain_block_size_t,
             typename RunFunctorArguments::functor_list_t,
@@ -267,8 +268,7 @@ struct execute_kernel_functor_cuda
             typename RunFunctorArguments::cache_sequence_t,
             typename RunFunctorArguments::async_esf_map_t,
             typename RunFunctorArguments::grid_t,
-            typename RunFunctorArguments::execution_type_t,
-            RunFunctorArguments::s_strategy_id
+            typename RunFunctorArguments::execution_type_t
         > run_functor_arguments_cuda_t;
 
 #ifdef VERBOSE
@@ -277,7 +277,7 @@ struct execute_kernel_functor_cuda
             printf("nx = %d, ny = %d, nz = 1\n",nx, ny);
 #endif
 
-        _impl_cuda::do_it_on_gpu<run_functor_arguments_cuda_t, local_domain_t><<<blocks, threads>>>//<<<nbx*nby, ntx*nty>>>
+        _impl_strcuda::do_it_on_gpu<run_functor_arguments_cuda_t, local_domain_t><<<blocks, threads>>>//<<<nbx*nby, ntx*nty>>>
             (local_domain_gp, grid_gp,
                  m_grid.i_low_bound(),
                  m_grid.j_low_bound(),
@@ -295,5 +295,7 @@ private:
     const uint_t m_block_idx_i;
     const uint_t m_block_idx_j;
 };
+
+} // namespace strgrid
 
 } //namespace gridtools
