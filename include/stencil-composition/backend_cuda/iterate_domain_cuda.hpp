@@ -4,6 +4,7 @@
 #include "../iterate_domain_metafunctions.hpp"
 #include "iterate_domain_cache.hpp"
 #include "shared_iterate_domain.hpp"
+#include <boost/type_traits/is_arithmetic.hpp>
 
 namespace gridtools {
 
@@ -21,7 +22,20 @@ class iterate_domain_cuda : public IterateDomainBase<iterate_domain_cuda<Iterate
     typedef IterateDomainBase<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> > super;
     typedef typename IterateDomainArguments::local_domain_t local_domain_t;
     typedef typename local_domain_t::esf_args local_domain_args_t;
+
 public:
+
+    /**
+     * metafunction that computes the return type of all operator() of an accessor.
+     *
+     * If the temaplate argument is not an accessor ::type is mpl::void_
+     *
+     */
+    template<typename Accessor>
+    struct accessor_return_type
+    {
+        typedef typename super::template accessor_return_type<Accessor>::type type;
+    };
 
     typedef typename super::data_pointer_array_t data_pointer_array_t;
     typedef typename super::strides_cached_t strides_cached_t;
@@ -109,7 +123,7 @@ public:
     GT_FUNCTION
     bool is_thread_in_domain_y(const int_t j_offset) const
     {
-        return m_thread_pos[1] + j_offset >= minus && m_thread_pos[1] + j_offset < (int)m_block_size_j + plus; 
+        return m_thread_pos[1] + j_offset >= minus && m_thread_pos[1] + j_offset < (int)m_block_size_j + plus;
     }
 
     GT_FUNCTION
@@ -210,9 +224,19 @@ public:
     {
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
         typedef typename boost::mpl::and_<
-            typename accessor_points_to_readonly_arg<Accessor>::type,
-            typename boost::mpl::not_< typename boost::mpl::has_key<bypass_caches_set_t, static_uint<Accessor::index_type::value> >::type >::type
-        >::type type;
+            typename boost::mpl::and_<
+                typename accessor_points_to_readonly_arg<Accessor>::type,
+                typename boost::mpl::not_<
+                    typename boost::mpl::has_key<
+                        bypass_caches_set_t,
+                        static_uint<Accessor::index_type::value>
+                        >::type // mpl::has_key
+                    >::type // mpl::not,
+                >::type, // mpl::(inner)and_
+                typename boost::is_arithmetic<
+                    typename accessor_return_type<Accessor>::type
+                    >::type // is_arithmetic
+            >::type type;
     };
 
     /** @brief return a value that was cached
@@ -271,7 +295,7 @@ public:
         return __ldg(storage_pointer + pointer_offset);
 #else
         return super::template get_gmem_value<ReturnType>(storage_pointer,pointer_offset);
-#endif
+ #endif
     }
 
     /** @brief return a the value in memory pointed to by an accessor
