@@ -178,20 +178,26 @@ namespace gridtools{
                                                                   tile_dimension + ( compute_halo(component,UP)) + (compute_halo(component,LOW)) );
 
 #ifndef NDEBUG
-#ifdef VERBOSE
-                    std::cout<<"["<<PID<<"]"<<"grid ["<< compute_halo(component,LOW)<<" "
-                         <<compute_halo(component,UP) << " "
-                         <<compute_halo(component,LOW) << " "
-                         << tile_dimension+(compute_halo(component,LOW))-1<<" "
-                         <<( tile_dimension+ compute_halo(component,UP))+(compute_halo(component,LOW))<<"]"
-                         << std::endl;
+                    //#ifdef VERBOSE
+                    std::cout << "coords[0]     " << coordinates[0] << std::endl;
+                    std::cout << "coords[1]     " << coordinates[1] << std::endl;
+                    std::cout << "coords[2]     " << coordinates[2] << std::endl;
+                    std::cout << "gcl_coords[0] " << coordinates_gcl[0] << std::endl;
+                    std::cout << "gcl_coords[1] " << coordinates_gcl[1] << std::endl;
+                    std::cout << "gcl_coords[2] " << coordinates_gcl[2] << std::endl;
+                    // std::cout<<"["<<PID<<"]"<<"grid ["<< compute_halo(component,LOW)<<" "
+                    //      <<compute_halo(component,UP) << " "
+                    //      <<compute_halo(component,LOW) << " "
+                    //      << tile_dimension+(compute_halo(component,LOW))-1<<" "
+                    //      <<( tile_dimension+ compute_halo(component,UP))+(compute_halo(component,LOW))<<"]"
+                    //      << std::endl;
                 std::cout<<"boundary for coords definition: "<<boundary()<<std::endl;
                 std::cout<<"partitioning"<<std::endl;
                 std::cout<<"up bounds for component "<< component <<": "<<up_bound[component]<<std::endl
                          <<"low bounds for component "<< component <<": "<<low_bound[component]<<std::endl
                          <<"pid: "<<m_pid[0]<<" "<<m_pid[1]<<" "<<m_pid[2]<<std::endl
                          <<"component, size: "<<component<<" "<<size_<<std::endl;
-#endif
+                //#endif
 #endif
                 return tile_dimension+ compute_halo(component,UP)+compute_halo(component,LOW);
             }
