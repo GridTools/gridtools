@@ -103,8 +103,30 @@ TEST(test_copy_stencil, run) {
     copy->steady();
     copy->run();
 
-    verifier ver(1e-10);
+    out_cells.data().update_cpu();
+    
+    bool result = true;
+    for(int i=0; i < d1; ++i)
+    {
+        for(int c=0; c < 2; ++c)
+        {
+            for(int j=0; j < d2; ++j)
+            {
+                for(int k=0; k < d3; ++k)
+                {
+                    if( in_cells(i,c,j,k) != out_cells(i,c,j,k)) {
+                        std::cout << "ERRRRROR " << i << " " << c << " " << j << " " << k << " " << in_cells(i,c,j,k) << " " << out_cells(i,c,j,k) << std::endl;
+                        result = false;
+                    }
+                }
+            }
+        }
+    }
 
-    array<array<uint_t, 2>, 4> halos = {{ {halo_nc, halo_nc},{0,0},{halo_mc, halo_mc},{halo_k, halo_k} }};
-    EXPECT_TRUE(ver.verify(grid_, in_cells, out_cells, halos));
+// TODO recover verifier
+//    verifier ver(1e-10);
+
+//    array<array<uint_t, 2>, 4> halos = {{ {halo_nc, halo_nc},{0,0},{halo_mc, halo_mc},{halo_k, halo_k} }};
+//    EXPECT_TRUE(ver.verify(grid_, in_cells, out_cells, halos));
+    EXPECT_TRUE(result);
 }
