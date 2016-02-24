@@ -53,12 +53,12 @@ using namespace expressions;
 #endif
 
 #ifdef CUDA_EXAMPLE
-typedef gridtools::backend<gridtools::enumtype::Cuda, gridtools::enumtype::Block > the_backend;
+typedef gridtools::backend<gridtools::enumtype::Cuda, GRIDBACKEND, gridtools::enumtype::Block > the_backend;
 #else
 #ifdef BACKEND_BLOCK
-typedef gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Block > the_backend;
+typedef gridtools::backend<gridtools::enumtype::Host, GRIDBACKEND, gridtools::enumtype::Block > the_backend;
 #else
-typedef gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Naive > the_backend;
+typedef gridtools::backend<gridtools::enumtype::Host, GRIDBACKEND, gridtools::enumtype::Naive > the_backend;
 #endif
 #endif
 

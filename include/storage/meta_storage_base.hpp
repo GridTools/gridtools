@@ -273,6 +273,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
 
         struct _impl_index{
             template<typename ... UIntType>
+            GT_FUNCTION
             static uint_t apply(const type& me, UIntType ... args){
                 return me.index(args...);
             }
