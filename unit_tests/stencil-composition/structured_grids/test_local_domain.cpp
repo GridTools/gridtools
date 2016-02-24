@@ -13,9 +13,7 @@
 
 #include "gtest/gtest.h"
 
-#include "stencil-composition/backend.hpp"
-#include "stencil-composition/stencil-composition.hpp"
-#include "stencil-composition/intermediate_metafunctions.hpp"
+#include <stencil-composition/stencil-composition.hpp>
 
 using namespace gridtools;
 using gridtools::level;

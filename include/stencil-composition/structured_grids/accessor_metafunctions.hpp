@@ -1,7 +1,7 @@
 #pragma once
 
-#include "accessor.hpp"
 #include "../global_accessor.hpp"
+#include "./accessor.hpp"
 
 namespace gridtools{
 
@@ -32,7 +32,7 @@ struct accessor_index
  * @brief metafunction that given an accesor and a map, it will remap the index of the accessor according
  * to the corresponding entry in ArgsMap
  */
-template<typename Accessor, typename ArgsMap>
+    template<typename Accessor, typename ArgsMap, typename Enable = void>
 struct remap_accessor_type{};
 
 template < ushort_t ID, enumtype::intend Intend, typename Extend, ushort_t Number, typename ArgsMap>
@@ -82,7 +82,8 @@ struct remap_accessor_type<global_accessor<ID, Intend>, ArgsMap >
 
 #ifdef CXX11_ENABLED
     template < typename ArgsMap, template<typename ... > class Expression, typename ... Arguments >
-    struct remap_accessor_type<Expression<Arguments ... >, ArgsMap >
+    struct remap_accessor_type<Expression<Arguments ... >, ArgsMap,
+                               typename boost::enable_if<typename is_expr<Expression<Arguments ... >>::type, void>::type >
     {
         //Expression is an expression of accessors (e.g. expr_sum<T1, T2>,
         //where T1 and T2 are two accessors).
@@ -92,6 +93,15 @@ struct remap_accessor_type<global_accessor<ID, Intend>, ArgsMap >
         //recursively remapping the template arguments,
         //until the specialization above stops the recursion
         typedef Expression<typename remap_accessor_type<Arguments, ArgsMap>::type ...> type;
+    };
+
+    // Workaround needed to prevent nvcc to instantiate the struct in enable_ifs
+    template < typename ArgsMap, template<typename ... > class Expression, typename ... Arguments >
+    struct remap_accessor_type<Expression<Arguments ... >, ArgsMap,
+                               typename boost::disable_if<typename is_expr<Expression<Arguments ... >>::type, void>::type >
+    {
+        // Workaround needed to prevent nvcc to instantiate the struct in enable_ifs
+        typedef boost::mpl::void_ type;
     };
 
     template < typename ArgsMap >
@@ -112,13 +122,31 @@ struct remap_accessor_type<global_accessor<ID, Intend>, ArgsMap >
 #endif
 
 
-    template<typename Accessor> struct is_accessor_readonly : boost::mpl::false_{};
+    template<typename Accessor> struct is_accessor_readonly: boost::mpl::false_{};
+
+#if defined(CXX11_ENABLED) && !defined(CUDA_CXX11_BUG_1)
+    template <typename Accessor, typename ... Pair>
+    struct is_accessor_readonly<accessor_mixed<Accessor, Pair ... > > : is_accessor_readonly<Accessor> {};
+#endif
 
     template < ushort_t ID, typename Extend, ushort_t Number>
     struct is_accessor_readonly<accessor<ID, enumtype::in, Extend, Number> > : boost::mpl::true_{};
 
+    template < ushort_t ID, typename Extend, ushort_t Number>
+    struct is_accessor_readonly<accessor<ID, enumtype::inout, Extend, Number> > : boost::mpl::false_{};
+
     template < ushort_t ID>
     struct is_accessor_readonly<global_accessor<ID, enumtype::in> > : boost::mpl::true_{};
 
+    template < ushort_t ID>
+    struct is_accessor_readonly<global_accessor<ID, enumtype::inout> > : boost::mpl::true_{};
+
+    /* Is written is actually "can be written", since it checks if not read olnly.
+       TODO: metafunction convention not completely respected */
+    template < typename Accessor >
+    struct is_accessor_written {
+        static const bool value = ! is_accessor_readonly<Accessor>::value;
+        typedef typename boost::mpl::not_<typename is_accessor_readonly<Accessor>::type>::type type;
+    };
 
 } //namespace gridtools

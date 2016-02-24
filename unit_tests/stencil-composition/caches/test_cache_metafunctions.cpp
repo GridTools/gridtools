@@ -73,7 +73,7 @@ TEST(cache_metafunctions, extract_extents_for_caches)
     >::type max_extent_t;
 
     typedef iterate_domain_arguments<
-        backend_ids<Cuda, GRIDBACKEND, Block>,
+        enumtype::enum_type<enumtype::platform, enumtype::Host>,
         local_domain_t,
         esf_sequence_t,
         extents_t,

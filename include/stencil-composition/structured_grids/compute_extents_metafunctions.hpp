@@ -1,5 +1,11 @@
 #pragma once
+#include <boost/mpl/fold.hpp>
 #include <boost/mpl/reverse.hpp>
+#include <boost/mpl/at.hpp>
+#include <boost/mpl/if.hpp>
+#include <boost/mpl/range_c.hpp>
+
+
 #include "stencil-composition/wrap_type.hpp"
 #include "../mss.hpp"
 
