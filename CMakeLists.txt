@@ -196,10 +196,6 @@ set( GCL_ONLY "OFF" CACHE BOOL "If on only library is build but not the examples
 set( USE_MPI_COMPILER "OFF" CACHE BOOL "On rosa turn this flag off since compiler takes care of mpi already" )
 set( HOST_SPECIFIC_OPTIONS "" CACHE STRING "Options passed only to HOST COMPILER and not ACCELERATOR COMPILER" )
 
-
-set (CUDA_LIBRARIES "")
-endif()
-
 set( USE_MPI "OFF" CACHE BOOL "Compile with MPI support" )
 
 if( USE_MPI )
