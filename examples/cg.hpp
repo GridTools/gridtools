@@ -6,6 +6,12 @@
 #include <stencil-composition/interval.hpp>
 #include <stencil-composition/make_computation.hpp>
 
+#include <storage/partitioner_trivial.hpp>
+#include <storage/parallel_storage.hpp>
+
+#include <communication/low-level/proc_grids_3D.hpp>
+#include <communication/halo_exchange.hpp>
+
 #include <boost/timer/timer.hpp>
 #include "cg.h"
 
@@ -18,10 +24,9 @@
 
  1nd order in time:
   3-point constant-coefficient stencil in one dimension, with symmetry.
+  5-point constant-coefficient stencil in two dimensions, with symmetry.
   7-point constant-coefficient isotropic stencil in three dimensions, with symmetry.
-  7-point variable-coefficient stencil in three dimension, with no coefficient symmetry.
   25-point constant-coefficient, anisotropic stencil in 3D, with symmetry across each axis.
-  25-point variable-coefficient, anisotropic stencil in 3D, with symmetry across each axis.
 
  2nd order in time:
   25-point constant-coefficient, isotropic stencil in 3D, with symmetry across each axis.
@@ -56,6 +61,7 @@ using namespace expressions;
 typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
 typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
 
+#ifdef pt3
 // 1st order in time, 3-point constant-coefficient stencil in one dimension, with symmetry.
 struct d1point3{
     typedef accessor<0, enumtype::inout, extent<0,0,0,0> > out;
@@ -70,6 +76,9 @@ struct d1point3{
     }
 };
 
+#endif
+
+#ifdef pt5
 struct d2point5{
     typedef accessor<0, enumtype::inout, extent<0,0,0,0> > out;
     typedef accessor<1, enumtype::in, extent<-1,1,-1,1> > in; // access four neighbors
@@ -83,7 +92,9 @@ struct d2point5{
                      - 0.25 * (dom(in{y(-1)}) + dom(in{y(1)}));
     }
 };
+#endif
 
+#ifdef pt7
 // 1st order in time, 7-point constant-coefficient isotropic stencil in 3D, with symmetry.
 struct d3point7{
     typedef accessor<0, enumtype::inout, extent<0,0,0,0> > out;
@@ -100,6 +111,7 @@ struct d3point7{
     }
 };
 
+
 // Addition of two grids, c = a + b
 struct add{
     typedef accessor<0, enumtype::inout, extent<0,0,0,0> > c;
@@ -113,7 +125,9 @@ struct add{
         dom(c{}) = dom(a{}) + dom(b{});
     }
 };
+#endif
 
+#ifdef pt25
 // 25-point, anisotropic stencil in 3D, with symmetry across each axis.
 struct d3point25{
     typedef accessor<0, enumtype::inout, extent<0,0,0,0> > out;
@@ -138,7 +152,9 @@ struct d3point25{
                         -0.04 * (dom(in{z(-4)}) + dom(in{z(+4)}));
     }
 };
+#endif
 
+#ifdef pt25_t2
 // 2-nd order in time, 25-point constant-coefficient, isotropic stencil in 3D, with symmetry across each axis.
 struct d3point25_time2{
     typedef accessor<0, enumtype::inout, extent<0,0,0,0> > out;
@@ -167,11 +183,14 @@ struct d3point25_time2{
                     );
     }
 };
+#endif
 
 /*******************************************************************************/
 /*******************************************************************************/
 
 bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
+
+    gridtools::GCL_Init();
 
     uint_t d1 = x;
     uint_t d2 = y;
@@ -180,82 +199,116 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
     printf("Running for %d x %d x %d, %d iterations\n",x,y,z,nt);
 
+#ifndef NDEBUG1
+    std::ofstream myfile;
+    std::stringstream name;
+    name<<"domain"<<PID<<".txt";
+    myfile.open (name.str().c_str());
+#endif
+
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block >
 #else
 #define BACKEND backend<Host, Naive >
 #endif
 
+    // Prepare types for the data storage
+    //                   strides  1 x xy
+    //                      dims  x y z
     typedef gridtools::layout_map<0,1,2> layout_t;
-    typedef gridtools::BACKEND::storage_info<0, layout_t> meta_t;
-    typedef gridtools::BACKEND::storage_type<float_type, meta_t >::type storage_type;
+    typedef gridtools::BACKEND::storage_info<0, layout_t> metadata_t;
+    typedef gridtools::BACKEND::storage_type<float_type, metadata_t >::type storage_type;
+    typedef storage_type::original_storage::pointer_type pointer_type;
+
+    typedef field<storage_type, 1, 1, 1>::type field_type; //Q&A - what are 1,1,1 specifying?
+
+
+    typedef gridtools::halo_exchange_dynamic_ut<layout_t,
+                                                gridtools::layout_map<0, 1, 2>,
+                                                pointer_type::pointee_t,
+                                                MPI_3D_process_grid_t<3> ,
+                                                gridtools::gcl_cpu,
+                                                gridtools::version_manual> pattern_type;
+
+    pattern_type he(pattern_type::grid_type::period_type(false, false, false), GCL_WORLD);
 
     //--------------------------------------------------------------------------
     // Definition of the actual data fields that are used for input/output
 #ifdef pt3
     //3pt 1D stencil
-    meta_t meta_(d1,1,1);
-    storage_type out3pt(meta_, 1., "domain3pt_out"); //initial value set to 1.0
-    storage_type in3pt(meta_, 1., "domain3pt_in");
-    storage_type *ptr_in3pt = &in3pt, *ptr_out3pt = &out3pt;
+    metadata_t meta_(d1,1,1);
+    field_type out3pt(meta_, 1., "domain3pt_out"); //initial value set to 1.0
+    field_type in3pt(meta_, 1., "domain3pt_in");
+    field_type *ptr_in3pt = &in3pt, *ptr_out3pt = &out3pt;
 #endif
 
 #ifdef pt5
     //5pt 2D stencil
-    meta_t meta_(d1,d2,1);
-    storage_type out5pt(meta_, 1.,"domain5pt_out"); //initial value set to 1.0
-    storage_type in5pt(meta_, 1.,"domain5pt_in");
-    storage_type *ptr_in5pt = &in5pt, *ptr_out5pt = &out5pt;
+    metadata_t meta_(d1,d2,1);
+    field_type out5pt(meta_, 1.,"domain5pt_out"); //initial value set to 1.0
+    field_type in5pt(meta_, 1.,"domain5pt_in");
+    field_type *ptr_in5pt = &in5pt, *ptr_out5pt = &out5pt;
 #endif    
 
 #ifdef pt7
-    //7pt 3D stencil with symmetry
-    meta_t meta_(d1,d2,d3);
-    storage_type out7pt(meta_, 1., "domain7pt_out");
-    storage_type in7pt(meta_, 1., "domain7pt_in");
-    storage_type constant(meta_, 10., "constant");
-    storage_type *ptr_in7pt = &in7pt, *ptr_out7pt = &out7pt;
+    //7pt 3D stencil with symmetry distributed storage
+    array<ushort_t, 3> padding{0,0,0}; //Q&A -  what are these arguments?
+    array<ushort_t, 3> halo{1,1,1}; //Q&A -  what are these arguments? - is it that halo is of width 1 cell in each dimension
+    typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > >, pattern_type::grid_type> partitioner_t;
+    partitioner_t part(he.comm(), halo, padding);
+    parallel_storage_info<metadata_t, partitioner_t> meta_(part, d1, d2, d3);
+    auto metadata_=meta_.get_metadata();
 
-    for(uint_t i=0; i<d1; ++i)
-        for(uint_t j=0; j<d2; ++j)
-            for(uint_t k=0; k<d3; ++k)
+    // set up actual storage space
+    field_type out7pt(metadata_, 1., "domain7pt_out");
+    field_type in7pt(metadata_, 1., "domain7pt_in");
+    field_type constant(metadata_, 10., "constant");
+    field_type *ptr_in7pt = &in7pt, *ptr_out7pt = &out7pt;
+
+    // set up halo
+    he.add_halo<0>(meta_.template get_halo_gcl<0>()); //Q&A - what does this say?
+    he.add_halo<1>(meta_.template get_halo_gcl<1>()); //Q&A - what does this say?
+    he.add_halo<2>(0, 0, 0, d3 - 1, d3); //Q&A - what does this say?
+    he.setup(2);
+
+    // initialize the local domain
+    for(uint_t i=0; i<metadata_.template dims<0>(); ++i)
+        for(uint_t j=0; j<metadata_.template dims<1>(); ++j)
+            for(uint_t k=0; k<metadata_.template dims<2>(); ++k)
             {
-                if(i==j) //diagonal point
-                    constant(i,j,k) = 100.0;
-                else //off-diagonal point
-                    constant(i,j,k) = 10.0;
+                constant(i,j,k) = 10. * gridtools::PID;
             }
 #endif
 
 #ifdef pt25
     //25-pt stencil
-    meta_t meta_(d1,d2,d3);
-    storage_type out25pt_const(meta_, 1., "domain_out");
-    storage_type in25pt_const(meta_, 1., "domain_in");
-    storage_type *ptr_in25pt_const = &in25pt_const, *ptr_out25pt_const = &out25pt_const;
+    metadata_t meta_(d1,d2,d3);
+    field_type out25pt_const(meta_, 1., "domain_out");
+    field_type in25pt_const(meta_, 1., "domain_in");
+    field_type *ptr_in25pt_const = &in25pt_const, *ptr_out25pt_const = &out25pt_const;
 #endif   
 
 
 #ifdef pt25_t2
     //25-pt stencil, 2-nd order in time with coeff symmetry
-    meta_t meta_(d1,d2,d3);
-    storage_type out25pt(meta_,1., "domain_out");
-    storage_type in25pt(meta_,1., "domain_in");
-    storage_type in25pt_old(meta_,1., "domain_in_old");
-    storage_type *ptr_in25pt = &in25pt;
-    storage_type *ptr_in25pt_old = &in25pt_old;
-    storage_type *ptr_out25pt = &out25pt;
-    storage_type alpha(meta_, 1., "coeff_alpha");
+    metadata_t meta_(d1,d2,d3);
+    field_type out25pt(meta_,1., "domain_out");
+    field_type in25pt(meta_,1., "domain_in");
+    field_type in25pt_old(meta_,1., "domain_in_old");
+    field_type *ptr_in25pt = &in25pt;
+    field_type *ptr_in25pt_old = &in25pt_old;
+    field_type *ptr_out25pt = &out25pt;
+    field_type alpha(meta_, 1., "coeff_alpha");
 #endif
 
     //--------------------------------------------------------------------------
     // Definition of placeholders. The order of them reflect the order the user
     // will deal with them especially the non-temporary ones, in the construction
     // of the domain
-    typedef arg<0, storage_type > p_out; //domain
-    typedef arg<1, storage_type > p_in;
-    typedef arg<2, storage_type > p_in_old;
-    typedef arg<3, storage_type > p_alpha;
+    typedef arg<0, field_type > p_out; //domain
+    typedef arg<1, field_type > p_in;
+    typedef arg<2, field_type > p_in_old;
+    typedef arg<3, field_type > p_alpha;
 
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
@@ -267,34 +320,44 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
     // while the vertical ones are set according the the axis property soon after
+#ifdef pt3
     uint_t di1d[5] = {0, 0, 1, d1-2, d1};
     uint_t dj1d[5] = {0, 0, 0, 0, 1};
     gridtools::grid<axis> coords1d3pt(di1d, dj1d);
     coords1d3pt.value_list[0] = 0; //specifying index of the splitter<0,-1>
     coords1d3pt.value_list[1] = 0; //specifying index of the splitter<1,-1>
+#endif
 
+#ifdef pt5
     uint_t di2d[5] = {0, 0, 1, d1-2, d1};
     uint_t dj2d[5] = {0, 0, 1, d2-2, d2};
     gridtools::grid<axis> coords2d5pt(di2d, dj2d);
     coords2d5pt.value_list[0] = 0; //specifying index of the splitter<0,-1>
     coords2d5pt.value_list[1] = 0; //specifying index of the splitter<1,-1>
+#endif
 
-
+#ifdef pt7
     //Informs the library that the iteration space in the first two dimensions
-    //is from 1 to d1-2 (included) in I (or x) direction
-    uint_t di3d[5] = {0, 0, 1, d1-2, d1};
-    //and 1 to d2-2 on J (or y) direction
-    uint_t dj3d[5] = {0, 0, 1, d2-2, d2};
-    gridtools::grid<axis> coords3d7pt(di3d, dj3d);
+    //uint_t di3d[5] = {0, 0, 1, d1-2, d1};
+    //uint_t dj3d[5] = {0, 0, 1, d2-2, d2};
+    //gridtools::grid<axis> coords3d7pt(di3d, dj3d);
+    gridtools::grid<axis, partitioner_t> coords3d7pt(part, meta_);
+    //Q&A - where is the iteration space determined within the partition
+
+    //k dimension not partitioned
     coords3d7pt.value_list[0] = 1; //specifying index of the splitter<0,-1>
     coords3d7pt.value_list[1] = d3-2; //specifying index of the splitter<1,-1>
+#endif
 
+#ifdef pt25
     //domain for 25pt stencil
     uint_t di25[5] = {0, 0, 4, d1-5, d1};
     uint_t dj25[5] = {0, 0, 4, d2-5, d2};
     gridtools::grid<axis> coords3d25pt(di25, dj25);
     coords3d25pt.value_list[0] = 4; //specifying index of the splitter<0,-1>
     coords3d25pt.value_list[1] = d3-5; //specifying index of the splitter<1,-1>
+#endif
+
 
     /*
       Here we do lot of stuff
@@ -344,7 +407,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
         stencil_step_1->finalize();
 
         //swap input and output fields
-        storage_type* tmp = ptr_out3pt;
+        field_type* tmp = ptr_out3pt;
         ptr_out3pt = ptr_in3pt;
         ptr_in3pt = tmp;
     }
@@ -400,7 +463,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
         stencil_step_11->finalize();
 
         //swap input and output fields
-        storage_type* tmp = ptr_out5pt;
+        field_type* tmp = ptr_out5pt;
         ptr_out5pt = ptr_in5pt;
         ptr_in5pt = tmp;
     }
@@ -426,12 +489,8 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
     for(int i=0; i < TIME_STEPS; i++) {
 
-        // construction of the domain for the A*x
-        //gridtools::domain_type<accessor_list> domain3d
-            //(boost::fusion::make_vector(ptr_out7pt, ptr_in7pt));
-
         // construction of the domain for the out = out + in
-        gridtools::domain_type<accessor_list_add> domain3dadd
+        gridtools::domain_type<accessor_list_add> domain3d
             (boost::fusion::make_vector(ptr_out7pt, ptr_in7pt, &constant));
 
         //instantiate stencil for mat-vec multiplication
@@ -448,7 +507,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
                         gridtools::make_esf<d3point7>(p_out(), p_in()), // esf_descriptor
                         gridtools::make_esf<add>(p_in(), p_out(), p_in_old()) // esf_descriptor
                     ),
-                    domain3dadd, coords3d7pt
+                    domain3d, coords3d7pt
                 );
 
         //prepare and run single step of stencil computation
@@ -459,9 +518,27 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
         lapse_time2run = lapse_time2run + time2run.elapsed();
         stencil_step_2->finalize();
 
+        //std::vector<pointer_type::pointee_t*> vec(2);
+        //vec[0]=ptr_in7pt->data().get();
+        //vec[1]=ptr_out7pt->data().get();
+
+        //Q&A - what does the syntax below say? How is it different from the version above?
+        std::vector<pointer_type::pointee_t*> vec(3);
+        vec[0]=ptr_in7pt->get<0,0>().get();
+        vec[1]=ptr_in7pt->get<0,1>().get();
+        vec[2]=ptr_in7pt->get<0,2>().get();
+
+        he.pack(vec);
+        he.exchange();
+        he.unpack(vec);
+
+#ifndef NDEBUG1
+        ptr_in7pt->print(myfile);
+#endif
+        MPI_Barrier(GCL_WORLD);
 
         //swap input and output fields
-        storage_type* tmp = ptr_out7pt;
+        field_type* tmp = ptr_out7pt;
         ptr_out7pt = ptr_in7pt;
         ptr_in7pt = tmp;
     }
@@ -470,10 +547,12 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
 
 //#ifdef DEBUG
-    printf("Print domain B after computation\n");
-    TIME_STEPS % 2 == 0 ? in7pt.print() : out7pt.print();
-    printf("Print domain B after addition\n");
-    TIME_STEPS % 2 == 0 ? out7pt.print() : in7pt.print();
+    if(gridtools::PID == 0){
+        printf("Print domain B after computation\n");
+        TIME_STEPS % 2 == 0 ? in7pt.print() : out7pt.print();
+        printf("Print domain B after addition\n");
+        TIME_STEPS % 2 == 0 ? out7pt.print() : in7pt.print();
+    }
 //#endif
 
     std::cout << "TIME d3point7 TOTAL: " << boost::timer::format(lapse_time2);
@@ -520,7 +599,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
         stencil_step_40->finalize();
 
         //swap input and output fields
-        storage_type* tmp = ptr_out25pt_const;
+        field_type* tmp = ptr_out25pt_const;
         ptr_out25pt_const = ptr_in25pt_const;
         ptr_in25pt_const = tmp;
     }
@@ -579,7 +658,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
         stencil_step_5->finalize();
 
         //swap input and output fields
-        storage_type* tmp = ptr_out25pt;
+        field_type* tmp = ptr_out25pt;
         ptr_out25pt = ptr_in25pt_old;
         ptr_in25pt_old = ptr_in25pt;
         ptr_in25pt = tmp;
@@ -603,6 +682,12 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     std::cout << "TIME d3point25_time2 MFLOPS: " << MFLOPS(33,d1,d2,d3,nt,lapse_time5run.wall) << std::endl;
     std::cout << "TIME d3point25_time2 MLUPs: " << MLUPS(d1,d2,d3,nt,lapse_time5run.wall) << std::endl << std::endl;
 #endif
+
+#ifndef NDEBUG1
+    myfile.close();
+#endif
+
+    gridtools::GCL_Finalize();
 
     return 1;
     }//solver
