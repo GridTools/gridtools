@@ -81,8 +81,8 @@ TEST(test_copy_stencil, run) {
     array<uint_t,5> dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc -1, d2};
 
     gridtools::grid<axis, icosahedral_topology_t> grid_(icosahedral_grid, di, dj);
-    grid_.value_list[0] = 0;
-    grid_.value_list[1] = d3-1;
+    grid_.value_list[0] = halo_k;
+    grid_.value_list[1] = d3-1-halo_k;
 
 #ifdef __CUDACC__
         gridtools::computation* copy =
@@ -103,14 +103,16 @@ TEST(test_copy_stencil, run) {
     copy->steady();
     copy->run();
 
+#ifdef __CUDACC__
     out_cells.data().update_cpu();
-    
+#endif    
+
     bool result = true;
-    for(int i=0; i < d1; ++i)
+    for(int i=halo_nc; i < d1-halo_nc; ++i)
     {
         for(int c=0; c < 2; ++c)
         {
-            for(int j=0; j < d2; ++j)
+            for(int j=halo_mc; j < d2-halo_mc; ++j)
             {
                 for(int k=0; k < d3; ++k)
                 {
