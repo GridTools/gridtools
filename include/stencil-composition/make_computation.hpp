@@ -21,7 +21,7 @@
 #ifndef __CUDACC__
 #include <boost/make_shared.hpp>
 #endif
-#include "intermediate.hpp"
+#include "intermediate_stencil.hpp"
 #include "../common/meta_array.hpp"
 #include "caches/define_caches.hpp"
 
@@ -78,7 +78,7 @@ namespace _impl {
         BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType),                         \
         Domain& domain, const Grid& grid                                    \
     ) {                                                                         \
-        return new intermediate<                                                \
+        return new intermediate_stencil<                                                \
             Backend,                                                            \
             typename _impl::get_mss_array<                                      \
             BOOST_PP_CAT( boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)> \
@@ -97,7 +97,7 @@ namespace _impl {
         typename Grid                                                         \
     >                                                                           \
     boost::shared_ptr<                                                          \
-        intermediate<                                                           \
+        intermediate_stencil<                                                           \
             Backend,                                                            \
             typename _impl::get_mss_array<                                      \
             BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)> \
@@ -109,7 +109,7 @@ namespace _impl {
         Domain& domain, const Grid& grid                                    \
     ) {                                                                         \
         return boost::make_shared<                                              \
-            intermediate<                                                       \
+            intermediate_stencil<                                                       \
                 Backend,                                                        \
                 typename _impl::get_mss_array<                                  \
                 BOOST_PP_CAT( boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)> \
@@ -142,7 +142,7 @@ namespace _impl {
         BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType),                         \
         Domain& domain, const Grid& grid                                    \
     ) {                                                                         \
-        return new intermediate<                                                \
+        return new intermediate_stencil<                                                \
             Backend,                                                            \
             typename _impl::get_mss_array<                                      \
             BOOST_PP_CAT( boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)> \
@@ -161,7 +161,7 @@ namespace _impl {
         typename Grid                                                         \
     >                                                                            \
     boost::shared_ptr<                                                          \
-        intermediate<                                                           \
+        intermediate_stencil<                                                           \
             Backend,                                                            \
             typename _impl::get_mss_array<                                      \
             BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)> \
@@ -173,7 +173,7 @@ namespace _impl {
         Domain& domain, const Grid& grid                                    \
     ) {                                                                         \
         return boost::make_shared<                                              \
-            intermediate<                                                       \
+            intermediate_stencil<                                                       \
                 Backend,                                                        \
                 typename _impl::get_mss_array<                                  \
                 BOOST_PP_CAT( boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)> \

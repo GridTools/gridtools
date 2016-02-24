@@ -451,7 +451,7 @@ namespace gridtools {
             }
         };
 
-    private:
+    protected:
         mss_local_domain_list_t m_mss_local_domain_list;
 
         DomainType & m_domain;
@@ -589,19 +589,19 @@ namespace gridtools {
             boost::fusion::for_each(fview2, delete_pointer());
         }
 
-        /**
-         * \brief the execution of the stencil operations take place in this call
-         *
-         */
-        virtual void run () {
+//        /**
+//         * \brief the execution of the stencil operations take place in this call
+//         *
+//         */
+//        virtual void run () {
 
-            GRIDTOOLS_STATIC_ASSERT(
-                    (boost::mpl::size<typename mss_components_array_t::elements>::value == boost::mpl::size<mss_local_domains_t>::value),
-                    "Internal Error");
-            m_meter.start();
-            Backend::template run<mss_components_array_t>( m_grid, m_mss_local_domain_list );
-            m_meter.pause();
-        }
+//            GRIDTOOLS_STATIC_ASSERT(
+//                    (boost::mpl::size<typename mss_components_array_t::elements>::value == boost::mpl::size<mss_local_domains_t>::value),
+//                    "Internal Error");
+//            m_meter.start();
+//            Backend::template run<mss_components_array_t>( m_grid, m_mss_local_domain_list );
+//            m_meter.pause();
+//        }
 
         virtual std::string print_meter() { return m_meter.to_string();}
 
