@@ -42,5 +42,6 @@ export STELLA_PATH=${STELLA_BUILD_PATH}/stella/trunk/release_$PREC/bin/
 
 cd ${JENKINSPATH}/
 cmd="python process_ref.py -p $GPATH --target $TARGET --std $STD --prec $PREC -c -u stencils.json --stella_path $STELLA_PATH -v --plot"
+echo "$cmd"
 $cmd
 

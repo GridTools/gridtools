@@ -29,7 +29,7 @@ fi
 maxsleep=7200
 
 if [[ -n "${PYTHON_OPT}" ]]; then
-    PTYHON_STR="--python ${PYTHON_OPT}"
+    PYTHON_STR="--python ${PYTHON_OPT}"
 fi
 
 if [ "$myhost" == "greina" ]; then
