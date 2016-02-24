@@ -1,7 +1,7 @@
 #pragma once
 #include <boost/make_shared.hpp>
 #include "../stencil-composition/computation.hpp"
-#include "../stencil-composition/intermediate.hpp"
+#include "intermediate_reduction.hpp"
 
 namespace gridtools {
     template <
@@ -15,13 +15,13 @@ namespace gridtools {
         Domain& domain, const Grid& grid
     ) {
         return boost::make_shared<
-            intermediate<
+            intermediate_reduction<
                 Backend,
                 meta_array<
                     boost::mpl::vector1< mss_descriptor<enumtype::execute<enumtype::forward>, boost::mpl::vector1<Esf> > >,
                     boost::mpl::quote1<is_mss_descriptor>
                 >,
-                Domain, Grid, false
+                Domain, Grid
             >
          >(boost::ref(domain), grid);
     }
