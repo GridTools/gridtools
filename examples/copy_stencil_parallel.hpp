@@ -81,6 +81,10 @@ namespace copy_stencil{
 #define BACKEND backend<Host, Naive >
 #endif
 #endif
+        array<int, 3> dimensions{0,0,0};
+        MPI_3D_process_grid_t<3>::dims_create(PROCS, 2, dimensions);
+        dimensions[2]=1;
+
         //                   strides  1 x xy
         //                      dims  x y z
         typedef gridtools::layout_map<0,1,2> layout_t;
@@ -100,7 +104,7 @@ namespace copy_stencil{
 #endif
                                                     gridtools::version_manual> pattern_type;
 
-        pattern_type he(pattern_type::grid_type::period_type(false, false, false), GCL_WORLD);
+        pattern_type he(pattern_type::grid_type::period_type(false, false, false), GCL_WORLD, &dimensions);
 #ifdef VERBOSE
         printf("halo exchange ok\n");
 #endif
