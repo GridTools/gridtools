@@ -31,7 +31,7 @@ namespace gridtools {
            can be used to return the extent_type only when it is present, without giving compilation
            errors in case it is not defined.
          */
-        // HAS_TYPE_SFINAE(extent_type, has_extent_type, get_extent_type)
+        HAS_TYPE_SFINAE(extent_type, has_extent_type, get_extent_type)
 
     }
 
