@@ -8,6 +8,7 @@
 
 namespace gridtools {
 
+
 /** Metafunction checking if an ESF has, as argument, a given placeholder
 */
 template<typename Arg>
@@ -294,4 +295,3 @@ template <typename T>
 struct is_esf_descriptor<independent_esf<T> > : boost::mpl::true_{};
 
 } //namespace gridtools
-

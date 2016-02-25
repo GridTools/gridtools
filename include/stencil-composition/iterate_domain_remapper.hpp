@@ -7,6 +7,7 @@
 #pragma once
 #include "iterate_domain_metafunctions.hpp"
 #include "stencil-composition/accessor.hpp"
+#include "iterate_domain_fwd.hpp"
 
 namespace gridtools {
 
@@ -47,6 +48,7 @@ class iterate_domain_remapper_base
 DISALLOW_COPY_AND_ASSIGN(iterate_domain_remapper_base);
 public:
     typedef typename _impl::iterate_domain_remapper_base_iterate_domain<IterateDomainEvaluatorImpl>::type iterate_domain_t;
+
 protected:
     const iterate_domain_t& m_iterate_domain;
 public:
@@ -55,6 +57,16 @@ public:
 
     GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<iterate_domain_t>::value), "Internal Error: wrong type");
     typedef typename iterate_domain_t::esf_args_t esf_args_t;
+
+#ifdef CXX11_ENABLED
+    template <typename Accessor>
+    using accessor_return_type = typename iterate_domain_t::template accessor_return_type<typename remap_accessor_type<Accessor, esf_args_map_t>::type>;
+#else
+    template <typename Accessor>
+    struct accessor_return_type {
+        typedef typename iterate_domain_t::template accessor_return_type<typename remap_accessor_type<Accessor, esf_args_map_t>::type>::type type;
+    };
+#endif
 
     GT_FUNCTION
     explicit iterate_domain_remapper_base(const iterate_domain_t& iterate_domain) : m_iterate_domain(iterate_domain) {}
@@ -67,13 +79,13 @@ public:
     /** shifting the IDs of the placeholders and forwarding to the iterate_domain () operator*/
     template <typename Accessor>
     GT_FUNCTION
-#ifdef CXX11_ENABLED
+ #ifdef CXX11_ENABLED
     auto
-    operator() (Accessor const&  arg) const -> decltype(m_iterate_domain(arg))
+    operator() (Accessor const&  arg) const -> decltype(m_iterate_domain(typename remap_accessor_type<Accessor, esf_args_map_t>::type(arg)))
 #else
     typename iterate_domain_t::template accessor_return_type
-        <Accessor>::type
-    operator() (Accessor const&  arg) const
+        <typename remap_accessor_type<Accessor, esf_args_map_t>::type>::type
+     operator() (Accessor const&  arg) const
 #endif
     {
         typedef typename remap_accessor_type<Accessor, esf_args_map_t>::type remap_accessor_t;
@@ -147,6 +159,17 @@ struct is_positional_iterate_domain<iterate_domain_remapper<T,U> > : boost::fals
 */
 template<typename T, typename U>
 struct is_positional_iterate_domain<positional_iterate_domain_remapper<T,U> > : boost::true_type {};
+
+/** Metafunction to query a type is an iterate domain.
+*/
+template<typename T, typename U>
+struct is_iterate_domain<iterate_domain_remapper<T,U> > : boost::true_type {};
+
+/** Metafunction to query if a type is an iterate domain.
+    positional_iterate_domain_remapper
+*/
+template<typename T, typename U>
+struct is_iterate_domain<positional_iterate_domain_remapper<T,U> > : boost::true_type {};
 
 
 /**

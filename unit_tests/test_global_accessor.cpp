@@ -23,7 +23,7 @@ struct boundary : clonable_to_gpu<boundary> {
     typedef boundary value_type; //TODO remove
     static const ushort_t field_dimensions=1; //TODO remove
 
-    double value(){return 10.;}
+    double value() const {return 10.;}
 
     template<typename ID>
     boundary * access_value() const {return const_cast<boundary*>(this);} //TODO change this?

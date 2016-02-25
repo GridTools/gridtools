@@ -1,5 +1,6 @@
 #pragma once
 
+#include <boost/type_traits/is_arithmetic.hpp>
 #include "../../iterate_domain.hpp"
 #include "../../iterate_domain_metafunctions.hpp"
 #include "../../backend_cuda/iterate_domain_cache.hpp"
@@ -22,6 +23,18 @@ class iterate_domain_cuda : public IterateDomainBase<iterate_domain_cuda<Iterate
     typedef typename IterateDomainArguments::local_domain_t local_domain_t;
     typedef typename local_domain_t::esf_args local_domain_args_t;
 public:
+
+    /**
+     * metafunction that computes the return type of all operator() of an accessor.
+     *
+     * If the temaplate argument is not an accessor ::type is mpl::void_
+     *
+     */
+    template<typename Accessor>
+    struct accessor_return_type
+    {
+        typedef typename super::template accessor_return_type<Accessor>::type type;
+    };
 
     typedef typename super::data_pointer_array_t data_pointer_array_t;
     typedef typename super::strides_cached_t strides_cached_t;
@@ -210,9 +223,19 @@ public:
     {
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
         typedef typename boost::mpl::and_<
-            typename accessor_points_to_readonly_arg<Accessor>::type,
-            typename boost::mpl::not_< typename boost::mpl::has_key<bypass_caches_set_t, static_uint<Accessor::index_type::value> >::type >::type
-        >::type type;
+            typename boost::mpl::and_<
+                typename accessor_points_to_readonly_arg<Accessor>::type,
+                typename boost::mpl::not_<
+                    typename boost::mpl::has_key<
+                        bypass_caches_set_t,
+                        static_uint<Accessor::index_type::value>
+                        >::type // mpl::has_key
+                    >::type // mpl::not,
+                >::type, // mpl::(inner)and_
+                typename boost::is_arithmetic<
+                    typename accessor_return_type<Accessor>::type
+                    >::type // is_arithmetic
+            >::type type;
     };
 
     /** @brief return a value that was cached
@@ -310,5 +333,6 @@ template<
 >
 struct is_positional_iterate_domain<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> > :
     is_positional_iterate_domain<IterateDomainBase<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> > > {};
+
 
 }

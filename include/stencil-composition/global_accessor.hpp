@@ -1,6 +1,9 @@
 #pragma once
 
+#include "common/defs.hpp"
+
 namespace gridtools {
+
     template <uint_t I, enumtype::intend Intend>
     struct global_accessor{
 
@@ -10,5 +13,4 @@ namespace gridtools {
         // typedef Range range_type;
     };
 
-}//namespace gridtools
-
+} // namespace gridtools
