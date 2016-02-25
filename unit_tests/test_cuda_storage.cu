@@ -10,17 +10,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
-#include "common/gpu_clone.hpp"
-#include "storage/hybrid_pointer.hpp"
-#include "stencil-composition/backend.hpp"
-#include "common/layout_map.hpp"
-#include "common/defs.hpp"
-#include "stencil-composition/backend.hpp"
+#include <cuda_runtime.h>
+#include <stencil-composition/stencil-composition.hpp>
 
 using gridtools::uint_t;
 using gridtools::int_t;
 
-#ifdef __CUDACC__
 template <typename T, typename U>
 __global__
 void add_on_gpu(U* meta, T * ptr, uint_t d1, uint_t d2, uint_t d3) {
@@ -32,7 +27,6 @@ void add_on_gpu(U* meta, T * ptr, uint_t d1, uint_t d2, uint_t d3) {
         }
     }
 }
-#endif
 
 using namespace gridtools;
 using namespace enumtype;
@@ -69,10 +63,10 @@ bool test_cuda_storage() {
     data.h2d_update(); //copy to GPU
     data.clone_to_device();
     meta_.clone_to_device();//copy meta information to the GPU
-#ifdef __CUDACC__
+
     add_on_gpu<<<1,1>>>(meta_.gpu_object_ptr, data.gpu_object_ptr, d1, d2, d3);
     cudaDeviceSynchronize();
-#endif
+
     data.d2h_update();
 
     bool same = true;

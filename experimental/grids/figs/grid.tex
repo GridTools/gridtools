@@ -24,3 +24,6 @@
     \foreach \row in {0, 1,...,\rows} {
         \draw ($\row*(1, 0)$) -- ($\row*(1,0)+ \rows*(-0.5, {0.5*sqrt(3)})$);
     }
+    \draw[->,black] (-6,8) -- (-2,8) node [midway, sloped, above] {j (\cols)};
+    \draw[->,black] (-6,8) -- (-4.4,4.5) node [midway, sloped, below] {i (\rows)};
+        

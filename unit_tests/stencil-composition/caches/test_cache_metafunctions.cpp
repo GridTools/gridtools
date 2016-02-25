@@ -7,12 +7,8 @@
 
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
-#include "common/defs.hpp"
-#include "stencil-composition/backend.hpp"
-#include "stencil-composition/caches/cache_metafunctions.hpp"
-#include "stencil-composition/interval.hpp"
-#include "stencil-composition/stencil-composition.hpp"
-#include "common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
+#include <stencil-composition/stencil-composition.hpp>
+#include <common/generic_metafunctions/fusion_map_to_mpl_map.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
@@ -78,6 +74,7 @@ TEST(cache_metafunctions, extract_extents_for_caches)
         max_extent_t,
         caches_t,
         block_size<32,4>,
+        block_size<32,4>,
         gridtools::grid<axis>
     > iterate_domain_arguments_t;
 
@@ -116,6 +113,7 @@ TEST(cache_metafunctions, get_cache_storage_tuple)
         extents_t,
         max_extent_t,
         caches_t,
+        block_size<32,4>,
         block_size<32,4>,
         gridtools::grid<axis>
     > iterate_domain_arguments_t;

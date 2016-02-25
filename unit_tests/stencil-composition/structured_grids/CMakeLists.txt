@@ -1,11 +1,34 @@
-include_directories( ../../include/stencil-composition ) ## Library header files
-
-FILE(GLOB_RECURSE INC_ALL "../../include/stencil-composition/[a-z]*.hpp")
 
 set(RECGRID_TESTS ${INC_ALL})
 
+if( ENABLE_CXX11 )
+        foreach( variation CALL OFFSETS PROCEDURES PROCEDURES_OFFSETS )
+            string(TOLOWER ${variation} var_suffix)
+            add_executable(multi_types_block_${var_suffix} multi_types_test.cpp)
+            add_executable(multi_types_naive_${var_suffix} multi_types_test.cpp)
+            set_target_properties(multi_types_block_${var_suffix} PROPERTIES COMPILE_FLAGS "${ADDITIONAL_CXX_FLAGS} -DFUNCTIONS_${variation} -DBACKEND_BLOCK")
+            set_target_properties(multi_types_naive_${var_suffix} PROPERTIES COMPILE_FLAGS "${ADDITIONAL_CXX_FLAGS} -DFUNCTIONS_${variation}")
+            target_link_libraries(multi_types_block_${var_suffix} ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS})
+            target_link_libraries(multi_types_naive_${var_suffix} ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS})
+            gridtools_add_test(tests.multi_types_block_${var_suffix} ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/multi_types_block_${var_suffix}")
+            gridtools_add_test(tests.multi_types_naive_${var_suffix} ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/multi_types_naive_${var_suffix}")
+        endforeach(variation)
+endif()
+
+if(CUDA_FOUND)
+     if( ENABLE_CXX11 )
+        foreach( variation CALL OFFSETS PROCEDURES PROCEDURES_OFFSETS)
+            string(TOLOWER ${variation} var_suffix)
+            cuda_add_executable(multi_types_cuda_${var_suffix} multi_types_test.cu OPTIONS "-DFUNCTIONS_${variation}")
+            target_link_libraries(multi_types_cuda_${var_suffix} ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS})
+            gridtools_add_test(tests.multi_types_cuda_${var_suffix} ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/multi_types_cuda_${var_suffix}")
+        endforeach(variation)
+     endif()
+endif()
+
+
 if ( ENABLE_CXX11 )
-    set(RECGRID_TESTS test_local_domain.cpp test_staggered_keyword.cpp test_make_computation.cpp positional_when_debug.cpp test_cycle_and_swap.cpp test_iterate_domain.cpp test_mss_metafunctions.cpp)
+    set(RECGRID_TESTS test_local_domain.cpp test_staggered_keyword.cpp test_make_computation.cpp test_cycle_and_swap.cpp test_iterate_domain.cpp test_mss_metafunctions.cpp call_interfaces_metafunctions.cpp test_esf_metafunctions.cpp  test_accessor.cpp positional_when_debug.cpp)
 
     add_executable(strgrid_stencil_tests ${RECGRID_TESTS})
     # include boost

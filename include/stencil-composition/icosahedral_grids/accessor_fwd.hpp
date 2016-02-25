@@ -2,10 +2,7 @@
 
 namespace gridtools {
 
-template <int I, typename LocationType>
-struct accessor;
-
-template <int I, typename LocationType, typename Radius >
-struct ro_accessor;
+    template <uint_t ID, enumtype::intend Intend, typename LocationType, typename Radius >
+    struct accessor;
 
 } //namespace gridtools

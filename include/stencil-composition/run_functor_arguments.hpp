@@ -26,6 +26,7 @@ namespace gridtools {
         typename ExtendSizes,
         typename MaxExtent,
         typename CacheSequence,
+        typename ProcessingElementsBlockSize,
         typename PhysicalDomainBlockSize,
         typename Grid
     >
@@ -35,6 +36,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), "Iternal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value), "Iternal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ExtendSizes, is_extent>::value), "Iternal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_block_size<ProcessingElementsBlockSize>::value), "Iternal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_block_size<PhysicalDomainBlockSize>::value), "Iternal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Iternal Error: wrong type");
 
@@ -44,6 +46,7 @@ namespace gridtools {
         typedef EsfSequence esf_sequence_t;
         typedef ExtendSizes extent_sizes_t;
         typedef MaxExtent max_extent_t;
+        typedef ProcessingElementsBlockSize processing_elements_block_size_t;
         typedef PhysicalDomainBlockSize physical_domain_block_size_t;
         typedef Grid grid_t;
     };
@@ -57,6 +60,7 @@ namespace gridtools {
         typename ExtendSizes,
         typename MaxExtent,
         typename CacheSequence,
+        typename ProcessingElementsBlockSize,
         typename PhysicalDomainBlockSize,
         typename Grid>
     struct is_iterate_domain_arguments<
@@ -67,6 +71,7 @@ namespace gridtools {
             ExtendSizes,
             MaxExtent,
             CacheSequence,
+            ProcessingElementsBlockSize,
             PhysicalDomainBlockSize,
             Grid> > :
         boost::mpl::true_{};
@@ -129,6 +134,7 @@ namespace gridtools {
                         ExtendSizes,
                         max_extent_t,
                         CacheSequence,
+                        ProcessingElementsBlockSize,
                         PhysicalDomainBlockSize,
                         Grid
                     >

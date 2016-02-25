@@ -33,6 +33,7 @@ TEST(assign_placeholders, test) {
 
 
     storage_type::storage_info_type meta_(d1,d2,d3);
+
     storage_type in(meta_,-1., "in");
     storage_type out(meta_,-7.3, "out");
     storage_type coeff(meta_,8., "coeff");

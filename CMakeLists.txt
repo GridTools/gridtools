@@ -23,12 +23,12 @@ SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules")
 if(GNU_COVERAGE)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
 set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -lgcov" )
-message ("-- building executables for coverage tests")
+message (STATUS "Building executables for coverage tests")
 endif()
 
 if(GNU_PROFILE)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs")
-message ("-- building profiled executables")
+message (STATUS "Building profiled executables")
 endif()
 
 
@@ -37,7 +37,7 @@ add_definitions(-DFUSION_MAX_VECTOR_SIZE=${BOOST_FUSION_MAX_SIZE})
 add_definitions(-DFUSION_MAX_MAP_SIZE=${BOOST_FUSION_MAX_SIZE})
 
 if(ENABLE_CXX11)
-    add_definitions(-DBOOST_RESULT_OF_USE_TR1)
+    add_definitions(-DBOOST_RESULT_OF_USE_TR1 -DBOOST_NO_CXX11_DECLTYPE)
 endif()
 
 # Not sure why it's desirable to specify the build directory, but it seems
@@ -71,10 +71,10 @@ set( ENABLE_CXX11 "OFF" CACHE BOOL "Enable examples and tests featuring C++11 fe
 set( ENABLE_PYTHON "OFF" CACHE BOOL "Enable Python front-end and tests. Requires Python >=3.0" )
 
 if ( ENABLE_CXX11 )
-   message ("-- CXX11 enabled?: " "${ENABLE_CXX11}")
+   message (STATUS "CXX11 enabled")
    set (ADDITIONAL_CXX_FLAGS "-std=c++11")
 else()
-   message ("-- CXX11 disabled")
+   message (STATUS "CXX11 disabled")
    set (ADDITIONAL_CXX_FLAGS "-DCXX11_DISABLE")
 endif()
 
@@ -83,7 +83,7 @@ set( USE_GPU "OFF" CACHE BOOL "Compile with GPU support (CUDA)" )
 # compile to PTX assembly format
 set( COMPILE_TO_PTX "OFF" CACHE BOOL "Compile to intermediate representation" )
 if( USE_GPU )
-  MESSAGE("-- using GPU")
+  message(STATUS "Using GPU")
   find_package(CUDA REQUIRED)
   if( ${CUDA_VERSION} VERSION_GREATER "6.0")
       if ( ENABLE_CXX11 )
@@ -92,7 +92,7 @@ if( USE_GPU )
           set(ADDITIONAL_NVCC_FLAGS "-DCXX11_DISABLE")
       endif()
   else()
-      message("CUDA 6.0 or lower does not support C++11 (disabling)")
+      message(STATUS "CUDA 6.0 or lower does not support C++11 (disabling)")
       set(ADDITIONAL_NVCC_FLAGS "-DCXX11_DISABLE")
       set( ENABLE_CXX11 "OFF" )
   endif()
@@ -184,10 +184,10 @@ endif()
 set( SINGLE_PRECISION OFF CACHE BOOL "Option determining number of bytes used to represent the floating poit types (see defs.hpp for configuration)" )
 if(SINGLE_PRECISION)
   add_definitions(-DFLOAT_PRECISION=4)
-  message("-- computations in single precision")
+  message(STATUS "Computations in single precision")
 else()
   add_definitions(-DFLOAT_PRECISION=8)
-  message("-- computations in double precision")
+  message(STATUS "Computations in double precision")
 endif()
 ##################################################################
 
@@ -242,7 +242,7 @@ function(gridtools_add_test test_name test_script test_exec)
 endfunction(gridtools_add_test)
 
 
-set(ENABLE_CACHING "ON" CACHE BOOL "Enable caching functionality" ) 
+set(ENABLE_CACHING "ON" CACHE BOOL "Enable caching functionality" )
 if( NOT ENABLE_CACHING )
     add_definitions( -D__DISABLE_CACHING__ )
 endif( NOT ENABLE_CACHING )
@@ -259,16 +259,16 @@ else()
 endif(STRUCTURED_GRIDS)
 
 if (ENABLE_PYTHON)
-    message ("PYTHON enabled ")
+    message (STATUS "PYTHON enabled ")
     # Retrieving the python major version (major version is written in tmp-file ${CMAKE_SOURCE_DIR}/.python_major_version, full version is in tmp-file ${CMAKE_SOURCE_DIR}/.python_version)
-    execute_process(COMMAND ${CMAKE_SOURCE_DIR}/python/python_version.sh ${CMAKE_SOURCE_DIR} )  
+    execute_process(COMMAND ${CMAKE_SOURCE_DIR}/python/python_version.sh ${CMAKE_SOURCE_DIR} )
     # Reading from ${CMAKE_SOURCE_DIR}/.python_major_version (composing the cmd otherwise it doesn't work)
     set (cmd "cat" )
     set (filepv "${CMAKE_SOURCE_DIR}/.python_major_version")
     execute_process ( COMMAND ${cmd} ${filepv} OUTPUT_VARIABLE PYTHON_VERSION_MAJOR )
     #message( "PYTHON_VERSION_MAJOR is: " ${PYTHON_VERSION_MAJOR} )
     # Removing tmp-file ${CMAKE_SOURCE_DIR}/.python_major_version
-    execute_process( COMMAND rm -f ${CMAKE_SOURCE_DIR}/.python_major_version) 
+    execute_process( COMMAND rm -f ${CMAKE_SOURCE_DIR}/.python_major_version)
 
     find_package(PythonLibs)
     find_package(PythonInterp)
@@ -288,12 +288,12 @@ if (ENABLE_PYTHON)
         set (filepv "${CMAKE_SOURCE_DIR}/.python_version")
         execute_process ( COMMAND ${cmd} ${filepv} OUTPUT_VARIABLE PYTHONLIBS_VERSION_STRING )
         # Removing tmp-file ${CMAKE_SOURCE_DIR}/.python_version created by python_version.sh
-        execute_process( COMMAND rm -f ${CMAKE_SOURCE_DIR}/.python_version) 
-        
+        execute_process( COMMAND rm -f ${CMAKE_SOURCE_DIR}/.python_version)
+
         #set( PYTHON_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/python/" CACHE PATH "Set the installation directory for gridtools4py" )
         set( PYTHON_INSTALL_PREFIX " " CACHE PATH "Set the installation directory for gridtools4py" )
         set(OUTPUT      "${CMAKE_CURRENT_BINARY_DIR}/python.log")
-        message ("Log file is " ${OUTPUT} )
+        message (STATUS "Log file is " ${OUTPUT} )
         add_subdirectory( python )
      endif(${PYTHON_VERSION_MAJOR} GREATER 2)
     endif(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
@@ -310,4 +310,3 @@ file(APPEND ${TEST_SCRIPT} "exit $res\n")
 file(INSTALL ${TEST_SCRIPT} DESTINATION ${CMAKE_BINARY_DIR}/install
    FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ
 )
-
