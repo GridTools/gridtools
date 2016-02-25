@@ -308,8 +308,8 @@ bool test(uint_t x, uint_t y, uint_t z)
     test_computation->run();
 
 #ifdef __CUDACC__
-    field2.data().update_cpu();
-    field3.data().update_cpu();
+    field2.h2d_update();
+    field3.h2d_update();
 #endif
 
     test_computation->finalize();
