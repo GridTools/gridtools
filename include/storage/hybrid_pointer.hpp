@@ -73,7 +73,7 @@ namespace gridtools {
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 3200)
             , m_pointer_to_use(m_gpu_p)
 #else
-            , m_pointer_to_use(this->m_cpu_p)
+            , m_pointer_to_use(this->m_cpu_p.get())
 #endif
             , m_size(other.m_size)
             , m_allocated(other.m_allocated)
@@ -120,7 +120,7 @@ namespace gridtools {
             m_gpu_p=NULL;
             m_cpu_p.free_it();
             m_up_to_date=true;
-            m_pointer_to_use=m_cpu_p;
+            m_pointer_to_use=NULL;
 
 #ifdef VERBOSE
             printf("freeing hybrid pointer %x \n", this);
@@ -131,7 +131,7 @@ namespace gridtools {
 #ifdef VERBOSE
             printf("update gpu "); out();
 #endif
-            if(m_up_to_date){//do not copy if the last version is already on the device
+            if(on_host()){//do not copy if the last version is already on the device
                 cudaMemcpy(m_gpu_p, m_cpu_p.get(), m_size*sizeof(T), cudaMemcpyHostToDevice);
                 m_up_to_date=false;
                 m_pointer_to_use=m_gpu_p;
@@ -142,16 +142,16 @@ namespace gridtools {
 #ifdef VERBOSE
             printf("update cpu "); out();
 #endif
-            if(!m_up_to_date){
+            if(on_device()){
                 cudaMemcpy(m_cpu_p.get(), m_gpu_p, m_size*sizeof(T), cudaMemcpyDeviceToHost);
                 m_up_to_date=true;
-                m_pointer_to_use=m_cpu_p;
+                m_pointer_to_use=m_cpu_p.get();
             }
         }
 
         void set(pointee_t const& value, uint_t const& index)
         {
-            if(m_up_to_date){//do not copy if the last version is already on the device
+            if(on_host()){//do not copy if the last version is already on the device
                 cudaMemcpy(&m_pointer_to_use[index], &value, sizeof(pointee_t), cudaMemcpyHostToDevice);
                 m_up_to_date=false;
                 m_pointer_to_use=m_gpu_p;
@@ -244,12 +244,12 @@ namespace gridtools {
         int get_size(){return m_size;}
 
         GT_FUNCTION
-        bool on_host(){
+        bool on_host() const {
             return m_up_to_date;
         }
 
         GT_FUNCTION
-        bool on_device(){
+        bool on_device() const {
             return !m_up_to_date;
         }
 
