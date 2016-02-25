@@ -180,24 +180,6 @@ if(USE_PAPI)
 endif()
 ##################################################################
 
-#####################look for Xdmf library########################
-if(USE_XDMF)
-  find_package(Xdmf REQUIRED)
-  if(XDMF_FOUND)
-    include_directories( "${XDMF_INCLUDE_DIRS}" )
-    set ( exe_LIBS "${exe_LIBS}" "${XDMF_LIBRARIES}" )
-    message("XDMF found in " "${exe_LIBS}")
-  else()
-    if(XDMF_LIBS)
-      set ( exe_LIBS "${exe_LIBS}" "${XDMF_LIBS}" )
-      message("xdmf libs: " "${XDMF_LIBS}")
-    else()
-      message("Xdmf library not found. set the XDMF_INCLUDE_DIR and XDMF_LIB_DIR to the headers and libraries path.")
-    endif(XDMF_LIBRARIES)
-  endif()
-endif()
-##################################################################
-
 ######################### set the type of floats #################
 set( SINGLE_PRECISION OFF CACHE BOOL "Option determining number of bytes used to represent the floating poit types (see defs.hpp for configuration)" )
 if(SINGLE_PRECISION)

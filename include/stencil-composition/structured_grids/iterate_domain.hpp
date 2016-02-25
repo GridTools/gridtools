@@ -642,15 +642,15 @@ namespace gridtools {
             return expressions::evaluation::value((*this), arg);
         }
 
-        // /** @brief method called in the Do methods of the functors.
-        //     partial specializations for double (or float)*/
-        // template <typename Argument, template<typename Arg1, typename Arg2> class Expression, typename FloatType
-        //           , typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
-        // GT_FUNCTION
-        // auto operator() (Expression<Argument, FloatType> const& arg) const ->decltype(expressions::evaluation::value(*this, arg)) {
-        //     GRIDTOOLS_STATIC_ASSERT((is_expr<Expression<Argument, FloatType> >::value), "invalid expression");
-        //     return expressions::evaluation::value((*this), arg);
-        // }
+        /** @brief method called in the Do methods of the functors.
+            partial specializations for double (or float)*/
+        template <typename Argument, template<typename Arg1, typename Arg2> class Expression, typename FloatType
+                  , typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
+        GT_FUNCTION
+        auto operator() (Expression<Argument, FloatType> const& arg) const ->decltype(expressions::evaluation::value(*this, arg)) {
+            GRIDTOOLS_STATIC_ASSERT((is_expr<Expression<Argument, FloatType> >::value), "invalid expression");
+            return expressions::evaluation::value((*this), arg);
+        }
 
         /** @brief method called in the Do methods of the functors.
             partial specializations for int. Here we do not use the typedef int_t, because otherwise the interface would be polluted with casting
