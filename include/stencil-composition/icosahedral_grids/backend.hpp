@@ -42,7 +42,7 @@ namespace gridtools {
 
         template <typename LocationType>
 
-        using storage_info_type typename backend_base<BackendId, StrategyType>::template
+        using storage_info_type = typename backend_base<BackendId, StrategyType>::template
             storage_info<LocationType::value, layout_map<0,1,2,3> >;
 
         template <typename LocationType, typename ValueType>
