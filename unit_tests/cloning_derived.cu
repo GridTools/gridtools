@@ -76,7 +76,7 @@ TEST_F(clone_derived_args, copy_tests)
 
     derived<uint_t> a(s_buffer_size);
     for(uint_t i = 0; i < a.data.get_size(); ++i) {
-	a.data.update_cpu(); // have to do this before accessing from the CPU (copy back)
+        a.data.update_cpu(); // have to do this before accessing from the CPU (copy back)
         if(a.data[i] != s_buffer_size - i)
             res = false;
     }

@@ -98,7 +98,7 @@ namespace gridtools {
 };
 
         void allocate_it(uint_t size) {
-	    if(!m_allocated){
+            if(!m_allocated){
                 cudaError_t err = cudaMalloc(&m_gpu_p, size*sizeof(T));
                 m_allocated = true;
                 if (err != cudaSuccess) {
@@ -111,7 +111,7 @@ namespace gridtools {
 #ifdef VERBOSE
                     printf("allocating hybrid pointer %x \n", this);
 #endif
-		}
+                }
             }
         }
 
@@ -131,11 +131,11 @@ namespace gridtools {
 #ifdef VERBOSE
             printf("update gpu "); out();
 #endif
-	    if(m_up_to_date){//do not copy if the last version is already on the device
+            if(m_up_to_date){//do not copy if the last version is already on the device
                 cudaMemcpy(m_gpu_p, m_cpu_p.get(), m_size*sizeof(T), cudaMemcpyHostToDevice);
                 m_up_to_date=false;
                 m_pointer_to_use=m_gpu_p;
-	    }
+            }
         }
 
         void update_cpu() {
