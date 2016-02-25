@@ -138,7 +138,10 @@ namespace gridtools {
         };
 
         /**
-         * metafunction that computes the return type of all operator() of an accessor
+         * metafunction that computes the return type of all operator() of an accessor.
+         *
+         * If the temaplate argument is not an accessor ::type is mpl::void_
+         *
          */
         template<typename Accessor>
         struct accessor_return_type

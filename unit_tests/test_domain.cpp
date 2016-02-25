@@ -9,7 +9,6 @@
 
 #define BOOST_NO_CXX11_RVALUE_REFERENCES
 
-#include <cuda_runtime.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
@@ -18,7 +17,7 @@
 #include <boost/fusion/include/make_vector.hpp>
 #include <boost/mpl/vector.hpp>
 
-#include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 using gridtools::uint_t;
 using gridtools::int_t;

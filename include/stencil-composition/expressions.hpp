@@ -89,9 +89,6 @@ namespace gridtools{
     template <typename Arg>
     using is_expr=typename boost::mpl::or_<is_binary_expr<Arg>, is_unary_expr<Arg> >::type;
 
-    template <typename Arg>
-    struct is_accessor;
-
     namespace expressions{
 
         template<typename Arg1, typename Arg2 >

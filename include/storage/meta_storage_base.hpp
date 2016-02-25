@@ -185,18 +185,23 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
 #endif
         }
 #else //__CUDACC__ nvcc does not get it: checks only the first argument
-        template <class First, class ... IntTypes
-                  , typename Dummy = typename boost::enable_if_c<boost::is_integral<First>::type::value, bool>::type //nvcc does not get it
-                  >
-        constexpr meta_storage_base( First const& first_,  IntTypes const& ... dims_  ) :
+        template < class ... IntTypes,
+                   typename Dummy = typename boost::enable_if_c<
+                       boost::is_integral<
+                           typename boost::mpl::at_c<
+                               boost::mpl::vector<IntTypes ...>, 0 >::type
+                           >::type::value, bool
+                       >::type
+                   >
+        constexpr meta_storage_base(  IntTypes... dims_) :
 #ifdef CXX11_ENABLED
-            m_dims{first_, dims_...}
+            m_dims{ dims_...}
 #else
-            m_dims(first_, dims_...)
+            m_dims( dims_...)
 #endif
-            , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( first_, dims_...))
+            , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply(  dims_...))
             {
-                GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes)+1==space_dimensions, "you tried to initialize\
+                GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes)==space_dimensions, "you tried to initialize\
  a storage with a number of integer arguments different from its number of dimensions. \
 This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
  a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
