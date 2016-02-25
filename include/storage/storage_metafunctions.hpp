@@ -25,7 +25,7 @@ struct storage_holds_data_field : boost::mpl::bool_<(T::field_dimensions > 1)>{}
 
     template<typename Storage>
     struct storage2metadata<pointer<Storage> >{
-        typedef typename Storage::meta_data_t type;
+        typedef typename Storage::storage_info_type type;
     };
 
     /**

@@ -576,7 +576,7 @@ namespace gridtools {
         using vertexes = location_type<2,1>;
 
         template <typename LocationType>
-        using v_storage_t = typename Backend::template meta_storage_t<LocationType>;
+        using v_storage_t = typename Backend::template storage_info_type<LocationType>;
 
         template <typename LocationType, typename ValueType>
         using storage_t = typename Backend::template storage_t<LocationType, ValueType>;

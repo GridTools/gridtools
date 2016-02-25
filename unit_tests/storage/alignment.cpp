@@ -33,9 +33,9 @@ TEST(storage_alignment, test_aligned) {
     typedef gridtools::backend<Backend, Block>::temporary_storage_type< int, meta_gpu2_t>::type tmp_storage2_t;
     typedef gridtools::backend<Backend, Block>::temporary_storage_type< int, meta_gpu3_t>::type tmp_storage3_t;
 
-    typedef meta_storage_tmp< typename tmp_storage1_t::type::basic_type::meta_data_t, tile<32, 1, 1>, tile<32, 1, 1> > tmp_meta_gpu1_t;
-    typedef meta_storage_tmp< typename tmp_storage2_t::type::basic_type::meta_data_t, tile<32, 1, 1>, tile<32, 1, 1> > tmp_meta_gpu2_t;
-    typedef meta_storage_tmp< typename tmp_storage3_t::type::basic_type::meta_data_t, tile<32, 1, 1>, tile<32, 1, 1> > tmp_meta_gpu3_t;
+    typedef meta_storage_tmp< typename tmp_storage1_t::type::basic_type::storage_info_type, tile<32, 1, 1>, tile<32, 1, 1> > tmp_meta_gpu1_t;
+    typedef meta_storage_tmp< typename tmp_storage2_t::type::basic_type::storage_info_type, tile<32, 1, 1>, tile<32, 1, 1> > tmp_meta_gpu2_t;
+    typedef meta_storage_tmp< typename tmp_storage3_t::type::basic_type::storage_info_type, tile<32, 1, 1>, tile<32, 1, 1> > tmp_meta_gpu3_t;
 
     tmp_meta_gpu1_t m_block1(0,0,15,1,1);
     tmp_meta_gpu2_t m_block2(0,0,15,1,1);

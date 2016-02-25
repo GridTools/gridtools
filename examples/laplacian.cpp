@@ -211,16 +211,10 @@ TEST(Laplace, test) {
  */
     laplace->steady();
 
-#ifndef CUDA_EXAMPLE
-    boost::timer::cpu_timer time;
-#endif
 /**
    Call to gridtools::intermediate::run, which calls Backend::run, does the actual stencil operations on the backend.
  */
     laplace->run();
-#ifndef CUDA_EXAMPLE
-    boost::timer::cpu_times lapse_time = time.elapsed();
-#endif
 
     laplace->finalize();
 

@@ -17,6 +17,7 @@ namespace gridtools{
     {
         typedef BaseStorage super;
         typedef typename BaseStorage::basic_type basic_type;
+        typedef typename basic_type::storage_info_type storage_info_type;
         typedef storage<BaseStorage> original_storage;
         typedef clonable_to_gpu<storage<BaseStorage> > gpu_clone;
         typedef typename BaseStorage::iterator_type iterator_type;
@@ -24,7 +25,7 @@ namespace gridtools{
         static const ushort_t n_args = basic_type::n_width;
         static const ushort_t space_dimensions = basic_type::space_dimensions;
     private:
-        typename super::meta_data_t const* m_device_storage_info;
+        typename super::storage_info_type const* m_device_storage_info;
         bool m_on_host;
 
         /**@brief change the storage state to host
@@ -92,14 +93,14 @@ namespace gridtools{
         {}
 
         GT_FUNCTION
-        typename super::meta_data_t* device_storage_info(){
+        typename super::storage_info_type* device_storage_info(){
             return m_device_storage_info;
         }
 
 #if defined(CXX11_ENABLED)
         //forwarding constructor
         template <class ... ExtraArgs>
-        explicit storage(  typename basic_type::meta_data_t const& meta_data_
+        explicit storage(  typename basic_type::storage_info_type const& meta_data_
                            , ExtraArgs const& ... args )
             :super(meta_data_, args ...)
             , m_device_storage_info(&meta_data_)
@@ -109,7 +110,7 @@ namespace gridtools{
 #else
 
         template<typename T>
-        explicit storage(  typename basic_type::meta_data_t const& meta_data_, T const& arg1 )
+        explicit storage(  typename basic_type::storage_info_type const& meta_data_, T const& arg1 )
             :super(meta_data_, arg1)
             , m_device_storage_info(&meta_data_)
             , m_on_host(true)
@@ -118,7 +119,7 @@ namespace gridtools{
 
 
         template <class T, class U>
-        explicit storage(  typename basic_type::meta_data_t const& meta_data_, T const& arg1, U const& arg2 )
+        explicit storage(  typename basic_type::storage_info_type const& meta_data_, T const& arg1, U const& arg2 )
             :super(meta_data_, (value_type) arg1, arg2)
             , m_device_storage_info(&meta_data_)
             , m_on_host(true)
@@ -126,7 +127,7 @@ namespace gridtools{
         }
 
         template <class T, class U>
-        explicit storage(  typename basic_type::meta_data_t const& meta_data_, T * arg1, U const& arg2 )
+        explicit storage(  typename basic_type::storage_info_type const& meta_data_, T * arg1, U const& arg2 )
             :super(meta_data_, (value_type)* arg1, arg2)
             , m_device_storage_info(&meta_data_)
             , m_on_host(true)
@@ -136,7 +137,7 @@ namespace gridtools{
 #endif
 
 //    private :
-        explicit storage(typename basic_type::meta_data_t const& meta_data_)
+        explicit storage(typename basic_type::storage_info_type const& meta_data_)
             :super(meta_data_)
             , m_device_storage_info(&meta_data_)
         {}
@@ -147,7 +148,7 @@ namespace gridtools{
            explicitly disables the case in which the storage_info is passed by copy.
         */
         template <typename ... T>
-        storage(typename basic_type::meta_data_t&&, T...) = delete;
+        storage(typename basic_type::storage_info_type&&, T...) = delete;
 
         /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k)
 
@@ -271,7 +272,7 @@ namespace gridtools{
     */
     template< class BaseStorage, uint_t ... Number >
     struct field_reversed<storage<BaseStorage>, Number ... >{
-        typedef storage< data_field< storage_list<base_storage<typename BaseStorage::pointer_type, typename  BaseStorage::meta_data_t, accumulate(add_functor(), ((uint_t)Number) ... )>, Number-1> ... > > type;
+        typedef storage< data_field< storage_list<base_storage<typename BaseStorage::pointer_type, typename  BaseStorage::storage_info_type, accumulate(add_functor(), ((uint_t)Number) ... )>, Number-1> ... > > type;
     };
 
     /**

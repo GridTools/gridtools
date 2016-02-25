@@ -91,7 +91,7 @@ TEST(cache_metafunctions, extract_extents_for_caches)
 
 TEST(cache_metafunctions, get_cache_storage_tuple)
 {
-    typedef metadata_set<boost::mpl::vector1<storage_type::meta_data_t > > metadata_vector_t;
+    typedef metadata_set<boost::mpl::vector1<storage_type::storage_info_type > > metadata_vector_t;
     typedef boost::mpl::vector3<storage_type, storage_type, storage_type> storages_t;
     typedef boost::fusion::result_of::as_vector<storages_t>::type storages_tuple_t;
     typedef boost::mpl::vector3<p_in, p_buff, p_out> esf_args_t;

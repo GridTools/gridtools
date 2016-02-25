@@ -28,10 +28,11 @@ endif()
 
 
 if ( ENABLE_CXX11 )
-    set(RECGRID_TESTS test_local_domain.cpp test_staggered_keyword.cpp test_make_computation.cpp test_cycle_and_swap.cpp test_iterate_domain.cpp test_mss_metafunctions.cpp call_interfaces_metafunctions.cpp test_esf_metafunctions.cpp  test_accessor.cpp)
+    set(RECGRID_TESTS test_local_domain.cpp test_staggered_keyword.cpp test_make_computation.cpp test_cycle_and_swap.cpp test_iterate_domain.cpp test_mss_metafunctions.cpp call_interfaces_metafunctions.cpp test_esf_metafunctions.cpp  test_accessor.cpp positional_when_debug.cpp)
 
     add_executable(strgrid_stencil_tests ${RECGRID_TESTS})
-  # include boost
+    # include boost
+    #WHYYYYYYYYY>??
     include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
     link_directories( ${Boost_LIBRARY_DIRS} )
 
@@ -47,7 +48,7 @@ if ( ENABLE_CXX11 )
 endif(ENABLE_CXX11)
 if(CUDA_FOUND)
     if(ENABLE_CXX11)
-        set(RECGRID_CUDA_TESTS test_cycle_and_swap.cu)
+        set(RECGRID_CUDA_TESTS test_cycle_and_swap.cu test_make_computation.cu positional_when_debug.cu)
 
         cuda_add_executable(test_cycle_and_swap_cuda ${RECGRID_CUDA_TESTS})
         set_target_properties(test_cycle_and_swap_cuda PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})

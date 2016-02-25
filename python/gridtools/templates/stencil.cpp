@@ -85,7 +85,7 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
     //
     // parameter data fields use the memory buffers received from NumPy arrays
     //
-    typename storage_type::meta_data_t meta_(d1, d2, d3);
+    typename storage_type::storage_info_type meta_(d1, d2, d3);
 
     {% for p in params -%}
     storage_type {{ p.name }} (meta_,
