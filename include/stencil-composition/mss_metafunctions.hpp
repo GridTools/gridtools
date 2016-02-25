@@ -22,25 +22,9 @@ namespace gridtools {
  * metafunction that determines if a given type is a valid parameter for mss_descriptor
  */
 template<typename T>
-struct printi{BOOST_MPL_ASSERT_MSG((false), YYYYYYYYYYYY, (T));};
-template <typename T>
-struct testt
-{
-    printi<T> oi;
-};
-
-template<typename T>
 struct is_mss_parameter
 {
-
     typedef typename boost::mpl::or_< is_sequence_of<T, is_cache >, is_esf_descriptor<T> >::type type;
-    typedef typename boost::mpl::eval_if<
-        type,
-        boost::mpl::identity<boost::mpl::true_>,
-        testt<T>
-    >::type OO;
-
-
 };
 
 /**
@@ -90,6 +74,30 @@ struct extract_mss_esfs
             " * caches from define_caches(...) construct or\n"
             " * esf descriptors from make_esf(...) or make_independent(...)");
     typedef typename boost::mpl::copy_if<MssParameterSequence, boost::mpl::quote1<is_esf_descriptor> >::type type;
+};
+
+template<typename Mss1, typename Mss2>
+struct mss_equal {
+    GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor<Mss1>::value), "Error");
+    GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor<Mss2>::value), "Error");
+
+    typedef static_bool<
+        ((boost::is_same<
+            typename mss_descriptor_execution_engine<Mss1>::type,
+            typename mss_descriptor_execution_engine<Mss2>::type
+          >::value) &&
+         (boost::mpl::equal<
+            typename mss_descriptor_esf_sequence<Mss1>::type,
+            typename mss_descriptor_esf_sequence<Mss2>::type,
+            esf_equal<boost::mpl::_1, boost::mpl::_2>
+         >::value) &&
+         (mss_descriptor_is_reduction<Mss1>::type::value == mss_descriptor_is_reduction<Mss2>::type::value) &&
+         (boost::mpl::equal<
+            typename mss_descriptor_cache_sequence<Mss1>::type,
+            typename mss_descriptor_cache_sequence<Mss2>::type
+         >::value)
+        )
+     > type;
 };
 
 } //namespace gridtools

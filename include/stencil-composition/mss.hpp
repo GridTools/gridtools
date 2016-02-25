@@ -70,6 +70,19 @@ namespace gridtools {
     };
 
     template<typename Mss>
+    struct mss_descriptor_cache_sequence {};
+
+    template <typename ExecutionEngine,
+              typename EsfDescrSequence,
+              bool IsReduction,
+              typename CacheSequence>
+    struct mss_descriptor_cache_sequence<mss_descriptor<ExecutionEngine, EsfDescrSequence, IsReduction, CacheSequence> >
+    {
+        typedef CacheSequence type;
+    };
+
+
+    template<typename Mss>
     struct mss_descriptor_is_reduction;
 
     template <typename ExecutionEngine,

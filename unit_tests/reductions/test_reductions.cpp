@@ -39,7 +39,7 @@ namespace red{
         template <typename Evaluation>
         GT_FUNCTION
         static double Do(Evaluation const & eval, x_interval) {
-            return eval(in());
+//            return eval(in());
         }
     };
 
@@ -137,39 +137,39 @@ namespace red{
                     execute<forward>(),
                     make_esf<desf>(p_in(),p_out())
                 ),
-                make_reduction<sum_red>(p_out() ),
+                make_reduction<sum_red>(p_out()),
                 domain, grid
             );
 
-        red_->ready();
+//        red_->ready();
 
-        red_->steady();
+//        red_->steady();
 
-        red_->run();
+//        red_->run();
 
-#ifdef __CUDACC__
-        out.data().update_cpu();
-#endif
+//#ifdef __CUDACC__
+//        out.data().update_cpu();
+//#endif
 
-        bool success = true;
-        for(uint_t i=0; i<d1; ++i)
-            for(uint_t j=0; j<d2; ++j)
-                for(uint_t k=0; k<d3; ++k)
-                {
-                        if (in(i, j, k)!=out(i,j,k))
-                        {
-                            std::cout << "error in "
-                                      << i << ", "
-                                      << j << ", "
-                                      << k << ": "
-                                      << "in = " << in(i, j, k)
-                                      << ", out = " << out(i, j, k)
-                                      << std::endl;
-                            success = false;
-                        }
-                }
+//        bool success = true;
+//        for(uint_t i=0; i<d1; ++i)
+//            for(uint_t j=0; j<d2; ++j)
+//                for(uint_t k=0; k<d3; ++k)
+//                {
+//                        if (in(i, j, k)!=out(i,j,k))
+//                        {
+//                            std::cout << "error in "
+//                                      << i << ", "
+//                                      << j << ", "
+//                                      << k << ": "
+//                                      << "in = " << in(i, j, k)
+//                                      << ", out = " << out(i, j, k)
+//                                      << std::endl;
+//                            success = false;
+//                        }
+//                }
 
-        return success;
+//        return success;
     }
 }//namespace red
 
