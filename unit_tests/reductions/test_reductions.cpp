@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include <boost/shared_ptr.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 #include <reductions/reductions.hpp>
 
 /**
@@ -33,13 +34,26 @@ namespace red{
     struct sum_red {
 
         typedef accessor<0, enumtype::in> in;
-        typedef accessor<1, enumtype::inout> acc;
-        typedef boost::mpl::vector<in,acc> arg_list;
+        typedef boost::mpl::vector<in> arg_list;
+
+        template <typename Evaluation>
+        GT_FUNCTION
+        static double Do(Evaluation const & eval, x_interval) {
+            return eval(in());
+        }
+    };
+
+    // These are the stencil operators that compose the multistage stencil in this test
+    struct desf {
+
+        typedef accessor<0, enumtype::in> in;
+        typedef accessor<1, enumtype::inout> out;
+        typedef boost::mpl::vector<in,out> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            eval(acc()) += eval(in());
+            eval(out()) = eval(in());
         }
     };
 
@@ -117,9 +131,13 @@ namespace red{
 
         // \todo simplify the following using the auto keyword from C++11
         boost::shared_ptr<gridtools::computation> red_ =
-            gridtools::make_reduction<gridtools::BACKEND>
+            make_computation<gridtools::BACKEND>
             (
-                gridtools::make_esf<sum_red>(p_in(), p_out() ),
+                make_mss(
+                    execute<forward>(),
+                    make_esf<desf>(p_in(),p_out())
+                ),
+                make_reduction<sum_red>(p_out() ),
                 domain, grid
             );
 

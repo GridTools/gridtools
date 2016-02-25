@@ -40,6 +40,7 @@ namespace gridtools {
     /** @brief Descriptors for  Multi Stage Stencil (MSS) */
     template <typename ExecutionEngine,
               typename EsfDescrSequence,
+              bool IsReduction,
               typename CacheSequence = boost::mpl::vector0<> >
     struct mss_descriptor {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfDescrSequence, is_esf_descriptor>::value), "Internal Error: invalid type");
@@ -53,18 +54,31 @@ namespace gridtools {
     template<typename mss>
     struct is_mss_descriptor : boost::mpl::false_{};
 
-    template <typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence>
-    struct is_mss_descriptor<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> > : boost::mpl::true_{};
+    template <typename ExecutionEngine, typename EsfDescrSequence, bool IsReduction, typename CacheSequence>
+    struct is_mss_descriptor<mss_descriptor<ExecutionEngine, EsfDescrSequence, IsReduction, CacheSequence> > : boost::mpl::true_{};
 
     template<typename Mss>
     struct mss_descriptor_esf_sequence {};
 
     template <typename ExecutionEngine,
               typename EsfDescrSequence,
+              bool IsReduction,
               typename CacheSequence>
-    struct mss_descriptor_esf_sequence<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> >
+    struct mss_descriptor_esf_sequence<mss_descriptor<ExecutionEngine, EsfDescrSequence, IsReduction, CacheSequence> >
     {
         typedef EsfDescrSequence type;
+    };
+
+    template<typename Mss>
+    struct mss_descriptor_is_reduction;
+
+    template <typename ExecutionEngine,
+              typename EsfDescrSequence,
+              bool IsReduction,
+              typename CacheSequence>
+    struct mss_descriptor_is_reduction<mss_descriptor<ExecutionEngine, EsfDescrSequence, IsReduction, CacheSequence> >
+    {
+        typedef static_bool<IsReduction> type;
     };
 
 
@@ -118,8 +132,9 @@ namespace gridtools {
 
     template <typename ExecutionEngine,
               typename EsfDescrSequence,
+              bool IsReduction,
               typename CacheSequence>
-    struct mss_descriptor_linear_esf_sequence<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> >
+    struct mss_descriptor_linear_esf_sequence<mss_descriptor<ExecutionEngine, EsfDescrSequence, IsReduction, CacheSequence> >
     {
 
         template <typename State, typename SubArray>
@@ -142,8 +157,9 @@ namespace gridtools {
 
     template <typename ExecutionEngine,
               typename EsfDescrSequence,
+              bool IsReduction,
               typename CacheSequence>
-    struct sequence_of_is_independent_esf<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> >
+    struct sequence_of_is_independent_esf<mss_descriptor<ExecutionEngine, EsfDescrSequence, IsReduction, CacheSequence> >
     {
 
         template <typename State, typename SubArray>
@@ -163,8 +179,9 @@ namespace gridtools {
 
     template <typename ExecutionEngine,
               typename EsfDescrSequence,
+              bool IsReduction,
               typename CacheSequence>
-    struct mss_descriptor_execution_engine<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> >
+    struct mss_descriptor_execution_engine<mss_descriptor<ExecutionEngine, EsfDescrSequence, IsReduction, CacheSequence> >
     {
         typedef ExecutionEngine type;
     };

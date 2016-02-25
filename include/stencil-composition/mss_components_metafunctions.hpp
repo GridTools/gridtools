@@ -9,6 +9,7 @@ namespace gridtools {
 //TODOCOSUNA unittest this
 /**
  * @brief metafunction that takes an MSS with multiple ESFs and split it into multiple MSS with one ESF each
+ * Only to be used for CPU. GPU always fuses ESFs and there is no clear way to split the caches.
  * @tparam MssArray meta array of MSS
  */
 template<typename MssArray>
@@ -18,20 +19,27 @@ struct split_mss_into_independent_esfs
 
     template<typename MssDescriptor>
     struct mss_split_esfs
-    {
+    {        
         GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor<MssDescriptor>::value), "Internal Error: wrong type");
 
         typedef typename mss_descriptor_execution_engine<MssDescriptor>::type execution_engine_t;
+
+        template<typename Esf_>
+        struct compose_mss_ {
+            typedef mss_descriptor<
+                execution_engine_t,
+                boost::mpl::vector1<Esf_>,
+                mss_descriptor_is_reduction<MssDescriptor>::type::value
+            > type;
+        };
+
 
         typedef typename boost::mpl::fold<
             typename mss_descriptor_linear_esf_sequence<MssDescriptor>::type,
             boost::mpl::vector0<>,
             boost::mpl::push_back<
                 boost::mpl::_1,
-                mss_descriptor<
-                    execution_engine_t,
-                    boost::mpl::vector1<boost::mpl::_2>
-                >
+                compose_mss_<boost::mpl::_2>
             >
         >::type type;
     };
