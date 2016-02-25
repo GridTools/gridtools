@@ -9,30 +9,6 @@ Write my documentation!
 /** This class wraps a raw pointer*/
 namespace gridtools {
 
-    namespace workaround_ {
-        template <typename T>
-        struct new_op;
-
-#define NEW_OP(x) template <>                       \
-        struct new_op<x> {                          \
-            GT_FUNCTION                             \
-            x* operator()(uint_t size) const {      \
-                return new x[size];                 \
-            }                                       \
-        };
-
-        NEW_OP(int)
-        NEW_OP(unsigned int)
-        NEW_OP(unsigned long int)
-        NEW_OP(long int)
-        NEW_OP(short)
-        NEW_OP(unsigned short)
-        NEW_OP(char)
-        NEW_OP(float)
-        NEW_OP(double)
-    }
-
-
 template <typename T>
 struct wrap_pointer{
     // TODO: turn into value_type?
@@ -97,11 +73,7 @@ struct wrap_pointer{
 
     GT_FUNCTION
     void allocate_it(uint_t size){
-#if (CUDA_VERSION > 5050)
         m_cpu_p = new T[size];
-#else
-        m_cpu_p = workaround_::new_op<T>()(size);
-#endif
     }
 
     GT_FUNCTION

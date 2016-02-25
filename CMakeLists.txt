@@ -37,7 +37,7 @@ add_definitions(-DFUSION_MAX_VECTOR_SIZE=${BOOST_FUSION_MAX_SIZE})
 add_definitions(-DFUSION_MAX_MAP_SIZE=${BOOST_FUSION_MAX_SIZE})
 
 if(ENABLE_CXX11)
-    add_definitions(-DBOOST_RESULT_OF_USE_TR1)
+    add_definitions(-DBOOST_RESULT_OF_USE_TR1 -DBOOST_NO_CXX11_DECLTYPE)
 endif()
 
 # Not sure why it's desirable to specify the build directory, but it seems
@@ -242,7 +242,7 @@ function(gridtools_add_test test_name test_script test_exec)
 endfunction(gridtools_add_test)
 
 
-set(ENABLE_CACHING "ON" CACHE BOOL "Enable caching functionality" ) 
+set(ENABLE_CACHING "ON" CACHE BOOL "Enable caching functionality" )
 if( NOT ENABLE_CACHING )
     add_definitions( -D__DISABLE_CACHING__ )
 endif( NOT ENABLE_CACHING )
@@ -261,14 +261,14 @@ endif(STRUCTURED_GRIDS)
 if (ENABLE_PYTHON)
     message (STATUS "PYTHON enabled ")
     # Retrieving the python major version (major version is written in tmp-file ${CMAKE_SOURCE_DIR}/.python_major_version, full version is in tmp-file ${CMAKE_SOURCE_DIR}/.python_version)
-    execute_process(COMMAND ${CMAKE_SOURCE_DIR}/python/python_version.sh ${CMAKE_SOURCE_DIR} )  
+    execute_process(COMMAND ${CMAKE_SOURCE_DIR}/python/python_version.sh ${CMAKE_SOURCE_DIR} )
     # Reading from ${CMAKE_SOURCE_DIR}/.python_major_version (composing the cmd otherwise it doesn't work)
     set (cmd "cat" )
     set (filepv "${CMAKE_SOURCE_DIR}/.python_major_version")
     execute_process ( COMMAND ${cmd} ${filepv} OUTPUT_VARIABLE PYTHON_VERSION_MAJOR )
     #message( "PYTHON_VERSION_MAJOR is: " ${PYTHON_VERSION_MAJOR} )
     # Removing tmp-file ${CMAKE_SOURCE_DIR}/.python_major_version
-    execute_process( COMMAND rm -f ${CMAKE_SOURCE_DIR}/.python_major_version) 
+    execute_process( COMMAND rm -f ${CMAKE_SOURCE_DIR}/.python_major_version)
 
     find_package(PythonLibs)
     find_package(PythonInterp)
@@ -288,8 +288,8 @@ if (ENABLE_PYTHON)
         set (filepv "${CMAKE_SOURCE_DIR}/.python_version")
         execute_process ( COMMAND ${cmd} ${filepv} OUTPUT_VARIABLE PYTHONLIBS_VERSION_STRING )
         # Removing tmp-file ${CMAKE_SOURCE_DIR}/.python_version created by python_version.sh
-        execute_process( COMMAND rm -f ${CMAKE_SOURCE_DIR}/.python_version) 
-        
+        execute_process( COMMAND rm -f ${CMAKE_SOURCE_DIR}/.python_version)
+
         #set( PYTHON_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/python/" CACHE PATH "Set the installation directory for gridtools4py" )
         set( PYTHON_INSTALL_PREFIX " " CACHE PATH "Set the installation directory for gridtools4py" )
         set(OUTPUT      "${CMAKE_CURRENT_BINARY_DIR}/python.log")
@@ -310,4 +310,3 @@ file(APPEND ${TEST_SCRIPT} "exit $res\n")
 file(INSTALL ${TEST_SCRIPT} DESTINATION ${CMAKE_BINARY_DIR}/install
    FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ
 )
-

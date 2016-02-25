@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
-#include "common/defs.hpp"
-#include "stencil-composition/stencil-composition.hpp"
+#include <common/defs.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
 
 namespace test_cache_stencil {
