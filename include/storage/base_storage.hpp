@@ -366,7 +366,7 @@ namespace gridtools {
 
         /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
         GT_FUNCTION
-        value_type& operator()(meta_data_t const* metadata_, uint_t i, uint_t j, uint_t k) {
+        value_type& operator()(meta_data_t const* metadata_, uint_t const& i, uint_t const& j, uint_t const& k) {
             assert(metadata_ && metadata_->index(i,j,k) < metadata_->size());
             assert(is_set);
             return (m_fields[0])[metadata_->index(i,j,k)];
@@ -374,7 +374,7 @@ namespace gridtools {
 
         /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
         GT_FUNCTION
-        value_type const& operator()(meta_data_t const* metadata_, uint_t i, uint_t j, uint_t k) const {
+        value_type const& operator()(meta_data_t const* metadata_, uint_t const& i, uint_t const& j, uint_t const& k) const {
             assert(metadata_ && metadata_->index(i,j,k) < metadata_->size());
             assert(is_set);
             return (m_fields[0])[metadata_->index(i,j,k)];

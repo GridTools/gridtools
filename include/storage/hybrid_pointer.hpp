@@ -100,7 +100,7 @@ namespace gridtools {
         void allocate_it(uint_t size) {
             if(!m_allocated){
                 cudaError_t err = cudaMalloc(&m_gpu_p, size*sizeof(T));
-                m_up_to_date=false;
+                m_allocated = true;
                 if (err != cudaSuccess) {
                     std::cout << "Error allocating storage in "
                               << BOOST_CURRENT_FUNCTION
@@ -119,6 +119,9 @@ namespace gridtools {
             cudaFree(m_gpu_p);
             m_gpu_p=NULL;
             m_cpu_p.free_it();
+            m_up_to_date=true;
+            m_pointer_to_use=m_cpu_p;
+
 #ifdef VERBOSE
             printf("freeing hybrid pointer %x \n", this);
 #endif
@@ -128,8 +131,11 @@ namespace gridtools {
 #ifdef VERBOSE
             printf("update gpu "); out();
 #endif
-            cudaMemcpy(m_gpu_p, m_cpu_p.get(), m_size*sizeof(T), cudaMemcpyHostToDevice);
-            m_up_to_date=false;
+            if(m_up_to_date){//do not copy if the last version is already on the device
+                cudaMemcpy(m_gpu_p, m_cpu_p.get(), m_size*sizeof(T), cudaMemcpyHostToDevice);
+                m_up_to_date=false;
+                m_pointer_to_use=m_gpu_p;
+            }
         }
 
         void update_cpu() {
@@ -139,6 +145,7 @@ namespace gridtools {
             if(!m_up_to_date){
                 cudaMemcpy(m_cpu_p.get(), m_gpu_p, m_size*sizeof(T), cudaMemcpyDeviceToHost);
                 m_up_to_date=true;
+                m_pointer_to_use=m_cpu_p;
             }
         }
 
@@ -147,6 +154,7 @@ namespace gridtools {
             if(m_up_to_date){//do not copy if the last version is already on the device
                 cudaMemcpy(&m_pointer_to_use[index], &value, sizeof(pointee_t), cudaMemcpyHostToDevice);
                 m_up_to_date=false;
+                m_pointer_to_use=m_gpu_p;
             }
         }
 
