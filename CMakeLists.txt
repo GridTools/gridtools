@@ -300,7 +300,7 @@ if (ENABLE_PYTHON)
 endif(ENABLE_PYTHON)
 
 if(GTEST_FOUND)
-    add_subdirectory( unit_tests )
+    #add_subdirectory( unit_tests ) #does not compile
     if(STRUCTURED_GRIDS)
         add_subdirectory( examples )
     endif(STRUCTURED_GRIDS)

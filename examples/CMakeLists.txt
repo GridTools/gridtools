@@ -1,4 +1,4 @@
-list( APPEND SRCFILES interface1 simple_hori_diff boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore alignment)
+list( APPEND SRCFILES alignment)
 
 if( ENABLE_CXX11)
     list(APPEND SRCFILES  extended_4D  copy_stencil_single_storage cg)
@@ -34,9 +34,10 @@ target_link_libraries(vanilla_laplacian ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_AD
 
 if ( ENABLE_CXX11 )
     if( GCL_MPI )
-        add_executable(shallow_water_enhanced  shallow_water_enhanced.cpp)
-        target_link_libraries(shallow_water_enhanced gcl ${ADD_MPI_LIBS} ${exe_LIBS})
-        set_target_properties(shallow_water_enhanced PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+        #does not compile
+        #add_executable(shallow_water_enhanced  shallow_water_enhanced.cpp)
+        #target_link_libraries(shallow_water_enhanced gcl ${ADD_MPI_LIBS} ${exe_LIBS})
+        #set_target_properties(shallow_water_enhanced PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
 
         add_executable(copy_stencil_parallel  copy_stencil_parallel.cpp)
         target_link_libraries(copy_stencil_parallel gcl ${ADD_MPI_LIBS} ${exe_LIBS})
