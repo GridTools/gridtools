@@ -100,7 +100,8 @@ namespace gridtools {
         typename CacheSequence,                     // sequence of user specified caches
         typename IsIndependentSeq,                  // sequence of boolenans (one per functor), stating if it is contained in a "make_independent" construct
         typename Grid,                            // the grid
-        typename ExecutionEngine                   // the execution engine
+        typename ExecutionEngine,                   // the execution engine
+        bool IsReduction                            // boolean stating if the operation to be applied at mss is a reduction
     >
     struct run_functor_arguments
     {
@@ -146,6 +147,7 @@ namespace gridtools {
         typedef Grid grid_t;
         typedef ExecutionEngine execution_type_t;
         static const enumtype::strategy s_strategy_id=backend_ids_t::s_strategy_id;
+        static const bool s_is_reduction = IsReduction;
     };
 
     template<typename T> struct is_run_functor_arguments : boost::mpl::false_{};
@@ -164,7 +166,8 @@ namespace gridtools {
         typename CacheSequence,
         typename IsIndependentSequence,
         typename Grid,
-        typename ExecutionEngine
+        typename ExecutionEngine,
+        bool IsReduction
     >
     struct is_run_functor_arguments<
         run_functor_arguments<
@@ -181,7 +184,8 @@ namespace gridtools {
             CacheSequence,
             IsIndependentSequence,
             Grid,
-            ExecutionEngine
+            ExecutionEngine,
+            IsReduction
         >
     > : boost::mpl::true_{};
 

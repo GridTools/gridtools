@@ -47,6 +47,7 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value),
                 "Internal Error: invalid type");
+        GRIDTOOLS_STATIC_ASSERT((!IsReduction || boost::mpl::size<EsfDescrSequence>::value==1), "Only one reduction esf is allowed");
         typedef EsfDescrSequence esf_sequence_t;
         typedef CacheSequence cache_sequence_t;
     };
