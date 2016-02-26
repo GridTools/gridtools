@@ -26,16 +26,27 @@ namespace gridtools {
     template<
         typename TFromIndex,
         typename TToIndex,
-        typename TFunctor>
+        typename TFunctor,
+        bool OnlyVoidDoMethods>
     struct find_do_method_starting_at
     {
+        template<typename Index>
+        struct has_do_with_level
+        {
+            typedef typename boost::mpl::if_c<
+                OnlyVoidDoMethods,
+                typename has_do<TFunctor, typename make_interval<TFromIndex, Index>::type >::type,
+                typename has_do_any_return_type<TFunctor, typename make_interval<TFromIndex, Index>::type >::type
+            >::type type;
+        };
+
         // iterate over all do methods starting from a given level and add them to the do method vector
         // (note that the do method vector stores level index pairs instead of intervals)
         typedef typename boost::mpl::fold<
             typename make_range<TFromIndex, TToIndex>::type,
             boost::mpl::vector0<>,
             boost::mpl::if_<
-                has_do<TFunctor, make_interval<TFromIndex, boost::mpl::_2> >,
+                has_do_with_level<boost::mpl::_2>,
                 boost::mpl::push_back<boost::mpl::_1, boost::mpl::pair<TFromIndex, boost::mpl::_2> >,
                 boost::mpl::_1
                 >
@@ -115,29 +126,46 @@ namespace gridtools {
      */
     template<
         typename TFunctor,
-        typename TAxisInterval>
+        typename TAxisInterval,
+        bool OnlyVoidDoMethods
+    >
     struct compute_functor_do_methods
     {
         // define the from and to level indexes
         typedef typename interval_from_index<TAxisInterval>::type FromIndex;
         typedef typename interval_to_index<TAxisInterval>::type ToIndex;
 
+        template<typename Index>
+        struct has_do_with_level
+        {
+            typedef typename boost::mpl::if_c<
+                OnlyVoidDoMethods,
+                typename has_do<TFunctor, typename index_to_level<Index>::type >::type,
+                typename has_do_any_return_type<TFunctor, typename index_to_level<Index>::type >::type
+            >::type type;
+        };
+
         // search all do method from levels
         typedef typename boost::mpl::fold<
             typename make_range<FromIndex, ToIndex>::type,
             boost::mpl::vector0<>,
-            boost::mpl::if_<
-                has_do<TFunctor, index_to_level<boost::mpl::_2> >,
+            boost::mpl::eval_if<
+                has_do_with_level<boost::mpl::_2>,
                 boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>,
-                boost::mpl::_1
+                boost::mpl::identity<boost::mpl::_1>
                 >
             >::type FromLevels;
+
+        template<typename Lev> struct insert_do_method_start_at
+        {
+            typedef typename  find_do_method_starting_at<Lev, ToIndex, TFunctor, OnlyVoidDoMethods>::type type;
+        };
 
         // compute the do method associated to every from level
         typedef typename boost::mpl::transform<
             FromLevels,
-            find_do_method_starting_at<boost::mpl::_, ToIndex, TFunctor>
-            >::type DoMethods;
+            insert_do_method_start_at<boost::mpl::_>
+        >::type DoMethods;
 
         // check at least one do method was found
         BOOST_MPL_ASSERT_MSG(

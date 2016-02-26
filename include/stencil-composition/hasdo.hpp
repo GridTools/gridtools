@@ -197,4 +197,26 @@ namespace gridtools {
         BOOST_STATIC_CONSTANT(bool, value = (sizeof(test<TFunctor>(0)) == sizeof(yes)) );
         typedef boost::mpl::bool_<bool(value)> type;
     };
+
+    template<
+        typename Functor,
+        typename Interval
+    >
+    struct has_do_any_return_type
+    {
+        struct void_x {};
+
+        template <int>
+        struct void_t {
+            typedef void_x type;
+        };
+
+        template <typename Fn, typename Arg, typename Int_, typename = void_x >
+        struct has_do_impl : static_bool<false> {};
+
+        template <typename Fn, typename Arg, typename Int_>
+        struct has_do_impl<Fn, Arg, Int_, typename void_t<sizeof(Fn::Do(Arg(), Int_()))>::type > : static_bool<true> {};
+
+        typedef typename has_do_impl<Functor, int, Interval>::type type;
+    };
 } // namespace gridtools

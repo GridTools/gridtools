@@ -6,6 +6,16 @@
 
 namespace gridtools {
 
+template<typename T> struct mss_components_is_reduction;
+
+template<
+    typename MssDescriptor,
+    typename ExtentSizes
+>
+struct mss_components_is_reduction<mss_components<MssDescriptor, ExtentSizes> > :
+        mss_descriptor_is_reduction<MssDescriptor>::type {};
+
+
 //TODOCOSUNA unittest this
 /**
  * @brief metafunction that takes an MSS with multiple ESFs and split it into multiple MSS with one ESF each
@@ -150,9 +160,17 @@ struct mss_functor_do_methods
     /**
      *  compute the functor do methods - This is the most computationally intensive part
      */
+    template<typename Functor> struct inserter_ {
+        typedef typename compute_functor_do_methods<
+            Functor,
+            typename Grid::axis_type,
+            !(mss_components_is_reduction<MssComponents>::type::value)
+        >::type type;
+    };
+
     typedef typename boost::mpl::transform<
         typename MssComponents::functors_seq_t,
-        compute_functor_do_methods<boost::mpl::_, typename Grid::axis_type>
+        inserter_<boost::mpl::_>
     >::type type; // Vector of vectors - each element is a vector of pairs of actual axis-indices
 };
 
