@@ -21,7 +21,6 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
-
 namespace copy_stencil{
 // This is the definition of the special regions in the "vertical" direction
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
@@ -42,6 +41,11 @@ namespace copy_stencil{
         }
     };
 
+    // boundary function
+    inline float bc(uint_t i, uint_t j, uint_t k) {
+        return (float) i*100 + j;
+    }
+
 
     template <typename Partitioner>
     struct boundary_conditions {
@@ -51,16 +55,21 @@ namespace copy_stencil{
             : m_partitioner(p)
         {}
 
+        // DataField_x are fields that are passed in the application of boundary condition
         template <typename Direction, typename DataField0, typename DataField1>
         GT_FUNCTION
         void operator()(Direction,
                         DataField0 & data_field0,
                         DataField1 & data_field1,
                         uint_t i, uint_t j, uint_t k) const {
-            data_field0(i,j,k) = -(float)m_partitioner.boundary();
-            data_field1(i,j,k) = -(float)m_partitioner.boundary();
+            //i,j,k are coordinates within the local partition
+            data_field0(i,j,k) = 44; //bc(i,j,k); //in field
+            data_field1(i,j,k) = (float)(m_partitioner.get_low_bound(1)*100 + m_partitioner.get_up_bound(1));
+            
+            //for Partitioner of type: boundary_conditions<partitioner_t>(part)
+            //data_field1(i,j,k) = -(float)m_partitioner.boundary(); //out field
+            //m_partitioner returns boundary flag, that is a single integer containing the sum of the touched boundaries
         }
-
     };
 
 /*
@@ -151,7 +160,7 @@ namespace copy_stencil{
             for(uint_t j=0; j<metadata_.template dims<1>(); ++j)
                 for(uint_t k=0; k<metadata_.template dims<2>(); ++k)
                 {
-                    in(i, j, k) = (i + j + k)*(gridtools::PID+1);
+                    in(i, j, k) = (i) * (gridtools::PID+1);
                 }
 
         // Definition of the physical dimensions of the problem.
@@ -229,8 +238,8 @@ namespace copy_stencil{
         halos[1] = meta_.template get_halo_descriptor<1>();
         halos[2] = meta_.template get_halo_descriptor<2>();
 
-        typename gridtools::boundary_apply<boundary_conditions<partitioner_t>, typename gridtools::bitmap_predicate>
-            (halos, boundary_conditions<partitioner_t>(part), gridtools::bitmap_predicate(part.boundary())).apply(in, out);
+        typename gridtools::boundary_apply<boundary_conditions<parallel_storage_info<metadata_t, partitioner_t>>, typename gridtools::bitmap_predicate>
+            (halos, boundary_conditions<parallel_storage_info<metadata_t, partitioner_t>>(meta_), gridtools::bitmap_predicate(part.boundary())).apply(in, out);
 
         std::vector<pointer_type::pointee_t*> vec(2);
         vec[0]=in.data().get();
