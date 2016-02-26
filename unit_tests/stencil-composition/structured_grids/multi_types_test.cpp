@@ -278,13 +278,16 @@ bool test(uint_t x, uint_t y, uint_t z)
     grid.value_list[0] = 0;
     grid.value_list[1] = d3-1;
 
-// \todo simplify the following using the auto keyword from C++11
-#ifdef __CUDACC__
-    gridtools::computation* test_computation =
+#ifdef CXX11_ENABLED
+auto
 #else
-        boost::shared_ptr<gridtools::computation> test_computation =
+#ifdef __CUDACC__
+    gridtools::computation*
+#else
+        boost::shared_ptr<gridtools::computation>
 #endif
-        gridtools::make_computation<the_backend>
+#endif
+    test_computation = gridtools::make_computation<the_backend>
         (
             domain, grid,
             gridtools::make_mss // mss_descriptor
