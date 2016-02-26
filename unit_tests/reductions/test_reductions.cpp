@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include <boost/shared_ptr.hpp>
 #include <stencil-composition/stencil-composition.hpp>
-#include <reductions/reductions.hpp>
+#include <stencil-composition/reductions/reductions.hpp>
 
 /**
   @file

@@ -30,7 +30,8 @@ namespace gridtools {
         typename CacheSequence,
         typename ProcessingElementsBlockSize,
         typename PhysicalDomainBlockSize,
-        typename Grid
+        typename Grid,
+        bool IsReduction
     >
     struct iterate_domain_arguments
     {
@@ -52,6 +53,7 @@ namespace gridtools {
         typedef ProcessingElementsBlockSize processing_elements_block_size_t;
         typedef PhysicalDomainBlockSize physical_domain_block_size_t;
         typedef Grid grid_t;
+        static const bool s_is_reduction = IsReduction;
     };
 
     template<typename T> struct is_iterate_domain_arguments : boost::mpl::false_{};
@@ -65,7 +67,8 @@ namespace gridtools {
         typename CacheSequence,
         typename ProcessingElementsBlockSize,
         typename PhysicalDomainBlockSize,
-        typename Grid>
+        typename Grid,
+        bool IsReduction>
     struct is_iterate_domain_arguments<
         iterate_domain_arguments<
             BackendIds,
@@ -76,7 +79,8 @@ namespace gridtools {
             CacheSequence,
             ProcessingElementsBlockSize,
             PhysicalDomainBlockSize,
-            Grid> > :
+            Grid,
+            IsReduction> > :
         boost::mpl::true_{};
 
     /**
@@ -141,7 +145,8 @@ namespace gridtools {
                         CacheSequence,
                         ProcessingElementsBlockSize,
                         PhysicalDomainBlockSize,
-                        Grid
+                        Grid,
+                        IsReduction
                     >
                 >::type iterate_domain_t;
         typedef Grid grid_t;
