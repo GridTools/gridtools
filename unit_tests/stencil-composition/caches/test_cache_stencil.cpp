@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
-#include "common/defs.hpp"
-#include "stencil-composition/stencil-composition.hpp"
+#include <common/defs.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
 
 namespace test_cache_stencil {
@@ -67,7 +67,7 @@ protected:
     array<uint_t, 5> m_di, m_dj;
 
     gridtools::grid<axis> m_grid;
-    typename storage_type::meta_data_t m_meta;
+    typename storage_type::storage_info_type m_meta;
     storage_type m_in, m_out;
 
     cache_stencil() :
@@ -154,7 +154,7 @@ TEST_F(cache_stencil, ij_cache)
 TEST_F(cache_stencil, ij_cache_offset)
 {
     SetUp();
-    typename storage_type::meta_data_t meta_(m_d1, m_d2, m_d3);
+    typename storage_type::storage_info_type meta_(m_d1, m_d2, m_d3);
     storage_type ref(meta_,  0.0, "ref");
 
     for(int i=m_halo_size; i < m_d1-m_halo_size; ++i)

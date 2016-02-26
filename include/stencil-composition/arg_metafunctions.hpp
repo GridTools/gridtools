@@ -21,7 +21,7 @@ struct arg2storage {
 //metafunction to access the metadata type given the arg
 template<typename T>
 struct arg2metadata {
-    typedef typename arg2storage<T>::type::meta_data_t type;
+    typedef typename arg2storage<T>::type::storage_info_type type;
 };
 
 } // namespace gridtools

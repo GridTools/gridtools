@@ -2,8 +2,8 @@
 
 #include <stencil-composition/stencil-composition.hpp>
 #include "horizontal_diffusion_repository.hpp"
-#include "cache_flusher.hpp"
-#include "defs.hpp"
+#include "./cache_flusher.hpp"
+#include "./defs.hpp"
 #include <tools/verifier.hpp>
 
 #ifdef USE_PAPI_WRAP
@@ -139,8 +139,6 @@ void handle_error(int)
 bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps)
 {
 
-    cache_flusher flusher(cache_flusher_size);
-
 #ifdef USE_PAPI_WRAP
     int collector_init = pw_new_collector("Init");
     int collector_execute = pw_new_collector("Execute");
@@ -207,29 +205,6 @@ bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps)
     grid.value_list[0] = 0;
     grid.value_list[1] = d3-1;
 
-    /*
-      Here we do lot of stuff
-      1) We pass to the intermediate representation ::run function the description
-      of the stencil, which is a multi-stage stencil (mss)
-      The mss includes (in order of execution) a laplacian, two fluxes which are independent
-      and a final step that is the out_function
-      2) The logical physical domain with the fields to use
-      3) The actual domain dimensions
-     */
-    // gridtools::intermediate::run<gridtools::BACKEND>
-    //     (
-    //      gridtools::make_mss
-    //      (
-    //       gridtools::execute_upward,
-    //       gridtools::make_esf<lap_function>(p_lap(), p_in()),
-    //       gridtools::make_independent
-    //       (
-    //        gridtools::make_esf<flx_function>(p_flx(), p_in(), p_lap()),
-    //        gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap())
-    //        ),
-    //       gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
-    //       ),
-    //      domain, grid);
 
 #ifdef USE_PAPI
 int event_set = PAPI_NULL;
@@ -254,6 +229,15 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
     pw_start_collector(collector_init);
 #endif
 
+    /*
+      Here we do lot of stuff
+      1) We pass to the intermediate representation ::run function the description
+      of the stencil, which is a multi-stage stencil (mss)
+      The mss includes (in order of execution) a laplacian, two fluxes which are independent
+      and a final step that is the out_function
+      2) The logical physical domain with the fields to use
+      3) The actual grid dimensions
+     */
 #ifdef CXX11_ENABLED
     auto
 #else
@@ -295,6 +279,8 @@ if( PAPI_start(event_set) != PAPI_OK)
 #ifdef USE_PAPI_WRAP
     pw_start_collector(collector_execute);
 #endif
+    cache_flusher flusher(cache_flusher_size);
+
     for(uint_t t=0; t < t_steps; ++t){
         flusher.flush();
         horizontal_diffusion->run();
@@ -333,7 +319,10 @@ PAPI_stop(event_set, values);
         flusher.flush();
         horizontal_diffusion->run();
     }
+#endif
+
     horizontal_diffusion->finalize();
+#ifdef BENCHMARK
     std::cout << horizontal_diffusion->print_meter() << std::endl;
 #endif
 

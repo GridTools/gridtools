@@ -3,16 +3,47 @@
 #include <boost/type_traits/is_const.hpp>
 
 #include "accessor.hpp"
-#include "stencil-composition/domain_type.hpp"
-#include "common/generic_metafunctions/is_sequence_of.hpp"
-#include "stencil-composition/esf_fwd.hpp"
-#include "stencil-composition/sfinae.hpp"
+#include "../domain_type.hpp"
+#include "../../common/generic_metafunctions/is_sequence_of.hpp"
+#include "../esf_fwd.hpp"
+#include "../sfinae.hpp"
 
 /**
    @file
    @brief Descriptors for Elementary Stencil Function (ESF)
 */
 namespace gridtools {
+
+    namespace _impl {
+        /**
+           Metafunction to check that the arg_list mpl::vector list the
+           different accessors in order!
+        */
+        template <typename ArgList>
+        struct check_arg_list {
+            template <typename Reduced, typename Element>
+            struct _check {
+                typedef typename boost::mpl::if_c<
+                    (Element::index_type::value == Reduced::value+1),
+                    boost::mpl::int_<Reduced::value+1>,
+                    boost::mpl::int_<-Reduced::value-1>
+                    >::type type;
+            };
+
+            typedef typename boost::mpl::fold<
+                ArgList,
+                boost::mpl::int_<-1>,
+                _check<boost::mpl::_1, boost::mpl::_2>
+                >::type res_type;
+
+            typedef typename boost::mpl::if_c<
+                (res_type::value+1 == boost::mpl::size<ArgList>::value),
+                boost::true_type,
+                boost::false_type>::type type;
+
+            static const bool value = type::value;
+        };
+    } // namespace _impl
 
     /**
      * @brief Descriptors for Elementary Stencil Function (ESF)
@@ -22,6 +53,8 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ArgArray, is_arg>::value), "wrong types for the list of parameter placeholders\n"
                 "check the make_esf syntax");
     private:
+
+        GRIDTOOLS_STATIC_ASSERT((_impl::check_arg_list<typename ESF::arg_list>::value == true), "There is a problem in the arg_list a the functor. Please, ensure that the accessors are listed in order from index 0 to the last");
 
         /** Private metafunction that associates (in a mpl::map) placeholders to extents.
             It returns a mpl::map between placeholders and extents of the local arguments.

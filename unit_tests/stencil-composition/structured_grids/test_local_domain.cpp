@@ -13,9 +13,7 @@
 
 #include "gtest/gtest.h"
 
-#include "stencil-composition/backend.hpp"
-#include "stencil-composition/stencil-composition.hpp"
-#include "stencil-composition/intermediate_metafunctions.hpp"
+#include <stencil-composition/stencil-composition.hpp>
 
 using namespace gridtools;
 using gridtools::level;
@@ -33,7 +31,7 @@ namespace local_domain_stencil{
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct dummy_functor {
-        typedef const accessor<0> in;
+        typedef accessor<0> in;
         typedef accessor<1> out;
         typedef boost::mpl::vector<in,out> arg_list;
 

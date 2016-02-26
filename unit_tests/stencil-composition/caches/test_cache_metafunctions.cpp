@@ -7,12 +7,8 @@
 
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
-#include "common/defs.hpp"
-#include "stencil-composition/backend.hpp"
-#include "stencil-composition/caches/cache_metafunctions.hpp"
-#include "stencil-composition/interval.hpp"
-#include "stencil-composition/stencil-composition.hpp"
-#include "common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
+#include <stencil-composition/stencil-composition.hpp>
+#include <common/generic_metafunctions/fusion_map_to_mpl_map.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
@@ -95,7 +91,7 @@ TEST(cache_metafunctions, extract_extents_for_caches)
 
 TEST(cache_metafunctions, get_cache_storage_tuple)
 {
-    typedef metadata_set<boost::mpl::vector1<storage_type::meta_data_t > > metadata_vector_t;
+    typedef metadata_set<boost::mpl::vector1<storage_type::storage_info_type > > metadata_vector_t;
     typedef boost::mpl::vector3<storage_type, storage_type, storage_type> storages_t;
     typedef boost::fusion::result_of::as_vector<storages_t>::type storages_tuple_t;
     typedef boost::mpl::vector3<p_in, p_buff, p_out> esf_args_t;

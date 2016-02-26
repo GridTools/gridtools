@@ -1,5 +1,9 @@
 #pragma once
 
+#include <boost/preprocessor/repetition/repeat.hpp>
+#include <boost/preprocessor/repetition/enum_params.hpp>
+#include <boost/preprocessor/arithmetic/inc.hpp>
+
 namespace gridtools {
 
 
@@ -37,9 +41,9 @@ namespace gridtools {
     struct meta_array_vector1<Vector, condition<Mss1, Mss2, Cond> >{
         typedef condition<typename meta_array_vector1<Vector, Mss1>::type
                           , typename meta_array_vector1<Vector, Mss2>::type
-                          , Cond>type;
+                          , Cond> type;
     };
 
-    BOOST_PP_REPEAT(GT_MAX_MSS, _META_ARRAY_VECTOR_, _)
+    BOOST_PP_REPEAT ( GT_MAX_MSS, _META_ARRAY_VECTOR_, _ )
 
 }//namespace gridtools

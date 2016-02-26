@@ -1,8 +1,18 @@
 #include "gtest/gtest.h"
 
 // #include <boost/mpl/map/map10.hpp>
-// #include "stencil-composition/accessor_metafunctions.hpp"
+#include <stencil-composition/structured_grids/accessor.hpp>
+#include <stencil-composition/structured_grids/accessor_metafunctions.hpp>
 // #include "stencil-composition/iterate_domain_remapper.hpp"
+
+TEST(accessor, is_accessor) {
+    using namespace gridtools;
+    GRIDTOOLS_STATIC_ASSERT((is_accessor<accessor<6, enumtype::inout, extent<3,4,4,5> > >::value) == true, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor<accessor<-2,  enumtype::in> >::value) == true, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor<int>::value) == false, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor<double&>::value) == false, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor<double const&>::value) == false, "");
+}
 
 TEST(accessor, copy_const) {
 

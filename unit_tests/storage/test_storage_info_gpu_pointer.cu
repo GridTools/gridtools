@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include <stencil-composition/stencil-composition.hpp>
 
-namespace test_storage_info_gpu_pointer{
+namespace test_storage_info_gpu_using{
 
     using namespace gridtools;
     typedef layout_map<0,1,2> layout_t;
@@ -15,6 +15,8 @@ namespace test_storage_info_gpu_pointer{
         for(int i=0; i<11; ++i)
             for(int j=0; j<12; ++j)
                 for(int k=0; k<13; ++k)
+                    // st_->fields()[0].out();
+// printf("(*st_)(i,j,k) = %d", (*st_)(i,j,k));
                     (*st_)(i,j,k)= (double)i+j+k;
 
     }
@@ -24,6 +26,7 @@ TEST(storage_info, test_pointer) {
     meta_t meta_(11, 12, 13);
     meta_.clone_to_device();
     storage_t st_(meta_, 5.);
+    st_.h2d_update();
     st_.clone_to_device();
 
     set<<<1,1>>>(st_.gpu_object_ptr);

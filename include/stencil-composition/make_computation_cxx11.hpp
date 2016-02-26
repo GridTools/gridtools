@@ -93,7 +93,7 @@ namespace gridtools {
         const Grid& grid,
         Mss ... args_
         ) {
-        return make_computation_impl<false, Backend>(domain, grid, args_ ... );
+        return make_computation_impl<POSITIONAL_WHEN_DEBUGGING, Backend>(domain, grid, args_ ... );
     }
 
     template <

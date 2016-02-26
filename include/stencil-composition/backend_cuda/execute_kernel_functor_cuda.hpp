@@ -144,7 +144,7 @@ namespace _impl_cuda {
         typedef _impl::iteration_policy<from, to, zdim_index_t::value, execution_type_t::type::iteration> iteration_policy_t;
 
         it_domain.template initialize<zdim_index_t::value>( grid->template value_at< iteration_policy_t::from >() );
-        
+
         //execute the k interval functors
         boost::mpl::for_each<typename RunFunctorArguments::loop_intervals_t>
             (_impl::run_f_on_interval<

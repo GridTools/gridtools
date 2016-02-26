@@ -528,19 +528,9 @@ namespace shallow_water{
             myfile<<"#####################################################"<<std::endl;
 #endif
 
-#ifndef CUDA_EXAMPLE
-            boost::timer::cpu_timer time;
-#endif
-
 //! [run]
             shallow_water_stencil->run();
 //! [run]
-
-#ifndef CUDA_EXAMPLE
-                boost::timer::cpu_times lapse_time = time.elapsed();
-                if(PID==0)
-                    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
-#endif
         }
 
 //! [finalize]

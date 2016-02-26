@@ -138,7 +138,10 @@ namespace gridtools {
         };
 
         /**
-         * metafunction that computes the return type of all operator() of an accessor
+         * metafunction that computes the return type of all operator() of an accessor.
+         *
+         * If the temaplate argument is not an accessor ::type is mpl::void_
+         *
          */
         template<typename Accessor>
         struct accessor_return_type
@@ -458,7 +461,7 @@ namespace gridtools {
             //for the moment the extra dimensionality of the storage is limited to max 2
             //(3 space dim + 2 extra= 5, which gives n_dim==4)
             GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor");
-            GRIDTOOLS_STATIC_ASSERT(Accessor::type::n_dim <= storage_type::meta_data_t::space_dimensions, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.");
+            GRIDTOOLS_STATIC_ASSERT(Accessor::type::n_dim <= storage_type::storage_info_type::space_dimensions, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.");
 
             GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: if you need to use a non-rectangular field the constexpr version of the accessors have to be used (so that the current position in the field is computed at compile time). This is achieved by using, e.g., instead of \n\n eval(field(dimension<5>(2))); \n\n the following expression: \n\n typedef alias<field, dimension<5> >::set<2> z_field; \n eval(z_field()); \n");
 
@@ -769,9 +772,9 @@ namespace gridtools {
 
         //getting information about the metadata
         typedef typename boost::mpl::at
-            <metadata_map_t, typename storage_t::meta_data_t >::type metadata_index_t;
+            <metadata_map_t, typename storage_t::storage_info_type >::type metadata_index_t;
 
-        pointer<const typename storage_t::meta_data_t> const metadata_ = boost::fusion::at
+        pointer<const typename storage_t::storage_info_type> const metadata_ = boost::fusion::at
             < metadata_index_t >(local_domain.m_local_metadata);
         //getting the value
 
@@ -834,7 +837,7 @@ namespace gridtools {
 
         typedef typename local_domain_t::template get_storage<index_t>::type::value_type storage_t;
 
-        typedef typename storage_t::meta_data_t metadata_t;
+        typedef typename storage_t::storage_info_type metadata_t;
         //if the following assertion fails you have specified a dimension for the extended storage
         //which does not correspond to the size of the extended placeholder for that storage
         GRIDTOOLS_STATIC_ASSERT(metadata_t::space_dimensions+2/*max. extra dimensions*/>=Accessor::type::n_dim, "the dimension of the accessor exceeds the data field dimension");
@@ -900,7 +903,7 @@ namespace gridtools {
         typedef typename local_domain_t::template get_storage<index_t>::type::value_type storage_t;
 
         typedef accessor_mixed<Accessor, Pairs ... > accessor_mixed_t;
-        using metadata_t = typename storage_t::meta_data_t;
+        using metadata_t = typename storage_t::storage_info_type;
 
         //if the following assertion fails you have specified a dimension for the extended storage
         //which does not correspond to the size of the extended placeholder for that storage
@@ -962,9 +965,9 @@ namespace gridtools {
 
         //getting information about the metadata
         typedef typename boost::mpl::at
-            <metadata_map_t, typename storage_t::meta_data_t >::type metadata_index_t;
+            <metadata_map_t, typename storage_t::storage_info_type >::type metadata_index_t;
 
-        pointer<const typename storage_t::meta_data_t> const metadata_ = boost::fusion::at
+        pointer<const typename storage_t::storage_info_type> const metadata_ = boost::fusion::at
             < metadata_index_t >(local_domain.m_local_metadata);
 
         //error checks
@@ -975,7 +978,7 @@ namespace gridtools {
                ->_index(strides().template get<metadata_index_t::value>(), expr.first_operand) >= 0);
 
         GRIDTOOLS_STATIC_ASSERT((
-                                    Accessor::n_dim <= storage_t::meta_data_t::space_dimensions),
+                                    Accessor::n_dim <= storage_t::storage_info_type::space_dimensions),
                                 "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.");
 
         //casting the storage pointer from void* to the sotrage value_type
