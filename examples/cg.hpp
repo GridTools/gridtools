@@ -11,6 +11,7 @@
 
 #include <communication/low-level/proc_grids_3D.hpp>
 #include <communication/halo_exchange.hpp>
+#include <boundary-conditions/apply.hpp>
 
 #include <boost/timer/timer.hpp>
 #include "cg.h"
@@ -51,7 +52,7 @@ using namespace expressions;
 // the array index following splitter<2>, while level<2,-1> represents the array value
 // before splitter<2>. Absolute placement of splitters is determined below.
 typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
-typedef gridtools::interval<level<0,-1>, level<1,1> > axis;
+typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
 #ifdef pt5
 struct d2point5{
@@ -100,6 +101,33 @@ struct add{
         dom(c{}) = dom(a{}) + dom(b{});
     }
 };
+
+// boundary function
+inline float bc(uint_t i, uint_t j, uint_t k) {
+    return (float) i*100 + j;
+}
+
+
+template <typename Partitioner>
+struct boundary_conditions {
+    Partitioner const& m_partitioner;
+
+    boundary_conditions(Partitioner const& p)
+        : m_partitioner(p)
+    {}
+
+    // DataField_x are fields that are passed in the application of boundary condition
+    template <typename Direction, typename DataField0, typename DataField1>
+    GT_FUNCTION
+    void operator()(Direction,
+                    DataField0 & data_field0,
+                    DataField1 & data_field1,
+                    uint_t i, uint_t j, uint_t k) const {
+        //i,j,k are coordinates within the local partition
+        //data_field0(i,j,k) = 44; //bc(i,j,k); //in field
+        //data_field1(i,j,k) = (float)(m_partitioner.get_low_bound(1)*100 + m_partitioner.get_up_bound(1));
+    }
+};
 #endif
 
 /*******************************************************************************/
@@ -116,18 +144,16 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
     printf("Running for %d x %d x %d, %d iterations\n",x,y,z,nt);
 
-#ifndef NDEBUG1
-    std::ofstream myfile;
-    std::stringstream name;
-    name<<"domain"<<PID<<".txt";
-    myfile.open (name.str().c_str());
-#endif
-
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block >
 #else
 #define BACKEND backend<Host, Naive >
 #endif
+
+    // Create processor grid
+    array<int, 3> dimensions{0,0,0};
+    MPI_3D_process_grid_t<3>::dims_create(PROCS, 2, dimensions);
+    dimensions[2]=1;
 
     // Prepare types for the data storage
     //                   strides  1 x xy
@@ -137,9 +163,6 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     typedef gridtools::BACKEND::storage_type<float_type, metadata_t >::type storage_type;
     typedef storage_type::original_storage::pointer_type pointer_type;
 
-    typedef field<storage_type, 1, 1, 1>::type field_type; //Q&A - what are 1,1,1 specifying?
-
-
     typedef gridtools::halo_exchange_dynamic_ut<layout_t,
                                                 gridtools::layout_map<0, 1, 2>,
                                                 pointer_type::pointee_t,
@@ -147,7 +170,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
                                                 gridtools::gcl_cpu,
                                                 gridtools::version_manual> pattern_type;
 
-    pattern_type he(pattern_type::grid_type::period_type(false, false, false), GCL_WORLD);
+    pattern_type he(pattern_type::grid_type::period_type(false, false, false), GCL_WORLD, &dimensions);
 
     //--------------------------------------------------------------------------
     // Definition of the actual data fields that are used for input/output
@@ -155,30 +178,30 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 #ifdef pt5
     //5pt 2D stencil
     metadata_t meta_(d1,d2,1);
-    field_type out5pt(meta_, 1.,"domain5pt_out"); //initial value set to 1.0
-    field_type in5pt(meta_, 1.,"domain5pt_in");
-    field_type *ptr_in5pt = &in5pt, *ptr_out5pt = &out5pt;
+    storage_type out5pt(meta_, 1.,"domain5pt_out"); //initial value set to 1.0
+    storage_type in5pt(meta_, 1.,"domain5pt_in");
+    storage_type *ptr_in5pt = &in5pt, *ptr_out5pt = &out5pt;
 #endif    
 
 #ifdef pt7
     //7pt 3D stencil with symmetry distributed storage
-    array<ushort_t, 3> padding{0,0,0}; //Q&A -  what are these arguments?
-    array<ushort_t, 3> halo{1,1,1}; //Q&A -  what are these arguments? - is it that halo is of width 1 cell in each dimension
+    array<ushort_t, 3> padding{0,0,0};
+    array<ushort_t, 3> halo{1,1,1};
     typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > >, pattern_type::grid_type> partitioner_t;
     partitioner_t part(he.comm(), halo, padding);
     parallel_storage_info<metadata_t, partitioner_t> meta_(part, d1, d2, d3);
     auto metadata_=meta_.get_metadata();
 
     // set up actual storage space
-    field_type out7pt(metadata_, 1., "domain7pt_out");
-    field_type in7pt(metadata_, 1., "domain7pt_in");
-    field_type constant(metadata_, 10., "constant");
-    field_type *ptr_in7pt = &in7pt, *ptr_out7pt = &out7pt;
+    storage_type out7pt(metadata_, 1., "domain7pt_out");
+    storage_type in7pt(metadata_, 1., "domain7pt_in");
+    storage_type constant(metadata_, 10., "constant");
+    storage_type *ptr_in7pt = &in7pt, *ptr_out7pt = &out7pt;
 
     // set up halo
-    he.add_halo<0>(meta_.template get_halo_gcl<0>()); //Q&A - what does this say?
-    he.add_halo<1>(meta_.template get_halo_gcl<1>()); //Q&A - what does this say?
-    he.add_halo<2>(0, 0, 0, d3 - 1, d3); //Q&A - what does this say?
+    he.add_halo<0>(meta_.template get_halo_gcl<0>());
+    he.add_halo<1>(meta_.template get_halo_gcl<1>());
+    he.add_halo<2>(meta_.template get_halo_gcl<2>());
     he.setup(2);
 
     // initialize the local domain
@@ -186,7 +209,9 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
         for(uint_t j=0; j<metadata_.template dims<1>(); ++j)
             for(uint_t k=0; k<metadata_.template dims<2>(); ++k)
             {
-                constant(i,j,k) = 10. * gridtools::PID;
+                constant(i,j,k) = 10. * (gridtools::PID + 1);
+                //in7pt(i, j, k) = (i) * (gridtools::PID+1);
+                //out7pt(i, j, k) = (i) * (gridtools::PID+1);
             }
 #endif
 
@@ -194,14 +219,14 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     // Definition of placeholders. The order of them reflect the order the user
     // will deal with them especially the non-temporary ones, in the construction
     // of the domain
-    typedef arg<0, field_type > p_out; //domain
-    typedef arg<1, field_type > p_in;
-    typedef arg<2, field_type > p_in_old;
+    typedef arg<0, storage_type > p_out; //domain
+    typedef arg<1, storage_type > p_in;
+    typedef arg<2, storage_type > p_const;
 
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
     typedef boost::mpl::vector<p_out, p_in> accessor_list;
-    typedef boost::mpl::vector<p_out, p_in, p_in_old> accessor_list_add;
+    typedef boost::mpl::vector<p_out, p_in, p_const> accessor_list_add;
 
     //--------------------------------------------------------------------------
     // Definition of the physical dimensions of the problem.
@@ -217,16 +242,15 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 #endif
 
 #ifdef pt7
-    //Informs the library that the iteration space in the first two dimensions
-    //uint_t di3d[5] = {0, 0, 1, d1-2, d1};
-    //uint_t dj3d[5] = {0, 0, 1, d2-2, d2};
-    //gridtools::grid<axis> coords3d7pt(di3d, dj3d);
+    // Definition of the physical dimensions of the problem.
+    // The constructor takes the horizontal plane dimensions,
+    // while the vertical ones are set according the the axis property soon after
+    // Iteration space defined within axis.
     gridtools::grid<axis, partitioner_t> coords3d7pt(part, meta_);
-    //Q&A - where is the iteration space determined within the partition
 
     //k dimension not partitioned
     coords3d7pt.value_list[0] = 1; //specifying index of the splitter<0,-1>
-    coords3d7pt.value_list[1] = d3-2; //specifying index of the splitter<1,-1>
+    coords3d7pt.value_list[1] = d3; //specifying index of the splitter<1,-1>
 #endif
 
 
@@ -319,8 +343,8 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
                     gridtools::make_mss // mss_descriptor
                     (
                         execute<forward>(),
-                        gridtools::make_esf<d3point7>(p_out(), p_in()), // esf_descriptor
-                        gridtools::make_esf<add>(p_in(), p_out(), p_in_old()) // esf_descriptor
+                        gridtools::make_esf<d3point7>(p_out(), p_in()) // esf_descriptor
+                        //gridtools::make_esf<add>(p_in(), p_out(), p_const()) // esf_descriptor
                     ),
                     domain3d, coords3d7pt
                 );
@@ -333,27 +357,42 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
         lapse_time2run = lapse_time2run + time2run.elapsed();
         stencil_step_2->finalize();
 
-        //std::vector<pointer_type::pointee_t*> vec(2);
-        //vec[0]=ptr_in7pt->data().get();
-        //vec[1]=ptr_out7pt->data().get();
+        gridtools::array<gridtools::halo_descriptor, 3> halos;
+        halos[0] = meta_.template get_halo_descriptor<0>();
+        halos[1] = meta_.template get_halo_descriptor<1>();
+        halos[2] = meta_.template get_halo_descriptor<2>();
 
-        //Q&A - what does the syntax below say? How is it different from the version above?
-        std::vector<pointer_type::pointee_t*> vec(3);
-        vec[0]=ptr_in7pt->get<0,0>().get();
-        vec[1]=ptr_in7pt->get<0,1>().get();
-        vec[2]=ptr_in7pt->get<0,2>().get();
+        typename gridtools::boundary_apply<boundary_conditions<parallel_storage_info<metadata_t, partitioner_t>>, typename gridtools::bitmap_predicate>
+            (halos, boundary_conditions<parallel_storage_info<metadata_t, partitioner_t>>(meta_), gridtools::bitmap_predicate(part.boundary())).apply(*ptr_in7pt, *ptr_out7pt);
+
+        std::vector<pointer_type::pointee_t*> vec(2);
+        vec[0]=ptr_in7pt->data().get();
+        vec[1]=ptr_out7pt->data().get();
 
         he.pack(vec);
         he.exchange();
         he.unpack(vec);
 
 #ifndef NDEBUG1
-        ptr_in7pt->print(myfile);
+        {
+            std::stringstream ss;
+            ss << PID;
+            std::string filename = "out" + ss.str() + ".txt";
+            std::ofstream file(filename.c_str());
+            ptr_out7pt->print(file);
+        }
+        {
+            std::stringstream ss;
+            ss << PID;
+            std::string filename = "in" + ss.str() + ".txt";
+            std::ofstream file(filename.c_str());
+            ptr_in7pt->print(file);
+        }
 #endif
         MPI_Barrier(GCL_WORLD);
 
         //swap input and output fields
-        field_type* tmp = ptr_out7pt;
+        storage_type* tmp = ptr_out7pt;
         ptr_out7pt = ptr_in7pt;
         ptr_in7pt = tmp;
     }
@@ -374,10 +413,6 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     std::cout << "TIME d3point7 RUN:" << boost::timer::format(lapse_time2run);
     std::cout << "TIME d3point7 MFLOPS: " << MFLOPS(10,d1,d2,d3,nt,lapse_time2run.wall) << std::endl;
     std::cout << "TIME d3point7 MLUPs: " << MLUPS(d1,d2,d3,nt,lapse_time2run.wall) << std::endl << std::endl;
-#endif
-
-#ifndef NDEBUG1
-    myfile.close();
 #endif
 
     gridtools::GCL_Finalize();
