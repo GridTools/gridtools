@@ -173,6 +173,28 @@ namespace gridtools {
         */
         metadata_t const& get_metadata() const {return m_metadata;}
 
+        /**
+           @brief returns the array of global lower bounds in each dimension
+        */
+        int_t get_low_bound(int i) const {
+          
+          if(i < metadata_t::space_dimensions)
+            return m_low_bound[i];
+
+          return -1;
+        }
+
+        /**
+           @brief returns the array of global upper bounds in each dimension
+        */
+        int_t get_up_bound(int i) const {
+          
+          if(i < metadata_t::space_dimensions)
+            return m_up_bound[i];
+
+          return -1;
+        }
+
     private:
 
         parallel_storage_info();
