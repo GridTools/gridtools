@@ -286,6 +286,7 @@ bool test(uint_t x, uint_t y, uint_t z)
 #endif
         gridtools::make_computation<the_backend>
         (
+            domain, grid,
             gridtools::make_mss // mss_descriptor
             (
                 execute<forward>(),
@@ -297,8 +298,7 @@ bool test(uint_t x, uint_t y, uint_t z)
                 execute<backward>(),
                 gridtools::make_esf<function1>(p_temp(), p_field1()),
                 gridtools::make_esf<function3>(p_field3(), p_temp(), p_field1())
-            ),
-            domain, grid
+            )
         );
 
     test_computation->ready();
