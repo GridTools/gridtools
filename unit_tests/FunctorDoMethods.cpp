@@ -11,7 +11,7 @@ using namespace gridtools;
 struct Functor0
 {
     template <typename TArguments>
-    static void Do(TArguments& args, interval<level<3,-1>, level<3,-1> >)
+    static void Do(TArguments const& args, interval<level<3,-1>, level<3,-1> >)
     {
         std::cout << "Functor0:Do(Interval<Level<3,-1>, Level<3,-1> >) called" << std::endl;
     }
@@ -21,7 +21,7 @@ struct Functor0
 struct Functor1
 {
     template <typename TArguments>
-    static void Do(TArguments& args, interval<level<0,1>, level<2,-1> >)
+    static void Do(TArguments const& args, interval<level<0,1>, level<2,-1> >)
     {
         std::cout << "Functor1:Do(Interval<Level<0,1>, Level<2,-1> >) called" << std::endl;
     }
@@ -31,13 +31,13 @@ struct Functor1
 struct Functor2
 {
     template <typename TArguments>
-    static void Do(TArguments& args, interval<level<0,1>, level<1,-1> >)
+    static void Do(TArguments const& args, interval<level<0,1>, level<1,-1> >)
     {
         std::cout << "Functor2:Do(Interval<Level<0,1>, Level<1,-1> >) called" << std::endl;
     }
 
     template <typename TArguments>
-    static void Do(TArguments& args, interval<level<1,1>, level<3,-1> >)
+    static void Do(TArguments const& args, interval<level<1,1>, level<3,-1> >)
     {
         std::cout << "Functor2:Do(Interval<Level<1,1>, Level<3,-1> >) called" << std::endl;
     }
@@ -47,11 +47,11 @@ struct Functor2
 struct IllegalFunctor
 {
     template <typename TArguments>
-    static void Do(TArguments& args, interval<level<1,1>, level<2,-1> >) {}
+    static void Do(TArguments const& args, interval<level<1,1>, level<2,-1> >) {}
     template <typename TArguments>
-    static void Do(TArguments& args, interval<level<1,1>, level<3,-2> >) {}
+    static void Do(TArguments const& args, interval<level<1,1>, level<3,-2> >) {}
     template <typename TArguments>
-    static void Do(TArguments& args, interval<level<3,-1>, level<3,-1> >) {}
+    static void Do(TArguments const& args, interval<level<3,-1>, level<3,-1> >) {}
 };
 
 // functor printing level and index
@@ -102,11 +102,13 @@ int main(int argc, char *argv[])
     >(PrintLevel());
     std::cout << "Done!" << std::endl;
 
-    // check has_do_simple on a few examples
-    BOOST_STATIC_ASSERT((has_do_simple<IllegalFunctor, interval<level<1,1>, level<2,-1> > >::value));
-    BOOST_STATIC_ASSERT((has_do_simple<IllegalFunctor, interval<level<1,1>, level<3,-2> > >::value));
-    BOOST_STATIC_ASSERT((!has_do_simple<IllegalFunctor, interval<level<0,1>, level<3,-2> > >::value));
+    // // check has_do_simple on a few examples
+    // BOOST_STATIC_ASSERT((has_do_simple<IllegalFunctor, interval<level<1,1>, level<2,-1> > >::value));
+    // BOOST_STATIC_ASSERT((has_do_simple<IllegalFunctor, interval<level<1,1>, level<3,-2> > >::value));
+    // BOOST_STATIC_ASSERT((!has_do_simple<IllegalFunctor, interval<level<0,1>, level<3,-2> > >::value));
 
+    BOOST_STATIC_ASSERT((has_do<Functor0, interval<level<3,-1>, level<3,-1> > >::value));
+    //    BOOST_STATIC_ASSERT((has_do<Functor0, typename make_interval<level<0,-3>, level<3,3> >::type >::value));
     // define the axis search interval
     typedef interval<level<0,-3>, level<3,3> > AxisInterval;
 
