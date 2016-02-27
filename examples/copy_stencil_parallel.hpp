@@ -63,12 +63,8 @@ namespace copy_stencil{
                         DataField1 & data_field1,
                         uint_t i, uint_t j, uint_t k) const {
             //i,j,k are coordinates within the local partition
-            data_field0(i,j,k) = 44; //bc(i,j,k); //in field
+            data_field0(i,j,k) = (float)(m_partitioner.get_low_bound(0)*100 + m_partitioner.get_up_bound(0));
             data_field1(i,j,k) = (float)(m_partitioner.get_low_bound(1)*100 + m_partitioner.get_up_bound(1));
-            
-            //for Partitioner of type: boundary_conditions<partitioner_t>(part)
-            //data_field1(i,j,k) = -(float)m_partitioner.boundary(); //out field
-            //m_partitioner returns boundary flag, that is a single integer containing the sum of the touched boundaries
         }
     };
 
