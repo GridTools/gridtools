@@ -174,23 +174,23 @@ namespace gridtools {
         metadata_t const& get_metadata() const {return m_metadata;}
 
         /**
-           @brief returns the array of global lower bounds in each dimension
+           @brief returns the global lower bound in given dimension
         */
-        int_t get_low_bound(int i) const {
+        int_t get_low_bound(int dim) const {
           
-          if(i < metadata_t::space_dimensions)
-            return m_low_bound[i];
+          if(dim < metadata_t::space_dimensions)
+            return m_low_bound[dim];
 
           return -1;
         }
 
         /**
-           @brief returns the array of global upper bounds in each dimension
+           @brief returns the global upper bound in given dimension
         */
-        int_t get_up_bound(int i) const {
+        int_t get_up_bound(int dim) const {
           
-          if(i < metadata_t::space_dimensions)
-            return m_up_bound[i];
+          if(dim < metadata_t::space_dimensions)
+            return m_up_bound[dim];
 
           return -1;
         }
