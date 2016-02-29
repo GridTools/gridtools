@@ -167,32 +167,12 @@ namespace gridtools{
         value_type& operator()(UInt const& ... dims) {
             //failure here means that you didn't call clone_to_device on the storage_info yet
 #ifdef CUDA_ARCH
-            // assert(!m_on_host);
-#ifndef NDEBUG
-            if(m_on_host)
-            {
-                printf("Error, accessing from the device a storage in the host state.");
-                exit(-33);
-            }
-#endif //NDEBUG
+            assert(!m_on_host);
 #else //CUDA_ARCH
-#ifndef NDEBUG
-            if(!m_on_host)
-            {
-                printf("Error, accessing from the host a storage in the device state.");
-                exit(-33);
-            }
-#endif //NDEBUG
+            assert(m_on_host);
 #endif //CUDA_ARCH
 
-#ifndef NDEBUG
-            //assert(m_device_storage_info);
-            if(!m_device_storage_info)
-            {
-                printf("Error, the storage info pointer is not valid.");
-                exit(-33);
-            }
-#endif //NDEBUG
+            assert(m_device_storage_info);
 
             return super::operator()(m_device_storage_info, dims...);
         }
@@ -206,33 +186,12 @@ namespace gridtools{
         value_type const & operator()(UInt const& ... dims) const {
             //failure here means that you didn't call clone_to_device on the storage_info yet
 #ifdef CUDA_ARCH
-            // assert(!m_on_host);
-#ifndef NDEBUG
-            if(m_on_host)
-            {
-                printf("Error, accessing from the device a storage in the host state.");
-                exit(-33);
-            }
-#endif //NDEBUG
+            assert(!m_on_host);
 #else //CUDA_ARCH
-            // assert(m_on_host);
-#ifndef NDEBUG
-            if(!m_on_host)
-            {
-                printf("Error, accessing from the host a storage in the device state.");
-                exit(-33);
-            }
-#endif //NDEBUG
+            assert(m_on_host);
 #endif //CUDA_ARCH
 
-#ifndef NDEBUG
-            //assert(m_device_storage_info);
-            if(!m_device_storage_info)
-            {
-                printf("Error, the storage info pointer is not valid.");
-                exit(-33);
-            }
-#endif //NDEBUG
+            assert(m_device_storage_info);
 
             return super::operator()(m_device_storage_info, dims...);
         }
@@ -247,34 +206,12 @@ namespace gridtools{
         GT_FUNCTION
         value_type& operator()( uint_t const& i, uint_t const& j, uint_t const& k) {
 #ifdef CUDA_ARCH
-            // assert(!m_on_host);
-#ifndef NDEBUG
-            //failure here means that you didn't call clone_to_device on the storage_info yet
-            if(m_on_host)
-            {
-                printf("Error, accessing from the device a storage in the host state.");
-                exit(-33);
-            }
-#endif //NDEBUG
+            assert(!m_on_host);
 #else //CUDA_ARCH
-            // assert(m_on_host);
-#ifndef NDEBUG
-            if(!m_on_host)
-            {
-                printf("Error, accessing from the host a storage in the device state.");
-                exit(-33);
-            }
-#endif //NDEBUG
+            assert(m_on_host);
 #endif //CUDA_ARCH
 
-#ifndef NDEBUG
-            //assert(m_device_storage_info);
-            if(!m_device_storage_info)
-            {
-                printf("Error, the storage info pointer is not valid.");
-                exit(-33);
-            }
-#endif // NDEBUG
+            assert(m_device_storage_info);
 
             return super::operator()(m_device_storage_info, i,j,k);
         }
@@ -287,37 +224,17 @@ namespace gridtools{
         */
         GT_FUNCTION
         value_type const & operator()( uint_t const& i, uint_t const& j, uint_t const& k) const {
-#ifdef CUDA_ARCH
-            // assert(!m_on_host);
-#ifndef NDEBUG
-            if(m_on_host)
-            {
-                printf("Error, accessing from the device a storage in the host state.");
-                exit(-33);
-            }
-#endif // NDEBUG
-#else // CUDA_ARCH
 
             //failure here means that you didn't call clone_to_device on the storage_info yet
             //assert(m_device_storage_info);
-#ifndef NDEBUG
-            // assert(m_on_host);
-            if(!m_on_host)
-            {
-                printf("Error, accessing from the host a storage in the device state.");
-                exit(-33);
-            }
-#endif //NDEBUG
+#ifdef CUDA_ARCH
+            assert(!m_on_host);
+#else // CUDA_ARCH
+            assert(m_on_host);
+
 #endif //CUDA_ARCH
 
-#ifndef NDEBUG
-            //assert(m_device_storage_info);
-            if(!m_device_storage_info)
-            {
-                printf("Error, the storage info pointer is not valid.");
-                exit(-33);
-            }
-#endif //NDEBUG
+            assert(m_device_storage_info);
             return super::operator()(m_device_storage_info, i,j,k);
         }
 #endif //CXX11_ENABLED
