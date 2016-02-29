@@ -124,8 +124,8 @@ struct boundary_conditions {
                     DataField1 & data_field1,
                     uint_t i, uint_t j, uint_t k) const {
         //i,j,k are coordinates within the local partition
-        //data_field0(i,j,k) = 44; //bc(i,j,k); //in field
-        //data_field1(i,j,k) = (float)(m_partitioner.get_low_bound(1)*100 + m_partitioner.get_up_bound(1));
+        data_field0(i,j,k) = 10;//(float)(m_partitioner.get_low_bound(0)*100 + m_partitioner.get_up_bound(0));
+        data_field1(i,j,k) = 10;//(float)(m_partitioner.get_low_bound(1)*100 + m_partitioner.get_up_bound(1));
     }
 };
 #endif
@@ -185,7 +185,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
 #ifdef pt7
     //7pt 3D stencil with symmetry distributed storage
-    array<ushort_t, 3> padding{0,0,0};
+    array<ushort_t, 3> padding{1,1,0};
     array<ushort_t, 3> halo{1,1,1};
     typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > >, pattern_type::grid_type> partitioner_t;
     partitioner_t part(he.comm(), halo, padding);
@@ -310,10 +310,10 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     boost::timer::cpu_times lapse_time11 = time11.elapsed();
     
 
-//#ifdef DEBUG
+#ifdef DEBUG
     printf("Print domain A after computation\n");
     TIME_STEPS % 2 == 0 ? in5pt.print() : out5pt.print();
-//#endif
+#endif
  
     std::cout << "TIME d2point5 TOTAL: " << boost::timer::format(lapse_time11);
     std::cout << "TIME d2point5 RUN:" << boost::timer::format(lapse_time11run);
@@ -400,14 +400,14 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     boost::timer::cpu_times lapse_time2 = time2.elapsed();
 
 
-//#ifdef DEBUG
+#ifdef DEBUG
     if(gridtools::PID == 0){
         printf("Print domain B after computation\n");
         TIME_STEPS % 2 == 0 ? in7pt.print() : out7pt.print();
         printf("Print domain B after addition\n");
         TIME_STEPS % 2 == 0 ? out7pt.print() : in7pt.print();
     }
-//#endif
+#endif
 
     std::cout << "TIME d3point7 TOTAL: " << boost::timer::format(lapse_time2);
     std::cout << "TIME d3point7 RUN:" << boost::timer::format(lapse_time2run);
