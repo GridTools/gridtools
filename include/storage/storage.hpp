@@ -67,7 +67,7 @@ namespace gridtools{
                 exit(-1);
             if(!m_device_storage_info->device_pointer())
                 exit(-2);
-            if(!m_fields[0].get())//no fields in the storage
+            if(!this->m_fields[0].get())//no fields in the storage
                 exit(-3);
 #endif
             on_device();
