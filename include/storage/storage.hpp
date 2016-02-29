@@ -61,20 +61,28 @@ namespace gridtools{
            it is not a costly transfer from the host to the device.
         */
         void clone_to_device() {
-            assert(m_device_storage_info);
-            assert(m_device_storage_info->device_pointer());
 
+#ifndef NDEBUG
+            if(!m_device_storage_info)
+                exit(-1);
+            if(!m_device_storage_info->device_pointer())
+                exit(-2);
+            if(!m_fields[0].get())//no fields in the storage
+                exit(-3);
+#endif
             on_device();
             clonable_to_gpu<storage<BaseStorage> >::clone_to_device();
         }
 
         /** @brief updates the CPU pointer */
+        __host__
         void d2h_update(){
             super::d2h_update();
             on_host();
         }
 
         /** @brief updates the CPU pointer */
+        __host__
         void h2d_update(){
                 super::h2d_update();
                 on_device();
@@ -93,7 +101,7 @@ namespace gridtools{
         {}
 
         GT_FUNCTION
-        typename super::storage_info_type* device_storage_info(){
+        typename super::storage_info_type const* device_storage_info() const {
             return m_device_storage_info;
         }
 
@@ -210,6 +218,7 @@ namespace gridtools{
             // assert(m_device_storage_info);
             return super::operator()(m_device_storage_info, dims...);
         }
+
 #else //CXX11_ENABLED
 
         /**
@@ -228,7 +237,7 @@ namespace gridtools{
                 exit(-33);
             }
 #endif
-#else
+#else //CUDA_ARCH
             // assert(m_on_host);
 #ifndef NDEBUG
             if(!m_on_host)

@@ -115,6 +115,7 @@ namespace gridtools {
             }
         }
 
+        GT_FUNCTION
         void free_it() {
             cudaFree(m_gpu_p);
             m_gpu_p=NULL;
@@ -127,28 +128,31 @@ namespace gridtools {
 #endif
       }
 
+        GT_FUNCTION
         void update_gpu() {
 #ifdef VERBOSE
             printf("update gpu "); out();
 #endif
             if(on_host()){//do not copy if the last version is already on the device
                 cudaMemcpy(m_gpu_p, m_cpu_p.get(), m_size*sizeof(T), cudaMemcpyHostToDevice);
-                m_up_to_date=false;
-                m_pointer_to_use=m_gpu_p;
             }
+            m_up_to_date=false;
+            m_pointer_to_use=m_gpu_p;
         }
 
+        GT_FUNCTION
         void update_cpu() {
 #ifdef VERBOSE
             printf("update cpu "); out();
 #endif
             if(on_device()){
                 cudaMemcpy(m_cpu_p.get(), m_gpu_p, m_size*sizeof(T), cudaMemcpyDeviceToHost);
-                m_up_to_date=true;
-                m_pointer_to_use=m_cpu_p.get();
             }
+            m_up_to_date=true;
+            m_pointer_to_use=m_cpu_p.get();
         }
 
+        GT_FUNCTION
         void set(pointee_t const& value, uint_t const& index)
         {
             if(on_host()){//do not copy if the last version is already on the device
@@ -158,7 +162,7 @@ namespace gridtools {
             }
         }
 
-        __host__ __device__
+        GT_FUNCTION
         void out() const {
             printf("out hp ");
             printf("%X ", m_cpu_p.get());
@@ -168,17 +172,17 @@ namespace gridtools {
             printf("\n");
         }
 
-        __host__ __device__
+        GT_FUNCTION
         operator T*() {
             return m_pointer_to_use;
         }
 
-        __host__ __device__
+        GT_FUNCTION
         operator T const*() const {
             return m_pointer_to_use;
         }
 
-        __host__ __device__
+        GT_FUNCTION
         T& operator[](uint_t i) {
             // assert(m_pointer_to_use);
             // assert(i<m_size);
@@ -187,7 +191,7 @@ namespace gridtools {
             return m_pointer_to_use[i];
         }
 
-        __host__ __device__
+        GT_FUNCTION
         T const& operator[](uint_t i) const {
             // assert(m_pointer_to_use);
             // assert(i<m_size);
@@ -197,25 +201,25 @@ namespace gridtools {
             return m_pointer_to_use[i];
         }
 
-        __host__ __device__
+        GT_FUNCTION
         T& operator*() {
             // assert(m_pointer_to_use);
             return *m_pointer_to_use;
         }
 
-        __host__ __device__
+        GT_FUNCTION
         T const& operator*() const {
             // assert(m_pointer_to_use);
             return *m_pointer_to_use;
         }
 
-        __host__ __device__
+        GT_FUNCTION
         T* operator+(uint_t i) {
             // assert(m_pointer_to_use);
             return &m_pointer_to_use[i];
         }
 
-        __host__ __device__
+        GT_FUNCTION
         T* const& operator+(uint_t i) const {
             // assert(m_pointer_to_use);
             return &m_pointer_to_use[i];
@@ -282,17 +286,20 @@ namespace gridtools {
 
         }
 
+        GT_FUNCTION
         void reset(T* cpu_p){m_cpu_p.reset(cpu_p);}
 
+        GT_FUNCTION
         bool set_externally_managed(bool externally_managed_){m_cpu_p.set_externally_managed(externally_managed_);}
 
+        GT_FUNCTION
         bool is_externally_managed() const {return m_cpu_p.is_externally_managed();}
 
         /** the standard = operator */
+        GT_FUNCTION
         hybrid_pointer operator =(hybrid_pointer const& other){
             m_gpu_p = other.m_gpu_p;
-            m_cpu_p.reset(other.m_cpu_p.get());
-            m_cpu_p.set_externally_managed(other.is_externally_managed());
+            m_cpu_p = other.m_cpu_p;
             m_pointer_to_use =other.m_pointer_to_use;
             m_size = other.m_size;
             m_allocated = other.m_allocated;

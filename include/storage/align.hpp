@@ -23,6 +23,7 @@ namespace gridtools{
         template<uint_t Coordinate, uint_t Halo, uint_t Padding>
         struct do_align{
 
+            GT_FUNCTION
             static constexpr
             uint_t apply(uint_t const& dimension){
 
