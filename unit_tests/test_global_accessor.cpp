@@ -44,7 +44,7 @@ struct functor{
     template <typename Evaluation>
     GT_FUNCTION
     static void Do(Evaluation const & eval, x_interval) {
-        eval(sol()) += 10.;//eval(bd()).value();
+        eval(sol())+=eval(bd()).value();
     }
 };
 
@@ -75,7 +75,7 @@ TEST(test_global_accessor, boundary_conditions) {
     typedef arg<1, boundary> p_bd;
 
 #ifdef CXX11_ENABLED
-    domain_type<boost::mpl::vector<p_sol> > domain ((p_sol() = sol_));
+    domain_type<boost::mpl::vector<p_sol, p_bd> > domain ((p_sol() = sol_), (p_bd() = bd_));
 #else
     domain_type<boost::mpl::vector<p_sol, p_bd> > domain ( boost::fusion::make_vector( &sol_, &bd_));
 #endif
