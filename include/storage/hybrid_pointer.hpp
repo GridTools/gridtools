@@ -236,7 +236,7 @@ namespace gridtools {
 
         GT_FUNCTION
         pointee_t* get() const {
-            return m_pointer_to_use;
+            return m_gpu_p;
         }
 
         GT_FUNCTION
