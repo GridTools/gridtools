@@ -26,7 +26,7 @@ namespace gridtools {
     void loop_kernel(BoundaryFunction boundary_function,                \
                      Direction direction,                               \
                      BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(n), DataField, * data_field),uint_t starti, uint_t startj, uint_t startk, uint_t nx, uint_t ny, uint_t nz) { \
-        uint_t i = blockIdx.x * blockDim.x + threadIdx.x;                  \
+        uint_t i = blockIdx.x * blockDim.x + threadIdx.x;               \
         uint_t j = blockIdx.y * blockDim.y + threadIdx.y;                  \
         uint_t k = blockIdx.z * blockDim.z + threadIdx.z;                  \
         if ((i<nx) && (j<ny) && (k<nz)) {                               \
@@ -85,7 +85,7 @@ namespace gridtools {
             dim3 blocks(nbx, nby, nbz);                                 \
             loop_kernel<<<blocks,threads>>>(boundary_function,          \
                                             Direction(),                \
-                                            BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(n), data_field, .gpu_object_ptr BOOST_PP_INTERCEPT ), \
+                                            BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(n), data_field, .device_pointer() BOOST_PP_INTERCEPT ), \
                                             halo_descriptors[0].loop_low_bound_outside(Direction::I), \
                                             halo_descriptors[1].loop_low_bound_outside(Direction::J), \
                                             halo_descriptors[2].loop_low_bound_outside(Direction::K), \

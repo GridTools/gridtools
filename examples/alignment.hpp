@@ -59,15 +59,15 @@ namespace aligned_copy_stencil{
             if(threadIdx.x==0){
                 for (ushort_t i=0; i<ItDomain::iterate_domain_t::N_DATA_POINTERS; ++i){
                     result_ = (bool)(result_
-                                     &&( bool)(((size_t)(it_domain.get_iterate_domain().data_pointer()[i]
-                                                         +it_domain.get_iterate_domain().index()[storage_id])
+                                     &&( bool)(((size_t)(it_domain.get().data_pointer()[i]
+                                                         +it_domain.get().index()[storage_id])
                                                 & (boundary-1))
                                                == 0));
                     if(!result_)
                     {
                         printf("[storage # %d,", i);
-                        printf("index %d]", it_domain.get_iterate_domain().index()[storage_id]);
-                        printf(" pointer: %x ", (size_t)it_domain.get_iterate_domain().data_pointer()[i]+it_domain.get_iterate_domain().index()[storage_id]);
+                        printf("index %d]", it_domain.get().index()[storage_id]);
+                        printf(" pointer: %x ", (size_t)it_domain.get().data_pointer()[i]+it_domain.get().index()[storage_id]);
                         break;
                     }
             }

@@ -246,9 +246,9 @@ bool test(uint_t x, uint_t y, uint_t z)
     storage_info2_t si2(x,y,z);
     storage_info3_t si3(x,y,z);
 
-    storage_type1 field1 = storage_type1(si1/*storage_info1_t(x,y,z)*/, type1(), "field1");
-    storage_type2 field2 = storage_type2(si2/*storage_info2_t(x,y,z)*/, type2(), "field2");
-    storage_type3 field3 = storage_type3(si3/*storage_info3_t(x,y,z)*/, type3(), "field3");
+    storage_type1 field1 = storage_type1(si1, type1(), "field1");
+    storage_type2 field2 = storage_type2(si2, type2(), "field2");
+    storage_type3 field3 = storage_type3(si3, type3(), "field3");
 
     for (int i = 0; i < x; ++i) {
         for (int j = 0; j < y; ++j) {
@@ -309,11 +309,6 @@ auto
     test_computation->steady();
 
     test_computation->run();
-
-#ifdef __CUDACC__
-    field2.h2d_update();
-    field3.h2d_update();
-#endif
 
     test_computation->finalize();
 

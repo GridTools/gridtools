@@ -61,20 +61,28 @@ namespace gridtools{
            it is not a costly transfer from the host to the device.
         */
         void clone_to_device() {
-            assert(m_device_storage_info);
-            assert(m_device_storage_info->device_pointer());
 
+// #ifndef NDEBUG
+//             if(!m_device_storage_info)
+//                 exit(-1);
+//             if(!m_device_storage_info->device_pointer())
+//                 exit(-2);
+//             if(!this->m_fields[0].get())//no fields in the storage
+//                 exit(-3);
+// #endif
             on_device();
             clonable_to_gpu<storage<BaseStorage> >::clone_to_device();
         }
 
         /** @brief updates the CPU pointer */
+        __host__
         void d2h_update(){
             super::d2h_update();
             on_host();
         }
 
         /** @brief updates the CPU pointer */
+        __host__
         void h2d_update(){
             super::h2d_update();
             on_device();
@@ -93,7 +101,7 @@ namespace gridtools{
         {}
 
         GT_FUNCTION
-        typename super::storage_info_type* device_storage_info(){
+        typename super::storage_info_type const* device_storage_info() const {
             return m_device_storage_info;
         }
 
@@ -107,7 +115,7 @@ namespace gridtools{
             , m_on_host(true)
         {
         }
-#else
+#else //CXX11_ENABLED
 
         template<typename T>
         explicit storage(  typename basic_type::storage_info_type const& meta_data_, T const& arg1 )
@@ -134,7 +142,7 @@ namespace gridtools{
         {
         }
 
-#endif
+#endif //CXX11_ENABLED
 
 //    private :
         explicit storage(typename basic_type::storage_info_type const& meta_data_)
@@ -158,25 +166,14 @@ namespace gridtools{
         GT_FUNCTION
         value_type& operator()(UInt const& ... dims) {
             //failure here means that you didn't call clone_to_device on the storage_info yet
-#ifdef CUDA_ARCH
-            // assert(!m_on_host);
-#ifndef NDEBUG
-            if(m_on_host)
-            {
-                printf("Error, accessing from the device a storage in the host state.");
-                exit(-33);
-            }
-#endif
-#else
-#ifndef NDEBUG
-            if(!m_on_host)
-            {
-                printf("Error, accessing from the host a storage in the device state.");
-                exit(-33);
-            }
-#endif
-#endif
+// #ifdef CUDA_ARCH
+//             assert(!m_on_host);
+// #else //CUDA_ARCH
+//             assert(m_on_host);
+// #endif //CUDA_ARCH
+
             // assert(m_device_storage_info);
+
             return super::operator()(m_device_storage_info, dims...);
         }
 
@@ -188,28 +185,17 @@ namespace gridtools{
         GT_FUNCTION
         value_type const & operator()(UInt const& ... dims) const {
             //failure here means that you didn't call clone_to_device on the storage_info yet
-#ifdef CUDA_ARCH
-            // assert(!m_on_host);
-#ifndef NDEBUG
-            if(m_on_host)
-            {
-                printf("Error, accessing from the device a storage in the host state.");
-                exit(-33);
-            }
-#endif
-#else
-            // assert(m_on_host);
-#ifndef NDEBUG
-            if(!m_on_host)
-            {
-                printf("Error, accessing from the host a storage in the device state.");
-                exit(-33);
-            }
-#endif
-#endif
+// #ifdef CUDA_ARCH
+//             assert(!m_on_host);
+// #else //CUDA_ARCH
+//             assert(m_on_host);
+// #endif //CUDA_ARCH
+
             // assert(m_device_storage_info);
+
             return super::operator()(m_device_storage_info, dims...);
         }
+
 #else //CXX11_ENABLED
 
         /**
@@ -219,29 +205,14 @@ namespace gridtools{
 */
         GT_FUNCTION
         value_type& operator()( uint_t const& i, uint_t const& j, uint_t const& k) {
-#ifdef CUDA_ARCH
-            // assert(!m_on_host);
-#ifndef NDEBUG
-            if(m_on_host)
-            {
-                printf("Error, accessing from the device a storage in the host state.");
-                exit(-33);
-            }
-#endif
-#else
-            // assert(m_on_host);
-#ifndef NDEBUG
-            if(!m_on_host)
-            {
-                printf("Error, accessing from the host a storage in the device state.");
-                exit(-33);
-            }
-#endif
-#endif
+// #ifdef CUDA_ARCH
+//             assert(!m_on_host);
+// #else //CUDA_ARCH
+//             assert(m_on_host);
+// #endif //CUDA_ARCH
+
             // assert(m_device_storage_info);
 
-            //failure here means that you didn't call clone_to_device on the storage_info yet
-            //assert(m_device_storage_info);
             return super::operator()(m_device_storage_info, i,j,k);
         }
 
@@ -253,32 +224,19 @@ namespace gridtools{
         */
         GT_FUNCTION
         value_type const & operator()( uint_t const& i, uint_t const& j, uint_t const& k) const {
-#ifdef CUDA_ARCH
-            // assert(!m_on_host);
-#ifndef NDEBUG
-            if(m_on_host)
-            {
-                printf("Error, accessing from the device a storage in the host state.");
-                exit(-33);
-            }
-#endif
-#else
-            // assert(m_on_host);
-#ifndef NDEBUG
-            if(!m_on_host)
-            {
-                printf("Error, accessing from the host a storage in the device state.");
-                exit(-33);
-            }
-#endif
-#endif
-            // assert(m_device_storage_info);
 
             //failure here means that you didn't call clone_to_device on the storage_info yet
             //assert(m_device_storage_info);
+// #ifdef CUDA_ARCH
+//             assert(!m_on_host);
+// #else // CUDA_ARCH
+//             assert(m_on_host);
+// #endif //CUDA_ARCH
+
+            // assert(m_device_storage_info);
             return super::operator()(m_device_storage_info, i,j,k);
         }
-#endif
+#endif //CXX11_ENABLED
 
 
 

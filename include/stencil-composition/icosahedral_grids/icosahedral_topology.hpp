@@ -23,7 +23,7 @@
 #include <boost/fusion/include/io.hpp>
 
 #include <common/array.hpp>
-#include <cassert>
+#include "../../common/gt_assert.hpp"
 #include <boost/mpl/vector.hpp>
 #include "location_type.hpp"
 #include "common/array_addons.hpp"
