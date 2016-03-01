@@ -19,10 +19,6 @@
     #define FUSION_MAX_MAP_SIZE 20
 #endif
 
-#if !defined(__PRETTY_FUNCTION__)
-#define __PRETTY_FUNCTION__
-#endif
-
 // #include <boost/mpl/map/aux_/item.hpp>
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/insert.hpp>
