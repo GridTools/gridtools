@@ -349,6 +349,19 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
                     domain3d, coords3d7pt
                 );
 
+        //apply boundary conditions
+        gridtools::array<gridtools::halo_descriptor, 3> halos;
+        halos[0] = meta_.template get_halo_descriptor<0>();
+        halos[1] = meta_.template get_halo_descriptor<1>();
+        halos[2] = meta_.template get_halo_descriptor<2>();
+
+        typename gridtools::boundary_apply
+            <boundary_conditions<parallel_storage_info<metadata_t, partitioner_t>>, typename gridtools::bitmap_predicate>
+            (halos,
+             boundary_conditions<parallel_storage_info<metadata_t, partitioner_t>>(meta_),
+             gridtools::bitmap_predicate(part.boundary())
+            ).apply(*ptr_in7pt, *ptr_out7pt);
+
         //prepare and run single step of stencil computation
         stencil_step_2->ready();
         stencil_step_2->steady();
@@ -357,14 +370,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
         lapse_time2run = lapse_time2run + time2run.elapsed();
         stencil_step_2->finalize();
 
-        gridtools::array<gridtools::halo_descriptor, 3> halos;
-        halos[0] = meta_.template get_halo_descriptor<0>();
-        halos[1] = meta_.template get_halo_descriptor<1>();
-        halos[2] = meta_.template get_halo_descriptor<2>();
-
-        typename gridtools::boundary_apply<boundary_conditions<parallel_storage_info<metadata_t, partitioner_t>>, typename gridtools::bitmap_predicate>
-            (halos, boundary_conditions<parallel_storage_info<metadata_t, partitioner_t>>(meta_), gridtools::bitmap_predicate(part.boundary())).apply(*ptr_in7pt, *ptr_out7pt);
-
+        //communicate halos
         std::vector<pointer_type::pointee_t*> vec(2);
         vec[0]=ptr_in7pt->data().get();
         vec[1]=ptr_out7pt->data().get();
