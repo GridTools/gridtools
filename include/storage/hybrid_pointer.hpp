@@ -236,8 +236,7 @@ namespace gridtools {
 
         GT_FUNCTION
         pointee_t* get() const {
-            assert(on_device());
-            return m_gpu_p;
+            return m_pointer_to_use;
         }
 
         GT_FUNCTION
