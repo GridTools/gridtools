@@ -12,7 +12,7 @@ else(GCL_ONLY)
   ### L2
   if( GCL_MPI )
     #CPU 2D MPI tests
-    foreach(srcfile test_all_to_all_halo_3D test_halo_exchange_3D test_halo_exchange_3D_all test_halo_exchange_3D_all_2 test_halo_exchange_3D_all_3 test_halo_exchange_3D_generic test_halo_exchange_3D_generic_full)
+    foreach(srcfile test_all_to_all_halo_3D test_halo_exchange_3D test_halo_exchange_3D_all test_halo_exchange_3D_all_2 test_halo_exchange_3D_all_3 test_halo_exchange_3D_generic test_halo_exchange_3D_generic_full test_halo_exchange_3D_all_new)
       add_executable( ${srcfile} ../../examples/communication/${srcfile}.cpp)
       add_dependencies(${srcfile} gcl)
       set_target_properties(${srcfile} PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS}")
@@ -44,6 +44,10 @@ else(GCL_ONLY)
         cuda_add_executable( cuda_test_halo_exchange_3D_all ../../examples/communication/test_halo_exchange_3D_all.cu )
         add_dependencies( cuda_test_halo_exchange_3D_all gcl )
         target_link_libraries( cuda_test_halo_exchange_3D_all gcl  ${Boost_LIBRARIES} ${CUDA_MPI_LIB} )
+
+        cuda_add_executable( cuda_test_halo_exchange_3D_all_new ../../examples/communication/test_halo_exchange_3D_all_new.cu )
+        add_dependencies( cuda_test_halo_exchange_3D_all_new gcl )
+        target_link_libraries( cuda_test_halo_exchange_3D_all_new gcl  ${Boost_LIBRARIES} ${CUDA_MPI_LIB} )
 
         cuda_add_executable( cuda_test_halo_exchange_3D_all_2 ../../examples/communication/test_halo_exchange_3D_all_2.cu )
         add_dependencies( cuda_test_halo_exchange_3D_all_2 gcl )
