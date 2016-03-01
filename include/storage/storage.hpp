@@ -62,14 +62,14 @@ namespace gridtools{
         */
         void clone_to_device() {
 
-#ifndef NDEBUG
-            if(!m_device_storage_info)
-                exit(-1);
-            if(!m_device_storage_info->device_pointer())
-                exit(-2);
-            if(!this->m_fields[0].get())//no fields in the storage
-                exit(-3);
-#endif
+// #ifndef NDEBUG
+//             if(!m_device_storage_info)
+//                 exit(-1);
+//             if(!m_device_storage_info->device_pointer())
+//                 exit(-2);
+//             if(!this->m_fields[0].get())//no fields in the storage
+//                 exit(-3);
+// #endif
             on_device();
             clonable_to_gpu<storage<BaseStorage> >::clone_to_device();
         }
@@ -166,13 +166,13 @@ namespace gridtools{
         GT_FUNCTION
         value_type& operator()(UInt const& ... dims) {
             //failure here means that you didn't call clone_to_device on the storage_info yet
-#ifdef CUDA_ARCH
-            assert(!m_on_host);
-#else //CUDA_ARCH
-            assert(m_on_host);
-#endif //CUDA_ARCH
+// #ifdef CUDA_ARCH
+//             assert(!m_on_host);
+// #else //CUDA_ARCH
+//             assert(m_on_host);
+// #endif //CUDA_ARCH
 
-            assert(m_device_storage_info);
+            // assert(m_device_storage_info);
 
             return super::operator()(m_device_storage_info, dims...);
         }
@@ -185,13 +185,13 @@ namespace gridtools{
         GT_FUNCTION
         value_type const & operator()(UInt const& ... dims) const {
             //failure here means that you didn't call clone_to_device on the storage_info yet
-#ifdef CUDA_ARCH
-            assert(!m_on_host);
-#else //CUDA_ARCH
-            assert(m_on_host);
-#endif //CUDA_ARCH
+// #ifdef CUDA_ARCH
+//             assert(!m_on_host);
+// #else //CUDA_ARCH
+//             assert(m_on_host);
+// #endif //CUDA_ARCH
 
-            assert(m_device_storage_info);
+            // assert(m_device_storage_info);
 
             return super::operator()(m_device_storage_info, dims...);
         }
@@ -205,13 +205,13 @@ namespace gridtools{
 */
         GT_FUNCTION
         value_type& operator()( uint_t const& i, uint_t const& j, uint_t const& k) {
-#ifdef CUDA_ARCH
-            assert(!m_on_host);
-#else //CUDA_ARCH
-            assert(m_on_host);
-#endif //CUDA_ARCH
+// #ifdef CUDA_ARCH
+//             assert(!m_on_host);
+// #else //CUDA_ARCH
+//             assert(m_on_host);
+// #endif //CUDA_ARCH
 
-            assert(m_device_storage_info);
+            // assert(m_device_storage_info);
 
             return super::operator()(m_device_storage_info, i,j,k);
         }
@@ -227,14 +227,13 @@ namespace gridtools{
 
             //failure here means that you didn't call clone_to_device on the storage_info yet
             //assert(m_device_storage_info);
-#ifdef CUDA_ARCH
-            assert(!m_on_host);
-#else // CUDA_ARCH
-            assert(m_on_host);
+// #ifdef CUDA_ARCH
+//             assert(!m_on_host);
+// #else // CUDA_ARCH
+//             assert(m_on_host);
+// #endif //CUDA_ARCH
 
-#endif //CUDA_ARCH
-
-            assert(m_device_storage_info);
+            // assert(m_device_storage_info);
             return super::operator()(m_device_storage_info, i,j,k);
         }
 #endif //CXX11_ENABLED

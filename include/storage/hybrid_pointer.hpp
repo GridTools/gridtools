@@ -115,7 +115,6 @@ namespace gridtools {
             }
         }
 
-        GT_FUNCTION
         void free_it() {
             cudaFree(m_gpu_p);
             m_gpu_p=NULL;
@@ -128,7 +127,6 @@ namespace gridtools {
 #endif
       }
 
-        GT_FUNCTION
         void update_gpu() {
 #ifdef VERBOSE
             printf("update gpu "); out();
@@ -140,7 +138,6 @@ namespace gridtools {
             m_pointer_to_use=m_gpu_p;
         }
 
-        GT_FUNCTION
         void update_cpu() {
 #ifdef VERBOSE
             printf("update cpu "); out();
@@ -152,7 +149,6 @@ namespace gridtools {
             m_pointer_to_use=m_cpu_p.get();
         }
 
-        GT_FUNCTION
         void set(pointee_t const& value, uint_t const& index)
         {
             if(on_host()){//do not copy if the last version is already on the device

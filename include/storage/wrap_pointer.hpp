@@ -81,7 +81,6 @@ struct wrap_pointer{
         m_cpu_p = new T[size];
     }
 
-    GT_FUNCTION
     void free_it() {
         if(m_cpu_p && !m_externally_managed)
         {
