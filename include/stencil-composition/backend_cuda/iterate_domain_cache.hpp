@@ -50,7 +50,10 @@ private:
     };
 
 public:
+    GT_FUNCTION
     iterate_domain_cache() {}
+
+    GT_FUNCTION
     ~iterate_domain_cache() {}
 
     // remove caches which are not used by the stencil stages

@@ -133,9 +133,9 @@ namespace gridtools {
 #endif
             if(on_host()){//do not copy if the last version is already on the device
                 cudaMemcpy(m_gpu_p, m_cpu_p.get(), m_size*sizeof(T), cudaMemcpyHostToDevice);
+                m_up_to_date=false;
+                m_pointer_to_use=m_gpu_p;
             }
-            m_up_to_date=false;
-            m_pointer_to_use=m_gpu_p;
         }
 
         void update_cpu() {
@@ -144,9 +144,9 @@ namespace gridtools {
 #endif
             if(on_device()){
                 cudaMemcpy(m_cpu_p.get(), m_gpu_p, m_size*sizeof(T), cudaMemcpyDeviceToHost);
+                m_up_to_date=true;
+                m_pointer_to_use=m_cpu_p.get();
             }
-            m_up_to_date=true;
-            m_pointer_to_use=m_cpu_p.get();
         }
 
         void set(pointee_t const& value, uint_t const& index)
