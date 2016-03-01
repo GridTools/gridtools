@@ -17,8 +17,8 @@
 #include "cg.h"
 
 //time t is in ns, returns MFLOPS
-#define MFLOPS(numops,X,Y,Z,NT,t) ((double)numops*X*Y*Z*NT*1000/t)
-#define MLUPS(X,Y,Z,NT,t) ((double)X*Y*Z*NT*1000/t)
+inline double MFLOPS(int numops, int X, int Y, int Z, int NT, int t) { return (double)numops*X*Y*Z*NT*1000/t; }
+inline double MLUPS(int X, int Y, int Z, int NT, int t) { return (double)X*Y*Z*NT*1000/t; }
 
 /*
   @file This file shows an implementation of the various stencil operations.
@@ -71,7 +71,9 @@ struct d2point5{
 #endif
 
 #ifdef pt7
-// 1st order in time, 7-point constant-coefficient isotropic stencil in 3D, with symmetry.
+/** @brief
+    1st order in time, 7-point constant-coefficient isotropic stencil in 3D, with symmetry.
+*/
 struct d3point7{
     typedef accessor<0, enumtype::inout, extent<0,0,0,0> > out;
     typedef accessor<1, enumtype::in, extent<-1,1,-1,1> > in; // this says to access 6 neighbors
@@ -87,18 +89,39 @@ struct d3point7{
     }
 };
 
+/** @brief generic argument type
+   struct implementing the minimal interface in order to be passed as an argument to the user functor.
+*/
+struct boundary : clonable_to_gpu<boundary> {
 
-// Addition of two grids, c = a + b
+    boundary(){}
+    //device copy constructor
+    __device__ boundary(const boundary& other){}
+    typedef boundary super;
+    typedef boundary* iterator_type;
+    typedef boundary value_type; //TODO remove
+    static const ushort_t field_dimensions=1; //TODO remove
+
+    double value() const {return 10.;}
+
+    template<typename ID>
+    boundary * access_value() const {return const_cast<boundary*>(this);}
+};
+
+/** @brief
+    Stencil implementing addition of two grids, c = a + alpha*b
+*/
 struct add{
     typedef accessor<0, enumtype::inout, extent<0,0,0,0> > c;
     typedef accessor<1, enumtype::in, extent<0,0,0,0> > a;
     typedef accessor<2, enumtype::in, extent<0,0,0,0> > b;
+    typedef global_accessor<3, enumtype::inout> alpha;
     typedef boost::mpl::vector<c,a,b> arg_list;
 
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_interval) {
-        dom(c{}) = dom(a{}) + dom(b{});
+        dom(c{}) = dom(a{}) + dom(alpha{}).value() * dom(b{});
     }
 };
 
@@ -198,6 +221,8 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     storage_type constant(metadata_, 10., "constant");
     storage_type *ptr_in7pt = &in7pt, *ptr_out7pt = &out7pt;
 
+    boundary bd_;
+
     // set up halo
     he.add_halo<0>(meta_.template get_halo_gcl<0>());
     he.add_halo<1>(meta_.template get_halo_gcl<1>());
@@ -210,8 +235,6 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
             for(uint_t k=0; k<metadata_.template dims<2>(); ++k)
             {
                 constant(i,j,k) = 10. * (gridtools::PID + 1);
-                //in7pt(i, j, k) = (i) * (gridtools::PID+1);
-                //out7pt(i, j, k) = (i) * (gridtools::PID+1);
             }
 #endif
 
@@ -221,12 +244,16 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     // of the domain
     typedef arg<0, storage_type > p_out; //domain
     typedef arg<1, storage_type > p_in;
-    typedef arg<2, storage_type > p_const;
+
+    typedef arg<0, storage_type > p_c;
+    typedef arg<1, storage_type > p_a;
+    typedef arg<2, storage_type > p_b;
+    typedef arg<3, boundary> p_bd;
 
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
     typedef boost::mpl::vector<p_out, p_in> accessor_list;
-    typedef boost::mpl::vector<p_out, p_in, p_const> accessor_list_add;
+    typedef boost::mpl::vector<p_c, p_a, p_b, p_bd> accessor_list_add;
 
     //--------------------------------------------------------------------------
     // Definition of the physical dimensions of the problem.
@@ -330,7 +357,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
         // construction of the domain for the out = out + in
         gridtools::domain_type<accessor_list_add> domain3d
-            (boost::fusion::make_vector(ptr_out7pt, ptr_in7pt, &constant));
+            (boost::fusion::make_vector(ptr_out7pt, ptr_in7pt, &constant, &bd_));
 
         //instantiate stencil for mat-vec multiplication
         #ifdef __CUDACC__
@@ -343,8 +370,8 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
                     gridtools::make_mss // mss_descriptor
                     (
                         execute<forward>(),
-                        gridtools::make_esf<d3point7>(p_out(), p_in()) // esf_descriptor
-                        //gridtools::make_esf<add>(p_in(), p_out(), p_const()) // esf_descriptor
+                        gridtools::make_esf<d3point7>(p_out(), p_in()), // esf_descriptor
+                        gridtools::make_esf<add>(p_c(), p_a(), p_b(), p_bd()) // esf_descriptor
                     ),
                     domain3d, coords3d7pt
                 );
