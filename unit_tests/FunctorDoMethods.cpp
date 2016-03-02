@@ -7,26 +7,6 @@
 
 using namespace gridtools;
 
-struct anywhere {
-    template <typename L0, typename L1>
-    anywhere(gridtools::interval<L0, L1>) {}
-
-    template <gridtools::uint_t spl, gridtools::int_t lvl>
-    anywhere(gridtools::level<spl, lvl>) {}
-
-    template <typename T>
-    anywhere(T) {}
-};
-// test functor 1
-struct AnywhereFunctor
-{
-    template <typename TArguments>
-    static void Do(TArguments const& args, anywhere)
-    {
-        std::cout << "Functor0:Do(Interval<Level<3,-1>, Level<3,-1> >) called" << std::endl;
-    }
-};
-
 // test functor 1
 struct Functor0
 {
@@ -128,15 +108,26 @@ int main(int argc, char *argv[])
                          level_to_index<level<3,-1> >::type,
                          level_to_index<level<3,-1> >::type
                          >::type >::value));
-    BOOST_STATIC_ASSERT((has_do<AnywhereFunctor,
+    BOOST_STATIC_ASSERT((has_do<Functor0,
+                         level<3,-1>
+                         >::value));
+    BOOST_STATIC_ASSERT((!has_do<Functor0,
+                         level<3,-2>
+                         >::value));
+    BOOST_STATIC_ASSERT((has_do<Functor0,
+                         index_to_level<static_int<20> >::type
+                         >::value));
+    BOOST_STATIC_ASSERT((!has_do<Functor0,
+                         index_to_level<static_int<21> >::type
+                         >::value));
+    // typedef index_to_level<static_int<20> >::type sss; // used these lines to find out the level index
+    // typedef sss::ciao ciccio;                          // by trial and error
+    BOOST_STATIC_ASSERT((!has_do<Functor0,
                          make_interval<
                          level_to_index<level<1,-1> >::type,
                          level_to_index<level<3,3> >::type
                          >::type >::value));
 
-
-    BOOST_STATIC_ASSERT((has_do<AnywhereFunctor, interval<level<1,2>, level<4,-3> > >::value));
-    BOOST_STATIC_ASSERT((has_do<AnywhereFunctor, interval<level<3,-1>, level<3,-1> > >::value));
 
     // define the axis search interval
     typedef interval<level<0,-3>, level<3,3> > AxisInterval;
