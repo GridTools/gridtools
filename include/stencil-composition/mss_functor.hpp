@@ -17,6 +17,51 @@
 
 namespace gridtools {
 
+
+    template<typename MssComponents, typename IntervalsMapSeq>
+    struct mss_components_functors_return_type
+    {
+        GRIDTOOLS_STATIC_ASSERT((is_mss_components<MssComponents>::value), "Internal Error");
+
+        template<typename EsfFunction, typename IntervalPair>
+        struct functor_return_type
+        {
+            typedef typename boost::mpl::second<IntervalPair>::type interval_t;
+
+            GRIDTOOLS_STATIC_ASSERT((has_do_any_return_type<EsfFunction, interval_t>::type::value),
+                 "Error: Do method does not contain signature with specified interval");
+          using type = decltype(EsfFunction::Do(int(), interval_t()));
+        };
+
+        template<typename EsfSequence>
+        struct esfs_functor_return_type
+        {
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<EsfSequence>::value==1), "Error: Reductions can have only one esf");
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<IntervalsMapSeq>::value==1), "Error");
+
+            typedef typename boost::mpl::front<IntervalsMapSeq>::type intervals_map_t;
+
+            typedef typename boost::mpl::front<EsfSequence>::type::esf_function esf_function_t;
+            typedef typename boost::mpl::fold<
+                intervals_map_t,
+                boost::mpl::set0<>,
+                boost::mpl::insert<boost::mpl::_1, functor_return_type<esf_function_t, boost::mpl::_2> >
+            >::type return_type_seq;
+
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<return_type_seq>::value==1),
+                                    "All overloaded Do methods of a reduction functor should return the same type");
+            typedef typename boost::mpl::front<return_type_seq>::type type;
+        };
+
+        typedef typename boost::mpl::eval_if<
+            typename MssComponents::mss_descriptor_t::is_reduction_t,
+            esfs_functor_return_type<
+                typename MssComponents::mss_descriptor_t::esf_sequence_t
+            >,
+            boost::mpl::identity<void>
+        >::type type;
+    };
+
     /**
      * @brief functor that executes all the functors contained within the mss
      * @tparam TMssArray meta array containing all the mss descriptors
@@ -133,6 +178,11 @@ namespace gridtools {
 
             //insert true for the last esf
             typedef typename boost::mpl::insert< async_esf_map_tmp_t,  boost::mpl::pair<typename boost::mpl::at_c<functors_list_t, boost::mpl::size<next_thing>::value>::type, boost::mpl::true_ > >::type async_esf_map_t;                    
+
+            typedef typename mss_components_functors_return_type<
+                    mss_components_t,
+                    FunctorsMap
+            >::type functor_return_t;
 
             typedef run_functor_arguments<
                 BackendIds,

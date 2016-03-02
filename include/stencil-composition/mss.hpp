@@ -50,6 +50,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((!IsReduction || boost::mpl::size<EsfDescrSequence>::value==1), "Only one reduction esf is allowed");
         typedef EsfDescrSequence esf_sequence_t;
         typedef CacheSequence cache_sequence_t;
+        typedef static_bool<IsReduction> is_reduction_t;
     };
 
     template<typename mss>

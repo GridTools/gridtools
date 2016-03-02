@@ -4,9 +4,20 @@
 #include "stencil-composition/iterate_domain.hpp"
 #include "stencil-composition/iterate_domain_metafunctions.hpp"
 #include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
-
+#include "../../run_functor_arguments_metafunctions.hpp"
 
 namespace gridtools {
+
+    template<typename IterateDomainArguments>
+    struct reduced_data
+    {
+        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Internal error: wrong type");
+        typedef typename boost::mpl::if_c<
+            IterateDomainArguments::s_is_reduction,
+            void,
+            iterate_domain_arguments_reduction_type<IterateDomainArguments>
+        >::type type;
+    };
 
     /**
      * @brief iterate domain class for the Host backend
@@ -88,6 +99,7 @@ public:
 private:
     data_pointer_array_t* RESTRICT m_data_pointer;
     strides_cached_t* RESTRICT m_strides;
+    reduced_data<IterateDomainArguments> m_reduced_value;
 };
 
 template<
