@@ -149,7 +149,7 @@ namespace gridtools {
             /**@brief extra level of indirection necessary for zipping the indices*/
             template <typename ... UInt, ushort_t ... IdSequence>
             GT_FUNCTION
-            constexpr uint_t index_( gt_integer_sequence<ushort_t, IdSequence...> t, UInt const& ... args_
+            constexpr int_t index_( gt_integer_sequence<ushort_t, IdSequence...> t, UInt const& ... args_
                 ) const {
 
                 GRIDTOOLS_STATIC_ASSERT(sizeof...(IdSequence) == sizeof...(UInt), "number of arguments used to compute the storage index does not match the storage dimension. Check that you are accessing the storage correctly.");
@@ -159,7 +159,7 @@ namespace gridtools {
            /**@brief just forwarding the index computation to the base class*/
             template <typename T, size_t N>
             GT_FUNCTION
-            uint_t index( array<T, N> const& t) const {
+            int_t index( array<T, N> const& t) const {
 
                 return super::index(t);
             }
@@ -167,7 +167,7 @@ namespace gridtools {
             /**@brief */
             template <typename ... UInt>
             GT_FUNCTION
-            constexpr uint_t index(uint_t const& first_, UInt const& ... args_) const {
+            constexpr int_t index(uint_t const& first_, UInt const& ... args_) const {
 
                 /**this call zips 2 variadic packs*/
                 return index_(typename make_gt_integer_sequence<ushort_t, sizeof ... (Halo)>::type(), first_, args_ ... );
@@ -188,7 +188,7 @@ namespace gridtools {
 
             /**@brief straightforward interface*/
             GT_FUNCTION
-            uint_t index(uint_t const& i, uint_t const& j, uint_t const&  k) const
+            int_t index(uint_t const& i, uint_t const& j, uint_t const&  k) const
             {
                 return super::index(i+cond<0>::template get<0>()
                                   , j+cond<1>::template get<1>()
