@@ -232,7 +232,7 @@ namespace gridtools {
     template <int I, int J, int K>
     void post_receive() {
       if (m_recv_buffers.size(I,J,K)) {
-#ifndef NDEBUG
+#ifdef GCL_DEBUG
         int ss2;
         MPI_Pack_size(1, m_recv_buffers.datatype(I,J,K), gridtools::GCL_WORLD, &ss2);
         std::cout << "@" << gridtools::PID << "@ IRECV (" << I << "," << J << "," << K << ") "
@@ -256,7 +256,7 @@ namespace gridtools {
     void perform_isend() {
 
       if (m_send_buffers.size(I,J,K)) {
-#ifndef NDEBUG
+#ifdef GCL_DEBUG
         int ss2;
         MPI_Pack_size(1, m_send_buffers.datatype(I,J,K), gridtools::GCL_WORLD, &ss2);
         std::cout << "@" << gridtools::PID << "@ ISEND (" << I << "," << J << "," << K << ") "
@@ -279,7 +279,7 @@ namespace gridtools {
     template <int I, int J, int K>
     void wait() {
       if (m_recv_buffers.size(I,J,K)) {
-#ifndef NDEBUG
+#ifdef GCL_DEBUG
         std::cout << "@" << gridtools::PID << "@ WAIT  ("  << I << "," << J << "," << K << ") "
                   << " R " << translate()(-I,-J,-K) << "\n";
 #endif
@@ -335,7 +335,7 @@ namespace gridtools {
       assert(( J>=-1 && J<=1 ));
       assert(( K>=-1 && K<=1 ));
 
-// #ifndef NDEBUG
+// #ifdef GCL_DEBUG
 //       std::cout << "@" << gridtools::PID
 //                 << "@ " << __PRETTY_FUNCTION__
 //                 << " : " << p << " size " << s
@@ -398,7 +398,7 @@ namespace gridtools {
       assert(( J>=-1 && J<=1 ));
       assert(( K>=-1 && K<=1 ));
 
-// #ifndef NDEBUG
+// #ifdef GCL_DEBUG
 //       std::cout << "@" << gridtools::PID
 //                 << "@ " << __PRETTY_FUNCTION__
 //                 << " : " << p << " size " << s

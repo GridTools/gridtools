@@ -64,7 +64,7 @@ namespace gridtools {
     void register_block_to(value_type* field,
                            arraytype1 const& halo_block,
                            arraytype2 const& coords) {
-#ifndef NDEBUG
+#ifdef GCL_DEBUG
       std::cout << "register_block_to " << proc_grid.abs_proc(coords) << "\n";
 #endif
       a2a.to[proc_grid.abs_proc(coords)] = packet<value_type>(_impl::make_datatype<value_type>::make(halo_block), field);
@@ -88,7 +88,7 @@ namespace gridtools {
     void register_block_from(value_type* field,
                              arraytype1 const& halo_block,
                              arraytype2 const& coords) {
-#ifndef NDEBUG
+#ifdef GCL_DEBUG
       std::cout << "register_block_from " << proc_grid.abs_proc(coords) << "\n";
 #endif
       a2a.from[proc_grid.abs_proc(coords)] = packet<value_type>(_impl::make_datatype<value_type>::make(halo_block), field);
