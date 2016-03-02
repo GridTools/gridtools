@@ -530,7 +530,11 @@ namespace gridtools {
             typename StoragePointer
         >
         GT_FUNCTION
-        ReturnType get_gmem_value(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset) const
+        ReturnType get_gmem_value(StoragePointer RESTRICT & storage_pointer
+                                  // control your instincts: changing the following
+                                  // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
+                                  , const int_t pointer_offset
+            ) const
         {
             return *(storage_pointer+pointer_offset);
         }
@@ -802,7 +806,9 @@ namespace gridtools {
                 >= 0);
 
 
-        const uint_t pointer_offset = (m_index[metadata_index_t::value])
+        // control your instincts: changing the following
+        // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
+        const int_t pointer_offset = (m_index[metadata_index_t::value])
                 +metadata_->_index(strides().template get<metadata_index_t::value>(), accessor);
 
         return static_cast<const IterateDomainImpl*>(this)->template get_value_impl
