@@ -1,5 +1,8 @@
 #pragma once
 
+//disable pedantic mode for the global accessor
+#define PEDANTIC_DISABLED
+
 #include <gridtools.hpp>
 #include <stencil-composition/stencil-composition.hpp> 
 #include <stencil-composition/backend.hpp>
