@@ -42,20 +42,43 @@ namespace gridtools{
         };
 
         /**@brief functor to assign all the strides */
-        template<short_t MaxIndex,  typename Layout>
+        template<int_t MaxIndex,  typename Layout>
         struct assign_all_strides{
 
-            template <uint_t T>
+            template <int_t T>
             using lambda=next_stride<MaxIndex-T, MaxIndex, Layout>;
 
             template<typename ... UIntType, typename Dummy=all_integers<UIntType ...> >
-            static constexpr array<uint_t, MaxIndex >
+            static constexpr array<int_t, MaxIndex >
             apply(UIntType ... args){
-                using seq = apply_gt_integer_sequence<typename make_gt_integer_sequence<uint_t, sizeof ... (args)>::type >;
-                return seq::template apply<array<uint_t, MaxIndex>, lambda>( (uint_t)args...);
+                using seq = apply_gt_integer_sequence<typename make_gt_integer_sequence<int_t, sizeof ... (args)>::type >;
+                return seq::template apply<array<int_t, MaxIndex>, lambda>( (int_t)args...);
             }
         };
 
+        /**@brief metafunction to recursively compute all the strides, in a generic arbitrary dimensional storage*/
+        template<int_t ID, int_t MaxIndex,  typename Layout>
+        struct assign_strides{
+            template<typename ... UIntType>
+            GT_FUNCTION
+            static void apply(int_t* strides, UIntType ... args){
+                BOOST_STATIC_ASSERT(MaxIndex>=ID);
+                BOOST_STATIC_ASSERT(ID>=0);
+                strides[MaxIndex-ID] = next_stride<ID, MaxIndex, Layout>::apply(args...);
+                assign_strides<ID-1, MaxIndex, Layout>::apply(strides, args...);
+            }
+        };
+
+/**@brief specialization to stop the recursion*/
+        template< int_t MaxIndex,  typename Layout>
+        struct assign_strides<0, MaxIndex, Layout>{
+            template<typename ... UIntType>
+            GT_FUNCTION
+            static void apply(int_t* strides, UIntType ... args){
+                BOOST_STATIC_ASSERT(MaxIndex>=0);
+                strides[MaxIndex] = next_stride<0, MaxIndex, Layout>::apply(args...);
+            }
+        };
 #endif
 
         /**@brief struct to compute the total offset (the sum of the i,j,k indices times their respective strides)

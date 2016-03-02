@@ -119,7 +119,9 @@ namespace gridtools {
         // protected:
 
         array<uint_t, space_dimensions> m_dims;
-        array<uint_t, space_dimensions> m_strides;
+        // control your instincts: changing the following
+        // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
+        array<int_t, space_dimensions> m_strides;
 
     public:
 
@@ -142,7 +144,7 @@ namespace gridtools {
                   , typename Dummy = all_integers<IntTypes...>
                   >
         void setup(  IntTypes const& ... dims_  ){
-            m_dims=array<int_t, space_dimensions>(dims_ ...);
+            m_dims=array<uint_t, space_dimensions>(dims_ ...);
             m_strides=array<int_t, space_dimensions>(
                 _impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( dims_...));
         }
@@ -154,9 +156,9 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
             m_dims=array<uint_t, space_dimensions>{first_, dims_ ...};
 #else
-            m_dims=array<int_t, space_dimensions>(first_, dims_ ...);
+            m_dims=array<uint_t, space_dimensions>(first_, dims_ ...);
 #endif
-            m_strides=array<uint_t, space_dimensions>(
+            m_strides=array<int_t, space_dimensions>(
                 _impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( first_, dims_...));
         }
 #endif
@@ -166,7 +168,7 @@ namespace gridtools {
             m_dims(a),
             m_strides(
                 explode<
-                    array<uint_t, (short_t)(space_dimensions)>,
+                    array<int_t, (short_t)(space_dimensions)>,
                     _impl::assign_all_strides< (short_t)(space_dimensions), layout>
                 >(a))
         {}
@@ -342,14 +344,14 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         /**@brief returns the storage strides
          */
         GT_FUNCTION
-         constexpr uint_t const & strides(ushort_t i) const {
+         constexpr int_t const& strides(ushort_t i) const {
             return m_strides[i];
         }
 
         /**@brief returns the storage strides
          */
         GT_FUNCTION
-         constexpr uint_t const* strides() const {
+        constexpr int_t const* strides() const {
             GRIDTOOLS_STATIC_ASSERT(space_dimensions>1, "less than 2D storage, is that what you want?");
             return (&m_strides[1]);
         }
@@ -359,31 +361,31 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         template <typename ... UInt, typename Dummy=all_integers<UInt ...>>
         constexpr
         GT_FUNCTION
-        uint_t index(UInt const& ... args_) const { return _index( strides(), args_ ...); }
+        int_t index(UInt const& ... args_) const { return _index( strides(), args_ ...); }
 
         template <typename ... UInt, typename Dummy=all_static_integers<UInt ...>>
         constexpr
         GT_FUNCTION
-        uint_t index(uint_t const& first, UInt const& ... args_) const {
+        int_t index(uint_t const& first, UInt const& ... args_) const {
             return _index(strides(), first, args_... );
         }
 
         struct _impl_index{
             template<typename ... UIntType>
-            static uint_t apply(const type& me, UIntType ... args){
+            static int_t apply(const type& me, UIntType ... args){
                 return me.index(args...);
             }
         };
 
         template<size_t S>
         GT_FUNCTION
-        uint_t index(array<uint_t, S> a) const {
-            return (uint_t) explode<uint_t, _impl_index>(a, *this);
+        int_t index(array<uint_t, S> a) const {
+            return (int_t) explode<int_t, _impl_index>(a, *this);
         }
 #else
         /**@brief straightforward interface*/
         GT_FUNCTION
-        uint_t index(uint_t const& i, uint_t const& j, uint_t const&  k) const { return _index(strides(), i, j, k); }
+        int_t index(uint_t const& i, uint_t const& j, uint_t const&  k) const { return _index(strides(), i, j, k); }
 #endif
 
         //####################################################
@@ -405,7 +407,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
 	*/
         template<uint_t Coordinate, typename StridesVector>
         GT_FUNCTION
-        static constexpr uint_t strides(StridesVector const& RESTRICT strides_){
+        static constexpr int_t strides(StridesVector const& RESTRICT strides_){
             return ((vec_max<typename layout::layout_vector_t>::value < 0) ? 0:(( layout::template at_<Coordinate>::value == vec_max<typename layout::layout_vector_t>::value ) ? 1 : ((strides_[layout::template at_<Coordinate>::value]))));
         }
 
@@ -428,12 +430,11 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         */
         template<typename StridesVector>
         GT_FUNCTION
-        static constexpr uint_t _index(StridesVector const& RESTRICT strides_, uint_t const& i, uint_t const& j, uint_t const&  k) {
+        static constexpr int_t _index(StridesVector const& RESTRICT strides_, uint_t const& i, uint_t const& j, uint_t const&  k) {
             return strides_[0]
                 * layout::template find_val<0,uint_t,0>(i,j,k) +
                 strides_[1] * layout::template find_val<1,uint_t,0>(i,j,k) +
-                layout::template find_val<2,uint_t,0>(i,j,k)
-                ;
+                layout::template find_val<2,uint_t,0>(i,j,k);
         }
 
 #ifdef CXX11_ENABLED
@@ -445,7 +446,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         template <typename StridesVector, typename ... UInt>
         GT_FUNCTION
         constexpr
-        static uint_t _index(StridesVector const& RESTRICT strides_, UInt const& ... dims) {
+        static int_t _index(StridesVector const& RESTRICT strides_, UInt const& ... dims) {
             GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(),  boost::is_integral<UInt>::type::value ...), "you have to pass in arguments of uint_t type");
             return _impl::compute_offset<space_dimensions, layout>::apply(strides_, dims ...);
         }
