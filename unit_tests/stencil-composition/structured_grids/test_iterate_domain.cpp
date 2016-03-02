@@ -68,20 +68,6 @@ namespace test_iterate_domain{
         grid.value_list[0] = 0;
         grid.value_list[1] = d3-1;
 
-        auto computation = make_computation<gridtools::backend<enumtype::Host, enumtype::Naive > >
-            (
-                domain, grid,
-                gridtools::make_mss // mss_descriptor
-                (
-                    enumtype::execute<enumtype::forward>(),
-                    gridtools::make_esf<dummy_functor>(p_in() ,p_buff(), p_out())
-                    )
-                );
-
-        typedef decltype(gridtools::make_esf<dummy_functor>(p_in() ,p_buff(), p_out())) esf_t;
-
-        computation->ready();
-        computation->steady();
 
         typedef intermediate<gridtools::backend<enumtype::Host, enumtype::Naive >
                              , gridtools::meta_array<
@@ -98,6 +84,22 @@ namespace test_iterate_domain{
                              , boost::fusion::set<>
                              , false
                              > intermediate_t;
+
+        std::shared_ptr<intermediate_t> computation_ = std::static_pointer_cast<intermediate_t>(make_computation<gridtools::backend<enumtype::Host, enumtype::Naive > >
+            (
+                domain, grid,
+                gridtools::make_mss // mss_descriptor
+                (
+                    enumtype::execute<enumtype::forward>(),
+                    gridtools::make_esf<dummy_functor>(p_in() ,p_buff(), p_out())
+                    )
+                ));
+
+        typedef decltype(gridtools::make_esf<dummy_functor>(p_in() ,p_buff(), p_out())) esf_t;
+
+        computation_->ready();
+        computation_->steady();
+
         typedef intermediate_mss_local_domains<intermediate_t>::type mss_local_domains_t;
 
         typedef boost::mpl::front<mss_local_domains_t>::type mss_local_domain1_t;
@@ -117,9 +119,8 @@ namespace test_iterate_domain{
                 >
             > it_domain_t;
 
-        mss_local_domain1_t mss_local_domain1=boost::fusion::at_c<0>((std::dynamic_pointer_cast< intermediate_t > (computation) )->mss_local_domain_list());
-        auto local_domain1=boost::fusion::at_c<0>(mss_local_domain1.local_domain_list);
-        it_domain_t it_domain(local_domain1);
+        mss_local_domain1_t const* mss_local_domain1=&(boost::fusion::at_c<0>(computation_->mss_local_domain_list()));
+        it_domain_t it_domain(boost::fusion::at_c<0>(mss_local_domain1->local_domain_list));
 
         GRIDTOOLS_STATIC_ASSERT(it_domain_t::N_STORAGES==3, "bug in iterate domain, incorrect number of storages");
 
