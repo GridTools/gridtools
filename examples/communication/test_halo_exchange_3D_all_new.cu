@@ -5,40 +5,6 @@
 #include <communication/halo_exchange.hpp>
 #include "cuda.h"
 
-#ifndef FLOAT_PRECISION
-# define FLOAT_PRECISION 8
-#endif
-
-// Global options
-static bool verbose = false;
-std::ofstream out;
-
-#ifdef NVCC
-typedef gridtools::gcl_gpu arch_type;
-static const bool gpu = true;
-#else
-typedef gridtools::gcl_cpu arch_type;
-static const bool gpu = false;
-#endif
-
-/**
- * Helper class to select the right floating point type
- */
-template<int p>
-struct float_precision;
-
-template<> struct float_precision<4>
-{
-    typedef float type;
-};
-
-template<> struct float_precision<8>
-{
-    typedef double type;
-};
-
-typedef float_precision<FLOAT_PRECISION>::type Real;
-
 /**
  * Struct with three properties of different type
  */
@@ -79,29 +45,35 @@ struct triplet
 };
 
 /**
- * Metafunction which returns the triplet type iff the template parameter
- * is true, and the floating point type of reference otherwise
+ * Helper metafunction which provides the name of some types
  */
-template<bool use_triplet>
-struct store_t
-{
-    typedef Real type;
-};
+template<typename T>
+struct type_name;
 
-template<>
-struct store_t<true>
-{
-    typedef triplet type;
-};
+template<> struct type_name<float> { static constexpr const char* name = "float"; };
+template<> struct type_name<double> { static constexpr const char* name = "double"; };
+template<> struct type_name<triplet> { static constexpr const char* name = "triplet"; };
+
+// Global options
+static bool verbose = false;
+std::ofstream out;
+
+#ifdef NVCC
+typedef gridtools::gcl_gpu arch_type;
+static const bool gpu = true;
+#else
+typedef gridtools::gcl_cpu arch_type;
+static const bool gpu = false;
+#endif
 
 /**
  * Class which contians the storage for CPU and GPU
  */
-template<bool use_triplet, typename layoutmap>
+template<typename T, typename layoutmap>
 class field_t
 {
 public:
-    typedef typename store_t<use_triplet>::type value_t;
+    typedef T value_t;
 
     /**
      * Initialize the content of the field.
@@ -320,8 +292,8 @@ private:
     bool gpu_;
 };
 
-template<bool use_triplet, typename layoutmap>
-std::ostream& operator<<(std::ostream& out, field_t<use_triplet, layoutmap>& field)
+template<typename T, typename layoutmap>
+std::ostream& operator<<(std::ostream& out, field_t<T, layoutmap>& field)
 {
     field.print(out);
     return out;
@@ -336,9 +308,11 @@ std::ostream& operator<<(std::ostream& out, field_t<use_triplet, layoutmap>& fie
  * \param communicator The cartesian communicator within which the
  *        exchange is done.  Must be created with the desired periodicity
  * \param halo The size of halo in each direction
+ *
+ * \return true is returned iff the test passed on all ranks
  */
-template<typename layoutmap, bool use_triplet>
-void run(MPI_Comm communicator, int halo=1)
+template<typename layoutmap, typename T>
+bool run(MPI_Comm communicator, int halo=1)
 {
     // Get communicator information
     int dims[3], periods[3], coords[3];
@@ -347,14 +321,29 @@ void run(MPI_Comm communicator, int halo=1)
     int rank;
     MPI_Comm_rank(communicator, &rank);
 
-    out << "Proc (" << coords[0] << ", " << coords[1] << ", " << coords[2]
-        << " runs test with map <"
-        << layoutmap::template at<0>() << ", " << layoutmap::template at<1>() << ", " << layoutmap::template at<2>()
-        << ">, periodicity (" << periods[0] << ", " << periods[1] << ", " << periods[2] << "): ";
+    // Test name
+    std::ostringstream testname;
+    testname << type_name<T>::name
+             << "[map=<" << layoutmap::template at<0>() << ","
+                         << layoutmap::template at<1>() << ","
+                         << layoutmap::template at<2>() << ">]"
+            << "[periods=<" << periods[0] << ","
+                            << periods[1] << ","
+                            << periods[2] << ">]"
+            << "[arch=" << (gpu ? "GPU" : "CPU") << "]"
+            << "[halo=" << halo << "]"
+        ;
 
-    typedef field_t<use_triplet, layoutmap> field_type;
+    if (rank == 0)
+    {
+        std::cout << testname.str();
+    }
+
+    out << testname.str()
+        << " on (" << coords[0] << "," << coords[1] << "," << coords[2] << ")";
 
     // Instantiate field
+    typedef field_t<T, layoutmap> field_type;
     field_type field(256/dims[0], 256/dims[1], 256/dims[2],
                      halo, gpu, coords[0], coords[1], coords[2]
                      );
@@ -427,14 +416,13 @@ void run(MPI_Comm communicator, int halo=1)
 
     if (rank == 0)
     {
-        std::string testname = use_triplet ? "triplet" : std::string("float_")+std::to_string(FLOAT_PRECISION);
-        std::cout << testname << " test with map <"
-            << layoutmap::template at<0>() << ", " << layoutmap::template at<1>() << ", " << layoutmap::template at<2>()
-            << ">, periodicity (" << periods[0] << ", " << periods[1] << ", " << periods[2] << "): ";
-        std::cout << (checkall ? "PASSED" : "FAILED") << "\n";
+        std::cout << ": " << (checkall ? "PASSED" : "FAILED")
+                  << std::endl;
     }
 
-    out << (check ? "PASSED" : "FAILED") << "\n";
+    out << ": " << (check ? "PASSED" : "FAILED") << std::endl;
+
+    return checkall;
 }
 
 int main(int argc, char** argv)
@@ -447,23 +435,30 @@ int main(int argc, char** argv)
 
     // Select only first k processes, where k is the largest power of two
     // not larger than the world comm size
-    int k = 1;
-    while (k <= size)
-        k <<= 1;
-    k >>= 1;
-    int do_i_test = rank < k;
-    size = k;
+    int newsize = 1;
+    while (newsize <= size)
+        newsize <<= 1;
+    newsize >>= 1;
+    int do_i_test = rank < newsize;
+    size = newsize;
+
+    // Generate cartesian information
+    int dims[3] = {0, 0, 0};
+    MPI_Dims_create(size, 3, dims);
 
     // Print some info
     if (rank == 0)
     {
         std::cout << "Running on " << (gpu ? "GPU" : "CPU")
-                  << " with " << size << " processes" << std::endl;
+                  << " with " << size << " processes: "
+                  << dims[0] << "x" << dims[1] << "x"<< dims[2] << "\n\n";
     }
-    MPI_Barrier(MPI_COMM_WORLD);
 
     MPI_Comm testcomm;
     MPI_Comm_split(MPI_COMM_WORLD, do_i_test, rank, &testcomm);
+
+    // This value is only relevant on the rank 0
+    bool pass = true;
 
     if (do_i_test)
     {
@@ -471,35 +466,58 @@ int main(int argc, char** argv)
         fname << "out_" << rank << ".log";
         out.open(fname.str().c_str());
 
-        for (int period = 0; period < 8; ++period)
+        for (int halo = 1; halo <= 4; ++halo)
         {
-            // Create cartesian communicator
-            MPI_Comm cartcomm;
-            int dims[3] = {0, 0, 0};
-            int periods[3] = {(period>>2)%2, (period>>1)%2, (period>>0)%2};
-            MPI_Dims_create(size, 3, dims);
-            MPI_Cart_create(testcomm, 3, dims, periods, 0, &cartcomm);
+            for (int period = 0; period < 8; ++period)
+            {
+                // Create cartesian communicator
+                MPI_Comm cartcomm;
+                int periods[3] = {(period>>2)%2, (period>>1)%2, (period>>0)%2};
+                MPI_Cart_create(testcomm, 3, dims, periods, 0, &cartcomm);
 
-            // Run tests with floating point
-            run<gridtools::layout_map<0, 1, 2>, false>(cartcomm);
-            run<gridtools::layout_map<0, 2, 1>, false>(cartcomm);
-            run<gridtools::layout_map<1, 0, 2>, false>(cartcomm);
-            run<gridtools::layout_map<1, 2, 0>, false>(cartcomm);
-            run<gridtools::layout_map<2, 0, 1>, false>(cartcomm);
-            run<gridtools::layout_map<2, 1, 0>, false>(cartcomm);
+                using gridtools::layout_map;
 
-            //// Run tests with structure
-            run<gridtools::layout_map<0, 1, 2>, true>(cartcomm);
-            run<gridtools::layout_map<0, 2, 1>, true>(cartcomm);
-            run<gridtools::layout_map<1, 0, 2>, true>(cartcomm);
-            run<gridtools::layout_map<1, 2, 0>, true>(cartcomm);
-            run<gridtools::layout_map<2, 0, 1>, true>(cartcomm);
-            run<gridtools::layout_map<2, 1, 0>, true>(cartcomm);
+                // Run tests with single-precision floating point
+                pass = pass && run<layout_map<0, 1, 2>, float>(cartcomm, halo);
+                pass = pass && run<layout_map<0, 2, 1>, float>(cartcomm, halo);
+                pass = pass && run<layout_map<1, 0, 2>, float>(cartcomm, halo);
+                pass = pass && run<layout_map<1, 2, 0>, float>(cartcomm, halo);
+                pass = pass && run<layout_map<2, 0, 1>, float>(cartcomm, halo);
+                pass = pass && run<layout_map<2, 1, 0>, float>(cartcomm, halo);
+
+                // Run tests with double-precision floating point
+                pass = pass && run<layout_map<0, 1, 2>, double>(cartcomm, halo);
+                pass = pass && run<layout_map<0, 2, 1>, double>(cartcomm, halo);
+                pass = pass && run<layout_map<1, 0, 2>, double>(cartcomm, halo);
+                pass = pass && run<layout_map<1, 2, 0>, double>(cartcomm, halo);
+                pass = pass && run<layout_map<2, 0, 1>, double>(cartcomm, halo);
+                pass = pass && run<layout_map<2, 1, 0>, double>(cartcomm, halo);
+
+                // Run tests with structure
+                pass = pass && run<layout_map<0, 1, 2>, triplet>(cartcomm, halo);
+                pass = pass && run<layout_map<0, 2, 1>, triplet>(cartcomm, halo);
+                pass = pass && run<layout_map<1, 0, 2>, triplet>(cartcomm, halo);
+                pass = pass && run<layout_map<1, 2, 0>, triplet>(cartcomm, halo);
+                pass = pass && run<layout_map<2, 0, 1>, triplet>(cartcomm, halo);
+                pass = pass && run<layout_map<2, 1, 0>, triplet>(cartcomm, halo);
+            }
         }
 
         out.close();
     }
 
+    // Finalization
+    if (rank == 0)
+    {
+        std::cout << "\n\nOVERALL RESULT WITH " << size << " RANKS: "
+                  << (pass ? "PASSED" : "FAILED") << "\n";
+    }
+
+    int ret = pass ? 0 : 1;
+    MPI_Bcast(&ret, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
     MPI_Finalize();
+
+    return ret;
 }
 
