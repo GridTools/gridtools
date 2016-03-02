@@ -85,12 +85,12 @@ namespace test_iterate_domain{
 
         std::shared_ptr<intermediate_t> computation_ = std::static_pointer_cast<intermediate_t>(make_computation<gridtools::backend<enumtype::Host, enumtype::Naive > >
             (
-                domain, grid,
                 gridtools::make_mss // mss_descriptor
                 (
                     enumtype::execute<enumtype::forward>(),
                     gridtools::make_esf<dummy_functor>(p_in() ,p_buff(), p_out())
                     )
+                ,domain, grid
                 ));
 
         typedef decltype(gridtools::make_esf<dummy_functor>(p_in() ,p_buff(), p_out())) esf_t;
