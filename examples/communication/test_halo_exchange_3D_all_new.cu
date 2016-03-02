@@ -427,7 +427,8 @@ void run(MPI_Comm communicator, int halo=1)
 
     if (rank == 0)
     {
-        std::cout << "float" << FLOAT_PRECISION << " test with map <"
+        std::string testname = use_triplet ? "triplet" : std::string("float_")+std::to_string(FLOAT_PRECISION);
+        std::cout << testname << " test with map <"
             << layoutmap::template at<0>() << ", " << layoutmap::template at<1>() << ", " << layoutmap::template at<2>()
             << ">, periodicity (" << periods[0] << ", " << periods[1] << ", " << periods[2] << "): ";
         std::cout << (checkall ? "PASSED" : "FAILED") << "\n";
@@ -488,12 +489,12 @@ int main(int argc, char** argv)
             run<gridtools::layout_map<2, 1, 0>, false>(cartcomm);
 
             //// Run tests with structure
-            //run<gridtools::layout_map<0, 1, 2>, true>(cartcomm);
-            //run<gridtools::layout_map<0, 2, 1>, true>(cartcomm);
-            //run<gridtools::layout_map<1, 0, 2>, true>(cartcomm);
-            //run<gridtools::layout_map<1, 2, 0>, true>(cartcomm);
-            //run<gridtools::layout_map<2, 0, 1>, true>(cartcomm);
-            //run<gridtools::layout_map<2, 1, 0>, true>(cartcomm);
+            run<gridtools::layout_map<0, 1, 2>, true>(cartcomm);
+            run<gridtools::layout_map<0, 2, 1>, true>(cartcomm);
+            run<gridtools::layout_map<1, 0, 2>, true>(cartcomm);
+            run<gridtools::layout_map<1, 2, 0>, true>(cartcomm);
+            run<gridtools::layout_map<2, 0, 1>, true>(cartcomm);
+            run<gridtools::layout_map<2, 1, 0>, true>(cartcomm);
         }
 
         out.close();
