@@ -99,9 +99,9 @@ namespace gridtools {
             GT_FUNCTION
             constexpr
             auto operator() (Expression<Accessor, FloatType> const& arg) const
-                ->decltype(evaluation::value_scalar(*this, arg)) {
+                ->decltype(evaluation::value(*this, arg)) {
                 //TODO RENAME ACCESSOR,is not an accessor but an expression, and add an assertion for type
-                return evaluation::value_scalar((*this), arg);
+                return evaluation::value((*this), arg);
             }
         };
 
