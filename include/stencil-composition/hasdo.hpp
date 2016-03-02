@@ -60,6 +60,12 @@ namespace gridtools {
 
         no operator, (no const&, yes);
 
+        template <typename F>
+        struct embed : F {
+            using F::Do;
+            static no Do(...);
+        };
+
         // if there is a Do member but no domain parameter check for TResult Do(TArguments)
         template<
             typename TFunctor,
@@ -67,22 +73,28 @@ namespace gridtools {
         struct check_if<true, TFunctor, TInterval>
         {
 
-            template <typename F>
-            struct embed : F {
-                using F::Do;
-                static no Do(...);
-            };
-
 
             template <typename Functor, typename Arg, typename Interval>
             struct has_do_impl {
-                static const bool value = sizeof( (embed<Functor>::Do(Arg(), *(Interval*)0), yes()) ) == sizeof(yes);
+                // this check makes the first argument match anything, const or not
+                static const bool value = sizeof( (embed<Functor>::Do(*(Arg*)0, *(Interval*)0), yes()) ) == sizeof(yes);
             };
 
             static const bool value = has_do_impl<TFunctor, int, TInterval>::value;
 
         };
-    }
+
+        template <bool, typename Functor, typename Interval>
+        struct check_if_const {
+            static const bool value = sizeof( (embed<Functor>::Do(int(), *(Interval*)0), yes()) ) == sizeof(yes);
+        };
+
+        template <typename Functor, typename Interval>
+        struct check_if_const<false, Functor, Interval> {
+            static const bool value = true;
+        };
+
+    } // namespace HasDoDetails
 
     /**
      * @struct has_do
@@ -94,6 +106,8 @@ namespace gridtools {
         typename TInterval>
     struct has_do
     {
+       GRIDTOOLS_STATIC_ASSERT((is_interval<TInterval>::value or is_level<TInterval>::value), "has_do second argument must be an interval or a level.");
+
         BOOST_STATIC_CONSTANT(bool, value = (
                                              HasDoDetails::check_if<
                                              has_do_member<TFunctor>::value,
@@ -102,6 +116,9 @@ namespace gridtools {
                                              >::value)
             );
         typedef boost::mpl::bool_<bool(value)> type;
+
+        GRIDTOOLS_STATIC_ASSERT((HasDoDetails::check_if_const<value, TFunctor, TInterval>::value), "Functor signature not compliant");
+
     };
 
 } // namespace gridtools
