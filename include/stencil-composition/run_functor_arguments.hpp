@@ -31,7 +31,8 @@ namespace gridtools {
         typename ProcessingElementsBlockSize,
         typename PhysicalDomainBlockSize,
         typename Grid,
-        bool IsReduction
+        bool IsReduction,
+        typename FunctorReturnType
     >
     struct iterate_domain_arguments
     {
@@ -54,6 +55,7 @@ namespace gridtools {
         typedef PhysicalDomainBlockSize physical_domain_block_size_t;
         typedef Grid grid_t;
         static const bool s_is_reduction = IsReduction;
+        typedef FunctorReturnType functor_return_type_t;
     };
 
     template<typename T> struct is_iterate_domain_arguments : boost::mpl::false_{};
@@ -68,7 +70,8 @@ namespace gridtools {
         typename ProcessingElementsBlockSize,
         typename PhysicalDomainBlockSize,
         typename Grid,
-        bool IsReduction>
+        bool IsReduction,
+        typename FunctorReturnType>
     struct is_iterate_domain_arguments<
         iterate_domain_arguments<
             BackendIds,
@@ -80,7 +83,8 @@ namespace gridtools {
             ProcessingElementsBlockSize,
             PhysicalDomainBlockSize,
             Grid,
-            IsReduction> > :
+            IsReduction,
+            FunctorReturnType> > :
         boost::mpl::true_{};
 
     /**
@@ -148,13 +152,15 @@ namespace gridtools {
                         ProcessingElementsBlockSize,
                         PhysicalDomainBlockSize,
                         Grid,
-                        IsReduction
+                        IsReduction,
+                        FunctorReturnType
                     >
                 >::type iterate_domain_t;
         typedef Grid grid_t;
         typedef ExecutionEngine execution_type_t;
         static const enumtype::strategy s_strategy_id=backend_ids_t::s_strategy_id;
         static const bool s_is_reduction = IsReduction;
+        typedef FunctorReturnType functor_return_type_t;
     };
 
     template<typename T> struct is_run_functor_arguments : boost::mpl::false_{};
