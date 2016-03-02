@@ -80,7 +80,6 @@ namespace test_iterate_domain{
                                    , boost::mpl::quote1<is_mss_descriptor> >
                              , decltype(domain)
                              , decltype(grid)
-                             , boost::fusion::set<>
                              , false
                              > intermediate_t;
 
