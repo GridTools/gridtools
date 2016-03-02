@@ -70,12 +70,12 @@ namespace test_iterate_domain{
 
         auto computation = make_computation<gridtools::backend<enumtype::Host, enumtype::Naive > >
             (
+                domain, grid,
                 gridtools::make_mss // mss_descriptor
                 (
                     enumtype::execute<enumtype::forward>(),
                     gridtools::make_esf<dummy_functor>(p_in() ,p_buff(), p_out())
-                    ),
-                domain, grid
+                    )
                 );
 
         typedef decltype(gridtools::make_esf<dummy_functor>(p_in() ,p_buff(), p_out())) esf_t;
@@ -83,7 +83,21 @@ namespace test_iterate_domain{
         computation->ready();
         computation->steady();
 
-        typedef boost::remove_reference<decltype(*computation)>::type intermediate_t;
+        typedef intermediate<gridtools::backend<enumtype::Host, enumtype::Naive >
+                             , gridtools::meta_array<
+                                 boost::mpl::vector<decltype(
+                                     gridtools::make_mss // mss_descriptor
+                                     (
+                                         enumtype::execute<enumtype::forward>(),
+                                         gridtools::make_esf<dummy_functor>(p_in() ,p_buff(), p_out())
+                                         )
+                                     ) >
+                                   , boost::mpl::quote1<is_mss_descriptor> >
+                             , decltype(domain)
+                             , decltype(grid)
+                             , boost::fusion::set<>
+                             , false
+                             > intermediate_t;
         typedef intermediate_mss_local_domains<intermediate_t>::type mss_local_domains_t;
 
         typedef boost::mpl::front<mss_local_domains_t>::type mss_local_domain1_t;
@@ -95,13 +109,15 @@ namespace test_iterate_domain{
                 boost::mpl::at_c<typename mss_local_domain1_t::fused_local_domain_sequence_t, 0>::type,
                 boost::mpl::vector1<esf_t>,
                 boost::mpl::vector1<extent<0,0,0,0> >,
+                extent<0,0,0,0>,
                 boost::mpl::vector0<>,
+                block_size<32,4>,
                 block_size<32,4>,
                 gridtools::grid<axis>
                 >
             > it_domain_t;
 
-        mss_local_domain1_t mss_local_domain1=boost::fusion::at_c<0>(computation->mss_local_domain_list());
+        mss_local_domain1_t mss_local_domain1=boost::fusion::at_c<0>((std::dynamic_pointer_cast< intermediate_t > (computation) )->mss_local_domain_list());
         auto local_domain1=boost::fusion::at_c<0>(mss_local_domain1.local_domain_list);
         it_domain_t it_domain(local_domain1);
 

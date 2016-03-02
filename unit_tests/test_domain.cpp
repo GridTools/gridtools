@@ -9,7 +9,6 @@
 
 #define BOOST_NO_CXX11_RVALUE_REFERENCES
 
-#include <cuda_runtime.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
@@ -18,7 +17,7 @@
 #include <boost/fusion/include/make_vector.hpp>
 #include <boost/mpl/vector.hpp>
 
-#include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 using gridtools::uint_t;
 using gridtools::int_t;
@@ -109,7 +108,7 @@ bool test_domain() {
     uint_t d2 = 3;
     uint_t d3 = 3;
 
-    typename storage_type::meta_data_t meta_(d1,d2,d3);
+    typename storage_type::storage_info_type meta_(d1,d2,d3);
     storage_type in(meta_, -1, ("in"));
     storage_type out(meta_,-7.3, ("out"));
     storage_type coeff(meta_,-3.4, ("coeff"));
@@ -211,9 +210,9 @@ bool test_domain() {
 #endif
     domain.finalize_computation();
 
-    coeff.data().update_cpu();
-    in.data().update_cpu();
-    out.data().update_cpu();
+    coeff.d2h_update();
+    in.d2h_update();
+    out.d2h_update();
 
     boost::fusion::copy(domain.m_storage_pointers, actual_arg_list);
 
@@ -238,9 +237,9 @@ bool test_domain() {
 
     domain.finalize_computation();
 
-    coeff.data().update_cpu();
-    in.data().update_cpu();
-    out.data().update_cpu();
+    coeff.d2h_update();
+    in.d2h_update();
+    out.d2h_update();
 
     cudaFree(arg_list_device_ptr);
 

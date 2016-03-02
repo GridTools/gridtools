@@ -37,7 +37,7 @@ namespace gridtools{
         template <typename Grid>
         bool operator()(Grid const& grid_, array<uint_t, NCoord> const &pos)
         {
-            typename StorageType::meta_data_t const* meta=&m_exp_field.meta_data();
+            typename StorageType::storage_info_type const* meta=&m_exp_field.meta_data();
 
             const gridtools::uint_t size = meta->template  dims<NDim-1>();
             bool verified = true;
@@ -81,7 +81,7 @@ namespace gridtools{
             /* hypothesis: coordinate 2 is along k */
             if(pos[2] < grid_.value_at_top())
             {
-                typename StorageType::meta_data_t const* meta=&m_exp_field.meta_data();
+                typename StorageType::storage_info_type const* meta=&m_exp_field.meta_data();
 
                 typename StorageType::value_type expected = m_exp_field.fields()[m_field_id][meta->index(pos)];
                 typename StorageType::value_type actual = m_actual_field.fields()[m_field_id][meta->index(pos)];
@@ -107,7 +107,7 @@ namespace gridtools{
     bool verify_functor(Grid const& grid_, StorageType const & exp_field, StorageType const & actual_field, uint_t field_id,
                         array<array<uint_t, 2>, StorageType::space_dimensions> halos, double precision)
     {
-        typename StorageType::meta_data_t const* meta=&exp_field.meta_data();
+        typename StorageType::storage_info_type const* meta=&exp_field.meta_data();
 
         const gridtools::uint_t size = meta->template  dims<NDim-1>();
         bool verified = true;
@@ -138,7 +138,7 @@ namespace gridtools{
         template<typename Grid, typename StorageType>
         bool verify(Grid const& grid_, StorageType const& field1, StorageType const& field2, const array<array<uint_t, 2>, StorageType::space_dimensions> halos)
         {
-            typename StorageType::meta_data_t const* meta=&field1.meta_data();
+            typename StorageType::storage_info_type const* meta=&field1.meta_data();
 
             bool verified = true;
 
@@ -201,7 +201,7 @@ namespace gridtools{
             // assert(field1.template dims<0>() == field2.template dims<0>());
             // assert(field1.template dims<1>() == field2.template dims<1>());
             // assert(field1.template dims<2>() == field2.template dims<2>());
-            typename storage_type::meta_data_t const* meta=&field1.meta_data();
+            typename storage_type::storage_info_type const* meta=&field1.meta_data();
 
             const gridtools::uint_t idim = meta->template dims<0>();
             const gridtools::uint_t jdim = meta->template dims<1>();

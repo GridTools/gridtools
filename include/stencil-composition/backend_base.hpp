@@ -26,6 +26,7 @@
 #include "stencil-composition/tile.hpp"
 #include "storage/meta_storage.hpp"
 #include "../storage/halo.hpp"
+#include "condition.hpp"
 
 /**
    @file
@@ -323,6 +324,15 @@ namespace gridtools {
             >::type type;
         };
 
+        template <typename Domain, typename MssArray1, typename MssArray2, typename Cond>
+        struct obtain_map_extents_temporaries_mss_array<Domain, condition<MssArray1, MssArray2, Cond> > {
+            GRIDTOOLS_STATIC_ASSERT((is_domain_type<Domain>::value), "Internal Error: wrong type");
+
+            typedef typename obtain_map_extents_temporaries_mss_array<Domain, MssArray1>::type type1;
+            typedef typename obtain_map_extents_temporaries_mss_array<Domain, MssArray2>::type type2;
+
+            typedef condition<type1, type2, Cond> type;
+        };
 
         /**
          * @brief compute a list with all the temporary storage types used by an array of mss
@@ -337,7 +347,7 @@ namespace gridtools {
                   >
         struct obtain_temporary_storage_types {
 
-            GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_condition<MssComponentsArray>::value || is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
             GRIDTOOLS_STATIC_ASSERT((is_domain_type<Domain>::value), "Internal Error: wrong type");
 
             typedef typename backend_traits_t::template get_block_size<StrategyId>::type block_size_t;
@@ -391,7 +401,6 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssLocalDomainArray, is_mss_local_domain>::value), "Internal Error: wrong type");
             GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
             GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
-
             strategy_traits_t::template fused_mss_loop<MssComponentsArray, BackendId>::run(mss_local_domain_list, grid);
         }
 

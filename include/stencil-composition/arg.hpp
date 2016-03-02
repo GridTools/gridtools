@@ -97,7 +97,7 @@ public:
 
         //location type is only used by other grids, supported only for cxx11
 #ifdef CXX11_ENABLED
-        using location_type = typename Storage::meta_data_t::index_type;
+        using location_type = typename Storage::storage_info_type::index_type;
 #endif
 
         template<typename Storage2>

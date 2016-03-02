@@ -17,52 +17,296 @@ namespace gridtools{
     {
         typedef BaseStorage super;
         typedef typename BaseStorage::basic_type basic_type;
+        typedef typename basic_type::storage_info_type storage_info_type;
         typedef storage<BaseStorage> original_storage;
         typedef clonable_to_gpu<storage<BaseStorage> > gpu_clone;
         typedef typename BaseStorage::iterator_type iterator_type;
         typedef typename BaseStorage::value_type value_type;
         static const ushort_t n_args = basic_type::n_width;
         static const ushort_t space_dimensions = basic_type::space_dimensions;
+    private:
+        typename super::storage_info_type const* m_device_storage_info;
+        bool m_on_host;
 
-#ifdef __CUDACC__
+        /**@brief change the storage state to host
+
+           do nothing if the storage is already in host stage
+         */
+        GT_FUNCTION
+        void on_host(){
+            if(!m_on_host){
+                m_device_storage_info = (&this->meta_data());
+                m_on_host = true;
+            }
+        }
+
+        /**@brief change the storage state to device
+
+           do nothing if the storage is already in device stage
+         */
+        GT_FUNCTION
+        void on_device(){
+            if(m_on_host){
+                m_device_storage_info = this->m_meta_data.device_pointer();
+                m_on_host = false;
+            }
+        }
+
+    public:
+
+        /**@brief calls the device copy constructor to update the device copy of the storage object.
+
+           Such copy constructor is not supposed to copy the storage data. A shallow copy is made of the pointers
+           contained in the m_fields data member. For this reason the call to clone_to_gpu has as side-effect a small kernel launch, but
+           it is not a costly transfer from the host to the device.
+        */
+        void clone_to_device() {
+#ifndef __CUDACC__
+            assert(m_device_storage_info);
+            assert(m_device_storage_info->device_pointer());
+#endif
+            on_device();
+            clonable_to_gpu<storage<BaseStorage> >::clone_to_device();
+        }
+
+        /** @brief updates the CPU pointer */
+        void d2h_update(){
+            super::d2h_update();
+            on_host();
+        }
+
+        /** @brief updates the CPU pointer */
+        void h2d_update(){
+            super::h2d_update();
+            on_device();
+        }
+
+        /**@brief device copy constructor
+
+           used by clone_to_device, to copy the object to the device (see \ref gridtools::clonable_to_gpu)
+           NOTE: the actual raw data of the storage is not copied, a shallow copy is made for the pointers in the m_fields data member.
+         */
         __device__
         storage(storage const& other)
             :  super(other)
-            {}
-#else
-    private:
-        storage(storage const& other);
-    public:
-#endif
+            , m_device_storage_info(other.m_device_storage_info)
+            , m_on_host(false)
+        {}
+
+        GT_FUNCTION
+        typename super::storage_info_type* device_storage_info(){
+            return m_device_storage_info;
+        }
 
 #if defined(CXX11_ENABLED)
         //forwarding constructor
         template <class ... ExtraArgs>
-        explicit storage(  typename basic_type::meta_data_t const& meta_data_, ExtraArgs const& ... args ):super(meta_data_, args ...)
-            {
-            }
+        explicit storage(  typename basic_type::storage_info_type const& meta_data_
+                           , ExtraArgs const& ... args )
+            :super(meta_data_, args ...)
+            , m_device_storage_info(&meta_data_)
+            , m_on_host(true)
+        {
+        }
 #else
 
         template<typename T>
-        explicit storage(  typename basic_type::meta_data_t const& meta_data_, T const& arg1 ):super(meta_data_, arg1)
-            {
-            }
+        explicit storage(  typename basic_type::storage_info_type const& meta_data_, T const& arg1 )
+            :super(meta_data_, arg1)
+            , m_device_storage_info(&meta_data_)
+            , m_on_host(true)
+        {
+        }
 
 
         template <class T, class U>
-        explicit storage(  typename basic_type::meta_data_t const& meta_data_, T const& arg1, U const& arg2 ):super(meta_data_, (value_type) arg1, arg2)
-            {
-            }
+        explicit storage(  typename basic_type::storage_info_type const& meta_data_, T const& arg1, U const& arg2 )
+            :super(meta_data_, (value_type) arg1, arg2)
+            , m_device_storage_info(&meta_data_)
+            , m_on_host(true)
+        {
+        }
 
         template <class T, class U>
-        explicit storage(  typename basic_type::meta_data_t const& meta_data_, T * arg1, U const& arg2 ):super(meta_data_, (value_type)* arg1, arg2)
-            {
-            }
+        explicit storage(  typename basic_type::storage_info_type const& meta_data_, T * arg1, U const& arg2 )
+            :super(meta_data_, (value_type)* arg1, arg2)
+            , m_device_storage_info(&meta_data_)
+            , m_on_host(true)
+        {
+        }
 
 #endif
 
 //    private :
-        explicit storage(typename basic_type::meta_data_t const& meta_data_):super(meta_data_){}
+        explicit storage(typename basic_type::storage_info_type const& meta_data_)
+            :super(meta_data_)
+            , m_device_storage_info(&meta_data_)
+        {}
+
+#ifdef CXX11_ENABLED
+
+        /**
+           explicitly disables the case in which the storage_info is passed by copy.
+        */
+        template <typename ... T>
+        storage(typename basic_type::storage_info_type&&, T...) = delete;
+
+        /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k)
+
+            this api is callable from the device if the associated storage_info has been previously cloned to the device
+         */
+        template <typename ... UInt>
+        GT_FUNCTION
+        value_type& operator()(UInt const& ... dims) {
+            //failure here means that you didn't call clone_to_device on the storage_info yet
+#ifdef CUDA_ARCH
+            // assert(!m_on_host);
+#ifndef NDEBUG
+            if(m_on_host)
+            {
+                printf("Error, accessing from the device a storage in the host state.");
+                exit(-33);
+            }
+#endif
+#else
+#ifndef NDEBUG
+            if(!m_on_host)
+            {
+                printf("Error, accessing from the host a storage in the device state.");
+                exit(-33);
+            }
+#endif
+#endif
+            // assert(m_device_storage_info);
+            return super::operator()(m_device_storage_info, dims...);
+        }
+
+        /** @brief returns (by const reference) the value of the data field at the coordinates (i, j, k)
+
+            this api is callable from the device if the associated storage_info has been previously cloned to the device
+         */
+        template <typename ... UInt>
+        GT_FUNCTION
+        value_type const & operator()(UInt const& ... dims) const {
+            //failure here means that you didn't call clone_to_device on the storage_info yet
+#ifdef CUDA_ARCH
+            // assert(!m_on_host);
+#ifndef NDEBUG
+            if(m_on_host)
+            {
+                printf("Error, accessing from the device a storage in the host state.");
+                exit(-33);
+            }
+#endif
+#else
+            // assert(m_on_host);
+#ifndef NDEBUG
+            if(!m_on_host)
+            {
+                printf("Error, accessing from the host a storage in the device state.");
+                exit(-33);
+            }
+#endif
+#endif
+            // assert(m_device_storage_info);
+            return super::operator()(m_device_storage_info, dims...);
+        }
+#else //CXX11_ENABLED
+
+        /**
+            @brief returns (by reference) the value of the data field at the coordinates (i, j, k)
+
+            this api is callable from the device if the associated storage_info has been previously cloned to the device
+*/
+        GT_FUNCTION
+        value_type& operator()( uint_t const& i, uint_t const& j, uint_t const& k) {
+#ifdef CUDA_ARCH
+            // assert(!m_on_host);
+#ifndef NDEBUG
+            if(m_on_host)
+            {
+                printf("Error, accessing from the device a storage in the host state.");
+                exit(-33);
+            }
+#endif
+#else
+            // assert(m_on_host);
+#ifndef NDEBUG
+            if(!m_on_host)
+            {
+                printf("Error, accessing from the host a storage in the device state.");
+                exit(-33);
+            }
+#endif
+#endif
+            // assert(m_device_storage_info);
+
+            //failure here means that you didn't call clone_to_device on the storage_info yet
+            //assert(m_device_storage_info);
+            return super::operator()(m_device_storage_info, i,j,k);
+        }
+
+
+        /**
+            @brief returns (by const reference) the value of the data field at the coordinates (i, j, k)
+
+            this api is callable from the device if the associated storage_info has been previously cloned to the device
+        */
+        GT_FUNCTION
+        value_type const & operator()( uint_t const& i, uint_t const& j, uint_t const& k) const {
+#ifdef CUDA_ARCH
+            // assert(!m_on_host);
+#ifndef NDEBUG
+            if(m_on_host)
+            {
+                printf("Error, accessing from the device a storage in the host state.");
+                exit(-33);
+            }
+#endif
+#else
+            // assert(m_on_host);
+#ifndef NDEBUG
+            if(!m_on_host)
+            {
+                printf("Error, accessing from the host a storage in the device state.");
+                exit(-33);
+            }
+#endif
+#endif
+            // assert(m_device_storage_info);
+
+            //failure here means that you didn't call clone_to_device on the storage_info yet
+            //assert(m_device_storage_info);
+            return super::operator()(m_device_storage_info, i,j,k);
+        }
+#endif
+
+
+
+    /**@brief swaps two arbitrary snapshots in two arbitrary data field dimensions
+
+       @tparam SnapshotFrom one snapshot
+       @tparam DimFrom one dimension
+       @tparam SnapshotTo the second snapshot
+       @tparam DimTo the second dimension
+
+       syntax:
+       swap<3,1>::with<4,1>::apply(storage_);
+    */
+    template<ushort_t SnapshotFrom, ushort_t DimFrom=0>
+    struct swap{
+        template<ushort_t SnapshotTo, ushort_t DimTo=0>
+        struct with{
+
+            template<typename Storage>
+            GT_FUNCTION
+            static void apply(Storage& storage_){
+                super::template swap<SnapshotFrom, DimFrom>::template with<SnapshotTo, DimTo>::apply(storage_);
+                storage_.clone_to_device();
+            }
+        };
+    };
+
     };
 
     /**@brief Convenient syntactic sugar for specifying an extended-dimension with extended-width storages, where each dimension has arbitrary size 'Number'.
@@ -86,7 +330,7 @@ namespace gridtools{
     */
     template< class BaseStorage, uint_t ... Number >
     struct field_reversed<storage<BaseStorage>, Number ... >{
-        typedef storage< data_field< storage_list<base_storage<typename BaseStorage::pointer_type, typename  BaseStorage::meta_data_t, accumulate(add_functor(), ((uint_t)Number) ... )>, Number-1> ... > > type;
+        typedef storage< data_field< storage_list<base_storage<typename BaseStorage::pointer_type, typename  BaseStorage::storage_info_type, accumulate(add_functor(), ((uint_t)Number) ... )>, Number-1> ... > > type;
     };
 
     /**
@@ -135,10 +379,25 @@ namespace gridtools{
         return s;
     }
 
-    template<typename T>
+    template <typename T>
     struct is_storage : boost::mpl::false_{};
 
     template<typename T>
     struct is_storage<storage<T> > : boost::mpl::true_{};
+
+#ifdef CXX11_ENABLED
+    template <typename T>
+    struct is_storage_list;
+
+    template<typename T, uint_t U>
+    struct is_storage<storage_list<T, U> > : boost::mpl::true_{};
+
+    template<typename ... T>
+    struct is_storage<data_field<T ...> > : boost::mpl::true_{};
+
+#endif
+
+    template < typename PointerType, typename MetaData, ushort_t FieldDimension >
+    struct is_storage<base_storage<PointerType, MetaData, FieldDimension> > : boost::mpl::true_{};
 
 }//namespace gridtools

@@ -3,6 +3,9 @@
 #include "common/generic_metafunctions/variadic_to_vector.hpp"
 #include "mss_metafunctions.hpp"
 #include "mss.hpp"
+#include "if_.hpp"
+#include "case_.hpp"
+#include "switch_.hpp"
 
 namespace gridtools {
 
@@ -22,13 +25,16 @@ namespace gridtools {
         typename extract_mss_caches<typename variadic_to_vector<MssParameters ...>::type >::type
     >
     make_mss(ExecutionEngine&& /**/, MssParameters ...  ) {
+
+        GRIDTOOLS_STATIC_ASSERT((is_execution_engine<ExecutionEngine>::value),
+                                "The first argument passed to make_mss must be the execution engine (e.g. execute<forward>(), execute<backward>(), execute<parallel>()");
+
         return mss_descriptor<
             ExecutionEngine,
             typename extract_mss_esfs<typename variadic_to_vector<MssParameters ... >::type >::type,
             typename extract_mss_caches<typename variadic_to_vector<MssParameters ... >::type >::type
         >();
     }
-
 
     /*!
        \fn independent_esf<...> make_independent(esf1, esf2, ...)
@@ -38,7 +44,6 @@ namespace gridtools {
 
        Function to create a list of independent Elementary Styencil Functions. This is used to let the library compute tight bounds on blocks to be used by backends
      */
-
     template <typename ... EsfDescr >
     independent_esf< boost::mpl::vector<EsfDescr ...> >
     make_independent(EsfDescr&& ... ) {

@@ -1,5 +1,6 @@
 list( APPEND SRCFILES interface1 simple_hori_diff boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore alignment)
 
+
 if( ENABLE_CXX11)
     list(APPEND SRCFILES  extended_4D  copy_stencil_single_storage)
 endif()
@@ -26,13 +27,26 @@ foreach(srcfile IN LISTS SRCFILES )
     gridtools_add_test( tests.${srcfile}_naive ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/${srcfile}_naive" "23 11 23")
 endforeach(srcfile)
 
-
 add_executable(vanilla_laplacian  vanilla_laplacian.cpp)
 set_target_properties(vanilla_laplacian PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
 target_link_libraries(vanilla_laplacian ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS})
 
 
 if ( ENABLE_CXX11 )
+    foreach( variation CALL MONOLITHIC OFFSETS PROCEDURES PROCEDURES_OFFSETS )
+        string(TOLOWER ${variation} var_suffix)
+        add_executable(interface1_functions_naive_${var_suffix}   interface1_functions.cpp ${GTEST_FILES})
+        add_executable(interface1_functions_block_${var_suffix}   interface1_functions.cpp ${GTEST_FILES})
+        set_target_properties(interface1_functions_naive_${var_suffix} PROPERTIES COMPILE_FLAGS "${ADDITIONAL_CXX_FLAGS} -DFUNCTIONS_${variation}")
+        set_target_properties(interface1_functions_block_${var_suffix} PROPERTIES COMPILE_FLAGS "${ADDITIONAL_CXX_FLAGS} -DFUNCTIONS_${variation}")
+        target_link_libraries(interface1_functions_naive_${var_suffix} ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS})
+        target_link_libraries(interface1_functions_block_${var_suffix} ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS})
+        gridtools_add_test( tests.interface1_functions_naive_${var_suffix} ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/interface1_functions_naive_${var_suffix}" "12 33 61")
+        gridtools_add_test( tests.interface1_functions_block_${var_suffix} ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/interface1_functions_block_${var_suffix}" "23 11 43")
+        gridtools_add_test( tests.interface1_functions_naive_${var_suffix} ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/interface1_functions_naive_${var_suffix}" "12 33 21")
+        gridtools_add_test( tests.interface1_functions_block_${var_suffix} ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/interface1_functions_block_${var_suffix}" "23 11 23")
+    endforeach(variation)
+
     if( GCL_MPI )
         add_executable(shallow_water_enhanced  shallow_water_enhanced.cpp)
         target_link_libraries(shallow_water_enhanced gcl ${ADD_MPI_LIBS} ${exe_LIBS})
@@ -59,6 +73,13 @@ if(CUDA_FOUND)
      endif()
 
     if( ENABLE_CXX11 )
+        foreach( variation CALL MONOLITHIC OFFSETS PROCEDURES PROCEDURES_OFFSETS)
+            string(TOLOWER ${variation} var_suffix)
+            cuda_add_executable(interface1_functions_cuda_${var_suffix}   interface1_functions.cu ${GTEST_FILES} OPTIONS "-DFUNCTIONS_${variation}")
+            target_link_libraries(interface1_functions_cuda_${var_suffix} ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS})
+            gridtools_add_test( tests.interface1_functions_cuda_${var_suffix} ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/interface1_functions_cuda_${var_suffix}" "23 11 43")
+            gridtools_add_test( tests.interface1_functions_cuda_${var_suffix} ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/interface1_functions_cuda_${var_suffix}" "23 11 23")
+        endforeach(variation)
         if( GCL_MPI )
           cuda_add_executable(shallow_water_enhanced_cuda  shallow_water_enhanced.cu OPTIONS )
           target_link_libraries(shallow_water_enhanced_cuda ${exe_LIBS}  gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS})

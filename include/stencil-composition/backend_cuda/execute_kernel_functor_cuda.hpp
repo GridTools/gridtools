@@ -9,6 +9,14 @@
 namespace gridtools {
 
 namespace _impl_cuda {
+
+    template<int VBoundary>
+    struct padded_boundary :
+        boost::mpl::integral_c<int, VBoundary <= 1 ? 1 : (VBoundary <= 2 ? 2 : (VBoundary <= 4 ? 4 : 8 ))>
+    {
+        BOOST_STATIC_ASSERT(VBoundary >= 0 && VBoundary <= 8);
+    };
+
     template <typename RunFunctorArguments,
               typename LocalDomain>
     __global__
@@ -20,7 +28,9 @@ namespace _impl_cuda {
         typedef typename RunFunctorArguments::execution_type_t execution_type_t;
 
         typedef typename RunFunctorArguments::physical_domain_block_size_t block_size_t;
+        typedef typename RunFunctorArguments::extent_sizes_t extent_sizes_t;
 
+        typedef typename RunFunctorArguments::max_extent_t max_extent_t;
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
         typedef typename RunFunctorArguments::async_esf_map_t async_esf_map_t;
 
@@ -30,6 +40,7 @@ namespace _impl_cuda {
         typedef shared_iterate_domain<
             data_pointer_array_t,
             strides_t,
+            max_extent_t,
             typename iterate_domain_t::iterate_domain_cache_t::ij_caches_tuple_t
         > shared_iterate_domain_t;
 
@@ -51,14 +62,81 @@ namespace _impl_cuda {
         __syncthreads();
 
         //computing the global position in the physical domain
-        const int i = blockIdx.x * block_size_t::i_size_t::value + threadIdx.x;
-        const int j = blockIdx.y * block_size_t::j_size_t::value + threadIdx.y;
+        /*
+         *  In a typical cuda block we have the following regions
+         *
+         *    aa bbbbbbbb cc
+         *    aa bbbbbbbb cc
+         *
+         *    hh dddddddd ii
+         *    hh dddddddd ii
+         *    hh dddddddd ii
+         *    hh dddddddd ii
+         *
+         *    ee ffffffff gg
+         *    ee ffffffff gg
+         *
+         * Regions b,d,f have warp (or multiple of warp size)
+         * Size of regions a, c, h, i, e, g are determined by max_extent_t
+         * Regions b,d,f are easily executed by dedicated warps (one warp for each line).
+         * Regions (a,h,e) and (c,i,g) are executed by two specialized warp
+         *
+         */
+        //jboundary_limit determines the number of warps required to execute (b,d,f)
+        const int jboundary_limit = block_size_t::j_size_t::value - max_extent_t::jminus::value
+            + max_extent_t::jplus::value;
+        //iminus_limit adds to jboundary_limit an additional warp for regions (a,h,e)
+        const int iminus_limit = jboundary_limit + (max_extent_t::iminus::value<0 ? 1 : 0);
+        //iminus_limit adds to iminus_limit an additional warp for regions (c,i,g)
+        const int iplus_limit = iminus_limit + (max_extent_t::iplus::value>0 ? 1 : 0);
 
+        //The kernel allocate enough warps to execute all halos of all ESFs.
+        // The max_extent_t is the enclosing extent of all the ESFs
+        // (i,j) is the position (in the global domain, minus initial halos which are accounted with istart, jstart args)
+        // of this thread within the physical block
+        // (iblock, jblock) are relative positions of the thread within the block. Grid positions in the halos of the block
+        //   get negative values
+
+        int i=max_extent_t::iminus::value-1;
+        int j=max_extent_t::jminus::value-1;
+        int iblock=max_extent_t::iminus::value-1;
+        int jblock=max_extent_t::jminus::value-1;
+        if(threadIdx.y < jboundary_limit)
+        {
+            i = blockIdx.x * block_size_t::i_size_t::value + threadIdx.x;
+            j = blockIdx.y * block_size_t::j_size_t::value + threadIdx.y + max_extent_t::jminus::value;
+            iblock = threadIdx.x;
+            jblock = threadIdx.y + max_extent_t::jminus::value;
+        }
+        else if(threadIdx.y < iminus_limit)
+        {
+            const int padded_boundary_ = padded_boundary<-max_extent_t::iminus::value>::value;
+            //we dedicate one warp to execute regions (a,h,e), so here we make sure we have enough threads
+            assert( (block_size_t::j_size_t::value - max_extent_t::jminus::value + max_extent_t::jplus::value)*padded_boundary_ <= enumtype::vector_width);
+
+            i = blockIdx.x * block_size_t::i_size_t::value -padded_boundary_ + threadIdx.x % padded_boundary_;
+            j = blockIdx.y* block_size_t::j_size_t::value +  threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
+            iblock = -padded_boundary_ + threadIdx.x % padded_boundary_;
+            jblock = threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
+        }
+        else if(threadIdx.y < iplus_limit)
+        {
+            const int padded_boundary_ = padded_boundary<max_extent_t::iplus::value>::value;
+            //we dedicate one warp to execute regions (c,i,g), so here we make sure we have enough threads
+            assert( (block_size_t::j_size_t::value - max_extent_t::jminus::value + max_extent_t::jplus::value)*padded_boundary_ <= enumtype::vector_width);
+
+            i = blockIdx.x * block_size_t::i_size_t::value + threadIdx.x % padded_boundary_ + block_size_t::i_size_t::value;
+            j = blockIdx.y* block_size_t::j_size_t::value + threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
+            iblock = threadIdx.x % padded_boundary_ + block_size_t::i_size_t::value;
+            jblock = threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
+        }
         it_domain.set_index(0);
 
         //initialize the indices
         it_domain.template initialize<0>(i+starti, blockIdx.x);
         it_domain.template initialize<1>(j+startj, blockIdx.y);
+
+        it_domain.set_block_pos(iblock,jblock);
 
         typedef typename boost::mpl::front<typename RunFunctorArguments::loop_intervals_t>::type interval;
         typedef typename index_to_level<typename interval::first>::type from;
@@ -72,6 +150,8 @@ namespace _impl_cuda {
             (_impl::run_f_on_interval<
              execution_type_t,
              RunFunctorArguments>(it_domain,*grid) );
+
+        __syncthreads();
     }
 } // namespace _impl_cuda
 
@@ -155,7 +235,7 @@ struct execute_kernel_functor_cuda
             block_size_t::i_size_t::value,
             (block_size_t::j_size_t::value - maximum_extent_t::jminus::value + maximum_extent_t::jplus::value +
                     (maximum_extent_t::iminus::value != 0 ? 1 : 0) + (maximum_extent_t::iplus::value != 0 ? 1 : 0)
-            )/ ((maximum_extent_t::iminus::value != 0  || maximum_extent_t::iplus::value != 0 ) ? 2 : 1)
+            )
         > cuda_block_size_t;
 
         //number of grid points that a cuda block covers

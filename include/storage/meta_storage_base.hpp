@@ -182,9 +182,15 @@ namespace gridtools {
 #endif
         // variadic constexpr constructor
 
-        /**
-           @brief constructor taking the space dimensions as integers
+        /**@brief generic multidimensional constructor given the space dimensions
 
+           There are two possible types of storage dimension. One (space dimension) defines the number of indexes
+           used to access a contiguous chunk of data. The other (field dimension) defines the number of pointers
+           to the data chunks (i.e. the number of snapshots) contained in the storage. This constructor
+           allows to create a storage with arbitrary space dimensions. The extra dimensions can be
+           used e.g. to perform extra inner loops, besides the standard ones on i,j and k.
+
+           The number of arguments must me equal to the space dimensions of the specific field (template parameter)
            NOTE: this contructor is constexpr, i.e. the storage metadata information could be used
            at compile-time (e.g. in template metafunctions)
          */
@@ -241,18 +247,23 @@ namespace gridtools {
                 );
         }
 #else //__CUDACC__ nvcc does not get it: checks only the first argument
-        template <class First, class ... IntTypes
-                  , typename Dummy = typename boost::enable_if_c<boost::is_integral<First>::type::value, bool>::type //nvcc does not get it
-                  >
-        constexpr meta_storage_base( First const& first_,  IntTypes const& ... dims_  ) :
+        template < class ... IntTypes,
+                   typename Dummy = typename boost::enable_if_c<
+                       boost::is_integral<
+                           typename boost::mpl::at_c<
+                               boost::mpl::vector<IntTypes ...>, 0 >::type
+                           >::type::value, bool
+                       >::type
+                   >
+        constexpr meta_storage_base(  IntTypes... dims_) :
 #ifdef CXX11_ENABLED
-            m_dims{first_, dims_...}
+            m_dims{ dims_...}
 #else
-            m_dims(first_, dims_...)
+            m_dims( dims_...)
 #endif
-            , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply( first_, dims_...))
+            , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout>::apply(  dims_...))
             {
-                GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes)+1==space_dimensions, "you tried to initialize\
+                GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes)==space_dimensions, "you tried to initialize\
  a storage with a number of integer arguments different from its number of dimensions. \
 This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
  a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
@@ -367,7 +378,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         template<size_t S>
         GT_FUNCTION
         uint_t index(array<uint_t, S> a) const {
-            return explode<uint_t, _impl_index>(a, *this);
+            return (uint_t) explode<uint_t, _impl_index>(a, *this);
         }
 #else
         /**@brief straightforward interface*/
@@ -459,7 +470,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
 
         template <typename OffsetTuple>
         GT_FUNCTION
-        constexpr int_t _index(OffsetTuple  const& tuple) {
+        constexpr int_t _index(OffsetTuple  const& tuple) const {
             return _impl::compute_offset<space_dimensions, layout>::apply(strides(), tuple);
         }
 

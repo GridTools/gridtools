@@ -487,6 +487,7 @@ namespace shallow_water{
         auto shallow_water_stencil =
             make_computation<gridtools::BACKEND>
             (
+                domain, grid,
                 make_mss // mss_descriptor
                 (
                     execute<forward>(),
@@ -494,8 +495,7 @@ namespace shallow_water{
                         make_esf<flux_x> (p_tmpx(), p_sol() ),
                         make_esf<flux_y>(p_tmpy(), p_sol() )),
                     make_esf<final_step>(p_tmpx(), p_tmpy(), p_sol() )
-                    ),
-                domain, grid
+                    )
                 );
 //! [computation]
 
@@ -528,19 +528,9 @@ namespace shallow_water{
             myfile<<"#####################################################"<<std::endl;
 #endif
 
-#ifndef CUDA_EXAMPLE
-            boost::timer::cpu_timer time;
-#endif
-
 //! [run]
             shallow_water_stencil->run();
 //! [run]
-
-#ifndef CUDA_EXAMPLE
-                boost::timer::cpu_times lapse_time = time.elapsed();
-                if(PID==0)
-                    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
-#endif
         }
 
 //! [finalize]

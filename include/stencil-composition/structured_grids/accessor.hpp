@@ -1,7 +1,7 @@
 #pragma once
-#include "stencil-composition/structured_grids/accessor_impl.hpp"
-#include "stencil-composition/arg.hpp"
-#include "stencil-composition/dimension.hpp"
+#include "accessor_impl.hpp"
+#include "../arg.hpp"
+#include "../dimension.hpp"
 #include "../../common/generic_metafunctions/all_integrals.hpp"
 #include "../../common/generic_metafunctions/static_if.hpp"
 /**
@@ -26,6 +26,8 @@
 */
 
 namespace gridtools {
+
+
 
     /**
        @brief the definition of accessor visible to the user

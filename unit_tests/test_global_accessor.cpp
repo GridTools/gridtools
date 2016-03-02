@@ -23,7 +23,7 @@ struct boundary : clonable_to_gpu<boundary> {
     typedef boundary value_type; //TODO remove
     static const ushort_t field_dimensions=1; //TODO remove
 
-    double value(){return 10.;}
+    double value() const {return 10.;}
 
     template<typename ID>
     boundary * access_value() const {return const_cast<boundary*>(this);} //TODO change this?
@@ -77,18 +77,22 @@ TEST(test_global_accessor, boundary_conditions) {
     domain_type<boost::mpl::vector<p_sol, p_bd> > domain ( boost::fusion::make_vector( &sol_, &bd_));
 #endif
 
-#ifdef __CUDACC__
-    computation* bc_eval =
+#ifdef CXX11_ENABLED
+    auto
 #else
-        boost::shared_ptr<computation> bc_eval =
+#ifdef __CUDACC__
+        computation*
+#else
+        boost::shared_ptr<computation>
 #endif
-        make_computation< backend_t >
+#endif
+        bc_eval = make_computation< backend_t >
         (
-            make_mss
+            domain, coords_bc
+            , make_mss
             (
                 execute<forward>(),
                 make_esf<functor>(p_sol(), p_bd()))
-            , domain, coords_bc
             );
 
     bc_eval->ready();

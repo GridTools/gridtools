@@ -36,6 +36,7 @@ struct split_mss_into_independent_esfs
         >::type type;
     };
 
+
     typedef meta_array<
         typename boost::mpl::reverse_fold<
             typename MssArray::elements,
@@ -47,7 +48,9 @@ struct split_mss_into_independent_esfs
         >::type,
         boost::mpl::quote1<is_mss_descriptor>
     > type;
+
 };
+
 
 
 /**
@@ -56,19 +59,19 @@ struct split_mss_into_independent_esfs
  * @tparam MssDescriptorArray meta array of mss descriptors
  * @tparam extent_sizes sequence of sequence of extents
  */
-template<
-    enumtype::platform BackendId,
-    typename MssDescriptorArray,
-    typename ExtendSizes
+    template<
+        enumtype::platform BackendId,
+        typename MssDescriptorArray,
+    typename ExtentSizes
 >
 struct build_mss_components_array
 {
     GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssDescriptorArray, is_mss_descriptor>::value), "Internal Error: wrong type");
 
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename MssDescriptorArray::elements>::value ==
-                             boost::mpl::size<ExtendSizes>::value), "Internal Error: wrong size");
+                             boost::mpl::size<ExtentSizes>::value), "Internal Error: wrong size");
 
-    template<typename _ExtendSizes_>
+    template<typename _ExtentSizes_>
     struct unroll_extent_sizes
     {
         template<typename State, typename Sequence>
@@ -83,11 +86,13 @@ struct build_mss_components_array
                 >
             >::type type;
         };
+
         typedef typename boost::mpl::fold<
-            _ExtendSizes_,
+            _ExtentSizes_,
             boost::mpl::vector0<>,
             insert_unfold<boost::mpl::_1, boost::mpl::_2>
         >::type type;
+
     };
 
     typedef typename boost::mpl::eval_if<
@@ -98,13 +103,13 @@ struct build_mss_components_array
 
     typedef typename boost::mpl::eval_if<
         typename backend_traits_from_id<BackendId>::mss_fuse_esfs_strategy,
-        boost::mpl::identity<ExtendSizes>,
-        unroll_extent_sizes<ExtendSizes>
+        boost::mpl::identity<ExtentSizes>,
+        unroll_extent_sizes<ExtentSizes>
     >::type extent_sizes_unrolled_t;
 
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename mss_array_t::elements>::value ==
         boost::mpl::size<extent_sizes_unrolled_t>::value
-                                ), "Internal Error: wrong size");
+                                ), "wrong size of the arg_type vector defined inside at least one of the user functions");
 
     typedef meta_array<
         typename boost::mpl::fold<
@@ -126,7 +131,50 @@ struct build_mss_components_array
         >::type,
         boost::mpl::quote1<is_mss_components>
     > type;
+
+    };
+
+
+/**
+ * @brief metafunction that builds a pair of arrays of mss components, to be handled at runtime
+ via conditional switches
+
+ * @tparam BackendId id of the backend (which decides whether the MSS with multiple ESF are split or not)
+ * @tparam MssDescriptorArray1 meta array of mss descriptors
+ * @tparam MssDescriptorArray2 meta array of mss descriptors
+ * @tparam extent_sizes sequence of sequence of extents
+ */
+template<
+    enumtype::platform BackendId,
+    typename MssDescriptorArray1,
+    typename MssDescriptorArray2,
+    typename Predicate,
+    typename Condition,
+    typename ExtentSizes1,
+    typename ExtentSizes2
+>
+struct build_mss_components_array<BackendId
+                                  , meta_array<condition<MssDescriptorArray1, MssDescriptorArray2, Condition>, Predicate>
+                                  , condition<ExtentSizes1, ExtentSizes2, Condition> >
+{
+    // typedef typename pair<
+    //     typename build_mss_components_array<BackendId, MssDescriptorArray1, ExtentSizes>::type
+    //     , typename build_mss_components_array<BackendId, MssDescriptorArray1, ExtentSizes>::type >
+    // ::type type;
+    typedef condition<typename build_mss_components_array
+                      <BackendId
+                       , meta_array<MssDescriptorArray1
+                                    , Predicate>
+                       , ExtentSizes1>::type
+                      , typename build_mss_components_array
+                      <BackendId
+                       , meta_array<MssDescriptorArray2
+                                    , Predicate>
+                       , ExtentSizes2>::type
+                      , Condition> type;
+
 };
+
 
 /**
  * @brief metafunction that computes the mss functor do methods

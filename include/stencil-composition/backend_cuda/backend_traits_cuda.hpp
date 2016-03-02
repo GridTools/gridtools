@@ -110,16 +110,19 @@ namespace gridtools{
         /**
            @brief assigns the two given values using the given thread Id whithin the block
         */
-        template <uint_t Id>
+        template <uint_t Id, typename BlockSize>
         struct once_per_block {
+            GRIDTOOLS_STATIC_ASSERT((is_block_size<BlockSize>::value), "Error: wrong type");
+
             template<typename Left, typename Right>
             GT_FUNCTION
             static void assign(Left& l, Right const& r){
-                //TODOCOSUNA if there are more ID than threads in a block????
-                if(threadIdx.x==Id)
-                    {
-                        l=(Left)r;
-                    }
+                assert(blockDim.z==1);
+                const uint_t pe_elem = threadIdx.y * BlockSize::i_size_t::value + threadIdx.x;
+                if( Id%(BlockSize::i_size_t::value * BlockSize::j_size_t::value) == pe_elem)
+                {
+                    l=(Left)r;
+                }
             }
         };
 
