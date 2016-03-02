@@ -220,6 +220,7 @@ If you are not using generic accessors then you are using an unsupported storage
                 m_data_pointer_array[Offset+ID::value], m_storage->template access_value<ID>()+m_offset);
         }
 
+        /**@brief implementation in case of a generic accessor*/
         template<typename ID, typename Storage_>
         GT_FUNCTION
         void impl(typename boost::enable_if_c<boost::mpl::not_<typename is_any_storage<Storage_ >::type>::value>::type* t=0) const

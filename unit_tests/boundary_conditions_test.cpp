@@ -157,8 +157,8 @@ bool basic() {
 
 #ifdef __CUDACC__
     meta_.clone_to_device();
-    in.clone_to_device();
     in.h2d_update();
+    in.clone_to_device();
 
     gridtools::boundary_apply_gpu<bc_basic>(halos,  bc_basic()).apply(in);
 
@@ -270,8 +270,8 @@ bool predicate() {
 
 #ifdef __CUDACC__
     meta_.clone_to_device();
-    in.clone_to_device();
     in.h2d_update();
+    in.clone_to_device();
 
     gridtools::boundary_apply_gpu<bc_basic, minus_predicate>(halos, bc_basic(), minus_predicate()).apply(in);
 
@@ -383,8 +383,9 @@ bool twosurfaces() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    in.clone_to_device();
+    meta_.clone_to_device();
     in.h2d_update();
+    in.clone_to_device();
 
     gridtools::boundary_apply_gpu<bc_two>(halos, bc_two()).apply(in);
 
@@ -497,8 +498,9 @@ bool usingzero_1() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    in.clone_to_device();
+    meta_.clone_to_device();
     in.h2d_update();
+    in.clone_to_device();
 
     gridtools::boundary_apply_gpu<gridtools::zero_boundary>(halos).apply(in);
 
@@ -612,10 +614,11 @@ bool usingzero_2() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    in.clone_to_device();
-    out.clone_to_device();
+    meta_.clone_to_device();
     in.h2d_update();
     out.h2d_update();
+    in.clone_to_device();
+    out.clone_to_device();
 
     gridtools::boundary_apply_gpu<gridtools::zero_boundary>(halos).apply(in, out);
 
@@ -752,10 +755,11 @@ bool usingvalue_2() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    in.clone_to_device();
-    out.clone_to_device();
+    meta_.clone_to_device();
     in.h2d_update();
     out.h2d_update();
+    in.clone_to_device();
+    out.clone_to_device();
 
     gridtools::boundary_apply_gpu<gridtools::value_boundary<int_t> >(halos, gridtools::value_boundary<int_t>(101)).apply(in, out);
 
@@ -893,12 +897,13 @@ bool usingcopy_3() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    one.clone_to_device();
+    meta_.clone_to_device();
     one.h2d_update();
-    two.clone_to_device();
+    one.clone_to_device();
     two.h2d_update();
-    src.clone_to_device();
+    two.clone_to_device();
     src.h2d_update();
+    src.clone_to_device();
 
     gridtools::boundary_apply_gpu<gridtools::copy_boundary>(halos).apply(one, two, src);
 

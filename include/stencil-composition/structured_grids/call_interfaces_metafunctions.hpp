@@ -100,10 +100,12 @@ namespace gridtools {
 
             type * p_value;
 
+            GT_FUNCTION
             wrap_reference(type const& v)
                 : p_value(const_cast<typename std::decay<type>::type*>(&v))
             {}
 
+            GT_FUNCTION
             type& value() const {return *p_value;}
         };
 
@@ -149,14 +151,14 @@ namespace gridtools {
             Used to apply the transformation to a variadic pack.
          */
         template <typename T>
-        inline
+        GT_FUNCTION
         typename boost::enable_if_c<is_accessor<T>::value, T>::type
         make_wrap(T const& v) {
             return v;
         }
 
         template <typename T>
-        inline
+        GT_FUNCTION
         typename boost::enable_if_c<not is_accessor<T>::value, _impl::wrap_reference<T> >::type
         make_wrap(T const& v) {
             return _impl::wrap_reference<typename std::decay<T>::type >(v);

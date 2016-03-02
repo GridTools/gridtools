@@ -123,6 +123,7 @@ int main(int argc, char** argv) {
 
 #ifdef CUDA_EXAMPLE
     //TODO also metadata must be copied/used here
+    meta_.clone_to_device();
     in.clone_to_device();
     out.clone_to_device();
     in.h2d_update();

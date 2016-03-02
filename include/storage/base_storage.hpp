@@ -345,7 +345,7 @@ namespace gridtools {
 
         /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
         template <typename ... UInt>
-        GT_FUNCTION
+        __host__
         value_type& operator()(UInt const& ... dims) {
             assert(m_meta_data.index(dims...) < m_meta_data.size());
             assert(is_set);
@@ -363,7 +363,7 @@ namespace gridtools {
 
         /** @brief returns (by const reference) the value of the data field at the coordinates (i, j, k) */
         template <typename ... UInt>
-        GT_FUNCTION
+        __host__
         value_type const & operator()(UInt const& ... dims) const {
             assert(m_meta_data.index(dims...) < m_meta_data.size());
             assert(is_set);
@@ -408,7 +408,7 @@ namespace gridtools {
 
 
         /** @brief returns (by const reference) the value of the data field at the coordinates (i, j, k) */
-        GT_FUNCTION
+        __host__
         value_type const & operator()( uint_t const& i, uint_t const& j, uint_t const& k) const {
             assert(m_meta_data.index(i,j,k) < m_meta_data.size());
             assert(is_set);
