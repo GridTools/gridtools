@@ -5,8 +5,6 @@
 
 namespace gridtools {
 
-namespace gridtools {
-
 #ifdef __CUDACC__
 #define _POINTER_ computation*
 #define _MAKE_POINTER_(data) new data
