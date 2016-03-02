@@ -4,26 +4,16 @@
 #include "stencil-composition/iterate_domain.hpp"
 #include "stencil-composition/iterate_domain_metafunctions.hpp"
 #include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
-#include "../../run_functor_arguments_metafunctions.hpp"
+#include "iterate_domain_reduction.hpp"
 
 namespace gridtools {
-
-    template<typename IterateDomainArguments>
-    struct reduced_data
-    {
-        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Internal error: wrong type");
-        typedef typename boost::mpl::if_c<
-            IterateDomainArguments::s_is_reduction,
-            void,
-            iterate_domain_arguments_reduction_type<IterateDomainArguments>
-        >::type type;
-    };
 
     /**
      * @brief iterate domain class for the Host backend
      */
     template<template<class> class IterateDomainBase, typename IterateDomainArguments>
-    class iterate_domain_host : public IterateDomainBase<iterate_domain_host<IterateDomainBase, IterateDomainArguments> > //CRTP
+    class iterate_domain_host : public IterateDomainBase<iterate_domain_host<IterateDomainBase, IterateDomainArguments> >, //CRTP
+            public iterate_domain_reduction<IterateDomainArguments>
     {
     DISALLOW_COPY_AND_ASSIGN(iterate_domain_host);
     GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Internal error: wrong type");
@@ -95,11 +85,16 @@ public:
         return super::template get_gmem_value<ReturnType>(storage_pointer,pointer_offset);
     }
 
+//    template <typename MetaDataSequence, typename ArgStoragePair0, typename... OtherArgs>
+//    typename boost::enable_if_c< is_any_storage<typename ArgStoragePair0::storage_type>::type::value
+//                                , void>::type assign_pointers
+
+//    typename boost::enable_if<MultipleGridPointsPerWarp, int >::type=0
+
 
 private:
     data_pointer_array_t* RESTRICT m_data_pointer;
     strides_cached_t* RESTRICT m_strides;
-    reduced_data<IterateDomainArguments> m_reduced_value;
 };
 
 template<

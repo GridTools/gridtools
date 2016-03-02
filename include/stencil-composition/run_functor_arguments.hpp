@@ -55,6 +55,7 @@ namespace gridtools {
         typedef PhysicalDomainBlockSize physical_domain_block_size_t;
         typedef Grid grid_t;
         static const bool s_is_reduction = IsReduction;
+        typedef static_bool<IsReduction> is_reduction_t;
         typedef FunctorReturnType functor_return_type_t;
     };
 
@@ -160,6 +161,7 @@ namespace gridtools {
         typedef ExecutionEngine execution_type_t;
         static const enumtype::strategy s_strategy_id=backend_ids_t::s_strategy_id;
         static const bool s_is_reduction = IsReduction;
+        typedef static_bool<IsReduction> is_reduction_t;
         typedef FunctorReturnType functor_return_type_t;
     };
 
