@@ -105,7 +105,9 @@ namespace gridtools {
         typename IsIndependentSeq,                  // sequence of boolenans (one per functor), stating if it is contained in a "make_independent" construct
         typename Grid,                            // the grid
         typename ExecutionEngine,                   // the execution engine
-        bool IsReduction                            // boolean stating if the operation to be applied at mss is a reduction
+        bool IsReduction,                            // boolean stating if the operation to be applied at mss is a reduction
+        typename FunctorReturnType                   // return type of functors of a mss: return type of reduction operations,
+                                                     //        otherwise void
     >
     struct run_functor_arguments
     {
@@ -172,7 +174,8 @@ namespace gridtools {
         typename IsIndependentSequence,
         typename Grid,
         typename ExecutionEngine,
-        bool IsReduction
+        bool IsReduction,
+        typename FunctorReturnType
     >
     struct is_run_functor_arguments<
         run_functor_arguments<
@@ -190,7 +193,8 @@ namespace gridtools {
             IsIndependentSequence,
             Grid,
             ExecutionEngine,
-            IsReduction
+            IsReduction,
+            FunctorReturnType
         >
     > : boost::mpl::true_{};
 

@@ -199,7 +199,8 @@ namespace gridtools {
                 async_esf_map_t,
                 Grid,
                 ExecutionEngine,
-                mss_components_is_reduction<mss_components_t>::type::value
+                mss_components_is_reduction<mss_components_t>::type::value,
+                functor_return_t
             > run_functor_args_t;
 
             typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<functors_list_t>::type::value> iter_range;
