@@ -9,6 +9,10 @@
 # define FLOAT_PRECISION 8
 #endif
 
+// Global options
+static bool verbose = false;
+std::ofstream out;
+
 #ifdef NVCC
 typedef gridtools::gcl_gpu arch_type;
 static const bool gpu = true;
@@ -17,6 +21,9 @@ typedef gridtools::gcl_cpu arch_type;
 static const bool gpu = false;
 #endif
 
+/**
+ * Helper class to select the right floating point type
+ */
 template<int p>
 struct float_precision;
 
@@ -72,7 +79,7 @@ struct triplet
 };
 
 /**
- * Metafunction which returns the triplet type iff athe template parameter
+ * Metafunction which returns the triplet type iff the template parameter
  * is true, and the floating point type of reference otherwise
  */
 template<bool use_triplet>
@@ -87,6 +94,9 @@ struct store_t<true>
     typedef triplet type;
 };
 
+/**
+ * Class which contians the storage for CPU and GPU
+ */
 template<bool use_triplet, typename layoutmap>
 class field_t
 {
@@ -94,6 +104,15 @@ public:
     typedef typename store_t<use_triplet>::type value_t;
 
     /**
+     * Initialize the content of the field.
+     *
+     * There is a predefined content for this kind of fields. The
+     * global dimension of the distributed field is assumed to be
+     * 256x256x256. The value of the field at the global position
+     * (i, j, k) is (i<<16) + (j<<8) + k.
+     * The halos are initialized to the constant value 555555,
+     * which simplifies debugging.
+     *
      * \param i_size The size in I direction (not including halo)
      * \param j_size The size in J direction (not including halo)
      * \param k_size The size in K direction (not including halo)
@@ -123,15 +142,19 @@ public:
         int strides[] = {0, 0, 0};
 
         int stride = 1;
-        strides[layoutmap::template at<2>()] = stride;
-        stride *= sizes[layoutmap::template at<2>()];
-        strides[layoutmap::template at<1>()] = stride;
-        stride *= sizes[layoutmap::template at<1>()];
-        strides[layoutmap::template at<0>()] = stride;
+        strides[layoutmap::template find<2>(0, 1, 2)] = stride;
+        stride *= sizes[layoutmap::template find<2>(0, 1, 2)];
+        strides[layoutmap::template find<1>(0, 1, 2)] = stride;
+        stride *= sizes[layoutmap::template find<1>(0, 1, 2)];
+        strides[layoutmap::template find<0>(0, 1, 2)] = stride;
 
         i_stride_ = strides[0];
         j_stride_ = strides[1];
         k_stride_ = strides[2];
+
+        out << "\n";
+        out << " - Sizes: " << i_size_ << ", " << j_size_ << ", " << k_size_ << "\n";
+        out << " - Strides: " << i_stride_ << ", " << j_stride_ << ", " << k_stride_ << "\n";
 
         // Initialize values in the interior domain
         i_start_ = i_coord*i_size;
@@ -165,6 +188,25 @@ public:
         }
     }
 
+    ~field_t()
+    {
+        delete[] data_host_;
+        if (gpu_)
+            cudaFree(data_device_);
+    }
+
+    /**
+     * Checks that the halo exchange has been performed correctly
+     *
+     * \param i_periodic Whether the field has periodic content
+     *        in I direction
+     * \param j_periodic Whether the field has periodic content
+     *        in J direction
+     * \param k_periodic Whether the field has periodic content
+     *        in K direction
+     *
+     * \return true is returned iff the check succeeds
+     */
     bool check(bool i_periodic, bool j_periodic, bool k_periodic)
     {
         if (gpu_)
@@ -180,16 +222,31 @@ public:
                     int j_global = apply_periodicity(j_start_+j, j_periodic);
                     int k_global = apply_periodicity(k_start_+k, k_periodic);
 
+                    // Reference
                     std::uint32_t r = (i_global<<16) + (j_global<<8) + k_global;
+                    if (i_global < 0 || j_global < 0 || k_global < 0)
+                        r = 555555;
+
+                    // Actual value
                     std::uint32_t v = data_host_[index(i, j, k)];
 
                     if (!(v == r))
+                    {
+                        out << " -- At (" << i_global << ", " << j_global << ", " << k_global
+                            << ") found " << v << " instead of " << r << "\n";
                         return false;
+                    }
                 }
 
         return true;
     }
 
+    /**
+     * Gives access to the device data if the GPU is used
+     * and to the CPU data otherwise
+     *
+     * \return A pointer to the beginning of the data is returned
+     */
     value_t* data()
     {
         if (gpu_)
@@ -243,7 +300,7 @@ private:
             return (x + 256) % 256;
 
         if (x < 0 || x >= 256)
-            return 0;
+            return -1;
 
         return x;
     }
@@ -270,8 +327,18 @@ std::ostream& operator<<(std::ostream& out, field_t<use_triplet, layoutmap>& fie
     return out;
 }
 
+/**
+ * Performs a halo exchange and checks the resulting data.
+ *
+ * \tparam layoutmap Describes the storage of data
+ * \tparam use_triplet Whether to use a triplet struct (true) or
+ *         a floating point type
+ * \param communicator The cartesian communicator within which the
+ *        exchange is done.  Must be created with the desired periodicity
+ * \param halo The size of halo in each direction
+ */
 template<typename layoutmap, bool use_triplet>
-bool run(MPI_Comm communicator, std::ostream& out, int halo=1)
+void run(MPI_Comm communicator, int halo=1)
 {
     // Get communicator information
     int dims[3], periods[3], coords[3];
@@ -292,6 +359,14 @@ bool run(MPI_Comm communicator, std::ostream& out, int halo=1)
                      halo, gpu, coords[0], coords[1], coords[2]
                      );
 
+    if (verbose)
+    {
+        out << "Content before exchange:\n";
+        out << field;
+        out << "==============================================================";
+        out << "\n\n";
+    }
+
     // Define the pattern type by giving:
     //  - The data layout map
     //  - The mapping between data and grid
@@ -309,12 +384,24 @@ bool run(MPI_Comm communicator, std::ostream& out, int halo=1)
             > pattern_type;
 
     // Instantiate halo exchange object
-    pattern_type he(typename pattern_type::grid_type::period_type(periods[0], periods[1], periods[2]), communicator);
+    pattern_type he(typename pattern_type::grid_type::period_type(
+                periods[0], periods[1], periods[2]), communicator);
 
     // Add halo descriptors
     he.template add_halo<0>(field.descriptor(0));
     he.template add_halo<1>(field.descriptor(1));
     he.template add_halo<2>(field.descriptor(2));
+
+    if (verbose)
+    {
+        out << "Descriptors:\n";
+        for (int i = 0; i < 3; ++i)
+        {
+            gridtools::halo_descriptor hd = field.descriptor(i);
+            out << " - " << hd.minus() << " " << hd.plus() << " "
+                << hd.begin() << " " << hd.end() << " " << hd.total_length() << "\n";
+        }
+    }
 
     he.setup(1);
 
@@ -325,6 +412,14 @@ bool run(MPI_Comm communicator, std::ostream& out, int halo=1)
     he.exchange();
     he.unpack(fields);
 
+    if (verbose)
+    {
+        out << "Content after exchange:\n";
+        out << field;
+        out << "==============================================================";
+        out << "\n\n";
+    }
+
     // Check
     int check = field.check(periods[0], periods[1], periods[2]);
     int checkall;
@@ -332,7 +427,7 @@ bool run(MPI_Comm communicator, std::ostream& out, int halo=1)
 
     if (rank == 0)
     {
-        std::cout << "Test with map <"
+        std::cout << "float" << FLOAT_PRECISION << " test with map <"
             << layoutmap::template at<0>() << ", " << layoutmap::template at<1>() << ", " << layoutmap::template at<2>()
             << ">, periodicity (" << periods[0] << ", " << periods[1] << ", " << periods[2] << "): ";
         std::cout << (checkall ? "PASSED" : "FAILED") << "\n";
@@ -373,34 +468,35 @@ int main(int argc, char** argv)
     {
         std::ostringstream fname;
         fname << "out_" << rank << ".log";
-        std::ofstream fs(fname.str().c_str());
+        out.open(fname.str().c_str());
 
-        //for (int period = 0; period < 8; ++period)
-        const int period = 7;
+        for (int period = 0; period < 8; ++period)
         {
             // Create cartesian communicator
             MPI_Comm cartcomm;
             int dims[3] = {0, 0, 0};
-            int periods[3] = {(period>>0)%2, (period>>1)%2, (period>>2)%2};
+            int periods[3] = {(period>>2)%2, (period>>1)%2, (period>>0)%2};
             MPI_Dims_create(size, 3, dims);
             MPI_Cart_create(testcomm, 3, dims, periods, 0, &cartcomm);
 
             // Run tests with floating point
-            run<gridtools::layout_map<0, 1, 2>, false>(cartcomm, fs);
-            run<gridtools::layout_map<0, 2, 1>, false>(cartcomm, fs);
-            run<gridtools::layout_map<1, 0, 2>, false>(cartcomm, fs);
-            run<gridtools::layout_map<1, 2, 0>, false>(cartcomm, fs);
-            run<gridtools::layout_map<2, 0, 1>, false>(cartcomm, fs);
-            run<gridtools::layout_map<2, 1, 0>, false>(cartcomm, fs);
+            run<gridtools::layout_map<0, 1, 2>, false>(cartcomm);
+            run<gridtools::layout_map<0, 2, 1>, false>(cartcomm);
+            run<gridtools::layout_map<1, 0, 2>, false>(cartcomm);
+            run<gridtools::layout_map<1, 2, 0>, false>(cartcomm);
+            run<gridtools::layout_map<2, 0, 1>, false>(cartcomm);
+            run<gridtools::layout_map<2, 1, 0>, false>(cartcomm);
 
             //// Run tests with structure
-            //run<gridtools::layout_map<0, 1, 2>, true>(cartcomm, fs);
-            //run<gridtools::layout_map<0, 2, 1>, true>(cartcomm, fs);
-            //run<gridtools::layout_map<1, 0, 2>, true>(cartcomm, fs);
-            //run<gridtools::layout_map<1, 2, 0>, true>(cartcomm, fs);
-            //run<gridtools::layout_map<2, 0, 1>, true>(cartcomm, fs);
-            //run<gridtools::layout_map<2, 1, 0>, true>(cartcomm, fs);
+            //run<gridtools::layout_map<0, 1, 2>, true>(cartcomm);
+            //run<gridtools::layout_map<0, 2, 1>, true>(cartcomm);
+            //run<gridtools::layout_map<1, 0, 2>, true>(cartcomm);
+            //run<gridtools::layout_map<1, 2, 0>, true>(cartcomm);
+            //run<gridtools::layout_map<2, 0, 1>, true>(cartcomm);
+            //run<gridtools::layout_map<2, 1, 0>, true>(cartcomm);
         }
+
+        out.close();
     }
 
     MPI_Finalize();
