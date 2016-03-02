@@ -459,11 +459,13 @@ namespace shallow_water{
 //! [initialization]
 
 #ifndef NDEBUG
+#ifndef __CUDACC__
         std::ofstream myfile;
         std::stringstream name;
         name<<"example"<<PID<<".txt";
         myfile.open (name.str().c_str());
 
+#endif
 #endif
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
@@ -523,9 +525,11 @@ namespace shallow_water{
 //! [exchange]
 
 #ifndef NDEBUG
+#ifndef __CUDACC__
             myfile<<"INITIALIZED VALUES"<<std::endl;
             sol.print(myfile);
             myfile<<"#####################################################"<<std::endl;
+#endif
 #endif
 
 //! [run]
@@ -544,8 +548,10 @@ namespace shallow_water{
 //! [finalize]
 
 #ifndef NDEBUG
+#ifndef __CUDACC__
         myfile<<"############## SOLUTION ################"<<std::endl;
         sol.print(myfile);
+#endif
 
 
         verifier check_result(1e-8);
@@ -558,10 +564,11 @@ namespace shallow_water{
         }
         retval=check_result.verify_parallel(grid, meta_, sol, reference.solution, halos);
 
+#ifndef __CUDACC__
         myfile<<"############## REFERENCE ################"<<std::endl;
         reference.solution.print(myfile);
-
         myfile.close();
+#endif
 #endif
         std::cout<<"shallow water parallel test SUCCESS?= "<<retval<<std::endl;
         return retval;
