@@ -4,7 +4,7 @@
 #define PEDANTIC_DISABLED
 
 #include <gridtools.hpp>
-#include <stencil-composition/stencil-composition.hpp> 
+#include <stencil-composition/stencil-composition.hpp>
 #include <stencil-composition/backend.hpp>
 #include <stencil-composition/interval.hpp>
 #include <stencil-composition/make_computation.hpp>
@@ -30,14 +30,14 @@ inline double MLUPS(int X, int Y, int Z, int NT, int t) { return (double)X*Y*Z*N
   5-point constant-coefficient stencil in two dimensions, with symmetry.
   7-point constant-coefficient isotropic stencil in three dimensions, with symmetry.
 
-  A diagonal dominant matrix is used with "N" as a center-point value for a N-point stencil   
+  A diagonal dominant matrix is used with "N" as a center-point value for a N-point stencil
   and "-1/N" as a off-diagonal value.
  */
 
 //conditional selection of stencils to be executed
 //#define pt5
 #define pt7
- 
+
 using gridtools::level;
 using gridtools::accessor;
 using gridtools::extent;
@@ -97,15 +97,22 @@ struct d3point7{
 */
 struct boundary : clonable_to_gpu<boundary> {
 
-    boundary(){}
+    boundary(double t=0.)
+        :
+        my_value(t)
+    {}
+
     //device copy constructor
-    __device__ boundary(const boundary& other){}
+    __device__ boundary(const boundary& other) :
+        my_value(other.my_value)
+    {}
+
     typedef boundary super;
     typedef boundary* iterator_type;
     typedef boundary value_type; //TODO remove
     static const ushort_t field_dimensions=1; //TODO remove
 
-    double my_value = 10.;
+    double my_value;
 
     void setValue(double v) {my_value = v;}
     double getValue() const {return my_value;}
@@ -121,13 +128,14 @@ struct add{
     typedef accessor<0, enumtype::inout, extent<0,0,0,0> > c;
     typedef accessor<1, enumtype::in, extent<0,0,0,0> > a;
     typedef accessor<2, enumtype::in, extent<0,0,0,0> > b;
-    typedef global_accessor<3, enumtype::inout> alpha;
+    typedef global_accessor<3, enumtype::in> alpha;
     typedef boost::mpl::vector<c,a,b> arg_list;
 
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_interval) {
-        dom(c{}) = dom(a{}) + dom(alpha{}).getValue() * dom(b{});
+        dom(c{}) = dom(a{}) + dom(alpha{})->getValue() * dom(b{});
+        printf("%f = %f + %f * %f\n", dom(c{}), dom(a{}), dom(alpha{})->getValue(), dom(b{}));
     }
 };
 
@@ -210,7 +218,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     storage_type out5pt(meta_, 1.,"domain5pt_out"); //initial value set to 1.0
     storage_type in5pt(meta_, 1.,"domain5pt_in");
     storage_type *ptr_in5pt = &in5pt, *ptr_out5pt = &out5pt;
-#endif    
+#endif
 
 #ifdef pt7
     //7pt 3D stencil with symmetry distributed storage
@@ -331,7 +339,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
         boost::timer::cpu_timer time11run;
         stencil_step_11->run();
         lapse_time11run = lapse_time11run + time11run.elapsed();
-        
+
         stencil_step_11->finalize();
 
         //swap input and output fields
@@ -341,25 +349,26 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     }
 
     boost::timer::cpu_times lapse_time11 = time11.elapsed();
-    
+
 
 #ifdef DEBUG
     printf("Print domain A after computation\n");
     TIME_STEPS % 2 == 0 ? in5pt.print() : out5pt.print();
 #endif
- 
+
     std::cout << "TIME d2point5 TOTAL: " << boost::timer::format(lapse_time11);
     std::cout << "TIME d2point5 RUN:" << boost::timer::format(lapse_time11run);
     std::cout << "TIME d2point5 MFLOPS: " << MFLOPS(7,d1,d2,d3,nt,lapse_time11run.wall) << std::endl << std::endl;
 #endif
 //------------------------------------------------------------------------------
 
-#ifdef pt7   
+#ifdef pt7
     //start timer
     boost::timer::cpu_times lapse_time2run = {0,0,0};
     boost::timer::cpu_timer time2;
 
     for(int i=0; i < TIME_STEPS; i++) {
+
 
         // construction of the domain for the out = out + in
         gridtools::domain_type<accessor_list_add> domain3d
