@@ -10,6 +10,7 @@
 #include <sstream>
 #include <boost/mpl/greater.hpp>
 #include <boost/mpl/vector.hpp>
+#include <boost/mpl/vector_c.hpp>
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/fusion/include/make_vector.hpp>
@@ -21,8 +22,6 @@
 
 #include "common/defs.hpp"
 #include<communication/GCL.hpp>
-#include "common/gt_assert.hpp"
-#include "common/host_device.hpp"
 #include "common/array.hpp"
 #include "common/layout_map.hpp"
 #include "common/pointer.hpp"

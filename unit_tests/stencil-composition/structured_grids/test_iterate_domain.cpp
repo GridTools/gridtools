@@ -80,32 +80,6 @@ namespace test_iterate_domain{
         typedef decltype(gridtools::make_esf<dummy_functor>(p_in() ,p_buff(), p_out())) esf_t;
         typedef boost::remove_reference<decltype(*computation_)>::type intermediate_t;
 
-        // typedef intermediate<gridtools::backend<enumtype::Host, enumtype::Naive >
-        //                      , gridtools::meta_array<
-        //                          boost::mpl::vector<decltype(
-        //                              gridtools::make_mss // mss_descriptor
-        //                              (
-        //                                  enumtype::execute<enumtype::forward>(),
-        //                                  gridtools::make_esf<dummy_functor>(p_in() ,p_buff(), p_out())
-        //                                  )
-        //                              ) >
-        //                            , boost::mpl::quote1<is_mss_descriptor> >
-        //                      , decltype(domain)
-        //                      , decltype(grid)
-        //                      , false
-        //                      > intermediate_t;
-
-        // boost::shared_ptr<intermediate_t> computation_ = boost::static_pointer_cast<intermediate_t>(make_computation<gridtools::backend<enumtype::Host, enumtype::Naive > >
-        //     (
-        //         gridtools::make_mss // mss_descriptor
-        //         (
-        //             enumtype::execute<enumtype::forward>(),
-        //             gridtools::make_esf<dummy_functor>(p_in() ,p_buff(), p_out())
-        //             )
-        //         ,domain, grid
-        //         ));
-
-
         computation_->ready();
         computation_->steady();
 

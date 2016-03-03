@@ -1,9 +1,5 @@
 #pragma once
-#include <stdio.h>
-#include <new>
-#include "../common/host_device.hpp"
-#include <string>
-#include <boost/type_traits/integral_constant.hpp>
+#include "../gridtools.hpp"
 
 /**
 @file
@@ -65,6 +61,7 @@ The template argument T is supposed to be of mask_object type */
 
         __host__ __device__
         DerivedType *const& device_pointer() const{
+            assert(gpu_object_ptr);
             return gpu_object_ptr;
         }
         /** Member function to update the object to the gpu calling the copy constructor of the

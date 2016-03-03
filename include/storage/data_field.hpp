@@ -1,8 +1,8 @@
 #pragma once
-#include <boost/mpl/for_each.hpp>
 #include "storage_list.hpp"
-#include "../common/generic_metafunctions/reversed_range.hpp"
 #ifdef CXX11_ENABLED
+#include "../common/generic_metafunctions/reversed_range.hpp"
+
 namespace gridtools{
     /** @brief traits class defining some useful compile-time counters
      */
