@@ -227,15 +227,13 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     auto metadata_=meta_.get_metadata();
 
     // set up actual storage space
-    storage_type out7pt(metadata_, 1., "domain7pt_out");
-    storage_type in7pt(metadata_, 1., "domain7pt_in");
-    storage_type constant(metadata_, 10., "constant");
-    storage_type *ptr_in7pt = &in7pt, *ptr_out7pt = &out7pt;
-
     storage_type b(metadata_, 0., "RHS vector");
     storage_type x(metadata_, 0., "Solution vector");
+    storage_type Ax(metadata_, 0., "Solution vector");
     storage_type r(metadata_, 0., "Residual");
     storage_type d(metadata_, 0., "Direction vector");
+    //storage_type *ptr_in7pt = &in7pt, *ptr_out7pt = &out7pt;
+
 
     parameter alpha; //step length
     parameter beta; //orthogonalization parameter
@@ -257,25 +255,22 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
             for(uint_t k=0; k<metadata_.template dims<2>(); ++k)
             {
                 b(i,j,k) = h2 * f(I+i, J+j, K+k);
-                in7pt(i,j,k) = h2 * f(I+i, J+j, K+k);
             }
 
     //--------------------------------------------------------------------------
     // Definition of placeholders. The order of them reflect the order the user
     // will deal with them especially the non-temporary ones, in the construction
     // of the domain
-    typedef arg<0, storage_type > p_out; //domain
-    typedef arg<1, storage_type > p_in;
-
-    typedef arg<0, storage_type > p_c;
-    typedef arg<1, storage_type > p_a;
-    typedef arg<2, storage_type > p_b;
-    typedef arg<3, parameter> p_bd;
+    typedef arg<0, storage_type > p_d; //search direction
+    typedef arg<1, storage_type > p_r; //residual
+    typedef arg<2, storage_type > p_b; //rhs
+    typedef arg<3, storage_type > p_Ax; //solution
+    typedef arg<4, storage_type > p_x; //solution
+    typedef arg<5, parameter> p_alpha;
 
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
-    typedef boost::mpl::vector<p_out, p_in> accessor_list;
-    typedef boost::mpl::vector<p_c, p_a, p_b, p_bd> accessor_list_add;
+    typedef boost::mpl::vector<p_d, p_r, p_b, p_Ax, p_x, p_alpha> accessor_list_1;
 
     //--------------------------------------------------------------------------
     // Definition of the physical dimensions of the problem.
@@ -304,29 +299,29 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
 
     //start timer
-    boost::timer::cpu_times lapse_time2run = {0,0,0};
-    boost::timer::cpu_timer time2;
+    boost::timer::cpu_times lapse_time_run = {0,0,0};
+    boost::timer::cpu_timer time;
 
     for(int i=0; i < TIME_STEPS; i++) {
 
 
         // construction of the domain for the out = out + in
-        gridtools::domain_type<accessor_list_add> domain3d
-            (boost::fusion::make_vector(ptr_out7pt, ptr_in7pt, &constant, &alpha));
+        gridtools::domain_type<accessor_list_1> domain3d
+            (boost::fusion::make_vector(&d, &r, &b, &Ax, &x, &alpha));
 
         //instantiate stencil for mat-vec multiplication
         #ifdef __CUDACC__
-            gridtools::computation* stencil_step_2 =
+            gridtools::computation* stencil_step_1 =
         #else
-                boost::shared_ptr<gridtools::computation> stencil_step_2 =
+                boost::shared_ptr<gridtools::computation> stencil_step_1 =
         #endif
               gridtools::make_computation<gridtools::BACKEND>
                 (
                     gridtools::make_mss // mss_descriptor
                     (
                         execute<forward>(),
-                        gridtools::make_esf<d3point7>(p_out(), p_in()), // esf_descriptor
-                        gridtools::make_esf<add>(p_c(), p_a(), p_b(), p_bd()) // esf_descriptor
+                        gridtools::make_esf<d3point7>(p_Ax(), p_x()), // Ax
+                        gridtools::make_esf<add>(p_r(), p_b(), p_Ax(), p_alpha()) // r = b - Ax
                     ),
                     domain3d, coords3d7pt
                 );
@@ -342,24 +337,24 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
             (halos,
              boundary_conditions<parallel_storage_info<metadata_t, partitioner_t>>(meta_, h),
              gridtools::bitmap_predicate(part.boundary())
-            ).apply(*ptr_in7pt, *ptr_out7pt);
+            ).apply(x, d);
 
-        //change the value in global accessor
-        double value = 100;
-        alpha.setValue(value);
+        // set addition param to substraction: c = b - a
+        double minus = -1;
+        alpha.setValue(minus);
 
         //prepare and run single step of stencil computation
-        stencil_step_2->ready();
-        stencil_step_2->steady();
-        boost::timer::cpu_timer time2run;
-        stencil_step_2->run();
-        lapse_time2run = lapse_time2run + time2run.elapsed();
-        stencil_step_2->finalize();
+        stencil_step_1->ready();
+        stencil_step_1->steady();
+        boost::timer::cpu_timer time_run;
+        stencil_step_1->run();
+        lapse_time_run = lapse_time_run + time_run.elapsed();
+        stencil_step_1->finalize();
 
         //communicate halos
         std::vector<pointer_type::pointee_t*> vec(2);
-        vec[0]=ptr_in7pt->data().get();
-        vec[1]=ptr_out7pt->data().get();
+        vec[0]=x.data().get();
+        vec[1]=d.data().get();
 
         he.pack(vec);
         he.exchange();
@@ -369,42 +364,48 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         {
             std::stringstream ss;
             ss << PID;
-            std::string filename = "out" + ss.str() + ".txt";
+            std::string filename = "x" + ss.str() + ".txt";
             std::ofstream file(filename.c_str());
-            ptr_out7pt->print(file);
+            x.print(file);
         }
         {
             std::stringstream ss;
             ss << PID;
-            std::string filename = "in" + ss.str() + ".txt";
+            std::string filename = "Ax" + ss.str() + ".txt";
             std::ofstream file(filename.c_str());
-            ptr_in7pt->print(file);
+            Ax.print(file);
+        }
+        {
+            std::stringstream ss;
+            ss << PID;
+            std::string filename = "r" + ss.str() + ".txt";
+            std::ofstream file(filename.c_str());
+            r.print(file);
+        }
+        {
+            std::stringstream ss;
+            ss << PID;
+            std::string filename = "b" + ss.str() + ".txt";
+            std::ofstream file(filename.c_str());
+            b.print(file);
         }
 #endif
         MPI_Barrier(GCL_WORLD);
 
         //swap input and output fields
-        storage_type* tmp = ptr_out7pt;
-        ptr_out7pt = ptr_in7pt;
-        ptr_in7pt = tmp;
+        //storage_type* tmp = ptr_out7pt;
+        //ptr_out7pt = ptr_in7pt;
+        //ptr_in7pt = tmp;
     }
 
-    boost::timer::cpu_times lapse_time2 = time2.elapsed();
+    boost::timer::cpu_times lapse_time = time.elapsed();
 
-
-#ifdef DEBUG
     if(gridtools::PID == 0){
-        printf("Print domain B after computation\n");
-        TIME_STEPS % 2 == 0 ? in7pt.print() : out7pt.print();
-        printf("Print domain B after addition\n");
-        TIME_STEPS % 2 == 0 ? out7pt.print() : in7pt.print();
+        std::cout << "TIME d3point7 TOTAL: " << boost::timer::format(lapse_time);
+        std::cout << "TIME d3point7 RUN:" << boost::timer::format(lapse_time_run);
+        std::cout << "TIME d3point7 MFLOPS: " << MFLOPS(10,d1,d2,d3,nt,lapse_time_run.wall) << std::endl;
+        std::cout << "TIME d3point7 MLUPs: " << MLUPS(d1,d2,d3,nt,lapse_time_run.wall) << std::endl << std::endl;
     }
-#endif
-
-    std::cout << "TIME d3point7 TOTAL: " << boost::timer::format(lapse_time2);
-    std::cout << "TIME d3point7 RUN:" << boost::timer::format(lapse_time2run);
-    std::cout << "TIME d3point7 MFLOPS: " << MFLOPS(10,d1,d2,d3,nt,lapse_time2run.wall) << std::endl;
-    std::cout << "TIME d3point7 MLUPs: " << MLUPS(d1,d2,d3,nt,lapse_time2run.wall) << std::endl << std::endl;
 
     gridtools::GCL_Finalize();
 
