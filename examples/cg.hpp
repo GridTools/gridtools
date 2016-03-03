@@ -71,21 +71,21 @@ struct d3point7{
 /** @brief generic argument type
    struct implementing the minimal interface in order to be passed as an argument to the user functor.
 */
-struct boundary : clonable_to_gpu<boundary> {
+struct parameter : clonable_to_gpu<parameter> {
 
-    boundary(double t=0.)
+    parameter(double t=0.)
         :
         my_value(t)
     {}
 
     //device copy constructor
-    __device__ boundary(const boundary& other) :
+    __device__ parameter(const parameter& other) :
         my_value(other.my_value)
     {}
 
-    typedef boundary super;
-    typedef boundary* iterator_type;
-    typedef boundary value_type; //TODO remove
+    typedef parameter super;
+    typedef parameter* iterator_type;
+    typedef parameter value_type; //TODO remove
     static const ushort_t field_dimensions=1; //TODO remove
 
     double my_value;
@@ -94,7 +94,7 @@ struct boundary : clonable_to_gpu<boundary> {
     double getValue() const {return my_value;}
 
     template<typename ID>
-    boundary * access_value() const {return const_cast<boundary*>(this);}
+    parameter * access_value() const {return const_cast<parameter*>(this);}
 };
 
 /** @brief
@@ -199,7 +199,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     storage_type constant(metadata_, 10., "constant");
     storage_type *ptr_in7pt = &in7pt, *ptr_out7pt = &out7pt;
 
-    boundary bd_;
+    parameter alpha;
 
     // set up halo
     he.add_halo<0>(meta_.template get_halo_gcl<0>());
@@ -225,7 +225,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     typedef arg<0, storage_type > p_c;
     typedef arg<1, storage_type > p_a;
     typedef arg<2, storage_type > p_b;
-    typedef arg<3, boundary> p_bd;
+    typedef arg<3, parameter> p_bd;
 
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
@@ -267,7 +267,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
         // construction of the domain for the out = out + in
         gridtools::domain_type<accessor_list_add> domain3d
-            (boost::fusion::make_vector(ptr_out7pt, ptr_in7pt, &constant, &bd_));
+            (boost::fusion::make_vector(ptr_out7pt, ptr_in7pt, &constant, &alpha));
 
         //instantiate stencil for mat-vec multiplication
         #ifdef __CUDACC__
@@ -301,7 +301,7 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
 
         //change the value in global accessor
         double value = 100;
-        bd_.setValue(value);
+        alpha.setValue(value);
 
 
         //prepare and run single step of stencil computation
