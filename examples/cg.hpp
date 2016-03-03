@@ -105,7 +105,10 @@ struct boundary : clonable_to_gpu<boundary> {
     typedef boundary value_type; //TODO remove
     static const ushort_t field_dimensions=1; //TODO remove
 
-    double value() const {return 10.;}
+    double my_value = 10.;
+
+    void setValue(double v) {my_value = v;}
+    double getValue() const {return my_value;}
 
     template<typename ID>
     boundary * access_value() const {return const_cast<boundary*>(this);}
@@ -124,7 +127,7 @@ struct add{
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_interval) {
-        dom(c{}) = dom(a{}) + dom(alpha{}).value() * dom(b{});
+        dom(c{}) = dom(a{}) + dom(alpha{}).getValue() * dom(b{});
     }
 };
 
@@ -391,6 +394,11 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
              boundary_conditions<parallel_storage_info<metadata_t, partitioner_t>>(meta_),
              gridtools::bitmap_predicate(part.boundary())
             ).apply(*ptr_in7pt, *ptr_out7pt);
+
+        //change the value in global accessor
+        double value = 100;
+        bd_.setValue(value);
+
 
         //prepare and run single step of stencil computation
         stencil_step_2->ready();
