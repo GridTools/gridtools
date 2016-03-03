@@ -100,10 +100,10 @@ namespace copy_stencil{
         typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > >, pattern_type::grid_type> partitioner_t;
         partitioner_t part(he.comm(), halo, padding);
         parallel_storage_info<metadata_t, partitioner_t> meta_(part, d1, d2, d3);
-        auto metadata_=&meta_.get_metadata();
+        auto& metadata_=meta_.get_metadata();
 
-        storage_type in(*metadata_, 0.);
-        storage_type out(*metadata_, 0.);
+        storage_type in(metadata_, 0.);
+        storage_type out(metadata_, 0.);
 
         he.add_halo<0>(meta_.template get_halo_gcl<0>());
         he.add_halo<1>(meta_.template get_halo_gcl<1>());
@@ -118,9 +118,9 @@ namespace copy_stencil{
         printf("halo set up\n");
 #endif
 
-        for(uint_t i=0; i<metadata_->template dims<0>(); ++i)
-            for(uint_t j=0; j<metadata_->template dims<1>(); ++j)
-                for(uint_t k=0; k<metadata_->template dims<2>(); ++k)
+        for(uint_t i=0; i<metadata_.template dims<0>(); ++i)
+            for(uint_t j=0; j<metadata_.template dims<1>(); ++j)
+                for(uint_t k=0; k<metadata_.template dims<2>(); ++k)
                 {
                     in(i, j, k) = (i + j + k)*(gridtools::PID+1);
                 }
