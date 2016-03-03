@@ -23,12 +23,29 @@
 inline double MFLOPS(int numops, int X, int Y, int Z, int NT, int t) { return (double)numops*X*Y*Z*NT*1000/t; }
 inline double MLUPS(int X, int Y, int Z, int NT, int t) { return (double)X*Y*Z*NT*1000/t; }
 
+// domain function
+inline double f(double xi, double yi, double zi){
+    return 2.*(cos(xi+yi) - (1.+xi)*sin(xi+yi));
+}
+
+// boundary function
+inline double g(double xi, double yi, double zi) {
+    return (xi+1.)*sin(xi+yi);
+}
+
+// solution
+inline double u(double xi, double yi, double zi) {
+    return g(xi, yi, zi);
+}
+
 /*
   @file This file shows an implementation of Conjugate Gradient solver.
 
   7-point constant-coefficient isotropic stencil in three dimensions, with symmetry
   is used to implement matrix-free matrix-vector product. The matrix has a constant
   structure arising from finite element discretization.
+
+  Regular domain x in 0..1 is discretized, the step size h = 1/(n+1) 
  */
 
 using gridtools::level;
@@ -62,9 +79,9 @@ struct d3point7{
     GT_FUNCTION
     static void Do(Domain const & dom, x_interval) {
         dom(out{}) = 7.0 * dom(in{})
-                    - 0.14285714285 * (dom(in{x(-1)})+dom(in{x(+1)}))
-                    - 0.14285714285 * (dom(in{y(-1)})+dom(in{y(+1)}))
-                    - 0.14285714285 * (dom(in{z(-1)})+dom(in{z(+1)}));
+                    - (dom(in{x(-1)})+dom(in{x(+1)}))
+                    - (dom(in{y(-1)})+dom(in{y(+1)}))
+                    - (dom(in{z(-1)})+dom(in{z(+1)}));
     }
 };
 
@@ -114,18 +131,16 @@ struct add{
     }
 };
 
-// boundary function
-inline float bc(uint_t i, uint_t j, uint_t k) {
-    return (float) i*100 + j;
-}
-
-
+/** @brief
+    Implementation of the Dirichlet boundary conditions.
+*/
 template <typename Partitioner>
 struct boundary_conditions {
-    Partitioner const& m_partitioner;
+    Partitioner const& m_partitioner; // info about domain partitioning
+    double h; // step size
 
-    boundary_conditions(Partitioner const& p)
-        : m_partitioner(p)
+    boundary_conditions(Partitioner const& p, double step)
+        : m_partitioner(p), h(step)
     {}
 
     // DataField_x are fields that are passed in the application of boundary condition
@@ -135,24 +150,42 @@ struct boundary_conditions {
                     DataField0 & data_field0,
                     DataField1 & data_field1,
                     uint_t i, uint_t j, uint_t k) const {
-        //i,j,k are coordinates within the local partition
-        data_field0(i,j,k) = 10;//(float)(m_partitioner.get_low_bound(0)*100 + m_partitioner.get_up_bound(0));
-        data_field1(i,j,k) = 10;//(float)(m_partitioner.get_low_bound(1)*100 + m_partitioner.get_up_bound(1));
+        // get global indices on the boundary
+        size_t I = m_partitioner.get_low_bound(0) + i;
+        size_t J = m_partitioner.get_low_bound(1) + j;
+        size_t K = m_partitioner.get_low_bound(2) + k;
+        data_field0(i,j,k) = g(h*I, h*J, h*K);
+        data_field1(i,j,k) = g(h*I, h*J, h*K);
     }
 };
 /*******************************************************************************/
 /*******************************************************************************/
 
-bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
+bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
     gridtools::GCL_Init();
 
-    uint_t d1 = x;
-    uint_t d2 = y;
-    uint_t d3 = z;
+    // domain is encapsulated in boundary layer from both sides in each dimension
+    // these are just inned domain dimension
+    uint_t d1 = xdim;
+    uint_t d2 = ydim;
+    uint_t d3 = zdim;
     uint_t TIME_STEPS = nt;
 
-    printf("Running for %d x %d x %d, %d iterations\n",x,y,z,nt);
+    // force square domain
+    if (!(xdim==ydim && ydim==zdim)) {
+        printf("Please run with dimensions X=Y=Z\n");
+        return false;
+    }
+
+    // step size, add +2 for boundary layer
+    double h = 1./(xdim+2+1);
+    double h2 = h*h;
+
+    if(PID == 0){
+        printf("Running for %d x %d x %d, %d iterations\n", xdim+2, ydim+2, zdim+2, nt);
+        printf("Step size: %f\n", h);
+    }
 
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block >
@@ -199,7 +232,13 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     storage_type constant(metadata_, 10., "constant");
     storage_type *ptr_in7pt = &in7pt, *ptr_out7pt = &out7pt;
 
-    parameter alpha;
+    storage_type b(metadata_, 0., "RHS vector");
+    storage_type x(metadata_, 0., "Solution vector");
+    storage_type r(metadata_, 0., "Residual");
+    storage_type d(metadata_, 0., "Direction vector");
+
+    parameter alpha; //step length
+    parameter beta; //orthogonalization parameter
 
     // set up halo
     he.add_halo<0>(meta_.template get_halo_gcl<0>());
@@ -207,12 +246,18 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
     he.add_halo<2>(meta_.template get_halo_gcl<2>());
     he.setup(2);
 
+    // get global offsets
+    size_t I = meta_.get_low_bound(0);
+    size_t J = meta_.get_low_bound(1);
+    size_t K = meta_.get_low_bound(2);
+
     // initialize the local domain
     for(uint_t i=0; i<metadata_.template dims<0>(); ++i)
         for(uint_t j=0; j<metadata_.template dims<1>(); ++j)
             for(uint_t k=0; k<metadata_.template dims<2>(); ++k)
             {
-                constant(i,j,k) = 10. * (gridtools::PID + 1);
+                b(i,j,k) = h2 * f(I+i, J+j, K+k);
+                in7pt(i,j,k) = h2 * f(I+i, J+j, K+k);
             }
 
     //--------------------------------------------------------------------------
@@ -295,14 +340,13 @@ bool solver(uint_t x, uint_t y, uint_t z, uint_t nt) {
         typename gridtools::boundary_apply
             <boundary_conditions<parallel_storage_info<metadata_t, partitioner_t>>, typename gridtools::bitmap_predicate>
             (halos,
-             boundary_conditions<parallel_storage_info<metadata_t, partitioner_t>>(meta_),
+             boundary_conditions<parallel_storage_info<metadata_t, partitioner_t>>(meta_, h),
              gridtools::bitmap_predicate(part.boundary())
             ).apply(*ptr_in7pt, *ptr_out7pt);
 
         //change the value in global accessor
         double value = 100;
         alpha.setValue(value);
-
 
         //prepare and run single step of stencil computation
         stencil_step_2->ready();
