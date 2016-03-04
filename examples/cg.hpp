@@ -254,7 +254,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
     // set up actual storage space
     storage_type b(metadata_, 0., "RHS vector");
-    storage_type x(metadata_, 0., "Solution vector");
+    storage_type x(metadata_, 0., "Solution vector t");
+    storage_type xNew(metadata_, 0., "Solution vector t+1");
     storage_type Ax(metadata_, 0., "Solution vector");
     storage_type r(metadata_, 0., "Residual");
     storage_type d(metadata_, 0., "Direction vector");
@@ -287,16 +288,31 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     // Definition of placeholders. The order of them reflect the order the user
     // will deal with them especially the non-temporary ones, in the construction
     // of the domain
-    typedef arg<0, storage_type > p_d; //search direction
-    typedef arg<1, storage_type > p_r; //residual
-    typedef arg<2, storage_type > p_b; //rhs
-    typedef arg<3, storage_type > p_Ax; //solution
-    typedef arg<4, storage_type > p_x; //solution
-    typedef arg<5, parameter> p_alpha;
+    typedef arg<0, storage_type > p_d_init; //search direction
+    typedef arg<1, storage_type > p_r_init; //residual
+    typedef arg<2, storage_type > p_b_init; //rhs
+    typedef arg<3, storage_type > p_Ax_init; //solution
+    typedef arg<4, storage_type > p_x_init; //solution
+    typedef arg<5, parameter>     p_alpha_init; //step size
 
     // An array of placeholders to be passed to the domain
-    // I'm using mpl::vector, but the final API should look slightly simpler
-    typedef boost::mpl::vector<p_d, p_r, p_b, p_Ax, p_x, p_alpha> accessor_list_1;
+    typedef boost::mpl::vector<p_d_init,
+                               p_r_init,
+                               p_b_init,
+                               p_Ax_init,
+                               p_x_init,
+                               p_alpha_init > accessor_list_init;
+
+    typedef arg<0, storage_type > p_xNew_step1; //solution
+    typedef arg<1, storage_type > p_x_step1; //solution
+    typedef arg<2, storage_type > p_d_step1; //search direction
+    typedef arg<3, parameter >    p_alpha_step1; //step size
+
+    typedef boost::mpl::vector<p_xNew_step1,
+                               p_x_step1,
+                               p_d_step1,
+                               p_alpha_step1 > accessor_list_step1;
+
 
     //--------------------------------------------------------------------------
     // Definition of the physical dimensions of the problem.
@@ -322,24 +338,24 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     boost::timer::cpu_times lapse_time_run = {0,0,0};
     boost::timer::cpu_timer time;
 
-    // construction of the domain for initialization step
-    gridtools::domain_type<accessor_list_1> domain_init
+    // construction of the domain for step phase
+    gridtools::domain_type<accessor_list_init> domain_init
         (boost::fusion::make_vector(&d, &r, &b, &Ax, &x, &alpha));
 
-    //instantiate stencil to perform fist step of CG
+    //instantiate stencil to perform initialization step of CG
     #ifdef __CUDACC__
-        gridtools::computation* stencil_step_1 =
+        gridtools::computation* stencil_init =
     #else
-            boost::shared_ptr<gridtools::computation> stencil_step_1 =
+            boost::shared_ptr<gridtools::computation> stencil_init =
     #endif
           gridtools::make_computation<gridtools::BACKEND>
             (
                 gridtools::make_mss // mss_descriptor
                 (
                     execute<forward>(),
-                    gridtools::make_esf<d3point7>(p_Ax(), p_x()), // Ax
-                    gridtools::make_esf<add_functor>(p_r(), p_b(), p_Ax(), p_alpha()), // r = b - Ax
-                    gridtools::make_esf<copy_functor>(p_d(), p_r()) // d = r
+                    gridtools::make_esf<d3point7>(p_Ax_init(), p_x_init()), // Ax
+                    gridtools::make_esf<add_functor>(p_r_init(), p_b_init(), p_Ax_init(), p_alpha_init()), // r = b - Ax
+                    gridtools::make_esf<copy_functor>(p_d_init(), p_r_init()) // d = r
                 ),
                 domain_init, coords3d7pt
             );
@@ -362,12 +378,12 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     alpha.setValue(minus);
 
     //prepare and run single step of stencil computation
-    stencil_step_1->ready();
-    stencil_step_1->steady();
+    stencil_init->ready();
+    stencil_init->steady();
     boost::timer::cpu_timer time_run;
-    stencil_step_1->run();
+    stencil_init->run();
     lapse_time_run = lapse_time_run + time_run.elapsed();
-    stencil_step_1->finalize();
+    stencil_init->finalize();
 
     //communicate halos
     std::vector<pointer_type::pointee_t*> vec(2);
@@ -384,6 +400,40 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     for(int i=0; i < TIME_STEPS; i++) {
 
         //compute step size alpha
+        double ddot = 1;
+        alpha.setValue(ddot);
+
+        // construction of the domain for the step of CG
+        gridtools::domain_type<accessor_list_step1> domain_step1
+            (boost::fusion::make_vector(&xNew, &x, &d, &alpha));
+
+        //instantiate stencil to perform fist step of CG
+        #ifdef __CUDACC__
+            gridtools::computation* stencil_step1 =
+        #else
+                boost::shared_ptr<gridtools::computation> stencil_step1 =
+        #endif
+              gridtools::make_computation<gridtools::BACKEND>
+                (
+                    gridtools::make_mss // mss_descriptor
+                    (
+                        execute<forward>(),
+                        gridtools::make_esf<add_functor>(p_xNew_step1(),
+                                                         p_x_step1(),
+                                                         p_d_step1(),
+                                                         p_alpha_step1()) // x_(i+1) = x_i + alpha * d_i
+                    ),
+                    domain_step1, coords3d7pt
+                );
+
+
+        //prepare and run single step of stencil computation
+        stencil_step1->ready();
+        stencil_step1->steady();
+        boost::timer::cpu_timer time_run;
+        stencil_step1->run();
+        lapse_time_run = lapse_time_run + time_run.elapsed();
+        stencil_step1->finalize();
 
         //swap input and output fields
         //storage_type* tmp = ptr_out7pt;
@@ -407,6 +457,13 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         std::string filename = "x" + ss.str() + ".txt";
         std::ofstream file(filename.c_str());
         x.print(file);
+    }
+    {
+        std::stringstream ss;
+        ss << PID;
+        std::string filename = "xNew" + ss.str() + ".txt";
+        std::ofstream file(filename.c_str());
+        xNew.print(file);
     }
     {
         std::stringstream ss;
