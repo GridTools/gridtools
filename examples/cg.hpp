@@ -259,7 +259,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     storage_type Ax(metadata_, 0., "Multiplied sol. vector Ax at time t");
     storage_type r(metadata_, 0., "Residual t");
     storage_type rNew(metadata_, 0., "Residual t+1");
-    storage_type d(metadata_, 0., "Direction vector");
+    storage_type d(metadata_, 0., "Direction vector t");
+    storage_type dNew(metadata_, 0., "Direction vector t+1");
     storage_type Ad(metadata_, 0., "Multiplied direction vector");
     //storage_type *ptr_in7pt = &in7pt, *ptr_out7pt = &out7pt;
 
@@ -290,11 +291,11 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     // Definition of placeholders. The order of them reflect the order the user
     // will deal with them especially the non-temporary ones, in the construction
     // of the domain
-    typedef arg<0, storage_type > p_d_init; //search direction
-    typedef arg<1, storage_type > p_r_init; //residual
-    typedef arg<2, storage_type > p_b_init; //rhs
+    typedef arg<0, storage_type > p_d_init;  //search direction
+    typedef arg<1, storage_type > p_r_init;  //residual
+    typedef arg<2, storage_type > p_b_init;  //rhs
     typedef arg<3, storage_type > p_Ax_init; //solution
-    typedef arg<4, storage_type > p_x_init; //solution
+    typedef arg<4, storage_type > p_x_init;  //solution
     typedef arg<5, parameter>     p_alpha_init; //step size
 
     // An array of placeholders to be passed to the domain
@@ -305,9 +306,9 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                                p_x_init,
                                p_alpha_init > accessor_list_init;
 
-    typedef arg<0, storage_type > p_xNew_step1; //solution
-    typedef arg<1, storage_type > p_x_step1; //solution
-    typedef arg<2, storage_type > p_d_step1; //search direction
+    typedef arg<0, storage_type > p_xNew_step1;  //solution
+    typedef arg<1, storage_type > p_x_step1;     //solution
+    typedef arg<2, storage_type > p_d_step1;     //search direction
     typedef arg<3, parameter >    p_alpha_step1; //step size
 
     typedef boost::mpl::vector<p_xNew_step1,
@@ -315,9 +316,9 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                                p_d_step1,
                                p_alpha_step1 > accessor_list_step1;
 
-    typedef arg<0, storage_type > p_rNew_step2; //residual t+1
-    typedef arg<1, storage_type > p_r_step2; //residual t
-    typedef arg<2, storage_type > p_Ad_step2; //A*d
+    typedef arg<0, storage_type > p_rNew_step2;  //residual t+1
+    typedef arg<1, storage_type > p_r_step2;     //residual t
+    typedef arg<2, storage_type > p_Ad_step2;    //A*d
     typedef arg<3, parameter >    p_alpha_step2; //step size
 
     typedef boost::mpl::vector<p_rNew_step2,
@@ -325,6 +326,15 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                                p_Ad_step2,
                                p_alpha_step2 > accessor_list_step2;
 
+    typedef arg<0, storage_type > p_dNew_step3; //search direction t+1
+    typedef arg<1, storage_type > p_rNew_step3; //residual t+1
+    typedef arg<2, storage_type > p_d_step3;    //search direction t
+    typedef arg<3, parameter >    p_beta_step3; //Gram-Schmidt ortog.
+
+    typedef boost::mpl::vector<p_dNew_step3,
+                               p_rNew_step3,
+                               p_d_step3,
+                               p_beta_step3 > accessor_list_step3;
 
     //--------------------------------------------------------------------------
     // Definition of the physical dimensions of the problem.
@@ -424,6 +434,9 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         gridtools::domain_type<accessor_list_step2> domain_step2
             (boost::fusion::make_vector(&rNew, &r, &Ad, &alpha));
 
+        gridtools::domain_type<accessor_list_step3> domain_step3
+            (boost::fusion::make_vector(&dNew, &rNew, &d, &beta));
+
         //instantiate stencil to perform step of CG
         #ifdef __CUDACC__
             gridtools::computation* stencil_step1 =
@@ -461,6 +474,24 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                     domain_step2, coords3d7pt
                 );
 
+        #ifdef __CUDACC__
+            gridtools::computation* stencil_step3 =
+        #else
+                boost::shared_ptr<gridtools::computation> stencil_step3 =
+        #endif
+              gridtools::make_computation<gridtools::BACKEND>
+                (
+                    gridtools::make_mss // mss_descriptor
+                    (
+                        execute<forward>(),
+                        gridtools::make_esf<add_functor>(p_dNew_step3(),
+                                                         p_rNew_step3(),
+                                                         p_d_step3(),
+                                                         p_beta_step3()) // d_(i+1) = r_(i+1) + beta * d_i
+                    ),
+                    domain_step3, coords3d7pt
+                );
+
 
 
         //prepare and run single steps of stencil computation
@@ -481,6 +512,13 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         //compute Gram–Schmidt orthogonalization parameter beta
         double orto = 1.;
         beta.setValue(orto);
+
+        stencil_step3->ready();
+        stencil_step3->steady();
+        boost::timer::cpu_timer time_run3;
+        stencil_step3->run();
+        lapse_time_run = lapse_time_run + time_run3.elapsed();
+        stencil_step3->finalize();
 
         //swap input and output fields
         //storage_type* tmp = ptr_out7pt;
