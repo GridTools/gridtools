@@ -311,103 +311,67 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     boost::timer::cpu_times lapse_time_run = {0,0,0};
     boost::timer::cpu_timer time;
 
+    // construction of the domain for initialization step
+    gridtools::domain_type<accessor_list_1> domain_init
+        (boost::fusion::make_vector(&d, &r, &b, &Ax, &x, &alpha));
+
+    //instantiate stencil to perform fist step of CG
+    #ifdef __CUDACC__
+        gridtools::computation* stencil_step_1 =
+    #else
+            boost::shared_ptr<gridtools::computation> stencil_step_1 =
+    #endif
+          gridtools::make_computation<gridtools::BACKEND>
+            (
+                gridtools::make_mss // mss_descriptor
+                (
+                    execute<forward>(),
+                    gridtools::make_esf<d3point7>(p_Ax(), p_x()), // Ax
+                    gridtools::make_esf<add_functor>(p_r(), p_b(), p_Ax(), p_alpha()), // r = b - Ax
+                    gridtools::make_esf<copy_functor>(p_d(), p_r()) // d = r
+                ),
+                domain_init, coords3d7pt
+            );
+
+    //apply boundary conditions
+    gridtools::array<gridtools::halo_descriptor, 3> halos;
+    halos[0] = meta_.template get_halo_descriptor<0>();
+    halos[1] = meta_.template get_halo_descriptor<1>();
+    halos[2] = meta_.template get_halo_descriptor<2>();
+
+    typename gridtools::boundary_apply
+        <boundary_conditions<parallel_storage_info<metadata_t, partitioner_t>>, typename gridtools::bitmap_predicate>
+        (halos,
+         boundary_conditions<parallel_storage_info<metadata_t, partitioner_t>>(meta_, h),
+         gridtools::bitmap_predicate(part.boundary())
+        ).apply(x, d);
+
+    // set addition param to substraction: c = b - a
+    double minus = -1;
+    alpha.setValue(minus);
+
+    //prepare and run single step of stencil computation
+    stencil_step_1->ready();
+    stencil_step_1->steady();
+    boost::timer::cpu_timer time_run;
+    stencil_step_1->run();
+    lapse_time_run = lapse_time_run + time_run.elapsed();
+    stencil_step_1->finalize();
+
+    //communicate halos
+    std::vector<pointer_type::pointee_t*> vec(2);
+    vec[0]=x.data().get();
+    vec[1]=d.data().get();
+
+    he.pack(vec);
+    he.exchange();
+    he.unpack(vec);
+
+    MPI_Barrier(GCL_WORLD);
+
+    // perform iterations of the CG
     for(int i=0; i < TIME_STEPS; i++) {
 
-
-        // construction of the domain
-        gridtools::domain_type<accessor_list_1> domain_init
-            (boost::fusion::make_vector(&d, &r, &b, &Ax, &x, &alpha));
-
-        //instantiate stencil for mat-vec multiplication
-        #ifdef __CUDACC__
-            gridtools::computation* stencil_step_1 =
-        #else
-                boost::shared_ptr<gridtools::computation> stencil_step_1 =
-        #endif
-              gridtools::make_computation<gridtools::BACKEND>
-                (
-                    gridtools::make_mss // mss_descriptor
-                    (
-                        execute<forward>(),
-                        gridtools::make_esf<d3point7>(p_Ax(), p_x()), // Ax
-                        gridtools::make_esf<add_functor>(p_r(), p_b(), p_Ax(), p_alpha()), // r = b - Ax
-                        gridtools::make_esf<copy_functor>(p_d(), p_r()) // d = r
-                    ),
-                    domain_init, coords3d7pt
-                );
-
-        //apply boundary conditions
-        gridtools::array<gridtools::halo_descriptor, 3> halos;
-        halos[0] = meta_.template get_halo_descriptor<0>();
-        halos[1] = meta_.template get_halo_descriptor<1>();
-        halos[2] = meta_.template get_halo_descriptor<2>();
-
-        typename gridtools::boundary_apply
-            <boundary_conditions<parallel_storage_info<metadata_t, partitioner_t>>, typename gridtools::bitmap_predicate>
-            (halos,
-             boundary_conditions<parallel_storage_info<metadata_t, partitioner_t>>(meta_, h),
-             gridtools::bitmap_predicate(part.boundary())
-            ).apply(x, d);
-
-        // set addition param to substraction: c = b - a
-        double minus = -1;
-        alpha.setValue(minus);
-
-        //prepare and run single step of stencil computation
-        stencil_step_1->ready();
-        stencil_step_1->steady();
-        boost::timer::cpu_timer time_run;
-        stencil_step_1->run();
-        lapse_time_run = lapse_time_run + time_run.elapsed();
-        stencil_step_1->finalize();
-
-        //communicate halos
-        std::vector<pointer_type::pointee_t*> vec(2);
-        vec[0]=x.data().get();
-        vec[1]=d.data().get();
-
-        he.pack(vec);
-        he.exchange();
-        he.unpack(vec);
-
-#ifndef NDEBUG1
-        {
-            std::stringstream ss;
-            ss << PID;
-            std::string filename = "x" + ss.str() + ".txt";
-            std::ofstream file(filename.c_str());
-            x.print(file);
-        }
-        {
-            std::stringstream ss;
-            ss << PID;
-            std::string filename = "Ax" + ss.str() + ".txt";
-            std::ofstream file(filename.c_str());
-            Ax.print(file);
-        }
-        {
-            std::stringstream ss;
-            ss << PID;
-            std::string filename = "r" + ss.str() + ".txt";
-            std::ofstream file(filename.c_str());
-            r.print(file);
-        }
-        {
-            std::stringstream ss;
-            ss << PID;
-            std::string filename = "b" + ss.str() + ".txt";
-            std::ofstream file(filename.c_str());
-            b.print(file);
-        }
-        {
-            std::stringstream ss;
-            ss << PID;
-            std::string filename = "d" + ss.str() + ".txt";
-            std::ofstream file(filename.c_str());
-            d.print(file);
-        }
-#endif
-        MPI_Barrier(GCL_WORLD);
 
         //swap input and output fields
         //storage_type* tmp = ptr_out7pt;
@@ -423,6 +387,44 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         std::cout << "TIME d3point7 MFLOPS: " << MFLOPS(10,d1,d2,d3,nt,lapse_time_run.wall) << std::endl;
         std::cout << "TIME d3point7 MLUPs: " << MLUPS(d1,d2,d3,nt,lapse_time_run.wall) << std::endl << std::endl;
     }
+
+#ifndef NDEBUG1
+    {
+        std::stringstream ss;
+        ss << PID;
+        std::string filename = "x" + ss.str() + ".txt";
+        std::ofstream file(filename.c_str());
+        x.print(file);
+    }
+    {
+        std::stringstream ss;
+        ss << PID;
+        std::string filename = "Ax" + ss.str() + ".txt";
+        std::ofstream file(filename.c_str());
+        Ax.print(file);
+    }
+    {
+        std::stringstream ss;
+        ss << PID;
+        std::string filename = "r" + ss.str() + ".txt";
+        std::ofstream file(filename.c_str());
+        r.print(file);
+    }
+    {
+        std::stringstream ss;
+        ss << PID;
+        std::string filename = "b" + ss.str() + ".txt";
+        std::ofstream file(filename.c_str());
+        b.print(file);
+    }
+    {
+        std::stringstream ss;
+        ss << PID;
+        std::string filename = "d" + ss.str() + ".txt";
+        std::ofstream file(filename.c_str());
+        d.print(file);
+    }
+#endif
 
     gridtools::GCL_Finalize();
 
