@@ -219,6 +219,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 #define BACKEND backend<Host, Naive >
 #endif
 
+    //--------------------------------------------------------------------------
     // Create processor grid
     array<int, 3> dimensions{0,0,0};
     MPI_3D_process_grid_t<3>::dims_create(PROCS, 2, dimensions);
@@ -241,10 +242,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
     pattern_type he(pattern_type::grid_type::period_type(false, false, false), GCL_WORLD, &dimensions);
 
-    //--------------------------------------------------------------------------
-    // Definition of the actual data fields that are used for input/output
-
-    //7pt 3D stencil with symmetry distributed storage
+    // 7pt 3D stencil with symmetry distributed storage
     array<ushort_t, 3> padding{1,1,0};
     array<ushort_t, 3> halo{1,1,1};
     typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > >, pattern_type::grid_type> partitioner_t;
@@ -252,7 +250,19 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     parallel_storage_info<metadata_t, partitioner_t> meta_(part, d1, d2, d3);
     auto metadata_=meta_.get_metadata();
 
-    // set up actual storage space
+    // Definition of the physical dimensions of the problem.
+    // The constructor takes the horizontal plane dimensions,
+    // while the vertical ones are set according the the axis property soon after.
+    // Iteration space is defined within axis.
+    gridtools::grid<axis, partitioner_t> coords3d7pt(part, meta_);
+
+    //k dimension not partitioned
+    coords3d7pt.value_list[0] = 1; //specifying index of the splitter<0,-1>
+    coords3d7pt.value_list[1] = d3; //specifying index of the splitter<1,-1>
+
+    //--------------------------------------------------------------------------
+    // Definition of the actual data fields that are used for input/output
+
     storage_type b(metadata_, 0., "RHS vector");
     storage_type x(metadata_, 0., "Solution vector t");
     storage_type xNew(metadata_, 0., "Solution vector t+1");
@@ -263,7 +273,6 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     storage_type dNew(metadata_, 0., "Direction vector t+1");
     storage_type Ad(metadata_, 0., "Multiplied direction vector");
     //storage_type *ptr_in7pt = &in7pt, *ptr_out7pt = &out7pt;
-
 
     parameter alpha; //step length
     parameter beta; //orthogonalization parameter
@@ -335,17 +344,6 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                                p_rNew_step3,
                                p_d_step3,
                                p_beta_step3 > accessor_list_step3;
-
-    //--------------------------------------------------------------------------
-    // Definition of the physical dimensions of the problem.
-    // The constructor takes the horizontal plane dimensions,
-    // while the vertical ones are set according the the axis property soon after.
-    // Iteration space is defined within axis.
-    gridtools::grid<axis, partitioner_t> coords3d7pt(part, meta_);
-
-    //k dimension not partitioned
-    coords3d7pt.value_list[0] = 1; //specifying index of the splitter<0,-1>
-    coords3d7pt.value_list[1] = d3; //specifying index of the splitter<1,-1>
 
     /*
       Here we do lot of stuff
@@ -494,7 +492,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
 
 
-        //prepare and run single steps of stencil computation
+        //prepare and run steps of stencil computation
         stencil_step1->ready();
         stencil_step1->steady();
         boost::timer::cpu_timer time_run1;
