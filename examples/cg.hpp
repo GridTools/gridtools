@@ -68,7 +68,9 @@ typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
 typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
 /** @brief
-    Parallel copy of one field done on the backend
+    Parallel copy of one field done on the backend.
+    @param out Destination domain.
+    @param int Source domain.
 */
 struct copy_functor {
     typedef const accessor<0, enumtype::inout> out;
@@ -84,6 +86,9 @@ struct copy_functor {
 
 /** @brief
     1st order in time, 7-point constant-coefficient isotropic stencil in 3D, with symmetry.
+
+    @param in Source vector.
+    @return Matrix-vector product out = A*in
 */
 struct d3point7{
     typedef accessor<0, enumtype::inout, extent<0,0,0,0> > out;
@@ -130,7 +135,13 @@ struct parameter : clonable_to_gpu<parameter> {
 };
 
 /** @brief
-    Stencil implementing addition of two grids, c = a + alpha*b
+    Stencil implementing addition of two grids
+
+    @param a Source domain.
+    @param b Source domain.
+    @param c Destination domain.
+    @param alpha Scalar.
+    @return c = a + alpha * b
 */
 struct add_functor{
     typedef accessor<0, enumtype::inout, extent<0,0,0,0> > c;
@@ -372,6 +383,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     // perform iterations of the CG
     for(int i=0; i < TIME_STEPS; i++) {
 
+        //compute step size alpha
 
         //swap input and output fields
         //storage_type* tmp = ptr_out7pt;
