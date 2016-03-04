@@ -315,6 +315,12 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                                p_x_init,
                                p_alpha_init > accessor_list_init;
 
+    typedef arg<0, storage_type > p_Ad_step0;  // A*d
+    typedef arg<1, storage_type > p_d_step0;   //search direction
+
+    typedef boost::mpl::vector<p_Ad_step0,
+                               p_d_step0 > accessor_list_step0;
+
     typedef arg<0, storage_type > p_xNew_step1;  //solution
     typedef arg<1, storage_type > p_x_step1;     //solution
     typedef arg<2, storage_type > p_d_step1;     //search direction
@@ -373,7 +379,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                 gridtools::make_mss // mss_descriptor
                 (
                     execute<forward>(),
-                    gridtools::make_esf<d3point7>(p_Ax_init(), p_x_init()), // Ax
+                    gridtools::make_esf<d3point7>(p_Ax_init(), p_x_init()), // A * x
                     gridtools::make_esf<add_functor>(p_r_init(), p_b_init(), p_Ax_init(), p_alpha_init()), // r = b - Ax
                     gridtools::make_esf<copy_functor>(p_d_init(), p_r_init()) // d = r
                 ),
@@ -421,11 +427,10 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     */
     for(int i=0; i < TIME_STEPS; i++) {
 
-        //compute step size alpha
-        double ddot = 1;
-        alpha.setValue(ddot);
-
         // construction of the domain for the step of CG
+        gridtools::domain_type<accessor_list_step0> domain_step0
+            (boost::fusion::make_vector(&Ad, &d));
+
         gridtools::domain_type<accessor_list_step1> domain_step1
             (boost::fusion::make_vector(&xNew, &x, &d, &alpha));
 
@@ -436,6 +441,23 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
             (boost::fusion::make_vector(&dNew, &rNew, &d, &beta));
 
         //instantiate stencil to perform step of CG
+        #ifdef __CUDACC__
+            gridtools::computation* stencil_step0 =
+        #else
+                boost::shared_ptr<gridtools::computation> stencil_step0 =
+        #endif
+              gridtools::make_computation<gridtools::BACKEND>
+                (
+                    gridtools::make_mss // mss_descriptor
+                    (
+                        execute<forward>(),
+                        gridtools::make_esf<d3point7>( p_Ad_step0(),
+                                                       p_d_step0() ) // A * d
+                    ),
+                    domain_step0, coords3d7pt
+                );
+
+
         #ifdef __CUDACC__
             gridtools::computation* stencil_step1 =
         #else
@@ -490,9 +512,18 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                     domain_step3, coords3d7pt
                 );
 
-
-
         //prepare and run steps of stencil computation
+        stencil_step0->ready();
+        stencil_step0->steady();
+        boost::timer::cpu_timer time_run0;
+        stencil_step0->run();
+        lapse_time_run = lapse_time_run + time_run0.elapsed();
+        stencil_step0->finalize();
+
+        //compute step size alpha
+        double ddot = 1;
+        alpha.setValue(ddot);
+
         stencil_step1->ready();
         stencil_step1->steady();
         boost::timer::cpu_timer time_run1;
