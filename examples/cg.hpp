@@ -68,6 +68,21 @@ typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
 typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
 /** @brief
+    Parallel copy of one field done on the backend
+*/
+struct copy_functor {
+    typedef const accessor<0, enumtype::inout> out;
+    typedef accessor<1, enumtype::in> in;
+    typedef boost::mpl::vector<out, in> arg_list;
+
+    template <typename Evaluation>
+    GT_FUNCTION
+    static void Do(Evaluation const & eval, x_interval) {
+        eval(out{}) = eval(in{});
+    }
+};
+
+/** @brief
     1st order in time, 7-point constant-coefficient isotropic stencil in 3D, with symmetry.
 */
 struct d3point7{
@@ -86,7 +101,7 @@ struct d3point7{
 };
 
 /** @brief generic argument type
-   struct implementing the minimal interface in order to be passed as an argument to the user functor.
+   Minimal interface to be passed as an argument to the user functor.
 */
 struct parameter : clonable_to_gpu<parameter> {
 
@@ -117,7 +132,7 @@ struct parameter : clonable_to_gpu<parameter> {
 /** @brief
     Stencil implementing addition of two grids, c = a + alpha*b
 */
-struct add{
+struct add_functor{
     typedef accessor<0, enumtype::inout, extent<0,0,0,0> > c;
     typedef accessor<1, enumtype::in, extent<0,0,0,0> > a;
     typedef accessor<2, enumtype::in, extent<0,0,0,0> > b;
@@ -275,12 +290,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     //--------------------------------------------------------------------------
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
-    // while the vertical ones are set according the the axis property soon after
-
-    // Definition of the physical dimensions of the problem.
-    // The constructor takes the horizontal plane dimensions,
-    // while the vertical ones are set according the the axis property soon after
-    // Iteration space defined within axis.
+    // while the vertical ones are set according the the axis property soon after.
+    // Iteration space is defined within axis.
     gridtools::grid<axis, partitioner_t> coords3d7pt(part, meta_);
 
     //k dimension not partitioned
@@ -291,8 +302,6 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
       Here we do lot of stuff
       1) We pass to the intermediate representation ::run function the description
       of the stencil, which is a multi-stage stencil (mss)
-      The mss includes (in order of execution) a laplacian, two fluxes which are independent
-      and a final step that is the out_function
       2) The logical physical domain with the fields to use
       3) The actual domain dimensions
      */
@@ -305,8 +314,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     for(int i=0; i < TIME_STEPS; i++) {
 
 
-        // construction of the domain for the out = out + in
-        gridtools::domain_type<accessor_list_1> domain3d
+        // construction of the domain
+        gridtools::domain_type<accessor_list_1> domain_init
             (boost::fusion::make_vector(&d, &r, &b, &Ax, &x, &alpha));
 
         //instantiate stencil for mat-vec multiplication
@@ -321,9 +330,10 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                     (
                         execute<forward>(),
                         gridtools::make_esf<d3point7>(p_Ax(), p_x()), // Ax
-                        gridtools::make_esf<add>(p_r(), p_b(), p_Ax(), p_alpha()) // r = b - Ax
+                        gridtools::make_esf<add_functor>(p_r(), p_b(), p_Ax(), p_alpha()), // r = b - Ax
+                        gridtools::make_esf<copy_functor>(p_d(), p_r()) // d = r
                     ),
-                    domain3d, coords3d7pt
+                    domain_init, coords3d7pt
                 );
 
         //apply boundary conditions
@@ -389,6 +399,13 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
             std::ofstream file(filename.c_str());
             b.print(file);
         }
+        {
+            std::stringstream ss;
+            ss << PID;
+            std::string filename = "d" + ss.str() + ".txt";
+            std::ofstream file(filename.c_str());
+            d.print(file);
+        }
 #endif
         MPI_Barrier(GCL_WORLD);
 
@@ -409,6 +426,6 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
     gridtools::GCL_Finalize();
 
-    return 1;
-    }//solver
-}//namespace tridiagonal
+    return true;
+    }
+}
