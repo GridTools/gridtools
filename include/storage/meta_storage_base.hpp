@@ -275,13 +275,6 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         GT_FUNCTION
         int_t index(UInt const& ... args_) const { return _index( strides(), args_ ...); }
 
-        template <typename ... UInt, typename Dummy=all_static_integers<UInt ...>>
-        constexpr
-        GT_FUNCTION
-        int_t index(uint_t const& first, UInt const& ... args_) const {
-            return _index(strides(), first, args_... );
-        }
-
         struct _impl_index{
             template<typename ... UIntType>
             static int_t apply(const type& me, UIntType ... args){
