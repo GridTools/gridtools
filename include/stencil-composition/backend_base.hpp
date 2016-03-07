@@ -180,6 +180,13 @@ namespace gridtools {
                    >
         using storage_info = typename backend_traits_t::template meta_storage_traits<static_uint<Index>, Layout, false, Halo, Alignment>::type;
 
+        template < typename Index
+                   , typename Layout
+                   , typename Halo = typename repeat_template_c<0, Layout::length, halo>::type
+                   , typename Alignment = typename backend_traits_t::default_alignment::type
+                   >
+        using storage_info_t = typename backend_traits_t::template meta_storage_traits<Index, Layout, false, Halo, Alignment>::type;
+
 #else
         template < ushort_t Index
                    , typename Layout

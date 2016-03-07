@@ -229,7 +229,8 @@ namespace gridtools {
         GT_FUNCTION
         T* get_cpu_p(){
             assert(on_host());
-            return this->m_cpu_p.get();};
+            return this->m_cpu_p.get();
+        };
 
         GT_FUNCTION
         T* get_pointer_to_use(){return m_pointer_to_use;}

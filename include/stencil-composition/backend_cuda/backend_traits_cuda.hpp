@@ -60,7 +60,7 @@ namespace gridtools{
             GRIDTOOLS_STATIC_ASSERT(is_aligned<Alignment>::type::value,"wrong type");
             GRIDTOOLS_STATIC_ASSERT(is_halo<Halo>::type::value,"wrong type");
             // GRIDTOOLS_STATIC_ASSERT((is_layout<Layout>::value), "wrong type for the storage_info");
-            typedef meta_storage<meta_storage_aligned<meta_storage_base<IndexType::value, Layout, Temp>, Alignment, Halo> > type;
+            typedef meta_storage<meta_storage_aligned<meta_storage_base<IndexType, Layout, Temp>, Alignment, Halo> > type;
         };
 
         template <typename Arguments>

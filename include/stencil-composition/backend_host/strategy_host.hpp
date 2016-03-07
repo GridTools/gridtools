@@ -90,7 +90,7 @@ namespace gridtools{
             typedef meta_storage_tmp
             <meta_storage_aligned
              <meta_storage_base
-              <Index::value, Layout, true>
+              <Index, Layout, true>
               , Alignment, Halo
               >
 #ifdef CXX11_ENABLED
@@ -261,7 +261,7 @@ namespace gridtools{
             typedef meta_storage_tmp
             <meta_storage_aligned
               <meta_storage_base
-               <Index::value, Layout, true>
+               <Index, Layout, true>
                , aligned<0>
                , Halo
                >

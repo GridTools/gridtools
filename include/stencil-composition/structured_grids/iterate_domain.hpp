@@ -843,7 +843,6 @@ namespace gridtools {
                 + metadata_->_index(strides().template get<metadata_index_t::value>(), accessor)
                 >= 0);
 
-
         const uint_t pointer_offset = (m_index[metadata_index_t::value])
                 +metadata_->_index(strides().template get<metadata_index_t::value>(), accessor);
 

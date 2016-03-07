@@ -36,7 +36,7 @@ namespace gridtools {
     struct is_meta_storage : boost::mpl::false_{};
 
     /**fwd declaration*/
-    template < ushort_t Index
+    template < typename Index
                , typename Layout
                , bool IsTemporary
 #ifdef CXX11_ENABLED
@@ -54,13 +54,13 @@ namespace gridtools {
        \tparam Layout the map of the layout in memory
        \tparam IsTemporary boolean flag set to true when the storage is a temporary one
      */
-    template < ushort_t Index
+    template < typename Index
                , typename Layout
                , bool IsTemporary
                >
     struct meta_storage_base<Index, Layout, IsTemporary
 #ifndef CXX11_ENABLED
-                             ,int, int
+                             , int, int
 #endif
                              >
     {
@@ -70,7 +70,7 @@ namespace gridtools {
 #endif
                                   > type;
         typedef Layout layout;
-        typedef static_ushort<Index> index_type;
+        typedef Index index_type;
 
         static const bool is_temporary = IsTemporary;
         static const ushort_t n_width = 1;
@@ -124,10 +124,10 @@ namespace gridtools {
     public:
 
 #ifdef CXX11_ENABLED
-        template <uint_t T, typename U, bool B, typename ... D>
+        template <typename  T, typename U, bool B, typename ... D>
         friend std::ostream& operator<<(std::ostream &, meta_storage_base<T,U,B,D...> const & );
 #else
-        template <uint_t T, typename U, bool B, typename T1, typename T2>
+        template <typename T, typename U, bool B, typename T1, typename T2>
         friend std::ostream& operator<<(std::ostream &, meta_storage_base<T,U,B,T1,T2> const & );
 #endif
 

@@ -81,7 +81,7 @@ namespace gridtools{
             <meta_storage_tmp
              <meta_storage_aligned
               <meta_storage_base
-               <Index::value, Layout, true>,
+               <Index, Layout, true>,
                Alignment ,//alignment boundary
                Halo
                >,
