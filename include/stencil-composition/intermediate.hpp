@@ -452,8 +452,9 @@ namespace gridtools {
               typename MssDescriptorArray,
               typename DomainType,
               typename Grid,
+              typename ReductionType,
               bool IsStateful>
-    struct intermediate : public computation {
+    struct intermediate : public computation<ReductionType> {
         GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssDescriptorArray, is_amss_descriptor>::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_backend<Backend>::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_domain_type<DomainType>::value), "Internal Error: wrong type");
@@ -491,6 +492,8 @@ namespace gridtools {
 
         typedef reduction_data<MssDescriptorArray, has_reduction_t::value> reduction_data_t;
         typedef typename reduction_data_t::reduction_type_t reduction_type_t;
+        GRIDTOOLS_STATIC_ASSERT((boost::is_same<reduction_type_t, ReductionType>::value),
+              "Error deducing the reduction. Check that if there is a reduction, this appears in the last mss");
 
         typedef typename build_mss_components_array<
             backend_id<Backend>::value,
@@ -692,7 +695,7 @@ namespace gridtools {
          * \brief the execution of the stencil operations take place in this call
          *
          */
-        virtual void run () {
+        virtual reduction_type_t run () {
 
             GRIDTOOLS_STATIC_ASSERT(
                     (boost::mpl::size<typename mss_components_array_t::elements>::value == boost::mpl::size<mss_local_domains_t>::value),

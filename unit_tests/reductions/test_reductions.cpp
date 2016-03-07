@@ -128,7 +128,7 @@ namespace red{
         */
 
         // \todo simplify the following using the auto keyword from C++11
-        boost::shared_ptr<gridtools::computation> red_ =
+        boost::shared_ptr<gridtools::computation<double> > red_ =
             make_computation<gridtools::BACKEND>
             (
                 make_mss(
