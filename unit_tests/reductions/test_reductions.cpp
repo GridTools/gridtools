@@ -143,20 +143,15 @@ namespace red{
 
         red_->steady();
 
-        red_->run();
+        double red = red_->run();
 
-//#ifdef __CUDACC__
-//        out.data().update_cpu();
-//#endif
+        bool success = (red == ref);
 
-        bool success = true;
-
-        std::cout << "REF " << ref << std::endl;
         return success;
     }
 }//namespace red
 
 TEST(reductions, sum) {
-    red::test(24, 24, 10);
+    ASSERT_TRUE( red::test(24, 24, 10) );
 
 }

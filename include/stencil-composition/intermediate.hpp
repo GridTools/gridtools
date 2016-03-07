@@ -382,7 +382,7 @@ namespace gridtools {
         typedef int reduction_type_t;
         reduction_data(reduction_type_t val) {}
 
-        int get() const {return 3;}
+        int initial_value() const {return 3;}
     };
 
 
@@ -411,37 +411,37 @@ namespace gridtools {
 
         reduction_data(reduction_type_t val) : m_initial_value(val),
             m_parallel_reduced_val(omp_get_num_threads(), val) {}
-        const reduction_type_t& get() const { return m_initial_value;}
-        const reduction_type_t& parallel_reduced_val(const int elem) { return m_parallel_reduced_val[elem];}
+        const reduction_type_t& initial_value() const { return m_initial_value;}
+        const reduction_type_t& parallel_reduced_val(const int elem) const { return m_parallel_reduced_val[elem];}
 
         void assign(uint_t elem, const reduction_type_t& reduction_value)
         {
             assert(elem < m_parallel_reduced_val.size());
-            std::cout << "ASSIGN "<< reduction_value << "  " << elem << std::endl;
             parallel_reduction<reduction_type_t, bin_op_t::value>::assign(m_parallel_reduced_val[elem], reduction_value);
         }
 
         void reduce()
         {
-            reduction_type_t red_value = m_initial_value;
+            m_reduced_value = m_initial_value;
 #ifdef CXX11_ENABLED
             for(auto val: m_parallel_reduced_val)
             {
-                std::cout << "VVV " << val <<  m_parallel_reduced_val.size() << std::endl;
-                parallel_reduction<reduction_type_t, bin_op_t::value>::assign(red_value, val);
+                parallel_reduction<reduction_type_t, bin_op_t::value>::assign(m_reduced_value, val);
             }
 #else
             for(uint_t i=0; i < m_parallel_reduced_val.size(); ++i)
             {
-                parallel_reduction<reduction_type_t, bin_op_t::value>::assign(red_value, m_parallel_reduced_val[i]);
+                parallel_reduction<reduction_type_t, bin_op_t::value>::assign(m_reduced_value, m_parallel_reduced_val[i]);
             }
 #endif
-            std::cout << "FINAL RED " << red_value << std::endl;
         }
+        reduction_type_t reduced_value() const { return m_reduced_value;}
 
     private:
         std::vector<reduction_type_t> m_parallel_reduced_val;
         reduction_type_t m_initial_value;
+        reduction_type_t m_reduced_value;
+
     };
 
     /**
@@ -562,7 +562,7 @@ namespace gridtools {
 
         actual_arg_list_type m_actual_arg_list;
         actual_metadata_list_type m_actual_metadata_list;
-        reduction_data_t m_initial_reduction_value;
+        reduction_data_t m_reduction_data;
 
         bool is_storage_ready;
         performance_meter_t m_meter;
@@ -570,7 +570,7 @@ namespace gridtools {
     public:
 
         intermediate(DomainType & domain, Grid const & grid, typename reduction_data_t::reduction_type_t reduction_initial_value = 0)
-            : m_domain(domain), m_grid(grid), m_meter("NoName"), m_initial_reduction_value(reduction_initial_value)
+            : m_domain(domain), m_grid(grid), m_meter("NoName"), m_reduction_data(reduction_initial_value)
         {
             // Each map key is a pair of indices in the axis, value is the corresponding method interval.
 
@@ -701,8 +701,9 @@ namespace gridtools {
                     (boost::mpl::size<typename mss_components_array_t::elements>::value == boost::mpl::size<mss_local_domains_t>::value),
                     "Internal Error");
             m_meter.start();
-            Backend::template run<mss_components_array_t>( m_grid, m_mss_local_domain_list, m_initial_reduction_value );
+            Backend::template run<mss_components_array_t>( m_grid, m_mss_local_domain_list, m_reduction_data );
             m_meter.pause();
+            return m_reduction_data.reduced_value();
         }
 
         virtual std::string print_meter() { return m_meter.to_string();}

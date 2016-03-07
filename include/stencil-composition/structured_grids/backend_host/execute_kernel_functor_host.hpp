@@ -136,7 +136,7 @@ namespace gridtools {
                 typedef typename iterate_domain_t::strides_cached_t strides_t;
                 strides_t strides;
 
-                iterate_domain_t it_domain(m_local_domain, m_reduction_data.get());
+                iterate_domain_t it_domain(m_local_domain, m_reduction_data.initial_value());
 
                 it_domain.set_data_pointer_impl(&data_pointer);
                 it_domain.set_strides_pointer_impl(&strides);
@@ -181,7 +181,6 @@ namespace gridtools {
 
                 //run the nested ij loop
                 ij_loop.apply(it_domain, f);
-std::cout << "At the end " << it_domain.reduction_value() << std::endl;
                 m_reduction_data.assign(omp_get_thread_num(), it_domain.reduction_value());
                 m_reduction_data.reduce();
             }
