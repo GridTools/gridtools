@@ -380,9 +380,14 @@ namespace gridtools {
     template<typename MssDescriptorArray>
     struct reduction_data<MssDescriptorArray, false>{
         typedef int reduction_type_t;
-        reduction_data(reduction_type_t val) {}
+        reduction_data(reduction_type_t) {}
 
-        int initial_value() const {return 3;}
+        reduction_type_t initial_value() const {return 0;}
+        reduction_type_t reduced_value() const { return 0;}
+        void assign(uint_t elem, const reduction_type_t& ){}
+        void reduce(){}
+
+
     };
 
 

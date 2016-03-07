@@ -74,7 +74,7 @@ namespace _impl {
     struct reduction_helper<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> >
     {
         typedef mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> mss_t;
-        typedef void reduction_type_t;
+        typedef int reduction_type_t;
         static int extract_initial_value(mss_t) { return 0;}
     };
 
