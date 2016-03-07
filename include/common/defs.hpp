@@ -150,6 +150,8 @@ namespace gridtools{
          */
         enum intend {in, inout} ;
 
+        enum binop {plus, mul};
+
 #ifdef __CUDACC__
     static const unsigned int vector_width=32;
 #else

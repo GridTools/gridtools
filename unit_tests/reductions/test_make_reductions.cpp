@@ -53,11 +53,12 @@ TEST(test_make_reduction, make_reduction) {
     typedef boost::mpl::vector<p_in, p_out> accessor_list_t;
 
     typedef decltype(
-        gridtools::make_reduction<make_reduction_test::test_functor>(0.0, p_in())
+        gridtools::make_reduction<make_reduction_test::test_functor, enumtype::plus>(0.0, p_in())
     ) red_t;
 
     typedef reduction_descriptor<
         double,
+        enumtype::plus,
         boost::mpl::vector1<
             esf_descriptor<make_reduction_test::test_functor, boost::mpl::vector1<p_in> >
         >

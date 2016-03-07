@@ -78,10 +78,11 @@ namespace _impl {
     };
 
     template <typename ExecutionEngine,
+              enumtype::binop BinOp,
               typename EsfDescrSequence>
-    struct reduction_helper<reduction_descriptor<ExecutionEngine, EsfDescrSequence> >
+    struct reduction_helper<reduction_descriptor<ExecutionEngine, BinOp, EsfDescrSequence> >
     {
-        typedef reduction_descriptor<ExecutionEngine, EsfDescrSequence> mss_t;
+        typedef reduction_descriptor<ExecutionEngine, BinOp, EsfDescrSequence> mss_t;
 
         static typename mss_t::reduction_type_t extract_initial_value(mss_t& red) { return red.get();}
     };

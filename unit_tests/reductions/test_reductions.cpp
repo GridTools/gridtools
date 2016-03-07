@@ -134,7 +134,7 @@ namespace red{
                     execute<forward>(),
                     make_esf<desf>(p_in(),p_out())
                 ),
-                make_reduction<sum_red>(5.0, p_out()),
+                make_reduction<sum_red, enumtype::plus>(5.0, p_out()),
                 domain, grid
             );
 
