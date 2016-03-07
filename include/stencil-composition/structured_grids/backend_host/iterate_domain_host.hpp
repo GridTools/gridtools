@@ -4,7 +4,6 @@
 #include "stencil-composition/iterate_domain.hpp"
 #include "stencil-composition/iterate_domain_metafunctions.hpp"
 #include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
-#include "iterate_domain_reduction.hpp"
 
 namespace gridtools {
 
@@ -12,24 +11,23 @@ namespace gridtools {
      * @brief iterate domain class for the Host backend
      */
     template<template<class> class IterateDomainBase, typename IterateDomainArguments>
-    class iterate_domain_host : public IterateDomainBase<iterate_domain_host<IterateDomainBase, IterateDomainArguments> >, //CRTP
-            public iterate_domain_reduction<IterateDomainArguments>
+    class iterate_domain_host : public IterateDomainBase<iterate_domain_host<IterateDomainBase, IterateDomainArguments> > //CRTP
     {
     DISALLOW_COPY_AND_ASSIGN(iterate_domain_host);
     GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Internal error: wrong type");
 
     typedef IterateDomainBase<iterate_domain_host<IterateDomainBase, IterateDomainArguments> > super;
     typedef typename IterateDomainArguments::local_domain_t local_domain_t;
-    typedef iterate_domain_reduction<IterateDomainArguments> iterate_domain_reduction_t;
-    typedef typename iterate_domain_reduction<IterateDomainArguments>::reduction_type_t reduction_type_t;
+    typedef typename super::reduction_type_t reduction_type_t;
 public:
+
     typedef typename super::data_pointer_array_t data_pointer_array_t;
     typedef typename super::strides_cached_t strides_cached_t;
     typedef boost::mpl::map0<> ij_caches_map_t;
 
     GT_FUNCTION
     explicit iterate_domain_host(local_domain_t const& local_domain, const reduction_type_t& reduction_initial_value)
-        : super(local_domain), iterate_domain_reduction_t(reduction_initial_value), m_data_pointer(0), m_strides(0) {}
+        : super(local_domain, reduction_initial_value), m_data_pointer(0), m_strides(0) {}
 
     void set_data_pointer_impl(data_pointer_array_t* RESTRICT data_pointer)
     {

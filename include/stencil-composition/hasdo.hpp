@@ -215,7 +215,7 @@ namespace gridtools {
         struct has_do_impl : static_bool<false> {};
 
         template <typename Fn, typename Arg, typename Int_>
-        struct has_do_impl<Fn, Arg, Int_, typename void_t<sizeof(Fn::Do(Arg(), Int_()))>::type > : static_bool<true> {};
+        struct has_do_impl<Fn, Arg, Int_, typename void_t<sizeof(Fn::Do(*(Arg*)0, Int_()))>::type > : static_bool<true> {};
 
         typedef typename has_do_impl<Functor, int, Interval>::type type;
     };

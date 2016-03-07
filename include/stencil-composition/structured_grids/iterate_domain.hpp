@@ -15,6 +15,7 @@
 #include "stencil-composition/run_functor_arguments.hpp"
 #include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
 #include "stencil-composition/iterate_domain_aux.hpp"
+#include "../reductions/iterate_domain_reduction.hpp"
 
 /**@file
    @brief file handling the access to the storage.
@@ -66,9 +67,13 @@ namespace gridtools {
        the storage placeholders/metadatas and their offsets.
      */
     template <typename IterateDomainImpl>
-    struct iterate_domain {
+    struct iterate_domain : public iterate_domain_reduction<typename iterate_domain_impl_arguments<IterateDomainImpl>::type>
+    {
         typedef typename iterate_domain_impl_arguments<IterateDomainImpl>::type iterate_domain_arguments_t;
         typedef typename iterate_domain_arguments_t::local_domain_t local_domain_t;
+
+        typedef iterate_domain_reduction<iterate_domain_arguments_t> iterate_domain_reduction_t;
+        typedef typename iterate_domain_reduction_t::reduction_type_t reduction_type_t;
 
         typedef typename iterate_domain_arguments_t::processing_elements_block_size_t processing_elements_block_size_t;
         // sequence of args types which are readonly through all ESFs/MSSs
@@ -229,9 +234,8 @@ namespace gridtools {
            might be shared among several data fileds)
         */
         GT_FUNCTION
-        iterate_domain(local_domain_t const& local_domain_)
-            : local_domain(local_domain_) {}
-
+        iterate_domain(local_domain_t const& local_domain_, const reduction_type_t& reduction_initial_value)
+            : iterate_domain_reduction_t(reduction_initial_value), local_domain(local_domain_) {}
 
         /**
            @brief returns a single snapshot in the array of raw data pointers

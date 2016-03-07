@@ -39,7 +39,7 @@ namespace gridtools {
         {
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments<EsfArguments>::value), "Internal Error: wrong type");
             typedef typename EsfArguments::functor_t functor_t;
-            this->m_iterate_domain.set_reduced_value(functor_t::f_type::Do(this->m_iterate_domain, IntervalType()));
+            this->m_iterate_domain.set_reduction_value(functor_t::f_type::Do(this->m_iterate_domain, IntervalType()));
         }
 
     };

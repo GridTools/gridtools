@@ -39,9 +39,8 @@ namespace red{
 
         template <typename Evaluation>
         GT_FUNCTION
-        static double Do(Evaluation const & eval, x_interval) {
-//            return eval(in());
-            eval(out()) = eval(in());
+        static double Do(Evaluation& eval, x_interval) {
+            return eval.reduction_value() + eval(in());
         }
     };
 
