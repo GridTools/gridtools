@@ -415,7 +415,7 @@ namespace gridtools {
         typedef typename reduction_descriptor_t::bin_op_t bin_op_t;
 
         reduction_data(reduction_type_t val) : m_initial_value(val),
-            m_parallel_reduced_val(omp_get_num_threads(), val) {}
+            m_parallel_reduced_val(omp_get_max_threads(), val) {}
         const reduction_type_t& initial_value() const { return m_initial_value;}
         const reduction_type_t& parallel_reduced_val(const int elem) const { return m_parallel_reduced_val[elem];}
 
