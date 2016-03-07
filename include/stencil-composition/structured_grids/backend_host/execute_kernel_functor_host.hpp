@@ -181,6 +181,9 @@ namespace gridtools {
 
                 //run the nested ij loop
                 ij_loop.apply(it_domain, f);
+std::cout << "At the end " << it_domain.reduction_value() << std::endl;
+                m_reduction_data.assign(omp_get_thread_num(), it_domain.reduction_value());
+                m_reduction_data.reduce();
             }
         };
     } // namespace strgrid

@@ -22,6 +22,8 @@ namespace gridtools {
         typedef EsfDescrSequence esf_sequence_t;
         typedef boost::mpl::vector0<> cache_sequence_t;
         typedef static_bool< true > is_reduction_t;
+        typedef enumtype::enum_type<enumtype::binop, BinOp> bin_op_t;
+
     private:
         reduction_type_t m_initial_value;
     public:

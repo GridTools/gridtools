@@ -353,6 +353,26 @@ namespace gridtools {
 
     };
 
+    template<typename ReductionType, enumtype::binop BinOp>
+    struct parallel_reduction;
+
+    template<typename ReductionType>
+    struct parallel_reduction<ReductionType, enumtype::plus>
+    {
+        static void assign(ReductionType& acc, ReductionType val)
+        {
+            acc += val;
+        }
+    };
+
+    template<typename ReductionType>
+    struct parallel_reduction<ReductionType, enumtype::mul>
+    {
+        static void assign(ReductionType& acc, ReductionType val)
+        {
+            acc *= val;
+        }
+    };
 
     template<typename MssDescriptorArray, bool HasReduction>
     struct reduction_data;
@@ -362,7 +382,7 @@ namespace gridtools {
         typedef int reduction_type_t;
         reduction_data(reduction_type_t val) {}
 
-        int get() const {return 0;}
+        int get() const {return 3;}
     };
 
 
@@ -375,21 +395,53 @@ namespace gridtools {
             boost::mpl::vector0<>,
             boost::mpl::eval_if<
                 amss_descriptor_is_reduction<boost::mpl::_2>,
-                boost::mpl::push_back<boost::mpl::_1, reduction_descriptor_type<boost::mpl::_2> >,
+                boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2 >,
                 boost::mpl::_1
             >
-         >::type reduction_type_seq_t;
+        >::type reduction_descriptor_seq_t;
 
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<reduction_type_seq_t>::value==1),
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<reduction_descriptor_seq_t>::value==1),
                                 "Error: more than one reduction found");
-        typedef typename boost::mpl::front<reduction_type_seq_t>::type reduction_type_t;
 
-        reduction_data(reduction_type_t val) : m_value(val), m_parallel_reduced_val(omp_get_num_threads()) {}
-        const reduction_type_t& get() const { return m_value;}
+        typedef typename boost::mpl::front<reduction_descriptor_seq_t>::type reduction_descriptor_t;
+
+        typedef typename reduction_descriptor_type<reduction_descriptor_t>::type reduction_type_t;
+
+        typedef typename reduction_descriptor_t::bin_op_t bin_op_t;
+
+        reduction_data(reduction_type_t val) : m_initial_value(val),
+            m_parallel_reduced_val(omp_get_num_threads(), val) {}
+        const reduction_type_t& get() const { return m_initial_value;}
         const reduction_type_t& parallel_reduced_val(const int elem) { return m_parallel_reduced_val[elem];}
+
+        void assign(uint_t elem, const reduction_type_t& reduction_value)
+        {
+            assert(elem < m_parallel_reduced_val.size());
+            std::cout << "ASSIGN "<< reduction_value << "  " << elem << std::endl;
+            parallel_reduction<reduction_type_t, bin_op_t::value>::assign(m_parallel_reduced_val[elem], reduction_value);
+        }
+
+        void reduce()
+        {
+            reduction_type_t red_value = m_initial_value;
+#ifdef CXX11_ENABLED
+            for(auto val: m_parallel_reduced_val)
+            {
+                std::cout << "VVV " << val <<  m_parallel_reduced_val.size() << std::endl;
+                parallel_reduction<reduction_type_t, bin_op_t::value>::assign(red_value, val);
+            }
+#else
+            for(uint_t i=0; i < m_parallel_reduced_val.size(); ++i)
+            {
+                parallel_reduction<reduction_type_t, bin_op_t::value>::assign(red_value, m_parallel_reduced_val[i]);
+            }
+#endif
+            std::cout << "FINAL RED " << red_value << std::endl;
+        }
+
     private:
         std::vector<reduction_type_t> m_parallel_reduced_val;
-        reduction_type_t m_value;
+        reduction_type_t m_initial_value;
     };
 
     /**
