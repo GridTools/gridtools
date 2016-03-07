@@ -27,8 +27,8 @@ namespace gridtools {
     private:
         reduction_type_t m_initial_value;
     public:
-        reduction_descriptor(ReductionType initial_value) : m_initial_value(initial_value){}
-        reduction_type_t get() const { return m_initial_value;}
+        constexpr reduction_descriptor( ReductionType initial_value) : m_initial_value(initial_value){}
+        constexpr reduction_type_t get() const { return m_initial_value;}
     };
 
     template<typename Reduction> struct is_reduction_descriptor : boost::mpl::false_{};
