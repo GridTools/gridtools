@@ -28,8 +28,8 @@ namespace gridtools{
         template<typename Arg1, typename Arg2>
         GT_FUNCTION
         constexpr expr(expr < Arg1, Arg2 > const& other) :
-            first_operand(other.m_first_operand)
-            , second_operand(other.m_second_operand)
+            first_operand(other.first_operand)
+            , second_operand(other.second_operand)
         {}
 
         First const first_operand;

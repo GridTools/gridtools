@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
     typedef BACKEND::storage_type<int_t, BACKEND::storage_info<0,gridtools::layout_map<0,1,2> > >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    storage_type::meta_data_t meta_(d1,d2,d3);
+    storage_type::storage_info_type meta_(d1,d2,d3);
     storage_type in(meta_, "in");
     in.initialize(-1);
     storage_type out(meta_, "out");
@@ -123,6 +123,7 @@ int main(int argc, char** argv) {
 
 #ifdef CUDA_EXAMPLE
     //TODO also metadata must be copied/used here
+    meta_.clone_to_device();
     in.clone_to_device();
     out.clone_to_device();
     in.h2d_update();

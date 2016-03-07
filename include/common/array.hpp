@@ -15,6 +15,8 @@
 
 namespace gridtools {
 
+    template<typename T> struct is_array : boost::mpl::false_{};
+
     template <typename T, size_t D>
     class array {
         typedef array<T,D> type;
@@ -69,6 +71,7 @@ namespace gridtools {
         //TODO provide a BOOST PP implementation for this
         GT_FUNCTION
         array(T const& i): _array() {
+            GRIDTOOLS_STATIC_ASSERT((!is_array<T>::value), "internal error");
             const_cast<typename boost::remove_const<T>::type*>(_array)[0]=i;
         }
         GT_FUNCTION
@@ -172,8 +175,6 @@ namespace gridtools {
         GT_FUNCTION
         constexpr static size_t size()  {return _size;}
     };
-
-    template<typename T> struct is_array : boost::mpl::false_{};
 
     template <typename T, size_t D>
     struct is_array <array<T, D> > : boost::mpl::true_{};

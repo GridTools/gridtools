@@ -90,7 +90,7 @@ namespace gridtools{
             typedef meta_storage_tmp
             <meta_storage_aligned
              <meta_storage_base
-              <Index::value, Layout, true>
+              <Index, Layout, true>
               , Alignment, Halo
               >
 #ifdef CXX11_ENABLED
@@ -117,22 +117,22 @@ namespace gridtools{
 #else
             GRIDTOOLS_STATIC_ASSERT((is_tile<TileI>::value && is_tile<TileJ>::value), "wrong type for the tiles");
 #endif
-            typedef storage<
+            typedef
 #ifdef CXX11_ENABLED
                 typename Storage::template type_tt
 #else
                 base_storage
 #endif
                 <typename Storage::pointer_type, typename get_tmp_storage_info
-                 <typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout,
-                  typename Storage::meta_data_t::halo_t,
-                  typename Storage::meta_data_t::alignment_t,
+                 <typename Storage::storage_info_type::index_type, typename Storage::storage_info_type::layout,
+                  typename Storage::storage_info_type::halo_t,
+                  typename Storage::storage_info_type::alignment_t,
 #ifdef CXX11_ENABLED
                   Tiles ...
 #else
                   TileI, TileJ
 #endif
-                  >::type, Storage::field_dimensions > > type;
+                  >::type, Storage::field_dimensions > type;
         };
     };
 
@@ -261,7 +261,7 @@ namespace gridtools{
             typedef meta_storage_tmp
             <meta_storage_aligned
               <meta_storage_base
-               <Index::value, Layout, true>
+               <Index, Layout, true>
                , aligned<0>
                , Halo
                >
@@ -289,21 +289,21 @@ namespace gridtools{
 #else
             GRIDTOOLS_STATIC_ASSERT((is_tile<TileI>::value && is_tile<TileJ>::value), "wrong type for the tiles");
 #endif
-            typedef storage<
+            typedef
 #ifdef CXX11_ENABLED
                 typename Storage::template type_tt
 #else
                 base_storage
 #endif
                 <typename Storage::pointer_type, typename get_tmp_meta_storage
-                 <typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout,
-                  typename Storage::meta_data_t::halo_t,
+                 <typename Storage::storage_info_type::index_type, typename Storage::storage_info_type::layout,
+                  typename Storage::storage_info_type::halo_t,
 #ifdef CXX11_ENABLED
                   Tiles ...
 #else
                   TileI, TileJ
 #endif
-                  >::type, Storage::field_dimensions > > type;
+                  >::type, Storage::field_dimensions > type;
         };
 };
 

@@ -124,8 +124,8 @@ namespace gridtools {
 
                 iterate_domain_t it_domain(m_local_domain);
 
-        it_domain.set_data_pointer_impl(&data_pointer);
-        it_domain.set_strides_pointer_impl(&strides);
+                it_domain.set_data_pointer_impl(&data_pointer);
+                it_domain.set_strides_pointer_impl(&strides);
 
                 it_domain.template assign_storage_pointers<backend_traits_t >();
                 it_domain.template assign_stride_pointers <backend_traits_t, strides_t>();

@@ -3,6 +3,9 @@
 
 namespace gridtools {
 
+    template<uint_t T>
+    struct conditional;
+
 template <typename EsfSequence>
 struct independent_esf {
     GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value),

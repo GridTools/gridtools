@@ -6,6 +6,11 @@
 #include "meta_storage_aligned.hpp"
 #ifdef CXX11_ENABLED
 #include "../common/generic_metafunctions/repeat_template.hpp"
+#include "../common/generic_metafunctions/variadic_to_vector.hpp"
+#include <boost/type_traits/is_integral.hpp>
+#include <boost/utility/enable_if.hpp>
+#include <boost/mpl/vector.hpp>
+#include <boost/mpl/at.hpp>
 #endif
 /**
    @file
@@ -39,7 +44,7 @@ namespace gridtools{
             forwarding to the base class
         */
         __device__
-        meta_storage(BaseStorage const& other)
+        meta_storage(meta_storage<BaseStorage> const& other)
             :  super(other)
         {}
 
@@ -48,8 +53,15 @@ namespace gridtools{
 
             forwarding to the base class
         */
-        template <class ... UIntTypes>
-        explicit meta_storage(  UIntTypes const& ... args ): super(args ...)
+        template <typename ... IntTypes,
+                  typename Dummy = typename boost::enable_if_c<
+                      boost::is_integral<
+                          typename boost::mpl::at_c<
+                              typename variadic_to_vector<IntTypes ...>::type, 0 >::type
+                          >::type::value, bool
+                      >::type
+                  >
+        meta_storage(  IntTypes ... args ): super(args ...)
         {
         }
 #else
@@ -58,18 +70,21 @@ namespace gridtools{
 
             forwarding to the base class
         */
-        explicit meta_storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3): super(dim1, dim2, dim3) {}
+        explicit meta_storage(uint_t dim1, uint_t dim2, uint_t dim3)
+            : super(dim1, dim2, dim3)
+        {}
 
         /** @brief ctor
 
             forwarding to the base class
         */
         meta_storage( uint_t const& initial_offset_i,
-                              uint_t const& initial_offset_j,
-                              uint_t const& dim3,
-                              uint_t const& n_i_threads,
-                              uint_t const& n_j_threads)
-            : super(initial_offset_i, initial_offset_j, dim3, n_i_threads, n_j_threads){}
+                      uint_t const& initial_offset_j,
+                      uint_t const& dim3,
+                      uint_t const& n_i_threads,
+                      uint_t const& n_j_threads)
+            : super(initial_offset_i, initial_offset_j, dim3, n_i_threads, n_j_threads)
+        {}
 #endif
 
 #ifndef __CUDACC__
@@ -102,10 +117,10 @@ namespace gridtools{
     struct is_meta_storage<no_meta_storage_type_yet<Storage> > : is_meta_storage<Storage> {};
 
 #ifdef CXX11_ENABLED
-    template<ushort_t Index, typename Layout, bool IsTemporary, typename ... Whatever>
+    template<typename Index, typename Layout, bool IsTemporary, typename ... Whatever>
     struct is_meta_storage<meta_storage_base<Index, Layout, IsTemporary, Whatever...> > : boost::mpl::true_{};
 #else
-    template<ushort_t Index, typename Layout, bool IsTemporary, typename TileI, typename TileJ>
+    template<typename Index, typename Layout, bool IsTemporary, typename TileI, typename TileJ>
     struct is_meta_storage<meta_storage_base<Index, Layout, IsTemporary, TileI, TileJ> > : boost::mpl::true_{};
 #endif
 

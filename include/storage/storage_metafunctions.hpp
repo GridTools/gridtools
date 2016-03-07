@@ -25,7 +25,7 @@ struct storage_holds_data_field : boost::mpl::bool_<(T::field_dimensions > 1)>{}
 
     template<typename Storage>
     struct storage2metadata<pointer<Storage> >{
-        typedef typename Storage::meta_data_t type;
+        typedef typename Storage::storage_info_type type;
     };
 
     /**
@@ -48,21 +48,22 @@ struct storage_holds_data_field : boost::mpl::bool_<(T::field_dimensions > 1)>{}
     struct is_temporary_storage<pointer< no_storage_type_yet<U> > > : public boost::true_type
     {};
 
-    //Decorator is the storage
+    //Decorator is e.g. of type storage
     template <typename BaseType , template <typename T> class Decorator >
     struct is_actual_storage<pointer<Decorator<BaseType>  >  > : public is_actual_storage<pointer<typename BaseType::basic_type > >
     {};
 
 #ifdef CXX11_ENABLED
-    //Decorator is the integrator
+    //Decorator is e.g. a data_field
     template <typename First, typename ... BaseType , template <typename ... T> class Decorator >
-    struct is_actual_storage<Decorator<First, BaseType...>  *  > : public is_actual_storage<typename First::basic_type*>
+    struct is_actual_storage<pointer<Decorator<First, BaseType...>  >  > : public is_actual_storage<pointer<typename First::basic_type> >
     {};
+
 #else
 
     //Decorator is the integrator
     template <typename First, typename B2, typename  B3 , template <typename T1, typename T2, typename T3> class Decorator >
-    struct is_actual_storage<Decorator<First, B2, B3>  *  > : public is_actual_storage<typename First::basic_type*>
+    struct is_actual_storage<pointer<Decorator<First, B2, B3>  >  > : public is_actual_storage<pointer<typename First::basic_type > >
     {};
 
 #endif
@@ -72,17 +73,15 @@ struct storage_holds_data_field : boost::mpl::bool_<(T::field_dimensions > 1)>{}
     struct is_actual_storage<Decorator<BaseType, Order>  *  > : public is_actual_storage<typename BaseType::basic_type*>
     {};
 
-    template <typename T>
-    struct is_any_storage : boost::mpl::false_{};
 
-    template<typename T>
-    struct is_any_storage<storage<T> > : boost::mpl::true_{};
+    template <typename T>
+    struct is_any_storage : is_storage<T>{};
 
     template<typename T>
     struct is_any_storage<no_storage_type_yet<T> > : boost::mpl::true_{};
 
     template<typename T>
-    struct is_any_storage<pointer<storage<T> > > : boost::mpl::true_{};
+    struct is_any_storage<pointer<T > > : is_storage<T> {};
 
     template<typename T>
     struct is_any_storage<pointer<no_storage_type_yet<T> > > : boost::mpl::true_{};

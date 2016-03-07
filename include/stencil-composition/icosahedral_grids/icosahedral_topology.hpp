@@ -23,12 +23,14 @@
 #include <boost/fusion/include/io.hpp>
 
 #include <common/array.hpp>
-#include <cassert>
+#include "../../common/gt_assert.hpp"
 #include <boost/mpl/vector.hpp>
 #include "location_type.hpp"
 #include "common/array_addons.hpp"
 
 namespace gridtools {
+
+    //TODO this is duplicated below
 
     namespace{
         using cells = location_type<0,2>;
@@ -574,7 +576,7 @@ namespace gridtools {
         using vertexes = location_type<2,1>;
 
         template <typename LocationType>
-        using v_storage_t = typename Backend::template meta_storage_t<LocationType>;
+        using v_storage_t = typename Backend::template storage_info_type<LocationType>;
 
         template <typename LocationType, typename ValueType>
         using storage_t = typename Backend::template storage_t<LocationType, ValueType>;
@@ -674,10 +676,11 @@ namespace gridtools {
             switch (i[1]%cells::n_colors::value) {
             case 0:
                 return ll_map_index(cells(), Location2(), static_int<0>(), {i[0], i[2], i[3]});
-                // return edge2edges_ll_p0_indices({i[0], i[2]});
             case 1:
                 return ll_map_index(cells(), Location2(), static_int<1>(), {i[0], i[2], i[3]});
-                // return edge2edges_ll_p1_indices({i[0], i[2]});
+            default:
+                assert(false);
+                return typename return_type<typename from<cells>::template to<Location2>, array<uint_t, 4> >::type();
             }
         }
 
@@ -700,6 +703,10 @@ namespace gridtools {
             case 2:
                 return ll_map_index(edges(), Location2(), static_int<2>(), {i[0], i[2], i[3]});
                 // return edge2edges_ll_p2_indices({i[0], i[2]});
+            default:
+                assert(false);
+                return typename return_type<typename from<edges>::template to<Location2>, array<uint_t, 4> >::type();
+
             }
         }
 

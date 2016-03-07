@@ -1,5 +1,6 @@
 #pragma once
 
+#include "intermediate_metafunctions.hpp"
 #include "stencil-composition/esf.hpp"
 #include "stencil-composition/make_esf.hpp"
 #include "stencil-composition/make_stencils.hpp"

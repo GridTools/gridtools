@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
-#include "common/defs.hpp"
-#include "stencil-composition/stencil-composition.hpp"
+#include <common/defs.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
 
 namespace test_cache_stencil {
@@ -67,7 +67,7 @@ protected:
     array<uint_t, 5> m_di, m_dj;
 
     gridtools::grid<axis> m_grid;
-    typename storage_type::meta_data_t m_meta;
+    typename storage_type::storage_info_type m_meta;
     storage_type m_in, m_out;
 
     cache_stencil() :
@@ -109,21 +109,25 @@ TEST_F(cache_stencil, ij_cache)
     typedef boost::mpl::vector3<p_in, p_out, p_buff> accessor_list;
     gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&m_in, &m_out));
 
-#ifdef __CUDACC__
-    gridtools::computation* pstencil =
+#ifdef CXX11_ENABLED
+    auto
 #else
-        boost::shared_ptr<gridtools::computation> pstencil =
+#ifdef __CUDACC__
+        gridtools::computation*
+#else
+        boost::shared_ptr<gridtools::computation>
 #endif
-        make_computation<gridtools::BACKEND>
+#endif
+        pstencil = make_computation<gridtools::BACKEND>
         (
+            domain, m_grid,
             make_mss // mss_descriptor
             (
                 execute<forward>(),
                 define_caches(cache<IJ, p_buff, local>()),
                 make_esf<functor1>(p_in(), p_buff())
                 , make_esf<functor1>(p_buff(), p_out())
-                ),
-            domain, m_grid
+                )
         );
 
     pstencil->ready();
@@ -135,7 +139,7 @@ TEST_F(cache_stencil, ij_cache)
     pstencil->finalize();
 
 #ifdef __CUDACC__
-    m_out.data().update_cpu();
+    m_out.d2h_update();
 #endif
 #ifdef CXX11_ENABLED
     verifier verif(1e-13);
@@ -150,7 +154,7 @@ TEST_F(cache_stencil, ij_cache)
 TEST_F(cache_stencil, ij_cache_offset)
 {
     SetUp();
-    typename storage_type::meta_data_t meta_(m_d1, m_d2, m_d3);
+    typename storage_type::storage_info_type meta_(m_d1, m_d2, m_d3);
     storage_type ref(meta_,  0.0, "ref");
 
     for(int i=m_halo_size; i < m_d1-m_halo_size; ++i)
@@ -167,21 +171,25 @@ TEST_F(cache_stencil, ij_cache_offset)
     typedef boost::mpl::vector3<p_in, p_out, p_buff> accessor_list;
     gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&m_in, &m_out));
 
-#ifdef __CUDACC__
-    gridtools::computation* pstencil =
+#ifdef CXX11_ENABLED
+    auto
 #else
-        boost::shared_ptr<gridtools::computation> pstencil =
+#ifdef __CUDACC__
+    gridtools::computation*
+#else
+        boost::shared_ptr<gridtools::computation>
 #endif
-        make_computation<gridtools::BACKEND>
+#endif
+        pstencil = make_computation<gridtools::BACKEND>
         (
+            domain, m_grid,
             make_mss // mss_descriptor
             (
                 execute<forward>(),
                 define_caches(cache<IJ, p_buff, local>()),
                 make_esf<functor1>(p_in(), p_buff()), // esf_descriptor
                 make_esf<functor2>(p_buff(), p_out()) // esf_descriptor
-            ),
-            domain, m_grid
+            )
         );
 
     pstencil->ready();
@@ -193,7 +201,7 @@ TEST_F(cache_stencil, ij_cache_offset)
     pstencil->finalize();
 
 #ifdef __CUDACC__
-    m_out.data().update_cpu();
+    m_out.d2h_update();
 #endif
 
 #ifdef CXX11_ENABLED

@@ -23,10 +23,12 @@ using namespace gridtools;
 namespace make_computation_test{
 
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
+    using backend_t = backend<enumtype::Host, enumtype::Block >;
+    using icosahedral_topology_t = gridtools::icosahedral_topology<backend_t>;
 
     struct test_functor {
-        typedef ro_accessor<0, radius<1> > in;
-        typedef boost::mpl::vector1<in> arg_list;
+        using in = in_accessor<0, icosahedral_topology_t::cells, radius<1> >;
+        using arg_list = boost::mpl::vector1<in>;
 
         template <typename Evaluation>
         GT_FUNCTION
@@ -37,12 +39,8 @@ namespace make_computation_test{
 TEST(test_make_computation, get_mss_array) {
 
     using namespace gridtools;
-
-    using backend_t = backend<enumtype::Host, enumtype::Block >;
-
+    using namespace make_computation_test;
     typedef gridtools::layout_map<2,1,0> layout_t;
-    using icosahedral_topology_t = gridtools::icosahedral_topology<backend_t>;
-
     using cell_storage_type = typename backend_t::storage_t<icosahedral_topology_t::cells, double>;
 
     typedef arg<0, cell_storage_type> in_cells;

@@ -9,7 +9,7 @@ int main(int argc, char** argv)
     ::testing::InitGoogleTest(&argc, argv);
 
     if (argc < 4) {
-        printf( "Usage: interface1_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields\n" );
+        printf( "Usage: interface1_<whatever> dimx dimy dimz tsteps \n where args are integer sizes of the data fields and tstep is the number of timesteps to run in a benchmark run\n" );
         return 1;
     }
 

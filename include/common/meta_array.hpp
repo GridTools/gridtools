@@ -6,6 +6,7 @@
  */
 
 #pragma once
+#include <boost/mpl/push_back.hpp>
 #include <boost/mpl/lambda.hpp>
 #include <boost/mpl/is_sequence.hpp>
 #include <boost/mpl/eval_if.hpp>
@@ -16,8 +17,14 @@
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/fold.hpp>
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
+#ifdef CXX11_ENABLED
+#include "meta_array_vector.hpp"
+#else
+#include "meta_array_vector_cxx03.hpp"
+#endif
 
 namespace gridtools {
+
 
 /**
  * @brief wrapper class around a sequence of types. The goal of the class is to identify that a type is an array of types that
@@ -43,6 +50,15 @@ struct meta_array{
 
     typedef sequence_t elements;
 };
+
+    //first order
+    template<typename Sequence1, typename Sequence2, typename Cond, typename TPred>
+    struct meta_array<condition<Sequence1, Sequence2, Cond>, TPred >{
+        typedef Sequence1 sequence1_t;
+        typedef Sequence2 sequence2_t;
+        typedef condition<sequence1_t, sequence2_t, Cond> elements;
+    };
+
 
 //type traits for meta_array
 template<typename T> struct is_meta_array : boost::mpl::false_{};

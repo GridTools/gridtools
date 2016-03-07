@@ -13,9 +13,7 @@
 
 #include "gtest/gtest.h"
 
-#include "stencil-composition/backend.hpp"
-#include "stencil-composition/stencil-composition.hpp"
-#include "stencil-composition/intermediate_metafunctions.hpp"
+#include <stencil-composition/stencil-composition.hpp>
 
 using namespace gridtools;
 using gridtools::level;
@@ -33,7 +31,7 @@ namespace local_domain_stencil{
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct dummy_functor {
-        typedef const accessor<0> in;
+        typedef accessor<0> in;
         typedef accessor<1> out;
         typedef boost::mpl::vector<in,out> arg_list;
 
@@ -83,17 +81,19 @@ TEST(test_local_domain, merge_mss_local_domains) {
     grid.value_list[0] = 0;
     grid.value_list[1] = d3-1;
 
-    typedef typename decltype(make_computation<gridtools::backend<Host, Naive > >
+    typedef intermediate<gridtools::backend<Host, Naive >
+                         , meta_array<boost::mpl::vector<decltype(
+        gridtools::make_mss // mss_descriptor
         (
-            gridtools::make_mss // mss_descriptor
-            (
-                execute<forward>(),
-                gridtools::make_esf<local_domain_stencil::dummy_functor>(p_in() ,p_buff()),
-                gridtools::make_esf<local_domain_stencil::dummy_functor>(p_buff() ,p_out())
-            ),
-            domain, grid
-        )
-    )::element_type intermediate_t;
+            execute<forward>(),
+            gridtools::make_esf<local_domain_stencil::dummy_functor>(p_in() ,p_buff()),
+            gridtools::make_esf<local_domain_stencil::dummy_functor>(p_buff() ,p_out())
+            )
+        )>, boost::mpl::quote1<gridtools::is_mss_descriptor> >
+                         , gridtools::domain_type<accessor_list>
+                         , gridtools::grid<local_domain_stencil::axis>
+                         , boost::fusion::set<>
+                         , false> intermediate_t;
 
     typedef intermediate_backend<intermediate_t>::type backend_t;
     typedef intermediate_domain_type<intermediate_t>::type domain_t;
