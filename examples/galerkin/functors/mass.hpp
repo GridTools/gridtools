@@ -6,7 +6,6 @@ namespace functors{
     typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_interval;
 
 // [integration]
-    template <typename FE, typename Cubature>
     struct mass {
         using jac_det =gt::accessor<0, enumtype::in, gt::extent<0,0,0,0> , 4> const;
         using weights =gt::accessor<1, enumtype::in, gt::extent<0,0,0,0> , 3> const;
@@ -34,11 +33,15 @@ namespace functors{
             {
                 for(short_t Q_i=0; Q_i<basis_cardinality; ++Q_i)
                 {//other dofs whose basis function has nonzero support on the element
+                    // printf("entry (%d, %d): \n", P_i, Q_i);
                     for(short_t q=0; q<num_cub_points; ++q){
                         assert(eval(jac_det(qp+q)));
                         eval(mass_t((uint_t)0,(uint_t)0,(uint_t)0,(uint_t)P_i,(uint_t)Q_i))  +=
                             eval(!phi(P_i,q,0)*(!psi(Q_i,q,0))*jac_det(qp+q)*!weights(q,0,0));
+                        // printf("%f * %f *%f * %f +\n", eval(!phi(P_i,q,0)), eval(!psi(Q_i,q,0)), eval(jac_det(qp+q)), eval(!weights(q,0,0)));
                     }
+                    // printf("mass(%d, %d) = %f", P_i, Q_i, eval(mass_t((uint_t)0,(uint_t)0,(uint_t)0,(uint_t)P_i,(uint_t)Q_i)));
+                    // printf("\n\n\n\n\n\n");
                     assert( P_i!=Q_i || eval(mass_t((uint_t)0,(uint_t)0,(uint_t)0,(uint_t)P_i,(uint_t)Q_i)));
                 }
             }

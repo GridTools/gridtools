@@ -32,12 +32,12 @@ namespace functors{
 #ifdef NDEBUG
             constexpr
 #endif
-                gt::meta_storage_base<__COUNTER__,gt::layout_map<2,1,0>,false> indexing{static_int<3>(), static_int<3>(), static_int<3>()};
+                gt::meta_storage_base<static_int<__COUNTER__>,gt::layout_map<2,1,0>,false> indexing{static_int<3>(), static_int<3>(), static_int<3>()};
 #else
 #ifdef NDEBUG
             constexpr
 #endif
-                gt::meta_storage_base<__COUNTER__,gt::layout_map<2,1,0>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
+                gt::meta_storage_base<static_int<__COUNTER__>,gt::layout_map<2,1,0>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
 
 #endif
 
@@ -96,12 +96,12 @@ namespace functors{
 #ifdef NDEBUG
             constexpr
 #endif
-                gt::meta_storage_base<__COUNTER__,gt::layout_map<2,1,0>,false> indexing{static_int<3>(), static_int<3>(), static_int<3>()};
+                gt::meta_storage_base<static_int<__COUNTER__>,gt::layout_map<2,1,0>,false> indexing{static_int<3>(), static_int<3>(), static_int<3>()};
 #else
 #ifdef NDEBUG
             constexpr
 #endif
-                gt::meta_storage_base<__COUNTER__,gt::layout_map<2,1,0>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
+                gt::meta_storage_base<static_int<__COUNTER__>,gt::layout_map<2,1,0>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
 
 #endif
 
@@ -141,7 +141,7 @@ namespace functors{
     };
     // [lax friedrich]
 
-#define FOR_DEBUG 1
+//#define FOR_DEBUG 1
     // [upwind]
     /**
        @class functor assembling the upwind flux

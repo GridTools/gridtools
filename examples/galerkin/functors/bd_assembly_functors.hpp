@@ -274,6 +274,7 @@ namespace functors{
 
             for(short_t face_=0; face_< num_faces; ++face_)
             {
+#ifndef __CUDACC__
                 gt::alias<jac, gt::dimension<7> > J(face_);
                 gt::alias<jac_det, gt::dimension<5> > Jdet(face_);
 
@@ -290,6 +291,26 @@ namespace functors{
                             )
                         );
                 }
+#else
+
+                gt::dimension<7>::Index D7;
+                gt::dimension<5>::Index D5;
+
+                for(short_t q=0; q< num_cub_points; ++q)
+                {
+                    eval( jac_det(qp+q, D5+face_) )= eval(
+                        (
+                            jac(        qp+q, D7+face_)*jac(dimx+1, dimy+1, qp+q, D7+face_) +
+                            jac(dimx+1, qp+q, D7+face_)*jac(dimx+2, dimy+1, qp+q, D7+face_) +
+                            jac(dimy+1, qp+q, D7+face_)*jac(dimx+2,         qp+q, D7+face_) -
+                            jac(dimy+1, qp+q, D7+face_)*jac(dimx+1,         qp+q, D7+face_) -
+                            jac(        qp+q, D7+face_)*jac(dimx+2, dimy+1, qp+q, D7+face_) -
+                            jac(dimx+1, dimy+1, qp+q, D7+face_)*jac(dimx+2,         qp+q, D7+face_)
+                            )
+                        );
+                }
+#endif
+
             }
         }
     };

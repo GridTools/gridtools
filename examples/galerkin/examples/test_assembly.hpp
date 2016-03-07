@@ -1,7 +1,7 @@
 #pragma once
 #include "../numerics/assembly.hpp"
 
-namespace gridtools{
+namespace gdl{
 namespace intrepid{
     using namespace Intrepid;
 
@@ -21,13 +21,13 @@ namespace intrepid{
         for (uint_t i=0; i<fe::basisCardinality; ++i)
             for (uint_t j=0; j<cub::numCubPoints(); ++j)
                 for (int_t k=0; k<fe::spaceDim; ++k)
-                    grad_at_cub_points(i,j,k)=(*fe_backend_.m_grad_at_cub_points_s)(i,j,k);
+                    grad_at_cub_points(i,j,k)=(fe_backend_.grad())(i,j,k);
 
         FieldContainer<double> cub_weights(cub::numCubPoints());
 
         for(uint_t i=0; i<cub::numCubPoints(); ++i)
         {
-            cub_weights(i)=fe_backend_.m_cub_weights_s(i,0,0);
+            cub_weights(i)=fe_backend_.cub_weights()(i,0,0);
         }
 
         FieldContainer<double> cub_points(cub::numCubPoints(), fe::spaceDim);
@@ -35,7 +35,7 @@ namespace intrepid{
         {
             for(uint_t j=0; j<fe::spaceDim; ++j)
             {
-                cub_points(i,j)=fe_backend_.m_cub_points_s(i,j,0);
+                cub_points(i,j)=fe_backend_.cub_points()(i,j,0);
             }
         }
 

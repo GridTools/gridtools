@@ -6,14 +6,11 @@
 #include <common/generic_metafunctions/gt_integer_sequence.hpp>
 #include <common/generic_metafunctions/gt_get.hpp>
 #include <common/generic_metafunctions/accumulate.hpp>
+#include "order.hpp"
 // #include <storage/meta_storage_base.hpp>
 
-namespace gridtools{
+namespace gdl{
 
-    /**struct to wrap the order in each dimension*/
-    template <ushort_t ... P>
-    struct order{
-    };
 
     template<ushort_t Dim, typename Order, ushort_t I>
     struct BSplineCoeff;
@@ -26,7 +23,7 @@ namespace gridtools{
     template<ushort_t Dim, ushort_t I, ushort_t ... P>
     struct BSplineCoeff<Dim, order<P...>, I>{
         static const ushort_t dimension=Dim;
-        static const constexpr array<ushort_t, sizeof...(P)> order{P...};
+        static const constexpr gt::array<ushort_t, sizeof...(P)> order{P...};
         static const ushort_t index=I;
     };
 
@@ -92,7 +89,7 @@ namespace gridtools{
 
             template<typename ... Args>
             double operator()(Args const& ... args_){
-                return multiplies()(args_ ...);
+                return gt::multiplies()(args_ ...);
             }
 
             template<typename T>
@@ -174,7 +171,7 @@ namespace gridtools{
      */
     template<ushort_t ... P>
     struct parametric_space<order<P ... > >{
-        typedef std::tuple<array<double, P+P+1>...> knots_t;
+        typedef std::tuple<gt::array<double, P+P+1>...> knots_t;
         static const ushort_t dim = (sizeof...(P));
         typedef boost::mpl::vector<static_ushort<P>...> orders_t;
         knots_t m_knots;
@@ -236,10 +233,10 @@ namespace gridtools{
 	template<ushort_t T, ushort_t U>
 	using lambda_tt=BSplineCoeff<T, order<P...>, U>;
 
-	using seq=typename make_gt_integer_sequence<ushort_t, Dim>::type;
+	using seq=typename gt::make_gt_integer_sequence<ushort_t, Dim>::type;
 
 	template <ushort_t ... Ids>
-	using spline_tt= typename apply_gt_integer_sequence<seq>::template apply_tt<GenericBSpline, lambda_tt, Ids... >::type;
+	using spline_tt= typename gt::apply_gt_integer_sequence<seq>::template apply_tt<GenericBSpline, lambda_tt, Ids... >::type;
 
     public:
 
@@ -260,7 +257,7 @@ namespace gridtools{
         constexpr int getCardinality() const
         {
             //returns the number of basis functions (P)^dim
-            return accumulate(multiplies(), P...);
+            return gt::accumulate(gt::multiplies(), P...);
         }
 
 
@@ -299,7 +296,7 @@ namespace gridtools{
             struct functor_assign_storage;
 
             template<typename Id,typename Basis, ushort_t ... Integers>
-            struct functor_assign_storage<Id, Basis, gt_integer_sequence<ushort_t, Integers...> >{
+            struct functor_assign_storage<Id, Basis, gt::gt_integer_sequence<ushort_t, Integers...> >{
 
                 static void apply( Storage & storage_, Basis const& basis_, Quad const& quad_, int const& k)
                 {
@@ -321,10 +318,10 @@ namespace gridtools{
             void operator()(Id){
 
                 //innermost loop has lower stride <0,1,2,3,....>
-                using layout_t= typename apply_gt_integer_sequence
-                    <typename make_gt_integer_sequence
+                using layout_t= typename gt::apply_gt_integer_sequence
+                    <typename gt::make_gt_integer_sequence
                      <int, sizeof...(Dims)+1>::type >::template apply_c_tt
-                     <layout_map, lambda_get_first, Dims..., Id::value>::type;
+                    <gt::layout_map, lambda_get_first, Dims..., Id::value>::type;
 
                 // computing the strides at compile time
                 // NOTE: __COUNTER__ is a non standard non very portable solution
@@ -332,9 +329,9 @@ namespace gridtools{
                 //TODO generalize
 
 #ifdef __CUDACC__ // nvcc crap (quite amazing)
-                static const constexpr gridtools::meta_storage_base<__COUNTER__,layout_t,false> indexing{get_second<P,2>::value_ ... };
+                static const constexpr gt::meta_storage_base<static_int<__COUNTER__>,layout_t,false> indexing{get_second<P,2>::value_ ... };
 #else
-                constexpr gridtools::meta_storage_base<__COUNTER__,layout_t,false> indexing{P ...};
+                constexpr gt::meta_storage_base<static_int<__COUNTER__>,layout_t,false> indexing{P ...};
 #endif
                 using basis_t = spline_tt<Dims ... , Id::value>;
                 basis_t basis_(m_knots);
@@ -354,7 +351,7 @@ namespace gridtools{
                         //static_int<indexing.index(static_int<Dims-1>() ... , static_int<Id::value>())>
                         static_int<indexing.index(Dims-1 ... , Id::value)>
                         , basis_t
-                        , typename make_gt_integer_sequence<ushort_t, Dim>::type >
+                        , typename gt::make_gt_integer_sequence<ushort_t, Dim>::type >
                         ::apply( m_storage, basis_, m_quad, k);
 
 		}
@@ -380,7 +377,7 @@ namespace gridtools{
                 GRIDTOOLS_STATIC_ASSERT((sizeof...(P)==Dim), "error");
 		//unroll according to dimensions
                 nest_loop
-                    < std::tuple<array<double, P+P+1>...>, Quad, Storage, functor_get_vals
+                    < std::tuple<gt::array<double, P+P+1>...>, Quad, Storage, functor_get_vals
                       , boost::mpl::range_c<int, 1, P+1> ...
                       >
                     (quad_points_, storage_, this->m_knots)();

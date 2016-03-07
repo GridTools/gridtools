@@ -1,6 +1,6 @@
 #pragma once
 //TODO (optional) : rewrite generic
-namespace gridtools{
+namespace gdl{
 
     template<typename ArrayKnots, typename Quad, typename Storage
 	      , template<typename AK, typename Q, typename S, int ... I> class InnerFunctor

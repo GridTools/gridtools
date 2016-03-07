@@ -137,7 +137,7 @@ namespace gdl{
     };
     //! [det]
 
-#ifndef __CUDACC__
+
     //! [inv]
 
     template <typename Geometry,ushort_t Dim=Geometry::geo_map::spaceDim>
@@ -163,6 +163,7 @@ namespace gdl{
         }
     };
 
+#ifndef __CUDACC__
     template <typename Geometry>
     struct inv_impl<Geometry,3> : public inv<Geometry>
     {
@@ -183,9 +184,8 @@ namespace gdl{
             dimy::Index Y;
             uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac());
 
-#ifdef __CUDACC__
+            typedef typename Geometry::cub cub;
             assert(num_cub_points==cub::numCubPoints());
-#endif
 
 //! [aliases]
             using a_=typename gt::alias<jac, dimy, dimx>::template set<0,0>;
@@ -291,7 +291,49 @@ namespace gdl{
         }
     };
 
-    // [inv]
+#else //__CUDACC__
+
+    template <typename Geometry>
+    struct inv_impl<Geometry,3> : public inv<Geometry>
+    {
+    	using super=inv<Geometry>;
+
+        using jac      = typename super::jac ;
+        using jac_det  = typename super::jac_det ;
+        using jac_inv  = typename super::jac_inv ;
+
+        template <typename Evaluation>
+        GT_FUNCTION
+        static void DoCompute(Evaluation const & eval) {
+
+            gt::dimension<4>::Index qp;
+            using dimx=gt::dimension<5>;
+            using dimy=gt::dimension<6>;
+            dimx::Index X;
+            dimy::Index Y;
+            uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac());
+
+
+            assert(num_cub_points==cub::numCubPoints());
+
+            for(short_t q=0; q< num_cub_points; ++q)
+            {
+
+                eval( jac_inv(qp+q) )           = eval( ( jac(qp+q, X+1, Y+1)*jac(qp+q, X+2,Y+2)) - jac(qp+q, X+2, Y+1)*jac(qp+q, X+1,Y+2)/jac_det(qp+q));
+                eval( jac_inv(X+1, qp+q) )      = eval( ( jac(qp+q, X+2, Y+1)*jac(qp+q, Y+2)) - jac(qp+q, Y+1)*jac(qp+q, X+2,Y+2)/jac_det(qp+q));
+                eval( jac_inv(X+2, qp+q) )      = eval( ( jac(qp+q, Y+1)*jac(qp+q, X+1,Y+2)) - jac(qp+q, X+1, Y+1)*jac(qp+q, Y+2)/jac_det(qp+q));
+                eval( jac_inv(Y+1, qp+q) )      = eval( ( jac(qp+q, X+2)*jac(qp+q, X+1,Y+2)) - jac(qp+q, X+1)*jac(qp+q, X+2,Y+2)/jac_det(qp+q));
+                eval( jac_inv(Y+1, X+1, qp+q) ) = eval( ( jac(qp+q)*jac(qp+q, X+2,Y+2)) - jac(qp+q, X+2)*jac(qp+q, Y+2)/jac_det(qp+q));
+                eval( jac_inv(Y+1, X+2, qp+q) ) = eval( ( jac(qp+q, X+1)*jac(qp+q, Y+2)) - jac(qp+q)*jac(qp+q, X+1,Y+2)/jac_det(qp+q));
+                eval( jac_inv(Y+2, qp+q) )      = eval( ( jac(qp+q, X+1)*jac(qp+q, X+2, Y+1)) - jac(qp+q, X+2)*jac(qp+q, X+1, Y+1)/jac_det(qp+q));
+                eval( jac_inv(Y+2, X+1, qp+q) ) = eval( ( jac(qp+q, X+2)*jac(qp+q, Y+1)) - jac(qp+q)*jac(qp+q, X+2, Y+1)/jac_det(qp+q));
+                eval( jac_inv(Y+2, X+2, qp+q) ) = eval( ( jac(qp+q)*jac(qp+q, X+1, Y+1)) - jac(qp+q, X+1)*jac(qp+q, Y+1)/jac_det(qp+q));
+            }
+
+        }
+    };
+
+// [inv]
 #endif //__CUDACC__
 
 
@@ -326,12 +368,12 @@ namespace gdl{
 #ifdef NDEBUG
             constexpr
 #endif
-                gt::meta_storage_base<__COUNTER__,gt::layout_map<2,1,0>,false> indexing{static_int<Geometry::geo_map::order+1>(), static_int<Geometry::geo_map::order+1>(), static_int<Geometry::geo_map::order+1>()};
+                gt::meta_storage_base<static_int<__COUNTER__>,gt::layout_map<2,1,0>,false> indexing{static_int<1+1>(), static_int<1+1>(), static_int<1+1>()};
 #else
 #ifdef NDEBUG
             constexpr
 #endif
-                gt::meta_storage_base<__COUNTER__,gt::layout_map<2,1,0>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
+                gt::meta_storage_base<static_int<__COUNTER__>,gt::layout_map<2,1,0>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
 
 #endif
 
@@ -467,12 +509,12 @@ namespace gdl{
 #ifdef NDEBUG
             constexpr
 #endif
-                gt::meta_storage_base<__COUNTER__,gt::layout_map<2,1,0>,false> indexing{static_int<3>(), static_int<3>(), static_int<3>()};
+                gt::meta_storage_base<static_int<__COUNTER__>,gt::layout_map<2,1,0>,false> indexing{static_int<3>(), static_int<3>(), static_int<3>()};
 #else
 #ifdef NDEBUG
             constexpr
 #endif
-                gt::meta_storage_base<__COUNTER__,gt::layout_map<2,1,0>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
+                gt::meta_storage_base<static_int<__COUNTER__>,gt::layout_map<2,1,0>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
 
 #endif
             uint_t N1 = indexing.template dims<0>()-1;
@@ -718,7 +760,7 @@ namespace gdl{
             gt::dimension<4>::Index dof1;
             gt::dimension<5>::Index dof2;
 
-            constexpr gt::meta_storage_base<__COUNTER__,gt::layout_map<2,1,0>,false> indexing{N_DOF0,N_DOF1,N_DOF2};
+            constexpr gt::meta_storage_base<static_int<__COUNTER__>,gt::layout_map<2,1,0>,false> indexing{N_DOF0,N_DOF1,N_DOF2};
 
             // 1 (A,A)
             for(short_t I1=1; I1<indexing.template dims<0>()-1; I1++)

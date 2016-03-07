@@ -30,7 +30,7 @@ namespace gdl {
 
         // TODO: this should be static constrexpr!
         // TODO: remove hard coded layout
-        const gt::meta_storage_base<__COUNTER__,gt::layout_map<2,1,0>,false> m_single_indexing{Size0,Size1,Size2};
+        const gt::meta_storage_base<static_int<__COUNTER__>,gt::layout_map<2,1,0>,false> m_single_indexing{Size0,Size1,Size2};
     };
 
 }

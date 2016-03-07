@@ -7,7 +7,7 @@ namespace gdl{
     namespace enumtype{
         using namespace gt::enumtype;
         // using gt::enumtype;
-        enum Basis {Lagrange, BSplines};
+        enum Basis {Lagrange, BSplines, Legendre};
         enum Shape {Hexa, Tetra, Quad, Tri,  Line, Point};
     }
 

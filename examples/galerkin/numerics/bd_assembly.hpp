@@ -33,8 +33,6 @@ struct bd_assembly {
     using storage_type=storage_t< storage_type_info >;
     using jacobian_type_info=storage_info<__COUNTER__, layout_tt<3,4,5,6> >;
     using jacobian_type=storage_t< jacobian_type_info >;
-    using bd_matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<3,4,5> >;
-    using bd_matrix_type=storage_t< bd_matrix_storage_info_t >;
     using bd_vector_storage_info_t=storage_info< __COUNTER__, layout_tt<3> >;//TODO change: iterate on faces
     using bd_vector_type=storage_t< bd_vector_storage_info_t >;
 
@@ -44,13 +42,11 @@ private:
     face_normals_type_info m_normals_info;
     storage_type_info m_bd_measure_info;
     /**overdimensioned. Reduce*/
-    bd_matrix_storage_info_t m_bd_storage_info;
     bd_vector_storage_info_t m_flux_info;
 
     jacobian_type m_bd_jac;
     face_normals_type m_normals;
     storage_type m_bd_measure;
-    bd_matrix_type m_bd_mass;
     bd_vector_type m_flux;//flux (not necessary actually...)
 
 public:
@@ -59,16 +55,13 @@ public:
     jacobian_type & bd_jac()  {return m_bd_jac;}
     face_normals_type & normals()  {return m_normals;}
     storage_type & bd_measure()  { return m_bd_measure;}
-    bd_matrix_type & bd_mass()  { return m_bd_mass;}
     bd_vector_type & flux()  { return m_flux;}
 
     jacobian_type const& get_bd_jac() const {return m_bd_jac;}
     face_normals_type const& get_normals() const {return m_normals;}
     storage_type const& get_bd_measure() const { return m_bd_measure;}
-    bd_matrix_type const& get_bd_mass() const { return m_bd_mass;}
     bd_vector_type const& get_flux() const { return m_flux;}
 
-    bd_matrix_storage_info_t const& bd_matrix_info(){return m_bd_storage_info;}
 
     typename Boundary::tangent_storage_t const& get_ref_normals() const {return m_bd_backend.ref_normals();}
 
@@ -79,12 +72,10 @@ public:
         , m_jac_info(d1, d2, d3, bd_cub::numCubPoints(), 3, 3, bd_backend_.n_boundaries())
         , m_normals_info(d1, d2, d3, bd_cub::numCubPoints(), 3, bd_backend_.n_boundaries())
         , m_bd_measure_info(d1, d2, d3, bd_cub::numCubPoints(), bd_backend_.n_boundaries())
-        , m_bd_storage_info(d1,d2,d3,boundary_t::/*bd_*/geo_map::basisCardinality,boundary_t::/*bd_*/geo_map::basisCardinality, 6/*faces*/)//TODO: should be smaller!
         , m_flux_info(d1,d2,d3,boundary_t::/*bd_*/geo_map::basisCardinality)//TODO: should be smaller!
         , m_bd_jac(m_jac_info, 0., "bd jac")
         , m_normals(m_normals_info, 0., "normals")
         , m_bd_measure(m_bd_measure_info, 0., "bd measure")
-        , m_bd_mass(m_bd_storage_info, 0., "boundary mass")
         , m_flux(m_flux_info, 0., "flux")
     {}
 
@@ -108,7 +99,6 @@ public:
     typedef gt::arg<super::size+2, typename as_t::storage_type >        p_bd_measure;
     typedef gt::arg<super::size+3, typename as_t::boundary_t::weights_storage_t> p_bd_weights;
     typedef gt::arg<super::size+4, typename as_t::boundary_t::tangent_storage_t> p_ref_normals;
-    typedef gt::arg<super::size+5, typename as_t::bd_matrix_type> p_bd_mass;
     typedef gt::arg<super::size+6, typename as_t::boundary_t::basis_function_storage_t> p_bd_phi;
     typedef gt::arg<super::size+7, typename as_t::boundary_t::grad_storage_t> p_bd_dphi;
     typedef gt::arg<super::size+8, typename as_t::bd_vector_type> p_flux;
@@ -135,7 +125,6 @@ public:
                     , p_bd_measure
                     , p_bd_weights
                     , p_ref_normals
-                    , p_bd_mass
                     , p_bd_phi
                     , p_bd_dphi
                     , p_flux
@@ -147,7 +136,6 @@ public:
                        , m_as.bd_measure()
                        , m_as.bd_backend().bd_cub_weights()
                        , m_as.bd_backend().ref_normals()
-                       , m_as.bd_mass()
                        , m_as.bd_backend().val()
                        , m_as.bd_backend().grad()
                        , m_as.flux()
@@ -159,7 +147,6 @@ public:
                                         , p_bd_measure
                                         , p_bd_weights
                                         , p_ref_normals
-                                        , p_bd_mass
                                         , p_bd_phi
                                         , p_bd_dphi
                                         , p_flux
@@ -172,7 +159,6 @@ public:
               , m_as.bd_measure()
               , m_as.bd_backend().bd_cub_weights()
               , m_as.bd_backend().ref_normals()
-              , m_as.bd_mass()
               , m_as.bd_backend().val()
               , m_as.bd_backend().grad()
               , m_as.flux()
@@ -216,14 +202,6 @@ public:
             decltype(gt::make_esf<functors::measure<typename as_t::boundary_t , Codimension> >(p_bd_jac(), p_bd_measure()))
         {
             return gt::make_esf<functors::measure<typename as_t::boundary_t, Codimension> >(p_bd_jac(),  p_bd_measure());
-        }
-    };
-
-    struct bd_mass{
-            auto static esf() ->
-                decltype(gt::make_esf<functors::bd_mass<typename as_t::boundary_t, typename as_t::bd_cub> >(p_bd_measure(), p_bd_weights(), p_bd_phi(), p_bd_phi(), p_bd_mass()))
-        {
-            return gt::make_esf<functors::bd_mass<typename as_t::boundary_t, typename as_t::bd_cub> >(p_bd_measure(), p_bd_weights(), p_bd_phi(), p_bd_phi(), p_bd_mass()); //mass
         }
     };
 

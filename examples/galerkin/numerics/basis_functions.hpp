@@ -10,9 +10,9 @@
 
 #include "tensor_product_element.hpp"
 
-#include "element_traits.hpp"
-
 #include "cell.hpp"
+
+#include "element_traits.hpp"
 
 namespace gdl{
 
@@ -40,6 +40,9 @@ namespace gdl{
 
     template<ushort_t ID, typename Layout>
     using storage_info = typename BACKEND::storage_info<ID, Layout>;
+
+    template<typename ID, typename Layout>
+    using storage_info_t = typename BACKEND::storage_info_t<ID, Layout>;
 
 //! [storage definition]
 //! [fe namespace]

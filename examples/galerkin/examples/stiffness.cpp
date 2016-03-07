@@ -8,6 +8,8 @@
 #include "test_assembly.hpp"
 #include "../functors/stiffness.hpp"
 
+using namespace gdl;
+using namespace enumtype;
 
 int main(){
 
@@ -20,7 +22,7 @@ int main(){
 
     //![definitions]
     //defining the assembler, based on the Intrepid definitions for the numerics
-    using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<3,4> >;
+    using matrix_storage_info_t=storage_info<__COUNTER__, layout_tt<3,4> >;
     using matrix_type=storage_t< matrix_storage_info_t >;
     using fe=reference_element<1, Lagrange, Hexa>;
     using geo_map=reference_element<1, Lagrange, Hexa>;
@@ -32,7 +34,10 @@ int main(){
     //![instantiation]
     geo_t geo_;
     discr_t fe_;
+    geo_.compute(Intrepid::OPERATOR_GRAD);//redundants
+    geo_.compute(Intrepid::OPERATOR_VALUE);
     fe_.compute(Intrepid::OPERATOR_GRAD);
+    fe_.compute(Intrepid::OPERATOR_VALUE);
     //![instantiation]
 
     using as=assembly< geo_t >;
@@ -55,9 +60,9 @@ int main(){
             for (uint_t k=0; k<d3; k++)
                 for (uint_t point=0; point<fe::basisCardinality; point++)
                 {
-                    assembler_base.grid()( i,  j,  k,  point,  0)= (i + geo_.grid()(point, 0));
-                    assembler_base.grid()( i,  j,  k,  point,  1)= (j + geo_.grid()(point, 1));
-                    assembler_base.grid()( i,  j,  k,  point,  2)= (k + geo_.grid()(point, 2));
+                    assembler_base.grid()( i,  j,  k,  point,  0)= (i + geo_.grid()(point, 0, 0));
+                    assembler_base.grid()( i,  j,  k,  point,  1)= (j + geo_.grid()(point, 1, 0));
+                    assembler_base.grid()( i,  j,  k,  point,  2)= (k + geo_.grid()(point, 2, 0));
                     assembler_base.grid_map()(i,j,k,point)=0;//Global DOF // TODO: assign correct values
                 }
     //![grid]
@@ -80,11 +85,11 @@ int main(){
     using dt = domain_tuple_t;
     //![placeholders]
     // defining the placeholder for the local gradient of the element boundary face
-    typedef arg<dt::size, discr_t::grad_storage_t> p_dphi;
+    typedef gt::arg<dt::size, discr_t::grad_storage_t> p_dphi;
     // // defining the placeholder for the local values on the face
     // typedef arg<as::size+4, bd_discr_t::phi_storage_t> p_bd_phi;
     // //output
-    typedef arg<dt::size+1, matrix_type> p_stiffness;
+    typedef gt::arg<dt::size+1, matrix_type> p_stiffness;
 
     // appending the placeholders to the list of placeholders already in place
     auto domain=domain_tuple_.template domain<p_dphi, p_stiffness>(fe_.grad(), stiffness_);
@@ -93,20 +98,20 @@ int main(){
 
     // , m_domain(boost::fusion::make_vector(&m_grid, &m_jac, &m_fe_backend.cub_weights(), &m_jac_det, &m_jac_inv, &m_fe_backend.local_gradient(), &m_fe_bac
                                                                                                    // , &m_stiffness, &m_assembled_stiffness
-    auto coords=grid<axis>({0, 0, 0, d1-1, d1},
-    							  {0, 0, 0, d2-1, d2});
+    auto coords=gt::grid<axis>({0, 0, 0, d1-1, d1},
+        {0, 0, 0, d2-1, d2});
     coords.value_list[0] = 0;
     coords.value_list[1] = d3-1;
 
     //![computation]
-    auto computation=make_computation<gridtools::BACKEND>(
+    auto computation=gt::make_computation<BACKEND>(
         make_mss
         (
             execute<forward>(),
-            make_esf<functors::update_jac<geo_t> >( dt::p_grid_points(), p_dphi(), dt::p_jac())
-            , make_esf<functors::det<geo_t> >(dt::p_jac(), dt::p_jac_det())
-            , make_esf<functors::inv<geo_t> >(dt::p_jac(), dt::p_jac_det(), dt::p_jac_inv())
-            , make_esf<functors::stiffness<fe, cub> >(dt::p_jac_det(), dt::p_jac_inv(), dt::p_weights(), p_stiffness(), p_dphi(), p_dphi())//stiffness
+            gt::make_esf<functors::update_jac<geo_t> >( dt::p_grid_points(), p_dphi(), dt::p_jac())
+            , gt::make_esf<functors::det<geo_t> >(dt::p_jac(), dt::p_jac_det())
+            , gt::make_esf<functors::inv<geo_t> >(dt::p_jac(), dt::p_jac_det(), dt::p_jac_inv())
+            , gt::make_esf<functors::stiffness<fe, cub> >(dt::p_jac_det(), dt::p_jac_inv(), dt::p_weights(), p_stiffness(), p_dphi(), p_dphi())//stiffness
             ), domain, coords);
 
     computation->ready();

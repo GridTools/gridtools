@@ -97,30 +97,45 @@ int main( int argc, char ** argv){
     using bd_matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<3,4,5> >; //last dimension is tha face
     using bd_matrix_type=storage_t< bd_matrix_storage_info_t >;
 
-    static const ushort_t order=1;
-    using geo_map=reference_element<order, Lagrange, Hexa>;
-    using cub=cubature<geo_map::order+1, geo_map::shape>;
+    static const ushort_t order_geom=1;
+    static const ushort_t order_discr=2;
+    using geo_map=reference_element<order_geom, Lagrange, Hexa>;
+    using discr_map=reference_element<order_discr, Legendre, Hexa>;
+    //integrate exactly polyunomials of degree (discr_map::order*geo_map::order)
+    using cub=cubature<(discr_map::order*geo_map::order)+2, geo_map::shape>;//overintegrating: few basis func are 0 on all quad points otherwise...
+    using discr_t = intrepid::discretization<discr_map, cub>;
     using geo_t = intrepid::geometry<geo_map, cub>;
 
-    geo_t fe_;
-    fe_.compute(Intrepid::OPERATOR_GRAD);
+    discr_t fe_;
+    geo_t geo_;
     fe_.compute(Intrepid::OPERATOR_VALUE);
+    fe_.compute(Intrepid::OPERATOR_GRAD);
+    geo_.compute(Intrepid::OPERATOR_GRAD);
+    geo_.compute(Intrepid::OPERATOR_VALUE);
 
     //boundary
-    using bd_cub_t = intrepid::boundary_cub<geo_map, cub::cubDegree>;
-    using bd_discr_t = intrepid::boundary_discr<bd_cub_t>;
-    bd_cub_t bd_cub_;
+    using bd_geo_cub_t = intrepid::boundary_cub<geo_map, cub::cubDegree>;
+    using bd_discr_cub_t = intrepid::boundary_cub<discr_map, cub::cubDegree>;
+    using bd_geo_t = intrepid::boundary_discr<bd_geo_cub_t>;
+    using bd_discr_t = intrepid::boundary_discr<bd_discr_cub_t>;
+    bd_geo_cub_t bd_cub_geo_;
+    bd_geo_t bd_geo_(bd_cub_geo_, 0, 1, 2, 3, 4, 5);//face ordinals
 
-    bd_discr_t bd_discr_(bd_cub_, 0, 1, 2, 3, 4, 5);//face ordinals
+    bd_discr_cub_t bd_cub_discr_;
+    bd_discr_t bd_discr_(bd_cub_discr_, 0, 1, 2, 3, 4, 5);//face ordinals
 
-    bd_discr_.compute(Intrepid::OPERATOR_GRAD, fe_.get_ordering());
-    bd_discr_.compute(Intrepid::OPERATOR_VALUE, fe_.get_ordering());
+    bd_geo_.compute(Intrepid::OPERATOR_VALUE// , geo_.get_ordering()
+        );
+    bd_geo_.compute(Intrepid::OPERATOR_GRAD// , geo_.get_ordering()
+        );
+
+    bd_discr_.compute(Intrepid::OPERATOR_VALUE);
 
     //![boundary]
 
     using as_base=assembly_base<geo_t>;
     using as=assembly<geo_t>;
-    using as_bd=bd_assembly<bd_discr_t>;
+    using as_bd=bd_assembly<bd_geo_t>;
 
     //![definitions]
 
@@ -129,15 +144,12 @@ int main( int argc, char ** argv){
     auto d2=4;
     auto d3=4;
 
-    geo_t geo_;
-    geo_.compute(Intrepid::OPERATOR_GRAD);
-    geo_.compute(Intrepid::OPERATOR_VALUE);
     //![as_instantiation]
     //constructing the integration tools on the boundary
 
     as_base assembler_base(d1,d2,d3);
     as assembler(geo_,d1,d2,d3);
-    as_bd bd_assembler(bd_discr_,d1,d2,d3);
+    as_bd bd_assembler(bd_geo_,d1,d2,d3);
 
     // using domain_tuple_t = domain_type_tuple<as_bd, as, as_base>;
     // domain_tuple_t domain_tuple_ (bd_assembler, assembler, assembler_base);
@@ -159,19 +171,19 @@ int main( int argc, char ** argv){
 
     typedef BACKEND::storage_info<0, gridtools::layout_map<0,1,2> > meta_local_t;
 
-    static const uint_t edge_nodes=tensor_product_element<1,order>::n_points::value;
+    static const uint_t edge_nodes=tensor_product_element<1,order_geom>::n_points::value;
 
     meta_local_t meta_local_(edge_nodes, edge_nodes, edge_nodes);
 
-    io_rectilinear<as_base::grid_type, meta_local_t> io_(assembler_base.grid(), meta_local_);
+    // io_rectilinear<as_base::grid_type, meta_local_t> io_(assembler_base.grid(), meta_local_);
 
     //![instantiation_stiffness]
     //defining the advection matrix: d1xd2xd3 elements
-    matrix_storage_info_t meta_(d1,d2,d3,geo_map::basisCardinality,geo_map::basisCardinality);
+    matrix_storage_info_t meta_(d1,d2,d3,discr_map::basisCardinality,discr_map::basisCardinality);
     matrix_type advection_(meta_, 0., "advection");
     matrix_type mass_(meta_, 0., "mass");
 
-    bd_matrix_storage_info_t bd_meta_(d1,d2,d3,geo_map::basisCardinality,geo_map::basisCardinality, 6/*faces*/);
+    bd_matrix_storage_info_t bd_meta_(d1,d2,d3,discr_map::basisCardinality,discr_map::basisCardinality, 6/*faces*/);
     bd_matrix_type bd_mass_(bd_meta_, 0., "bd mass");
 
     using scalar_storage_info_t=storage_info< __COUNTER__, layout_tt<3>>;//TODO change: iterate on faces
@@ -184,10 +196,10 @@ int main( int argc, char ** argv){
     using bd_scalar_type=storage_t< bd_scalar_storage_info_t >;
     using bd_vector_type=storage_t< bd_vector_storage_info_t >;
 
-    scalar_storage_info_t scalar_meta_(d1,d2,d3,geo_map::basisCardinality);
-    vector_storage_info_t vec_meta_(d1,d2,d3,geo_map::basisCardinality, 3);
-    bd_scalar_storage_info_t bd_scalar_meta_(d1,d2,d3, bd_discr_t::geo_map::basisCardinality, bd_discr_t::s_num_boundaries );
-    bd_vector_storage_info_t bd_vector_meta_(d1,d2,d3, bd_discr_t::geo_map::basisCardinality, 3, bd_discr_t::s_num_boundaries );
+    scalar_storage_info_t scalar_meta_(d1,d2,d3,discr_map::basisCardinality);
+    vector_storage_info_t vec_meta_(d1,d2,d3,discr_map::basisCardinality, 3);
+    bd_scalar_storage_info_t bd_scalar_meta_(d1,d2,d3, discr_map::basisCardinality, bd_discr_t::s_num_boundaries );
+    bd_vector_storage_info_t bd_vector_meta_(d1,d2,d3, discr_map::basisCardinality, 3, bd_discr_t::s_num_boundaries );
 
     scalar_type u_(scalar_meta_, 0., "u");//initial solution
     vector_type beta_(vec_meta_, 0., "beta");
@@ -196,7 +208,7 @@ int main( int argc, char ** argv){
     for (uint_t i=0; i<d1; i++)
         for (uint_t j=0; j<d2; j++)
             for (uint_t k=0; k<d3; k++)
-                for (uint_t point=0; point<geo_map::basisCardinality; point++)
+                for (uint_t point=0; point<discr_map::basisCardinality; point++)
                 {
                     for (uint_t dim=0; dim<3; dim++)
                         if(dim==0)
@@ -206,12 +218,12 @@ int main( int argc, char ** argv){
                         u_(i,j,k,point)=1.;//point;
                 }
 
-    io_.set_attribute_scalar<0>(u_, "initial condition");
+//     io_.set_attribute_scalar<0>(u_, "initial condition");
 
     scalar_type result_(scalar_meta_, 0., "result");//new solution
     scalar_type unified_result_(scalar_meta_, 0., "unified result");//new solution
 
-    bd_scalar_type bd_beta_n_(bd_scalar_meta_, 0., "unified result");//new solution
+    bd_scalar_type bd_beta_n_(bd_scalar_meta_, 0., "unified result");
     bd_vector_type normals_(bd_vector_meta_, 0., "normals");
 
     bd_matrix_type bd_mass_uv_(bd_meta_, 0., "mass uv");
@@ -219,7 +231,7 @@ int main( int argc, char ** argv){
     scalar_type rhs_(scalar_meta_, 0., "rhs");//zero rhs
     using bc_storage_info_t=storage_info< __COUNTER__, gt::layout_map<-1,0,1,2> >;
     using bc_storage_t = storage_t< bc_storage_info_t >;
-    bc_storage_info_t bc_meta_(1,d2,d3, geo_map::basisCardinality);
+    bc_storage_info_t bc_meta_(1,d2,d3, discr_map::basisCardinality);
     bc_storage_t bc_(bc_meta_, 0.);
 
     //![placeholders]
@@ -260,14 +272,15 @@ int main( int argc, char ** argv){
     typedef arg<19, matrix_type> p_mass;
     typedef arg<20, matrix_type> p_advection;
     typedef arg<21, vector_type> p_beta;
-    typedef arg<22, typename geo_t::basis_function_storage_t> p_phi_discr;
-    typedef arg<23, typename geo_t::grad_storage_t> p_dphi_discr;
+    typedef arg<22, typename discr_t::basis_function_storage_t> p_phi_discr;
+    typedef arg<23, typename discr_t::grad_storage_t> p_dphi_discr;
     typedef arg<24, bd_scalar_type> p_beta_n;
     typedef arg<25, bd_vector_type> p_int_normals;
 
     typedef arg<26, scalar_type> p_unified_result;
 
-    typedef typename boost::mpl::vector<p_grid_points, p_jac, p_weights, p_jac_det, p_jac_inv, p_phi, p_dphi, p_bd_jac, p_normals, p_bd_measure, p_bd_weights, p_ref_normals, p_bd_mass_uu, p_bd_mass_uv, p_bd_phi, p_bd_dphi, p_flux, p_u, p_result, p_mass, p_advection, p_beta, p_phi_discr, p_dphi_discr, p_beta_n, p_int_normals, p_unified_result > mpl_list;
+    typedef typename boost::mpl::vector<p_grid_points, p_jac, p_weights, p_jac_det, p_jac_inv, p_phi, p_dphi, p_bd_jac, p_normals, p_bd_measure, p_bd_weights, p_ref_normals, p_bd_mass_uu , p_bd_mass_uv
+                                        , p_bd_phi, p_bd_dphi, p_flux, p_u, p_result, p_mass, p_advection, p_beta, p_phi_discr, p_dphi_discr, p_beta_n, p_int_normals, p_unified_result > mpl_list;
 
     domain_type<mpl_list> domain(boost::fusion::make_vector(  &assembler_base.grid()
                                                               , &assembler.jac()
@@ -291,8 +304,8 @@ int main( int argc, char ** argv){
                                                               , &mass_
                                                               , &advection_
                                                               , &beta_
-                                                              , &geo_.val()
-                                                              , &geo_.grad()
+                                                              , &fe_.val()
+                                                              , &fe_.grad()
                                                               , &bd_beta_n_
                                                               , &normals_
                                                               , &unified_result_));
@@ -470,9 +483,9 @@ int main( int argc, char ** argv){
     }
     apply_bc_x0->run();
 
-    compute_assembly->finalize();
     iteration->finalize();
     apply_bc_x0->finalize();
+    compute_assembly->finalize();
 
     // for(int i=0; i<d1; ++i)
     //     for(int j=0; j<d1; ++j)
@@ -486,16 +499,23 @@ int main( int argc, char ** argv){
 
     // std::cout<<"face: "<<face<<"==>"<<bd_assembler.normals()(i,j,k,0,d,face)<<"\n";
 
-    io_.set_information("Time");
-    io_.set_attribute_scalar<0>(result_, "Ax");
-    io_.set_attribute_scalar<0>(u_, "solution");
-    // io_.set_attribute_vector_on_face<0>(face_vec, "normals");
-    io_.write("grid");
+//     io_.set_information("Time");
+//     io_.set_attribute_scalar<0>(result_, "Ax");
+//     io_.set_attribute_scalar<0>(u_, "solution");
+//     // io_.set_attribute_vector_on_face<0>(face_vec, "normals");
+//     io_.write("grid");
+
+
+    for(int i=0; i<d1; ++i)
+        for(int j=0; j<d2; ++j)
+            for(int k=0; k<d3; ++k)
+                for(int l=0; l<10; ++l)
+                    std::cout<< mass_(i,j,k,l,l)<<"\n";
 
     spy(mass_, "mass.txt");
-    spy_vec(result_, "sol.txt");
-    spy_vec(u_, "init.txt");
+//     spy_vec(result_, "sol.txt");
+//     spy_vec(u_, "init.txt");
     spy(advection_, "advection.txt");
-//![computation]
-    // intrepid::test(assembler, bd_discr_, bd_mass_);
+// //![computation]
+//    // intrepid::test(assembler, bd_discr_, bd_mass_);
 }

@@ -13,7 +13,7 @@
 #include "cubature.hpp"
 // [includes]
 
-#define REORDER
+//#define REORDER
 
 namespace gdl{
 namespace intrepid{
@@ -34,10 +34,10 @@ namespace intrepid{
         // [test]
         GRIDTOOLS_STATIC_ASSERT(fe::layout_t::template at_<0>::value < 3 && fe::layout_t::template at_<1>::value < 3 && fe::layout_t::template at_<2>::value < 3,
                                 "the first three numbers in the layout_map must be a permutation of {0,1,2}. ");
-        using weights_storage_t_info = storage_info< __COUNTER__, gt::layout_map<0,1,2> >;
-        using grad_storage_t_info = storage_info< __COUNTER__, gt::layout_map<0,1,2> >;
-        using basis_function_storage_t_info = storage_info< __COUNTER__, gt::layout_map<0,1,2> >;
-        using cub_points_storage_t_info = storage_info< __COUNTER__,gt::layout_map<0,1,2> >;
+        using weights_storage_t_info = storage_info_t< gt::pair<discretization<FE, Cub>, static_int<__COUNTER__> >, gt::layout_map<0,1,2> >;
+        using grad_storage_t_info = storage_info_t< gt::pair<discretization<FE, Cub>, static_int<__COUNTER__> >, gt::layout_map<0,1,2> >;
+        using basis_function_storage_t_info = storage_info_t<  gt::pair<discretization<FE, Cub>, static_int<__COUNTER__> >, gt::layout_map<0,1,2> >;
+        using cub_points_storage_t_info = storage_info_t< gt::pair<discretization<FE, Cub>, static_int<__COUNTER__> > ,gt::layout_map<0,1,2> >;
         using weights_storage_t        = storage_t< weights_storage_t_info > ;
         using grad_storage_t           = storage_t< grad_storage_t_info > ;
         using basis_function_storage_t = storage_t< basis_function_storage_t_info > ;
@@ -59,26 +59,54 @@ namespace intrepid{
 
     public:
 
-        cub_points_storage_t // const
-        & cub_points()
+        cub_points_storage_t& cub_points()
         {return m_cub_points_s;}
-        weights_storage_t& cub_weights()// const
+
+        cub_points_storage_t const& cub_points() const
+        {return m_cub_points_s;}
+
+        weights_storage_t& cub_weights()
             {return m_cub_weights_s;}
-        grad_storage_t& grad()// const
+
+        weights_storage_t const& cub_weights() const
+            {return m_cub_weights_s;}
+
+        grad_storage_t& grad()
             {
 	         //If this assertion fails most probably you have not called
 	         //compute with the OPERATOR_GRAD flag
-	         assert(m_grad_at_cub_points_s.get());
-	         return *m_grad_at_cub_points_s;
+
+                assert(m_grad_at_cub_points_s.get());
+                return *m_grad_at_cub_points_s;
             }
 
-        basis_function_storage_t & val()// const
+        grad_storage_t const& grad() const
+            {
+	         //If this assertion fails most probably you have not called
+	         //compute with the OPERATOR_GRAD flag
+
+                assert(m_grad_at_cub_points_s.get());
+                return *m_grad_at_cub_points_s;
+            }
+
+
+        basis_function_storage_t & val()
             {
 	         //If this assertion fails most probably you have not called
 	         //compute with the OPERATOR_VALUE flag
 	         assert(m_phi_at_cub_points_s.get());
 	         return *m_phi_at_cub_points_s;
             }
+
+
+        basis_function_storage_t const& val() const
+            {
+	         //If this assertion fails most probably you have not called
+	         //compute with the OPERATOR_VALUE flag
+	         assert(m_phi_at_cub_points_s.get());
+	         return *m_phi_at_cub_points_s;
+            }
+
 
         discretization() :
             m_permutations( fe::basisCardinality )
@@ -251,22 +279,22 @@ namespace intrepid{
             , m_local_grid_reordered_s(m_local_grid_s_info, 0., "local grid reordered")
 #endif
             {
-#ifdef REORDER
                 // storage_t<layout_map<0,1,2> > local_grid_i(m_local_grid_s, 2);
                 Intrepid::FieldContainer<double> local_grid_i(super::geo_map::basisCardinality, super::geo_map::spaceDim);
                 super::geo_map::hexBasis().getDofCoords(local_grid_i);
                 for (uint_t i=0; i<super::geo_map::basisCardinality; ++i)
                     for (uint_t j=0; j<super::geo_map::spaceDim; ++j)
                         m_local_grid_s(i,j,0)=local_grid_i(i,j);
+#ifdef REORDER
 
                 //! [reorder]
-                std::vector<uint_t> to_reorder( super::geo_map::basisCardinality );
+                std::vector<gt::float_type> to_reorder( super::geo_map::basisCardinality );
                 //sorting the a vector containing the point coordinates with priority i->j->k, and saving the permutation
 
                 // fill in the reorder vector such that the larger numbers correspond to larger strides
                 for(uint_t i=0; i<super::geo_map::basisCardinality; ++i){
-		    to_reorder[i]=(m_local_grid_s(i,super::geo_map::layout_t::template at_<0>::value*(super::geo_map::spaceDim-2),0)+2)*4 +
-                        (m_local_grid_s(i,super::geo_map::layout_t::template at_<1>::value,0)+2)*2 +
+		    to_reorder[i]=(m_local_grid_s(i,super::geo_map::layout_t::template at_<0>::value*(super::geo_map::spaceDim-2),0)+2)*16 +
+                        (m_local_grid_s(i,super::geo_map::layout_t::template at_<1>::value,0)+2)*4 +
                         (m_local_grid_s(i,super::geo_map::layout_t::template at_<2>::value,0)+2);
                     // m_permutations[i]=i;
                 }
@@ -438,7 +466,7 @@ namespace intrepid{
             , m_face_ord{(ushort_t) face_ord_ ...}
             , m_tangent_computed(false)
             {
-                GRIDTOOLS_STATIC_ASSERT(accumulate(gt::logical_and(), boost::is_integral<UShort>::type::value ...),
+                GRIDTOOLS_STATIC_ASSERT(gt::accumulate(gt::logical_and(), boost::is_integral<UShort>::type::value ...),
                                         "the face ordinals must be of integral type in the boundary discretization constructor");
 
             }

@@ -3,10 +3,14 @@
 
 #include <Intrepid_Cubature.hpp>
 #include <Intrepid_DefaultCubatureFactory.hpp>
+#include <Intrepid_CubatureTensor.hpp>
+
+#include "cell.hpp"
 
 namespace gdl{
 
 //! [quadrature]
+    //default case
     template <ushort_t Order, enumtype::Shape CellType>
     struct cubature{
         using cell_t=cell<Order, CellType>;
@@ -33,6 +37,7 @@ namespace gdl{
             return cub()->getNumPoints();
         }
     };
+
 
     // template <ushort_t Order, enumtype::Shape  CellType>
     // Intrepid::DefaultCubatureFactory<double,  Intrepid::FieldContainer<double> > cubature<Order, CellType>::cubFactory;

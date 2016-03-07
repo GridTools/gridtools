@@ -173,9 +173,9 @@ public:
     struct mass{
         template <typename Phi, typename Mass>
         auto static esf(Phi, Mass) ->
-            decltype(gt::make_esf<functors::mass<FE , Cubature> >(p_jac_det(), p_weights(), Phi(), Phi(), Mass()))
+            decltype(gt::make_esf<functors::mass >(p_jac_det(), p_weights(), Phi(), Phi(), Mass()))
         {
-            return gt::make_esf<functors::mass<FE , Cubature> >(p_jac_det(), p_weights(), Phi(), Phi(), Mass());
+            return gt::make_esf<functors::mass >(p_jac_det(), p_weights(), Phi(), Phi(), Mass());
         }
     };
 
