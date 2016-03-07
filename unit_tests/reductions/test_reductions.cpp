@@ -34,12 +34,11 @@ namespace red{
     struct sum_red {
 
         typedef accessor<0, enumtype::in> in;
-        typedef accessor<1, enumtype::inout> out;
-        typedef boost::mpl::vector<in,out> arg_list;
+        typedef boost::mpl::vector<in> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION
-        static double Do(Evaluation& eval, x_interval) {
+        static double Do(Evaluation const& eval, x_interval) {
             return eval.reduction_value() + eval(in());
         }
     };
@@ -98,19 +97,13 @@ namespace red{
 
         typedef arg<0, storage_type > p_in;
         typedef arg<1, storage_type > p_out;
-        typedef arg<2, storage_type > p_out2;
 
-        typedef boost::mpl::vector<
-            p_in
-            , p_out, p_out2
-            > accessor_list;
+        typedef boost::mpl::vector<p_in, p_out> accessor_list;
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
         gridtools::domain_type<accessor_list> domain
-            (boost::fusion::make_vector(&in
-                                        , &out, &out2
-                ));
+            (boost::fusion::make_vector(&in, &out));
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
@@ -141,7 +134,7 @@ namespace red{
                     execute<forward>(),
                     make_esf<desf>(p_in(),p_out())
                 ),
-                make_reduction<sum_red>(5.0, p_out(), p_out2()),
+                make_reduction<sum_red>(5.0, p_out()),
                 domain, grid
             );
 

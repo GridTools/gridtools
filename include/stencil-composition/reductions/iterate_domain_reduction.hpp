@@ -24,7 +24,7 @@ namespace gridtools
             iterate_domain_reduction_impl(const reduction_type_t& initial_value) : m_reduced_value(initial_value) {}
 
             GT_FUNCTION
-            reduction_type_t reduction_value()
+            reduction_type_t reduction_value() const
             {
                 return m_reduced_value;
             }

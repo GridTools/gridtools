@@ -384,9 +384,11 @@ namespace gridtools {
                                 "Error: more than one reduction found");
         typedef typename boost::mpl::front<reduction_type_seq_t>::type reduction_type_t;
 
-        reduction_data(reduction_type_t val) : m_value(val) {}
+        reduction_data(reduction_type_t val) : m_value(val), m_parallel_reduced_val(omp_get_num_threads()) {}
         const reduction_type_t& get() const { return m_value;}
-
+        const reduction_type_t& parallel_reduced_val(const int elem) { return m_parallel_reduced_val[elem];}
+    private:
+        std::vector<reduction_type_t> m_parallel_reduced_val;
         reduction_type_t m_value;
     };
 
