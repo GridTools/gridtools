@@ -104,11 +104,11 @@ namespace gridtools {
     private:
         MssLocalDomainArray& m_local_domain_lists;
         const Grid& m_grid;
-        const ReductionData& m_reduction_data;
+        ReductionData& m_reduction_data;
         const uint_t m_block_idx, m_block_idy;
 
     public:
-        mss_functor(MssLocalDomainArray& local_domain_lists, const Grid& grid, const ReductionData& reduction_data,
+        mss_functor(MssLocalDomainArray& local_domain_lists, const Grid& grid, ReductionData& reduction_data,
             const int block_idx, const int block_idy) :
             m_local_domain_lists(local_domain_lists), m_grid(grid), m_reduction_data(reduction_data),
             m_block_idx(block_idx), m_block_idy(block_idy) {}
