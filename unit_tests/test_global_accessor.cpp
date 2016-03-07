@@ -15,19 +15,25 @@ typedef interval<level<0,-2>, level<1,1> > axis;
 */
 struct boundary : clonable_to_gpu<boundary> {
 
-    boundary(){}
     //device copy constructor
-    __device__ boundary(const boundary& other){}
+    __device__ boundary(const boundary& other):
+        m_value(other.m_value){}
+
+    boundary(): m_value(10.) {}
+
     typedef boundary super;
     typedef boundary* iterator_type;
     typedef boundary value_type; //TODO remove
     static const ushort_t field_dimensions=1; //TODO remove
 
-    double value() const {return 10.;}
+    double value() const {return m_value;}
+
+    void update_value(double new_val) {m_value=new_val;}
 
     template<typename ID>
     boundary * access_value() const {return const_cast<boundary*>(this);} //TODO change this?
 
+    double m_value;
     // template<typename ID>
     // boundary const*  access_value() const {return this;} //TODO change this?
 
@@ -41,7 +47,7 @@ struct functor{
     template <typename Evaluation>
     GT_FUNCTION
     static void Do(Evaluation const & eval, x_interval) {
-        eval(sol())+=eval(bd()).value();
+        eval(sol())+=eval(bd())->value();
     }
 };
 
@@ -104,6 +110,24 @@ TEST(test_global_accessor, boundary_conditions) {
                 double value=2.;
                 if( i>0 && j==1 && k<2)
                     value += 10.;
+                if(sol_(i,j,k) != value)
+                    result=false;
+            }
+
+    bd_.update_value(-2.);
+
+    bc_eval->ready();
+    bc_eval->steady();
+    bc_eval->run();
+    bc_eval->finalize();
+
+    for (int i=0; i<10; ++i)
+        for (int j=0; j<10; ++j)
+            for (int k=0; k<10; ++k)
+            {
+                double value=2.;
+                if( i>0 && j==1 && k<2)
+                    value += (8.);
                 if(sol_(i,j,k) != value)
                     result=false;
             }
