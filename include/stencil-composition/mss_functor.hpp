@@ -70,7 +70,7 @@ namespace gridtools {
      * @tparam BackendIds ids of backends
      */
     template<
-        typename MssComponentsArray, typename Grid, typename MssLocalDomainArray, typename BackendIds>
+        typename MssComponentsArray, typename Grid, typename MssLocalDomainArray, typename BackendIds, typename ReductionData>
     struct mss_functor
     {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssLocalDomainArray, is_mss_local_domain>::value), "Internal Error: wrong type");
@@ -78,8 +78,40 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), "Error");
 
-        mss_functor(MssLocalDomainArray& local_domain_lists, const Grid& grid, const int block_idx, const int block_idy) :
-            m_local_domain_lists(local_domain_lists), m_grid(grid), m_block_idx(block_idx), m_block_idy(block_idy) {}
+        template<typename MssComponents, typename FunctorsMap>
+        struct check_reduction_types{
+            GRIDTOOLS_STATIC_ASSERT((is_mss_components<MssComponents>::value), "Error");
+            //extract the type derived from the return type of the user functors of the reduction
+            typedef typename mss_components_functors_return_type<
+                   MssComponents,
+                   FunctorsMap
+            >::type reduction_t;
+
+            //extract the type derived from the type specified by the user in the API when an initial value is passed
+            typedef typename boost::mpl::eval_if<
+                mss_components_is_reduction<MssComponents>,
+                reduction_descriptor_type<typename MssComponents::mss_descriptor_t>,
+                boost::mpl::identity<int>
+            >::type functor_return_t;
+
+            //verify that both types are the same
+            GRIDTOOLS_STATIC_ASSERT((boost::is_same<functor_return_t, reduction_t>::value),
+                                "Return type of reduction functors does not match the type of initialized value of the reduction");
+            //verify that the deduced types are the same as the same passed from intermediate via the ReductionData
+            GRIDTOOLS_STATIC_ASSERT((boost::is_same<functor_return_t, typename ReductionData::reduction_type_t>::value), "Error");
+        };
+
+    private:
+        MssLocalDomainArray& m_local_domain_lists;
+        const Grid& m_grid;
+        const ReductionData& m_reduction_data;
+        const uint_t m_block_idx, m_block_idy;
+
+    public:
+        mss_functor(MssLocalDomainArray& local_domain_lists, const Grid& grid, const ReductionData& reduction_data,
+            const int block_idx, const int block_idy) :
+            m_local_domain_lists(local_domain_lists), m_grid(grid), m_reduction_data(reduction_data),
+            m_block_idx(block_idx), m_block_idy(block_idy) {}
 
 
         template<typename T1, typename T2, typename Seq, typename NextSeq>
@@ -124,7 +156,7 @@ namespace gridtools {
             // computed extent sizes to know where to compute functot at<i>
             typedef typename mss_components_t::extent_sizes_t extent_sizes;
             // Map between interval and actual arguments to pass to Do methods
-            typedef typename mss_functor_do_method_lookup_maps<mss_components_t, Grid>::type FunctorsMap;
+            typedef typename mss_functor_do_method_lookup_maps<mss_components_t, Grid>::type functors_map_t;
 
             typedef backend_traits_from_id< BackendIds::s_backend_id > backend_traits_t;
 
@@ -179,11 +211,7 @@ namespace gridtools {
             //insert true for the last esf
             typedef typename boost::mpl::insert< async_esf_map_tmp_t,  boost::mpl::pair<typename boost::mpl::at_c<functors_list_t, boost::mpl::size<next_thing>::value>::type, boost::mpl::true_ > >::type async_esf_map_t;                    
 
-            typedef typename mss_components_functors_return_type<
-                    mss_components_t,
-                    FunctorsMap
-            >::type functor_return_t;
-
+            // perform some checks concerning the reduction types
             typedef run_functor_arguments<
                 BackendIds,
                 block_size_t,
@@ -192,7 +220,7 @@ namespace gridtools {
                 esf_sequence_t,
                 local_domain_esf_args_map_t,
                 oriented_loop_intervals_t,
-                FunctorsMap,
+                functors_map_t,
                 extent_sizes,
                 local_domain_t,
                 typename mss_components_t::cache_sequence_t,
@@ -200,19 +228,14 @@ namespace gridtools {
                 Grid,
                 ExecutionEngine,
                 mss_components_is_reduction<mss_components_t>::type::value,
-                functor_return_t
+                ReductionData
             > run_functor_args_t;
 
             typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<functors_list_t>::type::value> iter_range;
 
             //now the corresponding backend has to execute all the functors of the mss
             backend_traits_from_id<BackendIds::s_backend_id>::template mss_loop<run_functor_args_t>::
-                    template run(local_domain, m_grid, m_block_idx, m_block_idy);
+                    template run(local_domain, m_grid, m_reduction_data, m_block_idx, m_block_idy);
         }
-
-    private:
-        MssLocalDomainArray& m_local_domain_lists;
-        const Grid& m_grid;
-        const uint_t m_block_idx, m_block_idy;
     };
 } //namespace gridtools

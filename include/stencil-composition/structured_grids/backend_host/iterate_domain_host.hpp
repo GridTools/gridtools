@@ -20,14 +20,16 @@ namespace gridtools {
 
     typedef IterateDomainBase<iterate_domain_host<IterateDomainBase, IterateDomainArguments> > super;
     typedef typename IterateDomainArguments::local_domain_t local_domain_t;
+    typedef iterate_domain_reduction<IterateDomainArguments> iterate_domain_reduction_t;
+    typedef typename iterate_domain_reduction<IterateDomainArguments>::reduction_type_t reduction_type_t;
 public:
     typedef typename super::data_pointer_array_t data_pointer_array_t;
     typedef typename super::strides_cached_t strides_cached_t;
     typedef boost::mpl::map0<> ij_caches_map_t;
 
     GT_FUNCTION
-    explicit iterate_domain_host(local_domain_t const& local_domain)
-        : super(local_domain), m_data_pointer(0), m_strides(0) {}
+    explicit iterate_domain_host(local_domain_t const& local_domain, const reduction_type_t& reduction_initial_value)
+        : super(local_domain), iterate_domain_reduction_t(reduction_initial_value), m_data_pointer(0), m_strides(0) {}
 
     void set_data_pointer_impl(data_pointer_array_t* RESTRICT data_pointer)
     {

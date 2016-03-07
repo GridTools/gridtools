@@ -34,12 +34,14 @@ namespace red{
     struct sum_red {
 
         typedef accessor<0, enumtype::in> in;
-        typedef boost::mpl::vector<in> arg_list;
+        typedef accessor<1, enumtype::inout> out;
+        typedef boost::mpl::vector<in,out> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION
         static double Do(Evaluation const & eval, x_interval) {
 //            return eval(in());
+            eval(out()) = eval(in());
         }
     };
 
@@ -86,6 +88,8 @@ namespace red{
         typedef storage_t storage_type;
         storage_type in(meta_data_, "in");
         storage_type out(meta_data_, float_type(-1.));
+        storage_type out2(meta_data_, float_type(-1.));
+
         for(uint_t i=0; i<d1; ++i)
             for(uint_t j=0; j<d2; ++j)
                 for(uint_t k=0; k<d3; ++k)
@@ -95,17 +99,18 @@ namespace red{
 
         typedef arg<0, storage_type > p_in;
         typedef arg<1, storage_type > p_out;
+        typedef arg<2, storage_type > p_out2;
 
         typedef boost::mpl::vector<
             p_in
-            , p_out
+            , p_out, p_out2
             > accessor_list;
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
         gridtools::domain_type<accessor_list> domain
             (boost::fusion::make_vector(&in
-                                        , &out
+                                        , &out, &out2
                 ));
 
         // Definition of the physical dimensions of the problem.
@@ -137,39 +142,39 @@ namespace red{
                     execute<forward>(),
                     make_esf<desf>(p_in(),p_out())
                 ),
-                make_reduction<sum_red>(p_out()),
+                make_reduction<sum_red>(5.0, p_out(), p_out2()),
                 domain, grid
             );
 
-//        red_->ready();
+        red_->ready();
 
-//        red_->steady();
+        red_->steady();
 
-//        red_->run();
+        red_->run();
 
 //#ifdef __CUDACC__
 //        out.data().update_cpu();
 //#endif
 
-//        bool success = true;
-//        for(uint_t i=0; i<d1; ++i)
-//            for(uint_t j=0; j<d2; ++j)
-//                for(uint_t k=0; k<d3; ++k)
-//                {
-//                        if (in(i, j, k)!=out(i,j,k))
-//                        {
-//                            std::cout << "error in "
-//                                      << i << ", "
-//                                      << j << ", "
-//                                      << k << ": "
-//                                      << "in = " << in(i, j, k)
-//                                      << ", out = " << out(i, j, k)
-//                                      << std::endl;
-//                            success = false;
-//                        }
-//                }
+        bool success = true;
+        for(uint_t i=0; i<d1; ++i)
+            for(uint_t j=0; j<d2; ++j)
+                for(uint_t k=0; k<d3; ++k)
+                {
+                        if (in(i, j, k)!=out2(i,j,k))
+                        {
+                            std::cout << "error in "
+                                      << i << ", "
+                                      << j << ", "
+                                      << k << ": "
+                                      << "in = " << in(i, j, k)
+                                      << ", out = " << out(i, j, k)
+                                      << std::endl;
+                            success = false;
+                        }
+                }
 
-//        return success;
+        return success;
     }
 }//namespace red
 

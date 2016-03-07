@@ -53,18 +53,19 @@ TEST(test_make_reduction, make_reduction) {
     typedef boost::mpl::vector<p_in, p_out> accessor_list_t;
 
     typedef decltype(
-        gridtools::make_reduction<make_reduction_test::test_functor>(p_in())
-    ) mss1_t;
+        gridtools::make_reduction<make_reduction_test::test_functor>(0.0, p_in())
+    ) red_t;
 
-    typedef mss_descriptor<
-        execute<forward>,
+    typedef reduction_descriptor<
+        double,
         boost::mpl::vector1<
             esf_descriptor<make_reduction_test::test_functor, boost::mpl::vector1<p_in> >
-        >,
-        true
-    > mss_ref_t;
+        >
+    > red_ref_t;
 
-    GRIDTOOLS_STATIC_ASSERT(( mss_equal<mss1_t, mss_ref_t >::type::value), "ERROR");
+    GRIDTOOLS_STATIC_ASSERT((red_t::is_reduction_t::value), "ERROR");
+    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal<red_t::esf_sequence_t, red_ref_t::esf_sequence_t,
+                             esf_equal<boost::mpl::_1, boost::mpl::_2> >::type::value), "ERROR");
 
     EXPECT_TRUE(true);
 }

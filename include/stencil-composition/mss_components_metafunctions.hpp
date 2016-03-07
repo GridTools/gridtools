@@ -2,6 +2,7 @@
 #include <boost/mpl/assert.hpp>
 #include "mss_metafunctions.hpp"
 #include "mss_components.hpp"
+#include "reductions/reduction_descriptor.hpp"
 #include "../common/meta_array.hpp"
 
 namespace gridtools {
@@ -13,7 +14,7 @@ template<
     typename ExtentSizes
 >
 struct mss_components_is_reduction<mss_components<MssDescriptor, ExtentSizes> > :
-        mss_descriptor_is_reduction<MssDescriptor>::type {};
+        MssDescriptor::is_reduction_t {};
 
 
 //TODOCOSUNA unittest this
@@ -25,12 +26,12 @@ struct mss_components_is_reduction<mss_components<MssDescriptor, ExtentSizes> > 
 template<typename MssArray>
 struct split_mss_into_independent_esfs
 {
-    GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssArray, is_mss_descriptor>::value), "Internal Error: wrong type");
+    GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssArray, is_amss_descriptor>::value), "Internal Error: wrong type");
 
     template<typename MssDescriptor>
     struct mss_split_esfs
     {        
-        GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor<MssDescriptor>::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_amss_descriptor<MssDescriptor>::value), "Internal Error: wrong type");
 
         typedef typename mss_descriptor_execution_engine<MssDescriptor>::type execution_engine_t;
 
@@ -38,19 +39,27 @@ struct split_mss_into_independent_esfs
         struct compose_mss_ {
             typedef mss_descriptor<
                 execution_engine_t,
-                boost::mpl::vector1<Esf_>,
-                mss_descriptor_is_reduction<MssDescriptor>::type::value
+                boost::mpl::vector1<Esf_>
             > type;
         };
 
+        struct mss_split_multiple_esf
+        {
+            typedef typename boost::mpl::fold<
+                typename mss_descriptor_linear_esf_sequence<MssDescriptor>::type,
+                boost::mpl::vector0<>,
+                boost::mpl::push_back<
+                    boost::mpl::_1,
+                    compose_mss_<boost::mpl::_2>
+                >
+            >::type type;
+        };
 
-        typedef typename boost::mpl::fold<
-            typename mss_descriptor_linear_esf_sequence<MssDescriptor>::type,
-            boost::mpl::vector0<>,
-            boost::mpl::push_back<
-                boost::mpl::_1,
-                compose_mss_<boost::mpl::_2>
-            >
+        typedef typename boost::mpl::if_c<
+            // if the number of esf contained in the mss is 1, there is no need to split
+            (boost::mpl::size< typename mss_descriptor_linear_esf_sequence<MssDescriptor>::type>::value == 1),
+            boost::mpl::vector1<MssDescriptor>,
+            typename mss_split_multiple_esf::type
         >::type type;
     };
 
@@ -63,7 +72,7 @@ struct split_mss_into_independent_esfs
                 boost::mpl::back_inserter<mss_split_esfs<boost::mpl::_2> >
             >
         >::type,
-        boost::mpl::quote1<is_mss_descriptor>
+        boost::mpl::quote1<is_amss_descriptor>
     > type;
 };
 
@@ -81,7 +90,7 @@ template<
 >
 struct build_mss_components_array
 {
-    GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssDescriptorArray, is_mss_descriptor>::value), "Internal Error: wrong type");
+    GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssDescriptorArray, is_amss_descriptor>::value), "Internal Error: wrong type");
 
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename MssDescriptorArray::elements>::value ==
                              boost::mpl::size<ExtendSizes>::value), "Internal Error: wrong size");

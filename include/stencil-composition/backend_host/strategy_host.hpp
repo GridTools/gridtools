@@ -27,7 +27,7 @@ namespace gridtools{
          * @tparam MssComponentsArray a meta array with the mss components of all MSS
          * @tparam BackendId id of the backend
          */
-        template<typename MssComponentsArray, typename BackendIds>
+        template<typename MssComponentsArray, typename BackendIds, typename ReductionData>
         struct fused_mss_loop
         {
             GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
@@ -36,9 +36,10 @@ namespace gridtools{
             typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename MssComponentsArray::elements>::type::value> iter_range;
 
             template<typename LocalDomainListArray, typename Grid>
-            static void run(LocalDomainListArray& local_domain_lists, const Grid& grid)
+            static void run(LocalDomainListArray& local_domain_lists, const Grid& grid, const ReductionData& reduction_data)
             {
-                boost::mpl::for_each<iter_range> (mss_functor<MssComponentsArray, Grid, LocalDomainListArray, BackendIds> (local_domain_lists, grid,0,0));
+                boost::mpl::for_each<iter_range> (mss_functor<MssComponentsArray, Grid, LocalDomainListArray, BackendIds, ReductionData> (
+                                                      local_domain_lists, grid, reduction_data, 0,0));
             }
         };
 
@@ -54,8 +55,9 @@ namespace gridtools{
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), "Internal Error: wrong type");
             typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
 
-            template<typename LocalDomain, typename Grid>
-            static void run(const LocalDomain& local_domain, const Grid& grid, const uint_t bi, const uint_t bj)
+            template<typename LocalDomain, typename Grid, typename ReductionData>
+            static void run(const LocalDomain& local_domain, const Grid& grid, const ReductionData& reduction_initial_data,
+                            const uint_t bi, const uint_t bj)
             {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type");
                 GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
@@ -67,7 +69,7 @@ namespace gridtools{
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
                 GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<functor_list_t>::value==1), "Internal Error: wrong size");
 
-                kernel_functor_executor_t(local_domain, grid)();
+                kernel_functor_executor_t(local_domain, grid, reduction_initial_data.get())();
             }
         };
 
@@ -167,8 +169,8 @@ namespace gridtools{
 
             typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename MssComponentsArray::elements>::type::value> iter_range;
 
-            template<typename LocalDomainListArray, typename Grid>
-            static void run(LocalDomainListArray& local_domain_lists, const Grid& grid)
+            template<typename LocalDomainListArray, typename Grid, typename ReductionData>
+            static void run(LocalDomainListArray& local_domain_lists, const Grid& grid, const ReductionData& reduction_data)
             {
                 GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
 
@@ -183,7 +185,9 @@ namespace gridtools{
                 #pragma omp for nowait
                     for (uint_t bi = 0; bi <= NBI; ++bi) {
                         for (uint_t bj = 0; bj <= NBJ; ++bj) {
-                            boost::mpl::for_each<iter_range> (mss_functor<MssComponentsArray, Grid, LocalDomainListArray, BackendIds> (local_domain_lists, grid,bi,bj));
+                            boost::mpl::for_each<iter_range> (
+                                    mss_functor<MssComponentsArray, Grid, LocalDomainListArray, BackendIds, ReductionData> (
+                                         local_domain_lists, grid,reduction_data, bi,bj));
                         }
                     }
                 }
@@ -202,8 +206,9 @@ namespace gridtools{
 
             typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
 
-            template<typename LocalDomain, typename Grid>
-            static void run(const LocalDomain& local_domain, const Grid& grid, const uint_t bi, const uint_t bj)
+            template<typename LocalDomain, typename Grid, typename ReductionData>
+            static void run(const LocalDomain& local_domain, const Grid& grid, const ReductionData& reduction_initial_data,
+                            const uint_t bi, const uint_t bj)
             {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type");
                 GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
@@ -242,7 +247,7 @@ namespace gridtools{
                     last_j = m-NBJ*BJ;
                 }
 
-                kernel_functor_executor_t(local_domain, grid, first_i, first_j, last_i, last_j, bi, bj)();
+                kernel_functor_executor_t(local_domain, grid, reduction_initial_data.get(), first_i, first_j, last_i, last_j, bi, bj)();
             }
         };
 

@@ -11,14 +11,12 @@ namespace gridtools {
     mss_descriptor<
         ExecutionEngine,
         typename extract_mss_esfs<typename variadic_to_vector<MssParameters ... >::type >::type,
-        false,
         typename extract_mss_caches<typename variadic_to_vector<MssParameters ...>::type >::type
     >
     make_mss(ExecutionEngine&& /**/, MssParameters ...  ) {
         return mss_descriptor<
             ExecutionEngine,
             typename extract_mss_esfs<typename variadic_to_vector<MssParameters ... >::type >::type,
-            false,
             typename extract_mss_caches<typename variadic_to_vector<MssParameters ... >::type >::type
         >();
     }

@@ -353,6 +353,43 @@ namespace gridtools {
 
     };
 
+
+    template<typename MssDescriptorArray, bool HasReduction>
+    struct reduction_data;
+
+    template<typename MssDescriptorArray>
+    struct reduction_data<MssDescriptorArray, false>{
+        typedef int reduction_type_t;
+        reduction_data(reduction_type_t val) {}
+
+        int get() const {return 0;}
+    };
+
+
+    template<typename MssDescriptorArray>
+    struct reduction_data<MssDescriptorArray, true>{
+        GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssDescriptorArray, is_amss_descriptor>::value), "Internal Error: wrong type");
+
+        typedef typename boost::mpl::fold<
+            typename MssDescriptorArray::elements,
+            boost::mpl::vector0<>,
+            boost::mpl::eval_if<
+                amss_descriptor_is_reduction<boost::mpl::_2>,
+                boost::mpl::push_back<boost::mpl::_1, reduction_descriptor_type<boost::mpl::_2> >,
+                boost::mpl::_1
+            >
+         >::type reduction_type_seq_t;
+
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<reduction_type_seq_t>::value==1),
+                                "Error: more than one reduction found");
+        typedef typename boost::mpl::front<reduction_type_seq_t>::type reduction_type_t;
+
+        reduction_data(reduction_type_t val) : m_value(val) {}
+        const reduction_type_t& get() const { return m_value;}
+
+        reduction_type_t m_value;
+    };
+
     /**
      * @class
      *  @brief structure collecting helper metafunctions
@@ -363,7 +400,7 @@ namespace gridtools {
               typename Grid,
               bool IsStateful>
     struct intermediate : public computation {
-        GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssDescriptorArray, is_mss_descriptor>::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssDescriptorArray, is_amss_descriptor>::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_backend<Backend>::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_domain_type<DomainType>::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
@@ -391,6 +428,15 @@ namespace gridtools {
             boost::mpl::vector0<>,
             _push_extent_<boost::mpl::_1, boost::mpl::_2>
         >::type extent_sizes_t;
+
+        typedef typename boost::mpl::fold<
+            typename MssDescriptorArray::elements,
+            boost::mpl::false_,
+            boost::mpl::or_<boost::mpl::_1, mss_descriptor_is_reduction<boost::mpl::_2> >
+        >::type has_reduction_t;
+
+        typedef reduction_data<MssDescriptorArray, has_reduction_t::value> reduction_data_t;
+        typedef typename reduction_data_t::reduction_type_t reduction_type_t;
 
         typedef typename build_mss_components_array<
             backend_id<Backend>::value,
@@ -459,14 +505,15 @@ namespace gridtools {
 
         actual_arg_list_type m_actual_arg_list;
         actual_metadata_list_type m_actual_metadata_list;
+        reduction_data_t m_initial_reduction_value;
 
         bool is_storage_ready;
         performance_meter_t m_meter;
 
     public:
 
-        intermediate(DomainType & domain, Grid const & grid)
-            : m_domain(domain), m_grid(grid), m_meter("NoName")
+        intermediate(DomainType & domain, Grid const & grid, typename reduction_data_t::reduction_type_t reduction_initial_value = 0)
+            : m_domain(domain), m_grid(grid), m_meter("NoName"), m_initial_reduction_value(reduction_initial_value)
         {
             // Each map key is a pair of indices in the axis, value is the corresponding method interval.
 
@@ -501,7 +548,6 @@ namespace gridtools {
 //            gridtools::for_each<extent_sizes>(_debug::print__());
 //            std::cout << "end2" <<std::endl;
 #endif
-
             //filter the non temporary storages among the storage pointers in the domain
             typedef boost::fusion::filter_view<typename DomainType::arg_list,
                                                is_not_tmp_storage<boost::mpl::_1> > t_domain_view;
@@ -518,7 +564,6 @@ namespace gridtools {
             //filter the non temporary meta storages among the storage pointers in the domain
             typedef boost::fusion::filter_view<typename DomainType::metadata_ptr_list,
                                                boost::mpl::not_<is_ptr_to_tmp<boost::mpl::_1> > > t_domain_meta_view;
-
             //filter the non temporary meta storages among the placeholders passed to the intermediate
             typedef boost::fusion::filter_view<typename boost::fusion::result_of::as_set<actual_metadata_set_t>::type,
                                                boost::mpl::not_<is_ptr_to_tmp<boost::mpl::_1> > > t_meta_view;
@@ -599,7 +644,7 @@ namespace gridtools {
                     (boost::mpl::size<typename mss_components_array_t::elements>::value == boost::mpl::size<mss_local_domains_t>::value),
                     "Internal Error");
             m_meter.start();
-            Backend::template run<mss_components_array_t>( m_grid, m_mss_local_domain_list );
+            Backend::template run<mss_components_array_t>( m_grid, m_mss_local_domain_list, m_initial_reduction_value );
             m_meter.pause();
         }
 

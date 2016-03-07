@@ -24,13 +24,22 @@ namespace gridtools {
          * @tparam IntervalType interval where the functor gets executed
          * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
          */
-        template<typename IntervalType, typename EsfArguments>
+        template<typename IntervalType, typename EsfArguments, typename boost::disable_if<typename EsfArguments::is_reduction_t, int>::type = 0 >
         GT_FUNCTION
         void do_impl() const
         {
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments<EsfArguments>::value), "Internal Error: wrong type");
             typedef typename EsfArguments::functor_t functor_t;
             functor_t::f_type::Do(this->m_iterate_domain, IntervalType());
+        }
+
+        template<typename IntervalType, typename EsfArguments, typename boost::enable_if<typename EsfArguments::is_reduction_t, int>::type = 0 >
+        GT_FUNCTION
+        void do_impl() const
+        {
+            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments<EsfArguments>::value), "Internal Error: wrong type");
+            typedef typename EsfArguments::functor_t functor_t;
+            this->m_iterate_domain.set_reduced_value(functor_t::f_type::Do(this->m_iterate_domain, IntervalType()));
         }
 
     };

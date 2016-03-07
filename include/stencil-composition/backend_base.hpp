@@ -372,9 +372,6 @@ namespace gridtools {
             >::type type;
         };
 
-
-
-
         /**
          * \brief calls the \ref gridtools::run_functor for each functor in the FunctorList.
          * the loop over the functors list is unrolled at compile-time using the for_each construct.
@@ -386,15 +383,16 @@ namespace gridtools {
         template <
             typename MssComponentsArray,
             typename Grid,
-            typename MssLocalDomainArray
+            typename MssLocalDomainArray,
+            typename ReductionData
         > // List of local domain to be pbassed to functor at<i>
-        static void run(/*Domain const& domain, */Grid const& grid, MssLocalDomainArray &mss_local_domain_list) {
+        static void run(/*Domain const& domain, */Grid const& grid, MssLocalDomainArray &mss_local_domain_list, const ReductionData& reduction_data) {
             // TODO: I would swap the arguments coords and local_domain_list here, for consistency
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssLocalDomainArray, is_mss_local_domain>::value), "Internal Error: wrong type");
             GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
             GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
 
-            strategy_traits_t::template fused_mss_loop<MssComponentsArray, backend_ids_t>::run(mss_local_domain_list, grid);
+            strategy_traits_t::template fused_mss_loop<MssComponentsArray, backend_ids_t, ReductionData>::run(mss_local_domain_list, grid, reduction_data);
         }
 
 

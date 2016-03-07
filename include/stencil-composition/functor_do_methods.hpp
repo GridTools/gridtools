@@ -171,7 +171,7 @@ namespace gridtools {
         BOOST_MPL_ASSERT_MSG(
                              !boost::mpl::empty<DoMethods>::value,
                              NO_DO_METHOD_FOUND,
-                             (TFunctor, TAxisInterval, DoMethods)
+                             (TFunctor, TAxisInterval, DoMethods, static_bool<OnlyVoidDoMethods>)
                              );
 
         // check the do methods are continuous

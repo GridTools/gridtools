@@ -111,7 +111,7 @@ namespace gridtools {
         typename Grid,                            // the grid
         typename ExecutionEngine,                   // the execution engine
         bool IsReduction,                            // boolean stating if the operation to be applied at mss is a reduction
-        typename FunctorReturnType                   // return type of functors of a mss: return type of reduction operations,
+        typename ReductionData                       // return type of functors of a mss: return type of reduction operations,
                                                      //        otherwise void
     >
     struct run_functor_arguments
@@ -154,7 +154,7 @@ namespace gridtools {
                         PhysicalDomainBlockSize,
                         Grid,
                         IsReduction,
-                        FunctorReturnType
+                        typename ReductionData::reduction_type_t
                     >
                 >::type iterate_domain_t;
         typedef Grid grid_t;
@@ -162,7 +162,7 @@ namespace gridtools {
         static const enumtype::strategy s_strategy_id=backend_ids_t::s_strategy_id;
         static const bool s_is_reduction = IsReduction;
         typedef static_bool<IsReduction> is_reduction_t;
-        typedef FunctorReturnType functor_return_type_t;
+        typedef ReductionData reduction_data_t;
     };
 
     template<typename T> struct is_run_functor_arguments : boost::mpl::false_{};
@@ -183,7 +183,7 @@ namespace gridtools {
         typename Grid,
         typename ExecutionEngine,
         bool IsReduction,
-        typename FunctorReturnType
+        typename ReductionData
     >
     struct is_run_functor_arguments<
         run_functor_arguments<
@@ -202,7 +202,7 @@ namespace gridtools {
             Grid,
             ExecutionEngine,
             IsReduction,
-            FunctorReturnType
+            ReductionData
         >
     > : boost::mpl::true_{};
 
@@ -224,6 +224,7 @@ namespace gridtools {
         //global (to the mss) sequence_of_is_independent_t map (not local to the esf)
         typedef typename RunFunctorArguments::async_esf_map_t async_esf_map_t;
 
+        typedef typename RunFunctorArguments::is_reduction_t is_reduction_t;
         typedef typename index_to_level<
             typename boost::mpl::deref<
                 typename boost::mpl::find_if<

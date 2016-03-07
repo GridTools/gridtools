@@ -8,6 +8,7 @@ namespace gridtools {
 
     namespace strgrid {
 
+        template<typename T> struct printg{BOOST_MPL_ASSERT_MSG((false), GGGGGGGGGGGGGGGGGG, (T));};
         /**
         * @brief main functor that setups the CUDA kernel for a MSS and launchs it
         * @tparam RunFunctorArguments run functor argument type with the main configuration of the MSS
@@ -148,23 +149,44 @@ namespace gridtools {
 
                 array_index_t memorized_index;
 
+                assert(m_loop_size[1]>0);
+
+                typedef  typename boost::mpl::first< typename boost::mpl::front<loop_intervals_t>::type>::type first_lev_index;
+                typedef typename index_to_level<first_lev_index>::type first_lev;
+                typedef level<first_lev::Splitter::value, first_lev::Offset::value + 1 > first_lev_plus1;
+
+
+//                it_domain.get_index(memorized_index);
+//                boost::mpl::for_each< loop_intervals_t >(
+//                    _impl::run_f_on_interval< execution_type_t, RunFunctorArguments >(it_domain, m_grid));
+//                it_domain.set_index(memorized_index);
+
                 for (uint_t i = m_first_pos[0]; i <= m_first_pos[0] + m_loop_size[0]; ++i) {
-                    for (uint_t j = m_first_pos[1]; j <= m_first_pos[1] + m_loop_size[1]; ++j) {
+                    it_domain.get_index(memorized_index);
+
+                    boost::mpl::for_each< loop_intervals_t >(
+                        _impl::run_f_on_interval< execution_type_t, RunFunctorArguments >(it_domain, m_grid));
+                    it_domain.set_index(memorized_index);
+                    it_domain.template increment<0, static_int< 1 > >();
+                }
+                it_domain.template increment<0>(-(m_loop_size[0] + 1));
+                it_domain.template increment<1, static_int< 1 > >();
+
+
+                for (uint_t j = m_first_pos[1]+1; j <= m_first_pos[1] + m_loop_size[1]; ++j) {
+
+                    for (uint_t i = m_first_pos[0]; i <= m_first_pos[0] + m_loop_size[0]; ++i) {
                         it_domain.get_index(memorized_index);
 
                         boost::mpl::for_each< loop_intervals_t >(
                             _impl::run_f_on_interval< execution_type_t, RunFunctorArguments >(it_domain, m_grid));
                         it_domain.set_index(memorized_index);
-                        it_domain.template increment<1,
-                            static_int< 1 > >();
+                        it_domain.template increment<0, static_int< 1 > >();
                     }
-                    it_domain.template increment<1>(
-                        -(m_loop_size[1] + 1));
-                    it_domain.template increment<0,
-                        static_int< 1 > >();
+                    it_domain.template increment<0>(-(m_loop_size[0] + 1));
+                    it_domain.template increment<1, static_int< 1 > >();
                 }
-                it_domain.template increment<0>(
-                    -(m_loop_size[0] + 1));
+                it_domain.template increment<1>(-(m_loop_size[1] + 1));
             }
 
         private:
