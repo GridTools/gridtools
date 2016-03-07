@@ -6,6 +6,7 @@
 #include "../common/is_temporary_storage.hpp"
 #include <iostream>
 #include "../common/generic_metafunctions/gt_integer_sequence.hpp"
+#include "../common/generic_metafunctions/all_integrals.hpp"
 
 namespace gridtools{
     namespace _impl
