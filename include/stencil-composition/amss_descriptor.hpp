@@ -1,6 +1,10 @@
 #pragma once
 
 namespace gridtools {
+    /**
+     * type traits for a-mss descriptor. Amss descriptor is any descriptor that implements the concept
+     * a MSS: currently mss_descriptor and reduction_descriptor
+     */
     template < typename T >
     struct is_amss_descriptor : boost::mpl::false_ {};
 

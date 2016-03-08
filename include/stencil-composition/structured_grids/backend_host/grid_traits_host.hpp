@@ -1,7 +1,6 @@
 #pragma once
 
 #include "execute_kernel_functor_host.hpp"
-#include "execute_reduction_functor_host.hpp"
 
 namespace gridtools {
 

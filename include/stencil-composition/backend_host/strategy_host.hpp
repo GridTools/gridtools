@@ -32,6 +32,7 @@ namespace gridtools{
         {
             GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((is_reduction_data<ReductionData>::value), "Error");
 
             typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename MssComponentsArray::elements>::type::value> iter_range;
 
@@ -60,6 +61,8 @@ namespace gridtools{
             {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type");
                 GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_reduction_data<ReductionData>::value), "Error");
+
                 typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
                 typedef typename grid_traits_t::template with_arch<backend_ids_t::s_backend_id>::type arch_grid_traits_t;
 
@@ -164,6 +167,7 @@ namespace gridtools{
         {
             GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((is_reduction_data<ReductionData>::value), "Error");
 
             typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename MssComponentsArray::elements>::type::value> iter_range;
 
@@ -210,6 +214,7 @@ namespace gridtools{
             {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type");
                 GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_reduction_data<ReductionData>::value), "Error");
 
                 typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
                 typedef typename grid_traits_t::template with_arch<backend_ids_t::s_backend_id>::type arch_grid_traits_t;

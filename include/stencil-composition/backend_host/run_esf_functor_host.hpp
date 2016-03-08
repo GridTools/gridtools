@@ -21,6 +21,7 @@ namespace gridtools {
 
         /*
          * @brief main functor implemenation that executes (for Host) the user functor of an ESF
+         *      (specialization for non reduction operations)
          * @tparam IntervalType interval where the functor gets executed
          * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
          */
@@ -33,6 +34,12 @@ namespace gridtools {
             functor_t::f_type::Do(this->m_iterate_domain, IntervalType());
         }
 
+        /*
+         * @brief main functor implemenation that executes (for Host) the user functor of an ESF
+         *      (specialization for reduction operations)
+         * @tparam IntervalType interval where the functor gets executed
+         * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
+         */
         template<typename IntervalType, typename EsfArguments, typename boost::enable_if<typename EsfArguments::is_reduction_t, int>::type = 0 >
         GT_FUNCTION
         void do_impl() const

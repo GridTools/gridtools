@@ -143,6 +143,7 @@ namespace gridtools{
             {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type");
                 GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_reduction_data<ReductionData>::value), "Internal Error: wrong type");
 
                 //each strategy executes a different high level loop for a mss
                 strategy_from_id_host<backend_ids_t::s_strategy_id>::template mss_loop<RunFunctorArgs>::

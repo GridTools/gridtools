@@ -17,14 +17,12 @@ namespace gridtools {
     mss_descriptor<                                                                                                                                   \
         ExecutionEngine,                                                                                                                              \
         typename extract_mss_esfs<BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(ITN)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), EsfDescr) > >::type,   \
-        false,                                                                                                                                        \
         typename extract_mss_caches<BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(ITN)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), EsfDescr) > >::type  \
     >                                                                                                                                                 \
     make_mss(ExecutionEngine const&, BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(ITN), EsfDescr, const& BOOST_PP_INTERCEPT) ) {                          \
         return mss_descriptor<                                                                                                                        \
             ExecutionEngine,                                                                                                                          \
             typename extract_mss_esfs<BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(ITN)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), EsfDescr) > >::type,   \
-            false,                                                                                                                                        \
             typename extract_mss_caches<BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(ITN)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), EsfDescr) > >::type  \
         >();                                                                                                                                              \
     }

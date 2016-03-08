@@ -77,6 +77,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_reduction_data<ReductionData>::value), "Error");
 
         template<typename MssComponents, typename FunctorsMap>
         struct check_reduction_types{

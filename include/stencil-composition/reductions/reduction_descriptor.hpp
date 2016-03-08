@@ -12,11 +12,18 @@ namespace gridtools {
     template < typename T >
     struct is_cache;
 
-    /** @brief Descriptors for  Multi Stage Stencil (MSS) */
+    /** @brief Descriptors for  a reduction type of mss
+     * @tparam ReductionType basic type of the fields being reduced
+     * @tparam BinOp binary operation applied for the reduction
+     * @tparam EsfDescrSequence sequence of esf descriptor (should contain only one esf
+     *      with the reduction functor)
+     */
     template < typename ReductionType, enumtype::binop BinOp, typename EsfDescrSequence>
     struct reduction_descriptor {
         GRIDTOOLS_STATIC_ASSERT(
             (is_sequence_of< EsfDescrSequence, is_esf_descriptor >::value), "Internal Error: invalid type");
+        GRIDTOOLS_STATIC_ASSERT(
+            (boost::mpl::size< EsfDescrSequence>::value==1), "Internal Error: invalid type");
 
         typedef ReductionType reduction_type_t;
         typedef EsfDescrSequence esf_sequence_t;

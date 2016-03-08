@@ -391,6 +391,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssLocalDomainArray, is_mss_local_domain>::value), "Internal Error: wrong type");
             GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
             GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_reduction_data<ReductionData>::value), "Internal Error: wrong type");
 
             strategy_traits_t::template fused_mss_loop<MssComponentsArray, backend_ids_t, ReductionData>::run(mss_local_domain_list, grid, reduction_data);
         }
