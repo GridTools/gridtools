@@ -357,7 +357,7 @@ namespace gridtools {
     struct parallel_reduction;
 
     template<typename ReductionType>
-    struct parallel_reduction<ReductionType, enumtype::plus>
+    struct parallel_reduction<ReductionType, enumtype::sum>
     {
         static void assign(ReductionType& acc, ReductionType val)
         {
@@ -366,7 +366,7 @@ namespace gridtools {
     };
 
     template<typename ReductionType>
-    struct parallel_reduction<ReductionType, enumtype::mul>
+    struct parallel_reduction<ReductionType, enumtype::prod>
     {
         static void assign(ReductionType& acc, ReductionType val)
         {

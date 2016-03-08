@@ -140,7 +140,7 @@ namespace sum_reduction{
                     execute<forward>(),
                     make_esf<desf>(p_in(),p_out())
                 ),
-                make_reduction<sum_red, enumtype::plus>(0.0, p_out()),
+                make_reduction<sum_red, enumtype::sum>(0.0, p_out()),
                 domain, grid
             );
 
