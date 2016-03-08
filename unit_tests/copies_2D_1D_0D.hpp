@@ -164,9 +164,9 @@ namespace copy_stencils_3D_2D_1D_0D {
 
         // \todo simplify the following using the auto keyword from C++11
 #ifdef __CUDACC__
-        gridtools::computation* copy =
+        gridtools::computation<int>* copy =
 #else
-            boost::shared_ptr<gridtools::computation> copy =
+            boost::shared_ptr<gridtools::computation<int> > copy =
 #endif
             gridtools::make_computation<gridtools::BACKEND>
             (

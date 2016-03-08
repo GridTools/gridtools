@@ -141,7 +141,7 @@ bool test (uint_t d1, uint_t d2, uint_t d3,void *in_data_buff,void *out_data_buf
     // 2) the logical physical domain with the fields to use;
     // 3) the actual domain dimensions
     //
-    boost::shared_ptr<gridtools::computation> comp_copystencil =
+    boost::shared_ptr<gridtools::computation<int> > comp_copystencil =
       gridtools::make_computation<gridtools::BACKEND>
         (
             gridtools::make_mss
