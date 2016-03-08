@@ -1,10 +1,4 @@
 #pragma once
-
-#include <iostream>
-#include <stdio.h>
-#include <boost/current_function.hpp>
-
-#include "../common/gt_assert.hpp"
 #include "wrap_pointer.hpp"
 
 /** @file
@@ -103,7 +97,7 @@ namespace gridtools {
                 m_allocated = true;
                 if (err != cudaSuccess) {
                     std::cout << "Error allocating storage in "
-                              << BOOST_CURRENT_FUNCTION
+                              // << BOOST_CURRENT_FUNCTION
                               << " : size = "
                               << size*sizeof(T)
                               << " bytes   " <<  cudaGetErrorString(err)
@@ -116,6 +110,7 @@ namespace gridtools {
         }
 
         void free_it() {
+            assert(m_gpu_p);//check for double free
             cudaFree(m_gpu_p);
             m_gpu_p=NULL;
             m_cpu_p.free_it();

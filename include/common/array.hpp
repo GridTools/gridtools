@@ -5,12 +5,13 @@
 */
 
 #include <stddef.h>
+#include <algorithm>
+#include <boost/type_traits/has_trivial_constructor.hpp>
+
 #include "defs.hpp"
 #include "gt_assert.hpp"
 #include "host_device.hpp"
-#include <algorithm>
-#include <boost/type_traits/has_trivial_constructor.hpp>
-#include "common/generic_metafunctions/accumulate.hpp"
+#include "generic_metafunctions/accumulate.hpp"
 //#include "common/generic_metafunctions/gt_integer_sequence.hpp"
 
 namespace gridtools {

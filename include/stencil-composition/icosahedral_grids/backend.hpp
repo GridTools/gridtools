@@ -1,10 +1,11 @@
 #pragma once
 
+#include "storage/wrap_pointer.hpp"
 #include "storage/storage.hpp"
 #include "storage/meta_storage.hpp"
+
 #include "location_type.hpp"
 #include "stencil-composition/backend_base.hpp"
-#include "storage/wrap_pointer.hpp"
 
 namespace gridtools {
 
@@ -14,6 +15,7 @@ namespace gridtools {
     template<enumtype::platform BackendId, enumtype::strategy StrategyType >
     struct backend : public backend_base<BackendId, StrategyType>{
     public:
+
         // template <typename LocationType, typename X, typename LayoutMap>
         // struct _storage_type;
 

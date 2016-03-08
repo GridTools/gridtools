@@ -2,7 +2,7 @@
 #define _HALO_EXCHANGE_2D_H
 
 #include <boost/mpl/assert.h>
-#include <assert.h>
+#include <common/gt_assert.hpp>
 #include "../GCL.hpp"
 #include "translate.hpp"
 #include "has_communicator.hpp"

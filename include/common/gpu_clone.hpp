@@ -1,9 +1,5 @@
 #pragma once
-#include <stdio.h>
-#include <new>
-#include "../common/host_device.hpp"
-#include <string>
-#include <boost/type_traits/integral_constant.hpp>
+#include "../gridtools.hpp"
 
 /**
 @file

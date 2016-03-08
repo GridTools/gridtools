@@ -6,7 +6,7 @@
 #include "../low-level/proc_grids_3D.hpp"
 #include "../low-level/Halo_Exchange_3D.hpp"
 #include "../../common/make_array.hpp"
-#include <assert.h>
+#include <common/gt_assert.hpp>
 #include "../../common/boollist.hpp"
 #include "../../common/ndloops.hpp"
 #include "../low-level/data_types_mapping.hpp"

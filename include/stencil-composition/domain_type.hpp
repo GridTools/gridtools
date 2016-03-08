@@ -1,9 +1,5 @@
 #pragma once
 
-#include "../common/defs.hpp"
-#include "../common/gt_assert.hpp"
-
-#include <stdio.h>
 #include <boost/fusion/include/as_vector.hpp>
 #include <boost/fusion/container/vector/convert.hpp>
 #include <boost/fusion/container/vector.hpp>
@@ -21,20 +17,19 @@
 #include <boost/mpl/range_c.hpp>
 #include <boost/fusion/view/filter_view.hpp>
 #include <boost/fusion/include/for_each.hpp>
-#include "../common/gpu_clone.hpp"
-#include "storage/storage.hpp"
-#include "../storage/storage_functors.hpp"
 
-#include "common/generic_metafunctions/static_if.hpp"
-#include "common/generic_metafunctions/is_variadic_pack_of.hpp"
-#include "common/generic_metafunctions/arg_comparator.hpp"
-#ifdef CXX11_ENABLED
-#include "common/generic_metafunctions/is_fusion_vector.hpp"
-#endif
-#include "domain_type_impl.hpp"
+#include "../common/generic_metafunctions/static_if.hpp"
+#include "../common/generic_metafunctions/is_variadic_pack_of.hpp"
+#include "../common/generic_metafunctions/arg_comparator.hpp"
+#include "../common/gpu_clone.hpp"
+
+#include "../storage/storage.hpp"
+#include "../storage/storage_functors.hpp"
 #include "../storage/metadata_set.hpp"
-#include "stencil-composition/arg_metafunctions.hpp"
-#include "stencil-composition/arg.hpp"
+
+#include "domain_type_impl.hpp"
+#include "arg_metafunctions.hpp"
+#include "arg.hpp"
 
 
 /**@file

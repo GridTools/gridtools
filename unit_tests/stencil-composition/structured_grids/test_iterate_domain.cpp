@@ -96,6 +96,7 @@ namespace test_iterate_domain{
                 ));
 
         typedef decltype(gridtools::make_esf<dummy_functor>(p_in() ,p_buff(), p_out())) esf_t;
+        typedef boost::remove_reference<decltype(*computation_)>::type intermediate_t;
 
         computation_->ready();
         computation_->steady();

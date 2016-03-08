@@ -334,15 +334,6 @@ namespace gridtools {
             return (m_fields[0])[m_meta_data.index(dims...)];
         }
 
-        /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
-        template <typename ... UInt>
-        GT_FUNCTION
-        value_type& operator()(storage_info_type const* metadata_, UInt const& ... dims) {
-            assert(metadata_ && metadata_->index(dims...) < metadata_->size());
-            assert(is_set);
-            return (m_fields[0])[metadata_->index(dims...)];
-        }
-
         /** @brief returns (by const reference) the value of the data field at the coordinates (i, j, k) */
         template <typename ... UInt>
         __host__
@@ -351,34 +342,7 @@ namespace gridtools {
             assert(is_set);
             return (m_fields[0])[m_meta_data.index(dims...)];
         }
-
-        /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
-        template <typename ... UInt>
-        GT_FUNCTION
-        value_type const& operator()(storage_info_type const* metadata_, UInt const& ... dims) const {
-            assert(metadata_ && metadata_->index(dims...) < metadata_->size());
-            assert(is_set);
-            return (m_fields[0])[metadata_->index(dims...)];
-        }
-
-
 #else //CXX11_ENABLED
-
-        /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
-        GT_FUNCTION
-        value_type& operator()(storage_info_type const* metadata_, uint_t const& i, uint_t const& j, uint_t const& k) {
-            assert(metadata_ && metadata_->index(i,j,k) < metadata_->size());
-            assert(is_set);
-            return (m_fields[0])[metadata_->index(i,j,k)];
-        }
-
-        /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
-        GT_FUNCTION
-        value_type const& operator()(storage_info_type const* metadata_, uint_t const& i, uint_t const& j, uint_t const& k) const {
-            assert(metadata_ && metadata_->index(i,j,k) < metadata_->size());
-            assert(is_set);
-            return (m_fields[0])[metadata_->index(i,j,k)];
-        }
 
         /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
         __host__
@@ -396,8 +360,9 @@ namespace gridtools {
             assert(is_set);
             return (m_fields[0])[m_meta_data.index(i,j,k)];
         }
-#endif
 
+#endif
+    public:
         /**@brief prints the first values of the field to standard output*/
         void print() const {
             print(std::cout);

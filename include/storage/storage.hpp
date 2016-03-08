@@ -1,8 +1,9 @@
 #pragma once
 #include "data_field.hpp"
-#include "meta_storage.hpp"
 #include "common/gpu_clone.hpp"
+#ifdef CXX11_ENABLED
 #include "common/generic_metafunctions/reverse_pack.hpp"
+#endif
 
 /**
 @file
@@ -13,7 +14,7 @@ This extra layer is added on top of the base_storage class because it extends th
 namespace gridtools{
 
     template < typename BaseStorage >
-      struct storage : public BaseStorage, clonable_to_gpu<storage<BaseStorage> >
+    struct storage : public BaseStorage, clonable_to_gpu<storage<BaseStorage> >
     {
         typedef BaseStorage super;
         typedef typename BaseStorage::basic_type basic_type;
@@ -62,14 +63,9 @@ namespace gridtools{
         */
         void clone_to_device() {
 
-// #ifndef NDEBUG
-//             if(!m_device_storage_info)
-//                 exit(-1);
-//             if(!m_device_storage_info->device_pointer())
-//                 exit(-2);
-//             if(!this->m_fields[0].get())//no fields in the storage
-//                 exit(-3);
-// #endif
+            // assert(m_device_storage_info);
+            // assert(m_device_storage_info->device_pointer());
+            // assert(this->m_fields[0].get());
             on_device();
             clonable_to_gpu<storage<BaseStorage> >::clone_to_device();
         }
@@ -166,15 +162,19 @@ namespace gridtools{
         GT_FUNCTION
         value_type& operator()(UInt const& ... dims) {
             //failure here means that you didn't call clone_to_device on the storage_info yet
-// #ifdef CUDA_ARCH
-//             assert(!m_on_host);
-// #else //CUDA_ARCH
-//             assert(m_on_host);
-// #endif //CUDA_ARCH
-
+#ifdef __CUDA_ARCH__
+            assert(!m_on_host);
+#else //__CUDA_ARCH__
+            if(!m_on_host)
+                exit(-1);
+            if(!m_device_storage_info)
+                exit(-2);
+            // assert(m_on_host);
             // assert(m_device_storage_info);
+#endif //__CUDA_ARCH__
 
-            return super::operator()(m_device_storage_info, dims...);
+
+            return access_data_impl(m_device_storage_info, dims...);
         }
 
         /** @brief returns (by const reference) the value of the data field at the coordinates (i, j, k)
@@ -185,16 +185,61 @@ namespace gridtools{
         GT_FUNCTION
         value_type const & operator()(UInt const& ... dims) const {
             //failure here means that you didn't call clone_to_device on the storage_info yet
-// #ifdef CUDA_ARCH
-//             assert(!m_on_host);
-// #else //CUDA_ARCH
-//             assert(m_on_host);
-// #endif //CUDA_ARCH
-
+#ifdef __CUDA_ARCH__
+            assert(!m_on_host);
+#else //__CUDA_ARCH__
+            if(!m_on_host)
+                exit(-1);
+            if(!m_device_storage_info)
+                exit(-2);
+            // assert(m_on_host);
             // assert(m_device_storage_info);
+#endif //__CUDA_ARCH__
 
-            return super::operator()(m_device_storage_info, dims...);
+
+            return access_data_impl(m_device_storage_info, dims...);
         }
+
+    private:
+        /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k)
+
+            This interface is not exposed to the user, it gets called from storage.hpp
+         */
+        template <typename ... UInt>
+        GT_FUNCTION
+        value_type& access_data_impl(storage_info_type const* metadata_, UInt const& ... dims) {
+#ifdef __CUDA_ARCH__
+            // assert(metadata_ && metadata_->index(dims...) < metadata_->size());
+            // assert(this->is_set);
+#else
+            if(!metadata_ || !(metadata_->index(dims...) < metadata_->size()))
+                exit(-1);
+            if(!this->is_set)
+                exit(-2);
+#endif
+            return (this->m_fields[0])[metadata_->index(dims...)];
+        }
+
+        /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k)
+
+            This interface is not exposed to the user, it gets called from storage.hpp
+         */
+        template <typename ... UInt>
+        GT_FUNCTION
+        value_type const& access_data_impl(storage_info_type const* metadata_, UInt const& ... dims) const {
+#ifdef __CUDA_ARCH__
+            assert(metadata_ && metadata_->index(dims...) < metadata_->size());
+            assert(this->is_set);
+#else
+            if(!metadata_ || !(metadata_->index(dims...) < metadata_->size()))
+                exit(-1);
+            if(!this->is_set)
+                exit(-2);
+#endif
+            return (this->m_fields[0])[metadata_->index(dims...)];
+        }
+
+
 
 #else //CXX11_ENABLED
 
@@ -205,15 +250,18 @@ namespace gridtools{
 */
         GT_FUNCTION
         value_type& operator()( uint_t const& i, uint_t const& j, uint_t const& k) {
-// #ifdef CUDA_ARCH
-//             assert(!m_on_host);
-// #else //CUDA_ARCH
-//             assert(m_on_host);
-// #endif //CUDA_ARCH
+#ifdef __CUDA_ARCH__
+            assert(!m_on_host);
+#else //__CUDA_ARCH__
+            //assert(m_on_host);
+            if(!m_on_host)
+                exit(-1);
+            if(!m_device_storage_info)
+                exit(-2);
+#endif //__CUDA_ARCH__
 
-            // assert(m_device_storage_info);
 
-            return super::operator()(m_device_storage_info, i,j,k);
+            return access_data_impl(m_device_storage_info, i,j,k);
         }
 
 
@@ -226,19 +274,64 @@ namespace gridtools{
         value_type const & operator()( uint_t const& i, uint_t const& j, uint_t const& k) const {
 
             //failure here means that you didn't call clone_to_device on the storage_info yet
-            //assert(m_device_storage_info);
-// #ifdef CUDA_ARCH
-//             assert(!m_on_host);
-// #else // CUDA_ARCH
-//             assert(m_on_host);
-// #endif //CUDA_ARCH
+#ifdef __CUDA_ARCH__
+            assert(!m_on_host);
+#else // __CUDA_ARCH__
+            // assert(m_on_host);
+            if(!m_on_host)
+                exit(-1);
+            if(!m_device_storage_info)
+                exit(-2);
+#endif //__CUDA_ARCH__
 
-            // assert(m_device_storage_info);
-            return super::operator()(m_device_storage_info, i,j,k);
+
+            return access_data_impl(m_device_storage_info, i,j,k);
         }
+
+
+    private:
+        /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k)
+
+            This interface is not exposed to the user, it gets called from storage.hpp
+         */
+        GT_FUNCTION
+        value_type& access_data_impl(storage_info_type const* metadata_, uint_t const& i, uint_t const& j, uint_t const& k) {
+#ifdef __CUDA_ARCH__
+            assert(metadata_ && metadata_->index(i,j,k) < metadata_->size());
+            assert(this->is_set);
+#else
+            if(!metadata_ || !(metadata_->index(i,j,k) < metadata_->size()))
+                exit(-1);
+            if(!this->is_set)
+                exit(-2);
+
+#endif
+            return (this->m_fields[0])[metadata_->index(i,j,k)];
+        }
+
+        /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k)
+
+            This interface is not exposed to the user, it gets called from storage.hpp
+        */
+        GT_FUNCTION
+        value_type const& access_data_impl(storage_info_type const* metadata_, uint_t const& i, uint_t const& j, uint_t const& k) const {
+
+#ifdef __CUDA_ARCH__
+            assert(metadata_ && metadata_->index(i,j,k) < metadata_->size());
+            assert(this->is_set);
+#else
+            if(!metadata_ || !(metadata_->index(i,j,k) < metadata_->size()))
+                exit(-1);
+            if(!this->is_set)
+                exit(-2);
+#endif
+
+            return (this->m_fields[0])[metadata_->index(i,j,k)];
+        }
+
 #endif //CXX11_ENABLED
 
-
+    public:
 
     /**@brief swaps two arbitrary snapshots in two arbitrary data field dimensions
 
