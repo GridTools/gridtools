@@ -698,10 +698,10 @@ If you are not using generic accessors then you are using an unsupported storage
     {
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Wrong type");
 
-        typedef typename boost::mpl::at<
-            typename IterateDomainArguments::local_domain_t::mpl_storages,
-            static_int<I>
-            >::type::value_type::value_type type;
+        typedef pointer<typename boost::mpl::at<
+                            typename IterateDomainArguments::local_domain_t::mpl_storages,
+                            static_int<I>
+                            >::type::value_type::value_type> type;
     };
 
 
