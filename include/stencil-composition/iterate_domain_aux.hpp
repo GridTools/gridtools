@@ -524,12 +524,12 @@ If you are not using generic accessors then you are using an unsupported storage
         //while the strides are uint_t type in the storage metadata,
         // we stored them as int in the strides cached object in order to force vectorization
         int_t* RESTRICT m_left;
-        const uint_t* RESTRICT m_right;
+        const int_t* RESTRICT m_right;
 
     public:
 
         GT_FUNCTION
-        assign_strides_inner_functor(int_t* RESTRICT l, const uint_t* RESTRICT r) :
+        assign_strides_inner_functor(int_t* RESTRICT l, const int_t* RESTRICT r) :
             m_left(l), m_right(r) {}
 
         template <typename ID>
