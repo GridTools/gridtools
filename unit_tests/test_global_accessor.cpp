@@ -80,7 +80,7 @@ TEST(test_global_accessor, boundary_conditions) {
 #ifdef __CUDACC__
     computation<int>* bc_eval =
 #else
-        boost::shared_ptr<computation<int> > bc_eval =
+        boost::shared_ptr<stencil> bc_eval =
 #endif
         make_computation< backend_t >
         (

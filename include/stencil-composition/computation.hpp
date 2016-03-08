@@ -1,7 +1,7 @@
 #pragma once
 // //\todo this struct becomes redundant when the auto keyword is used
 namespace gridtools {
-    template<typename ReductionType>
+    template<typename ReductionType = int>
     struct computation {
         virtual void ready() = 0;
         virtual void steady() = 0;
