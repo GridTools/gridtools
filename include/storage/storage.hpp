@@ -20,7 +20,7 @@ namespace gridtools{
         typedef typename BaseStorage::basic_type basic_type;
         typedef typename basic_type::storage_info_type storage_info_type;
         typedef storage<BaseStorage> original_storage;
-        // typedef clonable_to_gpu<storage<BaseStorage> > gpu_clone;
+        typedef clonable_to_gpu<storage<BaseStorage> > gpu_clone;
         typedef typename BaseStorage::iterator_type iterator_type;
         typedef typename BaseStorage::value_type value_type;
         static const ushort_t n_args = basic_type::n_width;
@@ -63,22 +63,11 @@ namespace gridtools{
         */
         void clone_to_device() {
 
-#ifdef __CUDA_ARCH__
-// assert(m_device_storage_info);
-// assert(m_device_storage_info->device_pointer());
-// assert(this->m_fields[0].get());
-#else
-#ifndef NDEBUG
-            if(!m_device_storage_info)
-                exit(-1);
-            if(!m_device_storage_info->device_pointer())
-                exit(-2);
-            if(!this->m_fields[0].get())//no fields in the storage
-                exit(-3);
-#endif
-#endif
+            // assert(m_device_storage_info);
+            // assert(m_device_storage_info->device_pointer());
+            // assert(this->m_fields[0].get());
             on_device();
-            // clonable_to_gpu<storage<BaseStorage> >::clone_to_device();
+            clonable_to_gpu<storage<BaseStorage> >::clone_to_device();
         }
 
         /** @brief updates the CPU pointer */
@@ -175,7 +164,6 @@ namespace gridtools{
             //failure here means that you didn't call clone_to_device on the storage_info yet
 #ifdef __CUDA_ARCH__
             assert(!m_on_host);
-            assert(m_device_storage_info);
 #else //__CUDA_ARCH__
             if(!m_on_host)
                 exit(-1);
@@ -199,7 +187,6 @@ namespace gridtools{
             //failure here means that you didn't call clone_to_device on the storage_info yet
 #ifdef __CUDA_ARCH__
             assert(!m_on_host);
-            assert(m_device_storage_info);
 #else //__CUDA_ARCH__
             if(!m_on_host)
                 exit(-1);
@@ -222,8 +209,8 @@ namespace gridtools{
         GT_FUNCTION
         value_type& access_data_impl(storage_info_type const* metadata_, UInt const& ... dims) {
 #ifdef __CUDA_ARCH__
-            assert(metadata_ && metadata_->index(dims...) < metadata_->size());
-            assert(this->is_set);
+            // assert(metadata_ && metadata_->index(dims...) < metadata_->size());
+            // assert(this->is_set);
 #else
             if(!metadata_ || !(metadata_->index(dims...) < metadata_->size()))
                 exit(-1);
@@ -265,7 +252,6 @@ namespace gridtools{
         value_type& operator()( uint_t const& i, uint_t const& j, uint_t const& k) {
 #ifdef __CUDA_ARCH__
             assert(!m_on_host);
-            assert(m_device_storage_info);
 #else //__CUDA_ARCH__
             //assert(m_on_host);
             if(!m_on_host)
@@ -290,7 +276,6 @@ namespace gridtools{
             //failure here means that you didn't call clone_to_device on the storage_info yet
 #ifdef __CUDA_ARCH__
             assert(!m_on_host);
-            assert(m_device_storage_info);
 #else // __CUDA_ARCH__
             // assert(m_on_host);
             if(!m_on_host)
