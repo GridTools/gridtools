@@ -2,6 +2,9 @@
 #include <boost/shared_ptr.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 #include <stencil-composition/reductions/reductions.hpp>
+#include "cache_flusher.hpp"
+#include "defs.hpp"
+
 
 /**
   @file
@@ -17,7 +20,7 @@ using namespace gridtools;
 using namespace enumtype;
 
 
-namespace red{
+namespace sum_reduction{
 #ifdef __CUDACC__
         typedef gridtools::layout_map<2,1,0> layout_t;//stride 1 on i
 #else
@@ -60,11 +63,13 @@ namespace red{
     void handle_error(int_t)
     {std::cout<<"error"<<std::endl;}
 
-    bool test(uint_t x, uint_t y, uint_t z) {
+    bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps) {
 
         uint_t d1 = x;
         uint_t d2 = y;
         uint_t d3 = z;
+
+        cache_flusher flusher(cache_flusher_size);
 
 #ifdef __CUDACC__
 #define BACKEND backend<Cuda, GRIDBACKEND, Block >
@@ -147,11 +152,16 @@ namespace red{
 
         bool success = (red == ref);
 
+#ifdef BENCHMARK
+        for(uint_t t=1; t < t_steps; ++t){
+            flusher.flush();
+            red_->run();
+        }
+        red_->finalize();
+        std::cout << red_->print_meter() << std::endl;
+#endif
+
         return success;
     }
 }//namespace red
 
-TEST(reductions, sum) {
-    ASSERT_TRUE( red::test(24, 24, 10) );
-
-}
