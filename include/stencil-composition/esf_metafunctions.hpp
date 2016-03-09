@@ -9,7 +9,7 @@
 #ifdef STRUCTURED_GRIDS
     #include "structured_grids/esf_metafunctions.hpp"
 #else
-    #include "structured_grids/esf_metafunctions.hpp"
+    #include "icosahedral_grids/esf_metafunctions.hpp"
 #endif
 
 namespace gridtools {
