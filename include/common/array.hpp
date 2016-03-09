@@ -16,7 +16,7 @@
 
 namespace gridtools {
 
-    template<typename T> struct is_array : boost::mpl::false_{};
+    template<typename T> struct is_array;
 
     template <typename T, size_t D>
     class array {
@@ -176,6 +176,8 @@ namespace gridtools {
         GT_FUNCTION
         static constexpr size_t size() {return _size;}
     };
+
+    template<typename T> struct is_array : boost::mpl::false_{};
 
     template <typename T, size_t D>
     struct is_array <array<T, D> > : boost::mpl::true_{};

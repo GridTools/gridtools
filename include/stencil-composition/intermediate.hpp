@@ -121,7 +121,7 @@ namespace gridtools {
         /**@brief metafunction for accessing the storage given the list of placeholders and the temporary pairs list.
            default template parameter: because in case we don't have temporary storages there's no need to specify the pairs.*/
         template <typename Placeholders,
-                  typename TmpPairs=boost::mpl::na>
+                  typename TmpPairs>
         struct select_storage {
             template <typename T, typename Dummy = void>
             struct is_temp : public boost::false_type

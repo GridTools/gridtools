@@ -67,6 +67,9 @@ namespace gridtools {
      */
     template <typename IterateDomainImpl>
     struct iterate_domain {
+
+        // *************** type definitions **************
+
         typedef typename iterate_domain_impl_arguments<IterateDomainImpl>::type iterate_domain_arguments_t;
         typedef typename iterate_domain_arguments_t::local_domain_t local_domain_t;
 
@@ -163,9 +166,19 @@ namespace gridtools {
         typedef array<int_t,N_META_STORAGES> array_index_t;
 
     public:
+
         typedef array<void* RESTRICT, N_DATA_POINTERS> data_pointer_array_t;
         typedef strides_cached<N_META_STORAGES-1, typename local_domain_t::storage_metadata_vector_t> strides_cached_t;
+        // *************** end of type definitions **************
 
+    protected:
+
+        // ******************* members *******************
+        local_domain_t const& local_domain;
+        array_index_t m_index;
+        // ******************* end of members *******************
+
+    public:
         /**
            @brief returns the array of pointers to the raw data as const reference
         */
@@ -212,11 +225,6 @@ namespace gridtools {
         {
             return static_cast<const IterateDomainImpl*>(this)->strides_impl();
         }
-
-    protected:
-
-        local_domain_t const& local_domain;
-        array_index_t m_index;
 
     public:
 

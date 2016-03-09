@@ -10,7 +10,7 @@ namespace gridtools {
     template<typename Vector, typename ... Mss>
     struct meta_array_vector;
 
-    /**@brief recutrsion anchor*/
+    /**@brief recursion anchor*/
     template<typename Vector>
     struct meta_array_vector<Vector>{
         typedef Vector type;

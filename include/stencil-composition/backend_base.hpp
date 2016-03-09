@@ -327,8 +327,11 @@ namespace gridtools {
 
             typedef typename obtain_map_extents_temporaries_mss_array<Domain, MssArray1>::type type1;
             typedef typename obtain_map_extents_temporaries_mss_array<Domain, MssArray2>::type type2;
+            typedef typename boost::mpl::fold< type2
+                                               ,type1
+                                               ,boost::mpl::insert<boost::mpl::_1, boost::mpl::_2>
+                                               >::type type;
 
-            typedef condition<type1, type2, Cond> type;
         };
 
         /**
@@ -375,6 +378,7 @@ namespace gridtools {
                     >::template apply<boost::mpl::_2>
                 >
             >::type type;
+
         };
 
 

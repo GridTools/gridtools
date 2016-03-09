@@ -2,6 +2,7 @@
 #include <memory>
 
 #include "fill_conditionals.hpp"
+#include "../common/generic_metafunctions/vector_to_set.hpp"
 
 namespace gridtools {
 
@@ -53,12 +54,7 @@ namespace gridtools {
                                                  , boost::mpl::_1>
                                            >::type conditionals_set_mpl_t;
 
-        typedef typename boost::mpl::fold< conditionals_set_mpl_t
-                                           , boost::mpl::set0<>
-                                           , boost::mpl::insert<
-                                                 boost::mpl::_1
-                                                 , boost::mpl::_2>
-                                           >::type conditionals_check_t;
+        typedef typename vector_to_set<conditionals_set_mpl_t>::type conditionals_check_t;
 
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<conditionals_check_t>::type::value
                                  == boost::mpl::size<conditionals_set_mpl_t>::type::value),
