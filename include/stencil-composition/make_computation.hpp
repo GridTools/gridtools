@@ -79,7 +79,7 @@ namespace _impl {
     };
 
     template <typename ExecutionEngine,
-              enumtype::binop BinOp,
+              typename BinOp,
               typename EsfDescrSequence>
     struct reduction_helper<reduction_descriptor<ExecutionEngine, BinOp, EsfDescrSequence> >
     {

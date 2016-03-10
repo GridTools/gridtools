@@ -18,7 +18,7 @@ namespace gridtools {
      * @tparam EsfDescrSequence sequence of esf descriptor (should contain only one esf
      *      with the reduction functor)
      */
-    template < typename ReductionType, enumtype::binop BinOp, typename EsfDescrSequence>
+    template < typename ReductionType, typename BinOp, typename EsfDescrSequence>
     struct reduction_descriptor {
         GRIDTOOLS_STATIC_ASSERT(
             (is_sequence_of< EsfDescrSequence, is_esf_descriptor >::value), "Internal Error: invalid type");
@@ -29,7 +29,7 @@ namespace gridtools {
         typedef EsfDescrSequence esf_sequence_t;
         typedef boost::mpl::vector0<> cache_sequence_t;
         typedef static_bool< true > is_reduction_t;
-        typedef enumtype::enum_type<enumtype::binop, BinOp> bin_op_t;
+        typedef BinOp bin_op_t;
 
     private:
         reduction_type_t m_initial_value;
@@ -40,25 +40,25 @@ namespace gridtools {
 
     template<typename Reduction> struct is_reduction_descriptor : boost::mpl::false_{};
 
-    template < typename ReductionType, enumtype::binop BinOp, typename EsfDescrSequence>
+    template < typename ReductionType, typename BinOp, typename EsfDescrSequence>
     struct is_reduction_descriptor< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence > > : boost::mpl::true_ {};
 
-    template < typename ReductionType, enumtype::binop BinOp, typename EsfDescrSequence>
+    template < typename ReductionType, typename BinOp, typename EsfDescrSequence>
     struct mss_descriptor_esf_sequence< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence> > {
         typedef EsfDescrSequence type;
     };
 
-    template < typename ReductionType, enumtype::binop BinOp, typename EsfDescrSequence>
+    template < typename ReductionType, typename BinOp, typename EsfDescrSequence>
     struct mss_descriptor_cache_sequence< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence> > {
         typedef typename mss_descriptor_cache_sequence< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence> >::cache_sequence_t type;
     };
 
-    template < typename ReductionType, enumtype::binop BinOp, typename EsfDescrSequence>
+    template < typename ReductionType, typename BinOp, typename EsfDescrSequence>
     struct mss_descriptor_execution_engine< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence> > {
         typedef enumtype::execute< enumtype::forward > type;
     };
 
-    template <typename ReductionType, enumtype::binop BinOp, typename EsfDescrSequence>
+    template <typename ReductionType, typename BinOp, typename EsfDescrSequence>
     struct mss_descriptor_is_reduction<reduction_descriptor<ReductionType, BinOp, EsfDescrSequence> >
     {
         typedef static_bool<true> type;
@@ -66,7 +66,7 @@ namespace gridtools {
 
     template<typename Reduction> struct reduction_descriptor_type;
 
-    template < typename ReductionType, enumtype::binop BinOp, typename EsfDescrSequence>
+    template < typename ReductionType, typename BinOp, typename EsfDescrSequence>
     struct reduction_descriptor_type< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence> >
     {
         typedef ReductionType type;

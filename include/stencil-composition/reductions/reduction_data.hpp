@@ -2,43 +2,8 @@
 
 namespace gridtools {
 
-    template<typename ReductionType, enumtype::binop BinOp>
-    struct parallel_reduction;
-
-    template<typename ReductionType>
-    struct parallel_reduction<ReductionType, enumtype::sum>
-    {
-        static void assign(ReductionType& acc, ReductionType val)
-        {
-            acc += val;
-        }
-    };
-
-    template<typename ReductionType>
-    struct parallel_reduction<ReductionType, enumtype::prod>
-    {
-        static void assign(ReductionType& acc, ReductionType val)
-        {
-            acc *= val;
-        }
-    };
-
     template<typename MssDescriptorArray, bool HasReduction>
     struct reduction_data;
-
-    template<typename MssDescriptorArray>
-    struct reduction_data<MssDescriptorArray, false>{
-        typedef int reduction_type_t;
-        reduction_data(reduction_type_t) {}
-
-        reduction_type_t initial_value() const {return 0;}
-        reduction_type_t reduced_value() const { return 0;}
-        void assign(uint_t elem, const reduction_type_t& ){}
-        void reduce(){}
-
-
-    };
-
 
     template<typename MssDescriptorArray>
     struct reduction_data<MssDescriptorArray, true>{
@@ -71,7 +36,7 @@ namespace gridtools {
         void assign(uint_t elem, const reduction_type_t& reduction_value)
         {
             assert(elem < m_parallel_reduced_val.size());
-            parallel_reduction<reduction_type_t, bin_op_t::value>::assign(m_parallel_reduced_val[elem], reduction_value);
+            m_parallel_reduced_val[elem] = bin_op_t()(m_parallel_reduced_val[elem], reduction_value);
         }
 
         void reduce()
@@ -80,12 +45,13 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
             for(auto val: m_parallel_reduced_val)
             {
-                parallel_reduction<reduction_type_t, bin_op_t::value>::assign(m_reduced_value, val);
+                m_reduced_value = bin_op_t()(m_reduced_value, val);
+
             }
 #else
             for(uint_t i=0; i < m_parallel_reduced_val.size(); ++i)
             {
-                parallel_reduction<reduction_type_t, bin_op_t::value>::assign(m_reduced_value, m_parallel_reduced_val[i]);
+                m_reduced_value = bin_op_t()(m_reduced_value,  m_parallel_reduced_val[i]);
             }
 #endif
         }

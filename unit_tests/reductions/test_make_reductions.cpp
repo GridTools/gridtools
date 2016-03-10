@@ -17,6 +17,7 @@
 #include "stencil-composition/backend.hpp"
 #include "stencil-composition/make_computation.hpp"
 #include "stencil-composition/make_stencils.hpp"
+#include "stencil-composition/reductions/reductions.hpp"
 
 #ifdef CXX11_ENABLED
 
@@ -37,8 +38,6 @@ namespace make_reduction_test{
     };
 }
 
-template<typename T> struct printo{BOOST_MPL_ASSERT_MSG((false), ZZZZZZZZZZZZZ, (T));};
-
 TEST(test_make_reduction, make_reduction) {
 
     using namespace gridtools;
@@ -53,12 +52,12 @@ TEST(test_make_reduction, make_reduction) {
     typedef boost::mpl::vector<p_in, p_out> accessor_list_t;
 
     typedef decltype(
-        gridtools::make_reduction<make_reduction_test::test_functor, enumtype::plus>(0.0, p_in())
+        gridtools::make_reduction<make_reduction_test::test_functor, binop::sum>(0.0, p_in())
     ) red_t;
 
     typedef reduction_descriptor<
         double,
-        enumtype::plus,
+        binop::sum,
         boost::mpl::vector1<
             esf_descriptor<make_reduction_test::test_functor, boost::mpl::vector1<p_in> >
         >
