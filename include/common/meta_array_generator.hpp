@@ -8,11 +8,11 @@ namespace gridtools {
     struct condition;
 
     template<typename Vector, typename ... Mss>
-    struct meta_array_vector;
+    struct meta_array_generator;
 
     /**@brief recursion anchor*/
     template<typename Vector>
-    struct meta_array_vector<Vector>{
+    struct meta_array_generator<Vector>{
         typedef Vector type;
     };
 
@@ -20,8 +20,8 @@ namespace gridtools {
        @brief metafunction to construct a vector of multi-stage stencils and conditions
      */
     template<typename Vector, typename First, typename ... Mss>
-    struct meta_array_vector<Vector, First, Mss...>{
-        typedef typename meta_array_vector<typename boost::mpl::push_back<Vector , First>::type, Mss ...>::type type;
+    struct meta_array_generator<Vector, First, Mss...>{
+        typedef typename meta_array_generator<typename boost::mpl::push_back<Vector , First>::type, Mss ...>::type type;
     };
 
     /**
@@ -30,11 +30,11 @@ namespace gridtools {
        specialization for conditions.
      */
     template<typename Vector, typename Mss1, typename Mss2, typename Cond, typename ... Mss>
-    struct meta_array_vector<Vector, condition<Mss1, Mss2, Cond>, Mss ... > {
+    struct meta_array_generator<Vector, condition<Mss1, Mss2, Cond>, Mss ... > {
         typedef condition<
-            typename meta_array_vector<Vector
+            typename meta_array_generator<Vector
                                        , Mss1, Mss ...>::type
-            , typename meta_array_vector<Vector
+            , typename meta_array_generator<Vector
                                          , Mss2, Mss ...>::type
             , Cond
             > type;

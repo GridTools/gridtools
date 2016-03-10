@@ -33,7 +33,7 @@
 #include "stencil-composition/grid.hpp"
 #include "grid_traits.hpp"
 #include "stencil-composition/wrap_type.hpp"
-#include "switch_variable.hpp"
+#include "conditionals/switch_variable.hpp"
 
 /**
  * @file

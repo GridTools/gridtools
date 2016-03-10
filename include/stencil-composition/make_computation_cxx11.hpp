@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 
-#include "fill_conditionals.hpp"
+#include "conditionals/fill_conditionals.hpp"
 #include "../common/generic_metafunctions/vector_to_set.hpp"
 
 namespace gridtools {
@@ -68,7 +68,7 @@ namespace gridtools {
         return std::make_shared<intermediate<
                                   Backend
                                   ,
-                                  meta_array<typename meta_array_vector<boost::mpl::vector0<>, Mss ...>::type, boost::mpl::quote1<is_mss_descriptor> >
+                                  meta_array<typename meta_array_generator<boost::mpl::vector0<>, Mss ...>::type, boost::mpl::quote1<is_mss_descriptor> >
                                   , Domain
                                   , Grid
                                   , conditionals_set_t

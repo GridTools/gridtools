@@ -52,15 +52,15 @@ The template argument T is supposed to be of mask_object type */
         typedef boost::true_type actually_clonable;
         DerivedType* gpu_object_ptr;
 
-        __host__ __device__
+        GT_FUNCTION
         clonable_to_gpu() {
 #ifndef __CUDA_ARCH__
             cudaMalloc(&gpu_object_ptr, sizeof(DerivedType));
 #endif
         }
 
-        __host__ __device__
-        DerivedType *const& device_pointer() const{
+        GT_FUNCTION
+        DerivedType * device_pointer() const{
             return gpu_object_ptr;
         }
         /** Member function to update the object to the gpu calling the copy constructor of the

@@ -1,4 +1,4 @@
-#include "conditionals_macros_cxx03.hpp"
+#include "conditionals/conditionals_macros_cxx03.hpp"
 #ifndef __CUDACC__
 #include <boost/make_shared.hpp>
 #endif

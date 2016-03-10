@@ -12,6 +12,7 @@ namespace gridtools{
     template <typename Mss1, typename Mss2, typename Tag>
     struct condition{
 
+        //TODO add a way to check Mss1 and Mss2
         GRIDTOOLS_STATIC_ASSERT(is_conditional<Tag>::value, "internal error");
         typedef Mss1 first_t;
         typedef Mss2 second_t;

@@ -26,7 +26,7 @@
 #include "stencil-composition/tile.hpp"
 #include "storage/meta_storage.hpp"
 #include "../storage/halo.hpp"
-#include "condition.hpp"
+#include "conditionals/condition.hpp"
 
 /**
    @file
