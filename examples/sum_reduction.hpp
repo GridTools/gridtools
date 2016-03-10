@@ -42,7 +42,7 @@ namespace sum_reduction{
         template <typename Evaluation>
         GT_FUNCTION
         static double Do(Evaluation const& eval, x_interval) {
-            return eval.reduction_value() + eval(in());
+            return eval(in());
         }
     };
 

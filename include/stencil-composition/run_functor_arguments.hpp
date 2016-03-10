@@ -235,6 +235,7 @@ namespace gridtools {
                     >::type
                 >::type::first
             >::type first_hit_t;
+        typedef typename RunFunctorArguments::reduction_data_t reduction_data_t;
     };
 
     template<typename T> struct is_esf_arguments : boost::mpl::false_{};
