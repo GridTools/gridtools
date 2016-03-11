@@ -535,9 +535,9 @@ namespace gridtools {
             using storage_type = typename boost::remove_pointer<typename boost::mpl::at<typename local_domain_t::mpl_storages, typename Accessor::index_type>::type>::type::value_type;
             //getting information about the metadata
             typedef typename boost::mpl::at
-                <metadata_map_t, typename storage_type::meta_data_t >::type metadata_index_t;
+                <metadata_map_t, typename storage_type::storage_info_type >::type metadata_index_t;
 
-            pointer<const typename storage_type::meta_data_t> const metadata_ = boost::fusion::at
+            pointer<const typename storage_type::storage_info_type> const metadata_ = boost::fusion::at
                 < metadata_index_t >(local_domain.m_local_metadata);
 
             return metadata_->template dims<Coordinate>();
