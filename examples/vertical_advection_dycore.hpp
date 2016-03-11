@@ -255,9 +255,9 @@ bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t_steps) {
 
 //todo simplify the following using the auto keyword from C++11
 #ifdef __CUDACC__
-    gridtools::computation* vertical_advection =
+    gridtools::stencil* vertical_advection =
 #else
-        boost::shared_ptr<gridtools::computation> vertical_advection =
+        boost::shared_ptr<gridtools::stencil> vertical_advection =
 #endif
         gridtools::make_computation<vertical_advection::va_backend>
         (

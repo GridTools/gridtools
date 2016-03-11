@@ -280,9 +280,9 @@ bool test(uint_t x, uint_t y, uint_t z)
 
 // \todo simplify the following using the auto keyword from C++11
 #ifdef __CUDACC__
-    gridtools::computation* test_computation =
+    gridtools::stencil* test_computation =
 #else
-        boost::shared_ptr<gridtools::computation> test_computation =
+        boost::shared_ptr<gridtools::stencil> test_computation =
 #endif
         gridtools::make_computation<the_backend>
         (

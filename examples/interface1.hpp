@@ -254,9 +254,9 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
 
 // \todo simplify the following using the auto keyword from C++11
 #ifdef __CUDACC__
-    gridtools::computation* horizontal_diffusion =
+    gridtools::stencil* horizontal_diffusion =
 #else
-        boost::shared_ptr<gridtools::computation> horizontal_diffusion =
+        boost::shared_ptr<gridtools::stencil> horizontal_diffusion =
 #endif
         gridtools::make_computation<gridtools::BACKEND>
         (

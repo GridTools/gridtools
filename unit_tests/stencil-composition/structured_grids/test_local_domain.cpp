@@ -93,13 +93,13 @@ TEST(test_local_domain, merge_mss_local_domains) {
         )
     )::element_type intermediate_t;
 
-    typedef intermediate_backend<intermediate_t::base_t>::type backend_t;
-    typedef intermediate_domain_type<intermediate_t::base_t>::type domain_t;
-    typedef intermediate_mss_components_array<intermediate_t::base_t>::type mss_components_array_t;
+    typedef intermediate_backend<intermediate_t>::type backend_t;
+    typedef intermediate_domain_type<intermediate_t>::type domain_t;
+    typedef intermediate_mss_components_array<intermediate_t>::type mss_components_array_t;
 
     typedef mss_components_array_t::elements mss_elements_t;
 
-    typedef intermediate_mss_local_domains<intermediate_t::base_t>::type mss_local_domains_t;
+    typedef intermediate_mss_local_domains<intermediate_t>::type mss_local_domains_t;
 
     BOOST_STATIC_ASSERT((boost::mpl::size<mss_local_domains_t>::value==2));
 

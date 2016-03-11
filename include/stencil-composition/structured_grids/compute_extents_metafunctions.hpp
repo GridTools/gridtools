@@ -8,6 +8,8 @@
 
 #include "stencil-composition/wrap_type.hpp"
 #include "../mss.hpp"
+#include "../amss_descriptor.hpp"
+#include "../mss_metafunctions.hpp"
 
 namespace gridtools {
 

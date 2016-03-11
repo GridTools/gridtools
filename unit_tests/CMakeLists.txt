@@ -1,11 +1,11 @@
 add_executable(FunctorDoMethodLookupMaps FunctorDoMethodLookupMaps.cpp)
 gridtools_add_test(test.FunctorDoMethodLookupMaps ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/FunctorDoMethodLookupMaps")
 
-add_executable(FunctorDoMethods FunctorDoMethods.cpp)
-gridtools_add_test(test.FunctorDoMethods ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/FunctorDoMethods")
+#add_executable(FunctorDoMethods FunctorDoMethods.cpp)
+#gridtools_add_test(test.FunctorDoMethods ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/FunctorDoMethods")
 
-add_executable(LoopIntervals LoopIntervals.cpp)
-gridtools_add_test(test.LoopIntervals ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/LoopIntervals")
+#add_executable(LoopIntervals LoopIntervals.cpp)
+#gridtools_add_test(test.LoopIntervals ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/LoopIntervals")
 
 if ( ENABLE_CXX11 AND STRUCTURED_GRIDS)
     add_executable(test-independent test-independent.cpp)

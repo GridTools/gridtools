@@ -161,9 +161,9 @@ bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps)
 
 // \todo simplify the following using the auto keyword from C++11
 #ifdef __CUDACC__
-    gridtools::computation* simple_hori_diff =
+    gridtools::stencil* simple_hori_diff =
 #else
-        boost::shared_ptr<gridtools::computation> simple_hori_diff =
+        boost::shared_ptr<gridtools::stencil> simple_hori_diff =
 #endif
         gridtools::make_computation<gridtools::BACKEND>
         (

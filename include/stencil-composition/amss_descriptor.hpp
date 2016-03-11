@@ -1,4 +1,5 @@
 #pragma once
+#include "reductions/reduction_descriptor.hpp"
 
 namespace gridtools {
     /**

@@ -166,9 +166,9 @@ namespace aligned_copy_stencil{
 
         // \todo simplify the following using the auto keyword from C++11
 #ifdef __CUDACC__
-        gridtools::computation* copy =
+        gridtools::stencil* copy =
 #else
-            boost::shared_ptr<gridtools::computation> copy =
+            boost::shared_ptr<gridtools::stencil> copy =
 #endif
             gridtools::make_computation<gridtools::BACKEND>
             (

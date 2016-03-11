@@ -110,9 +110,9 @@ TEST_F(cache_stencil, ij_cache)
     gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&m_in, &m_out));
 
 #ifdef __CUDACC__
-    gridtools::computation* pstencil =
+    gridtools::stencil* pstencil =
 #else
-        boost::shared_ptr<gridtools::computation> pstencil =
+        boost::shared_ptr<gridtools::stencil> pstencil =
 #endif
         make_computation<gridtools::BACKEND>
         (
@@ -168,9 +168,9 @@ TEST_F(cache_stencil, ij_cache_offset)
     gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&m_in, &m_out));
 
 #ifdef __CUDACC__
-    gridtools::computation* pstencil =
+    gridtools::stencil* pstencil =
 #else
-        boost::shared_ptr<gridtools::computation> pstencil =
+        boost::shared_ptr<gridtools::stencil> pstencil =
 #endif
         make_computation<gridtools::BACKEND>
         (

@@ -183,9 +183,9 @@ TEST(Laplace, test) {
        */
 
 #ifdef __CUDACC__
-    computation* laplace =
+    stencil* laplace =
 #else
-    boost::shared_ptr<gridtools::computation> laplace =
+    boost::shared_ptr<gridtools::stencil> laplace =
 #endif
       make_computation<gridtools::BACKEND>
         (
