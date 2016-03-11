@@ -63,8 +63,24 @@ namespace _impl {
 
         typedef meta_array<mss_vector, boost::mpl::quote1<is_amss_descriptor> > type;
     };
-} //namespace _impl
 
+    //check in a sequence of AMss that if there is reduction, it is placed at the end
+    template<typename AMssSeq>
+    struct check_mss_seq
+    {
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<AMssSeq, is_amss_descriptor>::value), "Error");
+        typedef typename boost::mpl::find_if<AMssSeq, is_reduction_descriptor<boost::mpl::_> >::type check_iter_t;
+
+        GRIDTOOLS_STATIC_ASSERT((boost::is_same<check_iter_t, typename boost::mpl::end<AMssSeq>::type >::value ||
+                                 check_iter_t::pos::value == boost::mpl::size<AMssSeq>::value - 1),
+                                "Error deducing the reduction. Check that if there is a reduction, this appears in the last mss");
+        typedef notype type;
+    };
+
+    /**
+     * helper struct to deduce the type of a reduction and extract the initial value of a reduction passed via API.
+     * specialization returns a notype when argument passed is not a reduction
+     */
     template<typename Mss>
     struct reduction_helper;
 
@@ -74,8 +90,8 @@ namespace _impl {
     struct reduction_helper<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> >
     {
         typedef mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> mss_t;
-        typedef int reduction_type_t;
-        static int extract_initial_value(mss_t) { return 0;}
+        typedef notype reduction_type_t;
+        static notype extract_initial_value(mss_t) { return 0;}
     };
 
     template <typename ExecutionEngine,
@@ -89,6 +105,8 @@ namespace _impl {
         static typename mss_t::reduction_type_t extract_initial_value(mss_t& red) { return red.get();}
     };
 
+} //namespace _impl
+
 #define _MSS_DECL(z, n, nil)                                            \
     BOOST_PP_COMMA_IF(n) BOOST_PP_CAT(MssType, n ) BOOST_PP_CAT(mss, n )
 
@@ -101,21 +119,25 @@ namespace _impl {
         typename Domain,                                                            \
         typename Grid                                                               \
     >                                                                               \
-    computation<typename reduction_helper< BOOST_PP_CAT(MssType,n) >::reduction_type_t>* \
+    computation<typename _impl::reduction_helper< BOOST_PP_CAT(MssType,n) >::reduction_type_t>* \
     make_computation(                                                               \
         BOOST_PP_REPEAT( BOOST_PP_INC(n), _MSS_DECL, _),                            \
         Domain& domain, const Grid& grid                                            \
     ) {                                                                             \
+        typedef typename _impl::check_mss_seq<                                      \
+            BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(n)) < BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)>   \
+        >::type nothing_t;                                                          \
+                                                                                    \
         return new intermediate<                                                    \
             Backend,                                                                \
             typename _impl::get_mss_array<                                          \
             BOOST_PP_CAT( boost::mpl::vector, BOOST_PP_INC(n)) < BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)> \
             >::type,                                                                \
-            Domain, Grid,
-            typename reduction_helper< BOOST_PP_CAT(MssType,n) >::reduction_type_t, \
+            Domain, Grid,                                                           \
+            typename _impl::reduction_helper< BOOST_PP_CAT(MssType,n) >::reduction_type_t, \
             POSITIONAL_WHEN_DEBUGGING                                               \
         >(boost::ref(domain), grid,                                                 \
-            reduction_helper< BOOST_PP_CAT(MssType,n) >::extract_initial_value(BOOST_PP_CAT(mss,n)) );         \
+            _impl::reduction_helper< BOOST_PP_CAT(MssType,n) >::extract_initial_value(BOOST_PP_CAT(mss,n)) );         \
     }
 
 #else
@@ -125,7 +147,7 @@ namespace _impl {
         typename Backend,                                                       \
         BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename MssType),                \
         typename Domain,                                                        \
-        typename Grid                                                         \
+        typename Grid                                                           \
     >                                                                           \
     boost::shared_ptr<                                                          \
         intermediate<                                                           \
@@ -134,13 +156,17 @@ namespace _impl {
             BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(n)) < BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)> \
             >::type,                                                            \
             Domain, Grid ,                                                      \
-            typename reduction_helper< BOOST_PP_CAT(MssType,n) >::reduction_type_t, \
+            typename _impl::reduction_helper< BOOST_PP_CAT(MssType,n) >::reduction_type_t, \
             POSITIONAL_WHEN_DEBUGGING                                           \
         >                                                                       \
     > make_computation(                                                         \
         BOOST_PP_REPEAT( BOOST_PP_INC(n), _MSS_DECL, _),                        \
         Domain& domain, const Grid& grid                                        \
     ) {                                                                         \
+        typedef typename _impl::check_mss_seq<                                   \
+            BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(n)) < BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)>   \
+        >::type nothing_t;                                                      \
+                                                                                \
         return boost::make_shared<                                              \
             intermediate<                                                       \
                 Backend,                                                        \
@@ -148,11 +174,11 @@ namespace _impl {
                 BOOST_PP_CAT( boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)> \
                 >::type,                                                        \
                 Domain, Grid,                                                   \
-                typename reduction_helper< BOOST_PP_CAT(MssType,n) >::reduction_type_t, \
+                typename _impl::reduction_helper< BOOST_PP_CAT(MssType,n) >::reduction_type_t, \
                 POSITIONAL_WHEN_DEBUGGING                                       \
             >                                                                   \
         >(boost::ref(domain), grid,                                             \
-            reduction_helper< BOOST_PP_CAT(MssType,n) >::extract_initial_value(BOOST_PP_CAT(mss,n)) );             \
+            _impl::reduction_helper< BOOST_PP_CAT(MssType,n) >::extract_initial_value(BOOST_PP_CAT(mss,n)) );             \
     }
 
 #endif // __CUDACC__
@@ -174,21 +200,25 @@ namespace _impl {
         typename Domain,                                                        \
         typename Grid                                                           \
     >                                                                           \
-    computation<typename reduction_helper< BOOST_PP_CAT(MssType,n) >::reduction_type_t>*  \
+    computation<typename _impl::reduction_helper< BOOST_PP_CAT(MssType,n) >::reduction_type_t>*  \
     make_positional_computation(                                                \
         BOOST_PP_REPEAT( BOOST_PP_INC(n), _MSS_DECL, _),                        \
         Domain& domain, const Grid& grid                                        \
     ) {                                                                         \
+        typedef typename _impl::check_mss_seq<                                   \
+            BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(n)) < BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)>   \
+        >::type nothing_t;                                                      \
+                                                                                \
         return new intermediate<                                                \
             Backend,                                                            \
             typename _impl::get_mss_array<                                      \
             BOOST_PP_CAT( boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)> \
             >::type,                                                            \
             Domain, Grid,                                                       \
-            typename reduction_helper< BOOST_PP_CAT(MssType,n) >::reduction_type_t,  \
+            typename _impl::reduction_helper< BOOST_PP_CAT(MssType,n) >::reduction_type_t,  \
             true                                                                \
         >(boost::ref(domain), grid,                                             \
-             reduction_helper< BOOST_PP_CAT(MssType,n) >::extract_initial_value(BOOST_PP_CAT(mss,n)) );                      \
+             _impl::reduction_helper< BOOST_PP_CAT(MssType,n) >::extract_initial_value(BOOST_PP_CAT(mss,n)) );                      \
     }
 
 #else
@@ -207,13 +237,17 @@ namespace _impl {
             BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)> \
             >::type,                                                            \
             Domain, Grid ,                                                      \
-            typename reduction_helper< BOOST_PP_CAT(MssType,n) >::reduction_type_t, \
+            typename _impl::reduction_helper< BOOST_PP_CAT(MssType,n) >::reduction_type_t, \
             true                                                                \
         >                                                                       \
     > make_positional_computation(                                              \
         BOOST_PP_REPEAT( BOOST_PP_INC(n), _MSS_DECL, _),                        \
         Domain& domain, const Grid& grid                                        \
     ) {                                                                         \
+        typedef typename _impl::check_mss_seq<                                   \
+           BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(n)) < BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)>   \
+        >::type nothing_t;                                                      \
+                                                                                \
         return boost::make_shared<                                              \
             intermediate<                                                       \
                 Backend,                                                        \
@@ -221,11 +255,11 @@ namespace _impl {
                 BOOST_PP_CAT( boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType)> \
                 >::type,                                                        \
                 Domain, Grid,                                                   \
-                typename reduction_helper< BOOST_PP_CAT(MssType,n) >::reduction_type_t, \
+                typename _impl::reduction_helper< BOOST_PP_CAT(MssType,n) >::reduction_type_t, \
                 true                                                            \
             >                                                                   \
         >(boost::ref(domain), grid,                                             \
-                reduction_helper< BOOST_PP_CAT(MssType,n) >::extract_initial_value(BOOST_PP_CAT(mss,n)) );                   \
+                _impl::reduction_helper< BOOST_PP_CAT(MssType,n) >::extract_initial_value(BOOST_PP_CAT(mss,n)) );                   \
     }
 
 #endif // __CUDACC__

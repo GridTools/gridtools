@@ -92,7 +92,7 @@ namespace gridtools {
             typedef typename boost::mpl::eval_if<
                 mss_components_is_reduction<MssComponents>,
                 reduction_descriptor_type<typename MssComponents::mss_descriptor_t>,
-                boost::mpl::identity<int>
+                boost::mpl::identity<notype>
             >::type functor_return_t;
 
             //verify that both types are the same

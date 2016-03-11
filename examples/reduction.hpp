@@ -20,7 +20,7 @@ using namespace gridtools;
 using namespace enumtype;
 
 
-namespace sum_reduction{
+namespace reduction{
 #ifdef __CUDACC__
         typedef gridtools::layout_map<2,1,0> layout_t;//stride 1 on i
 #else

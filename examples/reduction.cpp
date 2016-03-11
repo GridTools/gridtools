@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "sum_reduction.hpp"
+#include "reduction.hpp"
 #include "Options.hpp"
 
 int main(int argc, char** argv)
@@ -25,7 +25,7 @@ int main(int argc, char** argv)
 }
 
 
-TEST(CopyStencil, Test)
+TEST(Reductions, Test)
 {
     uint_t x = Options::getInstance().m_size[0];
     uint_t y = Options::getInstance().m_size[1];
@@ -33,5 +33,5 @@ TEST(CopyStencil, Test)
     uint_t t = Options::getInstance().m_size[3];
     if(t==0) t=1;
   
-    ASSERT_TRUE(sum_reduction::test(x, y, z, t));
+    ASSERT_TRUE(reduction::test(x, y, z, t));
 }
