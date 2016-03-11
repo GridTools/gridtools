@@ -4,7 +4,7 @@
 #include <stencil-composition/reductions/reductions.hpp>
 #include "cache_flusher.hpp"
 #include "defs.hpp"
-
+#include "tools/verifier.hpp"
 
 /**
   @file
@@ -92,13 +92,14 @@ namespace sum_reduction{
         storage_type in(meta_data_, "in");
         storage_type out(meta_data_, float_type(0.));
 
-        float_type ref=0;
+        float_type sum_ref=0, prod_ref=1;
         for(uint_t i=0; i<d1; ++i)
             for(uint_t j=0; j<d2; ++j)
                 for(uint_t k=0; k<d3; ++k)
                 {
-                    in(i,j,k)=i+j+k;
-                    ref +=in(i,j,k);
+                    in(i,j,k)=static_cast<float_type>((std::rand()%100 + std::rand()%100)*0.005+0.51);
+                    sum_ref +=in(i,j,k);
+                    prod_ref *=in(i,j,k);
                 }
 
         typedef arg<0, storage_type > p_in;
@@ -122,7 +123,7 @@ namespace sum_reduction{
         grid.value_list[0] = 0;
         grid.value_list[1] = d3-1;
 
-        boost::shared_ptr<gridtools::computation<double> > red_ =
+        boost::shared_ptr<gridtools::computation<double> > sum_red_ =
             make_computation<gridtools::BACKEND>
             (
                 make_mss(
@@ -133,21 +134,52 @@ namespace sum_reduction{
                 domain, grid
             );
 
-        red_->ready();
+        sum_red_->ready();
+        sum_red_->steady();
 
-        red_->steady();
-
-        double red = red_->run();
-
-        bool success = (red == ref);
+        float_type sum_redt= sum_red_->run();
+        float_type precision;
+#if FLOAT_PRECISION == 4
+        precision=1e-6;
+#else
+        precision=1e-12;
+#endif
+        bool success = compare_below_threshold(sum_ref, sum_redt, precision);
 
 #ifdef BENCHMARK
         for(uint_t t=1; t < t_steps; ++t){
             flusher.flush();
-            red_->run();
+            sum_red_->run();
         }
-        red_->finalize();
-        std::cout << red_->print_meter() << std::endl;
+        sum_red_->finalize();
+        std::cout << "Sum Reduction : " << sum_red_->print_meter() << std::endl;
+#endif
+
+        boost::shared_ptr<gridtools::computation<double> > prod_red_ =
+            make_computation<gridtools::BACKEND>
+            (
+                make_mss(
+                    execute<forward>(),
+                    make_esf<desf>(p_in(),p_out())
+                ),
+                make_reduction<sum_red, binop::prod>(1.0, p_out()),
+                domain, grid
+            );
+
+        prod_red_->ready();
+        prod_red_->steady();
+
+        float_type prod_redt= prod_red_->run();
+
+        success = success & compare_below_threshold(prod_ref, prod_redt, precision);
+
+#ifdef BENCHMARK
+        for(uint_t t=1; t < t_steps; ++t){
+            flusher.flush();
+            prod_red_->run();
+        }
+        prod_red_->finalize();
+        std::cout << "Prod Reduction : " << prod_red_->print_meter() << std::endl;
 #endif
 
         return success;
