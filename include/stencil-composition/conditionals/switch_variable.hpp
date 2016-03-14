@@ -2,6 +2,7 @@
 #ifdef CXX11_ENABLED
 #include <memory>
 #else
+#include <vector>
 #include <boost/scoped_ptr.hpp>
 #endif
 #include "condition.hpp"
@@ -76,6 +77,15 @@ namespace gridtools{
 
         /**@brief returns the value of the switch_variable*/
         constexpr T value() const {return m_value;}
+
+
+        void operator =(switch_variable const& other){
+            reset_conditional(*this, other.value());
+        }
+
+        void operator =(short_t other){
+            reset_conditional(*this, other);
+        }
 
     private:
         switch_variable( switch_variable const & );

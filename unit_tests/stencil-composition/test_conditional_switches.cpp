@@ -173,8 +173,8 @@ namespace test_conditional_switches{
         std::cout<<"res: "<<dummy(0,0,0)<<"\n";
         result = result && (dummy(0,0,0)==842);
 
-        reset_conditional(cond, new_cond);
-        reset_conditional(other_cond_, new_other_cond_);
+        cond = new_cond;
+        other_cond_ = new_other_cond_;
         comp_->run();
         comp_->finalize();
         std::cout<<"res: "<<dummy(0,0,0)<<"\n";

@@ -3,6 +3,7 @@
 
 #include "conditionals/fill_conditionals.hpp"
 #include "../common/generic_metafunctions/vector_to_set.hpp"
+#include "computation_grammar.hpp"
 
 namespace gridtools {
 
