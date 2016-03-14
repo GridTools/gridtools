@@ -1,27 +1,30 @@
-#include <cstdint>
 #include <iostream>
 #include <iomanip>
 #include <common/layout_map.hpp>
+#include <common/defs.hpp>
 #include <communication/halo_exchange.hpp>
 #include "cuda.h"
+
+using gridtools::uint_t;
+GRIDTOOLS_STATIC_ASSERT((sizeof(uint_t) >= 4), "Invalid unsigned type");
 
 /**
  * Struct with three properties of different type
  */
 struct triplet
 {
-    std::uint32_t v1;
+    uint_t v1;
     float v2;
     double v3;
 
-    triplet& operator=(const std::uint32_t& other)
+    triplet& operator=(const uint_t& other)
     {
         v1 = other;
         v2 = other;
         v3 = other;
     }
 
-    operator std::uint32_t() const
+    operator uint_t() const
     {
         return v1;
     }
@@ -36,11 +39,11 @@ struct triplet
         return v3;
     }
 
-    bool operator==(const std::uint32_t& other) const
+    bool operator==(const uint_t& other) const
     {
-        return (std::uint32_t(v1) == other)
-            && (std::uint32_t(v2) == other)
-            && (std::uint32_t(v3) == other);
+        return (uint_t(v1) == other)
+            && (uint_t(v2) == other)
+            && (uint_t(v3) == other);
     }
 };
 
@@ -50,9 +53,9 @@ struct triplet
 template<typename T>
 struct type_name;
 
-template<> struct type_name<float> { static constexpr const char* name = "float"; };
-template<> struct type_name<double> { static constexpr const char* name = "double"; };
-template<> struct type_name<triplet> { static constexpr const char* name = "triplet"; };
+template<> struct type_name<float> { static std::string name() { return "float"; } };
+template<> struct type_name<double> { static std::string name() { return "double"; } };
+template<> struct type_name<triplet> { static std::string name() { return "triplet"; } };
 
 // Global options
 static bool verbose = false;
@@ -148,7 +151,7 @@ public:
                     const int j_global = j_start_ + j;
                     const int k_global = k_start_ + k;
 
-                    std::uint32_t v = (i_global<<16) + (j_global<<8) + k_global;
+                    uint_t v = (i_global<<16) + (j_global<<8) + k_global;
 
                     data_host_[index(i, j, k)] = v;
                 }
@@ -195,12 +198,12 @@ public:
                     int k_global = apply_periodicity(k_start_+k, k_periodic);
 
                     // Reference
-                    std::uint32_t r = (i_global<<16) + (j_global<<8) + k_global;
+                    uint_t r = (i_global<<16) + (j_global<<8) + k_global;
                     if (i_global < 0 || j_global < 0 || k_global < 0)
                         r = 555555;
 
                     // Actual value
-                    std::uint32_t v = data_host_[index(i, j, k)];
+                    uint_t v = data_host_[index(i, j, k)];
 
                     if (!(v == r))
                     {
@@ -249,7 +252,7 @@ public:
                 out << "    ";
                 for (int i = -halo_; i < i_size_+halo_; ++i)
                 {
-                    out << std::setw(8) << (std::uint32_t)data_host_[index(i, j, k)] << " ";
+                    out << std::setw(8) << (uint_t)data_host_[index(i, j, k)] << " ";
                 }
                 out << "\n";
             }
