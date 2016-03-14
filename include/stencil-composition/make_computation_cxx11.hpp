@@ -43,6 +43,13 @@ namespace gridtools {
         Mss ... args_
         ) {
 
+        GRIDTOOLS_STATIC_ASSERT((is_domain_type<Domain>::value),
+                                "syntax error in make_computation: invalid domain type");
+        GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value),
+                                "syntax error in make_computation: invalid grid type");
+        GRIDTOOLS_STATIC_ASSERT((accumulate(logical_and(), is_computation_token<Mss>::value ... )),
+                                "syntax error in make_computation: invalid token");
+
         /* traversing also the subtrees of the control flow*/
         typedef typename boost::mpl::fold< boost::mpl::vector<Mss ...>
                                            , boost::mpl::vector0<>

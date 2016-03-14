@@ -1,5 +1,6 @@
 #pragma once
 #include "switch_variable.hpp"
+#include "../computation_grammar.hpp"
 /**@file
 */
 

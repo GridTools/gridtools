@@ -118,6 +118,10 @@ namespace gridtools{
             assert(m_value);
             return *m_value;
         }
+
+        operator =(conditional const& other){
+            reset_conditional(*this, other);
+        }
     };
 
     template <typename T>
