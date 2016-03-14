@@ -61,7 +61,7 @@ template<> struct type_name<triplet> { static std::string name() { return "tripl
 static bool verbose = false;
 std::ofstream out;
 
-#ifdef NVCC
+#ifdef __CUDACC__
 typedef gridtools::gcl_gpu arch_type;
 static const bool gpu = true;
 #else
@@ -253,7 +253,7 @@ public:
     {
         if (gpu_)
         {
-#endif __CUDACC__
+#ifdef __CUDACC__
             cudaMemcpy(data_host_, data_device_, size_, cudaMemcpyDeviceToHost);
 #endif
         }
