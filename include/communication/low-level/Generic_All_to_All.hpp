@@ -160,7 +160,7 @@ namespace gridtools {
 
       for (unsigned int i=0; i<from.size(); ++i) {
         if (from[i].full()) {
-#ifndef NDEBUG
+#ifdef GCL_DEBUG
           int tpid;
           MPI_Comm_rank(a2a_comm, &tpid);
           std::cout <<  "@" << tpid << "@ RECV "
@@ -191,7 +191,7 @@ namespace gridtools {
 
       for (unsigned int i=0; i<to.size(); ++i) {
         if (to[i].full()) {
-#ifndef NDEBUG
+#ifdef GCL_DEBUG
           std::cout <<  "@" << tpid << "@ SEND "
                << i << " "
                << (void*)(to[i].ptr) << " "
@@ -226,7 +226,7 @@ namespace gridtools {
       MPI_Status status;
       for (unsigned int i=0; i<from.size(); ++i) {
         if (from[i].full()) {
-#ifndef NDEBUG
+#ifdef GCL_DEBUG
           int tpid;
           MPI_Comm_rank(a2a_comm, &tpid);
 

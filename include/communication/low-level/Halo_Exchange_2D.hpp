@@ -182,7 +182,7 @@ namespace gridtools {
 
     template <int I, int J>
     void post_receive() {
-#ifndef NDEBUG
+#ifdef GCL_DEBUG
       std::cout << "@" << gridtools::PID << "@ IRECV from (" << I << "," << J << ") "
                 << " P " << m_proc_grid.template proc<I,J>() << " - "
                 << " T " << TAG<-I,-J>::value << " - "
@@ -202,7 +202,7 @@ namespace gridtools {
 
     template <int I, int J>
     void perform_isend() {
-#ifndef NDEBUG
+#ifdef GCL_DEBUG
       std::cout << "@" << gridtools::PID << "@ ISEND to   (" << I << "," << J << ") "
                 << " P " << m_proc_grid.template proc<I,J>() << " - "
                 << " T " << TAG<I,J>::value << " - "
@@ -221,7 +221,7 @@ namespace gridtools {
 
     template <int I, int J>
     void wait() {
-#ifndef NDEBUG
+#ifdef GCL_DEBUG
       std::cout << "@" << gridtools::PID << "@ WAIT  ("  << I << "," << J << ") "
                 << " R " << translate()(-I,-J) << "\n";
 #endif
@@ -266,7 +266,7 @@ namespace gridtools {
       assert(( I>=-1 && I<=1 ));
       assert(( J>=-1 && J<=1 ));
 
-#ifndef NDEBUG
+#ifdef GCL_DEBUG
       std::cout << "@" << gridtools::PID << "@ " << __PRETTY_FUNCTION__ << " : " << p << " size " << s << " I:" << I << " J:" << J << " (" << translate()(I,J) << ")\n";
 #endif
 
@@ -302,7 +302,7 @@ namespace gridtools {
       assert(( I>=-1 && I<=1 ));
       assert(( J>=-1 && J<=1 ));
 
-#ifndef NDEBUG
+#ifdef GCL_DEBUG
       std::cout << "@" << gridtools::PID << "@ " << __PRETTY_FUNCTION__ << " : " << p << " size " << s << " I:" << I << " J:" << J <<  " (" << translate()(I,J) << ")\n";
 #endif
 

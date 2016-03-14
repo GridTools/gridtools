@@ -78,6 +78,12 @@ else()
    set (ADDITIONAL_CXX_FLAGS "-DCXX11_DISABLE")
 endif()
 
+# GCL debugging
+set( GCL_DEBUG "OFF" CACHE BOOL "Enable verbose GCL messages" )
+if ( GCL_DEBUG )
+    add_definitions(-DGCL_DEBUG=1)
+endif()
+
 # Optionally include CUDA
 set( USE_GPU "OFF" CACHE BOOL "Compile with GPU support (CUDA)" )
 # compile to PTX assembly format

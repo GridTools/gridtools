@@ -332,7 +332,7 @@ namespace gridtools {
             , m_metadata_set(other.m_metadata_set)
         { }
 
-#ifndef NDEBUG
+#ifdef GCL_DEBUG
         GT_FUNCTION
         void info() {
             printf("domain_type: Storage pointers\n");
