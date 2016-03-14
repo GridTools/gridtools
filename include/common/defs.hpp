@@ -160,10 +160,8 @@ namespace gridtools{
 
 #ifdef STRUCTURED_GRIDS
     #define GRIDBACKEND structured
-//        #define GRIDPREFIX strgrid
 #else
     #define GRIDBACKEND icosahedral
-//        #define GRIDPREFIX icgrid
 #endif
 
 

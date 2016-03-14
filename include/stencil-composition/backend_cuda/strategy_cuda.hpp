@@ -37,7 +37,7 @@ namespace gridtools{
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
          * @tparam MssComponentsArray a meta array with the mss components of all MSS
-         * @tparam BackendId id of the backend
+         * @tparam BackendIds backend ids type
          */
         template<typename MssComponentsArray, typename BackendIds>
         struct fused_mss_loop

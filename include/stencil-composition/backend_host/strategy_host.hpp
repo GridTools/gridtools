@@ -25,7 +25,7 @@ namespace gridtools{
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
          * @tparam MssComponentsArray a meta array with the mss components of all MSS
-         * @tparam BackendId id of the backend
+         * @tparam BackendIds ids of backend
          */
         template<typename MssComponentsArray, typename BackendIds>
         struct fused_mss_loop
@@ -46,7 +46,6 @@ namespace gridtools{
          * @brief main execution of a mss. Defines the IJ loop bounds of this particular block
          * and sequentially executes all the functors in the mss
          * @tparam RunFunctorArgs run functor arguments
-         * @tparam BackendId id of the backend
          */
         template<typename RunFunctorArgs>
         struct mss_loop
@@ -62,6 +61,7 @@ namespace gridtools{
                 typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
                 typedef typename grid_traits_t::template with_arch<backend_ids_t::s_backend_id>::type arch_grid_traits_t;
 
+                //getting the architecture and grid dependent traits
                 typedef typename arch_grid_traits_t::template kernel_functor_executer<RunFunctorArgs>::type kernel_functor_executor_t;
 
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
@@ -158,6 +158,7 @@ namespace gridtools{
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
          * @tparam MssComponentsArray a meta array with the mss components of all MSS
+         * @tparam BackendIds ids of backend
          */
         template<typename MssComponentsArray, typename BackendIds>
         struct fused_mss_loop
