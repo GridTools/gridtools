@@ -1,6 +1,7 @@
 #pragma once
 
-#include "execute_kernel_functor_host.hpp"
+#include "execute_kernel_functor_host_fwd.hpp"
+#include "../../run_functor_arguments_fwd.hpp"
 
 namespace gridtools {
 

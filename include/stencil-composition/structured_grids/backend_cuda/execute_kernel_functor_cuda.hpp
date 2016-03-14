@@ -140,9 +140,15 @@ namespace _impl_strcuda {
         typedef typename boost::mpl::front<typename RunFunctorArguments::loop_intervals_t>::type interval;
         typedef typename index_to_level<typename interval::first>::type from;
         typedef typename index_to_level<typename interval::second>::type to;
-        typedef _impl::iteration_policy<from, to, zdim_index_t::value, execution_type_t::type::iteration> iteration_policy_t;
+        typedef _impl::iteration_policy<
+                from,
+                to,
+                typename grid_traits_from_id<enumtype::structured>::dim_k_t,
+                execution_type_t::type::iteration> iteration_policy_t;
 
-        it_domain.template initialize<zdim_index_t::value>( grid->template value_at< iteration_policy_t::from >() );
+        it_domain.template initialize<
+                grid_traits_from_id<enumtype::structured>::dim_k_t::value
+        >( grid->template value_at< iteration_policy_t::from >() );
         
         //execute the k interval functors
         boost::mpl::for_each<typename RunFunctorArguments::loop_intervals_t>
