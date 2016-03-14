@@ -6,7 +6,6 @@
 #include "stencil-composition/make_stencils.hpp"
 #include "stencil-composition/make_computation.hpp"
 #include "stencil-composition/stencil.hpp"
-#include "reductions/make_reduction.hpp"
 #include "stencil-composition/axis.hpp"
 
 #ifndef STRUCTURED_GRIDS

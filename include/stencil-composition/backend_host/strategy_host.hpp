@@ -39,6 +39,8 @@ namespace gridtools{
             template<typename LocalDomainListArray, typename Grid>
             static void run(LocalDomainListArray& local_domain_lists, const Grid& grid, ReductionData& reduction_data)
             {
+                GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
+
                 boost::mpl::for_each<iter_range> (mss_functor<MssComponentsArray, Grid, LocalDomainListArray, BackendIds, ReductionData> (
                                                       local_domain_lists, grid, reduction_data, 0,0));
             }

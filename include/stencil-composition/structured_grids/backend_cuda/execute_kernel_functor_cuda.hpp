@@ -268,7 +268,9 @@ struct execute_kernel_functor_cuda
             typename RunFunctorArguments::cache_sequence_t,
             typename RunFunctorArguments::async_esf_map_t,
             typename RunFunctorArguments::grid_t,
-            typename RunFunctorArguments::execution_type_t
+            typename RunFunctorArguments::execution_type_t,
+            RunFunctorArguments::is_reduction_t::value,
+            typename RunFunctorArguments::reduction_data_t
         > run_functor_arguments_cuda_t;
 
 #ifdef VERBOSE
