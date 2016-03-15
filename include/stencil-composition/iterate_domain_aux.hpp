@@ -586,7 +586,9 @@ If you are not using generic accessors then you are using an unsupported storage
 
 #ifdef CXX11_ENABLED
 #ifndef __CUDACC__
+#if !defined(__INTEL_COMPILER)
             GRIDTOOLS_STATIC_ASSERT((std::remove_reference<decltype(m_strides.template get<ID::value>())>::type::size()==meta_storage_type::space_dimensions-1), "internal error: the length of the strides vectors does not match. The bug fairy has no mercy.");
+#endif
 #endif
 #endif
             boost::mpl::for_each< boost::mpl::range_c< short_t, 0,  meta_storage_type::space_dimensions-1> > (

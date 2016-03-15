@@ -42,7 +42,7 @@ namespace gridtools{
     /**@brief apply alignment to all coordinates regardless of the layout_map*/
     template <ushort_t Alignment, ushort_t Dimension>
     struct align_all{
-        static const uint_t value = (Alignment && (Dimension%Alignment)) ? (Dimension+Alignment-(Dimension%Alignment)) : Dimension;
+        static const uint_t value = Alignment ? (Alignment && (Dimension%Alignment)) ? (Dimension+Alignment-(Dimension%Alignment)) : Dimension : Dimension;
     };
 
     /** @brief wrapper around the alignment boundary
