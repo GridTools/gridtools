@@ -14,7 +14,7 @@ struct is_accessor<accessor<ID, Intend, Extend, Number> > : boost::mpl::true_{};
 template < ushort_t ID, enumtype::intend Intend>
 struct is_accessor<global_accessor<ID, Intend> > : boost::mpl::true_{};
 
-#if defined( CXX11_ENABLED) && !defined(__CUDACC__)
+#if defined( CXX11_ENABLED) && !defined(__CUDACC__) && !defined(__INTEL_COMPILER)
 template <typename ArgType, typename ... Pair>
 struct is_accessor<accessor_mixed<ArgType, Pair ... > > : boost::mpl::true_{};
 #endif
@@ -124,7 +124,7 @@ struct remap_accessor_type<global_accessor<ID, Intend>, ArgsMap >
 
     template<typename Accessor> struct is_accessor_readonly: boost::mpl::false_{};
 
-#if defined(CXX11_ENABLED) && !defined(CUDA_CXX11_BUG_1)
+#if defined(CXX11_ENABLED) && !defined(CUDA_CXX11_BUG_1) && !defined(__INTEL_COMPILER)
     template <typename Accessor, typename ... Pair>
     struct is_accessor_readonly<accessor_mixed<Accessor, Pair ... > > : is_accessor_readonly<Accessor> {};
 #endif
