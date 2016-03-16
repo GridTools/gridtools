@@ -23,7 +23,7 @@
 #include <communication/GCL.hpp>
 
 #include "common/defs.hpp"
-#include "host_device.hpp"
+#include "common/host_device.hpp"
 #include "common/array.hpp"
 #include "common/layout_map.hpp"
 #include "common/pointer.hpp"
