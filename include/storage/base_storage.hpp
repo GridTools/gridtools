@@ -1,7 +1,6 @@
 #pragma once
-#include "base_storage_impl.hpp"
-#include "../common/array.hpp"
 #include "wrap_pointer.hpp"
+#include "base_storage_impl.hpp"
 
 /**@file
    @brief Implementation of the \ref gridtools::base_storage "main storage class", used by all backends, for temporary and non-temporary storage

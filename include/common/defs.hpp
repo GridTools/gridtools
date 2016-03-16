@@ -19,10 +19,10 @@
     #define FUSION_MAX_MAP_SIZE 20
 #endif
 
-// #include <boost/mpl/map/aux_/item.hpp>
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/insert.hpp>
 #include <boost/mpl/vector.hpp>
+#include <boost/mpl/for_each.hpp>
 
 /**
    @file
