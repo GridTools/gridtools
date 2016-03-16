@@ -75,8 +75,6 @@ namespace test_conditional_switches{
         typedef boost::mpl::vector2<p_dummy, p_dummy_tmp> arg_list;
         domain_type< arg_list > domain_(boost::fusion::make_vector(&dummy));
 
-        switch_variable<0,std::function<int()> > lambda_cond([](){return 1;});
-
         auto comp_ = make_computation < BACKEND > (
             domain_, grid_
             , make_mss(
@@ -84,7 +82,7 @@ namespace test_conditional_switches{
                 , make_esf<functor1<0> >( p_dummy(), p_dummy_tmp() )
                 , make_esf<functor2<0> >( p_dummy(), p_dummy_tmp() )
                 )
-            , switch_(lambda_cond
+            , switch_(cond
                       ,
                       case_(0
                             , make_mss(
