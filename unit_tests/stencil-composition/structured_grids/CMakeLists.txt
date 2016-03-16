@@ -1,5 +1,5 @@
 
-set(RECGRID_TESTS ${INC_ALL})
+set(RECGRID_TESTS ${INC_ALL} test_conditional_switches.cpp)
 
 if( ENABLE_CXX11 )
         foreach( variation CALL OFFSETS PROCEDURES PROCEDURES_OFFSETS )
@@ -48,6 +48,10 @@ if ( ENABLE_CXX11 )
     add_executable(test_iterate_domain test_iterate_domain.cpp)
     set_target_properties(test_iterate_domain PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
     target_link_libraries(test_iterate_domain ${GTEST_BOTH_LIBRARIES} gcl -lpthread ${exe_LIBS})
+
+    add_executable(test_conditional_switches test_conditional_switches.cpp)
+    set_target_properties(test_conditional_switches PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+    target_link_libraries(test_conditional_switches ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
 
 endif(ENABLE_CXX11)
 if(CUDA_FOUND)
