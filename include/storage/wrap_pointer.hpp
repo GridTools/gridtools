@@ -1,5 +1,5 @@
 #pragma once
-#include "../common/defs.hpp"
+#include "../gridtools.hpp"
 
 /**
 @file
