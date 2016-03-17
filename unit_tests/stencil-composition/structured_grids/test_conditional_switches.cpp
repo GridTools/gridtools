@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include <stencil-composition/stencil-composition.hpp>
+#include <stencil-composition/conditionals/condition_pool.hpp>
 
 namespace test_conditional_switches{
     using namespace gridtools;
@@ -51,11 +52,13 @@ namespace test_conditional_switches{
 
     bool test(){
 
-        switch_variable<0,int> cond(0);
-        switch_variable<0,int> new_cond(5);
-        switch_variable<3,int> nested_cond_(1);
-        switch_variable<1,int> other_cond_(1);
-        switch_variable<1,int> new_other_cond_(2);
+        bool p=true;
+        switch_variable<0,int> cond_([&p](){return p?0:5;});
+        switch_variable<3,int> nested_cond_([&p](){return 1;});
+        switch_variable<1,int> other_cond_([&p](){return p?1:2;});
+        // auto cond_ = new_cond([&p](){return p?0:5;});
+        // auto nested_cond_ = new_cond([&p](){return 1;});
+        // auto other_cond_ = new_cond([&p](){return p?1:2;});
 
         grid<axis> grid_({0,0,0,6,7},{0,0,0,6,7});
         grid_.value_list[0] = 0;
@@ -82,7 +85,7 @@ namespace test_conditional_switches{
                 , make_esf<functor1<0> >( p_dummy(), p_dummy_tmp() )
                 , make_esf<functor2<0> >( p_dummy(), p_dummy_tmp() )
                 )
-            , switch_(cond
+            , switch_(cond_
                       ,
                       case_(0
                             , make_mss(
@@ -170,11 +173,11 @@ namespace test_conditional_switches{
 #ifdef __CUDACC__
         dummy.d2h_update();
 #endif
-        std::cout<<"res: "<<dummy(0,0,0)<<"\n";
         result = result && (dummy(0,0,0)==842);
 
-        cond = new_cond;
-        other_cond_ = new_other_cond_;
+        p=false;
+        // cond = new_cond;
+        // other_cond_ = new_other_cond_;
         comp_->run();
         comp_->finalize();
         std::cout<<"res: "<<dummy(0,0,0)<<"\n";

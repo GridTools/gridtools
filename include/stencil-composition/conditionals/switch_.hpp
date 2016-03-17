@@ -53,7 +53,7 @@ computation->finalize();
     auto
     switch_(Condition& cond_, First const& first_, Cases const& ... cases_) ->
         decltype(
-            if_(switch_conditional<(uint_t) - (sizeof...(Cases)), Condition::index_value>()
+            if_(conditional<(uint_t) - (sizeof...(Cases)), Condition::index_value>()
                 ,first_.mss()
                 ,recursive_switch(uint_t(0),cond_, cases_ ...)
                 )
@@ -70,13 +70,15 @@ computation->finalize();
         cond_.push_back_case(first_.value());
         //choose an ID which should be unique: to pick a very large number we cast a negative number to an unsigned
         //ID is unique
-        typedef switch_conditional<(uint_t) - (sizeof...(Cases)), Condition::index_value> conditional_t;
+        typedef conditional<(uint_t) - (sizeof...(Cases)), Condition::index_value> conditional_t;
 
         uint_t rec_depth_=0;
-        if((short_t)cond_.value()==(short_t)first_.value())
-            cond_.push_back_condition(1);
-        else
-            cond_.push_back_condition(0);
+        //if((short_t)cond_.value()==(short_t)first_.value())
+        //     cond_.push_back_condition(1);
+        // else
+        //     cond_.push_back_condition(0);
+        cond_.push_back_condition([&cond_, &first_](){return (short_t)cond_.value()()==(short_t)first_.value();});
+
         return if_(conditional_t((*cond_.m_conditions)[rec_depth_]),
                    first_.mss(),
                    recursive_switch(rec_depth_, cond_, cases_ ...)
@@ -87,7 +89,7 @@ computation->finalize();
     auto
     recursive_switch(uint_t recursion_depth_, Condition& cond_, First const& first_, Cases const& ... cases_) ->
         decltype(
-            if_(switch_conditional<(uint_t) - (sizeof...(Cases)), Condition::index_value>()
+            if_(conditional<(uint_t) - (sizeof...(Cases)), Condition::index_value>()
                 ,first_.mss()
                 ,recursive_switch(recursion_depth_, cond_, cases_ ...)
                 )
@@ -103,13 +105,15 @@ computation->finalize();
         //allows us to modify the switch at a later stage
         cond_.push_back_case(first_.value());
         //choose an ID which should be unique: to pick a very large number we cast a negative number to an unsigned
-        typedef switch_conditional<(uint_t) - (sizeof...(Cases)), Condition::index_value> conditional_t;
+        typedef conditional<(uint_t) - (sizeof...(Cases)), Condition::index_value> conditional_t;
         recursion_depth_++;
 
-        if((short_t)cond_.value()==(short_t)first_.value())
-            cond_.push_back_condition(1);
-        else
-            cond_.push_back_condition(0);
+        // if((short_t)cond_.value()==(short_t)first_.value())
+        //     cond_.push_back_condition(1);
+        // else
+        //     cond_.push_back_condition(0);
+        cond_.push_back_condition([&cond_, &first_](){return (short_t)cond_.value()()==(short_t)first_.value();});
+
         return if_(conditional_t((*cond_.m_conditions)[recursion_depth_]),
                    first_.mss(),
                    recursive_switch(recursion_depth_, cond_, cases_ ...)

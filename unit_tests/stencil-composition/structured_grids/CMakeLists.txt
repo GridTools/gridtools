@@ -1,5 +1,5 @@
 
-set(RECGRID_TESTS ${INC_ALL} test_conditional_switches.cpp)
+set(RECGRID_TESTS ${INC_ALL} test_conditional_switches.cpp test_conditionals.cpp)
 
 if( ENABLE_CXX11 )
         foreach( variation CALL OFFSETS PROCEDURES PROCEDURES_OFFSETS )
@@ -26,6 +26,10 @@ if(CUDA_FOUND)
      endif()
 endif()
 
+
+    add_executable(test_conditionals test_conditionals.cpp)
+    set_target_properties(test_conditionals PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+    target_link_libraries(test_conditionals ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
 
 if ( ENABLE_CXX11 )
     set(RECGRID_TESTS test_local_domain.cpp test_staggered_keyword.cpp test_make_computation.cpp test_cycle_and_swap.cpp test_iterate_domain.cpp test_mss_metafunctions.cpp call_interfaces_metafunctions.cpp test_esf_metafunctions.cpp  test_accessor.cpp positional_when_debug.cpp)

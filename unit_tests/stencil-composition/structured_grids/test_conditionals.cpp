@@ -33,8 +33,8 @@ namespace test_conditionals{
 
     bool test(){
 
-        conditional<0> cond(false);
-        conditional<1> cond2(true);
+        conditional<0> cond([](){return false;});
+        conditional<1> cond2([](){return true;});
 
         grid<axis> grid_({0,0,0,1,2},{0,0,0,1,2});
         grid_.value_list[0] = 0;
