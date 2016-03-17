@@ -162,16 +162,21 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
     // 2) the logical physical domain with the fields to use;
     // 3) the actual domain dimensions
     //
+#ifdef CXX11_ENABLED
+    auto
+#else
 #ifdef __CUDACC__
     gridtools::computation*
 #else
     boost::shared_ptr<gridtools::computation>
+#endif
 #endif
     {% set inside_independent_block = False %}
 
     comp_{{ s.name|lower }} =
       gridtools::make_computation<gridtools::BACKEND>
       (
+          domain, grid_{{ loop.index0 }},
             gridtools::make_mss
             (
                 execute<{{ s.k_direction }}>(),
@@ -190,8 +195,7 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
                        ,
                        {%- endif %}
                 {% endfor -%}
-            ),
-            domain, grid_{{ loop.index0 }}
+            )
       );
     {% endfor %}
 

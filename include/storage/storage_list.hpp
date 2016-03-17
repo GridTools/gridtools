@@ -27,9 +27,9 @@ namespace gridtools{
         typedef typename super::iterator_type iterator_type;
         typedef typename super::value_type value_type;
 
-        /**@brief default constructor*/
-        template<typename...ExtraArgs>
-        explicit storage_list(typename basic_type::storage_info_type const& meta_data_, ExtraArgs... args_ ): super( meta_data_, args_... ) {
+        /**@brief constructor*/
+        template <typename ... Args>
+        storage_list(typename basic_type::storage_info_type const & meta_data_, Args const& ... args_): super( meta_data_, args_ ... ) {
         }
 
         /**@brief destructor: frees the pointers to the data fields */
@@ -76,12 +76,11 @@ namespace gridtools{
         typedef Storage super;
 
         //default constructor
-        storage_list(typename basic_type::storage_info_type const& meta_data_): super(meta_data_){}
+        template <typename ... Args>
+        storage_list(typename basic_type::storage_info_type const& meta_data_, Args const& ... args_): super(meta_data_, args_ ...){}
 
-        /**@brief default constructor*/
-        template<typename ... UIntTypes>
-        explicit storage_list(typename basic_type::storage_info_type const& meta_data_, UIntTypes const& ... args ): Storage( meta_data_, args ... ) {
-        }
+        //default constructor
+        storage_list(typename basic_type::storage_info_type const& meta_data_): super(meta_data_){}
 
         /**@brief destructor: frees the pointers to the data fields */
         virtual ~storage_list(){
@@ -97,5 +96,12 @@ namespace gridtools{
             : super(other)
             {}
     };
+
+    template <typename T>
+    struct is_storage_list : boost::mpl::false_{};
+
+    template <typename Storage, short_t ExtraWidth>
+    struct is_storage_list<storage_list<Storage, ExtraWidth> > : boost::mpl::true_{};
+
 }//namespace gridtools
 #endif

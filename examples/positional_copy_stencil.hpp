@@ -135,13 +135,18 @@ namespace positional_copy_stencil{
         grid.value_list[0] = 0;
         grid.value_list[1] = d3-1;
 
-#ifdef __CUDACC__
-        gridtools::computation* init =
+#ifdef CXX11_ENABLED
+        auto
 #else
-            boost::shared_ptr<gridtools::computation> init =
+#ifdef __CUDACC__
+        gridtools::computation*
+#else
+            boost::shared_ptr<gridtools::computation>
 #endif
-            gridtools::make_positional_computation<gridtools::BACKEND>
+#endif
+           init = gridtools::make_positional_computation<gridtools::BACKEND>
             (
+             domain, grid,
              gridtools::make_mss // mss_descriptor
              (
               execute<forward>(),
@@ -149,8 +154,7 @@ namespace positional_copy_stencil{
               (
                p_in(), p_out() // esf_descriptor
                )
-              ),
-             domain, grid
+              )
              );
 
         init->ready();
@@ -171,14 +175,19 @@ namespace positional_copy_stencil{
           3) The actual domain dimensions
         */
 
-        // \todo simplify the following using the auto keyword from C++11
-#ifdef __CUDACC__
-        gridtools::computation* copy =
+
+#ifdef CXX11_ENABLED
+        auto
 #else
-        boost::shared_ptr<gridtools::computation> copy =
+#ifdef __CUDACC__
+        gridtools::computation*
+#else
+        boost::shared_ptr<gridtools::computation>
 #endif
-            gridtools::make_computation<gridtools::BACKEND>
+#endif
+             copy = gridtools::make_computation<gridtools::BACKEND>
             (
+             domain, grid,
              gridtools::make_mss // mss_descriptor
              (
               execute<forward>(),
@@ -186,8 +195,7 @@ namespace positional_copy_stencil{
                                                 p_in() // esf_descriptor
                                                 ,p_out()
                                                 )
-              ),
-             domain, grid
+              )
              );
 
         copy->ready();

@@ -72,7 +72,7 @@ public:
     explicit iterate_domain_remapper_base(const iterate_domain_t& iterate_domain) : m_iterate_domain(iterate_domain) {}
 
     GT_FUNCTION
-    iterate_domain_t const& get_iterate_domain() const {
+    iterate_domain_t const& get() const {
         return m_iterate_domain;
     }
 

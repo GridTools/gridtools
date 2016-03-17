@@ -24,7 +24,7 @@ namespace gridtools {
             (EndIndex < 0),
             boost::mpl::int_<0>,
             typename boost::mpl::fold<
-                typename reversed_range< int_t, 0, EndIndex >::type,
+                typename reversed_range< uint_t, 0, EndIndex >::type,
                 boost::mpl::int_<0>,
                 boost::mpl::plus<
                     boost::mpl::_1,

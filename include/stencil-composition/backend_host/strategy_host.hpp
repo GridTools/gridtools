@@ -117,7 +117,7 @@ namespace gridtools{
 #else
             GRIDTOOLS_STATIC_ASSERT((is_tile<TileI>::value && is_tile<TileJ>::value), "wrong type for the tiles");
 #endif
-            typedef storage<
+            typedef
 #ifdef CXX11_ENABLED
                 typename Storage::template type_tt
 #else
@@ -132,7 +132,7 @@ namespace gridtools{
 #else
                   TileI, TileJ
 #endif
-                  >::type, Storage::field_dimensions > > type;
+                  >::type, Storage::field_dimensions > type;
         };
     };
 
@@ -289,7 +289,7 @@ namespace gridtools{
 #else
             GRIDTOOLS_STATIC_ASSERT((is_tile<TileI>::value && is_tile<TileJ>::value), "wrong type for the tiles");
 #endif
-            typedef storage<
+            typedef
 #ifdef CXX11_ENABLED
                 typename Storage::template type_tt
 #else
@@ -303,7 +303,7 @@ namespace gridtools{
 #else
                   TileI, TileJ
 #endif
-                  >::type, Storage::field_dimensions > > type;
+                  >::type, Storage::field_dimensions > type;
         };
 };
 

@@ -1,8 +1,7 @@
 #ifndef _HALO_EXCHANGE_2D_DT_H
 #define _HALO_EXCHANGE_2D_DT_H
 
-#include <boost/mpl/assert.h>
-#include <assert.h>
+#include <common/gt_assert.hpp>
 #include "../GCL.hpp"
 #include "translate.hpp"
 

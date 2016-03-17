@@ -238,14 +238,18 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
       2) The logical physical domain with the fields to use
       3) The actual grid dimensions
      */
-    // \todo simplify the following using the auto keyword from C++11
-#ifdef __CUDACC__
-    gridtools::computation* horizontal_diffusion =
+#ifdef CXX11_ENABLED
+    auto
 #else
-        boost::shared_ptr<gridtools::computation> horizontal_diffusion =
+#ifdef __CUDACC__
+    gridtools::computation*
+#else
+        boost::shared_ptr<gridtools::computation>
 #endif
-        gridtools::make_computation<gridtools::BACKEND>
+#endif
+        horizontal_diffusion = gridtools::make_computation<gridtools::BACKEND>
         (
+            domain, grid,
             gridtools::make_mss // mss_descriptor
             (
                 execute<forward>(),
@@ -257,8 +261,7 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
                     gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap())
                 ),
                 gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
-            ),
-            domain, grid
+            )
         );
 
     horizontal_diffusion->ready();

@@ -156,7 +156,7 @@ namespace gridtools {
                             , typename boost::enable_if_c<is_storage<StorageType>::value>::type* = 0
             ) const
         {
-            s->copy_data_to_gpu();
+            s->h2d_update();
         }
 
     };

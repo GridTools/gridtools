@@ -105,17 +105,17 @@ TEST(test_stencil_on_vertexes, run) {
 #ifdef __CUDACC__
         gridtools::computation* copy =
 #else
-            boost::shared_ptr<gridtools::computation> copy =
+            std::shared_ptr<gridtools::computation> copy =
 #endif
             gridtools::make_computation<backend_t >
             (
-                gridtools::make_mss // mss_descriptor
+                domain, grid_
+                , gridtools::make_mss // mss_descriptor
                 (
                     execute<forward>(),
                     gridtools::make_esf<test_on_vertexes_functor, icosahedral_topology_t, icosahedral_topology_t::vertexes>(
                         p_in_vertexes(), p_out_vertexes(), p_i_vertexes(), p_c_vertexes(), p_j_vertexes(), p_k_vertexes() )
-                ),
-                domain, grid_
+                )
             );
     copy->ready();
     copy->steady();

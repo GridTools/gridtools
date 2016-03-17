@@ -344,7 +344,7 @@ public:
     void assign_storage_pointers(){
         const uint_t EU_id_i = BackendType::processing_element_i();
         const uint_t EU_id_j = BackendType::processing_element_j();
-        boost::mpl::for_each<typename reversed_range< int_t, 0, N_STORAGES >::type > (
+        boost::mpl::for_each<typename reversed_range< uint_t, 0, N_STORAGES >::type > (
             assign_storage_functor<
                 BackendType,
                 data_pointer_array_t,

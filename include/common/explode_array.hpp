@@ -9,7 +9,9 @@ namespace gridtools {
 
 template <unsigned K, class R, class F, class Array>
 struct Expander{
-	template< class... Us>
+
+    template< class... Us>
+    GT_FUNCTION
     static R expand(Array&& a, Us&&... args) {
         return Expander<K-1, R, F, Array>::expand(
                 a,
@@ -20,15 +22,18 @@ struct Expander{
 
 template<class F, class R, class Array>
 struct Expander<0, R, F, Array> {
-	template<class... Us>
+
+    template<class... Us>
+    GT_FUNCTION
     static R expand(Array&&, Us...args){
         return F::apply (args...);
-	}
+    }
 };
 
 template <unsigned K, class R, class F, typename Inj, class Array>
 struct Expander_inj{
     template<class... Us>
+    GT_FUNCTION
     static R expand(const Inj& inj, Array&& a, Us&&... args) {
         return Expander_inj<K-1, R, F, Inj, Array>::expand(
                 inj,
@@ -41,12 +46,14 @@ struct Expander_inj{
 template<class R, class F, typename Inj, class Array>
 struct Expander_inj<0, R, F, Inj, Array> {
     template<class... Us>
+    GT_FUNCTION
     static R expand(const Inj& inj, Array&&, Us...args){
         return F::apply (inj, args...);
     }
 };
 
 template <typename ReturnType, typename Fn, typename Array>
+GT_FUNCTION
 static auto explode(const Array & a)
 -> ReturnType
 {
@@ -58,6 +65,7 @@ static auto explode(const Array & a)
 }
 
 template <typename ReturnType, typename Fn, typename Array, typename Inj>
+GT_FUNCTION
 static auto explode(const Array & a, const Inj& inj)
 -> ReturnType
 {

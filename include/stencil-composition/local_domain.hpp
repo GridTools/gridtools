@@ -287,8 +287,10 @@ namespace gridtools {
             >::type type;
         };
 
+        //********** members *****************
         local_args_type m_local_args;
         local_metadata_type m_local_metadata;
+        //********** end members *****************
 
         template <typename Dom, typename IsActuallyClonable, uint_t DUMMY = 0>
         struct pointer_if_clonable {

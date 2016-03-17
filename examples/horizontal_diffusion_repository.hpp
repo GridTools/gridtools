@@ -226,7 +226,7 @@ public:
     void update_cpu()
     {
 #ifdef CUDA_EXAMPLE
-        out_.data().update_cpu();
+        out_.d2h_update();
 #endif
     }
 

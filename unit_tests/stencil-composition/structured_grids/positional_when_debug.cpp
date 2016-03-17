@@ -66,20 +66,24 @@ TEST(test_make_computation, positional_when_debug) {
     /* canot use the assignment since with a single placeholder the wrong constructor is picked.
        This is a TODO in domain_type.hpp */
     domain_type<accessor_list_t> dm( boost::fusion::make_vector(&a_storage));
+#ifdef CXX11_ENABLED
+    auto
+#else
 #ifdef __CUDACC__
     computation*
 #else
     boost::shared_ptr<gridtools::computation>
 #endif
+#endif
         test_computation = make_computation<BACKEND>
         (
+         dm,
+         positional_when_debug_test::grid_t({0,0,0,0,0}, {0,0,0,0,0}),
          make_mss // mss_descriptor
          (
           execute<forward>(),
           make_esf<positional_when_debug_test::test_functor>(p_in())
-          ),
-         dm,
-         positional_when_debug_test::grid_t({0,0,0,0,0}, {0,0,0,0,0})
+          )
          );
 
     EXPECT_TRUE(true);

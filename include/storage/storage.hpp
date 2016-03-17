@@ -1,8 +1,9 @@
 #pragma once
 #include "data_field.hpp"
-#include "meta_storage.hpp"
 #include "common/gpu_clone.hpp"
+#ifdef CXX11_ENABLED
 #include "common/generic_metafunctions/reverse_pack.hpp"
+#endif
 
 /**
 @file
@@ -13,7 +14,7 @@ This extra layer is added on top of the base_storage class because it extends th
 namespace gridtools{
 
     template < typename BaseStorage >
-      struct storage : public BaseStorage, clonable_to_gpu<storage<BaseStorage> >
+    struct storage : public BaseStorage, clonable_to_gpu<storage<BaseStorage> >
     {
         typedef BaseStorage super;
         typedef typename BaseStorage::basic_type basic_type;
@@ -24,40 +25,338 @@ namespace gridtools{
         typedef typename BaseStorage::value_type value_type;
         static const ushort_t n_args = basic_type::n_width;
         static const ushort_t space_dimensions = basic_type::space_dimensions;
+    private:
+        typename super::storage_info_type const* m_device_storage_info;
+        bool m_on_host;
 
-      __device__
-      storage(storage const& other)
-          :  super(other)
-      {}
+        /**@brief change the storage state to host
+
+           do nothing if the storage is already in host stage
+         */
+        GT_FUNCTION
+        void on_host(){
+            if(!m_on_host){
+                m_device_storage_info = (&this->meta_data());
+                m_on_host = true;
+            }
+        }
+
+        /**@brief change the storage state to device
+
+           do nothing if the storage is already in device stage
+         */
+        GT_FUNCTION
+        void on_device(){
+            if(m_on_host){
+                m_device_storage_info = this->m_meta_data.device_pointer();
+                m_on_host = false;
+            }
+        }
+
+    public:
+
+        /**@brief calls the device copy constructor to update the device copy of the storage object.
+
+           Such copy constructor is not supposed to copy the storage data. A shallow copy is made of the pointers
+           contained in the m_fields data member. For this reason the call to clone_to_gpu has as side-effect a small kernel launch, but
+           it is not a costly transfer from the host to the device.
+        */
+        void clone_to_device() {
+
+            // assert(m_device_storage_info);
+            // assert(m_device_storage_info->device_pointer());
+            // assert(this->m_fields[0].get());
+            on_device();
+            clonable_to_gpu<storage<BaseStorage> >::clone_to_device();
+        }
+
+        /** @brief updates the CPU pointer */
+        __host__
+        void d2h_update(){
+            super::d2h_update();
+            on_host();
+        }
+
+        /** @brief updates the CPU pointer */
+        __host__
+        void h2d_update(){
+            super::h2d_update();
+            on_device();
+        }
+
+        /**@brief device copy constructor
+
+           used by clone_to_device, to copy the object to the device (see \ref gridtools::clonable_to_gpu)
+           NOTE: the actual raw data of the storage is not copied, a shallow copy is made for the pointers in the m_fields data member.
+         */
+        __device__
+        storage(storage const& other)
+            :  super(other)
+            , m_device_storage_info(other.m_device_storage_info)
+            , m_on_host(false)
+        {}
+
+        GT_FUNCTION
+        typename super::storage_info_type const* device_storage_info() const {
+            return m_device_storage_info;
+        }
 
 #if defined(CXX11_ENABLED)
         //forwarding constructor
         template <class ... ExtraArgs>
-        explicit storage(  typename basic_type::storage_info_type const& meta_data_, ExtraArgs const& ... args ):super(meta_data_, args ...)
-            {
-            }
-#else
+        explicit storage(  typename basic_type::storage_info_type const& meta_data_
+                           , ExtraArgs const& ... args )
+            :super(meta_data_, args ...)
+            , m_device_storage_info(&meta_data_)
+            , m_on_host(true)
+        {
+        }
+#else //CXX11_ENABLED
 
         template<typename T>
-        explicit storage(  typename basic_type::storage_info_type const& meta_data_, T const& arg1 ):super(meta_data_, arg1)
-            {
-            }
+        explicit storage(  typename basic_type::storage_info_type const& meta_data_, T const& arg1 )
+            :super(meta_data_, arg1)
+            , m_device_storage_info(&meta_data_)
+            , m_on_host(true)
+        {
+        }
 
 
         template <class T, class U>
-        explicit storage(  typename basic_type::storage_info_type const& meta_data_, T const& arg1, U const& arg2 ):super(meta_data_, (value_type) arg1, arg2)
-            {
-            }
+        explicit storage(  typename basic_type::storage_info_type const& meta_data_, T const& arg1, U const& arg2 )
+            :super(meta_data_, (value_type) arg1, arg2)
+            , m_device_storage_info(&meta_data_)
+            , m_on_host(true)
+        {
+        }
 
         template <class T, class U>
-        explicit storage(  typename basic_type::storage_info_type const& meta_data_, T * arg1, U const& arg2 ):super(meta_data_, (value_type)* arg1, arg2)
-            {
-            }
+        explicit storage(  typename basic_type::storage_info_type const& meta_data_, T * arg1, U const& arg2 )
+            :super(meta_data_, (value_type)* arg1, arg2)
+            , m_device_storage_info(&meta_data_)
+            , m_on_host(true)
+        {
+        }
 
-#endif
+#endif //CXX11_ENABLED
 
 //    private :
-        explicit storage(typename basic_type::storage_info_type const& meta_data_):super(meta_data_){}
+        explicit storage(typename basic_type::storage_info_type const& meta_data_)
+            :super(meta_data_)
+            , m_device_storage_info(&meta_data_)
+        {}
+
+#ifdef CXX11_ENABLED
+
+        /**
+           explicitly disables the case in which the storage_info is passed by copy.
+        */
+        template <typename ... T>
+        storage(typename basic_type::storage_info_type&&, T...) = delete;
+
+        /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k)
+
+            this api is callable from the device if the associated storage_info has been previously cloned to the device
+         */
+        template <typename ... UInt>
+        GT_FUNCTION
+        value_type& operator()(UInt const& ... dims) {
+            //failure here means that you didn't call clone_to_device on the storage_info yet
+#ifdef __CUDA_ARCH__
+            assert(!m_on_host);
+#else //__CUDA_ARCH__
+            if(!m_on_host)
+                exit(-1);
+            if(!m_device_storage_info)
+                exit(-2);
+            // assert(m_on_host);
+            // assert(m_device_storage_info);
+#endif //__CUDA_ARCH__
+
+
+            return access_data_impl(m_device_storage_info, dims...);
+        }
+
+        /** @brief returns (by const reference) the value of the data field at the coordinates (i, j, k)
+
+            this api is callable from the device if the associated storage_info has been previously cloned to the device
+         */
+        template <typename ... UInt>
+        GT_FUNCTION
+        value_type const & operator()(UInt const& ... dims) const {
+            //failure here means that you didn't call clone_to_device on the storage_info yet
+#ifdef __CUDA_ARCH__
+            assert(!m_on_host);
+#else //__CUDA_ARCH__
+            if(!m_on_host)
+                exit(-1);
+            if(!m_device_storage_info)
+                exit(-2);
+            // assert(m_on_host);
+            // assert(m_device_storage_info);
+#endif //__CUDA_ARCH__
+
+
+            return access_data_impl(m_device_storage_info, dims...);
+        }
+
+    private:
+        /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k)
+
+            This interface is not exposed to the user, it gets called from storage.hpp
+         */
+        template <typename ... UInt>
+        GT_FUNCTION
+        value_type& access_data_impl(storage_info_type const* metadata_, UInt const& ... dims) {
+#ifdef __CUDA_ARCH__
+            // assert(metadata_ && metadata_->index(dims...) < metadata_->size());
+            // assert(this->is_set);
+#else
+            if(!metadata_ || !(metadata_->index(dims...) < metadata_->size()))
+                exit(-1);
+            if(!this->is_set)
+                exit(-2);
+#endif
+            return (this->m_fields[0])[metadata_->index(dims...)];
+        }
+
+        /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k)
+
+            This interface is not exposed to the user, it gets called from storage.hpp
+         */
+        template <typename ... UInt>
+        GT_FUNCTION
+        value_type const& access_data_impl(storage_info_type const* metadata_, UInt const& ... dims) const {
+#ifdef __CUDA_ARCH__
+            assert(metadata_ && metadata_->index(dims...) < metadata_->size());
+            assert(this->is_set);
+#else
+            if(!metadata_ || !(metadata_->index(dims...) < metadata_->size()))
+                exit(-1);
+            if(!this->is_set)
+                exit(-2);
+#endif
+            return (this->m_fields[0])[metadata_->index(dims...)];
+        }
+
+
+
+#else //CXX11_ENABLED
+
+        /**
+            @brief returns (by reference) the value of the data field at the coordinates (i, j, k)
+
+            this api is callable from the device if the associated storage_info has been previously cloned to the device
+*/
+        GT_FUNCTION
+        value_type& operator()( uint_t const& i, uint_t const& j, uint_t const& k) {
+#ifdef __CUDA_ARCH__
+            assert(!m_on_host);
+#else //__CUDA_ARCH__
+            //assert(m_on_host);
+            if(!m_on_host)
+                exit(-1);
+            if(!m_device_storage_info)
+                exit(-2);
+#endif //__CUDA_ARCH__
+
+
+            return access_data_impl(m_device_storage_info, i,j,k);
+        }
+
+
+        /**
+            @brief returns (by const reference) the value of the data field at the coordinates (i, j, k)
+
+            this api is callable from the device if the associated storage_info has been previously cloned to the device
+        */
+        GT_FUNCTION
+        value_type const & operator()( uint_t const& i, uint_t const& j, uint_t const& k) const {
+
+            //failure here means that you didn't call clone_to_device on the storage_info yet
+#ifdef __CUDA_ARCH__
+            assert(!m_on_host);
+#else // __CUDA_ARCH__
+            // assert(m_on_host);
+            if(!m_on_host)
+                exit(-1);
+            if(!m_device_storage_info)
+                exit(-2);
+#endif //__CUDA_ARCH__
+
+
+            return access_data_impl(m_device_storage_info, i,j,k);
+        }
+
+
+    private:
+        /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k)
+
+            This interface is not exposed to the user, it gets called from storage.hpp
+         */
+        GT_FUNCTION
+        value_type& access_data_impl(storage_info_type const* metadata_, uint_t const& i, uint_t const& j, uint_t const& k) {
+#ifdef __CUDA_ARCH__
+            assert(metadata_ && metadata_->index(i,j,k) < metadata_->size());
+            assert(this->is_set);
+#else
+            if(!metadata_ || !(metadata_->index(i,j,k) < metadata_->size()))
+                exit(-1);
+            if(!this->is_set)
+                exit(-2);
+
+#endif
+            return (this->m_fields[0])[metadata_->index(i,j,k)];
+        }
+
+        /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k)
+
+            This interface is not exposed to the user, it gets called from storage.hpp
+        */
+        GT_FUNCTION
+        value_type const& access_data_impl(storage_info_type const* metadata_, uint_t const& i, uint_t const& j, uint_t const& k) const {
+
+#ifdef __CUDA_ARCH__
+            assert(metadata_ && metadata_->index(i,j,k) < metadata_->size());
+            assert(this->is_set);
+#else
+            if(!metadata_ || !(metadata_->index(i,j,k) < metadata_->size()))
+                exit(-1);
+            if(!this->is_set)
+                exit(-2);
+#endif
+
+            return (this->m_fields[0])[metadata_->index(i,j,k)];
+        }
+
+#endif //CXX11_ENABLED
+
+    public:
+
+    /**@brief swaps two arbitrary snapshots in two arbitrary data field dimensions
+
+       @tparam SnapshotFrom one snapshot
+       @tparam DimFrom one dimension
+       @tparam SnapshotTo the second snapshot
+       @tparam DimTo the second dimension
+
+       syntax:
+       swap<3,1>::with<4,1>::apply(storage_);
+    */
+    template<ushort_t SnapshotFrom, ushort_t DimFrom=0>
+    struct swap{
+        template<ushort_t SnapshotTo, ushort_t DimTo=0>
+        struct with{
+
+            template<typename Storage>
+            GT_FUNCTION
+            static void apply(Storage& storage_){
+                super::template swap<SnapshotFrom, DimFrom>::template with<SnapshotTo, DimTo>::apply(storage_);
+                storage_.clone_to_device();
+            }
+        };
+    };
+
     };
 
     /**@brief Convenient syntactic sugar for specifying an extended-dimension with extended-width storages, where each dimension has arbitrary size 'Number'.
@@ -130,10 +429,25 @@ namespace gridtools{
         return s;
     }
 
-    template<typename T>
+    template <typename T>
     struct is_storage : boost::mpl::false_{};
 
     template<typename T>
     struct is_storage<storage<T> > : boost::mpl::true_{};
+
+#ifdef CXX11_ENABLED
+    template <typename T>
+    struct is_storage_list;
+
+    template<typename T, uint_t U>
+    struct is_storage<storage_list<T, U> > : boost::mpl::true_{};
+
+    template<typename ... T>
+    struct is_storage<data_field<T ...> > : boost::mpl::true_{};
+
+#endif
+
+    template < typename PointerType, typename MetaData, ushort_t FieldDimension >
+    struct is_storage<base_storage<PointerType, MetaData, FieldDimension> > : boost::mpl::true_{};
 
 }//namespace gridtools

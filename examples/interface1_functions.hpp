@@ -236,9 +236,9 @@ void handle_error(int)
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
 #if defined( CXX11_ENABLED ) && !defined( CUDA_EXAMPLE )
-    gridtools::domain_type<accessor_list> domain( (p_out() = out), (p_in() = in), (p_coeff() = coeff));
+    gridtools::domain_type<accessor_list> domain_( (p_out() = out), (p_in() = in), (p_coeff() = coeff));
 #else
-    gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&coeff, &in, &out));
+    gridtools::domain_type<accessor_list> domain_(boost::fusion::make_vector(&coeff, &in, &out));
 #endif
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
@@ -247,19 +247,23 @@ void handle_error(int)
     uint_t di[5] = {halo_size, halo_size, halo_size, d1-halo_size-1, d1};
     uint_t dj[5] = {halo_size, halo_size, halo_size, d2-halo_size-1, d2};
 
-    gridtools::grid<axis> grid(di, dj);
-    grid.value_list[0] = 0;
-    grid.value_list[1] = d3-1;
+    gridtools::grid<axis> grid_(di, dj);
+    grid_.value_list[0] = 0;
+    grid_.value_list[1] = d3-1;
 
 
-// \todo simplify the following using the auto keyword from C++11
-#ifdef __CUDACC__
-    gridtools::computation* horizontal_diffusion =
+#ifdef CXX11_ENABLED
+    auto
 #else
-        boost::shared_ptr<gridtools::computation> horizontal_diffusion =
+#ifdef __CUDACC__
+    gridtools::computation*
+#else
+        boost::shared_ptr<gridtools::computation>
 #endif
-        gridtools::make_computation<gridtools::BACKEND>
+#endif
+        horizontal_diffusion = gridtools::make_computation<gridtools::BACKEND>
         (
+            domain_, grid_,
             gridtools::make_mss // mss_descriptor
             (
                 execute<forward>(),
@@ -271,8 +275,7 @@ void handle_error(int)
                 gridtools::make_esf<fly_function>(p_fly(), p_in())
                 ),
                 gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
-            ),
-            domain, grid
+            )
         );
 
     horizontal_diffusion->ready();
@@ -296,7 +299,7 @@ void handle_error(int)
     array<array<uint_t, 2>, 3> halos{{ {halo_size, halo_size},
                                        {halo_size,halo_size},
                                        {halo_size,halo_size} }};
-    bool result = verif.verify(grid, repository.out_ref(), repository.out(), halos);
+    bool result = verif.verify(grid_, repository.out_ref(), repository.out(), halos);
 #else
     bool result = verif.verify(repository.out_ref(), repository.out());
 #endif

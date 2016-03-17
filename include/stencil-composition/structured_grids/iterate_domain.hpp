@@ -67,6 +67,9 @@ namespace gridtools {
      */
     template <typename IterateDomainImpl>
     struct iterate_domain {
+
+        // *************** type definitions **************
+
         typedef typename iterate_domain_impl_arguments<IterateDomainImpl>::type iterate_domain_arguments_t;
         typedef typename iterate_domain_arguments_t::local_domain_t local_domain_t;
 
@@ -163,9 +166,19 @@ namespace gridtools {
         typedef array<int_t,N_META_STORAGES> array_index_t;
 
     public:
+
         typedef array<void* RESTRICT, N_DATA_POINTERS> data_pointer_array_t;
         typedef strides_cached<N_META_STORAGES-1, typename local_domain_t::storage_metadata_vector_t> strides_cached_t;
+        // *************** end of type definitions **************
 
+    protected:
+
+        // ******************* members *******************
+        local_domain_t const& local_domain;
+        array_index_t m_index;
+        // ******************* end of members *******************
+
+    public:
         /**
            @brief returns the array of pointers to the raw data as const reference
         */
@@ -213,11 +226,6 @@ namespace gridtools {
             return static_cast<const IterateDomainImpl*>(this)->strides_impl();
         }
 
-    protected:
-
-        local_domain_t const& local_domain;
-        array_index_t m_index;
-
     public:
 
         /**@brief constructor of the iterate_domain struct
@@ -252,7 +260,7 @@ namespace gridtools {
         void assign_storage_pointers(){
             const uint_t EU_id_i = BackendType::processing_element_i();
             const uint_t EU_id_j = BackendType::processing_element_j();
-            boost::mpl::for_each<typename reversed_range< int_t, 0, N_STORAGES >::type > (
+            boost::mpl::for_each<typename reversed_range< uint_t, 0, N_STORAGES >::type > (
                 assign_storage_functor<
                     BackendType,
                     data_pointer_array_t,
@@ -587,7 +595,7 @@ namespace gridtools {
         operator()(Accessor const& accessor) const;
 
 
-#if defined(CXX11_ENABLED) && !defined(__CUDACC__)//nvcc compiler bug
+#if defined(CXX11_ENABLED) && !defined(__CUDACC__) && !defined(__INTEL_COMPILER)//nvcc compiler bug
         /** @brief method called in the Do methods of the functors.
 
             Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
@@ -891,7 +899,7 @@ namespace gridtools {
     }
 
 #if defined(CXX11_ENABLED)
-#if !defined(__CUDACC__)//nvcc compiler bug
+#if !defined(__CUDACC__) && !defined(__INTEL_COMPILER)//nvcc compiler bug
     /** @brief method called in the Do methods of the functors.
 
         Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/

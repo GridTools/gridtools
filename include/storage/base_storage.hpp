@@ -1,13 +1,15 @@
 #pragma once
-#include "base_storage_impl.hpp"
-#include "../common/array.hpp"
 #include "wrap_pointer.hpp"
+#include "base_storage_impl.hpp"
 
 /**@file
    @brief Implementation of the \ref gridtools::base_storage "main storage class", used by all backends, for temporary and non-temporary storage
 */
 
 namespace gridtools {
+
+    template<typename T>
+    struct is_storage;
 
     template <typename RegularMetaStorageType>
     struct no_meta_storage_type_yet;
@@ -145,7 +147,7 @@ namespace gridtools {
 
 
         /**@brief the parallel storage calls the empty constructor to do lazy initialization*/
-        base_storage(MetaData const & meta_data_, bool do_allocate=true) :
+        base_storage(MetaData const & meta_data_, char const* s="default uninitialized storage", bool do_allocate=true) :
             is_set( false )
             , m_name("default_storage")
             , m_meta_data(meta_data_)
@@ -168,26 +170,6 @@ namespace gridtools {
                 allocate( );
                 initialize(init, 1);
             }
-
-        /**@brief generic multidimensional constructor
-
-           There are two possible types of storage dimension. One (space dimension) defines the number of indexes
-           used to access a contiguous chunk of data. The other (field dimension) defines the number of pointers
-           to the data chunks (i.e. the number of snapshots) contained in the storage. This constructor
-           allows to create a storage with arbitrary space dimensions. The extra dimensions can be
-           used e.g. to perform extra inner loops, besides the standard ones on i,j and k.
-
-           The number of arguments must me equal to the space dimensions of the specific field (template parameter)
-        */
-        base_storage( MetaData const& meta_data_, char const* s// ="default storage"
-            ) :
-            is_set( true )
-            , m_name(s)
-            , m_meta_data(meta_data_)
-            {
-                allocate();
-            }
-
 
         /**@brief default constructor
            sets all the data members given the storage dimensions
@@ -222,10 +204,18 @@ namespace gridtools {
                 m_fields[i].free_it();
         }
 
+#ifdef CXX11_ENABLED
+        /**
+           explicitly disables the case in which the storage_info is passed by copy.
+        */
+        template <typename ... T>
+        base_storage(typename basic_type::storage_info_type&&, T...) = delete;
+#endif
+
         /**@brief device copy constructor*/
         template<typename T>
         __device__
-        base_storage(T const& other)
+        base_storage(T const& other, typename boost::enable_if<typename is_storage<T>::type, int>::type* =0)
             :
             is_set(other.is_set)
             , m_name(other.m_name)
@@ -239,6 +229,14 @@ namespace gridtools {
             is_set=true;
             for(ushort_t i=0; i<dims; ++i)
                 m_fields[i+offset]=pointer_type(m_meta_data.size());
+        }
+
+        /**
+           releasing the pointers to the data, and deliting them in case they need to be deleted
+         */
+        void release(){
+            for(ushort_t i=0; i<field_dimensions; ++i)
+                m_fields[i].free_it();
         }
 
         /** @brief initializes with a constant value */
@@ -292,13 +290,6 @@ namespace gridtools {
             m_name=string;
         }
 
-        /** @brief copies the data field to the GPU */
-        GT_FUNCTION_WARNING
-        void copy_data_to_gpu() const {
-            for (uint_t i=0; i<field_dimensions; ++i)
-                m_fields[i].update_gpu();
-        }
-
         static void text() {
             std::cout << BOOST_CURRENT_FUNCTION << std::endl;
         }
@@ -335,25 +326,16 @@ namespace gridtools {
 
         /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
         template <typename ... UInt>
-        GT_FUNCTION
+        __host__
         value_type& operator()(UInt const& ... dims) {
             assert(m_meta_data.index(dims...) < m_meta_data.size());
             assert(is_set);
             return (m_fields[0])[m_meta_data.index(dims...)];
         }
 
-        /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
-        template <typename ... UInt>
-        GT_FUNCTION
-        value_type& operator()(storage_info_type* metadata_, UInt const& ... dims) {
-            assert(metadata_ && metadata_->index(dims...) < metadata_->size());
-            assert(is_set);
-            return (m_fields[0])[metadata_->index(dims...)];
-        }
-
         /** @brief returns (by const reference) the value of the data field at the coordinates (i, j, k) */
         template <typename ... UInt>
-        GT_FUNCTION
+        __host__
         value_type const & operator()(UInt const& ... dims) const {
             assert(m_meta_data.index(dims...) < m_meta_data.size());
             assert(is_set);
@@ -362,7 +344,7 @@ namespace gridtools {
 #else //CXX11_ENABLED
 
         /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
-        GT_FUNCTION
+        __host__
         value_type& operator()( uint_t const& i, uint_t const& j, uint_t const& k) {
             assert(m_meta_data.index(i,j,k) < m_meta_data.size());
             assert(is_set);
@@ -371,14 +353,15 @@ namespace gridtools {
 
 
         /** @brief returns (by const reference) the value of the data field at the coordinates (i, j, k) */
-        GT_FUNCTION
+        __host__
         value_type const & operator()( uint_t const& i, uint_t const& j, uint_t const& k) const {
             assert(m_meta_data.index(i,j,k) < m_meta_data.size());
             assert(is_set);
             return (m_fields[0])[m_meta_data.index(i,j,k)];
         }
-#endif
 
+#endif
+    public:
         /**@brief prints the first values of the field to standard output*/
         void print() const {
             print(std::cout);
@@ -441,6 +424,13 @@ namespace gridtools {
         /** @brief returns a const pointer to the data field*/
         GT_FUNCTION
         storage_info_type const& meta_data() const {return m_meta_data;}
+
+        /**
+           @brief API for compatibility with backends other than host
+           avoids the introduction of #ifdefs
+         */
+        void clone_to_device() {}
+
 
     };
 

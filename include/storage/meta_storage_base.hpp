@@ -150,9 +150,15 @@ namespace gridtools {
 #endif
         // variadic constexpr constructor
 
-        /**
-           @brief constructor given the space dimensions
+        /**@brief generic multidimensional constructor given the space dimensions
 
+           There are two possible types of storage dimension. One (space dimension) defines the number of indexes
+           used to access a contiguous chunk of data. The other (field dimension) defines the number of pointers
+           to the data chunks (i.e. the number of snapshots) contained in the storage. This constructor
+           allows to create a storage with arbitrary space dimensions. The extra dimensions can be
+           used e.g. to perform extra inner loops, besides the standard ones on i,j and k.
+
+           The number of arguments must me equal to the space dimensions of the specific field (template parameter)
            NOTE: this contructor is constexpr, i.e. the storage metadata information could be used
            at compile-time (e.g. in template metafunctions)
          */
