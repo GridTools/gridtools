@@ -11,7 +11,7 @@ namespace gridtools {
 
         reduction_data(const reduction_type_t val) {}
         constexpr reduction_type_t reduced_value() const { return 0;}
-        const reduction_type_t initial_value() const { return 0;}
+        reduction_type_t initial_value() const { return 0;}
 
         void assign(uint_t, const reduction_type_t& ){}
         void reduce(){}

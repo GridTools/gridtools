@@ -1,6 +1,5 @@
 #pragma once
 
-#include <boost/static_assert.hpp>
 #include "defs.hpp"
 #include "gridtools.hpp"
 #include "common/array.hpp"

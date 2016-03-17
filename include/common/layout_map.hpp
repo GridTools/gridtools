@@ -1,8 +1,7 @@
-#ifndef _LAYOUT_MAP_H_
-#define _LAYOUT_MAP_H_
+#pragma once
 
 #include <gridtools.hpp>
-#include <boost/static_assert.hpp>
+//#include <boost/static_assert.hpp>
 #include <boost/mpl/vector_c.hpp>
 #include <boost/mpl/int.hpp>
 #include <boost/mpl/at.hpp>
@@ -996,6 +995,3 @@ namespace gridtools {
 
 } // namespace gridtools
 
-
-
-#endif
