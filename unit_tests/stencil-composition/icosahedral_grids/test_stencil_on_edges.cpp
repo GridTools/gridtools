@@ -103,19 +103,19 @@ TEST(test_stencil_on_edges, run) {
     grid_.value_list[1] = d3-1;
 
 #ifdef __CUDACC__
-        gridtools::computation* copy =
+    gridtools::computation* copy =
 #else
-            boost::shared_ptr<gridtools::computation> copy =
+        std::shared_ptr<gridtools::computation> copy =
 #endif
             gridtools::make_computation<backend_t >
             (
-                gridtools::make_mss // mss_descriptor
+                domain, grid_
+                , gridtools::make_mss // mss_descriptor
                 (
                     execute<forward>(),
                     gridtools::make_esf<test_on_edges_functor, icosahedral_topology_t, icosahedral_topology_t::edges>(
                         p_in_edges(), p_out_edges(), p_i_edges(), p_c_edges(), p_j_edges(), p_k_edges() )
-                ),
-                domain, grid_
+                )
             );
     copy->ready();
     copy->steady();
