@@ -70,7 +70,7 @@ namespace gridtools{
             , m_cases(new std::vector<T >())
         {}
 
-        virtual ~switch_variable(){
+        ~switch_variable(){
         }
 
         /**@brief API to insert a condition*/
@@ -84,17 +84,15 @@ namespace gridtools{
         /**@brief returns the number of cases for the switch associated to this variable*/
         uint_t num_conditions( ){return m_conditions->size();}
 
+#ifdef CXX11_ENABLED
         /**@brief returns the value of the switch_variable*/
         constexpr
-#ifdef CXX11_ENABLED
-                           std::function<T()>
-#else
-                           T(*)()
+        std::function<T()>
+        value() const {return m_value;}
 #endif
-                           value() const {return m_value;}
 
 
-    // private:
+        //private:
         switch_variable( switch_variable const & );
 
     };

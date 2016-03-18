@@ -53,12 +53,9 @@ namespace test_conditional_switches{
     bool test(){
 
         bool p=true;
-        switch_variable<0,int> cond_([&p](){return p?0:5;});
-        switch_variable<3,int> nested_cond_([&p](){return 1;});
-        switch_variable<1,int> other_cond_([&p](){return p?1:2;});
-        // auto cond_ = new_cond([&p](){return p?0:5;});
-        // auto nested_cond_ = new_cond([&p](){return 1;});
-        // auto other_cond_ = new_cond([&p](){return p?1:2;});
+        auto cond_ = new_switch_variable([&p](){return p?0:5;});
+        auto nested_cond_ = new_switch_variable([](){return 1;});
+        auto other_cond_ = new_switch_variable([&p](){return p?1:2;});
 
         grid<axis> grid_({0,0,0,6,7},{0,0,0,6,7});
         grid_.value_list[0] = 0;
@@ -176,11 +173,8 @@ namespace test_conditional_switches{
         result = result && (dummy(0,0,0)==842);
 
         p=false;
-        // cond = new_cond;
-        // other_cond_ = new_other_cond_;
         comp_->run();
         comp_->finalize();
-        std::cout<<"res: "<<dummy(0,0,0)<<"\n";
         result = result && (dummy(0,0,0)==5662);
 
         return result;

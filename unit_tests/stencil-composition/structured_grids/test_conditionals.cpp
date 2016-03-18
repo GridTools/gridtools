@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include <stencil-composition/stencil-composition.hpp>
+#include <stencil-composition/conditionals/condition_pool.hpp>
 
 namespace test_conditionals{
     using namespace gridtools;
@@ -31,10 +32,18 @@ namespace test_conditionals{
         }
     };
 
+    bool predicate1(){ return false;}
+    bool predicate2(){ return true;}
+
     bool test(){
 
-        conditional<0> cond([](){return false;});
-        conditional<1> cond2([](){return true;});
+#ifdef CXX11_ENABLED
+        auto cond = new_cond([](){return false;});
+        auto cond2 = new_cond([](){return true;});
+#else
+        new_cond(cond, &predicate1);
+        new_cond(cond2, &predicate2);
+#endif
 
         grid<axis> grid_({0,0,0,1,2},{0,0,0,1,2});
         grid_.value_list[0] = 0;

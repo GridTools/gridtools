@@ -73,10 +73,6 @@ computation->finalize();
         typedef conditional<(uint_t) - (sizeof...(Cases)), Condition::index_value> conditional_t;
 
         uint_t rec_depth_=0;
-        //if((short_t)cond_.value()==(short_t)first_.value())
-        //     cond_.push_back_condition(1);
-        // else
-        //     cond_.push_back_condition(0);
         cond_.push_back_condition([&cond_, &first_](){return (short_t)cond_.value()()==(short_t)first_.value();});
 
         return if_(conditional_t((*cond_.m_conditions)[rec_depth_]),
@@ -108,10 +104,6 @@ computation->finalize();
         typedef conditional<(uint_t) - (sizeof...(Cases)), Condition::index_value> conditional_t;
         recursion_depth_++;
 
-        // if((short_t)cond_.value()==(short_t)first_.value())
-        //     cond_.push_back_condition(1);
-        // else
-        //     cond_.push_back_condition(0);
         cond_.push_back_condition([&cond_, &first_](){return (short_t)cond_.value()()==(short_t)first_.value();});
 
         return if_(conditional_t((*cond_.m_conditions)[recursion_depth_]),
