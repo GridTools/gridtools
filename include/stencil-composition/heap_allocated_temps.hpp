@@ -1,11 +1,14 @@
 #pragma once
 
-#include "common/defs.hpp"
-#include "stencil-composition/backend_fwd.hpp"
-#include "common/is_temporary_storage.hpp"
-#include "storage/base_storage.hpp"
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/filter_view.hpp>
+
+#include "common/defs.hpp"
+#include "common/is_temporary_storage.hpp"
+
+#include "storage/base_storage.hpp"
+
+#include "stencil-composition/backend_fwd.hpp"
 #include "stencil-composition/grid.hpp"
 #include "storage/metadata_set.hpp"
 #include "backend_ids.hpp"
@@ -69,20 +72,20 @@ namespace gridtools {
 
                     GRIDTOOLS_STATIC_ASSERT(is_storage<ElemType>::value, "wrong type");
                     GRIDTOOLS_STATIC_ASSERT(ElemType::is_temporary, "wrong type (not temporary)");
-                    GRIDTOOLS_STATIC_ASSERT(is_meta_storage<typename ElemType::meta_data_t>::value, "wrong metadata type");
+                    GRIDTOOLS_STATIC_ASSERT(is_meta_storage<typename ElemType::storage_info_type>::value, "wrong metadata type");
 
                     if( !m_metadata_set.template present<pointer<
-                        typename ElemType::meta_data_t const> >() )
+                        typename ElemType::storage_info_type const> >() )
                         //creates a metadata on the heap, passing on ownership
-                        m_metadata_set.insert( pointer<typename ElemType::meta_data_t const>(
-                                                   new typename ElemType::meta_data_t(m_tile_i
+                        m_metadata_set.insert( pointer<typename ElemType::storage_info_type const>(
+                                                   new typename ElemType::storage_info_type(m_tile_i
                                                                                       , m_tile_j
                                                                                       , m_tile_k)));
 
                     //ElemType::info_string.c_str();
                     //calls the constructor of the storage
                     e = new ElemType(
-                        *m_metadata_set.template get<pointer<const typename ElemType::meta_data_t> >()
+                        *m_metadata_set.template get<pointer<const typename ElemType::storage_info_type> >()
                         , "default tmp storage"
                         );
                 }
@@ -158,9 +161,9 @@ namespace gridtools {
                 void operator()(pointer<ElemType>&  e) const {
                     GRIDTOOLS_STATIC_ASSERT(is_storage<ElemType>::value, "wrong type (not temporary)");
                     GRIDTOOLS_STATIC_ASSERT(ElemType::is_temporary, "wrong type (not temporary)");
-                    GRIDTOOLS_STATIC_ASSERT(is_meta_storage<typename ElemType::meta_data_t>::value, "wrong metadata type");
+                    GRIDTOOLS_STATIC_ASSERT(is_meta_storage<typename ElemType::storage_info_type>::value, "wrong metadata type");
 
-                    typedef typename ElemType::meta_data_t meta_t;
+                    typedef typename ElemType::storage_info_type meta_t;
 
                     //insert new type in the map only if not present already
                     if( !m_metadata_set.template present<pointer<const meta_t> >() )

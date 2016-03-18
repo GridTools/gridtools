@@ -223,14 +223,18 @@ bool test(uint_t d1, uint_t d2, uint_t d3) {
      */
 
 
-// \todo simplify the following using the auto keyword from C++11
-#ifdef __CUDACC__
-    gridtools::computation* solver =
+#ifdef CXX11_ENABLED
+    auto
 #else
-        boost::shared_ptr<gridtools::computation> solver =
+#ifdef __CUDACC__
+    gridtools::computation*
+#else
+    boost::shared_ptr<gridtools::computation>
 #endif
-      gridtools::make_computation<gridtools::BACKEND>
+#endif
+    solver = gridtools::make_computation<gridtools::BACKEND>
         (
+            domain, grid,
             gridtools::make_mss // mss_descriptor
             (
                 execute<forward>(),
@@ -240,8 +244,7 @@ bool test(uint_t d1, uint_t d2, uint_t d3) {
             (
                 execute<backward>(),
                 gridtools::make_esf<backward_thomas>(p_out(), p_inf(), p_diag(), p_sup(), p_rhs()) // esf_descriptor
-            ),
-            domain, grid
+            )
         );
 
     solver->ready();

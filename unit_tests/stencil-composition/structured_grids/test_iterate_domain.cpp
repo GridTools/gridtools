@@ -69,7 +69,7 @@ namespace test_iterate_domain{
         grid.value_list[0] = 0;
         grid.value_list[1] = d3-1;
 
-        auto computation = make_computation<backend_t >
+        auto computation = make_computation<gridtools::backend<enumtype::Host, enumtype::Naive > >
             (
                 gridtools::make_mss // mss_descriptor
                 (
@@ -92,7 +92,7 @@ namespace test_iterate_domain{
         typedef iterate_domain_host<
             iterate_domain,
             iterate_domain_arguments<
-                backend_ids<enumtype::Host, enumtype::structured, enumtype::Block>,
+                enumtype::enum_type<enumtype::platform, enumtype::Host>,
                 boost::mpl::at_c<typename mss_local_domain1_t::fused_local_domain_sequence_t, 0>::type,
                 boost::mpl::vector1<esf_t>,
                 boost::mpl::vector1<extent<0,0,0,0> >,

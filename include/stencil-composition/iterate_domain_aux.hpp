@@ -29,18 +29,10 @@ namespace gridtools{
      * @brief metafunction that determines if a type is one of the storage types allowed by the iterate domain
      */
     template<typename T>
-    struct is_any_iterate_domain_storage : boost::mpl::false_{};
-
-    template < typename BaseStorage >
-    struct is_any_iterate_domain_storage<storage<BaseStorage> > : boost::mpl::true_{};
-
-    template <typename T> struct meta_storage;
+    struct is_any_iterate_domain_storage : is_storage<T> {};
 
     template<typename T>
-    struct is_any_iterate_domain_meta_storage : boost::mpl::false_{};
-
-    template < typename BaseStorage >
-    struct is_any_iterate_domain_meta_storage<meta_storage<BaseStorage> > : boost::mpl::true_{};
+    struct is_any_iterate_domain_meta_storage : is_meta_storage<T>{};
 
     /**
      * @brief metafunction that determines if a type is one of the storage types allowed by the iterate domain
@@ -229,6 +221,7 @@ If you are not using generic accessors then you are using an unsupported storage
                 m_data_pointer_array[Offset+ID::value], m_storage->template access_value<ID>()+m_offset);
         }
 
+        /**@brief implementation in case of a generic accessor*/
         template<typename ID, typename Storage_>
         GT_FUNCTION
         void impl(typename boost::enable_if_c<boost::mpl::not_<typename is_any_storage<Storage_ >::type>::value>::type* t=0) const
@@ -458,8 +451,6 @@ If you are not using generic accessors then you are using an unsupported storage
         /**
            @brief Overload when the accessor associated with this ID is not a user-defined global accessor
 
-           The storage types used in this case must contain a meta_storage_t type
-           assign the storage pointers in the iterate_domain
          */
         template <typename ID>
         GT_FUNCTION
@@ -471,16 +462,16 @@ If you are not using generic accessors then you are using an unsupported storage
             typedef typename storage_ptr_type::value_type storage_type;
 
             typedef typename boost::mpl::at
-                <MetaDataMap, typename storage_type::meta_data_t >::type metadata_index_t;
+                <MetaDataMap, typename storage_type::storage_info_type >::type metadata_index_t;
 
-            pointer<const typename storage_type::meta_data_t> const metadata_ = boost::fusion::at
+            pointer<const typename storage_type::storage_info_type> const metadata_ = boost::fusion::at
                 < metadata_index_t >(m_meta_storages);
 
             //if the following fails, the ID is larger than the number of storage types
             GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size<StorageSequence>::value,
                                     "the ID is larger than the number of storage types");
 
-            boost::mpl::for_each< typename reversed_range<short_t, 0, storage_type::field_dimensions >::type > (
+            boost::mpl::for_each< typename reversed_range<ushort_t, 0, storage_type::field_dimensions >::type > (
                 assign_raw_data_functor<
                     total_storages<StorageSequence, ID::value>::value,
                     BackendType,
@@ -508,7 +499,7 @@ If you are not using generic accessors then you are using an unsupported storage
             GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size<StorageSequence>::value,
                                     "the ID is larger than the number of storage types");
 
-            boost::mpl::for_each< typename reversed_range<short_t, 0, storage_type::field_dimensions >::type > (
+            boost::mpl::for_each< typename reversed_range<ushort_t, 0, storage_type::field_dimensions >::type > (
                 assign_raw_data_functor<
                     total_storages<StorageSequence, ID::value>::value,
                     BackendType,
@@ -535,12 +526,12 @@ If you are not using generic accessors then you are using an unsupported storage
         //while the strides are uint_t type in the storage metadata,
         // we stored them as int in the strides cached object in order to force vectorization
         int_t* RESTRICT m_left;
-        const uint_t* RESTRICT m_right;
+        const int_t* RESTRICT m_right;
 
     public:
 
         GT_FUNCTION
-        assign_strides_inner_functor(int_t* RESTRICT l, const uint_t* RESTRICT r) :
+        assign_strides_inner_functor(int_t* RESTRICT l, const int_t* RESTRICT r) :
             m_left(l), m_right(r) {}
 
         template <typename ID>
@@ -597,7 +588,9 @@ If you are not using generic accessors then you are using an unsupported storage
 
 #ifdef CXX11_ENABLED
 #ifndef __CUDACC__
+#if !defined(__INTEL_COMPILER)
             GRIDTOOLS_STATIC_ASSERT((std::remove_reference<decltype(m_strides.template get<ID::value>())>::type::size()==meta_storage_type::space_dimensions-1), "internal error: the length of the strides vectors does not match. The bug fairy has no mercy.");
+#endif
 #endif
 #endif
             boost::mpl::for_each< boost::mpl::range_c< short_t, 0,  meta_storage_type::space_dimensions-1> > (

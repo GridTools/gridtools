@@ -7,6 +7,7 @@
 #include <cmath>
 #include "../GCL.hpp"
 #include "../../common/array.hpp"
+#include "../../common/boollist.hpp"
 #include <boost/type_traits/integral_constant.hpp>
 
 // This file needs to be changed

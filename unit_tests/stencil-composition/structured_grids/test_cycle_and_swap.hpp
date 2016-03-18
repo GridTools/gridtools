@@ -65,11 +65,10 @@ namespace test_cycle_and_swap{
         typedef gridtools::BACKEND::storage_type<uint_t, meta_t >::type storage_type;
         typedef typename field<storage_type, 2>::type field_t;
 
-        meta_t meta_( 1, 1);
-        field_t i_data (meta_);
-        i_data.allocate();
-        i_data.get_value<0,0>(0,0)=0.;
-        i_data.get_value<1,0>(0,0)=1.;
+        meta_t meta_( 1u, 1u);
+        field_t i_data (meta_, 0, "in");
+        i_data.get_value<0,0>(0,0)=0;
+        i_data.get_value<1,0>(0,0)=1;
 
         uint_t di[5] = {0, 0, 0, 0, 1};
         uint_t dj[5] = {0, 0, 0, 0, 1};
@@ -86,12 +85,12 @@ namespace test_cycle_and_swap{
         auto comp =
             gridtools::make_computation<gridtools::BACKEND>
             (
+                domain, grid,
                 gridtools::make_mss
                 (
                     execute<forward>(),
                     gridtools::make_esf<functor>(p_i_data())
-                    ),
-                domain, grid
+                    )
                 );
 
 
@@ -116,11 +115,9 @@ namespace test_cycle_and_swap{
         typedef typename field<storage_type, 2>::type field_t;
 
         meta_t meta_( d1, d2, d3);
-        field_t i_data (meta_);
-        field_t reference(meta_);
+        field_t i_data (meta_, 0, "in");
+        field_t reference(meta_, 0, "reference");
 
-        i_data.allocate();
-        reference.allocate();
         i_data.get_value<0,0>(0,0,0)=0.;
         i_data.get_value<1,0>(0,0,0)=1.;
 
@@ -140,12 +137,12 @@ namespace test_cycle_and_swap{
         auto comp =
             gridtools::make_computation<gridtools::BACKEND>
             (
+                domain, grid,
                 gridtools::make_mss
                 (
                     execute<forward>(),
                     gridtools::make_esf<functor_avg>(p_i_data())
-                    ),
-                domain, grid
+                    )
                 );
 
         //fill the input (snapshot 0) with some initial data

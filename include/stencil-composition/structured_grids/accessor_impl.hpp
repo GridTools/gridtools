@@ -1,18 +1,18 @@
 #pragma once
 
-#include "storage/storage.hpp"
-#include "common/layout_map.hpp"
 #include <boost/type_traits/integral_constant.hpp>
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/include/for_each.hpp>
-#include <vector>
-#include "common/is_temporary_storage.hpp"
-#include "stencil-composition/offset_tuple.hpp"
-#include "storage/storage_metafunctions.hpp"
-#include "storage/storage.hpp"
+
 #include "common/layout_map.hpp"
+#include "common/is_temporary_storage.hpp"
+
+#include "storage/storage.hpp"
+#include "storage/storage_metafunctions.hpp"
+
+#include "stencil-composition/offset_tuple.hpp"
 #include "stencil-composition/extent.hpp"
 
 #ifdef CXX11_ENABLED

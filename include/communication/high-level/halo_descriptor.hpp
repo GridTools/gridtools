@@ -1,7 +1,7 @@
 #ifndef _HALO_DESCRIPTOR_H_
 #define _HALO_DESCRIPTOR_H_
 
-#include <assert.h>
+#include <common/gt_assert.hpp>
 #include "../../common/array.hpp"
 
 namespace gridtools {

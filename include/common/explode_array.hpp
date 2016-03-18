@@ -9,7 +9,8 @@ namespace gridtools {
 
 template <unsigned K, class R, class F, class Array>
 struct Expander{
-	template< class... Us>
+
+    template< class... Us>
     GT_FUNCTION
     static R expand(Array&& a, Us&&... args) {
         return Expander<K-1, R, F, Array>::expand(
@@ -21,11 +22,12 @@ struct Expander{
 
 template<class F, class R, class Array>
 struct Expander<0, R, F, Array> {
-	template<class... Us>
+
+    template<class... Us>
     GT_FUNCTION
     static R expand(Array&&, Us...args){
         return F::apply (args...);
-	}
+    }
 };
 
 template <unsigned K, class R, class F, typename Inj, class Array>

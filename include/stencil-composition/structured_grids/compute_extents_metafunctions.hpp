@@ -169,6 +169,13 @@ namespace gridtools {
                  boost::mpl::size<type>::value), "Internal Error: wrong size");
         };
 
+        template<typename Mss1, typename Mss2, typename Cond>
+        struct mss_compute_extent_sizes<condition<Mss1, Mss2, Cond> >
+        {
+            typedef condition<typename mss_compute_extent_sizes<Mss1>::type, typename mss_compute_extent_sizes<Mss1>::type, Cond>  type;
+        };
+
+
         template <typename Placeholders>
         struct compute_extents_of {
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Placeholders, is_arg>::value), "wrong type");

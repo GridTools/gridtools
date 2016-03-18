@@ -23,9 +23,11 @@ struct boundary : clonable_to_gpu<boundary> {
     typedef boundary value_type; //TODO remove
     static const ushort_t field_dimensions=1; //TODO remove
 
+    GT_FUNCTION
     double value() const {return 10.;}
 
     template<typename ID>
+    GT_FUNCTION
     boundary * access_value() const {return const_cast<boundary*>(this);} //TODO change this?
 
     // template<typename ID>
@@ -36,6 +38,7 @@ struct boundary : clonable_to_gpu<boundary> {
 struct functor{
     typedef accessor<0, enumtype::inout, extent<0,0,0,0> > sol;
     typedef global_accessor<1, enumtype::inout> bd;
+
     typedef boost::mpl::vector<sol> arg_list;
 
     template <typename Evaluation>
@@ -77,18 +80,22 @@ TEST(test_global_accessor, boundary_conditions) {
     domain_type<boost::mpl::vector<p_sol, p_bd> > domain ( boost::fusion::make_vector( &sol_, &bd_));
 #endif
 
-#ifdef __CUDACC__
-    computation* bc_eval =
+#ifdef CXX11_ENABLED
+    auto
 #else
-        boost::shared_ptr<computation> bc_eval =
+#ifdef __CUDACC__
+        computation*
+#else
+        boost::shared_ptr<computation>
 #endif
-        make_computation< backend_t >
+#endif
+        bc_eval = make_computation< backend_t >
         (
-            make_mss
+            domain, coords_bc
+            , make_mss
             (
                 execute<forward>(),
                 make_esf<functor>(p_sol(), p_bd()))
-            , domain, coords_bc
             );
 
     bc_eval->ready();
@@ -105,7 +112,9 @@ TEST(test_global_accessor, boundary_conditions) {
                 if( i>0 && j==1 && k<2)
                     value += 10.;
                 if(sol_(i,j,k) != value)
+                {
                     result=false;
+                }
             }
 
     EXPECT_TRUE(result);

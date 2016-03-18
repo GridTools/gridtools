@@ -1,5 +1,5 @@
 #pragma once
-#include "common/defs.hpp"
+#include "../gridtools.hpp"
 
 /**
 @file
@@ -34,6 +34,7 @@ struct wrap_pointer{
         , m_externally_managed(externally_managed)
     { }
 
+    GT_FUNCTION
     wrap_pointer<T>& operator = (T& p)
     {
         m_cpu_p=p;
@@ -41,16 +42,20 @@ struct wrap_pointer{
         return *this;
     }
 
+    GT_FUNCTION
     pointee_t * get() const {return m_cpu_p;}
 
+    GT_FUNCTION
     void reset(T* cpu_p){m_cpu_p=cpu_p;}
 
+    GT_FUNCTION
     bool set_externally_managed(bool externally_managed_){m_externally_managed = externally_managed_;}
 
+    GT_FUNCTION
     bool is_externally_managed() const {return m_externally_managed;}
 
-  GT_FUNCTION
-  virtual ~wrap_pointer(){
+    GT_FUNCTION
+    virtual ~wrap_pointer(){
 #ifdef VERBOSE
 #ifndef __CUDACC__
       std::cout<<"deleting wrap pointer "<<this<<std::endl;
@@ -60,6 +65,11 @@ struct wrap_pointer{
 
     GT_FUNCTION
     void update_gpu() {
+        assert(false);
+    }//\todo find a way to remove this method
+
+    GT_FUNCTION
+    void update_cpu() {
         assert(false);
     }//\todo find a way to remove this method
 
@@ -76,7 +86,6 @@ struct wrap_pointer{
         m_cpu_p = new T[size];
     }
 
-    GT_FUNCTION
     void free_it() {
         if(m_cpu_p && !m_externally_managed)
         {
@@ -91,49 +100,49 @@ struct wrap_pointer{
     }
 
 
-    __host__ __device__
+    GT_FUNCTION
     operator T*() {
         assert(m_cpu_p);
         return m_cpu_p;
     }
 
-    __host__ __device__
+    GT_FUNCTION
     operator T const*() const {
         assert(m_cpu_p);
         return m_cpu_p;
     }
 
-    __host__ __device__
+    GT_FUNCTION
     T& operator[](uint_t i) {
         assert(m_cpu_p);
         return m_cpu_p[i];
     }
 
-    __host__ __device__
+    GT_FUNCTION
     T const& operator[](uint_t i) const {
         assert(m_cpu_p);
         return m_cpu_p[i];
         }
 
-    __host__ __device__
+    GT_FUNCTION
     T& operator*() {
         assert(m_cpu_p);
         return *m_cpu_p;
     }
 
-    __host__ __device__
+    GT_FUNCTION
     T const& operator*() const {
         assert(m_cpu_p);
         return *m_cpu_p;
     }
 
-    __host__ __device__
+    GT_FUNCTION
     T* operator+(uint_t i) {
         assert(m_cpu_p);
         return &m_cpu_p[i];
     }
 
-    __host__ __device__
+    GT_FUNCTION
     T* const& operator+(uint_t i) const {
         assert(m_cpu_p);
         return &m_cpu_p[i];

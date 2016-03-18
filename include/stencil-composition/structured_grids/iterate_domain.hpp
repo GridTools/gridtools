@@ -67,6 +67,9 @@ namespace gridtools {
      */
     template <typename IterateDomainImpl>
     struct iterate_domain {
+
+        // *************** type definitions **************
+
         typedef typename iterate_domain_impl_arguments<IterateDomainImpl>::type iterate_domain_arguments_t;
         typedef typename iterate_domain_arguments_t::local_domain_t local_domain_t;
 
@@ -163,9 +166,19 @@ namespace gridtools {
         typedef array<int_t,N_META_STORAGES> array_index_t;
 
     public:
+
         typedef array<void* RESTRICT, N_DATA_POINTERS> data_pointer_array_t;
         typedef strides_cached<N_META_STORAGES-1, typename local_domain_t::storage_metadata_vector_t> strides_cached_t;
+        // *************** end of type definitions **************
 
+    protected:
+
+        // ******************* members *******************
+        local_domain_t const& local_domain;
+        array_index_t m_index;
+        // ******************* end of members *******************
+
+    public:
         /**
            @brief returns the array of pointers to the raw data as const reference
         */
@@ -213,11 +226,6 @@ namespace gridtools {
             return static_cast<const IterateDomainImpl*>(this)->strides_impl();
         }
 
-    protected:
-
-        local_domain_t const& local_domain;
-        array_index_t m_index;
-
     public:
 
         /**@brief constructor of the iterate_domain struct
@@ -252,7 +260,7 @@ namespace gridtools {
         void assign_storage_pointers(){
             const uint_t EU_id_i = BackendType::processing_element_i();
             const uint_t EU_id_j = BackendType::processing_element_j();
-            boost::mpl::for_each<typename reversed_range< int_t, 0, N_STORAGES >::type > (
+            boost::mpl::for_each<typename reversed_range< uint_t, 0, N_STORAGES >::type > (
                 assign_storage_functor<
                     BackendType,
                     data_pointer_array_t,
@@ -461,7 +469,7 @@ namespace gridtools {
             //for the moment the extra dimensionality of the storage is limited to max 2
             //(3 space dim + 2 extra= 5, which gives n_dim==4)
             GRIDTOOLS_STATIC_ASSERT(N_DATA_POINTERS>0, "the total number of snapshots must be larger than 0 in each functor");
-            GRIDTOOLS_STATIC_ASSERT(Accessor::type::n_dim <= storage_type::meta_data_t::space_dimensions, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.");
+            GRIDTOOLS_STATIC_ASSERT(Accessor::type::n_dim <= storage_type::storage_info_type::space_dimensions, "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.");
 
             GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: if you need to use a non-rectangular field the constexpr version of the accessors have to be used (so that the current position in the field is computed at compile time). This is achieved by using, e.g., instead of \n\n eval(field(dimension<5>(2))); \n\n the following expression: \n\n typedef alias<field, dimension<5> >::set<2> z_field; \n eval(z_field()); \n");
 
@@ -530,7 +538,11 @@ namespace gridtools {
             typename StoragePointer
         >
         GT_FUNCTION
-        ReturnType get_gmem_value(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset) const
+        ReturnType get_gmem_value(StoragePointer RESTRICT & storage_pointer
+                                  // control your instincts: changing the following
+                                  // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
+                                  , const int_t pointer_offset
+            ) const
         {
             return *(storage_pointer+pointer_offset);
         }
@@ -583,7 +595,7 @@ namespace gridtools {
         operator()(Accessor const& accessor) const;
 
 
-#if defined(CXX11_ENABLED) && !defined(__CUDACC__)//nvcc compiler bug
+#if defined(CXX11_ENABLED) && !defined(__CUDACC__) && !defined(__INTEL_COMPILER)//nvcc compiler bug
         /** @brief method called in the Do methods of the functors.
 
             Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
@@ -772,9 +784,9 @@ namespace gridtools {
 
         //getting information about the metadata
         typedef typename boost::mpl::at
-            <metadata_map_t, typename storage_t::meta_data_t >::type metadata_index_t;
+            <metadata_map_t, typename storage_t::storage_info_type >::type metadata_index_t;
 
-        pointer<const typename storage_t::meta_data_t> const metadata_ = boost::fusion::at
+        pointer<const typename storage_t::storage_info_type> const metadata_ = boost::fusion::at
             < metadata_index_t >(local_domain.m_local_metadata);
         //getting the value
 
@@ -802,7 +814,9 @@ namespace gridtools {
                 >= 0);
 
 
-        const uint_t pointer_offset = (m_index[metadata_index_t::value])
+        // control your instincts: changing the following
+        // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
+        const int_t pointer_offset = (m_index[metadata_index_t::value])
                 +metadata_->_index(strides().template get<metadata_index_t::value>(), accessor);
 
         return static_cast<const IterateDomainImpl*>(this)->template get_value_impl
@@ -837,7 +851,7 @@ namespace gridtools {
 
         typedef typename local_domain_t::template get_storage<index_t>::type::value_type storage_t;
 
-        typedef typename storage_t::meta_data_t metadata_t;
+        typedef typename storage_t::storage_info_type metadata_t;
         //if the following assertion fails you have specified a dimension for the extended storage
         //which does not correspond to the size of the extended placeholder for that storage
         GRIDTOOLS_STATIC_ASSERT(metadata_t::space_dimensions+2/*max. extra dimensions*/>=Accessor::type::n_dim, "the dimension of the accessor exceeds the data field dimension");
@@ -885,7 +899,7 @@ namespace gridtools {
     }
 
 #if defined(CXX11_ENABLED)
-#if !defined(__CUDACC__)//nvcc compiler bug
+#if !defined(__CUDACC__) && !defined(__INTEL_COMPILER)//nvcc compiler bug
     /** @brief method called in the Do methods of the functors.
 
         Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of data fields with the same dimension and memory layout)*/
@@ -903,7 +917,7 @@ namespace gridtools {
         typedef typename local_domain_t::template get_storage<index_t>::type::value_type storage_t;
 
         typedef accessor_mixed<Accessor, Pairs ... > accessor_mixed_t;
-        using metadata_t = typename storage_t::meta_data_t;
+        using metadata_t = typename storage_t::storage_info_type;
 
         //if the following assertion fails you have specified a dimension for the extended storage
         //which does not correspond to the size of the extended placeholder for that storage
@@ -965,9 +979,9 @@ namespace gridtools {
 
         //getting information about the metadata
         typedef typename boost::mpl::at
-            <metadata_map_t, typename storage_t::meta_data_t >::type metadata_index_t;
+            <metadata_map_t, typename storage_t::storage_info_type >::type metadata_index_t;
 
-        pointer<const typename storage_t::meta_data_t> const metadata_ = boost::fusion::at
+        pointer<const typename storage_t::storage_info_type> const metadata_ = boost::fusion::at
             < metadata_index_t >(local_domain.m_local_metadata);
 
         //error checks
@@ -978,7 +992,7 @@ namespace gridtools {
                ->_index(strides().template get<metadata_index_t::value>(), expr.first_operand) >= 0);
 
         GRIDTOOLS_STATIC_ASSERT((
-                                    Accessor::n_dim <= storage_t::meta_data_t::space_dimensions),
+                                    Accessor::n_dim <= storage_t::storage_info_type::space_dimensions),
                                 "access out of bound in the storage placeholder (accessor). increase the number of dimensions when defining the placeholder.");
 
         //casting the storage pointer from void* to the sotrage value_type

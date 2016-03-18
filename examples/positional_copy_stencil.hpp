@@ -1,13 +1,7 @@
 #pragma once
 
-#include <boost/timer/timer.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
-
-#ifdef USE_PAPI_WRAP
-#include <papi_wrap.hpp>
-#include <papi.hpp>
-#endif
 
 /*
   @file
@@ -87,11 +81,6 @@ namespace positional_copy_stencil{
 
     bool test(uint_t x, uint_t y, uint_t z) {
 
-#ifdef USE_PAPI_WRAP
-        int collector_init = pw_new_collector("Init");
-        int collector_execute = pw_new_collector("Execute");
-#endif
-
         uint_t d1 = x;
         uint_t d2 = y;
         uint_t d3 = z;
@@ -146,13 +135,18 @@ namespace positional_copy_stencil{
         grid.value_list[0] = 0;
         grid.value_list[1] = d3-1;
 
-#ifdef __CUDACC__
-        gridtools::computation* init =
+#ifdef CXX11_ENABLED
+        auto
 #else
-            boost::shared_ptr<gridtools::computation> init =
+#ifdef __CUDACC__
+        gridtools::computation*
+#else
+            boost::shared_ptr<gridtools::computation>
 #endif
-            gridtools::make_positional_computation<gridtools::BACKEND>
+#endif
+           init = gridtools::make_positional_computation<gridtools::BACKEND>
             (
+             domain, grid,
              gridtools::make_mss // mss_descriptor
              (
               execute<forward>(),
@@ -160,8 +154,7 @@ namespace positional_copy_stencil{
               (
                p_in(), p_out() // esf_descriptor
                )
-              ),
-             domain, grid
+              )
              );
 
         init->ready();
@@ -182,37 +175,19 @@ namespace positional_copy_stencil{
           3) The actual domain dimensions
         */
 
-#ifdef USE_PAPI
-        int event_set = PAPI_NULL;
-        int retval;
-        long long values[1] = {-1};
 
-
-        /* Initialize the PAPI library */
-        retval = PAPI_library_init(PAPI_VER_CURRENT);
-        if (retval != PAPI_VER_CURRENT) {
-            fprintf(stderr, "PAPI library init error!\n");
-            exit(1);
-        }
-
-        if( PAPI_create_eventset(&event_set) != PAPI_OK)
-            handle_error(1);
-        if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operations
-            handle_error(1);
-#endif
-
-#ifdef USE_PAPI_WRAP
-        pw_start_collector(collector_init);
-#endif
-
-        // \todo simplify the following using the auto keyword from C++11
-#ifdef __CUDACC__
-        gridtools::computation* copy =
+#ifdef CXX11_ENABLED
+        auto
 #else
-        boost::shared_ptr<gridtools::computation> copy =
+#ifdef __CUDACC__
+        gridtools::computation*
+#else
+        boost::shared_ptr<gridtools::computation>
 #endif
-            gridtools::make_computation<gridtools::BACKEND>
+#endif
+             copy = gridtools::make_computation<gridtools::BACKEND>
             (
+             domain, grid,
              gridtools::make_mss // mss_descriptor
              (
               execute<forward>(),
@@ -220,52 +195,16 @@ namespace positional_copy_stencil{
                                                 p_in() // esf_descriptor
                                                 ,p_out()
                                                 )
-              ),
-             domain, grid
+              )
              );
 
         copy->ready();
 
         copy->steady();
-        domain.clone_to_device();
 
-#ifdef USE_PAPI_WRAP
-        pw_stop_collector(collector_init);
-#endif
-
-        /* boost::timer::cpu_timer time; */
-#ifdef USE_PAPI
-        if( PAPI_start(event_set) != PAPI_OK)
-            handle_error(1);
-#endif
-#ifdef USE_PAPI_WRAP
-        pw_start_collector(collector_execute);
-#endif
-        boost::timer::cpu_timer time;
         copy->run();
 
-#ifdef USE_PAPI
-        double dummy=0.5;
-        double dummy2=0.8;
-        if( PAPI_read(event_set, values) != PAPI_OK)
-            handle_error(1);
-        printf("%f After reading the counters: %lld\n", dummy, values[0]);
-        PAPI_stop(event_set, values);
-#endif
-#ifdef USE_PAPI_WRAP
-        pw_stop_collector(collector_execute);
-#endif
-        /* boost::timer::cpu_times lapse_time = time.elapsed(); */
-
         copy->finalize();
-
-        boost::timer::cpu_times lapse_time = time.elapsed();
-        std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
-
-
-#ifdef USE_PAPI_WRAP
-        pw_print();
-#endif
 
         storage_type ref(meta_,1.5,"ref");
 

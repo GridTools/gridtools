@@ -12,7 +12,7 @@ namespace gridtools{
 
 #ifdef CXX11_ENABLED
 
-    /** \section expressions Expressions Definition
+    /** @section expressions Expressions Definition
         @{
         This is the base class of a binary expression, containing the instances of the two arguments.
         The expression should be a static constexpr object, instantiated once for all at the beginning of the run.
@@ -386,7 +386,7 @@ namespace gridtools{
        @brief Overloaded operators
        The algebraic operators are overloaded in order to deal with expressions. To enable these operators the user has to use the namespace expressions.*/
     namespace expressions{
-/**\section operator (Operators Overloaded)
+/**@section operator (Operators Overloaded)
    @{*/
 
         /** sum expression*/
@@ -472,7 +472,7 @@ namespace gridtools{
 #ifdef CXX11_ENABLED
     namespace evaluation{
 
-        /**\section binding_expressions (Expressions Bindings)
+        /**@section binding_expressions (Expressions Bindings)
            @brief these functions get called by the operator () in gridtools::iterate_domain, i.e. in the functor Do method defined at the application level
            They evalueate the operator passed as argument, by recursively evaluating its arguments
            @{
@@ -510,7 +510,7 @@ namespace gridtools{
             -> decltype(it_domain(arg.first_operand) / it_domain(arg.second_operand)) {
             return it_domain(arg.first_operand) / it_domain(arg.second_operand);}
 
-        /**\subsection specialization (Partial Specializations)
+        /**@subsection specialization (Partial Specializations)
            partial specializations for double (or float)
            @{*/
         /** sum with scalar evaluation*/
@@ -584,7 +584,7 @@ namespace gridtools{
 
         /**
            @}
-           \subsection specialization2 (Partial Specializations)
+           @subsection specialization2 (Partial Specializations)
            @brief partial specializations for integer
            Here we do not use the typedef int_t, because otherwise the interface would be polluted with casting
            (the user would have to cast all the literal types (-1, 0, 1, 2 .... ) to int_t before using them in the expression)

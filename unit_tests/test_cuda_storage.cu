@@ -39,7 +39,7 @@ bool test_cuda_storage() {
     uint_t d2 = 3;
     uint_t d3 = 3;
 
-    typename storage_type::meta_data_t meta_(d1,d2,d3);
+    typename storage_type::storage_info_type meta_(d1,d2,d3);
     storage_type data(meta_, -1., "data"); //allocate on GPU
 
     for (uint_t i = 0; i < d1; ++i) {

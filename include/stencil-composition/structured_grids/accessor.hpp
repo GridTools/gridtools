@@ -111,7 +111,7 @@ namespace gridtools {
 #endif
     };
 
-#if defined(CXX11_ENABLED) && !defined(CUDA_CXX11_BUG_1)
+#if defined(CXX11_ENABLED) && !defined(CUDA_CXX11_BUG_1) && !defined(__INTEL_COMPILER)
 
     /**@brief same as accessor but mixing run-time offsets with compile-time ones
 
@@ -208,8 +208,8 @@ alias<arg_t, dimension<3> > field1(-3); //records the offset -3 as dynamic value
 
         template <int Arg1, int Arg2> struct pair_
         {
-            static const int first=Arg1;
-            static const int second=Arg2;
+            static const constexpr int first=Arg1;
+            static const constexpr int second=Arg2;
         };
 
         /**

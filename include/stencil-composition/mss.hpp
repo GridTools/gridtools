@@ -35,7 +35,8 @@ namespace gridtools {
 
     }
 
-    template<typename T> struct is_cache;
+    template <typename Mss1, typename Mss2, typename Tag>
+    struct condition;
 
     /** @brief Descriptors for  Multi Stage Stencil (MSS) */
     template <typename ExecutionEngine,
@@ -55,6 +56,9 @@ namespace gridtools {
 
     template <typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence>
     struct is_mss_descriptor<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> > : boost::mpl::true_{};
+
+    template <typename Mss1, typename Mss2, typename C>
+    struct is_mss_descriptor<condition<Mss1, Mss2, C > > : boost::mpl::and_<is_mss_descriptor<Mss1>, is_mss_descriptor<Mss2> >::type {};
 
     template<typename Mss>
     struct mss_descriptor_esf_sequence {};
@@ -160,6 +164,11 @@ namespace gridtools {
 
     template<typename Mss>
     struct mss_descriptor_execution_engine {};
+
+    template<typename Mss1, typename Mss2, typename Cond>
+    struct mss_descriptor_execution_engine<condition<Mss1, Mss2, Cond> > {
+        typedef typename mss_descriptor_execution_engine<Mss1>::type type;
+    };
 
     template <typename ExecutionEngine,
               typename EsfDescrSequence,

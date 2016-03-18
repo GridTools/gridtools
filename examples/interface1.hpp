@@ -205,29 +205,6 @@ bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps)
     grid.value_list[0] = 0;
     grid.value_list[1] = d3-1;
 
-    /*
-      Here we do lot of stuff
-      1) We pass to the intermediate representation ::run function the description
-      of the stencil, which is a multi-stage stencil (mss)
-      The mss includes (in order of execution) a laplacian, two fluxes which are independent
-      and a final step that is the out_function
-      2) The logical physical domain with the fields to use
-      3) The actual domain dimensions
-     */
-    // gridtools::intermediate::run<gridtools::BACKEND>
-    //     (
-    //      gridtools::make_mss
-    //      (
-    //       gridtools::execute_upward,
-    //       gridtools::make_esf<lap_function>(p_lap(), p_in()),
-    //       gridtools::make_independent
-    //       (
-    //        gridtools::make_esf<flx_function>(p_flx(), p_in(), p_lap()),
-    //        gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap())
-    //        ),
-    //       gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
-    //       ),
-    //      domain, grid);
 
 #ifdef USE_PAPI
 int event_set = PAPI_NULL;
@@ -252,14 +229,27 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
     pw_start_collector(collector_init);
 #endif
 
-// \todo simplify the following using the auto keyword from C++11
-#ifdef __CUDACC__
-    gridtools::computation* horizontal_diffusion =
+    /*
+      Here we do lot of stuff
+      1) We pass to the intermediate representation ::run function the description
+      of the stencil, which is a multi-stage stencil (mss)
+      The mss includes (in order of execution) a laplacian, two fluxes which are independent
+      and a final step that is the out_function
+      2) The logical physical domain with the fields to use
+      3) The actual grid dimensions
+     */
+#ifdef CXX11_ENABLED
+    auto
 #else
-        boost::shared_ptr<gridtools::computation> horizontal_diffusion =
+#ifdef __CUDACC__
+    gridtools::computation*
+#else
+        boost::shared_ptr<gridtools::computation>
 #endif
-        gridtools::make_computation<gridtools::BACKEND>
+#endif
+        horizontal_diffusion = gridtools::make_computation<gridtools::BACKEND>
         (
+            domain, grid,
             gridtools::make_mss // mss_descriptor
             (
                 execute<forward>(),
@@ -271,8 +261,7 @@ if( PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) //floating point operatio
                     gridtools::make_esf<fly_function>(p_fly(), p_in(), p_lap())
                 ),
                 gridtools::make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
-            ),
-            domain, grid
+            )
         );
 
     horizontal_diffusion->ready();
