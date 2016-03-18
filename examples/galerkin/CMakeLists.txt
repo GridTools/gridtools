@@ -2,7 +2,7 @@ set(XDMF_ROOT "OFF" CACHE PATH "location of the xdmf library")
 
 #####################look for Xdmf library########################
 if(ENABLE_XDMF)
-  find_package(Xdmf REQUIRED HINTS ${XDMF_ROOT})
+  find_package(Xdmf REQUIRED HINTS ${XDMF_ROOT} "${CMAKE_SOURCE_DIR}/cmake/modules")
   if(XDMF_FOUND)
     include_directories( "${XDMF_INCLUDE_DIRS}" )
     set ( exe_LIBS "${exe_LIBS}" "${XDMF_LIBRARIES}" )

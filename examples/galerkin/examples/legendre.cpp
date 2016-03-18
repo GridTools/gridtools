@@ -11,12 +11,16 @@
 #define PEDANTIC_DISABLED
 #define HAVE_INTREPID_DEBUG
 
+#include <common/layout_map_metafunctions.hpp>
+
 #include "../tools/io.hpp"
 //! [assembly]
 #include "../numerics/bd_assembly.hpp"
 //! [assembly]
 #include "../numerics/tensor_product_element.hpp"
 #include "../functors/matvec.hpp"
+#include "../functors/interpolate.hpp"
+#include "boundary.hpp"
 
 /**
    @brief flux F(u)
@@ -32,25 +36,8 @@ struct flux {
 };
 
 namespace gdl{
+
     using namespace gt::expressions;
-    struct residual{
-
-        using rhs=gt::accessor<0, enumtype::in, gt::extent<> , 4>;
-        using Ax=gt::accessor<1, enumtype::in, gt::extent<> , 4>;
-        using res=gt::accessor<2, enumtype::inout, gt::extent<> , 4>;
-        using arg_list=boost::mpl::vector<rhs, Ax, res> ;
-
-        template <typename Evaluation>
-        GT_FUNCTION
-        static void Do(Evaluation const & eval, x_interval) {
-            gt::dimension<4>::Index I;
-
-            uint_t const n_dofs=eval.get().template get_storage_dims<3>(rhs());
-
-            for(uint_t i=0; i<n_dofs; ++i)
-                eval(res(I+i)) = eval( res(I+i) - Ax(I+i) + rhs(I+i));
-        }
-    };
 
     struct bc_functor{
 
@@ -229,10 +216,6 @@ int main( int argc, char ** argv){
     bd_matrix_type bd_mass_uv_(bd_meta_, 0., "mass uv");
 
     scalar_type rhs_(scalar_meta_, 0., "rhs");//zero rhs
-    using bc_storage_info_t=storage_info< __COUNTER__, gt::layout_map<-1,0,1,2> >;
-    using bc_storage_t = storage_t< bc_storage_info_t >;
-    bc_storage_info_t bc_meta_(1,d2,d3, discr_map::basisCardinality);
-    bc_storage_t bc_(bc_meta_, 0.);
 
     //![placeholders]
     // defining the placeholder for the mass
@@ -319,8 +302,8 @@ int main( int argc, char ** argv){
 
     //![computation]
     auto compute_assembly=make_computation< BACKEND >(
-        make_mss
-        (
+        domain, coords
+        , make_mss(
             execute<forward>()
 
             // boundary fluxes
@@ -365,7 +348,7 @@ int main( int argc, char ** argv){
             // for visualization: the result is replicated
             // , make_esf< functors::uniform<geo_t> >( p_result(), p_result() )
             // , make_esf< time_advance >(p_u(), p_result())
-            ), domain, coords);
+            ));
 
     compute_assembly->ready();
     compute_assembly->steady();
@@ -418,73 +401,120 @@ int main( int argc, char ** argv){
                                                          ));
 
     auto iteration=make_computation< BACKEND >(
-        make_mss
-        (
-            execute<forward>()
-            , make_esf< functors::assign<4,int,0> >( it::p_result() )
-            // add the advection term: result+=A*u
-            , make_esf< functors::matvec>( it::p_u(), it::p_advection(), it::p_result() )
-            //compute the upwind flux
-            //i.e.:
-            //if <beta,n> > 0
-            // result= <beta,n> * [(u+ * v+) - (u+ * v-)]
-            //if beta*n<0
-            // result= <beta,n> * [(u- * v-) - (u- * v+)]
-            // where + means "this element" and - "the neighbour"
-            , make_esf< functors::upwind>(it::p_u(), it::p_beta_n(), it::p_bd_mass_uu(), it::p_bd_mass_uv(),  it::p_result())
-            // add the advection term (for time dependent problem): result+=A*u
-            //, make_esf< functors::matvec>( it::p_u(), it::p_mass(), it::p_result() )
-            , make_esf<residual>(it::p_rhs(), it::p_result(), it::p_u()) //updating u = u - (Ax-rhs)
-            ),
-        domain_iteration, coords);
+         domain_iteration, coords
+         , make_mss (
+             execute<forward>()
+             , make_esf< functors::assign<4,int,0> >( it::p_result() )
+             // add the advection term: result+=A*u
+             , make_esf< functors::matvec >( it::p_u(), it::p_advection(), it::p_result() )
+             //compute the upwind flux
+             //i.e.:
+             //if <beta,n> > 0
+             // result= <beta,n> * [(u+ * v+) - (u+ * v-)]
+             //if beta*n<0
+             // result= <beta,n> * [(u- * v-) - (u- * v+)]
+             // where + means "this element" and - "the neighbour"
+             , make_esf< functors::upwind>(it::p_u(), it::p_beta_n(), it::p_bd_mass_uu(), it::p_bd_mass_uv(),  it::p_result())
+             // add the advection term (for time dependent problem): result+=A*u
+             //, make_esf< functors::matvec>( it::p_u(), it::p_mass(), it::p_result() )
+             //, make_esf<residual>(it::p_rhs(), it::p_result(), it::p_u()) //updating u = u - (Ax-rhs)
+             )
+        );
 
-    auto coords_bc=grid<axis>({0u,0u,0u,0u,1u},
-        {1u, 0u, 1u, (uint_t)d2-1u, (uint_t)d2});
-    coords_bc.value_list[0] = 1;
-    coords_bc.value_list[1] = d3-1;
+
+
+
+    // struct interp{
+    //     using scalar_storage_info_t=storage_info< __COUNTER__, layout_tt<3>>;//TODO change: iterate on faces
+    //     using scalar_type = storage_t<scalar_storage_info_t>;
+
+    //     typedef  arg<0, typename as::storage_type >    p_jac_det;
+    //     typedef  arg<1, typename as::geometry_t::weights_storage_t >   p_weights;
+    //     typedef  arg<2, typename discr_t::basis_function_storage_t> p_phi;
+    //     typedef  arg<3, scalar_type> p_result;
+    //     typedef  arg<4, scalar_type> p_result_interpolated;
+    // };
+
+    // interp::scalar_storage_info_t result_info_(d1,d2,d3,cub::numCubPoints());
+    // interp::scalar_type result_interpolated_(result_info_, 0., "interpolated result");
+
+    // typedef typename boost::mpl::vector< interp::p_jac_det, interp::p_weights, interp::p_phi, interp::p_result, interp::p_result_interpolated> mpl_list_interp;
+
+    // domain_type<mpl_list_interp> domain_interp(boost::fusion::make_vector(
+    //                                                &assembler.jac_det()
+    //                                                ,&assembler.fe_backend().cub_weights()
+    //                                                ,&fe_.val()
+    //                                                ,&result_
+    //                                                ,&result_interpolated_
+    //                                                ));
+
+    // auto interpolation_=make_computation< BACKEND >(
+    //     domain_iteration, coords
+    //     , make_mss(
+    //         execute<forward>()
+    //         , make_esf< functors::interpolate< discr_t > >( interp::p_jac_det(), interp::p_weight(), interp::p_phi(), interp::p_result(), p_result_interpolated() )
+    //         )
+    //     );
+
 
     /** boundary condition computation */
-    struct bc {
-        typedef  arg<0, bc_storage_t > p_bc;
-        typedef  arg<1, scalar_type> p_result;
-    };
 
-    typedef typename boost::mpl::vector< bc::p_bc, bc::p_result> mpl_list_bc;
+    auto coords_low=grid<axis>({1u,0u,1u,d1-1u,d1},
+            {1u, 0u, 1u, (uint_t)d2-1u, (uint_t)d2});
+    coords_low.value_list[0] = 0;
+    coords_low.value_list[1] = 0;
 
-    domain_type<mpl_list_bc> domain_bc(boost::fusion::make_vector(  &bc_
-                                                                   ,&u_
-                                           ));
+
+    using bc_storage_info_t=storage_info< __COUNTER__, gt::layout_map< -1,0,1,2 > >;
+    using bc_storage_t = storage_t< bc_storage_info_t >;
+
+    using bc_tr_storage_info_t=storage_info< __COUNTER__, gt::layout_map< -1,0,1,2 > >;
+    using bc_tr_storage_t = storage_t< bc_tr_storage_info_t >;
+
+    bc_storage_info_t bc_low_meta_(1,d2,d3, bd_geo_cub_t::bd_cub::numCubPoints());
+    bc_storage_t bc_low_(bc_low_meta_, 0.);
+
+    bc_tr_storage_info_t tr_bc_low_meta_(1,d2,d3, discr_map::basisCardinality);
+    bc_tr_storage_t tr_bc_low_(tr_bc_low_meta_, 0.);
+
+    bc_apply< as, discr_t, bc_functor, gt::layout_map<-1,0,1> > bc_apply_(assembler, fe_);
+    auto bc_compute_low = bc_apply_.compute(coords_low, bc_low_, tr_bc_low_);
+    auto bc_apply_low = bc_apply_.template apply(coords_low
+                                                     ,tr_bc_low_
+                                                     ,result_
+                                                     ,bd_beta_n_
+                                                     ,bd_mass_
+                                                     ,bd_mass_uv_
+                                                     ,u_
+        );
 
     //initialization of the boundary condition
     for(uint_t j=0; j<d2; ++j)
         for(uint_t k=0; k<d3; ++k)
-            for(uint_t dof=0; dof<geo_map::basisCardinality; ++dof)
-                bc_(666, j, k, dof) = 1.;
+            for(uint_t dof=0; dof<bd_geo_cub_t::bd_cub::numCubPoints(); ++dof)
+            {
+                bc_low_(666, j, k, dof) = 1.;
+                // bc_right_( j, 666, k, dof) = 1.;
+            }
 
-    auto apply_bc_x0=make_computation< BACKEND >(
-        make_mss
-        (
-            execute<forward>()
-            , make_esf< bc_functor >( bc::p_bc(), bc::p_result() )
-            ),
-        domain_bc, coords_bc);
+    /* end of boundary conditions */
 
     int n_it_ = it_;
 
     iteration->ready();
     iteration->steady();
 
-    apply_bc_x0->ready();
-    apply_bc_x0->steady();
+    bc_apply_low->ready();
+    bc_apply_low->steady();
 
     for(int i=0; i<n_it_; ++i){ // Richardson iterations
-        apply_bc_x0->run();
+        bc_apply_low->run();
         iteration->run();
     }
-    apply_bc_x0->run();
+    bc_apply_low->run();
 
     iteration->finalize();
-    apply_bc_x0->finalize();
+    bc_apply_low->finalize();
     compute_assembly->finalize();
 
     // for(int i=0; i<d1; ++i)
@@ -505,7 +535,6 @@ int main( int argc, char ** argv){
 //     // io_.set_attribute_vector_on_face<0>(face_vec, "normals");
 //     io_.write("grid");
 
-
     for(int i=0; i<d1; ++i)
         for(int j=0; j<d2; ++j)
             for(int k=0; k<d3; ++k)
@@ -515,7 +544,70 @@ int main( int argc, char ** argv){
     spy(mass_, "mass.txt");
 //     spy_vec(result_, "sol.txt");
 //     spy_vec(u_, "init.txt");
+
     spy(advection_, "advection.txt");
+
+
+    // struct interp{
+    //     using scalar_storage_info_t=storage_info< __COUNTER__, layout_tt<3>>;//TODO change: iterate on faces
+    //     using scalar_type = storage_t<scalar_storage_info_t>;
+
+    //     typedef  arg<0, typename as::storage_type >    p_jac_det;
+    //     typedef  arg<1, typename as::geometry_t::weights_storage_t >   p_weights;
+    //     typedef  arg<2, typename discr_t::basis_function_storage_t> p_phi;
+    //     typedef  arg<3, scalar_type> p_result;
+    //     typedef  arg<4, scalar_type> p_result_interpolated;
+    // };
+
+    // interp::scalar_storage_info_t result_info_(d1,d2,d3,cub::numCubPoints());
+    // interp::scalar_type result_interpolated_(result_info_, 0., "interpolated result");
+
+    // typedef typename boost::mpl::vector< interp::p_jac_det, interp::p_weights, interp::p_phi, interp::p_result, interp::p_result_interpolated> mpl_list_interp;
+
+    // domain_type<mpl_list_interp> domain_interp(boost::fusion::make_vector(
+    //                                                &assembler.jac_det()
+    //                                                ,&assembler.fe_backend().cub_weights()
+    //                                                ,&fe_.val()
+    //                                                ,&result_
+    //                                                ,&result_interpolated_
+    //                                                ));
+
+    // auto interpolation_=make_computation< BACKEND >(
+    //     domain_iteration, coords
+    //     , make_mss(
+    //         execute<forward>()
+    //         , make_esf< functors::interpolate< discr_t > >( interp::p_jac_det(), interp::p_weight(), interp::p_phi(), interp::p_result(), p_result_interpolated() )
+    //         )
+    //     );
+
+    struct counter_transform{
+        using scalar_storage_info_t=storage_info< __COUNTER__, layout_tt<3>>;//TODO change: iterate on faces
+        using result_interp_type = storage_t<scalar_storage_info_t>;
+
+        typedef  arg<0, typename discr_t::basis_function_storage_t> p_phi;
+        typedef  arg<1, scalar_type> p_result;
+        typedef  arg<2, result_interp_type> p_result_interpolated;
+    };
+
+    counter_transform::scalar_storage_info_t result_info_(d1,d2,d3,cub::numCubPoints());
+    counter_transform::result_interp_type result_interpolated_(result_info_, 0., "interpolated result");
+
+    typedef typename boost::mpl::vector< counter_transform::p_phi, counter_transform::p_result, counter_transform::p_result_interpolated> mpl_list_interp;
+
+    domain_type<mpl_list_interp> domain_interp(boost::fusion::make_vector(
+                                                   &fe_.val()
+                                                   ,&result_
+                                                   ,&result_interpolated_
+                                                   ));
+
+    // auto interpolation_=make_computation< BACKEND >(
+    //     domain_iteration, coords
+    //     , make_mss(
+    //         execute<forward>()
+    //         , make_esf< functors::counter_transform >( counter_transform::p_phi(), counter_transform::p_result(), counter_transform::p_result_interpolated() )
+    //         )
+    //     );
+
 // //![computation]
 //    // intrepid::test(assembler, bd_discr_, bd_mass_);
 }

@@ -29,10 +29,10 @@ namespace gdl{
 
 #ifdef __CUDACC__
     template<short_t ... Dims>
-    using layout_tt=gridtools::layout_map< Dims ... ,2,1,0 >;
+    using layout_tt=gt::layout_map< Dims ... ,2,1,0 >;
 #else
     template<short_t ... Dims>
-    using layout_tt=gridtools::layout_map< 0,1,2, Dims ... >;
+    using layout_tt=gt::layout_map< 0,1,2, Dims ... >;
 #endif
 
     template <typename MetaData>

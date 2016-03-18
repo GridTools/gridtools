@@ -25,9 +25,7 @@ struct assembly_base{
 
     using geometry_t = Geometry;
     using grid_type_info=storage_info< __COUNTER__, layout_tt<3,4>  >;
-    using grid_map_type_info=storage_info< __COUNTER__, layout_tt<3>  >;
     using grid_type=storage_t< grid_type_info >;
-    using grid_map_type=storage_t< grid_map_type_info >;
 
     using geo_map=typename Geometry::geo_map;
 
@@ -37,8 +35,6 @@ private:
 
     grid_type_info m_grid_info;
     grid_type m_grid;
-    grid_map_type_info m_grid_map_info;
-    grid_map_type m_grid_map;
 // [private members]
 
 public:
@@ -49,14 +45,11 @@ public:
         , m_d3(d3)
         , m_grid_info(d1, d2, d3, geo_map::basisCardinality, 3)
         , m_grid(m_grid_info, 0., "grid")
-        , m_grid_map_info(d1, d2, d3, geo_map::basisCardinality)
-        , m_grid_map(m_grid_map_info, 0., "grid_map")
         {        }
 
     grid_type const& get_grid() const {return m_grid;}
     grid_type& grid() {return m_grid;}
-    grid_map_type const& get_grid_map() const {return m_grid_map;}
-    grid_map_type& grid_map() {return m_grid_map;}
+    grid_type_info const& get_grid_info() const {return m_grid_info;}
 
 }; //struct assembly
 

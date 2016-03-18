@@ -74,6 +74,7 @@ public:
     storage_type const& get_jac_det() const {return m_jac_det;}
     jacobian_type const& get_jac_inv() const {return m_jac_inv;}
     typename Geometry::weights_storage_t const& get_cub_weights() const {return m_fe_backend.cub_weights();}
+    Geometry const& get_fe_backend() const {return m_fe_backend;}
 
     Geometry & fe_backend() {return m_fe_backend;}
     jacobian_type & jac() {return m_jac;}

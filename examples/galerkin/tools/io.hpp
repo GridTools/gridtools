@@ -1,6 +1,6 @@
+#pragma once
 #include <cstring>
 #include <memory>
-#include <Xdmf.hpp>
 #include <XdmfReader.hpp>
 #include <XdmfWriter.hpp>
 #include <XdmfDomain.hpp>

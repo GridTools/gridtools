@@ -405,25 +405,26 @@ int main( int argc, char ** argv){
                                                          ));
 
     auto iteration=make_computation< BACKEND >(
-        make_mss
-        (
-            execute<forward>()
-            , make_esf< functors::assign<4,int,0> >( it::p_result() )
-            // add the advection term: result+=A*u
-            , make_esf< functors::matvec>( it::p_u(), it::p_advection(), it::p_result() )
-            //compute the upwind flux
-            //i.e.:
-            //if <beta,n> > 0
-            // result= <beta,n> * [(u+ * v+) - (u+ * v-)]
-            //if beta*n<0
-            // result= <beta,n> * [(u- * v-) - (u- * v+)]
-            // where + means "this element" and - "the neighbour"
-            , make_esf< functors::upwind>(it::p_u(), it::p_beta_n(), it::p_bd_mass_uu(), it::p_bd_mass_uv(),  it::p_result())
-            // add the advection term (for time dependent problem): result+=A*u
-            //, make_esf< functors::matvec>( it::p_u(), it::p_mass(), it::p_result() )
-            , make_esf<residual>(it::p_rhs(), it::p_result(), it::p_u()) //updating u = u - (Ax-rhs)
-            ),
-        domain_iteration, coords);
+            domain_iteration, coords
+            , make_mss
+            (
+                execute<forward>()
+                , make_esf< functors::assign<4,int,0> >( it::p_result() )
+                // add the advection term: result+=A*u
+                , make_esf< functors::matvec>( it::p_u(), it::p_advection(), it::p_result() )
+                //compute the upwind flux
+                //i.e.:
+                //if <beta,n> > 0
+                // result= <beta,n> * [(u+ * v+) - (u+ * v-)]
+                //if beta*n<0
+                // result= <beta,n> * [(u- * v-) - (u- * v+)]
+                // where + means "this element" and - "the neighbour"
+                , make_esf< functors::upwind>(it::p_u(), it::p_beta_n(), it::p_bd_mass_uu(), it::p_bd_mass_uv(),  it::p_result())
+                // add the advection term (for time dependent problem): result+=A*u
+                //, make_esf< functors::matvec>( it::p_u(), it::p_mass(), it::p_result() )
+                , make_esf<residual>(it::p_rhs(), it::p_result(), it::p_u()) //updating u = u - (Ax-rhs)
+                ),
+        );
 
     auto coords_bc=grid<axis>({0u,0u,0u,0u,1u},
         {1u, 0u, 1u, (uint_t)d2-1u, (uint_t)d2});
@@ -451,10 +452,11 @@ int main( int argc, char ** argv){
     auto apply_bc_x0=make_computation< BACKEND >(
         make_mss
         (
-            execute<forward>()
+            domain_bc, coords_bc
+            , execute<forward>()
             , make_esf< bc_functor >( bc::p_bc(), bc::p_result() )
-            ),
-        domain_bc, coords_bc);
+            )
+        );
 
     int n_it_ = it_;
 
