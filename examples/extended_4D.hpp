@@ -174,9 +174,9 @@ namespace assembly{
 
 
 #ifdef __CUDACC__
-        computation* fe_comp =
+        stencil* fe_comp =
 #else
-            boost::shared_ptr<gridtools::computation> fe_comp =
+            boost::shared_ptr<gridtools::stencil> fe_comp =
 #endif
             make_computation<gridtools::BACKEND>
             (
