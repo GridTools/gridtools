@@ -62,7 +62,7 @@ namespace gridtools{
                 typedef typename grid_traits_t::template with_arch<backend_ids_t::s_backend_id>::type arch_grid_traits_t;
 
                 //getting the architecture and grid dependent traits
-                typedef typename arch_grid_traits_t::template kernel_functor_executer<RunFunctorArgs>::type kernel_functor_executor_t;
+                typedef typename arch_grid_traits_t::template kernel_functor_executor<RunFunctorArgs>::type kernel_functor_executor_t;
 
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
                 GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<functor_list_t>::value==1), "Internal Error: wrong size");
@@ -212,7 +212,7 @@ namespace gridtools{
                 typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
                 typedef typename grid_traits_t::template with_arch<backend_ids_t::s_backend_id>::type arch_grid_traits_t;
 
-                typedef typename arch_grid_traits_t::template kernel_functor_executer<RunFunctorArgs>::type kernel_functor_executor_t;
+                typedef typename arch_grid_traits_t::template kernel_functor_executor<RunFunctorArgs>::type kernel_functor_executor_t;
 
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
                 GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<functor_list_t>::value==1), "Internal Error: wrong size");
