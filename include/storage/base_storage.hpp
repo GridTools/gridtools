@@ -293,7 +293,6 @@ namespace gridtools {
         }
 
         /** @brief copies the data field to the GPU */
-        GT_FUNCTION_WARNING
         void copy_data_to_gpu() const {
             for (uint_t i=0; i<field_dimensions; ++i)
                 m_fields[i].update_gpu();

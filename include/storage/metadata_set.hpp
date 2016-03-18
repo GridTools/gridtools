@@ -113,7 +113,10 @@ namespace gridtools{
         Sequence& m_seq;
         Arg const& m_arg;
     public:
+        GT_FUNCTION
         insert_if_not_present(Sequence& seq_, Arg const& arg_): m_seq(seq_), m_arg(arg_){}
+
+        GT_FUNCTION
         void operator()()const{
             if (!m_seq.template present< pointer<const typename Arg::meta_data_t> >())
                 m_seq.insert(pointer<const typename Arg::meta_data_t>(&(m_arg.meta_data())));                 }

@@ -1,4 +1,5 @@
 #pragma once
+#include "host_device.hpp"
 
 #ifdef __CUDACC__
   #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 200)
@@ -11,3 +12,10 @@
 #else
   #include <cassert>
 #endif
+
+namespace gridtools {
+    GT_FUNCTION
+    void gt_assert(bool cond) {
+        assert(cond);
+    }
+}

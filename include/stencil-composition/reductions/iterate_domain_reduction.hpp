@@ -10,6 +10,7 @@ namespace gridtools
             typedef typename IterateDomainArguments::functor_return_type_t reduction_type_t;
 
         public:
+            GT_FUNCTION
             iterate_domain_reduction_impl(const reduction_type_t& initial_value) {}
             GT_FUNCTION
             reduction_type_t reduction_value() const
@@ -26,6 +27,7 @@ namespace gridtools
 
         public:
 
+            GT_FUNCTION
             iterate_domain_reduction_impl(const reduction_type_t& initial_value) : m_reduced_value(initial_value) {}
 
             GT_FUNCTION
@@ -54,6 +56,7 @@ namespace gridtools
         typedef typename IterateDomainArguments::functor_return_type_t reduction_type_t;
 
     public:
+        GT_FUNCTION
         iterate_domain_reduction(const reduction_type_t& initial_value) :
             impl::iterate_domain_reduction_impl<IterateDomainArguments, IterateDomainArguments::s_is_reduction>(initial_value) {}
 

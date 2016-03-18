@@ -44,6 +44,7 @@ public:
        suppose we are using an MPI cartesian communicator:
        then we have a coordinates (e.g. the local i,j,k identifying a processor id) and dimensions (e.g. IxJxK)
     */
+    GT_FUNCTION
     partitioner(){}
 
 };
@@ -57,8 +58,9 @@ public:
 
     public:
         typedef partitioner< partitioner_dummy > super;
-
+        GT_FUNCTION
         static int boundary() {return 64+32+16+8+4+2+1;}
+        GT_FUNCTION
         static bool at_boundary(ushort_t const& /*coordinate*/, super::Flag const& /*flag_*/) {return true;}
         static const ushort_t space_dimensions=3;
     };

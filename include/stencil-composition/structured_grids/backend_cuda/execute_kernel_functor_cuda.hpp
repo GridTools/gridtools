@@ -51,7 +51,8 @@ namespace _impl_strcuda {
         __shared__ shared_iterate_domain_t shared_iterate_domain;
 
         //Doing construction of the ierate domain and assignment of pointers and strides
-        iterate_domain_t it_domain(*l_domain, block_size_i, block_size_j);
+        //for the moment reductions are not supported so that the initial value is 0
+        iterate_domain_t it_domain(*l_domain, 0, block_size_i, block_size_j);
 
         it_domain.set_shared_iterate_domain_pointer_impl(&shared_iterate_domain);
 
@@ -115,7 +116,7 @@ namespace _impl_strcuda {
 
             i = blockIdx.x * block_size_t::i_size_t::value -padded_boundary_ + threadIdx.x % padded_boundary_;
             j = blockIdx.y* block_size_t::j_size_t::value +  threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
-            iblock = -padded_boundary_ + threadIdx.x % padded_boundary_;
+            iblock = -padded_boundary_ + (int)threadIdx.x % padded_boundary_;
             jblock = threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
         }
         else if(threadIdx.y < iplus_limit)

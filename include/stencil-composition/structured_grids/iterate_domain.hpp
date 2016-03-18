@@ -470,8 +470,8 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields%storage_type::traits::n_width==0), "You specified a non-rectangular field: if you need to use a non-rectangular field the constexpr version of the accessors have to be used (so that the current position in the field is computed at compile time). This is achieved by using, e.g., instead of \n\n eval(field(dimension<5>(2))); \n\n the following expression: \n\n typedef alias<field, dimension<5> >::set<2> z_field; \n eval(z_field()); \n");
 
                 //dimension/snapshot offsets must be non negative
-            assert(accessor.template get<0>()>=0);
-            assert( (Accessor::type::n_dim <= storage_type::space_dimensions+1) ||
+            gt_assert(accessor.template get<0>()>=0);
+            gt_assert( (Accessor::type::n_dim <= storage_type::space_dimensions+1) ||
                     (accessor.template get<1>()>=0) );
                  // std::cout<<" offsets: "<<arg.template get<0>()<<" , "<<arg.template get<1>()<<" , "<<arg.template get<2>()<<" , "<<std::endl;
 
@@ -786,7 +786,7 @@ namespace gridtools {
         //i+offset_i or j+offset_j or k+offset_k is too large.
         //Most probably this is due to you specifying a positive offset which is larger than expected,
         //or maybe you did a mistake when specifying the ranges in the placehoders definition
-        assert(metadata_->size() >  m_index[// Accessor::index_type::value
+        gt_assert(metadata_->size() >  m_index[// Accessor::index_type::value
                    metadata_index_t::value ]
                + metadata_
                ->_index(strides().template get<metadata_index_t::value>(), accessor)
@@ -801,7 +801,7 @@ namespace gridtools {
         // If you are running a parallel simulation another common reason for this to happen is
         // the definition of an halo region which is too small in one direction
         // std::cout<<"Storage Index: "<<Accessor::index_type::value<<" + "<<(boost::fusion::at<typename Accessor::index_type>(local_domain.local_args))->_index(arg.template n<Accessor::n_dim>())<<std::endl;
-        assert( (int_t)(m_index[metadata_index_t::value])
+        gt_assert( (int_t)(m_index[metadata_index_t::value])
                 + metadata_->_index(strides().template get<metadata_index_t::value>(), accessor)
                 >= 0);
 
@@ -857,18 +857,18 @@ namespace gridtools {
         // std::cout<<" offsets: "<<accessor.template get<0>()<<" , "<<accessor.template get<1>()<<" , "<<accessor.template get<2>()<<" , "<<std::endl;
 
         //dimension/snapshot offsets must be non negative
-        assert(accessor.template get<0>()>=0);
-        assert( (Accessor::type::n_dim <= metadata_t::space_dimensions+1) ||
+        gt_assert(accessor.template get<0>()>=0);
+        gt_assert( (Accessor::type::n_dim <= metadata_t::space_dimensions+1) ||
                 (accessor.template get<1>()>=0) );
 
         //snapshot access out of bounds
-        assert((Accessor::type::n_dim > metadata_t::space_dimensions+1) ||
+        gt_assert((Accessor::type::n_dim > metadata_t::space_dimensions+1) ||
                accessor.template get<0>() < storage_t::traits::n_width);
         //snapshot access out of bounds
-        assert((Accessor::type::n_dim <= metadata_t::space_dimensions+1) ||
+        gt_assert((Accessor::type::n_dim <= metadata_t::space_dimensions+1) ||
                accessor.template get<1>() < storage_t::traits::n_width);
         //dimension access out of bounds
-        assert((Accessor::type::n_dim <= metadata_t::space_dimensions+1) ||
+        gt_assert((Accessor::type::n_dim <= metadata_t::space_dimensions+1) ||
                accessor.template get<0>() < storage_t::traits::n_dimensions);
 
 
@@ -975,10 +975,10 @@ namespace gridtools {
             < metadata_index_t >(local_domain.m_local_metadata);
 
         //error checks
-        assert(metadata_->size() >  metadata_
+        gt_assert(metadata_->size() >  metadata_
                ->_index(strides().template get<metadata_index_t::value>(), expr.first_operand));
 
-        assert(metadata_
+        gt_assert(metadata_
                ->_index(strides().template get<metadata_index_t::value>(), expr.first_operand) >= 0);
 
         GRIDTOOLS_STATIC_ASSERT((
