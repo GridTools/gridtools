@@ -421,10 +421,11 @@ namespace gridtools {
         }
     };
 
-    template<typename MssDescriptorArray>
+    template<typename MssDescriptorArray, typename BackendIds>
     struct compute_extent_sizes{
 
-        typedef grid_traits_from_id<backend_ids_t::s_grid_type_id> grid_traits_t;
+        GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), "Error");
+        typedef grid_traits_from_id<BackendIds::s_grid_type_id> grid_traits_t;
 
         typedef typename grid_traits_t::select_mss_compute_extent_sizes::type
             mss_compute_extent_sizes_t;
@@ -454,11 +455,13 @@ namespace gridtools {
         typedef typename extract_mss_domains<Vec1>::type type;
     };
 
-    template<typename Array1, typename Array2, typename Cond>
-    struct compute_extent_sizes<condition<Array1, Array2, Cond> >{
+    template<typename Array1, typename Array2, typename Cond, typename BackendIds>
+    struct compute_extent_sizes<condition<Array1, Array2, Cond>, BackendIds >{
 
-        typedef typename compute_extent_sizes<Array1>::type type1;
-        typedef typename compute_extent_sizes<Array2>::type type2;
+        GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), "Error");
+
+        typedef typename compute_extent_sizes<Array1, BackendIds>::type type1;
+        typedef typename compute_extent_sizes<Array2, BackendIds>::type type2;
         typedef condition<type1, type2, Cond> type;
     };
 
@@ -484,7 +487,7 @@ namespace gridtools {
         typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
         typedef typename Backend::backend_ids_t backend_ids_t;
 
-        typedef typename compute_extent_sizes<typename MssDescriptorArray::elements>::type extent_sizes_t;
+        typedef typename compute_extent_sizes<typename MssDescriptorArray::elements, backend_ids_t>::type extent_sizes_t;
 
         typedef typename build_mss_components_array<
             backend_id<Backend>::value,
