@@ -42,7 +42,10 @@
 
 namespace gridtools {
 
-        namespace _impl{
+    template<typename T>
+    struct if_condition_extract_index_t;
+
+    namespace _impl{
 
         /** @brief Functor used to instantiate the local domains to be passed to each
             elementary stencil function */
@@ -430,12 +433,15 @@ namespace gridtools {
         typedef typename grid_traits_t::select_mss_compute_extent_sizes::type
             mss_compute_extent_sizes_t;
 
+        template<typename T>
+        struct mss_extent_{ typedef typename mss_compute_extent_sizes_t::template apply<T>::type type;};
+
         typedef typename boost::mpl::fold<
             MssDescriptorArray,
             boost::mpl::vector0<>,
             boost::mpl::push_back<
                 boost::mpl::_1,
-                mss_compute_extent_sizes_t::apply<boost::mpl::_2>
+                mss_extent_<boost::mpl::_2>
             >
         >::type type;
 
