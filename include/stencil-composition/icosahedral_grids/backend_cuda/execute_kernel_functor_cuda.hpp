@@ -173,7 +173,7 @@ namespace gridtools {
             typedef typename index_to_level< typename interval::second >::type to;
             typedef _impl::iteration_policy< from,
                 to,
-                grid_traits_from_id< enumtype::icosahedral >::dim_k_t::value,
+                typename grid_traits_from_id< enumtype::icosahedral >::dim_k_t,
                 execution_type_t::type::iteration > iteration_policy_t;
 
             it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_k_t::value >(grid->template value_at< iteration_policy_t::from >());

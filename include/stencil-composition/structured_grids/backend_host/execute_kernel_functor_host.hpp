@@ -10,6 +10,7 @@
 #include "stencil-composition/loop_hierarchy.hpp"
 #include "../../iteration_policy.hpp"
 #include "../../execution_policy.hpp"
+#include "../../grid_traits.hpp"
 
 namespace gridtools {
 
@@ -147,7 +148,11 @@ namespace gridtools {
                 typedef typename boost::mpl::front<loop_intervals_t>::type interval;
                 typedef typename index_to_level<typename interval::first>::type from;
                 typedef typename index_to_level<typename interval::second>::type to;
-                typedef _impl::iteration_policy<from, to, zdim_index_t::value, execution_type_t::type::iteration> iteration_policy_t;
+                typedef _impl::iteration_policy<
+                        from,
+                        to,
+                        typename ::gridtools::grid_traits_from_id<enumtype::structured>::dim_k_t,
+                        execution_type_t::type::iteration> iteration_policy_t;
 
                 typedef array<int_t, iterate_domain_t::N_META_STORAGES> array_t;
                 loop_hierarchy<

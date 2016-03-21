@@ -28,7 +28,7 @@ namespace copy_stencil{
 
 // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
-        typedef const accessor<0, enumtype::in> in;
+        typedef accessor<0, enumtype::in> in;
         typedef accessor<1, enumtype::inout> out;
         typedef boost::mpl::vector<in,out> arg_list;
         /* static const auto expression=in(1,0,0)-out(); */
@@ -51,12 +51,12 @@ namespace copy_stencil{
     bool test(uint_t d1, uint_t d2, uint_t d3) {
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Block >
+#define BACKEND backend<Cuda, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend<Host, Block >
+#define BACKEND backend<Host, GRIDBACKEND, Block >
 #else
-#define BACKEND backend<Host, Naive >
+#define BACKEND backend<Host, GRIDBACKEND, Naive >
 #endif
 #endif
         //                   strides  1 x xy
@@ -64,7 +64,7 @@ namespace copy_stencil{
         typedef gridtools::layout_map<0,1,2> layout_t;
         typedef BACKEND::storage_info<0, layout_t> metadata_t;
         typedef BACKEND::storage_type<float_type, metadata_t >::type storage_type;
-        typedef storage_type::original_storage::pointer_type pointer_type;
+        typedef storage_type::pointer_type pointer_type;
 
 
         typedef gridtools::halo_exchange_dynamic_ut<layout_t,
@@ -100,7 +100,7 @@ namespace copy_stencil{
         typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > >, pattern_type::grid_type> partitioner_t;
         partitioner_t part(he.comm(), halo, padding);
         parallel_storage_info<metadata_t, partitioner_t> meta_(part, d1, d2, d3);
-        auto metadata_=meta_.get_metadata();
+        auto& metadata_=meta_.get_metadata();
 
         storage_type in(metadata_, 0.);
         storage_type out(metadata_, 0.);
@@ -151,21 +151,25 @@ namespace copy_stencil{
         */
 
 // \todo simplify the following using the auto keyword from C++11
-#ifdef __CUDACC__
-        gridtools::computation* copy =
+#ifdef CXX11_ENABLED
+        auto
 #else
-            boost::shared_ptr<gridtools::computation> copy =
+#ifdef __CUDACC__
+            gridtools::computation*
+#else
+            boost::shared_ptr<gridtools::computation>
 #endif
-            gridtools::make_computation<gridtools::BACKEND>
+#endif
+            copy = gridtools::make_computation<gridtools::BACKEND>
             (
+                domain, grid,
                 gridtools::make_mss // mss_descriptor
                 (
                     execute<forward>(),
                     gridtools::make_esf<copy_functor>(p_in() // esf_descriptor
                                                       , p_out()
                         )
-                    ),
-                domain, grid
+                    )
                 );
 #ifdef VERBOSE
         printf("computation instantiated\n");

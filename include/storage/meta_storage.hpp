@@ -46,7 +46,7 @@ namespace gridtools{
             forwarding to the base class
         */
         __device__
-        meta_storage(BaseStorage const& other)
+        meta_storage(meta_storage<BaseStorage> const& other)
             :  super(other)
         {}
 

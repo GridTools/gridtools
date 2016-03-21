@@ -1,8 +1,8 @@
-FILE(GLOB_RECURSE INC_ALL "../../include/stencil-composition/[a-z]*.hpp")
+FILE(GLOB_RECURSE INC_ALL "../../include/stencil-composition/*.hpp")
 
 SET(STENCIL_COMPOSITION_UNITTEST_SOURCES ${INC_ALL})
 if ( ENABLE_CXX11 )
-  SET(STENCIL_COMPOSITION_UNITTEST_SOURCES ${STENCIL_COMPOSITION_UNITTEST_SOURCES} test-assign-placeholders.cpp )
+  SET(STENCIL_COMPOSITION_UNITTEST_SOURCES ${STENCIL_COMPOSITION_UNITTEST_SOURCES} test-assign-placeholders.cpp)
 
   ## moved here since there is only one test
   add_executable(stencil_composition_tests ${STENCIL_COMPOSITION_UNITTEST_SOURCES})
@@ -15,6 +15,7 @@ endif( ENABLE_CXX11 )
 
 ### Executables
 #CPU tests
+
 add_subdirectory(caches)
 if (NOT STRUCTURED_GRIDS)
   add_subdirectory(icosahedral_grids)

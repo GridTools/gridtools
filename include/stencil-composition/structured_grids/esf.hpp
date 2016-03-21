@@ -59,7 +59,7 @@ namespace gridtools {
         typedef ArgArray args_t;
 
         /** Type member with the mapping between placeholder types (as key) to extents in the operator */
-        typedef typename make_arg_with_extent_map<args_t, typename esf_function::arg_list>::type args_with_extents;
+        typedef typename impl::make_arg_with_extent_map<args_t, typename esf_function::arg_list>::type args_with_extents;
         typedef Staggering staggering_t;
 
         //////////////////////Compile time checks ////////////////////////////////////////////////////////////

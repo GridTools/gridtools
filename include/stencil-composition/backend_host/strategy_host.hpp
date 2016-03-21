@@ -25,7 +25,7 @@ namespace gridtools{
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
          * @tparam MssComponentsArray a meta array with the mss components of all MSS
-         * @tparam BackendId id of the backend
+         * @tparam BackendIds ids of backend
          */
         template<typename MssComponentsArray, typename BackendIds, typename ReductionData>
         struct fused_mss_loop
@@ -50,7 +50,6 @@ namespace gridtools{
          * @brief main execution of a mss. Defines the IJ loop bounds of this particular block
          * and sequentially executes all the functors in the mss
          * @tparam RunFunctorArgs run functor arguments
-         * @tparam BackendId id of the backend
          */
         template<typename RunFunctorArgs>
         struct mss_loop
@@ -68,7 +67,8 @@ namespace gridtools{
                 typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
                 typedef typename grid_traits_t::template with_arch<backend_ids_t::s_backend_id>::type arch_grid_traits_t;
 
-                typedef typename arch_grid_traits_t::template kernel_functor_executer<RunFunctorArgs>::type kernel_functor_executor_t;
+                //getting the architecture and grid dependent traits
+                typedef typename arch_grid_traits_t::template kernel_functor_executor<RunFunctorArgs>::type kernel_functor_executor_t;
 
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
                 GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<functor_list_t>::value==1), "Internal Error: wrong size");
@@ -126,22 +126,22 @@ namespace gridtools{
 #else
             GRIDTOOLS_STATIC_ASSERT((is_tile<TileI>::value && is_tile<TileJ>::value), "wrong type for the tiles");
 #endif
-            typedef storage<
+            typedef
 #ifdef CXX11_ENABLED
                 typename Storage::template type_tt
 #else
                 base_storage
 #endif
                 <typename Storage::pointer_type, typename get_tmp_storage_info
-                 <typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout,
-                  typename Storage::meta_data_t::halo_t,
-                  typename Storage::meta_data_t::alignment_t,
+                 <typename Storage::storage_info_type::index_type, typename Storage::storage_info_type::layout,
+                  typename Storage::storage_info_type::halo_t,
+                  typename Storage::storage_info_type::alignment_t,
 #ifdef CXX11_ENABLED
                   Tiles ...
 #else
                   TileI, TileJ
 #endif
-                  >::type, Storage::field_dimensions > > type;
+                  >::type, Storage::field_dimensions > type;
         };
     };
 
@@ -163,6 +163,7 @@ namespace gridtools{
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
          * @tparam MssComponentsArray a meta array with the mss components of all MSS
+         * @tparam BackendIds ids of backend
          */
         template<typename MssComponentsArray, typename BackendIds, typename ReductionData>
         struct fused_mss_loop
@@ -221,7 +222,7 @@ namespace gridtools{
                 typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
                 typedef typename grid_traits_t::template with_arch<backend_ids_t::s_backend_id>::type arch_grid_traits_t;
 
-                typedef typename arch_grid_traits_t::template kernel_functor_executer<RunFunctorArgs>::type kernel_functor_executor_t;
+                typedef typename arch_grid_traits_t::template kernel_functor_executor<RunFunctorArgs>::type kernel_functor_executor_t;
 
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
                 GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<functor_list_t>::value==1), "Internal Error: wrong size");
@@ -307,21 +308,21 @@ namespace gridtools{
 #else
             GRIDTOOLS_STATIC_ASSERT((is_tile<TileI>::value && is_tile<TileJ>::value), "wrong type for the tiles");
 #endif
-            typedef storage<
+            typedef
 #ifdef CXX11_ENABLED
                 typename Storage::template type_tt
 #else
                 base_storage
 #endif
                 <typename Storage::pointer_type, typename get_tmp_meta_storage
-                 <typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout,
-                  typename Storage::meta_data_t::halo_t,
+                 <typename Storage::storage_info_type::index_type, typename Storage::storage_info_type::layout,
+                  typename Storage::storage_info_type::halo_t,
 #ifdef CXX11_ENABLED
                   Tiles ...
 #else
                   TileI, TileJ
 #endif
-                  >::type, Storage::field_dimensions > > type;
+                  >::type, Storage::field_dimensions > type;
         };
 };
 

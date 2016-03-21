@@ -84,20 +84,24 @@ TEST(test_copy_stencil, run) {
     grid_.value_list[0] = halo_k;
     grid_.value_list[1] = d3-1-halo_k;
 
-#ifdef __CUDACC__
-        gridtools::computation* copy =
+#ifdef CXX11_ENABLED
+    auto
 #else
-            boost::shared_ptr<gridtools::computation> copy =
+#ifdef __CUDACC__
+        gridtools::computation*
+#else
+            boost::shared_ptr<gridtools::computation>
 #endif
-            gridtools::make_computation<backend_t >
+#endif
+            copy = gridtools::make_computation<backend_t >
             (
+                domain, grid_,
                 gridtools::make_mss // mss_descriptor
                 (
                     execute<forward>(),
                     gridtools::make_esf<test_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(
                         p_in_cells(), p_out_cells() )
-                ),
-                domain, grid_
+                )
             );
     copy->ready();
     copy->steady();

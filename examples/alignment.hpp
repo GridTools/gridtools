@@ -59,15 +59,15 @@ namespace aligned_copy_stencil{
             if(threadIdx.x==0){
                 for (ushort_t i=0; i<ItDomain::iterate_domain_t::N_DATA_POINTERS; ++i){
                     result_ = (bool)(result_
-                                     &&( bool)(((size_t)(it_domain.get_iterate_domain().data_pointer()[i]
-                                                         +it_domain.get_iterate_domain().index()[storage_id])
+                                     &&( bool)(((size_t)(it_domain.get().data_pointer()[i]
+                                                         +it_domain.get().index()[storage_id])
                                                 & (boundary-1))
                                                == 0));
                     if(!result_)
                     {
                         printf("[storage # %d,", i);
-                        printf("index %d]", it_domain.get_iterate_domain().index()[storage_id]);
-                        printf(" pointer: %x ", (size_t)it_domain.get_iterate_domain().data_pointer()[i]+it_domain.get_iterate_domain().index()[storage_id]);
+                        printf("index %d]", it_domain.get().index()[storage_id]);
+                        printf(" pointer: %x ", (size_t)it_domain.get().data_pointer()[i]+it_domain.get().index()[storage_id]);
                         break;
                     }
             }
@@ -165,13 +165,18 @@ namespace aligned_copy_stencil{
         */
 
         // \todo simplify the following using the auto keyword from C++11
-#ifdef __CUDACC__
-        gridtools::stencil* copy =
+#ifdef CXX11_ENABLED
+        auto
 #else
-            boost::shared_ptr<gridtools::stencil> copy =
+#ifdef __CUDACC__
+        gridtools::stencil* =
+#else
+            boost::shared_ptr<gridtools::stencil> =
 #endif
-            gridtools::make_computation<gridtools::BACKEND>
+#endif
+            copy = gridtools::make_computation<gridtools::BACKEND>
             (
+                domain, grid,
                 gridtools::make_mss // mss_descriptor
                 (
                     execute<forward>(),
@@ -179,8 +184,7 @@ namespace aligned_copy_stencil{
                         p_in() // esf_descriptor
                         , p_out()
                         )
-                ),
-                domain, grid
+                )
             );
 
         copy->ready();

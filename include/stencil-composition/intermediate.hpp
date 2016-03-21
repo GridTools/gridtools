@@ -33,7 +33,7 @@
 #include "stencil-composition/grid.hpp"
 #include "grid_traits.hpp"
 #include "stencil-composition/wrap_type.hpp"
-#include "reductions/reduction_data.hpp"
+#include "conditionals/switch_variable.hpp"
 
 /**
  * @file
@@ -42,7 +42,10 @@
 
 namespace gridtools {
 
-        namespace _impl{
+    template<typename T>
+    struct if_condition_extract_index_t;
+
+    namespace _impl{
 
         /** @brief Functor used to instantiate the local domains to be passed to each
             elementary stencil function */
@@ -118,7 +121,7 @@ namespace gridtools {
         /**@brief metafunction for accessing the storage given the list of placeholders and the temporary pairs list.
            default template parameter: because in case we don't have temporary storages there's no need to specify the pairs.*/
         template <typename Placeholders,
-                  typename TmpPairs=boost::mpl::na>
+                  typename TmpPairs>
         struct select_storage {
             template <typename T, typename Dummy = void>
             struct is_temp : public boost::false_type
@@ -253,8 +256,6 @@ namespace gridtools {
                 boost::mpl::range_c<int, 0, boost::mpl::size<ArgListType>::value >
             > (copy_pointers_functor<ArgListType, typename DomainType::arg_list> (storage_pointers, domain.m_original_pointers));
 
-            // boost::fusion::for_each(meta_data_, copy_pointers_set_functor<typename DomainType::metadata_set_t::set_t> (domain.m_metadata_set.sequence_view()));
-
             boost::fusion::for_each(storage_pointers, update_pointer());
             boost::fusion::for_each(meta_data_, update_pointer());
 
@@ -305,6 +306,22 @@ namespace gridtools {
         >::type type;
     };
 
+    template<
+        enumtype::platform BackendId,
+        typename MssArray1,
+        typename MssArray2,
+        typename Cond,
+        typename DomainType,
+        typename ActualArgListType,
+        typename ActualMetadataListType,
+        bool IsStateful
+        > struct create_mss_local_domains<BackendId, condition<MssArray1, MssArray2, Cond>, DomainType, ActualArgListType, ActualMetadataListType, IsStateful >
+    {
+        typedef typename create_mss_local_domains<BackendId, MssArray1, DomainType, ActualArgListType, ActualMetadataListType, IsStateful>::type type1;
+        typedef typename create_mss_local_domains<BackendId, MssArray2, DomainType, ActualArgListType, ActualMetadataListType, IsStateful>::type type2;
+        typedef condition<type1, type2, Cond> type;
+    };
+
 
         template<typename T>
         struct storage2metadata;
@@ -321,7 +338,7 @@ namespace gridtools {
     >
     struct create_actual_arg_list
     {
-        GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
+        // GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_domain_type<DomainType>::value), "Internal Error: wrong type");
 
         /**
@@ -354,6 +371,106 @@ namespace gridtools {
 
     };
 
+    template <typename IsPresent, typename MssComponentsArray, typename Backend>
+    struct run_conditionally;
+
+    /**@brief calls the run method when conditionals are defined
+
+       specialization for when the next MSS is not a conditional
+    */
+    template <typename MssComponentsArray, typename Backend>
+    struct run_conditionally<boost::mpl::true_, MssComponentsArray, Backend>
+    {
+        template<typename ConditionalSet, typename Grid, typename MssLocalDomainList>
+        static void apply(ConditionalSet const& /**/, Grid const& grid_, MssLocalDomainList const& mss_local_domain_list_){
+            Backend::template run<MssComponentsArray>( grid_, mss_local_domain_list_ );
+        }
+    };
+
+
+    /**
+       @brief calls the run method when conditionals are defined
+
+       specialization for when the next MSS is a conditional
+     */
+    template <typename Array1, typename Array2, typename Cond, typename Backend>
+    struct run_conditionally<boost::mpl::true_, condition<Array1, Array2, Cond>, Backend>
+    {
+        template<typename ConditionalSet, typename Grid, typename MssLocalDomainList>
+        static void apply(ConditionalSet const& conditionals_set_, Grid const& grid_, MssLocalDomainList const& mss_local_domain_list_){
+            // std::cout<<"true? "<<boost::fusion::at_key< Cond >(conditionals_set_).value()<<std::endl;
+            if(boost::fusion::at_key< Cond >(conditionals_set_).value())
+            {
+                run_conditionally<boost::mpl::true_, Array1, Backend>::apply( conditionals_set_,  grid_, mss_local_domain_list_ );
+            }
+            else
+                run_conditionally<boost::mpl::true_, Array2, Backend>::apply( conditionals_set_, grid_, mss_local_domain_list_ );
+        }
+    };
+
+    /**@brief calls the run method when no conditional is defined
+
+       the 2 cases are separated into 2 different partial template specialization, because
+       the fusion::at_key doesn't compile when the key is not present in the set
+       (i.e. the present situation).
+     */
+    template <typename MssComponentsArray, typename Backend>
+    struct run_conditionally<boost::mpl::false_, MssComponentsArray, Backend>
+    {
+        template<typename ConditionalSet, typename Grid, typename MssLocalDomainList>
+        static void apply(ConditionalSet const& , Grid const& grid_, MssLocalDomainList const& mss_local_domain_list_){
+
+            Backend::template run<MssComponentsArray>( grid_, mss_local_domain_list_ );
+        }
+    };
+
+    template<typename MssDescriptorArray, typename BackendIds>
+    struct compute_extent_sizes{
+
+        GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), "Error");
+        typedef grid_traits_from_id<BackendIds::s_grid_type_id> grid_traits_t;
+
+        typedef typename grid_traits_t::select_mss_compute_extent_sizes::type
+            mss_compute_extent_sizes_t;
+
+        template<typename T>
+        struct mss_extent_{ typedef typename mss_compute_extent_sizes_t::template apply<T>::type type;};
+
+        typedef typename boost::mpl::fold<
+            MssDescriptorArray,
+            boost::mpl::vector0<>,
+            boost::mpl::push_back<
+                boost::mpl::_1,
+                mss_extent_<boost::mpl::_2>
+            >
+        >::type type;
+
+    };
+
+    template<typename Vec>
+    struct extract_mss_domains{
+        typedef Vec type;
+    };
+
+    template<typename Vec1, typename Vec2, typename Cond>
+    struct extract_mss_domains<condition<Vec1, Vec2, Cond> >{
+
+        // TODO: how to do the check described below?
+        // GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename extract_mss_domains<Vec1>::type, typename extract_mss_domains<Vec2>::type>::type::value), "The case in which 2 different mss are enabled/disabled using conditionals is supported only when they work with the same placeholders. Here you are trying to switch between MSS for which the type (or the order) of the placeholders is not the same");
+        //consider the first one
+        typedef typename extract_mss_domains<Vec1>::type type;
+    };
+
+    template<typename Array1, typename Array2, typename Cond, typename BackendIds>
+    struct compute_extent_sizes<condition<Array1, Array2, Cond>, BackendIds >{
+
+        GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), "Error");
+
+        typedef typename compute_extent_sizes<Array1, BackendIds>::type type1;
+        typedef typename compute_extent_sizes<Array2, BackendIds>::type type2;
+        typedef condition<type1, type2, Cond> type;
+    };
+
     /**
      * @class
      *  @brief structure collecting helper metafunctions
@@ -362,37 +479,20 @@ namespace gridtools {
               typename MssDescriptorArray,
               typename DomainType,
               typename Grid,
-              typename ReductionType,
+              typename ConditionalsSet,
               bool IsStateful>
     struct intermediate : public computation<ReductionType> {
         GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssDescriptorArray, is_amss_descriptor>::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_backend<Backend>::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_domain_type<DomainType>::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
+        // GRIDTOOLS_STATIC_ASSERT((is_conditionals_set<ConditionalsSet>::value), "Internal Error: wrong type");
 
+        typedef ConditionalsSet conditionals_set_t;
         typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
         typedef typename Backend::backend_ids_t backend_ids_t;
 
-        typedef grid_traits_from_id<backend_ids_t::s_grid_type_id> grid_traits_t;
-
-        typedef typename grid_traits_t::select_mss_compute_extent_sizes::type
-            mss_compute_extent_sizes_t;
-
-        template<typename T1, typename T2>
-        struct _push_extent_ {
-            typedef typename mss_compute_extent_sizes_t::template apply<T2>::type mss_extent_t;
-
-            typedef typename boost::mpl::push_back<
-                T1,
-                mss_extent_t
-            >::type type;
-        };
-
-        typedef typename boost::mpl::fold<
-            typename MssDescriptorArray::elements,
-            boost::mpl::vector0<>,
-            _push_extent_<boost::mpl::_1, boost::mpl::_2>
-        >::type extent_sizes_t;
+        typedef typename compute_extent_sizes<typename MssDescriptorArray::elements, backend_ids_t>::type extent_sizes_t;
 
         typedef typename boost::mpl::fold<
             typename MssDescriptorArray::elements,
@@ -410,6 +510,7 @@ namespace gridtools {
             MssDescriptorArray,
             extent_sizes_t
         >::type mss_components_array_t;
+
 
         typedef typename create_actual_arg_list<
                 Backend,
@@ -455,7 +556,9 @@ namespace gridtools {
         >::type mss_local_domains_t;
 
         /** creates a fusion vector of local domains*/
-        typedef typename boost::fusion::result_of::as_vector<mss_local_domains_t>::type mss_local_domain_list_t;
+        typedef typename boost::fusion::result_of::as_vector<
+            typename extract_mss_domains<mss_local_domains_t>::type 
+        >::type mss_local_domain_list_t;
 
         struct printtypes {
             template <typename T>
@@ -472,15 +575,18 @@ namespace gridtools {
 
         actual_arg_list_type m_actual_arg_list;
         actual_metadata_list_type m_actual_metadata_list;
-        reduction_data_t m_reduction_data;
 
         bool is_storage_ready;
         performance_meter_t m_meter;
 
+        conditionals_set_t m_conditionals_set;
+
     public:
 
-        intermediate(DomainType & domain, Grid const & grid, typename reduction_data_t::reduction_type_t reduction_initial_value = 0)
-            : m_domain(domain), m_grid(grid), m_meter("NoName"), m_reduction_data(reduction_initial_value)
+        intermediate(DomainType & domain, Grid const & grid, ConditionalsSet conditionals_,  
+            typename reduction_data_t::reduction_type_t reduction_initial_value = 0)
+            : m_domain(domain), m_grid(grid), m_meter("NoName"), m_conditionals_set(conditionals_),
+              m_reduction_data(reduction_initial_value)
         {
             // Each map key is a pair of indices in the axis, value is the corresponding method interval.
 
@@ -515,6 +621,7 @@ namespace gridtools {
 //            gridtools::for_each<extent_sizes>(_debug::print__());
 //            std::cout << "end2" <<std::endl;
 #endif
+
             //filter the non temporary storages among the storage pointers in the domain
             typedef boost::fusion::filter_view<typename DomainType::arg_list,
                                                is_not_tmp_storage<boost::mpl::_1> > t_domain_view;
@@ -531,6 +638,7 @@ namespace gridtools {
             //filter the non temporary meta storages among the storage pointers in the domain
             typedef boost::fusion::filter_view<typename DomainType::metadata_ptr_list,
                                                boost::mpl::not_<is_ptr_to_tmp<boost::mpl::_1> > > t_domain_meta_view;
+
             //filter the non temporary meta storages among the placeholders passed to the intermediate
             typedef boost::fusion::filter_view<typename boost::fusion::result_of::as_set<actual_metadata_set_t>::type,
                                                boost::mpl::not_<is_ptr_to_tmp<boost::mpl::_1> > > t_meta_view;
@@ -605,13 +713,23 @@ namespace gridtools {
          * \brief the execution of the stencil operations take place in this call
          *
          */
-        virtual reduction_type_t run () {
+        virtual void run () {
 
-            GRIDTOOLS_STATIC_ASSERT(
-                    (boost::mpl::size<typename mss_components_array_t::elements>::value == boost::mpl::size<mss_local_domains_t>::value),
-                    "Internal Error");
+            // GRIDTOOLS_STATIC_ASSERT(
+            //     (boost::mpl::size<typename mss_components_array_t::first>::value == boost::mpl::size<typename mss_local_domains_t::first>::value),
+            //     "Internal Error");
+
+            //typedef allowing compile-time dispatch: we separate the path when the first
+            //multi stage stencil is a conditional
+            typedef typename boost::fusion::result_of::has_key<conditionals_set_t,
+                                                               typename if_condition_extract_index_t<
+                                                                   mss_components_array_t
+                                                                   >::type
+                                                               >::type is_present_t;
+
             m_meter.start();
-            Backend::template run<mss_components_array_t>( m_grid, m_mss_local_domain_list, m_reduction_data );
+            run_conditionally<is_present_t, mss_components_array_t, Backend>::apply(m_conditionals_set, m_grid, 
+                m_mss_local_domain_list, m_reduction_data);
             m_meter.pause();
             return m_reduction_data.reduced_value();
         }
@@ -619,8 +737,21 @@ namespace gridtools {
         virtual std::string print_meter() { return m_meter.to_string();}
 
         mss_local_domain_list_t const& mss_local_domain_list() const {return m_mss_local_domain_list; }
-
-
     };
+
+
+    /**@brief resets the conditional variable used in an if_ statement from whithin a computation*/
+    template<uint_t Id>
+    void reset_conditional(conditional<Id>& cond_, conditional<Id> const& new_cond_){
+        cond_.value()=new_cond_.value();
+    }
+
+    /**@brief resets the conditional variables generated by a switch_ statement from whithin a computation*/
+    template<uint_t Id, typename T>
+    void reset_conditional( switch_variable<Id, T>& cond_, short_t new_cond_){
+        for (int_t i=0; i<cond_.num_conditions(); ++i)
+            cond_.conditions()[i]= (new_cond_ == cond_.cases()[i]);
+    }
+
 
 } // namespace gridtools

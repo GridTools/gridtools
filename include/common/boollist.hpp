@@ -1,8 +1,8 @@
 #pragma once
 
 #include "defs.hpp"
-#include "gridtools.hpp"
-#include "common/array.hpp"
+#include "../gridtools.hpp"
+
 /*@file
 @brief  The following class describes a boolean list of length N.
 

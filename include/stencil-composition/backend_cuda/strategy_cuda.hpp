@@ -37,7 +37,7 @@ namespace gridtools{
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
          * @tparam MssComponentsArray a meta array with the mss components of all MSS
-         * @tparam BackendId id of the backend
+         * @tparam BackendIds backend ids type
          */
         template<typename MssComponentsArray, typename BackendIds, typename ReductionData>
         struct fused_mss_loop
@@ -117,10 +117,10 @@ namespace gridtools{
                 base_storage
 #endif
                 <typename Storage::pointer_type, typename get_tmp_storage_info
-                 <typename Storage::meta_data_t::index_type,
-                  typename Storage::meta_data_t::layout,
-                  typename Storage::meta_data_t::halo_t,
-                  typename Storage::meta_data_t::alignment_t,
+                 <typename Storage::storage_info_type::index_type,
+                  typename Storage::storage_info_type::layout,
+                  typename Storage::storage_info_type::halo_t,
+                  typename Storage::storage_info_type::alignment_t,
 #ifdef CXX11_ENABLED
                   Tiles ...
 #else

@@ -39,7 +39,7 @@ typedef arg<2, tmp_storage_type> p_buff;
 
 TEST(mss_metafunctions, extract_mss_caches_and_esfs)
 {
-    typename storage_type::meta_data_t meta_(10, 10, 10);
+    typename storage_type::storage_info_type meta_(10, 10, 10);
     storage_type in(meta_, 1.0, "in"), out(meta_, 1.0, "out");
 
     typedef decltype(make_esf<functor1>(p_in(), p_buff())) esf1_t;

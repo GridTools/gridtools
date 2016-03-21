@@ -7,8 +7,6 @@
 #endif
 
 namespace gridtools {
-    template <typename IterateDomainImpl> struct iterate_domain_backend_id;
-
     template <template <class> class IterateDomainBase,
           typename IterateDomainArguments>
     struct iterate_domain_backend_id<

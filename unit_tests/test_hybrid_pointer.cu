@@ -31,8 +31,10 @@ struct A: gridtools::clonable_to_gpu<A> {
 __global__
 void reverse(A* p, uint_t n) {
 #ifndef NDEBUG
-    printf(" cpu_p %X ", p->p.get_cpu_p());
-    printf(" gpu_p %X ", p->p.get_gpu_p());
+    if(p->p.on_host())
+        printf(" cpu_p %X ", p->p.get_cpu_p());
+    if(p->p.on_device())
+        printf(" gpu_p %X ", p->p.get_gpu_p());
     printf(" to_use %X ", p->p.get_pointer_to_use());
     printf(" siez %X ", p->p.get_size());
     printf("\n");

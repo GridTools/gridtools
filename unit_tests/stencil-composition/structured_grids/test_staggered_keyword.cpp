@@ -69,12 +69,12 @@ bool test(){
     auto comp =
         gridtools::make_computation<gridtools::BACKEND>
         (
+            domain, grid,
             gridtools::make_mss
             (
                 execute<forward>(),
                 gridtools::make_esf<functor, staggered<5,5,5,5> >(p_i_data(), p_j_data())
-                ),
-            domain, grid
+                )
             );
 
 

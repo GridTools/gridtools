@@ -172,20 +172,24 @@ namespace assembly{
         grid.value_list[1] = d3-2;
 
 
-
-#ifdef __CUDACC__
-        stencil* fe_comp =
+#ifdef CXX11_ENABLED
+        auto
 #else
-            boost::shared_ptr<gridtools::stencil> fe_comp =
+#ifdef __CUDACC__
+        stencil*
+#else
+            boost::shared_ptr<gridtools::stencil>
 #endif
-            make_computation<gridtools::BACKEND>
+#endif
+            fe_comp = make_computation<gridtools::BACKEND>
             (
+                domain, grid,
                 make_mss //! \todo all the arguments in the call to make_mss are actually dummy.
                 (
                     execute<forward>(),//!\todo parameter used only for overloading purpose?
                     make_esf<integration>(p_phi(), p_psi(), p_jac(), p_f(), p_result())
-                    ),
-                domain, grid);
+                    )
+                );
 
         fe_comp->ready();
         fe_comp->steady();

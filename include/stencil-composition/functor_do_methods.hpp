@@ -68,10 +68,10 @@ namespace gridtools {
     // define the do method level offsets
     typedef typename index_to_level<
         typename boost::mpl::first<DoMethod>::type
-    >::type::Offset FromOffset;
-    typedef typename index_to_level<
-        typename boost::mpl::second<DoMethod>::type
-    >::type::Offset ToOffset;
+        >::type::Offset FromOffset;
+        typedef typename index_to_level<
+            typename boost::mpl::second<DoMethod>::type
+            >::type::Offset ToOffset;
 
         // check the do method from and to level offsets do not max out the level offset limits
         // (otherwise we cannot guarantee a correct loop level computation afterwards)

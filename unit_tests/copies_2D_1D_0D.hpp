@@ -163,19 +163,23 @@ namespace copy_stencils_3D_2D_1D_0D {
 #endif
 
         // \todo simplify the following using the auto keyword from C++11
-#ifdef __CUDACC__
-        gridtools::stencil* copy =
+#ifdef CXX11_ENABLED
+        auto
 #else
-            boost::shared_ptr<gridtools::stencil > copy =
+#ifdef __CUDACC__
+        gridtools::stencil*
+#else
+            boost::shared_ptr<gridtools::stencil >
 #endif
-            gridtools::make_computation<gridtools::BACKEND>
+#endif
+            copy = gridtools::make_computation<gridtools::BACKEND>
             (
+             domain, grid_,
              gridtools::make_mss // mss_descriptor
              (
               execute<forward>(),
               gridtools::make_esf<copy_functor>(p_in(), p_out()) // esf_descriptor
-              ),
-             domain, grid_
+              )
              );
 
         copy->ready();
@@ -213,7 +217,8 @@ namespace copy_stencils_3D_2D_1D_0D {
         copy->finalize();
 
 #ifdef CUDA_EXAMPLE
-        out.data().update_cpu();
+        out.d2h_update();
+        in.d2h_update();
 #endif
 
 #ifdef USE_PAPI_WRAP

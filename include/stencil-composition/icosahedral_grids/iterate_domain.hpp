@@ -351,7 +351,7 @@ public:
     void assign_storage_pointers(){
         const uint_t EU_id_i = BackendType::processing_element_i();
         const uint_t EU_id_j = BackendType::processing_element_j();
-        boost::mpl::for_each<typename reversed_range< int_t, 0, N_STORAGES >::type > (
+        boost::mpl::for_each<typename reversed_range< uint_t, 0, N_STORAGES >::type > (
             assign_storage_functor<
                 BackendType,
                 data_pointer_array_t,
@@ -574,9 +574,9 @@ public:
 
         //getting information about the metadata
         typedef typename boost::mpl::at
-            <metadata_map_t, typename storage_type::meta_data_t >::type metadata_index_t;
+            <metadata_map_t, typename storage_type::storage_info_type >::type metadata_index_t;
 
-        pointer<const typename storage_type::meta_data_t> const metadata_ = boost::fusion::at
+        pointer<const typename storage_type::storage_info_type> const metadata_ = boost::fusion::at
             < metadata_index_t >(m_local_domain.m_local_metadata);
         //getting the value
 

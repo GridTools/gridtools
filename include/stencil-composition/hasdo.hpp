@@ -44,37 +44,10 @@ namespace gridtools {
     // void is return we fall back to the default comma operator returning the element after the comma)
     namespace HasDoDetails
     {
-        // define specific comma operators used for SFINAE
-        template<typename T>
-        T& operator, (T&, boost::mpl::void_);
-        template<typename T>
-        const T& operator, (const T&, boost::mpl::void_);
 
-        // if the result is not void make sure the specific comma operator matched and returned TResult
-        template<typename TResult>
-        struct check_result
-        {
-            static yes test(TResult); // matching Do method found which returns TResult
-            static no test(boost::mpl::void_); // matching Do method found which returns void
-            static no test(no); // no matching Do method found except no Do(...)
-            static no test(...);
-        };
-
-        // if the result has to be void make sure the default comma operator matched and returned boost::mpl::void__
-        template<>
-        struct check_result<void>
-        {
-            static yes test(boost::mpl::void_); // matching Do method found which returns void
-            static no test(no); // no matching Do method found except no Do(...)
-            static no test(...);
-        };
-
-        // if there is no Do member
         template<
             bool VCondition,
             typename TFunctor,
-            typename TResult,
-            typename TArguments,
             typename TInterval>
         struct check_if
         {
@@ -82,73 +55,46 @@ namespace gridtools {
             typedef boost::mpl::bool_<bool(value)> type;
         };
 
+        template <typename T>
+        yes operator, (T const&, yes);
+
+        no operator, (no const&, yes);
+
+        template <typename F>
+        struct embed : F {
+            using F::Do;
+            static no Do(...);
+        };
+
         // if there is a Do member but no domain parameter check for TResult Do(TArguments)
         template<
             typename TFunctor,
-            typename TResult,
-            typename TArguments>
-        struct check_if<true, TFunctor, TResult, TArguments, boost::mpl::void_>
-        {
-            // extend TFunctor with a fall back Do method and import all TFunctor Do methods
-            // (Note that it is crucial to import the TFunctor Do methods as the overload
-            // resolution only considers Do methods imported in the scope of Derived)
-            struct Derived : public TFunctor
-            {
-                using TFunctor::Do;
-                static no Do(...);
-            };
-
-            // SFINAE using the comma operator!
-            // if the template parameter substitution for the comma operator fails (as Do returns void)
-            // the default comma operator is used which returns boost::mpl::void_
-            BOOST_STATIC_CONSTANT(bool, value = (
-                                                 sizeof(
-                                                        check_result<TResult>::test(
-                                                                                    (
-                                                                                     Derived::Do(*(TArguments*)0)
-                                                                                     ,
-                                                                                     boost::mpl::void_()
-                                                                                     )
-                                                                                    )
-                                                        ) == sizeof(yes))
-                                  );
-            typedef boost::mpl::bool_<bool(value)> type;
-        };
-
-        // if there is a Do member with a domain parameter check for TResult Do(TArguments, TInterval)
-        template<
-            typename TFunctor,
-            typename TResult,
-            typename TArguments,
             typename TInterval>
-        struct check_if<true, TFunctor, TResult, TArguments, TInterval>
+        struct check_if<true, TFunctor, TInterval>
         {
-            // extend TFunctor with a fall back Do method and import all TFunctor Do methods
-            // (Note that it is crucial to import the TFunctor Do methods as the overload
-            // resolution only considers Do methods imported in the scope of Derived)
-            struct Derived : public TFunctor
-            {
-                using TFunctor::Do;
-                static no Do(...);
+
+
+            template <typename Functor, typename Arg, typename Interval>
+            struct has_do_impl {
+                // this check makes the first argument match anything, const or not
+                static const bool value = sizeof( (embed<Functor>::Do(*(Arg*)0, *(Interval*)0), yes()) ) == sizeof(yes);
             };
 
-            // SFINAE using the comma operator!
-            // if the template parameter substitution for the comma operator fails (as Do returns void)
-            // the default comma operator is used which returns boost::mpl::void_
-            BOOST_STATIC_CONSTANT(bool, value = (
-                                                 sizeof(
-                                                        check_result<TResult>::test(
-                                                                                    (
-                                                                                     Derived::Do(*(TArguments*)666, *(TInterval*)0)
-                                                                                     ,
-                                                                                     boost::mpl::void_()
-                                                                                     )
-                                                                                    )
-                                                                    ) == sizeof(yes))
-                                  );
-            typedef boost::mpl::bool_<bool(value)> type;
+            static const bool value = has_do_impl<TFunctor, int, TInterval>::value;
+
         };
-    }
+
+        template <bool, typename Functor, typename Interval>
+        struct check_if_const {
+            static const bool value = sizeof( (embed<Functor>::Do(int(), *(Interval*)0), yes()) ) == sizeof(yes);
+        };
+
+        template <typename Functor, typename Interval>
+        struct check_if_const<false, Functor, Interval> {
+            static const bool value = true;
+        };
+
+    } // namespace HasDoDetails
 
     /**
      * @struct has_do
@@ -160,63 +106,19 @@ namespace gridtools {
         typename TInterval>
     struct has_do
     {
+       GRIDTOOLS_STATIC_ASSERT((is_interval<TInterval>::value or is_level<TInterval>::value), "has_do second argument must be an interval or a level.");
+
         BOOST_STATIC_CONSTANT(bool, value = (
                                              HasDoDetails::check_if<
                                              has_do_member<TFunctor>::value,
                                              TFunctor,
-                                             void, // for the moment functors return void
-                                             uint_t, // for the moment functors take arbitrary argument types
                                              TInterval
-                                             >::type::value)
+                                             >::value)
             );
         typedef boost::mpl::bool_<bool(value)> type;
+
+        GRIDTOOLS_STATIC_ASSERT((HasDoDetails::check_if_const<value, TFunctor, TInterval>::value), "Functor signature not compliant");
+
     };
 
-    // TODO if we know the exact Do method signature (not considering overload resolution) we could use this simplified has_do!!!
-    // TODO use this in STELLA?
-
-    /**
-     * @struct has_do_simple
-     * Meta function testing if a functor has a given Do method signature
-     */
-    template<
-        typename TFunctor,
-        typename TInterval>
-    struct has_do_simple
-    {
-        // define an SFINAE structure
-        template<typename TDoFunc, TDoFunc VFunc>
-        struct SFINAE {};
-
-        template<typename TFunc>
-        static yes test(SFINAE<void (*) (uint_t&, TInterval), &TFunc::Do>*);
-        template<typename TFunc>
-        static no test(...);
-
-        // use the sizeof trick in order to check which overload matches
-        BOOST_STATIC_CONSTANT(bool, value = (sizeof(test<TFunctor>(0)) == sizeof(yes)) );
-        typedef boost::mpl::bool_<bool(value)> type;
-    };
-
-    template<
-        typename Functor,
-        typename Interval
-    >
-    struct has_do_any_return_type
-    {
-        struct void_x {};
-
-        template <int>
-        struct void_t {
-            typedef void_x type;
-        };
-
-        template <typename Fn, typename Arg, typename Int_, typename = void_x >
-        struct has_do_impl : static_bool<false> {};
-
-        template <typename Fn, typename Arg, typename Int_>
-        struct has_do_impl<Fn, Arg, Int_, typename void_t<sizeof(Fn::Do(Arg(), Int_()))>::type > : static_bool<true> {};
-
-        typedef typename has_do_impl<Functor, int, Interval>::type type;
-    };
 } // namespace gridtools

@@ -10,9 +10,11 @@ namespace gridtools {
               typename MssArray,
               typename DomainType,
               typename Grid,
+              typename ConditionalsSet,
               typename ReductionType,
               bool IsStateful>
-    struct is_intermediate<intermediate<Backend, MssArray, DomainType, Grid, ReductionType, IsStateful> > :
+    struct is_intermediate<intermediate<Backend, MssArray, DomainType, Grid, 
+               ConditionalsSet, ReductionType, IsStateful> > :
         boost::mpl::true_{};
 
     template<typename T> struct intermediate_backend;
@@ -21,9 +23,11 @@ namespace gridtools {
               typename MssArray,
               typename DomainType,
               typename Grid,
+              typename ConditionalsSet,
               typename ReductionType,
               bool IsStateful>
-    struct intermediate_backend<intermediate<Backend, MssArray, DomainType, Grid, ReductionType, IsStateful> >
+    struct intermediate_backend<intermediate<Backend, MssArray, DomainType, Grid, 
+               ConditionalsSet, ReductionType, IsStateful> >
     {
         typedef Backend type;
     };
@@ -34,9 +38,11 @@ namespace gridtools {
               typename MssArray,
               typename DomainType,
               typename Grid,
+              typename ConditionalsSet,
               typename ReductionType,
               bool IsStateful>
-    struct intermediate_domain_type<intermediate<Backend, MssArray, DomainType, Grid, ReductionType, IsStateful> >
+    struct intermediate_domain_type<intermediate<Backend, MssArray, DomainType, Grid, 
+           ConditionalsSet, ReductionType, IsStateful> >
     {
         typedef DomainType type;
     };
@@ -47,9 +53,11 @@ namespace gridtools {
               typename MssArray,
               typename DomainType,
               typename Grid,
+              typename ConditionalsSet,
               typename ReductionType,
               bool IsStateful>
-    struct intermediate_mss_array<intermediate<Backend, MssArray, DomainType, Grid, ReductionType, IsStateful> >
+    struct intermediate_mss_array<intermediate<Backend, MssArray, DomainType, Grid, 
+               ConditionalsSet, ReductionType, IsStateful> >
     {
         typedef MssArray type;
     };
@@ -76,9 +84,11 @@ namespace gridtools {
               typename MssArray,
               typename DomainType,
               typename Grid,
+              typename ConditionalsSet,
               typename ReductionType,
               bool IsStateful>
-    struct intermediate_is_stateful<intermediate<Backend, MssArray, DomainType, Grid, ReductionType, IsStateful> >
+    struct intermediate_is_stateful<intermediate<Backend, MssArray, DomainType, Grid, 
+               ConditionalsSet, ReductionType, IsStateful> >
     {
         typedef boost::mpl::bool_<IsStateful> type;
     };

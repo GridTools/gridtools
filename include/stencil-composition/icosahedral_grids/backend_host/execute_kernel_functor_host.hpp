@@ -66,7 +66,6 @@ namespace gridtools {
                 //#ifdef __VERBOSE__
                 //        #pragma omp critical
                 //        {
-                //TODOCOSUNA Extends in other grid have to become radius
                 //        std::cout<<"iminus::value: "<<extent_t::iminus::value<<std::endl;
                 //        std::cout<<"iplus::value: "<<extent_t::iplus::value<<std::endl;
                 //        std::cout<<"jminus::value: "<<extent_t::jminus::value<<std::endl;
@@ -94,7 +93,7 @@ namespace gridtools {
                 typedef typename index_to_level<typename interval::second>::type to;
                 typedef _impl::iteration_policy< from,
                     to,
-                    grid_traits_from_id< enumtype::icosahedral >::dim_k_t::value,
+                    typename grid_traits_from_id< enumtype::icosahedral >::dim_k_t,
                     execution_type_t::type::iteration > iteration_policy_t;
 
                 //reset the index
@@ -105,9 +104,7 @@ namespace gridtools {
                 it_domain.template initialize<grid_traits_from_id< enumtype::icosahedral >::dim_i_t::value >(m_first_pos[0], m_block_id[0]);
 
                 //initialize color dim
-
                 it_domain.template initialize<grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value>(0);
-//                it_domain.template initialize<2>(m_first_pos[1] + extent_t::jminus::value, m_block_id[1]);
                 it_domain.template initialize<grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value>(m_first_pos[1], m_block_id[1]);
                 it_domain.template initialize<grid_traits_from_id< enumtype::icosahedral >::dim_k_t::value>( m_grid.template value_at< typename iteration_policy_t::from >() );
 
