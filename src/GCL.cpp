@@ -1,6 +1,6 @@
 #include "communication/GCL.hpp"
 
-#ifdef _GCL_GPU_
+#ifdef _USE_GPU_
 #ifdef GCL_MULTI_STREAMS
 #ifdef GCL_USE_3
 cudaStream_t ZL_stream ;

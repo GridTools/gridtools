@@ -752,7 +752,7 @@ namespace gridtools {
       }
 #else
 
-#ifndef _GCL_GPU_
+#ifndef _USE_GPU_
 #define PUT_OMP _Pragma("omp parallel for schedule(dynamic) collapse(3)")
 #else
 #define PUT_OMP
@@ -812,7 +812,7 @@ namespace gridtools {
       }
 #else
 
-#ifndef _GCL_GPU_
+#ifndef _USE_GPU_
 #define PUT_OMP _Pragma("omp parallel for schedule(dynamic) collapse(3)")
 #else
 #define PUT_OMP
