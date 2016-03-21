@@ -34,6 +34,8 @@
 #include "grid_traits.hpp"
 #include "stencil-composition/wrap_type.hpp"
 #include "conditionals/switch_variable.hpp"
+#include "reductions/reduction_data.hpp"
+#include "amss_descriptor.hpp"
 
 /**
  * @file
@@ -381,9 +383,10 @@ namespace gridtools {
     template <typename MssComponentsArray, typename Backend>
     struct run_conditionally<boost::mpl::true_, MssComponentsArray, Backend>
     {
-        template<typename ConditionalSet, typename Grid, typename MssLocalDomainList>
-        static void apply(ConditionalSet const& /**/, Grid const& grid_, MssLocalDomainList const& mss_local_domain_list_){
-            Backend::template run<MssComponentsArray>( grid_, mss_local_domain_list_ );
+        template<typename ConditionalSet, typename Grid, typename MssLocalDomainList, typename ReductionData>
+        static void apply(ConditionalSet const& /**/, Grid const& grid_,
+                          MssLocalDomainList const& mss_local_domain_list_, ReductionData& reduction_data){
+            Backend::template run<MssComponentsArray>( grid_, mss_local_domain_list_, reduction_data );
         }
     };
 
@@ -396,15 +399,18 @@ namespace gridtools {
     template <typename Array1, typename Array2, typename Cond, typename Backend>
     struct run_conditionally<boost::mpl::true_, condition<Array1, Array2, Cond>, Backend>
     {
-        template<typename ConditionalSet, typename Grid, typename MssLocalDomainList>
-        static void apply(ConditionalSet const& conditionals_set_, Grid const& grid_, MssLocalDomainList const& mss_local_domain_list_){
+        template<typename ConditionalSet, typename Grid, typename MssLocalDomainList, typename ReductionData>
+        static void apply(ConditionalSet const& conditionals_set_, Grid const& grid_,
+                          MssLocalDomainList const& mss_local_domain_list_, ReductionData& reduction_data){
             // std::cout<<"true? "<<boost::fusion::at_key< Cond >(conditionals_set_).value()<<std::endl;
             if(boost::fusion::at_key< Cond >(conditionals_set_).value())
             {
-                run_conditionally<boost::mpl::true_, Array1, Backend>::apply( conditionals_set_,  grid_, mss_local_domain_list_ );
+                run_conditionally<boost::mpl::true_, Array1, Backend>::apply( conditionals_set_,  grid_,
+                                                                              mss_local_domain_list_, reduction_data );
             }
             else
-                run_conditionally<boost::mpl::true_, Array2, Backend>::apply( conditionals_set_, grid_, mss_local_domain_list_ );
+                run_conditionally<boost::mpl::true_, Array2, Backend>::apply( conditionals_set_, grid_,
+                                                                              mss_local_domain_list_, reduction_data );
         }
     };
 
@@ -417,10 +423,11 @@ namespace gridtools {
     template <typename MssComponentsArray, typename Backend>
     struct run_conditionally<boost::mpl::false_, MssComponentsArray, Backend>
     {
-        template<typename ConditionalSet, typename Grid, typename MssLocalDomainList>
-        static void apply(ConditionalSet const& , Grid const& grid_, MssLocalDomainList const& mss_local_domain_list_){
+        template<typename ConditionalSet, typename Grid, typename MssLocalDomainList, typename ReductionData>
+        static void apply(ConditionalSet const& , Grid const& grid_,
+                          MssLocalDomainList const& mss_local_domain_list_, ReductionData& reduction_data){
 
-            Backend::template run<MssComponentsArray>( grid_, mss_local_domain_list_ );
+            Backend::template run<MssComponentsArray>( grid_, mss_local_domain_list_, reduction_data );
         }
     };
 
@@ -480,6 +487,7 @@ namespace gridtools {
               typename DomainType,
               typename Grid,
               typename ConditionalsSet,
+              typename ReductionType,
               bool IsStateful>
     struct intermediate : public computation<ReductionType> {
         GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssDescriptorArray, is_amss_descriptor>::value), "Internal Error: wrong type");
@@ -580,6 +588,7 @@ namespace gridtools {
         performance_meter_t m_meter;
 
         conditionals_set_t m_conditionals_set;
+        reduction_data_t m_reduction_data;
 
     public:
 
@@ -713,7 +722,7 @@ namespace gridtools {
          * \brief the execution of the stencil operations take place in this call
          *
          */
-        virtual void run () {
+        virtual reduction_type_t run () {
 
             // GRIDTOOLS_STATIC_ASSERT(
             //     (boost::mpl::size<typename mss_components_array_t::first>::value == boost::mpl::size<typename mss_local_domains_t::first>::value),

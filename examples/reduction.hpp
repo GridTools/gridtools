@@ -123,15 +123,24 @@ namespace reduction{
         grid.value_list[0] = 0;
         grid.value_list[1] = d3-1;
 
-        boost::shared_ptr<gridtools::computation<double> > sum_red_ =
+#ifdef CXX11_ENABLED
+        auto
+#else
+#ifdef __CUDACC__
+        gridtools::computation<double>*
+#else
+            boost::shared_ptr<gridtools::computation<double> >
+#endif
+#endif
+        sum_red_ =
             make_computation<gridtools::BACKEND>
             (
+                domain, grid,
                 make_mss(
                     execute<forward>(),
                     make_esf<desf>(p_in(),p_out())
                 ),
-                make_reduction<sum_red, binop::sum>(0.0, p_out()),
-                domain, grid
+                make_reduction<sum_red, binop::sum>(0.0, p_out())
             );
 
         sum_red_->ready();
@@ -155,15 +164,24 @@ namespace reduction{
         std::cout << "Sum Reduction : " << sum_red_->print_meter() << std::endl;
 #endif
 
-        boost::shared_ptr<gridtools::computation<double> > prod_red_ =
+#ifdef CXX11_ENABLED
+        auto
+#else
+#ifdef __CUDACC__
+        gridtools::computation<double>*
+#else
+            boost::shared_ptr<gridtools::computation<double> >
+#endif
+#endif
+        prod_red_ =
             make_computation<gridtools::BACKEND>
             (
+                domain, grid,
                 make_mss(
                     execute<forward>(),
                     make_esf<desf>(p_in(),p_out())
                 ),
-                make_reduction<sum_red, binop::prod>(1.0, p_out()),
-                domain, grid
+                make_reduction<sum_red, binop::prod>(1.0, p_out())
             );
 
         prod_red_->ready();

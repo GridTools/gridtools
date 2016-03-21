@@ -28,9 +28,9 @@ namespace gridtools {
         {
             typedef typename boost::mpl::second<IntervalPair>::type interval_t;
 
-            GRIDTOOLS_STATIC_ASSERT((has_do_any_return_type<EsfFunction, interval_t>::type::value),
+            GRIDTOOLS_STATIC_ASSERT((has_do<EsfFunction, interval_t>::type::value),
                  "Error: Do method does not contain signature with specified interval");
-          using type = decltype(EsfFunction::Do(int(), interval_t()));
+            using type = decltype(EsfFunction::Do(int(), interval_t()));
         };
 
         template<typename EsfSequence>

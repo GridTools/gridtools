@@ -64,7 +64,7 @@ namespace gridtools {
             Backend \
                               , meta_array<typename BOOST_PP_CAT(meta_array_generator, BOOST_PP_INC(n) ) <boost::mpl::vector0<>, \
                                                                                 BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType) \
-                                                                                >::type, boost::mpl::quote1<is_mss_descriptor> > \
+                                                                                >::type, boost::mpl::quote1<is_amss_descriptor> > \
                                       , Domain \
                                       , Grid \
                                       , conditionals_set_t \

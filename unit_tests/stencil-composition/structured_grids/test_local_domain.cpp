@@ -90,10 +90,11 @@ TEST(test_local_domain, merge_mss_local_domains) {
              gridtools::make_esf<local_domain_stencil::dummy_functor>(p_in() ,p_buff()),
              gridtools::make_esf<local_domain_stencil::dummy_functor>(p_buff() ,p_out())
              )
-         )>, boost::mpl::quote1<gridtools::is_mss_descriptor> >
+         )>, boost::mpl::quote1<gridtools::is_amss_descriptor> >
                           , gridtools::domain_type<accessor_list>
                           , gridtools::grid<local_domain_stencil::axis>
                           , boost::fusion::set<>
+                          , gridtools::notype
                           , false> intermediate_t;
 
     typedef intermediate_backend<intermediate_t>::type backend_t;

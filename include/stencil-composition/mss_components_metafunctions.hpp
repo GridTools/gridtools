@@ -220,8 +220,7 @@ struct mss_functor_do_methods
     template<typename Functor> struct inserter_ {
         typedef typename compute_functor_do_methods<
             Functor,
-            typename Grid::axis_type,
-            !(mss_components_is_reduction<MssComponents>::type::value)
+            typename Grid::axis_type
         >::type type;
     };
 
