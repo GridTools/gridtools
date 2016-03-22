@@ -44,7 +44,7 @@ namespace gridtools {
 
         //TODO storage and meta_storage have to be moved to backend_traits_from_id, that has to be templated with grid
         template <typename LocationType>
-        using meta_storage_t = typename base_t::template
+        using storage_info_t = typename base_t::template
             storage_info<LocationType::value, layout_map<
                 grid_traits_from_id<enumtype::icosahedral>::dim_i_t::value,
                 grid_traits_from_id<enumtype::icosahedral>::dim_c_t::value,
@@ -56,7 +56,7 @@ namespace gridtools {
         using storage_t = storage<
             base_storage<
                 typename base_t::backend_traits_t::template pointer<ValueType>::type,
-                meta_storage_t<LocationType>,
+                storage_info_t<LocationType>,
                 1
             >
         >;
