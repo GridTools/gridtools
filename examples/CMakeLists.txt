@@ -1,5 +1,8 @@
-list( APPEND SRCFILES interface1 simple_hori_diff boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore alignment)
-list( APPEND X86_SRCFILES reduction ${SRCFILES})
+FILE(GLOB_RECURSE INC_ALL "../include/stencil-composition/*.hpp")
+
+list( APPEND SRCFILES interface1 simple_hori_diff boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore alignment
+    ${INC_ALL})
+list( APPEND X86_SRCFILES reduction)
 
 if( ENABLE_CXX11)
     list(APPEND SRCFILES  extended_4D  copy_stencil_single_storage)
@@ -12,8 +15,8 @@ set (ADD_MPI_LIBS "")
 add_definitions("-DBENCHMARK")
 
 foreach(srcfile IN LISTS X86_SRCFILES )
-    add_executable(${srcfile}_naive   ${srcfile}.cpp ${GTEST_FILES})
-    add_executable(${srcfile}_block   ${srcfile}.cpp ${GTEST_FILES})
+    add_executable(${srcfile}_naive   ${srcfile}.cpp ${GTEST_FILES} ${INC_ALL})
+    add_executable(${srcfile}_block   ${srcfile}.cpp ${GTEST_FILES} ${INC_ALL})
     set_target_properties(${srcfile}_block
       PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
     set_target_properties(${srcfile}_naive PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
