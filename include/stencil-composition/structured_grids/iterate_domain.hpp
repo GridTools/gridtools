@@ -666,13 +666,15 @@ namespace gridtools {
     struct positional_iterate_domain : public iterate_domain<IterateDomainImpl>
     {
         typedef iterate_domain<IterateDomainImpl> base_t;
+        typedef typename base_t::reduction_type_t reduction_type_t;
         typedef typename base_t::local_domain_t local_domain_t;
 
 #ifdef CXX11_ENABLED
         using iterate_domain<IterateDomainImpl>::iterate_domain;
 #else
         GT_FUNCTION
-        positional_iterate_domain(local_domain_t const& local_domain) : base_t(local_domain) {}
+        positional_iterate_domain(local_domain_t const& local_domain, const reduction_type_t& reduction_initial_value) :
+            base_t(local_domain, reduction_initial_value) {}
 #endif
 
         /**@brief method for incrementing the index when moving forward along the k direction */

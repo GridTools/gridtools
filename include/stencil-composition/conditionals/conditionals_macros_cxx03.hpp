@@ -2,14 +2,15 @@
 #include "../computation.hpp"
 #include "fill_conditionals_cxx03.hpp"
 #include "if_.hpp"
+#include "../make_computation_helper_cxx03.hpp"
 
 namespace gridtools {
 
 #ifdef __CUDACC__
-#define _POINTER_ computation*
+#define _POINTER_(z,n,nil) computation<typename _impl::reduction_helper< BOOST_PP_CAT(MssType,n) >::reduction_type_t>*
 #define _MAKE_POINTER_(data) new data
 #else
-#define _POINTER_ boost::shared_ptr<computation>
+#define _POINTER_(z,n,nil) boost::shared_ptr<computation<typename _impl::reduction_helper< BOOST_PP_CAT(MssType,n) >::reduction_type_t> >
 #define _MAKE_POINTER_(data) boost::make_shared< data >
 #endif
 
@@ -24,7 +25,7 @@ namespace gridtools {
         typename Grid, \
         BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename MssType)  \
         > \
-    _POINTER_ make_computation_impl ( \
+    _POINTER_(z,n,nil) make_computation_impl ( \
         Domain& domain, \
         const Grid& grid, \
         BOOST_PP_ENUM(BOOST_PP_INC(n), _PAIR_, Mss)     \
@@ -68,9 +69,11 @@ namespace gridtools {
                                       , Domain \
                                       , Grid \
                                       , conditionals_set_t \
+                                      , typename _impl::reduction_helper< BOOST_PP_CAT(MssType, n)  >::reduction_type_t          \
                                       , Positional \
             > intermediate_t; \
-        return _MAKE_POINTER_( intermediate_t )(boost::ref(domain), grid, conditionals_set_); \
+        return _MAKE_POINTER_( intermediate_t )(boost::ref(domain), grid, conditionals_set_,        \
+             _impl::reduction_helper< BOOST_PP_CAT(MssType,n) >::extract_initial_value(BOOST_PP_CAT(MssValue, n)) ); \
     }
 
     BOOST_PP_REPEAT(GT_MAX_MSS, _MAKE_COMPUTATION_IMPL, _)

@@ -50,7 +50,7 @@ namespace _impl {
             typename Grid, \
             BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename MssType) \
             > \
-        _POINTER_ make_positional_computation ( \
+        _POINTER_(z,n,nil) make_positional_computation ( \
             Domain& domain, \
             const Grid& grid, \
             BOOST_PP_ENUM(BOOST_PP_INC(n), _PAIR_, Mss) \
