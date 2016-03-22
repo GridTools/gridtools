@@ -4,6 +4,12 @@
 #include "../../iterate_domain_metafunctions.hpp"
 #include "../../backend_cuda/iterate_domain_cache.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
+#include "stencil-composition/iterate_domain_fwd.hpp"
+#include "stencil-composition/iterate_domain.hpp"
+#include "stencil-composition/iterate_domain_metafunctions.hpp"
+#include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
+
+#include "../../backend_cuda/shared_iterate_domain.hpp"
 
 namespace gridtools {
 
@@ -30,8 +36,12 @@ private:
     typedef typename super::iterate_domain_cache_t iterate_domain_cache_t;
     typedef typename super::readonly_args_indices_t readonly_args_indices_t;
 
-    typedef shared_iterate_domain<data_pointer_array_t, strides_cached_t, typename IterateDomainArguments::max_extent_t, typename iterate_domain_cache_t::ij_caches_tuple_t>
-        shared_iterate_domain_t;
+    typedef shared_iterate_domain<
+        data_pointer_array_t,
+        strides_cached_t,
+        typename IterateDomainArguments::max_extent_t,
+        typename iterate_domain_cache_t::ij_caches_tuple_t>
+    shared_iterate_domain_t;
 
     typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
     typedef typename iterate_domain_cache_t::bypass_caches_set_t bypass_caches_set_t;

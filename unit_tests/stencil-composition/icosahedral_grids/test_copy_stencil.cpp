@@ -88,9 +88,9 @@ TEST(test_copy_stencil, run) {
     auto
 #else
 #ifdef __CUDACC__
-        gridtools::computation*
+        gridtools::stencil*
 #else
-            boost::shared_ptr<gridtools::computation>
+            boost::shared_ptr<gridtools::stencil>
 #endif
 #endif
             copy = gridtools::make_computation<backend_t >
@@ -108,7 +108,7 @@ TEST(test_copy_stencil, run) {
     copy->run();
 
 #ifdef __CUDACC__
-    out_cells.data().update_cpu();
+    out_cells.d2h_update();
 #endif    
 
     bool result = true;
