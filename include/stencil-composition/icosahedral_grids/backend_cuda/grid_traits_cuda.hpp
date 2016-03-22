@@ -15,7 +15,7 @@ namespace gridtools {
                 typedef execute_kernel_functor_cuda< RunFunctorArguments > type;
             };
 
-            typedef layout_map<0,1,2,3> layout_map_t;
+            typedef layout_map<3,2,1,0> layout_map_t;
         };
     }
 }

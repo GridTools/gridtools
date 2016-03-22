@@ -4,11 +4,8 @@
 #include "../../iterate_domain_metafunctions.hpp"
 #include "../../backend_cuda/iterate_domain_cache.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
-#include "stencil-composition/iterate_domain_fwd.hpp"
-#include "stencil-composition/iterate_domain.hpp"
-#include "stencil-composition/iterate_domain_metafunctions.hpp"
-#include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
-
+#include "../../iterate_domain_metafunctions.hpp"
+#include "../../iterate_domain_impl_metafunctions.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
 
 namespace gridtools {

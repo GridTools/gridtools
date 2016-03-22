@@ -205,7 +205,13 @@ namespace gridtools{
             template<typename _IterateDomainArguments>
             struct select_positional_iterate_domain
             {
+                //TODO to do this properly this should belong to a arch_grid_trait (i.e. a trait dispatching types depending
+                // on the comp architecture and the grid.
+#ifdef STRUCTURED_GRIDS
                 typedef iterate_domain_cuda<positional_iterate_domain, _IterateDomainArguments> type;
+#else
+                typedef iterate_domain_cuda<iterate_domain, _IterateDomainArguments> type;
+#endif
             };
 
             template<typename _IterateDomainArguments>
