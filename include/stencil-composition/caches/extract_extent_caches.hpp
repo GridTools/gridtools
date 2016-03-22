@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../grid_traits.hpp"
+#include "../grid_traits_fwd.hpp"
 
 namespace gridtools {
 

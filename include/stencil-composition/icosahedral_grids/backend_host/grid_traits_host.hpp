@@ -13,6 +13,8 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), "Error");
                 typedef execute_kernel_functor_host< RunFunctorArguments > type;
             };
+
+            typedef layout_map<0,1,2,3> layout_map_t;
         };
     }
 }

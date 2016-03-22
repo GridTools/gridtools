@@ -28,7 +28,6 @@
 #include "stencil-composition/caches/cache.hpp"
 #include "stencil-composition/caches/cache_storage.hpp"
 #include "stencil-composition/esf_metafunctions.hpp"
-#include "stencil-composition/local_domain.hpp"
 
 #include "common/generic_metafunctions/is_there_in_sequence_if.hpp"
 

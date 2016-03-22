@@ -14,6 +14,8 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), "Error");
                 typedef execute_kernel_functor_cuda< RunFunctorArguments > type;
             };
+
+            typedef layout_map<3,2,1,0> layout_map_t;
         };
     }
 }
