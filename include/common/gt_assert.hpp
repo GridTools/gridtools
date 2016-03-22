@@ -20,7 +20,9 @@
 namespace gridtools {
     GT_FUNCTION
     void gt_assert(bool cond, int line, const char* filename) {
+#ifndef NDEBUG
         if(! cond) printf("Assert triggered in %s:%d \n", filename, line);
+#endif
         assert(cond);
     }
 }
