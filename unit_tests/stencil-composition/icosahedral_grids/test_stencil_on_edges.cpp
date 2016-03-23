@@ -103,9 +103,9 @@ TEST(test_stencil_on_edges, run) {
     grid_.value_list[1] = d3-1;
 
 #ifdef __CUDACC__
-    gridtools::computation* copy =
+    gridtools::stencil* copy =
 #else
-        std::shared_ptr<gridtools::computation> copy =
+        std::shared_ptr<gridtools::stencil> copy =
 #endif
             gridtools::make_computation<backend_t >
             (

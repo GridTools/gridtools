@@ -6,6 +6,7 @@
  */
 
 #pragma once
+#include <boost/mpl/equal.hpp>
 #include "functor_do_methods.hpp"
 #include "loopintervals.hpp"
 #include "functor_do_method_lookup_maps.hpp"

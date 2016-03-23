@@ -4,7 +4,7 @@ include_directories( ../../include/reductions ) ## Library header files
 FILE(GLOB_RECURSE INC_ALL "../../include/reductions/[a-z]*.hpp")
 
 SET(STENCIL_COMPOSITION_UNITTEST_SOURCES ${INC_ALL})
-if ( ENABLE_CXX11 )
+if (ENABLE_CXX11  AND STRUCTURED_GRIDS)
   SET(STENCIL_COMPOSITION_UNITTEST_SOURCES ${STENCIL_COMPOSITION_UNITTEST_SOURCES} test_make_reductions.cpp)
 
   ### Executables
@@ -15,7 +15,7 @@ if ( ENABLE_CXX11 )
   set_target_properties(reductions_tests PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
   target_link_libraries(reductions_tests ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
 
-endif( ENABLE_CXX11 )
+endif(ENABLE_CXX11 AND STRUCTURED_GRIDS)
 
 
 
