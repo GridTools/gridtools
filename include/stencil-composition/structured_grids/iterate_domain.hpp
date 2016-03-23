@@ -987,10 +987,10 @@ namespace gridtools {
             < metadata_index_t >(local_domain.m_local_metadata);
 
         //error checks
-        assert(metadata_->size() >  metadata_
+        GTASSERT(metadata_->size() >  metadata_
                ->_index(strides().template get<metadata_index_t::value>(), expr.first_operand));
 
-        assert(metadata_
+        GTASSERT(metadata_
                ->_index(strides().template get<metadata_index_t::value>(), expr.first_operand) >= 0);
 
         GRIDTOOLS_STATIC_ASSERT((
