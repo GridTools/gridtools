@@ -2,7 +2,7 @@
 #include <boost/utility/enable_if.hpp>
 #include "../../run_esf_functor.hpp"
 #include "../../block_size.hpp"
-#include "../../iterate_domain_remapper.hpp"
+#include "../iterate_domain_remapper.hpp"
 
 namespace gridtools {
     /*
