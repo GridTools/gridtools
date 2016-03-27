@@ -297,9 +297,7 @@ endif(ENABLE_PYTHON)
 
 if(GTEST_FOUND)
     add_subdirectory( unit_tests )
-    if(STRUCTURED_GRIDS)
-        add_subdirectory( examples )
-    endif(STRUCTURED_GRIDS)
+    add_subdirectory( examples )
 endif(GTEST_FOUND)
 
 file(APPEND ${TEST_SCRIPT} "exit $res\n")
