@@ -41,7 +41,7 @@ namespace reduction{
 
         template <typename Evaluation>
         GT_FUNCTION
-        static double Do(Evaluation const& eval, x_interval) {
+        static float_type Do(Evaluation const& eval, x_interval) {
             return eval(in());
         }
     };
@@ -127,9 +127,9 @@ namespace reduction{
         auto
 #else
 #ifdef __CUDACC__
-        gridtools::computation<double>*
+        gridtools::computation<float_type>*
 #else
-            boost::shared_ptr<gridtools::computation<double> >
+            boost::shared_ptr<gridtools::computation<float_type> >
 #endif
 #endif
         sum_red_ =
@@ -168,9 +168,9 @@ namespace reduction{
         auto
 #else
 #ifdef __CUDACC__
-        gridtools::computation<double>*
+        gridtools::computation<float_type>*
 #else
-            boost::shared_ptr<gridtools::computation<double> >
+            boost::shared_ptr<gridtools::computation<float_type> >
 #endif
 #endif
         prod_red_ =
