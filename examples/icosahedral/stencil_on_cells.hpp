@@ -9,7 +9,17 @@ using namespace enumtype;
 
 namespace soc {
 
-    using backend_t = ::gridtools::backend< Host, icosahedral, Naive >;
+#ifdef __CUDACC__
+#define BACKEND backend<Cuda, GRIDBACKEND, Block >
+#else
+#ifdef BACKEND_BLOCK
+#define BACKEND backend<Host, GRIDBACKEND, Block >
+#else
+#define BACKEND backend<Host, GRIDBACKEND, Naive >
+#endif
+#endif
+
+    using backend_t = BACKEND;
     using icosahedral_topology_t = ::gridtools::icosahedral_topology< backend_t >;
 
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
@@ -95,16 +105,7 @@ namespace soc {
         grid_.value_list[0] = 0;
         grid_.value_list[1] = d3 - 1;
 
-#ifdef CXX11_ENABLED
-        auto
-#else
-#ifdef __CUDACC__
-        gridtools::computation *
-#else
-        boost::shared_ptr< gridtools::computation >
-#endif
-#endif
-            stencil_ = gridtools::make_computation< backend_t >(
+        auto stencil_ = gridtools::make_computation< backend_t >(
                 domain,
                 grid_,
                 gridtools::make_mss // mss_descriptor

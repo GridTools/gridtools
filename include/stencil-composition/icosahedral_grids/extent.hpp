@@ -2,9 +2,9 @@
 
 namespace gridtools {
 
-    template < int R >
+    template < int_t R >
     struct extent {
-        static const int value = R;
+        static const int_t value = R;
     };
 
     template < typename T >

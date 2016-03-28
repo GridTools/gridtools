@@ -9,7 +9,17 @@ using namespace enumtype;
 
 namespace sov {
 
-    using backend_t = ::gridtools::backend< Host, icosahedral, Naive >;
+#ifdef __CUDACC__
+#define BACKEND backend<Cuda, GRIDBACKEND, Block >
+#else
+#ifdef BACKEND_BLOCK
+#define BACKEND backend<Host, GRIDBACKEND, Block >
+#else
+#define BACKEND backend<Host, GRIDBACKEND, Naive >
+#endif
+#endif
+
+    using backend_t = BACKEND;
     using icosahedral_topology_t = ::gridtools::icosahedral_topology< backend_t >;
 
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
@@ -95,11 +105,7 @@ namespace sov {
         grid_.value_list[0] = 0;
         grid_.value_list[1] = d3 - 1;
 
-#ifdef __CUDACC__
-        gridtools::computation *stencil_ =
-#else
-        std::shared_ptr< gridtools::computation > stencil_ =
-#endif
+        auto stencil_ =
             gridtools::make_computation< backend_t >(domain,
                 grid_,
                 gridtools::make_mss // mss_descriptor
@@ -117,8 +123,8 @@ namespace sov {
         stencil_->run();
 
 #ifdef __CUDACC__
-        out_cells.d2h_update();
-        in_cells.d2h_update();
+        out_vertexes.d2h_update();
+        in_vertexes.d2h_update();
 #endif
 
         unstructured_grid ugrid(d1, d2, d3);

@@ -23,6 +23,7 @@ endforeach(srcfile)
 if(CUDA_FOUND)
     foreach(srcfile IN LISTS SRCFILES MPISRCFILES )
          cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu ${GTEST_FILES})
+         set_target_properties(${srcfile}_cuda PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
          target_link_libraries(${srcfile}_cuda ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} )
 
          gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/${srcfile}_cuda" "77 48 61")
