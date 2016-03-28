@@ -449,6 +449,7 @@ public:
 
     //TODO return the right value, instead of double
     template <uint_t ID, enumtype::intend Intend, typename LocationType, typename Extent, typename IndexArray >
+    GT_FUNCTION
     double _evaluate(accessor<ID, Intend, LocationType, Extent>, IndexArray const& position) const {
         using accessor_t = accessor<ID, Intend, LocationType, Extent>;
         using location_type_t = typename accessor_t::location_type;
@@ -459,12 +460,14 @@ public:
     }
 
     template <typename MapF, typename LT, typename Arg0, typename IndexArray>
+    GT_FUNCTION
     double _evaluate(map_function<MapF, LT, Arg0> const& map, IndexArray const& position) const {
         int offset = m_grid_topology.ll_offset(position, map.location());
         return map.function()(_evaluate(map.template argument<0>(), position));
     }
 
     template <typename MapF, typename LT, typename Arg0, typename Arg1, typename IndexArray>
+    GT_FUNCTION
     double _evaluate(map_function<MapF, LT, Arg0, Arg1> const& map, IndexArray const& position) const {
         int offset = m_grid_topology.ll_offset(position, map.location());
         return map.function()(_evaluate(map.template argument<0>(), position)
@@ -475,6 +478,7 @@ public:
               , typename Reduction
               , typename Map
               , typename IndexArray>
+    GT_FUNCTION
     double _evaluate(on_neighbors_impl<ValueType, LocationTypeT, Reduction, Map > onn, IndexArray const& position) const {
         using tt = typename grid_topology_t::edges;
         const auto neighbors = grid_topology_t::neighbors_indices_3(position
