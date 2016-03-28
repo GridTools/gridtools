@@ -49,13 +49,7 @@ namespace gridtools {
         >;
 
         template <typename LocationType, typename ValueType>
-        using storage_t = storage<
-            base_storage<
-                typename base_t::backend_traits_t::template pointer<ValueType>::type,
-                storage_info_t<LocationType>,
-                1
-            >
-        >;
+        using storage_t = typename base_t::template storage_type<ValueType, storage_info_t<LocationType> >::type;
 
     };
 } // namespace gridtools
