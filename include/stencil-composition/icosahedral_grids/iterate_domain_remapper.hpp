@@ -93,6 +93,7 @@ namespace gridtools {
                       , typename L
                       , int_t R
                       >
+            GT_FUNCTION
             auto operator()(on_neighbors_impl<
                               ValueType,
                               LocationTypeT,
