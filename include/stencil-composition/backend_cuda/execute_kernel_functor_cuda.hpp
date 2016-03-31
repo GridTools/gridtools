@@ -269,7 +269,7 @@ namespace gridtools {
 #endif
 
             // clang-format off
-            _impl_cuda::do_it_on_gpu<run_functor_arguments_cuda_t, local_domain_t><<<blocks, threads>>>//<<<nbx*nby, ntx*nty>>>
+            _impl_cuda::do_it_on_gpu<run_functor_arguments_cuda_t, local_domain_t>< <<blocks, threads> >>//<<<nbx*nby, ntx*nty>>>
             (local_domain_gp, grid_gp,
                  m_grid.i_low_bound(),
                  m_grid.j_low_bound(),
