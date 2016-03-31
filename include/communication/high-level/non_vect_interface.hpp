@@ -136,13 +136,13 @@ void pack(BOOST_PP_ENUM_BINARY_PARAMS(n_o_i, FIELD, const &_field)) const {
                     if (ii != 0 || jj != 0 || kk != 0) {
                         prefix_send_size[0 + translate()(ii, jj, kk)] = 0;
                         //(*filep) << "prefix_send_size[l*27+translate()(ii,jj,kk)]=prefix_send_size[%d]=%d\n" <<
-                        //0*27+translate()(ii,jj,kk) << prefix_send_size[0*27+translate()(ii,jj,kk)] << std::endl;
+                        // 0*27+translate()(ii,jj,kk) << prefix_send_size[0*27+translate()(ii,jj,kk)] << std::endl;
                         for (int l = 1; l < fields.size(); ++l) {
                             prefix_send_size[l * 27 + translate()(ii, jj, kk)] =
                                 prefix_send_size[(l - 1) * 27 + translate()(ii, jj, kk)] +
                                 fields[l - 1].send_buffer_size(make_array(ii, jj, kk));
                             //(*filep) << "prefix_send_size[l*27+translate()(ii,jj,kk)]=prefix_send_size[%d]=%d\n" <<
-                            //l*27+translate()(ii,jj,kk) << prefix_send_size[l*27+translate()(ii,jj,kk)] << std::endl;
+                            // l*27+translate()(ii,jj,kk) << prefix_send_size[l*27+translate()(ii,jj,kk)] << std::endl;
                         }
                     }
                 }

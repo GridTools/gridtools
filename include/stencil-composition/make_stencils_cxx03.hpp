@@ -41,7 +41,7 @@ namespace gridtools {
                    BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), EsfDescr) > > ();                                          \
     }
 
-// clang-format on
+    // clang-format on
     BOOST_PP_REPEAT(GT_MAX_INDEPENDENT, _MAKE_INDEPENDENT, _)
 #undef _MAKE_INDEPENDENT
 } // namespace gridtools

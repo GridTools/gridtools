@@ -112,7 +112,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_variadic_pack_of(boost::is_integral< T >::type::value...)), "wrong type");
             return gt_get< layout_vector[I] >::apply(args...);
         }
-#else // problem determining of the return type with NVCC
+#else  // problem determining of the return type with NVCC
         template < ushort_t I, typename First, typename... T >
         GT_FUNCTION static First constexpr select(First &f, T &... args) {
             GRIDTOOLS_STATIC_ASSERT((boost::is_integral< First >::type::value &&
