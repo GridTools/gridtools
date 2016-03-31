@@ -118,6 +118,7 @@ void m_packYL_generic(array_t const& fields,
 
     if (nbx!=0 && nby!=0 && nbz!=0) {
       // the actual kernel launch
+        // clang-format off
         m_packYLKernel_generic<<<blocks, threads, 0, YL_stream>>>
         (fields[i].ptr,
          reinterpret_cast<typename array_t::value_type::value_type**>(d_msgbufTab),
@@ -133,6 +134,7 @@ void m_packYL_generic(array_t const& fields,
         exit(-1);
       }
 #endif
+      // clang-format on
     }
   }
 

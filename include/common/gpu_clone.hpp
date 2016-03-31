@@ -71,7 +71,9 @@ The template argument T is supposed to be of mask_object type */
                              reinterpret_cast<const mask_object<const DerivedType>*>
                              ((static_cast<const DerivedType*>(this)));
 
+            // clang-format off
             construct<<<1,1>>>(*maskT);
+            // clang-format on
             cudaDeviceSynchronize();
         }
 

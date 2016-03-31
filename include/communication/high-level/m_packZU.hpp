@@ -1,20 +1,20 @@
 template <typename value_type>
-__global__ void m_packZUKernel(const value_type* __restrict__ d_data, 
-                               value_type** __restrict__ d_msgbufTab, int* d_msgsize, 
+__global__ void m_packZUKernel(const value_type* __restrict__ d_data,
+                               value_type** __restrict__ d_msgbufTab, int* d_msgsize,
                                const gridtools::halo_descriptor* halo/*_g*/, int const nx, int const ny, int const field_index){
- 
+
    // per block shared buffer for storing destination buffers
    __shared__ value_type* msgbuf[27];
    //__shared__ gridtools::halo_descriptor halo[3];
 
-   int idx = blockIdx.x * blockDim.x + threadIdx.x;  
-   int idy = blockIdx.y * blockDim.y + threadIdx.y;  
+   int idx = blockIdx.x * blockDim.x + threadIdx.x;
+   int idy = blockIdx.y * blockDim.y + threadIdx.y;
    int idz = blockIdx.z;
 
-   // load msg buffer table into shmem. Only the first 9 threads 
+   // load msg buffer table into shmem. Only the first 9 threads
    // need to do this
    if(threadIdx.x < 27 && threadIdx.y == 0) {
-    msgbuf[threadIdx.x] =  d_msgbufTab[threadIdx.x]; 
+    msgbuf[threadIdx.x] =  d_msgbufTab[threadIdx.x];
    }
 
    // an expression used later quite a bit
@@ -46,22 +46,22 @@ __global__ void m_packZUKernel(const value_type* __restrict__ d_data,
    int isrc  = ia + ib * halo[0].total_length() + ic * halo[0].total_length() * halo[1].total_length();
 
    if((idx < nx) && (idy < ny)) {
-     x =  d_data[isrc]; 
+     x =  d_data[isrc];
    }
 
    int ba = 1;
    int aas = 0;
-   int la = halo[0].end() - halo[0].begin() + 1; 
+   int la = halo[0].end() - halo[0].begin() + 1;
    if (idx < halo[0].plus()) {ba=0; la = halo[0].plus();}
    if (idx > aa) {ba=2; la = halo[0].minus(); aas=halo[0].end()-halo[0].begin()+1;}
-     
+
    int bb = 1;
    int abs = 0;
-   int lb = halo[1].end() - halo[1].begin() + 1; 
+   int lb = halo[1].end() - halo[1].begin() + 1;
    if (idy < halo[1].plus()) {bb=0; lb = halo[1].plus();}
    if (idy > ab) {bb=2; lb = halo[1].minus(); abs=halo[1].end()-halo[1].begin()+1;}
 
-   int bc = 2; 
+   int bc = 2;
    int lc = halo[2].minus();
 
    int b_ind = ba + 3*bb + 9*bc;
@@ -74,9 +74,9 @@ __global__ void m_packZUKernel(const value_type* __restrict__ d_data,
    int idst = oa + ob * la + oc * la * lb + field_index * d_msgsize[b_ind];;
 
    // at this point we need to be sure that threads 0 - 8 have loaded the
-   // message buffer table. 
+   // message buffer table.
    __syncthreads();
-  
+
     // store the data in the correct message buffer
     if((idx < nx) && (idy < ny)) {
       msgbuf[b_ind][idst] = x;
@@ -89,7 +89,7 @@ void m_packZU(array_t const& d_data_array, value_type** d_msgbufTab, int d_msgsi
             const gridtools::halo_descriptor halo_d[3])
 {
   // threads per block. Should be at least one warp in x, could be wider in y
-  const int ntx = 32;                 
+  const int ntx = 32;
   const int nty = 8;
   const int ntz = 1;
   dim3 threads(ntx, nty, ntz);
@@ -102,13 +102,13 @@ void m_packZU(array_t const& d_data_array, value_type** d_msgbufTab, int d_msgsi
   int nbx = (nx + ntx - 1) / ntx ;
   int nby = (ny + nty - 1) / nty ;
   int nbz = (nz + ntz - 1) / ntz ;
-  dim3 blocks(nbx, nby, nbz); // assuming halo[2].minus==halo[2].plus   
+  dim3 blocks(nbx, nby, nbz); // assuming halo[2].minus==halo[2].plus
 
-  if (nbx==0 || nby==0 || nbz==0) 
+  if (nbx==0 || nby==0 || nbz==0)
     return;
 
 #ifdef CUDAMSG
-  printf("packZU Launch grid (%d,%d,%d) with (%d,%d) threads, tot (%dx%dx%d)\n", nbx, nby, nbz, ntx, nty, nx, ny, nz); 
+  printf("packZU Launch grid (%d,%d,%d) with (%d,%d) threads, tot (%dx%dx%d)\n", nbx, nby, nbz, ntx, nty, nx, ny, nz);
 
 // just some timing stuff
   cudaEvent_t start, stop;
@@ -116,7 +116,7 @@ void m_packZU(array_t const& d_data_array, value_type** d_msgbufTab, int d_msgsi
   cudaEventCreate(&stop);
 
   cudaEventRecord(start, 0);
-#endif 
+#endif
 
   // run the compression a few times, just to get a bit
   // more statistics
@@ -124,13 +124,15 @@ void m_packZU(array_t const& d_data_array, value_type** d_msgbufTab, int d_msgsi
   for(int i=0; i < niter; i++){
 
      // the actual kernel launch
-    m_packZUKernel<<<blocks, threads, 0, ZU_stream>>>(d_data_array[i], d_msgbufTab, d_msgsize, halo_d, nx, ny, i); 
+      // clang-format off
+      m_packZUKernel<<<blocks, threads, 0, ZU_stream>>>(d_data_array[i], d_msgbufTab, d_msgsize, halo_d, nx, ny, i);
+      // clang-format on
 #ifdef CUDAMSG
     int err = cudaGetLastError();
     if(err != cudaSuccess){
       printf("Kernel launch failure\n");
       exit(-1);
-    } 
+    }
 #endif
   }
 
@@ -145,11 +147,11 @@ void m_packZU(array_t const& d_data_array, value_type** d_msgbufTab, int d_msgsi
 
   cudaEventDestroy(start);
   cudaEventDestroy(stop);
- 
-  double nnumb =  niter * (double) (nx * ny * halo[2].plus()); 
+
+  double nnumb =  niter * (double) (nx * ny * halo[2].plus());
   double nbyte =  nnumb * sizeof(double);
- 
-  printf("ZU Packed %g numbers in %g ms, BW = %g GB/s\n", 
+
+  printf("ZU Packed %g numbers in %g ms, BW = %g GB/s\n",
       nnumb, elapsedTime, (nbyte/(elapsedTime/1e3))/1e9);
 #endif
-} 
+}

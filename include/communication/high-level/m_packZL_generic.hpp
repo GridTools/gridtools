@@ -135,6 +135,7 @@ void m_packZL_generic(array_t const& fields,
 
     if (nbx!=0 && nby!=0 && nbz!=0) {
       // the actual kernel launch
+        // clang-format off
         m_packZLKernel_generic<<<blocks, threads, 0, ZL_stream>>>
         (fields[i].ptr,
          (d_msgbufTab),
@@ -143,6 +144,7 @@ void m_packZL_generic(array_t const& fields,
          nx,
          ny,
          0);
+        // clang-format on
 #ifdef CUDAMSG
       cudaError_t err = cudaGetLastError();
       if(err != cudaSuccess){

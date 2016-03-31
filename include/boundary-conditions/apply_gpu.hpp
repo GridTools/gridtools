@@ -83,6 +83,7 @@ namespace gridtools {
             uint_t nby = (ny + nty - 1) / nty;                             \
             uint_t nbz = (nz + ntz - 1) / ntz;                             \
             dim3 blocks(nbx, nby, nbz);                                 \
+            // clang-format off
             loop_kernel<<<blocks,threads>>>(boundary_function,          \
                                             Direction(),                \
                                             BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(n), data_field, .device_pointer() BOOST_PP_INTERCEPT ), \
@@ -90,6 +91,7 @@ namespace gridtools {
                                             halo_descriptors[1].loop_low_bound_outside(Direction::J), \
                                             halo_descriptors[2].loop_low_bound_outside(Direction::K), \
                                             nx, ny, nz);                \
+        // clang-format on
         }
 
         BOOST_PP_REPEAT(GT_MAX_ARGS, GTAPPLY_IT, _)

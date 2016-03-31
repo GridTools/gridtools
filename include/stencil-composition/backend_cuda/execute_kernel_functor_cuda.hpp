@@ -277,13 +277,15 @@ struct execute_kernel_functor_cuda
             printf("nx = %d, ny = %d, nz = 1\n",nx, ny);
 #endif
 
-        _impl_cuda::do_it_on_gpu<run_functor_arguments_cuda_t, local_domain_t><<<blocks, threads>>>//<<<nbx*nby, ntx*nty>>>
+            // clang-format off
+            _impl_cuda::do_it_on_gpu<run_functor_arguments_cuda_t, local_domain_t><<<blocks, threads>>>//<<<nbx*nby, ntx*nty>>>
             (local_domain_gp, grid_gp,
                  m_grid.i_low_bound(),
                  m_grid.j_low_bound(),
                  (nx),
                  (ny)
             );
+            // clang-format on
 
         //TODOCOSUNA we do not need this. It will block the host, and we want to continue doing other stuff
         cudaDeviceSynchronize();

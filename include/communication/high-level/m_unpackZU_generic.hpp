@@ -109,6 +109,7 @@ void m_unpackZU_generic(array_t const & fields,
 #endif
     if (nbx!=0 && nby!=0 && nbz!=0) {
       // the actual kernel launch
+        // clang-format off
         m_unpackZUKernel_generic<<<blocks, threads, 0, ZU_stream>>>
         (fields[i].ptr,
          reinterpret_cast<typename array_t::value_type::value_type**>(d_msgbufTab_r),
@@ -118,6 +119,7 @@ void m_unpackZU_generic(array_t const & fields,
          (fields[i].halos[0].begin()-fields[i].halos[0].minus())
          + (fields[i].halos[1].begin()-fields[i].halos[1].minus())*fields[i].halos[0].total_length()
          + (fields[i].halos[2].end()+1)*fields[i].halos[0].total_length() *fields[i].halos[1].total_length(), 0 );
+        // clang-format on
 #ifdef CUDAMSG
       cudaError_t err = cudaGetLastError();
       if(err != cudaSuccess){

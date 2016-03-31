@@ -104,6 +104,7 @@ void m_unpackXL_generic(array_t & fields,
 
     if (nbx!=0 && nby!=0 && nbz!=0) {
       // the actual kernel launch
+        // clang-format off
         m_unpackXLKernel_generic<<<blocks, threads, 0, XL_stream>>>
         (fields[i].ptr,
          reinterpret_cast<typename array_t::value_type::value_type**>(d_msgbufTab_r),
@@ -113,6 +114,8 @@ void m_unpackXL_generic(array_t & fields,
          (fields[i].halos[0].begin()-fields[i].halos[0].minus())
          + (fields[i].halos[1].begin())*fields[i].halos[0].total_length()
          + (fields[i].halos[2].begin())*fields[i].halos[0].total_length() *fields[i].halos[1].total_length(), 0);
+        // clang-format on
+
 #ifdef CUDAMSG
       int err = cudaGetLastError();
       if(err != cudaSuccess){
