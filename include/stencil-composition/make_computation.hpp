@@ -7,7 +7,6 @@
 #include <boost/mpl/filter_view.hpp>
 #include <boost/ref.hpp>
 
-
 #include <boost/preprocessor/repetition/repeat.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>
 #include <boost/preprocessor/repetition/enum_binary_params.hpp>
@@ -28,7 +27,8 @@
 #ifndef NDEBUG
 #define POSITIONAL_WHEN_DEBUGGING true
 #ifndef SUPPRESS_MESSAGES
-#pragma message (">>\n>> In debug mode each computation is positional,\n>> so the loop indices can be queried from within\n>> the operator functions")
+#pragma message( \
+    ">>\n>> In debug mode each computation is positional,\n>> so the loop indices can be queried from within\n>> the operator functions")
 #endif
 #else
 #define POSITIONAL_WHEN_DEBUGGING false

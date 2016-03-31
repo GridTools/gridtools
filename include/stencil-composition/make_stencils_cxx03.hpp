@@ -11,33 +11,37 @@
 
 namespace gridtools {
 
-#define _MAKE_MSS(z, ITN, nil)                                                                                                                        \
-    template <typename ExecutionEngine,                                                                                                               \
-              BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), typename EsfDescr) >                                                                            \
-    mss_descriptor<                                                                                                                                   \
-        ExecutionEngine,                                                                                                                              \
-        typename extract_mss_esfs<BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(ITN)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), EsfDescr) > >::type,   \
-        typename extract_mss_caches<BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(ITN)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), EsfDescr) > >::type  \
-    >                                                                                                                                                 \
-    make_mss(ExecutionEngine const&, BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(ITN), EsfDescr, const& BOOST_PP_INTERCEPT) ) {                          \
-        return mss_descriptor<                                                                                                                        \
-            ExecutionEngine,                                                                                                                          \
-            typename extract_mss_esfs<BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(ITN)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), EsfDescr) > >::type,   \
-            typename extract_mss_caches<BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(ITN)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), EsfDescr) > >::type  \
-        >();                                                                                                                                              \
+// clang-format off
+#define _MAKE_MSS(z, ITN, nil)                                                                                \
+    template < typename ExecutionEngine, BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), typename EsfDescr) >         \
+    mss_descriptor< ExecutionEngine,                                                                          \
+        typename extract_mss_esfs< BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(ITN)) <                      \
+                                   BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), EsfDescr) > >::type,               \
+        typename extract_mss_caches< BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(ITN)) <                    \
+                                     BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), EsfDescr) > > ::type >            \
+            make_mss(ExecutionEngine const &,                                                                 \
+                BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(ITN), EsfDescr, const &BOOST_PP_INTERCEPT)) {        \
+        return mss_descriptor< ExecutionEngine,                                                               \
+                   typename extract_mss_esfs< BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(ITN)) <           \
+                                              BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), EsfDescr) > >::type,    \
+               typename extract_mss_caches< BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(ITN)) <             \
+                                            BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), EsfDescr) > > ::type > (); \
     }
 
     BOOST_PP_REPEAT(GT_MAX_ARGS, _MAKE_MSS, _)
 #undef _MAKE_MSS
 
-#define _MAKE_INDEPENDENT(z, ITN, nil)                                  \
-    template <typename EsfDescr,                                        \
-              BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), typename EsfDescr) > \
-    independent_esf< BOOST_PP_CAT(boost::mpl::vector,BOOST_PP_INC(BOOST_PP_INC(ITN))) <EsfDescr, BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), EsfDescr)> > \
-    make_independent(EsfDescr const&, BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(ITN), EsfDescr, const& BOOST_PP_INTERCEPT) ) { \
-        return independent_esf<BOOST_PP_CAT(boost::mpl::vector,BOOST_PP_INC(BOOST_PP_INC(ITN)))<EsfDescr, BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), EsfDescr)> >(); \
+#define _MAKE_INDEPENDENT(z, ITN, nil)                                                                               \
+    template < typename EsfDescr, BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), typename EsfDescr) >                       \
+        independent_esf< BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(BOOST_PP_INC(ITN))) < EsfDescr,               \
+            BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), EsfDescr) > >                                                     \
+        make_independent(                                                                                            \
+            EsfDescr const &, BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(ITN), EsfDescr, const &BOOST_PP_INTERCEPT)) { \
+        return independent_esf< BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(BOOST_PP_INC(ITN))) < EsfDescr,        \
+                   BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), EsfDescr) > > ();                                          \
     }
 
+// clang-format on
     BOOST_PP_REPEAT(GT_MAX_INDEPENDENT, _MAKE_INDEPENDENT, _)
 #undef _MAKE_INDEPENDENT
 } // namespace gridtools

@@ -5,45 +5,38 @@
 
 namespace gridtools {
 
-/**
-* @class timer_host
-* host implementation of the Timer interface
-*/
-class timer_host : public timer<timer_host> // CRTP
-{
-public:
-    timer_host(std::string name) : timer<timer_host> (name) { startTime_ = 0.0; }
-    ~timer_host() {}
-
     /**
-    * Reset counters
+    * @class timer_host
+    * host implementation of the Timer interface
     */
-    void reset_impl()
+    class timer_host : public timer< timer_host > // CRTP
     {
-        startTime_ = 0.0;
-    }
+      public:
+        timer_host(std::string name) : timer< timer_host >(name) { startTime_ = 0.0; }
+        ~timer_host() {}
 
-    /**
-    * Start the stop watch
-    */
-    void start_impl()
-    {
-        startTime_ = omp_get_wtime();
-    }
+        /**
+        * Reset counters
+        */
+        void reset_impl() { startTime_ = 0.0; }
 
-    /**
-    * Pause the stop watch
-    */
-    double pause_impl()
-    {
+        /**
+        * Start the stop watch
+        */
+        void start_impl() { startTime_ = omp_get_wtime(); }
+
+        /**
+        * Pause the stop watch
+        */
+        double pause_impl() {
 #if defined(_OPENMP)
-        return omp_get_wtime() - startTime_;
+            return omp_get_wtime() - startTime_;
 #else
-        return -100;
+            return -100;
 #endif
-    }
+        }
 
-private:
-    double startTime_;
-};
+      private:
+        double startTime_;
+    };
 }
