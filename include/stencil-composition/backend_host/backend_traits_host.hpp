@@ -47,7 +47,11 @@ namespace gridtools{
         template <typename ValueType, typename MetaData, bool Temp, short_t FieldDim=1>
         struct storage_traits{
             GRIDTOOLS_STATIC_ASSERT((is_meta_storage<MetaData>::value), "wrong type for the storage_info");
-            typedef storage<base_storage<typename pointer<ValueType>::type, MetaData, FieldDim > >   storage_t;
+            typedef base_storage<typename pointer<ValueType>::type, MetaData, FieldDim >   storage_t;
+        };
+
+        struct default_alignment{
+            typedef aligned<0> type;
         };
 
         /**
@@ -55,10 +59,14 @@ namespace gridtools{
 
            the storage info type is meta_storage_base, which is not clonable to GPU.
          */
-        template <typename MetaData, bool Temp>
+        template <typename IndexType, typename Layout, bool Temp, typename Halo, typename Alignment>
         struct meta_storage_traits{
-            GRIDTOOLS_STATIC_ASSERT((is_meta_storage<MetaData>::value), "wrong type for the storage_info");
-            typedef meta_storage_base<MetaData::index_type::value, typename MetaData::layout, Temp> type;
+            GRIDTOOLS_STATIC_ASSERT((is_layout_map<Layout>::value), "wrong type for the storage_info");
+            GRIDTOOLS_STATIC_ASSERT(is_halo<Halo>::type::value, "wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_aligned<Alignment>::type::value,"wrong type");
+
+            typedef meta_storage_aligned<meta_storage_base<IndexType::value, Layout, Temp>, Alignment, Halo> type;
+
         };
 
         template <typename Arguments>
@@ -108,8 +116,10 @@ namespace gridtools{
             return 0;
         }
 
-        template <uint_t Id>
+        template <uint_t Id, typename BlockSize>
         struct once_per_block {
+            GRIDTOOLS_STATIC_ASSERT((is_block_size<BlockSize>::value), "Error: wrong type");
+
             template<typename Left, typename Right>
             GT_FUNCTION//inline
             static void assign(Left& l, Right const& r){

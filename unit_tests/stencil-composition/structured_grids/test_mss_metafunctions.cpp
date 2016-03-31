@@ -1,11 +1,9 @@
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
-#include "common/defs.hpp"
-#include "stencil-composition/backend.hpp"
-#include "stencil-composition/caches/cache_metafunctions.hpp"
-#include "stencil-composition/caches/define_caches.hpp"
-#include "stencil-composition/interval.hpp"
-#include "stencil-composition/stencil-composition.hpp"
+// #include "stencil-composition/caches/cache_metafunctions.hpp"
+// #include "stencil-composition/caches/define_caches.hpp"
+// #include "stencil-composition/interval.hpp"
+#include <stencil-composition/stencil-composition.hpp>
 
 
 using namespace gridtools;
@@ -32,8 +30,8 @@ struct functor1 {
 #endif
 
 typedef layout_map<2,1,0> layout_ijk_t;
-typedef gridtools::BACKEND::storage_type<float_type, storage_info<0,layout_ijk_t> >::type storage_type;
-typedef gridtools::BACKEND::temporary_storage_type<float_type, storage_info<0,layout_ijk_t> >::type tmp_storage_type;
+typedef gridtools::BACKEND::storage_type<float_type, gridtools::BACKEND::storage_info<0,layout_ijk_t> >::type storage_type;
+typedef gridtools::BACKEND::temporary_storage_type<float_type, gridtools::BACKEND::storage_info<0,layout_ijk_t> >::type tmp_storage_type;
 
 typedef arg<0, storage_type> p_in;
 typedef arg<1, storage_type> p_out;
@@ -41,7 +39,7 @@ typedef arg<2, tmp_storage_type> p_buff;
 
 TEST(mss_metafunctions, extract_mss_caches_and_esfs)
 {
-    typename storage_type::meta_data_t meta_(10, 10, 10);
+    typename storage_type::storage_info_type meta_(10, 10, 10);
     storage_type in(meta_, 1.0, "in"), out(meta_, 1.0, "out");
 
     typedef decltype(make_esf<functor1>(p_in(), p_buff())) esf1_t;

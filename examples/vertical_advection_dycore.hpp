@@ -253,14 +253,19 @@ bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t_steps) {
     grid.value_list[0] = 0;
     grid.value_list[1] = d3-1;
 
-//todo simplify the following using the auto keyword from C++11
-#ifdef __CUDACC__
-    gridtools::computation* vertical_advection =
+#ifdef CXX11_ENABLED
+    auto
 #else
-        boost::shared_ptr<gridtools::computation> vertical_advection =
+#ifdef __CUDACC__
+    gridtools::computation*
+#else
+    boost::shared_ptr<gridtools::computation>
 #endif
-        gridtools::make_computation<vertical_advection::va_backend>
+#endif
+        vertical_advection = gridtools::make_computation<vertical_advection::va_backend>
         (
+            domain,
+            grid,
             gridtools::make_mss // mss_descriptor
             (
                 execute<forward>(),
@@ -288,9 +293,7 @@ bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t_steps) {
                         p_dcol(),
                         p_data_col()
                 )
-            ),
-            domain,
-            grid
+            )
         );
 
     vertical_advection->ready();
@@ -307,10 +310,10 @@ bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t_steps) {
 #ifdef CXX11_ENABLED
     verifier verif(1e-13);
     array<array<uint_t, 2>, 3> halos{{ {halo_size, halo_size}, {halo_size,halo_size}, {halo_size,halo_size} }};
-    bool result = verif.verify(repository.utens_stage_ref(), repository.utens_stage(), halos);
+    bool result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage(), halos);
 #else
     verifier verif(1e-13, halo_size);
-    bool result = verif.verify(repository.utens_stage_ref(), repository.utens_stage());
+    bool result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage());
 #endif
 
 

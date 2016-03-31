@@ -3,16 +3,47 @@
 #include <boost/type_traits/is_const.hpp>
 
 #include "accessor.hpp"
-#include "stencil-composition/domain_type.hpp"
-#include "common/generic_metafunctions/is_sequence_of.hpp"
-#include "stencil-composition/esf_fwd.hpp"
-#include "stencil-composition/sfinae.hpp"
+#include "../domain_type.hpp"
+#include "../../common/generic_metafunctions/is_sequence_of.hpp"
+#include "../esf_fwd.hpp"
+#include "../sfinae.hpp"
 
 /**
    @file
    @brief Descriptors for Elementary Stencil Function (ESF)
 */
 namespace gridtools {
+
+    namespace _impl {
+        /**
+           Metafunction to check that the arg_list mpl::vector list the
+           different accessors in order!
+        */
+        template <typename ArgList>
+        struct check_arg_list {
+            template <typename Reduced, typename Element>
+            struct _check {
+                typedef typename boost::mpl::if_c<
+                    (Element::index_type::value == Reduced::value+1),
+                    boost::mpl::int_<Reduced::value+1>,
+                    boost::mpl::int_<-Reduced::value-1>
+                    >::type type;
+            };
+
+            typedef typename boost::mpl::fold<
+                ArgList,
+                boost::mpl::int_<-1>,
+                _check<boost::mpl::_1, boost::mpl::_2>
+                >::type res_type;
+
+            typedef typename boost::mpl::if_c<
+                (res_type::value+1 == boost::mpl::size<ArgList>::value),
+                boost::true_type,
+                boost::false_type>::type type;
+
+            static const bool value = type::value;
+        };
+    } // namespace _impl
 
     /**
      * @brief Descriptors for Elementary Stencil Function (ESF)
@@ -23,19 +54,22 @@ namespace gridtools {
                 "check the make_esf syntax");
     private:
 
+        GRIDTOOLS_STATIC_ASSERT((_impl::check_arg_list<typename ESF::arg_list>::value == true), "There is a problem in the arg_list a the functor. Please, ensure that the accessors are listed in order from index 0 to the last");
+
         /** Private metafunction that associates (in a mpl::map) placeholders to extents.
             It returns a mpl::map between placeholders and extents of the local arguments.
          */
         template <typename Placeholders, typename LocalArgs>
         struct _make_map {
 
+#ifdef PEDANTIC //with global accessors this assertion fails (since they are not in the LocalArgs)
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<Placeholders>::value == boost::mpl::size<LocalArgs>::value),
                  "Size of placeholder arguments passed to esf \n"
                  "    make_esf<functor>(arg1(), arg2()) )\n"
                  "does not match the list of arguments defined within the ESF, like\n"
                  "    typedef boost::mpl::vector<arg_in, arg_out> arg_list."
                  );
-
+#endif
             /** Given the list of placeholders (Plcs) and the list of arguemnts of a
                 stencil operator (LocalArgs), this struct will insert the placeholder type
                 (as key) and the corresponding extent into an mpl::map.
@@ -54,7 +88,8 @@ namespace gridtools {
                 };
             };
 
-            typedef typename boost::mpl::range_c<uint_t, 0, boost::mpl::size<Placeholders>::type::value> iter_range;
+            //Note: only the accessors of storage type are considered in the sequence
+            typedef typename boost::mpl::range_c<uint_t, 0, boost::mpl::size<LocalArgs>::type::value> iter_range;
 
             /** Here the iteration begins by filling an empty map */
             typedef typename boost::mpl::fold<
@@ -82,7 +117,7 @@ namespace gridtools {
            errors in case it is not defined.
         */
         HAS_TYPE_SFINAE(arg_list, has_arg_list, get_arg_list)
-        GRIDTOOLS_STATIC_ASSERT(has_arg_list<esf_function>::type::value, "The type arg_list was not found in a user functor definition. All user functors must have a type alias called \'arg_list\', which is an MPL vector containing the list of accessors defined in the functor (NOTE: the \'generic_accessor\' types are excluded from this list). Example: \n\n using v1=accessor<0>; \n using v2=generic_accessor<1>; \n using v3=accessor<2>; \n using arg_list=boost::mpl::vector<v1, v3>;");
+        GRIDTOOLS_STATIC_ASSERT(has_arg_list<esf_function>::type::value, "The type arg_list was not found in a user functor definition. All user functors must have a type alias called \'arg_list\', which is an MPL vector containing the list of accessors defined in the functor (NOTE: the \'global_accessor\' types are excluded from this list). Example: \n\n using v1=accessor<0>; \n using v2=generic_accessor<1, enumtype::in>; \n using v3=accessor<2>; \n using arg_list=boost::mpl::vector<v1, v3>;");
         //checking that all the placeholders have a different index
         /**
          * \brief Get a sequence of the same type as original_placeholders, containing the indexes relative to the placehoolders

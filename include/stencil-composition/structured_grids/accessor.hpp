@@ -1,7 +1,7 @@
 #pragma once
-#include "stencil-composition/structured_grids/accessor_impl.hpp"
-#include "stencil-composition/arg.hpp"
-#include "stencil-composition/dimension.hpp"
+#include "./accessor_impl.hpp"
+#include "../arg.hpp"
+#include "../dimension.hpp"
 /**
    @file
 
@@ -25,12 +25,14 @@
 
 namespace gridtools {
 
+
+
     /**
        @brief the definition of accessor visible to the user
 
        \tparam ID the integer unic ID of the field placeholder
 
-       \tparam Extend the extent of i/j indices spanned by the
+       \tparam Extent the extent of i/j indices spanned by the
                placeholder, in the form of <i_minus, i_plus, j_minus,
                j_plus>.  The values are relative to the current
                position. See e.g. horizontal_diffusion::out_function
@@ -43,9 +45,9 @@ namespace gridtools {
                field dimensions or space dimension will be decided at the
                moment of the storage instantiation (in the main function)
      */
-    template < uint_t ID, enumtype::intend Intend=enumtype::in, typename Extend=extent<0,0,0,0,0,0>, ushort_t Number=3>
-    struct accessor : public accessor_base<ID, Intend, Extend, Number> {
-        typedef accessor_base<ID, Intend, Extend, Number> super;
+    template < uint_t ID, enumtype::intend Intend=enumtype::in, typename Extent=extent<0,0,0,0,0,0>, ushort_t Number=3>
+    struct accessor : public accessor_base<ID, Intend, Extent, Number> {
+        typedef accessor_base<ID, Intend, Extent, Number> super;
         typedef typename super::index_type index_type;
 #ifdef CXX11_ENABLED
 
@@ -64,24 +66,24 @@ namespace gridtools {
 
         //move ctor
         GT_FUNCTION
-        constexpr explicit accessor(accessor<ID, Intend, Extend, Number>&& other) : super(std::move(other)) {}
+        constexpr explicit accessor(accessor<ID, Intend, Extent, Number>&& other) : super(std::move(other)) {}
 
         //copy ctor
         GT_FUNCTION
-        constexpr accessor(accessor<ID, Intend, Extend, Number> const& other) : super(other) {
+        constexpr accessor(accessor<ID, Intend, Extent, Number> const& other) : super(other) {
         }
 #endif
 #else
 
         //copy ctor
         GT_FUNCTION
-        constexpr explicit accessor(accessor<ID, Intend, Extend, Number> const& other) : super(other) {}
+        constexpr explicit accessor(accessor<ID, Intend, Extent, Number> const& other) : super(other) {}
 
         //copy ctor from an accessor with different ID
         template<ushort_t OtherID>
         GT_FUNCTION
-        constexpr explicit accessor(const accessor<OtherID, Intend, Extend, Number>& other) :
-            super(static_cast<accessor_base<OtherID, Intend, Extend, Number> >(other)) {}
+        constexpr explicit accessor(const accessor<OtherID, Intend, Extent, Number>& other) :
+            super(static_cast<accessor_base<OtherID, Intend, Extent, Number> >(other)) {}
 
         GT_FUNCTION
         constexpr explicit accessor(): super() {}
@@ -109,7 +111,7 @@ namespace gridtools {
 #endif
     };
 
-#if defined(CXX11_ENABLED) && !defined(CUDA_CXX11_BUG_1)
+#if defined(CXX11_ENABLED) && !defined(CUDA_CXX11_BUG_1) && !defined(__INTEL_COMPILER)
 
     /**@brief same as accessor but mixing run-time offsets with compile-time ones
 
@@ -128,9 +130,9 @@ namespace gridtools {
         typedef typename ArgType::index_type index_type;
     private:
         static constexpr accessor_base<ArgType::index_type::value
-                                             , ArgType::intend_t::value
-                                             , typename ArgType::extent_type
-                                             , ArgType::n_dim> s_args_constexpr{
+                                       , ArgType::intend_t::value
+                                       , typename ArgType::extent_type
+                                       , ArgType::n_dim> s_args_constexpr{
             dimension<Pair::first>{Pair::second} ... };
 
         accessor_base<ArgType::index_type::value
@@ -157,7 +159,6 @@ namespace gridtools {
         get_constexpr(){
             GRIDTOOLS_STATIC_ASSERT(Idx<s_args_constexpr.n_dim, "the idx must be smaller than the arg dimension");
             GRIDTOOLS_STATIC_ASSERT(Idx>=0, "the idx must be larger than 0");
-
             GRIDTOOLS_STATIC_ASSERT(s_args_constexpr.template get<Idx>()>=0, "there is a negative offset. If you did this on purpose recompile with the PEDANTIC_DISABLED flag on.");
             return s_args_constexpr.template get<Idx>();
         }
@@ -181,16 +182,34 @@ namespace gridtools {
                                   , ArgType::n_dim> accessor_mixed<ArgType, Pair...>::s_args_constexpr;
 
 
-/**this struct allows the specification of SOME of the arguments before instantiating the offset_tuple.
-   It is a language keyword.
-*/
-    template <typename Callable, typename ... Known>
+    /**
+       @brief this struct allows the specification of SOME of the arguments before instantiating the offset_tuple.
+       It is a language keyword. Usage examples can be found in the unit test \ref accessor_tests.hpp.
+       Possible interfaces:
+       - runtime alias
+\verbatim
+alias<arg_t, dimension<3> > field1(-3); //records the offset -3 as dynamic value
+\endverbatim
+       field1(args...) is then equivalent to arg_t(dimension<3>(-3), args...)
+       - compiletime alias
+\verbatim
+        using field1 = alias<arg_t, dimension<7> >::set<-3>;
+\endverbatim
+       field1(args...) is then equivalent to arg_t(dimension<7>(-3), args...)
+
+       NOTE: noone checks that you did not specify the same dimension twice. If that happens, the first occurrence of the dimension is chosen
+    */
+    template <typename AccessorType, typename ... Known>
     struct alias{
+        GRIDTOOLS_STATIC_ASSERT(is_accessor<AccessorType>::value,
+                                "wrong type. If you want to generalize the alias to something more generic than an offset_tuple remove this assert.");
+        GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension<Known>::value ...),
+                                "wrong type");
 
         template <int Arg1, int Arg2> struct pair_
         {
-            static const int first=Arg1;
-            static const int second=Arg2;
+            static const constexpr int first=Arg1;
+            static const constexpr int second=Arg2;
         };
 
         /**
@@ -200,7 +219,7 @@ namespace gridtools {
            For a usage example check the exaples folder
         */
         template<int ... Args>
-        using set=accessor_mixed< Callable, pair_<Known::direction,Args> ... >;
+        using set=accessor_mixed< AccessorType, pair_<Known::direction,Args> ... >;
 
         /**@brief constructor
        \param args are the offsets which are already known*/
@@ -212,15 +231,22 @@ namespace gridtools {
         typedef boost::mpl::vector<Known...> dim_vector;
 
         /** @brief operator calls the constructor of the offset_tuple
+
             \param unknowns are the parameters which were not known beforehand. They might be instances of
             the dimension class. Together with the m_knowns offsets form the arguments to be
-            passed to the Callable functor (which is normally an instance of offset_tuple)
+            passed to the AccessorType functor (which is normally an instance of offset_tuple)
         */
-    template<typename ... Unknowns>
-    GT_FUNCTION
-    Callable/*&&*/ operator() ( Unknowns/*&&*/ ... unknowns  ) const
-    {
-        return Callable(dimension<Known::direction> (m_knowns[boost::mpl::find<dim_vector, Known>::type::pos::value]) ... , unknowns ...);}
+        template<typename ... Unknowns>
+        GT_FUNCTION
+        AccessorType/*&&*/ operator() ( Unknowns/*&&*/ ... unknowns  ) const
+        {
+#ifdef PEDANTIC //the runtime arguments are not necessarily dimension<>()
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension<Unknowns>::value ...), "wrong type");
+#endif
+            return AccessorType(dimension<Known::direction> (
+                                   m_knowns[boost::mpl::find<dim_vector, Known>::type::pos::value])
+                               ... , unknowns ...);
+        }
 
     private:
         //store the list of offsets which are already known on an array
@@ -229,11 +255,11 @@ namespace gridtools {
 #endif
 
 #ifdef CXX11_ENABLED
-    template <uint_t ID, typename Extend=extent<0,0,0,0,0,0>, ushort_t Number=3>
-    using in_accessor = accessor<ID, enumtype::in, Extend, Number>;
+    template <uint_t ID, typename Extent=extent<0,0,0,0,0,0>, ushort_t Number=3>
+    using in_accessor = accessor<ID, enumtype::in, Extent, Number>;
 
-    template <uint_t ID, typename Extend=extent<0,0,0,0,0,0>, ushort_t Number=3>
-    using inout_accessor = accessor<ID, enumtype::inout, Extend, Number>;
+    template <uint_t ID, typename Extent=extent<0,0,0,0,0,0>, ushort_t Number=3>
+    using inout_accessor = accessor<ID, enumtype::inout, Extent, Number>;
 #endif
 
 } // namespace gridtools

@@ -9,7 +9,6 @@
 
 #define BOOST_NO_CXX11_RVALUE_REFERENCES
 
-#include <cuda_runtime.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
@@ -18,7 +17,7 @@
 #include <boost/fusion/include/make_vector.hpp>
 #include <boost/mpl/vector.hpp>
 
-#include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 using gridtools::uint_t;
 using gridtools::int_t;
@@ -26,7 +25,7 @@ using gridtools::int_t;
 struct out_value {
     template <typename T>
     __host__ __device__
-    void operator()(T *x) const {
+    void operator()(gridtools::pointer<T> x) const {
         for (uint_t i=0; i<3; ++i) {
             for (uint_t j=0; j<3; ++j) {
                 for (uint_t k=0; k<3; ++k) {
@@ -103,13 +102,13 @@ bool test_domain() {
 #else
     typedef gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Naive > backend_t;
 #endif
-    typedef typename backend_t::storage_type<double, gridtools::storage_info<0,gridtools::layout_map<0,1,2> > >::type storage_type;
+    typedef typename backend_t::storage_type<double, backend_t::storage_info<0,gridtools::layout_map<0,1,2> > >::type storage_type;
 
     uint_t d1 = 3;
     uint_t d2 = 3;
     uint_t d3 = 3;
 
-    typename storage_type::meta_data_t meta_(d1,d2,d3);
+    typename storage_type::storage_info_type meta_(d1,d2,d3);
     storage_type in(meta_, -1, ("in"));
     storage_type out(meta_,-7.3, ("out"));
     storage_type coeff(meta_,-3.4, ("coeff"));
@@ -150,9 +149,9 @@ bool test_domain() {
         (boost::fusion::make_vector(&coeff, &in, &out /*,&fly, &flx*/));
 
     typedef boost::mpl::vector<
-        gridtools::_impl::select_storage<accessor_list>::template apply<gridtools::static_int<0> >::type,
-        gridtools::_impl::select_storage<accessor_list>::template apply<gridtools::static_int<1> >::type,
-        gridtools::_impl::select_storage<accessor_list>::template apply<gridtools::static_int<2> >::type
+        gridtools::_impl::select_storage<accessor_list, boost::mpl::na>::template apply<gridtools::static_int<0> >::type,
+        gridtools::_impl::select_storage<accessor_list, boost::mpl::na>::template apply<gridtools::static_int<1> >::type,
+        gridtools::_impl::select_storage<accessor_list, boost::mpl::na>::template apply<gridtools::static_int<2> >::type
     > mpl_accessor_list;
 
     typedef typename boost::fusion::result_of::as_vector<mpl_accessor_list>::type actual_arg_list_type;
@@ -168,8 +167,7 @@ bool test_domain() {
         , boost::mpl::insert<boost::mpl::_1, gridtools::pointer
                              <boost::add_const
                               <gridtools::storage2metadata
-                               <boost::remove_pointer<boost::mpl::_2>
-                                >
+                               <boost::mpl::_2>
                                >
                               >
                              >
@@ -212,9 +210,9 @@ bool test_domain() {
 #endif
     domain.finalize_computation();
 
-    coeff.data().update_cpu();
-    in.data().update_cpu();
-    out.data().update_cpu();
+    coeff.d2h_update();
+    in.d2h_update();
+    out.d2h_update();
 
     boost::fusion::copy(domain.m_storage_pointers, actual_arg_list);
 
@@ -239,18 +237,18 @@ bool test_domain() {
 
     domain.finalize_computation();
 
-    coeff.data().update_cpu();
-    in.data().update_cpu();
-    out.data().update_cpu();
+    coeff.d2h_update();
+    in.d2h_update();
+    out.d2h_update();
 
     cudaFree(arg_list_device_ptr);
 
-    out_value()(&host_in);
-    out_value()(&host_in);
-    out_value()(&host_out);
-    out_value()(&host_out);
-    out_value()(&host_coeff);
-    out_value()(&host_coeff);
+    out_value()(make_pointer(host_in));
+    out_value()(make_pointer(host_in));
+    out_value()(make_pointer(host_out));
+    out_value()(make_pointer(host_out));
+    out_value()(make_pointer(host_coeff));
+    out_value()(make_pointer(host_coeff));
 
     bool failed = false;
     failed |= !the_same(in, host_in);

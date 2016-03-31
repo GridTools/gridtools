@@ -34,8 +34,8 @@ namespace gridtools {
                 : m_arg_list(arg_list_)
                 , m_local_list(local_list_)
             {
-                // GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ArgList, is_storage>::value), "wrong type");
-                // GRIDTOOLS_STATIC_ASSERT((is_sequence_of<LocalList, is_arg>::value), "wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ArgList, is_pointer>::value), "wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_sequence_of<LocalList, is_pointer>::value), "wrong type");
             }
 
             template <typename Id>
@@ -287,8 +287,10 @@ namespace gridtools {
             >::type type;
         };
 
+        //********** members *****************
         local_args_type m_local_args;
         local_metadata_type m_local_metadata;
+        //********** end members *****************
 
         template <typename Dom, typename IsActuallyClonable, uint_t DUMMY = 0>
         struct pointer_if_clonable {

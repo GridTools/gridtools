@@ -1,7 +1,7 @@
 #pragma once
 
 namespace gridtools {
-template<enumtype::backend BackendId, enumtype::strategy StrategyType >
+template<enumtype::platform BackendId, enumtype::strategy StrategyType >
 struct backend;
 
 //traits for backend

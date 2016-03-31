@@ -159,22 +159,25 @@ bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps)
     grid.value_list[0] = 0;
     grid.value_list[1] = d3-1;
 
-// \todo simplify the following using the auto keyword from C++11
-#ifdef __CUDACC__
-    gridtools::computation* simple_hori_diff =
+#ifdef CXX11_ENABLED
+    auto
 #else
-        boost::shared_ptr<gridtools::computation> simple_hori_diff =
+#ifdef __CUDACC__
+        gridtools::computation*
+#else
+        boost::shared_ptr<gridtools::computation>
 #endif
-        gridtools::make_computation<gridtools::BACKEND>
+#endif
+       simple_hori_diff = gridtools::make_computation<gridtools::BACKEND>
         (
+            domain, grid,
             gridtools::make_mss // mss_descriptor
             (
                 execute<forward>(),
                 define_caches(cache<IJ, p_lap, local>()),
                 gridtools::make_esf<wlap_function>(p_lap(), p_in(), p_crlato(), p_crlatu()), // esf_descriptor
                 gridtools::make_esf<divflux_function>(p_out(), p_in(), p_lap(), p_crlato(), p_coeff())
-            ),
-            domain, grid
+            )
         );
 
     simple_hori_diff->ready();
@@ -191,10 +194,10 @@ bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps)
 #ifdef CXX11_ENABLED
     verifier verif(1e-13);
     array<array<uint_t, 2>, 3> halos{{ {halo_size, halo_size}, {halo_size,halo_size}, {halo_size,halo_size} }};
-    bool result = verif.verify(repository.out_ref(), repository.out(), halos);
+    bool result = verif.verify(grid, repository.out_ref(), repository.out(), halos);
 #else
     verifier verif(1e-13, halo_size);
-    bool result = verif.verify(repository.out_ref(), repository.out());
+    bool result = verif.verify(grid, repository.out_ref(), repository.out());
 #endif
 
     if(!result){

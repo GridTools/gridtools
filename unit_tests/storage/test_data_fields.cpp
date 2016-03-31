@@ -8,8 +8,8 @@ using namespace gridtools;
 
 TEST(storage, test_data_field)
 {
-    typedef base_storage<wrap_pointer<int>, storage_info<0, layout_map<0,1> > > storage_t;
-    storage_info<0, layout_map<0,1> > meta_(1,1);
+    typedef base_storage<wrap_pointer<int>, backend<Host, Naive >::storage_info<0, layout_map<0,1> > > storage_t;
+    backend<Host, Naive >::storage_info<0, layout_map<0,1> > meta_(1,1);
 
     field<storage_t, 3,2,4>::type datafield(meta_, 0, "data");
 

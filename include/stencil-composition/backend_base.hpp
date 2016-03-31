@@ -25,6 +25,8 @@
 #include "common/meta_array.hpp"
 #include "stencil-composition/tile.hpp"
 #include "storage/meta_storage.hpp"
+#include "../storage/halo.hpp"
+#include "conditionals/condition.hpp"
 
 /**
    @file
@@ -49,14 +51,14 @@ namespace gridtools {
                   typename ValueType,
                   uint_t BI, uint_t BJ,
                   typename StrategyTraits,
-                  enumtype::backend BackendID>
+                  enumtype::platform BackendID>
         struct get_storage_type {
             template <typename MapElem>
             struct apply {
                 typedef typename boost::mpl::second<MapElem>::type extent_type;
                 typedef typename boost::mpl::first<MapElem>::type temporary;
 
-                typedef pair<
+                typedef pair_type<
                 typename StrategyTraits::template get_tmp_storage<
                     typename temporary::storage_type
                     , tile<BI, -extent_type::iminus::value, extent_type::iplus::value>
@@ -119,7 +121,7 @@ namespace gridtools {
         - - (INTERNAL) for_each that is used to invoke the different things for different stencils in the MSS
         - - (INTERNAL) once_per_block
     */
-    template< enumtype::backend BackendId, enumtype::strategy StrategyId >
+    template< enumtype::platform BackendId, enumtype::strategy StrategyId >
     struct backend_base
     {
         typedef backend_traits_from_id<BackendId> backend_traits_t;
@@ -127,7 +129,7 @@ namespace gridtools {
 
         typedef backend_base<BackendId, StrategyId> this_type;
         static const enumtype::strategy s_strategy_id=StrategyId;
-        static const enumtype::backend s_backend_id =BackendId;
+        static const enumtype::platform s_backend_id =BackendId;
 
         /** types of the functions used to compute the thread grid information
             for allocating the temporary storages and such
@@ -140,10 +142,67 @@ namespace gridtools {
             typedef typename backend_traits_t::template
                 storage_traits<
                     ValueType,
-                    typename backend_traits_t::template meta_storage_traits<MetaDataType, false>::type,
-                    false
+                typename backend_traits_t::template meta_storage_traits<
+                    typename MetaDataType::index_type
+                    , typename MetaDataType::layout
+                    , false
+                    , typename MetaDataType::halo_t
+                    , typename MetaDataType::alignment_t>::type,
+                false
                 >::storage_t type;
         };
+
+#ifdef CXX11_ENABLED
+
+        /**
+           @brief syntactic sugar for the metadata type definition
+
+           \tparam Index an index used to differentiate the types also when there's only runtime
+           differences (e.g. only the storage dimensions differ)
+           \tparam Layout the map of the layout in memory
+           \tparam IsTemporary boolean flag set to true when the storage is a temporary one
+           \tmaram ... Tiles variadic argument containing the information abount the tiles
+           (for the Block strategy)
+
+           syntax example:
+           using metadata_t=storage_info<0,layout_map<0,1,2> >
+
+           NOTE: the information specified here will be used at a later stage
+           to define the storage meta information (the meta_storage_base type)
+        */
+        template < ushort_t Index
+                   , typename Layout
+                   , typename Halo = typename repeat_template_c<0, Layout::length, halo>::type
+                   , typename Alignment = typename backend_traits_t::default_alignment::type
+                   >
+        using storage_info = typename backend_traits_t::template meta_storage_traits<static_uint<Index>, Layout, false, Halo, Alignment>::type;
+
+#else
+        template < ushort_t Index
+                   , typename Layout
+                   , typename Halo = halo<0,0,0>
+                   , typename Alignment = typename backend_traits_t::default_alignment::type
+                   >
+        struct storage_info :
+            public backend_traits_t::template meta_storage_traits<static_uint<Index>
+                                                                  , Layout
+                                                                  , false
+                                                                  , Halo
+                                                                  , Alignment>::type
+        {
+            typedef  typename backend_traits_t::template meta_storage_traits<static_uint<Index>
+                                                                             , Layout
+                                                                             , false
+                                                                             , Halo
+                                                                             , Alignment>::type super;
+
+            storage_info(uint_t const& d1, uint_t const& d2, uint_t const& d3) : super(d1,d2,d3){}
+
+                        GT_FUNCTION
+                        storage_info(storage_info const& t) : super(t){}
+        };
+
+#endif
 
         /**
          * @brief metafunction determining the type of a temporary storage (based on the layout)
@@ -163,8 +222,12 @@ namespace gridtools {
         private:
             typedef typename backend_traits_t::template storage_traits<
                 ValueType,
-                typename backend_traits_t::template meta_storage_traits<MetaDataType, true>::type,
-                true
+            typename backend_traits_t::template meta_storage_traits<typename MetaDataType::index_type
+                                                                    , typename MetaDataType::layout
+                                                                    , true
+                                                                    , typename MetaDataType::halo_t
+                                                                    , typename MetaDataType::alignment_t>::type,
+            true
             >::storage_t temp_storage_t;
         public:
             typedef typename boost::mpl::if_<
@@ -258,6 +321,18 @@ namespace gridtools {
             >::type type;
         };
 
+        template <typename Domain, typename MssArray1, typename MssArray2, typename Cond>
+        struct obtain_map_extents_temporaries_mss_array<Domain, condition<MssArray1, MssArray2, Cond> > {
+            GRIDTOOLS_STATIC_ASSERT((is_domain_type<Domain>::value), "Internal Error: wrong type");
+
+            typedef typename obtain_map_extents_temporaries_mss_array<Domain, MssArray1>::type type1;
+            typedef typename obtain_map_extents_temporaries_mss_array<Domain, MssArray2>::type type2;
+            typedef typename boost::mpl::fold< type2
+                                               ,type1
+                                               ,boost::mpl::insert<boost::mpl::_1, boost::mpl::_2>
+                                               >::type type;
+
+        };
 
         /**
          * @brief compute a list with all the temporary storage types used by an array of mss
@@ -272,7 +347,7 @@ namespace gridtools {
                   >
         struct obtain_temporary_storage_types {
 
-            GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_condition<MssComponentsArray>::value || is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
             GRIDTOOLS_STATIC_ASSERT((is_domain_type<Domain>::value), "Internal Error: wrong type");
 
             typedef typename backend_traits_t::template get_block_size<StrategyId>::type block_size_t;
@@ -303,6 +378,7 @@ namespace gridtools {
                     >::template apply<boost::mpl::_2>
                 >
             >::type type;
+
         };
 
 
@@ -326,7 +402,6 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssLocalDomainArray, is_mss_local_domain>::value), "Internal Error: wrong type");
             GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
             GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
-
             strategy_traits_t::template fused_mss_loop<MssComponentsArray, BackendId>::run(mss_local_domain_list, grid);
         }
 
@@ -364,11 +439,19 @@ namespace gridtools {
 
             n_j_pes()(size): number of threads on the second dimension of the thread grid
         */
-        static query_j_threads_f n_j_pes() {
+     static query_j_threads_f n_j_pes() {
             return &backend_traits_t::n_j_pes;
         }
 
 
     }; // struct backend_base {
+
+    template<  template<ushort_t, typename, typename, typename> class StorageInfo
+              , ushort_t Index
+              , typename Layout
+              , typename Halo
+              , typename Alignment
+              >
+    struct is_meta_storage<StorageInfo<Index, Layout, Halo, Alignment> >: boost::mpl::true_{};
 
 } // namespace gridtools

@@ -136,6 +136,9 @@ else
     STRUCTURED_GRIDS="OFF"
 fi
 
+echo "Printing ENV"
+env
+
 cmake \
 -DBoost_NO_BOOST_CMAKE="true" \
 -DCUDA_NVCC_FLAGS:STRING="--relaxed-constexpr" \
@@ -167,14 +170,14 @@ exit_if_error $?
 log_file="/tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}.log"
 echo "Log file /tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}.log"
 if [[ "$SILENT_BUILD" == "ON" ]]; then
-    make -j8  >& ${log_file};
+    make -j5  >& ${log_file};
     error_code=$?
     if [ ${error_code} -ne 0 ]; then
         cat ${log_file};
         exit_if_error ${error_code}
     fi
 else
-    make -j8
+    make -j10
     exit_if_error $?
 fi
 

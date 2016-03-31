@@ -1,18 +1,18 @@
 #pragma once
 
-#include "storage/storage.hpp"
-#include "common/layout_map.hpp"
 #include <boost/type_traits/integral_constant.hpp>
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/include/for_each.hpp>
-#include <vector>
-#include "common/is_temporary_storage.hpp"
-#include "stencil-composition/offset_tuple.hpp"
-#include "storage/storage_metafunctions.hpp"
-#include "storage/storage.hpp"
+
 #include "common/layout_map.hpp"
+#include "common/is_temporary_storage.hpp"
+
+#include "storage/storage.hpp"
+#include "storage/storage_metafunctions.hpp"
+
+#include "stencil-composition/offset_tuple.hpp"
 #include "stencil-composition/extent.hpp"
 
 #ifdef CXX11_ENABLED
@@ -28,7 +28,7 @@ namespace gridtools {
     template <ushort_t>
     struct dimension;
 
-    template <uint_t I, typename T>
+    template <uint_t I, typename T, typename Cond>
     struct arg;
 
     /**
@@ -65,7 +65,10 @@ namespace gridtools {
         typedef enumtype::enum_type<enumtype::intend, Intend> intend_t;
         typedef Extend extent_type;
 
+    private:
+        offset_tuple<n_dim, n_dim> m_offsets;
 
+    public:
         /**@brief Default constructor
            NOTE: the following constructor when used with the brace initializer produces with nvcc a considerable amount of extra instructions (gcc 4.8.2), and degrades the performances (which is probably a compiler bug, I couldn't reproduce it on a small test).*/
         GT_FUNCTION
@@ -149,9 +152,6 @@ namespace gridtools {
         GT_FUNCTION
         constexpr const offset_tuple<n_dim, n_dim>& offsets() const { return m_offsets;}
 
-    private:
-
-        offset_tuple<n_dim, n_dim> m_offsets;
     };
 
 //################################################################################
@@ -168,8 +168,8 @@ namespace gridtools {
     /**
      * Struct to test if an argument is a placeholder - Specialization yielding true
      */
-    template <uint_t I, typename T>
-    struct is_plchldr<arg<I,T> > : boost::true_type
+    template <uint_t I, typename T, typename C>
+    struct is_plchldr<arg<I,T,C> > : boost::true_type
     {};
 
     /**
@@ -181,15 +181,15 @@ namespace gridtools {
     /**
      * Struct to test if an argument (placeholder) is a temporary no_storage_type_yet - Specialization yielding true
      */
-    template <uint_t I, typename T>
-    struct is_plchldr_to_temp<arg<I, no_storage_type_yet<T> > > : boost::true_type
+    template <uint_t I, typename T, typename C>
+    struct is_plchldr_to_temp<arg<I, no_storage_type_yet<T>, C > > : boost::true_type
     {};
 
     /**
      * Struct to test if an argument is a placeholder to a temporary storage
      */
-    template <uint_t I, typename T, typename U, ushort_t Dim>
-    struct is_plchldr_to_temp<arg<I, base_storage< T, U, Dim> > > : boost::mpl::bool_<U::is_temporary>
+    template <uint_t I, typename T, typename U, ushort_t Dim, typename C>
+    struct is_plchldr_to_temp<arg<I, base_storage< T, U, Dim>, C > > : boost::mpl::bool_<U::is_temporary>
     {};
 
     /**
@@ -198,12 +198,12 @@ namespace gridtools {
      storage class, falls back on the original class type here the
      decorator is the \ref gridtools::storage
     */
-    template <uint_t I, typename BaseType, template <typename T> class Decorator>
-    struct is_plchldr_to_temp<arg<I, Decorator<BaseType> > > : is_plchldr_to_temp<arg<I, typename BaseType::basic_type> >
+    template <uint_t I, typename BaseType, template <typename T> class Decorator, typename C>
+    struct is_plchldr_to_temp<arg<I, Decorator<BaseType>, C > > : is_plchldr_to_temp<arg<I, typename BaseType::basic_type, C> >
     {};
 
-    template <uint_t I, typename BaseType>
-    struct is_plchldr_to_temp<arg<I, storage<BaseType> > > : is_plchldr_to_temp<arg<I, typename BaseType::basic_type> >
+    template <uint_t I, typename BaseType, typename C>
+    struct is_plchldr_to_temp<arg<I, storage<BaseType>, C > > : is_plchldr_to_temp<arg<I, typename BaseType::basic_type, C> >
     {};
 
     /**
@@ -236,8 +236,8 @@ namespace gridtools {
      * @param n/a Type selector for offset_tuple
      * @return ostream
      */
-    template <uint_t I, typename R>
-    std::ostream& operator<<(std::ostream& s, arg<I,no_storage_type_yet<R> > const&) {
+    template <uint_t I, typename R, typename C>
+    std::ostream& operator<<(std::ostream& s, arg<I,no_storage_type_yet<R>, C > const&) {
         return s << "[ arg< " << I
                  << ", temporary<something>" << " > ]";
     }
@@ -248,10 +248,9 @@ namespace gridtools {
      * @param n/a Type selector for arg to a NON temp
      * @return ostream
      */
-    template <uint_t I, typename R>
-    std::ostream& operator<<(std::ostream& s, arg<I,R> const&) {
+    template <uint_t I, typename R, typename C>
+    std::ostream& operator<<(std::ostream& s, arg<I,R,C> const&) {
         return s << "[ arg< " << I
                  << ", NON TEMP" << " > ]";
     }
-
 } // namespace gridtools

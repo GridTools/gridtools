@@ -111,8 +111,8 @@ TEST(Laplace, test) {
     /**
        - definition of the storage type, depending on the BACKEND which is set as a macro. \todo find another strategy for the backend (policy pattern)?
     */
-    typedef storage_info<0, layout_t> storage_info_t;
-    typedef gridtools::BACKEND::storage_type<float_type, storage_info_t >::type storage_type;
+    typedef BACKEND::storage_info<0, layout_t> storage_info_t;
+    typedef BACKEND::storage_type<float_type, storage_info_t >::type storage_type;
 // [storage_type]
 
 // [storage_initialization]
@@ -181,20 +181,24 @@ TEST(Laplace, test) {
          \note in reality this call does nothing at runtime (besides assigning the runtime variables domain and grid), it only calls the constructor of the intermediate struct which is empty. the work done at compile time is documented in the \ref gridtools::intermediate "intermediate" class.
          \todo why is this function even called? It just needs to be compiled, in order to get the return type (use a typedef).
        */
-
-#ifdef __CUDACC__
-    computation* laplace =
+#ifdef CXX11_ENABLED
+       auto
 #else
-    boost::shared_ptr<gridtools::computation> laplace =
+#ifdef __CUDACC__
+       computation*
+#else
+       boost::shared_ptr<gridtools::computation>
 #endif
-      make_computation<gridtools::BACKEND>
+#endif
+       laplace = make_computation<gridtools::BACKEND>
         (
+         domain, grid,
          make_mss //! \todo all the arguments in the call to make_mss are actually dummy.
          (
           execute<forward>(),//!\todo parameter used only for overloading purpose?
           make_esf<lap_function>(p_out(), p_in())//!  \todo elementary stencil function, also here the arguments are dummy.
-          ),
-         domain, grid);
+          )
+         );
 // [computation]
 
 // [ready_steady_run_finalize]
@@ -211,16 +215,10 @@ TEST(Laplace, test) {
  */
     laplace->steady();
 
-#ifndef CUDA_EXAMPLE
-    boost::timer::cpu_timer time;
-#endif
 /**
    Call to gridtools::intermediate::run, which calls Backend::run, does the actual stencil operations on the backend.
  */
     laplace->run();
-#ifndef CUDA_EXAMPLE
-    boost::timer::cpu_times lapse_time = time.elapsed();
-#endif
 
     laplace->finalize();
 
@@ -243,10 +241,10 @@ TEST(Laplace, test) {
 #ifdef CXX11_ENABLED
     verifier verif(1e-13);
     array<array<uint_t, 2>, 3> halos{{ {halo_size,halo_size}, {halo_size,halo_size}, {halo_size,halo_size} }};
-    bool result = verif.verify(out, ref, halos);
+    bool result = verif.verify(grid, out, ref, halos);
 #else
     verifier verif(1e-13, halo_size);
-    bool result = verif.verify(out, ref);
+    bool result = verif.verify(grid, out, ref);
 #endif
 
 #ifdef BENCHMARK

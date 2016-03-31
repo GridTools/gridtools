@@ -31,7 +31,7 @@ struct shallow_water_reference{
     static constexpr uint_t im1=-strides[0];
     static constexpr uint_t jm1=-strides[1];
 
-    typename storage_type::meta_data_t solution_meta;
+    typename storage_type::storage_info_type solution_meta;
     storage_type solution;
     float_type  u_array[size];
     float_type  v_array[size];

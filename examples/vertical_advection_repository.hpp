@@ -20,12 +20,12 @@ public:
 #endif
     typedef gridtools::layout_map<-1,-1,-1> layout_scalar;
 
-    typedef gridtools::storage_info<0,layout_ijk> storage_info_ijk_t;
-    typedef gridtools::storage_info<0,layout_ij> storage_info_ij_t;
-    typedef gridtools::storage_info<0,layout_scalar> storage_info_scalar_t;
+    typedef va_backend::storage_info<0,layout_ijk,gridtools::halo<3,0,0> > storage_info_ijk_t;
+    typedef va_backend::storage_info<0,layout_ij,gridtools::halo<3,0,0> > storage_info_ij_t;
+    typedef va_backend::storage_info<0,layout_scalar,gridtools::halo<3,0,0> > storage_info_scalar_t;
 
-    typedef gridtools::storage_info<0,layout_ijk> storage_info_ijk_tmp_t;
-    typedef gridtools::storage_info<0,layout_scalar> storage_info_scalar_tmp_t;
+    typedef va_backend::storage_info<0,layout_ijk,gridtools::halo<3,0,0> > storage_info_ijk_tmp_t;
+    typedef va_backend::storage_info<0,layout_scalar,gridtools::halo<3,0,0> > storage_info_scalar_tmp_t;
 
     typedef va_backend::storage_type<gridtools::float_type, storage_info_ijk_t >::type storage_type;
     typedef va_backend::storage_type<gridtools::float_type, storage_info_ij_t >::type ij_storage_type;
@@ -57,8 +57,8 @@ public:
         // set the fields to advect
         const double PI = std::atan(1.)*4.;
 
-        const uint_t i_begin = 0;
-        const uint_t i_end=  idim_;
+        const uint_t i_begin = 3;
+        const uint_t i_end=  idim_+3;
         const uint_t j_begin = 0;
         const uint_t j_end=  jdim_;
         const uint_t k_begin = 0;
@@ -108,7 +108,7 @@ public:
         const bool has_dim2 = TStorage_type::basic_type::layout::template at<2>() != -1;
         for(int k=0; k < (has_dim2 ? kdim_ : 1); ++k)
         {
-            for (int i = 0; i < (has_dim0 ? idim_ : 1); ++i)
+            for (int i = 3; i < (has_dim0 ? idim_+3 : 1); ++i)
             {
                 for (int j = 0; j < (has_dim1 ? jdim_ : 1); ++j)
                 {
@@ -122,9 +122,9 @@ public:
     {
         double dtr_stage = dtr_stage_(0,0,0);
 
-        ij_storage_type::meta_data_t storage_info_ij(idim_, jdim_, (uint_t)1);
+        ij_storage_type::storage_info_type storage_info_ij(idim_, jdim_, (uint_t)1);
         ij_storage_type datacol(storage_info_ij, -1., "datacol");
-        storage_type::meta_data_t storage_info_(idim_, jdim_, kdim_);
+        storage_type::storage_info_type storage_info_(idim_, jdim_, kdim_);
         storage_type ccol(storage_info_, -1., "ccol"), dcol(storage_info_, -1., "dcol");
 
         init_field_to_value(ccol, 0.0);
@@ -225,7 +225,7 @@ public:
     void update_cpu()
     {
 #ifdef CUDA_EXAMPLE
-        utens_stage_.data().update_cpu();
+        utens_stage_.d2h_update();
 #endif
     }
 
@@ -271,8 +271,8 @@ public:
     storage_type& u_stage() {return u_stage_;}
     storage_type& utens_stage_ref() {return utens_stage_ref_;}
 private:
-    storage_type::meta_data_t m_storage_info;
-    scalar_storage_type::meta_data_t m_scalar_storage_info;
+    storage_type::storage_info_type m_storage_info;
+    scalar_storage_type::storage_info_type m_scalar_storage_info;
     storage_type utens_stage_, u_stage_, wcon_, u_pos_, utens_, utens_stage_ref_;
     storage_type ipos_, jpos_, kpos_;
     scalar_storage_type dtr_stage_;

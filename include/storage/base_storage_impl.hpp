@@ -2,10 +2,10 @@
 #include <gridtools.hpp>
 #include "common/defs.hpp"
 #include <boost/lexical_cast.hpp>
-#include "../common/gt_assert.hpp"
 #include "../common/is_temporary_storage.hpp"
 #include <iostream>
 #include "../common/generic_metafunctions/gt_integer_sequence.hpp"
+#include "../common/generic_metafunctions/all_integrals.hpp"
 
 namespace gridtools{
     namespace _impl
@@ -36,22 +36,23 @@ namespace gridtools{
         };
 
         /**@brief functor to assign all the strides */
-        template<short_t MaxIndex,  typename Layout>
+        template<int_t MaxIndex,  typename Layout>
         struct assign_all_strides{
 
-            template <uint_t T>
+            template <int_t T>
             using lambda=next_stride<MaxIndex-T, MaxIndex, Layout>;
 
-            template<typename ... UIntType>
-            static constexpr array<uint_t, MaxIndex> apply(UIntType ... args){
-                using seq = apply_gt_integer_sequence<typename make_gt_integer_sequence<uint_t, sizeof ... (args)>::type >;
-                return seq::template apply<array<uint_t, MaxIndex>, lambda>((uint_t)args...);
+            template<typename ... UIntType, typename Dummy=all_integers<UIntType ...> >
+            static constexpr array<int_t, MaxIndex >
+            apply(UIntType ... args){
+                using seq = apply_gt_integer_sequence<typename make_gt_integer_sequence<int_t, sizeof ... (args)>::type >;
+                return seq::template apply<array<int_t, MaxIndex>, lambda>( (int_t)args...);
             }
         };
 
 #endif
 
-/**@brief struct to compute the total offset (the sum of the i,j,k indices times their respective strides)
+        /**@brief struct to compute the total offset (the sum of the i,j,k indices times their respective strides)
  */
         template<ushort_t Id, typename Layout>
         struct compute_offset{
@@ -69,7 +70,7 @@ namespace gridtools{
             }
 
 #ifdef CXX11_ENABLED
-            /**interface with an the coordinates as variadic arguments
+            /**interface with the coordinates as variadic arguments
                \param strides the strides
                \param indices comma-separated list of coordinates
             */

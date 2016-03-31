@@ -7,12 +7,8 @@
 
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
-#include "common/defs.hpp"
-#include "stencil-composition/backend.hpp"
-#include "stencil-composition/caches/cache_metafunctions.hpp"
-#include "stencil-composition/interval.hpp"
-#include "stencil-composition/stencil-composition.hpp"
-#include "common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
+#include <stencil-composition/stencil-composition.hpp>
+#include <common/generic_metafunctions/fusion_map_to_mpl_map.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
@@ -30,7 +26,7 @@ struct functor1 {
 };
 
 typedef layout_map<0,1> layout_ij_t;
-typedef gridtools::backend<enumtype::Host, enumtype::Naive >::storage_type<float_type, storage_info<0,layout_ij_t> >::type storage_type;
+typedef backend<Host, Naive >::storage_type<float_type, backend<Host, Naive >::storage_info<0,layout_ij_t> >::type storage_type;
 
 typedef arg<0, storage_type> p_in;
 typedef arg<2, storage_type> p_out;
@@ -64,12 +60,20 @@ TEST(cache_metafunctions, extract_extents_for_caches)
     typedef boost::mpl::vector2< extent<-1,2,-2,1>, extent<-2,1,-3,2> > extents_t;
     typedef gridtools::interval<gridtools::level<0,-2>, gridtools::level<1,1> > axis;
 
+    typedef typename boost::mpl::fold<
+        extents_t,
+        extent<0,0,0,0>,
+        enclosing_extent<boost::mpl::_1, boost::mpl::_2>
+    >::type max_extent_t;
+
     typedef iterate_domain_arguments<
-        enumtype::enum_type<enumtype::backend, enumtype::Host>,
+        enumtype::enum_type<enumtype::platform, enumtype::Host>,
         local_domain_t,
         esf_sequence_t,
         extents_t,
+        max_extent_t,
         caches_t,
+        block_size<32,4>,
         block_size<32,4>,
         gridtools::grid<axis>
     > iterate_domain_arguments_t;
@@ -87,22 +91,29 @@ TEST(cache_metafunctions, extract_extents_for_caches)
 
 TEST(cache_metafunctions, get_cache_storage_tuple)
 {
-    typedef metadata_set<boost::mpl::vector1<storage_type::meta_data_t > > metadata_vector_t;
+    typedef metadata_set<boost::mpl::vector1<storage_type::storage_info_type > > metadata_vector_t;
     typedef boost::mpl::vector3<storage_type, storage_type, storage_type> storages_t;
     typedef boost::fusion::result_of::as_vector<storages_t>::type storages_tuple_t;
     typedef boost::mpl::vector3<p_in, p_buff, p_out> esf_args_t;
     typedef local_domain< storages_tuple_t, metadata_vector_t, esf_args_t, false> local_domain_t;
 
     typedef boost::mpl::vector2< extent<-1,2,-2,1>, extent<-2,1,-3,2> > extents_t;
-
+    typedef typename boost::mpl::fold<
+        extents_t,
+        extent<0,0,0,0>,
+        enclosing_extent<boost::mpl::_1, boost::mpl::_2>
+    >::type max_extent_t;
+  
     typedef gridtools::interval<gridtools::level<0,-2>, gridtools::level<1,1> > axis;
 
     typedef iterate_domain_arguments<
-        enumtype::enum_type<enumtype::backend, enumtype::Host>,
+        enumtype::enum_type<enumtype::platform, enumtype::Host>,
         local_domain_t,
         esf_sequence_t,
         extents_t,
+        max_extent_t,
         caches_t,
+        block_size<32,4>,
         block_size<32,4>,
         gridtools::grid<axis>
     > iterate_domain_arguments_t;

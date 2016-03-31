@@ -51,12 +51,7 @@ namespace copy_stencil{
     void handle_error(int_t)
     {std::cout<<"error"<<std::endl;}
 
-    typedef storage_info< 0,layout_t> meta_data_t;
-
-    // typedef storage_info_wrapper<meta_storage<0,layout_t, false> > meta_data_t;
     bool test(uint_t x, uint_t y, uint_t z) {
-
-        meta_data_t meta_data_(x,y,z);
 
         uint_t d1 = x;
         uint_t d2 = y;
@@ -71,6 +66,9 @@ namespace copy_stencil{
 #define BACKEND backend<Host, Naive >
 #endif
 #endif
+
+        typedef BACKEND::storage_info< 0,layout_t> meta_data_t;
+        meta_data_t meta_data_(x,y,z);
 
         //                   strides  1 x xy
         //                      dims  x y z
@@ -123,21 +121,25 @@ namespace copy_stencil{
         */
 
         // \todo simplify the following using the auto keyword from C++11
-#ifdef __CUDACC__
-        gridtools::computation* copy =
+#ifdef CXX11_ENABLED
+        auto
 #else
-            boost::shared_ptr<gridtools::computation> copy =
+#ifdef __CUDACC__
+        gridtools::computation*
+#else
+            boost::shared_ptr<gridtools::computation>
 #endif
-            gridtools::make_computation<gridtools::BACKEND>
+#endif
+            copy = gridtools::make_computation<gridtools::BACKEND>
             (
+                domain, grid,
                 gridtools::make_mss // mss_descriptor
                 (
                     execute<forward>(),
                     gridtools::make_esf<copy_functor>(
                         p_in() // esf_descriptor
                         )
-                ),
-                domain, grid
+                )
             );
 
         copy->ready();

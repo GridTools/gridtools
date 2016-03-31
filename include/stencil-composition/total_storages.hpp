@@ -15,11 +15,8 @@ namespace gridtools {
         template<typename Index_>
         struct get_field_dimensions{
             typedef typename boost::mpl::int_<
-                 boost::remove_pointer<
-                     typename boost::remove_reference<
-                         typename boost::mpl::at<StoragesVector, Index_ >::type
-                     >::type
-                 >::type::field_dimensions
+                boost::mpl::at<StoragesVector, Index_ >::type::value_type
+                ::field_dimensions
              >::type type;
         };
 
@@ -27,7 +24,7 @@ namespace gridtools {
             (EndIndex < 0),
             boost::mpl::int_<0>,
             typename boost::mpl::fold<
-                typename reversed_range< int_t, 0, EndIndex >::type,
+                typename reversed_range< uint_t, 0, EndIndex >::type,
                 boost::mpl::int_<0>,
                 boost::mpl::plus<
                     boost::mpl::_1,

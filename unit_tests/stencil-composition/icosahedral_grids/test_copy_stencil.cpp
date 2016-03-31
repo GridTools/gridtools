@@ -15,8 +15,8 @@ namespace cs_test{
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
     struct test_functor {
-        typedef ro_accessor<0, icosahedral_topology_t::cells, radius<1> > in;
-        typedef accessor<1, icosahedral_topology_t::cells> out;
+        typedef in_accessor<0, icosahedral_topology_t::cells, radius<1> > in;
+        typedef inout_accessor<1, icosahedral_topology_t::cells> out;
         typedef boost::mpl::vector2<in, out> arg_list;
 
         template <typename Evaluation>
@@ -75,20 +75,24 @@ TEST(test_copy_stencil, run) {
     grid_.value_list[0] = 0;
     grid_.value_list[1] = d3-1;
 
-#ifdef __CUDACC__
-        gridtools::computation* copy =
+#ifdef CXX11_ENABLED
+    auto
 #else
-            boost::shared_ptr<gridtools::computation> copy =
+#ifdef __CUDACC__
+        gridtools::computation*
+#else
+            boost::shared_ptr<gridtools::computation>
 #endif
-            gridtools::make_computation<backend_t >
+#endif
+            copy = gridtools::make_computation<backend_t >
             (
+                domain, grid_,
                 gridtools::make_mss // mss_descriptor
                 (
                     execute<forward>(),
                     gridtools::make_esf<test_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(
                         p_in_cells(), p_out_cells() )
-                ),
-                domain, grid_
+                )
             );
     copy->ready();
     copy->steady();
@@ -97,5 +101,5 @@ TEST(test_copy_stencil, run) {
     verifier ver(1e-10);
 
     array<array<uint_t, 2>, 4> halos = {{ {halo_nc, halo_nc},{0,0},{halo_mc, halo_mc},{halo_k, halo_k} }};
-    EXPECT_TRUE(ver.verify(in_cells, out_cells, halos));
+    EXPECT_TRUE(ver.verify(grid_, in_cells, out_cells, halos));
 }

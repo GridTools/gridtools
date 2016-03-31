@@ -1,11 +1,10 @@
 #pragma once
 
 #include <boost/static_assert.hpp>
-#include "defs.hpp"
-#include "gridtools.hpp"
-#include "common/array.hpp"
+#include "../gridtools.hpp"
+
 /*@file
-@bief  The following class describes a boolean list of length N.
+@brief  The following class describes a boolean list of length N.
 
 */
 namespace gridtools {

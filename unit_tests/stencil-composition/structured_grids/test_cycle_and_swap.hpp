@@ -30,12 +30,12 @@ namespace test_cycle_and_swap{
         typedef inout_accessor<0, extent<>, 4> p_data;
         typedef dimension<4> time;
         static x::Index i;
-        static y::Index j; 
+        static y::Index j;
 
         typedef decltype(i) i_t;
         typedef decltype(j) j_t;
 
-   
+
         typedef boost::mpl::vector<p_data> arg_list;
         template <typename Evaluation>
         GT_FUNCTION
@@ -60,15 +60,14 @@ namespace test_cycle_and_swap{
     bool test_2D(){
 
         typedef gridtools::layout_map<0,1> layout_t;
-        typedef gridtools::storage_info<0, layout_t> meta_t;
+        typedef gridtools::BACKEND::storage_info<0, layout_t> meta_t;
         typedef gridtools::BACKEND::storage_type<uint_t, meta_t >::type storage_type;
         typedef typename field<storage_type, 2>::type field_t;
 
-        meta_t meta_( 1, 1);
-        field_t i_data (meta_);
-        i_data.allocate();
-        i_data.get_value<0,0>(0,0)=0.;
-        i_data.get_value<1,0>(0,0)=1.;
+        meta_t meta_( 1u, 1u);
+        field_t i_data (meta_, 0, "in");
+        i_data.get_value<0,0>(0,0)=0;
+        i_data.get_value<1,0>(0,0)=1;
 
         uint_t di[5] = {0, 0, 0, 0, 1};
         uint_t dj[5] = {0, 0, 0, 0, 1};
@@ -85,12 +84,12 @@ namespace test_cycle_and_swap{
         auto comp =
             gridtools::make_computation<gridtools::BACKEND>
             (
+                domain, grid,
                 gridtools::make_mss
                 (
                     execute<forward>(),
                     gridtools::make_esf<functor>(p_i_data())
-                    ),
-                domain, grid
+                    )
                 );
 
 
@@ -110,18 +109,16 @@ namespace test_cycle_and_swap{
         const uint_t d3 = 3;
 
         typedef gridtools::layout_map<0,1,2> layout_t;
-        typedef gridtools::storage_info<0, layout_t> meta_t;
+        typedef gridtools::BACKEND::storage_info<0, layout_t> meta_t;
         typedef gridtools::BACKEND::storage_type<uint_t, meta_t >::type storage_type;
         typedef typename field<storage_type, 2>::type field_t;
 
         meta_t meta_( d1, d2, d3);
-        field_t i_data (meta_);
-        field_t reference(meta_);
+        field_t i_data (meta_, 0, "in");
+        field_t reference(meta_, 0, "reference");
 
-        i_data.allocate();
-        reference.allocate();
-        i_data.get_value<0,0>(0,0)=0.;
-        i_data.get_value<1,0>(0,0)=1.;
+        i_data.get_value<0,0>(0,0,0)=0.;
+        i_data.get_value<1,0>(0,0,0)=1.;
 
         const uint_t halo_size=1;
         uint_t di[5] = {halo_size, halo_size, halo_size, d1-halo_size-1, d1};
@@ -139,12 +136,12 @@ namespace test_cycle_and_swap{
         auto comp =
             gridtools::make_computation<gridtools::BACKEND>
             (
+                domain, grid,
                 gridtools::make_mss
                 (
                     execute<forward>(),
                     gridtools::make_esf<functor_avg>(p_i_data())
-                    ),
-                domain, grid
+                    )
                 );
 
         //fill the input (snapshot 0) with some initial data
@@ -159,7 +156,7 @@ namespace test_cycle_and_swap{
             }
         }
 
-        // compute a reference field using the same initial data. It is computed using a two time level field. 
+        // compute a reference field using the same initial data. It is computed using a two time level field.
         // output reference will be stored in reference<1,0>
         for(uint_t k=0; k < d3; ++k)
         {
@@ -177,7 +174,7 @@ namespace test_cycle_and_swap{
                     reference.get_value<1,0>(i,j,k) =  (reference.get_value<0,0>(i+1,j,k) + reference.get_value<0,0>(i-1,j,k))*(float_t)0.5;
                 }
             }
- 
+
         }
 
 
@@ -193,7 +190,7 @@ namespace test_cycle_and_swap{
 
         verifier verif(1e-13);
         array<array<uint_t, 2>, 3> halos{{ {halo_size+1, halo_size+1}, {halo_size+1,halo_size+1}, {halo_size+1,halo_size+1} }};
-        return verif.verify(reference, i_data, halos);
+        return verif.verify(grid, reference, i_data, halos);
 
     }
 

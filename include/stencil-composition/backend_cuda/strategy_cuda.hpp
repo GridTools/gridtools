@@ -39,7 +39,7 @@ namespace gridtools{
          * @tparam MssComponentsArray a meta array with the mss components of all MSS
          * @tparam BackendId id of the backend
          */
-        template<typename MssComponentsArray, enumtype::backend BackendId>
+        template<typename MssComponentsArray, enumtype::platform BackendId>
         struct fused_mss_loop
         {
             GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error: wrong type");
@@ -59,7 +59,7 @@ namespace gridtools{
         };
 
         //NOTE: this part is (and should remain) an exact copy-paste in the naive, block, host and cuda versions
-        template <typename Index, typename Layout
+        template <typename Index, typename Layout, typename Halo, typename Alignment
 #ifdef CXX11_ENABLED
                   , typename ... Tiles
 #else
@@ -68,21 +68,29 @@ namespace gridtools{
                   >
         struct get_tmp_storage_info
         {
+            GRIDTOOLS_STATIC_ASSERT(is_aligned<Alignment>::type::value,"wrong type");
             GRIDTOOLS_STATIC_ASSERT(is_layout_map<Layout>::value, "wrong type for layout map");
 #ifdef CXX11_ENABLED
             GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_tile<Tiles>::type::value ... ), "wrong type for the tiles");
 #else
             GRIDTOOLS_STATIC_ASSERT((is_tile<TileI>::value && is_tile<TileJ>::value), "wrong type for the tiles");
 #endif
+            GRIDTOOLS_STATIC_ASSERT(is_halo<Halo>::type::value,"wrong type");
+
             typedef meta_storage
-            <meta_storage_base
-            <Index::value, Layout, true,
+            <meta_storage_tmp
+             <meta_storage_aligned
+              <meta_storage_base
+               <Index::value, Layout, true>,
+               Alignment ,//alignment boundary
+               Halo
+               >,
 #ifdef CXX11_ENABLED
-             Tiles ...
+              Tiles ...
 #else
-             TileI, TileJ
+              TileI, TileJ
 #endif
-             > > type;
+              > > type;
         };
 
         /**
@@ -109,7 +117,10 @@ namespace gridtools{
                 base_storage
 #endif
                 <typename Storage::pointer_type, typename get_tmp_storage_info
-                 <typename Storage::meta_data_t::index_type, typename Storage::meta_data_t::layout,
+                 <typename Storage::storage_info_type::index_type,
+                  typename Storage::storage_info_type::layout,
+                  typename Storage::storage_info_type::halo_t,
+                  typename Storage::storage_info_type::alignment_t,
 #ifdef CXX11_ENABLED
                   Tiles ...
 #else

@@ -42,7 +42,7 @@ uint_t functor::ok_j=0;
 bool test(){
 
     typedef gridtools::layout_map<0,1,2> layout_t;
-    typedef gridtools::storage_info<0, layout_t> meta_t;
+    typedef gridtools::BACKEND::storage_info<0, layout_t> meta_t;
     typedef gridtools::BACKEND::storage_type<uint_t, meta_t >::type storage_type;
 
     meta_t meta_((uint_t) 30,(uint_t) 20, (uint_t) 1);
@@ -69,12 +69,12 @@ bool test(){
     auto comp =
         gridtools::make_computation<gridtools::BACKEND>
         (
+            domain, grid,
             gridtools::make_mss
             (
                 execute<forward>(),
                 gridtools::make_esf<functor, staggered<5,5,5,5> >(p_i_data(), p_j_data())
-                ),
-            domain, grid
+                )
             );
 
 

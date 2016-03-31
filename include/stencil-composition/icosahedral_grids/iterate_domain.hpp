@@ -33,7 +33,7 @@ struct map_function {
         , m_arguments(args...)
     {}
 
-    template <int I>
+    template <uint_t I>
     typename std::tuple_element<I, argument_types>::type const&
     argument() const {
         return std::get<I>(m_arguments);
@@ -213,6 +213,8 @@ struct iterate_domain {
     typedef typename iterate_domain_impl_arguments<IterateDomainImpl>::type iterate_domain_arguments_t;
     typedef typename iterate_domain_arguments_t::local_domain_t local_domain_t;
 
+    typedef typename iterate_domain_arguments_t::processing_elements_block_size_t processing_elements_block_size_t;
+
     typedef typename iterate_domain_arguments_t::backend_id_t backend_id_t;
     typedef typename iterate_domain_arguments_t::grid_t::grid_topology_t grid_topology_t;
     typedef typename iterate_domain_arguments_t::esf_sequence_t esf_sequence_t;
@@ -342,13 +344,14 @@ public:
     void assign_storage_pointers(){
         const uint_t EU_id_i = BackendType::processing_element_i();
         const uint_t EU_id_j = BackendType::processing_element_j();
-        for_each<typename reversed_range< int_t, 0, N_STORAGES >::type > (
+        boost::mpl::for_each<typename reversed_range< uint_t, 0, N_STORAGES >::type > (
             assign_storage_functor<
                 BackendType,
                 data_pointer_array_t,
                 typename local_domain_t::local_args_type,
                 typename local_domain_t::local_metadata_type,
-                metadata_map_t
+                metadata_map_t,
+                processing_elements_block_size_t
             >(data_pointer(), m_local_domain.m_local_args, m_local_domain.m_local_metadata,  EU_id_i, EU_id_j));
     }
 
@@ -363,12 +366,12 @@ public:
     GT_FUNCTION
     void assign_stride_pointers(){
         GRIDTOOLS_STATIC_ASSERT((is_strides_cached<Strides>::value), "internal error type");
-        for_each< metadata_map_t > (
+        boost::mpl::for_each< metadata_map_t > (
             assign_strides_functor<
-            BackendType,
-            Strides,
-            typename boost::fusion::result_of::as_vector
-            <typename local_domain_t::local_metadata_type>::type
+                BackendType,
+                Strides,
+                typename boost::fusion::result_of::as_vector<typename local_domain_t::local_metadata_type>::type,
+                processing_elements_block_size_t
             >(strides(), m_local_domain.m_local_metadata));
     }
 
@@ -377,13 +380,16 @@ public:
     GT_FUNCTION
     void initialize(uint_t const initial_pos=0, uint_t const block=0)
     {
-        for_each< metadata_map_t > (
+        boost::mpl::for_each< metadata_map_t > (
             initialize_index_functor<
-            Coordinate,
-            strides_cached_t,
-            typename boost::fusion::result_of::as_vector
-            <typename local_domain_t::local_metadata_type>::type
-            >(strides(), boost::fusion::as_vector(m_local_domain.m_local_metadata), initial_pos, block, &m_index[0]));
+                Coordinate,
+                strides_cached_t,
+                typename boost::fusion::result_of::as_vector<
+                    typename local_domain_t::local_metadata_type
+                >::type,
+                array_index_t
+            >(strides(), boost::fusion::as_vector(m_local_domain.m_local_metadata),
+              initial_pos, block, m_index));
         static_cast<IterateDomainImpl*>(this)->template initialize_impl<Coordinate>();
 
         m_grid_position[Coordinate] = initial_pos;
@@ -404,11 +410,11 @@ public:
        \tparam Coordinate dimension being incremented
        \tparam Execution the policy for the increment (e.g. forward/backward)
      */
-    template <ushort_t Coordinate, typename Execution>
+    template <ushort_t Coordinate, typename Steps>
     GT_FUNCTION
     void increment()
     {
-        for_each< metadata_map_t > (
+        boost::mpl::for_each< metadata_map_t > (
             increment_index_functor<
                 Coordinate,
                 strides_cached_t,
@@ -417,15 +423,11 @@ public:
                 >::type,
                 array_index_t
             >(boost::fusion::as_vector(m_local_domain.m_local_metadata),
-#ifdef __CUDACC__ //stupid nvcc
-              boost::is_same<Execution, static_int<1> >::type::value? 1 : -1,
-#else
-              Execution::value,
-#endif
+              Steps::value,
               m_index, strides())
-            );
-        static_cast<IterateDomainImpl*>(this)->template increment_impl<Coordinate, Execution>();
-        m_grid_position[Coordinate] += Execution::value;
+        );
+        static_cast<IterateDomainImpl*>(this)->template increment_impl<Coordinate, Steps>();
+        m_grid_position[Coordinate] += Steps::value;
     }
 
     /**@brief method for incrementing the index when moving forward along the given direction
@@ -437,7 +439,7 @@ public:
     GT_FUNCTION
     void increment(int_t steps_)
     {
-        for_each< metadata_map_t > (
+        boost::mpl::for_each< metadata_map_t > (
             increment_index_functor<
                 Coordinate,
                 strides_cached_t,
@@ -457,7 +459,10 @@ public:
     GT_FUNCTION
     void get_index(array<int_t, N_META_STORAGES>& index) const
     {
-        set_index_recur< N_META_STORAGES-1>::set(m_index, index);
+        for(int_t i=0; i < N_META_STORAGES; ++i)
+        {
+            index[i] = m_index[i];
+        }
     }
 
     /**@brief getter for the index array */
@@ -468,12 +473,23 @@ public:
     }
 
     /**@brief method for setting the index array */
-    //TODO no need for an template parameter here
-    template <typename Input>
+    template<typename Value>
     GT_FUNCTION
-    void set_index(Input const& index)
+    void set_index(array<Value, N_META_STORAGES> const& index)
     {
-        set_index_recur< N_META_STORAGES-1>::set( index, m_index);
+        for(int_t i=0; i < N_META_STORAGES; ++i)
+        {
+            m_index[i] = index[i];
+        }
+    }
+
+    GT_FUNCTION
+    void set_index(int index)
+    {
+        for(int_t i=0; i < N_META_STORAGES; ++i)
+        {
+            m_index[i] = index;
+        }
     }
 
     GT_FUNCTION
@@ -482,13 +498,13 @@ public:
         m_grid_position = position;
     }
 
-    template<typename Accessor>
+    template<uint_t ID, enumtype::intend intend, typename LocationType, typename Radius>
     GT_FUNCTION
-    typename accessor_return_type<Accessor>::type
-    operator()(Accessor const& accessor) const {
-        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
-        return get_value(accessor, (data_pointer())[current_storage<(Accessor::index_type::value==0)
-                                                , local_domain_t, typename Accessor::type >::value]);
+    typename accessor_return_type<accessor<ID, intend, LocationType, Radius>>::type
+    operator()(accessor<ID, intend, LocationType, Radius> const& accessor_) const {
+        typedef accessor<ID, intend, LocationType, Radius> accessor_t;
+        return get_value(accessor_, (data_pointer())[current_storage<(ID==0)
+                                                , local_domain_t, typename accessor_t::type >::value]);
     }
 
     template <typename ValueType
@@ -506,7 +522,7 @@ public:
         double result = onneighbors.value();
 
         for (int i = 0; i<neighbors.size(); ++i) {
-            result = onneighbors.reduction()( _evaluate(onneighbors.map(), neighbors[i]), result );
+            result = onneighbors.reduction()( _evaluate(onneighbors.map(), neighbors[i]), result);
         }
 
         return result;
@@ -515,11 +531,15 @@ public:
     template <typename ValueType
               , typename LocationTypeT
               , typename Reduction
-              , int I
+              , uint_t I
               , typename L
-              , int R
+              , int_t R
               >
-    double operator()(on_neighbors_impl<ValueType, LocationTypeT, Reduction, ro_accessor<I,L,radius<R>>> onneighbors) const {
+    double operator()(on_neighbors_impl<
+                      ValueType,
+                      LocationTypeT,
+                      Reduction,
+                      accessor<I,enumtype::in, L,radius<R>>> onneighbors) const {
         auto current_position = m_grid_position;
 
         const auto neighbors = grid_topology_t::neighbors_indices_3(current_position
@@ -527,7 +547,7 @@ public:
                                                           , onneighbors.location() );
         double result = onneighbors.value();
 
-        for (int i = 0; i<neighbors.size(); ++i) {
+        for (int_t i = 0; i<neighbors.size(); ++i) {
             result = onneighbors.reduction()( _evaluate(onneighbors.map(), neighbors[i]), result );
         }
 
@@ -547,29 +567,20 @@ public:
         //getting information about the storage
         typedef typename Accessor::index_type index_t;
 
-#ifndef CXX11_ENABLED
-        typedef typename boost::remove_reference<typename boost::remove_pointer<BOOST_TYPEOF( (boost::fusion::at
-               < index_t>(m_local_domain.m_local_args)) )>::type>::type storage_type;
-        storage_type* const storage_=
-#else
-        auto const storage_ =
-#endif
-            boost::fusion::at
+        auto const storage_ = boost::fusion::at
             < index_t>(m_local_domain.m_local_args);
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
-#ifdef CXX11_ENABLED
         using storage_type = typename std::remove_reference<decltype(*storage_)>::type;
-#endif
         typename storage_type::value_type * RESTRICT real_storage_pointer=
                 static_cast<typename storage_type::value_type*>(storage_pointer);
 
         //getting information about the metadata
         typedef typename boost::mpl::at
-            <metadata_map_t, typename storage_type::meta_data_t >::type metadata_index_t;
+            <metadata_map_t, typename storage_type::storage_info_type >::type metadata_index_t;
 
-        pointer<const typename storage_type::meta_data_t> const metadata_ = boost::fusion::at
+        pointer<const typename storage_type::storage_info_type> const metadata_ = boost::fusion::at
             < metadata_index_t >(m_local_domain.m_local_metadata);
         //getting the value
 
@@ -601,280 +612,60 @@ public:
         //getting information about the storage
         typedef typename Accessor::index_type index_t;
 
-#ifndef CXX11_ENABLED
-        typedef typename boost::remove_reference<typename boost::remove_pointer<BOOST_TYPEOF( (boost::fusion::at
-                < index_t>(m_local_domain.m_local_args)) )>::type>::type storage_type;
-        storage_type* const storage_=
-#else
-        auto const storage_ =
-#endif
-            boost::fusion::at
+        auto const storage_ = boost::fusion::at
             < index_t>(m_local_domain.m_local_args);
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
-#ifdef CXX11_ENABLED
         using storage_type = typename std::remove_reference<decltype(*storage_)>::type;
-#endif
         typename storage_type::value_type * RESTRICT real_storage_pointer=
                 static_cast<typename storage_type::value_type*>(storage_pointer);
 
         return *(real_storage_pointer+offset);
     }
 
-
-//private:
-
-//    template <typename GridType_>
-//    struct get_pointer {
-//        template <typename PlcType>
-//        struct apply {
-//            using type = typename GridType_::template pointer_to<typename PlcType::location_type>::type;
-//        };
-//    };
-//    template <typename GridType_>
-//    struct get_storage {
-//        template <typename PlcType>
-//        struct apply {
-//            using type = typename GridType_::template storage_type<typename PlcType::location_type>::type;
-//        };
-//    };
-
-//public:
-//    using mpl_storage_types = typename boost::mpl::transform<PlcVector,
-//                                                             get_storage<GridType>
-//                                                             >::type;
-
-//    using storage_types = typename boost::fusion::result_of::as_vector<mpl_storage_types>::type;
-
-//    using mpl_pointers_t_ = typename boost::mpl::transform<PlcVector,
-//                                                           get_pointer<GridType>
-//                                                           >::type;
-
-//    using pointers_t = typename boost::fusion::result_of::as_vector<mpl_pointers_t_>::type;
-
-//    using grid_type = GridType;
-//    using location_type = LocationType;
-//private:
-//    storage_types storages;
-//    pointers_t pointers;
-//    grid_type const& m_grid;
-
-//    gridtools::array<u_int, 4> m_ll_indices;
-
-//    template <typename PointersT, typename StoragesT>
-//    struct _set_pointers
-//    {
-//        PointersT &m_pt;
-//        StoragesT const &m_st;
-//        _set_pointers(PointersT& pt, StoragesT const &st): m_pt(pt), m_st(st) {}
-
-//        template <typename Index>
-//        void operator()(Index) {
-//            double * ptr = const_cast<double*>(&(*(boost::fusion::at_c<Index::value>(m_st)))(0,0,0,0));
-
-//            boost::fusion::at_c<Index::value>(m_pt) = ptr;
-//        }
-//    };
-
-//    template <typename LocationT, typename PointersT, typename StoragesT, typename GridT>
-//    struct _set_pointers_to
-//    {
-//        PointersT &m_pt;
-//        StoragesT const &m_st;
-//        GridT const& m_g;
-//        gridtools::array<uint_t, 4> const& _m_ll_indices;
-
-//        _set_pointers_to(PointersT& pt,
-//                         StoragesT const &st,
-//                         GridT const& g,
-//                         gridtools::array<uint_t, 4> const & ll_ind)
-//            : m_pt(pt)
-//            , m_st(st)
-//            , m_g(g)
-//            , _m_ll_indices(ll_ind)
-//        {}
-
-//        template <typename Index>
-//        void operator()(Index) {
-//            double * ptr = const_cast<double*>(&(*(boost::fusion::at_c<Index::value>(m_st)))(0,0,0,0))
-//                + (boost::fusion::at_c<LocationT::value>(m_g.virtual_storages())._index(&_m_ll_indices[0]));
-
-//            boost::fusion::at_c<Index::value>(m_pt) = ptr;
-//        }
-//    };
-
-//    template <int Coordinate, typename PointersT, typename GridT>
-//    struct _move_pointers
-//    {
-//        PointersT &m_pt;
-//        GridT const &m_g;
-
-//        _move_pointers(PointersT& m_pt, GridT const& m_g): m_pt(m_pt), m_g(m_g) {}
-
-//        template <typename Index>
-//        void operator()(Index) {
-//            auto value = boost::fusion::at_c<boost::mpl::at_c<PlcVector, Index::value>::type::location_type::value>
-//                (m_g.virtual_storages()).template strides(Coordinate);
-//            //std::cout << "Stide<" << Index::value << "> for coordinate " << Coordinate << " = " << value << std::endl;
-//            boost::fusion::at_c<Index::value>(m_pt) += value;
-//        }
-//    };
-
-//    template <int Coord>
-//    void _increment_pointers()
-//    {
-//        using indices = typename boost::mpl::range_c<int, 0, boost::fusion::result_of::size<storage_types>::type::value >;
-//        boost::mpl::for_each<indices>(_move_pointers<Coord, pointers_t, grid_type>(pointers, m_grid));
-//    }
-
-//    void _reset_pointers()
-//    {
-//        using indices = typename boost::mpl::range_c<int, 0, boost::fusion::result_of::size<storage_types>::type::value >;
-//        boost::mpl::for_each<indices>(_set_pointers<pointers_t, storage_types>(pointers, storages));
-//    }
-
-
-
-//    template <typename LocationT>
-//    void _set_pointers_to_ll() {
-//        using indices = typename boost::mpl::range_c<int, 0, boost::fusion::result_of::size<storage_types>::type::value >;
-//        boost::mpl::for_each<indices>(_set_pointers_to<LocationT, pointers_t, storage_types, grid_type>(pointers, storages, m_grid, m_ll_indices));
-//    }
-
-//public:
-//    iterate_domain(storage_types const& storages, GridType const& m_grid)
-//        : storages(storages)
-//        , m_grid(m_grid)
-//    {
-//        _reset_pointers();
-//    }
-
-//    GridType const& grid() const {return m_grid;}
-
-//    template <int Coord>
-//    void inc_ll() {++m_ll_indices[Coord]; _increment_pointers<Coord>();}
-
-//    template <typename LocationT>
-//    void set_ll_ijk(u_int i, u_int j, u_int k, u_int l) {
-//        m_ll_indices = {i, j, k, l};
-//        _set_pointers_to_ll<LocationT>();
-//    }
-
-//    template <typename ValueType
-//              , typename LocationTypeT
-//              , typename Reduction
-//              , typename MapF
-//              , typename ...Arg0
-//              >
-//    double operator()(on_neighbors_impl<ValueType, LocationTypeT, Reduction, map_function<MapF, LocationTypeT, Arg0...>> onneighbors) const {
-//        auto current_position = m_ll_indices;
-
-//        const auto neighbors = m_grid.neighbors_indices_3(current_position
-//                                                          , location_type()
-//                                                          , onneighbors.location() );
-//#ifdef _ACCESSOR_H_DEBUG_
-//        std::cout << "Entry point (on map)" << current_position << " Neighbors: " << neighbors << std::endl;
-//#endif
-//        double result = onneighbors.value();
-
-//        for (int i = 0; i<neighbors.size(); ++i) {
-//            result = onneighbors.reduction()( _evaluate(onneighbors.map(), neighbors[i]), result );
-//        }
-
-//        return result;
-//    }
-
-//    template <typename ValueType
-//              , typename LocationTypeT
-//              , typename Reduction
-//              , int I
-//              , typename L
-//              , int R
-//              >
-//    double operator()(on_neighbors_impl<ValueType, LocationTypeT, Reduction, ro_accessor<I,L,radius<R>>> onneighbors) const {
-//        auto current_position = m_ll_indices;
-
-//        const auto neighbors = m_grid.neighbors_indices_3(current_position
-//                                                          , location_type()
-//                                                          , onneighbors.location() );
-//#ifdef _ACCESSOR_H_DEBUG_
-//        std::cout << "Entry point (on accessor)" << current_position << " Neighbors: " << neighbors << std::endl;
-//#endif
-
-//        double result = onneighbors.value();
-
-//        for (int i = 0; i<neighbors.size(); ++i) {
-//            result = onneighbors.reduction()( _evaluate(onneighbors.map(), neighbors[i]), result );
-//        }
-
-//        return result;
-//    }
-
-//    template <int I, typename LT>
-//    double const operator()(ro_accessor<I,LT> const& arg) const {
-//        //std::cout << "ADDR " << std::hex << (boost::fusion::at_c<I>(pointers)) << std::dec << std::endl;
-//        return *(boost::fusion::at_c<I>(pointers));
-//    }
-//    template <int I, typename LT>
-//    double& operator()(accessor<I,LT> const& arg) const {
-//        //std::cout << "ADDR " << std::hex << (boost::fusion::at_c<I>(pointers)) << std::dec << std::endl;
-//        return *(boost::fusion::at_c<I>(pointers));
-//    }
-
-
-//private:
-
-    template <int I, typename L, int R, typename IndexArray>
     //TODO return the right value, instead of double
-    double _evaluate(ro_accessor<I,L,radius<R>>, IndexArray const& position) const {
-        typedef ro_accessor<I,L,radius<R>> accessor_t;
-        int offset = m_grid_topology.ll_offset(position, typename accessor<I,L>::location_type());
+    template <uint_t ID, enumtype::intend Intend, typename LocationType, typename Radius, typename IndexArray >
+    double _evaluate(accessor<ID, Intend, LocationType, Radius>, IndexArray const& position) const {
+        using accessor_t = accessor<ID, Intend, LocationType, Radius>;
+        using location_type_t = typename accessor_t::location_type;
+        int offset = m_grid_topology.ll_offset(position, location_type_t());
 
-        return get_raw_value(accessor_t(), (data_pointer())[current_storage<(I==0)
+        return get_raw_value(accessor_t(), (data_pointer())[current_storage<(accessor_t::index_type::value==0)
                 , local_domain_t, typename accessor_t::type >::value], offset);
     }
 
-//    template <typename MapF, typename LT, typename Arg0, typename IndexArray>
-//    double _evaluate(map_function<MapF, LT, Arg0> map, IndexArray const& position) const {
-//#ifdef _ACCESSOR_H_DEBUG_
-//        std::cout << "_evaluate(map_function<MapF, LT, Arg0>...) " << LT() << ", " << position << std::endl;
-//#endif
-//        int offset = m_grid.ll_offset(position, map.location());
-//        return map.function()(_evaluate(map.template argument<0>(), position));
-//    }
+    template <typename MapF, typename LT, typename Arg0, typename IndexArray>
+    double _evaluate(map_function<MapF, LT, Arg0> const& map, IndexArray const& position) const {
+        int offset = m_grid_topology.ll_offset(position, map.location());
+        return map.function()(_evaluate(map.template argument<0>(), position));
+    }
 
-//    template <typename MapF, typename LT, typename Arg0, typename Arg1, typename IndexArray>
-//    double _evaluate(map_function<MapF, LT, Arg0, Arg1> map, IndexArray const& position) const {
-//#ifdef _ACCESSOR_H_DEBUG_
-//        std::cout << "_evaluate(map_function<MapF, LT, Arg0, Arg1>...) " << LT() << ", " << position << std::endl;
-//#endif
-//        int offset = m_grid.ll_offset(position, map.location());
-//        return map.function()(_evaluate(map.template argument<0>(), position)
-//                              , _evaluate(map.template argument<1>(), position));
-//    }
+    template <typename MapF, typename LT, typename Arg0, typename Arg1, typename IndexArray>
+    double _evaluate(map_function<MapF, LT, Arg0, Arg1> const& map, IndexArray const& position) const {
+        int offset = m_grid_topology.ll_offset(position, map.location());
+        return map.function()(_evaluate(map.template argument<0>(), position)
+                              , _evaluate(map.template argument<1>(), position));
+    }
+    template <typename ValueType
+              , typename LocationTypeT
+              , typename Reduction
+              , typename Map
+              , typename IndexArray>
+    double _evaluate(on_neighbors_impl<ValueType, LocationTypeT, Reduction, Map > onn, IndexArray const& position) const {
+        using tt = typename grid_topology_t::edges;
+        const auto neighbors = grid_topology_t::neighbors_indices_3(position
+                                                          , tt()
+                                                          , onn.location() );
+        std::cout<< "POSITION " << position<< "  " << neighbors << " " << onn.location() << std::endl;
+        double result = onn.value();
 
-//    template <typename ValueType
-//              , typename LocationTypeT
-//              , typename Reduction
-//              , typename Map
-//              , typename IndexArray>
-//    double _evaluate(on_neighbors_impl<ValueType, LocationTypeT, Reduction, Map > onn, IndexArray const& position) const {
-//        const auto neighbors = m_grid.neighbors_indices_3(position
-//                                                          , onn.location()
-//                                                          , onn.location() );
-//#ifdef _ACCESSOR_H_DEBUG_
-//        std::cout << "_evaluate(on_neighbors_impl<ValueType, ...) " << LocationTypeT() << ", " << position << " Neighbors: " << neighbors << std::endl;
-//#endif
+        for (int i = 0; i<neighbors.size(); ++i) {
+            result = onn.reduction()(_evaluate(onn.map(), neighbors[i]), result);
+        }
 
-//        double result = onn.value();
-
-//        for (int i = 0; i<neighbors.size(); ++i) {
-//            result = onn.reduction()(_evaluate(onn.map(), neighbors[i]), result);
-//        }
-
-//        return result;
-//    }
+        return result;
+    }
 
 };
 

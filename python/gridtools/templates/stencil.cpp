@@ -69,22 +69,23 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
     //
     // define the storage unit used by the backend
     //
+    typedef meta_storage<meta_storage_aligned<meta_storage_base<__COUNTER__, layout_t, false>, aligned<0>, halo<0,0,0> > > meta_data_t;
     typedef gridtools::BACKEND::storage_type<float_type,
-                                             gridtools::storage_info<__COUNTER__, layout_t> >::type storage_type;
+                                             meta_data_t >::type storage_type;
 
     {% if temps %}
     //
     // define a special data type for the temporary, i.e., intermediate buffers
     //
     typedef gridtools::BACKEND::temporary_storage_type<float_type,
-                                                       gridtools::storage_info<__COUNTER__, layout_t> >::type tmp_storage_type;
+                                                       meta_data_t >::type tmp_storage_type;
     {% endif -%}
 
     {% if params %}
     //
     // parameter data fields use the memory buffers received from NumPy arrays
     //
-    typename storage_type::meta_data_t meta_(d1, d2, d3);
+    typename storage_type::storage_info_type meta_(d1, d2, d3);
 
     {% for p in params -%}
     storage_type {{ p.name }} (meta_,
@@ -161,16 +162,21 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
     // 2) the logical physical domain with the fields to use;
     // 3) the actual domain dimensions
     //
+#ifdef CXX11_ENABLED
+    auto
+#else
 #ifdef __CUDACC__
     gridtools::computation*
 #else
     boost::shared_ptr<gridtools::computation>
+#endif
 #endif
     {% set inside_independent_block = False %}
 
     comp_{{ s.name|lower }} =
       gridtools::make_computation<gridtools::BACKEND>
       (
+          domain, grid_{{ loop.index0 }},
             gridtools::make_mss
             (
                 execute<{{ s.k_direction }}>(),
@@ -189,8 +195,7 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
                        ,
                        {%- endif %}
                 {% endfor -%}
-            ),
-            domain, grid_{{ loop.index0 }}
+            )
       );
     {% endfor %}
 

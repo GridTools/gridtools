@@ -3,7 +3,15 @@
 #include "../common/gpu_clone.hpp"
 #include "meta_storage_base.hpp"
 #include "meta_storage_tmp.hpp"
-
+#include "meta_storage_aligned.hpp"
+#ifdef CXX11_ENABLED
+#include "../common/generic_metafunctions/repeat_template.hpp"
+#include "../common/generic_metafunctions/variadic_to_vector.hpp"
+#include <boost/type_traits/is_integral.hpp>
+#include <boost/utility/enable_if.hpp>
+#include <boost/mpl/vector.hpp>
+#include <boost/mpl/at.hpp>
+#endif
 /**
    @file
    @brief implementation of a container for the storage meta information
@@ -19,109 +27,86 @@
    meta_storage_base is lost (this can be easily avoided on the host)
 */
 namespace gridtools{
-template < typename BaseStorage >
-struct meta_storage : public BaseStorage, clonable_to_gpu<meta_storage<BaseStorage> >{
 
-    static const bool is_temporary=BaseStorage::is_temporary;
-    typedef BaseStorage super;
-    typedef typename BaseStorage::type basic_type;
-    typedef typename BaseStorage::index_type index_type;
-    typedef meta_storage<BaseStorage> original_storage;
-    typedef clonable_to_gpu<meta_storage<BaseStorage> > gpu_clone;
 
-    /** @brief copy ctor
+    template < typename BaseStorage >
+    struct meta_storage : public BaseStorage, clonable_to_gpu<meta_storage<BaseStorage> >{
 
-        forwarding to the base class
-    */
-    __device__
-    meta_storage(BaseStorage const& other)
-        :  super(other)
+        static const bool is_temporary=BaseStorage::is_temporary;
+        typedef BaseStorage super;
+        typedef typename BaseStorage::basic_type basic_type;
+        typedef typename BaseStorage::index_type index_type;
+        typedef meta_storage<BaseStorage> original_storage;
+        typedef clonable_to_gpu<meta_storage<BaseStorage> > gpu_clone;
+
+        /** @brief copy ctor
+
+            forwarding to the base class
+        */
+        __device__
+        meta_storage(meta_storage<BaseStorage> const& other)
+            :  super(other)
         {}
 
 #if defined(CXX11_ENABLED)
         /** @brief ctor
 
-        forwarding to the base class
-    */
-    template <class ... UIntTypes>
-    explicit meta_storage(  UIntTypes const& ... args ): super(args ...)
+            forwarding to the base class
+        */
+        template <typename ... IntTypes,
+                  typename Dummy = typename boost::enable_if_c<
+                      boost::is_integral<
+                          typename boost::mpl::at_c<
+                              typename variadic_to_vector<IntTypes ...>::type, 0 >::type
+                          >::type::value, bool
+                      >::type
+                  >
+        meta_storage(  IntTypes ... args ): super(args ...)
         {
         }
 #else
         //constructor picked in absence of CXX11 or with GCC<4.9
         /** @brief ctor
 
-        forwarding to the base class
-    */
-    explicit meta_storage(uint_t const& dim1, uint_t const& dim2, uint_t const& dim3): super(dim1, dim2, dim3) {}
+            forwarding to the base class
+        */
+        explicit meta_storage(uint_t dim1, uint_t dim2, uint_t dim3)
+            : super(dim1, dim2, dim3)
+        {}
 
-    /** @brief ctor
+        /** @brief ctor
 
-        forwarding to the base class
-    */
-    meta_storage( uint_t const& initial_offset_i,
-                          uint_t const& initial_offset_j,
-                          uint_t const& dim3,
-                          uint_t const& n_i_threads,
-                          uint_t const& n_j_threads)
-        : super(initial_offset_i, initial_offset_j, dim3, n_i_threads, n_j_threads){}
+            forwarding to the base class
+        */
+        meta_storage( uint_t const& initial_offset_i,
+                      uint_t const& initial_offset_j,
+                      uint_t const& dim3,
+                      uint_t const& n_i_threads,
+                      uint_t const& n_j_threads)
+            : super(initial_offset_i, initial_offset_j, dim3, n_i_threads, n_j_threads)
+        {}
 #endif
 
 #ifndef __CUDACC__
-private:
+    private:
 #endif
-    /** @brief empty ctor
+        /** @brief empty ctor
 
-        should never be called
-        (only by nvcc because it does not compile the parallel_storage CXX11 version)
-    */
-    explicit meta_storage(): super(){}
+            should never be called
+            (only by nvcc because it does not compile the parallel_storage CXX11 version)
+        */
+        explicit meta_storage(): super(){}
 
-};
-
-
-#ifdef CXX11_ENABLED
-    /**
-       @brief syntactic sugar for the metadata type definition
-
-       \tparam Index an index used to differentiate the types also when there's only runtime
-       differences (e.g. only the storage dimensions differ)
-       \tparam Layout the map of the layout in memory
-       \tparam IsTemporary boolean flag set to true when the storage is a temporary one
-       \tmaram ... Tiles variadic argument containing the information abount the tiles
-       (for the Block strategy)
-
-       syntax example:
-       using metadata_t=storage_info<0,layout_map<0,1,2> >
-
-       NOTE: the information specified here will be used at a later stage
-       to define the storage meta information (the meta_storage_base type)
-     */
-    template < ushort_t Index
-               , typename Layout
-               >
-    using storage_info = meta_storage<meta_storage_base<Index, Layout, false > >;
-#else
-
-    template < ushort_t Index
-               , typename Layout
-               >
-    struct storage_info : public meta_storage<meta_storage_base<Index, Layout, false> > {
-
-        typedef meta_storage<meta_storage_base<Index, Layout, false> > super;
-
-        storage_info(uint_t const& d1, uint_t const& d2, uint_t const& d3) : super(d1,d2,d3){}
-
-        GT_FUNCTION
-        storage_info(storage_info const& t) : super(t){}
     };
 
-#endif
 
 /** \addtogroup specializations Specializations
     Partial specializations
     @{
 */
+
+    template <typename T>
+    struct is_meta_storage;
 
     template< typename Storage>
     struct is_meta_storage<meta_storage<Storage> > : boost::mpl::true_{};
@@ -138,12 +123,6 @@ private:
 #else
     template<ushort_t Index, typename Layout, bool IsTemporary, typename TileI, typename TileJ>
     struct is_meta_storage<meta_storage_base<Index, Layout, IsTemporary, TileI, TileJ> > : boost::mpl::true_{};
-
-    template < ushort_t Index
-               , typename Layout
-               >
-    struct is_meta_storage<storage_info<Index, Layout> > : boost::mpl::true_{};
-
 #endif
 
     template<typename T>

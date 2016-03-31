@@ -5,15 +5,18 @@
 */
 
 #include <stddef.h>
+#include <algorithm>
+#include <boost/type_traits/has_trivial_constructor.hpp>
+
 #include "defs.hpp"
 #include "gt_assert.hpp"
 #include "host_device.hpp"
-#include <algorithm>
-#include <boost/type_traits/has_trivial_constructor.hpp>
-#include "common/generic_metafunctions/accumulate.hpp"
+#include "generic_metafunctions/accumulate.hpp"
 //#include "common/generic_metafunctions/gt_integer_sequence.hpp"
 
 namespace gridtools {
+
+    template<typename T> struct is_array;
 
     template <typename T, size_t D>
     class array {
@@ -69,6 +72,7 @@ namespace gridtools {
         //TODO provide a BOOST PP implementation for this
         GT_FUNCTION
         array(T const& i): _array() {
+            GRIDTOOLS_STATIC_ASSERT((!is_array<T>::value), "internal error");
             const_cast<typename boost::remove_const<T>::type*>(_array)[0]=i;
         }
         GT_FUNCTION
@@ -167,6 +171,7 @@ namespace gridtools {
             std::copy(a.begin(), a.end(), _array);
             return *this;
         }
+
 
         GT_FUNCTION
         static constexpr size_t size() {return _size;}

@@ -24,12 +24,12 @@ using namespace expressions;
 typedef gridtools::layout_map<3,2, 1, 0> layout4_t;
 typedef gridtools::layout_map<2,1,0,3,4,5> layout_t;
 
-typedef storage_info<__COUNTER__, layout_t> metadata_t;
-typedef storage_info<__COUNTER__, layout4_t> metadata_global_quad_t;
-typedef storage_info<__COUNTER__, layout4_t> metadata_local_quad_t;
-typedef gridtools::BACKEND::storage_type<float_type, metadata_t >::type storage_type;
-typedef gridtools::BACKEND::storage_type<float_type, metadata_global_quad_t >::type storage_global_quad_t;
-typedef gridtools::BACKEND::storage_type<float_type, metadata_local_quad_t >::type storage_local_quad_t;
+typedef BACKEND::storage_info<__COUNTER__, layout_t> metadata_t;
+typedef BACKEND::storage_info<__COUNTER__, layout4_t> metadata_global_quad_t;
+typedef BACKEND::storage_info<__COUNTER__, layout4_t> metadata_local_quad_t;
+typedef BACKEND::storage_type<float_type, metadata_t >::type storage_type;
+typedef BACKEND::storage_type<float_type, metadata_global_quad_t >::type storage_global_quad_t;
+typedef BACKEND::storage_type<float_type, metadata_local_quad_t >::type storage_local_quad_t;
 
 
 
@@ -172,27 +172,31 @@ namespace assembly{
         grid.value_list[1] = d3-2;
 
 
-
-#ifdef __CUDACC__
-        computation* fe_comp =
+#ifdef CXX11_ENABLED
+        auto
 #else
-            boost::shared_ptr<gridtools::computation> fe_comp =
+#ifdef __CUDACC__
+        computation*
+#else
+            boost::shared_ptr<gridtools::computation>
 #endif
-            make_computation<gridtools::BACKEND>
+#endif
+            fe_comp = make_computation<gridtools::BACKEND>
             (
+                domain, grid,
                 make_mss //! \todo all the arguments in the call to make_mss are actually dummy.
                 (
                     execute<forward>(),//!\todo parameter used only for overloading purpose?
                     make_esf<integration>(p_phi(), p_psi(), p_jac(), p_f(), p_result())
-                    ),
-                domain, grid);
+                    )
+                );
 
         fe_comp->ready();
         fe_comp->steady();
         fe_comp->run();
         fe_comp->finalize();
 
-        return do_verification <storage_local_quad_t, storage_global_quad_t> (d1,d2,d3,result);
+        return do_verification <storage_local_quad_t, storage_global_quad_t> (d1,d2,d3,result,grid);
     }
 
 }; //namespace extended_4d

@@ -2,18 +2,11 @@
 #define _LAYOUT_MAP_H_
 
 #include <gridtools.hpp>
-#include <boost/static_assert.hpp>
-#include <boost/mpl/vector_c.hpp>
-#include <boost/mpl/int.hpp>
-#include <boost/mpl/at.hpp>
-#include "../common/gt_assert.hpp"
-#include "../common/host_device.hpp"
-#include "../common/defs.hpp"
-#include "../common/array.hpp"
-#include "stencil-composition/accessor_fwd.hpp"
+
+#include "../stencil-composition/accessor_fwd.hpp"
 #ifdef CXX11_ENABLED
 #include "generic_metafunctions/gt_get.hpp"
-#include "common/generic_metafunctions/is_variadic_pack_of.hpp"
+#include "generic_metafunctions/is_variadic_pack_of.hpp"
 #endif
 
 /**

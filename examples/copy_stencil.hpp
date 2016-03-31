@@ -22,6 +22,8 @@ namespace copy_stencil{
 #ifdef __CUDACC__
         typedef gridtools::layout_map<2,1,0> layout_t;//stride 1 on i
 #else
+        //                   strides  1 x xy
+        //                      dims  x y z
         typedef gridtools::layout_map<0,1,2> layout_t;//stride 1 on k
 #endif
 
@@ -53,13 +55,9 @@ namespace copy_stencil{
     void handle_error(int_t)
     {std::cout<<"error"<<std::endl;}
 
-    typedef storage_info< 0, layout_t > meta_data_t;
-
     bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps) {
 
         cache_flusher flusher(cache_flusher_size);
-
-        meta_data_t meta_data_(x,y,z);
 
         uint_t d1 = x;
         uint_t d2 = y;
@@ -75,9 +73,11 @@ namespace copy_stencil{
 #endif
 #endif
 
-        //                   strides  1 x xy
-        //                      dims  x y z
-        typedef gridtools::BACKEND::storage_type<float_type, meta_data_t >::type storage_t;
+        typedef BACKEND::storage_info<__COUNTER__, layout_t> meta_data_t;
+        typedef BACKEND::storage_type<float_type, meta_data_t >::type storage_t;
+
+        meta_data_t meta_data_(x,y,z);
+
 
         // Definition of the actual data fields that are used for input/output
         typedef storage_t storage_type;
@@ -126,14 +126,18 @@ namespace copy_stencil{
           3) The actual domain dimensions
         */
 
-        // \todo simplify the following using the auto keyword from C++11
-#ifdef __CUDACC__
-        gridtools::computation* copy =
+#ifdef CXX11_ENABLED
+        auto
 #else
-            boost::shared_ptr<gridtools::computation> copy =
+#ifdef __CUDACC__
+        gridtools::computation*
+#else
+        boost::shared_ptr<gridtools::computation>
 #endif
-            gridtools::make_computation<gridtools::BACKEND>
+#endif
+            copy =gridtools::make_computation<gridtools::BACKEND>
             (
+                domain, grid ,
                 gridtools::make_mss // mss_descriptor
                 (
                     execute<forward>(),
@@ -141,8 +145,7 @@ namespace copy_stencil{
                         p_in() // esf_descriptor
                         ,p_out()
                         )
-                ),
-                domain, grid
+                )
             );
 
         copy->ready();
@@ -152,7 +155,8 @@ namespace copy_stencil{
         copy->run();
 
 #ifdef __CUDACC__
-        out.data().update_cpu();
+        out.d2h_update();
+        in.d2h_update();
 #endif
 
         bool success = true;

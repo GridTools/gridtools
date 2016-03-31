@@ -79,7 +79,7 @@ bool test (uint_t d1, uint_t d2, uint_t d3,void *in_data_buff,void *out_data_buf
     // C-like memory layout
     //
     typedef gridtools::layout_map<0,1,2> layout_t;
-    typedef gridtools::storage_info<0, layout_t> meta_t;
+    typedef gridtools::BACKEND::storage_info<0, layout_t> meta_t;
 
     //
     // define the storage unit used by the backend
@@ -141,15 +141,20 @@ bool test (uint_t d1, uint_t d2, uint_t d3,void *in_data_buff,void *out_data_buf
     // 2) the logical physical domain with the fields to use;
     // 3) the actual domain dimensions
     //
-    boost::shared_ptr<gridtools::computation> comp_copystencil =
+#ifdef CXX11_ENABLED
+    auto
+#else
+    boost::shared_ptr<gridtools::computation>
+#endif
+        comp_copystencil =
       gridtools::make_computation<gridtools::BACKEND>
         (
+            domain, grid,
             gridtools::make_mss
             (
                 execute<forward>(),
                 gridtools::make_esf<functor_4647>(p_in_data(), p_out_data())
-                ),
-            domain, grid
+                )
             );
 
     //

@@ -5,7 +5,7 @@ source ${JENKINSPATH}/machine_env.sh
 source ${JENKINSPATH}/env_perftest_${myhost}.sh
 source ${JENKINSPATH}/slurmTools.sh
 
-TEMP=`getopt -o h --long target:,std:,prec: \
+TEMP=`getopt -o h --long target:,std:,prec:,jplan:,python: \
              -n 'jenkins_perftest' -- "$@"`
 
 eval set -- "$TEMP"
@@ -15,6 +15,8 @@ while true; do
         --target) TARGET=$2; shift 2;;
         --std) STD=$2; shift 2;;
         --prec) PREC=$2; shift 2;;
+        --jplan) JPLAN=$2; shift 2;;
+        --python) PYTHON_OPT=$2; shift 2;;
         -- ) shift; break ;;
         * ) break ;;
     esac
@@ -26,13 +28,17 @@ if [[ -z ${TARGET} || -z ${STD} || -z ${PREC} ]]; then
 fi
 maxsleep=7200
 
+if [[ -n "${PYTHON_OPT}" ]]; then
+    PYTHON_STR="--python ${PYTHON_OPT}"
+fi
+
 if [ "$myhost" == "greina" ]; then
-    bash ${JENKINSPATH}/jenkins_perftest_exec.sh --target $TARGET --std $STD --prec $PREC 
+    bash ${JENKINSPATH}/jenkins_perftest_exec.sh --target $TARGET --std $STD --prec $PREC ${PYTHON_STR} --jplan $JPLAN 
 else
 
     cp ${JENKINSPATH}/submit.kesch.slurm ${JENKINSPATH}/submit.kesch.slurm.test
     slurm_script="${JENKINSPATH}/submit.kesch.slurm.test"
-    cmd="${JENKINSPATH}/jenkins_perftest_exec.sh --target $TARGET --std $STD --prec $PREC"
+    cmd="${JENKINSPATH}/jenkins_perftest_exec.sh --target $TARGET --std $STD --prec $PREC ${PYTHON_STR} --jplan $JPLAN"
     /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm_script}
 
     launch_job ${slurm_script} ${maxsleep} &
