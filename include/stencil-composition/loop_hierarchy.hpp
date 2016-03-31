@@ -214,7 +214,7 @@ namespace gridtools {
             std::cout << "updating the index for level " << First::s_id << std::endl;
 #endif
             it_domain.get_index(restore_index); // redundant in the last iteration
-            next::update_index(it_domain); // redundant in the last iteration
+            next::update_index(it_domain);      // redundant in the last iteration
         }
 
       private:

@@ -139,9 +139,10 @@ namespace gridtools {
         */
         template < uint_t Component >
         uint_t const &local_to_global(uint_t const &value) {
-            GRIDTOOLS_STATIC_ASSERT(Component < metadata_t::space_dimensions, "only positive integers smaller than the "
-                                                                              "number of dimensions are accepted as "
-                                                                              "template arguments of local_to_global");
+            GRIDTOOLS_STATIC_ASSERT(Component < metadata_t::space_dimensions,
+                "only positive integers smaller than the "
+                "number of dimensions are accepted as "
+                "template arguments of local_to_global");
             return m_low_bound[Component] + value;
         }
 

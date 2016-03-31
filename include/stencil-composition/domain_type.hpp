@@ -214,9 +214,10 @@ namespace gridtools {
         domain_type(StorageArgs... args)
             : m_storage_pointers(), m_metadata_set() {
 
-            GRIDTOOLS_STATIC_ASSERT((sizeof...(StorageArgs) > 0), "Computations with no storages are not supported. "
-                                                                  "Add at least one storage to the domain_type "
-                                                                  "definition.");
+            GRIDTOOLS_STATIC_ASSERT((sizeof...(StorageArgs) > 0),
+                "Computations with no storages are not supported. "
+                "Add at least one storage to the domain_type "
+                "definition.");
             // NOTE: the following assertion assumes there StorageArgs has length at leas 1
             GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair< StorageArgs >::value...), "wrong type");
             assign_pointers(m_metadata_set, args...);

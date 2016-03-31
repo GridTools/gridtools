@@ -436,7 +436,7 @@ namespace gridtools {
                 [(Accessor::type::n_dim <= storage_type::space_dimensions + 1 ? // static if
                          accessor.template get< 0 >()
                                                                               : // offset for the current dimension
-                         accessor.template get< 1 >() // offset for the current snapshot
+                         accessor.template get< 1 >()                           // offset for the current snapshot
                              // limitation to "rectangular" vector fields for non-static fields dimensions
                              +
                              accessor.template get< 0 >() // select the dimension
@@ -811,8 +811,8 @@ namespace gridtools {
 
         return get_value(accessor,
             (data_pointer())[(Accessor::type::n_dim <= metadata_t::space_dimensions + 1
-                                     ? // static if
-                                     accessor.template get< 0 >() // offset for the current dimension
+                                     ?                              // static if
+                                     accessor.template get< 0 >()   // offset for the current dimension
                                      : accessor.template get< 1 >() // offset for the current snapshot
                                            // limitation to "rectangular" vector fields for non-static fields dimensions
                                            +
@@ -882,8 +882,8 @@ namespace gridtools {
             accessor,
             (data_pointer())[ // static if
                 (Accessor::type::n_dim <= metadata_t::space_dimensions + 1
-                        ? // static if
-                        accessor_mixed_t::template get_constexpr< 0 >() // offset for the current snapshot
+                        ?                                                 // static if
+                        accessor_mixed_t::template get_constexpr< 0 >()   // offset for the current snapshot
                         : accessor_mixed_t::template get_constexpr< 1 >() // offset for the current snapshot
                               // hypotheses : storage offsets are known at compile-time
                               +
@@ -891,7 +891,7 @@ namespace gridtools {
                                   accessor_mixed_t::template get_constexpr< 0 >(),
                                   storage_t::traits::n_dimensions -
                                       1 >::value // stride of the current dimension inside the vector of storages
-                    ) //+ the offset of the other extra dimension
+                    )                            //+ the offset of the other extra dimension
                 +
                 current_storage< (Accessor::index_type::value == 0), local_domain_t, typename Accessor::type >::value]);
     }

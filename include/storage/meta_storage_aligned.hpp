@@ -46,7 +46,7 @@ namespace gridtools {
 
 #if defined(CXX11_ENABLED)
         // nvcc has problems with constexpr functions
-        typedef HaloType< Halo... > halo_t; // ranges
+        typedef HaloType< Halo... > halo_t;                                                 // ranges
         typedef HaloType< align_all< Alignment::value, Halo >::value - Halo... > padding_t; // paddings
 #else
         typedef HaloType< align_all< Alignment::value, Halo1 >::value - Halo1,

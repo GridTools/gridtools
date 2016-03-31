@@ -197,9 +197,10 @@ the dimension is chosen
     */
     template < typename AccessorType, typename... Known >
     struct alias {
-        GRIDTOOLS_STATIC_ASSERT(is_accessor< AccessorType >::value, "wrong type. If you want to generalize the alias "
-                                                                    "to something more generic than an offset_tuple "
-                                                                    "remove this assert.");
+        GRIDTOOLS_STATIC_ASSERT(is_accessor< AccessorType >::value,
+            "wrong type. If you want to generalize the alias "
+            "to something more generic than an offset_tuple "
+            "remove this assert.");
         GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension< Known >::value...), "wrong type");
 
         template < int Arg1, int Arg2 >

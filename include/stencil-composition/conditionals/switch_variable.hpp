@@ -39,10 +39,10 @@ namespace gridtools {
 
 #ifdef CXX11_ENABLED
         std::unique_ptr< std::vector< short_t > > m_conditions; // generated conditions
-        std::unique_ptr< std::vector< T > > m_cases; // all possible cases (redundant)
+        std::unique_ptr< std::vector< T > > m_cases;            // all possible cases (redundant)
 #else
         boost::scoped_ptr< std::vector< short_t > > m_conditions; // generated conditions
-        boost::scoped_ptr< std::vector< T > > m_cases; // all possible cases (redundant)
+        boost::scoped_ptr< std::vector< T > > m_cases;            // all possible cases (redundant)
 #endif
         /**@brief enpty constructor*/
         constexpr switch_variable() // try to avoid this?

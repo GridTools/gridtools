@@ -18,8 +18,9 @@ namespace gridtools {
         typedef storage_list< Storage, ExtraWidth > type;
         /*If the following assertion fails, you probably set one field dimension to contain zero (or negative)
          * snapshots. Each field dimension must contain one or more snapshots.*/
-        GRIDTOOLS_STATIC_ASSERT(ExtraWidth > 0, "you probably set one field dimension to contain zero (or negative) "
-                                                "snapshots. Each field dimension must contain one or more snapshots.");
+        GRIDTOOLS_STATIC_ASSERT(ExtraWidth > 0,
+            "you probably set one field dimension to contain zero (or negative) "
+            "snapshots. Each field dimension must contain one or more snapshots.");
         typedef Storage super;
         typedef typename super::pointer_type pointer_type;
 
