@@ -12,7 +12,6 @@
 namespace gridtools {
     // define the level offset limit
     const short_t cLevelOffsetLimit = 3;
-
     /**
      * @struct Level
      * Structure defining an axis position relative to a splitter
@@ -26,7 +25,8 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(
             -cLevelOffsetLimit <= VOffset && VOffset <= cLevelOffsetLimit, "check offset and splitter value ranges \n\
          (note that non negative splitter values simplify the index computation)");
-
+        typedef int pp;
+        pp a;
 #ifdef CXX11_ENABLED
         // define splitter and level offset
         typedef static_uint< VSplitter > Splitter;
