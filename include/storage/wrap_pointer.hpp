@@ -151,6 +151,9 @@ struct wrap_pointer{
     GT_FUNCTION
     const T* get_m_cpu_p(){return m_cpu_p;};
 
+    GT_FUNCTION
+    T* get_pointer_to_use() const { return m_cpu_p; }
+
 protected:
     T * m_cpu_p;
     bool m_externally_managed;
