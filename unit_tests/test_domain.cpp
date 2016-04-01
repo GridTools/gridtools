@@ -200,8 +200,9 @@ bool test_domain() {
 #ifndef NDEBUG
     printf("\n\nFROM GPU\n\n");
 #endif
+    // clang-format off
     print_values<<<1,1>>>(arg_list_device_ptr/*domain.gpu_object_ptr*/);
-
+    // clang-format on
 #ifdef __CUDACC__
     cudaDeviceSynchronize();
 #endif
@@ -227,7 +228,9 @@ bool test_domain() {
 #ifndef NDEBUG
     printf("\n\nFROM GPU\n\n");
 #endif
+    // clang-format off
     print_values<<<1,1>>>(arg_list_device_ptr);
+    // clang-format on
 #ifdef __CUDACC__
     cudaDeviceSynchronize();
 #endif

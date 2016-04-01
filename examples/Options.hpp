@@ -7,19 +7,18 @@
 * Singleton data container for program options
 */
 class Options /* singleton */
-{ 
-private: 
+    {
+  private:
     Options() {
-        for(int i=0; i < 4; ++i) {
-            m_size[i] =0;
-        } 
+        for (int i = 0; i < 4; ++i) {
+            m_size[i] = 0;
+        }
     }
-    Options(const Options&) {}
-    ~Options() { }
-public: 
-    static Options& getInstance(); 
+    Options(const Options &) {}
+    ~Options() {}
+
+  public:
+    static Options &getInstance();
 
     int m_size[4];
-}; 
-
-  
+};

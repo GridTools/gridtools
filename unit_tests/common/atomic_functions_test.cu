@@ -93,7 +93,9 @@ void test_atomic_add()
 
     cudaMemcpy(fieldDevice, &field[0], sizeof(T)*size, cudaMemcpyHostToDevice);
 
+    // clang-format off
     atomic_add_kernel<<<numberOfBlocks, threadsPerBlock>>>(sumDevice, fieldDevice, size);
+    // clang-format on
 
     cudaMemcpy(&sum, sumDevice, sizeof(T), cudaMemcpyDeviceToHost);
     verifier<T>::TestEQ(sumRef, sum);
@@ -124,7 +126,9 @@ void test_atomic_sub()
 
     cudaMemcpy(fieldDevice, &field[0], sizeof(T)*size, cudaMemcpyHostToDevice);
 
+    // clang-format off
     atomic_sub_kernel<<<numberOfBlocks, threadsPerBlock>>>(sumDevice, fieldDevice, size);
+    // clang-format on
 
     cudaMemcpy(&sum, sumDevice, sizeof(T), cudaMemcpyDeviceToHost);
     verifier<T>::TestEQ(sumRef, sum);
@@ -155,7 +159,9 @@ void test_atomic_min()
 
     cudaMemcpy(fieldDevice, &field[0], sizeof(T)*size, cudaMemcpyHostToDevice);
 
+    // clang-format off
     atomic_min_kernel<<<numberOfBlocks, threadsPerBlock>>>(minDevice, fieldDevice, size);
+    // clang-format on
 
     cudaMemcpy(&min, minDevice, sizeof(T), cudaMemcpyDeviceToHost);
     verifier<T>::TestEQ(minRef, min);
@@ -185,7 +191,9 @@ void test_atomic_max()
 
     cudaMemcpy(fieldDevice, &field[0], sizeof(T)*size, cudaMemcpyHostToDevice);
 
+    // clang-format off
     atomic_max_kernel<<<numberOfBlocks, threadsPerBlock>>>(maxDevice, fieldDevice, size);
+    // clang-format on
 
     cudaMemcpy(&max, maxDevice, sizeof(T), cudaMemcpyDeviceToHost);
     verifier<T>::TestEQ(maxRef, max);

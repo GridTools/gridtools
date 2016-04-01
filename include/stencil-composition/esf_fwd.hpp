@@ -1,6 +1,7 @@
 #pragma once
-namespace gridtools{
+namespace gridtools {
 
-template <typename T> struct is_esf_descriptor : boost::mpl::false_{};
+    template < typename T >
+    struct is_esf_descriptor : boost::mpl::false_ {};
 
-} //namespace gridtools
+} // namespace gridtools
