@@ -64,7 +64,9 @@ bool test_cuda_storage() {
     data.clone_to_device();
     meta_.clone_to_device();//copy meta information to the GPU
 
+    // clang-format off
     add_on_gpu<<<1,1>>>(meta_.gpu_object_ptr, data.gpu_object_ptr, d1, d2, d3);
+    // clang-format on
     cudaDeviceSynchronize();
 
     data.d2h_update();

@@ -6,7 +6,7 @@
 
 namespace gridtools {
 
-    template<typename T>
+    template < typename T >
     struct is_halo;
 
     /**
@@ -24,46 +24,45 @@ namespace gridtools {
        ranges in the user function) do not match.
 
      */
-    template<typename MetaStorageBase
-             , typename Alignment
-             , typename HaloType
-             >
+    template < typename MetaStorageBase, typename Alignment, typename HaloType >
     struct meta_storage_aligned;
 
-
-    template<typename MetaStorageBase
-             , typename Alignment
+    template < typename MetaStorageBase,
+        typename Alignment
 #ifdef CXX11_ENABLED
-             , template<ushort_t ... P> class  HaloType
-             , ushort_t ... Halo>
-    struct meta_storage_aligned<MetaStorageBase, Alignment, HaloType<Halo ...> >
+        ,
+        template < ushort_t... P > class HaloType,
+        ushort_t... Halo >
+    struct meta_storage_aligned< MetaStorageBase, Alignment, HaloType< Halo... > >
 #else
-        , template<ushort_t, ushort_t, ushort_t > class  HaloType
-        , ushort_t Halo1, ushort_t Halo2, ushort_t Halo3>
-        struct meta_storage_aligned<MetaStorageBase, Alignment, HaloType<Halo1, Halo2, Halo3> >
+        ,
+        template < ushort_t, ushort_t, ushort_t > class HaloType,
+        ushort_t Halo1,
+        ushort_t Halo2,
+        ushort_t Halo3 >
+    struct meta_storage_aligned< MetaStorageBase, Alignment, HaloType< Halo1, Halo2, Halo3 > >
 #endif
-        : public MetaStorageBase
-        {
+        : public MetaStorageBase {
 
 #if defined(CXX11_ENABLED)
-            //nvcc has problems with constexpr functions
-            typedef HaloType<Halo ...> halo_t;//ranges
-            typedef HaloType<align_all<Alignment::value, Halo>::value-Halo ...> padding_t;//paddings
+        // nvcc has problems with constexpr functions
+        typedef HaloType< Halo... > halo_t;                                                 // ranges
+        typedef HaloType< align_all< Alignment::value, Halo >::value - Halo... > padding_t; // paddings
 #else
-            typedef HaloType<align_all<Alignment::value, Halo1>::value - Halo1
-                            , align_all<Alignment::value, Halo2>::value - Halo2
-                            , align_all<Alignment::value, Halo3>::value - Halo3
-            > padding_t;//paddings
-            typedef HaloType<Halo1, Halo2, Halo3> halo_t;
+        typedef HaloType< align_all< Alignment::value, Halo1 >::value - Halo1,
+            align_all< Alignment::value, Halo2 >::value - Halo2,
+            align_all< Alignment::value, Halo3 >::value - Halo3 >
+            padding_t; // paddings
+        typedef HaloType< Halo1, Halo2, Halo3 > halo_t;
 #endif
 
-            static const ushort_t s_alignment = Alignment::value;
+        static const ushort_t s_alignment = Alignment::value;
 
-            typedef MetaStorageBase super;
-            typedef align<s_alignment, typename super::layout> align_t;
-            typedef Alignment alignment_t;
-            typedef typename MetaStorageBase::basic_type basic_type;
-            typedef typename MetaStorageBase::index_type index_type;
+        typedef MetaStorageBase super;
+        typedef align< s_alignment, typename super::layout > align_t;
+        typedef Alignment alignment_t;
+        typedef typename MetaStorageBase::basic_type basic_type;
+        typedef typename MetaStorageBase::index_type index_type;
 
 #ifdef CXX11_ENABLED
             array<uint_t, MetaStorageBase::space_dimensions> m_unaligned_dims;
@@ -76,58 +75,60 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(is_halo<padding_t>::type::value, "wrong type");
             GRIDTOOLS_STATIC_ASSERT(padding_t::size == super::space_dimensions, "error in the paddindg size");
 
-            /**
-               @brief metafunction for conditional compilation
+/**
+   @brief metafunction for conditional compilation
 
-               returns padding_t if the ID template argument corresponds with the stride 1 dimension,
-               halo_t otherwise.
-             */
+   returns padding_t if the ID template argument corresponds with the stride 1 dimension,
+   halo_t otherwise.
+ */
 #ifdef CXX11_ENABLED
-            template <uint_t ID>
-            struct cond : boost::mpl::if_c<align_t::template has_stride_one<ID>::value, static_uint<padding_t::template get<ID>()> , static_uint<0> >::type { };
+        template < uint_t ID >
+        struct cond : boost::mpl::if_c< align_t::template has_stride_one< ID >::value,
+                          static_uint< padding_t::template get< ID >() >,
+                          static_uint< 0 > >::type {};
 #else
-            template <uint_t ID>
-            struct cond : boost::mpl::if_c<align_t::template has_stride_one<ID>::value, padding_t , halo<0,0,0> >::type { };
+        template < uint_t ID >
+        struct cond
+            : boost::mpl::if_c< align_t::template has_stride_one< ID >::value, padding_t, halo< 0, 0, 0 > >::type {};
 #endif
 
 #ifdef CXX11_ENABLED
-            /** metafunction to select the dimension with stride 1 and align it */
-            template<uint_t U>
-            using lambda_t = typename align_t::template do_align<U, (halo_t::template get<U>()), (padding_t::template get<U>())>;
+        /** metafunction to select the dimension with stride 1 and align it */
+        template < uint_t U >
+        using lambda_t =
+            typename align_t::template do_align< U, (halo_t::template get< U >()), (padding_t::template get< U >()) >;
 #endif
-            /**
-               @brief constructor given the space dimensions
+/**
+   @brief constructor given the space dimensions
 
-               NOTE: this contructor is constexpr, i.e. the storage metadata information could be used
-               at compile-time (e.g. in template metafunctions)
+   NOTE: this contructor is constexpr, i.e. the storage metadata information could be used
+   at compile-time (e.g. in template metafunctions)
 
-               applying 'align' to the integer sequence from 1 to space_dimensions.
-               It will select the dimension with stride 1 and align it
+   applying 'align' to the integer sequence from 1 to space_dimensions.
+   It will select the dimension with stride 1 and align it
 
-               it instanitates a class like
-               super(lambda<0>::apply(d1), lambda<1>::apply(d2), lambda<2>::apply(d3), ...)
-            */
+   it instanitates a class like
+   super(lambda<0>::apply(d1), lambda<1>::apply(d2), lambda<2>::apply(d3), ...)
+*/
 #ifdef CXX11_ENABLED
-            template <class ... IntTypes
-#ifndef __CUDACC__//nvcc does not get it
-                      , typename Dummy = all_integers<IntTypes...>
+        template < class... IntTypes
+#ifndef __CUDACC__ // nvcc does not get it
+            ,
+            typename Dummy = all_integers< IntTypes... >
 #else
-                      , typename Dummy = typename boost::enable_if_c<
-                            boost::is_integral<
-                                typename boost::mpl::at_c<
-                                    boost::mpl::vector<IntTypes ...>, 0 >::type
-                                >::type::value, bool
-                            >::type
+            ,
+            typename Dummy = typename boost::enable_if_c<
+                boost::is_integral<
+                    typename boost::mpl::at_c< boost::mpl::vector< IntTypes... >, 0 >::type >::type::value,
+                bool >::type
 #endif
-                      >
-            GT_FUNCTION
-            constexpr meta_storage_aligned(  IntTypes ... dims_  ) :
-                super(apply_gt_integer_sequence
-                      <typename make_gt_integer_sequence<uint_t, sizeof ... (IntTypes)>::type >::template apply_zipped
-                      <super, lambda_t >(dims_ ...) )
-		, m_unaligned_dims { (uint_t)dims_ ... }
-		, m_unaligned_strides( _impl::assign_all_strides< (short_t)(MetaStorageBase::space_dimensions), typename MetaStorageBase::layout>::apply( (uint_t)dims_...) )
-             {
+            >
+        GT_FUNCTION constexpr meta_storage_aligned(IntTypes... dims_)
+            : super(apply_gt_integer_sequence< typename make_gt_integer_sequence< uint_t,
+                      sizeof...(IntTypes) >::type >::template apply_zipped< super, lambda_t >(dims_...)),
+              m_unaligned_dims{(uint_t)dims_...},
+              m_unaligned_strides(_impl::assign_all_strides< (short_t)(MetaStorageBase::space_dimensions),
+                  typename MetaStorageBase::layout >::apply((uint_t)dims_...)) {
 		static_assert(m_unaligned_strides.size() == sizeof...(dims_), "stride container size is not matching number of given dimensions");
 		static_assert(m_unaligned_dims.size() == sizeof...(dims_), "dimension container size is not matching number of given dimensions");
              }
@@ -242,13 +243,11 @@ namespace gridtools {
             }
 
 #endif
-            //device copy constructor
+            // device copy constructor
             GT_FUNCTION
-            constexpr meta_storage_aligned( meta_storage_aligned const& other ) :
-                super(other){
-            }
+            constexpr meta_storage_aligned(meta_storage_aligned const &other) : super(other) {}
 
-            //empty constructor
+            // empty constructor
             GT_FUNCTION
             constexpr meta_storage_aligned() {}
 
@@ -259,44 +258,39 @@ namespace gridtools {
                \param index_ the output index
                \param strides_ the strides array
             */
-            template <uint_t Coordinate, typename StridesVector >
-            GT_FUNCTION
-            static void initialize(uint_t const& steps_
-                                   , uint_t const& block_
-                                   , int_t* RESTRICT index_
-                                   , StridesVector const& RESTRICT strides_){
-                uint_t steps_padded_ = steps_+
+            template < uint_t Coordinate, typename StridesVector >
+            GT_FUNCTION static void initialize(uint_t const &steps_,
+                uint_t const &block_,
+                int_t *RESTRICT index_,
+                StridesVector const &RESTRICT strides_) {
+                uint_t steps_padded_ = steps_ +
 #ifdef CXX11_ENABLED
-                    cond<Coordinate>::value;
+                                       cond< Coordinate >::value;
 #else
-                    cond<Coordinate>::template get<Coordinate>();
+                                       cond< Coordinate >::template get< Coordinate >();
 #endif
 #ifndef NDEBUG
 #ifdef VERBOSE
 #ifdef __CUDACC__
-                if(threadIdx.x==0){
+                if (threadIdx.x == 0) {
 #endif
-                    if(align_t::template has_stride_one<Coordinate>::value)
-                    {
+                    if (align_t::template has_stride_one< Coordinate >::value) {
                         printf("%d, is aligned?\n", steps_padded_);
                         printf("padding + steps: %d\n", steps_padded_);
-                    }
+                }
 #ifdef __CUDACC__
                 }
 #endif
 #endif
 #endif
-                super::template initialize<Coordinate>(steps_padded_, block_, index_, strides_ );
+                super::template initialize< Coordinate >(steps_padded_, block_, index_, strides_);
             }
+    };
 
-
-        };
-
-    template <typename T>
+    template < typename T >
     struct is_meta_storage;
 
-    template< typename MetaStorageBase, typename Alignment, typename HaloType>
-    struct is_meta_storage<meta_storage_aligned<MetaStorageBase, Alignment, HaloType> > : boost::mpl::true_{};
-
+    template < typename MetaStorageBase, typename Alignment, typename HaloType >
+    struct is_meta_storage< meta_storage_aligned< MetaStorageBase, Alignment, HaloType > > : boost::mpl::true_ {};
 
 } // namespace gridtools
