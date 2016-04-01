@@ -10,10 +10,6 @@ namespace gridtools{
     doing
     compile-time operations.
     */
-<<<<<<< HEAD
-=======
-    namespace gridtools {
->>>>>>> 4652e9d006a4dbd6c463c5a01e8810ae16379be3
 
     template < char const *S >
     struct static_string {
