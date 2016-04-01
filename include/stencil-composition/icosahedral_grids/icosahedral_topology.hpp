@@ -587,9 +587,9 @@ namespace gridtools {
 
         const gridtools::array< uint_t, 2 > m_dims; // Sizes as cells in a multi-dimensional Cell array
 
-        using grid_meta_storages_t = boost::fusion::vector3< pointer<meta_storage_t< cells > >,
-            pointer<meta_storage_t< edges > >,
-            pointer<meta_storage_t< vertexes > > >;
+        using grid_meta_storages_t = boost::fusion::vector3< pointer<const meta_storage_t< cells > >,
+            pointer<const meta_storage_t< edges > >,
+            pointer<const meta_storage_t< vertexes > > >;
 
         grid_meta_storages_t m_virtual_storages;
 
@@ -628,9 +628,9 @@ namespace gridtools {
                   boost::fusion::at_c< vertexes::value >(m_virtual_storages)->gpu_object_ptr) {}
 
         ~icosahedral_topology() {
-            delete boost::fusion::at_c< cells::value >(m_virtual_storages).get();
-            delete boost::fusion::at_c< edges::value >(m_virtual_storages).get();
-            delete boost::fusion::at_c< vertexes::value >(m_virtual_storages).get();
+            boost::fusion::at_c< cells::value >(m_virtual_storages).destroy();
+            boost::fusion::at_c< edges::value >(m_virtual_storages).destroy();
+            boost::fusion::at_c< vertexes::value >(m_virtual_storages).destroy();
         }
 
         GT_FUNCTION
