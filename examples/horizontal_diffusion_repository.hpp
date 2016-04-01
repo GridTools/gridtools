@@ -106,14 +106,14 @@ namespace horizontal_diffusion {
 
                         // coefficient values
                         coeff_(i, j, k) = 0.025;
+                    }
                 }
             }
-        }
-        for (uint_t j = j_begin + 1; j < j_end; j++) {
-            crlato_(0, j, 0) = crlat1_(0, j, 0) / crlat0_(0, j, 0);
-            crlatu_(0, j, 0) = crlat1_(0, j - 1, 0) / crlat0_(0, j, 0);
-        }
-        crlato_(0, j_begin, 0) = crlat1_(0, j_begin, 0) / crlat0_(0, j_begin, 0);
+            for (uint_t j = j_begin + 1; j < j_end; j++) {
+                crlato_(0, j, 0) = crlat1_(0, j, 0) / crlat0_(0, j, 0);
+                crlatu_(0, j, 0) = crlat1_(0, j - 1, 0) / crlat0_(0, j, 0);
+            }
+            crlato_(0, j_begin, 0) = crlat1_(0, j_begin, 0) / crlat0_(0, j_begin, 0);
         }
 
         template < typename TStorage_type, typename TValue_type >
@@ -126,9 +126,9 @@ namespace horizontal_diffusion {
                 for (uint_t i = 0; i < (has_dim0 ? idim_ : 1); ++i) {
                     for (uint_t j = 0; j < (has_dim1 ? jdim_ : 1); ++j) {
                         field(i, j, k) = value;
+                    }
                 }
             }
-        }
         }
 
         void generate_reference() {
@@ -145,30 +145,30 @@ namespace horizontal_diffusion {
                         lap(i, j, (uint_t)0) =
                             (gridtools::float_type)4 * in_(i, j, k) -
                             (in_(i + 1, j, k) + in_(i, j + 1, k) + in_(i - 1, j, k) + in_(i, j - 1, k));
-                }
+                    }
                 }
                 for (uint_t i = halo_size_ - 1; i < idim_ - halo_size_; ++i) {
                     for (uint_t j = halo_size_; j < jdim_ - halo_size_; ++j) {
                         flx(i, j, (uint_t)0) = lap(i + 1, j, (uint_t)0) - lap(i, j, (uint_t)0);
                         if (flx(i, j, (uint_t)0) * (in_(i + 1, j, k) - in_(i, j, k)) > 0)
                             flx(i, j, (uint_t)0) = 0.;
-                }
+                    }
                 }
                 for (uint_t i = halo_size_; i < idim_ - halo_size_; ++i) {
                     for (uint_t j = halo_size_ - 1; j < jdim_ - halo_size_; ++j) {
                         fly(i, j, (uint_t)0) = lap(i, j + 1, (uint_t)0) - lap(i, j, (uint_t)0);
                         if (fly(i, j, (uint_t)0) * (in_(i, j + 1, k) - in_(i, j, k)) > 0)
                             fly(i, j, (uint_t)0) = 0.;
-                }
+                    }
                 }
                 for (uint_t i = halo_size_; i < idim_ - halo_size_; ++i) {
                     for (uint_t j = halo_size_; j < jdim_ - halo_size_; ++j) {
                         out_ref_(i, j, k) = in_(i, j, k) -
                                             coeff_(i, j, k) * (flx(i, j, (uint_t)0) - flx(i - 1, j, (uint_t)0) +
                                                                   fly(i, j, (uint_t)0) - fly(i, j - 1, (uint_t)0));
+                    }
                 }
             }
-        }
         }
 
         void generate_reference_simple() {
@@ -183,7 +183,7 @@ namespace horizontal_diffusion {
                                                (gridtools::float_type)2 * in_(i, j, k) +
                                                crlato_(i, j, k) * (in_(i, j + 1, k) - in_(i, j, k)) +
                                                crlatu_(i, j, k) * (in_(i, j - 1, k) - in_(i, j, k));
-                }
+                    }
                 }
                 for (uint_t i = halo_size_; i < idim_ - halo_size_; ++i) {
                     for (uint_t j = halo_size_; j < jdim_ - halo_size_; ++j) {
@@ -194,9 +194,9 @@ namespace horizontal_diffusion {
                         gridtools::float_type fluxy_m = crlato_(i, j, k) * (lap(i, j, k) - lap(i, j - 1, k));
 
                         out_ref_(i, j, k) = in_(i, j, k) + ((fluxx_m - fluxx) + (fluxy_m - fluxy)) * coeff_(i, j, k);
+                    }
                 }
             }
-        }
         }
 
         void update_cpu() {

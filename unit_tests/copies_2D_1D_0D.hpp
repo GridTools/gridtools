@@ -227,7 +227,7 @@ namespace copy_stencils_3D_2D_1D_0D {
                         //           << ": " << in(i,j,k) << ", " << out(i,j,k) << std::endl;
                         ok = false;
                     }
-                    }
+                }
 
         return ok;
     }
