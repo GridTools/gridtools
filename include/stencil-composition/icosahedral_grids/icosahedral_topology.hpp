@@ -615,7 +615,7 @@ namespace gridtools {
             boost::fusion::at_c< edges::value >(m_virtual_storages).clone_to_device();
             boost::fusion::at_c< vertexes::value >(m_virtual_storages).clone_to_device();
 
-            clone_to_device();
+            clonable_to_gpu< icosahedral_topology< Backend > >::clone_to_device();
         }
         template < typename... UInt >
         GT_FUNCTION icosahedral_topology(uint_t first_, uint_t second_, UInt... dims)
@@ -630,9 +630,13 @@ namespace gridtools {
 
         __device__ icosahedral_topology(icosahedral_topology const &other)
             : m_dims(other.m_dims),
-              m_virtual_storages(boost::fusion::at_c< cells::value >(m_virtual_storages).gpu_object_ptr,
-                  boost::fusion::at_c< edges::value >(m_virtual_storages).gpu_object_ptr,
-                  boost::fusion::at_c< vertexes::value >(m_virtual_storages).gpu_object_ptr) {}
+              m_virtual_storages(*(boost::fusion::at_c< cells::value >(m_virtual_storages).gpu_object_ptr),
+                  *(boost::fusion::at_c< edges::value >(m_virtual_storages).gpu_object_ptr),
+                  *(boost::fusion::at_c< vertexes::value >(m_virtual_storages).gpu_object_ptr)) 
+//               m_virtual_storages((boost::fusion::at_c< cells::value >(m_virtual_storages)),
+//                  (boost::fusion::at_c< edges::value >(m_virtual_storages)),
+//                  (boost::fusion::at_c< vertexes::value >(m_virtual_storages))) 
+                 {}
 
         GT_FUNCTION
         virtual_storage_types const &virtual_storages() const { return m_virtual_storages; }
