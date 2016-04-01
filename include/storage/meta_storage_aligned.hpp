@@ -1,8 +1,8 @@
 #pragma once
-#include "align.hpp"
-#include "halo.hpp"
-#include "common/pair.hpp"
 #include "../common/generic_metafunctions/all_integrals.hpp"
+#include "align.hpp"
+#include "common/pair.hpp"
+#include "halo.hpp"
 
 namespace gridtools {
 
@@ -65,15 +65,15 @@ namespace gridtools {
         typedef typename MetaStorageBase::index_type index_type;
 
 #ifdef CXX11_ENABLED
-            array<uint_t, MetaStorageBase::space_dimensions> m_unaligned_dims;
-            //leave this as int_t because of vectorization bug mentioned in meta_storage_base
-            array<int_t, MetaStorageBase::space_dimensions> m_unaligned_strides;
+        array< uint_t, MetaStorageBase::space_dimensions > m_unaligned_dims;
+        // leave this as int_t because of vectorization bug mentioned in meta_storage_base
+        array< int_t, MetaStorageBase::space_dimensions > m_unaligned_strides;
 #endif
 
-            GRIDTOOLS_STATIC_ASSERT(is_meta_storage<MetaStorageBase>::type::value, "wrong type");
-            GRIDTOOLS_STATIC_ASSERT(is_aligned<alignment_t>::type::value, "wrong type");
-            GRIDTOOLS_STATIC_ASSERT(is_halo<padding_t>::type::value, "wrong type");
-            GRIDTOOLS_STATIC_ASSERT(padding_t::size == super::space_dimensions, "error in the paddindg size");
+        GRIDTOOLS_STATIC_ASSERT(is_meta_storage< MetaStorageBase >::type::value, "wrong type");
+        GRIDTOOLS_STATIC_ASSERT(is_aligned< alignment_t >::type::value, "wrong type");
+        GRIDTOOLS_STATIC_ASSERT(is_halo< padding_t >::type::value, "wrong type");
+        GRIDTOOLS_STATIC_ASSERT(padding_t::size == super::space_dimensions, "error in the paddindg size");
 
 /**
    @brief metafunction for conditional compilation
@@ -129,162 +129,154 @@ namespace gridtools {
               m_unaligned_dims{(uint_t)dims_...},
               m_unaligned_strides(_impl::assign_all_strides< (short_t)(MetaStorageBase::space_dimensions),
                   typename MetaStorageBase::layout >::apply((uint_t)dims_...)) {
-		static_assert(m_unaligned_strides.size() == sizeof...(dims_), "stride container size is not matching number of given dimensions");
-		static_assert(m_unaligned_dims.size() == sizeof...(dims_), "dimension container size is not matching number of given dimensions");
-             }
- 
-            /**@brief Constructor taking an array with the storage dimensions
+            static_assert(MetaStorageBase::space_dimensions == sizeof...(dims_),
+                "stride container size is not matching number of given dimensions");
+        }
 
-               forwarding to the constructor below
-             */
-            template <class Array, typename boost::enable_if<is_array<Array>, int >::type = 0 >
-            GT_FUNCTION
-            constexpr meta_storage_aligned( Array const& dims_ ) :
-                meta_storage_aligned(dims_, typename make_gt_integer_sequence< ushort_t, Array::n_dimensions >::type())
-            {
-                GRIDTOOLS_STATIC_ASSERT(is_array<Array>::value, "type");
-            }
+        /**@brief Constructor taking an array with the storage dimensions
 
-            /**@brief Constructor taking an array with the storage dimensions
+           forwarding to the constructor below
+         */
+        template < class Array, typename boost::enable_if< is_array< Array >, int >::type = 0 >
+        GT_FUNCTION constexpr meta_storage_aligned(Array const &dims_)
+            : meta_storage_aligned(dims_, typename make_gt_integer_sequence< ushort_t, Array::n_dimensions >::type()) {
+            GRIDTOOLS_STATIC_ASSERT(is_array< Array >::value, "type");
+        }
 
-               forwarding to the variadic constructor
-             */
-            template <typename T, ushort_t ... Ids  >
-            GT_FUNCTION
-            constexpr
-            meta_storage_aligned( array<T, sizeof...(Ids)> const& dims_, gt_integer_sequence<ushort_t, Ids ...> x_ ) :
-                meta_storage_aligned(dims_[Ids]...)
-            {
-            }
+        /**@brief Constructor taking an array with the storage dimensions
 
-            /**@brief extra level of indirection necessary for zipping the indices*/
-            template <typename ... UInt, ushort_t ... IdSequence>
-            GT_FUNCTION
-            constexpr int_t index_( gt_integer_sequence<ushort_t, IdSequence...> t, UInt const& ... args_
-                ) const {
+           forwarding to the variadic constructor
+         */
+        template < typename T, ushort_t... Ids >
+        GT_FUNCTION constexpr meta_storage_aligned(
+            array< T, sizeof...(Ids) > const &dims_, gt_integer_sequence< ushort_t, Ids... > x_)
+            : meta_storage_aligned(dims_[Ids]...) {}
 
-                GRIDTOOLS_STATIC_ASSERT(sizeof...(IdSequence) == sizeof...(UInt), "number of arguments used to compute the storage index does not match the storage dimension. Check that you are accessing the storage correctly.");
-                return super::index(args_ + cond<IdSequence>::value ...);
-            }
+        /**@brief extra level of indirection necessary for zipping the indices*/
+        template < typename... UInt, ushort_t... IdSequence >
+        GT_FUNCTION constexpr int_t index_(
+            gt_integer_sequence< ushort_t, IdSequence... > t, UInt const &... args_) const {
 
-           /**@brief just forwarding the index computation to the base class*/
-            template <typename T, size_t N>
-            GT_FUNCTION
-            int_t index( array<T, N> const& t) const {
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(IdSequence) == sizeof...(UInt),
+                "number of arguments used to compute the storage index does not match the storage dimension. Check "
+                "that you are accessing the storage correctly.");
+            return super::index(args_ + cond< IdSequence >::value...);
+        }
 
-                return super::index(t);
-            }
+        /**@brief just forwarding the index computation to the base class*/
+        template < typename T, size_t N >
+        GT_FUNCTION int_t index(array< T, N > const &t) const {
 
-            /**@brief */
-            template <typename ... UInt>
-            GT_FUNCTION
-            constexpr int_t index(uint_t const& first_, UInt const& ... args_) const {
+            return super::index(t);
+        }
 
-                /**this call zips 2 variadic packs*/
-                return index_(typename make_gt_integer_sequence<ushort_t, sizeof ... (Halo)>::type(), first_, args_ ... );
-            }
+        /**@brief */
+        template < typename... UInt >
+        GT_FUNCTION constexpr int_t index(uint_t const &first_, UInt const &... args_) const {
+
+            /**this call zips 2 variadic packs*/
+            return index_(typename make_gt_integer_sequence< ushort_t, sizeof...(Halo) >::type(), first_, args_...);
+        }
 #else
 
-            /* applying 'align' to the integer sequence from 1 to space_dimensions.
-               It will select the dimension with stride 1 and align it*/
-            // non variadic non constexpr constructor
-            GT_FUNCTION
-            meta_storage_aligned(  uint_t const& d1, uint_t const& d2, uint_t const& d3 ) :
-                super(align_t::template do_align<0,(halo_t::s_pad1), (padding_t::s_pad1) >::apply(d1   )
-                      , align_t::template do_align<1,(halo_t::s_pad2), (padding_t::s_pad2) >::apply(d2 )
-                      , align_t::template do_align<2, (halo_t::s_pad3), (padding_t::s_pad3) >::apply(d3)
-                    )
-            {
-            }
+        /* applying 'align' to the integer sequence from 1 to space_dimensions.
+           It will select the dimension with stride 1 and align it*/
+        // non variadic non constexpr constructor
+        GT_FUNCTION
+        meta_storage_aligned(uint_t const &d1, uint_t const &d2, uint_t const &d3)
+            : super(align_t::template do_align< 0, (halo_t::s_pad1), (padding_t::s_pad1) >::apply(d1),
+                  align_t::template do_align< 1, (halo_t::s_pad2), (padding_t::s_pad2) >::apply(d2),
+                  align_t::template do_align< 2, (halo_t::s_pad3), (padding_t::s_pad3) >::apply(d3)) {}
 
-            /**@brief straightforward interface*/
-            GT_FUNCTION
-            int_t index(uint_t const& i, uint_t const& j, uint_t const&  k) const
-            {
-                return super::index(i+cond<0>::template get<0>()
-                                  , j+cond<1>::template get<1>()
-                                  , k+cond<2>::template get<2>()); }
+        /**@brief straightforward interface*/
+        GT_FUNCTION
+        int_t index(uint_t const &i, uint_t const &j, uint_t const &k) const {
+            return super::index(i + cond< 0 >::template get< 0 >(),
+                j + cond< 1 >::template get< 1 >(),
+                k + cond< 2 >::template get< 2 >());
+        }
 
 #endif
 
 #ifdef CXX11_ENABLED
-            /** @brief returns the dimension fo the field along I
-             */
-            template<ushort_t I>
-            GT_FUNCTION
-            constexpr uint_t unaligned_dims() const {
-                return m_unaligned_dims[I];
-            }
+        /** @brief returns the dimension fo the field along I
+         */
+        template < ushort_t I >
+        GT_FUNCTION constexpr uint_t unaligned_dims() const {
+            return m_unaligned_dims[I];
+        }
 
-            /** @brief returns the dimension fo the field along I
-              */
-            GT_FUNCTION
-            constexpr uint_t unaligned_dims(const ushort_t I) const {
-                return m_unaligned_dims[I];
-            }
+        /** @brief returns the dimension fo the field along I
+          */
+        GT_FUNCTION
+        constexpr uint_t unaligned_dims(const ushort_t I) const { return m_unaligned_dims[I]; }
 
-            /** @brief returns the storage strides
-             */
-            GT_FUNCTION
-            constexpr int_t const& unaligned_strides(ushort_t i) const {
-                return m_unaligned_strides[i];
-            }
+        /** @brief returns the storage strides
+         */
+        GT_FUNCTION
+        constexpr int_t const &unaligned_strides(ushort_t i) const { return m_unaligned_strides[i]; }
 
-            /** @brief return the stride for a specific coordinate, given the vector of strides
-                Coordinates 0,1,2 correspond to i,j,k respectively.
+        /** @brief return the stride for a specific coordinate, given the vector of strides
+            Coordinates 0,1,2 correspond to i,j,k respectively.
 
-                non-static version.
-             */
-            template<uint_t Coordinate>
-            GT_FUNCTION
-            constexpr int_t unaligned_strides() const {
-                //NOTE: we access the m_strides vector starting from 1, because m_strides[0] is the total storage dimension.
-                return ((vec_max<typename MetaStorageBase::layout::layout_vector_t>::value < 0) ? 0 : ((MetaStorageBase::layout::template at_<Coordinate>::value == vec_max<typename MetaStorageBase::layout::layout_vector_t>::value ) ? 1 : ((m_unaligned_strides[MetaStorageBase::layout::template at_<Coordinate>::value+1]))));
-            }
+            non-static version.
+         */
+        template < uint_t Coordinate >
+        GT_FUNCTION constexpr int_t unaligned_strides() const {
+            // NOTE: we access the m_strides vector starting from 1, because m_strides[0] is the total storage
+            // dimension.
+            return ((vec_max< typename MetaStorageBase::layout::layout_vector_t >::value < 0)
+                        ? 0
+                        : ((MetaStorageBase::layout::template at_< Coordinate >::value ==
+                               vec_max< typename MetaStorageBase::layout::layout_vector_t >::value)
+                                  ? 1
+                                  : ((m_unaligned_strides[MetaStorageBase::layout::template at_< Coordinate >::value +
+                                                          1]))));
+        }
 
 #endif
-            // device copy constructor
-            GT_FUNCTION
-            constexpr meta_storage_aligned(meta_storage_aligned const &other) : super(other) {}
+        // device copy constructor
+        GT_FUNCTION
+        constexpr meta_storage_aligned(meta_storage_aligned const &other) : super(other) {}
 
-            // empty constructor
-            GT_FUNCTION
-            constexpr meta_storage_aligned() {}
+        // empty constructor
+        GT_FUNCTION
+        constexpr meta_storage_aligned() {}
 
-            /**
-               @brief initializing a given coordinate (i.e. multiplying times its stride)
+        /**
+           @brief initializing a given coordinate (i.e. multiplying times its stride)
 
-               \param steps_ the input coordinate value
-               \param index_ the output index
-               \param strides_ the strides array
-            */
-            template < uint_t Coordinate, typename StridesVector >
-            GT_FUNCTION static void initialize(uint_t const &steps_,
-                uint_t const &block_,
-                int_t *RESTRICT index_,
-                StridesVector const &RESTRICT strides_) {
-                uint_t steps_padded_ = steps_ +
+           \param steps_ the input coordinate value
+           \param index_ the output index
+           \param strides_ the strides array
+        */
+        template < uint_t Coordinate, typename StridesVector >
+        GT_FUNCTION static void initialize(uint_t const &steps_,
+            uint_t const &block_,
+            int_t *RESTRICT index_,
+            StridesVector const &RESTRICT strides_) {
+            uint_t steps_padded_ = steps_ +
 #ifdef CXX11_ENABLED
-                                       cond< Coordinate >::value;
+                                   cond< Coordinate >::value;
 #else
-                                       cond< Coordinate >::template get< Coordinate >();
+                                   cond< Coordinate >::template get< Coordinate >();
 #endif
 #ifndef NDEBUG
 #ifdef VERBOSE
 #ifdef __CUDACC__
-                if (threadIdx.x == 0) {
+            if (threadIdx.x == 0) {
 #endif
-                    if (align_t::template has_stride_one< Coordinate >::value) {
-                        printf("%d, is aligned?\n", steps_padded_);
-                        printf("padding + steps: %d\n", steps_padded_);
+                if (align_t::template has_stride_one< Coordinate >::value) {
+                    printf("%d, is aligned?\n", steps_padded_);
+                    printf("padding + steps: %d\n", steps_padded_);
                 }
 #ifdef __CUDACC__
-                }
-#endif
-#endif
-#endif
-                super::template initialize< Coordinate >(steps_padded_, block_, index_, strides_);
             }
+#endif
+#endif
+#endif
+            super::template initialize< Coordinate >(steps_padded_, block_, index_, strides_);
+        }
     };
 
     template < typename T >
