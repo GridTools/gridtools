@@ -11,28 +11,31 @@ namespace gridtools {
        As everything what is inside the enumtype namespace, the dimension keyword is
        supposed to be used at the application interface level.
     */
-    template <ushort_t Coordinate>
-    struct dimension{
-        template <typename IntType>
-        GT_FUNCTION
-        constexpr dimension(IntType val) : value
-#if( (!defined(CXX11_ENABLED)) )
-                                         (val)
+    template < ushort_t Coordinate >
+    struct dimension {
+        template < typename IntType >
+        GT_FUNCTION constexpr dimension(IntType val)
+            : value
+#if ((!defined(CXX11_ENABLED)))
+              (val)
 #else
-            {val}
+        {
+            val
+        }
 #endif
         {
-            GRIDTOOLS_STATIC_ASSERT(Coordinate!=0, "The coordinate values passed to the accessor start from 1");
-            GRIDTOOLS_STATIC_ASSERT(Coordinate>0, "The coordinate values passed to the accessor must be positive integerts");
+            GRIDTOOLS_STATIC_ASSERT(Coordinate != 0, "The coordinate values passed to the accessor start from 1");
+            GRIDTOOLS_STATIC_ASSERT(
+                Coordinate > 0, "The coordinate values passed to the accessor must be positive integerts");
         }
 
         /**@brief Constructor*/
         GT_FUNCTION
-        constexpr dimension(dimension const& other):value(other.value){}
+        constexpr dimension(dimension const &other) : value(other.value) {}
 
-        //TODO can I rename direction by index?
-        static const ushort_t direction=Coordinate;
-        static const ushort_t index=Coordinate;
+        // TODO can I rename direction by index?
+        static const ushort_t direction = Coordinate;
+        static const ushort_t index = Coordinate;
         int_t value;
 
         /**@brief syntactic sugar for user interface
@@ -49,21 +52,21 @@ namespace gridtools {
            \endcode
 
          */
-        struct Index{
-           GT_FUNCTION
-           constexpr Index(){}
+        struct Index {
             GT_FUNCTION
-            constexpr Index(Index const&){}
-            typedef dimension<Coordinate> super;
+            constexpr Index() {}
+            GT_FUNCTION
+            constexpr Index(Index const &) {}
+            typedef dimension< Coordinate > super;
         };
 
-    private:
+      private:
         dimension();
     };
 
-    template <typename T>
-    struct is_dimension : boost::mpl::false_{};
+    template < typename T >
+    struct is_dimension : boost::mpl::false_ {};
 
-    template<ushort_t Id>
-    struct is_dimension<dimension<Id> > : boost::mpl::true_{};
+    template < ushort_t Id >
+    struct is_dimension< dimension< Id > > : boost::mpl::true_ {};
 } // namespace gridtools

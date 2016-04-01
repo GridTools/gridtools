@@ -6,5 +6,4 @@
 #include <L3/proc_grid_2D.hpp>
 #include <L3/proc_grid_3D.hpp>
 
-
 #endif

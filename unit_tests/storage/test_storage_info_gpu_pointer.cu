@@ -29,7 +29,9 @@ TEST(storage_info, test_pointer) {
     st_.h2d_update();
     st_.clone_to_device();
 
+    // clang-format off
     set<<<1,1>>>(st_.gpu_object_ptr);
+    // clang-format on
 
     st_.d2h_update();
     //st_.print();
