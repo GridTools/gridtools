@@ -1,12 +1,13 @@
 #pragma once
 
+namespace gridtools{
+
 #ifdef CXX11_ENABLED
 /**@file
 @brief implementation of a compile time string.
 
 It consists of a sequence of static const char* and of a "callable" operator, which can be i.e. calling printf, or doing compile-time operations.
 */
-namespace gridtools{
 
     template<char const * S>
     struct static_string{
@@ -83,6 +84,13 @@ namespace gridtools{
             apply(s...);
         }
     };
-
-} //namespace gridtools
 #endif //CXX11_ENABLED
+
+
+    /**@brief simple function that copies a string **/
+    inline char const* malloc_and_copy(char const* src) {
+	char* dst = new char[strlen(src)+1];
+	strcpy(dst, src);
+	return dst;
+    }
+} //namespace gridtools
