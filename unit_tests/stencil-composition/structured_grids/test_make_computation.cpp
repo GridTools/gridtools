@@ -27,7 +27,7 @@ namespace make_computation_test{
     typedef interval<level<0,-1>, level<1,-1> > x_interval;
 
     struct test_functor {
-        typedef accessor<0> in;
+        typedef accessor< 0 > in;
         typedef boost::mpl::vector1<in> arg_list;
 
         template <typename Evaluation>
@@ -41,9 +41,9 @@ TEST(test_make_computation_other_grid, get_mss_array) {
     using namespace gridtools;
 
 #ifdef __CUDACC__
-#define BACKEND backend<gridtools::enumtype::Cuda, enumtype::structured, gridtools::enumtype::Block >
+#define BACKEND backend< gridtools::enumtype::Cuda, enumtype::structured, gridtools::enumtype::Block >
 #else
-#define BACKEND backend<gridtools::enumtype::Host, enumtype::structured, gridtools::enumtype::Block >
+#define BACKEND backend< gridtools::enumtype::Host, enumtype::structured, gridtools::enumtype::Block >
 #endif
 
     typedef gridtools::layout_map<2,1,0> layout_t;

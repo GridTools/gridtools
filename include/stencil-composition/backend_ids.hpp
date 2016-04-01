@@ -19,6 +19,5 @@ namespace gridtools {
     struct is_backend_ids : boost::mpl::false_ {};
 
     template < enumtype::platform BackendId, enumtype::grid_type GridId, enumtype::strategy StrategyId >
-    struct is_backend_ids<backend_ids<BackendId, GridId, StrategyId> > : boost::mpl::true_ {};
-
+    struct is_backend_ids< backend_ids< BackendId, GridId, StrategyId > > : boost::mpl::true_ {};
 }

@@ -160,11 +160,13 @@ namespace gridtools {
             it_domain.set_index(0);
 
             // initialize the i index
-            it_domain.template initialize< grid_traits_from_id<enumtype::icosahedral>::dim_i_t::value >(i + starti, blockIdx.x);
-            //initialize to color 0
-            it_domain.template initialize< grid_traits_from_id<enumtype::icosahedral>::dim_c_t::value >(0, 0);
+            it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_i_t::value >(
+                i + starti, blockIdx.x);
+            // initialize to color 0
+            it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value >(0, 0);
             // initialize the j index
-            it_domain.template initialize< grid_traits_from_id<enumtype::icosahedral>::dim_j_t::value >(j + startj, blockIdx.y);
+            it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value >(
+                j + startj, blockIdx.y);
 
             it_domain.set_block_pos(iblock, jblock);
 
@@ -176,7 +178,8 @@ namespace gridtools {
                 typename grid_traits_from_id< enumtype::icosahedral >::dim_k_t,
                 execution_type_t::type::iteration > iteration_policy_t;
 
-            it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_k_t::value >(grid->template value_at< iteration_policy_t::from >());
+            it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_k_t::value >(
+                grid->template value_at< iteration_policy_t::from >());
 
             // execute the k interval functors
             boost::mpl::for_each< typename RunFunctorArguments::loop_intervals_t >(

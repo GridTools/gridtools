@@ -10,12 +10,12 @@ using namespace enumtype;
 namespace sov {
 
 #ifdef __CUDACC__
-#define BACKEND backend<Cuda, GRIDBACKEND, Block >
+#define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend<Host, GRIDBACKEND, Block >
+#define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
-#define BACKEND backend<Host, GRIDBACKEND, Naive >
+#define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
 
@@ -149,7 +149,7 @@ namespace sov {
         bool result = ver.verify(grid_, ref_vertexes, out_vertexes, halos);
 
 #ifdef BENCHMARK
-        for(uint_t t=1; t < t_steps; ++t){
+        for (uint_t t = 1; t < t_steps; ++t) {
             stencil_->run();
         }
         stencil_->finalize();

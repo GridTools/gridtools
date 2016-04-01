@@ -10,12 +10,12 @@ using namespace enumtype;
 namespace soe {
 
 #ifdef __CUDACC__
-#define BACKEND backend<Cuda, GRIDBACKEND, Block >
+#define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend<Host, GRIDBACKEND, Block >
+#define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
-#define BACKEND backend<Host, GRIDBACKEND, Naive >
+#define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
 
@@ -104,14 +104,13 @@ namespace soe {
         grid_.value_list[0] = 0;
         grid_.value_list[1] = d3 - 1;
 
-        auto stencil_ =
-            gridtools::make_computation< backend_t >(
-                domain,
-                grid_,
-                gridtools::make_mss // mss_descriptor
-                (execute< forward >(),
-                    gridtools::make_esf< test_on_edges_functor, icosahedral_topology_t, icosahedral_topology_t::edges >(
-                        p_in_edges(), p_out_edges(), p_i_edges(), p_c_edges(), p_j_edges(), p_k_edges())));
+        auto stencil_ = gridtools::make_computation< backend_t >(
+            domain,
+            grid_,
+            gridtools::make_mss // mss_descriptor
+            (execute< forward >(),
+                gridtools::make_esf< test_on_edges_functor, icosahedral_topology_t, icosahedral_topology_t::edges >(
+                    p_in_edges(), p_out_edges(), p_i_edges(), p_c_edges(), p_j_edges(), p_k_edges())));
         stencil_->ready();
         stencil_->steady();
         stencil_->run();
@@ -143,7 +142,7 @@ namespace soe {
         bool result = ver.verify(grid_, ref_edges, out_edges, halos);
 
 #ifdef BENCHMARK
-        for(uint_t t=1; t < t_steps; ++t){
+        for (uint_t t = 1; t < t_steps; ++t) {
             stencil_->run();
         }
         stencil_->finalize();

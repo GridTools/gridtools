@@ -10,12 +10,12 @@ using namespace enumtype;
 namespace soc {
 
 #ifdef __CUDACC__
-#define BACKEND backend<Cuda, GRIDBACKEND, Block >
+#define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend<Host, GRIDBACKEND, Block >
+#define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
-#define BACKEND backend<Host, GRIDBACKEND, Naive >
+#define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
 
@@ -51,14 +51,14 @@ namespace soc {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        using cell_storage_type = typename backend_t::storage_t<icosahedral_topology_t::cells, double>;
+        using cell_storage_type = typename backend_t::storage_t< icosahedral_topology_t::cells, double >;
 
         const uint_t halo_nc = 1;
         const uint_t halo_mc = 1;
         const uint_t halo_k = 0;
-//        const uint_t d3 = 6 + halo_k * 2;
-//        const uint_t d1 = 6 + halo_nc * 2;
-//        const uint_t d2 = 6 + halo_mc * 2;
+        //        const uint_t d3 = 6 + halo_k * 2;
+        //        const uint_t d1 = 6 + halo_nc * 2;
+        //        const uint_t d2 = 6 + halo_mc * 2;
         icosahedral_topology_t icosahedral_grid(d1, d2, d3);
 
         auto in_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("in");
@@ -106,12 +106,12 @@ namespace soc {
         grid_.value_list[1] = d3 - 1;
 
         auto stencil_ = gridtools::make_computation< backend_t >(
-                domain,
-                grid_,
-                gridtools::make_mss // mss_descriptor
-                (execute< forward >(),
-                    gridtools::make_esf< test_on_cells_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
-                        p_in_cells(), p_out_cells(), p_i_cells(), p_c_cells(), p_j_cells(), p_k_cells())));
+            domain,
+            grid_,
+            gridtools::make_mss // mss_descriptor
+            (execute< forward >(),
+                gridtools::make_esf< test_on_cells_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
+                    p_in_cells(), p_out_cells(), p_i_cells(), p_c_cells(), p_j_cells(), p_k_cells())));
         stencil_->ready();
         stencil_->steady();
         stencil_->run();
@@ -143,7 +143,7 @@ namespace soc {
         bool result = ver.verify(grid_, ref_cells, out_cells, halos);
 
 #ifdef BENCHMARK
-        for(uint_t t=1; t < t_steps; ++t){
+        for (uint_t t = 1; t < t_steps; ++t) {
             stencil_->run();
         }
         stencil_->finalize();
@@ -153,4 +153,4 @@ namespace soc {
         return result;
     }
 
-} //namespace soc
+} // namespace soc

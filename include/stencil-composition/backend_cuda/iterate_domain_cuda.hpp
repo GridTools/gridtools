@@ -7,10 +7,8 @@
 #endif
 
 namespace gridtools {
-    template <template <class> class IterateDomainBase,
-          typename IterateDomainArguments>
-    struct iterate_domain_backend_id<
-        iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> > {
-        typedef enumtype::enum_type<enumtype::platform, enumtype::Cuda> type;
+    template < template < class > class IterateDomainBase, typename IterateDomainArguments >
+    struct iterate_domain_backend_id< iterate_domain_cuda< IterateDomainBase, IterateDomainArguments > > {
+        typedef enumtype::enum_type< enumtype::platform, enumtype::Cuda > type;
     };
 }

@@ -24,9 +24,9 @@ struct functor1 {
 };
 
 #ifdef __CUDACC__
-  #define BACKEND backend<Cuda, GRIDBACKEND, Block >
+#define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
-  #define BACKEND backend<Host, GRIDBACKEND, Block >
+#define BACKEND backend< Host, GRIDBACKEND, Block >
 #endif
 
 typedef layout_map<2,1,0> layout_ijk_t;

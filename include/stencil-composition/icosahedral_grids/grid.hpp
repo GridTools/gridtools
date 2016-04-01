@@ -6,41 +6,37 @@
 
 namespace gridtools {
 
-    template <typename Axis, typename GridTopology>
-    struct grid : public grid_cg<Axis>, public clonable_to_gpu<grid<Axis, GridTopology> > {
-        GRIDTOOLS_STATIC_ASSERT((is_interval<Axis>::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_grid_topology<GridTopology>::value), "Internal Error: wrong type");
+    template < typename Axis, typename GridTopology >
+    struct grid : public grid_cg< Axis >, public clonable_to_gpu< grid< Axis, GridTopology > > {
+        GRIDTOOLS_STATIC_ASSERT((is_interval< Axis >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_grid_topology< GridTopology >::value), "Internal Error: wrong type");
 
         typedef GridTopology grid_topology_t;
-    private:
-        GridTopology& m_grid_topology;
-    public:
+
+      private:
+        GridTopology &m_grid_topology;
+
+      public:
         GT_FUNCTION
-        //TODO make grid const
-        explicit grid(GridTopology& grid_topology, const array<uint_t, 5>& i, const array<uint_t, 5>& j) :
-            grid_cg<Axis>(i,j), m_grid_topology(grid_topology)
-        {}
+        // TODO make grid const
+        explicit grid(GridTopology &grid_topology, const array< uint_t, 5 > &i, const array< uint_t, 5 > &j)
+            : grid_cg< Axis >(i, j), m_grid_topology(grid_topology) {}
 
-        __device__
-        grid(grid const& other)
-            : grid_cg<Axis>(other), m_grid_topology(*(other.m_grid_topology.gpu_object_ptr)) {}
-
+        __device__ grid(grid const &other)
+            : grid_cg< Axis >(other), m_grid_topology(*(other.m_grid_topology.gpu_object_ptr)) {}
 
         GT_FUNCTION
-        GridTopology const & grid_topology() const {
-            return m_grid_topology;
-        }
+        GridTopology const &grid_topology() const { return m_grid_topology; }
 
         void clone_to_device() const {
             m_grid_topology.clone_to_device();
-            clonable_to_gpu<grid<Axis, GridTopology> >::clone_to_device();
+            clonable_to_gpu< grid< Axis, GridTopology > >::clone_to_device();
         }
     };
 
-    template<typename Grid>
-    struct is_grid : boost::mpl::false_{};
+    template < typename Grid >
+    struct is_grid : boost::mpl::false_ {};
 
-    template<typename Axis, typename GridTopology>
-    struct is_grid<grid<Axis, GridTopology> > : boost::mpl::true_{};
-
+    template < typename Axis, typename GridTopology >
+    struct is_grid< grid< Axis, GridTopology > > : boost::mpl::true_ {};
 }

@@ -20,8 +20,8 @@ namespace gridtools {
         using args_t = ArgSequence;
 
         /** Type member with the mapping between placeholder types (as key) to extents in the operator */
-        typedef typename impl::make_arg_with_extent_map<args_t, typename esf_function::arg_list>::type args_with_extents;
-
+        typedef
+            typename impl::make_arg_with_extent_map< args_t, typename esf_function::arg_list >::type args_with_extents;
     };
 
     template < typename Functor, typename Grid, typename LocationType, typename ArgSequence >

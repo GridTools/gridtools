@@ -21,8 +21,7 @@ namespace gridtools {
         map_function(function_type f, Arguments... args) : m_function(f), m_arguments(args...) {}
 
         template < uint_t I >
-        GT_FUNCTION
-        typename std::tuple_element< I, argument_types >::type const & argument() const {
+        GT_FUNCTION typename std::tuple_element< I, argument_types >::type const &argument() const {
             return std::get< I >(m_arguments);
         }
 
@@ -134,15 +133,13 @@ namespace gridtools {
     };
 
     template < typename Reduction, typename ValueType, typename Map >
-    GT_FUNCTION
-    on_neighbors_impl< ValueType, typename Map::location_type, Reduction, Map > reduce_on_something(
+    GT_FUNCTION on_neighbors_impl< ValueType, typename Map::location_type, Reduction, Map > reduce_on_something(
         Reduction function, ValueType initial, Map mapf) {
         return on_neighbors_impl< ValueType, typename Map::location_type, Reduction, Map >(function, mapf, initial);
     }
 
     template < typename Reduction, typename ValueType, typename Map >
-    GT_FUNCTION
-    on_neighbors_impl< ValueType, typename Map::location_type, Reduction, Map > on_edges(
+    GT_FUNCTION on_neighbors_impl< ValueType, typename Map::location_type, Reduction, Map > on_edges(
         Reduction function, ValueType initial, Map mapf) {
         static_assert(Map::location_type::value == 1,
             "The map function (for a nested call) provided to 'on_edges' is not on edges");
@@ -150,8 +147,7 @@ namespace gridtools {
     }
 
     template < typename Reduction, typename ValueType, typename Map >
-    GT_FUNCTION
-    on_neighbors_impl< ValueType, typename Map::location_type, Reduction, Map > on_cells(
+    GT_FUNCTION on_neighbors_impl< ValueType, typename Map::location_type, Reduction, Map > on_cells(
         Reduction function, ValueType initial, Map mapf) {
         static_assert(Map::location_type::value == 0,
             "The map function (for a nested call) provided to 'on_cellss' is not on cells");
@@ -159,8 +155,7 @@ namespace gridtools {
     }
 
     template < typename Reduction, typename ValueType, typename Map >
-    GT_FUNCTION
-    on_neighbors_impl< ValueType, typename Map::location_type, Reduction, Map > on_vertexes(
+    GT_FUNCTION on_neighbors_impl< ValueType, typename Map::location_type, Reduction, Map > on_vertexes(
         Reduction function, ValueType initial, Map mapf) {
         static_assert(Map::location_type::value == 2,
             "The map function (for a nested call) provided to 'on_vertexes' is not on edges");

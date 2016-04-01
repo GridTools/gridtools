@@ -51,9 +51,9 @@ struct functor{
 TEST(test_global_accessor, boundary_conditions) {
 
 #ifdef __CUDACC__
-    typedef backend<Cuda, structured, Block> backend_t;
+    typedef backend< Cuda, structured, Block > backend_t;
 #else
-    typedef backend<Host, structured, Naive> backend_t;
+    typedef backend< Host, structured, Naive > backend_t;
 #endif
 
     typedef typename backend_t::storage_info<0, layout_map<0,1,2> > meta_t;
