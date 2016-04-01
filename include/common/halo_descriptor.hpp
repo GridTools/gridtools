@@ -66,7 +66,6 @@ namespace gridtools {
             return *this;
         }
 
-        __device__
         GT_FUNCTION halo_descriptor(halo_descriptor const &hh) {
             m_minus = hh.minus();
             m_plus = hh.plus();
