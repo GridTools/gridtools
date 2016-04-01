@@ -677,6 +677,7 @@ namespace gridtools {
 #ifdef VERBOSE
             m_domain.info();
 #endif
+            m_grid.clone_to_device();
         }
 
         virtual void finalize () {

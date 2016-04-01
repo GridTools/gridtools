@@ -607,7 +607,7 @@ namespace gridtools {
     /**
     */
     template <typename Backend>
-    class icosahedral_topology {
+    class icosahedral_topology : public clonable_to_gpu<icosahedral_topology<Backend> > {
     public :
 
         using cells = location_type<0,2>;
@@ -645,6 +645,13 @@ namespace gridtools {
         icosahedral_topology() = delete;
     public :
 
+        void clone_to_device() const {
+            boost::fusion::at_c<cells::value>(m_virtual_storages).clone_to_device();
+            boost::fusion::at_c<edges::value>(m_virtual_storages).clone_to_device();
+            boost::fusion::at_c<vertexes::value>(m_virtual_storages).clone_to_device();
+
+            clone_to_device();
+        }
         template<typename ... UInt>
         GT_FUNCTION
         icosahedral_topology(uint_t first_, uint_t second_, UInt ... dims)
@@ -656,6 +663,14 @@ namespace gridtools {
                  v_storage_t<vertexes>(array<uint_t, v_storage_t<vertexes>::space_dimensions>{first_, vertexes::n_colors::value,  second_+1, dims...})
              )
         {}
+
+        __device__
+        icosahedral_topology(icosahedral_topology const & other): m_dims(other.m_dims),
+         m_virtual_storages(
+             boost::fusion::at_c<cells::value>(m_virtual_storages).gpu_object_ptr,
+             boost::fusion::at_c<edges::value>(m_virtual_storages).gpu_object_ptr,
+             boost::fusion::at_c<vertexes::value>(m_virtual_storages).gpu_object_ptr
+         ){}
 
         GT_FUNCTION
         virtual_storage_types const& virtual_storages() const {return m_virtual_storages;}
@@ -727,7 +742,7 @@ namespace gridtools {
             case 1:
                 return ll_map_index(cells(), Location2(), static_int<1>(), {i[0], i[2], i[3]});
             default:
-                assert(false);
+//                assert(false);
                 return typename return_type<typename from<cells>::template to<Location2>, array<uint_t, 4> >::type();
             }
         }
@@ -753,7 +768,7 @@ namespace gridtools {
                 return ll_map_index(edges(), Location2(), static_int<2>(), {i[0], i[2], i[3]});
                 // return edge2edges_ll_p2_indices({i[0], i[2]});
             default:
-                assert(false);
+//                assert(false);
                 return typename return_type<typename from<edges>::template to<Location2>, array<uint_t, 4> >::type();
 
             }
