@@ -7,4 +7,3 @@
 #else
 #include "icosahedral_grids/grid_traits.hpp"
 #endif
-

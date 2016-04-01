@@ -105,7 +105,7 @@ namespace gridtools {
             typedef typename boost::is_same< enumtype::enum_type< cache_type, cacheType >,
                 typename Cache::cache_type_t >::type type;
             BOOST_STATIC_CONSTANT(bool, value = (type::value));
-    };
+        };
     };
 
     /**
@@ -142,30 +142,31 @@ namespace gridtools {
         struct get_cache_storage {
             typedef cache_storage< float_type, BlockSize, typename boost::mpl::at< CacheExtendsMap, Cache >::type >
                 type;
-    };
+        };
 
-    // first we build an mpl vector of pairs
-    typedef typename boost::mpl::fold< CacheSequence,
-        boost::mpl::vector0<>,
-        boost::mpl::eval_if< typename cache_is_type< cacheType >::template apply< boost::mpl::_2 >,
-                                           boost::mpl::push_back< boost::mpl::_1,
-                                               boost::mpl::pair< cache_to_index< boost::mpl::_2, LocalDomain >,
-                                                                      get_cache_storage< boost::mpl::_2 > > >,
-                                           boost::mpl::identity< boost::mpl::_1 > > >::type mpl_type;
+        // first we build an mpl vector of pairs
+        typedef typename boost::mpl::fold< CacheSequence,
+            boost::mpl::vector0<>,
+            boost::mpl::eval_if< typename cache_is_type< cacheType >::template apply< boost::mpl::_2 >,
+                                               boost::mpl::push_back< boost::mpl::_1,
+                                                   boost::mpl::pair< cache_to_index< boost::mpl::_2, LocalDomain >,
+                                                                          get_cache_storage< boost::mpl::_2 > > >,
+                                               boost::mpl::identity< boost::mpl::_1 > > >::type mpl_type;
 
-    // here we insert an mpl pair into a fusion vector. The mpl pair is converted into a fusion pair
-    template < typename FusionSeq, typename Pair >
-    struct insert_pair_into_fusion_vector {
-        typedef
-            typename boost::fusion::result_of::push_back< FusionSeq,
-                boost::fusion::pair< typename boost::mpl::first< Pair >::type,
-                                                              typename boost::mpl::second< Pair >::type > >::type type;
-    };
+        // here we insert an mpl pair into a fusion vector. The mpl pair is converted into a fusion pair
+        template < typename FusionSeq, typename Pair >
+        struct insert_pair_into_fusion_vector {
+            typedef
+                typename boost::fusion::result_of::push_back< FusionSeq,
+                    boost::fusion::pair< typename boost::mpl::first< Pair >::type,
+                                                                  typename boost::mpl::second< Pair >::type > >::type
+                    type;
+        };
 
-    // then we transform the mpl vector into a fusion vector
-    typedef typename boost::mpl::fold< mpl_type,
-        boost::fusion::vector0<>,
-        insert_pair_into_fusion_vector< boost::mpl::_1, boost::mpl::_2 > >::type type;
+        // then we transform the mpl vector into a fusion vector
+        typedef typename boost::mpl::fold< mpl_type,
+            boost::fusion::vector0<>,
+            insert_pair_into_fusion_vector< boost::mpl::_1, boost::mpl::_2 > >::type type;
     };
 
     /**
