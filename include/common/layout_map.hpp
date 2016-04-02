@@ -932,4 +932,3 @@ namespace gridtools {
     };
 
 } // namespace gridtools
-

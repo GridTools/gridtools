@@ -208,8 +208,8 @@ and possibly the method 'copy_data_to_gpu' which are used when cloning the class
         /**
            explicitly disables the case in which the storage_info is passed by copy.
         */
-        template <typename ... T>
-        base_storage(typename basic_type::storage_info_type&&, T...) = delete;
+        template < typename... T >
+        base_storage(typename basic_type::storage_info_type &&, T...) = delete;
 #endif
 
         /**@brief device copy constructor*/
@@ -310,9 +310,8 @@ and possibly the method 'copy_data_to_gpu' which are used when cloning the class
 #ifdef CXX11_ENABLED
 
         /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
-        template <typename ... UInt>
-        GT_FUNCTION
-        value_type& operator()(UInt const& ... dims) {
+        template < typename... UInt >
+        GT_FUNCTION value_type &operator()(UInt const &... dims) {
             assert(m_meta_data.index(dims...) < m_meta_data.size());
             assert(is_set);
             return (m_fields[0])[m_meta_data.index(dims...)];

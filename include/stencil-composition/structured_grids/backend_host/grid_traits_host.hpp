@@ -11,7 +11,7 @@ namespace gridtools {
             template < typename RunFunctorArguments >
             struct kernel_functor_executor {
                 GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), "Error");
-                typedef execute_kernel_functor_host<RunFunctorArguments> type;
+                typedef execute_kernel_functor_host< RunFunctorArguments > type;
             };
         };
     }

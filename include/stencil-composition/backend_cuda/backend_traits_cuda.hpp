@@ -123,12 +123,15 @@ namespace gridtools {
         struct mss_loop {
             typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
 
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), "Internal Error: wrong type");
-            template<typename LocalDomain, typename Grid, typename ReductionData>
-            static void run(LocalDomain& local_domain, const Grid& grid, ReductionData& reduction_data, const uint_t bi, const uint_t bj)
-            {
-                GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type");
-                GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), "Internal Error: wrong type");
+            template < typename LocalDomain, typename Grid, typename ReductionData >
+            static void run(LocalDomain &local_domain,
+                const Grid &grid,
+                ReductionData &reduction_data,
+                const uint_t bi,
+                const uint_t bj) {
+                GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), "Internal Error: wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
 
                 typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
                 typedef

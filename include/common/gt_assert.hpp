@@ -19,13 +19,14 @@
 
 #ifdef __GNUC__
 
-#define GTASSERT(cond)  gt_assert(cond, __LINE__, __FILE__)
+#define GTASSERT(cond) gt_assert(cond, __LINE__, __FILE__)
 
 namespace gridtools {
     GT_FUNCTION
-    void gt_assert(bool cond, int line, const char* filename) {
+    void gt_assert(bool cond, int line, const char *filename) {
 #ifndef NDEBUG
-        if(! cond) printf("Assert triggered in %s:%d \n", filename, line);
+        if (!cond)
+            printf("Assert triggered in %s:%d \n", filename, line);
 #endif
         assert(cond);
     }
@@ -33,13 +34,11 @@ namespace gridtools {
 
 #else
 
-#define GTASSERT(cond)  gt_assert(cond)
+#define GTASSERT(cond) gt_assert(cond)
 
 namespace gridtools {
     GT_FUNCTION
-    void gt_assert(bool cond) {
-        assert(cond);
-    }
+    void gt_assert(bool cond) { assert(cond); }
 }
 
 #endif

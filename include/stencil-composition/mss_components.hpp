@@ -6,7 +6,6 @@
 
 namespace gridtools {
 
-
     /**
        @brief MPL pair wrapper with more meaningful type names for the specific use case.
     */
@@ -16,21 +15,17 @@ namespace gridtools {
         typedef T2 f_type;
     };
 
-/**
- * @brief the mss components contains meta data associated to a mss descriptor.
- * All derived metadata is computed in this class
- * @tparam MssDescriptor the mss descriptor
- * @tparam ExtentSizes the extent sizes of all the ESFs in this mss
- */
-template<
-    typename MssDescriptor,
-    typename ExtentSizes
->
-struct mss_components
-{
-    GRIDTOOLS_STATIC_ASSERT((is_amss_descriptor<MssDescriptor>::value), "Internal Error: wrong type");
-    GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ExtentSizes, is_extent>::value), "Internal Error: wrong type");
-    typedef MssDescriptor mss_descriptor_t;
+    /**
+     * @brief the mss components contains meta data associated to a mss descriptor.
+     * All derived metadata is computed in this class
+     * @tparam MssDescriptor the mss descriptor
+     * @tparam ExtentSizes the extent sizes of all the ESFs in this mss
+     */
+    template < typename MssDescriptor, typename ExtentSizes >
+    struct mss_components {
+        GRIDTOOLS_STATIC_ASSERT((is_amss_descriptor< MssDescriptor >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< ExtentSizes, is_extent >::value), "Internal Error: wrong type");
+        typedef MssDescriptor mss_descriptor_t;
 
         typedef typename mss_descriptor_execution_engine< MssDescriptor >::type execution_engine_t;
 

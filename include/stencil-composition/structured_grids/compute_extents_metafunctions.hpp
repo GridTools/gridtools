@@ -5,7 +5,6 @@
 #include <boost/mpl/if.hpp>
 #include <boost/mpl/range_c.hpp>
 
-
 #include "stencil-composition/wrap_type.hpp"
 #include "../mss.hpp"
 #include "../amss_descriptor.hpp"
@@ -129,10 +128,9 @@ namespace gridtools {
                                                boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 > > >::type type;
         };
 
-        template<typename MssDescriptor>
-        struct mss_compute_extent_sizes
-        {
-            GRIDTOOLS_STATIC_ASSERT((is_amss_descriptor<MssDescriptor>::value), "Internal Error: invalid type");
+        template < typename MssDescriptor >
+        struct mss_compute_extent_sizes {
+            GRIDTOOLS_STATIC_ASSERT((is_amss_descriptor< MssDescriptor >::value), "Internal Error: invalid type");
 
             /**
              * \brief Here the extents are calculated recursively, in order for each functor's domain to embed all the
@@ -166,16 +164,14 @@ namespace gridtools {
                 Cond > type;
         };
 
-
-        template <typename Placeholders>
+        template < typename Placeholders >
         struct compute_extents_of {
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Placeholders, is_arg>::value), "wrong type");
-            template<typename MssDescriptor>
-            struct for_mss
-            {
-                GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor<MssDescriptor>::value), "Internal Error: invalid type");
-    
-                template <typename PLH>
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< Placeholders, is_arg >::value), "wrong type");
+            template < typename MssDescriptor >
+            struct for_mss {
+                GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor< MssDescriptor >::value), "Internal Error: invalid type");
+
+                template < typename PLH >
                 struct map_of_empty_extents {
                     typedef typename boost::mpl::fold<
                         PLH,

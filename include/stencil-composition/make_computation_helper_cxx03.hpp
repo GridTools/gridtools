@@ -17,9 +17,10 @@ namespace gridtools {
             typedef notype type;
         };
 
-        //the reduction helper for only the last argument of the list of mss, as the reduction descriptor should
+        // the reduction helper for only the last argument of the list of mss, as the reduction descriptor should
         // always be placed at the end
-        template<typename T> struct reduction_helper;
+        template < typename T >
+        struct reduction_helper;
 
         template < typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence >
         struct reduction_helper< mss_descriptor< ExecutionEngine, EsfDescrSequence, CacheSequence > > {

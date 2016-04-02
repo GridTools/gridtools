@@ -51,9 +51,9 @@ namespace gridtools {
 
             __shared__ shared_iterate_domain_t shared_iterate_domain;
 
-        //Doing construction of the ierate domain and assignment of pointers and strides
-        //for the moment reductions are not supported so that the initial value is 0
-        iterate_domain_t it_domain(*l_domain, 0, block_size_i, block_size_j);
+            // Doing construction of the ierate domain and assignment of pointers and strides
+            // for the moment reductions are not supported so that the initial value is 0
+            iterate_domain_t it_domain(*l_domain, 0, block_size_i, block_size_j);
 
             it_domain.set_shared_iterate_domain_pointer_impl(&shared_iterate_domain);
 
@@ -116,16 +116,17 @@ namespace gridtools {
                            padded_boundary_ <=
                        enumtype::vector_width);
 
-            i = blockIdx.x * block_size_t::i_size_t::value -padded_boundary_ + threadIdx.x % padded_boundary_;
-            j = blockIdx.y* block_size_t::j_size_t::value +  threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
-            iblock = -padded_boundary_ + (int)threadIdx.x % padded_boundary_;
-            jblock = threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
-        }
-        else if(threadIdx.y < iplus_limit)
-        {
-            const int padded_boundary_ = padded_boundary<max_extent_t::iplus::value>::value;
-            //we dedicate one warp to execute regions (c,i,g), so here we make sure we have enough threads
-            assert( (block_size_t::j_size_t::value - max_extent_t::jminus::value + max_extent_t::jplus::value)*padded_boundary_ <= enumtype::vector_width);
+                i = blockIdx.x * block_size_t::i_size_t::value - padded_boundary_ + threadIdx.x % padded_boundary_;
+                j = blockIdx.y * block_size_t::j_size_t::value + threadIdx.x / padded_boundary_ +
+                    max_extent_t::jminus::value;
+                iblock = -padded_boundary_ + (int)threadIdx.x % padded_boundary_;
+                jblock = threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
+            } else if (threadIdx.y < iplus_limit) {
+                const int padded_boundary_ = padded_boundary< max_extent_t::iplus::value >::value;
+                // we dedicate one warp to execute regions (c,i,g), so here we make sure we have enough threads
+                assert((block_size_t::j_size_t::value - max_extent_t::jminus::value + max_extent_t::jplus::value) *
+                           padded_boundary_ <=
+                       enumtype::vector_width);
 
                 i = blockIdx.x * block_size_t::i_size_t::value + threadIdx.x % padded_boundary_ +
                     block_size_t::i_size_t::value;
@@ -251,26 +252,24 @@ namespace gridtools {
 
                 dim3 blocks(nbx, nby, nbz);
 
-        //re-create the run functor arguments, replacing the processing elements block size
-        // with the corresponding, recently computed, block size
-        typedef run_functor_arguments<
-            typename RunFunctorArguments::backend_ids_t,
-            cuda_block_size_t,
-            typename RunFunctorArguments::physical_domain_block_size_t,
-            typename RunFunctorArguments::functor_list_t,
-            typename RunFunctorArguments::esf_sequence_t,
-            typename RunFunctorArguments::esf_args_map_sequence_t,
-            typename RunFunctorArguments::loop_intervals_t,
-            typename RunFunctorArguments::functors_map_t,
-            typename RunFunctorArguments::extent_sizes_t,
-            typename RunFunctorArguments::local_domain_t,
-            typename RunFunctorArguments::cache_sequence_t,
-            typename RunFunctorArguments::async_esf_map_t,
-            typename RunFunctorArguments::grid_t,
-            typename RunFunctorArguments::execution_type_t,
-            RunFunctorArguments::is_reduction_t::value,
-            typename RunFunctorArguments::reduction_data_t
-        > run_functor_arguments_cuda_t;
+                // re-create the run functor arguments, replacing the processing elements block size
+                // with the corresponding, recently computed, block size
+                typedef run_functor_arguments< typename RunFunctorArguments::backend_ids_t,
+                    cuda_block_size_t,
+                    typename RunFunctorArguments::physical_domain_block_size_t,
+                    typename RunFunctorArguments::functor_list_t,
+                    typename RunFunctorArguments::esf_sequence_t,
+                    typename RunFunctorArguments::esf_args_map_sequence_t,
+                    typename RunFunctorArguments::loop_intervals_t,
+                    typename RunFunctorArguments::functors_map_t,
+                    typename RunFunctorArguments::extent_sizes_t,
+                    typename RunFunctorArguments::local_domain_t,
+                    typename RunFunctorArguments::cache_sequence_t,
+                    typename RunFunctorArguments::async_esf_map_t,
+                    typename RunFunctorArguments::grid_t,
+                    typename RunFunctorArguments::execution_type_t,
+                    RunFunctorArguments::is_reduction_t::value,
+                    typename RunFunctorArguments::reduction_data_t > run_functor_arguments_cuda_t;
 
 #ifdef VERBOSE
                 printf("ntx = %d, nty = %d, ntz = %d\n", ntx, nty, ntz);

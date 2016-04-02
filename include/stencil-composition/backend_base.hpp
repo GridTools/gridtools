@@ -353,9 +353,11 @@ namespace gridtools {
         template < typename MssComponentsArray,
             typename Grid,
             typename MssLocalDomainArray,
-            typename ReductionData
-        > // List of local domain to be pbassed to functor at<i>
-        static void run(/*Domain const& domain, */Grid const& grid, MssLocalDomainArray &mss_local_domain_list, ReductionData& reduction_data) {
+            typename ReductionData > // List of local domain to be pbassed to functor at<i>
+        static void
+        run(/*Domain const& domain, */ Grid const &grid,
+            MssLocalDomainArray &mss_local_domain_list,
+            ReductionData &reduction_data) {
             // TODO: I would swap the arguments coords and local_domain_list here, for consistency
             GRIDTOOLS_STATIC_ASSERT(
                 (is_sequence_of< MssLocalDomainArray, is_mss_local_domain >::value), "Internal Error: wrong type");
@@ -363,7 +365,8 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_meta_array_of< MssComponentsArray, is_mss_components >::value), "Internal Error: wrong type");
 
-            strategy_traits_t::template fused_mss_loop<MssComponentsArray, backend_ids_t, ReductionData>::run(mss_local_domain_list, grid, reduction_data);
+            strategy_traits_t::template fused_mss_loop< MssComponentsArray, backend_ids_t, ReductionData >::run(
+                mss_local_domain_list, grid, reduction_data);
         }
 
         template < typename ArgList, typename MetaList, typename Grid >
@@ -386,9 +389,7 @@ namespace gridtools {
 
             n_i_pes()(size): number of threads on the first dimension of the thread grid
         */
-        static query_i_threads_f n_i_pes() {
-            return &backend_traits_t::n_i_pes;
-        }
+        static query_i_threads_f n_i_pes() { return &backend_traits_t::n_i_pes; }
 
         /** Initial interface
 
@@ -401,19 +402,15 @@ namespace gridtools {
 
             n_j_pes()(size): number of threads on the second dimension of the thread grid
         */
-     static query_j_threads_f n_j_pes() {
-            return &backend_traits_t::n_j_pes;
-        }
-
+        static query_j_threads_f n_j_pes() { return &backend_traits_t::n_j_pes; }
 
     }; // struct backend_base {
 
-    template<  template<ushort_t, typename, typename, typename> class StorageInfo
-              , ushort_t Index
-              , typename Layout
-              , typename Halo
-              , typename Alignment
-              >
-    struct is_meta_storage<StorageInfo<Index, Layout, Halo, Alignment> >: boost::mpl::true_{};
+    template < template < ushort_t, typename, typename, typename > class StorageInfo,
+        ushort_t Index,
+        typename Layout,
+        typename Halo,
+        typename Alignment >
+    struct is_meta_storage< StorageInfo< Index, Layout, Halo, Alignment > > : boost::mpl::true_ {};
 
 } // namespace gridtools

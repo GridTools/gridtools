@@ -45,7 +45,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< CacheSequence, is_cache >::value), "Internal Error: invalid type");
         typedef EsfDescrSequence esf_sequence_t;
         typedef CacheSequence cache_sequence_t;
-        typedef static_bool<false> is_reduction_t;
+        typedef static_bool< false > is_reduction_t;
     };
 
     template < typename mss >
@@ -67,25 +67,20 @@ namespace gridtools {
         typedef EsfDescrSequence type;
     };
 
-    template<typename Mss>
+    template < typename Mss >
     struct mss_descriptor_cache_sequence {};
 
-    template <typename ExecutionEngine,
-              typename EsfDescrSequence,
-              typename CacheSequence>
-    struct mss_descriptor_cache_sequence<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> >
-    {
+    template < typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence >
+    struct mss_descriptor_cache_sequence< mss_descriptor< ExecutionEngine, EsfDescrSequence, CacheSequence > > {
         typedef CacheSequence type;
     };
 
-    template<typename Mss> struct mss_descriptor_is_reduction;
+    template < typename Mss >
+    struct mss_descriptor_is_reduction;
 
-    template <typename ExecutionEngine,
-              typename EsfDescrSequence,
-              typename CacheSequence>
-    struct mss_descriptor_is_reduction<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> >
-    {
-        typedef static_bool<false> type;
+    template < typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence >
+    struct mss_descriptor_is_reduction< mss_descriptor< ExecutionEngine, EsfDescrSequence, CacheSequence > > {
+        typedef static_bool< false > type;
     };
 
     /**
@@ -106,18 +101,14 @@ namespace gridtools {
 
        Helper metafunction, used by other metafunctions
      */
-    template <typename Array, typename Argument, template<typename, typename> class KeepScanning>
-    struct linearize_esf_array_lambda : boost::mpl::fold<
-        Array,
-        boost::mpl::vector0<>,
-        boost::mpl::if_<
-            is_independent<boost::mpl::_2>,
-            KeepScanning<boost::mpl::_1, boost::mpl::_2>,
-            boost::mpl::push_back<boost::mpl::_1, Argument >
-            >
-        >{};
+    template < typename Array, typename Argument, template < typename, typename > class KeepScanning >
+    struct linearize_esf_array_lambda : boost::mpl::fold< Array,
+                                            boost::mpl::vector0<>,
+                                            boost::mpl::if_< is_independent< boost::mpl::_2 >,
+                                                              KeepScanning< boost::mpl::_1, boost::mpl::_2 >,
+                                                              boost::mpl::push_back< boost::mpl::_1, Argument > > > {};
 
-    template<typename Mss>
+    template < typename Mss >
     struct mss_descriptor_execution_engine {};
 
     template < typename Mss1, typename Mss2, typename Cond >

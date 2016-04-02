@@ -7,9 +7,9 @@
 #include "common/generic_metafunctions/copy_into_set.hpp"
 
 #ifdef STRUCTURED_GRIDS
-    #include "structured_grids/esf_metafunctions.hpp"
+#include "structured_grids/esf_metafunctions.hpp"
 #else
-    #include "icosahedral_grids/esf_metafunctions.hpp"
+#include "icosahedral_grids/esf_metafunctions.hpp"
 #endif
 
 namespace gridtools {

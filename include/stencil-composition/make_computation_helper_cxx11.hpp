@@ -21,16 +21,17 @@ namespace gridtools {
          * helper struct to deduce the type of a reduction and extract the initial value of a reduction passed via API.
          * specialization returns a notype when argument passed is not a reduction
          */
-        template < typename ... Mss >
+        template < typename... Mss >
         struct reduction_helper;
 
-        template<typename First, typename ... Mss>
-        struct reduction_helper<First,Mss...> : reduction_helper<Mss...> {
-            typedef typename reduction_helper<Mss...>::reduction_type_t reduction_type_t;
-            GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor<First>::value), "Only Mss are allowed in the make_computations,"
-                                    "except for reduction in the last position");
+        template < typename First, typename... Mss >
+        struct reduction_helper< First, Mss... > : reduction_helper< Mss... > {
+            typedef typename reduction_helper< Mss... >::reduction_type_t reduction_type_t;
+            GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor< First >::value),
+                "Only Mss are allowed in the make_computations,"
+                "except for reduction in the last position");
             static reduction_type_t extract_initial_value(First, Mss... args) {
-                return reduction_helper<Mss...>::extract_initial_value(args...);
+                return reduction_helper< Mss... >::extract_initial_value(args...);
             }
         };
 

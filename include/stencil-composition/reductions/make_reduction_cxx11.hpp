@@ -6,7 +6,8 @@
 namespace gridtools {
 
     template < typename RedFunctor, typename BinOp, typename ReductionType, typename... ExtraArgs >
-    reduction_descriptor< ReductionType, BinOp,
+    reduction_descriptor< ReductionType,
+        BinOp,
         boost::mpl::vector1< esf_descriptor< RedFunctor, typename variadic_to_vector< ExtraArgs... >::type > > >
     make_reduction(const ReductionType initial_value, ExtraArgs...) {
 #ifndef STRUCTURED_GRIDS
@@ -15,7 +16,8 @@ namespace gridtools {
 #ifdef __CUDACC__
         GRIDTOOLS_STATIC_ASSERT((false), "Reductions are not yet supported for GPU backend");
 #endif
-        return reduction_descriptor< ReductionType, BinOp,
+        return reduction_descriptor< ReductionType,
+            BinOp,
             boost::mpl::vector1< esf_descriptor< RedFunctor, typename variadic_to_vector< ExtraArgs... >::type > > >(
             initial_value);
     }

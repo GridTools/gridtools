@@ -62,10 +62,10 @@ namespace gridtools {
       public:
         typedef partitioner< partitioner_dummy > super;
 
-        static int boundary() {return 64+32+16+8+4+2+1;}
+        static int boundary() { return 64 + 32 + 16 + 8 + 4 + 2 + 1; }
         GT_FUNCTION
-        static bool at_boundary(ushort_t const& /*coordinate*/, super::Flag const& /*flag_*/) {return true;}
-        static const ushort_t space_dimensions=3;
+        static bool at_boundary(ushort_t const & /*coordinate*/, super::Flag const & /*flag_*/) { return true; }
+        static const ushort_t space_dimensions = 3;
     };
 
     template < typename Partitioner >
