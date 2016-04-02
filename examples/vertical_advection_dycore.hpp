@@ -1,15 +1,19 @@
 #pragma once
-#include <gridtools.hpp>
 
 #include <stencil-composition/stencil-composition.hpp>
-#include "vertical_advection_repository.hpp"
+#include "horizontal_diffusion_repository.hpp"
+#include "./cache_flusher.hpp"
+#include "./defs.hpp"
 #include <tools/verifier.hpp>
 
-#include "cache_flusher.hpp"
-#include "defs.hpp"
+#ifdef USE_PAPI_WRAP
+#include <papi_wrap.hpp>
+#include <papi.hpp>
+#endif
 
-/*
-  This file shows an implementation of the "vertical advection" stencil used in COSMO for U field
+/**
+  @file
+  This file shows an implementation of the "horizontal diffusion" stencil, similar to the one used in COSMO
  */
 
 using gridtools::level;
@@ -20,222 +24,157 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
-namespace vertical_advection_dycore {
+// Temporary disable the expressions, as they are intrusive. The operators +,- are overloaded
+//  for any type, which breaks most of the code after using expressions
+#ifdef CXX11_ENABLED
+using namespace expressions;
+#endif
+
+namespace horizontal_diffusion {
     // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 0, 1 >, level< 1, -2 > > kbody;
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -2 > > kbody_low;
-    typedef gridtools::interval< level< 0, -1 >, level< 0, -1 > > kminimum;
-    typedef gridtools::interval< level< 1, -1 >, level< 1, -1 > > kmaximum;
+    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_lap;
+    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_flx;
+    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_out;
 
-    typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
+    typedef gridtools::interval< level< 0, -2 >, level< 1, 3 > > axis;
 
-    template < typename T >
-    struct u_forward_function {
-        typedef accessor< 0 > utens_stage;
-        typedef accessor< 1, enumtype::in, extent< 0, 1, 0, 0 > > wcon;
-        typedef accessor< 2 > u_stage;
-        typedef accessor< 3 > u_pos;
-        typedef accessor< 4 > utens;
-        typedef accessor< 5 > dtr_stage;
-        typedef accessor< 6, enumtype::inout > acol;
-        typedef accessor< 7, enumtype::inout > bcol;
-        typedef accessor< 8, enumtype::inout > ccol;
-        typedef accessor< 9, enumtype::inout > dcol;
+    // These are the stencil operators that compose the multistage stencil in this test
+    struct lap_function {
+        typedef accessor< 0, enumtype::inout > out;
+        typedef accessor< 1, enumtype::in, extent< -1, 1, -1, 1 > > in;
 
-        typedef boost::mpl::vector< utens_stage, wcon, u_stage, u_pos, utens, dtr_stage, acol, bcol, ccol, dcol >
-            arg_list;
+        typedef boost::mpl::vector< out, in > arg_list;
 
-        template < typename Eval >
-        GT_FUNCTION static void Do(Eval const &eval, kbody interval) {
-            // TODO use Average function here
-            T gav = (T)-0.25 * (eval(wcon(1, 0, 0)) + eval(wcon(0, 0, 0)));
-            T gcv = (T)0.25 * (eval(wcon(1, 0, 1)) + eval(wcon(0, 0, 1)));
-
-            T as = gav * BET_M;
-            T cs = gcv * BET_M;
-
-            eval(acol()) = gav * BET_P;
-            eval(ccol()) = gcv * BET_P;
-            eval(bcol()) = eval(dtr_stage()) - eval(acol()) - eval(ccol());
-
-            T correctionTerm =
-                -as * (eval(u_stage(0, 0, -1)) - eval(u_stage())) - cs * (eval(u_stage(0, 0, 1)) - eval(u_stage()));
-            // update the d column
-            computeDColumn(eval, correctionTerm);
-            thomas_forward(eval, interval);
-        }
-
-        template < typename Eval >
-        GT_FUNCTION static void Do(Eval const &eval, kmaximum interval) {
-            T gav = -(T)0.25 * (eval(wcon(1, 0, 0)) + eval(wcon()));
-            T as = gav * BET_M;
-
-            eval(acol()) = gav * BET_P;
-            eval(bcol()) = eval(dtr_stage()) - eval(acol());
-
-            T correctionTerm = -as * (eval(u_stage(0, 0, -1)) - eval(u_stage()));
-
-            // update the d column
-            computeDColumn(eval, correctionTerm);
-            thomas_forward(eval, interval);
-        }
-
-        template < typename Eval >
-        GT_FUNCTION static void Do(Eval const &eval, kminimum interval) {
-            T gcv = (T)0.25 * (eval(wcon(1, 0, 1)) + eval(wcon(0, 0, 1)));
-            T cs = gcv * BET_M;
-
-            eval(ccol()) = gcv * BET_P;
-            eval(bcol()) = eval(dtr_stage()) - eval(ccol());
-
-            T correctionTerm = -cs * (eval(u_stage(0, 0, 1)) - eval(u_stage()));
-            // update the d column
-            computeDColumn(eval, correctionTerm);
-            thomas_forward(eval, interval);
-        }
-
-      private:
-        template < typename Eval >
-        GT_FUNCTION static void computeDColumn(Eval const &eval, const T correctionTerm) {
-            eval(dcol()) = eval(dtr_stage()) * eval(u_pos()) + eval(utens()) + eval(utens_stage()) + correctionTerm;
-        }
-
-        template < typename Eval >
-        GT_FUNCTION static void thomas_forward(Eval const &eval, kbody) {
-            T divided = (T)1.0 / (eval(bcol()) - (eval(ccol(0, 0, -1)) * eval(acol())));
-            eval(ccol()) = eval(ccol()) * divided;
-            eval(dcol()) = (eval(dcol()) - (eval(dcol(0, 0, -1)) * eval(acol()))) * divided;
-        }
-
-        template < typename Eval >
-        GT_FUNCTION static void thomas_forward(Eval const &eval, kmaximum) {
-            T divided = (T)1.0 / (eval(bcol()) - eval(ccol(0, 0, -1)) * eval(acol()));
-            eval(dcol()) = (eval(dcol()) - eval(dcol(0, 0, -1)) * eval(acol())) * divided;
-        }
-
-        template < typename Eval >
-        GT_FUNCTION static void thomas_forward(Eval const &eval, kminimum) {
-            T divided = (T)1.0 / eval(bcol());
-            eval(ccol()) = eval(ccol()) * divided;
-            eval(dcol()) = eval(dcol()) * divided;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_lap) {
+            eval(out()) = (gridtools::float_type)4 * eval(in()) -
+                          (eval(in(1, 0, 0)) + eval(in(0, 1, 0)) + eval(in(-1, 0, 0)) + eval(in(0, -1, 0)));
         }
     };
 
-    template < typename T >
-    struct u_backward_function {
-        typedef accessor< 0, enumtype::inout > utens_stage;
-        typedef accessor< 1 > u_pos;
-        typedef accessor< 2 > dtr_stage;
-        typedef accessor< 3 > ccol;
-        typedef accessor< 4 > dcol;
-        typedef accessor< 5, enumtype::inout > data_col;
+    struct flx_function {
 
-        typedef boost::mpl::vector< utens_stage, u_pos, dtr_stage, ccol, dcol, data_col > arg_list;
+        typedef accessor< 0, enumtype::inout > out;
+        typedef accessor< 1, enumtype::in, extent< 0, 1, 0, 0 > > in;
+        typedef accessor< 2, enumtype::in, extent< 0, 1, 0, 0 > > lap;
 
-        template < typename Eval >
-        GT_FUNCTION static void Do(Eval const &eval, kbody_low interval) {
-            eval(utens_stage()) = eval(dtr_stage()) * (thomas_backward(eval, interval) - eval(u_pos()));
+        typedef boost::mpl::vector< out, in, lap > arg_list;
+
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_flx) {
+            eval(out()) = eval(lap(1, 0, 0)) - eval(lap(0, 0, 0));
+            if (eval(out()) * (eval(in(1, 0, 0)) - eval(in(0, 0, 0))) > 0) {
+                eval(out()) = 0.;
+            }
         }
+    };
 
-        template < typename Eval >
-        GT_FUNCTION static void Do(Eval const &eval, kmaximum interval) {
-            eval(utens_stage()) = eval(dtr_stage()) * (thomas_backward(eval, interval) - eval(u_pos()));
+    struct fly_function {
+
+        typedef accessor< 0, enumtype::inout > out;
+        typedef accessor< 1, enumtype::in, extent< 0, 0, 0, 1 > > in;
+        typedef accessor< 2, enumtype::in, extent< 0, 0, 0, 1 > > lap;
+
+        typedef boost::mpl::vector< out, in, lap > arg_list;
+
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_flx) {
+            eval(out()) = eval(lap(0, 1, 0)) - eval(lap(0, 0, 0));
+            if (eval(out()) * (eval(in(0, 1, 0)) - eval(in(0, 0, 0))) > 0) {
+                eval(out()) = 0.;
+            }
         }
+    };
 
-      private:
-        template < typename Eval >
-        GT_FUNCTION static T thomas_backward(Eval const &eval, kbody_low) {
-            T datacol = eval(dcol()) - eval(ccol()) * eval(data_col(0, 0, 1));
-            eval(data_col()) = datacol;
-            return datacol;
-        }
+    struct out_function {
 
-        template < typename Eval >
-        GT_FUNCTION static T thomas_backward(Eval const &eval, kmaximum) {
-            T datacol = eval(dcol());
-            eval(data_col()) = datacol;
-            return datacol;
+        typedef accessor< 0, enumtype::inout > out;
+        typedef accessor< 1 > in;
+        typedef accessor< 2, enumtype::in, extent< -1, 0, 0, 0 > > flx;
+        typedef accessor< 3, enumtype::in, extent< 0, 0, -1, 0 > > fly;
+        typedef accessor< 4 > coeff;
+
+        typedef boost::mpl::vector< out, in, flx, fly, coeff > arg_list;
+
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_out) {
+#if defined(CXX11_ENABLED) && !defined(CUDA_EXAMPLE)
+            eval(out()) = eval(in()) - eval(coeff()) * (eval(flx() - flx(-1, 0, 0) + fly() - fly(0, -1, 0)));
+#else
+            eval(out()) =
+                eval(in()) - eval(coeff()) * (eval(flx()) - eval(flx(-1, 0, 0)) + eval(fly()) - eval(fly(0, -1, 0)));
+#endif
         }
     };
 
     /*
      * The following operators and structs are for debugging only
      */
-    // std::ostream& operator<<(std::ostream& s, u_forward_function<double> const) {
-    //    return s << "u_forward_function";
-    //}
-    std::ostream &operator<<(std::ostream &s, u_backward_function< double > const) {
-        return s << "u_backward_function";
-    }
+    std::ostream &operator<<(std::ostream &s, lap_function const) { return s << "lap_function"; }
+    std::ostream &operator<<(std::ostream &s, flx_function const) { return s << "flx_function"; }
+    std::ostream &operator<<(std::ostream &s, fly_function const) { return s << "fly_function"; }
+    std::ostream &operator<<(std::ostream &s, out_function const) { return s << "out_function"; }
 
-    bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t_steps) {
+    void handle_error(int) { std::cout << "error" << std::endl; }
 
-        cache_flusher flusher(cache_flusher_size);
-        const int halo_size = 3;
+    bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps) {
 
-        typedef gridtools::layout_map< 0, 1, 2 > layout_ijk;
-        typedef gridtools::layout_map< 0 > layout_scalar;
+#ifdef USE_PAPI_WRAP
+        int collector_init = pw_new_collector("Init");
+        int collector_execute = pw_new_collector("Execute");
+#endif
 
-        typedef vertical_advection::repository::storage_type storage_type;
-        typedef vertical_advection::repository::scalar_storage_type scalar_storage_type;
-        typedef vertical_advection::repository::tmp_storage_type tmp_storage_type;
+        uint_t d1 = x;
+        uint_t d2 = y;
+        uint_t d3 = z;
+        uint_t halo_size = 2;
 
-        vertical_advection::repository repository(d1, d2, d3, halo_size);
+#ifdef CUDA_EXAMPLE
+#define BACKEND backend< Cuda, GRIDBACKEND, Block >
+#else
+#ifdef BACKEND_BLOCK
+#define BACKEND backend< Host, GRIDBACKEND, Block >
+#else
+#define BACKEND backend< Host, GRIDBACKEND, Naive >
+#endif
+#endif
+
+        typedef horizontal_diffusion::repository::storage_type storage_type;
+        typedef horizontal_diffusion::repository::tmp_storage_type tmp_storage_type;
+
+        horizontal_diffusion::repository repository(d1, d2, d3, halo_size);
         repository.init_fields();
 
         repository.generate_reference();
 
+        // Definition of the actual data fields that are used for input/output
+        storage_type &in = repository.in();
+        storage_type &out = repository.out();
+        storage_type &coeff = repository.coeff();
+
         // Definition of placeholders. The order of them reflect the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
-        typedef arg< 0, storage_type > p_utens_stage;
-        typedef arg< 1, storage_type > p_u_stage;
-        typedef arg< 2, storage_type > p_wcon;
-        typedef arg< 3, storage_type > p_u_pos;
-        typedef arg< 4, storage_type > p_utens;
-        typedef arg< 5, scalar_storage_type > p_dtr_stage;
-        typedef arg< 6, tmp_storage_type > p_acol;
-        typedef arg< 7, tmp_storage_type > p_bcol;
-        typedef arg< 8, tmp_storage_type > p_ccol;
-        typedef arg< 9, tmp_storage_type > p_dcol;
-        typedef arg< 10, tmp_storage_type > p_data_col;
+        typedef arg< 0, tmp_storage_type > p_lap;
+        typedef arg< 1, tmp_storage_type > p_flx;
+        typedef arg< 2, tmp_storage_type > p_fly;
+        typedef arg< 3, storage_type > p_coeff;
+        typedef arg< 4, storage_type > p_in;
+        typedef arg< 5, storage_type > p_out;
 
         // An array of placeholders to be passed to the domain
         // I'm using mpl::vector, but the final API should look slightly simpler
-        typedef boost::mpl::vector< p_utens_stage,
-            p_u_stage,
-            p_wcon,
-            p_u_pos,
-            p_utens,
-            p_dtr_stage,
-            p_acol,
-            p_bcol,
-            p_ccol,
-            p_dcol,
-            p_data_col > accessor_list;
+        typedef boost::mpl::vector< p_lap, p_flx, p_fly, p_coeff, p_in, p_out > accessor_list;
 
 // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are
 // used, temporary and not
 // It must be noted that the only fields to be passed to the constructor are the non-temporary.
 // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I
 // don't particularly like this)
-
-#ifdef CXX11_ENABLE
-        gridtools::domain_type< accessor_list > domain((p_utens_stage() = repository.utens_stage()),
-            (p_u_stage() = repository.u_stage()),
-            (p_wcon() = repository.wcon()),
-            (p_u_pos() = repository.u_pos()),
-            (p_utens() = repository.utens()),
-            (p_dtr_stage() = repository.dtr_stage()));
+#if defined(CXX11_ENABLED)
+        gridtools::domain_type< accessor_list > domain((p_out() = out), (p_in() = in), (p_coeff() = coeff));
 #else
-        gridtools::domain_type< accessor_list > domain(boost::fusion::make_vector(&repository.utens_stage(),
-            &repository.u_stage(),
-            &repository.wcon(),
-            &repository.u_pos(),
-            &repository.utens(),
-            &repository.dtr_stage()));
-
+        gridtools::domain_type< accessor_list > domain(boost::fusion::make_vector(&coeff, &in, &out));
 #endif
-
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
@@ -247,6 +186,37 @@ namespace vertical_advection_dycore {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
 
+#ifdef USE_PAPI
+        int event_set = PAPI_NULL;
+        int retval;
+        long long values[1] = {-1};
+
+        /* Initialize the PAPI library */
+        retval = PAPI_library_init(PAPI_VER_CURRENT);
+        if (retval != PAPI_VER_CURRENT) {
+            fprintf(stderr, "PAPI library init error!\n");
+            exit(1);
+        }
+
+        if (PAPI_create_eventset(&event_set) != PAPI_OK)
+            handle_error(1);
+        if (PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) // floating point operations
+            handle_error(1);
+#endif
+
+#ifdef USE_PAPI_WRAP
+        pw_start_collector(collector_init);
+#endif
+
+/*
+  Here we do lot of stuff
+  1) We pass to the intermediate representation ::run function the description
+  of the stencil, which is a multi-stage stencil (mss)
+  The mss includes (in order of execution) a laplacian, two fluxes which are independent
+  and a final step that is the out_function
+  2) The logical physical domain with the fields to use
+  3) The actual grid dimensions
+ */
 #ifdef CXX11_ENABLED
         auto
 #else
@@ -256,32 +226,51 @@ namespace vertical_advection_dycore {
         boost::shared_ptr< gridtools::computation >
 #endif
 #endif
-            vertical_advection = gridtools::make_computation< vertical_advection::va_backend >(
+            horizontal_diffusion = gridtools::make_computation< gridtools::BACKEND >(
                 domain,
                 grid,
                 gridtools::make_mss // mss_descriptor
                 (execute< forward >(),
-                    gridtools::make_esf< u_forward_function< double > >(p_utens_stage(),
-                        p_wcon(),
-                        p_u_stage(),
-                        p_u_pos(),
-                        p_utens(),
-                        p_dtr_stage(),
-                        p_acol(),
-                        p_bcol(),
-                        p_ccol(),
-                        p_dcol()) // esf_descriptor
-                    ),
-                gridtools::make_mss(execute< backward >(),
-                    gridtools::make_esf< u_backward_function< double > >(
-                                        p_utens_stage(), p_u_pos(), p_dtr_stage(), p_ccol(), p_dcol(), p_data_col())));
+                    define_caches(
+                        cache< IJ, p_lap, local >(), cache< IJ, p_flx, local >(), cache< IJ, p_fly, local >()),
+                    gridtools::make_esf< lap_function >(p_lap(), p_in()), // esf_descriptor
+                    gridtools::make_independent                           // independent_esf
+                    (gridtools::make_esf< flx_function >(p_flx(), p_in(), p_lap()),
+                        gridtools::make_esf< fly_function >(p_fly(), p_in(), p_lap())),
+                    gridtools::make_esf< out_function >(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));
 
-        vertical_advection->ready();
+        horizontal_diffusion->ready();
 
-        vertical_advection->steady();
-        domain.clone_to_device();
+        horizontal_diffusion->steady();
 
-        vertical_advection->run();
+#ifdef USE_PAPI_WRAP
+        pw_stop_collector(collector_init);
+#endif
+
+#ifdef USE_PAPI
+        if (PAPI_start(event_set) != PAPI_OK)
+            handle_error(1);
+#endif
+#ifdef USE_PAPI_WRAP
+        pw_start_collector(collector_execute);
+#endif
+        cache_flusher flusher(cache_flusher_size);
+
+        for (uint_t t = 0; t < t_steps; ++t) {
+            flusher.flush();
+            horizontal_diffusion->run();
+        }
+
+#ifdef USE_PAPI
+        double dummy = 0.5;
+        if (PAPI_read(event_set, values) != PAPI_OK)
+            handle_error(1);
+        printf("%f After reading the counters: %lld\n", dummy, values[0]);
+        PAPI_stop(event_set, values);
+#endif
+#ifdef USE_PAPI_WRAP
+        pw_stop_collector(collector_execute);
+#endif
 
 #ifdef __CUDACC__
         repository.update_cpu();
@@ -290,22 +279,33 @@ namespace vertical_advection_dycore {
 #ifdef CXX11_ENABLED
         verifier verif(1e-13);
         array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
-        bool result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage(), halos);
+        bool result = verif.verify(grid, repository.out_ref(), repository.out(), halos);
 #else
         verifier verif(1e-13, halo_size);
-        bool result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage());
+        bool result = verif.verify(grid, repository.out_ref(), repository.out());
 #endif
+
+        if (!result) {
+            std::cout << "ERROR" << std::endl;
+        }
 
 #ifdef BENCHMARK
         for (uint_t t = 1; t < t_steps; ++t) {
             flusher.flush();
-            vertical_advection->run();
+            horizontal_diffusion->run();
         }
-        vertical_advection->finalize();
-        std::cout << vertical_advection->print_meter() << std::endl;
 #endif
 
-        return result;
+        horizontal_diffusion->finalize();
+#ifdef BENCHMARK
+        std::cout << horizontal_diffusion->print_meter() << std::endl;
+#endif
+
+#ifdef USE_PAPI_WRAP
+        pw_print();
+#endif
+
+        return result; /// lapse_time.wall<5000000 &&
     }
 
-} // namespace vertical_advection
+} // namespace horizontal_diffusion

@@ -692,7 +692,7 @@ namespace gridtools {
             case 1:
                 return ll_map_index(cells(), Location2(), static_int< 1 >(), {i[0], i[2], i[3]});
             default:
-                //                assert(false);
+                GTASSERT(false);
                 return typename return_type< typename from< cells >::template to< Location2 >,
                     array< uint_t, 4 > >::type();
             }
@@ -716,7 +716,7 @@ namespace gridtools {
                 return ll_map_index(edges(), Location2(), static_int< 2 >(), {i[0], i[2], i[3]});
             // return edge2edges_ll_p2_indices({i[0], i[2]});
             default:
-                //                assert(false);
+                GTASSERT(false);
                 return typename return_type< typename from< edges >::template to< Location2 >,
                     array< uint_t, 4 > >::type();
             }

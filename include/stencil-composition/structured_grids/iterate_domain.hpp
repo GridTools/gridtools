@@ -76,7 +76,7 @@ namespace gridtools {
        the storage placeholders/metadatas and their offsets.
      */
     template < typename IterateDomainImpl >
-    struct iterate_domain {
+    struct iterate_domain : public iterate_domain_reduction<typename iterate_domain_impl_arguments<IterateDomainImpl>::type> {
 
         // *************** type definitions **************
 
@@ -430,8 +430,8 @@ namespace gridtools {
                 "eval(z_field()); \n");
 
             // dimension/snapshot offsets must be non negative
-            assert(accessor.template get< 0 >() >= 0);
-            assert(
+            GTASSERT(accessor.template get< 0 >() >= 0);
+            GTASSERT(
                 (Accessor::type::n_dim <= storage_type::space_dimensions + 1) || (accessor.template get< 1 >() >= 0));
             // std::cout<<" offsets: "<<arg.template get<0>()<<" , "<<arg.template get<1>()<<" , "<<arg.template
             // get<2>()<<" , "<<std::endl;

@@ -52,10 +52,9 @@ namespace gridtools
     class iterate_domain_reduction :
             public impl::iterate_domain_reduction_impl<IterateDomainArguments, IterateDomainArguments::s_is_reduction>
     {
-    protected:
+    public:
         typedef typename IterateDomainArguments::functor_return_type_t reduction_type_t;
 
-    public:
         GT_FUNCTION
         iterate_domain_reduction(const reduction_type_t& initial_value) :
             impl::iterate_domain_reduction_impl<IterateDomainArguments, IterateDomainArguments::s_is_reduction>(initial_value) {}

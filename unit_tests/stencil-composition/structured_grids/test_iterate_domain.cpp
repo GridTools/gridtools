@@ -116,9 +116,9 @@ namespace test_iterate_domain{
                 >
             > it_domain_t;
 
-        mss_local_domain1_t mss_local_domain1 = boost::fusion::at_c< 0 >(computation_->mss_local_domain_list());
-        auto local_domain1 = boost::fusion::at_c< 0 >(mss_local_domain1.local_domain_list);
-        it_domain_t it_domain(local_domain1);
+        mss_local_domain1_t mss_local_domain1=boost::fusion::at_c<0>(computation_->mss_local_domain_list());
+        auto local_domain1=boost::fusion::at_c<0>(mss_local_domain1.local_domain_list);
+        it_domain_t it_domain(local_domain1, 0);
 
         GRIDTOOLS_STATIC_ASSERT(it_domain_t::N_STORAGES==3, "bug in iterate domain, incorrect number of storages");
 

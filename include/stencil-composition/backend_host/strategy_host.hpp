@@ -253,7 +253,7 @@ namespace gridtools {
                     last_j = m - NBJ * BJ;
                 }
 
-                kernel_functor_executor_t(local_domain, grid, first_i, first_j, last_i, last_j, bi, bj)();
+                kernel_functor_executor_t(local_domain, grid, reduction_data, first_i, first_j, last_i, last_j, bi, bj)();
             }
         };
 

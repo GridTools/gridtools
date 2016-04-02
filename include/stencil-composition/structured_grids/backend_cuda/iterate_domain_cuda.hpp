@@ -96,17 +96,6 @@ public:
         m_thread_pos[1] = jpos;
     }
 
-        /**
-         * @brief determines whether the current (i,j) position is within the block size
-         */
-        template < typename Extent >
-        GT_FUNCTION bool is_thread_in_domain() const {
-            return (m_thread_pos[0] >= Extent::iminus::value &&
-                    m_thread_pos[0] < ((int)m_block_size_i + Extent::iplus::value) &&
-                    m_thread_pos[1] >= Extent::jminus::value &&
-                    m_thread_pos[1] < ((int)m_block_size_j + Extent::jplus::value));
-        }
-
     /**
      * @brief determines whether the current (i) position + an offset is within the block size
      */
