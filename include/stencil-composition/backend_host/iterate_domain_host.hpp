@@ -7,12 +7,11 @@
 #endif
 
 namespace gridtools {
-template <typename IterateDomainImpl> struct iterate_domain_backend_id;
+    template < typename IterateDomainImpl >
+    struct iterate_domain_backend_id;
 
-template <template <class> class IterateDomainBase,
-          typename IterateDomainArguments>
-struct iterate_domain_backend_id<
-    iterate_domain_host<IterateDomainBase, IterateDomainArguments> > {
-  typedef enumtype::enum_type<enumtype::platform, enumtype::Host> type;
-};
+    template < template < class > class IterateDomainBase, typename IterateDomainArguments >
+    struct iterate_domain_backend_id< iterate_domain_host< IterateDomainBase, IterateDomainArguments > > {
+        typedef enumtype::enum_type< enumtype::platform, enumtype::Host > type;
+    };
 }

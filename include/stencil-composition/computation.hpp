@@ -10,4 +10,4 @@ namespace gridtools {
         virtual std::string print_meter()=0;
     };
 
-} //namespace gridtools
+} // namespace gridtools

@@ -4,7 +4,7 @@
 /**@file
 */
 
-namespace gridtools{
+namespace gridtools {
 
     /**@brief API for a runtime switch between several multi stage stencils
 
@@ -17,7 +17,8 @@ namespace gridtools{
        \tparam First must be an instance of @ref gridtools::case_type
        \tparam Cases must be instances of @ref gridtools::case_type, or @ref gridtools::default_type fir the last one
 
-       \param cond_ an instance of type @ref gridtools::switch_variable, containing the value with which to compare each case
+       \param cond_ an instance of type @ref gridtools::switch_variable, containing the value with which to compare each
+case
        \param first_ the first case
        \param cases_ the pack of cases, the last one being the default_ one
 
@@ -49,81 +50,69 @@ computation->run(); // run the first case
 computation->finalize();
 @endverbatim
     */
-    template<typename Condition, typename First, typename ... Cases>
-    auto
-    switch_(Condition& cond_, First const& first_, Cases const& ... cases_) ->
-        decltype(
-            if_(switch_conditional<(uint_t) - (sizeof...(Cases)), Condition::index_value>()
-                ,first_.mss()
-                ,recursive_switch(uint_t(0),cond_, cases_ ...)
-                )
-            )
-    {
-        GRIDTOOLS_STATIC_ASSERT((is_case_type<First>::value),
-                                "the entries in a switch_ statement must be case_ statements");
+    template < typename Condition, typename First, typename... Cases >
+    auto switch_(Condition &cond_, First const &first_, Cases const &... cases_)
+        -> decltype(if_(switch_conditional< (uint_t) - (sizeof...(Cases)), Condition::index_value >(),
+            first_.mss(),
+            recursive_switch(uint_t(0), cond_, cases_...))) {
+        GRIDTOOLS_STATIC_ASSERT(
+            (is_case_type< First >::value), "the entries in a switch_ statement must be case_ statements");
 
-        GRIDTOOLS_STATIC_ASSERT((is_switch_variable<Condition>::value),
-                                "the first argument of the switch_ statement must be of switch_variable type");
+        GRIDTOOLS_STATIC_ASSERT((is_switch_variable< Condition >::value),
+            "the first argument of the switch_ statement must be of switch_variable type");
 
-        //save the boolean in a vector owned by the switch variable
-        //allows us to modify the switch at a later stage
+        // save the boolean in a vector owned by the switch variable
+        // allows us to modify the switch at a later stage
         cond_.push_back_case(first_.value());
-        //choose an ID which should be unique: to pick a very large number we cast a negative number to an unsigned
-        //ID is unique
-        typedef switch_conditional<(uint_t) - (sizeof...(Cases)), Condition::index_value> conditional_t;
+        // choose an ID which should be unique: to pick a very large number we cast a negative number to an unsigned
+        // ID is unique
+        typedef switch_conditional< (uint_t) - (sizeof...(Cases)), Condition::index_value > conditional_t;
 
-        uint_t rec_depth_=0;
-        if((short_t)cond_.value()==(short_t)first_.value())
+        uint_t rec_depth_ = 0;
+        if ((short_t)cond_.value() == (short_t)first_.value())
             cond_.push_back_condition(1);
         else
             cond_.push_back_condition(0);
         return if_(conditional_t((*cond_.m_conditions)[rec_depth_]),
-                   first_.mss(),
-                   recursive_switch(rec_depth_, cond_, cases_ ...)
-            );
+            first_.mss(),
+            recursive_switch(rec_depth_, cond_, cases_...));
     }
 
-    template<typename Condition, typename First, typename ... Cases>
-    auto
-    recursive_switch(uint_t recursion_depth_, Condition& cond_, First const& first_, Cases const& ... cases_) ->
-        decltype(
-            if_(switch_conditional<(uint_t) - (sizeof...(Cases)), Condition::index_value>()
-                ,first_.mss()
-                ,recursive_switch(recursion_depth_, cond_, cases_ ...)
-                )
-            )
-    {
-        GRIDTOOLS_STATIC_ASSERT((is_case_type<First>::value),
-                                "the entries in a switch_ statement must be case_ statements");
+    template < typename Condition, typename First, typename... Cases >
+    auto recursive_switch(uint_t recursion_depth_, Condition &cond_, First const &first_, Cases const &... cases_)
+        -> decltype(if_(switch_conditional< (uint_t) - (sizeof...(Cases)), Condition::index_value >(),
+            first_.mss(),
+            recursive_switch(recursion_depth_, cond_, cases_...))) {
+        GRIDTOOLS_STATIC_ASSERT(
+            (is_case_type< First >::value), "the entries in a switch_ statement must be case_ statements");
 
-        GRIDTOOLS_STATIC_ASSERT((is_switch_variable<Condition>::value),
-                                "the first argument of the switch_ statement must be of switch_variable type");
+        GRIDTOOLS_STATIC_ASSERT((is_switch_variable< Condition >::value),
+            "the first argument of the switch_ statement must be of switch_variable type");
 
-        //save the boolean in a vector owned by the switch variable
-        //allows us to modify the switch at a later stage
+        // save the boolean in a vector owned by the switch variable
+        // allows us to modify the switch at a later stage
         cond_.push_back_case(first_.value());
-        //choose an ID which should be unique: to pick a very large number we cast a negative number to an unsigned
-        typedef switch_conditional<(uint_t) - (sizeof...(Cases)), Condition::index_value> conditional_t;
+        // choose an ID which should be unique: to pick a very large number we cast a negative number to an unsigned
+        typedef switch_conditional< (uint_t) - (sizeof...(Cases)), Condition::index_value > conditional_t;
         recursion_depth_++;
 
-        if((short_t)cond_.value()==(short_t)first_.value())
+        if ((short_t)cond_.value() == (short_t)first_.value())
             cond_.push_back_condition(1);
         else
             cond_.push_back_condition(0);
         return if_(conditional_t((*cond_.m_conditions)[recursion_depth_]),
-                   first_.mss(),
-                   recursive_switch(recursion_depth_, cond_, cases_ ...)
-            );
+            first_.mss(),
+            recursive_switch(recursion_depth_, cond_, cases_...));
     }
 
     /**@brief recursion anchor*/
-    template<typename Condition, typename Default>
+    template < typename Condition, typename Default >
     // typename switch_type<Condition, Default>::type
-    typename Default::mss_t
-    recursive_switch(uint_t /*recursion_depth_*/, Condition const& /*cond_*/, Default const& last_){
-        GRIDTOOLS_STATIC_ASSERT((is_default_type<Default>::value),
-                                "the last entry in a switch_ statement must be a default_ statement");
-        return last_.mss(); //default_ value
+    typename Default::mss_t recursive_switch(
+        uint_t /*recursion_depth_*/, Condition const & /*cond_*/, Default const &last_) {
+        GRIDTOOLS_STATIC_ASSERT(
+            (is_default_type< Default >::value), "the last entry in a switch_ statement must be a default_ statement");
+        return last_.mss(); // default_ value
     }
 
-}//namespace gridtools
+} // namespace gridtools

@@ -137,7 +137,8 @@ namespace gridtools {
         };
 
         /**
-         * \brief given the index of a functor in the functors list ,it calls a kernel on the GPU executing the operations defined on that functor.
+         * \brief given the index of a functor in the functors list ,it calls a kernel on the GPU executing the
+         * operations defined on that functor.
          */
         template <typename Index>
         void operator()(Index const& ) const
@@ -158,13 +159,13 @@ namespace gridtools {
 
             typedef typename mss_components_t::execution_engine_t ExecutionEngine;
 
-            typedef typename mss_loop_intervals<mss_components_t, Grid>::type LoopIntervals; // List of intervals on which functors are defined
-            //wrapping all the template arguments in a single container
+            typedef typename mss_loop_intervals< mss_components_t, Grid >::type
+                LoopIntervals; // List of intervals on which functors are defined
+            // wrapping all the template arguments in a single container
             typedef typename boost::mpl::if_<
-                    typename boost::mpl::bool_< ExecutionEngine::type::iteration==enumtype::forward >::type,
-                    LoopIntervals,
-                    typename boost::mpl::reverse<LoopIntervals>::type
-            >::type oriented_loop_intervals_t;
+                typename boost::mpl::bool_< ExecutionEngine::type::iteration == enumtype::forward >::type,
+                LoopIntervals,
+                typename boost::mpl::reverse< LoopIntervals >::type >::type oriented_loop_intervals_t;
             // List of functors to execute (in order)
             typedef typename mss_components_t::functors_list_t functors_list_t;
             // sequence of esf descriptors contained in this mss
@@ -214,23 +215,29 @@ namespace gridtools {
 
              */
 
-            typedef typename boost::mpl::fold<
-                boost::mpl::range_c<int, 1,boost::mpl::size<esf_sequence_t>::value>
-                , boost::mpl::vector0<>
-                , boost::mpl::push_back<boost::mpl::_1, boost::mpl::at<sequence_of_is_independent_t,  boost::mpl::_2 > >
-                >::type next_thing;
+            typedef
+                typename boost::mpl::fold< boost::mpl::range_c< int, 1, boost::mpl::size< esf_sequence_t >::value >,
+                    boost::mpl::vector0<>,
+                    boost::mpl::push_back< boost::mpl::_1,
+                                               boost::mpl::at< sequence_of_is_independent_t, boost::mpl::_2 > > >::type
+                    next_thing;
 
             typedef typename boost::mpl::fold<
-                boost::mpl::range_c<int, 0, boost::mpl::size<next_thing>::value >
-                , boost::mpl::map< >
-                , boost::mpl::if_<condition_for_async<boost::mpl::_1, boost::mpl::_2, sequence_of_is_independent_t, next_thing>
-                                  , boost::mpl::insert< boost::mpl::_1, boost::mpl::pair< boost::mpl::at<functors_list_t, boost::mpl::_2 >, boost::mpl::true_ > >
-                                  , boost::mpl::insert< boost::mpl::_1, boost::mpl::pair< boost::mpl::at<functors_list_t, boost::mpl::_2 >, boost::mpl::false_ > >
-                                  >
-                >::type async_esf_map_tmp_t;
+                boost::mpl::range_c< int, 0, boost::mpl::size< next_thing >::value >,
+                boost::mpl::map<>,
+                boost::mpl::if_<
+                    condition_for_async< boost::mpl::_1, boost::mpl::_2, sequence_of_is_independent_t, next_thing >,
+                    boost::mpl::insert< boost::mpl::_1,
+                        boost::mpl::pair< boost::mpl::at< functors_list_t, boost::mpl::_2 >, boost::mpl::true_ > >,
+                    boost::mpl::insert< boost::mpl::_1,
+                        boost::mpl::pair< boost::mpl::at< functors_list_t, boost::mpl::_2 >,
+                                            boost::mpl::false_ > > > >::type async_esf_map_tmp_t;
 
-            //insert true for the last esf
-            typedef typename boost::mpl::insert< async_esf_map_tmp_t,  boost::mpl::pair<typename boost::mpl::at_c<functors_list_t, boost::mpl::size<next_thing>::value>::type, boost::mpl::true_ > >::type async_esf_map_t;                    
+            // insert true for the last esf
+            typedef typename boost::mpl::insert< async_esf_map_tmp_t,
+                boost::mpl::pair< typename boost::mpl::at_c< functors_list_t,
+                                      boost::mpl::size< next_thing >::value >::type,
+                                                     boost::mpl::true_ > >::type async_esf_map_t;
 
             // perform some checks concerning the reduction types
             typedef run_functor_arguments<
@@ -259,4 +266,4 @@ namespace gridtools {
                     template run(local_domain, m_grid, m_reduction_data, m_block_idx, m_block_idy);
         }
     };
-} //namespace gridtools
+} // namespace gridtools

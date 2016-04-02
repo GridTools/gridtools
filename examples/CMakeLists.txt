@@ -1,4 +1,6 @@
-FILE(GLOB_RECURSE INC_ALL "../include/stencil-composition/*.hpp")
+if(NOT STRUCTURED_GRIDS)
+    add_subdirectory(icosahedral)
+else()
 
 list( APPEND SRCFILES interface1 simple_hori_diff boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore alignment)
 list( APPEND X86_SRCFILES reduction)
@@ -13,9 +15,9 @@ set (ADD_MPI_LIBS "")
 
 add_definitions("-DBENCHMARK")
 
-foreach(srcfile IN LISTS X86_SRCFILES )
-    add_executable(${srcfile}_naive   ${srcfile}.cpp ${GTEST_FILES} ${INC_ALL})
-    add_executable(${srcfile}_block   ${srcfile}.cpp ${GTEST_FILES} ${INC_ALL})
+foreach(srcfile IN LISTS SRCFILES )
+    add_executable(${srcfile}_naive   ${srcfile}.cpp ${GTEST_FILES})
+    add_executable(${srcfile}_block   ${srcfile}.cpp ${GTEST_FILES})
     set_target_properties(${srcfile}_block
       PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
     set_target_properties(${srcfile}_naive PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
@@ -90,7 +92,8 @@ if(CUDA_FOUND)
           target_link_libraries(copy_stencil_parallel_cuda ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} )
         endif()
     endif()
-endif()
+    
+    add_subdirectory( communication )
+    
+endif(NOT STRUCTURED_GRIDS)
 
-
-add_subdirectory( communication )

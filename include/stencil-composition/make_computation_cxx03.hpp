@@ -6,10 +6,6 @@
 
 namespace gridtools {
 
-namespace _impl {
-
-} //namespace _impl
-
 #define _PAIR_(count, N, data)                  \
         data ## Type ## N data ## Value ## N
 
@@ -62,4 +58,4 @@ namespace _impl {
 #undef _MAKE_POSITIONAL_COMPUTATION
 #undef _PAIR_
 #undef _POINTER_
-} //namespace gridtools
+} // namespace gridtools

@@ -8,16 +8,16 @@ namespace gridtools {
      * @tparam RunFunctorArguments run functor arguments
      * @tparam Interval interval where the functor gets executed
      */
-    template < typename RunFunctorArguments, typename Interval>
-    struct run_esf_functor_host : public
-        run_esf_functor<run_esf_functor_host<RunFunctorArguments, Interval> > //CRTP
+    template < typename RunFunctorArguments, typename Interval >
+    struct run_esf_functor_host
+        : public run_esf_functor< run_esf_functor_host< RunFunctorArguments, Interval > > // CRTP
     {
-        GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), "Internal Error: wrong type");
-        typedef run_esf_functor<run_esf_functor_host<RunFunctorArguments, Interval> > super;
+        GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), "Internal Error: wrong type");
+        typedef run_esf_functor< run_esf_functor_host< RunFunctorArguments, Interval > > super;
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
 
         GT_FUNCTION
-        explicit run_esf_functor_host(iterate_domain_t& iterate_domain) : super(iterate_domain) {}
+        explicit run_esf_functor_host(iterate_domain_t &iterate_domain) : super(iterate_domain) {}
 
         /*
          * @brief main functor implemenation that executes (for Host) the user functor of an ESF

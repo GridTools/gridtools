@@ -31,8 +31,8 @@ struct functor1 {
 };
 
 typedef layout_map<0,1> layout_ij_t;
-typedef backend<Host, GRIDBACKEND, Naive >::
-    storage_type<float_type, backend<Host, GRIDBACKEND, Naive >::storage_info<0,layout_ij_t> >::type storage_type;
+typedef backend< Host, GRIDBACKEND, Naive >::storage_type< float_type,
+    backend< Host, GRIDBACKEND, Naive >::storage_info< 0, layout_ij_t > >::type storage_type;
 
 typedef arg<0, storage_type> p_in;
 typedef arg<2, storage_type> p_out;
@@ -57,7 +57,7 @@ TEST(cache_metafunctions, cache_used_by_esfs)
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal<caches_used_t, boost::mpl::vector3<cache1_t, cache2_t, cache3_t> >::value), "WRONG");
     ASSERT_TRUE(true);
 }
-/*
+
 TEST(cache_metafunctions, extract_extents_for_caches)
 {
     typedef boost::mpl::vector3<p_in, p_buff, p_out> esf_args_t;
@@ -72,8 +72,7 @@ TEST(cache_metafunctions, extract_extents_for_caches)
         enclosing_extent<boost::mpl::_1, boost::mpl::_2>
     >::type max_extent_t;
 
-    typedef iterate_domain_arguments<
-        backend_ids<Cuda, GRIDBACKEND, Block>,
+    typedef iterate_domain_arguments< backend_ids< Cuda, GRIDBACKEND, Block >,
         local_domain_t,
         esf_sequence_t,
         extents_t,
@@ -114,8 +113,7 @@ TEST(cache_metafunctions, get_cache_storage_tuple)
   
     typedef gridtools::interval<gridtools::level<0,-2>, gridtools::level<1,1> > axis;
 
-    typedef iterate_domain_arguments<
-        backend_ids<Cuda, GRIDBACKEND, Block>,
+    typedef iterate_domain_arguments< backend_ids< Cuda, GRIDBACKEND, Block >,
         local_domain_t,
         esf_sequence_t,
         extents_t,
@@ -144,4 +142,4 @@ TEST(cache_metafunctions, get_cache_storage_tuple)
                 boost::fusion::pair<p_buff::index_type, cache_storage<float_type, block_size<32,4>, extent<-2,2,-3,2> > >
             >
         >::value),"ERROR");
-}*/
+}

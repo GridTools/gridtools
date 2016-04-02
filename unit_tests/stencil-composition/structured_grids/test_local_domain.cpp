@@ -52,10 +52,10 @@ TEST(test_local_domain, merge_mss_local_domains) {
 
     typedef layout_map<2,1,0> layout_ijk_t;
     typedef layout_map<0,1,2> layout_kji_t;
-    typedef backend<Host, GRIDBACKEND, Naive >::storage_info<0, layout_ijk_t> meta_ijk_t;
-    typedef backend<Host, GRIDBACKEND, Naive >::storage_info<0, layout_kji_t> meta_kji_t;
-    typedef backend<Host, GRIDBACKEND, Naive >::storage_type<float_type, meta_ijk_t >::type storage_type;
-    typedef backend<Host, GRIDBACKEND, Naive >::storage_type<float_type, meta_kji_t >::type storage_buff_type;
+    typedef backend< Host, GRIDBACKEND, Naive >::storage_info< 0, layout_ijk_t > meta_ijk_t;
+    typedef backend< Host, GRIDBACKEND, Naive >::storage_info< 0, layout_kji_t > meta_kji_t;
+    typedef backend< Host, GRIDBACKEND, Naive >::storage_type< float_type, meta_ijk_t >::type storage_type;
+    typedef backend< Host, GRIDBACKEND, Naive >::storage_type< float_type, meta_kji_t >::type storage_buff_type;
 
     typedef arg<0, storage_type> p_in;
     typedef arg<1, storage_buff_type> p_buff;

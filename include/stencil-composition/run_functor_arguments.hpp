@@ -22,8 +22,7 @@
 
 namespace gridtools {
 
-    template<
-        typename BackendIds,
+    template < typename BackendIds,
         typename LocalDomain,
         typename EsfSequence,
         typename ExtendSizes,
@@ -60,10 +59,10 @@ namespace gridtools {
         typedef FunctorReturnType functor_return_type_t;
     };
 
-    template<typename T> struct is_iterate_domain_arguments : boost::mpl::false_{};
+    template < typename T >
+    struct is_iterate_domain_arguments : boost::mpl::false_ {};
 
-    template<
-        typename BackendIds,
+    template < typename BackendIds,
         typename LocalDomain,
         typename EsfSequence,
         typename ExtendSizes,
@@ -135,11 +134,9 @@ namespace gridtools {
         typedef LoopIntervals loop_intervals_t;
         typedef FunctorsMap functors_map_t;
         typedef ExtendSizes extent_sizes_t;
-        typedef typename boost::mpl::fold<
-            extent_sizes_t,
-            typename grid_traits_from_id<backend_ids_t::s_grid_type_id>::null_extent_t,
-            enclosing_extent<boost::mpl::_1, boost::mpl::_2>
-        >::type max_extent_t;
+        typedef typename boost::mpl::fold< extent_sizes_t,
+            typename grid_traits_from_id< backend_ids_t::s_grid_type_id >::null_extent_t,
+            enclosing_extent< boost::mpl::_1, boost::mpl::_2 > >::type max_extent_t;
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;
         typedef IsIndependentSeq async_esf_map_t;

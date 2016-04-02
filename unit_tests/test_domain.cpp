@@ -98,9 +98,13 @@ bool the_same(One const& storage1, Two const& storage2) {
 bool test_domain() {
 
 #ifdef __CUDACC__
-    typedef gridtools::backend<gridtools::enumtype::Cuda, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Naive > backend_t;
+    typedef gridtools::backend< gridtools::enumtype::Cuda,
+        gridtools::enumtype::GRIDBACKEND,
+        gridtools::enumtype::Naive > backend_t;
 #else
-    typedef gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Naive > backend_t;
+    typedef gridtools::backend< gridtools::enumtype::Host,
+        gridtools::enumtype::GRIDBACKEND,
+        gridtools::enumtype::Naive > backend_t;
 #endif
     typedef typename backend_t::storage_type<double, backend_t::storage_info<0,gridtools::layout_map<0,1,2> > >::type storage_type;
 
@@ -200,8 +204,9 @@ bool test_domain() {
 #ifndef NDEBUG
     printf("\n\nFROM GPU\n\n");
 #endif
+    // clang-format off
     print_values<<<1,1>>>(arg_list_device_ptr/*domain.gpu_object_ptr*/);
-
+    // clang-format on
 #ifdef __CUDACC__
     cudaDeviceSynchronize();
 #endif
@@ -227,7 +232,9 @@ bool test_domain() {
 #ifndef NDEBUG
     printf("\n\nFROM GPU\n\n");
 #endif
+    // clang-format off
     print_values<<<1,1>>>(arg_list_device_ptr);
+    // clang-format on
 #ifdef __CUDACC__
     cudaDeviceSynchronize();
 #endif

@@ -12,10 +12,10 @@ namespace gridtools {
     /**
        The backend is, as usual, declaring what the storage types are
      */
-    template<enumtype::platform BackendId, enumtype::strategy StrategyType >
-    struct backend<BackendId, enumtype::icosahedral, StrategyType> :
-            public backend_base<BackendId, enumtype::icosahedral, StrategyType>{
-    public:
+    template < enumtype::platform BackendId, enumtype::strategy StrategyType >
+    struct backend< BackendId, enumtype::icosahedral, StrategyType >
+        : public backend_base< BackendId, enumtype::icosahedral, StrategyType > {
+      public:
         // template <typename LocationType, typename X, typename LayoutMap>
         // struct _storage_type;
 
@@ -34,28 +34,20 @@ namespace gridtools {
         //     using type = base_storage<wrap_pointer<double>, LayoutMap, location_type<2, NColors> >;
         // };
 
-        typedef backend_base<BackendId, enumtype::icosahedral, StrategyType> base_t;
+        typedef backend_base< BackendId, enumtype::icosahedral, StrategyType > base_t;
 
         using typename base_t::backend_traits_t;
         using typename base_t::strategy_traits_t;
 
-        static const enumtype::strategy s_strategy_id=base_t::s_strategy_id;
-        static const enumtype::platform s_backend_id =base_t::s_backend_id;
+        static const enumtype::strategy s_strategy_id = base_t::s_strategy_id;
+        static const enumtype::platform s_backend_id = base_t::s_backend_id;
 
-        //TODO storage and meta_storage have to be moved to backend_traits_from_id, that has to be templated with grid
-        template <typename LocationType>
-        using storage_info_t = typename base_t::template
-            storage_info<LocationType::value, typename icgrid::grid_traits_arch<s_backend_id>::layout_map_t
-        >;
+        // TODO storage and meta_storage have to be moved to backend_traits_from_id, that has to be templated with grid
+        template < typename LocationType >
+        using storage_info_t = typename base_t::template storage_info< LocationType::value,
+            typename icgrid::grid_traits_arch< s_backend_id >::layout_map_t >;
 
-        template <typename LocationType, typename ValueType>
-        using storage_t = storage<
-            base_storage<
-                typename base_t::backend_traits_t::template pointer<ValueType>::type,
-                storage_info_t<LocationType>,
-                1
-            >
-        >;
-
+        template < typename LocationType, typename ValueType >
+        using storage_t = typename base_t::template storage_type< ValueType, storage_info_t< LocationType > >::type;
     };
 } // namespace gridtools

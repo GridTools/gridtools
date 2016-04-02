@@ -2,9 +2,9 @@
 
 namespace gridtools {
 
-    template < int R >
+    template < int_t R >
     struct extent {
-        static const int value = R;
+        static const int_t value = R;
     };
 
     template < typename T >
@@ -23,7 +23,8 @@ namespace gridtools {
         BOOST_MPL_ASSERT((is_extent< Extent1 >));
         BOOST_MPL_ASSERT((is_extent< Extent2 >));
 
-        typedef extent< boost::mpl::max< static_uint<Extent1::value> , static_uint<Extent2::value> >::type::value > type;
+        typedef extent< boost::mpl::max< static_uint< Extent1::value >, static_uint< Extent2::value > >::type::value >
+            type;
     };
 
 } // namespace gridtools

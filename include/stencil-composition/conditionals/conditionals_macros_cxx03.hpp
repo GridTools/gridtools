@@ -83,4 +83,4 @@ namespace gridtools {
 #undef _POINTER_
 #undef _MAKE_POINTER_
 
-} //namespace gridtools
+} // namespace gridtools

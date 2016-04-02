@@ -4,7 +4,8 @@
 
 namespace gridtools {
 
-    template<typename T> struct is_intermediate : boost::mpl::false_{};
+    template < typename T >
+    struct is_intermediate : boost::mpl::false_ {};
 
     template <typename Backend,
               typename MssArray,
@@ -17,7 +18,8 @@ namespace gridtools {
                ConditionalsSet, ReductionType, IsStateful> > :
         boost::mpl::true_{};
 
-    template<typename T> struct intermediate_backend;
+    template < typename T >
+    struct intermediate_backend;
 
     template <typename Backend,
               typename MssArray,
@@ -32,7 +34,8 @@ namespace gridtools {
         typedef Backend type;
     };
 
-    template<typename T> struct intermediate_domain_type;
+    template < typename T >
+    struct intermediate_domain_type;
 
     template <typename Backend,
               typename MssArray,
@@ -47,7 +50,8 @@ namespace gridtools {
         typedef DomainType type;
     };
 
-    template<typename T> struct intermediate_mss_array;
+    template < typename T >
+    struct intermediate_mss_array;
 
     template <typename Backend,
               typename MssArray,
@@ -62,23 +66,23 @@ namespace gridtools {
         typedef MssArray type;
     };
 
-    template<typename Intermediate>
-    struct intermediate_mss_components_array
-    {
-        GRIDTOOLS_STATIC_ASSERT((is_intermediate<Intermediate>::value), "Internal Error: wrong type");
+    template < typename Intermediate >
+    struct intermediate_mss_components_array {
+        GRIDTOOLS_STATIC_ASSERT((is_intermediate< Intermediate >::value), "Internal Error: wrong type");
         typedef typename Intermediate::mss_components_array_t type;
     };
 
-    template<typename Intermediate>
-    struct intermediate_extent_sizes
-    {
-        GRIDTOOLS_STATIC_ASSERT((is_intermediate<Intermediate>::value), "Internal Error: wrong type");
+    template < typename Intermediate >
+    struct intermediate_extent_sizes {
+        GRIDTOOLS_STATIC_ASSERT((is_intermediate< Intermediate >::value), "Internal Error: wrong type");
         typedef typename Intermediate::extent_sizes_t type;
     };
 
-    template<typename T> struct intermediate_layout_type;
+    template < typename T >
+    struct intermediate_layout_type;
 
-    template<typename T> struct intermediate_is_stateful;
+    template < typename T >
+    struct intermediate_is_stateful;
 
     template <typename Backend,
               typename MssArray,
@@ -93,13 +97,13 @@ namespace gridtools {
         typedef boost::mpl::bool_<IsStateful> type;
     };
 
-    template<typename T> struct intermediate_mss_local_domains;
+    template < typename T >
+    struct intermediate_mss_local_domains;
 
-    template<typename Intermediate>
-    struct intermediate_mss_local_domains
-    {
-        GRIDTOOLS_STATIC_ASSERT((is_intermediate<Intermediate>::value), "Internal Error: wrong type");
+    template < typename Intermediate >
+    struct intermediate_mss_local_domains {
+        GRIDTOOLS_STATIC_ASSERT((is_intermediate< Intermediate >::value), "Internal Error: wrong type");
         typedef typename Intermediate::mss_local_domains_t type;
     };
 
-}//namespace gridtools
+} // namespace gridtools

@@ -96,16 +96,16 @@ public:
         m_thread_pos[1] = jpos;
     }
 
-    /**
-     * @brief determines whether the current (i,j) position + an offset is within the block size
-     */
-    template<typename Extent>
-    GT_FUNCTION
-    bool is_thread_in_domain(const int_t i_offset, const int_t j_offset) const
-    {
-        return is_thread_in_domain_x<Extent::iminus::value, Extent::iplus::value>(i_offset) &&
-            is_thread_in_domain_y<Extent::jminus::value, Extent::jplus::value>(j_offset);
-    }
+        /**
+         * @brief determines whether the current (i,j) position is within the block size
+         */
+        template < typename Extent >
+        GT_FUNCTION bool is_thread_in_domain() const {
+            return (m_thread_pos[0] >= Extent::iminus::value &&
+                    m_thread_pos[0] < ((int)m_block_size_i + Extent::iplus::value) &&
+                    m_thread_pos[1] >= Extent::jminus::value &&
+                    m_thread_pos[1] < ((int)m_block_size_j + Extent::jplus::value));
+        }
 
     /**
      * @brief determines whether the current (i) position + an offset is within the block size
@@ -292,49 +292,35 @@ public:
     {
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
 #if __CUDA_ARCH__ >= 350
-        // on Kepler use ldg to read directly via read only cache
-        return __ldg(storage_pointer + pointer_offset);
+            // on Kepler use ldg to read directly via read only cache
+            return __ldg(storage_pointer + pointer_offset);
 #else
-        return super::template get_gmem_value<ReturnType>(storage_pointer,pointer_offset);
+            return super::template get_gmem_value< ReturnType >(storage_pointer, pointer_offset);
 #endif
-    }
+        }
 
-    /** @brief return a the value in memory pointed to by an accessor
-    * specialization where the accessor points to an arg which is not readonly for all the ESFs in all MSSs
-    */
-    template<
-        typename ReturnType,
-        typename Accessor,
-        typename StoragePointer
-    >
-    GT_FUNCTION
-    typename boost::disable_if<
-        typename accessor_read_from_texture<Accessor>::type,
-        ReturnType
-    >::type
-    get_value_impl(StoragePointer RESTRICT & storage_pointer, const uint_t pointer_offset) const
-    {
-        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
-        return super::template get_gmem_value<ReturnType>(storage_pointer,pointer_offset);
-    }
+        /** @brief return a the value in memory pointed to by an accessor
+        * specialization where the accessor points to an arg which is not readonly for all the ESFs in all MSSs
+        */
+        template < typename ReturnType, typename Accessor, typename StoragePointer >
+        GT_FUNCTION
+            typename boost::disable_if< typename accessor_read_from_texture< Accessor >::type, ReturnType >::type
+            get_value_impl(StoragePointer RESTRICT &storage_pointer, const uint_t pointer_offset) const {
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Wrong type");
+            return super::template get_gmem_value< ReturnType >(storage_pointer, pointer_offset);
+        }
 
-private:
-    // array storing the (i,j) position of the current thread within the block
-    array<int, 2> m_thread_pos;
-};
+      private:
+        // array storing the (i,j) position of the current thread within the block
+        array< int, 2 > m_thread_pos;
+    };
 
-template<
-    template<class> class IterateDomainBase, typename IterateDomainArguments>
-struct is_iterate_domain<
-    iterate_domain_cuda<IterateDomainBase, IterateDomainArguments>
-> : public boost::mpl::true_{};
+    template < template < class > class IterateDomainBase, typename IterateDomainArguments >
+    struct is_iterate_domain< iterate_domain_cuda< IterateDomainBase, IterateDomainArguments > >
+        : public boost::mpl::true_ {};
 
-template<
-    template<class> class IterateDomainBase,
-    typename IterateDomainArguments
->
-struct is_positional_iterate_domain<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> > :
-    is_positional_iterate_domain<IterateDomainBase<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments> > > {};
-
-
+    template < template < class > class IterateDomainBase, typename IterateDomainArguments >
+    struct is_positional_iterate_domain< iterate_domain_cuda< IterateDomainBase, IterateDomainArguments > >
+        : is_positional_iterate_domain<
+              IterateDomainBase< iterate_domain_cuda< IterateDomainBase, IterateDomainArguments > > > {};
 }
