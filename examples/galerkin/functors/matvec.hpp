@@ -1,16 +1,70 @@
+#pragma once
+
+
 namespace gdl{
 namespace functors{
+
+    typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_interval;
+
+    // [vecvec_binary_operators]
+    template <typename T>
+    struct sum_operator {
+
+        inline static T eval(T const & i_a, T const & i_b) { return i_a+i_b; }
+
+    };
+
+    template <typename T>
+    struct sub_operator {
+
+        inline static T eval(T const & i_a, T const & i_b) { return i_a-i_b; }
+
+    };
+
+    template <typename T>
+    struct mult_operator {
+
+        inline static T eval(T const & i_a, T const & i_b) { return i_a*i_b; }
+
+    };
+    // [vecvec_binary_operators]
+
+
+
+    // [vecvec]
+    // TODO: these element by element operations could be parallelized avoiding the functor loop
+    // Element-wise z = x op y
+    template <class Operator>
+    struct vecvec {
+
+        using in1=gt::accessor<0, enumtype::in, gt::extent<> , 4> ;
+        using in2=gt::accessor<1, enumtype::in, gt::extent<> , 4> ;
+        using out=gt::accessor<2, enumtype::inout, gt::extent<> , 4> ;
+        using arg_list=boost::mpl::vector< in1, in2, out > ;
+
+        template <typename Evaluation>
+        GT_FUNCTION
+        static void Do(Evaluation const & eval, x_interval) {
+            gt::dimension<4>::Index row;
+            uint_t const num_rows=eval.get().template get_storage_dims<3>(in1());
+
+            // Loop over vector elements
+            for(uint_t i=0;i<num_rows;++i){
+                eval(out(row+i)) = Operator::eval(eval(in1(row+i)),eval(in2(row+i)));
+            }
+        }
+    };
+    // [vecvec]
+
+
     // [matvec]
-
-
-    // left-multiply x = A b
+    // left-multiply b = A x
     struct matvec {
 
-        using in1=gt::accessor<0, enumtype::in, gt::extent<> , 4> const;
-        using in2=gt::accessor<1, enumtype::in, gt::extent<> , 5> const;
+        using in2=gt::accessor<0, enumtype::in, gt::extent<> , 5> const;
+        using in1=gt::accessor<1, enumtype::in, gt::extent<> , 4> const;
         using out=gt::accessor<2, enumtype::inout, gt::extent<> , 4> ;
         using arg_list=boost::mpl::vector< in2, in1, out > ;
-
 
         template <typename Evaluation>
         GT_FUNCTION
