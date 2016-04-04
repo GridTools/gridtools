@@ -53,7 +53,9 @@ bool test_hybrid_pointer() {
     a.p.update_gpu();
     a.clone_to_device();
 
+    // clang-format off
     reverse<<<1,1>>>(a.gpu_object_ptr, n);
+    // clang-format on
 
     cudaDeviceSynchronize();
 

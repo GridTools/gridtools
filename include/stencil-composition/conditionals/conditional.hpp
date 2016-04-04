@@ -14,7 +14,7 @@
 #define BOOL_FUNC(val) bool (*val)()
 #endif
 
-namespace gridtools{
+namespace gridtools {
 
     template <uint_t Tag, uint_t SwitchId=0>
     class conditional {
@@ -22,8 +22,8 @@ namespace gridtools{
         //weak pointer, viewing the boolean condition
         BOOL_FUNC(m_value);
 
-    public:
-        typedef static_uint<Tag> index_t;
+      public:
+        typedef static_uint< Tag > index_t;
         static const uint_t index_value = index_t::value;
 
         /**
@@ -54,8 +54,8 @@ namespace gridtools{
     template <typename T>
     struct is_conditional : boost::mpl::false_ {};
 
-    template <uint_t Tag>
-    struct is_conditional<conditional<Tag> >:boost::mpl::true_ {};
+    template < uint_t Tag >
+    struct is_conditional< conditional< Tag > > : boost::mpl::true_ {};
 
     template <uint_t Tag, uint_t SwitchId>
     struct is_conditional<conditional<Tag, SwitchId> >:boost::mpl::true_ {};

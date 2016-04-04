@@ -13,13 +13,15 @@
 
 namespace gridtools {
 
-#define _DEFINE_CACHE(z, n, nil)                                                                               \
-    template <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename T)>                                               \
-    BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), T)>               \
-    define_caches(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), T)) {                                                  \
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), T)>, is_cache >::value),                                \
-             "argument provided to define_caches construct is not of the type cache");                         \
-        return BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(n)) <BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), T)>(); \
+#define _DEFINE_CACHE(z, n, nil)                                                                                 \
+    template < BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename T) >                                               \
+    BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(n))< BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), T) > define_caches( \
+        BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), T)) {                                                              \
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(n)) <             \
+                                                 BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), T) >,                     \
+                                    is_cache > ::value),                                                         \
+            "argument provided to define_caches construct is not of the type cache");                            \
+        return BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(n))< BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), T) >();  \
     }
 
     BOOST_PP_REPEAT(GT_MAX_ARGS, _DEFINE_CACHE, _)

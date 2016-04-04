@@ -2,7 +2,7 @@
 
 // This file contains all header files required by the host backend
 #ifdef _OPENMP
-    #include <omp.h>
+#include <omp.h>
 #endif
 
 #include "stencil-composition/execution_policy.hpp"

@@ -36,8 +36,8 @@ namespace gridtools{
 #endif
         uint_t m_num_cases;
 
-    public:
-        typedef static_uint<Tag> index_t;
+      public:
+        typedef static_uint< Tag > index_t;
         static const uint_t index_value = index_t::value;
 
 #ifdef CXX11_ENABLED
@@ -70,19 +70,18 @@ namespace gridtools{
             , m_cases(new std::vector<T >())
         {}
 
-        ~switch_variable(){
-        }
+        ~switch_variable() {}
 
         /**@brief API to insert a condition*/
         void push_back_condition( BOOL_FUNC(c)){m_conditions->push_back(c);}
         /**@brief API to insert a case value*/
-        void push_back_case( T c){m_cases->push_back(c);}
+        void push_back_case(T c) { m_cases->push_back(c); }
         /**@brief returns by non const reference the std::vector of condiitons*/
         std::vector<BOOL_FUNC() >& conditions( ){return *m_conditions;}
         /**@brief returns by non const reference the std::vector of cases*/
         std::vector<T >& cases( ){return *m_cases;}
         /**@brief returns the number of cases for the switch associated to this variable*/
-        uint_t num_conditions( ){return m_conditions->size();}
+        uint_t num_conditions() { return m_conditions->size(); }
 
 #ifdef CXX11_ENABLED
         /**@brief returns the value of the switch_variable*/
@@ -95,12 +94,13 @@ namespace gridtools{
         //private:
         switch_variable( switch_variable const & );
 
+      private:
+        switch_variable(switch_variable const &);
     };
 
-
-    template <typename T>
+    template < typename T >
     struct is_switch_variable : boost::mpl::false_ {};
 
-    template <uint_t Tag, typename T>
-    struct is_switch_variable<switch_variable<Tag, T> >:boost::mpl::true_ {};
-}//namespace gridtools
+    template < uint_t Tag, typename T >
+    struct is_switch_variable< switch_variable< Tag, T > > : boost::mpl::true_ {};
+} // namespace gridtools

@@ -39,6 +39,7 @@ unit_tests/cmake_install.cmake
 !include
 !examples
 !experimental
+!tools
 !unit_tests
 !.gitmodules
 !python
