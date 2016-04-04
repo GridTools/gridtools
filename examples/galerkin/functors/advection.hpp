@@ -6,9 +6,9 @@ namespace functors{
     typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_interval;
     typedef gridtools::interval<gridtools::level<0,-2>, gridtools::level<1,1> > axis;
 
-    template <typename FE, typename Cubature>
+    template <typename Geo, typename Cubature>
     struct advection {
-        using fe=FE;
+        using geo_t=Geo;
         using cub=Cubature;
 
         //![gt::accessors]
@@ -50,7 +50,7 @@ namespace functors{
 
                         //inner product of the gradients
                         inner_product=0.;
-                        for(short_t icoor=0; icoor< fe::fe::spaceDim; ++icoor)
+                        for(short_t icoor=0; icoor< geo_t::fe::space_dim(); ++icoor)
                         {
 
                             //A(k,l)=J_{i,j}*d_i(phi_k)*psi_l*a_j

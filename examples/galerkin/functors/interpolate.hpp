@@ -2,12 +2,15 @@ namespace gdl{
 namespace functors{
 
     // [counter transformation]
-    struct counter_transform {
+    struct evaluate {
 
         using phi   =gt::accessor<0, enumtype::in   , gt::extent<> , 3> const;
-        using in   =gt::accessor<1, enumtype::in   , gt::extent<> , 4> const;
-        using out   =gt::accessor<2, enumtype::inout, gt::extent<> , 4> ;
-        using arg_list=boost::mpl::vector< phi, in, out > ;
+        using in    =gt::accessor<1, enumtype::in   , gt::extent<> , 4> const;
+        using weights  =gt::accessor<2, enumtype::inout, gt::extent<> , 3> ;
+        using jac_det  =gt::accessor<3, enumtype::inout, gt::extent<> , 4> ;
+        using out   =gt::accessor<4, enumtype::inout, gt::extent<> , 4> ;
+
+        using arg_list=boost::mpl::vector< phi, in, weights, jac_det, out > ;
 
         template <typename Evaluation>
         GT_FUNCTION
@@ -16,12 +19,21 @@ namespace functors{
 
             uint_t const num_cub_points=eval.get().template get_storage_dims<1>(phi());
             uint_t const basis_cardinality=eval.get().template get_storage_dims<0>(phi());
-
             for(short_t q=0; q<num_cub_points; ++q){
-                for(short_t P_i=0; P_i<basis_cardinality; ++P_i) // current dof
-                {
-                    eval(out((uint_t)0,(uint_t)0,(uint_t)0,(uint_t)q))  +=
-                        eval(!phi(P_i,q,0)*in(dof+P_i));
+                eval(out(0,0,0,q))=0.;
+            }
+
+            for(short_t P_i=0; P_i<basis_cardinality; ++P_i) // current dof
+            {
+                double normalization=0.;
+                for(short_t q=0; q<num_cub_points; ++q){
+                    normalization  +=
+                        eval(!phi(P_i,q,0)*!phi(P_i,q,0)*!weights(q,0,0) *jac_det(0,0,0,q));
+                }
+                for(short_t q=0; q<num_cub_points; ++q){
+                    eval(out(0,0,0,q))  +=
+                        eval( !phi(P_i,q,0)*
+                              in(dof+P_i))/std::sqrt(normalization);
                 }
             }
         }
@@ -49,11 +61,23 @@ namespace functors{
 
             for(short_t P_i=0; P_i<basis_cardinality; ++P_i) // current dof
             {
+                double normalization = 0.;
+                for(short_t q=0; q<num_cub_points; ++q){
+                    normalization  +=
+                        eval(!phi(P_i,q,0)*!phi(P_i,q,0)*!weights(q,0,0) *jac_det(qp+q)
+                                      );
+                }
+
+                eval(out((uint_t)0,(uint_t)0,(uint_t)0,(uint_t)P_i))=0.;
                 for(short_t q=0; q<num_cub_points; ++q){
                     assert(eval(jac_det(qp+q)));
                     eval(out((uint_t)0,(uint_t)0,(uint_t)0,(uint_t)P_i))  +=
-                        eval(!phi(P_i,q,0)*in(qp+q)*jac_det(qp+q)*!weights(q,0,0));
+                        eval(!phi(P_i,q,0)*in(qp+q)/std::sqrt(normalization)
+                             *!weights(q,0,0) * jac_det(qp+q)
+                            );
+
                 }
+
             }
         }
     };

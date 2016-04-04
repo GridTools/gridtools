@@ -36,8 +36,8 @@ int main( int argc, char ** argv){
     static const ushort_t order_discr=2; //order 2 polynomials for the FE space
     using geo_map=reference_element<order_geom, Lagrange, Hexa>;
     using discr_map=reference_element<order_discr, Legendre, Hexa>;
-    // integrates exactly the composition of geo_map and basis functions polynomials
-    using cub=cubature<(discr_map::order*geo_map::order)+1, geo_map::shape>;
+    //integrate exactly polyunomials of degree (discr_map::order*geo_map::order)
+    using cub=cubature<(discr_map::order() * geo_map::order())+2, geo_map::shape()>;//overintegrating: few basis func are 0 on all quad points otherwise...
     using discr_t = intrepid::discretization<discr_map, cub>;
     using geo_t = intrepid::geometry<geo_map, cub>;
 
@@ -45,7 +45,6 @@ int main( int argc, char ** argv){
     geo_t geo_;
     fe_.compute(Intrepid::OPERATOR_VALUE);
     geo_.compute(Intrepid::OPERATOR_GRAD); // used to compute the Jacobian
-    geo_.compute(Intrepid::OPERATOR_VALUE);
 
     using as_base=assembly_base<geo_t>;
     using as=assembly<geo_t>;
@@ -66,17 +65,17 @@ int main( int argc, char ** argv){
     for (uint_t i=0; i<d1; i++)
         for (uint_t j=0; j<d2; j++)
             for (uint_t k=0; k<d3; k++)
-                for (uint_t point=0; point<geo_map::basisCardinality; point++)
+                for (uint_t point=0; point<geo_map::basis_cardinality(); point++)
                 {
-                    assembler_base.grid()( i,  j,  k,  point,  0)= (i + (1+geo_.reordered_grid()(point, 0, 0))/2.)/d1;
-                    assembler_base.grid()( i,  j,  k,  point,  1)= (j + (1+geo_.reordered_grid()(point, 1, 0))/2.)/d2;
-                    assembler_base.grid()( i,  j,  k,  point,  2)= (k + (1+geo_.reordered_grid()(point, 2, 0))/2.)/d3;
+                    assembler_base.grid()( i,  j,  k,  point,  0)= (i + (1+geo_.grid()(point, 0, 0))/2.)/d1;
+                    assembler_base.grid()( i,  j,  k,  point,  1)= (j + (1+geo_.grid()(point, 1, 0))/2.)/d2;
+                    assembler_base.grid()( i,  j,  k,  point,  2)= (k + (1+geo_.grid()(point, 2, 0))/2.)/d3;
                 }
     // ![grid]
 
     //![instantiation_mass]
     //defining the mass matrix: d1xd2xd3 elements
-    matrix_storage_info_t meta_(d1,d2,d3,discr_map::basisCardinality,discr_map::basisCardinality);
+    matrix_storage_info_t meta_(d1,d2,d3,discr_map::basis_cardinality(),discr_map::basis_cardinality());
     matrix_type mass_(meta_, 0., "mass");
 
     //![placeholders]
@@ -88,20 +87,19 @@ int main( int argc, char ** argv){
     typedef arg<2, typename as::geometry_t::weights_storage_t >   p_weights;
     typedef arg<3, typename as::storage_type >    p_jac_det;
     typedef arg<4, typename as::jacobian_type >   p_jac_inv;
-    typedef arg<5, typename as::geometry_t::basis_function_storage_t> p_phi;
+    // typedef arg<5, typename as::geometry_t::basis_function_storage_t> p_phi;
     typedef arg<5, typename as::geometry_t::grad_storage_t> p_dphi;
 
     typedef arg<6, matrix_type> p_mass;
     typedef arg<7, typename discr_t::basis_function_storage_t> p_phi_discr;
 
-    typedef typename boost::mpl::vector<p_grid_points, p_jac, p_weights, p_jac_det, p_jac_inv, p_phi, p_dphi, p_mass, p_phi_discr > mpl_list;
+    typedef typename boost::mpl::vector<p_grid_points, p_jac, p_weights, p_jac_det, p_jac_inv,  p_dphi, p_mass, p_phi_discr > mpl_list;
 
     domain_type<mpl_list> domain(boost::fusion::make_vector(  &assembler_base.grid()
                                                               , &assembler.jac()
                                                               , &assembler.fe_backend().cub_weights()
                                                               , &assembler.jac_det()
                                                               , &assembler.jac_inv()
-                                                              , &assembler.fe_backend().val()
                                                               , &assembler.fe_backend().grad()
                                                               , &mass_
                                                               , &fe_.val()
@@ -116,6 +114,7 @@ int main( int argc, char ** argv){
 
     //![computation]
     auto compute_assembly=make_computation< BACKEND >(
+        domain, coords,
         make_mss
         (
             execute<forward>()
@@ -126,11 +125,26 @@ int main( int argc, char ** argv){
             , make_esf<functors::det<geo_t> >(p_jac(), p_jac_det())
             // compute the mass matrix
             , make_esf< functors::mass >(p_jac_det(), p_weights(), p_phi_discr(), p_phi_discr(), p_mass()) //mass
-            ), domain, coords);
+            ));
 
     compute_assembly->ready();
     compute_assembly->steady();
     compute_assembly->run();
 
+    bool success=true;
+    for (uint_t i=1; i<d1; i++)
+        for (uint_t j=1; j<d2; j++)
+            for (uint_t k=1; k<d3; k++){
+                for (uint_t dof1=0; dof1<discr_map::basis_cardinality(); dof1++)
+                    for (uint_t dof2=0; dof2<discr_map::basis_cardinality(); dof2++)
+                    {
+                        if(dof1 != dof2 && mass_(i,j,k,dof1,dof2)*mass_(i,j,k,dof1,dof2) > 1.e-10)
+                        {
+                            success=false;
+                            std::cout<<"ERROR in ["<<dof1<<", "<<dof2<<"]: "<< mass_(i,j,k,dof1,dof2) <<" != 0\n";
+                        }
+                    }
+            }
 
+    assert(success);
 }

@@ -65,7 +65,7 @@ namespace gdl{
     //! [det]
     /** updates the values of the Jacobian matrix. The Jacobian matrix, component (i,j) in the quadrature point q, is computed given the geometric map discretization as \f$ J(i,j,q)=\sum_k\frac{\partial \phi_i(x_k,q)}{\partial x_j} x_k \f$
         where x_k are the points in the geometric element*/
-    template<typename Geometry, ushort_t Dim=Geometry::geo_map::spaceDim>
+    template<typename Geometry, ushort_t Dim=Geometry::geo_map::space_dim()>
     struct det_impl;
 
         template<typename Geometry>
@@ -140,7 +140,7 @@ namespace gdl{
 
     //! [inv]
 
-    template <typename Geometry,ushort_t Dim=Geometry::geo_map::spaceDim>
+    template <typename Geometry,ushort_t Dim=Geometry::geo_map::space_dim()>
     struct inv_impl;
 
     template <typename Geometry>

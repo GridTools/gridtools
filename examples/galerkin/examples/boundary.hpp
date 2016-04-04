@@ -1,7 +1,7 @@
 #pragma once
 namespace gdl{
 
-template <typename Assembler, typename Fe, typename BCFunctor, typename Layout>
+template <typename Assembler, typename Fe, typename BCFunctor, typename FluxFunctor>
 struct bc_apply{
 
 private:
@@ -60,35 +60,33 @@ public:
     std::shared_ptr< gt::computation > apply(Grid const& grid_, Storage1& tr_bc_, Storage2& result_, Storage3 & bd_beta_n_, Storage4& bd_mass_, Storage5& bd_mass_uv_, Storage6 & u_){
 
 
-    struct bc{
-        typedef  gt::arg<0, Storage1 > p_bc;
-        typedef  gt::arg<1, Storage2 > p_result;
-        typedef  gt::arg<2, Storage3 > p_beta_n;
-        typedef  gt::arg<3, Storage4 > p_bd_mass_uu;
-        typedef  gt::arg<4, Storage5 > p_bd_mass_uv;
-        typedef  gt::arg<5, Storage6 > p_u;
-    };
+        struct bc{
+            typedef  gt::arg<0, Storage1 > p_bc;
+            typedef  gt::arg<1, Storage2 > p_result;
+            typedef  gt::arg<2, Storage3 > p_beta_n;
+            typedef  gt::arg<3, Storage4 > p_bd_mass_uu;
+            typedef  gt::arg<4, Storage5 > p_bd_mass_uv;
+        };
 
-    typedef typename boost::mpl::vector< typename bc::p_bc, typename bc::p_result, typename bc::p_beta_n, typename bc::p_bd_mass_uu, typename bc::p_bd_mass_uv, typename bc::p_u > mpl_list_bc;
+        typedef typename boost::mpl::vector< typename bc::p_bc, typename bc::p_result, typename bc::p_beta_n, typename bc::p_bd_mass_uu, typename bc::p_bd_mass_uv> mpl_list_bc;
 
-    gt::domain_type<mpl_list_bc> domain_apply_bc(boost::fusion::make_vector(
-                                           &tr_bc_
-                                           ,&result_
-                                           ,&bd_beta_n_
-                                           ,&bd_mass_
-                                           ,&bd_mass_uv_
-                                           ,&u_
-                                           ));
+        gt::domain_type<mpl_list_bc> domain_apply_bc(boost::fusion::make_vector(
+                                                         &tr_bc_
+                                                         ,&result_
+                                                         ,&bd_beta_n_
+                                                         ,&bd_mass_
+                                                         ,&bd_mass_uv_
+                                                         ));
 
-    auto apply_bc=gt::make_computation< BACKEND >(
-        domain_apply_bc, grid_
-        , gt::make_mss(
-            enumtype::execute<enumtype::forward>()
-            , gt::make_esf< functors::upwind>(typename bc::p_bc(), typename bc::p_beta_n(), typename bc::p_bd_mass_uu(), typename bc::p_bd_mass_uv(),  typename bc::p_result())
-            )
-        );
+        auto apply_bc=gt::make_computation< BACKEND >(
+            domain_apply_bc, grid_
+            , gt::make_mss(
+                enumtype::execute<enumtype::forward>()
+                , gt::make_esf< FluxFunctor >(typename bc::p_bc(), typename bc::p_beta_n(), typename bc::p_bd_mass_uu(), typename bc::p_bd_mass_uv(),  typename bc::p_result())
+                )
+            );
 
-    return apply_bc;
+        return apply_bc;
     }
 };
 }//namespace gdl

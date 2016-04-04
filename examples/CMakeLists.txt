@@ -90,6 +90,5 @@ if(CUDA_FOUND)
     endif()
 endif()
 
-
 add_subdirectory( galerkin )
 add_subdirectory( communication )

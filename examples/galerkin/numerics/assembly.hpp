@@ -25,7 +25,9 @@ struct assembly  {
     using super=assembly_base<Geometry>;
     using cub=typename Geometry::cub;
     using geo_map=typename Geometry::geo_map;
-
+    using weights_storage_t = typename Geometry::weights_storage_t;
+    using basis_function_storage_t = typename geometry_t::basis_function_storage_t;
+    using grad_storage_t = typename geometry_t::grad_storage_t;
     //                      dims  x y z  qp
     //                   strides  1 x xy xyz
     using storage_type_info=storage_info<__COUNTER__, layout_tt<3> >;
@@ -80,7 +82,7 @@ public:
     jacobian_type & jac() {return m_jac;}
     storage_type & jac_det() {return m_jac_det;}
     jacobian_type & jac_inv() {return m_jac_inv;}
-    typename Geometry::weights_storage_t & cub_weights() {return m_fe_backend.cub_weights();}
+    weights_storage_t & cub_weights() {return m_fe_backend.cub_weights();}
 
     // [private members]
 

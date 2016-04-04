@@ -54,7 +54,7 @@ namespace gdl{
         typedef cell<Order, ShapeType> cell_t;
 
         static const typename basis_select<Order, BasisType, ShapeType>::type
-        hexBasis()                       // create hex basis
+        hex_basis()                       // create hex basis
         {
             return basis_select<Order, BasisType, ShapeType>::instance();
 
@@ -66,16 +66,24 @@ namespace gdl{
         // POINTTYPE_SPECTRAL,
         // POINTTYPE_SPECTRAL_OPEN,
         // POINTTYPE_WARPBLEND
+        static const constexpr enumtype::Basis& basis(){return m_basis;}
+        static const constexpr uint_t& order(){return m_order;}
+        static const constexpr enumtype::Shape& shape(){return m_shape;}
+        static const constexpr int& space_dim(){return m_space_dim;}
+        static const constexpr int& num_nodes(){return m_num_nodes;}
+        static const constexpr int& basis_cardinality(){return m_basis_cardinality;}
 
-        static const enumtype::Basis basis=BasisType;
-        static const uint_t order=Order;
-        static const enumtype::Shape shape=ShapeType;
-        static const constexpr int spaceDim=shape_property<ShapeType>::dimension;
-        static const /*constexpr*/ int numNodes;
-        static const /*constexpr*/ int basisCardinality;
+        private:
+        static const enumtype::Basis m_basis=BasisType;
+        static const uint_t m_order=Order;
+        static const enumtype::Shape m_shape=ShapeType;
+        static const constexpr int m_space_dim=shape_property<ShapeType>::dimension;
+        static const /*constexpr*/ int m_num_nodes;
+        static const /*constexpr*/ int m_basis_cardinality;
 
+    public:
         //! [tensor product]
-        using hypercube_t = tensor_product_element<spaceDim,order>;
+        using hypercube_t = tensor_product_element<space_dim(),order()>;
         //! [tensor product]
     };
 
@@ -103,13 +111,13 @@ namespace gdl{
 
 
     template <ushort_t Order, enumtype::Basis BasisType, enumtype::Shape ShapeType>
-    const constexpr int reference_element<Order, BasisType, ShapeType>::spaceDim;// = cellType.getDimension();
+    const constexpr int reference_element<Order, BasisType, ShapeType>::m_space_dim;// = cellType.getDimension();
 
     template <ushort_t Order, enumtype::Basis BasisType, enumtype::Shape ShapeType>
-    const int reference_element<Order, BasisType, ShapeType>::numNodes = cell_t::value.getNodeCount();
+    const int reference_element<Order, BasisType, ShapeType>::m_num_nodes = cell_t::value.getNodeCount();
 
     template <ushort_t Order, enumtype::Basis BasisType, enumtype::Shape ShapeType>
-    const int reference_element<Order, BasisType, ShapeType>::basisCardinality = hexBasis().getCardinality();
+    const int reference_element<Order, BasisType, ShapeType>::m_basis_cardinality = hex_basis().getCardinality();
 //! [fe namespace]
 
 

@@ -122,9 +122,10 @@ namespace gridtools{
             uint_t d2=storage_.meta_data().template dims<1>();
             uint_t d3=storage_.meta_data().template dims<2>();
 
-            uint_t np1=local_grid_info_.template dims<0>();//n. local points along x
-            uint_t np2=local_grid_info_.template dims<1>();//n. local points along y
-            uint_t np3=local_grid_info_.template dims<2>();//n. local points along z
+            //quad points or dofs?
+            uint_t np1=local_grid_info_.meta_data().template dims<0>();//n. local points along x
+            uint_t np2=local_grid_info_.meta_data().template dims<1>();//n. local points along y
+            uint_t np3=local_grid_info_.meta_data().template dims<2>();//n. local points along z
 
             uint_t first_dim = Storage::layout::template find_val<0, uint_t, 0>(d1, d2, d3);
 
@@ -167,6 +168,73 @@ namespace gridtools{
             return XdmfRectilinearGrid::New(coordinates1, coordinates2, coordinates3);
         }
     };
+
+    template<ushort_t CubDegree, enumtype::grid_type>
+    struct create_grid_qpoints;
+
+    /**@brief creates a rectilinear grid
+
+       This grid must be fully structured hexahedral grid, but the elements can have different sizes
+    */
+    template <ushort_t CubDegree>
+    struct create_grid_qpoints<CubDegree, enumtype::rectilinear>{
+
+        template <typename Storage, typename Cubature>
+        static boost::shared_ptr<XdmfRectilinearGrid> instance(Storage const& storage_, Cubature const& cub){
+
+            uint_t d1=storage_.meta_data().template dims<0>();
+            uint_t d2=storage_.meta_data().template dims<1>();
+            uint_t d3=storage_.meta_data().template dims<2>();
+
+            //quad points: only valid for tensor products of course
+            uint_t np1=CubDegree - 1;//n. local points along x
+            uint_t np2=CubDegree - 1;//n. local points along y
+            uint_t np3=CubDegree - 1;//n. local points along z
+
+            uint_t first_dim = Storage::layout::template find_val<0, uint_t, 0>(d1, d2, d3);
+
+            boost::shared_ptr<XdmfArray> coordinates1 = XdmfArray::New();
+            boost::shared_ptr<XdmfArray> coordinates2 = XdmfArray::New();
+            boost::shared_ptr<XdmfArray> coordinates3 = XdmfArray::New();
+
+            double points1[d1*np1];// = {0,1,2,3,4,5};
+            for(int_t i=0 ; i<d1 ; ++i)
+            {
+                for(int_t l=0 ; l<np1 ; ++l){
+                    points1[i*np1+l] = storage_(i,0,0,0,0)+cub(l,0,0);
+                    // std::cout<<" points1: "<<points1[i*np1+l];
+                }
+            }
+
+            // std::cout<<std::endl;
+            double points2[d2*np1];// = {0,1,2,3,4,5};
+            for(int_t i=0 ; i<d2 ; ++i)
+            {
+                for(int_t l=0 ; l<np2 ; ++l){
+                    points2[i*np2+l] = storage_(0,i,0,0,1)+cub(l*np1,1,0);
+                    // std::cout<<" points2: "<<points2[i*np2+l];
+                }
+            }
+
+            // std::cout<<std::endl;
+            double points3[d3*np1];// = {0,1,2,3,4,5,6,7,8};
+            for(int_t i=0 ; i<d3 ; ++i)
+            {
+                for(int_t l=0 ; l<np3 ; ++l){
+                    points3[i*np3+l] = storage_(0,0,i,0,2)+cub(l*np1*np2,2,0);
+                    // std::cout<<" points3: "<<points3[i*np3+l];
+                }
+            }
+            // std::cout<<std::endl;
+
+            coordinates1->insert(0, points1, d1*np1, 1, 1);
+            coordinates2->insert(0, points2, d2*np2, 1, 1);
+            coordinates3->insert(0, points3, d3*np3, 1, 1);
+
+            return XdmfRectilinearGrid::New(coordinates1, coordinates2, coordinates3);
+        }
+    };
+
 
     /**
        @brief export a matrix in matrix market format
@@ -296,9 +364,9 @@ namespace gridtools{
         auto d3=storage_.meta_data().template dims<2>();
         auto d4=storage_.meta_data().template dims<3>();
 
-        uint_t np1=local_grid_info_.template dims<0>();//n. local points along x
-        uint_t np2=local_grid_info_.template dims<1>();//n. local points along y
-        uint_t np3=local_grid_info_.template dims<2>();//n. local points along z
+        uint_t np1=local_grid_info_.meta_data().template dims<0>();//n. local points along x
+        uint_t np2=local_grid_info_.meta_data().template dims<1>();//n. local points along y
+        uint_t np3=local_grid_info_.meta_data().template dims<2>();//n. local points along z
 
         for(int_t k=0 ; k<d3 ; ++k)
         {
@@ -320,6 +388,43 @@ namespace gridtools{
             }
         }
     }
+
+
+    template <ushort_t CubDegree, typename Storage, typename Cubature>
+    void reindex_on_qpoints(Storage const& storage_, Cubature const& cubature_, typename Storage::value_type * data_){
+        auto d1=storage_.meta_data().template dims<0>();
+        auto d2=storage_.meta_data().template dims<1>();
+        auto d3=storage_.meta_data().template dims<2>();
+        auto d4=storage_.meta_data().template dims<3>();
+
+        // uint_t np1=local_grid_info_.template dims<0>();//n. local points along x
+        // uint_t np2=local_grid_info_.template dims<1>();//n. local points along y
+        // uint_t np3=local_grid_info_.template dims<2>();//n. local points along z
+        uint_t np1=CubDegree - 1;//n. local points along x
+        uint_t np2=CubDegree - 1;//n. local points along y
+        uint_t np3=CubDegree - 1;//n. local points along z
+
+        for(int_t k=0 ; k<d3 ; ++k)
+        {
+            for(int_t n=0 ; n<np3 ; ++n)
+            {
+                for(int_t j=0 ; j<d2 ; ++j)
+                {
+                    for(int_t m=0 ; m<np2 ; ++m)
+                    {
+                        for(int_t i=0 ; i<d1 ; ++i)
+                        {
+                            for(int_t l=0 ; l<np1 ; ++l)
+                            {
+                                    data_[ k*np3*d2*np2*d1*np1 + n*d2*np2*d1*np1 + j*np2*d1*np1 + m*d1*np1 + i*np1 + l] = storage_(i,j,k,l+np1*m+np1*np2*n);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 
     template <ushort_t Face, typename Storage, typename LocalGridInfo>
     void reindex_on_face(Storage const& storage_, LocalGridInfo const& local_grid_info_, typename Storage::value_type * data_){
@@ -525,6 +630,138 @@ namespace gridtools{
         LocalGrid const& m_local_grid;
     };
 
+
+
+
+    template<typename ... Storage>
+    struct io_rectilinear_qpoints ;
+
+    template<typename Storage, typename LocalCub, typename CubDegree>
+    struct io_rectilinear_qpoints<Storage, LocalCub, CubDegree> : public io_base<io_rectilinear_qpoints<Storage, LocalCub, CubDegree> > {
+
+        typedef Storage storage_t;
+
+        typedef io_base<io_rectilinear_qpoints<Storage, LocalCub, CubDegree> > super;
+        io_rectilinear_qpoints(Storage const& storage_, LocalCub const& local_cub_):
+            super(storage_)
+            , m_local_cub(local_cub_)
+            , m_grid(create_grid_qpoints<CubDegree::value, enumtype::rectilinear>::instance(storage_, local_cub_))
+        {
+            // Grid
+            m_grid->setName("Regular Structured Grid");
+            this->m_root->insert(m_grid);
+        }
+
+
+        template<int FieldDim, typename ScalarStorage>//cxx11
+        void set_attribute_scalar(ScalarStorage const& storage_, std::string const& name_){
+
+            // Attribute
+            boost::shared_ptr<XdmfAttribute> attr = XdmfAttribute::New();
+            attr->setName(name_);
+            attr->setCenter(XdmfAttributeCenter::Node());
+            attr->setType(XdmfAttributeType::Scalar());
+            uint_t total_points = storage_.meta_data().size();
+            typename ScalarStorage::value_type data[total_points];
+            reindex_on_qpoints<CubDegree::value>(storage_, m_local_cub, data); // loops
+            attr->initialize(XdmfArrayType::Float64(), total_points);
+            attr->insert(0, data, total_points);
+            // The heavy data set name is determined by the writer if not set
+            m_grid->insert(attr);
+        }
+
+        // template<int FieldDim, typename VecStorage >//cxx11
+        // void set_attribute_vector(VecStorage const& storage_, std::string const& name_){
+
+        //     // Attribute
+        //     boost::shared_ptr<XdmfAttribute> attr = XdmfAttribute::New();
+        //     attr->setName(name_);
+        //     attr->setCenter(XdmfAttributeCenter::Node());
+        //     attr->setType(XdmfAttributeType::Vector());
+        //     uint_t total_points = storage_.meta_data().size();
+        //     typename VecStorage::value_type data[total_points];
+        //     reindex_vec(storage_, m_local_cub, data); // loops
+
+        //     attr->initialize(XdmfArrayType::Float64(), total_points);
+        //     attr->insert(0, data, total_points);
+        //     // The heavy data set name is determined by the writer if not set
+        //     m_grid->insert(attr);
+        // }
+
+
+        // template<int FieldDim, typename VecStorage >//cxx11
+        // void set_attribute_vector_on_face(VecStorage const& storage_, std::string const& name_){
+
+        //     // Attribute
+        //     boost::shared_ptr<XdmfAttribute> attr0 = XdmfAttribute::New();
+        //     attr0->setName(name_ + "face0");
+        //     attr0->setCenter(XdmfAttributeCenter::Node());
+        //     attr0->setType(XdmfAttributeType::Vector());
+        //     uint_t total_points = storage_.meta_data().template dims<0>()
+        //         *storage_.meta_data().template dims<1>()
+        //         *storage_.meta_data().template dims<2>()
+        //         *8//dofs cardinality
+        //         *storage_.meta_data().template dims<3>();//n_dims
+        //     typename VecStorage::value_type data[total_points];
+        //     reindex_on_face<0>(storage_, m_local_cub, data); // loops
+
+        //     attr0->initialize(XdmfArrayType::Float64(), total_points);
+        //     attr0->insert(0, data, total_points);
+        //     // The heavy data set name is determined by the writer if not set
+        //     m_grid->insert(attr0);
+
+        //     // Attr1ibute
+        //     boost::shared_ptr<XdmfAttribute> attr1 = XdmfAttribute::New();
+        //     attr1->setName(name_ + "face1");
+        //     attr1->setCenter(XdmfAttributeCenter::Node());
+        //     attr1->setType(XdmfAttributeType::Vector());
+        //     typename VecStorage::value_type data1[total_points];
+        //     reindex_on_face<1>(storage_, m_local_cub, data1); // loops
+
+        //     attr1->initialize(XdmfArrayType::Float64(), total_points);
+        //     attr1->insert(0, data, total_points);
+        //     // The heavy data set name is determined by the writer if not set
+        //     m_grid->insert(attr1);
+
+        //     // Attribute
+        //     boost::shared_ptr<XdmfAttribute> attr2 = XdmfAttribute::New();
+        //     attr2->setName(name_ + "face2");
+        //     attr2->setCenter(XdmfAttributeCenter::Node());
+        //     attr2->setType(XdmfAttributeType::Vector());
+        //     typename VecStorage::value_type data2[total_points];
+        //     reindex_on_face<2>(storage_, m_local_cub, data2); // loops
+
+        //     attr2->initialize(XdmfArrayType::Float64(), total_points);
+        //     attr2->insert(0, data, total_points);
+        //     // The heavy data set name is determined by the writer if not set
+        //     m_grid->insert(attr2);
+
+        // }
+
+        void set_information(std::string const& name_){
+            // Information
+            boost::shared_ptr<XdmfInformation>  i = XdmfInformation::New(); //# Arbitrary Name=Value Facility
+            // i->setName("Time");
+            i->setValue(name_);
+            this->m_root->insert(i);  // XdmfDomain is the root of the tree
+
+        }
+
+        boost::shared_ptr< XdmfRectilinearGrid> m_grid;
+    private:
+        LocalCub const& m_local_cub;
+    };
+
+
+    // template <typename Storage, typename Cub, typename ... Int>
+    // void print_element(std::ostream& ostream_, Storage const& storage_, Int ... indices){
+
+    //     if(storage_.space_dim==4){
+    //         assert(sizeof...(Int)==3);
+    //         for(uint_t l=0; l<n_points; ++l)
+    //             ostream_<<storage_(indices..., l)<<" ";
+    //     }
+    // }
 
 
 }//namespace gridtools

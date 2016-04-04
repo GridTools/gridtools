@@ -70,7 +70,7 @@ if(ENABLE_INTREPID)
     endif(BLAS_DIR)
 
     if(LAPACK_DIR)
-        message("looking for LAPACK in" ${LAPACK_DIR})
+        message("-- looking for LAPACK in" ${LAPACK_DIR})
           set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ${LAPACK_DIR})
     else()
         message("LAPACK not found. Set the LAPACK_DIR manually")
@@ -89,12 +89,12 @@ if(ENABLE_INTREPID)
 
    find_package(LAPACK)
    if(NOT LAPACK_FOUND)
-          message("Lapack library not found. Set the path to the installation via the LAPACK_DIR CMake variable.")
+          message("Lapack library not found. Set the path to the installation via the LAPACK_DIR CMake variable, or hardcode it by setting LAPACK_HARDCODED_LIB to the library.")
    endif(NOT LAPACK_FOUND)
 
    if(LAPACK_HARDCODED_LIB)
      set( LAPACK_LIBRARIES ${LAPACK_HARDCODED_LIB})
-     message ("setting LAPACK library to an hardcoded path: " ${BLAS_HARDCODED_LIB})
+     message ("setting LAPACK library to an hardcoded path: " ${LAPACK_HARDCODED_LIB})
    endif()
 
    message("Blas in " ${BLAS_LIBS})
@@ -126,3 +126,4 @@ endif(CUDA_FOUND)
 
 add_subdirectory( IGA )
 add_subdirectory( doc )
+add_subdirectory( unit_tests )

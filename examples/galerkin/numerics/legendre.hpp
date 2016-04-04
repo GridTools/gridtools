@@ -373,6 +373,7 @@ namespace gdl{
             //returns the number of basis functions (P)^dim
             return factorial<Order+Dim>::value/(factorial<Order>::value * factorial<Dim>::value);
         }
+
         /**
            @brief compute the values of an operator on the basis functions, evaluate
            on quadrature points
@@ -390,7 +391,6 @@ namespace gdl{
             // Intrepid::FieldContainer<double> cub_weights_i(cub::numCubPoints());
             // cub::cub()->getCubature(cub_points_i, cub_weights_i);
 
-
             // Important hypothesis: the quadrature points form a tensor product grid on the element
             // valid only for hypercube meshes
 
@@ -407,7 +407,6 @@ namespace gdl{
                 to_reorder[i]=( (quad_points_(i, 0)+2.) +
                                 (quad_points_(i, 1)+2.)*4 +
                                 (quad_points_(i, 2)+2.)*16);
-                std::cout<<quad_points_(i, 0)<<", "<<quad_points_(i, 1)<<", "<<quad_points_(i, 2)<<std::endl;
             }
 
             std::sort(permutations.begin(), permutations.end(),
@@ -443,16 +442,12 @@ namespace gdl{
 
             if(val_x != 1. && val_x != -1.)
             for(uint_t k=1; k<quad_points_.dimension(0); ++k){
-                std::cout<<ordered_quad_points_(k,0)<<"\n";
-                std::cout<<ordered_quad_points_(k,1)<<"\n";
-                std::cout<<ordered_quad_points_(k,2)<<"\n";
                 if(
                     ordered_quad_points_(k,0) == val_x
                     )
                     {
                         cubic_root = k;
                         break;
-                std::cout<<"\n";
                     }
             }
             else  // this happens e.g. in case all the quad points lay on the yz surface (for the boundary integrals)
@@ -532,9 +527,5 @@ namespace gdl{
      }
             }
         }
-
-
     };
-
-
 }

@@ -72,7 +72,7 @@ public:
         , m_jac_info(d1, d2, d3, bd_cub::numCubPoints(), 3, 3, bd_backend_.n_boundaries())
         , m_normals_info(d1, d2, d3, bd_cub::numCubPoints(), 3, bd_backend_.n_boundaries())
         , m_bd_measure_info(d1, d2, d3, bd_cub::numCubPoints(), bd_backend_.n_boundaries())
-        , m_flux_info(d1,d2,d3,boundary_t::/*bd_*/geo_map::basisCardinality)//TODO: should be smaller!
+        , m_flux_info(d1,d2,d3,boundary_t::/*bd_*/geo_map::basis_cardinality())//TODO: should be smaller!
         , m_bd_jac(m_jac_info, 0., "bd jac")
         , m_normals(m_normals_info, 0., "normals")
         , m_bd_measure(m_bd_measure_info, 0., "bd measure")

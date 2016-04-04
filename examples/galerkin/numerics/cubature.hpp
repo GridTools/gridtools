@@ -27,7 +27,7 @@ namespace gdl{
         // create default cubature
         static Teuchos::RCP<Intrepid::Cubature<double, Intrepid::FieldContainer<double> > >
         cub(){
-            static const auto cub_=cubFactory().create(cell_t::value, cubature<Order, CellType>::cubDegree);
+            static const auto cub_=cubFactory().create(cell_t::value, cubature<cubDegree, CellType>::cubDegree);
             return cub_;
         }
         // static Teuchos::RCP<Intrepid::Cubature<double, Intrepid::FieldContainer<double> > > cub;
