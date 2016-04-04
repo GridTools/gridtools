@@ -200,8 +200,8 @@ and possibly the method 'copy_data_to_gpu' which are used when cloning the class
 
         /**@brief destructor: frees the pointers to the data fields which are not managed outside */
         virtual ~base_storage() {
-            if (m_name)
-                delete[] m_name;
+            if (m_name) 
+		delete [] m_name;
             for (ushort_t i = 0; i < field_dimensions; ++i)
                 m_fields[i].free_it();
         }
@@ -232,7 +232,9 @@ and possibly the method 'copy_data_to_gpu' which are used when cloning the class
            releasing the pointers to the data, and deleting them in case they need to be deleted
          */
         void release() {
-            for (ushort_t i = 0; i < field_dimensions; ++i)
+            if (m_name) 
+		delete [] m_name;
+	    for (ushort_t i = 0; i < field_dimensions; ++i)
                 m_fields[i].free_it();
         }
 
@@ -280,7 +282,8 @@ and possibly the method 'copy_data_to_gpu' which are used when cloning the class
         /**@brief sets the name of the current field*/
         void set_name(char const *const &string) {
             // delete old name and copy the given new name
-            delete[] m_name;
+            if(m_name) 
+		delete [] m_name;
             m_name = malloc_and_copy(string);
         }
 
