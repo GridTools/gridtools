@@ -92,3 +92,4 @@ endif()
 
 
 add_subdirectory( communication )
+add_subdirectory( div )

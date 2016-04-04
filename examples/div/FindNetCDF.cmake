@@ -1,0 +1,21 @@
+# find only NetCDF_CXX4
+
+if (NETCDF_INCLUDES_CXX AND NETCDF_LIBRARIES AND NETCDF_LIBRARIES_CXX)
+  # Already in cache, be silent
+  set (NETCDF_FIND_QUIETLY TRUE)
+endif (NETCDF_INCLUDES_CXX AND NETCDF_LIBRARIES AND NETCDF_LIBRARIES_CXX)
+
+find_path (NETCDF_INCLUDES_CXX netcdf
+        HINTS NETCDF_DIR ENV NETCDF_DIR)
+
+find_library (NETCDF_LIBRARIES NAMES netcdf
+        HINTS NETCDF_DIR ENV)
+find_library (NETCDF_LIBRARIES_CXX NAMES netcdf_c++4
+        HINTS NETCDF_DIR ENV)
+
+# handle the QUIETLY and REQUIRED arguments and set NETCDF_FOUND to TRUE if
+# all listed variables are TRUE
+include (FindPackageHandleStandardArgs)
+find_package_handle_standard_args (NetCDF DEFAULT_MSG NETCDF_LIBRARIES NETCDF_LIBRARIES_CXX NETCDF_INCLUDES_CXX)
+
+mark_as_advanced (NETCDF_LIBRARIES NETCDF_LIBRARIES_CXX NETCDF_INCLUDES_CXX)
