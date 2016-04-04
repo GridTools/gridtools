@@ -1,7 +1,7 @@
 #pragma once
-#include "../common/string_c.hpp"
 #include "base_storage_impl.hpp"
 #include "wrap_pointer.hpp"
+#include "../common/string_c.hpp"
 
 /**@file
    @brief Implementation of the \ref gridtools::base_storage "main storage class", used by all backends, for temporary
