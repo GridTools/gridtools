@@ -9,17 +9,17 @@
    use the \ref gridtools::if_ statement from whithin the make_computation.
 */
 #ifdef CXX11_ENABLED
-#define BOOL_FUNC(val) std::function<bool()> val
+#define BOOL_FUNC(val) std::function< bool() > val
 #else
 #define BOOL_FUNC(val) bool (*val)()
 #endif
 
 namespace gridtools {
 
-    template <uint_t Tag, uint_t SwitchId=0>
+    template < uint_t Tag, uint_t SwitchId = 0 >
     class conditional {
 
-        //weak pointer, viewing the boolean condition
+        // weak pointer, viewing the boolean condition
         BOOL_FUNC(m_value);
 
       public:
@@ -29,34 +29,32 @@ namespace gridtools {
         /**
            @brief default constructor
          */
-        conditional () //try to avoid this?
+        conditional() // try to avoid this?
             : m_value(
 #ifdef CXX11_ENABLED
-                [](){ assert(false); return false;}
+                  []() {
+                      assert(false);
+                      return false;
+                  }
 #endif
-                )
-        {}
+                  ) {
+        }
 
         /**
            @brief constructor from a pointer
          */
-        conditional (BOOL_FUNC(c))
-            : m_value(c)
-        {}
+        conditional(BOOL_FUNC(c)) : m_value(c) {}
 
         /**@brief returns the boolean condition*/
-        bool value() const {
-            return m_value();
-        }
-
+        bool value() const { return m_value(); }
     };
 
-    template <typename T>
+    template < typename T >
     struct is_conditional : boost::mpl::false_ {};
 
     template < uint_t Tag >
     struct is_conditional< conditional< Tag > > : boost::mpl::true_ {};
 
-    template <uint_t Tag, uint_t SwitchId>
-    struct is_conditional<conditional<Tag, SwitchId> >:boost::mpl::true_ {};
+    template < uint_t Tag, uint_t SwitchId >
+    struct is_conditional< conditional< Tag, SwitchId > > : boost::mpl::true_ {};
 }

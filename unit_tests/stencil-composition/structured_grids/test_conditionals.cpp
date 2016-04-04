@@ -32,14 +32,14 @@ namespace test_conditionals{
         }
     };
 
-    bool predicate1(){ return false;}
-    bool predicate2(){ return true;}
+    bool predicate1() { return false; }
+    bool predicate2() { return true; }
 
     bool test(){
 
 #ifdef CXX11_ENABLED
-        auto cond = new_cond([](){return false;});
-        auto cond2 = new_cond([](){return true;});
+        auto cond = new_cond([]() { return false; });
+        auto cond2 = new_cond([]() { return true; });
 #else
         new_cond(cond, &predicate1);
         new_cond(cond2, &predicate2);
