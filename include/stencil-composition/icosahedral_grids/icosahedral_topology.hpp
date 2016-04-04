@@ -623,9 +623,10 @@ namespace gridtools {
 
         __device__ icosahedral_topology(icosahedral_topology const &other)
             : m_dims(other.m_dims),
-              m_virtual_storages(boost::fusion::at_c< cells::value >(m_virtual_storages)->gpu_object_ptr,
-                  boost::fusion::at_c< edges::value >(m_virtual_storages)->gpu_object_ptr,
-                  boost::fusion::at_c< vertexes::value >(m_virtual_storages)->gpu_object_ptr) {}
+              m_virtual_storages(
+                  boost::fusion::at_c< cells::value >(other.m_virtual_storages)->gpu_object_ptr,
+                  boost::fusion::at_c< edges::value >(other.m_virtual_storages)->gpu_object_ptr,
+                  boost::fusion::at_c< vertexes::value >(other.m_virtual_storages)->gpu_object_ptr) {}
 
         ~icosahedral_topology() {
             boost::fusion::at_c< cells::value >(m_virtual_storages).destroy();
