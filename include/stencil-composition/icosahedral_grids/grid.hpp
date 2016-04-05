@@ -14,7 +14,7 @@ namespace gridtools {
         typedef GridTopology grid_topology_t;
 
       private:
-        GridTopology &m_grid_topology;
+        GridTopology m_grid_topology;
 
       public:
         GT_FUNCTION
@@ -23,15 +23,10 @@ namespace gridtools {
             : grid_cg< Axis >(i, j), m_grid_topology(grid_topology) {}
 
         __device__ grid(grid const &other)
-            : grid_cg< Axis >(other), m_grid_topology(*(other.m_grid_topology.gpu_object_ptr)) {}
+            : grid_cg< Axis >(other), m_grid_topology(other.m_grid_topology) {}
 
         GT_FUNCTION
         GridTopology const &grid_topology() const { return m_grid_topology; }
-
-        void clone_to_device() const {
-            m_grid_topology.clone_to_device();
-            clonable_to_gpu< grid< Axis, GridTopology > >::clone_to_device();
-        }
     };
 
     template < typename Grid >
