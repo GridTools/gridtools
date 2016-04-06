@@ -48,15 +48,31 @@ TEST(define_caches, test_sequence_caches)
         "Failed TEST"
     );
 
-	typedef decltype(gridtools::cache<IJ, fill>(arg0_t(), arg1_t(), arg2_t())) caches_ret_sequence_t;
+	typedef decltype(gridtools::cache<IJ, fill>(arg0_t(), arg1_t(), arg2_t())) caches_ret_sequence_3_t;
+	typedef decltype(gridtools::cache<IJK, fill>(arg0_t(), arg1_t())) caches_ret_sequence_2_t;
+	typedef decltype(gridtools::cache<IJ, fill>(arg0_t())) caches_ret_sequence_1_t;
 
 	static_assert((
 		boost::mpl::equal<
-		caches_ret_sequence_t,
+		caches_ret_sequence_3_t,
 		boost::mpl::vector3<detail::cache_impl<IJ, arg0_t, fill>, detail::cache_impl<IJ, arg1_t, fill>, detail::cache_impl<IJ, arg2_t, fill> >
 		>::value),
 		"Failed TEST"
-	);
+		);
+	static_assert((
+		boost::mpl::equal<
+		caches_ret_sequence_2_t,
+		boost::mpl::vector2<detail::cache_impl<IJK, arg0_t, fill>, detail::cache_impl<IJK, arg1_t, fill> >
+		>::value),
+		"Failed TEST"
+		);
+	static_assert((
+		boost::mpl::equal<
+		caches_ret_sequence_1_t,
+		boost::mpl::vector1<detail::cache_impl<IJ, arg0_t, fill> >
+		>::value),
+		"Failed TEST"
+		);
 
     ASSERT_TRUE(true);
 }
