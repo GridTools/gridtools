@@ -248,7 +248,7 @@ namespace horizontal_diffusion_functions {
                 grid_,
                 gridtools::make_mss // mss_descriptor
                 (execute< forward >(),
-                    define_caches(cache< IJ, p_flx, local >(), cache< IJ, p_fly, local >()),
+                    define_caches(cache< IJ, local >(p_flx(), p_fly())),
                     // gridtools::make_esf<lap_function>(p_lap(), p_in()), // esf_descriptor
                     gridtools::make_independent // independent_esf
                     (gridtools::make_esf< flx_function >(p_flx(), p_in()),
