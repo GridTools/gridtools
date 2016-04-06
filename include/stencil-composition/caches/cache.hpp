@@ -53,13 +53,6 @@ namespace gridtools {
 				typedef cache_impl<cacheType, T, cacheIOPolicy> type;
 			};
 		};
-
-
-#ifdef CXX11_ENABLED
-		// just a using decl that is used below
-		template < cache_type cacheType, cache_io_policy cacheIOPolicy, typename... Args>
-		using cache_vec_ty = typename variadic_to_vector< cache_impl<cacheType, Args, cacheIOPolicy>... >::type;
-#endif
 	}
 
 #ifdef CXX11_ENABLED
@@ -71,9 +64,10 @@ namespace gridtools {
 	 *	@return vector of caches
 	 */
 	template < cache_type cacheType, cache_io_policy cacheIOPolicy, typename... Args>
-	constexpr detail::cache_vec_ty<cacheType, cacheIOPolicy, Args...> cache(Args&&...) {
+	constexpr typename boost::mpl::transform<boost::mpl::vector<Args...>, detail::force_arg_resolution<cacheType, cacheIOPolicy>>::type cache(Args&&...) {
 		GRIDTOOLS_STATIC_ASSERT(sizeof...(Args) > 0, "Cannot build cache sequence without argument");
-		return detail::cache_vec_ty<cacheType, cacheIOPolicy, Args...>();
+		typedef typename boost::mpl::transform<boost::mpl::vector<Args...>, detail::force_arg_resolution<cacheType, cacheIOPolicy>>::type res_ty;
+		return res_ty();
 	}
 #else 
 
