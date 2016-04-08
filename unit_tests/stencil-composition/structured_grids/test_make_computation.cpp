@@ -36,47 +36,4 @@ namespace make_computation_test{
     };
 }
 
-TEST(test_make_computation_other_grid, get_mss_array) {
-
-    using namespace gridtools;
-
-#ifdef __CUDACC__
-#define BACKEND backend< gridtools::enumtype::Cuda, enumtype::structured, gridtools::enumtype::Block >
-#else
-#define BACKEND backend< gridtools::enumtype::Host, enumtype::structured, gridtools::enumtype::Block >
-#endif
-
-    typedef gridtools::layout_map<2,1,0> layout_t;
-    typedef gridtools::BACKEND::storage_type<float_type, gridtools::BACKEND::storage_info<0,layout_t> >::type storage_type;
-
-    typedef arg<0, storage_type> p_in;
-    typedef arg<1, storage_type> p_out;
-    typedef boost::mpl::vector<p_in, p_out> accessor_list_t;
-
-    typedef decltype(
-        gridtools::make_mss // mss_descriptor
-        (
-                enumtype::execute<enumtype::forward>(),
-                gridtools::make_esf<make_computation_test::test_functor>(p_in())
-        )) mss1_t;
-
-    typedef decltype(
-        gridtools::make_mss // mss_descriptor
-        (
-                enumtype::execute<enumtype::forward>(),
-                gridtools::make_esf<make_computation_test::test_functor>(p_in())
-        )) mss2_t;
-
-    typedef gridtools::interval<level<0,-2>, level<1,1> > axis_t;
-    typedef gridtools::grid<axis_t> grid_t;
-
-    typedef gridtools::domain_type<accessor_list_t> domain_t;
-    typedef boost::mpl::vector5<int, domain_t, mss2_t, grid_t, mss1_t> ListTypes;
-
-    typedef _impl::get_mss_array<ListTypes>::type MssArray;
-
-    BOOST_STATIC_ASSERT(( boost::mpl::equal<MssArray::elements, boost::mpl::vector2<mss2_t, mss1_t> >::value));
-    EXPECT_TRUE(true);
-}
-
 #endif

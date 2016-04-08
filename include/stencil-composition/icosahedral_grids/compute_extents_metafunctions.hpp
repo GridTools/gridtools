@@ -1,5 +1,7 @@
 #pragma once
 #include "../mss.hpp"
+#include "../mss_metafunctions.hpp"
+#include "../amss_descriptor.hpp"
 
 namespace gridtools {
 

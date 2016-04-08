@@ -37,7 +37,7 @@ struct boundary : clonable_to_gpu<boundary> {
 
 struct functor{
     typedef accessor<0, enumtype::inout, extent<0,0,0,0> > sol;
-    typedef global_accessor<1, enumtype::inout> bd;
+    typedef global_accessor<1, enumtype::in> bd;
 
     typedef boost::mpl::vector<sol> arg_list;
 
@@ -84,9 +84,9 @@ TEST(test_global_accessor, boundary_conditions) {
     auto
 #else
 #ifdef __CUDACC__
-        computation*
+    stencil*
 #else
-        boost::shared_ptr<computation>
+        boost::shared_ptr<stencil>
 #endif
 #endif
         bc_eval = make_computation< backend_t >

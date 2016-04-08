@@ -282,9 +282,9 @@ bool test(uint_t x, uint_t y, uint_t z)
 auto
 #else
 #ifdef __CUDACC__
-    gridtools::computation*
+    gridtools::stencil*
 #else
-        boost::shared_ptr<gridtools::computation>
+        boost::shared_ptr<gridtools::stencil>
 #endif
 #endif
     test_computation = gridtools::make_computation<the_backend>

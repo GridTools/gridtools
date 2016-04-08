@@ -10,12 +10,12 @@
 
 
 #ifdef __CUDACC__
-#define BACKEND backend<Cuda, Block >
+#define BACKEND backend<Cuda, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend<Host, Block >
+#define BACKEND backend<Host, GRIDBACKEND, Block >
 #else
-#define BACKEND backend<Host, Naive >
+#define BACKEND backend<Host, GRIDBACKEND, Naive >
 #endif
 #endif
 
@@ -166,9 +166,9 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
     auto
 #else
 #ifdef __CUDACC__
-    gridtools::computation*
+    gridtools::stencil*
 #else
-    boost::shared_ptr<gridtools::computation>
+    boost::shared_ptr<gridtools::stencil>
 #endif
 #endif
     {% set inside_independent_block = False %}

@@ -156,9 +156,9 @@ namespace horizontal_diffusion {
         auto
 #else
 #ifdef __CUDACC__
-        gridtools::computation *
+        gridtools::stencil *
 #else
-        boost::shared_ptr< gridtools::computation >
+        boost::shared_ptr< gridtools::stencil >
 #endif
 #endif
             simple_hori_diff = gridtools::make_computation< gridtools::BACKEND >(

@@ -160,9 +160,9 @@ namespace copy_stencils_3D_2D_1D_0D {
         auto
 #else
 #ifdef __CUDACC__
-        gridtools::computation *
+        gridtools::stencil *
 #else
-        boost::shared_ptr< gridtools::computation >
+        boost::shared_ptr< gridtools::stencil >
 #endif
 #endif
             copy = gridtools::make_computation< gridtools::BACKEND >(domain,

@@ -7,6 +7,8 @@
 
 #include "stencil-composition/wrap_type.hpp"
 #include "../mss.hpp"
+#include "../amss_descriptor.hpp"
+#include "../mss_metafunctions.hpp"
 
 namespace gridtools {
 
@@ -128,7 +130,7 @@ namespace gridtools {
 
         template < typename MssDescriptor >
         struct mss_compute_extent_sizes {
-            GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor< MssDescriptor >::value), "Internal Error: invalid type");
+            GRIDTOOLS_STATIC_ASSERT((is_amss_descriptor< MssDescriptor >::value), "Internal Error: invalid type");
 
             /**
              * \brief Here the extents are calculated recursively, in order for each functor's domain to embed all the

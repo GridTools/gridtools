@@ -38,10 +38,10 @@ namespace gridtools {
         typedef typename super::data_pointer_array_t data_pointer_array_t;
         typedef typename super::strides_cached_t strides_cached_t;
 
-      private:
         typedef typename super::iterate_domain_cache_t iterate_domain_cache_t;
         typedef typename super::readonly_args_indices_t readonly_args_indices_t;
 
+      private:
         // TODO there are two instantiations of these type.. Fix this
         typedef shared_iterate_domain< data_pointer_array_t,
             strides_cached_t,
@@ -50,20 +50,23 @@ namespace gridtools {
 
         typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
         typedef typename iterate_domain_cache_t::bypass_caches_set_t bypass_caches_set_t;
+        typedef typename super::reduction_type_t reduction_type_t;
 
         using super::get_value;
         using super::get_data_pointer;
 
-      private:
         const uint_t m_block_size_i;
         const uint_t m_block_size_j;
         shared_iterate_domain_t *RESTRICT m_pshared_iterate_domain;
 
       public:
         GT_FUNCTION
-        explicit iterate_domain_cuda(
-            local_domain_t const &local_domain, const uint_t block_size_i, const uint_t block_size_j)
-            : super(local_domain), m_block_size_i(block_size_i), m_block_size_j(block_size_j) {}
+        explicit iterate_domain_cuda(local_domain_t const &local_domain,
+            const reduction_type_t &reduction_initial_value,
+            const uint_t block_size_i,
+            const uint_t block_size_j)
+            : super(local_domain, reduction_initial_value), m_block_size_i(block_size_i), m_block_size_j(block_size_j) {
+        }
 
         GT_FUNCTION
         uint_t thread_position_x() const { return threadIdx.x; }
@@ -88,15 +91,6 @@ namespace gridtools {
         void set_block_pos(const int_t ipos, const int_t jpos) {
             m_thread_pos[0] = ipos;
             m_thread_pos[1] = jpos;
-        }
-
-        /**
-         * @brief determines whether the current (i,j) position + an offset is within the block size
-         */
-        template < typename Extent >
-        GT_FUNCTION bool is_thread_in_domain(const int_t i_offset, const int_t j_offset) const {
-            return is_thread_in_domain_x< Extent::iminus::value, Extent::iplus::value >(i_offset) &&
-                   is_thread_in_domain_y< Extent::jminus::value, Extent::jplus::value >(j_offset);
         }
 
         /**

@@ -88,7 +88,6 @@ namespace horizontal_diffusion {
 
             double dx = 1. / (double)(i_end - i_begin);
             double dy = 1. / (double)(j_end - j_begin);
-            double dz = 1. / (double)(k_end - k_begin);
 
             double delta0 = (0.995156 - 0.994954) / (double)(jdim_ - 1);
             double delta1 = (0.995143 - 0.994924) / (double)(jdim_ - 1);

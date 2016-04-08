@@ -20,6 +20,7 @@ namespace gridtools {
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::grid_t grid_t;
             typedef typename RunFunctorArguments::esf_sequence_t esf_sequence_t;
+            typedef typename RunFunctorArguments::reduction_data_t reduction_data_t;
 
             typedef typename extract_esf_location_type< esf_sequence_t >::type location_type_t;
 
@@ -31,6 +32,7 @@ namespace gridtools {
             */
             explicit execute_kernel_functor_host(const local_domain_t &local_domain,
                 const grid_t &grid,
+                reduction_data_t &reduction_data,
                 const uint_t first_i,
                 const uint_t first_j,
                 const uint_t loop_size_i,
@@ -41,7 +43,8 @@ namespace gridtools {
                   m_loop_size{loop_size_i, loop_size_j}, m_block_id{block_idx_i, block_idx_j} {}
 
             // Naive strategy
-            explicit execute_kernel_functor_host(const local_domain_t &local_domain, const grid_t &grid)
+            explicit execute_kernel_functor_host(
+                const local_domain_t &local_domain, const grid_t &grid, reduction_data_t &reduction_data)
                 : m_local_domain(local_domain), m_grid(grid), m_first_pos{grid.i_low_bound(), grid.j_low_bound()}
                   // TODO strictling speaking the loop the size is with +1. Recompute the numbers here to be consistent
                   // with the convention, but that require adapint also the rectangular grids
