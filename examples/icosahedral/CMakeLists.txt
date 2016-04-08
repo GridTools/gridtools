@@ -1,4 +1,5 @@
-list( APPEND SRCFILES laplace stencil_on_cells stencil_on_edges stencil_on_vertexes)
+list( APPEND SRCFILES #laplace 
+      stencil_on_cells stencil_on_edges stencil_on_vertexes)
 
 set( GTEST_FILES ../Options.hpp ../Options.cpp unstructured_grid.cpp)
 
