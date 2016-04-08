@@ -149,7 +149,7 @@ namespace gridtools {
     template < typename Reduction, typename ValueType, typename Map >
     GT_FUNCTION on_neighbors_impl< ValueType, typename Map::location_type, Reduction, Map > on_cells(
         Reduction function, ValueType initial, Map mapf) {
-        static_assert(Map::location_type::value == 0,
+        GRIDTOOLS_STATIC_ASSERT(Map::location_type::value == 0,
             "The map function (for a nested call) provided to 'on_cellss' is not on cells");
         return reduce_on_something(function, initial, mapf);
     }
@@ -157,7 +157,7 @@ namespace gridtools {
     template < typename Reduction, typename ValueType, typename Map >
     GT_FUNCTION on_neighbors_impl< ValueType, typename Map::location_type, Reduction, Map > on_vertexes(
         Reduction function, ValueType initial, Map mapf) {
-        static_assert(Map::location_type::value == 2,
+        GRIDTOOLS_STATIC_ASSERT(Map::location_type::value == 2,
             "The map function (for a nested call) provided to 'on_vertexes' is not on edges");
         return reduce_on_something(function, initial, mapf);
     }
