@@ -185,7 +185,9 @@ void print_mss(MSS)
 
 int main() {
 
-    typedef base_storage<wrap_pointer<float_type>, backend<Host, Naive>::storage_info<0, gridtools::layout_map<0,1,2> >, 1> storage_type;
+    typedef base_storage< wrap_pointer< float_type >,
+        backend< Host, structured, Naive >::storage_info< 0, gridtools::layout_map< 0, 1, 2 > >,
+        1 > storage_type;
 
     typedef arg<5, storage_type > p_lap;
     typedef arg<4, storage_type > p_flx;

@@ -38,9 +38,9 @@ struct functor2 {
 };
 
 #ifdef __CUDACC__
-  #define BACKEND backend<Cuda, Block >
+#define BACKEND backend< Cuda, structured, Block >
 #else
-  #define BACKEND backend<Host, Block >
+#define BACKEND backend< Host, structured, Block >
 #endif
 
 typedef layout_map<2,1,0> layout_ijk_t;
@@ -113,9 +113,9 @@ TEST_F(cache_stencil, ij_cache)
     auto
 #else
 #ifdef __CUDACC__
-        gridtools::computation*
+    gridtools::stencil*
 #else
-        boost::shared_ptr<gridtools::computation>
+        boost::shared_ptr<gridtools::stencil>
 #endif
 #endif
         pstencil = make_computation<gridtools::BACKEND>
@@ -175,9 +175,9 @@ TEST_F(cache_stencil, ij_cache_offset)
     auto
 #else
 #ifdef __CUDACC__
-    gridtools::computation*
+    gridtools::stencil*
 #else
-        boost::shared_ptr<gridtools::computation>
+        boost::shared_ptr<gridtools::stencil>
 #endif
 #endif
         pstencil = make_computation<gridtools::BACKEND>

@@ -6,6 +6,9 @@
 #include <boost/mpl/range_c.hpp>
 
 #include "stencil-composition/wrap_type.hpp"
+#include "../mss.hpp"
+#include "../amss_descriptor.hpp"
+#include "../mss_metafunctions.hpp"
 
 namespace gridtools {
 
@@ -20,7 +23,7 @@ namespace gridtools {
             template < typename RangeState, typename ArgumentIndex >
             struct update_extent {
                 typedef typename boost::mpl::at< typename Functor::arg_list, ArgumentIndex >::type argument_type;
-                typedef typename enclosing_extent< RangeState, typename argument_type::extent_type >::type type;
+                typedef typename enclosing_extent< RangeState, typename argument_type::extent_t >::type type;
             };
 
             /**@brief here the extents for the functors are calculated: iterates over the fields and calls the
@@ -127,7 +130,7 @@ namespace gridtools {
 
         template < typename MssDescriptor >
         struct mss_compute_extent_sizes {
-            GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor< MssDescriptor >::value), "Internal Error: invalid type");
+            GRIDTOOLS_STATIC_ASSERT((is_amss_descriptor< MssDescriptor >::value), "Internal Error: invalid type");
 
             /**
              * \brief Here the extents are calculated recursively, in order for each functor's domain to embed all the

@@ -8,9 +8,9 @@
 #include <stencil-composition/stencil-composition.hpp>
 
 #ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, Block >
+#define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
-#define BACKEND backend< Host, Naive >
+#define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 
 using gridtools::level;
@@ -130,7 +130,7 @@ namespace copystencil_python {
 #ifdef CXX11_ENABLED
         auto
 #else
-        boost::shared_ptr< gridtools::computation >
+        boost::shared_ptr< gridtools::stencil >
 #endif
             comp_copystencil = gridtools::make_computation< gridtools::BACKEND >(
                 domain,

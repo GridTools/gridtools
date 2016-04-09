@@ -38,6 +38,8 @@ namespace gridtools {
         typedef meta_storage< BaseStorage > original_storage;
         typedef clonable_to_gpu< meta_storage< BaseStorage > > gpu_clone;
 
+        using super::space_dimensions;
+
         /** @brief copy ctor
 
             forwarding to the base class
@@ -56,6 +58,8 @@ namespace gridtools {
                 bool >::type >
         meta_storage(IntTypes... args)
             : super(args...) {}
+
+        constexpr meta_storage(array< uint_t, space_dimensions > const &a) : super(a) {}
 #else
         // constructor picked in absence of CXX11 or with GCC<4.9
         /** @brief ctor

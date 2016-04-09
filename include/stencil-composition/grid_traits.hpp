@@ -1,16 +1,9 @@
 #pragma once
 
-#include "stencil-composition/compute_extents_metafunctions.hpp"
+#include "grid_traits_fwd.hpp"
 
-namespace gridtools {
 #ifdef STRUCTURED_GRIDS
-    struct select_mss_compute_extent_sizes {
-        typedef boost::mpl::quote1< strgrid::mss_compute_extent_sizes > type;
-    };
+#include "structured_grids/grid_traits.hpp"
 #else
-    struct select_mss_compute_extent_sizes {
-        typedef boost::mpl::quote1< icgrid::mss_compute_extent_sizes > type;
-    };
+#include "icosahedral_grids/grid_traits.hpp"
 #endif
-
-} // namespace gridtools

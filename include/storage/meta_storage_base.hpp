@@ -86,8 +86,6 @@ namespace gridtools {
 
       protected:
       public:
-        // protected:
-
         array< uint_t, space_dimensions > m_dims;
         // control your instincts: changing the following
         // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
@@ -268,7 +266,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
 
         struct _impl_index {
             template < typename... UIntType >
-            static int_t apply(const type &me, UIntType... args) {
+            GT_FUNCTION static int_t apply(const type &me, UIntType... args) {
                 return me.index(args...);
             }
         };

@@ -1,4 +1,5 @@
 #pragma once
+#include "run_functor_arguments_fwd.hpp"
 
 namespace gridtools {
     template < typename T >
