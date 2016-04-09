@@ -11,6 +11,7 @@
 #include "stencil-composition/backend_fwd.hpp"
 #include "stencil-composition/grid.hpp"
 #include "storage/metadata_set.hpp"
+#include "backend_ids.hpp"
 
 /**
 @file
@@ -22,18 +23,21 @@ namespace gridtools {
 
         /** prepare temporaries struct, constructing the domain for the temporary fields, with the arguments
             to the constructor depending on the specific strategy */
-        template < typename ArgList,
-            typename MetaList,
-            typename Grid,
-            enumtype::platform BackendId,
-            enumtype::strategy StrategyId >
+        template < typename ArgList, typename MetaList, typename Grid, typename BackendIds >
         struct prepare_temporaries_functor;
 
         /**
            Specialization for Naive policy
          */
-        template < typename ArgList, typename MetaList, typename Grid, enumtype::platform BackendId >
-        struct prepare_temporaries_functor< ArgList, MetaList, Grid, BackendId, enumtype::Naive > {
+        template < typename ArgList,
+            typename MetaList,
+            typename Grid,
+            enumtype::platform BackendId,
+            enumtype::grid_type GridId >
+        struct prepare_temporaries_functor< ArgList,
+            MetaList,
+            Grid,
+            backend_ids< BackendId, GridId, enumtype::Naive > > {
 
             // TODO check the type of ArgList
             GRIDTOOLS_STATIC_ASSERT(is_metadata_set< MetaList >::value, "wrong type for metadata");
@@ -97,14 +101,21 @@ namespace gridtools {
         /**
            Specialization for Block policy
          */
-        template < typename ArgList, typename MetaList, typename Grid, enumtype::platform BackendId >
-        struct prepare_temporaries_functor< ArgList, MetaList, Grid, BackendId, enumtype::Block > {
+        template < typename ArgList,
+            typename MetaList,
+            typename Grid,
+            enumtype::platform BackendId,
+            enumtype::grid_type GridId >
+        struct prepare_temporaries_functor< ArgList,
+            MetaList,
+            Grid,
+            backend_ids< BackendId, GridId, enumtype::Block > > {
 
             // TODO implement a check for the ArgList type
             GRIDTOOLS_STATIC_ASSERT(is_metadata_set< MetaList >::value, "wrong type for metadata");
             GRIDTOOLS_STATIC_ASSERT(is_grid< Grid >::value, "wrong type for Grid");
 
-            typedef backend< BackendId, enumtype /*::strategy*/ ::Block > backend_type;
+            typedef backend< BackendId, GridId, enumtype::Block > backend_type;
             /**
                @brief instantiate the \ref gridtools::domain_type for the temporary storages
             */

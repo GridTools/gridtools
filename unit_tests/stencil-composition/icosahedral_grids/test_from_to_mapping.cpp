@@ -4,7 +4,8 @@
 
 using namespace gridtools;
 
-using icosahedral_topology_t = gridtools::icosahedral_topology<gridtools::backend<enumtype::Host, enumtype::Block>>;
+using icosahedral_topology_t =
+    gridtools::icosahedral_topology< gridtools::backend< enumtype::Host, enumtype::icosahedral, enumtype::Block > >;
 
 class ll_map_test : public ::testing::TestWithParam<int> {
     // You can implement all the usual fixture class members here.

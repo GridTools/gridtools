@@ -1,4 +1,7 @@
 #pragma once
+#include "../mss.hpp"
+#include "../mss_metafunctions.hpp"
+#include "../amss_descriptor.hpp"
 
 namespace gridtools {
 
@@ -13,7 +16,7 @@ namespace gridtools {
              */
             typedef typename boost::mpl::fold< typename mss_descriptor_esf_sequence< MssDescriptor >::type,
                 boost::mpl::vector0<>,
-                boost::mpl::push_back< boost::mpl::_1, extent< 0, 0, 0, 0 > > >::type type;
+                boost::mpl::push_back< boost::mpl::_1, extent< 0 > > >::type type;
 
             GRIDTOOLS_STATIC_ASSERT(
                 (boost::mpl::size< typename mss_descriptor_linear_esf_sequence< MssDescriptor >::type >::value ==

@@ -1,7 +1,6 @@
 #pragma once
 #include <boost/mpl/for_each.hpp>
 #include "stencil-composition/backend_traits_fwd.hpp"
-#include "execute_kernel_functor_cuda.hpp"
 #include "run_esf_functor_cuda.hpp"
 #include "../block_size.hpp"
 #include "iterate_domain_cuda.hpp"
@@ -119,18 +118,28 @@ namespace gridtools {
         /**
          * @brief main execution of a mss.
          * @tparam RunFunctorArgs run functor arguments
-         * @tparam StrategyId id of the strategy (ignored for the CUDA backend as for the moment there is only one way
-         *     scheduling the work)
          */
-        template < typename RunFunctorArgs, enumtype::strategy StrategyId >
+        template < typename RunFunctorArgs >
         struct mss_loop {
+            typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
+
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), "Internal Error: wrong type");
-            template < typename LocalDomain, typename Grid >
-            static void run(LocalDomain &local_domain, const Grid &grid, const uint_t bi, const uint_t bj) {
+            template < typename LocalDomain, typename Grid, typename ReductionData >
+            static void run(LocalDomain &local_domain,
+                const Grid &grid,
+                ReductionData &reduction_data,
+                const uint_t bi,
+                const uint_t bj) {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), "Internal Error: wrong type");
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
 
-                execute_kernel_functor_cuda< RunFunctorArgs >(local_domain, grid, bi, bj)();
+                typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
+                typedef
+                    typename grid_traits_t::template with_arch< backend_ids_t::s_backend_id >::type arch_grid_traits_t;
+
+                typedef typename arch_grid_traits_t::template kernel_functor_executor< RunFunctorArgs >::type
+                    kernel_functor_executor_t;
+                kernel_functor_executor_t(local_domain, grid, bi, bj)();
             }
         };
 
@@ -146,9 +155,10 @@ namespace gridtools {
         typedef boost::mpl::quote2< run_esf_functor_cuda > run_esf_functor_h_t;
 
         // metafunction that contains the strategy from id metafunction corresponding to this backend
-        template < enumtype::strategy StrategyId >
+        template < typename BackendIds >
         struct select_strategy {
-            typedef strategy_from_id_cuda< StrategyId > type;
+            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Error");
+            typedef strategy_from_id_cuda< BackendIds::s_strategy_id > type;
         };
 
         /*
@@ -185,7 +195,13 @@ namespace gridtools {
             // indirection in order to avoid instantiation of both types of the eval_if
             template < typename _IterateDomainArguments >
             struct select_positional_iterate_domain {
+// TODO to do this properly this should belong to a arch_grid_trait (i.e. a trait dispatching types depending
+// on the comp architecture and the grid.
+#ifdef STRUCTURED_GRIDS
                 typedef iterate_domain_cuda< positional_iterate_domain, _IterateDomainArguments > type;
+#else
+                typedef iterate_domain_cuda< iterate_domain, _IterateDomainArguments > type;
+#endif
             };
 
             template < typename _IterateDomainArguments >

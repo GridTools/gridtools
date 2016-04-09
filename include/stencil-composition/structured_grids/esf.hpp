@@ -6,6 +6,7 @@
 #include "../domain_type.hpp"
 #include "../../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../esf_fwd.hpp"
+#include "../esf_aux.hpp"
 #include "../sfinae.hpp"
 
 /**
@@ -49,55 +50,13 @@ namespace gridtools {
             "wrong types for the list of parameter placeholders\n"
             "check the make_esf syntax");
 
-      private:
-        GRIDTOOLS_STATIC_ASSERT((_impl::check_arg_list< typename ESF::arg_list >::value == true),
-            "There is a problem in the arg_list a the functor. Please, ensure that the accessors are listed in order "
-            "from index 0 to the last");
-
-        /** Private metafunction that associates (in a mpl::map) placeholders to extents.
-            It returns a mpl::map between placeholders and extents of the local arguments.
-         */
-        template < typename Placeholders, typename LocalArgs >
-        struct _make_map {
-
-#ifdef PEDANTIC // with global accessors this assertion fails (since they are not in the LocalArgs)
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< Placeholders >::value == boost::mpl::size< LocalArgs >::value),
-                "Size of placeholder arguments passed to esf \n"
-                "    make_esf<functor>(arg1(), arg2()) )\n"
-                "does not match the list of arguments defined within the ESF, like\n"
-                "    typedef boost::mpl::vector<arg_in, arg_out> arg_list.");
-#endif
-            /** Given the list of placeholders (Plcs) and the list of arguemnts of a
-                stencil operator (LocalArgs), this struct will insert the placeholder type
-                (as key) and the corresponding extent into an mpl::map.
-             */
-            template < typename Plcs, typename LArgs >
-            struct from {
-                template < typename CurrentMap, typename Index >
-                struct insert {
-                    typedef typename boost::mpl::insert<
-                        CurrentMap,
-                        typename boost::mpl::pair< typename boost::mpl::at_c< Plcs, Index::value >::type,
-                            typename boost::mpl::at_c< LArgs, Index::value >::type::extent_type > >::type type;
-                };
-            };
-
-            // Note: only the accessors of storage type are considered in the sequence
-            typedef typename boost::mpl::range_c< uint_t, 0, boost::mpl::size< LocalArgs >::type::value > iter_range;
-
-            /** Here the iteration begins by filling an empty map */
-            typedef typename boost::mpl::fold< iter_range,
-                boost::mpl::map0<>,
-                typename from< Placeholders, LocalArgs >::template insert< boost::mpl::_1, boost::mpl::_2 > >::type
-                type;
-        };
-
       public:
         typedef ESF esf_function;
         typedef ArgArray args_t;
 
         /** Type member with the mapping between placeholder types (as key) to extents in the operator */
-        typedef typename _make_map< args_t, typename esf_function::arg_list >::type args_with_extents;
+        typedef
+            typename impl::make_arg_with_extent_map< args_t, typename esf_function::arg_list >::type args_with_extents;
         typedef Staggering staggering_t;
 
         //////////////////////Compile time checks ////////////////////////////////////////////////////////////
