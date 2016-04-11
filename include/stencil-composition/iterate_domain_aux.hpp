@@ -420,6 +420,7 @@ If you are not using generic accessors then you are using an unsupported storage
         GRIDTOOLS_STATIC_ASSERT(
             (is_sequence_of< StorageSequence, is_pointer >::value), "You are using an unsupported storage type ");
         GRIDTOOLS_STATIC_ASSERT((is_block_size< PEBlockSize >::value), "Error: wrong type");
+
 #ifdef PEDANTIC
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< StorageSequence, is_any_iterate_domain_storage_pointer >::value),
             "If you are using generic accessors disable the pedantic mode. \n If you are not using generic accessors "
@@ -521,6 +522,7 @@ If you are not using generic accessors then you are using an unsupported storage
        This is the unrolling of the inner nested loop
 
        @tparam BackendType the type of backend
+       @tparam PEBlockSize the processing elements block size
     */
     template < typename BackendType, typename PEBlockSize >
     struct assign_strides_inner_functor {

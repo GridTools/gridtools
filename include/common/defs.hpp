@@ -32,6 +32,7 @@
 #include <boost/utility/enable_if.hpp>
 #include <boost/mpl/logical.hpp>
 #include <boost/type_traits.hpp>
+#include <boost/type_traits/is_same.hpp>
 
 #define GT_MAX_ARGS 20
 #define GT_MAX_INDEPENDENT 3
@@ -102,10 +103,22 @@ namespace gridtools {
 
         enum strategy { Naive, Block };
 
+        /** enum specifying the type of grid to use */
+        enum grid_type { structured, icosahedral };
+
         /** struct in order to perform templated methods partial specialization (Alexantrescu's trick, pre-c++11)*/
         template < typename EnumType, EnumType T >
         struct enum_type {
             static const EnumType value = T;
+        };
+
+        template < typename Value >
+        struct is_enum {
+            template < typename T >
+            struct of_type {
+                typedef typename boost::is_same< Value, enum_type< T, Value::value > >::type type;
+                BOOST_STATIC_CONSTANT(bool, value = (type::value));
+            };
         };
 
         enum isparallel { parallel_impl, serial };
@@ -140,6 +153,12 @@ namespace gridtools {
 
     } // namespace enumtype
 
+#ifdef STRUCTURED_GRIDS
+#define GRIDBACKEND structured
+#else
+#define GRIDBACKEND icosahedral
+#endif
+
     template < typename Arg >
     struct is_enum_type : public boost::mpl::and_< typename boost::mpl::not_< boost::is_arithmetic< Arg > >::type,
                               typename boost::is_convertible< Arg, const int >::type >::type {};
@@ -150,10 +169,11 @@ namespace gridtools {
     template < typename T >
     struct is_backend_enum : boost::mpl::false_ {};
 
-#ifdef CXX11_ENABLED
     /** checking that no arithmetic operation is performed on enum types*/
     template <>
     struct is_backend_enum< enumtype::platform > : boost::mpl::true_ {};
+
+#ifdef CXX11_ENABLED
     struct error_no_operator_overload {};
 
     template < typename ArgType1,
@@ -223,11 +243,9 @@ namespace gridtools {
 #error float precision not properly set (4 or 8 bytes supported)
 #endif
 
-#ifdef STRUCTURED_GRIDS
-#define GRIDPREFIX strgrid
-#else
-#define GRIDPREFIX icgrid
-#endif
+    // define a gridtools notype for metafunctions that would return something like void
+    // but still to point to a real integral type so that it can be passed as argument to functions
+    typedef int notype;
 
 #ifdef CXX11_ENABLED
     using int_t = int;

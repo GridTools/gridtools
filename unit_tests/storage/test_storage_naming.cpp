@@ -14,8 +14,8 @@ using namespace enumtype;
 
 TEST(storage, naming) {
     typedef gridtools::layout_map<0,1,2> layout_t;
-    typedef backend<Host, Naive >::storage_info<__COUNTER__, layout_t> meta_data_t;
-    typedef backend<Host, Naive >::storage_type<float_type, meta_data_t >::type storage_t;
+    typedef backend<Host, GRIDBACKEND, Naive >::storage_info<__COUNTER__, layout_t> meta_data_t;
+    typedef backend<Host, GRIDBACKEND, Naive >::storage_type<float_type, meta_data_t >::type storage_t;
 
     meta_data_t meta_data_(1,1,1);
 

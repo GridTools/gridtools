@@ -93,12 +93,12 @@ TEST(Laplace, test) {
 
 // [backend]
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Block>
+#define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend<Host, Block>
+#define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
-#define BACKEND backend<Host, Naive>
+#define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
 // [backend]
@@ -185,9 +185,9 @@ TEST(Laplace, test) {
        auto
 #else
 #ifdef __CUDACC__
-       computation*
+    stencil*
 #else
-       boost::shared_ptr<gridtools::computation>
+    boost::shared_ptr<gridtools::stencil>
 #endif
 #endif
        laplace = make_computation<gridtools::BACKEND>
