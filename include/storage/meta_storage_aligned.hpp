@@ -214,7 +214,7 @@ namespace gridtools {
         /** @brief returns the storage strides
          */
         GT_FUNCTION
-        constexpr int_t const &unaligned_strides(ushort_t i) const { return m_unaligned_strides[i]; }
+        constexpr int_t unaligned_strides(ushort_t i) const { return m_unaligned_strides[i]; }
 
         /** @brief return the stride for a specific coordinate, given the vector of strides
             Coordinates 0,1,2 correspond to i,j,k respectively.
@@ -222,16 +222,10 @@ namespace gridtools {
             non-static version.
          */
         template < uint_t Coordinate >
-        GT_FUNCTION constexpr int_t unaligned_strides() const {
+        GT_FUNCTION constexpr int_t const& unaligned_strides() const {
             // NOTE: we access the m_strides vector starting from 1, because m_strides[0] is the total storage
             // dimension.
-            return ((vec_max< typename MetaStorageBase::layout::layout_vector_t >::value < 0)
-                        ? 0
-                        : ((MetaStorageBase::layout::template at_< Coordinate >::value ==
-                               vec_max< typename MetaStorageBase::layout::layout_vector_t >::value)
-                                  ? 1
-                                  : ((m_unaligned_strides[MetaStorageBase::layout::template at_< Coordinate >::value +
-                                                          1]))));
+            return MetaStorageBase::get_stride_helper<Coordinate, MetaStorageBase::layout>(m_unaligned_strides, 1);
         }
 
 #endif
