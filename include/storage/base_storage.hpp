@@ -147,7 +147,7 @@ and possibly the method 'copy_data_to_gpu' which are used when cloning the class
         bool is_set;
         const char *m_name;
         array< pointer_type, field_dimensions > m_fields;
-        MetaData const &m_meta_data; // should possibly be a constexpr
+		const MetaData m_meta_data;
 
       public:
         template < typename T, typename M, bool I, ushort_t F >
