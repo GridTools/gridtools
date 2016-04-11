@@ -289,7 +289,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
 		/**@brief helper code snippet to check if given vector coordinate is the maximum.
 		*/
 		template <uint_t Coordinate, typename T, typename Container>
-		constexpr static int_t get_stride_helper(Container const&  cont, uint_t offset=0) {
+		GT_FUNCTION static constexpr int_t get_stride_helper(Container const& cont, uint_t offset=0) {
 			return ((vec_max< typename T::layout_vector_t >::value < 0)
 				? 0 : ((Layout::template at_< Coordinate >::value ==
 					vec_max< typename T::layout_vector_t >::value)
