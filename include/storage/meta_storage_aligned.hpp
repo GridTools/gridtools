@@ -222,10 +222,10 @@ namespace gridtools {
             non-static version.
          */
         template < uint_t Coordinate >
-        GT_FUNCTION constexpr int_t const& unaligned_strides() const {
+        GT_FUNCTION constexpr int_t unaligned_strides() const {
             // NOTE: we access the m_strides vector starting from 1, because m_strides[0] is the total storage
             // dimension.
-            return MetaStorageBase::get_stride_helper<Coordinate, MetaStorageBase::layout>(m_unaligned_strides, 1);
+            return MetaStorageBase::template get_stride_helper<Coordinate, typename MetaStorageBase::layout>(m_unaligned_strides, 1);
         }
 
 #endif

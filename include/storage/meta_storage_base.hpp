@@ -287,17 +287,16 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         // static functions (independent from the storage)
         //####################################################
 
-		/**@brief helper code snippet to check if given vector coordinate is the maximum.
-		*/
-		template <uint_t Coordinate, typename T, typename Container>
-		GT_FUNCTION static constexpr int_t get_stride_helper(Container const& cont, uint_t offset=0) {
-			typedef typename boost::mpl::deref<
-				typename boost::mpl::max_element< typename T::layout_vector_t >::type
-			>::type max_type;
-			return ((max_type::value < 0) ? 0 : 
-				((Layout::template at_< Coordinate >::value == max_type::value)
-					? 1 : ((cont[Layout::template at_< Coordinate >::value + offset]))));
-		}
+        /**@brief helper code snippet to check if given vector coordinate is the maximum.*/
+        template <uint_t Coordinate, typename T, typename Container>
+        GT_FUNCTION static constexpr int_t get_stride_helper(Container const& cont, uint_t offset=0) {
+                typedef typename boost::mpl::deref<
+                        typename boost::mpl::max_element< typename T::layout_vector_t >::type
+                >::type max_type;
+                return ((max_type::value < 0) ? 0 : 
+                        ((Layout::template at_< Coordinate >::value == max_type::value)
+                        ? 1 : ((cont[Layout::template at_< Coordinate >::value + offset]))));
+        }
 
         /**@brief return the stride for a specific coordinate, given the vector of strides
            Coordinates 0,1,2 correspond to i,j,k respectively
