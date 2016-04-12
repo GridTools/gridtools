@@ -255,7 +255,7 @@ TEST_F(cache_stencil, multi_cache)
 	auto
 #else
 #ifdef __CUDACC__
-	gridtools::computation*
+	gridtools::stencil*
 #else
 	boost::shared_ptr<gridtools::stencil>
 #endif
