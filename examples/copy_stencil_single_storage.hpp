@@ -29,7 +29,7 @@ namespace copy_stencil {
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
 
-        typedef const accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 4 > in;
+        typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 4 > in;
         typedef boost::mpl::vector< in > arg_list;
 
         template < typename Evaluation >
@@ -51,13 +51,13 @@ namespace copy_stencil {
         uint_t d2 = y;
         uint_t d3 = z;
 
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend< Cuda, Block >
+#ifdef __CUDACC__
+#define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, Block >
+#define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
-#define BACKEND backend< Host, Naive >
+#define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
 

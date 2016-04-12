@@ -52,10 +52,10 @@ TEST(test_local_domain, merge_mss_local_domains) {
 
     typedef layout_map<2,1,0> layout_ijk_t;
     typedef layout_map<0,1,2> layout_kji_t;
-    typedef backend<Host, Naive >::storage_info<0, layout_ijk_t> meta_ijk_t;
-    typedef backend<Host, Naive >::storage_info<0, layout_kji_t> meta_kji_t;
-    typedef backend<Host, Naive >::storage_type<float_type, meta_ijk_t >::type storage_type;
-    typedef backend<Host, Naive >::storage_type<float_type, meta_kji_t >::type storage_buff_type;
+    typedef backend< Host, GRIDBACKEND, Naive >::storage_info< 0, layout_ijk_t > meta_ijk_t;
+    typedef backend< Host, GRIDBACKEND, Naive >::storage_info< 0, layout_kji_t > meta_kji_t;
+    typedef backend< Host, GRIDBACKEND, Naive >::storage_type< float_type, meta_ijk_t >::type storage_type;
+    typedef backend< Host, GRIDBACKEND, Naive >::storage_type< float_type, meta_kji_t >::type storage_buff_type;
 
     typedef arg<0, storage_type> p_in;
     typedef arg<1, storage_buff_type> p_buff;
@@ -81,19 +81,21 @@ TEST(test_local_domain, merge_mss_local_domains) {
     grid.value_list[0] = 0;
     grid.value_list[1] = d3-1;
 
-    typedef intermediate<gridtools::backend<Host, Naive >
-                         , meta_array<boost::mpl::vector<decltype(
-        gridtools::make_mss // mss_descriptor
-        (
-            execute<forward>(),
-            gridtools::make_esf<local_domain_stencil::dummy_functor>(p_in() ,p_buff()),
-            gridtools::make_esf<local_domain_stencil::dummy_functor>(p_buff() ,p_out())
-            )
-        )>, boost::mpl::quote1<gridtools::is_mss_descriptor> >
-                         , gridtools::domain_type<accessor_list>
-                         , gridtools::grid<local_domain_stencil::axis>
-                         , boost::fusion::set<>
-                         , false> intermediate_t;
+
+    typedef intermediate<gridtools::backend<Host, GRIDBACKEND, Naive >
+                          , meta_array<boost::mpl::vector<decltype(
+         gridtools::make_mss // mss_descriptor
+         (
+             execute<forward>(),
+             gridtools::make_esf<local_domain_stencil::dummy_functor>(p_in() ,p_buff()),
+             gridtools::make_esf<local_domain_stencil::dummy_functor>(p_buff() ,p_out())
+             )
+         )>, boost::mpl::quote1<gridtools::is_amss_descriptor> >
+                          , gridtools::domain_type<accessor_list>
+                          , gridtools::grid<local_domain_stencil::axis>
+                          , boost::fusion::set<>
+                          , gridtools::notype
+                          , false> intermediate_t;
 
     typedef intermediate_backend<intermediate_t>::type backend_t;
     typedef intermediate_domain_type<intermediate_t>::type domain_t;

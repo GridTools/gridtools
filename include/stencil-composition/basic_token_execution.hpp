@@ -71,8 +71,10 @@ namespace gridtools {
                         level_to_index< typename grid_t::axis_type::ToLevel >::value >= Interval::second::value),
                     "the k interval exceeds the axis you specified for the grid instance");
 
-                typedef iteration_policy< from_t, to_t, zdim_index_t::value, execution_engine::type::iteration >
-                    iteration_policy_t;
+                typedef iteration_policy< from_t,
+                    to_t,
+                    typename grid_traits_from_id< run_functor_arguments_t::backend_ids_t::s_grid_type_id >::dim_k_t,
+                    execution_engine::type::iteration > iteration_policy_t;
 
                 uint_t const from = m_grid.template value_at< from_t >();
                 uint_t const to = m_grid.template value_at< to_t >();

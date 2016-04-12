@@ -1,6 +1,7 @@
 #pragma once
-#include "wrap_pointer.hpp"
 #include "base_storage_impl.hpp"
+#include "../common/array.hpp"
+#include "wrap_pointer.hpp"
 
 /**@file
    @brief Implementation of the \ref gridtools::base_storage "main storage class", used by all backends, for temporary
@@ -310,7 +311,7 @@ and possibly the method 'copy_data_to_gpu' which are used when cloning the class
 
         /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
         template < typename... UInt >
-        __host__ value_type &operator()(UInt const &... dims) {
+        GT_FUNCTION value_type &operator()(UInt const &... dims) {
             assert(m_meta_data.index(dims...) < m_meta_data.size());
             assert(is_set);
             return (m_fields[0])[m_meta_data.index(dims...)];

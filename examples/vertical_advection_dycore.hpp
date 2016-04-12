@@ -251,9 +251,9 @@ namespace vertical_advection_dycore {
         auto
 #else
 #ifdef __CUDACC__
-        gridtools::computation *
+        gridtools::stencil *
 #else
-        boost::shared_ptr< gridtools::computation >
+        boost::shared_ptr< gridtools::stencil >
 #endif
 #endif
             vertical_advection = gridtools::make_computation< vertical_advection::va_backend >(

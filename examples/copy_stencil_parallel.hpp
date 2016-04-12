@@ -28,7 +28,7 @@ namespace copy_stencil {
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
-        typedef const accessor< 0, enumtype::in > in;
+        typedef accessor< 0, enumtype::in > in;
         typedef accessor< 1, enumtype::inout > out;
         typedef boost::mpl::vector< in, out > arg_list;
         /* static const auto expression=in(1,0,0)-out(); */
@@ -47,12 +47,12 @@ namespace copy_stencil {
     bool test(uint_t d1, uint_t d2, uint_t d3) {
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend< Cuda, Block >
+#define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, Block >
+#define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
-#define BACKEND backend< Host, Naive >
+#define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
         //                   strides  1 x xy

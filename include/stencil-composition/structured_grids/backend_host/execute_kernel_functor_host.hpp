@@ -8,6 +8,9 @@
 #pragma once
 #include "stencil-composition/backend_host/iterate_domain_host.hpp"
 #include "stencil-composition/loop_hierarchy.hpp"
+#include "../../iteration_policy.hpp"
+#include "../../execution_policy.hpp"
+#include "../../grid_traits.hpp"
 
 namespace gridtools {
 
@@ -52,20 +55,32 @@ namespace gridtools {
                 (is_run_functor_arguments< RunFunctorArguments >::value), "Internal Error: wrong type");
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::grid_t grid_t;
+            typedef typename RunFunctorArguments::reduction_data_t reduction_data_t;
+            typedef typename reduction_data_t::reduction_type_t reduction_type_t;
 
+          private:
+            const local_domain_t &m_local_domain;
+            const grid_t &m_grid;
+            reduction_data_t &m_reduction_data;
+            const gridtools::array< const uint_t, 2 > m_first_pos;
+            const gridtools::array< const uint_t, 2 > m_last_pos;
+            const gridtools::array< const uint_t, 2 > m_block_id;
+
+          public:
             /**
             * @brief core of the kernel execution
             * @tparam Traits traits class defined in \ref gridtools::_impl::run_functor_traits
             */
             explicit execute_kernel_functor_host(const local_domain_t &local_domain,
                 const grid_t &grid,
+                reduction_data_t &reduction_data,
                 const uint_t first_i,
                 const uint_t first_j,
                 const uint_t last_i,
                 const uint_t last_j,
                 const uint_t block_idx_i,
                 const uint_t block_idx_j)
-                : m_local_domain(local_domain), m_grid(grid)
+                : m_local_domain(local_domain), m_grid(grid), m_reduction_data(reduction_data)
 #ifdef CXX11_ENABLED
                   ,
                   m_first_pos{first_i, first_j}, m_last_pos{last_i, last_j}, m_block_id {
@@ -78,8 +93,9 @@ namespace gridtools {
             {}
 
             // Naive strategy
-            explicit execute_kernel_functor_host(const local_domain_t &local_domain, const grid_t &grid)
-                : m_local_domain(local_domain), m_grid(grid)
+            explicit execute_kernel_functor_host(
+                const local_domain_t &local_domain, const grid_t &grid, reduction_data_t &reduction_data)
+                : m_local_domain(local_domain), m_grid(grid), m_reduction_data(reduction_data)
 #ifdef CXX11_ENABLED
                   ,
                   m_first_pos{grid.i_low_bound(), grid.j_low_bound()},
@@ -127,7 +143,7 @@ namespace gridtools {
                 typedef typename iterate_domain_t::strides_cached_t strides_t;
                 strides_t strides;
 
-                iterate_domain_t it_domain(m_local_domain);
+                iterate_domain_t it_domain(m_local_domain, m_reduction_data.initial_value());
 
                 it_domain.set_data_pointer_impl(&data_pointer);
                 it_domain.set_strides_pointer_impl(&strides);
@@ -138,8 +154,10 @@ namespace gridtools {
                 typedef typename boost::mpl::front< loop_intervals_t >::type interval;
                 typedef typename index_to_level< typename interval::first >::type from;
                 typedef typename index_to_level< typename interval::second >::type to;
-                typedef _impl::iteration_policy< from, to, zdim_index_t::value, execution_type_t::type::iteration >
-                    iteration_policy_t;
+                typedef _impl::iteration_policy< from,
+                    to,
+                    typename ::gridtools::grid_traits_from_id< enumtype::structured >::dim_k_t,
+                    execution_type_t::type::iteration > iteration_policy_t;
 
                 typedef array< int_t, iterate_domain_t::N_META_STORAGES > array_t;
                 loop_hierarchy< array_t, loop_item< 0, int_t, 1 >, loop_item< 1, int_t, 1 > > ij_loop(
@@ -164,14 +182,9 @@ namespace gridtools {
 
                 // run the nested ij loop
                 ij_loop.apply(it_domain, f);
+                m_reduction_data.assign(omp_get_thread_num(), it_domain.reduction_value());
+                m_reduction_data.reduce();
             }
-
-          private:
-            const local_domain_t &m_local_domain;
-            const grid_t &m_grid;
-            const gridtools::array< const uint_t, 2 > m_first_pos;
-            const gridtools::array< const uint_t, 2 > m_last_pos;
-            const gridtools::array< const uint_t, 2 > m_block_id;
         };
     } // namespace strgrid
 } // namespace gridtools
