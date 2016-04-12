@@ -1,8 +1,12 @@
-#include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
-#include <common/defs.hpp>
-#include <stencil-composition/stencil-composition.hpp>
-#include <tools/verifier.hpp>
+#include <boost/shared_ptr.hpp>
+
+#include "gtest/gtest.h"
+
+#include "common/defs.hpp"
+#include "stencil-composition/stencil-composition.hpp"
+#include "stencil-composition/make_computation.hpp"
+#include "tools/verifier.hpp"
 
 namespace test_cache_stencil {
 
@@ -253,7 +257,7 @@ TEST_F(cache_stencil, multi_cache)
 #ifdef __CUDACC__
 	gridtools::computation*
 #else
-	boost::shared_ptr<gridtools::computation>
+	boost::shared_ptr<gridtools::stencil>
 #endif
 #endif
 		stencil = make_computation<gridtools::BACKEND>

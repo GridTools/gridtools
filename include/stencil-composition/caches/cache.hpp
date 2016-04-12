@@ -6,17 +6,16 @@
 
 #pragma once
 
-#include "common/defs.hpp"
-#include "common/generic_metafunctions/variadic_to_vector.hpp"
-#include "common/generic_metafunctions/mpl_vector_flatten.hpp"
-#include "stencil-composition/caches/cache_definitions.hpp"
-#include "stencil-composition/accessor.hpp"
-
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/size.hpp>
 #include <boost/preprocessor.hpp>
 
+#include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/variadic_to_vector.hpp"
+#include "../../common/generic_metafunctions/mpl_vector_flatten.hpp"
+#include "../../stencil-composition/caches/cache_definitions.hpp"
+#include "../../stencil-composition/accessor.hpp"
 
 namespace gridtools {
 
