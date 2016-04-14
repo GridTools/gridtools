@@ -5,7 +5,8 @@
 #include <boost/mpl/if.hpp>
 #include <boost/mpl/range_c.hpp>
 
-#include "stencil-composition/wrap_type.hpp"
+#include "../esf_metafunctions.hpp"
+#include "../wrap_type.hpp"
 #include "../mss.hpp"
 
 namespace gridtools {
@@ -162,21 +163,23 @@ namespace gridtools {
                 Cond > type;
         };
 
-        template < typename Placeholders >
+
+        template < typename PlaceholdersVector, typename InitExtent=extent<> >
+        struct init_map_of_extents {
+            typedef typename boost::mpl::fold<
+                PlaceholdersVector,
+                boost::mpl::map0<>,
+                boost::mpl::insert< boost::mpl::_1,
+                                    boost::mpl::pair< boost::mpl::_2, InitExtent > > >::type type;
+        };
+
+
+        template < typename PlaceholdersMap >
         struct compute_extents_of {
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< Placeholders, is_arg >::value), "wrong type");
+            //            GRIDTOOLS_STATIC_ASSERT((is_map_of< Placeholders, is_arg >::value), "wrong type");
             template < typename MssDescriptor >
             struct for_mss {
                 GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor< MssDescriptor >::value), "Internal Error: invalid type");
-
-                template < typename PLH >
-                struct map_of_empty_extents {
-                    typedef typename boost::mpl::fold<
-                        PLH,
-                        boost::mpl::map0<>,
-                        boost::mpl::insert< boost::mpl::_1,
-                            boost::mpl::pair< boost::mpl::_2, extent< 0, 0, 0, 0, 0, 0 > > > >::type type;
-                };
 
                 template < typename CurrentRange >
                 struct work_on {
@@ -221,14 +224,16 @@ namespace gridtools {
                     typedef CurrentMap type;
                 };
 
-                typedef
-                    typename boost::mpl::reverse< typename mss_descriptor_esf_sequence< MssDescriptor >::type >::type
-                        ESFs;
+                typedef typename boost::mpl::reverse<
+                        typename unwrap_independent<
+                            typename mss_descriptor_esf_sequence<MssDescriptor>::type
+                        >::type
+                    >::type ESFs;
 
                 typedef typename populate_map< ESFs,
-                    typename map_of_empty_extents< Placeholders >::type,
+                    PlaceholdersMap,
                     boost::mpl::size< ESFs >::type::value >::type type;
-            };
-        };
+            }; // struct for_mss
+        }; // struct compute_extents_of
     }
 }
