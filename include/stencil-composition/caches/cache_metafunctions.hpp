@@ -40,8 +40,8 @@ namespace gridtools {
     template < typename T >
     struct is_cache : boost::mpl::false_ {};
 
-    template < cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy >
-    struct is_cache< detail::cache_impl< cacheType, Arg, cacheIOPolicy > > : boost::mpl::true_ {};
+    template < cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy, ushort_t dimension, int_t offset >
+    struct is_cache< detail::cache_impl< cacheType, Arg, cacheIOPolicy, dimension, offset > > : boost::mpl::true_ {};
 
     /**
      * @struct cache_parameter
@@ -50,8 +50,8 @@ namespace gridtools {
     template < typename T >
     struct cache_parameter;
 
-    template < cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy >
-    struct cache_parameter< detail::cache_impl< cacheType, Arg, cacheIOPolicy > > {
+    template < cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy, ushort_t dimension, int_t offset >
+    struct cache_parameter< detail::cache_impl< cacheType, Arg, cacheIOPolicy, dimension, offset > > {
         typedef Arg type;
     };
 

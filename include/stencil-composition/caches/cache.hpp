@@ -34,22 +34,26 @@ namespace gridtools {
 		 * @tparam  cacheType type of cache
 		 * @tparam Arg argument with parameter being cached
 		 * @tparam CacheIOPolicy IO policy for cache
+		 * @tparam dim dimension that should be cached
+		 * @tparam off offset of the corresponding dimension
 		 */
-		template < cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy >
+		template < cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy, ushort_t dim, int_t off>
 		struct cache_impl {
+			GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), "argument passed to ij cache is not of the right arg<> type");
 			typedef Arg arg_t;
 			typedef enumtype::enum_type< cache_type, cacheType > cache_type_t;
-			GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), "argument passed to ij cache is not of the right arg<> type");
+			const static ushort_t dimension = dim;
+			const static int_t offset = off;
 		};
 
 		/**
 		* @brief helper metafunction class that is used to force the resolution of an mpl placeholder type
 		*/
-		template<cache_type cacheType, cache_io_policy cacheIOPolicy>
+		template<cache_type cacheType, cache_io_policy cacheIOPolicy, ushort_t dimension = USHRT_MAX, int_t offset = 0>
 		struct force_arg_resolution {
 			template < typename T >
 			struct apply {
-				typedef cache_impl<cacheType, T, cacheIOPolicy> type;
+				typedef cache_impl<cacheType, T, cacheIOPolicy, dimension, offset> type;
 			};
 		};
 	}
@@ -62,10 +66,10 @@ namespace gridtools {
 	 *	@tparam Args arbitrary number of storages that should be cached
 	 *	@return vector of caches
 	 */
-	template < cache_type cacheType, cache_io_policy cacheIOPolicy, typename... Args>
-	constexpr typename boost::mpl::transform<boost::mpl::vector<Args...>, detail::force_arg_resolution<cacheType, cacheIOPolicy>>::type cache(Args&&...) {
+	template < cache_type cacheType, cache_io_policy cacheIOPolicy, ushort_t dimension = USHRT_MAX, int_t offset = 0, typename... Args>
+	constexpr typename boost::mpl::transform<boost::mpl::vector<Args...>, detail::force_arg_resolution<cacheType, cacheIOPolicy, dimension, offset>>::type cache(Args&&...) {
 		GRIDTOOLS_STATIC_ASSERT(sizeof...(Args) > 0, "Cannot build cache sequence without argument");
-		typedef typename boost::mpl::transform<boost::mpl::vector<Args...>, detail::force_arg_resolution<cacheType, cacheIOPolicy>>::type res_ty;
+		typedef typename boost::mpl::transform<boost::mpl::vector<Args...>, detail::force_arg_resolution<cacheType, cacheIOPolicy, dimension, offset>>::type res_ty;
 		return res_ty();
 	}
 #else 
