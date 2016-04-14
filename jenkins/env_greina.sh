@@ -1,10 +1,12 @@
 #/bin/sh
 
 #we need a decent cmake version in order to pass the HOST_COMPILER to nvcc
-module load /home/cosuna/privatemodules/cmake-3.3.2
-module load python/3.4.3
-module load boost/1.56_gcc4.8.4
-module load mvapich2/gcc/64/2.2-gcc-4.8.4-cuda-7.0
+module load GCC/4.8.4
+module load cuda70/toolkit/7.0.28
+module load /users/mbianco/my_modules/cmake-3.5.1
+module load /users/mbianco/my_modules/boost-1.59
+#module load python/3.4.3
+#module load mvapich2/gcc/64/2.2-gcc-4.8.4-cuda-7.0
 export Boost_NO_SYSTEM_PATHS=true
 export Boost_NO_BOOST_CMAKE=true
 export GRIDTOOLS_ROOT_BUILD=$PWD/build
