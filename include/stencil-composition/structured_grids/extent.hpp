@@ -100,6 +100,17 @@ namespace gridtools {
             boost::mpl::max< typename Range1::kplus, typename Range2::kplus >::type::value > type;
     };
 
+    // Specializations for the case in which a range is an mpl::void_, which is used when the extent is taken from an mpl::map
+    template <typename Range>
+    struct enclosing_extent<Range, boost::mpl::void_> {
+        typedef Range type;
+    };
+
+    template <typename Range>
+    struct enclosing_extent<boost::mpl::void_, Range> {
+        typedef Range type;
+    };
+
     /**
      * Metafunction taking two extents and yielding a extent which is the extension of one another
      */
