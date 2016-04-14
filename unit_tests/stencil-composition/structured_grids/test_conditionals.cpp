@@ -55,7 +55,7 @@ namespace test_conditionals{
 #else
             boost::shared_ptr<computation>
 #endif
-            comp_ = make_computation < backend<enumtype::Host, enumtype::Naive> > (
+            comp_ = make_computation < BACKEND > (
                 domain_, grid_,
                 if_(cond
                     ,
