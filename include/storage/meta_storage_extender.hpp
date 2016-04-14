@@ -3,11 +3,17 @@
 
 namespace gridtools {
 
+    /**
+     * @brief The extend_aux_param struct
+     * it extends the declaration of a template parameter used by metastorage by NExtraDim dimensions
+     */
+    // specialization for parameters that are dimension independent, the metafunction has no impact
     template < ushort_t NExtraDim, typename T >
     struct extend_aux_param {
         typedef T type;
     };
 
+    // specialization for a halo template parameter
     template < ushort_t NExtraDim, uint_t... Args >
     struct extend_aux_param< NExtraDim, halo< Args... > > {
         typedef typename repeat_template_c< 0, NExtraDim, uint_t, halo, Args... >::type type;
@@ -25,14 +31,26 @@ namespace gridtools {
             typename extend_aux_param< NExtraDim, TmpParam >::type... > type;
     };
 
-    template < short_t Val >
+    template < short_t Val, short_t NExtraDim >
     struct inc_ {
-        static const short_t value = Val + 1;
+        static const short_t value = Val + NExtraDim;
     };
 
     template < ushort_t NExtraDim, short_t... Args >
     struct meta_storage_extender_impl< layout_map< Args... >, NExtraDim > {
-        typedef typename repeat_template_c< 0, NExtraDim, short_t, layout_map, inc_< Args >::value... >::type type;
+
+        template < typename T, short_t... InitialInts >
+        struct build_ext_layout;
+
+        // build an extended layout
+        template < short_t... Indices, short_t... InitialIndices >
+        struct build_ext_layout< gt_integer_sequence< short_t, Indices... >, InitialIndices... > {
+            typedef layout_map< InitialIndices..., Indices... > type;
+        };
+
+        using seq = typename make_gt_integer_sequence< short_t, NExtraDim >::type;
+
+        typedef typename build_ext_layout< seq, inc_< Args, NExtraDim >::value... >::type type;
     };
 
     template < ushort_t Index, typename Layout, bool IsTemporary, ushort_t NExtraDim >
