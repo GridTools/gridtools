@@ -137,7 +137,7 @@ namespace gridtools {
                 // ElemType: an element in the data field place-holders list
                 template < typename ElemType >
                 void operator()(pointer< ElemType > &e) const {
-                    GRIDTOOLS_STATIC_ASSERT(is_storage< ElemType >::value, "wrong type (not temporary)");
+                    GRIDTOOLS_STATIC_ASSERT(is_storage< ElemType >::value, "wrong type (not storage)");
                     GRIDTOOLS_STATIC_ASSERT(ElemType::is_temporary, "wrong type (not temporary)");
                     GRIDTOOLS_STATIC_ASSERT(
                         is_meta_storage< typename ElemType::storage_info_type >::value, "wrong metadata type");
