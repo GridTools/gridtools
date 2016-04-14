@@ -28,11 +28,11 @@ namespace gridtools {
         template < typename UInt, UInt C >
         struct expand_to_gt_integer_sequence< UInt, C, 1 > : gt_integer_sequence< UInt, C > {};
 
-        template < typename Seq, template < ushort_t... > class Lambda, ushort_t... InitialValues >
+        template < typename Seq, typename Value, template < Value... > class Lambda, Value... InitialValues >
         struct expand_recursively;
 
-        template < template < ushort_t... > class Lambda, ushort_t... Ints, ushort_t... InitialValues >
-        struct expand_recursively< gt_integer_sequence< ushort_t, Ints... >, Lambda, InitialValues... > {
+        template < typename Value, template < Value... > class Lambda, Value... Ints, Value... InitialValues >
+        struct expand_recursively< gt_integer_sequence< Value, Ints... >, Value, Lambda, InitialValues... > {
             typedef Lambda< InitialValues..., Ints... > type;
         };
     }
@@ -47,10 +47,11 @@ namespace gridtools {
        \endverbatim
        Optionally a set of initial values to start filling the template class can be passed
      */
-    template < typename Constant, typename Length, template < ushort_t... T > class Lambda, ushort_t... InitialValues >
+    template < typename Constant, typename Length, typename Value, template < Value... T > class Lambda, Value... InitialValues >
     struct repeat_template {
         typedef typename _impl::expand_recursively<
-            typename _impl::expand_to_gt_integer_sequence< ushort_t, Constant::value, Length::value >::type,
+            typename _impl::expand_to_gt_integer_sequence< Value, Constant::value, Length::value >::type,
+            Value,
             Lambda,
             InitialValues... >::type type;
     };
@@ -65,10 +66,11 @@ namespace gridtools {
        \endverbatim
        Optionally a set of initial values to start filling the template class can be passed
     */
-    template < ushort_t Constant, ushort_t Length, template < ushort_t... T > class Lambda, ushort_t... InitialValues >
+    template < ushort_t Constant, ushort_t Length, typename Value, template < Value... T > class Lambda, Value... InitialValues >
     struct repeat_template_c {
         typedef typename _impl::expand_recursively<
-            typename _impl::expand_to_gt_integer_sequence< ushort_t, Constant, Length >::type,
+            typename _impl::expand_to_gt_integer_sequence< Value, Constant, Length >::type,
+            Value,
             Lambda,
             InitialValues... >::type type;
     };
