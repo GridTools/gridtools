@@ -241,4 +241,29 @@ namespace gridtools {
     template < typename T >
     struct is_esf_descriptor< independent_esf< T > > : boost::mpl::true_ {};
 
-} // namespace gridtools
+    // Takes a list of esfs and independent_esf and produces a list of esfs, with the independent unwrapped
+    template <typename ESFList>
+    struct unwrap_independent {
+
+        template <typename CurrentList, typename CurrentElement>
+        struct populate {
+            typedef typename boost::mpl::push_back<CurrentList, CurrentElement>::type type;
+        };
+
+        template <typename CurrentList, typename IndependentList>
+        struct populate<CurrentList, independent_esf<IndependentList> > {
+            typedef typename boost::mpl::fold<
+                IndependentList,
+                CurrentList,
+                populate<boost::mpl::_1, boost::mpl::_2>
+                >::type type;
+        };
+
+        typedef typename boost::mpl::fold<
+            ESFList,
+            boost::mpl::vector0<>,
+            populate<boost::mpl::_1, boost::mpl::_2>
+            >::type type;
+    }; // struct unwrap_independent
+
+ } // namespace gridtools
