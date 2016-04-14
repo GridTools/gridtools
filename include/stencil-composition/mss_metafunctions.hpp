@@ -14,6 +14,7 @@
 #include "stencil-composition/esf.hpp"
 #include "common/generic_metafunctions/is_sequence_of.hpp"
 #include "stencil-composition/caches/cache_metafunctions.hpp"
+#include "esf_metafunctions.hpp"
 
 namespace gridtools {
 
@@ -84,6 +85,39 @@ namespace gridtools {
             " * esf descriptors from make_esf(...) or make_independent(...)");
         typedef
             typename boost::mpl::copy_if< MssParameterSequence, boost::mpl::quote1< is_esf_descriptor > >::type type;
+    };
+
+
+    /** Takes a mpl::sequence of mss descriptors and put all the esf_descriptors
+        present and put them in a mpl::vector
+    */
+    template <typename MssDescriptors>
+    struct get_list_of_esfs {
+
+        template <typename CurrentVector, typename CurrentDescriptor>
+        struct populate_vector {
+            typedef typename unwrap_independent<
+                typename mss_descriptor_esf_sequence<CurrentDescriptor>::type
+                >::type esfs;
+
+            typedef typename boost::mpl::fold<
+                esfs,
+                CurrentVector,
+                boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>
+                >::type type;
+        };
+
+        template <typename CurrentVector, typename Descriptor1, typename Descriptor2, typename Cond>
+        struct populate_vector<CurrentVector,  condition<Descriptor1, Descriptor2, Cond> > {
+            typedef typename populate_vector<CurrentVector, Descriptor1>::type first_part;
+            typedef typename populate_vector<first_part, Descriptor2>::type type;
+        };
+
+        typedef typename boost::mpl::fold<
+            MssDescriptors,
+            boost::mpl::vector0<>,
+            populate_vector<boost::mpl::_1, boost::mpl::_2>
+            >::type type;
     };
 
 } // namespace gridtools
