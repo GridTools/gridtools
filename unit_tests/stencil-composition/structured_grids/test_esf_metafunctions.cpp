@@ -63,7 +63,7 @@ TEST(esf_metafunctions, compute_extents_of)
     ) mss_t;
     typedef boost::mpl::vector<o0, in0, in1, in2> placeholders;
 
-    typedef gridtools::strgrid::compute_extents_of<placeholders>::for_mss<mss_t>::type final_map;
+    typedef gridtools::strgrid::compute_extents_of<typename init_map_of_extents<placeholders, extent<0,0,0,0,0,0>::type >::for_mss<mss_t>::type final_map;
 
 GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o0>::type, extent<0, 0, 0, 0, 0, 0> >::type::value),
                           "o0 extent<0, 0, 0, 0, 0, 0>");
