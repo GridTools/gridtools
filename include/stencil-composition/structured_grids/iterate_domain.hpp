@@ -16,6 +16,7 @@
 #include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
 #include "stencil-composition/iterate_domain_aux.hpp"
 #include "../reductions/iterate_domain_reduction.hpp"
+#include "../iterate_domain_fwd.hpp"
 
 /**@file
    @brief file handling the access to the storage.
@@ -63,9 +64,6 @@
 */
 
 namespace gridtools {
-
-    template < typename IterateDomainImpl >
-    struct iterate_domain_backend_id;
 
     /**@brief class managing the memory accesses, indices increment
 

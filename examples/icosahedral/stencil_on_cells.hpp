@@ -28,11 +28,7 @@ namespace soc {
     struct test_on_cells_functor {
         typedef in_accessor< 0, icosahedral_topology_t::cells, extent< 1 > > in;
         typedef inout_accessor< 1, icosahedral_topology_t::cells > out;
-        typedef in_accessor< 2, icosahedral_topology_t::cells, extent< 1 > > ipos;
-        typedef in_accessor< 3, icosahedral_topology_t::cells, extent< 1 > > cpos;
-        typedef in_accessor< 4, icosahedral_topology_t::cells, extent< 1 > > jpos;
-        typedef in_accessor< 5, icosahedral_topology_t::cells, extent< 1 > > kpos;
-        typedef boost::mpl::vector6< in, out, ipos, cpos, jpos, kpos > arg_list;
+        typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
@@ -62,10 +58,6 @@ namespace soc {
         icosahedral_topology_t icosahedral_grid(d1, d2, d3);
 
         auto in_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("in");
-        auto i_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("i");
-        auto j_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("j");
-        auto c_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("c");
-        auto k_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("k");
         auto out_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("out");
         auto ref_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("ref");
 
@@ -75,10 +67,6 @@ namespace soc {
                     for (int k = 0; k < d3; ++k) {
                         in_cells(i, c, j, k) =
                             in_cells.meta_data().index(array< uint_t, 4 >{(uint_t)i, (uint_t)c, (uint_t)j, (uint_t)k});
-                        i_cells(i, c, j, k) = i;
-                        c_cells(i, c, j, k) = c;
-                        j_cells(i, c, j, k) = j;
-                        k_cells(i, c, j, k) = k;
                     }
                 }
             }
@@ -88,16 +76,10 @@ namespace soc {
 
         typedef arg< 0, cell_storage_type > p_in_cells;
         typedef arg< 1, cell_storage_type > p_out_cells;
-        typedef arg< 2, cell_storage_type > p_i_cells;
-        typedef arg< 3, cell_storage_type > p_c_cells;
-        typedef arg< 4, cell_storage_type > p_j_cells;
-        typedef arg< 5, cell_storage_type > p_k_cells;
 
-        typedef boost::mpl::vector< p_in_cells, p_out_cells, p_i_cells, p_c_cells, p_j_cells, p_k_cells >
-            accessor_list_t;
+        typedef boost::mpl::vector< p_in_cells, p_out_cells > accessor_list_t;
 
-        gridtools::domain_type< accessor_list_t > domain(
-            boost::fusion::make_vector(&in_cells, &out_cells, &i_cells, &c_cells, &j_cells, &k_cells));
+        gridtools::domain_type< accessor_list_t > domain(boost::fusion::make_vector(&in_cells, &out_cells));
         array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
@@ -111,7 +93,7 @@ namespace soc {
             gridtools::make_mss // mss_descriptor
             (execute< forward >(),
                 gridtools::make_esf< test_on_cells_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
-                    p_in_cells(), p_out_cells(), p_i_cells(), p_c_cells(), p_j_cells(), p_k_cells())));
+                    p_in_cells(), p_out_cells())));
         stencil_->ready();
         stencil_->steady();
         stencil_->run();

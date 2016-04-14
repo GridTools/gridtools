@@ -374,8 +374,7 @@ namespace gridtools {
             _impl::template prepare_temporaries_functor< ArgList,
                 MetaList,
                 Grid,
-                backend_ids_t,
-                backend_ids_t::s_strategy_id >::prepare_temporaries((arg_list_), meta_list_, (grid));
+                backend_ids_t>::prepare_temporaries((arg_list_), meta_list_, (grid));
         }
 
         /** Initial interface

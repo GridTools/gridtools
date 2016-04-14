@@ -170,28 +170,6 @@ namespace gridtools {
             }
         };
 
-        struct print__ {
-            std::string prefix;
-
-            print__() : prefix("") {}
-
-            print__(std::string const &s) : prefix(s) {}
-
-            template < typename MplVector >
-            void operator()(MplVector const &) const {
-                // std::cout << "Independent" << std::endl;
-                // //gridtools::for_each<MplVector>(print__(std::string("    ")));
-                // std::cout << "End Independent" << std::endl;
-            }
-
-            template < typename MplVector >
-            void operator()(_impl::wrap_type< MplVector > const &) const {
-                printf("Independent*\n"); // this whould not be necessary but nvcc s#$ks
-                boost::mpl::for_each< MplVector >(print__(std::string("    ")));
-                printf("End Independent*\n");
-            }
-        };
-
     } // namespace _debug
 
     //\todo move inside the traits classes
@@ -558,39 +536,11 @@ namespace gridtools {
             typename reduction_data_t::reduction_type_t reduction_initial_value = 0)
             : m_domain(domain), m_grid(grid), m_meter("NoName"), m_conditionals_set(conditionals_),
               m_reduction_data(reduction_initial_value) {
-// Each map key is a pair of indices in the axis, value is the corresponding method interval.
+            // Each map key is a pair of indices in the axis, value is the corresponding method interval.
 
-#ifndef NDEBUG
-#ifndef __CUDACC__
-// TODO redo
-//            std::cout << "Actual loop bounds ";
-//            gridtools::for_each<loop_intervals_t>(_debug::show_pair<Grid>(grid));
-//            std::cout << std::endl;
-#endif
-#endif
+            // Extract the extents from functors to determine iteration spaces bounds
 
-// Extract the extents from functors to determine iteration spaces bounds
-
-// For each functor collect the minimum enclosing box of the extents for the arguments
-
-#ifndef NDEBUG
-// TODO redo
-//            std::cout << "extents list" << std::endl;
-//            gridtools::for_each<extents_list>(_debug::print__());
-#endif
-
-#ifndef NDEBUG
-// TODO redo
-//            std::cout << "extent sizes" << std::endl;
-//            gridtools::for_each<structured_extent_sizes>(_debug::print__());
-//            std::cout << "end1" <<std::endl;
-#endif
-
-#ifndef NDEBUG
-// TODO redo
-//            gridtools::for_each<extent_sizes>(_debug::print__());
-//            std::cout << "end2" <<std::endl;
-#endif
+            // For each functor collect the minimum enclosing box of the extents for the arguments
 
             // filter the non temporary storages among the storage pointers in the domain
             typedef boost::fusion::filter_view< typename DomainType::arg_list, is_not_tmp_storage< boost::mpl::_1 > >
