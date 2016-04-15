@@ -39,6 +39,7 @@ TEST(storage_info, test_interface) {
 #endif
 }
 
+#ifdef CXX11_ENABLED
 TEST(storage_info, meta_storage_extender) {
 
     GRIDTOOLS_STATIC_ASSERT((boost::is_same< meta_storage_extender_impl< layout_map< 0, 1, 2, 3 >, 1 >::type,
@@ -56,16 +57,14 @@ TEST(storage_info, meta_storage_extender) {
         (boost::is_same< meta_storage_extender_impl< meta_storage1_t, 1 >::type, meta_storage1_ext_t >::value),
         "Error");
 
-    typedef meta_storage_base<0, layout_map< 3, 4, 5, 6, 0, 1, 2 >, false > meta_storage_multi_ext_t;
+    typedef meta_storage_base< 0, layout_map< 3, 4, 5, 6, 0, 1, 2 >, false > meta_storage_multi_ext_t;
 
     GRIDTOOLS_STATIC_ASSERT(
         (boost::is_same< meta_storage_extender_impl< meta_storage1_t, 3 >::type, meta_storage_multi_ext_t >::value),
         "Error");
 
-
     typedef meta_storage_aligned< meta_storage1_t, aligned< 0 >, halo< 0, 0, 0, 0 > > meta_storage_aligned_t;
-    typedef meta_storage_aligned< meta_storage1_ext_t, aligned< 0 >, halo< 0, 0, 0, 0, 0 > >
-        meta_storage_aligned_ext_t;
+    typedef meta_storage_aligned< meta_storage1_ext_t, aligned< 0 >, halo< 0, 0, 0, 0, 0 > > meta_storage_aligned_ext_t;
 
     typedef meta_storage< meta_storage_aligned_t > meta_storage2_t;
 
@@ -84,3 +83,5 @@ TEST(storage_info, meta_storage_extender) {
     ASSERT_TRUE((extended_meta.template dim< 3 >() == 5));
     ASSERT_TRUE((extended_meta.template dim< 4 >() == 10));
 }
+
+#endif

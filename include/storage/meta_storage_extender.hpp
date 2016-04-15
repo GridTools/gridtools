@@ -1,6 +1,7 @@
 #pragma once
 #include "meta_storage.hpp"
 
+#ifdef CXX11_ENABLED
 namespace gridtools {
 
     /**
@@ -79,3 +80,4 @@ namespace gridtools {
         }
     };
 }
+#endif
