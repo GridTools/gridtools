@@ -167,11 +167,24 @@ cmake \
 
 exit_if_error $?
 
+#number of trials for compilation. We add this here because sometime intermediate links of nvcc are missing 
+#some object files, probably related to parallel make compilation, but we dont know yet how to solve this. 
+#Workaround here is to try multiple times the compilation step
+num_make_rep=2
+
 log_file="/tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}.log"
 echo "Log file /tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}.log"
 if [[ "$SILENT_BUILD" == "ON" ]]; then
-    make -j5  >& ${log_file};
-    error_code=$?
+    for i in `seq 1 $num_make_rep`; 
+    do
+      echo "COMPILATION # ${i}"
+      make -j5  >& ${log_file};
+      error_code=$?
+      if [ ${error_code} -eq 0 ]; then
+          break # Skip the make repetitions
+      fi
+    done
+
     if [ ${error_code} -ne 0 ]; then
         cat ${log_file};
         exit_if_error ${error_code}
