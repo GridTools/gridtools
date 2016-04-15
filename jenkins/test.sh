@@ -17,8 +17,7 @@ elif [ $myhost == "kesch" ]; then
     echo "replacing in ${slurm_script} command by ${cmd}"
     /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm_script}
 
-    launch_job ${slurm_script} ${maxsleep} &
-    wait
+    ~mbianco/bin/monitorjobid `sbatch ${slurm_script} | gawk '{print $4}'`
 
     test -e test.out
     if [ $? -ne 0 ] ; then
