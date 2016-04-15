@@ -43,7 +43,7 @@ elif [ $myhost == "daint" ]; then
 
     cp ${JENKINSPATH}/submit.daint.slurm ${JENKINSPATH}/submit.daint.slurm.test
     slurm_script="${JENKINSPATH}/submit.daint.slurm.test"
-    cmd="arun -B bash ./run_tests.sh"
+    cmd="aprun -B bash ./run_tests.sh"
     echo "replacing in ${slurm_script} command by ${cmd}"
     /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm_script}
 

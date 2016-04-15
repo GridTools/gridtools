@@ -1,6 +1,7 @@
 #pragma once
 #include "base_storage_impl.hpp"
 #include "../common/array.hpp"
+#include "./meta_storage.hpp"
 #include "wrap_pointer.hpp"
 
 /**@file
