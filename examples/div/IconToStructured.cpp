@@ -98,8 +98,6 @@ void IconToStructured::buildMapping(netCDF::NcFile &dataFile)
     // find edge length of the trapezoid and map the vertices on the top border
     int length = 0;
     {
-        i2s_vertex[left_vertex] = 0;
-
         int current_vertex = left_vertex;
         int current_cell = left_cell;
         while (length == 0
@@ -111,7 +109,6 @@ void IconToStructured::buildMapping(netCDF::NcFile &dataFile)
 
             current_vertex = vertex_of_cell[current_cell - 1][0];
             ++length;
-            i2s_vertex[current_vertex] = length;
         }
     }
 
@@ -119,38 +116,56 @@ void IconToStructured::buildMapping(netCDF::NcFile &dataFile)
     // fill i2s_*
     for (int row = 0; row < length; ++row)
     {
-        left_vertex = vertex_of_cell[left_cell - 1][1];
-        if (row == length - 1)
-            assert(find(vertices_of_vertex[left_vertex - 1].begin(), vertices_of_vertex[left_vertex - 1].end(), 0)
-                       != vertices_of_vertex[left_vertex - 1].end());
+        int current_cell = left_cell;
 
-        i2s_vertex[left_vertex] = (row + 1) * (length + 1);
-        i2s_cell[left_cell] = row * 2 * length;
-
-        int current_cell = getNeighborCell(left_cell, 1);
-        i2s_cell[current_cell] = (row * 2 + 1) * length;
-
-        int current_vertex = vertex_of_cell[current_cell - 1][0];
-        i2s_vertex[current_vertex] = (row + 1) * (length + 1) + 1;
-
-        for (int col = 1; col < length; ++col)
+        for (int col{0}; col < length; ++col)
         {
-            current_cell = getNeighborCell(current_cell, 0);
+            int current_vertex = vertex_of_cell[current_cell - 1][0];
+            i2s_vertex[current_vertex] = row * (length + 1) + col;
+
+            // vertex on bottom line
+            if (row == length - 1)
+                i2s_vertex[vertex_of_cell[current_cell - 1][1]] = length * (length + 1) + col;
+
+            i2s_edge[edge_of_cell[current_cell - 1][0]] = 3 * row * length + col; // red
+            i2s_edge[edge_of_cell[current_cell - 1][1]] = (3 * row + 2) * length + col; // green
+            i2s_edge[edge_of_cell[current_cell - 1][2]] = (3 * row + 1) * length + col; // blue
             i2s_cell[current_cell] = row * 2 * length + col;
 
             current_cell = getNeighborCell(current_cell, 1);
             i2s_cell[current_cell] = (row * 2 + 1) * length + col;
 
-            current_vertex = vertex_of_cell[current_cell - 1][0];
-            i2s_vertex[current_vertex] = (row + 1) * (length + 1) + col + 1;
+            // last vertex in a line
+            if (col == length - 1)
+            {
+                i2s_vertex[vertex_of_cell[current_cell - 1][1]] = (row + 1) * (length + 1) - 1;
+                if (row == length - 1)
+                    i2s_vertex[vertex_of_cell[current_cell - 1][0]] = (length + 1) * (length + 1) - 1;
+            }
+
+            current_cell = getNeighborCell(current_cell, 0);
         }
 
+        if (row == length - 1)
+        {
+
+            int botomleft_vertex = vertex_of_cell[left_cell - 1][1];
+            assert(find(vertices_of_vertex[botomleft_vertex - 1].begin(),
+                        vertices_of_vertex[botomleft_vertex - 1].end(),
+                        0)
+                       != vertices_of_vertex[botomleft_vertex - 1].end());
+        }
+
+        // move to next line
         left_cell = getNeighborCell(left_cell, 1);
         left_cell = getNeighborCell(left_cell, 2);
     }
 
     cout << "vertex mapping: " << endl;
     print_i2s_vector(i2s_vertex);
+
+    cout << "edge mapping: " << endl;
+    print_i2s_vector(i2s_edge);
 
     cout << "cell mapping: " << endl;
     print_i2s_vector(i2s_cell);
