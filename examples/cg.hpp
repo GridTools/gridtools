@@ -190,7 +190,6 @@ struct boundary_conditions {
 bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
     gridtools::GCL_Init(); 
-    int a;
 
     // domain is encapsulated in boundary layer from both sides in each dimension
     // these are just inned domain dimension
