@@ -52,8 +52,7 @@ namespace gridtools {
 
     template < typename ReductionType, typename BinOp, typename EsfDescrSequence >
     struct mss_descriptor_cache_sequence< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence > > {
-        typedef typename mss_descriptor_cache_sequence<
-            reduction_descriptor< ReductionType, BinOp, EsfDescrSequence > >::cache_sequence_t type;
+        typedef boost::mpl::vector0<> type;
     };
 
     template < typename ReductionType, typename BinOp, typename EsfDescrSequence >
