@@ -3,6 +3,7 @@
 
 #include <boost/mpl/assert.hpp>
 #include <assert.h>
+#include <mpi.h>
 #include "../GCL.hpp"
 #include "translate.hpp"
 #include "has_communicator.hpp"

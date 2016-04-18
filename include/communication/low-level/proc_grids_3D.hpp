@@ -8,12 +8,13 @@
 #include "../GCL.hpp"
 #include "../../common/array.hpp"
 #include <boost/type_traits/integral_constant.hpp>
+#include <mpi.h>
 
 // This file needs to be changed
 
 namespace gridtools {
 
-#ifdef _GCL_MPI_
+//#ifdef _GCL_MPI_
     /** \class MPI_3D_process_grid_t
      * Class that provides a representation of a 3D process grid given an MPI CART
      * It requires the MPI CART to be defined before the grid is created
@@ -253,7 +254,7 @@ namespace gridtools {
 
     };
 
-#endif
+//#endif
 
 } //namespace gridtools
 
