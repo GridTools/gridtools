@@ -369,11 +369,11 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
     //instantiate stencil to perform initialization step of CG
     #ifdef __CUDACC__
-        gridtools::computation* stencil_init =
+        gridtools::stencil*
     #else
-            auto stencil_init =
+            boost::shared_ptr<gridtools::stencil>
     #endif
-          gridtools::make_computation<gridtools::BACKEND>
+         stencil_init = gridtools::make_computation<gridtools::BACKEND>
             (
                 domain_init, coords3d7pt,
                 gridtools::make_mss // mss_descriptor
@@ -441,29 +441,30 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
         //instantiate stencil to perform step of CG
         #ifdef __CUDACC__
-            gridtools::computation* stencil_step0 =
+            gridtools::stencil*
         #else
-                boost::shared_ptr<gridtools::computation> stencil_step0 =
+                boost::shared_ptr<gridtools::stencil>
         #endif
-              gridtools::make_computation<gridtools::BACKEND>
+              stencil_step0 = gridtools::make_computation<gridtools::BACKEND>
                 (
+                    domain_step0, coords3d7pt,
                     gridtools::make_mss // mss_descriptor
                     (
                         execute<forward>(),
                         gridtools::make_esf<d3point7>( p_Ad_step0(),
                                                        p_d_step0() ) // A * d
-                    ),
-                    domain_step0, coords3d7pt
+                    ) 
                 );
 
 
         #ifdef __CUDACC__
-            gridtools::computation* stencil_step1 =
+            gridtools::stencil*
         #else
-                boost::shared_ptr<gridtools::computation> stencil_step1 =
+                boost::shared_ptr<gridtools::stencil>
         #endif
-              gridtools::make_computation<gridtools::BACKEND>
+                stencil_step1 = gridtools::make_computation<gridtools::BACKEND>
                 (
+                    domain_step1, coords3d7pt,
                     gridtools::make_mss // mss_descriptor
                     (
                         execute<forward>(),
@@ -471,17 +472,17 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                                                          p_x_step1(),
                                                          p_d_step1(),
                                                          p_alpha_step1()) // x_(i+1) = x_i + alpha * d_i
-                    ),
-                    domain_step1, coords3d7pt
+                    )
                 );
 
         #ifdef __CUDACC__
-            gridtools::computation* stencil_step2 =
+            gridtools::stencil*
         #else
-                boost::shared_ptr<gridtools::computation> stencil_step2 =
+                boost::shared_ptr<gridtools::stencil>
         #endif
-              gridtools::make_computation<gridtools::BACKEND>
+                stencil_step2 = gridtools::make_computation<gridtools::BACKEND>
                 (
+                    domain_step2, coords3d7pt,
                     gridtools::make_mss // mss_descriptor
                     (
                         execute<forward>(),
@@ -489,17 +490,17 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                                                          p_r_step2(),
                                                          p_Ad_step2(),
                                                          p_alpha_step2()) // r_(i+1) = r_i + alpha * Ad_i
-                    ),
-                    domain_step2, coords3d7pt
+                    )
                 );
 
         #ifdef __CUDACC__
-            gridtools::computation* stencil_step3 =
+            gridtools::stencil*
         #else
-                boost::shared_ptr<gridtools::computation> stencil_step3 =
+                boost::shared_ptr<gridtools::stencil>
         #endif
-              gridtools::make_computation<gridtools::BACKEND>
+              stencil_step3 = gridtools::make_computation<gridtools::BACKEND>
                 (
+                    domain_step3, coords3d7pt,
                     gridtools::make_mss // mss_descriptor
                     (
                         execute<forward>(),
@@ -507,8 +508,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                                                          p_rNew_step3(),
                                                          p_d_step3(),
                                                          p_beta_step3()) // d_(i+1) = r_(i+1) + beta * d_i
-                    ),
-                    domain_step3, coords3d7pt
+                    )
                 );
 
         //prepare and run steps of stencil computation
