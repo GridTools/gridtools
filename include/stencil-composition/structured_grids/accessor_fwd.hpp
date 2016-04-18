@@ -1,8 +1,8 @@
 #pragma once
 
-namespace gridtools{
+namespace gridtools {
 
-template < uint_t ID, enumtype::intend Intend, typename Extend, ushort_t Number>
-struct accessor;
+    template < uint_t ID, enumtype::intend Intend, typename Extend, ushort_t Number >
+    struct accessor;
 
-} //namespace gridtools
+} // namespace gridtools

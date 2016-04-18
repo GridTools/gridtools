@@ -98,9 +98,13 @@ bool the_same(One const& storage1, Two const& storage2) {
 bool test_domain() {
 
 #ifdef __CUDACC__
-    typedef gridtools::backend<gridtools::enumtype::Cuda, gridtools::enumtype::Naive > backend_t;
+    typedef gridtools::backend< gridtools::enumtype::Cuda,
+        gridtools::enumtype::GRIDBACKEND,
+        gridtools::enumtype::Naive > backend_t;
 #else
-    typedef gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Naive > backend_t;
+    typedef gridtools::backend< gridtools::enumtype::Host,
+        gridtools::enumtype::GRIDBACKEND,
+        gridtools::enumtype::Naive > backend_t;
 #endif
     typedef typename backend_t::storage_type<double, backend_t::storage_info<0,gridtools::layout_map<0,1,2> > >::type storage_type;
 
@@ -108,7 +112,7 @@ bool test_domain() {
     uint_t d2 = 3;
     uint_t d3 = 3;
 
-    typename storage_type::meta_data_t meta_(d1,d2,d3);
+    typename storage_type::storage_info_type meta_(d1,d2,d3);
     storage_type in(meta_, -1, ("in"));
     storage_type out(meta_,-7.3, ("out"));
     storage_type coeff(meta_,-3.4, ("coeff"));
@@ -149,9 +153,9 @@ bool test_domain() {
         (boost::fusion::make_vector(&coeff, &in, &out /*,&fly, &flx*/));
 
     typedef boost::mpl::vector<
-        gridtools::_impl::select_storage<accessor_list>::template apply<gridtools::static_int<0> >::type,
-        gridtools::_impl::select_storage<accessor_list>::template apply<gridtools::static_int<1> >::type,
-        gridtools::_impl::select_storage<accessor_list>::template apply<gridtools::static_int<2> >::type
+        gridtools::_impl::select_storage<accessor_list, boost::mpl::na>::template apply<gridtools::static_int<0> >::type,
+        gridtools::_impl::select_storage<accessor_list, boost::mpl::na>::template apply<gridtools::static_int<1> >::type,
+        gridtools::_impl::select_storage<accessor_list, boost::mpl::na>::template apply<gridtools::static_int<2> >::type
     > mpl_accessor_list;
 
     typedef typename boost::fusion::result_of::as_vector<mpl_accessor_list>::type actual_arg_list_type;
@@ -200,8 +204,9 @@ bool test_domain() {
 #ifndef NDEBUG
     printf("\n\nFROM GPU\n\n");
 #endif
+    // clang-format off
     print_values<<<1,1>>>(arg_list_device_ptr/*domain.gpu_object_ptr*/);
-
+    // clang-format on
 #ifdef __CUDACC__
     cudaDeviceSynchronize();
 #endif
@@ -210,9 +215,9 @@ bool test_domain() {
 #endif
     domain.finalize_computation();
 
-    coeff.data().update_cpu();
-    in.data().update_cpu();
-    out.data().update_cpu();
+    coeff.d2h_update();
+    in.d2h_update();
+    out.d2h_update();
 
     boost::fusion::copy(domain.m_storage_pointers, actual_arg_list);
 
@@ -227,7 +232,9 @@ bool test_domain() {
 #ifndef NDEBUG
     printf("\n\nFROM GPU\n\n");
 #endif
+    // clang-format off
     print_values<<<1,1>>>(arg_list_device_ptr);
+    // clang-format on
 #ifdef __CUDACC__
     cudaDeviceSynchronize();
 #endif
@@ -237,9 +244,9 @@ bool test_domain() {
 
     domain.finalize_computation();
 
-    coeff.data().update_cpu();
-    in.data().update_cpu();
-    out.data().update_cpu();
+    coeff.d2h_update();
+    in.d2h_update();
+    out.d2h_update();
 
     cudaFree(arg_list_device_ptr);
 

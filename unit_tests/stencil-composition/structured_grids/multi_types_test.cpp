@@ -53,12 +53,12 @@ using namespace expressions;
 #endif
 
 #ifdef CUDA_EXAMPLE
-typedef gridtools::backend<gridtools::enumtype::Cuda, gridtools::enumtype::Block > the_backend;
+typedef gridtools::backend< gridtools::enumtype::Cuda, GRIDBACKEND, gridtools::enumtype::Block > the_backend;
 #else
 #ifdef BACKEND_BLOCK
-typedef gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Block > the_backend;
+typedef gridtools::backend< gridtools::enumtype::Host, GRIDBACKEND, gridtools::enumtype::Block > the_backend;
 #else
-typedef gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Naive > the_backend;
+typedef gridtools::backend< gridtools::enumtype::Host, GRIDBACKEND, gridtools::enumtype::Naive > the_backend;
 #endif
 #endif
 
@@ -246,9 +246,9 @@ bool test(uint_t x, uint_t y, uint_t z)
     storage_info2_t si2(x,y,z);
     storage_info3_t si3(x,y,z);
 
-    storage_type1 field1 = storage_type1(si1/*storage_info1_t(x,y,z)*/, type1(), "field1");
-    storage_type2 field2 = storage_type2(si2/*storage_info2_t(x,y,z)*/, type2(), "field2");
-    storage_type3 field3 = storage_type3(si3/*storage_info3_t(x,y,z)*/, type3(), "field3");
+    storage_type1 field1 = storage_type1(si1, type1(), "field1");
+    storage_type2 field2 = storage_type2(si2, type2(), "field2");
+    storage_type3 field3 = storage_type3(si3, type3(), "field3");
 
     for (int i = 0; i < x; ++i) {
         for (int j = 0; j < y; ++j) {
@@ -278,14 +278,18 @@ bool test(uint_t x, uint_t y, uint_t z)
     grid.value_list[0] = 0;
     grid.value_list[1] = d3-1;
 
-// \todo simplify the following using the auto keyword from C++11
-#ifdef __CUDACC__
-    gridtools::computation* test_computation =
+#ifdef CXX11_ENABLED
+auto
 #else
-        boost::shared_ptr<gridtools::computation> test_computation =
+#ifdef __CUDACC__
+    gridtools::stencil*
+#else
+        boost::shared_ptr<gridtools::stencil>
 #endif
-        gridtools::make_computation<the_backend>
+#endif
+    test_computation = gridtools::make_computation<the_backend>
         (
+            domain, grid,
             gridtools::make_mss // mss_descriptor
             (
                 execute<forward>(),
@@ -297,8 +301,7 @@ bool test(uint_t x, uint_t y, uint_t z)
                 execute<backward>(),
                 gridtools::make_esf<function1>(p_temp(), p_field1()),
                 gridtools::make_esf<function3>(p_field3(), p_temp(), p_field1())
-            ),
-            domain, grid
+            )
         );
 
     test_computation->ready();
@@ -306,11 +309,6 @@ bool test(uint_t x, uint_t y, uint_t z)
     test_computation->steady();
 
     test_computation->run();
-
-#ifdef __CUDACC__
-    field2.data().update_cpu();
-    field3.data().update_cpu();
-#endif
 
     test_computation->finalize();
 

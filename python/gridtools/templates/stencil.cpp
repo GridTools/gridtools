@@ -10,12 +10,12 @@
 
 
 #ifdef __CUDACC__
-#define BACKEND backend<Cuda, Block >
+#define BACKEND backend<Cuda, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend<Host, Block >
+#define BACKEND backend<Host, GRIDBACKEND, Block >
 #else
-#define BACKEND backend<Host, Naive >
+#define BACKEND backend<Host, GRIDBACKEND, Naive >
 #endif
 #endif
 
@@ -85,7 +85,7 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
     //
     // parameter data fields use the memory buffers received from NumPy arrays
     //
-    typename storage_type::meta_data_t meta_(d1, d2, d3);
+    typename storage_type::storage_info_type meta_(d1, d2, d3);
 
     {% for p in params -%}
     storage_type {{ p.name }} (meta_,
@@ -162,16 +162,21 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
     // 2) the logical physical domain with the fields to use;
     // 3) the actual domain dimensions
     //
-#ifdef __CUDACC__
-    gridtools::computation*
+#ifdef CXX11_ENABLED
+    auto
 #else
-    boost::shared_ptr<gridtools::computation>
+#ifdef __CUDACC__
+    gridtools::stencil*
+#else
+    boost::shared_ptr<gridtools::stencil>
+#endif
 #endif
     {% set inside_independent_block = False %}
 
     comp_{{ s.name|lower }} =
       gridtools::make_computation<gridtools::BACKEND>
       (
+          domain, grid_{{ loop.index0 }},
             gridtools::make_mss
             (
                 execute<{{ s.k_direction }}>(),
@@ -190,8 +195,7 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
                        ,
                        {%- endif %}
                 {% endfor -%}
-            ),
-            domain, grid_{{ loop.index0 }}
+            )
       );
     {% endfor %}
 

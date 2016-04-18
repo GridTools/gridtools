@@ -189,7 +189,8 @@ struct boundary_conditions {
 
 bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
-    gridtools::GCL_Init();
+    gridtools::GCL_Init(); 
+    int a;
 
     // domain is encapsulated in boundary layer from both sides in each dimension
     // these are just inned domain dimension
@@ -214,9 +215,9 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     }
 
 #ifdef BACKEND_BLOCK
-#define BACKEND backend<Host, Block >
+#define BACKEND backend<Host, GRIDBACKEND, Block >
 #else
-#define BACKEND backend<Host, Naive >
+#define BACKEND backend<Host, GRIDBACKEND, Naive >
 #endif
 
     //--------------------------------------------------------------------------
@@ -231,7 +232,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     typedef gridtools::layout_map<0,1,2> layout_t;
     typedef gridtools::BACKEND::storage_info<0, layout_t> metadata_t;
     typedef gridtools::BACKEND::storage_type<float_type, metadata_t >::type storage_type;
-    typedef storage_type::original_storage::pointer_type pointer_type;
+    typedef storage_type::pointer_type pointer_type;
 
     typedef gridtools::halo_exchange_dynamic_ut<layout_t,
                                                 gridtools::layout_map<0, 1, 2>,
@@ -370,18 +371,18 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     #ifdef __CUDACC__
         gridtools::computation* stencil_init =
     #else
-            boost::shared_ptr<gridtools::computation> stencil_init =
+            auto stencil_init =
     #endif
           gridtools::make_computation<gridtools::BACKEND>
             (
+                domain_init, coords3d7pt,
                 gridtools::make_mss // mss_descriptor
                 (
                     execute<forward>(),
                     gridtools::make_esf<d3point7>(p_Ax_init(), p_x_init()), // A * x
                     gridtools::make_esf<add_functor>(p_r_init(), p_b_init(), p_Ax_init(), p_alpha_init()), // r = b - Ax
                     gridtools::make_esf<copy_functor>(p_d_init(), p_r_init()) // d = r
-                ),
-                domain_init, coords3d7pt
+                )
             );
 
     //apply boundary conditions
