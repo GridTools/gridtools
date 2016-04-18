@@ -17,7 +17,9 @@ elif [ $myhost == "kesch" ]; then
     echo "replacing in ${slurm_script} command by ${cmd}"
     /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm_script}
 
-    ~mbianco/bin/monitorjobid `sbatch ${slurm_script} | gawk '{print $4}'`
+    rm test.out
+
+    bash ${JENKINSPATH}/monitorjobid `sbatch ${slurm_script} | gawk '{print $4}'` $maxsleep
 
     test -e test.out
     if [ $? -ne 0 ] ; then
@@ -46,7 +48,9 @@ elif [ $myhost == "daint" ]; then
     echo "replacing in ${slurm_script} command by ${cmd}"
     /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm_script}
 
-    ~mbianco/bin/monitorjobid `sbatch ${slurm_script} | gawk '{print $4}'`
+    rm test.out
+
+    bash ${JENKINSPATH}/monitorjobid `sbatch ${slurm_script} | gawk '{print $4}'`  $maxsleep
 
     test -e test.out
     if [ $? -ne 0 ] ; then

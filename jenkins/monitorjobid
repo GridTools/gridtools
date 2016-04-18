@@ -2,7 +2,7 @@
 fatto=true
 ID=$1
 if [ -z $2 ]; then
-    DURATION=3
+    DURATION=3600
 else
     DURATION=$2
 fi
