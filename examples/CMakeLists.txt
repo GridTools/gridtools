@@ -1,10 +1,10 @@
-add_subdirectory(icosahedral)
+#add_subdirectory(icosahedral)
 
-list( APPEND SRCFILES interface1 simple_hori_diff boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore alignment)
+list( APPEND SRCFILES boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal alignment)
 list( APPEND X86_SRCFILES reduction)
 
 if( ENABLE_CXX11)
-    list(APPEND SRCFILES  extended_4D  copy_stencil_single_storage cg)
+    list(APPEND SRCFILES  extended_4D copy_stencil_parallel cg)
 endif()
 
 
