@@ -45,7 +45,7 @@ inline double u(double xi, double yi, double zi) {
   is used to implement matrix-free matrix-vector product. The matrix has a constant
   structure arising from finite element discretization.
 
-  Regular domain x in 0..1 is discretized, the step size h = 1/(n+1) 
+  Regular domain x in 0..1 is discretized, the step size h = 1/(n+1)
  */
 
 using gridtools::level;
@@ -73,7 +73,7 @@ typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
     @param int Source domain.
 */
 struct copy_functor {
-    typedef const accessor<0, enumtype::inout> out;
+    typedef accessor<0, enumtype::inout> out;
     typedef accessor<1, enumtype::in> in;
     typedef boost::mpl::vector<out, in> arg_list;
 
@@ -180,8 +180,8 @@ struct boundary_conditions {
         size_t I = m_partitioner.get_low_bound(0) + i;
         size_t J = m_partitioner.get_low_bound(1) + j;
         size_t K = m_partitioner.get_low_bound(2) + k;
-        data_field0(i,j,k) = g(h*I, h*J, h*K);
-        data_field1(i,j,k) = g(h*I, h*J, h*K);
+        data_field0(i,j,k) = 10;//g(h*I, h*J, h*K); //TODO
+        data_field1(i,j,k) = 10;//g(h*I, h*J, h*K);
     }
 };
 /*******************************************************************************/
@@ -189,7 +189,7 @@ struct boundary_conditions {
 
 bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
-    gridtools::GCL_Init(); 
+    gridtools::GCL_Init();
 
     // domain is encapsulated in boundary layer from both sides in each dimension
     // these are just inned domain dimension
@@ -287,12 +287,14 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     size_t J = meta_.get_low_bound(1);
     size_t K = meta_.get_low_bound(2);
 
-    // initialize the local domain
+    // initialize the local domain (RHS vector)
     for(uint_t i=0; i<metadata_.template dims<0>(); ++i)
         for(uint_t j=0; j<metadata_.template dims<1>(); ++j)
             for(uint_t k=0; k<metadata_.template dims<2>(); ++k)
             {
-                b(i,j,k) = h2 * f(I+i, J+j, K+k);
+                //b(i,j,k) = h2 * f(I+i, J+j, K+k);
+                b(i,j,k) = 0;
+                x(i,j,k) = i+I; //TODO
             }
 
     //--------------------------------------------------------------------------
@@ -367,18 +369,13 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         (boost::fusion::make_vector(&d, &r, &b, &Ax, &x, &alpha));
 
     //instantiate stencil to perform initialization step of CG
-    #ifdef __CUDACC__
-        gridtools::stencil*
-    #else
-            boost::shared_ptr<gridtools::stencil>
-    #endif
-         stencil_init = gridtools::make_computation<gridtools::BACKEND>
+    auto stencil_init = gridtools::make_computation<gridtools::BACKEND>
             (
                 domain_init, coords3d7pt,
                 gridtools::make_mss // mss_descriptor
                 (
                     execute<forward>(),
-                    gridtools::make_esf<d3point7>(p_Ax_init(), p_x_init()), // A * x
+                    gridtools::make_esf<d3point7>(p_Ax_init(), p_x_init()), // A * x, where x_0 = 0
                     gridtools::make_esf<add_functor>(p_r_init(), p_b_init(), p_Ax_init(), p_alpha_init()), // r = b - Ax
                     gridtools::make_esf<copy_functor>(p_d_init(), p_r_init()) // d = r
                 )
@@ -397,7 +394,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
          gridtools::bitmap_predicate(part.boundary())
         ).apply(x, d);
 
-    // set addition param to substraction: c = b - a
+    // set addition param to substraction: r = b + alpha A x
     double minus = -1;
     alpha.setValue(minus);
 
@@ -420,12 +417,12 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
     MPI_Barrier(GCL_WORLD);
 
-    /** 
+    /**
         Perform iterations of the CG
     */
     for(int i=0; i < TIME_STEPS; i++) {
 
-        // construction of the domain for the step of CG
+        // construction of the domain for the steps of CG
         gridtools::domain_type<accessor_list_step0> domain_step0
             (boost::fusion::make_vector(&Ad, &d));
 
@@ -438,13 +435,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         gridtools::domain_type<accessor_list_step3> domain_step3
             (boost::fusion::make_vector(&dNew, &rNew, &d, &beta));
 
-        //instantiate stencil to perform step of CG
-        #ifdef __CUDACC__
-            gridtools::stencil*
-        #else
-                boost::shared_ptr<gridtools::stencil>
-        #endif
-              stencil_step0 = gridtools::make_computation<gridtools::BACKEND>
+        //instantiate stencil to perform steps of CG
+        auto stencil_step0 = gridtools::make_computation<gridtools::BACKEND>
                 (
                     domain_step0, coords3d7pt,
                     gridtools::make_mss // mss_descriptor
@@ -452,16 +444,11 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                         execute<forward>(),
                         gridtools::make_esf<d3point7>( p_Ad_step0(),
                                                        p_d_step0() ) // A * d
-                    ) 
+                    )
                 );
 
 
-        #ifdef __CUDACC__
-            gridtools::stencil*
-        #else
-                boost::shared_ptr<gridtools::stencil>
-        #endif
-                stencil_step1 = gridtools::make_computation<gridtools::BACKEND>
+        auto stencil_step1 = gridtools::make_computation<gridtools::BACKEND>
                 (
                     domain_step1, coords3d7pt,
                     gridtools::make_mss // mss_descriptor
@@ -474,12 +461,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                     )
                 );
 
-        #ifdef __CUDACC__
-            gridtools::stencil*
-        #else
-                boost::shared_ptr<gridtools::stencil>
-        #endif
-                stencil_step2 = gridtools::make_computation<gridtools::BACKEND>
+
+        auto stencil_step2 = gridtools::make_computation<gridtools::BACKEND>
                 (
                     domain_step2, coords3d7pt,
                     gridtools::make_mss // mss_descriptor
@@ -492,12 +475,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                     )
                 );
 
-        #ifdef __CUDACC__
-            gridtools::stencil*
-        #else
-                boost::shared_ptr<gridtools::stencil>
-        #endif
-              stencil_step3 = gridtools::make_computation<gridtools::BACKEND>
+        auto stencil_step3 = gridtools::make_computation<gridtools::BACKEND>
                 (
                     domain_step3, coords3d7pt,
                     gridtools::make_mss // mss_descriptor
@@ -510,7 +488,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                     )
                 );
 
-        //prepare and run steps of stencil computation
+        // A * d
         stencil_step0->ready();
         stencil_step0->steady();
         boost::timer::cpu_timer time_run0;
@@ -522,6 +500,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         double ddot = 1;
         alpha.setValue(ddot);
 
+        // x_(i+1) = x_i + alpha * d_i
         stencil_step1->ready();
         stencil_step1->steady();
         boost::timer::cpu_timer time_run1;
@@ -529,6 +508,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         lapse_time_run = lapse_time_run + time_run1.elapsed();
         stencil_step1->finalize();
 
+        // r_(i+1) = r_i + alpha * Ad_i
         stencil_step2->ready();
         stencil_step2->steady();
         boost::timer::cpu_timer time_run2;
@@ -540,6 +520,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         double orto = 1.;
         beta.setValue(orto);
 
+        // d_(i+1) = r_(i+1) + beta * d_i
         stencil_step3->ready();
         stencil_step3->steady();
         boost::timer::cpu_timer time_run3;
@@ -566,7 +547,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     {
         std::stringstream ss;
         ss << PID;
-        std::string filename = "x" + ss.str() + ".txt";
+        std::string filename = "x" + ss.str() + ".txt"; //TODO
         std::ofstream file(filename.c_str());
         x.print(file);
     }
