@@ -8,6 +8,7 @@
 #include <stencil-composition/backend.hpp>
 #include <stencil-composition/interval.hpp>
 #include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/reductions/reductions.hpp>
 
 #include <storage/partitioner_trivial.hpp>
 #include <storage/parallel_storage.hpp>
@@ -102,6 +103,43 @@ struct d3point7{
                     - (dom(in{x(-1)})+dom(in{x(+1)}))
                     - (dom(in{y(-1)})+dom(in{y(+1)}))
                     - (dom(in{z(-1)})+dom(in{z(+1)}));
+    }
+};
+
+/** @brief
+    Performs element-wise multiplication of the elements from the input grids
+
+    @param a Source vector.
+    @param b Source vector.
+    @return Element-wise product out = a*b
+*/
+struct product_functor{
+    typedef accessor<0, enumtype::inout, extent<0,0,0,0> > out;
+    typedef accessor<1, enumtype::in, extent<0,0,0,0> > a;
+    typedef accessor<2, enumtype::in, extent<0,0,0,0> > b;
+    typedef boost::mpl::vector<out, a, b> arg_list;
+
+    template <typename Domain>
+    GT_FUNCTION
+    static void Do(Domain const & dom, x_interval) {
+        dom(out{}) = dom(a{}) * dom(b{});
+    }
+};
+
+/** @brief
+    Provides access to elements of the grid
+
+    @param in Source vector
+*/
+struct reduction_functor {
+
+    typedef accessor< 0, enumtype::in > in;
+    typedef boost::mpl::vector< in > arg_list;
+
+    template < typename Evaluation >
+    GT_FUNCTION
+    static float_type Do(Evaluation const &eval, x_interval) {
+        return eval(in());
     }
 };
 
@@ -271,6 +309,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     storage_type d    (metadata_, 0., "Direction vector t");
     storage_type dNew (metadata_, 0., "Direction vector t+1");
     storage_type Ad   (metadata_, 0., "Multiplied direction vector");
+    storage_type tmp  (metadata_, 0., "Temporary storage");
     //storage_type *ptr_in7pt = &in7pt, *ptr_out7pt = &out7pt;
 
     parameter alpha; //step length
@@ -293,7 +332,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
             for(uint_t k=0; k<metadata_.template dims<2>(); ++k)
             {
                 //b(i,j,k) = h2 * f(I+i, J+j, K+k);
-                b(i,j,k) = 0;
+                b(i,j,k) = 0; //TODO
                 x(i,j,k) = i+I; //TODO
             }
 
@@ -352,6 +391,14 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                                p_d_step3,
                                p_beta_step3 > accessor_list_step3;
 
+   typedef arg<0, storage_type > p_out; //elementwise product a_t * b
+   typedef arg<1, storage_type > p_a;
+   typedef arg<2, storage_type > p_b;
+
+   typedef boost::mpl::vector<p_out,
+                              p_a,
+                              p_b> accessor_list_alpha;
+
     /*
       Here we do lot of stuff
       1) We pass to the intermediate representation ::run function the description
@@ -369,17 +416,17 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         (boost::fusion::make_vector(&d, &r, &b, &Ax, &x, &alpha));
 
     //instantiate stencil to perform initialization step of CG
-    auto stencil_init = gridtools::make_computation<gridtools::BACKEND>
+    auto CG_init = gridtools::make_computation<gridtools::BACKEND>
+        (
+            domain_init, coords3d7pt,
+            gridtools::make_mss // mss_descriptor
             (
-                domain_init, coords3d7pt,
-                gridtools::make_mss // mss_descriptor
-                (
-                    execute<forward>(),
-                    gridtools::make_esf<d3point7>(p_Ax_init(), p_x_init()), // A * x, where x_0 = 0
-                    gridtools::make_esf<add_functor>(p_r_init(), p_b_init(), p_Ax_init(), p_alpha_init()), // r = b - Ax
-                    gridtools::make_esf<copy_functor>(p_d_init(), p_r_init()) // d = r
-                )
-            );
+                execute<forward>(),
+                gridtools::make_esf<d3point7>(p_Ax_init(), p_x_init()), // A * x, where x_0 = 0
+                gridtools::make_esf<add_functor>(p_r_init(), p_b_init(), p_Ax_init(), p_alpha_init()), // r = b - Ax
+                gridtools::make_esf<copy_functor>(p_d_init(), p_r_init()) // d = r
+            )
+        );
 
     //apply boundary conditions
     gridtools::array<gridtools::halo_descriptor, 3> halos;
@@ -399,12 +446,14 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     alpha.setValue(minus);
 
     //prepare and run single step of stencil computation
-    stencil_init->ready();
-    stencil_init->steady();
+    CG_init->ready();
+    CG_init->steady();
     boost::timer::cpu_timer time_run;
-    stencil_init->run();
+    CG_init->run();
     lapse_time_run = lapse_time_run + time_run.elapsed();
-    stencil_init->finalize();
+    CG_init->finalize();
+
+    //printf("%f\n", Ax(1,1,0)); //TODO
 
     //communicate halos
     std::vector<pointer_type::pointee_t*> vec(2);
@@ -435,98 +484,145 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         gridtools::domain_type<accessor_list_step3> domain_step3
             (boost::fusion::make_vector(&dNew, &rNew, &d, &beta));
 
+        gridtools::domain_type<accessor_list_alpha> domain_alpha_nominator
+            (boost::fusion::make_vector(&tmp, &r, &r));
+
+        gridtools::domain_type<accessor_list_alpha> domain_alpha_denominator
+            (boost::fusion::make_vector(&tmp, &d, &Ad));
+
         //instantiate stencil to perform steps of CG
-        auto stencil_step0 = gridtools::make_computation<gridtools::BACKEND>
+        auto CG_step0 = gridtools::make_computation<gridtools::BACKEND>
+            (
+                domain_step0, coords3d7pt,
+                gridtools::make_mss // mss_descriptor
                 (
-                    domain_step0, coords3d7pt,
-                    gridtools::make_mss // mss_descriptor
-                    (
-                        execute<forward>(),
-                        gridtools::make_esf<d3point7>( p_Ad_step0(),
-                                                       p_d_step0() ) // A * d
-                    )
-                );
+                    execute<forward>(),
+                    gridtools::make_esf<d3point7>( p_Ad_step0(),
+                                                   p_d_step0() ) // A * d
+                )
+            );
 
 
-        auto stencil_step1 = gridtools::make_computation<gridtools::BACKEND>
+        auto CG_step1 = gridtools::make_computation<gridtools::BACKEND>
+            (
+                domain_step1, coords3d7pt,
+                gridtools::make_mss // mss_descriptor
                 (
-                    domain_step1, coords3d7pt,
-                    gridtools::make_mss // mss_descriptor
-                    (
-                        execute<forward>(),
-                        gridtools::make_esf<add_functor>(p_xNew_step1(),
-                                                         p_x_step1(),
-                                                         p_d_step1(),
-                                                         p_alpha_step1()) // x_(i+1) = x_i + alpha * d_i
-                    )
-                );
+                    execute<forward>(),
+                    gridtools::make_esf<add_functor>(p_xNew_step1(),
+                                                     p_x_step1(),
+                                                     p_d_step1(),
+                                                     p_alpha_step1()) // x_(i+1) = x_i + alpha * d_i
+                )
+            );
 
 
-        auto stencil_step2 = gridtools::make_computation<gridtools::BACKEND>
+        auto CG_step2 = gridtools::make_computation<gridtools::BACKEND>
+            (
+                domain_step2, coords3d7pt,
+                gridtools::make_mss // mss_descriptor
                 (
-                    domain_step2, coords3d7pt,
-                    gridtools::make_mss // mss_descriptor
-                    (
-                        execute<forward>(),
-                        gridtools::make_esf<add_functor>(p_rNew_step2(),
-                                                         p_r_step2(),
-                                                         p_Ad_step2(),
-                                                         p_alpha_step2()) // r_(i+1) = r_i + alpha * Ad_i
-                    )
-                );
+                    execute<forward>(),
+                    gridtools::make_esf<add_functor>(p_rNew_step2(),
+                                                     p_r_step2(),
+                                                     p_Ad_step2(),
+                                                     p_alpha_step2()) // r_(i+1) = r_i + alpha * Ad_i
+                )
+            );
 
-        auto stencil_step3 = gridtools::make_computation<gridtools::BACKEND>
+        auto CG_step3 = gridtools::make_computation<gridtools::BACKEND>
+            (
+                domain_step3, coords3d7pt,
+                gridtools::make_mss // mss_descriptor
                 (
-                    domain_step3, coords3d7pt,
-                    gridtools::make_mss // mss_descriptor
-                    (
-                        execute<forward>(),
-                        gridtools::make_esf<add_functor>(p_dNew_step3(),
-                                                         p_rNew_step3(),
-                                                         p_d_step3(),
-                                                         p_beta_step3()) // d_(i+1) = r_(i+1) + beta * d_i
-                    )
-                );
+                    execute<forward>(),
+                    gridtools::make_esf<add_functor>(p_dNew_step3(),
+                                                     p_rNew_step3(),
+                                                     p_d_step3(),
+                                                     p_beta_step3()) // d_(i+1) = r_(i+1) + beta * d_i
+                )
+            );
+
+        auto stencil_alpha_nom = make_computation< gridtools::BACKEND >
+            (
+                domain_alpha_nominator, coords3d7pt,
+                gridtools::make_mss
+                (
+                    execute< forward >(),
+                    make_esf<product_functor>(p_out(),
+                                              p_a(),
+                                              p_b())
+                ),
+                make_reduction< reduction_functor, binop::sum >(0.0, p_out())
+            );
+
+        auto stencil_alpha_denom = make_computation< gridtools::BACKEND >
+            (
+                domain_alpha_denominator, coords3d7pt,
+                gridtools::make_mss
+                (
+                    execute< forward >(),
+                    make_esf<product_functor>(p_out(),
+                                              p_a(),
+                                              p_b())
+                ),
+                make_reduction< reduction_functor, binop::sum >(0.0, p_out())
+            );
 
         // A * d
-        stencil_step0->ready();
-        stencil_step0->steady();
+        CG_step0->ready();
+        CG_step0->steady();
         boost::timer::cpu_timer time_run0;
-        stencil_step0->run();
+        CG_step0->run();
         lapse_time_run = lapse_time_run + time_run0.elapsed();
-        stencil_step0->finalize();
+        CG_step0->finalize();
 
         //compute step size alpha
-        double ddot = 1;
-        alpha.setValue(ddot);
+        stencil_alpha_nom->ready();
+        stencil_alpha_nom->steady();
+        float_type nominator = stencil_alpha_nom->run(); // r_t * r
+        stencil_alpha_nom->finalize();
+    { //TODO - remove
+        std::stringstream ss;
+        ss << PID;
+        std::string filename = "tmp" + ss.str() + ".txt";
+        std::ofstream file(filename.c_str());
+        tmp.print(file);
+    } //TODO - remove
+        stencil_alpha_denom->ready();
+        stencil_alpha_denom->steady();
+        float_type denominator = stencil_alpha_denom->run(); // d_t * A * d
+        stencil_alpha_denom->finalize();
+        alpha.setValue(nominator/denominator);
+        printf("%f / %f\n", nominator, denominator); // TODO  - remove
 
         // x_(i+1) = x_i + alpha * d_i
-        stencil_step1->ready();
-        stencil_step1->steady();
+        CG_step1->ready();
+        CG_step1->steady();
         boost::timer::cpu_timer time_run1;
-        stencil_step1->run();
+        CG_step1->run();
         lapse_time_run = lapse_time_run + time_run1.elapsed();
-        stencil_step1->finalize();
+        CG_step1->finalize();
 
         // r_(i+1) = r_i + alpha * Ad_i
-        stencil_step2->ready();
-        stencil_step2->steady();
+        CG_step2->ready();
+        CG_step2->steady();
         boost::timer::cpu_timer time_run2;
-        stencil_step2->run();
+        CG_step2->run();
         lapse_time_run = lapse_time_run + time_run2.elapsed();
-        stencil_step2->finalize();
+        CG_step2->finalize();
 
         //compute Gram–Schmidt orthogonalization parameter beta
         double orto = 1.;
         beta.setValue(orto);
 
         // d_(i+1) = r_(i+1) + beta * d_i
-        stencil_step3->ready();
-        stencil_step3->steady();
+        CG_step3->ready();
+        CG_step3->steady();
         boost::timer::cpu_timer time_run3;
-        stencil_step3->run();
+        CG_step3->run();
         lapse_time_run = lapse_time_run + time_run3.elapsed();
-        stencil_step3->finalize();
+        CG_step3->finalize();
 
         //swap input and output fields
         //storage_type* tmp = ptr_out7pt;
@@ -547,7 +643,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     {
         std::stringstream ss;
         ss << PID;
-        std::string filename = "x" + ss.str() + ".txt"; //TODO
+        std::string filename = "x" + ss.str() + ".txt";
         std::ofstream file(filename.c_str());
         x.print(file);
     }
@@ -586,6 +682,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         std::ofstream file(filename.c_str());
         d.print(file);
     }
+
 #endif
 
     gridtools::GCL_Finalize();
