@@ -453,7 +453,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     lapse_time_run = lapse_time_run + time_run.elapsed();
     CG_init->finalize();
 
-    //printf("%f\n", Ax(1,1,0)); //TODO
+    //printf("%f\n", Ax(1,1,0)); //TODO - error of .print()
 
     //communicate halos
     std::vector<pointer_type::pointee_t*> vec(2);
@@ -580,21 +580,19 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         //compute step size alpha
         stencil_alpha_nom->ready();
         stencil_alpha_nom->steady();
-        float_type nominator = stencil_alpha_nom->run(); // r_t * r
+        float nominator = stencil_alpha_nom->run(); // r_t * r
         stencil_alpha_nom->finalize();
-    { //TODO - remove
-        std::stringstream ss;
-        ss << PID;
-        std::string filename = "tmp" + ss.str() + ".txt";
-        std::ofstream file(filename.c_str());
-        tmp.print(file);
-    } //TODO - remove
+        float nominator_global;
+        MPI_Allreduce(&nominator, &nominator_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+
         stencil_alpha_denom->ready();
         stencil_alpha_denom->steady();
-        float_type denominator = stencil_alpha_denom->run(); // d_t * A * d
+        float denominator = (float) stencil_alpha_denom->run(); // d_t * A * d
         stencil_alpha_denom->finalize();
-        alpha.setValue(nominator/denominator);
-        printf("%f / %f\n", nominator, denominator); // TODO  - remove
+        float denominator_global;
+        MPI_Allreduce(&denominator, &denominator_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+
+        alpha.setValue(nominator_global/denominator_global);
 
         // x_(i+1) = x_i + alpha * d_i
         CG_step1->ready();
