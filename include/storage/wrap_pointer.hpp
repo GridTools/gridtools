@@ -138,4 +138,11 @@ namespace gridtools {
         T *m_cpu_p;
         bool m_externally_managed;
     };
+
+	template <typename T>
+	struct is_wrap_pointer : boost::mpl::false_ {};
+
+	template <typename T>
+	struct is_wrap_pointer<wrap_pointer<T> > : boost::mpl::true_ {};
+
 } // namespace gridtools

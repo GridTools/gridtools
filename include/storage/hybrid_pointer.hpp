@@ -292,4 +292,10 @@ namespace gridtools {
         bool m_up_to_date;
     };
 
+	template <typename T>
+	struct is_hybrid_pointer : boost::mpl::false_ {};
+
+	template <typename T>
+	struct is_hybrid_pointer<hybrid_pointer<T> > : boost::mpl::true_ {};
+
 } // namespace gridtools
