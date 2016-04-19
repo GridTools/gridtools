@@ -248,7 +248,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
     if(PID == 0){
         printf("Running for %d x %d x %d, %d iterations\n", xdim+2, ydim+2, zdim+2, nt);
-        printf("Step size: %f\n", h);
+        // printf("Step size: %f\n", h);
     }
 
 #ifdef BACKEND_BLOCK
@@ -310,7 +310,11 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     storage_type dNew (metadata_, 0., "Direction vector t+1");
     storage_type Ad   (metadata_, 0., "Multiplied direction vector");
     storage_type tmp  (metadata_, 0., "Temporary storage");
-    //storage_type *ptr_in7pt = &in7pt, *ptr_out7pt = &out7pt;
+
+    storage_type *ptr_x = &x, *ptr_xNew = &xNew;
+    storage_type *ptr_r = &r, *ptr_rNew = &rNew;
+    storage_type *ptr_d = &d, *ptr_dNew = &dNew;
+
 
     parameter alpha; //step length
     parameter beta; //orthogonalization parameter
@@ -332,8 +336,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
             for(uint_t k=0; k<metadata_.template dims<2>(); ++k)
             {
                 //b(i,j,k) = h2 * f(I+i, J+j, K+k);
-                b(i,j,k) = 0; //TODO
-                x(i,j,k) = i+I; //TODO
+                b(i,j,k) = 0; //TODO remove
+                x(i,j,k) = i+I; //TODO remove
             }
 
     //--------------------------------------------------------------------------
@@ -441,11 +445,11 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
          gridtools::bitmap_predicate(part.boundary())
         ).apply(x, d);
 
-    // set addition param to substraction: r = b + alpha A x
+    // set addition param to subtraction: r = b + alpha A x
     double minus = -1;
     alpha.setValue(minus);
 
-    //prepare and run single step of stencil computation
+    //prepare and run single step of CG computation
     CG_init->ready();
     CG_init->steady();
     boost::timer::cpu_timer time_run;
@@ -473,25 +477,25 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
         // construction of the domain for the steps of CG
         gridtools::domain_type<accessor_list_step0> domain_step0
-            (boost::fusion::make_vector(&Ad, &d));
+            (boost::fusion::make_vector(&Ad, ptr_d));
 
         gridtools::domain_type<accessor_list_step1> domain_step1
-            (boost::fusion::make_vector(&xNew, &x, &d, &alpha));
+            (boost::fusion::make_vector(ptr_xNew, ptr_x, ptr_d, &alpha));
 
         gridtools::domain_type<accessor_list_step2> domain_step2
-            (boost::fusion::make_vector(&rNew, &r, &Ad, &alpha));
+            (boost::fusion::make_vector(ptr_rNew, ptr_r, &Ad, &alpha));
 
         gridtools::domain_type<accessor_list_step3> domain_step3
-            (boost::fusion::make_vector(&dNew, &rNew, &d, &beta));
+            (boost::fusion::make_vector(ptr_dNew, ptr_rNew, ptr_d, &beta));
 
         gridtools::domain_type<accessor_list_alpha> domain_alpha_nominator
-            (boost::fusion::make_vector(&tmp, &r, &r));
+            (boost::fusion::make_vector(&tmp, ptr_r, ptr_r));
 
         gridtools::domain_type<accessor_list_alpha> domain_alpha_denominator
-            (boost::fusion::make_vector(&tmp, &d, &Ad));
+            (boost::fusion::make_vector(&tmp, ptr_d, &Ad));
 
         gridtools::domain_type<accessor_list_alpha> domain_beta_nominator
-            (boost::fusion::make_vector(&tmp, &rNew, &rNew));
+            (boost::fusion::make_vector(&tmp, ptr_rNew, ptr_rNew));
 
 
         //instantiate stencil to perform steps of CG
@@ -601,6 +605,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         stencil_alpha_nom->finalize();
         float rTr_global;
         MPI_Allreduce(&rTr, &rTr_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+        if(PID == 0) printf("Iteration %d: %f\n", i, rTr_global);
 
         stencil_alpha_denom->ready();
         stencil_alpha_denom->steady();
@@ -635,7 +640,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         float rTrnew_global;
         MPI_Allreduce(&rTrnew, &rTrnew_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
         
-        beta.setValue(rTrnew_global/rTr_global);
+        beta.setValue(rTrnew_global/rTr_global); // reusing rTr from computation of alpha
 
         // d_(i+1) = r_(i+1) + beta * d_i
         CG_step3->ready();
@@ -646,15 +651,22 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         CG_step3->finalize();
 
         //swap input and output fields
-        //storage_type* tmp = ptr_out7pt;
-        //ptr_out7pt = ptr_in7pt;
-        //ptr_in7pt = tmp;
+        storage_type* swap;
+        swap = ptr_x;
+        ptr_x = ptr_xNew;
+        ptr_xNew = swap;
+        swap = ptr_r;
+        ptr_r = ptr_rNew;
+        ptr_rNew = swap;
+        swap = ptr_d;
+        ptr_d = ptr_dNew;
+        ptr_dNew = swap;
     }
 
     boost::timer::cpu_times lapse_time = time.elapsed();
 
     if(gridtools::PID == 0){
-        std::cout << "TIME d3point7 TOTAL: " << boost::timer::format(lapse_time);
+        std::cout << std::endl << "TIME d3point7 TOTAL: " << boost::timer::format(lapse_time);
         std::cout << "TIME d3point7 RUN:" << boost::timer::format(lapse_time_run);
         std::cout << "TIME d3point7 MFLOPS: " << MFLOPS(10,d1,d2,d3,nt,lapse_time_run.wall) << std::endl;
         std::cout << "TIME d3point7 MLUPs: " << MLUPS(d1,d2,d3,nt,lapse_time_run.wall) << std::endl << std::endl;
