@@ -490,6 +490,10 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         gridtools::domain_type<accessor_list_alpha> domain_alpha_denominator
             (boost::fusion::make_vector(&tmp, &d, &Ad));
 
+        gridtools::domain_type<accessor_list_alpha> domain_beta_nominator
+            (boost::fusion::make_vector(&tmp, &rNew, &rNew));
+
+
         //instantiate stencil to perform steps of CG
         auto CG_step0 = gridtools::make_computation<gridtools::BACKEND>
             (
@@ -569,6 +573,19 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                 make_reduction< reduction_functor, binop::sum >(0.0, p_out())
             );
 
+            auto stencil_beta_nom = make_computation< gridtools::BACKEND >
+            (
+                domain_beta_nominator, coords3d7pt,
+                gridtools::make_mss
+                (
+                    execute< forward >(),
+                    make_esf<product_functor>(p_out(),
+                                              p_a(),
+                                              p_b())
+                ),
+                make_reduction< reduction_functor, binop::sum >(0.0, p_out())
+            );
+
         // A * d
         CG_step0->ready();
         CG_step0->steady();
@@ -580,19 +597,19 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         //compute step size alpha
         stencil_alpha_nom->ready();
         stencil_alpha_nom->steady();
-        float nominator = stencil_alpha_nom->run(); // r_t * r
+        float rTr = stencil_alpha_nom->run(); // r_T * r (at time t)
         stencil_alpha_nom->finalize();
-        float nominator_global;
-        MPI_Allreduce(&nominator, &nominator_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+        float rTr_global;
+        MPI_Allreduce(&rTr, &rTr_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
 
         stencil_alpha_denom->ready();
         stencil_alpha_denom->steady();
-        float denominator = (float) stencil_alpha_denom->run(); // d_t * A * d
+        float dTAd = (float) stencil_alpha_denom->run(); // d_T * A * d
         stencil_alpha_denom->finalize();
-        float denominator_global;
-        MPI_Allreduce(&denominator, &denominator_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+        float dTAd_global;
+        MPI_Allreduce(&dTAd, &dTAd_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
 
-        alpha.setValue(nominator_global/denominator_global);
+        alpha.setValue(rTr_global/dTAd_global);
 
         // x_(i+1) = x_i + alpha * d_i
         CG_step1->ready();
@@ -611,8 +628,14 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         CG_step2->finalize();
 
         //compute Gram–Schmidt orthogonalization parameter beta
-        double orto = 1.;
-        beta.setValue(orto);
+        stencil_beta_nom->ready();
+        stencil_beta_nom->steady();
+        float rTrnew = stencil_beta_nom->run(); // r_T * r (at time t+1)
+        stencil_beta_nom->finalize();
+        float rTrnew_global;
+        MPI_Allreduce(&rTrnew, &rTrnew_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+        
+        beta.setValue(rTrnew_global/rTr_global);
 
         // d_(i+1) = r_(i+1) + beta * d_i
         CG_step3->ready();
