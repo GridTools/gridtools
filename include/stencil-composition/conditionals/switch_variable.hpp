@@ -67,6 +67,12 @@ namespace gridtools {
             : m_value(c), m_conditions(new std::vector< BOOL_FUNC() >()), m_cases(new std::vector< T >()) {
         }
 
+        switch_variable(switch_variable const & other):
+            m_value(other.m_value)
+            , m_num_cases(other.m_num_cases)
+        {
+        }
+
         ~switch_variable() {}
 
         /**@brief API to insert a condition*/
@@ -84,12 +90,6 @@ namespace gridtools {
         /**@brief returns the value of the switch_variable*/
         constexpr std::function< T() > value() const { return m_value; }
 #endif
-
-        // private:
-        switch_variable(switch_variable const &);
-
-      private:
-        switch_variable(switch_variable const &);
     };
 
     template < typename T >
