@@ -212,7 +212,7 @@ namespace gridtools {
                                    cond< Coordinate >::template get< Coordinate >();
 #endif
 #ifndef NDEBUG
-#ifdef VERBOSE
+#ifdef DEBUG_META_STORAGE
 #ifdef __CUDACC__
             if (threadIdx.x == 0) {
 #endif

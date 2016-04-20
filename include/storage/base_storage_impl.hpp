@@ -182,8 +182,8 @@ namespace gridtools {
 #ifndef NDEBUG
         struct print_pointer {
             template < typename StorageType >
-            GT_FUNCTION_WARNING void operator()(StorageType *s) const {
-                printf("Pointer Value %x\n", s);
+            GT_FUNCTION_WARNING void operator()(pointer<StorageType> s) const {
+                printf("Pointer Value %x\n", s.get());
             }
         };
 #endif
