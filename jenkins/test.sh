@@ -68,6 +68,7 @@ elif [ $myhost == "daint" ]; then
         exitError 4654 ${LINENO} "problem with unittests for test data detected"
   else
     echo "Unittests successfull (see test.out for detailed log)"
+    cat test.out
   fi
 fi
 
