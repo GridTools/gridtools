@@ -11,6 +11,11 @@ namespace gridtools {
 
     template < typename T >
     struct wrap_pointer {
+	private:
+		template <typename V>
+		wrap_pointer(V);
+
+	public:
         // TODO: turn into value_type?
         typedef T pointee_t;
 
@@ -131,18 +136,15 @@ namespace gridtools {
             return &m_cpu_p[i];
         }
 
-        GT_FUNCTION
-        const T *get_m_cpu_p() { return m_cpu_p; };
+		GT_FUNCTION
+		T *get_cpu_p() { return m_cpu_p; }
+
+		GT_FUNCTION
+		T *get_gpu_p() { assert(false); }
 
       protected:
         T *m_cpu_p;
         bool m_externally_managed;
     };
-
-	template <typename T>
-	struct is_wrap_pointer : boost::mpl::false_ {};
-
-	template <typename T>
-	struct is_wrap_pointer<wrap_pointer<T> > : boost::mpl::true_ {};
 
 } // namespace gridtools
