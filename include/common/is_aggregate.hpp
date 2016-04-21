@@ -1,6 +1,7 @@
 #pragma once
-#include <type_traits>
+
 #include <boost/mpl/or.hpp>
+#include <boost/type_traits/is_integral.hpp>
 #include "array.hpp"
 
 namespace gridtools {
@@ -14,5 +15,5 @@ namespace gridtools {
      * (in the future this might be extended to using concepts)
      */
     template < typename T >
-    struct is_aggregate : boost::mpl::or_< is_array< T >, std::is_integral< T > > {};
+    struct is_aggregate : boost::mpl::or_< is_array< T >, boost::is_integral< T > > {};
 }
