@@ -639,7 +639,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         stencil_beta_nom->finalize();
         float rTrnew_global;
         MPI_Allreduce(&rTrnew, &rTrnew_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
-        
+
         beta.setValue(rTrnew_global/rTr_global); // reusing rTr from computation of alpha
 
         // d_(i+1) = r_(i+1) + beta * d_i
