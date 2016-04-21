@@ -21,4 +21,5 @@ class Options /* singleton */
     static Options &getInstance();
 
     int m_size[4];
+    char *mesh_file;
 };
