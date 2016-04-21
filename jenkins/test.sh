@@ -1,75 +1,59 @@
 #!/bin/bash -f
 
+exitError()
+{
+    \rm -f /tmp/tmp.${user}.$$ 1>/dev/null 2>/dev/null
+    echo "ERROR $1: $3" 1>&2
+    echo "ERROR     LOCATION=$0" 1>&2
+    echo "ERROR     LINE=$2" 1>&2
+    exit $1
+}
+
 JENKINSPATH=${0%/*}
 source ${JENKINSPATH}/machine_env.sh
 maxsleep=7200
 
+test -e test.out
+if [ $? -ne 0 ] ; then
+    rm test.out
+fi
+
+echo source ${JENKINSPATH}/env_${myhost}.sh
+source ${JENKINSPATH}/env_${myhost}.sh
+cp ${JENKINSPATH}/submit.${myhost}.slurm ${JENKINSPATH}/submit.${myhost}.slurm.test
+slurm_script="${JENKINSPATH}/submit.${myhost}.slurm.test"
+
 if [ $myhost == "greina" ]; then
-    bash ./run_tests.sh
-    exit $?
+    #cmd="srun --ntasks=1 -u  bash ./run_tests.sh " 
+    cmd="srun --ntasks=1 -u  nvidia-smi " 
+#bash ./run_tests.sh"
 elif [ $myhost == "kesch" ]; then
-    source ${JENKINSPATH}/slurmTools.sh
-    source ${JENKINSPATH}/env_${myhost}.sh
-
-    cp ${JENKINSPATH}/submit.kesch.slurm ${JENKINSPATH}/submit.kesch.slurm.test
-    slurm_script="${JENKINSPATH}/submit.kesch.slurm.test"
     cmd="srun --ntasks=1 -K -u bash ./run_tests.sh"
-    echo "replacing in ${slurm_script} command by ${cmd}"
-    /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm_script}
-
-    rm test.out
-
-    bash ${JENKINSPATH}/monitorjobid `sbatch ${slurm_script} | gawk '{print $4}'` $maxsleep
-
-    test -e test.out
-    if [ $? -ne 0 ] ; then
-        # abort
-        exitError 4652 ${LINENO} "Output of test file not found"
-    fi
-    grep 'FAILED\|ERROR' test.out
-    if [ $? -eq 0 ] ; then
-        # echo output to stdout
-        test -f test.out || exitError 6550 ${LINENO} "batch job output file missing"
-        echo "=== test.out BEGIN ==="
-        cat test.out | /bin/sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g"
-        echo "=== test.out END ==="
-        # abort
-        exitError 4654 ${LINENO} "problem with unittests for test data detected"
-  else
-    echo "Unittests successfull (see test.out for detailed log)"
-  fi
 elif [ $myhost == "daint" ]; then
-    source ${JENKINSPATH}/slurmTools.sh
-    source ${JENKINSPATH}/env_${myhost}.sh
-
-    cp ${JENKINSPATH}/submit.daint.slurm ${JENKINSPATH}/submit.daint.slurm.test
-    slurm_script="${JENKINSPATH}/submit.daint.slurm.test"
     cmd="aprun -B bash ./run_tests.sh"
-    echo "replacing in ${slurm_script} command by ${cmd}"
-    /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm_script}
+fi
 
-    rm test.out
+echo "replacing in ${slurm_script} command by ${cmd}"
+/bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm_script}
 
-    bash ${JENKINSPATH}/monitorjobid `sbatch ${slurm_script} | gawk '{print $4}'`  $maxsleep
+bash ${JENKINSPATH}/monitorjobid `sbatch ${slurm_script} | gawk '{print $4}'` $maxsleep
 
-    test -e test.out
-    if [ $? -ne 0 ] ; then
-        # abort
-        exitError 4652 ${LINENO} "Output of test file not found"
-    fi
-    grep 'FAILED\|ERROR' test.out
-    if [ $? -eq 0 ] ; then
-        # echo output to stdout
-        test -f test.out || exitError 6550 ${LINENO} "batch job output file missing"
-        echo "=== test.out BEGIN ==="
-        cat test.out | /bin/sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g"
-        echo "=== test.out END ==="
-        # abort
-        exitError 4654 ${LINENO} "problem with unittests for test data detected"
-  else
+test -e test.out
+if [ $? -ne 0 ] ; then
+    # abort
+    exitError 4652 ${LINENO} "Output of test file not found"
+fi
+
+if [ $? -eq 0 ] ; then
+    # echo output to stdout
+    test -f test.out || exitError 6550 ${LINENO} "batch job output file missing"
+    echo "=== test.out BEGIN ==="
+    cat test.out | /bin/sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g"
+    echo "=== test.out END ==="
+    # abort
+    exitError 4654 ${LINENO} "problem with unittests for test data detected"
+else
     echo "Unittests successfull (see test.out for detailed log)"
-    cat test.out
-  fi
 fi
 
 # end timer and report time taken
