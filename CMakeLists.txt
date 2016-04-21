@@ -73,7 +73,7 @@ set( ENABLE_PYTHON "OFF" CACHE BOOL "Enable Python front-end and tests. Requires
 
 if ( ENABLE_CXX11 )
    message (STATUS "CXX11 enabled")
-   set (ADDITIONAL_CXX_FLAGS "-std=c++11")
+   set (ADDITIONAL_CXX_FLAGS "-std=c++14")
 else()
    message (STATUS "CXX11 disabled")
    set (ADDITIONAL_CXX_FLAGS "-DCXX11_DISABLE")
