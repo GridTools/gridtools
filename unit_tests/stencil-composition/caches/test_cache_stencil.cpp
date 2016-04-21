@@ -269,11 +269,7 @@ TEST_F(cache_stencil, multi_cache)
 				//test if define_caches works properly with multiple vectors of caches.
 				//in this toy example two vectors are passed (IJ cache vector for p_buff 
 				//and p_buff_2, IJ cache vector for p_buff_3)
-#ifdef CXX11_ENABLED 
-				define_caches(cache<IJ, local, 3, 0>(p_buff(), p_buff_2()), cache<IJ, local>(p_buff_3())),
-#else
 				define_caches(cache<IJ, local>(p_buff(), p_buff_2()), cache<IJ, local>(p_buff_3())),
-#endif
 				make_esf<functor3>(p_in(), p_buff()), // esf_descriptor
 				make_esf<functor3>(p_buff(), p_buff_2()), // esf_descriptor
 				make_esf<functor3>(p_buff_2(), p_buff_3()), // esf_descriptor
