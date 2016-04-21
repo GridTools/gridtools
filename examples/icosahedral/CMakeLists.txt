@@ -53,13 +53,13 @@ foreach(srcfile IN LISTS SRCCOMPONLYFILES )
 
 endforeach(srcfile)
 
-if(CUDA_FOUND)
-    foreach(srcfile IN LISTS SRCCOMPONLYFILES MPISRCFILES )
-         cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu ${GTEST_FILES})
-         set_target_properties(${srcfile}_cuda PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
-         target_link_libraries(${srcfile}_cuda ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} )
-    endforeach(srcfile)
-endif()
+#if(CUDA_FOUND)
+#    foreach(srcfile IN LISTS SRCCOMPONLYFILES MPISRCFILES )
+#         cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu ${GTEST_FILES})
+#         set_target_properties(${srcfile}_cuda PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+#         target_link_libraries(${srcfile}_cuda ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} )
+#    endforeach(srcfile)
+#endif()
 
 
 

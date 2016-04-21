@@ -1,4 +1,5 @@
 #pragma once
+#include "../../common/generic_metafunctions/variadic_typedef.hpp"
 
 namespace gridtools {
 
@@ -63,13 +64,13 @@ namespace gridtools {
         using value_type = ValueType;
 
         const reduction_function m_reduction;
-        const map_function m_map;
+        const MapFunction m_map;
         const value_type m_value;
 
       public:
         GT_FUNCTION
-        on_neighbors_impl(const reduction_function l, map_function a, value_type v)
-            : m_reduction(l), m_map(a), m_value(v) {}
+        on_neighbors_impl(const reduction_function l, value_type v, MapFunction a)
+            : m_reduction(l), m_value(v), m_map(a) {}
 
         GT_FUNCTION
         value_type value() const { return m_value; }
@@ -82,51 +83,7 @@ namespace gridtools {
 
         GT_FUNCTION
         on_neighbors_impl(on_neighbors_impl const &other)
-            : m_reduction(other.m_reduction), m_map(other.m_map), m_value(other.m_value) {}
-
-        GT_FUNCTION
-        dst_location_type location() const { return dst_location_type(); }
-    };
-
-    template < typename ValueType, typename DstLocationType, typename ReductionFunction, uint_t I, typename L, int_t R >
-    class on_neighbors_impl< ValueType,
-        DstLocationType,
-        ReductionFunction,
-        accessor< I, enumtype::in, L, extent< R > > > {
-        using map_function = accessor< I, enumtype::in, L, extent< R > >;
-        using reduction_function = ReductionFunction;
-        using dst_location_type = DstLocationType;
-        using value_type = ValueType;
-
-        const reduction_function m_reduction;
-        const map_function m_map;
-        const value_type m_value;
-
-      public:
-        GT_FUNCTION
-        on_neighbors_impl(const reduction_function l, map_function a, value_type v)
-            : m_reduction(l), m_map(a), m_value(v) {}
-
-        // copy ctor from an accessor with different ID
-        template < ushort_t OtherID >
-        GT_FUNCTION constexpr explicit on_neighbors_impl(const on_neighbors_impl< ValueType,
-            DstLocationType,
-            ReductionFunction,
-            accessor< OtherID, enumtype::in, L, extent< R > > > &other)
-            : m_reduction(other.reduction()), m_map(other.map()), m_value(other.value()) {}
-
-        GT_FUNCTION
-        value_type value() const { return m_value; }
-
-        GT_FUNCTION
-        reduction_function reduction() const { return m_reduction; }
-
-        GT_FUNCTION
-        map_function map() const { return m_map; }
-
-        GT_FUNCTION
-        on_neighbors_impl(on_neighbors_impl const &other)
-            : m_reduction(other.m_reduction), m_map(other.m_map), m_value(other.m_value) {}
+            : m_reduction(other.m_reduction), m_value(other.m_value), m_map(other.m_map) {}
 
         GT_FUNCTION
         dst_location_type location() const { return dst_location_type(); }
@@ -135,7 +92,7 @@ namespace gridtools {
     template < typename Reduction, typename ValueType, typename Map >
     GT_FUNCTION on_neighbors_impl< ValueType, typename Map::location_type, Reduction, Map > reduce_on_something(
         Reduction function, ValueType initial, Map mapf) {
-        return on_neighbors_impl< ValueType, typename Map::location_type, Reduction, Map >(function, mapf, initial);
+        return on_neighbors_impl< ValueType, typename Map::location_type, Reduction, Map >(function, initial, mapf);
     }
 
     template < typename Reduction, typename ValueType, typename Map >
