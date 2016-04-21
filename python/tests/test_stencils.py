@@ -36,11 +36,11 @@ class AccessPatternDetectionTest (unittest.TestCase):
                 if not sc.is_alias (p.name):
                     try:
                         expected = acc_ptn[p.name]
-                        self.assertIn (sc[p.name].access_pattern, 
+                        self.assertIn (sc[p.name].access_pattern,
                                        expected,
                                        "Access offset '%s' of field '%s' does not match any of %s" %
-                                        (sc[p.name].access_pattern, 
-                                         p.name, 
+                                        (sc[p.name].access_pattern,
+                                         p.name,
                                          expected))
                         #
                         # remove the correct pattern to avoid finding it twice
@@ -95,7 +95,7 @@ class CopyTest (AccessPatternDetectionTest):
         #
         # workaround because of a bug in the power (**) implemention of NumPy
         #
-        self.in_cpy = np.random.random_integers (10, 
+        self.in_cpy = np.random.random_integers (10,
                                                  size=self.domain)
         self.in_cpy = self.in_cpy.astype (np.float64)
         self.in_cpy = np.asfortranarray (self.in_cpy)
@@ -125,10 +125,11 @@ class CopyTest (AccessPatternDetectionTest):
                     break
             if not found:
                 self.assertTrue (False,
-                                 "Dependency <%s,%s> not found in %s" % 
+                                 "Dependency <%s,%s> not found in %s" %
                                  (first, second, stencil_deps))
 
 
+    @attr(lang='cuda')
     def test_data_dependency_detection_cuda (self, deps=None, backend='cuda'):
         self.test_data_dependency_detection (deps=deps,
                                                   backend=backend)
@@ -198,7 +199,7 @@ class CopyTest (AccessPatternDetectionTest):
                           "Found %d stages, but %d ghost-cell patterns were given" %
                           (len (self.stencil.stages), len (expected_patterns)))
         for idx in range (len (self.stencil.stages)):
-            self.assertEqual (self.stencil.stages[idx].ghost_cell, 
+            self.assertEqual (self.stencil.stages[idx].ghost_cell,
                               expected_patterns[idx])
 
 
@@ -215,7 +216,7 @@ class CopyTest (AccessPatternDetectionTest):
             self.assertEqual (self.stencil.scope.minimum_halo,
                               min_halo)
             #
-            # exception raised in case the provided halo is negative or smaller 
+            # exception raised in case the provided halo is negative or smaller
             # than the minimum required
             #
             bad_halo = list (min_halo)
@@ -225,7 +226,7 @@ class CopyTest (AccessPatternDetectionTest):
                 self.stencil.set_halo (bad_halo)
                 self._run ( )
             #
-            # execute normally in case the provided halo is bigger 
+            # execute normally in case the provided halo is bigger
             #
             big_halo = list (min_halo)
             for idx in range (len (min_halo)):
@@ -247,6 +248,7 @@ class CopyTest (AccessPatternDetectionTest):
             self.assertTrue (scope.is_temporary (t))
 
 
+    @attr(lang='cuda')
     def test_symbol_discovery_cuda (self):
         self.test_symbol_discovery (backend='cuda')
 
@@ -313,7 +315,7 @@ class CopyTest (AccessPatternDetectionTest):
             out_param = 'out_cpy'
         else:
             expected = np.load ('%s/%s' % (cur_dir,
-                                           result_file)) 
+                                           result_file))
         self.assertTrue (np.array_equal (getattr (self, out_param)[beg_i:end_i, beg_j:end_j],
                                          expected[beg_i:end_i, beg_j:end_j]))
 
@@ -331,6 +333,7 @@ class CopyTest (AccessPatternDetectionTest):
         print ('FPS:', nstep / (time.time()-tstart))
 
 
+    @attr(lang='cuda')
     def test_execution_performance_cuda (self):
         self.test_execution_performance_cpp (backend='cuda')
 
@@ -342,6 +345,7 @@ class CopyTest (AccessPatternDetectionTest):
             self._run ( )
 
 
+    @attr(lang='cuda')
     def test_k_directions_cuda (self):
         self.test_k_directions (backend='cuda')
 
@@ -522,7 +526,7 @@ class HorizontalDiffusion (MultiStageStencil):
             # Last stage
             #
             out_data[p] = in_wgt[p] * (
-                          self.fli[p + (-1,0,0)] - self.fli[p] + 
+                          self.fli[p + (-1,0,0)] - self.fli[p] +
                           self.flj[p + (0,-1,0)] - self.flj[p] )
 
 
@@ -563,9 +567,12 @@ class HorizontalDiffusionTest (CopyTest):
                          ('self.fli', 'self.lap'),
                          ('self.flj', 'self.lap'),
                          ('self.lap', 'in_data')]
-        super ( ).test_data_dependency_detection (deps=expected_deps)
         super ( ).test_data_dependency_detection (deps=expected_deps,
-                                                       backend='cuda')
+                                                  backend=backend)
+
+    @attr(lang='cuda')
+    def test_data_dependency_detection_cuda (self):
+        self.test_data_dependency_detection (backend='cuda')
 
 
     def test_automatic_access_pattern_detection (self):
@@ -591,15 +598,17 @@ class HorizontalDiffusionTest (CopyTest):
             self.automatic_access_pattern_detection (self.stencil)
 
 
-    def test_ghost_cell_pattern (self):
+    def test_ghost_cell_pattern (self, backend='c++'):
         expected_patterns = [ [-1,1,-1,1],
                               [-1,0,-1,0],
                               [-1,0,-1,0],
                                 [0,0,0,0] ]
         super ( ).test_ghost_cell_pattern (expected_patterns,
-                                           backend='c++')
-        super ( ).test_ghost_cell_pattern (expected_patterns,
-                                           backend='cuda')
+                                           backend=backend)
+
+    @attr(lang='cuda')
+    def test_ghost_cell_pattern_cuda (self):
+        self.test_ghost_cell_pattern (backend='cuda')
 
 
     def test_minimum_halo_detection (self):
@@ -619,7 +628,7 @@ class ChildStencilCallsParentConstructorAndNothingElse (MultiStageStencil):
     Child constructor correctly calls parent constructor and has no other work, comments or docstrings.
     Works correctly--no exceptions.
     """
-    def __init__ (self): 
+    def __init__ (self):
         super ( ).__init__ ( )
 
 
@@ -859,4 +868,3 @@ class ChildStencilTest (unittest.TestCase):
 
     def test_child_constructor_calls_parent_constructor_after_computation (self):
         self._test_child_constructor_call_fails (ChildStencilParentConstructorAfterComputation ( ))
-
