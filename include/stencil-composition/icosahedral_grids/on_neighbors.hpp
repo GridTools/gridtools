@@ -1,5 +1,5 @@
 #pragma once
-#include "../../common/generic_metafunctions/variadic_typedef.hpp"
+#include "../../common/tuple.hpp"
 
 namespace gridtools {
 
@@ -56,21 +56,21 @@ namespace gridtools {
        This struct is the one holding the function to apply when iterating
        on neighbors
      */
-    template < typename ValueType, typename DstLocationType, typename ReductionFunction, typename MapFunction >
+    template < typename ValueType, typename DstLocationType, typename ReductionFunction, typename ... MapFunction >
     class on_neighbors_impl {
-        using map_function = MapFunction;
+        using maps_t = tuple<MapFunction...>;
         using reduction_function = ReductionFunction;
         using dst_location_type = DstLocationType;
         using value_type = ValueType;
 
         const reduction_function m_reduction;
-        const MapFunction m_map;
+        const maps_t m_maps;
         const value_type m_value;
 
       public:
         GT_FUNCTION
-        on_neighbors_impl(const reduction_function l, value_type v, MapFunction a)
-            : m_reduction(l), m_value(v), m_map(a) {}
+        constexpr on_neighbors_impl(const reduction_function l, value_type v, MapFunction ... a)
+            : m_reduction(l), m_value(v), m_maps(a...) {}
 
         GT_FUNCTION
         value_type value() const { return m_value; }
@@ -78,12 +78,14 @@ namespace gridtools {
         GT_FUNCTION
         reduction_function reduction() const { return m_reduction; }
 
+
+        template<ushort_t idx>
         GT_FUNCTION
-        map_function map() const { return m_map; }
+        constexpr typename maps_t::template get_elem<idx>::type map() const { return m_maps.template get<idx>(); }
 
         GT_FUNCTION
         on_neighbors_impl(on_neighbors_impl const &other)
-            : m_reduction(other.m_reduction), m_value(other.m_value), m_map(other.m_map) {}
+            : m_reduction(other.m_reduction), m_value(other.m_value), m_maps(other.m_maps) {}
 
         GT_FUNCTION
         dst_location_type location() const { return dst_location_type(); }

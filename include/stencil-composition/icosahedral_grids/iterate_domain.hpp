@@ -298,7 +298,7 @@ namespace gridtools {
             ValueType result = onneighbors.value();
 
             for (int i = 0; i < neighbors.size(); ++i) {
-                result = onneighbors.reduction()(_evaluate(onneighbors.map(), neighbors[i]), result);
+                result = onneighbors.reduction()(_evaluate(onneighbors.template map<0>(), neighbors[i]), result);
             }
 
             return result;
@@ -315,7 +315,7 @@ namespace gridtools {
             ValueType result = onneighbors.value();
 
             for (int_t i = 0; i < neighbors.size(); ++i) {
-                result = onneighbors.reduction()(_evaluate(onneighbors.map(), neighbors[i]), result);
+                result = onneighbors.reduction()(_evaluate(onneighbors.template map<0>(), neighbors[i]), result);
             }
 
             return result;
@@ -436,7 +436,7 @@ namespace gridtools {
             ValueType result = onn.value();
 
             for (int i = 0; i < neighbors.size(); ++i) {
-                result = onn.reduction()(_evaluate(onn.map(), neighbors[i]), result);
+                result = onn.reduction()(_evaluate(onn.template map<0>(), neighbors[i]), result);
             }
 
             return result;

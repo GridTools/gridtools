@@ -57,6 +57,10 @@ namespace gridtools {
         typedef tuple< First> type;
         typedef variadic_typedef< First> args_t;
 
+        template<ushort_t Idx> struct get_elem{
+            typedef typename args_t::template get_elem< Idx >::type type;
+        };
+
         /**@brief constructor taking an integer as the first argument, and then other optional arguments.
            The integer gets assigned to the current extra dimension and the other arguments are passed to the base class
            (in order to get assigned to the other dimensions).
@@ -69,7 +73,7 @@ namespace gridtools {
 
         /**@brief returns the offset at a specific index Idx*/
         template < ushort_t Idx >
-        GT_FUNCTION constexpr typename args_t::template get_elem< Idx >::type get() const {
+        GT_FUNCTION constexpr typename get_elem< Idx >::type get() const {
             GRIDTOOLS_STATIC_ASSERT((Idx==0), "Error: out of bound tuple access");
             return m_offset;
         }
