@@ -1,6 +1,9 @@
 #include "gtest/gtest.h"
-#include <iostream>
-#define private public
+
+//i know that the following directive is super ugly, 
+//but i need to check the private member fields of 
+//the storage.
+#define private public 
 #include <storage/storage.hpp>
 #include <storage/meta_storage.hpp>
 
@@ -15,7 +18,9 @@ using namespace gridtools;
 TEST(cuda_storage_on_host, test_storage) {
 	using namespace gridtools;
 	using namespace enumtype;
-
+	// some typedefs to create a storage.
+	// either a host backend storage or a 
+	// cuda backend storage.
 	typedef gridtools::layout_map< 0, 1, 2 > layout_t;
 	typedef meta_storage<meta_storage_aligned< meta_storage_base<0, layout_t, false>, aligned< 32 >, halo< 0, 0, 0 > > > meta_data_t;
 #ifdef _USE_GPU_
@@ -24,6 +29,7 @@ TEST(cuda_storage_on_host, test_storage) {
 	typedef base_storage< wrap_pointer<double>, meta_data_t, 1> base_st;
 #endif
 	typedef storage< base_st > storage_t;
+	// initializer the meta_data and the storage
 	meta_data_t meta_data(10, 10, 10);
 	storage_t foo_field(meta_data);
 	// fill storage
@@ -36,14 +42,17 @@ TEST(cuda_storage_on_host, test_storage) {
 	ASSERT_TRUE(foo_field.m_on_host && "The storage should not be located on the device.");
 	base_st* ptr1 = foo_field.m_storage.get_pointer_to_use();
 #ifdef _USE_GPU_
-	std::cout << "copy to device\n";
+	// copy the field to the gpu and check
+	// for correct behaviour.
 	foo_field.h2d_update();	
 	base_st* ptr2 = foo_field.m_storage.get_pointer_to_use();
 	ASSERT_FALSE(foo_field.m_on_host && "The storage should be located on the device.");
 	ASSERT_TRUE(ptr1 != ptr2 && "Pointers to the storage must not be the same.");
+	// copy the field back from the gpu
 	foo_field.d2h_update();	
-	std::cout << "copy from device\n";
 #endif
+	// check if the pointers are right and the
+	// field is on the host again.
 	base_st* ptr3 = foo_field.m_storage.get_pointer_to_use();
 	ASSERT_TRUE(ptr1 == ptr3 && "Pointers to the storage must be the same.");	
 	ASSERT_TRUE(foo_field.m_on_host && "The storage should not be located on the device.");

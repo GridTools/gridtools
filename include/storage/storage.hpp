@@ -4,7 +4,7 @@
 #include <boost/mpl/identity.hpp>
 
 #include "data_field.hpp"
-#ifdef __CUDACC__
+#ifdef _USE_GPU_
 #include "hybrid_pointer.hpp"
 #else
 #include "wrap_pointer.hpp"
@@ -88,7 +88,7 @@ namespace gridtools {
 		static const bool is_temporary = BaseStorage::is_temporary;
 		static const ushort_t field_dimensions = BaseStorage::field_dimensions;
 		static const ushort_t space_dimensions = BaseStorage::space_dimensions;
-#ifdef __CUDACC__
+#ifdef _USE_GPU_
 		typedef hybrid_pointer< BaseStorage > storage_ptr_t;
 #else
 		typedef wrap_pointer< BaseStorage > storage_ptr_t;
@@ -191,7 +191,7 @@ namespace gridtools {
 		template < typename... UInt >
 		value_type &operator()(UInt... dims) {
 			assert(m_on_host && "The accessed storage was not copied back from the device yet.");
-			return m_storage.get()->operator()(dims...);
+			return (*m_storage)(dims...);
 		}
 
 		/** @brief returns (by const reference) the value of the data field at the coordinates (i, j, k)
