@@ -99,7 +99,7 @@ struct d3point7{
     template <typename Domain>
     GT_FUNCTION
     static void Do(Domain const & dom, x_interval) {
-        dom(out{}) = 7.0 * dom(in{})
+        dom(out{}) = 6.0 * dom(in{})
                     - (dom(in{x(-1)})+dom(in{x(+1)}))
                     - (dom(in{y(-1)})+dom(in{y(+1)}))
                     - (dom(in{z(-1)})+dom(in{z(+1)}));
@@ -208,18 +208,22 @@ struct boundary_conditions {
     {}
 
     // DataField_x are fields that are passed in the application of boundary condition
-    template <typename Direction, typename DataField0, typename DataField1>
+    template <typename Direction, typename DataField0, typename DataField1, typename DataField2, typename DataField3>
     GT_FUNCTION
     void operator()(Direction,
                     DataField0 & data_field0,
                     DataField1 & data_field1,
+                    DataField2 & data_field2,
+                    DataField3 & data_field3,
                     uint_t i, uint_t j, uint_t k) const {
         // get global indices on the boundary
         size_t I = m_partitioner.get_low_bound(0) + i;
         size_t J = m_partitioner.get_low_bound(1) + j;
         size_t K = m_partitioner.get_low_bound(2) + k;
-        data_field0(i,j,k) = 10;//g(h*I, h*J, h*K); //TODO
-        data_field1(i,j,k) = 10;//g(h*I, h*J, h*K);
+        data_field0(i,j,k) = 0;//g(h*I, h*J, h*K); //x //TODO 
+        data_field1(i,j,k) = 0;//g(h*I, h*J, h*K); //d
+        data_field2(i,j,k) = 0;//g(h*I, h*J, h*K); //xNew //TODO
+        data_field3(i,j,k) = 0;//g(h*I, h*J, h*K); //dNew
     }
 };
 /*******************************************************************************/
@@ -238,7 +242,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
     // force square domain
     if (!(xdim==ydim && ydim==zdim)) {
-        printf("Please run with dimensions X=Y=Z\n");
+        if(PID==0) printf("Please run with dimensions X=Y=Z\n");
         return false;
     }
 
@@ -300,7 +304,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     //--------------------------------------------------------------------------
     // Definition of the actual data fields that are used for input/output
 
-    storage_type b    (metadata_, 0., "RHS vector");
+    storage_type b    (metadata_, 1., "RHS vector");
     storage_type x    (metadata_, 0., "Solution vector t");
     storage_type xNew (metadata_, 0., "Solution vector t+1");
     storage_type Ax   (metadata_, 0., "Multiplied sol. vector Ax at time t");
@@ -335,9 +339,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         for(uint_t j=0; j<metadata_.template dims<1>(); ++j)
             for(uint_t k=0; k<metadata_.template dims<2>(); ++k)
             {
-                //b(i,j,k) = h2 * f(I+i, J+j, K+k);
-                b(i,j,k) = 0; //TODO remove
-                x(i,j,k) = i+I; //TODO remove
+                //b(i,j,k) = h2 * f(I+i, J+j, K+k); //TODO
             }
 
     //--------------------------------------------------------------------------
@@ -443,7 +445,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         (halos,
          boundary_conditions<parallel_storage_info<metadata_t, partitioner_t>>(meta_, h),
          gridtools::bitmap_predicate(part.boundary())
-        ).apply(x, d);
+        ).apply(x, d, xNew, dNew);
 
     // set addition param to subtraction: r = b + alpha A x
     double minus = -1;
@@ -460,9 +462,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     //printf("%f\n", Ax(1,1,0)); //TODO - error of .print()
 
     //communicate halos
-    std::vector<pointer_type::pointee_t*> vec(2);
-    vec[0]=x.data().get();
-    vec[1]=d.data().get();
+    std::vector<pointer_type::pointee_t*> vec(1);
+    vec[0]=d.data().get();
 
     he.pack(vec);
     he.exchange();
@@ -534,7 +535,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                     gridtools::make_esf<add_functor>(p_rNew_step2(),
                                                      p_r_step2(),
                                                      p_Ad_step2(),
-                                                     p_alpha_step2()) // r_(i+1) = r_i + alpha * Ad_i
+                                                     p_alpha_step2()) // r_(i+1) = r_i - alpha * Ad_i
                 )
             );
 
@@ -615,6 +616,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         MPI_Allreduce(&dTAd, &dTAd_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
 
         alpha.setValue(rTr_global/dTAd_global);
+        if(PID == 0) printf("Alpha = %f/%f = %f\n", rTr_global, dTAd_global, rTr_global/dTAd_global);
 
         // x_(i+1) = x_i + alpha * d_i
         CG_step1->ready();
@@ -624,7 +626,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         lapse_time_run = lapse_time_run + time_run1.elapsed();
         CG_step1->finalize();
 
-        // r_(i+1) = r_i + alpha * Ad_i
+        // r_(i+1) = r_i - alpha * Ad_i
+        alpha.setValue(-1. * alpha.getValue());
         CG_step2->ready();
         CG_step2->steady();
         boost::timer::cpu_timer time_run2;
@@ -641,6 +644,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         MPI_Allreduce(&rTrnew, &rTrnew_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
 
         beta.setValue(rTrnew_global/rTr_global); // reusing rTr from computation of alpha
+        if(PID == 0) printf("Beta = %f\n", rTrnew_global/rTr_global);
 
         // d_(i+1) = r_(i+1) + beta * d_i
         CG_step3->ready();
@@ -649,6 +653,17 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         CG_step3->run();
         lapse_time_run = lapse_time_run + time_run3.elapsed();
         CG_step3->finalize();
+
+        //communicate halos
+        std::vector<pointer_type::pointee_t*> vec(2);
+        vec[0]=d.data().get();
+        vec[1]=dNew.data().get();
+
+        he.pack(vec);
+        he.exchange();
+        he.unpack(vec);
+
+        MPI_Barrier(GCL_WORLD);
 
         //swap input and output fields
         storage_type* swap;
@@ -661,6 +676,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         swap = ptr_d;
         ptr_d = ptr_dNew;
         ptr_dNew = swap;
+
     }
 
     boost::timer::cpu_times lapse_time = time.elapsed();
@@ -704,6 +720,14 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     {
         std::stringstream ss;
         ss << PID;
+        std::string filename = "rNew" + ss.str() + ".txt";
+        std::ofstream file(filename.c_str());
+        rNew.print(file);
+    }
+      
+    {
+        std::stringstream ss;
+        ss << PID;
         std::string filename = "b" + ss.str() + ".txt";
         std::ofstream file(filename.c_str());
         b.print(file);
@@ -714,6 +738,13 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         std::string filename = "d" + ss.str() + ".txt";
         std::ofstream file(filename.c_str());
         d.print(file);
+    }
+    {
+        std::stringstream ss;
+        ss << PID;
+        std::string filename = "dNew" + ss.str() + ".txt";
+        std::ofstream file(filename.c_str());
+        dNew.print(file);
     }
 
 #endif
