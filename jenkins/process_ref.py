@@ -164,7 +164,7 @@ class Plotter:
         if not os.path.exists("perf_vs_reference"):
             os.makedirs("perf_vs_reference")
 
-        self.plot_titlepage("perf_vs_reference/aaa_titlepage.svg")
+        self.plot_titlepage("aa_title/aaa_titlepage.svg")
 
         for astencil in self.gridtools_avg_times_:
             for adomain in self.gridtools_avg_times_[astencil]:
