@@ -140,28 +140,37 @@ namespace gridtools {
             function, initial, mapf...);
     }
 
-    template < typename Reduction, typename ValueType, typename ... Map >
-    GT_FUNCTION on_neighbors_impl< ValueType, typename Map::location_type, Reduction, Map... > on_edges(
-        Reduction function, ValueType initial, Map mapf ... ) {
-        GRIDTOOLS_STATIC_ASSERT(Map::location_type::value == 1,
-            "The map function (for a nested call) provided to 'on_edges' is not on edges");
+    template < typename Reduction, typename ValueType, typename ... Maps >
+    GT_FUNCTION on_neighbors_impl< ValueType, typename maps_get_location_type<Maps...>::type, Reduction, Maps... > on_edges(
+        Reduction function, ValueType initial, Maps ... mapf ) {
+        GRIDTOOLS_STATIC_ASSERT((is_variadic_pack_of(is_map_argument< Maps >::type::value...)),
+            "Error, on_xxx syntax can only accept accessor or other on_xxx constructs");
+
+        GRIDTOOLS_STATIC_ASSERT(maps_get_location_type<Maps...>::type::value == 1,
+            "The map functions (for a nested call) provided to 'on_edges' is not on edges");
         return reduce_on_something(function, initial, mapf...);
     }
 
-    template < typename Reduction, typename ValueType, typename Map >
-    GT_FUNCTION on_neighbors_impl< ValueType, typename Map::location_type, Reduction, Map > on_cells(
-        Reduction function, ValueType initial, Map mapf) {
-        GRIDTOOLS_STATIC_ASSERT(Map::location_type::value == 0,
+    template < typename Reduction, typename ValueType, typename ... Maps >
+    GT_FUNCTION on_neighbors_impl< ValueType, typename maps_get_location_type<Maps...>::type, Reduction, Maps... > on_cells(
+        Reduction function, ValueType initial, Maps ... mapf) {
+        GRIDTOOLS_STATIC_ASSERT((is_variadic_pack_of(is_map_argument< Maps >::type::value...)),
+            "Error, on_xxx syntax can only accept accessor or other on_xxx constructs");
+
+        GRIDTOOLS_STATIC_ASSERT(maps_get_location_type<Maps...>::type::value == 0,
             "The map function (for a nested call) provided to 'on_cellss' is not on cells");
-        return reduce_on_something(function, initial, mapf);
+        return reduce_on_something(function, initial, mapf...);
     }
 
-    template < typename Reduction, typename ValueType, typename Map >
-    GT_FUNCTION on_neighbors_impl< ValueType, typename Map::location_type, Reduction, Map > on_vertexes(
-        Reduction function, ValueType initial, Map mapf) {
-        GRIDTOOLS_STATIC_ASSERT(Map::location_type::value == 2,
+    template < typename Reduction, typename ValueType, typename ... Maps >
+    GT_FUNCTION on_neighbors_impl< ValueType, typename maps_get_location_type<Maps...>::type, Reduction, Maps... > on_vertexes(
+        Reduction function, ValueType initial, Maps... mapf) {
+        GRIDTOOLS_STATIC_ASSERT((is_variadic_pack_of(is_map_argument< Maps >::type::value...)),
+            "Error, on_xxx syntax can only accept accessor or other on_xxx constructs");
+
+        GRIDTOOLS_STATIC_ASSERT(maps_get_location_type<Maps...>::type::value == 2,
             "The map function (for a nested call) provided to 'on_vertexes' is not on edges");
-        return reduce_on_something(function, initial, mapf);
+        return reduce_on_something(function, initial, mapf...);
     }
 
     template < typename OnNeighbors, typename RemapAccessor >
