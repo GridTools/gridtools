@@ -1,9 +1,9 @@
 #pragma once
 
 #include "../common/gpu_clone.hpp"
-#include "meta_storage_base.hpp"
-#include "meta_storage_tmp.hpp"
-#include "meta_storage_aligned.hpp"
+#include "./meta_storage_base.hpp"
+#include "./meta_storage_tmp.hpp"
+#include "./meta_storage_aligned.hpp"
 #ifdef CXX11_ENABLED
 #include "../common/generic_metafunctions/repeat_template.hpp"
 #include "../common/generic_metafunctions/variadic_to_vector.hpp"
