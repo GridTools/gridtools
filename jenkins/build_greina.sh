@@ -80,8 +80,12 @@ source ${BASEPATH_SCRIPT}/machine_env.sh
 source ${BASEPATH_SCRIPT}/env_${myhost}.sh
 if [ "x$FORCE_BUILD" == "xON" ]; then
     echo Deleting all
-    rm -rf build
+    test -e build
+    if [ $? -ne 0 ] ; then
+        rm -rf build
+    fi
 fi
+
 mkdir -p build;
 cd build;
 
@@ -200,7 +204,10 @@ else
 fi
 
 if [[ -z ${DONOTCLEAN} ]]; then
-    rm ${log_file}
+    test -e ${log_file}
+    if [ $? -eq 0 ] ; then
+       rm ${log_file}
+    fi
 fi
 
 exit_if_error ${error_code}

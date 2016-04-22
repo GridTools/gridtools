@@ -2,7 +2,10 @@
 
 exitError()
 {
-    \rm -f /tmp/tmp.${user}.$$ 1>/dev/null 2>/dev/null
+    test -e /tmp/tmp.${user}.$$
+    if [ $? -eq 0 ] ; then
+        rm -f /tmp/tmp.${user}.$$ 1>/dev/null 2>/dev/null
+    fi
     echo "ERROR $1: $3" 1>&2
     echo "ERROR     LOCATION=$0" 1>&2
     echo "ERROR     LINE=$2" 1>&2
@@ -14,7 +17,8 @@ source ${JENKINSPATH}/machine_env.sh
 maxsleep=7200
 
 test -e test.out
-if [ $? -ne 0 ] ; then
+if [ $? -eq 0 ] ; then
+    echo Deleting previus test results
     rm test.out
 fi
 
@@ -24,9 +28,7 @@ cp ${JENKINSPATH}/submit.${myhost}.slurm ${JENKINSPATH}/submit.${myhost}.slurm.t
 slurm_script="${JENKINSPATH}/submit.${myhost}.slurm.test"
 
 if [ $myhost == "greina" ]; then
-    #cmd="srun --ntasks=1 -u  bash ./run_tests.sh " 
-    cmd="srun --ntasks=1 -u  nvidia-smi " 
-#bash ./run_tests.sh"
+    cmd="srun --gres=gpu:1 --ntasks=1 -u  bash ./run_tests.sh "
 elif [ $myhost == "kesch" ]; then
     cmd="srun --ntasks=1 -K -u bash ./run_tests.sh"
 elif [ $myhost == "daint" ]; then
@@ -43,6 +45,8 @@ if [ $? -ne 0 ] ; then
     # abort
     exitError 4652 ${LINENO} "Output of test file not found"
 fi
+
+grep 'FAILED\|ERROR' test.out
 
 if [ $? -eq 0 ] ; then
     # echo output to stdout
