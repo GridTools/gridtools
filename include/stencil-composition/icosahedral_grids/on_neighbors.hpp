@@ -102,7 +102,7 @@ namespace gridtools {
 
     template < typename Map >
     struct map_get_location_type {
-        GRIDTOOLS_STATIC_ASSERT((is_map_argument < Map > ::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_map_argument< Map >::value), "Error");
         typedef typename Map::location_type type;
     };
 
@@ -110,7 +110,7 @@ namespace gridtools {
     struct maps_get_location_type;
 
     template < typename First, typename... T >
-    struct maps_get_location_type<First, T...> {
+    struct maps_get_location_type< First, T... > {
         template < typename Loc, typename Map >
         struct unique_element {
             GRIDTOOLS_STATIC_ASSERT((boost::is_same< Loc, typename map_get_location_type< Map >::type >::value),
@@ -118,35 +118,34 @@ namespace gridtools {
             typedef Loc type;
         };
 
-        typedef typename boost::mpl::fold <
-            typename variadic_to_vector<T... >::type,
+        typedef typename boost::mpl::fold< typename variadic_to_vector< T... >::type,
             map_get_location_type< First >,
-            unique_element < boost::mpl::_1, boost::mpl::_2> >::type type;
+            unique_element< boost::mpl::_1, boost::mpl::_2 > >::type type;
     };
 
-    template < typename Map>
-    struct maps_get_location_type<Map> {
-        GRIDTOOLS_STATIC_ASSERT((is_map_argument<Map>::value), "Error");
+    template < typename Map >
+    struct maps_get_location_type< Map > {
+        GRIDTOOLS_STATIC_ASSERT((is_map_argument< Map >::value), "Error");
         typedef typename map_get_location_type< Map >::type type;
     };
 
-
     template < typename Reduction, typename ValueType, typename... Maps >
     GT_FUNCTION on_neighbors_impl< ValueType, typename maps_get_location_type< Maps... >::type, Reduction, Maps... >
-        reduce_on_something(Reduction function, ValueType initial, Maps ... mapf) {
+    reduce_on_something(Reduction function, ValueType initial, Maps... mapf) {
 
         GRIDTOOLS_STATIC_ASSERT((is_variadic_pack_of(is_map_argument< Maps >::type::value...)),
-                                        "Error, on_xxx syntax can only accept accessor or other on_xxx constructs");
+            "Error, on_xxx syntax can only accept accessor or other on_xxx constructs");
 
-        return on_neighbors_impl< ValueType, typename maps_get_location_type< Maps... >::type, Reduction, Maps... >(function, initial, mapf...);
+        return on_neighbors_impl< ValueType, typename maps_get_location_type< Maps... >::type, Reduction, Maps... >(
+            function, initial, mapf...);
     }
 
-    template < typename Reduction, typename ValueType, typename Map >
-    GT_FUNCTION on_neighbors_impl< ValueType, typename Map::location_type, Reduction, Map > on_edges(
-        Reduction function, ValueType initial, Map mapf) {
-        static_assert(Map::location_type::value == 1,
+    template < typename Reduction, typename ValueType, typename ... Map >
+    GT_FUNCTION on_neighbors_impl< ValueType, typename Map::location_type, Reduction, Map... > on_edges(
+        Reduction function, ValueType initial, Map mapf ... ) {
+        GRIDTOOLS_STATIC_ASSERT(Map::location_type::value == 1,
             "The map function (for a nested call) provided to 'on_edges' is not on edges");
-        return reduce_on_something(function, initial, mapf);
+        return reduce_on_something(function, initial, mapf...);
     }
 
     template < typename Reduction, typename ValueType, typename Map >
