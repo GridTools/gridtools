@@ -3,6 +3,7 @@
 #include <type_traits>
 #include "common/generic_metafunctions/apply_to_sequence.hpp"
 #include "common/generic_metafunctions/vector_to_set.hpp"
+#include "common/generic_metafunctions/variadic_to_vector.hpp"
 #include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
 #include "stencil-composition/total_storages.hpp"
 #include "stencil-composition/iterate_domain_aux.hpp"
@@ -304,9 +305,29 @@ namespace gridtools {
             return result;
         }
 
+        /*
         template < typename ValueType, typename LocationTypeT, typename Reduction, uint_t I, typename L, int_t R >
         GT_FUNCTION ValueType operator()(
             on_neighbors_impl< ValueType, LocationTypeT, Reduction, accessor< I, enumtype::in, L, extent< R > > >
+                onneighbors) const {
+            auto current_position = m_grid_position;
+
+            const auto neighbors =
+                grid_topology_t::neighbors_indices_3(current_position, location_type_t(), onneighbors.location());
+            ValueType result = onneighbors.value();
+
+            for (int_t i = 0; i < neighbors.size(); ++i) {
+                result = onneighbors.reduction()(_evaluate(onneighbors.template map<0>(), neighbors[i]), result);
+            }
+
+            return result;
+        }
+*/
+
+        template < typename ValueType, typename LocationTypeT, typename Reduction, typename ... Accessors >
+        GT_FUNCTION typename boost::enable_if<typename is_sequence_of<typename variadic_to_vector<Accessors...>::type, is_accessor>::type, ValueType>::type
+        operator()(
+            on_neighbors_impl< ValueType, LocationTypeT, Reduction, Accessors...>
                 onneighbors) const {
             auto current_position = m_grid_position;
 

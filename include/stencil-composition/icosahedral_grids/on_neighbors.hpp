@@ -89,6 +89,10 @@ namespace gridtools {
             return m_maps.template get< idx >();
         }
 
+        GT_FUNCTION constexpr maps_t maps() const {
+            return m_maps;
+        }
+
         GT_FUNCTION
         on_neighbors_impl(on_neighbors_impl const &other)
             : m_reduction(other.m_reduction), m_value(other.m_value), m_maps(other.m_maps) {}
@@ -109,6 +113,12 @@ namespace gridtools {
     template < typename... T >
     struct maps_get_location_type;
 
+    template < typename Map >
+    struct maps_get_location_type< Map > {
+        GRIDTOOLS_STATIC_ASSERT((is_map_argument< Map >::value), "Error");
+        typedef typename map_get_location_type< Map >::type type;
+    };
+
     template < typename First, typename... T >
     struct maps_get_location_type< First, T... > {
         template < typename Loc, typename Map >
@@ -119,14 +129,8 @@ namespace gridtools {
         };
 
         typedef typename boost::mpl::fold< typename variadic_to_vector< T... >::type,
-            map_get_location_type< First >,
+            typename map_get_location_type< First >::type,
             unique_element< boost::mpl::_1, boost::mpl::_2 > >::type type;
-    };
-
-    template < typename Map >
-    struct maps_get_location_type< Map > {
-        GRIDTOOLS_STATIC_ASSERT((is_map_argument< Map >::value), "Error");
-        typedef typename map_get_location_type< Map >::type type;
     };
 
     template < typename Reduction, typename ValueType, typename... Maps >
