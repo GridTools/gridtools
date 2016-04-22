@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "div_defs.hpp"
 #include <netcdf>
 #include <stencil-composition/stencil-composition.hpp>
 #include <unordered_map>
@@ -73,6 +72,8 @@ template<typename LocationType, typename ValueType>
 decltype(auto) IconToGridTools<IcosahedralTopology>::get(char const *name)
 {
     auto field = icosahedral_grid_.template make_storage<LocationType, ValueType>(name);
+    field.initialize(0.0);
+
     std::vector<ValueType> icon_field = get1DVar<ValueType>(name);
 
     auto i2s_vector = get_i2g_vector(TypeHelper<LocationType>());
