@@ -55,7 +55,7 @@ fi
 #
 NOSE_NO_GPU=""
 if [ "$DISABLE_GPU" == true ] ; then
-  NOSE_NO_GPU="-A 'lang!=\"cuda\"'"
+  NOSE_NO_GPU="-A 'lang != \"cuda\"'"
   echo "Excluding GPU tests"
 fi
 

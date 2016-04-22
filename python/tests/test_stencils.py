@@ -570,6 +570,7 @@ class HorizontalDiffusionTest (CopyTest):
         super ( ).test_data_dependency_detection (deps=expected_deps,
                                                   backend=backend)
 
+
     @attr(lang='cuda')
     def test_data_dependency_detection_cuda (self):
         self.test_data_dependency_detection (backend='cuda')
