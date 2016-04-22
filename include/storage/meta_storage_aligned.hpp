@@ -1,8 +1,8 @@
 #pragma once
-#include "align.hpp"
-#include "halo.hpp"
-#include "common/pair.hpp"
 #include "../common/generic_metafunctions/all_integrals.hpp"
+#include "align.hpp"
+#include "common/pair.hpp"
+#include "halo.hpp"
 
 namespace gridtools {
 
@@ -51,7 +51,8 @@ namespace gridtools {
 #else
         typedef HaloType< align_all< Alignment::value, Halo1 >::value - Halo1,
             align_all< Alignment::value, Halo2 >::value - Halo2,
-            align_all< Alignment::value, Halo3 >::value - Halo3 > padding_t; // paddings
+            align_all< Alignment::value, Halo3 >::value - Halo3 >
+            padding_t; // paddings
         typedef HaloType< Halo1, Halo2, Halo3 > halo_t;
 #endif
 
@@ -62,6 +63,12 @@ namespace gridtools {
         typedef Alignment alignment_t;
         typedef typename MetaStorageBase::basic_type basic_type;
         typedef typename MetaStorageBase::index_type index_type;
+
+#ifdef CXX11_ENABLED
+        array< uint_t, MetaStorageBase::space_dimensions > m_unaligned_dims;
+        // leave this as int_t because of vectorization bug mentioned in meta_storage_base
+        array< int_t, MetaStorageBase::space_dimensions > m_unaligned_strides;
+#endif
 
         GRIDTOOLS_STATIC_ASSERT(is_meta_storage< MetaStorageBase >::type::value, "wrong type");
         GRIDTOOLS_STATIC_ASSERT(is_aligned< alignment_t >::type::value, "wrong type");
@@ -118,7 +125,12 @@ namespace gridtools {
             >
         GT_FUNCTION constexpr meta_storage_aligned(IntTypes... dims_)
             : super(apply_gt_integer_sequence< typename make_gt_integer_sequence< uint_t,
-                      sizeof...(IntTypes) >::type >::template apply_zipped< super, lambda_t >(dims_...)) {
+                      sizeof...(IntTypes) >::type >::template apply_zipped< super, lambda_t >(dims_...)),
+              m_unaligned_dims{(uint_t)dims_...},
+              m_unaligned_strides(_impl::assign_all_strides< (short_t)(MetaStorageBase::space_dimensions),
+                  typename MetaStorageBase::layout >::apply((uint_t)dims_...)) {
+            static_assert(MetaStorageBase::space_dimensions == sizeof...(dims_),
+                "stride container size is not matching number of given dimensions");
         }
 
         /**@brief Constructor taking an array with the storage dimensions
@@ -182,6 +194,38 @@ namespace gridtools {
             return super::index(i + cond< 0 >::template get< 0 >(),
                 j + cond< 1 >::template get< 1 >(),
                 k + cond< 2 >::template get< 2 >());
+        }
+
+#endif
+
+#ifdef CXX11_ENABLED
+        /** @brief returns the dimension fo the field along I
+         */
+        template < ushort_t I >
+        GT_FUNCTION constexpr uint_t unaligned_dims() const {
+            return m_unaligned_dims[I];
+        }
+
+        /** @brief returns the dimension fo the field along I
+          */
+        GT_FUNCTION
+        constexpr uint_t unaligned_dims(const ushort_t I) const { return m_unaligned_dims[I]; }
+
+        /** @brief returns the storage strides
+         */
+        GT_FUNCTION
+        constexpr int_t unaligned_strides(ushort_t i) const { return m_unaligned_strides[i]; }
+
+        /** @brief return the stride for a specific coordinate, given the vector of strides
+            Coordinates 0,1,2 correspond to i,j,k respectively.
+
+            non-static version.
+         */
+        template < uint_t Coordinate >
+        GT_FUNCTION constexpr int_t unaligned_strides() const {
+            // NOTE: we access the m_strides vector starting from 1, because m_strides[0] is the total storage
+            // dimension.
+            return MetaStorageBase::template get_stride_helper<Coordinate, typename MetaStorageBase::layout>(m_unaligned_strides, 1);
         }
 
 #endif
