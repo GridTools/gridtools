@@ -1,10 +1,5 @@
 #pragma once
 #include "base_storage_impl.hpp"
-// // <<<<<<< HEAD
-// #include "../common/array.hpp"
-// #include "./meta_storage.hpp"
-// =======
-// >>>>>>> master
 #include "wrap_pointer.hpp"
 #include "../common/string_c.hpp"
 #include "../common/array.hpp"
