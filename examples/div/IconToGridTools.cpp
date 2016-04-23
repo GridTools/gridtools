@@ -12,21 +12,21 @@ IconToGridToolsBase::IconToGridToolsBase(char *ncFileName)
     : dataFile_(ncFileName, NcFile::read)
 {
 
-    // description of the netcdf file
-    cout << "there are " << dataFile_.getVarCount() << " variables" << endl;
-    auto vars = dataFile_.getVars();
-    for (auto &p : vars)
-        cout << "  " << p.first << endl;
-    cout << "there are " << dataFile_.getAttCount() << " attributes" << endl;
-
-    auto atts = dataFile_.getAtts();
-    for (auto &p : atts)
-        cout << "  " << p.first << endl;
-
-    cout << "there are " << dataFile_.getDimCount() << " dimensions" << endl;
-    auto dims = dataFile_.getDims();
-    for (auto &p : dims)
-        cout << "  " << p.first << endl;
+//    // description of the netcdf file
+//    cout << "there are " << dataFile_.getVarCount() << " variables" << endl;
+//    auto vars = dataFile_.getVars();
+//    for (auto &p : vars)
+//        cout << "  " << p.first << endl;
+//    cout << "there are " << dataFile_.getAttCount() << " attributes" << endl;
+//
+//    auto atts = dataFile_.getAtts();
+//    for (auto &p : atts)
+//        cout << "  " << p.first << endl;
+//
+//    cout << "there are " << dataFile_.getDimCount() << " dimensions" << endl;
+//    auto dims = dataFile_.getDims();
+//    for (auto &p : dims)
+//        cout << "  " << p.first << endl;
 
     int grid_root{0}, grid_level{0};
     dataFile_.getAtt("grid_root").getValues(&grid_root);
