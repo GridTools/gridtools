@@ -6,6 +6,7 @@
 #include <boost/preprocessor/arithmetic/inc.hpp>
 #include <boost/preprocessor/cat.hpp>
 #include <boost/preprocessor/facilities/intercept.hpp>
+#include "common/generic_metafunctions/mpl_vector_flatten.hpp"
 #include "stencil-composition/mss_metafunctions.hpp"
 #include "stencil-composition/mss.hpp"
 
@@ -25,7 +26,7 @@ namespace gridtools {
                    typename extract_mss_esfs< BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(ITN)) <           \
                                               BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), EsfDescr) > >::type,    \
                typename extract_mss_caches< BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(ITN)) <             \
-                                            BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), EsfDescr) > > ::type > (); \
+                                            BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), EsfDescr) > >::type > (); \
     }
 
     BOOST_PP_REPEAT(GT_MAX_ARGS, _MAKE_MSS, _)

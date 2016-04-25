@@ -211,8 +211,6 @@ namespace gridtools {
                 }
 #endif
 
-                m_grid.clone_to_device();
-
                 local_domain_t *local_domain_gp = m_local_domain.gpu_object_ptr;
 
                 grid_t const *grid_gp = m_grid.gpu_object_ptr;

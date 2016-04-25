@@ -19,7 +19,7 @@ function help {
    echo "-p      activate python                       "
    echo "-m      activate mpi                          "
    echo "-s      activate a silent build               "
-   echo "-f      force build                           "
+   echo "-z      force build                           "
    echo "-i      build for icosahedral grids           "
    echo "-d      do not clean build                    "
    exit 1
@@ -27,6 +27,7 @@ function help {
 
 INITPATH=$PWD
 BASEPATH_SCRIPT=$(dirname "${0}")
+FORCE_BUILD=OFF
 
 while getopts "h:b:t:f:c:l:pzmsid" opt; do
     case "$opt" in
@@ -80,9 +81,14 @@ echo $@
 
 source ${BASEPATH_SCRIPT}/machine_env.sh
 source ${BASEPATH_SCRIPT}/env_${myhost}.sh
-if [ $FORCE_BUILD == "ON" ]; then
-    rm -rf build
+if [ "x$FORCE_BUILD" == "xON" ]; then
+    echo Deleting all
+    test -e build
+    if [ $? -ne 0 ] ; then
+        rm -rf build
+    fi
 fi
+
 mkdir -p build;
 cd build;
 
@@ -153,8 +159,8 @@ else
     STRUCTURED_GRIDS="OFF"
 fi
 
-echo "Printing ENV"
-env
+# echo "Printing ENV"
+# env
 
 cmake \
 -DBoost_NO_BOOST_CMAKE="true" \
@@ -212,7 +218,10 @@ else
 fi
 
 if [[ -z ${DONOTCLEAN} ]]; then
-    rm ${log_file}
+    test -e ${log_file}
+    if [ $? -eq 0 ] ; then
+       rm ${log_file}
+    fi
 fi
 
 exit_if_error ${error_code}

@@ -3,7 +3,8 @@
 JENKINSPATH=${0%/*}
 source ${JENKINSPATH}/machine_env.sh
 source ${JENKINSPATH}/env_perftest_${myhost}.sh
-source ${JENKINSPATH}/slurmTools.sh
+source ${JENKINSPATH}/tools.sh
+echo ${JENKINSPATH}
 
 TEMP=`getopt -o h --long target:,std:,prec:,jplan:,python: \
              -n 'jenkins_perftest' -- "$@"`
@@ -38,14 +39,12 @@ else
 
     cp ${JENKINSPATH}/submit.kesch.slurm ${JENKINSPATH}/submit.kesch.slurm.test
     slurm_script="${JENKINSPATH}/submit.kesch.slurm.test"
-    cmd="${JENKINSPATH}/jenkins_perftest_exec.sh --target $TARGET --std $STD --prec $PREC ${PYTHON_STR} --jplan $JPLAN"
+    cmd="srun --gres=gpu:1 --ntasks=1 -u bash ${JENKINSPATH}/jenkins_perftest_exec.sh --target $TARGET --std $STD --prec $PREC ${PYTHON_STR} --jplan $JPLAN"
     /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm_script}
 
-    launch_job ${slurm_script} ${maxsleep} &
+    bash ${JENKINSPATH}/monitorjobid `sbatch ${slurm_script} | gawk '{print $4}'` $maxsleep
+    grep -E 'Error in conf|FAILED|ERROR' test.out 
 
-    wait
- 
-    grep 'Error in conf' test.out
 
     if [ $? -eq 0 ] ; then
         # echo output to stdout
