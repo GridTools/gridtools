@@ -55,7 +55,7 @@ while getopts "h:b:t:f:c:l:pzmsid" opt; do
         ;;
     d) DONOTCLEAN="ON"
         ;;
-    l) COMPILER=$OPTARG
+    l) export COMPILER=$OPTARG
         ;;
     esac
 done
