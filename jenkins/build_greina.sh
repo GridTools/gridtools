@@ -15,6 +15,7 @@ function help {
    echo "-t      target                   [gpu|cpu]"
    echo "-f      floating point precision [float|double]"
    echo "-c      cxx standard             [cxx11|cxx03]"
+   echo "-l      compiler                 [gnu|clang]  "
    echo "-p      activate python                       "
    echo "-m      activate mpi                          "
    echo "-s      activate a silent build               "
@@ -28,7 +29,7 @@ INITPATH=$PWD
 BASEPATH_SCRIPT=$(dirname "${0}")
 FORCE_BUILD=OFF
 
-while getopts "h:b:t:f:c:pzmsid" opt; do
+while getopts "h:b:t:f:c:l:pzmsid" opt; do
     case "$opt" in
     h|\?)
         help
@@ -53,6 +54,8 @@ while getopts "h:b:t:f:c:pzmsid" opt; do
     i) ICOSAHEDRAL_GRID="ON"
         ;;
     d) DONOTCLEAN="ON"
+        ;;
+    l) COMPILER=$OPTARG
         ;;
     esac
 done
@@ -137,7 +140,18 @@ WHERE_=`pwd`
 
 export JENKINS_COMMUNICATION_TESTS=1
 
-HOST_COMPILER=`which g++`
+if [[ ${COMPILER} == "gcc" ]] ; then
+    HOST_COMPILER=`which g++`
+elif [[ ${COMPILER} == "clang" ]] ; then
+    HOST_COMPILER=`which clang++`
+    if [[ ${USE_GPU} == "ON" ]]; then
+       echo "Clang not supported with nvcc"
+       exit_if_error 334
+    fi
+else 
+    echo "COMPILER ${COMPILER} not supported"
+    exit_if_error 333
+fi
 
 if [[ -z ${ICOSAHEDRAL_GRID} ]]; then
     STRUCTURED_GRIDS="ON"

@@ -1,8 +1,24 @@
 #/bin/bash
 
-#we need a decent cmake version in order to pass the HOST_COMPILER to nvcc
+<<<<<<< HEAD
+function exit_if_error {
+    if [ "x$1" != "x0" ]
+    then
+        echo "Exit with errors"
+        exit $1
+    fi
+}
+
+if [[ ${COMPILER} == "gnu" ]]; then
+  module load GCC/4.8.4
+elif [[ ${COMPILER} == "clang" ]]; then
+  module load Clang/3.7.1-GCC-4.9.3-2.25
+else
+  echo "compiler not supported in environment: ${COMPILER}"
+  exit_if_error 444
+fi
+
 module load slurm
-module load GCC/4.8.4
 module load cuda70/toolkit/7.0.28
 module load /users/mbianco/my_modules/cmake-3.5.1
 module load /users/mbianco/my_modules/boost-1.59
