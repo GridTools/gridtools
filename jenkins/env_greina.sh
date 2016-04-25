@@ -8,7 +8,7 @@ function exit_if_error {
     fi
 }
 
-if [[ ${COMPILER} == "gnu" ]]; then
+if [[ ${COMPILER} == "gcc" ]]; then
   module load GCC/4.8.4
 elif [[ ${COMPILER} == "clang" ]]; then
   module load Clang/3.7.1-GCC-4.9.3-2.25
