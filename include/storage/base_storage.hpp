@@ -11,9 +11,6 @@
 namespace gridtools {
 
 	template < typename T >
-	struct is_storage;
-
-	template < typename T >
 	struct is_meta_storage;
 
 	/***************************************/
@@ -402,5 +399,11 @@ namespace gridtools {
 		s << x.m_dims[0] << ", " << x.m_dims[1] << ", " << x.m_dims[2] << ". ";
 		return s;
 	}
+
+	template < typename T >
+	struct is_storage : boost::mpl::false_ {};
+
+	template < typename T, typename V, ushort_t D>
+	struct is_storage< base_storage<T, V, D> > : boost::mpl::true_ {};
 
 } // namespace gridtools

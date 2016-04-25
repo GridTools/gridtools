@@ -74,7 +74,7 @@ namespace gridtools {
 
 	template < typename BaseStorage >
 	struct storage {
-// some forwarding and convenience typedefs
+		// some forwarding and convenience typedefs
 #ifdef CXX11_ENABLED
 		template < typename PT, typename MD, ushort_t FD >
 		using type_tt = typename BaseStorage::template type_tt< PT, MD, FD >;
@@ -86,19 +86,19 @@ namespace gridtools {
 		typedef typename BaseStorage::value_type value_type;
 		typedef typename BaseStorage::pointer_type pointer_type;
 		static const bool is_temporary = BaseStorage::is_temporary;
-		static const ushort_t field_dimensions = BaseStorage::field_dimensions;
-		static const ushort_t space_dimensions = BaseStorage::space_dimensions;
+		const static ushort_t field_dimensions = BaseStorage::field_dimensions;
+		const static ushort_t space_dimensions = BaseStorage::space_dimensions;
 #ifdef _USE_GPU_
 		typedef hybrid_pointer< BaseStorage > storage_ptr_t;
 #else
 		typedef wrap_pointer< BaseStorage > storage_ptr_t;
 #endif
 
-	  private:
+	private:
 		storage_ptr_t m_storage;
 		bool m_on_host;
 
-	  public:
+	public:
 		void clone_to_device() {}
 
 		/** @brief clone storage + contents to gpu */
@@ -150,9 +150,26 @@ namespace gridtools {
 			return (*m_storage).fields_view();
 		}
 
-		void initialize(value_type const &init, ushort_t const &dims = field_dimensions) {
+		void initialize(value_type const &init, ushort_t const &dims = BaseStorage::field_dimensions) {
 			assert(m_on_host);
 			(*m_storage).initialize(init, dims);
+		}
+
+		template < typename Ret, typename T >
+		void initialize(Ret(*func)(T const &, T const &, T const &), ushort_t const &dims = BaseStorage::field_dimensions) {
+			assert(m_on_host);
+			(*m_storage).initialize(func, dims);
+		}
+
+		void allocate(ushort_t const &dims = field_dimensions, ushort_t const &offset = 0) {
+			assert(m_on_host);
+			(*m_storage).allocate(dims, offset);
+		}
+
+		/**@brief releasing the pointers to the data, and deleting them in case they need to be deleted */
+		void release() {
+			assert(m_on_host);
+			(*m_storage).release();
 		}
 
 #if defined(CXX11_ENABLED)
@@ -165,13 +182,20 @@ namespace gridtools {
 		explicit storage(storage_info_type const &meta_data_, value_type const &init)
 			: m_storage(new BaseStorage(meta_data_, init), 1, false), m_on_host(true) {}
 
+		explicit storage(storage_info_type const &meta_data_, value_type const &init, const char* name)
+			: m_storage(new BaseStorage(meta_data_, init, name), 1, false), m_on_host(true) {}
+
 		template < typename Ret, typename T >
-		explicit storage(storage_info_type const &meta_data_, Ret (*func)(T const &, T const &, T const &))
+		explicit storage(storage_info_type const &meta_data_, Ret(*func)(T const &, T const &, T const &))
 			: m_storage(new BaseStorage(meta_data_, func), 1, false), m_on_host(true) {}
 
 		template < class FloatType >
 		explicit storage(storage_info_type const &meta_data_, FloatType *arg)
 			: m_storage(new BaseStorage(meta_data_, (FloatType *)arg), 1, false), m_on_host(true) {}
+
+		template < class FloatType >
+		explicit storage(storage_info_type const &meta_data_, FloatType *arg, const char* name)
+			: m_storage(new BaseStorage(meta_data_, (FloatType *)arg, name), 1, false), m_on_host(true) {}
 
 #endif // CXX11_ENABLED
 
@@ -231,12 +255,12 @@ namespace gridtools {
 */
 #if defined(CXX11_ENABLED)
 
-	/** @brief syntactic sugar for defining a data field
+/** @brief syntactic sugar for defining a data field
 
-		Given a storage type and the dimension number it generates the correct data field type
-		@tparam Storage the basic storage used
-		@tparam Number the number of snapshots in each dimension
-	 */
+	Given a storage type and the dimension number it generates the correct data field type
+	@tparam Storage the basic storage used
+	@tparam Number the number of snapshots in each dimension
+ */
 	template < class Storage, uint_t... Number >
 	struct field_reversed;
 
@@ -247,8 +271,8 @@ namespace gridtools {
 	template < class Storage, uint_t... Number >
 	struct field_reversed< storage< Storage >, Number... > {
 		typedef storage< data_field< storage_list< base_storage< typename Storage::pointer_type,
-													   typename Storage::storage_info_type,
-													   accumulate(add_functor(), ((uint_t)Number)...) >,
+			typename Storage::storage_info_type,
+			accumulate(add_functor(), ((uint_t)Number)...) >,
 			Number - 1 >... > >
 			type;
 	};
@@ -261,7 +285,7 @@ namespace gridtools {
 	struct field_reversed< base_storage< PointerType, MetaData, FD >, Number... > {
 		typedef data_field<
 			storage_list< base_storage< PointerType, MetaData, accumulate(add_functor(), ((uint_t)Number)...) >,
-				Number - 1 >... >
+			Number - 1 >... >
 			type;
 	};
 
@@ -271,7 +295,7 @@ namespace gridtools {
 		Number... > {
 		typedef no_storage_type_yet< storage< data_field<
 			storage_list< base_storage< PointerType, MetaData, accumulate(add_functor(), ((uint_t)Number)...) >,
-				Number - 1 >... > > >
+			Number - 1 >... > > >
 			type;
 	};
 
@@ -280,7 +304,7 @@ namespace gridtools {
 	struct field_reversed< no_storage_type_yet< base_storage< PointerType, MetaData, FieldDimension > >, Number... > {
 		typedef no_storage_type_yet< data_field<
 			storage_list< base_storage< PointerType, MetaData, accumulate(add_functor(), ((uint_t)Number)...) >,
-				Number - 1 >... > >
+			Number - 1 >... > >
 			type;
 	};
 
@@ -298,15 +322,12 @@ namespace gridtools {
 
 	template < typename T >
 	std::ostream &operator<<(std::ostream &s, storage< T > const &x) {
-		s << "storage< " << static_cast< T const & >(x) << " > ";
+		s << "storage< " << static_cast<T const &>(x) << " > ";
 		return s;
 	}
 
-	template < typename T >
-	struct is_storage : boost::mpl::false_ {};
-
-	template < typename T >
-	struct is_storage< storage< T > > : boost::mpl::true_ {};
+	template <typename T>
+	struct is_storage<storage<T> > : boost::mpl::true_ {};
 
 #ifdef CXX11_ENABLED
 	template < typename T >

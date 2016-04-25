@@ -6,6 +6,7 @@
 */
 
 #include "storage.hpp"
+#include "base_storage.hpp"
 
 namespace gridtools {
 
