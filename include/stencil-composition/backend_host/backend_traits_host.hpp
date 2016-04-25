@@ -1,16 +1,17 @@
 #pragma once
 #include <boost/mpl/for_each.hpp>
-#include "stencil-composition/backend_traits_fwd.hpp"
+
+#include "../backend_traits_fwd.hpp"
 #include "run_esf_functor_host.hpp"
-#include "stencil-composition//block_size.hpp"
+#include "../block_size.hpp"
 #include "iterate_domain_host.hpp"
 #include "strategy_host.hpp"
 #include "empty_iterate_domain_cache.hpp"
 
 #ifdef ENABLE_METERS
-#include "stencil-composition/backend_host/timer_host.hpp"
+#include "timer_host.hpp"
 #else
-#include "stencil-composition/timer_dummy.hpp"
+#include "../timer_dummy.hpp"
 #endif
 
 /**@file
