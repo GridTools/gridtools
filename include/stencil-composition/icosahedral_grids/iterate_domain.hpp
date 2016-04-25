@@ -336,7 +336,7 @@ namespace gridtools {
             ValueType result = onneighbors.value();
 
             for (int_t i = 0; i < neighbors.size(); ++i) {
-                result = onneighbors.reduction()(_evaluate(onneighbors.template map<0>(), neighbors[i]), result);
+                result = onneighbors.reduction()(_evaluate(onneighbors.maps(), neighbors[i]), result);
             }
 
             return result;
@@ -425,6 +425,26 @@ namespace gridtools {
                 offset);
         }
 
+        template < typename Extent, typename IndexArray, typename ... Accessors >
+        GT_FUNCTION
+        //typename std::remove_reference< typename accessor_return_type< accessor< ID, Intend, LocationType, Extent > >::type >::type
+        double
+        _evaluate(tuple<Accessors...> accessors,
+           // accessor< ID, Intend, LocationType, Extent >,
+                      IndexArray const &position) const {
+ /*           using accessor_t = accessor< ID, Intend, LocationType, Extent >;
+            using location_type_t = typename accessor_t::location_type;
+            int offset = m_grid_topology.ll_offset(position, location_type_t());
+
+            return get_raw_value(accessor_t(),
+                (data_pointer())[current_storage< (accessor_t::index_type::value == 0),
+                    local_domain_t,
+                    typename accessor_t::type >::value],
+                offset);
+                */
+        }
+
+
         template < typename MapF, typename LT, typename Arg0, typename IndexArray >
         GT_FUNCTION typename map_return_type<map_function< MapF, LT, Arg0 > >::type _evaluate(map_function< MapF, LT, Arg0 > const &map, IndexArray const &position) const {
             int offset = m_grid_topology.ll_offset(position, map.location());
@@ -448,10 +468,12 @@ namespace gridtools {
                             map.template argument< 1 >(),
                             position));
         }
+
         template < typename ValueType, typename LocationTypeT, typename Reduction, typename Map, typename IndexArray >
         GT_FUNCTION ValueType _evaluate(
             on_neighbors_impl< ValueType, LocationTypeT, Reduction, Map > onn, IndexArray const &position) const {
 
+            //TODO THIS IS WRONG HERE HARDCODED EDGES
             using tt = typename grid_topology_t::edges;
             const auto neighbors = grid_topology_t::neighbors_indices_3(position, tt(), onn.location());
             ValueType result = onn.value();
