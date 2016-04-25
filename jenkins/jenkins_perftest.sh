@@ -43,7 +43,8 @@ else
     /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm_script}
 
     bash ${JENKINSPATH}/monitorjobid `sbatch ${slurm_script} | gawk '{print $4}'` $maxsleep
-    grep 'Error in conf' test.out
+    grep -E 'Error in conf|FAILED|ERROR' test.out 
+
 
     if [ $? -eq 0 ] ; then
         # echo output to stdout
