@@ -121,7 +121,7 @@ class Plotter:
         plt.xticks(index + bar_width*1.5, xtick_labels, rotation=90, fontsize='xx-small')
         plt.tick_params(axis='both', which='major', labelsize=10)
         plt.tick_params(axis='both', which='minor', labelsize=6)
-        plt.legend()
+        plt.legend(prop={'size':6})
 
         plt.tight_layout()
         plt.savefig(filename, format="svg")
