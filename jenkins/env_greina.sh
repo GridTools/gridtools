@@ -1,6 +1,5 @@
 #/bin/bash
 
-<<<<<<< HEAD
 function exit_if_error {
     if [ "x$1" != "x0" ]
     then
