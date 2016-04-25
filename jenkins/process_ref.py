@@ -7,6 +7,7 @@ import math
 import os
 import socket
 import numpy as np
+from matplotlib import rc
 import matplotlib.pyplot as plt
 import copy
 import os.path
@@ -65,7 +66,7 @@ def run_and_extract_times(executable, host, sizes, filter_=None, stella_format =
         except subprocess.CalledProcessError, e:
             sys.exit('Command called raised error:\n'+e.output)
 
-    avg_time = avg_time / 3.0
+    avg_time = avg_time / float(nrep)
     rms=0
     for t in times:
         rms = rms + (t-avg_time)*(t-avg_time)
@@ -74,11 +75,12 @@ def run_and_extract_times(executable, host, sizes, filter_=None, stella_format =
     return (avg_time,rms)
 
 class Plotter:
-    def __init__(self, reference_timers, gridtools_timers, stella_timers, config):
+    def __init__(self, reference_timers, gridtools_timers, stella_timers, config, branch_name):
         self.reference_timers_ = reference_timers
         self.gridtools_timers_ = gridtools_timers
         self.stella_timers_ = stella_timers
         self.config_ = config
+        self.branch_name_ = branch_name
 
         self.stella_avg_times_ = {}
         self.stella_err_ = {}
@@ -117,11 +119,30 @@ class Plotter:
         plt.ylabel('Stencil time (s)')
         plt.title(title)
         plt.xticks(index + bar_width*1.5, xtick_labels, rotation=90, fontsize='xx-small')
-        plt.legend()
+        plt.tick_params(axis='both', which='major', labelsize=10)
+        plt.tick_params(axis='both', which='minor', labelsize=6)
+        plt.legend(prop={'size':6})
 
         plt.tight_layout()
         plt.savefig(filename, format="svg")
-       
+      
+    def plot_titlepage(self, filename):
+       x,y = 0.1,0.4
+
+       fig = plt.figure()
+       ax = fig.add_subplot(111)
+       rc('font',**{'size':24 })
+       rc('text')
+       y += 0.1
+       ax.text(x,y,'Performance Results for Branch: ')
+       ax.text(x+0.2, y-0.2, self.branch_name_)
+
+#       ax = plt.axes()
+       ax.xaxis.set_visible(False)
+       ax.yaxis.set_visible(False)
+       plt.savefig(filename, format="svg")
+
+
 
     def plot_results(self):
 
@@ -144,6 +165,10 @@ class Plotter:
 
         if not os.path.exists("perf_vs_reference"):
             os.makedirs("perf_vs_reference")
+
+        if not os.path.exists("aa_title"):
+            os.makedirs("aa_title")
+        self.plot_titlepage("aa_title/aaa_titlepage.svg")
 
         for astencil in self.gridtools_avg_times_:
             for adomain in self.gridtools_avg_times_[astencil]:
@@ -359,7 +384,7 @@ if __name__ == "__main__":
 
                 error = math.fabs(float(timers_gridtools[0]) - float(exp_time)) / (float(exp_time)+1e-20)
                 if config.check_ and error > tolerance:
-                    print('Error in conf ['+data+','+prec+','+target+','+std+','+thread+'] : exp_time -> '+ str(exp_time) + '; comp time -> '+ 
+                    print('Error in conf ['+stencil_name+','+data+','+prec+','+target+','+std+','+thread+'] : exp_time -> '+ str(exp_time) + '; comp time -> '+ 
                         str(timers_gridtools[0])+'. Error = '+ str(error*100)+'%')
                     failed = True
 
@@ -371,7 +396,8 @@ if __name__ == "__main__":
         print("Updated reference file",outputfilename)
 
     if do_plot:
-        plotter = Plotter(decode[host]['stencils'], copy_ref[host]['stencils'], stella_timers, config)
+        branch_name=subprocess.check_output('git branch --contains `git rev-parse HEAD` -r', stderr=subprocess.STDOUT, shell=True)
+        plotter = Plotter(decode[host]['stencils'], copy_ref[host]['stencils'], stella_timers, config, branch_name)
         plotter.plot_results()
 
     if not failed:
