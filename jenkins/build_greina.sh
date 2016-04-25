@@ -79,7 +79,7 @@ fi
 echo $@
 
 source ${BASEPATH_SCRIPT}/machine_env.sh
-source ${BASEPATH_SCRIPT}/env_${myhost}.sh KK
+source ${BASEPATH_SCRIPT}/env_${myhost}.sh
 if [ $FORCE_BUILD == "ON" ]; then
     rm -rf build
 fi
