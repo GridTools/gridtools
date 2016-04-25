@@ -39,7 +39,7 @@ else
 
     cp ${JENKINSPATH}/submit.kesch.slurm ${JENKINSPATH}/submit.kesch.slurm.test
     slurm_script="${JENKINSPATH}/submit.kesch.slurm.test"
-    cmd="${JENKINSPATH}/jenkins_perftest_exec.sh --target $TARGET --std $STD --prec $PREC ${PYTHON_STR} --jplan $JPLAN"
+    cmd="srun --gres=gpu:1 --ntasks=1 -u bash ${JENKINSPATH}/jenkins_perftest_exec.sh --target $TARGET --std $STD --prec $PREC ${PYTHON_STR} --jplan $JPLAN"
     /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm_script}
 
     bash ${JENKINSPATH}/monitorjobid `sbatch ${slurm_script} | gawk '{print $4}'` $maxsleep
