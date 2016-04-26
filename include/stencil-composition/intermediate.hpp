@@ -119,7 +119,7 @@ namespace gridtools {
             struct is_temp : public boost::false_type {};
 
             template < typename T >
-            struct is_temp< no_storage_type_yet< T > > : public boost::true_type {};
+            struct is_temp< no_storage_type_yet< T > > : public is_temporary_storage<T> {};
 
             template < bool is_temp, typename Storage, typename tmppairs, typename index >
             struct get_the_type;
@@ -449,11 +449,13 @@ namespace gridtools {
      *  @brief structure collecting helper metafunctions
      */
     template < typename Backend,
-        typename MssDescriptorArray,
-        typename DomainType,
-        typename Grid,
-        typename ConditionalsSet,
-        bool IsStateful >
+               typename MssDescriptorArray,
+               typename DomainType,
+               typename Grid,
+               typename ConditionalsSet,
+               bool IsStateful,
+               ushort_t RepeatFunctor=1
+               >
     struct intermediate : public computation {
 
         GRIDTOOLS_STATIC_ASSERT(
@@ -469,8 +471,9 @@ namespace gridtools {
         typedef typename compute_extent_sizes< typename MssDescriptorArray::elements >::type extent_sizes_t;
 
         typedef typename build_mss_components_array< backend_id< Backend >::value,
-            MssDescriptorArray,
-            extent_sizes_t >::type mss_components_array_t;
+                                                     MssDescriptorArray,
+                                                     extent_sizes_t ,
+                                                     static_int<RepeatFunctor> /*repeat_fuctor*/ >::type mss_components_array_t;
 
         typedef typename create_actual_arg_list< Backend, DomainType, mss_components_array_t, float_type >::type
             actual_arg_list_type;

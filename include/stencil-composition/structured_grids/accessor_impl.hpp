@@ -83,16 +83,17 @@ namespace gridtools {
 #if defined(CXX11_ENABLED) && !defined(__CUDACC__)
         // move ctor
         GT_FUNCTION
-        constexpr accessor_base(const type &&other) : m_offsets(other.m_offsets) {}
+        constexpr accessor_base(const type &&other_) : m_offsets(other_.m_offsets) {}
 
         // move ctor from another accessor_base with different index
         template < uint_t OtherIndex >
         GT_FUNCTION constexpr accessor_base(accessor_base< OtherIndex, Intend, Extend, Dim > &&other)
             : m_offsets(other.offsets()) {}
+
 #endif
         // copy ctor
         GT_FUNCTION
-        constexpr accessor_base(type const &other) : m_offsets(other.m_offsets) {}
+        constexpr accessor_base(accessor_base const &other) : m_offsets(other.m_offsets) {}
 
         // copy ctor from another accessor_base with different index
         template < uint_t OtherIndex >
@@ -113,7 +114,14 @@ namespace gridtools {
    language keyword used at the interface level.
 */
 #if defined(CXX11_ENABLED) && !defined(__CUDACC__) // cuda messing up
-        template < typename... Whatever >
+        template < typename... Whatever
+                   , typename T= typename boost::enable_if_c<
+                         accumulate(logical_and()
+                                    , boost::mpl::or_<
+                                    boost::is_integral<Whatever>
+                                    , is_dimension<Whatever>
+                                    >::type::value ... ) >::type >
+
         GT_FUNCTION constexpr accessor_base(Whatever... x)
             : m_offsets(x...) {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(x) <= n_dim,
@@ -149,6 +157,13 @@ namespace gridtools {
             return m_offsets.template get< Idx >();
         }
 
+        template < short_t Idx >
+        GT_FUNCTION void set(uint_t offset_) {
+            GRIDTOOLS_STATIC_ASSERT(Idx <= n_dim, "requested accessor index larger than the available dimensions");
+            GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
+            m_offsets.template set< Idx >(offset_);
+        }
+
         GT_FUNCTION
         constexpr const offset_tuple< n_dim, n_dim > &offsets() const { return m_offsets; }
     };
@@ -179,7 +194,7 @@ namespace gridtools {
      * Struct to test if an argument (placeholder) is a temporary no_storage_type_yet - Specialization yielding true
      */
     template < uint_t I, typename T, typename C >
-    struct is_plchldr_to_temp< arg< I, no_storage_type_yet< T >, C > > : boost::true_type {};
+    struct is_plchldr_to_temp< arg< I, no_storage_type_yet< T >, C > > : is_temporary_storage<T> {};
 
     /**
      * Struct to test if an argument is a placeholder to a temporary storage

@@ -27,6 +27,9 @@ namespace gridtools {
         typedef typename Storage::storage_info_type type;
     };
 
+    template <typename T, uint_t N>
+    struct expandable_parameters;
+
     /**
        \addtogroup specializations Specializations
        @{
@@ -36,6 +39,9 @@ namespace gridtools {
 
     template < typename T, typename U, ushort_t Dim >
     struct is_actual_storage< pointer< base_storage< T, U, Dim > > > : public boost::mpl::bool_< !U::is_temporary > {};
+
+    template < typename T, ushort_t Dim >
+    struct is_actual_storage< pointer< expandable_parameters< T, Dim > > > : public boost::mpl::bool_< !T::is_temporary > {};
 
     template < typename U >
     struct is_actual_storage< pointer< no_storage_type_yet< U > > > : public boost::false_type {};
@@ -85,6 +91,9 @@ namespace gridtools {
 
     template < typename T >
     struct is_not_tmp_storage : boost::mpl::or_< is_actual_storage< T >, boost::mpl::not_< is_any_storage< T > > > {};
+
+    template < typename T >
+    struct is_not_tmp_storage_pointer : is_not_tmp_storage<typename T::value_type> {};
 
     template < typename T >
     struct storage_pointer_type {

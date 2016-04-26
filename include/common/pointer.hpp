@@ -48,6 +48,13 @@ namespace gridtools {
         }
 
         /**
+           @brief const assign operator
+         */
+        GT_FUNCTION void operator=(pointer<T> const& other_) {
+            m_t = other_.m_t;
+        }
+
+        /**
            @brief returns the raw pointer (even if it's null)
         */
         GT_FUNCTION

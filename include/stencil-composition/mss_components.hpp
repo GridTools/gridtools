@@ -7,8 +7,9 @@ namespace gridtools {
     /**
        @brief MPL pair wrapper with more meaningful type names for the specific use case.
     */
-    template < typename T1, typename T2 >
+    template < typename T1, typename T2, typename Repeat >
     struct functor_id_pair {
+        typedef Repeat repeat_t;
         typedef T1 id;
         typedef T2 f_type;
     };
@@ -19,7 +20,7 @@ namespace gridtools {
      * @tparam MssDescriptor the mss descriptor
      * @tparam ExtentSizes the extent sizes of all the ESFs in this mss
      */
-    template < typename MssDescriptor, typename ExtentSizes >
+    template < typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor >
     struct mss_components {
         GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor< MssDescriptor >::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< ExtentSizes, is_extent >::value), "Internal Error: wrong type");
@@ -59,7 +60,7 @@ namespace gridtools {
             boost::mpl::range_c< ushort_t, 0, boost::mpl::size< functors_seq_t >::value >,
             boost::mpl::vector0<>,
             boost::mpl::push_back< boost::mpl::_1,
-                functor_id_pair< boost::mpl::_2, boost::mpl::at< functors_seq_t, boost::mpl::_2 > > > >::type
+                                   functor_id_pair< boost::mpl::_2, boost::mpl::at< functors_seq_t, boost::mpl::_2 >, RepeatFunctor > > >::type
             functors_list_t;
 
         typedef ExtentSizes extent_sizes_t;
@@ -69,7 +70,7 @@ namespace gridtools {
     template < typename T >
     struct is_mss_components : boost::mpl::false_ {};
 
-    template < typename MssDescriptor, typename ExtentSizes >
-    struct is_mss_components< mss_components< MssDescriptor, ExtentSizes > > : boost::mpl::true_ {};
+    template < typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor >
+    struct is_mss_components< mss_components< MssDescriptor, ExtentSizes, RepeatFunctor > > : boost::mpl::true_ {};
 
 } // namespace gridtools

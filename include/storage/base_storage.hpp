@@ -154,7 +154,7 @@ and possibly the method 'copy_data_to_gpu' which are used when cloning the class
         /**@brief the parallel storage calls the empty constructor to do lazy initialization*/
         base_storage(
             MetaData const &meta_data_, char const *s = "default uninitialized storage", bool do_allocate = true)
-            : is_set(false), m_name("default_storage"), m_meta_data(meta_data_) {
+            : is_set(false), m_name(s), m_meta_data(meta_data_) {
             if (do_allocate)
                 allocate();
         }
@@ -415,6 +415,12 @@ and possibly the method 'copy_data_to_gpu' which are used when cloning the class
            avoids the introduction of #ifdefs
          */
         void clone_to_device() {}
+
+        void set_externally_managed(bool val_){
+            for (ushort_t i=0; i<field_dimensions; ++i){
+                m_fields[i].set_externally_managed(val_);
+            }
+        }
     };
 
     /** \addtogroup specializations Specializations

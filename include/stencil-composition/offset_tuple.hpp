@@ -188,6 +188,16 @@ namespace gridtools {
             return Idx == n_args - 1 ? m_offset : super::template get< Idx >();
         }
 
+        /**@brief sets an element in the offset array*/
+        template < short_t Idx >
+        GT_FUNCTION void set( int_t offset_ ) {
+
+            if(Idx == n_args - 1)
+                m_offset = offset_;
+            else
+                super::template set< Idx >( offset_ );
+        }
+
       protected:
         int_t m_offset;
     };
@@ -228,6 +238,10 @@ namespace gridtools {
         template < short_t Idx >
         GT_FUNCTION constexpr int_t get() const {
             return 0;
+        }
+
+        template < short_t Idx >
+        GT_FUNCTION void set(int_t offset_) {
         }
     };
 

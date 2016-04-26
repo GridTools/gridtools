@@ -17,6 +17,7 @@
 #include <boost/mpl/range_c.hpp>
 #include <boost/fusion/view/filter_view.hpp>
 #include <boost/fusion/include/for_each.hpp>
+#include <boost/fusion/mpl.hpp>
 
 #include "../common/generic_metafunctions/static_if.hpp"
 #include "../common/generic_metafunctions/is_variadic_pack_of.hpp"
@@ -210,16 +211,16 @@ namespace gridtools {
             domain_type((p1=storage_1), (p2=storage_2), (p3=storage_3));
             \endverbatim
         */
-        template < typename... StorageArgs >
-        domain_type(StorageArgs... args)
+        template < typename... Storage, typename ... Args >
+        domain_type(arg_storage_pair<Args, Storage> ... args)
             : m_storage_pointers(), m_metadata_set() {
 
-            GRIDTOOLS_STATIC_ASSERT((sizeof...(StorageArgs) > 0),
+            GRIDTOOLS_STATIC_ASSERT((sizeof...(Storage) > 0),
                 "Computations with no storages are not supported. "
                 "Add at least one storage to the domain_type "
                 "definition.");
             // NOTE: the following assertion assumes there StorageArgs has length at leas 1
-            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair< StorageArgs >::value...), "wrong type");
+            // GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair< StorageArgs >::value...), "wrong type");
             assign_pointers(m_metadata_set, args...);
         }
 #endif
@@ -245,12 +246,28 @@ namespace gridtools {
           public:
             assign_metadata_set(Sequence &sequence_) : m_sequence(sequence_) {}
 
+            /** @brief operator inserting a storage raw pointer
+
+                filters out the arguments which are not of storage type (and thus do not have an associated metadata)
+             */
             template < typename Arg >
             void operator()(Arg const *arg_) const {
                 // filter out the arguments which are not of storage type (and thus do not have an associated metadata)
                 static_if< is_actual_storage< pointer< Arg > >::type::value >::eval(
                     insert_if_not_present< Sequence, Arg >(m_sequence, *arg_), empty());
             }
+
+            /** @brief operator inserting a storage gridtools::pointer
+
+                filters out the arguments which are not of storage type (and thus do not have an associated metadata)
+             */
+            template < typename Arg >
+            void operator()(pointer<Arg> const& arg_) const {
+                // filter out the arguments which are not of storage type (and thus do not have an associated metadata)
+                static_if< is_actual_storage< pointer< Arg > >::type::value >::eval(
+                    insert_if_not_present< Sequence, Arg >(m_sequence, *arg_), empty());
+            }
+
         };
 
         /**@brief Constructor from boost::fusion::vector
@@ -259,7 +276,9 @@ namespace gridtools {
          TODO: when I have only one placeholder and C++11 enabled this constructor is erroneously picked
          */
         template < typename RealStorage >
-        explicit domain_type(RealStorage const &real_storage_)
+        explicit domain_type(RealStorage const &real_storage_
+                             , typename boost::enable_if<boost::is_pointer<typename boost::mpl::at_c<RealStorage, 0>::type > , int >::type* t=0
+            )
             : m_storage_pointers(), m_metadata_set() {
 
             // TODO: how to check the assertion below?
@@ -315,6 +334,29 @@ namespace gridtools {
             boost::fusion::copy(real_storage_, original_fview);
         }
 
+
+
+        /**@brief Constructor from boost::fusion::vector of gridools::pointer
+         * @tparam RealStorage fusion::vector of gridtools::pointers to storages
+         * @param real_storage The actual fusion::vector with the values
+         TODO: when I have only one placeholder and C++11 enabled this constructor is erroneously picked
+         */
+        template < typename RealStorage >
+        explicit domain_type(RealStorage const &storage_pointers_
+                             ,typename boost::enable_if<is_pointer<typename boost::mpl::at_c<RealStorage, 0>::type >, int >::type* t=0
+            )
+            : m_storage_pointers(storage_pointers_), m_metadata_set() {
+
+            // typedef boost::fusion::filter_view< RealStorage, is_not_tmp_storage_pointer< boost::mpl::_1 > > view_type;
+            // view_type fview(m_storage_pointers);
+            // boost::fusion::copy(storage_pointers_, fview);
+
+
+            // copy of the non-tmp metadata into m_metadata_set
+            boost::fusion::for_each(storage_pointers_, assign_metadata_set< metadata_set_t >(m_metadata_set));
+        }
+
+
         /** Copy constructor to be used when cloning to GPU
          *
          * @param The object to copy. Typically this will be *this
@@ -363,6 +405,22 @@ namespace gridtools {
            @brief returning by non-const reference the storage pointers
         */
         arg_list &storage_pointers_view() { return m_storage_pointers; }
+
+        template < typename StoragePlaceholder >
+        typename boost::mpl::at<arg_list, typename StoragePlaceholder::index_type>::type& storage_pointer() {
+            return boost::fusion::at<typename StoragePlaceholder::index_type>(m_storage_pointers);
+        }
+
+        template < typename StoragePlaceholder >
+        typename boost::mpl::at<arg_list, typename StoragePlaceholder::index_type>::type const& storage_pointer() const {
+            return boost::fusion::at<typename StoragePlaceholder::index_type>(m_storage_pointers);
+        }
+
+        template<typename T>
+        struct storage_type{
+            typedef typename boost::mpl::at<arg_list_mpl, typename T::index_type>::type::value_type type;
+        };
+
     };
 
     template < typename domain >

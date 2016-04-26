@@ -42,7 +42,7 @@ namespace gridtools {
      * @tparam MssDescriptorArray meta array of mss descriptors
      * @tparam extent_sizes sequence of sequence of extents
      */
-    template < enumtype::platform BackendId, typename MssDescriptorArray, typename ExtentSizes >
+    template < enumtype::platform BackendId, typename MssDescriptorArray, typename ExtentSizes, typename RepeatFunctor >
     struct build_mss_components_array {
         GRIDTOOLS_STATIC_ASSERT(
             (is_meta_array_of< MssDescriptorArray, is_mss_descriptor >::value), "Internal Error: wrong type");
@@ -83,7 +83,7 @@ namespace gridtools {
                 boost::mpl::vector0<>,
                 boost::mpl::push_back< boost::mpl::_1,
                     mss_components< boost::mpl::at< typename mss_array_t::elements, boost::mpl::_2 >,
-                                           boost::mpl::at< extent_sizes_unrolled_t, boost::mpl::_2 > > > >::type,
+                                           boost::mpl::at< extent_sizes_unrolled_t, boost::mpl::_2 >, RepeatFunctor > > >::type,
             boost::mpl::quote1< is_mss_components > > type;
     };
 
@@ -97,25 +97,26 @@ namespace gridtools {
      * @tparam extent_sizes sequence of sequence of extents
      */
     template < enumtype::platform BackendId,
-        typename MssDescriptorArray1,
-        typename MssDescriptorArray2,
-        typename Predicate,
-        typename Condition,
-        typename ExtentSizes1,
-        typename ExtentSizes2 >
+               typename MssDescriptorArray1,
+               typename MssDescriptorArray2,
+               typename Predicate,
+               typename Condition,
+               typename ExtentSizes1,
+               typename ExtentSizes2,
+               typename RepeatFunctor>
     struct build_mss_components_array< BackendId,
         meta_array< condition< MssDescriptorArray1, MssDescriptorArray2, Condition >, Predicate >,
-        condition< ExtentSizes1, ExtentSizes2, Condition > > {
+        condition< ExtentSizes1, ExtentSizes2, Condition >, RepeatFunctor > {
         // typedef typename pair<
         //     typename build_mss_components_array<BackendId, MssDescriptorArray1, ExtentSizes>::type
         //     , typename build_mss_components_array<BackendId, MssDescriptorArray1, ExtentSizes>::type >
         // ::type type;
         typedef condition< typename build_mss_components_array< BackendId,
                                meta_array< MssDescriptorArray1, Predicate >,
-                               ExtentSizes1 >::type,
+                               ExtentSizes1 , RepeatFunctor>::type,
             typename build_mss_components_array< BackendId,
                                meta_array< MssDescriptorArray2, Predicate >,
-                               ExtentSizes2 >::type,
+                               ExtentSizes2, RepeatFunctor >::type,
             Condition > type;
     };
 

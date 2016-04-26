@@ -197,7 +197,7 @@ namespace gridtools {
          */
         template < typename Accessor >
         struct accessor_return_type {
-            typedef typename ::gridtools::accessor_return_type< Accessor, iterate_domain_arguments_t >::type type;
+            typedef typename accessor_return_type_impl< Accessor, iterate_domain_arguments_t >::type type;
         };
 
       private:

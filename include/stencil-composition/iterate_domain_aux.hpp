@@ -687,10 +687,11 @@ If you are not using generic accessors then you are using an unsupported storage
      * metafunction that computes the return type of all operator() of an accessor
      */
     template < typename Accessor, typename IterateDomainArguments >
-    struct accessor_return_type {
+    struct accessor_return_type_impl {
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), "Wrong type");
 
-        typedef typename boost::mpl::eval_if< is_accessor< Accessor >,
+        typedef typename boost::mpl::eval_if< boost::mpl::or_<  is_accessor< Accessor >
+                                                             , is_vector_accessor<Accessor> >,
             get_arg_value_type_from_accessor< Accessor, IterateDomainArguments >,
             boost::mpl::identity< boost::mpl::void_ > >::type accessor_value_type;
 
