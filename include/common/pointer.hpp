@@ -48,10 +48,21 @@ namespace gridtools {
         }
 
         /**
-           @brief const assign operator
+           @brief assign operator
          */
         GT_FUNCTION void operator=(pointer<T> const& other_) {
             m_t = other_.m_t;
+        }
+
+
+        /**
+           @brief assign operator
+
+           if cast between T and U is allowed
+         */
+        template <typename U>
+        GT_FUNCTION void operator=(pointer<U> other_) {
+            *m_t = *other_.get();
         }
 
         /**
