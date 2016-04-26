@@ -39,7 +39,6 @@ else
   GPATH="${GRIDTOOLS_BUILD_PATH}/${JPLAN}/build_type/release/label/${myhost}/mpi/MPI/"
 fi
 
-GPATH="${GRIDTOOLS_BUILD_PATH}/${JPLAN}/build_type/release/label/${myhost}/mpi/MPI/"
 if [[ -n "${PYTHON_OPT}" ]]; then
     GPATH="${GPATH}/python/${PYTHON_OPT}"
 fi
