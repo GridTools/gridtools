@@ -69,7 +69,7 @@ typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
 typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
 /** @brief
-    Parallel copy of one field done on the backend.
+    Parallel copy of a domain done on the backend.
     @param out Destination domain.
     @param int Source domain.
 */
@@ -144,7 +144,7 @@ struct reduction_functor {
 };
 
 /** @brief generic argument type
-   Minimal interface to be passed as an argument to the user functor.
+   Minimal interface for parameter to be passed as an argument to the user functor.
 */
 struct parameter : clonable_to_gpu<parameter> {
 
@@ -231,16 +231,17 @@ struct boundary_conditions {
 
 bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
+    // initialize MPI
     gridtools::GCL_Init();
 
-    // domain is encapsulated in boundary layer from both sides in each dimension
-    // these are just inned domain dimension
+    // domain is encapsulated in boundary layer from both sides in each dimension,
+    // these are just inner domain dimensions
     uint_t d1 = xdim;
     uint_t d2 = ydim;
     uint_t d3 = zdim;
     uint_t TIME_STEPS = nt;
 
-    // force square domain
+    // enforce square domain
     if (!(xdim==ydim && ydim==zdim)) {
         if(PID==0) printf("Please run with dimensions X=Y=Z\n");
         return false;
@@ -285,8 +286,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     pattern_type he(pattern_type::grid_type::period_type(false, false, false), GCL_WORLD, &dimensions);
 
     // 3D distributed storage
-    array<ushort_t, 3> padding{1,1,0};
-    array<ushort_t, 3> halo{1,1,1};
+    array<ushort_t, 3> padding{1,1,0}; // global halo, 1-Dirichlet, 0-Neumann
+    array<ushort_t, 3> halo{1,1,1}; // number of layers to communicate to neighboring processes
     typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > >, pattern_type::grid_type> partitioner_t;
     partitioner_t part(he.comm(), halo, padding);
     parallel_storage_info<metadata_t, partitioner_t> meta_(part, d1, d2, d3);
@@ -307,19 +308,20 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     storage_type b    (metadata_, 1., "RHS vector");
     storage_type x    (metadata_, 0., "Solution vector t");
     storage_type xNew (metadata_, 0., "Solution vector t+1");
-    storage_type Ax   (metadata_, 0., "Multiplied sol. vector Ax at time t");
-    storage_type r    (metadata_, 0., "Residual t");
-    storage_type rNew (metadata_, 0., "Residual t+1");
-    storage_type d    (metadata_, 0., "Direction vector t");
-    storage_type dNew (metadata_, 0., "Direction vector t+1");
-    storage_type Ad   (metadata_, 0., "Multiplied direction vector");
+    storage_type Ax   (metadata_, 0., "Vector Ax at time t");
+    storage_type r    (metadata_, 0., "Residual at time t");
+    storage_type rNew (metadata_, 0., "Residual at time t+1");
+    storage_type d    (metadata_, 0., "Direction vector at time t");
+    storage_type dNew (metadata_, 0., "Direction vector at time t+1");
+    storage_type Ad   (metadata_, 0., "Projected direction vector");
     storage_type tmp  (metadata_, 0., "Temporary storage");
 
+    // Pointers to data-fields are swapped at each time-iteration
     storage_type *ptr_x = &x, *ptr_xNew = &xNew;
     storage_type *ptr_r = &r, *ptr_rNew = &rNew;
     storage_type *ptr_d = &d, *ptr_dNew = &dNew;
 
-
+    // Scalar parameters
     parameter alpha; //step length
     parameter beta; //orthogonalization parameter
 
@@ -334,7 +336,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     size_t J = meta_.get_low_bound(1);
     size_t K = meta_.get_low_bound(2);
 
-    // initialize the local domain (RHS vector)
+    // initialize the RHS vector domain
     for(uint_t i=0; i<metadata_.template dims<0>(); ++i)
         for(uint_t j=0; j<metadata_.template dims<1>(); ++j)
             for(uint_t k=0; k<metadata_.template dims<2>(); ++k)
@@ -408,13 +410,14 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     /*
       Here we do lot of stuff
       1) We pass to the intermediate representation ::run function the description
-      of the stencil, which is a multi-stage stencil (mss)
+         of the stencil, which is a multi-stage stencil (mss)
       2) The logical physical domain with the fields to use
       3) The actual domain dimensions
      */
 
     //start timer
     boost::timer::cpu_times lapse_time_run = {0,0,0};
+    boost::timer::cpu_times lapse_time_d3point7 = {0,0,0};
     boost::timer::cpu_timer time;
 
     // construction of the domain for step phase
@@ -447,19 +450,17 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
          gridtools::bitmap_predicate(part.boundary())
         ).apply(x, d, xNew, dNew);
 
-    // set addition param to subtraction: r = b + alpha A x
+    // set addition parameter to -1 (subtraction): r = b + alpha A x
     double minus = -1;
     alpha.setValue(minus);
 
     //prepare and run single step of CG computation
     CG_init->ready();
     CG_init->steady();
-    boost::timer::cpu_timer time_run;
+    boost::timer::cpu_timer time_runInit;
     CG_init->run();
-    lapse_time_run = lapse_time_run + time_run.elapsed();
+    lapse_time_run = lapse_time_run + time_runInit.elapsed();
     CG_init->finalize();
-
-    //printf("%f\n", Ax(1,1,0)); //TODO - error of .print()
 
     //communicate halos
     std::vector<pointer_type::pointee_t*> vec(1);
@@ -476,7 +477,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     */
     for(int i=0; i < TIME_STEPS; i++) {
 
-        // construction of the domain for the steps of CG
+        // construction of the domains for the steps of CG
         gridtools::domain_type<accessor_list_step0> domain_step0
             (boost::fusion::make_vector(&Ad, ptr_d));
 
@@ -499,7 +500,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
             (boost::fusion::make_vector(&tmp, ptr_rNew, ptr_rNew));
 
 
-        //instantiate stencil to perform steps of CG
+        //instantiate stencils to perform steps of CG
         auto CG_step0 = gridtools::make_computation<gridtools::BACKEND>
             (
                 domain_step0, coords3d7pt,
@@ -560,9 +561,9 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                     execute< forward >(),
                     make_esf<product_functor>(p_out(),
                                               p_a(),
-                                              p_b())
+                                              p_b()) // r_T * r
                 ),
-                make_reduction< reduction_functor, binop::sum >(0.0, p_out())
+                make_reduction< reduction_functor, binop::sum >(0.0, p_out()) // sum(r_T * r)
             );
 
         auto stencil_alpha_denom = make_computation< gridtools::BACKEND >
@@ -573,9 +574,9 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                     execute< forward >(),
                     make_esf<product_functor>(p_out(),
                                               p_a(),
-                                              p_b())
+                                              p_b()) // d_T * A * d
                 ),
-                make_reduction< reduction_functor, binop::sum >(0.0, p_out())
+                make_reduction< reduction_functor, binop::sum >(0.0, p_out()) // sum(d_T * A * d)
             );
 
             auto stencil_beta_nom = make_computation< gridtools::BACKEND >
@@ -586,9 +587,9 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                     execute< forward >(),
                     make_esf<product_functor>(p_out(),
                                               p_a(),
-                                              p_b())
+                                              p_b()) // rNew_T * rNew
                 ),
-                make_reduction< reduction_functor, binop::sum >(0.0, p_out())
+                make_reduction< reduction_functor, binop::sum >(0.0, p_out()) // sum(rNew_T * rNew)
             );
 
         // A * d
@@ -596,13 +597,16 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         CG_step0->steady();
         boost::timer::cpu_timer time_run0;
         CG_step0->run();
+        lapse_time_d3point7 = lapse_time_d3point7 + time_run0.elapsed();
         lapse_time_run = lapse_time_run + time_run0.elapsed();
         CG_step0->finalize();
 
-        //compute step size alpha
+        // compute step size alpha
         stencil_alpha_nom->ready();
         stencil_alpha_nom->steady();
+        boost::timer::cpu_timer time_alphaNom;
         float rTr = stencil_alpha_nom->run(); // r_T * r (at time t)
+        lapse_time_run = lapse_time_run + time_alphaNom.elapsed();
         stencil_alpha_nom->finalize();
         float rTr_global;
         MPI_Allreduce(&rTr, &rTr_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
@@ -610,7 +614,9 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
         stencil_alpha_denom->ready();
         stencil_alpha_denom->steady();
+        boost::timer::cpu_timer time_alphaDenom;
         float dTAd = (float) stencil_alpha_denom->run(); // d_T * A * d
+        lapse_time_run = lapse_time_run + time_alphaDenom.elapsed();
         stencil_alpha_denom->finalize();
         float dTAd_global;
         MPI_Allreduce(&dTAd, &dTAd_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
@@ -638,12 +644,14 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         //compute Gram–Schmidt orthogonalization parameter beta
         stencil_beta_nom->ready();
         stencil_beta_nom->steady();
-        float rTrnew = stencil_beta_nom->run(); // r_T * r (at time t+1)
+        boost::timer::cpu_timer time_betaNom;
+        float rTrnew = stencil_beta_nom->run(); // r_T * r (at time t+1) //TODO: reuse at next iteration in alpha
+        lapse_time_run = lapse_time_run + time_betaNom.elapsed();
         stencil_beta_nom->finalize();
         float rTrnew_global;
         MPI_Allreduce(&rTrnew, &rTrnew_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
 
-        beta.setValue(rTrnew_global/rTr_global); // reusing rTr from computation of alpha
+        beta.setValue(rTrnew_global/rTr_global); // reusing r_T*r from computation of alpha
         if(PID == 0) printf("Beta = %f\n", rTrnew_global/rTr_global);
 
         // d_(i+1) = r_(i+1) + beta * d_i
@@ -682,10 +690,10 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     boost::timer::cpu_times lapse_time = time.elapsed();
 
     if(gridtools::PID == 0){
-        std::cout << std::endl << "TIME d3point7 TOTAL: " << boost::timer::format(lapse_time);
-        std::cout << "TIME d3point7 RUN:" << boost::timer::format(lapse_time_run);
-        std::cout << "TIME d3point7 MFLOPS: " << MFLOPS(10,d1,d2,d3,nt,lapse_time_run.wall) << std::endl;
-        std::cout << "TIME d3point7 MLUPs: " << MLUPS(d1,d2,d3,nt,lapse_time_run.wall) << std::endl << std::endl;
+        std::cout << std::endl << "TOTAL TIME: " << boost::timer::format(lapse_time);
+        std::cout << "TIME SPENT IN RUN STAGE:" << boost::timer::format(lapse_time_run);
+        std::cout << "d3point7 MFLOPS: " << MFLOPS(10,d1,d2,d3,nt,lapse_time_d3point7.wall) << std::endl;
+        std::cout << "d3point7 MLUPs: " << MLUPS(d1,d2,d3,nt,lapse_time_d3point7.wall) << std::endl << std::endl;
     }
 
 #ifndef NDEBUG1
