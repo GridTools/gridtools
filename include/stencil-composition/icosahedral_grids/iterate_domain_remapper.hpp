@@ -83,26 +83,15 @@ namespace gridtools {
                 return m_iterate_domain(remap_accessor_t(arg));
             }
 
-            template < typename ValueType, typename LocationTypeT, typename Reduction, uint_t I, typename L, int_t R >
-            GT_FUNCTION auto operator()(
-                on_neighbors_impl< ValueType, LocationTypeT, Reduction, accessor< I, enumtype::in, L, extent< R > > >
-                    onneighbors) const
-                -> decltype(
-                    m_iterate_domain(typename remap_on_neighbors< on_neighbors_impl< ValueType,
-                                                                      LocationTypeT,
-                                                                      Reduction,
-                                                                      accessor< I, enumtype::in, L, extent< R > > >,
-                        typename remap_accessor_type< accessor< I, enumtype::in, L, extent< R > >,
-                                                                      esf_args_map_t >::type >::type(onneighbors))) {
+            template < typename ValueType, typename LocationTypeT, typename Reduction, typename... Accessors >
+            GT_FUNCTION ValueType operator()(
+                on_neighbors_impl< ValueType, LocationTypeT, Reduction, Accessors... > onneighbors) const
+            {
                 typedef on_neighbors_impl< ValueType,
                     LocationTypeT,
                     Reduction,
-                    accessor< I, enumtype::in, L, extent< R > > > on_neighbors_t;
-
-                typedef accessor< I, enumtype::in, L, extent< R > > accessor_t;
-                typedef typename remap_accessor_type< accessor_t, esf_args_map_t >::type remap_accessor_t;
-                typedef typename remap_on_neighbors< on_neighbors_t, remap_accessor_t >::type remap_on_neighbors_t;
-                return m_iterate_domain(remap_on_neighbors_t(onneighbors));
+                    typename remap_accessor_type< Accessors, esf_args_map_t  >::type... > remap_accessor_t;
+                return m_iterate_domain(remap_accessor_t(onneighbors));
             }
         };
 

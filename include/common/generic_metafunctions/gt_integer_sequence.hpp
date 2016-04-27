@@ -106,13 +106,16 @@ namespace gridtools {
            \tparam AdditionalArg additional argument passed to the lambda at the end of the pack
            \tparam ExtraTypes variadic pack of arguments to be passed to the lambda
          */
-        template < typename Lambda,
+        template <
+            typename ReturnType,
+            typename Lambda,
             template < UInt T > class MetaFunctor,
             typename AdditionalArg,
             typename... ExtraTypes >
-        GT_FUNCTION static constexpr auto apply_lambda(
+        GT_FUNCTION static constexpr ReturnType apply_lambda(
             Lambda lambda, AdditionalArg add_arg, ExtraTypes const &... args_)
-            -> decltype(lambda(MetaFunctor< Indices >::apply(args_...)..., add_arg)) {
+//            -> decltype(lambda(MetaFunctor< Indices >::apply(args_...)..., add_arg)) {
+        {
             return lambda(MetaFunctor< Indices >::apply(args_...)..., add_arg);
         }
 

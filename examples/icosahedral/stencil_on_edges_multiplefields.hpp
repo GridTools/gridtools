@@ -104,10 +104,9 @@ namespace soem {
         stencil_->steady();
         stencil_->run();
 
-#ifdef __CUDACC__
         out_edges.d2h_update();
-        in_edges.d2h_update();
-#endif
+        in_edges1.d2h_update();
+        in_edges2.d2h_update();
 
         unstructured_grid ugrid(d1, d2, d3);
         for (uint_t i = halo_nc; i < d1 - halo_nc; ++i) {

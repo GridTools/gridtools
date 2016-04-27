@@ -318,23 +318,22 @@ namespace gridtools {
                     Neighbors const &neighbors, IterateDomain const &iterate_domain, Accessors... args_) {
 
                     return iterate_domain._evaluate(get_from_variadic_pack< Idx >::apply(args_...), neighbors);
-
                 }
             };
         };
-
 
         template < typename ValueType, typename NeighborsArray, typename Reduction, typename IterateDomain >
         struct reduce_tuple_data_holder {
             Reduction const &m_reduction;
             NeighborsArray const &m_neighbors;
             IterateDomain const &m_iterate_domain;
-            ValueType& m_result;
+            ValueType &m_result;
 
           public:
+            GT_FUNCTION
             reduce_tuple_data_holder(Reduction const &reduction,
                 NeighborsArray const &neighbors,
-                ValueType& result,
+                ValueType &result,
                 IterateDomain const &iterate_domain)
                 : m_reduction(reduction), m_neighbors(neighbors), m_result(result), m_iterate_domain(iterate_domain) {}
         };
@@ -342,16 +341,17 @@ namespace gridtools {
         template < typename ValueType, typename NeighborsArray, typename Reduction, typename IterateDomain >
         struct reduce_tuple {
 
-            typedef reduce_tuple_data_holder< ValueType, NeighborsArray, Reduction, IterateDomain > reduce_tuple_holder_t;
+            typedef reduce_tuple_data_holder< ValueType, NeighborsArray, Reduction, IterateDomain >
+                reduce_tuple_holder_t;
 
             template < typename... Accessors >
-            static ValueType apply(reduce_tuple_holder_t &reducer, Accessors... args) {
+            GT_FUNCTION static ValueType apply(reduce_tuple_holder_t &reducer, Accessors... args) {
                 using seq =
                     apply_gt_integer_sequence< typename make_gt_integer_sequence< int, sizeof...(Accessors) >::type >;
 
-                reducer.m_result = seq::template apply_lambda< Reduction, it_domain_evaluator<ValueType>::template apply_t >(
-                    reducer.m_reduction, reducer.m_result, reducer.m_neighbors, reducer.m_iterate_domain, args...);
-
+                reducer.m_result =
+                    seq::template apply_lambda< ValueType, Reduction, it_domain_evaluator< ValueType >::template apply_t >(
+                        reducer.m_reduction, reducer.m_result, reducer.m_neighbors, reducer.m_iterate_domain, args...);
             }
         };
 
@@ -364,7 +364,7 @@ namespace gridtools {
 
             const auto neighbors =
                 grid_topology_t::neighbors_indices_3(current_position, location_type_t(), onneighbors.location());
-            ValueType& result = onneighbors.value();
+            ValueType &result = onneighbors.value();
 
             for (int_t i = 0; i < neighbors.size(); ++i) {
 
