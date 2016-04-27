@@ -202,7 +202,76 @@ class AdditionalIfStatementTest (CopyTest):
     @unittest.skip("Not yet implemented")
     @attr(lang='python')
     def test_python_results (self):
-        print('Not yet implemented')
+        pass
+
+
+
+class EmptyKernel (MultiStageStencil):
+    """
+    Definition of a simple stencil with invalid kernel
+    """
+    def kernel (self, out_arg, in_arg):
+        """
+        Just an empty kernel
+        """
+        pass
+
+
+
+class EmptyKernelTest (unittest.TestCase):
+    """
+    A base test case for stencils with invalid kernels.
+    """
+    def _run (self, stencil):
+        kwargs = dict ( )
+        for p in self.params:
+            kwargs[p] = getattr (self, p)
+        stencil.run (**kwargs)
+
+    def setUp (self):
+        super ( ).setUp ( )
+        logging.basicConfig (level=logging.INFO)
+
+        self.params = ('out_arg', 'in_arg')
+
+        self.out_arg = None
+        self.in_arg = None
+
+        self.stencil = EmptyKernel ( )
+        self.error = NameError
+
+
+    def test_raises_error (self, backend='c++'):
+        self.stencil.backend = backend
+        with self.assertRaises (self.error):
+            self._run(self.stencil)
+
+
+    @attr(lang='cuda')
+    def test_raises_error_cuda (self):
+        self.test_raises_error(backend='cuda')
+
+
+    @attr(lang='python')
+    def test_raises_error_python (self):
+        self.test_raises_error(backend='python')
+
+
+    def test_unregister (self, backend='c++'):
+        self.stencil.backend = backend
+        with self.assertRaises (self.error):
+            self._run(self.stencil)
+        self.assertIs ( (self.stencil in self.stencil.compiler), False)
+
+
+    @attr(lang='cuda')
+    def test_unregister_cuda (self):
+        self.test_unregister(backend='cuda')
+
+
+    @attr(lang='python')
+    def test_unregister_python (self):
+        self.test_unregister(backend='python')
 
 
 

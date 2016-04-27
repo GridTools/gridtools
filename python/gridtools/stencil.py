@@ -241,25 +241,31 @@ class Stencil (object):
         #
         # analyze the stencil code
         #
-        Stencil.compiler.analyze (self, **kwargs)
-        #
-        # check the minimum halo has been given
-        #
-        for idx in range (len (self.scope.minimum_halo)):
-            if self.scope.minimum_halo[idx] - self.halo[idx] > 0:
-                raise ValueError ("The halo should be at least %s" %
-                                  self.scope.minimum_halo)
-        #
-        # run the selected backend version
-        #
-        logging.info ("Executing '%s' in %s mode ..." % (self.name,
-                                                         self.backend.upper ( )))
-        if self.backend == 'c++' or self.backend == 'cuda':
-            Stencil.compiler.run_native (self, **kwargs)
-        elif self.backend == 'python':
-            self.kernel (**kwargs)
+        try:
+            Stencil.compiler.analyze (self, **kwargs)
+        except Exception as e:
+            logging.error("Error while analyzing code for stencil '%s'" % self.name)
+            Stencil.compiler.unregister (self)
+            raise e
         else:
-            raise ValueError ("Unknown backend '%s'" % self.backend)
+            #
+            # check the minimum halo has been given
+            #
+            for idx in range (len (self.scope.minimum_halo)):
+                if self.scope.minimum_halo[idx] - self.halo[idx] > 0:
+                    raise ValueError ("The halo should be at least %s" %
+                                      self.scope.minimum_halo)
+            #
+            # run the selected backend version
+            #
+            logging.info ("Executing '%s' in %s mode ..." % (self.name,
+                                                             self.backend.upper ( )))
+            if self.backend == 'c++' or self.backend == 'cuda':
+                Stencil.compiler.run_native (self, **kwargs)
+            elif self.backend == 'python':
+                self.kernel (**kwargs)
+            else:
+                raise ValueError ("Unknown backend '%s'" % self.backend)
 
 
     def set_halo (self, halo=(0,0,0,0)):

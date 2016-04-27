@@ -337,6 +337,22 @@ class StencilCompiler ( ):
                 make.render (stencils = [s for s in self.stencils.values ( ) if s.backend in ['c++', 'cuda']],
                              compiler = self))
 
+    def unregister (self, stencil):
+        """
+        Removes registration of the received Stencil object from this compiler
+        :param stencil:   the stencil object to unregister
+        """
+
+        if self.is_registered (stencil):
+            #
+            # Remove this stencil from the compiler registry
+            #
+            del self.stencils[id(stencil)]
+            logging.debug ("Stencil '%s' unregistered from the Compiler" % stencil.name)
+        else:
+            logging.warning("Trying to unregister Stencil '%s' that is not \
+                             registered with the Compiler")
+
 
 
 

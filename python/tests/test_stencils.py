@@ -263,32 +263,6 @@ class CopyTest (AccessPatternDetectionTest):
             Stencil.compiler.register (DoesNotExtendAndShouldFail ( ))
 
 
-    def test_kernel_function (self):
-        """
-        The kernel function is the entry point of the stencil execution and
-        should follow several conventions.-
-        """
-        #
-        # FIXME will not work because the 'class' definition is indented and
-        #       it should not be
-        #
-        """
-        with self.assertRaises (NameError):
-            class KernelFunctionMissing (MultiStageStencil):
-                def some_func (self):
-                    return None
-            insp = StencilInspector (KernelFunctionMissing)
-            insp.analyze ( )
-        with self.assertRaises (ValueError):
-            class KernelFunctionShouldReturnNone (MultiStageStencil):
-                def kernel (self):
-                    return "something"
-            insp = StencilInspector (KernelFunctionDoesNotReturnNone)
-            insp.analyze ( )
-        """
-        pass
-
-
     def test_run_stencil_only_accepts_keyword_arguments (self):
         with self.assertRaises (KeyError):
             self.stencil.run ([ getattr (self, p) for p in self.params ])
