@@ -9,6 +9,7 @@
 #pragma once
 #include "storage/storage_metafunctions.hpp"
 #include "stencil-composition/arg_metafunctions_fwd.hpp"
+#include "arg_metafunctions.hpp"
 
 namespace gridtools {
 
@@ -94,7 +95,7 @@ namespace gridtools {
 
 // location type is only used by other grids, supported only for cxx11
 #ifdef CXX11_ENABLED
-        // using location_type = typename Storage::storage_info_type::index_type;
+        typedef typename get_location_type<Storage>::type location_type;
 #endif
 
         template < typename Storage2 >

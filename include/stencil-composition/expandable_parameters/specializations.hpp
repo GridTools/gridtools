@@ -5,6 +5,12 @@ namespace gridtools{
         typedef T type;
     };
 
+    /** metafunction extracting the location type from the storage*/
+    template<typename T>
+    struct get_location_type<std::vector<T> >{
+        typedef typename T::value_type::storage_info_type::index_type type;
+    };
+
     template < typename Sequence, typename Arg >
     struct insert_if_not_present<Sequence, std::vector<pointer<Arg> > > : insert_if_not_present<Sequence, Arg> {
 
