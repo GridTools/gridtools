@@ -42,6 +42,14 @@ namespace gridtools{
                >
     struct intermediate_expand : public computation
     {
+        GRIDTOOLS_STATIC_ASSERT((is_backend<Backend>::value), "wrong type");
+        // to make the following work we should change in lot of places
+        // is_mss_descriptor with is_computation_token
+        // GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssDescriptorArray, is_computation_token >::value)
+        //                         , "wrong type" );
+        GRIDTOOLS_STATIC_ASSERT((is_domain_type<DomainType>::value), "wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_expand_factor<ExpandFactor>::value), "wrong type");
 
         // create an mpl vector of @ref gridtools::arg, substituting the large
         // expandable parameters list with a chunk
@@ -155,7 +163,7 @@ namespace gridtools{
          */
         virtual void run(){
 
-            for(uint_t i=0; i<m_size-m_size%ExpandFactor::value; i+=ExpandFactor::value){
+        for(uint_t i=0; i<m_size-m_size%ExpandFactor::value; i+=ExpandFactor::value){
 
                 std::cout<<"iteration: "<<i<<"\n";
                 boost::mpl::for_each<expandable_params_t>(_impl::assign_expandable_params<DomainType, domain_type<new_arg_list> >(m_domain_from, *m_domain_to, i));

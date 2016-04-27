@@ -21,7 +21,7 @@ namespace gridtools {
                                                    boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 >,
                                                    boost::mpl::_1 > >::type mss_vector;
 
-            typedef meta_array< mss_vector, boost::mpl::quote1< is_mss_descriptor > > type;
+            typedef meta_array< mss_vector, boost::mpl::quote1< is_computation_token > > type;
         };
     } // namespace _impl
 
