@@ -7,6 +7,7 @@
 #include "div_defs.hpp"
 #include "IconToGridTools.hpp"
 #include "../icosahedral/unstructured_grid.hpp"
+#include <random>
 
 namespace divergence
 {
@@ -38,12 +39,14 @@ public:
                 edge_sign_on_cell_(i, 1, j, 0) = 1.;
             }
 
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_real_distribution<> dis(0, 1);
         // init u
         for (int i = 0; i < icosahedral_grid_.m_dims[0]; ++i) {
             for (int c = 0; c < icosahedral_topology_t::edges::n_colors::value; ++c) {
                 for (int j = 0; j < icosahedral_grid_.m_dims[1]; ++j) {
-                    u_(i, c, j, 0) = (uint_t)u_.meta_data().index(
-                            array< uint_t, 4 >{(uint_t)i, (uint_t)c, (uint_t)j, (uint_t)1});
+                    u_(i, c, j, 0) = 1.0 + dis(gen);
                 }
             }
         }
