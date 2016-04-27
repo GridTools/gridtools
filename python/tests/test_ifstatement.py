@@ -95,10 +95,10 @@ class GameOfLifeTest (CopyTest):
     def test_minimum_halo_detection (self):
         super ( ).test_minimum_halo_detection ([1, 1, 1, 1])
 
-
+    @unittest.skip("Not yet implemented")
     @attr(lang='python')
     def test_python_results (self):
-        print('Not yet implemented')
+        pass
 
 
 
@@ -199,6 +199,7 @@ class AdditionalIfStatementTest (CopyTest):
         super ( ).test_minimum_halo_detection ([0, 1, 0, 0])
 
 
+    @unittest.skip("Not yet implemented")
     @attr(lang='python')
     def test_python_results (self):
         print('Not yet implemented')
