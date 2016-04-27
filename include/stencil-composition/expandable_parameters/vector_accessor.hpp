@@ -1,14 +1,27 @@
 #pragma once
+/** @file vector accessor */
 
 namespace gridtools{
 
+/**
+   @brief accessor for an expandable parameters list
+
+   accessor object used with the expandable parameters. It is exactly like a regular accessor.
+   Its type must be different though, so that the gridtools::iterate_domain can implement a specific
+   overload of the operator() for this accessor type.
+
+   \tparam ID integer identifier, to univocally specify the accessor
+   \tparam Intent flag stating wether or not this accessor is read only
+   \tparam Extent specification of the minimum box containing the stencil access pattern
+   \tparam NDim dimensionality of the vector accessor: should be the storage space dimensions plus one (the vector field dimension)
+*/
     template < uint_t ID,
-        enumtype::intend Intend = enumtype::in,
+        enumtype::intend Intent = enumtype::in,
         typename Extent = extent< 0, 0, 0, 0, 0, 0 >,
         ushort_t NDim = 4 >
-    struct vector_accessor : accessor<ID, Intend, Extent, NDim>{
+    struct vector_accessor : accessor<ID, Intent, Extent, NDim>{
 
-        using super = accessor<ID, Intend, Extent, NDim>;
+        using super = accessor<ID, Intent, Extent, NDim>;
         using super::accessor;
         static const ushort_t n_dim = NDim;
     };
@@ -18,9 +31,5 @@ namespace gridtools{
 
     template <uint_t ID, enumtype::intend Intent, typename Extent, uint_t Size >
     struct is_vector_accessor<vector_accessor<ID, Intent, Extent, Size> > : boost::mpl::true_ {};
-
-    // template <uint_t ID, enumtype::intend Intent, typename Extent, uint_t Size >
-    // struct is_accessor<vector_accessor<ID, Intent, Extent, Size> > : boost::mpl::true_ {};
-
 
 }//namespace gridtools

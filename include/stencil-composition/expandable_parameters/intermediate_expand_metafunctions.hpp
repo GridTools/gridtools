@@ -1,47 +1,63 @@
 #pragma once
 
+/** @file metafunctions used in @ref gridtools::intermediate_expand*/
+
 namespace gridtools{
-namespace _impl{
-    template<typename T>
-    struct is_expandable_parameters : boost::mpl::false_{};
+    namespace _impl{
 
-    template<typename BaseStorage, ushort_t N>
-    struct is_expandable_parameters<expandable_parameters<BaseStorage, N> > : boost::mpl::true_{};
+// ********* metafunctions ************
+        template<typename T>
+        struct is_expandable_parameters : boost::mpl::false_{};
 
-    template<typename T>
-    struct is_expandable_arg : boost::mpl::false_{};
+        template<typename BaseStorage, ushort_t N>
+        struct is_expandable_parameters<expandable_parameters<BaseStorage, N> > : boost::mpl::true_{};
 
-    template<uint_t N, typename Storage, typename Condition>
-    struct is_expandable_arg <arg<N, Storage, Condition > > : is_expandable_parameters<Storage>{};
+        template<typename BaseStorage>
+        struct is_expandable_parameters<std::vector<pointer<BaseStorage> > > : boost::mpl::true_{};
 
-    template<uint_t N, typename Storage>
-    struct is_expandable_arg <arg<N, Storage> > : is_expandable_parameters<Storage>{};
+        template<typename T>
+        struct is_expandable_arg : boost::mpl::false_{};
 
-    template <typename T>
-    struct get_basic_storage{
-        typedef typename T::storage_type::basic_type type;
-    };
+        template<uint_t N, typename Storage, typename Condition>
+        struct is_expandable_arg <arg<N, Storage, Condition > > : is_expandable_parameters<Storage>{};
 
-    template <typename T>
-    struct get_storage{
-        typedef typename T::storage_type type;
-    };
+        template<uint_t N, typename Storage>
+        struct is_expandable_arg <arg<N, Storage> > : is_expandable_parameters<Storage>{};
 
-    template <typename T>
-    struct get_index{
-        typedef typename T::index_type type;
-        static const uint_t value = T::index_type::value;
-    };
+        template <typename T>
+        struct get_basic_storage{
+            typedef typename T::storage_type::basic_type type;
+        };
 
-    template< typename T, typename ExpandFactor>
-    struct create_arg{
-        typedef arg<get_index<T>::value, expandable_parameters<
-                                             typename get_basic_storage<T>::type
-                                             , ExpandFactor::value>
-        > type;
-    };
+        template <ushort_t ID, typename T>
+        struct get_basic_storage< arg<ID, std::vector<pointer<T> > > >{
+            typedef typename T::basic_type type;
+        };
+
+        template <typename T>
+        struct get_storage{
+            typedef typename T::storage_type type;
+        };
+
+        template <typename T>
+        struct get_index{
+            typedef typename T::index_type type;
+            static const uint_t value = T::index_type::value;
+        };
+
+        template< typename T, typename ExpandFactor>
+        struct create_arg{
+            typedef arg<get_index<T>::value, expandable_parameters<
+                                                 typename get_basic_storage<T>::type
+                                                 , ExpandFactor::value>
+                        > type;
+        };
 
 
+/**
+   @brief functor used to initialize the storage in a boost::fusion::vector from an
+   instance of gridtools::domain_type
+*/
         template<typename DomainFrom, typename Vec>
         struct initialize_storage{
 
@@ -68,10 +84,32 @@ namespace _impl{
                             , typename T::index_type
                             >::type>::type::value_type (m_dom_from.template storage_pointer<T>()->meta_data(), "expandable params", false /*do_allocate*/);
             }
+
+            template <ushort_t ID, typename T>
+            void operator()(arg<ID,std::vector<pointer<T> > >){
+                boost::fusion::at<static_ushort<ID> >(m_vec_to)
+                    =
+                    //TODO: who deletes this new? The domain_type?
+                    new
+                    typename boost::remove_reference<
+                        typename boost::fusion::result_of::at<
+                            Vec
+                            , static_ushort<ID>
+                            >::type>::type::value_type (
+                                m_dom_from.
+                                template storage_pointer<
+                                arg<ID,std::vector<pointer<T> > > >()->at(0)->meta_data()
+                                , "expandable params"
+                                , false /*do_allocate*/);
+            }
+
         };
 
 
 
+/**
+   @brief functor used to delete the storages containing the chunk of pointers
+*/
         template<typename Vec>
         struct delete_storage{
 
@@ -94,6 +132,9 @@ namespace _impl{
             }
         };
 
+        /**
+           @brief functor used to assign the next chunk of storage pointers
+        */
         template<typename DomainFrom, typename DomainTo>
         struct assign_expandable_params{
 
@@ -107,12 +148,16 @@ namespace _impl{
 
             assign_expandable_params(DomainFrom const & dom_from_, DomainTo & dom_to_, uint_t const& i_):m_dom_from(dom_from_), m_dom_to(dom_to_),  m_idx(i_){}
 
-            template <typename T>
-            void operator()(T){
+            template < ushort_t ID, typename T >
+            void operator()(arg<ID, std::vector<pointer<T> > >){
 
-                m_dom_to.template storage_pointer<T>()->assign_pointers(*m_dom_from.template storage_pointer<T>(), m_idx);
+                //the vector of pointers
+                pointer<std::vector<pointer<T> > > const& storage_ptr_
+                    = m_dom_from.template storage_pointer< arg<ID, std::vector<pointer<T> > > >();
+
+                boost::fusion::at<static_ushort<ID> >(m_dom_to.m_storage_pointers)->set(*storage_ptr_, m_idx);
             }
         };
 
-} //namespace _impl
+    } //namespace _impl
 } //namespace gridtools

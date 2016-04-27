@@ -1,11 +1,18 @@
 #pragma once
 #include <memory>
 
+#include "specializations.hpp"
 #include "../conditionals/fill_conditionals.hpp"
 #include "../../common/generic_metafunctions/vector_to_set.hpp"
 #include "../computation_grammar.hpp"
 #include "intermediate_expand.hpp"
 #include "expand_factor.hpp"
+
+/**
+   @file make_computation specific for expandable parameters
+
+   TODO: lot of code repetition which can probably be avoided
+*/
 
 namespace gridtools {
 

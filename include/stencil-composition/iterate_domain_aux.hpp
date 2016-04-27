@@ -652,6 +652,16 @@ If you are not using generic accessors then you are using an unsupported storage
             typename get_storage_accessor< LocalDomain, Accessor >::type::value_type::value_type >::type type;
     };
 
+    template <typename T>
+    struct get_storage_type{
+        typedef T type;
+    };
+
+    template <typename T>
+    struct get_storage_type<std::vector<pointer<T> > >{
+        typedef T type;
+    };
+
     /**
      * metafunction that retrieves the arg type associated with an accessor
      */
@@ -667,7 +677,7 @@ If you are not using generic accessors then you are using an unsupported storage
     struct get_arg_value_type_from_accessor {
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), "Wrong type");
 
-        typedef typename get_arg_from_accessor< Accessor, IterateDomainArguments >::type::value_type type;
+        typedef typename get_storage_type<typename get_arg_from_accessor< Accessor, IterateDomainArguments >::type::storage_type>::type::value_type type;
     };
 
     /**

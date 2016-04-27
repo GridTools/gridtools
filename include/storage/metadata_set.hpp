@@ -114,4 +114,5 @@ namespace gridtools {
                 m_seq.insert(pointer< const typename Arg::storage_info_type >(&(m_arg.meta_data())));
         }
     };
+
 }

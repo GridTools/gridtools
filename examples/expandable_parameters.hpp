@@ -33,7 +33,7 @@ namespace test_expandable_parameters{
         static void Do(Evaluation const& eval, x_interval){
 
             std::cout<<"i,j,k: "<<eval.i()<<", "<<eval.j()<<", "<<eval.k()<<"\n";
-            std::cout<<"value: "<<eval(parameters(0,0,0,1))<<"\n";
+            std::cout<<"value: "<<eval(parameters(0,0,0,0))<<"\n";
             //eval(parameters(0,0,0))=0.;//eval(parameters2(1,0,0)+scalar(0,0,0));
         }
     };
@@ -48,24 +48,25 @@ namespace test_expandable_parameters{
         typedef layout_map<0,1,2> layout_t;
 #endif
 
-        typedef BACKEND::storage_info< N_PARAMS, layout_t > meta_data_t;
+        typedef BACKEND::storage_info< 23, layout_t > meta_data_t;
         typedef BACKEND::storage_type< float_type, meta_data_t >::type storage_t;
 
         typedef storage_t storage_t;
 
-
-        typedef expandable_parameters<storage_t, 23> list_t;
-
         meta_data_t meta_data_(d1, d2, d3);
-        list_t list_(meta_data_, 0., "tracers");
 
-        for(uint_t i=0; i<d1; ++i)
-            for(uint_t j=0; j<d1; ++j)
-                for(uint_t k=0; k<d1; ++k)
-                    for(uint_t d=0; d<N_PARAMS; ++d)
-                        list_(d,i,j,k)=d;
+        typedef arg<0, std::vector<pointer<storage_t> > > p_list;
 
-        typedef arg<0, list_t> p_list;
+        storage_t storage1(meta_data_, 0., "storage1");
+        storage_t storage2(meta_data_, 1., "storage2");
+        storage_t storage3(meta_data_, 2., "storage3");
+        storage_t storage4(meta_data_, 3., "storage4");
+        storage_t storage5(meta_data_, 4., "storage5");
+        storage_t storage6(meta_data_, 5., "storage6");
+        storage_t storage7(meta_data_, 6., "storage7");
+        storage_t storage8(meta_data_, 7., "storage8");
+
+        std::vector<pointer<storage_t> > list_={&storage1, &storage2, &storage3, &storage4, &storage5, &storage6, &storage7};
 
         typedef boost::mpl::vector<p_list> args_t;
 

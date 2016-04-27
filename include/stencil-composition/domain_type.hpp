@@ -257,6 +257,13 @@ namespace gridtools {
                     insert_if_not_present< Sequence, Arg >(m_sequence, *arg_), empty());
             }
 
+            template < typename Arg >
+            void operator()(std::vector<pointer<Arg> > const *arg_) const {
+                // filter out the arguments which are not of storage type (and thus do not have an associated metadata)
+                static_if< is_actual_storage< pointer< Arg > >::type::value >::eval(
+                    insert_if_not_present< Sequence, Arg >(m_sequence, *(*arg_)[0]), empty());
+            }
+
             /** @brief operator inserting a storage gridtools::pointer
 
                 filters out the arguments which are not of storage type (and thus do not have an associated metadata)
@@ -266,6 +273,13 @@ namespace gridtools {
                 // filter out the arguments which are not of storage type (and thus do not have an associated metadata)
                 static_if< is_actual_storage< pointer< Arg > >::type::value >::eval(
                     insert_if_not_present< Sequence, Arg >(m_sequence, *arg_), empty());
+            }
+
+            template < typename Arg >
+            void operator()(pointer<std::vector<pointer<Arg> > > const& arg_) const {
+                // filter out the arguments which are not of storage type (and thus do not have an associated metadata)
+                static_if< is_actual_storage< pointer< Arg > >::type::value >::eval(
+                    insert_if_not_present< Sequence, Arg >(m_sequence, (*arg_)[0]), empty());
             }
 
         };
@@ -333,7 +347,6 @@ namespace gridtools {
             view_type original_fview(m_original_pointers);
             boost::fusion::copy(real_storage_, original_fview);
         }
-
 
 
         /**@brief Constructor from boost::fusion::vector of gridools::pointer

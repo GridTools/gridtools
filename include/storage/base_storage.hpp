@@ -37,6 +37,11 @@ namespace gridtools {
         typedef void storage_type;
         typedef typename type::iterator_type iterator_type;
         typedef typename type::value_type value_type;
+
+        //consistency with STL:
+        typedef iterator_type iterator;
+        typedef const_iterator_type const_iterator;
+
         static const ushort_t space_dimensions = RegularStorageType::space_dimensions;
         static const bool is_temporary = RegularStorageType::is_temporary;
         static void text() { std::cout << "text: no_storage_type_yet<" << RegularStorageType() << ">" << std::endl; }
@@ -133,6 +138,11 @@ and possibly the method 'copy_data_to_gpu' which are used when cloning the class
         typedef typename pointer_type::pointee_t value_type;
         typedef value_type *iterator_type;
         typedef value_type const *const_iterator_type;
+
+        // consistency with STL
+        typedef iterator_type iterator;
+        typedef const_iterator_type const_iterator;
+
         typedef MetaData storage_info_type;
         typedef typename MetaData::layout layout;
         static const bool is_temporary = storage_info_type::is_temporary;
