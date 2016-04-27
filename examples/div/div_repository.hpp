@@ -8,9 +8,6 @@
 #include "IconToGridTools.hpp"
 #include "../icosahedral/unstructured_grid.hpp"
 
-using gridtools::uint_t;
-using gridtools::int_t;
-
 namespace divergence
 {
 
@@ -45,7 +42,8 @@ public:
         for (int i = 0; i < icosahedral_grid_.m_dims[0]; ++i) {
             for (int c = 0; c < icosahedral_topology_t::edges::n_colors::value; ++c) {
                 for (int j = 0; j < icosahedral_grid_.m_dims[1]; ++j) {
-                    u_(i, c, j, 0) = 1.;
+                    u_(i, c, j, 0) = (uint_t)u_.meta_data().index(
+                            array< uint_t, 4 >{(uint_t)i, (uint_t)c, (uint_t)j, (uint_t)1});
                 }
             }
         }

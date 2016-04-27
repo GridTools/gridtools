@@ -1,6 +1,7 @@
 //
 // Created by Xiaolin Guo on 19.04.16.
 //
+#pragma once
 
 #include "div_repository.hpp"
 #include "gtest/gtest.h"
@@ -13,44 +14,27 @@ namespace divergence {
     typedef gridtools::interval< level<0, -1>, level<1, -1> > x_interval;
     typedef gridtools::interval< level<0, -2>, level<1, 1> > axis;
 
-    struct prep_functor {
+    struct div_functor {
         typedef in_accessor<0, icosahedral_topology_t::edges, extent<1> > in_edges;
         typedef in_accessor<1, icosahedral_topology_t::edges, extent<1> > edge_length;
-        typedef inout_accessor<2, icosahedral_topology_t::edges> out;
-        typedef boost::mpl::vector<in_edges, edge_length, out> arg_list;
+        typedef inout_accessor<2, icosahedral_topology_t::cells> out_cells;
+        typedef in_accessor<3, icosahedral_topology_t::cells, extent<1> > cell_area;
+        typedef in_accessor<4, icosahedral_topology_t::cells, extent<1> > edge_sign_on_cell;
+        typedef boost::mpl::vector<in_edges, edge_length, out_cells, cell_area, edge_sign_on_cell> arg_list;
 
         template<typename Evaluation>
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval)
         {
-            auto ff = [](const double _in, const double _res) -> double { return _in + _res; };
+            auto ff = [](const double _in1, const double _in2, const double _res) -> double { return _in1 * _in2 + _res; };
 
             /**
                This interface checks that the location types are compatible with the accessors
              */
-            eval(out()) = eval(in_edges()) * eval(edge_length());
+            eval(out_cells()) = eval(on_edges(ff, 0.0, in_edges(), edge_length())) * eval(edge_sign_on_cell()) / eval(cell_area());
         }
     };
 
-    struct div_functor {
-        typedef in_accessor<0, icosahedral_topology_t::edges, extent<1> > u_times_edge_length;
-        typedef inout_accessor<1, icosahedral_topology_t::cells> out_cells;
-        typedef in_accessor<2, icosahedral_topology_t::cells, extent<1> > cell_area;
-        typedef in_accessor<3, icosahedral_topology_t::cells, extent<1> > edge_sign_on_cell;
-        typedef boost::mpl::vector<u_times_edge_length, out_cells, cell_area, edge_sign_on_cell> arg_list;
-
-        template<typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval)
-        {
-            auto ff = [](const double _in, const double _res) -> double { return _in + _res; };
-
-            /**
-               This interface checks that the location types are compatible with the accessors
-             */
-            eval(out_cells()) = eval(on_edges(ff, 0.0, u_times_edge_length())) * eval(edge_sign_on_cell()) / eval(cell_area());
-        }
-    };
-
-    bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps, char *mesh_file)
+    bool test_div( uint_t t_steps, char *mesh_file)
     {
         divergence::repository repository(mesh_file);
         repository.init_fields();
@@ -76,7 +60,6 @@ namespace divergence {
         auto& edge_sign = repository.edge_sign_on_cell();
         auto& edge_length = repository.edge_length();
         auto& ref_cells = repository.div_u_ref();
-        auto u_times_edge_length = icosahedral_grid.make_storage<icosahedral_topology_t::edges, double>("u_times_edge_length");
         auto out_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("out");
 
         out_cells.initialize(0.0);
@@ -86,13 +69,12 @@ namespace divergence {
         typedef arg<2, cell_storage_type> p_cell_area;
         typedef arg<3, cell_storage_type> p_edge_sign;
         typedef arg<4, edge_storage_type> p_edge_length;
-        typedef arg<5, edge_storage_type> p_u_times_edge_length;
 
-        typedef boost::mpl::vector<p_in_edges, p_out_cells, p_cell_area, p_edge_sign, p_edge_length, p_u_times_edge_length>
+        typedef boost::mpl::vector<p_in_edges, p_out_cells, p_cell_area, p_edge_sign, p_edge_length>
             accessor_list_t;
 
         gridtools::domain_type<accessor_list_t> domain(
-            boost::fusion::make_vector(&in_edges, &out_cells, &cell_area, &edge_sign, &edge_length, &u_times_edge_length));
+            boost::fusion::make_vector(&in_edges, &out_cells, &cell_area, &edge_sign, &edge_length));
         array<uint_t, 5> di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         array<uint_t, 5> dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
@@ -105,11 +87,8 @@ namespace divergence {
             grid_,
             gridtools::make_mss // mss_descriptor
                 (execute<forward>(),
-                 gridtools::make_esf<prep_functor, icosahedral_topology_t, icosahedral_topology_t::edges>(
-                     p_in_edges(), p_edge_length(), p_u_times_edge_length()
-                 ),
                  gridtools::make_esf<div_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(
-                     p_u_times_edge_length(), p_out_cells(), p_cell_area(), p_edge_sign())));
+                         p_in_edges(), p_edge_length(), p_out_cells(), p_cell_area(), p_edge_sign())));
         stencil_->ready();
         stencil_->steady();
         stencil_->run();
