@@ -32,7 +32,6 @@ namespace test_expandable_parameters{
         template <typename Evaluation>
         static void Do(Evaluation const& eval, x_interval){
 
-            std::cout<<"i,j,k: "<<eval.i()<<", "<<eval.j()<<", "<<eval.k()<<"\n";
             std::cout<<"value: "<<eval(parameters(0,0,0,0))<<"\n";
             //eval(parameters(0,0,0))=0.;//eval(parameters2(1,0,0)+scalar(0,0,0));
         }

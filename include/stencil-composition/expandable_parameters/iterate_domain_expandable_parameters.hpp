@@ -1,6 +1,5 @@
 #pragma once
 #include "../iterate_domain.hpp"
-#include "../../common/generic_metafunctions/static_decorator.hpp"
 
 /** @file iterate_domain for expandable parameters*/
 
