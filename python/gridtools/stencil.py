@@ -182,7 +182,7 @@ class Stencil (object):
 
     def kernel (self, *args, **kwargs):
         """
-        This function is the entry point of the stencil and 
+        This function is the entry point of the stencil and
         should be implemented by the user.-
         """
         raise NotImplementedError ( )
@@ -224,7 +224,7 @@ class Stencil (object):
         """
         Starts the execution of the stencil
         :raise KeyError:   if any non-keyword arguments were passed
-        :raise ValueError: if the backend is not recognized or if the halo is 
+        :raise ValueError: if the backend is not recognized or if the halo is
                            invalid
         :return:
         """
@@ -272,7 +272,7 @@ class Stencil (object):
         """
         Applies the received 'halo' setting, which is defined as
 
-            (halo in negative direction over _i_, 
+            (halo in negative direction over _i_,
              halo in positive direction over _i_,
              halo in negative direction over _j_,
              halo in positive direction over _j_).-
@@ -297,7 +297,7 @@ class Stencil (object):
         """
         Applies the execution order in `k` dimension:
 
-            direction   defines the execution order, which may be any of: 
+            direction   defines the execution order, which may be any of:
                         forward or backward.-
         """
         accepted_directions = ["forward", "backward"]
@@ -385,7 +385,7 @@ class CombinedStencil (Stencil):
                 pass
         if domain is None:
             raise RuntimeError ("Could not infer data-field dimensions")
-        return domain 
+        return domain
 
 
     def _prepare_parameters (self, stencil, **kwargs):
@@ -447,7 +447,7 @@ class CombinedStencil (Stencil):
     def add_stencil (self, stencil, output, **kwargs):
         """
         Adds a stencil, the output of which is called 'output' and should be
-        forwarded into an input parameter of an adjacent stencil in the 
+        forwarded into an input parameter of an adjacent stencil in the
         execution graph.-
         """
         try:
@@ -487,7 +487,7 @@ class CombinedStencil (Stencil):
                             #
                             linked_stencil        = input_stencil.get_root ( )
                             linked_stencil_output = input_stencil.execution_graph.node[linked_stencil]['output']
-                            self.data_graph.add_node (input_param, 
+                            self.data_graph.add_node (input_param,
                                                       {'value': None})
                             self.data_graph.add_node (linked_stencil_output,
                                                       {'value': None})
@@ -496,7 +496,7 @@ class CombinedStencil (Stencil):
                             #
                             # ... and the execution dependency
                             #
-                            self.execution_graph.add_edge (stencil, 
+                            self.execution_graph.add_edge (stencil,
                                                            linked_stencil)
                         except AttributeError:
                             logging.error ("Parameter '%s' should hold an instance of '%s'"
@@ -694,8 +694,8 @@ class CombinedStencil (Stencil):
                 st.backend = self.backend
                 params     = self._prepare_parameters (st,
                                                        **kwargs)
-                st.run (*args, 
-                        halo=halo, 
+                st.run (*args,
+                        halo=halo,
                         k_direction=k_direction,
                         **params)
 

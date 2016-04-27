@@ -6,8 +6,6 @@ import numpy as np
 from nose.plugins.attrib import attr
 
 from gridtools.stencil  import MultiStageStencil
-from gridtools.compiler import StencilInspector
-
 
 
 
@@ -153,7 +151,6 @@ class CopyTest (AccessPatternDetectionTest):
     @attr(lang='cuda')
     def test_compare_python_cpp_and_cuda_results (self):
         import copy
-        import random
         from   gridtools import BACKENDS
 
 
@@ -259,7 +256,6 @@ class CopyTest (AccessPatternDetectionTest):
         with self.assertRaises (TypeError):
             class DoesNotExtendAndShouldFail (object):
                 pass
-            stencil = DoesNotExtendAndShouldFail ( )
             Stencil.compiler.register (DoesNotExtendAndShouldFail ( ))
 
 
