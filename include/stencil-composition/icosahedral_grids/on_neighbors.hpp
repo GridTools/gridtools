@@ -71,7 +71,7 @@ namespace gridtools {
 
         const reduction_function m_reduction;
         const maps_t m_maps;
-        const value_type m_value;
+        value_type m_value;
 
       public:
         GT_FUNCTION
@@ -79,7 +79,7 @@ namespace gridtools {
             : m_reduction(l), m_value(v), m_maps(a...) {}
 
         GT_FUNCTION
-        value_type value() const { return m_value; }
+        value_type& value() { return m_value; }
 
         GT_FUNCTION
         reduction_function reduction() const { return m_reduction; }
