@@ -62,8 +62,9 @@ namespace gridtools {
             // a grid point at the core of the block can be out of extent (for last blocks) if domain of computations
             // is not a multiple of the block size
             if (m_iterate_domain.template is_thread_in_domain< extent_t >()) {
+
                 // call the user functor at the core of the block
-                functor_t::f_type::Do(iterate_domain_remapper, IntervalType());
+                _impl::call_repeated<functor_t::repeat_t::value, functor_t, iterate_domain_t, IntervalType>::Do(this->m_iterate_domain);
             }
 
             // synchronize threads if not independent esf

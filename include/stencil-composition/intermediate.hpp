@@ -218,8 +218,8 @@ namespace gridtools {
     //\todo move inside the traits classes?
 
     /**
-       This functor calls h2d_update on all storages and meta storages, in order to
-       get the data prepared in the case of GPU execution.
+       This functor calls h2d_update and clone_to_device on all storages and meta storages, in order to
+       get the data and pointers prepared in the case of GPU execution.
 
        Returns 0 (GT_NO_ERRORS) on success
     */

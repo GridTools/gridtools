@@ -45,12 +45,31 @@ namespace gridtools{
             static const uint_t value = T::index_type::value;
         };
 
-        template< typename T, typename ExpandFactor>
-        struct create_arg{
+        template< enumtype::platform B>
+        struct create_arg;
+
+        template< >
+        struct create_arg<enumtype::Host>
+        {
+            template<typename T, typename ExpandFactor>
+            struct apply{
             typedef arg<get_index<T>::value, expandable_parameters<
                                                  typename get_basic_storage<T>::type
                                                  , ExpandFactor::value>
                         > type;
+            };
+        };
+
+        template< >
+        struct create_arg<enumtype::Cuda>
+        {
+            template<typename T, typename ExpandFactor>
+            struct apply{
+            typedef arg<get_index<T>::value, storage<expandable_parameters<
+                                                 typename get_basic_storage<T>::type
+                                                         , ExpandFactor::value> >
+                        > type;
+            };
         };
 
 
@@ -76,7 +95,6 @@ namespace gridtools{
             void operator()(T){
                 boost::fusion::at<typename T::index_type>(m_vec_to)
                     =
-                    //TODO: who deletes this new? The domain_type?
                     new
                     typename boost::remove_reference<
                         typename boost::fusion::result_of::at<
@@ -89,7 +107,6 @@ namespace gridtools{
             void operator()(arg<ID,std::vector<pointer<T> > >){
                 boost::fusion::at<static_ushort<ID> >(m_vec_to)
                     =
-                    //TODO: who deletes this new? The domain_type?
                     new
                     typename boost::remove_reference<
                         typename boost::fusion::result_of::at<
@@ -156,6 +173,10 @@ namespace gridtools{
                     = m_dom_from.template storage_pointer< arg<ID, std::vector<pointer<T> > > >();
 
                 boost::fusion::at<static_ushort<ID> >(m_dom_to.m_storage_pointers)->set(*storage_ptr_, m_idx);
+                //update the device pointers (not copying the heavy data)
+                boost::fusion::at<static_ushort<ID> >(m_dom_to.m_storage_pointers)->clone_to_device();
+                //copy the heavy data (should be done by the steady)
+                // boost::fusion::at<static_ushort<ID> >(m_dom_to.m_storage_pointers)->h2d_update();
             }
         };
 

@@ -30,9 +30,10 @@ namespace test_expandable_parameters{
                                    > arg_list;
 
         template <typename Evaluation>
+        GT_FUNCTION
         static void Do(Evaluation const& eval, x_interval){
 
-            std::cout<<"value: "<<eval(parameters(0,0,0,0))<<"\n";
+            printf("value: %f\n",eval(parameters(0,0,0,0)));
             //eval(parameters(0,0,0))=0.;//eval(parameters2(1,0,0)+scalar(0,0,0));
         }
     };

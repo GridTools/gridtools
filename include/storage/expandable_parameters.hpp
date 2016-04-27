@@ -46,6 +46,9 @@ namespace gridtools{
             super(meta_, name, do_allocate_ /*do not allocate*/)
         {}
 
+        __device__
+        expandable_parameters(expandable_parameters const& other):
+            super(other){}
 
         /**
            @brief assign a chunk of the pointers array from a large storage list to a smaller one (i.e. this one).
@@ -59,7 +62,9 @@ namespace gridtools{
             // GRIDTOOLS_STATIC_ASSERT((OtherSize >= Size), "Cannot assign pointers from a smaller storage");
             for(ushort_t i; i<this->field_dimensions; ++i)
                 if(offset+i < other.size())
+                {
                     this->m_fields[i] = other.at(offset+i)->fields()[0];
+                }
         }
 
 

@@ -5,6 +5,9 @@
 
 namespace gridtools{
 
+    template <typename T>
+    struct is_iterate_domain;
+
     /**
        @brief iterate_domain specific for when expandable parameters are used
 

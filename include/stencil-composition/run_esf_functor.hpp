@@ -1,6 +1,7 @@
 #pragma once
 #include <boost/mpl/at.hpp>
 #include "backend.hpp"
+#include "expandable_parameters/iterate_domain_expandable_parameters.hpp"
 
 namespace gridtools {
     namespace _impl {
@@ -18,6 +19,35 @@ namespace gridtools {
         struct run_esf_functor_interval< Impl< RunFunctorArguments, Interval > > {
             typedef Interval type;
         };
+
+        template<ushort_t ID, typename Functor, typename IterateDomain, typename Interval>
+        struct call_repeated{
+        public:
+
+            GT_FUNCTION
+            static void Do(IterateDomain& it_domain_){
+
+                printf("Iterate\n");
+                Functor::f_type::Do(
+                    *static_cast<iterate_domain_expandable_parameters<
+                    IterateDomain
+                    , ID> *
+                    > (&it_domain_), Interval());
+
+                call_repeated<ID-1, Functor, IterateDomain, Interval>::Do(it_domain_);
+            }
+        };
+
+        template<typename Functor, typename IterateDomain, typename Interval>
+        struct call_repeated<0, Functor, IterateDomain, Interval>{
+        public:
+
+            GT_FUNCTION
+            static void Do(IterateDomain& it_domain_){
+                printf("zero!\n");
+            }
+        };
+
     }
 
     /**

@@ -211,6 +211,7 @@ namespace gridtools {
             domain_type((p1=storage_1), (p2=storage_2), (p3=storage_3));
             \endverbatim
         */
+#ifndef __CUDACC__ //nvcc compiler bug with double pack expansion
         template < typename... Storage, typename ... Args >
         domain_type(arg_storage_pair<Args, Storage> ... args)
             : m_storage_pointers(), m_metadata_set() {
@@ -223,6 +224,21 @@ namespace gridtools {
             // GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair< StorageArgs >::value...), "wrong type");
             assign_pointers(m_metadata_set, args...);
         }
+#else
+        template < typename... Pair >
+        domain_type(Pair ... pairs_)
+            : m_storage_pointers(), m_metadata_set() {
+
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair<Pair>::value ...), "wrong type");
+            GRIDTOOLS_STATIC_ASSERT((sizeof...(Pair) > 0),
+                "Computations with no storages are not supported. "
+                "Add at least one storage to the domain_type "
+                "definition.");
+            // NOTE: the following assertion assumes there StorageArgs has length at leas 1
+            // GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair< StorageArgs >::value...), "wrong type");
+            assign_pointers(m_metadata_set, pairs_...);
+        }
+#endif
 #endif
 
         /**empty functor*/
@@ -362,8 +378,7 @@ namespace gridtools {
 
             // typedef boost::fusion::filter_view< RealStorage, is_not_tmp_storage_pointer< boost::mpl::_1 > > view_type;
             // view_type fview(m_storage_pointers);
-            // boost::fusion::copy(storage_pointers_, fview);
-
+            boost::fusion::copy(storage_pointers_, m_original_pointers);
 
             // copy of the non-tmp metadata into m_metadata_set
             boost::fusion::for_each(storage_pointers_, assign_metadata_set< metadata_set_t >(m_metadata_set));

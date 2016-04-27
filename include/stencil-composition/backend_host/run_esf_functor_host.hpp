@@ -1,33 +1,7 @@
 #pragma once
 #include "../run_esf_functor.hpp"
-#include "../expandable_parameters/iterate_domain_expandable_parameters.hpp"
 
 namespace gridtools {
-
-    namespace _impl{
-    template<ushort_t ID, typename Functor, typename IterateDomain, typename Interval>
-    struct call_repeated{
-    public:
-
-        static void Do(IterateDomain& it_domain_){
-
-            Functor::f_type::Do(
-                *static_cast<iterate_domain_expandable_parameters<
-                IterateDomain
-                , ID> *
-                > (&it_domain_), Interval());
-
-            call_repeated<ID-1, Functor, IterateDomain, Interval>::Do(it_domain_);
-        }
-    };
-
-    template<typename Functor, typename IterateDomain, typename Interval>
-    struct call_repeated<0, Functor, IterateDomain, Interval>{
-    public:
-        static void Do(IterateDomain& it_domain_){
-        }
-    };
-    }//namespace _impl
 
     /*
      * @brief main functor that executes (for host) the user functor of an ESF

@@ -60,7 +60,7 @@ namespace gridtools{
                   boost::mpl::_1
                   , boost::mpl::if_<
                             _impl::is_expandable_arg<boost::mpl::_2>
-                        , _impl::create_arg<boost::mpl::_2, ExpandFactor >
+                        , typename _impl::create_arg<Backend::s_backend_id>::template apply<boost::mpl::_2, ExpandFactor>
                         , boost::mpl::_2
                         >
                   >
@@ -193,9 +193,16 @@ namespace gridtools{
            @brief forward the call to the members
          */
         virtual void ready(){
-            m_intermediate->ready();
-            if(m_size%ExpandFactor::value)
+
+        for(uint_t i=0; i<m_size-m_size%ExpandFactor::value; i+=ExpandFactor::value){
+
+                boost::mpl::for_each<expandable_params_t>(_impl::assign_expandable_params<DomainType, domain_type<new_arg_list> >(m_domain_from, *m_domain_to, i));
+                // new_domain_.get<ExpandFactor::arg_t>()->assign_pointers(domain.get<ExpandFactor::arg_t>(), i);
+                m_intermediate->ready();
+            }
+            for(uint_t i=0; i<m_size%ExpandFactor::value; ++i)
             {
+                boost::mpl::for_each<expandable_params_t>(_impl::assign_expandable_params<DomainType, domain_type<new_arg_list> >(m_domain_from, *m_domain_to, m_size-m_size%ExpandFactor::value+i));
                 m_intermediate_extra->ready();
             }
         }
@@ -204,9 +211,16 @@ namespace gridtools{
            @brief forward the call to the members
          */
         virtual void steady(){
-            m_intermediate->steady();
-            if(m_size%ExpandFactor::value)
+
+        for(uint_t i=0; i<m_size-m_size%ExpandFactor::value; i+=ExpandFactor::value){
+
+                boost::mpl::for_each<expandable_params_t>(_impl::assign_expandable_params<DomainType, domain_type<new_arg_list> >(m_domain_from, *m_domain_to, i));
+                // new_domain_.get<ExpandFactor::arg_t>()->assign_pointers(domain.get<ExpandFactor::arg_t>(), i);
+                m_intermediate->steady();
+            }
+            for(uint_t i=0; i<m_size%ExpandFactor::value; ++i)
             {
+                boost::mpl::for_each<expandable_params_t>(_impl::assign_expandable_params<DomainType, domain_type<new_arg_list> >(m_domain_from, *m_domain_to, m_size-m_size%ExpandFactor::value+i));
                 m_intermediate_extra->steady();
             }
         }
@@ -216,9 +230,16 @@ namespace gridtools{
            @brief forward the call to the members
          */
         virtual void finalize(){
-            m_intermediate->finalize();
-            if(m_size%ExpandFactor::value)
+
+        for(uint_t i=0; i<m_size-m_size%ExpandFactor::value; i+=ExpandFactor::value){
+
+                boost::mpl::for_each<expandable_params_t>(_impl::assign_expandable_params<DomainType, domain_type<new_arg_list> >(m_domain_from, *m_domain_to, i));
+                // new_domain_.get<ExpandFactor::arg_t>()->assign_pointers(domain.get<ExpandFactor::arg_t>(), i);
+                m_intermediate->finalize();
+            }
+            for(uint_t i=0; i<m_size%ExpandFactor::value; ++i)
             {
+                boost::mpl::for_each<expandable_params_t>(_impl::assign_expandable_params<DomainType, domain_type<new_arg_list> >(m_domain_from, *m_domain_to, m_size-m_size%ExpandFactor::value+i));
                 m_intermediate_extra->finalize();
             }
         }
