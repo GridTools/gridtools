@@ -79,7 +79,7 @@ namespace test_expandable_parameters{
         grid_.value_list[0] = 0;
         grid_.value_list[1] = d3 - 1;
 
-        auto comp_ = make_computation_exp<BACKEND>(
+        auto comp_ = make_computation<BACKEND>(
             expand_factor<4>(), domain_, grid_,
                 make_mss(
                     enumtype::execute<enumtype::forward>()

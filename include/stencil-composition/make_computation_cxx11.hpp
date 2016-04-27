@@ -65,12 +65,12 @@ namespace gridtools {
             Positional > >(domain, grid, conditionals_set_);
     }
 
-    template < typename Backend, typename Domain, typename Grid, typename... Mss >
+    template < typename Backend, typename Domain, typename Grid, typename... Mss, typename = typename std::enable_if<is_domain_type<Domain>::value >::type >
     std::shared_ptr< computation > make_computation(Domain &domain, const Grid &grid, Mss... args_) {
         return make_computation_impl< POSITIONAL_WHEN_DEBUGGING, Backend >(domain, grid, args_...);
     }
 
-    template < typename Backend, typename Domain, typename Grid, typename... Mss >
+    template < typename Backend, typename Domain, typename Grid, typename... Mss, typename = typename std::enable_if<is_domain_type<Domain>::value >::type >
     std::shared_ptr< computation > make_positional_computation(Domain &domain, const Grid &grid, Mss... args_) {
         return make_computation_impl< true, Backend >(domain, grid, args_...);
     }

@@ -56,13 +56,13 @@ namespace gridtools {
                                                       Expand> >(domain, grid, conditionals_set_);
     }
 
-    template < typename Backend, typename Expand, typename Domain, typename Grid, typename... Mss >
-    std::shared_ptr< computation > make_computation_exp(Expand /**/, Domain &domain, const Grid &grid, Mss... args_) {
+    template < typename Backend, typename Expand, typename Domain, typename Grid, typename... Mss, typename = typename std::enable_if<is_expand_factor<Expand>::value >::type >
+    std::shared_ptr< computation > make_computation(Expand /**/, Domain &domain, const Grid &grid, Mss... args_) {
         return make_computation_impl< POSITIONAL_WHEN_DEBUGGING, Backend >(Expand(), domain, grid, args_...);
     }
 
-        template < typename Backend, typename Expand, typename Domain, typename Grid, typename... Mss >
-    std::shared_ptr< computation > make_positional_computation_exp(Expand /**/, Domain &domain, const Grid &grid, Mss... args_) {
+    template < typename Backend, typename Expand, typename Domain, typename Grid, typename... Mss, typename = typename std::enable_if<is_expand_factor<Expand>::value >::type >
+    std::shared_ptr< computation > make_positional_computation(Expand /**/, Domain &domain, const Grid &grid, Mss... args_) {
             return make_computation_impl< true, Backend >(Expand(), domain, grid, args_...);
     }
 }
