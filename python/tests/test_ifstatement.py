@@ -9,6 +9,7 @@ from gridtools.stencil  import MultiStageStencil
 from tests.test_stencils import CopyTest
 
 
+
 class GameOfLife (MultiStageStencil):
     """
     # Tests various parts of the if-statement, notably:
@@ -339,95 +340,52 @@ class IfStatementOpInFailure (MultiStageStencil):
 
 
 
-class IfStatementsTest (unittest.TestCase):
+class IfStatementsOpIsTest (EmptyKernelTest):
     """
-    A test case for the If-statement related stencils defined above.-
+    A test case for the 'If + is' statement related stencil defined above.-
     """
-    def _run (self, stencil):
-        kwargs = dict ( )
-        for p in self.params:
-            kwargs[p] = getattr (self, p)
-        stencil.run (**kwargs)
-
     def setUp (self):
         super ( ).setUp ( )
-        logging.basicConfig (level=logging.INFO)
         self.domain = (64, 64, 32)
         self.params = ('out_X','in_X')
 
-
-        self.in_X = np.random.random_integers (10,
-                                               size=self.domain)
+        self.in_X = np.random.random_integers (10, size=self.domain)
         self.in_X = self.in_X.astype (np.float64)
 
         self.out_X = np.copy (self.in_X)
 
-        self.stencilIs    = IfStatementOpIsFailure     (self.domain)
-        self.stencilIsNot = IfStatementOpIsNotFailure  (self.domain)
-        self.stencilNotIn = IfStatementOpNotInFailure  (self.domain)
-        self.stencilIn    = IfStatementOpInFailure     (self.domain)
+        self.stencil = IfStatementOpIsFailure (self.domain)
+        self.error = NotImplementedError
 
 
-    def raise_not_implemented (self, stencil):
-        with self.assertRaises (NotImplementedError):
-            self._run(stencil)
+
+class IfStatementsOpIsNotTest (IfStatementsOpIsTest):
+    """
+    A test case for the 'If + is not' statement related stencil defined above.-
+    """
+    def setUp (self):
+        super ( ).setUp ( )
+
+        self.stencil = IfStatementOpIsNotFailure (self.domain)
 
 
-    def test_op_is_raises_error (self, backend='c++'):
-        self.stencilIs.backend = backend
-        self.raise_not_implemented (self.stencilIs)
+
+class IfStatementsOpNotInTest (IfStatementsOpIsTest):
+    """
+    A test case for the 'If + not in' statement related stencil defined above.-
+    """
+    def setUp (self):
+        super ( ).setUp ( )
+
+        self.stencil = IfStatementOpNotInFailure (self.domain)
 
 
-    @attr(lang='cuda')
-    def test_op_is_raises_error_cuda (self):
-        self.test_op_is_raises_error(backend='cuda')
 
+class IfStatementsOpInTest (IfStatementsOpIsTest):
+    """
+    A test case for the 'If + in' statement related stencil defined above.-
+    """
+    def setUp (self):
+        super ( ).setUp ( )
 
-    @attr(lang='python')
-    def test_op_is_raises_error_python (self):
-        self.test_op_is_raises_error(backend='python')
-
-
-    def test_op_is_not_raises_error (self, backend='c++'):
-        self.stencilIsNot.backend = backend
-        self.raise_not_implemented (self.stencilIsNot)
-
-
-    @attr(lang='cuda')
-    def test_op_is_not_raises_error_cuda (self):
-        self.test_op_is_not_raises_error(backend='cuda')
-
-
-    @attr(lang='python')
-    def test_op_is_not_raises_error_python (self):
-        self.test_op_is_not_raises_error(backend='python')
-
-
-    def test_op_not_in_raises_error (self, backend='c++'):
-        self.stencilNotIn.backend = 'c++'
-        self.raise_not_implemented (self.stencilNotIn)
-
-
-    @attr(lang='cuda')
-    def test_op_not_in_raises_error_cuda (self):
-        self.test_op_not_in_raises_error(backend='cuda')
-
-
-    @attr(lang='python')
-    def test_op_not_in_raises_error_python (self):
-        self.test_op_not_in_raises_error(backend='python')
-
-
-    def test_op_in_raises_error (self, backend='c++'):
-        self.stencilIn.backend = backend
-        self.raise_not_implemented (self.stencilIn)
-
-
-    @attr(lang='cuda')
-    def test_op_in_raises_error_cuda (self):
-        self.test_op_in_raises_error(backend='cuda')
-
-
-    @attr(lang='python')
-    def test_op_in_raises_error_python (self):
-        self.test_op_in_raises_error(backend='python')
+        self.stencil = IfStatementOpInFailure (self.domain)
