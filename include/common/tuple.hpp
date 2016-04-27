@@ -28,6 +28,8 @@ namespace gridtools {
         typedef variadic_typedef< First, Args... > args_t;
         typedef tuple< Args... > super;
 
+        static const size_t n_dimensions = sizeof...(Args) + 1;
+
         /**@brief constructor taking an integer as the first argument, and then other optional arguments.
            The integer gets assigned to the current extra dimension and the other arguments are passed to the base class
            (in order to get assigned to the other dimensions).
@@ -53,6 +55,8 @@ namespace gridtools {
 
     template < typename First>
     struct tuple<First> {
+
+        static const size_t n_dimensions = 1;
 
         typedef tuple< First> type;
         typedef variadic_typedef< First> args_t;
@@ -82,5 +86,14 @@ namespace gridtools {
         First m_offset;
     };
 
+    template<typename T> struct is_tuple : boost::mpl::false_{};
+
+    template <typename... Args >
+    struct is_tuple<tuple<Args...> > : boost::mpl::true_{};
+
+    template<typename ... Args>
+    tuple<Args...> make_tuple(Args ... args) {
+        return tuple<Args...>(args...);
+    }
 
 } // namespace gridtools

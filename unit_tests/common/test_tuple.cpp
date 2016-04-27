@@ -13,6 +13,7 @@ TEST(tuple, test_tuple) {
 
     constexpr tuple<int_t, short_t, uint_t> tup(-3,4,10);
 
+    GRIDTOOLS_STATIC_ASSERT((static_int<tup.n_dimensions>::value == 3), "ERROR");
     ASSERT_TRUE((tup.template get<0>() == -3));
     ASSERT_TRUE((tup.template get<1>() == 4));
     ASSERT_TRUE((tup.template get<2>() == 10));
