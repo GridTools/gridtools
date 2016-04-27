@@ -25,7 +25,7 @@ namespace gridtools {
     }
 
     /**forward declaration*/
-    template < typename T >
+    template < typename T, bool Array >
     struct wrap_pointer;
 
     /**Traits struct, containing the types which are specific for the host backend*/
