@@ -120,16 +120,19 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        T *operator+(uint_t i) {
+        T* operator+(uint_t i) {
             assert(m_cpu_p);
             return &m_cpu_p[i];
         }
 
         GT_FUNCTION
-        T *const &operator+(uint_t i) const {
+        T* const& operator+(uint_t i) const {
             assert(m_cpu_p);
             return &m_cpu_p[i];
         }
+
+        GT_FUNCTION
+        T *get_pointer_to_use() const { return m_cpu_p; }
 
         GT_FUNCTION
         const T *get_m_cpu_p() { return m_cpu_p; };

@@ -33,7 +33,12 @@ if [[ ${JPLAN} != "GridTools" && ${JPLAN} != "GridTools_icgrid" && ${JPLAN} != "
     exit 1
 fi
 
-GPATH="${GRIDTOOLS_BUILD_PATH}/${JPLAN}/build_type/release/label/${myhost}/mpi/MPI/"
+if [[ ${JPLAN} == "GridTools" ]]; then
+  GPATH="${GRIDTOOLS_BUILD_PATH}/${JPLAN}/build_type/release/compiler/gcc/label/${myhost}/mpi/MPI/"
+else
+  GPATH="${GRIDTOOLS_BUILD_PATH}/${JPLAN}/build_type/release/label/${myhost}/mpi/MPI/"
+fi
+
 if [[ -n "${PYTHON_OPT}" ]]; then
     GPATH="${GPATH}/python/${PYTHON_OPT}"
 fi
