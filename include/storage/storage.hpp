@@ -88,15 +88,20 @@ namespace gridtools {
 		static const bool is_temporary = BaseStorage::is_temporary;
 		const static ushort_t field_dimensions = BaseStorage::field_dimensions;
 		const static ushort_t space_dimensions = BaseStorage::space_dimensions;
+		const static ushort_t n_width = BaseStorage::n_width;
+
 #ifdef _USE_GPU_
 		typedef hybrid_pointer< BaseStorage > storage_ptr_t;
 #else
-		typedef wrap_pointer< BaseStorage > storage_ptr_t;
+		typedef wrap_pointer< BaseStorage, false > storage_ptr_t;
 #endif
 
 	private:
 		storage_ptr_t m_storage;
 		bool m_on_host;
+		template <typename T>
+		storage(T);
+
 
 	public:
 		void clone_to_device() {}
@@ -155,15 +160,68 @@ namespace gridtools {
 			(*m_storage).initialize(init, dims);
 		}
 
-		template < typename Ret, typename T >
-		void initialize(Ret(*func)(T const &, T const &, T const &), ushort_t const &dims = BaseStorage::field_dimensions) {
+		void initialize(uint_t(*func)(uint_t const &, uint_t const &, uint_t const &), ushort_t const &dims = BaseStorage::field_dimensions) {
 			assert(m_on_host);
+			assert(func);
 			(*m_storage).initialize(func, dims);
 		}
 
-		void allocate(ushort_t const &dims = field_dimensions, ushort_t const &offset = 0) {
+		void allocate(ushort_t const &dims = BaseStorage::field_dimensions, ushort_t const &offset = 0) {
 			assert(m_on_host);
 			(*m_storage).allocate(dims, offset);
+		}
+
+#if defined(CXX11_ENABLED)
+		template < short_t snapshot = 0, short_t field_dim = 0, typename... Int >
+		value_type& get_value(Int... args) {
+			return (*m_storage).get_value<snapshot, field_dim, Int...>(args...);
+		}
+
+		template < short_t snapshot = 0, short_t field_dim = 0, typename... Int >
+		value_type const& get_value(Int... args) const {
+			return (*m_storage).get_value<snapshot, field_dim, Int...>(args...);
+		}
+
+		template < short_t snapshot = 0, short_t field_dim = 0 >
+		pointer_type const& get() const {
+			return (*m_storage).fields_view()[_impl::access< basic_type::n_width - (field_dim),
+				typename basic_type::traits >::type::n_fields + snapshot];
+		}
+
+		template < short_t snapshot = 0, short_t field_dim = 0 >
+		pointer_type &get() {
+			return (*m_storage).fields_view()[_impl::access< basic_type::n_width - (field_dim),
+				typename basic_type::traits >::type::n_fields + snapshot];
+		}
+
+		// forwarding constructor
+		template < class... ExtraArgs >
+		explicit storage(storage_info_type const &meta_data_, ExtraArgs const &... args)
+			: m_storage(new BaseStorage(meta_data_, args...), false), m_on_host(true) {}
+#else // CXX11_ENABLED
+
+		explicit storage(storage_info_type const &meta_data_, value_type const &init)
+			: m_storage(new BaseStorage(meta_data_, init), false), m_on_host(true) {}
+
+		explicit storage(storage_info_type const &meta_data_, value_type const &init, const char* name)
+			: m_storage(new BaseStorage(meta_data_, init, name), false), m_on_host(true) {}
+
+		template < typename Ret, typename T >
+		explicit storage(storage_info_type const &meta_data_, Ret(*func)(T const &, T const &, T const &))
+			: m_storage(new BaseStorage(meta_data_, func), false), m_on_host(true) {}
+
+		template < class FloatType >
+		explicit storage(storage_info_type const &meta_data_, FloatType *arg)
+			: m_storage(new BaseStorage(meta_data_, (FloatType *)arg), false), m_on_host(true) {}
+
+		template < class FloatType >
+		explicit storage(storage_info_type const &meta_data_, FloatType *arg, const char* name)
+			: m_storage(new BaseStorage(meta_data_, (FloatType *)arg, name), false), m_on_host(true) {}
+
+#endif // CXX11_ENABLED
+
+		~storage() {
+			(*m_storage).release();
 		}
 
 		/**@brief releasing the pointers to the data, and deleting them in case they need to be deleted */
@@ -172,34 +230,7 @@ namespace gridtools {
 			(*m_storage).release();
 		}
 
-#if defined(CXX11_ENABLED)
-		// forwarding constructor
-		template < class... ExtraArgs >
-		explicit storage(storage_info_type const &meta_data_, ExtraArgs const &... args)
-			: m_storage(new BaseStorage(meta_data_, args...), 1, false), m_on_host(true) {}
-#else // CXX11_ENABLED
-
-		explicit storage(storage_info_type const &meta_data_, value_type const &init)
-			: m_storage(new BaseStorage(meta_data_, init), 1, false), m_on_host(true) {}
-
-		explicit storage(storage_info_type const &meta_data_, value_type const &init, const char* name)
-			: m_storage(new BaseStorage(meta_data_, init, name), 1, false), m_on_host(true) {}
-
-		template < typename Ret, typename T >
-		explicit storage(storage_info_type const &meta_data_, Ret(*func)(T const &, T const &, T const &))
-			: m_storage(new BaseStorage(meta_data_, func), 1, false), m_on_host(true) {}
-
-		template < class FloatType >
-		explicit storage(storage_info_type const &meta_data_, FloatType *arg)
-			: m_storage(new BaseStorage(meta_data_, (FloatType *)arg), 1, false), m_on_host(true) {}
-
-		template < class FloatType >
-		explicit storage(storage_info_type const &meta_data_, FloatType *arg, const char* name)
-			: m_storage(new BaseStorage(meta_data_, (FloatType *)arg, name), 1, false), m_on_host(true) {}
-
-#endif // CXX11_ENABLED
-
-		explicit storage(storage_info_type const &meta_data_) : m_storage(new BaseStorage(meta_data_), 1, false) {}
+		explicit storage(storage_info_type const &meta_data_) : m_storage(new BaseStorage(meta_data_), false), m_on_host(true) {}
 
 #ifdef CXX11_ENABLED
 

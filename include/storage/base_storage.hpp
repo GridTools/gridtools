@@ -95,9 +95,9 @@ namespace gridtools {
 		template < typename FloatType >
 		explicit base_storage(MetaData const &meta_data_, FloatType *ptr, char const *s = "externally managed storage")
 			: is_set(true), m_name(s), m_meta_data(meta_data_) {
-			m_fields[0] = pointer_type(ptr, m_meta_data.size(), true);
+			m_fields[0] = pointer_type(ptr, true);
 			if (FieldDimension > 1) {
-				allocate(FieldDimension, 1);
+				allocate(FieldDimension, 1, true);
 			}
 		}
 
@@ -126,12 +126,13 @@ namespace gridtools {
 #endif
 
 		/**@brief allocating memory for the data */
-		void allocate(ushort_t const &dims = FieldDimension, ushort_t const &offset = 0) {
+		void allocate(ushort_t const &dims = FieldDimension, ushort_t const &offset = 0, bool externally_managed = false) {
 			assert(dims > offset);
 			assert(dims <= field_dimensions);
 			is_set = true;
-			for (ushort_t i = 0; i < dims; ++i)
-				m_fields[i + offset] = pointer_type(m_meta_data.size());
+			for (ushort_t i = 0; i < dims; ++i) {
+				m_fields[i + offset] = pointer_type(m_meta_data.size(), externally_managed);
+			}
 		}
 
 		/**@brief releasing the pointers to the data, and deleting them in case they need to be deleted */
