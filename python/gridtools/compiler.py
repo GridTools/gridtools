@@ -11,7 +11,7 @@ from gridtools.utils import Utilities
 
 class StencilCompiler ( ):
     """
-    A global class that takes care of compiling the defined stencils 
+    A global class that takes care of compiling the defined stencils
     using different backends.-
     """
     BASE_LIB_NAME = "libgridtools4py"
@@ -54,7 +54,7 @@ class StencilCompiler ( ):
         :param stencil: the stencil object to look up
         :returns:       True if the stencil has been registered; False otherwise
         """
-        return id(stencil) in self.stencils
+        return self.is_registered (stencil)
 
 
     def _initialize (self):
@@ -71,16 +71,16 @@ class StencilCompiler ( ):
     def analyze (self, stencil, **kwargs):
         """
         Performs a different analyses over the source code of the stencil
-        :param stencil:      the stencil on which the static analysis should be 
+        :param stencil:      the stencil on which the static analysis should be
                              performed
         :param kwargs:       the parameters passed to this stencil for execution
         :raise LookupError:  if the stencil has not been registered with this
                              Compiler
-        :raise NameError:    if no stencil stages could be extracted from the 
+        :raise NameError:    if no stencil stages could be extracted from the
                              source
         :raise RuntimeError: if the stencil's source code is not available,
                              e.g., if running from an interactive session
-        :raise ValueError:   if the last stage is independent, which is an 
+        :raise ValueError:   if the last stage is independent, which is an
                              invalid stencil
         :return:
         """
@@ -122,7 +122,7 @@ class StencilCompiler ( ):
         """
         Compiles the translated code to a shared library, ready to be used.-
         """
-        from os                        import path, getcwd, chdir
+        from os                        import getcwd, chdir
         from ctypes                    import CDLL
         from subprocess                import check_call
         from numpy.distutils.misc_util import get_shared_lib_extension
@@ -133,8 +133,8 @@ class StencilCompiler ( ):
             #
             current_dir         = getcwd ( )
             chdir (self.src_dir)
-            check_call (["make", 
-                         "--silent", 
+            check_call (["make",
+                         "--silent",
                          "--file=%s" % self.make_file])
             chdir (current_dir)
             #
@@ -153,10 +153,10 @@ class StencilCompiler ( ):
     def generate_code (self, stencil):
         """
         Generates native code for the received stencil
-        :param stencil: stencil object for which the code whould be generated 
+        :param stencil: stencil object for which the code whould be generated
         :return:
         """
-        from os        import write, path, makedirs
+        from os        import path, makedirs
         from gridtools import JinjaEnv
 
         try:
@@ -192,7 +192,7 @@ class StencilCompiler ( ):
             logging.error ("Error while generating code:\n\t%s" % str (e))
             raise e
 
-    
+
     def is_registered (self, stencil):
         """
         Checks whether a stencil is registered with this compiler
@@ -221,7 +221,7 @@ class StencilCompiler ( ):
         """
         Registers the received Stencil object with this compiler
         :param stencil:   the stencil object to register
-        :raise TypeError: in case the stencil object does not extend 
+        :raise TypeError: in case the stencil object does not extend
                           MultiStageStencil
         :return:          a unique name for the given stencil
         """
@@ -235,7 +235,7 @@ class StencilCompiler ( ):
             #
             # ... and add it to the registry if it is not there yet
             #
-            if id(stencil) not in self.stencils.keys ( ):
+            if stencil not in self:
                 #
                 # a unique name for this stencil object
                 #
@@ -291,7 +291,7 @@ class StencilCompiler ( ):
 
     def translate (self, stencil):
         """
-        Translates the received stencil to C++, using the gridtools interface, 
+        Translates the received stencil to C++, using the gridtools interface,
         returning a string tuple of rendered files (functors, cpp, make).-
         """
         from gridtools import JinjaEnv
@@ -336,6 +336,21 @@ class StencilCompiler ( ):
                             independent_funct_idx = ind_funct_idx),
                 make.render (stencils = [s for s in self.stencils.values ( ) if s.backend in ['c++', 'cuda']],
                              compiler = self))
+
+    def unregister (self, stencil):
+        """
+        Removes registration of the received Stencil object from this compiler
+        :param stencil:   the stencil object to unregister
+        """
+        if self.is_registered (stencil):
+            #
+            # Remove this stencil from the compiler registry
+            #
+            del self.stencils[id(stencil)]
+            logging.debug ("Stencil '%s' unregistered from the Compiler" % stencil.name)
+        else:
+            logging.warning("Trying to unregister Stencil '%s' that is not \
+                             registered with the Compiler")
 
 
 
@@ -399,7 +414,7 @@ class StencilInspector (ast.NodeVisitor):
                     from IPython.code import oinspect
                     src += oinspect.getsource (fun)
                 except Exception:
-                    raise RuntimeError ("Could not extract source code from '%s'" 
+                    raise RuntimeError ("Could not extract source code from '%s'"
                                         % self.inspected_stencil.__class__)
         #
         # then the kernel
@@ -417,7 +432,7 @@ class StencilInspector (ast.NodeVisitor):
                     from IPython.code import oinspect
                     src += oinspect.getsource (fun)
                 except Exception:
-                    raise RuntimeError ("Could not extract source code from '%s'" 
+                    raise RuntimeError ("Could not extract source code from '%s'"
                                         % self.inspected_stencil.__class__)
         return src
 
@@ -425,9 +440,9 @@ class StencilInspector (ast.NodeVisitor):
     def static_analysis (self, stencil):
         """
         Performs a static analysis over the source code of the received stencil
-        :param stencil:      the stencil on which the static analysis should be 
+        :param stencil:      the stencil on which the static analysis should be
                              performed
-        :raise NameError:    if no stencil stages could be extracted from the 
+        :raise NameError:    if no stencil stages could be extracted from the
                              source
         :raise RuntimeError: if the stencil's source code is not available,
                              e.g., if running from an interactive session
@@ -441,7 +456,7 @@ class StencilInspector (ast.NodeVisitor):
             self.inspected_stencil = stencil
             self.functor_defs      = list ( )
             st                     = self.inspected_stencil
-            
+
             if st.scope.py_src is None:
                 st.scope.py_src = self._extract_source ( )
 
@@ -462,9 +477,9 @@ class StencilInspector (ast.NodeVisitor):
                 # the user is running from some weird interactive session
                 #
                 raise RuntimeError ("Source code not available.\nSave your stencil class(es) to a file and try again.")
-        except:
+        except Exception as e:
             self.inspected_stencil = None
-            raise
+            raise e
         else:
             self.inspected_stencil = None
 
@@ -476,7 +491,7 @@ class StencilInspector (ast.NodeVisitor):
         :raise RuntimeError: if more than one assignment per line is found
         :return:
         """
-        # 
+        #
         # expr = expr
         #
         if len (node.targets) > 1:
@@ -491,9 +506,9 @@ class StencilInspector (ast.NodeVisitor):
             if isinstance (lvalue_node, ast.Attribute):
                 lvalue = "%s.%s" % (lvalue_node.value.id,
                                     lvalue_node.attr)
-            # 
+            #
             # parameter or local variable assignment
-            # 
+            #
             elif isinstance (lvalue_node, ast.Name):
                 lvalue = lvalue_node.id
             else:
@@ -545,7 +560,7 @@ class StencilInspector (ast.NodeVisitor):
                 st.scope.add_constant (lvalue, None)
                 logging.debug ("Constant '%s' will be resolved later" % lvalue)
 
-    
+
     def visit_Expr (self, node):
         """
         Looks for named stages within a stencil
@@ -589,7 +604,7 @@ class StencilInspector (ast.NodeVisitor):
                                 stage.scope.add_alias (kw.arg,
                                                        kw.value.id)
                             else:
-                                raise TypeError ("Unknown type '%s' of keyword argument '%s'" 
+                                raise TypeError ("Unknown type '%s' of keyword argument '%s'"
                                                  % (kw.value.__class__, kw.arg))
 
 
@@ -607,7 +622,7 @@ class StencilInspector (ast.NodeVisitor):
         st    = self.inspected_stencil
         call  = node.iter
         stage = None
-        if (call.func.value.id == 'self' and 
+        if (call.func.value.id == 'self' and
             call.func.attr == 'get_interior_points'):
             if name_suffix is None:
                 stage = st.scope.add_stage (node,
@@ -636,7 +651,7 @@ class StencilInspector (ast.NodeVisitor):
         :return:
         """
         #
-        # the stencil constructor is the recommended place to define 
+        # the stencil constructor is the recommended place to define
         # (pre-calculated) constants and temporary data fields
         #
         if node.name == '__init__':
@@ -651,11 +666,11 @@ class StencilInspector (ast.NodeVisitor):
                     # Allow for the docstring to appear before the call to the parent constructor
                     if n.value.s.lstrip() != docstring:
                         pcix = pcix + 1
-                       
+
                 else:
                     pcix = pcix + 1
                 try:
-                    parent_call = (isinstance (n.value, ast.Call) and 
+                    parent_call = (isinstance (n.value, ast.Call) and
                                    isinstance (n.value.func.value, ast.Call) and
                                    n.value.func.attr == '__init__')
                     if parent_call:
