@@ -36,12 +36,8 @@ namespace gridtools {
 
             for (uint_t c = 0; c < n_colors_t::value; ++c) {
                 functor_t::f_type::Do(this->m_iterate_domain, IntervalType());
-                this->m_iterate_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
-                    static_int< 1 > >();
-            }
-            this->m_iterate_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
-                static_int< -((int_t)n_colors_t::value) > >();
 
+            }
         }
 
         /*
