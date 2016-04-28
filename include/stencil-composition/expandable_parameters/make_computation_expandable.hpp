@@ -15,7 +15,7 @@
 namespace gridtools {
 
     template < bool Positional, typename Backend, typename Expand, typename Domain, typename Grid, typename... Mss >
-    std::shared_ptr< computation > make_computation_impl(Expand /**/, Domain &domain, const Grid &grid, Mss... args_) {
+    std::shared_ptr< computation > make_computation_expandable_impl(Expand /**/, Domain &domain, const Grid &grid, Mss... args_) {
 
         //doing type checks and defining the conditionals set
         typedef typename _impl::create_conditionals_set<Domain, Grid, Mss...>::type conditionals_set_t;
@@ -36,11 +36,11 @@ namespace gridtools {
 
     template < typename Backend, typename Expand, typename Domain, typename Grid, typename... Mss, typename = typename std::enable_if<is_expand_factor<Expand>::value >::type >
     std::shared_ptr< computation > make_computation(Expand /**/, Domain &domain, const Grid &grid, Mss... args_) {
-        return make_computation_impl< POSITIONAL_WHEN_DEBUGGING, Backend >(Expand(), domain, grid, args_...);
+        return make_computation_expandable_impl< POSITIONAL_WHEN_DEBUGGING, Backend >(Expand(), domain, grid, args_...);
     }
 
     template < typename Backend, typename Expand, typename Domain, typename Grid, typename... Mss, typename = typename std::enable_if<is_expand_factor<Expand>::value >::type >
     std::shared_ptr< computation > make_positional_computation(Expand /**/, Domain &domain, const Grid &grid, Mss... args_) {
-            return make_computation_impl< true, Backend >(Expand(), domain, grid, args_...);
+            return make_computation_expandable_impl< true, Backend >(Expand(), domain, grid, args_...);
     }
 }

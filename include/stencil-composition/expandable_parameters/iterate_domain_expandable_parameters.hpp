@@ -28,6 +28,7 @@ namespace gridtools{
         static const ushort_t ID=Value-1;
         typedef IterateDomain super;
 
+        using super::operator();
         /**
            @brief set the offset in the storage_list and forward to the base class
 
