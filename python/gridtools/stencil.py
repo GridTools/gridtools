@@ -5,7 +5,7 @@ import numpy as np
 import networkx as nx
 
 from gridtools.symbol   import StencilScope
-from gridtools.functor  import Functor
+from gridtools.stage  import Stage
 from gridtools.compiler import StencilCompiler
 
 

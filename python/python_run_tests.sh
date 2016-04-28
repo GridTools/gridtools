@@ -26,7 +26,7 @@ if [ -n "${CMAKE_SOURCE_DIR}" ] && [ -n "${PYTHON_INSTALL_PREFIX}" ]; then
         echo "Error while activating virtualenv. EXIT NOW"
         exit  1
       fi
-    fi 
+    fi
 fi
 
 echo "Running Python tests ..."
