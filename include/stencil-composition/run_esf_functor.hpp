@@ -27,7 +27,6 @@ namespace gridtools {
             GT_FUNCTION
             static void Do(IterateDomain& it_domain_){
 
-                printf("Iterate\n");
                 Functor::f_type::Do(
                     *static_cast<iterate_domain_expandable_parameters<
                     IterateDomain
@@ -44,7 +43,6 @@ namespace gridtools {
 
             GT_FUNCTION
             static void Do(IterateDomain& it_domain_){
-                printf("zero!\n");
             }
         };
 
