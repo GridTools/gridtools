@@ -153,10 +153,10 @@ class Stencil (object):
             #
             i_dim, j_dim, k_dim = data_field.shape
 
-            start_i = 0     + self.halo[1] + ghost_cell[0]
-            end_i   = i_dim - self.halo[0] + ghost_cell[1]
-            start_j = 0     + self.halo[3] + ghost_cell[2]
-            end_j   = j_dim - self.halo[2] + ghost_cell[3]
+            start_i = 0     + self.halo[0] + ghost_cell[0]
+            end_i   = i_dim - self.halo[1] + ghost_cell[1]
+            start_j = 0     + self.halo[2] + ghost_cell[2]
+            end_j   = j_dim - self.halo[3] + ghost_cell[3]
 
             #
             # calculate 'k' iteration boundaries based 'k_direction'

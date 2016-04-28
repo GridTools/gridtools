@@ -160,7 +160,7 @@ class AdditionalIfStatementTest (CopyTest):
         self.out_X = np.copy (self.in_X)
 
         self.stencil = AdditionalIfStatement (self.domain)
-        self.stencil.set_halo ( (1,1,1,1) )
+        self.stencil.set_halo ( (0,1,0,0) )
 
 
     @attr(lang='cuda')
