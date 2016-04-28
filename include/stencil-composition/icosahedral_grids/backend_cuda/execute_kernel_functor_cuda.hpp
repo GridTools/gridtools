@@ -298,7 +298,7 @@ namespace gridtools {
                     typename RunFunctorArguments::async_esf_map_t,
                     typename RunFunctorArguments::grid_t,
                     typename RunFunctorArguments::execution_type_t,
-                    RunFunctorArguments::s_is_reduction,
+                    typename RunFunctorArguments::is_reduction_t,
                     typename RunFunctorArguments::reduction_data_t,
                     typename RunFunctorArguments::color_t> run_functor_arguments_cuda_t;
 

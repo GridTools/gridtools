@@ -245,7 +245,7 @@ namespace gridtools {
                 async_esf_map_t,
                 Grid,
                 ExecutionEngine,
-                mss_components_is_reduction< mss_components_t >::type::value,
+                typename mss_components_is_reduction< mss_components_t >::type,
                 ReductionData,
                 nocolor> run_functor_args_t;
 

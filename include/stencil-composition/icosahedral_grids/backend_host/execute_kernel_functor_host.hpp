@@ -1,4 +1,6 @@
 #pragma once
+#include "../../common/generic_metafunctions/variadic_to_vector.hpp"
+#include "../../common/generic_metafunctions/transform_metadata.hpp"
 #include "stencil-composition/backend_host/iterate_domain_host.hpp"
 #include "stencil-composition/icosahedral_grids/esf_metafunctions.hpp"
 #include "../../iteration_policy.hpp"
@@ -9,35 +11,19 @@ namespace gridtools {
 
     namespace icgrid {
 
-        template<typename RunFunctorArguments, typename Index>
-        struct colorize_run_functor_arguments
-        {
-            typedef run_functor_arguments<
-                typename RunFunctorArguments::backend_ids_t,
-                typename RunFunctorArguments::processing_elements_block_size_t,
-                typename RunFunctorArguments::physical_domain_block_size_t,
-                typename RunFunctorArguments::functor_list_t,
-                typename RunFunctorArguments::esf_sequence_t,
-                typename RunFunctorArguments::esf_args_map_sequence_t,
-                typename RunFunctorArguments::loop_intervals_t,
-                typename RunFunctorArguments::functors_map_t,
-                typename RunFunctorArguments::extent_sizes_t,
-                typename RunFunctorArguments::local_domain_t,
-                typename RunFunctorArguments::cache_sequence_t,
-                typename RunFunctorArguments::async_esf_map_t,
-                typename RunFunctorArguments::grid_t,
-                typename RunFunctorArguments::execution_type_t,
-                RunFunctorArguments::is_reduction_t::value,
-                typename RunFunctorArguments::reduction_data_t,
-                color_type<Index::value>
-            > type;
+        template < typename RunFunctorArguments, typename Index >
+        struct colorize_run_functor_arguments {
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), "Error");
+            typedef typename ::gridtool::transform_meta_data< RunFunctorArguments,
+                typename RunFunctorArguments::color_t,
+                color_type< (uint_t)Index::value > >::type type;
         };
 
         template < typename RunFunctorArguments, typename IterateDomain, typename Grid >
         struct color_execution_functor {
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value),"ERROR");
-            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<IterateDomain>::value),"ERROR");
-            GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value),"ERROR");
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), "ERROR");
+            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), "ERROR");
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "ERROR");
 
             typedef typename RunFunctorArguments::loop_intervals_t loop_intervals_t;
             typedef typename RunFunctorArguments::execution_type_t execution_type_t;
@@ -47,7 +33,7 @@ namespace gridtools {
 
           private:
             IterateDomain &m_it_domain;
-            Grid const& m_grid;
+            Grid const &m_grid;
             gridtools::array< const uint_t, 2 > const &m_first_pos;
             gridtools::array< const uint_t, 2 > const &m_loop_size;
             const uint_t m_addon;
@@ -56,8 +42,10 @@ namespace gridtools {
             color_execution_functor(IterateDomain &it_domain,
                 Grid const &grid,
                 gridtools::array< const uint_t, 2 > const &first_pos,
-                gridtools::array< const uint_t, 2 > const &loop_size, const uint_t addon)
-                : m_it_domain(it_domain), m_grid(grid), m_first_pos(first_pos), m_loop_size(loop_size), m_addon(addon) {}
+                gridtools::array< const uint_t, 2 > const &loop_size,
+                const uint_t addon)
+                : m_it_domain(it_domain), m_grid(grid), m_first_pos(first_pos), m_loop_size(loop_size), m_addon(addon) {
+            }
 
             template < typename Index >
             void operator()(Index const &) const {
@@ -70,9 +58,10 @@ namespace gridtools {
                     m_it_domain.get_position(memorized_position);
 
                     // we fill the run_functor_arguments with the current color being processed
-                    typedef typename colorize_run_functor_arguments<RunFunctorArguments, Index>::type run_functor_arguments_t;
+                    typedef typename colorize_run_functor_arguments< RunFunctorArguments, Index >::type
+                        run_functor_arguments_t;
                     boost::mpl::for_each< loop_intervals_t >(
-                        _impl::run_f_on_interval< execution_type_t, run_functor_arguments_t>(m_it_domain, m_grid));
+                        _impl::run_f_on_interval< execution_type_t, run_functor_arguments_t >(m_it_domain, m_grid));
                     m_it_domain.set_index(memorized_index);
                     m_it_domain.set_position(memorized_position);
                     m_it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value,
@@ -195,10 +184,11 @@ namespace gridtools {
                     addon++;
                 }
 
-                typedef color_execution_functor<RunFunctorArguments, iterate_domain_t, grid_t> PP;
+                typedef color_execution_functor< RunFunctorArguments, iterate_domain_t, grid_t > PP;
                 for (uint_t i = m_first_pos[0]; i <= m_first_pos[0] + m_loop_size[0]; ++i) {
                     boost::mpl::for_each< boost::mpl::range_c< uint_t, 0, n_colors_t::value > >(
-                        color_execution_functor<RunFunctorArguments, iterate_domain_t, grid_t>(it_domain, m_grid, m_first_pos, m_loop_size, addon));
+                        color_execution_functor< RunFunctorArguments, iterate_domain_t, grid_t >(
+                            it_domain, m_grid, m_first_pos, m_loop_size, addon));
 
                     it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
                         static_int< -((int_t)n_colors_t::value) > >();
