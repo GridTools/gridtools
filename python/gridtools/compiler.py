@@ -342,7 +342,6 @@ class StencilCompiler ( ):
         Removes registration of the received Stencil object from this compiler
         :param stencil:   the stencil object to unregister
         """
-
         if self.is_registered (stencil):
             #
             # Remove this stencil from the compiler registry

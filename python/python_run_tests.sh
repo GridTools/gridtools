@@ -65,8 +65,8 @@ fi
 # obscure string conversion mechanisms that cause it to fail otherwise
 #
 echo "Running Python tests ..."
-nose_cmd="nosetests -v -s ${NOSE_NO_GPU} tests.test_stencils tests.test_ifstatement tests.test_sw"
-eval "$nose_cmd"
+NOSE_CMD="nosetests -v -s ${NOSE_NO_GPU} tests.test_stencils tests.test_ifstatement tests.test_sw"
+eval "$NOSE_CMD"
 
 TEST_STATUS=$?
 if [ ${TEST_STATUS} == 0 ]; then

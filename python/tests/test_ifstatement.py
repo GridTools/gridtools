@@ -51,7 +51,6 @@ class GameOfLifeTest (CopyTest):
         self.domain = (64, 64, 32)
         self.params = ('out_X','in_X')
 
-
         self.in_X = np.random.random_integers (10,
                                                size=self.domain)
         self.in_X = self.in_X.astype (np.float64)
@@ -60,6 +59,7 @@ class GameOfLifeTest (CopyTest):
 
         self.stencil = GameOfLife (self.domain)
         self.stencil.set_halo ( (1,1,1,1) )
+
 
     @attr(lang='cuda')
     def test_compare_python_cpp_and_cuda_results (self):
@@ -152,7 +152,6 @@ class AdditionalIfStatementTest (CopyTest):
         logging.basicConfig (level=logging.INFO)
         self.domain = (64, 64, 32)
         self.params = ('out_X','in_X')
-
 
         self.in_X = np.random.random_integers (10,
                                                size=self.domain)
