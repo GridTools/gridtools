@@ -1,4 +1,4 @@
-list( APPEND SRCFILES interface1 simple_hori_diff boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore alignment expandable_parameters)
+list( APPEND SRCFILES interface1 simple_hori_diff boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore alignment expandable_parameters expandable_parameters_single_kernel expandable_parameters_multi_kernel)
 
 
 if( ENABLE_CXX11)
