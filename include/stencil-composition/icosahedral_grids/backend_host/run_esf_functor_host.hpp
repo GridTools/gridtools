@@ -20,6 +20,14 @@ namespace gridtools {
         GT_FUNCTION
         explicit run_esf_functor_host(iterate_domain_t &iterate_domain) : super(iterate_domain) {}
 
+        template < typename EsfArguments >
+        struct color_esf_match {
+            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Error");
+            typedef typename boost::mpl::or_< typename boost::is_same< typename RunFunctorArguments::color_t,
+                                                  typename EsfArguments::esf_t::color_t >::type,
+                typename boost::is_same< notype, typename EsfArguments::esf_t::color_t >::type >::type type;
+        };
+
         /*
          * @brief main functor implemenation that executes (for Host) the user functor of an ESF
          *      (specialization for non reduction operations)
@@ -28,16 +36,32 @@ namespace gridtools {
          */
         template < typename IntervalType, typename EsfArguments >
         GT_FUNCTION void do_impl(
+            typename boost::enable_if< typename color_esf_match< EsfArguments >::type, int >::type = 0) const {
+            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
+
+            call_user_functor<IntervalType, EsfArguments>();
+        }
+
+        template < typename IntervalType, typename EsfArguments >
+        GT_FUNCTION void do_impl(
+            typename boost::disable_if< typename color_esf_match< EsfArguments >::type, int >::type = 0) const {}
+
+    private:
+        /*
+         * @brief main functor implemenation that executes (for Host) the user functor of an ESF
+         *      (specialization for non reduction operations)
+         * @tparam IntervalType interval where the functor gets executed
+         * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
+         */
+        template < typename IntervalType, typename EsfArguments >
+        GT_FUNCTION void call_user_functor(
             typename boost::disable_if< typename EsfArguments::is_reduction_t, int >::type = 0) const {
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
             typedef typename EsfArguments::functor_t functor_t;
 
             using n_colors_t = typename EsfArguments::esf_t::location_type::n_colors;
 
-            for (uint_t c = 0; c < n_colors_t::value; ++c) {
-                functor_t::f_type::Do(this->m_iterate_domain, IntervalType());
-
-            }
+            functor_t::f_type::Do(this->m_iterate_domain, IntervalType());
         }
 
         /*
@@ -47,7 +71,7 @@ namespace gridtools {
          * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
          */
         template < typename IntervalType, typename EsfArguments >
-        GT_FUNCTION void do_impl(
+        GT_FUNCTION void call_user_functor(
             typename boost::enable_if< typename EsfArguments::is_reduction_t, int >::type = 0) const {
             typedef typename EsfArguments::reduction_data_t::bin_op_t bin_op_t;
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
