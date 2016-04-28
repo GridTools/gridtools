@@ -14,7 +14,7 @@ namespace gridtools {
         template < typename RunFunctorArguments, typename Index >
         struct colorize_run_functor_arguments {
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), "Error");
-            typedef typename ::gridtool::transform_meta_data< RunFunctorArguments,
+            typedef typename transform_meta_data< RunFunctorArguments,
                 typename RunFunctorArguments::color_t,
                 color_type< (uint_t)Index::value > >::type type;
         };

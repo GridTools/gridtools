@@ -48,7 +48,6 @@ namespace gridtools {
         template < typename IntervalType, typename EsfArguments >
         __device__ void do_impl() const {
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
-            typedef typename esf_get_location_type< typename EsfArguments::esf_t >::type location_type_t;
 
             // instantiate the iterate domain remapper, that will map the calls to arguments to their actual
             // position in the iterate domain
@@ -63,17 +62,7 @@ namespace gridtools {
             // a grid point at the core of the block can be out of extent (for last blocks) if domain of computations
             // is not a multiple of the block size
             if (m_iterate_domain.template is_thread_in_domain< extent_t >()) {
-                for (uint_t ccnt = 0; ccnt < location_type_t::n_colors::value; ++ccnt) {
-                    // call the user functor at the core of the block
-                    functor_t::f_type::Do(iterate_domain_remapper, IntervalType());
-                    (m_iterate_domain)
-                        .template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
-                            static_uint< 1 > >();
-                }
-                using neg_n_colors_t = static_uint< -location_type_t::n_colors::value >;
-                (m_iterate_domain)
-                    .template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
-                        neg_n_colors_t >();
+                color_loop<IntervalType, EsfArguments>(iterate_domain_remapper);
             }
 
             // synchronize threads if not independent esf
@@ -82,6 +71,52 @@ namespace gridtools {
         }
 
       private:
+        template < typename EsfArguments >
+        struct esf_has_color {
+            typedef typename boost::mpl::not_<
+                typename boost::is_same< typename EsfArguments::esf_t::color_t, notype >::type >::type type;
+        };
+
+        template < typename IntervalType, typename EsfArguments, typename IterateDomainRemapper >
+        __device__ void color_loop(IterateDomainRemapper const & iterate_domain_remapper,
+            typename boost::enable_if< typename esf_has_color< EsfArguments >::type, int >::type = 0) const {
+            typedef typename EsfArguments::functor_t functor_t;
+
+            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
+
+            typedef typename EsfArguments::esf_t::color_t::color_t color_t;
+
+            // TODO we could identify if previous ESF was in the same color and avoid this iterator operations
+            (m_iterate_domain)
+                .template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value, color_t >();
+
+            functor_t::f_type::Do(iterate_domain_remapper, IntervalType());
+            (m_iterate_domain)
+                .template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
+                    static_uint< color_t::value > >();
+        }
+
+        template < typename IntervalType, typename EsfArguments, typename IterateDomainRemapper >
+        __device__ void color_loop(IterateDomainRemapper const & iterate_domain_remapper,
+            typename boost::disable_if< typename esf_has_color< EsfArguments >::type, int >::type = 0) const {
+
+            typedef typename esf_get_location_type< typename EsfArguments::esf_t >::type location_type_t;
+            typedef typename EsfArguments::functor_t functor_t;
+
+            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
+
+            for (uint_t ccnt = 0; ccnt < location_type_t::n_colors::value; ++ccnt) {
+                // call the user functor at the core of the block
+                functor_t::f_type::Do(iterate_domain_remapper, IntervalType());
+                (m_iterate_domain)
+                    .template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
+                        static_uint< 1 > >();
+            }
+            using neg_n_colors_t = static_uint< -location_type_t::n_colors::value >;
+            (m_iterate_domain)
+                .template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value, neg_n_colors_t >();
+        }
+
         /*
          * @brief executes the extra grid points associated with each CUDA thread.
          * This extra grid points can be located at the IMinus or IPlus halos or be one of

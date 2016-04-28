@@ -1,6 +1,6 @@
 #pragma once
 
-namespace gridtool {
+namespace gridtools {
     template < typename Pattern, typename Repl, typename Arg>
     struct subs {
         typedef typename boost::mpl::if_<

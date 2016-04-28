@@ -6,7 +6,7 @@ namespace gridtools {
 
     template < uint_t c >
     struct color_type {
-        static_uint< c > color_t;
+        typedef static_uint< c > color_t;
     };
 
     template < typename T >
