@@ -149,7 +149,8 @@ namespace gridtools{
             if(m_size%ExpandFactor::value)
                 m_intermediate_extra.reset(new intermediate_extra_t(*m_domain_to, grid, conditionals_));
 
-            boost::mpl::for_each<expandable_params_t>(_impl::delete_storage<vec_t >(vec));
+            // double free
+            // boost::mpl::for_each<expandable_params_t>(_impl::delete_storage<vec_t >(vec));
         }
 
         /**

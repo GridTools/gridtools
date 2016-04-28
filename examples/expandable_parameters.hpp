@@ -243,23 +243,23 @@ namespace test_expandable_parameters{
         typedef arg<0, std::vector<pointer<storage_t> > > p_list_out;
         typedef arg<1, std::vector<pointer<storage_t> > > p_list_in;
 
-        std::vector<pointer<storage_t> > list_out_={&storage1, &storage2, &storage3, &storage4, &storage5, &storage6, &storage7};
-        std::vector<pointer<storage_t> > list_in_={&storage10, &storage20, &storage30, &storage40, &storage50, &storage60, &storage70};
+        std::vector<pointer<storage_t> > list_out_={&storage1, &storage2, &storage3, &storage4, &storage5, &storage6, &storage7, &storage8};
+        std::vector<pointer<storage_t> > list_in_={&storage10, &storage20, &storage30, &storage40, &storage50, &storage60, &storage70, &storage80};
 
         typedef boost::mpl::vector<p_list_out, p_list_in> args_t;
 
         domain_type<args_t> domain_(boost::fusion::make_vector(&list_out_, &list_in_));
 
-        for(auto &&i:list_out_)
-        {
-            i->print();
-        }
+        // for(auto &&i:list_out_)
+        // {
+        //     i->print();
+        // }
 
         auto comp_ = make_computation<BACKEND>(
             expand_factor<4>(), domain_, grid_,
                 make_mss(
                     enumtype::execute<enumtype::forward>()
-                    , make_esf<functor>(p_list_out(), p_list_in())
+                    , make_esf<functor_exp>(p_list_out(), p_list_in())
                 )
             );
 
@@ -268,10 +268,10 @@ namespace test_expandable_parameters{
         comp_->run();
         comp_->finalize();
 
-        for(auto &&i:list_out_)
-        {
-            i->print();
-        }
+        // for(auto &&i:list_out_)
+        // {
+        //     i->print();
+        // }
 
 #endif
         return true;
