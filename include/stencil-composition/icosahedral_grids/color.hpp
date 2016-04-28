@@ -2,7 +2,7 @@
 #include "../../common/defs.hpp"
 
 namespace gridtools {
-    enum color { downard = 0, upward };
+    enum cell_color { downward_triangle = 0, upward_triangle };
 
     template < uint_t c >
     struct color_type {
