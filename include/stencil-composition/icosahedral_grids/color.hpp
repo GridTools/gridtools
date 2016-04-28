@@ -18,4 +18,5 @@ namespace gridtools {
     template <>
     struct is_color_type< notype > : boost::mpl::true_ {};
 
+    typedef notype nocolor;
 }

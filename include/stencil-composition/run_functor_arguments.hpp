@@ -106,8 +106,10 @@ namespace gridtools {
         typename Grid,             // the grid
         typename ExecutionEngine,  // the execution engine
         bool IsReduction,          // boolean stating if the operation to be applied at mss is a reduction
-        typename ReductionData     // return type of functors of a mss: return type of reduction operations,
+        typename ReductionData,    // return type of functors of a mss: return type of reduction operations,
                                    //        otherwise void
+        typename Color             // current color execution (not used for rectangular grids, or grids that dont have
+                                   // concept of a color
         >
     struct run_functor_arguments {
         GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Internal Error: invalid type");
@@ -119,6 +121,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(
             (is_sequence_of< EsfSequence, is_esf_descriptor >::value), "Internal Error: invalid type");
         GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), "Internal Error: invalid type");
+        GRIDTOOLS_STATIC_ASSERT((is_color_type<Color>::value), "Internal Error: invalid type");
 
         typedef BackendIds backend_ids_t;
         typedef ProcessingElementsBlockSize processing_elements_block_size_t;
@@ -153,6 +156,7 @@ namespace gridtools {
         static const bool s_is_reduction = IsReduction;
         typedef static_bool< IsReduction > is_reduction_t;
         typedef ReductionData reduction_data_t;
+        typedef Color color_t;
     };
 
     template < typename T >
@@ -173,7 +177,8 @@ namespace gridtools {
         typename Grid,
         typename ExecutionEngine,
         bool IsReduction,
-        typename ReductionData >
+        typename ReductionData,
+        typename Color>
     struct is_run_functor_arguments< run_functor_arguments< BackendIds,
         ProcessingElementsBlockSize,
         PhysicalDomainBlockSize,
@@ -189,7 +194,8 @@ namespace gridtools {
         Grid,
         ExecutionEngine,
         IsReduction,
-        ReductionData > > : boost::mpl::true_ {};
+        ReductionData,
+        Color> > : boost::mpl::true_ {};
 
     /**
      * @brief type that contains main metadata required to execute an ESF functor. This type will be passed to

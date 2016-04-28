@@ -299,7 +299,8 @@ namespace gridtools {
                     typename RunFunctorArguments::grid_t,
                     typename RunFunctorArguments::execution_type_t,
                     RunFunctorArguments::s_is_reduction,
-                    typename RunFunctorArguments::reduction_data_t > run_functor_arguments_cuda_t;
+                    typename RunFunctorArguments::reduction_data_t,
+                    typename RunFunctorArguments::color_t> run_functor_arguments_cuda_t;
 
 #ifdef VERBOSE
                 printf("ntx = %d, nty = %d, ntz = %d\n", ntx, nty, ntz);
