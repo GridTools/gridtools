@@ -92,16 +92,19 @@ namespace gridtools {
         }
 
         void free_it() {
-            assert(m_gpu_p); // check for double free
-            cudaFree(m_gpu_p);
-            m_gpu_p = NULL;
-            m_cpu_p.free_it();
-            m_up_to_date = true;
-            m_pointer_to_use = NULL;
+            if(m_gpu_p) // if the pointers are not allocated do nothing
+            {
+                // assert(m_gpu_p); // check for double free
+                cudaFree(m_gpu_p);
+                m_gpu_p = NULL;
+                m_cpu_p.free_it();
+                m_up_to_date = true;
+                m_pointer_to_use = NULL;
 
 #ifdef VERBOSE
-            printf("freeing hybrid pointer %x \n", this);
+                printf("freeing hybrid pointer %x \n", this);
 #endif
+            }
         }
 
         void update_gpu() {

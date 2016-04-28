@@ -103,6 +103,9 @@ namespace gridtools{
                             >::type>::type::value_type (m_dom_from.template storage_pointer<T>()->meta_data(), "expandable params", false /*do_allocate*/);
             }
 
+            /**
+               @brief initialize the storage vector
+             */
             template <ushort_t ID, typename T>
             void operator()(arg<ID,std::vector<pointer<T> > >){
                 boost::fusion::at<static_ushort<ID> >(m_vec_to)
@@ -122,7 +125,26 @@ namespace gridtools{
 
         };
 
+        template<typename Domain>
+        struct check_length{
 
+        private :
+            Domain & m_domain;
+            uint_t m_size;
+
+        public:
+            check_length(Domain & dom_, uint_t size_):
+                m_domain(dom_)
+                , m_size(size_)
+            {}
+
+            template <typename Arg>
+            void operator() (Arg) const {
+                // error here means that the sizes of the expandable parameter lists do not match
+                assert(boost::fusion::at<typename Arg::index_type>
+                       (m_domain.m_storage_pointers)->size()==m_size);
+            }
+        };
 
 /**
    @brief functor used to delete the storages containing the chunk of pointers

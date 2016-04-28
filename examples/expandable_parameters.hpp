@@ -1,5 +1,6 @@
 #pragma once
 #include <stencil-composition/stencil-composition.hpp>
+#include <tools/verifier.hpp>
 
 namespace test_expandable_parameters{
 
@@ -256,7 +257,7 @@ namespace test_expandable_parameters{
         // }
 
         auto comp_ = make_computation<BACKEND>(
-            expand_factor<4>(), domain_, grid_,
+            expand_factor<10>(), domain_, grid_,
                 make_mss(
                     enumtype::execute<enumtype::forward>()
                     , make_esf<functor_exp>(p_list_out(), p_list_in())
@@ -268,12 +269,18 @@ namespace test_expandable_parameters{
         comp_->run();
         comp_->finalize();
 
+        bool result_=false;
+        array< array< uint_t, 2 >, 3 > halos{{{0,0}, {0,0}, {0,0}}};
+        for(auto i=0; i<list_in_.size(); ++i){
+            verifier verif_(1e-13);
+            result_ = verif_.verify(grid_, *list_in_[i], *list_out_[i], halos);
+        }
         // for(auto &&i:list_out_)
         // {
         //     i->print();
         // }
 
 #endif
-        return true;
+        return result_;
     }
 }// namespace test_expandable_parameters

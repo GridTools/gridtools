@@ -135,7 +135,10 @@ namespace gridtools{
             , m_size(0)
         {
 
+            //fusion vector of storage lists
             vec_t vec;
+
+            //initialize the storage list objects, whithout allocating the storage for the data snapshots
             boost::mpl::for_each<expandable_params_t>(_impl::initialize_storage<DomainType, vec_t >( domain, vec));
 
             auto const& storage_ptr_ = boost::fusion::at<
@@ -144,12 +147,15 @@ namespace gridtools{
 
             m_size=storage_ptr_->size();
 
+            //check (in DEBUG mode) that all the expandable parameter lists have the same size
+            boost::mpl::for_each<expandable_params_t>(_impl::check_length<DomainType>(domain, m_size));
+
             m_domain_to.reset(new domain_type<new_arg_list>(vec));
             m_intermediate.reset(new intermediate_t(*m_domain_to, grid, conditionals_));
             if(m_size%ExpandFactor::value)
                 m_intermediate_extra.reset(new intermediate_extra_t(*m_domain_to, grid, conditionals_));
 
-            // double free
+            // // delete the storage structs (contain empty pointers, so not a big deal)
             // boost::mpl::for_each<expandable_params_t>(_impl::delete_storage<vec_t >(vec));
         }
 
@@ -164,9 +170,12 @@ namespace gridtools{
          */
         virtual void run(){
 
+            //the expand factor must be smaller than the total size of the expandable parameters list
+            assert(m_size%ExpandFactor::value);
+
         for(uint_t i=0; i<m_size-m_size%ExpandFactor::value; i+=ExpandFactor::value){
 
-                std::cout<<"iteration: "<<i<<"\n";
+                // std::cout<<"iteration: "<<i<<"\n";
                 boost::mpl::for_each<expandable_params_t>(_impl::assign_expandable_params<DomainType, domain_type<new_arg_list> >(m_domain_from, *m_domain_to, i));
                 // new_domain_.get<ExpandFactor::arg_t>()->assign_pointers(domain.get<ExpandFactor::arg_t>(), i);
                 m_intermediate->run();
