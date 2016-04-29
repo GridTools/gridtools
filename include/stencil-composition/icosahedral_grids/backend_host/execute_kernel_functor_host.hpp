@@ -1,6 +1,9 @@
 #pragma once
 #include "stencil-composition/backend_host/iterate_domain_host.hpp"
 #include "stencil-composition/icosahedral_grids/esf_metafunctions.hpp"
+#include "../../iteration_policy.hpp"
+#include "../../execution_policy.hpp"
+#include "../../grid_traits_fwd.hpp"
 
 namespace gridtools {
 
@@ -17,6 +20,7 @@ namespace gridtools {
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::grid_t grid_t;
             typedef typename RunFunctorArguments::esf_sequence_t esf_sequence_t;
+            typedef typename RunFunctorArguments::reduction_data_t reduction_data_t;
 
             typedef typename extract_esf_location_type< esf_sequence_t >::type location_type_t;
 
@@ -28,6 +32,7 @@ namespace gridtools {
             */
             explicit execute_kernel_functor_host(const local_domain_t &local_domain,
                 const grid_t &grid,
+                reduction_data_t &reduction_data,
                 const uint_t first_i,
                 const uint_t first_j,
                 const uint_t loop_size_i,
@@ -38,7 +43,8 @@ namespace gridtools {
                   m_loop_size{loop_size_i, loop_size_j}, m_block_id{block_idx_i, block_idx_j} {}
 
             // Naive strategy
-            explicit execute_kernel_functor_host(const local_domain_t &local_domain, const grid_t &grid)
+            explicit execute_kernel_functor_host(
+                const local_domain_t &local_domain, const grid_t &grid, reduction_data_t &reduction_data)
                 : m_local_domain(local_domain), m_grid(grid), m_first_pos{grid.i_low_bound(), grid.j_low_bound()}
                   // TODO strictling speaking the loop the size is with +1. Recompute the numbers here to be consistent
                   // with the convention, but that require adapint also the rectangular grids
@@ -62,11 +68,6 @@ namespace gridtools {
                 //#ifdef __VERBOSE__
                 //        #pragma omp critical
                 //        {
-                // TODOCOSUNA Extends in other grid have to become radius
-                std::cout << "I loop " << m_first_pos[0] << "+" << extent_t::iminus::value << " -> " << m_first_pos[0]
-                          << "+" << m_loop_size[0] << "+" << extent_t::iplus::value << "\n";
-                std::cout << "J loop " << m_first_pos[1] << "+" << extent_t::jminus::value << " -> " << m_first_pos[1]
-                          << "+" << m_loop_size[1] << "+" << extent_t::jplus::value << "\n";
                 //        std::cout<<"iminus::value: "<<extent_t::iminus::value<<std::endl;
                 //        std::cout<<"iplus::value: "<<extent_t::iplus::value<<std::endl;
                 //        std::cout<<"jminus::value: "<<extent_t::jminus::value<<std::endl;
@@ -82,8 +83,8 @@ namespace gridtools {
 
                 iterate_domain_t it_domain(m_local_domain, m_grid.grid_topology());
 
-                it_domain.set_data_pointer(&data_pointer);
-                it_domain.set_strides_pointer(&strides);
+                it_domain.set_data_pointer_impl(&data_pointer);
+                it_domain.set_strides_pointer_impl(&strides);
 
                 it_domain.template assign_storage_pointers< backend_traits_t >();
                 it_domain.template assign_stride_pointers< backend_traits_t, strides_t >();
@@ -91,18 +92,26 @@ namespace gridtools {
                 typedef typename boost::mpl::front< loop_intervals_t >::type interval;
                 typedef typename index_to_level< typename interval::first >::type from;
                 typedef typename index_to_level< typename interval::second >::type to;
-                typedef _impl::iteration_policy< from, to, zdim_index_t::value, execution_type_t::type::iteration >
-                    iteration_policy_t;
+                typedef _impl::iteration_policy< from,
+                    to,
+                    typename grid_traits_from_id< enumtype::icosahedral >::dim_k_t,
+                    execution_type_t::type::iteration > iteration_policy_t;
 
                 // reset the index
                 it_domain.set_index(0);
 
-                it_domain.template initialize< 0 >(m_first_pos[0] + extent_t::iminus::value, m_block_id[0]);
-                // initialize color dim
+                // TODO FUSING work on extending the loops using the extent
+                //                it_domain.template initialize<0>(m_first_pos[0] + extent_t::iminus::value,
+                //                m_block_id[0]);
+                it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_i_t::value >(
+                    m_first_pos[0], m_block_id[0]);
 
-                it_domain.template initialize< 1 >(0);
-                it_domain.template initialize< 2 >(m_first_pos[1] + extent_t::jminus::value, m_block_id[1]);
-                it_domain.template initialize< 3 >(m_grid.template value_at< typename iteration_policy_t::from >());
+                // initialize color dim
+                it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value >(0);
+                it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value >(
+                    m_first_pos[1], m_block_id[1]);
+                it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_k_t::value >(
+                    m_grid.template value_at< typename iteration_policy_t::from >());
 
                 typedef array< int_t, iterate_domain_t::N_META_STORAGES > array_index_t;
                 typedef array< uint_t, 4 > array_position_t;
@@ -126,15 +135,21 @@ namespace gridtools {
                                 _impl::run_f_on_interval< execution_type_t, RunFunctorArguments >(it_domain, m_grid));
                             it_domain.set_index(memorized_index);
                             it_domain.set_position(memorized_position);
-                            it_domain.template increment< 2, static_int< 1 > >();
+                            it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value,
+                                static_int< 1 > >();
                         }
-                        it_domain.template increment< 2 >(-(m_loop_size[1] + 1 + addon));
-                        it_domain.template increment< 1, static_int< 1 > >();
+                        it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value >(
+                            -(m_loop_size[1] + 1 + addon));
+                        it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
+                            static_int< 1 > >();
                     }
-                    it_domain.template increment< 1, static_int< -((int_t)n_colors_t::value) > >();
-                    it_domain.template increment< 0, static_int< 1 > >();
+                    it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
+                        static_int< -((int_t)n_colors_t::value) > >();
+                    it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_i_t::value,
+                        static_int< 1 > >();
                 }
-                it_domain.template increment< 0 >(-(m_loop_size[0] + 1));
+                it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_i_t::value >(
+                    -(m_loop_size[0] + 1));
             }
 
           private:

@@ -53,12 +53,12 @@ using namespace expressions;
 #endif
 
 #ifdef CUDA_EXAMPLE
-typedef gridtools::backend<gridtools::enumtype::Cuda, gridtools::enumtype::Block > the_backend;
+typedef gridtools::backend< gridtools::enumtype::Cuda, GRIDBACKEND, gridtools::enumtype::Block > the_backend;
 #else
 #ifdef BACKEND_BLOCK
-typedef gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Block > the_backend;
+typedef gridtools::backend< gridtools::enumtype::Host, GRIDBACKEND, gridtools::enumtype::Block > the_backend;
 #else
-typedef gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Naive > the_backend;
+typedef gridtools::backend< gridtools::enumtype::Host, GRIDBACKEND, gridtools::enumtype::Naive > the_backend;
 #endif
 #endif
 
@@ -282,9 +282,9 @@ bool test(uint_t x, uint_t y, uint_t z)
 auto
 #else
 #ifdef __CUDACC__
-    gridtools::computation*
+    gridtools::stencil*
 #else
-        boost::shared_ptr<gridtools::computation>
+        boost::shared_ptr<gridtools::stencil>
 #endif
 #endif
     test_computation = gridtools::make_computation<the_backend>

@@ -1,3 +1,4 @@
+FILE(GLOB_RECURSE INC_ALL "../../include/stencil-composition/*.hpp" "../../include/stencil-composition/structured_grids/*.hpp")
 
 set(RECGRID_TESTS ${INC_ALL} test_conditional_switches.cpp test_conditionals.cpp)
 

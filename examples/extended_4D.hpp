@@ -8,13 +8,13 @@ using namespace gridtools;
 using namespace enumtype;
 using namespace expressions;
 
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend< Cuda, Block >
+#ifdef __CUDACC__
+#define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, Block >
+#define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
-#define BACKEND backend< Host, Naive >
+#define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
 
@@ -174,9 +174,9 @@ namespace assembly {
         auto
 #else
 #ifdef __CUDACC__
-        computation *
+        stencil *
 #else
-        boost::shared_ptr< gridtools::computation >
+        boost::shared_ptr< gridtools::stencil >
 #endif
 #endif
             fe_comp = make_computation< gridtools::BACKEND >(
