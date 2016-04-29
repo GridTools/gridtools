@@ -45,7 +45,13 @@ namespace test_conditionals{
         new_cond(cond2, &predicate2);
 #endif
 
+#ifdef CXX11_ENABLED
         grid<axis> grid_({0,0,0,1,2},{0,0,0,1,2});
+#else
+        uint_t di[5] = {0, 0, 0, 1, 2};
+        uint_t dj[5] = {0, 0, 0, 1, 2};
+        grid<axis> grid_(di,dj);
+#endif
         grid_.value_list[0] = 0;
         grid_.value_list[1] = 2;
 
@@ -62,7 +68,7 @@ namespace test_conditionals{
 #ifdef CXX11_ENABLED
         auto
 #else
-            boost::shared_ptr<computation>
+            boost::shared_ptr<gridtools::stencil>
 #endif
             comp_ = make_computation < BACKEND > (
                 domain_, grid_,
