@@ -196,23 +196,33 @@ namespace gridtools {
                     };
                 };
 
+                template <typename Output, typename Inputs, typename CurrentMap>
+                struct xxx {
+                    typedef typename boost::mpl::at< CurrentMap, typename Output::first >::type current_extent;
+
+                    typedef typename boost::mpl::fold<
+                        Inputs,
+                        CurrentMap,
+                        typename work_on< current_extent >::template with< boost::mpl::_2, boost::mpl::_1 > >::type
+                    type; // the new map
+                };
+
                 template < typename ESFs, typename CurrentMap, int Elements >
                 struct populate_map {
                     typedef typename boost::mpl::at_c< ESFs, 0 >::type current_ESF;
                     typedef typename boost::mpl::pop_front< ESFs >::type rest_of_ESFs;
 
-                    typedef typename esf_get_the_only_w_per_functor< current_ESF, boost::false_type >::type output;
-                    // ^^^^ they (must) have the same extent<0,0,0,0,0,0> [so not need for true predicate]
-                    // now assuming there is only one
+                    typedef typename esf_get_w_per_functor< current_ESF, boost::true_type >::type outputs;
+
+                    GRIDTOOLS_STATIC_ASSERT((check_all_extents_are<outputs, extent<0,0,0,0,0,0> >::type::value), "Extents of the outputs of ESFs are not all empty. All outputs must have empty extents");
 
                     typedef typename esf_get_r_per_functor< current_ESF, boost::true_type >::type inputs;
 
-                    typedef typename boost::mpl::at< CurrentMap, output >::type current_extent;
-
-                    typedef typename boost::mpl::fold< inputs,
+                    typedef typename boost::mpl::fold<
+                        outputs,
                         CurrentMap,
-                        typename work_on< current_extent >::template with< boost::mpl::_2, boost::mpl::_1 > >::type
-                        new_map;
+                        xxx<boost::mpl::_2, inputs, boost::mpl::_1>
+                        >::type new_map;
 
                     typedef typename populate_map< rest_of_ESFs,
                         new_map,
