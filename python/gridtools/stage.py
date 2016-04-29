@@ -10,29 +10,29 @@ from gridtools.symbol import Scope, SymbolInspector
 
 
 
-class FunctorBody (ast.NodeVisitor):
+class StageBody (ast.NodeVisitor):
     """
-    Represents the Do( ) function of a stencil's functor in AST form.-
+    Represents the Do( ) function of a stencil's stage in AST form.-
     """
     symbol_inspector = SymbolInspector ( )
 
     def __init__ (self, nodes, scope, stencil_scope):
         """
-        Constructs a functor body object
-        :param nodes:         an AST-node list representing the body of this 
-                              functor
-        :param scope:         the symbols scope of this functor
-        :param stencil_scope: the enclosing scope of symbols that are visible 
+        Constructs a stage body object
+        :param nodes:         an AST-node list representing the body of this
+                              stage
+        :param scope:         the symbols scope of this stage
+        :param stencil_scope: the enclosing scope of symbols that are visible
                               to this stage
         :raise TypeError:     if nodes is not iterable
         """
-        self.scope         = scope 
+        self.scope         = scope
         self.stencil_scope = stencil_scope
         try:
             if len (nodes) > 0:
                 self.nodes = nodes
         except TypeError:
-            raise TypeError ("FunctorBody expects a list of AST nodes.")
+            raise TypeError ("StageBody expects a list of AST nodes.")
 
 
     def _analyze_assignment (self, lval_node, rval_node):
@@ -42,10 +42,10 @@ class FunctorBody (ast.NodeVisitor):
         :param rval_node: AST node of the expression appearing as RValue
         :return:
         """
-        lvalues = FunctorBody.symbol_inspector.search (lval_node, 
-                                                       self.scope)
-        rvalues = FunctorBody.symbol_inspector.search (rval_node, 
-                                                       self.scope)
+        lvalues = StageBody.symbol_inspector.search (lval_node,
+                                                     self.scope)
+        rvalues = StageBody.symbol_inspector.search (rval_node,
+                                                     self.scope)
         for lsymbol in lvalues:
             #
             # lvalues (and their aliases) are read/write
@@ -82,7 +82,7 @@ class FunctorBody (ast.NodeVisitor):
             logging.warning ("Cannot translate '%s'" % str (op))
         return sign
 
-         
+
     def _transpow (self, base, exp):
         logging.debug ("Exponent type %s" % type(exp))
         if (isinstance (exp, ast.UnaryOp)):
@@ -100,18 +100,18 @@ class FunctorBody (ast.NodeVisitor):
                 logging.error ("Can not determine a number for the exponent (type = %s)", type(exp))
                 return "NaN"
 
-        if (exp == 0): 
+        if (exp == 0):
             return "(1)"
-        elif (exp == 1): 
+        elif (exp == 1):
             return "("+str(base)+")"
-        elif (exp > 1): 
+        elif (exp > 1):
             if ( not isinstance(base, float) and not isinstance(base, int)):
                 val = "*("+str(base)+")"
                 return "(({0}){1})".format(base, ''.join([val for num in range(exp-1)]))
             else:
                 val = "*"+str(base)
                 return "({0}{1})".format(base, ''.join([val for num in range(exp-1)]))
-        elif (exp < 0): 
+        elif (exp < 0):
             if ( not isinstance(base, float) and not isinstance(base, int)):
                 val = "*("+str(base)+")"
                 return "(1/(({0}){1}))".format(base, ''.join([val for num in range(abs(exp)-1)]))
@@ -133,8 +133,8 @@ class FunctorBody (ast.NodeVisitor):
                     self.cpp_src = "%s;\n\t\t" % self.cpp_src
             except RuntimeError as e:
                 #
-                # TODO: preprocess the Python source code to correctly display 
-                # the line where the error occurred, because comments are lost 
+                # TODO: preprocess the Python source code to correctly display
+                # the line where the error occurred, because comments are lost
                 # in the AST translation
                 #
                 #src_lines      = src.split ('\n')
@@ -240,7 +240,7 @@ class FunctorBody (ast.NodeVisitor):
         symbol = None
 
         #
-        # first look for the symbol within this functor's scope
+        # first look for the symbol within this stage's scope
         #
         if name in self.scope:
             symbol = self.scope[name]
@@ -263,8 +263,8 @@ class FunctorBody (ast.NodeVisitor):
                 return str (symbol.value)
             else:
                 #
-                # non-constant symbols in the enclosing scope 
-                # become parameters of this functor
+                # non-constant symbols in the enclosing scope
+                # become parameters of this stage
                 #
                 self.scope.add_parameter (name,
                                           symbol.value,
@@ -297,7 +297,7 @@ class FunctorBody (ast.NodeVisitor):
         #
         operand = []
         for op in [node.left, node.right]:
-            if (isinstance (op, ast.Num) or 
+            if (isinstance (op, ast.Num) or
                 isinstance (op, ast.Name) or
                 isinstance (op, ast.Attribute) or
                 isinstance (op, ast.Subscript)):
@@ -315,7 +315,7 @@ class FunctorBody (ast.NodeVisitor):
 
     def visit_Name (self, node):
         """
-        Generates code for a variable name, e.g., a functor parameter.-
+        Generates code for a variable name, e.g., a stage parameter.-
         """
         name   = node.id
         symbol = None
@@ -330,13 +330,13 @@ class FunctorBody (ast.NodeVisitor):
             symbol = self.stencil_scope[name]
             #
             # existing symbols in the enclosing scope
-            # are parameters to this functor
+            # are parameters to this stage
             #
             self.scope.add_parameter (name,
                                       symbol.value,
                                       read_only=symbol.read_only)
         else:
-            raise NameError ("Unkown symbol '%s' in functor" % name)
+            raise NameError ("Unkown symbol '%s' in stage" % name)
         #
         # resolve aliases before trying to inline
         #
@@ -356,7 +356,7 @@ class FunctorBody (ast.NodeVisitor):
         #
         if (isinstance (symbol.value, str) or
             isinstance (symbol.value, np.ndarray)):
-            return name 
+            return name
         else:
             return str (symbol.value)
 
@@ -399,7 +399,7 @@ class FunctorBody (ast.NodeVisitor):
                     #
                     # access-pattern detection for data fields ...
                     #
-                    if (isinstance (node.value, ast.Name) or 
+                    if (isinstance (node.value, ast.Name) or
                         isinstance (node.value, ast.Attribute)):
                         name   = self.visit (node.value)
                         symbol = self.scope[name]
@@ -425,11 +425,11 @@ class FunctorBody (ast.NodeVisitor):
                     indexing = ''
                     logging.warning ("Ignoring subscript not using 'p'")
 
-            return "eval(%s%s)" % (self.visit (node.value).replace ('.', '_'), 
+            return "eval(%s%s)" % (self.visit (node.value).replace ('.', '_'),
                                    indexing)
         else:
             logging.warning ("Slicing operations cannot be translated")
-            
+
 
     def visit_UnaryOp (self, node):
         """
@@ -441,9 +441,9 @@ class FunctorBody (ast.NodeVisitor):
 
 
 
-class FunctorScope (Scope):
+class StageScope (Scope):
     """
-    Functor symbols are organized into scopes that represent code visibility
+    Stage symbols are organized into scopes that represent code visibility
     blocks.-
     """
     def get_ghost_cell (self):
@@ -460,22 +460,22 @@ class FunctorScope (Scope):
 
 
 
-class Functor ( ):
+class Stage ( ):
     """
     Represents a stage inside a stencil.-
     """
     def __init__ (self, name, node, stencil_scope):
         """
         Constructs a new StencilStage
-        :param name:          a name to uniquely identify this functor
+        :param name:          a name to uniquely identify this stage
         :param node:          the For AST node of the comprehention from which
-                              this functor is constructed
+                              this stage is constructed
         :param stencil_scope: the scope of symbols at stencil level
         :raise TypeError:     if the passed node is of the incorrect type
         :return:
         """
         self.name          = name
-        self.scope         = FunctorScope ( )
+        self.scope         = StageScope ( )
         self.stencil_scope = stencil_scope
         #
         # the ghost-cell access pattern of this stage
@@ -486,18 +486,18 @@ class Functor ( ):
         #
         self._independent  = False
         #
-        # the root AST node of the for-loop representing this functor
+        # the root AST node of the for-loop representing this stage
         #
         if isinstance (node, ast.For):
-            self.node = node 
+            self.node = node
         else:
-            raise TypeError ("Functor's root AST node should be 'ast.For'")
+            raise TypeError ("Stage's root AST node should be 'ast.For'")
         #
-        # the body of this functor
+        # the body of this stage
         #
-        self.body = FunctorBody (self.node.body,
-                                 self.scope,
-                                 self.stencil_scope)
+        self.body = StageBody (self.node.body,
+                               self.scope,
+                               self.stencil_scope)
 
 
     def __hash__ (self):
@@ -510,7 +510,7 @@ class Functor ( ):
 
     def generate_code (self):
         """
-        Generates the C++ code of this functor
+        Generates the C++ code of this stage
         :return:
         """
         self.body.generate_code ( )
@@ -536,14 +536,14 @@ class Functor ( ):
 
     def translate (self):
         """
-        Translates this functor to C++, using the gridtools interface, returning
+        Translates this stage to C++, using the gridtools interface, returning
         a string of rendered file.-
         """
         from gridtools import JinjaEnv
 
-        functor_tpl = JinjaEnv.get_template ("functor.h")
+        stage_tpl = JinjaEnv.get_template ("stage.h")
         params      = list (self.scope.get_parameters ( ))
 
-        return functor_tpl.render (functor=self,
+        return stage_tpl.render (stage=self,
                                    params=params)
 

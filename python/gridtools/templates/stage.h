@@ -1,14 +1,14 @@
-{% block functor %}
+{% block stage %}
 
-struct {{ functor.name }}
+struct {{ stage.name }}
 {
     //
-    // the number of arguments of this functor 
+    // the number of arguments of this stage 
     //
     static const int n_args = {{ params|length }};
 
     //
-    // the input data fields of this functor are marked as 'const'
+    // the input data fields of this stage are marked as 'const'
     //
     {% for p in params -%}
     typedef {% if p.read_only -%}
@@ -18,18 +18,18 @@ struct {{ functor.name }}
                                                     {%- endif %} > {{ p.name|replace('.', '_') }};
     {% endfor %}
     //
-    // the ordered list of arguments of this functor
+    // the ordered list of arguments of this stage
     //
     typedef boost::mpl::vector<{{ params|join(', ', attribute='name')|replace('.', '_') }}> arg_list;
 
     //
-    // the operation of this functor
+    // the operation of this stage
     //
     template <typename Evaluation>
     GT_FUNCTION
     static void Do(Evaluation const & eval, x_interval) 
     {
-        {{ functor.body.cpp_src }}
+        {{ stage.body.cpp_src }}
     }
 };
 
@@ -37,9 +37,9 @@ struct {{ functor.name }}
 //
 // the following operator is provided for debugging purposes
 //
-std::ostream& operator<<(std::ostream& s, {{ functor.name }} const) 
+std::ostream& operator<<(std::ostream& s, {{ stage.name }} const) 
 {
-    return s << "{{ functor.name }}";
+    return s << "{{ stage.name }}";
 }
  
 {% endblock %}

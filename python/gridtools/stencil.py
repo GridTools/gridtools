@@ -5,7 +5,7 @@ import numpy as np
 import networkx as nx
 
 from gridtools.symbol   import StencilScope
-from gridtools.functor  import Functor
+from gridtools.stage  import Stage
 from gridtools.compiler import StencilCompiler
 
 
@@ -536,27 +536,27 @@ class CombinedStencil (Stencil):
                 makedirs (src_dir)
             self.src_dir = src_dir
 
-        functor_src       = ''
+        stage_src       = ''
         self.lib_file     = 'lib%s' % self.name.lower ( )
         self.cpp_file     = '%s.cpp' % self.name
         self.make_file    = 'Makefile'
-        self.fun_hdr_file = '%sFunctors.h' % self.name
+        self.stg_hdr_file = '%sStages.h' % self.name
 
         logging.info ("Generating C++ code in '%s'" % self.src_dir)
         #
-        # generate the code for *all* functors within the combined stencil
+        # generate the code for *all* stages within the combined stencil
         #
         for st in nx.dfs_postorder_nodes (self.execution_graph,
                                           source=self.get_root ( )):
-            for func in st.inspector.functors:
-                func.generate_code (st.inspector.src)
-                st.scope.add_dependencies (func.get_data_dependency ( ).edges ( ))
-            fun_src, _, _  = Stencil.compiler.translate (st)
-            functor_src   += fun_src
+            for stage in st.inspector.stages:
+                stage.generate_code (st.inspector.src)
+                st.scope.add_dependencies (stage.get_data_dependency ( ).edges ( ))
+            stg_src, _, _  = Stencil.compiler.translate (st)
+            stage_src   += stg_src
 
-        with open (path.join (self.src_dir, self.fun_hdr_file), 'w') as fun_hdl:
-            functors = JinjaEnv.get_template ("functors.h")
-            fun_hdl.write (functors.render (functor_src=functor_src))
+        with open (path.join (self.src_dir, self.stg_hdr_file), 'w') as stg_hdl:
+            stages = JinjaEnv.get_template ("stages.h")
+            stg_hdl.write (stages.render (stage_src=stage_src))
         #
         # code for the stencil, the library entry point and makefile
         #
@@ -717,11 +717,11 @@ class CombinedStencil (Stencil):
         temps  = list (self.scope.get_temporaries ( ))
 
         #
-        # stencil list and functor dictionaries in execution order
+        # stencil list and stage dictionaries in execution order
         #
         stencils             = list ( )
-        functors             = dict ( )
-        independent_functors = dict ( )
+        stages             = dict ( )
+        independent_stages = dict ( )
         for st in nx.dfs_postorder_nodes (self.execution_graph,
                                           source=self.get_root ( )):
             if st in stencils:
@@ -729,34 +729,34 @@ class CombinedStencil (Stencil):
                                  % (st, self))
             else:
                 stencils.append (st)
-            functors[st.name]             = list ( )
-            independent_functors[st.name] = list ( )
-            for f in st.inspector.functors:
-                if f in functors[st.name] or f in independent_functors[st.name]:
-                    logging.warning ("Ignoring mutiple instances of functor '%s' in stencil '%s'"
+            stages[st.name]             = list ( )
+            independent_stages[st.name] = list ( )
+            for f in st.inspector.stages:
+                if f in stages[st.name] or f in independent_stages[st.name]:
+                    logging.warning ("Ignoring mutiple instances of stage '%s' in stencil '%s'"
                                      % (f, st))
                 else:
                     if f.independent:
-                        independent_functors[st.name].append (f)
+                        independent_stages[st.name].append (f)
                     else:
-                        functors[st.name].append (f)
+                        stages[st.name].append (f)
         #
-        # make sure there is at least one non-independent functor in each stencil
+        # make sure there is at least one non-independent stage in each stencil
         #
         for st in stencils:
-            if len (functors[st.name]) == 0:
-                functors[st.name]             = [ st.inspector.functors[-1] ]
-                independent_functors[st.name] = independent_functors[st.name][:-1]
+            if len (stages[st.name]) == 0:
+                stages[st.name]             = [ st.inspector.stages[-1] ]
+                independent_stages[st.name] = independent_stages[st.name][:-1]
 
-        return (cpp.render (fun_hdr_file         = self.fun_hdr_file,
+        return (cpp.render (stg_hdr_file         = self.stg_hdr_file,
                             stencil_name         = self.name.lower ( ),
                             stencils             = stencils,
                             scope                = self.scope,
                             params               = params,
                             temps                = temps,
                             params_temps         = params + temps,
-                            functors             = functors,
-                            independent_functors = independent_functors),
+                            stages               = stages,
+                            independent_stages   = independent_stages),
                 make.render (stencil  = self,
                              compiler = self.compiler))
 
