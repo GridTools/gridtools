@@ -7,6 +7,7 @@
 #include "common/generic_metafunctions/variadic_to_vector.hpp"
 #include "common/generic_metafunctions/variadic_typedef.hpp"
 #include "common/array.hpp"
+#include "../../common/explode_array.hpp"
 #include "common/generic_metafunctions/remove_restrict_reference.hpp"
 #include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
 #include "stencil-composition/total_storages.hpp"
@@ -345,13 +346,14 @@ namespace gridtools {
                 reduce_tuple_holder_t;
 
             template < typename... Accessors >
-            GT_FUNCTION static ValueType apply(reduce_tuple_holder_t &reducer, Accessors... args) {
+            GT_FUNCTION static void apply(reduce_tuple_holder_t &reducer, Accessors... args) {
                 using seq =
                     apply_gt_integer_sequence< typename make_gt_integer_sequence< int, sizeof...(Accessors) >::type >;
 
-                reducer.m_result =
-                    seq::template apply_lambda< ValueType, Reduction, it_domain_evaluator< ValueType >::template apply_t >(
-                        reducer.m_reduction, reducer.m_result, reducer.m_neighbors, reducer.m_iterate_domain, args...);
+                reducer.m_result = seq::template apply_lambda< ValueType,
+                    Reduction,
+                    it_domain_evaluator< ValueType >::template apply_t >(
+                    reducer.m_reduction, reducer.m_result, reducer.m_neighbors, reducer.m_iterate_domain, args...);
             }
         };
 
@@ -372,8 +374,7 @@ namespace gridtools {
                 reduce_tuple_data_holder< ValueType, neighbors_array_t, Reduction, type > red(
                     onneighbors.reduction(), neighbors[i], result, *this);
 
-                result = explode< ValueType, reduce_tuple< ValueType, neighbors_array_t, Reduction, type > >(
-                    onneighbors.maps(), red);
+                explode< void, reduce_tuple< ValueType, neighbors_array_t, Reduction, type > >(onneighbors.maps(), red);
             }
 
             return result;
