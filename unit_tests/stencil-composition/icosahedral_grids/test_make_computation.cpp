@@ -23,55 +23,17 @@ using namespace gridtools;
 namespace make_computation_test{
 
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
-    using backend_t = backend<enumtype::Host, enumtype::Block >;
+    using backend_t = backend< enumtype::Host, enumtype::icosahedral, enumtype::Block >;
     using icosahedral_topology_t = gridtools::icosahedral_topology<backend_t>;
 
     struct test_functor {
-        using in = in_accessor<0, icosahedral_topology_t::cells, radius<1> >;
+        using in = in_accessor< 0, icosahedral_topology_t::cells, extent< 1 > >;
         using arg_list = boost::mpl::vector1<in>;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {}
     };
-}
-
-TEST(test_make_computation, get_mss_array) {
-
-    using namespace gridtools;
-    using namespace make_computation_test;
-    typedef gridtools::layout_map<2,1,0> layout_t;
-    using cell_storage_type = typename backend_t::storage_t<icosahedral_topology_t::cells, double>;
-
-    typedef arg<0, cell_storage_type> in_cells;
-    typedef arg<1, cell_storage_type> out_cells;
-
-    typedef boost::mpl::vector<in_cells, out_cells> accessor_list_t;
-
-    typedef decltype(
-        gridtools::make_mss // mss_descriptor
-        (
-                enumtype::execute<enumtype::forward>(),
-                gridtools::make_esf<make_computation_test::test_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(in_cells())
-        )) mss1_t;
-
-    typedef decltype(
-        gridtools::make_mss // mss_descriptor
-        (
-                enumtype::execute<enumtype::forward>(),
-                gridtools::make_esf<make_computation_test::test_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(out_cells())
-        )) mss2_t;
-
-    typedef gridtools::interval<level<0,-2>, level<1,1> > axis_t;
-    typedef gridtools::grid<axis_t, icosahedral_topology_t> grid_t;
-
-    typedef gridtools::domain_type<accessor_list_t> domain_t;
-    typedef boost::mpl::vector5<int, domain_t, mss2_t, grid_t, mss1_t> ListTypes;
-
-    typedef _impl::get_mss_array<ListTypes>::type MssArray;
-
-    BOOST_STATIC_ASSERT(( boost::mpl::equal<MssArray::elements, boost::mpl::vector2<mss2_t, mss1_t> >::value));
-    EXPECT_TRUE(true);
 }
 
 #endif

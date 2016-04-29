@@ -3,7 +3,7 @@
 #include <boost/mpl/for_each.hpp>
 #include "basic_token_execution.hpp"
 #include "backend_traits_fwd.hpp"
-#include "run_esf_functor.hpp"
+#include "run_functor_arguments_fwd.hpp"
 
 /**
 @file Implementation of the k loop execution policy
@@ -16,6 +16,7 @@ when the stencil operations at level k depend on the fields at level k+1 (backwa
 between levels.
 */
 namespace gridtools {
+
     namespace _impl {
 
         /**
@@ -35,8 +36,9 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_run_functor_arguments< RunFunctorArguments >::value), "Internal Error: wrong type");
 
-            typedef typename backend_traits_from_id< RunFunctorArguments::backend_id_t::value >::run_esf_functor_h_t
-                run_esf_functor_h_t;
+            typedef
+                typename backend_traits_from_id< RunFunctorArguments::backend_ids_t::s_backend_id >::run_esf_functor_h_t
+                    run_esf_functor_h_t;
             typedef run_f_on_interval_base<
                 run_f_on_interval< typename enumtype::execute< IterationType >, RunFunctorArguments > > super;
             typedef typename super::iterate_domain_t iterate_domain_t;

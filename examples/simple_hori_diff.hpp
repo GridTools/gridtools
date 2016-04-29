@@ -93,12 +93,12 @@ namespace horizontal_diffusion {
         uint_t halo_size = 2;
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend< Cuda, Block >
+#define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, Block >
+#define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
-#define BACKEND backend< Host, Naive >
+#define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
 
@@ -156,9 +156,9 @@ namespace horizontal_diffusion {
         auto
 #else
 #ifdef __CUDACC__
-        gridtools::computation *
+        gridtools::stencil *
 #else
-        boost::shared_ptr< gridtools::computation >
+        boost::shared_ptr< gridtools::stencil >
 #endif
 #endif
             simple_hori_diff = gridtools::make_computation< gridtools::BACKEND >(
@@ -166,7 +166,7 @@ namespace horizontal_diffusion {
                 grid,
                 gridtools::make_mss // mss_descriptor
                 (execute< forward >(),
-                    define_caches(cache< IJ, p_lap, local >()),
+                    define_caches(cache< IJ, local >(p_lap())),
                     gridtools::make_esf< wlap_function >(p_lap(), p_in(), p_crlato(), p_crlatu()), // esf_descriptor
                     gridtools::make_esf< divflux_function >(p_out(), p_in(), p_lap(), p_crlato(), p_coeff())));
 

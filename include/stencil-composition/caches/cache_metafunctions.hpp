@@ -28,7 +28,6 @@
 #include "stencil-composition/caches/cache.hpp"
 #include "stencil-composition/caches/cache_storage.hpp"
 #include "stencil-composition/esf_metafunctions.hpp"
-#include "stencil-composition/local_domain.hpp"
 
 #include "common/generic_metafunctions/is_there_in_sequence_if.hpp"
 
@@ -42,7 +41,7 @@ namespace gridtools {
     struct is_cache : boost::mpl::false_ {};
 
     template < cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy >
-    struct is_cache< cache< cacheType, Arg, cacheIOPolicy > > : boost::mpl::true_ {};
+    struct is_cache< detail::cache_impl< cacheType, Arg, cacheIOPolicy > > : boost::mpl::true_ {};
 
     /**
      * @struct cache_parameter
@@ -52,7 +51,7 @@ namespace gridtools {
     struct cache_parameter;
 
     template < cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy >
-    struct cache_parameter< cache< cacheType, Arg, cacheIOPolicy > > {
+    struct cache_parameter< detail::cache_impl< cacheType, Arg, cacheIOPolicy > > {
         typedef Arg type;
     };
 
@@ -107,67 +106,6 @@ namespace gridtools {
                 typename Cache::cache_type_t >::type type;
             BOOST_STATIC_CONSTANT(bool, value = (type::value));
         };
-    };
-
-    /**
-     * @struct extract_extents_for_caches
-     * metafunction that extracts the extents associated to each cache of the sequence of caches provided by the user.
-     * The extent is determined as the enclosing extent of all the extents of esfs that use the cache.
-     * It is used in order to allocate enough memory for each cache storage.
-     * @tparam IterateDomainArguments iterate domain arguments type containing sequences of caches, esfs and extents
-     * @return map<cache,extent>
-     */
-    template < typename IterateDomainArguments >
-    struct extract_extents_for_caches {
-        typedef typename IterateDomainArguments::cache_sequence_t cache_sequence_t;
-        typedef typename IterateDomainArguments::extent_sizes_t extents_t;
-        typedef typename IterateDomainArguments::esf_sequence_t esf_sequence_t;
-
-        // insert the extent associated to a Cache into the map of <cache, extent>
-        template < typename ExtendsMap, typename Cache >
-        struct insert_extent_for_cache {
-            GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), "ERROR");
-
-            // update the entry associated to a cache within the map with a new extent.
-            // if the key exist we compute and insert the enclosing extent, otherwise we just
-            // insert the extent into a new entry of the map of <cache, extent>
-            template < typename ExtendsMap_, typename Extend >
-            struct update_extent_map {
-                GRIDTOOLS_STATIC_ASSERT((is_extent< Extend >::value), "ERROR");
-
-                typedef typename boost::mpl::if_< boost::mpl::has_key< ExtendsMap_, Cache >,
-                    typename boost::mpl::at< ExtendsMap_, Cache >::type,
-                    extent< 0, 0, 0, 0 > >::type default_extent_t;
-
-                typedef typename boost::mpl::insert< typename boost::mpl::erase_key< ExtendsMap_, Cache >::type,
-                    boost::mpl::pair< Cache, typename enclosing_extent< default_extent_t, Extend >::type > >::type type;
-            };
-
-            // given an Id within the sequence of esf and extents, extract the extent associated an inserted into
-            // the map if the cache is used by the esf with that Id.
-            template < typename ExtendsMap_, typename EsfIdx >
-            struct insert_extent_for_cache_esf {
-                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< extents_t >::value > EsfIdx::value), "ERROR");
-                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< esf_sequence_t >::value > EsfIdx::value), "ERROR");
-
-                typedef typename boost::mpl::at< extents_t, EsfIdx >::type extent_t;
-                typedef typename boost::mpl::at< esf_sequence_t, EsfIdx >::type esf_t;
-
-                typedef typename boost::mpl::if_<
-                    boost::mpl::contains< typename esf_t::args_t, typename cache_parameter< Cache >::type >,
-                    typename update_extent_map< ExtendsMap_, extent_t >::type,
-                    ExtendsMap_ >::type type;
-            };
-
-            // loop over all esfs and insert the extent associated to the cache into the map
-            typedef typename boost::mpl::fold< boost::mpl::range_c< int, 0, boost::mpl::size< esf_sequence_t >::value >,
-                ExtendsMap,
-                insert_extent_for_cache_esf< boost::mpl::_1, boost::mpl::_2 > >::type type;
-        };
-
-        typedef typename boost::mpl::fold< cache_sequence_t,
-            boost::mpl::map0<>,
-            insert_extent_for_cache< boost::mpl::_1, boost::mpl::_2 > >::type type;
     };
 
     /**

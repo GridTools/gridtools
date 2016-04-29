@@ -5,12 +5,12 @@
 #include <boost/mpl/has_key.hpp>
 #include "../level.hpp"
 
-#include "backend_traits_cuda.hpp"
 #include "../mss_functor.hpp"
 #include "../sfinae.hpp"
 #include "../../storage/meta_storage.hpp"
 #include "../tile.hpp"
 #include "common/generic_metafunctions/is_variadic_pack_of.hpp"
+#include "execute_kernel_functor_cuda.hpp"
 
 namespace gridtools {
 
@@ -35,24 +35,26 @@ namespace gridtools {
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
          * @tparam MssComponentsArray a meta array with the mss components of all MSS
-         * @tparam BackendId id of the backend
+         * @tparam BackendIds backend ids type
          */
-        template < typename MssComponentsArray, enumtype::platform BackendId >
+        template < typename MssComponentsArray, typename BackendIds, typename ReductionData >
         struct fused_mss_loop {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_meta_array_of< MssComponentsArray, is_mss_components >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), "Error");
+
             typedef boost::mpl::range_c< uint_t,
                 0,
                 boost::mpl::size< typename MssComponentsArray::elements >::type::value > iter_range;
 
             template < typename LocalDomainListArray, typename Grid >
-            static void run(LocalDomainListArray &local_domain_lists, const Grid &grid) {
+            static void run(LocalDomainListArray &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
 
-                typedef backend_traits_from_id< BackendId > backend_traits;
                 boost::mpl::for_each< iter_range >(
-                    mss_functor< MssComponentsArray, Grid, LocalDomainListArray, BackendId, enumtype::Block >(
-                        local_domain_lists, grid, 0, 0));
+                    mss_functor< MssComponentsArray, Grid, LocalDomainListArray, BackendIds, ReductionData >(
+                        local_domain_lists, grid, reduction_data, 0, 0));
             }
         };
 

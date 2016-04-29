@@ -24,9 +24,9 @@ struct functor1 {
 };
 
 #ifdef __CUDACC__
-  #define BACKEND backend<Cuda, Block >
+#define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
-  #define BACKEND backend<Host, Block >
+#define BACKEND backend< Host, GRIDBACKEND, Block >
 #endif
 
 typedef layout_map<2,1,0> layout_ijk_t;
@@ -45,13 +45,10 @@ TEST(mss_metafunctions, extract_mss_caches_and_esfs)
     typedef decltype(make_esf<functor1>(p_in(), p_buff())) esf1_t;
     typedef decltype(make_esf<functor1>(p_buff(), p_out())) esf2_t;
 
-    typedef cache<IJ, p_buff, local> cache1_t;
-    typedef cache<IJ, p_out, local> cache2_t;
-
     typedef decltype( make_mss // mss_descriptor
         (
             execute<forward>(),
-            define_caches(cache1_t() , cache2_t()),
+            define_caches(cache<IJ, local>(p_buff(), p_out())),
             esf1_t(), // esf_descriptor
             esf2_t() // esf_descriptor
         )
@@ -62,7 +59,7 @@ TEST(mss_metafunctions, extract_mss_caches_and_esfs)
 
 #ifndef __DISABLE_CACHING__
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal<
-            mss_t::cache_sequence_t, boost::mpl::vector2<cache1_t, cache2_t>
+            mss_t::cache_sequence_t, boost::mpl::vector2<detail::cache_impl<IJ, p_buff, local>, detail::cache_impl<IJ, p_out, local> >
         >::value), "ERROR\nLists do not match");
 #else
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::empty<mss_t::cache_sequence_t>::value), "ERROR\nList not empty");

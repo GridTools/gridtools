@@ -4,6 +4,7 @@
 
 namespace test_conditional_switches{
     using namespace gridtools;
+    using namespace enumtype;
 
 #define BACKEND_BLOCK
 

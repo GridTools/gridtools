@@ -1,6 +1,8 @@
 #pragma once
-#include "wrap_pointer.hpp"
 #include "base_storage_impl.hpp"
+#include "wrap_pointer.hpp"
+#include "../common/string_c.hpp"
+#include "../common/array.hpp"
 
 /**@file
    @brief Implementation of the \ref gridtools::base_storage "main storage class", used by all backends, for temporary
@@ -145,7 +147,7 @@ and possibly the method 'copy_data_to_gpu' which are used when cloning the class
         bool is_set;
         const char *m_name;
         array< pointer_type, field_dimensions > m_fields;
-        MetaData const &m_meta_data; // should possibly be a constexpr
+        MetaData const& m_meta_data;
 
       public:
         template < typename T, typename M, bool I, ushort_t F >
@@ -154,7 +156,7 @@ and possibly the method 'copy_data_to_gpu' which are used when cloning the class
         /**@brief the parallel storage calls the empty constructor to do lazy initialization*/
         base_storage(
             MetaData const &meta_data_, char const *s = "default uninitialized storage", bool do_allocate = true)
-            : is_set(false), m_name("default_storage"), m_meta_data(meta_data_) {
+            : is_set(false), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
             if (do_allocate)
                 allocate();
         }
@@ -168,7 +170,7 @@ and possibly the method 'copy_data_to_gpu' which are used when cloning the class
             value_type const &init // =float_type()
             ,
             char const *s = "default initialized storage")
-            : is_set(true), m_name(s), m_meta_data(meta_data_) {
+            : is_set(true), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
             allocate();
             initialize(init, 1);
         }
@@ -179,7 +181,7 @@ and possibly the method 'copy_data_to_gpu' which are used when cloning the class
         base_storage(MetaData const &meta_data_,
             value_type (*lambda)(uint_t const &, uint_t const &, uint_t const &),
             char const *s = "storage initialized with lambda")
-            : is_set(true), m_name(s), m_meta_data(meta_data_) {
+            : is_set(true), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
             allocate();
             initialize(lambda, 1);
         }
@@ -191,7 +193,7 @@ and possibly the method 'copy_data_to_gpu' which are used when cloning the class
            'managed outside' wrap_pointer. In this way the storage destructor will not free the pointer.*/
         template < typename FloatType >
         explicit base_storage(MetaData const &meta_data_, FloatType *ptr, char const *s = "externally managed storage")
-            : is_set(true), m_name(s), m_meta_data(meta_data_) {
+            : is_set(true), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
             m_fields[0] = pointer_type(ptr, m_meta_data.size(), true);
             if (FieldDimension > 1)
                 allocate(FieldDimension, 1);
@@ -199,6 +201,8 @@ and possibly the method 'copy_data_to_gpu' which are used when cloning the class
 
         /**@brief destructor: frees the pointers to the data fields which are not managed outside */
         virtual ~base_storage() {
+            if (m_name)
+		delete [] m_name;
             for (ushort_t i = 0; i < field_dimensions; ++i)
                 m_fields[i].free_it();
         }
@@ -215,7 +219,7 @@ and possibly the method 'copy_data_to_gpu' which are used when cloning the class
         template < typename T >
         __device__ base_storage(
             T const &other, typename boost::enable_if< typename is_storage< T >::type, int >::type * = 0)
-            : is_set(other.is_set), m_name(other.m_name), m_fields(other.m_fields), m_meta_data(other.m_meta_data) {}
+            : is_set(other.is_set), m_name(NULL), m_fields(other.m_fields), m_meta_data(other.m_meta_data) {}
 
         void allocate(ushort_t const &dims = FieldDimension, ushort_t const &offset = 0) {
             assert(dims > offset);
@@ -226,10 +230,12 @@ and possibly the method 'copy_data_to_gpu' which are used when cloning the class
         }
 
         /**
-           releasing the pointers to the data, and deliting them in case they need to be deleted
+           releasing the pointers to the data, and deleting them in case they need to be deleted
          */
         void release() {
-            for (ushort_t i = 0; i < field_dimensions; ++i)
+            if (m_name)
+		delete [] m_name;
+	    for (ushort_t i = 0; i < field_dimensions; ++i)
                 m_fields[i].free_it();
         }
 
@@ -275,8 +281,16 @@ and possibly the method 'copy_data_to_gpu' which are used when cloning the class
         }
 
         /**@brief sets the name of the current field*/
+        void set_name(char const *const &string) {
+            // delete old name and copy the given new name
+            if(m_name)
+		delete [] m_name;
+            m_name = malloc_and_copy(string);
+        }
+
+        /**@brief get the name of the current field*/
         GT_FUNCTION
-        void set_name(char const *const &string) { m_name = string; }
+        char const *const get_name() const { return m_name; }
 
         static void text() { std::cout << BOOST_CURRENT_FUNCTION << std::endl; }
 
@@ -310,7 +324,7 @@ and possibly the method 'copy_data_to_gpu' which are used when cloning the class
 
         /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
         template < typename... UInt >
-        __host__ value_type &operator()(UInt const &... dims) {
+        GT_FUNCTION value_type &operator()(UInt const &... dims) {
             assert(m_meta_data.index(dims...) < m_meta_data.size());
             assert(is_set);
             return (m_fields[0])[m_meta_data.index(dims...)];

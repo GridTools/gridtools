@@ -12,3 +12,5 @@
 #include "stencil-composition/icosahedral_grids/accessor_metafunctions.hpp"
 #include "stencil-composition/icosahedral_grids/accessor.hpp"
 #endif
+
+#include "global_accessor.hpp"

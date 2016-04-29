@@ -8,14 +8,23 @@ using namespace enumtype;
 
 namespace cs_test{
 
-    using backend_t = ::gridtools::backend<Host, Naive >;
+#ifdef __CUDACC__
+    using backend_t = ::gridtools::backend< Cuda, GRIDBACKEND, Block >;
+#else
+#ifdef BACKEND_BLOCK
+    using backend_t = ::gridtools::backend< Host, GRIDBACKEND, Block >;
+#else
+    using backend_t = ::gridtools::backend< Host, GRIDBACKEND, Naive >;
+#endif
+#endif
+
     using icosahedral_topology_t = ::gridtools::icosahedral_topology<backend_t>;
 
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
     struct test_functor {
-        typedef in_accessor<0, icosahedral_topology_t::cells, radius<1> > in;
+        typedef in_accessor< 0, icosahedral_topology_t::cells, extent< 1 > > in;
         typedef inout_accessor<1, icosahedral_topology_t::cells> out;
         typedef boost::mpl::vector2<in, out> arg_list;
 
@@ -72,16 +81,16 @@ TEST(test_copy_stencil, run) {
     array<uint_t,5> dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc -1, d2};
 
     gridtools::grid<axis, icosahedral_topology_t> grid_(icosahedral_grid, di, dj);
-    grid_.value_list[0] = 0;
-    grid_.value_list[1] = d3-1;
+    grid_.value_list[0] = halo_k;
+    grid_.value_list[1] = d3 - 1 - halo_k;
 
 #ifdef CXX11_ENABLED
     auto
 #else
 #ifdef __CUDACC__
-        gridtools::computation*
+    gridtools::stencil *
 #else
-            boost::shared_ptr<gridtools::computation>
+    boost::shared_ptr< gridtools::stencil >
 #endif
 #endif
             copy = gridtools::make_computation<backend_t >
@@ -98,8 +107,29 @@ TEST(test_copy_stencil, run) {
     copy->steady();
     copy->run();
 
-    verifier ver(1e-10);
+#ifdef __CUDACC__
+    out_cells.d2h_update();
+#endif
 
-    array<array<uint_t, 2>, 4> halos = {{ {halo_nc, halo_nc},{0,0},{halo_mc, halo_mc},{halo_k, halo_k} }};
-    EXPECT_TRUE(ver.verify(grid_, in_cells, out_cells, halos));
+    bool result = true;
+    for (int i = halo_nc; i < d1 - halo_nc; ++i) {
+        for (int c = 0; c < 2; ++c) {
+            for (int j = halo_mc; j < d2 - halo_mc; ++j) {
+                for (int k = 0; k < d3; ++k) {
+                    if (in_cells(i, c, j, k) != out_cells(i, c, j, k)) {
+                        std::cout << "ERRRRROR " << i << " " << c << " " << j << " " << k << " " << in_cells(i, c, j, k)
+                                  << " " << out_cells(i, c, j, k) << std::endl;
+                        result = false;
+                    }
+                }
+            }
+        }
+    }
+
+    // TODO recover verifier
+    //    verifier ver(1e-10);
+
+    //    array<array<uint_t, 2>, 4> halos = {{ {halo_nc, halo_nc},{0,0},{halo_mc, halo_mc},{halo_k, halo_k} }};
+    //    EXPECT_TRUE(ver.verify(grid_, in_cells, out_cells, halos));
+    EXPECT_TRUE(result);
 }
