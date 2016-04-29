@@ -27,5 +27,5 @@ typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 // is extracted from the AST analysis of the loop comprehensions
 // in Python, which use the 'kernel' function as a starting point
 //
-{{ functor_src }}
+{{ stage_src }}
 

@@ -28,7 +28,7 @@ class StencilCompiler ( ):
         #
         self.src_dir       = None
         self.cpp_file      = None
-        self.fun_hdr_file  = None
+        self.stg_hdr_file  = None
         #
         # a reference to the compiled dynamic library
         #
@@ -173,17 +173,17 @@ class StencilCompiler ( ):
             else:
                 extension = 'cpp'
             self.cpp_file     = '%s.%s'    % (stencil.name, extension)
-            self.fun_hdr_file = '%s_Functors.h' % stencil.name
+            self.stg_hdr_file = '%s_Stages.h' % stencil.name
             #
             # ... and populate them
             #
             logging.info ("Generating %s code in '%s'" % (stencil.backend.upper ( ),
                                                           self.src_dir))
-            fun_src, cpp_src, make_src = self.translate (stencil)
+            stg_src, cpp_src, make_src = self.translate (stencil)
 
-            with open (path.join (self.src_dir, self.fun_hdr_file), 'w') as fun_hdl:
-                functors = JinjaEnv.get_template ("functors.h")
-                fun_hdl.write (functors.render (functor_src=fun_src))
+            with open (path.join (self.src_dir, self.stg_hdr_file), 'w') as stg_hdl:
+                stages = JinjaEnv.get_template ("stages.h")
+                stg_hdl.write (stages.render (stage_src=stg_src))
             with open (path.join (self.src_dir, self.cpp_file), 'w') as cpp_hdl:
                 cpp_hdl.write (cpp_src)
             with open (path.join (self.src_dir, self.make_file), 'w') as make_hdl:
@@ -292,19 +292,19 @@ class StencilCompiler ( ):
     def translate (self, stencil):
         """
         Translates the received stencil to C++, using the gridtools interface,
-        returning a string tuple of rendered files (functors, cpp, make).-
+        returning a string tuple of rendered files (stages, cpp, make).-
         """
         from gridtools import JinjaEnv
 
-        functs               = dict ( )
-        functs[stencil.name] = list (stencil.stages)
+        stgs               = dict ( )
+        stgs[stencil.name] = list (stencil.stages)
 
         #
-        # render the source code for each of the functors
+        # render the source code for each of the stages
         #
-        functor_src = ""
-        for f in functs[stencil.name]:
-            functor_src += f.translate ( )
+        stage_src = ""
+        for f in stgs[stencil.name]:
+            stage_src += f.translate ( )
         #
         # instantiate each of the templates and render them
         #
@@ -317,23 +317,23 @@ class StencilCompiler ( ):
         #
         # indices of the independent stencils needed to generate C++ code blocks
         #
-        ind_funct_idx = list ( )
-        for i in range (1, len (functs[stencil.name])):
-            f = functs[stencil.name][i]
+        ind_stg_idx = list ( )
+        for i in range (1, len (stgs[stencil.name])):
+            f = stgs[stencil.name][i]
             if not f.independent:
-                if functs[stencil.name][i - 1].independent:
-                    ind_funct_idx.append (i - 1)
+                if stgs[stencil.name][i - 1].independent:
+                    ind_stg_idx.append (i - 1)
 
-        return (functor_src,
-                cpp.render (fun_hdr_file          = self.fun_hdr_file,
+        return (stage_src,
+                cpp.render (stg_hdr_file          = self.stg_hdr_file,
                             stencil_name          = stencil.name,
                             stencils              = [stencil],
                             scope                 = stencil.scope,
                             params                = params,
                             temps                 = temps,
                             params_temps          = params + temps,
-                            functors              = functs,
-                            independent_funct_idx = ind_funct_idx),
+                            stages                = stgs,
+                            independent_stage_idx = ind_stg_idx),
                 make.render (stencils = [s for s in self.stencils.values ( ) if s.backend in ['c++', 'cuda']],
                              compiler = self))
 
@@ -354,7 +354,7 @@ class StencilInspector (ast.NodeVisitor):
         #
         # stage definitions are kept here as they are discovered in the source
         #
-        self.functor_defs      = list ( )
+        self.stage_defs      = list ( )
 
 
     def _analyze_params (self, nodes):
@@ -439,7 +439,7 @@ class StencilInspector (ast.NodeVisitor):
             # initialize the state variables
             #
             self.inspected_stencil = stencil
-            self.functor_defs      = list ( )
+            self.stage_defs      = list ( )
             st                     = self.inspected_stencil
 
             if st.scope.py_src is None:
@@ -567,9 +567,9 @@ class StencilInspector (ast.NodeVisitor):
                     #
                     # look for its definition
                     #
-                    for fun_def in self.functor_defs:
-                        if fun_def.name == call.func.attr:
-                            for node in fun_def.body:
+                    for stg_def in self.stage_defs:
+                        if stg_def.name == call.func.attr:
+                            for node in stg_def.body:
                                 if isinstance (node, ast.For):
                                     stage = self.visit_For (node,
                                                             name_suffix=name_suffix)
@@ -699,4 +699,4 @@ class StencilInspector (ast.NodeVisitor):
         # other function definitions are saved for potential use later
         #
         else:
-            self.functor_defs.append (node)
+            self.stage_defs.append (node)

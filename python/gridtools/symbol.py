@@ -14,7 +14,7 @@ class Symbol (object):
     """
     KINDS = (
         #
-        # the 'param' kind indicates a stencil and/or functor data-field parameter
+        # the 'param' kind indicates a stencil and/or stage data-field parameter
         #
         'param',
         #
@@ -28,7 +28,7 @@ class Symbol (object):
         'alias',
         #
         # the 'const' kind indicates a variable that may POTENTIALLY be
-        # replaced by a value. This may happen by inlining them after using 
+        # replaced by a value. This may happen by inlining them after using
         # runtime resolution
         #
         'const')
@@ -52,9 +52,9 @@ class Symbol (object):
         # an access pattern defines the extent of data accessed during the
         # execution of a stencil stage; its structure is defined as follows:
         #
-        #   (minimum negative index accessed in _i_, 
-        #    maximum positive index accessed in _i_, 
-        #    minimum negative index accessed in _j_, 
+        #   (minimum negative index accessed in _i_,
+        #    maximum positive index accessed in _i_,
+        #    minimum negative index accessed in _j_,
         #    maximum positive index accessed in _j_)
         #
         self.access_pattern = None
@@ -64,7 +64,7 @@ class Symbol (object):
         #
         self.read_only      = True
 
-        
+
     def __eq__ (self, other):
         return self.__hash__ ( ) == other.__hash__ ( )
 
@@ -84,11 +84,11 @@ class Symbol (object):
         :param offset: the pattern is defined as (access offset in 'i',
                                                   access offset in 'j',
                                                   access offset in 'k')
-        :raise IndexError: if the access pattern 
+        :raise IndexError: if the access pattern
         :return:
         """
         try:
-            i, j, k = offset 
+            i, j, k = offset
 
             if self.access_pattern is None:
                 self.access_pattern = [0, 0, 0, 0]
@@ -129,7 +129,7 @@ class SymbolInspector (ast.NodeVisitor):
         self.symbols_found = set ( )
         self.visit (node)
         return self.symbols_found
-        
+
 
     def visit_Attribute (self, node):
         """
@@ -162,9 +162,9 @@ class Scope (object):
     def __init__ (self):
         #
         # the symbol table is kept as a dict, i.e.:
-        # 
+        #
         #       A = (k=symbol name, v=symbol object)
-        # 
+        #
         self.symbol_table = dict ( )
         #
         # a data-dependency graph
@@ -195,7 +195,7 @@ class Scope (object):
             known_symbol_name   name of the known symbol this alias refers to.-
         """
         if known_symbol_name is not None:
-            self.add_symbol (Symbol (name, 
+            self.add_symbol (Symbol (name,
                                      'alias',
                                      known_symbol_name))
             logging.debug ("Alias '%s' refers to '%s'" % (name,
@@ -270,7 +270,7 @@ class Scope (object):
 
 
     def add_parameter (self, name, value=None, read_only=True):
-        """ 
+        """
         Adds a parameter data field to this scope:
 
             name        the name of the parameter;
@@ -312,7 +312,7 @@ class Scope (object):
                 #
                 self.add_symbol (Symbol (name, 'temp', value))
             else:
-                raise TypeError ("Temporary data field '%s' should be a NumPy array not '%s'" % 
+                raise TypeError ("Temporary data field '%s' should be a NumPy array not '%s'" %
                                  (name, type (value)))
         else:
             raise ValueError ("Temporary data field '%s' cannot be None" % name)
@@ -340,7 +340,7 @@ class Scope (object):
             except AttributeError:
                 val = str (v.value)
 
-            logging.debug ("\t[%s]\t(%s)\t%s: %s" % (k, 
+            logging.debug ("\t[%s]\t(%s)\t%s: %s" % (k,
                                                      v.kind,
                                                      v.name,
                                                      val))
@@ -354,7 +354,7 @@ class Scope (object):
 
 
     def is_constant (self, name):
-        """ 
+        """
         Returns True if symbol with 'name' is a constant.-
         """
         return name in [t.name for t in self.get_constants ( )]
@@ -368,7 +368,7 @@ class Scope (object):
 
 
     def is_temporary (self, name):
-        """ 
+        """
         Returns True if symbol 'name' is a temporary data field.-
         """
         return name in [t.name for t in self.get_temporaries ( )]
@@ -422,10 +422,10 @@ class Scope (object):
 
 class StencilScope (Scope):
     """
-    Stencil symbols are organized into scopes that alter the visibility 
+    Stencil symbols are organized into scopes that alter the visibility
     of the variables defined in the stencil or any of its stages.
     Basically, if a symbol is defined at stencil level, the stencil itself and
-    all its stages can access it. If it is defined at stage level, it is 
+    all its stages can access it. If it is defined at stage level, it is
     accesible only within that stage.-
     """
     def __init__ (self):
@@ -446,7 +446,7 @@ class StencilScope (Scope):
 
     def _resolve_params (self, stencil, **kwargs):
         """
-        Attempts to aquire more information about the discovered parameters 
+        Attempts to aquire more information about the discovered parameters
         using runtime information from the user's stencil
         :param stencil: the user's stencil instance
         :return:
@@ -467,7 +467,7 @@ class StencilScope (Scope):
                     if stencil.domain is None:
                         stencil.domain = v.shape
                     elif stencil.domain != v.shape:
-                        logging.warning ("Dimensions of parameter '%s':%s do not match %s" % 
+                        logging.warning ("Dimensions of parameter '%s':%s do not match %s" %
                                         (k, v.shape, stencil.domain))
                 else:
                     logging.warning ("Parameter '%s' is not a NumPy array" % k)
@@ -515,7 +515,7 @@ class StencilScope (Scope):
         :return:
         """
         leaves              = []
-        new_stage_execution = nx.DiGraph ( ) 
+        new_stage_execution = nx.DiGraph ( )
         for stg in nx.topological_sort (self.stage_execution):
             new_stage_execution.add_node (stg)
             if stg.independent:
@@ -578,7 +578,7 @@ class StencilScope (Scope):
         :param kwargs:     the parameters passed to the stencil for execution
         :raise ValueError: if the last stage is independent, which is an invalid
                            stencil
-        :return:        
+        :return:
         """
         for s in self.get_all ( ):
             #
@@ -602,7 +602,7 @@ class StencilScope (Scope):
                         self.add_temporary (s.name,
                                             s.value)
                     else:
-                        self.add_constant (s.name, 
+                        self.add_constant (s.name,
                                            s.value)
         #
         # resolve the stencil parameters as scope symbols
@@ -610,14 +610,14 @@ class StencilScope (Scope):
         self._resolve_params (stencil,
                               **kwargs)
 
- 
+
     def update_ghost_cell (self):
         """
         Updates the ghost-cell access pattern of each stage of the stencil, the
         shape of which is based on the access patterns of their data fields
         :return:
         """
-        all_stgs = nx.topological_sort (self.stage_execution, 
+        all_stgs = nx.topological_sort (self.stage_execution,
                                         reverse=True)
         #
         # first, reset all ghost cells
