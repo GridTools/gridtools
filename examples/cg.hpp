@@ -19,6 +19,8 @@
 
 #include <boost/timer/timer.hpp>
 #include "cg.h"
+#include "CSRdouble.hpp"
+#include "ParDiSO.hpp"
 
 //time t is in ns, returns MFLOPS
 inline double MFLOPS(int numops, int X, int Y, int Z, int NT, int t) { return (double)numops*X*Y*Z*NT*1000/t; }
@@ -231,6 +233,11 @@ struct boundary_conditions {
 
 bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
+    CSRdouble* mat = new CSRdouble();
+    int pardiso_message_level = 1;
+    int pardiso_mtype = -2; // local block is symmetric indefinite
+    ParDiSO solver = ParDiSO(pardiso_mtype, pardiso_message_level, "/users/jkardos/gridtools/examples/params.pardiso");
+
     // initialize MPI
     gridtools::GCL_Init();
 
@@ -336,12 +343,17 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     size_t J = meta_.get_low_bound(1);
     size_t K = meta_.get_low_bound(2);
 
+    // Partitioning info
+    //std::cout << "I #" << PID << ": " << meta_.get_low_bound(0) << " - " << meta_.get_up_bound(0) << std::endl;
+    //std::cout << "J #" << PID << ": " << meta_.get_low_bound(1) << " - " << meta_.get_up_bound(1) << std::endl;
+
     // initialize the RHS vector domain
     for(uint_t i=0; i<metadata_.template dims<0>(); ++i)
         for(uint_t j=0; j<metadata_.template dims<1>(); ++j)
             for(uint_t k=0; k<metadata_.template dims<2>(); ++k)
             {
                 //b(i,j,k) = h2 * f(I+i, J+j, K+k); //TODO
+                x(i,j,k) = 10000*(I+i) +  100*(J+j) + K+k;
             }
 
     //--------------------------------------------------------------------------
@@ -433,7 +445,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                 execute<forward>(),
                 gridtools::make_esf<d3point7>(p_Ax_init(), p_x_init()), // A * x, where x_0 = 0
                 gridtools::make_esf<add_functor>(p_r_init(), p_b_init(), p_Ax_init(), p_alpha_init()), // r = b - Ax
-                gridtools::make_esf<copy_functor>(p_d_init(), p_r_init()) // d = r
+                gridtools::make_esf<copy_functor>(p_d_init(), p_r_init()) // d = r //TODO 
             )
         );
 
@@ -641,6 +653,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         lapse_time_run = lapse_time_run + time_run2.elapsed();
         CG_step2->finalize();
 
+        //TODO: apply preconditioning
+
         //compute Gram–Schmidt orthogonalization parameter beta
         stencil_beta_nom->ready();
         stencil_beta_nom->steady();
@@ -692,7 +706,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     if(gridtools::PID == 0){
         std::cout << std::endl << "TOTAL TIME: " << boost::timer::format(lapse_time);
         std::cout << "TIME SPENT IN RUN STAGE:" << boost::timer::format(lapse_time_run);
-        std::cout << "d3point7 MFLOPS: " << MFLOPS(10,d1,d2,d3,nt,lapse_time_d3point7.wall) << std::endl;
+        std::cout << "d3point7 MFLOPS: " << MFLOPS(10,d1,d2,d3,nt,lapse_time_d3point7.wall) << std::endl; //TODO: multiple processes??
         std::cout << "d3point7 MLUPs: " << MLUPS(d1,d2,d3,nt,lapse_time_d3point7.wall) << std::endl << std::endl;
     }
 
