@@ -233,11 +233,6 @@ struct boundary_conditions {
 
 bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
-    CSRdouble* mat = new CSRdouble();
-    int pardiso_message_level = 1;
-    int pardiso_mtype = -2; // local block is symmetric indefinite
-    ParDiSO solver = ParDiSO(pardiso_mtype, pardiso_message_level, "/users/jkardos/gridtools/examples/params.pardiso");
-
     // initialize MPI
     gridtools::GCL_Init();
 
@@ -418,6 +413,24 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
    typedef boost::mpl::vector<p_out,
                               p_a,
                               p_b> accessor_list_alpha;
+
+    //--------------------------------------------------------------------------
+    //Set up preconditioner and linear solver
+    int ni = metadata_.template dims<0>()-2;
+    int nj = metadata_.template dims<1>()-2;
+    int nk = metadata_.template dims<2>()-2;
+    std::cout << "Subdomain size " << ni << "x" << nj << "x" << nk << std::endl;
+    CSRdouble M = CSRdouble();
+    if(PID==0) M.makePreconditioner(ni,nj,nk); //TODO all processes
+
+    int pardiso_message_level = 1;
+    int pardiso_mtype = 11; // general matrix //TODO reduce symmetric and -2, maybe sth else??
+    int nrhs = 1;
+    ParDiSO solver = ParDiSO(pardiso_mtype, pardiso_message_level, "/users/jkardos/gridtools/examples/params.pardiso");
+
+    solver.init(M, nrhs);
+    solver.factorize(M);
+    //solver.solve(M, x, r, nrhs); //(M x = r)  
 
     /*
       Here we do lot of stuff

@@ -48,6 +48,7 @@ public:
     void  make ( int n, int m, int nzeros, int* prows, int* pcols, double* pdata );
     void  make (int n, int m, vector<vector<int> >& vvcols, vector<vector<double> >& vvdata);
     void  make2 ( int n, int m, int nzeros, int* prows, int* pcols, double* pdata );
+    void  makePreconditioner(int ni, int nj, int nk);
     void  transposeIt ( int block_size );
 
     void  addBCSR ( CSRdouble& B );

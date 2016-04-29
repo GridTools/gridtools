@@ -123,6 +123,98 @@ void CSRdouble::allocate(int n, int m, int nzeros)
     }
 }
 
+void CSRdouble::makePreconditioner(int ni, int nj, int nk)
+{
+    //size of the preconditioner matrix
+    int n = ni*nj*nk;
+
+    //nonzeros in local preconditioner
+    int nnz = ni*nj*(nk-1)*2 + (ni*nj + 4*2 + (ni-2)*3*2 + (nj-2)*3*2 + (ni-2)*(nj-2)*4)*nk;
+
+    allocate(n, n, nnz);
+
+    cout << "Construction of M with size " << ni << "x" << nj << "x" << nk << " with " << nnz << " non-zeros" << endl;
+
+    auto index = [ni,nj] (int i, int j, int k) { return k*nj*ni + j*ni + i; };
+    pRows[0] = 0;
+    int nnz_counter = 0;
+
+    for (int k = 0; k < nk; k++)
+        for (int j = 0; j < nj; j++)
+            for (int i = 0; i < ni; i++)
+            {
+                int nelem = 0; //number of elements in the row of matrix
+
+                //down neighbor
+                if (k-1 >= 0)
+                {
+                    pCols[nnz_counter] = index(i,j,k-1);
+                    pData[nnz_counter] = -1;
+                    nelem++;
+                    nnz_counter++;   
+                };
+
+                //south neighbor
+                if (j-1 >= 0)
+                {
+                    pCols[nnz_counter] = index(i,j-1,k);
+                    pData[nnz_counter] = -1;
+                    nelem++;
+                    nnz_counter++;   
+                };
+
+                //west neighbor
+                if (i-1 >= 0)
+                {
+                    pCols[nnz_counter] = index(i-1,j,k);
+                    pData[nnz_counter] = -1;
+                    nelem++;
+                    nnz_counter++;   
+                };
+
+                //diagonal element
+                pCols[nnz_counter] = index(i,j,k);
+                pData[nnz_counter] = 6;
+                nelem++;
+                nnz_counter++;
+
+                //east neighbor
+                if (i+1 < ni)
+                {
+                    pCols[nnz_counter] = index(i+1,j,k);
+                    pData[nnz_counter] = -1;
+                    nelem++;
+                    nnz_counter++;   
+                };
+
+                //north neighbor
+                if (j+1 < nj)
+                {
+                    pCols[nnz_counter] = index(i,j+1,k);
+                    pData[nnz_counter] = -1;
+                    nelem++;
+                    nnz_counter++;   
+                };
+
+                //up neighbor
+                if (k+1 < nk)
+                {
+                    pCols[nnz_counter] = index(i,j,k+1);
+                    pData[nnz_counter] = -1;
+                    nelem++;
+                    nnz_counter++;   
+                };
+
+
+                //mark position where next CSR row starts
+                pRows[index(i,j,k)+1] = pRows[index(i,j,k)] + nelem;
+            }
+
+    assert(nnz_counter == nnz);
+
+    writeToFile("M.csr");
+}
+
 void CSRdouble::make(int n, int m, int nzeros, int* prows,
                      int* pcols, double* pdata)
 {
