@@ -15,22 +15,31 @@ namespace gridtools {
             typedef typename ::gridtools::variadic_typedef< Args... >::template get_elem< Idx - 1 >::type type;
         };
 
-        template < typename First, typename ... Args >
+        template < typename First, typename... Args >
         struct get_elem< 0, First, Args... > {
             typedef First type;
         };
     }
 
+    /**
+     * metafunction is to simply "store" a variadic pack. A typical use case is when we need to typedef a variadic pack
+     * template<typename ... Args>
+     * struct a { typedef variadic_typedef<Args...> type; }
+     */
     template < typename First, typename... Args >
     struct variadic_typedef {
-        // this metafunction is simply used as a mean to store a variadic pack
 
+        // metafunction that returns a type of a variadic pack by index
         template < ushort_t Idx >
         struct get_elem {
-            typedef typename impl_::template get_elem<Idx, First, Args...>::type type;
+            typedef typename impl_::template get_elem< Idx, First, Args... >::type type;
         };
     };
 
+    /**
+     * helper functor that returns a particular argument of a variadic pack by index
+     * @tparam Idx index of the variadic pack argument to be returned
+     */
     template < int Idx >
     struct get_from_variadic_pack {
         template < typename First, typename... Accessors >
@@ -48,5 +57,4 @@ namespace gridtools {
             return first;
         }
     };
-
 }
