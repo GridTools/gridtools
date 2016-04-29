@@ -153,10 +153,10 @@ class Stencil (object):
             #
             i_dim, j_dim, k_dim = data_field.shape
 
-            start_i = 0     + self.halo[1] + ghost_cell[0]
-            end_i   = i_dim - self.halo[0] + ghost_cell[1]
-            start_j = 0     + self.halo[3] + ghost_cell[2]
-            end_j   = j_dim - self.halo[2] + ghost_cell[3]
+            start_i = 0     + self.halo[0] + ghost_cell[0]
+            end_i   = i_dim - self.halo[1] + ghost_cell[1]
+            start_j = 0     + self.halo[2] + ghost_cell[2]
+            end_j   = j_dim - self.halo[3] + ghost_cell[3]
 
             #
             # calculate 'k' iteration boundaries based 'k_direction'
@@ -241,25 +241,31 @@ class Stencil (object):
         #
         # analyze the stencil code
         #
-        Stencil.compiler.analyze (self, **kwargs)
-        #
-        # check the minimum halo has been given
-        #
-        for idx in range (len (self.scope.minimum_halo)):
-            if self.scope.minimum_halo[idx] - self.halo[idx] > 0:
-                raise ValueError ("The halo should be at least %s" %
-                                  self.scope.minimum_halo)
-        #
-        # run the selected backend version
-        #
-        logging.info ("Executing '%s' in %s mode ..." % (self.name,
-                                                         self.backend.upper ( )))
-        if self.backend == 'c++' or self.backend == 'cuda':
-            Stencil.compiler.run_native (self, **kwargs)
-        elif self.backend == 'python':
-            self.kernel (**kwargs)
+        try:
+            Stencil.compiler.analyze (self, **kwargs)
+        except Exception as e:
+            logging.error("Error while analyzing code for stencil '%s'" % self.name)
+            Stencil.compiler.unregister (self)
+            raise e
         else:
-            raise ValueError ("Unknown backend '%s'" % self.backend)
+            #
+            # check the minimum halo has been given
+            #
+            for idx in range (len (self.scope.minimum_halo)):
+                if self.scope.minimum_halo[idx] - self.halo[idx] > 0:
+                    raise ValueError ("The halo should be at least %s" %
+                                      self.scope.minimum_halo)
+            #
+            # run the selected backend version
+            #
+            logging.info ("Executing '%s' in %s mode ..." % (self.name,
+                                                             self.backend.upper ( )))
+            if self.backend == 'c++' or self.backend == 'cuda':
+                Stencil.compiler.run_native (self, **kwargs)
+            elif self.backend == 'python':
+                self.kernel (**kwargs)
+            else:
+                raise ValueError ("Unknown backend '%s'" % self.backend)
 
 
     def set_halo (self, halo=(0,0,0,0)):

@@ -1,5 +1,26 @@
 #!/bin/bash
 
+DISABLE_GPU=false
+
+#
+# Parse the command line arguments looking for recognized options
+#
+for i in "$@"; do
+  case $i in
+    --no-gpu)   #Do not run CUDA tests
+    DISABLE_GPU=true
+    shift
+    ;;
+    *)          #Leave all other arguments as they are
+
+    ;;
+  esac
+done
+
+#
+# After parsing the options, the shifts should have left just 2 optional arguments
+# that can be parsed positionally
+#
 CMAKE_SOURCE_DIR=$1
 PYTHON_INSTALL_PREFIX=$2
 
@@ -28,8 +49,25 @@ if [ -n "${CMAKE_SOURCE_DIR}" ] && [ -n "${PYTHON_INSTALL_PREFIX}" ]; then
     fi
 fi
 
+#
+# Exclude GPU tests, if requested, by creating a string with the appropriate
+# condition to be added as an option when launching Nose
+#
+NOSE_NO_GPU=""
+if [ "$DISABLE_GPU" == true ] ; then
+  NOSE_NO_GPU="-A 'lang != \"cuda\"'"
+  echo "Excluding GPU tests"
+fi
+
+#
+# Run the tests
+# The command is created as a string and executed using "eval" to avoid some
+# obscure string conversion mechanisms that cause it to fail otherwise
+#
 echo "Running Python tests ..."
-nosetests -v -s tests.test_stencils tests.test_ifstatement tests.test_sw
+NOSE_CMD="nosetests -v -s ${NOSE_NO_GPU} tests.test_stencils tests.test_ifstatement tests.test_sw"
+eval "$NOSE_CMD"
+
 TEST_STATUS=$?
 if [ ${TEST_STATUS} == 0 ]; then
     echo "All Python tests OK"

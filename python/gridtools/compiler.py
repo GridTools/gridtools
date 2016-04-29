@@ -54,7 +54,7 @@ class StencilCompiler ( ):
         :param stencil: the stencil object to look up
         :returns:       True if the stencil has been registered; False otherwise
         """
-        return id(stencil) in self.stencils
+        return self.is_registered (stencil)
 
 
     def _initialize (self):
@@ -122,7 +122,7 @@ class StencilCompiler ( ):
         """
         Compiles the translated code to a shared library, ready to be used.-
         """
-        from os                        import path, getcwd, chdir
+        from os                        import getcwd, chdir
         from ctypes                    import CDLL
         from subprocess                import check_call
         from numpy.distutils.misc_util import get_shared_lib_extension
@@ -156,7 +156,7 @@ class StencilCompiler ( ):
         :param stencil: stencil object for which the code whould be generated
         :return:
         """
-        from os        import write, path, makedirs
+        from os        import path, makedirs
         from gridtools import JinjaEnv
 
         try:
@@ -235,7 +235,7 @@ class StencilCompiler ( ):
             #
             # ... and add it to the registry if it is not there yet
             #
-            if id(stencil) not in self.stencils.keys ( ):
+            if stencil not in self:
                 #
                 # a unique name for this stencil object
                 #
@@ -336,6 +336,21 @@ class StencilCompiler ( ):
                             independent_stage_idx = ind_stg_idx),
                 make.render (stencils = [s for s in self.stencils.values ( ) if s.backend in ['c++', 'cuda']],
                              compiler = self))
+
+    def unregister (self, stencil):
+        """
+        Removes registration of the received Stencil object from this compiler
+        :param stencil:   the stencil object to unregister
+        """
+        if self.is_registered (stencil):
+            #
+            # Remove this stencil from the compiler registry
+            #
+            del self.stencils[id(stencil)]
+            logging.debug ("Stencil '%s' unregistered from the Compiler" % stencil.name)
+        else:
+            logging.warning("Trying to unregister Stencil '%s' that is not \
+                             registered with the Compiler")
 
 
 
@@ -462,9 +477,9 @@ class StencilInspector (ast.NodeVisitor):
                 # the user is running from some weird interactive session
                 #
                 raise RuntimeError ("Source code not available.\nSave your stencil class(es) to a file and try again.")
-        except:
+        except Exception as e:
             self.inspected_stencil = None
-            raise
+            raise e
         else:
             self.inspected_stencil = None
 
