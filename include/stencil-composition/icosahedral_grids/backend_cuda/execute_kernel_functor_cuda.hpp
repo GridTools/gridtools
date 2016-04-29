@@ -1,4 +1,5 @@
 #pragma once
+#include "../../common/generic_metafunctions/transform_metadata.hpp"
 #include "../../iteration_policy.hpp"
 #include "../../backend_traits_fwd.hpp"
 #include "stencil-composition/iterate_domain.hpp"
@@ -284,6 +285,11 @@ namespace gridtools {
 
                 // re-create the run functor arguments, replacing the processing elements block size
                 // with the corresponding, recently computed, block size
+#ifdef CXX11_ENABLED
+                typedef typename transform_meta_data< RunFunctorArguments,
+                    typename RunFunctorArguments::processing_elements_block_size_t,
+                    cuda_block_size_t >::type run_functor_arguments_cuda_t;
+#else
                 typedef run_functor_arguments< typename RunFunctorArguments::backend_ids_t,
                     cuda_block_size_t,
                     typename RunFunctorArguments::physical_domain_block_size_t,
@@ -298,8 +304,10 @@ namespace gridtools {
                     typename RunFunctorArguments::async_esf_map_t,
                     typename RunFunctorArguments::grid_t,
                     typename RunFunctorArguments::execution_type_t,
-                    RunFunctorArguments::s_is_reduction,
-                    typename RunFunctorArguments::reduction_data_t > run_functor_arguments_cuda_t;
+                    typename RunFunctorArguments::is_reduction_t,
+                    typename RunFunctorArguments::reduction_data_t,
+                    typename RunFunctorArguments::color_t> run_functor_arguments_cuda_t;
+#endif
 
 #ifdef VERBOSE
                 printf("ntx = %d, nty = %d, ntz = %d\n", ntx, nty, ntz);

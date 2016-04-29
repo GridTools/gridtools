@@ -31,7 +31,7 @@ namespace gridtools {
         typename ProcessingElementsBlockSize,
         typename PhysicalDomainBlockSize,
         typename Grid,
-        bool IsReduction,
+        typename IsReduction,
         typename FunctorReturnType >
     struct iterate_domain_arguments {
         GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Internal Error: wrong type");
@@ -52,8 +52,8 @@ namespace gridtools {
         typedef ProcessingElementsBlockSize processing_elements_block_size_t;
         typedef PhysicalDomainBlockSize physical_domain_block_size_t;
         typedef Grid grid_t;
-        static const bool s_is_reduction = IsReduction;
-        typedef static_bool< IsReduction > is_reduction_t;
+        static const bool s_is_reduction = IsReduction::value;
+        typedef IsReduction is_reduction_t;
         typedef FunctorReturnType functor_return_type_t;
     };
 
@@ -69,7 +69,7 @@ namespace gridtools {
         typename ProcessingElementsBlockSize,
         typename PhysicalDomainBlockSize,
         typename Grid,
-        bool IsReduction,
+        typename IsReduction,
         typename FunctorReturnType >
     struct is_iterate_domain_arguments< iterate_domain_arguments< BackendIds,
         LocalDomain,
@@ -105,9 +105,11 @@ namespace gridtools {
                                    // "make_independent" construct
         typename Grid,             // the grid
         typename ExecutionEngine,  // the execution engine
-        bool IsReduction,          // boolean stating if the operation to be applied at mss is a reduction
-        typename ReductionData     // return type of functors of a mss: return type of reduction operations,
+        typename IsReduction,          // boolean stating if the operation to be applied at mss is a reduction
+        typename ReductionData,    // return type of functors of a mss: return type of reduction operations,
                                    //        otherwise void
+        typename Color             // current color execution (not used for rectangular grids, or grids that dont have
+                                   // concept of a color
         >
     struct run_functor_arguments {
         GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Internal Error: invalid type");
@@ -119,6 +121,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(
             (is_sequence_of< EsfSequence, is_esf_descriptor >::value), "Internal Error: invalid type");
         GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), "Internal Error: invalid type");
+        GRIDTOOLS_STATIC_ASSERT((is_color_type<Color>::value), "Internal Error: invalid type");
 
         typedef BackendIds backend_ids_t;
         typedef ProcessingElementsBlockSize processing_elements_block_size_t;
@@ -150,9 +153,10 @@ namespace gridtools {
         typedef Grid grid_t;
         typedef ExecutionEngine execution_type_t;
         static const enumtype::strategy s_strategy_id = backend_ids_t::s_strategy_id;
-        static const bool s_is_reduction = IsReduction;
-        typedef static_bool< IsReduction > is_reduction_t;
+        static const bool s_is_reduction = IsReduction::value;
+        typedef IsReduction is_reduction_t;
         typedef ReductionData reduction_data_t;
+        typedef Color color_t;
     };
 
     template < typename T >
@@ -172,8 +176,9 @@ namespace gridtools {
         typename IsIndependentSequence,
         typename Grid,
         typename ExecutionEngine,
-        bool IsReduction,
-        typename ReductionData >
+        typename IsReduction,
+        typename ReductionData,
+        typename Color>
     struct is_run_functor_arguments< run_functor_arguments< BackendIds,
         ProcessingElementsBlockSize,
         PhysicalDomainBlockSize,
@@ -189,7 +194,8 @@ namespace gridtools {
         Grid,
         ExecutionEngine,
         IsReduction,
-        ReductionData > > : boost::mpl::true_ {};
+        ReductionData,
+        Color> > : boost::mpl::true_ {};
 
     /**
      * @brief type that contains main metadata required to execute an ESF functor. This type will be passed to
