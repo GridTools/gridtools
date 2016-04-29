@@ -238,6 +238,32 @@ namespace gridtools {
             boost::mpl::insert< boost::mpl::_1, arg_index< boost::mpl::_2 > > >::type type;
     };
 
+    /*
+      Given an array of pairs (placeholder, extent) checks if all
+      extents are the same and equal to the extent passed in
+     */
+    template <typename VectorOfPairs, typename Extent>
+    struct check_all_extents_are {
+        template <typename Pair, typename Status, typename Ext>
+        struct _check {
+            typedef typename Pair::second extent;
+
+            typedef typename boost::mpl::and_<
+                Status,
+                boost::is_same<extent, Ext>
+                >::type type1;
+
+            typedef boost::integral_constant<bool, type1::value> type;
+        };
+
+        typedef typename boost::mpl::fold<
+            VectorOfPairs,
+            boost::true_type,
+            _check<boost::mpl::_2, boost::mpl::_1, Extent>
+            >::type type;
+    };
+
+
     template < typename T >
     struct is_esf_descriptor< independent_esf< T > > : boost::mpl::true_ {};
 
