@@ -48,3 +48,22 @@ unit_tests/cmake_install.cmake
 !mainpage.dox
 !Vagrant_bootstrap.sh
 !Vagrantfile
+
+# LaTeX temporary files
+*.aux
+*.log
+*.toc
+*.fls
+*-eps-converted-to.pdf
+
+# Latexmk
+*.fdb_latexmk
+
+# SyncTeX
+*.synctex.gz
+
+# LaTeX Beamer
+*.snm
+*.vrb
+*.nav
+*.out
