@@ -454,6 +454,7 @@ class StencilInspector (ast.NodeVisitor):
         #
         # then the kernel, which lies inside the kernel_wrapper
         #
+        stencil_kernel = None
         for (name,fun) in inspect.getmembers (self.inspected_stencil,
                                               predicate=inspect.ismethod):
 #            print(name,fun, hasattr(fun,'__kernel_wrapper__'))
@@ -465,6 +466,16 @@ class StencilInspector (ast.NodeVisitor):
                 # the decorator
                 #
                 if hasattr(fun, '__kernel_wrapper__'):
+                    if stencil_kernel is None:
+                        stencil_kernel = fun
+                    else:
+                        #
+                        # There can be only one stencil kernel
+                        #
+                        raise AttributeError ("Multiple kernels detected for\
+                                              stencil %s. Please define only a\
+                                              single kernel."
+                                              % self.inspected_stencil.__class__)
                     #
                     # Since the def_kernel decorator uses functools' @wraps, we
                     # know that the kernel can be found inside the __wrapped__
@@ -485,6 +496,15 @@ class StencilInspector (ast.NodeVisitor):
                 except Exception:
                     raise RuntimeError ("Could not extract source code from '%s'"
                                         % self.inspected_stencil.__class__)
+        #
+        # Set the kernel function to be used by the stencil's run() method
+        #
+        if stencil_kernel is not None:
+            self.inspected_stencil._kernel = stencil_kernel
+        else:
+            raise AttributeError ("No kernel detected for stencil %s! Please \
+                                  define a stencil entry point function."
+                                  % self.__class__)
         return src
 
 

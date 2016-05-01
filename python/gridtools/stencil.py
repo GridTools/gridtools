@@ -129,6 +129,14 @@ class Stencil (object):
         return self.name
 
 
+    def _kernel (self, *args, **kwargs):
+        """
+        This function is the entry point of the stencil and should be provided
+        by the user through the @def_kernel decorator.-
+        """
+        raise NotImplementedError ( )
+
+
     def _plot_graph (self, G):
         """
         Renders graph 'G' using 'matplotlib'.-
@@ -220,14 +228,6 @@ class Stencil (object):
                         yield InteriorPoint ((i, j, k))
 
 
-    def kernel (self, *args, **kwargs):
-        """
-        This function is the entry point of the stencil and
-        should be implemented by the user.-
-        """
-        raise NotImplementedError ( )
-
-
     def plot_3d (self, Z):
         """
         Plots the Z field in 3D, returning a Matplotlib's Line3DCollection.-
@@ -303,7 +303,7 @@ class Stencil (object):
             if self.backend == 'c++' or self.backend == 'cuda':
                 Stencil.compiler.run_native (self, **kwargs)
             elif self.backend == 'python':
-                self.kernel (**kwargs)
+                self._kernel (**kwargs)
             else:
                 raise ValueError ("Unknown backend '%s'" % self.backend)
 

@@ -81,6 +81,13 @@ class CopyTest (AccessPatternDetectionTest):
         self.stencil.run (**kwargs)
 
 
+    def _call_kernel (self):
+        kwargs = dict ( )
+        for p in self.params:
+            kwargs[p] = getattr (self, p)
+        self.stencil._kernel (**kwargs)
+
+
     def setUp (self):
         super ( ).setUp ( )
 
@@ -321,10 +328,53 @@ class CopyTest (AccessPatternDetectionTest):
         self.test_k_directions (backend='cuda')
 
 
-    def test_direct_kernel_call (self):
+    def test_user_kernel_call (self):
         with self.assertRaises (RuntimeError):
-            print('Kernel name:',self.stencil.kernel.__name__)
             self.stencil.kernel(self.out_cpy, self.in_cpy)
+
+
+    def test_internal_kernel_noinit_call (self):
+        with self.assertRaises (NotImplementedError):
+            self._call_kernel ( )
+
+
+    def test_internal_kernel_init_call (self):
+        self.stencil.backend = 'python'
+        self._run ( )
+        with self.assertRaises (RuntimeError):
+            self._call_kernel ( )
+
+
+
+class AnyKernelName (MultiStageStencil):
+    """
+    Imitates the CopyStencil using a different kernel name
+    """
+    @def_kernel
+    def entry_point (self, out_cpy, in_cpy):
+        """
+        This stencil comprises a single stage.-
+        """
+        #
+        # iterate over the points, excluding halo ones
+        #
+        for p in self.get_interior_points (out_cpy):
+              out_cpy[p] = in_cpy[p]
+
+
+
+class AnyKernelNameTest (CopyTest):
+    """
+    Tests that entry point function can have any name
+    """
+    def setUp (self):
+        super ( ).setUp ( )
+        self.stencil = AnyKernelName ( )
+
+
+    def test_user_kernel_call (self):
+        with self.assertRaises (RuntimeError):
+            self.stencil.entry_point(self.out_cpy, self.in_cpy)
 
 
 
