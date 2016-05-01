@@ -34,4 +34,11 @@ namespace gridtools {
             typename unstructured_grid::grid_topology_t::edges >(array< uint_t, 4 > const &coords) {
         return m_cell_to_edges.at(coords);
     }
+
+    template <>
+    std::list< array< uint_t, 4 > > const &
+    unstructured_grid::neighbours_of< typename unstructured_grid::grid_topology_t::vertexes,
+            typename unstructured_grid::grid_topology_t::edges >(array< uint_t, 4 > const &coords) {
+        return m_vertex_to_edges.at(coords);
+    }
 }
