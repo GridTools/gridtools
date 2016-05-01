@@ -5,7 +5,7 @@ import numpy as np
 
 from nose.plugins.attrib import attr
 
-from gridtools.stencil  import MultiStageStencil
+from gridtools.stencil import MultiStageStencil, def_kernel
 
 
 
@@ -57,6 +57,7 @@ class Copy (MultiStageStencil):
     """
     Definition of a simple copy stencil, as in 'examples/copy_stencil.h'.-
     """
+    @def_kernel
     def kernel (self, out_cpy, in_cpy):
         """
         This stencil comprises a single stage.-
@@ -318,6 +319,12 @@ class CopyTest (AccessPatternDetectionTest):
     @attr(lang='cuda')
     def test_k_directions_cuda (self):
         self.test_k_directions (backend='cuda')
+
+
+    def test_direct_kernel_call (self):
+        with self.assertRaises (RuntimeError):
+            print('Kernel name:',self.stencil.kernel.__name__)
+            self.stencil.kernel(self.out_cpy, self.in_cpy)
 
 
 

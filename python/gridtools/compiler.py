@@ -390,6 +390,41 @@ class StencilInspector (ast.NodeVisitor):
                                                             read_only=read_only)
 
 
+    def _check_kernel_decorator (self, node):
+        """
+        Checks if the given AST node has been decorated with the
+        def_kernel decorator, which identifies it as the stencil entry point
+        :param node: The AST node to be checked
+        :return:     True if the node represents a function definition decorated
+                     as the kernel, False otherwise
+        """
+        #
+        # Only FunctionDef nodes have decorator_lists, and we only want non-empty
+        # lists
+        #
+        if not isinstance(node, ast.FunctionDef) or not node.decorator_list:
+            return False
+
+        #
+        # Create an equivalent of the node we're looking for
+        #
+#        kernel_dec = ast.Attribute(value=ast.Name(id='MultiStageStencil', ctx=ast.Load()),
+#                                    attr='def_kernel', ctx=ast.Load())
+#        print(ast.dump(node))
+#        print(ast.dump(node.decorator_list[0]))
+#        print(ast.dump(kernel_dec))
+
+        #
+        # The decorator must be a Name AST node, with identifier 'def_kernel'
+        #
+        return any(isinstance(x, ast.Name) and x.id=='def_kernel' for x in node.decorator_list)
+
+        #
+        # Craft a list of only attribute decorators
+        #
+#        attr_list
+
+
     def _extract_source (self):
         """
         Extracts the source code from the currently inspected stencil
@@ -417,20 +452,36 @@ class StencilInspector (ast.NodeVisitor):
                     raise RuntimeError ("Could not extract source code from '%s'"
                                         % self.inspected_stencil.__class__)
         #
-        # then the kernel
+        # then the kernel, which lies inside the kernel_wrapper
         #
         for (name,fun) in inspect.getmembers (self.inspected_stencil,
                                               predicate=inspect.ismethod):
+#            print(name,fun, hasattr(fun,'__kernel_wrapper__'))
+#            if name == 'kernel':
+#                print(inspect.getsource(fun))
             try:
-                if name == 'kernel':
-                    src += inspect.getsource (fun)
+                #
+                # To identify the kernel wrapper, we check the attribute set by
+                # the decorator
+                #
+                if hasattr(fun, '__kernel_wrapper__'):
+                    #
+                    # Since the def_kernel decorator uses functools' @wraps, we
+                    # know that the kernel can be found inside the __wrapped__
+                    # attribute of the wrapper.
+                    # Another way could be to use inspect.unwrap(fun) to directly
+                    # get the kernel function object.
+                    #
+#                    dir(fun)
+#                    print(fun.__name__)
+                    src += inspect.getsource (fun.__wrapped__)
             except OSError:
                 try:
                     #
                     # is this maybe a notebook session?
                     #
                     from IPython.code import oinspect
-                    src += oinspect.getsource (fun)
+                    src += oinspect.getsource (fun.__wrapped__)
                 except Exception:
                     raise RuntimeError ("Could not extract source code from '%s'"
                                         % self.inspected_stencil.__class__)
@@ -691,17 +742,21 @@ class StencilInspector (ast.NodeVisitor):
             for n in node.body:
                 self.visit (n)
         #
-        # the 'kernel' function is the starting point of the stencil
+        # The kernel function is the starting point of the stencil.
+        # We can identify its AST Node by checking its decorators
         #
-        elif node.name == 'kernel':
-            logging.debug ("Entry function 'kernel' found at %d" % node.lineno)
+        elif self._check_kernel_decorator (node):
+#        elif node.name == 'kernel':
+#            print(ast.dump(node))
+#            kernel_node = node.returns
+            logging.debug ("Entry function '%s' found at line %d" % (node.name, node.lineno))
             #
             # this function should return 'None'
             #
             if node.returns is not None:
-                raise ValueError ("The 'kernel' function should return 'None'")
+                raise ValueError ("The kernel function should return 'None'")
             #
-            # the parameters of the 'kernel' function are the stencil
+            # the parameters of the kernel function are the stencil
             # arguments in the generated code
             #
             self._analyze_params (node.args.args)

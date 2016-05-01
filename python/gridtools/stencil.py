@@ -1,13 +1,53 @@
 # -*- coding: utf-8 -*-
 import logging
+#import inspect
 
 import numpy as np
 import networkx as nx
+
+from functools import wraps
 
 from gridtools.symbol   import StencilScope
 from gridtools.stage  import Stage
 from gridtools.compiler import StencilCompiler
 
+from gridtools.utils import Utilities
+
+
+
+def def_kernel (kernel_func):
+    """
+    Decorator to define a given member as the stencil entry point (aka kernel).
+    The decorator embeds a runtime check in the kernel to verify it is called
+    from the run() function of the stencil.
+    """
+    #
+    # The wraps decorator is useful to correctly set the __wrapped__ attribute
+    # of the user-defined entry point, so that when the stencil is processed
+    # by the StencilInspector, the kernel information can be extracted easily
+    #
+    @wraps (kernel_func)
+    def kernel_wrapper (*args, **kwargs):
+        #
+        # Use
+        #
+#        print('Arguments:',args)
+#        print(dir(args[0]))
+#        print('Self name:', args[0].__class__)
+#        print('kwargs',kwargs)
+#        print('Kernel caller:',Utilities.caller_name())
+#        expected_caller = args[0].__class__
+#        print('Expected caller:', expected_caller)
+#        if Utilities.caller_name() != expected_caller:
+        if not Utilities.check_kernel_caller (args[0]):
+            raise RuntimeError("Calling kernel function from outside run() function. \
+                                Please use run() to execute the stencil.")
+#        print("Calling function", kernel_func.__name__)
+        return kernel_func (*args, **kwargs)
+
+    setattr (kernel_wrapper, '__kernel_wrapper__', True)
+
+    return kernel_wrapper
 
 
 
