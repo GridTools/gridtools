@@ -4,7 +4,7 @@ file(GLOB_RECURSE INC_ALL "../../include/common/generic_metafunctions/[a-z]*.hpp
 
 set(GENERICMETA_UNITTEST_SOURCES test_is_there_in_sequence_if.cpp test_is_not_same.cpp test_apply_to_sequence.cpp ${INC_ALL})
 if ( ENABLE_CXX11 )
-    set(GENERICMETA_UNITTEST_SOURCES ${GENERICMETA_UNITTEST_SOURCES} test_integer_sequence.cpp variadic_typedef_test.cpp)
+#    set(GENERICMETA_UNITTEST_SOURCES ${GENERICMETA_UNITTEST_SOURCES} test_integer_sequence.cpp variadic_typedef_test.cpp)
 endif( ENABLE_CXX11 )
 
 add_executable(generic_metafunctions ${GENERICMETA_UNITTEST_SOURCES})
