@@ -282,10 +282,12 @@ class Stencil (object):
         # analyze the stencil code
         #
         try:
+            backup_kernel = self._kernel
             Stencil.compiler.analyze (self, **kwargs)
         except Exception as e:
             logging.error("Error while analyzing code for stencil '%s'" % self.name)
             Stencil.compiler.unregister (self)
+            self._kernel = backup_kernel
             raise e
         else:
             #

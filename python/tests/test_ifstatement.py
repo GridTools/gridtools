@@ -231,6 +231,7 @@ class EmptyKernelTest (unittest.TestCase):
             kwargs[p] = getattr (self, p)
         stencil.run (**kwargs)
 
+
     def setUp (self):
         super ( ).setUp ( )
         logging.basicConfig (level=logging.INFO)
@@ -421,7 +422,16 @@ class IfStatementOpInFailure (MultiStageStencil):
 class IfStatementsOpIsTest (EmptyKernelTest):
     """
     A test case for the 'If + is' statement related stencil defined above.-
+    May serve as a base test class for stencils with unsupported language
+    features in the kernel
     """
+    def _call_kernel (self):
+        kwargs = dict ( )
+        for p in self.params:
+            kwargs[p] = getattr (self, p)
+        self.stencil._kernel (**kwargs)
+
+
     def setUp (self):
         super ( ).setUp ( )
         self.domain = (64, 64, 32)
@@ -434,6 +444,14 @@ class IfStatementsOpIsTest (EmptyKernelTest):
 
         self.stencil = IfStatementOpIsFailure (self.domain)
         self.error = NotImplementedError
+
+
+    def test_internal_kernel_reset (self, backend='c++'):
+        self.stencil.backend = backend
+        with self.assertRaises (self.error):
+            self._run(self.stencil)
+        with self.assertRaises (NotImplementedError):
+            self._call_kernel ( )
 
 
 
