@@ -407,8 +407,9 @@ class FloatPrecisionTest (CopyTest):
 
 class Power (MultiStageStencil):
     """
-    Immitates the CopyStencil using the power operator.-
+    Imitates the CopyStencil using the power operator.-
     """
+    @def_kernel
     def kernel (self, out_cpy, in_cpy):
         #
         # iterate over the points, excluding halo ones
@@ -442,11 +443,11 @@ class PowerTest (CopyTest):
 
 
 
-
 class Laplace (MultiStageStencil):
     """
     A Laplacian operator, as the one used in COSMO.-
     """
+    @def_kernel
     def kernel (self, out_data, in_data):
         """
         Stencil's entry point.-
@@ -531,6 +532,7 @@ class HorizontalDiffusion (MultiStageStencil):
             out_flj[p] = in_lap[p + (0,1,0)] - in_lap[p]
 
 
+    @def_kernel
     def kernel (self, out_data, in_data, in_wgt):
         #
         # Laplace
@@ -660,6 +662,7 @@ class ChildStencilCallsParentConstructorAndNothingElse (MultiStageStencil):
         super ( ).__init__ ( )
 
 
+    @def_kernel
     def kernel (self, out_cpy, in_cpy):
         """
         This stencil comprises a single stage.-
@@ -698,6 +701,7 @@ class ChildStencilCallsParentConstructorFirst (MultiStageStencil):
         gnum = 22
 
 
+    @def_kernel
     def kernel (self, out_cpy, in_cpy):
         """
         This stencil comprises a single stage.-
@@ -720,6 +724,7 @@ class ChildStencilCallsParentConstructorAfterComment (MultiStageStencil):
         super ( ).__init__ ( )
 
 
+    @def_kernel
     def kernel (self, out_cpy, in_cpy):
         """
         This stencil comprises a single stage.-
@@ -744,6 +749,7 @@ class ChildStencilCallsParentConstructorAfterMultComments (MultiStageStencil):
         super ( ).__init__ ( )
 
 
+    @def_kernel
     def kernel (self, out_cpy, in_cpy):
         """
         This stencil comprises a single stage.-
@@ -768,6 +774,7 @@ class ChildStencilCallsParentConstructorAfterDocString (MultiStageStencil):
         super ( ).__init__ ( )
 
 
+    @def_kernel
     def kernel (self, out_cpy, in_cpy):
         """
         This stencil comprises a single stage.-

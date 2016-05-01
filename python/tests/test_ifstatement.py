@@ -5,7 +5,7 @@ import numpy as np
 
 from nose.plugins.attrib import attr
 
-from gridtools.stencil  import MultiStageStencil
+from gridtools.stencil  import MultiStageStencil, def_kernel
 from tests.test_stencils import CopyTest
 
 
@@ -24,6 +24,7 @@ class GameOfLife (MultiStageStencil):
         self.counter = np.zeros (domain)
 
 
+    @def_kernel
     def kernel (self, out_X, in_X):
         for p in self.get_interior_points (out_X):
 
@@ -43,7 +44,7 @@ class GameOfLife (MultiStageStencil):
 
 class GameOfLifeTest (CopyTest):
     """
-    A test case for the If-statement related stencils defined above.-
+    A test case for the GameOfLife stencil defined above.-
     """
     def setUp (self):
         super ( ).setUp ( )
@@ -119,6 +120,7 @@ class AdditionalIfStatement (MultiStageStencil):
         self.counter = np.zeros (domain)
 
 
+    @def_kernel
     def kernel (self, out_X, in_X):
         for p in self.get_interior_points (out_X):
             self.counter[p] = out_X[p + (1,0,0)]
@@ -145,7 +147,7 @@ class AdditionalIfStatement (MultiStageStencil):
 
 class AdditionalIfStatementTest (CopyTest):
     """
-    A test case for the If-statement related stencils defined above.-
+    A test case for the AdditionalIfStatement stencil defined above.-
     """
     def setUp (self):
         super ( ).setUp ( )
@@ -210,6 +212,7 @@ class EmptyKernel (MultiStageStencil):
     """
     Definition of a simple stencil with invalid kernel
     """
+    @def_kernel
     def kernel (self, out_arg, in_arg):
         """
         Just an empty kernel
@@ -275,6 +278,78 @@ class EmptyKernelTest (unittest.TestCase):
 
 
 
+class NoKernelTest (EmptyKernelTest):
+    """
+    Tests that stencils with no kernels correctly raise errors and are unregistered
+    """
+    def setUp (self):
+        super ( ).setUp ( )
+
+        self.stencil = MultiStageStencil ()
+        self.error = AttributeError
+
+
+
+class MultipleKernels (MultiStageStencil):
+    """
+    Definition of a stencil with multiple kernels
+    """
+    @def_kernel
+    def kernel1 (self, out_cpy, in_cpy):
+        """
+        This stencil comprises a single stage.-
+        """
+        #
+        # iterate over the points, excluding halo ones
+        #
+        for p in self.get_interior_points (out_cpy):
+              out_cpy[p] = in_cpy[p]
+
+
+    @def_kernel
+    def kernel2 (self, out_cpy, in_cpy):
+        """
+        This stencil comprises a single stage.-
+        """
+        #
+        # iterate over the points, excluding halo ones
+        #
+        for p in self.get_interior_points (out_cpy):
+              out_cpy[p] = 2*in_cpy[p]
+
+
+
+class MultipleKernelsTest (EmptyKernelTest):
+    """
+    Tests that stencils with multiple kernels correctly raise errors and are unregistered
+    The setUp replicates the one from CopyTest to test in a valid situation, if
+    not for the kernels in excess
+    """
+    def setUp (self):
+        super ( ).setUp ( )
+
+        self.domain = (64, 64, 32)
+        self.params = ('out_cpy', 'in_cpy')
+        self.temps  = ( )
+
+        self.out_cpy = np.zeros (self.domain,
+                                 dtype=np.float64,
+                                 order='F')
+        #
+        # workaround because of a bug in the power (**) implemention of NumPy
+        #
+        self.in_cpy = np.random.random_integers (10,
+                                                 size=self.domain)
+        self.in_cpy = self.in_cpy.astype (np.float64)
+        self.in_cpy = np.asfortranarray (self.in_cpy)
+
+        self.stencil = MultipleKernels ()
+        self.stencil.set_halo ( (1, 1, 1, 1) )
+        self.stencil.set_k_direction ("forward")
+        self.error = AttributeError
+
+
+
 class IfStatementOpIsFailure (MultiStageStencil):
     """
     Tests that use of 'is' operator currently raises an error.
@@ -284,6 +359,7 @@ class IfStatementOpIsFailure (MultiStageStencil):
         self.set_halo ( (1,1,1,1) )
 
 
+    @def_kernel
     def kernel (self, out_X):
         for p in self.get_interior_points (out_X):
             if out_X[p] is out_X[p]:
@@ -300,6 +376,7 @@ class IfStatementOpIsNotFailure (MultiStageStencil):
         self.set_halo ( (1,1,1,1) )
 
 
+    @def_kernel
     def kernel (self, out_X):
         for p in self.get_interior_points (out_X):
             if out_X[p] is not out_X[p]:
@@ -316,6 +393,7 @@ class IfStatementOpNotInFailure (MultiStageStencil):
         self.set_halo ( (1,1,1,1) )
 
 
+    @def_kernel
     def kernel (self, out_X):
         for p in self.get_interior_points (out_X):
             if out_X[p] not in out_X[p]:
@@ -332,6 +410,7 @@ class IfStatementOpInFailure (MultiStageStencil):
         self.set_halo ( (1,1,1,1) )
 
 
+    @def_kernel
     def kernel (self, out_X):
         for p in self.get_interior_points (out_X):
             if out_X[p] in out_X[p]:
