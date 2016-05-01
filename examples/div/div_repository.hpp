@@ -18,6 +18,7 @@ public:
 
     using edge_storage_type = typename backend_t::storage_t<icosahedral_topology_t::edges, double>;
     using cell_storage_type = typename backend_t::storage_t<icosahedral_topology_t::cells, double>;
+    using vertex_storage_type = typename backend_t::storage_t<icosahedral_topology_t::vertexes, double>;
 
     repository(char *mesh_file)
         : i2g_(mesh_file),
@@ -26,7 +27,10 @@ public:
           cell_area_(i2g_.get<icosahedral_topology_t::cells, double>("cell_area")),
           edge_sign_on_cell_(i2g_.icosahedral_grid().make_storage<icosahedral_topology_t::cells, double>("edge_sign_on_cell")),
           u_(i2g_.icosahedral_grid().make_storage<icosahedral_topology_t::edges, double>("u")),
-          div_u_ref_(i2g_.icosahedral_grid().make_storage<icosahedral_topology_t::cells, double>("div_u_ref"))
+          div_u_ref_(i2g_.icosahedral_grid().make_storage<icosahedral_topology_t::cells, double>("div_u_ref")),
+          curl_u_ref_(i2g_.icosahedral_grid().make_storage<icosahedral_topology_t::vertexes, double>("curl_u_ref")),
+          dual_area_(i2g_.get<icosahedral_topology_t::vertexes, double>("dual_area")),
+          dual_edge_length_(i2g_.get<icosahedral_topology_t::edges, double>("dual_edge_length"))
     { }
 
     void init_fields()
@@ -35,8 +39,8 @@ public:
         for (int i = 0; i < icosahedral_grid_.m_dims[0]; ++i)
             for (int j = 0; j < icosahedral_grid_.m_dims[1]; ++j)
             {
-                edge_sign_on_cell_(i, 0, j, 0) = -1.;
-                edge_sign_on_cell_(i, 1, j, 0) = 1.;
+                edge_sign_on_cell_(i, 0, j, 0) = 1.;
+                edge_sign_on_cell_(i, 1, j, 0) = -1.;
             }
 
         std::random_device rd;
@@ -53,6 +57,9 @@ public:
 
         // init div_u_ref
         div_u_ref_.initialize(0.0);
+
+        // init curl_u_ref
+        curl_u_ref_.initialize(0.0);
     }
 
     void generate_reference()
@@ -72,6 +79,21 @@ public:
                         }
                         div_u_ref_(i, c, j, k) *= edge_sign_on_cell_(i, c, j, k) / cell_area_(i, c, j, k);
                     }
+
+        for (uint_t i = halo_nc; i < icosahedral_grid_.m_dims[0] - halo_nc; ++i)
+            for (uint_t c = 0; c < icosahedral_topology_t::vertexes::n_colors::value; ++c)
+                for (uint_t j = halo_mc; j < icosahedral_grid_.m_dims[1] - halo_mc; ++j)
+                    for (uint_t k = 0; k < 1; ++k)
+                    {
+                        auto neighbours =
+                                ugrid.neighbours_of<icosahedral_topology_t::vertexes, icosahedral_topology_t::edges>(
+                                        {i, c, j, k});
+                        for (auto iter = neighbours.begin(); iter != neighbours.end(); ++iter)
+                        {
+                            curl_u_ref_(i, c, j, k) += u_(*iter) * dual_edge_length_(*iter);
+                        }
+                        curl_u_ref_(i, c, j, k) *= edge_sign_on_cell_(i, c, j, k) / dual_area_(i, c, j, k);
+                    }
     }
 
     icosahedral_topology_t& icosahedral_grid()
@@ -87,16 +109,26 @@ public:
     { return u_; }
     cell_storage_type &div_u_ref()
     { return div_u_ref_; }
-
+    vertex_storage_type &dual_area()
+    { return dual_area_; }
+    edge_storage_type &dual_edge_length()
+    { return dual_edge_length_; }
+    vertex_storage_type &curl_u_ref()
+    { return curl_u_ref_; }
 private:
     IconToGridTools<icosahedral_topology_t> i2g_;
     icosahedral_topology_t& icosahedral_grid_;
+
+    vertex_storage_type dual_area_;
+    vertex_storage_type curl_u_ref_;
+
     edge_storage_type edge_length_;
+    edge_storage_type u_;
+    edge_storage_type dual_edge_length_;
+
     cell_storage_type edge_sign_on_cell_;
     cell_storage_type cell_area_;
-    edge_storage_type u_;
     cell_storage_type div_u_ref_;
-
 public:
     const uint_t halo_nc = 1;
     const uint_t halo_mc = 1;
