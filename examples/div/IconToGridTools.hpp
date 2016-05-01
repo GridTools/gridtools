@@ -52,6 +52,7 @@ class IconToGridTools: protected IconToGridToolsBase
 
     i2g_t &get_i2g_vector(TypeHelper<typename IcosahedralTopology::edges>);
     i2g_t &get_i2g_vector(TypeHelper<typename IcosahedralTopology::cells>);
+    i2g_t &get_i2g_vector(TypeHelper<typename IcosahedralTopology::vertexes>);
 public:
     IconToGridTools(char *ncFileName);
 
@@ -101,3 +102,8 @@ template<typename IcosahedralTopology>
 typename IconToGridTools<IcosahedralTopology>::i2g_t &IconToGridTools<IcosahedralTopology>::get_i2g_vector(TypeHelper<
     typename IcosahedralTopology::cells>)
 { return i2g_cell; }
+
+template<typename IcosahedralTopology>
+typename IconToGridTools<IcosahedralTopology>::i2g_t &IconToGridTools<IcosahedralTopology>::get_i2g_vector(TypeHelper<
+        typename IcosahedralTopology::vertexes>)
+{ return i2g_vertex; }
