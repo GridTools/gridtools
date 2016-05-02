@@ -244,10 +244,10 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     uint_t TIME_STEPS = nt;
 
     // Enforce square domain
-    if (!(xdim==ydim && ydim==zdim)) {
-        if (PID==0) printf("Please run with dimensions X=Y=Z\n");
-        return false;
-    }
+    // if (!(xdim==ydim && ydim==zdim)) {
+    //     if (PID==0) printf("Please run with dimensions X=Y=Z\n");
+    //     return false;
+    // }
 
     // Step size, add +2 for boundary layer
     double h = 1./(d1+2+1);//TODO boundary layer
@@ -535,7 +535,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
     for (int i=0; i < TIME_STEPS; i++) {
 
-        // construction of the domains for the steps of CG
+        // Construction of the domains for the steps of CG
         gridtools::domain_type<accessor_list_step0> domain_step0
             (boost::fusion::make_vector(&Ad, ptr_d));
 
@@ -558,7 +558,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
             (boost::fusion::make_vector(&tmp, ptr_rNew, ptr_MrNew));
 
 
-        //instantiate stencils to perform steps of CG
+        // Instantiate stencils to perform steps of CG
         auto CG_step0 = gridtools::make_computation<gridtools::BACKEND>
             (
                 domain_step0, coords3d7pt,
@@ -659,7 +659,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         lapse_time_run = lapse_time_run + time_run0.elapsed();
         CG_step0->finalize();
 
-        // compute step size alpha
+        // Compute step size alpha
         stencil_alpha_nom->ready();
         stencil_alpha_nom->steady();
         boost::timer::cpu_timer time_alphaNom;
@@ -700,8 +700,6 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         CG_step2->finalize();
 
         // Unfold local domain into vector //TODO more efficient way to do this?
-        double* r_vec = new double[ni*nj*nk];
-        double* Mr_vec = new double[ni*nj*nk];
         int idx = 0;
         for (uint_t k=1; k<metadata_.template dims<2>()-1; ++k)
             for (uint_t j=1; j<metadata_.template dims<1>()-1; ++j)
@@ -724,7 +722,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                     (*ptr_MrNew)(i,j,k) = (float) Mr_vec[(k-1)*ni*nj + (j-1)*nj + (i-1)];
                 } 
 
-        //compute Gram–Schmidt orthogonalization parameter beta
+        // Compute Gram-Schmidt orthogonalization parameter beta
         stencil_beta_nom->ready();
         stencil_beta_nom->steady();
         boost::timer::cpu_timer time_betaNom;
@@ -745,7 +743,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         lapse_time_run = lapse_time_run + time_run3.elapsed();
         CG_step3->finalize();
 
-        //communicate halos
+        // Communicate halos
         std::vector<pointer_type::pointee_t*> vec(2);
         vec[0]=d.data().get();
         vec[1]=dNew.data().get();
@@ -756,7 +754,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
         MPI_Barrier(GCL_WORLD);
 
-        //swap input and output fields
+        // Swap input and output fields
         storage_type* swap;
         swap = ptr_x;
         ptr_x = ptr_xNew;
@@ -771,7 +769,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         ptr_Mr = ptr_MrNew;
         ptr_MrNew = swap;
 
-    }
+    } //end for
 
     boost::timer::cpu_times lapse_time = time.elapsed();
 
