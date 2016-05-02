@@ -93,12 +93,6 @@ void CSRdouble::allocate(int n, int m, int nzeros)
     ncols            = m;
     nonzeros         = nzeros;
 
-    #ifdef DEBUG_memory
-    int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    cout << "Allocating " << memoryAllocated() << " GB at rank #" << rank << endl;
-    #endif
-
     assert(nonzeros < INT_MAX && nonzeros > 0);
     assert(nrows > 0);
     assert(ncols > 0);
@@ -115,11 +109,9 @@ void CSRdouble::allocate(int n, int m, int nzeros)
         cout << "Need " << memoryAllocated() << " GB" << std::endl;
         cout << err.what() << std::endl;
 
-        #ifdef DEBUG
         int rank;
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
         cout << "Error at rank #" << rank << endl;
-        #endif
     }
 }
 
@@ -211,8 +203,6 @@ void CSRdouble::makePreconditioner(int ni, int nj, int nk)
             }
 
     assert(nnz_counter == nnz);
-
-    writeToFile("M.csr");
 }
 
 void CSRdouble::make(int n, int m, int nzeros, int* prows,
