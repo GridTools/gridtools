@@ -422,7 +422,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     int nk = metadata_.template dims<2>() - 2;
     std::cout << "Subdomain size " << ni << "x" << nj << "x" << nk << std::endl;
     CSRdouble M = CSRdouble();
-    M.makePreconditioner(ni,nj,nk); //TODO all processes
+    M.makePreconditioner(ni,nj,nk);
     M.reduceSymmetric();
 
     // Set up linear solver Pardiso
@@ -529,11 +529,13 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
     MPI_Barrier(GCL_WORLD);
 
+    float rTMr_old; //used to remember value of global reduction between iterations
+
     /**
         Perform iterations of the CG
     */
 
-    for (int i=0; i < TIME_STEPS; i++) {
+    for (int iter=0; iter < TIME_STEPS; iter++) {
 
         // Construction of the domains for the steps of CG
         gridtools::domain_type<accessor_list_step0> domain_step0
@@ -660,27 +662,38 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         CG_step0->finalize();
 
         // Compute step size alpha
-        stencil_alpha_nom->ready();
-        stencil_alpha_nom->steady();
-        boost::timer::cpu_timer time_alphaNom;
-        float rTr = stencil_alpha_nom->run(); // r_T * inv(M) * r (at time t)
-        lapse_time_run = lapse_time_run + time_alphaNom.elapsed();
-        stencil_alpha_nom->finalize();
-        float rTr_global;
-        MPI_Allreduce(&rTr, &rTr_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
-        if (PID == 0) printf("Iteration %d: %f\n", i, rTr_global);
+        float rTMr_global; //nominator
+        float rTMr;
+        float dTAd_global;  //denominator
+        float dTAd;
 
+        // Nominator of alpha
+        if(iter == 0)
+        {
+            stencil_alpha_nom->ready();
+            stencil_alpha_nom->steady();
+            boost::timer::cpu_timer time_alphaNom;
+            rTMr = stencil_alpha_nom->run(); // r_T * inv(M) * r (at time t)
+            lapse_time_run = lapse_time_run + time_alphaNom.elapsed();
+            stencil_alpha_nom->finalize();
+            MPI_Allreduce(&rTMr, &rTMr_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+        }
+        else
+        {
+            rTMr_global = rTMr_old; //reuse nominator from beta in previous time-step
+        }
+
+        // Denominator of alpha
         stencil_alpha_denom->ready();
         stencil_alpha_denom->steady();
         boost::timer::cpu_timer time_alphaDenom;
-        float dTAd = (float) stencil_alpha_denom->run(); // d_T * A * d
+        dTAd = (float) stencil_alpha_denom->run(); // d_T * A * d
         lapse_time_run = lapse_time_run + time_alphaDenom.elapsed();
         stencil_alpha_denom->finalize();
-        float dTAd_global;
         MPI_Allreduce(&dTAd, &dTAd_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
 
-        alpha.setValue(rTr_global/dTAd_global);
-        if (PID == 0) printf("Alpha = %f/%f = %f\n", rTr_global, dTAd_global, rTr_global/dTAd_global);
+        alpha.setValue(rTMr_global/dTAd_global);
+        if (PID == 0) printf("Alpha = %f\n", rTMr_global/dTAd_global);
 
         // x_(i+1) = x_i + alpha * d_i
         CG_step1->ready();
@@ -723,17 +736,21 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                 } 
 
         // Compute Gram-Schmidt orthogonalization parameter beta
+        float rTMrnew_global;
+        float rTMrnew; 
+
+        // Nominator of beta
         stencil_beta_nom->ready();
         stencil_beta_nom->steady();
         boost::timer::cpu_timer time_betaNom;
-        float rTrnew = stencil_beta_nom->run(); // r_T * inv(M) * r (at time t+1) //TODO: reuse at next iteration in alpha
+        rTMrnew = stencil_beta_nom->run(); // r_T * inv(M) * r (at time t+1) //TODO: reuse at next iteration in alpha
         lapse_time_run = lapse_time_run + time_betaNom.elapsed();
         stencil_beta_nom->finalize();
-        float rTrnew_global;
-        MPI_Allreduce(&rTrnew, &rTrnew_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+        MPI_Allreduce(&rTMrnew, &rTMrnew_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+        rTMr_old = rTMrnew_global; //save value to reuse it in alpha
 
-        beta.setValue(rTrnew_global/rTr_global); // reusing r_T*inv(M)*r from computation of alpha
-        if (PID == 0) printf("Beta = %f\n", rTrnew_global/rTr_global);
+        beta.setValue(rTMrnew_global/rTMr_global); // reusing nominator from computation of alpha
+        if (PID == 0) printf("Beta = %f\n", rTMrnew_global/rTMr_global);
 
         // d_(i+1) = Mr_(i+1) + beta * d_i
         CG_step3->ready();
