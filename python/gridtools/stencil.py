@@ -15,7 +15,7 @@ from gridtools.utils import Utilities
 
 
 
-def def_kernel (kernel_func):
+def stencil_kernel (kernel_func):
     """
     Decorator to define a given member as the stencil entry point (aka kernel).
     The decorator embeds a runtime check in the kernel to verify it is called

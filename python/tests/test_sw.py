@@ -27,7 +27,7 @@ import numpy as np
 
 from nose.plugins.attrib import attr
 
-from gridtools.stencil   import MultiStageStencil, def_kernel
+from gridtools.stencil   import MultiStageStencil, stencil_kernel
 from tests.test_stencils import CopyTest
 
 
@@ -85,7 +85,7 @@ class SW (MultiStageStencil):
                                                                         self.B[p]))
 
 
-    @def_kernel
+    @stencil_kernel
     def kernel (self, out_H, out_U, out_V):
         #
         # momentum calculation for each field
@@ -594,7 +594,7 @@ class ShallowWater2D (MultiStageStencil):
                           ) * ( self.dt / (2*self.dy) )
 
 
-    @def_kernel
+    @stencil_kernel
     def kernel (self, out_H, out_U, out_V):
         self.stage_first_x (out_H=out_H,
                             out_U=out_U,

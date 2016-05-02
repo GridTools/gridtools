@@ -5,7 +5,7 @@ import numpy as np
 
 from nose.plugins.attrib import attr
 
-from gridtools.stencil  import MultiStageStencil, def_kernel
+from gridtools.stencil  import MultiStageStencil, stencil_kernel
 from tests.test_stencils import CopyTest
 
 
@@ -24,7 +24,7 @@ class GameOfLife (MultiStageStencil):
         self.counter = np.zeros (domain)
 
 
-    @def_kernel
+    @stencil_kernel
     def kernel (self, out_X, in_X):
         for p in self.get_interior_points (out_X):
 
@@ -120,7 +120,7 @@ class AdditionalIfStatement (MultiStageStencil):
         self.counter = np.zeros (domain)
 
 
-    @def_kernel
+    @stencil_kernel
     def kernel (self, out_X, in_X):
         for p in self.get_interior_points (out_X):
             self.counter[p] = out_X[p + (1,0,0)]

@@ -392,7 +392,7 @@ class StencilInspector (ast.NodeVisitor):
     def _check_kernel_decorator (self, node):
         """
         Checks if the given AST node has been decorated with the
-        def_kernel decorator, which identifies it as the stencil entry point
+        stencil_kernel decorator, which identifies it as the stencil entry point
         :param node: The AST node to be checked
         :return:     True if the node represents a function definition decorated
                      as the kernel, False otherwise
@@ -404,9 +404,9 @@ class StencilInspector (ast.NodeVisitor):
         if not isinstance (node, ast.FunctionDef) or not node.decorator_list:
             return False
         #
-        # The decorator must be a Name AST node, with identifier 'def_kernel'
+        # The decorator must be a Name AST node, with identifier 'stencil_kernel'
         #
-        return any (isinstance(x, ast.Name) and x.id=='def_kernel' for x in node.decorator_list)
+        return any (isinstance(x, ast.Name) and x.id=='stencil_kernel' for x in node.decorator_list)
 
 
     def _extract_source (self):
@@ -462,7 +462,7 @@ class StencilInspector (ast.NodeVisitor):
                                               single kernel."
                                               % self.inspected_stencil.__class__)
                     #
-                    # Since the def_kernel decorator uses functools' @wraps, we
+                    # Since the stencil_kernel decorator uses functools' @wraps, we
                     # know that the kernel can be found inside the __wrapped__
                     # attribute of the wrapper.
                     # Another way could be to use inspect.unwrap(fun) to directly
