@@ -237,10 +237,10 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     gridtools::GCL_Init();
 
     // Domain is encapsulated in boundary layer from both sides in each dimension,
-    // these are just inner domain dimensions
+    // Boundary is added as extra layer to each dimension 
     uint_t d1 = xdim;
     uint_t d2 = ydim;
-    uint_t d3 = zdim;
+    uint_t d3 = zdim; //TODO boundary layer
     uint_t TIME_STEPS = nt;
 
     // Enforce square domain
@@ -250,11 +250,11 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     }
 
     // Step size, add +2 for boundary layer
-    double h = 1./(xdim+2+1);
+    double h = 1./(d1+2+1);//TODO boundary layer
     double h2 = h*h;
 
     if (PID == 0){
-        printf("Running for %d x %d x %d, %d iterations\n", xdim+2, ydim+2, zdim+2, nt);
+        printf("Running for %d x %d x %d, %d iterations\n", xdim, ydim, zdim, nt);
         // printf("Step size: %f\n", h);
     }
 
@@ -417,9 +417,9 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
     //--------------------------------------------------------------------------
     // Set up preconditioner
-    int ni = metadata_.template dims<0>()-2;
-    int nj = metadata_.template dims<1>()-2;
-    int nk = metadata_.template dims<2>()-2;
+    int ni = metadata_.template dims<0>() - 2; //--TODO offset -1 for subdomain that has outer boundary, -2 for inner subdomain
+    int nj = metadata_.template dims<1>() - 2; //TODO boundary layer
+    int nk = metadata_.template dims<2>() - 2;
     std::cout << "Subdomain size " << ni << "x" << nj << "x" << nk << std::endl;
     CSRdouble M = CSRdouble();
     M.makePreconditioner(ni,nj,nk); //TODO all processes
