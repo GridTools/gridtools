@@ -413,32 +413,6 @@ namespace gridtools {
     template <typename Placeholders, typename MapsOfExtents>
     struct merge_extents_from_multiple_mss {
 
-        // template <typename SeqOfMaps>
-        // struct populate_map_from {
-
-        //     template <typename Key>
-        //     struct update_map {
-        //         template <typename DestinationMap, typename OriginMap>
-        //         struct apply {
-        //             //                    typedef typename Key::cacca cacio;
-        //             typedef typename boost::mpl::at<OriginMap, typename     Key::first>::type origin;
-        //             // typedef typename boost::mpl::at<DestinationMap, Key>::type dest;
-        //             // typedef typename enclosing_extent<origin, dest>::type new_dest;
-        //             // typedef typename boost::mpl::insert<DestinationMap, boost::mpl::pair<Key, new_dest> >::type
-        //             //                  type;
-        //         };
-        //     };
-
-        //     template <typename CurrentMap, typename CurrentKey>
-        //     struct apply {
-        //         typedef typename boost::mpl::fold<
-        //             SeqOfMaps,
-        //             CurrentMap,
-        //             typename update_map<CurrentKey>::template apply<boost::mpl::_1, boost::mpl::_2>
-        //             >::type type;
-        //     };
-        // };
-
         template <typename UpdateMap, typename CurrentPair>
         struct update_element{
             typedef typename boost::mpl::first<CurrentPair>::type::cacca cacio;
@@ -456,7 +430,6 @@ namespace gridtools {
         typedef typename boost::mpl::fold<
             MapsOfExtents,
             typename strgrid::init_map_of_extents<Placeholders>::type,
-            //typename populate_map_from<MapsOfExtents>::template apply<boost::mpl::_1, boost::mpl::_2>
             update_map<boost::mpl::_1, boost::mpl::_2>
             >::type type;
     }; // struct merge_extents_from_multiple_mss
@@ -468,20 +441,10 @@ namespace gridtools {
     struct compute_extent_sizes {
 
         GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Error");
-        // typedef grid_traits_from_id< BackendIds::s_grid_type_id > grid_traits_t;
-
-        // typedef typename grid_traits_t::template select_mss_compute_extent_sizes<MapOfPlaceholders>::type mss_compute_extent_sizes_t;
-
-        // template < typename T >
-        // struct mss_extent_ {
-        //     typedef typename mss_compute_extent_sizes_t::template apply< T >::type type;
-        // };
 
         template <typename CurrentMap, typename MSS>
         struct update_map {
             typedef typename strgrid::compute_extents_of<CurrentMap>::template for_mss<MSS>::type type;
-            // typedef typename grid_traits_t::template select_mss_compute_extent_sizes<CurrentMap>::type mss_compute_extent_sizes_t;
-            // typedef typename mss_compute_extent_sizes_t::template apply< MSS >::type type;
         };
 
         template <typename CurrentMap, typename MSS1, typename MSS2, typename Cond>
@@ -526,40 +489,23 @@ namespace gridtools {
     }; // struct extents_for_mss
 
 
-    template <typename CurrentMap, typename BackendIds, typename MSS1, typename MSS2, typename Cond>
-    struct extents_for_mss<CurrentMap, BackendIds, condition<MSS1, MSS2, Cond> > {
-        typedef typename extents_for_mss<CurrentMap, BackendIds, MSS1>::type type1;
-        typedef typename extents_for_mss<CurrentMap, BackendIds, MSS2>::type type2;
+    template <typename MssDescriptorArrayElements, typename ExtentsMap, typename BackendIDs>
+    struct extents_for_esfs {
+        typedef typename boost::mpl::fold<
+            MssDescriptorArrayElements,
+            boost::mpl::vector0<>,
+            typename boost::mpl::push_back<
+                boost::mpl::_1,
+                extents_for_mss<ExtentsMap, BackendIDs, boost::mpl::_2> >
+            >::type type;
+    };
+
+    template <typename Mss1, typename Mss2, typename Cond, typename ExtentsMap, typename BackendIDs>
+    struct extents_for_esfs<condition<Mss1, Mss2, Cond>, ExtentsMap, BackendIDs> {
+        typedef typename extents_for_esfs<Mss1, ExtentsMap, BackendIDs>::type type1;
+        typedef typename extents_for_esfs<Mss2, ExtentsMap, BackendIDs>::type type2;
         typedef condition<type1, type2, Cond> type;
-    }; // struct extents_for_mss
-
-
-    // template < typename Array1, typename Array2, typename Cond, typename BackendIds, typename MapOfPlaceholders >
-    // struct compute_extent_sizes< condition< Array1, Array2, Cond >, BackendIds, MapOfPlaceholders > {
-
-    //     GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Error");
-
-    //     typedef typename compute_extent_sizes< Array1, BackendIds, MapOfPlaceholders >::type type1;
-    //     typedef typename compute_extent_sizes< Array2, BackendIds, MapOfPlaceholders >::type type2;
-    //     typedef typename merge_extents_from_multiple_mss<MapOfPlaceholders, boost::mpl::vector<type1, type2> >::type type;
-    // };
-
-
-    // template < typename MssDescriptorArray, typename BackendIds >
-    // struct extents_for_functors {
-
-    //     GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Error");
-    // }; // struct extents_for_functors
-
-    // template < typename Array1, typename Array2, typename Cond, typename BackendIds >
-    // struct extents_for_functors< condition< Array1, Array2, Cond >, BackendIds > {
-
-    //     GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Error");
-
-    //     typedef typename extents_for_functors< Array1, BackendIds >::type type1;
-    //     typedef typename extents_for_functors< Array2, BackendIds >::type type2;
-    //     typedef condition< type1, type2, Cond > type;
-    // };
+    };
 
     template < typename Vec >
     struct extract_mss_domains {
@@ -608,15 +554,10 @@ namespace gridtools {
             typename strgrid::init_map_of_extents<typename DomainType::placeholders>::type
             >::type extent_map_t;
 
-        typedef typename boost::mpl::fold<
+        typedef typename extents_for_esfs<
             typename MssDescriptorArray::elements,
-            boost::mpl::vector0<>,
-            typename boost::mpl::push_back<
-                boost::mpl::_1,
-                extents_for_mss<extent_map_t, backend_ids_t, boost::mpl::_2> >
-            >::type extent_sizes_t;
-
-        //        typedef typename get_list_of_esfs< typename MssDescriptorArray::elements >::type all_esfs;
+            extent_map_t,
+            backend_ids_t>::type extent_sizes_t;
 
         typedef typename build_mss_components_array< backend_id< Backend >::value,
             MssDescriptorArray,
