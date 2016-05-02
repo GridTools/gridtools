@@ -56,6 +56,15 @@ std::vector<std::vector<T>> IconToGridToolsBase::get2DVarTranspose(std::string v
     return vec_transpose;
 }
 
+void IconToGridToolsBase::printi2g(i2g_t& vec)
+{
+    for (const auto& p:vec) {
+        int i, c, j;
+        std::tie(i, c, j) = p.second;
+        cout << p.first << " -> " << "(" << i << ", " << c << ", " << j << ")" << endl;
+    }
+}
+
 void IconToGridToolsBase::buildMapping()
 {
     vector<vector<int>> vertices_of_vertex = get2DVarTranspose<int>("vertices_of_vertex");
@@ -84,10 +93,6 @@ void IconToGridToolsBase::buildMapping()
             int current_vertex = vertex_of_cell[current_cell - 1][0];
             i2g_vertex[current_vertex] = make_tuple(row, 0, col);
 
-            // vertex on bottom line
-            if (row == length_ - 1)
-                i2g_vertex[vertex_of_cell[current_cell - 1][1]] = make_tuple(length_, 0, col);
-
             i2g_edge[edge_of_cell[current_cell - 1][0]] = make_tuple(row, 0, col); // red
             i2g_edge[edge_of_cell[current_cell - 1][2]] = make_tuple(row, 1, col); // blue
             i2g_edge[edge_of_cell[current_cell - 1][1]] = make_tuple(row, 2, col); // green
@@ -96,14 +101,12 @@ void IconToGridToolsBase::buildMapping()
             current_cell = getNeighborCell(current_cell, 1);
             i2g_cell[current_cell] = make_tuple(row, 1, col); // upward cell
 
-// TODO: do we really have index for last vertex in a line in gridtools' icosahedral grid?
-//            // last vertex in a line
-//            if (col == length_ - 1)
-//            {
-//                i2g_vertex[vertex_of_cell[current_cell - 1][1]] = (row + 1) * (length_ + 1) - 1;
-//                if (row == length_ - 1)
-//                    i2g_vertex[vertex_of_cell[current_cell - 1][0]] = (length_ + 1) * (length_ + 1) - 1;
-//            }
+            // TODO: do we really have index for last vertex in a line in gridtools' icosahedral grid?
+            // last vertex in a line
+            if (col == length_ - 1)
+            {
+                i2g_vertex[vertex_of_cell[current_cell - 1][1]] = make_tuple(row, 0, length_);
+            }
 
             current_cell = getNeighborCell(current_cell, 0);
         }

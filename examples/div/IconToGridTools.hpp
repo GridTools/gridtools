@@ -17,6 +17,7 @@ class IconToGridToolsBase
 
 protected:
     typedef std::unordered_map<int, std::tuple<int, int, int>> i2g_t; // tuple<i, c, j>
+    void printi2g(i2g_t&);
     i2g_t i2g_vertex;
     i2g_t i2g_edge;
     i2g_t i2g_cell;
