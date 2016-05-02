@@ -81,13 +81,6 @@ class CopyTest (AccessPatternDetectionTest):
         self.stencil.run (**kwargs)
 
 
-    def _call_kernel (self):
-        kwargs = dict ( )
-        for p in self.params:
-            kwargs[p] = getattr (self, p)
-        self.stencil._kernel (**kwargs)
-
-
     def setUp (self):
         super ( ).setUp ( )
 
@@ -333,18 +326,6 @@ class CopyTest (AccessPatternDetectionTest):
             self.stencil.kernel(self.out_cpy, self.in_cpy)
 
 
-    def test_internal_kernel_noinit_call (self):
-        with self.assertRaises (NotImplementedError):
-            self._call_kernel ( )
-
-
-    def test_internal_kernel_init_call (self):
-        self.stencil.backend = 'python'
-        self._run ( )
-        with self.assertRaises (RuntimeError):
-            self._call_kernel ( )
-
-
 
 class AnyKernelName (MultiStageStencil):
     """
@@ -401,7 +382,6 @@ class FloatPrecisionTest (CopyTest):
             self.stencil.backend = 'c++'
             self.in_cpy = self.in_cpy.astype(np.float32)
             self._run ( )
-
 
 
 

@@ -8,7 +8,6 @@ from gridtools.utils import Utilities
 
 
 
-
 class StencilCompiler ( ):
     """
     A global class that takes care of compiling the defined stencils
@@ -402,27 +401,12 @@ class StencilInspector (ast.NodeVisitor):
         # Only FunctionDef nodes have decorator_lists, and we only want non-empty
         # lists
         #
-        if not isinstance(node, ast.FunctionDef) or not node.decorator_list:
+        if not isinstance (node, ast.FunctionDef) or not node.decorator_list:
             return False
-
-        #
-        # Create an equivalent of the node we're looking for
-        #
-#        kernel_dec = ast.Attribute(value=ast.Name(id='MultiStageStencil', ctx=ast.Load()),
-#                                    attr='def_kernel', ctx=ast.Load())
-#        print(ast.dump(node))
-#        print(ast.dump(node.decorator_list[0]))
-#        print(ast.dump(kernel_dec))
-
         #
         # The decorator must be a Name AST node, with identifier 'def_kernel'
         #
-        return any(isinstance(x, ast.Name) and x.id=='def_kernel' for x in node.decorator_list)
-
-        #
-        # Craft a list of only attribute decorators
-        #
-#        attr_list
+        return any (isinstance(x, ast.Name) and x.id=='def_kernel' for x in node.decorator_list)
 
 
     def _extract_source (self):
@@ -430,6 +414,7 @@ class StencilInspector (ast.NodeVisitor):
         Extracts the source code from the currently inspected stencil
         """
         import inspect
+        from gridtools import STENCIL_KERNEL_DECORATOR_LABEL
 
         src = 'class %s (%s):\n' % (str (self.inspected_stencil.__class__.__name__),
                                     str (self.inspected_stencil.__class__.__base__.__name__))
@@ -454,7 +439,7 @@ class StencilInspector (ast.NodeVisitor):
         #
         # then the kernel, which lies inside the kernel_wrapper
         #
-        stencil_kernel = None
+        kernel_found = False
         for (name,fun) in inspect.getmembers (self.inspected_stencil,
                                               predicate=inspect.ismethod):
 #            print(name,fun, hasattr(fun,'__kernel_wrapper__'))
@@ -465,9 +450,9 @@ class StencilInspector (ast.NodeVisitor):
                 # To identify the kernel wrapper, we check the attribute set by
                 # the decorator
                 #
-                if hasattr(fun, '__kernel_wrapper__'):
-                    if stencil_kernel is None:
-                        stencil_kernel = fun
+                if hasattr (fun, STENCIL_KERNEL_DECORATOR_LABEL):
+                    if not kernel_found:
+                        kernel_found = True
                     else:
                         #
                         # There can be only one stencil kernel
@@ -483,8 +468,6 @@ class StencilInspector (ast.NodeVisitor):
                     # Another way could be to use inspect.unwrap(fun) to directly
                     # get the kernel function object.
                     #
-#                    dir(fun)
-#                    print(fun.__name__)
                     src += inspect.getsource (fun.__wrapped__)
             except OSError:
                 try:
@@ -497,11 +480,9 @@ class StencilInspector (ast.NodeVisitor):
                     raise RuntimeError ("Could not extract source code from '%s'"
                                         % self.inspected_stencil.__class__)
         #
-        # Set the kernel function to be used by the stencil's run() method
+        # Raise an AttributeError if a kernel could not be found
         #
-        if stencil_kernel is not None:
-            self.inspected_stencil._kernel = stencil_kernel
-        else:
+        if not kernel_found:
             raise AttributeError ("No kernel detected for stencil %s! Please \
                                   define a stencil entry point function."
                                   % self.__class__)
@@ -766,9 +747,6 @@ class StencilInspector (ast.NodeVisitor):
         # We can identify its AST Node by checking its decorators
         #
         elif self._check_kernel_decorator (node):
-#        elif node.name == 'kernel':
-#            print(ast.dump(node))
-#            kernel_node = node.returns
             logging.debug ("Entry function '%s' found at line %d" % (node.name, node.lineno))
             #
             # this function should return 'None'
@@ -780,6 +758,10 @@ class StencilInspector (ast.NodeVisitor):
             # arguments in the generated code
             #
             self._analyze_params (node.args.args)
+            #
+            # Store the name of the kernel function in the stencil
+            #
+            self.inspected_stencil.entry_point_name = node.name
             #
             # continue traversing the AST
             #

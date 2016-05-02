@@ -229,11 +229,6 @@ class IfStatementsOpIsTest (NoKernelTest):
     May serve as a base test class for stencils with unsupported language
     features in the kernel
     """
-    def _call_kernel (self):
-        kwargs = dict ( )
-        for p in self.params:
-            kwargs[p] = getattr (self, p)
-        self.stencil._kernel (**kwargs)
 
 
     def setUp (self):
@@ -248,14 +243,6 @@ class IfStatementsOpIsTest (NoKernelTest):
 
         self.stencil = IfStatementOpIsFailure (self.domain)
         self.error = NotImplementedError
-
-
-    def test_internal_kernel_reset (self, backend='c++'):
-        self.stencil.backend = backend
-        with self.assertRaises (self.error):
-            self._run(self.stencil)
-        with self.assertRaises (NotImplementedError):
-            self._call_kernel ( )
 
 
 
@@ -289,5 +276,3 @@ class IfStatementsOpInTest (IfStatementsOpIsTest):
         super ( ).setUp ( )
 
         self.stencil = IfStatementOpInFailure (self.domain)
-
-

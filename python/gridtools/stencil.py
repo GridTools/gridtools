@@ -21,31 +21,23 @@ def def_kernel (kernel_func):
     The decorator embeds a runtime check in the kernel to verify it is called
     from the run() function of the stencil.
     """
+    from gridtools import STENCIL_KERNEL_DECORATOR_LABEL
     #
-    # The wraps decorator is useful to correctly set the __wrapped__ attribute
+    # The @wraps decorator is useful to correctly set the __wrapped__ attribute
     # of the user-defined entry point, so that when the stencil is processed
     # by the StencilInspector, the kernel information can be extracted easily
     #
     @wraps (kernel_func)
     def kernel_wrapper (*args, **kwargs):
         #
-        # Use
+        # Check that the kernel is being called from its own class' run() method
         #
-#        print('Arguments:',args)
-#        print(dir(args[0]))
-#        print('Self name:', args[0].__class__)
-#        print('kwargs',kwargs)
-#        print('Kernel caller:',Utilities.caller_name())
-#        expected_caller = args[0].__class__
-#        print('Expected caller:', expected_caller)
-#        if Utilities.caller_name() != expected_caller:
         if not Utilities.check_kernel_caller (args[0]):
-            raise RuntimeError("Calling kernel function from outside run() function. \
+            raise RuntimeError ("Calling kernel function from outside run() function. \
                                 Please use run() to execute the stencil.")
-#        print("Calling function", kernel_func.__name__)
         return kernel_func (*args, **kwargs)
 
-    setattr (kernel_wrapper, '__kernel_wrapper__', True)
+    setattr (kernel_wrapper, STENCIL_KERNEL_DECORATOR_LABEL, True)
 
     return kernel_wrapper
 
@@ -78,27 +70,32 @@ class Stencil (object):
         #
         # register this stencil with the compiler and inspector
         #
-        self.name        = Stencil.compiler.register (self)
+        self.name             = Stencil.compiler.register (self)
+        #
+        # name of the stencil entry point defined by the user
+        # it will be set by the StencilInspector
+        #
+        self.entry_point_name = ''
         #
         # defines the way to execute the stencil
         #
-        self._backend    = "python"
+        self._backend         = "python"
         #
         # the domain dimensions over which this stencil operates
         #
-        self.domain      = None
+        self.domain           = None
         #
         # symbols gathered after analyzing the stencil code are kept here
         #
-        self.scope       = StencilScope ( )
+        self.scope            = StencilScope ( )
         #
         # a halo descriptor
         #
-        self.halo        = (0, 0, 0, 0)
+        self.halo             = (0, 0, 0, 0)
         #
         # define the execution order in 'k' dimension
         #
-        self.k_direction = 'forward'
+        self.k_direction      = 'forward'
 
 
     def __copy__ (self, memo):
@@ -127,14 +124,6 @@ class Stencil (object):
 
     def __repr__ (self):
         return self.name
-
-
-    def _kernel (self, *args, **kwargs):
-        """
-        This function is the entry point of the stencil and should be provided
-        by the user through the @def_kernel decorator.-
-        """
-        raise NotImplementedError ( )
 
 
     def _plot_graph (self, G):
@@ -282,12 +271,10 @@ class Stencil (object):
         # analyze the stencil code
         #
         try:
-            backup_kernel = self._kernel
             Stencil.compiler.analyze (self, **kwargs)
         except Exception as e:
             logging.error("Error while analyzing code for stencil '%s'" % self.name)
             Stencil.compiler.unregister (self)
-            self._kernel = backup_kernel
             raise e
         else:
             #
@@ -305,7 +292,7 @@ class Stencil (object):
             if self.backend == 'c++' or self.backend == 'cuda':
                 Stencil.compiler.run_native (self, **kwargs)
             elif self.backend == 'python':
-                self._kernel (**kwargs)
+                getattr(self, self.entry_point_name) (**kwargs)
             else:
                 raise ValueError ("Unknown backend '%s'" % self.backend)
 
