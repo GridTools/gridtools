@@ -218,7 +218,7 @@ struct boundary_conditions {
                     DataField2 & data_field2,
                     DataField3 & data_field3,
                     uint_t i, uint_t j, uint_t k) const {
-        // get global indices on the boundary
+        // Get global indices on the boundary
         size_t I = m_partitioner.get_low_bound(0) + i;
         size_t J = m_partitioner.get_low_bound(1) + j;
         size_t K = m_partitioner.get_low_bound(2) + k;
@@ -233,27 +233,27 @@ struct boundary_conditions {
 
 bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
-    // initialize MPI
+    // Initialize MPI
     gridtools::GCL_Init();
 
-    // domain is encapsulated in boundary layer from both sides in each dimension,
+    // Domain is encapsulated in boundary layer from both sides in each dimension,
     // these are just inner domain dimensions
     uint_t d1 = xdim;
     uint_t d2 = ydim;
     uint_t d3 = zdim;
     uint_t TIME_STEPS = nt;
 
-    // enforce square domain
+    // Enforce square domain
     if (!(xdim==ydim && ydim==zdim)) {
-        if(PID==0) printf("Please run with dimensions X=Y=Z\n");
+        if (PID==0) printf("Please run with dimensions X=Y=Z\n");
         return false;
     }
 
-    // step size, add +2 for boundary layer
+    // Step size, add +2 for boundary layer
     double h = 1./(xdim+2+1);
     double h2 = h*h;
 
-    if(PID == 0){
+    if (PID == 0){
         printf("Running for %d x %d x %d, %d iterations\n", xdim+2, ydim+2, zdim+2, nt);
         // printf("Step size: %f\n", h);
     }
@@ -307,33 +307,36 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     //--------------------------------------------------------------------------
     // Definition of the actual data fields that are used for input/output
 
-    storage_type b    (metadata_, 1., "RHS vector");
-    storage_type x    (metadata_, 0., "Solution vector t");
-    storage_type xNew (metadata_, 0., "Solution vector t+1");
-    storage_type Ax   (metadata_, 0., "Vector Ax at time t");
-    storage_type r    (metadata_, 0., "Residual at time t");
-    storage_type rNew (metadata_, 0., "Residual at time t+1");
-    storage_type d    (metadata_, 0., "Direction vector at time t");
-    storage_type dNew (metadata_, 0., "Direction vector at time t+1");
-    storage_type Ad   (metadata_, 0., "Projected direction vector");
-    storage_type tmp  (metadata_, 0., "Temporary storage");
+    storage_type b     (metadata_, 1., "RHS vector");
+    storage_type x     (metadata_, 0., "Solution vector t");
+    storage_type xNew  (metadata_, 0., "Solution vector t+1");
+    storage_type Ax    (metadata_, 0., "Vector Ax at time t");
+    storage_type r     (metadata_, 0., "Residual at time t");
+    storage_type rNew  (metadata_, 0., "Residual at time t+1");
+    storage_type d     (metadata_, 0., "Direction vector at time t");
+    storage_type dNew  (metadata_, 0., "Direction vector at time t+1");
+    storage_type Ad    (metadata_, 0., "Projected direction vector");
+    storage_type Mr    (metadata_, 0., "Preconditioned r");
+    storage_type MrNew (metadata_, 0., "Preconditioned r at time t+1");
+    storage_type tmp   (metadata_, 0., "Temporary storage");
 
     // Pointers to data-fields are swapped at each time-iteration
     storage_type *ptr_x = &x, *ptr_xNew = &xNew;
     storage_type *ptr_r = &r, *ptr_rNew = &rNew;
     storage_type *ptr_d = &d, *ptr_dNew = &dNew;
+    storage_type *ptr_Mr = &Mr, *ptr_MrNew = &MrNew;
 
     // Scalar parameters
     parameter alpha; //step length
-    parameter beta; //orthogonalization parameter
+    parameter beta;  //orthogonalization parameter
 
-    // set up halo
+    // Set up halo
     he.add_halo<0>(meta_.template get_halo_gcl<0>());
     he.add_halo<1>(meta_.template get_halo_gcl<1>());
     he.add_halo<2>(meta_.template get_halo_gcl<2>());
     he.setup(2);
 
-    // get global offsets
+    // Get global offsets
     size_t I = meta_.get_low_bound(0);
     size_t J = meta_.get_low_bound(1);
     size_t K = meta_.get_low_bound(2);
@@ -342,29 +345,27 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     //std::cout << "I #" << PID << ": " << meta_.get_low_bound(0) << " - " << meta_.get_up_bound(0) << std::endl;
     //std::cout << "J #" << PID << ": " << meta_.get_low_bound(1) << " - " << meta_.get_up_bound(1) << std::endl;
 
-    // initialize the RHS vector domain
-    for(uint_t i=0; i<metadata_.template dims<0>(); ++i)
-        for(uint_t j=0; j<metadata_.template dims<1>(); ++j)
-            for(uint_t k=0; k<metadata_.template dims<2>(); ++k)
+    // Initialize the RHS vector domain
+    for (uint_t i=0; i<metadata_.template dims<0>(); ++i)
+        for (uint_t j=0; j<metadata_.template dims<1>(); ++j)
+            for (uint_t k=0; k<metadata_.template dims<2>(); ++k)
             {
                 //b(i,j,k) = h2 * f(I+i, J+j, K+k); //TODO
-                x(i,j,k) = 10000*(I+i) +  100*(J+j) + K+k;
+                //x(i,j,k) = 10000*(I+i) +  100*(J+j) + K+k;
             }
 
     //--------------------------------------------------------------------------
     // Definition of placeholders. The order of them reflect the order the user
     // will deal with them especially the non-temporary ones, in the construction
     // of the domain
-    typedef arg<0, storage_type > p_d_init;  //search direction
-    typedef arg<1, storage_type > p_r_init;  //residual
-    typedef arg<2, storage_type > p_b_init;  //rhs
-    typedef arg<3, storage_type > p_Ax_init; //solution
-    typedef arg<4, storage_type > p_x_init;  //solution
-    typedef arg<5, parameter>     p_alpha_init; //step size
+    typedef arg<0, storage_type > p_r_init;  //residual
+    typedef arg<1, storage_type > p_b_init;  //rhs
+    typedef arg<2, storage_type > p_Ax_init; //solution
+    typedef arg<3, storage_type > p_x_init;  //solution
+    typedef arg<4, parameter>     p_alpha_init; //step size
 
     // An array of placeholders to be passed to the domain
-    typedef boost::mpl::vector<p_d_init,
-                               p_r_init,
+    typedef boost::mpl::vector<p_r_init,
                                p_b_init,
                                p_Ax_init,
                                p_x_init,
@@ -397,16 +398,16 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                                p_alpha_step2 > accessor_list_step2;
 
     typedef arg<0, storage_type > p_dNew_step3; //search direction t+1
-    typedef arg<1, storage_type > p_rNew_step3; //residual t+1
+    typedef arg<1, storage_type > p_MrNew_step3; //preconditioned residual t+1
     typedef arg<2, storage_type > p_d_step3;    //search direction t
     typedef arg<3, parameter >    p_beta_step3; //Gram-Schmidt ortog.
 
     typedef boost::mpl::vector<p_dNew_step3,
-                               p_rNew_step3,
+                               p_MrNew_step3,
                                p_d_step3,
                                p_beta_step3 > accessor_list_step3;
 
-   typedef arg<0, storage_type > p_out; //elementwise product a_t * b
+   typedef arg<0, storage_type > p_out; //element-wise product a_t * b
    typedef arg<1, storage_type > p_a;
    typedef arg<2, storage_type > p_b;
 
@@ -415,22 +416,22 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                               p_b> accessor_list_alpha;
 
     //--------------------------------------------------------------------------
-    //Set up preconditioner and linear solver
+    // Set up preconditioner
     int ni = metadata_.template dims<0>()-2;
     int nj = metadata_.template dims<1>()-2;
     int nk = metadata_.template dims<2>()-2;
     std::cout << "Subdomain size " << ni << "x" << nj << "x" << nk << std::endl;
     CSRdouble M = CSRdouble();
-    if(PID==0) M.makePreconditioner(ni,nj,nk); //TODO all processes
+    M.makePreconditioner(ni,nj,nk); //TODO all processes
+    M.reduceSymmetric();
 
+    // Set up linear solver Pardiso
     int pardiso_message_level = 1;
-    int pardiso_mtype = 11; // general matrix //TODO reduce symmetric and -2, maybe sth else??
+    int pardiso_mtype = -2; // real and symmetric indefinite matrix
     int nrhs = 1;
     ParDiSO solver = ParDiSO(pardiso_mtype, pardiso_message_level, "/users/jkardos/gridtools/examples/params.pardiso");
-
     solver.init(M, nrhs);
     solver.factorize(M);
-    //solver.solve(M, x, r, nrhs); //(M x = r)  
 
     /*
       Here we do lot of stuff
@@ -440,16 +441,16 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
       3) The actual domain dimensions
      */
 
-    //start timer
+    // Start timer
     boost::timer::cpu_times lapse_time_run = {0,0,0};
     boost::timer::cpu_times lapse_time_d3point7 = {0,0,0};
     boost::timer::cpu_timer time;
 
-    // construction of the domain for step phase
+    // Construction of the domain for step phase
     gridtools::domain_type<accessor_list_init> domain_init
-        (boost::fusion::make_vector(&d, &r, &b, &Ax, &x, &alpha));
+        (boost::fusion::make_vector(&r, &b, &Ax, &x, &alpha));
 
-    //instantiate stencil to perform initialization step of CG
+    // Instantiate stencil to perform initialization step of CG
     auto CG_init = gridtools::make_computation<gridtools::BACKEND>
         (
             domain_init, coords3d7pt,
@@ -457,12 +458,11 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
             (
                 execute<forward>(),
                 gridtools::make_esf<d3point7>(p_Ax_init(), p_x_init()), // A * x, where x_0 = 0
-                gridtools::make_esf<add_functor>(p_r_init(), p_b_init(), p_Ax_init(), p_alpha_init()), // r = b - Ax
-                gridtools::make_esf<copy_functor>(p_d_init(), p_r_init()) // d = r //TODO 
+                gridtools::make_esf<add_functor>(p_r_init(), p_b_init(), p_Ax_init(), p_alpha_init()) // r = b - Ax
             )
         );
 
-    //apply boundary conditions
+    // Apply boundary conditions
     gridtools::array<gridtools::halo_descriptor, 3> halos;
     halos[0] = meta_.template get_halo_descriptor<0>();
     halos[1] = meta_.template get_halo_descriptor<1>();
@@ -475,17 +475,49 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
          gridtools::bitmap_predicate(part.boundary())
         ).apply(x, d, xNew, dNew);
 
-    // set addition parameter to -1 (subtraction): r = b + alpha A x
+    // Set addition parameter to -1 (subtraction): r = b + alpha A x
     double minus = -1;
     alpha.setValue(minus);
 
-    //prepare and run single step of CG computation
+    // Prepare and run single step of CG computation
     CG_init->ready();
     CG_init->steady();
     boost::timer::cpu_timer time_runInit;
     CG_init->run();
     lapse_time_run = lapse_time_run + time_runInit.elapsed();
     CG_init->finalize();
+
+    // Unfold local domain into vector //TODO more efficient way to do this?
+    double* r_vec = new double[ni*nj*nk];
+    double* Mr_vec = new double[ni*nj*nk];
+    int idx = 0;
+    for (uint_t k=1; k<metadata_.template dims<2>()-1; ++k)
+        for (uint_t j=1; j<metadata_.template dims<1>()-1; ++j)
+            for (uint_t i=1; i<metadata_.template dims<0>()-1; ++i)
+            {
+                assert((k-1)*ni*nj + (j-1)*nj + (i-1) == idx);
+                r_vec[(k-1)*ni*nj + (j-1)*nj + (i-1)] = (double)r(i,j,k);
+                idx++;
+            }
+
+    // Apply preconditioner
+    solver.solve(M, Mr_vec, r_vec, nrhs); //(M x = r) 
+
+    // Insert the solution of linear system into the grid
+    for (uint_t k=1; k<metadata_.template dims<2>()-1; ++k)
+        for (uint_t j=1; j<metadata_.template dims<1>()-1; ++j)
+            for (uint_t i=1; i<metadata_.template dims<0>()-1; ++i)
+            {
+                //Mr = d = inv(M) r
+                d(i,j,k) = (float) Mr_vec[(k-1)*ni*nj + (j-1)*nj + (i-1)];
+                Mr(i,j,k) = (float) Mr_vec[(k-1)*ni*nj + (j-1)*nj + (i-1)];
+            } 
+
+    // if (PID==0){
+    //     std::cout << "r:            Mr: " << ni*nj*nk << std::endl;
+    //     for (int i=0; i<ni*nj*nk; i++)
+    //         std::cout << "r:" << r_vec[i] << "         Mr:" << Mr_vec[i] << std::endl;
+    // }
 
     //communicate halos
     std::vector<pointer_type::pointee_t*> vec(1);
@@ -500,7 +532,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     /**
         Perform iterations of the CG
     */
-    for(int i=0; i < TIME_STEPS; i++) {
+
+    for (int i=0; i < TIME_STEPS; i++) {
 
         // construction of the domains for the steps of CG
         gridtools::domain_type<accessor_list_step0> domain_step0
@@ -513,16 +546,16 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
             (boost::fusion::make_vector(ptr_rNew, ptr_r, &Ad, &alpha));
 
         gridtools::domain_type<accessor_list_step3> domain_step3
-            (boost::fusion::make_vector(ptr_dNew, ptr_rNew, ptr_d, &beta));
+            (boost::fusion::make_vector(ptr_dNew, ptr_MrNew, ptr_d, &beta));
 
         gridtools::domain_type<accessor_list_alpha> domain_alpha_nominator
-            (boost::fusion::make_vector(&tmp, ptr_r, ptr_r));
+            (boost::fusion::make_vector(&tmp, ptr_r, ptr_Mr));
 
         gridtools::domain_type<accessor_list_alpha> domain_alpha_denominator
             (boost::fusion::make_vector(&tmp, ptr_d, &Ad));
 
         gridtools::domain_type<accessor_list_alpha> domain_beta_nominator
-            (boost::fusion::make_vector(&tmp, ptr_rNew, ptr_rNew));
+            (boost::fusion::make_vector(&tmp, ptr_rNew, ptr_MrNew));
 
 
         //instantiate stencils to perform steps of CG
@@ -572,9 +605,9 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                 (
                     execute<forward>(),
                     gridtools::make_esf<add_functor>(p_dNew_step3(),
-                                                     p_rNew_step3(),
+                                                     p_MrNew_step3(),
                                                      p_d_step3(),
-                                                     p_beta_step3()) // d_(i+1) = r_(i+1) + beta * d_i
+                                                     p_beta_step3()) // d_(i+1) = Mr_(i+1) + beta * d_i
                 )
             );
 
@@ -586,9 +619,9 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                     execute< forward >(),
                     make_esf<product_functor>(p_out(),
                                               p_a(),
-                                              p_b()) // r_T * r
+                                              p_b()) // r_T * inv(M) * r
                 ),
-                make_reduction< reduction_functor, binop::sum >(0.0, p_out()) // sum(r_T * r)
+                make_reduction< reduction_functor, binop::sum >(0.0, p_out()) // sum(r_T * Mr)
             );
 
         auto stencil_alpha_denom = make_computation< gridtools::BACKEND >
@@ -612,9 +645,9 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                     execute< forward >(),
                     make_esf<product_functor>(p_out(),
                                               p_a(),
-                                              p_b()) // rNew_T * rNew
+                                              p_b()) // rNew_T * inv(M) * rNew
                 ),
-                make_reduction< reduction_functor, binop::sum >(0.0, p_out()) // sum(rNew_T * rNew)
+                make_reduction< reduction_functor, binop::sum >(0.0, p_out()) // sum(rNew_T * MrNew)
             );
 
         // A * d
@@ -630,12 +663,12 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         stencil_alpha_nom->ready();
         stencil_alpha_nom->steady();
         boost::timer::cpu_timer time_alphaNom;
-        float rTr = stencil_alpha_nom->run(); // r_T * r (at time t)
+        float rTr = stencil_alpha_nom->run(); // r_T * inv(M) * r (at time t)
         lapse_time_run = lapse_time_run + time_alphaNom.elapsed();
         stencil_alpha_nom->finalize();
         float rTr_global;
         MPI_Allreduce(&rTr, &rTr_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
-        if(PID == 0) printf("Iteration %d: %f\n", i, rTr_global);
+        if (PID == 0) printf("Iteration %d: %f\n", i, rTr_global);
 
         stencil_alpha_denom->ready();
         stencil_alpha_denom->steady();
@@ -647,7 +680,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         MPI_Allreduce(&dTAd, &dTAd_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
 
         alpha.setValue(rTr_global/dTAd_global);
-        if(PID == 0) printf("Alpha = %f/%f = %f\n", rTr_global, dTAd_global, rTr_global/dTAd_global);
+        if (PID == 0) printf("Alpha = %f/%f = %f\n", rTr_global, dTAd_global, rTr_global/dTAd_global);
 
         // x_(i+1) = x_i + alpha * d_i
         CG_step1->ready();
@@ -666,22 +699,45 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         lapse_time_run = lapse_time_run + time_run2.elapsed();
         CG_step2->finalize();
 
-        //TODO: apply preconditioning
+        // Unfold local domain into vector //TODO more efficient way to do this?
+        double* r_vec = new double[ni*nj*nk];
+        double* Mr_vec = new double[ni*nj*nk];
+        int idx = 0;
+        for (uint_t k=1; k<metadata_.template dims<2>()-1; ++k)
+            for (uint_t j=1; j<metadata_.template dims<1>()-1; ++j)
+                for (uint_t i=1; i<metadata_.template dims<0>()-1; ++i)
+                {
+                    assert((k-1)*ni*nj + (j-1)*nj + (i-1) == idx);
+                    r_vec[(k-1)*ni*nj + (j-1)*nj + (i-1)] = (double)(*ptr_rNew)(i,j,k);
+                    idx++;
+                }
+
+        // Apply preconditioner
+        solver.solve(M, Mr_vec, r_vec, nrhs); //(M x = r) 
+
+        // Insert the solution of linear system into the grid
+        for (uint_t k=1; k<metadata_.template dims<2>()-1; ++k)
+            for (uint_t j=1; j<metadata_.template dims<1>()-1; ++j)
+                for (uint_t i=1; i<metadata_.template dims<0>()-1; ++i)
+                {
+                    //Mr = inv(M) r
+                    (*ptr_MrNew)(i,j,k) = (float) Mr_vec[(k-1)*ni*nj + (j-1)*nj + (i-1)];
+                } 
 
         //compute Gram–Schmidt orthogonalization parameter beta
         stencil_beta_nom->ready();
         stencil_beta_nom->steady();
         boost::timer::cpu_timer time_betaNom;
-        float rTrnew = stencil_beta_nom->run(); // r_T * r (at time t+1) //TODO: reuse at next iteration in alpha
+        float rTrnew = stencil_beta_nom->run(); // r_T * inv(M) * r (at time t+1) //TODO: reuse at next iteration in alpha
         lapse_time_run = lapse_time_run + time_betaNom.elapsed();
         stencil_beta_nom->finalize();
         float rTrnew_global;
         MPI_Allreduce(&rTrnew, &rTrnew_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
 
-        beta.setValue(rTrnew_global/rTr_global); // reusing r_T*r from computation of alpha
-        if(PID == 0) printf("Beta = %f\n", rTrnew_global/rTr_global);
+        beta.setValue(rTrnew_global/rTr_global); // reusing r_T*inv(M)*r from computation of alpha
+        if (PID == 0) printf("Beta = %f\n", rTrnew_global/rTr_global);
 
-        // d_(i+1) = r_(i+1) + beta * d_i
+        // d_(i+1) = Mr_(i+1) + beta * d_i
         CG_step3->ready();
         CG_step3->steady();
         boost::timer::cpu_timer time_run3;
@@ -711,12 +767,15 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         swap = ptr_d;
         ptr_d = ptr_dNew;
         ptr_dNew = swap;
+        swap = ptr_Mr;
+        ptr_Mr = ptr_MrNew;
+        ptr_MrNew = swap;
 
     }
 
     boost::timer::cpu_times lapse_time = time.elapsed();
 
-    if(gridtools::PID == 0){
+    if (gridtools::PID == 0){
         std::cout << std::endl << "TOTAL TIME: " << boost::timer::format(lapse_time);
         std::cout << "TIME SPENT IN RUN STAGE:" << boost::timer::format(lapse_time_run);
         std::cout << "d3point7 MFLOPS: " << MFLOPS(10,d1,d2,d3,nt,lapse_time_d3point7.wall) << std::endl; //TODO: multiple processes??
@@ -783,6 +842,9 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     }
 
 #endif
+
+    delete [] r_vec;
+    delete [] Mr_vec;
 
     gridtools::GCL_Finalize();
 
