@@ -442,9 +442,6 @@ class StencilInspector (ast.NodeVisitor):
         kernel_found = False
         for (name,fun) in inspect.getmembers (self.inspected_stencil,
                                               predicate=inspect.ismethod):
-#            print(name,fun, hasattr(fun,'__kernel_wrapper__'))
-#            if name == 'kernel':
-#                print(inspect.getsource(fun))
             try:
                 #
                 # To identify the kernel wrapper, we check the attribute set by

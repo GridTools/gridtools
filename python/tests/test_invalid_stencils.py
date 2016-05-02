@@ -229,8 +229,6 @@ class IfStatementsOpIsTest (NoKernelTest):
     May serve as a base test class for stencils with unsupported language
     features in the kernel
     """
-
-
     def setUp (self):
         super ( ).setUp ( )
         self.domain = (64, 64, 32)

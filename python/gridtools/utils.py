@@ -23,7 +23,7 @@ class Utilities ( ):
         """
         Generates native code for this utilities class.-
         """
-        from os        import write, path
+        from os        import path
         from gridtools import JinjaEnv
 
         logging.debug ("Generating backend float type check code (C++) in '%s'" % self.compiler.src_dir)

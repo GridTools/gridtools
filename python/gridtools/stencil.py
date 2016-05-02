@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import logging
-#import inspect
 
 import numpy as np
 import networkx as nx
@@ -8,7 +7,6 @@ import networkx as nx
 from functools import wraps
 
 from gridtools.symbol   import StencilScope
-from gridtools.stage  import Stage
 from gridtools.compiler import StencilCompiler
 
 from gridtools.utils import Utilities
@@ -130,7 +128,6 @@ class Stencil (object):
         """
         Renders graph 'G' using 'matplotlib'.-
         """
-        from gridtools import plt
 
         pos = nx.spring_layout (G)
         nx.draw_networkx_nodes (G,
@@ -551,7 +548,7 @@ class CombinedStencil (Stencil):
 
             src_dir     directory where the files should be saved (optional).-
         """
-        from os        import write, path, makedirs
+        from os        import path, makedirs
         from tempfile  import mkdtemp
         from gridtools import JinjaEnv
 
