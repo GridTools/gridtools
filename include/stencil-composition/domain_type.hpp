@@ -457,4 +457,21 @@ namespace gridtools {
     template < typename Placeholders >
     struct is_domain_type< domain_type< Placeholders > > : boost::mpl::true_ {};
 
+#ifdef CXX11_ENABLED
+
+    template<uint_t ... Indices, typename ... Storages>
+    domain_type<boost::mpl::vector<arg<Indices, Storages> ... > > instantiate_domain_type(gt_integer_sequence<uint_t, Indices ...> seq_, Storages& ... storages_){
+        return domain_type<boost::mpl::vector<arg<Indices, Storages> ... > >(&storages_ ...);
+    }
+
+
+    template<typename ... Storage>
+    auto make_domain_type( Storage & ... storages_)
+        -> decltype(instantiate_domain_type(make_gt_integer_sequence<uint_t, sizeof...(Storage)>(), storages_ ...))
+    {
+        instantiate_domain_type(make_gt_integer_sequence<uint_t, sizeof...(Storage)>(), storages_ ...);
+    }
+
+#endif
+
 } // namespace gridtools

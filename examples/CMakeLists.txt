@@ -2,7 +2,7 @@ if(NOT STRUCTURED_GRIDS)
     add_subdirectory(icosahedral)
 else()
 
-  list( APPEND SRCFILES interface1 simple_hori_diff boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore alignment expandable_parameters expandable_parameters_single_kernel expandable_parameters_multi_kernel)
+  list( APPEND SRCFILES interface1 simple_hori_diff boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore alignment expandable_parameters expandable_parameters_single_kernel expandable_parameters_multi_kernel vertical_diffusion)
   list( APPEND X86_SRCFILES reduction)
 
   if( ENABLE_CXX11)

@@ -171,9 +171,9 @@ namespace gridtools{
         virtual void run(){
 
             //the expand factor must be smaller than the total size of the expandable parameters list
-            assert(m_size%ExpandFactor::value);
+            assert(m_size>=ExpandFactor::value);
 
-        for(uint_t i=0; i<m_size-m_size%ExpandFactor::value; i+=ExpandFactor::value){
+            for(uint_t i=0; i<m_size-m_size%ExpandFactor::value; i+=ExpandFactor::value){
 
                 // std::cout<<"iteration: "<<i<<"\n";
                 boost::mpl::for_each<expandable_params_t>(_impl::assign_expandable_params<DomainType, domain_type<new_arg_list> >(m_domain_from, *m_domain_to, i));
