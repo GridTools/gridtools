@@ -45,8 +45,10 @@ namespace gridtools {
             typedef typename boost::mpl::at< typename Esf::args_t, Index >::type placeholder_type;
             typedef typename boost::mpl::if_<
                 Pred,
-                typename boost::mpl::pair< placeholder_type,
-                    typename boost::mpl::at< typename Esf::args_with_extents, placeholder_type >::type >::type,
+                typename boost::mpl::pair<
+                    placeholder_type,
+                    typename boost::mpl::at< typename Esf::args_with_extents, placeholder_type >::type
+                    >::type,
                 typename boost::mpl::at< typename Esf::args_t, Index >::type >::type type;
         };
     };
@@ -77,11 +79,13 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), "Wrong Type");
         template < typename Index >
         struct apply {
-            typedef typename boost::mpl::if_< is_arg< typename boost::mpl::at< typename Esf::args_t, Index >::type >,
-                typename boost::mpl::if_< typename is_accessor_readonly< typename boost::mpl::
-                                                  at< typename Esf::esf_function::arg_list, Index >::type >::type,
-                                                  boost::false_type,
-                                                  boost::true_type >::type,
+            typedef typename boost::mpl::if_<
+                is_arg< typename boost::mpl::at< typename Esf::args_t, Index >::type >,
+                typename boost::mpl::if_<
+                    typename is_accessor_readonly<
+                        typename boost::mpl::at< typename Esf::esf_function::arg_list, Index >::type >::type,
+                    boost::false_type,
+                    boost::true_type >::type,
                 boost::false_type >::type type;
         };
     };
