@@ -305,10 +305,15 @@ namespace gridtools {
          * @param real_storage The actual fusion::vector with the values
          TODO: when I have only one placeholder and C++11 enabled this constructor is erroneously picked
          */
-        template < typename RealStorage >
-        explicit domain_type(RealStorage const &real_storage_
-                             , typename boost::enable_if<boost::is_pointer<typename boost::mpl::at_c<RealStorage, 0>::type > , int >::type* t=0
-            )
+        template < typename RealStorage
+#ifdef CXX11_ENALBED
+                   , typename= typename std::enable_if<
+                         boost::is_pointer<
+                             typename boost::mpl::at_c<
+                                 RealStorage, 0>::type >::value >::type
+#endif
+                   >
+        explicit domain_type(RealStorage const &real_storage_)
             : m_storage_pointers(), m_metadata_set() {
 
             // TODO: how to check the assertion below?
@@ -364,15 +369,20 @@ namespace gridtools {
             boost::fusion::copy(real_storage_, original_fview);
         }
 
+        //constructor used from whithin expandable parameters
+#ifdef CXX11_ENABLED //because of std::enable_if
 
         /**@brief Constructor from boost::fusion::vector of gridools::pointer
          * @tparam RealStorage fusion::vector of gridtools::pointers to storages
          * @param real_storage The actual fusion::vector with the values
          TODO: when I have only one placeholder and C++11 enabled this constructor is erroneously picked
          */
-        template < typename RealStorage >
+        template < typename RealStorage, typename= typename std::enable_if<
+                                             is_pointer<
+                                                 typename boost::mpl::at_c<
+                                                     RealStorage, 0>::type >::value >::type >
         explicit domain_type(RealStorage const &storage_pointers_
-                             ,typename boost::enable_if<is_pointer<typename boost::mpl::at_c<RealStorage, 0>::type >, int >::type* t=0
+                             //,typename std::enable_if<is_pointer<typename boost::mpl::at_c<RealStorage, 0>::type >, int >::type* t=0
             )
             : m_storage_pointers(storage_pointers_), m_metadata_set() {
 
@@ -383,7 +393,7 @@ namespace gridtools {
             // copy of the non-tmp metadata into m_metadata_set
             boost::fusion::for_each(storage_pointers_, assign_metadata_set< metadata_set_t >(m_metadata_set));
         }
-
+#endif
 
         /** Copy constructor to be used when cloning to GPU
          *

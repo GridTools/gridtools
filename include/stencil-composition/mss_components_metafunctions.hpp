@@ -10,8 +10,8 @@ namespace gridtools {
     template < typename T >
     struct mss_components_is_reduction;
 
-    template < typename MssDescriptor, typename ExtentSizes >
-    struct mss_components_is_reduction< mss_components< MssDescriptor, ExtentSizes > > : MssDescriptor::is_reduction_t {
+    template < typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor >
+    struct mss_components_is_reduction< mss_components< MssDescriptor, ExtentSizes , RepeatFunctor> > : MssDescriptor::is_reduction_t {
     };
 
     // TODOCOSUNA unittest this

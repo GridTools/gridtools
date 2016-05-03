@@ -103,7 +103,7 @@ namespace gridtools {
         // ctor with one argument have to provide specific arguments in order to avoid ambiguous instantiation
         // by the compiler
         template < uint_t Idx >
-        GT_FUNCTION constexpr accessor_base(dimension< Idx > const &x)
+        GT_FUNCTION constexpr accessor_base(dimension< Idx > x)
             : m_offsets(x) {}
 
         GT_FUNCTION
@@ -114,7 +114,7 @@ namespace gridtools {
    language keyword used at the interface level.
 */
 #if defined(CXX11_ENABLED) && !defined(__CUDACC__) // cuda messing up
-        template < typename... Whatever
+        template < typename First, typename... Whatever
                    , typename T= typename boost::enable_if_c<
                          accumulate(logical_and()
                                     , boost::mpl::or_<
@@ -122,9 +122,9 @@ namespace gridtools {
                                     , is_dimension<Whatever>
                                     >::type::value ... ) >::type >
 
-        GT_FUNCTION constexpr accessor_base(Whatever... x)
-            : m_offsets(x...) {
-            GRIDTOOLS_STATIC_ASSERT(sizeof...(x) <= n_dim,
+        GT_FUNCTION constexpr accessor_base(First f, Whatever... x)
+            : m_offsets(f, x...) {
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(x) <= n_dim-1,
                 "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions "
                 "of the storage. Check that you are not accessing a non existing dimension, or increase the dimension "
                 "D of the accessor (accessor<Id, extent, D>)");

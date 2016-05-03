@@ -37,10 +37,11 @@ namespace gridtools{
                typename DomainType,
                typename Grid,
                typename ConditionalsSet,
+               typename ReductionType,
                bool IsStateful,
                typename ExpandFactor
                >
-    struct intermediate_expand : public computation
+    struct intermediate_expand : public computation<ReductionType>
     {
         GRIDTOOLS_STATIC_ASSERT((is_backend<Backend>::value), "wrong type");
         // to make the following work we should change in lot of places
@@ -92,6 +93,7 @@ namespace gridtools{
                               , domain_type<new_arg_list>
                               , Grid
                               , ConditionalsSet
+                              , ReductionType
                               , IsStateful
                               , ExpandFactor::value
                               > intermediate_t;
@@ -103,6 +105,7 @@ namespace gridtools{
                               , domain_type<new_arg_list>
                               , Grid
                               , ConditionalsSet
+                              , ReductionType
                               , IsStateful
                               , 1
                               > intermediate_extra_t;
