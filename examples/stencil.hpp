@@ -225,7 +225,6 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
     // Start timer
     boost::timer::cpu_times lapse_time_run = {0,0,0};
-    boost::timer::cpu_times lapse_time_d3point7 = {0,0,0};
     boost::timer::cpu_timer time;
 
     /**
@@ -265,9 +264,9 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         // Prepare and run single step of CG computation
         stencil->ready();
         stencil->steady();
-        boost::timer::cpu_timer time_runInit;
+        boost::timer::cpu_timer time_run;
         stencil->run();
-        lapse_time_run = lapse_time_run + time_runInit.elapsed();
+        lapse_time_run = lapse_time_run + time_run.elapsed();
         stencil->finalize();
 
         //communicate halos //TODO - what about halo exchange before first computation? is it done automatically by partitioner?
@@ -293,8 +292,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     if (gridtools::PID == 0){
         std::cout << std::endl << "TOTAL TIME: " << boost::timer::format(lapse_time);
         std::cout << "TIME SPENT IN RUN STAGE:" << boost::timer::format(lapse_time_run);
-        std::cout << "d3point7 MFLOPS: " << MFLOPS(10,d1,d2,d3,nt,lapse_time_d3point7.wall) << std::endl; //TODO: multiple processes??
-        std::cout << "d3point7 MLUPs: " << MLUPS(d1,d2,d3,nt,lapse_time_d3point7.wall) << std::endl << std::endl;
+        std::cout << "d3point7 MFLOPS: " << MFLOPS(7,d1,d2,d3,nt,lapse_time_run.wall) << std::endl; //TODO: multiple processes??
+        std::cout << "d3point7 MLUPs: " << MLUPS(d1,d2,d3,nt,lapse_time_run.wall) << std::endl << std::endl;
     }
 
 #ifndef NDEBUG1
