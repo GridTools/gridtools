@@ -20,6 +20,7 @@ namespace gridtools {
 
         typedef IterateDomainBase< iterate_domain_host< IterateDomainBase, IterateDomainArguments > > super;
         typedef typename IterateDomainArguments::local_domain_t local_domain_t;
+        typedef typename super::reduction_type_t reduction_type_t;
 
       public:
         typedef typename super::data_pointer_array_t data_pointer_array_t;
@@ -27,8 +28,9 @@ namespace gridtools {
         typedef boost::mpl::map0<> ij_caches_map_t;
 
         GT_FUNCTION
-        explicit iterate_domain_host(local_domain_t const &local_domain)
-            : super(local_domain), m_data_pointer(0), m_strides(0) {}
+        explicit iterate_domain_host(
+            local_domain_t const &local_domain, const reduction_type_t &reduction_initial_value)
+            : super(local_domain, reduction_initial_value), m_data_pointer(0), m_strides(0) {}
 
         void set_data_pointer_impl(data_pointer_array_t *RESTRICT data_pointer) {
             assert(data_pointer);
@@ -76,6 +78,12 @@ namespace gridtools {
             return super::template get_gmem_value< ReturnType >(storage_pointer, pointer_offset);
         }
 
+        //    template <typename MetaDataSequence, typename ArgStoragePair0, typename... OtherArgs>
+        //    typename boost::enable_if_c< is_any_storage<typename ArgStoragePair0::storage_type>::type::value
+        //                                , void>::type assign_pointers
+
+        //    typename boost::enable_if<MultipleGridPointsPerWarp, int >::type=0
+
       private:
         data_pointer_array_t *RESTRICT m_data_pointer;
         strides_cached_t *RESTRICT m_strides;
@@ -89,10 +97,5 @@ namespace gridtools {
     struct is_positional_iterate_domain< iterate_domain_host< IterateDomainBase, IterateDomainArguments > >
         : is_positional_iterate_domain<
               IterateDomainBase< iterate_domain_host< IterateDomainBase, IterateDomainArguments > > > {};
-
-    template < template < class > class IterateDomainBase, typename IterateDomainArguments >
-    struct iterate_domain_backend_id< iterate_domain_host< IterateDomainBase, IterateDomainArguments > > {
-        typedef enumtype::enum_type< enumtype::platform, enumtype::Host > type;
-    };
 
 } // namespace gridtools

@@ -50,8 +50,8 @@ namespace tridiagonal {
     struct forward_thomas {
         // four vectors: output, and the 3 diagonals
         typedef accessor< 0, enumtype::inout > out;
-        typedef accessor< 1 > inf; // a
-        typedef accessor< 2 > diag; // b
+        typedef accessor< 1 > inf;                  // a
+        typedef accessor< 2 > diag;                 // b
         typedef accessor< 3, enumtype::inout > sup; // c
         typedef accessor< 4, enumtype::inout > rhs; // d
         typedef boost::mpl::vector< out, inf, diag, sup, rhs > arg_list;
@@ -86,8 +86,8 @@ namespace tridiagonal {
 
     struct backward_thomas {
         typedef accessor< 0, enumtype::inout > out;
-        typedef accessor< 1 > inf; // a
-        typedef accessor< 2 > diag; // b
+        typedef accessor< 1 > inf;                  // a
+        typedef accessor< 2 > diag;                 // b
         typedef accessor< 3, enumtype::inout > sup; // c
         typedef accessor< 4, enumtype::inout > rhs; // d
         typedef boost::mpl::vector< out, inf, diag, sup, rhs > arg_list;
@@ -134,12 +134,12 @@ namespace tridiagonal {
 #endif
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend< Cuda, Block >
+#define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, Block >
+#define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
-#define BACKEND backend< Host, Naive >
+#define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
 
@@ -170,10 +170,10 @@ namespace tridiagonal {
 
         // Definition of placeholders. The order of them reflect the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
-        typedef arg< 0, storage_type > p_inf; // a
+        typedef arg< 0, storage_type > p_inf;  // a
         typedef arg< 1, storage_type > p_diag; // b
-        typedef arg< 2, storage_type > p_sup; // c
-        typedef arg< 3, storage_type > p_rhs; // d
+        typedef arg< 2, storage_type > p_sup;  // c
+        typedef arg< 3, storage_type > p_rhs;  // d
         typedef arg< 4, storage_type > p_out;
 
         // An array of placeholders to be passed to the domain
@@ -212,9 +212,9 @@ namespace tridiagonal {
         auto
 #else
 #ifdef __CUDACC__
-        gridtools::computation *
+        gridtools::stencil *
 #else
-        boost::shared_ptr< gridtools::computation >
+        boost::shared_ptr< gridtools::stencil >
 #endif
 #endif
             solver = gridtools::make_computation< gridtools::BACKEND >(

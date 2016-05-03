@@ -7,8 +7,13 @@
 
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
-#include <stencil-composition/stencil-composition.hpp>
-#include <common/generic_metafunctions/fusion_map_to_mpl_map.hpp>
+#include "common/defs.hpp"
+#include "stencil-composition/backend.hpp"
+#include "stencil-composition/caches/cache_metafunctions.hpp"
+#include "stencil-composition/interval.hpp"
+#include "stencil-composition/stencil-composition.hpp"
+#include "common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
+#include "stencil-composition/caches/extract_extent_caches.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
@@ -26,7 +31,8 @@ struct functor1 {
 };
 
 typedef layout_map<0,1> layout_ij_t;
-typedef backend<Host, Naive >::storage_type<float_type, backend<Host, Naive >::storage_info<0,layout_ij_t> >::type storage_type;
+typedef backend< Host, GRIDBACKEND, Naive >::storage_type< float_type,
+    backend< Host, GRIDBACKEND, Naive >::storage_info< 0, layout_ij_t > >::type storage_type;
 
 typedef arg<0, storage_type> p_in;
 typedef arg<2, storage_type> p_out;
@@ -38,10 +44,10 @@ typedef decltype(gridtools::make_esf<functor1>(p_buff(), p_out()) ) esf2_t;
 
 typedef boost::mpl::vector2<esf1_t, esf2_t> esf_sequence_t;
 
-typedef cache<IJ, p_in, fill> cache1_t;
-typedef cache<IJ, p_buff, fill> cache2_t;
-typedef cache<K, p_out, local> cache3_t;
-typedef cache<K, p_notin, local> cache4_t;
+typedef detail::cache_impl<IJ, p_in, fill> cache1_t;
+typedef detail::cache_impl<IJ, p_buff, fill> cache2_t;
+typedef detail::cache_impl<K, p_out, local> cache3_t;
+typedef detail::cache_impl<K, p_notin, local> cache4_t;
 typedef boost::mpl::vector4<cache1_t, cache2_t, cache3_t, cache4_t> caches_t;
 
 TEST(cache_metafunctions, cache_used_by_esfs)
@@ -66,8 +72,7 @@ TEST(cache_metafunctions, extract_extents_for_caches)
         enclosing_extent<boost::mpl::_1, boost::mpl::_2>
     >::type max_extent_t;
 
-    typedef iterate_domain_arguments<
-        enumtype::enum_type<enumtype::platform, enumtype::Host>,
+    typedef iterate_domain_arguments< backend_ids< Cuda, GRIDBACKEND, Block >,
         local_domain_t,
         esf_sequence_t,
         extents_t,
@@ -75,7 +80,9 @@ TEST(cache_metafunctions, extract_extents_for_caches)
         caches_t,
         block_size<32,4>,
         block_size<32,4>,
-        gridtools::grid<axis>
+        gridtools::grid<axis>,
+        false,
+        notype
     > iterate_domain_arguments_t;
 
     typedef extract_extents_for_caches<iterate_domain_arguments_t>::type extents_map_t;
@@ -106,8 +113,7 @@ TEST(cache_metafunctions, get_cache_storage_tuple)
   
     typedef gridtools::interval<gridtools::level<0,-2>, gridtools::level<1,1> > axis;
 
-    typedef iterate_domain_arguments<
-        enumtype::enum_type<enumtype::platform, enumtype::Host>,
+    typedef iterate_domain_arguments< backend_ids< Cuda, GRIDBACKEND, Block >,
         local_domain_t,
         esf_sequence_t,
         extents_t,
@@ -115,7 +121,9 @@ TEST(cache_metafunctions, get_cache_storage_tuple)
         caches_t,
         block_size<32,4>,
         block_size<32,4>,
-        gridtools::grid<axis>
+        gridtools::grid<axis>,
+        false,
+        notype
     > iterate_domain_arguments_t;
 
     typedef extract_extents_for_caches<iterate_domain_arguments_t>::type extents_map_t;

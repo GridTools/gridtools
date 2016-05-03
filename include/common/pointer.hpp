@@ -88,6 +88,16 @@ namespace gridtools {
             assert(m_t);
             return *m_t;
         }
+
+        /**
+          @brief destroy pointer
+         */
+        GT_FUNCTION
+        void destroy() {
+            assert(m_t);
+            delete m_t;
+            m_t = NULL;
+        }
     };
 
     template < typename T >

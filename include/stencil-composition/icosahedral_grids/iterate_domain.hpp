@@ -7,117 +7,10 @@
 #include "stencil-composition/total_storages.hpp"
 #include "stencil-composition/iterate_domain_aux.hpp"
 #include "stencil-composition/icosahedral_grids/accessor_metafunctions.hpp"
-#include "stencil-composition/iterate_domain_impl.hpp"
-
-#define _ACCESSOR_H_DEBUG_
+#include "on_neighbors.hpp"
+#include "../iterate_domain_fwd.hpp"
 
 namespace gridtools {
-
-    /**
-       Map function that uses compile time (stateless) accessors to be
-       evaluated later. Another version would have the Arguments to be
-       a fusion vector (for instance), so that each argument can carry
-       additional state, like a constant value.
-     */
-    template < typename MapF, typename LocationType, typename... Arguments >
-    struct map_function {
-        using location_type = LocationType;
-        using argument_types = std::tuple< Arguments... >;
-        using function_type = MapF;
-
-        const function_type m_function;
-        argument_types m_arguments;
-
-        map_function(function_type f, Arguments... args) : m_function(f), m_arguments(args...) {}
-
-        template < uint_t I >
-        typename std::tuple_element< I, argument_types >::type const &argument() const {
-            return std::get< I >(m_arguments);
-        }
-
-        location_type location() const { return location_type(); }
-
-        function_type function() const { return m_function; }
-    };
-
-    /**
-    initial version of this that should check if all args have the same location type
-    */
-    template < typename Arg0, typename... Args >
-    struct get_location_type_of {
-        using type = typename Arg0::location_type;
-    };
-
-    template < typename MapF, typename... Args >
-    map_function< MapF, typename get_location_type_of< Args... >::type, Args... > map(MapF const &f, Args... args) {
-        return map_function< MapF, typename get_location_type_of< Args... >::type, Args... >(f, args...);
-    }
-
-    template < typename T >
-    struct identity {
-        T operator()(T v) const { return v; }
-    };
-
-    /**
-       This struct is the one holding the function to apply when iterating
-       on neighbors
-     */
-    template < typename ValueType, typename DstLocationType, typename ReductionFunction, typename MapFunction >
-    class on_neighbors_impl {
-        using map_function = MapFunction;
-        using reduction_function = ReductionFunction;
-        using dst_location_type = DstLocationType;
-        using value_type = ValueType;
-
-        const reduction_function m_reduction;
-        const map_function m_map;
-        const value_type m_value;
-
-      public:
-        on_neighbors_impl(const reduction_function l, map_function a, value_type v)
-            : m_reduction(l), m_map(a), m_value(v) {}
-
-        value_type value() const { return m_value; }
-
-        reduction_function reduction() const { return m_reduction; }
-
-        map_function map() const { return m_map; }
-
-        on_neighbors_impl(on_neighbors_impl const &other)
-            : m_reduction(other.m_reduction), m_map(other.m_map), m_value(other.m_value) {}
-
-        dst_location_type location() const { return dst_location_type(); }
-    };
-
-    template < typename Reduction, typename ValueType, typename Map >
-    on_neighbors_impl< ValueType, typename Map::location_type, Reduction, Map > reduce_on_something(
-        Reduction function, ValueType initial, Map mapf) {
-        return on_neighbors_impl< ValueType, typename Map::location_type, Reduction, Map >(function, mapf, initial);
-    }
-
-    template < typename Reduction, typename ValueType, typename Map >
-    on_neighbors_impl< ValueType, typename Map::location_type, Reduction, Map > on_edges(
-        Reduction function, ValueType initial, Map mapf) {
-        static_assert(Map::location_type::value == 1,
-            "The map function (for a nested call) provided to 'on_edges' is not on edges");
-        return reduce_on_something(function, initial, mapf);
-    }
-
-    template < typename Reduction, typename ValueType, typename Map >
-    on_neighbors_impl< ValueType, typename Map::location_type, Reduction, Map > on_cells(
-        Reduction function, ValueType initial, Map mapf) {
-        static_assert(Map::location_type::value == 0,
-            "The map function (for a nested call) provided to 'on_cellss' is not on cells");
-        return reduce_on_something(function, initial, mapf);
-    }
-
-    template < typename Reduction, typename ValueType, typename Map >
-    on_neighbors_impl< ValueType, typename Map::location_type, Reduction, Map > on_vertexes(
-        Reduction function, ValueType initial, Map mapf) {
-        static_assert(Map::location_type::value == 2,
-            "The map function (for a nested call) provided to 'on_vertexes' is not on edges");
-        return reduce_on_something(function, initial, mapf);
-    }
 
     // TODO move this to the appropiate file
     template < typename EsfSequence >
@@ -145,14 +38,14 @@ namespace gridtools {
 
         typedef typename iterate_domain_arguments_t::processing_elements_block_size_t processing_elements_block_size_t;
 
-        typedef typename iterate_domain_arguments_t::backend_id_t backend_id_t;
+        typedef typename iterate_domain_arguments_t::backend_ids_t backend_ids_t;
         typedef typename iterate_domain_arguments_t::grid_t::grid_topology_t grid_topology_t;
         typedef typename iterate_domain_arguments_t::esf_sequence_t esf_sequence_t;
         typedef typename extract_location_type< esf_sequence_t >::type location_type_t;
 
         typedef typename local_domain_t::esf_args esf_args_t;
 
-        typedef typename backend_traits_from_id< backend_id_t::value >::template select_iterate_domain_cache<
+        typedef typename backend_traits_from_id< backend_ids_t::s_backend_id >::template select_iterate_domain_cache<
             iterate_domain_arguments_t >::type iterate_domain_cache_t;
 
         typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
@@ -199,6 +92,9 @@ namespace gridtools {
         struct accessor_return_type {
             typedef typename accessor_return_type_impl< Accessor, iterate_domain_arguments_t >::type type;
         };
+
+        typedef typename compute_readonly_args_indices< typename iterate_domain_arguments_t::esf_sequence_t >::type
+            readonly_args_indices_t;
 
       private:
         GRIDTOOLS_STATIC_ASSERT((N_META_STORAGES <= grid_topology_t::n_locations::value),
@@ -305,14 +201,6 @@ namespace gridtools {
             m_grid_position[Coordinate] = initial_pos;
         }
 
-        void set_data_pointer(data_pointer_array_t *RESTRICT data_pointer) {
-            static_cast< IterateDomainImpl * >(this)->template set_data_pointer_impl(data_pointer);
-        }
-
-        void set_strides_pointer(strides_cached_t *RESTRICT strides) {
-            static_cast< IterateDomainImpl * >(this)->template set_strides_pointer_impl(strides);
-        }
-
         /**@brief method for incrementing by 1 the index when moving forward along the given direction
            \tparam Coordinate dimension being incremented
            \tparam Execution the policy for the increment (e.g. forward/backward)
@@ -375,16 +263,16 @@ namespace gridtools {
         GT_FUNCTION
         void set_position(array< uint_t, 4 > const &position) { m_grid_position = position; }
 
-        template < uint_t ID, enumtype::intend intend, typename LocationType, typename Radius >
-        GT_FUNCTION typename accessor_return_type< accessor< ID, intend, LocationType, Radius > >::type operator()(
-            accessor< ID, intend, LocationType, Radius > const &accessor_) const {
-            typedef accessor< ID, intend, LocationType, Radius > accessor_t;
+        template < uint_t ID, enumtype::intend intend, typename LocationType, typename Extent >
+        GT_FUNCTION typename accessor_return_type< accessor< ID, intend, LocationType, Extent > >::type operator()(
+            accessor< ID, intend, LocationType, Extent > const &accessor_) const {
+            typedef accessor< ID, intend, LocationType, Extent > accessor_t;
             return get_value(accessor_,
                 (data_pointer())[current_storage< (ID == 0), local_domain_t, typename accessor_t::type >::value]);
         }
 
         template < typename ValueType, typename LocationTypeT, typename Reduction, typename MapF, typename... Arg0 >
-        double operator()(
+        GT_FUNCTION double operator()(
             on_neighbors_impl< ValueType, LocationTypeT, Reduction, map_function< MapF, LocationTypeT, Arg0... > >
                 onneighbors) const {
             auto current_position = m_grid_position;
@@ -401,8 +289,8 @@ namespace gridtools {
         }
 
         template < typename ValueType, typename LocationTypeT, typename Reduction, uint_t I, typename L, int_t R >
-        double operator()(
-            on_neighbors_impl< ValueType, LocationTypeT, Reduction, accessor< I, enumtype::in, L, radius< R > > >
+        GT_FUNCTION double operator()(
+            on_neighbors_impl< ValueType, LocationTypeT, Reduction, accessor< I, enumtype::in, L, extent< R > > >
                 onneighbors) const {
             auto current_position = m_grid_position;
 
@@ -486,9 +374,9 @@ namespace gridtools {
         }
 
         // TODO return the right value, instead of double
-        template < uint_t ID, enumtype::intend Intend, typename LocationType, typename Radius, typename IndexArray >
-        double _evaluate(accessor< ID, Intend, LocationType, Radius >, IndexArray const &position) const {
-            using accessor_t = accessor< ID, Intend, LocationType, Radius >;
+        template < uint_t ID, enumtype::intend Intend, typename LocationType, typename Extent, typename IndexArray >
+        GT_FUNCTION double _evaluate(accessor< ID, Intend, LocationType, Extent >, IndexArray const &position) const {
+            using accessor_t = accessor< ID, Intend, LocationType, Extent >;
             using location_type_t = typename accessor_t::location_type;
             int offset = m_grid_topology.ll_offset(position, location_type_t());
 
@@ -500,23 +388,23 @@ namespace gridtools {
         }
 
         template < typename MapF, typename LT, typename Arg0, typename IndexArray >
-        double _evaluate(map_function< MapF, LT, Arg0 > const &map, IndexArray const &position) const {
+        GT_FUNCTION double _evaluate(map_function< MapF, LT, Arg0 > const &map, IndexArray const &position) const {
             int offset = m_grid_topology.ll_offset(position, map.location());
             return map.function()(_evaluate(map.template argument< 0 >(), position));
         }
 
         template < typename MapF, typename LT, typename Arg0, typename Arg1, typename IndexArray >
-        double _evaluate(map_function< MapF, LT, Arg0, Arg1 > const &map, IndexArray const &position) const {
+        GT_FUNCTION double _evaluate(
+            map_function< MapF, LT, Arg0, Arg1 > const &map, IndexArray const &position) const {
             int offset = m_grid_topology.ll_offset(position, map.location());
             return map.function()(
                 _evaluate(map.template argument< 0 >(), position), _evaluate(map.template argument< 1 >(), position));
         }
         template < typename ValueType, typename LocationTypeT, typename Reduction, typename Map, typename IndexArray >
-        double _evaluate(
+        GT_FUNCTION double _evaluate(
             on_neighbors_impl< ValueType, LocationTypeT, Reduction, Map > onn, IndexArray const &position) const {
             using tt = typename grid_topology_t::edges;
             const auto neighbors = grid_topology_t::neighbors_indices_3(position, tt(), onn.location());
-            std::cout << "POSITION " << position << "  " << neighbors << " " << onn.location() << std::endl;
             double result = onn.value();
 
             for (int i = 0; i < neighbors.size(); ++i) {

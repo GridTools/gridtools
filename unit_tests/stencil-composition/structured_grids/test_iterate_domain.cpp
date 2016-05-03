@@ -7,6 +7,8 @@
 
 namespace test_iterate_domain{
     using namespace gridtools;
+    using namespace enumtype;
+
     // This is the definition of the special regions in the "vertical" direction
     typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_interval;
     typedef gridtools::interval<gridtools::level<0,-2>, gridtools::level<1,1> > axis;
@@ -34,13 +36,14 @@ namespace test_iterate_domain{
         typedef layout_map<0,1,2> layout_kji_t;
         typedef layout_map<0,1> layout_ij_t;
 
-        typedef gridtools::backend<enumtype::Host, enumtype::Naive >::storage_info<0, layout_ijkp_t> meta_ijkp_t;
-        typedef gridtools::backend<enumtype::Host, enumtype::Naive >::storage_info<0, layout_kji_t> meta_kji_t;
-        typedef gridtools::backend<enumtype::Host, enumtype::Naive >::storage_info<0, layout_ij_t> meta_ij_t;
+        typedef gridtools::backend< enumtype::Host, enumtype::structured, enumtype::Naive > backend_t;
+        typedef backend_t::storage_info< 0, layout_ijkp_t > meta_ijkp_t;
+        typedef backend_t::storage_info< 0, layout_kji_t > meta_kji_t;
+        typedef backend_t::storage_info< 0, layout_ij_t > meta_ij_t;
 
-        typedef gridtools::backend<enumtype::Host, enumtype::Naive >::storage_type<float_type, meta_ijkp_t >::type storage_type;
-        typedef gridtools::backend<enumtype::Host, enumtype::Naive >::storage_type<float_type, meta_kji_t >::type storage_buff_type;
-        typedef gridtools::backend<enumtype::Host, enumtype::Naive >::storage_type<float_type, meta_ij_t >::type storage_out_type;
+        typedef backend_t::storage_type< float_type, meta_ijkp_t >::type storage_type;
+        typedef backend_t::storage_type< float_type, meta_kji_t >::type storage_buff_type;
+        typedef backend_t::storage_type< float_type, meta_ij_t >::type storage_out_type;
 
         uint_t d1 = 15;
         uint_t d2 = 13;
@@ -68,60 +71,54 @@ namespace test_iterate_domain{
         grid.value_list[0] = 0;
         grid.value_list[1] = d3-1;
 
+        typedef intermediate< gridtools::backend< Host, GRIDBACKEND, Naive >,
+            gridtools::meta_array< boost::mpl::vector< decltype(gridtools::make_mss // mss_descriptor
+                                       (enumtype::execute< enumtype::forward >(),
+                                           gridtools::make_esf< dummy_functor >(p_in(), p_buff(), p_out()))) >,
+                                  boost::mpl::quote1< is_amss_descriptor > >,
+            decltype(domain),
+            decltype(grid),
+            boost::fusion::set<>,
+            notype,
+            false > intermediate_t;
 
-        typedef intermediate<gridtools::backend<enumtype::Host, enumtype::Naive >
-                             , gridtools::meta_array<
-                                 boost::mpl::vector<decltype(
-                                     gridtools::make_mss // mss_descriptor
-                                     (
-                                         enumtype::execute<enumtype::forward>(),
-                                         gridtools::make_esf<dummy_functor>(p_in() ,p_buff(), p_out())
-                                         )
-                                     ) >
-                                   , boost::mpl::quote1<is_mss_descriptor> >
-                             , decltype(domain)
-                             , decltype(grid)
-                             , boost::fusion::set<>
-                             , false
-                             > intermediate_t;
-
-        std::shared_ptr<intermediate_t> computation_ = std::static_pointer_cast<intermediate_t>(make_computation<gridtools::backend<enumtype::Host, enumtype::Naive > >
-            (
-                domain, grid,
+        std::shared_ptr< intermediate_t > computation_ = std::static_pointer_cast< intermediate_t >(
+            make_computation< gridtools::backend< Host, GRIDBACKEND, Naive > >(
+                domain,
+                grid,
                 gridtools::make_mss // mss_descriptor
-                (
-                    enumtype::execute<enumtype::forward>(),
-                    gridtools::make_esf<dummy_functor>(p_in() ,p_buff(), p_out())
-                    )
-                ));
+                (enumtype::execute< enumtype::forward >(),
+                    gridtools::make_esf< dummy_functor >(p_in(), p_buff(), p_out()))));
 
         typedef decltype(gridtools::make_esf<dummy_functor>(p_in() ,p_buff(), p_out())) esf_t;
-        typedef boost::remove_reference<decltype(*computation_)>::type intermediate_t;
 
         computation_->ready();
         computation_->steady();
 
+        typedef boost::remove_reference< decltype(*computation_) >::type intermediate_t;
         typedef intermediate_mss_local_domains<intermediate_t>::type mss_local_domains_t;
 
         typedef boost::mpl::front<mss_local_domains_t>::type mss_local_domain1_t;
 
         typedef iterate_domain_host<
             iterate_domain,
-            iterate_domain_arguments<
-                enumtype::enum_type<enumtype::platform, enumtype::Host>,
-                boost::mpl::at_c<typename mss_local_domain1_t::fused_local_domain_sequence_t, 0>::type,
-                boost::mpl::vector1<esf_t>,
-                boost::mpl::vector1<extent<0,0,0,0> >,
-                extent<0,0,0,0>,
+            iterate_domain_arguments< backend_ids< Host, GRIDBACKEND, Naive >,
+                boost::mpl::at_c< typename mss_local_domain1_t::fused_local_domain_sequence_t, 0 >::type,
+                boost::mpl::vector1< esf_t >,
+                boost::mpl::vector1< extent< 0, 0, 0, 0 > >,
+                extent< 0, 0, 0, 0 >,
                 boost::mpl::vector0<>,
                 block_size<32,4>,
                 block_size<32,4>,
-                gridtools::grid<axis>
+                gridtools::grid<axis>,
+                false,
+                notype
                 >
             > it_domain_t;
 
-        mss_local_domain1_t const* mss_local_domain1=&(boost::fusion::at_c<0>(computation_->mss_local_domain_list()));
-        it_domain_t it_domain(boost::fusion::at_c<0>(mss_local_domain1->local_domain_list));
+        mss_local_domain1_t mss_local_domain1=boost::fusion::at_c<0>(computation_->mss_local_domain_list());
+        auto local_domain1=boost::fusion::at_c<0>(mss_local_domain1.local_domain_list);
+        it_domain_t it_domain(local_domain1, 0);
 
         GRIDTOOLS_STATIC_ASSERT(it_domain_t::N_STORAGES==3, "bug in iterate domain, incorrect number of storages");
 
@@ -131,7 +128,7 @@ namespace test_iterate_domain{
         typedef typename it_domain_t::strides_cached_t strides_t;
         strides_t strides;
 
-        typedef backend_traits_from_id<enumtype::Host> backend_traits_t;
+        typedef backend_traits_from_id< Host > backend_traits_t;
 
         it_domain.set_data_pointer_impl(&data_pointer);
         it_domain.set_strides_pointer_impl(&strides);

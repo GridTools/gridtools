@@ -24,22 +24,26 @@ namespace gridtools {
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
          * @tparam MssComponentsArray a meta array with the mss components of all MSS
-         * @tparam BackendId id of the backend
+         * @tparam BackendIds ids of backend
          */
-        template < typename MssComponentsArray, enumtype::platform BackendId >
+        template < typename MssComponentsArray, typename BackendIds, typename ReductionData >
         struct fused_mss_loop {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_meta_array_of< MssComponentsArray, is_mss_components >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), "Error");
+
             typedef boost::mpl::range_c< uint_t,
                 0,
                 boost::mpl::size< typename MssComponentsArray::elements >::type::value > iter_range;
 
             template < typename LocalDomainListArray, typename Grid >
-            static void run(LocalDomainListArray &local_domain_lists, const Grid &grid) {
-                typedef backend_traits_from_id< BackendId > backend_traits;
+            static void run(LocalDomainListArray &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
+                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
+
                 boost::mpl::for_each< iter_range >(
-                    mss_functor< MssComponentsArray, Grid, LocalDomainListArray, BackendId, enumtype::Naive >(
-                        local_domain_lists, grid, 0, 0));
+                    mss_functor< MssComponentsArray, Grid, LocalDomainListArray, BackendIds, ReductionData >(
+                        local_domain_lists, grid, reduction_data, 0, 0));
             }
         };
 
@@ -47,24 +51,32 @@ namespace gridtools {
          * @brief main execution of a mss. Defines the IJ loop bounds of this particular block
          * and sequentially executes all the functors in the mss
          * @tparam RunFunctorArgs run functor arguments
-         * @tparam BackendId id of the backend
          */
-        template < typename RunFunctorArgs, enumtype::platform BackendId >
+        template < typename RunFunctorArgs >
         struct mss_loop {
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), "Internal Error: wrong type");
-            template < typename LocalDomain, typename Grid >
-            static void run(const LocalDomain &local_domain, const Grid &grid, const uint_t bi, const uint_t bj) {
+            typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
+            template < typename LocalDomain, typename Grid, typename ReductionData >
+            static void run(const LocalDomain &local_domain,
+                const Grid &grid,
+                ReductionData &reduction_data,
+                const uint_t bi,
+                const uint_t bj) {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), "Internal Error: wrong type");
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
-                typedef backend_traits_from_id< BackendId > backend_traits_t;
+                GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), "Error");
 
+                typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
                 typedef
-                    typename backend_traits_t::template execute_traits< RunFunctorArgs >::run_functor_t run_functor_t;
+                    typename grid_traits_t::template with_arch< backend_ids_t::s_backend_id >::type arch_grid_traits_t;
+
+                // getting the architecture and grid dependent traits
+                typedef typename arch_grid_traits_t::template kernel_functor_executor< RunFunctorArgs >::type
+                    kernel_functor_executor_t;
 
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
                 GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< functor_list_t >::value == 1), "Internal Error: wrong size");
-
-                GRIDPREFIX::execute_kernel_functor_host< RunFunctorArgs >(local_domain, grid)();
+                kernel_functor_executor_t(local_domain, grid, reduction_data)();
             }
         };
 
@@ -157,20 +169,22 @@ namespace gridtools {
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
          * @tparam MssComponentsArray a meta array with the mss components of all MSS
-         * @tparam BackendId id of the backend
+         * @tparam BackendIds ids of backend
          */
-        template < typename MssComponentsArray, enumtype::platform BackendId >
+        template < typename MssComponentsArray, typename BackendIds, typename ReductionData >
         struct fused_mss_loop {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_meta_array_of< MssComponentsArray, is_mss_components >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), "Error");
+
             typedef boost::mpl::range_c< uint_t,
                 0,
                 boost::mpl::size< typename MssComponentsArray::elements >::type::value > iter_range;
 
             template < typename LocalDomainListArray, typename Grid >
-            static void run(LocalDomainListArray &local_domain_lists, const Grid &grid) {
+            static void run(LocalDomainListArray &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
-                typedef backend_traits_from_id< BackendId > backend_traits;
 
                 uint_t n = grid.i_high_bound() - grid.i_low_bound();
                 uint_t m = grid.j_high_bound() - grid.j_low_bound();
@@ -186,8 +200,8 @@ namespace gridtools {
                             boost::mpl::for_each< iter_range >(mss_functor< MssComponentsArray,
                                 Grid,
                                 LocalDomainListArray,
-                                BackendId,
-                                enumtype::Block >(local_domain_lists, grid, bi, bj));
+                                BackendIds,
+                                ReductionData >(local_domain_lists, grid, reduction_data, bi, bj));
                         }
                     }
                 }
@@ -198,20 +212,30 @@ namespace gridtools {
          * @brief main execution of a mss for a given IJ block. Defines the IJ loop bounds of this particular block
          * and sequentially executes all the functors in the mss
          * @tparam RunFunctorArgs run functor arguments
-         * @tparam BackendId id of the backend
          */
-        template < typename RunFunctorArgs, enumtype::platform BackendId >
+        template < typename RunFunctorArgs >
         struct mss_loop {
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), "Internal Error: wrong type");
-            template < typename LocalDomain, typename Grid >
-            static void run(const LocalDomain &local_domain, const Grid &grid, const uint_t bi, const uint_t bj) {
+
+            typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
+
+            template < typename LocalDomain, typename Grid, typename ReductionData >
+            static void run(const LocalDomain &local_domain,
+                const Grid &grid,
+                ReductionData &reduction_data,
+                const uint_t bi,
+                const uint_t bj) {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), "Internal Error: wrong type");
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), "Error");
 
-                typedef backend_traits_from_id< BackendId > backend_traits_t;
-
+                typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
                 typedef
-                    typename backend_traits_t::template execute_traits< RunFunctorArgs >::run_functor_t run_functor_t;
+                    typename grid_traits_t::template with_arch< backend_ids_t::s_backend_id >::type arch_grid_traits_t;
+
+                typedef typename arch_grid_traits_t::template kernel_functor_executor< RunFunctorArgs >::type
+                    kernel_functor_executor_t;
+
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
                 GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< functor_list_t >::value == 1), "Internal Error: wrong size");
 
@@ -236,8 +260,8 @@ namespace gridtools {
                     last_j = m - NBJ * BJ;
                 }
 
-                GRIDPREFIX::execute_kernel_functor_host< RunFunctorArgs >(
-                    local_domain, grid, first_i, first_j, last_i, last_j, bi, bj)();
+                kernel_functor_executor_t(
+                    local_domain, grid, reduction_data, first_i, first_j, last_i, last_j, bi, bj)();
             }
         };
 

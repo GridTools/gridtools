@@ -2,30 +2,51 @@
 #include <boost/mpl/assert.hpp>
 #include "mss_metafunctions.hpp"
 #include "mss_components.hpp"
+#include "reductions/reduction_descriptor.hpp"
 #include "../common/meta_array.hpp"
 
 namespace gridtools {
 
+    template < typename T >
+    struct mss_components_is_reduction;
+
+    template < typename MssDescriptor, typename ExtentSizes >
+    struct mss_components_is_reduction< mss_components< MssDescriptor, ExtentSizes > > : MssDescriptor::is_reduction_t {
+    };
+
     // TODOCOSUNA unittest this
     /**
      * @brief metafunction that takes an MSS with multiple ESFs and split it into multiple MSS with one ESF each
+     * Only to be used for CPU. GPU always fuses ESFs and there is no clear way to split the caches.
      * @tparam MssArray meta array of MSS
      */
     template < typename MssArray >
     struct split_mss_into_independent_esfs {
-        GRIDTOOLS_STATIC_ASSERT((is_meta_array_of< MssArray, is_mss_descriptor >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT(
+            (is_meta_array_of< MssArray, is_amss_descriptor >::value), "Internal Error: wrong type");
 
         template < typename MssDescriptor >
         struct mss_split_esfs {
-            GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor< MssDescriptor >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_amss_descriptor< MssDescriptor >::value), "Internal Error: wrong type");
 
             typedef typename mss_descriptor_execution_engine< MssDescriptor >::type execution_engine_t;
 
-            typedef typename boost::mpl::fold<
-                typename mss_descriptor_linear_esf_sequence< MssDescriptor >::type,
-                boost::mpl::vector0<>,
-                boost::mpl::push_back< boost::mpl::_1,
-                    mss_descriptor< execution_engine_t, boost::mpl::vector1< boost::mpl::_2 > > > >::type type;
+            template < typename Esf_ >
+            struct compose_mss_ {
+                typedef mss_descriptor< execution_engine_t, boost::mpl::vector1< Esf_ > > type;
+            };
+
+            struct mss_split_multiple_esf {
+                typedef typename boost::mpl::fold< typename mss_descriptor_linear_esf_sequence< MssDescriptor >::type,
+                    boost::mpl::vector0<>,
+                    boost::mpl::push_back< boost::mpl::_1, compose_mss_< boost::mpl::_2 > > >::type type;
+            };
+
+            typedef typename boost::mpl::if_c<
+                // if the number of esf contained in the mss is 1, there is no need to split
+                (boost::mpl::size< typename mss_descriptor_linear_esf_sequence< MssDescriptor >::type >::value == 1),
+                boost::mpl::vector1< MssDescriptor >,
+                typename mss_split_multiple_esf::type >::type type;
         };
 
         typedef meta_array<
@@ -33,7 +54,7 @@ namespace gridtools {
                 boost::mpl::vector0<>,
                 boost::mpl::copy< boost::mpl::_1, boost::mpl::back_inserter< mss_split_esfs< boost::mpl::_2 > > > >::
                 type,
-            boost::mpl::quote1< is_mss_descriptor > > type;
+            boost::mpl::quote1< is_amss_descriptor > > type;
     };
 
     /**
@@ -45,7 +66,7 @@ namespace gridtools {
     template < enumtype::platform BackendId, typename MssDescriptorArray, typename ExtentSizes, typename RepeatFunctor >
     struct build_mss_components_array {
         GRIDTOOLS_STATIC_ASSERT(
-            (is_meta_array_of< MssDescriptorArray, is_mss_descriptor >::value), "Internal Error: wrong type");
+            (is_meta_array_of< MssDescriptorArray, is_amss_descriptor >::value), "Internal Error: wrong type");
 
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< typename MssDescriptorArray::elements >::value ==
                                     boost::mpl::size< ExtentSizes >::value),
@@ -130,8 +151,13 @@ namespace gridtools {
         /**
          *  compute the functor do methods - This is the most computationally intensive part
          */
+        template < typename Functor >
+        struct inserter_ {
+            typedef typename compute_functor_do_methods< Functor, typename Grid::axis_type >::type type;
+        };
+
         typedef typename boost::mpl::transform< typename MssComponents::functors_seq_t,
-            compute_functor_do_methods< boost::mpl::_, typename Grid::axis_type > >::type
+            inserter_< boost::mpl::_ > >::type
             type; // Vector of vectors - each element is a vector of pairs of actual axis-indices
     };
 

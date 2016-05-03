@@ -5,6 +5,7 @@
 #include "../common/generic_metafunctions/vector_to_set.hpp"
 #include "computation_grammar.hpp"
 #include "make_computation_cxx11_impl.hpp"
+#include "make_computation_helper_cxx11.hpp"
 
 namespace gridtools {
 
@@ -28,28 +29,36 @@ namespace gridtools {
     } // namespace _impl
 
     template < bool Positional, typename Backend, typename Domain, typename Grid, typename... Mss >
-    std::shared_ptr< computation > make_computation_impl(Domain &domain, const Grid &grid, Mss... args_) {
+    std::shared_ptr< computation< typename _impl::reduction_helper< Mss... >::reduction_type_t > >
+    make_computation_impl(Domain &domain, const Grid &grid, Mss... args_) {
+
         typedef typename _impl::create_conditionals_set<Domain, Grid, Mss...>::type conditionals_set_t;
+
         conditionals_set_t conditionals_set_;
 
         fill_conditionals(conditionals_set_, args_...);
 
         return std::make_shared< intermediate< Backend,
             meta_array< typename meta_array_generator< boost::mpl::vector0<>, Mss... >::type,
-                                                   boost::mpl::quote1< is_mss_descriptor > >,
+                                                   boost::mpl::quote1< is_amss_descriptor > >,
             Domain,
             Grid,
             conditionals_set_t,
-            Positional > >(domain, grid, conditionals_set_);
+            typename _impl::reduction_helper< Mss... >::reduction_type_t,
+            Positional > >(
+            domain, grid, conditionals_set_, _impl::reduction_helper< Mss... >::extract_initial_value(args_...));
     }
 
     template < typename Backend, typename Domain, typename Grid, typename... Mss, typename = typename std::enable_if<is_domain_type<Domain>::value >::type >
-    std::shared_ptr< computation > make_computation(Domain &domain, const Grid &grid, Mss... args_) {
+    std::shared_ptr< computation< typename _impl::reduction_helper< Mss... >::reduction_type_t > > make_computation(
+        Domain &domain, const Grid &grid, Mss... args_) {
         return make_computation_impl< POSITIONAL_WHEN_DEBUGGING, Backend >(domain, grid, args_...);
     }
 
+
     template < typename Backend, typename Domain, typename Grid, typename... Mss, typename = typename std::enable_if<is_domain_type<Domain>::value >::type >
-    std::shared_ptr< computation > make_positional_computation(Domain &domain, const Grid &grid, Mss... args_) {
+    std::shared_ptr< computation< typename _impl::reduction_helper< Mss... >::reduction_type_t > >
+    make_positional_computation(Domain &domain, const Grid &grid, Mss... args_) {
         return make_computation_impl< true, Backend >(domain, grid, args_...);
     }
 }

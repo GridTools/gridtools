@@ -7,12 +7,12 @@ namespace test_conditionals{
 
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<enumtype::Cuda, enumtype::Block >
+#define BACKEND backend<enumtype::Cuda,enumtype::GRIDBACKEND, enumtype::Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend<enumtype::Host, enumtype::Block >
+#define BACKEND backend<enumtype::Host,enumtype::GRIDBACKEND, enumtype::Block >
 #else
-#define BACKEND backend<enumtype::Host, enumtype::Naive >
+#define BACKEND backend<enumtype::Host,enumtype::GRIDBACKEND, enumtype::Naive >
 #endif
 #endif
 
@@ -64,7 +64,7 @@ namespace test_conditionals{
 #else
             boost::shared_ptr<computation>
 #endif
-            comp_ = make_computation < backend<enumtype::Host, enumtype::Naive> > (
+            comp_ = make_computation < BACKEND > (
                 domain_, grid_,
                 if_(cond
                     ,

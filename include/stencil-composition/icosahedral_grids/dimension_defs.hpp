@@ -6,6 +6,4 @@ namespace gridtools {
     typedef dimension< 2 > y;
     typedef dimension< 4 > z;
     /**@}*/
-
-    typedef static_ushort< 3 > zdim_index_t;
 } // namespace gridtools

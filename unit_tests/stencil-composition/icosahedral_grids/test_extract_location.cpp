@@ -7,14 +7,14 @@ using namespace enumtype;
 
 namespace el_test{
 
-    using backend_t = ::gridtools::backend<Host, Naive >;
+    using backend_t = ::gridtools::backend< Host, icosahedral, Naive >;
     using icosahedral_topology_t = ::gridtools::icosahedral_topology<backend_t>;
 
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
     struct test_functor {
-        typedef in_accessor<0, icosahedral_topology_t::cells, radius<1> > in;
+        typedef in_accessor< 0, icosahedral_topology_t::cells, extent< 1 > > in;
         typedef boost::mpl::vector<in> arg_list;
 
         template <typename Evaluation>

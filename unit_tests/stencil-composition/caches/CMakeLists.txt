@@ -22,10 +22,10 @@ gridtools_add_test(tests.caches ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/cache_
 set_target_properties(cache_tests PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
 target_link_libraries(cache_tests ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
 
-if(USE_GPU)
+if(USE_GPU AND STRUCTURED_GRIDS)
     set(CUDA_SOURCES test_cache_stencil.cu)
     cuda_add_executable(cache_tests_cuda ${CUDA_SOURCES})
     target_link_libraries(cache_tests_cuda ${exe_LIBS})
 
     gridtools_add_test(tests.caches_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/cache_tests_cuda")
-endif(USE_GPU)
+endif(USE_GPU AND STRUCTURED_GRIDS)
