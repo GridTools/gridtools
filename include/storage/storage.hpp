@@ -91,9 +91,11 @@ namespace gridtools {
 		const static ushort_t n_width = BaseStorage::n_width;
 
 #ifdef _USE_GPU_
-		typedef hybrid_pointer< BaseStorage > storage_ptr_t;
+		typedef hybrid_pointer< BaseStorage, false > storage_ptr_t;
+        #define INIT_STORAGE(MD, EXT) m_storage(MD, 1, EXT)
 #else
 		typedef wrap_pointer< BaseStorage, false > storage_ptr_t;
+        #define INIT_STORAGE(MD, EXT) m_storage(MD, EXT)
 #endif
 
 	private:
@@ -121,7 +123,7 @@ namespace gridtools {
 		void h2d_update() {
 			assert(m_on_host && "h2d_update cannot be done because this storage is already on the device");
 			// clone storage contents to device
-			(*m_storage).d2h_update();
+			(*m_storage).h2d_update();
 			// clone the storage itself to device
 			m_storage.update_gpu();
 			// set m_sync_needed to true
@@ -171,6 +173,10 @@ namespace gridtools {
 			(*m_storage).allocate(dims, offset);
 		}
 
+        pointer<storage_ptr_t> get_storage_pointer() {
+            return make_pointer(m_storage);
+        }
+
 #if defined(CXX11_ENABLED)
 		template < short_t snapshot = 0, short_t field_dim = 0, typename... Int >
 		value_type& get_value(Int... args) {
@@ -197,26 +203,26 @@ namespace gridtools {
 		// forwarding constructor
 		template < class... ExtraArgs >
 		explicit storage(storage_info_type const &meta_data_, ExtraArgs const &... args)
-			: m_storage(new BaseStorage(meta_data_, args...), false), m_on_host(true) {}
+			: INIT_STORAGE(new BaseStorage(meta_data_, args...), false), m_on_host(true) {}
 #else // CXX11_ENABLED
 
 		explicit storage(storage_info_type const &meta_data_, value_type const &init)
-			: m_storage(new BaseStorage(meta_data_, init), false), m_on_host(true) {}
+			: INIT_STORAGE(new BaseStorage(meta_data_, init), false), m_on_host(true) {}
 
 		explicit storage(storage_info_type const &meta_data_, value_type const &init, const char* name)
-			: m_storage(new BaseStorage(meta_data_, init, name), false), m_on_host(true) {}
+			: INIT_STORAGE(new BaseStorage(meta_data_, init, name), false), m_on_host(true) {}
 
 		template < typename Ret, typename T >
 		explicit storage(storage_info_type const &meta_data_, Ret(*func)(T const &, T const &, T const &))
-			: m_storage(new BaseStorage(meta_data_, func), false), m_on_host(true) {}
+			: INIT_STORAGE(new BaseStorage(meta_data_, func), false), m_on_host(true) {}
 
 		template < class FloatType >
 		explicit storage(storage_info_type const &meta_data_, FloatType *arg)
-			: m_storage(new BaseStorage(meta_data_, (FloatType *)arg), false), m_on_host(true) {}
+			: INIT_STORAGE(new BaseStorage(meta_data_, (FloatType *)arg), false), m_on_host(true) {}
 
 		template < class FloatType >
 		explicit storage(storage_info_type const &meta_data_, FloatType *arg, const char* name)
-			: m_storage(new BaseStorage(meta_data_, (FloatType *)arg, name), false), m_on_host(true) {}
+			: INIT_STORAGE(new BaseStorage(meta_data_, (FloatType *)arg, name), false), m_on_host(true) {}
 
 #endif // CXX11_ENABLED
 
@@ -230,7 +236,11 @@ namespace gridtools {
 			(*m_storage).release();
 		}
 
-		explicit storage(storage_info_type const &meta_data_) : m_storage(new BaseStorage(meta_data_), false), m_on_host(true) {}
+		BaseStorage* get_pointer_to_use() {
+            return m_storage.get_pointer_to_use();
+		}
+
+		explicit storage(storage_info_type const &meta_data_) : INIT_STORAGE(new BaseStorage(meta_data_), false), m_on_host(true) {}
 
 #ifdef CXX11_ENABLED
 

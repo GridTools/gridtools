@@ -10,19 +10,19 @@ namespace gridtools {
 
     /**\todo Note that this struct will greatly simplify when the CUDA arch 3200 and inferior will be obsolete (the
      * "pointer_to_use" will then become useless, and the operators defined in the base class will be usable) */
-    template < typename T >
-	struct hybrid_pointer {
+    template < typename T, bool Array=true >
+    struct hybrid_pointer {
 	private:
 		template <typename V>
 		hybrid_pointer(V);
 
 	public:
         // typedef wrap_pointer<T> super;
-        typedef typename wrap_pointer< T >::pointee_t pointee_t;
+        typedef typename wrap_pointer< T, Array >::pointee_t pointee_t;
 
         GT_FUNCTION
         explicit hybrid_pointer()
-            : m_gpu_p(NULL), m_cpu_p(static_cast<T*>(NULL), 1, false), m_pointer_to_use(NULL), 
+            : m_gpu_p(NULL), m_cpu_p(static_cast<T*>(NULL), false), m_pointer_to_use(NULL),
 			  m_size(0), m_allocated(false), m_up_to_date(true) {
 #ifdef VERBOSE
             printf("creating empty hybrid pointer %x \n", this);
@@ -31,7 +31,7 @@ namespace gridtools {
 
         GT_FUNCTION
         explicit hybrid_pointer(T *p, uint_t size_, bool externally_managed)
-            : m_gpu_p(NULL), m_cpu_p(p, size_, externally_managed), m_pointer_to_use(p), m_size(size_),
+            : m_gpu_p(NULL), m_cpu_p(p, externally_managed), m_pointer_to_use(p), m_size(size_),
               m_allocated(false), m_up_to_date(true) {
             allocate_it(m_size);
         }
@@ -214,6 +214,9 @@ namespace gridtools {
         T *get_pointer_to_use() { return m_pointer_to_use; }
 
         GT_FUNCTION
+        T *get_pointer_to_use() const { return m_pointer_to_use; }
+
+        GT_FUNCTION
         pointee_t *get() const { return m_gpu_p; }
 
         GT_FUNCTION
@@ -288,7 +291,7 @@ namespace gridtools {
         T *operator=(T *);
         hybrid_pointer(T *);
         T *m_gpu_p;
-        wrap_pointer< T > m_cpu_p;
+        wrap_pointer< T, Array > m_cpu_p;
         T *m_pointer_to_use;
         uint_t m_size;
         bool m_allocated;

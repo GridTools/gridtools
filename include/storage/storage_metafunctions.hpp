@@ -4,6 +4,7 @@
    @file
    @brief File containing a set of metafunctions that apply to the storage classes.
 */
+#include <boost/type_traits.hpp>
 
 #include "storage.hpp"
 #include "base_storage.hpp"
@@ -91,4 +92,39 @@ namespace gridtools {
     struct storage_pointer_type {
         typedef typename T::pointer_type type;
     };
+
+    template <typename T>
+    struct get_user_storage_base_t {
+        typedef pointer<typename T::value_type::basic_type> type;
+    };
+
+    template <typename T>
+    struct get_user_storage_ptrs_t {
+        typedef typename boost::remove_reference<T>::type ty;
+        typedef typename ty::value_type storage_ty;
+        typedef typename storage_ty::storage_ptr_t storage_ptr_ty;
+        typedef pointer<storage_ptr_ty> type;
+    };
+
+    struct get_user_storage_ptrs {
+        template <typename T>
+        struct result;
+
+        template <typename F, typename T>
+        struct result<F(T)> {
+            typedef typename get_user_storage_ptrs_t<T>::type type;
+        };
+
+        template <typename T>
+        struct result<pointer<storage<T> > > {
+            typedef typename get_user_storage_ptrs_t<pointer<storage<T> > >::type type;
+        };
+
+        template <typename T>
+        typename get_user_storage_ptrs_t<T>::type operator()(T& st) const {
+            typedef typename get_user_storage_ptrs_t<T>::type ty;
+            return st->get_storage_pointer();
+        }
+    };
+
 }

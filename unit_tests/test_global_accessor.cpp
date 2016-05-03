@@ -13,12 +13,20 @@ typedef interval<level<0,-2>, level<1,1> > axis;
 
    struct implementing the minimal interface in order to be passed as an argument to the user functor.
 */
-struct boundary : clonable_to_gpu<boundary> {
-
-    boundary(){}
+struct boundary {
+#ifdef _USE_GPU_
+		typedef hybrid_pointer< boundary, false > storage_ptr_t;
+        #define INIT_BD(T, EXT) m_storage(T, 1, EXT)
+#else
+		typedef wrap_pointer< boundary, false > storage_ptr_t;
+        #define INIT_BD(T, EXT) m_storage(T, EXT)
+#endif
+    storage_ptr_t m_storage;
+    boundary() : INIT_BD(this, false) {}
     //device copy constructor
     __device__ boundary(const boundary& other){}
     typedef boundary super;
+    typedef boundary basic_type;
     typedef boundary* iterator_type;
     typedef boundary value_type; //TODO remove
     static const ushort_t field_dimensions=1; //TODO remove
@@ -29,6 +37,16 @@ struct boundary : clonable_to_gpu<boundary> {
     template<typename ID>
     GT_FUNCTION
     boundary * access_value() const {return const_cast<boundary*>(this);} //TODO change this?
+
+    GT_FUNCTION
+    boundary * get_pointer_to_use() {
+        return m_storage.get_pointer_to_use();
+    }
+
+    GT_FUNCTION
+    pointer<storage_ptr_t> get_storage_pointer() {
+        return pointer<storage_ptr_t>(&m_storage);
+    }
 
     // template<typename ID>
     // boundary const*  access_value() const {return this;} //TODO change this?
