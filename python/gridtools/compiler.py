@@ -482,7 +482,7 @@ class StencilInspector (ast.NodeVisitor):
         if not kernel_found:
             raise AttributeError ("No kernel detected for stencil %s! Please \
                                   define a stencil entry point function."
-                                  % self.__class__)
+                                  % self.inspected_stencil.__class__)
         return src
 
 
@@ -748,8 +748,9 @@ class StencilInspector (ast.NodeVisitor):
             #
             # this function should return 'None'
             #
-            if node.returns is not None:
-                raise ValueError ("The kernel function should return 'None'")
+            for n in node.body:
+                if isinstance (n, ast.Return) and n.value is not None:
+                    raise ValueError ("The kernel function should return 'None'")
             #
             # the parameters of the kernel function are the stencil
             # arguments in the generated code
