@@ -19,6 +19,11 @@ namespace gridtools {
                 "does not match the list of arguments defined within the ESF, like\n"
                 "    typedef boost::mpl::vector<arg_in, arg_out> arg_list.");
 #endif
+            template <typename Acc>
+            struct _get_extent{
+                typedef typename Acc::extent_t type;
+            };
+
             /** Given the list of placeholders (Plcs) and the list of arguemnts of a
                 stencil operator (Accessors), this struct will insert the placeholder type
                 (as key) and the corresponding extent into an mpl::map.
@@ -27,10 +32,15 @@ namespace gridtools {
             struct from {
                 template < typename CurrentMap, typename Index >
                 struct insert {
-                    typedef typename boost::mpl::insert<
-                        CurrentMap,
-                        typename boost::mpl::pair< typename boost::mpl::at_c< Plcs, Index::value >::type,
-                            typename boost::mpl::at_c< LArgs, Index::value >::type::extent_t > >::type type;
+
+
+                    typedef typename boost::mpl::at_c< LArgs, Index::value >::type accessor_t;
+                     typedef typename boost::mpl::insert<
+                         CurrentMap,
+                         typename boost::mpl::pair<
+                             typename boost::mpl::at_c< Plcs, Index::value >::type,
+                             typename _get_extent<accessor_t>::type >
+                         >::type type;
                 };
             };
 
