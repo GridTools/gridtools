@@ -69,11 +69,11 @@ namespace assembly {
     typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
     struct integration {
-        typedef in_accessor< 0, extent< -1, 1, -1, 1 >, 4 > phi;
-        typedef in_accessor< 1, extent< -1, 1, -1, 1 >, 4 > psi; // how to detect when index is wrong??
-        typedef in_accessor< 2, extent< -1, 1, -1, 1 >, 4 > jac;
-        typedef in_accessor< 3, extent< -1, 1, -1, 1 >, 6 > f;
-        typedef inout_accessor< 4, extent< -1, 1, -1, 1 >, 6 > result;
+        typedef in_accessor< 0, extent<>, 4 > phi;
+        typedef in_accessor< 1, extent<>, 4 > psi; // how to detect when index is wrong??
+        typedef in_accessor< 2, extent<>, 4 > jac;
+        typedef in_accessor< 3, extent<>, 6 > f;
+        typedef inout_accessor< 4, extent<>, 6 > result;
         typedef boost::mpl::vector< phi, psi, jac, f, result > arg_list;
         using quad = dimension< 4 >;
         template < typename Evaluation >
