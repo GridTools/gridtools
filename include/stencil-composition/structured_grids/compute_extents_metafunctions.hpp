@@ -169,8 +169,10 @@ namespace gridtools {
             typedef typename boost::mpl::fold<
                 PlaceholdersVector,
                 boost::mpl::map0<>,
-                boost::mpl::insert< boost::mpl::_1,
-                                    boost::mpl::pair< boost::mpl::_2, InitExtent > > >::type type;
+                boost::mpl::insert<
+                    boost::mpl::_1,
+                    boost::mpl::pair< boost::mpl::_2, InitExtent > >
+                >::type type;
         };
 
 
@@ -186,7 +188,7 @@ namespace gridtools {
                     template < typename PlcRangePair, typename CurrentMap >
                     struct with {
                         typedef
-                            typename sum_extent< CurrentRange, typename PlcRangePair::second >::type candidate_extent;
+                        typename sum_extent< CurrentRange, typename PlcRangePair::second >::type candidate_extent;
                         typedef typename enclosing_extent< candidate_extent,
                             typename boost::mpl::at< CurrentMap, typename PlcRangePair::first >::type >::type extent;
                         typedef
@@ -197,7 +199,7 @@ namespace gridtools {
                 };
 
                 template <typename Output, typename Inputs, typename CurrentMap>
-                struct xxx {
+                struct for_each_output {
                     typedef typename boost::mpl::at< CurrentMap, typename Output::first >::type current_extent;
 
                     typedef typename boost::mpl::fold<
@@ -219,9 +221,9 @@ namespace gridtools {
                     typedef typename esf_get_r_per_functor< current_ESF, boost::true_type >::type inputs;
 
                     typedef typename boost::mpl::fold<
-                        outputs,
-                        CurrentMap,
-                        xxx<boost::mpl::_2, inputs, boost::mpl::_1>
+                            outputs,
+                            CurrentMap,
+                            for_each_output<boost::mpl::_2, inputs, boost::mpl::_1>
                         >::type new_map;
 
                     typedef typename populate_map< rest_of_ESFs,
