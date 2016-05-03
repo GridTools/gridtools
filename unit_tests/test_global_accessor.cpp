@@ -13,7 +13,7 @@ typedef interval<level<0,-2>, level<1,1> > axis;
 
    struct implementing the minimal interface in order to be passed as an argument to the user functor.
 */
-struct boundary {
+struct boundary : clonable_to_gpu<boundary> {
 #ifdef _USE_GPU_
 		typedef hybrid_pointer< boundary, false > storage_ptr_t;
         #define INIT_BD(T, EXT) m_storage(T, 1, EXT)
@@ -46,6 +46,11 @@ struct boundary {
     GT_FUNCTION
     pointer<storage_ptr_t> get_storage_pointer() {
         return pointer<storage_ptr_t>(&m_storage);
+    }
+
+    GT_FUNCTION
+    pointer<storage_ptr_t> get_storage_pointer() const {
+        return pointer<storage_ptr_t>(const_cast<storage_ptr_t*>(&m_storage));
     }
 
     // template<typename ID>

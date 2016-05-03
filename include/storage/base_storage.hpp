@@ -41,8 +41,6 @@ namespace gridtools {
 		base_storage(base_storage &);
 		base_storage &operator=(base_storage);
 		base_storage &operator=(const base_storage &);
-		template < typename V >
-		base_storage() {}
 
 	  protected:
 		bool is_set;

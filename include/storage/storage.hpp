@@ -174,7 +174,11 @@ namespace gridtools {
 		}
 
         pointer<storage_ptr_t> get_storage_pointer() {
-            return make_pointer(m_storage);
+            return pointer<storage_ptr_t>(&m_storage);
+        }
+
+        pointer<storage_ptr_t> get_storage_pointer() const {
+            return pointer<storage_ptr_t>(const_cast<storage_ptr_t*>(&m_storage));
         }
 
 #if defined(CXX11_ENABLED)

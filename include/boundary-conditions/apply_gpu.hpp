@@ -89,7 +89,7 @@ namespace gridtools {
         dim3 blocks(nbx, nby, nbz);                                                                         \
         loop_kernel<<< blocks, threads >>>(boundary_function,                                           \
             Direction(),                                                                                    \
-            BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(n), data_field, .device_pointer() BOOST_PP_INTERCEPT), \
+            BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(n), data_field, .get_pointer_to_use() BOOST_PP_INTERCEPT), \
             halo_descriptors[0].loop_low_bound_outside(Direction::I),                                       \
             halo_descriptors[1].loop_low_bound_outside(Direction::J),                                       \
             halo_descriptors[2].loop_low_bound_outside(Direction::K),                                       \

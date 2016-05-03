@@ -105,16 +105,16 @@ namespace gridtools {
 
       private:
         Sequence &m_seq;
-        Arg const &m_arg;
+        pointer<typename Arg::storage_ptr_t> m_arg_ptr;
 
       public:
         GT_FUNCTION
-        insert_if_not_present(Sequence &seq_, Arg const &arg_) : m_seq(seq_), m_arg(arg_) {}
+        insert_if_not_present(Sequence &seq_, Arg const &arg_) : m_seq(seq_), m_arg_ptr(arg_.get_storage_pointer()) { }
 
         GT_FUNCTION
         void operator()() const {
             if (!m_seq.template present< pointer< const typename Arg::storage_info_type > >())
-                m_seq.insert(pointer< const typename Arg::storage_info_type >(&(m_arg.meta_data())));
+                m_seq.insert(pointer< const typename Arg::storage_info_type >(&(m_arg_ptr->get_pointer_to_use()->meta_data())));
         }
     };
 }
