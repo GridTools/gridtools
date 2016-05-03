@@ -126,10 +126,14 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         // printf("Step size: %f\n", h);
     }
 
+#ifdef CUDA_EXAMPLE
+#define BACKEND backend< Cuda, GRIDBACKEND, Block >
+#else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, GRIDBACKEND, Block >
 #else
 #define BACKEND backend<Host, GRIDBACKEND, Naive >
+#endif
 #endif
 
     //--------------------------------------------------------------------------
@@ -238,7 +242,16 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
             (boost::fusion::make_vector(ptr_xNew, ptr_x));
 
         // Instantiate stencil to perform initialization step of CG
-        auto stencil = gridtools::make_computation<gridtools::BACKEND>
+        #ifdef CXX11_ENABLED
+            auto
+        #else
+        #ifdef __CUDACC__
+            stencil*
+        #else
+            boost::shared_ptr<gridtools::stencil>
+        #endif
+        #endif
+        stencil = gridtools::make_computation<gridtools::BACKEND>
             (
                 domain, coords3d7pt,
                 gridtools::make_mss // mss_descriptor
@@ -292,8 +305,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     if (gridtools::PID == 0){
         std::cout << std::endl << "TOTAL TIME: " << boost::timer::format(lapse_time);
         std::cout << "TIME SPENT IN RUN STAGE:" << boost::timer::format(lapse_time_run);
-        std::cout << "d3point7 MFLOPS: " << MFLOPS(7,d1,d2,d3,nt,lapse_time_run.wall) << std::endl; //TODO: multiple processes??
-        std::cout << "d3point7 MLUPs: " << MLUPS(d1,d2,d3,nt,lapse_time_run.wall) << std::endl << std::endl;
+        std::cout << "d3point7 MFLOPS: " << MFLOPS(7,d1,d2,d3,TIME_STEPS,lapse_time_run.wall) << std::endl; //TODO: multiple processes??
+        std::cout << "d3point7 MLUPs: " << MLUPS(d1,d2,d3,TIME_STEPS,lapse_time_run.wall) << std::endl << std::endl;
     }
 
 #ifndef NDEBUG1
