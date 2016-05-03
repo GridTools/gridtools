@@ -4,10 +4,40 @@ import logging
 import numpy as np
 import networkx as nx
 
+from functools import wraps
+
 from gridtools.symbol   import StencilScope
-from gridtools.stage  import Stage
 from gridtools.compiler import StencilCompiler
 
+from gridtools.utils import Utilities
+
+
+
+def stencil_kernel (kernel_func):
+    """
+    Decorator to define a given member as the stencil entry point (aka kernel).
+    The decorator embeds a runtime check in the kernel to verify it is called
+    from the run() function of the stencil.
+    """
+    from gridtools import STENCIL_KERNEL_DECORATOR_LABEL
+    #
+    # The @wraps decorator is useful to correctly set the __wrapped__ attribute
+    # of the user-defined entry point, so that when the stencil is processed
+    # by the StencilInspector, the kernel information can be extracted easily
+    #
+    @wraps (kernel_func)
+    def kernel_wrapper (*args, **kwargs):
+        #
+        # Check that the kernel is being called from its own class' run() method
+        #
+        if not Utilities.check_kernel_caller (args[0]):
+            raise RuntimeError ("Calling kernel function from outside run() function. \
+                                Please use run() to execute the stencil.")
+        return kernel_func (*args, **kwargs)
+
+    setattr (kernel_wrapper, STENCIL_KERNEL_DECORATOR_LABEL, True)
+
+    return kernel_wrapper
 
 
 
@@ -38,27 +68,32 @@ class Stencil (object):
         #
         # register this stencil with the compiler and inspector
         #
-        self.name        = Stencil.compiler.register (self)
+        self.name             = Stencil.compiler.register (self)
+        #
+        # name of the stencil entry point defined by the user
+        # it will be set by the StencilInspector
+        #
+        self.entry_point_name = ''
         #
         # defines the way to execute the stencil
         #
-        self._backend    = "python"
+        self._backend         = "python"
         #
         # the domain dimensions over which this stencil operates
         #
-        self.domain      = None
+        self.domain           = None
         #
         # symbols gathered after analyzing the stencil code are kept here
         #
-        self.scope       = StencilScope ( )
+        self.scope            = StencilScope ( )
         #
         # a halo descriptor
         #
-        self.halo        = (0, 0, 0, 0)
+        self.halo             = (0, 0, 0, 0)
         #
         # define the execution order in 'k' dimension
         #
-        self.k_direction = 'forward'
+        self.k_direction      = 'forward'
 
 
     def __copy__ (self, memo):
@@ -93,7 +128,6 @@ class Stencil (object):
         """
         Renders graph 'G' using 'matplotlib'.-
         """
-        from gridtools import plt
 
         pos = nx.spring_layout (G)
         nx.draw_networkx_nodes (G,
@@ -180,14 +214,6 @@ class Stencil (object):
                         yield InteriorPoint ((i, j, k))
 
 
-    def kernel (self, *args, **kwargs):
-        """
-        This function is the entry point of the stencil and
-        should be implemented by the user.-
-        """
-        raise NotImplementedError ( )
-
-
     def plot_3d (self, Z):
         """
         Plots the Z field in 3D, returning a Matplotlib's Line3DCollection.-
@@ -263,7 +289,7 @@ class Stencil (object):
             if self.backend == 'c++' or self.backend == 'cuda':
                 Stencil.compiler.run_native (self, **kwargs)
             elif self.backend == 'python':
-                self.kernel (**kwargs)
+                getattr(self, self.entry_point_name) (**kwargs)
             else:
                 raise ValueError ("Unknown backend '%s'" % self.backend)
 
@@ -522,7 +548,7 @@ class CombinedStencil (Stencil):
 
             src_dir     directory where the files should be saved (optional).-
         """
-        from os        import write, path, makedirs
+        from os        import path, makedirs
         from tempfile  import mkdtemp
         from gridtools import JinjaEnv
 

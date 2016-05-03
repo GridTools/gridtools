@@ -27,7 +27,7 @@ import numpy as np
 
 from nose.plugins.attrib import attr
 
-from gridtools.stencil   import MultiStageStencil
+from gridtools.stencil   import MultiStageStencil, stencil_kernel
 from tests.test_stencils import CopyTest
 
 
@@ -79,12 +79,13 @@ class SW (MultiStageStencil):
             out_Mx[p] = self.R[p] - self.L[p]
             out_My[p] = self.T[p] - self.B[p]
 
-            out_Md[p] = out_M[p] * (1.0 - self.bl) + self.bl * (0.25 * (self.L[p] + 
+            out_Md[p] = out_M[p] * (1.0 - self.bl) + self.bl * (0.25 * (self.L[p] +
                                                                         self.R[p] +
                                                                         self.T[p] +
                                                                         self.B[p]))
 
 
+    @stencil_kernel
     def kernel (self, out_H, out_U, out_V):
         #
         # momentum calculation for each field
@@ -126,8 +127,8 @@ class SWTest (CopyTest):
 
         self.domain = (64, 64, 1)
 
-        self.params = ('out_H', 
-                       'out_U', 
+        self.params = ('out_H',
+                       'out_U',
                        'out_V')
         self.temps  = ('self.Hd',
                        'self.Ud',
@@ -176,7 +177,7 @@ class SWTest (CopyTest):
 
     @attr (lang='c++')
     def test_animation (self, nframe=200):
-        try: 
+        try:
             import os
             import pyqtgraph.opengl as gl
             from   pyqtgraph.Qt import QtCore, QtGui
@@ -204,7 +205,7 @@ class SWTest (CopyTest):
 
                 ## Add a grid to the view
                 g = gl.GLGridItem()
-                g.setSize (x=self.domain[0] + 2, 
+                g.setSize (x=self.domain[0] + 2,
                            y=self.domain[1] + 2)
                 g.setDepthValue(10)  # draw grid after surfaces since they may be translucent
                 w.addItem(g)
@@ -215,10 +216,10 @@ class SWTest (CopyTest):
                 y = np.linspace (0, self.domain[1], self.domain[1]).reshape (1, self.domain[1])
 
                 ## create a surface plot, tell it to use the 'heightColor' shader
-                ## since this does not require normal vectors to render (thus we 
+                ## since this does not require normal vectors to render (thus we
                 ## can set computeNormals=False to save time when the mesh updates)
-                self.p4 = gl.GLSurfacePlotItem (shader='heightColor', 
-                                                computeNormals=False, 
+                self.p4 = gl.GLSurfacePlotItem (shader='heightColor',
+                                                computeNormals=False,
                                                 smooth=False)
                 self.p4.shader()['colorMap'] = np.array([0.2, 1, 0.8, 0.2, 0.1, 0.1, 0.2, 0, 2])
                 self.p4.translate (self.domain[0]/-2.0,
@@ -499,7 +500,7 @@ class ShallowWater2D (MultiStageStencil):
         ##zeros = np.zeros (shape[:-1])
         ##zeros[:drop.shape[0], :drop.shape[1]] = drop
         ##return zeros.reshape (zeros.shape[0],
-        ##                      zeros.shape[1], 
+        ##                      zeros.shape[1],
         ##                      1)
         #return drop.reshape ((drop.shape[0],
         #                      drop.shape[1],
@@ -532,7 +533,7 @@ class ShallowWater2D (MultiStageStencil):
         U[:,0] =  U[:,1]/2.0
         V[:,0] = -V[:,1]/2.0
 
-        H[:,self.domain[0]-2] =  H[:,self.domain[0]-1]  
+        H[:,self.domain[0]-2] =  H[:,self.domain[0]-1]
         U[:,self.domain[0]-2] =  U[:,self.domain[0]-1]/2.0
         V[:,self.domain[0]-2] = -V[:,self.domain[0]-1]/2.0
 
@@ -556,9 +557,9 @@ class ShallowWater2D (MultiStageStencil):
 
             # X momentum
             self.Ux[p]  = ( out_U[p + (1,1,0)] + out_U[p + (0,1,0)] ) / 2.0
-            self.Ux[p] -=  ( ( (out_U[p + (1,1,0)]*out_U[p + (1,1,0)]) / out_H[p + (1,1,0)] + 
+            self.Ux[p] -=  ( ( (out_U[p + (1,1,0)]*out_U[p + (1,1,0)]) / out_H[p + (1,1,0)] +
                                (out_H[p + (1,1,0)]*out_H[p + (1,1,0)]) * (self.g / 2.0) ) -
-                             ( (out_U[p + (0,1,0)]*out_U[p + (0,1,0)]) / out_H[p + (0,1,0)] + 
+                             ( (out_U[p + (0,1,0)]*out_U[p + (0,1,0)]) / out_H[p + (0,1,0)] +
                                (out_H[p + (0,1,0)]*out_H[p + (0,1,0)]) * (self.g / 2.0) )
                            ) * ( self.dt / (2*self.dx) )
 
@@ -586,13 +587,14 @@ class ShallowWater2D (MultiStageStencil):
 
             # Y momentum
             self.Vy[p]  = ( out_V[p + (1,1,0)] + out_V[p + (1,0,0)] ) / 2.0
-            self.Vy[p] -= ( (out_V[p + (1,1,0)] * out_V[p + (1,1,0)]) / out_H[p + (1,1,0)] + 
+            self.Vy[p] -= ( (out_V[p + (1,1,0)] * out_V[p + (1,1,0)]) / out_H[p + (1,1,0)] +
                             (out_H[p + (1,1,0)] * out_H[p + (1,1,0)]) * ( self.g / 2.0 ) -
-                            (out_V[p + (1,0,0)] * out_V[p + (1,0,0)]) / out_H[p + (1,0,0)] + 
+                            (out_V[p + (1,0,0)] * out_V[p + (1,0,0)]) / out_H[p + (1,0,0)] +
                             (out_H[p + (1,0,0)] * out_H[p + (1,0,0)]) * ( self.g / 2.0 )
                           ) * ( self.dt / (2*self.dy) )
 
 
+    @stencil_kernel
     def kernel (self, out_H, out_U, out_V):
         self.stage_first_x (out_H=out_H,
                             out_U=out_U,
@@ -610,12 +612,12 @@ class ShallowWater2D (MultiStageStencil):
             out_H[p] -= ( self.Vy[p + (-1,0,0)] - self.Vy[p + (-1,-1,0)] ) * (self.dt / self.dx)
 
             # X momentum
-            out_U[p] -= ( (self.Ux[p + (0,-1,0)]  * self.Ux[p + (0,-1,0)])  / self.Hx[p + (0,-1,0)] + 
+            out_U[p] -= ( (self.Ux[p + (0,-1,0)]  * self.Ux[p + (0,-1,0)])  / self.Hx[p + (0,-1,0)] +
                           (self.Hx[p + (0,-1,0)]  * self.Hx[p + (0,-1,0)])  * ( self.g / 2.0 ) -
-                          (self.Ux[p + (-1,-1,0)] * self.Ux[p + (-1,-1,0)]) / self.Hx[p + (-1,-1,0)] + 
+                          (self.Ux[p + (-1,-1,0)] * self.Ux[p + (-1,-1,0)]) / self.Hx[p + (-1,-1,0)] +
                           (self.Hx[p + (-1,-1,0)] * self.Hx[p + (-1,-1,0)]) * ( self.g / 2.0 )
-                        ) * ( self.dt / self.dx ) 
-            out_U[p] -= ( (self.Vy[p + (-1,0,0)]  * self.Uy[p + (-1,0,0)]  / self.Hy[p + (-1,0,0)]) - 
+                        ) * ( self.dt / self.dx )
+            out_U[p] -= ( (self.Vy[p + (-1,0,0)]  * self.Uy[p + (-1,0,0)]  / self.Hy[p + (-1,0,0)]) -
                           (self.Vy[p + (-1,-1,0)] * self.Uy[p + (-1,-1,0)] / self.Hy[p + (-1,-1,0)])
                         ) * ( self.dt / self.dy )
 
@@ -623,9 +625,9 @@ class ShallowWater2D (MultiStageStencil):
             out_V[p] -= ( (self.Ux[p + (0,-1,0)]  * self.Vx[p + (0,-1,0)]  / self.Hx[p + (0,-1,0)]) -
                           (self.Ux[p + (-1,-1,0)] * self.Vx[p + (-1,-1,0)] / self.Hx[p + (-1,-1,0)])
                         ) * ( self.dt / self.dx )
-            out_V[p] -= ( (self.Vy[p + (-1,0,0)]  * self.Vy[p + (-1,0,0)])  / self.Hy[p + (-1,0,0)] + 
+            out_V[p] -= ( (self.Vy[p + (-1,0,0)]  * self.Vy[p + (-1,0,0)])  / self.Hy[p + (-1,0,0)] +
                           (self.Hy[p + (-1,0,0)]  * self.Hy[p + (-1,0,0)])  * ( self.g / 2.0 ) -
-                          ( (self.Vy[p + (-1,-1,0)] * self.Vy[p + (-1,-1,0)]) / self.Hy[p + (-1,-1,0)] + 
+                          ( (self.Vy[p + (-1,-1,0)] * self.Vy[p + (-1,-1,0)]) / self.Hy[p + (-1,-1,0)] +
                             (self.Hy[p + (-1,-1,0)] * self.Hy[p + (-1,-1,0)]) * ( self.g / 2.0 ) )
-                        ) * ( self.dt / self.dy ) 
+                        ) * ( self.dt / self.dy )
 

@@ -5,7 +5,7 @@ import numpy as np
 
 from nose.plugins.attrib import attr
 
-from gridtools.stencil  import MultiStageStencil
+from gridtools.stencil  import MultiStageStencil, stencil_kernel
 from tests.test_stencils import CopyTest
 
 
@@ -24,6 +24,7 @@ class GameOfLife (MultiStageStencil):
         self.counter = np.zeros (domain)
 
 
+    @stencil_kernel
     def kernel (self, out_X, in_X):
         for p in self.get_interior_points (out_X):
 
@@ -43,7 +44,7 @@ class GameOfLife (MultiStageStencil):
 
 class GameOfLifeTest (CopyTest):
     """
-    A test case for the If-statement related stencils defined above.-
+    A test case for the GameOfLife stencil defined above.-
     """
     def setUp (self):
         super ( ).setUp ( )
@@ -119,6 +120,7 @@ class AdditionalIfStatement (MultiStageStencil):
         self.counter = np.zeros (domain)
 
 
+    @stencil_kernel
     def kernel (self, out_X, in_X):
         for p in self.get_interior_points (out_X):
             self.counter[p] = out_X[p + (1,0,0)]
@@ -145,7 +147,7 @@ class AdditionalIfStatement (MultiStageStencil):
 
 class AdditionalIfStatementTest (CopyTest):
     """
-    A test case for the If-statement related stencils defined above.-
+    A test case for the AdditionalIfStatement stencil defined above.-
     """
     def setUp (self):
         super ( ).setUp ( )
@@ -203,188 +205,3 @@ class AdditionalIfStatementTest (CopyTest):
     @attr(lang='python')
     def test_python_results (self):
         pass
-
-
-
-class EmptyKernel (MultiStageStencil):
-    """
-    Definition of a simple stencil with invalid kernel
-    """
-    def kernel (self, out_arg, in_arg):
-        """
-        Just an empty kernel
-        """
-        pass
-
-
-
-class EmptyKernelTest (unittest.TestCase):
-    """
-    A base test case for stencils with invalid kernels.
-    """
-    def _run (self, stencil):
-        kwargs = dict ( )
-        for p in self.params:
-            kwargs[p] = getattr (self, p)
-        stencil.run (**kwargs)
-
-    def setUp (self):
-        super ( ).setUp ( )
-        logging.basicConfig (level=logging.INFO)
-
-        self.params = ('out_arg', 'in_arg')
-
-        self.out_arg = None
-        self.in_arg = None
-
-        self.stencil = EmptyKernel ( )
-        self.error = NameError
-
-
-    def test_raises_error (self, backend='c++'):
-        self.stencil.backend = backend
-        with self.assertRaises (self.error):
-            self._run(self.stencil)
-
-
-    @attr(lang='cuda')
-    def test_raises_error_cuda (self):
-        self.test_raises_error(backend='cuda')
-
-
-    @attr(lang='python')
-    def test_raises_error_python (self):
-        self.test_raises_error(backend='python')
-
-
-    def test_unregister (self, backend='c++'):
-        self.stencil.backend = backend
-        with self.assertRaises (self.error):
-            self._run(self.stencil)
-        self.assertIs ( (self.stencil in self.stencil.compiler), False)
-
-
-    @attr(lang='cuda')
-    def test_unregister_cuda (self):
-        self.test_unregister(backend='cuda')
-
-
-    @attr(lang='python')
-    def test_unregister_python (self):
-        self.test_unregister(backend='python')
-
-
-
-class IfStatementOpIsFailure (MultiStageStencil):
-    """
-    Tests that use of 'is' operator currently raises an error.
-    """
-    def __init__ (self, domain):
-        super ( ).__init__ ( )
-        self.set_halo ( (1,1,1,1) )
-
-
-    def kernel (self, out_X):
-        for p in self.get_interior_points (out_X):
-            if out_X[p] is out_X[p]:
-                out_X[p] = 0.0
-
-
-
-class IfStatementOpIsNotFailure (MultiStageStencil):
-    """
-    Tests that use of 'is not' operator currently raises an error.
-    """
-    def __init__ (self, domain):
-        super ( ).__init__ ( )
-        self.set_halo ( (1,1,1,1) )
-
-
-    def kernel (self, out_X):
-        for p in self.get_interior_points (out_X):
-            if out_X[p] is not out_X[p]:
-                out_X[p] = 0.0
-
-
-
-class IfStatementOpNotInFailure (MultiStageStencil):
-    """
-    Tests that use of 'not in' operator currently raises an error.
-    """
-    def __init__ (self, domain):
-        super ( ).__init__ ( )
-        self.set_halo ( (1,1,1,1) )
-
-
-    def kernel (self, out_X):
-        for p in self.get_interior_points (out_X):
-            if out_X[p] not in out_X[p]:
-                out_X[p] = 0.0
-
-
-
-class IfStatementOpInFailure (MultiStageStencil):
-    """
-    Tests that use of 'in' operator currently raises an error.
-    """
-    def __init__ (self, domain):
-        super ( ).__init__ ( )
-        self.set_halo ( (1,1,1,1) )
-
-
-    def kernel (self, out_X):
-        for p in self.get_interior_points (out_X):
-            if out_X[p] in out_X[p]:
-                out_X[p] = 0.0
-
-
-
-class IfStatementsOpIsTest (EmptyKernelTest):
-    """
-    A test case for the 'If + is' statement related stencil defined above.-
-    """
-    def setUp (self):
-        super ( ).setUp ( )
-        self.domain = (64, 64, 32)
-        self.params = ('out_X','in_X')
-
-        self.in_X = np.random.random_integers (10, size=self.domain)
-        self.in_X = self.in_X.astype (np.float64)
-
-        self.out_X = np.copy (self.in_X)
-
-        self.stencil = IfStatementOpIsFailure (self.domain)
-        self.error = NotImplementedError
-
-
-
-class IfStatementsOpIsNotTest (IfStatementsOpIsTest):
-    """
-    A test case for the 'If + is not' statement related stencil defined above.-
-    """
-    def setUp (self):
-        super ( ).setUp ( )
-
-        self.stencil = IfStatementOpIsNotFailure (self.domain)
-
-
-
-class IfStatementsOpNotInTest (IfStatementsOpIsTest):
-    """
-    A test case for the 'If + not in' statement related stencil defined above.-
-    """
-    def setUp (self):
-        super ( ).setUp ( )
-
-        self.stencil = IfStatementOpNotInFailure (self.domain)
-
-
-
-class IfStatementsOpInTest (IfStatementsOpIsTest):
-    """
-    A test case for the 'If + in' statement related stencil defined above.-
-    """
-    def setUp (self):
-        super ( ).setUp ( )
-
-        self.stencil = IfStatementOpInFailure (self.domain)

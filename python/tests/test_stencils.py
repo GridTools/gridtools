@@ -5,7 +5,7 @@ import numpy as np
 
 from nose.plugins.attrib import attr
 
-from gridtools.stencil  import MultiStageStencil
+from gridtools.stencil import MultiStageStencil, stencil_kernel
 
 
 
@@ -57,6 +57,7 @@ class Copy (MultiStageStencil):
     """
     Definition of a simple copy stencil, as in 'examples/copy_stencil.h'.-
     """
+    @stencil_kernel
     def kernel (self, out_cpy, in_cpy):
         """
         This stencil comprises a single stage.-
@@ -320,6 +321,43 @@ class CopyTest (AccessPatternDetectionTest):
         self.test_k_directions (backend='cuda')
 
 
+    def test_user_kernel_call (self):
+        with self.assertRaises (RuntimeError):
+            self.stencil.kernel(self.out_cpy, self.in_cpy)
+
+
+
+class AnyKernelName (MultiStageStencil):
+    """
+    Imitates the CopyStencil using a different kernel name
+    """
+    @stencil_kernel
+    def entry_point (self, out_cpy, in_cpy):
+        """
+        This stencil comprises a single stage.-
+        """
+        #
+        # iterate over the points, excluding halo ones
+        #
+        for p in self.get_interior_points (out_cpy):
+              out_cpy[p] = in_cpy[p]
+
+
+
+class AnyKernelNameTest (CopyTest):
+    """
+    Tests that entry point function can have any name
+    """
+    def setUp (self):
+        super ( ).setUp ( )
+        self.stencil = AnyKernelName ( )
+
+
+    def test_user_kernel_call (self):
+        with self.assertRaises (RuntimeError):
+            self.stencil.entry_point(self.out_cpy, self.in_cpy)
+
+
 
 class FloatPrecisionTest (CopyTest):
     """
@@ -347,11 +385,11 @@ class FloatPrecisionTest (CopyTest):
 
 
 
-
 class Power (MultiStageStencil):
     """
-    Immitates the CopyStencil using the power operator.-
+    Imitates the CopyStencil using the power operator.-
     """
+    @stencil_kernel
     def kernel (self, out_cpy, in_cpy):
         #
         # iterate over the points, excluding halo ones
@@ -385,11 +423,11 @@ class PowerTest (CopyTest):
 
 
 
-
 class Laplace (MultiStageStencil):
     """
     A Laplacian operator, as the one used in COSMO.-
     """
+    @stencil_kernel
     def kernel (self, out_data, in_data):
         """
         Stencil's entry point.-
@@ -474,6 +512,7 @@ class HorizontalDiffusion (MultiStageStencil):
             out_flj[p] = in_lap[p + (0,1,0)] - in_lap[p]
 
 
+    @stencil_kernel
     def kernel (self, out_data, in_data, in_wgt):
         #
         # Laplace
@@ -603,6 +642,7 @@ class ChildStencilCallsParentConstructorAndNothingElse (MultiStageStencil):
         super ( ).__init__ ( )
 
 
+    @stencil_kernel
     def kernel (self, out_cpy, in_cpy):
         """
         This stencil comprises a single stage.-
@@ -641,6 +681,7 @@ class ChildStencilCallsParentConstructorFirst (MultiStageStencil):
         gnum = 22
 
 
+    @stencil_kernel
     def kernel (self, out_cpy, in_cpy):
         """
         This stencil comprises a single stage.-
@@ -663,6 +704,7 @@ class ChildStencilCallsParentConstructorAfterComment (MultiStageStencil):
         super ( ).__init__ ( )
 
 
+    @stencil_kernel
     def kernel (self, out_cpy, in_cpy):
         """
         This stencil comprises a single stage.-
@@ -687,6 +729,7 @@ class ChildStencilCallsParentConstructorAfterMultComments (MultiStageStencil):
         super ( ).__init__ ( )
 
 
+    @stencil_kernel
     def kernel (self, out_cpy, in_cpy):
         """
         This stencil comprises a single stage.-
@@ -711,6 +754,7 @@ class ChildStencilCallsParentConstructorAfterDocString (MultiStageStencil):
         super ( ).__init__ ( )
 
 
+    @stencil_kernel
     def kernel (self, out_cpy, in_cpy):
         """
         This stencil comprises a single stage.-
