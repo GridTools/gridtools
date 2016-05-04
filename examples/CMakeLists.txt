@@ -4,7 +4,7 @@ list( APPEND SRCFILES boundary-condition laplacian copy_stencil positional_copy_
 list( APPEND X86_SRCFILES reduction)
 
 if( ENABLE_CXX11)
-    list(APPEND SRCFILES  extended_4D copy_stencil_parallel stencil cg)
+    list(APPEND SRCFILES  extended_4D copy_stencil_parallel stencil cg cg_naive)
 endif()
 
 
@@ -88,8 +88,8 @@ if(CUDA_FOUND)
         cuda_add_executable(shallow_water_enhanced_cuda  shallow_water_enhanced.cu OPTIONS )
         target_link_libraries(shallow_water_enhanced_cuda ${exe_LIBS}  gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS})
 
-        cuda_add_executable(copy_stencil_parallel_cuda  copy_stencil_parallel.cu)
-        target_link_libraries(copy_stencil_parallel_cuda ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} )
+        #cuda_add_executable(copy_stencil_parallel_cuda  copy_stencil_parallel.cu)
+        #target_link_libraries(copy_stencil_parallel_cuda ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} )
       endif()
   endif()
   
