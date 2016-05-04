@@ -23,7 +23,7 @@ namespace test_staggered_keyword{
         static uint_t ok_i;
         static uint_t ok_j;
 
-        typedef accessor<0> p_i;
+        typedef accessor<0, gridtools::enumtype::inout> p_i;
         typedef accessor<1> p_j;
         typedef boost::mpl::vector<p_i,p_j> arg_list;
         template <typename Evaluation>

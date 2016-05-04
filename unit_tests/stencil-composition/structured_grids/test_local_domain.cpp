@@ -31,7 +31,7 @@ namespace local_domain_stencil{
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct dummy_functor {
-        typedef accessor<0> in;
+        typedef accessor<0, gridtools::enumtype::inout> in;
         typedef accessor<1> out;
         typedef boost::mpl::vector<in,out> arg_list;
 
