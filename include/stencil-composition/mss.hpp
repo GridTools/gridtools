@@ -67,6 +67,49 @@ namespace gridtools {
     };
 
 
+    namespace _impl {
+        /*
+          This metafunction traverses an array of esfs that may contain indendent_esfs.
+
+          This is used by mss_descriptor_linear_esf_sequence and
+          sequence_of_is_independent_esf.  The first one creates a
+          vector of esfs the second one a vector of boolean types that
+          are true if an esf is in an independent section, and false
+          otherwise.
+
+          To reuse the code, the values to push are passed as template
+          arguments. By passing a placeholder as value to push, then
+          the corresponding folds will "substitute" that, thus
+          allowing to process sequence elements. Otherwise boolean
+          types are passed and those will be pushed into the result
+          vector. (This is a rework of Paolo's code that was failing
+          for nested independents.
+         */
+        template <typename EsfsVector, typename PushRegular, typename PushIndependent=PushRegular>
+        struct linearize_esf_array {
+
+            template <typename Vector, typename Element>
+            struct push_into {
+                typedef typename boost::mpl::push_back<Vector, Element>::type type;
+            };
+
+            template <typename Vector, typename Independents>
+            struct push_into<Vector, independent_esf<Independents> > {
+                typedef typename boost::mpl::fold<
+                    Independents,
+                    Vector,
+                    push_into<boost::mpl::_1, PushIndependent>
+                    >::type type;
+            };
+
+            typedef typename boost::mpl::fold<
+                EsfsVector,
+                boost::mpl::vector0<>,
+                push_into<boost::mpl::_1, PushRegular>
+                >::type type;
+        };
+    } // namespace _impl
+
     /**
        @brief constructs an mpl vector of esf, linearizig the mss tree.
 
@@ -83,31 +126,7 @@ namespace gridtools {
         mss_descriptor< ExecutionEngine, EsfDescrSequence, CacheSequence >
         >
     {
-        template <typename EsfsVector>
-        struct linearize_esf_array {
-
-            template <typename Vector, typename Element>
-            struct push_into {
-                typedef typename boost::mpl::push_back<Vector, Element>::type type;
-            };
-
-            template <typename Vector, typename Independents>
-            struct push_into<Vector, independent_esf<Independents> > {
-                typedef typename boost::mpl::fold<
-                    Independents,
-                    Vector,
-                    push_into<boost::mpl::_1, boost::mpl::_2>
-                    >::type type;
-            };
-
-            typedef typename boost::mpl::fold<
-                EsfsVector,
-                boost::mpl::vector0<>,
-                push_into<boost::mpl::_1, boost::mpl::_2>
-                >::type type;
-        };
-
-        typedef typename linearize_esf_array< EsfDescrSequence >::type type;
+        typedef typename _impl::linearize_esf_array< EsfDescrSequence, boost::mpl::_2 >::type type;
     };
 
 
@@ -125,31 +144,7 @@ namespace gridtools {
         mss_descriptor< ExecutionEngine, EsfDescrSequence, CacheSequence >
         >
     {
-        template <typename EsfsVector>
-        struct linearize_esf_array {
-
-            template <typename Vector, typename Element>
-            struct push_into {
-                typedef typename boost::mpl::push_back<Vector, boost::false_type>::type type;
-            };
-
-            template <typename Vector, typename Independents>
-            struct push_into<Vector, independent_esf<Independents> > {
-                typedef typename boost::mpl::fold<
-                    Independents,
-                    Vector,
-                    push_into<boost::mpl::_1, boost::true_type>
-                    >::type type;
-            };
-
-            typedef typename boost::mpl::fold<
-                EsfsVector,
-                boost::mpl::vector0<>,
-                push_into<boost::mpl::_1, boost::mpl::_2>
-                >::type type;
-        };
-
-        typedef typename linearize_esf_array< EsfDescrSequence >::type type;
+        typedef typename _impl::linearize_esf_array< EsfDescrSequence, boost::false_type, boost::true_type >::type type;
     };
 
     template < typename Mss >
