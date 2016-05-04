@@ -11,6 +11,7 @@ from gridtools.compiler import StencilCompiler
 
 from gridtools.utils import Utilities
 
+import ipdb
 
 
 def stencil_kernel (kernel_func):
@@ -19,6 +20,8 @@ def stencil_kernel (kernel_func):
     The decorator embeds a runtime check in the kernel to verify it is called
     from the run() function of the stencil.
     """
+    import inspect
+    import types
     from gridtools import STENCIL_KERNEL_DECORATOR_LABEL
     #
     # The @wraps decorator is useful to correctly set the __wrapped__ attribute
@@ -37,7 +40,25 @@ def stencil_kernel (kernel_func):
 
     setattr (kernel_wrapper, STENCIL_KERNEL_DECORATOR_LABEL, True)
 
-    return kernel_wrapper
+    if inspect.ismethod (kernel_func):
+        return kernel_wrapper
+    else:
+        class UserStencil (MultiStageStencil):
+            def __init__ (self):
+                super ( ).__init__ ( )
+
+            def __call__ (self, *args, **kwargs):
+#                ipdb.set_trace()
+                self.run (*args, **kwargs)
+
+        user_stencil = UserStencil ( )
+        setattr (user_stencil,
+                 kernel_func.__name__,
+                 types.MethodType (kernel_wrapper, user_stencil) )
+
+        return user_stencil
+
+
 
 
 

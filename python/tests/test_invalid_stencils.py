@@ -6,7 +6,7 @@ import numpy as np
 
 from nose.plugins.attrib import attr
 
-from gridtools.stencil  import MultiStageStencil, stencil_kernel
+from gridtools.stencil import MultiStageStencil, stencil_kernel
 
 
 
