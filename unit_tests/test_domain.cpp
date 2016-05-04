@@ -99,11 +99,11 @@ bool test_domain() {
 
 #ifdef __CUDACC__
     typedef gridtools::backend< gridtools::enumtype::Cuda,
-        gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Naive > backend_t;
+        gridtools::GRIDBACKEND,
+                                gridtools::enumtype::Naive > backend_t;
 #else
     typedef gridtools::backend< gridtools::enumtype::Host,
-        gridtools::enumtype::GRIDBACKEND,
+        gridtools::GRIDBACKEND,
         gridtools::enumtype::Naive > backend_t;
 #endif
     typedef typename backend_t::storage_type<double, backend_t::storage_info<0,gridtools::layout_map<0,1,2> > >::type storage_type;
