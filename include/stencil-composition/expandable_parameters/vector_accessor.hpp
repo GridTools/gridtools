@@ -32,4 +32,7 @@ namespace gridtools{
     template <uint_t ID, enumtype::intend Intent, typename Extent, uint_t Size >
     struct is_vector_accessor<vector_accessor<ID, Intent, Extent, Size> > : boost::mpl::true_ {};
 
+    template <typename T>
+    struct is_any_accessor : boost::mpl::or_<is_accessor<T>, is_vector_accessor<T> > {};
+
 }//namespace gridtools

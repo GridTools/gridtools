@@ -37,10 +37,11 @@ namespace gridtools{
                typename DomainType,
                typename Grid,
                typename ConditionalsSet,
+               typename ReductionType,
                bool IsStateful,
                typename ExpandFactor
                >
-    struct intermediate_expand : public computation
+    struct intermediate_expand : public computation<ReductionType>
     {
         GRIDTOOLS_STATIC_ASSERT((is_backend<Backend>::value), "wrong type");
         // to make the following work we should change in lot of places
@@ -92,6 +93,7 @@ namespace gridtools{
                               , domain_type<new_arg_list>
                               , Grid
                               , ConditionalsSet
+                              , ReductionType
                               , IsStateful
                               , ExpandFactor::value
                               > intermediate_t;
@@ -103,6 +105,7 @@ namespace gridtools{
                               , domain_type<new_arg_list>
                               , Grid
                               , ConditionalsSet
+                              , ReductionType
                               , IsStateful
                               , 1
                               > intermediate_extra_t;
@@ -168,8 +171,10 @@ namespace gridtools{
            iterations, if the number of parameters is not multiple of the expand factor, the remaining
            chunck of storage pointers is consumed.
          */
-        virtual void run(){
-
+        virtual auto run()
+            ->decltype(m_intermediate_extra->run())
+        {
+            GRIDTOOLS_STATIC_ASSERT((boost::is_same<decltype(m_intermediate_extra->run()), notype>::value), "Reduction is not alloewd with expandable parameters");
             //the expand factor must be smaller than the total size of the expandable parameters list
             assert(m_size>=ExpandFactor::value);
 

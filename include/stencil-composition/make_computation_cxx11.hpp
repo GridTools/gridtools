@@ -24,7 +24,7 @@ namespace gridtools {
                                                    boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 >,
                                                    boost::mpl::_1 > >::type mss_vector;
 
-            typedef meta_array< mss_vector, boost::mpl::quote1< is_mss_descriptor > > type;
+            typedef meta_array< mss_vector, boost::mpl::quote1< is_computation_token > > type;
         };
     } // namespace _impl
 
@@ -40,7 +40,7 @@ namespace gridtools {
 
         return std::make_shared< intermediate< Backend,
             meta_array< typename meta_array_generator< boost::mpl::vector0<>, Mss... >::type,
-                                                   boost::mpl::quote1< is_amss_descriptor > >,
+                                                   boost::mpl::quote1< is_computation_token > >,
             Domain,
             Grid,
             conditionals_set_t,

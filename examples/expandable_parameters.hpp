@@ -11,12 +11,12 @@ namespace test_expandable_parameters{
     typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend< enumtype::Cuda, enumtype::Block >
+#define BACKEND backend< enumtype::Cuda, enumtype::GRIDBACKEND, enumtype::Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend< enumtype::Host, enumtype::Block >
+#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Block >
 #else
-#define BACKEND backend< enumtype::Host, enumtype::Naive >
+#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Naive >
 #endif
 #endif
 
@@ -167,6 +167,8 @@ namespace test_expandable_parameters{
         grid_.value_list[0] = 0;
         grid_.value_list[1] = d3 - 1;
 
+        bool result_=true;
+
 #ifdef UNROLLED_PARAMETERS
 
         typedef arg<0, storage_t > p_0_out;
@@ -194,6 +196,7 @@ namespace test_expandable_parameters{
         domain_type<args_t> domain_(boost::fusion::make_vector(&storage1, &storage2, &storage3, &storage4, &storage5, &storage6, &storage7, &storage8,
                                                                &storage10, &storage20, &storage30, &storage40, &storage50, &storage60, &storage70, &storage80
                                         ));
+
 
 #ifdef SINGLE_KERNEL
         auto comp_ = make_computation<BACKEND>(
@@ -269,11 +272,10 @@ namespace test_expandable_parameters{
         comp_->run();
         comp_->finalize();
 
-        bool result_=false;
         array< array< uint_t, 2 >, 3 > halos{{{0,0}, {0,0}, {0,0}}};
         for(auto i=0; i<list_in_.size(); ++i){
             verifier verif_(1e-13);
-            result_ = verif_.verify(grid_, *list_in_[i], *list_out_[i], halos);
+            result_ = result_ & verif_.verify(grid_, *list_in_[i], *list_out_[i], halos);
         }
         // for(auto &&i:list_out_)
         // {

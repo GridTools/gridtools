@@ -75,7 +75,7 @@ namespace test_iterate_domain{
             gridtools::meta_array< boost::mpl::vector< decltype(gridtools::make_mss // mss_descriptor
                                        (enumtype::execute< enumtype::forward >(),
                                            gridtools::make_esf< dummy_functor >(p_in(), p_buff(), p_out()))) >,
-                                  boost::mpl::quote1< is_amss_descriptor > >,
+                                  boost::mpl::quote1< is_computation_token > >,
             decltype(domain),
             decltype(grid),
             boost::fusion::set<>,

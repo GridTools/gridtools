@@ -24,7 +24,7 @@ namespace gridtools {
      */
     template < typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor >
     struct mss_components {
-        GRIDTOOLS_STATIC_ASSERT((is_amss_descriptor< MssDescriptor >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_computation_token< MssDescriptor >::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< ExtentSizes, is_extent >::value), "Internal Error: wrong type");
         typedef MssDescriptor mss_descriptor_t;
 

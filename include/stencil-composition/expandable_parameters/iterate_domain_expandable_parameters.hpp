@@ -68,4 +68,13 @@ namespace gridtools{
 
 
     };
+
+    template<typename T>
+    struct is_iterate_domain_expandable_parameters : boost::mpl::false_{};
+
+    template<typename T, ushort_t Val>
+    struct is_iterate_domain_expandable_parameters<iterate_domain_expandable_parameters<T, Val> >: boost::mpl::true_{};
+
+    template<typename T, ushort_t Val>
+    struct is_iterate_domain<iterate_domain_expandable_parameters<T, Val> >: boost::mpl::true_{};
 }

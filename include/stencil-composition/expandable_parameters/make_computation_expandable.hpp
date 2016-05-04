@@ -14,8 +14,8 @@
 
 namespace gridtools {
 
-    template < bool Positional, typename Backend, typename Expand, typename Domain, typename Grid, typename... Mss >
-    std::shared_ptr< computation > make_computation_expandable_impl(Expand /**/, Domain &domain, const Grid &grid, Mss... args_) {
+    template < bool Positional, typename Backend, typename ReductionType, typename Expand, typename Domain, typename Grid, typename... Mss >
+    std::shared_ptr< computation<ReductionType> > make_computation_expandable_impl(Expand /**/, Domain &domain, const Grid &grid, Mss... args_) {
 
         //doing type checks and defining the conditionals set
         typedef typename _impl::create_conditionals_set<Domain, Grid, Mss...>::type conditionals_set_t;
@@ -26,21 +26,22 @@ namespace gridtools {
 
         return std::make_shared< intermediate_expand< Backend,
             meta_array< typename meta_array_generator< boost::mpl::vector0<>, Mss... >::type,
-                                                   boost::mpl::quote1< is_mss_descriptor > >,
+                                                   boost::mpl::quote1< is_computation_token > >,
                                                       Domain,
                                                       Grid,
                                                       conditionals_set_t,
+                                                      ReductionType,
                                                       Positional,
                                                       Expand> >(domain, grid, conditionals_set_);
     }
 
     template < typename Backend, typename Expand, typename Domain, typename Grid, typename... Mss, typename = typename std::enable_if<is_expand_factor<Expand>::value >::type >
-    std::shared_ptr< computation > make_computation(Expand /**/, Domain &domain, const Grid &grid, Mss... args_) {
-        return make_computation_expandable_impl< POSITIONAL_WHEN_DEBUGGING, Backend >(Expand(), domain, grid, args_...);
+    std::shared_ptr< computation< typename _impl::reduction_helper< Mss... >::reduction_type_t> > make_computation(Expand /**/, Domain &domain, const Grid &grid, Mss... args_) {
+        return make_computation_expandable_impl< POSITIONAL_WHEN_DEBUGGING, Backend, typename _impl::reduction_helper< Mss... >::reduction_type_t >(Expand(), domain, grid, args_...);
     }
 
     template < typename Backend, typename Expand, typename Domain, typename Grid, typename... Mss, typename = typename std::enable_if<is_expand_factor<Expand>::value >::type >
-    std::shared_ptr< computation > make_positional_computation(Expand /**/, Domain &domain, const Grid &grid, Mss... args_) {
+    std::shared_ptr< computation< typename _impl::reduction_helper< Mss... >::reduction_type_t> > make_positional_computation(Expand /**/, Domain &domain, const Grid &grid, Mss... args_) {
             return make_computation_expandable_impl< true, Backend >(Expand(), domain, grid, args_...);
     }
 }

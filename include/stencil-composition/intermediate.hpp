@@ -451,7 +451,7 @@ namespace gridtools {
     struct intermediate : public computation< ReductionType > {
 
         GRIDTOOLS_STATIC_ASSERT(
-            (is_meta_array_of< MssDescriptorArray, is_amss_descriptor >::value), "Internal Error: wrong type");
+            (is_meta_array_of< MssDescriptorArray, is_computation_token >::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_domain_type< DomainType >::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
