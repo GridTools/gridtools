@@ -95,6 +95,46 @@ class EmptyKernelTest (NoKernelTest):
 
 
 
+class ReturnSomethingKernel (MultiStageStencil):
+    @stencil_kernel
+    def kernel (self, out):
+        """
+        A kernel function should return None. Here we return a different object
+        Also calling another function that returns a value for further testing.
+        """
+        #
+        # iterate over the points
+        #
+        for p in self.get_interior_points (out):
+              out[p] = out[p]*self.return2 ( )
+
+        return 'something'
+
+
+    def return2(self):
+        return 2
+
+
+
+class ReturnSomethingKernelTest (EmptyKernelTest):
+    """
+    A test case for the ReturnSomethingKernel stencil defined above.
+    """
+    def setUp (self):
+        super ( ).setUp ( )
+
+        self.domain = (64, 64, 32)
+        self.params = ('out',)
+
+        self.out = np.ones (self.domain,
+                            dtype=np.float64,
+                            order='F')
+
+        self.stencil = ReturnSomethingKernel ( )
+        self.error = ValueError
+
+
+
 class MultipleKernels (MultiStageStencil):
     """
     Definition of a stencil with multiple kernels
