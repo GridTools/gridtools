@@ -1,10 +1,6 @@
 #include "gtest/gtest.h"
 #include <gridtools.hpp>
 #include <stencil-composition/stencil-composition.hpp>
-// #include <stencil-composition/esf_metafunctions.hpp>
-// #include <stencil-composition/make_esf.hpp>
-// #include <stencil-composition/make_stencils.hpp>
-// #include <stencil-composition/accessor.hpp>
 
 typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_interval;
 typedef gridtools::interval<gridtools::level<0,-2>, gridtools::level<1,1> > axis;
