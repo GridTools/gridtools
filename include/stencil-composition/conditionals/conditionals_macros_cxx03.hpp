@@ -51,7 +51,7 @@ namespace gridtools {
         typedef intermediate< Backend,                                                                              \
             meta_array< typename BOOST_PP_CAT(meta_array_generator, BOOST_PP_INC(n)) < boost::mpl::vector0<>,       \
                                   BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), MssType) >::type,                           \
-            boost::mpl::quote1< is_amss_descriptor > >,                                                             \
+            boost::mpl::quote1< is_computation_token > >,                                                             \
             Domain, Grid, conditionals_set_t,                                                                       \
             typename _impl::reduction_helper< BOOST_PP_CAT(MssType, n) >::reduction_type_t,                         \
             Positional > intermediate_t;                                                                            \

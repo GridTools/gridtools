@@ -17,7 +17,7 @@
 #include "stencil-composition/caches/cache_metafunctions.hpp"
 #include "mss.hpp"
 #include "reductions/reduction_descriptor.hpp"
-#include "amss_descriptor.hpp"
+#include "computation_grammar.hpp"
 
 namespace gridtools {
 
@@ -31,7 +31,7 @@ namespace gridtools {
      */
     template < typename AMssDescriptor >
     struct mss_descriptor_linear_esf_sequence {
-        GRIDTOOLS_STATIC_ASSERT((is_amss_descriptor< AMssDescriptor >::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_computation_token< AMssDescriptor >::value), "Error");
 
         template < typename State, typename SubArray >
         struct keep_scanning : keep_scanning_lambda< State, SubArray, boost::mpl::_2 > {};
@@ -53,7 +53,7 @@ namespace gridtools {
 
     template < typename AMssDescriptor >
     struct sequence_of_is_independent_esf {
-        GRIDTOOLS_STATIC_ASSERT((is_amss_descriptor< AMssDescriptor >::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_computation_token< AMssDescriptor >::value), "Error");
 
         template < typename State, typename SubArray >
         struct keep_scanning : keep_scanning_lambda< State, SubArray, boost::mpl::true_ > {};

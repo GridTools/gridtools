@@ -171,8 +171,10 @@ namespace gridtools{
            iterations, if the number of parameters is not multiple of the expand factor, the remaining
            chunck of storage pointers is consumed.
          */
-        virtual void run(){
-
+        virtual auto run()
+            ->decltype(m_intermediate_extra->run())
+        {
+            GRIDTOOLS_STATIC_ASSERT((boost::is_same<decltype(m_intermediate_extra->run()), notype>::value), "Reduction is not alloewd with expandable parameters");
             //the expand factor must be smaller than the total size of the expandable parameters list
             assert(m_size%ExpandFactor::value);
 

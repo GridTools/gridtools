@@ -23,11 +23,11 @@ namespace gridtools {
     template < typename MssArray >
     struct split_mss_into_independent_esfs {
         GRIDTOOLS_STATIC_ASSERT(
-            (is_meta_array_of< MssArray, is_amss_descriptor >::value), "Internal Error: wrong type");
+            (is_meta_array_of< MssArray, is_computation_token >::value), "Internal Error: wrong type");
 
         template < typename MssDescriptor >
         struct mss_split_esfs {
-            GRIDTOOLS_STATIC_ASSERT((is_amss_descriptor< MssDescriptor >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_computation_token< MssDescriptor >::value), "Internal Error: wrong type");
 
             typedef typename mss_descriptor_execution_engine< MssDescriptor >::type execution_engine_t;
 
@@ -54,7 +54,7 @@ namespace gridtools {
                 boost::mpl::vector0<>,
                 boost::mpl::copy< boost::mpl::_1, boost::mpl::back_inserter< mss_split_esfs< boost::mpl::_2 > > > >::
                 type,
-            boost::mpl::quote1< is_amss_descriptor > > type;
+            boost::mpl::quote1< is_computation_token > > type;
     };
 
     /**
@@ -66,7 +66,7 @@ namespace gridtools {
     template < enumtype::platform BackendId, typename MssDescriptorArray, typename ExtentSizes, typename RepeatFunctor >
     struct build_mss_components_array {
         GRIDTOOLS_STATIC_ASSERT(
-            (is_meta_array_of< MssDescriptorArray, is_amss_descriptor >::value), "Internal Error: wrong type");
+            (is_meta_array_of< MssDescriptorArray, is_computation_token >::value), "Internal Error: wrong type");
 
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< typename MssDescriptorArray::elements >::value ==
                                     boost::mpl::size< ExtentSizes >::value),

@@ -305,15 +305,13 @@ namespace gridtools {
          * @param real_storage The actual fusion::vector with the values
          TODO: when I have only one placeholder and C++11 enabled this constructor is erroneously picked
          */
-        template < typename RealStorage
 #ifdef CXX11_ENALBED
-                   , typename= typename std::enable_if<
-                         boost::is_pointer<
-                             typename boost::mpl::at_c<
-                                 RealStorage, 0>::type >::value >::type
-#endif
-                   >
+        template < template <typename ...> class Vector, typename ... Storages>
+        explicit domain_type(Vector<Storages* ...> const &real_storage_)
+#else
+        template < typename RealStorage>
         explicit domain_type(RealStorage const &real_storage_)
+#endif
             : m_storage_pointers(), m_metadata_set() {
 
             // TODO: how to check the assertion below?
@@ -377,11 +375,12 @@ namespace gridtools {
          * @param real_storage The actual fusion::vector with the values
          TODO: when I have only one placeholder and C++11 enabled this constructor is erroneously picked
          */
-        template < typename RealStorage, typename= typename std::enable_if<
-                                             is_pointer<
-                                                 typename boost::mpl::at_c<
-                                                     RealStorage, 0>::type >::value >::type >
-        explicit domain_type(RealStorage const &storage_pointers_
+        template < template <typename ...> class Vector,  typename ... Storages//, typename std::enable_if<
+                                             // is_pointer<
+                                             //     typename boost::mpl::at_c<
+                                             //         RealStorage, 0>::type >::value >::type* = nullptr
+                   >
+        explicit domain_type(Vector<pointer<Storages> ... > const &storage_pointers_
                              //,typename std::enable_if<is_pointer<typename boost::mpl::at_c<RealStorage, 0>::type >, int >::type* t=0
             )
             : m_storage_pointers(storage_pointers_), m_metadata_set() {
