@@ -100,14 +100,19 @@ class ReturnSomethingKernel (MultiStageStencil):
     def kernel (self, out):
         """
         A kernel function should return None. Here we return a different object
+        Also calling another function that returns a value for further testing.
         """
         #
         # iterate over the points
         #
         for p in self.get_interior_points (out):
-              out[p] = out[p]*2
+              out[p] = out[p]*self.return2 ( )
 
         return 'something'
+
+
+    def return2(self):
+        return 2
 
 
 
