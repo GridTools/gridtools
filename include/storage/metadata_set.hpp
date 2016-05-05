@@ -105,7 +105,8 @@ namespace gridtools {
 
       private:
         Sequence &m_seq;
-        pointer<typename Arg::storage_ptr_t> m_arg_ptr;
+	typedef typename Arg::storage_ptr_t arg_ptr_t;
+        pointer<const arg_ptr_t> m_arg_ptr;
 
       public:
         GT_FUNCTION

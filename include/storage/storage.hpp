@@ -106,11 +106,13 @@ namespace gridtools {
 
 
 	public:
-		void clone_to_device() {}
+		void clone_to_device() {
+			m_storage.update_gpu();
+		}
 
 		/** @brief clone storage + contents to gpu */
 		void d2h_update() {
-			assert(!m_on_host && "d2h_update cannot be done because this storage is not on the device yet");
+			if(m_on_host) return;
 			// clone the storage itself from device
 			m_storage.update_cpu();
 			// clone storage contents from device
@@ -121,7 +123,7 @@ namespace gridtools {
 
 		/** @brief clone storage + contents from gpu */
 		void h2d_update() {
-			assert(m_on_host && "h2d_update cannot be done because this storage is already on the device");
+			if(!m_on_host) return;
 			// clone storage contents to device
 			(*m_storage).h2d_update();
 			// clone the storage itself to device
@@ -177,8 +179,8 @@ namespace gridtools {
             return pointer<storage_ptr_t>(&m_storage);
         }
 
-        pointer<storage_ptr_t> get_storage_pointer() const {
-            return pointer<storage_ptr_t>(const_cast<storage_ptr_t*>(&m_storage));
+        pointer<const storage_ptr_t> get_storage_pointer() const {
+            return pointer<const storage_ptr_t>(&m_storage);
         }
 
 #if defined(CXX11_ENABLED)
@@ -231,7 +233,7 @@ namespace gridtools {
 #endif // CXX11_ENABLED
 
 		~storage() {
-			(*m_storage).release();
+			m_storage.free_it();
 		}
 
 		/**@brief releasing the pointers to the data, and deleting them in case they need to be deleted */
