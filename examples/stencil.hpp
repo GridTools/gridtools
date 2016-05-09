@@ -145,7 +145,11 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     // Prepare types for the data storage
     //                   strides  1 x xy
     //                      dims  x y z
+    #ifdef CUDA_EXAMPLE
+    typedef gridtools::layout_map<2,1,0> layout_t;
+    #else
     typedef gridtools::layout_map<0,1,2> layout_t;
+    #endif
     typedef gridtools::BACKEND::storage_info<0, layout_t> metadata_t;
     typedef gridtools::BACKEND::storage_type<float_type, metadata_t >::type storage_type;
     typedef storage_type::pointer_type pointer_type;
