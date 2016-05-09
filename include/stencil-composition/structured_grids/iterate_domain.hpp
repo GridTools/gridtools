@@ -80,6 +80,7 @@ namespace gridtools {
         // *************** type definitions **************
 
         typedef typename iterate_domain_impl_arguments< IterateDomainImpl >::type iterate_domain_arguments_t;
+
         typedef typename iterate_domain_arguments_t::local_domain_t local_domain_t;
 
         typedef iterate_domain_reduction< iterate_domain_arguments_t > iterate_domain_reduction_t;

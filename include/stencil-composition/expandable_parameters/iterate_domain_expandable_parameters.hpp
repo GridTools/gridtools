@@ -27,6 +27,7 @@ namespace gridtools{
         GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<IterateDomain>::value, "wrong type");
         static const ushort_t ID=Value-1;
         typedef IterateDomain super;
+        typedef IterateDomain iterate_domain_t;
 
         using super::operator();
         /**
