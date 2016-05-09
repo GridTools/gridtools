@@ -8,7 +8,7 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    return cg::solver(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]));
+    return stencil__::solver(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]));
 
 #else
     assert(false);
