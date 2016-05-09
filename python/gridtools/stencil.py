@@ -10,7 +10,6 @@ from gridtools.symbol   import StencilScope
 from gridtools.compiler import StencilCompiler
 from gridtools.utils import Utilities
 
-import ipdb
 
 
 class InteriorPoint (tuple):
@@ -42,11 +41,11 @@ class Stencil (object):
     #
     # a global halo descriptor
     #
-    halo = (0, 0, 0, 0)
+    _halo = (0, 0, 0, 0)
     #
     # define the global execution order in 'k' dimension
     #
-    k_direction = 'forward'
+    _k_direction = 'forward'
 
 
     @staticmethod
@@ -98,6 +97,32 @@ class Stencil (object):
                 def __call__ (self, *args, **kwargs):
                     self.run (*args, **kwargs)
 
+                def get_halo (self):
+                    return Stencil.get_halo ( )
+
+                def get_k_direction (self):
+                    return Stencil.get_k_direction ( )
+
+                def set_halo (self, halo):
+                    raise NotImplementedError ("It is not possible to set an \
+                        individual halo for a stencil defined with the \
+                        procedural programming style")
+
+                def set_k_direction (self, k_direction):
+                    raise NotImplementedError ("It is not possible to set an \
+                        individual k direction for a stencil defined with the \
+                        procedural programming style")
+
+                @property
+                def backend (self):
+                    return Stencil.get_backend ( )
+
+                @backend.setter
+                def backend (self, value):
+                    raise NotImplementedError ("It is not possible to set an \
+                        individual backend for a stencil defined with the \
+                        procedural programming style")
+
             user_stencil = UserStencil ( )
             setattr (user_stencil,
                      kernel_func.__name__,
@@ -107,7 +132,7 @@ class Stencil (object):
 
 
     @staticmethod
-    def get_backend ():
+    def get_backend ( ):
         return Stencil._backend
 
 
@@ -140,25 +165,24 @@ class Stencil (object):
             #
             i_dim, j_dim, k_dim = data_field.shape
 
-            start_i = 0     + Stencil.halo[0] + ghost_cell[0]
-            end_i   = i_dim - Stencil.halo[1] + ghost_cell[1]
-            start_j = 0     + Stencil.halo[2] + ghost_cell[2]
-            end_j   = j_dim - Stencil.halo[3] + ghost_cell[3]
+            start_i = 0     + Stencil.get_halo ( ) [0] + ghost_cell[0]
+            end_i   = i_dim - Stencil.get_halo ( ) [1] + ghost_cell[1]
+            start_j = 0     + Stencil.get_halo ( ) [2] + ghost_cell[2]
+            end_j   = j_dim - Stencil.get_halo ( ) [3] + ghost_cell[3]
 
-#            ipdb.set_trace()
             #
             # calculate 'k' iteration boundaries based 'k_direction'
             #
-            if Stencil.k_direction == 'forward':
+            if Stencil.get_k_direction ( ) == 'forward':
                 start_k = 0
                 end_k   = k_dim
                 inc_k   = 1
-            elif Stencil.k_direction == 'backward':
+            elif Stencil.get_k_direction ( ) == 'backward':
                 start_k = k_dim - 1
                 end_k   = -1
                 inc_k   = -1
             else:
-                logging.warning ("Ignoring unknown global K direction '%s'" % Stencil.k_direction)
+                logging.warning ("Ignoring unknown global K direction '%s'" % Stencil.get_k_direction ( ))
             #
             # return the coordinate tuples in the correct order
             #
@@ -166,6 +190,11 @@ class Stencil (object):
                 for j in range (start_j, end_j):
                     for k in range (start_k, end_k, inc_k):
                         yield InteriorPoint ((i, j, k))
+
+
+    @staticmethod
+    def get_halo ( ):
+        return Stencil._halo
 
 
     @staticmethod
@@ -183,9 +212,9 @@ class Stencil (object):
         if len (halo) == 4:
             if halo[0] >= 0 and halo[2] >= 0:
                 if halo[1] >= 0 and halo[3] >= 0:
-                    Stencil.halo = halo
+                    Stencil._halo = halo
                     Stencil.compiler.recompile ( )
-                    logging.debug ("Setting global Stencil halo to %s" % str (Stencil.halo))
+                    logging.debug ("Setting global Stencil halo to %s" % str (Stencil._halo))
                 else:
                     raise ValueError ("Invalid halo %s: definition for the positive halo should be zero or a positive integer" % str (halo))
             else:
@@ -194,8 +223,13 @@ class Stencil (object):
             raise ValueError ("Invalid halo %s: it should contain four values" % str (halo))
 
 
-    @classmethod
-    def set_k_direction (cls, direction="forward"):
+    @staticmethod
+    def get_k_direction ( ):
+        return Stencil._k_direction
+
+
+    @staticmethod
+    def set_k_direction (direction="forward"):
         """
         Applies the execution order in `k` dimension:
 
@@ -208,9 +242,9 @@ class Stencil (object):
             return
 
         if direction in accepted_directions:
-            cls.k_direction = direction
+            Stencil.k_direction = direction
             Stencil.compiler.recompile ( )
-            logging.debug ("Setting global Stencil k_direction to '%s'" % cls.k_direction)
+            logging.debug ("Setting global Stencil k_direction to '%s'" % Stencil.k_direction)
         else:
             logging.warning ("Ignoring unknown direction '%s'" % direction)
 
@@ -346,11 +380,11 @@ class MultiStageStencil (Stencil):
         #
         # a halo descriptor
         #
-        self.halo             = ()
+        self._halo             = ()
         #
         # define the execution order in 'k' dimension
         #
-        self.k_direction      = ''
+        self._k_direction      = ''
 
 
     @property
@@ -402,23 +436,10 @@ class MultiStageStencil (Stencil):
             raise TypeError ("Calling 'get_interior_points' without a NumPy array")
         else:
             #
-            # If specific halo and k_direction are set for this stencil, use them
-            # Otherwise, use global Stencil settings
-            #
-            if self.halo:
-                halo = self.halo
-            else:
-                halo = Stencil.halo
-
-            if self.k_direction:
-                k_direction = self.k_direction
-            else:
-                k_direction = Stencil.k_direction
-
-            #
             # calculate 'i','j','k' iteration boundaries
             # based on 'halo' and field-access patterns
             #
+            halo = self.get_halo ( )
             i_dim, j_dim, k_dim = data_field.shape
 
             start_i = 0     + halo[0] + ghost_cell[0]
@@ -429,6 +450,7 @@ class MultiStageStencil (Stencil):
             #
             # calculate 'k' iteration boundaries based 'k_direction'
             #
+            k_direction = self.get_k_direction ( )
             if k_direction == 'forward':
                 start_k = 0
                 end_k   = k_dim
@@ -478,15 +500,9 @@ class MultiStageStencil (Stencil):
         else:
             #
             # Check the minimum halo has been given
-            # If specific halo was set for this stencil, use that
-            # Otherwise, use global Stencil halo
             #
-            if self.halo:
-                halo = self.halo
-            else:
-                halo = Stencil.halo
             for idx in range (len (self.scope.minimum_halo)):
-                if self.scope.minimum_halo[idx] - halo[idx] > 0:
+                if self.scope.minimum_halo[idx] - self.get_halo ( ) [idx] > 0:
                     raise ValueError ("The halo should be at least %s" %
                                       self.scope.minimum_halo)
             #
@@ -496,7 +512,7 @@ class MultiStageStencil (Stencil):
             if self._backend:
                 backend = self._backend
             else:
-                backend = Stencil.get_backend()
+                backend = Stencil.get_backend ( )
             #
             # run the selected backend version
             #
@@ -509,6 +525,16 @@ class MultiStageStencil (Stencil):
             else:
                 raise ValueError ("Unknown backend '%s' set for stencil '%s'" %
                                   (backend, self.name) )
+
+    def get_halo (self):
+        """
+        Return the halo for this stencil
+        If a specific halo was not set for this stencil, use global Stencil halo
+        """
+        if self._halo:
+            return self._halo
+        else:
+            return Stencil.get_halo ( )
 
 
     def set_halo (self, halo=(0,0,0,0)):
@@ -525,10 +551,10 @@ class MultiStageStencil (Stencil):
         if len (halo) == 4:
             if halo[0] >= 0 and halo[2] >= 0:
                 if halo[1] >= 0 and halo[3] >= 0:
-                    self.halo = halo
+                    self._halo = halo
                     Stencil.compiler.recompile (self)
                     logging.debug ("Setting halo for stencil '%s' to %s" %
-                                    (self.name, str (self.halo)) )
+                                    (self.name, str (self._halo)) )
                 else:
                     raise ValueError ("Invalid halo %s: definition for the positive halo should be zero or a positive integer" % str (halo))
             else:
@@ -537,12 +563,24 @@ class MultiStageStencil (Stencil):
             raise ValueError ("Invalid halo %s: it should contain four values" % str (halo))
 
 
+    def get_k_direction (self):
+        """
+        Return the k direction for this stencil
+        If a specific direction was not set for this stencil, use global Stencil
+        k direction
+        """
+        if self._k_direction:
+            return self._k_direction
+        else:
+            return Stencil.get_k_direction ( )
+
+
     def set_k_direction (self, direction="forward"):
         """
         Applies the execution order in `k` dimension:
 
-            direction   defines the execution order, which may be any of:
-                        forward or backward.-
+        :param direction:   defines the execution order, which may be any of:
+                            forward or backward.-
         """
         accepted_directions = ["forward", "backward"]
 
@@ -550,10 +588,10 @@ class MultiStageStencil (Stencil):
             return
 
         if direction in accepted_directions:
-            self.k_direction = direction
+            self._k_direction = direction
             Stencil.compiler.recompile (self)
             logging.debug ("Setting k_direction for stencil '%s' to '%s'" %
-                            (self.name, self.k_direction) )
+                            (self.name, self._k_direction) )
         else:
             logging.warning ("Ignoring unknown direction '%s'" % direction)
 

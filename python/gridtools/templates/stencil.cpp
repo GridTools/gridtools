@@ -135,15 +135,15 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
     //   index of the last interior element,
     //   total number of elements in dimension }
     //
-    uint_t di_{{ loop.index0 }}[5] = { {{ s.halo[0] }},
-                     {{ s.halo[1] }},
-                     {{ s.halo[1] }},
-                     d1-{{ s.halo[0] }}-1,
+    uint_t di_{{ loop.index0 }}[5] = { {{ s.get_halo()[0] }},
+                     {{ s.get_halo()[1] }},
+                     {{ s.get_halo()[1] }},
+                     d1-{{ s.get_halo()[0] }}-1,
                      d1 };
-    uint_t dj_{{ loop.index0 }}[5] = { {{ s.halo[2] }},
-                     {{ s.halo[3] }},
-                     {{ s.halo[3] }},
-                     d2-{{ s.halo[2] }}-1,
+    uint_t dj_{{ loop.index0 }}[5] = { {{ s.get_halo()[2] }},
+                     {{ s.get_halo()[3] }},
+                     {{ s.get_halo()[3] }},
+                     d2-{{ s.get_halo()[2] }}-1,
                      d2 };
 
     //
@@ -173,7 +173,7 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
       (
             gridtools::make_mss
             (
-                execute<{{ s.k_direction }}>(),
+                execute<{{ s.get_k_direction() }}>(),
                 {% for f in stages[s.name] -%}
                     {% if f.independent and not inside_independent_block -%}
                         gridtools::make_independent (

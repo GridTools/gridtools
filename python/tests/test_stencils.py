@@ -280,10 +280,10 @@ class CopyTest (AccessPatternDetectionTest):
         #
         # take halo into account when comparing the results
         #
-        beg_i = self.stencil.halo[0]
-        end_i = self.domain[0] - self.stencil.halo[1]
-        beg_j = self.stencil.halo[2]
-        end_j = self.domain[1] - self.stencil.halo[3]
+        beg_i = self.stencil.get_halo ( ) [0]
+        end_i = self.domain[0] - self.stencil.get_halo ( ) [1]
+        beg_j = self.stencil.get_halo ( ) [2]
+        end_j = self.domain[1] - self.stencil.get_halo ( ) [3]
 
         if result_file is None:
             expected  = self.in_cpy
