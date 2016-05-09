@@ -204,6 +204,11 @@ and possibly the method 'copy_data_to_gpu' which are used when cloning the class
                 m_fields[i].free_it();
         }
 
+
+void operator =(value_type* other_){ 
+    m_fields[0]->free_it();
+    m_fields[0]=pointer<value_type>(other_);}
+
 #ifdef CXX11_ENABLED
         /**
            explicitly disables the case in which the storage_info is passed by copy.

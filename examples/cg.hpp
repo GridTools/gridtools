@@ -273,7 +273,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     // Prepare types for the data storage
     //                   strides  1 x xy
     //                      dims  x y z
-    typedef gridtools::layout_map<0,1,2> layout_t;
+    typedef gridtools::layout_map<2,1,0> layout_t;
     typedef gridtools::BACKEND::storage_info<0, layout_t> metadata_t;
     typedef gridtools::BACKEND::storage_type<float_type, metadata_t >::type storage_type;
     typedef storage_type::pointer_type pointer_type;
@@ -498,11 +498,14 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                 assert((k-1)*ni*nj + (j-1)*nj + (i-1) == idx);
                 r_vec[(k-1)*ni*nj + (j-1)*nj + (i-1)] = (double)r(i,j,k);
                 idx++;
+
+                //r.data()
             }
 
     // Apply preconditioner
     solver.solve(M, Mr_vec, r_vec, nrhs); //(M x = r) 
 
+    //    storage_type d(metadata_);
     // Insert the solution of linear system into the grid
     for (uint_t k=1; k<metadata_.template dims<2>()-1; ++k)
         for (uint_t j=1; j<metadata_.template dims<1>()-1; ++j)
@@ -511,6 +514,9 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                 //Mr = d = inv(M) r
                 d(i,j,k) = (float) Mr_vec[(k-1)*ni*nj + (j-1)*nj + (i-1)];
                 Mr(i,j,k) = (float) Mr_vec[(k-1)*ni*nj + (j-1)*nj + (i-1)];
+
+                //storage_type(metadata_, Mr_vec); //need to free the vector
+                //d = Mr_vec;
             } 
 
     // if (PID==0){

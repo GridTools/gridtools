@@ -75,7 +75,7 @@ namespace gridtools {
             GT_FUNCTION
             iterate_domain_t const &get() const { return m_iterate_domain; }
 
-g            /** shifting the IDs of the placeholders and forwarding to the iterate_domain () operator*/
+            /** shifting the IDs of the placeholders and forwarding to the iterate_domain () operator*/
             template < typename Accessor >
             GT_FUNCTION
 #ifdef CXX11_ENABLED
