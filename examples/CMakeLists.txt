@@ -4,8 +4,12 @@ list( APPEND SRCFILES boundary-condition laplacian copy_stencil positional_copy_
 list( APPEND X86_SRCFILES reduction)
 
 if( ENABLE_CXX11)
-    list(APPEND SRCFILES  extended_4D copy_stencil_parallel stencil cg cg_naive)
+    list(APPEND SRCFILES  extended_4D copy_stencil_parallel stencil  cg_naive)
 endif()
+
+  add_executable(cg cg.cpp CSRdouble.cpp readdata.cpp PardisoParameters.cpp ParDiSO.cpp )
+  set_target_properties(cg PROPERTIES COMPILE_FLAGS "${ADDITIONAL_CXX_FLAGS} -L/opt/intel/14.0.1.106/mkl/lib/intel64" )
+  target_link_libraries(cg ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} /users/jkardos/PowerGrid/libpardiso500-GNU481-X86-64.so /opt/intel/14.0.1.106/mkl/lib/intel64/libmkl_gf_lp64.so /opt/intel/14.0.1.106/mkl/lib/intel64/libmkl_lapack95_lp64.a /opt/intel/14.0.1.106/mkl/lib/intel64/libmkl_sequential.so /opt/intel/14.0.1.106/mkl/lib/intel64/libmkl_core.so pthread gfortran)
 
 
 set( GTEST_FILES Options.hpp Options.cpp)
