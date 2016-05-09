@@ -202,5 +202,33 @@ namespace gridtools{
             }
         };
 
+
+
+        /**
+           @brief functor used to assign the next chunk of storage pointers
+        */
+        template<typename DomainFrom>
+        struct finalize_expandable_params{
+
+        private:
+
+            DomainFrom const& m_dom_from;
+
+        public:
+
+            finalize_expandable_params(DomainFrom const & dom_from_):m_dom_from(dom_from_){}
+
+            template < ushort_t ID, typename T >
+            void operator()(arg<ID, std::vector<pointer<T> > >){
+                for( auto &&i : *boost::fusion::at<static_ushort<ID> >(m_dom_from.m_storage_pointers) ){
+                    // hard-setting the on_device flag for the hybrid_pointers:
+                    // since the storages used get created on-the-fly the original storages don
+                    // not knoe that they are still on the device
+                    i->set_on_device();
+                    i->d2h_update();
+                }
+            }
+        };
+
     } //namespace _impl
 } //namespace gridtools

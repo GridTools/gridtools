@@ -112,7 +112,7 @@ namespace gridtools {
     };
 
     /**
-     * @class positional_iterate_domain_remapper
+     * @class positional_iterate__domain_remapper
      * iterate domain remapper when positional information is required
      * @param IterateDomain iterate domain
      * @param EsfArgsMap map from ESF arguments to iterate domain position of args.

@@ -176,7 +176,7 @@ namespace gridtools{
         {
             GRIDTOOLS_STATIC_ASSERT((boost::is_same<decltype(m_intermediate_extra->run()), notype>::value), "Reduction is not alloewd with expandable parameters");
             //the expand factor must be smaller than the total size of the expandable parameters list
-            assert(m_size%ExpandFactor::value);
+            assert(m_size >= ExpandFactor::value);
 
         for(uint_t i=0; i<m_size-m_size%ExpandFactor::value; i+=ExpandFactor::value){
 
@@ -245,18 +245,12 @@ namespace gridtools{
            @brief forward the call to the members
          */
         virtual void finalize(){
-
-        for(uint_t i=0; i<m_size-m_size%ExpandFactor::value; i+=ExpandFactor::value){
-
-                boost::mpl::for_each<expandable_params_t>(_impl::assign_expandable_params<DomainType, domain_type<new_arg_list> >(m_domain_from, *m_domain_to, i));
-                // new_domain_.get<ExpandFactor::arg_t>()->assign_pointers(domain.get<ExpandFactor::arg_t>(), i);
-                m_intermediate->finalize();
-            }
-            for(uint_t i=0; i<m_size%ExpandFactor::value; ++i)
-            {
-                boost::mpl::for_each<expandable_params_t>(_impl::assign_expandable_params<DomainType, domain_type<new_arg_list> >(m_domain_from, *m_domain_to, m_size-m_size%ExpandFactor::value+i));
-                m_intermediate_extra->finalize();
-            }
+            // copy pointers back
+            boost::mpl::for_each<expandable_params_t>(_impl::finalize_expandable_params< DomainType >(m_domain_from));
+            // free the space for temporaries and storage_info
+            m_intermediate->finalize();
+            // free the space for temporaries and storage_info
+            m_intermediate_extra->finalize();
         }
     };
 }

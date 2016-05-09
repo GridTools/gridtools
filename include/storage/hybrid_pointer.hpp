@@ -220,6 +220,12 @@ namespace gridtools {
         int get_size() { return m_size; }
 
         GT_FUNCTION
+        void set_on_device() { m_up_to_date=false; }
+
+        GT_FUNCTION
+        void set_on_host() { m_up_to_date=true; }
+
+        GT_FUNCTION
         bool on_host() const { return m_up_to_date; }
 
         GT_FUNCTION

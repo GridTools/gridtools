@@ -33,19 +33,19 @@ namespace gridtools{
         /**
            @brief set the offset in the storage_list and forward to the base class
 
-           whe the vector_accessor is passed to the iterate_domain we know we are accessing an
+           when the vector_accessor is passed to the iterate_domain we know we are accessing an
            expandable parameters list. Accepts rvalue arguments (accessors constructed in-place)
 
            \param arg the vector accessor
          */
         //rvalue
         template < uint_t ACC_ID, enumtype::intend Intent, typename Extent, uint_t Size >
-        GT_FUNCTION typename super::template accessor_return_type< accessor<ACC_ID, Intent, Extent, Size> >::type operator()(vector_accessor<ACC_ID, Intent, Extent, Size> && arg) const
+        GT_FUNCTION
+        typename super::iterate_domain_t::template accessor_return_type< accessor<ACC_ID, Intent, Extent, Size> >::type operator()(vector_accessor<ACC_ID, Intent, Extent, Size> && arg) const
         {
             GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, "wrong type");
-
-            typedef vector_accessor<ACC_ID, Intent, Extent, Size> vec_t;
             arg.template set<0>(ID);
+
             return super::operator()((accessor<ACC_ID, Intent, Extent, Size>) arg);
         }
 
@@ -59,11 +59,11 @@ namespace gridtools{
          */
         //lvalue
         template < uint_t ID, enumtype::intend Intent, typename Extent, uint_t Size >
-        GT_FUNCTION typename super::template accessor_return_type< vector_accessor<ID, Intent, Extent, Size> >::type operator()(vector_accessor<ID, Intent, Extent, Size> & arg) const
+        GT_FUNCTION
+        typename super::iterate_domain_t::template accessor_return_type< vector_accessor<ID, Intent, Extent, Size> >::type operator()(vector_accessor<ID, Intent, Extent, Size> & arg) const
         {
             GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, "wrong type");
-            typedef vector_accessor<ID, Intent, Extent, Size> vec_t;
-            arg.template set<vec_t::n_dim-1>(ID);
+            arg.template set<0>(ID);
             return super::operator()((accessor<ID, Intent, Extent, Size>) arg);
         }
 

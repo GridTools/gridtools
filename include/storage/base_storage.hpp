@@ -310,6 +310,11 @@ and possibly the method 'copy_data_to_gpu' which are used when cloning the class
                 m_fields[i].update_gpu();
         }
 
+        void set_on_device() {
+            for (uint_t i = 0; i < field_dimensions; ++i)
+                m_fields[i].set_on_device();
+        }
+
         /** @brief updates the CPU pointer */
         void d2h_update() {
             for (uint_t i = 0; i < field_dimensions; ++i)

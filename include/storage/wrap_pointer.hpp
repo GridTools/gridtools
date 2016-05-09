@@ -55,6 +55,12 @@ namespace gridtools {
         }
 
         GT_FUNCTION
+        void set_on_device() { }
+
+        GT_FUNCTION
+        void set_on_host() { }
+
+        GT_FUNCTION
         void update_gpu() { assert(false); } //\todo find a way to remove this method
 
         GT_FUNCTION
