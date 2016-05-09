@@ -6,7 +6,7 @@ import numpy as np
 
 from nose.plugins.attrib import attr
 
-from gridtools.stencil import MultiStageStencil, stencil_kernel
+from gridtools.stencil import Stencil, MultiStageStencil
 
 
 
@@ -69,7 +69,11 @@ class EmptyKernel (MultiStageStencil):
     """
     Definition of a simple stencil with invalid kernel
     """
-    @stencil_kernel
+    def __init__ (self):
+        super ( ).__init__ ( )
+
+
+    @Stencil.kernel
     def kernel (self, out_arg, in_arg):
         """
         Just an empty kernel
@@ -96,7 +100,11 @@ class EmptyKernelTest (NoKernelTest):
 
 
 class ReturnSomethingKernel (MultiStageStencil):
-    @stencil_kernel
+    def __init__ (self):
+        super ( ).__init__ ( )
+
+
+    @Stencil.kernel
     def kernel (self, out):
         """
         A kernel function should return None. Here we return a different object
@@ -139,7 +147,10 @@ class MultipleKernels (MultiStageStencil):
     """
     Definition of a stencil with multiple kernels
     """
-    @stencil_kernel
+    def __init__ (self):
+        super ( ).__init__ ( )
+
+    @Stencil.kernel
     def kernel1 (self, out_cpy, in_cpy):
         """
         This stencil comprises a single stage.-
@@ -151,7 +162,7 @@ class MultipleKernels (MultiStageStencil):
               out_cpy[p] = in_cpy[p]
 
 
-    @stencil_kernel
+    @Stencil.kernel
     def kernel2 (self, out_cpy, in_cpy):
         """
         This stencil comprises a single stage.-
@@ -204,7 +215,7 @@ class IfStatementOpIsFailure (MultiStageStencil):
         self.set_halo ( (1,1,1,1) )
 
 
-    @stencil_kernel
+    @Stencil.kernel
     def kernel (self, out_X):
         for p in self.get_interior_points (out_X):
             if out_X[p] is out_X[p]:
@@ -221,7 +232,7 @@ class IfStatementOpIsNotFailure (MultiStageStencil):
         self.set_halo ( (1,1,1,1) )
 
 
-    @stencil_kernel
+    @Stencil.kernel
     def kernel (self, out_X):
         for p in self.get_interior_points (out_X):
             if out_X[p] is not out_X[p]:
@@ -238,7 +249,7 @@ class IfStatementOpNotInFailure (MultiStageStencil):
         self.set_halo ( (1,1,1,1) )
 
 
-    @stencil_kernel
+    @Stencil.kernel
     def kernel (self, out_X):
         for p in self.get_interior_points (out_X):
             if out_X[p] not in out_X[p]:
@@ -255,7 +266,7 @@ class IfStatementOpInFailure (MultiStageStencil):
         self.set_halo ( (1,1,1,1) )
 
 
-    @stencil_kernel
+    @Stencil.kernel
     def kernel (self, out_X):
         for p in self.get_interior_points (out_X):
             if out_X[p] in out_X[p]:
