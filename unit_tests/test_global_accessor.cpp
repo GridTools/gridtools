@@ -44,7 +44,7 @@ struct functor{
     template <typename Evaluation>
     GT_FUNCTION
     static void Do(Evaluation const & eval, x_interval) {
-        eval(sol())+=eval(bd()).value();
+        eval(sol())+=eval(bd())->value();
     }
 };
 
