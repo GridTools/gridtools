@@ -172,7 +172,31 @@ namespace gridtools {
         /**
            @brief returns the metadata with the meta information about the partitioned storage
         */
-        metadata_t const &get_metadata() const { return m_metadata; }
+        metadata_t const& get_metadata() const {return m_metadata;}
+
+        /**
+           @brief returns the global lower bound in given dimension
+        */
+        int_t get_low_bound(int dim) const {
+          
+          if(dim < metadata_t::space_dimensions)
+            return m_low_bound[dim];
+
+          return -1;
+        }
+
+        /**
+           @brief returns the global upper bound in given dimension
+        */
+        int_t get_up_bound(int dim) const {
+          
+          if(dim < metadata_t::space_dimensions)
+            return m_up_bound[dim];
+
+          return -1;
+        }
+
+    private:
 
       private:
         parallel_storage_info();

@@ -176,7 +176,7 @@ namespace gridtools {
 
         template < typename IterateDomain, typename BlockIdVector >
         GT_FUNCTION void initialize(IterateDomain &it_domain, BlockIdVector const &block_id) {
-#if defined(VERBOSE) && !defined(NDEBUG)
+#if defined(DEBUG_LOOP_HIERARCHY) && !defined(NDEBUG)
             std::cout << "initialize the iteration space " << First::s_id << " with " << loop.low_bound() << std::endl;
 #endif
             it_domain.template initialize< First::s_id >(loop.low_bound(), block_id[First::s_id]);
@@ -195,7 +195,7 @@ namespace gridtools {
         template < typename IterateDomain, typename InnerMostFunctor >
         GT_FUNCTION void apply(IterateDomain &it_domain, InnerMostFunctor &kernel) {
             for (value_type i = loop.low_bound(); i <= loop.up_bound(); i += loop.step()) {
-#if defined(VERBOSE) && !defined(NDEBUG)
+#if defined(DEBUG_LOOP_HIERARCHY) && !defined(NDEBUG)
                 std::cout << "iteration " << i << ", index " << First::s_id << std::endl;
 #endif
                 _impl::reset_index_if_positional< First::s_id >(it_domain, i);
@@ -210,7 +210,7 @@ namespace gridtools {
         /**@brief updating the restore_index with the current value*/
         template < typename IterateDomain >
         GT_FUNCTION void update_index(IterateDomain &it_domain) {
-#if defined(VERBOSE) && !defined(NDEBUG)
+#if defined(DEBUG_LOOP_HIERARCHY) && !defined(NDEBUG)
             std::cout << "updating the index for level " << First::s_id << std::endl;
 #endif
             it_domain.get_index(restore_index); // redundant in the last iteration
@@ -270,7 +270,7 @@ namespace gridtools {
         template < typename IterateDomain, typename InnerMostFunctor >
         GT_FUNCTION void apply(IterateDomain &it_domain, InnerMostFunctor &kernel) {
             for (value_type i = loop.low_bound(); i <= loop.up_bound(); i += loop.step()) {
-#if defined(VERBOSE) && !defined(NDEBUG)
+#if defined(DEBUG_LOOP_HIERARCHY) && !defined(NDEBUG)
                 std::cout << "iteration " << i << ", index (last) " << First::s_id << std::endl;
 #endif
                 _impl::reset_index_if_positional< First::s_id >(it_domain, i);
@@ -284,7 +284,7 @@ namespace gridtools {
         /**@brief updating the restore_index with the current value*/
         template < typename IterateDomain >
         GT_FUNCTION void update_index(IterateDomain &it_domain) {
-#if defined(VERBOSE) && !defined(NDEBUG)
+#if defined(DEBUG_LOOP_HIERARCHY) && !defined(NDEBUG)
             std::cout << "updating the index for level " << First::s_id << std::endl;
 #endif
             it_domain.get_index(restore_index); // redundant in the last iteration
@@ -293,7 +293,7 @@ namespace gridtools {
         template < typename IterateDomain, typename BlockIdVector >
         GT_FUNCTION void initialize(IterateDomain &it_domain, BlockIdVector const &block_id) {
 
-#if defined(VERBOSE) && !defined(NDEBUG)
+#if defined(DEBUG_LOOP_HIERARCHY) && !defined(NDEBUG)
             std::cout << "initialize the iteration space " << First::s_id << " with " << loop.low_bound() << std::endl;
 #endif
             it_domain.template initialize< First::s_id >(loop.low_bound(), block_id[First::s_id]);

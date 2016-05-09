@@ -1,6 +1,9 @@
 #ifndef HALO_EXCHANGE_3D_H_
 #define HALO_EXCHANGE_3D_H_
 
+//#include <boost/mpl/assert.hpp>
+//#include <assert.h>
+#include <mpi.h>
 #include <common/gt_assert.hpp>
 #include "../GCL.hpp"
 #include "translate.hpp"

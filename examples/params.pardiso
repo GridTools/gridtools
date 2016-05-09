@@ -1,0 +1,237 @@
+########################################################################
+########################################################################
+# Library Sparse Linear Solvers Parameters                             #
+########################################################################
+########################################################################
+
+
+
+
+# librarysolver may be
+# ----------------------------------------------------------------------
+# 1. PARDISO
+# 2. UMFPACK
+# 3. SUPERLU
+# 4. ILUPACK
+#
+# DEFAULT                                                      (PARDISO)
+# ----------------------------------------------------------------------
+librarysolver = PARDISO #_TRANSPOSE
+
+########################################################################
+# PARDISO Parameters                                                   #
+########################################################################
+
+
+
+# MAXFCT           (Do not change it unless you know what you are doing)
+# ----------------------------------------------------------------------
+# On entry: Maximal number of factors with identical nonzero sparsity
+# structure that the user would like to keep at the same time in
+# memory. It is possible to store several different factorizations
+# with the same nonzero structure at the same time in the internal
+# data management of the solver. In most of the applications this
+# value is equal to 1.  Note: PARDISO can process several matrices
+# with identical matrix sparsity pattern and is able to store the
+# factors of these matrices at the same time. Matrices with different
+# sparsity structure can be kept in memory with different memory
+# address pointers PT.
+# ----------------------------------------------------------------------
+  pardiso_maxfct = 1
+
+# MNUM             (Do not change it unless you know what you are doing)
+# ----------------------------------------------------------------------
+# On entry: Actual matrix for the solution phase. With this scalar the
+# user can define the matrix that he would like to factorize. The
+# value must be: 1 <= MNUM <= MAXFCT. In most of the applications this
+# value is equal to 1.
+# ----------------------------------------------------------------------
+  pardiso_mnum = 1
+
+# MTYPE
+# ----------------------------------------------------------------------
+#  1. real and structurally symmetric
+#  2. real and symmetric positive definite
+# -2. real and symmetric indefinite
+#  3. complex and structurally symmetric
+#  4. complex and Hermitian positive definite
+# -4. complex and Hermitian indefinite
+#  6. complex and symmetric
+# 11. real and nonsymmetric matrix
+# 13. complex and nonsymmetric
+# ----------------------------------------------------------------------
+  pardiso_mtype = 11 #hardcoded @ BDSolve.cpp:125
+
+# MSGLVL
+# ----------------------------------------------------------------------
+# On entry: Message level information. If MSGLVL = 0 then PARDISO
+# generates no output, if MSGLVL = 1 the solver prints statistical
+# information to the screen.
+# ----------------------------------------------------------------------
+  pardiso_msglvl = 1 #hardcoded @ RealMath.cpp:27
+
+# IPARM
+# ----------------------------------------------------------------------
+# On entry: IPARM is an integer array of size 64 that is used to pass
+# various parameters to PARDISO and to return some useful information
+# after the execution of the solver. PARDISOINIT fills IPARM(1),
+# IPARM(2), and IPARM(4) through IPARM(64) with default values and
+# uses them.  See section 2.3 for a detailed description.  Note: Note
+# that there is no default value for IPARM(3), which reflecsts the
+# number of processors and this value must always be supplied by the
+# user
+
+# IPARM(1) Use default options.
+# ----------------------------------------------------------------------
+# 0* Set all entries to their default values except IPARM(3)
+# ----------------------------------------------------------------------
+  pardiso_iparm[1] = 1
+
+# IPARM(2) Use METIS reordering.
+# ----------------------------------------------------------------------
+# 0  Do not use METIS.
+# 2* Use METIS nested dissection reordering
+# ----------------------------------------------------------------------
+  pardiso_iparm[2] = 2
+
+# IPARM(3) Number of processors.
+# ----------------------------------------------------------------------
+# p Number of OPENMP threads. This must be identical to the
+#   environment variable OMP NUM THREADS.
+# ----------------------------------------------------------------------
+  pardiso_iparm[3] = 1
+
+# IPARM(4) Do preconditioned CGS iterations. Default is 0.
+# ----------------------------------------------------------------------
+
+# On entry: This parameter controls preconditioned CGS [12] for
+# nonsymmetric or structural symmetric matrices and
+# Conjugate-Gradients for symmetric matrices. IPARM(4) has the form
+# IPARM(4) = 10 * L + K.
+
+#################
+# K Description #
+#################
+# 0 The factorization is always computed as required by PHASE.
+# 1 CGS iteration replaces the computation of LU.  The preconditioner
+#   is LU that was computed at a previous step (the first step or last
+#   step with a failure) in a sequence of solutions needed for identical
+#   sparsity patterns.
+# 2 CG iteration for symmetric matrices replaces the computation of
+#   LU.  The preconditioner is LU that was computed at a previous step
+#   (the first step or last step with a failure) in a sequence of
+#   solutions needed for identical sparsity patterns.
+
+#################
+# L Description #
+#################
+# The value L controls the stopping criterion of the Krylov-Subspace
+# iteration: error_CGS = 10^{-L} is used in the stopping criterion
+# ||dx_i||/||dx_1|| < error_CGS with ||dx_i|| = ||(LU)^{-1}r_i|| and
+# r_i is the residuum at iteration i of the preconditioned
+# Krylov-Subspace iteration.
+
+############
+# Strategy #
+############
+# A maximum number of 150 iterations is fixed by expecting that the
+# iteration will converge before consuming half the factorization
+# time. Intermediate convergence rates and residuum excursions are
+# checked and can terminate the iteration process. If PHASE=23, then
+# the factorization for a given A is automatically recomputed in these
+# caseswhere the Krylov-Subspace iteration failed and the
+# corresponding direct solution is returned. Otherwise the solution
+# from the preconditioned Krylov Subspace iteration is returned. Using
+# PHASE=33 results in an error message (ERROR=4) if the stopping
+# criteria for the Krylov-Subspace iteration can not be reached. More
+# information on the failure can be obtained from IPARM(20).  Note:
+# The default is IPARM(4)=0 and other values are only recommended for
+# advanced user.  IPARM(4) must be greater or equal to zero.
+# ----------------------------------------------------------------------
+  pardiso_iparm[4] = 0
+
+# IPARM(5) Use user permutation
+# ----------------------------------------------------------------------
+# 0* Do not use user permutation.
+# 1  Use  the user permutation provided in argument PERM
+# ----------------------------------------------------------------------
+  pardiso_iparm[5] = 0
+
+# IPARM(8) Max. numbers of iterative refinement steps.
+# ----------------------------------------------------------------------
+# 0* Do at most k steps of iterative refinement for all matrices.
+# ----------------------------------------------------------------------
+  pardiso_iparm[8] = 0
+
+# IPARM(10) eps pivot (perturbation 10^-k)
+# ----------------------------------------------------------------------
+# 13* Default for nonsymmetric matrices.
+#  8* Default for symmetric indefinite matrices.
+# ----------------------------------------------------------------------
+  pardiso_iparm[10] = 8
+
+# IPARM(11) Use (non-) symmetric scaling vectors.
+# ----------------------------------------------------------------------
+#   0  Do not use
+# > 1* Use (nonsymmetric matrices)
+#   0* Do not use (symmetric matrices).
+# ----------------------------------------------------------------------
+  pardiso_iparm[11] = 1
+
+# IPARM(12) solve a system A^T x = b using the factorization of A
+# ----------------------------------------------------------------------
+# 0* Solve Ax = b
+# 1  Solve A^T x = b
+# ----------------------------------------------------------------------
+  pardiso_iparm[12] = 0
+
+# IPARM(13) Improved accuracy using (non-)symmetric matchings
+# ----------------------------------------------------------------------
+#  0 Do not use
+# 1* Use (nonsymmetric matrices).
+# 0* Do not use (symmetric matrices).
+# ----------------------------------------------------------------------
+  pardiso_iparm[13] = 1
+
+# IPARM(18) Number of nonzeros in LU.
+# ----------------------------------------------------------------------
+#  0* Do not determine.
+# -1  Will only be determined if -1 on entry.
+# ----------------------------------------------------------------------
+  pardiso_iparm[18] = 0
+
+# IPARM(19) Mflops for LU factorization.
+# ----------------------------------------------------------------------
+#  0* Do not determine.
+# -1  Will only be determined if -1 on entry. Increases ordering time.
+# ----------------------------------------------------------------------
+  pardiso_iparm[19] = 0
+
+# IPARM(21) Pivoting for symmetric indefinite matrices. Default is 1.
+# ----------------------------------------------------------------------
+#   0  1x1 Diagonal Pivoting.
+# > 1* 1x1 and 2x2 Bunch and Kaufman Pivoting.
+# ----------------------------------------------------------------------
+  pardiso_iparm[21] = 1
+
+# IPARM(28) Parallel Reordering for METIS.
+# ----------------------------------------------------------------------
+#   0* execute METIS sequentially.
+#   1* execute METIS in parallel.
+# ----------------------------------------------------------------------
+  pardiso_iparm[28] = 1
+
+# IPARM(29) Solve in 32bit mode Real*4 or float instead of double.
+# ----------------------------------------------------------------------
+# 0*   REAL*8 (double precision)
+# 1    REAL*4 (single precision)
+# ----------------------------------------------------------------------
+  pardiso_iparm[29] = 0
+
+
+
+
+
+
+
+

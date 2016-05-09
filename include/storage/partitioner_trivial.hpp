@@ -194,6 +194,7 @@ namespace gridtools {
                       << "pid: " << m_pid[0] << " " << m_pid[1] << " " << m_pid[2] << std::endl
                       << "component, size: " << component << " " << size_ << std::endl;
 #endif
+
 #endif
             return tile_dimension + compute_halo(component, UP) + compute_halo(component, LOW);
         }
@@ -255,8 +256,8 @@ namespace gridtools {
         GT_FUNCTION
         bool at_boundary(ushort_t const &component_, typename super::Flag flag_) const {
 
-            return !(boundary() % (ushort_t)((ushort_t)gt_pow< 2 >::apply(component_ + 1) * (ushort_t)flag_) <
-                     ((component_ + (ushort_t)1) * (ushort_t)flag_));
+            uint_t ret = (((uint_t)flag_ * (1<<component_)) ) & boundary();
+            return !ret;
         }
 
         GT_FUNCTION
