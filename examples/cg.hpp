@@ -495,8 +495,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         for (uint_t j=1; j<metadata_.template dims<1>()-1; ++j)
             for (uint_t i=1; i<metadata_.template dims<0>()-1; ++i)
             {
-                assert((k-1)*ni*nj + (j-1)*nj + (i-1) == idx);
-                r_vec[(k-1)*ni*nj + (j-1)*nj + (i-1)] = (double)r(i,j,k);
+                assert((k-1)*ni*nj + (j-1)*ni + (i-1) == idx);
+                r_vec[(k-1)*ni*nj + (j-1)*ni + (i-1)] = (double)r(i,j,k);
                 idx++;
 
                 //r.data()
@@ -512,8 +512,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
             for (uint_t i=1; i<metadata_.template dims<0>()-1; ++i)
             {
                 //Mr = d = inv(M) r
-                d(i,j,k) = (float) Mr_vec[(k-1)*ni*nj + (j-1)*nj + (i-1)];
-                Mr(i,j,k) = (float) Mr_vec[(k-1)*ni*nj + (j-1)*nj + (i-1)];
+                d(i,j,k) = (float) Mr_vec[(k-1)*ni*nj + (j-1)*ni + (i-1)];
+                Mr(i,j,k) = (float) Mr_vec[(k-1)*ni*nj + (j-1)*ni + (i-1)];
 
                 //storage_type(metadata_, Mr_vec); //need to free the vector
                 //d = Mr_vec;
@@ -724,8 +724,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
             for (uint_t j=1; j<metadata_.template dims<1>()-1; ++j)
                 for (uint_t i=1; i<metadata_.template dims<0>()-1; ++i)
                 {
-                    assert((k-1)*ni*nj + (j-1)*nj + (i-1) == idx);
-                    r_vec[(k-1)*ni*nj + (j-1)*nj + (i-1)] = (double)(*ptr_rNew)(i,j,k);
+                    assert((k-1)*ni*nj + (j-1)*ni + (i-1) == idx);
+                    r_vec[(k-1)*ni*nj + (j-1)*ni + (i-1)] = (double)(*ptr_rNew)(i,j,k);
                     idx++;
                 }
 
@@ -738,7 +738,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                 for (uint_t i=1; i<metadata_.template dims<0>()-1; ++i)
                 {
                     //Mr = inv(M) r
-                    (*ptr_MrNew)(i,j,k) = (float) Mr_vec[(k-1)*ni*nj + (j-1)*nj + (i-1)];
+                    (*ptr_MrNew)(i,j,k) = (float) Mr_vec[(k-1)*ni*nj + (j-1)*ni + (i-1)];
                 } 
 
         // Compute Gram-Schmidt orthogonalization parameter beta
