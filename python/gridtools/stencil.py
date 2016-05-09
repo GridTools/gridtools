@@ -8,58 +8,9 @@ from functools import wraps
 
 from gridtools.symbol   import StencilScope
 from gridtools.compiler import StencilCompiler
-
 from gridtools.utils import Utilities
 
 import ipdb
-
-
-def stencil_kernel (kernel_func):
-    """
-    Decorator to define a given member as the stencil entry point (aka kernel).
-    The decorator embeds a runtime check in the kernel to verify it is called
-    from the run() function of the stencil.
-    """
-    import inspect
-    import types
-    from gridtools import STENCIL_KERNEL_DECORATOR_LABEL
-    #
-    # The @wraps decorator is useful to correctly set the __wrapped__ attribute
-    # of the user-defined entry point, so that when the stencil is processed
-    # by the StencilInspector, the kernel information can be extracted easily
-    #
-    @wraps (kernel_func)
-    def kernel_wrapper (*args, **kwargs):
-        #
-        # Check that the kernel is being called from its own class' run() method
-        #
-        if not Utilities.check_kernel_caller (args[0]):
-            raise RuntimeError ("Calling kernel function from outside run() function. \
-                                Please use run() to execute the stencil.")
-        return kernel_func (*args, **kwargs)
-
-    setattr (kernel_wrapper, STENCIL_KERNEL_DECORATOR_LABEL, True)
-
-    if inspect.ismethod (kernel_func):
-        return kernel_wrapper
-    else:
-        class UserStencil (MultiStageStencil):
-            def __init__ (self):
-                super ( ).__init__ ( )
-
-            def __call__ (self, *args, **kwargs):
-#                ipdb.set_trace()
-                self.run (*args, **kwargs)
-
-        user_stencil = UserStencil ( )
-        setattr (user_stencil,
-                 kernel_func.__name__,
-                 types.MethodType (kernel_wrapper, user_stencil) )
-
-        return user_stencil
-
-
-
 
 
 class InteriorPoint (tuple):
@@ -84,6 +35,185 @@ class Stencil (object):
     # a JIT compiler class shared by all stencils
     #
     compiler = StencilCompiler ( )
+    #
+    # defines the global way to execute the stencils
+    #
+    _backend = "python"
+    #
+    # a global halo descriptor
+    #
+    halo = (0, 0, 0, 0)
+    #
+    # define the global execution order in 'k' dimension
+    #
+    k_direction = 'forward'
+
+
+    @staticmethod
+    def kernel (kernel_func):
+        """
+        Decorator to define a given member as the stencil entry point (aka kernel).
+        The decorator embeds a runtime check in the kernel to verify it is called
+        from the run() function of the stencil.
+        """
+#        import inspect
+        import types
+        from gridtools import STENCIL_KERNEL_DECORATOR_LABEL
+        #
+        # The @wraps decorator is useful to correctly set the __wrapped__ attribute
+        # of the user-defined entry point, so that when the stencil is processed
+        # by the StencilInspector, the kernel information can be extracted easily
+        #
+        @wraps (kernel_func)
+        def kernel_wrapper (*args, **kwargs):
+#            import inspect
+            #
+            # Check that the kernel is being called from its own class' run() method
+            #
+            if not Utilities.check_kernel_caller (args[0]):
+                raise RuntimeError ("Calling kernel function from outside run() function. \
+                                    Please use run() to execute the stencil.")
+            #
+            # Pass 'args' (that contains 'self') to the user-defined kernel only
+            # if it was defined with OOP
+            #
+            if len(kernel_func.__qualname__.split('.')) > 1:
+                return kernel_func (*args, **kwargs)
+            else:
+                return kernel_func (**kwargs)
+
+        setattr (kernel_wrapper, STENCIL_KERNEL_DECORATOR_LABEL, True)
+
+#        print(kernel_func.__name__)
+#        print(kernel_func.__qualname__)
+#        print(kernel_func.__globals__)
+#        if inspect.ismethod (kernel_func):
+        if len(kernel_func.__qualname__.split('.')) > 1:
+            return kernel_wrapper
+        else:
+            class UserStencil (MultiStageStencil):
+                def __init__ (self):
+                    super ( ).__init__ ( )
+
+                def __call__ (self, *args, **kwargs):
+                    self.run (*args, **kwargs)
+
+            user_stencil = UserStencil ( )
+            setattr (user_stencil,
+                     kernel_func.__name__,
+                     types.MethodType (kernel_wrapper, user_stencil) )
+
+            return user_stencil
+
+
+    @staticmethod
+    def get_backend ():
+        return Stencil._backend
+
+
+    @staticmethod
+    def set_backend (value):
+        Stencil._backend = value
+        logging.debug ("Setting global Stencil backend to %s" % str (Stencil._backend))
+        Stencil.compiler.recompile ( )
+
+
+    @staticmethod
+    def get_interior_points (data_field, ghost_cell=[0,0,0,0]):
+        """
+        Returns an iterator over the 'data_field' without including the halo:
+
+        :param data_field:      a NumPy array;
+        :param ghost_cell:      access pattern for the current field, which depends
+                                on the following stencil stages.-
+        """
+        try:
+            if len (data_field.shape) != 3:
+                raise ValueError ("Only 3D arrays are supported.")
+
+        except AttributeError:
+            raise TypeError ("Calling 'get_interior_points' without a NumPy array")
+        else:
+            #
+            # calculate 'i','j','k' iteration boundaries
+            # based on 'halo' and field-access patterns
+            #
+            i_dim, j_dim, k_dim = data_field.shape
+
+            start_i = 0     + Stencil.halo[0] + ghost_cell[0]
+            end_i   = i_dim - Stencil.halo[1] + ghost_cell[1]
+            start_j = 0     + Stencil.halo[2] + ghost_cell[2]
+            end_j   = j_dim - Stencil.halo[3] + ghost_cell[3]
+
+#            ipdb.set_trace()
+            #
+            # calculate 'k' iteration boundaries based 'k_direction'
+            #
+            if Stencil.k_direction == 'forward':
+                start_k = 0
+                end_k   = k_dim
+                inc_k   = 1
+            elif Stencil.k_direction == 'backward':
+                start_k = k_dim - 1
+                end_k   = -1
+                inc_k   = -1
+            else:
+                logging.warning ("Ignoring unknown global K direction '%s'" % Stencil.k_direction)
+            #
+            # return the coordinate tuples in the correct order
+            #
+            for i in range (start_i, end_i):
+                for j in range (start_j, end_j):
+                    for k in range (start_k, end_k, inc_k):
+                        yield InteriorPoint ((i, j, k))
+
+
+    @staticmethod
+    def set_halo (halo=(0,0,0,0)):
+        """
+        Applies the received 'halo' setting, which is defined as
+
+            (halo in negative direction over _i_,
+             halo in positive direction over _i_,
+             halo in negative direction over _j_,
+             halo in positive direction over _j_).-
+        """
+        if halo is None:
+            return
+        if len (halo) == 4:
+            if halo[0] >= 0 and halo[2] >= 0:
+                if halo[1] >= 0 and halo[3] >= 0:
+                    Stencil.halo = halo
+                    Stencil.compiler.recompile ( )
+                    logging.debug ("Setting global Stencil halo to %s" % str (Stencil.halo))
+                else:
+                    raise ValueError ("Invalid halo %s: definition for the positive halo should be zero or a positive integer" % str (halo))
+            else:
+                raise ValueError ("Invalid halo %s: definition for the negative halo should be zero or a positive integer" % str (halo))
+        else:
+            raise ValueError ("Invalid halo %s: it should contain four values" % str (halo))
+
+
+    @classmethod
+    def set_k_direction (cls, direction="forward"):
+        """
+        Applies the execution order in `k` dimension:
+
+        :param direction:   defines the execution order, which may be any of:
+                            forward or backward.-
+        """
+        accepted_directions = ["forward", "backward"]
+
+        if direction is None:
+            return
+
+        if direction in accepted_directions:
+            cls.k_direction = direction
+            Stencil.compiler.recompile ( )
+            logging.debug ("Setting global Stencil k_direction to '%s'" % cls.k_direction)
+        else:
+            logging.warning ("Ignoring unknown direction '%s'" % direction)
+
 
     def __init__ (self):
         #
@@ -96,10 +226,6 @@ class Stencil (object):
         #
         self.entry_point_name = ''
         #
-        # defines the way to execute the stencil
-        #
-        self._backend         = "python"
-        #
         # the domain dimensions over which this stencil operates
         #
         self.domain           = None
@@ -107,14 +233,6 @@ class Stencil (object):
         # symbols gathered after analyzing the stencil code are kept here
         #
         self.scope            = StencilScope ( )
-        #
-        # a halo descriptor
-        #
-        self.halo             = (0, 0, 0, 0)
-        #
-        # define the execution order in 'k' dimension
-        #
-        self.k_direction      = 'forward'
 
 
     def __copy__ (self, memo):
@@ -161,17 +279,6 @@ class Stencil (object):
                                  pos=pos)
 
 
-    @property
-    def backend (self):
-        return self._backend
-
-
-    @backend.setter
-    def backend (self, value):
-        self._backend = value
-        Stencil.compiler.recompile (self)
-
-
     def generate_code (self):
         """
         Generates C++ code for this stencil
@@ -185,54 +292,6 @@ class Stencil (object):
         for stg in self.stages:
             stg.generate_code           ( )
             self.scope.add_dependencies (stg.get_data_dependency ( ).edges ( ))
-
-
-    def get_interior_points (self, data_field, ghost_cell=[0,0,0,0]):
-        """
-        Returns an iterator over the 'data_field' without including the halo:
-
-            data_field      a NumPy array;
-            ghost_cell      access pattern for the current field, which depends
-                            on the following stencil stages.-
-        """
-        try:
-            if len (data_field.shape) != 3:
-                raise ValueError ("Only 3D arrays are supported.")
-
-        except AttributeError:
-            raise TypeError ("Calling 'get_interior_points' without a NumPy array")
-        else:
-            #
-            # calculate 'i','j','k' iteration boundaries
-            # based on 'halo' and field-access patterns
-            #
-            i_dim, j_dim, k_dim = data_field.shape
-
-            start_i = 0     + self.halo[0] + ghost_cell[0]
-            end_i   = i_dim - self.halo[1] + ghost_cell[1]
-            start_j = 0     + self.halo[2] + ghost_cell[2]
-            end_j   = j_dim - self.halo[3] + ghost_cell[3]
-
-            #
-            # calculate 'k' iteration boundaries based 'k_direction'
-            #
-            if self.k_direction == 'forward':
-                start_k = 0
-                end_k   = k_dim
-                inc_k   = 1
-            elif self.k_direction == 'backward':
-                start_k = k_dim - 1
-                end_k   = -1
-                inc_k   = -1
-            else:
-                logging.warning ("Ignoring unknown K direction '%s'" % self.k_direction)
-            #
-            # return the coordinate tuples in the correct order
-            #
-            for i in range (start_i, end_i):
-                for j in range (start_j, end_j):
-                    for k in range (start_k, end_k, inc_k):
-                        yield InteriorPoint ((i, j, k))
 
 
     def plot_3d (self, Z):
@@ -267,6 +326,128 @@ class Stencil (object):
         self._plot_graph (graph)
 
 
+    @property
+    def stages (self):
+        return nx.topological_sort (self.scope.stage_execution)
+
+
+
+class MultiStageStencil (Stencil):
+    """
+    A involving several stages, implemented as for-comprehensions.
+    All user-defined stencils should inherit for this class.-
+    """
+    def __init__ (self):
+        super ( ).__init__ ( )
+        #
+        # defines the way to execute the stencil
+        #
+        self._backend         = ""
+        #
+        # a halo descriptor
+        #
+        self.halo             = ()
+        #
+        # define the execution order in 'k' dimension
+        #
+        self.k_direction      = ''
+
+
+    @property
+    def backend (self):
+        return self._backend
+
+
+    @backend.setter
+    def backend (self, value):
+        self._backend = value
+        Stencil.compiler.recompile (self)
+
+
+    def build (self, output, **kwargs):
+        """
+        Use this stencil as part of a new CombinedStencil, the output parameter
+        of which is called 'output' and should be linked to '**kwargs' parameters
+        of the following stencil.-
+        """
+        #
+        # make sure the output parameter is there
+        #
+        if output is None:
+            raise ValueError ("You must specify an 'output' parameter")
+        #
+        # the keyword arguments map the output of this stencil
+        # with an input parameter of the following one
+        #
+        ret_value = CombinedStencil ( )
+        ret_value.add_stencil (self,
+                               output=output,
+                               **kwargs)
+        return ret_value
+
+
+    def get_interior_points (self, data_field, ghost_cell=[0,0,0,0]):
+        """
+        Returns an iterator over the 'data_field' without including the halo:
+
+            data_field      a NumPy array;
+            ghost_cell      access pattern for the current field, which depends
+                            on the following stencil stages.-
+        """
+        try:
+            if len (data_field.shape) != 3:
+                raise ValueError ("Only 3D arrays are supported.")
+
+        except AttributeError:
+            raise TypeError ("Calling 'get_interior_points' without a NumPy array")
+        else:
+            #
+            # If specific halo and k_direction are set for this stencil, use them
+            # Otherwise, use global Stencil settings
+            #
+            if self.halo:
+                halo = self.halo
+            else:
+                halo = Stencil.halo
+
+            if self.k_direction:
+                k_direction = self.k_direction
+            else:
+                k_direction = Stencil.k_direction
+
+            #
+            # calculate 'i','j','k' iteration boundaries
+            # based on 'halo' and field-access patterns
+            #
+            i_dim, j_dim, k_dim = data_field.shape
+
+            start_i = 0     + halo[0] + ghost_cell[0]
+            end_i   = i_dim - halo[1] + ghost_cell[1]
+            start_j = 0     + halo[2] + ghost_cell[2]
+            end_j   = j_dim - halo[3] + ghost_cell[3]
+
+            #
+            # calculate 'k' iteration boundaries based 'k_direction'
+            #
+            if k_direction == 'forward':
+                start_k = 0
+                end_k   = k_dim
+                inc_k   = 1
+            elif k_direction == 'backward':
+                start_k = k_dim - 1
+                end_k   = -1
+                inc_k   = -1
+            else:
+                logging.warning ("Ignoring unknown K direction '%s'" % k_direction)
+            #
+            # return the coordinate tuples in the correct order
+            #
+            for i in range (start_i, end_i):
+                for j in range (start_j, end_j):
+                    for k in range (start_k, end_k, inc_k):
+                        yield InteriorPoint ((i, j, k))
+
+
     def run (self, *args, **kwargs):
         """
         Starts the execution of the stencil
@@ -296,23 +477,38 @@ class Stencil (object):
             raise e
         else:
             #
-            # check the minimum halo has been given
+            # Check the minimum halo has been given
+            # If specific halo was set for this stencil, use that
+            # Otherwise, use global Stencil halo
             #
+            if self.halo:
+                halo = self.halo
+            else:
+                halo = Stencil.halo
             for idx in range (len (self.scope.minimum_halo)):
-                if self.scope.minimum_halo[idx] - self.halo[idx] > 0:
+                if self.scope.minimum_halo[idx] - halo[idx] > 0:
                     raise ValueError ("The halo should be at least %s" %
                                       self.scope.minimum_halo)
+            #
+            # If a specific backend has been set for this stencil, use that.
+            # Otherwise, use the global Stencil backend
+            #
+            if self._backend:
+                backend = self._backend
+            else:
+                backend = Stencil.get_backend()
             #
             # run the selected backend version
             #
             logging.info ("Executing '%s' in %s mode ..." % (self.name,
-                                                             self.backend.upper ( )))
-            if self.backend == 'c++' or self.backend == 'cuda':
+                                                             backend.upper ( )))
+            if backend == 'c++' or backend == 'cuda':
                 Stencil.compiler.run_native (self, **kwargs)
-            elif self.backend == 'python':
-                getattr(self, self.entry_point_name) (**kwargs)
+            elif backend == 'python':
+                getattr (self, self.entry_point_name) (**kwargs)
             else:
-                raise ValueError ("Unknown backend '%s'" % self.backend)
+                raise ValueError ("Unknown backend '%s' set for stencil '%s'" %
+                                  (backend, self.name) )
 
 
     def set_halo (self, halo=(0,0,0,0)):
@@ -331,7 +527,8 @@ class Stencil (object):
                 if halo[1] >= 0 and halo[3] >= 0:
                     self.halo = halo
                     Stencil.compiler.recompile (self)
-                    logging.debug ("Setting halo to %s" % str (self.halo))
+                    logging.debug ("Setting halo for stencil '%s' to %s" %
+                                    (self.name, str (self.halo)) )
                 else:
                     raise ValueError ("Invalid halo %s: definition for the positive halo should be zero or a positive integer" % str (halo))
             else:
@@ -355,46 +552,10 @@ class Stencil (object):
         if direction in accepted_directions:
             self.k_direction = direction
             Stencil.compiler.recompile (self)
-            logging.debug ("Setting k_direction to '%s'" % self.k_direction)
+            logging.debug ("Setting k_direction for stencil '%s' to '%s'" %
+                            (self.name, self.k_direction) )
         else:
             logging.warning ("Ignoring unknown direction '%s'" % direction)
-
-
-    @property
-    def stages (self):
-        return nx.topological_sort (self.scope.stage_execution)
-
-
-
-class MultiStageStencil (Stencil):
-    """
-    A involving several stages, implemented as for-comprehensions.
-    All user-defined stencils should inherit for this class.-
-    """
-    def __init__ (self):
-        super ( ).__init__ ( )
-
-
-    def build (self, output, **kwargs):
-        """
-        Use this stencil as part of a new CombinedStencil, the output parameter
-        of which is called 'output' and should be linked to '**kwargs' parameters
-        of the following stencil.-
-        """
-        #
-        # make sure the output parameter is there
-        #
-        if output is None:
-            raise ValueError ("You must specify an 'output' parameter")
-        #
-        # the keyword arguments map the output of this stencil
-        # with an input parameter of the following one
-        #
-        ret_value = CombinedStencil ( )
-        ret_value.add_stencil (self,
-                               output=output,
-                               **kwargs)
-        return ret_value
 
 
 
