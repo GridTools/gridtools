@@ -270,7 +270,11 @@ namespace horizontal_diffusion_functions {
         repository.update_cpu();
 #endif
 
-        verifier verif(1e-13);
+#if FLOAT_PRECISION == 4
+        verifier verif(1e-6);
+#else
+        verifier verif(1e-12);
+#endif
 
 #ifdef CXX11_ENABLED
         array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
