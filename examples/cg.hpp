@@ -652,6 +652,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                 make_reduction< reduction_functor, binop::sum >(0.0, p_out()) // sum(rNew_T * MrNew)
             );
 
+        boost::timer::cpu_timer time_iteration;
+
         // A * d
         CG_step0->ready();
         CG_step0->steady();
@@ -693,7 +695,9 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         MPI_Allreduce(&dTAd, &dTAd_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
 
         alpha.setValue(rTMr_global/dTAd_global);
+        #ifdef DEBUG
         if (PID == 0) printf("Alpha = %f\n", rTMr_global/dTAd_global);
+        #endif
 
         // x_(i+1) = x_i + alpha * d_i
         CG_step1->ready();
@@ -747,7 +751,9 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         rTMr_old = rTMrnew_global; //save value to reuse it in alpha
 
         beta.setValue(rTMrnew_global/rTMr_global); // reusing nominator from computation of alpha
+        #ifdef DEBUG
         if (PID == 0) printf("Beta = %f\n", rTMrnew_global/rTMr_global);
+        #endif
 
         // d_(i+1) = Mr_(i+1) + beta * d_i
         CG_step3->ready();
@@ -783,6 +789,12 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         ptr_Mr = ptr_MrNew;
         ptr_MrNew = swap;
 
+        boost::timer::cpu_times lapse_time_iteration = time_iteration.elapsed();
+        if(PID == 0)
+        {
+            std::cout << std::endl << "Iteration " << iter << ": [time]" << boost::timer::format(lapse_time_iteration);
+            std::cout << "Iteration " << iter << ": [residual] " << sqrt(rTMrnew_global) << std::endl;
+        }
     } //end for
 
     boost::timer::cpu_times lapse_time = time.elapsed();

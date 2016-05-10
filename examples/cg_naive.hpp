@@ -475,7 +475,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     /**
         Perform iterations of the CG
     */
-    for(int i=0; i < TIME_STEPS; i++) {
+    for(int iter=0; iter < TIME_STEPS; iter++) {
 
         // construction of the domains for the steps of CG
         gridtools::domain_type<accessor_list_step0> domain_step0
@@ -592,6 +592,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                 make_reduction< reduction_functor, binop::sum >(0.0, p_out()) // sum(rNew_T * rNew)
             );
 
+        boost::timer::cpu_timer time_iteration;
+
         // A * d
         CG_step0->ready();
         CG_step0->steady();
@@ -610,7 +612,6 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         stencil_alpha_nom->finalize();
         float rTr_global;
         MPI_Allreduce(&rTr, &rTr_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
-        if(PID == 0) printf("Iteration %d: %f\n", i, rTr_global);
 
         stencil_alpha_denom->ready();
         stencil_alpha_denom->steady();
@@ -622,7 +623,9 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         MPI_Allreduce(&dTAd, &dTAd_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
 
         alpha.setValue(rTr_global/dTAd_global);
-        if(PID == 0) printf("Alpha = %f/%f = %f\n", rTr_global, dTAd_global, rTr_global/dTAd_global);
+        #ifdef DEBUG
+        if(PID == 0) printf("Alpha = %f\n", rTr_global/dTAd_global);
+        #endif
 
         // x_(i+1) = x_i + alpha * d_i
         CG_step1->ready();
@@ -652,7 +655,9 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         MPI_Allreduce(&rTrnew, &rTrnew_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
 
         beta.setValue(rTrnew_global/rTr_global); // reusing r_T*r from computation of alpha
+        #ifdef DEBUG
         if(PID == 0) printf("Beta = %f\n", rTrnew_global/rTr_global);
+        #endif
 
         // d_(i+1) = r_(i+1) + beta * d_i
         CG_step3->ready();
@@ -685,6 +690,13 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         ptr_d = ptr_dNew;
         ptr_dNew = swap;
 
+        boost::timer::cpu_times lapse_time_iteration = time_iteration.elapsed();
+        if(PID == 0)
+        {
+            std::cout << std::endl << "Iteration " << iter << ": [time]" << boost::timer::format(lapse_time_iteration);
+            std::cout << "Iteration " << iter << ": [residual] " << sqrt(rTrnew_global) << std::endl;
+        }
+
     }
 
     boost::timer::cpu_times lapse_time = time.elapsed();
@@ -696,7 +708,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         std::cout << "d3point7 MLUPs: " << MLUPS(d1,d2,d3,nt,lapse_time_d3point7.wall) << std::endl << std::endl;
     }
 
-#ifndef NDEBUG1
+#ifdef DEBUG
     {
         std::stringstream ss;
         ss << PID;
