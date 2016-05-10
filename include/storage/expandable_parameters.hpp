@@ -1,7 +1,5 @@
 #pragma once
 
-#include "expandable_parameters_impl.hpp"
-
 /**@file storage list for expandable parameters*/
 
 namespace gridtools{
