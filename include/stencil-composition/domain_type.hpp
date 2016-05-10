@@ -280,6 +280,8 @@ namespace gridtools {
                     insert_if_not_present< Sequence, Arg >(m_sequence, *(*arg_)[0]), empty());
             }
 
+#ifdef CXX11_ENABLED
+
             /** @brief operator inserting a storage gridtools::pointer
 
                 filters out the arguments which are not of storage type (and thus do not have an associated metadata)
@@ -297,6 +299,7 @@ namespace gridtools {
                 static_if< is_actual_storage< pointer< Arg > >::type::value >::eval(
                     insert_if_not_present< Sequence, Arg >(m_sequence, (*arg_)[0]), empty());
             }
+#endif
 
         };
 

@@ -8,8 +8,10 @@
 #include "stencil-composition/stencil.hpp"
 #include "stencil-composition/axis.hpp"
 
+#ifdef CXX11_ENABLED
 #include "../storage/expandable_parameters.hpp"
 #include "expandable_parameters/make_computation_expandable.hpp"
+#endif
 
 #ifndef STRUCTURED_GRIDS
 #include "stencil-composition/icosahedral_grids/grid.hpp"

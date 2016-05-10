@@ -52,7 +52,7 @@ namespace aligned_copy_stencil {
         GT_FUNCTION static bool check_pointer_alignment(ItDomain const &it_domain, uint_t storage_id, uint_t boundary) {
             bool result_ = true;
             if (threadIdx.x == 0) {
-                for (ushort_t i = 0; i < ItDomain::iterate_domain_t::iterate_domain_t::N_DATA_POINTERS; ++i) {
+                for (ushort_t i = 0; i < ItDomain::iterate_domain_t::N_DATA_POINTERS; ++i) {
                     result_ = (bool)(result_ && (bool)(((size_t)(it_domain.get().data_pointer()[i] +
                                                                  it_domain.get().index()[storage_id]) &
                                                            (boundary - 1)) == 0));

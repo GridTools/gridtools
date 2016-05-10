@@ -62,7 +62,7 @@ namespace test_conditionals{
 #ifdef CXX11_ENABLED
         auto
 #else
-            boost::shared_ptr<computation>
+            boost::shared_ptr<stencil>
 #endif
             comp_ = make_computation < BACKEND > (
                 domain_, grid_,

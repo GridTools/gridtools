@@ -61,10 +61,10 @@ namespace gridtools {
         void set_on_host() { }
 
         GT_FUNCTION
-        void update_gpu() { assert(false); } //\todo find a way to remove this method
+        void update_gpu() { } //\todo find a way to remove this method
 
         GT_FUNCTION
-        void update_cpu() { assert(false); } //\todo find a way to remove this method
+        void update_cpu() { } //\todo find a way to remove this method
 
         GT_FUNCTION
         wrap_pointer(uint_t size, bool externally_managed = false) : m_externally_managed(externally_managed) {
