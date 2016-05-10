@@ -45,6 +45,7 @@ namespace gridtools {
           public:
             typedef typename _impl::iterate_domain_remapper_base_iterate_domain< IterateDomainEvaluatorImpl >::type
                 iterate_domain_t;
+            static const uint_t N_DATA_POINTERS = iterate_domain_t::N_DATA_POINTERS;
 
           protected:
             const iterate_domain_t &m_iterate_domain;
@@ -63,7 +64,7 @@ namespace gridtools {
 #else
             template < typename Accessor >
             struct accessor_return_type {
-                typedef typename iterate_domain_t::template accessor_return_type<
+                typedef typename iterate_domain_t::template accessor_return_typ_impl<
                     typename remap_accessor_type< Accessor, esf_args_map_t >::type >::type type;
             };
 #endif

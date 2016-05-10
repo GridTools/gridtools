@@ -43,6 +43,7 @@ namespace gridtools {
       public:
         typedef typename _impl::iterate_domain_remapper_base_iterate_domain< IterateDomainEvaluatorImpl >::type
             iterate_domain_t;
+            static const uint_t N_DATA_POINTERS = iterate_domain_t::N_DATA_POINTERS;
 
       protected:
         const iterate_domain_t &m_iterate_domain;
