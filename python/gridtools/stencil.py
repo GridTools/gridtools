@@ -275,9 +275,9 @@ class Stencil (object):
             return
 
         if direction in accepted_directions:
-            Stencil.k_direction = direction
+            Stencil._k_direction = direction
             Stencil.compiler.recompile ( )
-            logging.debug ("Setting global Stencil k_direction to '%s'" % Stencil.k_direction)
+            logging.debug ("Setting global Stencil k_direction to '%s'" % Stencil._k_direction)
         else:
             logging.warning ("Ignoring unknown direction '%s'" % direction)
 
@@ -535,7 +535,7 @@ class MultiStageStencil (Stencil):
             return Stencil.get_halo ( )
 
 
-    def set_halo (self, halo=(0,0,0,0)):
+    def set_halo (self, halo=None):
         """
         Applies the received 'halo' setting, which is defined as
 
@@ -573,7 +573,7 @@ class MultiStageStencil (Stencil):
             return Stencil.get_k_direction ( )
 
 
-    def set_k_direction (self, direction="forward"):
+    def set_k_direction (self, direction=None):
         """
         Applies the execution order in `k` dimension:
 
@@ -591,6 +591,7 @@ class MultiStageStencil (Stencil):
             Stencil.compiler.recompile (self)
             logging.debug ("k_direction for stencil '%s' has been reset" %
                            self.name)
+            return
 
         if direction in accepted_directions:
             self._k_direction = direction

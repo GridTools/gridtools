@@ -60,6 +60,7 @@ class GameOfLifeTest (CopyTest):
 
         self.stencil = GameOfLife (self.domain)
         self.stencil.set_halo ( (1,1,1,1) )
+        self.stencil.set_k_direction ('forward')
 
 
     @attr(lang='cuda')
@@ -97,10 +98,68 @@ class GameOfLifeTest (CopyTest):
     def test_minimum_halo_detection (self):
         super ( ).test_minimum_halo_detection ([1, 1, 1, 1])
 
+
     @unittest.skip("Not yet implemented")
     @attr(lang='python')
     def test_python_results (self):
         pass
+
+
+    def test_get_interior_points_Z_static (self):
+        Stencil.set_halo ( (1,1,1,1) )
+        Stencil.set_k_direction ('forward')
+        k = 0
+        for p in Stencil.get_interior_points (self.out_X):
+            self.assertTrue (k == p[2])
+            k = k+1
+            if k == self.domain[2]:
+                k = 0
+
+
+    def test_get_interior_points_Z_object (self):
+        k = 0
+        for p in self.stencil.get_interior_points (self.out_X):
+            self.assertTrue (k == p[2])
+            k = k+1
+            if k == self.domain[2]:
+                k = 0
+
+
+    def test_get_interior_points_XY_static (self):
+        Stencil.set_halo ( (1,1,1,1) )
+        Stencil.set_k_direction ('forward')
+        i = 1
+        j = 1
+        for p in Stencil.get_interior_points (self.out_X):
+            self.assertTrue (i == p[0])
+            self.assertTrue (j == p[1])
+            if p[2] == self.domain[2] - 1:
+                j = j+1
+            if j == (self.domain[1] - 1):
+                j = 1
+                i = i + 1
+            if i == (self.domain[0] - 1):
+                i = 1
+
+
+    def test_get_interior_points_XY_object (self):
+        #
+        # Stencil halo was has been set to (1,1,1,1) in setUp()
+        # Ensure that the global Stencil halo is different
+        #
+        Stencil.set_halo ( (2,2,2,2) )
+        i = 1
+        j = 1
+        for p in self.stencil.get_interior_points (self.out_X):
+            self.assertTrue (i == p[0])
+            self.assertTrue (j == p[1])
+            if p[2] == self.domain[2] - 1:
+                j = j+1
+            if j == (self.domain[1] - 1):
+                j = 1
+                i = i + 1
+            if i == (self.domain[0] - 1):
+                i = 1
 
 
 
@@ -163,6 +222,7 @@ class AdditionalIfStatementTest (CopyTest):
 
         self.stencil = AdditionalIfStatement (self.domain)
         self.stencil.set_halo ( (0,1,0,0) )
+        self.stencil.set_k_direction ('forward')
 
 
     @attr(lang='cuda')
@@ -205,3 +265,60 @@ class AdditionalIfStatementTest (CopyTest):
     @attr(lang='python')
     def test_python_results (self):
         pass
+
+
+    def test_get_interior_points_Z_static (self):
+        Stencil.set_halo ( (0,1,0,0) )
+        Stencil.set_k_direction ('forward')
+        k = 0
+        for p in Stencil.get_interior_points (self.out_X):
+            self.assertTrue (k == p[2])
+            k = k+1
+            if k == self.domain[2]:
+                k = 0
+
+
+    def test_get_interior_points_Z_object (self):
+        k = 0
+        for p in self.stencil.get_interior_points (self.out_X):
+            self.assertTrue (k == p[2])
+            k = k+1
+            if k == self.domain[2]:
+                k = 0
+
+
+    def test_get_interior_points_XY_static (self):
+        Stencil.set_halo ( (0,1,0,0) )
+        Stencil.set_k_direction ('forward')
+        i = 0
+        j = 0
+        for p in Stencil.get_interior_points (self.out_X):
+            self.assertTrue (i == p[0])
+            self.assertTrue (j == p[1])
+            if p[2] == self.domain[2] - 1:
+                j = j+1
+            if j == (self.domain[1]):
+                j = 0
+                i = i + 1
+            if i == (self.domain[0] - 1):
+                i = 0
+
+
+    def test_get_interior_points_XY_object (self):
+        #
+        # Stencil halo was has been set to (0,1,0,0) in setUp()
+        # Ensure that the global Stencil halo is different
+        #
+        Stencil.set_halo ( (2,2,2,2) )
+        i = 0
+        j = 0
+        for p in self.stencil.get_interior_points (self.out_X):
+            self.assertTrue (i == p[0])
+            self.assertTrue (j == p[1])
+            if p[2] == self.domain[2] - 1:
+                j = j+1
+            if j == (self.domain[1]):
+                j = 0
+                i = i + 1
+            if i == (self.domain[0] - 1):
+                i = 1

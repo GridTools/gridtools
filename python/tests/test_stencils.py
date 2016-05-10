@@ -330,6 +330,120 @@ class CopyTest (AccessPatternDetectionTest):
             self.stencil.kernel(self.out_cpy, self.in_cpy)
 
 
+    def test_decorator_returned_type (self):
+        #
+        # Test that the decorator returned a function method and not a
+        # UserStencil object
+        #
+        import inspect
+        self.assertTrue (inspect.ismethod (self.stencil.kernel))
+
+
+    def test_get_halo_from_Stencil (self):
+        #
+        # Set a new global halo and reset the stencil-specific value
+        #
+        Stencil.set_halo( (2,2,2,2) )
+        self.stencil.set_halo ( )
+        #
+        # Check that the global halo is correctly returned
+        #
+        self.assertTrue (self.stencil.get_halo ( ) == (2,2,2,2))
+
+
+    def test_get_halo_from_object (self):
+        #
+        # Set a new global halo and a new stencil-specific value
+        #
+        Stencil.set_halo( (2,2,2,2) )
+        self.stencil.set_halo ( (3,3,3,3) )
+        #
+        # Check that the stencil halo is returned
+        #
+        self.assertTrue (self.stencil.get_halo ( ) == (3,3,3,3))
+
+
+    def test_get_k_direction_from_Stencil (self):
+        #
+        # Set a new global k direction and reset the stencil-specific value
+        #
+        Stencil.set_k_direction( 'backward' )
+        self.stencil.set_k_direction ( )
+        #
+        # Check that the global k direction is correctly returned
+        #
+        self.assertTrue (self.stencil.get_k_direction ( ) == 'backward')
+
+
+    def test_get_k_direction_from_object (self):
+        #
+        # Set a new global k direction and a new stencil-specific value
+        #
+        Stencil.set_k_direction('forward')
+        self.stencil.set_k_direction ('backward')
+        #
+        # Check that the stencil k direction is correctly returned
+        #
+        self.assertTrue (self.stencil.get_k_direction ( ) == 'backward')
+
+
+    def test_get_interior_points_Z_static (self):
+        Stencil.set_halo ( (1,1,1,1) )
+        Stencil.set_k_direction ('forward')
+        k = 0
+        for p in Stencil.get_interior_points (self.out_cpy):
+            self.assertTrue (k == p[2])
+            k = k+1
+            if k == self.domain[2]:
+                k = 0
+
+
+    def test_get_interior_points_Z_object (self):
+        k = 0
+        for p in self.stencil.get_interior_points (self.out_cpy):
+            self.assertTrue (k == p[2])
+            k = k+1
+            if k == self.domain[2]:
+                k = 0
+
+
+    def test_get_interior_points_XY_static (self):
+        Stencil.set_halo ( (1,1,1,1) )
+        Stencil.set_k_direction ('forward')
+        i = 1
+        j = 1
+        for p in Stencil.get_interior_points (self.out_cpy):
+            self.assertTrue (i == p[0])
+            self.assertTrue (j == p[1])
+            if p[2] == self.domain[2] - 1:
+                j = j+1
+            if j == (self.domain[1] - 1):
+                j = 1
+                i = i + 1
+            if i == (self.domain[0] - 1):
+                i = 1
+
+
+    def test_get_interior_points_XY_object (self):
+        #
+        # Stencil halo was has been set to (1,1,1,1) in setUp()
+        # Ensure that the global Stencil halo is different
+        #
+        Stencil.set_halo ( (2,2,2,2) )
+        i = 1
+        j = 1
+        for p in self.stencil.get_interior_points (self.out_cpy):
+            self.assertTrue (i == p[0])
+            self.assertTrue (j == p[1])
+            if p[2] == self.domain[2] - 1:
+                j = j+1
+            if j == (self.domain[1] - 1):
+                j = 1
+                i = i + 1
+            if i == (self.domain[0] - 1):
+                i = 1
+
+
 
 class AnyKernelName (MultiStageStencil):
     """
@@ -366,6 +480,11 @@ class AnyKernelNameTest (CopyTest):
     def test_user_kernel_call (self):
         with self.assertRaises (RuntimeError):
             self.stencil.entry_point(self.out_cpy, self.in_cpy)
+
+
+    def test_decorator_returned_type (self):
+        import inspect
+        self.assertTrue (inspect.ismethod (self.stencil.entry_point))
 
 
 
@@ -434,6 +553,8 @@ class PowerTest (CopyTest):
     def setUp (self):
         super ( ).setUp ( )
         self.stencil = Power ( )
+        self.stencil.set_halo ( (1, 1, 1, 1) )
+        self.stencil.set_k_direction ("forward")
 
 
 
@@ -504,6 +625,63 @@ class LaplaceTest (CopyTest):
         self.out_data = np.random.rand (*self.domain)
         super ( ).test_python_results (out_param='out_data',
                                        result_file='laplace_result.npy')
+
+
+    def test_get_interior_points_Z_static (self):
+        Stencil.set_halo ( (1,1,1,1) )
+        Stencil.set_k_direction ('forward')
+        k = 0
+        for p in Stencil.get_interior_points (self.out_data):
+            self.assertTrue (k == p[2])
+            k = k+1
+            if k == self.domain[2]:
+                k = 0
+
+
+    def test_get_interior_points_Z_object (self):
+        k = 0
+        for p in self.stencil.get_interior_points (self.out_data):
+            self.assertTrue (k == p[2])
+            k = k+1
+            if k == self.domain[2]:
+                k = 0
+
+
+    def test_get_interior_points_XY_static (self):
+        Stencil.set_halo ( (1,1,1,1) )
+        Stencil.set_k_direction ('forward')
+        i = 1
+        j = 1
+        for p in Stencil.get_interior_points (self.out_data):
+            self.assertTrue (i == p[0])
+            self.assertTrue (j == p[1])
+            if p[2] == self.domain[2] - 1:
+                j = j+1
+            if j == (self.domain[1] - 1):
+                j = 1
+                i = i + 1
+            if i == (self.domain[0] - 1):
+                i = 1
+
+
+    def test_get_interior_points_XY_object (self):
+        #
+        # Stencil halo was has been set to (1,1,1,1) in setUp()
+        # Ensure that the global Stencil halo is different
+        #
+        Stencil.set_halo ( (2,2,2,2) )
+        i = 1
+        j = 1
+        for p in self.stencil.get_interior_points (self.out_data):
+            self.assertTrue (i == p[0])
+            self.assertTrue (j == p[1])
+            if p[2] == self.domain[2] - 1:
+                j = j+1
+            if j == (self.domain[1] - 1):
+                j = 1
+                i = i + 1
+            if i == (self.domain[0] - 1):
+                i = 1
 
 
 
@@ -648,6 +826,63 @@ class HorizontalDiffusionTest (CopyTest):
         self.out_data = np.random.rand (*self.domain)
         super ( ).test_python_results (out_param='out_data',
                                        result_file='horizontaldiffusion_result.npy')
+
+
+    def test_get_interior_points_Z_static (self):
+        Stencil.set_halo ( (1,1,1,1) )
+        Stencil.set_k_direction ('forward')
+        k = 0
+        for p in Stencil.get_interior_points (self.out_data):
+            self.assertTrue (k == p[2])
+            k = k+1
+            if k == self.domain[2]:
+                k = 0
+
+
+    def test_get_interior_points_Z_object (self):
+        k = 0
+        for p in self.stencil.get_interior_points (self.out_data):
+            self.assertTrue (k == p[2])
+            k = k+1
+            if k == self.domain[2]:
+                k = 0
+
+
+    def test_get_interior_points_XY_static (self):
+        Stencil.set_halo ( (2,2,2,2) )
+        Stencil.set_k_direction ('forward')
+        i = 2
+        j = 2
+        for p in Stencil.get_interior_points (self.out_data):
+            self.assertTrue (i == p[0])
+            self.assertTrue (j == p[1])
+            if p[2] == self.domain[2] - 1:
+                j = j+1
+            if j == (self.domain[1] - 2):
+                j = 2
+                i = i + 1
+            if i == (self.domain[0] - 2):
+                i = 2
+
+
+    def test_get_interior_points_XY_object (self):
+        #
+        # Stencil halo was has been set to (2,2,2,2) in setUp()
+        # Ensure that the global Stencil halo is different
+        #
+        Stencil.set_halo ( (0,0,0,0) )
+        i = 2
+        j = 2
+        for p in self.stencil.get_interior_points (self.out_data):
+            self.assertTrue (i == p[0])
+            self.assertTrue (j == p[1])
+            if p[2] == self.domain[2] - 1:
+                j = j+1
+            if j == (self.domain[1] - 2):
+                j = 2
+                i = i + 1
+            if i == (self.domain[0] - 2):
+                i = 2
 
 
 
