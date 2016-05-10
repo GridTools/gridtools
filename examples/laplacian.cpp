@@ -239,11 +239,19 @@ TEST(Laplace, test) {
     }
 
 #ifdef CXX11_ENABLED
-    verifier verif(1e-13);
+#if FLOAT_PRECISION == 4
+        verifier verif(1e-6);
+#else
+        verifier verif(1e-12);
+#endif
     array<array<uint_t, 2>, 3> halos{{ {halo_size,halo_size}, {halo_size,halo_size}, {halo_size,halo_size} }};
     bool result = verif.verify(grid, out, ref, halos);
 #else
-    verifier verif(1e-13, halo_size);
+#if FLOAT_PRECISION == 4
+        verifier verif(1e-6, halo_size);
+#else
+        verifier verif(1e-12, halo_size);
+#endif
     bool result = verif.verify(grid, out, ref);
 #endif
 

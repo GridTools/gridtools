@@ -142,11 +142,19 @@ TEST_F(cache_stencil, ij_cache)
     m_out.d2h_update();
 #endif
 #ifdef CXX11_ENABLED
-    verifier verif(1e-13);
+#if FLOAT_PRECISION == 4
+    verifier verif(1e-6);
+#else
+    verifier verif(1e-12);
+#endif
     array<array<uint_t, 2>, 3> halos{{ {m_halo_size,m_halo_size}, {m_halo_size,m_halo_size}, {m_halo_size,m_halo_size} }};
     ASSERT_TRUE(verif.verify(m_grid, m_in, m_out, halos) );
 #else
-    verifier verif(1e-13, m_halo_size);
+#if FLOAT_PRECISION == 4
+    verifier verif(1e-6, m_halo_size);
+#else
+    verifier verif(1e-12, m_halo_size);
+#endif
     ASSERT_TRUE(verif.verify(m_grid, m_in, m_out) );
 #endif
 }
@@ -205,11 +213,19 @@ TEST_F(cache_stencil, ij_cache_offset)
 #endif
 
 #ifdef CXX11_ENABLED
-    verifier verif(1e-13);
+#if FLOAT_PRECISION == 4
+    verifier verif(1e-6);
+#else
+    verifier verif(1e-12);
+#endif
     array<array<uint_t, 2>, 3> halos{{ {m_halo_size,m_halo_size}, {m_halo_size,m_halo_size}, {m_halo_size,m_halo_size} }};
     ASSERT_TRUE(verif.verify(m_grid, ref, m_out, halos) );
 #else
-    verifier verif(1e-13, m_halo_size);
+#if FLOAT_PRECISION == 4
+    verifier verif(1e-6, m_halo_size);
+#else
+    verifier verif(1e-12, m_halo_size);
+#endif
     ASSERT_TRUE(verif.verify(m_grid, ref, m_out));
 #endif
 }
