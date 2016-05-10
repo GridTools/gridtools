@@ -92,50 +92,76 @@ namespace gridtools {
 
 #ifdef _USE_GPU_
 		typedef hybrid_pointer< BaseStorage, false > storage_ptr_t;
-        #define INIT_STORAGE(MD, EXT) m_storage(MD, 1, EXT)
+		#define INIT_STORAGE(BS, EXT) m_storage(BS, 1, EXT)
+		typedef hybrid_pointer< const storage_info_type, false > meta_data_ptr_t;
+		#define INIT_META_DATA(MD) m_meta_data(MD, 1, true)
 #else
 		typedef wrap_pointer< BaseStorage, false > storage_ptr_t;
-        #define INIT_STORAGE(MD, EXT) m_storage(MD, EXT)
+		#define INIT_STORAGE(BS, EXT) m_storage(BS, EXT)
+		typedef wrap_pointer< const storage_info_type, false > meta_data_ptr_t;
+		#define INIT_META_DATA(MD) m_meta_data(MD, true)
 #endif
 
 	private:
 		storage_ptr_t m_storage;
+		meta_data_ptr_t m_meta_data;
 		bool m_on_host;
 		template <typename T>
 		storage(T);
 
 
 	public:
+
+		bool is_on_host() const {
+			return m_on_host; 
+		}
+
 		void clone_to_device() {
+#ifdef _USE_GPU_
+			if(!m_on_host) return;
+			// clone meta dato to device
+			m_meta_data.update_gpu();
+			// set the new meta data pointer in the storage
+			(*m_storage).set_meta_data(m_meta_data.get_pointer_to_use());
+			// update the storage itself
 			m_storage.update_gpu();
+#endif
 		}
 
 		/** @brief clone storage + contents to gpu */
 		void d2h_update() {
 			if(m_on_host) return;
+                        // clone meta dato to device
+                        m_meta_data.update_cpu();
 			// clone the storage itself from device
-			m_storage.update_cpu();
+			m_storage.update_cpu();	
+			// set the new meta data pointer in the storage
+			(*m_storage).set_meta_data(m_meta_data.get_pointer_to_use());
 			// clone storage contents from device
 			(*m_storage).d2h_update();
-			// set m_sync_needed to true
+			// set m_on_host to true
 			m_on_host = true;
 		}
 
 		/** @brief clone storage + contents from gpu */
 		void h2d_update() {
 			if(!m_on_host) return;
+			// clone meta dato to device
+			m_meta_data.update_gpu();
+			// set the new meta data pointer in the storage
+			(*m_storage).set_meta_data(m_meta_data.get_pointer_to_use());
 			// clone storage contents to device
 			(*m_storage).h2d_update();
 			// clone the storage itself to device
 			m_storage.update_gpu();
-			// set m_sync_needed to true
+			// set m_on_host to false
 			m_on_host = false;
 		}
 
 		/* Following method are just forwarding methods to the base_storage. */
 		storage_info_type const &meta_data() const {
 			assert(m_on_host);
-			return (*m_storage).meta_data();
+			return *m_meta_data;
 		}
 
 		pointer_type const &data() const {
@@ -209,31 +235,32 @@ namespace gridtools {
 		// forwarding constructor
 		template < class... ExtraArgs >
 		explicit storage(storage_info_type const &meta_data_, ExtraArgs const &... args)
-			: INIT_STORAGE(new BaseStorage(meta_data_, args...), false), m_on_host(true) {}
+			: INIT_STORAGE(new BaseStorage(meta_data_, args...), false), INIT_META_DATA(&meta_data_), m_on_host(true) {}
 #else // CXX11_ENABLED
 
 		explicit storage(storage_info_type const &meta_data_, value_type const &init)
-			: INIT_STORAGE(new BaseStorage(meta_data_, init), false), m_on_host(true) {}
+			: INIT_STORAGE(new BaseStorage(meta_data_, init), false), INIT_META_DATA(&meta_data_), m_on_host(true) {}
 
 		explicit storage(storage_info_type const &meta_data_, value_type const &init, const char* name)
-			: INIT_STORAGE(new BaseStorage(meta_data_, init, name), false), m_on_host(true) {}
+			: INIT_STORAGE(new BaseStorage(meta_data_, init, name), false), INIT_META_DATA(&meta_data_), m_on_host(true) {}
 
 		template < typename Ret, typename T >
 		explicit storage(storage_info_type const &meta_data_, Ret(*func)(T const &, T const &, T const &))
-			: INIT_STORAGE(new BaseStorage(meta_data_, func), false), m_on_host(true) {}
+			: INIT_STORAGE(new BaseStorage(meta_data_, func), false), INIT_META_DATA(&meta_data_),  m_on_host(true) {}
 
 		template < class FloatType >
 		explicit storage(storage_info_type const &meta_data_, FloatType *arg)
-			: INIT_STORAGE(new BaseStorage(meta_data_, (FloatType *)arg), false), m_on_host(true) {}
+			: INIT_STORAGE(new BaseStorage(meta_data_, (FloatType *)arg), false), INIT_META_DATA(&meta_data_), m_on_host(true) {}
 
 		template < class FloatType >
 		explicit storage(storage_info_type const &meta_data_, FloatType *arg, const char* name)
-			: INIT_STORAGE(new BaseStorage(meta_data_, (FloatType *)arg, name), false), m_on_host(true) {}
+			: INIT_STORAGE(new BaseStorage(meta_data_, (FloatType *)arg, name), false), INIT_META_DATA(&meta_data_), m_on_host(true) {}
 
 #endif // CXX11_ENABLED
 
 		~storage() {
 			m_storage.free_it();
+			m_meta_data.free_it();
 		}
 
 		/**@brief releasing the pointers to the data, and deleting them in case they need to be deleted */
@@ -246,7 +273,7 @@ namespace gridtools {
             return m_storage.get_pointer_to_use();
 		}
 
-		explicit storage(storage_info_type const &meta_data_) : INIT_STORAGE(new BaseStorage(meta_data_), false), m_on_host(true) {}
+		explicit storage(storage_info_type const &meta_data_) : INIT_STORAGE(new BaseStorage(meta_data_), false), INIT_META_DATA(&meta_data_), m_on_host(true) {}
 
 #ifdef CXX11_ENABLED
 

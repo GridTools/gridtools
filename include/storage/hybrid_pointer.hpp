@@ -96,7 +96,7 @@ namespace gridtools {
 
         void free_it() {
             assert(m_gpu_p); // check for double free
-            cudaFree(m_gpu_p);
+            cudaFree((void*)(m_gpu_p));
             m_gpu_p = NULL;
             m_cpu_p.free_it();
             m_up_to_date = true;
@@ -113,7 +113,7 @@ namespace gridtools {
             out();
 #endif
             if (on_host()) { // do not copy if the last version is already on the device
-                cudaMemcpy(m_gpu_p, m_cpu_p.get(), m_size * sizeof(T), cudaMemcpyHostToDevice);
+                cudaMemcpy((void*) m_gpu_p, (void*) m_cpu_p.get(), m_size * sizeof(T), cudaMemcpyHostToDevice);
                 m_up_to_date = false;
                 m_pointer_to_use = m_gpu_p;
             }
@@ -125,7 +125,7 @@ namespace gridtools {
             out();
 #endif
             if (on_device()) {
-                cudaMemcpy(m_cpu_p.get(), m_gpu_p, m_size * sizeof(T), cudaMemcpyDeviceToHost);
+                cudaMemcpy((void*) m_cpu_p.get(), (void*) m_gpu_p, m_size * sizeof(T), cudaMemcpyDeviceToHost);
                 m_up_to_date = true;
                 m_pointer_to_use = m_cpu_p.get();
             }

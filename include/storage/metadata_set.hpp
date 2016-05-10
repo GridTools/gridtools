@@ -115,7 +115,7 @@ namespace gridtools {
         GT_FUNCTION
         void operator()() const {
             if (!m_seq.template present< pointer< const typename Arg::storage_info_type > >())
-                m_seq.insert(pointer< const typename Arg::storage_info_type >(&(m_arg_ptr->get_pointer_to_use()->meta_data())));
+                m_seq.insert(pointer< const typename Arg::storage_info_type >((**m_arg_ptr).meta_data()));
         }
     };
 }
