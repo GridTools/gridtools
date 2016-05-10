@@ -49,6 +49,59 @@ class Stencil (object):
 
 
     @staticmethod
+    def _interior_points_generator (data_field, ghost_cell, halo, k_direction):
+        """
+        Returns an generator over the 'data_field'.
+        This is an internal method that provides a common foundation for the
+        get_interior_points() external interfaces (the Stencil static method and
+        the MultiStageStencil bound method). Users should not call this method
+        directly. Please use the appropriate get_interior_points() function.
+
+        :param data_field:      a NumPy array;
+        :param ghost_cell:      access pattern for the current field, useful for
+                                concatenating several stencil stages.-
+        """
+        try:
+            if len (data_field.shape) != 3:
+                raise ValueError ("Only 3D arrays are supported.")
+
+        except AttributeError:
+            raise TypeError ("Calling 'get_interior_points' without a NumPy array")
+        else:
+            #
+            # calculate 'i','j','k' iteration boundaries
+            # based on 'halo' and field-access patterns
+            #
+            i_dim, j_dim, k_dim = data_field.shape
+
+            start_i = 0     + halo[0] + ghost_cell[0]
+            end_i   = i_dim - halo[1] + ghost_cell[1]
+            start_j = 0     + halo[2] + ghost_cell[2]
+            end_j   = j_dim - halo[3] + ghost_cell[3]
+
+            #
+            # calculate 'k' iteration boundaries based 'k_direction'
+            #
+            if k_direction == 'forward':
+                start_k = 0
+                end_k   = k_dim
+                inc_k   = 1
+            elif k_direction == 'backward':
+                start_k = k_dim - 1
+                end_k   = -1
+                inc_k   = -1
+            else:
+                logging.warning ("Ignoring unknown K direction '%s'" % k_direction)
+            #
+            # return the coordinate tuples in the correct order
+            #
+            for i in range (start_i, end_i):
+                for j in range (start_j, end_j):
+                    for k in range (start_k, end_k, inc_k):
+                        yield InteriorPoint ((i, j, k))
+
+
+    @staticmethod
     def kernel (kernel_func):
         """
         Decorator to define a given member as the stencil entry point (aka kernel).
@@ -142,54 +195,19 @@ class Stencil (object):
         logging.debug ("Setting global Stencil backend to %s" % str (Stencil._backend))
         Stencil.compiler.recompile ( )
 
-
     @staticmethod
     def get_interior_points (data_field, ghost_cell=[0,0,0,0]):
         """
-        Returns an iterator over the 'data_field' without including the halo:
+        Returns an generator over the 'data_field' without including the halo.
+        Uses global Stencil settings for halo and k direction.
 
         :param data_field:      a NumPy array;
         :param ghost_cell:      access pattern for the current field, which depends
                                 on the following stencil stages.-
         """
-        try:
-            if len (data_field.shape) != 3:
-                raise ValueError ("Only 3D arrays are supported.")
-
-        except AttributeError:
-            raise TypeError ("Calling 'get_interior_points' without a NumPy array")
-        else:
-            #
-            # calculate 'i','j','k' iteration boundaries
-            # based on 'halo' and field-access patterns
-            #
-            i_dim, j_dim, k_dim = data_field.shape
-
-            start_i = 0     + Stencil.get_halo ( ) [0] + ghost_cell[0]
-            end_i   = i_dim - Stencil.get_halo ( ) [1] + ghost_cell[1]
-            start_j = 0     + Stencil.get_halo ( ) [2] + ghost_cell[2]
-            end_j   = j_dim - Stencil.get_halo ( ) [3] + ghost_cell[3]
-
-            #
-            # calculate 'k' iteration boundaries based 'k_direction'
-            #
-            if Stencil.get_k_direction ( ) == 'forward':
-                start_k = 0
-                end_k   = k_dim
-                inc_k   = 1
-            elif Stencil.get_k_direction ( ) == 'backward':
-                start_k = k_dim - 1
-                end_k   = -1
-                inc_k   = -1
-            else:
-                logging.warning ("Ignoring unknown global K direction '%s'" % Stencil.get_k_direction ( ))
-            #
-            # return the coordinate tuples in the correct order
-            #
-            for i in range (start_i, end_i):
-                for j in range (start_j, end_j):
-                    for k in range (start_k, end_k, inc_k):
-                        yield InteriorPoint ((i, j, k))
+        return Stencil._interior_points_generator (data_field, ghost_cell,
+                                                   Stencil.get_halo ( ),
+                                                   Stencil.get_k_direction ( ))
 
 
     @staticmethod
@@ -422,52 +440,17 @@ class MultiStageStencil (Stencil):
 
     def get_interior_points (self, data_field, ghost_cell=[0,0,0,0]):
         """
-        Returns an iterator over the 'data_field' without including the halo:
+        Returns an iterator over the 'data_field' without including the halo.
+        Uses stencil-specific values for halo and k direction, if they have
+        been set. Otherwise, uses global Stencil settings.
 
-            data_field      a NumPy array;
-            ghost_cell      access pattern for the current field, which depends
-                            on the following stencil stages.-
+        :param data_field:      a NumPy array;
+        :param ghost_cell:      access pattern for the current field, which depends
+                                on the following stencil stages.-
         """
-        try:
-            if len (data_field.shape) != 3:
-                raise ValueError ("Only 3D arrays are supported.")
-
-        except AttributeError:
-            raise TypeError ("Calling 'get_interior_points' without a NumPy array")
-        else:
-            #
-            # calculate 'i','j','k' iteration boundaries
-            # based on 'halo' and field-access patterns
-            #
-            halo = self.get_halo ( )
-            i_dim, j_dim, k_dim = data_field.shape
-
-            start_i = 0     + halo[0] + ghost_cell[0]
-            end_i   = i_dim - halo[1] + ghost_cell[1]
-            start_j = 0     + halo[2] + ghost_cell[2]
-            end_j   = j_dim - halo[3] + ghost_cell[3]
-
-            #
-            # calculate 'k' iteration boundaries based 'k_direction'
-            #
-            k_direction = self.get_k_direction ( )
-            if k_direction == 'forward':
-                start_k = 0
-                end_k   = k_dim
-                inc_k   = 1
-            elif k_direction == 'backward':
-                start_k = k_dim - 1
-                end_k   = -1
-                inc_k   = -1
-            else:
-                logging.warning ("Ignoring unknown K direction '%s'" % k_direction)
-            #
-            # return the coordinate tuples in the correct order
-            #
-            for i in range (start_i, end_i):
-                for j in range (start_j, end_j):
-                    for k in range (start_k, end_k, inc_k):
-                        yield InteriorPoint ((i, j, k))
+        return Stencil._interior_points_generator(data_field, ghost_cell=ghost_cell,
+                                                  halo=self.get_halo ( ),
+                                                  k_direction=self.get_k_direction ( ))
 
 
     def run (self, *args, **kwargs):
