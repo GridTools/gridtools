@@ -130,7 +130,7 @@ namespace reduction {
             sum_red_ = make_computation< gridtools::BACKEND >(domain,
                 grid,
                 make_mss(execute< forward >(), make_esf< desf >(p_in(), p_out())),
-                make_reduction< sum_red, binop::sum >(0.0, p_out()));
+                make_reduction< sum_red, binop::sum >((float_type)(0.0), p_out()));
 
         sum_red_->ready();
         sum_red_->steady();
@@ -138,12 +138,11 @@ namespace reduction {
         float_type sum_redt = sum_red_->run();
         float_type precision;
 #if FLOAT_PRECISION == 4
-        precision = 1e-6;
+        precision = 1e-5;
 #else
         precision = 1e-12;
 #endif
         bool success = compare_below_threshold(sum_ref, sum_redt, precision);
-
 #ifdef BENCHMARK
         for (uint_t t = 1; t < t_steps; ++t) {
             flusher.flush();
@@ -165,7 +164,7 @@ namespace reduction {
             prod_red_ = make_computation< gridtools::BACKEND >(domain,
                 grid,
                 make_mss(execute< forward >(), make_esf< desf >(p_in(), p_out())),
-                make_reduction< sum_red, binop::prod >(1.0, p_out()));
+                make_reduction< sum_red, binop::prod >((float_type)(1.0), p_out()));
 
         prod_red_->ready();
         prod_red_->steady();
@@ -173,7 +172,6 @@ namespace reduction {
         float_type prod_redt = prod_red_->run();
 
         success = success & compare_below_threshold(prod_ref, prod_redt, precision);
-
 #ifdef BENCHMARK
         for (uint_t t = 1; t < t_steps; ++t) {
             flusher.flush();
