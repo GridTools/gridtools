@@ -23,8 +23,10 @@ struct shallow_water_reference {
     typedef StorageType storage_type;
 #ifdef __CUDACC__
     typedef hybrid_pointer< float_type > pointer_type;
+    #define PTR(ARR, SIZE, EXT) pointer_type(ARR, SIZE, EXT)
 #else
     typedef wrap_pointer< float_type > pointer_type;
+    #define PTR(ARR, SIZE, EXT) pointer_type(ARR, EXT)
 #endif
 
     static constexpr uint_t strides[2] = {DimI, 1};
@@ -76,15 +78,15 @@ struct shallow_water_reference {
     shallow_water_reference() : solution_meta(DimI, DimJ, static_cast< uint_t >(1)), solution(solution_meta) {}
 
     void setup() {
-        u = pointer_type(u_array, size, true);
-        v = pointer_type(v_array, size, true);
-        h = pointer_type(h_array, size, true);
-        ux = pointer_type(ux_array, size, true);
-        vx = pointer_type(vx_array, size, true);
-        hx = pointer_type(hx_array, size, true);
-        uy = pointer_type(uy_array, size, true);
-        vy = pointer_type(vy_array, size, true);
-        hy = pointer_type(hy_array, size, true);
+        u = PTR(u_array, size, true);
+        v = PTR(v_array, size, true);
+        h = PTR(h_array, size, true);
+        ux = PTR(ux_array, size, true);
+        vx = PTR(vx_array, size, true);
+        hx = PTR(hx_array, size, true);
+        uy = PTR(uy_array, size, true);
+        vy = PTR(vy_array, size, true);
+        hy = PTR(hy_array, size, true);
         for (uint_t i = 0; i < DimI; ++i)
             for (uint_t j = 0; j < DimJ; ++j) {
                 uint_t id = i * strides[0] + j * strides[1];

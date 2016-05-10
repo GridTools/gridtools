@@ -201,13 +201,19 @@ namespace gridtools {
 			(*m_storage).allocate(dims, offset);
 		}
 
-        pointer<storage_ptr_t> get_storage_pointer() {
-            return pointer<storage_ptr_t>(&m_storage);
-        }
+	        pointer<storage_ptr_t> get_storage_pointer() {
+        	    return pointer<storage_ptr_t>(&m_storage);
+	        }
 
-        pointer<const storage_ptr_t> get_storage_pointer() const {
-            return pointer<const storage_ptr_t>(&m_storage);
-        }
+        	pointer<const storage_ptr_t> get_storage_pointer() const {
+	            return pointer<const storage_ptr_t>(&m_storage);
+	        }
+
+		template <typename T>
+		void print(T& s) { 
+                        assert(m_on_host);
+                        (*m_storage).print(s);
+		}
 
 #if defined(CXX11_ENABLED)
 		template < short_t snapshot = 0, short_t field_dim = 0, typename... Int >
@@ -231,6 +237,12 @@ namespace gridtools {
 			return (*m_storage).fields_view()[_impl::access< basic_type::n_width - (field_dim),
 				typename basic_type::traits >::type::n_fields + snapshot];
 		}
+
+                template < short_t snapshot = 0, short_t field_dim = 0, typename F>
+                void set(F f) {
+                        assert(m_on_host);
+                        (*m_storage).set<snapshot, field_dim>(f);
+                }
 
 		// forwarding constructor
 		template < class... ExtraArgs >
@@ -270,10 +282,17 @@ namespace gridtools {
 		}
 
 		BaseStorage* get_pointer_to_use() {
-            return m_storage.get_pointer_to_use();
+            		return m_storage.get_pointer_to_use();
 		}
 
 		explicit storage(storage_info_type const &meta_data_) : INIT_STORAGE(new BaseStorage(meta_data_), false), INIT_META_DATA(&meta_data_), m_on_host(true) {}
+
+
+		template < typename UInt >
+		value_type const &operator[](UInt const &index_) const {	
+			assert(m_on_host && "The accessed storage was not copied back from the device yet.");
+			return (*m_storage)[index_];
+		}
 
 #ifdef CXX11_ENABLED
 
