@@ -221,7 +221,6 @@ namespace gridtools {
                 "Add at least one storage to the domain_type "
                 "definition.");
             // NOTE: the following assertion assumes there StorageArgs has length at leas 1
-            // GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair< StorageArgs >::value...), "wrong type");
             assign_pointers(m_metadata_set, args...);
         }
 #else
@@ -273,6 +272,11 @@ namespace gridtools {
                     insert_if_not_present< Sequence, Arg >(m_sequence, *arg_), empty());
             }
 
+        /** @brief operator registering the storage info object, given a raw pointer
+
+            specialization for the case in which the storage is a std::vector of storages sharing
+            the same storage info
+         */
             template < typename Arg >
             void operator()(std::vector<pointer<Arg> > const *arg_) const {
                 // filter out the arguments which are not of storage type (and thus do not have an associated metadata)
@@ -282,7 +286,7 @@ namespace gridtools {
 
 #ifdef CXX11_ENABLED
 
-            /** @brief operator inserting a storage gridtools::pointer
+            /** @brief operator geristering the storage info object given a storage gridtools::pointer
 
                 filters out the arguments which are not of storage type (and thus do not have an associated metadata)
              */
@@ -293,6 +297,12 @@ namespace gridtools {
                     insert_if_not_present< Sequence, Arg >(m_sequence, *arg_), empty());
             }
 
+
+            /** @brief operator registering the storage info object, given a raw pointer
+
+                specialization for the case in which the storage is a std::vector of storages sharing
+                the same storage info
+            */
             template < typename Arg >
             void operator()(pointer<std::vector<pointer<Arg> > > const& arg_) const {
                 // filter out the arguments which are not of storage type (and thus do not have an associated metadata)
@@ -303,8 +313,8 @@ namespace gridtools {
 
         };
 
-        /**@brief Constructor from boost::fusion::vector
-         * @tparam RealStorage fusion::vector of pointers to storages sorted with increasing indices of the placeholders
+        /**@brief Constructor from boost::fusion::vector of raw pointers
+         * @tparam RealStorage fusion::vector of raw pointers to storages sorted with increasing indices of the placeholders
          * @param real_storage The actual fusion::vector with the values
          TODO: when I have only one placeholder and C++11 enabled this constructor is erroneously picked
          */
@@ -378,21 +388,13 @@ namespace gridtools {
          * @param real_storage The actual fusion::vector with the values
          TODO: when I have only one placeholder and C++11 enabled this constructor is erroneously picked
          */
-        template < template <typename ...> class Vector,  typename ... Storages//, typename std::enable_if<
-                                             // is_pointer<
-                                             //     typename boost::mpl::at_c<
-                                             //         RealStorage, 0>::type >::value >::type* = nullptr
-                   >
-        explicit domain_type(Vector<pointer<Storages> ... > const &storage_pointers_
-                             //,typename std::enable_if<is_pointer<typename boost::mpl::at_c<RealStorage, 0>::type >, int >::type* t=0
-            )
+        template < template <typename ...> class Vector,  typename ... Storages>
+        explicit domain_type(Vector<pointer<Storages> ... > const &storage_pointers_)
             : m_storage_pointers(storage_pointers_), m_metadata_set() {
 
-            // typedef boost::fusion::filter_view< RealStorage, is_not_tmp_storage_pointer< boost::mpl::_1 > > view_type;
-            // view_type fview(m_storage_pointers);
-            boost::fusion::copy(storage_pointers_, m_original_pointers);
+            boost::fusion::copy(storage_pointers_, m_storage_pointers);
 
-            // copy of the non-tmp metadata into m_metadata_set
+            // copy of the metadata into m_metadata_set
             boost::fusion::for_each(storage_pointers_, assign_metadata_set< metadata_set_t >(m_metadata_set));
         }
 #endif
@@ -446,16 +448,25 @@ namespace gridtools {
         */
         arg_list &storage_pointers_view() { return m_storage_pointers; }
 
+        /**
+           @brief given the placeholder type returns the corresponding storage gtidtools::pointer by reference
+         */
         template < typename StoragePlaceholder >
         typename boost::mpl::at<arg_list, typename StoragePlaceholder::index_type>::type& storage_pointer() {
             return boost::fusion::at<typename StoragePlaceholder::index_type>(m_storage_pointers);
         }
 
+        /**
+           @brief given the placeholder type returns the corresponding storage gridtools::pointer by const ref
+         */
         template < typename StoragePlaceholder >
         typename boost::mpl::at<arg_list, typename StoragePlaceholder::index_type>::type const& storage_pointer() const {
             return boost::fusion::at<typename StoragePlaceholder::index_type>(m_storage_pointers);
         }
 
+        /**
+           @brief metafunction returning the storage type given the placeholder type
+         */
         template<typename T>
         struct storage_type{
             typedef typename boost::mpl::at<arg_list_mpl, typename T::index_type>::type::value_type type;

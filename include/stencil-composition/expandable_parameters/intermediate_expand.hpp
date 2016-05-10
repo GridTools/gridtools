@@ -44,10 +44,8 @@ namespace gridtools{
     struct intermediate_expand : public computation<ReductionType>
     {
         GRIDTOOLS_STATIC_ASSERT((is_backend<Backend>::value), "wrong type");
-        // to make the following work we should change in lot of places
-        // is_mss_descriptor with is_computation_token
-        // GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssDescriptorArray, is_computation_token >::value)
-        //                         , "wrong type" );
+        GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssDescriptorArray, is_computation_token >::value)
+                                , "wrong type" );
         GRIDTOOLS_STATIC_ASSERT((is_domain_type<DomainType>::value), "wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_expand_factor<ExpandFactor>::value), "wrong type");
