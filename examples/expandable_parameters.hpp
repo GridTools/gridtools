@@ -271,8 +271,9 @@ namespace test_expandable_parameters{
         comp_->steady();
         comp_->run();
         comp_->finalize();
+        auto al_=storage_t::storage_info_type::alignment_t::value;
 
-        array< array< uint_t, 2 >, 3 > halos{{{0,0}, {0,0}, {0,0}}};
+        array< array< uint_t, 2 >, 3 > halos{{{0, al_? al_-d1%al_ : 0}, {0,0}, {0,0}}};
         for(auto i=0; i<list_in_.size(); ++i){
             verifier verif_(1e-13);
             result_ = result_ & verif_.verify(grid_, *list_in_[i], *list_out_[i], halos);
