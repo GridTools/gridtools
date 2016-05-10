@@ -24,27 +24,50 @@ namespace gridtools{
     template <typename IterateDomain, ushort_t Value>
     struct iterate_domain_expandable_parameters : public IterateDomain {
 
+#ifdef CXX11_ENABLED
         GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<IterateDomain>::value, "wrong type");
         static const ushort_t ID=Value-1;
         typedef IterateDomain super;
+        typedef IterateDomain iterate_domain_t;
+
+        //user protections
+        template <typename ... T>
+        GT_FUNCTION
+        iterate_domain_expandable_parameters( T const& ... other_)
+            : super(other_ ...)
+        {
+            GRIDTOOLS_STATIC_ASSERT((sizeof...(T)), "The eval() is called with the wrong arguments");
+        }
+
+        template <typename T, ushort_t Val>
+        GT_FUNCTION
+        iterate_domain_expandable_parameters(iterate_domain_expandable_parameters<T,Val> const& other_)
+            : super(other_)
+        {
+            GRIDTOOLS_STATIC_ASSERT((sizeof(T)), "The \'eval\' argument to the Do() method gets copied somewhere! You have to pass it by reference.");
+        }
 
         using super::operator();
-        /**
+
+            /**
            @brief set the offset in the storage_list and forward to the base class
 
-           whe the vector_accessor is passed to the iterate_domain we know we are accessing an
+           when the vector_accessor is passed to the iterate_domain we know we are accessing an
            expandable parameters list. Accepts rvalue arguments (accessors constructed in-place)
 
            \param arg the vector accessor
          */
         //rvalue
         template < uint_t ACC_ID, enumtype::intend Intent, typename Extent, uint_t Size >
-        GT_FUNCTION typename super::template accessor_return_type< accessor<ACC_ID, Intent, Extent, Size> >::type operator()(vector_accessor<ACC_ID, Intent, Extent, Size> && arg) const
+        GT_FUNCTION
+        typename super::iterate_domain_t::template accessor_return_type< accessor<ACC_ID, Intent, Extent, Size> >::type operator()(vector_accessor<ACC_ID, Intent, Extent, Size> && arg) const
         {
-            GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, "wrong type");
+            typedef typename super::template accessor_return_type< accessor<ACC_ID, Intent, Extent, Size> >::type return_t;
+            //check that if the storage is written the accessor is inout
 
-            typedef vector_accessor<ACC_ID, Intent, Extent, Size> vec_t;
+            GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, "wrong type");
             arg.template set<0>(ID);
+
             return super::operator()((accessor<ACC_ID, Intent, Extent, Size>) arg);
         }
 
@@ -58,15 +81,17 @@ namespace gridtools{
          */
         //lvalue
         template < uint_t ID, enumtype::intend Intent, typename Extent, uint_t Size >
-        GT_FUNCTION typename super::template accessor_return_type< vector_accessor<ID, Intent, Extent, Size> >::type operator()(vector_accessor<ID, Intent, Extent, Size> & arg) const
+        GT_FUNCTION
+        typename super::iterate_domain_t::template accessor_return_type< vector_accessor<ID, Intent, Extent, Size> >::type operator()(vector_accessor<ID, Intent, Extent, Size> & arg) const
         {
             GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, "wrong type");
-            typedef vector_accessor<ID, Intent, Extent, Size> vec_t;
-            arg.template set<vec_t::n_dim-1>(ID);
+            arg.template set<0>(ID);
             return super::operator()((accessor<ID, Intent, Extent, Size>) arg);
         }
 
-
+#else //CXX11_ENABLED
+        GRIDTOOLS_STATIC_ASSERT(Value, "You are using a expandable_parameters and compiling with C++03, switch to C++11 (-DENABLE_CXX11=ON)");
+#endif
     };
 
     template<typename T>

@@ -43,6 +43,7 @@ namespace gridtools {
       public:
         typedef typename _impl::iterate_domain_remapper_base_iterate_domain< IterateDomainEvaluatorImpl >::type
             iterate_domain_t;
+            static const uint_t N_DATA_POINTERS = iterate_domain_t::N_DATA_POINTERS;
 
       protected:
         const iterate_domain_t &m_iterate_domain;
@@ -112,7 +113,7 @@ namespace gridtools {
     };
 
     /**
-     * @class positional_iterate_domain_remapper
+     * @class positional_iterate__domain_remapper
      * iterate domain remapper when positional information is required
      * @param IterateDomain iterate domain
      * @param EsfArgsMap map from ESF arguments to iterate domain position of args.

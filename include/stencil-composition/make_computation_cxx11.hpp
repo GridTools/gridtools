@@ -61,4 +61,12 @@ namespace gridtools {
     make_positional_computation(Domain &domain, const Grid &grid, Mss... args_) {
         return make_computation_impl< true, Backend >(domain, grid, args_...);
     }
+
+    //user protections
+    template < typename... Args>
+    short_t make_computation(Args ...){
+        GRIDTOOLS_STATIC_ASSERT((sizeof...(Args)), "the computation is malformed");
+        return -1;
+    }
+
 }

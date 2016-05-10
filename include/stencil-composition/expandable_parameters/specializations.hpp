@@ -26,4 +26,7 @@ namespace gridtools{
     template < typename T>
     struct is_actual_storage< pointer< std::vector< pointer<T> > > > : public boost::mpl::bool_< !T::is_temporary > {};
 
+    template <typename Storage>
+    struct is_storage<std::vector<pointer<Storage> > >: is_storage<Storage> {};
+
 }//namespace gridtools

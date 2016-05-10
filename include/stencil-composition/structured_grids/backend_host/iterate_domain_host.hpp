@@ -19,10 +19,12 @@ namespace gridtools {
             (is_iterate_domain_arguments< IterateDomainArguments >::value), "Internal error: wrong type");
 
         typedef IterateDomainBase< iterate_domain_host< IterateDomainBase, IterateDomainArguments > > super;
+
         typedef typename IterateDomainArguments::local_domain_t local_domain_t;
         typedef typename super::reduction_type_t reduction_type_t;
 
       public:
+        typedef iterate_domain_host iterate_domain_t;
         typedef typename super::data_pointer_array_t data_pointer_array_t;
         typedef typename super::strides_cached_t strides_cached_t;
         typedef boost::mpl::map0<> ij_caches_map_t;

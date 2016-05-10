@@ -1,5 +1,6 @@
 #pragma once
 #include <stencil-composition/stencil-composition.hpp>
+#include <stencil-composition/structured_grids/call_interfaces.hpp>
 
 namespace vertical_diffusion{
 
@@ -7,7 +8,10 @@ namespace vertical_diffusion{
     using namespace enumtype;
     using namespace expressions;
 
-    functor vertical_diffusion_stages{
+    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > interval_t;
+    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+
+    struct vertical_diffusion_stages{
 
 
         using data=accessor<0, in>;
@@ -20,38 +24,37 @@ namespace vertical_diffusion{
         using a1tsurf=accessor<7, in>;
         using a2tsurf=accessor<8, in>;
         using kh=accessor<9, in>;
-        using acol=accessor<10, in>;
-        using bcol=accessor<11, in>;
-        using ccol=accessor<12, in>;
-        using dcol=accessor<13, in>;
+        using acol=accessor<10, inout>;
+        using bcol=accessor<11, inout>;
+        using ccol=accessor<12, inout>;
+        using dcol=accessor<13, inout>;
 
         using data_s=accessor<14, in>;
         using vdtch=accessor<15, in>;
         using bottomFactor=accessor<16, in>;
 
-        dimension<0>::index i;
-        dimension<1>::index j;
-        dimension<2>::index k;
+        typedef boost::mpl::vector<data, datatens, data_nnow, sqrtgrhors, zdtr, a1t
+                                  , a2t, a1tsurf, a2tsurf, kh, acol, bcol, ccol, dcol
+                                  , data_s, vdtch, bottomFactor> arg_list;
 
-        template <typename Offset, typename P>
-            static constexpr delta(P) {return P(k-1)-P();}
+        static const dimension<1>::Index i;
+        static const dimension<2>::Index j;
+        static const dimension<3>::Index k;
+
+        template <typename P>
+            static constexpr auto delta(P)
+            -> decltype(P(k-1)-P())
+        {return P(k-1)-P();}
 
         template <typename Evaluation>
             GT_FUNCTION
-            static void Do(Evaluation eval, interval_t)
+            static void Do(Evaluation const& eval, interval_t)
         {
 
-            T gat = -ctx[kh::Center()] * ctx[sqrtgrhors::Center()];
-            T gct = -ctx[vdtch::Center()] * ctx[sqrtgrhors::Center()];
-            T as = gat * ctx[a2t::Center()];
-            T cs = gct * ctx[a2tsurf::Center()];
-
-            T acolCenter = gat * ctx[a1t::Center()];
-            T ccolCenter = gct * ctx[a1tsurf::Center()];;
             //                            acolCenter              ccolCenter
             eval(bcol()) = eval(zdtr() +kh()*sqrtgrhors()*a1t() + vdtch()*sqrtgrhors()*a1tsurf());
-            eval(acol()) = -kh()*sqrtgrhors()*a1t(); //acolCenter;
-            eval(ccol()) = -vdtch()*sqrtgrhors()*a1tsurf(); //ccolCenter;
+            eval(acol()) = -eval(kh()*sqrtgrhors()*a1t()); //acolCenter;
+            eval(ccol()) = -eval(vdtch()*sqrtgrhors()*a1tsurf()); //ccolCenter;
 
             eval(dcol()) = eval(
                 data() * zdtr() +
@@ -62,57 +65,61 @@ namespace vertical_diffusion{
                 * bottomFactor() * data_nnow() +
                 vdtch()*sqrtgrhors()*data_s());
 
-            eval(call<tridiagonal::forward, interval_t>::at<0,0,0>::with(eval, acol(), bcol(), ccol(), dcol()));
+            // eval(call<tridiagonal::forward, interval_t>::at<0,0,0>::with(eval, acol(), bcol(), ccol(), dcol()));
         }
 
-        template <typename Evaluation>
-            GT_FUNCTION
-            static void Do(Evaluation eval, interval_t)
-        {
-            T gat = -ctx[kh::Center()] * ctx[sqrtgrhors::Center()];
-            T gct = -ctx[kh::At(kplus1)] * ctx[sqrtgrhors::Center()];
-            T as = gat * ctx[a2t::Center()];
-            T cs = gct * ctx[a2t::At(kplus1)];
 
-            T acolCenter = gat * ctx[a1t::Center()];
-            T ccolCenter = gct * ctx[a1t::At(kplus1)];
-            eval(bcol()) = eval(zdtr() + kh()*sqrtgrhors()*a1t()// acolCenter
-                                + kh(k+1)*sqrtgrhors()*at2(k+1));
-            eval(acol()) = eval(zdtr() + kh()*sqrtgrhors()*a1t());
-            eval(Center()) = eval(kh(k+1)*sqrtgrhors()*at2(k+1));
+        // template <typename Evaluation>
+        //     GT_FUNCTION
+        //     static void Do(Evaluation eval, interval_t)
+        // {
+        //     T gat = -ctx[kh::Center()] * ctx[sqrtgrhors::Center()];
+        //     T gct = -ctx[kh::At(kplus1)] * ctx[sqrtgrhors::Center()];
+        //     T as = gat * ctx[a2t::Center()];
+        //     T cs = gct * ctx[a2t::At(kplus1)];
 
-            eval(dcol()) =
-                eval(data() * zdtr() +
-                     datatens() +
-                     kh()*sqrtgrhors()*a2t()// as
-                     * delta(data_nnow()) +
-                     kh(k+1)*sqrtgrhors()*a2t(k+1)// cs
-                     * delta(data_nnow()));
+        //     T acolCenter = gat * ctx[a1t::Center()];
+        //     T ccolCenter = gct * ctx[a1t::At(kplus1)];
+        //     eval(bcol()) = eval(zdtr() + kh()*sqrtgrhors()*a1t()// acolCenter
+        //                         + kh(k+1)*sqrtgrhors()*at2(k+1));
+        //     eval(acol()) = eval(zdtr() + kh()*sqrtgrhors()*a1t());
+        //     eval(Center()) = eval(kh(k+1)*sqrtgrhors()*at2(k+1));
 
-            call<tridiagonal::forward, interval_t>::at<0,0,0>::with(eval, acol(), bcol(), ccol(), dcol());
-        }
+        //     eval(dcol()) =
+        //         eval(data() * zdtr() +
+        //              datatens() +
+        //              kh()*sqrtgrhors()*a2t()// as
+        //              * delta(data_nnow()) +
+        //              kh(k+1)*sqrtgrhors()*a2t(k+1)// cs
+        //              * delta(data_nnow()));
 
-        template <typename Evaluation>
-            GT_FNUCTION
-            static void Do(Evaluation eval, interval_t)
-        {
-            T gct = -ctx[kh::At(kplus1)] * ctx[sqrtgrhors::Center()];
-            T cs = gct * ctx[a2t::At(kplus1)];
+        //     call<tridiagonal::forward, interval_t>::at<0,0,0>::with(eval, acol(), bcol(), ccol(), dcol());
+        // }
 
-            T ccolCenter = gct * ctx[a1t::At(kplus1)];
-            eval(bcol()) = eval(zdtr() + kh(k+1)*sqrtgrhors()*a2t(k+1)*a2t(k+1));//ccolCenter
-            eval(ccol()) = ccolCenter;
+    //     template <typename Evaluation>
+    //         GT_FNUCTION
+    //         static void Do(Evaluation eval, interval_t)
+    //     {
+    //         T gct = -ctx[kh::At(kplus1)] * ctx[sqrtgrhors::Center()];
+    //         T cs = gct * ctx[a2t::At(kplus1)];
 
-            eval(dcol()) =
-                eval(data() * zdtr() +
-                     datatens() +
-                     kh(k+1)*sqrtgrhors()*a2t(k+1)//cs
-                     * delta(data_nnow()));
+    //         T ccolCenter = gct * ctx[a1t::At(kplus1)];
+    //         eval(bcol()) = eval(zdtr() + kh(k+1)*sqrtgrhors()*a2t(k+1)*a2t(k+1));//ccolCenter
+    //         eval(ccol()) = ccolCenter;
 
-            call<tridiagonal::forward, interval_t>::at<0,0,0>::with(eval, acol(), bcol(), ccol(), dcol())];
-    }
+    //         eval(dcol()) =
+    //             eval(data() * zdtr() +
+    //                  datatens() +
+    //                  kh(k+1)*sqrtgrhors()*a2t(k+1)//cs
+    //                  * delta(data_nnow()));
 
-    int main(){
+    //         call<tridiagonal::forward, interval_t>::at<0,0,0>::with(eval, acol(), bcol(), ccol(), dcol())];
+    // }
+    };
+
+    const dimension<3>::Index vertical_diffusion_stages::k;
+
+    bool test(uint_t d1, uint_t d2, uint_t d3) {
 
 
 #ifdef __CUDACC__
@@ -237,9 +244,9 @@ namespace vertical_diffusion{
         storage_vdtch_t storage_vdtch_(meta_vdtch_);
         storage_bottomFactor_t storage_bottomFactor_(meta_bottomFactor_);
 
-        std::vector<storage_data_t> storage_data_={storage_data0_, storag_data1_, storage_data2_, storage_data3_, storage_data4_, storage_data5_, storage_data6_, storage_data7_, storage_data8_, storage_data9_, storage_data10_, storage_data11_, storage_data12_, storage_data13_, storage_data14_, storage_data15_, storage_data16_, storage_data17_, storage_data18_, storage_data19_};
+        std::vector<pointer<storage_data_t> > storage_data_={&storage_data0_, &storage_data1_, &storage_data2_, &storage_data3_, &storage_data4_, &storage_data5_, &storage_data6_, &storage_data7_, &storage_data8_, &storage_data9_, &storage_data10_, &storage_data11_, &storage_data12_, &storage_data13_, &storage_data14_, &storage_data15_, &storage_data16_, &storage_data17_, &storage_data18_, &storage_data19_};
 
-        typedef arg<0 , std::vector<storage_data_t> > p_data;
+        typedef arg<0 , std::vector<pointer<storage_data_t> > > p_data;
         typedef arg<1 , storage_datatens_t> p_datatens;
         typedef arg<2 , storage_data_nnow_t> p_data_nnow;
         typedef arg<3 , storage_sqrtgrhors_t> p_sqrtgrhors;
@@ -257,27 +264,45 @@ namespace vertical_diffusion{
         typedef arg<15, storage_vdtch_t> p_vdtch;
         typedef arg<16, storage_bottomFactor_t> p_bottomFactor;
 
-        auto domain_ = make_domain_type(storage_data_, storage_datatens_, storage_data_nnow_, storage_sqrtgrhors_, storage_zdtr_, storage_a1t_, storage_a2t_, storage_a1tsurf_, storage_a2tsurf_, storage_kh_, storage_acol_, storage_bcol_, storage_ccol_, storage_dcol_, storage_data_s_, storage_vdtch_, storage_bottomFactor_);
+        auto domain_ = make_domain_type(storage_data_, storage_datatens_, storage_data_nnow_, storage_sqrtgrhors_, storage_zdtr_, storage_a1t_, storage_a2t_, storage_a1tsurf_, storage_a2tsurf_, storage_kh_, storage_acol_, storage_bcol_, storage_ccol_, storage_dcol_, storage_dcol_, storage_data_s_, storage_vdtch_, storage_bottomFactor_
+            );
 
         uint_t di[5] = {0, 0, 0, d1 - 1, d1};
         uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
 
-        gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
+        gridtools::grid< axis > grid_(di, dj);
+        grid_.value_list[0] = 1;
+        grid_.value_list[1] = d3 - 1;
 
-        auto comp_ = make_computation(
+        auto comp_ = make_computation<BACKEND>(
             expand_factor<20>(), domain_, grid_,
             make_mss(
-                forward()
-                , make_esf<vertical_diffusion_stages>(p_data(), p_datatens(), p_data_nnow(), p_sqrthors(), p_zdtr(), p_a1t(), p_a2t(), p_a1tsurf(), p_a2tsurf(), p_kh(), p_acol(), p_bcol(), p_ccol(), p_data_s(), p_vdtch(), p_storage_bottomFactor())
+                execute<forward>()
+                , make_esf<vertical_diffusion_stages>(p_data()
+                                                      , p_datatens()
+                                                      , p_data_nnow()
+                                                      , p_sqrtgrhors()
+                                                      , p_zdtr()
+                                                      , p_a1t()
+                                                      , p_a2t()
+                                                      , p_a1tsurf()
+                                                      , p_a2tsurf()
+                                                      , p_kh()
+                                                      , p_acol()
+                                                      , p_bcol()
+                                                      , p_ccol()
+                                                      , p_dcol()
+                                                      , p_data_s()
+                                                      , p_vdtch()
+                                                      , p_bottomFactor())
                 )
             );
 
-        comop_->ready();
+        comp_->ready();
         comp_->steady();
         comp_->run();
         comp_->finalize();
 
+        return true;
     }
 }

@@ -19,7 +19,7 @@ struct boundary : clonable_to_gpu<boundary> {
     //device copy constructor
     __device__ boundary(const boundary& other){}
     typedef boundary super;
-    typedef boundary* iterator_type;
+    typedef boundary* iterator;
     typedef boundary value_type; //TODO remove
     static const ushort_t field_dimensions=1; //TODO remove
 

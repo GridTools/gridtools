@@ -1,7 +1,5 @@
 #pragma once
 
-#include "expandable_parameters_impl.hpp"
-
 /**@file storage list for expandable parameters*/
 
 namespace gridtools{
@@ -97,8 +95,5 @@ namespace gridtools{
 
     template <typename Storage, uint_t Size>
     struct is_storage<expandable_parameters<Storage, Size> >: boost::mpl::true_{};
-
-    template <typename Storage>
-    struct is_storage<std::vector<pointer<Storage> > >: is_storage<Storage> {};
 
 }//namespace gridtools

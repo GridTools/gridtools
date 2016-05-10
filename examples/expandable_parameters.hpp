@@ -260,7 +260,7 @@ namespace test_expandable_parameters{
         // }
 
         auto comp_ = make_computation<BACKEND>(
-            expand_factor<10>(), domain_, grid_,
+            expand_factor<5>(), domain_, grid_,
                 make_mss(
                     enumtype::execute<enumtype::forward>()
                     , make_esf<functor_exp>(p_list_out(), p_list_in())

@@ -59,7 +59,7 @@ namespace gridtools {
     template < uint_t I, typename Storage, typename Condition = bool >
     struct arg {
         typedef Storage storage_type;
-        typedef typename Storage::iterator_type iterator_type;
+        typedef typename Storage::iterator iterator_type;
         typedef typename Storage::value_type value_type;
         typedef static_uint< I > index_type;
         typedef static_uint< I > index;
