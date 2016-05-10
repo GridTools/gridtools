@@ -618,6 +618,7 @@ namespace gridtools {
         typedef iterate_domain< IterateDomainImpl > base_t;
         typedef typename base_t::reduction_type_t reduction_type_t;
         typedef typename base_t::local_domain_t local_domain_t;
+        static const uint_t N_DATA_POINTERS = base_t::N_DATA_POINTERS;
 
 #ifdef CXX11_ENABLED
         using iterate_domain< IterateDomainImpl >::iterate_domain;
