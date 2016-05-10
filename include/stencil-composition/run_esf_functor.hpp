@@ -1,6 +1,10 @@
 #pragma once
 #include <boost/mpl/at.hpp>
+#ifdef STRUCTURED_GRIDS
 #include "expandable_parameters/iterate_domain_expandable_parameters.hpp"
+#else
+#include "icosahedral_grids//iterate_domain_expandable_parameters.hpp"
+#endif
 #include "run_functor_arguments.hpp"
 
 namespace gridtools {

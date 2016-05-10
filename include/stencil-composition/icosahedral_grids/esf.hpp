@@ -3,6 +3,8 @@
 #include "stencil-composition/arg.hpp"
 #include "stencil-composition/esf_fwd.hpp"
 #include "stencil-composition/icosahedral_grids/grid.hpp"
+#include "vector_accessor.hpp"
+
 #include "../esf_aux.hpp"
 
 namespace gridtools {
