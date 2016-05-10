@@ -392,7 +392,7 @@ namespace gridtools {
         explicit domain_type(Vector<pointer<Storages> ... > const &storage_pointers_)
             : m_storage_pointers(storage_pointers_), m_metadata_set() {
 
-            boost::fusion::copy(storage_pointers_, m_storage_pointers);
+            boost::fusion::copy(storage_pointers_, m_original_pointers);
 
             // copy of the metadata into m_metadata_set
             boost::fusion::for_each(storage_pointers_, assign_metadata_set< metadata_set_t >(m_metadata_set));

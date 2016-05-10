@@ -248,7 +248,8 @@ namespace gridtools{
             // free the space for temporaries and storage_info
             m_intermediate->finalize();
             // free the space for temporaries and storage_info
-            m_intermediate_extra->finalize();
+            if(m_size%ExpandFactor::value)
+                m_intermediate_extra->finalize();
         }
     };
 }
