@@ -102,6 +102,26 @@ class Stencil (object):
 
 
     @staticmethod
+    def _validate_halo (halo):
+        """
+        Check that the provided halo is formatted correctly and contains
+        acceptable values
+        """
+        if halo is None:
+            return False
+        if len (halo) == 4:
+            if halo[0] >= 0 and halo[2] >= 0:
+                if halo[1] >= 0 and halo[3] >= 0:
+                    return True
+                else:
+                    raise ValueError ("Invalid halo %s: definition for the positive halo should be zero or a positive integer" % str (halo))
+            else:
+                raise ValueError ("Invalid halo %s: definition for the negative halo should be zero or a positive integer" % str (halo))
+        else:
+            raise ValueError ("Invalid halo %s: it should contain four values" % str (halo))
+
+
+    @staticmethod
     def kernel (kernel_func):
         """
         Decorator to define a given member as the stencil entry point (aka kernel).
@@ -230,20 +250,10 @@ class Stencil (object):
              halo in negative direction over _j_,
              halo in positive direction over _j_).-
         """
-        if halo is None:
-            return
-        if len (halo) == 4:
-            if halo[0] >= 0 and halo[2] >= 0:
-                if halo[1] >= 0 and halo[3] >= 0:
-                    Stencil._halo = halo
-                    Stencil.compiler.recompile ( )
-                    logging.debug ("Setting global Stencil halo to %s" % str (Stencil._halo))
-                else:
-                    raise ValueError ("Invalid halo %s: definition for the positive halo should be zero or a positive integer" % str (halo))
-            else:
-                raise ValueError ("Invalid halo %s: definition for the negative halo should be zero or a positive integer" % str (halo))
-        else:
-            raise ValueError ("Invalid halo %s: it should contain four values" % str (halo))
+        if Stencil._validate_halo (halo):
+            Stencil._halo = halo
+            Stencil.compiler.recompile ( )
+            logging.debug ("Setting global Stencil halo to %s" % str (Stencil._halo))
 
 
     @staticmethod
@@ -403,7 +413,7 @@ class MultiStageStencil (Stencil):
         #
         # a halo descriptor
         #
-        self._halo             = ()
+        self._halo             = ( )
         #
         # define the execution order in 'k' dimension
         #
@@ -534,21 +544,21 @@ class MultiStageStencil (Stencil):
              halo in negative direction over _j_,
              halo in positive direction over _j_).-
         """
+        #
+        # If no argument is provided reset the object halo, so that global
+        # Stencil halo will be used instead
+        #
         if halo is None:
+            self._halo = ( )
+            Stencil.compiler.recompile (self)
+            logging.debug ("Halo for stencil '%s' has been reset" % self.name)
             return
-        if len (halo) == 4:
-            if halo[0] >= 0 and halo[2] >= 0:
-                if halo[1] >= 0 and halo[3] >= 0:
-                    self._halo = halo
-                    Stencil.compiler.recompile (self)
-                    logging.debug ("Setting halo for stencil '%s' to %s" %
-                                    (self.name, str (self._halo)) )
-                else:
-                    raise ValueError ("Invalid halo %s: definition for the positive halo should be zero or a positive integer" % str (halo))
-            else:
-                raise ValueError ("Invalid halo %s: definition for the negative halo should be zero or a positive integer" % str (halo))
-        else:
-            raise ValueError ("Invalid halo %s: it should contain four values" % str (halo))
+
+        if Stencil._validate_halo (halo) :
+            self._halo = halo
+            Stencil.compiler.recompile (self)
+            logging.debug ("Setting halo for stencil '%s' to %s" %
+                           (self.name, str (self._halo)) )
 
 
     def get_k_direction (self):
@@ -572,8 +582,15 @@ class MultiStageStencil (Stencil):
         """
         accepted_directions = ["forward", "backward"]
 
+        #
+        # If no argument is provided, reset the object direction, so that
+        # global Stencil directiion will be used instead
+        #
         if direction is None:
-            return
+            self._k_direction = ''
+            Stencil.compiler.recompile (self)
+            logging.debug ("k_direction for stencil '%s' has been reset" %
+                           self.name)
 
         if direction in accepted_directions:
             self._k_direction = direction
