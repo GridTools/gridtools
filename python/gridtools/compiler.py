@@ -6,8 +6,6 @@ import numpy as np
 
 from gridtools.utils import Utilities
 
-import ipdb
-
 
 
 class StencilCompiler ( ):
@@ -446,7 +444,6 @@ class StencilInspector (ast.NodeVisitor):
         # then the kernel, which lies inside the kernel_wrapper
         #
         kernel_found = False
-#        is_method_or_function = lambda obj: inspect.ismethod(obj) or inspect.isfunction(obj)
         for (name,fun) in inspect.getmembers (self.inspected_stencil,
                                               predicate=inspect.ismethod):
             try:
@@ -678,9 +675,7 @@ class StencilInspector (ast.NodeVisitor):
         st    = self.inspected_stencil
         call  = node.iter
         stage = None
-        #
-        # OOP style: Using object method
-        #
+
         if isinstance (call.func, ast.Attribute):
             if (call.func.value.id in ['Stencil', 'self']
                 and call.func.attr == 'get_interior_points'):
@@ -696,23 +691,6 @@ class StencilInspector (ast.NodeVisitor):
                                                 prefix=st.name.lower ( ),
                                                 suffix=name_suffix)
                     stage.independent = True
-#        #
-#        # Procedural style: Using global function
-#        #
-#        elif isinstance (call.func, ast.Name):
-#            if (call.func.id == 'get_interior_points'):
-#                if name_suffix is None:
-#                    stage = st.scope.add_stage (node,
-#                                                prefix=st.name.lower ( ),
-#                                                suffix='stage')
-#                else:
-#                    #
-#                    # the suffix is present only for independent stages
-#                    #
-#                    stage = st.scope.add_stage (node,
-#                                                prefix=st.name.lower ( ),
-#                                                suffix=name_suffix)
-#                    stage.independent = True
 
         return stage
 

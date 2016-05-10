@@ -108,7 +108,6 @@ class Stencil (object):
         The decorator embeds a runtime check in the kernel to verify it is called
         from the run() function of the stencil.
         """
-#        import inspect
         import types
         from gridtools import STENCIL_KERNEL_DECORATOR_LABEL
         #
@@ -118,7 +117,6 @@ class Stencil (object):
         #
         @wraps (kernel_func)
         def kernel_wrapper (*args, **kwargs):
-#            import inspect
             #
             # Check that the kernel is being called from its own class' run() method
             #
@@ -136,10 +134,12 @@ class Stencil (object):
 
         setattr (kernel_wrapper, STENCIL_KERNEL_DECORATOR_LABEL, True)
 
-#        print(kernel_func.__name__)
-#        print(kernel_func.__qualname__)
-#        print(kernel_func.__globals__)
-#        if inspect.ismethod (kernel_func):
+        #
+        # If the kernel function is the method of a class, it means the stencil
+        # is being defined using OOP, and the wrapper should be returned.
+        # If the stencil is being defined with the procedural programming style,
+        # return an object of a purposely defined subclass of MultiStageStencil
+        #
         if len(kernel_func.__qualname__.split('.')) > 1:
             return kernel_wrapper
         else:
@@ -177,6 +177,10 @@ class Stencil (object):
                         procedural programming style")
 
             user_stencil = UserStencil ( )
+            #
+            # The wrapper must be set as a bound method in order to be detected
+            # by the StencilInspector
+            #
             setattr (user_stencil,
                      kernel_func.__name__,
                      types.MethodType (kernel_wrapper, user_stencil) )
@@ -194,6 +198,7 @@ class Stencil (object):
         Stencil._backend = value
         logging.debug ("Setting global Stencil backend to %s" % str (Stencil._backend))
         Stencil.compiler.recompile ( )
+
 
     @staticmethod
     def get_interior_points (data_field, ghost_cell=[0,0,0,0]):
