@@ -415,12 +415,13 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                               p_a,
                               p_b> accessor_list_alpha;
 
-    //--------------------------------------------------------------------------
-    // Set up preconditioner
-    int ni = metadata_.template dims<0>() - 2; //--TODO offset -1 for subdomain that has outer boundary, -2 for inner subdomain
-    int nj = metadata_.template dims<1>() - 2; //TODO boundary layer
+    // Get dimensions of the local domain
+    int ni = metadata_.template dims<0>() - 2; // compensate halo layer
+    int nj = metadata_.template dims<1>() - 2;
     int nk = metadata_.template dims<2>() - 2;
     std::cout << "Subdomain size " << ni << "x" << nj << "x" << nk << std::endl;
+
+    // Set up preconditioner
     CSRdouble M = CSRdouble();
     M.makePreconditioner(ni,nj,nk);
     M.reduceSymmetric();
@@ -490,22 +491,21 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     // Unfold local domain into vector //TODO more efficient way to do this?
     double* r_vec = new double[ni*nj*nk];
     double* Mr_vec = new double[ni*nj*nk];
-    int idx = 0;
+
+    //double* r_vec;
+    //r_vec = r.data().get(); //TODO: is get necessary to obtain pointer to the data
+
     for (uint_t k=1; k<metadata_.template dims<2>()-1; ++k)
         for (uint_t j=1; j<metadata_.template dims<1>()-1; ++j)
             for (uint_t i=1; i<metadata_.template dims<0>()-1; ++i)
             {
-                assert((k-1)*ni*nj + (j-1)*ni + (i-1) == idx);
+                //assert((double)r_vec[(k)*(ni+2)*(nj+2) + (j)*(ni+2) + (i)] == r(i,j,k));
                 r_vec[(k-1)*ni*nj + (j-1)*ni + (i-1)] = (double)r(i,j,k);
-                idx++;
-
-                //r.data()
             }
 
     // Apply preconditioner
     solver.solve(M, Mr_vec, r_vec, nrhs); //(M x = r) 
 
-    //    storage_type d(metadata_);
     // Insert the solution of linear system into the grid
     for (uint_t k=1; k<metadata_.template dims<2>()-1; ++k)
         for (uint_t j=1; j<metadata_.template dims<1>()-1; ++j)
@@ -514,16 +514,10 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                 //Mr = d = inv(M) r
                 d(i,j,k) = (float) Mr_vec[(k-1)*ni*nj + (j-1)*ni + (i-1)];
                 Mr(i,j,k) = (float) Mr_vec[(k-1)*ni*nj + (j-1)*ni + (i-1)];
-
-                //storage_type(metadata_, Mr_vec); //need to free the vector
-                //d = Mr_vec;
             } 
 
-    // if (PID==0){
-    //     std::cout << "r:            Mr: " << ni*nj*nk << std::endl;
-    //     for (int i=0; i<ni*nj*nk; i++)
-    //         std::cout << "r:" << r_vec[i] << "         Mr:" << Mr_vec[i] << std::endl;
-    // }
+    // insert data_vector into our domain
+    //d = Mr_vec;
 
     //communicate halos
     std::vector<pointer_type::pointee_t*> vec(1);
@@ -719,14 +713,11 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         CG_step2->finalize();
 
         // Unfold local domain into vector //TODO more efficient way to do this?
-        int idx = 0;
         for (uint_t k=1; k<metadata_.template dims<2>()-1; ++k)
             for (uint_t j=1; j<metadata_.template dims<1>()-1; ++j)
                 for (uint_t i=1; i<metadata_.template dims<0>()-1; ++i)
                 {
-                    assert((k-1)*ni*nj + (j-1)*ni + (i-1) == idx);
                     r_vec[(k-1)*ni*nj + (j-1)*ni + (i-1)] = (double)(*ptr_rNew)(i,j,k);
-                    idx++;
                 }
 
         // Apply preconditioner
@@ -803,7 +794,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         std::cout << "d3point7 MLUPs: " << MLUPS(d1,d2,d3,nt,lapse_time_d3point7.wall) << std::endl << std::endl;
     }
 
-#ifndef NDEBUG1
+#ifdef DEBUG
     {
         std::stringstream ss;
         ss << PID;
@@ -866,6 +857,9 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
     delete [] r_vec;
     delete [] Mr_vec;
+
+    // clear preconditioner
+    M.clear();
 
     gridtools::GCL_Finalize();
 

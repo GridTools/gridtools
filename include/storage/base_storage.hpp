@@ -205,9 +205,11 @@ and possibly the method 'copy_data_to_gpu' which are used when cloning the class
         }
 
 
-void operator =(value_type* other_){ 
-    m_fields[0]->free_it();
-    m_fields[0]=pointer<value_type>(other_);}
+    /**@brief Copy operator */
+    void operator =(value_type* other_){ 
+        m_fields[0]->free_it();
+        m_fields[0]=pointer<value_type>(other_); //wrap_pointer(T *p, uint_t size_, bool externally_managed)
+    }
 
 #ifdef CXX11_ENABLED
         /**
@@ -394,7 +396,9 @@ void operator =(value_type* other_){
 
         /**@brief returns the data field*/
         GT_FUNCTION
-        pointer_type const &data() const { return (m_fields[0]); }
+        pointer_type data() { return (m_fields[0]); }
+        //m_fields[0] = pointer_type(ptr, m_meta_data.size(), true);
+        //I want only ptr, not whole pointer_type - > include/storage/wrap_pointer.hpp
 
         /** @brief returns a const pointer to the data field*/
         GT_FUNCTION
