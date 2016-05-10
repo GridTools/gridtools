@@ -29,7 +29,7 @@ BASEPATH_SCRIPT=$(dirname "${0}")
 
 while getopts "h:b:t:f:c:pzmsid" opt; do
     case "$opt" in
-    h|\?)
+    h)
         help
         exit 0
         ;;
@@ -53,6 +53,8 @@ while getopts "h:b:t:f:c:pzmsid" opt; do
         ;;
     d) DONOTCLEAN="ON"
         ;;
+    *) echo "WARNING: Unkown argument passed"
+	;;
     esac
 done
 
@@ -96,7 +98,7 @@ else
 fi
 echo "USE_GPU=$USE_GPU"
 
-if [[ "$REAL_TYPE" == "float" ]]; then
+if [[ "$FLOAT_TYPE" == "float" ]]; then
     SINGLE_PRECISION=ON
 else
     SINGLE_PRECISION=OFF
