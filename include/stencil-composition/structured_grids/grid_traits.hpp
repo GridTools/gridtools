@@ -22,6 +22,11 @@ namespace gridtools {
             };
         };
 
+        template <typename Placeholders>
+        struct select_init_map_of_extents {
+            typedef typename strgrid::init_map_of_extents<Placeholders>::type type;
+        };
+
         typedef extent< 0, 0, 0, 0 > null_extent_t;
 
         template < enumtype::platform BackendId >
