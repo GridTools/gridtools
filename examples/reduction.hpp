@@ -91,7 +91,7 @@ namespace reduction {
         for (uint_t i = 0; i < d1; ++i)
             for (uint_t j = 0; j < d2; ++j)
                 for (uint_t k = 0; k < d3; ++k) {
-                    in(i, j, k) = static_cast< float_type >((std::rand() % 100 + std::rand() % 100) * 0.005 + 0.51);
+                    in(i, j, k) = static_cast< float_type >((std::rand() % 100 + std::rand() % 100) * 0.002 + 0.51);
                     sum_ref += in(i, j, k);
                     prod_ref *= in(i, j, k);
                 }
@@ -138,7 +138,7 @@ namespace reduction {
         float_type sum_redt = sum_red_->run();
         float_type precision;
 #if FLOAT_PRECISION == 4
-        precision = 1e-5;
+        precision = 1e-6;
 #else
         precision = 1e-12;
 #endif

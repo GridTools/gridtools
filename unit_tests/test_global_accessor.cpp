@@ -23,14 +23,12 @@ typedef backend_t::storage_type<float_type, meta_t >::type storage_type;
 struct boundary : clonable_to_gpu<boundary> {
 #ifdef _USE_GPU_
     typedef hybrid_pointer< boundary, false > storage_ptr_t;
-    #define INIT_BD(T, EXT) m_storage(T, 1, EXT)
 #else
     typedef wrap_pointer< boundary, false > storage_ptr_t;
-    #define INIT_BD(T, EXT) m_storage(T, EXT)
 #endif
     typedef meta_t storage_info_type;
     storage_ptr_t m_storage;
-    boundary() : INIT_BD(this, false) {}
+    boundary() : m_storage(this, false) {}
     //device copy constructor
     __device__ boundary(const boundary& other){}
 
