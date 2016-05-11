@@ -15,10 +15,11 @@ namespace gridtools {
     template <>
     struct grid_traits_from_id< enumtype::structured > {
 
-        template <typename Placeholders>
         struct select_mss_compute_extent_sizes {
-            typedef strgrid::template compute_extents_of<Placeholders> starting_point;
-            typedef boost::mpl::quote1<starting_point::template for_mss> type;
+            template <typename PlaceholdersMap, typename Mss>
+            struct apply {
+                typedef typename strgrid::compute_extents_of<PlaceholdersMap>::template for_mss<Mss>::type type;
+            };
         };
 
         typedef extent< 0, 0, 0, 0 > null_extent_t;

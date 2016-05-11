@@ -396,17 +396,18 @@ namespace gridtools {
     struct compute_extent_sizes {
 
         GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Error");
+        typedef grid_traits_from_id< BackendIds::s_grid_type_id > grid_traits_t;
+        typedef typename grid_traits_t::select_mss_compute_extent_sizes mss_compute_extent_sizes_t;
 
         template <typename CurrentMap, typename MSS>
         struct update_map {
-            typedef typename strgrid::compute_extents_of<CurrentMap>::template for_mss<MSS>::type type;
+            typedef typename mss_compute_extent_sizes_t::template apply< CurrentMap, MSS >::type type;
         };
 
         template <typename CurrentMap, typename MSS1, typename MSS2, typename Cond>
         struct update_map<CurrentMap, condition<MSS1, MSS2, Cond> > {
-            typedef typename strgrid::compute_extents_of<CurrentMap>::template for_mss<MSS1>::type FirstMap;
-            typedef typename strgrid::compute_extents_of<FirstMap>::template for_mss<MSS2>::type type;
-
+            typedef typename mss_compute_extent_sizes_t::template apply< CurrentMap, MSS1 >::type FirstMap;
+            typedef typename mss_compute_extent_sizes_t::template apply< FirstMap, MSS2 >::type type;
         };
 
 
