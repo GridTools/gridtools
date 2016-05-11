@@ -313,7 +313,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         std::cout << "d3point7 MLUPs: " << MLUPS(d1,d2,d3,TIME_STEPS,lapse_time_run.wall) << std::endl << std::endl;
     }
 
-#ifndef NDEBUG1
+#ifdef DEBUG
     {
         std::stringstream ss;
         ss << PID;
