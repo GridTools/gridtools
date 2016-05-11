@@ -146,42 +146,52 @@ struct print_ {
     }
 };
 
-template<typename MSS>
-void print_mss(MSS)
-{
-    typedef typename mss_descriptor_linear_esf_sequence<MSS>::type linear_esf_t;
+// template < typename State, typename Elem >
+// struct traverse_extents {
+//     typedef typename boost::mpl::push_back<
+//         State,
+//         typename boost::mpl::if_< is_independent< Elem >,
+//                                   typename from_independents< Elem >::type,
+//                                   typename extract_extents< Elem >::type >::type >::type type;
+// };
 
-    boost::mpl::for_each<linear_esf_t>(print_independent(std::string(">")));
 
-    std::cout << std::endl;
+// template<typename MSS>
+// void print_mss(MSS)
+// {
+//     typedef typename mss_descriptor_linear_esf_sequence<MSS>::type linear_esf_t;
 
-    typedef typename mss_descriptor_esf_sequence<MSS>::type esf_sequence_t;
+//     boost::mpl::for_each<linear_esf_t>(print_independent(std::string(">")));
 
-    boost::mpl::for_each<esf_sequence_t>(print_independent(std::string(">")));
+//     std::cout << std::endl;
 
-    std::cout << std::endl;
+//     typedef typename mss_descriptor_esf_sequence<MSS>::type esf_sequence_t;
 
-    typedef typename boost::mpl::fold<
-        esf_sequence_t,
-        boost::mpl::vector<>,
-        strgrid::traverse_extents<boost::mpl::_1, boost::mpl::_2>
-    >::type extents_list;
-    boost::mpl::for_each<extents_list>(print_());
+//     boost::mpl::for_each<esf_sequence_t>(print_independent(std::string(">")));
 
-    std::cout << std::endl;
+//     std::cout << std::endl;
 
-    typedef typename strgrid::prefix_on_extents<extents_list>::type prefix_extents;
+//     typedef typename boost::mpl::fold<
+//         esf_sequence_t,
+//         boost::mpl::vector<>,
+//         strgrid::traverse_extents<boost::mpl::_1, boost::mpl::_2>
+//     >::type extents_list;
+//     boost::mpl::for_each<extents_list>(print_());
 
-    // typedef typename boost::mpl::fold<
-    //     extents_list,
-    //     boost::mpl::vector<>,
-    //     prefix_on_extents<boost::mpl::_1,boost::mpl::_2>
-    //     >::type extents_list;
+//     std::cout << std::endl;
 
-    boost::mpl::for_each<prefix_extents>(print_());
+//     typedef typename strgrid::prefix_on_extents<extents_list>::type prefix_extents;
 
-    std::cout << std::endl;
-}
+//     // typedef typename boost::mpl::fold<
+//     //     extents_list,
+//     //     boost::mpl::vector<>,
+//     //     prefix_on_extents<boost::mpl::_1,boost::mpl::_2>
+//     //     >::type extents_list;
+
+//     boost::mpl::for_each<prefix_extents>(print_());
+
+//     std::cout << std::endl;
+// }
 
 int main() {
 
@@ -205,7 +215,7 @@ int main() {
                       make_esf<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())
                       );
 
-    print_mss(mss);
+    //    print_mss(mss);
 
     return 0;
 }
