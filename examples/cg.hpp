@@ -716,6 +716,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         lapse_time_run = lapse_time_run + time_run2.elapsed();
         CG_step2->finalize();
 
+        boost::timer::cpu_timer time_precondition;
         // Unfold local domain into vector //TODO more efficient way to do this?
         for (uint_t k=1; k<metadata_.template dims<2>()-1; ++k)
             for (uint_t j=1; j<metadata_.template dims<1>()-1; ++j)
@@ -735,6 +736,12 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                     //Mr = inv(M) r
                     (*ptr_MrNew)(i,j,k) = (float) Mr_vec[(k-1)*ni*nj + (j-1)*ni + (i-1)];
                 } 
+
+        boost::timer::cpu_times lapse_time_precondition = time_precondition.elapsed();
+        if(PID == 0)
+        {
+            std::cout << "Iteration " << iter << ": [Precond]" << boost::timer::format(lapse_time_precondition);
+        }
 
         // Compute Gram-Schmidt orthogonalization parameter beta
         float rTMrnew_global;
@@ -792,7 +799,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         boost::timer::cpu_times lapse_time_iteration = time_iteration.elapsed();
         if(PID == 0)
         {
-            std::cout << std::endl << "Iteration " << iter << ": [time]" << boost::timer::format(lapse_time_iteration);
+            std::cout << "Iteration " << iter << ": [time]" << boost::timer::format(lapse_time_iteration);
             std::cout << "Iteration " << iter << ": [residual] " << sqrt(rTMrnew_global) << std::endl;
         }
     } //end for
