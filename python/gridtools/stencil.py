@@ -287,12 +287,12 @@ class Stencil (object):
         :param direction:   defines the execution order, which may be any of:
                             forward or backward.-
         """
-        accepted_directions = ["forward", "backward"]
+        from gridtools import K_DIRECTIONS
 
         if direction is None:
             return
 
-        if direction in accepted_directions:
+        if direction in K_DIRECTIONS:
             Stencil._k_direction = direction
             Stencil.compiler.recompile ( )
             logging.debug ("Setting global Stencil k_direction to '%s'" % Stencil._k_direction)
@@ -600,7 +600,7 @@ class MultiStageStencil (Stencil):
         :param direction:   defines the execution order, which may be any of:
                             forward or backward.-
         """
-        accepted_directions = ["forward", "backward"]
+        from gridtools import K_DIRECTIONS
 
         #
         # If no argument is provided, reset the object direction, so that
@@ -613,7 +613,7 @@ class MultiStageStencil (Stencil):
                            self.name)
             return
 
-        if direction in accepted_directions:
+        if direction in K_DIRECTIONS:
             self._k_direction = direction
             Stencil.compiler.recompile ( )
             logging.debug ("Setting k_direction for stencil '%s' to '%s'" %

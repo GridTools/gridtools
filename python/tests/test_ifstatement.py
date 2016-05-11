@@ -106,60 +106,19 @@ class GameOfLifeTest (CopyTest):
 
 
     def test_get_interior_points_K_static (self):
-        Stencil.set_halo ( (1,1,1,1) )
-        Stencil.set_k_direction ('forward')
-        k = 0
-        for p in Stencil.get_interior_points (self.out_X):
-            self.assertTrue (k == p[2])
-            k = k+1
-            if k == self.domain[2]:
-                k = 0
+        super ( ).test_get_interior_points_K_static (self.out_X)
 
 
     def test_get_interior_points_K_object (self):
-        k = 0
-        for p in self.stencil.get_interior_points (self.out_X):
-            self.assertTrue (k == p[2])
-            k = k+1
-            if k == self.domain[2]:
-                k = 0
+        super ( ).test_get_interior_points_K_object (self.out_X)
 
 
     def test_get_interior_points_IJ_static (self):
-        Stencil.set_halo ( (1,1,1,1) )
-        Stencil.set_k_direction ('forward')
-        i = 1
-        j = 1
-        for p in Stencil.get_interior_points (self.out_X):
-            self.assertTrue (i == p[0])
-            self.assertTrue (j == p[1])
-            if p[2] == self.domain[2] - 1:
-                j = j+1
-            if j == (self.domain[1] - 1):
-                j = 1
-                i = i + 1
-            if i == (self.domain[0] - 1):
-                i = 1
+        super ( ).test_get_interior_points_IJ_static (self.out_X)
 
 
     def test_get_interior_points_IJ_object (self):
-        #
-        # Stencil halo was has been set to (1,1,1,1) in setUp()
-        # Ensure that the global Stencil halo is different
-        #
-        Stencil.set_halo ( (2,2,2,2) )
-        i = 1
-        j = 1
-        for p in self.stencil.get_interior_points (self.out_X):
-            self.assertTrue (i == p[0])
-            self.assertTrue (j == p[1])
-            if p[2] == self.domain[2] - 1:
-                j = j+1
-            if j == (self.domain[1] - 1):
-                j = 1
-                i = i + 1
-            if i == (self.domain[0] - 1):
-                i = 1
+        super ( ).test_get_interior_points_IJ_object (self.out_X)
 
 
 
@@ -268,57 +227,16 @@ class AdditionalIfStatementTest (CopyTest):
 
 
     def test_get_interior_points_K_static (self):
-        Stencil.set_halo ( (0,1,0,0) )
-        Stencil.set_k_direction ('forward')
-        k = 0
-        for p in Stencil.get_interior_points (self.out_X):
-            self.assertTrue (k == p[2])
-            k = k+1
-            if k == self.domain[2]:
-                k = 0
+        super ( ).test_get_interior_points_K_static (self.out_X)
 
 
     def test_get_interior_points_K_object (self):
-        k = 0
-        for p in self.stencil.get_interior_points (self.out_X):
-            self.assertTrue (k == p[2])
-            k = k+1
-            if k == self.domain[2]:
-                k = 0
+        super ( ).test_get_interior_points_K_object (self.out_X)
 
 
     def test_get_interior_points_IJ_static (self):
-        Stencil.set_halo ( (0,1,0,0) )
-        Stencil.set_k_direction ('forward')
-        i = 0
-        j = 0
-        for p in Stencil.get_interior_points (self.out_X):
-            self.assertTrue (i == p[0])
-            self.assertTrue (j == p[1])
-            if p[2] == self.domain[2] - 1:
-                j = j+1
-            if j == (self.domain[1]):
-                j = 0
-                i = i + 1
-            if i == (self.domain[0] - 1):
-                i = 0
+        super ( ).test_get_interior_points_IJ_static (self.out_X)
 
 
     def test_get_interior_points_IJ_object (self):
-        #
-        # Stencil halo was has been set to (0,1,0,0) in setUp()
-        # Ensure that the global Stencil halo is different
-        #
-        Stencil.set_halo ( (2,2,2,2) )
-        i = 0
-        j = 0
-        for p in self.stencil.get_interior_points (self.out_X):
-            self.assertTrue (i == p[0])
-            self.assertTrue (j == p[1])
-            if p[2] == self.domain[2] - 1:
-                j = j+1
-            if j == (self.domain[1]):
-                j = 0
-                i = i + 1
-            if i == (self.domain[0] - 1):
-                i = 1
+        super ( ).test_get_interior_points_IJ_object (self.out_X)

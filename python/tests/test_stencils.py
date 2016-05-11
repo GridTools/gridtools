@@ -6,6 +6,7 @@ import numpy as np
 from nose.plugins.attrib import attr
 
 from gridtools.stencil import Stencil, MultiStageStencil
+import ipdb
 
 
 
@@ -327,7 +328,7 @@ class CopyTest (AccessPatternDetectionTest):
 
     def test_user_kernel_call (self):
         with self.assertRaises (RuntimeError):
-            self.stencil.kernel(self.out_cpy, self.in_cpy)
+            self.stencil.kernel (self.out_cpy, self.in_cpy)
 
 
     def test_decorator_returned_type (self):
@@ -340,108 +341,161 @@ class CopyTest (AccessPatternDetectionTest):
 
 
     def test_get_halo_from_Stencil (self):
+        from random import randint
         #
         # Set a new global halo and reset the stencil-specific value
         #
-        Stencil.set_halo( (2,2,2,2) )
-        self.stencil.set_halo ( )
+        new_halo = (randint(0,10), randint(0,10), randint(0,10), randint(0,10))
+        Stencil.set_halo (new_halo)
+        self.stencil.set_halo (None)
         #
         # Check that the global halo is correctly returned
         #
-        self.assertTrue (self.stencil.get_halo ( ) == (2,2,2,2))
+        self.assertTrue (Stencil.get_halo ( ) == new_halo)
+        self.assertTrue (self.stencil.get_halo ( ) == new_halo)
 
 
     def test_get_halo_from_object (self):
+        from random import randint
         #
         # Set a new global halo and a new stencil-specific value
         #
-        Stencil.set_halo( (2,2,2,2) )
-        self.stencil.set_halo ( (3,3,3,3) )
+        Stencil.set_halo( (randint(0,10), randint(0,10), randint(0,10), randint(0,10)) )
+        new_halo = (randint(0,10), randint(0,10), randint(0,10), randint(0,10))
+        self.stencil.set_halo (new_halo)
         #
         # Check that the stencil halo is returned
         #
-        self.assertTrue (self.stencil.get_halo ( ) == (3,3,3,3))
+        self.assertTrue (self.stencil.get_halo ( ) == new_halo)
 
 
     def test_get_k_direction_from_Stencil (self):
+        from gridtools import K_DIRECTIONS
+        from random import choice
         #
         # Set a new global k direction and reset the stencil-specific value
         #
-        Stencil.set_k_direction( 'backward' )
-        self.stencil.set_k_direction ( )
+        direction = choice(K_DIRECTIONS)
+        Stencil.set_k_direction (direction)
+        self.stencil.set_k_direction (None)
         #
         # Check that the global k direction is correctly returned
         #
-        self.assertTrue (self.stencil.get_k_direction ( ) == 'backward')
+        self.assertTrue (Stencil.get_k_direction ( ) == direction)
+        self.assertTrue (self.stencil.get_k_direction ( ) == direction)
 
 
     def test_get_k_direction_from_object (self):
+        from gridtools import K_DIRECTIONS
+        from random import choice
         #
         # Set a new global k direction and a new stencil-specific value
         #
-        Stencil.set_k_direction('forward')
-        self.stencil.set_k_direction ('backward')
+        Stencil.set_k_direction( choice(K_DIRECTIONS) )
+        direction = choice(K_DIRECTIONS)
+        self.stencil.set_k_direction (direction)
         #
         # Check that the stencil k direction is correctly returned
         #
-        self.assertTrue (self.stencil.get_k_direction ( ) == 'backward')
+        self.assertTrue (self.stencil.get_k_direction ( ) == direction)
 
 
-    def test_get_interior_points_K_static (self):
-        Stencil.set_halo ( (1,1,1,1) )
-        Stencil.set_k_direction ('forward')
-        k = 0
-        for p in Stencil.get_interior_points (self.out_cpy):
-            self.assertTrue (k == p[2])
-            k = k+1
-            if k == self.domain[2]:
-                k = 0
+    def test_get_interior_points_K_static (self, data_field=None):
+        from gridtools import K_DIRECTIONS
+        from random import randint, choice
+
+        halo = (randint(0,10), randint(0,10), randint(0,10), randint(0,10))
+        direction = choice(K_DIRECTIONS)
+        Stencil.set_halo (halo)
+        Stencil.set_k_direction (direction)
+
+        if data_field is None:
+            data_field = self.out_cpy
+
+        k_vals = [k for k in range(0, self.domain[2])]
+        if direction == 'backward':
+            k_vals.reverse()
+        k_vals = k_vals * (self.domain[0] - halo[0] - halo[1])
+        k_vals = k_vals * (self.domain[1] - halo[2] - halo[3])
+
+        interior_pts = [k for (i,j,k) in Stencil.get_interior_points (data_field)]
+
+        self.assertTrue ( all ([x==y for (x,y) in zip(k_vals, interior_pts)]) )
 
 
-    def test_get_interior_points_K_object (self):
-        k = 0
-        for p in self.stencil.get_interior_points (self.out_cpy):
-            self.assertTrue (k == p[2])
-            k = k+1
-            if k == self.domain[2]:
-                k = 0
+    def test_get_interior_points_K_object (self, data_field=None):
+        from gridtools import K_DIRECTIONS
+        from random import randint, choice
+
+        Stencil.set_halo ( (randint(0,10), randint(0,10), randint(0,10), randint(0,10)) )
+        Stencil.set_k_direction ( choice(K_DIRECTIONS) )
+
+        halo = (randint(0,10), randint(0,10), randint(0,10), randint(0,10))
+        direction = choice(K_DIRECTIONS)
+        self.stencil.set_halo (halo)
+        self.stencil.set_k_direction (direction)
+
+        if data_field is None:
+            data_field = self.out_cpy
+
+        k_vals = [k for k in range(0, self.domain[2])]
+        if direction == 'backward':
+            k_vals.reverse()
+        k_vals = k_vals * (self.domain[0] - halo[0] - halo[1])
+        k_vals = k_vals * (self.domain[1] - halo[2] - halo[3])
+
+        interior_pts = [k for (i,j,k) in self.stencil.get_interior_points (data_field)]
+
+        self.assertTrue ( all ([x==y for (x,y) in zip(k_vals, interior_pts)]) )
 
 
-    def test_get_interior_points_IJ_static (self):
-        Stencil.set_halo ( (1,1,1,1) )
-        Stencil.set_k_direction ('forward')
-        i = 1
-        j = 1
-        for p in Stencil.get_interior_points (self.out_cpy):
-            self.assertTrue (i == p[0])
-            self.assertTrue (j == p[1])
-            if p[2] == self.domain[2] - 1:
-                j = j+1
-            if j == (self.domain[1] - 1):
-                j = 1
-                i = i + 1
-            if i == (self.domain[0] - 1):
-                i = 1
+    def test_get_interior_points_IJ_static (self, data_field=None):
+        from gridtools import K_DIRECTIONS
+        from random import randint, choice
+        from itertools import product, chain
+
+        halo = (randint(0,10), randint(0,10), randint(0,10), randint(0,10))
+        Stencil.set_halo (halo)
+        Stencil.set_k_direction ( choice(K_DIRECTIONS) )
+
+        if data_field is None:
+            data_field = self.out_cpy
+
+        ij_vals = [[ij]*self.domain[2] for ij in
+                   list (product (range(halo[0], self.domain[0]-halo[1]),
+                         range(halo[2], self.domain[1]-halo[3]))) ]
+
+        ij_vals = [ij for ij in chain.from_iterable(ij_vals)]
+
+        interior_pts = [(i,j) for (i,j,k) in Stencil.get_interior_points (data_field)]
+
+        self.assertTrue (all ([x==y for (x,y) in zip(ij_vals, interior_pts)]) )
 
 
-    def test_get_interior_points_IJ_object (self):
-        #
-        # Stencil halo was has been set to (1,1,1,1) in setUp()
-        # Ensure that the global Stencil halo is different
-        #
-        Stencil.set_halo ( (2,2,2,2) )
-        i = 1
-        j = 1
-        for p in self.stencil.get_interior_points (self.out_cpy):
-            self.assertTrue (i == p[0])
-            self.assertTrue (j == p[1])
-            if p[2] == self.domain[2] - 1:
-                j = j+1
-            if j == (self.domain[1] - 1):
-                j = 1
-                i = i + 1
-            if i == (self.domain[0] - 1):
-                i = 1
+    def test_get_interior_points_IJ_object (self, data_field=None):
+        from gridtools import K_DIRECTIONS
+        from random import randint, choice
+        from itertools import product, chain
+
+        Stencil.set_halo ( (randint(0,10), randint(0,10), randint(0,10), randint(0,10)) )
+        Stencil.set_k_direction ( choice(K_DIRECTIONS) )
+
+        halo = ( randint(0,10), randint(0,10), randint(0,10), randint(0,10) )
+        self.stencil.set_halo (halo)
+        self.stencil.set_k_direction ( choice(K_DIRECTIONS) )
+
+        if data_field is None:
+            data_field = self.out_cpy
+
+        ij_vals = [[ij]*self.domain[2] for ij in
+                   list (product (range(halo[0], self.domain[0]-halo[1]),
+                         range(halo[2], self.domain[1]-halo[3]))) ]
+
+        ij_vals = [ij for ij in chain.from_iterable(ij_vals)]
+
+        interior_pts = [(i,j) for (i,j,k) in self.stencil.get_interior_points (data_field)]
+
+        self.assertTrue (all ([x==y for (x,y) in zip(ij_vals, interior_pts)]) )
 
 
 
@@ -628,61 +682,19 @@ class LaplaceTest (CopyTest):
 
 
     def test_get_interior_points_K_static (self):
-        Stencil.set_halo ( (1,1,1,1) )
-        Stencil.set_k_direction ('forward')
-        k = 0
-        for p in Stencil.get_interior_points (self.out_data):
-            self.assertTrue (k == p[2])
-            k = k+1
-            if k == self.domain[2]:
-                k = 0
+        super ( ).test_get_interior_points_K_static (self.out_data)
 
 
     def test_get_interior_points_K_object (self):
-        k = 0
-        for p in self.stencil.get_interior_points (self.out_data):
-            self.assertTrue (k == p[2])
-            k = k+1
-            if k == self.domain[2]:
-                k = 0
+        super ( ).test_get_interior_points_K_object (self.out_data)
 
 
     def test_get_interior_points_IJ_static (self):
-        Stencil.set_halo ( (1,1,1,1) )
-        Stencil.set_k_direction ('forward')
-        i = 1
-        j = 1
-        for p in Stencil.get_interior_points (self.out_data):
-            self.assertTrue (i == p[0])
-            self.assertTrue (j == p[1])
-            if p[2] == self.domain[2] - 1:
-                j = j+1
-            if j == (self.domain[1] - 1):
-                j = 1
-                i = i + 1
-            if i == (self.domain[0] - 1):
-                i = 1
+        super ( ).test_get_interior_points_IJ_static (self.out_data)
 
 
     def test_get_interior_points_IJ_object (self):
-        #
-        # Stencil halo was has been set to (1,1,1,1) in setUp()
-        # Ensure that the global Stencil halo is different
-        #
-        Stencil.set_halo ( (2,2,2,2) )
-        i = 1
-        j = 1
-        for p in self.stencil.get_interior_points (self.out_data):
-            self.assertTrue (i == p[0])
-            self.assertTrue (j == p[1])
-            if p[2] == self.domain[2] - 1:
-                j = j+1
-            if j == (self.domain[1] - 1):
-                j = 1
-                i = i + 1
-            if i == (self.domain[0] - 1):
-                i = 1
-
+        super ( ).test_get_interior_points_IJ_object (self.out_data)
 
 
 class HorizontalDiffusion (MultiStageStencil):
@@ -829,60 +841,19 @@ class HorizontalDiffusionTest (CopyTest):
 
 
     def test_get_interior_points_K_static (self):
-        Stencil.set_halo ( (1,1,1,1) )
-        Stencil.set_k_direction ('forward')
-        k = 0
-        for p in Stencil.get_interior_points (self.out_data):
-            self.assertTrue (k == p[2])
-            k = k+1
-            if k == self.domain[2]:
-                k = 0
+        super ( ).test_get_interior_points_K_static (self.out_data)
 
 
     def test_get_interior_points_K_object (self):
-        k = 0
-        for p in self.stencil.get_interior_points (self.out_data):
-            self.assertTrue (k == p[2])
-            k = k+1
-            if k == self.domain[2]:
-                k = 0
+        super ( ).test_get_interior_points_K_object (self.out_data)
 
 
     def test_get_interior_points_IJ_static (self):
-        Stencil.set_halo ( (2,2,2,2) )
-        Stencil.set_k_direction ('forward')
-        i = 2
-        j = 2
-        for p in Stencil.get_interior_points (self.out_data):
-            self.assertTrue (i == p[0])
-            self.assertTrue (j == p[1])
-            if p[2] == self.domain[2] - 1:
-                j = j+1
-            if j == (self.domain[1] - 2):
-                j = 2
-                i = i + 1
-            if i == (self.domain[0] - 2):
-                i = 2
+        super ( ).test_get_interior_points_IJ_static (self.out_data)
 
 
     def test_get_interior_points_IJ_object (self):
-        #
-        # Stencil halo was has been set to (2,2,2,2) in setUp()
-        # Ensure that the global Stencil halo is different
-        #
-        Stencil.set_halo ( (0,0,0,0) )
-        i = 2
-        j = 2
-        for p in self.stencil.get_interior_points (self.out_data):
-            self.assertTrue (i == p[0])
-            self.assertTrue (j == p[1])
-            if p[2] == self.domain[2] - 1:
-                j = j+1
-            if j == (self.domain[1] - 2):
-                j = 2
-                i = i + 1
-            if i == (self.domain[0] - 2):
-                i = 2
+        super ( ).test_get_interior_points_IJ_object (self.out_data)
 
 
 
