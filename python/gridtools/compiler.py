@@ -201,7 +201,7 @@ class StencilCompiler ( ):
         return id (stencil) in self.stencils.keys ( )
 
 
-    def recompile (self, stencil=None):
+    def recompile (self):
         """
         Marks the received stencil as dirty, needing recompilation.-
         """
@@ -230,7 +230,7 @@ class StencilCompiler ( ):
             #
             # mark this stencil for recompilation ...
             #
-            self.recompile (stencil)
+            self.recompile ( )
             #
             # ... and add it to the registry if it is not there yet
             #

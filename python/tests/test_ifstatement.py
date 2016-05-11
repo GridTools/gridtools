@@ -105,7 +105,7 @@ class GameOfLifeTest (CopyTest):
         pass
 
 
-    def test_get_interior_points_Z_static (self):
+    def test_get_interior_points_K_static (self):
         Stencil.set_halo ( (1,1,1,1) )
         Stencil.set_k_direction ('forward')
         k = 0
@@ -116,7 +116,7 @@ class GameOfLifeTest (CopyTest):
                 k = 0
 
 
-    def test_get_interior_points_Z_object (self):
+    def test_get_interior_points_K_object (self):
         k = 0
         for p in self.stencil.get_interior_points (self.out_X):
             self.assertTrue (k == p[2])
@@ -125,7 +125,7 @@ class GameOfLifeTest (CopyTest):
                 k = 0
 
 
-    def test_get_interior_points_XY_static (self):
+    def test_get_interior_points_IJ_static (self):
         Stencil.set_halo ( (1,1,1,1) )
         Stencil.set_k_direction ('forward')
         i = 1
@@ -142,7 +142,7 @@ class GameOfLifeTest (CopyTest):
                 i = 1
 
 
-    def test_get_interior_points_XY_object (self):
+    def test_get_interior_points_IJ_object (self):
         #
         # Stencil halo was has been set to (1,1,1,1) in setUp()
         # Ensure that the global Stencil halo is different
@@ -267,7 +267,7 @@ class AdditionalIfStatementTest (CopyTest):
         pass
 
 
-    def test_get_interior_points_Z_static (self):
+    def test_get_interior_points_K_static (self):
         Stencil.set_halo ( (0,1,0,0) )
         Stencil.set_k_direction ('forward')
         k = 0
@@ -278,7 +278,7 @@ class AdditionalIfStatementTest (CopyTest):
                 k = 0
 
 
-    def test_get_interior_points_Z_object (self):
+    def test_get_interior_points_K_object (self):
         k = 0
         for p in self.stencil.get_interior_points (self.out_X):
             self.assertTrue (k == p[2])
@@ -287,7 +287,7 @@ class AdditionalIfStatementTest (CopyTest):
                 k = 0
 
 
-    def test_get_interior_points_XY_static (self):
+    def test_get_interior_points_IJ_static (self):
         Stencil.set_halo ( (0,1,0,0) )
         Stencil.set_k_direction ('forward')
         i = 0
@@ -304,7 +304,7 @@ class AdditionalIfStatementTest (CopyTest):
                 i = 0
 
 
-    def test_get_interior_points_XY_object (self):
+    def test_get_interior_points_IJ_object (self):
         #
         # Stencil halo was has been set to (0,1,0,0) in setUp()
         # Ensure that the global Stencil halo is different

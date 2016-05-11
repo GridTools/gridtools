@@ -35,7 +35,7 @@ class Stencil (object):
     #
     compiler = StencilCompiler ( )
     #
-    # defines the global way to execute the stencils
+    # a global holder for the used backend
     #
     _backend = "python"
     #
@@ -43,7 +43,7 @@ class Stencil (object):
     #
     _halo = (0, 0, 0, 0)
     #
-    # define the global execution order in 'k' dimension
+    # a global holder for the execution direction in the 'k' (3rd) dimension
     #
     _k_direction = 'forward'
 
@@ -51,7 +51,7 @@ class Stencil (object):
     @staticmethod
     def _interior_points_generator (data_field, ghost_cell, halo, k_direction):
         """
-        Returns an generator over the 'data_field'.
+        Returns a generator over the 'data_field'.
         This is an internal method that provides a common foundation for the
         get_interior_points() external interfaces (the Stencil static method and
         the MultiStageStencil bound method). Users should not call this method
@@ -60,6 +60,15 @@ class Stencil (object):
         :param data_field:      a NumPy array;
         :param ghost_cell:      access pattern for the current field, useful for
                                 concatenating several stencil stages.-
+        :param halo:            a tuple-like object describing the halo for this
+                                operation. It is defined as:
+                                (halo in negative direction over _i_,
+                                 halo in positive direction over _i_,
+                                 halo in negative direction over _j_,
+                                 halo in positive direction over _j_).-
+        :param k_direction:     a string-like object indicating the execution
+                                direction in the k dimension. Possible values
+                                are 'forward' and 'backward'.
         """
         try:
             if len (data_field.shape) != 3:
@@ -106,6 +115,12 @@ class Stencil (object):
         """
         Check that the provided halo is formatted correctly and contains
         acceptable values
+
+        :param halo:        A tuple-like object
+        :return:            True if the input halo is valid
+        :raise ValueError:  If the input halo has a number of elements different
+                            from 4, or if any of the halo elements is not a
+                            non-negative integer.
         """
         if halo is None:
             return False
@@ -124,9 +139,9 @@ class Stencil (object):
     @staticmethod
     def kernel (kernel_func):
         """
-        Decorator to define a given member as the stencil entry point (aka kernel).
-        The decorator embeds a runtime check in the kernel to verify it is called
-        from the run() function of the stencil.
+        Decorator to define a given function as the stencil entry point (aka kernel).
+        The decorator embeds a runtime check to verify it is called from the
+        run() function of the stencil.
         """
         import types
         from gridtools import STENCIL_KERNEL_DECORATOR_LABEL
@@ -152,13 +167,15 @@ class Stencil (object):
             else:
                 return kernel_func (**kwargs)
 
-        setattr (kernel_wrapper, STENCIL_KERNEL_DECORATOR_LABEL, True)
+        setattr (kernel_wrapper,
+                 STENCIL_KERNEL_DECORATOR_LABEL,
+                 True)
 
         #
         # If the kernel function is the method of a class, it means the stencil
         # is being defined using OOP, and the wrapper should be returned.
         # If the stencil is being defined with the procedural programming style,
-        # return an object of a purposely defined subclass of MultiStageStencil
+        # return an object extending the MultiStageStencil class.
         #
         if len(kernel_func.__qualname__.split('.')) > 1:
             return kernel_wrapper
@@ -223,16 +240,17 @@ class Stencil (object):
     @staticmethod
     def get_interior_points (data_field, ghost_cell=[0,0,0,0]):
         """
-        Returns an generator over the 'data_field' without including the halo.
+        Returns a generator over the 'data_field' without including the halo.
         Uses global Stencil settings for halo and k direction.
 
         :param data_field:      a NumPy array;
         :param ghost_cell:      access pattern for the current field, which depends
                                 on the following stencil stages.-
         """
-        return Stencil._interior_points_generator (data_field, ghost_cell,
-                                                   Stencil.get_halo ( ),
-                                                   Stencil.get_k_direction ( ))
+        return Stencil._interior_points_generator (data_field,
+                                                   ghost_cell=ghost_cell,
+                                                   halo=Stencil.get_halo ( ),
+                                                   k_direction=Stencil.get_k_direction ( ))
 
 
     @staticmethod
@@ -401,23 +419,24 @@ class Stencil (object):
 
 class MultiStageStencil (Stencil):
     """
-    A involving several stages, implemented as for-comprehensions.
-    All user-defined stencils should inherit for this class.-
+    A stencil involving one or more stages. The stages can be implemented as
+    functions or for-loops.
+    All user-defined stencils should inherit from this class.-
     """
     def __init__ (self):
         super ( ).__init__ ( )
         #
         # defines the way to execute the stencil
         #
-        self._backend         = ""
+        self._backend         = None
         #
         # a halo descriptor
         #
-        self._halo             = ( )
+        self._halo            = None
         #
         # define the execution order in 'k' dimension
         #
-        self._k_direction      = ''
+        self._k_direction     = None
 
 
     @property
@@ -428,7 +447,7 @@ class MultiStageStencil (Stencil):
     @backend.setter
     def backend (self, value):
         self._backend = value
-        Stencil.compiler.recompile (self)
+        Stencil.compiler.recompile ( )
 
 
     def build (self, output, **kwargs):
@@ -455,7 +474,7 @@ class MultiStageStencil (Stencil):
 
     def get_interior_points (self, data_field, ghost_cell=[0,0,0,0]):
         """
-        Returns an iterator over the 'data_field' without including the halo.
+        Returns a generator over the 'data_field' without including the halo.
         Uses stencil-specific values for halo and k direction, if they have
         been set. Otherwise, uses global Stencil settings.
 
@@ -463,7 +482,8 @@ class MultiStageStencil (Stencil):
         :param ghost_cell:      access pattern for the current field, which depends
                                 on the following stencil stages.-
         """
-        return Stencil._interior_points_generator(data_field, ghost_cell=ghost_cell,
+        return Stencil._interior_points_generator(data_field,
+                                                  ghost_cell=ghost_cell,
                                                   halo=self.get_halo ( ),
                                                   k_direction=self.get_k_direction ( ))
 
@@ -549,14 +569,14 @@ class MultiStageStencil (Stencil):
         # Stencil halo will be used instead
         #
         if halo is None:
-            self._halo = ( )
-            Stencil.compiler.recompile (self)
+            self._halo = None
+            Stencil.compiler.recompile ( )
             logging.debug ("Halo for stencil '%s' has been reset" % self.name)
             return
 
         if Stencil._validate_halo (halo) :
             self._halo = halo
-            Stencil.compiler.recompile (self)
+            Stencil.compiler.recompile ( )
             logging.debug ("Setting halo for stencil '%s' to %s" %
                            (self.name, str (self._halo)) )
 
@@ -587,15 +607,15 @@ class MultiStageStencil (Stencil):
         # global Stencil directiion will be used instead
         #
         if direction is None:
-            self._k_direction = ''
-            Stencil.compiler.recompile (self)
+            self._k_direction = None
+            Stencil.compiler.recompile ( )
             logging.debug ("k_direction for stencil '%s' has been reset" %
                            self.name)
             return
 
         if direction in accepted_directions:
             self._k_direction = direction
-            Stencil.compiler.recompile (self)
+            Stencil.compiler.recompile ( )
             logging.debug ("Setting k_direction for stencil '%s' to '%s'" %
                             (self.name, self._k_direction) )
         else:

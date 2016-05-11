@@ -387,7 +387,7 @@ class CopyTest (AccessPatternDetectionTest):
         self.assertTrue (self.stencil.get_k_direction ( ) == 'backward')
 
 
-    def test_get_interior_points_Z_static (self):
+    def test_get_interior_points_K_static (self):
         Stencil.set_halo ( (1,1,1,1) )
         Stencil.set_k_direction ('forward')
         k = 0
@@ -398,7 +398,7 @@ class CopyTest (AccessPatternDetectionTest):
                 k = 0
 
 
-    def test_get_interior_points_Z_object (self):
+    def test_get_interior_points_K_object (self):
         k = 0
         for p in self.stencil.get_interior_points (self.out_cpy):
             self.assertTrue (k == p[2])
@@ -407,7 +407,7 @@ class CopyTest (AccessPatternDetectionTest):
                 k = 0
 
 
-    def test_get_interior_points_XY_static (self):
+    def test_get_interior_points_IJ_static (self):
         Stencil.set_halo ( (1,1,1,1) )
         Stencil.set_k_direction ('forward')
         i = 1
@@ -424,7 +424,7 @@ class CopyTest (AccessPatternDetectionTest):
                 i = 1
 
 
-    def test_get_interior_points_XY_object (self):
+    def test_get_interior_points_IJ_object (self):
         #
         # Stencil halo was has been set to (1,1,1,1) in setUp()
         # Ensure that the global Stencil halo is different
@@ -627,7 +627,7 @@ class LaplaceTest (CopyTest):
                                        result_file='laplace_result.npy')
 
 
-    def test_get_interior_points_Z_static (self):
+    def test_get_interior_points_K_static (self):
         Stencil.set_halo ( (1,1,1,1) )
         Stencil.set_k_direction ('forward')
         k = 0
@@ -638,7 +638,7 @@ class LaplaceTest (CopyTest):
                 k = 0
 
 
-    def test_get_interior_points_Z_object (self):
+    def test_get_interior_points_K_object (self):
         k = 0
         for p in self.stencil.get_interior_points (self.out_data):
             self.assertTrue (k == p[2])
@@ -647,7 +647,7 @@ class LaplaceTest (CopyTest):
                 k = 0
 
 
-    def test_get_interior_points_XY_static (self):
+    def test_get_interior_points_IJ_static (self):
         Stencil.set_halo ( (1,1,1,1) )
         Stencil.set_k_direction ('forward')
         i = 1
@@ -664,7 +664,7 @@ class LaplaceTest (CopyTest):
                 i = 1
 
 
-    def test_get_interior_points_XY_object (self):
+    def test_get_interior_points_IJ_object (self):
         #
         # Stencil halo was has been set to (1,1,1,1) in setUp()
         # Ensure that the global Stencil halo is different
@@ -828,7 +828,7 @@ class HorizontalDiffusionTest (CopyTest):
                                        result_file='horizontaldiffusion_result.npy')
 
 
-    def test_get_interior_points_Z_static (self):
+    def test_get_interior_points_K_static (self):
         Stencil.set_halo ( (1,1,1,1) )
         Stencil.set_k_direction ('forward')
         k = 0
@@ -839,7 +839,7 @@ class HorizontalDiffusionTest (CopyTest):
                 k = 0
 
 
-    def test_get_interior_points_Z_object (self):
+    def test_get_interior_points_K_object (self):
         k = 0
         for p in self.stencil.get_interior_points (self.out_data):
             self.assertTrue (k == p[2])
@@ -848,7 +848,7 @@ class HorizontalDiffusionTest (CopyTest):
                 k = 0
 
 
-    def test_get_interior_points_XY_static (self):
+    def test_get_interior_points_IJ_static (self):
         Stencil.set_halo ( (2,2,2,2) )
         Stencil.set_k_direction ('forward')
         i = 2
@@ -865,7 +865,7 @@ class HorizontalDiffusionTest (CopyTest):
                 i = 2
 
 
-    def test_get_interior_points_XY_object (self):
+    def test_get_interior_points_IJ_object (self):
         #
         # Stencil halo was has been set to (2,2,2,2) in setUp()
         # Ensure that the global Stencil halo is different
