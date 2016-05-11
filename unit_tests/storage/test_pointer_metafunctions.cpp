@@ -4,15 +4,15 @@
 #include <boost/mpl/if.hpp>
 #include <boost/type_traits/is_same.hpp>
 
-#include <storage/wrap_pointer.hpp>
+#include "storage/wrap_pointer.hpp"
 #ifdef _USE_GPU_
-#include <storage/hybrid_pointer.hpp>
+#include "storage/hybrid_pointer.hpp"
 #endif
-#include <storage/pointer_metafunctions.hpp>
+#include "common/pointer_metafunctions.hpp"
 
 using namespace gridtools;
 
-TEST(pointer_metafunctions, test_pointer) {
+TEST(wrap_hybrid_pointer_metafunctions, test_pointer) {
 	typedef wrap_pointer<double, true> wpt;
 	typedef wrap_pointer<double, false> wpf;
 

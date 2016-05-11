@@ -4,13 +4,13 @@
 #include <boost/mpl/identity.hpp>
 
 #include "data_field.hpp"
-#include "pointer_metafunctions.hpp"
 #ifdef _USE_GPU_
 #include "hybrid_pointer.hpp"
 #endif
 #include "wrap_pointer.hpp"
 #ifdef CXX11_ENABLED
 #include "../common/generic_metafunctions/reverse_pack.hpp"
+#include "../common/pointer_metafunctions.hpp"
 #endif
 
 /**
