@@ -1,11 +1,12 @@
 #pragma once
 #include <boost/type_traits/is_unsigned.hpp>
+#include <boost/mpl/max_element.hpp>
 #include "base_storage_impl.hpp"
 #include "../common/array.hpp"
 #include "../common/generic_metafunctions/all_integrals.hpp"
-#include "common/explode_array.hpp"
-#include "common/generic_metafunctions/is_variadic_pack_of.hpp"
-#include "common/generic_metafunctions/variadic_assert.hpp"
+#include "../common/explode_array.hpp"
+#include "../common/generic_metafunctions/is_variadic_pack_of.hpp"
+#include "../common/generic_metafunctions/variadic_assert.hpp"
 
 /**
    @file
@@ -17,6 +18,7 @@
     @brief class containing the meta storage information
 */
 namespace gridtools {
+
 
     /**
      * @brief Type to indicate that the type is not decided yet
@@ -247,7 +249,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         /**@brief returns the storage strides
          */
         GT_FUNCTION
-        constexpr int_t const &strides(ushort_t i) const { return m_strides[i]; }
+        constexpr int_t const& strides(ushort_t i) const { return m_strides[i]; }
 
         /**@brief returns the storage strides
          */
@@ -285,6 +287,17 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         // static functions (independent from the storage)
         //####################################################
 
+        /**@brief helper code snippet to check if given vector coordinate is the maximum.*/
+        template <uint_t Coordinate, typename T, typename Container>
+        GT_FUNCTION static constexpr int_t get_stride_helper(Container const& cont, uint_t offset=0) {
+                typedef typename boost::mpl::deref<
+                        typename boost::mpl::max_element< typename T::layout_vector_t >::type
+                >::type max_type;
+                return ((max_type::value < 0) ? 0 : 
+                        ((Layout::template at_< Coordinate >::value == max_type::value)
+                        ? 1 : ((cont[Layout::template at_< Coordinate >::value + offset]))));
+        }
+
         /**@brief return the stride for a specific coordinate, given the vector of strides
            Coordinates 0,1,2 correspond to i,j,k respectively
 
@@ -294,12 +307,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         */
         template < uint_t Coordinate, typename StridesVector >
         GT_FUNCTION static constexpr int_t strides(StridesVector const &RESTRICT strides_) {
-            return (
-                (vec_max< typename layout::layout_vector_t >::value < 0)
-                    ? 0
-                    : ((layout::template at_< Coordinate >::value == vec_max< typename layout::layout_vector_t >::value)
-                              ? 1
-                              : ((strides_[layout::template at_< Coordinate >::value]))));
+			return get_stride_helper<Coordinate, layout>(strides_);
         }
 
         /**@brief return the stride for a specific coordinate, given the vector of strides
@@ -311,12 +319,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         GT_FUNCTION constexpr int_t strides() const {
             // NOTE: we access the m_strides vector starting from 1, because m_strides[0] is the total storage
             // dimension.
-            return (
-                (vec_max< typename layout::layout_vector_t >::value < 0)
-                    ? 0
-                    : ((layout::template at_< Coordinate >::value == vec_max< typename layout::layout_vector_t >::value)
-                              ? 1
-                              : ((m_strides[layout::template at_< Coordinate >::value + 1]))));
+            return get_stride_helper<Coordinate, layout>(m_strides, 1);
         }
 
         /**@brief returning the index of the memory address corresponding to the specified (i,j,k) coordinates.

@@ -1,6 +1,7 @@
 #pragma once
 #include "../common/array.hpp"
 #include "../common/pointer.hpp"
+#include "../common/string_c.hpp"
 #include "base_storage_impl.hpp"
 #include "wrap_pointer.hpp"
 
@@ -57,7 +58,7 @@ namespace gridtools {
 		 * @brief the parallel storage calls the empty constructor to do lazy initialization
 		 */
 		base_storage(MetaData const& meta_data_, char const *s = "default uninitialized storage", bool do_allocate = true)
-			: is_set(false), m_name(s), m_meta_data(&meta_data_) {
+			: is_set(false), m_name(malloc_and_copy(s)), m_meta_data(&meta_data_) {
 			if (do_allocate) {
 				allocate();
 			}
@@ -69,7 +70,7 @@ namespace gridtools {
 		 * It is a template parameter in order to match float, double, etc...
 		 */
 		base_storage(MetaData const& meta_data_, value_type const &init, char const *s = "default initialized storage")
-			: is_set(true), m_name(s), m_meta_data(&meta_data_) {
+			: is_set(true), m_name(malloc_and_copy(s)), m_meta_data(&meta_data_) {
 			allocate();
 			initialize(init, 1);
 		}
@@ -79,7 +80,7 @@ namespace gridtools {
 		 */
 		template < typename Ret, typename T >
 		base_storage(MetaData const& meta_data_, Ret (*func)(T const &, T const &, T const &), char const *s = "storage initialized with lambda")
-			: is_set(true), m_name(s), m_meta_data(&meta_data_) {
+			: is_set(true), m_name(malloc_and_copy(s)), m_meta_data(&meta_data_) {
 			allocate();
 			initialize(func, 1);
 		}
@@ -93,7 +94,7 @@ namespace gridtools {
 		 */
 		template < typename FloatType >
 		explicit base_storage(MetaData const& meta_data_, FloatType *ptr, char const *s = "externally managed storage")
-			: is_set(true), m_name(s), m_meta_data(&meta_data_) {
+			: is_set(true), m_name(malloc_and_copy(s)), m_meta_data(&meta_data_) {
 			m_fields[0] = pointer_type(ptr, true);
 			if (FieldDimension > 1) {
 				allocate(FieldDimension, 1, true);
@@ -178,7 +179,14 @@ namespace gridtools {
 
 		/**@brief sets the name of the current field*/
 		GT_FUNCTION
-		void set_name(char const *const &string) { m_name = string; }
+		void set_name(char const *const &string) { 
+			if(m_name) delete [] m_name;
+			m_name = malloc_and_copy(string); 
+		}
+
+		/**@brief get the name of the current field*/
+		GT_FUNCTION
+		char const *const get_name() const { return m_name; }
 
 		static void text() { std::cout << BOOST_CURRENT_FUNCTION << std::endl; }
 

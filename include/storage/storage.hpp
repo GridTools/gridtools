@@ -217,6 +217,16 @@ namespace gridtools {
                         (*m_storage).print(s);
 		}
 
+		char const* get_name() const {
+                        assert(m_on_host);
+                        return (*m_storage).get_name();
+		}
+
+		void set_name(char const* const& string) {
+                        assert(m_on_host);
+                        (*m_storage).set_name(string);
+		}
+
 #if defined(CXX11_ENABLED)
 		template < short_t snapshot = 0, short_t field_dim = 0, typename... Int >
 		value_type& get_value(Int... args) {
