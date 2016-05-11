@@ -114,6 +114,22 @@ namespace gridtools {
         typedef array< ValueType, 6 > type;
     };
 
+    template < uint_t Color >
+    struct get_connectivity_offset {
+
+        template < int Idx >
+        struct get_element {
+            GT_FUNCTION
+            constexpr get_element() {}
+
+            template < typename Offsets >
+            GT_FUNCTION constexpr static array< uint_t, 4 > apply(array< uint_t, 3 > const &i, Offsets offsets) {
+                return {
+                    i[0] + offsets[Idx][0], Color + offsets[Idx][1], i[1] + offsets[Idx][2], i[2] + offsets[Idx][3]};
+            }
+        };
+    };
+
     template <>
     template <>
     template <>
@@ -131,8 +147,14 @@ namespace gridtools {
         }
 
         static return_t< array< uint_t, 4 > > GT_FUNCTION get_index(array< uint_t, 3 > const &i) {
-            return return_t< array< uint_t, 4 > >{
-                {{i[0], 0, i[1], i[2]}, {i[0], 0, i[1] + 1, i[2]}, {i[0] + 1, 0, i[1], i[2]}}};
+            using seq =
+                gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int, 3 >::type >;
+            return seq::template apply< return_t< array< uint_t, 4 > >, get_connectivity_offset< 1 >::get_element >(
+                i, offsets());
+        }
+        GT_FUNCTION
+        constexpr static return_t< array< int_t, 4 > > offsets() {
+            return return_t< array< int_t, 4 > >{{{0, -1, 0, 0}, {0, -1, 1, 0}, {1, -1, 0, 0}}};
         }
     };
 
@@ -154,8 +176,14 @@ namespace gridtools {
 
         GT_FUNCTION
         static return_t< array< uint_t, 4 > > get_index(array< uint_t, 3 > const &i) {
-            return return_t< array< uint_t, 4 > >{
-                {{i[0], 1, i[1] - 1, i[2]}, {i[0], 1, i[1], i[2]}, {i[0] - 1, 1, i[1], i[2]}}};
+            using seq =
+                gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int, 3 >::type >;
+            return seq::template apply< return_t< array< uint_t, 4 > >, get_connectivity_offset< 0 >::get_element >(
+                i, offsets());
+        }
+        GT_FUNCTION
+        constexpr static return_t< array< int_t, 4 > > offsets() {
+            return return_t< array< int_t, 4 > >{{{0, 1, -1, 0}, {0, 1, 0, 0}, {-1, 1, 0, 0}}};
         }
     };
 
@@ -180,14 +208,15 @@ namespace gridtools {
 
         GT_FUNCTION
         static return_t< array< uint_t, 4 > > get_index(array< uint_t, 3 > const &i) {
-            return return_t< array< uint_t, 4 > >{{
-                {i[0], 0, i[1] - 1, i[2]},
-                {i[0] + 1, 0, i[1] - 1, i[2]},
-                {i[0] + 1, 0, i[1], i[2]},
-                {i[0], 0, i[1] + 1, i[2]},
-                {i[0] - 1, 0, i[1] + 1, i[2]},
-                {i[0] - 1, 0, i[1], i[2]},
-            }};
+            using seq =
+                gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int, 6 >::type >;
+            return seq::template apply< return_t< array< uint_t, 4 > >, get_connectivity_offset< 0 >::get_element >(
+                i, offsets());
+        }
+        GT_FUNCTION
+        constexpr static return_t< array< int_t, 4 > > offsets() {
+            return return_t< array< int_t, 4 > >{
+                {{0, 0, -1, 0}, {1, 0, -1, 0}, {1, 0, 0, 0}, {0, 0, 1, 0}, {-1, 0, 1, 0}, {-1, 0, 0, 0}}};
         }
     };
 
@@ -210,10 +239,14 @@ namespace gridtools {
 
         GT_FUNCTION
         static return_t< array< uint_t, 4 > > get_index(array< uint_t, 3 > const &i) {
-            return return_t< array< uint_t, 4 > >{{{i[0], 1, i[1], i[2]},
-                {i[0] + 1, 1, i[1] - 1, i[2]},
-                {i[0], 2, i[1], i[2]},
-                {i[0], 2, i[1] - 1, i[2]}}};
+            using seq =
+                gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int, 4 >::type >;
+            return seq::template apply< return_t< array< uint_t, 4 > >, get_connectivity_offset< 0 >::get_element >(
+                i, offsets());
+        }
+        GT_FUNCTION
+        constexpr static return_t< array< int_t, 4 > > offsets() {
+            return return_t< array< int_t, 4 > >{{{0, 1, 0, 0}, {1, 1, -1, 0}, {0, 2, 0, 0}, {0, 2, -1, 0}}};
         }
     };
 
@@ -236,10 +269,14 @@ namespace gridtools {
 
         GT_FUNCTION
         static return_t< array< uint_t, 4 > > get_index(array< uint_t, 3 > const &i) {
-            return return_t< array< uint_t, 4 > >{{{i[0], 0, i[1], i[2]},
-                {i[0] - 1, 0, i[1] + 1, i[2]},
-                {i[0], 2, i[1], i[2]},
-                {i[0] - 1, 2, i[1], i[2]}}};
+            using seq =
+                gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int, 4 >::type >;
+            return seq::template apply< return_t< array< uint_t, 4 > >, get_connectivity_offset< 1 >::get_element >(
+                i, offsets());
+        }
+        GT_FUNCTION
+        constexpr static return_t< array< int_t, 4 > > offsets() {
+            return return_t< array< int_t, 4 > >{{{0, -1, 0, 0}, {-1, -1, 1, 0}, {0, 1, 0, 0}, {-1, 1, 0, 0}}};
         }
     };
 
@@ -262,8 +299,14 @@ namespace gridtools {
 
         GT_FUNCTION
         static return_t< array< uint_t, 4 > > get_index(array< uint_t, 3 > const &i) {
-            return return_t< array< uint_t, 4 > >{
-                {{i[0], 0, i[1], i[2]}, {i[0], 0, i[1] + 1, i[2]}, {i[0], 1, i[1], i[2]}, {i[0] + 1, 1, i[1], i[2]}}};
+            using seq =
+                gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int, 4 >::type >;
+            return seq::template apply< return_t< array< uint_t, 4 > >, get_connectivity_offset< 2 >::get_element >(
+                i, offsets());
+        }
+        GT_FUNCTION
+        constexpr static return_t< array< int_t, 4 > > offsets() {
+            return return_t< array< int_t, 4 > >{{{0, -2, 0, 0}, {0, -2, 1, 0}, {0, -1, 0, 0}, {1, -1, 0, 0}}};
         }
     };
 
@@ -285,8 +328,14 @@ namespace gridtools {
 
         GT_FUNCTION
         static return_t< array< uint_t, 4 > > get_index(array< uint_t, 3 > const &i) {
-            return return_t< array< uint_t, 4 > >{
-                {{i[0], 2, i[1], i[2]}, {i[0], 0, i[1] + 1, i[2]}, {i[0] + 1, 1, i[1], i[2]}}};
+            using seq =
+                gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int, 3 >::type >;
+            return seq::template apply< return_t< array< uint_t, 4 > >, get_connectivity_offset< 1 >::get_element >(
+                i, offsets());
+        }
+        GT_FUNCTION
+        constexpr static return_t< array< int_t, 4 > > offsets() {
+            return return_t< array< int_t, 4 > >{{{0, 1, 0, 0}, {0, -1, 1, 0}, {1, 0, 0, 0}}};
         }
     };
 
@@ -308,8 +357,15 @@ namespace gridtools {
 
         GT_FUNCTION
         static return_t< array< uint_t, 4 > > get_index(array< uint_t, 3 > const &i) {
-            return return_t< array< uint_t, 4 > >{
-                {{i[0], 0, i[1], i[2]}, {i[0], 1, i[1], i[2]}, {i[0], 2, i[1], i[2]}}};
+            using seq =
+                gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int, 3 >::type >;
+            return seq::template apply< return_t< array< uint_t, 4 > >, get_connectivity_offset< 0 >::get_element >(
+                i, offsets());
+        }
+
+        GT_FUNCTION
+        constexpr static return_t< array< int_t, 4 > > offsets() {
+            return return_t< array< int_t, 4 > >{{{0, 0, 0, 0}, {0, 1, 0, 0}, {0, 2, 0, 0}}};
         }
     };
 
@@ -331,8 +387,15 @@ namespace gridtools {
 
         GT_FUNCTION
         static return_t< array< uint_t, 4 > > get_index(array< uint_t, 3 > const &i) {
-            return return_t< array< uint_t, 4 > >{
-                {{i[0], 0, i[1], i[2]}, {i[0], 0, i[1] + 1, i[2]}, {i[0] + 1, 0, i[1], i[2]}}};
+            using seq =
+                gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int, 3 >::type >;
+            return seq::template apply< return_t< array< uint_t, 4 > >, get_connectivity_offset< 0 >::get_element >(
+                i, offsets());
+        }
+
+        GT_FUNCTION
+        constexpr static return_t< array< int_t, 4 > > offsets() {
+            return return_t< array< int_t, 4 > >{{{0, 0, 0, 0}, {0, 0, 1, 0}, {1, 0, 0, 0}}};
         }
     };
 
@@ -354,8 +417,14 @@ namespace gridtools {
 
         GT_FUNCTION
         static return_t< array< uint_t, 4 > > get_index(array< uint_t, 3 > const &i) {
-            return return_t< array< uint_t, 4 > >{
-                {{i[0] + 1, 0, i[1], i[2]}, {i[0], 0, i[1] + 1, i[2]}, {i[0] + 1, 0, i[1] + 1, i[2]}}};
+            using seq =
+                gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int, 3 >::type >;
+            return seq::template apply< return_t< array< uint_t, 4 > >, get_connectivity_offset< 1 >::get_element >(
+                i, offsets());
+        }
+        GT_FUNCTION
+        constexpr static return_t< array< int_t, 4 > > offsets() {
+            return return_t< array< int_t, 4 > >{{{1, -1, 0, 0}, {0, -1, 1, 0}, {1, -1, 1, 0}}};
         }
     };
 
@@ -376,7 +445,14 @@ namespace gridtools {
 
         GT_FUNCTION
         static return_t< array< uint_t, 4 > > get_index(array< uint_t, 3 > const &i) {
-            return return_t< array< uint_t, 4 > >{{{i[0], 1, i[1] - 1, i[2]}, {i[0], 0, i[1], i[2]}}};
+            using seq =
+                gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int, 2 >::type >;
+            return seq::template apply< return_t< array< uint_t, 4 > >, get_connectivity_offset< 0 >::get_element >(
+                i, offsets());
+        }
+        GT_FUNCTION
+        constexpr static return_t< array< int_t, 4 > > offsets() {
+            return return_t< array< int_t, 4 > >{{{0, 1, -1, 0}, {0, 0, 0, 0}}};
         }
     };
 
@@ -397,8 +473,17 @@ namespace gridtools {
 
         GT_FUNCTION
         static return_t< array< uint_t, 4 > > get_index(array< uint_t, 3 > const &i) {
-            return return_t< array< uint_t, 4 > >{{{i[0] - 1, 1, i[1], i[2]}, {i[0], 0, i[1], i[2]}}};
+            using seq =
+                gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int, 2 >::type >;
+            return seq::template apply< return_t< array< uint_t, 4 > >, get_connectivity_offset< 1 >::get_element >(
+                i, offsets());
         }
+
+        GT_FUNCTION
+        constexpr static return_t< array< int_t, 4 > > offsets() {
+            return return_t< array< int_t, 4 > >{{{-1, 0, 0, 0}, {0, -1, 0, 0}}};
+        }
+
     };
 
     template <>
@@ -418,8 +503,16 @@ namespace gridtools {
 
         GT_FUNCTION
         static return_t< array< uint_t, 4 > > get_index(array< uint_t, 3 > const &i) {
-            return return_t< array< uint_t, 4 > >{{{i[0], 0, i[1], i[2]}, {i[0], 1, i[1], i[2]}}};
+            using seq =
+                gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int, 2 >::type >;
+            return seq::template apply< return_t< array< uint_t, 4 > >, get_connectivity_offset< 2 >::get_element >(
+                i, offsets());
         }
+        GT_FUNCTION
+        constexpr static return_t< array< int_t, 4 > > offsets() {
+            return return_t< array< int_t, 4 > >{{{0, -2, 0, 0}, {0, -1, 0, 0}}};
+        }
+
     };
 
     template <>
@@ -441,13 +534,17 @@ namespace gridtools {
 
         GT_FUNCTION
         static return_t< array< uint_t, 4 > > get_index(array< uint_t, 3 > const &i) {
-            return return_t< array< uint_t, 4 > >{{
-                {i[0], 0, i[1], i[2]},
-                {i[0], 0, i[1] + 1, i[2]},
-                {i[0] + 1, 0, i[1], i[2]},
-                {i[0] + 1, 0, i[1] - 1, i[2]},
-            }};
+            using seq =
+                gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int, 4 >::type >;
+            return seq::template apply< return_t< array< uint_t, 4 > >, get_connectivity_offset< 0 >::get_element >(
+                i, offsets());
         }
+
+        GT_FUNCTION
+        constexpr static return_t< array< int_t, 4 > > offsets() {
+            return return_t< array< int_t, 4 > >{{{0, 0, 0, 0}, {0, 0, 1, 0}, {1,0,0,0}, {1,0,-1,0}}};
+        }
+
     };
 
     template <>
@@ -469,13 +566,17 @@ namespace gridtools {
 
         GT_FUNCTION
         static return_t< array< uint_t, 4 > > get_index(array< uint_t, 3 > const &i) {
-            return return_t< array< uint_t, 4 > >{{
-                {i[0], 0, i[1], i[2]},
-                {i[0] - 1, 0, i[1] + 1, i[2]},
-                {i[0], 0, i[1] + 1, i[2]},
-                {i[0] + 1, 0, i[1], i[2]},
-            }};
+            using seq =
+                gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int, 4 >::type >;
+            return seq::template apply< return_t< array< uint_t, 4 > >, get_connectivity_offset< 1 >::get_element >(
+                i, offsets());
         }
+
+        GT_FUNCTION
+        constexpr static return_t< array< int_t, 4 > > offsets() {
+            return return_t< array< int_t, 4 > >{{{0, -1, 0, 0}, {-1, -1, 1, 0}, {0,-1,1,0}, {1,-1,0,0}}};
+        }
+
     };
 
     template <>
@@ -497,13 +598,17 @@ namespace gridtools {
 
         GT_FUNCTION
         static return_t< array< uint_t, 4 > > get_index(array< uint_t, 3 > const &i) {
-            return return_t< array< uint_t, 4 > >{{
-                {i[0], 0, i[1], i[2]},
-                {i[0], 0, i[1] + 1, i[2]},
-                {i[0] + 1, 0, i[1], i[2]},
-                {i[0] + 1, 0, i[1] + 1, i[2]},
-            }};
+            using seq =
+                gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int, 4 >::type >;
+            return seq::template apply< return_t< array< uint_t, 4 > >, get_connectivity_offset< 2 >::get_element >(
+                i, offsets());
         }
+
+        GT_FUNCTION
+        constexpr static return_t< array< int_t, 4 > > offsets() {
+            return return_t< array< int_t, 4 > >{{{0, -2, 0, 0}, {0, -2, 1, 0}, {1,-2,0,0}, {1,-2,1,0}}};
+        }
+
     };
 
     template <>
@@ -527,15 +632,17 @@ namespace gridtools {
 
         GT_FUNCTION
         static return_t< array< uint_t, 4 > > get_index(array< uint_t, 3 > const &i) {
-            return return_t< array< uint_t, 4 > >{{
-                {i[0] - 1, 1, i[1] - 1, i[2]},
-                {i[0] - 1, 0, i[1], i[2]},
-                {i[0] - 1, 1, i[1], i[2]},
-                {i[0], 0, i[1], i[2]},
-                {i[0], 1, i[1] - 1, i[2]},
-                {i[0], 0, i[1] - 1, i[2]},
-            }};
+            using seq =
+                gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int, 6 >::type >;
+            return seq::template apply< return_t< array< uint_t, 4 > >, get_connectivity_offset< 0 >::get_element >(
+                i, offsets());
         }
+
+        GT_FUNCTION
+        constexpr static return_t< array< int_t, 4 > > offsets() {
+            return return_t< array< int_t, 4 > >{{{-1, 1, -1, 0}, {-1, 0, 0, 0}, {-1,1,0,0}, {0,0,0,0},{0,1,-1,0},{0,0,-1,0}}};
+        }
+
     };
 
     template <>
@@ -559,14 +666,16 @@ namespace gridtools {
 
         GT_FUNCTION
         static return_t< array< uint_t, 4 > > get_index(array< uint_t, 3 > const &i) {
-            return return_t< array< uint_t, 4 > >{{
-                {i[0], 1, i[1] - 1, i[2]},
-                {i[0] - 1, 0, i[1], i[2]},
-                {i[0] - 1, 2, i[1], i[2]},
-                {i[0], 1, i[1], i[2]},
-                {i[0], 0, i[1], i[2]},
-                {i[0], 2, i[1] - 1, i[2]},
-            }};
+            using seq =
+                gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int, 6 >::type >;
+            return seq::template apply< return_t< array< uint_t, 4 > >, get_connectivity_offset< 0 >::get_element >(
+                i, offsets());
+        }
+
+        GT_FUNCTION
+        constexpr static return_t< array< int_t, 4 > > offsets() {
+            return return_t< array< int_t, 4 > >{
+                {{0, 1, -1, 0}, {-1, 0, 0, 0}, {-1, 2, 0, 0}, {0, 1, 0, 0}, {0, 0, 0, 0}, {0, 2, -1, 0}}};
         }
     };
 
@@ -587,9 +696,8 @@ namespace gridtools {
 
         const gridtools::array< uint_t, 2 > m_dims; // Sizes as cells in a multi-dimensional Cell array
 
-        using grid_meta_storages_t = boost::fusion::vector3< meta_storage_t< cells > ,
-            meta_storage_t< edges > ,
-            meta_storage_t< vertexes > >;
+        using grid_meta_storages_t =
+            boost::fusion::vector3< meta_storage_t< cells >, meta_storage_t< edges >, meta_storage_t< vertexes > >;
 
         grid_meta_storages_t m_virtual_storages;
 
@@ -615,11 +723,9 @@ namespace gridtools {
                       first_, vertexes::n_colors::value, second_ + 1, dims...})) {}
 
         __device__ icosahedral_topology(icosahedral_topology const &other)
-            : m_dims(other.m_dims),
-              m_virtual_storages(
-                  boost::fusion::at_c< cells::value >(other.m_virtual_storages),
-                  boost::fusion::at_c< edges::value >(other.m_virtual_storages),
-                  boost::fusion::at_c< vertexes::value >(other.m_virtual_storages)) {}
+            : m_dims(other.m_dims), m_virtual_storages(boost::fusion::at_c< cells::value >(other.m_virtual_storages),
+                                        boost::fusion::at_c< edges::value >(other.m_virtual_storages),
+                                        boost::fusion::at_c< vertexes::value >(other.m_virtual_storages)) {}
 
         GT_FUNCTION
         grid_meta_storages_t const &virtual_storages() const { return m_virtual_storages; }
