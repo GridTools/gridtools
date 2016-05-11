@@ -2,7 +2,7 @@ FILE(GLOB_RECURSE INC_ALL "../../include/stencil-composition/*.hpp")
 
 SET(STENCIL_COMPOSITION_UNITTEST_SOURCES ${INC_ALL})
 if ( ENABLE_CXX11 )
-  SET(STENCIL_COMPOSITION_UNITTEST_SOURCES ${STENCIL_COMPOSITION_UNITTEST_SOURCES} test-assign-placeholders.cpp test-unfold-independent.cpp test-unfold-all.cpp)
+  SET(STENCIL_COMPOSITION_UNITTEST_SOURCES ${STENCIL_COMPOSITION_UNITTEST_SOURCES} test-assign-placeholders.cpp )
 
   ## moved here since there is only one test
   add_executable(stencil_composition_tests ${STENCIL_COMPOSITION_UNITTEST_SOURCES})
