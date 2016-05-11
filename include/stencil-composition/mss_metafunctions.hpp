@@ -6,6 +6,7 @@
  */
 
 #pragma once
+#include <boost/mpl/equal.hpp>
 #include "functor_do_methods.hpp"
 #include "loopintervals.hpp"
 #include "functor_do_method_lookup_maps.hpp"
@@ -15,6 +16,9 @@
 #include "common/generic_metafunctions/is_sequence_of.hpp"
 #include "stencil-composition/caches/cache_metafunctions.hpp"
 #include "esf_metafunctions.hpp"
+#include "mss.hpp"
+#include "reductions/reduction_descriptor.hpp"
+#include "amss_descriptor.hpp"
 
 namespace gridtools {
 
@@ -23,19 +27,8 @@ namespace gridtools {
      * metafunction that determines if a given type is a valid parameter for mss_descriptor
      */
     template < typename T >
-    struct printi {
-        BOOST_MPL_ASSERT_MSG((false), YYYYYYYYYYYY, (T));
-    };
-    template < typename T >
-    struct testt {
-        printi< T > oi;
-    };
-
-    template < typename T >
     struct is_mss_parameter {
-
         typedef typename boost::mpl::or_< is_sequence_of< T, is_cache >, is_esf_descriptor< T > >::type type;
-        typedef typename boost::mpl::eval_if< type, boost::mpl::identity< boost::mpl::true_ >, testt< T > >::type OO;
     };
 
     /**
@@ -87,37 +80,19 @@ namespace gridtools {
             typename boost::mpl::copy_if< MssParameterSequence, boost::mpl::quote1< is_esf_descriptor > >::type type;
     };
 
+    template < typename Mss1, typename Mss2 >
+    struct mss_equal {
+        GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor< Mss1 >::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor< Mss2 >::value), "Error");
 
-    /** Takes a mpl::sequence of mss descriptors and put all the esf_descriptors
-        present and put them in a mpl::vector
-    */
-    template <typename MssDescriptors>
-    struct get_list_of_esfs {
-
-        template <typename CurrentVector, typename CurrentDescriptor>
-        struct populate_vector {
-            typedef typename unwrap_independent<
-                typename mss_descriptor_esf_sequence<CurrentDescriptor>::type
-                >::type esfs;
-
-            typedef typename boost::mpl::fold<
-                esfs,
-                CurrentVector,
-                boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>
-                >::type type;
-        };
-
-        template <typename CurrentVector, typename Descriptor1, typename Descriptor2, typename Cond>
-        struct populate_vector<CurrentVector,  condition<Descriptor1, Descriptor2, Cond> > {
-            typedef typename populate_vector<CurrentVector, Descriptor1>::type first_part;
-            typedef typename populate_vector<first_part, Descriptor2>::type type;
-        };
-
-        typedef typename boost::mpl::fold<
-            MssDescriptors,
-            boost::mpl::vector0<>,
-            populate_vector<boost::mpl::_1, boost::mpl::_2>
-            >::type type;
+        typedef static_bool< ((boost::is_same< typename mss_descriptor_execution_engine< Mss1 >::type,
+                                  typename mss_descriptor_execution_engine< Mss2 >::type >::value) &&
+                              (boost::mpl::equal< typename mss_descriptor_esf_sequence< Mss1 >::type,
+                                  typename mss_descriptor_esf_sequence< Mss2 >::type,
+                                  esf_equal< boost::mpl::_1, boost::mpl::_2 > >::value) &&
+                              (Mss1::is_reduction_t::value == Mss2::is_reduction_t::value) &&
+                              (boost::mpl::equal< typename mss_descriptor_cache_sequence< Mss1 >::type,
+                                  typename mss_descriptor_cache_sequence< Mss2 >::type >::value)) > type;
     };
 
 } // namespace gridtools

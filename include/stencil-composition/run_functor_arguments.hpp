@@ -18,6 +18,7 @@
 #include "stencil-composition/grid.hpp"
 #include "grid_traits.hpp"
 #include "backend_ids.hpp"
+#include "reductions/reduction_data.hpp"
 
 namespace gridtools {
 
@@ -29,7 +30,9 @@ namespace gridtools {
         typename CacheSequence,
         typename ProcessingElementsBlockSize,
         typename PhysicalDomainBlockSize,
-        typename Grid >
+        typename Grid,
+        bool IsReduction,
+        typename FunctorReturnType >
     struct iterate_domain_arguments {
         GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), "Iternal Error: wrong type");
@@ -49,6 +52,9 @@ namespace gridtools {
         typedef ProcessingElementsBlockSize processing_elements_block_size_t;
         typedef PhysicalDomainBlockSize physical_domain_block_size_t;
         typedef Grid grid_t;
+        static const bool s_is_reduction = IsReduction;
+        typedef static_bool< IsReduction > is_reduction_t;
+        typedef FunctorReturnType functor_return_type_t;
     };
 
     template < typename T >
@@ -62,7 +68,9 @@ namespace gridtools {
         typename CacheSequence,
         typename ProcessingElementsBlockSize,
         typename PhysicalDomainBlockSize,
-        typename Grid >
+        typename Grid,
+        bool IsReduction,
+        typename FunctorReturnType >
     struct is_iterate_domain_arguments< iterate_domain_arguments< BackendIds,
         LocalDomain,
         EsfSequence,
@@ -71,7 +79,9 @@ namespace gridtools {
         CacheSequence,
         ProcessingElementsBlockSize,
         PhysicalDomainBlockSize,
-        Grid > > : boost::mpl::true_ {};
+        Grid,
+        IsReduction,
+        FunctorReturnType > > : boost::mpl::true_ {};
 
     /**
      * @brief type that contains main metadata required to execute a mss kernel. This type will be passed to
@@ -94,7 +104,10 @@ namespace gridtools {
         typename IsIndependentSeq, // sequence of boolenans (one per functor), stating if it is contained in a
                                    // "make_independent" construct
         typename Grid,             // the grid
-        typename ExecutionEngine   // the execution engine
+        typename ExecutionEngine,  // the execution engine
+        bool IsReduction,          // boolean stating if the operation to be applied at mss is a reduction
+        typename ReductionData     // return type of functors of a mss: return type of reduction operations,
+                                   //        otherwise void
         >
     struct run_functor_arguments {
         GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Internal Error: invalid type");
@@ -105,6 +118,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_block_size< PhysicalDomainBlockSize >::value), "Internal Error: invalid type");
         GRIDTOOLS_STATIC_ASSERT(
             (is_sequence_of< EsfSequence, is_esf_descriptor >::value), "Internal Error: invalid type");
+        GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), "Internal Error: invalid type");
 
         typedef BackendIds backend_ids_t;
         typedef ProcessingElementsBlockSize processing_elements_block_size_t;
@@ -130,10 +144,15 @@ namespace gridtools {
                 CacheSequence,
                 ProcessingElementsBlockSize,
                 PhysicalDomainBlockSize,
-                Grid > >::type iterate_domain_t;
+                Grid,
+                IsReduction,
+                typename ReductionData::reduction_type_t > >::type iterate_domain_t;
         typedef Grid grid_t;
         typedef ExecutionEngine execution_type_t;
         static const enumtype::strategy s_strategy_id = backend_ids_t::s_strategy_id;
+        static const bool s_is_reduction = IsReduction;
+        typedef static_bool< IsReduction > is_reduction_t;
+        typedef ReductionData reduction_data_t;
     };
 
     template < typename T >
@@ -152,7 +171,9 @@ namespace gridtools {
         typename CacheSequence,
         typename IsIndependentSequence,
         typename Grid,
-        typename ExecutionEngine >
+        typename ExecutionEngine,
+        bool IsReduction,
+        typename ReductionData >
     struct is_run_functor_arguments< run_functor_arguments< BackendIds,
         ProcessingElementsBlockSize,
         PhysicalDomainBlockSize,
@@ -166,7 +187,9 @@ namespace gridtools {
         CacheSequence,
         IsIndependentSequence,
         Grid,
-        ExecutionEngine > > : boost::mpl::true_ {};
+        ExecutionEngine,
+        IsReduction,
+        ReductionData > > : boost::mpl::true_ {};
 
     /**
      * @brief type that contains main metadata required to execute an ESF functor. This type will be passed to
@@ -187,9 +210,11 @@ namespace gridtools {
         // global (to the mss) sequence_of_is_independent_t map (not local to the esf)
         typedef typename RunFunctorArguments::async_esf_map_t async_esf_map_t;
 
+        typedef typename RunFunctorArguments::is_reduction_t is_reduction_t;
         typedef typename index_to_level<
             typename boost::mpl::deref< typename boost::mpl::find_if< typename RunFunctorArguments::loop_intervals_t,
                 boost::mpl::has_key< interval_map_t, boost::mpl::_1 > >::type >::type::first >::type first_hit_t;
+        typedef typename RunFunctorArguments::reduction_data_t reduction_data_t;
     };
 
     template < typename T >

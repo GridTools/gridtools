@@ -88,9 +88,6 @@ namespace gridtools {
     template < typename T >
     struct is_extent< const T > : is_extent< T > {};
 
-    template < typename T >
-    struct undef_t;
-
     /**
      * Metafunction taking two extents and yielding a extent containing them
      */

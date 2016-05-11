@@ -27,8 +27,8 @@ namespace gridtools {
             : m_direction_i(i[minus], i[plus], i[begin], i[end], i[length]),
               m_direction_j(j[minus], j[plus], j[begin], j[end], j[length]) {}
 
-        __device__
-        grid_cg(grid_cg<Axis> const& other) : m_direction_i(other.m_direction_i), m_direction_j(other.m_direction_j) {}
+        __device__ grid_cg(grid_cg< Axis > const &other)
+            : m_direction_i(other.m_direction_i), m_direction_j(other.m_direction_j), value_list(other.value_list) {}
 
         GT_FUNCTION
         uint_t i_low_bound() const { return m_direction_i.begin(); }

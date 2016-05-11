@@ -39,13 +39,10 @@ namespace gridtools {
         using typename base_t::backend_traits_t;
         using typename base_t::strategy_traits_t;
 
-        static const enumtype::strategy s_strategy_id = base_t::s_strategy_id;
-        static const enumtype::platform s_backend_id = base_t::s_backend_id;
-
         // TODO storage and meta_storage have to be moved to backend_traits_from_id, that has to be templated with grid
         template < typename LocationType >
         using storage_info_t = typename base_t::template storage_info< LocationType::value,
-            typename icgrid::grid_traits_arch< s_backend_id >::layout_map_t >;
+            typename icgrid::grid_traits_arch< base_t::s_backend_id >::layout_map_t >;
 
         template < typename LocationType, typename ValueType >
         using storage_t = typename base_t::template storage_type< ValueType, storage_info_t< LocationType > >::type;

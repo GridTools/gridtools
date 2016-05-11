@@ -156,9 +156,9 @@ namespace horizontal_diffusion {
         auto
 #else
 #ifdef __CUDACC__
-        gridtools::computation *
+        gridtools::stencil *
 #else
-        boost::shared_ptr< gridtools::computation >
+        boost::shared_ptr< gridtools::stencil >
 #endif
 #endif
             simple_hori_diff = gridtools::make_computation< gridtools::BACKEND >(
@@ -166,7 +166,7 @@ namespace horizontal_diffusion {
                 grid,
                 gridtools::make_mss // mss_descriptor
                 (execute< forward >(),
-                    define_caches(cache< IJ, p_lap, local >()),
+                    define_caches(cache< IJ, local >(p_lap())),
                     gridtools::make_esf< wlap_function >(p_lap(), p_in(), p_crlato(), p_crlatu()), // esf_descriptor
                     gridtools::make_esf< divflux_function >(p_out(), p_in(), p_lap(), p_crlato(), p_coeff())));
 

@@ -13,8 +13,6 @@ namespace gridtools {
     template < int R >
     struct is_extent< extent< R > > : boost::mpl::true_ {};
 
-    template < typename T >
-    struct undef_t;
     /**
      * Metafunction taking two extents and yielding a extent containing them
      */

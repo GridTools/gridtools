@@ -1,8 +1,12 @@
-#include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
-#include <common/defs.hpp>
-#include <stencil-composition/stencil-composition.hpp>
-#include <tools/verifier.hpp>
+#include <boost/shared_ptr.hpp>
+
+#include "gtest/gtest.h"
+
+#include "common/defs.hpp"
+#include "stencil-composition/stencil-composition.hpp"
+#include "stencil-composition/make_computation.hpp"
+#include "tools/verifier.hpp"
 
 namespace test_cache_stencil {
 
@@ -26,15 +30,27 @@ struct functor1 {
 };
 
 struct functor2 {
-    typedef accessor<0, enumtype::in, extent<-1,1,-1,1> > in;
-    typedef accessor<1, enumtype::inout> out;
-    typedef boost::mpl::vector<in,out> arg_list;
+	typedef accessor<0, enumtype::in, extent<-1, 1, -1, 1> > in;
+	typedef accessor<1, enumtype::inout> out;
+	typedef boost::mpl::vector<in, out> arg_list;
 
-    template <typename Evaluation>
-    GT_FUNCTION
-    static void Do(Evaluation const & eval, x_interval) {
-        eval(out()) = (eval(in(-1,0,0)) + eval(in(1,0,0)) + eval(in(0,-1,0)) + eval(in(0,1,0))) / (float_type)4.0 ;
-    }
+	template <typename Evaluation>
+	GT_FUNCTION
+		static void Do(Evaluation const & eval, x_interval) {
+		eval(out()) = (eval(in(-1, 0, 0)) + eval(in(1, 0, 0)) + eval(in(0, -1, 0)) + eval(in(0, 1, 0))) / (float_type)4.0;
+	}
+};
+
+struct functor3 {
+	typedef accessor<0, enumtype::in> in;
+	typedef accessor<1, enumtype::inout> out;
+	typedef boost::mpl::vector<in, out> arg_list;
+
+	template <typename Evaluation>
+	GT_FUNCTION
+		static void Do(Evaluation const & eval, x_interval) {
+		eval(out()) = eval(in())+1;
+	}
 };
 
 #ifdef __CUDACC__
@@ -44,13 +60,14 @@ struct functor2 {
 #endif
 
 typedef layout_map<2,1,0> layout_ijk_t;
-    typedef gridtools::BACKEND::storage_type<float_type, gridtools::BACKEND::storage_info<0,layout_ijk_t> >::type storage_type;
-    typedef gridtools::BACKEND::temporary_storage_type<float_type, gridtools::BACKEND::storage_info<0,layout_ijk_t> >::type tmp_storage_type;
+typedef gridtools::BACKEND::storage_type<float_type, gridtools::BACKEND::storage_info<0,layout_ijk_t> >::type storage_type;
+typedef gridtools::BACKEND::temporary_storage_type<float_type, gridtools::BACKEND::storage_info<0,layout_ijk_t> >::type tmp_storage_type;
 
 typedef arg<0, storage_type> p_in;
 typedef arg<1, storage_type> p_out;
 typedef arg<2, tmp_storage_type> p_buff;
-
+typedef arg<3, tmp_storage_type> p_buff_2;
+typedef arg<4, tmp_storage_type> p_buff_3;
 }
 
 using namespace gridtools;
@@ -113,22 +130,22 @@ TEST_F(cache_stencil, ij_cache)
     auto
 #else
 #ifdef __CUDACC__
-        gridtools::computation*
+    gridtools::stencil*
 #else
-        boost::shared_ptr<gridtools::computation>
+    boost::shared_ptr<gridtools::stencil>
 #endif
 #endif
-        pstencil = make_computation<gridtools::BACKEND>
+    pstencil = make_computation<gridtools::BACKEND>
+    (
+        domain, m_grid,
+        make_mss // mss_descriptor
         (
-            domain, m_grid,
-            make_mss // mss_descriptor
-            (
-                execute<forward>(),
-                define_caches(cache<IJ, p_buff, local>()),
-                make_esf<functor1>(p_in(), p_buff())
-                , make_esf<functor1>(p_buff(), p_out())
-                )
-        );
+            execute<forward>(),
+            define_caches(cache<IJ, local>(p_buff())), 
+            make_esf<functor1>(p_in(), p_buff()), 
+            make_esf<functor1>(p_buff(), p_out())
+        )
+    );
 
     pstencil->ready();
 
@@ -175,9 +192,9 @@ TEST_F(cache_stencil, ij_cache_offset)
     auto
 #else
 #ifdef __CUDACC__
-    gridtools::computation*
+    gridtools::stencil*
 #else
-        boost::shared_ptr<gridtools::computation>
+        boost::shared_ptr<gridtools::stencil>
 #endif
 #endif
         pstencil = make_computation<gridtools::BACKEND>
@@ -186,7 +203,7 @@ TEST_F(cache_stencil, ij_cache_offset)
             make_mss // mss_descriptor
             (
                 execute<forward>(),
-                define_caches(cache<IJ, p_buff, local>()),
+                define_caches(cache<IJ, local>(p_buff())),
                 make_esf<functor1>(p_in(), p_buff()), // esf_descriptor
                 make_esf<functor2>(p_buff(), p_out()) // esf_descriptor
             )
@@ -211,5 +228,72 @@ TEST_F(cache_stencil, ij_cache_offset)
 #else
     verifier verif(1e-13, m_halo_size);
     ASSERT_TRUE(verif.verify(m_grid, ref, m_out));
+#endif
+}
+
+TEST_F(cache_stencil, multi_cache)
+{
+	SetUp();
+	typename storage_type::storage_info_type meta_(m_d1, m_d2, m_d3);
+	storage_type ref(meta_, 0.0, "ref");
+
+	for (int i = m_halo_size; i < m_d1 - m_halo_size; ++i)
+	{
+		for (int j = m_halo_size; j < m_d2 - m_halo_size; ++j)
+		{
+			for (int k = 0; k < m_d3; ++k)
+			{
+				ref(i, j, k) = (m_in(i,j,k)+4);
+			}
+		}
+	}
+
+	typedef boost::mpl::vector5<p_in, p_out, p_buff, p_buff_2, p_buff_3> accessor_list;
+	gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&m_in, &m_out));
+
+#ifdef CXX11_ENABLED
+	auto
+#else
+#ifdef __CUDACC__
+	gridtools::stencil*
+#else
+	boost::shared_ptr<gridtools::stencil>
+#endif
+#endif
+		stencil = make_computation<gridtools::BACKEND>
+		(
+			domain, m_grid,
+			make_mss // mss_descriptor
+			(
+				execute<forward>(),
+				//test if define_caches works properly with multiple vectors of caches.
+				//in this toy example two vectors are passed (IJ cache vector for p_buff 
+				//and p_buff_2, IJ cache vector for p_buff_3)
+				define_caches(cache<IJ, local>(p_buff(), p_buff_2()), cache<IJ, local>(p_buff_3())),
+				make_esf<functor3>(p_in(), p_buff()), // esf_descriptor
+				make_esf<functor3>(p_buff(), p_buff_2()), // esf_descriptor
+				make_esf<functor3>(p_buff_2(), p_buff_3()), // esf_descriptor
+				make_esf<functor3>(p_buff_3(), p_out()) // esf_descriptor
+			)
+		);
+	stencil->ready();
+
+	stencil->steady();
+
+	stencil->run();
+
+	stencil->finalize();
+
+#ifdef __CUDACC__
+	m_out.d2h_update();
+#endif
+
+#ifdef CXX11_ENABLED
+	verifier verif(1e-13);
+	array<array<uint_t, 2>, 3> halos{ { { m_halo_size,m_halo_size },{ m_halo_size,m_halo_size },{ m_halo_size,m_halo_size } } };
+	ASSERT_TRUE(verif.verify(m_grid, ref, m_out, halos));
+#else
+	verifier verif(1e-13, m_halo_size);
+	ASSERT_TRUE(verif.verify(m_grid, ref, m_out));
 #endif
 }

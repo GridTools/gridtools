@@ -45,10 +45,10 @@ typedef decltype(gridtools::make_esf<functor1>(p_buff(), p_out()) ) esf2_t;
 
 typedef boost::mpl::vector2<esf1_t, esf2_t> esf_sequence_t;
 
-typedef cache<IJ, p_in, fill> cache1_t;
-typedef cache<IJ, p_buff, fill> cache2_t;
-typedef cache<K, p_out, local> cache3_t;
-typedef cache<K, p_notin, local> cache4_t;
+typedef detail::cache_impl<IJ, p_in, fill> cache1_t;
+typedef detail::cache_impl<IJ, p_buff, fill> cache2_t;
+typedef detail::cache_impl<K, p_out, local> cache3_t;
+typedef detail::cache_impl<K, p_notin, local> cache4_t;
 typedef boost::mpl::vector4<cache1_t, cache2_t, cache3_t, cache4_t> caches_t;
 
 TEST(cache_metafunctions, cache_used_by_esfs)
@@ -79,9 +79,12 @@ TEST(cache_metafunctions, extract_extents_for_caches)
         extents_t,
         max_extent_t,
         caches_t,
-        block_size< 32, 4 >,
-        block_size< 32, 4 >,
-        gridtools::grid< axis > > iterate_domain_arguments_t;
+        block_size<32,4>,
+        block_size<32,4>,
+        gridtools::grid<axis>,
+        false,
+        notype
+    > iterate_domain_arguments_t;
 
     typedef extract_extents_for_caches<iterate_domain_arguments_t>::type extents_map_t;
 
@@ -117,9 +120,12 @@ TEST(cache_metafunctions, get_cache_storage_tuple)
         extents_t,
         max_extent_t,
         caches_t,
-        block_size< 32, 4 >,
-        block_size< 32, 4 >,
-        gridtools::grid< axis > > iterate_domain_arguments_t;
+        block_size<32,4>,
+        block_size<32,4>,
+        gridtools::grid<axis>,
+        false,
+        notype
+    > iterate_domain_arguments_t;
 
     typedef extract_extents_for_caches<iterate_domain_arguments_t>::type extents_map_t;
 

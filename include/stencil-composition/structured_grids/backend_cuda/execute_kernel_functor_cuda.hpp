@@ -52,7 +52,8 @@ namespace gridtools {
             __shared__ shared_iterate_domain_t shared_iterate_domain;
 
             // Doing construction of the ierate domain and assignment of pointers and strides
-            iterate_domain_t it_domain(*l_domain, block_size_i, block_size_j);
+            // for the moment reductions are not supported so that the initial value is 0
+            iterate_domain_t it_domain(*l_domain, 0, block_size_i, block_size_j);
 
             it_domain.set_shared_iterate_domain_pointer_impl(&shared_iterate_domain);
 
@@ -118,7 +119,7 @@ namespace gridtools {
                 i = blockIdx.x * block_size_t::i_size_t::value - padded_boundary_ + threadIdx.x % padded_boundary_;
                 j = blockIdx.y * block_size_t::j_size_t::value + threadIdx.x / padded_boundary_ +
                     max_extent_t::jminus::value;
-                iblock = -padded_boundary_ + threadIdx.x % padded_boundary_;
+                iblock = -padded_boundary_ + (int)threadIdx.x % padded_boundary_;
                 jblock = threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
             } else if (threadIdx.y < iplus_limit) {
                 const int padded_boundary_ = padded_boundary< max_extent_t::iplus::value >::value;
@@ -210,8 +211,6 @@ namespace gridtools {
                 }
 #endif
 
-                m_grid.clone_to_device();
-
                 local_domain_t *local_domain_gp = m_local_domain.gpu_object_ptr;
 
                 grid_t const *grid_gp = m_grid.gpu_object_ptr;
@@ -266,7 +265,9 @@ namespace gridtools {
                     typename RunFunctorArguments::cache_sequence_t,
                     typename RunFunctorArguments::async_esf_map_t,
                     typename RunFunctorArguments::grid_t,
-                    typename RunFunctorArguments::execution_type_t > run_functor_arguments_cuda_t;
+                    typename RunFunctorArguments::execution_type_t,
+                    RunFunctorArguments::is_reduction_t::value,
+                    typename RunFunctorArguments::reduction_data_t > run_functor_arguments_cuda_t;
 
 #ifdef VERBOSE
                 printf("ntx = %d, nty = %d, ntz = %d\n", ntx, nty, ntz);

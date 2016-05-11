@@ -35,6 +35,7 @@ endif()
 set(BOOST_FUSION_MAX_SIZE 20 CACHE STRING "max sizes of boost fusion containers" )
 add_definitions(-DFUSION_MAX_VECTOR_SIZE=${BOOST_FUSION_MAX_SIZE})
 add_definitions(-DFUSION_MAX_MAP_SIZE=${BOOST_FUSION_MAX_SIZE})
+#add_definitions(-DBOOST_NO_CXX11_RVALUE_REFERENCES)
 
 if(ENABLE_CXX11)
     add_definitions(-DBOOST_RESULT_OF_USE_TR1 -DBOOST_NO_CXX11_DECLTYPE)

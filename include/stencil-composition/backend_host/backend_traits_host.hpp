@@ -132,14 +132,19 @@ namespace gridtools {
             typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
 
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), "Internal Error: wrong type");
-            template < typename LocalDomain, typename Grid >
-            static void run(LocalDomain &local_domain, const Grid &grid, const uint_t bi, const uint_t bj) {
+            template < typename LocalDomain, typename Grid, typename ReductionData >
+            static void run(LocalDomain &local_domain,
+                const Grid &grid,
+                ReductionData &reduction_data,
+                const uint_t bi,
+                const uint_t bj) {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), "Internal Error: wrong type");
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), "Internal Error: wrong type");
 
                 // each strategy executes a different high level loop for a mss
                 strategy_from_id_host< backend_ids_t::s_strategy_id >::template mss_loop<
-                    RunFunctorArgs >::template run(local_domain, grid, bi, bj);
+                    RunFunctorArgs >::template run(local_domain, grid, reduction_data, bi, bj);
             }
         };
 

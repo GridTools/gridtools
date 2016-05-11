@@ -125,9 +125,9 @@ namespace gridtools {
         template < typename Grid >
         GT_FUNCTION static return_t< uint_t > get(Grid const &grid, array< uint_t, 3 > const &i) {
             return return_t< uint_t >{
-                boost::fusion::at_c< cells::value >(grid.virtual_storages())->index(get_index(i)[0]),
-                boost::fusion::at_c< cells::value >(grid.virtual_storages())->index(get_index(i)[1]),
-                boost::fusion::at_c< cells::value >(grid.virtual_storages())->index(get_index(i)[2])};
+                boost::fusion::at_c< cells::value >(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c< cells::value >(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c< cells::value >(grid.virtual_storages()).index(get_index(i)[2])};
         }
 
         static return_t< array< uint_t, 4 > > GT_FUNCTION get_index(array< uint_t, 3 > const &i) {
@@ -147,9 +147,9 @@ namespace gridtools {
         template < typename Grid >
         GT_FUNCTION static return_t< uint_t > get(Grid const &grid, array< uint_t, 3 > const &i) {
             return return_t< uint_t >{
-                boost::fusion::at_c< cells::value >(grid.virtual_storages())->index(get_index(i)[0]),
-                boost::fusion::at_c< cells::value >(grid.virtual_storages())->index(get_index(i)[1]),
-                boost::fusion::at_c< cells::value >(grid.virtual_storages())->index(get_index(i)[2])};
+                boost::fusion::at_c< cells::value >(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c< cells::value >(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c< cells::value >(grid.virtual_storages()).index(get_index(i)[2])};
         }
 
         GT_FUNCTION
@@ -170,12 +170,12 @@ namespace gridtools {
         template < typename Grid >
         GT_FUNCTION static return_t< uint_t > get(Grid const &grid, array< uint_t, 3 > const &i) {
             return return_t< uint_t >{
-                boost::fusion::at_c< vertexes::value >(grid.virtual_storages())->index(get_index(i)[0]),
-                boost::fusion::at_c< vertexes::value >(grid.virtual_storages())->index(get_index(i)[1]),
-                boost::fusion::at_c< vertexes::value >(grid.virtual_storages())->index(get_index(i)[2]),
-                boost::fusion::at_c< vertexes::value >(grid.virtual_storages())->index(get_index(i)[3]),
-                boost::fusion::at_c< vertexes::value >(grid.virtual_storages())->index(get_index(i)[4]),
-                boost::fusion::at_c< vertexes::value >(grid.virtual_storages())->index(get_index(i)[5])};
+                boost::fusion::at_c< vertexes::value >(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c< vertexes::value >(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c< vertexes::value >(grid.virtual_storages()).index(get_index(i)[2]),
+                boost::fusion::at_c< vertexes::value >(grid.virtual_storages()).index(get_index(i)[3]),
+                boost::fusion::at_c< vertexes::value >(grid.virtual_storages()).index(get_index(i)[4]),
+                boost::fusion::at_c< vertexes::value >(grid.virtual_storages()).index(get_index(i)[5])};
         }
 
         GT_FUNCTION
@@ -202,10 +202,10 @@ namespace gridtools {
         template < typename Grid >
         GT_FUNCTION static return_t< uint_t > get(Grid const &grid, array< uint_t, 3 > const &i) {
             return return_t< uint_t >{
-                boost::fusion::at_c< edges::value >(grid.virtual_storages())->index(get_index(i)[0]),
-                boost::fusion::at_c< edges::value >(grid.virtual_storages())->index(get_index(i)[1]),
-                boost::fusion::at_c< edges::value >(grid.virtual_storages())->index(get_index(i)[2]),
-                boost::fusion::at_c< edges::value >(grid.virtual_storages())->index(get_index(i)[3])};
+                boost::fusion::at_c< edges::value >(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c< edges::value >(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c< edges::value >(grid.virtual_storages()).index(get_index(i)[2]),
+                boost::fusion::at_c< edges::value >(grid.virtual_storages()).index(get_index(i)[3])};
         }
 
         GT_FUNCTION
@@ -228,10 +228,10 @@ namespace gridtools {
         template < typename Grid >
         GT_FUNCTION static return_t< uint_t > get(Grid const &grid, array< uint_t, 3 > const &i) {
             return return_t< uint_t >{
-                boost::fusion::at_c< edges::value >(grid.virtual_storages())->index(get_index(i)[0]),
-                boost::fusion::at_c< edges::value >(grid.virtual_storages())->index(get_index(i)[1]),
-                boost::fusion::at_c< edges::value >(grid.virtual_storages())->index(get_index(i)[2]),
-                boost::fusion::at_c< edges::value >(grid.virtual_storages())->index(get_index(i)[3])};
+                boost::fusion::at_c< edges::value >(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c< edges::value >(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c< edges::value >(grid.virtual_storages()).index(get_index(i)[2]),
+                boost::fusion::at_c< edges::value >(grid.virtual_storages()).index(get_index(i)[3])};
         }
 
         GT_FUNCTION
@@ -254,10 +254,10 @@ namespace gridtools {
         template < typename Grid >
         GT_FUNCTION static return_t< uint_t > get(Grid const &grid, array< uint_t, 3 > const &i) {
             return return_t< uint_t >{
-                boost::fusion::at_c< edges::value >(grid.virtual_storages())->index(get_index(i)[0]),
-                boost::fusion::at_c< edges::value >(grid.virtual_storages())->index(get_index(i)[1]),
-                boost::fusion::at_c< edges::value >(grid.virtual_storages())->index(get_index(i)[2]),
-                boost::fusion::at_c< edges::value >(grid.virtual_storages())->index(get_index(i)[3])};
+                boost::fusion::at_c< edges::value >(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c< edges::value >(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c< edges::value >(grid.virtual_storages()).index(get_index(i)[2]),
+                boost::fusion::at_c< edges::value >(grid.virtual_storages()).index(get_index(i)[3])};
         }
 
         GT_FUNCTION
@@ -278,9 +278,9 @@ namespace gridtools {
         template < typename Grid >
         GT_FUNCTION static return_t< uint_t > get(Grid const &grid, array< uint_t, 3 > const &i) {
             return return_t< uint_t >{
-                boost::fusion::at_c< edges::value >(grid.virtual_storages())->index(get_index(i)[0]),
-                boost::fusion::at_c< edges::value >(grid.virtual_storages())->index(get_index(i)[1]),
-                boost::fusion::at_c< edges::value >(grid.virtual_storages())->index(get_index(i)[2])};
+                boost::fusion::at_c< edges::value >(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c< edges::value >(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c< edges::value >(grid.virtual_storages()).index(get_index(i)[2])};
         }
 
         GT_FUNCTION
@@ -301,9 +301,9 @@ namespace gridtools {
         template < typename Grid >
         GT_FUNCTION static return_t< uint_t > get(Grid const &grid, array< uint_t, 3 > const &i) {
             return return_t< uint_t >{
-                boost::fusion::at_c< edges::value >(grid.virtual_storages())->index(get_index(i)[0]),
-                boost::fusion::at_c< edges::value >(grid.virtual_storages())->index(get_index(i)[1]),
-                boost::fusion::at_c< edges::value >(grid.virtual_storages())->index(get_index(i)[2])};
+                boost::fusion::at_c< edges::value >(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c< edges::value >(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c< edges::value >(grid.virtual_storages()).index(get_index(i)[2])};
         }
 
         GT_FUNCTION
@@ -324,9 +324,9 @@ namespace gridtools {
         template < typename Grid >
         GT_FUNCTION static return_t< uint_t > get(Grid const &grid, array< uint_t, 3 > const &i) {
             return return_t< uint_t >{
-                boost::fusion::at_c< vertexes::value >(grid.virtual_storages())->index(get_index(i)[0]),
-                boost::fusion::at_c< vertexes::value >(grid.virtual_storages())->index(get_index(i)[1]),
-                boost::fusion::at_c< vertexes::value >(grid.virtual_storages())->index(get_index(i)[2])};
+                boost::fusion::at_c< vertexes::value >(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c< vertexes::value >(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c< vertexes::value >(grid.virtual_storages()).index(get_index(i)[2])};
         }
 
         GT_FUNCTION
@@ -347,9 +347,9 @@ namespace gridtools {
         template < typename Grid >
         GT_FUNCTION static return_t< uint_t > get(Grid const &grid, array< uint_t, 3 > const &i) {
             return return_t< uint_t >{
-                boost::fusion::at_c< vertexes::value >(grid.virtual_storages())->index(get_index(i)[0]),
-                boost::fusion::at_c< vertexes::value >(grid.virtual_storages())->index(get_index(i)[1]),
-                boost::fusion::at_c< vertexes::value >(grid.virtual_storages())->index(get_index(i)[2])};
+                boost::fusion::at_c< vertexes::value >(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c< vertexes::value >(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c< vertexes::value >(grid.virtual_storages()).index(get_index(i)[2])};
         }
 
         GT_FUNCTION
@@ -370,8 +370,8 @@ namespace gridtools {
         template < typename Grid >
         GT_FUNCTION static return_t< uint_t > get(Grid const &grid, array< uint_t, 3 > const &i) {
             return return_t< uint_t >{
-                boost::fusion::at_c< cells::value >(grid.virtual_storages())->index(get_index(i)[0]),
-                boost::fusion::at_c< cells::value >(grid.virtual_storages())->index(get_index(i)[1])};
+                boost::fusion::at_c< cells::value >(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c< cells::value >(grid.virtual_storages()).index(get_index(i)[1])};
         }
 
         GT_FUNCTION
@@ -391,8 +391,8 @@ namespace gridtools {
         template < typename Grid >
         GT_FUNCTION static return_t< uint_t > get(Grid const &grid, array< uint_t, 3 > const &i) {
             return return_t< uint_t >{
-                boost::fusion::at_c< cells::value >(grid.virtual_storages())->index(get_index(i)[0]),
-                boost::fusion::at_c< cells::value >(grid.virtual_storages())->index(get_index(i)[1])};
+                boost::fusion::at_c< cells::value >(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c< cells::value >(grid.virtual_storages()).index(get_index(i)[1])};
         }
 
         GT_FUNCTION
@@ -412,8 +412,8 @@ namespace gridtools {
         template < typename Grid >
         GT_FUNCTION static return_t< uint_t > get(Grid const &grid, array< uint_t, 3 > const &i) {
             return return_t< uint_t >{
-                boost::fusion::at_c< cells::value >(grid.virtual_storages())->index(get_index(i)[0]),
-                boost::fusion::at_c< cells::value >(grid.virtual_storages())->index(get_index(i)[1])};
+                boost::fusion::at_c< cells::value >(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c< cells::value >(grid.virtual_storages()).index(get_index(i)[1])};
         }
 
         GT_FUNCTION
@@ -433,10 +433,10 @@ namespace gridtools {
         template < typename Grid >
         GT_FUNCTION static return_t< uint_t > get(Grid const &grid, array< uint_t, 3 > const &i) {
             return return_t< uint_t >{
-                boost::fusion::at_c< vertexes::value >(grid.virtual_storages())->index(get_index(i)[0]),
-                boost::fusion::at_c< vertexes::value >(grid.virtual_storages())->index(get_index(i)[1]),
-                boost::fusion::at_c< vertexes::value >(grid.virtual_storages())->index(get_index(i)[2]),
-                boost::fusion::at_c< vertexes::value >(grid.virtual_storages())->index(get_index(i)[3])};
+                boost::fusion::at_c< vertexes::value >(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c< vertexes::value >(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c< vertexes::value >(grid.virtual_storages()).index(get_index(i)[2]),
+                boost::fusion::at_c< vertexes::value >(grid.virtual_storages()).index(get_index(i)[3])};
         }
 
         GT_FUNCTION
@@ -461,10 +461,10 @@ namespace gridtools {
         template < typename Grid >
         GT_FUNCTION static return_t< uint_t > get(Grid const &grid, array< uint_t, 3 > const &i) {
             return return_t< uint_t >{
-                boost::fusion::at_c< vertexes::value >(grid.virtual_storages())->index(get_index(i)[0]),
-                boost::fusion::at_c< vertexes::value >(grid.virtual_storages())->index(get_index(i)[1]),
-                boost::fusion::at_c< vertexes::value >(grid.virtual_storages())->index(get_index(i)[2]),
-                boost::fusion::at_c< vertexes::value >(grid.virtual_storages())->index(get_index(i)[3])};
+                boost::fusion::at_c< vertexes::value >(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c< vertexes::value >(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c< vertexes::value >(grid.virtual_storages()).index(get_index(i)[2]),
+                boost::fusion::at_c< vertexes::value >(grid.virtual_storages()).index(get_index(i)[3])};
         }
 
         GT_FUNCTION
@@ -489,10 +489,10 @@ namespace gridtools {
         template < typename Grid >
         GT_FUNCTION static return_t< uint_t > get(Grid const &grid, array< uint_t, 3 > const &i) {
             return return_t< uint_t >{
-                boost::fusion::at_c< vertexes::value >(grid.virtual_storages())->index(get_index(i)[0]),
-                boost::fusion::at_c< vertexes::value >(grid.virtual_storages())->index(get_index(i)[1]),
-                boost::fusion::at_c< vertexes::value >(grid.virtual_storages())->index(get_index(i)[2]),
-                boost::fusion::at_c< vertexes::value >(grid.virtual_storages())->index(get_index(i)[3])};
+                boost::fusion::at_c< vertexes::value >(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c< vertexes::value >(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c< vertexes::value >(grid.virtual_storages()).index(get_index(i)[2]),
+                boost::fusion::at_c< vertexes::value >(grid.virtual_storages()).index(get_index(i)[3])};
         }
 
         GT_FUNCTION
@@ -517,12 +517,12 @@ namespace gridtools {
         template < typename Grid >
         GT_FUNCTION static return_t< uint_t > get(Grid const &grid, array< uint_t, 3 > const &i) {
             return return_t< uint_t >{
-                boost::fusion::at_c< cells::value >(grid.virtual_storages())->index(get_index(i)[0]),
-                boost::fusion::at_c< cells::value >(grid.virtual_storages())->index(get_index(i)[1]),
-                boost::fusion::at_c< cells::value >(grid.virtual_storages())->index(get_index(i)[2]),
-                boost::fusion::at_c< cells::value >(grid.virtual_storages())->index(get_index(i)[3]),
-                boost::fusion::at_c< cells::value >(grid.virtual_storages())->index(get_index(i)[4]),
-                boost::fusion::at_c< cells::value >(grid.virtual_storages())->index(get_index(i)[5])};
+                boost::fusion::at_c< cells::value >(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c< cells::value >(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c< cells::value >(grid.virtual_storages()).index(get_index(i)[2]),
+                boost::fusion::at_c< cells::value >(grid.virtual_storages()).index(get_index(i)[3]),
+                boost::fusion::at_c< cells::value >(grid.virtual_storages()).index(get_index(i)[4]),
+                boost::fusion::at_c< cells::value >(grid.virtual_storages()).index(get_index(i)[5])};
         }
 
         GT_FUNCTION
@@ -549,12 +549,12 @@ namespace gridtools {
         template < typename Grid >
         GT_FUNCTION static return_t< uint_t > get(Grid const &grid, array< uint_t, 3 > const &i) {
             return return_t< uint_t >{
-                boost::fusion::at_c< edges::value >(grid.virtual_storages())->index(get_index(i)[0]),
-                boost::fusion::at_c< edges::value >(grid.virtual_storages())->index(get_index(i)[1]),
-                boost::fusion::at_c< edges::value >(grid.virtual_storages())->index(get_index(i)[2]),
-                boost::fusion::at_c< edges::value >(grid.virtual_storages())->index(get_index(i)[3]),
-                boost::fusion::at_c< edges::value >(grid.virtual_storages())->index(get_index(i)[4]),
-                boost::fusion::at_c< edges::value >(grid.virtual_storages())->index(get_index(i)[5])};
+                boost::fusion::at_c< edges::value >(grid.virtual_storages()).index(get_index(i)[0]),
+                boost::fusion::at_c< edges::value >(grid.virtual_storages()).index(get_index(i)[1]),
+                boost::fusion::at_c< edges::value >(grid.virtual_storages()).index(get_index(i)[2]),
+                boost::fusion::at_c< edges::value >(grid.virtual_storages()).index(get_index(i)[3]),
+                boost::fusion::at_c< edges::value >(grid.virtual_storages()).index(get_index(i)[4]),
+                boost::fusion::at_c< edges::value >(grid.virtual_storages()).index(get_index(i)[5])};
         }
 
         GT_FUNCTION
@@ -587,9 +587,9 @@ namespace gridtools {
 
         const gridtools::array< uint_t, 2 > m_dims; // Sizes as cells in a multi-dimensional Cell array
 
-        using grid_meta_storages_t = boost::fusion::vector3< pointer<const meta_storage_t< cells > >,
-            pointer<const meta_storage_t< edges > >,
-            pointer<const meta_storage_t< vertexes > > >;
+        using grid_meta_storages_t = boost::fusion::vector3< meta_storage_t< cells > ,
+            meta_storage_t< edges > ,
+            meta_storage_t< vertexes > >;
 
         grid_meta_storages_t m_virtual_storages;
 
@@ -603,35 +603,23 @@ namespace gridtools {
         icosahedral_topology() = delete;
 
       public:
-        void clone_to_device() const {
-            boost::fusion::at_c< cells::value >(m_virtual_storages)->clone_to_device();
-            boost::fusion::at_c< edges::value >(m_virtual_storages)->clone_to_device();
-            boost::fusion::at_c< vertexes::value >(m_virtual_storages)->clone_to_device();
-
-            clonable_to_gpu< icosahedral_topology< Backend > >::clone_to_device();
-        }
         template < typename... UInt >
         GT_FUNCTION icosahedral_topology(uint_t first_, uint_t second_, UInt... dims)
             : m_dims{second_, first_},
-              m_virtual_storages(new meta_storage_t< cells >(array< uint_t, meta_storage_t< cells >::space_dimensions >{
+              m_virtual_storages(meta_storage_t< cells >(array< uint_t, meta_storage_t< cells >::space_dimensions >{
                                      first_, cells::n_colors::value, second_, dims...}),
-                  new meta_storage_t< edges >(array< uint_t, meta_storage_t< edges >::space_dimensions >{
+                  meta_storage_t< edges >(array< uint_t, meta_storage_t< edges >::space_dimensions >{
                       first_, edges::n_colors::value, second_, dims...}),
                   // here we assume by convention that the dual grid (vertexes) have one more grid point
-                  new meta_storage_t< vertexes >(array< uint_t, meta_storage_t< vertexes >::space_dimensions >{
+                  meta_storage_t< vertexes >(array< uint_t, meta_storage_t< vertexes >::space_dimensions >{
                       first_, vertexes::n_colors::value, second_ + 1, dims...})) {}
 
         __device__ icosahedral_topology(icosahedral_topology const &other)
             : m_dims(other.m_dims),
-              m_virtual_storages(boost::fusion::at_c< cells::value >(m_virtual_storages)->gpu_object_ptr,
-                  boost::fusion::at_c< edges::value >(m_virtual_storages)->gpu_object_ptr,
-                  boost::fusion::at_c< vertexes::value >(m_virtual_storages)->gpu_object_ptr) {}
-
-        ~icosahedral_topology() {
-            boost::fusion::at_c< cells::value >(m_virtual_storages).destroy();
-            boost::fusion::at_c< edges::value >(m_virtual_storages).destroy();
-            boost::fusion::at_c< vertexes::value >(m_virtual_storages).destroy();
-        }
+              m_virtual_storages(
+                  boost::fusion::at_c< cells::value >(other.m_virtual_storages),
+                  boost::fusion::at_c< edges::value >(other.m_virtual_storages),
+                  boost::fusion::at_c< vertexes::value >(other.m_virtual_storages)) {}
 
         GT_FUNCTION
         grid_meta_storages_t const &virtual_storages() const { return m_virtual_storages; }
@@ -640,7 +628,7 @@ namespace gridtools {
         template < typename LocationType, typename ValueType >
         GT_FUNCTION storage_t< LocationType, double > make_storage(char const *name) const {
             return storage_t< LocationType, ValueType >(
-                *(boost::fusion::at_c< LocationType::value >(m_virtual_storages)), name);
+                boost::fusion::at_c< LocationType::value >(m_virtual_storages), name);
         }
 
         template < typename LocationType >
@@ -657,7 +645,7 @@ namespace gridtools {
 
         template < typename LocationType >
         GT_FUNCTION int_t ll_offset(array< uint_t, 4 > const &i, LocationType) const {
-            return boost::fusion::at_c< LocationType::value >(m_virtual_storages)->index(i);
+            return boost::fusion::at_c< LocationType::value >(m_virtual_storages).index(i);
         }
 
         // methods returning the neighbors. Specializations according to the location type
@@ -682,17 +670,13 @@ namespace gridtools {
         GT_FUNCTION static
             typename return_type< typename from< cells >::template to< Location2 >, array< uint_t, 4 > >::type
                 neighbors_indices_3(array< uint_t, 4 > const &i, cells, Location2) {
-#ifdef _GRID_H_DEBUG
-            std::cout << "neighbors_indices_3 cells to " << Location2() << " " << i[0] << ", " << i[1] << ", " << i[2]
-                      << ", " << i[3] << std::endl;
-#endif
             switch (i[1] % cells::n_colors::value) {
             case 0:
                 return ll_map_index(cells(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
             case 1:
                 return ll_map_index(cells(), Location2(), static_int< 1 >(), {i[0], i[2], i[3]});
             default:
-                //                assert(false);
+                GTASSERT(false);
                 return typename return_type< typename from< cells >::template to< Location2 >,
                     array< uint_t, 4 > >::type();
             }
@@ -702,9 +686,6 @@ namespace gridtools {
         GT_FUNCTION static
             typename return_type< typename from< edges >::template to< Location2 >, array< uint_t, 4 > >::type
                 neighbors_indices_3(array< uint_t, 4 > const &i, edges, Location2) {
-#ifdef _GRID_H_DEBUG
-            std::cout << "neighbors_indices_3 edges edges " << i[0] << ", " << i[1] << ", " << i[2] << std::endl;
-#endif
             switch (i[1] % edges::n_colors::value) {
             case 0:
                 return ll_map_index(edges(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
@@ -716,7 +697,7 @@ namespace gridtools {
                 return ll_map_index(edges(), Location2(), static_int< 2 >(), {i[0], i[2], i[3]});
             // return edge2edges_ll_p2_indices({i[0], i[2]});
             default:
-                //                assert(false);
+                GTASSERT(false);
                 return typename return_type< typename from< edges >::template to< Location2 >,
                     array< uint_t, 4 > >::type();
             }
@@ -726,10 +707,6 @@ namespace gridtools {
         GT_FUNCTION static
             typename return_type< typename from< vertexes >::template to< Location2 >, array< uint_t, 4 > >::type
                 neighbors_indices_3(array< uint_t, 4 > const &i, vertexes, Location2) {
-#ifdef _GRID_H_DEBUG
-            std::cout << "neighbors_indices_3 vertexes to " << Location2() << " " << i[0] << ", " << i[1] << ", "
-                      << i[2] << ", " << i[3] << std::endl;
-#endif
             return ll_map_index(vertexes(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
         }
     };

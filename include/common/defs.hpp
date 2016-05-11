@@ -154,7 +154,7 @@ namespace gridtools {
     } // namespace enumtype
 
 #ifdef STRUCTURED_GRIDS
-#define GRIDBACKEND enumtype::grid_type::structured
+#define GRIDBACKEND enumtype::structured
 #else
 #define GRIDBACKEND icosahedral
 #endif
@@ -242,6 +242,10 @@ namespace gridtools {
 #else
 #error float precision not properly set (4 or 8 bytes supported)
 #endif
+
+    // define a gridtools notype for metafunctions that would return something like void
+    // but still to point to a real integral type so that it can be passed as argument to functions
+    typedef int notype;
 
 #ifdef CXX11_ENABLED
     using int_t = int;

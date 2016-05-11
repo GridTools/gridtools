@@ -37,10 +37,9 @@ struct boundary : clonable_to_gpu<boundary> {
 
 struct functor{
     typedef accessor<0, enumtype::inout, extent<0,0,0,0> > sol;
-    typedef accessor<1, enumtype::in, extent<0,0,0,0> > sol_;
-    typedef global_accessor<2, enumtype::inout> bd;
+    typedef global_accessor<1, enumtype::inout> bd;
 
-    typedef boost::mpl::vector<sol, sol_, bd> arg_list;
+    typedef boost::mpl::vector<sol, bd> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION
@@ -77,22 +76,21 @@ TEST(test_global_accessor, boundary_conditions) {
     coords_bc.value_list[1] = 1;
 
     typedef arg<0, storage_type> p_sol;
-    typedef arg<1, storage_type> p_sol_;
-    typedef arg<2, boundary> p_bd;
+    typedef arg<1, boundary> p_bd;
 
 #ifdef CXX11_ENABLED
-    domain_type<boost::mpl::vector<p_sol, p_sol_, p_bd> > domain ((p_sol() = sol_), (p_sol_() = sol__), (p_bd() = bd_));
+    domain_type<boost::mpl::vector<p_sol, p_bd> > domain ((p_sol() = sol_), (p_bd() = bd_));
 #else
-    //    domain_type<boost::mpl::vector<p_sol, p_bd> > domain ( boost::fusion::make_vector( &sol_, &bd_));
+    domain_type<boost::mpl::vector<p_sol, p_bd> > domain ( boost::fusion::make_vector( &sol_, &bd_));
 #endif
 
 #ifdef CXX11_ENABLED
     auto
 #else
 #ifdef __CUDACC__
-        computation*
+    stencil*
 #else
-        boost::shared_ptr<computation>
+        boost::shared_ptr<stencil>
 #endif
 #endif
         bc_eval = make_computation< backend_t >
@@ -101,7 +99,7 @@ TEST(test_global_accessor, boundary_conditions) {
             , make_mss
             (
                 execute<forward>(),
-                make_esf<functor>(p_sol(), p_sol_(), p_bd()))
+                make_esf<functor>(p_sol(), p_bd()))
             );
 
     bc_eval->ready();

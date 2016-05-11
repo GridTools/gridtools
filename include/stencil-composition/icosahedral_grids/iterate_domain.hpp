@@ -8,6 +8,7 @@
 #include "stencil-composition/iterate_domain_aux.hpp"
 #include "stencil-composition/icosahedral_grids/accessor_metafunctions.hpp"
 #include "on_neighbors.hpp"
+#include "../iterate_domain_fwd.hpp"
 
 namespace gridtools {
 
@@ -24,9 +25,6 @@ namespace gridtools {
             "Future releases will relax this restriction");
         typedef typename boost::mpl::front< location_type_set_t >::type type;
     };
-
-    template < typename IterateDomainImpl >
-    struct iterate_domain_backend_id;
 
     /**
        This class is basically the iterate domain. It contains the
