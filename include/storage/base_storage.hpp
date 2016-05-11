@@ -1,5 +1,6 @@
 #pragma once
 #include "../common/array.hpp"
+#include "../common/pointer.hpp"
 #include "base_storage_impl.hpp"
 #include "wrap_pointer.hpp"
 
@@ -46,7 +47,7 @@ namespace gridtools {
 		bool is_set;
 		const char *m_name;
 		array< pointer_type, field_dimensions > m_fields;
-		const MetaData* m_meta_data;
+		pointer< const MetaData > m_meta_data;
 
 	  public:
 		template < typename T, typename M, bool I, ushort_t F >
@@ -296,7 +297,7 @@ namespace gridtools {
 
 		/** @brief returns a const ref to the meta data field*/
 		GT_FUNCTION
-		const storage_info_type* meta_data() const { return m_meta_data; }
+		pointer< const storage_info_type> meta_data() const { return m_meta_data; }
 
 		void set_meta_data(const storage_info_type* st) {
 			m_meta_data = st;
