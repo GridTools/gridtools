@@ -536,6 +536,7 @@ namespace gridtools {
         typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
 
         typedef typename grid_traits_t::template select_init_map_of_extents<typename DomainType::placeholders>::type initial_map_of_placeholders;
+
         /* First we need to compute the association between placeholders and extents.
            This information is needed to allocate temporaries, and to provide the
            extent information to the user.
