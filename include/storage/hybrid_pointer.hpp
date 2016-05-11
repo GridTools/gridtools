@@ -36,6 +36,12 @@ namespace gridtools {
             allocate_it(m_size);
         }
 
+        explicit hybrid_pointer(T *p, bool externally_managed)
+            : m_gpu_p(NULL), m_cpu_p(p, externally_managed), m_pointer_to_use(p), m_size(1),
+              m_allocated(false), m_up_to_date(true) {
+            allocate_it(m_size);
+        }
+
         // GT_FUNCTION
         explicit hybrid_pointer(uint_t size, bool externally_managed = false)
             : m_gpu_p(NULL), m_cpu_p(size, externally_managed), m_pointer_to_use(m_cpu_p.get()), m_size(size),
@@ -297,6 +303,5 @@ namespace gridtools {
         bool m_allocated;
         bool m_up_to_date;
     };
-
 
 } // namespace gridtools

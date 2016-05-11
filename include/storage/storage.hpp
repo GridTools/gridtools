@@ -4,11 +4,11 @@
 #include <boost/mpl/identity.hpp>
 
 #include "data_field.hpp"
+#include "pointer_metafunctions.hpp"
 #ifdef _USE_GPU_
 #include "hybrid_pointer.hpp"
-#else
-#include "wrap_pointer.hpp"
 #endif
+#include "wrap_pointer.hpp"
 #ifdef CXX11_ENABLED
 #include "../common/generic_metafunctions/reverse_pack.hpp"
 #endif
@@ -89,18 +89,20 @@ namespace gridtools {
 		const static ushort_t field_dimensions = BaseStorage::field_dimensions;
 		const static ushort_t space_dimensions = BaseStorage::space_dimensions;
 		const static ushort_t n_width = BaseStorage::n_width;
-
-#ifdef _USE_GPU_
-		typedef hybrid_pointer< BaseStorage, false > storage_ptr_t;
-		#define INIT_STORAGE(BS, EXT) m_storage(BS, 1, EXT)
-		typedef hybrid_pointer< const storage_info_type, false > meta_data_ptr_t;
-		#define INIT_META_DATA(MD) m_meta_data(MD, 1, true)
-#else
-		typedef wrap_pointer< BaseStorage, false > storage_ptr_t;
-		#define INIT_STORAGE(BS, EXT) m_storage(BS, EXT)
-		typedef wrap_pointer< const storage_info_type, false > meta_data_ptr_t;
-		#define INIT_META_DATA(MD) m_meta_data(MD, true)
-#endif
+		// get the right pointer type to keep the base storage
+		typedef typename boost::mpl::if_<is_wrap_pointer<pointer_type>,
+			wrap_pointer< BaseStorage, false >,
+			typename boost::mpl::if_<is_hybrid_pointer<pointer_type>,
+				hybrid_pointer< BaseStorage, false>, boost::mpl::void_
+			>::type
+		>::type storage_ptr_t;
+		// get the right pointer type to keep the meta data 
+		typedef typename boost::mpl::if_<is_wrap_pointer<pointer_type>,
+			wrap_pointer< const storage_info_type, false >,
+			typename boost::mpl::if_<is_hybrid_pointer<pointer_type>,
+				hybrid_pointer< const storage_info_type, false>, boost::mpl::void_
+			>::type
+		>::type meta_data_ptr_t;
 
 	private:
 		storage_ptr_t m_storage;
@@ -247,26 +249,26 @@ namespace gridtools {
 		// forwarding constructor
 		template < class... ExtraArgs >
 		explicit storage(storage_info_type const &meta_data_, ExtraArgs const &... args)
-			: INIT_STORAGE(new BaseStorage(meta_data_, args...), false), INIT_META_DATA(&meta_data_), m_on_host(true) {}
+			: m_storage(new BaseStorage(meta_data_, args...), false), m_meta_data(&meta_data_, true), m_on_host(true) {}
 #else // CXX11_ENABLED
 
 		explicit storage(storage_info_type const &meta_data_, value_type const &init)
-			: INIT_STORAGE(new BaseStorage(meta_data_, init), false), INIT_META_DATA(&meta_data_), m_on_host(true) {}
+			: m_storage(new BaseStorage(meta_data_, init), false), m_meta_data(&meta_data_, true), m_on_host(true) {}
 
 		explicit storage(storage_info_type const &meta_data_, value_type const &init, const char* name)
-			: INIT_STORAGE(new BaseStorage(meta_data_, init, name), false), INIT_META_DATA(&meta_data_), m_on_host(true) {}
+			: m_storage(new BaseStorage(meta_data_, init, name), false), m_meta_data(&meta_data_, true), m_on_host(true) {}
 
 		template < typename Ret, typename T >
 		explicit storage(storage_info_type const &meta_data_, Ret(*func)(T const &, T const &, T const &))
-			: INIT_STORAGE(new BaseStorage(meta_data_, func), false), INIT_META_DATA(&meta_data_),  m_on_host(true) {}
+			: m_storage(new BaseStorage(meta_data_, func), false), m_meta_data(&meta_data_, true),  m_on_host(true) {}
 
 		template < class FloatType >
 		explicit storage(storage_info_type const &meta_data_, FloatType *arg)
-			: INIT_STORAGE(new BaseStorage(meta_data_, (FloatType *)arg), false), INIT_META_DATA(&meta_data_), m_on_host(true) {}
+			: m_storage(new BaseStorage(meta_data_, (FloatType *)arg), false), m_meta_data(&meta_data_, true), m_on_host(true) {}
 
 		template < class FloatType >
 		explicit storage(storage_info_type const &meta_data_, FloatType *arg, const char* name)
-			: INIT_STORAGE(new BaseStorage(meta_data_, (FloatType *)arg, name), false), INIT_META_DATA(&meta_data_), m_on_host(true) {}
+			: m_storage(new BaseStorage(meta_data_, (FloatType *)arg, name), false), m_meta_data(&meta_data_, true), m_on_host(true) {}
 
 #endif // CXX11_ENABLED
 
@@ -285,7 +287,7 @@ namespace gridtools {
             		return m_storage.get_pointer_to_use();
 		}
 
-		explicit storage(storage_info_type const &meta_data_) : INIT_STORAGE(new BaseStorage(meta_data_), false), INIT_META_DATA(&meta_data_), m_on_host(true) {}
+		explicit storage(storage_info_type const &meta_data_) : m_storage(new BaseStorage(meta_data_), false), m_meta_data(&meta_data_, true), m_on_host(true) {}
 
 
 		template < typename UInt >
