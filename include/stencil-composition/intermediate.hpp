@@ -533,7 +533,9 @@ namespace gridtools {
         typedef ConditionalsSet conditionals_set_t;
         typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
         typedef typename Backend::backend_ids_t backend_ids_t;
+        typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
 
+        typedef typename grid_traits_t::template select_init_map_of_extents<typename DomainType::placeholders>::type initial_map_of_placeholders;
         /* First we need to compute the association between placeholders and extents.
            This information is needed to allocate temporaries, and to provide the
            extent information to the user.
@@ -542,7 +544,7 @@ namespace gridtools {
         typename compute_extent_sizes<
             typename MssDescriptorArray::elements,
             backend_ids_t,
-            typename strgrid::init_map_of_extents<typename DomainType::placeholders>::type
+            initial_map_of_placeholders
             >::type extent_map_t;
 
         /* Second we need to associate an extent to each esf, so that
