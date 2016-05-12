@@ -3,18 +3,14 @@
  * the Python interface to the Gridtools library
  *
  */
-#pragma once
+#include <stencil-composition/make_computation.hpp>
 
-#include <gridtools.h>
-#include <stencil-composition/backend.h>
-#include <stencil-composition/make_computation.h>
-#include <stencil-composition/interval.h>
-#include "{{ fun_hdr_file }}"
+#include "{{ stg_hdr_file }}"
 
 
 
 #ifdef __CUDACC__
-#define BACKEND backend<Cuda, Naive >
+#define BACKEND backend<Cuda, Block >
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block >
@@ -39,13 +35,13 @@ using namespace enumtype;
 //
 extern "C"
 {
-    void run (uint_t dim1, uint_t dim2, uint_t dim3, 
-              {%- for p in params %}
-              float_type *{{ p.name }}_buff
-                  {%- if not loop.last -%}
-                  ,
-                  {%- endif -%}
-              {% endfor -%});
+    void run_{{ stencil_name }} (uint_t dim1, uint_t dim2, uint_t dim3,
+                      {%- for p in params %}
+                      float_type *{{ p.name }}_buff
+                          {%- if not loop.last -%}
+                          ,
+                          {%- endif -%}
+                      {% endfor -%});
 }
 
 
@@ -57,13 +53,13 @@ typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
 
 
-void run (uint_t d1, uint_t d2, uint_t d3,
-          {%- for p in params %}
-          float_type *{{ p.name }}_buff
-              {%- if not loop.last -%}
-              ,
-              {%- endif -%}
-          {% endfor -%})
+void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
+                      {%- for p in params %}
+                      float_type *{{ p.name }}_buff
+                          {%- if not loop.last -%}
+                          ,
+                          {%- endif -%}
+                      {% endfor -%})
 {
     //
     // C-like memory layout
@@ -73,21 +69,25 @@ void run (uint_t d1, uint_t d2, uint_t d3,
     //
     // define the storage unit used by the backend
     //
-    typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<float_type,
+                                             gridtools::storage_info<__COUNTER__, layout_t> >::type storage_type;
 
     {% if temps %}
     //
     // define a special data type for the temporary, i.e., intermediate buffers
     //
-    typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
+    typedef gridtools::BACKEND::temporary_storage_type<float_type,
+                                                       gridtools::storage_info<__COUNTER__, layout_t> >::type tmp_storage_type;
     {% endif -%}
 
     {% if params %}
     //
     // parameter data fields use the memory buffers received from NumPy arrays
     //
+    typename storage_type::meta_data_t meta_(d1, d2, d3);
+
     {% for p in params -%}
-    storage_type {{ p.name }} (d1, d2, d3,
+    storage_type {{ p.name }} (meta_,
                          (float_type *) {{ p.name }}_buff,
                           "{{ p.name }}");
     {% endfor %}
@@ -135,15 +135,15 @@ void run (uint_t d1, uint_t d2, uint_t d3,
     //   index of the last interior element,
     //   total number of elements in dimension }
     //
-    uint_t di_{{ loop.index0 }}[5] = { {{ s.halo[0] }},
-                     {{ s.halo[1] }},
-                     {{ s.halo[1] }},
-                     d1-{{ s.halo[0] }}-1,
+    uint_t di_{{ loop.index0 }}[5] = { {{ s.get_halo()[0] }},
+                     {{ s.get_halo()[1] }},
+                     {{ s.get_halo()[1] }},
+                     d1-{{ s.get_halo()[0] }}-1,
                      d1 };
-    uint_t dj_{{ loop.index0 }}[5] = { {{ s.halo[2] }},
-                     {{ s.halo[3] }},
-                     {{ s.halo[3] }},
-                     d2-{{ s.halo[2] }}-1,
+    uint_t dj_{{ loop.index0 }}[5] = { {{ s.get_halo()[2] }},
+                     {{ s.get_halo()[3] }},
+                     {{ s.get_halo()[3] }},
+                     d2-{{ s.get_halo()[2] }}-1,
                      d2 };
 
     //
@@ -162,34 +162,30 @@ void run (uint_t d1, uint_t d2, uint_t d3,
     // 3) the actual domain dimensions
     //
 #ifdef __CUDACC__
-    gridtools::computation* 
+    gridtools::computation*
 #else
-    boost::shared_ptr<gridtools::computation> 
+    boost::shared_ptr<gridtools::computation>
 #endif
+    {% set inside_independent_block = False %}
+
     comp_{{ s.name|lower }} =
-      gridtools::make_computation<gridtools::BACKEND, layout_t>
+      gridtools::make_computation<gridtools::BACKEND>
       (
             gridtools::make_mss
             (
-                execute<{{ s.k_direction }}>(),
-                {% if independent_functors[s.name]|length > 0 %}
-                gridtools::make_independent (
-                {% for f in independent_functors[s.name] -%}
+                execute<{{ s.get_k_direction() }}>(),
+                {% for f in stages[s.name] -%}
+                    {% if f.independent and not inside_independent_block -%}
+                        gridtools::make_independent (
+                        {% set inside_independent_block = True -%}
+                    {% endif -%}
+                    {% if not f.independent and inside_independent_block -%}
+                        ),
+                        {% set inside_independent_block = False -%}
+                    {% endif -%}
                     gridtools::make_esf<{{ f.name }}>(
-                       {{- f.scope.get_parameters ( )|join_with_prefix ('p_', attribute='name')|join ('(), ')|replace('.', '_') }}())
-                       {%- if not loop.last -%}
-                       ,
-                       {%- endif %}
-                {% endfor -%}
-                )
-                {%- endif -%}
-                {% for f in functors[s.name] -%}
-                    {%- if independent_functors[s.name]|length > 0 and loop.first -%}
-                    ,
-                    {%- endif %}
-                    gridtools::make_esf<{{ f.name }}>(
-                       {{- f.scope.get_parameters ( )|join_with_prefix ('p_', attribute='name')|join ('(), ')|replace('.', '_') }}())
-                       {%- if not loop.last -%}
+                       {{- f.scope.get_parameters ( )|join_with_prefix ('p_', attribute='name')|join ('(), ')|replace('.', '_') }}() )
+                       {%- if not (loop.index0 in independent_stage_idx or loop.last) -%}
                        ,
                        {%- endif %}
                 {% endfor -%}
@@ -207,7 +203,6 @@ void run (uint_t d1, uint_t d2, uint_t d3,
     {% for s in stencils -%}
     comp_{{ s.name|lower }}->steady();
     {% endfor %}
-    domain.clone_to_gpu ( );
     //
     // ... and execution
     //
@@ -222,3 +217,57 @@ void run (uint_t d1, uint_t d2, uint_t d3,
     {% endfor %}
 }
 
+
+
+
+/**
+ * A MAIN function for debugging purposes
+ *
+int main (int argc, char **argv)
+{
+    uint_t dim1 = 64;
+    uint_t dim2 = 64;
+    uint_t dim3 = 32;
+
+    {% for p in params -%}
+    float_type *{{ p.name }}_buff = (float_type *) malloc (dim1*dim2*dim3 * sizeof (float_type));
+    {% endfor -%}
+
+
+    // initialization
+    for (int i = 0; i<dim1; i++) {
+        for (int j = 0; j<dim2; j++) {
+            for (int k = 0; k<dim3; k++) {
+            {% for p in params -%}
+                {{ p.name }}_buff[i*dim3*dim2 + j*dim3 + k] = i*dim3*dim2 + j*dim3 + k;
+            {% endfor -%}
+            }
+        }
+    }
+
+    // execution
+    run (dim1, dim2, dim3,
+          {%- for p in params %}
+          {{ p.name }}_buff
+              {%- if not loop.last -%}
+              ,
+              {%- endif -%}
+          {% endfor -%});
+
+    // output
+    for (int i = 0; i<dim1; i++) {
+        for (int j = 0; j<dim2; j++) {
+            for (int k = 0; k<dim3; k++) {
+                    printf ("(%d,%d,%d)", i,j,k);
+                {% for p in params -%}
+                    printf ("\t%.5f", {{ p.name }}_buff[i*dim3*dim2 + j*dim3 + k]);
+                {% endfor -%}
+                    printf ("\n");
+            }
+            }
+    }
+
+
+    return EXIT_SUCCESS;
+}
+*/

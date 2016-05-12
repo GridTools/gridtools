@@ -1,66 +1,40 @@
+#include "gtest/gtest.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <fstream>
 
-#include <gridtools.h>
-#include <stencil-composition/backend.h>
-#include <stencil-composition/interval.h>
-#include <stencil-composition/make_computation.h>
+#include <gridtools.hpp>
+#include <stencil-composition/backend.hpp>
+#include <stencil-composition/interval.hpp>
+#include <stencil-composition/make_computation.hpp>
+#include <tools/verifier.hpp>
+#include "Options.hpp"
 
 /*! @file
-  @brief  This file shows an implementation of the "horizontal diffusion" stencil, similar to the one used in COSMO
-
-  Structure of the example:
-
-  There are quantities computed at compile-time, and others which are computed at run-time.
-  - Compile-time:
-  -# The multi-stage stencil (MSS), it consists in the set of stencil operators which have to be executed sequentially at each iteration of the model.
-  These stencil operations are implemented as functors, and define the Elementary Stencil Functions (ESF). We can thus assume that MSS is a vector of ESFs.
-  -# The Elementary Stencil Function (ESF) is a functor defining one operator (e.g. differential operator, the Laplacian in this case). \
-  It implements a templated method "Do" which performs the actual stencil operation.
-  -# accessor
-  - Run-time
-  -# The fields ("in" and "out" in this case) contain the values of a field on the grid. They live in the scope of the main function,
-  their pointers are passed when the domain is constructed
-  -# The global domain consists basically in the above mentioned fields ( accessed via a vector of pointers), and implements strategies to possibly
-  copy to/from the backend
-  -# The coordinates consist in the bounds for the loop over the spatial dimensions. They are stored in a struct which also implements a strategy
-  to possibly copy them to/from the backend.
+  @brief  This file shows an implementation of the "laplace" stencil, similar to the one used in COSMO
 */
-
+// [namespaces]
 using gridtools::level;
 using gridtools::accessor;
 using gridtools::range;
 using gridtools::arg;
 using gridtools::uint_t;
 using gridtools::int_t;
+// [namespaces]
 
-
-
-/**
-   @{
-*/
+// [intervals]
 /*!
   @brief This is the definition of the special regions in the "vertical" direction for the laplacian functor
   @tparam level is a struct containing two integers (a splitter and an offset) which identify a point on the vertical axis
 */
 typedef gridtools::interval<level<0,-1>, level<1,-1> > x_lap;
 /*!
-  @brief The same for the flux functor
-*/
-typedef gridtools::interval<level<0,-1>, level<1,-1> > x_flx;
-/*!
-  @brief The same for the output functor
-*/
-typedef gridtools::interval<level<0,-1>, level<1,-1> > x_out;
-/*!
   @brief This is the definition of the whole vertical axis
 */
 typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
-/**
-   @}
-*/
 
+// [intervals]
+// [functor]
 /**
    @brief structure containing the Laplacian-specific information.
 
@@ -96,9 +70,7 @@ struct lap_function {
     }
 };
 
-/**
-@{
-*/
+// [functor]
 
 /*!
  * @brief This operator is used for debugging only
@@ -109,31 +81,26 @@ std::ostream& operator<<(std::ostream& s, lap_function const) {
 }
 
 
+// [start_main]
     /// \brief  Main function
     /// \param  argc An integer argument count of the command line arguments
     /// \param  argv An argument vector of the command line arguments
     /// \return an integer 0 upon exit success
-int main(int argc, char** argv) {
+TEST(Laplace, test) {
 
-    if (argc != 4) {
-        std::cout << "Usage: laplacian_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields" << std::endl;
-        return 1;
-    }
+    uint_t d1 = Options::getInstance().m_size[0];
+    uint_t d2 = Options::getInstance().m_size[1];
+    uint_t d3 = Options::getInstance().m_size[2];
 
-    /**
-       The following steps are performed:
-
-       - Definition of the domain:
-    */
-    uint_t d1 = atoi(argv[1]); /** d1 cells in the x direction (horizontal)*/
-    uint_t d2 = atoi(argv[2]); /** d2 cells in the y direction (horizontal)*/
-    uint_t d3 = atoi(argv[3]); /** d3 cells in the z direction (vertical)*/
+    uint_t halo_size=2;
 
     using namespace gridtools;
     using namespace enumtype;
+// [start_main]
 
+// [backend]
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Naive>
+#define BACKEND backend<Cuda, Block>
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host, Block>
@@ -141,28 +108,30 @@ int main(int argc, char** argv) {
 #define BACKEND backend<Host, Naive>
 #endif
 #endif
+// [backend]
 
+// [layout_map]
     typedef gridtools::layout_map<0,1,2> layout_t;
+// [layout_map]
+
+// [storage_type]
     /**
        - definition of the storage type, depending on the BACKEND which is set as a macro. \todo find another strategy for the backend (policy pattern)?
     */
-    typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
-    /**
-    - definition of the temporary storage type, also depends on the backend
-    \todo unused here?
-    */
-    typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_t >::type tmp_storage_type;
+    typedef storage_info<0, layout_t> storage_info_t;
+    typedef gridtools::BACKEND::storage_type<float_type, storage_info_t >::type storage_type;
+// [storage_type]
 
-    std::ofstream file_i("full_in");
-    std::ofstream file_o("full_out");
-
+// [storage_initialization]
     /**
         - Instantiation of the actual data fields that are used for input/output
     */
-    storage_type in(d1,d2,d3,-1., "in");
-    storage_type out(d1,d2,d3,-7.3, "out");
-    out.print(file_i);
+    storage_info_t metadata_(d1,d2,d3);
+    storage_type in(metadata_, -1., "in");
+    storage_type out(metadata_, -7.3, "out");
+// [storage_initialization]
 
+// [placeholders]
     /**
        - Definition of placeholders. The order of them reflect the order the user will deal with them
        especially the non-temporary ones, in the construction of the domain.
@@ -176,7 +145,9 @@ int main(int argc, char** argv) {
        \todo I'm using mpl::vector, but the final API should look slightly simpler
     */
     typedef boost::mpl::vector<p_in, p_out> accessor_list;
+// [placeholders]
 
+// [domain_type]
     /**
        - Construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
        It must be noted that the only fields to be passed to the constructor are the non-temporary.
@@ -185,19 +156,23 @@ int main(int argc, char** argv) {
     */
        gridtools::domain_type<accessor_list> domain
         (boost::fusion::make_vector(&in, &out));
+// [domain_type]
 
+// [coords]
        /**
           - Definition of the physical dimensions of the problem.
           The coordinates constructor takes the horizontal plane dimensions,
           while the vertical ones are set according the the axis property soon after
        */
-       uint_t di[5] = {2, 2, 2, d1-2, d1};
-       uint_t dj[5] = {2, 2, 2, d2-2, d2};
+       uint_t di[5] = {halo_size, halo_size, halo_size, d1-halo_size, d1};
+       uint_t dj[5] = {halo_size, halo_size, halo_size, d2-halo_size, d2};
 
        gridtools::coordinates<axis> coords(di,dj);
        coords.value_list[0] = 0;
        coords.value_list[1] = d3;
+// [coords]
 
+// [computation]
        /*!
          - Here we do lot of stuff:
 
@@ -215,11 +190,11 @@ int main(int argc, char** argv) {
        */
 
 #ifdef __CUDACC__
-    computation* horizontal_diffusion =
+    computation* laplace =
 #else
-    boost::shared_ptr<gridtools::computation> horizontal_diffusion =
+    boost::shared_ptr<gridtools::computation> laplace =
 #endif
-      make_computation<gridtools::BACKEND, layout_t>
+      make_computation<gridtools::BACKEND>
         (
          make_mss //! \todo all the arguments in the call to make_mss are actually dummy.
          (
@@ -227,28 +202,21 @@ int main(int argc, char** argv) {
           make_esf<lap_function>(p_out(), p_in())//!  \todo elementary stencil function, also here the arguments are dummy.
           ),
          domain, coords);
+// [computation]
 
+// [ready_steady_run_finalize]
 /**
    @brief This method allocates on the heap the temporary variables
    this method calls heap_allocated_temps::prepare_temporaries(...). It allocates the memory for the list of ranges defined in the temporary placeholders (none).
  */
-    horizontal_diffusion->ready();
-
-    domain.storage_info<boost::mpl::int_<0> >();
-    domain.storage_info<boost::mpl::int_<1> >();
+    laplace->ready();
 
 /**
    @brief calls setup_computation and creates the local domains
    the constructors of the local domains get called (\ref gridtools::intermediate::instantiate_local_domain, which only initializes the dom public pointer variable)
    @note the local domains are allocated in the public scope of the \ref gridtools::intermediate struct, only the pointer is passed to the instantiate_local_domain struct
  */
-    horizontal_diffusion->steady();
-    printf("\n\n\n\n\n\n");
-/**
-   @brief in case GPUs are used calls a kernel on the GPU allocating space (with new)
-*/
-    domain.clone_to_gpu();
-    printf("CLONED\n");
+    laplace->steady();
 
 #ifndef CUDA_EXAMPLE
     boost::timer::cpu_timer time;
@@ -256,27 +224,56 @@ int main(int argc, char** argv) {
 /**
    Call to gridtools::intermediate::run, which calls Backend::run, does the actual stencil operations on the backend.
  */
-    horizontal_diffusion->run();
+    laplace->run();
 #ifndef CUDA_EXAMPLE
     boost::timer::cpu_times lapse_time = time.elapsed();
 #endif
 
-    horizontal_diffusion->finalize();
+    laplace->finalize();
 
-#ifdef CUDA_EXAMPLE
-    out.data().update_cpu();
+// [ready_steady_run_finalize]
+
+    // [generate reference]
+
+    storage_type ref(metadata_, -1., "ref");
+
+    for(size_t i=2; i != d1-2; ++i) {
+        for(size_t j=2; j != d2-2; ++j) {
+            for(size_t k=0; k != d3; ++k) {
+                ref(i,j,k) = 4*in(i,j,k) -
+                        (in(i+1,j,k) + in(i,j+1,k) +
+                         in(i-1, j, k) + in(i,j-1,k));
+            }
+        }
+    }
+
+    verifier verif(1e-9, halo_size);
+    bool result = verif.verify(out, ref);
+
+#ifdef BENCHMARK
+        std::cout << laplace->print_meter() << std::endl;
 #endif
 
-    //    in.print();
-    out.print();
-    out.print(file_o);
-    //    lap.print();
-
-#ifndef CUDA_EXAMPLE
-    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
-#endif
-     return 0;
+    ASSERT_TRUE(result);
 }
+
+int main(int argc, char** argv)
+{
+    // Pass command line arguments to googltest
+    ::testing::InitGoogleTest(&argc, argv);
+
+    if (argc != 4) {
+        printf( "Usage: laplace_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields\n" );
+        return 1;
+    }
+
+    for(int i=0; i!=3; ++i) {
+        Options::getInstance().m_size[i] = atoi(argv[i+1]);
+    }
+
+    return RUN_ALL_TESTS();
+}
+
 
 /**
 @}

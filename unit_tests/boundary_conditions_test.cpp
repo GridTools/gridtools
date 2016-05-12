@@ -1,15 +1,15 @@
-#include <gridtools.h>
-#include <common/halo_descriptor.h>
+#include <gridtools.hpp>
+#include "common/halo_descriptor.hpp"
 
 #ifdef __CUDACC__
-#include <boundary-conditions/apply_gpu.h>
+#include <boundary-conditions/apply_gpu.hpp>
 #else
-#include <boundary-conditions/apply.h>
+#include <boundary-conditions/apply.hpp>
 #endif
 
-#include <boundary-conditions/zero.h>
-#include <boundary-conditions/value.h>
-#include <boundary-conditions/copy.h>
+#include <boundary-conditions/zero.hpp>
+#include <boundary-conditions/value.hpp>
+#include <boundary-conditions/copy.hpp>
 
 using gridtools::direction;
 using gridtools::sign;
@@ -17,7 +17,7 @@ using gridtools::minus_;
 using gridtools::zero_;
 using gridtools::plus_;
 
-#include <stencil-composition/backend.h>
+#include "stencil-composition/backend.hpp"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -28,7 +28,7 @@ using namespace gridtools;
 using namespace enumtype;
 
 #ifdef __CUDACC__
-#define BACKEND backend<Cuda, Naive>
+#define BACKEND backend<Cuda, Block>
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend<Host , Block>
@@ -51,11 +51,11 @@ struct bc_basic {
 };
 
 #define SET_TO_ZERO                                     \
-    template <typename Direction, typename DataField0>  \
+    template <typename Direction, typename DataField0> \
     void operator()(Direction,                          \
                     DataField0 & data_field0,           \
                     uint_t i, uint_t j, uint_t k) const {        \
-        data_field0(i,j,k) = 0;                         \
+                        data_field0( i,j,k) = 0;        \
     }
 
 
@@ -76,7 +76,7 @@ struct bc_two {
     void operator()(Direction,
                     DataField0 & data_field0,
                     uint_t i, uint_t j, uint_t k) const {
-        data_field0(i,j,k) = 0;
+        data_field0( i,j,k) = 0;
     }
 
     template <sign I, sign J, sign K, typename DataField0>
@@ -135,10 +135,12 @@ bool basic() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, storage_info<0,layout_map<0,1,2> > >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3);
+
+    storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
+    storage_type in(meta_);
     in.allocate();
     in.initialize(-1);
     in.set_name("in");
@@ -151,44 +153,21 @@ bool basic() {
         }
     }
 
-#ifndef NDEBUG
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", in(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-#endif
-
     gridtools::array<gridtools::halo_descriptor, 3> halos;
     halos[0] = gridtools::halo_descriptor(1,1,1,d1-2,d1);
     halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    in.clone_to_gpu();
+    meta_.clone_to_device();
+    in.clone_to_device();
     in.h2d_update();
 
-    gridtools::boundary_apply_gpu<bc_basic>(halos, bc_basic()).apply(in);
+    gridtools::boundary_apply_gpu<bc_basic>(halos,  bc_basic()).apply(in);
 
     in.d2h_update();
 #else
-    gridtools::boundary_apply<bc_basic>(halos, bc_basic()).apply(in);
-#endif
-
-#ifndef NDEBUG
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", in(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
+    gridtools::boundary_apply<bc_basic>(halos,  bc_basic()).apply(in);
 #endif
 
     bool result = true;
@@ -264,7 +243,6 @@ bool basic() {
     }
 
     return result;
-
 }
 
 bool predicate() {
@@ -273,10 +251,12 @@ bool predicate() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, storage_info<0,layout_map<0,1,2> > >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3);
+
+    storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
+    storage_type in(meta_);
     in.allocate();
     in.initialize(-1);
     in.set_name("in");
@@ -290,25 +270,14 @@ bool predicate() {
         }
     }
 
-#ifndef NDEBUG
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", in(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-#endif
-
     gridtools::array<gridtools::halo_descriptor, 3> halos;
     halos[0] = gridtools::halo_descriptor(1,1,1,d1-2,d1);
     halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    in.clone_to_gpu();
+    meta_.clone_to_device();
+    in.clone_to_device();
     in.h2d_update();
 
     gridtools::boundary_apply_gpu<bc_basic, minus_predicate>(halos, bc_basic(), minus_predicate()).apply(in);
@@ -318,27 +287,12 @@ bool predicate() {
     gridtools::boundary_apply<bc_basic, minus_predicate>(halos, bc_basic(), minus_predicate()).apply(in);
 #endif
 
-#ifndef NDEBUG
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", in(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-#endif
-
     bool result = true;
 
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {
             for (uint_t k=0; k<1; ++k) {
                 if (in(i,j,k) != 0) {
-#ifndef NDEBUG
-                    printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                     result = false;
                 }
             }
@@ -349,9 +303,6 @@ bool predicate() {
         for (uint_t j=1; j<d2; ++j) {
             for (uint_t k=d3-1; k<d3; ++k) {
                 if (in(i,j,k) != i+j+k) {
-#ifndef NDEBUG
-                    printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                     result = false;
                 }
             }
@@ -362,9 +313,6 @@ bool predicate() {
         for (uint_t j=0; j<1; ++j) {
             for (uint_t k=0; k<d3; ++k) {
                 if (in(i,j,k) != 0) {
-#ifndef NDEBUG
-                    printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                     result = false;
                 }
             }
@@ -375,9 +323,6 @@ bool predicate() {
         for (uint_t j=d2-1; j<d2; ++j) {
             for (uint_t k=1; k<d3; ++k) {
                 if (in(i,j,k) != i+j+k) {
-#ifndef NDEBUG
-                    printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                     result = false;
                 }
             }
@@ -388,9 +333,6 @@ bool predicate() {
         for (uint_t j=0; j<d2; ++j) {
             for (uint_t k=0; k<d3; ++k) {
                 if (in(i,j,k) != 0) {
-#ifndef NDEBUG
-                    printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                     result = false;
                 }
             }
@@ -401,9 +343,6 @@ bool predicate() {
         for (uint_t j=1; j<d2; ++j) {
             for (uint_t k=1; k<d3; ++k) {
                 if (in(i,j,k) != i+j+k) {
-#ifndef NDEBUG
-                    printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                     result = false;
                 }
             }
@@ -414,9 +353,6 @@ bool predicate() {
         for (uint_t j=1; j<d2-1; ++j) {
             for (uint_t k=1; k<d3-1; ++k) {
                 if (in(i,j,k) != 0) {
-#ifndef NDEBUG
-                    printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                     result = false;
                 }
             }
@@ -433,10 +369,12 @@ bool twosurfaces() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, storage_info<0,layout_map<0,1,2> > >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3);
+
+    storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
+    storage_type in(meta_);
     in.allocate();
     in.initialize(-1);
     in.set_name("in");
@@ -449,25 +387,13 @@ bool twosurfaces() {
         }
     }
 
-#ifndef NDEBUG
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", in(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-#endif
-
     gridtools::array<gridtools::halo_descriptor, 3> halos;
     halos[0] = gridtools::halo_descriptor(1,1,1,d1-2,d1);
     halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    in.clone_to_gpu();
+    in.clone_to_device();
     in.h2d_update();
 
     gridtools::boundary_apply_gpu<bc_two>(halos, bc_two()).apply(in);
@@ -477,25 +403,12 @@ bool twosurfaces() {
     gridtools::boundary_apply<bc_two>(halos, bc_two()).apply(in);
 #endif
 
-#ifndef NDEBUG
-        for (uint_t i=0; i<d1; ++i) {
-            for (uint_t j=0; j<d2; ++j) {
-                for (uint_t k=0; k<d3; ++k) {
-                    printf("%d ", in(i,j,k));
-                }
-                printf("\n");
-            }
-            printf("\n");
-        }
-#endif
-
             bool result = true;
 
             for (uint_t i=0; i<d1; ++i) {
                 for (uint_t j=0; j<d2; ++j) {
                     for (uint_t k=0; k<1; ++k) {
                         if (in(i,j,k) != i+j+k+1) {
-                            printf("A %d %d %d %d\n", i,j,k, in(i,j,k));
                             result = false;
                         }
                     }
@@ -506,9 +419,6 @@ bool twosurfaces() {
                 for (uint_t j=1; j<d2; ++j) {
                     for (uint_t k=d3-1; k<d3; ++k) {
                         if (in(i,j,k) != 0) {
-#ifndef NDEBUG
-                            printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                             result = false;
                         }
                     }
@@ -519,9 +429,6 @@ bool twosurfaces() {
                 for (uint_t j=0; j<1; ++j) {
                     for (uint_t k=0; k<d3; ++k) {
                         if (in(i,j,k) != i+j+k+1) {
-#ifndef NDEBUG
-                            printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                             result = false;
                         }
                     }
@@ -532,9 +439,6 @@ bool twosurfaces() {
                 for (uint_t j=d2-1; j<d2; ++j) {
                     for (uint_t k=1; k<d3; ++k) {
                         if (in(i,j,k) != 0) {
-#ifndef NDEBUG
-                            printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                             result = false;
                         }
                     }
@@ -545,9 +449,6 @@ bool twosurfaces() {
                 for (uint_t j=1; j<d2; ++j) {
                     for (uint_t k=1; k<d3; ++k) {
                         if (in(i,j,k) != 0) {
-#ifndef NDEBUG
-                            printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                             result = false;
                         }
                     }
@@ -558,9 +459,6 @@ bool twosurfaces() {
                 for (uint_t j=1; j<d2; ++j) {
                     for (uint_t k=1; k<d3; ++k) {
                         if (in(i,j,k) != 0) {
-#ifndef NDEBUG
-                            printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                             result = false;
                         }
                     }
@@ -571,9 +469,6 @@ bool twosurfaces() {
                 for (uint_t j=1; j<d2-1; ++j) {
                     for (uint_t k=1; k<d3-1; ++k) {
                         if (in(i,j,k) != 1) {
-#ifndef NDEBUG
-                            printf("%d %d %d %d\n", i,j,k, in(i,j,k));
-#endif
                             result = false;
                         }
                     }
@@ -590,10 +485,12 @@ bool usingzero_1() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, storage_info<0,layout_map<0,1,2> > >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3);
+
+    storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
+    storage_type in(meta_);
     in.allocate();
     in.initialize(-1);
     in.set_name("in");
@@ -607,25 +504,13 @@ bool usingzero_1() {
         }
     }
 
-#ifndef NDEBUG
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", in(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-#endif
-
     gridtools::array<gridtools::halo_descriptor, 3> halos;
     halos[0] = gridtools::halo_descriptor(1,1,1,d1-2,d1);
     halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    in.clone_to_gpu();
+    in.clone_to_device();
     in.h2d_update();
 
     gridtools::boundary_apply_gpu<gridtools::zero_boundary>(halos).apply(in);
@@ -633,18 +518,6 @@ bool usingzero_1() {
     in.d2h_update();
 #else
     gridtools::boundary_apply<gridtools::zero_boundary>(halos).apply(in);
-#endif
-
-#ifndef NDEBUG
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", in(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
 #endif
 
     bool result = true;
@@ -729,14 +602,16 @@ bool usingzero_2() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, storage_info<0,layout_map<0,1,2> > >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3);
+
+    storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
+    storage_type in(meta_);
     in.allocate();
     in.initialize(-1);
     in.set_name("in");
-    storage_type out(d1,d2,d3);
+    storage_type out(meta_);
     out.allocate();
     out.initialize(-1);
     out.set_name("out");
@@ -750,26 +625,14 @@ bool usingzero_2() {
         }
     }
 
-#ifndef NDEBUG
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", in(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-#endif
-
     gridtools::array<gridtools::halo_descriptor, 3> halos;
     halos[0] = gridtools::halo_descriptor(1,1,1,d1-2,d1);
     halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    in.clone_to_gpu();
-    out.clone_to_gpu();
+    in.clone_to_device();
+    out.clone_to_device();
     in.h2d_update();
     out.h2d_update();
 
@@ -779,18 +642,6 @@ bool usingzero_2() {
     out.d2h_update();
 #else
     gridtools::boundary_apply<gridtools::zero_boundary>(halos).apply(in, out);
-#endif
-
-#ifndef NDEBUG
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", in(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
 #endif
 
     bool result = true;
@@ -897,13 +748,16 @@ bool usingvalue_2() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, storage_info<0,layout_map<0,1,2> > >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    storage_type in(d1,d2,d3);
+
+    storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
+    storage_type in(meta_);
+    in.allocate();
     in.initialize(-1);
     in.set_name("in");
-    storage_type out(d1,d2,d3);
+    storage_type out(meta_);
     out.allocate();
     out.initialize(-1);
     out.set_name("out");
@@ -917,26 +771,14 @@ bool usingvalue_2() {
         }
     }
 
-#ifndef NDEBUG
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", in(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-#endif
-
     gridtools::array<gridtools::halo_descriptor, 3> halos;
     halos[0] = gridtools::halo_descriptor(1,1,1,d1-2,d1);
     halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    in.clone_to_gpu();
-    out.clone_to_gpu();
+    in.clone_to_device();
+    out.clone_to_device();
     in.h2d_update();
     out.h2d_update();
 
@@ -946,18 +788,6 @@ bool usingvalue_2() {
     out.d2h_update();
 #else
     gridtools::boundary_apply<gridtools::value_boundary<int_t> >(halos, gridtools::value_boundary<int_t>(101)).apply(in, out);
-#endif
-
-#ifndef NDEBUG
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", in(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
 #endif
 
     bool result = true;
@@ -1063,18 +893,20 @@ bool usingcopy_3() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type<int_t, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, storage_info<0,layout_map<0,1,2> > >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    storage_type src(d1,d2,d3);
+
+    storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
+    storage_type src(meta_);
     src.allocate();
     src.initialize(-1);
     src.set_name("src");
-    storage_type one(d1,d2,d3);
+    storage_type one(meta_);
     one.allocate();
     one.initialize(-1);
     one.set_name("one");
-    storage_type two(d1,d2,d3);
+    storage_type two(meta_);
     two.allocate();
     two.initialize(-1);
     two.set_name("two");
@@ -1089,50 +921,17 @@ bool usingcopy_3() {
         }
     }
 
-#ifndef NDEBUG
-    std::cout << "src" << std::endl;
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", src(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-    std::cout << "one" << std::endl;
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", one(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-    std::cout << "two" << std::endl;
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", two(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-#endif
-
     gridtools::array<gridtools::halo_descriptor, 3> halos;
     halos[0] = gridtools::halo_descriptor(1,1,1,d1-2,d1);
     halos[1] = gridtools::halo_descriptor(1,1,1,d2-2,d2);
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    one.clone_to_gpu();
+    one.clone_to_device();
     one.h2d_update();
-    two.clone_to_gpu();
+    two.clone_to_device();
     two.h2d_update();
-    src.clone_to_gpu();
+    src.clone_to_device();
     src.h2d_update();
 
     gridtools::boundary_apply_gpu<gridtools::copy_boundary>(halos).apply(one, two, src);
@@ -1143,41 +942,15 @@ bool usingcopy_3() {
     gridtools::boundary_apply<gridtools::copy_boundary>(halos).apply(one, two, src);
 #endif
 
-#ifndef NDEBUG
-    std::cout << "OUTPUT" << std::endl;
-    std::cout << "one" << std::endl;
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", one(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-    std::cout << "two" << std::endl;
-    for (uint_t i=0; i<d1; ++i) {
-        for (uint_t j=0; j<d2; ++j) {
-            for (uint_t k=0; k<d3; ++k) {
-                printf("%d ", two(i,j,k));
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-#endif
-
     bool result = true;
 
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {
             for (uint_t k=0; k<1; ++k) {
                 if (one(i,j,k) != i+j+k) {
-                    std::cout << "1 one " << i << ", " << j << ", " << k << ": " << one(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
                 if (two(i,j,k) != i+j+k) {
-                    std::cout << "1 two " << i << ", " << j << ", " << k << ": " << two(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
             }
@@ -1188,11 +961,9 @@ bool usingcopy_3() {
         for (uint_t j=0; j<d2; ++j) {
             for (uint_t k=d3-1; k<d3; ++k) {
                 if (one(i,j,k) != i+j+k) {
-                    std::cout << "2 one " << i << ", " << j << ", " << k << ": " << one(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
                 if (two(i,j,k) != i+j+k) {
-                    std::cout << "2 two " << i << ", " << j << ", " << k << ": " << two(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
             }
@@ -1203,11 +974,9 @@ bool usingcopy_3() {
         for (uint_t j=0; j<1; ++j) {
             for (uint_t k=0; k<d3; ++k) {
                 if (one(i,j,k) != i+j+k) {
-                    std::cout << "3 one " << i << ", " << j << ", " << k << ": " << one(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
                 if (two(i,j,k) != i+j+k) {
-                    std::cout << "3 two " << i << ", " << j << ", " << k << ": " << two(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
             }
@@ -1218,11 +987,9 @@ bool usingcopy_3() {
         for (uint_t j=d2-1; j<d2; ++j) {
             for (uint_t k=0; k<d3; ++k) {
                 if (one(i,j,k) != i+j+k) {
-                    std::cout << "4 one " << i << ", " << j << ", " << k << ": " << one(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
                 if (two(i,j,k) != i+j+k) {
-                    std::cout << "4 two " << i << ", " << j << ", " << k << ": " << two(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
             }
@@ -1233,11 +1000,9 @@ bool usingcopy_3() {
         for (uint_t j=0; j<d2; ++j) {
             for (uint_t k=0; k<d3; ++k) {
                 if (one(i,j,k) != i+j+k) {
-                    std::cout << "5 one " << i << ", " << j << ", " << k << ": " << one(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
                 if (two(i,j,k) != i+j+k) {
-                    std::cout << "5 two " << i << ", " << j << ", " << k << ": " << two(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
             }
@@ -1248,11 +1013,9 @@ bool usingcopy_3() {
         for (uint_t j=0; j<d2; ++j) {
             for (uint_t k=0; k<d3; ++k) {
                 if (one(i,j,k) != i+j+k) {
-                    std::cout << "6 one " << i << ", " << j << ", " << k << ": " << one(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
                 if (two(i,j,k) != i+j+k) {
-                    std::cout << "6 two " << i << ", " << j << ", " << k << ": " << two(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
             }
@@ -1263,11 +1026,9 @@ bool usingcopy_3() {
         for (uint_t j=1; j<d2-1; ++j) {
             for (uint_t k=1; k<d3-1; ++k) {
                 if (one(i,j,k) != -1) {
-                    std::cout << "7 one " << i << ", " << j << ", " << k << ": " << one(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
                 if (two(i,j,k) != 0) {
-                    std::cout << "7 two " << i << ", " << j << ", " << k << ": " << two(i,j,k) << " != " << i+j+k << std::endl;
                     result = false;
                 }
             }
@@ -1275,5 +1036,4 @@ bool usingcopy_3() {
     }
 
     return result;
-
 }

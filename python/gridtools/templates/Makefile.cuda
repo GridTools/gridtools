@@ -12,10 +12,11 @@ endif
 
 #
 # compilers and their flags
-# 
+#
 NVCC 	  := $(CUDA)/bin/nvcc
 CXXFLAGS  := $(CXXFLAGS) -D_USE_GPU_ -D_GCL_GPU_
-NVCCFLAGS := -w -ccbin $(CXX) -m64 -DSUPPRESS_MESSAGES -DFLOAT_PRECISION=8 -DCXX11_DISABLE -DNVCC -Xcompiler ,\"-D_USE_GPU_\",\"-fopenmp\",\"-D_GCL_GPU_\",\"-O3\",\"-w\",\"-fPIC\",\"-DNDEBUG\" -Xcudafe --diag_suppress=dupl_calling_convention -Xcudafe --diag_suppress=code_is_unreachable -Xcudafe --diag_suppress=implicit_return_from_non_void_function -Xcudafe --diag_suppress=calling_convention_not_allowed -Xcudafe --diag_suppress=conflicting_calling_conventions
+NVCCFLAGS := -w -ccbin $(CXX) -m64 $(GTFLAGS) -DNVCC -Xcompiler ,\"-D_USE_GPU_\",\"-fopenmp\",\"-D_GCL_GPU_\",\"-O3\",\"-w\",\"-fPIC\",\"-DNDEBUG\" -Xcudafe --diag_suppress=dupl_calling_convention -Xcudafe --diag_suppress=code_is_unreachable -Xcudafe --diag_suppress=implicit_return_from_non_void_function -Xcudafe --diag_suppress=calling_convention_not_allowed -Xcudafe --diag_suppress=conflicting_calling_conventions
+#NVCCFLAGS := -w -G -ccbin $(CXX) -m64 $(GTFLAGS) -DNVCC -Xcompiler ,\"-D_USE_GPU_\",\"-fopenmp\",\"-D_GCL_GPU_\",\"-O0\",\"-w\",\"-fPIC\" -Xcudafe --diag_suppress=dupl_calling_convention -Xcudafe --diag_suppress=code_is_unreachable -Xcudafe --diag_suppress=implicit_return_from_non_void_function -Xcudafe --diag_suppress=calling_convention_not_allowed -Xcudafe --diag_suppress=conflicting_calling_conventions
 ifeq ($(UNAME_S),Linux)
   LIBRARIES := $(LIBRARIES) -rdynamic $(CUDA)/lib64/libcudart.$(LIBEXT)
 endif

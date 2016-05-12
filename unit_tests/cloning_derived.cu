@@ -1,16 +1,11 @@
+#include "gtest/gtest.h"
 #include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <iostream>
 #include <iomanip>
-#include <common/gpu_clone.h>
-#include <storage/hybrid_pointer.h>
+#include "common/gpu_clone.hpp"
+#include "storage/hybrid_pointer.hpp"
 
 using namespace gridtools;
-#define _BLABLA(y) #y
-#define BLABLA(z) _BLABLA(z:%d\n)
-#define SIZE(x) printf( BLABLA(x) , sizeof(x) );
-
 
 template <typename t_derived>
 struct base : public clonable_to_gpu<t_derived> {
@@ -45,28 +40,14 @@ struct derived: public base<derived<value_type> > {
 
 };
 
-__host__ __device__
-void printwhatever(derived<uint_t> * ptr) {
-    printf("Ecco %X ", ptr);
-    // printf("%d ", ptr->m_size);
-    // printf("%d ", ptr->data.size);
-    // printf("%X ", ptr->data.pointer_to_use);
-    printf("%X ", ptr->data.get_cpu_p());
-    printf("%X\n", ptr->data.get_gpu_p());
-    for (uint_t i = 0; i < ptr->data.get_size(); ++i) {
-#ifdef __CUDA_ARCH__
-        ptr->data[i]++;
-#endif
-        printf("%d, ", ptr->data[i]);
-    }
-    printf("\n");
-}
+class clone_derived_args : public ::testing::Test{
+public:
+    static uint_t s_buffer_size;   // example instance variable
 
-template <typename the_type>
-__global__
-void print_on_gpu(the_type * ptr) {
-    printwhatever(ptr);
-}
+    static void init(uint_t size){ s_buffer_size = size; }   // process argc and argv in this method, retaining such values as your test requires, as with myArgC above
+};
+
+uint_t clone_derived_args::s_buffer_size = 0;
 
 int main(int argc, char** argv) {
 
@@ -75,6 +56,7 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
+
     char *pend = 0;
     uint_t buffer_size = strtol(argv[1], &pend, 10);
     if(buffer_size == 0 || pend == 0 || *pend != '\0' || errno == ERANGE) {
@@ -82,65 +64,43 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
-    SIZE(uint_t);
-    SIZE(uint_t*);
-    SIZE(derived<uint_t>*);
-    SIZE(derived<uint_t>);
-    SIZE(base<derived<uint_t> >);
-    SIZE(hybrid_pointer<uint_t>);
+    ::testing::InitGoogleTest (&argc, argv);
+    clone_derived_args::init(buffer_size);
 
-    std::cout << "Initialize" << std::endl;
-    int_t res = EXIT_SUCCESS;
+    return RUN_ALL_TESTS();
+}
 
-    derived<uint_t> a(buffer_size);
+TEST_F(clone_derived_args, copy_tests)
+{
+    bool res = true;
+
+    derived<uint_t> a(s_buffer_size);
     for(uint_t i = 0; i < a.data.get_size(); ++i) {
-        if(a.data[i] != buffer_size - i)
-            res = EXIT_FAILURE;
+        if(a.data[i] != s_buffer_size - i)
+            res = false;
     }
 
-    a.clone_to_gpu();
+    a.clone_to_device();
     a.data.update_gpu();
 
-    std::cout << "Printing Beginning " << std::hex
-              << a.data.get_cpu_p() << " "
-              << a.data.get_gpu_p() << " "
-              // << a.data.pointer_to_use << " "
-              // << a.m_size << " "
-              // << a.data.size << " "
-              << std::dec
-              << std::endl;
-
-    printwhatever(&a);
     for(uint_t i = 0; i < a.data.get_size(); ++i) {
-        if(a.data[i] != buffer_size - i)
-            res = EXIT_FAILURE;
+        if(a.data[i] != s_buffer_size - i)
+           res = false;
     }
 
-    print_on_gpu<<<1,1>>>(a.gpu_object_ptr);
     for(uint_t i = 0; i < a.data.get_size(); ++i) {
-        if(a.data[i] != buffer_size - i)
-            res = EXIT_FAILURE;
+        if(a.data[i] != s_buffer_size - i)
+            res = false;
     }
 
-    std::cout << "Synchronize" << std::endl;
     cudaDeviceSynchronize();
-    a.clone_from_gpu();
+    a.clone_from_device();
     a.data.update_cpu();
 
-    printwhatever(&a);
     for(uint_t i = 0; i < a.data.get_size(); ++i) {
-        if(a.data[i] != buffer_size - i + 1)
-            res = EXIT_FAILURE;
+        if(a.data[i] != s_buffer_size - i)
+            res = false;
     }
 
-    std::cout << "Printing End " << std::hex
-              << a.data.get_cpu_p() << " "
-              << a.data.get_gpu_p() << " "
-              // << a.data.pointer_to_use << " "
-              // << a.m_size << " "
-              // << a.data.size << " "
-              << std::dec
-              << std::endl;
-
-    return res;
+    ASSERT_TRUE(res);
 }

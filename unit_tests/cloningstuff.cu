@@ -1,7 +1,7 @@
-#include <common/gpu_clone.h>
+#include "common/gpu_clone.hpp"
 #include <stdio.h>
 #include <string.h>
-#include <storage/hybrid_pointer.h>
+#include "storage/hybrid_pointer.hpp"
 #include <algorithm>
 
 #ifndef __CUDACC__
@@ -81,13 +81,13 @@ namespace cloningstuff_test {
         a.p.update_gpu();
 
         // Clone a (and b_object) to gpu
-        a.clone_to_gpu();
+        a.clone_to_device();
 
 #ifdef __CUDACC__
         test<<<1,1>>>(a.gpu_object_ptr);
         cudaDeviceSynchronize();
 #endif
-        a.clone_from_gpu();
+        a.clone_from_device();
 
         bool result = true;
 

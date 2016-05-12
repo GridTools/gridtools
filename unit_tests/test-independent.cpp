@@ -1,5 +1,5 @@
 #include <iostream>
-#include <common/host_device.h>
+#include "common/host_device.hpp"
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/range_c.hpp>
@@ -7,11 +7,8 @@
 #include <boost/mpl/if.hpp>
 #include <boost/mpl/push_back.hpp>
 #include <boost/mpl/lambda.hpp>
-#include <common/gt_assert.h>
-#include <stencil-composition/make_stencils.h>
-#include <stencil-composition/accessor.h>
-#include <stencil-composition/range.h>
-#include <stencil-composition/intermediate.h>
+#include "common/gt_assert.hpp"
+#include "stencil-composition/make_computation.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
@@ -177,16 +174,20 @@ struct print_ {
 template<typename MSS>
 void print_mss(MSS)
 {
-    boost::mpl::for_each<typename MSS::linear_esf>(print_independent(std::string(">")));
+    typedef typename mss_descriptor_linear_esf_sequence<MSS>::type linear_esf_t;
+
+    boost::mpl::for_each<linear_esf_t>(print_independent(std::string(">")));
 
     std::cout << std::endl;
 
-    boost::mpl::for_each<typename MSS::esf_array>(print_independent(std::string(">")));
+    typedef typename mss_descriptor_esf_sequence<MSS>::type esf_sequence_t;
+
+    boost::mpl::for_each<esf_sequence_t>(print_independent(std::string(">")));
 
     std::cout << std::endl;
 
     typedef typename boost::mpl::fold<
-        typename MSS::esf_array,
+        esf_sequence_t,
         boost::mpl::vector<>,
         _impl::traverse_ranges<boost::mpl::_1, boost::mpl::_2>
     >::type ranges_list;
@@ -194,7 +195,7 @@ void print_mss(MSS)
 
     std::cout << std::endl;
 
-	typedef typename _impl::prefix_on_ranges<ranges_list>::type prefix_ranges;
+    typedef typename _impl::prefix_on_ranges<ranges_list>::type prefix_ranges;
 
     // typedef typename boost::mpl::fold<
     //     ranges_list,
@@ -208,7 +209,8 @@ void print_mss(MSS)
 }
 
 int main() {
-    typedef base_storage<wrap_pointer<float_type>, gridtools::layout_map<0,1,2> > storage_type;
+
+    typedef base_storage<wrap_pointer<float_type>, storage_info<0, gridtools::layout_map<0,1,2> >, 1> storage_type;
 
     typedef arg<5, storage_type > p_lap;
     typedef arg<4, storage_type > p_flx;

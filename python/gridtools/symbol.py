@@ -14,7 +14,7 @@ class Symbol (object):
     """
     KINDS = (
         #
-        # the 'param' kind indicates a stencil and/or functor data-field parameter
+        # the 'param' kind indicates a stencil and/or stage data-field parameter
         #
         'param',
         #
@@ -28,7 +28,7 @@ class Symbol (object):
         'alias',
         #
         # the 'const' kind indicates a variable that may POTENTIALLY be
-        # replaced by a value. This may happen by inlining them after using 
+        # replaced by a value. This may happen by inlining them after using
         # runtime resolution
         #
         'const')
@@ -49,19 +49,22 @@ class Symbol (object):
         self.value = value
 
         #
-        # a range defines the extent of data accessed during stencil execution;
-        # its structure is defined like this:
+        # an access pattern defines the extent of data accessed during the
+        # execution of a stencil stage; its structure is defined as follows:
         #
-        #   (minimum index accessed in _i_, maximum index accessed in _i_, 
-        #    minimum index accessed in _j_, maximum index accessed in _j_)
+        #   (minimum negative index accessed in _i_,
+        #    maximum positive index accessed in _i_,
+        #    minimum negative index accessed in _j_,
+        #    maximum positive index accessed in _j_)
         #
-        self.range = None
+        self.access_pattern = None
 
         #
         # a flag indicating whether this symbol is read-only
         #
-        self.read_only = True
-        
+        self.read_only      = True
+
+
     def __eq__ (self, other):
         return self.__hash__ ( ) == other.__hash__ ( )
 
@@ -75,28 +78,33 @@ class Symbol (object):
         return self.name
 
 
-    def set_range (self, rng):
+    def set_access_pattern (self, offset):
         """
-        Sets or updates the range of this symbol.-
+        Sets or updates the access pattern of this symbol
+        :param offset: the pattern is defined as (access offset in 'i',
+                                                  access offset in 'j',
+                                                  access offset in 'k')
+        :raise IndexError: if the access pattern
+        :return:
         """
         try:
-            i, j, k = rng
+            i, j, k = offset
 
-            if self.range is None:
-                self.range = [0, 0, 0, 0]
+            if self.access_pattern is None:
+                self.access_pattern = [0, 0, 0, 0]
 
-            if self.range[0] > i:
-                self.range[0] = i
-            elif self.range[1] < i:
-                self.range[1] = i
+            if self.access_pattern[0] > i:
+                self.access_pattern[0] = i
+            elif self.access_pattern[1] < i:
+                self.access_pattern[1] = i
 
-            if self.range[2] > j:
-                self.range[2] = j
-            elif self.range[3] < j:
-                self.range[3] = j
+            if self.access_pattern[2] > j:
+                self.access_pattern[2] = j
+            elif self.access_pattern[3] < j:
+                self.access_pattern[3] = j
 
         except IndexError:
-            logging.error ("Range descriptor %s should be 3-dimensional" % rng)
+            logging.error ("Access-offset descriptor %s is invalid" % offset)
 
 
 
@@ -104,20 +112,24 @@ class SymbolInspector (ast.NodeVisitor):
     """
     Inspects the AST looking for known symbols.-
     """
-    def __init__ (self, scope):
-        self.scope         = scope
+    def __init__ (self):
+        self.scope         = None
         self.symbols_found = None
 
 
-    def search (self, node):
+    def search (self, node, scope):
         """
-        Returns a list of the symbols belonging to the current scope that are
-        found in the AST, the root of which is 'node'.-
+        Returns a list of symbols belonging to the current scope that are
+        found in the AST, the root of which is 'node'
+        :param node:  the AST node from where to start the search
+        :param scope: the scope of symbols
+        :return:      a set containing all the symbols found
         """
+        self.scope         = scope
         self.symbols_found = set ( )
         self.visit (node)
         return self.symbols_found
-        
+
 
     def visit_Attribute (self, node):
         """
@@ -143,7 +155,6 @@ class SymbolInspector (ast.NodeVisitor):
 
 
 
-
 class Scope (object):
     """
     Defines the scope within which a symbol is defined.-
@@ -151,16 +162,15 @@ class Scope (object):
     def __init__ (self):
         #
         # the symbol table is kept as a dict, i.e.:
-        # 
+        #
         #       A = (k=symbol name, v=symbol object)
-        # 
+        #
         self.symbol_table = dict ( )
-
         #
         # a data-dependency graph
         #
         #
-        self.depency_graph = nx.DiGraph ( )
+        self.data_dependency = nx.DiGraph ( )
 
 
     def __contains__ (self, name):
@@ -185,7 +195,7 @@ class Scope (object):
             known_symbol_name   name of the known symbol this alias refers to.-
         """
         if known_symbol_name is not None:
-            self.add_symbol (Symbol (name, 
+            self.add_symbol (Symbol (name,
                                      'alias',
                                      known_symbol_name))
             logging.debug ("Alias '%s' refers to '%s'" % (name,
@@ -220,19 +230,28 @@ class Scope (object):
 
     def add_dependency (self, left_symbol, right_symbol):
         """
-        Creates a dependency between 'left_symbol' and 'right_symbol'.-
+        Registers a data dependency between two symbols
+        :param left_symbol:  symbol appearing as LValue
+        :param right_symbol: symbol appearing as RValue
+        :raise ValueError:   if trying to add a dependency between non-existent
+                             symbols
+        :return:
         """
         if (left_symbol.name in self) and (right_symbol.name in self):
-            self.depency_graph.add_edge (left_symbol,
-                                         right_symbol)
+            self.data_dependency.add_edge (left_symbol,
+                                           right_symbol)
         else:
-            raise ValueError ("Trying to add a dependency between non-existent symbols")
+            raise ValueError ("Trying to add a data dependency between non-existent symbols")
 
 
     def add_dependencies (self, deps):
         """
         Adds a sequence of data dependencies, each of which must be given
-        as a 2-tuples of Symbols (u,v).-
+        as a 2-tuples of Symbols (u,v)
+        :param deps:       an iterable of Symbol pairs (s1, s2)
+        :raise ValueError: if trying to add a dependency between non-existent
+                           symbols
+        :return:
         """
         for d in deps:
             try:
@@ -251,7 +270,7 @@ class Scope (object):
 
 
     def add_parameter (self, name, value=None, read_only=True):
-        """ 
+        """
         Adds a parameter data field to this scope:
 
             name        the name of the parameter;
@@ -279,10 +298,12 @@ class Scope (object):
 
     def add_temporary (self, name, value=None):
         """
-        Adds a temporary data field to this scope:
-
-            name    name of the temporary data field;
-            value   its value (should be a NumPy array).-
+        Adds a temporary data field to this scope
+        :param name: the name of the temporary data field
+        :param value: the value of the temporary data field
+        :raise TypeError: if the given value is not a NumPy array
+        :raise ValueError: if the given value is None
+        :return:
         """
         if value is not None:
             if isinstance (value, np.ndarray):
@@ -290,10 +311,8 @@ class Scope (object):
                 # add the field as a temporary
                 #
                 self.add_symbol (Symbol (name, 'temp', value))
-                logging.debug ("Temporary field '%s' has dimension %s" % (name,
-                                                                         value.shape))
             else:
-                raise TypeError ("Temporary data field '%s' should be a NumPy array not '%s'" % 
+                raise TypeError ("Temporary data field '%s' should be a NumPy array not '%s'" %
                                  (name, type (value)))
         else:
             raise ValueError ("Temporary data field '%s' cannot be None" % name)
@@ -301,10 +320,10 @@ class Scope (object):
 
     def add_symbol (self, symbol):
         """
-        Adds the received 'symbol' to this scope.-
+        Adds or updated the received symbol in this scope
+        :param symbol: the Symbol object to add or update
+        :return:
         """
-        if symbol.name in self:
-            logging.debug ("Updated symbol '%s'" % symbol.name)
         self.symbol_table[symbol.name] = symbol
 
 
@@ -321,7 +340,7 @@ class Scope (object):
             except AttributeError:
                 val = str (v.value)
 
-            logging.debug ("\t[%s]\t(%s)\t%s: %s" % (k, 
+            logging.debug ("\t[%s]\t(%s)\t%s: %s" % (k,
                                                      v.kind,
                                                      v.name,
                                                      val))
@@ -335,7 +354,7 @@ class Scope (object):
 
 
     def is_constant (self, name):
-        """ 
+        """
         Returns True if symbol with 'name' is a constant.-
         """
         return name in [t.name for t in self.get_constants ( )]
@@ -349,7 +368,7 @@ class Scope (object):
 
 
     def is_temporary (self, name):
-        """ 
+        """
         Returns True if symbol 'name' is a temporary data field.-
         """
         return name in [t.name for t in self.get_temporaries ( )]
@@ -400,33 +419,243 @@ class Scope (object):
 
 
 
+
 class StencilScope (Scope):
     """
-    Stencil symbols are organized into scopes that alter the visibility 
-    of the variables defined in the stencil or any of its functors.
+    Stencil symbols are organized into scopes that alter the visibility
+    of the variables defined in the stencil or any of its stages.
     Basically, if a symbol is defined at stencil level, the stencil itself and
-    all its functors can access the it. If it is defined at functor level, it
-    is accesible within that functor only.-
+    all its stages can access it. If it is defined at stage level, it is
+    accesible only within that stage.-
     """
     def __init__ (self):
         super ( ).__init__ ( )
         #
-        # the scope of each stencil functor is kept as a dict, i.e.:
+        # a graph describing the execution path of the stages within the stencil
         #
-        #       A = (k=functor name, v=scope)
+        self.stage_execution = nx.DiGraph ( )
         #
-        self.functor_scopes = dict ( )
+        # the minimal required halo to correctly execute the stencil
+        #
+        self.minimum_halo    = None
+        #
+        # the stencil's source code
+        #
+        self.py_src          = None
 
 
-    def add_functor (self, funct_name):
+    def _resolve_params (self, stencil, **kwargs):
         """
-        Returns a new scope for keeping the functor's symbols:
-
-            funct_name  a unique name for the functor.-
+        Attempts to aquire more information about the discovered parameters
+        using runtime information from the user's stencil
+        :param stencil: the user's stencil instance
+        :return:
         """
-        if funct_name not in self.functor_scopes.keys ( ):
-            self.functor_scopes[funct_name] = Scope ( )
+        for k,v in kwargs.items ( ):
+            if self.is_parameter (k):
+                if isinstance (v, np.ndarray):
+                    #
+                    # update the value of this parameter
+                    #
+                    self.add_parameter (k,
+                                        v,
+                                        read_only=self[k].read_only)
+                    #
+                    #
+                    # check the dimensions of different parameters match
+                    #
+                    if stencil.domain is None:
+                        stencil.domain = v.shape
+                    elif stencil.domain != v.shape:
+                        logging.warning ("Dimensions of parameter '%s':%s do not match %s" %
+                                        (k, v.shape, stencil.domain))
+                else:
+                    logging.warning ("Parameter '%s' is not a NumPy array" % k)
+
+
+    def add_stage (self, node, prefix='', suffix=''):
+        """
+        Adds a Stage object to this stencil's scope
+        :param node:   the For AST node of the comprehention from which
+                       the stage is constructed
+        :param prefix: prefix to add to the stage's name
+        :param suffix: suffix to add to the stage's name
+        :return:       the corresponding Stage object
+        """
+        from gridtools.stage import Stage
+
+        stage_name = '%s_%s_%03d' % (prefix,
+                                     suffix,
+                                     len (self.stage_execution))
+        stage_obj  = Stage (stage_name,
+                            node,
+                            self)
+        if stage_obj not in self.stage_execution:
+            #
+            # update the stage execution path
+            #
+            if len (self.stage_execution) == 0:
+                self.stage_execution.add_node (stage_obj)
+            else:
+                postorder = nx.topological_sort (self.stage_execution,
+                                                 reverse=True)
+                self.stage_execution.add_edge (postorder[0],
+                                               stage_obj)
+            logging.debug ("Stage '%s' created" % stage_name)
         else:
-            logging.warning ("Functor '%s' already exists in symbol table.-" % funct_name)
-        return self.functor_scopes[funct_name]
+            stage_obj = nx.nodes (self.stage_execution).index (stage_obj)
+            logging.warning ("Stage '%s' already exists in the stencil scope" % stage_name)
+        return stage_obj
+
+
+    def build_execution_path (self):
+        """
+        Analyzes the stages within this stencil scope and builds a graph
+        representing their execution path
+        :return:
+        """
+        leaves              = []
+        new_stage_execution = nx.DiGraph ( )
+        for stg in nx.topological_sort (self.stage_execution):
+            new_stage_execution.add_node (stg)
+            if stg.independent:
+                #
+                # adding independent stage
+                #
+                if len (leaves) == 1:
+                    if not leaves[0].independent:
+                        new_stage_execution.add_edge (leaves[0], stg)
+                        leaves.clear ( )
+                    else:
+                        for pred in new_stage_execution.predecessors (leaves[0]):
+                            new_stage_execution.add_edge (pred, stg)
+                elif len (leaves) > 1:
+                    for l in leaves:
+                        assert (l.independent)
+            else:
+                #
+                # adding NON independent stage
+                #
+                if len (leaves) > 0:
+                    for l in leaves:
+                        new_stage_execution.add_edge (l, stg)
+                    leaves.clear ( )
+            leaves.append (stg)
+        #
+        # save the newly built execution path
+        #
+        self.stage_execution = new_stage_execution
+        #
+        # ... and update the ghost-cell access pattern
+        #
+        self.update_ghost_cell ( )
+
+
+    def check_stage_execution_path (self):
+        """
+        Runs various checks over the topology of the stage-execution graph
+        :raise ValueError: if the last stage of the stencil is independent
+        :return:
+        """
+        #
+        # make sure the last stage is non-independent
+        #
+        correct = False
+        for stg in nx.topological_sort (self.stage_execution,
+                                        reverse=True):
+            if not stg.independent:
+                correct = correct or (len (self.stage_execution.successors (stg)) == 0)
+        if correct:
+            logging.info ("The stage-execution path looks valid")
+        else:
+            raise ValueError ("The last stage of stencil '%s' cannot be independent" % stencil.name)
+
+    def runtime_analysis (self, stencil, **kwargs):
+        """
+        Attempts to aquire more information about the discovered symbols
+        using runtime information of the user's stencil instance
+        :param stencil:    the user's stencil instance
+        :param kwargs:     the parameters passed to the stencil for execution
+        :raise ValueError: if the last stage is independent, which is an invalid
+                           stencil
+        :return:
+        """
+        for s in self.get_all ( ):
+            #
+            # unresolved symbols have 'None' as their value
+            #
+            if s.value is None:
+                #
+                # is this a stencil's attribute?
+                #
+                if 'self' in s.name:
+                    attr    = s.name.split ('.')[1]
+                    s.value = getattr (stencil, attr, None)
+
+                    #
+                    # NumPy arrays are considered temporary data fields
+                    #
+                    if isinstance (s.value, np.ndarray):
+                        #
+                        # update the symbol table in this scope
+                        #
+                        self.add_temporary (s.name,
+                                            s.value)
+                    else:
+                        self.add_constant (s.name,
+                                           s.value)
+        #
+        # resolve the stencil parameters as scope symbols
+        #
+        self._resolve_params (stencil,
+                              **kwargs)
+
+
+    def update_ghost_cell (self):
+        """
+        Updates the ghost-cell access pattern of each stage of the stencil, the
+        shape of which is based on the access patterns of their data fields
+        :return:
+        """
+        all_stgs = nx.topological_sort (self.stage_execution,
+                                        reverse=True)
+        #
+        # first, reset all ghost cells
+        #
+        for stg in all_stgs:
+            stg.ghost_cell = None
+        #
+        # now start calculating them from the leaves ...
+        #
+        for stg in all_stgs:
+            if len (self.stage_execution.successors (stg)) == 0:
+                stg.ghost_cell = [0,0,0,0]
+        #
+        # ... towards the root
+        #
+        for stg in all_stgs:
+            if stg.ghost_cell is None:
+                succs = self.stage_execution.successors (stg)
+                assert (len (succs) > 0)
+                stg.ghost_cell = list (succs[0].ghost_cell)
+                for suc in succs:
+                    add_ghost = suc.scope.get_ghost_cell ( )
+                    for idx in range (len (stg.ghost_cell)):
+                        stg.ghost_cell[idx] += add_ghost[idx]
+        if __debug__:
+            for stg in all_stgs:
+                logging.debug ("Stage '%s' has ghost cell %s" % (stg.name,
+                                                                 stg.ghost_cell))
+        #
+        # calculate the minimum required halo
+        #
+        first_stg         = all_stgs[-1]
+        self.minimum_halo = list (first_stg.ghost_cell)
+        add_ghost         = first_stg.scope.get_ghost_cell ( )
+        for idx in range (len (self.minimum_halo)):
+            self.minimum_halo[idx] += add_ghost[idx]
+        for idx in range (len (self.minimum_halo)):
+            if self.minimum_halo[idx] < 0:
+                self.minimum_halo[idx] *= -1
+        logging.debug ("Minimum required halo is %s" % self.minimum_halo)
 

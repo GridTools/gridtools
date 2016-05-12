@@ -1,1 +1,0 @@
-{% extends "Makefile.base" %}

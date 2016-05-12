@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
-#include <common/gpu_clone.h>
-#include <storage/hybrid_pointer.h>
+#include "common/gpu_clone.hpp"
+#include "storage/hybrid_pointer.hpp"
 
 using gridtools::uint_t;
 using gridtools::int_t;
@@ -49,7 +49,7 @@ bool test_hybrid_pointer() {
         a.p[i] = i;
 
     a.p.update_gpu();
-    a.clone_to_gpu();
+    a.clone_to_device();
 
     reverse<<<1,1>>>(a.gpu_object_ptr, n);
 

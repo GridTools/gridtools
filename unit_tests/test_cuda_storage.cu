@@ -10,24 +10,24 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
-#include <common/gpu_clone.h>
-#include <storage/hybrid_pointer.h>
-#include <stencil-composition/backend.h>
-#include <common/layout_map.h>
-#include <common/defs.h>
-#include <stencil-composition/backend.h>
+#include "common/gpu_clone.hpp"
+#include "storage/hybrid_pointer.hpp"
+#include "stencil-composition/backend.hpp"
+#include "common/layout_map.hpp"
+#include "common/defs.hpp"
+#include "stencil-composition/backend.hpp"
 
 using gridtools::uint_t;
 using gridtools::int_t;
 
 #ifdef __CUDACC__
-template <typename T>
+template <typename T, typename U>
 __global__
-void add_on_gpu(T * ptr, uint_t d1, uint_t d2, uint_t d3) {
+void add_on_gpu(U* meta, T * ptr, uint_t d1, uint_t d2, uint_t d3) {
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                (*ptr)(i,j,k) = -i-j-k;
+                ptr->fields_view()[0][meta->index(i,j,k)] = -i-j-k;
             }
         }
     }
@@ -38,14 +38,15 @@ using namespace gridtools;
 using namespace enumtype;
 bool test_cuda_storage() {
 
-    typedef gridtools::backend<gridtools::enumtype::Cuda, gridtools::enumtype::Naive > backend_t;
-    typedef gridtools::backend<Cuda, Naive>::storage_type<float_type, gridtools::layout_map<0,1,2> > ::type storage_type;
+    typedef gridtools::backend<gridtools::enumtype::Cuda, gridtools::enumtype::Block > backend_t;
+    typedef gridtools::backend<Cuda, Block>::storage_type<float_type, storage_info<0,layout_map<0,1,2> > > ::type storage_type;
 
     uint_t d1 = 3;
     uint_t d2 = 3;
     uint_t d3 = 3;
 
-    storage_type data(d1,d2,d3,-1., "data");
+    typename storage_type::meta_data_t meta_(d1,d2,d3);
+    storage_type data(meta_, -1., "data"); //allocate on GPU
 
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
@@ -65,10 +66,11 @@ bool test_cuda_storage() {
 #endif
     }
 
-    data.h2d_update();
-    data.clone_to_gpu();
+    data.h2d_update(); //copy to GPU
+    data.clone_to_device();
+    meta_.clone_to_device();//copy meta information to the GPU
 #ifdef __CUDACC__
-    add_on_gpu<<<1,1>>>(data.gpu_object_ptr, d1, d2, d3);
+    add_on_gpu<<<1,1>>>(meta_.gpu_object_ptr, data.gpu_object_ptr, d1, d2, d3);
     cudaDeviceSynchronize();
 #endif
     data.d2h_update();

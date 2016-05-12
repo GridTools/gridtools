@@ -13,17 +13,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
-#include <common/gpu_clone.h>
-#include <storage/hybrid_pointer.h>
-#include <stencil-composition/domain_type.h>
-#include <stencil-composition/accessor.h>
-#include <stencil-composition/intermediate.h>
-#include <stencil-composition/backend.h>
-
 #include <boost/current_function.hpp>
 #include <boost/fusion/include/nview.hpp>
 #include <boost/fusion/include/make_vector.hpp>
 #include <boost/mpl/vector.hpp>
+
+#include <stencil-composition/make_computation.hpp>
 
 using gridtools::uint_t;
 using gridtools::int_t;
@@ -32,13 +27,6 @@ struct out_value {
     template <typename T>
     __host__ __device__
     void operator()(T *x) const {
-#ifndef NDEBUG
-        printf("gigigi ");
-        // printf("%X\n", x->data().get_pointer_to_use());
-        // printf("%X\n", x->data().get_cpu_p());
-        // printf("%X\n", x->data().get_gpu_p());
-        // printf("%d\n", x->data().get_size());
-#endif
         for (uint_t i=0; i<3; ++i) {
             for (uint_t j=0; j<3; ++j) {
                 for (uint_t k=0; k<3; ++k) {
@@ -115,25 +103,24 @@ bool test_domain() {
 #else
     typedef gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Naive > backend_t;
 #endif
-    typedef backend_t::storage_type<double, gridtools::layout_map<0,1,2> >::type storage_type;
+    typedef typename backend_t::storage_type<double, gridtools::storage_info<0,gridtools::layout_map<0,1,2> > >::type storage_type;
 
     uint_t d1 = 3;
     uint_t d2 = 3;
     uint_t d3 = 3;
 
-    storage_type in(d1,d2,d3,-1, ("in"));
-    storage_type out(d1,d2,d3,-7.3, ("out"));
-    storage_type coeff(d1,d2,d3,-3.4, ("coeff"));
+    typename storage_type::meta_data_t meta_(d1,d2,d3);
+    storage_type in(meta_, -1, ("in"));
+    storage_type out(meta_,-7.3, ("out"));
+    storage_type coeff(meta_,-3.4, ("coeff"));
 
-    storage_type host_in(d1,d2,d3,-1, ("host_in"));
-    storage_type host_out(d1,d2,d3,-7.3, ("host_out"));
-    storage_type host_coeff(d1,d2,d3,-3.4, ("host_coeff"));
+    storage_type host_in(meta_,-1, ("host_in"));
+    storage_type host_out(meta_,-7.3, ("host_out"));
+    storage_type host_coeff(meta_,-3.4, ("host_coeff"));
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
-    // typedef gridtools::arg<3, gridtools::temporary<storage_type> > p_lap;
-    // typedef gridtools::arg<4, gridtools::temporary<storage_type> > p_flx;
-    // typedef gridtools::arg<5, gridtools::temporary<storage_type> > p_fly;
+
     typedef gridtools::arg<0, storage_type > p_coeff;
     typedef gridtools::arg<1, storage_type > p_in;
     typedef gridtools::arg<2, storage_type > p_out;
@@ -162,16 +149,6 @@ bool test_domain() {
     gridtools::domain_type<accessor_list> domain
         (boost::fusion::make_vector(&coeff, &in, &out /*,&fly, &flx*/));
 
-
-// #ifndef NDEBUG
-//     printf("coeff > %X %X\n", &coeff, coeff.data().get_pointer_to_use());
-//     out_value_()(coeff);
-//     printf("in    > %X %X\n", &in, in.data().get_pointer_to_use());
-//     out_value_()(in);
-//     printf("out   > %X %X\n", &out, out.data().get_pointer_to_use());
-//     out_value_()(out);
-// #endif
-
     typedef boost::mpl::vector<
         gridtools::_impl::select_storage<accessor_list>::template apply<gridtools::static_int<0> >::type,
         gridtools::_impl::select_storage<accessor_list>::template apply<gridtools::static_int<1> >::type,
@@ -182,17 +159,45 @@ bool test_domain() {
 
     actual_arg_list_type actual_arg_list;
 
-    boost::fusion::copy(domain.storage_pointers, actual_arg_list);
+    //filter the non temporary meta storage pointers among the actual ones
+
+    // build the meta array with all the mss components
+    typedef typename boost::mpl::fold<
+        actual_arg_list_type
+        , boost::mpl::set<>
+        , boost::mpl::insert<boost::mpl::_1, gridtools::pointer
+                             <boost::add_const
+                              <gridtools::storage2metadata
+                               <boost::remove_pointer<boost::mpl::_2>
+                                >
+                               >
+                              >
+                             >
+        >::type actual_metadata_set_t;
+    typedef gridtools::metadata_set<actual_metadata_set_t> actual_metadata_list_type;
+    actual_metadata_list_type actual_metadata_list;
+
+    typedef boost::fusion::filter_view<typename boost::fusion::result_of::as_set<actual_metadata_set_t>::type,
+                                       boost::mpl::not_<gridtools::is_ptr_to_tmp<boost::mpl::_1> > > t_meta_view;
+
+    t_meta_view  meta_view(actual_metadata_list.sequence_view());
+
+
+    boost::fusion::copy(domain.m_storage_pointers, actual_arg_list);
 
 #ifdef __CUDACC__
-    gridtools::setup_computation<gridtools::enumtype::Cuda>::apply( actual_arg_list, domain );
+    gridtools::setup_computation<gridtools::enumtype::Cuda>::apply( actual_arg_list, meta_view, domain );
 #else
-    gridtools::setup_computation<gridtools::enumtype::Host>::apply( actual_arg_list, domain ); //does nothing
+    gridtools::setup_computation<gridtools::enumtype::Host>::apply( actual_arg_list, meta_view, domain ); //does nothing
 #endif
 
     actual_arg_list_type* arg_list_device_ptr;
     cudaMalloc(&arg_list_device_ptr, sizeof(actual_arg_list_type));
     cudaMemcpy(arg_list_device_ptr, &actual_arg_list , sizeof(actual_arg_list_type), cudaMemcpyHostToDevice);
+
+    actual_metadata_list_type* metadata_list_device_ptr;
+    cudaMalloc(&metadata_list_device_ptr, sizeof(actual_metadata_list_type));
+    cudaMemcpy(metadata_list_device_ptr, &actual_metadata_list , sizeof(actual_metadata_list_type), cudaMemcpyHostToDevice);
 
 #ifndef NDEBUG
     printf("\n\nFROM GPU\n\n");
@@ -211,27 +216,14 @@ bool test_domain() {
     in.data().update_cpu();
     out.data().update_cpu();
 
-// #ifndef NDEBUG
-//     printf("back coeff > %X %X\n", coeff.data().get_cpu_p(), coeff.data().get_pointer_to_use());
-//     out_value_()(coeff);
-//     printf("back in    > %X %X\n", in.data().get_cpu_p(), in.data().get_pointer_to_use());
-//     out_value_()(in);
-//     printf("back out   > %X %X\n", out.data().get_cpu_p(), out.data().get_pointer_to_use());
-//     out_value_()(out);
-
-//     std::cout << "\n\n\nTEST 2\n\n\n" << std::endl;
-// #endif
-
-    boost::fusion::copy(domain.storage_pointers, actual_arg_list);
+    boost::fusion::copy(domain.m_storage_pointers, actual_arg_list);
 
 #ifdef __CUDACC__
-    gridtools::setup_computation<gridtools::enumtype::Cuda>::apply( actual_arg_list, domain );
+    gridtools::setup_computation<gridtools::enumtype::Cuda>::apply( actual_arg_list, meta_view, domain );
 #else
-    gridtools::setup_computation<gridtools::enumtype::Host>::apply( actual_arg_list, domain ); //does nothing
+    gridtools::setup_computation<gridtools::enumtype::Host>::apply( actual_arg_list, meta_view, domain ); //does nothing
 #endif
 
-    // actual_arg_list_type* arg_list_device_ptr;
-    // cudaMalloc(&arg_list_device_ptr, sizeof(actual_arg_list_type));
     cudaMemcpy(arg_list_device_ptr, &actual_arg_list , sizeof(actual_arg_list_type), cudaMemcpyHostToDevice);
 
 #ifndef NDEBUG
@@ -252,14 +244,6 @@ bool test_domain() {
     out.data().update_cpu();
 
     cudaFree(arg_list_device_ptr);
-// #ifndef NDEBUG
-//     printf(" > %X %X\n", coeff.data().get_cpu_p(), coeff.data().get_pointer_to_use());
-//     out_value_()(coeff);
-//     printf(" > %X %X\n", in.data().get_cpu_p(), in.data().get_pointer_to_use());
-//     out_value_()(in);
-//     printf(" > %X %X\n", out.data().get_cpu_p(), out.data().get_pointer_to_use());
-//     out_value_()(out);
-// #endif
 
     out_value()(&host_in);
     out_value()(&host_in);
@@ -267,16 +251,6 @@ bool test_domain() {
     out_value()(&host_out);
     out_value()(&host_coeff);
     out_value()(&host_coeff);
-
-// #ifndef NDEBUG
-//     printf("\n\nON THE HOST\n\n");
-//     printf(" > %X %X\n", &coeff, coeff.data().get_pointer_to_use());
-//     out_value_()(coeff);
-//     printf(" > %X %X\n", &in, in.data().get_pointer_to_use());
-//     out_value_()(in);
-//     printf(" > %X %X\n", &out, out.data().get_pointer_to_use());
-//     out_value_()(out);
-// #endif
 
     bool failed = false;
     failed |= !the_same(in, host_in);

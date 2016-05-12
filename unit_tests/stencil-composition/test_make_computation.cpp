@@ -7,15 +7,15 @@
 
 #define BOOST_NO_CXX11_RVALUE_REFERENCES
 
-#include <gridtools.h>
+#include <gridtools.hpp>
 #include <boost/mpl/equal.hpp>
 #include <boost/fusion/include/make_vector.hpp>
 
 #include "gtest/gtest.h"
 
-#include <stencil-composition/backend.h>
-#include <stencil-composition/make_stencils.h>
-#include <stencil-composition/make_computation.h>
+#include "stencil-composition/backend.hpp"
+#include "stencil-composition/make_stencils.hpp"
+#include "stencil-composition/make_computation.hpp"
 
 #ifdef CXX11_ENABLED
 
@@ -42,7 +42,7 @@ TEST(test_make_computation, get_mss_array) {
     #define BACKEND backend<enumtype::Host, enumtype::Block >
 
     typedef gridtools::layout_map<2,1,0> layout_t;
-    typedef gridtools::BACKEND::storage_type<float_type, layout_t >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<float_type, storage_info<0,layout_t> >::type storage_type;
 
     typedef arg<0, storage_type> p_in;
     typedef arg<1, storage_type> p_out;

@@ -1,24 +1,33 @@
 add_executable(FunctorDoMethodLookupMaps FunctorDoMethodLookupMaps.cpp)
-add_test(test.FunctorDoMethodLookupMaps "${CMAKE_BINARY_DIR}/build/FunctorDoMethodLookupMaps")
+gridtools_add_test(test.FunctorDoMethodLookupMaps ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/FunctorDoMethodLookupMaps")
 
 add_executable(FunctorDoMethods FunctorDoMethods.cpp)
-add_test(test.FunctorDoMethods "${CMAKE_BINARY_DIR}/build/FunctorDoMethods")
+gridtools_add_test(test.FunctorDoMethods ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/FunctorDoMethods")
 
 add_executable(LoopIntervals LoopIntervals.cpp)
-add_test(test.LoopIntervals "${CMAKE_BINARY_DIR}/build/LoopIntervals")
+gridtools_add_test(test.LoopIntervals ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/LoopIntervals")
 
 if ( ENABLE_CXX11 )
     add_executable(test-independent test-independent.cpp)
     set_target_properties(test-independent PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
     target_link_libraries(test-independent ${exe_LIBS})
-    add_test(tests.test_independent "${CMAKE_BINARY_DIR}/build/test-independent")
+    gridtools_add_test(tests.test_independent ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/test-independent")
+
 endif()
 
 if (GTEST_FOUND)
+    set(COMMON_TESTS
+        tests.cpp
+        test_domain_indices.cpp
+        boundary_conditions_test.cpp
+    )
+    set(CXX11_TESTS test_local_domain.cpp test-assign-placeholders.cpp test_data_fields.cpp test_integer_sequence.cpp)
+
     if ( ENABLE_CXX11 )
-        add_executable(tests tests.cpp test-assign-placeholders.cpp test_domain_indices.cpp test_smallstorage_indices.cpp boundary_conditions_test.cpp)
+      set(CXX11_TESTS ${CXX11_TESTS} stencil-composition/test_staggered_keyword.cpp)
+      add_executable(tests ${CXX11_TESTS} ${COMMON_TESTS})
     else()
-        add_executable(tests tests.cpp test_domain_indices.cpp test_smallstorage_indices.cpp boundary_conditions_test.cpp)
+      add_executable(tests ${COMMON_TESTS})
     endif()
   # include boost
   include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
@@ -33,7 +42,7 @@ if (GTEST_FOUND)
   endif()
 
 
-  add_test(test.tests "${CMAKE_BINARY_DIR}/build/tests")
+  gridtools_add_test(test.tests ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/tests")
 
   if (CUDA_FOUND)
     cuda_add_executable( tests_gpu
@@ -46,13 +55,13 @@ if (GTEST_FOUND)
       boundary_conditions_test.cu
     )
 
-    add_test(tests.tests_gpu "${CMAKE_BINARY_DIR}/build/tests_gpu")
+    gridtools_add_test(tests.tests_gpu ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/tests_gpu")
 
     target_link_libraries(tests_gpu ${GTEST_BOTH_LIBRARIES} gcl ${exe_LIBS})
 
     cuda_add_executable( cloning_derived cloning_derived.cu )
     target_link_libraries(cloning_derived ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
-    add_test( tests.cloning_derived "${CMAKE_BINARY_DIR}/build/cloning_derived" 42 )
+    gridtools_add_test( tests.cloning_derived ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/cloning_derived" 42)
 
     set(ENV{BIN_DIR} ${CMAKE_BINARY_DIR}/build)
     set(ENV{SRC_DIR} ${CMAKE_SOURCE_DIR})
@@ -73,7 +82,16 @@ endif()
   endif()
 endif()
 
+add_executable(CopyStencil external_ptr_test/CopyStencil.cpp)
+set_target_properties(CopyStencil PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+target_link_libraries(CopyStencil ${exe_LIBS})
+
+if (CUDA_FOUND)
+   cuda_add_executable( test_cuda_storage test_cuda_storage_exe.cu )
+   target_link_libraries(test_cuda_storage ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
+endif()
+
 add_subdirectory( communication )
 add_subdirectory( common )
 add_subdirectory( stencil-composition )
-
+add_subdirectory( storage )
