@@ -607,19 +607,19 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         stencil_alpha_nom->ready();
         stencil_alpha_nom->steady();
         boost::timer::cpu_timer time_alphaNom;
-        float rTr = stencil_alpha_nom->run(); // r_T * r (at time t)
+        double rTr = stencil_alpha_nom->run(); // r_T * r (at time t)
         lapse_time_run = lapse_time_run + time_alphaNom.elapsed();
         stencil_alpha_nom->finalize();
-        float rTr_global;
+        double rTr_global;
         MPI_Allreduce(&rTr, &rTr_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
 
         stencil_alpha_denom->ready();
         stencil_alpha_denom->steady();
         boost::timer::cpu_timer time_alphaDenom;
-        float dTAd = (float) stencil_alpha_denom->run(); // d_T * A * d
+        double dTAd = stencil_alpha_denom->run(); // d_T * A * d
         lapse_time_run = lapse_time_run + time_alphaDenom.elapsed();
         stencil_alpha_denom->finalize();
-        float dTAd_global;
+        double dTAd_global;
         MPI_Allreduce(&dTAd, &dTAd_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
 
         alpha.setValue(rTr_global/dTAd_global);
@@ -648,10 +648,10 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         stencil_beta_nom->ready();
         stencil_beta_nom->steady();
         boost::timer::cpu_timer time_betaNom;
-        float rTrnew = stencil_beta_nom->run(); // r_T * r (at time t+1) //TODO: reuse at next iteration in alpha
+        double rTrnew = stencil_beta_nom->run(); // r_T * r (at time t+1) //TODO: reuse at next iteration in alpha
         lapse_time_run = lapse_time_run + time_betaNom.elapsed();
         stencil_beta_nom->finalize();
-        float rTrnew_global;
+        double rTrnew_global;
         MPI_Allreduce(&rTrnew, &rTrnew_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
 
         beta.setValue(rTrnew_global/rTr_global); // reusing r_T*r from computation of alpha
