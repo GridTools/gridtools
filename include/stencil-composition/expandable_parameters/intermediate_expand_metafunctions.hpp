@@ -177,7 +177,7 @@ namespace gridtools{
         template<typename DomainFrom, typename DomainTo>
         struct assign_expandable_params{
 
-        private:
+        protected:
 
             DomainFrom const& m_dom_from;
             DomainTo& m_dom_to;
@@ -195,10 +195,24 @@ namespace gridtools{
                     = m_dom_from.template storage_pointer< arg<ID, std::vector<pointer<T> > > >();
 
                 boost::fusion::at<static_ushort<ID> >(m_dom_to.m_storage_pointers)->set(*storage_ptr_, m_idx);
-                //update the device pointers (not copying the heavy data)
-                boost::fusion::at<static_ushort<ID> >(m_dom_to.m_storage_pointers)->clone_to_device();
-                //copy the heavy data (should be done by the steady)
-                // boost::fusion::at<static_ushort<ID> >(m_dom_to.m_storage_pointers)->h2d_update();
+            }
+        };
+
+
+
+        /**
+           @brief functor used to assign the next chunk of storage pointers
+        */
+        template<typename DomainFrom, typename DomainTo>
+        struct assign_expandable_params_run : public assign_expandable_params<DomainFrom, DomainTo>{
+            typedef assign_expandable_params<DomainFrom, DomainTo> super;
+
+            assign_expandable_params_run(DomainFrom const & dom_from_, DomainTo & dom_to_, uint_t const& i_):super(dom_from_, dom_to_, i_){}
+
+            template < ushort_t ID, typename T >
+            void operator()(arg<ID, std::vector<pointer<T> > > a){
+                super::operator()(a);
+                boost::fusion::at<static_ushort<ID> >(this->m_dom_to.m_storage_pointers)->clone_to_device();
             }
         };
 

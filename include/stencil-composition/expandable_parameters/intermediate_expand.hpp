@@ -179,13 +179,13 @@ namespace gridtools{
         for(uint_t i=0; i<m_size-m_size%ExpandFactor::value; i+=ExpandFactor::value){
 
                 // std::cout<<"iteration: "<<i<<"\n";
-                boost::mpl::for_each<expandable_params_t>(_impl::assign_expandable_params<DomainType, domain_type<new_arg_list> >(m_domain_from, *m_domain_to, i));
+                boost::mpl::for_each<expandable_params_t>(_impl::assign_expandable_params_run<DomainType, domain_type<new_arg_list> >(m_domain_from, *m_domain_to, i));
                 // new_domain_.get<ExpandFactor::arg_t>()->assign_pointers(domain.get<ExpandFactor::arg_t>(), i);
                 m_intermediate->run();
             }
             for(uint_t i=0; i<m_size%ExpandFactor::value; ++i)
             {
-                boost::mpl::for_each<expandable_params_t>(_impl::assign_expandable_params<DomainType, domain_type<new_arg_list> >(m_domain_from, *m_domain_to, m_size-m_size%ExpandFactor::value+i));
+                boost::mpl::for_each<expandable_params_t>(_impl::assign_expandable_params_run<DomainType, domain_type<new_arg_list> >(m_domain_from, *m_domain_to, m_size-m_size%ExpandFactor::value+i));
                 m_intermediate_extra->run();
             }
 
