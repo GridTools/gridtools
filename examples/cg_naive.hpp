@@ -618,7 +618,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
             rTr = stencil_alpha_nom->run(); // r_T * r (at time t)
             lapse_time_run = lapse_time_run + time_alphaNom.elapsed();
             stencil_alpha_nom->finalize();
-            MPI_Allreduce(&rTr, &rTr_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+            MPI_Allreduce(&rTr, &rTr_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
             rTr_init = sqrt(rTr_global);
         }
         else
@@ -633,7 +633,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         lapse_time_run = lapse_time_run + time_alphaDenom.elapsed();
         stencil_alpha_denom->finalize();
         double dTAd_global;
-        MPI_Allreduce(&dTAd, &dTAd_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+        MPI_Allreduce(&dTAd, &dTAd_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
         alpha.setValue(rTr_global/dTAd_global);
         #ifdef DEBUG
@@ -665,7 +665,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         lapse_time_run = lapse_time_run + time_betaNom.elapsed();
         stencil_beta_nom->finalize();
         double rTrnew_global;
-        MPI_Allreduce(&rTrnew, &rTrnew_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+        MPI_Allreduce(&rTrnew, &rTrnew_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
         rTr_old = rTrnew_global; //save value to reuse it in alpha
 
         beta.setValue(rTrnew_global/rTr_global); // reusing r_T*r from computation of alpha

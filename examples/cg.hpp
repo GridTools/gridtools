@@ -671,7 +671,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         double dTAd;
 
         // Nominator of alpha
-        if(iter == 0)
+        if (iter == 0)
         {
             stencil_alpha_nom->ready();
             stencil_alpha_nom->steady();
@@ -679,7 +679,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
             rTMr = stencil_alpha_nom->run(); // r_T * inv(M) * r (at time t)
             lapse_time_run = lapse_time_run + time_alphaNom.elapsed();
             stencil_alpha_nom->finalize();
-            MPI_Allreduce(&rTMr, &rTMr_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+            MPI_Allreduce(&rTMr, &rTMr_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
             rTMr_init = sqrt(rTMr_global);
         }
         else
@@ -694,7 +694,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         dTAd = stencil_alpha_denom->run(); // d_T * A * d
         lapse_time_run = lapse_time_run + time_alphaDenom.elapsed();
         stencil_alpha_denom->finalize();
-        MPI_Allreduce(&dTAd, &dTAd_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+        MPI_Allreduce(&dTAd, &dTAd_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
         alpha.setValue(rTMr_global/dTAd_global);
         #ifdef DEBUG
@@ -740,7 +740,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                 } 
 
         boost::timer::cpu_times lapse_time_precondition = time_precondition.elapsed();
-        if(PID == 0)
+        if (PID == 0)
         {
             std::cout << "Iteration " << iter << ": [Pardiso]" << boost::timer::format(lapse_time_precondition);
         }
@@ -756,7 +756,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         rTMrnew = stencil_beta_nom->run(); // r_T * inv(M) * r (at time t+1) //TODO: reuse at next iteration in alpha
         lapse_time_run = lapse_time_run + time_betaNom.elapsed();
         stencil_beta_nom->finalize();
-        MPI_Allreduce(&rTMrnew, &rTMrnew_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+        MPI_Allreduce(&rTMrnew, &rTMrnew_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
         rTMr_old = rTMrnew_global; //save value to reuse it in alpha
 
         beta.setValue(rTMrnew_global/rTMr_global); // reusing nominator from computation of alpha
@@ -799,7 +799,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         ptr_MrNew = swap;
 
         boost::timer::cpu_times lapse_time_iteration = time_iteration.elapsed();
-        if(PID == 0)
+        if (PID == 0)
         {
             std::cout << "Iteration " << iter << ": [time]" << boost::timer::format(lapse_time_iteration);
             std::cout << "Iteration " << iter << ": [residual] " << sqrt(rTMr_global)/rTMr_init << std::endl;
