@@ -8,7 +8,7 @@ using namespace gridtools;
 using namespace enumtype;
 using namespace expressions;
 
-namespace soeov {
+namespace smf {
 
 #ifdef __CUDACC__
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
@@ -38,8 +38,21 @@ namespace soeov {
             using edge_of_cell_dim = dimension< 5 >;
             edge_of_cell_dim::Index edge;
 
-            for (uint_t i = 0; i < 3; ++i) {
-                eval(weight_edges(edge + i)) = eval(cell_area()) * (1 + (float_type)1.0 / (float_type)(i + 1));
+            if (eval.position()[1] == 0) {
+                constexpr auto neighbors_offsets = from< cells >::to< cells >::with_color< static_int< 0 > >::offsets();
+                ushort_t e=0;
+                for (auto neighbor_offset : neighbors_offsets) {
+
+                    eval(weight_edges(edge+e)) = eval(cell_area(neighbor_offset)) / eval(cell_area());
+                    e++;
+                }
+            } else if (eval.position()[1] == 1) {
+                constexpr auto neighbors_offsets = from< cells >::to< cells >::with_color< static_int< 1 > >::offsets();
+                ushort_t e=0;
+                for (auto neighbor_offset : neighbors_offsets) {
+                    eval(weight_edges(edge+e)) = eval(cell_area(neighbor_offset)) / eval(cell_area());
+                    e++;
+                }
             }
         }
     };
@@ -113,10 +126,16 @@ namespace soeov {
             for (uint_t c = 0; c < icosahedral_topology_t::edges::n_colors::value; ++c) {
                 for (uint_t j = halo_mc; j < d2 - halo_mc; ++j) {
                     for (uint_t k = 0; k < d3; ++k) {
-                        for (uint_t e = 0; e < 3; ++e) {
-                            ref_weights(i, c, j, k, e) =
-                                cell_area(i, c, j, k) * (1 + (float_type)1.0 / (float_type)(e + 1));
+
+                        auto neighbours =
+                            ugrid.neighbours_of< icosahedral_topology_t::cells, icosahedral_topology_t::cells >(
+                                {i, c, j, k});
+                        ushort_t e=0;
+                        for (auto iter = neighbours.begin(); iter != neighbours.end(); ++iter) {
+                            ref_weights(i, c, j, k, e) = cell_area(*iter) / cell_area(i,c,j,k);
+                            ++e;
                         }
+
                     }
                 }
             }
