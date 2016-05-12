@@ -10,6 +10,11 @@ from jinja2 import Environment, PackageLoader
 BACKENDS = ('python', 'c++', 'cuda')
 
 #
+# accepted k directions
+#
+K_DIRECTIONS = ('forward', 'backward')
+
+#
 # Name of the attribute that identifies the wrapper of a user-defined stencil
 # kernel
 #

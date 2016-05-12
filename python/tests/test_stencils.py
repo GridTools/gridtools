@@ -5,7 +5,7 @@ import numpy as np
 
 from nose.plugins.attrib import attr
 
-from gridtools.stencil import MultiStageStencil, stencil_kernel
+from gridtools.stencil import Stencil, MultiStageStencil
 
 
 
@@ -57,7 +57,11 @@ class Copy (MultiStageStencil):
     """
     Definition of a simple copy stencil, as in 'examples/copy_stencil.h'.-
     """
-    @stencil_kernel
+    def __init__ (self):
+        super ( ).__init__ ( )
+
+
+    @Stencil.kernel
     def kernel (self, out_cpy, in_cpy):
         """
         This stencil comprises a single stage.-
@@ -105,7 +109,7 @@ class CopyTest (AccessPatternDetectionTest):
 
 
     def test_data_dependency_detection (self, deps=None, backend='c++'):
-        self.stencil.backend = backend
+        self.stencil.set_backend (backend)
         self._run ( )
 
         if deps is None:
@@ -144,7 +148,7 @@ class CopyTest (AccessPatternDetectionTest):
         self.add_expected_offset ('out_cpy', None)
 
         for backend in BACKENDS:
-            self.stencil.backend = backend
+            self.stencil.set_backend (backend)
             self._run ( )
             self.automatic_access_pattern_detection (self.stencil)
 
@@ -158,7 +162,7 @@ class CopyTest (AccessPatternDetectionTest):
         for backend in BACKENDS:
             diff                   = 0
             stencil_native         = copy.deepcopy (self.stencil)
-            stencil_native.backend = backend
+            stencil_native.set_backend (backend)
 
             #
             # data fields - Py and C++ sets
@@ -187,7 +191,7 @@ class CopyTest (AccessPatternDetectionTest):
 
 
     def test_ghost_cell_pattern (self, expected_patterns=None, backend='c++'):
-        self.stencil.backend = backend
+        self.stencil.set_backend (backend)
         self._run ( )
 
         if expected_patterns is None:
@@ -209,7 +213,7 @@ class CopyTest (AccessPatternDetectionTest):
         # minimum halo correctly calculated
         #
         for back in BACKENDS:
-            self.stencil.backend = back
+            self.stencil.set_backend (back)
             self._run ( )
             self.assertEqual (self.stencil.scope.minimum_halo,
                               min_halo)
@@ -234,7 +238,7 @@ class CopyTest (AccessPatternDetectionTest):
 
 
     def test_symbol_discovery (self, backend='c++'):
-        self.stencil.backend = backend
+        self.stencil.set_backend (backend)
         self._run ( )
         #
         # check fields were correctly discovered
@@ -271,15 +275,15 @@ class CopyTest (AccessPatternDetectionTest):
 
         cur_dir = os.path.dirname (os.path.abspath (__file__))
 
-        self.stencil.backend = 'python'
+        self.stencil.set_backend ('python')
         self._run ( )
         #
         # take halo into account when comparing the results
         #
-        beg_i = self.stencil.halo[0]
-        end_i = self.domain[0] - self.stencil.halo[1]
-        beg_j = self.stencil.halo[2]
-        end_j = self.domain[1] - self.stencil.halo[3]
+        beg_i = self.stencil.get_halo ( ) [0]
+        end_i = self.domain[0] - self.stencil.get_halo ( ) [1]
+        beg_j = self.stencil.get_halo ( ) [2]
+        end_j = self.domain[1] - self.stencil.get_halo ( ) [3]
 
         if result_file is None:
             expected  = self.in_cpy
@@ -294,7 +298,7 @@ class CopyTest (AccessPatternDetectionTest):
     def test_execution_performance_cpp (self, backend='c++'):
         import time
 
-        self.stencil.backend = backend
+        self.stencil.set_backend (backend)
         self._run ( )
 
         nstep  = 100
@@ -310,7 +314,7 @@ class CopyTest (AccessPatternDetectionTest):
 
 
     def test_k_directions (self, backend='c++'):
-        self.stencil.backend = backend
+        self.stencil.set_backend (backend)
         for dir in ('forward', 'backward'):
             self.stencil.set_k_direction (dir)
             self._run ( )
@@ -323,7 +327,179 @@ class CopyTest (AccessPatternDetectionTest):
 
     def test_user_kernel_call (self):
         with self.assertRaises (RuntimeError):
-            self.stencil.kernel(self.out_cpy, self.in_cpy)
+            self.stencil.kernel (self.out_cpy, self.in_cpy)
+
+
+    def test_decorator_returned_type (self):
+        #
+        # Test that the decorator returned a function method and not a
+        # UserStencil object
+        #
+        import inspect
+        self.assertTrue (inspect.ismethod (self.stencil.kernel))
+
+
+    def test_get_halo_from_Stencil (self):
+        from random import randint
+        #
+        # Set a new global halo and reset the stencil-specific value
+        #
+        new_halo = (randint(0,10), randint(0,10), randint(0,10), randint(0,10))
+        Stencil.set_halo (new_halo)
+        self.stencil.set_halo (None)
+        #
+        # Check that the global halo is correctly returned
+        #
+        self.assertTrue (Stencil.get_halo ( ) == new_halo)
+        self.assertTrue (self.stencil.get_halo ( ) == new_halo)
+
+
+    def test_get_halo_from_object (self):
+        from random import randint
+        #
+        # Set a new global halo and a new stencil-specific value
+        #
+        global_halo = (randint(0,10), randint(0,10), randint(0,10), randint(0,10))
+        Stencil.set_halo (global_halo)
+        new_halo = (randint(0,10), randint(0,10), randint(0,10), randint(0,10))
+        self.stencil.set_halo (new_halo)
+        #
+        # Check that the stencil halo is returned
+        #
+        self.assertTrue (Stencil.get_halo ( ) == global_halo)
+        self.assertTrue (self.stencil.get_halo ( ) == new_halo)
+
+
+    def test_get_k_direction_from_Stencil (self):
+        from gridtools import K_DIRECTIONS
+        from random import choice
+        #
+        # Set a new global k direction and reset the stencil-specific value
+        #
+        direction = choice(K_DIRECTIONS)
+        Stencil.set_k_direction (direction)
+        self.stencil.set_k_direction (None)
+        #
+        # Check that the global k direction is correctly returned
+        #
+        self.assertTrue (Stencil.get_k_direction ( ) == direction)
+        self.assertTrue (self.stencil.get_k_direction ( ) == direction)
+
+
+    def test_get_k_direction_from_object (self):
+        from gridtools import K_DIRECTIONS
+        from random import choice
+        #
+        # Set a new global k direction and a new stencil-specific value
+        #
+        global_direction = choice(K_DIRECTIONS)
+        Stencil.set_k_direction(global_direction)
+
+        direction = choice(K_DIRECTIONS)
+        self.stencil.set_k_direction (direction)
+        #
+        # Check that the stencil k direction is correctly returned
+        #
+        self.assertTrue (Stencil.get_k_direction ( ) == global_direction)
+        self.assertTrue (self.stencil.get_k_direction ( ) == direction)
+
+
+    def test_get_interior_points_K_static (self, data_field=None):
+        from gridtools import K_DIRECTIONS
+        from random import randint, choice
+
+        halo = (randint(0,10), randint(0,10), randint(0,10), randint(0,10))
+        direction = choice(K_DIRECTIONS)
+        Stencil.set_halo (halo)
+        Stencil.set_k_direction (direction)
+
+        if data_field is None:
+            data_field = self.out_cpy
+
+        k_vals = [k for k in range(0, self.domain[2])]
+        if direction == 'backward':
+            k_vals.reverse()
+        k_vals = k_vals * (self.domain[0] - halo[0] - halo[1])
+        k_vals = k_vals * (self.domain[1] - halo[2] - halo[3])
+
+        interior_pts = [k for (i,j,k) in Stencil.get_interior_points (data_field)]
+
+        self.assertTrue ( all ([x==y for (x,y) in zip(k_vals, interior_pts)]) )
+
+
+    def test_get_interior_points_K_object (self, data_field=None):
+        from gridtools import K_DIRECTIONS
+        from random import randint, choice
+
+        Stencil.set_halo ( (randint(0,10), randint(0,10), randint(0,10), randint(0,10)) )
+        Stencil.set_k_direction ( choice(K_DIRECTIONS) )
+
+        halo = (randint(0,10), randint(0,10), randint(0,10), randint(0,10))
+        direction = choice(K_DIRECTIONS)
+        self.stencil.set_halo (halo)
+        self.stencil.set_k_direction (direction)
+
+        if data_field is None:
+            data_field = self.out_cpy
+
+        k_vals = [k for k in range(0, self.domain[2])]
+        if direction == 'backward':
+            k_vals.reverse()
+        k_vals = k_vals * (self.domain[0] - halo[0] - halo[1])
+        k_vals = k_vals * (self.domain[1] - halo[2] - halo[3])
+
+        interior_pts = [k for (i,j,k) in self.stencil.get_interior_points (data_field)]
+
+        self.assertTrue ( all ([x==y for (x,y) in zip(k_vals, interior_pts)]) )
+
+
+    def test_get_interior_points_IJ_static (self, data_field=None):
+        from gridtools import K_DIRECTIONS
+        from random import randint, choice
+        from itertools import product, chain
+
+        halo = (randint(0,10), randint(0,10), randint(0,10), randint(0,10))
+        Stencil.set_halo (halo)
+        Stencil.set_k_direction ( choice(K_DIRECTIONS) )
+
+        if data_field is None:
+            data_field = self.out_cpy
+
+        ij_vals = [[ij]*self.domain[2] for ij in
+                   list (product (range(halo[0], self.domain[0]-halo[1]),
+                         range(halo[2], self.domain[1]-halo[3]))) ]
+
+        ij_vals = [ij for ij in chain.from_iterable(ij_vals)]
+
+        interior_pts = [(i,j) for (i,j,k) in Stencil.get_interior_points (data_field)]
+
+        self.assertTrue (all ([x==y for (x,y) in zip(ij_vals, interior_pts)]) )
+
+
+    def test_get_interior_points_IJ_object (self, data_field=None):
+        from gridtools import K_DIRECTIONS
+        from random import randint, choice
+        from itertools import product, chain
+
+        Stencil.set_halo ( (randint(0,10), randint(0,10), randint(0,10), randint(0,10)) )
+        Stencil.set_k_direction ( choice(K_DIRECTIONS) )
+
+        halo = ( randint(0,10), randint(0,10), randint(0,10), randint(0,10) )
+        self.stencil.set_halo (halo)
+        self.stencil.set_k_direction ( choice(K_DIRECTIONS) )
+
+        if data_field is None:
+            data_field = self.out_cpy
+
+        ij_vals = [[ij]*self.domain[2] for ij in
+                   list (product (range(halo[0], self.domain[0]-halo[1]),
+                         range(halo[2], self.domain[1]-halo[3]))) ]
+
+        ij_vals = [ij for ij in chain.from_iterable(ij_vals)]
+
+        interior_pts = [(i,j) for (i,j,k) in self.stencil.get_interior_points (data_field)]
+
+        self.assertTrue (all ([x==y for (x,y) in zip(ij_vals, interior_pts)]) )
 
 
 
@@ -331,7 +507,11 @@ class AnyKernelName (MultiStageStencil):
     """
     Imitates the CopyStencil using a different kernel name
     """
-    @stencil_kernel
+    def __init__ (self):
+        super ( ).__init__ ( )
+
+
+    @Stencil.kernel
     def entry_point (self, out_cpy, in_cpy):
         """
         This stencil comprises a single stage.-
@@ -351,11 +531,18 @@ class AnyKernelNameTest (CopyTest):
     def setUp (self):
         super ( ).setUp ( )
         self.stencil = AnyKernelName ( )
+        self.stencil.set_halo ( (1, 1, 1, 1) )
+        self.stencil.set_k_direction ("forward")
 
 
     def test_user_kernel_call (self):
         with self.assertRaises (RuntimeError):
             self.stencil.entry_point(self.out_cpy, self.in_cpy)
+
+
+    def test_decorator_returned_type (self):
+        import inspect
+        self.assertTrue (inspect.ismethod (self.stencil.entry_point))
 
 
 
@@ -365,21 +552,21 @@ class FloatPrecisionTest (CopyTest):
     """
     def test_float_input_type_validation_wrong_data_size (self):
         with self.assertRaises (TypeError):
-            self.stencil.backend = 'c++'
+            self.stencil.set_backend ('c++')
             self.in_cpy = self.in_cpy.astype(np.float16)
             self._run ( )
 
 
     def test_float_input_type_validation_wrong_data_type (self):
         with self.assertRaises (TypeError):
-            self.stencil.backend = 'c++'
+            self.stencil.set_backend ('c++')
             self.in_cpy = self.in_cpy.astype(np.int64)
             self._run ( )
 
 
     def test_float_input_type_validation_potentially_correct_type_but_not_the_correct_size (self):
         with self.assertRaises (TypeError):
-            self.stencil.backend = 'c++'
+            self.stencil.set_backend ('c++')
             self.in_cpy = self.in_cpy.astype(np.float32)
             self._run ( )
 
@@ -389,7 +576,11 @@ class Power (MultiStageStencil):
     """
     Imitates the CopyStencil using the power operator.-
     """
-    @stencil_kernel
+    def __init__ (self):
+        super ( ).__init__ ( )
+
+
+    @Stencil.kernel
     def kernel (self, out_cpy, in_cpy):
         #
         # iterate over the points, excluding halo ones
@@ -420,6 +611,8 @@ class PowerTest (CopyTest):
     def setUp (self):
         super ( ).setUp ( )
         self.stencil = Power ( )
+        self.stencil.set_halo ( (1, 1, 1, 1) )
+        self.stencil.set_k_direction ("forward")
 
 
 
@@ -427,7 +620,11 @@ class Laplace (MultiStageStencil):
     """
     A Laplacian operator, as the one used in COSMO.-
     """
-    @stencil_kernel
+    def __init__ (self):
+        super ( ).__init__ ( )
+
+
+    @Stencil.kernel
     def kernel (self, out_data, in_data):
         """
         Stencil's entry point.-
@@ -472,7 +669,7 @@ class LaplaceTest (CopyTest):
         self.add_expected_offset ('out_data', None)
 
         for backend in BACKENDS:
-            self.stencil.backend = backend
+            self.stencil.set_backend (backend)
             self._run ( )
             self.automatic_access_pattern_detection (self.stencil)
 
@@ -487,6 +684,21 @@ class LaplaceTest (CopyTest):
         super ( ).test_python_results (out_param='out_data',
                                        result_file='laplace_result.npy')
 
+
+    def test_get_interior_points_K_static (self):
+        super ( ).test_get_interior_points_K_static (self.out_data)
+
+
+    def test_get_interior_points_K_object (self):
+        super ( ).test_get_interior_points_K_object (self.out_data)
+
+
+    def test_get_interior_points_IJ_static (self):
+        super ( ).test_get_interior_points_IJ_static (self.out_data)
+
+
+    def test_get_interior_points_IJ_object (self):
+        super ( ).test_get_interior_points_IJ_object (self.out_data)
 
 
 class HorizontalDiffusion (MultiStageStencil):
@@ -512,7 +724,7 @@ class HorizontalDiffusion (MultiStageStencil):
             out_flj[p] = in_lap[p + (0,1,0)] - in_lap[p]
 
 
-    @stencil_kernel
+    @Stencil.kernel
     def kernel (self, out_data, in_data, in_wgt):
         #
         # Laplace
@@ -603,7 +815,7 @@ class HorizontalDiffusionTest (CopyTest):
         self.add_expected_offset ('self.lap', [0,0,0,1])
 
         for backend in BACKENDS:
-            self.stencil.backend = backend
+            self.stencil.set_backend (backend)
             self._run ( )
             self.automatic_access_pattern_detection (self.stencil)
 
@@ -632,6 +844,22 @@ class HorizontalDiffusionTest (CopyTest):
                                        result_file='horizontaldiffusion_result.npy')
 
 
+    def test_get_interior_points_K_static (self):
+        super ( ).test_get_interior_points_K_static (self.out_data)
+
+
+    def test_get_interior_points_K_object (self):
+        super ( ).test_get_interior_points_K_object (self.out_data)
+
+
+    def test_get_interior_points_IJ_static (self):
+        super ( ).test_get_interior_points_IJ_static (self.out_data)
+
+
+    def test_get_interior_points_IJ_object (self):
+        super ( ).test_get_interior_points_IJ_object (self.out_data)
+
+
 
 class ChildStencilCallsParentConstructorAndNothingElse (MultiStageStencil):
     """
@@ -642,7 +870,7 @@ class ChildStencilCallsParentConstructorAndNothingElse (MultiStageStencil):
         super ( ).__init__ ( )
 
 
-    @stencil_kernel
+    @Stencil.kernel
     def kernel (self, out_cpy, in_cpy):
         """
         This stencil comprises a single stage.-
@@ -681,7 +909,7 @@ class ChildStencilCallsParentConstructorFirst (MultiStageStencil):
         gnum = 22
 
 
-    @stencil_kernel
+    @Stencil.kernel
     def kernel (self, out_cpy, in_cpy):
         """
         This stencil comprises a single stage.-
@@ -704,7 +932,7 @@ class ChildStencilCallsParentConstructorAfterComment (MultiStageStencil):
         super ( ).__init__ ( )
 
 
-    @stencil_kernel
+    @Stencil.kernel
     def kernel (self, out_cpy, in_cpy):
         """
         This stencil comprises a single stage.-
@@ -729,7 +957,7 @@ class ChildStencilCallsParentConstructorAfterMultComments (MultiStageStencil):
         super ( ).__init__ ( )
 
 
-    @stencil_kernel
+    @Stencil.kernel
     def kernel (self, out_cpy, in_cpy):
         """
         This stencil comprises a single stage.-
@@ -754,7 +982,7 @@ class ChildStencilCallsParentConstructorAfterDocString (MultiStageStencil):
         super ( ).__init__ ( )
 
 
-    @stencil_kernel
+    @Stencil.kernel
     def kernel (self, out_cpy, in_cpy):
         """
         This stencil comprises a single stage.-

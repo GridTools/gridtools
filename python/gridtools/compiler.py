@@ -167,7 +167,7 @@ class StencilCompiler ( ):
                                                self.compile_count)
             if not path.exists (self.src_dir):
                 makedirs (self.src_dir)
-            if stencil.backend == 'cuda':
+            if stencil.get_backend ( ) == 'cuda':
                 extension = 'cu'
             else:
                 extension = 'cpp'
@@ -176,7 +176,7 @@ class StencilCompiler ( ):
             #
             # ... and populate them
             #
-            logging.info ("Generating %s code in '%s'" % (stencil.backend.upper ( ),
+            logging.info ("Generating %s code in '%s'" % (stencil.get_backend ( ).upper ( ),
                                                           self.src_dir))
             stg_src, cpp_src, make_src = self.translate (stencil)
 
@@ -201,7 +201,7 @@ class StencilCompiler ( ):
         return id (stencil) in self.stencils.keys ( )
 
 
-    def recompile (self, stencil):
+    def recompile (self):
         """
         Marks the received stencil as dirty, needing recompilation.-
         """
@@ -230,7 +230,7 @@ class StencilCompiler ( ):
             #
             # mark this stencil for recompilation ...
             #
-            self.recompile (stencil)
+            self.recompile ( )
             #
             # ... and add it to the registry if it is not there yet
             #
@@ -333,7 +333,7 @@ class StencilCompiler ( ):
                             params_temps          = params + temps,
                             stages                = stgs,
                             independent_stage_idx = ind_stg_idx),
-                make.render (stencils = [s for s in self.stencils.values ( ) if s.backend in ['c++', 'cuda']],
+                make.render (stencils = [s for s in self.stencils.values ( ) if s.get_backend ( ) in ['c++', 'cuda']],
                              compiler = self))
 
     def unregister (self, stencil):
@@ -404,9 +404,13 @@ class StencilInspector (ast.NodeVisitor):
         if not isinstance (node, ast.FunctionDef) or not node.decorator_list:
             return False
         #
-        # The decorator must be a Name AST node, with identifier 'stencil_kernel'
+        # The decorator must be an Attribute AST node, with value id 'Stencil'
+        # and attribute name 'kernel'
         #
-        return any (isinstance(x, ast.Name) and x.id=='stencil_kernel' for x in node.decorator_list)
+        return any (isinstance(x, ast.Attribute)
+                    and x.value.id == 'Stencil'
+                    and x.attr == 'kernel'
+                    for x in node.decorator_list)
 
 
     def _extract_source (self):
@@ -671,20 +675,23 @@ class StencilInspector (ast.NodeVisitor):
         st    = self.inspected_stencil
         call  = node.iter
         stage = None
-        if (call.func.value.id == 'self' and
-            call.func.attr == 'get_interior_points'):
-            if name_suffix is None:
-                stage = st.scope.add_stage (node,
-                                            prefix=st.name.lower ( ),
-                                            suffix='stage')
-            else:
-                #
-                # the suffix is present only for independent stages
-                #
-                stage = st.scope.add_stage (node,
-                                            prefix=st.name.lower ( ),
-                                            suffix=name_suffix)
-                stage.independent = True
+
+        if isinstance (call.func, ast.Attribute):
+            if (call.func.value.id in ['Stencil', 'self']
+                and call.func.attr == 'get_interior_points'):
+                if name_suffix is None:
+                    stage = st.scope.add_stage (node,
+                                                prefix=st.name.lower ( ),
+                                                suffix='stage')
+                else:
+                    #
+                    # the suffix is present only for independent stages
+                    #
+                    stage = st.scope.add_stage (node,
+                                                prefix=st.name.lower ( ),
+                                                suffix=name_suffix)
+                    stage.independent = True
+
         return stage
 
 

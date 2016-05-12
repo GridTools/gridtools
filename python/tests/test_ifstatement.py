@@ -5,7 +5,7 @@ import numpy as np
 
 from nose.plugins.attrib import attr
 
-from gridtools.stencil  import MultiStageStencil, stencil_kernel
+from gridtools.stencil  import Stencil, MultiStageStencil
 from tests.test_stencils import CopyTest
 
 
@@ -24,7 +24,7 @@ class GameOfLife (MultiStageStencil):
         self.counter = np.zeros (domain)
 
 
-    @stencil_kernel
+    @Stencil.kernel
     def kernel (self, out_X, in_X):
         for p in self.get_interior_points (out_X):
 
@@ -60,6 +60,7 @@ class GameOfLifeTest (CopyTest):
 
         self.stencil = GameOfLife (self.domain)
         self.stencil.set_halo ( (1,1,1,1) )
+        self.stencil.set_k_direction ('forward')
 
 
     @attr(lang='cuda')
@@ -97,10 +98,27 @@ class GameOfLifeTest (CopyTest):
     def test_minimum_halo_detection (self):
         super ( ).test_minimum_halo_detection ([1, 1, 1, 1])
 
+
     @unittest.skip("Not yet implemented")
     @attr(lang='python')
     def test_python_results (self):
         pass
+
+
+    def test_get_interior_points_K_static (self):
+        super ( ).test_get_interior_points_K_static (self.out_X)
+
+
+    def test_get_interior_points_K_object (self):
+        super ( ).test_get_interior_points_K_object (self.out_X)
+
+
+    def test_get_interior_points_IJ_static (self):
+        super ( ).test_get_interior_points_IJ_static (self.out_X)
+
+
+    def test_get_interior_points_IJ_object (self):
+        super ( ).test_get_interior_points_IJ_object (self.out_X)
 
 
 
@@ -120,7 +138,7 @@ class AdditionalIfStatement (MultiStageStencil):
         self.counter = np.zeros (domain)
 
 
-    @stencil_kernel
+    @Stencil.kernel
     def kernel (self, out_X, in_X):
         for p in self.get_interior_points (out_X):
             self.counter[p] = out_X[p + (1,0,0)]
@@ -163,6 +181,7 @@ class AdditionalIfStatementTest (CopyTest):
 
         self.stencil = AdditionalIfStatement (self.domain)
         self.stencil.set_halo ( (0,1,0,0) )
+        self.stencil.set_k_direction ('forward')
 
 
     @attr(lang='cuda')
@@ -205,3 +224,19 @@ class AdditionalIfStatementTest (CopyTest):
     @attr(lang='python')
     def test_python_results (self):
         pass
+
+
+    def test_get_interior_points_K_static (self):
+        super ( ).test_get_interior_points_K_static (self.out_X)
+
+
+    def test_get_interior_points_K_object (self):
+        super ( ).test_get_interior_points_K_object (self.out_X)
+
+
+    def test_get_interior_points_IJ_static (self):
+        super ( ).test_get_interior_points_IJ_static (self.out_X)
+
+
+    def test_get_interior_points_IJ_object (self):
+        super ( ).test_get_interior_points_IJ_object (self.out_X)

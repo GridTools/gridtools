@@ -27,7 +27,7 @@ import numpy as np
 
 from nose.plugins.attrib import attr
 
-from gridtools.stencil   import MultiStageStencil, stencil_kernel
+from gridtools.stencil   import Stencil, MultiStageStencil
 from tests.test_stencils import CopyTest
 
 
@@ -85,7 +85,7 @@ class SW (MultiStageStencil):
                                                                         self.B[p]))
 
 
-    @stencil_kernel
+    @Stencil.kernel
     def kernel (self, out_H, out_U, out_V):
         #
         # momentum calculation for each field
@@ -145,6 +145,7 @@ class SWTest (CopyTest):
 
         self.stencil = SW (self.domain)
         self.stencil.set_halo ( (1, 1, 1, 1) )
+        self.stencil.set_k_direction ('forward')
 
         self.out_H  = np.zeros (self.domain)
         self.out_H += 0.000001
@@ -228,7 +229,7 @@ class SWTest (CopyTest):
                 w.addItem(self.p4)
 
                 self.frame = 0
-                self.stencil.backend = 'c++'
+                self.stencil.set_backend ('c++')
 
                 def update ( ):
                     try:
@@ -361,7 +362,7 @@ class SWTest (CopyTest):
         self.add_expected_offset ('out_V',   [-1,1,-1,1])
 
         for backend in BACKENDS:
-            self.stencil.backend = backend
+            self.stencil.set_backend (backend)
             self._run ( )
             self.automatic_access_pattern_detection (self.stencil)
 
@@ -391,7 +392,7 @@ class SWTest (CopyTest):
         # need this program to create the animation
         #
         if which ('ffmpeg'):
-            self.stencil.backend = 'c++'
+            self.stencil.set_backend ('c++')
 
             plt.switch_backend ('agg')
 
@@ -449,6 +450,21 @@ class SWTest (CopyTest):
         super ( ).test_python_results (out_param   = 'out_H',
                                        result_file = 'sw_001.npy')
 
+
+    def test_get_interior_points_K_static (self):
+        super ( ).test_get_interior_points_K_static (self.out_H)
+
+
+    def test_get_interior_points_K_object (self):
+        super ( ).test_get_interior_points_K_object (self.out_H)
+
+
+    def test_get_interior_points_IJ_static (self):
+        super ( ).test_get_interior_points_IJ_static (self.out_H)
+
+
+    def test_get_interior_points_IJ_object (self):
+        super ( ).test_get_interior_points_IJ_object (self.out_H)
 
 
 
@@ -594,7 +610,7 @@ class ShallowWater2D (MultiStageStencil):
                           ) * ( self.dt / (2*self.dy) )
 
 
-    @stencil_kernel
+    @Stencil.kernel
     def kernel (self, out_H, out_U, out_V):
         self.stage_first_x (out_H=out_H,
                             out_U=out_U,
