@@ -80,6 +80,9 @@ namespace gridtools {
         GT_FUNCTION
         constexpr explicit accessor_base() : m_offsets() {}
 
+        GT_FUNCTION
+        constexpr explicit accessor_base(array<int_t, Dim> const & offsets) : m_offsets(0, offsets) {}
+
 #if defined(CXX11_ENABLED) && !defined(__CUDACC__)
         // move ctor
         GT_FUNCTION

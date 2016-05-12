@@ -1,7 +1,7 @@
 #pragma once
 #include "common/defs.hpp"
 #include "stencil-composition/dimension_defs.hpp"
-#include "common/generic_metafunctions/logical_and.hpp"
+#include "common/generic_metafunctions/logical_ops.hpp"
 #include "common/generic_metafunctions/is_variadic_pack_of.hpp"
 
 namespace gridtools {
@@ -104,15 +104,26 @@ namespace gridtools {
         typedef offset_tuple< Index - 1, NDim > super;
         static const short_t n_args = super::n_args + 1;
 
+        GT_FUNCTION CONSTEXPR offset_tuple(const uint_t pos, array< int_t, NDim > const &offsets)
+            : super(pos + 1, offsets), m_offset(offsets[pos]) {
+#ifndef NDEBUG
+      assert(pos < NDim);
+#endif
+
+        }
 #ifdef CXX11_ENABLED
 
         /**@brief constructor taking an integer as the first argument, and then other optional arguments.
-           The integer gets assigned to the current extra dimension and the other arguments are passed to the base class
+           The integer gets assigned to the current extra dimension and the other arguments are passed to the base
+           class
            (in order to get assigned to the other dimensions).
            When this constructor is used all the arguments have to be specified and passed to the function call in
            order. No check is done on the order*/
         template < typename... GenericElements >
-        GT_FUNCTION constexpr offset_tuple(int const t, GenericElements const... x)
+        GT_FUNCTION constexpr offset_tuple(int const t,
+            GenericElements const... x,
+            typename boost::disable_if_c< accumulate(logical_or(), is_array< GenericElements >::type::value...),
+                bool >::type * = 0)
             : super(x...), m_offset(t) {}
 
         /**@brief constructor taking the dimension class as argument.
@@ -124,12 +135,12 @@ namespace gridtools {
             : super(t, x...), m_offset(initialize< super::n_dim - n_args + 1 >(t, x...)) {}
 #else
         /**@brief constructor taking an integer as the first argument, and then other optional arguments.
-           The integer gets assigned to the current extra dimension and the other arguments are passed to the base class
+           The integer gets assigned to the current extra dimension and the other arguments are passed to the base
+           class
            (in order to get assigned to the other dimensions).
            When this constructor is used all the arguments have to be specified and passed to the function call in
            order. No check is done on the order*/
-        GT_FUNCTION
-        offset_tuple(int const i, int const j, int const k) : super(j, k), m_offset(i) {}
+        GT_FUNCTION offset_tuple(int const i, int const j, int const k) : super(j, k), m_offset(i) {}
         GT_FUNCTION
         offset_tuple(int const i, int const j) : super(j), m_offset(i) {}
         GT_FUNCTION
@@ -197,9 +208,17 @@ namespace gridtools {
     struct offset_tuple< 0, NDim > {
         static const int_t n_dim = NDim;
 
+        GT_FUNCTION CONSTEXPR offset_tuple(const uint_t pos, array< int_t, NDim > const &offsets) {
+#ifndef NDEBUG
+      assert(pos == NDim);
+#endif
+        }
+
 #ifdef CXX11_ENABLED
         template < typename... GenericElements >
-        GT_FUNCTION constexpr offset_tuple(GenericElements... x) {
+        GT_FUNCTION constexpr offset_tuple(GenericElements... x,
+            typename boost::disable_if_c< accumulate(logical_or(), is_array< GenericElements >::type::value...),
+                bool >::type * = 0) {
             GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension< GenericElements >::type::value...),
                 "wrong type for the argument of an offset_tuple");
         }
