@@ -6,7 +6,6 @@ import numpy as np
 from nose.plugins.attrib import attr
 
 from gridtools.stencil import Stencil, MultiStageStencil
-import ipdb
 
 
 
@@ -110,7 +109,7 @@ class CopyTest (AccessPatternDetectionTest):
 
 
     def test_data_dependency_detection (self, deps=None, backend='c++'):
-        self.stencil.backend = backend
+        self.stencil.set_backend (backend)
         self._run ( )
 
         if deps is None:
@@ -149,7 +148,7 @@ class CopyTest (AccessPatternDetectionTest):
         self.add_expected_offset ('out_cpy', None)
 
         for backend in BACKENDS:
-            self.stencil.backend = backend
+            self.stencil.set_backend (backend)
             self._run ( )
             self.automatic_access_pattern_detection (self.stencil)
 
@@ -163,7 +162,7 @@ class CopyTest (AccessPatternDetectionTest):
         for backend in BACKENDS:
             diff                   = 0
             stencil_native         = copy.deepcopy (self.stencil)
-            stencil_native.backend = backend
+            stencil_native.set_backend (backend)
 
             #
             # data fields - Py and C++ sets
@@ -192,7 +191,7 @@ class CopyTest (AccessPatternDetectionTest):
 
 
     def test_ghost_cell_pattern (self, expected_patterns=None, backend='c++'):
-        self.stencil.backend = backend
+        self.stencil.set_backend (backend)
         self._run ( )
 
         if expected_patterns is None:
@@ -214,7 +213,7 @@ class CopyTest (AccessPatternDetectionTest):
         # minimum halo correctly calculated
         #
         for back in BACKENDS:
-            self.stencil.backend = back
+            self.stencil.set_backend (back)
             self._run ( )
             self.assertEqual (self.stencil.scope.minimum_halo,
                               min_halo)
@@ -239,7 +238,7 @@ class CopyTest (AccessPatternDetectionTest):
 
 
     def test_symbol_discovery (self, backend='c++'):
-        self.stencil.backend = backend
+        self.stencil.set_backend (backend)
         self._run ( )
         #
         # check fields were correctly discovered
@@ -276,7 +275,7 @@ class CopyTest (AccessPatternDetectionTest):
 
         cur_dir = os.path.dirname (os.path.abspath (__file__))
 
-        self.stencil.backend = 'python'
+        self.stencil.set_backend ('python')
         self._run ( )
         #
         # take halo into account when comparing the results
@@ -299,7 +298,7 @@ class CopyTest (AccessPatternDetectionTest):
     def test_execution_performance_cpp (self, backend='c++'):
         import time
 
-        self.stencil.backend = backend
+        self.stencil.set_backend (backend)
         self._run ( )
 
         nstep  = 100
@@ -315,7 +314,7 @@ class CopyTest (AccessPatternDetectionTest):
 
 
     def test_k_directions (self, backend='c++'):
-        self.stencil.backend = backend
+        self.stencil.set_backend (backend)
         for dir in ('forward', 'backward'):
             self.stencil.set_k_direction (dir)
             self._run ( )
@@ -360,12 +359,14 @@ class CopyTest (AccessPatternDetectionTest):
         #
         # Set a new global halo and a new stencil-specific value
         #
-        Stencil.set_halo( (randint(0,10), randint(0,10), randint(0,10), randint(0,10)) )
+        global_halo = (randint(0,10), randint(0,10), randint(0,10), randint(0,10))
+        Stencil.set_halo (global_halo)
         new_halo = (randint(0,10), randint(0,10), randint(0,10), randint(0,10))
         self.stencil.set_halo (new_halo)
         #
         # Check that the stencil halo is returned
         #
+        self.assertTrue (Stencil.get_halo ( ) == global_halo)
         self.assertTrue (self.stencil.get_halo ( ) == new_halo)
 
 
@@ -391,12 +392,15 @@ class CopyTest (AccessPatternDetectionTest):
         #
         # Set a new global k direction and a new stencil-specific value
         #
-        Stencil.set_k_direction( choice(K_DIRECTIONS) )
+        global_direction = choice(K_DIRECTIONS)
+        Stencil.set_k_direction(global_direction)
+
         direction = choice(K_DIRECTIONS)
         self.stencil.set_k_direction (direction)
         #
         # Check that the stencil k direction is correctly returned
         #
+        self.assertTrue (Stencil.get_k_direction ( ) == global_direction)
         self.assertTrue (self.stencil.get_k_direction ( ) == direction)
 
 
@@ -548,21 +552,21 @@ class FloatPrecisionTest (CopyTest):
     """
     def test_float_input_type_validation_wrong_data_size (self):
         with self.assertRaises (TypeError):
-            self.stencil.backend = 'c++'
+            self.stencil.set_backend ('c++')
             self.in_cpy = self.in_cpy.astype(np.float16)
             self._run ( )
 
 
     def test_float_input_type_validation_wrong_data_type (self):
         with self.assertRaises (TypeError):
-            self.stencil.backend = 'c++'
+            self.stencil.set_backend ('c++')
             self.in_cpy = self.in_cpy.astype(np.int64)
             self._run ( )
 
 
     def test_float_input_type_validation_potentially_correct_type_but_not_the_correct_size (self):
         with self.assertRaises (TypeError):
-            self.stencil.backend = 'c++'
+            self.stencil.set_backend ('c++')
             self.in_cpy = self.in_cpy.astype(np.float32)
             self._run ( )
 
@@ -665,7 +669,7 @@ class LaplaceTest (CopyTest):
         self.add_expected_offset ('out_data', None)
 
         for backend in BACKENDS:
-            self.stencil.backend = backend
+            self.stencil.set_backend (backend)
             self._run ( )
             self.automatic_access_pattern_detection (self.stencil)
 
@@ -811,7 +815,7 @@ class HorizontalDiffusionTest (CopyTest):
         self.add_expected_offset ('self.lap', [0,0,0,1])
 
         for backend in BACKENDS:
-            self.stencil.backend = backend
+            self.stencil.set_backend (backend)
             self._run ( )
             self.automatic_access_pattern_detection (self.stencil)
 

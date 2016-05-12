@@ -229,7 +229,7 @@ class SWTest (CopyTest):
                 w.addItem(self.p4)
 
                 self.frame = 0
-                self.stencil.backend = 'c++'
+                self.stencil.set_backend ('c++')
 
                 def update ( ):
                     try:
@@ -362,7 +362,7 @@ class SWTest (CopyTest):
         self.add_expected_offset ('out_V',   [-1,1,-1,1])
 
         for backend in BACKENDS:
-            self.stencil.backend = backend
+            self.stencil.set_backend (backend)
             self._run ( )
             self.automatic_access_pattern_detection (self.stencil)
 
@@ -392,7 +392,7 @@ class SWTest (CopyTest):
         # need this program to create the animation
         #
         if which ('ffmpeg'):
-            self.stencil.backend = 'c++'
+            self.stencil.set_backend ('c++')
 
             plt.switch_backend ('agg')
 

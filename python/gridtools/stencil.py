@@ -439,13 +439,22 @@ class MultiStageStencil (Stencil):
         self._k_direction     = None
 
 
-    @property
-    def backend (self):
-        return self._backend
+    def get_backend (self):
+        """
+        Return the execution backend for this stencil
+        If a specific backend was not set for this stencil, use global Stencil
+        backend
+        """
+        if self._backend:
+            return self._backend
+        else:
+            return Stencil.get_backend ( )
 
 
-    @backend.setter
-    def backend (self, value):
+    def set_backend (self, value):
+        """
+        Set the execution backend for this stencil
+        """
         self._backend = value
         Stencil.compiler.recompile ( )
 
@@ -527,10 +536,7 @@ class MultiStageStencil (Stencil):
             # If a specific backend has been set for this stencil, use that.
             # Otherwise, use the global Stencil backend
             #
-            if self._backend:
-                backend = self._backend
-            else:
-                backend = Stencil.get_backend ( )
+            backend = self.get_backend ( )
             #
             # run the selected backend version
             #

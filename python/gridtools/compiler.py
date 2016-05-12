@@ -167,7 +167,7 @@ class StencilCompiler ( ):
                                                self.compile_count)
             if not path.exists (self.src_dir):
                 makedirs (self.src_dir)
-            if stencil.backend == 'cuda':
+            if stencil.get_backend ( ) == 'cuda':
                 extension = 'cu'
             else:
                 extension = 'cpp'
@@ -176,7 +176,7 @@ class StencilCompiler ( ):
             #
             # ... and populate them
             #
-            logging.info ("Generating %s code in '%s'" % (stencil.backend.upper ( ),
+            logging.info ("Generating %s code in '%s'" % (stencil.get_backend ( ).upper ( ),
                                                           self.src_dir))
             stg_src, cpp_src, make_src = self.translate (stencil)
 
@@ -333,7 +333,7 @@ class StencilCompiler ( ):
                             params_temps          = params + temps,
                             stages                = stgs,
                             independent_stage_idx = ind_stg_idx),
-                make.render (stencils = [s for s in self.stencils.values ( ) if s.backend in ['c++', 'cuda']],
+                make.render (stencils = [s for s in self.stencils.values ( ) if s.get_backend ( ) in ['c++', 'cuda']],
                              compiler = self))
 
     def unregister (self, stencil):
