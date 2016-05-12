@@ -33,7 +33,6 @@ namespace test_conditional_switches{
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
             eval(p_dummy())+=Id;
-            eval(p_dummy_tmp( 0, 0, 0))=0.;
         }
     };
 
@@ -41,14 +40,14 @@ namespace test_conditional_switches{
     struct functor2{
 
         typedef accessor<0, enumtype::inout> p_dummy;
-        typedef accessor<1, enumtype::inout> p_dummy_tmp;
+        typedef accessor<1, enumtype::in> p_dummy_tmp;
 
         typedef boost::mpl::vector2<p_dummy, p_dummy_tmp> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            eval(p_dummy())+=Id+eval(p_dummy_tmp( 0, 0, 0));
+            eval(p_dummy())+=Id;
         }
     };
 
