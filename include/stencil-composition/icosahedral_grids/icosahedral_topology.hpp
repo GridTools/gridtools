@@ -146,9 +146,20 @@ namespace gridtools {
         template < typename ValueType >
         using return_t = typename return_type< from< cells >::to< cells >, ValueType >::type;
 
+        /*
+         * neighbors order
+         *
+         *      ____________
+         *      \    /\    /
+         *       \1 /  \2 /
+         *        \/____\/
+         *         \  0 /
+         *          \  /
+         *           \/
+         */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{0, -1, 0, 0}, {0, -1, 1, 0}, {1, -1, 0, 0}}};
+            return return_t< array< int_t, 4 > >{{{1, -1, 0, 0}, {0, -1, 0, 0}, {0, -1, 1, 0}}};
         }
     };
 
@@ -160,9 +171,19 @@ namespace gridtools {
         template < typename ValueType >
         using return_t = typename return_type< from< cells >::to< cells >, ValueType >::type;
 
+        /*
+         * neighbors order
+         *
+         *        /\
+         *       /0 \
+         *      /____\
+         *     /\    /\
+         *    /2 \  /1 \
+         *   /____\/____\
+         */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{0, 1, -1, 0}, {0, 1, 0, 0}, {-1, 1, 0, 0}}};
+            return return_t< array< int_t, 4 > >{{{-1, 1, 0, 0}, {0, 1, 0, 0}, {0, 1, -1, 0}}};
         }
     };
 
@@ -174,10 +195,22 @@ namespace gridtools {
         template < typename ValueType >
         using return_t = typename return_type< from< vertexes >::to< vertexes >, ValueType >::type;
 
+        /*
+         * neighbors order
+         *
+         *          1____2
+         *         /\    /\
+         *        /  \  /  \
+         *       0____\/____3
+         *       \    /\    /
+         *        \  /  \  /
+         *         \5____4/
+         *
+         */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
             return return_t< array< int_t, 4 > >{
-                {{0, 0, -1, 0}, {1, 0, -1, 0}, {1, 0, 0, 0}, {0, 0, 1, 0}, {-1, 0, 1, 0}, {-1, 0, 0, 0}}};
+                {{0, 0, -1, 0}, {-1, 0, 0, 0}, {-1, 0, 1, 0}, {0, 0, 1, 0}, {1, 0, 0, 0}, {1, 0, -1, 0}}};
         }
     };
 
@@ -189,9 +222,17 @@ namespace gridtools {
         template < typename ValueType >
         using return_t = typename return_type< from< edges >::to< edges >, ValueType >::type;
 
+        /*
+         * neighbors order
+         *
+         *        __1___
+         *       /\    /
+         *      0  \  2
+         *     /_3__\/
+         */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{0, 1, 0, 0}, {1, 1, -1, 0}, {0, 2, 0, 0}, {0, 2, -1, 0}}};
+            return return_t< array< int_t, 4 > >{{{0, 2, -1, 0}, {0, 1, 0, 0}, {0, 2, 0, 0}, {1, 1, -1, 0}}};
         }
     };
 
@@ -203,9 +244,19 @@ namespace gridtools {
         template < typename ValueType >
         using return_t = typename return_type< from< edges >::to< edges >, ValueType >::type;
 
+        /*
+         * neighbors order
+         *
+         *      /\
+         *     0  1
+         *    /____\
+         *    \    /
+         *     3  2
+         *      \/
+         */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{0, -1, 0, 0}, {-1, -1, 1, 0}, {0, 1, 0, 0}, {-1, 1, 0, 0}}};
+            return return_t< array< int_t, 4 > >{{{-1, 1, 0, 0}, {-1, -1, 1, 0}, {0, 1, 0, 0}, {0, -1, 0, 0}}};
         }
     };
 
@@ -217,9 +268,17 @@ namespace gridtools {
         template < typename ValueType >
         using return_t = typename return_type< from< edges >::to< edges >, ValueType >::type;
 
+        /*
+         * neighbors order
+         *
+         *   __1___
+         *   \    /\
+         *    0  /  2
+         *     \/_3__\
+         */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{0, -2, 0, 0}, {0, -2, 1, 0}, {0, -1, 0, 0}, {1, -1, 0, 0}}};
+            return return_t< array< int_t, 4 > >{{{0, -2, 0, 0}, {0, -1, 0, 0}, {0, -2, 1, 0}, {1, -1, 0, 0}}};
         }
     };
 
@@ -231,9 +290,16 @@ namespace gridtools {
         template < typename ValueType = int_t >
         using return_t = typename return_type< from< cells >::to< edges >, ValueType >::type;
 
+        /*
+         * neighbors order
+         *
+         *        /\
+         *       1  2
+         *      /_0__\
+         */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{0, 1, 0, 0}, {0, -1, 1, 0}, {1, 0, 0, 0}}};
+            return return_t< array< int_t, 4 > >{{{1, 0, 0, 0}, {0, 1, 0, 0}, {0, -1, 1, 0}}};
         }
     };
 
@@ -245,9 +311,17 @@ namespace gridtools {
         template < typename ValueType >
         using return_t = typename return_type< from< cells >::to< edges >, ValueType >::type;
 
+        /*
+         * neighbors order
+         *
+         *   __0___
+         *   \    /
+         *    2  1
+         *     \/
+         */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{0, 0, 0, 0}, {0, 1, 0, 0}, {0, 2, 0, 0}}};
+            return return_t< array< int_t, 4 > >{{{0, 1, 0, 0}, {0, 2, 0, 0}, {0, 0, 0, 0}}};
         }
     };
 
@@ -259,9 +333,18 @@ namespace gridtools {
         template < typename ValueType >
         using return_t = typename return_type< from< cells >::to< vertexes >, ValueType >::type;
 
+        /*
+         * neighbors order
+         *
+         *  1______2
+         *   \    /
+         *    \  /
+         *     \/
+         *     0
+         */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{0, 0, 0, 0}, {0, 0, 1, 0}, {1, 0, 0, 0}}};
+            return return_t< array< int_t, 4 > >{{{1, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 1, 0}}};
         }
     };
 
@@ -273,9 +356,18 @@ namespace gridtools {
         template < typename ValueType >
         using return_t = typename return_type< from< cells >::to< vertexes >, ValueType >::type;
 
+        /*
+         * neighbors order
+         *
+         *      0
+         *      /\
+         *     /  \
+         *    /____\
+         *   2      1
+         */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{1, -1, 0, 0}, {0, -1, 1, 0}, {1, -1, 1, 0}}};
+            return return_t< array< int_t, 4 > >{{{0, -1, 1, 0}, {1, -1, 1, 0}, {1, -1, 0, 0}}};
         }
     };
 
@@ -287,6 +379,14 @@ namespace gridtools {
         template < typename ValueType >
         using return_t = typename return_type< from< edges >::to< cells >, ValueType >::type;
 
+        /*
+         * neighbors order
+         *
+         *        ______
+         *       /\  1 /
+         *      /0 \  /
+         *     /____\/
+         */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
             return return_t< array< int_t, 4 > >{{{0, 1, -1, 0}, {0, 0, 0, 0}}};
@@ -301,6 +401,16 @@ namespace gridtools {
         template < typename ValueType >
         using return_t = typename return_type< from< edges >::to< cells >, ValueType >::type;
 
+        /*
+         * neighbors order
+         *
+         *      /\
+         *     / 0\
+         *    /____\
+         *    \    /
+         *     \1 /
+         *      \/
+         */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
             return return_t< array< int_t, 4 > >{{{-1, 0, 0, 0}, {0, -1, 0, 0}}};
@@ -315,6 +425,14 @@ namespace gridtools {
         template < typename ValueType >
         using return_t = typename return_type< from< edges >::to< cells >, ValueType >::type;
 
+        /*
+         * neighbors order
+         *
+         *   ______
+         *   \ 0  /\
+         *    \  / 1\
+         *     \/____\
+         */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
             return return_t< array< int_t, 4 > >{{{0, -2, 0, 0}, {0, -1, 0, 0}}};
@@ -329,9 +447,18 @@ namespace gridtools {
         template < typename ValueType >
         using return_t = typename return_type< from< edges >::to< vertexes >, ValueType >::type;
 
+        /*
+         * neighbors order
+         *
+         *       1______2
+         *       /\    /
+         *      /  \  /
+         *     /____\/
+         *    0      3
+         */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{0, 0, 0, 0}, {0, 0, 1, 0}, {1, 0, 0, 0}, {1, 0, -1, 0}}};
+            return return_t< array< int_t, 4 > >{{{1, 0, -1, 0}, {0, 0, 0, 0}, {0, 0, 1, 0}, {1, 0, 0, 0}}};
         }
     };
 
@@ -343,6 +470,18 @@ namespace gridtools {
         template < typename ValueType >
         using return_t = typename return_type< from< edges >::to< vertexes >, ValueType >::type;
 
+        /*
+         * neighbors order
+         *
+         *      1
+         *      /\
+         *     /  \
+         *   0/____\2
+         *    \    /
+         *     \  /
+         *      \/
+         *      3
+         */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
             return return_t< array< int_t, 4 > >{{{0, -1, 0, 0}, {-1, -1, 1, 0}, {0, -1, 1, 0}, {1, -1, 0, 0}}};
@@ -357,9 +496,18 @@ namespace gridtools {
         template < typename ValueType >
         using return_t = typename return_type< from< edges >::to< vertexes >, ValueType >::type;
 
+        /*
+         * neighbors order
+         *
+         *  0______1
+         *   \    /\
+         *    \  /  \
+         *     \/____\2
+         *     3
+         */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{0, -2, 0, 0}, {0, -2, 1, 0}, {1, -2, 0, 0}, {1, -2, 1, 0}}};
+            return return_t< array< int_t, 4 > >{{{0, -2, 0, 0}, {0, -2, 1, 0}, {1, -2, 1, 0}, {1, -2, 0, 0}}};
         }
     };
 
@@ -371,6 +519,18 @@ namespace gridtools {
         template < typename ValueType >
         using return_t = typename return_type< from< vertexes >::to< cells >, ValueType >::type;
 
+        /*
+         * neighbors order
+         *
+         *          ______
+         *         /\ 1  /\
+         *        /0 \  / 2\
+         *       /____\/____\
+         *       \ 5  /\ 3  /
+         *        \  /4 \  /
+         *         \/____\/
+         *
+         */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
             return return_t< array< int_t, 4 > >{
@@ -386,6 +546,18 @@ namespace gridtools {
         template < typename ValueType >
         using return_t = typename return_type< from< vertexes >::to< edges >, ValueType >::type;
 
+        /*
+         * neighbors order
+         *
+         *          ______
+         *         /\    /\
+         *        /  1  3  \
+         *       /__0_\/__4_\
+         *       \    /\    /
+         *        \  6  5  /
+         *         \/____\/
+         *
+         */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
             return return_t< array< int_t, 4 > >{
@@ -394,7 +566,7 @@ namespace gridtools {
     };
 
     template < typename Location1, typename Location2, uint_t Color >
-    struct connectivity {
+    struct connectivity_indexes {
         template < typename ValueType >
         using return_t = typename return_type< from< Location1 >::to< Location2 >, ValueType >::type;
 
@@ -503,7 +675,7 @@ namespace gridtools {
         GT_FUNCTION
             typename return_type< typename from< Location1 >::template to< Location2 >, uint_t >::type const ll_map(
                 Location1, Location2, Color, array< uint_t, 3 > const &i) {
-            return connectivity< Location1, Location2, Color::value >::get(*this, i);
+            return connectivity_indexes< Location1, Location2, Color::value >::get(*this, i);
         }
 
         // methods returning the neighbors. Specializations according to the location type
@@ -512,7 +684,7 @@ namespace gridtools {
         GT_FUNCTION static
             typename return_type< typename from< Location1 >::template to< Location2 >, array< uint_t, 4 > >::type const
                 ll_map_index(Location1, Location2, Color, array< uint_t, 3 > const &i) {
-            return connectivity< Location1, Location2, Color::value >::get_index(i);
+            return connectivity_indexes< Location1, Location2, Color::value >::get_index(i);
         }
 
         template < typename Location2 > // Works for cells or edges with same code
