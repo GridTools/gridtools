@@ -232,9 +232,14 @@ class Stencil (object):
 
     @staticmethod
     def set_backend (value):
-        Stencil._backend = value
-        logging.debug ("Setting global Stencil backend to %s" % str (Stencil._backend))
-        Stencil.compiler.recompile ( )
+        from gridtools import BACKENDS
+
+        if value in BACKENDS:
+            Stencil._backend = value
+            logging.debug ("Setting global Stencil backend to %s" % str (Stencil._backend))
+            Stencil.compiler.recompile ( )
+        else:
+            logging.warning ("Ignoring unknown backend '%s'" % value)
 
 
     @staticmethod
@@ -451,12 +456,30 @@ class MultiStageStencil (Stencil):
             return Stencil.get_backend ( )
 
 
-    def set_backend (self, value):
+    def set_backend (self, value=None):
         """
         Set the execution backend for this stencil
         """
-        self._backend = value
-        Stencil.compiler.recompile ( )
+        from gridtools import BACKENDS
+
+        #
+        # If no argument is provided, reset the object backend, so that
+        # global Stencil backend will be used instead
+        #
+        if value is None:
+            self._backend = None
+            Stencil.compiler.recompile ( )
+            logging.debug ("backend for stencil '%s' has been reset" %
+                           self.name)
+            return
+
+        if value in BACKENDS:
+            self._backend = value
+            Stencil.compiler.recompile ( )
+            logging.debug ("Setting backend for stencil '%s' to '%s'" %
+                            (self.name, self._backend) )
+        else:
+            logging.warning ("Ignoring unknown backend '%s'" % value)
 
 
     def build (self, output, **kwargs):
