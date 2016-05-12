@@ -8,19 +8,19 @@ using namespace enumtype;
 typedef interval<level<0,-1>, level<1,-1> > x_interval;
 typedef interval<level<0,-2>, level<1,1> > axis;
 #ifdef __CUDACC__
-    typedef backend< Cuda, structured, Block > backend_t;
+typedef backend< Cuda, structured, Block > backend_t;
 #else
-    typedef backend< Host, structured, Naive > backend_t;
+typedef backend< Host, structured, Naive > backend_t;
 #endif
-typedef typename backend_t::storage_info<0, layout_map<0,1,2> > meta_t;
-typedef backend_t::storage_type<float_type, meta_t >::type storage_type;
+typedef typename backend_t::storage_info< 0, layout_map< 0, 1, 2 > > meta_t;
+typedef backend_t::storage_type< float_type, meta_t >::type storage_type;
 
 /**@brief generic argument type
 
    struct implementing the minimal interface in order to be passed as an argument to the user functor.
 */
 
-struct boundary : clonable_to_gpu<boundary> {
+struct boundary : clonable_to_gpu< boundary > {
 #ifdef _USE_GPU_
     typedef hybrid_pointer< boundary, false > storage_ptr_t;
 #else
@@ -46,19 +46,13 @@ struct boundary : clonable_to_gpu<boundary> {
     boundary * access_value() const {return const_cast<boundary*>(this);} //TODO change this?
 
     GT_FUNCTION
-    boundary * get_pointer_to_use() {
-        return m_storage.get_pointer_to_use();
-    }
+    boundary *get_pointer_to_use() { return m_storage.get_pointer_to_use(); }
 
     GT_FUNCTION
-    pointer<storage_ptr_t> get_storage_pointer() {
-        return pointer<storage_ptr_t>(&m_storage);
-    }
+    pointer< storage_ptr_t > get_storage_pointer() { return pointer< storage_ptr_t >(&m_storage); }
 
     GT_FUNCTION
-    pointer<const storage_ptr_t> get_storage_pointer() const {
-        return pointer<const storage_ptr_t>(&m_storage);
-    }
+    pointer< const storage_ptr_t > get_storage_pointer() const { return pointer< const storage_ptr_t >(&m_storage); }
 
     // template<typename ID>
     // boundary const*  access_value() const {return this;} //TODO change this?
@@ -67,7 +61,7 @@ struct boundary : clonable_to_gpu<boundary> {
 
 namespace gridtools {
     template <>
-    struct is_any_storage<boundary> : boost::mpl::true_ {};
+    struct is_any_storage< boundary > : boost::mpl::true_ {};
 }
 
 struct functor{

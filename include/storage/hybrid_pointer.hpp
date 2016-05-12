@@ -10,20 +10,20 @@ namespace gridtools {
 
     /**\todo Note that this struct will greatly simplify when the CUDA arch 3200 and inferior will be obsolete (the
      * "pointer_to_use" will then become useless, and the operators defined in the base class will be usable) */
-    template < typename T, bool Array=true >
+    template < typename T, bool Array = true >
     struct hybrid_pointer {
-	private:
+        private:
 		template <typename V>
 		hybrid_pointer(V);
 
 	public:
         // typedef wrap_pointer<T> super;
-        typedef typename wrap_pointer< T, Array >::pointee_t pointee_t;
+          typedef typename wrap_pointer< T, Array >::pointee_t pointee_t;
 
         GT_FUNCTION
         explicit hybrid_pointer()
-            : m_gpu_p(NULL), m_cpu_p(static_cast<T*>(NULL), false), m_pointer_to_use(NULL),
-			  m_size(0), m_allocated(false), m_up_to_date(true) {
+            : m_gpu_p(NULL), m_cpu_p(static_cast< T * >(NULL), false), m_pointer_to_use(NULL), m_size(0),
+              m_allocated(false), m_up_to_date(true) {
 #ifdef VERBOSE
             printf("creating empty hybrid pointer %x \n", this);
 #endif
@@ -31,14 +31,14 @@ namespace gridtools {
 
         GT_FUNCTION
         explicit hybrid_pointer(T *p, uint_t size_, bool externally_managed)
-            : m_gpu_p(NULL), m_cpu_p(p, externally_managed), m_pointer_to_use(p), m_size(size_),
-              m_allocated(false), m_up_to_date(true) {
+            : m_gpu_p(NULL), m_cpu_p(p, externally_managed), m_pointer_to_use(p), m_size(size_), m_allocated(false),
+              m_up_to_date(true) {
             allocate_it(m_size);
         }
 
         explicit hybrid_pointer(T *p, bool externally_managed)
-            : m_gpu_p(NULL), m_cpu_p(p, externally_managed), m_pointer_to_use(p), m_size(1),
-              m_allocated(false), m_up_to_date(true) {
+            : m_gpu_p(NULL), m_cpu_p(p, externally_managed), m_pointer_to_use(p), m_size(1), m_allocated(false),
+              m_up_to_date(true) {
             allocate_it(m_size);
         }
 
@@ -102,7 +102,7 @@ namespace gridtools {
 
         void free_it() {
             assert(m_gpu_p); // check for double free
-            cudaFree((void*)(m_gpu_p));
+            cudaFree((void *)(m_gpu_p));
             m_gpu_p = NULL;
             m_cpu_p.free_it();
             m_up_to_date = true;
@@ -119,7 +119,7 @@ namespace gridtools {
             out();
 #endif
             if (on_host()) { // do not copy if the last version is already on the device
-                cudaMemcpy((void*) m_gpu_p, (void*) m_cpu_p.get(), m_size * sizeof(T), cudaMemcpyHostToDevice);
+                cudaMemcpy((void *)m_gpu_p, (void *)m_cpu_p.get(), m_size * sizeof(T), cudaMemcpyHostToDevice);
                 m_up_to_date = false;
                 m_pointer_to_use = m_gpu_p;
             }
@@ -131,7 +131,7 @@ namespace gridtools {
             out();
 #endif
             if (on_device()) {
-                cudaMemcpy((void*) m_cpu_p.get(), (void*) m_gpu_p, m_size * sizeof(T), cudaMemcpyDeviceToHost);
+                cudaMemcpy((void *)m_cpu_p.get(), (void *)m_gpu_p, m_size * sizeof(T), cudaMemcpyDeviceToHost);
                 m_up_to_date = true;
                 m_pointer_to_use = m_cpu_p.get();
             }

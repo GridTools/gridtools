@@ -133,7 +133,7 @@ namespace shallow_water {
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
 
-            const float_type& tl = 2.;
+            const float_type &tl = 2.;
 #ifdef CUDA_CXX11_BUG_1
             comp::Index c;
             x::Index i;
@@ -191,7 +191,7 @@ namespace shallow_water {
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
 
-            const float_type& tl = 2.;
+            const float_type &tl = 2.;
 #ifdef CUDA_CXX11_BUG_1
 
             eval(tmpy()) =
@@ -249,7 +249,7 @@ namespace shallow_water {
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-            const float_type& tl = 2.;
+            const float_type &tl = 2.;
 #ifdef CUDA_CXX11_BUG_1
 
             eval(sol()) = eval(sol(i - 0) - (tmpx(comp(1), i + 1) - tmpx(comp(1))) * (dt() / dx()) -

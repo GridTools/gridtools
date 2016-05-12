@@ -48,18 +48,20 @@ namespace gridtools {
 		bool is_set;
 		const char *m_name;
 		array< pointer_type, field_dimensions > m_fields;
-		pointer< const MetaData > m_meta_data;
+                pointer< const MetaData > m_meta_data;
 
-	  public:
+          public:
 		template < typename T, typename M, bool I, ushort_t F >
 		friend std::ostream &operator<<(std::ostream &, base_storage< T, M, F > const &);
 
 		/**
 		 * @brief the parallel storage calls the empty constructor to do lazy initialization
 		 */
-		base_storage(MetaData const& meta_data_, char const *s = "default uninitialized storage", bool do_allocate = true)
-			: is_set(false), m_name(malloc_and_copy(s)), m_meta_data(&meta_data_) {
-			if (do_allocate) {
+                base_storage(MetaData const &meta_data_,
+                    char const *s = "default uninitialized storage",
+                    bool do_allocate = true)
+                    : is_set(false), m_name(malloc_and_copy(s)), m_meta_data(&meta_data_) {
+                        if (do_allocate) {
 				allocate();
 			}
 		}
@@ -69,19 +71,22 @@ namespace gridtools {
 		 * @tparam FloatType is the floating point type passed to the constructor for initialization.
 		 * It is a template parameter in order to match float, double, etc...
 		 */
-		base_storage(MetaData const& meta_data_, value_type const &init, char const *s = "default initialized storage")
-			: is_set(true), m_name(malloc_and_copy(s)), m_meta_data(&meta_data_) {
-			allocate();
+                base_storage(
+                    MetaData const &meta_data_, value_type const &init, char const *s = "default initialized storage")
+                    : is_set(true), m_name(malloc_and_copy(s)), m_meta_data(&meta_data_) {
+                        allocate();
 			initialize(init, 1);
 		}
 
 		/**
 		 * @brief default constructor sets all the data members given the storage dimensions
 		 */
-		template < typename Ret, typename T >
-		base_storage(MetaData const& meta_data_, Ret (*func)(T const &, T const &, T const &), char const *s = "storage initialized with lambda")
-			: is_set(true), m_name(malloc_and_copy(s)), m_meta_data(&meta_data_) {
-			allocate();
+                template < typename Ret, typename T >
+                base_storage(MetaData const &meta_data_,
+                    Ret (*func)(T const &, T const &, T const &),
+                    char const *s = "storage initialized with lambda")
+                    : is_set(true), m_name(malloc_and_copy(s)), m_meta_data(&meta_data_) {
+                        allocate();
 			initialize(func, 1);
 		}
 
@@ -92,13 +97,14 @@ namespace gridtools {
 		 * Since this storage gets freed inside python, it must be instantiated as a 'managed outside'
 		 * wrap_pointer. In this way the storage destructor will not free the pointer.
 		 */
-		template < typename FloatType >
-		explicit base_storage(MetaData const& meta_data_, FloatType *ptr, char const *s = "externally managed storage")
-			: is_set(true), m_name(malloc_and_copy(s)), m_meta_data(&meta_data_) {
-			m_fields[0] = pointer_type(ptr, true);
-			if (FieldDimension > 1) {
-				allocate(FieldDimension, 1, true);
-			}
+                template < typename FloatType >
+                explicit base_storage(
+                    MetaData const &meta_data_, FloatType *ptr, char const *s = "externally managed storage")
+                    : is_set(true), m_name(malloc_and_copy(s)), m_meta_data(&meta_data_) {
+                    m_fields[0] = pointer_type(ptr, true);
+                        if (FieldDimension > 1) {
+                            allocate(FieldDimension, 1, true);
+                        }
 		}
 
 		/**@brief destructor: frees the pointers to the data fields which are not managed outside */
@@ -126,14 +132,16 @@ namespace gridtools {
 #endif
 
 		/**@brief allocating memory for the data */
-		void allocate(ushort_t const &dims = FieldDimension, ushort_t const &offset = 0, bool externally_managed = false) {
-			assert(dims > offset);
+                void allocate(ushort_t const &dims = FieldDimension,
+                    ushort_t const &offset = 0,
+                    bool externally_managed = false) {
+                        assert(dims > offset);
 			assert(dims <= field_dimensions);
 			is_set = true;
-			for (ushort_t i = 0; i < dims; ++i) {
-				m_fields[i + offset] = pointer_type(m_meta_data->size(), externally_managed);
-			}
-		}
+                        for (ushort_t i = 0; i < dims; ++i) {
+                            m_fields[i + offset] = pointer_type(m_meta_data->size(), externally_managed);
+                        }
+                }
 
 		/**@brief releasing the pointers to the data, and deleting them in case they need to be deleted */
 		void release() {
@@ -150,7 +158,7 @@ namespace gridtools {
 			srand(12345);
 #endif
 			for (ushort_t f = 0; f < dims; ++f) {
-				for (uint_t i = 0; i < m_meta_data->size(); ++i) {
+                            for (uint_t i = 0; i < m_meta_data->size(); ++i) {
 #ifdef _GT_RANDOM_INPUT
 					(m_fields[f])[i] = init * rand();
 #else
@@ -171,34 +179,37 @@ namespace gridtools {
 			assert(dims <= field_dimensions);
 
 			for (ushort_t f = 0; f < dims; ++f)
-				for (uint_t i = 0; i < m_meta_data->template dims< 0 >(); ++i)
-					for (uint_t j = 0; j < m_meta_data->template dims< 1 >(); ++j)
-						for (uint_t k = 0; k < m_meta_data->template dims< 2 >(); ++k)
-							(m_fields[f])[m_meta_data->index(i, j, k)] = func(i, j, k);
-		}
+                            for (uint_t i = 0; i < m_meta_data->template dims< 0 >(); ++i)
+                                for (uint_t j = 0; j < m_meta_data->template dims< 1 >(); ++j)
+                                    for (uint_t k = 0; k < m_meta_data->template dims< 2 >(); ++k)
+                                        (m_fields[f])[m_meta_data->index(i, j, k)] = func(i, j, k);
+                }
 
 		/**@brief sets the name of the current field*/
 		GT_FUNCTION
-		void set_name(char const *const &string) { 
-			if(m_name) delete [] m_name;
-			m_name = malloc_and_copy(string); 
-		}
+                void set_name(char const *const &string) {
+                    if (m_name)
+                        delete[] m_name;
+                    m_name = malloc_and_copy(string);
+                }
 
-		/**@brief get the name of the current field*/
-		GT_FUNCTION
-		char const *const get_name() const { return m_name; }
+                /**@brief get the name of the current field*/
+                GT_FUNCTION
+                char const *const get_name() const { return m_name; }
 
-		static void text() { std::cout << BOOST_CURRENT_FUNCTION << std::endl; }
+                static void text() { std::cout << BOOST_CURRENT_FUNCTION << std::endl; }
 
 		/** @brief returns the last memory address of the data field */
 		GT_FUNCTION
-		const_iterator_type max_addr() const { return &((m_fields[field_dimensions - 1])[m_meta_data->size()]); }
+                const_iterator_type max_addr() const {
+                    return &((m_fields[field_dimensions - 1])[m_meta_data->size()]);
+                }
 
-		/** @brief returns (by reference) the value of the data field at the index "index_" */
+                /** @brief returns (by reference) the value of the data field at the index "index_" */
 		template < typename UInt >
 		GT_FUNCTION value_type const &operator[](UInt const &index_) const {
-			assert(index_ < m_meta_data->size());
-			assert(is_set);
+                    assert(index_ < m_meta_data->size());
+                        assert(is_set);
 			GRIDTOOLS_STATIC_ASSERT(boost::is_integral< UInt >::value, "wrong type to the storage [] operator (the argument must be integral)");
 			return (m_fields[0])[index_];
 		}
@@ -208,33 +219,33 @@ namespace gridtools {
 		/** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
 		template < typename... UInt >
 		GT_FUNCTION value_type &operator()(UInt const &... dims) {
-			assert(m_meta_data->index(dims...) < m_meta_data->size());
-			assert(is_set);
-			return (m_fields[0])[m_meta_data->index(dims...)];
-		}
+                    assert(m_meta_data->index(dims...) < m_meta_data->size());
+                        assert(is_set);
+                        return (m_fields[0])[m_meta_data->index(dims...)];
+                }
 
 		/** @brief returns (by const reference) the value of the data field at the coordinates (i, j, k) */
 		template < typename... UInt >
 		GT_FUNCTION value_type const &operator()(UInt const &... dims) const {
-			assert(m_meta_data->index(dims...) < m_meta_data->size());
-			assert(is_set);
-			return (m_fields[0])[m_meta_data->index(dims...)];
-		}
+                    assert(m_meta_data->index(dims...) < m_meta_data->size());
+                        assert(is_set);
+                        return (m_fields[0])[m_meta_data->index(dims...)];
+                }
 #else // CXX11_ENABLED
 
 		/** @brief returns (by reference) the value of the data field at the coordinates (i, j, k) */
 		GT_FUNCTION value_type &operator()(uint_t const &i, uint_t const &j, uint_t const &k) {
-			assert(m_meta_data->index(i, j, k) < m_meta_data->size());
-			assert(is_set);
-			return (m_fields[0])[m_meta_data->index(i, j, k)];
-		}
+                    assert(m_meta_data->index(i, j, k) < m_meta_data->size());
+                        assert(is_set);
+                        return (m_fields[0])[m_meta_data->index(i, j, k)];
+                }
 
 		/** @brief returns (by const reference) the value of the data field at the coordinates (i, j, k) */
 		GT_FUNCTION value_type const &operator()(uint_t const &i, uint_t const &j, uint_t const &k) const {
-			assert(m_meta_data->index(i, j, k) < m_meta_data->size());
-			assert(is_set);
-			return (m_fields[0])[m_meta_data->index(i, j, k)];
-		}
+                    assert(m_meta_data->index(i, j, k) < m_meta_data->size());
+                        assert(is_set);
+                        return (m_fields[0])[m_meta_data->index(i, j, k)];
+                }
 
 #endif
 
@@ -243,13 +254,13 @@ namespace gridtools {
 
 		/**@brief prints a single value of the data field given the coordinates*/
 		void print_value(uint_t i, uint_t j, uint_t k) {
-			printf("value(%d, %d, %d)=%f, at index %d on the data\n",
-				i,
-				j,
-				k,
-				(m_fields[0])[m_meta_data->index(i, j, k)],
-				m_meta_data->index(i, j, k));
-		}
+                    printf("value(%d, %d, %d)=%f, at index %d on the data\n",
+                        i,
+                        j,
+                        k,
+                        (m_fields[0])[m_meta_data->index(i, j, k)],
+                        m_meta_data->index(i, j, k));
+                }
 
 		static const std::string info_string;
 
@@ -264,18 +275,18 @@ namespace gridtools {
 			ushort_t MI = 12;
 			ushort_t MJ = 12;
 			ushort_t MK = 12;
-			for (uint_t i = 0; i < m_meta_data->template dims< 0 >();
-				 i += std::max((uint_t)1, m_meta_data->template dims< 0 >() / MI)) {
-				for (uint_t j = 0; j < m_meta_data->template dims< 1 >();
-					 j += std::max((uint_t)1, m_meta_data->template dims< 1 >() / MJ)) {
-					for (uint_t k = 0; k < m_meta_data->template dims< 2 >();
-						 k += std::max((uint_t)1, m_meta_data->template dims< 1 >() / MK)) {
-						stream << "["
-							   // << i << ","
-							   // << j << ","
-							   // << k << ")"
-							   << (m_fields[t])[m_meta_data->index(i, j, k)] << "] ";
-					}
+                        for (uint_t i = 0; i < m_meta_data->template dims< 0 >();
+                             i += std::max((uint_t)1, m_meta_data->template dims< 0 >() / MI)) {
+                            for (uint_t j = 0; j < m_meta_data->template dims< 1 >();
+                                 j += std::max((uint_t)1, m_meta_data->template dims< 1 >() / MJ)) {
+                                for (uint_t k = 0; k < m_meta_data->template dims< 2 >();
+                                     k += std::max((uint_t)1, m_meta_data->template dims< 1 >() / MK)) {
+                                    stream << "["
+                                           // << i << ","
+                                           // << j << ","
+                                           // << k << ")"
+                                           << (m_fields[t])[m_meta_data->index(i, j, k)] << "] ";
+                                        }
 					stream << std::endl;
 				}
 				stream << std::endl;
@@ -305,12 +316,10 @@ namespace gridtools {
 
 		/** @brief returns a const ref to the meta data field*/
 		GT_FUNCTION
-		pointer< const storage_info_type> meta_data() const { return m_meta_data; }
+                pointer< const storage_info_type > meta_data() const { return m_meta_data; }
 
-		void set_meta_data(const storage_info_type* st) {
-			m_meta_data = st;
-		}
-		/**
+                void set_meta_data(const storage_info_type *st) { m_meta_data = st; }
+                /**
 		   @brief API for compatibility with backends other than host
 		   avoids the introduction of #ifdefs
 		 */
@@ -411,10 +420,10 @@ namespace gridtools {
 		return s;
 	}
 
-	template < typename T >
-	struct is_storage : boost::mpl::false_ {};
+        template < typename T >
+        struct is_storage : boost::mpl::false_ {};
 
-	template < typename T, typename V, ushort_t D>
-	struct is_storage< base_storage<T, V, D> > : boost::mpl::true_ {};
+        template < typename T, typename V, ushort_t D >
+        struct is_storage< base_storage< T, V, D > > : boost::mpl::true_ {};
 
 } // namespace gridtools

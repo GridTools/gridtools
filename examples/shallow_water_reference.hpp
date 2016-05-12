@@ -23,10 +23,10 @@ struct shallow_water_reference {
     typedef StorageType storage_type;
 #ifdef __CUDACC__
     typedef hybrid_pointer< float_type > pointer_type;
-    #define PTR(ARR, SIZE, EXT) pointer_type(ARR, SIZE, EXT)
+#define PTR(ARR, SIZE, EXT) pointer_type(ARR, SIZE, EXT)
 #else
     typedef wrap_pointer< float_type > pointer_type;
-    #define PTR(ARR, SIZE, EXT) pointer_type(ARR, EXT)
+#define PTR(ARR, SIZE, EXT) pointer_type(ARR, EXT)
 #endif
 
     static constexpr uint_t strides[2] = {DimI, 1};

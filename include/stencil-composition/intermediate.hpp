@@ -93,7 +93,8 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((is_mss_local_domain< Elem >::value), "Internal Error: wrong type");
 
                 boost::fusion::for_each(mss_local_domain_list_.local_domain_list,
-                    _impl::instantiate_local_domain< ArgPtrList, MetaStorages, IsStateful >(m_arg_ptr_list, m_meta_storages));
+                    _impl::instantiate_local_domain< ArgPtrList, MetaStorages, IsStateful >(
+                                            m_arg_ptr_list, m_meta_storages));
             }
 
           private:
@@ -477,10 +478,10 @@ namespace gridtools {
         typedef typename create_actual_arg_list< Backend, DomainType, mss_components_array_t, float_type >::type
             actual_arg_list_type;
 
-        typedef typename boost::mpl::transform<actual_arg_list_type, get_user_storage_ptrs_t< boost::mpl::_1> >::type
+        typedef typename boost::mpl::transform< actual_arg_list_type, get_user_storage_ptrs_t< boost::mpl::_1 > >::type
             actual_arg_ptr_list_type;
 
-        typedef typename boost::mpl::transform<actual_arg_list_type, get_user_storage_base_t< boost::mpl::_1> >::type
+        typedef typename boost::mpl::transform< actual_arg_list_type, get_user_storage_base_t< boost::mpl::_1 > >::type
             updated_arg_list_type;
 
         // build the meta storage typelist with all the mss components
@@ -550,15 +551,15 @@ namespace gridtools {
             // For each functor collect the minimum enclosing box of the extents for the arguments
 
             // filter the non temporary storages among the storage pointers in the domain
-            typedef boost::fusion::filter_view<typename DomainType::arg_list, is_not_tmp_storage< boost::mpl::_1 > >
+            typedef boost::fusion::filter_view< typename DomainType::arg_list, is_not_tmp_storage< boost::mpl::_1 > >
                 t_domain_view;
 
             // filter the non temporary storages among the placeholders passed to the intermediate
             typedef boost::fusion::filter_view< actual_arg_list_type, is_not_tmp_storage< boost::mpl::_1 > >
                 t_args_view;
 
-            typedef typename boost::fusion::result_of::as_vector<t_domain_view>::type transform_res_t;
-            typedef boost::fusion::transform_view<transform_res_t, get_user_storage_ptrs>
+            typedef typename boost::fusion::result_of::as_vector< t_domain_view >::type transform_res_t;
+            typedef boost::fusion::transform_view< transform_res_t, get_user_storage_ptrs >
                 t_extracted_user_storage_view;
 
             t_domain_view domain_view(domain.m_storage_pointers);

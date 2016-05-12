@@ -51,8 +51,8 @@ bool test(){
     i_data.allocate();
     j_data.allocate();
 
-	auto lam_i = [](uint_t const& i_, uint_t const& j_, uint_t const& k_)->uint_t {return i_; };
-	auto lam_j = [](uint_t const& i_, uint_t const& j_, uint_t const& k_)->uint_t {return j_; };
+    auto lam_i = [](uint_t const &i_, uint_t const &j_, uint_t const &k_) -> uint_t { return i_; };
+    auto lam_j = [](uint_t const &i_, uint_t const &j_, uint_t const &k_) -> uint_t { return j_; };
 
     i_data.initialize(lam_i);
     j_data.initialize(lam_j);
