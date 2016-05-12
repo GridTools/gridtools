@@ -4,8 +4,10 @@
    @file
    @brief File containing a set of metafunctions that apply to the storage classes.
 */
+#include <boost/type_traits.hpp>
 
 #include "storage.hpp"
+#include "base_storage.hpp"
 
 namespace gridtools {
 
@@ -89,5 +91,53 @@ namespace gridtools {
     template < typename T >
     struct storage_pointer_type {
         typedef typename T::pointer_type type;
+    };
+
+    /* @brief metafunction that takes a pointer<storage<base>> type and returns a pointer<base> type */
+    template < typename T >
+    struct get_user_storage_base_t {
+        GRIDTOOLS_STATIC_ASSERT((is_pointer< T >::value), "the passed type is not a pointer type");
+        GRIDTOOLS_STATIC_ASSERT((is_any_storage< typename T::value_type >::value),
+            "the passed pointer type does not contain a storage type");
+        typedef pointer< typename T::value_type::basic_type > type;
+    };
+
+    /* @brief metafunction that takes a pointer<storage<T>> type and returns a pointer<storage<T>::storage_ptr_t> type
+     */
+    template < typename T >
+    struct get_user_storage_ptrs_t {
+        typedef typename boost::remove_reference< T >::type ty;
+        GRIDTOOLS_STATIC_ASSERT((is_pointer< ty >::value), "the passed type is not a pointer type");
+        typedef typename ty::value_type storage_ty;
+        GRIDTOOLS_STATIC_ASSERT(
+            (is_any_storage< storage_ty >::value), "the passed pointer type does not contain a storage type");
+        typedef typename storage_ty::storage_ptr_t storage_ptr_ty;
+        GRIDTOOLS_STATIC_ASSERT(
+            (is_hybrid_pointer< storage_ptr_ty >::value || is_wrap_pointer< storage_ptr_ty >::value),
+            "the contained storage pointer type is neither a wrap nor a hybrid pointer type");
+        typedef pointer< storage_ptr_ty > type;
+    };
+
+    /* @brief metafunction class that is used to transform a fusion vector of pointer<storage<T>> into a
+     * pointer<storage<T>::storage_ptr_t> vector */
+    struct get_user_storage_ptrs {
+        template < typename T >
+        struct result;
+
+        template < typename F, typename T >
+        struct result< F(T) > {
+            typedef typename get_user_storage_ptrs_t< T >::type type;
+        };
+
+        template < typename T >
+        struct result< pointer< storage< T > > > {
+            typedef typename get_user_storage_ptrs_t< pointer< storage< T > > >::type type;
+        };
+
+        template < typename T >
+        typename get_user_storage_ptrs_t< T >::type operator()(T &st) const {
+            typedef typename get_user_storage_ptrs_t< T >::type ty;
+            return st->get_storage_pointer();
+        }
     };
 }

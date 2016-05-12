@@ -163,7 +163,11 @@ namespace test_cycle_and_swap {
         comp->run();
         comp->finalize();
 
-        verifier verif(1e-13);
+#if FLOAT_PRECISION == 4
+        verifier verif(1e-6);
+#else
+        verifier verif(1e-12);
+#endif
         array< array< uint_t, 2 >, 3 > halos{
             {{halo_size + 1, halo_size + 1}, {halo_size + 1, halo_size + 1}, {halo_size + 1, halo_size + 1}}};
         return verif.verify(grid, reference, i_data, halos);

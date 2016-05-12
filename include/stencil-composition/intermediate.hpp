@@ -51,41 +51,41 @@ namespace gridtools {
 
         /** @brief Functor used to instantiate the local domains to be passed to each
             elementary stencil function */
-        template < typename ArgList, typename MetaStorages, bool IsStateful >
+        template < typename ArgPtrList, typename MetaStorages, bool IsStateful >
         struct instantiate_local_domain {
 
-            // TODO check the type of ArgList
+            // TODO check the type of ArgPtrList
             GRIDTOOLS_STATIC_ASSERT(is_metadata_set< MetaStorages >::value, "wrong type");
 
             GT_FUNCTION
-            instantiate_local_domain(ArgList const &arg_list, MetaStorages const &meta_storages_)
-                : m_arg_list(arg_list), m_meta_storages(meta_storages_) {}
+            instantiate_local_domain(ArgPtrList const &arg_ptr_list, MetaStorages const &meta_storages_)
+                : m_arg_ptr_list(arg_ptr_list), m_meta_storages(meta_storages_) {}
 
             /**Elem is a local_domain*/
             template < typename Elem >
             GT_FUNCTION void operator()(Elem &elem) const {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain< Elem >::value), "Internal Error: wrong type");
 
-                elem.init(m_arg_list, m_meta_storages.sequence_view(), 0, 0, 0);
+                elem.init(m_arg_ptr_list, m_meta_storages.sequence_view(), 0, 0, 0);
                 elem.clone_to_device();
             }
 
           private:
-            ArgList const &m_arg_list;
+            ArgPtrList const &m_arg_ptr_list;
             MetaStorages const &m_meta_storages;
         };
 
         /** @brief Functor used to instantiate the local domains to be passed to each
             elementary stencil function */
-        template < typename ArgList, typename MetaStorages, bool IsStateful >
+        template < typename ArgPtrList, typename MetaStorages, bool IsStateful >
         struct instantiate_mss_local_domain {
 
-            // TODO add check for ArgList
+            // TODO add check for ArgPtrList
             GRIDTOOLS_STATIC_ASSERT(is_metadata_set< MetaStorages >::value, "wrong type");
 
             GT_FUNCTION
-            instantiate_mss_local_domain(ArgList const &arg_list, MetaStorages const &meta_storages_)
-                : m_arg_list(arg_list), m_meta_storages(meta_storages_) {}
+            instantiate_mss_local_domain(ArgPtrList const &arg_ptr_list, MetaStorages const &meta_storages_)
+                : m_arg_ptr_list(arg_ptr_list), m_meta_storages(meta_storages_) {}
 
             /**Elem is a local_domain*/
             template < typename Elem >
@@ -93,11 +93,12 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((is_mss_local_domain< Elem >::value), "Internal Error: wrong type");
 
                 boost::fusion::for_each(mss_local_domain_list_.local_domain_list,
-                    _impl::instantiate_local_domain< ArgList, MetaStorages, IsStateful >(m_arg_list, m_meta_storages));
+                    _impl::instantiate_local_domain< ArgPtrList, MetaStorages, IsStateful >(
+                                            m_arg_ptr_list, m_meta_storages));
             }
 
           private:
-            ArgList const &m_arg_list;
+            ArgPtrList const &m_arg_ptr_list;
             MetaStorages const &m_meta_storages;
         };
 
@@ -477,6 +478,12 @@ namespace gridtools {
         typedef typename create_actual_arg_list< Backend, DomainType, mss_components_array_t, float_type >::type
             actual_arg_list_type;
 
+        typedef typename boost::mpl::transform< actual_arg_list_type, get_user_storage_ptrs_t< boost::mpl::_1 > >::type
+            actual_arg_ptr_list_type;
+
+        typedef typename boost::mpl::transform< actual_arg_list_type, get_user_storage_base_t< boost::mpl::_1 > >::type
+            updated_arg_list_type;
+
         // build the meta storage typelist with all the mss components
         typedef typename boost::mpl::fold<
             actual_arg_list_type,
@@ -499,7 +506,7 @@ namespace gridtools {
         typedef typename create_mss_local_domains< backend_id< Backend >::value,
             mss_components_array_t,
             DomainType,
-            actual_arg_list_type,
+            updated_arg_list_type,
             actual_metadata_list_type,
             IsStateful >::type mss_local_domains_t;
 
@@ -521,6 +528,7 @@ namespace gridtools {
         const Grid &m_grid;
 
         actual_arg_list_type m_actual_arg_list;
+        actual_arg_ptr_list_type m_actual_arg_ptr_list;
         actual_metadata_list_type m_actual_metadata_list;
 
         bool is_storage_ready;
@@ -550,9 +558,13 @@ namespace gridtools {
             typedef boost::fusion::filter_view< actual_arg_list_type, is_not_tmp_storage< boost::mpl::_1 > >
                 t_args_view;
 
-            t_domain_view domain_view(domain.m_storage_pointers);
-            t_args_view args_view(m_actual_arg_list);
+            typedef typename boost::fusion::result_of::as_vector< t_domain_view >::type transform_res_t;
+            typedef boost::fusion::transform_view< transform_res_t, get_user_storage_ptrs >
+                t_extracted_user_storage_view;
 
+            t_domain_view domain_view(domain.m_storage_pointers);
+
+            t_args_view args_view(m_actual_arg_list);
             boost::fusion::copy(domain_view, args_view);
 
             // filter the non temporary meta storages among the storage pointers in the domain
@@ -603,9 +615,14 @@ namespace gridtools {
                 exit(GT_ERROR_NO_TEMPS);
             }
 
+            // in this stage, all storages (including tmp storages) should be instantiated.
+            // following line is extracting the wrapped storages (that can be used on both
+            // device and host) from the user storage.
+            m_actual_arg_ptr_list = boost::fusion::transform(m_actual_arg_list, get_user_storage_ptrs());
+
             boost::fusion::for_each(m_mss_local_domain_list,
-                _impl::instantiate_mss_local_domain< actual_arg_list_type, actual_metadata_list_type, IsStateful >(
-                                        m_actual_arg_list, m_actual_metadata_list));
+                _impl::instantiate_mss_local_domain< actual_arg_ptr_list_type, actual_metadata_list_type, IsStateful >(
+                                        m_actual_arg_ptr_list, m_actual_metadata_list));
 
 #ifdef VERBOSE
             m_domain.info();
