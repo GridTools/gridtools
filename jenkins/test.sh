@@ -46,7 +46,7 @@ if [ $? -eq 0 ] ; then
     # abort
     exitError 4654 ${LINENO} "problem with unittests for test data detected"
 else
-    echo "Unittests successfull (see test.out for detailed log)"
+    echo "Unittests successful (see test.out for detailed log)"
 fi
 
 # end timer and report time taken
