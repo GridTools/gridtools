@@ -11,10 +11,12 @@ namespace gridtools {
     };
 
     template < typename Accessor >
-    struct is_accessor_readonly : boost::mpl::false_ {};
+    struct is_accessor_readonly : boost::mpl::false_ {
+        GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Internal Error: wrong type");
+    };
 
-    template < int ID, typename LocationType, typename Extent >
-    struct is_accessor_readonly< accessor< ID, enumtype::in, LocationType, Extent > > : boost::mpl::true_ {};
+    template < uint_t ID, typename LocationType, typename Extent >
+    struct is_accessor_readonly< accessor< ID, enumtype::in, LocationType, Extent > > : boost::mpl::true_ { };
 
     /**
      * @brief metafunction that given an accesor and a map, it will remap the index of the accessor according
