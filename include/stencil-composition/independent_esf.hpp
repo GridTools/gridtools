@@ -3,7 +3,7 @@
 
 namespace gridtools {
 
-    template < uint_t T >
+    template < uint_t T, uint_t SwitchId >
     struct conditional;
 
     template < typename EsfSequence >
