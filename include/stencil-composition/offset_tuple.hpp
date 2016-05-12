@@ -3,6 +3,7 @@
 #include "stencil-composition/dimension_defs.hpp"
 #include "common/generic_metafunctions/logical_ops.hpp"
 #include "common/generic_metafunctions/is_variadic_pack_of.hpp"
+#include "../common/array.hpp"
 
 namespace gridtools {
 
@@ -107,9 +108,8 @@ namespace gridtools {
         GT_FUNCTION CONSTEXPR offset_tuple(const uint_t pos, array< int_t, NDim > const &offsets)
             : super(pos + 1, offsets), m_offset(offsets[pos]) {
 #ifndef NDEBUG
-      assert(pos < NDim);
+            assert(pos < NDim);
 #endif
-
         }
 #ifdef CXX11_ENABLED
 
@@ -210,15 +210,13 @@ namespace gridtools {
 
         GT_FUNCTION CONSTEXPR offset_tuple(const uint_t pos, array< int_t, NDim > const &offsets) {
 #ifndef NDEBUG
-      assert(pos == NDim);
+            assert(pos == NDim);
 #endif
         }
 
 #ifdef CXX11_ENABLED
         template < typename... GenericElements >
-        GT_FUNCTION constexpr offset_tuple(GenericElements... x,
-            typename boost::disable_if_c< accumulate(logical_or(), is_array< GenericElements >::type::value...),
-                bool >::type * = 0) {
+        GT_FUNCTION constexpr offset_tuple(GenericElements... x) {
             GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension< GenericElements >::type::value...),
                 "wrong type for the argument of an offset_tuple");
         }

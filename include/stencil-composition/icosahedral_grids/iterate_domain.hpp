@@ -283,10 +283,10 @@ namespace gridtools {
         GT_FUNCTION
         void set_position(array< uint_t, 4 > const &position) { m_grid_position = position; }
 
-        template < uint_t ID, enumtype::intend intend, typename LocationType, typename Extent >
-        GT_FUNCTION typename accessor_return_type< accessor< ID, intend, LocationType, Extent > >::type operator()(
-            accessor< ID, intend, LocationType, Extent > const &accessor_) const {
-            typedef accessor< ID, intend, LocationType, Extent > accessor_t;
+        template < uint_t ID, enumtype::intend intend, typename LocationType, typename Extent, ushort_t FieldDimensions >
+        GT_FUNCTION typename accessor_return_type< accessor<ID, intend, LocationType, Extent, FieldDimensions> >::type operator()(
+            accessor< ID, intend, LocationType, Extent, FieldDimensions > const &accessor_) const {
+            typedef accessor< ID, intend, LocationType, Extent, FieldDimensions > accessor_t;
             return get_value(accessor_,
                 (data_pointer())[current_storage< (ID == 0), local_domain_t, typename accessor_t::type >::value]);
         }
@@ -388,6 +388,7 @@ namespace gridtools {
            \param arg placeholder containing the storage ID and the offsets
            \param storage_pointer pointer to the first element of the specific data field used
         */
+        //TODO This should be merged with structured grids
         template < typename Accessor, typename StoragePointer >
         GT_FUNCTION typename accessor_return_type< Accessor >::type get_value(
             Accessor const &accessor, StoragePointer &RESTRICT storage_pointer) const {
@@ -431,7 +432,10 @@ namespace gridtools {
             // n<Accessor::n_dim>())<<std::endl;
             assert((int_t)(metadata_->index(m_grid_position)) >= 0);
 
-            return *(real_storage_pointer + metadata_->index(m_grid_position));
+            const int_t pointer_offset = metadata_->index(m_grid_position) +
+                                         metadata_->_index(strides().template get< metadata_index_t::value >(), accessor);
+
+            return *(real_storage_pointer + pointer_offset);
         }
 
         template < typename Accessor, typename StoragePointer >
@@ -453,11 +457,11 @@ namespace gridtools {
             return *(real_storage_pointer + offset);
         }
 
-        template < uint_t ID, enumtype::intend Intend, typename LocationType, typename Extent, typename IndexArray >
+        template < uint_t ID, enumtype::intend Intend, typename LocationType, typename Extent, ushort_t FieldDimensions, typename IndexArray >
         GT_FUNCTION typename std::remove_reference<
-            typename accessor_return_type< accessor< ID, Intend, LocationType, Extent > >::type >::type
-        _evaluate(accessor< ID, Intend, LocationType, Extent >, IndexArray const &position) const {
-            using accessor_t = accessor< ID, Intend, LocationType, Extent >;
+            typename accessor_return_type< accessor< ID, Intend, LocationType, Extent, FieldDimensions > >::type >::type
+        _evaluate(accessor< ID, Intend, LocationType, Extent, FieldDimensions >, IndexArray const &position) const {
+            using accessor_t = accessor< ID, Intend, LocationType, Extent, FieldDimensions >;
             using location_type_t = typename accessor_t::location_type;
             int offset = m_grid_topology.ll_offset(position, location_type_t());
 
