@@ -1,6 +1,6 @@
 
 if( ENABLE_CXX11 )
-  SET(STENCIL_OTHERGRIDS_UNITTEST_SOURCES test_from_to_mapping.cpp test_make_computation.cpp test_copy_stencil.cpp test_extract_location.cpp 
+      SET(STENCIL_OTHERGRIDS_UNITTEST_SOURCES test_from_to_mapping.cpp test_make_computation.cpp test_copy_stencil.cpp test_extract_location.cpp test_read_write_esf.cpp
 #         test_nested_on
          ${INC_ALL})
 
