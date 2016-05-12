@@ -4,6 +4,7 @@
 #ifdef CXX11_ENABLED
 #include "common/generic_metafunctions/reverse_pack.hpp"
 #endif
+#include "meta_storage_extender.hpp"
 
 /**
 @file

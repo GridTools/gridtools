@@ -258,6 +258,9 @@ namespace gridtools {
             }
         }
 
+        GT_FUNCTION
+        array< uint_t, 4 > const & position() const { return m_grid_position;}
+
         /**@brief getter for the index array */
         GT_FUNCTION
         void get_position(array< uint_t, 4 > &position) const { position = m_grid_position; }

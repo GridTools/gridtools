@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 #include <stencil-composition/stencil-composition.hpp>
-#include <storage/meta_storage_extender.hpp>
+#include <storage/storage.hpp>
 
 using namespace gridtools;
 
