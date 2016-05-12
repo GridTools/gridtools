@@ -8,6 +8,7 @@
 #include <communication/low-level/proc_grids_3D.hpp>
 
 #include <communication/halo_exchange.hpp>
+#include <boundary-conditions/apply.hpp>
 
 /** @file
     @brief This file shows an implementation of the "copy" stencil in parallel, simple copy of one field done on the
@@ -21,12 +22,13 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
-namespace copy_stencil {
-    // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
-    // These are the stencil operators that compose the multistage stencil in this test
+namespace copy_stencil {
+// This is the definition of the special regions in the "vertical" direction
+    typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
+    typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
+
+// These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
         typedef accessor< 0, enumtype::in > in;
         typedef accessor< 1, enumtype::inout > out;
@@ -39,10 +41,39 @@ namespace copy_stencil {
         }
     };
 
-    /*
-     * The following operators and structs are for debugging only
-     */
-    std::ostream &operator<<(std::ostream &s, copy_functor const) { return s << "copy_functor"; }
+    // boundary function
+    inline float bc(uint_t i, uint_t j, uint_t k) {
+        return (float) i*100 + j;
+    }
+
+
+    template <typename Partitioner>
+    struct boundary_conditions {
+        Partitioner const& m_partitioner;
+
+        boundary_conditions(Partitioner const& p)
+            : m_partitioner(p)
+        {}
+
+        // DataField_x are fields that are passed in the application of boundary condition
+        template <typename Direction, typename DataField0, typename DataField1>
+        GT_FUNCTION
+        void operator()(Direction,
+                        DataField0 & data_field0,
+                        DataField1 & data_field1,
+                        uint_t i, uint_t j, uint_t k) const {
+            //i,j,k are coordinates within the local partition
+            data_field0(i,j,k) = (float)(m_partitioner.get_low_bound(0)*100 + m_partitioner.get_up_bound(0));
+            data_field1(i,j,k) = (float)(m_partitioner.get_low_bound(1)*100 + m_partitioner.get_up_bound(1));
+        }
+    };
+
+/*
+ * The following operators and structs are for debugging only
+ */
+    std::ostream& operator<<(std::ostream& s, copy_functor const) {
+        return s << "copy_functor";
+    }
 
     bool test(uint_t d1, uint_t d2, uint_t d3) {
 
@@ -55,6 +86,10 @@ namespace copy_stencil {
 #define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
+        array<int, 3> dimensions{0,0,0};
+        MPI_3D_process_grid_t<3>::dims_create(PROCS, 2, dimensions);
+        dimensions[2]=1;
+
         //                   strides  1 x xy
         //                      dims  x y z
         typedef gridtools::layout_map< 0, 1, 2 > layout_t;
@@ -73,7 +108,7 @@ namespace copy_stencil {
 #endif
             gridtools::version_manual > pattern_type;
 
-        pattern_type he(pattern_type::grid_type::period_type(true, false, false), GCL_WORLD);
+        pattern_type he(pattern_type::grid_type::period_type(false, false, false), GCL_WORLD, &dimensions);
 #ifdef VERBOSE
         printf("halo exchange ok\n");
 #endif
@@ -101,12 +136,16 @@ namespace copy_stencil {
         storage_type in(metadata_, 0.);
         storage_type out(metadata_, 0.);
 
-        he.add_halo< 0 >(meta_.template get_halo_gcl< 0 >());
-        he.add_halo< 1 >(meta_.template get_halo_gcl< 1 >());
+
+        // COMMUNICATION SETUP
+        he.add_halo<0>(meta_.template get_halo_gcl<0>());
+        he.add_halo<1>(meta_.template get_halo_gcl<1>());
+        he.add_halo<2>(meta_.template get_halo_gcl<2>());
         // he.add_halo<0>(1,1,1,d1,d1+2);
         // he.add_halo<1>(1,1,1,d2,d2+2);
 
-        he.add_halo< 2 >(0, 0, 0, d3 - 1, d3);
+        // he.add_halo<2>(0, 0, 0, d3 - 1, d3);
+
 
         he.setup(2);
 
@@ -114,10 +153,12 @@ namespace copy_stencil {
         printf("halo set up\n");
 #endif
 
-        for (uint_t i = 0; i < metadata_.template dims< 0 >(); ++i)
-            for (uint_t j = 0; j < metadata_.template dims< 1 >(); ++j)
-                for (uint_t k = 0; k < metadata_.template dims< 2 >(); ++k) {
-                    in(i, j, k) = (i + j + k) * (gridtools::PID + 1);
+        for(uint_t i=0; i<metadata_.template dims<0>(); ++i)
+            for(uint_t j=0; j<metadata_.template dims<1>(); ++j)
+                for(uint_t k=0; k<metadata_.template dims<2>(); ++k)
+                {
+                    in(i, j, k) = (i) * (gridtools::PID+1);
+
                 }
 
         // Definition of the physical dimensions of the problem.
@@ -126,7 +167,8 @@ namespace copy_stencil {
         gridtools::grid< axis, partitioner_t > grid(part, meta_);
         // k dimension not partitioned
         grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
+        grid.value_list[1] = d3;
+
 
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
         // that are used, temporary and not
@@ -191,9 +233,18 @@ namespace copy_stencil {
         printf("computation finalized\n");
 #endif
 
-        std::vector< pointer_type::pointee_t * > vec(2);
-        vec[0] = in.data().get();
-        vec[1] = out.data().get();
+        gridtools::array<gridtools::halo_descriptor, 3> halos;
+        halos[0] = meta_.template get_halo_descriptor<0>();
+        halos[1] = meta_.template get_halo_descriptor<1>();
+        halos[2] = meta_.template get_halo_descriptor<2>();
+
+        typename gridtools::boundary_apply<boundary_conditions<parallel_storage_info<metadata_t, partitioner_t>>, typename gridtools::bitmap_predicate>
+            (halos, boundary_conditions<parallel_storage_info<metadata_t, partitioner_t>>(meta_), gridtools::bitmap_predicate(part.boundary())).apply(in, out);
+
+        std::vector<pointer_type::pointee_t*> vec(2);
+        vec[0]=in.data().get();
+        vec[1]=out.data().get();
+
 
         he.pack(vec);
 
@@ -211,6 +262,22 @@ namespace copy_stencil {
 #ifdef VERBOSE
         printf("copy unpacked\n");
 #endif
+
+        {
+            std::stringstream ss;
+            ss << PID;
+            std::string filename = "out" + ss.str() + ".txt";
+            std::ofstream file(filename.c_str());
+            out.print(file);
+        }
+        {
+            std::stringstream ss;
+            ss << PID;
+            std::string filename = "in" + ss.str() + ".txt";
+            std::ofstream file(filename.c_str());
+            in.print(file);
+        }
+
 
         MPI_Barrier(GCL_WORLD);
         GCL_Finalize();

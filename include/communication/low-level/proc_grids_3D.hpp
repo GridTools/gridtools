@@ -9,6 +9,7 @@
 #include "../../common/array.hpp"
 #include "../../common/boollist.hpp"
 #include <boost/type_traits/integral_constant.hpp>
+#include <mpi.h>
 
 // This file needs to be changed
 

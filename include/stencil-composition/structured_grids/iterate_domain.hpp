@@ -471,7 +471,7 @@ namespace gridtools {
 
             storage_ptr_type storage_ = boost::fusion::at< index_t >(local_domain.m_local_args);
 
-            return *storage_;
+            return storage_;
         }
 
 #ifdef CXX11_ENABLED
