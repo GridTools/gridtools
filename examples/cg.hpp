@@ -500,7 +500,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
             for (uint_t i=1; i<metadata_.template dims<0>()-1; ++i)
             {
                 //assert((double)r_vec[(k)*(ni+2)*(nj+2) + (j)*(ni+2) + (i)] == r(i,j,k));
-                r_vec[(k-1)*ni*nj + (j-1)*ni + (i-1)] = (double)r(i,j,k);
+                r_vec[(k-1)*ni*nj + (j-1)*ni + (i-1)] = r(i,j,k);
             }
 
     // Apply preconditioner
@@ -512,8 +512,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
             for (uint_t i=1; i<metadata_.template dims<0>()-1; ++i)
             {
                 //Mr = d = inv(M) r
-                d(i,j,k) = (float) Mr_vec[(k-1)*ni*nj + (j-1)*ni + (i-1)];
-                Mr(i,j,k) = (float) Mr_vec[(k-1)*ni*nj + (j-1)*ni + (i-1)];
+                d(i,j,k) = Mr_vec[(k-1)*ni*nj + (j-1)*ni + (i-1)];
+                Mr(i,j,k) = Mr_vec[(k-1)*ni*nj + (j-1)*ni + (i-1)];
             } 
 
     // insert data_vector into our domain
@@ -529,7 +529,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
     MPI_Barrier(GCL_WORLD);
 
-    float rTMr_old; //used to remember value of global reduction between iterations
+    double rTMr_old; //used to remember value of global reduction between iterations
+    double rTMr_init; //initial residual
 
     /**
         Perform iterations of the CG
@@ -664,10 +665,10 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         CG_step0->finalize();
 
         // Compute step size alpha
-        float rTMr_global; //nominator
-        float rTMr;
-        float dTAd_global;  //denominator
-        float dTAd;
+        double rTMr_global; //nominator
+        double rTMr;
+        double dTAd_global;  //denominator
+        double dTAd;
 
         // Nominator of alpha
         if(iter == 0)
@@ -679,6 +680,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
             lapse_time_run = lapse_time_run + time_alphaNom.elapsed();
             stencil_alpha_nom->finalize();
             MPI_Allreduce(&rTMr, &rTMr_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+            rTMr_init = sqrt(rTMr_global);
         }
         else
         {
@@ -689,7 +691,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         stencil_alpha_denom->ready();
         stencil_alpha_denom->steady();
         boost::timer::cpu_timer time_alphaDenom;
-        dTAd = (float) stencil_alpha_denom->run(); // d_T * A * d
+        dTAd = stencil_alpha_denom->run(); // d_T * A * d
         lapse_time_run = lapse_time_run + time_alphaDenom.elapsed();
         stencil_alpha_denom->finalize();
         MPI_Allreduce(&dTAd, &dTAd_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
@@ -722,7 +724,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
             for (uint_t j=1; j<metadata_.template dims<1>()-1; ++j)
                 for (uint_t i=1; i<metadata_.template dims<0>()-1; ++i)
                 {
-                    r_vec[(k-1)*ni*nj + (j-1)*ni + (i-1)] = (double)(*ptr_rNew)(i,j,k);
+                    r_vec[(k-1)*ni*nj + (j-1)*ni + (i-1)] = (*ptr_rNew)(i,j,k);
                 }
 
         // Apply preconditioner
@@ -734,18 +736,18 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                 for (uint_t i=1; i<metadata_.template dims<0>()-1; ++i)
                 {
                     //Mr = inv(M) r
-                    (*ptr_MrNew)(i,j,k) = (float) Mr_vec[(k-1)*ni*nj + (j-1)*ni + (i-1)];
+                    (*ptr_MrNew)(i,j,k) = Mr_vec[(k-1)*ni*nj + (j-1)*ni + (i-1)];
                 } 
 
         boost::timer::cpu_times lapse_time_precondition = time_precondition.elapsed();
         if(PID == 0)
         {
-            std::cout << "Iteration " << iter << ": [Precond]" << boost::timer::format(lapse_time_precondition);
+            std::cout << "Iteration " << iter << ": [Pardiso]" << boost::timer::format(lapse_time_precondition);
         }
 
         // Compute Gram-Schmidt orthogonalization parameter beta
-        float rTMrnew_global;
-        float rTMrnew; 
+        double rTMrnew_global;
+        double rTMrnew; 
 
         // Nominator of beta
         stencil_beta_nom->ready();
@@ -800,7 +802,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         if(PID == 0)
         {
             std::cout << "Iteration " << iter << ": [time]" << boost::timer::format(lapse_time_iteration);
-            std::cout << "Iteration " << iter << ": [residual] " << sqrt(rTMrnew_global) << std::endl;
+            std::cout << "Iteration " << iter << ": [residual] " << sqrt(rTMr_global)/rTMr_init << std::endl;
         }
     } //end for
 
