@@ -105,7 +105,7 @@ else
 fi
 echo "USE_GPU=$USE_GPU"
 
-if [[ "$REAL_TYPE" == "float" ]]; then
+if [[ "$FLOAT_TYPE" == "float" ]]; then
     SINGLE_PRECISION=ON
 else
     SINGLE_PRECISION=OFF

@@ -51,8 +51,7 @@ namespace gridtools {
 #else
         typedef HaloType< align_all< Alignment::value, Halo1 >::value - Halo1,
             align_all< Alignment::value, Halo2 >::value - Halo2,
-            align_all< Alignment::value, Halo3 >::value - Halo3 >
-            padding_t; // paddings
+            align_all< Alignment::value, Halo3 >::value - Halo3 > padding_t; // paddings
         typedef HaloType< Halo1, Halo2, Halo3 > halo_t;
 #endif
 
@@ -225,7 +224,8 @@ namespace gridtools {
         GT_FUNCTION constexpr int_t unaligned_strides() const {
             // NOTE: we access the m_strides vector starting from 1, because m_strides[0] is the total storage
             // dimension.
-            return MetaStorageBase::template get_stride_helper<Coordinate, typename MetaStorageBase::layout>(m_unaligned_strides, 1);
+            return MetaStorageBase::template get_stride_helper< Coordinate, typename MetaStorageBase::layout >(
+                m_unaligned_strides, 1);
         }
 
 #endif

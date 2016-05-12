@@ -1,6 +1,6 @@
 #pragma once
 
-namespace gridtools{
+namespace gridtools {
 
 #ifdef CXX11_ENABLED
     /**@file
@@ -81,12 +81,12 @@ namespace gridtools{
             apply(s...);
         }
     };
-#endif //CXX11_ENABLED
+#endif // CXX11_ENABLED
 
     /**@brief simple function that copies a string **/
-    inline char const* malloc_and_copy(char const* src) {
-	char* dst = new char[strlen(src)+1];
-	strcpy(dst, src);
-	return dst;
+    inline char const *malloc_and_copy(char const *src) {
+        char *dst = new char[strlen(src) + 1];
+        strcpy(dst, src);
+        return dst;
     }
-} //namespace gridtools
+} // namespace gridtools

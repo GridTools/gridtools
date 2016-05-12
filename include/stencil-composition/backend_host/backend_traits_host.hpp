@@ -1,16 +1,17 @@
 #pragma once
 #include <boost/mpl/for_each.hpp>
-#include "stencil-composition/backend_traits_fwd.hpp"
+
+#include "../backend_traits_fwd.hpp"
 #include "run_esf_functor_host.hpp"
-#include "stencil-composition//block_size.hpp"
+#include "../block_size.hpp"
 #include "iterate_domain_host.hpp"
 #include "strategy_host.hpp"
 #include "empty_iterate_domain_cache.hpp"
 
 #ifdef ENABLE_METERS
-#include "stencil-composition/backend_host/timer_host.hpp"
+#include "timer_host.hpp"
 #else
-#include "stencil-composition/timer_dummy.hpp"
+#include "../timer_dummy.hpp"
 #endif
 
 /**@file
@@ -24,7 +25,7 @@ namespace gridtools {
     }
 
     /**forward declaration*/
-    template < typename T >
+    template < typename T, bool Array >
     struct wrap_pointer;
 
     /**Traits struct, containing the types which are specific for the host backend*/
@@ -45,7 +46,7 @@ namespace gridtools {
         template < typename ValueType, typename MetaData, bool Temp, short_t FieldDim = 1 >
         struct storage_traits {
             GRIDTOOLS_STATIC_ASSERT((is_meta_storage< MetaData >::value), "wrong type for the storage_info");
-            typedef base_storage< typename pointer< ValueType >::type, MetaData, FieldDim > storage_t;
+            typedef storage< base_storage< typename pointer< ValueType >::type, MetaData, FieldDim > > storage_t;
         };
 
         struct default_alignment {
