@@ -76,8 +76,8 @@ namespace gridtools {
             "using v2=generic_accessor<1, enumtype::in>; \n using v3=accessor<2>; \n using "
             "arg_list=boost::mpl::vector<v1, v3>;");
 
-        GRIDTOOLS_STATIC_ASSERT(_impl::check_arg_list<typename esf_function::arg_list>::value,
-                                "Arg List of functor is not listed by increasing index");
+        GRIDTOOLS_STATIC_ASSERT(_impl::check_arg_list< typename esf_function::arg_list >::value,
+            "Arg List of functor is not listed by increasing index");
 
         // checking that all the placeholders have a different index
         /**

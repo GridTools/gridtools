@@ -127,11 +127,10 @@ namespace reduction {
         boost::shared_ptr< gridtools::computation< float_type > >
 #endif
 #endif
-            sum_red_ = make_computation< gridtools::BACKEND >
-            ( domain,
-              grid,
-              make_mss(execute< forward >(), make_esf< desf >(p_in(), p_out())),
-              make_reduction< sum_red, binop::sum >(0.0, p_out()));
+            sum_red_ = make_computation< gridtools::BACKEND >(domain,
+                grid,
+                make_mss(execute< forward >(), make_esf< desf >(p_in(), p_out())),
+                make_reduction< sum_red, binop::sum >(0.0, p_out()));
 
         sum_red_->ready();
         sum_red_->steady();

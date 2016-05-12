@@ -98,13 +98,11 @@ bool the_same(One const& storage1, Two const& storage2) {
 bool test_domain() {
 
 #ifdef __CUDACC__
-    typedef gridtools::backend< gridtools::enumtype::Cuda,
-        gridtools::GRIDBACKEND,
-                                gridtools::enumtype::Naive > backend_t;
+    typedef gridtools::backend< gridtools::enumtype::Cuda, gridtools::GRIDBACKEND, gridtools::enumtype::Naive >
+        backend_t;
 #else
-    typedef gridtools::backend< gridtools::enumtype::Host,
-        gridtools::GRIDBACKEND,
-        gridtools::enumtype::Naive > backend_t;
+    typedef gridtools::backend< gridtools::enumtype::Host, gridtools::GRIDBACKEND, gridtools::enumtype::Naive >
+        backend_t;
 #endif
     typedef typename backend_t::storage_type<double, backend_t::storage_info<0,gridtools::layout_map<0,1,2> > >::type storage_type;
 

@@ -79,7 +79,7 @@ namespace gridtools {
     /**
      * Metafunction to check if a type is a extent - Specialization yielding true
      */
-    template < >
+    template <>
     struct is_extent< empty_extent > : boost::true_type {};
 
     /**
@@ -105,28 +105,29 @@ namespace gridtools {
     };
 
     template < typename Range1 >
-    struct enclosing_extent<Range1, empty_extent> {
-        typedef typename enclosing_extent<Range1, extent<> >::type type;
+    struct enclosing_extent< Range1, empty_extent > {
+        typedef typename enclosing_extent< Range1, extent<> >::type type;
     };
 
     template < typename Range2 >
-    struct enclosing_extent<empty_extent, Range2> {
-        typedef typename enclosing_extent<extent<>, Range2>::type type;
+    struct enclosing_extent< empty_extent, Range2 > {
+        typedef typename enclosing_extent< extent<>, Range2 >::type type;
     };
 
-    template <  >
-    struct enclosing_extent<empty_extent, empty_extent> {
-        typedef typename enclosing_extent<extent<>, extent<> >::type type;
+    template <>
+    struct enclosing_extent< empty_extent, empty_extent > {
+        typedef typename enclosing_extent< extent<>, extent<> >::type type;
     };
 
-    // Specializations for the case in which a range is an mpl::void_, which is used when the extent is taken from an mpl::map
-    template <typename Range>
-    struct enclosing_extent<Range, boost::mpl::void_> {
+    // Specializations for the case in which a range is an mpl::void_, which is used when the extent is taken from an
+    // mpl::map
+    template < typename Range >
+    struct enclosing_extent< Range, boost::mpl::void_ > {
         typedef Range type;
     };
 
-    template <typename Range>
-    struct enclosing_extent<boost::mpl::void_, Range> {
+    template < typename Range >
+    struct enclosing_extent< boost::mpl::void_, Range > {
         typedef Range type;
     };
 
@@ -147,18 +148,18 @@ namespace gridtools {
     };
 
     template < typename Range1 >
-    struct sum_extent<Range1, empty_extent> {
-        typedef typename sum_extent<Range1, extent<> >::type type;
+    struct sum_extent< Range1, empty_extent > {
+        typedef typename sum_extent< Range1, extent<> >::type type;
     };
 
     template < typename Range2 >
-    struct sum_extent<empty_extent, Range2> {
-        typedef typename sum_extent<extent<>, Range2>::type type;
+    struct sum_extent< empty_extent, Range2 > {
+        typedef typename sum_extent< extent<>, Range2 >::type type;
     };
 
-    template <  >
-    struct sum_extent<empty_extent, empty_extent> {
-        typedef typename sum_extent<extent<>, extent<> >::type type;
+    template <>
+    struct sum_extent< empty_extent, empty_extent > {
+        typedef typename sum_extent< extent<>, extent<> >::type type;
     };
 
 } // namespace gridtools

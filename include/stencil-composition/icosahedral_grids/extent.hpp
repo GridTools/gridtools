@@ -2,7 +2,7 @@
 
 namespace gridtools {
 
-    template < int_t R=0 >
+    template < int_t R = 0 >
     struct extent {
         static const int_t value = R;
     };
@@ -26,18 +26,18 @@ namespace gridtools {
     };
 
     template < typename Range1 >
-    struct enclosing_extent<Range1, empty_extent> {
-        typedef typename enclosing_extent<Range1, extent<> >::type type;
+    struct enclosing_extent< Range1, empty_extent > {
+        typedef typename enclosing_extent< Range1, extent<> >::type type;
     };
 
     template < typename Range2 >
-    struct enclosing_extent<empty_extent, Range2> {
-        typedef typename enclosing_extent<extent<>, Range2>::type type;
+    struct enclosing_extent< empty_extent, Range2 > {
+        typedef typename enclosing_extent< extent<>, Range2 >::type type;
     };
 
-    template <  >
-    struct enclosing_extent<empty_extent, empty_extent> {
-        typedef typename enclosing_extent<extent<>, extent<> >::type type;
+    template <>
+    struct enclosing_extent< empty_extent, empty_extent > {
+        typedef typename enclosing_extent< extent<>, extent<> >::type type;
     };
 
     /**
@@ -51,20 +51,19 @@ namespace gridtools {
         typedef extent< Extent1::value + Extent2::value > type;
     };
 
-
     template < typename Range1 >
-    struct sum_extent<Range1, empty_extent> {
-        typedef typename sum_extent<Range1, extent<> >::type type;
+    struct sum_extent< Range1, empty_extent > {
+        typedef typename sum_extent< Range1, extent<> >::type type;
     };
 
     template < typename Range2 >
-    struct sum_extent<empty_extent, Range2> {
-        typedef typename sum_extent<extent<>, Range2>::type type;
+    struct sum_extent< empty_extent, Range2 > {
+        typedef typename sum_extent< extent<>, Range2 >::type type;
     };
 
-    template <  >
-    struct sum_extent<empty_extent, empty_extent> {
-        typedef typename sum_extent<extent<>, extent<> >::type type;
+    template <>
+    struct sum_extent< empty_extent, empty_extent > {
+        typedef typename sum_extent< extent<>, extent<> >::type type;
     };
 
 } // namespace gridtools

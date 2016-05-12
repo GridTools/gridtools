@@ -45,13 +45,13 @@ namespace gridtools {
     struct is_reduction_descriptor< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence > >
         : boost::mpl::true_ {};
 
-    template <typename T>
+    template < typename T >
     struct mss_descriptor_esf_sequence;
-    template <typename T>
+    template < typename T >
     struct mss_descriptor_cache_sequence;
-    template <typename T>
+    template < typename T >
     struct mss_descriptor_execution_engine;
-    template <typename T>
+    template < typename T >
     struct mss_descriptor_is_reduction;
     template < typename ReductionType, typename BinOp, typename EsfDescrSequence >
     struct mss_descriptor_esf_sequence< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence > > {

@@ -15,10 +15,10 @@ namespace gridtools {
         typedef empty_extent extent_t;
     };
 
-    template <typename Type>
+    template < typename Type >
     struct is_global_accessor : boost::false_type {};
 
     template < uint_t I, enumtype::intend Intend >
-    struct is_global_accessor<global_accessor<I,Intend> > : boost::true_type {};
+    struct is_global_accessor< global_accessor< I, Intend > > : boost::true_type {};
 
 } // namespace gridtools

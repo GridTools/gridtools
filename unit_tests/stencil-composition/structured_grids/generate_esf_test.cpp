@@ -82,13 +82,8 @@ struct range {
     }
 
     std::string out() const {
-        std::string r = "extent<"
-            + std::to_string(im) + ", "
-            + std::to_string(ip) + ", "
-            + std::to_string(jm) + ", "
-            + std::to_string(jp) + ", "
-            + std::to_string(km) + ", "
-            + std::to_string(kp) + "> ";
+        std::string r = "extent<" + std::to_string(im) + ", " + std::to_string(ip) + ", " + std::to_string(jm) + ", " +
+                        std::to_string(jp) + ", " + std::to_string(km) + ", " + std::to_string(kp) + "> ";
         return r;
     }
 };
@@ -171,7 +166,8 @@ struct generate_functor {
             if (i==m_index_of_output) {
                 code += "    typedef accessor<" + std::to_string(i) + ", enumtype::inout> out;\n";
             } else {
-                code += "    typedef accessor<" + std::to_string(i) + ", enumtype::in, " + m_ranges[i].out() + "> in" + std::to_string(i) + ";\n";
+                code += "    typedef accessor<" + std::to_string(i) + ", enumtype::in, " + m_ranges[i].out() + "> in" +
+                        std::to_string(i) + ";\n";
             }
         }
         code += "\n    typedef boost::mpl::vector<"; //in,out> arg_list;
@@ -412,7 +408,7 @@ int main() {
         program += ")) " + functors[i].name() + "__;\n";
    }
 
-    program += "    typedef decltype( make_mss\n";
+   program += "    typedef decltype( make_mss\n";
     program += "        (\n";
     program += "            execute<forward>(),\n";
     for (int i = 0; i < functors.size(); ++i) {
@@ -427,7 +423,9 @@ int main() {
 
     program += "    " + list_of_plcs;
 
-    program += "\n    typedef strgrid::compute_extents_of<strgrid::init_map_of_extents<placeholders>::type>::for_mss<mss_t>::type final_map;\n";
+    program += "\n    typedef "
+               "strgrid::compute_extents_of<strgrid::init_map_of_extents<placeholders>::type>::for_mss<mss_t>::type "
+               "final_map;\n";
 
     program += "    std::cout << \"FINAL\" << std::endl;\n";
     program += "    boost::mpl::for_each<final_map>(print_r());\n\n";

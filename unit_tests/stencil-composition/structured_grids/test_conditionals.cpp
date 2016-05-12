@@ -53,25 +53,16 @@ namespace test_conditionals{
 #ifdef CXX11_ENABLED
         auto
 #else
-            boost::shared_ptr<computation>
+        boost::shared_ptr< computation >
 #endif
-            comp_ = make_computation < BACKEND > (
-                domain_, grid_,
-                if_(cond
-                    ,
-                    make_mss(
-                        enumtype::execute<enumtype::forward>()
-                        , make_esf<functor<0> >( p_dummy() ))
-                    , if_( cond2
-                           , make_mss(
-                               enumtype::execute<enumtype::forward>()
-                               , make_esf<functor<1> >( p_dummy() ))
-                           , make_mss(
-                               enumtype::execute<enumtype::forward>()
-                               , make_esf<functor<2> >( p_dummy() ))
-                        )
-                    )
-                );
+            comp_ = make_computation< BACKEND >(
+                domain_,
+                grid_,
+                if_(cond,
+                    make_mss(enumtype::execute< enumtype::forward >(), make_esf< functor< 0 > >(p_dummy())),
+                    if_(cond2,
+                        make_mss(enumtype::execute< enumtype::forward >(), make_esf< functor< 1 > >(p_dummy())),
+                        make_mss(enumtype::execute< enumtype::forward >(), make_esf< functor< 2 > >(p_dummy())))));
 
         bool result=true;
         comp_->ready();

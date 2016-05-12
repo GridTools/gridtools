@@ -26,33 +26,30 @@ namespace gridtools {
           vector. (This is a rework of Paolo's code that was failing
           for nested independents.
          */
-        template <typename EsfsVector, typename PushRegular, typename PushIndependent=PushRegular>
+        template < typename EsfsVector, typename PushRegular, typename PushIndependent = PushRegular >
         struct linearize_esf_array {
 
-            template <typename Vector, typename Element>
+            template < typename Vector, typename Element >
             struct push_into {
-                typedef typename boost::mpl::push_back<Vector, Element>::type type;
+                typedef typename boost::mpl::push_back< Vector, Element >::type type;
             };
 
-            template <typename Vector, typename Independents>
-            struct push_into<Vector, independent_esf<Independents> > {
-                typedef typename boost::mpl::fold<
-                    Independents,
+            template < typename Vector, typename Independents >
+            struct push_into< Vector, independent_esf< Independents > > {
+                typedef typename boost::mpl::fold< Independents,
                     Vector,
-                    push_into<boost::mpl::_1, PushIndependent>
-                    >::type type;
+                    push_into< boost::mpl::_1, PushIndependent > >::type type;
             };
 
             // template <typename Vector, typename ReductionType, typename BinOp, typename EsfDescrSequence>
             // struct push_into<Vector, reduction_descriptor<ReductionType, BinOp, EsfDescrSequence> > {
-            //     typedef typename boost::mpl::push_back<Vector, reduction_descriptor<ReductionType, BinOp, EsfDescrSequence> >::type type;
+            //     typedef typename boost::mpl::push_back<Vector, reduction_descriptor<ReductionType, BinOp,
+            //     EsfDescrSequence> >::type type;
             // };
 
-            typedef typename boost::mpl::fold<
-                EsfsVector,
+            typedef typename boost::mpl::fold< EsfsVector,
                 boost::mpl::vector0<>,
-                push_into<boost::mpl::_1, PushRegular>
-                >::type type;
+                push_into< boost::mpl::_1, PushRegular > >::type type;
         };
     } // namespace _impl
 
@@ -68,21 +65,14 @@ namespace gridtools {
     struct mss_descriptor_linear_esf_sequence;
 
     template < typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence >
-    struct mss_descriptor_linear_esf_sequence<
-        mss_descriptor< ExecutionEngine, EsfDescrSequence, CacheSequence >
-        >
-    {
+    struct mss_descriptor_linear_esf_sequence< mss_descriptor< ExecutionEngine, EsfDescrSequence, CacheSequence > > {
         typedef typename _impl::linearize_esf_array< EsfDescrSequence, boost::mpl::_2 >::type type;
     };
 
     template < typename ReductionType, typename BinOp, typename EsfDescrSequence >
-    struct mss_descriptor_linear_esf_sequence<
-        reduction_descriptor<ReductionType, BinOp, EsfDescrSequence>
-        >
-    {
+    struct mss_descriptor_linear_esf_sequence< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence > > {
         typedef typename _impl::linearize_esf_array< EsfDescrSequence, boost::mpl::_2 >::type type;
     };
-
 
     /**
        @brief constructs an mpl vector of booleans, linearizing the mss tree and attachnig a true or false flag
@@ -94,18 +84,12 @@ namespace gridtools {
     struct sequence_of_is_independent_esf;
 
     template < typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence >
-    struct sequence_of_is_independent_esf<
-        mss_descriptor< ExecutionEngine, EsfDescrSequence, CacheSequence >
-        >
-    {
+    struct sequence_of_is_independent_esf< mss_descriptor< ExecutionEngine, EsfDescrSequence, CacheSequence > > {
         typedef typename _impl::linearize_esf_array< EsfDescrSequence, boost::false_type, boost::true_type >::type type;
     };
 
     template < typename ReductionType, typename BinOp, typename EsfDescrSequence >
-    struct sequence_of_is_independent_esf<
-        reduction_descriptor<ReductionType, BinOp, EsfDescrSequence>
-        >
-    {
+    struct sequence_of_is_independent_esf< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence > > {
         typedef typename _impl::linearize_esf_array< EsfDescrSequence, boost::false_type, boost::true_type >::type type;
     };
 

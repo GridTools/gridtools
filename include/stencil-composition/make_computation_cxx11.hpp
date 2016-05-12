@@ -70,8 +70,8 @@ namespace gridtools {
     }
 
     template < typename Backend, typename Domain, typename Grid, typename... Mss >
-    std::shared_ptr< computation< typename _impl::reduction_helper< Mss... >::reduction_type_t > >
-    make_computation(Domain &domain, const Grid &grid, Mss... args_) {
+    std::shared_ptr< computation< typename _impl::reduction_helper< Mss... >::reduction_type_t > > make_computation(
+        Domain &domain, const Grid &grid, Mss... args_) {
         return make_computation_impl< POSITIONAL_WHEN_DEBUGGING, Backend >(domain, grid, args_...);
     }
 

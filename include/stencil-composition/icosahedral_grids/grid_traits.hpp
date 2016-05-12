@@ -10,15 +10,15 @@ namespace gridtools {
     struct grid_traits_from_id< enumtype::icosahedral > {
 
         struct select_mss_compute_extent_sizes {
-            template <typename PlaceholdersMap, typename Mss>
+            template < typename PlaceholdersMap, typename Mss >
             struct apply {
-                typedef typename compute_extents_of<PlaceholdersMap>::template for_mss<Mss>::type type;
+                typedef typename compute_extents_of< PlaceholdersMap >::template for_mss< Mss >::type type;
             };
         };
 
-        template <typename Placeholders>
+        template < typename Placeholders >
         struct select_init_map_of_extents {
-            typedef typename init_map_of_extents<Placeholders>::type type;
+            typedef typename init_map_of_extents< Placeholders >::type type;
         };
 
         typedef extent< 0 > null_extent_t;

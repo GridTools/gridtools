@@ -51,10 +51,8 @@ namespace gridtools {
             typedef typename boost::mpl::at< typename Esf::args_t, Index >::type placeholder_type;
             typedef typename boost::mpl::if_<
                 Pred,
-                typename boost::mpl::pair<
-                    placeholder_type,
-                    typename boost::mpl::at< typename Esf::args_with_extents, placeholder_type >::type
-                    >::type,
+                typename boost::mpl::pair< placeholder_type,
+                    typename boost::mpl::at< typename Esf::args_with_extents, placeholder_type >::type >::type,
                 typename boost::mpl::at< typename Esf::args_t, Index >::type >::type type;
         };
     };
@@ -85,13 +83,12 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), "Wrong Type");
         template < typename Index >
         struct apply {
-            typedef typename boost::mpl::if_<
-                is_arg< typename boost::mpl::at< typename Esf::args_t, Index >::type >,
-                typename boost::mpl::if_<
-                    typename is_accessor_readonly<
-                        typename boost::mpl::at_c< typename Esf::esf_function::arg_list, Index::value >::type >::type,
-                    boost::false_type,
-                    boost::true_type >::type,
+            typedef typename boost::mpl::if_< is_arg< typename boost::mpl::at< typename Esf::args_t, Index >::type >,
+                typename boost::mpl::
+                    if_< typename is_accessor_readonly< typename boost::mpl::at_c< typename Esf::esf_function::arg_list,
+                             Index::value >::type >::type,
+                                                  boost::false_type,
+                                                  boost::true_type >::type,
                 boost::false_type >::type type;
         };
     };
@@ -252,54 +249,44 @@ namespace gridtools {
       Given an array of pairs (placeholder, extent) checks if all
       extents are the same and equal to the extent passed in
      */
-    template <typename VectorOfPairs, typename Extent>
+    template < typename VectorOfPairs, typename Extent >
     struct check_all_extents_are {
-        template <typename Pair, typename Status, typename Ext>
+        template < typename Pair, typename Status, typename Ext >
         struct _check {
             typedef typename Pair::second extent;
 
-            typedef typename boost::mpl::and_<
-                Status,
-                boost::is_same<extent, Ext>
-                >::type type1;
+            typedef typename boost::mpl::and_< Status, boost::is_same< extent, Ext > >::type type1;
 
-            typedef boost::integral_constant<bool, type1::value> type;
+            typedef boost::integral_constant< bool, type1::value > type;
         };
 
-        typedef typename boost::mpl::fold<
-            VectorOfPairs,
+        typedef typename boost::mpl::fold< VectorOfPairs,
             boost::true_type,
-            _check<boost::mpl::_2, boost::mpl::_1, Extent>
-            >::type type;
+            _check< boost::mpl::_2, boost::mpl::_1, Extent > >::type type;
     };
-
 
     template < typename T >
     struct is_esf_descriptor< independent_esf< T > > : boost::mpl::true_ {};
 
     // Takes a list of esfs and independent_esf and produces a list of esfs, with the independent unwrapped
-    template <typename ESFList>
+    template < typename ESFList >
     struct unwrap_independent {
 
-        template <typename CurrentList, typename CurrentElement>
+        template < typename CurrentList, typename CurrentElement >
         struct populate {
-            typedef typename boost::mpl::push_back<CurrentList, CurrentElement>::type type;
+            typedef typename boost::mpl::push_back< CurrentList, CurrentElement >::type type;
         };
 
-        template <typename CurrentList, typename IndependentList>
-        struct populate<CurrentList, independent_esf<IndependentList> > {
-            typedef typename boost::mpl::fold<
-                IndependentList,
+        template < typename CurrentList, typename IndependentList >
+        struct populate< CurrentList, independent_esf< IndependentList > > {
+            typedef typename boost::mpl::fold< IndependentList,
                 CurrentList,
-                populate<boost::mpl::_1, boost::mpl::_2>
-                >::type type;
+                populate< boost::mpl::_1, boost::mpl::_2 > >::type type;
         };
 
-        typedef typename boost::mpl::fold<
-            ESFList,
+        typedef typename boost::mpl::fold< ESFList,
             boost::mpl::vector0<>,
-            populate<boost::mpl::_1, boost::mpl::_2>
-            >::type type;
+            populate< boost::mpl::_1, boost::mpl::_2 > >::type type;
     }; // struct unwrap_independent
 
- } // namespace gridtools
+} // namespace gridtools
