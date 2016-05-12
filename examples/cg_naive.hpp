@@ -472,6 +472,9 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
     MPI_Barrier(GCL_WORLD);
 
+    double rTr_init; //initial residual
+    double rTr_old; //used to remember value of global reduction between iterations
+
     /**
         Perform iterations of the CG
     */
@@ -604,14 +607,24 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         CG_step0->finalize();
 
         // compute step size alpha
-        stencil_alpha_nom->ready();
-        stencil_alpha_nom->steady();
-        boost::timer::cpu_timer time_alphaNom;
-        double rTr = stencil_alpha_nom->run(); // r_T * r (at time t)
-        lapse_time_run = lapse_time_run + time_alphaNom.elapsed();
-        stencil_alpha_nom->finalize();
-        double rTr_global;
-        MPI_Allreduce(&rTr, &rTr_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+        double rTr_global; //nominator
+        double rTr;
+
+        if (iter == 0)
+        {
+            stencil_alpha_nom->ready();
+            stencil_alpha_nom->steady();
+            boost::timer::cpu_timer time_alphaNom;
+            rTr = stencil_alpha_nom->run(); // r_T * r (at time t)
+            lapse_time_run = lapse_time_run + time_alphaNom.elapsed();
+            stencil_alpha_nom->finalize();
+            MPI_Allreduce(&rTr, &rTr_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+            rTr_init = sqrt(rTr_global);
+        }
+        else
+        {
+            rTr_global = rTr_old; //reuse nominator from beta in previous time-step
+        }
 
         stencil_alpha_denom->ready();
         stencil_alpha_denom->steady();
@@ -624,7 +637,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
         alpha.setValue(rTr_global/dTAd_global);
         #ifdef DEBUG
-        if(PID == 0) printf("Alpha = %f\n", rTr_global/dTAd_global);
+        if (PID == 0) printf("Alpha = %f\n", rTr_global/dTAd_global);
         #endif
 
         // x_(i+1) = x_i + alpha * d_i
@@ -653,10 +666,11 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         stencil_beta_nom->finalize();
         double rTrnew_global;
         MPI_Allreduce(&rTrnew, &rTrnew_global, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+        rTr_old = rTrnew_global; //save value to reuse it in alpha
 
         beta.setValue(rTrnew_global/rTr_global); // reusing r_T*r from computation of alpha
         #ifdef DEBUG
-        if(PID == 0) printf("Beta = %f\n", rTrnew_global/rTr_global);
+        if (PID == 0) printf("Beta = %f\n", rTrnew_global/rTr_global);
         #endif
 
         // d_(i+1) = r_(i+1) + beta * d_i
@@ -691,17 +705,17 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         ptr_dNew = swap;
 
         boost::timer::cpu_times lapse_time_iteration = time_iteration.elapsed();
-        if(PID == 0)
+        if (PID == 0)
         {
             std::cout << std::endl << "Iteration " << iter << ": [time]" << boost::timer::format(lapse_time_iteration);
-            std::cout << "Iteration " << iter << ": [residual] " << sqrt(rTrnew_global) << std::endl;
+            std::cout << "Iteration " << iter << ": [residual] " << sqrt(rTrnew_global)/rTr_init << std::endl;
         }
 
     }
 
     boost::timer::cpu_times lapse_time = time.elapsed();
 
-    if(gridtools::PID == 0){
+    if (gridtools::PID == 0){
         std::cout << std::endl << "TOTAL TIME: " << boost::timer::format(lapse_time);
         std::cout << "TIME SPENT IN RUN STAGE:" << boost::timer::format(lapse_time_run);
         std::cout << "d3point7 MFLOPS: " << MFLOPS(10,d1,d2,d3,nt,lapse_time_d3point7.wall) << std::endl;
