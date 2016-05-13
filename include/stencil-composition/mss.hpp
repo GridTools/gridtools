@@ -7,7 +7,7 @@
 #include "../common/meta_array.hpp"
 #include "caches/cache_metafunctions.hpp"
 #include "independent_esf.hpp"
-#include "stencil-composition/sfinae.hpp"
+// #include "stencil-composition/sfinae.hpp"
 
 /**
 @file
@@ -30,7 +30,7 @@ namespace gridtools {
            can be used to return the extent_type only when it is present, without giving compilation
            errors in case it is not defined.
          */
-        HAS_TYPE_SFINAE(extent_type, has_extent_type, get_extent_type)
+        // HAS_TYPE_SFINAE(extent_type, has_extent_type, get_extent_type)
     }
 
     template < typename Mss1, typename Mss2, typename Tag >

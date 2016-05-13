@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include <stencil-composition/stencil-composition.hpp>
+#include <stencil-composition/conditionals/condition_pool.hpp>
 
 namespace test_conditional_switches{
     using namespace gridtools;
@@ -8,55 +9,54 @@ namespace test_conditional_switches{
 #define BACKEND_BLOCK
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend< enumtype::Cuda, GRIDBACKEND, enumtype::Block >
+#define BACKEND backend< enumtype::Cuda, enumtype::GRIDBACKEND, enumtype::Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend< enumtype::Host, GRIDBACKEND, enumtype::Block >
+#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Block >
 #else
-#define BACKEND backend< enumtype::Host, GRIDBACKEND, enumtype::Naive >
+#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Naive >
 #endif
 #endif
 
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
-    template<uint_t Id, typename Extent=extent<> >
+    template<uint_t Id >
     struct functor1{
 
         typedef accessor<0, enumtype::inout> p_dummy;
-        typedef accessor<1, enumtype::inout, Extent> p_dummy_tmp;
+        typedef accessor<1, enumtype::inout> p_dummy_tmp;
 
         typedef boost::mpl::vector2<p_dummy, p_dummy_tmp> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            eval(p_dummy())+=Id+eval(p_dummy_tmp( 0, 0, 0));
+            eval(p_dummy())+=Id;
         }
     };
 
-    template<uint_t Id, typename Extent=extent<> >
+    template<uint_t Id >
     struct functor2{
 
         typedef accessor<0, enumtype::inout> p_dummy;
-        typedef accessor<1, enumtype::inout, Extent> p_dummy_tmp;
+        typedef accessor<1, enumtype::in> p_dummy_tmp;
 
         typedef boost::mpl::vector2<p_dummy, p_dummy_tmp> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            eval(p_dummy())+=Id+eval(p_dummy_tmp( Extent::iplus::value, 0, 0));
+            eval(p_dummy())+=Id;
         }
     };
 
     bool test(){
 
-        switch_variable<0,int> cond(0);
-        switch_variable<0,int> new_cond(5);
-        switch_variable<3,int> nested_cond_(1);
-        switch_variable<1,int> other_cond_(1);
-        switch_variable<1,int> new_other_cond_(2);
+        bool p = true;
+        auto cond_ = new_switch_variable([&p]() { return p ? 0 : 5; });
+        auto nested_cond_ = new_switch_variable([]() { return 1; });
+        auto other_cond_ = new_switch_variable([&p]() { return p ? 1 : 2; });
 
         grid<axis> grid_({0,0,0,6,7},{0,0,0,6,7});
         grid_.value_list[0] = 0;
@@ -76,92 +76,72 @@ namespace test_conditional_switches{
         typedef boost::mpl::vector2<p_dummy, p_dummy_tmp> arg_list;
         domain_type< arg_list > domain_(boost::fusion::make_vector(&dummy));
 
-        auto comp_ = make_computation < BACKEND > (
-            domain_, grid_
-            , make_mss(
-                enumtype::execute<enumtype::forward>()
-                , make_esf<functor1<0> >( p_dummy(), p_dummy_tmp() )
-                , make_esf<functor2<0> >( p_dummy(), p_dummy_tmp() )
-                )
-            , switch_(cond
-                      ,
-                      case_(0
-                            , make_mss(
-                                enumtype::execute<enumtype::forward>()
-                                , make_esf<functor1<1, extent<0,1,0,0,0,0> > >( p_dummy(), p_dummy_tmp() )
-                                , make_esf<functor2<1, extent<0,1,0,0,0,0> > >( p_dummy(), p_dummy_tmp() )))
-                      , case_(1,
-                           make_mss(
-                               enumtype::execute<enumtype::forward>()
-                                , make_esf<functor1<2, extent<0,1,0,0,0,0> > >( p_dummy(), p_dummy_tmp() )
-                               , make_esf<functor2<2, extent<0,1,0,0,0,0> > >( p_dummy(), p_dummy_tmp() )))
-                      , case_(2,
-                           make_mss(
-                               enumtype::execute<enumtype::forward>()
-                                , make_esf<functor1<3, extent<0,1,0,0,0,0> > >( p_dummy(), p_dummy_tmp() )
-                               , make_esf<functor2<3, extent<0,1,0,0,0,0> > >( p_dummy(), p_dummy_tmp() )))
-                      , case_(3,
-                           make_mss(
-                               enumtype::execute<enumtype::forward>()
-                                , make_esf<functor1<4, extent<0,1,0,0,0,0> > >( p_dummy(), p_dummy_tmp() )
-                               , make_esf<functor2<4, extent<0,1,0,0,0,0> > >( p_dummy(), p_dummy_tmp() )))
-                      , case_(4,
-                           make_mss(
-                               enumtype::execute<enumtype::forward>()
-                               , make_esf<functor1<5, extent<0,1,0,0,0,0> > >( p_dummy(), p_dummy_tmp() )
-                               , make_esf<functor2<5, extent<0,1,0,0,0,0> > >( p_dummy(), p_dummy_tmp() )))
-                      , case_(5,
-                              switch_(nested_cond_
-                                      , case_(2,
-                                              make_mss(
-                                                  enumtype::execute<enumtype::forward>()
-                                                  , make_esf<functor1<1000>, extent<0,3,0,0,0,0> >( p_dummy(), p_dummy_tmp() )
-                                                  , make_esf<functor2<1000>, extent<0,3,0,0,0,0> >( p_dummy(), p_dummy_tmp() )))
-                                      , case_(1,
-                                              make_mss(
-                                                  enumtype::execute<enumtype::forward>()
-                                                  , make_esf<functor1<2000, extent<0,3,0,0,0,0> > >( p_dummy(), p_dummy_tmp() )
-                                                  , make_esf<functor2<2000, extent<0,3,0,0,0,0> > >( p_dummy(), p_dummy_tmp() )))
-                                      , default_(
-                                          make_mss(
-                                              enumtype::execute<enumtype::forward>()
-                                              , make_esf<functor1<3000, extent<0,3,0,0,0,0> > >( p_dummy(), p_dummy_tmp() )
-                                              , make_esf<functor2<3000, extent<0,3,0,0,0,0> > >( p_dummy(), p_dummy_tmp() )))
-                                  )
-                          )
-                      , case_(6,
-                              make_mss(
-                                  enumtype::execute<enumtype::forward>()
-                                  , make_esf<functor1<6, extent<0,3,0,0,0,0> > >( p_dummy(), p_dummy_tmp() )
-                                  , make_esf<functor2<6, extent<0,3,0,0,0,0> > >( p_dummy(), p_dummy_tmp() )))
-                      , default_(
-                          make_mss(
-                              enumtype::execute<enumtype::forward>()
-                              , make_esf<functor1<7, extent<0,3,0,0,0,0> > >( p_dummy(), p_dummy_tmp() )
-                              , make_esf<functor2<7, extent<0,3,0,0,0,0> > >( p_dummy(), p_dummy_tmp() )))
-                )
-            ,  switch_(other_cond_
-                       , case_(2,
-                               make_mss(
-                                   enumtype::execute<enumtype::forward>()
-                                   , make_esf<functor1<10> >( p_dummy(), p_dummy_tmp() )
-                                   , make_esf<functor2<10> >( p_dummy(), p_dummy_tmp() )))
-                       , case_(1,
-                               make_mss(
-                                   enumtype::execute<enumtype::forward>()
-                                   , make_esf<functor1<20> >( p_dummy(), p_dummy_tmp() )
-                                   , make_esf<functor2<20> >( p_dummy(), p_dummy_tmp() )))
-                       , default_(
-                           make_mss(
-                               enumtype::execute<enumtype::forward>()
-                               , make_esf<functor1<30> >( p_dummy(), p_dummy_tmp() )
-                               , make_esf<functor2<30> >( p_dummy(), p_dummy_tmp() )))
-                )
-            , make_mss(
-                enumtype::execute<enumtype::forward>()
-                , make_esf<functor1<400> >( p_dummy(), p_dummy_tmp() )
-                , make_esf<functor2<400> >( p_dummy(), p_dummy_tmp() ))
-            );
+        auto comp_ = make_computation< BACKEND >(
+            domain_,
+            grid_,
+            make_mss(enumtype::execute< enumtype::forward >(),
+                make_esf< functor1< 0 > >(p_dummy(), p_dummy_tmp()),
+                make_esf< functor2< 0 > >(p_dummy(), p_dummy_tmp())),
+            switch_(cond_,
+                case_(0,
+                        make_mss(enumtype::execute< enumtype::forward >(),
+                            make_esf< functor1< 1 > >(p_dummy(), p_dummy_tmp()),
+                            make_esf< functor2< 1 > >(p_dummy(), p_dummy_tmp()))),
+                case_(1,
+                        make_mss(enumtype::execute< enumtype::forward >(),
+                            make_esf< functor1< 2 > >(p_dummy(), p_dummy_tmp()),
+                            make_esf< functor2< 2 > >(p_dummy(), p_dummy_tmp()))),
+                case_(2,
+                        make_mss(enumtype::execute< enumtype::forward >(),
+                            make_esf< functor1< 3 > >(p_dummy(), p_dummy_tmp()),
+                            make_esf< functor2< 3 > >(p_dummy(), p_dummy_tmp()))),
+                case_(3,
+                        make_mss(enumtype::execute< enumtype::forward >(),
+                            make_esf< functor1< 4 > >(p_dummy(), p_dummy_tmp()),
+                            make_esf< functor2< 4 > >(p_dummy(), p_dummy_tmp()))),
+                case_(4,
+                        make_mss(enumtype::execute< enumtype::forward >(),
+                            make_esf< functor1< 5 > >(p_dummy(), p_dummy_tmp()),
+                            make_esf< functor2< 5 > >(p_dummy(), p_dummy_tmp()))),
+                case_(5,
+                        switch_(nested_cond_,
+                            case_(2,
+                                    make_mss(enumtype::execute< enumtype::forward >(),
+                                        make_esf< functor1< 1000 > >(
+                                                 p_dummy(), p_dummy_tmp()),
+                                        make_esf< functor2< 1000 > >(
+                                                 p_dummy(), p_dummy_tmp()))),
+                            case_(1,
+                                    make_mss(enumtype::execute< enumtype::forward >(),
+                                        make_esf< functor1< 2000 > >(
+                                                 p_dummy(), p_dummy_tmp()),
+                                        make_esf< functor2< 2000 > >(
+                                                 p_dummy(), p_dummy_tmp()))),
+                            default_(make_mss(enumtype::execute< enumtype::forward >(),
+                                make_esf< functor1< 3000 > >(p_dummy(), p_dummy_tmp()),
+                                make_esf< functor2< 3000 > >(p_dummy(), p_dummy_tmp()))))),
+                case_(6,
+                        make_mss(enumtype::execute< enumtype::forward >(),
+                            make_esf< functor1< 6 > >(p_dummy(), p_dummy_tmp()),
+                            make_esf< functor2< 6 > >(p_dummy(), p_dummy_tmp()))),
+                default_(make_mss(enumtype::execute< enumtype::forward >(),
+                    make_esf< functor1< 7 > >(p_dummy(), p_dummy_tmp()),
+                    make_esf< functor2< 7 > >(p_dummy(), p_dummy_tmp())))),
+            switch_(other_cond_,
+                case_(2,
+                        make_mss(enumtype::execute< enumtype::forward >(),
+                            make_esf< functor1< 10 > >(p_dummy(), p_dummy_tmp()),
+                            make_esf< functor2< 10 > >(p_dummy(), p_dummy_tmp()))),
+                case_(1,
+                        make_mss(enumtype::execute< enumtype::forward >(),
+                            make_esf< functor1< 20 > >(p_dummy(), p_dummy_tmp()),
+                            make_esf< functor2< 20 > >(p_dummy(), p_dummy_tmp()))),
+                default_(make_mss(enumtype::execute< enumtype::forward >(),
+                    make_esf< functor1< 30 > >(p_dummy(), p_dummy_tmp()),
+                    make_esf< functor2< 30 > >(p_dummy(), p_dummy_tmp())))),
+            make_mss(enumtype::execute< enumtype::forward >(),
+                make_esf< functor1< 400 > >(p_dummy(), p_dummy_tmp()),
+                make_esf< functor2< 400 > >(p_dummy(), p_dummy_tmp())));
 
         bool result=true;
 
@@ -171,14 +151,11 @@ namespace test_conditional_switches{
 #ifdef __CUDACC__
         dummy.d2h_update();
 #endif
-        std::cout<<"res: "<<dummy(0,0,0)<<"\n";
         result = result && (dummy(0,0,0)==842);
 
-        cond = new_cond;
-        other_cond_ = new_other_cond_;
+        p = false;
         comp_->run();
         comp_->finalize();
-        std::cout<<"res: "<<dummy(0,0,0)<<"\n";
         result = result && (dummy(0,0,0)==5662);
 
         return result;

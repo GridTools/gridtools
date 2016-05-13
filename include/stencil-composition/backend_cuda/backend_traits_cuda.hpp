@@ -23,7 +23,7 @@ namespace gridtools {
     }
 
     /**forward declaration*/
-    template < typename T >
+    template < typename T, bool Array >
     struct hybrid_pointer;
 
     /** @brief traits struct defining the types which are specific to the CUDA backend*/

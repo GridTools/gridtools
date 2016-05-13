@@ -108,6 +108,7 @@ TEST(test_copy_stencil, run) {
     copy->run();
 
 #ifdef __CUDACC__
+    in_cells.d2h_update();
     out_cells.d2h_update();
 #endif
 

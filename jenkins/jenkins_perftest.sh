@@ -55,7 +55,7 @@ else
         # abort
         exitError 4654 ${LINENO} "problem with unittests for test data detected"
     else
-        echo "Perftests successfull (see test.out for detailed log)"
+        echo "Perftests successful (see test.out for detailed log)"
     fi
 fi
 

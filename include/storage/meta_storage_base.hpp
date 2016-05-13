@@ -19,7 +19,6 @@
 */
 namespace gridtools {
 
-
     /**
      * @brief Type to indicate that the type is not decided yet
      */
@@ -249,7 +248,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         /**@brief returns the storage strides
          */
         GT_FUNCTION
-        constexpr int_t const& strides(ushort_t i) const { return m_strides[i]; }
+        constexpr int_t const &strides(ushort_t i) const { return m_strides[i]; }
 
         /**@brief returns the storage strides
          */
@@ -288,14 +287,14 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         //####################################################
 
         /**@brief helper code snippet to check if given vector coordinate is the maximum.*/
-        template <uint_t Coordinate, typename T, typename Container>
-        GT_FUNCTION static constexpr int_t get_stride_helper(Container const& cont, uint_t offset=0) {
-                typedef typename boost::mpl::deref<
-                        typename boost::mpl::max_element< typename T::layout_vector_t >::type
-                >::type max_type;
-                return ((max_type::value < 0) ? 0 : 
-                        ((Layout::template at_< Coordinate >::value == max_type::value)
-                        ? 1 : ((cont[Layout::template at_< Coordinate >::value + offset]))));
+        template < uint_t Coordinate, typename T, typename Container >
+        GT_FUNCTION static constexpr int_t get_stride_helper(Container const &cont, uint_t offset = 0) {
+            typedef typename boost::mpl::deref<
+                typename boost::mpl::max_element< typename T::layout_vector_t >::type >::type max_type;
+            return (
+                (max_type::value < 0) ? 0 : ((Layout::template at_< Coordinate >::value == max_type::value)
+                                                    ? 1
+                                                    : ((cont[Layout::template at_< Coordinate >::value + offset]))));
         }
 
         /**@brief return the stride for a specific coordinate, given the vector of strides
@@ -307,7 +306,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         */
         template < uint_t Coordinate, typename StridesVector >
         GT_FUNCTION static constexpr int_t strides(StridesVector const &RESTRICT strides_) {
-			return get_stride_helper<Coordinate, layout>(strides_);
+            return get_stride_helper< Coordinate, layout >(strides_);
         }
 
         /**@brief return the stride for a specific coordinate, given the vector of strides
@@ -319,7 +318,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         GT_FUNCTION constexpr int_t strides() const {
             // NOTE: we access the m_strides vector starting from 1, because m_strides[0] is the total storage
             // dimension.
-            return get_stride_helper<Coordinate, layout>(m_strides, 1);
+            return get_stride_helper< Coordinate, layout >(m_strides, 1);
         }
 
         /**@brief returning the index of the memory address corresponding to the specified (i,j,k) coordinates.
