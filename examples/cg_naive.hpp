@@ -348,15 +348,17 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     // Definition of placeholders. The order of them reflect the order the user
     // will deal with them especially the non-temporary ones, in the construction
     // of the domain
-    typedef arg<0, storage_type > p_d_init;  //search direction
-    typedef arg<1, storage_type > p_r_init;  //residual
-    typedef arg<2, storage_type > p_b_init;  //rhs
-    typedef arg<3, storage_type > p_Ax_init; //solution
-    typedef arg<4, storage_type > p_x_init;  //solution
-    typedef arg<5, parameter>     p_alpha_init; //step size
+    typedef arg<0, storage_type > p_tmp_init;//residual norm
+    typedef arg<1, storage_type > p_d_init;  //search direction
+    typedef arg<2, storage_type > p_r_init;  //residual
+    typedef arg<3, storage_type > p_b_init;  //rhs
+    typedef arg<4, storage_type > p_Ax_init; //solution
+    typedef arg<5, storage_type > p_x_init;  //solution
+    typedef arg<6, parameter>     p_alpha_init; //step size
 
     // An array of placeholders to be passed to the domain
-    typedef boost::mpl::vector<p_d_init,
+    typedef boost::mpl::vector<p_tmp_init,
+                               p_d_init,
                                p_r_init,
                                p_b_init,
                                p_Ax_init,
@@ -379,12 +381,14 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                                p_d_step1,
                                p_alpha_step1 > accessor_list_step1;
 
-    typedef arg<0, storage_type > p_rNew_step2;  //residual t+1
-    typedef arg<1, storage_type > p_r_step2;     //residual t
-    typedef arg<2, storage_type > p_Ad_step2;    //A*d
-    typedef arg<3, parameter >    p_alpha_step2; //step size
+    typedef arg<0, storage_type > p_tmp_step2;   //residual norm
+    typedef arg<1, storage_type > p_rNew_step2;  //residual t+1
+    typedef arg<2, storage_type > p_r_step2;     //residual t
+    typedef arg<3, storage_type > p_Ad_step2;    //A*d
+    typedef arg<4, parameter >    p_alpha_step2; //step size
 
-    typedef boost::mpl::vector<p_rNew_step2,
+    typedef boost::mpl::vector<p_tmp_step2,
+                               p_rNew_step2,
                                p_r_step2,
                                p_Ad_step2,
                                p_alpha_step2 > accessor_list_step2;
@@ -422,7 +426,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
     // construction of the domain for step phase
     gridtools::domain_type<accessor_list_init> domain_init
-        (boost::fusion::make_vector(&d, &r, &b, &Ax, &x, &alpha));
+        (boost::fusion::make_vector(&tmp, &d, &r, &b, &Ax, &x, &alpha));
 
     //instantiate stencil to perform initialization step of CG
     auto CG_init = gridtools::make_computation<gridtools::BACKEND>
@@ -433,8 +437,10 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                 execute<forward>(),
                 gridtools::make_esf<d3point7>(p_Ax_init(), p_x_init()), // A * x, where x_0 = 0
                 gridtools::make_esf<add_functor>(p_r_init(), p_b_init(), p_Ax_init(), p_alpha_init()), // r = b - Ax
-                gridtools::make_esf<copy_functor>(p_d_init(), p_r_init()) // d = r
-            )
+                gridtools::make_esf<copy_functor>(p_d_init(), p_r_init()), // d = r
+                gridtools::make_esf<product_functor>(p_tmp_init(), p_r_init(), p_r_init()) // r' .* r
+                ),
+            make_reduction< reduction_functor, binop::sum >(0.0, p_tmp_init()) // sum(r'.*r)
         );
 
     //apply boundary conditions
@@ -458,9 +464,16 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     CG_init->ready();
     CG_init->steady();
     boost::timer::cpu_timer time_runInit;
-    CG_init->run();
+    double rr = CG_init->run();
     lapse_time_run = lapse_time_run + time_runInit.elapsed();
     CG_init->finalize();
+
+    double rr_global;
+    MPI_Allreduce(&rr, &rr_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    double rr_init = sqrt(rr_global); //initial residual
+    if (PID == 0) {
+        std::cout << "Iteration 0: [residual] " << sqrt(rr_global)/rr_init << std::endl;
+    }
 
     //communicate halos
     std::vector<pointer_type::pointee_t*> vec(1);
@@ -478,7 +491,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     /**
         Perform iterations of the CG
     */
-    for(int iter=0; iter < TIME_STEPS; iter++) {
+    for(int iter=1; iter <= TIME_STEPS; iter++) {
 
         // construction of the domains for the steps of CG
         gridtools::domain_type<accessor_list_step0> domain_step0
@@ -488,7 +501,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
             (boost::fusion::make_vector(ptr_xNew, ptr_x, ptr_d, &alpha));
 
         gridtools::domain_type<accessor_list_step2> domain_step2
-            (boost::fusion::make_vector(ptr_rNew, ptr_r, &Ad, &alpha));
+            (boost::fusion::make_vector(&tmp, ptr_rNew, ptr_r, &Ad, &alpha));
 
         gridtools::domain_type<accessor_list_step3> domain_step3
             (boost::fusion::make_vector(ptr_dNew, ptr_rNew, ptr_d, &beta));
@@ -539,8 +552,10 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                     gridtools::make_esf<add_functor>(p_rNew_step2(),
                                                      p_r_step2(),
                                                      p_Ad_step2(),
-                                                     p_alpha_step2()) // r_(i+1) = r_i - alpha * Ad_i
-                )
+                                                     p_alpha_step2()), // r_(i+1) = r_i - alpha * Ad_i
+                    make_esf<product_functor>(p_tmp_step2(), p_rNew_step2(), p_rNew_step2()) // r' .* r
+                ),
+                make_reduction< reduction_functor, binop::sum >(0.0, p_tmp_step2()) // sum(r'.*r)
             );
 
         auto CG_step3 = gridtools::make_computation<gridtools::BACKEND>
@@ -610,7 +625,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         double rTr_global; //nominator
         double rTr;
 
-        if (iter == 0)
+        if (iter == 1)
         {
             stencil_alpha_nom->ready();
             stencil_alpha_nom->steady();
@@ -653,9 +668,11 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         CG_step2->ready();
         CG_step2->steady();
         boost::timer::cpu_timer time_run2;
-        CG_step2->run();
+        rr = CG_step2->run();
         lapse_time_run = lapse_time_run + time_run2.elapsed();
         CG_step2->finalize();
+        MPI_Allreduce(&rr, &rr_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+
 
         //compute Gram–Schmidt orthogonalization parameter beta
         stencil_beta_nom->ready();
@@ -708,7 +725,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         if (PID == 0)
         {
             std::cout << std::endl << "Iteration " << iter << ": [time]" << boost::timer::format(lapse_time_iteration);
-            std::cout << "Iteration " << iter << ": [residual] " << sqrt(rTr_global)/rTr_init << std::endl;
+            std::cout << "Iteration " << iter << ": [residual] " << sqrt(rr_global)/rr_init << std::endl;
         }
 
     }
