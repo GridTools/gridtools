@@ -37,7 +37,6 @@ namespace gridtools {
             boost::mpl::insert< boost::mpl::_1, boost::mpl::pair< boost::mpl::_2, InitExtent > > >::type type;
     };
 
-
     /**
        This is the main entry point for the data dependency
        computation. It starts with an initial map between placeholders

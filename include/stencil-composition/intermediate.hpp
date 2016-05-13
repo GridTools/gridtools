@@ -406,9 +406,8 @@ namespace gridtools {
     struct compute_extent_sizes {
 
         typedef typename GridTraits::select_mss_compute_extent_sizes mss_compute_extent_sizes_t;
-        typedef typename GridTraits::template select_init_map_of_extents< Placeholders >::type
-            initial_map_of_placeholders;
-
+        typedef
+            typename GridTraits::template select_init_map_of_extents< Placeholders >::type initial_map_of_placeholders;
 
         // This is where the data-dependence analysis happens
         template < typename CurrentMap, typename MSS >
@@ -430,26 +429,21 @@ namespace gridtools {
             update_map< boost::mpl::_1, boost::mpl::_2 > >::type type;
     };
 
-
     namespace _impl {
         // this is just used to check that the all the outputs of the ESF have the same extent,
         // otherwise the assignment of extents to functors would be not well defined
-        template <typename MoP, typename Outputs, typename Extent>
+        template < typename MoP, typename Outputs, typename Extent >
         struct _check_extents_on_outputs {
 
-            template <typename Status, typename Elem>
+            template < typename Status, typename Elem >
             struct _new_value {
-                typedef typename boost::is_same<
-                    typename boost::mpl::at<MoP, Elem>::type,
-                    Extent>::type value_t;
-                typedef typename boost::mpl::and_<Status, value_t>::type type;
+                typedef typename boost::is_same< typename boost::mpl::at< MoP, Elem >::type, Extent >::type value_t;
+                typedef typename boost::mpl::and_< Status, value_t >::type type;
             };
 
-            typedef typename boost::mpl::fold<
-                Outputs,
+            typedef typename boost::mpl::fold< Outputs,
                 boost::true_type,
-                _new_value<boost::mpl::_1, boost::mpl::_2>
-                >::type type;
+                _new_value< boost::mpl::_1, boost::mpl::_2 > >::type type;
             static const bool value = type::value;
         };
 
@@ -473,8 +467,9 @@ namespace gridtools {
                 typedef typename boost::mpl::at_c< w_plcs, 0 >::type first_out;
                 typedef typename boost::mpl::at< MapOfPlaceholders, first_out >::type extent;
 
-                GRIDTOOLS_STATIC_ASSERT((_impl::_check_extents_on_outputs<MapOfPlaceholders, w_plcs, extent>::value),
-                                         "The output of the ESF do not have all the save extents, so it is not possible to select the extent for the whole ESF.");
+                GRIDTOOLS_STATIC_ASSERT((_impl::_check_extents_on_outputs< MapOfPlaceholders, w_plcs, extent >::value),
+                    "The output of the ESF do not have all the save extents, so it is not possible to select the "
+                    "extent for the whole ESF.");
 
                 typedef extent type;
             };
@@ -509,8 +504,9 @@ namespace gridtools {
                 typedef typename boost::mpl::at_c< w_plcs, 0 >::type first_out;
                 typedef typename boost::mpl::at< MapOfPlaceholders, first_out >::type extent;
 
-                GRIDTOOLS_STATIC_ASSERT((_impl::_check_extents_on_outputs<MapOfPlaceholders, w_plcs, extent>::value),
-                                         "The output of the ESF do not have all the save extents, so it is not possible to select the extent for the whole ESF.");
+                GRIDTOOLS_STATIC_ASSERT((_impl::_check_extents_on_outputs< MapOfPlaceholders, w_plcs, extent >::value),
+                    "The output of the ESF do not have all the save extents, so it is not possible to select the "
+                    "extent for the whole ESF.");
 
                 typedef extent type;
             };
@@ -581,16 +577,16 @@ namespace gridtools {
            This information is needed to allocate temporaries, and to provide the
            extent information to the user.
          */
-        typedef typename compute_extent_sizes<
-            typename MssDescriptorArray::elements,
-            grid_traits_t, typename DomainType::placeholders >::type extent_map_t;
+        typedef typename compute_extent_sizes< typename MssDescriptorArray::elements,
+            grid_traits_t,
+            typename DomainType::placeholders >::type extent_map_t;
 
         /* Second we need to associate an extent to each esf, so that
            we can associate loop bounds to the functors.
          */
-        typedef
-            typename associate_extents_to_esfs< typename MssDescriptorArray::elements, extent_map_t, backend_ids_t >::type
-                extent_sizes_t;
+        typedef typename associate_extents_to_esfs< typename MssDescriptorArray::elements,
+            extent_map_t,
+            backend_ids_t >::type extent_sizes_t;
 
         typedef typename boost::mpl::fold< typename MssDescriptorArray::elements,
             boost::mpl::false_,
