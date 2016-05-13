@@ -108,7 +108,7 @@ namespace gridtools {
         GT_FUNCTION CONSTEXPR offset_tuple(const uint_t pos, array< int_t, NDim > const &offsets)
             : super(pos + 1, offsets), m_offset(offsets[pos]) {
 #ifndef NDEBUG
-            assert(pos < NDim);
+            GTASSERT(pos < NDim);
 #endif
         }
 #ifdef CXX11_ENABLED

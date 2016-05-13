@@ -11,6 +11,12 @@ namespace gridtools {
             typedef typename IterateDomain::grid_topology_t type;
         };
 
+        template < typename IterateDomain, typename EsfArgsMap >
+        struct get_grid_topology<iterate_domain_remapper<IterateDomain, EsfArgsMap> >
+        {
+            typedef typename IterateDomain::grid_topology_t type;
+        };
+
         template < typename IterateDomainImpl >
         struct get_grid_topology< iterate_domain< IterateDomainImpl > > {
             typedef typename iterate_domain< IterateDomainImpl >::grid_topology_t type;
