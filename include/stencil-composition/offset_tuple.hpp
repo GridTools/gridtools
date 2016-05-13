@@ -119,11 +119,10 @@ namespace gridtools {
            (in order to get assigned to the other dimensions).
            When this constructor is used all the arguments have to be specified and passed to the function call in
            order. No check is done on the order*/
-        template < typename... GenericElements >
-        GT_FUNCTION constexpr offset_tuple(int const t,
-            GenericElements const... x,
-            typename boost::disable_if_c< accumulate(logical_or(), is_array< GenericElements >::type::value...),
-                bool >::type * = 0)
+        template < typename... GenericElements,
+            typename = typename boost::
+                disable_if_c< accumulate(logical_or(), is_array< GenericElements >::type::value...), bool >::type >
+        GT_FUNCTION constexpr offset_tuple(int const t, GenericElements const... x)
             : super(x...), m_offset(t) {}
 
         /**@brief constructor taking the dimension class as argument.
@@ -215,7 +214,9 @@ namespace gridtools {
         }
 
 #ifdef CXX11_ENABLED
-        template < typename... GenericElements >
+        template < typename... GenericElements,
+            typename = typename boost::
+                disable_if_c< accumulate(logical_or(), is_array< GenericElements >::type::value...), bool >::type >
         GT_FUNCTION constexpr offset_tuple(GenericElements... x) {
             GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension< GenericElements >::type::value...),
                 "wrong type for the argument of an offset_tuple");
