@@ -5,7 +5,6 @@
 #include "../functors/reduction.hpp"
 #include "basis_functions.hpp"
 #include <memory>
-#include <iostream>
 
 namespace gdl {
 
@@ -252,7 +251,7 @@ namespace gdl {
                                                            gridtools::make_mss(gridtools::enumtype::execute<gridtools::enumtype::forward>(),
                                                                                gridtools::make_esf<functors::hexahedron_vector_assemble<N_DOF0,N_DOF1,N_DOF2> >(p_r(),p_r_ass()),
                                                                                gridtools::make_esf<functors::hexahedron_vector_distribute<N_DOF0,N_DOF1,N_DOF2> >(p_r_ass()),
-                                                                               gridtools::make_esf<functors::tmp_copy_vector<N_DOF0*N_DOF1*N_DOF2> >(p_r_ass(),p_p_ass()), // TODO: avoid this copy
+                                                                               gridtools::make_esf<functors::copy_vector<N_DOF0*N_DOF1*N_DOF2> >(p_r_ass(),p_p_ass()), // TODO: avoid this copy
                                                                                gridtools::make_esf<functors::vecvec<4,functors::mult_operator<float_t> > >(p_p_ass(),p_r_ass(),p_r_mod_ass()),
                                                                                gridtools::make_esf<functors::partial_hexahedron_assembled_reduction<N_DOF0,N_DOF1,N_DOF2,functors::sum_operator<float_t> > >(p_r_mod_ass(),p_r_mod_red_ass())
                                                            ));
@@ -316,10 +315,10 @@ namespace gdl {
                 compute_pAp=gridtools::make_computation<BACKEND>(domain,
                                                                  mesh_coords_ass,
                                                                  gridtools::make_mss(gridtools::enumtype::execute<gridtools::enumtype::forward>(),
-                                                                                     gridtools::make_esf<functors::tmp_copy_vector<N_DOF0*N_DOF1*N_DOF2> >(p_Ap(),p_Ap_ass()),
+                                                                                     gridtools::make_esf<functors::copy_vector<N_DOF0*N_DOF1*N_DOF2> >(p_Ap(),p_Ap_ass()),
                                                                                      gridtools::make_esf<functors::hexahedron_vector_assemble<N_DOF0,N_DOF1,N_DOF2> >(p_Ap(),p_Ap_ass()),
                                                                                      gridtools::make_esf<functors::hexahedron_vector_distribute<N_DOF0,N_DOF1,N_DOF2> >(p_Ap_ass()),
-                                                                                     gridtools::make_esf< functors::my_assign< 4,zero<float_t> > >(p_Ap()),
+                                                                                     gridtools::make_esf< functors::assign< 4,zero<float_t> > >(p_Ap()),
                                                                                      gridtools::make_esf<functors::vecvec<4,functors::mult_operator<float_t> > >(p_p_ass(),p_Ap_ass(),p_pAp_ass()),
                                                                                      gridtools::make_esf<functors::partial_hexahedron_assembled_reduction<N_DOF0,N_DOF1,N_DOF2,functors::sum_operator<float_t> > >(p_pAp_ass(),p_pAp_red())
                                                                 ));
