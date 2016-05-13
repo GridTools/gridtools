@@ -9,12 +9,12 @@ namespace test_conditional_switches{
 #define BACKEND_BLOCK
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend< enumtype::Cuda, enumtype::GRIDBACKEND, enumtype::Block >
+#define BACKEND backend< enumtype::Cuda, GRIDBACKEND, enumtype::Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Block >
+#define BACKEND backend< enumtype::Host, GRIDBACKEND, enumtype::Block >
 #else
-#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Naive >
+#define BACKEND backend< enumtype::Host, GRIDBACKEND, enumtype::Naive >
 #endif
 #endif
 
