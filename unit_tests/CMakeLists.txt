@@ -18,12 +18,6 @@ endif(STRUCTURED_GRIDS)
 
 add_executable(tests ${COMMON_TESTS})
 
-if(STRUCTURED_GRIDS)
-add_executable(test_global_accessor test_global_accessor.cpp)
-set_target_properties(test_global_accessor PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
-target_link_libraries(test_global_accessor ${GTEST_BOTH_LIBRARIES} gcl -lpthread ${exe_LIBS})
-endif(STRUCTURED_GRIDS)
-
 # include boost
 include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
 link_directories( ${Boost_LIBRARY_DIRS} )
