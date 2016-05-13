@@ -19,9 +19,9 @@ namespace gridtools {
                 "does not match the list of arguments defined within the ESF, like\n"
                 "    typedef boost::mpl::vector<arg_in, arg_out> arg_list.");
 #endif
-            template < typename Acc >
+            template < typename Accessor >
             struct _get_extent {
-                typedef typename Acc::extent_t type;
+                typedef typename Accessor::extent_t type;
             };
 
             /** Given the list of placeholders (Plcs) and the list of arguemnts of a
