@@ -26,4 +26,12 @@ namespace gdl{
     using static_short=gt::static_short<T>;
     template<ushort_t T>
     using static_ushort=gt::static_ushort<T>;
+
+
+    template<typename T>
+    struct zero
+    {
+        static constexpr T value{T()};
+    };
+
 }
