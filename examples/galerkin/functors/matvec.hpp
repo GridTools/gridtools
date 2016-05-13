@@ -7,7 +7,7 @@ namespace gdl{
 
         typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_interval;
 
-        // [vecvec_binary_operators]
+        // [vec_binary_operators]
         template <typename T>
         struct sum_operator {
 
@@ -28,15 +28,17 @@ namespace gdl{
             inline static T eval(T const & i_a, T const & i_b) { return i_a*i_b; }
 
         };
-        // [vecvec_binary_operators]
-
+        // [vec_binary_operators]
 
 
         // [vecvec]
         // TODO: these element by element operations could be parallelized avoiding the functor loop
-        // Element-wise z = x op y
+        // Element-wise z = x op y where x, y and z are vectors of the same size
+        template <ushort_t Dim, class Operator>
+        struct vecvec;
+
         template <class Operator>
-        struct vecvec {
+        struct vecvec<4, Operator> {
 
             using in1=gt::accessor<0, enumtype::in, gt::extent<> , 4> ;
             using in2=gt::accessor<1, enumtype::in, gt::extent<> , 4> ;
