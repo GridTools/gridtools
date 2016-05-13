@@ -411,16 +411,18 @@ namespace gridtools {
             typename GridTraits::template select_init_map_of_extents< Placeholders >::type initial_map_of_placeholders;
 
         // This is where the data-dependence analysis happens
-        template < typename CurrentMap, typename MSS >
+        template < typename CurrentMap, typename Mss >
         struct update_map {
-            typedef typename mss_compute_extent_sizes_t::template apply< CurrentMap, MSS >::type type;
+            GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor<Mss>::value || is_reduction_descriptor<Mss>::value), "Internal Error");
+
+            typedef typename mss_compute_extent_sizes_t::template apply< CurrentMap, Mss >::type type;
         };
 
         // The case of conditionals
-        template < typename CurrentMap, typename MSS1, typename MSS2, typename Cond >
-        struct update_map< CurrentMap, condition< MSS1, MSS2, Cond > > {
-            typedef typename mss_compute_extent_sizes_t::template apply< CurrentMap, MSS1 >::type FirstMap;
-            typedef typename mss_compute_extent_sizes_t::template apply< FirstMap, MSS2 >::type type;
+        template < typename CurrentMap, typename Mss1, typename Mss2, typename Cond >
+        struct update_map< CurrentMap, condition< Mss1, Mss2, Cond > > {
+            typedef typename mss_compute_extent_sizes_t::template apply< CurrentMap, Mss1 >::type FirstMap;
+            typedef typename mss_compute_extent_sizes_t::template apply< FirstMap, Mss2 >::type type;
         };
 
         // we need to iterate over the multistage computations in the computation and

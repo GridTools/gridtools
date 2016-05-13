@@ -41,12 +41,6 @@ namespace gridtools {
                     push_into< boost::mpl::_1, PushIndependent > >::type type;
             };
 
-            // template <typename Vector, typename ReductionType, typename BinOp, typename EsfDescrSequence>
-            // struct push_into<Vector, reduction_descriptor<ReductionType, BinOp, EsfDescrSequence> > {
-            //     typedef typename boost::mpl::push_back<Vector, reduction_descriptor<ReductionType, BinOp,
-            //     EsfDescrSequence> >::type type;
-            // };
-
             typedef typename boost::mpl::fold< EsfsVector,
                 boost::mpl::vector0<>,
                 push_into< boost::mpl::_1, PushRegular > >::type type;
