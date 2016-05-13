@@ -251,18 +251,12 @@ namespace gridtools {
      */
     template < typename VectorOfPairs, typename Extent >
     struct check_all_extents_are {
-        template < typename Pair, typename Status, typename Ext >
+        template<typename Pair>
         struct _check {
-            typedef typename Pair::second extent;
-
-            typedef typename boost::mpl::and_< Status, boost::is_same< extent, Ext > >::type type1;
-
-            typedef boost::integral_constant< bool, type1::value > type;
+            typedef typename boost::is_same<typename Pair::second, Extent>::type type;
         };
 
-        typedef typename boost::mpl::fold< VectorOfPairs,
-            boost::true_type,
-            _check< boost::mpl::_2, boost::mpl::_1, Extent > >::type type;
+        typedef typename is_sequence_of<VectorOfPairs, _check>::type type;
     };
 
     template < typename T >
@@ -271,6 +265,8 @@ namespace gridtools {
     // Takes a list of esfs and independent_esf and produces a list of esfs, with the independent unwrapped
     template < typename ESFList >
     struct unwrap_independent {
+
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ESFList, is_esf_descriptor>::value), "Error: ESFList must be a list of ESFs");
 
         template < typename CurrentList, typename CurrentElement >
         struct populate {
