@@ -38,6 +38,7 @@ namespace smf {
             using edge_of_cell_dim = dimension< 5 >;
             edge_of_cell_dim::Index edge;
 
+#ifdef WITHCONSTEXPR
             if (eval.position()[1] == 0) {
                 constexpr auto neighbors_offsets = from< cells >::to< cells >::with_color< static_int< 0 > >::offsets();
                 ushort_t e=0;
@@ -54,6 +55,16 @@ namespace smf {
                     e++;
                 }
             }
+#else
+            auto neighbors_offsets = connectivity< cells, cells >::offsets(eval.position()[1]);
+            ushort_t e=0;
+            for (auto neighbor_offset : neighbors_offsets) {
+
+                eval(weight_edges(edge+e)) = eval(cell_area(neighbor_offset)) / eval(cell_area());
+                e++;
+            }
+#endif
+
         }
     };
 

@@ -551,10 +551,10 @@ namespace gridtools {
          *
          *          ______
          *         /\    /\
-         *        /  1  3  \
-         *       /__0_\/__4_\
+         *        /  1  2  \
+         *       /__0_\/__3_\
          *       \    /\    /
-         *        \  6  5  /
+         *        \  5  4  /
          *         \/____\/
          *
          */
@@ -562,6 +562,54 @@ namespace gridtools {
         constexpr static return_t< array< int_t, 4 > > offsets() {
             return return_t< array< int_t, 4 > >{
                 {{0, 1, -1, 0}, {-1, 0, 0, 0}, {-1, 2, 0, 0}, {0, 1, 0, 0}, {0, 0, 0, 0}, {0, 2, -1, 0}}};
+        }
+    };
+
+    template < typename SrcLocation, typename DesLocation >
+    struct connectivity;
+
+    template < typename DestLocation >
+    struct connectivity< cells, DestLocation > {
+        GT_FUNCTION
+        static typename return_type< typename from< cells >::template to< DestLocation >, array< int_t, 4 > >::type
+        offsets(const uint_t color) {
+            if (color == 0) {
+                return from< cells >::template to< DestLocation >::template with_color< static_int< 0 > >::offsets();
+            } else if (color == 1) {
+                return from< cells >::template to< DestLocation >::template with_color< static_int< 1 > >::offsets();
+            } else {
+                assert(true);
+            }
+        }
+    };
+
+    template < typename DestLocation >
+    struct connectivity< edges, DestLocation > {
+        GT_FUNCTION
+        static typename return_type< typename from< edges >::template to< DestLocation >, array< int_t, 4 > >::type
+        offsets(const uint_t color) {
+            if (color == 0) {
+                return from< edges >::template to< DestLocation >::template with_color< static_int< 0 > >::offsets();
+            } else if (color == 1) {
+                return from< edges >::template to< DestLocation >::template with_color< static_int< 1 > >::offsets();
+            } else if (color == 2) {
+                return from< edges >::template to< DestLocation >::template with_color< static_int< 2 > >::offsets();
+            } else {
+                assert(true);
+            }
+        }
+    };
+
+    template < typename  DestLocation >
+    struct connectivity< vertexes, DestLocation > {
+        GT_FUNCTION
+        static typename return_type< typename from< vertexes >::template to< DestLocation >, array< int_t, 4 > >::type
+        offsets(const uint_t color) {
+            if (color == 0) {
+                return from< vertexes >::template to< DestLocation >::template with_color< static_int< 0 > >::offsets();
+            } else {
+                assert(true);
+            }
         }
     };
 
