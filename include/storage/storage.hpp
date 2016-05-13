@@ -176,7 +176,7 @@ namespace gridtools {
 		template < typename ID >
 		value_type *access_value() const {
 			assert(m_on_host);
-			return (*m_storage).access_value< ID >();
+			return (*m_storage).template access_value< ID >();
 		}
 
 		pointer_type *fields_view() {
