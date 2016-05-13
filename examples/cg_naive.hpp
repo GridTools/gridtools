@@ -708,7 +708,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         if (PID == 0)
         {
             std::cout << std::endl << "Iteration " << iter << ": [time]" << boost::timer::format(lapse_time_iteration);
-            std::cout << "Iteration " << iter << ": [residual] " << sqrt(rTrnew_global)/rTr_init << std::endl;
+            std::cout << "Iteration " << iter << ": [residual] " << sqrt(rTr_global)/rTr_init << std::endl;
         }
 
     }
