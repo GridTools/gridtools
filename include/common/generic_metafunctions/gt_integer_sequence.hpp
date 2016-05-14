@@ -4,6 +4,7 @@
 #include <boost/proto/traits.hpp>
 #include "common/defs.hpp"
 #include "common/host_device.hpp"
+#include "common/is_aggregate.hpp"
 
 namespace gridtools {
 
@@ -88,7 +89,7 @@ namespace gridtools {
         template < typename Container,
             template < UInt T > class Lambda,
             typename... ExtraTypes,
-            typename boost::disable_if< typename boost::proto::is_aggregate< Container >::type, int >::type = 0 >
+            typename boost::disable_if< typename is_aggregate< Container >::type, int >::type = 0 >
         GT_FUNCTION static constexpr Container apply(ExtraTypes const &... args_) {
             return Container(Lambda< Indices >::apply(args_...)...);
         }
@@ -106,13 +107,16 @@ namespace gridtools {
            \tparam AdditionalArg additional argument passed to the lambda at the end of the pack
            \tparam ExtraTypes variadic pack of arguments to be passed to the lambda
          */
-        template < typename Lambda,
+        template <
+            typename ReturnType,
+            typename Lambda,
             template < UInt T > class MetaFunctor,
             typename AdditionalArg,
             typename... ExtraTypes >
-        GT_FUNCTION static constexpr auto apply_lambda(
+        GT_FUNCTION static constexpr ReturnType apply_lambda(
             Lambda lambda, AdditionalArg add_arg, ExtraTypes const &... args_)
-            -> decltype(lambda(MetaFunctor< Indices >::apply(args_...)..., add_arg)) {
+//            -> decltype(lambda(MetaFunctor< Indices >::apply(args_...)..., add_arg)) {
+        {
             return lambda(MetaFunctor< Indices >::apply(args_...)..., add_arg);
         }
 
@@ -122,7 +126,7 @@ namespace gridtools {
         template < typename Container,
             template < UInt T > class Lambda,
             typename... ExtraTypes,
-            typename boost::enable_if< typename boost::proto::is_aggregate< Container >::type, int >::type = 0 >
+            typename boost::enable_if< typename is_aggregate< Container >::type, int >::type = 0 >
         GT_FUNCTION static constexpr Container apply(ExtraTypes const &... args_) {
             return Container{Lambda< Indices >::apply(args_...)...};
         }

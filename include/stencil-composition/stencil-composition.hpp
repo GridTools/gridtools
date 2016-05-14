@@ -10,4 +10,5 @@
 
 #ifndef STRUCTURED_GRIDS
 #include "stencil-composition/icosahedral_grids/grid.hpp"
+#include "stencil-composition/icosahedral_grids/get_grid_topology.hpp"
 #endif

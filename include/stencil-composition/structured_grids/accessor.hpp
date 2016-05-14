@@ -1,5 +1,5 @@
 #pragma once
-#include "./accessor_impl.hpp"
+#include "../accessor_base.hpp"
 #include "../arg.hpp"
 #include "../dimension.hpp"
 /**
@@ -213,7 +213,7 @@ the dimension is chosen
            @brief compile-time aliases, the offsets specified in this way are assured to be compile-time
 
            This type alias allows to embed some of the offsets directly inside the type of the accessor placeholder.
-           For a usage example check the exaples folder
+           For a usage example check the examples folder
         */
         template < int... Args >
         using set = accessor_mixed< AccessorType, pair_< Known::direction, Args >... >;

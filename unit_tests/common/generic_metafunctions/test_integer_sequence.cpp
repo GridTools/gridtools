@@ -53,7 +53,7 @@ TEST(integer_sequence, apply_lambda) {
 
     constexpr auto gather = lambda();
 
-    constexpr int result = seq::template apply_lambda< decltype(gather), transform >(gather, 17, 4, 6, 34, 5);
+    constexpr int result = seq::template apply_lambda< int, decltype(gather), transform >(gather, 17, 4, 6, 34, 5);
 
     GRIDTOOLS_STATIC_ASSERT((static_int<result>::value == 731), "ERROR");
 

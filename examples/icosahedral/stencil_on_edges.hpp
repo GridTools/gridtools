@@ -28,7 +28,7 @@ namespace soe {
     struct test_on_edges_functor {
         typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 1 > > in;
         typedef inout_accessor< 1, icosahedral_topology_t::edges > out;
-        typedef boost::mpl::vector< in, out> arg_list;
+        typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
@@ -76,11 +76,9 @@ namespace soe {
         typedef arg< 0, edge_storage_type > p_in_edges;
         typedef arg< 1, edge_storage_type > p_out_edges;
 
-        typedef boost::mpl::vector< p_in_edges, p_out_edges>
-            accessor_list_t;
+        typedef boost::mpl::vector< p_in_edges, p_out_edges > accessor_list_t;
 
-        gridtools::domain_type< accessor_list_t > domain(
-            boost::fusion::make_vector(&in_edges, &out_edges));
+        gridtools::domain_type< accessor_list_t > domain(boost::fusion::make_vector(&in_edges, &out_edges));
         array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 

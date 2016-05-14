@@ -106,9 +106,9 @@ namespace soem {
 
 #ifdef __CUDACC__
         out_edges.d2h_update();
-        in_edges.d2h_update();
+        in_edges1.d2h_update();
+        in_edges2.d2h_update();
 #endif
-
         unstructured_grid ugrid(d1, d2, d3);
         for (uint_t i = halo_nc; i < d1 - halo_nc; ++i) {
             for (uint_t c = 0; c < icosahedral_topology_t::edges::n_colors::value; ++c) {

@@ -84,6 +84,15 @@ inline omp_int_t omp_get_max_threads() { return 1; }
 inline double omp_get_wtime() { return 0; }
 #endif
 
+// constexpr function does not allow to assert or more than one statement to add protections
+// CONSTEXPR can be used in order to allow more checks and protection statements
+// in debug mode
+#ifdef NDEBUG
+#define CONSTEXPR constexpr
+#else
+#define CONSTEXPR
+#endif
+
 #include <boost/mpl/integral_c.hpp>
 // macro defining empty copy constructors and assignment operators
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \

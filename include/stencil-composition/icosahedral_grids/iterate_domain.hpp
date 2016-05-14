@@ -7,6 +7,7 @@
 #include "common/generic_metafunctions/variadic_to_vector.hpp"
 #include "common/generic_metafunctions/variadic_typedef.hpp"
 #include "common/array.hpp"
+#include "../../common/explode_array.hpp"
 #include "common/generic_metafunctions/remove_restrict_reference.hpp"
 #include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
 #include "stencil-composition/total_storages.hpp"
@@ -257,6 +258,9 @@ namespace gridtools {
             }
         }
 
+        GT_FUNCTION
+        array< uint_t, 4 > const & position() const { return m_grid_position;}
+
         /**@brief getter for the index array */
         GT_FUNCTION
         void get_position(array< uint_t, 4 > &position) const { position = m_grid_position; }
@@ -279,10 +283,10 @@ namespace gridtools {
         GT_FUNCTION
         void set_position(array< uint_t, 4 > const &position) { m_grid_position = position; }
 
-        template < uint_t ID, enumtype::intend intend, typename LocationType, typename Extent >
-        GT_FUNCTION typename accessor_return_type< accessor< ID, intend, LocationType, Extent > >::type operator()(
-            accessor< ID, intend, LocationType, Extent > const &accessor_) const {
-            typedef accessor< ID, intend, LocationType, Extent > accessor_t;
+        template < uint_t ID, enumtype::intend intend, typename LocationType, typename Extent, ushort_t FieldDimensions >
+        GT_FUNCTION typename accessor_return_type< accessor<ID, intend, LocationType, Extent, FieldDimensions> >::type operator()(
+            accessor< ID, intend, LocationType, Extent, FieldDimensions > const &accessor_) const {
+            typedef accessor< ID, intend, LocationType, Extent, FieldDimensions > accessor_t;
             return get_value(accessor_,
                 (data_pointer())[current_storage< (ID == 0), local_domain_t, typename accessor_t::type >::value]);
         }
@@ -318,23 +322,22 @@ namespace gridtools {
                     Neighbors const &neighbors, IterateDomain const &iterate_domain, Accessors... args_) {
 
                     return iterate_domain._evaluate(get_from_variadic_pack< Idx >::apply(args_...), neighbors);
-
                 }
             };
         };
-
 
         template < typename ValueType, typename NeighborsArray, typename Reduction, typename IterateDomain >
         struct reduce_tuple_data_holder {
             Reduction const &m_reduction;
             NeighborsArray const &m_neighbors;
             IterateDomain const &m_iterate_domain;
-            ValueType& m_result;
+            ValueType &m_result;
 
           public:
+            GT_FUNCTION
             reduce_tuple_data_holder(Reduction const &reduction,
                 NeighborsArray const &neighbors,
-                ValueType& result,
+                ValueType &result,
                 IterateDomain const &iterate_domain)
                 : m_reduction(reduction), m_neighbors(neighbors), m_result(result), m_iterate_domain(iterate_domain) {}
         };
@@ -342,16 +345,18 @@ namespace gridtools {
         template < typename ValueType, typename NeighborsArray, typename Reduction, typename IterateDomain >
         struct reduce_tuple {
 
-            typedef reduce_tuple_data_holder< ValueType, NeighborsArray, Reduction, IterateDomain > reduce_tuple_holder_t;
+            typedef reduce_tuple_data_holder< ValueType, NeighborsArray, Reduction, IterateDomain >
+                reduce_tuple_holder_t;
 
             template < typename... Accessors >
-            static ValueType apply(reduce_tuple_holder_t &reducer, Accessors... args) {
+            GT_FUNCTION static void apply(reduce_tuple_holder_t &reducer, Accessors... args) {
                 using seq =
                     apply_gt_integer_sequence< typename make_gt_integer_sequence< int, sizeof...(Accessors) >::type >;
 
-                reducer.m_result = seq::template apply_lambda< Reduction, it_domain_evaluator<ValueType>::template apply_t >(
+                reducer.m_result = seq::template apply_lambda< ValueType,
+                    Reduction,
+                    it_domain_evaluator< ValueType >::template apply_t >(
                     reducer.m_reduction, reducer.m_result, reducer.m_neighbors, reducer.m_iterate_domain, args...);
-
             }
         };
 
@@ -364,7 +369,7 @@ namespace gridtools {
 
             const auto neighbors =
                 grid_topology_t::neighbors_indices_3(current_position, location_type_t(), onneighbors.location());
-            ValueType& result = onneighbors.value();
+            ValueType &result = onneighbors.value();
 
             for (int_t i = 0; i < neighbors.size(); ++i) {
 
@@ -372,8 +377,7 @@ namespace gridtools {
                 reduce_tuple_data_holder< ValueType, neighbors_array_t, Reduction, type > red(
                     onneighbors.reduction(), neighbors[i], result, *this);
 
-                result = explode< ValueType, reduce_tuple< ValueType, neighbors_array_t, Reduction, type > >(
-                    onneighbors.maps(), red);
+                explode< void, reduce_tuple< ValueType, neighbors_array_t, Reduction, type > >(onneighbors.maps(), red);
             }
 
             return result;
@@ -384,6 +388,7 @@ namespace gridtools {
            \param arg placeholder containing the storage ID and the offsets
            \param storage_pointer pointer to the first element of the specific data field used
         */
+        //TODO This should be merged with structured grids
         template < typename Accessor, typename StoragePointer >
         GT_FUNCTION typename accessor_return_type< Accessor >::type get_value(
             Accessor const &accessor, StoragePointer &RESTRICT storage_pointer) const {
@@ -427,7 +432,10 @@ namespace gridtools {
             // n<Accessor::n_dim>())<<std::endl;
             assert((int_t)(metadata_->index(m_grid_position)) >= 0);
 
-            return *(real_storage_pointer + metadata_->index(m_grid_position));
+            const int_t pointer_offset = metadata_->index(m_grid_position) +
+                                         metadata_->_index(strides().template get< metadata_index_t::value >(), accessor);
+
+            return *(real_storage_pointer + pointer_offset);
         }
 
         template < typename Accessor, typename StoragePointer >
@@ -449,11 +457,11 @@ namespace gridtools {
             return *(real_storage_pointer + offset);
         }
 
-        template < uint_t ID, enumtype::intend Intend, typename LocationType, typename Extent, typename IndexArray >
+        template < uint_t ID, enumtype::intend Intend, typename LocationType, typename Extent, ushort_t FieldDimensions, typename IndexArray >
         GT_FUNCTION typename std::remove_reference<
-            typename accessor_return_type< accessor< ID, Intend, LocationType, Extent > >::type >::type
-        _evaluate(accessor< ID, Intend, LocationType, Extent >, IndexArray const &position) const {
-            using accessor_t = accessor< ID, Intend, LocationType, Extent >;
+            typename accessor_return_type< accessor< ID, Intend, LocationType, Extent, FieldDimensions > >::type >::type
+        _evaluate(accessor< ID, Intend, LocationType, Extent, FieldDimensions >, IndexArray const &position) const {
+            using accessor_t = accessor< ID, Intend, LocationType, Extent, FieldDimensions >;
             using location_type_t = typename accessor_t::location_type;
             int offset = m_grid_topology.ll_offset(position, location_type_t());
 
