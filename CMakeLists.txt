@@ -47,7 +47,7 @@ if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   set(EXECUTABLE_OUTPUT_PATH ${EXECUTABLE_OUTPUT_PATH} "${CMAKE_BINARY_DIR}/build")
 endif()
 
-include_directories( include ) ## Library header files
+include_directories( include/ include/communication/high-level ) ## Library header files
 
 # Find boost
 if(WIN32)
@@ -73,7 +73,7 @@ set( ENABLE_PYTHON "OFF" CACHE BOOL "Enable Python front-end and tests. Requires
 
 if ( ENABLE_CXX11 )
    message (STATUS "CXX11 enabled")
-   set (ADDITIONAL_CXX_FLAGS "-std=c++14")
+   set (ADDITIONAL_CXX_FLAGS "-std=c++11")
 else()
    message (STATUS "CXX11 disabled")
    set (ADDITIONAL_CXX_FLAGS "-DCXX11_DISABLE")

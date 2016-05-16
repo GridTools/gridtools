@@ -1,7 +1,5 @@
 #pragma once
 
-#include <string>
-
 /**
 * @class Options
 * Singleton data container for program options

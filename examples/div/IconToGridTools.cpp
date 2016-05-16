@@ -39,7 +39,7 @@ IconToGridToolsBase::IconToGridToolsBase(char *ncFileName)
 }
 
 template<typename T>
-std::vector<std::vector<T>> IconToGridToolsBase::get2DVarTranspose(std::string varName) const
+std::vector<std::vector<T>> IconToGridToolsBase::get2DVarTranspose(const char *varName) const
 {
     NcVar var = dataFile_.getVar(varName);
     size_t dim0 = var.getDims()[0].getSize();

@@ -12,7 +12,7 @@ class IconToGridToolsBase
 {
     netCDF::NcFile dataFile_;
     template<typename T>
-    std::vector<std::vector<T>> get2DVarTranspose(std::string varName) const;
+    std::vector<std::vector<T>> get2DVarTranspose(const char *varName) const;
     void buildMapping();
 
 protected:
@@ -27,11 +27,11 @@ protected:
     IconToGridToolsBase(char *ncFileName);
 
     template<typename T>
-    std::vector<T> get1DVar(std::string varName) const;
+    std::vector<T> get1DVar(const char *varName) const;
 };
 
 template<typename T>
-std::vector<T> IconToGridToolsBase::get1DVar(std::string varName) const
+std::vector<T> IconToGridToolsBase::get1DVar(const char *varName) const
 {
     netCDF::NcVar var = dataFile_.getVar(varName);
     size_t dim = var.getDims()[0].getSize();
@@ -57,8 +57,33 @@ class IconToGridTools: protected IconToGridToolsBase
 public:
     IconToGridTools(char *ncFileName);
 
+    // We cannot define this method out-of line
+    // This seems to be a GCC bug that it fails to match out-of-line template member function definition with declaration
     template<typename LocationType, typename ValueType>
-    decltype(auto) get(char const *name);
+    typename IcosahedralTopology::template storage_t<LocationType, double> get(char const *name)
+//    auto get(char const *name) -> decltype(std::declval<IcosahedralTopology>().template make_storage<LocationType, ValueType>(name))
+    {
+        auto field = icosahedral_grid_.template make_storage<LocationType, ValueType>(name);
+        field.initialize(0.0);
+
+        std::vector<ValueType> icon_field = get1DVar<ValueType>(name);
+
+        auto& i2s_vector = get_i2g_vector(TypeHelper<LocationType>());
+
+        for (int idx = 0; idx < icon_field.size(); ++idx)
+        {
+            auto it = i2s_vector.find(idx + 1);
+            if (it != i2s_vector.end())
+            {
+                int i, c, j;
+                std::tie(i, c, j) = it->second;
+                field(i, c, j, 0) = icon_field[idx];
+            }
+        }
+
+        return field;
+    };
+
 
     IcosahedralTopology &icosahedral_grid() {return icosahedral_grid_;}
 };
@@ -68,31 +93,6 @@ IconToGridTools<IcosahedralTopology>::IconToGridTools(char *ncFileName)
     : IconToGridToolsBase(ncFileName),
       icosahedral_grid_(length_, length_, 1)
 { }
-
-template<typename IcosahedralTopology>
-template<typename LocationType, typename ValueType>
-decltype(auto) IconToGridTools<IcosahedralTopology>::get(char const *name)
-{
-    auto field = icosahedral_grid_.template make_storage<LocationType, ValueType>(name);
-    field.initialize(0.0);
-
-    std::vector<ValueType> icon_field = get1DVar<ValueType>(name);
-
-    auto i2s_vector = get_i2g_vector(TypeHelper<LocationType>());
-
-    for (int idx = 0; idx < icon_field.size(); ++idx)
-    {
-        auto it = i2s_vector.find(idx + 1);
-        if (it != i2s_vector.end())
-        {
-            int i, c, j;
-            std::tie(i, c, j) = it->second;
-            field(i, c, j, 0) = icon_field[idx];
-        }
-    }
-
-    return field;
-};
 
 template<typename IcosahedralTopology>
 typename IconToGridTools<IcosahedralTopology>::i2g_t &IconToGridTools<IcosahedralTopology>::get_i2g_vector(TypeHelper<
