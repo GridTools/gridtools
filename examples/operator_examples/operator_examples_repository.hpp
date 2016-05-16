@@ -23,7 +23,7 @@ public:
     repository(char *mesh_file)
         : i2g_(mesh_file),
           icosahedral_grid_(i2g_.icosahedral_grid()),
-          d3(i2g_.d3),
+          d3(i2g_.d3()),
           edge_length_(i2g_.get<icosahedral_topology_t::edges, double>("edge_length")),
           cell_area_(i2g_.get<icosahedral_topology_t::cells, double>("cell_area")),
           edge_sign_on_cell_(i2g_.icosahedral_grid().make_storage<icosahedral_topology_t::cells, double>("edge_sign_on_cell")),
@@ -86,8 +86,7 @@ public:
         for (uint_t i = halo_nc; i < icosahedral_grid_.m_dims[0] - halo_nc; ++i)
             for (uint_t c = 0; c < icosahedral_topology_t::vertexes::n_colors::value; ++c)
                 for (uint_t j = halo_mc; j < icosahedral_grid_.m_dims[1] - halo_mc; ++j)
-                    for (uint_t k = 0; k < d3; ++k)
-                    {
+                    for (uint_t k = 0; k < d3; ++k) {
                         auto neighbours =
                                 ugrid.neighbours_of<icosahedral_topology_t::vertexes, icosahedral_topology_t::edges>(
                                         {i, c, j, k});
