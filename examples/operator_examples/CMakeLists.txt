@@ -7,7 +7,6 @@ set( GTEST_FILES ../Options.hpp ../Options.cpp ../icosahedral/unstructured_grid.
 
 add_definitions("-DBENCHMARK")
 
-add_executable(div div.cpp IconToGridTools.cpp ${GTEST_FILES})
-set_target_properties(div PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
-#target_include_directories(div PUBLIC "../icosahedral")
-target_link_libraries(div ${exe_LIBS} gcl ${NETCDF_LIBRARIES} ${NETCDF_LIBRARIES_CXX})
+add_executable(operator_examples operator_examples.cpp IconToGridTools.cpp ${GTEST_FILES})
+set_target_properties(operator_examples PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+target_link_libraries(operator_examples ${exe_LIBS} gcl ${NETCDF_LIBRARIES} ${NETCDF_LIBRARIES_CXX})
