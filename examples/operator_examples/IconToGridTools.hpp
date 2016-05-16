@@ -76,7 +76,8 @@ public:
             {
                 int i, c, j;
                 std::tie(i, c, j) = it->second;
-                field(i, c, j, 0) = icon_field[idx];
+                for (int k = 0; k < d3; ++k)
+                    field(i, c, j, k) = icon_field[idx];
             }
         }
 
@@ -85,12 +86,13 @@ public:
 
 
     IcosahedralTopology &icosahedral_grid() {return icosahedral_grid_;}
+    int d3 = 3;
 };
 
 template<typename IcosahedralTopology>
 IconToGridTools<IcosahedralTopology>::IconToGridTools(char *ncFileName)
     : IconToGridToolsBase(ncFileName),
-      icosahedral_grid_(length_, length_, 1)
+      icosahedral_grid_(length_, length_, d3)
 { }
 
 template<typename IcosahedralTopology>

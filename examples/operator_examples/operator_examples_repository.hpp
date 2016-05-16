@@ -23,6 +23,7 @@ public:
     repository(char *mesh_file)
         : i2g_(mesh_file),
           icosahedral_grid_(i2g_.icosahedral_grid()),
+          d3(i2g_.d3),
           edge_length_(i2g_.get<icosahedral_topology_t::edges, double>("edge_length")),
           cell_area_(i2g_.get<icosahedral_topology_t::cells, double>("cell_area")),
           edge_sign_on_cell_(i2g_.icosahedral_grid().make_storage<icosahedral_topology_t::cells, double>("edge_sign_on_cell")),
@@ -38,9 +39,10 @@ public:
         // init edge_sign_on_cell
         for (int i = 0; i < icosahedral_grid_.m_dims[0]; ++i)
             for (int j = 0; j < icosahedral_grid_.m_dims[1]; ++j)
-            {
-                edge_sign_on_cell_(i, 0, j, 0) = 1.;
-                edge_sign_on_cell_(i, 1, j, 0) = -1.;
+                for (uint_t k = 0; k < d3; ++k)
+                {
+                edge_sign_on_cell_(i, 0, j, k) = 1.;
+                edge_sign_on_cell_(i, 1, j, k) = -1.;
             }
 
         std::random_device rd;
@@ -50,7 +52,8 @@ public:
         for (int i = 0; i < icosahedral_grid_.m_dims[0]; ++i) {
             for (int c = 0; c < icosahedral_topology_t::edges::n_colors::value; ++c) {
                 for (int j = 0; j < icosahedral_grid_.m_dims[1]; ++j) {
-                    u_(i, c, j, 0) = 1.0 + dis(gen);
+                    for (uint_t k = 0; k < d3; ++k)
+                        u_(i, c, j, k) = 1.0 + dis(gen);
                 }
             }
         }
@@ -64,11 +67,11 @@ public:
 
     void generate_reference()
     {
-        unstructured_grid ugrid(icosahedral_grid_.m_dims[0], icosahedral_grid_.m_dims[1], 1);
+        unstructured_grid ugrid(icosahedral_grid_.m_dims[0], icosahedral_grid_.m_dims[1], d3);
         for (uint_t i = halo_nc; i < icosahedral_grid_.m_dims[0] - halo_nc; ++i)
             for (uint_t c = 0; c < icosahedral_topology_t::cells::n_colors::value; ++c)
                 for (uint_t j = halo_mc; j < icosahedral_grid_.m_dims[1] - halo_mc; ++j)
-                    for (uint_t k = 0; k < 1; ++k)
+                    for (uint_t k = 0; k < d3; ++k)
                     {
                         auto neighbours =
                             ugrid.neighbours_of<icosahedral_topology_t::cells, icosahedral_topology_t::edges>(
@@ -83,7 +86,7 @@ public:
         for (uint_t i = halo_nc; i < icosahedral_grid_.m_dims[0] - halo_nc; ++i)
             for (uint_t c = 0; c < icosahedral_topology_t::vertexes::n_colors::value; ++c)
                 for (uint_t j = halo_mc; j < icosahedral_grid_.m_dims[1] - halo_mc; ++j)
-                    for (uint_t k = 0; k < 1; ++k)
+                    for (uint_t k = 0; k < d3; ++k)
                     {
                         auto neighbours =
                                 ugrid.neighbours_of<icosahedral_topology_t::vertexes, icosahedral_topology_t::edges>(
@@ -92,7 +95,7 @@ public:
                         {
                             curl_u_ref_(i, c, j, k) += u_(*iter) * dual_edge_length_(*iter);
                         }
-                        curl_u_ref_(i, c, j, k) *= edge_sign_on_cell_(i, c, j, k) / dual_area_(i, c, j, k);
+                        curl_u_ref_(i, c, j, k) /= dual_area_(i, c, j, k);
                     }
     }
 
@@ -133,6 +136,7 @@ public:
     const uint_t halo_nc = 1;
     const uint_t halo_mc = 1;
     const uint_t halo_k = 0;
+    const int d3;
 
 };
 }

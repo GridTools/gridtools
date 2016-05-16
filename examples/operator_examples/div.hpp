@@ -43,7 +43,7 @@ namespace operator_examples {
         icosahedral_topology_t& icosahedral_grid = repository.icosahedral_grid();
         uint_t d1 = icosahedral_grid.m_dims[0];
         uint_t d2 = icosahedral_grid.m_dims[1];
-        uint_t d3 = 1;
+        uint_t d3 = repository.d3;
 
         const uint_t halo_nc = repository.halo_nc;
         const uint_t halo_mc = repository.halo_mc;
@@ -114,4 +114,4 @@ namespace operator_examples {
 
         return result;
     }
-} // namespace divergence
+}
