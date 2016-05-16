@@ -3,13 +3,13 @@
 //
 #pragma once
 
-#include "div_repository.hpp"
+#include "operator_examples_repository.hpp"
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 #include "tools/verifier.hpp"
 
-namespace divergence {
+namespace operator_examples {
 
     typedef gridtools::interval< level<0, -1>, level<1, -1> > x_interval;
     typedef gridtools::interval< level<0, -2>, level<1, 1> > axis;
@@ -36,7 +36,7 @@ namespace divergence {
 
     bool test_div( uint_t t_steps, char *mesh_file)
     {
-        divergence::repository repository(mesh_file);
+        operator_examples::repository repository(mesh_file);
         repository.init_fields();
         repository.generate_reference();
 

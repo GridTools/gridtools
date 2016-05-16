@@ -97,4 +97,4 @@ else()
   endif()
 endif(NOT STRUCTURED_GRIDS)
 
-add_subdirectory( div )
+add_subdirectory( operator_examples )

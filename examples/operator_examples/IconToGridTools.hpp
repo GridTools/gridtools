@@ -60,8 +60,7 @@ public:
     // We cannot define this method out-of line
     // This seems to be a GCC bug that it fails to match out-of-line template member function definition with declaration
     template<typename LocationType, typename ValueType>
-    typename IcosahedralTopology::template storage_t<LocationType, double> get(char const *name)
-//    auto get(char const *name) -> decltype(std::declval<IcosahedralTopology>().template make_storage<LocationType, ValueType>(name))
+    auto get(char const *name) -> decltype(std::declval<IcosahedralTopology>().template make_storage<LocationType, ValueType>(name))
     {
         auto field = icosahedral_grid_.template make_storage<LocationType, ValueType>(name);
         field.initialize(0.0);

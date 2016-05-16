@@ -6,7 +6,7 @@
 #include <gridtools.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 
-namespace divergence
+namespace operator_examples
 {
 
 using namespace gridtools;

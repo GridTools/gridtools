@@ -4,12 +4,12 @@
 
 #pragma once
 
-#include "div_defs.hpp"
+#include "operator_examples_def.hpp"
 #include "IconToGridTools.hpp"
 #include "../icosahedral/unstructured_grid.hpp"
 #include <random>
 
-namespace divergence
+namespace operator_examples
 {
 
 class repository
