@@ -498,7 +498,11 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     MPI_Allreduce(&rr, &rr_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
     double rr_init = sqrt(rr_global); //initial residual
     if (PID == 0) {
+        #ifdef REL_TOL
         std::cout << "Iteration 0: [residual] " << sqrt(rr_global)/rr_init << std::endl << std::endl;
+        #else
+        std::cout << "Iteration 0: [residual] " << rr_init << std::endl << std::endl;
+        #endif
     }
 
     // Unfold local domain into vector //TODO more efficient way to do this?
@@ -816,7 +820,11 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         if (PID == 0)
         {
             std::cout << "Iteration " << iter << ": [time]" << boost::timer::format(lapse_time_iteration);
+            #ifdef REL_TOL
             std::cout << "Iteration " << iter << ": [residual] " << sqrt(rr_global)/rr_init << std::endl << std::endl;
+            #else
+            std::cout << "Iteration " << iter << ": [residual] " << sqrt(rr_global) << std::endl << std::endl;
+            #endif
         }
     } //end for
 
