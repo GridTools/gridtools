@@ -44,6 +44,7 @@ std::vector<T> IconToGridToolsBase::get1DVar(const char *varName) const
 template<typename IcosahedralTopology>
 class IconToGridTools: protected IconToGridToolsBase
 {
+    const int d3;
     IcosahedralTopology icosahedral_grid_;
 
     template<typename T>
@@ -86,12 +87,12 @@ public:
 
 
     IcosahedralTopology &icosahedral_grid() {return icosahedral_grid_;}
-    int d3 = 3;
 };
 
 template<typename IcosahedralTopology>
 IconToGridTools<IcosahedralTopology>::IconToGridTools(char *ncFileName)
     : IconToGridToolsBase(ncFileName),
+      d3(3),
       icosahedral_grid_(length_, length_, d3)
 { }
 
