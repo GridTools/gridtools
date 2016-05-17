@@ -10,7 +10,6 @@
 #include "tools/verifier.hpp"
 
 namespace operator_examples {
-    using namespace expressions;
 
     typedef gridtools::interval< level<0, -1>, level<1, -1> > x_interval;
     typedef gridtools::interval< level<0, -2>, level<1, 1> > axis;

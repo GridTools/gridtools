@@ -15,7 +15,6 @@ namespace operator_examples
 class repository
 {
 public:
-
     using edge_storage_type = typename backend_t::storage_t<icosahedral_topology_t::edges, double>;
     using cell_storage_type = typename backend_t::storage_t<icosahedral_topology_t::cells, double>;
     using vertex_storage_type = typename backend_t::storage_t<icosahedral_topology_t::vertexes, double>;
@@ -30,15 +29,17 @@ private:
     edge_storage_type u_;
     edge_storage_type dual_edge_length_;
 
-    cell_storage_type edge_sign_on_cell_;
     cell_storage_type cell_area_;
     cell_storage_type div_u_ref_;
 
     decltype(meta_storage_extender()(dual_area_.meta_data(), 6)) edges_of_vertexes_meta_;
+    decltype(meta_storage_extender()(cell_area_.meta_data(), 3)) edges_of_cells_meta_;
 public:
     using edges_of_vertexes_storage_type = typename backend_t::storage_type< double, decltype(edges_of_vertexes_meta_) >::type;
+    using edges_of_cells_storage_type = typename backend_t::storage_type< double, decltype(edges_of_cells_meta_) >::type;
 private:
     edges_of_vertexes_storage_type edge_orientation_;
+    edges_of_cells_storage_type orientation_of_normal_;
 
 public:
     repository(char *mesh_file)
@@ -47,27 +48,19 @@ public:
           d3(i2g_.d3()),
           edge_length_(i2g_.get<icosahedral_topology_t::edges, double>("edge_length")),
           cell_area_(i2g_.get<icosahedral_topology_t::cells, double>("cell_area")),
-          edge_sign_on_cell_(i2g_.icosahedral_grid().make_storage<icosahedral_topology_t::cells, double>("edge_sign_on_cell")),
           u_(i2g_.icosahedral_grid().make_storage<icosahedral_topology_t::edges, double>("u")),
           div_u_ref_(i2g_.icosahedral_grid().make_storage<icosahedral_topology_t::cells, double>("div_u_ref")),
           curl_u_ref_(i2g_.icosahedral_grid().make_storage<icosahedral_topology_t::vertexes, double>("curl_u_ref")),
           dual_area_(i2g_.get<icosahedral_topology_t::vertexes, double>("dual_area")),
           dual_edge_length_(i2g_.get<icosahedral_topology_t::edges, double>("dual_edge_length")),
           edges_of_vertexes_meta_(meta_storage_extender()(dual_area_.meta_data(), 6)),
-          edge_orientation_(i2g_.get<edges_of_vertexes_storage_type, decltype(edges_of_vertexes_meta_)>(edges_of_vertexes_meta_, "edge_orientation"))
+          edges_of_cells_meta_(meta_storage_extender()(cell_area_.meta_data(), 3)),
+          edge_orientation_(i2g_.get<edges_of_vertexes_storage_type, icosahedral_topology_t::vertexes>(edges_of_vertexes_meta_, "edge_orientation")),
+          orientation_of_normal_(i2g_.get<edges_of_cells_storage_type, icosahedral_topology_t::cells>(edges_of_cells_meta_, "orientation_of_normal"))
     { }
 
     void init_fields()
     {
-        // init edge_sign_on_cell
-        for (int i = 0; i < icosahedral_grid_.m_dims[0]; ++i)
-            for (int j = 0; j < icosahedral_grid_.m_dims[1]; ++j)
-                for (uint_t k = 0; k < d3; ++k)
-                {
-                edge_sign_on_cell_(i, 0, j, k) = 1.;
-                edge_sign_on_cell_(i, 1, j, k) = -1.;
-            }
-
         std::random_device rd;
         std::mt19937 gen(rd());
         std::uniform_real_distribution<> dis(0, 1);
@@ -99,11 +92,13 @@ public:
                         auto neighbours =
                             ugrid.neighbours_of<icosahedral_topology_t::cells, icosahedral_topology_t::edges>(
                                 {i, c, j, k});
+                        ushort_t e=0;
                         for (auto iter = neighbours.begin(); iter != neighbours.end(); ++iter)
                         {
-                            div_u_ref_(i, c, j, k) += u_(*iter) * edge_length_(*iter);
+                            div_u_ref_(i, c, j, k) += orientation_of_normal_(i, c, j, k, e) * u_(*iter) * edge_length_(*iter);
+                            ++e;
                         }
-                        div_u_ref_(i, c, j, k) *= edge_sign_on_cell_(i, c, j, k) / cell_area_(i, c, j, k);
+                        div_u_ref_(i, c, j, k) /= cell_area_(i, c, j, k);
                     }
 
         for (uint_t i = halo_nc; i < icosahedral_grid_.m_dims[0] - halo_nc; ++i)
@@ -130,8 +125,6 @@ public:
     { return edge_length_; }
     cell_storage_type &cell_area()
     { return cell_area_; }
-    cell_storage_type &edge_sign_on_cell()
-    { return edge_sign_on_cell_; }
     edge_storage_type &u()
     { return u_; }
     cell_storage_type &div_u_ref()
@@ -145,7 +138,11 @@ public:
     decltype(edges_of_vertexes_meta_) &edges_of_vertexes_meta()
     { return edges_of_vertexes_meta_; }
     edges_of_vertexes_storage_type &edge_orientation()
-    {return edge_orientation_; }
+    { return edge_orientation_; }
+    edges_of_cells_storage_type &orientation_of_normal()
+    { return orientation_of_normal_;}
+    decltype(edges_of_cells_meta_) &edges_of_cells_meta()
+    { return edges_of_cells_meta_; }
 
 public:
     const uint_t halo_nc = 1;

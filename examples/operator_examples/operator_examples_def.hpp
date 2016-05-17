@@ -3,14 +3,15 @@
 //
 
 #pragma once
+
 #include <gridtools.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 
-namespace operator_examples
-{
+namespace operator_examples {
 
-using namespace gridtools;
-using namespace enumtype;
+    using namespace gridtools;
+    using namespace enumtype;
+    using namespace expressions;
 
 #ifdef __CUDACC__
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
@@ -22,8 +23,8 @@ using namespace enumtype;
 #endif
 #endif
 
-using backend_t = BACKEND;
-using icosahedral_topology_t = ::gridtools::icosahedral_topology< backend_t >;
+    using backend_t = BACKEND;
+    using icosahedral_topology_t = ::gridtools::icosahedral_topology<backend_t>;
 
 }
 

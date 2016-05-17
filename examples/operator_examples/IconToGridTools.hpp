@@ -20,7 +20,7 @@ protected:
     i2g_t i2g_edge;
     i2g_t i2g_cell;
 
-    int length_;
+    unsigned int length_;
 
     IconToGridToolsBase(char *ncFileName);
 
@@ -64,7 +64,7 @@ std::vector<std::vector<T>> IconToGridToolsBase::get2DVarTranspose(const char *v
 template<typename IcosahedralTopology>
 class IconToGridTools: protected IconToGridToolsBase
 {
-    const int d3_;
+    const unsigned int d3_;
     IcosahedralTopology icosahedral_grid_;
 
     template<typename T>
@@ -105,11 +105,11 @@ public:
         return field;
     };
 
-    template<typename StorageType, typename MetaType>
+    template<typename StorageType, typename LocationType, typename MetaType>
     StorageType get(MetaType& meta, const char *name);
 
     IcosahedralTopology &icosahedral_grid() {return icosahedral_grid_;}
-    int d3() {return d3_;}
+    unsigned int d3() {return d3_;}
 };
 
 template<typename IcosahedralTopology>
@@ -134,10 +134,9 @@ typename IconToGridTools<IcosahedralTopology>::i2g_t &IconToGridTools<Icosahedra
         typename IcosahedralTopology::vertexes>)
 { return i2g_vertex; }
 
-// TODO: we only deal with edges of vertexes, make it general
 // TODO: ICON may store edges of vertexes in a different order than GridTools
 template<typename IcosahedralTopology>
-template<typename StorageType, typename MetaType>
+template<typename StorageType, typename LocationType, typename MetaType>
 StorageType IconToGridTools<IcosahedralTopology>::get(MetaType& meta, const char *name)
 {
     StorageType field(meta, name);
@@ -145,20 +144,20 @@ StorageType IconToGridTools<IcosahedralTopology>::get(MetaType& meta, const char
 
     auto icon_field = get2DVarTranspose<double>(name);
 //    auto edges_of_vertex = get2DVarTranspose<int>("edges_of_vertex");
+    auto& i2g_vector = get_i2g_vector(TypeHelper<LocationType>());
 
-    for (int vertex = 0; vertex < icon_field.size(); ++vertex)
+    for (int idx = 0; idx < icon_field.size(); ++idx)
     {
-        auto it = i2g_vertex.find(vertex + 1);
-        if (it == i2g_vertex.end())
+        auto it = i2g_vector.find(idx + 1);
+        if (it == i2g_vector.end())
             continue;
 
-        int vertex_i, vertex_c, vertex_j;
-        std::tie(vertex_i, vertex_c, vertex_j) = it->second;
-        for (int edge = 0; edge < icon_field[vertex].size(); ++edge)
+        int i, c, j;
+        std::tie(i, c, j) = it->second;
+        for (int edge = 0; edge < icon_field[idx].size(); ++edge)
         {
             for (int k = 0; k < d3_; ++k)
-                field(vertex_i, vertex_c, vertex_j, k, edge) = icon_field[vertex][edge];
-//                field(vertex_i, vertex_c, vertex_j, k, edge) = -1;
+                field(i, c, j, k, edge) = icon_field[idx][edge];
         }
     }
 
