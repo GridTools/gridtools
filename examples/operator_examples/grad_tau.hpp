@@ -15,37 +15,37 @@ namespace operator_examples {
     typedef gridtools::interval< level<0, -1>, level<1, -1> > x_interval;
     typedef gridtools::interval< level<0, -2>, level<1, 1> > axis;
 
-    struct grad_n {
-        typedef in_accessor<0, icosahedral_topology_t::cells, extent<1> > in_cells;
-        typedef in_accessor<1, icosahedral_topology_t::cells, extent<1>, 5 > orientation_of_normal;
+    struct grad_tau {
+        typedef in_accessor<0, icosahedral_topology_t::vertexes, extent<1> > in_vertexes;
+        typedef in_accessor<1, icosahedral_topology_t::vertexes, extent<1>, 5 > edge_orientation;
         typedef inout_accessor<2, icosahedral_topology_t::edges > out_edges;
-        typedef in_accessor<3, icosahedral_topology_t::edges, extent<1> > dual_edge_length;
-        typedef boost::mpl::vector<in_cells, orientation_of_normal, out_edges, dual_edge_length> arg_list;
+        typedef in_accessor<3, icosahedral_topology_t::edges, extent<1> > edge_length;
+        typedef boost::mpl::vector<in_vertexes, edge_orientation, out_edges, edge_length> arg_list;
 
         template<typename Evaluation>
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval)
         {
             typedef typename icgrid::get_grid_topology< Evaluation >::type grid_topology_t;
 
-            using edge_of_cell_dim = dimension< 5 >;
-            edge_of_cell_dim::Index edge;
+            using edge_of_vertex_dim = dimension< 5 >;
+            edge_of_vertex_dim::Index edge;
 
-            auto neighbors_offsets = connectivity< cells, cells >::offsets(eval.position()[1]);
-            auto neighbors_edge_offsets = connectivity< cells, edges >::offsets(eval.position()[1]);
+            auto neighbors_offsets = connectivity< vertexes, vertexes >::offsets(eval.position()[1]);
+            auto neighbors_edge_offsets = connectivity< vertexes, edges >::offsets(eval.position()[1]);
             auto it_neighbors_edge_offsets = neighbors_edge_offsets.begin();
             ushort_t e=0;
             for (auto neighbor_offset : neighbors_offsets) {
                 eval(out_edges(*it_neighbors_edge_offsets)) =
-                        eval(orientation_of_normal(edge+e)) *
-                        (eval(in_cells(neighbor_offset)) - eval(in_cells())) /
-                        eval(dual_edge_length(*it_neighbors_edge_offsets));
+                        eval(edge_orientation(edge+e)) *
+                        (eval(in_vertexes(neighbor_offset)) - eval(in_vertexes())) /
+                        eval(edge_length(*it_neighbors_edge_offsets));
                 e++;
                 ++it_neighbors_edge_offsets;
             }
         }
     };
 
-    bool test_grad_n( uint_t t_steps, char *mesh_file)
+    bool test_grad_tau( uint_t t_steps, char *mesh_file)
     {
         operator_examples::repository repository(mesh_file);
         repository.init_fields();
@@ -63,28 +63,28 @@ namespace operator_examples {
         typedef gridtools::layout_map<2, 1, 0> layout_t;
 
         using edge_storage_type = repository::edge_storage_type;
-        using cell_storage_type = repository::cell_storage_type;
-        using edges_of_cells_storage_type = repository::edges_of_cells_storage_type;
+        using vertex_storage_type = repository::vertex_storage_type;
+        using edges_of_vertexes_storage_type = repository::edges_of_vertexes_storage_type;
 
 
-        auto& in_cells = repository.div_u_ref();
+        auto& in_vertexes = repository.curl_u_ref();
         auto out_edges = icosahedral_grid.make_storage<icosahedral_topology_t::edges, double>("out");
-        auto& ref_edges = repository.grad_div_u_ref();
-        edges_of_cells_storage_type& orientation_of_normal = repository.orientation_of_normal();
-        auto& dual_edge_length = repository.dual_edge_length();
+        auto& ref_edges = repository.grad_curl_u_ref();
+        edges_of_vertexes_storage_type& edge_orientation = repository.edge_orientation();
+        auto& edge_length = repository.edge_length();
 
         out_edges.initialize(0.0);
 
-        typedef arg<0, cell_storage_type> p_in_cells;
+        typedef arg<0, vertex_storage_type> p_in_vertexes;
         typedef arg<1, edge_storage_type> p_out_edges;
-        typedef arg<2, edges_of_cells_storage_type> p_orientation_of_normal;
-        typedef arg<3, edge_storage_type> p_dual_edge_length;
+        typedef arg<2, edges_of_vertexes_storage_type> p_edge_orientation;
+        typedef arg<3, edge_storage_type> p_edge_length;
 
-        typedef boost::mpl::vector<p_in_cells, p_out_edges, p_orientation_of_normal, p_dual_edge_length>
+        typedef boost::mpl::vector<p_in_vertexes, p_out_edges, p_edge_orientation, p_edge_length>
                 accessor_list_t;
 
         gridtools::domain_type<accessor_list_t> domain(
-                boost::fusion::make_vector(&in_cells, &out_edges, &orientation_of_normal, &dual_edge_length)
+                boost::fusion::make_vector(&in_vertexes, &out_edges, &edge_orientation, &edge_length)
         );
         array<uint_t, 5> di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         array<uint_t, 5> dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
@@ -98,8 +98,8 @@ namespace operator_examples {
                 grid_,
                 gridtools::make_mss // mss_descriptor
                         (execute<forward>(),
-                         gridtools::make_esf<grad_n, icosahedral_topology_t, icosahedral_topology_t::cells >(
-                                 p_in_cells(), p_orientation_of_normal(), p_out_edges(), p_dual_edge_length())
+                         gridtools::make_esf<grad_tau, icosahedral_topology_t, icosahedral_topology_t::vertexes >(
+                                 p_in_vertexes(), p_edge_orientation(), p_out_edges(), p_edge_length())
                         )
         );
 
@@ -109,7 +109,7 @@ namespace operator_examples {
 
 #ifdef __CUDACC__
         out_edges.d2h_update();
-        in_cells.d2h_update();
+        in_vertexes.d2h_update();
 #endif
 
         verifier ver(1e-15);
