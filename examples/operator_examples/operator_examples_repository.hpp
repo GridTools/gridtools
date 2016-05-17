@@ -30,6 +30,7 @@ private:
     edge_storage_type dual_edge_length_;
     edge_storage_type grad_div_u_ref_;
     edge_storage_type grad_curl_u_ref_;
+    edge_storage_type lap_u_ref_;
 
     cell_storage_type cell_area_;
     cell_storage_type div_u_ref_;
@@ -60,7 +61,8 @@ public:
           edge_orientation_(i2g_.get<edges_of_vertexes_storage_type, icosahedral_topology_t::vertexes>(edges_of_vertexes_meta_, "edge_orientation")),
           orientation_of_normal_(i2g_.get<edges_of_cells_storage_type, icosahedral_topology_t::cells>(edges_of_cells_meta_, "orientation_of_normal")),
           grad_div_u_ref_(icosahedral_grid_.make_storage<icosahedral_topology_t::edges, double>("grad_div_u_ref")),
-          grad_curl_u_ref_(icosahedral_grid_.make_storage<icosahedral_topology_t::edges, double>("grad_curl_u_ref"))
+          grad_curl_u_ref_(icosahedral_grid_.make_storage<icosahedral_topology_t::edges, double>("grad_curl_u_ref")),
+          lap_u_ref_(icosahedral_grid_.make_storage<icosahedral_topology_t::edges, double>("lap_u_ref"))
     { }
 
     void init_fields()
@@ -82,6 +84,7 @@ public:
         curl_u_ref_.initialize(0.0);
         grad_div_u_ref_.initialize(0.0);
         grad_curl_u_ref_.initialize(0.0);
+        lap_u_ref_.initialize(0.0);
     }
 
     void generate_reference()
@@ -169,6 +172,14 @@ public:
                             ++e;
                         }
                     }
+
+        // lap_u_ref_
+        for (uint_t i = halo_nc; i < icosahedral_grid_.m_dims[0] - halo_nc; ++i)
+            for (uint_t c = 0; c < icosahedral_topology_t::edges::n_colors::value; ++c)
+                for (uint_t j = halo_mc; j < icosahedral_grid_.m_dims[1] - halo_mc; ++j)
+                    for (uint_t k = 0; k < d3; ++k) {
+                        lap_u_ref_(i, c, j, k) = grad_div_u_ref_(i, c, j, k) - grad_curl_u_ref_(i, c, j, k);
+                    }
     }
 
     icosahedral_topology_t& icosahedral_grid()
@@ -200,6 +211,8 @@ public:
     { return grad_div_u_ref_; }
     edge_storage_type &grad_curl_u_ref()
     { return grad_curl_u_ref_; }
+    edge_storage_type &lap_u_ref()
+    { return lap_u_ref_; }
 
 public:
     const uint_t halo_nc = 1;
