@@ -216,7 +216,7 @@ struct boundary_conditions {
                     DataField2 & data_field2,
                     DataField3 & data_field3,
                     uint_t i, uint_t j, uint_t k) const {
-        // get global indices on the boundary
+        // Get global indices on the boundary
         size_t I = m_partitioner.get_low_bound(0) + i;
         size_t J = m_partitioner.get_low_bound(1) + j;
         size_t K = m_partitioner.get_low_bound(2) + k;
@@ -231,28 +231,28 @@ struct boundary_conditions {
 
 bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
-    // initialize MPI
+    // Initialize MPI
     gridtools::GCL_Init();
 
-    // domain is encapsulated in boundary layer from both sides in each dimension,
-    // these are just inner domain dimensions
+    // Domain is encapsulated in boundary layer from both sides in each dimension,
+    // Boundary is added as extra layer to each dimension 
     uint_t d1 = xdim;
     uint_t d2 = ydim;
     uint_t d3 = zdim;
     uint_t TIME_STEPS = nt;
 
-    // enforce square domain
-    if (!(xdim==ydim && ydim==zdim)) {
-        if(PID==0) printf("Please run with dimensions X=Y=Z\n");
-        return false;
-    }
+    // Enforce square domain
+    // if (!(xdim==ydim && ydim==zdim)) {
+    //     if (PID==0) printf("Please run with dimensions X=Y=Z\n");
+    //     return false;
+    // }
 
-    // step size, add +2 for boundary layer
-    double h = 1./(xdim+2+1);
+    // Step size, add +2 for boundary layer
+    double h = 1./(d1+2+1);//TODO boundary layer
     double h2 = h*h;
 
-    if(PID == 0){
-        printf("Running for %d x %d x %d, %d iterations\n", xdim+2, ydim+2, zdim+2, nt);
+    if (PID == 0){
+        printf("Running for %d x %d x %d, %d iterations\n", xdim, ydim, zdim, nt);
         // printf("Step size: %f\n", h);
     }
 
@@ -271,7 +271,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     // Prepare types for the data storage
     //                   strides  1 x xy
     //                      dims  x y z
-    typedef gridtools::layout_map<0,1,2> layout_t;
+    typedef gridtools::layout_map<2,1,0> layout_t;
     typedef gridtools::BACKEND::storage_info<0, layout_t> metadata_t;
     typedef gridtools::BACKEND::storage_type<float_type, metadata_t >::type storage_type;
     typedef storage_type::pointer_type pointer_type;
@@ -323,23 +323,27 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
     // Scalar parameters
     parameter alpha; //step length
-    parameter beta; //orthogonalization parameter
+    parameter beta;  //orthogonalization parameter
 
-    // set up halo
+    // Set up halo
     he.add_halo<0>(meta_.template get_halo_gcl<0>());
     he.add_halo<1>(meta_.template get_halo_gcl<1>());
     he.add_halo<2>(meta_.template get_halo_gcl<2>());
     he.setup(2);
 
-    // get global offsets
+    // Get global offsets
     size_t I = meta_.get_low_bound(0);
     size_t J = meta_.get_low_bound(1);
     size_t K = meta_.get_low_bound(2);
 
-    // initialize the RHS vector domain
-    for(uint_t i=0; i<metadata_.template dims<0>(); ++i)
-        for(uint_t j=0; j<metadata_.template dims<1>(); ++j)
-            for(uint_t k=0; k<metadata_.template dims<2>(); ++k)
+    // Partitioning info
+    //std::cout << "I #" << PID << ": " << meta_.get_low_bound(0) << " - " << meta_.get_up_bound(0) << std::endl;
+    //std::cout << "J #" << PID << ": " << meta_.get_low_bound(1) << " - " << meta_.get_up_bound(1) << std::endl;
+
+    // Initialize the RHS vector domain
+    for (uint_t i=0; i<metadata_.template dims<0>(); ++i)
+        for (uint_t j=0; j<metadata_.template dims<1>(); ++j)
+            for (uint_t k=0; k<metadata_.template dims<2>(); ++k)
             {
                 //b(i,j,k) = h2 * f(I+i, J+j, K+k); //TODO
             }
@@ -419,16 +423,16 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
       3) The actual domain dimensions
      */
 
-    //start timer
+    // Start timer
     boost::timer::cpu_times lapse_time_run = {0,0,0};
     boost::timer::cpu_times lapse_time_d3point7 = {0,0,0};
     boost::timer::cpu_timer time;
 
-    // construction of the domain for step phase
+    // Construction of the domain for step phase
     gridtools::domain_type<accessor_list_init> domain_init
         (boost::fusion::make_vector(&tmp, &d, &r, &b, &Ax, &x, &alpha));
 
-    //instantiate stencil to perform initialization step of CG
+    // Instantiate stencil to perform initialization step of CG
     auto CG_init = gridtools::make_computation<gridtools::BACKEND>
         (
             domain_init, coords3d7pt,
@@ -443,7 +447,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
             make_reduction< reduction_functor, binop::sum >(0.0, p_tmp_init()) // sum(r'.*r)
         );
 
-    //apply boundary conditions
+    // Apply boundary conditions
     gridtools::array<gridtools::halo_descriptor, 3> halos;
     halos[0] = meta_.template get_halo_descriptor<0>();
     halos[1] = meta_.template get_halo_descriptor<1>();
@@ -456,11 +460,11 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
          gridtools::bitmap_predicate(part.boundary())
         ).apply(x, d, xNew, dNew);
 
-    // set addition parameter to -1 (subtraction): r = b + alpha A x
+    // Set addition parameter to -1 (subtraction): r = b + alpha A x
     double minus = -1;
     alpha.setValue(minus);
 
-    //prepare and run single step of CG computation
+    // Prepare and run single step of CG computation
     CG_init->ready();
     CG_init->steady();
     boost::timer::cpu_timer time_runInit;
@@ -520,7 +524,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
             (boost::fusion::make_vector(&tmp, ptr_rNew, ptr_rNew));
 
 
-        //instantiate stencils to perform steps of CG
+        // Instantiate stencils to perform steps of CG
         auto CG_step0 = gridtools::make_computation<gridtools::BACKEND>
             (
                 domain_step0, coords3d7pt,
@@ -702,7 +706,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         lapse_time_run = lapse_time_run + time_run3.elapsed();
         CG_step3->finalize();
 
-        //communicate halos
+        // Communicate halos
         std::vector<pointer_type::pointee_t*> vec(2);
         vec[0]=d.data().get();
         vec[1]=dNew.data().get();
@@ -713,7 +717,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 
         MPI_Barrier(GCL_WORLD);
 
-        //swap input and output fields
+        // Swap input and output fields
         storage_type* swap;
         swap = ptr_x;
         ptr_x = ptr_xNew;
@@ -743,7 +747,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     if (gridtools::PID == 0){
         std::cout << std::endl << "TOTAL TIME: " << boost::timer::format(lapse_time);
         std::cout << "TIME SPENT IN RUN STAGE:" << boost::timer::format(lapse_time_run);
-        std::cout << "d3point7 MFLOPS: " << MFLOPS(10,d1,d2,d3,nt,lapse_time_d3point7.wall) << std::endl;
+        std::cout << "d3point7 MFLOPS: " << MFLOPS(7,d1,d2,d3,nt,lapse_time_d3point7.wall) << std::endl; //TODO: multiple processes??
         std::cout << "d3point7 MLUPs: " << MLUPS(d1,d2,d3,nt,lapse_time_d3point7.wall) << std::endl << std::endl;
     }
 
