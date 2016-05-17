@@ -1,5 +1,6 @@
 #include "div.hpp"
 #include "curl.hpp"
+#include "grad_n.h"
 #include "../Options.hpp"
 
 int main(int argc, char **argv)
@@ -30,5 +31,13 @@ TEST(CurlStencil, Test) {
         t = 1;
 
     ASSERT_TRUE(operator_examples::test_curl(t, Options::getInstance().mesh_file));
+}
+
+TEST(GradNStencil, Test) {
+    int t = Options::getInstance().m_size[3];
+    if (t == 0)
+        t = 1;
+
+    ASSERT_TRUE(operator_examples::test_grad_n(t, Options::getInstance().mesh_file));
 }
 

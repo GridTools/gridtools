@@ -28,6 +28,7 @@ private:
     edge_storage_type edge_length_;
     edge_storage_type u_;
     edge_storage_type dual_edge_length_;
+    edge_storage_type grad_div_u_ref_;
 
     cell_storage_type cell_area_;
     cell_storage_type div_u_ref_;
@@ -48,15 +49,16 @@ public:
           d3(i2g_.d3()),
           edge_length_(i2g_.get<icosahedral_topology_t::edges, double>("edge_length")),
           cell_area_(i2g_.get<icosahedral_topology_t::cells, double>("cell_area")),
-          u_(i2g_.icosahedral_grid().make_storage<icosahedral_topology_t::edges, double>("u")),
-          div_u_ref_(i2g_.icosahedral_grid().make_storage<icosahedral_topology_t::cells, double>("div_u_ref")),
-          curl_u_ref_(i2g_.icosahedral_grid().make_storage<icosahedral_topology_t::vertexes, double>("curl_u_ref")),
+          u_(icosahedral_grid_.make_storage<icosahedral_topology_t::edges, double>("u")),
+          div_u_ref_(icosahedral_grid_.make_storage<icosahedral_topology_t::cells, double>("div_u_ref")),
+          curl_u_ref_(icosahedral_grid_.make_storage<icosahedral_topology_t::vertexes, double>("curl_u_ref")),
           dual_area_(i2g_.get<icosahedral_topology_t::vertexes, double>("dual_area")),
           dual_edge_length_(i2g_.get<icosahedral_topology_t::edges, double>("dual_edge_length")),
           edges_of_vertexes_meta_(meta_storage_extender()(dual_area_.meta_data(), 6)),
           edges_of_cells_meta_(meta_storage_extender()(cell_area_.meta_data(), 3)),
           edge_orientation_(i2g_.get<edges_of_vertexes_storage_type, icosahedral_topology_t::vertexes>(edges_of_vertexes_meta_, "edge_orientation")),
-          orientation_of_normal_(i2g_.get<edges_of_cells_storage_type, icosahedral_topology_t::cells>(edges_of_cells_meta_, "orientation_of_normal"))
+          orientation_of_normal_(i2g_.get<edges_of_cells_storage_type, icosahedral_topology_t::cells>(edges_of_cells_meta_, "orientation_of_normal")),
+          grad_div_u_ref_(icosahedral_grid_.make_storage<icosahedral_topology_t::edges, double>("grad_div_u_ref"))
     { }
 
     void init_fields()
@@ -74,15 +76,14 @@ public:
             }
         }
 
-        // init div_u_ref
         div_u_ref_.initialize(0.0);
-
-        // init curl_u_ref
         curl_u_ref_.initialize(0.0);
+        grad_div_u_ref_.initialize(0.0);
     }
 
     void generate_reference()
     {
+        // div_u_ref_
         unstructured_grid ugrid(icosahedral_grid_.m_dims[0], icosahedral_grid_.m_dims[1], d3);
         for (uint_t i = halo_nc; i < icosahedral_grid_.m_dims[0] - halo_nc; ++i)
             for (uint_t c = 0; c < icosahedral_topology_t::cells::n_colors::value; ++c)
@@ -101,6 +102,7 @@ public:
                         div_u_ref_(i, c, j, k) /= cell_area_(i, c, j, k);
                     }
 
+        // curl_u_ref_
         for (uint_t i = halo_nc; i < icosahedral_grid_.m_dims[0] - halo_nc; ++i)
             for (uint_t c = 0; c < icosahedral_topology_t::vertexes::n_colors::value; ++c)
                 for (uint_t j = halo_mc; j < icosahedral_grid_.m_dims[1] - halo_mc; ++j)
@@ -115,6 +117,30 @@ public:
                             ++e;
                         }
                         curl_u_ref_(i, c, j, k) /= dual_area_(i, c, j, k);
+                    }
+
+        // grad_div_u_ref_
+        for (uint_t i = halo_nc; i < icosahedral_grid_.m_dims[0] - halo_nc; ++i)
+            for (uint_t c = 0; c < icosahedral_topology_t::cells::n_colors::value; ++c)
+                for (uint_t j = halo_mc; j < icosahedral_grid_.m_dims[1] - halo_mc; ++j)
+                    for (uint_t k = 0; k < d3; ++k) {
+                        auto neighbours_cell =
+                                ugrid.neighbours_of<icosahedral_topology_t::cells, icosahedral_topology_t::cells>(
+                                        {i, c, j, k});
+                        auto neighbours_edge =
+                                ugrid.neighbours_of<icosahedral_topology_t::cells, icosahedral_topology_t::edges>(
+                                        {i, c, j, k});
+
+                        ushort_t e=0;
+                        auto iter_edge = neighbours_edge.begin();
+                        for (auto iter_cell = neighbours_cell.begin(); iter_cell != neighbours_cell.end(); ++iter_cell, ++iter_edge)
+                        {
+                            grad_div_u_ref_(*iter_edge) =
+                                    orientation_of_normal_(i, c, j, k, e) *
+                                    (div_u_ref_(*iter_cell) - div_u_ref_(i, c, j, k)) /
+                                    dual_edge_length_(*iter_edge);
+                            ++e;
+                        }
                     }
     }
 
@@ -143,6 +169,8 @@ public:
     { return orientation_of_normal_;}
     decltype(edges_of_cells_meta_) &edges_of_cells_meta()
     { return edges_of_cells_meta_; }
+    edge_storage_type &grad_div_u_ref()
+    { return grad_div_u_ref_; }
 
 public:
     const uint_t halo_nc = 1;
