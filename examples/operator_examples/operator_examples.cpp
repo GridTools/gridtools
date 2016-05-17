@@ -1,5 +1,5 @@
 #include "div.hpp"
-//#include "curl.hpp"hpp
+#include "curl.hpp"
 #include "../Options.hpp"
 
 int main(int argc, char **argv)
@@ -24,11 +24,11 @@ TEST(DivStencil, Test) {
     ASSERT_TRUE(operator_examples::test_div(t, Options::getInstance().mesh_file));
 }
 
-//TEST(CurlStencil, Test) {
-//    int t = Options::getInstance().m_size[3];
-//    if (t == 0)
-//        t = 1;
-//
-//    ASSERT_TRUE(operator_examples::test_curl(t, Options::getInstance().mesh_file));
-//}
+TEST(CurlStencil, Test) {
+    int t = Options::getInstance().m_size[3];
+    if (t == 0)
+        t = 1;
+
+    ASSERT_TRUE(operator_examples::test_curl(t, Options::getInstance().mesh_file));
+}
 
