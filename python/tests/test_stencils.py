@@ -502,6 +502,29 @@ class CopyTest (AccessPatternDetectionTest):
         self.assertTrue (all ([x==y for (x,y) in zip(ij_vals, interior_pts)]) )
 
 
+    @attr(lang='cuda')
+    def test_cuda_fortran_array_conversion (self):
+        #
+        # Convert arrays to C order
+        #
+        self.in_cpy = np.ascontiguousarray (self.in_cpy)
+        self.out_cpy = np.ascontiguousarray (self.out_cpy)
+        #
+        # Apply memory layout conversion
+        #
+        self.in_cpy = self.stencil.compiler.utils.enforce_optimal_array (self.in_cpy,
+                                                                         name='in_cpy',
+                                                                         backend='cuda')
+        self.out_cpy = self.stencil.compiler.utils.enforce_optimal_array (self.out_cpy,
+                                                                         name='out_cpy',
+                                                                         backend='cuda')
+        #
+        # Check that arrays have been converted to Fortran order
+        #
+        self.assertTrue (self.in_cpy.flags['F_CONTIGUOUS'])
+        self.assertTrue (self.out_cpy.flags['F_CONTIGUOUS'])
+
+
 
 class AnyKernelName (MultiStageStencil):
     """

@@ -573,6 +573,7 @@ class MultiStageStencil (Stencil):
                 raise ValueError ("Unknown backend '%s' set for stencil '%s'" %
                                   (backend, self.name) )
 
+
     def get_halo (self):
         """
         Return the halo for this stencil
