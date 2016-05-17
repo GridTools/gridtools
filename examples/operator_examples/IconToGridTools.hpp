@@ -11,8 +11,6 @@
 class IconToGridToolsBase
 {
     netCDF::NcFile dataFile_;
-    template<typename T>
-    std::vector<std::vector<T>> get2DVarTranspose(const char *varName) const;
     void buildMapping();
 
 protected:
@@ -28,6 +26,8 @@ protected:
 
     template<typename T>
     std::vector<T> get1DVar(const char *varName) const;
+    template<typename T>
+    std::vector<std::vector<T>> get2DVarTranspose(const char *varName) const;
 };
 
 template<typename T>
@@ -39,6 +39,26 @@ std::vector<T> IconToGridToolsBase::get1DVar(const char *varName) const
     var.getVar(vec.data());
 
     return vec;
+}
+
+template<typename T>
+std::vector<std::vector<T>> IconToGridToolsBase::get2DVarTranspose(const char *varName) const
+{
+    using std::vector;
+
+    netCDF::NcVar var = dataFile_.getVar(varName);
+    size_t dim0 = var.getDims()[0].getSize();
+    size_t dim1 = var.getDims()[1].getSize();
+    vector<vector<T>> vec(dim0, vector<T>(dim1));
+    for (size_t i = 0; i < vec.size(); ++i)
+        var.getVar({i, 0}, {1, dim1}, vec[i].data());
+
+    vector<vector<T>> vec_transpose(dim1, vector<T>(dim0));
+    for (size_t i = 0; i < vec.size(); ++i)
+        for (size_t j = 0; j < vec[0].size(); ++j)
+            vec_transpose[j][i] = vec[i][j];
+
+    return vec_transpose;
 }
 
 template<typename IcosahedralTopology>
@@ -68,12 +88,12 @@ public:
 
         std::vector<ValueType> icon_field = get1DVar<ValueType>(name);
 
-        auto& i2s_vector = get_i2g_vector(TypeHelper<LocationType>());
+        auto& i2g_vector = get_i2g_vector(TypeHelper<LocationType>());
 
         for (int idx = 0; idx < icon_field.size(); ++idx)
         {
-            auto it = i2s_vector.find(idx + 1);
-            if (it != i2s_vector.end())
+            auto it = i2g_vector.find(idx + 1);
+            if (it != i2g_vector.end())
             {
                 int i, c, j;
                 std::tie(i, c, j) = it->second;
@@ -85,6 +105,8 @@ public:
         return field;
     };
 
+    template<typename StorageType, typename MetaType>
+    StorageType get(MetaType& meta, const char *name);
 
     IcosahedralTopology &icosahedral_grid() {return icosahedral_grid_;}
     int d3() {return d3_;}
@@ -111,3 +133,34 @@ template<typename IcosahedralTopology>
 typename IconToGridTools<IcosahedralTopology>::i2g_t &IconToGridTools<IcosahedralTopology>::get_i2g_vector(TypeHelper<
         typename IcosahedralTopology::vertexes>)
 { return i2g_vertex; }
+
+// TODO: we only deal with edges of vertexes, make it general
+// TODO: ICON may store edges of vertexes in a different order than GridTools
+template<typename IcosahedralTopology>
+template<typename StorageType, typename MetaType>
+StorageType IconToGridTools<IcosahedralTopology>::get(MetaType& meta, const char *name)
+{
+    StorageType field(meta, name);
+    field.initialize(0.0);
+
+    auto icon_field = get2DVarTranspose<double>(name);
+//    auto edges_of_vertex = get2DVarTranspose<int>("edges_of_vertex");
+
+    for (int vertex = 0; vertex < icon_field.size(); ++vertex)
+    {
+        auto it = i2g_vertex.find(vertex + 1);
+        if (it == i2g_vertex.end())
+            continue;
+
+        int vertex_i, vertex_c, vertex_j;
+        std::tie(vertex_i, vertex_c, vertex_j) = it->second;
+        for (int edge = 0; edge < icon_field[vertex].size(); ++edge)
+        {
+            for (int k = 0; k < d3_; ++k)
+                field(vertex_i, vertex_c, vertex_j, k, edge) = icon_field[vertex][edge];
+//                field(vertex_i, vertex_c, vertex_j, k, edge) = -1;
+        }
+    }
+
+    return field;
+}

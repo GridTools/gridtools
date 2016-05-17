@@ -38,24 +38,6 @@ IconToGridToolsBase::IconToGridToolsBase(char *ncFileName)
 
 }
 
-template<typename T>
-std::vector<std::vector<T>> IconToGridToolsBase::get2DVarTranspose(const char *varName) const
-{
-    NcVar var = dataFile_.getVar(varName);
-    size_t dim0 = var.getDims()[0].getSize();
-    size_t dim1 = var.getDims()[1].getSize();
-    vector<vector<T>> vec(dim0, vector<T>(dim1));
-    for (size_t i = 0; i < vec.size(); ++i)
-        var.getVar({i, 0}, {1, dim1}, vec[i].data());
-
-    vector<vector<T>> vec_transpose(dim1, vector<T>(dim0));
-    for (size_t i = 0; i < vec.size(); ++i)
-        for (size_t j = 0; j < vec[0].size(); ++j)
-            vec_transpose[j][i] = vec[i][j];
-
-    return vec_transpose;
-}
-
 void IconToGridToolsBase::printi2g(i2g_t& vec)
 {
     for (const auto& p:vec) {
