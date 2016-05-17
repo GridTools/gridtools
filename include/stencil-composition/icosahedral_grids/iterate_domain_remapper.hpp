@@ -69,6 +69,9 @@ namespace gridtools {
 #endif
 
             GT_FUNCTION
+            array< uint_t, 4 > const & position() const { return m_iterate_domain.position();}
+
+            GT_FUNCTION
             explicit iterate_domain_remapper_base(const iterate_domain_t &iterate_domain)
                 : m_iterate_domain(iterate_domain) {}
 
@@ -78,7 +81,8 @@ namespace gridtools {
             /** shifting the IDs of the placeholders and forwarding to the iterate_domain () operator*/
             template < typename Accessor >
             GT_FUNCTION auto operator()(Accessor const &arg) const
-                -> decltype(m_iterate_domain(typename remap_accessor_type< Accessor, esf_args_map_t >::type(arg))) {
+                -> decltype(m_iterate_domain(typename remap_accessor_type< Accessor, esf_args_map_t >::type(arg)))
+            {
                 typedef typename remap_accessor_type< Accessor, esf_args_map_t >::type remap_accessor_t;
                 return m_iterate_domain(remap_accessor_t(arg));
             }
