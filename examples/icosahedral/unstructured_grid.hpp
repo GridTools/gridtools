@@ -107,14 +107,14 @@ namespace gridtools {
             for (uint_t k = 0; k < m_celldims[3]; ++k) {
                 for (uint_t i = 0; i < m_celldims[0]; ++i) {
                     for (uint_t j = 0; j < m_celldims[2]; ++j) {
-                        m_cell_to_edges.insert_neighbour({i, 0, j, k}, {i, 0, j, k});
                         m_cell_to_edges.insert_neighbour({i, 0, j, k}, {i, 1, j, k});
                         m_cell_to_edges.insert_neighbour({i, 0, j, k}, {i, 2, j, k});
-                        if (j < m_celldims[2] - 1)
-                            m_cell_to_edges.insert_neighbour({i, 1, j, k}, {i, 0, j + 1, k});
+                        m_cell_to_edges.insert_neighbour({i, 0, j, k}, {i, 0, j, k});
                         if (i < m_celldims[0] - 1)
                             m_cell_to_edges.insert_neighbour({i, 1, j, k}, {i + 1, 1, j, k});
                         m_cell_to_edges.insert_neighbour({i, 1, j, k}, {i, 2, j, k});
+                        if (j < m_celldims[2] - 1)
+                            m_cell_to_edges.insert_neighbour({i, 1, j, k}, {i, 0, j + 1, k});
 
                     }
                 }
