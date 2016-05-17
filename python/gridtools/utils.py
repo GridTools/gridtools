@@ -57,18 +57,40 @@ class Utilities ( ):
         return rv
 
 
-    def is_fortran_array_layout (self, nparray):
-        rv = False
+    def enforce_optimal_array (self, array, name, backend):
+        """
+        Ensure the input array meets the criteria for optimal execution with the
+        given backend (ie Fortran memory layout).
 
-        if nparray.flags['F_CONTIGUOUS']:
-            logging.debug("Fortran array layout in use.")
-            rv = True
-        else:
-            logging.info("Non Fortran array layout in use!!!")
-            rv = False
+        :param array:   A NumPy array
+        :param name:    A string with the variable name of the array. This is
+                        useful to notify the user about the specific array needing
+                        attention.
+        :param backend: A string with the backend to be run
+        :return:        The input array, if it meets the requirements. Otherwise,
+                        a copy of the original array with the required properties
+                        is returned.
+        """
+        #
+        # If requirements get more complex in the future, consider using
+        # np.require() to do the conversion in one call and just leave
+        # the if-conditions for user warnings
+        #
+        if backend == 'cuda':
+            #
+            # Check that the array uses Fortran memory layout.
+            #
+            if not array.flags['F_CONTIGUOUS']:
+                logging.warning("Array '%s' has a suboptimal memory layout \
+                    for CUDA execution. Converting it to Fortran layout.\nPlease \
+                    use the Fortran (column-major) ordering for arrays when running \
+                    the CUDA backend."
+                    % name)
 
-        return rv
-        
+                array = np.asfortranarray(array)
+
+        return array
+
 
     def check_kernel_caller(stencil):
         """

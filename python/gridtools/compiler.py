@@ -254,7 +254,6 @@ class StencilCompiler ( ):
         :return:
         """
         import ctypes
-
         #
         # compile only if the library is not available
         #
@@ -262,17 +261,16 @@ class StencilCompiler ( ):
             self.generate_code (stencil)
             self.compile       (stencil)
             #
-            # floating point precision validation
+            # Array validation (floating point precision, memory layout...)
             #
             for key in kwargs:
                 if isinstance(kwargs[key], np.ndarray):
                     if not self.utils.is_valid_float_type_size (kwargs[key]):
-                        raise TypeError ("Element size of '%s' does not match that of the C++ backend."
-                                          % key)
-                    if self.backend == 'cuda' and not self.utils.is_fortran_array_layout (kwargs[key]):
-                        logging.warning('Detected an incorrect array layout.  Converting it.')
-
-                        kwargs[key] = np.asfortranarray(kwargs[key])    # Perform conversion
+                        raise TypeError ("Element size of '%s' does not match \
+                                          that of the C++ backend." % key)
+                    kwargs[key] = self.utils.enforce_optimal_array (kwargs[key],
+                                                                    key,
+                                                                    stencil.get_backend ( ))
         #
         # prepare the list of parameters to call the library function
         #

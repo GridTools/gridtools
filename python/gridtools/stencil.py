@@ -547,6 +547,7 @@ class MultiStageStencil (Stencil):
             logging.error("Error while analyzing code for stencil '%s'" % self.name)
             Stencil.compiler.unregister (self)
             raise e
+        else:
             #
             # Check the minimum halo has been given
             #
@@ -571,6 +572,7 @@ class MultiStageStencil (Stencil):
             else:
                 raise ValueError ("Unknown backend '%s' set for stencil '%s'" %
                                   (backend, self.name) )
+
 
     def get_halo (self):
         """
