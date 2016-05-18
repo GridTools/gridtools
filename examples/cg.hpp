@@ -231,7 +231,7 @@ struct boundary_conditions {
 /*******************************************************************************/
 /*******************************************************************************/
 
-bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
+bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) {
 
     // Initialize MPI
     gridtools::GCL_Init();
@@ -263,6 +263,11 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
 #else
 #define BACKEND backend<Host, GRIDBACKEND, Naive >
 #endif
+
+    // Start timer
+    boost::timer::cpu_times lapse_time_run = {0,0,0};
+    boost::timer::cpu_times lapse_time_d3point7 = {0,0,0};
+    boost::timer::cpu_timer time;
 
     //--------------------------------------------------------------------------
     // Create processor grid
@@ -346,13 +351,13 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     //std::cout << "J #" << PID << ": " << meta_.get_low_bound(1) << " - " << meta_.get_up_bound(1) << std::endl;
 
     // Initialize the RHS vector domain
-    for (uint_t i=0; i<metadata_.template dims<0>(); ++i)
-        for (uint_t j=0; j<metadata_.template dims<1>(); ++j)
-            for (uint_t k=0; k<metadata_.template dims<2>(); ++k)
-            {
-                //b(i,j,k) = h2 * f(I+i, J+j, K+k); //TODO
-                //x(i,j,k) = 10000*(I+i) +  100*(J+j) + K+k;
-            }
+    // for (uint_t i=0; i<metadata_.template dims<0>(); ++i)
+    //     for (uint_t j=0; j<metadata_.template dims<1>(); ++j)
+    //         for (uint_t k=0; k<metadata_.template dims<2>(); ++k)
+    //         {
+    //             b(i,j,k) = h2 * f(I+i, J+j, K+k); //TODO
+    //             x(i,j,k) = 10000*(I+i) +  100*(J+j) + K+k;
+    //         }
 
     //--------------------------------------------------------------------------
     // Definition of placeholders. The order of them reflect the order the user
@@ -445,11 +450,6 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
       2) The logical physical domain with the fields to use
       3) The actual domain dimensions
      */
-
-    // Start timer
-    boost::timer::cpu_times lapse_time_run = {0,0,0};
-    boost::timer::cpu_times lapse_time_d3point7 = {0,0,0};
-    boost::timer::cpu_timer time;
 
     // Construction of the domain for step phase
     gridtools::domain_type<accessor_list_init> domain_init
@@ -817,15 +817,24 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         ptr_MrNew = swap;
 
         boost::timer::cpu_times lapse_time_iteration = time_iteration.elapsed();
+            
+        double residual;
+        #ifdef REL_TOL
+        residual =  sqrt(rr_global)/rr_init;
+        #else
+        residual =  sqrt(rr_global);
+        #endif
+
         if (PID == 0)
         {
             std::cout << "Iteration " << iter << ": [time]" << boost::timer::format(lapse_time_iteration);
-            #ifdef REL_TOL
-            std::cout << "Iteration " << iter << ": [residual] " << sqrt(rr_global)/rr_init << std::endl << std::endl;
-            #else
-            std::cout << "Iteration " << iter << ": [residual] " << sqrt(rr_global) << std::endl << std::endl;
-            #endif
+            std::cout << "Iteration " << iter << ": [residual] " << residual << std::endl << std::endl;
         }
+
+        // Convergence test
+        if (residual < EPS)
+            break;
+
     } //end for
 
     boost::timer::cpu_times lapse_time = time.elapsed();
