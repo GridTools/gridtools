@@ -11,6 +11,11 @@ namespace gridtools {
 
     namespace icgrid {
 
+        /**
+         * metafunction that fills the color argument of a run functor argument metadata type
+         * @tparam RunFunctorArguments the run functor arguments being filled with a particular color
+         * @tparam Index unsigned int type with color
+         */
         template < typename RunFunctorArguments, typename Index >
         struct colorize_run_functor_arguments {
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), "Error");
@@ -184,7 +189,6 @@ namespace gridtools {
                     addon++;
                 }
 
-                typedef color_execution_functor< RunFunctorArguments, iterate_domain_t, grid_t > PP;
                 for (uint_t i = m_first_pos[0]; i <= m_first_pos[0] + m_loop_size[0]; ++i) {
                     boost::mpl::for_each< boost::mpl::range_c< uint_t, 0, n_colors_t::value > >(
                         color_execution_functor< RunFunctorArguments, iterate_domain_t, grid_t >(
