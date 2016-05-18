@@ -616,7 +616,7 @@ namespace gridtools {
     template < typename Location1, typename Location2, uint_t Color >
     struct connectivity_indexes {
         template < typename ValueType >
-        using return_t = typename return_type< typename from< Location1 >::to< Location2 >, ValueType >::type;
+        using return_t = typename return_type< typename from< Location1 >::template to< Location2 >, ValueType >::type;
 
         static const size_t n_neighbors = return_t< array< uint_t, 4 > >::n_dimensions;
 
