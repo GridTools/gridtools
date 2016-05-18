@@ -168,6 +168,8 @@ namespace gridtools {
         */
         template < ushort_t Index,
             typename Layout,
+                   //a but in nvcc with c++11 does not allow to use the more general repeat_template_v_c
+                   // Once the bug if fixed, the general version should be recovered
 #ifdef __CUDACC__
             typename Halo = typename repeat_template_c< 0, Layout::length, halo >::type,
 #else

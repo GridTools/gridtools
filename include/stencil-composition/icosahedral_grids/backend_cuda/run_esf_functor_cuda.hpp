@@ -62,6 +62,7 @@ namespace gridtools {
             // a grid point at the core of the block can be out of extent (for last blocks) if domain of computations
             // is not a multiple of the block size
             if (m_iterate_domain.template is_thread_in_domain< extent_t >()) {
+                // loop over colors excuting user funtor for each color
                 color_loop<IntervalType, EsfArguments>(iterate_domain_remapper);
             }
 
@@ -77,6 +78,8 @@ namespace gridtools {
                 typename boost::is_same< typename EsfArguments::esf_t::color_t, notype >::type >::type type;
         };
 
+        // specialization of the loop over colors when the user speficied the ESF with a specific color
+        // Only that color gets executed
         template < typename IntervalType, typename EsfArguments, typename IterateDomainRemapper >
         __device__ void color_loop(IterateDomainRemapper const & iterate_domain_remapper,
             typename boost::enable_if< typename esf_has_color< EsfArguments >::type, int >::type = 0) const {
@@ -96,6 +99,8 @@ namespace gridtools {
                     static_uint< color_t::value > >();
         }
 
+        // specialization of the loop over colors when the ESF does not specify any particular color.
+        // A loop over all colors is performed.
         template < typename IntervalType, typename EsfArguments, typename IterateDomainRemapper >
         __device__ void color_loop(IterateDomainRemapper const & iterate_domain_remapper,
             typename boost::disable_if< typename esf_has_color< EsfArguments >::type, int >::type = 0) const {

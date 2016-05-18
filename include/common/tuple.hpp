@@ -1,5 +1,8 @@
 /**
  * Implementation of a tuple with constexpr ctr and random element getter
+ * Similar to std::tuple but GPU capable.
+ * Notice: Current version is optimized for stornig integrals elements, returning elements by constexpr copy.
+ * In order to use with more complex types (non constexprable), a version returning by ref should be used instead
  */
 #pragma once
 #include "host_device.hpp"
