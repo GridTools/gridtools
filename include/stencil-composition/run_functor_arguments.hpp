@@ -19,6 +19,7 @@
 #include "grid_traits.hpp"
 #include "backend_ids.hpp"
 #include "reductions/reduction_data.hpp"
+#include "color.hpp"
 
 namespace gridtools {
 

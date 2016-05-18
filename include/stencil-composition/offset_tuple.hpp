@@ -2,6 +2,7 @@
 #include "common/defs.hpp"
 #include "stencil-composition/dimension_defs.hpp"
 #include "common/generic_metafunctions/logical_ops.hpp"
+#include "../common/generic_metafunctions/accumulate.hpp"
 #include "common/generic_metafunctions/is_variadic_pack_of.hpp"
 #include "../common/array.hpp"
 
@@ -73,6 +74,16 @@ namespace gridtools {
     }
 #endif
 
+    namespace _impl {
+        template < typename... GenericElements >
+        struct contains_array {
+            typedef typename boost::mpl::fold<
+                typename variadic_to_vector< typename is_array< GenericElements >::type... >::type,
+                boost::mpl::false_,
+                boost::mpl::or_< boost::mpl::_1, boost::mpl::_2 > >::type type;
+        };
+    }
+
     //################################################################################
     //                              Multidimensional Fields
     //################################################################################
@@ -120,8 +131,7 @@ namespace gridtools {
            When this constructor is used all the arguments have to be specified and passed to the function call in
            order. No check is done on the order*/
         template < typename... GenericElements,
-            typename = typename boost::
-                disable_if_c< accumulate(logical_or(), is_array< GenericElements >::type::value...), bool >::type >
+            typename = typename boost::disable_if< typename _impl::contains_array< GenericElements... >::type, bool >::type >
         GT_FUNCTION constexpr offset_tuple(int const t, GenericElements const... x)
             : super(x...), m_offset(t) {}
 
@@ -215,8 +225,7 @@ namespace gridtools {
 
 #ifdef CXX11_ENABLED
         template < typename... GenericElements,
-            typename = typename boost::
-                disable_if_c< accumulate(logical_or(), is_array< GenericElements >::type::value...), bool >::type >
+            typename = typename boost::disable_if< typename _impl::contains_array< GenericElements... >::type, bool >::type >
         GT_FUNCTION constexpr offset_tuple(GenericElements... x) {
             GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension< GenericElements >::type::value...),
                 "wrong type for the argument of an offset_tuple");

@@ -3,7 +3,8 @@
 #include "../../backend_traits_fwd.hpp"
 #include "stencil-composition/iterate_domain.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
-#include "common/gt_assert.hpp"
+#include "../../../common/gt_assert.hpp"
+#include "../../../common/generic_metafunctions/transform_metadata.hpp"
 
 namespace gridtools {
 
