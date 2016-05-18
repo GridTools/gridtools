@@ -17,7 +17,7 @@ namespace gridtools {
     // specialization for a halo template parameter
     template < ushort_t NExtraDim, uint_t... Args >
     struct extend_aux_param< NExtraDim, halo< Args... > > {
-        typedef typename repeat_template_c< 0, NExtraDim, uint_t, halo, Args... >::type type;
+          typedef typename repeat_template_c< 0, NExtraDim, halo, Args... >::type type;
     };
 
     template < typename T, ushort_t NExtraDim >

@@ -23,11 +23,11 @@ namespace gridtools {
 
         typedef IterateDomainBase< iterate_domain_cuda< IterateDomainBase, IterateDomainArguments > > super;
         typedef typename IterateDomainArguments::local_domain_t local_domain_t;
-        typedef typename super::grid_topology_t grid_topology_t;
 
         typedef typename local_domain_t::esf_args local_domain_args_t;
 
       public:
+        typedef typename super::grid_topology_t grid_topology_t;
         typedef typename super::data_pointer_array_t data_pointer_array_t;
         typedef typename super::strides_cached_t strides_cached_t;
 

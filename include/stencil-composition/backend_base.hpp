@@ -168,7 +168,11 @@ namespace gridtools {
         */
         template < ushort_t Index,
             typename Layout,
-            typename Halo = typename repeat_template_c< 0, Layout::length, uint_t, halo >::type,
+#ifdef __CUDACC__
+            typename Halo = typename repeat_template_c< 0, Layout::length, halo >::type,
+#else
+            typename Halo = typename repeat_template_v_c< 0, Layout::length, uint_t, halo >::type,
+#endif
             typename Alignment = typename backend_traits_t::default_alignment::type >
         using storage_info = typename backend_traits_t::
             template meta_storage_traits< static_uint< Index >, Layout, false, Halo, Alignment >::type;
@@ -371,10 +375,8 @@ namespace gridtools {
 
         template < typename ArgList, typename MetaList, typename Grid >
         static void prepare_temporaries(ArgList &arg_list_, MetaList &meta_list_, Grid const &grid) {
-            _impl::template prepare_temporaries_functor< ArgList,
-                MetaList,
-                Grid,
-                backend_ids_t>::prepare_temporaries((arg_list_), meta_list_, (grid));
+            _impl::template prepare_temporaries_functor< ArgList, MetaList, Grid, backend_ids_t >::prepare_temporaries(
+                (arg_list_), meta_list_, (grid));
         }
 
         /** Initial interface

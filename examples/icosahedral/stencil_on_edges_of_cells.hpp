@@ -104,8 +104,8 @@ namespace soeov {
         stencil_->run();
 
 #ifdef __CUDACC__
-        out_edges.d2h_update();
-        in_edges.d2h_update();
+        cell_area.d2h_update();
+        weight_edges.d2h_update();
 #endif
 
         unstructured_grid ugrid(d1, d2, d3);
