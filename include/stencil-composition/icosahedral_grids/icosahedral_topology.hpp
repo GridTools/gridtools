@@ -80,7 +80,7 @@ namespace gridtools {
 
     template < typename ValueType >
     struct return_type< from< edges >::template to< vertexes >, ValueType > {
-        typedef array< ValueType, 4 > type;
+        typedef array< ValueType, 2 > type;
     };
 
     template < typename ValueType >
@@ -429,13 +429,13 @@ namespace gridtools {
          * neighbors order
          *
          *   ______
-         *   \ 0  /\
-         *    \  / 1\
+         *   \ 1  /\
+         *    \  / 0\
          *     \/____\
          */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{0, -2, 0, 0}, {0, -1, 0, 0}}};
+            return return_t< array< int_t, 4 > >{{{0, -1, 0, 0}, {0, -2, 0, 0}}};
         }
     };
 
@@ -450,15 +450,15 @@ namespace gridtools {
         /*
          * neighbors order
          *
-         *       1______2
+         *       1______
          *       /\    /
          *      /  \  /
          *     /____\/
-         *    0      3
+         *           0
          */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{1, 0, -1, 0}, {0, 0, 0, 0}, {0, 0, 1, 0}, {1, 0, 0, 0}}};
+            return return_t< array< int_t, 4 > >{{{1, 0, 0, 0}, {0, 0, 0, 0}}};
         }
     };
 
@@ -473,18 +473,18 @@ namespace gridtools {
         /*
          * neighbors order
          *
-         *      1
+         *
          *      /\
          *     /  \
-         *   0/____\2
+         *   0/____\1
          *    \    /
          *     \  /
          *      \/
-         *      3
+         *
          */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{0, -1, 0, 0}, {-1, -1, 1, 0}, {0, -1, 1, 0}, {1, -1, 0, 0}}};
+            return return_t< array< int_t, 4 > >{{{0, -1, 0, 0}, {0, -1, 1, 0}}};
         }
     };
 
@@ -499,15 +499,15 @@ namespace gridtools {
         /*
          * neighbors order
          *
-         *  0______1
+         *   ______0
          *   \    /\
          *    \  /  \
-         *     \/____\2
-         *     3
+         *     \/____\
+         *     1
          */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{0, -2, 0, 0}, {0, -2, 1, 0}, {1, -2, 1, 0}, {1, -2, 0, 0}}};
+            return return_t< array< int_t, 4 > >{{{0, -2, 1, 0}, {1, -2, 0, 0}}};
         }
     };
 

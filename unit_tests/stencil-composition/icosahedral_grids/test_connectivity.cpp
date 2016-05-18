@@ -140,23 +140,24 @@ TEST_P(ll_map_test, edge_to_vertex) {
     for (int i = 0; i < d3; i+=2) {
         // edge # 51
         ASSERT_TRUE(( grid.ll_map( edges(), vertexes(), gridtools::static_int<0>(), {(uint_t)2,(uint_t)3,(uint_t)i}) ==
-                      array<uint_t, 4>{21*d3+i, 22*d3+i, 30*d3+i, 29*d3+i} ));
+                      array<uint_t, 2>{21*d3+i, 30*d3+i} ));
+
         // edge # 59
         ASSERT_TRUE(( grid.ll_map( edges(), vertexes(), gridtools::static_int<1>(), {(uint_t)2,(uint_t)3,(uint_t)i}) ==
-                      array<uint_t, 4>{21*d3+i, 13*d3+i, 22*d3+i, 30*d3+i} ));
+                      array<uint_t, 2>{21*d3+i, 22*d3+i} ));
         // edge # 67
         ASSERT_TRUE(( grid.ll_map( edges(), vertexes(), gridtools::static_int<2>(), {(uint_t)2,(uint_t)3,(uint_t)i}) ==
-                      array<uint_t, 4>{21*d3+i, 22*d3+i, 30*d3+i, 31*d3+i} ));
+                      array<uint_t, 2>{22*d3+i, 30*d3+i} ));
 
         // edge # 123
         ASSERT_TRUE(( grid.ll_map( edges(), vertexes(), gridtools::static_int<0>(), {(uint_t)5,(uint_t)3,(uint_t)i}) ==
-                      array<uint_t, 4>{48*d3+i, 49*d3+i, 56*d3+i, 57*d3+i} ));
+                      array<uint_t, 2>{48*d3+i, 57*d3+i} ));
         // edge # 131
         ASSERT_TRUE(( grid.ll_map( edges(), vertexes(), gridtools::static_int<1>(), {(uint_t)5,(uint_t)3,(uint_t)i}) ==
-                      array<uint_t, 4>{48*d3+i, 40*d3+i, 49*d3+i, 57*d3+i} ));
+                      array<uint_t, 2>{48*d3+i, 49*d3+i} ));
         // edge # 139
         ASSERT_TRUE(( grid.ll_map( edges(), vertexes(), gridtools::static_int<2>(), {(uint_t)5,(uint_t)3,(uint_t)i}) ==
-                      array<uint_t, 4>{48*d3+i, 49*d3+i, 57*d3+i, 58*d3+i} ));
+                      array<uint_t, 2>{49*d3+i, 57*d3+i} ));
 
     }
 }
