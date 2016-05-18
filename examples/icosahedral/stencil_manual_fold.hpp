@@ -1,3 +1,17 @@
+/*
+ * This example demonstrate how to retrieve the connectivity information of the
+ * icosahedral/octahedral grid in the user functor. This is useful for example when
+ * we need to operate on fields with a double location, for which the on_cells, on_edges
+ * syntax has limitations, as it requires make use of the eval object, which is not
+ * resolved in the lambdas passed to the on_cells syntax.
+ * The example shown here computes a value for each edge of a cells. Therefore the primary
+ * location type of the output field is cells, however we do not store a scalar value, but
+ * a value per edge of each cell (i.e. 3 values).
+ * The storage is therefore a 5 dimensional field with indices (i, c, j, k, edge_number)
+ * where the last has the range [0,2]
+ *
+ */
+
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <stencil-composition/stencil-composition.hpp>
@@ -56,10 +70,11 @@ namespace smf {
                 }
             }
 #else
+            //retrieve the array of neighbor offsets. This is an array with length 3 (number of neighbors).
             auto neighbors_offsets = connectivity< cells, cells >::offsets(eval.position()[1]);
             ushort_t e=0;
+            // loop over all neighbours. Each iterator (neighbor_offset) is a position offset, i.e. an array with length 4
             for (auto neighbor_offset : neighbors_offsets) {
-
                 eval(weight_edges(edge+e)) = eval(cell_area(neighbor_offset)) / eval(cell_area());
                 e++;
             }
@@ -83,13 +98,18 @@ namespace smf {
         const uint_t halo_k = 0;
         icosahedral_topology_t icosahedral_grid(d1, d2, d3);
 
+        // area of cells is a storage with location type cells
         auto cell_area = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("cell_area");
+        // we need a storage of weights with location cells, but storing 3 weights (one for each edge).
+        // We extend the storage with location type cells by one more dimension with length 3
         auto weight_edges_meta = meta_storage_extender()(cell_area.meta_data(), 3);
         using edges_of_cells_storage_type =
             typename backend_t::storage_type< double, decltype(weight_edges_meta) >::type;
+        //allocate the weight on edges of cells and the reference values
         edges_of_cells_storage_type weight_edges(weight_edges_meta, "edges_of_cell");
         edges_of_cells_storage_type ref_weights(weight_edges_meta, "ref_edges_of_cell");
 
+        // dummy initialization of input values of the cell areas
         for (int i = 0; i < d1; ++i) {
             for (int c = 0; c < icosahedral_topology_t::cells::n_colors::value; ++c) {
                 for (int j = 0; j < d2; ++j) {
@@ -100,6 +120,7 @@ namespace smf {
                 }
             }
         }
+        //default initialize output and reference.
         weight_edges.initialize(0.0);
         ref_weights.initialize(0.0);
 
@@ -132,6 +153,7 @@ namespace smf {
         weight_edges.d2h_update();
 #endif
 
+        // compute the reference values of the weights on edges of cells
         unstructured_grid ugrid(d1, d2, d3);
         for (uint_t i = halo_nc; i < d1 - halo_nc; ++i) {
             for (uint_t c = 0; c < icosahedral_topology_t::edges::n_colors::value; ++c) {

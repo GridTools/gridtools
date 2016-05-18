@@ -1,3 +1,11 @@
+/*
+ * This example demonstrate how to code operators that are specialized for 
+ * one color. Like that we can implement different equations for downward
+ * and upward triangles. 
+ * The example is making use of the syntax make_cesf 
+ *
+ */
+
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <stencil-composition/stencil-composition.hpp>
