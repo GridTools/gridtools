@@ -86,7 +86,9 @@ inline double omp_get_wtime() { return 0; }
 
 // constexpr function does not allow to assert or more than one statement to add protections
 // CONSTEXPR can be used in order to allow more checks and protection statements
-// in debug mode
+// in debug mode.
+// If CONSTEXPR is used, the result will not be constexpr in debug mode, therefore unittests that
+// assume (for example those inserting result values into a templated type) so should not be compiled in DEBUG.
 #ifdef NDEBUG
 #define CONSTEXPR constexpr
 #else

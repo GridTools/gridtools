@@ -1,5 +1,5 @@
 /*
- * This example demonstrate how to retrieve the connectivity information of the
+ * This example demonstrates how to retrieve the connectivity information of the
  * icosahedral/octahedral grid in the user functor. This is useful for example when
  * we need to operate on fields with a double location, for which the on_cells, on_edges
  * syntax has limitations, as it requires make use of the eval object, which is not

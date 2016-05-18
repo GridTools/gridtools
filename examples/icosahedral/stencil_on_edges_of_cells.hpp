@@ -1,3 +1,12 @@
+/*
+ * This shows how we can use multidimensional fields with a location type.
+ * We illustrate this with a storage with location type cells, that we use to
+ * store a value per neighbouring edge. Therefore the storage has 5 dimension,
+ * being the last one the one that stores values for each of the 3 neighbour edges
+ * of a cell.
+ * We use it in a user functor with a manual loop over the 3 edges.
+ * We dont make use of the on_cells nor the grid topology of the icosahedral/octahedral grid here
+ */
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <stencil-composition/stencil-composition.hpp>
@@ -38,6 +47,7 @@ namespace soeov {
             using edge_of_cell_dim = dimension< 5 >;
             edge_of_cell_dim::Index edge;
 
+            // we loop over the 3 edges of a cell, and compute and store a value
             for (uint_t i = 0; i < 3; ++i) {
                 eval(weight_edges(edge + i)) = eval(cell_area()) * (1 + (float_type)1.0 / (float_type)(i + 1));
             }
@@ -59,7 +69,10 @@ namespace soeov {
         const uint_t halo_k = 0;
         icosahedral_topology_t icosahedral_grid(d1, d2, d3);
 
+        // instantiate a input field with location type cells
         auto cell_area = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("cell_area");
+        // for the output storage we need to extend the storage with location type cells with an extra dimension
+        // of length 3 (edges of a cell)
         auto weight_edges_meta = meta_storage_extender()(cell_area.meta_data(), 3);
         using edges_of_cells_storage_type =
             typename backend_t::storage_type< double, decltype(weight_edges_meta) >::type;
@@ -108,6 +121,7 @@ namespace soeov {
         weight_edges.d2h_update();
 #endif
 
+        //compute reference values
         unstructured_grid ugrid(d1, d2, d3);
         for (uint_t i = halo_nc; i < d1 - halo_nc; ++i) {
             for (uint_t c = 0; c < icosahedral_topology_t::edges::n_colors::value; ++c) {

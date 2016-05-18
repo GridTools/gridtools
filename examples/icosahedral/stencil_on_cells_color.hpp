@@ -1,5 +1,5 @@
 /*
- * This example demonstrate how to code operators that are specialized for 
+ * This example demonstrates how to code operators that are specialized for
  * one color. Like that we can implement different equations for downward
  * and upward triangles. 
  * The example is making use of the syntax make_cesf 
@@ -63,9 +63,6 @@ namespace socc {
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
             auto ff = [](const double _in, const double _res) -> double { return _in + _res; };
 
-            /**
-               This interface checks that the location types are compatible with the accessors
-             */
             eval(out()) = eval(on_cells(ff, 0.0, in()));
         }
     };
@@ -81,9 +78,6 @@ namespace socc {
         const uint_t halo_nc = 1;
         const uint_t halo_mc = 1;
         const uint_t halo_k = 0;
-        //        const uint_t d3 = 6 + halo_k * 2;
-        //        const uint_t d1 = 6 + halo_nc * 2;
-        //        const uint_t d2 = 6 + halo_mc * 2;
         icosahedral_topology_t icosahedral_grid(d1, d2, d3);
 
         auto in_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("in");

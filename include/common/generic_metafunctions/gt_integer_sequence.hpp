@@ -115,7 +115,6 @@ namespace gridtools {
             typename... ExtraTypes >
         GT_FUNCTION static constexpr ReturnType apply_lambda(
             Lambda lambda, AdditionalArg add_arg, ExtraTypes const &... args_)
-//            -> decltype(lambda(MetaFunctor< Indices >::apply(args_...)..., add_arg)) {
         {
             return lambda(MetaFunctor< Indices >::apply(args_...)..., add_arg);
         }
