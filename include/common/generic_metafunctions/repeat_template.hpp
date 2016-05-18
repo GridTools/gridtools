@@ -96,6 +96,12 @@ namespace gridtools {
             InitialValues... >::type type;
     };
 #endif
+
+    /**
+     * similar to repeat_template_v_c with some limitations (used because the general version repeat_template_v_c
+     * does not compile with CUDA due to nvcc bug). It assumes that the types of the template parameters of the Lambda
+     * function are ushort_t.
+     */
     template < ushort_t Constant, ushort_t Length, template < ushort_t... T > class Lambda, ushort_t ... InitialValues >
     struct repeat_template_c {
         typedef typename _impl::expand_recursively<
