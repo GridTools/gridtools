@@ -96,7 +96,7 @@ namespace gridtools {
             functor_t::f_type::Do(iterate_domain_remapper, IntervalType());
             (m_iterate_domain)
                 .template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
-                    static_uint< color_t::value > >();
+                    static_int< - color_t::value > >();
         }
 
         // specialization of the loop over colors when the ESF does not specify any particular color.
