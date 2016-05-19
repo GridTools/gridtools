@@ -7,7 +7,7 @@
 using namespace gridtools;
 using namespace enumtype;
 
-namespace soe {
+namespace soem {
 
 #ifdef __CUDACC__
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
@@ -26,18 +26,19 @@ namespace soe {
     typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
     struct test_on_edges_functor {
-        typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 1 > > in;
-        typedef inout_accessor< 1, icosahedral_topology_t::edges > out;
-        typedef boost::mpl::vector< in, out> arg_list;
+        typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 1 > > in1;
+        typedef in_accessor< 1, icosahedral_topology_t::edges, extent< 1 > > in2;
+        typedef inout_accessor< 2, icosahedral_topology_t::edges > out;
+        typedef boost::mpl::vector< in1, in2, out> arg_list;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-            auto ff = [](const double _in, const double _res) -> double { return _in + _res; };
+            auto ff = [](const double _in1, const double _in2, const double _res) -> double { return _in1+_in2*0.1 + _res; };
 
             /**
                This interface checks that the location types are compatible with the accessors
              */
-            eval(out()) = eval(on_edges(ff, 0.0, in()));
+            eval(out()) = eval(on_edges(ff, 0.0, in1(), in2()));
         }
     };
 
@@ -56,7 +57,8 @@ namespace soe {
         const uint_t halo_k = 0;
         icosahedral_topology_t icosahedral_grid(d1, d2, d3);
 
-        auto in_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("in");
+        auto in_edges1 = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("in1");
+        auto in_edges2 = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("in2");
         auto out_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("out");
         auto ref_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("ref");
 
@@ -64,8 +66,10 @@ namespace soe {
             for (int c = 0; c < icosahedral_topology_t::edges::n_colors::value; ++c) {
                 for (int j = 0; j < d2; ++j) {
                     for (int k = 0; k < d3; ++k) {
-                        in_edges(i, c, j, k) = (uint_t)in_edges.meta_data().index(
+                        in_edges1(i, c, j, k) = (uint_t)in_edges1.meta_data().index(
                             array< uint_t, 4 >{(uint_t)i, (uint_t)c, (uint_t)j, (uint_t)k});
+                        in_edges2(i, c, j, k) = (uint_t)in_edges2.meta_data().index(
+                            array< uint_t, 4 >{(uint_t)i/2, (uint_t)c, (uint_t)j/2, (uint_t)k/2});
                     }
                 }
             }
@@ -73,14 +77,15 @@ namespace soe {
         out_edges.initialize(0.0);
         ref_edges.initialize(0.0);
 
-        typedef arg< 0, edge_storage_type > p_in_edges;
-        typedef arg< 1, edge_storage_type > p_out_edges;
+        typedef arg< 0, edge_storage_type > p_in_edges1;
+        typedef arg< 1, edge_storage_type > p_in_edges2;
+        typedef arg< 2, edge_storage_type > p_out_edges;
 
-        typedef boost::mpl::vector< p_in_edges, p_out_edges>
+        typedef boost::mpl::vector< p_in_edges1, p_in_edges2, p_out_edges>
             accessor_list_t;
 
         gridtools::domain_type< accessor_list_t > domain(
-            boost::fusion::make_vector(&in_edges, &out_edges));
+            boost::fusion::make_vector(&in_edges1, &in_edges2, &out_edges));
         array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
@@ -94,15 +99,14 @@ namespace soe {
             gridtools::make_mss // mss_descriptor
             (execute< forward >(),
                 gridtools::make_esf< test_on_edges_functor, icosahedral_topology_t, icosahedral_topology_t::edges >(
-                    p_in_edges(), p_out_edges())));
+                    p_in_edges1(), p_in_edges2(), p_out_edges())));
         stencil_->ready();
         stencil_->steady();
         stencil_->run();
 
-#ifdef __CUDACC__
         out_edges.d2h_update();
-        in_edges.d2h_update();
-#endif
+        in_edges1.d2h_update();
+        in_edges2.d2h_update();
 
         unstructured_grid ugrid(d1, d2, d3);
         for (uint_t i = halo_nc; i < d1 - halo_nc; ++i) {
@@ -113,7 +117,7 @@ namespace soe {
                             ugrid.neighbours_of< icosahedral_topology_t::edges, icosahedral_topology_t::edges >(
                                 {i, c, j, k});
                         for (auto iter = neighbours.begin(); iter != neighbours.end(); ++iter) {
-                            ref_edges(i, c, j, k) += in_edges(*iter);
+                            ref_edges(i, c, j, k) += in_edges1(*iter)+in_edges2(*iter)*0.1;
                         }
                     }
                 }
