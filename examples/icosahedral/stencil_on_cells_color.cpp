@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
     return RUN_ALL_TESTS();
 }
 
-TEST(StencilOnCells, Test) {
+TEST(StencilOnCells, WithColor) {
     uint_t x = Options::getInstance().m_size[0];
     uint_t y = Options::getInstance().m_size[1];
     uint_t z = Options::getInstance().m_size[2];
