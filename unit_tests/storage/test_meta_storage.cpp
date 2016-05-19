@@ -45,17 +45,17 @@ TEST(storage_info, test_interface) {
     GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.unaligned_dims<2>()==13), "error");
 
     //check aligned dimensions with either templated method or method that takes an argument
-    GRIDTOOLS_STATIC_ASSERT((meta_aligned_1.dims<0>()==11), "error");
-    GRIDTOOLS_STATIC_ASSERT((meta_aligned_1.dims<1>()==12), "error");
-    GRIDTOOLS_STATIC_ASSERT((meta_aligned_1.dims<2>()==32), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_1.dim<0>()==11), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_1.dim<1>()==12), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_1.dim<2>()==32), "error");
 
-    GRIDTOOLS_STATIC_ASSERT((meta_aligned_2.dims(0)==11), "error");
-    GRIDTOOLS_STATIC_ASSERT((meta_aligned_2.dims(1)==32), "error");
-    GRIDTOOLS_STATIC_ASSERT((meta_aligned_2.dims(2)==13), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_2.dim(0)==11), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_2.dim(1)==32), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_2.dim(2)==13), "error");
 
-    GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.dims<0>()==32), "error");
-    GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.dims<1>()==12), "error");
-    GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.dims<2>()==13), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.dim<0>()==32), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.dim<1>()==12), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.dim<2>()==13), "error");
 
 
     //check unaligned strides with either templated method or method that takes an argument
