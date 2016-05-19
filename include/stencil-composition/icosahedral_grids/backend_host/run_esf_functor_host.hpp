@@ -25,7 +25,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Error");
             typedef typename boost::mpl::or_< typename boost::is_same< typename RunFunctorArguments::color_t,
                                                   typename EsfArguments::esf_t::color_t >::type,
-                typename boost::is_same< notype, typename EsfArguments::esf_t::color_t >::type >::type type;
+                typename boost::is_same< nocolor, typename EsfArguments::esf_t::color_t >::type >::type type;
         };
 
         /*
@@ -38,13 +38,13 @@ namespace gridtools {
         GT_FUNCTION void do_impl(
             typename boost::enable_if< typename color_esf_match< EsfArguments >::type, int >::type = 0) const {
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
-
             call_user_functor<IntervalType, EsfArguments>();
         }
 
         template < typename IntervalType, typename EsfArguments >
         GT_FUNCTION void do_impl(
-            typename boost::disable_if< typename color_esf_match< EsfArguments >::type, int >::type = 0) const {}
+            typename boost::disable_if< typename color_esf_match< EsfArguments >::type, int >::type = 0) const {
+        }
 
     private:
         /*

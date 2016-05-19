@@ -111,7 +111,7 @@ namespace test_iterate_domain{
                 block_size<32,4>,
                 block_size<32,4>,
                 gridtools::grid<axis>,
-                false,
+                boost::mpl::false_,
                 notype
                 >
             > it_domain_t;

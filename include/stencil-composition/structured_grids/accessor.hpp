@@ -1,5 +1,5 @@
 #pragma once
-#include "./accessor_impl.hpp"
+#include "../accessor_base.hpp"
 #include "../arg.hpp"
 #include "../dimension.hpp"
 /**

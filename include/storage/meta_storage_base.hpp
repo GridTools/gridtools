@@ -228,7 +228,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
             : m_dims(other.m_dims), m_strides(other.m_strides) {}
 
         /** @brief prints debugging information */
-        void info() const { std::cout << dims< 0 >() << "x" << dims< 1 >() << "x" << dims< 2 >() << ", " << std::endl; }
+        void info() const { std::cout << dim< 0 >() << "x" << dim< 1 >() << "x" << dim< 2 >() << ", " << std::endl; }
 
         /**@brief returns the size of the data field*/
         GT_FUNCTION
@@ -237,14 +237,19 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         }
 
         /** @brief returns the dimension fo the field along I*/
+        GT_FUNCTION constexpr array<uint_t,space_dimensions> dims() const {
+            return m_dims;
+        }
+
+        /** @brief returns the dimension fo the field along I*/
         template < ushort_t I >
-        GT_FUNCTION constexpr uint_t dims() const {
+        GT_FUNCTION constexpr uint_t dim() const {
             return m_dims[I];
         }
 
         /** @brief returns the dimension fo the field along I*/
         GT_FUNCTION
-        constexpr uint_t dims(const ushort_t I) const { return m_dims[I]; }
+        constexpr uint_t dim(const ushort_t I) const { return m_dims[I]; }
 
         /**@brief returns the storage strides
          */

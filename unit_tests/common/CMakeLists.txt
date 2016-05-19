@@ -6,7 +6,7 @@ FILE(GLOB_RECURSE INC_ALL "../../include/common/*.hpp")
 SET(COMMON_UNITTEST_SOURCES meta_array_test.cpp atomic_functions_test.cpp ${INC_ALL})
 
 if(ENABLE_CXX11)
-    SET(COMMON_UNITTEST_SOURCES ${COMMON_UNITTEST_SOURCES} test_array.cpp test_aggregate.cpp explode_array_test.cpp test_repeat_template.cpp)
+    SET(COMMON_UNITTEST_SOURCES ${COMMON_UNITTEST_SOURCES} test_array.cpp test_aggregate.cpp explode_array_test.cpp test_repeat_template.cpp test_tuple.cpp)
 endif()
 
 ### Executables

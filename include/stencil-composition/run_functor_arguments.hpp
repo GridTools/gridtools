@@ -19,6 +19,7 @@
 #include "grid_traits.hpp"
 #include "backend_ids.hpp"
 #include "reductions/reduction_data.hpp"
+#include "color.hpp"
 
 namespace gridtools {
 
@@ -42,6 +43,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_block_size< ProcessingElementsBlockSize >::value), "Iternal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_block_size< PhysicalDomainBlockSize >::value), "Iternal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Iternal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((IsReduction::value == true || IsReduction::value == false), "Internal Error: wrong type");
 
         typedef BackendIds backend_ids_t;
         typedef LocalDomain local_domain_t;
@@ -122,6 +124,7 @@ namespace gridtools {
             (is_sequence_of< EsfSequence, is_esf_descriptor >::value), "Internal Error: invalid type");
         GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), "Internal Error: invalid type");
         GRIDTOOLS_STATIC_ASSERT((is_color_type<Color>::value), "Internal Error: invalid type");
+        GRIDTOOLS_STATIC_ASSERT((IsReduction::value == true || IsReduction::value == false), "Internal Error: wrong type");
 
         typedef BackendIds backend_ids_t;
         typedef ProcessingElementsBlockSize processing_elements_block_size_t;

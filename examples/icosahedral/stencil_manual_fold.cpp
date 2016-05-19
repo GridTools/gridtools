@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "stencil_on_cells_color.hpp"
+#include "stencil_manual_fold.hpp"
 #include "../Options.hpp"
 
 int main(int argc, char **argv) {
@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
     return RUN_ALL_TESTS();
 }
 
-TEST(StencilOnCells, WithColor) {
+TEST(StencilOnEdges, Test) {
     uint_t x = Options::getInstance().m_size[0];
     uint_t y = Options::getInstance().m_size[1];
     uint_t z = Options::getInstance().m_size[2];
@@ -31,5 +31,5 @@ TEST(StencilOnCells, WithColor) {
     if (t == 0)
         t = 1;
 
-    ASSERT_TRUE(socc::test(x, y, z, t));
+    ASSERT_TRUE(smf::test(x, y, z, t));
 }

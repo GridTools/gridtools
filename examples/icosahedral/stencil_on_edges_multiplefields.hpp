@@ -1,3 +1,10 @@
+/*
+ * This shows an example on how to use on_edges syntax with multiple input fields
+ * (with location type edge) that are needed in the reduction over the edges of a cell
+ * An typical operator that needs this functionality is the divergence where we need
+ * sum_reduce(edges) {sign_edge * lengh_edge}
+ * The sign of the edge indicates whether flows go inward or outward (with respect the center of the cell).
+ */
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <stencil-composition/stencil-composition.hpp>
@@ -35,9 +42,6 @@ namespace soem {
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
             auto ff = [](const double _in1, const double _in2, const double _res) -> double { return _in1+_in2*0.1 + _res; };
 
-            /**
-               This interface checks that the location types are compatible with the accessors
-             */
             eval(out()) = eval(on_edges(ff, 0.0, in1(), in2()));
         }
     };
