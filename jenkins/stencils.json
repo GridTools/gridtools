@@ -57,7 +57,6 @@
                     }
                 },
                 "exec": "build/interface1",
-                "stella_filter": "--gtest_filter=HoriDiffBenchmark.4Stages",
                 "cpu": {
                     "double": {
                         "cxx11": {
@@ -271,7 +270,8 @@
                             }
                         }
                     }
-                }
+                },
+                "stella_filter": "--gtest_filter=HoriDiffBenchmark.4Stages"
             },
             "copy_stencil": {
                 "gpu": {
@@ -329,7 +329,6 @@
                     }
                 },
                 "exec": "build/copy_stencil",
-                "stella_filter": "--gtest_filter=BasicBenchmarks.copyStencilTest",
                 "cpu": {
                     "double": {
                         "cxx11": {
@@ -543,7 +542,8 @@
                             }
                         }
                     }
-                }
+                },
+                "stella_filter": "--gtest_filter=BasicBenchmarks.copyStencilTest"
             },
             "vertical_advection": {
                 "gpu": {
@@ -601,7 +601,6 @@
                     }
                 },
                 "exec": "build/vertical_advection_dycore",
-                "stella_filter": "--gtest_filter=VerticalAdvectionBenchmark.U",
                 "cpu": {
                     "double": {
                         "cxx11": {
@@ -815,7 +814,8 @@
                             }
                         }
                     }
-                }
+                },
+                "stella_filter": "--gtest_filter=VerticalAdvectionBenchmark.U"
             }
         }
     },
@@ -839,12 +839,12 @@
                         "cxx03": {
                             "thread": {
                                 "256x256x80": {
-                                    "rms": 0.0002798611772263496,
-                                    "time": 0.027625666666666663
+                                    "rms": 2.1399186554287483e-05,
+                                    "time": 0.026973666666666663
                                 },
                                 "128x128x80": {
-                                    "rms": 0.0008407357505626095,
-                                    "time": 0.008837733333333334
+                                    "rms": 4.111174473986199e-06,
+                                    "time": 0.0069693
                                 }
                             }
                         }
@@ -897,12 +897,12 @@
                         "cxx03": {
                             "thread": {
                                 "256x256x80": {
-                                    "rms": 5.477094735417732e-05,
-                                    "time": 0.005637516666666666
+                                    "rms": 9.769312876250511e-06,
+                                    "time": 0.005465566666666667
                                 },
                                 "128x128x80": {
-                                    "rms": 6.21558316444032e-06,
-                                    "time": 0.0015520433333333333
+                                    "rms": 6.8149296890479e-06,
+                                    "time": 0.0014907199999999998
                                 }
                             }
                         }
@@ -955,12 +955,12 @@
                         "cxx03": {
                             "thread": {
                                 "256x256x80": {
-                                    "rms": 0.0009057446377919595,
-                                    "time": 0.0646212
+                                    "rms": 6.0387495639657784e-05,
+                                    "time": 0.06305636666666668
                                 },
                                 "128x128x80": {
-                                    "rms": 0.0003324245288895025,
-                                    "time": 0.015525166666666666
+                                    "rms": 7.245279433816052e-06,
+                                    "time": 0.014309166666666666
                                 }
                             }
                         }
