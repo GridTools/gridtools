@@ -75,7 +75,7 @@ namespace gridtools {
         template < typename EsfArguments >
         struct esf_has_color {
             typedef typename boost::mpl::not_<
-                typename boost::is_same< typename EsfArguments::esf_t::color_t, notype >::type >::type type;
+                typename boost::is_same< typename EsfArguments::esf_t::color_t, nocolor >::type >::type type;
         };
 
         // specialization of the loop over colors when the user speficied the ESF with a specific color
