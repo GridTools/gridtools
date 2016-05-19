@@ -1,4 +1,5 @@
 #pragma once
+#include <boost/utility/enable_if.hpp>
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../../common/generic_metafunctions/transform_metadata.hpp"
 #include "stencil-composition/backend_host/iterate_domain_host.hpp"
@@ -18,7 +19,7 @@ namespace gridtools {
          */
         template < typename RunFunctorArguments, typename Index >
         struct colorize_run_functor_arguments {
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), "Error");
             typedef typename transform_meta_data< RunFunctorArguments,
                 typename RunFunctorArguments::color_t,
                 color_type< (uint_t)Index::value > >::type type;
@@ -32,6 +33,7 @@ namespace gridtools {
 
             typedef typename RunFunctorArguments::loop_intervals_t loop_intervals_t;
             typedef typename RunFunctorArguments::execution_type_t execution_type_t;
+            typedef typename RunFunctorArguments::esf_sequence_t esf_sequence_t;
 
             typedef array< int_t, IterateDomain::N_META_STORAGES > array_index_t;
             typedef array< uint_t, 4 > array_position_t;
@@ -53,7 +55,9 @@ namespace gridtools {
             }
 
             template < typename Index >
-            void operator()(Index const &) const {
+            void operator()(Index const &,
+                typename boost::enable_if< typename esf_sequence_contains_color< esf_sequence_t, color_type<Index::value> >::type >::type
+                    * = 0) const {
 
                 array_index_t memorized_index;
                 array_position_t memorized_position;
@@ -74,6 +78,14 @@ namespace gridtools {
                 }
                 m_it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value >(
                     -(m_loop_size[1] + 1 + m_addon));
+                m_it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
+                    static_int< 1 > >();
+            }
+            template < typename Index >
+            void operator()(Index const &,
+                typename boost::disable_if< typename esf_sequence_contains_color< esf_sequence_t, color_type<Index::value> >::type >::type
+                    * = 0) const {
+                // If there is no ESF in the sequence matching the color, we skip execution and simply increment the color iterator
                 m_it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
                     static_int< 1 > >();
             }

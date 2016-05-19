@@ -6,6 +6,11 @@ namespace gridtools {
         typedef static_uint< c > color_t;
     };
 
+    struct nocolor
+    {
+        typedef notype color_t;
+    };
+
     template < typename T >
     struct is_color_type : boost::mpl::false_ {};
 
@@ -13,7 +18,6 @@ namespace gridtools {
     struct is_color_type< color_type< c > > : boost::mpl::true_ {};
 
     template <>
-    struct is_color_type< notype > : boost::mpl::true_ {};
+    struct is_color_type< nocolor > : boost::mpl::true_ {};
 
-    typedef notype nocolor;
 };

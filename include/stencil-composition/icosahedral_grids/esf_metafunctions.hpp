@@ -1,5 +1,6 @@
 #pragma once
 #include <boost/mpl/equal.hpp>
+#include "../../common/generic_metafunctions/is_there_in_sequence_if.hpp"
 
 namespace gridtools {
     namespace icgrid {
@@ -16,6 +17,31 @@ namespace gridtools {
 
             typedef typename boost::mpl::front< location_type_set_t >::type type;
         };
+
+        /**
+         * metafunction that returns true if: "at least one esf of the sequence has a color that matches
+         * the Color parameter or the color of the esf is specified as nocolor
+         * (meaning that any color should be matched)
+         * @tparam EsfSequence sequence of esfs
+         * @tparam Color color to be matched by the ESFs
+         */
+        template<typename EsfSequence, typename Color>
+        struct esf_sequence_contains_color
+        {
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((is_color_type<Color>::value), "Error");
+
+            template<typename Esf>
+            struct esf_has_color{
+                GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Error");
+                typedef static_bool<
+                    (boost::is_same< typename Esf::color_t::color_t, typename Color::color_t >::value ||
+                boost::is_same<typename Esf::color_t, nocolor>::value) > type;
+            };
+
+            typedef typename is_there_in_sequence_if<EsfSequence, esf_has_color<boost::mpl::_> >::type type;
+        };
+
     }
 
     template < typename Esf1, typename Esf2 >

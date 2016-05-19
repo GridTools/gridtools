@@ -43,13 +43,6 @@ namespace socc {
             typedef typename icgrid::get_grid_topology<Evaluation>::type grid_topology_t;
             auto ff = [](const double _in, const double _res) -> double { return -_in + _res; };
 
-            for(uint_t c=0; c != grid_topology_t::vertexes::n_colors::value; ++c)
-            {
-                eval(out()) = eval(in());
-            }
-            /**
-               This interface checks that the location types are compatible with the accessors
-             */
             eval(out()) = eval(on_cells(ff, 0.0, in()));
         }
     };
