@@ -136,8 +136,8 @@ class Plotter:
        rc('text')
        y += 0.3
        ax.text(x,y,'Performance Results for Branch: ')
-       ax.text(x+0.2, y-0.2, self.branch_name_)
-       ax.text(x+0.2, y-0.4, str(datetime.datetime.now()))
+       ax.text(x+0.05, y-0.2, self.branch_name_)
+       ax.text(x+0.05, y-0.4, str(datetime.datetime.now()))
 
 #       ax = plt.axes()
        ax.xaxis.set_visible(False)
