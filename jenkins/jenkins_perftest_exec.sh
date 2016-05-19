@@ -37,7 +37,7 @@ if [[ ${JPLAN} == "GridTools" ]]; then
   GPATH="${GRIDTOOLS_BUILD_PATH}/${JPLAN}/build_type/release/compiler/gcc/label/${myhost}/mpi/MPI/"
 else
   if [[ ${myhost} == "greina" ]]; then
-      GPATH="${GRIDTOOLS_BUILD_PATH}/${JPLAN}/build_type/release/label/${myhost}/mpi/MPI/compiler/gcc"
+      GPATH="${GRIDTOOLS_BUILD_PATH}/${JPLAN}/build_type/release/compiler/gcc/label/${myhost}/mpi/MPI/"
   else 
       GPATH="${GRIDTOOLS_BUILD_PATH}/${JPLAN}/build_type/release/label/${myhost}/mpi/MPI/"
   fi
