@@ -254,7 +254,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
     double h2 = h*h;
 
     if (PID == 0){
-        printf("Running for %d x %d x %d, %d iterations\n", xdim, ydim, zdim, nt);
+        printf("Running for %d x %d x %d, %d iterations, tolerance %f\n", xdim, ydim, zdim, nt, EPS);
         // printf("Step size: %f\n", h);
     }
 
