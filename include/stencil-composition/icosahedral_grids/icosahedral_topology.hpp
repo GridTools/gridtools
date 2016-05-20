@@ -107,7 +107,7 @@ namespace gridtools {
             constexpr get_element() {}
 
             template < typename Offsets >
-            GT_FUNCTION constexpr static array< uint_t, 4 > apply(array< uint_t, 3 > const &i, const Offsets offsets) {
+            GT_FUNCTION constexpr static array< uint_t, 4 > apply(array< uint_t, 3 > const &i, Offsets offsets) {
                 return {i[0] + offsets[Idx][0],
                     SourceColor + offsets[Idx][1],
                     i[1] + offsets[Idx][2],
@@ -131,7 +131,7 @@ namespace gridtools {
             constexpr get_element() {}
 
             template < typename Offsets >
-            GT_FUNCTION static uint_t apply(Grid const &grid, array< uint_t, 3 > const &i, const Offsets offsets) {
+            GT_FUNCTION static uint_t apply(Grid const &grid, array< uint_t, 3 > const &i, Offsets offsets) {
                 return boost::fusion::at_c< DestLocation::value >(grid.virtual_storages())
                     .index(get_connectivity_offset< SourceColor >::template get_element< Idx >::apply(i, offsets));
             }
