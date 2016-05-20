@@ -80,6 +80,18 @@ public:
             }
         }
 
+        // orientation of normal
+        for (int i = 0; i < icosahedral_grid_.m_dims[0]; ++i) {
+                for (int j = 0; j < icosahedral_grid_.m_dims[1]; ++j) {
+                    for (uint_t k = 0; k < d3; ++k) {
+                        for (uint_t e = 0; e < 3; ++e) {
+                            orientation_of_normal_(i, 0, j, k, e) = 1;
+                            orientation_of_normal_(i, 1, j, k, e) = -1;
+                        }
+                    }
+                }
+        }
+
         div_u_ref_.initialize(0.0);
         curl_u_ref_.initialize(0.0);
         grad_div_u_ref_.initialize(0.0);
