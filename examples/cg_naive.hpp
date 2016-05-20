@@ -262,6 +262,11 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
 #define BACKEND backend<Host, GRIDBACKEND, Naive >
 #endif
 
+    // Start timer
+    boost::timer::cpu_times lapse_time_run = {0,0,0};
+    boost::timer::cpu_times lapse_time_d3point7 = {0,0,0};
+    boost::timer::cpu_timer time;
+
     //--------------------------------------------------------------------------
     // Create processor grid
     array<int, 3> dimensions{0,0,0};
@@ -422,11 +427,6 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
       2) The logical physical domain with the fields to use
       3) The actual domain dimensions
      */
-
-    // Start timer
-    boost::timer::cpu_times lapse_time_run = {0,0,0};
-    boost::timer::cpu_times lapse_time_d3point7 = {0,0,0};
-    boost::timer::cpu_timer time;
 
     // Construction of the domain for step phase
     gridtools::domain_type<accessor_list_init> domain_init
