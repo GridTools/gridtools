@@ -138,6 +138,44 @@ namespace gridtools {
         };
     };
 
+    /**
+     * Following specializations provide all information about the connectivity of the icosahedral/ocahedral grid
+     * While ordering is arbitrary up to some extent, if must respect some rules that user expect, and that conform
+     * part of an API. Rules are the following:
+     *   1. Flow variables on edges by convention are outward on downward cells (color 0) and inward on upward cells (color 1)
+     *      as depicted below
+     *
+     *                             ^
+     *                             |                   /\
+     *                        _____|____              /  \
+     *                        \        /             /    \
+     *                         \      /             /      \
+     *                     <----\    /---->        /-->  <--\
+     *                           \  /             /     ^    \
+     *                            \/             /______|_____\
+     *
+     *   2. Neighbor edges of a cell must follow the same convention than neighbor cells of a cell. I.e. the following
+     *
+     *              /\
+     *             1  2
+     *            /_0__\
+     *
+     *     imposes
+     *          ____________
+     *          \    /\    /
+     *           \1 /  \2 /
+     *            \/____\/
+     *             \  0 /
+     *              \  /
+     *               \/
+     *
+     *   3. Cell neighbours of an edge, in the order 0 -> 1 follow the direction of the flow (N_t) on edges defined in 1.
+     *      This fixes the order of cell neighbors of an edge
+     *
+     *   4. Vertex neighbors of an edge, in the order 0 -> 1 defines a vector N_l which is perpendicular to N_t.
+     *      This fixes the order of vertex neighbors of an edge
+     *
+     */
     template <>
     template <>
     template <>
