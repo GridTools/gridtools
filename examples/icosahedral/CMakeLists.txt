@@ -39,7 +39,8 @@ if(CUDA_FOUND)
 endif()
 
 ### Validation is not passing for the following but we compile it for maintaining the API and code
-list( APPEND SRCCOMPONLYFILES stencil_nested_on)
+list( APPEND SRCCOMPONLYFILES  # TODO RECOVER stencil_nested_on
+)
 
 foreach(srcfile IN LISTS SRCCOMPONLYFILES )
     add_executable(${srcfile}_naive   ${srcfile}.cpp ${GTEST_FILES})
