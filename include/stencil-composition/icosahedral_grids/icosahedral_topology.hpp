@@ -629,11 +629,11 @@ namespace gridtools {
           */
         template < typename Grid >
         GT_FUNCTION static return_t< uint_t > get_index(Grid const &grid, array< uint_t, 3 > const &i) {
-
-            //Note: offsets have to be extracted here as a constexpr object instead of passed inline to the apply fn
+            // Note: offsets have to be extracted here as a constexpr object instead of passed inline to the apply fn
             // Otherwise constexpr of the array is lost
             constexpr const auto offsets =
                 from< Location1 >::template to< Location2 >::template with_color< static_int< Color > >::offsets();
+
             using seq = gridtools::apply_gt_integer_sequence<
                 typename gridtools::make_gt_integer_sequence< int, n_neighbors >::type >;
             return seq::template apply< return_t< uint_t >,
@@ -642,7 +642,7 @@ namespace gridtools {
     };
 
     template < typename Location, uint_t Color >
-    struct connectivity_indexes<Location, Location, Color> {
+    struct connectivity_indexes< Location, Location, Color > {
         template < typename ValueType >
         using return_t = typename return_type< typename from< Location >::template to< Location >, ValueType >::type;
 
@@ -658,7 +658,7 @@ namespace gridtools {
         GT_FUNCTION
         static return_t< array< uint_t, 4 > > get_index(array< uint_t, 3 > const &i) {
 
-            //Note: offsets have to be extracted here as a constexpr object instead of passed inline to the apply fn
+            // Note: offsets have to be extracted here as a constexpr object instead of passed inline to the apply fn
             // Otherwise constexpr of the array is lost
             constexpr const auto offsets =
                 from< Location >::template to< Location >::template with_color< static_int< Color > >::offsets();
@@ -744,64 +744,69 @@ namespace gridtools {
             return boost::fusion::at_c< LocationType::value >(m_virtual_storages).index(i);
         }
 
+        template < typename Location1, typename Location2 >
+        struct return_type_indices {
+            typedef typename boost::mpl::if_< boost::is_same< Location1, Location2 >,
+                typename return_type< typename from< Location1 >::template to< Location2 >, array< uint_t, 4 > >::type,
+                typename return_type< typename from< Location1 >::template to< Location2 >, uint_t >::type >::type type;
+        };
+
         // methods returning the neighbors. Specializations according to the location type
         // needed a way to implement static double dispatch
         template < typename Location1, typename Location2, typename Color >
-        GT_FUNCTION typename return_type< typename from< Location1 >::template to< Location2 >, uint_t >::type const
-                ll_map_index(Location1, Location2, Color, array< uint_t, 3 > const &i) const {
+        GT_FUNCTION typename return_type_indices< Location1, Location2 >::type ll_map_index(
+            Location1, Location2, Color, array< uint_t, 3 > const &i) const {
             return connectivity_indexes< Location1, Location2, Color::value >::get_index(*this, i);
         }
 
         // methods returning the neighbors. Specializations according to the location type
         // needed a way to implement static double dispatch
         template < typename Location, typename Color >
-        GT_FUNCTION static
-            typename return_type< typename from< Location >::template to< Location >, array< uint_t, 4 > >::type const
-                ll_map_index(Location, Location, Color, array< uint_t, 3 > const &i) {
+        GT_FUNCTION static typename return_type_indices< Location, Location >::type ll_map_index(
+            Location, Location, Color, array< uint_t, 3 > const &i) {
             return connectivity_indexes< Location, Location, Color::value >::get_index(i);
         }
 
         template < typename Location2 > // Works for cells or edges with same code
-        GT_FUNCTION
-            typename return_type< typename from< cells >::template to< Location2 >, array< uint_t, 4 > >::type
-                neighbors_indices_3(array< uint_t, 4 > const &i, cells, Location2) const {
+        GT_FUNCTION typename return_type_indices< cells, Location2 >::type neighbors_indices_3(
+            array< uint_t, 4 > const &i, cells, Location2) const {
             switch (i[1] % cells::n_colors::value) {
-            case 0:
+            case 0: {
                 return ll_map_index(cells(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
-            case 1:
+            }
+            case 1: {
                 return ll_map_index(cells(), Location2(), static_int< 1 >(), {i[0], i[2], i[3]});
-            default:
+            }
+            default: {
                 GTASSERT(false);
-                return typename return_type< typename from< cells >::template to< Location2 >,
-                    array< uint_t, 4 > >::type();
+                return typename return_type_indices< cells, Location2 >::type();
+            }
             }
         }
 
         template < typename Location2 > // Works for cells or edges with same code
-        GT_FUNCTION
-            typename return_type< typename from< edges >::template to< Location2 >, array< uint_t, 4 > >::type
-                neighbors_indices_3(array< uint_t, 4 > const &i, edges, Location2) const {
+        GT_FUNCTION typename return_type_indices< edges, Location2 >::type neighbors_indices_3(
+            array< uint_t, 4 > const &i, edges, Location2) const {
             switch (i[1] % edges::n_colors::value) {
-            case 0:
+            case 0: {
                 return ll_map_index(edges(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
-            // return edge2edges_ll_p0_indices({i[0], i[2]});
-            case 1:
+            }
+            case 1: {
                 return ll_map_index(edges(), Location2(), static_int< 1 >(), {i[0], i[2], i[3]});
-            // return edge2edges_ll_p1_indices({i[0], i[2]});
-            case 2:
+            }
+            case 2: {
                 return ll_map_index(edges(), Location2(), static_int< 2 >(), {i[0], i[2], i[3]});
-            // return edge2edges_ll_p2_indices({i[0], i[2]});
-            default:
+            }
+            default: {
                 GTASSERT(false);
-                return typename return_type< typename from< edges >::template to< Location2 >,
-                    array< uint_t, 4 > >::type();
+                return typename return_type_indices< edges, Location2 >::type();
+            }
             }
         }
 
         template < typename Location2 > // Works for cells or edges with same code
-        GT_FUNCTION
-            typename return_type< typename from< vertexes >::template to< Location2 >, array< uint_t, 4 > >::type
-                neighbors_indices_3(array< uint_t, 4 > const &i, vertexes, Location2) const {
+        GT_FUNCTION typename return_type_indices< vertexes, Location2 >::type
+        neighbors_indices_3(array< uint_t, 4 > const &i, vertexes, Location2) const {
             return ll_map_index(vertexes(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
         }
     };

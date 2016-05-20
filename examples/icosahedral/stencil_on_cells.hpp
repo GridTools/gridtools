@@ -57,7 +57,6 @@ namespace soc {
         }
     };
 
-
     bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps) {
 
         uint_t d1 = x;
@@ -65,17 +64,16 @@ namespace soc {
         uint_t d3 = z;
 
         using cell_storage_type = typename backend_t::storage_t< icosahedral_topology_t::cells, double >;
+        using edge_storage_type = typename backend_t::storage_t< icosahedral_topology_t::edges, double >;
 
         const uint_t halo_nc = 1;
         const uint_t halo_mc = 1;
         const uint_t halo_k = 0;
-        //        const uint_t d3 = 6 + halo_k * 2;
-        //        const uint_t d1 = 6 + halo_nc * 2;
-        //        const uint_t d2 = 6 + halo_mc * 2;
+
         icosahedral_topology_t icosahedral_grid(d1, d2, d3);
 
         auto in_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("in_cell");
-        auto in_edges= icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("in_edge");
+        auto in_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("in_edge");
         auto out_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("out");
         auto ref_on_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("ref_on_cells");
         auto ref_on_edges = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("ref_on_edges");
@@ -107,7 +105,7 @@ namespace soc {
         ref_on_edges.initialize(0.0);
 
         typedef arg< 0, cell_storage_type > p_in_cells;
-        typedef arg< 0, cell_storage_type > p_in_edges;
+        typedef arg< 0, edge_storage_type > p_in_edges;
         typedef arg< 1, cell_storage_type > p_out_cells;
 
         typedef boost::mpl::vector< p_in_cells, p_out_cells > accessor_list_cells_t;
@@ -165,9 +163,8 @@ namespace soc {
             grid_,
             gridtools::make_mss // mss_descriptor
             (execute< forward >(),
-                gridtools::make_esf< test_on_edges_functor, icosahedral_topology_t, icosahedral_topology_t::edges >(
+                gridtools::make_esf< test_on_edges_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
                     p_in_edges(), p_out_cells())));
-
 
         stencil_edges->ready();
         stencil_edges->steady();
@@ -200,6 +197,13 @@ namespace soc {
         }
         stencil_cells->finalize();
         std::cout << stencil_cells->print_meter() << std::endl;
+
+        for (uint_t t = 1; t < t_steps; ++t) {
+            stencil_edges->run();
+        }
+        stencil_edges->finalize();
+        std::cout << stencil_edges->print_meter() << std::endl;
+
 #endif
 
         return result;
