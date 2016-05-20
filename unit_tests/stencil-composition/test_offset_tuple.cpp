@@ -19,10 +19,10 @@ TEST(offset_tuple, test_array_ctr) {
     array<int_t, 4> pos{2,5,8,-6};
     offset_tuple<4,4> offsets(0, pos);
 
-    ASSERT_TRUE((static_int<offsets.get<0>() >::value == -6));
-    ASSERT_TRUE((static_int<offsets.get<1>() >::value == 8));
-    ASSERT_TRUE((static_int<offsets.get<2>() >::value == 5));
-    ASSERT_TRUE((static_int<offsets.get<3>() >::value == 2));
+    ASSERT_TRUE((offsets.get<0>() == -6));
+    ASSERT_TRUE((offsets.get<1>() == 8));
+    ASSERT_TRUE((offsets.get<2>() == 5));
+    ASSERT_TRUE((offsets.get<3>() == 2));
 
 #endif
 }
