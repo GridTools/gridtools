@@ -620,6 +620,13 @@ namespace gridtools {
 
         static const size_t n_neighbors = return_t< array< uint_t, 4 > >::n_dimensions;
 
+        /**
+          * function to extract the 4 indexes of all neighbours of current position, when the neighbours are not in the
+          * same location as the location type of the iteration space.
+          * @return an array (over neighbours) of an array (indices of position).
+          *     Dimension of the outer array depends on the number of neighbours of the location type
+          * @i indexes of current position in the iteration space
+          */
         template < typename Grid >
         GT_FUNCTION static return_t< uint_t > get(Grid const &grid, array< uint_t, 3 > const &i) {
 
@@ -633,9 +640,19 @@ namespace gridtools {
                 get_connectivity_index< Location2, Grid, Color >::template get_element >(grid, i, offsets);
         }
 
+        /**
+          * function to extract the 4 indexes of all neighbours of current position, when the neighbours are in the same
+          * location as the location type of the iteration space.
+          * @return an array (over neighbours) of an array (indices of position).
+          *     Dimension of the outer array depends on the number of neighbours of the location type
+          * @i indexes of current position in the iteration space
+          */
         GT_FUNCTION
-        static return_t< array< uint_t, 4 > > get_index(array< uint_t, 3 > const &i) {
+        static return_t< array< uint_t, 4 > > get_index_from_offset(array< uint_t, 3 > const &i) {
 
+            GRIDTOOLS_STATIC_ASSERT((Location1::value==Location2::value), "get_index_from_offset can only be used to extract the index"
+                                    " from offsets when the source and destination location are the same. Otherwise a index as to be "
+                                    "extracted from an absolute position instead of using offsets");
             //Note: offsets have to be extracted here as a constexpr object instead of passed inline to the apply fn
             // Otherwise constexpr of the array is lost
             constexpr const auto offsets =
@@ -728,6 +745,8 @@ namespace gridtools {
         GT_FUNCTION
             typename return_type< typename from< Location1 >::template to< Location2 >, uint_t >::type const ll_map(
                 Location1, Location2, Color, array< uint_t, 3 > const &i) {
+            std::cout << "AUCH" << std::endl;
+
             return connectivity_indexes< Location1, Location2, Color::value >::get(*this, i);
         }
 
@@ -737,7 +756,7 @@ namespace gridtools {
         GT_FUNCTION static
             typename return_type< typename from< Location1 >::template to< Location2 >, array< uint_t, 4 > >::type const
                 ll_map_index(Location1, Location2, Color, array< uint_t, 3 > const &i) {
-            return connectivity_indexes< Location1, Location2, Color::value >::get_index(i);
+            return connectivity_indexes< Location1, Location2, Color::value >::get_index_from_offset(i);
         }
 
         template < typename Location2 > // Works for cells or edges with same code
