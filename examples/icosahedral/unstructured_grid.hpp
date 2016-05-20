@@ -60,6 +60,14 @@ namespace gridtools {
                         m_cell_to_cells.insert_neighbour({i, 1, j, k}, {i + 1, 0, j, k});
                         m_cell_to_cells.insert_neighbour({i, 1, j, k}, {i, 0, j, k});
                         m_cell_to_cells.insert_neighbour({i, 1, j, k}, {i, 0, j + 1, k});
+
+                        m_cell_to_edges.insert_neighbour({i,0,j,k},{i,1,j,k});
+                        m_cell_to_edges.insert_neighbour({i,0,j,k},{i,2,j,k});
+                        m_cell_to_edges.insert_neighbour({i,0,j,k},{i,0,j,k});
+                        m_cell_to_edges.insert_neighbour({i,1,j,k},{i+1,0,j,k});
+                        m_cell_to_edges.insert_neighbour({i,1,j,k},{i,2,j,k});
+                        m_cell_to_edges.insert_neighbour({i,1,j,k},{i,0,j+1,k});
+
                     }
                 }
             }

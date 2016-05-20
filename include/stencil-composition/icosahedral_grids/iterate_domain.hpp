@@ -297,8 +297,7 @@ namespace gridtools {
                 onneighbors) const {
             auto current_position = m_grid_position;
 
-            const auto neighbors =
-                grid_topology_t::neighbors_indices_3(current_position, location_type_t(), onneighbors.location());
+            const auto neighbors = m_grid_topology.neighbors_indices_3(current_position, location_type_t(), onneighbors.location());
             ValueType result = onneighbors.value();
 
             for (int i = 0; i < neighbors.size(); ++i) {
@@ -368,7 +367,7 @@ namespace gridtools {
             auto current_position = m_grid_position;
 
             const auto neighbors =
-                grid_topology_t::neighbors_indices_3(current_position, location_type_t(), onneighbors.location());
+                m_grid_topology.neighbors_indices_3(current_position, location_type_t(), onneighbors.location());
             ValueType &result = onneighbors.value();
 
             for (int_t i = 0; i < neighbors.size(); ++i) {
@@ -457,10 +456,13 @@ namespace gridtools {
             return *(real_storage_pointer + offset);
         }
 
-        template < uint_t ID, enumtype::intend Intend, typename LocationType, typename Extent, ushort_t FieldDimensions, typename IndexArray >
+        /**
+         * It dereferences the value of an accessor given its 4d (i,c,j,k) position
+         */
+        template < uint_t ID, enumtype::intend Intend, typename LocationType, typename Extent, ushort_t FieldDimensions>
         GT_FUNCTION typename std::remove_reference<
             typename accessor_return_type< accessor< ID, Intend, LocationType, Extent, FieldDimensions > >::type >::type
-        _evaluate(accessor< ID, Intend, LocationType, Extent, FieldDimensions >, IndexArray const &position) const {
+        _evaluate(accessor< ID, Intend, LocationType, Extent, FieldDimensions >, array<uint_t, 4> const &position) const {
             using accessor_t = accessor< ID, Intend, LocationType, Extent, FieldDimensions >;
             using location_type_t = typename accessor_t::location_type;
             int offset = m_grid_topology.ll_offset(position, location_type_t());
@@ -471,6 +473,24 @@ namespace gridtools {
                     typename accessor_t::type >::value],
                 offset);
         }
+
+        /**
+         * It dereferences the value of an accessor given its absolute offset
+         */
+        template < uint_t ID, enumtype::intend Intend, typename LocationType, typename Extent, ushort_t FieldDimensions>
+        GT_FUNCTION typename std::remove_reference<
+            typename accessor_return_type< accessor< ID, Intend, LocationType, Extent, FieldDimensions > >::type >::type
+        _evaluate(accessor< ID, Intend, LocationType, Extent, FieldDimensions >, const uint_t offset) const {
+            using accessor_t = accessor< ID, Intend, LocationType, Extent, FieldDimensions >;
+            using location_type_t = typename accessor_t::location_type;
+
+            return get_raw_value(accessor_t(),
+                (data_pointer())[current_storage< (accessor_t::index_type::value == 0),
+                    local_domain_t,
+                    typename accessor_t::type >::value],
+                offset);
+        }
+
 
         template < typename MapF, typename LT, typename Arg0, typename IndexArray >
         GT_FUNCTION typename map_return_type< map_function< MapF, LT, Arg0 > >::type _evaluate(
@@ -495,7 +515,7 @@ namespace gridtools {
 
             // TODO THIS IS WRONG HERE HARDCODED EDGES
             using tt = typename grid_topology_t::edges;
-            const auto neighbors = grid_topology_t::neighbors_indices_3(position, tt(), onn.location());
+            const auto neighbors = m_grid_topology.neighbors_indices_3(position, tt(), onn.location());
             ValueType result = onn.value();
 
             for (int i = 0; i < neighbors.size(); ++i) {

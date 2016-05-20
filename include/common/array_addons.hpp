@@ -16,7 +16,7 @@ namespace gridtools {
 } // namespace gridtools
 
 template < typename T, typename U, size_t D >
-bool operator==(gridtools::array< T, D > const &a, gridtools::array< U, D > const &b) {
+bool operator==(gridtools::array< T, D > const a, gridtools::array< U, D > const b) {
     gridtools::array< T, D > a0 = a;
     gridtools::array< U, D > b0 = b;
     std::sort(a0.begin(), a0.end());

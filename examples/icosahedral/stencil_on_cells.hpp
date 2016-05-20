@@ -41,6 +41,23 @@ namespace soc {
         }
     };
 
+    struct test_on_edges_functor {
+        typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 1 > > in;
+        typedef inout_accessor< 1, icosahedral_topology_t::cells > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            auto ff = [](const double _in, const double _res) -> double { return _in + _res; };
+
+            /**
+               This interface checks that the location types are compatible with the accessors
+             */
+            eval(out()) = eval(on_edges(ff, 0.0, in()));
+        }
+    };
+
+
     bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps) {
 
         uint_t d1 = x;
@@ -57,9 +74,11 @@ namespace soc {
         //        const uint_t d2 = 6 + halo_mc * 2;
         icosahedral_topology_t icosahedral_grid(d1, d2, d3);
 
-        auto in_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("in");
+        auto in_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("in_cell");
+        auto in_edges= icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("in_edge");
         auto out_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("out");
-        auto ref_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("ref");
+        auto ref_on_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("ref_on_cells");
+        auto ref_on_edges = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("ref_on_edges");
 
         for (int i = 1; i < d1 - 1; ++i) {
             for (int c = 0; c < icosahedral_topology_t::cells::n_colors::value; ++c) {
@@ -71,15 +90,32 @@ namespace soc {
                 }
             }
         }
+
+        for (int i = 1; i < d1 - 1; ++i) {
+            for (int c = 0; c < icosahedral_topology_t::edges::n_colors::value; ++c) {
+                for (int j = 1; j < d2 - 1; ++j) {
+                    for (int k = 0; k < d3; ++k) {
+                        in_edges(i, c, j, k) =
+                            in_edges.meta_data().index(array< uint_t, 4 >{(uint_t)i, (uint_t)c, (uint_t)j, (uint_t)k});
+                    }
+                }
+            }
+        }
+
         out_cells.initialize(0.0);
-        ref_cells.initialize(0.0);
+        ref_on_cells.initialize(0.0);
+        ref_on_edges.initialize(0.0);
 
         typedef arg< 0, cell_storage_type > p_in_cells;
+        typedef arg< 0, cell_storage_type > p_in_edges;
         typedef arg< 1, cell_storage_type > p_out_cells;
 
-        typedef boost::mpl::vector< p_in_cells, p_out_cells > accessor_list_t;
+        typedef boost::mpl::vector< p_in_cells, p_out_cells > accessor_list_cells_t;
+        typedef boost::mpl::vector< p_in_edges, p_out_cells > accessor_list_edges_t;
 
-        gridtools::domain_type< accessor_list_t > domain(boost::fusion::make_vector(&in_cells, &out_cells));
+        gridtools::domain_type< accessor_list_cells_t > domain_cells(boost::fusion::make_vector(&in_cells, &out_cells));
+        gridtools::domain_type< accessor_list_edges_t > domain_edges(boost::fusion::make_vector(&in_edges, &out_cells));
+
         array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
@@ -87,16 +123,16 @@ namespace soc {
         grid_.value_list[0] = 0;
         grid_.value_list[1] = d3 - 1;
 
-        auto stencil_ = gridtools::make_computation< backend_t >(
-            domain,
+        auto stencil_cells = gridtools::make_computation< backend_t >(
+            domain_cells,
             grid_,
             gridtools::make_mss // mss_descriptor
             (execute< forward >(),
                 gridtools::make_esf< test_on_cells_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
                     p_in_cells(), p_out_cells())));
-        stencil_->ready();
-        stencil_->steady();
-        stencil_->run();
+        stencil_cells->ready();
+        stencil_cells->steady();
+        stencil_cells->run();
 
 #ifdef __CUDACC__
         out_cells.d2h_update();
@@ -112,7 +148,7 @@ namespace soc {
                             ugrid.neighbours_of< icosahedral_topology_t::cells, icosahedral_topology_t::cells >(
                                 {i, c, j, k});
                         for (auto iter = neighbours.begin(); iter != neighbours.end(); ++iter) {
-                            ref_cells(i, c, j, k) += in_cells(*iter);
+                            ref_on_cells(i, c, j, k) += in_cells(*iter);
                         }
                     }
                 }
@@ -122,14 +158,48 @@ namespace soc {
         verifier ver(1e-10);
 
         array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
-        bool result = ver.verify(grid_, ref_cells, out_cells, halos);
+        bool result = ver.verify(grid_, ref_on_cells, out_cells, halos);
+
+        auto stencil_edges = gridtools::make_computation< backend_t >(
+            domain_edges,
+            grid_,
+            gridtools::make_mss // mss_descriptor
+            (execute< forward >(),
+                gridtools::make_esf< test_on_edges_functor, icosahedral_topology_t, icosahedral_topology_t::edges >(
+                    p_in_edges(), p_out_cells())));
+
+
+        stencil_edges->ready();
+        stencil_edges->steady();
+        stencil_edges->run();
+
+#ifdef __CUDACC__
+        out_cells.d2h_update();
+#endif
+
+        for (uint_t i = halo_nc; i < d1 - halo_nc; ++i) {
+            for (uint_t c = 0; c < icosahedral_topology_t::cells::n_colors::value; ++c) {
+                for (uint_t j = halo_mc; j < d2 - halo_mc; ++j) {
+                    for (uint_t k = 0; k < d3; ++k) {
+                        auto neighbours =
+                            ugrid.neighbours_of< icosahedral_topology_t::cells, icosahedral_topology_t::edges >(
+                                {i, c, j, k});
+                        for (auto iter = neighbours.begin(); iter != neighbours.end(); ++iter) {
+                            ref_on_edges(i, c, j, k) += in_edges(*iter);
+                        }
+                    }
+                }
+            }
+        }
+
+        result = result & ver.verify(grid_, ref_on_edges, out_cells, halos);
 
 #ifdef BENCHMARK
         for (uint_t t = 1; t < t_steps; ++t) {
-            stencil_->run();
+            stencil_cells->run();
         }
-        stencil_->finalize();
-        std::cout << stencil_->print_meter() << std::endl;
+        stencil_cells->finalize();
+        std::cout << stencil_cells->print_meter() << std::endl;
 #endif
 
         return result;
