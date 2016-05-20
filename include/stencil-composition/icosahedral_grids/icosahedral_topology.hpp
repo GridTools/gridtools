@@ -107,7 +107,7 @@ namespace gridtools {
             constexpr get_element() {}
 
             template < typename Offsets >
-            GT_FUNCTION constexpr static array< uint_t, 4 > apply(array< uint_t, 3 > const &i, Offsets offsets) {
+            GT_FUNCTION constexpr static array< uint_t, 4 > apply(array< uint_t, 3 > const &i, const Offsets offsets) {
                 return {i[0] + offsets[Idx][0],
                     SourceColor + offsets[Idx][1],
                     i[1] + offsets[Idx][2],
@@ -131,7 +131,7 @@ namespace gridtools {
             constexpr get_element() {}
 
             template < typename Offsets >
-            GT_FUNCTION static uint_t apply(Grid const &grid, array< uint_t, 3 > const &i, Offsets offsets) {
+            GT_FUNCTION static uint_t apply(Grid const &grid, array< uint_t, 3 > const &i, const Offsets offsets) {
                 return boost::fusion::at_c< DestLocation::value >(grid.virtual_storages())
                     .index(get_connectivity_offset< SourceColor >::template get_element< Idx >::apply(i, offsets));
             }
@@ -600,7 +600,7 @@ namespace gridtools {
         }
     };
 
-    template < typename  DestLocation >
+    template < typename DestLocation >
     struct connectivity< vertexes, DestLocation > {
         GT_FUNCTION
         static typename return_type< typename from< vertexes >::template to< DestLocation >, array< int_t, 4 > >::type
@@ -623,22 +623,27 @@ namespace gridtools {
         template < typename Grid >
         GT_FUNCTION static return_t< uint_t > get(Grid const &grid, array< uint_t, 3 > const &i) {
 
+            //Note: offsets have to be extracted here as a constexpr object instead of passed inline to the apply fn
+            // Otherwise constexpr of the array is lost
+            constexpr const auto offsets =
+                from< Location1 >::template to< Location2 >::template with_color< static_int< Color > >::offsets();
             using seq = gridtools::apply_gt_integer_sequence<
                 typename gridtools::make_gt_integer_sequence< int, n_neighbors >::type >;
             return seq::template apply< return_t< uint_t >,
-                get_connectivity_index< Location2, Grid, Color >::template get_element >(grid,
-                i,
-                from< Location1 >::template to< Location2 >::template with_color< static_int< Color > >::offsets());
+                get_connectivity_index< Location2, Grid, Color >::template get_element >(grid, i, offsets);
         }
 
         GT_FUNCTION
         static return_t< array< uint_t, 4 > > get_index(array< uint_t, 3 > const &i) {
 
+            //Note: offsets have to be extracted here as a constexpr object instead of passed inline to the apply fn
+            // Otherwise constexpr of the array is lost
+            constexpr const auto offsets =
+                from< Location1 >::template to< Location2 >::template with_color< static_int< Color > >::offsets();
             using seq = gridtools::apply_gt_integer_sequence<
                 typename gridtools::make_gt_integer_sequence< int, n_neighbors >::type >;
             return seq::template apply< return_t< array< uint_t, 4 > >,
-                get_connectivity_offset< Color >::template get_element >(
-                i, from< Location1 >::template to< Location2 >::template with_color< static_int< Color > >::offsets());
+                get_connectivity_offset< Color >::template get_element >(i, offsets);
         }
     };
 
