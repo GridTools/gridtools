@@ -460,7 +460,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
          gridtools::bitmap_predicate(part.boundary())
         ).apply(x, d, xNew, dNew);
 
-    MPI_Barrier(GCL_WORLD);
+    //MPI_Barrier(GCL_WORLD);
 
     // Set addition parameter to -1 (subtraction): r = b + alpha A x
     double minus = -1;
@@ -474,7 +474,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
     lapse_time_run = lapse_time_run + time_runInit.elapsed();
     CG_init->finalize();
 
-    MPI_Barrier(GCL_WORLD);
+    //MPI_Barrier(GCL_WORLD);
 
     double rr_global;
     MPI_Allreduce(&rr, &rr_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
