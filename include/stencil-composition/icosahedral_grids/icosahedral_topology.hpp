@@ -745,8 +745,6 @@ namespace gridtools {
         GT_FUNCTION
             typename return_type< typename from< Location1 >::template to< Location2 >, uint_t >::type const ll_map(
                 Location1, Location2, Color, array< uint_t, 3 > const &i) {
-            std::cout << "AUCH" << std::endl;
-
             return connectivity_indexes< Location1, Location2, Color::value >::get(*this, i);
         }
 
