@@ -3,12 +3,12 @@
 int main(int argc, char** argv)
 {
 #ifdef CXX11_ENABLED
-    if (argc != 5) {
-        std::cout << "Usage: interface1_<whatever> dimx dimy dimz nt\n where args are integer sizes of the data fields and number of time iterations" << std::endl;
+    if (argc != 6) {
+        std::cout << "Usage: cg_naive<whatever> dimx dimy dimz maxit eps\n where args are integer sizes of the data fields, max number of iterations and eps is required tolerance" << std::endl;
         return 1;
     }
 
-    return cg_naive::solver(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]));
+    return cg_naive::solver(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]), std::stod(argv[5]));
 
 #else
     assert(false);

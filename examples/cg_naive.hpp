@@ -229,7 +229,7 @@ struct boundary_conditions {
 /*******************************************************************************/
 /*******************************************************************************/
 
-bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
+bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) {
 
     // Initialize MPI
     gridtools::GCL_Init();
@@ -341,12 +341,12 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     //std::cout << "J #" << PID << ": " << meta_.get_low_bound(1) << " - " << meta_.get_up_bound(1) << std::endl;
 
     // Initialize the RHS vector domain
-    for (uint_t i=0; i<metadata_.template dims<0>(); ++i)
-        for (uint_t j=0; j<metadata_.template dims<1>(); ++j)
-            for (uint_t k=0; k<metadata_.template dims<2>(); ++k)
-            {
-                //b(i,j,k) = h2 * f(I+i, J+j, K+k); //TODO
-            }
+    // for (uint_t i=0; i<metadata_.template dims<0>(); ++i)
+    //     for (uint_t j=0; j<metadata_.template dims<1>(); ++j)
+    //         for (uint_t k=0; k<metadata_.template dims<2>(); ++k)
+    //         {
+    //             b(i,j,k) = h2 * f(I+i, J+j, K+k); //TODO
+    //         }
 
     //--------------------------------------------------------------------------
     // Definition of placeholders. The order of them reflect the order the user
@@ -460,6 +460,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
          gridtools::bitmap_predicate(part.boundary())
         ).apply(x, d, xNew, dNew);
 
+    MPI_Barrier(GCL_WORLD);
+
     // Set addition parameter to -1 (subtraction): r = b + alpha A x
     double minus = -1;
     alpha.setValue(minus);
@@ -471,6 +473,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     double rr = CG_init->run();
     lapse_time_run = lapse_time_run + time_runInit.elapsed();
     CG_init->finalize();
+
+    MPI_Barrier(GCL_WORLD);
 
     double rr_global;
     MPI_Allreduce(&rr, &rr_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
@@ -618,6 +622,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                 make_reduction< reduction_functor, binop::sum >(0.0, p_out()) // sum(rNew_T * rNew)
             );
 
+        MPI_Barrier(GCL_WORLD);
+
         boost::timer::cpu_timer time_iteration;
 
         // A * d
@@ -628,6 +634,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         lapse_time_d3point7 = lapse_time_d3point7 + time_run0.elapsed();
         lapse_time_run = lapse_time_run + time_run0.elapsed();
         CG_step0->finalize();
+
+        MPI_Barrier(GCL_WORLD);
 
         // compute step size alpha
         double rTr_global; //nominator
@@ -663,6 +671,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         if (PID == 0) printf("Alpha = %f\n", rTr_global/dTAd_global);
         #endif
 
+        MPI_Barrier(GCL_WORLD);
+
         // x_(i+1) = x_i + alpha * d_i
         CG_step1->ready();
         CG_step1->steady();
@@ -670,6 +680,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         CG_step1->run();
         lapse_time_run = lapse_time_run + time_run1.elapsed();
         CG_step1->finalize();
+
+        MPI_Barrier(GCL_WORLD);
 
         // r_(i+1) = r_i - alpha * Ad_i
         alpha.setValue(-1. * alpha.getValue());
@@ -680,7 +692,6 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         lapse_time_run = lapse_time_run + time_run2.elapsed();
         CG_step2->finalize();
         MPI_Allreduce(&rr, &rr_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-
 
         //compute Gram–Schmidt orthogonalization parameter beta
         stencil_beta_nom->ready();
@@ -698,6 +709,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         if (PID == 0) printf("Beta = %f\n", rTrnew_global/rTr_global);
         #endif
 
+        MPI_Barrier(GCL_WORLD);
+
         // d_(i+1) = r_(i+1) + beta * d_i
         CG_step3->ready();
         CG_step3->steady();
@@ -705,6 +718,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         CG_step3->run();
         lapse_time_run = lapse_time_run + time_run3.elapsed();
         CG_step3->finalize();
+
+        MPI_Barrier(GCL_WORLD);
 
         // Communicate halos
         std::vector<pointer_type::pointee_t*> vec(2);
@@ -730,16 +745,25 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         ptr_dNew = swap;
 
         boost::timer::cpu_times lapse_time_iteration = time_iteration.elapsed();
+
+        double residual;
+        #ifdef REL_TOL
+        residual =  sqrt(rr_global)/rr_init;
+        #else
+        residual =  sqrt(rr_global);
+        #endif
+
         if (PID == 0)
         {
-            std::cout << std::endl << "Iteration " << iter << ": [time]" << boost::timer::format(lapse_time_iteration);
-            #ifdef REL_TOL
-            std::cout << "Iteration " << iter << ": [residual] " << sqrt(rr_global)/rr_init << std::endl;
-            #else
-            std::cout << "Iteration " << iter << ": [residual] " << sqrt(rr_global) << std::endl;
-            #endif
+            std::cout << "Iteration " << iter << ": [time]" << boost::timer::format(lapse_time_iteration);
+            std::cout << "Iteration " << iter << ": [residual] " << residual << std::endl << std::endl;
         }
 
+        // Convergence test
+        if (residual < EPS)
+            break;
+
+        MPI_Barrier(GCL_WORLD);
     }
 
     boost::timer::cpu_times lapse_time = time.elapsed();
