@@ -88,6 +88,13 @@ namespace gridtools {
                            Layout::template find_val< space_dimensions - Id, uint_t, 0 >(indices_) +
                        compute_offset< Id - 1, Layout >::apply(strides_, indices_);
             }
+
+            template < typename StridesVector >
+            GT_FUNCTION static constexpr int_t apply(StridesVector const &RESTRICT strides_, array<int_t, space_dimensions> const &indices_) {
+                return (int_t)strides_[space_dimensions - Id] * indices_[space_dimensions - Id] +
+                       compute_offset< Id - 1, Layout >::apply(strides_, indices_);
+            }
+
         };
 
         /**@brief stops the recursion
@@ -116,6 +123,12 @@ namespace gridtools {
             GT_FUNCTION static constexpr int_t apply(StridesVector const &RESTRICT /*strides*/, Tuple const &indices_) {
                 return Layout::template find_val< space_dimensions - 1, int, 0 >(indices_);
             }
+
+            template < typename StridesVector >
+            GT_FUNCTION static constexpr int_t apply(StridesVector const &RESTRICT strides_, array<int_t, space_dimensions> const &indices_) {
+                return indices_[space_dimensions - 1];
+            }
+
         };
 
         /**@brief metafunction to access a type sequence at a given position, numeration from 0

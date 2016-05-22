@@ -108,10 +108,10 @@ namespace gridtools {
 
             template < typename Offsets >
             GT_FUNCTION constexpr static array< uint_t, 4 > apply(array< uint_t, 3 > const &i, Offsets offsets) {
-                return {i[0] + offsets[Idx][0],
-                    SourceColor + offsets[Idx][1],
-                    i[1] + offsets[Idx][2],
-                    i[2] + offsets[Idx][3]};
+                return { i[0]+offsets[Idx][0],
+                    SourceColor+ offsets[Idx][1],
+                    i[1]+offsets[Idx][2],
+                    i[2]+offsets[Idx][3]};
             }
         };
     };
@@ -694,16 +694,13 @@ namespace gridtools {
           * @i indexes of current position in the iteration space
           */
         GT_FUNCTION
-        static return_t< array< uint_t, 4 > > get_index(array< uint_t, 3 > const &i) {
+        static return_t< array< int_t, 4 > > get_index(array< uint_t, 3 > const &i) {
 
             // Note: offsets have to be extracted here as a constexpr object instead of passed inline to the apply fn
             // Otherwise constexpr of the array is lost
             constexpr const auto offsets =
                 from< Location >::template to< Location >::template with_color< static_int< Color > >::offsets();
-            using seq = gridtools::apply_gt_integer_sequence<
-                typename gridtools::make_gt_integer_sequence< int, n_neighbors >::type >;
-            return seq::template apply< return_t< array< uint_t, 4 > >,
-                get_connectivity_offset< Color >::template get_element >(i, offsets);
+            return offsets;
         }
     };
 
@@ -785,7 +782,7 @@ namespace gridtools {
         template < typename Location1, typename Location2 >
         struct return_type_indices {
             typedef typename boost::mpl::if_< boost::is_same< Location1, Location2 >,
-                typename return_type< typename from< Location1 >::template to< Location2 >, array< uint_t, 4 > >::type,
+                typename return_type< typename from< Location1 >::template to< Location2 >, array< int_t, 4 > >::type,
                 typename return_type< typename from< Location1 >::template to< Location2 >, uint_t >::type >::type type;
         };
 

@@ -368,6 +368,11 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
             return _impl::compute_offset< space_dimensions, layout >::apply(strides_, tuple);
         }
 
+        template <typename StridesVector >
+        GT_FUNCTION static constexpr int_t _index(StridesVector const &RESTRICT strides_, array<int_t, space_dimensions> const &offsets) {
+            return _impl::compute_offset< space_dimensions, layout >::apply(strides_, offsets);
+        }
+
         template < typename OffsetTuple >
         GT_FUNCTION constexpr int_t _index(OffsetTuple const &tuple) const {
             return _impl::compute_offset< space_dimensions, layout >::apply(strides(), tuple);

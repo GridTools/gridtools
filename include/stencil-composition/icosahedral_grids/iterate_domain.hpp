@@ -531,7 +531,7 @@ namespace gridtools {
         }
 
         /**
-         * It dereferences the value of an accessor given its 4d (i,c,j,k) position
+         * It dereferences the value of an accessor given its 4d (i,c,j,k) position_offset
          */
         template < uint_t ID,
             enumtype::intend Intend,
@@ -541,16 +541,35 @@ namespace gridtools {
         GT_FUNCTION typename std::remove_reference<
             typename accessor_return_type< accessor< ID, Intend, LocationType, Extent, FieldDimensions > >::type >::type
             _evaluate(accessor< ID, Intend, LocationType, Extent, FieldDimensions >,
-                array< uint_t, 4 > const &position) const {
+                array< int_t, 4 > const &position_offset) const {
+            GRIDTOOLS_STATIC_ASSERT((LocationType::value == location_type_t::value), "error");
+
             using accessor_t = accessor< ID, Intend, LocationType, Extent, FieldDimensions >;
+
+            // getting information about the storage
+            typedef typename accessor_t::index_type index_t;
+
+            typedef typename local_domain_t::template get_storage< index_t >::type::value_type storage_t;
+            typedef typename get_storage_pointer_accessor< local_domain_t, accessor_t >::type storage_pointer_t;
+
+            // getting information about the metadata
+            typedef typename boost::mpl::at< metadata_map_t, typename storage_t::storage_info_type >::type metadata_index_t;
+
+            pointer< const typename storage_t::storage_info_type > const metadata_ =
+                boost::fusion::at< metadata_index_t >(m_local_domain.m_local_metadata);
+
             using location_type_t = typename accessor_t::location_type;
-            int offset = m_grid_topology.ll_offset(position, location_type_t());
+
+            // control your instincts: changing the following
+            // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
+            const int_t pointer_offset = (m_index[metadata_index_t::value]) +
+                                         metadata_->_index(strides().template get< metadata_index_t::value >(), position_offset);
 
             return get_raw_value(accessor_t(),
                 (data_pointer())[current_storage< (accessor_t::index_type::value == 0),
                     local_domain_t,
                     typename accessor_t::type >::value],
-                offset);
+                pointer_offset);
         }
 
         /**
