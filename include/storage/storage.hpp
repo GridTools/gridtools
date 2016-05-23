@@ -226,12 +226,12 @@ namespace gridtools {
 #if defined(CXX11_ENABLED)
                 template < short_t snapshot = 0, short_t field_dim = 0, typename... Int >
                 value_type &get_value(Int... args) {
-                    return (*m_storage).get_value< snapshot, field_dim, Int... >(args...);
+                    return (*m_storage).template get_value< snapshot, field_dim, Int... >(args...);
                 }
 
                 template < short_t snapshot = 0, short_t field_dim = 0, typename... Int >
                 value_type const &get_value(Int... args) const {
-                    return (*m_storage).get_value< snapshot, field_dim, Int... >(args...);
+                    return (*m_storage).template get_value< snapshot, field_dim, Int... >(args...);
                 }
 
                 template < short_t snapshot = 0, short_t field_dim = 0 >
