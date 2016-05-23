@@ -3,13 +3,13 @@
 namespace gridtools {
     template < typename Extent1 >
     struct sum_extent< Extent1, empty_extent > {
-        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent1 >), "Type should be an Extent");
+        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent1 >::value), "Type should be an Extent");
         typedef typename sum_extent< Extent1, extent<> >::type type;
     };
 
     template < typename Extent2 >
     struct sum_extent< empty_extent, Extent2 > {
-        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent2 >), "Type should be an Extent");
+        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent2 >::value), "Type should be an Extent");
         typedef typename sum_extent< extent<>, Extent2 >::type type;
     };
 
@@ -26,13 +26,13 @@ namespace gridtools {
 
     template < typename Extent1 >
     struct enclosing_extent< Extent1, empty_extent > {
-        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent1 >), "Type should be an Extent");
+        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent1 >::value), "Type should be an Extent");
         typedef typename enclosing_extent< Extent1, extent<> >::type type;
     };
 
     template < typename Extent2 >
     struct enclosing_extent< empty_extent, Extent2 > {
-        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent3 >), "Type should be an Extent");
+        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent2 >::value), "Type should be an Extent");
         typedef typename enclosing_extent< extent<>, Extent2 >::type type;
     };
 
