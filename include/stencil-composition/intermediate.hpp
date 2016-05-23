@@ -437,7 +437,7 @@ namespace gridtools {
            This information is needed to allocate temporaries, and to provide the
            extent information to the user.
          */
-        typedef typename compute_extent_sizes< typename MssDescriptorArray::elements,
+        typedef typename placeholder_to_extent_map< typename MssDescriptorArray::elements,
             grid_traits_t,
             typename DomainType::placeholders >::type extent_map_t;
 

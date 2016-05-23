@@ -161,7 +161,7 @@ namespace gridtools {
         \tparam Placeholders The placeholders used in the computation
      */
     template < typename MssDescriptorArray, typename GridTraits, typename Placeholders >
-    struct compute_extent_sizes {
+    struct placeholder_to_extent_map {
 
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssDescriptorArray, is_mss_descriptor >::value || is_condition<MssDescriptorArray>::value ), "Wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_grid_traits_from_id<GridTraits>::value), "Wrong type");
