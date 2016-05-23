@@ -497,6 +497,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
     double rr_global;
     MPI_Allreduce(&rr, &rr_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
     double rr_init = sqrt(rr_global); //initial residual
+
+    #ifdef VERBOSE
     if (PID == 0) {
         #ifdef REL_TOL
         std::cout << "Iteration 0: [residual] " << sqrt(rr_global)/rr_init << std::endl << std::endl;
@@ -504,6 +506,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
         std::cout << "Iteration 0: [residual] " << rr_init << std::endl << std::endl;
         #endif
     }
+    #endif
 
     // Unfold local domain into vector //TODO more efficient way to do this?
     double* r_vec = new double[ni*nj*nk];
@@ -552,7 +555,10 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
         Perform iterations of the CG
     */
 
-    for (int iter=1; iter <= TIME_STEPS; iter++) {
+    int iter;
+    double residual;
+    
+    for (iter=1; iter <= TIME_STEPS; iter++) {
 
         // Construction of the domains for the steps of CG
         gridtools::domain_type<accessor_list_step0> domain_step0
@@ -758,10 +764,12 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
                 } 
 
         boost::timer::cpu_times lapse_time_precondition = time_precondition.elapsed();
+        #ifdef VERBOSE
         if (PID == 0)
         {
             std::cout << "Iteration " << iter << ": [Pardiso]" << boost::timer::format(lapse_time_precondition);
         }
+        #endif
 
         // Compute Gram-Schmidt orthogonalization parameter beta
         double rTMrnew_global;
@@ -818,18 +826,19 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
 
         boost::timer::cpu_times lapse_time_iteration = time_iteration.elapsed();
             
-        double residual;
         #ifdef REL_TOL
         residual =  sqrt(rr_global)/rr_init;
         #else
         residual =  sqrt(rr_global);
         #endif
 
+        #ifdef VERBOSE
         if (PID == 0)
         {
             std::cout << "Iteration " << iter << ": [time]" << boost::timer::format(lapse_time_iteration);
             std::cout << "Iteration " << iter << ": [residual] " << residual << std::endl << std::endl;
         }
+        #endif
 
         // Convergence test
         if (residual < EPS)
@@ -838,6 +847,12 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
     } //end for
 
     boost::timer::cpu_times lapse_time = time.elapsed();
+
+    #ifndef VERBOSE
+    if (PID == 0) {
+        std::cout << "Iteration " << iter << ": [residual] " << residual << std::endl << std::endl;
+    }
+    #endif
 
     if (gridtools::PID == 0){
         std::cout << std::endl << "TOTAL TIME: " << boost::timer::format(lapse_time);
