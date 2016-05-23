@@ -181,7 +181,7 @@ namespace gridtools {
     */
     template < typename First, typename... StorageExtended >
     struct data_field : public dimension_extension_traits< First,
-                            StorageExtended... >::type /*, clonable_to_gpu<data_field<First, StorageExtended ... > >*/
+                            StorageExtended... >::type
     {
         template < typename PT, typename MD, ushort_t FD >
         using type_tt = data_field< typename First::template type_tt< PT, MD, FD >,
@@ -196,7 +196,7 @@ namespace gridtools {
 
         /**@brief default constructor*/
         template < typename... ExtraArgs >
-        data_field(typename basic_type::storage_info_type const &meta_data_, ExtraArgs const &... args_)
+        data_field(typename basic_type::storage_info_type const *meta_data_, ExtraArgs const &... args_)
             : super(meta_data_, args_...) {}
 
         /**@brief device copy constructor*/

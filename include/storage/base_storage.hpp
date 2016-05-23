@@ -58,8 +58,8 @@ namespace gridtools {
          * @brief the parallel storage calls the empty constructor to do lazy initialization
          */
         base_storage(
-            MetaData const &meta_data_, char const *s = "default uninitialized storage", bool do_allocate = true)
-            : is_set(false), m_name(malloc_and_copy(s)), m_meta_data(&meta_data_) {
+            MetaData const *meta_data_, char const *s = "default uninitialized storage", bool do_allocate = true)
+            : is_set(false), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
             if (do_allocate) {
                 allocate();
             }
@@ -70,8 +70,8 @@ namespace gridtools {
          * @tparam FloatType is the floating point type passed to the constructor for initialization.
          * It is a template parameter in order to match float, double, etc...
          */
-        base_storage(MetaData const &meta_data_, value_type const &init, char const *s = "default initialized storage")
-            : is_set(true), m_name(malloc_and_copy(s)), m_meta_data(&meta_data_) {
+        base_storage(MetaData const *meta_data_, value_type const &init, char const *s = "default initialized storage")
+            : is_set(true), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
             allocate();
             initialize(init, 1);
         }
@@ -80,10 +80,10 @@ namespace gridtools {
          * @brief default constructor sets all the data members given the storage dimensions
          */
         template < typename Ret, typename T >
-        base_storage(MetaData const &meta_data_,
+        base_storage(MetaData const *meta_data_,
             Ret (*func)(T const &, T const &, T const &),
             char const *s = "storage initialized with lambda")
-            : is_set(true), m_name(malloc_and_copy(s)), m_meta_data(&meta_data_) {
+            : is_set(true), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
             allocate();
             initialize(func, 1);
         }
@@ -96,8 +96,8 @@ namespace gridtools {
          * wrap_pointer. In this way the storage destructor will not free the pointer.
          */
         template < typename FloatType >
-        explicit base_storage(MetaData const &meta_data_, FloatType *ptr, char const *s = "externally managed storage")
-            : is_set(true), m_name(malloc_and_copy(s)), m_meta_data(&meta_data_) {
+        explicit base_storage(MetaData const *meta_data_, FloatType *ptr, char const *s = "externally managed storage")
+            : is_set(true), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
             m_fields[0] = pointer_type(ptr, true);
             if (FieldDimension > 1) {
                 allocate(FieldDimension, 1, true);

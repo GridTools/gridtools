@@ -44,7 +44,7 @@ namespace gridtools {
 
             forwarding to the base class
         */
-        __device__ meta_storage(meta_storage< BaseStorage > const &other) : super(other) {}
+        GT_FUNCTION meta_storage(meta_storage< BaseStorage > const &other) : super(other) {}
 
 #if defined(CXX11_ENABLED)
         /** @brief ctor
