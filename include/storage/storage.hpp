@@ -259,28 +259,28 @@ namespace gridtools {
         // forwarding constructor
         template < class... ExtraArgs >
         explicit storage(storage_info_type const &meta_data_, ExtraArgs const &... args)
-            : m_storage(new BaseStorage(meta_data_, args...), false), m_meta_data(&meta_data_, true), m_on_host(true) {}
+            : m_storage(new BaseStorage(meta_data_, args...), false), m_meta_data(new storage_info_type(meta_data_), false), m_on_host(true) {}
 #else // CXX11_ENABLED
 
         explicit storage(storage_info_type const &meta_data_, value_type const &init)
-            : m_storage(new BaseStorage(meta_data_, init), false), m_meta_data(&meta_data_, true), m_on_host(true) {}
+            : m_storage(new BaseStorage(meta_data_, init), false), m_meta_data(new storage_info_type(meta_data_), false), m_on_host(true) {}
 
         explicit storage(storage_info_type const &meta_data_, value_type const &init, const char *name)
-            : m_storage(new BaseStorage(meta_data_, init, name), false), m_meta_data(&meta_data_, true),
+            : m_storage(new BaseStorage(meta_data_, init, name), false), m_meta_data(new storage_info_type(meta_data_), false),
               m_on_host(true) {}
 
         template < typename Ret, typename T >
         explicit storage(storage_info_type const &meta_data_, Ret (*func)(T const &, T const &, T const &))
-            : m_storage(new BaseStorage(meta_data_, func), false), m_meta_data(&meta_data_, true), m_on_host(true) {}
+            : m_storage(new BaseStorage(meta_data_, func), false), m_meta_data(new storage_info_type(meta_data_), false), m_on_host(true) {}
 
         template < class FloatType >
         explicit storage(storage_info_type const &meta_data_, FloatType *arg)
-            : m_storage(new BaseStorage(meta_data_, (FloatType *)arg), false), m_meta_data(&meta_data_, true),
+            : m_storage(new BaseStorage(meta_data_, (FloatType *)arg), false), m_meta_data(new storage_info_type(meta_data_), false),
               m_on_host(true) {}
 
         template < class FloatType >
         explicit storage(storage_info_type const &meta_data_, FloatType *arg, const char *name)
-            : m_storage(new BaseStorage(meta_data_, (FloatType *)arg, name), false), m_meta_data(&meta_data_, true),
+            : m_storage(new BaseStorage(meta_data_, (FloatType *)arg, name), false), m_meta_data(new storage_info_type(meta_data_), false),
               m_on_host(true) {}
 
 #endif // CXX11_ENABLED
@@ -299,7 +299,7 @@ namespace gridtools {
         BaseStorage *get_pointer_to_use() { return m_storage.get_pointer_to_use(); }
 
         explicit storage(storage_info_type const &meta_data_)
-            : m_storage(new BaseStorage(meta_data_), false), m_meta_data(&meta_data_, true), m_on_host(true) {}
+            : m_storage(new BaseStorage(meta_data_), false), m_meta_data(new storage_info_type(meta_data_), false), m_on_host(true) {}
 
         template < typename UInt >
         value_type const &operator[](UInt const &index_) const {
