@@ -538,7 +538,7 @@ class Stage ( ):
         #
         # have to rebuild the stage-execution graph
         #
-        self.stencil_scope.build_execution_path ( )
+#        self.stencil_scope.build_execution_path ( )
 
 
     def translate (self):
