@@ -235,12 +235,19 @@ namespace gridtools {
     public:
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ExtentsMap, __pairs_of>::value), "Wront type");
 
-        // This is the metafucntion to
+        /** This is the metafucntion to iterate over the esfs of a multi-stage stencil
+            and gather the outputs (check that they have the same extents), and associate
+            to them the corresponding extent */
         template < typename MapOfPlaceholders,/*, typename BackendIds,*/ typename Mss >
         struct iterate_over_esfs {
 
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MapOfPlaceholders, __pairs_of>::value), "Wront type");
+            GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor<Mss>::value), "Wrong type");
+
             template < typename Esf >
             struct get_extent_for {
+
+                GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Wrong type");
 
                 typedef typename esf_get_w_per_functor< Esf >::type w_plcs;
                 typedef typename boost::mpl::at_c< w_plcs, 0 >::type first_out;
