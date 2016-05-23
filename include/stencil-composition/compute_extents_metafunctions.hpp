@@ -12,6 +12,8 @@
 #include "./mss_metafunctions.hpp"
 #include "./reductions/reduction_descriptor.hpp"
 #include "./linearize_mss_functions.hpp"
+#include "./grid_traits_metafunctions.hpp"
+#include "./conditionals/condition.hpp"
 
 /** @file This file implements the metafunctions to perform data dependency analysis on a
     multi-stage computation (MSS). The idea is to assign to each placeholder used in the
@@ -146,4 +148,166 @@ namespace gridtools {
             typedef typename update_map< ESFs, PlaceholdersMap, boost::mpl::size< ESFs >::type::value >::type type;
         }; // struct for_mss
     };     // struct compute_extents_of
-}
+
+    /** This metafunction performs the data-dependence analysis from
+        the array of MSSes and a map between placeholders and extents
+        initialized, typically with empty extents.  It is taken as
+        input since the map values depends on the grid_traits. It
+        could be computed here but we would need to pass the
+        grid_traits in.
+
+        \tparam MssDescriptorArray The meta-array of MSSes
+        \tparam GridTraits The traits of the grids
+        \tparam Placeholders The placeholders used in the computation
+     */
+    template < typename MssDescriptorArray, typename GridTraits, typename Placeholders >
+    struct compute_extent_sizes {
+
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssDescriptorArray, is_mss_descriptor >::value || is_condition<MssDescriptorArray>::value ), "Wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_grid_traits_from_id<GridTraits>::value), "Wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Placeholders, is_arg>::value), "Wrong type");
+
+        typedef typename GridTraits::select_mss_compute_extent_sizes mss_compute_extent_sizes_t;
+        typedef
+            typename GridTraits::template select_init_map_of_extents< Placeholders >::type initial_map_of_placeholders;
+
+        // This is where the data-dependence analysis happens
+        template < typename CurrentMap, typename Mss >
+        struct update_map {
+            GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor<Mss>::value || is_reduction_descriptor<Mss>::value), "Internal Error");
+
+            typedef typename mss_compute_extent_sizes_t::template apply< CurrentMap, Mss >::type type;
+        };
+
+        // The case of conditionals
+        template < typename CurrentMap, typename Mss1, typename Mss2, typename Cond >
+        struct update_map< CurrentMap, condition< Mss1, Mss2, Cond > > {
+            typedef typename mss_compute_extent_sizes_t::template apply< CurrentMap, Mss1 >::type FirstMap;
+            typedef typename mss_compute_extent_sizes_t::template apply< FirstMap, Mss2 >::type type;
+        };
+
+        // we need to iterate over the multistage computations in the computation and
+        // update the map accordingly.
+        typedef typename boost::mpl::fold< MssDescriptorArray,
+            initial_map_of_placeholders,
+            update_map< boost::mpl::_1, boost::mpl::_2 > >::type type;
+    };
+
+    namespace _impl {
+        // this is just used to check that the all the outputs of the ESF have the same extent,
+        // otherwise the assignment of extents to functors would be not well defined
+        template < typename MoP, typename Outputs, typename Extent >
+        struct _check_extents_on_outputs {
+
+            template < typename Status, typename Elem >
+            struct _new_value {
+                typedef typename boost::is_same< typename boost::mpl::at< MoP, Elem >::type, Extent >::type value_t;
+                typedef typename boost::mpl::and_< Status, value_t >::type type;
+            };
+
+            typedef typename boost::mpl::fold< Outputs,
+                boost::true_type,
+                _new_value< boost::mpl::_1, boost::mpl::_2 > >::type type;
+            static const bool value = type::value;
+        };
+
+    } // namespace _impl
+
+    /**
+       This metafunction accociate an extent to each ESF of a
+       computation made of many MSSes
+
+       \tparam MssDescriptorArrayElements The ::elements in a MSS descriptor
+       \tparam ExtentsMap Map between placeholders and extents that will be then associated to stencil operators
+     */
+    template < typename MssDescriptorArrayElements, typename ExtentsMap >
+    struct associate_extents_to_esfs {
+
+    private:
+        template <typename Element>
+        struct __pairs_of {
+            typedef typename is_arg<typename Element::first>::type one;
+            typedef typename is_extent<typename Element::second>::type two;
+
+            typedef typename boost::mpl::and_<one, two>::type type;
+        };
+
+    public:
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ExtentsMap, __pairs_of>::value), "Wront type");
+
+        // This is the metafucntion to
+        template < typename MapOfPlaceholders,/*, typename BackendIds,*/ typename Mss >
+        struct iterate_over_esfs {
+
+            template < typename Esf >
+            struct get_extent_for {
+
+                typedef typename esf_get_w_per_functor< Esf >::type w_plcs;
+                typedef typename boost::mpl::at_c< w_plcs, 0 >::type first_out;
+                typedef typename boost::mpl::at< MapOfPlaceholders, first_out >::type extent;
+
+                GRIDTOOLS_STATIC_ASSERT((_impl::_check_extents_on_outputs< MapOfPlaceholders, w_plcs, extent >::value),
+                    "The output of the ESF do not have all the save extents, so it is not possible to select the "
+                    "extent for the whole ESF.");
+
+                typedef extent type;
+            };
+
+            typedef typename mss_descriptor_linear_esf_sequence< Mss >::type esfs;
+
+            // Iterate over each ESF of the MSS to generate a vector
+            // of extens whose elements correspond to the elements of
+            // the esfs vector (this is to comply with the API for the
+            // backend)
+            typedef typename boost::mpl::fold< esfs,
+                boost::mpl::vector0<>,
+                typename boost::mpl::push_back< boost::mpl::_1, get_extent_for< boost::mpl::_2 > > >::type type;
+        }; // struct iterate_over_esfs
+
+        /** A reduction is always the last stage, so the outputs
+            always have the null-extent. In this case then, the map do
+            not need to be updated.
+         */
+        template < typename MapOfPlaceholders,
+            typename ReductionType,
+            typename BinOp,
+            typename EsfDescrSequence >
+        struct iterate_over_esfs< MapOfPlaceholders,
+                                  /*BackendIds,*/
+            reduction_descriptor< ReductionType, BinOp, EsfDescrSequence > > {
+
+            template < typename Esf >
+            struct get_extent_for {
+                typedef typename esf_args< Esf >::type w_plcs;
+                typedef typename boost::mpl::at_c< w_plcs, 0 >::type first_out;
+                typedef typename boost::mpl::at< MapOfPlaceholders, first_out >::type extent;
+
+                GRIDTOOLS_STATIC_ASSERT((_impl::_check_extents_on_outputs< MapOfPlaceholders, w_plcs, extent >::value),
+                    "The output of the ESF do not have all the save extents, so it is not possible to select the "
+                    "extent for the whole ESF.");
+
+                typedef extent type;
+            };
+
+            // Iterate over each ESF of the REDUCTION
+            typedef typename boost::mpl::fold< EsfDescrSequence,
+                boost::mpl::vector0<>,
+                typename boost::mpl::push_back< boost::mpl::_1, get_extent_for< boost::mpl::_2 > > >::type type;
+        }; // struct iterate_over_esfs<reduction>
+
+        // Iterate over all the MSSes in the computation
+        typedef
+            typename boost::mpl::fold< MssDescriptorArrayElements,
+                boost::mpl::vector0<>,
+                typename boost::mpl::push_back< boost::mpl::_1,
+                                           iterate_over_esfs< ExtentsMap, boost::mpl::_2 > > >::type type;
+    };
+
+    template < typename Mss1, typename Mss2, typename Cond, typename ExtentsMap >
+    struct associate_extents_to_esfs< condition< Mss1, Mss2, Cond >, ExtentsMap > {
+        typedef typename associate_extents_to_esfs< Mss1, ExtentsMap >::type type1;
+        typedef typename associate_extents_to_esfs< Mss2, ExtentsMap >::type type2;
+        typedef condition< type1, type2, Cond > type;
+    };
+
+} // namespace gridtools
