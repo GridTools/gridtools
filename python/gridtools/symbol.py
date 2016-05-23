@@ -376,9 +376,9 @@ class Scope (object):
 
     def get_all (self, kinds=None):
         """
-        Returns all symbols in this scope sorted by name:
+        Returns a generator to all symbols in this scope sorted by name:
 
-            kinds   returns only symbol kinds contained in this list.-
+        :param kinds:   returns only symbol kinds contained in this list.-
         """
         sorted_names = sorted (self.symbol_table.keys ( ))
         if kinds is None:
@@ -490,6 +490,8 @@ class StencilScope (Scope):
         stage_obj  = Stage (stage_name,
                             node,
                             self)
+        logging.debug ('Adding stage:',stage_name)
+
         if stage_obj not in self.stage_execution:
             #
             # update the stage execution path
@@ -569,6 +571,7 @@ class StencilScope (Scope):
             logging.info ("The stage-execution path looks valid")
         else:
             raise ValueError ("The last stage of stencil '%s' cannot be independent" % stencil.name)
+
 
     def runtime_analysis (self, stencil, **kwargs):
         """
@@ -658,4 +661,3 @@ class StencilScope (Scope):
             if self.minimum_halo[idx] < 0:
                 self.minimum_halo[idx] *= -1
         logging.debug ("Minimum required halo is %s" % self.minimum_halo)
-

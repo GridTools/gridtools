@@ -509,7 +509,7 @@ class StencilInspector (ast.NodeVisitor):
             # initialize the state variables
             #
             self.inspected_stencil = stencil
-            self.stage_defs      = list ( )
+            self.stage_defs        = list ( )
             st                     = self.inspected_stencil
 
             if st.scope.py_src is None:
@@ -692,7 +692,6 @@ class StencilInspector (ast.NodeVisitor):
                     stage = st.scope.add_stage (node,
                                                 prefix=st.name.lower ( ),
                                                 suffix=name_suffix)
-                    stage.independent = True
 
         return stage
 

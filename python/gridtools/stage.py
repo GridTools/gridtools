@@ -60,6 +60,20 @@ class StageBody (ast.NodeVisitor):
                                            rsymbol)
 
 
+    def _boolean_operator (self, op):
+        """
+        Returns the sign representation of an arithmetic operation.-
+        """
+        if isinstance (op, ast.And):
+            sign = '&&'
+        elif isinstance (op, ast.Or):
+            sign = '||'
+        else:
+            sign = None
+            raise RuntimeError("Cannot translate '%s'" % str (op))
+        return sign
+
+
     def _sign_operator (self, op):
         """
         Returns the sign representation of an arithmetic operation.-
@@ -142,6 +156,7 @@ class StageBody (ast.NodeVisitor):
                 #source_line    = src_lines[correct_lineno].strip (' ')
                 raise type(e)
 
+
     def visit_CompOp(self, node):
         op = "None"
         if (isinstance (node, ast.Eq)):
@@ -170,6 +185,7 @@ class StageBody (ast.NodeVisitor):
             raise NotImplementedError ("Translation of Python 'NotIn' is not currently supported.")
         return op
 
+
     def visit_Compare(self, node):
         ret_value = "%s" % self.visit(node.left)
         for cmpop in node.ops:
@@ -180,18 +196,6 @@ class StageBody (ast.NodeVisitor):
 
         return ret_value
 
-    def _boolean_operator (self, op):
-        """
-        Returns the sign representation of an arithmetic operation.-
-        """
-        if isinstance (op, ast.And):
-            sign = '&&'
-        elif isinstance (op, ast.Or):
-            sign = '||'
-        else:
-            sign = None
-            raise RuntimeError("Cannot translate '%s'" % str (op))
-        return sign
 
     def visit_BoolOp(self, node):
         ret_value = ""
@@ -481,7 +485,8 @@ class Stage ( ):
         #
         self.ghost_cell    = None
         #
-        # whether this stage is executed independently from other stages
+        # whether this stage could be executed in parallel with other stages
+        # inside the stencil (see HorizontalDiffusion test for fluxes I and J)
         #
         self._independent  = False
         #
@@ -516,6 +521,9 @@ class Stage ( ):
 
 
     def get_data_dependency (self):
+        """
+        Return the data dependency graph for this stages's scope
+        """
         return self.scope.data_dependency
 
 
@@ -545,4 +553,3 @@ class Stage ( ):
 
         return stage_tpl.render (stage=self,
                                    params=params)
-
