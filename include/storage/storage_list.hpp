@@ -31,7 +31,7 @@ namespace gridtools {
 
         /**@brief constructor*/
         template < typename... Args >
-        storage_list(typename basic_type::storage_info_type const &meta_data_, Args const &... args_)
+        storage_list(typename basic_type::storage_info_type const *meta_data_, Args const &... args_)
             : super(meta_data_, args_...) {}
 
         /**@brief destructor: frees the pointers to the data fields */
