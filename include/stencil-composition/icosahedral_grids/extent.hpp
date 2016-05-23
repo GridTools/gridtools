@@ -25,21 +25,6 @@ namespace gridtools {
             type;
     };
 
-    template < typename Range1 >
-    struct enclosing_extent< Range1, empty_extent > {
-        typedef typename enclosing_extent< Range1, extent<> >::type type;
-    };
-
-    template < typename Range2 >
-    struct enclosing_extent< empty_extent, Range2 > {
-        typedef typename enclosing_extent< extent<>, Range2 >::type type;
-    };
-
-    template <>
-    struct enclosing_extent< empty_extent, empty_extent > {
-        typedef typename enclosing_extent< extent<>, extent<> >::type type;
-    };
-
     /**
      * Metafunction to add two extents
      */
@@ -49,21 +34,6 @@ namespace gridtools {
         BOOST_MPL_ASSERT((is_extent< Extent2 >));
 
         typedef extent< Extent1::value + Extent2::value > type;
-    };
-
-    template < typename Range1 >
-    struct sum_extent< Range1, empty_extent > {
-        typedef typename sum_extent< Range1, extent<> >::type type;
-    };
-
-    template < typename Range2 >
-    struct sum_extent< empty_extent, Range2 > {
-        typedef typename sum_extent< extent<>, Range2 >::type type;
-    };
-
-    template <>
-    struct sum_extent< empty_extent, empty_extent > {
-        typedef typename sum_extent< extent<>, extent<> >::type type;
     };
 
 } // namespace gridtools

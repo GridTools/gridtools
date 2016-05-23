@@ -7,3 +7,5 @@
 #else
 #include "icosahedral_grids/extent.hpp"
 #endif
+
+#include "./empty_extent_specializations.hpp"
