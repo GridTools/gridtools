@@ -163,10 +163,17 @@ namespace gridtools {
     template < typename MssDescriptorArray, typename GridTraits, typename Placeholders >
     struct placeholder_to_extent_map {
 
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssDescriptorArray, is_mss_descriptor >::value || is_condition<MssDescriptorArray>::value ), "Wrong type");
+    private:
+        template <typename T>
+        struct is_mss_or_reduction {
+            typedef typename boost::mpl::or_<is_mss_descriptor<T>, is_reduction_descriptor<T> >::type type;
+        };
+
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssDescriptorArray, is_mss_or_reduction >::value || is_condition<MssDescriptorArray>::value), "Wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_grid_traits_from_id<GridTraits>::value), "Wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Placeholders, is_arg>::value), "Wrong type");
 
+    public:
         typedef typename GridTraits::select_mss_compute_extent_sizes mss_compute_extent_sizes_t;
         typedef
             typename GridTraits::template select_init_map_of_extents< Placeholders >::type initial_map_of_placeholders;
