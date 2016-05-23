@@ -18,13 +18,16 @@ struct functor {
 
 #define BACKEND backend< enumtype::Host, GRIDBACKEND, enumtype::Naive >
 
+bool predicate() { return false;}
+
+
 TEST(unfold_all, test) {
 
     using namespace gridtools;
 
     //    typedef gridtools::STORAGE<double, gridtools::layout_map<0,1,2> > storage_type;
 
-    conditional< 0 > cond(false);
+    conditional< 0 > cond(predicate);
 
     grid< axis > grid({0, 0, 0, 1, 2}, {0, 0, 0, 1, 2});
     grid.value_list[0] = 0;
