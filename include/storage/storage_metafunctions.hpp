@@ -140,4 +140,15 @@ namespace gridtools {
             return st->get_storage_pointer();
         }
     };
+
+    template <typename U>
+    struct get_storage_metadata_ptrs {
+        U& metadata_set;
+        get_storage_metadata_ptrs(U& ms) : metadata_set(ms) {}
+
+        template <typename T>
+        void operator()(T &st) const {
+            return metadata_set.insert(st->get_storage_pointer()->meta_data());
+        }
+    };
 }
