@@ -35,13 +35,13 @@ namespace gridtools {
      */
 
     template < typename ESF, typename... ExtraArgs >
-    esf_descriptor< ESF, boost::mpl::vector< ExtraArgs... > > make_esf(ExtraArgs &&... /*args_*/) {
+    esf_descriptor< ESF, boost::mpl::vector< ExtraArgs... > > make_stage(ExtraArgs &&... /*args_*/) {
         GRIDTOOLS_STATIC_ASSERT((accumulate(logical_and(), is_arg< ExtraArgs >::value...)), "Malformed make_esf");
         return esf_descriptor< ESF, boost::mpl::vector< ExtraArgs... > >();
     }
 
     template < typename ESF, typename Staggering, typename... ExtraArgs >
-    esf_descriptor< ESF, boost::mpl::vector< ExtraArgs... >, Staggering > make_esf(ExtraArgs &&... args_) {
+    esf_descriptor< ESF, boost::mpl::vector< ExtraArgs... >, Staggering > make_stage(ExtraArgs &&... args_) {
         GRIDTOOLS_STATIC_ASSERT((accumulate(logical_and(), is_arg< ExtraArgs >::value...)), "Malformed make_esf");
         return esf_descriptor< ESF, boost::mpl::vector< ExtraArgs... >, Staggering >();
     }

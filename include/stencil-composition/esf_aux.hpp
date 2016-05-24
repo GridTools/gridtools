@@ -15,7 +15,7 @@ namespace gridtools {
 #ifdef PEDANTIC // with global accessors this assertion fails (since they are not in the Accessors)
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< Placeholders >::value == boost::mpl::size< Accessors >::value),
                 "Size of placeholder arguments passed to esf \n"
-                "    make_esf<functor>(arg1(), arg2()) )\n"
+                "    make_stage<functor>(arg1(), arg2()) )\n"
                 "does not match the list of arguments defined within the ESF, like\n"
                 "    typedef boost::mpl::vector<arg_in, arg_out> arg_list.");
 #endif

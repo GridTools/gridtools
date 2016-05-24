@@ -115,7 +115,7 @@ TEST(test_global_accessor, boundary_conditions) {
             , make_multistage
             (
                 execute<forward>(),
-                make_esf<functor>(p_sol(), p_bd()))
+                make_stage<functor>(p_sol(), p_bd()))
             );
 
     bc_eval->ready();

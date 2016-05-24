@@ -261,7 +261,7 @@ namespace vertical_advection_dycore {
                 grid,
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
-                    gridtools::make_esf< u_forward_function< double > >(p_utens_stage(),
+                    gridtools::make_stage< u_forward_function< double > >(p_utens_stage(),
                         p_wcon(),
                         p_u_stage(),
                         p_u_pos(),
@@ -273,7 +273,7 @@ namespace vertical_advection_dycore {
                         p_dcol()) // esf_descriptor
                     ),
                 gridtools::make_multistage(execute< backward >(),
-                    gridtools::make_esf< u_backward_function< double > >(
+                    gridtools::make_stage< u_backward_function< double > >(
                                         p_utens_stage(), p_u_pos(), p_dtr_stage(), p_ccol(), p_dcol(), p_data_col())));
 
         vertical_advection->ready();

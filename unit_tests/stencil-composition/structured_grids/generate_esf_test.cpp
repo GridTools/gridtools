@@ -398,7 +398,7 @@ int main() {
 
 
     for (int i = 0; i < functors.size(); ++i) {
-        program += "    typedef decltype(make_esf<" + functors[i].name() + ">(";
+        program += "    typedef decltype(make_stage<" + functors[i].name() + ">(";
         for (int j = 0; j < names[i].size(); ++j) {
             program += names[i][j] + "()";
             if (j != names[i].size()-1) {

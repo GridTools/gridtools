@@ -31,16 +31,16 @@ TEST(extract_location, test) {
     typedef arg<0, cell_storage_type> p_in_cells;
     typedef arg<1, cell_storage_type> p_out_cells;
 
-    auto esf1 = gridtools::make_esf<test_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(
+    auto esf1 = gridtools::make_stage<test_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(
         p_in_cells() );
 
-    auto esf2 = gridtools::make_esf<test_functor, icosahedral_topology_t, icosahedral_topology_t::vertexes>(
+    auto esf2 = gridtools::make_stage<test_functor, icosahedral_topology_t, icosahedral_topology_t::vertexes>(
         p_in_cells() );
 
-    auto esf3 = gridtools::make_esf<test_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(
+    auto esf3 = gridtools::make_stage<test_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(
         p_out_cells() );
 
-    auto esf4 = gridtools::make_esf<test_functor, icosahedral_topology_t, icosahedral_topology_t::vertexes>(
+    auto esf4 = gridtools::make_stage<test_functor, icosahedral_topology_t, icosahedral_topology_t::vertexes>(
         p_in_cells() );
 
     using esf1_t = decltype(esf1);

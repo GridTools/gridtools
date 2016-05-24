@@ -149,7 +149,7 @@ TEST(test_stencil_nested_on, run) {
                 , gridtools::make_mss // mss_descriptor
                 (
                     execute<forward>(),
-                    gridtools::make_esf<nested_stencil, icosahedral_topology_t, icosahedral_topology_t::cells>
+                    gridtools::make_stage<nested_stencil, icosahedral_topology_t, icosahedral_topology_t::cells>
                         (p_in_cells(), p_in_edges(), p_i_edges(), p_c_edges(),
                          p_j_edges(), p_k_edges(), p_out_edges() )
                 )

@@ -160,7 +160,7 @@ namespace copy_stencil {
                 grid,
                 gridtools::make_mss // mss_descriptor
                 (execute< forward >(),
-                    gridtools::make_esf< copy_functor >(p_in() // esf_descriptor
+                    gridtools::make_stage< copy_functor >(p_in() // esf_descriptor
                         ,
                         p_out())));
 #ifdef VERBOSE

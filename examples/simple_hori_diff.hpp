@@ -167,8 +167,8 @@ namespace horizontal_diffusion {
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
                     define_caches(cache< IJ, local >(p_lap())),
-                    gridtools::make_esf< wlap_function >(p_lap(), p_in(), p_crlato(), p_crlatu()), // esf_descriptor
-                    gridtools::make_esf< divflux_function >(p_out(), p_in(), p_lap(), p_crlato(), p_coeff())));
+                    gridtools::make_stage< wlap_function >(p_lap(), p_in(), p_crlato(), p_crlatu()), // esf_descriptor
+                    gridtools::make_stage< divflux_function >(p_out(), p_in(), p_lap(), p_crlato(), p_coeff())));
 
         simple_hori_diff->ready();
 

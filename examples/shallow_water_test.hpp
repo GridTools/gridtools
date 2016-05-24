@@ -325,8 +325,8 @@ namespace shallow_water {
                 grid,
                 gridtools::make_mss // mss_descriptor
                 (execute< forward >(),
-                    gridtools::make_esf< initial_step >(p_tmp(), p_sol()),
-                    gridtools::make_esf< final_step >(p_tmp(), p_sol())));
+                    gridtools::make_stage< initial_step >(p_tmp(), p_sol()),
+                    gridtools::make_stage< final_step >(p_tmp(), p_sol())));
 
             shallow_water_stencil->ready();
 

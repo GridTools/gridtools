@@ -293,14 +293,14 @@ auto
             gridtools::make_multistage // mss_descriptor
             (
                 execute<forward>(),
-                gridtools::make_esf<function1>(p_temp(), p_field1()),
-                gridtools::make_esf<function2>(p_field2(), p_field1(), p_temp())
+                gridtools::make_stage<function1>(p_temp(), p_field1()),
+                gridtools::make_stage<function2>(p_field2(), p_field1(), p_temp())
             ),
             gridtools::make_multistage // mss_descriptor
             (
                 execute<backward>(),
-                gridtools::make_esf<function1>(p_temp(), p_field1()),
-                gridtools::make_esf<function3>(p_field3(), p_temp(), p_field1())
+                gridtools::make_stage<function1>(p_temp(), p_field1()),
+                gridtools::make_stage<function3>(p_field3(), p_temp(), p_field1())
             )
         );
 

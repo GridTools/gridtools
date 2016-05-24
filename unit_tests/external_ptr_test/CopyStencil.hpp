@@ -136,7 +136,7 @@ namespace copystencil_python {
                 domain,
                 grid,
                 gridtools::make_multistage(
-                    execute< forward >(), gridtools::make_esf< functor_4647 >(p_in_data(), p_out_data())));
+                    execute< forward >(), gridtools::make_stage< functor_4647 >(p_in_data(), p_out_data())));
 
         //
         // execute the stencil

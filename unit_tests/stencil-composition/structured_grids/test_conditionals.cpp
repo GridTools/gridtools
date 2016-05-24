@@ -76,14 +76,14 @@ namespace test_conditionals{
                     ,
                     make_multistage(
                         enumtype::execute<enumtype::forward>()
-                        , make_esf<functor<0> >( p_dummy() ))
+                        , make_stage<functor<0> >( p_dummy() ))
                     , if_( cond2
                            , make_multistage(
                                enumtype::execute<enumtype::forward>()
-                               , make_esf<functor<1> >( p_dummy() ))
+                               , make_stage<functor<1> >( p_dummy() ))
                            , make_multistage(
                                enumtype::execute<enumtype::forward>()
-                               , make_esf<functor<2> >( p_dummy() ))
+                               , make_stage<functor<2> >( p_dummy() ))
                         )
                     )
                 );

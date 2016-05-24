@@ -74,7 +74,7 @@ namespace test_iterate_domain{
         typedef intermediate< gridtools::backend< Host, GRIDBACKEND, Naive >,
             gridtools::meta_array< boost::mpl::vector< decltype(gridtools::make_multistage // mss_descriptor
                                        (enumtype::execute< enumtype::forward >(),
-                                           gridtools::make_esf< dummy_functor >(p_in(), p_buff(), p_out()))) >,
+                                           gridtools::make_stage< dummy_functor >(p_in(), p_buff(), p_out()))) >,
                                   boost::mpl::quote1< is_amss_descriptor > >,
             decltype(domain),
             decltype(grid),
@@ -88,9 +88,9 @@ namespace test_iterate_domain{
                 grid,
                 gridtools::make_multistage // mss_descriptor
                 (enumtype::execute< enumtype::forward >(),
-                    gridtools::make_esf< dummy_functor >(p_in(), p_buff(), p_out()))));
+                    gridtools::make_stage< dummy_functor >(p_in(), p_buff(), p_out()))));
 
-        typedef decltype(gridtools::make_esf<dummy_functor>(p_in() ,p_buff(), p_out())) esf_t;
+        typedef decltype(gridtools::make_stage<dummy_functor>(p_in() ,p_buff(), p_out())) esf_t;
 
         computation_->ready();
         computation_->steady();

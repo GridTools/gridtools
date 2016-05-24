@@ -6,7 +6,7 @@
 namespace gridtools {
 
     template < typename Functor, typename Grid, typename LocationType, typename... Args >
-    esf_descriptor< Functor, Grid, LocationType, boost::mpl::vector< Args... > > make_esf(Args &&... /*args_*/) {
+    esf_descriptor< Functor, Grid, LocationType, boost::mpl::vector< Args... > > make_stage(Args &&... /*args_*/) {
         return esf_descriptor< Functor, Grid, LocationType, boost::mpl::vector< Args... > >();
     }
 } // namespace gridtools

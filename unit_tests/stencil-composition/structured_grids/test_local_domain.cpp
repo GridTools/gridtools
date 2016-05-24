@@ -87,8 +87,8 @@ TEST(test_local_domain, merge_mss_local_domains) {
          gridtools::make_multistage // mss_descriptor
          (
              execute<forward>(),
-             gridtools::make_esf<local_domain_stencil::dummy_functor>(p_in() ,p_buff()),
-             gridtools::make_esf<local_domain_stencil::dummy_functor>(p_buff() ,p_out())
+             gridtools::make_stage<local_domain_stencil::dummy_functor>(p_in() ,p_buff()),
+             gridtools::make_stage<local_domain_stencil::dummy_functor>(p_buff() ,p_out())
              )
          )>, boost::mpl::quote1<gridtools::is_amss_descriptor> >
                           , gridtools::domain_type<accessor_list>

@@ -99,7 +99,7 @@ TEST(test_copy_stencil, run) {
                 gridtools::make_multistage // mss_descriptor
                 (
                     execute<forward>(),
-                    gridtools::make_esf<test_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(
+                    gridtools::make_stage<test_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(
                         p_in_cells(), p_out_cells() )
                 )
             );

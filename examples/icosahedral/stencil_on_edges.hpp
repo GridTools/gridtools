@@ -109,7 +109,7 @@ namespace soe {
             grid_,
             gridtools::make_multistage // mss_descriptor
             (execute< forward >(),
-                gridtools::make_esf< test_on_edges_functor, icosahedral_topology_t, icosahedral_topology_t::edges >(
+                gridtools::make_stage< test_on_edges_functor, icosahedral_topology_t, icosahedral_topology_t::edges >(
                     p_in_edges(), p_out_edges(), p_i_edges(), p_c_edges(), p_j_edges(), p_k_edges())));
         stencil_->ready();
         stencil_->steady();

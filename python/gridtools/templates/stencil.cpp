@@ -189,7 +189,7 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
                         ),
                         {% set inside_independent_block = False -%}
                     {% endif -%}
-                    gridtools::make_esf<{{ f.name }}>(
+                    gridtools::make_stage<{{ f.name }}>(
                        {{- f.scope.get_parameters ( )|join_with_prefix ('p_', attribute='name')|join ('(), ')|replace('.', '_') }}() )
                        {%- if not (loop.index0 in independent_funct_idx or loop.last) -%}
                        ,
