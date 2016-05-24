@@ -21,8 +21,8 @@
 #include "cg.h"
 
 //time t is in ns, returns MFLOPS
-inline double MFLOPS(int numops, int X, int Y, int Z, int NT, int t) { return (double)numops*X*Y*Z*NT*1000/t; }
-inline double MLUPS(int X, int Y, int Z, int NT, int t) { return (double)X*Y*Z*NT*1000/t; }
+inline double MFLOPS(int numops, double X, double Y, double Z, double NT, double t) { return numops*X*Y*Z*NT*1000.0/t; }
+inline double MLUPS(double X, double Y, double Z, double NT, double t) { return X*Y*Z*NT*1000.0/t; }
 
 // domain function
 inline double f(double xi, double yi, double zi){
@@ -773,6 +773,21 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
         std::cout << "d3point7 MFLOPS: " << MFLOPS(7,d1,d2,d3,nt,lapse_time_d3point7.wall) << std::endl; //TODO: multiple processes??
         std::cout << "d3point7 MLUPs: " << MLUPS(d1,d2,d3,nt,lapse_time_d3point7.wall) << std::endl << std::endl;
     }
+
+    // {
+    //     std::stringstream ss;
+    //     ss << PID;
+    //     std::string filename = "Ad" + ss.str() + ".txt";
+    //     std::ofstream file(filename.c_str());
+    //     Ad.print(file);
+    // }
+    // {
+    //     std::stringstream ss;
+    //     ss << PID;
+    //     std::string filename = "d" + ss.str() + ".txt";
+    //     std::ofstream file(filename.c_str());
+    //     d.print(file);
+    // }
 
 #ifdef DEBUG
     {

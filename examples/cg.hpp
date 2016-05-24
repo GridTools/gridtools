@@ -23,8 +23,8 @@
 #include "ParDiSO.hpp"
 
 //time t is in ns, returns MFLOPS
-inline double MFLOPS(int numops, int X, int Y, int Z, int NT, int t) { return (double)numops*X*Y*Z*NT*1000/t; }
-inline double MLUPS(int X, int Y, int Z, int NT, int t) { return (double)X*Y*Z*NT*1000/t; }
+inline double MFLOPS(int numops, double X, double Y, double Z, double NT, double t) { return numops*X*Y*Z*NT*1000.0/t; }
+inline double MLUPS(double X, double Y, double Z, double NT, double t) { return X*Y*Z*NT*1000.0/t; }
 
 // domain function
 inline double f(double xi, double yi, double zi){
