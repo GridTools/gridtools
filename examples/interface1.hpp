@@ -229,7 +229,7 @@ namespace horizontal_diffusion {
             horizontal_diffusion = gridtools::make_computation< gridtools::BACKEND >(
                 domain,
                 grid,
-                gridtools::make_mss // mss_descriptor
+                gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
                     define_caches(cache< IJ, local >(p_lap(), p_flx(), p_fly())),
                     gridtools::make_esf< lap_function >(p_lap(), p_in()), // esf_descriptor

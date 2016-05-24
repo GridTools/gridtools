@@ -136,13 +136,14 @@ TEST_F(cache_stencil, ij_cache)
     boost::shared_ptr< gridtools::stencil >
 #endif
 #endif
-        pstencil = make_computation< gridtools::BACKEND >(domain,
-            m_grid,
-            make_mss // mss_descriptor
-            (execute< forward >(),
-                                                              define_caches(cache< IJ, local >(p_buff())),
-                                                              make_esf< functor1 >(p_in(), p_buff()),
-                                                              make_esf< functor1 >(p_buff(), p_out())));
+        pstencil = make_computation< gridtools::BACKEND >
+        (domain,
+         m_grid,
+         make_multistage // mss_descriptor
+         (execute< forward >(),
+          define_caches(cache< IJ, local >(p_buff())),
+          make_esf< functor1 >(p_in(), p_buff()),
+          make_esf< functor1 >(p_buff(), p_out())));
 
     pstencil->ready();
 
@@ -204,7 +205,7 @@ TEST_F(cache_stencil, ij_cache_offset)
 #endif
         pstencil = make_computation< gridtools::BACKEND >(domain,
             m_grid,
-            make_mss // mss_descriptor
+            make_multistage // mss_descriptor
             (execute< forward >(),
                                                               define_caches(cache< IJ, local >(p_buff())),
                                                               make_esf< functor1 >(p_in(), p_buff()), // esf_descriptor
@@ -269,7 +270,7 @@ TEST_F(cache_stencil, multi_cache) {
         stencil = make_computation< gridtools::BACKEND >(
             domain,
             m_grid,
-            make_mss // mss_descriptor
+            make_multistage // mss_descriptor
             (execute< forward >(),
                 // test if define_caches works properly with multiple vectors of caches.
                 // in this toy example two vectors are passed (IJ cache vector for p_buff

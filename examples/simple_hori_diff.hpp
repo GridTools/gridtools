@@ -164,7 +164,7 @@ namespace horizontal_diffusion {
             simple_hori_diff = gridtools::make_computation< gridtools::BACKEND >(
                 domain,
                 grid,
-                gridtools::make_mss // mss_descriptor
+                gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
                     define_caches(cache< IJ, local >(p_lap())),
                     gridtools::make_esf< wlap_function >(p_lap(), p_in(), p_crlato(), p_crlatu()), // esf_descriptor

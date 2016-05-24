@@ -79,7 +79,7 @@ namespace test_cycle_and_swap {
         domain_type< accessor_list > domain(boost::fusion::make_vector(&i_data));
 
         auto comp = gridtools::make_computation< gridtools::BACKEND >(
-            domain, grid, gridtools::make_mss(execute< forward >(), gridtools::make_esf< functor >(p_i_data())));
+            domain, grid, gridtools::make_multistage(execute< forward >(), gridtools::make_esf< functor >(p_i_data())));
 
         comp->ready();
         comp->steady();
@@ -122,7 +122,7 @@ namespace test_cycle_and_swap {
         domain_type< accessor_list > domain(boost::fusion::make_vector(&i_data));
 
         auto comp = gridtools::make_computation< gridtools::BACKEND >(
-            domain, grid, gridtools::make_mss(execute< forward >(), gridtools::make_esf< functor_avg >(p_i_data())));
+            domain, grid, gridtools::make_multistage(execute< forward >(), gridtools::make_esf< functor_avg >(p_i_data())));
 
         // fill the input (snapshot 0) with some initial data
         for (uint_t i = 0; i < d1; ++i) {

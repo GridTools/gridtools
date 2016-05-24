@@ -74,14 +74,14 @@ namespace test_conditionals{
                 domain_, grid_,
                 if_(cond
                     ,
-                    make_mss(
+                    make_multistage(
                         enumtype::execute<enumtype::forward>()
                         , make_esf<functor<0> >( p_dummy() ))
                     , if_( cond2
-                           , make_mss(
+                           , make_multistage(
                                enumtype::execute<enumtype::forward>()
                                , make_esf<functor<1> >( p_dummy() ))
-                           , make_mss(
+                           , make_multistage(
                                enumtype::execute<enumtype::forward>()
                                , make_esf<functor<2> >( p_dummy() ))
                         )

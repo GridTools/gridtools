@@ -107,7 +107,7 @@ namespace soe {
         auto stencil_ = gridtools::make_computation< backend_t >(
             domain,
             grid_,
-            gridtools::make_mss // mss_descriptor
+            gridtools::make_multistage // mss_descriptor
             (execute< forward >(),
                 gridtools::make_esf< test_on_edges_functor, icosahedral_topology_t, icosahedral_topology_t::edges >(
                     p_in_edges(), p_out_edges(), p_i_edges(), p_c_edges(), p_j_edges(), p_k_edges())));

@@ -72,7 +72,7 @@ namespace test_iterate_domain{
         grid.value_list[1] = d3-1;
 
         typedef intermediate< gridtools::backend< Host, GRIDBACKEND, Naive >,
-            gridtools::meta_array< boost::mpl::vector< decltype(gridtools::make_mss // mss_descriptor
+            gridtools::meta_array< boost::mpl::vector< decltype(gridtools::make_multistage // mss_descriptor
                                        (enumtype::execute< enumtype::forward >(),
                                            gridtools::make_esf< dummy_functor >(p_in(), p_buff(), p_out()))) >,
                                   boost::mpl::quote1< is_amss_descriptor > >,
@@ -86,7 +86,7 @@ namespace test_iterate_domain{
             make_computation< gridtools::backend< Host, GRIDBACKEND, Naive > >(
                 domain,
                 grid,
-                gridtools::make_mss // mss_descriptor
+                gridtools::make_multistage // mss_descriptor
                 (enumtype::execute< enumtype::forward >(),
                     gridtools::make_esf< dummy_functor >(p_in(), p_buff(), p_out()))));
 

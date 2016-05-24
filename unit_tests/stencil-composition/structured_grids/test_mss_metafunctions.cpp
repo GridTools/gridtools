@@ -45,7 +45,7 @@ TEST(mss_metafunctions, extract_mss_caches_and_esfs)
     typedef decltype(make_esf<functor1>(p_in(), p_buff())) esf1_t;
     typedef decltype(make_esf<functor1>(p_buff(), p_out())) esf2_t;
 
-    typedef decltype(make_mss // mss_descriptor
+    typedef decltype(make_multistage // mss_descriptor
         (execute< forward >(),
             define_caches(cache< IJ, local >(p_buff(), p_out())),
             esf1_t(), // esf_descriptor

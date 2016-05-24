@@ -129,7 +129,7 @@ int main() {
     typedef decltype(make_esf< functor4 >(o0(), o1(), o3(), o4())) functor4__;
     typedef decltype(make_esf< functor5 >(in3(), o4(), in0(), o5())) functor5__;
     typedef decltype(make_esf< functor6 >(o6(), o5(), in1(), in2())) functor6__;
-    typedef decltype(make_mss(execute< forward >(),
+    typedef decltype(make_multistage(execute< forward >(),
         functor0__(),
         functor1__(),
         functor2__(),

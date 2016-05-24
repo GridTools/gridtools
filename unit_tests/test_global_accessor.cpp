@@ -112,7 +112,7 @@ TEST(test_global_accessor, boundary_conditions) {
         bc_eval = make_computation< backend_t >
         (
             domain, coords_bc
-            , make_mss
+            , make_multistage
             (
                 execute<forward>(),
                 make_esf<functor>(p_sol(), p_bd()))

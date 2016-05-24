@@ -25,7 +25,7 @@ TEST(unfold_independent, test) {
     using esf_type = decltype(make_esf< functor >(p0(), p1()));
 
     using mss_type =
-        decltype(make_mss(enumtype::execute< enumtype::forward >(),
+        decltype(make_multistage(enumtype::execute< enumtype::forward >(),
             make_esf< functor >(p0(), p1()),
             make_esf< functor >(p0(), p1()),
             make_esf< functor >(p0(), p1()),

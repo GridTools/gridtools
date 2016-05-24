@@ -135,7 +135,7 @@ namespace copystencil_python {
             comp_copystencil = gridtools::make_computation< gridtools::BACKEND >(
                 domain,
                 grid,
-                gridtools::make_mss(
+                gridtools::make_multistage(
                     execute< forward >(), gridtools::make_esf< functor_4647 >(p_in_data(), p_out_data())));
 
         //

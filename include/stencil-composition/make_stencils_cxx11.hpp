@@ -13,7 +13,7 @@ namespace gridtools {
     mss_descriptor< ExecutionEngine,
         typename extract_mss_esfs< typename variadic_to_vector< MssParameters... >::type >::type,
         typename extract_mss_caches< typename variadic_to_vector< MssParameters... >::type >::type >
-    make_mss(ExecutionEngine && /**/, MssParameters...) {
+    make_multistage(ExecutionEngine && /**/, MssParameters...) {
 
         GRIDTOOLS_STATIC_ASSERT((is_execution_engine< ExecutionEngine >::value),
             "The first argument passed to make_mss must be the execution engine (e.g. execute<forward>(), "

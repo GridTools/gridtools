@@ -47,7 +47,7 @@ TEST(unfold_all, test) {
     domain_type< arg_list > domain((p0() = s0), (p1() = s1));
 
     auto mss1 =
-        make_mss(enumtype::execute< enumtype::forward >(),
+        make_multistage(enumtype::execute< enumtype::forward >(),
             make_esf< functor< 0 > >(p0(), p1()),
             make_esf< functor< 1 > >(p0(), p1()),
             make_esf< functor< 2 > >(p0(), p1()),
@@ -56,7 +56,7 @@ TEST(unfold_all, test) {
                      make_independent(make_esf< functor< 5 > >(p0(), p1()), make_esf< functor< 6 > >(p0(), p1()))));
 
     auto mss2 =
-        make_mss(enumtype::execute< enumtype::forward >(),
+        make_multistage(enumtype::execute< enumtype::forward >(),
             make_esf< functor< 7 > >(p0(), p1()),
             make_esf< functor< 8 > >(p0(), p1()),
             make_esf< functor< 9 > >(p0(), p1()),

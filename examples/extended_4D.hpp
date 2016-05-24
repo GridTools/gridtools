@@ -182,7 +182,7 @@ namespace assembly {
             fe_comp = make_computation< gridtools::BACKEND >(
                 domain,
                 grid,
-                make_mss               //! \todo all the arguments in the call to make_mss are actually dummy.
+                make_multistage               //! \todo all the arguments in the call to make_mss are actually dummy.
                 (execute< forward >(), //!\todo parameter used only for overloading purpose?
                     make_esf< integration >(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
 

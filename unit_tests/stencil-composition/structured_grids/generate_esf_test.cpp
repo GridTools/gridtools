@@ -408,7 +408,7 @@ int main() {
         program += ")) " + functors[i].name() + "__;\n";
    }
 
-   program += "    typedef decltype( make_mss\n";
+   program += "    typedef decltype( make_multistage\n";
     program += "        (\n";
     program += "            execute<forward>(),\n";
     for (int i = 0; i < functors.size(); ++i) {

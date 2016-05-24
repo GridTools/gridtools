@@ -79,7 +79,7 @@ TEST(test_make_computation, positional_when_debug) {
         (
          dm,
          positional_when_debug_test::grid_t({0,0,0,0,0}, {0,0,0,0,0}),
-         make_mss // mss_descriptor
+         make_multistage // mss_descriptor
          (
           execute<forward>(),
           make_esf<positional_when_debug_test::test_functor>(p_in())
