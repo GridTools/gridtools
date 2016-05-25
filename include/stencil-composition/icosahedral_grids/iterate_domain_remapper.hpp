@@ -13,23 +13,56 @@ namespace gridtools {
 
     namespace icgrid {
 
-        namespace _impl {
+        namespace _aux {
             template < typename T >
             struct iterate_domain_remapper_base_iterate_domain;
 
-            template < typename IterateDomain, typename EsfArgsMap, template < typename, typename > class Impl >
-            struct iterate_domain_remapper_base_iterate_domain< Impl< IterateDomain, EsfArgsMap > > {
+            template < typename IterateDomain,
+                typename EsfArgsMap,
+                typename EsfLocationType,
+                uint_t Color,
+                template < typename, typename, typename, uint_t > class Impl >
+            struct iterate_domain_remapper_base_iterate_domain< Impl< IterateDomain, EsfArgsMap, EsfLocationType, Color > > {
                 typedef IterateDomain type;
+            };
+
+            template < typename T >
+            struct iterate_domain_remapper_base_color;
+
+            template < typename IterateDomain,
+                typename EsfArgsMap,
+                typename EsfLocationType,
+                uint_t Color,
+                template < typename, typename, typename, uint_t > class Impl >
+            struct iterate_domain_remapper_base_color< Impl< IterateDomain, EsfArgsMap, EsfLocationType, Color > > {
+                typedef static_uint< Color > type;
+            };
+
+
+            template < typename T >
+            struct iterate_domain_remapper_base_esf_location_type;
+
+            template < typename IterateDomain,
+                typename EsfArgsMap,
+                typename EsfLocationType,
+                uint_t Color,
+                template < typename, typename, typename, uint_t > class Impl >
+            struct iterate_domain_remapper_base_esf_location_type< Impl< IterateDomain, EsfArgsMap, EsfLocationType, Color > > {
+                typedef EsfLocationType type;
             };
 
             template < typename T >
             struct iterate_domain_remapper_base_esf_args_map;
 
-            template < typename IterateDomain, typename EsfArgsMap, template < typename, typename > class Impl >
-            struct iterate_domain_remapper_base_esf_args_map< Impl< IterateDomain, EsfArgsMap > > {
+            template < typename IterateDomain,
+                typename EsfArgsMap,
+                       typename EsfLocationType,
+                uint_t Color,
+                template < typename, typename, typename, uint_t > class Impl >
+            struct iterate_domain_remapper_base_esf_args_map< Impl< IterateDomain, EsfArgsMap, EsfLocationType, Color > > {
                 typedef EsfArgsMap type;
             };
-        }
+        } //namespace _aux
 
         /**
          * @class iterate_domain_remapper_base
@@ -43,14 +76,17 @@ namespace gridtools {
             DISALLOW_COPY_AND_ASSIGN(iterate_domain_remapper_base);
 
           public:
-            typedef typename _impl::iterate_domain_remapper_base_iterate_domain< IterateDomainEvaluatorImpl >::type
+            typedef typename _aux::iterate_domain_remapper_base_iterate_domain< IterateDomainEvaluatorImpl >::type
                 iterate_domain_t;
+            typedef typename _aux::iterate_domain_remapper_base_color< IterateDomainEvaluatorImpl >::type color_t;
+
+            typedef typename _aux::iterate_domain_remapper_base_esf_location_type< IterateDomainEvaluatorImpl >::type esf_location_type_t;
 
           protected:
             const iterate_domain_t &m_iterate_domain;
 
           public:
-            typedef typename _impl::iterate_domain_remapper_base_esf_args_map< IterateDomainEvaluatorImpl >::type
+            typedef typename _aux::iterate_domain_remapper_base_esf_args_map< IterateDomainEvaluatorImpl >::type
                 esf_args_map_t;
 
             GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< iterate_domain_t >::value), "Internal Error: wrong type");
@@ -69,7 +105,7 @@ namespace gridtools {
 #endif
 
             GT_FUNCTION
-            array< uint_t, 4 > const & position() const { return m_iterate_domain.position();}
+            array< uint_t, 4 > const &position() const { return m_iterate_domain.position(); }
 
             GT_FUNCTION
             explicit iterate_domain_remapper_base(const iterate_domain_t &iterate_domain)
@@ -81,21 +117,20 @@ namespace gridtools {
             /** shifting the IDs of the placeholders and forwarding to the iterate_domain () operator*/
             template < typename Accessor >
             GT_FUNCTION auto operator()(Accessor const &arg) const
-                -> decltype(m_iterate_domain(typename remap_accessor_type< Accessor, esf_args_map_t >::type(arg)))
-            {
+                -> decltype(m_iterate_domain(typename remap_accessor_type< Accessor, esf_args_map_t >::type(arg))) {
                 typedef typename remap_accessor_type< Accessor, esf_args_map_t >::type remap_accessor_t;
                 return m_iterate_domain(remap_accessor_t(arg));
             }
 
             template < typename ValueType, typename LocationTypeT, typename Reduction, typename... Accessors >
             GT_FUNCTION ValueType operator()(
-                on_neighbors_impl< ValueType, LocationTypeT, Reduction, Accessors... > onneighbors) const
-            {
+                on_neighbors< ValueType, LocationTypeT, Reduction, Accessors... > onneighbors) const {
                 typedef on_neighbors_impl< ValueType,
+                    color_t,
                     LocationTypeT,
                     Reduction,
-                    typename remap_accessor_type< Accessors, esf_args_map_t  >::type... > remap_accessor_t;
-                return m_iterate_domain(remap_accessor_t(onneighbors));
+                    typename remap_accessor_type< Accessors, esf_args_map_t >::type... > remap_accessor_t;
+                return m_iterate_domain(esf_location_type_t(), remap_accessor_t(onneighbors));
             }
         };
 
@@ -105,15 +140,15 @@ namespace gridtools {
          * @param IterateDomain iterate domain
          * @param EsfArgsMap map from ESF arguments to iterate domain position of args.
          */
-        template < typename IterateDomain, typename EsfArgsMap >
+        template < typename IterateDomain, typename EsfArgsMap, typename EsfLocationType, uint_t Color >
         class iterate_domain_remapper
-            : public iterate_domain_remapper_base< iterate_domain_remapper< IterateDomain, EsfArgsMap > > // CRTP
+            : public iterate_domain_remapper_base< iterate_domain_remapper< IterateDomain, EsfArgsMap, EsfLocationType, Color > > // CRTP
         {
             DISALLOW_COPY_AND_ASSIGN(iterate_domain_remapper);
 
           public:
             GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), "Internal Error: wrong type");
-            typedef iterate_domain_remapper_base< iterate_domain_remapper< IterateDomain, EsfArgsMap > > super;
+            typedef iterate_domain_remapper_base< iterate_domain_remapper< IterateDomain, EsfArgsMap, EsfLocationType, Color > > super;
 
             GT_FUNCTION
             explicit iterate_domain_remapper(const IterateDomain &iterate_domain) : super(iterate_domain) {}
@@ -123,23 +158,54 @@ namespace gridtools {
     /** Metafunction to query an iterate domain if it's positional. Specialization for
         iterate_domain_remapper
     */
-    template < typename T, typename U >
-    struct is_positional_iterate_domain< icgrid::iterate_domain_remapper< T, U > > : boost::false_type {};
+    template < typename T, typename U, typename L, uint_t C >
+    struct is_positional_iterate_domain< icgrid::iterate_domain_remapper< T, U, L, C > > : boost::false_type {};
 
     /** Metafunction to query a type is an iterate domain.
     */
-    template < typename T, typename U >
-    struct is_iterate_domain< icgrid::iterate_domain_remapper< T, U > > : boost::true_type {};
+    template < typename T, typename U, typename L, uint_t C >
+    struct is_iterate_domain< icgrid::iterate_domain_remapper< T, U, L, C > > : boost::true_type {};
 
     /**
      * @struct get_iterate_domain_remapper
      * metafunction that computes the iterate_domain_remapper from the iterate domain type
      */
-    template < typename IterateDomain, typename EsfArgsMap >
+    template < typename IterateDomain, typename EsfArgsMap, typename EsfLocationType, uint_t Color >
     struct get_iterate_domain_remapper {
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_location_type<EsfLocationType>::value), "Internal Error: wrong type");
 
-        typedef icgrid::iterate_domain_remapper< IterateDomain, EsfArgsMap > type;
+        typedef icgrid::iterate_domain_remapper< IterateDomain, EsfArgsMap, EsfLocationType, Color > type;
     };
+
+    /**
+     * @struct get_trivial_iterate_domain_remapper
+     * metafunction that computes a trivial iterate_domain_remapper where all the accessors are mapped to themselves
+     */
+    template < typename IterateDomain, typename Esf, typename Color >
+    struct get_trivial_iterate_domain_remapper {
+        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Internal Error: wrong type");
+
+        template < typename Map, typename Item >
+        struct insert_ {
+            GRIDTOOLS_STATIC_ASSERT((is_arg<Item>::value), "Error");
+            typedef
+                typename boost::mpl::insert< Map,
+                    boost::mpl::pair< boost::mpl::integral_c< int, Item::index_type::value >,
+                                                 boost::mpl::integral_c< int, Item::index_type::value > > >::type
+                    type;
+        };
+
+        typedef typename boost::mpl::fold< typename Esf::args_t,
+            boost::mpl::map0<>,
+            insert_< boost::mpl::_1, boost::mpl::_2 > >::type trivial_args_map_t;
+
+        typedef icgrid::iterate_domain_remapper< IterateDomain,
+            trivial_args_map_t,
+            typename Esf::location_type,
+            Color::color_t::value > type;
+    };
+
 
 } // namespace gridtools
