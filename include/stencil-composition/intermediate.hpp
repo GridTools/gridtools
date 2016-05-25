@@ -220,7 +220,7 @@ namespace gridtools {
 
             // following line is extracting the correct meta_data pointers
             // from the previously handled/cloned storages.
-            boost::fusion::transform(storage_pointers, get_storage_metadata_ptrs<MetaData>(meta_data_));
+            boost::fusion::for_each(storage_pointers, get_storage_metadata_ptrs<MetaData>(meta_data_));
 
             return GT_NO_ERRORS;
         }
@@ -610,11 +610,7 @@ namespace gridtools {
         */
         virtual void steady() {
             if (is_storage_ready) {
-                // filter the non temporary meta storage pointers among the actual ones
-                typename boost::fusion::result_of::as_set< actual_metadata_set_t >::type meta_view(
-                    m_actual_metadata_list.sequence_view());
-
-                setup_computation< Backend::s_backend_id >::apply(m_actual_arg_list, meta_view, m_domain);
+                setup_computation< Backend::s_backend_id >::apply(m_actual_arg_list, m_actual_metadata_list, m_domain);
 #ifdef VERBOSE
                 printf("Setup computation\n");
 #endif

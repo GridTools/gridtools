@@ -163,6 +163,10 @@ namespace gridtools {
             return *m_meta_data;
         }
 
+        pointer<storage_info_type const> get_meta_data_pointer() const {
+            return pointer<storage_info_type const>(m_meta_data.get_pointer_to_use());
+        }
+
         pointer_type const &data() const {
             assert(m_on_host);
             return (*m_storage).data();
