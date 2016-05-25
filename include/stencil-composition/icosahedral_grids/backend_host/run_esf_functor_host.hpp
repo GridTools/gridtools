@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../run_esf_functor.hpp"
+#include "../iterate_domain_remapper.hpp"
 
 namespace gridtools {
 
@@ -16,6 +17,8 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), "Internal Error: wrong type");
         typedef run_esf_functor< run_esf_functor_host< RunFunctorArguments, Interval > > super;
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
+
+        typedef typename super::run_functor_arguments_t run_functor_arguments_t;
 
         GT_FUNCTION
         explicit run_esf_functor_host(iterate_domain_t &iterate_domain) : super(iterate_domain) {}
@@ -38,15 +41,15 @@ namespace gridtools {
         GT_FUNCTION void do_impl(
             typename boost::enable_if< typename color_esf_match< EsfArguments >::type, int >::type = 0) const {
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
-            call_user_functor<IntervalType, EsfArguments>();
+            call_user_functor< IntervalType, EsfArguments >();
         }
 
         template < typename IntervalType, typename EsfArguments >
         GT_FUNCTION void do_impl(
-            typename boost::disable_if< typename color_esf_match< EsfArguments >::type, int >::type = 0) const {
-        }
+            typename boost::disable_if< typename color_esf_match< EsfArguments >::type, int >::type = 0) const {}
 
-    private:
+      private:
+
         /*
          * @brief main functor implemenation that executes (for Host) the user functor of an ESF
          *      (specialization for non reduction operations)
@@ -61,7 +64,14 @@ namespace gridtools {
 
             using n_colors_t = typename EsfArguments::esf_t::location_type::n_colors;
 
-            functor_t::f_type::Do(this->m_iterate_domain, IntervalType());
+            typedef typename run_functor_arguments_t::color_t oo;
+            typedef typename get_trivial_iterate_domain_remapper< iterate_domain_t,
+                typename EsfArguments::esf_t,
+                typename run_functor_arguments_t::color_t >::type iterate_domain_remapper_t;
+
+            iterate_domain_remapper_t iterate_domain_remapper(this->m_iterate_domain);
+
+            functor_t::f_type::Do(iterate_domain_remapper, IntervalType());
         }
 
         /*
