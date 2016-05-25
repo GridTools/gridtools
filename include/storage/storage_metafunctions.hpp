@@ -148,7 +148,7 @@ namespace gridtools {
 
         template <typename T>
         void operator()(T &st) const {
-            return metadata_set.insert(st->get_meta_data_pointer());
+            metadata_set.insert(st->get_meta_data_pointer());
         }
     };
 }

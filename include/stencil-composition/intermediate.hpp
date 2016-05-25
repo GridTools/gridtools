@@ -644,12 +644,6 @@ namespace gridtools {
                 view_type;
             view_type fview(m_actual_arg_list);
             boost::fusion::for_each(fview, _impl::delete_tmps());
-
-            // deleting the metadata objects
-            typedef boost::fusion::filter_view< typename actual_metadata_list_type::set_t,
-                is_ptr_to_tmp< boost::mpl::_1 > > view_type2;
-            view_type2 fview2(m_actual_metadata_list.sequence_view());
-            boost::fusion::for_each(fview2, delete_pointer());
         }
 
         /**

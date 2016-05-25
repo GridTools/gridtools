@@ -46,7 +46,6 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((boost::fusion::result_of::has_key< set_t, T >::type::value),
                 "the type used for the lookup in the metadata set is not present in the set. Did you use the correct "
                 "type as meta storage?");
-            //assert(!present< T >()); // must be uninitialized
             boost::fusion::at_key< T >(m_set) = new_instance;
         }
 
