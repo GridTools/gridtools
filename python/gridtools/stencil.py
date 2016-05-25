@@ -588,7 +588,7 @@ class MultiStageStencil (Stencil):
             #
             # run the selected backend version
             #
-            print ("Executing '%s' in %s mode ..." % (self.name,
+            logging.debug ("Executing '%s' in %s mode ..." % (self.name,
                                                              backend.upper ( )))
             if backend == 'c++' or backend == 'cuda':
                 Stencil.compiler.run_native (self, **kwargs)

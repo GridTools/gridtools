@@ -103,7 +103,6 @@ class StencilCompiler ( ):
                 stencil.identify_stages_IO               ( )
                 stencil.scope.build_execution_path       (stencil.name)
                 stencil.scope.check_stage_execution_path ( )
-                print(stencil.scope.stage_execution.edges())
                 #
                 # print out the discovered symbols if in DEBUG mode
                 #

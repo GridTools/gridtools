@@ -110,8 +110,8 @@ namespace gridtools {
 
                 // First determine which are the outputs
                 typedef typename esf_get_w_per_functor< current_ESF, boost::true_type >::type outputs;
-	      GRIDTOOLS_STATIC_ASSERT((check_all_extents_are< outputs, extent<> >::type::value),
-                    "Extents of the outputs of ESFs are not all empty. All outputs must have empty extents");
+	      //GRIDTOOLS_STATIC_ASSERT((check_all_extents_are< outputs, extent<> >::type::value),
+                    //"Extents of the outputs of ESFs are not all empty. All outputs must have empty extents");
 
                 // Then determine the inputs
                 typedef typename esf_get_r_per_functor< current_ESF, boost::true_type >::type inputs;
@@ -208,7 +208,7 @@ namespace gridtools {
 
             template < typename Status, typename Elem >
             struct _new_value {
-	      typedef typename boost::is_same< typename boost::mpl::at< MoP, Elem >::type, Extent >::type value_t;
+          typedef typename boost::is_same< typename boost::mpl::at< MoP, Elem >::type, Extent >::type value_t;
                 typedef typename boost::mpl::and_< Status, value_t >::type type;
             };
 
@@ -260,9 +260,9 @@ namespace gridtools {
                 typedef typename boost::mpl::at_c< w_plcs, 0 >::type first_out;
                 typedef typename boost::mpl::at< MapOfPlaceholders, first_out >::type extent;
 
-	      // GRIDTOOLS_STATIC_ASSERT((_impl::_check_extents_on_outputs< MapOfPlaceholders, w_plcs, extent >::value),
-	      //    "The output of the ESF do not have all the save extents, so it is not possible to select the "
-	      //    "extent for the whole ESF.");
+          // GRIDTOOLS_STATIC_ASSERT((_impl::_check_extents_on_outputs< MapOfPlaceholders, w_plcs, extent >::value),
+          //    "The output of the ESF do not have all the save extents, so it is not possible to select the "
+          //    "extent for the whole ESF.");
 
                 typedef extent type;
             };
