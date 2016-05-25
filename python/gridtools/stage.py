@@ -485,6 +485,11 @@ class Stage ( ):
         #
         self.ghost_cell    = None
         #
+        # Input and output data fields for this stage
+        #
+        self.inputs        = None
+        self.outputs       = None
+        #
         # whether this stage could be executed in parallel with other stages
         # inside the stencil (see HorizontalDiffusion test for fluxes I and J)
         #
@@ -525,6 +530,50 @@ class Stage ( ):
         Return the data dependency graph for this stages's scope
         """
         return self.scope.data_dependency
+
+
+    def identify_IO (self):
+        """
+        Tries to identify input and output data fields for this stage
+        :return:
+        """
+        #
+        # Look for IO using stage's data dependencies
+        #
+        logging.debug('Probing IO for Stage: %s' % self.name)
+        self.outputs = []
+        self.inputs = []
+        data_dep = self.get_data_dependency()
+        for node in data_dep.nodes_iter():
+            #
+            # Output data have no predecessors
+            #
+            if not data_dep.predecessors(node.name):
+                self.outputs.append(node)
+            #
+            # Input nodes have no successors
+            #
+            if not data_dep.successors(node.name):
+                self.inputs.append(node)
+        #
+        # Considering non-local self-looping nodes as both inputs and outputs
+        #
+        for node in data_dep.nodes_with_selfloops():
+            self.inputs.append(node)
+            self.outputs.append(node)
+        logging.debug('\tStage scope Input data: %s' % self.inputs)
+        logging.debug('\tStage scope Output data: %s' % self.outputs)
+        #
+        #Resolve aliases at stencil scope, substituting the alias with the corresponding symbol, that can be found inside the symbol table!
+        #
+        for i, data in enumerate(self.inputs):
+            if data.kind == 'alias':
+                self.inputs[i] = self.scope.symbol_table[data.value]
+        for i, data in enumerate(self.outputs):
+            if data.kind == 'alias':
+                self.outputs[i] = self.scope.symbol_table[data.value]
+        logging.debug('\tStencil scope Input data: %s' % self.inputs)
+        logging.debug('\tStencil scope Output data: %s' % self.outputs)
 
 
     @property

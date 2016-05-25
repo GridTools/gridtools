@@ -399,6 +399,16 @@ class Stencil (object):
         return self.scope.data_dependency
 
 
+    def identify_stages_IO (self):
+        """
+        Tries to identify input and output data fields for every stage of the
+        stencil
+        :return:
+        """
+        for stg in self.stages:
+            stg.identify_IO ( )
+
+
     def plot_3d (self, Z):
         """
         Plots the Z field in 3D, returning a Matplotlib's Line3DCollection.-
@@ -578,7 +588,7 @@ class MultiStageStencil (Stencil):
             #
             # run the selected backend version
             #
-            logging.info ("Executing '%s' in %s mode ..." % (self.name,
+            print ("Executing '%s' in %s mode ..." % (self.name,
                                                              backend.upper ( )))
             if backend == 'c++' or backend == 'cuda':
                 Stencil.compiler.run_native (self, **kwargs)

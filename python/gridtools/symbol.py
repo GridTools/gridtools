@@ -169,7 +169,6 @@ class Scope (object):
         #
         # a data-dependency graph
         #
-        #
         self.data_dependency = nx.DiGraph ( )
 
 
@@ -490,7 +489,7 @@ class StencilScope (Scope):
         stage_obj  = Stage (stage_name,
                             node,
                             self)
-        logging.debug ('Adding stage:',stage_name)
+        logging.debug ('Adding stage: %s' % stage_name)
 
         if stage_obj not in self.stage_execution:
             #
@@ -510,39 +509,69 @@ class StencilScope (Scope):
         return stage_obj
 
 
-    def build_execution_path (self):
+    def build_execution_path (self, stencil_name):
         """
         Analyzes the stages within this stencil scope and builds a graph
         representing their execution path
+
+        After the StencilInspector has finished its job, the StencilScope
+        contains a preliminary stage execution graph, formed by a linear chain
+        of stages in the order they were entered in the stencil kernel.
+
+        We can iteratively build the final and correct stage execution graph by
+        traversing the preliminary graph: for each node, we add it in the new
+        graph, and look if any input of the current node matches an output on
+        other nodes of the new graph. This assumes that IO identification for
+        all stages has already been carried out.
+
+        When introducing a node in the new execution graph, all the stages
+        already present in the graph are at the same or higher level with
+        respect of the current node (due to the order of the preliminary graph).
+        Thus, we automatically avoid a wrong link to a stage that should depend
+        on the introduced one (because no such stage is present in the graph).
+
+        To avoid duplicating connections, a given stage input is removed from the
+        available ones after a match is found from a postorder topological sort
+        of the new execution graph. The sort is executed in postorder to link to
+        the latest possible stage between those having the same output data
+        field.
+        TODO: Inform the user of this policy in the proper documentation.
+        :param stencil_name:    The name of the stencil owning this scope
         :return:
         """
-        leaves              = []
+        logging.debug("Building final stage execution path for stencil %s" %
+                      stencil_name)
         new_stage_execution = nx.DiGraph ( )
         for stg in nx.topological_sort (self.stage_execution):
-            new_stage_execution.add_node (stg)
-            if stg.independent:
+            new_stage_execution.add_node(stg)
+            #
+            # Create modifiable lists for stage input and output
+            #
+            stg_in = list(stg.inputs)
+            #
+            # Look for connections among nodes introduced in the new graph
+            # Use the reverse sort order to find the latest node with the
+            # desired output
+            #
+            for other in nx.topological_sort(new_stage_execution, reverse=True):
+                logging.debug('\tLooping other nodes: %s' % other.name)
                 #
-                # adding independent stage
+                # Skip self (obviously...)
                 #
-                if len (leaves) == 1:
-                    if not leaves[0].independent:
-                        new_stage_execution.add_edge (leaves[0], stg)
-                        leaves.clear ( )
-                    else:
-                        for pred in new_stage_execution.predecessors (leaves[0]):
-                            new_stage_execution.add_edge (pred, stg)
-                elif len (leaves) > 1:
-                    for l in leaves:
-                        assert (l.independent)
-            else:
-                #
-                # adding NON independent stage
-                #
-                if len (leaves) > 0:
-                    for l in leaves:
-                        new_stage_execution.add_edge (l, stg)
-                    leaves.clear ( )
-            leaves.append (stg)
+                if other is stg:
+                    continue
+                for i, data in enumerate(stg_in):
+                    if data in other.outputs:
+                        new_stage_execution.add_edge(other, stg)
+                        #
+                        # We have found a match for this input.
+                        # To avoid duplicate matches, possibly with earlier nodes
+                        # with the same outputs of "other", pop this stage input
+                        # from the temporary list
+                        #
+                        stg_in.pop(i)
+                        logging.debug('\t\tMatch found! Popping input data.' +
+                                      'New stg_in: %s' % stg_in)
         #
         # save the newly built execution path
         #
