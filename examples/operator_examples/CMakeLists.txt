@@ -1,7 +1,7 @@
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR};${CMAKE_MODULE_PATH}")
 find_package( NetCDF REQUIRED )
 
-include_directories(${NETCDF_INCLUDES} )
+include_directories(${NETCDF_INCLUDES_CXX} )
 
 set( GTEST_FILES ../Options.hpp ../Options.cpp ../icosahedral/unstructured_grid.cpp)
 
