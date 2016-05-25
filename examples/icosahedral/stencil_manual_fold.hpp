@@ -47,8 +47,6 @@ namespace smf {
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-            typedef typename icgrid::get_grid_topology< Evaluation >::type grid_topology_t;
-
             using edge_of_cell_dim = dimension< 5 >;
             edge_of_cell_dim::Index edge;
 
@@ -88,8 +86,6 @@ namespace smf {
         uint_t d1 = x;
         uint_t d2 = y;
         uint_t d3 = z;
-
-        typedef gridtools::layout_map< 2, 1, 0 > layout_t;
 
         using cell_storage_type = typename backend_t::storage_t< icosahedral_topology_t::cells, double >;
 
