@@ -135,7 +135,7 @@ class CopyTest (AccessPatternDetectionTest):
     @attr(lang='cuda')
     def test_data_dependency_detection_cuda (self, deps=None, backend='cuda'):
         self.test_data_dependency_detection (deps=deps,
-                                                  backend=backend)
+                                             backend=backend)
 
 
     def test_automatic_access_pattern_detection (self):
@@ -724,6 +724,7 @@ class LaplaceTest (CopyTest):
         super ( ).test_get_interior_points_IJ_object (self.out_data)
 
 
+
 class HorizontalDiffusion (MultiStageStencil):
     def __init__ (self, domain):
         super ( ).__init__ ( )
@@ -809,6 +810,168 @@ class HorizontalDiffusionTest (CopyTest):
                          ('out_data', 'self.flj'),
                          ('out_data', 'self.fli'),
                          ('self.fli', 'self.lap'),
+                         ('self.flj', 'self.lap'),
+                         ('self.lap', 'in_data')]
+        super ( ).test_data_dependency_detection (deps=expected_deps,
+                                                  backend=backend)
+
+
+    @attr(lang='cuda')
+    def test_data_dependency_detection_cuda (self):
+        self.test_data_dependency_detection (backend='cuda')
+
+
+    def test_automatic_access_pattern_detection (self):
+        from gridtools import BACKENDS
+
+        #
+        # fields and their ranges
+        #
+        self.add_expected_offset ('in_data',  [-1,1,-1,1])
+        self.add_expected_offset ('in_wgt',   None)
+        self.add_expected_offset ('out_data', None)
+        self.add_expected_offset ('self.fli', None)
+        self.add_expected_offset ('self.fli', [-1,0,0,0])
+        self.add_expected_offset ('self.flj', None)
+        self.add_expected_offset ('self.flj', [0,0,-1,0])
+        self.add_expected_offset ('self.lap', None)
+        self.add_expected_offset ('self.lap', [0,1,0,0])
+        self.add_expected_offset ('self.lap', [0,0,0,1])
+
+        for backend in BACKENDS:
+            self.stencil.set_backend (backend)
+            self._run ( )
+            self.automatic_access_pattern_detection (self.stencil)
+
+
+    def test_ghost_cell_pattern (self, backend='c++'):
+        expected_patterns = [ [-1,1,-1,1],
+                              [-1,0,-1,0],
+                              [-1,0,-1,0],
+                                [0,0,0,0] ]
+        super ( ).test_ghost_cell_pattern (expected_patterns,
+                                           backend=backend)
+
+    @attr(lang='cuda')
+    def test_ghost_cell_pattern_cuda (self):
+        self.test_ghost_cell_pattern (backend='cuda')
+
+
+    def test_minimum_halo_detection (self):
+        super ( ).test_minimum_halo_detection ([2, 2, 2, 2])
+
+
+    @attr(lang='python')
+    def test_python_results (self):
+        self.out_data = np.random.rand (*self.domain)
+        super ( ).test_python_results (out_param='out_data',
+                                       result_file='horizontaldiffusion_result.npy')
+
+
+    def test_get_interior_points_K_static (self):
+        super ( ).test_get_interior_points_K_static (self.out_data)
+
+
+    def test_get_interior_points_K_object (self):
+        super ( ).test_get_interior_points_K_object (self.out_data)
+
+
+    def test_get_interior_points_IJ_static (self):
+        super ( ).test_get_interior_points_IJ_static (self.out_data)
+
+
+    def test_get_interior_points_IJ_object (self):
+        super ( ).test_get_interior_points_IJ_object (self.out_data)
+
+
+
+class MadHD (MultiStageStencil):
+    """
+    A more convoluted stencil derived from HorizontalDiffusion
+    """
+    def __init__ (self, domain):
+        super ( ).__init__ ( )
+        #
+        # temporary data fields to share data among the different stages
+        #
+        self.lap = np.zeros (domain)
+        self.fli = np.zeros (domain)
+        self.flj = np.zeros (domain)
+
+
+    def stage_laplace (self, out_lap, in_data):
+        for p in self.get_interior_points (out_lap,
+                                          ghost_cell=[-1,1,-1,1]):
+           out_lap[p] = -4.0 * in_data[p] +  (
+                         in_data[p + (-1,0,0)] + in_data[p + (1,0,0)] +
+                         in_data[p + (0,-1,0)] + in_data[p + (0,1,0)] )
+
+
+    def stage_flux_i (self, out_fli, in_data):
+        for p in self.get_interior_points (out_fli,
+                                           ghost_cell=[-1,0,-1,0]):
+            out_fli[p] = in_data[p + (1,0,0)] - in_data[p]
+
+
+    def stage_flux_j (self, out_flj, in_data):
+        for p in self.get_interior_points (out_flj,
+                                           ghost_cell=[-1,0,-1,0]):
+            out_flj[p] = in_data[p + (0,1,0)] - in_data[p]
+
+
+    @Stencil.kernel
+    def kernel (self, out_data, in_data, in_wgt):
+        #
+        # Laplace
+        #
+        self.stage_laplace (out_lap=self.lap,
+                           in_data=in_data)
+        #
+        # the fluxes are independent, because they depend on 'self.lap'
+        #
+        self.stage_flux_i (out_fli = self.fli,
+                           in_data  = self.lap)
+        self.stage_flux_j (out_flj = self.flj,
+                           in_data  = self.lap)
+
+        for p in self.get_interior_points (self.fli,ghost_cell=[-1,0,-1,0]):
+           #
+           # Data field self-assignment
+           # fli = fli + flj
+           #
+           self.fli[p] = (self.fli[p + (-1,0,0)] - self.fli[p] +
+                          self.flj[p + (0,-1,0)] - self.flj[p] )
+
+        for p in self.get_interior_points (out_data):
+            #
+            # Last stage
+            #
+            out_data[p] = in_wgt[p] * (
+                          self.fli[p + (-1,0,0)] - self.fli[p] +
+                          self.flj[p + (0,-1,0)] - self.flj[p] )
+
+
+
+class MadHDTest (HorizontalDiffusionTest):
+    """
+    A test case for the MadHD stencil defined above, reusing the HorizontalDiffusion
+    test case.-
+    """
+    def setUp (self):
+        super ( ).setUp ( )
+
+        self.stencil = MadHD (self.domain)
+        self.stencil.set_halo ( (2, 2, 2, 2) )
+        self.stencil.set_k_direction ("forward")
+
+
+    def test_data_dependency_detection (self, deps=None, backend='c++'):
+        expected_deps = [('out_data', 'in_wgt'),
+                         ('out_data', 'self.flj'),
+                         ('out_data', 'self.fli'),
+                         ('self.fli', 'self.lap'),
+                         ('self.fli', 'self.fli'),
+                         ('self.fli', 'self.flj'),
                          ('self.flj', 'self.lap'),
                          ('self.lap', 'in_data')]
         super ( ).test_data_dependency_detection (deps=expected_deps,

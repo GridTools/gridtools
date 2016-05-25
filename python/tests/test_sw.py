@@ -291,7 +291,8 @@ class SWTest (CopyTest):
                          ('self.Vd', 'self.R'),
                          ('self.Vd', 'self.T'),
                          ('self.Vd', 'self.B')]
-        super ( ).test_data_dependency_detection (deps=expected_deps)
+        super ( ).test_data_dependency_detection (deps=expected_deps,
+                                                  backend=backend)
 
 
     def test_automatic_access_pattern_detection (self):
