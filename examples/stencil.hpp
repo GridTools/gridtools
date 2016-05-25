@@ -178,7 +178,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     // K dimension not partitioned.
     gridtools::grid<axis, partitioner_t> coords3d7pt(part, meta_);
     coords3d7pt.value_list[0] = 1; //specifying index of the splitter<0,-1>
-    coords3d7pt.value_list[1] = d3-1; //specifying index of the splitter<1,-1>
+    coords3d7pt.value_list[1] = d3; //specifying index of the splitter<1,-1>
 
     //--------------------------------------------------------------------------
     // Definition of the actual data fields that are used for input/output

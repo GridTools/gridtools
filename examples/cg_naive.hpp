@@ -305,7 +305,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
     // K dimension not partitioned.
     gridtools::grid<axis, partitioner_t> coords3d7pt(part, meta_);
     coords3d7pt.value_list[0] = 1; //specifying index of the splitter<0,-1>
-    coords3d7pt.value_list[1] = d3-1; //specifying index of the splitter<1,-1>
+    coords3d7pt.value_list[1] = d3; //specifying index of the splitter<1,-1>
 
     //--------------------------------------------------------------------------
     // Definition of the actual data fields that are used for input/output
@@ -461,6 +461,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
         ).apply(x, d, xNew, dNew);
 
     //MPI_Barrier(GCL_WORLD);
+    //#pragma omp barrier
 
     // Set addition parameter to -1 (subtraction): r = b + alpha A x
     double minus = -1;
@@ -475,10 +476,12 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
     CG_init->finalize();
 
     //MPI_Barrier(GCL_WORLD);
+    //#pragma omp barrier
 
     double rr_global;
     MPI_Allreduce(&rr, &rr_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
     double rr_init = sqrt(rr_global); //initial residual
+
     if (PID == 0) {
         #ifdef REL_TOL
         std::cout << "Iteration 0: [residual] " << sqrt(rr_global)/rr_init << std::endl << std::endl;
@@ -486,6 +489,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
         std::cout << "Iteration 0: [residual] " << rr_init << std::endl << std::endl;
         #endif
     }
+
+    //#pragma omp barrier
 
     //communicate halos
     std::vector<pointer_type::pointee_t*> vec(1);
@@ -622,6 +627,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
             );
 
         //MPI_Barrier(GCL_WORLD);
+        //#pragma omp barrier
 
         boost::timer::cpu_timer time_iteration;
 
@@ -635,6 +641,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
         CG_step0->finalize();
 
         //MPI_Barrier(GCL_WORLD);
+        //#pragma omp barrier
 
         // Compute step size alpha
         double rTr_global; //nominator
@@ -671,6 +678,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
         #endif
 
         //MPI_Barrier(GCL_WORLD);
+        //#pragma omp barrier
 
         // x_(i+1) = x_i + alpha * d_i
         CG_step1->ready();
@@ -681,6 +689,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
         CG_step1->finalize();
 
         //MPI_Barrier(GCL_WORLD);
+        //#pragma omp barrier
 
         // r_(i+1) = r_i - alpha * Ad_i
         alpha.setValue(-1. * alpha.getValue());
@@ -691,6 +700,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
         lapse_time_run = lapse_time_run + time_run2.elapsed();
         CG_step2->finalize();
         MPI_Allreduce(&rr, &rr_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+
+        //#pragma omp barrier
 
         double rTrnew;
         double rTrnew_global;
@@ -711,6 +722,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
         #endif
 
         //MPI_Barrier(GCL_WORLD);
+        //#pragma omp barrier
 
         // d_(i+1) = r_(i+1) + beta * d_i
         CG_step3->ready();
@@ -721,6 +733,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
         CG_step3->finalize();
 
         //MPI_Barrier(GCL_WORLD);
+        //#pragma omp barrier
 
         // Communicate halos
         std::vector<pointer_type::pointee_t*> vec(2);
@@ -732,6 +745,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
         he.unpack(vec);
 
         MPI_Barrier(GCL_WORLD);
+        //#pragma omp barrier
 
         // Swap input and output fields
         storage_type* swap;

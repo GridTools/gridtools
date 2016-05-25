@@ -95,7 +95,7 @@ struct copy_functor {
 */
 struct d3point7{
     typedef accessor<0, enumtype::inout, extent<0,0,0,0> > out;
-    typedef accessor<1, enumtype::in, extent<-1,1,-1,1> > in; // this says to access 6 neighbors
+    typedef accessor<1, enumtype::in, extent<-1,1,-1,1,-1,1> > in; // this says to access 6 neighbors
     typedef boost::mpl::vector<out, in> arg_list;
 
     template <typename Domain>
