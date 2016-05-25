@@ -32,14 +32,14 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_color_type<Color>::value), "Error");
 
             template<typename Esf>
-            struct esf_has_color{
+            struct esf_has_color_{
                 GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Error");
                 typedef static_bool<
                     (boost::is_same< typename Esf::color_t::color_t, typename Color::color_t >::value ||
                 boost::is_same<typename Esf::color_t, nocolor>::value) > type;
             };
 
-            typedef typename is_there_in_sequence_if<EsfSequence, esf_has_color<boost::mpl::_> >::type type;
+            typedef typename is_there_in_sequence_if<EsfSequence, esf_has_color_<boost::mpl::_> >::type type;
         };
 
     }
