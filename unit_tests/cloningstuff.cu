@@ -84,7 +84,9 @@ namespace cloningstuff_test {
         a.clone_to_device();
 
 #ifdef __CUDACC__
+        // clang-format off
         test<<<1,1>>>(a.gpu_object_ptr);
+        // clang-format on
         cudaDeviceSynchronize();
 #endif
         a.clone_from_device();

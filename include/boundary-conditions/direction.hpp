@@ -8,7 +8,7 @@ namespace gridtools {
     /**
        @brief Enum defining the directions in a discrete Cartesian grid
      */
-    enum sign {any_=-2, minus_=-1, zero_, plus_};
+    enum sign { any_ = -2, minus_ = -1, zero_, plus_ };
     /**
        @brief Class defining a direction in a cartesian 3D grid.
        The directions correspond to the following:
@@ -47,19 +47,16 @@ namespace gridtools {
        \endverbatim
        - the case in which all three are zero does not belong to the boundary and is excluded.
      */
-    template <sign I_, sign J_, sign K_, class Predicate=boost::enable_if_c<true>::type >
+    template < sign I_, sign J_, sign K_, class Predicate = boost::enable_if_c< true >::type >
     struct direction {
         static const sign I = I_;
         static const sign J = J_;
         static const sign K = K_;
     };
 
-    template <sign I, sign J, sign K>
-    std::ostream & operator<<(std::ostream& s, direction<I,J,K> const &) {
-        s << "direction<" << I
-                  << ", " << J
-                  << ", " << K
-                  << ">";
+    template < sign I, sign J, sign K >
+    std::ostream &operator<<(std::ostream &s, direction< I, J, K > const &) {
+        s << "direction<" << I << ", " << J << ", " << K << ">";
         return s;
     }
 

@@ -32,7 +32,7 @@ for gpu in ON OFF; do
                     else
                         echo
                         echo
-                        echo EVERYTTHING SEEMS FINE
+                        echo EVERYTHING SEEMS FINE
                         echo
                         echo
                         rm $name

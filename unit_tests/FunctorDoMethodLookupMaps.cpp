@@ -2,9 +2,9 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/pair.hpp>
-#include "gt_for_each/for_each.hpp"
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/at.hpp>
+#include <boost/mpl/for_each.hpp>
 #include <iostream>
 #include "common/host_device.hpp"
 #include "stencil-composition/interval.hpp"
@@ -104,7 +104,7 @@ struct PrintDoMethodLookupMap
         }
 
         // print the map
-        gridtools::for_each<
+        boost::mpl::for_each<
             TLoopIntervals
         >(PrintLoopInterval<DoMethodLookUpMap>());
     }

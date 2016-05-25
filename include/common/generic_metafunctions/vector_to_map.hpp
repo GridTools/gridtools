@@ -9,18 +9,15 @@
 
 namespace gridtools {
 
-/**
- * @struct vector_to_map
- * convert a vector of pairs into a make_pair
- */
-template<typename Vec>
-struct vector_to_map
-{
-    typedef typename boost::mpl::fold<
-        Vec,
-        boost::mpl::map0<>,
-        boost::mpl::insert< boost::mpl::_1, boost::mpl::_2 >
-    >::type type;
-};
+    /**
+     * @struct vector_to_map
+     * convert a vector of pairs into a make_pair
+     */
+    template < typename Vec >
+    struct vector_to_map {
+        typedef typename boost::mpl::fold< Vec,
+            boost::mpl::map0<>,
+            boost::mpl::insert< boost::mpl::_1, boost::mpl::_2 > >::type type;
+    };
 
-} //namespace gridtools
+} // namespace gridtools
