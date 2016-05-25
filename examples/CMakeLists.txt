@@ -4,7 +4,7 @@ list( APPEND SRCFILES boundary-condition laplacian copy_stencil positional_copy_
 list( APPEND X86_SRCFILES reduction)
 
 if( ENABLE_CXX11)
-    list(APPEND SRCFILES  extended_4D copy_stencil_parallel stencil  cg_naive)
+    list(APPEND SRCFILES  extended_4D copy_stencil_parallel stencil stencil_reduce cg_naive)
 endif()
 
   add_executable(cg cg.cpp CSRdouble.cpp readdata.cpp PardisoParameters.cpp ParDiSO.cpp )
