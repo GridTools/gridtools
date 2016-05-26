@@ -2,17 +2,32 @@
 
 #include "gtest/gtest.h"
 #include "stencil-composition/stencil-composition.hpp"
+ 
 using namespace gridtools;
 using namespace enumtype;
+
+
+
 
 typedef interval<level<0,-1>, level<1,-1> > x_interval;
 typedef interval<level<0,-2>, level<1,1> > axis;
 #ifdef __CUDACC__
 typedef backend< Cuda, structured, Block > backend_t;
+#ifdef CXX11_ENABLED
+typedef backend_t::storage_info< 0, layout_map< 0, 1, 2 > > meta_t;
+#else 
+typedef meta_storage<
+  meta_storage_aligned<
+    meta_storage_base<0U, layout_map<0, 1, 2>, false, int, int>, 
+    backend_traits_from_id<Cuda>::default_alignment::type, 
+    halo<0,0,0> 
+  > 
+> meta_t;
+#endif
 #else
 typedef backend< Host, structured, Naive > backend_t;
+typedef backend_t::storage_info< 0, layout_map< 0, 1, 2 > > meta_t;
 #endif
-typedef typename backend_t::storage_info< 0, layout_map< 0, 1, 2 > > meta_t;
 typedef backend_t::storage_type< float_type, meta_t >::type storage_type;
 
 /**@brief generic argument type
@@ -20,15 +35,18 @@ typedef backend_t::storage_type< float_type, meta_t >::type storage_type;
    struct implementing the minimal interface in order to be passed as an argument to the user functor.
 */
 
-struct boundary : clonable_to_gpu< boundary > {
+struct boundary {
 #ifdef _USE_GPU_
     typedef hybrid_pointer< boundary, false > storage_ptr_t;
+    typedef hybrid_pointer< const meta_t, false > meta_data_ptr_t;
 #else
     typedef wrap_pointer< boundary, false > storage_ptr_t;
+    typedef wrap_pointer< const meta_t, false > meta_data_ptr_t;
 #endif
-    typedef meta_t storage_info_type;
     storage_ptr_t m_storage;
-    boundary() : m_storage(this, false) {}
+    typedef meta_t storage_info_type;
+    meta_data_ptr_t m_meta_data;
+    boundary() : m_storage(this, true), m_meta_data(new meta_t(10,10,10), true) {}
     //device copy constructor
     __device__ boundary(const boundary& other){}
 
@@ -54,9 +72,14 @@ struct boundary : clonable_to_gpu< boundary > {
     GT_FUNCTION
     pointer< const storage_ptr_t > get_storage_pointer() const { return pointer< const storage_ptr_t >(&m_storage); }
 
-    // template<typename ID>
-    // boundary const*  access_value() const {return this;} //TODO change this?
+    GT_FUNCTION
+    pointer< const meta_t > get_meta_data_pointer() const { return pointer< const meta_t >(m_meta_data.get_pointer_to_use()); }
 
+    GT_FUNCTION
+    void clone_to_device() {
+        m_meta_data.update_gpu();
+        m_storage.update_gpu();
+    }
 };
 
 namespace gridtools {
