@@ -106,6 +106,7 @@ namespace gridtools {
 
         /**@brief destructor: frees the pointers to the data fields which are not managed outside */
         virtual ~base_storage() {
+            delete[] m_name;
             for (ushort_t i = 0; i < field_dimensions; ++i)
                 m_fields[i].free_it();
         }
