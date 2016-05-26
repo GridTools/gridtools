@@ -5,6 +5,7 @@
 #include <stencil-composition/backend.hpp>
 #include <stencil-composition/interval.hpp>
 #include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/reductions/reductions.hpp>
 
 #include <storage/partitioner_trivial.hpp>
 #include <storage/parallel_storage.hpp>
@@ -68,6 +69,43 @@ struct d3point7{
                     - (dom(in{x(-1)})+dom(in{x(+1)}))
                     - (dom(in{y(-1)})+dom(in{y(+1)}))
                     - (dom(in{z(-1)})+dom(in{z(+1)}));
+    }
+};
+
+/** @brief
+    Performs element-wise multiplication of the elements from the input grids
+
+    @param a Source vector.
+    @param b Source vector.
+    @return Element-wise product out = a*b
+*/
+struct product_functor{
+    typedef accessor<0, enumtype::inout, extent<0,0,0,0> > out;
+    typedef accessor<1, enumtype::in, extent<0,0,0,0> > a;
+    typedef accessor<2, enumtype::in, extent<0,0,0,0> > b;
+    typedef boost::mpl::vector<out, a, b> arg_list;
+
+    template <typename Domain>
+    GT_FUNCTION
+    static void Do(Domain const & dom, x_interval) {
+        dom(out{}) = dom(a{}) * dom(b{});
+    }
+};
+
+/** @brief
+    Provides access to elements of the grid
+
+    @param in Source vector
+*/
+struct reduction_functor {
+
+    typedef accessor< 0, enumtype::in > in;
+    typedef boost::mpl::vector< in > arg_list;
+
+    template < typename Evaluation >
+    GT_FUNCTION
+    static float_type Do(Evaluation const &eval, x_interval) {
+        return eval(in());
     }
 };
 
@@ -262,7 +300,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                 (
                     execute<forward>(),
                     gridtools::make_esf<d3point7>(p_Ax(), p_x()) // A * x, where x_0 = 1
-                )
+                ),
+                make_reduction< reduction_functor, binop::sum >(0.0, p_Ax()) // sum(r'.*r)
             );
 
         // Apply boundary conditions
@@ -278,13 +317,23 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
              gridtools::bitmap_predicate(part.boundary())
             ).apply(*ptr_x);
 
+        double product_local;
+        double product_global;
+
         // Prepare and run single step of CG computation
         stencil->ready();
         stencil->steady();
         boost::timer::cpu_timer time_run;
-        stencil->run();
+        product_local = stencil->run();
         lapse_time_run = lapse_time_run + time_run.elapsed();
         stencil->finalize();
+        MPI_Allreduce(&product_local, &product_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+
+        #ifdef DEBUG
+        if(PID == 0) {
+            printf("Dot product is: %f\n", product_global);
+        }
+        #endif
 
         //communicate halos //TODO - what about halo exchange before first computation? is it done automatically by partitioner?
         std::vector<pointer_type::pointee_t*> vec(1);
