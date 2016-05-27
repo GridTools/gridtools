@@ -86,21 +86,21 @@ class SW (MultiStageStencil):
 
 
     @Stencil.kernel
-    def kernel (self, out_H, out_U, out_V):
+    def kernel (self, in_H, in_U, in_V, out_H, out_U, out_V):
         #
         # momentum calculation for each field
         #
-        self.stage_momentum (out_M  = out_U,
+        self.stage_momentum (out_M  = in_U,
                              out_Md = self.Ud,
                              out_Mx = self.Ux,
                              out_My = self.Uy)
 
-        self.stage_momentum (out_M  = out_V,
+        self.stage_momentum (out_M  = in_V,
                              out_Md = self.Vd,
                              out_Mx = self.Vx,
                              out_My = self.Vy)
 
-        self.stage_momentum (out_M  = out_H,
+        self.stage_momentum (out_M  = in_H,
                              out_Md = self.Hd,
                              out_Mx = self.Hx,
                              out_My = self.Hy)
@@ -127,7 +127,10 @@ class SWTest (CopyTest):
 
         self.domain = (64, 64, 1)
 
-        self.params = ('out_H',
+        self.params = ('in_H',
+                       'in_U',
+                       'in_V',
+                       'out_H',
                        'out_U',
                        'out_V')
         self.temps  = ('self.Hd',
@@ -236,7 +239,14 @@ class SWTest (CopyTest):
                         if (self.stencil.dt * self.frame) % 5 == 0:
                             self.droplet (self.out_H, val=3.95)
 
-                        self.stencil.run (out_H=self.out_H,
+                        self.in_H   = np.copy (self.out_H)
+                        self.in_U   = np.copy (self.out_U)
+                        self.in_V   = np.copy (self.out_V)
+
+                        self.stencil.run (in_H=self.in_H,
+                                          in_U=self.in_U,
+                                          in_V=self.in_V,
+                                          out_H=self.out_H,
                                           out_U=self.out_U,
                                           out_V=self.out_V)
                         self.frame += 1
@@ -252,18 +262,18 @@ class SWTest (CopyTest):
 
 
     def test_data_dependency_detection (self, deps=None, backend='c++'):
-        expected_deps = [('self.L',  'out_H'),
-                         ('self.R',  'out_H'),
-                         ('self.T',  'out_H'),
-                         ('self.B',  'out_H'),
-                         ('self.L',  'out_U'),
-                         ('self.R',  'out_U'),
-                         ('self.T',  'out_U'),
-                         ('self.B',  'out_U'),
-                         ('self.L',  'out_V'),
-                         ('self.R',  'out_V'),
-                         ('self.T',  'out_V'),
-                         ('self.B',  'out_V'),
+        expected_deps = [('self.L',  'in_H'),
+                         ('self.R',  'in_H'),
+                         ('self.T',  'in_H'),
+                         ('self.B',  'in_H'),
+                         ('self.L',  'in_U'),
+                         ('self.R',  'in_U'),
+                         ('self.T',  'in_U'),
+                         ('self.B',  'in_U'),
+                         ('self.L',  'in_V'),
+                         ('self.R',  'in_V'),
+                         ('self.T',  'in_V'),
+                         ('self.B',  'in_V'),
                          ('self.Hx', 'self.R'),
                          ('self.Hx', 'self.L'),
                          ('self.Ux', 'self.R'),
@@ -276,21 +286,29 @@ class SWTest (CopyTest):
                          ('self.Uy', 'self.B'),
                          ('self.Vy', 'self.T'),
                          ('self.Vy', 'self.B'),
-                         ('self.Hd', 'out_H'),
+                         ('self.Hd', 'in_H'),
                          ('self.Hd', 'self.L'),
                          ('self.Hd', 'self.R'),
                          ('self.Hd', 'self.T'),
                          ('self.Hd', 'self.B'),
-                         ('self.Ud', 'out_U'),
+                         ('self.Ud', 'in_U'),
                          ('self.Ud', 'self.L'),
                          ('self.Ud', 'self.R'),
                          ('self.Ud', 'self.T'),
                          ('self.Ud', 'self.B'),
-                         ('self.Vd', 'out_V'),
+                         ('self.Vd', 'in_V'),
                          ('self.Vd', 'self.L'),
                          ('self.Vd', 'self.R'),
                          ('self.Vd', 'self.T'),
-                         ('self.Vd', 'self.B')]
+                         ('self.Vd', 'self.B'),
+                         ('self.Vd', 'self.B'),
+                         ('self.Vd', 'self.B'),
+                         ('out_H', 'self.Hd'),
+                         ('out_H', 'self.Dh'),
+                         ('out_U', 'self.Ud'),
+                         ('out_U', 'self.Du'),
+                         ('out_V', 'self.Vd'),
+                         ('out_V', 'self.Dv')]
         super ( ).test_data_dependency_detection (deps=expected_deps,
                                                   backend=backend)
 
@@ -356,11 +374,11 @@ class SWTest (CopyTest):
         self.add_expected_offset ('self.Du', None)
         self.add_expected_offset ('self.Dv', None)
         self.add_expected_offset ('out_H',   None)
-        self.add_expected_offset ('out_H',   [-1,1,-1,1])
         self.add_expected_offset ('out_U',   None)
-        self.add_expected_offset ('out_U',   [-1,1,-1,1])
         self.add_expected_offset ('out_V',   None)
-        self.add_expected_offset ('out_V',   [-1,1,-1,1])
+        self.add_expected_offset ('in_H',   [-1,1,-1,1])
+        self.add_expected_offset ('in_U',   [-1,1,-1,1])
+        self.add_expected_offset ('in_V',   [-1,1,-1,1])
 
         for backend in BACKENDS:
             self.stencil.set_backend (backend)
@@ -439,7 +457,7 @@ class SWTest (CopyTest):
                        fps=48,
                        extra_args=['-vcodec', 'libx264'])
         else:
-            print ("skipping")
+            print ("No ffmpeg detected, skipping")
 
 
     def test_minimum_halo_detection (self):
