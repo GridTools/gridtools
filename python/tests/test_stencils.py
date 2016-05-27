@@ -153,41 +153,70 @@ class CopyTest (AccessPatternDetectionTest):
             self.automatic_access_pattern_detection (self.stencil)
 
 
-    @attr(lang='cuda')
-    def test_compare_python_cpp_and_cuda_results (self):
+    @attr(lang='c++')
+    def test_compare_python_and_cpp_results (self):
         import copy
-        from   gridtools import BACKENDS
+
+        ndiff                  = 0
+        stencil_native         = copy.deepcopy (self.stencil)
+        stencil_native.set_backend ('c++')
+
+        #
+        # data fields - Py and C++ sets
+        #
+        params_py  = dict ( )
+        params_cxx = dict ( )
+        for p in self.params:
+            params_py[p]  = np.random.rand (*self.domain)
+            params_cxx[p] = np.copy (params_py[p])
+        #
+        # apply both stencils 10 times and compare the results
+        # using an error threshold
+        #
+        for i in range (5):
+            self.stencil.run   (**params_py)
+            stencil_native.run (**params_cxx)
+            #
+            # compare field contents
+            #
+            for k in params_py.keys ( ):
+                diff  = np.isclose(params_py[k], params_cxx[k], atol=1e-11)
+                ndiff = np.count_nonzero (np.logical_not (diff))
+        print ("%s ndiff: %d" % ('c++', ndiff))
+        self.assertEqual (ndiff, 0)
 
 
-        for backend in BACKENDS:
-            diff                   = 0
-            stencil_native         = copy.deepcopy (self.stencil)
-            stencil_native.set_backend (backend)
+    @attr(lang='cuda')
+    def test_compare_python_and_cuda_results (self):
+        import copy
 
+        ndiff                  = 0
+        stencil_native         = copy.deepcopy (self.stencil)
+        stencil_native.set_backend ('cuda')
+
+        #
+        # data fields - Py and C++ sets
+        #
+        params_py  = dict ( )
+        params_cxx = dict ( )
+        for p in self.params:
+            params_py[p]  = np.random.rand (*self.domain)
+            params_cxx[p] = np.copy (params_py[p])
+        #
+        # apply both stencils 10 times and compare the results
+        # using an error threshold
+        #
+        for i in range (10):
+            self.stencil.run   (**params_py)
+            stencil_native.run (**params_cxx)
             #
-            # data fields - Py and C++ sets
+            # compare field contents
             #
-            params_py  = dict ( )
-            params_cxx = dict ( )
-            for p in self.params:
-                params_py[p]  = np.random.rand (*self.domain)
-                params_cxx[p] = np.copy (params_py[p])
-            #
-            # apply both stencils 10 times and compare the results
-            # using an error threshold
-            #
-            err  = np.zeros (self.domain)
-            err += 10e-12
-            for i in range (10):
-                self.stencil.run   (**params_py)
-                stencil_native.run (**params_cxx)
-                #
-                # compare field contents
-                #
-                for k in params_py.keys ( ):
-                    diff = np.count_nonzero (np.less (params_py[k] - params_cxx[k], err))
-                    diff = np.prod (params_py[k].shape) - diff
-            print ("%s: %d" % (backend, diff))
+            for k in params_py.keys ( ):
+                diff  = np.isclose(params_py[k], params_cxx[k], atol=1e-11)
+                ndiff = np.count_nonzero (np.logical_not (diff))
+        print ("%s ndiff: %d" % ('cuda', ndiff))
+        self.assertEqual (ndiff, 0)
 
 
     def test_ghost_cell_pattern (self, expected_patterns=None, backend='c++'):
