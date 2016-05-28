@@ -215,6 +215,11 @@ namespace operator_examples {
         stencil_->steady();
         stencil_->run();
 
+#ifdef __CUDACC__
+        in_edges.d2h_update();
+        out_edges.d2h_update();
+#endif
+
         verifier ver(1e-15);
 
         array<array<uint_t, 2>, 4> halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};

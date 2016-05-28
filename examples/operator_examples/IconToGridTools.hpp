@@ -6,7 +6,8 @@
 
 #include <netcdf>
 #include <stencil-composition/stencil-composition.hpp>
-#include <unordered_map>
+// nvcc does not recognize std::unordered_map
+#include <tr1/unordered_map>
 
 class IconToGridToolsBase
 {
@@ -14,7 +15,7 @@ class IconToGridToolsBase
     void buildMapping();
 
 protected:
-    typedef std::unordered_map<int, std::tuple<int, int, int>> i2g_t; // tuple<i, c, j>
+    typedef std::tr1::unordered_map<int, std::tuple<int, int, int>> i2g_t; // tuple<i, c, j>
     void printi2g(i2g_t&);
     i2g_t i2g_vertex;
     i2g_t i2g_edge;
@@ -103,7 +104,7 @@ public:
         }
 
         return field;
-    };
+    }
 
     template<typename StorageType, typename LocationType, typename MetaType>
     StorageType get(MetaType& meta, const char *name);

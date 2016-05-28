@@ -134,8 +134,12 @@ namespace operator_examples {
         stencil_->run();
 
 #ifdef __CUDACC__
-        out_edges.d2h_update();
-            in_edges.d2h_update();
+        dual_area.d2h_update();
+        dual_edge_length.d2h_update();
+        curl_weights.d2h_update();
+        edge_orientation.d2h_update();
+        in_edges.d2h_update();
+        out_vertexes.d2h_update();
 #endif
 
         verifier ver(1e-10);

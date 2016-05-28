@@ -108,8 +108,10 @@ namespace operator_examples {
         stencil_->run();
 
 #ifdef __CUDACC__
-        out_edges.d2h_update();
         in_vertexes.d2h_update();
+        edge_orientation.d2h_update();
+        out_edges.d2h_update();
+        edge_length.d2h_update();
 #endif
 
         verifier ver(1e-15);

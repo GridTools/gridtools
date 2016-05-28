@@ -282,6 +282,12 @@ namespace operator_examples {
         stencil_flow_convention->steady();
         stencil_flow_convention->run();
 
+#ifdef __CUDACC__
+        in_cells.d2h_update();
+        dual_edge_length.d2h_update();
+        out_edges.d2h_update();
+#endif
+
         bool result = ver.verify(grid_, ref_edges, out_edges, halos);
 
 #ifdef BENCHMARK
@@ -310,6 +316,12 @@ namespace operator_examples {
         stencil_flow_convention_with_constexpr->steady();
         stencil_flow_convention_with_constexpr->run();
 
+#ifdef __CUDACC__
+        in_cells.d2h_update();
+        dual_edge_length.d2h_update();
+        out_edges.d2h_update();
+#endif
+
         result = result && ver.verify(grid_, ref_edges, out_edges, halos);
 
 #ifdef BENCHMARK
@@ -337,6 +349,12 @@ namespace operator_examples {
         stencil_flow_convention_reciprocal->ready();
         stencil_flow_convention_reciprocal->steady();
         stencil_flow_convention_reciprocal->run();
+
+#ifdef __CUDACC__
+        in_cells.d2h_update();
+        dual_edge_length_reciprocal.d2h_update();
+        out_edges.d2h_update();
+#endif
 
         result = result && ver.verify(grid_, ref_edges, out_edges, halos);
 
@@ -371,6 +389,12 @@ namespace operator_examples {
         stencil_flow_convention_three_esfs->steady();
         stencil_flow_convention_three_esfs->run();
 
+#ifdef __CUDACC__
+        in_cells.d2h_update();
+        dual_edge_length.d2h_update();
+        out_edges.d2h_update();
+#endif
+
         result = result && ver.verify(grid_, ref_edges, out_edges, halos);
 
 #ifdef BENCHMARK
@@ -398,6 +422,12 @@ namespace operator_examples {
         stencil_orientation_of_normal->ready();
         stencil_orientation_of_normal->steady();
         stencil_orientation_of_normal->run();
+
+#ifdef __CUDACC__
+        in_cells.d2h_update();
+        weights.d2h_update();
+        out_edges.d2h_update();
+#endif
 
         result = result && ver.verify(grid_, ref_edges, out_edges, halos);
 

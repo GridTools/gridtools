@@ -229,10 +229,12 @@ namespace operator_examples {
         stencil_prep->steady();
         stencil_prep->run();
 
-    #ifdef __CUDACC__
-        out_edges.d2h_update();
-            in_edges.d2h_update();
-    #endif
+#ifdef __CUDACC__
+        orientation_of_normal.d2h_update();
+        edge_length.d2h_update();
+        cell_area.d2h_update();
+        div_weights.d2h_update();
+#endif
 
         /*
          * stencil of div
@@ -252,8 +254,9 @@ namespace operator_examples {
         stencil_->run();
 
 #ifdef __CUDACC__
-        out_edges.d2h_update();
-            in_edges.d2h_update();
+        in_edges.d2h_update();
+        div_weights.d2h_update();
+        out_cells.d2h_update();
 #endif
 
         bool result = ver.verify(grid_, ref_cells, out_cells, halos);
@@ -282,6 +285,12 @@ namespace operator_examples {
         stencil_reduction_into_scalar->ready();
         stencil_reduction_into_scalar->steady();
         stencil_reduction_into_scalar->run();
+
+#ifdef __CUDACC__
+        in_edges.d2h_update();
+        div_weights.d2h_update();
+        out_cells.d2h_update();
+#endif
 
         result = result && ver.verify(grid_, ref_cells, out_cells, halos);
 
@@ -312,8 +321,10 @@ namespace operator_examples {
         stencil_flow_convention->run();
 
 #ifdef __CUDACC__
-        out_edges.d2h_update();
-            in_edges.d2h_update();
+        in_edges.d2h_update();
+        edge_length.d2h_update();
+        cell_area.d2h_update();
+        out_cells.d2h_update();
 #endif
 
         result = result && ver.verify(grid_, ref_cells, out_cells, halos);
@@ -351,6 +362,13 @@ namespace operator_examples {
         stencil_div_over_edges->ready();
         stencil_div_over_edges->steady();
         stencil_div_over_edges->run();
+
+#ifdef __CUDACC__
+        in_edges.d2h_update();
+        edge_length.d2h_update();
+        cell_area.d2h_update();
+        out_cells.d2h_update();
+#endif
 
         // TODO: why does it not validate?
 //        result = result && ver.verify(grid_, ref_cells, out_cells, halos);
