@@ -115,7 +115,7 @@ public:
 template<typename IcosahedralTopology>
 IconToGridTools<IcosahedralTopology>::IconToGridTools(char *ncFileName)
     : IconToGridToolsBase(ncFileName),
-      d3_(3),
+      d3_(50),
       icosahedral_grid_(length_, length_, d3_)
 { }
 

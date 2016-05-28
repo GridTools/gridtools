@@ -1,0 +1,7 @@
+sh jenkins/build_greina.sh -b debug -t cpu -f double -c cxx11 -l gcc -i
+module load netcdf/4.3.3.1/2016
+cd build
+ln -s /apps/escha/system/opt/pgi/linux86-64/16.3/lib/libpgatm.so libpgatm.so
+and all the other libraries that it complains
+export LD_LIBRARY_PATH=/apps/escha/UES/RH6.7/easybuild/software/GCC/4.9.3-binutils-2.25/lib:$LD_LIBRARY_PATH
+build/operator_examples /users/guoxi/grids/icon_grid_0001_R02B05_R.nc 10

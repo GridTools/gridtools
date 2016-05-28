@@ -58,8 +58,11 @@ public:
           dual_edge_length_(i2g_.get<icosahedral_topology_t::edges, double>("dual_edge_length")),
           edges_of_vertexes_meta_(meta_storage_extender()(dual_area_.meta_data(), 6)),
           edges_of_cells_meta_(meta_storage_extender()(cell_area_.meta_data(), 3)),
-          edge_orientation_(i2g_.get<edges_of_vertexes_storage_type, icosahedral_topology_t::vertexes>(edges_of_vertexes_meta_, "edge_orientation")),
-          orientation_of_normal_(i2g_.get<edges_of_cells_storage_type, icosahedral_topology_t::cells>(edges_of_cells_meta_, "orientation_of_normal")),
+// TODO: disable because it does not compile on kesch with gcc 4.9, we do not need them anyway since we have the flow convention
+//          edge_orientation_(i2g_.get<edges_of_vertexes_storage_type, icosahedral_topology_t::vertexes>(edges_of_vertexes_meta_, "edge_orientation")),
+//          orientation_of_normal_(i2g_.get<edges_of_cells_storage_type, icosahedral_topology_t::cells>(edges_of_cells_meta_, "orientation_of_normal")),
+          edge_orientation_(edges_of_vertexes_meta_, "edge_orientation"),
+          orientation_of_normal_(edges_of_cells_meta_, "orientation_of_normal"),
           grad_div_u_ref_(icosahedral_grid_.make_storage<icosahedral_topology_t::edges, double>("grad_div_u_ref")),
           grad_curl_u_ref_(icosahedral_grid_.make_storage<icosahedral_topology_t::edges, double>("grad_curl_u_ref")),
           lap_u_ref_(icosahedral_grid_.make_storage<icosahedral_topology_t::edges, double>("lap_u_ref"))
@@ -90,6 +93,22 @@ public:
                         }
                     }
                 }
+        }
+
+        // edge orientation
+        for (int i = 0; i < icosahedral_grid_.m_dims[0]; ++i) {
+            for (int c = 0; c < icosahedral_topology_t::vertexes::n_colors::value; ++c) {
+                for (int j = 0; j < icosahedral_grid_.m_dims[1]; ++j) {
+                    for (uint_t k = 0; k < d3; ++k) {
+                        edge_orientation_(i, c, j, k, 0) = -1;
+                        edge_orientation_(i, c, j, k, 2) = -1;
+                        edge_orientation_(i, c, j, k, 4) = -1;
+                        edge_orientation_(i, c, j, k, 1) = 1;
+                        edge_orientation_(i, c, j, k, 3) = 1;
+                        edge_orientation_(i, c, j, k, 5) = 1;
+                    }
+                }
+            }
         }
 
         div_u_ref_.initialize(0.0);
