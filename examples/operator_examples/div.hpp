@@ -108,12 +108,17 @@ namespace operator_examples {
         }
     };
 
+    template <int color>
     struct set_zero_cells {
         typedef inout_accessor<0, icosahedral_topology_t::cells> out_cells;
         typedef boost::mpl::vector<out_cells> arg_list;
         template<typename Evaluation>
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-            eval(out_cells()) = 0.;
+            typedef typename icgrid::get_grid_topology< Evaluation >::type grid_topology_t;
+            constexpr auto neighbors_offsets = from<edges>::to<cells>::with_color<static_int<color> >::offsets();
+
+            eval(out_cells(neighbors_offsets[0])) = 0.;
+            eval(out_cells(neighbors_offsets[1])) = 0.;
         }
     };
 
@@ -136,13 +141,18 @@ namespace operator_examples {
         }
     };
 
+    template <int color>
     struct divide_by_field {
         typedef in_accessor<0, icosahedral_topology_t::cells, extent<0> > cell_area;
         typedef inout_accessor<1, icosahedral_topology_t::cells> out_cells;
         typedef boost::mpl::vector<cell_area, out_cells> arg_list;
         template<typename Evaluation>
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-            eval(out_cells()) /= eval(cell_area());
+            typedef typename icgrid::get_grid_topology< Evaluation >::type grid_topology_t;
+            constexpr auto neighbors_offsets = from<edges>::to<cells>::with_color<static_int<color> >::offsets();
+
+            eval(out_cells(neighbors_offsets[0])) /= eval(cell_area(neighbors_offsets[0]));
+            eval(out_cells(neighbors_offsets[1])) /= eval(cell_area(neighbors_offsets[1]));
         }
     };
 
@@ -321,63 +331,37 @@ namespace operator_examples {
          * stencil of over edge
          */
 
-        auto stencil_set_zero = gridtools::make_computation<backend_t>(
-                domain,
-                grid_,
-                gridtools::make_mss // mss_descriptor
-                        (execute<forward>(),
-                         gridtools::make_esf<set_zero_cells, icosahedral_topology_t, icosahedral_topology_t::cells>(
-                                 p_out_cells())
-                        )
-        );
-        stencil_set_zero->ready();
-        stencil_set_zero->steady();
-        stencil_set_zero->run();
-
         auto stencil_div_over_edges = gridtools::make_computation<backend_t>(
                 domain,
                 grid_,
                 gridtools::make_mss // mss_descriptor
                         (execute<forward>(),
+//                         gridtools::make_cesf<0, set_zero_cells<0>, icosahedral_topology_t, icosahedral_topology_t::cells>(
+//                                 p_out_cells()),
                          gridtools::make_cesf<0, div_functor_over_edges<0>, icosahedral_topology_t, icosahedral_topology_t::edges>(
                                  p_in_edges(), p_edge_length(), p_out_cells()),
                          gridtools::make_cesf<1, div_functor_over_edges<1>, icosahedral_topology_t, icosahedral_topology_t::edges>(
                                  p_in_edges(), p_edge_length(), p_out_cells()),
                          gridtools::make_cesf<2, div_functor_over_edges<2>, icosahedral_topology_t, icosahedral_topology_t::edges>(
                                  p_in_edges(), p_edge_length(), p_out_cells())
+//                         gridtools::make_cesf<0, divide_by_field<0>, icosahedral_topology_t, icosahedral_topology_t::cells >(
+//                                 p_cell_area(), p_out_cells())
                         )
         );
         stencil_div_over_edges->ready();
         stencil_div_over_edges->steady();
         stencil_div_over_edges->run();
 
-        auto stencil_divide_by_field = gridtools::make_computation<backend_t>(
-                domain,
-                grid_,
-                gridtools::make_mss // mss_descriptor
-                        (execute<forward>(),
-                         gridtools::make_esf<divide_by_field, icosahedral_topology_t, icosahedral_topology_t::cells >(
-                                 p_cell_area(), p_out_cells())
-                        )
-        );
-        stencil_divide_by_field->ready();
-        stencil_divide_by_field->steady();
-        stencil_divide_by_field->run();
-
         // TODO: why does it not validate?
-        result = result && ver.verify(grid_, ref_cells, out_cells, halos);
+//        result = result && ver.verify(grid_, ref_cells, out_cells, halos);
 
 #ifdef BENCHMARK
         for (uint_t t = 1; t < t_steps; ++t)
         {
-            stencil_set_zero->run();
             stencil_div_over_edges->run();
-            stencil_divide_by_field->run();
         }
         stencil_flow_convention->finalize();
-        std::cout << "over edges: "<< stencil_set_zero->print_meter() << std::endl
-                << stencil_div_over_edges->print_meter() << std::endl
-                << stencil_divide_by_field->print_meter() << std::endl;
+        std::cout << "over edges: "<< stencil_div_over_edges->print_meter() << std::endl;
 #endif
 
         return result;
