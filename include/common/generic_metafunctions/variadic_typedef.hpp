@@ -3,6 +3,7 @@
 #include "../host_device.hpp"
 
 namespace gridtools {
+#ifdef CXX11_ENABLED
 
     template < typename First, typename... Args >
     struct variadic_typedef;
@@ -60,4 +61,5 @@ namespace gridtools {
             return first;
         }
     };
-}
+#endif
+} //namespace gridtools

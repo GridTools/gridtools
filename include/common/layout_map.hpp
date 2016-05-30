@@ -275,7 +275,7 @@ namespace gridtools {
         template < ushort_t I, typename T, T DefaultVal, typename Value, size_t D >
         GT_FUNCTION static constexpr T find_val(array< Value, D > const &indices) {
             return ((pos_< I >::value >= length)) ? DefaultVal
-                                                  : indices[array< Value, D >::n_dimensions - pos_< I >::value - 1];
+                                                  : indices[pos_< I >::value];
             // this calls arg_decorator::get
         }
 

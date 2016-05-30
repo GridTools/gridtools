@@ -146,4 +146,24 @@ TEST(storage_info, meta_storage_extender) {
     ASSERT_TRUE((extended_meta.template dim< 4 >() == 10));
 }
 
+TEST(storage_info, index) {
+
+    typedef meta_storage_base< 0, layout_map< 0, 1, 2, 3 >, false > meta_storage1_t;
+
+    typedef meta_storage_aligned< meta_storage1_t, aligned< 0 >, halo< 0, 0, 0, 0 > > meta_storage_aligned_t;
+
+    typedef meta_storage< meta_storage_aligned_t > meta_storage2_t;
+
+    meta_storage_aligned_t meta(34, 23, 54, 5);
+
+    //interface passing unpacked indices
+    ASSERT_TRUE((meta._index(meta.strides(), 1,1,2,3) == 6493));
+    //interface passing indices in an array
+    ASSERT_TRUE((meta._index(meta.strides(), array<uint_t, 4>{3,2,1,1})) == 6493);
+    //interface passing indices in an accessor
+    ASSERT_TRUE((meta._index(meta.strides(), in_accessor< 0, extent<0,0,0,0,0,0>, 4> (1,1,2,3).offsets()) == 6493));
+
+
+}
+
 #endif

@@ -1,7 +1,10 @@
 #pragma once
+#include <boost/mpl/or.hpp>
+#include <boost/mpl/fold.hpp>
 #include "common/defs.hpp"
 #include "stencil-composition/dimension_defs.hpp"
 #include "common/generic_metafunctions/logical_ops.hpp"
+#include "common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../common/generic_metafunctions/accumulate.hpp"
 #include "common/generic_metafunctions/is_variadic_pack_of.hpp"
 #include "../common/array.hpp"
@@ -75,6 +78,7 @@ namespace gridtools {
 #endif
 
     namespace _impl {
+#ifdef CXX11_ENABLED
         template < typename... GenericElements >
         struct contains_array {
             typedef typename boost::mpl::fold<
@@ -82,6 +86,7 @@ namespace gridtools {
                 boost::mpl::false_,
                 boost::mpl::or_< boost::mpl::_1, boost::mpl::_2 > >::type type;
         };
+#endif
     }
 
     //################################################################################

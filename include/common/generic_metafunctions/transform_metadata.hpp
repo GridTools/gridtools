@@ -1,6 +1,7 @@
 #pragma once
 
 namespace gridtools {
+#ifdef CXX11_ENABLED
     template < typename Pattern, typename Repl, typename Arg>
     struct subs {
         typedef typename boost::mpl::if_<
@@ -29,4 +30,5 @@ namespace gridtools {
     struct transform_meta_data< Metadata< Args... >, Pattern, Repl > {
         typedef Metadata< typename subs< Pattern, Repl, Args>::type... > type;
     };
-}
+#endif
+} // namespace gridtools

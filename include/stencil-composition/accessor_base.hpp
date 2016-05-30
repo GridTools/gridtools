@@ -12,7 +12,7 @@
 #include "storage/storage.hpp"
 #include "storage/storage_metafunctions.hpp"
 
-#include "stencil-composition/offset_tuple.hpp"
+#include "../common/offset_tuple.hpp"
 #include "stencil-composition/extent.hpp"
 
 #ifdef CXX11_ENABLED

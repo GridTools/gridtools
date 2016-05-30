@@ -732,7 +732,7 @@ namespace gridtools {
         GTASSERT(
             metadata_->size() > m_index[ // Accessor::index_type::value
                                     metadata_index_t::value] +
-                                    metadata_->_index(strides().template get< metadata_index_t::value >(), accessor));
+                                    metadata_->_index(strides().template get< metadata_index_t::value >(), accessor.offsets()));
 
         // the following assert fails when an out of bound access is observed,
         // i.e. when some offset is negative and either one of
@@ -745,13 +745,13 @@ namespace gridtools {
         // std::cout<<"Storage Index: "<<Accessor::index_type::value<<" + "<<(boost::fusion::at<typename
         // Accessor::index_type>(local_domain.local_args))->_index(arg.template n<Accessor::n_dim>())<<std::endl;
         GTASSERT((int_t)(m_index[metadata_index_t::value]) +
-                     metadata_->_index(strides().template get< metadata_index_t::value >(), accessor) >=
+                     metadata_->_index(strides().template get< metadata_index_t::value >(), accessor.offsets()) >=
                  0);
 
         // control your instincts: changing the following
         // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
         const int_t pointer_offset = (m_index[metadata_index_t::value]) +
-                                     metadata_->_index(strides().template get< metadata_index_t::value >(), accessor);
+                                     metadata_->_index(strides().template get< metadata_index_t::value >(), accessor.offsets());
 
         return static_cast< const IterateDomainImpl * >(this)
             ->template get_value_impl<
