@@ -6,6 +6,7 @@
 
 using namespace gridtools;
 
+#ifdef NDEBUG
 TEST(variadic_typedef, test) {
 
     typedef variadic_typedef<int,double, unsigned int> tt;
@@ -27,3 +28,4 @@ TEST(variadic_typedef, get_from_variadic_pack) {
 
     ASSERT_TRUE(true);
 }
+#endif
