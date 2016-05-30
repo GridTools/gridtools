@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iosfwd>
 #include <boost/mpl/eval_if.hpp>
 #include <boost/mpl/identity.hpp>
 
@@ -51,7 +52,7 @@ namespace gridtools {
 		static const ushort_t space_dimensions = RegularStorageType::space_dimensions;
 		static const bool is_temporary = RegularStorageType::is_temporary;
 		static void text() { std::cout << "text: no_storage_type_yet<" << RegularStorageType() << ">" << std::endl; }
-		void info() const { std::cout << "No sorage type yet for storage type " << RegularStorageType() << std::endl; }
+		void info(std::ostream & out_s) const { out_s << "No sorage type yet for storage type " << RegularStorageType() << "\n"; }
 	};
 
 	template < typename T >

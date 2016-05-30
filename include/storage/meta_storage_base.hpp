@@ -1,4 +1,6 @@
 #pragma once
+
+#include <iosfwd>
 #include <boost/type_traits/is_unsigned.hpp>
 #include <boost/mpl/max_element.hpp>
 #include "base_storage_impl.hpp"
@@ -227,7 +229,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
             : m_dims(other.m_dims), m_strides(other.m_strides) {}
 
         /** @brief prints debugging information */
-        void info() const { std::cout << dims< 0 >() << "x" << dims< 1 >() << "x" << dims< 2 >() << ", " << std::endl; }
+        void info(std::ostream& out_s) const { out_s << dims< 0 >() << "x" << dims< 1 >() << "x" << dims< 2 >() << " \n"; }
 
         /**@brief returns the size of the data field*/
         GT_FUNCTION

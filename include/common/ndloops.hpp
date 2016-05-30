@@ -2,7 +2,6 @@
 #define _NDLOOPS_H_
 
 #include <stdlib.h>
-#include <iostream>
 #include "defs.hpp"
 
 /** @file

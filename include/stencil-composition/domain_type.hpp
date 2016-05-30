@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iosfwd>
 #include <boost/fusion/include/as_vector.hpp>
 #include <boost/fusion/container/vector/convert.hpp>
 #include <boost/fusion/container/vector.hpp>
@@ -335,14 +336,14 @@ namespace gridtools {
 #endif
 
         template < typename Index >
-        void storage_info() const {
-            std::cout << Index::value << " -|-> " << (boost::fusion::at_c< Index >(m_metadata_set))->name() << " "
-                      << (boost::fusion::at_c< Index >(m_metadata_set))->template dims< 0 >() << "x"
-                      << (boost::fusion::at_c< Index >(m_metadata_set))->template dims< 1 >() << "x"
-                      << (boost::fusion::at_c< Index >(m_metadata_set))->template dims< 2 >() << ", "
-                      << (boost::fusion::at_c< Index >(m_metadata_set))->strides(0) << "x"
-                      << (boost::fusion::at_c< Index >(m_metadata_set))->strides(1) << "x"
-                      << (boost::fusion::at_c< Index >(m_metadata_set))->strides(2) << ", " << std::endl;
+        void storage_info(std::ostream & out_s) const {
+            out_s << Index::value << " -|-> " << (boost::fusion::at_c< Index >(m_metadata_set))->name() << " "
+                  << (boost::fusion::at_c< Index >(m_metadata_set))->template dims< 0 >() << "x"
+                  << (boost::fusion::at_c< Index >(m_metadata_set))->template dims< 1 >() << "x"
+                  << (boost::fusion::at_c< Index >(m_metadata_set))->template dims< 2 >() << ", "
+                  << (boost::fusion::at_c< Index >(m_metadata_set))->strides(0) << "x"
+                  << (boost::fusion::at_c< Index >(m_metadata_set))->strides(1) << "x"
+                  << (boost::fusion::at_c< Index >(m_metadata_set))->strides(2) << ", \n";
         }
 
         /** @brief copy the pointers from the device to the host
