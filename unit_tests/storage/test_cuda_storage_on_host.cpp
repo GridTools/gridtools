@@ -24,7 +24,7 @@ TEST(cuda_storage_on_host, test_storage_types) {
 	GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename meta_data_t::super, meta_storage< meta_storage_aligned< meta_storage_base< 0, layout, false >, aligned<32>, halo<0,0,0> > > >::value), "type is wrong");
 	GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename storage_t::super, storage< base_storage< hybrid_pointer< float >, meta_data_t, 1 > > >::value), "type is wrong");
 #else
-	GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename meta_data_t::super, meta_storage< meta_storage_aligned< meta_storage_base< 0, layout, false >, aligned<0>, halo<0,0,0> > >>::value), "type is wrong");
+	GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename meta_data_t::super, meta_storage< meta_storage_aligned< meta_storage_base< 0, layout, false >, aligned<0>, halo<0,0,0> > > >::value), "type is wrong");
 	GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename storage_t::super, storage< base_storage< wrap_pointer< float >, meta_data_t, 1 > > >::value), "type is wrong");
 #endif
 }
