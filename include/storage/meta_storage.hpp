@@ -58,6 +58,11 @@ namespace gridtools {
         meta_storage(IntTypes... args)
             : super(args...) {}
 
+        /**@brief operator equals (same dimension size, etc.) */
+        constexpr bool operator==(const meta_storage& other) const {
+            return super::operator==(other);
+        }
+
         constexpr meta_storage(array< uint_t, space_dimensions > const &a) : super(a) {}
 #else
         // constructor picked in absence of CXX11 or with GCC<4.9
@@ -77,6 +82,12 @@ namespace gridtools {
             uint_t const &n_i_threads,
             uint_t const &n_j_threads)
             : super(initial_offset_i, initial_offset_j, dim3, n_i_threads, n_j_threads) {}
+
+        /**@brief operator equals (same dimension size, etc.) */
+        bool operator==(const meta_storage& other) const {
+            return super::operator==(other);
+        }
+
 #endif
 
 #ifndef __CUDACC__

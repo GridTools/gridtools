@@ -115,6 +115,9 @@ namespace gridtools {
         void operator()() const {
             if (!m_seq.template present< pointer< const typename Arg::storage_info_type > >())
                 m_seq.insert(pointer< const typename Arg::storage_info_type >((**m_arg_ptr).meta_data()));
+            else
+                assert(*m_seq.template get< pointer< const typename Arg::storage_info_type > >() == *(**m_arg_ptr).meta_data() &&
+                    "the passed storages contain different meta data (e.g., different dimension) which is not valid.");
         }
     };
 }

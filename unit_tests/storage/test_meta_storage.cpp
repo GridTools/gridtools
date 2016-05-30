@@ -3,6 +3,17 @@
 
 using namespace gridtools;
 
+TEST(storage_info, test_equality) {
+    typedef gridtools::layout_map<0,1,2> layout_t1;
+    typedef gridtools::meta_storage_base<0,layout_t1,false> meta_t1;
+    meta_t1 m0(11, 12, 13);
+    meta_t1 m1(11, 12, 13);
+    meta_t1 m2(12, 123, 13);
+    ASSERT_TRUE((m0 == m1) && "storage info equality test failed!");
+    ASSERT_TRUE((m1 == m0) && "storage info equality test failed!");
+    ASSERT_TRUE(!(m2 == m0) && "storage info equality test failed!");
+}
+
 TEST(storage_info, test_interface) {
 #if defined(CXX11_ENABLED) && defined(NDEBUG)
     // unaligned meta_storage test cases

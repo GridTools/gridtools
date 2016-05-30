@@ -176,6 +176,13 @@ namespace gridtools {
             /**this call zips 2 variadic packs*/
             return index_(typename make_gt_integer_sequence< ushort_t, sizeof...(Halo) >::type(), first_, args_...);
         }
+
+        /**@brief operator equals (same dimension size, etc.) */
+        GT_FUNCTION
+        constexpr bool operator==(const meta_storage_aligned &other) const {
+            return super::operator==(other);
+        }
+
 #else
 
         /* applying 'align' to the integer sequence from 1 to space_dimensions.
@@ -193,6 +200,12 @@ namespace gridtools {
             return super::index(i + cond< 0 >::template get< 0 >(),
                 j + cond< 1 >::template get< 1 >(),
                 k + cond< 2 >::template get< 2 >());
+        }
+
+        /**@brief operator equals (same dimension size, etc.) */
+        GT_FUNCTION
+        bool operator==(const meta_storage_aligned &other) const {
+            return super::operator==(other);
         }
 
 #endif
