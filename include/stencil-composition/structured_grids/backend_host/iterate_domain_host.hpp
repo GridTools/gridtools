@@ -24,6 +24,7 @@ namespace gridtools {
         typedef typename super::reduction_type_t reduction_type_t;
 
       public:
+        using super::operator();
         typedef iterate_domain_host iterate_domain_t;
         typedef typename super::data_pointer_array_t data_pointer_array_t;
         typedef typename super::strides_cached_t strides_cached_t;

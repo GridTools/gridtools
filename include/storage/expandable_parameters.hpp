@@ -1,3 +1,4 @@
+
 #pragma once
 
 /**@file storage list for expandable parameters*/
@@ -27,6 +28,10 @@ namespace gridtools{
         using super::data_field;
 
     public:
+
+        template < typename PT, typename MD, ushort_t FD>
+        using type_tt = expandable_parameters< typename super::template type_tt<PT, MD, Size>, Size>;
+
 
         // public methods:
 

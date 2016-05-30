@@ -49,7 +49,7 @@ namespace gridtools {
 
            \tparam Temporaries is the vector of temporary placeholder types.
         */
-        template < typename TemporariesExtendMap,
+        template <
             typename ValueType,
             uint_t BI,
             uint_t BJ,
@@ -68,10 +68,6 @@ namespace gridtools {
             };
         };
     } // namespace _impl
-
-    /** metafunction to check whether the storage_type inside the PlcArgType is temporary */
-    template < typename PlcArgType >
-    struct is_temporary_arg : is_temporary_storage< typename PlcArgType::storage_type > {};
 
     /**
         this struct contains the 'run' method for all backends, with a
@@ -322,7 +318,7 @@ namespace gridtools {
             static const uint_t tileI = block_size_t::i_size_t::value;
             static const uint_t tileJ = block_size_t::j_size_t::value;
 
-            typedef boost::mpl::filter_view< typename Domain::placeholders, is_temporary_arg< boost::mpl::_ > >
+            typedef boost::mpl::filter_view< typename Domain::placeholders, is_plchldr_to_temp< boost::mpl::_ > >
                 temporaries;
             typedef
                 typename obtain_map_extents_temporaries_mss_array< Domain, MssComponentsArray >::type map_of_extents;
@@ -337,9 +333,9 @@ namespace gridtools {
                 map_of_extents,
                 boost::mpl::vector<>,
                 typename boost::mpl::push_back< typename boost::mpl::_1,
-                    typename _impl::
-                        get_storage_type< map_of_extents, ValueType, tileI, tileJ, strategy_traits_t, s_backend_id >::
-                            template apply< boost::mpl::_2 > > >::type type;
+                                                typename _impl::
+                                                get_storage_type< ValueType, tileI, tileJ, strategy_traits_t, s_backend_id >::
+                                                template apply< boost::mpl::_2 > > >::type type;
         };
 
         /**

@@ -155,7 +155,7 @@ namespace gridtools {
                             new meta_t(m_offset_i, m_offset_j, m_offset_k, m_n_i_threads, m_n_j_threads)));
 
                     // calls the constructor of the storage
-                    e = new ElemType(*m_metadata_set.template get< pointer< const meta_t > >(), "blocked tmp storage");
+                    e = new ElemType(*m_metadata_set.template get< pointer< const meta_t > >(), "blocked tmp storage", true /*do_allocate*/);
                 }
             };
 

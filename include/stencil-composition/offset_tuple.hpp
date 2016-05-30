@@ -198,6 +198,16 @@ namespace gridtools {
                 super::template set< Idx >( offset_ );
         }
 
+        /**@brief sets an element in the offset array*/
+        template < short_t Idx >
+        GT_FUNCTION void increment( int_t offset_ ) {
+
+            if(Idx == n_args - 1)
+                m_offset += offset_;
+            else
+                super::template increment< Idx >( offset_ );
+        }
+
       protected:
         int_t m_offset;
     };
@@ -242,7 +252,14 @@ namespace gridtools {
 
         template < short_t Idx >
         GT_FUNCTION void set(int_t offset_) {
+            //getting here is an error
         }
+
+        template < short_t Idx >
+        GT_FUNCTION void increment( int_t offset_ ) {
+            //getting here is an error
+        }
+
     };
 
     template < typename T >

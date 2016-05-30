@@ -293,8 +293,9 @@ namespace gridtools {
             template < typename Arg >
             void operator()(pointer<Arg> const& arg_) const {
                 // filter out the arguments which are not of storage type (and thus do not have an associated metadata)
-                static_if< is_actual_storage< pointer< Arg > >::type::value >::eval(
-                    insert_if_not_present< Sequence, Arg >(m_sequence, *arg_), empty());
+                if(arg_.get()) // otherwise it's no_storage_type_yet
+                    static_if< is_actual_storage< pointer< Arg > >::type::value >::eval(
+                        insert_if_not_present< Sequence, Arg >(m_sequence, *arg_), empty());
             }
 
 
@@ -306,8 +307,17 @@ namespace gridtools {
             template < typename Arg >
             void operator()(pointer<std::vector<pointer<Arg> > > const& arg_) const {
                 // filter out the arguments which are not of storage type (and thus do not have an associated metadata)
-                static_if< is_actual_storage< pointer< Arg > >::type::value >::eval(
-                    insert_if_not_present< Sequence, Arg >(m_sequence, (*arg_)[0]), empty());
+                if(arg_.get()) // otherwise it's no_storage_type_yet
+                    static_if< is_actual_storage< pointer< Arg > >::type::value >::eval(
+                        insert_if_not_present< Sequence, Arg >(m_sequence, (*arg_)[0]), empty());
+            }
+
+            template < typename Arg , uint_t Size>
+            void operator()(pointer<expandable_parameters<Arg, Size> > const& arg_) const {
+                // filter out the arguments which are not of storage type (and thus do not have an associated metadata)
+                if(arg_.get()) // otherwise it's no_storage_type_yet
+                    static_if< is_actual_storage< pointer< Arg > >::type::value >::eval(
+                        insert_if_not_present< Sequence, expandable_parameters<Arg, Size> >(m_sequence, *arg_), empty());
             }
 #endif
 
@@ -392,7 +402,7 @@ namespace gridtools {
         explicit domain_type(Vector<pointer<Storages> ... > const &storage_pointers_)
             : m_storage_pointers(storage_pointers_), m_metadata_set() {
 
-            boost::fusion::copy(storage_pointers_, m_storage_pointers);
+            boost::fusion::copy(storage_pointers_, m_original_pointers);
 
             // copy of the metadata into m_metadata_set
             boost::fusion::for_each(storage_pointers_, assign_metadata_set< metadata_set_t >(m_metadata_set));

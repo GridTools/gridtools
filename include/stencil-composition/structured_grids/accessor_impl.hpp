@@ -113,7 +113,7 @@ namespace gridtools {
    This allows to specify the extra arguments out of order. Note that 'dimension' is a
    language keyword used at the interface level.
 */
-#if defined(CXX11_ENABLED) && !defined(__CUDACC__) // cuda messing up
+#if defined(CXX11_ENABLED) && (!defined(__CUDACC__) || defined(CUDA8)) // cuda<8 messing up
         template < typename First, typename... Whatever
                    , typename T= typename boost::enable_if_c<
                          accumulate(logical_and()
@@ -130,9 +130,17 @@ namespace gridtools {
                 "D of the accessor (accessor<Id, extent, D>)");
         }
 #else
+        template < typename X, typename Y, typename Z, typename T, typename P, typename Q >
+        GT_FUNCTION constexpr accessor_base(X x, Y y, Z z, T t, P p, Q q)
+            : m_offsets(x, y, z, t, p, q) {}
+
+        template < typename X, typename Y, typename Z, typename T, typename P >
+        GT_FUNCTION constexpr accessor_base(X x, Y y, Z z, T t, P p)
+            : m_offsets(x, y, z, t, p) {}
+
         template < typename X, typename Y, typename Z, typename T >
         GT_FUNCTION constexpr accessor_base(X x, Y y, Z z, T t)
-            : m_offsets(x, y, z, y) {}
+            : m_offsets(x, y, z, t) {}
 
         template < typename X, typename Y, typename Z >
         GT_FUNCTION constexpr accessor_base(X x, Y y, Z z)
@@ -151,7 +159,8 @@ namespace gridtools {
         }
 
         template < short_t Idx >
-        GT_FUNCTION constexpr int_t get() const {
+        GT_FUNCTION
+        int_t constexpr get() const {
             GRIDTOOLS_STATIC_ASSERT(Idx <= n_dim, "requested accessor index larger than the available dimensions");
             GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
             return m_offsets.template get< Idx >();
@@ -165,7 +174,15 @@ namespace gridtools {
         }
 
         GT_FUNCTION
+        offset_tuple< n_dim, n_dim > &offsets() { return m_offsets; }
+
+        GT_FUNCTION
         constexpr const offset_tuple< n_dim, n_dim > &offsets() const { return m_offsets; }
+
+        template <ushort_t Idx>
+        GT_FUNCTION
+        void increment( int_t offset_ ) { m_offsets.template increment<Idx>(offset_); }
+
     };
 
     //################################################################################
@@ -189,32 +206,6 @@ namespace gridtools {
      */
     template < typename T >
     struct is_plchldr_to_temp : boost::mpl::false_ {};
-
-    /**
-     * Struct to test if an argument (placeholder) is a temporary no_storage_type_yet - Specialization yielding true
-     */
-    template < uint_t I, typename T, typename C >
-    struct is_plchldr_to_temp< arg< I, no_storage_type_yet< T >, C > > : is_temporary_storage<T> {};
-
-    /**
-     * Struct to test if an argument is a placeholder to a temporary storage
-     */
-    template < uint_t I, typename T, typename U, ushort_t Dim, typename C >
-    struct is_plchldr_to_temp< arg< I, base_storage< T, U, Dim >, C > > : boost::mpl::bool_< U::is_temporary > {};
-
-    /**
-     * Struct to test if an argument is a temporary
-     no_storage_type_yet - Specialization for a decorator of the
-     storage class, falls back on the original class type here the
-     decorator is the \ref gridtools::storage
-    */
-    template < uint_t I, typename BaseType, template < typename T > class Decorator, typename C >
-    struct is_plchldr_to_temp< arg< I, Decorator< BaseType >, C > >
-        : is_plchldr_to_temp< arg< I, typename BaseType::basic_type, C > > {};
-
-    template < uint_t I, typename BaseType, typename C >
-    struct is_plchldr_to_temp< arg< I, storage< BaseType >, C > >
-        : is_plchldr_to_temp< arg< I, typename BaseType::basic_type, C > > {};
 
     /**
      * Printing type information for debug purposes

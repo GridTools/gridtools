@@ -404,10 +404,10 @@ namespace gridtools {
         }
 
         /** minus expression*/
-        template < typename ArgType1, typename ArgType2 //,
-            // typename boost::disable_if<
-            //     no_expr_nor_accessor_types< ArgType1, ArgType2 >
-            //     , int >::type=0
+        template < typename ArgType1, typename ArgType2 ,
+            typename boost::disable_if<
+                no_expr_nor_accessor_types< ArgType1, ArgType2 >
+                , int >::type=0
             >
         GT_FUNCTION constexpr expr_minus< ArgType1, ArgType2 > operator-(ArgType1 arg1, ArgType2 arg2) {
             return expr_minus< ArgType1, ArgType2 >(arg1, arg2);
@@ -432,7 +432,9 @@ namespace gridtools {
         /** power expression*/
         template < int exponent,
             typename ArgType1,
-            typename boost::disable_if< typename boost::is_floating_point< ArgType1 >::type, int >::type = 0 >
+                   typename boost::disable_if<
+                       typename no_accessor_types<ArgType1, ArgType1>::type
+                       , int >::type = 0 >
         GT_FUNCTION constexpr expr_pow< ArgType1, exponent > pow(ArgType1 arg1) {
             return expr_pow< ArgType1, exponent >(arg1);
         }

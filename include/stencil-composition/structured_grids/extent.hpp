@@ -13,7 +13,7 @@ namespace gridtools {
     /**
      * Class to specify access extents for stencil functions
      */
-    template < int_t IMinus = 0, int_t IPlus = 0, int_t JMinus = 0, int_t JPlus = 0, int_t KMinus = 0, int_t KPlus = 0 >
+    template < int_t IMinus = 0, int_t IPlus = 0, int_t JMinus = 0, int_t JPlus = 0, int_t KMinus = 0, int_t KPlus = 0, int_t ... Rest >
     struct extent {
         typedef static_int< IMinus > iminus;
         typedef static_int< IPlus > iplus;

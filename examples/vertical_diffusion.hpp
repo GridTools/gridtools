@@ -1,6 +1,7 @@
 #pragma once
 #include <stencil-composition/stencil-composition.hpp>
 #include <stencil-composition/structured_grids/call_interfaces.hpp>
+#include "tridiagonal.hpp"
 
 namespace vertical_diffusion{
 
@@ -32,30 +33,45 @@ namespace vertical_diffusion{
         using data_s=accessor<14, in>;
         using vdtch=accessor<15, in>;
         using bottomFactor=accessor<16, in>;
+        using out=accessor<17, inout>;
 
         typedef boost::mpl::vector<data, datatens, data_nnow, sqrtgrhors, zdtr, a1t
                                   , a2t, a1tsurf, a2tsurf, kh, acol, bcol, ccol, dcol
-                                  , data_s, vdtch, bottomFactor> arg_list;
+                                   , data_s, vdtch, bottomFactor, out> arg_list;
 
         static const dimension<1>::Index i;
         static const dimension<2>::Index j;
         static const dimension<3>::Index k;
 
+#ifndef __CUDACC__ // gives an internal error in nvcc (CUDA 7.0)
         template <typename P>
+        GT_FUNCTION
             static constexpr auto delta(P)
             -> decltype(P(k-1)-P())
         {return P(k-1)-P();}
+#endif
 
         template <typename Evaluation>
             GT_FUNCTION
             static void Do(Evaluation const& eval, interval_t)
         {
+#ifdef __CUDACC__
+            eval(bcol()) = eval(zdtr()) + eval(kh()) * eval(sqrtgrhors()) * eval(a1t()) + eval(vdtch()) * eval(sqrtgrhors()) * eval(a1tsurf());
+            eval(acol()) = -eval(kh())*eval(sqrtgrhors())*eval(a1t()); //acolCenter;
+            eval(ccol()) = -eval(vdtch())*eval(sqrtgrhors())*eval(a1tsurf()); //ccolCenter;
 
+            eval(dcol()) = eval(data()) * eval(zdtr()) +
+                eval(datatens()) +
+                eval(kh())*eval(sqrtgrhors())*eval(a2t())// as
+                * eval(data_nnow(k-1))-eval(data_nnow())
+                - eval(vdtch())*eval(sqrtgrhors())*eval(a2tsurf()) /*cs*/
+                * eval(bottomFactor()) * eval(data_nnow()) +
+                eval(vdtch())*eval(sqrtgrhors())*eval(data_s());
+#else
             //                            acolCenter              ccolCenter
-            eval(bcol()) = eval(zdtr() +kh()*sqrtgrhors()*a1t() + vdtch()*sqrtgrhors()*a1tsurf());
+            eval(bcol()) = eval(zdtr() + kh() * sqrtgrhors() * a1t() + vdtch() * sqrtgrhors() * a1tsurf());
             eval(acol()) = -eval(kh()*sqrtgrhors()*a1t()); //acolCenter;
             eval(ccol()) = -eval(vdtch()*sqrtgrhors()*a1tsurf()); //ccolCenter;
-
             eval(dcol()) = eval(
                 data() * zdtr() +
                 datatens() +
@@ -64,8 +80,9 @@ namespace vertical_diffusion{
                 vdtch()*sqrtgrhors()*a2tsurf() /*cs*/
                 * bottomFactor() * data_nnow() +
                 vdtch()*sqrtgrhors()*data_s());
+#endif
 
-            // eval(call<tridiagonal::forward, interval_t>::at<0,0,0>::with(eval, acol(), bcol(), ccol(), dcol()));
+        eval(call_proc<tridiagonal::forward_thomas, interval_t>::at<0,0,0>::with(eval, out(), acol(), bcol(), ccol(), dcol()));
         }
 
 
@@ -227,15 +244,15 @@ namespace vertical_diffusion{
         storage_data_t storage_data18_(meta_data_);
         storage_data_t storage_data19_(meta_data_);
 
-        storage_datatens_t storage_datatens_(meta_datatens_);
-        storage_data_nnow_t storage_data_nnow_(meta_data_nnow_);
-        storage_sqrtgrhors_t storage_sqrtgrhors_(meta_sqrtgrhors_);
+        storage_data_t storage_datatens_(meta_data_);
+        storage_data_t storage_data_nnow_(meta_data_);
+        storage_data_t storage_sqrtgrhors_(meta_data_);
         storage_zdtr_t storage_zdtr_(meta_zdtr_);
         storage_a1t_t storage_a1t_(meta_a1t_);
         storage_a2t_t storage_a2t_(meta_a2t_);
         storage_a1tsurf_t storage_a1tsurf_(meta_a1tsurf_);
         storage_a2tsurf_t storage_a2tsurf_(meta_a2tsurf_);
-        storage_kh_t storage_kh_(meta_kh_);
+        storage_data_t storage_kh_(meta_data_);
         storage_acol_t storage_acol_(meta_acol_);
         storage_bcol_t storage_bcol_(meta_bcol_);
         storage_ccol_t storage_ccol_(meta_ccol_);
@@ -243,6 +260,7 @@ namespace vertical_diffusion{
         storage_data_s_t storage_data_s_(meta_data_s_);
         storage_vdtch_t storage_vdtch_(meta_vdtch_);
         storage_bottomFactor_t storage_bottomFactor_(meta_bottomFactor_);
+        storage_data_t storage_out_(meta_data_);
 
         std::vector<pointer<storage_data_t> > storage_data_={&storage_data0_, &storage_data1_, &storage_data2_, &storage_data3_, &storage_data4_, &storage_data5_, &storage_data6_, &storage_data7_, &storage_data8_, &storage_data9_, &storage_data10_, &storage_data11_, &storage_data12_, &storage_data13_, &storage_data14_, &storage_data15_, &storage_data16_, &storage_data17_, &storage_data18_, &storage_data19_};
 
@@ -263,6 +281,7 @@ namespace vertical_diffusion{
         typedef arg<14, storage_data_s_t> p_data_s;
         typedef arg<15, storage_vdtch_t> p_vdtch;
         typedef arg<16, storage_bottomFactor_t> p_bottomFactor;
+        typedef arg<17, storage_bottomFactor_t> p_out;
 
         auto domain_ = make_domain_type(storage_data_, storage_datatens_, storage_data_nnow_, storage_sqrtgrhors_, storage_zdtr_, storage_a1t_, storage_a2t_, storage_a1tsurf_, storage_a2tsurf_, storage_kh_, storage_acol_, storage_bcol_, storage_ccol_, storage_dcol_, storage_dcol_, storage_data_s_, storage_vdtch_, storage_bottomFactor_
             );
@@ -275,7 +294,7 @@ namespace vertical_diffusion{
         grid_.value_list[1] = d3 - 1;
 
         auto comp_ = make_computation<BACKEND>(
-            expand_factor<20>(), domain_, grid_,
+            expand_factor<1>(), domain_, grid_,
             make_mss(
                 execute<forward>()
                 , make_esf<vertical_diffusion_stages>(p_data()

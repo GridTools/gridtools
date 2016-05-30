@@ -136,6 +136,7 @@ namespace test_expandable_parameters{
 
         typedef BACKEND::storage_info< 23, layout_t > meta_data_t;
         typedef BACKEND::storage_type< float_type, meta_data_t >::type storage_t;
+        typedef BACKEND::temporary_storage_type< float_type, meta_data_t >::type tmp_storage_t;
 
         typedef storage_t storage_t;
 
@@ -246,11 +247,12 @@ namespace test_expandable_parameters{
 
         typedef arg<0, std::vector<pointer<storage_t> > > p_list_out;
         typedef arg<1, std::vector<pointer<storage_t> > > p_list_in;
+        typedef arg<2, std::vector<pointer<tmp_storage_t> > > p_list_tmp;
 
         std::vector<pointer<storage_t> > list_out_={&storage1, &storage2, &storage3, &storage4, &storage5, &storage6, &storage7, &storage8};
         std::vector<pointer<storage_t> > list_in_={&storage10, &storage20, &storage30, &storage40, &storage50, &storage60, &storage70, &storage80};
 
-        typedef boost::mpl::vector<p_list_out, p_list_in> args_t;
+        typedef boost::mpl::vector<p_list_out, p_list_in, p_list_tmp> args_t;
 
         domain_type<args_t> domain_(boost::fusion::make_vector(&list_out_, &list_in_));
 
@@ -263,7 +265,8 @@ namespace test_expandable_parameters{
             expand_factor<5>(), domain_, grid_,
                 make_mss(
                     enumtype::execute<enumtype::forward>()
-                    , make_esf<functor_exp>(p_list_out(), p_list_in())
+                    , make_esf<functor_exp>(p_list_tmp(), p_list_in())
+                    , make_esf<functor_exp>(p_list_out(), p_list_tmp())
                 )
             );
 

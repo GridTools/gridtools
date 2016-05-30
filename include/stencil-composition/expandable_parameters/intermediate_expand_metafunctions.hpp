@@ -53,10 +53,18 @@ namespace gridtools{
         {
             template<typename T, typename ExpandFactor>
             struct apply{
-            typedef arg<get_index<T>::value, expandable_parameters<
-                                                 typename get_basic_storage<T>::type
-                                                 , ExpandFactor::value>
-                        > type;
+                typedef arg<get_index<T>::value, expandable_parameters<
+                                                     typename get_basic_storage<T>::type
+                                                     , ExpandFactor::value>
+                            > type;
+            };
+
+            template<typename T, typename ExpandFactor, uint_t ID>
+            struct apply<arg<ID, std::vector<pointer<no_storage_type_yet<T> > > >, ExpandFactor>{
+                typedef arg<ID, no_storage_type_yet<expandable_parameters<
+                                                                         typename T::basic_type
+                                                                         , ExpandFactor::value > >
+                            > type;
             };
         };
 
@@ -65,13 +73,64 @@ namespace gridtools{
         {
             template<typename T, typename ExpandFactor>
             struct apply{
-            typedef arg<get_index<T>::value, storage<expandable_parameters<
-                                                 typename get_basic_storage<T>::type
-                                                         , ExpandFactor::value> >
+                typedef arg<get_index<T>::value, storage<expandable_parameters<
+                                                             typename get_basic_storage<T>::type
+                                                             , ExpandFactor::value> >
                         > type;
+            };
+
+            template<uint_t ID, typename T, typename ExpandFactor>
+            struct apply<arg<ID, std::vector<pointer<no_storage_type_yet<T> > > >, ExpandFactor>{
+                typedef arg<ID, no_storage_type_yet<storage<expandable_parameters<
+                                                                                 typename T::basic_type
+                                                                                 , ExpandFactor::value> > >
+                            > type;
             };
         };
 
+
+
+template<typename T, typename Vec, ushort_t ID, bool val>
+struct new_storage;
+
+template<typename T, typename Vec, ushort_t ID >
+struct new_storage<T, Vec, ID, true>{
+
+template <typename DomFrom>
+static typename boost::remove_reference<
+    typename boost::fusion::result_of::at<
+        Vec
+        , static_ushort<ID>
+        >::type>::type::value_type *
+apply(DomFrom const& dom_from_){
+return new
+typename boost::remove_reference<
+    typename boost::fusion::result_of::at<
+        Vec
+        , static_ushort<ID>
+        >::type>::type::value_type (
+        dom_from_.
+        template storage_pointer<
+            arg<ID,std::vector<pointer<T> > > >()->at(0)->meta_data()
+            , "expandable params"
+            , false /*do_allocate*/);
+
+}
+};
+
+template<typename T, typename Vec, ushort_t ID>
+struct new_storage<T, Vec, ID,  false>{
+
+template <typename DomFrom>
+static typename boost::remove_reference<
+    typename boost::fusion::result_of::at<
+        Vec
+        , static_ushort<ID>
+        >::type>::type::value_type*
+apply(DomFrom const&){
+return nullptr;
+}
+};
 
 /**
    @brief functor used to initialize the storage in a boost::fusion::vector from an
@@ -108,20 +167,12 @@ namespace gridtools{
              */
             template <ushort_t ID, typename T>
             void operator()(arg<ID,std::vector<pointer<T> > >){
-                boost::fusion::at<static_ushort<ID> >(m_vec_to)
-                    =
-                    new
-                    typename boost::remove_reference<
-                        typename boost::fusion::result_of::at<
-                            Vec
-                            , static_ushort<ID>
-                            >::type>::type::value_type (
-                                m_dom_from.
-                                template storage_pointer<
-                                arg<ID,std::vector<pointer<T> > > >()->at(0)->meta_data()
-                                , "expandable params"
-                                , false /*do_allocate*/);
+
+                    boost::fusion::at<static_ushort<ID> >(m_vec_to)
+                    = new_storage<T, Vec, ID,  !boost::remove_reference< decltype(m_dom_from.template storage_pointer<
+                        arg<ID,std::vector<pointer<T> > > >()->at(0))>::type::value_type::is_temporary>::apply(m_dom_from);
             }
+
 
             /**
                @brief initialize the storage vector, specisalization for the normal args
@@ -154,8 +205,11 @@ namespace gridtools{
             template <typename Arg>
             void operator() (Arg) const {
                 // error here means that the sizes of the expandable parameter lists do not match
-                assert(boost::fusion::at<typename Arg::index_type>
-                       (m_domain.m_storage_pointers)->size()==m_size);
+                if(!is_temporary_storage
+                   <typename boost::mpl::at<typename Domain::arg_list_mpl
+                   , typename Arg::index_type>::type>::value)
+                    assert(boost::fusion::at<typename Arg::index_type>
+                           (m_domain.m_storage_pointers)->size()==m_size);
             }
         };
 
@@ -203,15 +257,18 @@ namespace gridtools{
             template < ushort_t ID, typename T >
             void operator()(arg<ID, std::vector<pointer<T> > >){
 
-                //the vector of pointers
-                pointer<std::vector<pointer<T> > > const& storage_ptr_
-                    = m_dom_from.template storage_pointer< arg<ID, std::vector<pointer<T> > > >();
+                if(! is_temporary_storage<typename boost::mpl::at_c<typename DomainTo::arg_list_mpl, ID>::type >::value)
+                {
+                    //the vector of pointers
+                    pointer<std::vector<pointer<T> > > const& storage_ptr_
+                        = m_dom_from.template storage_pointer< arg<ID, std::vector<pointer<T> > > >();
 
-                boost::fusion::at<static_ushort<ID> >(m_dom_to.m_storage_pointers)->set(*storage_ptr_, m_idx);
-                //update the device pointers (not copying the heavy data)
-                boost::fusion::at<static_ushort<ID> >(m_dom_to.m_storage_pointers)->clone_to_device();
-                //copy the heavy data (should be done by the steady)
-                // boost::fusion::at<static_ushort<ID> >(m_dom_to.m_storage_pointers)->h2d_update();
+                    boost::fusion::at<static_ushort<ID> >(m_dom_to.m_storage_pointers)->set(*storage_ptr_, m_idx);
+                    //update the device pointers (not copying the heavy data)
+                    boost::fusion::at<static_ushort<ID> >(m_dom_to.m_storage_pointers)->clone_to_device();
+                    //copy the heavy data (should be done by the steady)
+                    // boost::fusion::at<static_ushort<ID> >(m_dom_to.m_storage_pointers)->h2d_update();
+                }
             }
         };
 
@@ -233,12 +290,15 @@ namespace gridtools{
 
             template < ushort_t ID, typename T >
             void operator()(arg<ID, std::vector<pointer<T> > >){
-                for( auto &&i : *boost::fusion::at<static_ushort<ID> >(m_dom_from.m_storage_pointers) ){
-                    // hard-setting the on_device flag for the hybrid_pointers:
-                    // since the storages used get created on-the-fly the original storages don
-                    // not knoe that they are still on the device
-                    i->set_on_device();
-                    i->d2h_update();
+                auto ptr=boost::fusion::at<static_ushort<ID> >(m_dom_from.m_storage_pointers);
+                if(ptr.get()){// if it's a temporary it might have been freed already
+                    for( auto &&i : *ptr ){
+                        // hard-setting the on_device flag for the hybrid_pointers:
+                        // since the storages used get created on-the-fly the original storages don
+                        // not knoe that they are still on the device
+                        i->set_on_device();
+                        i->d2h_update();
+                    }
                 }
             }
         };

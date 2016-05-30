@@ -29,4 +29,25 @@ namespace gridtools{
     template <typename Storage>
     struct is_storage<std::vector<pointer<Storage> > >: is_storage<Storage> {};
 
+    template < typename T >
+    struct is_temporary_storage< std::vector<pointer< T > > > : public is_temporary_storage<T> {};
+
+    template < typename T >
+    struct is_any_storage< std::vector< T > > : is_any_storage< T > {};
+
+    template < uint_t ID, typename T, typename Condition >
+    struct is_plchldr_to_temp< arg< ID, T, Condition> > : public is_temporary_storage<T> {
+    };
+
+    template < uint_t ID, typename T >
+    struct is_plchldr_to_temp< arg< ID, T> > : public is_temporary_storage<T> {
+    };
+
+
+    template < typename T, uint_t ID>
+    struct is_actual_storage< pointer< expandable_parameters< T, ID > > > : public boost::mpl::bool_< !T::is_temporary > {};
+
+    template < typename T, ushort_t Dim >
+    struct is_temporary_storage<  expandable_parameters< T, Dim > > : public boost::mpl::bool_< T::is_temporary > {};
+
 }//namespace gridtools

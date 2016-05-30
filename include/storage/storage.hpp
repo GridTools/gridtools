@@ -138,10 +138,12 @@ namespace gridtools {
 #ifdef __CUDA_ARCH__
             assert(!m_on_host);
 #else  //__CUDA_ARCH__
+#ifndef NDEBUG
             if (!m_on_host)
                 exit(-1);
             if (!m_device_storage_info)
                 exit(-2);
+#endif
 // assert(m_on_host);
 // assert(m_device_storage_info);
 #endif //__CUDA_ARCH__
@@ -159,10 +161,12 @@ namespace gridtools {
 #ifdef __CUDA_ARCH__
             assert(!m_on_host);
 #else  //__CUDA_ARCH__
+#ifndef NDEBUG
             if (!m_on_host)
                 exit(-1);
             if (!m_device_storage_info)
                 exit(-2);
+#endif
 // assert(m_on_host);
 // assert(m_device_storage_info);
 #endif //__CUDA_ARCH__
@@ -181,10 +185,15 @@ namespace gridtools {
 // assert(metadata_ && metadata_->index(dims...) < metadata_->size());
 // assert(this->is_set);
 #else
+#ifndef NDEBUG
             if (!metadata_ || !(metadata_->index(dims...) < metadata_->size()))
+            {
+                printf("%d < %d\n", metadata_->index(dims...), metadata_->size());
                 exit(-1);
+            }
             if (!this->is_set)
                 exit(-2);
+#endif
 #endif
             return (this->m_fields[0])[metadata_->index(dims...)];
         }
@@ -199,10 +208,12 @@ namespace gridtools {
             assert(metadata_ && metadata_->index(dims...) < metadata_->size());
             assert(this->is_set);
 #else
+#ifndef NDEBUG
             if (!metadata_ || !(metadata_->index(dims...) < metadata_->size()))
                 exit(-1);
             if (!this->is_set)
                 exit(-2);
+#endif
 #endif
             return (this->m_fields[0])[metadata_->index(dims...)];
         }
@@ -220,10 +231,12 @@ namespace gridtools {
             assert(!m_on_host);
 #else  //__CUDA_ARCH__
             // assert(m_on_host);
+#ifndef NDEBUG
             if (!m_on_host)
                 exit(-1);
             if (!m_device_storage_info)
                 exit(-2);
+#endif
 #endif //__CUDA_ARCH__
 
             return access_data_impl(m_device_storage_info, i, j, k);
@@ -242,10 +255,12 @@ namespace gridtools {
             assert(!m_on_host);
 #else  // __CUDA_ARCH__
             // assert(m_on_host);
+#ifndef NDEBUG
             if (!m_on_host)
                 exit(-1);
             if (!m_device_storage_info)
                 exit(-2);
+#endif
 #endif //__CUDA_ARCH__
 
             return access_data_impl(m_device_storage_info, i, j, k);
@@ -263,11 +278,12 @@ namespace gridtools {
             assert(metadata_ && metadata_->index(i, j, k) < metadata_->size());
             assert(this->is_set);
 #else
+#ifndef NDEBUG
             if (!metadata_ || !(metadata_->index(i, j, k) < metadata_->size()))
                 exit(-1);
             if (!this->is_set)
                 exit(-2);
-
+#endif
 #endif
             return (this->m_fields[0])[metadata_->index(i, j, k)];
         }
@@ -284,10 +300,12 @@ namespace gridtools {
             assert(metadata_ && metadata_->index(i, j, k) < metadata_->size());
             assert(this->is_set);
 #else
+#ifndef NDEBUG
             if (!metadata_ || !(metadata_->index(i, j, k) < metadata_->size()))
                 exit(-1);
             if (!this->is_set)
                 exit(-2);
+#endif
 #endif
 
             return (this->m_fields[0])[metadata_->index(i, j, k)];
@@ -384,8 +402,10 @@ namespace gridtools {
      */
     template < class Storage, uint_t First, uint_t... Number >
     struct field {
-        typedef typename reverse_pack< Number... >::template apply< field_reversed, Storage, First >::type::type type;
+        typedef typename reverse_pack< Number... >::template apply< field_reversed, typename Storage::basic_type, First >::type::type type;
     };
+
+
 #endif
 
     template < typename T >

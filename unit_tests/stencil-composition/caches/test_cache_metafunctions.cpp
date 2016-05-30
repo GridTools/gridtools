@@ -98,8 +98,8 @@ TEST(cache_metafunctions, extract_extents_for_caches)
 
 TEST(cache_metafunctions, get_cache_storage_tuple)
 {
-    typedef metadata_set<boost::mpl::vector1<storage_type::storage_info_type > > metadata_vector_t;
-    typedef boost::mpl::vector3<storage_type, storage_type, storage_type> storages_t;
+    typedef metadata_set<boost::mpl::vector1<pointer<storage_type::storage_info_type> > > metadata_vector_t;
+    typedef boost::mpl::vector3<pointer<storage_type>, pointer<storage_type>, pointer<storage_type> > storages_t;
     typedef boost::fusion::result_of::as_vector<storages_t>::type storages_tuple_t;
     typedef boost::mpl::vector3<p_in, p_buff, p_out> esf_args_t;
     typedef local_domain< storages_tuple_t, metadata_vector_t, esf_args_t, false> local_domain_t;
@@ -110,7 +110,7 @@ TEST(cache_metafunctions, get_cache_storage_tuple)
         extent<0,0,0,0>,
         enclosing_extent<boost::mpl::_1, boost::mpl::_2>
     >::type max_extent_t;
-  
+
     typedef gridtools::interval<gridtools::level<0,-2>, gridtools::level<1,1> > axis;
 
     typedef iterate_domain_arguments< backend_ids< Cuda, GRIDBACKEND, Block >,
@@ -138,8 +138,8 @@ TEST(cache_metafunctions, get_cache_storage_tuple)
         boost::mpl::equal<
             cache_storage_tuple_t,
             boost::fusion::map<
-                boost::fusion::pair<p_in::index_type, cache_storage<float_type, block_size<32,4>, extent<-1,2,-2,1> > >,
-                boost::fusion::pair<p_buff::index_type, cache_storage<float_type, block_size<32,4>, extent<-2,2,-3,2> > >
+        boost::fusion::pair<p_in::index_type, cache_storage<float_type, block_size<32,4>, extent<-1,2,-2,1>, pointer<storage_type> > >,
+        boost::fusion::pair<p_buff::index_type, cache_storage<float_type, block_size<32,4>, extent<-2,2,-3,2>, pointer<storage_type> > >
             >
         >::value),"ERROR");
 }

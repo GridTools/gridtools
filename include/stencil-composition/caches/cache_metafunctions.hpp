@@ -131,6 +131,12 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_block_size< BlockSize >::value), "Internal Error: Wrong Type");
         GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), "Internal Error: Wrong Type");
 
+        /** metafunction extracting the storage type corresponding to an index from the local_domain*/
+        template <typename LocDom, typename Index>
+        struct get_storage{
+            typedef typename boost::mpl::at<typename LocDom::mpl_storages, Index>::type type;
+        };
+
         // In order to build a fusion vector here, we first create an mpl vector of pairs, which is then transformed
         // into a fusion vector.
         // Note: building a fusion map using result_of::as_map<mpl_vector_of_pair> did not work due to a clash between
@@ -138,9 +144,9 @@ namespace gridtools {
         // here
         // mpl vector -> fusion vector -> fusion map (with result_of::as_map)
 
-        template < typename Cache >
+        template < typename Cache, typename Accessor>
         struct get_cache_storage {
-            typedef cache_storage< float_type, BlockSize, typename boost::mpl::at< CacheExtendsMap, Cache >::type >
+            typedef cache_storage< float_type, BlockSize, typename boost::mpl::at< CacheExtendsMap, Cache >::type, Accessor >
                 type;
         };
 
@@ -150,7 +156,7 @@ namespace gridtools {
             boost::mpl::eval_if< typename cache_is_type< cacheType >::template apply< boost::mpl::_2 >,
                                                boost::mpl::push_back< boost::mpl::_1,
                                                    boost::mpl::pair< cache_to_index< boost::mpl::_2, LocalDomain >,
-                                                                          get_cache_storage< boost::mpl::_2 > > >,
+                                                                     get_cache_storage< boost::mpl::_2, get_storage<LocalDomain, cache_to_index<boost::mpl::_2, LocalDomain> > > > >,
                                                boost::mpl::identity< boost::mpl::_1 > > >::type mpl_type;
 
         // here we insert an mpl pair into a fusion vector. The mpl pair is converted into a fusion pair

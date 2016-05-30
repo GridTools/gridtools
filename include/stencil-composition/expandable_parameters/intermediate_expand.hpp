@@ -248,9 +248,8 @@ namespace gridtools{
             boost::mpl::for_each<expandable_params_t>(_impl::finalize_expandable_params< DomainType >(m_domain_from));
             // free the space for temporaries and storage_info
             m_intermediate->finalize();
-
+            // free the space for temporaries and storage_info
             if(m_size%ExpandFactor::value)
-                // free the space for temporaries and storage_info
                 m_intermediate_extra->finalize();
         }
     };
