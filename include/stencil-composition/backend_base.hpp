@@ -24,7 +24,7 @@
 #include "stencil-composition/axis.hpp"
 #include "common/meta_array.hpp"
 #include "stencil-composition/tile.hpp"
-#include "../storage/storage-t.hpp"
+#include "../storage/storage-facility.hpp"
 #include "conditionals/condition.hpp"
 
 /**

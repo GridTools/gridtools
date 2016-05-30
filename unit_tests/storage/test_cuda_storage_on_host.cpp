@@ -4,7 +4,7 @@
 //but i need to check the private member fields of 
 //the storage.
 #define private public 
-#include <storage/storage-t.hpp>
+#include <storage/storage-facility.hpp>
 
 #ifdef _USE_GPU_ 
 #include <storage/hybrid_pointer.hpp>

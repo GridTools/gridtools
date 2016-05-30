@@ -5,6 +5,6 @@
 #include "../execution_policy.hpp"
 #include "../heap_allocated_temps.hpp"
 #include "../backend_fwd.hpp"
-#include "../../storage/storage-t.hpp"
+#include "../../storage/storage-facility.hpp"
 #include "backend_traits_cuda.hpp"
 #include "strategy_cuda.hpp"

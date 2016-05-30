@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include <storage/storage-t.hpp>
+#include <storage/storage-facility.hpp>
 
 using namespace gridtools;
 
