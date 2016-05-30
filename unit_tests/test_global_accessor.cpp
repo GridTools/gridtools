@@ -34,7 +34,7 @@ typedef backend_t::storage_type< float_type, meta_t >::type storage_type;
 
    struct implementing the minimal interface in order to be passed as an argument to the user functor.
 */
-
+meta_t global_meta(10,10,10);
 struct boundary {
 #ifdef _USE_GPU_
     typedef hybrid_pointer< boundary, false > storage_ptr_t;
@@ -46,8 +46,8 @@ struct boundary {
     storage_ptr_t m_storage;
     typedef meta_t storage_info_type;
     meta_data_ptr_t m_meta_data;
-    boundary() : m_storage(this, true), m_meta_data(new meta_t(10,10,10), false) {}
-    ~boundary() { m_meta_data.free_it(); }
+    boundary() : m_storage(this, true), m_meta_data(&global_meta, true) {}
+    ~boundary() {}
     //device copy constructor
     __device__ boundary(const boundary& other){}
 
