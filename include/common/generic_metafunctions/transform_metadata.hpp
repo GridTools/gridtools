@@ -13,7 +13,7 @@ namespace gridtools {
     /**
      * metafunction used to replace types stored in a metadata class.
      * When a type (Metadata) is used as "metadata" to store a collection of types,
-     * transform_meta_data will substitute any type stored that matches a pattern (Pattern)
+     * transform_meta_data will substitute any type stored that equals a pattern (Pattern)
      * with a new value type (Repl).
      *
      * Usage example:
