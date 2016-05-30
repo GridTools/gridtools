@@ -199,7 +199,13 @@ namespace gridtools {
         GT_FUNCTION typename boost::disable_if<
             boost::mpl::has_key< bypass_caches_set_t, static_uint< boost::remove_reference<Accessor>::type::index_type::value > >,
             ReturnType >::type
-        get_cache_value_impl(Accessor const& accessor_) const {
+        get_cache_value_impl(Accessor
+#ifdef CXX11_ENABLED
+                             &&
+#else
+                             const&
+#endif
+                             accessor_) const {
             using acc_t= typename boost::remove_reference<Accessor>::type;
             GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), "Wrong type");
 
@@ -218,7 +224,13 @@ namespace gridtools {
         GT_FUNCTION typename boost::enable_if<
             boost::mpl::has_key< bypass_caches_set_t, static_uint< boost::remove_reference<Accessor>::type::index_type::value > >,
             ReturnType >::type
-        get_cache_value_impl(Accessor const& accessor_) const {
+        get_cache_value_impl(Accessor
+#ifdef CXX11_ENABLED
+                             &&
+#else
+                             const&
+#endif
+                             accessor_) const {
             GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Wrong type");
             return super::template get_value< Accessor, void * RESTRICT >(
                 accessor_, super::template get_data_pointer< Accessor >(accessor_));

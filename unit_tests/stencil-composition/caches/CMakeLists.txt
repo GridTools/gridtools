@@ -12,7 +12,7 @@ endif(STRUCTURED_GRIDS)
 if ( ENABLE_CXX11 )
   set(TEST_SOURCES ${TEST_SOURCES} test_define_caches.cpp)
   if(STRUCTURED_GRIDS)
-      set(TEST_SOURCES ${TEST_SOURCES} test_cache_metafunctions.cpp test_multidimensional_caches.cpp)
+      set(TEST_SOURCES ${TEST_SOURCES} test_cache_metafunctions.cpp)
   endif(STRUCTURED_GRIDS)
 endif( ENABLE_CXX11 )
 

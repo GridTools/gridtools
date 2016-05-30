@@ -9,6 +9,9 @@
 
 namespace gridtools {
 
+    template <typename T>
+    struct is_any_storage;
+
     /**
        @brief class that given a generic MPL sequence creates a fusion set.
 
@@ -97,7 +100,7 @@ namespace gridtools {
     struct insert_if_not_present {
 
 #ifdef PEDANTIC // disabling in case of generic accessors
-        GRIDTOOLS_STATIC_ASSERT(is_any_storage< Arg >::type::value,
+        GRIDTOOLS_STATIC_ASSERT(is_any_storage< Arg >::value,
             "if you are using generic accessors disable the pedantic mode. Otherwise most probably you used in the "
             "domain_type constructor a storage type which is not supported.");
 #endif
