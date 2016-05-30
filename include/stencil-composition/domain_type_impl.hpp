@@ -81,6 +81,14 @@ namespace gridtools {
                 printf("PTR %x\n", s);
             }
         };
+
+        struct dt_print_pointer {
+            template < typename PType >
+            GT_FUNCTION_WARNING void operator()(PType const&s) const {
+                printf("Pointer Value %x\n", s.get());
+            }
+        };
+
     } // namespace _debug
 
     namespace _impl {

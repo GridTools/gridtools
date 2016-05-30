@@ -617,7 +617,7 @@ namespace gridtools {
                                         m_actual_arg_ptr_list, m_actual_metadata_list));
 
 #ifdef VERBOSE
-            m_domain.info(std::cout);
+            m_domain.info();
 #endif
             m_grid.clone_to_device();
         }

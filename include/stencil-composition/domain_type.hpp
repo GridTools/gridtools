@@ -310,7 +310,7 @@ namespace gridtools {
 
 #ifdef VERBOSE
             std::cout << "\nThese are the view values" << boost::fusion::size(fview) << std::endl;
-            boost::fusion::for_each(m_storage_pointers, _debug::print_pointer());
+            boost::fusion::for_each(m_storage_pointers, _debug::dt_print_pointer());
 #endif
             view_type original_fview(m_original_pointers);
             boost::fusion::copy(real_storage_, original_fview);
@@ -324,7 +324,6 @@ namespace gridtools {
             : m_storage_pointers(other.m_storage_pointers), m_original_pointers(other.m_original_pointers),
               m_metadata_set(other.m_metadata_set) {}
 
-#ifndef NDEBUG
         GT_FUNCTION
         void info() {
             printf("domain_type: Storage pointers\n");
@@ -333,7 +332,6 @@ namespace gridtools {
             boost::fusion::for_each(m_original_pointers, _debug::print_domain_info());
             printf("domain_type: End info\n");
         }
-#endif
 
         template < typename Index >
         void storage_info(std::ostream & out_s) const {

@@ -50,7 +50,7 @@ namespace gridtools {
 
 #ifdef VERBOSE
             printf("allocating hybrid pointer %x \n", this);
-            printf(" - %X %X %X %d\n", this->m_cpu_p, m_gpu_p, m_pointer_to_use, m_size);
+            printf(" - %X %X %X %d\n", m_cpu_p.get(), m_gpu_p, m_pointer_to_use, m_size);
 #endif
         }
 
