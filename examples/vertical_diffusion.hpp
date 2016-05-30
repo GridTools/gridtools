@@ -82,7 +82,8 @@ namespace vertical_diffusion{
                 vdtch()*sqrtgrhors()*data_s());
 #endif
 
-        eval(call_proc<tridiagonal::forward_thomas, interval_t>::at<0,0,0>::with(eval, out(), acol(), bcol(), ccol(), dcol()));
+            // float_type x_;
+            // eval(call_proc<tridiagonal::forward_thomas, interval_t>::at<0,0,0>::with(eval, x_, out(), acol(), bcol(), ccol(), dcol()));
         }
 
 
