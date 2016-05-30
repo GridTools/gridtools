@@ -31,18 +31,18 @@ TEST(layout_map, accessors) {
         GRIDTOOLS_STATIC_ASSERT((static_short< lm[0] >::value == 2), "Error");
     }
     {
-        constexpr layout_map<1,3> lm;
+        constexpr layout_map< 1, 3 > lm;
         GRIDTOOLS_STATIC_ASSERT((static_short< lm[0] >::value == 1), "Error");
         GRIDTOOLS_STATIC_ASSERT((static_short< lm[1] >::value == 3), "Error");
     }
     {
-        constexpr layout_map<1,3,-3> lm;
+        constexpr layout_map< 1, 3, -3 > lm;
         GRIDTOOLS_STATIC_ASSERT((static_short< lm[0] >::value == 1), "Error");
         GRIDTOOLS_STATIC_ASSERT((static_short< lm[1] >::value == 3), "Error");
         GRIDTOOLS_STATIC_ASSERT((static_short< lm[2] >::value == -3), "Error");
     }
     {
-        constexpr layout_map<1,3,-3,5> lm;
+        constexpr layout_map< 1, 3, -3, 5 > lm;
         GRIDTOOLS_STATIC_ASSERT((static_short< lm[0] >::value == 1), "Error");
         GRIDTOOLS_STATIC_ASSERT((static_short< lm[1] >::value == 3), "Error");
         GRIDTOOLS_STATIC_ASSERT((static_short< lm[2] >::value == -3), "Error");
@@ -85,11 +85,19 @@ TEST(layout_map, accessors) {
     ASSERT_TRUE((gridtools::layout_map< 2, 0, 1 >::find< 1 >(a, b, c) == c));
     ASSERT_TRUE((gridtools::layout_map< 2, 0, 1 >::find< 2 >(a, b, c) == a));
 }
+
 TEST(layout_map, find_val) {
     int a = 10, b = 100, c = 1000;
     ////// TESTING FIND_VAL
-    ASSERT_TRUE((gridtools::layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(a, b, c) == b));
-    ASSERT_TRUE((gridtools::layout_map< 2, 0, 1 >::find_val< 1, int, 666 >(a, b, c) == c));
-    ASSERT_TRUE((gridtools::layout_map< 2, 0, 1 >::find_val< 2, int, 666 >(a, b, c) == a));
-    ASSERT_TRUE((gridtools::layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(a, b, c) == 666));
+    GRIDTOOLS_STATIC_ASSERT((gridtools::layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(7, 9, 11) == 9), "Error");
+    GRIDTOOLS_STATIC_ASSERT((gridtools::layout_map< 2, 0, 1 >::find_val< 1, int, 666 >(7, 9, 11) == 11), "Error");
+    GRIDTOOLS_STATIC_ASSERT((gridtools::layout_map< 2, 0, 1 >::find_val< 2, int, 666 >(7, 9, 11) == 7), "Error");
+    GRIDTOOLS_STATIC_ASSERT((gridtools::layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(7, 9, 11) == 666), "Error");
+
+    GRIDTOOLS_STATIC_ASSERT(
+        (static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(array< uint_t, 3 >{7, 9, 11}) >::value ==
+            9),
+        "Error");
+
+    ASSERT_TRUE(true);
 }
