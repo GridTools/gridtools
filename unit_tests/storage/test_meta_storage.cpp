@@ -1,7 +1,14 @@
 #include "gtest/gtest.h"
-#include <stencil-composition/stencil-composition.hpp>
+#include <storage/storage-t.hpp>
 
 using namespace gridtools;
+
+TEST(storage_info, test_component) {
+    typedef layout_map<0,1,2> layout;
+    typedef storage_traits_t::meta_storage_type<0, layout, false> meta_data_t;
+    meta_data_t meta_obj(10,10,10);
+    storage_traits_t::storage_type<float, meta_data_t> st_obj(meta_obj, "in");
+}
 
 TEST(storage_info, test_equality) {
     typedef gridtools::layout_map<0,1,2> layout_t1;
