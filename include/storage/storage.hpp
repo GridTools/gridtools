@@ -402,7 +402,14 @@ namespace gridtools {
      */
     template < class Storage, uint_t First, uint_t... Number >
     struct field {
-        typedef typename reverse_pack< Number... >::template apply< field_reversed, typename Storage::basic_type, First >::type::type type;
+        GRIDTOOLS_STATIC_ASSERT(is_storage<Storage>::value, "wrong type");
+        typedef typename reverse_pack< Number... >::template apply< field_reversed, Storage, First >::type::type type;
+    };
+
+    template < class ... Storage, uint_t First, uint_t... Number >
+    struct field<data_field<Storage ...>, First, Number...> {
+        // GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(), is_storage<Storage>::value ...), "wrong type");
+        typedef typename reverse_pack< Number... >::template apply< field_reversed, typename data_field<Storage ...>::basic_type, First >::type::type type;
     };
 
 

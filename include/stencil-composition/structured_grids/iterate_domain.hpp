@@ -385,7 +385,7 @@ namespace gridtools {
             specialization for the accessor placeholders for expressions
         */
         template < typename Accessor >
-        GT_FUNCTION void *get_data_pointer(expr_direct_access< Accessor > &&accessor) const {
+        GT_FUNCTION void *get_data_pointer(expr_direct_access< Accessor > const& accessor) const {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
             return (data_pointer())[current_storage< (Accessor::type::index_type::value == 0),
@@ -483,7 +483,7 @@ namespace gridtools {
         */
         template < typename Accessor >
         GT_FUNCTION typename accessor_return_type< Accessor >::type operator()(
-            expr_direct_access< Accessor > &&accessor) const {
+            expr_direct_access< Accessor > const& accessor) const {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 
