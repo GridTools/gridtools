@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef VERBOSE
+#include <iostream>
+#endif
+
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/pair.hpp>
@@ -613,7 +617,7 @@ namespace gridtools {
                                         m_actual_arg_ptr_list, m_actual_metadata_list));
 
 #ifdef VERBOSE
-            m_domain.info();
+            m_domain.info(std::cout);
 #endif
             m_grid.clone_to_device();
         }

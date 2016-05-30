@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iosfwd>
 #include "accessor.hpp"
 
 #include <gridtools.hpp>
@@ -63,10 +64,14 @@ namespace gridtools {
         };
 
         struct print_view_ {
+            std::ostream & out_s;
+            print_view_(std::ostream & out_s)
+                : out_s(out_s)
+            {}
+
             template < typename T >
             void operator()(T &t) const {
-                // int a = T();
-                t->info();
+                t->info(out_s);
             }
         };
 
