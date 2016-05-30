@@ -448,17 +448,15 @@ namespace gridtools {
         /* Second we need to associate an extent to each esf, so that
            we can associate loop bounds to the functors.
          */
-        typedef typename associate_extents_to_esfs< typename MssDescriptorArray::elements,
-            extent_map_t >::type extent_sizes_t;
+        typedef typename associate_extents_to_esfs< typename MssDescriptorArray::elements, extent_map_t >::type
+            extent_sizes_t;
 
         typedef typename boost::mpl::if_<
-            boost::mpl::is_sequence<
-                typename MssDescriptorArray::elements>
-            , typename boost::mpl::fold< typename MssDescriptorArray::elements,
-                                boost::mpl::false_,
-                                boost::mpl::or_< boost::mpl::_1, mss_descriptor_is_reduction< boost::mpl::_2 > > >::type
-            , boost::mpl::false_
-            >::type has_reduction_t;
+            boost::mpl::is_sequence< typename MssDescriptorArray::elements >,
+            typename boost::mpl::fold< typename MssDescriptorArray::elements,
+                boost::mpl::false_,
+                boost::mpl::or_< boost::mpl::_1, mss_descriptor_is_reduction< boost::mpl::_2 > > >::type,
+            boost::mpl::false_ >::type has_reduction_t;
 
         typedef reduction_data< MssDescriptorArray, has_reduction_t::value > reduction_data_t;
         typedef typename reduction_data_t::reduction_type_t reduction_type_t;

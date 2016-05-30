@@ -12,9 +12,7 @@ namespace gridtools {
     template < typename Mss1, typename Mss2, typename Tag >
     struct condition {
 
-        GRIDTOOLS_STATIC_ASSERT(!(is_reduction_descriptor<Mss1>::value
-                                  ||
-                                  is_reduction_descriptor<Mss2>::value),
+        GRIDTOOLS_STATIC_ASSERT(!(is_reduction_descriptor< Mss1 >::value || is_reduction_descriptor< Mss2 >::value),
             "reduction mss must be outside conditional branches");
         // TODO add a way to check Mss1 and Mss2
         GRIDTOOLS_STATIC_ASSERT(is_conditional< Tag >::value, "internal error");
