@@ -19,7 +19,7 @@ typedef backend_t::storage_info< 0, layout_map< 0, 1, 2 > > meta_t;
 typedef meta_storage<
   meta_storage_aligned<
     meta_storage_base<0U, layout_map<0, 1, 2>, false, int, int>, 
-    backend_traits_from_id<Cuda>::default_alignment::type, 
+    aligned<32>, 
     halo<0,0,0> 
   > 
 > meta_t;

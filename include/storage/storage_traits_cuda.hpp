@@ -7,6 +7,9 @@
 #include "meta_storage_base.hpp"
 
 namespace gridtools {
+    template < enumtype::platform T >
+    struct storage_traits_from_id;
+
     /** @brief traits struct defining the storage and metastorage types which are specific to the CUDA backend*/
     template <>
     struct storage_traits_from_id< enumtype::Cuda > {

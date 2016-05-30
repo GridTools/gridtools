@@ -20,7 +20,7 @@ TEST(cuda_storage_on_host, test_storage_types) {
 	typedef storage_traits_t::storage_type<float, meta_data_t> storage_t;
 	meta_data_t meta_obj(10,10,10);
 	storage_t st_obj(meta_obj, "in");
-#ifdef _USE_GPU_
+#ifdef __CUDACC__
 	GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename meta_data_t::super, meta_storage< meta_storage_aligned< meta_storage_base< 0, layout, false >, aligned<32>, halo<0,0,0> > > >::value), "type is wrong");
 	GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename storage_t::super, storage< base_storage< hybrid_pointer< float >, meta_data_t, 1 > > >::value), "type is wrong");
 #else
