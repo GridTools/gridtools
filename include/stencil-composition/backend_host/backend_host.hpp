@@ -9,6 +9,7 @@
 #include "../heap_allocated_temps.hpp"
 #include "../iteration_policy.hpp"
 #include "../backend_fwd.hpp"
+#include "../../storage/storage-t.hpp"
 #include "backend_traits_host.hpp"
 #include "../loop_hierarchy.hpp"
 #include "strategy_host.hpp"
