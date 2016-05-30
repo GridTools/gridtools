@@ -314,7 +314,7 @@ namespace vertical_diffusion{
                                                       , p_data_s()
                                                       , p_vdtch()
                                                       , p_bottomFactor()
-                                                      , p_out)
+                                                      , p_out())
                 )
             );
 
