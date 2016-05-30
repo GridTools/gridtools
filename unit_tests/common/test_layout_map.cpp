@@ -87,17 +87,51 @@ TEST(layout_map, accessors) {
 }
 
 TEST(layout_map, find_val) {
-    int a = 10, b = 100, c = 1000;
     ////// TESTING FIND_VAL
     GRIDTOOLS_STATIC_ASSERT((gridtools::layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(7, 9, 11) == 9), "Error");
     GRIDTOOLS_STATIC_ASSERT((gridtools::layout_map< 2, 0, 1 >::find_val< 1, int, 666 >(7, 9, 11) == 11), "Error");
     GRIDTOOLS_STATIC_ASSERT((gridtools::layout_map< 2, 0, 1 >::find_val< 2, int, 666 >(7, 9, 11) == 7), "Error");
     GRIDTOOLS_STATIC_ASSERT((gridtools::layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(7, 9, 11) == 666), "Error");
 
+
+    GRIDTOOLS_STATIC_ASSERT(
+        (static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(offset_tuple<3,3>(7, 9, 11)) >::value ==
+            9),
+        "Error");
+
+    GRIDTOOLS_STATIC_ASSERT(
+        (static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 1, int, 666 >(offset_tuple<3,3>(7, 9, 11)) >::value ==
+            11),
+        "Error");
+
+    GRIDTOOLS_STATIC_ASSERT(
+        (static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 2, int, 666 >(offset_tuple<3,3>(7, 9, 11)) >::value ==
+            7),
+        "Error");
+
+    GRIDTOOLS_STATIC_ASSERT(
+        (static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(offset_tuple<3,3>(7, 9, 11)) >::value ==
+            666),
+        "Error");
+
+
     GRIDTOOLS_STATIC_ASSERT(
         (static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(array< uint_t, 3 >{7, 9, 11}) >::value ==
             9),
         "Error");
+    GRIDTOOLS_STATIC_ASSERT(
+        (static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 1, int, 666 >(array< uint_t, 3 >{7, 9, 11}) >::value ==
+            11),
+        "Error");
+    GRIDTOOLS_STATIC_ASSERT(
+        (static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 2, int, 666 >(array< uint_t, 3 >{7, 9, 11}) >::value ==
+            7),
+        "Error");
+    GRIDTOOLS_STATIC_ASSERT(
+        (static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(array< uint_t, 3 >{7, 9, 11}) >::value ==
+            666),
+        "Error");
+
 
     ASSERT_TRUE(true);
 }
