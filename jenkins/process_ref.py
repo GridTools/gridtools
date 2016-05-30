@@ -7,6 +7,8 @@ import math
 import os
 import socket
 import numpy as np
+import matplotlib
+matplotlib.use('SVG')
 from matplotlib import rc
 import matplotlib.pyplot as plt
 import copy
