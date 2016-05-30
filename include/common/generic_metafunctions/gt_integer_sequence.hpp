@@ -55,7 +55,7 @@ namespace gridtools {
     template < typename UInt >
     struct apply_gt_integer_sequence {
         template < typename Container, template < UInt T > class Lambda, typename... ExtraTypes >
-        GT_FUNCTION static constexpr Container apply(ExtraTypes const &... args_) {
+        GT_FUNCTION static CONSTEXPR Container apply(ExtraTypes const &... args_) {
             GRIDTOOLS_STATIC_ASSERT((boost::is_same< Container, Container >::value),
                 "ERROR: apply_gt_integer_sequence only accepts a gt_integer_sequence type. Check the call");
             return Container(args_...);
@@ -90,7 +90,7 @@ namespace gridtools {
             template < UInt T > class Lambda,
             typename... ExtraTypes,
             typename boost::disable_if< typename is_aggregate< Container >::type, int >::type = 0 >
-        GT_FUNCTION static constexpr Container apply(ExtraTypes const &... args_) {
+        GT_FUNCTION static CONSTEXPR Container apply(ExtraTypes const &... args_) {
             return Container(Lambda< Indices >::apply(args_...)...);
         }
 
@@ -113,7 +113,7 @@ namespace gridtools {
             template < UInt T > class MetaFunctor,
             typename AdditionalArg,
             typename... ExtraTypes >
-        GT_FUNCTION static constexpr ReturnType apply_lambda(
+        GT_FUNCTION static CONSTEXPR ReturnType apply_lambda(
             Lambda lambda, AdditionalArg add_arg, ExtraTypes const &... args_)
         {
             return lambda(MetaFunctor< Indices >::apply(args_...)..., add_arg);
@@ -126,7 +126,7 @@ namespace gridtools {
             template < UInt T > class Lambda,
             typename... ExtraTypes,
             typename boost::enable_if< typename is_aggregate< Container >::type, int >::type = 0 >
-        GT_FUNCTION static constexpr Container apply(ExtraTypes const &... args_) {
+        GT_FUNCTION static CONSTEXPR Container apply(ExtraTypes const &... args_) {
             return Container{Lambda< Indices >::apply(args_...)...};
         }
 
@@ -140,7 +140,7 @@ namespace gridtools {
           \param arg_ the input values, i.e. a variadic sequence.
         */
         template < typename Container, template < UInt T > class Lambda, typename... ExtraTypes >
-        GT_FUNCTION static constexpr Container apply_zipped(ExtraTypes const &... arg_) {
+        GT_FUNCTION static CONSTEXPR Container apply_zipped(ExtraTypes const &... arg_) {
             return Container(Lambda< Indices >::apply(arg_)...);
         }
 
@@ -163,7 +163,7 @@ namespace gridtools {
            @brief same as before, but with non-static lambda taking as first argument the index
         */
         template < typename Container, class Lambda, typename... ExtraTypes >
-        GT_FUNCTION static constexpr Container apply(Lambda lambda, ExtraTypes &... args_) {
+        GT_FUNCTION static CONSTEXPR Container apply(Lambda lambda, ExtraTypes &... args_) {
             return Container(lambda(Indices, args_...)...);
         }
     };
