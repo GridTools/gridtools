@@ -8,21 +8,21 @@ using namespace gridtools;
 
 TEST(layout_map, accessors) {
 
-    ASSERT_TRUE((gridtools::layout_map< 2 >::at< 0 >() == 2));
-    ASSERT_TRUE((gridtools::layout_map< 1, 3 >::at< 0 >() == 1));
-    ASSERT_TRUE((gridtools::layout_map< 1, 3 >::at< 1 >() == 3));
-    ASSERT_TRUE((gridtools::layout_map< 1, 3, -3 >::at< 0 >() == 1));
-    ASSERT_TRUE((gridtools::layout_map< 1, 3, -3 >::at< 1 >() == 3));
+    GRIDTOOLS_STATIC_ASSERT((static_int<layout_map< 2 >::at< 0 >() >::value == 2), "Error");
+    GRIDTOOLS_STATIC_ASSERT((static_int<layout_map< 1, 3 >::at< 0 >() >::value == 1), "Error");
+    GRIDTOOLS_STATIC_ASSERT((static_int<layout_map< 1, 3 >::at< 1 >() >::value == 3), "Error");
+    GRIDTOOLS_STATIC_ASSERT((static_int<layout_map< 1, 3, -3 >::at< 0 >() >::value == 1), "Error");
+    GRIDTOOLS_STATIC_ASSERT((static_int<layout_map< 1, 3, -3 >::at< 1 >() >::value == 3), "Error");
 
-    ASSERT_TRUE((gridtools::layout_map< 1, 3, -3 >::at< 2 >() == -3));
+    GRIDTOOLS_STATIC_ASSERT((static_int<layout_map< 1, 3, -3 >::at< 2 >() >::value == -3), "Error");
 
-    ASSERT_TRUE((gridtools::layout_map< 1, 3, -3, 5 >::at< 0 >() == 1));
+    GRIDTOOLS_STATIC_ASSERT((static_int<layout_map< 1, 3, -3, 5 >::at< 0 >() >::value == 1), "Error");
 
-    ASSERT_TRUE((gridtools::layout_map< 1, 3, -3, 5 >::at< 1 >() == 3));
+    GRIDTOOLS_STATIC_ASSERT((static_int<layout_map< 1, 3, -3, 5 >::at< 1 >() >::value == 3), "Error");
 
-    ASSERT_TRUE((gridtools::layout_map< 1, 3, -3, 5 >::at< 2 >() == -3));
+    GRIDTOOLS_STATIC_ASSERT((static_int<layout_map< 1, 3, -3, 5 >::at< 2 >() >::value == -3), "Error");
 
-    ASSERT_TRUE((gridtools::layout_map< 1, 3, -3, 5 >::at< 3 >() == 5));
+    GRIDTOOLS_STATIC_ASSERT((static_int<layout_map< 1, 3, -3, 5 >::at< 3 >() >::value == 5), "Error");
 
     ////////////////////////////////////////////////////////////////////
     /// \brief ASSERT_TRUE
