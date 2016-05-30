@@ -556,11 +556,15 @@ class Stage ( ):
             if not data_dep.successors(node.name):
                 self.inputs.append(node)
         #
-        # Considering non-local self-looping nodes as both inputs and outputs
+        # Non-local self-looping nodes are not allowed
+        # TODO: Only allow self-assignment if access extent is [0,0], complying
+        # with Gridtools' data dependency rules. For more information, see
+        # https://github.com/eth-cscs/gridtools/wiki/Data-Dependencies-Analysis-in-GridTools
         #
         for node in data_dep.nodes_with_selfloops():
-            self.inputs.append(node)
-            self.outputs.append(node)
+#            self.inputs.append(node)
+#            self.outputs.append(node)
+            raise ValueError ("Assigning a non-local data filed to itself is not allowed.")
         logging.debug('\tStage scope Input data: %s' % self.inputs)
         logging.debug('\tStage scope Output data: %s' % self.outputs)
         #

@@ -472,6 +472,33 @@ class StencilScope (Scope):
                     logging.warning ("Parameter '%s' is not a NumPy array" % k)
 
 
+    def check_data_dependency (self):
+        """
+        Verifies that the stencil's data dependencies comply with Gridtools'
+        rules. For more information, see
+        https://github.com/eth-cscs/gridtools/wiki/Data-Dependencies-Analysis-in-GridTools
+        :raises ValueError: if a data field depends on itself, either directly
+                            of indirectly
+        :returns:
+        """
+        #
+        # A data field is depending on itself if the intersection of its
+        # ancestors and it descendants is not empty. This means that a closed
+        # path exists within the graph.
+        # A self-dependency exists also if a data filed is assigned to itself
+        # inside a stage, but this case should already be covered when
+        # identifying stage IO.
+        #
+        # TODO: Only allow self-dependency if access extent is [0,0], complying
+        # with Gridtools' data dependency rules.
+        #
+        for node in nx.topological_sort (self.data_dependency):
+            closed_path = ( nx.ancestors(self.data_dependency, node)
+                            & nx.descendants(self.data_dependency, node) )
+            if closed_path:
+                raise ValueError ("A stencil data field cannot depend on itself.")
+
+
     def add_stage (self, node, prefix='', suffix=''):
         """
         Adds a Stage object to this stencil's scope
