@@ -11,11 +11,11 @@ namespace gridtools {
 
     template < typename T, bool Array = true >
     struct wrap_pointer {
-        private:
-		template <typename V>
-		wrap_pointer(V);
+      private:
+        template < typename V >
+        wrap_pointer(V);
 
-	public:
+      public:
         // TODO: turn into value_type?
         typedef T pointee_t;
 

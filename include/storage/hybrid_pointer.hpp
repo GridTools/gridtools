@@ -12,13 +12,13 @@ namespace gridtools {
      * "pointer_to_use" will then become useless, and the operators defined in the base class will be usable) */
     template < typename T, bool Array = true >
     struct hybrid_pointer {
-        private:
-		template <typename V>
-		hybrid_pointer(V);
+      private:
+        template < typename V >
+        hybrid_pointer(V);
 
-	public:
+      public:
         // typedef wrap_pointer<T> super;
-          typedef typename wrap_pointer< T, Array >::pointee_t pointee_t;
+        typedef typename wrap_pointer< T, Array >::pointee_t pointee_t;
 
         GT_FUNCTION
         explicit hybrid_pointer()

@@ -163,17 +163,19 @@ namespace gridtools {
     template < typename MssDescriptorArray, typename GridTraits, typename Placeholders >
     struct placeholder_to_extent_map {
 
-    private:
-        template <typename T>
+      private:
+        template < typename T >
         struct is_mss_or_reduction {
-            typedef typename boost::mpl::or_<is_mss_descriptor<T>, is_reduction_descriptor<T> >::type type;
+            typedef typename boost::mpl::or_< is_mss_descriptor< T >, is_reduction_descriptor< T > >::type type;
         };
 
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssDescriptorArray, is_mss_or_reduction >::value || is_condition<MssDescriptorArray>::value), "Wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_grid_traits_from_id<GridTraits>::value), "Wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Placeholders, is_arg>::value), "Wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssDescriptorArray, is_mss_or_reduction >::value ||
+                                    is_condition< MssDescriptorArray >::value),
+            "Wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_grid_traits_from_id< GridTraits >::value), "Wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< Placeholders, is_arg >::value), "Wrong type");
 
-    public:
+      public:
         typedef typename GridTraits::select_mss_compute_extent_sizes mss_compute_extent_sizes_t;
         typedef
             typename GridTraits::template select_init_map_of_extents< Placeholders >::type initial_map_of_placeholders;
@@ -181,7 +183,8 @@ namespace gridtools {
         // This is where the data-dependence analysis happens
         template < typename CurrentMap, typename Mss >
         struct update_map {
-            GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor<Mss>::value || is_reduction_descriptor<Mss>::value), "Internal Error");
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_mss_descriptor< Mss >::value || is_reduction_descriptor< Mss >::value), "Internal Error");
 
             typedef typename mss_compute_extent_sizes_t::template apply< CurrentMap, Mss >::type type;
         };
@@ -230,31 +233,31 @@ namespace gridtools {
     template < typename MssDescriptorArrayElements, typename ExtentsMap >
     struct associate_extents_to_esfs {
 
-    private:
-        template <typename Element>
+      private:
+        template < typename Element >
         struct __pairs_of {
-            typedef typename is_arg<typename Element::first>::type one;
-            typedef typename is_extent<typename Element::second>::type two;
+            typedef typename is_arg< typename Element::first >::type one;
+            typedef typename is_extent< typename Element::second >::type two;
 
-            typedef typename boost::mpl::and_<one, two>::type type;
+            typedef typename boost::mpl::and_< one, two >::type type;
         };
 
-    public:
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ExtentsMap, __pairs_of>::value), "Wront type");
+      public:
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< ExtentsMap, __pairs_of >::value), "Wront type");
 
         /** This is the metafucntion to iterate over the esfs of a multi-stage stencil
             and gather the outputs (check that they have the same extents), and associate
             to them the corresponding extent */
-        template < typename MapOfPlaceholders,/*, typename BackendIds,*/ typename Mss >
+        template < typename MapOfPlaceholders, /*, typename BackendIds,*/ typename Mss >
         struct iterate_over_esfs {
 
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MapOfPlaceholders, __pairs_of>::value), "Wront type");
-            GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor<Mss>::value), "Wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MapOfPlaceholders, __pairs_of >::value), "Wront type");
+            GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor< Mss >::value), "Wrong type");
 
             template < typename Esf >
             struct get_extent_for {
 
-                GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), "Wrong type");
 
                 typedef typename esf_get_w_per_functor< Esf >::type w_plcs;
                 typedef typename boost::mpl::at_c< w_plcs, 0 >::type first_out;
@@ -282,12 +285,9 @@ namespace gridtools {
             always have the null-extent. In this case then, the map do
             not need to be updated.
          */
-        template < typename MapOfPlaceholders,
-            typename ReductionType,
-            typename BinOp,
-            typename EsfDescrSequence >
+        template < typename MapOfPlaceholders, typename ReductionType, typename BinOp, typename EsfDescrSequence >
         struct iterate_over_esfs< MapOfPlaceholders,
-                                  /*BackendIds,*/
+            /*BackendIds,*/
             reduction_descriptor< ReductionType, BinOp, EsfDescrSequence > > {
 
             template < typename Esf >
@@ -310,11 +310,10 @@ namespace gridtools {
         }; // struct iterate_over_esfs<reduction>
 
         // Iterate over all the MSSes in the computation
-        typedef
-            typename boost::mpl::fold< MssDescriptorArrayElements,
-                boost::mpl::vector0<>,
-                typename boost::mpl::push_back< boost::mpl::_1,
-                                           iterate_over_esfs< ExtentsMap, boost::mpl::_2 > > >::type type;
+        typedef typename boost::mpl::fold< MssDescriptorArrayElements,
+            boost::mpl::vector0<>,
+            typename boost::mpl::push_back< boost::mpl::_1, iterate_over_esfs< ExtentsMap, boost::mpl::_2 > > >::type
+            type;
     };
 
     template < typename Mss1, typename Mss2, typename Cond, typename ExtentsMap >
