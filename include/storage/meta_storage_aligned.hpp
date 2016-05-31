@@ -244,7 +244,8 @@ namespace gridtools {
 #endif
         // device copy constructor
         GT_FUNCTION
-        constexpr meta_storage_aligned(meta_storage_aligned const &other) : super(other) {}
+        constexpr meta_storage_aligned(meta_storage_aligned const &other) : 
+            super(other), m_unaligned_dims(other.m_unaligned_dims), m_unaligned_strides(other.m_unaligned_strides) {}
 
         // empty constructor
         GT_FUNCTION
