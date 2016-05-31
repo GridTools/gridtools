@@ -27,11 +27,13 @@ namespace gridtools {
     namespace _impl {
 
         template < int index >
+        GT_FUNCTION
         constexpr static int __get(int i) {
             return -1;
         }
 
         template < int index, int first, int... Vals >
+        GT_FUNCTION
         constexpr static int __get(int i) {
             return (i == index) ? first : __get<index+1, Vals...>(i);
         }
