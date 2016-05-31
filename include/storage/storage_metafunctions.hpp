@@ -8,6 +8,7 @@
 
 #include "storage.hpp"
 #include "base_storage.hpp"
+#include "metadata_set.hpp"
 
 namespace gridtools {
 
@@ -144,10 +145,12 @@ namespace gridtools {
     template <typename U>
     struct get_storage_metadata_ptrs {
         U& metadata_set;
+        GRIDTOOLS_STATIC_ASSERT(is_metadata_set<U>::value, "passed type is not a metadata_set");
         get_storage_metadata_ptrs(U& ms) : metadata_set(ms) {}
 
         template <typename T>
         void operator()(T &st) const {
+            GRIDTOOLS_STATIC_ASSERT(is_meta_storage<T>::value, "passed object is not of type meta_storage");
             metadata_set.insert(st->get_meta_data_pointer());
         }
     };
