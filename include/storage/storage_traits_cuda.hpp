@@ -16,7 +16,7 @@ namespace gridtools {
 
         template < typename T >
         struct pointer {
-            typedef hybrid_pointer< T > type;
+            typedef hybrid_pointer< T, true > type;
         };
 
         template < typename ValueType, typename MetaData, bool Temp = false, short_t SpaceDim = 1 >

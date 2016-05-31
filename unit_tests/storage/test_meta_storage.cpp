@@ -5,9 +5,15 @@ using namespace gridtools;
 
 TEST(storage_info, test_component) {
     typedef layout_map<0,1,2> layout;
-    typedef storage_traits_t::meta_storage_type<0, layout, false> meta_data_t;
+#ifdef CXX11_ENABLED
+    typedef storage_traits_t<enumtype::Host>::meta_storage_type<0, layout, false> meta_data_t;
+    typedef storage_traits_t<enumtype::Host>::storage_type<float, meta_data_t> storage_t;
+#else
+    typedef storage_traits_t<enumtype::Host>::meta_storage_type<0, layout, false>::type meta_data_t;
+    typedef storage_traits_t<enumtype::Host>::storage_type<float, meta_data_t>::type storage_t;
+#endif
     meta_data_t meta_obj(10,10,10);
-    storage_traits_t::storage_type<float, meta_data_t> st_obj(meta_obj, "in");
+    storage_t st_obj(meta_obj, "in");
 }
 
 TEST(storage_info, test_equality) {

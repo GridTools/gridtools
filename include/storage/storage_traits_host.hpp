@@ -19,7 +19,7 @@ namespace gridtools {
          */
         template < typename T >
         struct pointer {
-            typedef wrap_pointer< T > type;
+            typedef wrap_pointer< T, true > type;
         };
 
         /**
