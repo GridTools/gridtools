@@ -138,8 +138,8 @@ namespace gridtools {
 
         template < typename ValueType, typename MetaDataType >
         struct storage_type {
-            typedef typename storage_traits_t<BackendId>::storage_traits_aux::template storage_t<ValueType,
-                typename storage_traits_t<BackendId>::storage_traits_aux::template meta_storage_t< typename MetaDataType::index_type,
+            typedef typename storage_traits<BackendId>::storage_traits_aux::template select_storage<ValueType,
+                typename storage_traits<BackendId>::storage_traits_aux::template select_meta_storage< typename MetaDataType::index_type,
                                                                     typename MetaDataType::layout,
                                                                     false,
                                                                     typename MetaDataType::halo_t,
@@ -168,20 +168,20 @@ namespace gridtools {
         template < ushort_t Index,
             typename Layout,
             typename Halo = typename repeat_template_c< 0, Layout::length, halo >::type,
-            typename Alignment = typename storage_traits_t<BackendId>::storage_traits_aux::default_alignment::type >
-        using storage_info = typename storage_traits_t<BackendId>::storage_traits_aux::
-            template meta_storage_t< static_uint< Index >, Layout, false, Halo, Alignment >::type;
+            typename Alignment = typename storage_traits<BackendId>::storage_traits_aux::default_alignment::type >
+        using storage_info = typename storage_traits<BackendId>::storage_traits_aux::
+            template select_meta_storage< static_uint< Index >, Layout, false, Halo, Alignment >::type;
 
 #else
         template < ushort_t Index,
             typename Layout,
             typename Halo = halo< 0, 0, 0 >,
-            typename Alignment = typename storage_traits_t<BackendId>::storage_traits_aux::default_alignment::type >
+            typename Alignment = typename storage_traits<BackendId>::storage_traits_aux::default_alignment::type >
         struct storage_info
-            : public storage_traits_t<BackendId>::storage_traits_aux::
-                  template meta_storage_t< static_uint< Index >, Layout, false, Halo, Alignment >::type {
-            typedef typename storage_traits_t<BackendId>::storage_traits_aux::
-                template meta_storage_t< static_uint< Index >, Layout, false, Halo, Alignment >::type super;
+            : public storage_traits<BackendId>::storage_traits_aux::
+                  template select_meta_storage< static_uint< Index >, Layout, false, Halo, Alignment >::type {
+            typedef typename storage_traits<BackendId>::storage_traits_aux::
+                template select_meta_storage< static_uint< Index >, Layout, false, Halo, Alignment >::type super;
 
             storage_info(uint_t const &d1, uint_t const &d2, uint_t const &d3) : super(d1, d2, d3) {}
 
@@ -206,8 +206,8 @@ namespace gridtools {
             /** temporary storage must have the same iterator type than the regular storage
              */
           private:
-            typedef typename storage_traits_t<BackendId>::storage_traits_aux::template storage_t< ValueType,
-                typename storage_traits_t<BackendId>::storage_traits_aux::template meta_storage_t< typename MetaDataType::index_type,
+            typedef typename storage_traits<BackendId>::storage_traits_aux::template select_storage< ValueType,
+                typename storage_traits<BackendId>::storage_traits_aux::template select_meta_storage< typename MetaDataType::index_type,
                                                                             typename MetaDataType::layout,
                                                                             true,
                                                                             typename MetaDataType::halo_t,
