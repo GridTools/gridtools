@@ -3,7 +3,7 @@ include_directories( ../../include/common ) ## Library header files
 
 FILE(GLOB_RECURSE INC_ALL "../../include/common/*.hpp")
 
-SET(COMMON_UNITTEST_SOURCES meta_array_test.cpp atomic_functions_test.cpp test_layout_map.cpp ${INC_ALL})
+SET(COMMON_UNITTEST_SOURCES meta_array_test.cpp atomic_functions_test.cpp test_layout_map.cpp test_offset_tuple.cpp ${INC_ALL})
 
 if(ENABLE_CXX11)
     SET(COMMON_UNITTEST_SOURCES ${COMMON_UNITTEST_SOURCES} test_array.cpp test_aggregate.cpp explode_array_test.cpp test_repeat_template.cpp test_tuple.cpp)
