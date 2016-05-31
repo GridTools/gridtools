@@ -5,7 +5,7 @@
 using namespace gridtools;
 
 TEST(offset_tuple, test_array_ctr) {
-#ifdef NDEBUG
+#if !defined(NDEBUG) && defined(CXX11_ENABLED)
     constexpr array<int_t, 4> pos{2,5,8,-6};
     constexpr offset_tuple<4,4> offsets(0, pos);
 
@@ -15,7 +15,7 @@ TEST(offset_tuple, test_array_ctr) {
     GRIDTOOLS_STATIC_ASSERT((static_int<offsets.get<3>() >::value == 2), "Error");
 
     ASSERT_TRUE(true);
-#else
+#endif
     array<int_t, 4> pos{2,5,8,-6};
     offset_tuple<4,4> offsets(0, pos);
 
@@ -23,6 +23,4 @@ TEST(offset_tuple, test_array_ctr) {
     ASSERT_TRUE((offsets.get<1>() == 8));
     ASSERT_TRUE((offsets.get<2>() == 5));
     ASSERT_TRUE((offsets.get<3>() == 2));
-
-#endif
 }
