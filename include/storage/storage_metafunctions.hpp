@@ -150,7 +150,7 @@ namespace gridtools {
 
         template <typename T>
         void operator()(T &st) const {
-            GRIDTOOLS_STATIC_ASSERT(is_meta_storage<T>::value, "passed object is not of type meta_storage");
+            GRIDTOOLS_STATIC_ASSERT(is_any_storage<typename T::value_type>::value, "passed object is not of type pointer<storage>");
             metadata_set.insert(st->get_meta_data_pointer());
         }
     };
