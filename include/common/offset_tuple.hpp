@@ -137,7 +137,8 @@ namespace gridtools {
            When this constructor is used all the arguments have to be specified and passed to the function call in
            order. No check is done on the order*/
         template < typename... GenericElements,
-            typename = typename boost::disable_if< typename _impl::contains_array< GenericElements... >::type, bool >::type >
+            typename =
+                typename boost::disable_if< typename _impl::contains_array< GenericElements... >::type, bool >::type >
         GT_FUNCTION constexpr offset_tuple(int const t, GenericElements const... x)
             : super(x...), m_offset(t) {}
 
@@ -231,7 +232,8 @@ namespace gridtools {
 
 #ifdef CXX11_ENABLED
         template < typename... GenericElements,
-            typename = typename boost::disable_if< typename _impl::contains_array< GenericElements... >::type, bool >::type >
+            typename =
+                typename boost::disable_if< typename _impl::contains_array< GenericElements... >::type, bool >::type >
         GT_FUNCTION constexpr offset_tuple(GenericElements... x) {
             GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension< GenericElements >::type::value...),
                 "wrong type for the argument of an offset_tuple");
@@ -270,7 +272,8 @@ namespace gridtools {
     template < int_t Index, int_t NDim >
     struct is_offset_tuple< offset_tuple< Index, NDim > > : boost::mpl::true_ {};
 
-#ifdef CXX11_ENABLED
+#if defined(CXX11_ENABLED) && !defined(CUDA_CXX11_BUG_1) && !defined(__INTEL_COMPILER)
+
     /**
      * This provides equivalent functionality than offset_tuple, but when some dimension offsets
      * are provided as compile time information
@@ -278,38 +281,40 @@ namespace gridtools {
      * @tparam NDim number of dimensions of the offset_tuple
      * @tparam DimensionPairs variadic of pairs (dimension, value) provided at compile time
      */
-    template<typename Coordinates, int_t NDim, typename ... DimensionPairs>
-    struct offset_tuple_mixed
-    {
-        typedef offset_tuple<NDim, NDim> offset_tuple_t;
-    private:
-        offset_tuple_t m_dynamic_offset_tuple;
-      public:
-        //compile time offset tuple
-        static constexpr offset_tuple_t s_static_offset_tuple{dimension< DimensionPairs::first >{DimensionPairs::second}...};
+    template < typename Coordinates, int_t NDim, typename... DimensionPairs >
+    struct offset_tuple_mixed {
+        typedef offset_tuple< NDim, NDim > offset_tuple_t;
 
-        template<typename ... ArgsRuntime>
-        GT_FUNCTION
-        constexpr offset_tuple_mixed(ArgsRuntime const & ... args) :
-            m_dynamic_offset_tuple(args...){}
+      private:
+        offset_tuple_t m_dynamic_offset_tuple;
+        // compile time offset tuple
+        static constexpr int a{2};
+        static constexpr offset_tuple_t s2_static_offset_tuple{dimension< 2 >{3}};
+
+        static constexpr offset_tuple_t s_static_offset_tuple{
+            dimension< DimensionPairs::first >{DimensionPairs::second}...};
+
+      public:
+        template < typename... ArgsRuntime >
+        GT_FUNCTION constexpr offset_tuple_mixed(ArgsRuntime const &... args)
+            : m_dynamic_offset_tuple(args...) {}
 
         template < short_t Idx >
-        GT_FUNCTION constexpr const int_t get() const {
-            //we dispatch the getter to the static or dynamic depending on wether the dimension has been captured compile time
+        GT_FUNCTION constexpr int_t get() const {
+            // we dispatch the getter to the static or dynamic depending on wether the dimension has been captured
+            // compile time
             // (in the list of coordinates)
             return boost::is_same< typename boost::mpl::find< Coordinates, static_int< Idx > >::type,
                        typename boost::mpl::end< Coordinates >::type >::type::value
                        ? m_dynamic_offset_tuple.template get< Idx >()
                        : s_static_offset_tuple.template get< Idx >();
         }
-
     };
 
     template < typename Coordinates, int_t NDim, typename... Pair >
-    constexpr offset_tuple< NDim, NDim> offset_tuple_mixed< Coordinates, NDim, Pair... >::s_static_offset_tuple;
+    constexpr const offset_tuple< NDim, NDim > offset_tuple_mixed< Coordinates, NDim, Pair... >::s_static_offset_tuple;
 
-
-    template<typename Coordinates, int_t NDim, typename ... DimensionPairs>
-    struct is_offset_tuple< offset_tuple_mixed<Coordinates, NDim, DimensionPairs...> > : boost::mpl::true_{};
+    template < typename Coordinates, int_t NDim, typename... DimensionPairs >
+    struct is_offset_tuple< offset_tuple_mixed< Coordinates, NDim, DimensionPairs... > > : boost::mpl::true_ {};
 #endif
 } // namespace gridtools

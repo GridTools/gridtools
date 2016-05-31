@@ -362,7 +362,7 @@ namespace gridtools {
     template < short_t... Args >
     struct is_layout_map< layout_map< Args... > > : boost::mpl::true_ {};
 
-#else // (defined(CXX11_ENABLED) && !defined(__CUDACC__))
+#else // defined(CXX11_ENABLED)
 
     namespace _impl {
         template < ushort_t I >

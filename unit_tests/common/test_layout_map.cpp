@@ -8,21 +8,22 @@ using namespace gridtools;
 
 TEST(layout_map, accessors) {
 
-    GRIDTOOLS_STATIC_ASSERT((static_int<layout_map< 2 >::at< 0 >() >::value == 2), "Error");
-    GRIDTOOLS_STATIC_ASSERT((static_int<layout_map< 1, 3 >::at< 0 >() >::value == 1), "Error");
-    GRIDTOOLS_STATIC_ASSERT((static_int<layout_map< 1, 3 >::at< 1 >() >::value == 3), "Error");
-    GRIDTOOLS_STATIC_ASSERT((static_int<layout_map< 1, 3, -3 >::at< 0 >() >::value == 1), "Error");
-    GRIDTOOLS_STATIC_ASSERT((static_int<layout_map< 1, 3, -3 >::at< 1 >() >::value == 3), "Error");
+#ifdef CXX11_ENABLED
+    GRIDTOOLS_STATIC_ASSERT((static_int< layout_map< 2 >::at< 0 >() >::value == 2), "Error");
+    GRIDTOOLS_STATIC_ASSERT((static_int< layout_map< 1, 3 >::at< 0 >() >::value == 1), "Error");
+    GRIDTOOLS_STATIC_ASSERT((static_int< layout_map< 1, 3 >::at< 1 >() >::value == 3), "Error");
+    GRIDTOOLS_STATIC_ASSERT((static_int< layout_map< 1, 3, -3 >::at< 0 >() >::value == 1), "Error");
+    GRIDTOOLS_STATIC_ASSERT((static_int< layout_map< 1, 3, -3 >::at< 1 >() >::value == 3), "Error");
 
-    GRIDTOOLS_STATIC_ASSERT((static_int<layout_map< 1, 3, -3 >::at< 2 >() >::value == -3), "Error");
+    GRIDTOOLS_STATIC_ASSERT((static_int< layout_map< 1, 3, -3 >::at< 2 >() >::value == -3), "Error");
 
-    GRIDTOOLS_STATIC_ASSERT((static_int<layout_map< 1, 3, -3, 5 >::at< 0 >() >::value == 1), "Error");
+    GRIDTOOLS_STATIC_ASSERT((static_int< layout_map< 1, 3, -3, 5 >::at< 0 >() >::value == 1), "Error");
 
-    GRIDTOOLS_STATIC_ASSERT((static_int<layout_map< 1, 3, -3, 5 >::at< 1 >() >::value == 3), "Error");
+    GRIDTOOLS_STATIC_ASSERT((static_int< layout_map< 1, 3, -3, 5 >::at< 1 >() >::value == 3), "Error");
 
-    GRIDTOOLS_STATIC_ASSERT((static_int<layout_map< 1, 3, -3, 5 >::at< 2 >() >::value == -3), "Error");
+    GRIDTOOLS_STATIC_ASSERT((static_int< layout_map< 1, 3, -3, 5 >::at< 2 >() >::value == -3), "Error");
 
-    GRIDTOOLS_STATIC_ASSERT((static_int<layout_map< 1, 3, -3, 5 >::at< 3 >() >::value == 5), "Error");
+    GRIDTOOLS_STATIC_ASSERT((static_int< layout_map< 1, 3, -3, 5 >::at< 3 >() >::value == 5), "Error");
 
     ////////////////////////////////////////////////////////////////////
     /// \brief ASSERT_TRUE
@@ -47,6 +48,48 @@ TEST(layout_map, accessors) {
         GRIDTOOLS_STATIC_ASSERT((static_short< lm[1] >::value == 3), "Error");
         GRIDTOOLS_STATIC_ASSERT((static_short< lm[2] >::value == -3), "Error");
         GRIDTOOLS_STATIC_ASSERT((static_short< lm[3] >::value == 5), "Error");
+    }
+#endif
+
+    ASSERT_TRUE((layout_map< 2 >::at< 0 >() == 2));
+    ASSERT_TRUE((layout_map< 1, 3 >::at< 0 >() == 1));
+    ASSERT_TRUE((layout_map< 1, 3 >::at< 1 >() == 3));
+    ASSERT_TRUE((layout_map< 1, 3, -3 >::at< 0 >() == 1));
+    ASSERT_TRUE((layout_map< 1, 3, -3 >::at< 1 >() == 3));
+
+    ASSERT_TRUE((layout_map< 1, 3, -3 >::at< 2 >() == -3));
+
+    ASSERT_TRUE((layout_map< 1, 3, -3, 5 >::at< 0 >() == 1));
+
+    ASSERT_TRUE((layout_map< 1, 3, -3, 5 >::at< 1 >() == 3));
+
+    ASSERT_TRUE((layout_map< 1, 3, -3, 5 >::at< 2 >() == -3));
+
+    ASSERT_TRUE((layout_map< 1, 3, -3, 5 >::at< 3 >() == 5));
+
+    ////////////////////////////////////////////////////////////////////
+    /// \brief ASSERT_TRUE
+    {
+        constexpr layout_map< 2 > lm;
+        ASSERT_TRUE((lm[0] == 2));
+    }
+    {
+        constexpr layout_map< 1, 3 > lm;
+        ASSERT_TRUE((lm[0] == 1));
+        ASSERT_TRUE((lm[1] == 3));
+    }
+    {
+        constexpr layout_map< 1, 3, -3 > lm;
+        ASSERT_TRUE((lm[0] == 1));
+        ASSERT_TRUE((lm[1] == 3));
+        ASSERT_TRUE((lm[2] == -3));
+    }
+    {
+        constexpr layout_map< 1, 3, -3, 5 > lm;
+        ASSERT_TRUE((lm[0] == 1));
+        ASSERT_TRUE((lm[1] == 3));
+        ASSERT_TRUE((lm[2] == -3));
+        ASSERT_TRUE((lm[3] == 5));
     }
 
     typedef gridtools::layout_transform< gridtools::layout_map< 0, 1 >, gridtools::layout_map< 0, 1 > >::type transf0;
@@ -87,33 +130,29 @@ TEST(layout_map, accessors) {
 }
 
 TEST(layout_map, find_val) {
-    ////// TESTING FIND_VAL
+////// TESTING FIND_VAL
+
+#ifdef CXX11_ENABLED
     GRIDTOOLS_STATIC_ASSERT((gridtools::layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(7, 9, 11) == 9), "Error");
     GRIDTOOLS_STATIC_ASSERT((gridtools::layout_map< 2, 0, 1 >::find_val< 1, int, 666 >(7, 9, 11) == 11), "Error");
     GRIDTOOLS_STATIC_ASSERT((gridtools::layout_map< 2, 0, 1 >::find_val< 2, int, 666 >(7, 9, 11) == 7), "Error");
     GRIDTOOLS_STATIC_ASSERT((gridtools::layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(7, 9, 11) == 666), "Error");
 
-
-    GRIDTOOLS_STATIC_ASSERT(
-        (static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(offset_tuple<3,3>(7, 9, 11)) >::value ==
-            9),
+    GRIDTOOLS_STATIC_ASSERT((static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(
+                                    offset_tuple< 3, 3 >(7, 9, 11)) >::value == 9),
         "Error");
 
-    GRIDTOOLS_STATIC_ASSERT(
-        (static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 1, int, 666 >(offset_tuple<3,3>(7, 9, 11)) >::value ==
-            11),
+    GRIDTOOLS_STATIC_ASSERT((static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 1, int, 666 >(
+                                    offset_tuple< 3, 3 >(7, 9, 11)) >::value == 11),
         "Error");
 
-    GRIDTOOLS_STATIC_ASSERT(
-        (static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 2, int, 666 >(offset_tuple<3,3>(7, 9, 11)) >::value ==
-            7),
+    GRIDTOOLS_STATIC_ASSERT((static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 2, int, 666 >(
+                                    offset_tuple< 3, 3 >(7, 9, 11)) >::value == 7),
         "Error");
 
-    GRIDTOOLS_STATIC_ASSERT(
-        (static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(offset_tuple<3,3>(7, 9, 11)) >::value ==
-            666),
+    GRIDTOOLS_STATIC_ASSERT((static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(
+                                    offset_tuple< 3, 3 >(7, 9, 11)) >::value == 666),
         "Error");
-
 
     GRIDTOOLS_STATIC_ASSERT(
         (static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(array< uint_t, 3 >{7, 9, 11}) >::value ==
@@ -131,7 +170,23 @@ TEST(layout_map, find_val) {
         (static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(array< uint_t, 3 >{7, 9, 11}) >::value ==
             666),
         "Error");
+#endif
 
+    ASSERT_TRUE((layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(7, 9, 11) == 9));
+    ASSERT_TRUE((layout_map< 2, 0, 1 >::find_val< 1, int, 666 >(7, 9, 11) == 11));
+    ASSERT_TRUE((layout_map< 2, 0, 1 >::find_val< 2, int, 666 >(7, 9, 11) == 7));
+    ASSERT_TRUE((layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(7, 9, 11) == 666));
 
-    ASSERT_TRUE(true);
+    ASSERT_TRUE((layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(offset_tuple< 3, 3 >(7, 9, 11)) == 9));
+
+    ASSERT_TRUE((layout_map< 2, 0, 1 >::find_val< 1, int, 666 >(offset_tuple< 3, 3 >(7, 9, 11)) == 11));
+
+    ASSERT_TRUE((layout_map< 2, 0, 1 >::find_val< 2, int, 666 >(offset_tuple< 3, 3 >(7, 9, 11)) == 7));
+
+    ASSERT_TRUE((layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(offset_tuple< 3, 3 >(7, 9, 11)) == 666));
+
+    ASSERT_TRUE((layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(array< uint_t, 3 >{7, 9, 11}) == 9));
+    ASSERT_TRUE((layout_map< 2, 0, 1 >::find_val< 1, int, 666 >(array< uint_t, 3 >{7, 9, 11}) == 11));
+    ASSERT_TRUE((layout_map< 2, 0, 1 >::find_val< 2, int, 666 >(array< uint_t, 3 >{7, 9, 11}) == 7));
+    ASSERT_TRUE((layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(array< uint_t, 3 >{7, 9, 11}) == 666));
 }

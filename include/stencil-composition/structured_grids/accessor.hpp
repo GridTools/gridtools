@@ -133,7 +133,10 @@ namespace gridtools {
         typedef boost::mpl::vector< static_int< n_dim - Pair::first >... > coordinates;
 
         typedef offset_tuple_mixed<coordinates, ArgType::n_dim, Pair... > offset_tuple_mixed_t;
-        offset_tuple_mixed_t m_offsets;
+        const offset_tuple_mixed_t m_offsets;
+
+        static constexpr offset_tuple<n_dim, n_dim> s_static_offset_tuple{
+            dimension< Pair::first >{Pair::second}...};
 
       public:
         template < typename... ArgsRuntime >
