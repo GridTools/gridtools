@@ -6,7 +6,7 @@
 #define __device__
 #endif
 
-
+#include <iostream>
 #include <common/ndloops.hpp>
 #include <common/array.hpp>
 #include <sys/time.h>
