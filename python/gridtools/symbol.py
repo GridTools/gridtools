@@ -492,7 +492,7 @@ class StencilScope (Scope):
         # TODO: Only allow self-dependency if access extent is [0,0], complying
         # with Gridtools' data dependency rules.
         #
-        for node in nx.topological_sort (self.data_dependency):
+        for node in self.data_dependency.nodes_iter():
             closed_path = ( nx.ancestors(self.data_dependency, node)
                             & nx.descendants(self.data_dependency, node) )
             if closed_path:

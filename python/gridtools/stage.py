@@ -568,7 +568,8 @@ class Stage ( ):
         logging.debug('\tStage scope Input data: %s' % self.inputs)
         logging.debug('\tStage scope Output data: %s' % self.outputs)
         #
-        #Resolve aliases at stencil scope, substituting the alias with the corresponding symbol, that can be found inside the symbol table!
+        # Resolve aliases at stencil scope, substituting the alias with the
+        # corresponding symbol, that can be found inside the symbol table!
         #
         for i, data in enumerate(self.inputs):
             if data.kind == 'alias':

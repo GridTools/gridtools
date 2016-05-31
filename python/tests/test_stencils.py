@@ -379,8 +379,8 @@ class CopyTest (AccessPatternDetectionTest):
         #
         # Check that the global halo is correctly returned
         #
-        self.assertTrue (Stencil.get_halo ( ) == new_halo)
-        self.assertTrue (self.stencil.get_halo ( ) == new_halo)
+        self.assertEqual (Stencil.get_halo ( ), new_halo)
+        self.assertEqual (self.stencil.get_halo ( ), new_halo)
 
 
     def test_get_halo_from_object (self):
@@ -395,8 +395,8 @@ class CopyTest (AccessPatternDetectionTest):
         #
         # Check that the stencil halo is returned
         #
-        self.assertTrue (Stencil.get_halo ( ) == global_halo)
-        self.assertTrue (self.stencil.get_halo ( ) == new_halo)
+        self.assertEqual (Stencil.get_halo ( ), global_halo)
+        self.assertEqual (self.stencil.get_halo ( ), new_halo)
 
 
     def test_get_k_direction_from_Stencil (self):
@@ -411,8 +411,8 @@ class CopyTest (AccessPatternDetectionTest):
         #
         # Check that the global k direction is correctly returned
         #
-        self.assertTrue (Stencil.get_k_direction ( ) == direction)
-        self.assertTrue (self.stencil.get_k_direction ( ) == direction)
+        self.assertEqual (Stencil.get_k_direction ( ), direction)
+        self.assertEqual (self.stencil.get_k_direction ( ), direction)
 
 
     def test_get_k_direction_from_object (self):
@@ -429,8 +429,8 @@ class CopyTest (AccessPatternDetectionTest):
         #
         # Check that the stencil k direction is correctly returned
         #
-        self.assertTrue (Stencil.get_k_direction ( ) == global_direction)
-        self.assertTrue (self.stencil.get_k_direction ( ) == direction)
+        self.assertEqual (Stencil.get_k_direction ( ),  global_direction)
+        self.assertEqual (self.stencil.get_k_direction ( ), direction)
 
 
     def test_get_interior_points_K_static (self, data_field=None):
@@ -713,7 +713,6 @@ class LaplaceTest (CopyTest):
 
     def test_automatic_access_pattern_detection (self):
         from gridtools import BACKENDS
-
         #
         # fields and their ranges
         #
@@ -726,8 +725,10 @@ class LaplaceTest (CopyTest):
             self.automatic_access_pattern_detection (self.stencil)
 
 
-    def test_minimum_halo_detection (self):
-        super ( ).test_minimum_halo_detection ([1, 1, 1, 1])
+    def test_minimum_halo_detection (self, min_halo=None):
+        if min_halo is None:
+            min_halo = [1, 1, 1, 1]
+        super ( ).test_minimum_halo_detection (min_halo)
 
 
     @attr(lang='python')
@@ -737,20 +738,28 @@ class LaplaceTest (CopyTest):
                                        result_file='laplace_result.npy')
 
 
-    def test_get_interior_points_K_static (self):
-        super ( ).test_get_interior_points_K_static (self.out_data)
+    def test_get_interior_points_K_static (self, data_field=None):
+        if data_field is None:
+            data_field = self.out_data
+        super ( ).test_get_interior_points_K_static (data_field)
 
 
-    def test_get_interior_points_K_object (self):
-        super ( ).test_get_interior_points_K_object (self.out_data)
+    def test_get_interior_points_K_object (self, data_field=None):
+        if data_field is None:
+            data_field = self.out_data
+        super ( ).test_get_interior_points_K_object (data_field)
 
 
-    def test_get_interior_points_IJ_static (self):
-        super ( ).test_get_interior_points_IJ_static (self.out_data)
+    def test_get_interior_points_IJ_static (self, data_field=None):
+        if data_field is None:
+            data_field = self.out_data
+        super ( ).test_get_interior_points_IJ_static (data_field)
 
 
-    def test_get_interior_points_IJ_object (self):
-        super ( ).test_get_interior_points_IJ_object (self.out_data)
+    def test_get_interior_points_IJ_object (self, data_field=None):
+        if data_field is None:
+            data_field = self.out_data
+        super ( ).test_get_interior_points_IJ_object (data_field)
 
 
 
@@ -834,13 +843,14 @@ class HorizontalDiffusionTest (CopyTest):
         self.stencil.set_k_direction ("forward")
 
 
-    def test_data_dependency_detection (self, deps=None, backend='c++'):
-        expected_deps = [('out_data', 'in_wgt'),
-                         ('out_data', 'self.flj'),
-                         ('out_data', 'self.fli'),
-                         ('self.fli', 'self.lap'),
-                         ('self.flj', 'self.lap'),
-                         ('self.lap', 'in_data')]
+    def test_data_dependency_detection (self, expected_deps=None, backend='c++'):
+        if expected_deps is None:
+            expected_deps = [('out_data', 'in_wgt'),
+                             ('out_data', 'self.flj'),
+                             ('out_data', 'self.fli'),
+                             ('self.fli', 'self.lap'),
+                             ('self.flj', 'self.lap'),
+                             ('self.lap', 'in_data')]
         super ( ).test_data_dependency_detection (deps=expected_deps,
                                                   backend=backend)
 
@@ -852,7 +862,6 @@ class HorizontalDiffusionTest (CopyTest):
 
     def test_automatic_access_pattern_detection (self):
         from gridtools import BACKENDS
-
         #
         # fields and their ranges
         #
@@ -873,11 +882,12 @@ class HorizontalDiffusionTest (CopyTest):
             self.automatic_access_pattern_detection (self.stencil)
 
 
-    def test_ghost_cell_pattern (self, backend='c++'):
-        expected_patterns = [ [-1,1,-1,1],
-                              [-1,0,-1,0],
-                              [-1,0,-1,0],
-                                [0,0,0,0] ]
+    def test_ghost_cell_pattern (self, expected_patterns=None, backend='c++'):
+        if expected_patterns is None:
+            expected_patterns = [ [-1,1,-1,1],
+                                  [-1,0,-1,0],
+                                  [-1,0,-1,0],
+                                    [0,0,0,0] ]
         super ( ).test_ghost_cell_pattern (expected_patterns,
                                            backend=backend)
 
@@ -886,8 +896,10 @@ class HorizontalDiffusionTest (CopyTest):
         self.test_ghost_cell_pattern (backend='cuda')
 
 
-    def test_minimum_halo_detection (self):
-        super ( ).test_minimum_halo_detection ([2, 2, 2, 2])
+    def test_minimum_halo_detection (self, min_halo=None):
+        if min_halo is None:
+            min_halo = [2, 2, 2, 2]
+        super ( ).test_minimum_halo_detection (min_halo)
 
 
     @attr(lang='python')
@@ -897,20 +909,28 @@ class HorizontalDiffusionTest (CopyTest):
                                        result_file='horizontaldiffusion_result.npy')
 
 
-    def test_get_interior_points_K_static (self):
-        super ( ).test_get_interior_points_K_static (self.out_data)
+    def test_get_interior_points_K_static (self, data_field=None):
+        if data_field is None:
+            data_field = self.out_data
+        super ( ).test_get_interior_points_K_static (data_field)
 
 
-    def test_get_interior_points_K_object (self):
-        super ( ).test_get_interior_points_K_object (self.out_data)
+    def test_get_interior_points_K_object (self, data_field=None):
+        if data_field is None:
+            data_field = self.out_data
+        super ( ).test_get_interior_points_K_object (data_field)
 
 
-    def test_get_interior_points_IJ_static (self):
-        super ( ).test_get_interior_points_IJ_static (self.out_data)
+    def test_get_interior_points_IJ_static (self, data_field=None):
+        if data_field is None:
+            data_field = self.out_data
+        super ( ).test_get_interior_points_IJ_static (data_field)
 
 
-    def test_get_interior_points_IJ_object (self):
-        super ( ).test_get_interior_points_IJ_object (self.out_data)
+    def test_get_interior_points_IJ_object (self, data_field=None):
+        if data_field is None:
+            data_field = self.out_data
+        super ( ).test_get_interior_points_IJ_object (data_field)
 
 
 

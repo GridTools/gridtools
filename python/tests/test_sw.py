@@ -186,13 +186,13 @@ class SWTest (CopyTest):
             import pyqtgraph.opengl as gl
             from   pyqtgraph.Qt import QtCore, QtGui
         except ImportError:
-            print ('skipping')
+            self.skipTest ('Could not import required packages')
         else:
             #
             # make sure X11 is available
             #
             if os.environ.get ('DISPLAY') is None:
-                print ("no DISPLAY available, skipping")
+                self.skipTest ("no DISPLAY available")
             else:
                 #
                 # get a Qt application context
@@ -457,7 +457,7 @@ class SWTest (CopyTest):
                        fps=48,
                        extra_args=['-vcodec', 'libx264'])
         else:
-            print ("No ffmpeg detected, skipping")
+            self.skipTest ("No ffmpeg detected")
 
 
     def test_minimum_halo_detection (self):
