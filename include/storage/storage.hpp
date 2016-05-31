@@ -221,6 +221,11 @@ namespace gridtools {
             (*m_storage).print(s);
         }
 
+        void print_value(uint_t i, uint_t j, uint_t k) {
+            assert(m_on_host);
+            (*m_storage).print_value(i,j,k);
+        }
+ 
         char const *get_name() const {
             assert(m_on_host);
             return (*m_storage).get_name();
