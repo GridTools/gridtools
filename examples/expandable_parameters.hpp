@@ -280,6 +280,29 @@ namespace test_expandable_parameters{
             verifier verif_(1e-13);
             result_ = result_ & verif_.verify(grid_, *list_in_[i], *list_out_[i], halos);
         }
+
+
+        // auto comp_cached_ = make_computation<BACKEND>(
+        //     expand_factor<5>(), domain_, grid_,
+        //         make_mss(
+        //             enumtype::execute<enumtype::forward>()
+        //             , define_caches(cache< IJ, local >(p_list_tmp())),
+        //             , make_esf<functor_exp>(p_list_tmp(), p_list_in())
+        //             , make_esf<functor_exp>(p_list_out(), p_list_tmp())
+        //         )
+        //     );
+
+        // comp_cached_->ready();
+        // comp_cached_->steady();
+        // comp_cached_->run();
+        // comp_cached_->finalize();
+
+        // array< array< uint_t, 2 >, 3 > halos{{{0,0}, {0,0}, {0,0}}};
+        // for(auto i=0; i<list_in_.size(); ++i){
+        //     verifier verif_(1e-13);
+        //     result_ = result_ & verif_.verify(grid_, *list_in_[i], *list_out_[i], halos);
+        // }
+
         // for(auto &&i:list_out_)
         // {
         //     i->print();

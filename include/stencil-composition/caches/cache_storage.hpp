@@ -43,30 +43,37 @@ namespace gridtools {
 
         typedef typename _impl::generate_layout_map<typename make_gt_integer_sequence<uint_t, sizeof...(Tiles)+((storage_t::field_dimensions>1)?1:0)>::type >::type  layout_t;
 
-        typedef typename _impl::compute_meta_storage<layout_t, plus_t, minus_t, tiles_t, storage_t>::type meta_storage_t;
-
         GT_FUNCTION
         explicit constexpr cache_storage() {}
 
-        static constexpr uint_t size(){ return meta_storage_t::size();}
+        typedef typename _impl::compute_meta_storage<layout_t, plus_t, minus_t, tiles_t, storage_t>::type meta_t;
+
+        // static constexpr const meta_t m_value=meta_t{};
+
+        GT_FUNCTION
+        static const constexpr uint_t size(){
+            return meta_t{}.size();
+        }
 
         template < typename Accessor >
         GT_FUNCTION Value &RESTRICT at(array< int, 2 > const &thread_pos, Accessor && accessor_) {
+
+            constexpr const meta_t m_value;
+
             using accessor_t = typename boost::remove_reference<Accessor>::type;
             GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor_t >::value), "Error type is not accessor tuple");
 
             using iminus = typename std::tuple_element<0, minus_t>::type;
             using jminus = typename std::tuple_element<1, minus_t>::type;
 
-            accessor_.template increment<accessor_t::n_dim - 1>(thread_pos[0]-iminus::value); //increment the first accessor
-            accessor_.template increment<accessor_t::n_dim - 2>(thread_pos[1]-jminus::value); //increment the second accessor
-#ifdef CUDA8
-            assert(meta_storage_t::index(accessor_) < size());
-#endif
-            assert(meta_storage_t::index(accessor_) >= 0);
+            //manually aligning the storage
+            accessor_.template increment<accessor_t::n_dim - 2>(thread_pos[1]-jminus::value); //incremen
+            accessor_.template increment<accessor_t::n_dim - 1>(thread_pos[0]-iminus::value); //increment the second accessor
 
-            return m_values[meta_storage_t::index(accessor_)];
-            // (thread_pos[0] + offset.template get< Offset::n_args - 1 >() - iminus::value), (thread_pos[1] + offset.template get< Offset::n_args - 2 >() - jminus::value))];
+            assert((m_value.index(accessor_) < size()));
+            assert((m_value.index(accessor_) >= 0));
+
+            return m_values[m_value.index(accessor_)];
         }
 
       private:
@@ -78,6 +85,7 @@ namespace gridtools {
 #endif
 
     };
+
 #else
 
 

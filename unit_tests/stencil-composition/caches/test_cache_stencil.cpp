@@ -18,8 +18,8 @@ typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_i
 typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1, 1> > axis;
 
 struct functor1 {
-    typedef accessor<0, enumtype::in, extent<-1,1,-1,1> > in;
-    typedef accessor<1, enumtype::inout> out;
+    typedef accessor<0, enumtype::in > in;
+    typedef accessor<1, enumtype::inout > out;
     typedef boost::mpl::vector<in,out> arg_list;
 
     template <typename Evaluation>
@@ -141,8 +141,8 @@ TEST_F(cache_stencil, ij_cache)
         make_mss // mss_descriptor
         (
             execute<forward>(),
-            define_caches(cache<IJ, local>(p_buff())), 
-            make_esf<functor1>(p_in(), p_buff()), 
+            define_caches(cache<IJ, local>(p_buff())),
+            make_esf<functor1>(p_in(), p_buff()),
             make_esf<functor1>(p_buff(), p_out())
         )
     );
@@ -267,7 +267,7 @@ TEST_F(cache_stencil, multi_cache)
 			(
 				execute<forward>(),
 				//test if define_caches works properly with multiple vectors of caches.
-				//in this toy example two vectors are passed (IJ cache vector for p_buff 
+				//in this toy example two vectors are passed (IJ cache vector for p_buff
 				//and p_buff_2, IJ cache vector for p_buff_3)
 				define_caches(cache<IJ, local>(p_buff(), p_buff_2()), cache<IJ, local>(p_buff_3())),
 				make_esf<functor3>(p_in(), p_buff()), // esf_descriptor

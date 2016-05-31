@@ -211,7 +211,7 @@ namespace gridtools {
 #define GT_WHERE_AM_I std::cout << __PRETTY_FUNCTION__ << " " << __FILE__ << ":" << __LINE__ << std::endl;
 
 #ifdef CXX11_ENABLED
-#define GRIDTOOLS_STATIC_ASSERT(Condition, Message) static_assert(Condition, "\n\nGRIDTOOLS ERROR=> " Message "\n\n")
+#define GRIDTOOLS_STATIC_ASSERT(Condition, Message) static_assert((Condition), "\n\nGRIDTOOLS ERROR=> " Message "\n\n")
 #else
 #define GRIDTOOLS_STATIC_ASSERT(Condition, Message) BOOST_STATIC_ASSERT(Condition)
 #endif
