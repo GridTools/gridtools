@@ -76,7 +76,7 @@ namespace gridtools {
 
                     // insert new type in the map only if not present already
                     if (!m_metadata_set.template present< pointer< typename ElemType::storage_info_type const > >())
-                        // creates a metadata on the heap, passing on ownership
+                        // get the meta_data pointer from the temporary storage and insert it into the metadata_set 
                         m_metadata_set.insert(e->get_meta_data_pointer());
                 }
             };
@@ -155,7 +155,7 @@ namespace gridtools {
 
                     // insert new type in the map only if not present already
                     if (!m_metadata_set.template present< pointer< const meta_t > >())
-                        // creates a metadata on the heap, passing on ownership
+                        // get the meta_data pointer from the temporary storage and insert it into the metadata_set 
                         m_metadata_set.insert(e->get_meta_data_pointer());
                 }
             };
