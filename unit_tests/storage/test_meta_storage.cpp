@@ -159,7 +159,7 @@ TEST(storage_info, index) {
     //interface passing unpacked indices
     ASSERT_TRUE((meta._index(meta.strides(), 1,1,2,3) == 6493));
     //interface passing indices in an array
-    ASSERT_TRUE((meta._index(meta.strides(), array<uint_t, 4>{3,2,1,1})) == 6493);
+    ASSERT_TRUE((meta._index(meta.strides(), array<uint_t, 4>{1,1,2,3})) == 6493);
     //interface passing indices in an accessor
     ASSERT_TRUE((meta._index(meta.strides(), in_accessor< 0, extent<0,0,0,0,0,0>, 4> (1,1,2,3).offsets()) == 6493));
 

@@ -53,10 +53,6 @@ TEST(stencil, loop_hierarchy) {
 #define TESTCLASS stencil
 #include "stencil_tests.hpp"
 
-TEST(testcommon, layoutmap) {
-    EXPECT_EQ(test_layout_map(), true);
-}
-
 TEST(python, copy) {
     EXPECT_EQ(test_copystencil_python(), false);
 }
