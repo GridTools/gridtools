@@ -664,6 +664,8 @@ namespace gridtools {
         }
 
         virtual std::string print_meter() { return m_meter.to_string(); }
+        
+        virtual double get_meter() { return m_meter.total_time(); }
 
         mss_local_domain_list_t const &mss_local_domain_list() const { return m_mss_local_domain_list; }
     };
