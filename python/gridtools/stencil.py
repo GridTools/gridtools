@@ -377,6 +377,48 @@ class Stencil (object):
                           node_size=1500)
 
 
+    def build_data_dependency (self):
+        """
+        Build a data dependency graph among this stencil's data fields.
+
+        Stencil scope data dependency is obtained by aggregating each stage
+        dependencies and resolving aliases.
+        This method should be called after Stencil.generate_code(), when all
+        data dependencies are known at stage scope.
+
+        Dependencies involving stage local variables (which are not known at
+        stencil scope) are processed by removing the local symbol node and
+        creating edges between all predecessors and successors of the node.
+        Be aware that this may generate false dependencies when the same local
+        variable is reassigned and involved in the computation of two logically
+        unrelated data fields!!
+        :return:
+        """
+        for stg in self.stages:
+            #
+            # Create a copy of stage data dependency to avoid altering the
+            # original
+            #
+            stgdd = nx.DiGraph (stg.get_data_dependency ( ))
+            for node in stg.get_data_dependency ( ).nodes_iter ( ):
+                new_edges = []
+                if stg.scope.is_local (node):
+                    #
+                    # If node represents a local symbol, create direct edges
+                    # between all its predecessors and all its successors and
+                    # remove the node
+                    #
+                    for pred in stgdd.predecessors (node):
+                        for succ in stgdd.successors (node):
+                            new_edges.append ((pred, succ))
+                    stgdd.remove_node (node)
+                    stgdd.add_edges_from (new_edges)
+            #
+            # Add dependencies without local symbols to the stencil's scope
+            #
+            self.scope.add_dependencies (stgdd.edges ( ))
+
+
     def generate_code (self):
         """
         Generates C++ code for this stencil
@@ -384,12 +426,10 @@ class Stencil (object):
         :return:
         """
         #
-        # generate the code of *all* stages in this stencil,
-        # building a data-dependency graph among their data fields
+        # generate the code of *all* stages in this stencil
         #
         for stg in self.stages:
-            stg.generate_code           ( )
-            self.scope.add_dependencies (stg.get_data_dependency ( ).edges ( ))
+            stg.generate_code ( )
 
 
     def get_data_dependency (self):
