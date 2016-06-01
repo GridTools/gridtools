@@ -6,8 +6,6 @@ import numpy as np
 from nose.plugins.attrib import attr
 
 from gridtools.stencil  import MultiStageStencil
-from gridtools.compiler import StencilInspector
-from stella.stencil import FastWavesUV
 
 
 
@@ -36,11 +34,11 @@ class AccessPatternDetectionTest (unittest.TestCase):
                 if not sc.is_alias (p.name):
                     try:
                         expected = acc_ptn[p.name]
-                        self.assertIn (sc[p.name].access_pattern, 
+                        self.assertIn (sc[p.name].access_pattern,
                                        expected,
                                        "Access offset '%s' of field '%s' does not match any of %s" %
-                                        (sc[p.name].access_pattern, 
-                                         p.name, 
+                                        (sc[p.name].access_pattern,
+                                         p.name,
                                          expected))
                         #
                         # remove the correct pattern to avoid finding it twice
@@ -95,7 +93,7 @@ class CopyTest (AccessPatternDetectionTest):
         #
         # workaround because of a bug in the power (**) implemention of NumPy
         #
-        self.in_cpy = np.random.random_integers (10, 
+        self.in_cpy = np.random.random_integers (10,
                                                  size=self.domain)
         self.in_cpy = self.in_cpy.astype (np.float64)
         self.in_cpy = np.asfortranarray (self.in_cpy)
@@ -125,7 +123,7 @@ class CopyTest (AccessPatternDetectionTest):
                     break
             if not found:
                 self.assertTrue (False,
-                                 "Dependency <%s,%s> not found in %s" % 
+                                 "Dependency <%s,%s> not found in %s" %
                                  (first, second, stencil_deps))
 
 
@@ -198,7 +196,7 @@ class CopyTest (AccessPatternDetectionTest):
                           "Found %d stages, but %d ghost-cell patterns were given" %
                           (len (self.stencil.stages), len (expected_patterns)))
         for idx in range (len (self.stencil.stages)):
-            self.assertEqual (self.stencil.stages[idx].ghost_cell, 
+            self.assertEqual (self.stencil.stages[idx].ghost_cell,
                               expected_patterns[idx])
 
 
@@ -215,7 +213,7 @@ class CopyTest (AccessPatternDetectionTest):
             self.assertEqual (self.stencil.scope.minimum_halo,
                               min_halo)
             #
-            # exception raised in case the provided halo is negative or smaller 
+            # exception raised in case the provided halo is negative or smaller
             # than the minimum required
             #
             bad_halo = list (min_halo)
@@ -225,7 +223,7 @@ class CopyTest (AccessPatternDetectionTest):
                 self.stencil.set_halo (bad_halo)
                 self._run ( )
             #
-            # execute normally in case the provided halo is bigger 
+            # execute normally in case the provided halo is bigger
             #
             big_halo = list (min_halo)
             for idx in range (len (min_halo)):
@@ -313,7 +311,7 @@ class CopyTest (AccessPatternDetectionTest):
             out_param = 'out_cpy'
         else:
             expected = np.load ('%s/%s' % (cur_dir,
-                                           result_file)) 
+                                           result_file))
         self.assertTrue (np.array_equal (getattr (self, out_param)[beg_i:end_i, beg_j:end_j],
                                          expected[beg_i:end_i, beg_j:end_j]))
 
@@ -522,7 +520,7 @@ class HorizontalDiffusion (MultiStageStencil):
             # Last stage
             #
             out_data[p] = in_wgt[p] * (
-                          self.fli[p + (-1,0,0)] - self.fli[p] + 
+                          self.fli[p + (-1,0,0)] - self.fli[p] +
                           self.flj[p + (0,-1,0)] - self.flj[p] )
 
 
@@ -621,7 +619,7 @@ class ChildStencilCallsParentConstructorAndNothingElse (MultiStageStencil):
     Child constructor correctly calls parent constructor and has no other work, comments or docstrings.
     Works correctly--no exceptions.
     """
-    def __init__ (self): 
+    def __init__ (self):
         super ( ).__init__ ( )
 
 
@@ -861,170 +859,3 @@ class ChildStencilTest (unittest.TestCase):
 
     def test_child_constructor_calls_parent_constructor_after_computation (self):
         self._test_child_constructor_call_fails (ChildStencilParentConstructorAfterComputation ( ))
-
-
-class FastWavesUVTest (CopyTest):
-    """
-    A test case for the STELLA FastWavesUV stencil defined in stella.stencils.
-    """
-    def setUp (self):
-        super ( ).setUp( )
-        # self.domain = (128, 128, 64)
-        self.domain = (16, 16, 8)
-        self.params = ('in_u',
-                       'in_v',
-                       'out_u',
-                       'out_v')
-        self.temps  = ('self.utens_stage',
-                       'self.vtens_stage',
-                       'self.u_pos',
-                       'self.v_pos',
-                       'self.ppuv',
-                       'self.rho',
-                       'self.rho0',
-                       'self.p0',
-                       'self.hhl',
-                       'self.wgtfac',
-                       'self.fx',
-                       'self.cwp',
-                       'self.xdzdx',
-                       'self.xdzdy',
-                       'self.xlhsx',
-                       'self.xlhsy',
-                       'self.wbbctens_stage',
-                       'self.xrhsx',
-                       'self.xrhsy',
-                       'self.xrhsz',
-                       'self.ppgradcor',
-                       'self.ppgradu',
-                       'self.ppgradv')
-
-        self.stencil = FastWavesUV (self.domain, halo=(3,3,3,3))
-
-        self.in_u = np.zeros (self.domain, dtype=np.float64)
-        self.in_v = np.zeros (self.domain, dtype=np.float64)
-        self.out_u = np.zeros (self.domain, dtype=np.float64)
-        self.out_v = np.zeros (self.domain, dtype=np.float64)
-
-        dx, dy, dz = [ 1./i for i in self.domain ]
-        for p in self.stencil.get_interior_points(self.in_u,
-                                                  ghost_cell=[-3,3,-3,3]):
-            x = dx*p[0]
-            y = dy*p[1]
-            self.in_u[p] = 0.01 + 0.19*(2.+np.cos(np.pi*(x+y)) + \
-                                        np.sin(2*np.pi*(x+y)))/4.0
-            self.in_v[p] = 0.03 + 0.69*(2.+np.cos(np.pi*(x+y)) + \
-                                        np.sin(2*np.pi*(x+y)))/4.0
-
-        # self.stencil.plot_data_dependency(graph=None,
-        #                                   outfile='fastwaves_dep.pdf')
-
-
-    def test_data_dependency_detection (self, deps=None, backend='python'):
-        expected_deps = [('out_u', 'self.u_pos'),
-                         ('out_u', 'self.xlhsx'),
-                         ('out_u', 'self.xdzdx'),
-                         ('out_u', 'self.xdzdy'),
-                         ('out_u', 'self.xrhsx'),
-                         ('out_u', 'self.xrhsy'),
-                         ('out_u', 'self.xrhsz'),
-                         ('out_u', 'self.utens_stage'),
-                         ('out_u', 'self.ppgradu'),
-                         ('out_u', 'self.fx'),
-                         ('out_u', 'self.rho'),
-                         ('out_v', 'self.v_pos'),
-                         ('out_v', 'self.xlhsy'),
-                         ('out_v', 'self.xdzdx'),
-                         ('out_v', 'self.xdzdy'),
-                         ('out_v', 'self.xrhsx'),
-                         ('out_v', 'self.xrhsy'),
-                         ('out_v', 'self.xrhsz'),
-                         ('out_v', 'self.vtens_stage'),
-                         ('out_v', 'self.ppgradv'),
-                         ('out_v', 'self.rho'),
-                         ('self.ppgradu', 'self.ppuv'),
-                         ('self.ppgradu', 'self.ppgradcor'),
-                         ('self.ppgradu', 'self.hhl'),
-                         ('self.ppgradv', 'self.ppuv'),
-                         ('self.ppgradv', 'self.ppgradcor'),
-                         ('self.ppgradv', 'self.hhl'),
-                         ('self.xrhsz', 'self.rho0'),
-                         ('self.xrhsz', 'self.rho'),
-                         ('self.xrhsz', 'self.cwp'),
-                         ('self.xrhsz', 'self.p0'),
-                         ('self.xrhsz', 'self.ppuv'),
-                         ('self.xrhsz', 'self.wbbctens_stage'),
-                         ('self.xrhsy', 'self.rho'),
-                         ('self.xrhsy', 'self.ppuv'),
-                         ('self.xrhsy', 'self.vtens_stage'),
-                         ('self.xrhsx', 'self.fx'),
-                         ('self.xrhsx', 'self.rho'),
-                         ('self.xrhsx', 'self.ppuv'),
-                         ('self.xrhsx', 'self.utens_stage'),
-                         ('self.ppgradcor', 'self.wgtfac'),
-                         ('self.ppgradcor', 'self.ppuv'),
-                         ('self.u_pos', 'in_u'),
-                         ('self.v_pos', 'in_v')]
-
-        super ( ).test_data_dependency_detection (deps=expected_deps,
-                                                  backend=backend)
-
-
-    def test_data_dependency_detection_cuda (self, deps=None, backend='cuda'):
-        pass
-
-
-    def test_automatic_access_pattern_detection (self):
-        pass
-
-
-    def test_compare_python_cpp_and_cuda_results (self):
-        pass
-
-
-    def test_ghost_cell_pattern (self, expected_patterns=None, backend='c++'):
-        pass
-
-
-    def test_minimum_halo_detection (self, min_halo=[0,0,0,0]):
-        pass
-
-
-    def test_symbol_discovery (self, backend='c++'):
-        pass
-
-
-    def test_symbol_discovery_cuda (self):
-        pass
-
-
-    def test_user_stencil_extends_multistagestencil (self):
-        pass
-
-
-    def test_kernel_function (self):
-        pass
-
-
-    def test_run_stencil_only_accepts_keyword_arguments (self):
-        pass
-
-
-    def test_python_results (self, out_param=None, result_file=None):
-        pass
-
-
-    def test_execution_performance_cpp (self, backend='c++'):
-        pass
-
-
-    def test_execution_performance_cuda (self):
-        pass
-
-
-    def test_k_directions (self, backend='c++'):
-        pass
-
-
-    def test_k_directions_cuda (self):
-        pass
