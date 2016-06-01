@@ -13,7 +13,7 @@ using gridtools::minus_;
 using gridtools::zero_;
 using gridtools::plus_;
 
-#include <stencil-composition/backend.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 #include <boost/preprocessor/repetition/repeat.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>
@@ -23,12 +23,12 @@ using namespace gridtools;
 using namespace enumtype;
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Block>
+#define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend<Host, Block>
+#define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
-#define BACKEND backend<Host, Naive>
+#define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
 
@@ -96,10 +96,10 @@ int main(int argc, char** argv) {
     uint_t d2 = atoi(argv[2]);
     uint_t d3 = atoi(argv[3]);
 
-    typedef gridtools::BACKEND::storage_type<int_t, gridtools::storage_info<0,gridtools::layout_map<0,1,2> > >::type storage_type;
+    typedef BACKEND::storage_type<int_t, BACKEND::storage_info<0,gridtools::layout_map<0,1,2> > >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
-    typename storage_type::meta_data_t meta_(d1,d2,d3);
+    storage_type::storage_info_type meta_(d1,d2,d3);
     storage_type in(meta_, "in");
     in.initialize(-1);
     storage_type out(meta_, "out");
@@ -123,8 +123,6 @@ int main(int argc, char** argv) {
 
 #ifdef CUDA_EXAMPLE
     //TODO also metadata must be copied/used here
-    in.clone_to_device();
-    out.clone_to_device();
     in.h2d_update();
     out.h2d_update();
 

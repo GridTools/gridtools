@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import sys
 import ast
 import logging
 
@@ -12,14 +11,14 @@ from gridtools.symbol import Scope, SymbolInspector
 
 class StageBody (ast.NodeVisitor):
     """
-    Represents the Do( ) function of a stencil's functor in AST form.-
+    Represents the Do( ) function of a stencil's stage in AST form.-
     """
     symbol_inspector = SymbolInspector ( )
 
     def __init__ (self, stage_name, nodes, scope, stencil_scope):
         """
         Constructs a functor body object
-        :param stage_name:    user provided name of the stage
+        :param stage_name:    name of the stage this body belongs to
         :param nodes:         an AST-node list representing the body of this 
                               functor
         :param scope:         the symbols scope of this functor
@@ -44,9 +43,9 @@ class StageBody (ast.NodeVisitor):
         :param rval_node: AST node of the expression appearing as RValue
         :return:
         """
-        lvalues = StageBody.symbol_inspector.search (lval_node, 
+        lvalues = StageBody.symbol_inspector.search (lval_node,
                                                      self.scope)
-        rvalues = StageBody.symbol_inspector.search (rval_node, 
+        rvalues = StageBody.symbol_inspector.search (rval_node,
                                                      self.scope)
         for lsymbol in lvalues:
             #
@@ -61,6 +60,29 @@ class StageBody (ast.NodeVisitor):
             for rsymbol in rvalues:
                 self.scope.add_dependency (lsymbol,
                                            rsymbol)
+            #
+            # When assigning to a local variable, if rvalue is a scalar, assign
+            # its value to the lsymbol, otherwise set lsymbol value to rvalues
+            #
+            if self.scope.is_local (lsymbol.name):
+                if isinstance (rval_node, ast.Num):
+                    self.scope.add_local (lsymbol.name, rval_node.n)
+                else:
+                    self.scope.add_local (lsymbol.name, rvalues)
+
+
+    def _boolean_operator (self, op):
+        """
+        Returns the sign representation of an arithmetic operation.-
+        """
+        if isinstance (op, ast.And):
+            sign = '&&'
+        elif isinstance (op, ast.Or):
+            sign = '||'
+        else:
+            sign = None
+            raise RuntimeError("Cannot translate '%s'" % str (op))
+        return sign
 
 
     def _sign_operator (self, op):
@@ -84,7 +106,7 @@ class StageBody (ast.NodeVisitor):
             logging.warning ("Cannot translate '%s'" % str (op))
         return sign
 
-         
+
     def _transpow (self, base, exp):
         logging.debug ("Exponent type %s" % type(exp))
         if (isinstance (exp, ast.UnaryOp)):
@@ -102,18 +124,18 @@ class StageBody (ast.NodeVisitor):
                 logging.error ("Can not determine a number for the exponent (type = %s)", type(exp))
                 return "NaN"
 
-        if (exp == 0): 
+        if (exp == 0):
             return "(1)"
-        elif (exp == 1): 
+        elif (exp == 1):
             return "("+str(base)+")"
-        elif (exp > 1): 
+        elif (exp > 1):
             if ( not isinstance(base, float) and not isinstance(base, int)):
                 val = "*("+str(base)+")"
                 return "(({0}){1})".format(base, ''.join([val for num in range(exp-1)]))
             else:
                 val = "*"+str(base)
                 return "({0}{1})".format(base, ''.join([val for num in range(exp-1)]))
-        elif (exp < 0): 
+        elif (exp < 0):
             if ( not isinstance(base, float) and not isinstance(base, int)):
                 val = "*("+str(base)+")"
                 return "(1/(({0}){1}))".format(base, ''.join([val for num in range(abs(exp)-1)]))
@@ -135,8 +157,8 @@ class StageBody (ast.NodeVisitor):
                     self.cpp_src = "%s;\n\t\t" % self.cpp_src
             except RuntimeError as e:
                 #
-                # TODO: preprocess the Python source code to correctly display 
-                # the line where the error occurred, because comments are lost 
+                # TODO: preprocess the Python source code to correctly display
+                # the line where the error occurred, because comments are lost
                 # in the AST translation
                 #
                 #src_lines      = src.split ('\n')
@@ -144,6 +166,7 @@ class StageBody (ast.NodeVisitor):
                 #correct_lineno = n.lineno + comment_offset
                 #source_line    = src_lines[correct_lineno].strip (' ')
                 raise type(e)
+
 
     def visit_CompOp(self, node):
         op = "None"
@@ -173,6 +196,7 @@ class StageBody (ast.NodeVisitor):
             raise NotImplementedError ("Translation of Python 'NotIn' is not currently supported.")
         return op
 
+
     def visit_Compare(self, node):
         ret_value = "%s" % self.visit(node.left)
         for cmpop in node.ops:
@@ -183,18 +207,6 @@ class StageBody (ast.NodeVisitor):
 
         return ret_value
 
-    def _boolean_operator (self, op):
-        """
-        Returns the sign representation of an arithmetic operation.-
-        """
-        if isinstance (op, ast.And):
-            sign = '&&'
-        elif isinstance (op, ast.Or):
-            sign = '||'
-        else:
-            sign = None
-            raise RuntimeError("Cannot translate '%s'" % str (op))
-        return sign
 
     def visit_BoolOp(self, node):
         ret_value = ""
@@ -226,8 +238,19 @@ class StageBody (ast.NodeVisitor):
         Generates code from an Assignment node, i.e., expr = expr.-
         """
         for tgt in node.targets:
-            ret_value = "%s = %s" % (self.visit (tgt),          # lvalue
-                                     self.visit (node.value))   # rvalue
+            lvalue = self.visit (tgt)
+            rvalue = self.visit (node.value)
+            #
+            # Declare type for first assignment of local variable
+            #
+            if self.scope.is_local (lvalue) and self.scope[lvalue].value is None:
+                lvalue_type = "double"
+                lvalue  =  lvalue_type + " " + lvalue
+            #
+            # Create assignment string
+            #
+            ret_value = "%s = %s" % (lvalue,
+                                     rvalue)
             self._analyze_assignment (tgt,
                                       node.value)
         return ret_value
@@ -242,7 +265,7 @@ class StageBody (ast.NodeVisitor):
         symbol = None
 
         #
-        # first look for the symbol within this functor's scope
+        # first look for the symbol within this stage's scope
         #
         if name in self.scope:
             symbol = self.scope[name]
@@ -265,8 +288,8 @@ class StageBody (ast.NodeVisitor):
                 return str (symbol.value)
             else:
                 #
-                # non-constant symbols in the enclosing scope 
-                # become parameters of this functor
+                # non-constant symbols in the enclosing scope
+                # become parameters of this stage
                 #
                 self.scope.add_parameter (name,
                                           symbol.value,
@@ -299,7 +322,7 @@ class StageBody (ast.NodeVisitor):
         #
         operand = []
         for op in [node.left, node.right]:
-            if (isinstance (op, ast.Num) or 
+            if (isinstance (op, ast.Num) or
                 isinstance (op, ast.Name) or
                 isinstance (op, ast.Attribute) or
                 isinstance (op, ast.Subscript)):
@@ -317,7 +340,7 @@ class StageBody (ast.NodeVisitor):
 
     def visit_Name (self, node):
         """
-        Generates code for a variable name, e.g., a functor parameter.-
+        Generates code for a variable name, e.g., a stage parameter.-
         """
         name   = node.id
         symbol = None
@@ -332,15 +355,24 @@ class StageBody (ast.NodeVisitor):
             symbol = self.stencil_scope[name]
             #
             # existing symbols in the enclosing scope
-            # are parameters to this functor
+            # are parameters to this stage
             #
             self.scope.add_parameter (name,
                                       symbol.value,
                                       read_only=symbol.read_only)
+        #
+        # Name is not in any known scope: check context to see if we are storing
+        # a new local variable
+        #
+        elif isinstance (node.ctx, ast.Store):
+            #
+            # Value will be resolved by the function visiting the assignment
+            #
+            self.scope.add_local (name)
+            return name
         else:
-            # import ipdb; ipdb.set_trace()
-            raise NameError ("Unknown symbol '%s' in functor '%s'" % (name,
-                                                                      self.stage_name))
+            raise NameError ("Unknown symbol '%s' in stage '%s'"
+                             % (name, self.stage_name))
         #
         # resolve aliases before trying to inline
         #
@@ -356,11 +388,24 @@ class StageBody (ast.NodeVisitor):
                                       read_only=symbol.read_only)
             return aliased.name
         #
+        # If symbol is a local variable, inline its value only if it is a scalar
+        # integer or floating point number in a Load context
+        #
+        if self.scope.is_local (name):
+            if (isinstance (symbol.value, int)
+                or isinstance (symbol.value, float )):
+                    if isinstance (node.ctx, ast.Load):
+                        return symbol.value
+                    else:
+                        return name
+            else:
+                return name
+        #
         # try to inline the value of this symbol
         #
         if (isinstance (symbol.value, str) or
             isinstance (symbol.value, np.ndarray)):
-            return name 
+            return name
         else:
             return str (symbol.value)
 
@@ -403,7 +448,7 @@ class StageBody (ast.NodeVisitor):
                     #
                     # access-pattern detection for data fields ...
                     #
-                    if (isinstance (node.value, ast.Name) or 
+                    if (isinstance (node.value, ast.Name) or
                         isinstance (node.value, ast.Attribute)):
                         name   = self.visit (node.value)
                         symbol = self.scope[name]
@@ -429,11 +474,11 @@ class StageBody (ast.NodeVisitor):
                     indexing = ''
                     logging.warning ("Ignoring subscript not using 'p'")
 
-            return "eval(%s%s)" % (self.visit (node.value).replace ('.', '_'), 
+            return "eval(%s%s)" % (self.visit (node.value).replace ('.', '_'),
                                    indexing)
         else:
             logging.warning ("Slicing operations cannot be translated")
-            
+
 
     def visit_UnaryOp (self, node):
         """
@@ -471,9 +516,9 @@ class Stage ( ):
     def __init__ (self, name, node, stencil_scope):
         """
         Constructs a new StencilStage
-        :param name:          a name to uniquely identify this functor
+        :param name:          a name to uniquely identify this stage
         :param node:          the For AST node of the comprehention from which
-                              this functor is constructed
+                              this stage is constructed
         :param stencil_scope: the scope of symbols at stencil level
         :raise TypeError:     if the passed node is of the incorrect type
         :return:
@@ -486,18 +531,24 @@ class Stage ( ):
         #
         self.ghost_cell    = None
         #
-        # whether this stage is executed independently from other stages
+        # Input and output data fields for this stage
+        #
+        self.inputs        = None
+        self.outputs       = None
+        #
+        # whether this stage could be executed in parallel with other stages
+        # inside the stencil (see HorizontalDiffusion test for fluxes I and J)
         #
         self._independent  = False
         #
-        # the root AST node of the for-loop representing this functor
+        # the root AST node of the for-loop representing this stage
         #
         if isinstance (node, ast.For):
-            self.node = node 
+            self.node = node
         else:
             raise TypeError ("Stage's root AST node should be 'ast.For'")
         #
-        # the body of this functor
+        # the body of this stage
         #
         self.body = StageBody (self.name,
                                self.node.body,
@@ -515,14 +566,66 @@ class Stage ( ):
 
     def generate_code (self):
         """
-        Generates the C++ code of this functor
+        Generates the C++ code of this stage
         :return:
         """
         self.body.generate_code ( )
 
 
     def get_data_dependency (self):
+        """
+        Return the data dependency graph for this stages's scope
+        """
         return self.scope.data_dependency
+
+
+    def identify_IO (self):
+        """
+        Tries to identify input and output data fields for this stage
+        :return:
+        """
+        #
+        # Look for IO using stage's data dependencies
+        #
+        logging.debug('Probing IO for Stage: %s' % self.name)
+        self.outputs = []
+        self.inputs = []
+        data_dep = self.get_data_dependency()
+        for node in data_dep.nodes_iter():
+            #
+            # Output data have no predecessors
+            #
+            if not data_dep.predecessors(node.name) and not self.scope.is_local(node):
+                self.outputs.append(node)
+            #
+            # Input nodes have no successors
+            #
+            if not data_dep.successors(node.name) and not self.scope.is_local(node):
+                self.inputs.append(node)
+        #
+        # Non-local self-looping nodes are not allowed
+        # TODO: Only allow self-assignment if access extent is [0,0], complying
+        # with Gridtools' data dependency rules. For more information, see
+        # https://github.com/eth-cscs/gridtools/wiki/Data-Dependencies-Analysis-in-GridTools
+        #
+        for node in data_dep.nodes_with_selfloops():
+#            self.inputs.append(node)
+#            self.outputs.append(node)
+            raise ValueError ("Assigning a non-local data field to itself is not allowed.")
+        logging.debug('\tStage scope Input data: %s' % self.inputs)
+        logging.debug('\tStage scope Output data: %s' % self.outputs)
+        #
+        # Resolve aliases at stencil scope, substituting the alias with the
+        # corresponding symbol, that can be found inside the symbol table!
+        #
+        for i, data in enumerate(self.inputs):
+            if data.kind == 'alias':
+                self.inputs[i] = self.scope.symbol_table[data.value]
+        for i, data in enumerate(self.outputs):
+            if data.kind == 'alias':
+                self.outputs[i] = self.scope.symbol_table[data.value]
+        logging.debug('\tStencil scope Input data: %s' % self.inputs)
+        logging.debug('\tStencil scope Output data: %s' % self.outputs)
 
 
     @property
@@ -536,19 +639,18 @@ class Stage ( ):
         #
         # have to rebuild the stage-execution graph
         #
-        self.stencil_scope.build_execution_path ( )
+#        self.stencil_scope.build_execution_path ( )
 
 
     def translate (self):
         """
-        Translates this functor to C++, using the gridtools interface, returning
+        Translates this stage to C++, using the gridtools interface, returning
         a string of rendered file.-
         """
         from gridtools import JinjaEnv
 
-        functor_tpl = JinjaEnv.get_template ("functor.h")
+        stage_tpl = JinjaEnv.get_template ("stage.h")
         params      = list (self.scope.get_parameters ( ))
 
-        return functor_tpl.render (functor=self,
+        return stage_tpl.render (stage=self,
                                    params=params)
-

@@ -17,7 +17,7 @@ using gridtools::minus_;
 using gridtools::zero_;
 using gridtools::plus_;
 
-#include "stencil-composition/backend.hpp"
+#include "stencil-composition/stencil-composition.hpp"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -28,12 +28,12 @@ using namespace gridtools;
 using namespace enumtype;
 
 #ifdef __CUDACC__
-#define BACKEND backend<Cuda, Block>
+#define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend<Host , Block>
+#define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
-#define BACKEND backend<Host, Naive >
+#define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
 
@@ -135,15 +135,12 @@ bool basic() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type<int_t, storage_info<0,layout_map<0,1,2> > >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, gridtools::BACKEND::storage_info<0,layout_map<0,1,2> > >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
 
-    storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
-    storage_type in(meta_);
-    in.allocate();
-    in.initialize(-1);
-    in.set_name("in");
+    gridtools::BACKEND::storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
+    storage_type in(meta_, 0., "in");
 
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {
@@ -160,8 +157,8 @@ bool basic() {
 
 #ifdef __CUDACC__
     meta_.clone_to_device();
-    in.clone_to_device();
     in.h2d_update();
+    in.clone_to_device();
 
     gridtools::boundary_apply_gpu<bc_basic>(halos,  bc_basic()).apply(in);
 
@@ -251,16 +248,12 @@ bool predicate() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type<int_t, storage_info<0,layout_map<0,1,2> > >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, gridtools::BACKEND::storage_info<0,layout_map<0,1,2> > >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
 
-    storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
-    storage_type in(meta_);
-    in.allocate();
-    in.initialize(-1);
-    in.set_name("in");
-
+    gridtools::BACKEND::storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
+    storage_type in(meta_, -1, "in");
 
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {
@@ -277,8 +270,8 @@ bool predicate() {
 
 #ifdef __CUDACC__
     meta_.clone_to_device();
-    in.clone_to_device();
     in.h2d_update();
+    in.clone_to_device();
 
     gridtools::boundary_apply_gpu<bc_basic, minus_predicate>(halos, bc_basic(), minus_predicate()).apply(in);
 
@@ -369,15 +362,12 @@ bool twosurfaces() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type<int_t, storage_info<0,layout_map<0,1,2> > >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, gridtools::BACKEND::storage_info<0,layout_map<0,1,2> > >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
 
-    storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
-    storage_type in(meta_);
-    in.allocate();
-    in.initialize(-1);
-    in.set_name("in");
+    gridtools::BACKEND::storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
+    storage_type in(meta_, -1, "in");
 
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {
@@ -393,8 +383,9 @@ bool twosurfaces() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    in.clone_to_device();
+    meta_.clone_to_device();
     in.h2d_update();
+    in.clone_to_device();
 
     gridtools::boundary_apply_gpu<bc_two>(halos, bc_two()).apply(in);
 
@@ -485,15 +476,12 @@ bool usingzero_1() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type<int_t, storage_info<0,layout_map<0,1,2> > >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, gridtools::BACKEND::storage_info<0,layout_map<0,1,2> > >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
 
-    storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
-    storage_type in(meta_);
-    in.allocate();
-    in.initialize(-1);
-    in.set_name("in");
+    gridtools::BACKEND::storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
+    storage_type in(meta_, -1, "in");
 
 
     for (uint_t i=0; i<d1; ++i) {
@@ -510,8 +498,9 @@ bool usingzero_1() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    in.clone_to_device();
+    meta_.clone_to_device();
     in.h2d_update();
+    in.clone_to_device();
 
     gridtools::boundary_apply_gpu<gridtools::zero_boundary>(halos).apply(in);
 
@@ -602,19 +591,13 @@ bool usingzero_2() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type<int_t, storage_info<0,layout_map<0,1,2> > >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, gridtools::BACKEND::storage_info<0,layout_map<0,1,2> > >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
 
-    storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
-    storage_type in(meta_);
-    in.allocate();
-    in.initialize(-1);
-    in.set_name("in");
-    storage_type out(meta_);
-    out.allocate();
-    out.initialize(-1);
-    out.set_name("out");
+    gridtools::BACKEND::storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
+    storage_type in(meta_, -1, "in");
+    storage_type out(meta_, -1, "out");
 
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {
@@ -631,10 +614,11 @@ bool usingzero_2() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    in.clone_to_device();
-    out.clone_to_device();
+    meta_.clone_to_device();
     in.h2d_update();
     out.h2d_update();
+    in.clone_to_device();
+    out.clone_to_device();
 
     gridtools::boundary_apply_gpu<gridtools::zero_boundary>(halos).apply(in, out);
 
@@ -748,19 +732,13 @@ bool usingvalue_2() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type<int_t, storage_info<0,layout_map<0,1,2> > >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, gridtools::BACKEND::storage_info<0,layout_map<0,1,2> > >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
 
-    storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
-    storage_type in(meta_);
-    in.allocate();
-    in.initialize(-1);
-    in.set_name("in");
-    storage_type out(meta_);
-    out.allocate();
-    out.initialize(-1);
-    out.set_name("out");
+    gridtools::BACKEND::storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
+    storage_type in(meta_, -1, "in");
+    storage_type out(meta_, -1, "out");
 
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {
@@ -777,10 +755,11 @@ bool usingvalue_2() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    in.clone_to_device();
-    out.clone_to_device();
+    meta_.clone_to_device();
     in.h2d_update();
     out.h2d_update();
+    in.clone_to_device();
+    out.clone_to_device();
 
     gridtools::boundary_apply_gpu<gridtools::value_boundary<int_t> >(halos, gridtools::value_boundary<int_t>(101)).apply(in, out);
 
@@ -893,23 +872,14 @@ bool usingcopy_3() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type<int_t, storage_info<0,layout_map<0,1,2> > >::type storage_type;
+    typedef gridtools::BACKEND::storage_type<int_t, gridtools::BACKEND::storage_info<0,layout_map<0,1,2> > >::type storage_type;
 
     // Definition of the actual data fields that are used for input/output
 
-    storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
-    storage_type src(meta_);
-    src.allocate();
-    src.initialize(-1);
-    src.set_name("src");
-    storage_type one(meta_);
-    one.allocate();
-    one.initialize(-1);
-    one.set_name("one");
-    storage_type two(meta_);
-    two.allocate();
-    two.initialize(-1);
-    two.set_name("two");
+    gridtools::BACKEND::storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
+    storage_type src(meta_, -1, "src");
+    storage_type one(meta_, -1, "one");
+    storage_type two(meta_, -1, "two");
 
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {
@@ -927,12 +897,13 @@ bool usingcopy_3() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    one.clone_to_device();
+    meta_.clone_to_device();
     one.h2d_update();
-    two.clone_to_device();
+    one.clone_to_device();
     two.h2d_update();
-    src.clone_to_device();
+    two.clone_to_device();
     src.h2d_update();
+    src.clone_to_device();
 
     gridtools::boundary_apply_gpu<gridtools::copy_boundary>(halos).apply(one, two, src);
 

@@ -2,10 +2,9 @@
 
 // This file contains all header files required by the host backend
 #ifdef _OPENMP
-    #include <omp.h>
+#include <omp.h>
 #endif
 
-#include "../../storage/wrap_pointer.hpp"
 #include "../execution_policy.hpp"
 #include "../heap_allocated_temps.hpp"
 #include "../iteration_policy.hpp"

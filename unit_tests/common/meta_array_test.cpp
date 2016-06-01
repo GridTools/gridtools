@@ -3,9 +3,10 @@
 #include "gtest/gtest.h"
 
 #include <boost/type_traits/is_integral.hpp>
-#include "common/meta_array.hpp"
 #include <boost/mpl/vector/vector10.hpp>
 #include <boost/mpl/equal.hpp>
+#include <stencil-composition/stencil-composition.hpp>
+#include "common/meta_array.hpp"
 
 template<typename T> struct is_integer : boost::mpl::false_{};
 template<> struct is_integer<int> : boost::mpl::true_{};

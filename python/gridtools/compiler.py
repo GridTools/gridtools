@@ -8,7 +8,6 @@ from gridtools.utils import Utilities
 
 
 
-
 class StencilCompiler ( ):
     """
     A global class that takes care of compiling the defined stencils
@@ -28,7 +27,7 @@ class StencilCompiler ( ):
         #
         self.src_dir       = None
         self.cpp_file      = None
-        self.fun_hdr_file  = None
+        self.stg_hdr_file  = None
         #
         # a reference to the compiled dynamic library
         #
@@ -54,7 +53,7 @@ class StencilCompiler ( ):
         :param stencil: the stencil object to look up
         :returns:       True if the stencil has been registered; False otherwise
         """
-        return id(stencil) in self.stencils
+        return self.is_registered (stencil)
 
 
     def _initialize (self):
@@ -96,12 +95,18 @@ class StencilCompiler ( ):
                 #
                 # ... and by including runtime information
                 #
-                stencil.scope.runtime_analysis (stencil, **kwargs)
-                stencil.generate_code          ( )
+                stencil.scope.runtime_analysis      (stencil, **kwargs)
+                stencil.generate_code               ( )
+                #
+                # build and check stencil data dependency graph
+                #
+                stencil.build_data_dependency       ( )
+                stencil.scope.check_data_dependency ( )
                 #
                 # build the stage-execution path
                 #
-                stencil.scope.build_execution_path       ( )
+                stencil.identify_stages_IO               ( )
+                stencil.scope.build_execution_path       (stencil.name)
                 stencil.scope.check_stage_execution_path ( )
                 #
                 # print out the discovered symbols if in DEBUG mode
@@ -122,7 +127,7 @@ class StencilCompiler ( ):
         """
         Compiles the translated code to a shared library, ready to be used.-
         """
-        from os                        import path, getcwd, chdir
+        from os                        import getcwd, chdir
         from ctypes                    import CDLL
         from subprocess                import check_call
         from numpy.distutils.misc_util import get_shared_lib_extension
@@ -156,7 +161,7 @@ class StencilCompiler ( ):
         :param stencil: stencil object for which the code whould be generated
         :return:
         """
-        from os        import write, path, makedirs
+        from os        import path, makedirs
         from gridtools import JinjaEnv
 
         try:
@@ -168,22 +173,22 @@ class StencilCompiler ( ):
                                                self.compile_count)
             if not path.exists (self.src_dir):
                 makedirs (self.src_dir)
-            if stencil.backend == 'cuda':
+            if stencil.get_backend ( ) == 'cuda':
                 extension = 'cu'
             else:
                 extension = 'cpp'
             self.cpp_file     = '%s.%s'    % (stencil.name, extension)
-            self.fun_hdr_file = '%s_Functors.h' % stencil.name
+            self.stg_hdr_file = '%s_Stages.h' % stencil.name
             #
             # ... and populate them
             #
-            logging.info ("Generating %s code in '%s'" % (stencil.backend.upper ( ),
+            logging.info ("Generating %s code in '%s'" % (stencil.get_backend ( ).upper ( ),
                                                           self.src_dir))
-            fun_src, cpp_src, make_src = self.translate (stencil)
+            stg_src, cpp_src, make_src = self.translate (stencil)
 
-            with open (path.join (self.src_dir, self.fun_hdr_file), 'w') as fun_hdl:
-                functors = JinjaEnv.get_template ("functors.h")
-                fun_hdl.write (functors.render (functor_src=fun_src))
+            with open (path.join (self.src_dir, self.stg_hdr_file), 'w') as stg_hdl:
+                stages = JinjaEnv.get_template ("stages.h")
+                stg_hdl.write (stages.render (stage_src=stg_src))
             with open (path.join (self.src_dir, self.cpp_file), 'w') as cpp_hdl:
                 cpp_hdl.write (cpp_src)
             with open (path.join (self.src_dir, self.make_file), 'w') as make_hdl:
@@ -202,7 +207,7 @@ class StencilCompiler ( ):
         return id (stencil) in self.stencils.keys ( )
 
 
-    def recompile (self, stencil):
+    def recompile (self):
         """
         Marks the received stencil as dirty, needing recompilation.-
         """
@@ -231,11 +236,11 @@ class StencilCompiler ( ):
             #
             # mark this stencil for recompilation ...
             #
-            self.recompile (stencil)
+            self.recompile ( )
             #
             # ... and add it to the registry if it is not there yet
             #
-            if id(stencil) not in self.stencils.keys ( ):
+            if stencil not in self:
                 #
                 # a unique name for this stencil object
                 #
@@ -255,7 +260,6 @@ class StencilCompiler ( ):
         :return:
         """
         import ctypes
-
         #
         # compile only if the library is not available
         #
@@ -263,13 +267,16 @@ class StencilCompiler ( ):
             self.generate_code (stencil)
             self.compile       (stencil)
             #
-            # floating point precision validation
+            # Array validation (floating point precision, memory layout...)
             #
             for key in kwargs:
                 if isinstance(kwargs[key], np.ndarray):
                     if not self.utils.is_valid_float_type_size (kwargs[key]):
-                        raise TypeError ("Element size of '%s' does not match that of the C++ backend."
-                                          % key)
+                        raise TypeError ("Element size of '%s' does not match \
+                                          that of the C++ backend." % key)
+                    kwargs[key] = self.utils.enforce_optimal_array (kwargs[key],
+                                                                    key,
+                                                                    stencil.get_backend ( ))
         #
         # prepare the list of parameters to call the library function
         #
@@ -292,19 +299,19 @@ class StencilCompiler ( ):
     def translate (self, stencil):
         """
         Translates the received stencil to C++, using the gridtools interface,
-        returning a string tuple of rendered files (functors, cpp, make).-
+        returning a string tuple of rendered files (stages, cpp, make).-
         """
         from gridtools import JinjaEnv
 
-        functs               = dict ( )
-        functs[stencil.name] = list (stencil.stages)
+        stgs               = dict ( )
+        stgs[stencil.name] = list (stencil.stages)
 
         #
-        # render the source code for each of the functors
+        # render the source code for each of the stages
         #
-        functor_src = ""
-        for f in functs[stencil.name]:
-            functor_src += f.translate ( )
+        stage_src = ""
+        for f in stgs[stencil.name]:
+            stage_src += f.translate ( )
         #
         # instantiate each of the templates and render them
         #
@@ -317,25 +324,40 @@ class StencilCompiler ( ):
         #
         # indices of the independent stencils needed to generate C++ code blocks
         #
-        ind_funct_idx = list ( )
-        for i in range (1, len (functs[stencil.name])):
-            f = functs[stencil.name][i]
+        ind_stg_idx = list ( )
+        for i in range (1, len (stgs[stencil.name])):
+            f = stgs[stencil.name][i]
             if not f.independent:
-                if functs[stencil.name][i - 1].independent:
-                    ind_funct_idx.append (i - 1)
+                if stgs[stencil.name][i - 1].independent:
+                    ind_stg_idx.append (i - 1)
 
-        return (functor_src,
-                cpp.render (fun_hdr_file          = self.fun_hdr_file,
+        return (stage_src,
+                cpp.render (stg_hdr_file          = self.stg_hdr_file,
                             stencil_name          = stencil.name,
                             stencils              = [stencil],
                             scope                 = stencil.scope,
                             params                = params,
                             temps                 = temps,
                             params_temps          = params + temps,
-                            functors              = functs,
-                            independent_funct_idx = ind_funct_idx),
-                make.render (stencils = [s for s in self.stencils.values ( ) if s.backend in ['c++', 'cuda']],
+                            stages                = stgs,
+                            independent_stage_idx = ind_stg_idx),
+                make.render (stencils = [s for s in self.stencils.values ( ) if s.get_backend ( ) in ['c++', 'cuda']],
                              compiler = self))
+
+    def unregister (self, stencil):
+        """
+        Removes registration of the received Stencil object from this compiler
+        :param stencil:   the stencil object to unregister
+        """
+        if self.is_registered (stencil):
+            #
+            # Remove this stencil from the compiler registry
+            #
+            del self.stencils[id(stencil)]
+            logging.debug ("Stencil '%s' unregistered from the Compiler" % stencil.name)
+        else:
+            logging.warning("Trying to unregister Stencil '%s' that is not \
+                             registered with the Compiler")
 
 
 
@@ -354,7 +376,7 @@ class StencilInspector (ast.NodeVisitor):
         #
         # stage definitions are kept here as they are discovered in the source
         #
-        self.functor_defs      = list ( )
+        self.stage_defs      = list ( )
 
 
     def _analyze_params (self, nodes):
@@ -375,11 +397,36 @@ class StencilInspector (ast.NodeVisitor):
                                                             read_only=read_only)
 
 
+    def _check_kernel_decorator (self, node):
+        """
+        Checks if the given AST node has been decorated with the
+        stencil_kernel decorator, which identifies it as the stencil entry point
+        :param node: The AST node to be checked
+        :return:     True if the node represents a function definition decorated
+                     as the kernel, False otherwise
+        """
+        #
+        # Only FunctionDef nodes have decorator_lists, and we only want non-empty
+        # lists
+        #
+        if not isinstance (node, ast.FunctionDef) or not node.decorator_list:
+            return False
+        #
+        # The decorator must be an Attribute AST node, with value id 'Stencil'
+        # and attribute name 'kernel'
+        #
+        return any (isinstance(x, ast.Attribute)
+                    and x.value.id == 'Stencil'
+                    and x.attr == 'kernel'
+                    for x in node.decorator_list)
+
+
     def _extract_source (self):
         """
         Extracts the source code from the currently inspected stencil
         """
         import inspect
+        from gridtools import STENCIL_KERNEL_DECORATOR_LABEL
 
         src = 'class %s (%s):\n' % (str (self.inspected_stencil.__class__.__name__),
                                     str (self.inspected_stencil.__class__.__base__.__name__))
@@ -402,23 +449,52 @@ class StencilInspector (ast.NodeVisitor):
                     raise RuntimeError ("Could not extract source code from '%s'"
                                         % self.inspected_stencil.__class__)
         #
-        # then the kernel
+        # then the kernel, which lies inside the kernel_wrapper
         #
+        kernel_found = False
         for (name,fun) in inspect.getmembers (self.inspected_stencil,
                                               predicate=inspect.ismethod):
             try:
-                if name == 'kernel':
-                    src += inspect.getsource (fun)
+                #
+                # To identify the kernel wrapper, we check the attribute set by
+                # the decorator
+                #
+                if hasattr (fun, STENCIL_KERNEL_DECORATOR_LABEL):
+                    if not kernel_found:
+                        kernel_found = True
+                    else:
+                        #
+                        # There can be only one stencil kernel
+                        #
+                        raise AttributeError ("Multiple kernels detected for\
+                                              stencil %s. Please define only a\
+                                              single kernel."
+                                              % self.inspected_stencil.__class__)
+                    #
+                    # Since the stencil_kernel decorator uses functools' @wraps, we
+                    # know that the kernel can be found inside the __wrapped__
+                    # attribute of the wrapper.
+                    # Another way could be to use inspect.unwrap(fun) to directly
+                    # get the kernel function object.
+                    #
+                    src += inspect.getsource (fun.__wrapped__)
             except OSError:
                 try:
                     #
                     # is this maybe a notebook session?
                     #
                     from IPython.code import oinspect
-                    src += oinspect.getsource (fun)
+                    src += oinspect.getsource (fun.__wrapped__)
                 except Exception:
                     raise RuntimeError ("Could not extract source code from '%s'"
                                         % self.inspected_stencil.__class__)
+        #
+        # Raise an AttributeError if a kernel could not be found
+        #
+        if not kernel_found:
+            raise AttributeError ("No kernel detected for stencil %s! Please \
+                                  define a stencil entry point function."
+                                  % self.inspected_stencil.__class__)
         return src
 
 
@@ -439,7 +515,7 @@ class StencilInspector (ast.NodeVisitor):
             # initialize the state variables
             #
             self.inspected_stencil = stencil
-            self.functor_defs      = list ( )
+            self.stage_defs        = list ( )
             st                     = self.inspected_stencil
 
             if st.scope.py_src is None:
@@ -462,9 +538,9 @@ class StencilInspector (ast.NodeVisitor):
                 # the user is running from some weird interactive session
                 #
                 raise RuntimeError ("Source code not available.\nSave your stencil class(es) to a file and try again.")
-        except:
+        except Exception as e:
             self.inspected_stencil = None
-            raise
+            raise e
         else:
             self.inspected_stencil = None
 
@@ -567,9 +643,9 @@ class StencilInspector (ast.NodeVisitor):
                     #
                     # look for its definition
                     #
-                    for fun_def in self.functor_defs:
-                        if fun_def.name == call.func.attr:
-                            for node in fun_def.body:
+                    for stg_def in self.stage_defs:
+                        if stg_def.name == call.func.attr:
+                            for node in stg_def.body:
                                 if isinstance (node, ast.For):
                                     stage = self.visit_For (node,
                                                             name_suffix=name_suffix)
@@ -607,20 +683,22 @@ class StencilInspector (ast.NodeVisitor):
         st    = self.inspected_stencil
         call  = node.iter
         stage = None
-        if (call.func.value.id == 'self' and
-            call.func.attr == 'get_interior_points'):
-            if name_suffix is None:
-                stage = st.scope.add_stage (node,
-                                            prefix=st.name.lower ( ),
-                                            suffix='stage')
-            else:
-                #
-                # the suffix is present only for independent stages
-                #
-                stage = st.scope.add_stage (node,
-                                            prefix=st.name.lower ( ),
-                                            suffix=name_suffix)
-                stage.independent = True
+
+        if isinstance (call.func, ast.Attribute):
+            if (call.func.value.id in ['Stencil', 'self']
+                and call.func.attr == 'get_interior_points'):
+                if name_suffix is None:
+                    stage = st.scope.add_stage (node,
+                                                prefix=st.name.lower ( ),
+                                                suffix='stage')
+                else:
+                    #
+                    # the suffix is present only for independent stages
+                    #
+                    stage = st.scope.add_stage (node,
+                                                prefix=st.name.lower ( ),
+                                                suffix=name_suffix)
+
         return stage
 
 
@@ -676,20 +754,26 @@ class StencilInspector (ast.NodeVisitor):
             for n in node.body:
                 self.visit (n)
         #
-        # the 'kernel' function is the starting point of the stencil
+        # The kernel function is the starting point of the stencil.
+        # We can identify its AST Node by checking its decorators
         #
-        elif node.name == 'kernel':
-            logging.debug ("Entry function 'kernel' found at %d" % node.lineno)
+        elif self._check_kernel_decorator (node):
+            logging.debug ("Entry function '%s' found at line %d" % (node.name, node.lineno))
             #
             # this function should return 'None'
             #
-            if node.returns is not None:
-                raise ValueError ("The 'kernel' function should return 'None'")
+            for n in node.body:
+                if isinstance (n, ast.Return) and n.value is not None:
+                    raise ValueError ("The kernel function should return 'None'")
             #
-            # the parameters of the 'kernel' function are the stencil
+            # the parameters of the kernel function are the stencil
             # arguments in the generated code
             #
             self._analyze_params (node.args.args)
+            #
+            # Store the name of the kernel function in the stencil
+            #
+            self.inspected_stencil.entry_point_name = node.name
             #
             # continue traversing the AST
             #
@@ -699,4 +783,4 @@ class StencilInspector (ast.NodeVisitor):
         # other function definitions are saved for potential use later
         #
         else:
-            self.functor_defs.append (node)
+            self.stage_defs.append (node)

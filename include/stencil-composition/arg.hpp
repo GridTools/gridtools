@@ -1,126 +1,148 @@
 /**
    @file
    @brief File containing the definition of the placeholders used to address the storage from whithin the functors.
-   A placeholder is an implementation of the proxy design pattern for the storage class, i.e. it is a light object used in place of the storage when defining the high level computations,
+   A placeholder is an implementation of the proxy design pattern for the storage class, i.e. it is a light object used
+   in place of the storage when defining the high level computations,
    and it will be bound later on with a specific instantiation of a storage class.
 */
 
 #pragma once
-#include "../storage/storage_metafunctions.hpp"
+#include "storage/storage_metafunctions.hpp"
+#include "stencil-composition/arg_metafunctions_fwd.hpp"
 
 namespace gridtools {
 
-    //fwd decl
-    template <typename T> struct is_arg;
+    // fwd decl
+    template < typename T >
+    struct is_arg;
 
-/** @brief binding between the placeholder (\tparam ArgType) and the storage (\tparam Storage)*/
-template<typename ArgType, typename Storage>
-struct arg_storage_pair {
+    /** @brief binding between the placeholder (\tparam ArgType) and the storage (\tparam Storage)*/
+    template < typename ArgType, typename Storage >
+    struct arg_storage_pair {
 
-    //TODO is_storage is taken!
-    GRIDTOOLS_STATIC_ASSERT(is_arg<ArgType>::value, "wrong type");
-    typedef ArgType arg_type;
-    typedef Storage storage_type;
+        GRIDTOOLS_STATIC_ASSERT(is_arg< ArgType >::value, "wrong type");
 
-    Storage *ptr;
+      private:
+        // arg_storage_pair(arg_storage_pair const&);
+        arg_storage_pair();
 
-    arg_storage_pair(Storage* p)
-        : ptr(p)
-        {}
+      public:
+        pointer< Storage > ptr;
 
-    Storage* operator*() {
-        return ptr;
-    }
-};
+        arg_storage_pair(arg_storage_pair const &other) : ptr(other.ptr) { assert(ptr.get()); }
 
+        typedef ArgType arg_type;
+        typedef Storage storage_type;
 
-    template<typename T>
-    struct is_arg_storage_pair : boost::mpl::false_{};
+        arg_storage_pair(pointer< Storage > p) : ptr(p) {}
 
-    template<typename ArgType, typename Storage>
-    struct is_arg_storage_pair<arg_storage_pair<ArgType, Storage> > : boost::mpl::true_{};
+        arg_storage_pair(Storage *p) : ptr(p) {}
+    };
 
-/**
- * Type to create placeholders for data fields.
- *
- * There is a specialization for the case in which T is a temporary
- *
- * @tparam I Integer index (unique) of the data field to identify it
- * @tparam T The type of the storage used to store data
- */
-template <uint_t I, typename T>
-struct arg {
-    typedef T storage_type;
-    typedef typename T::iterator_type iterator_type;
-    typedef typename T::value_type value_type;
-    typedef static_uint<I> index_type;
-    typedef static_uint<I> index;
+    template < typename T >
+    struct is_arg_storage_pair : boost::mpl::false_ {};
 
-    template<typename Storage>
-    arg_storage_pair<arg<I,T>, Storage>
-    operator=(Storage& ref) {
-        GRIDTOOLS_STATIC_ASSERT( (boost::is_same<Storage, T>::value), "there is a mismatch between the storage types used by the arg placeholders and the storages really instantiated. Check that the placeholders you used when constructing the domain_type are in the correctly assigned and that their type match the instantiated storages ones" );
+    template < typename ArgType, typename Storage >
+    struct is_arg_storage_pair< arg_storage_pair< ArgType, Storage > > : boost::mpl::true_ {};
 
+    /**
+     * Type to create placeholders for data fields.
+     *
+     * There is a specialization for the case in which T is a temporary.
+     * The default version applies to all the storage classes (including
+     * user-defined ones used via the global-accessor)
+     *
+     * @tparam I Integer index (unique) of the data field to identify it
+     * @tparam T The type of the storage used to store data
+     */
+    template < uint_t I, typename Storage, typename Condition = bool >
+    struct arg {
+        typedef Storage storage_type;
+        typedef typename Storage::iterator_type iterator_type;
+        typedef typename Storage::value_type value_type;
+        typedef static_uint< I > index_type;
+        typedef static_uint< I > index;
 
-        return arg_storage_pair<arg<I,T>, Storage>(&ref);
-    }
+        template < typename Storage2 >
+        arg_storage_pair< arg< I, storage_type >, Storage2 > operator=(Storage2 &ref) {
+            GRIDTOOLS_STATIC_ASSERT((boost::is_same< Storage2, storage_type >::value),
+                "there is a mismatch between the storage types used by the arg placeholders and the storages really "
+                "instantiated. Check that the placeholders you used when constructing the domain_type are in the "
+                "correctly assigned and that their type match the instantiated storages ones");
 
-    static void info() {
+            return arg_storage_pair< arg< I, storage_type >, Storage2 >(&ref);
+        }
+
+        static void info() {
 #ifdef VERBOSE
-        std::cout << "Arg on real storage with index " << I;
+            std::cout << "Arg on real storage with index " << I;
 #endif
-    }
-};
+        }
+    };
 
-template<typename T>
-struct is_arg : boost::mpl::false_{};
+    /**
+     * This specialization is made for the standard storages (not user-defined)
+     * which have to contain a storage_info type, and can define a location_type
+     */
+    template < uint_t I, typename Storage >
+    struct arg< I, Storage, typename boost::enable_if< typename is_any_storage< Storage >::type, bool >::type > {
+        typedef Storage storage_type;
+        typedef typename Storage::iterator_type iterator_type;
+        typedef typename Storage::value_type value_type;
+        typedef static_uint< I > index_type;
+        typedef static_uint< I > index;
 
-template<uint_t I, typename Storage>
-struct is_arg<arg<I, Storage> > : boost::mpl::true_{};
+// location type is only used by other grids, supported only for cxx11
+#ifdef CXX11_ENABLED
+        using location_type = typename Storage::storage_info_type::index_type;
+#endif
 
-template<typename T>
-struct is_storage_arg : boost::mpl::false_{};
+        template < typename Storage2 >
+        arg_storage_pair< arg< I, storage_type >, Storage2 > operator=(Storage2 &ref) {
+            GRIDTOOLS_STATIC_ASSERT((boost::is_same< Storage2, storage_type >::value),
+                "there is a mismatch between the storage types used by the arg placeholders and the storages really "
+                "instantiated. Check that the placeholders you used when constructing the domain_type are in the "
+                "correctly assigned and that their type match the instantiated storages ones");
 
-/** true in case of non temporary storage arg*/
-template<uint_t I, typename Storage>
-struct is_storage_arg<arg<I, Storage> > : is_storage<Storage>{};
+            return arg_storage_pair< arg< I, storage_type >, Storage2 >(&ref);
+        }
 
-/**
- * @struct arg_hods_data_field
- * metafunction that determines if an arg type is holding the storage type of a data field
- */
-template<typename Arg>
-struct arg_holds_data_field;
+        static void info() {
+#ifdef VERBOSE
+            std::cout << "Arg on real storage with index " << I;
+#endif
+        }
+    };
 
-template <uint_t I, typename Storage>
-struct arg_holds_data_field<arg<I, Storage> >
-{
-    typedef typename storage_holds_data_field<Storage>::type type;
-};
+    template < typename T >
+    struct is_arg : boost::mpl::false_ {};
 
-/**
- * @struct arg_hods_data_field_h
- * high order metafunction of arg_holds_data_field
- */
-template <typename Arg>
-struct arg_holds_data_field_h
-{
-    typedef typename arg_holds_data_field<typename Arg::type >::type type;
-};
+    template < uint_t I, typename Storage >
+    struct is_arg< arg< I, Storage > > : boost::mpl::true_ {};
 
-/** @brief metafunction to access the storage type given the arg*/
-template<typename T>
-struct arg2storage {
-    GRIDTOOLS_STATIC_ASSERT(is_arg<T>::value, "wrong type for Arg");
-    typedef typename T::storage_type type;
-};
+    template < typename T >
+    struct arg_index;
 
-/** @brief metafunction to access the metadata type given the arg*/
-template<typename T>
-struct arg2metadata {
-    GRIDTOOLS_STATIC_ASSERT(is_arg<T>::value, "wrong type for Arg");
-    typedef typename arg2storage<T>::type::meta_data_t type;
-};
+    /** true in case of non temporary storage arg*/
+    template < uint_t I, typename Storage >
+    struct arg_index< arg< I, Storage > > : boost::mpl::integral_c< int, I > {};
 
+    template < typename T >
+    struct is_storage_arg : boost::mpl::false_ {};
+
+    template < uint_t I, typename Storage >
+    struct is_storage_arg< arg< I, Storage > > : is_storage< Storage > {};
+
+    /**
+     * @struct arg_hods_data_field
+     * metafunction that determines if an arg type is holding the storage type of a data field
+     */
+    template < typename Arg >
+    struct arg_holds_data_field;
+
+    template < uint_t I, typename Storage >
+    struct arg_holds_data_field< arg< I, Storage > > {
+        typedef typename storage_holds_data_field< Storage >::type type;
+    };
 
 } // namespace gridtools

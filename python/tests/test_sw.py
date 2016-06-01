@@ -23,11 +23,12 @@
 ##    http://www.amath.washington.edu/~dgeorge/tsunamimodeling.html
 ##    http://www.amath.washington.edu/~claw/applications/shallow/www
 ##
+import unittest
 import numpy as np
 
 from nose.plugins.attrib import attr
 
-from gridtools.stencil   import MultiStageStencil
+from gridtools.stencil   import Stencil, MultiStageStencil
 from tests.test_stencils import CopyTest
 
 
@@ -79,27 +80,28 @@ class SW (MultiStageStencil):
             out_Mx[p] = self.R[p] - self.L[p]
             out_My[p] = self.T[p] - self.B[p]
 
-            out_Md[p] = out_M[p] * (1.0 - self.bl) + self.bl * (0.25 * (self.L[p] + 
+            out_Md[p] = out_M[p] * (1.0 - self.bl) + self.bl * (0.25 * (self.L[p] +
                                                                         self.R[p] +
                                                                         self.T[p] +
                                                                         self.B[p]))
 
 
-    def kernel (self, out_H, out_U, out_V):
+    @Stencil.kernel
+    def kernel (self, in_H, in_U, in_V, out_H, out_U, out_V):
         #
         # momentum calculation for each field
         #
-        self.stage_momentum (out_M  = out_U,
+        self.stage_momentum (out_M  = in_U,
                              out_Md = self.Ud,
                              out_Mx = self.Ux,
                              out_My = self.Uy)
 
-        self.stage_momentum (out_M  = out_V,
+        self.stage_momentum (out_M  = in_V,
                              out_Md = self.Vd,
                              out_Mx = self.Vx,
                              out_My = self.Vy)
 
-        self.stage_momentum (out_M  = out_H,
+        self.stage_momentum (out_M  = in_H,
                              out_Md = self.Hd,
                              out_Mx = self.Hx,
                              out_My = self.Hy)
@@ -126,8 +128,11 @@ class SWTest (CopyTest):
 
         self.domain = (64, 64, 1)
 
-        self.params = ('out_H', 
-                       'out_U', 
+        self.params = ('in_H',
+                       'in_U',
+                       'in_V',
+                       'out_H',
+                       'out_U',
                        'out_V')
         self.temps  = ('self.Hd',
                        'self.Ud',
@@ -144,16 +149,14 @@ class SWTest (CopyTest):
 
         self.stencil = SW (self.domain)
         self.stencil.set_halo ( (1, 1, 1, 1) )
+        self.stencil.set_k_direction ('forward')
 
-        self.out_H  = np.zeros (self.domain)
+        self.out_H  = np.zeros (self.domain, order='F')
         self.out_H += 0.000001
-        self.out_U  = np.zeros (self.domain)
+        self.out_U  = np.zeros (self.domain, order='F')
         self.out_U += 0.000001
-        self.out_V  = np.zeros (self.domain)
+        self.out_V  = np.zeros (self.domain, order='F')
         self.out_V += 0.000001
-        self.out_Hd = np.zeros (self.domain)
-        self.out_Ud = np.zeros (self.domain)
-        self.out_Vd = np.zeros (self.domain)
 
         self.droplet (self.out_H)
 
@@ -176,18 +179,18 @@ class SWTest (CopyTest):
 
     @attr (lang='c++')
     def test_animation (self, nframe=200):
-        try: 
+        try:
             import os
             import pyqtgraph.opengl as gl
             from   pyqtgraph.Qt import QtCore, QtGui
         except ImportError:
-            print ('skipping')
+            self.skipTest ('Could not import required packages')
         else:
             #
             # make sure X11 is available
             #
             if os.environ.get ('DISPLAY') is None:
-                print ("no DISPLAY available, skipping")
+                self.skipTest ("no DISPLAY available")
             else:
                 #
                 # get a Qt application context
@@ -204,7 +207,7 @@ class SWTest (CopyTest):
 
                 ## Add a grid to the view
                 g = gl.GLGridItem()
-                g.setSize (x=self.domain[0] + 2, 
+                g.setSize (x=self.domain[0] + 2,
                            y=self.domain[1] + 2)
                 g.setDepthValue(10)  # draw grid after surfaces since they may be translucent
                 w.addItem(g)
@@ -215,10 +218,10 @@ class SWTest (CopyTest):
                 y = np.linspace (0, self.domain[1], self.domain[1]).reshape (1, self.domain[1])
 
                 ## create a surface plot, tell it to use the 'heightColor' shader
-                ## since this does not require normal vectors to render (thus we 
+                ## since this does not require normal vectors to render (thus we
                 ## can set computeNormals=False to save time when the mesh updates)
-                self.p4 = gl.GLSurfacePlotItem (shader='heightColor', 
-                                                computeNormals=False, 
+                self.p4 = gl.GLSurfacePlotItem (shader='heightColor',
+                                                computeNormals=False,
                                                 smooth=False)
                 self.p4.shader()['colorMap'] = np.array([0.2, 1, 0.8, 0.2, 0.1, 0.1, 0.2, 0, 2])
                 self.p4.translate (self.domain[0]/-2.0,
@@ -227,14 +230,21 @@ class SWTest (CopyTest):
                 w.addItem(self.p4)
 
                 self.frame = 0
-                self.stencil.backend = 'c++'
+                self.stencil.set_backend ('c++')
 
                 def update ( ):
                     try:
                         if (self.stencil.dt * self.frame) % 5 == 0:
                             self.droplet (self.out_H, val=3.95)
 
-                        self.stencil.run (out_H=self.out_H,
+                        self.in_H   = np.copy (self.out_H)
+                        self.in_U   = np.copy (self.out_U)
+                        self.in_V   = np.copy (self.out_V)
+
+                        self.stencil.run (in_H=self.in_H,
+                                          in_U=self.in_U,
+                                          in_V=self.in_V,
+                                          out_H=self.out_H,
                                           out_U=self.out_U,
                                           out_V=self.out_V)
                         self.frame += 1
@@ -249,47 +259,57 @@ class SWTest (CopyTest):
                 self.qt_app.exec_ ( )
 
 
-    def test_data_dependency_detection (self, deps=None, backend='c++'):
-        expected_deps = [('self.L',  'out_H'),
-                         ('self.R',  'out_H'),
-                         ('self.T',  'out_H'),
-                         ('self.B',  'out_H'),
-                         ('self.L',  'out_U'),
-                         ('self.R',  'out_U'),
-                         ('self.T',  'out_U'),
-                         ('self.B',  'out_U'),
-                         ('self.L',  'out_V'),
-                         ('self.R',  'out_V'),
-                         ('self.T',  'out_V'),
-                         ('self.B',  'out_V'),
-                         ('self.Hx', 'self.R'),
-                         ('self.Hx', 'self.L'),
-                         ('self.Ux', 'self.R'),
-                         ('self.Ux', 'self.L'),
-                         ('self.Vx', 'self.R'),
-                         ('self.Vx', 'self.L'),
-                         ('self.Hy', 'self.T'),
-                         ('self.Hy', 'self.B'),
-                         ('self.Uy', 'self.T'),
-                         ('self.Uy', 'self.B'),
-                         ('self.Vy', 'self.T'),
-                         ('self.Vy', 'self.B'),
-                         ('self.Hd', 'out_H'),
-                         ('self.Hd', 'self.L'),
-                         ('self.Hd', 'self.R'),
-                         ('self.Hd', 'self.T'),
-                         ('self.Hd', 'self.B'),
-                         ('self.Ud', 'out_U'),
-                         ('self.Ud', 'self.L'),
-                         ('self.Ud', 'self.R'),
-                         ('self.Ud', 'self.T'),
-                         ('self.Ud', 'self.B'),
-                         ('self.Vd', 'out_V'),
-                         ('self.Vd', 'self.L'),
-                         ('self.Vd', 'self.R'),
-                         ('self.Vd', 'self.T'),
-                         ('self.Vd', 'self.B')]
-        super ( ).test_data_dependency_detection (deps=expected_deps)
+    def test_data_dependency_detection (self, expected_deps=None, backend='c++'):
+        if expected_deps is None:
+            expected_deps = [('self.L',  'in_H'),
+                             ('self.R',  'in_H'),
+                             ('self.T',  'in_H'),
+                             ('self.B',  'in_H'),
+                             ('self.L',  'in_U'),
+                             ('self.R',  'in_U'),
+                             ('self.T',  'in_U'),
+                             ('self.B',  'in_U'),
+                             ('self.L',  'in_V'),
+                             ('self.R',  'in_V'),
+                             ('self.T',  'in_V'),
+                             ('self.B',  'in_V'),
+                             ('self.Hx', 'self.R'),
+                             ('self.Hx', 'self.L'),
+                             ('self.Ux', 'self.R'),
+                             ('self.Ux', 'self.L'),
+                             ('self.Vx', 'self.R'),
+                             ('self.Vx', 'self.L'),
+                             ('self.Hy', 'self.T'),
+                             ('self.Hy', 'self.B'),
+                             ('self.Uy', 'self.T'),
+                             ('self.Uy', 'self.B'),
+                             ('self.Vy', 'self.T'),
+                             ('self.Vy', 'self.B'),
+                             ('self.Hd', 'in_H'),
+                             ('self.Hd', 'self.L'),
+                             ('self.Hd', 'self.R'),
+                             ('self.Hd', 'self.T'),
+                             ('self.Hd', 'self.B'),
+                             ('self.Ud', 'in_U'),
+                             ('self.Ud', 'self.L'),
+                             ('self.Ud', 'self.R'),
+                             ('self.Ud', 'self.T'),
+                             ('self.Ud', 'self.B'),
+                             ('self.Vd', 'in_V'),
+                             ('self.Vd', 'self.L'),
+                             ('self.Vd', 'self.R'),
+                             ('self.Vd', 'self.T'),
+                             ('self.Vd', 'self.B'),
+                             ('self.Vd', 'self.B'),
+                             ('self.Vd', 'self.B'),
+                             ('out_H', 'self.Hd'),
+                             ('out_H', 'self.Dh'),
+                             ('out_U', 'self.Ud'),
+                             ('out_U', 'self.Du'),
+                             ('out_V', 'self.Vd'),
+                             ('out_V', 'self.Dv')]
+        super ( ).test_data_dependency_detection (deps=expected_deps,
+                                                  backend=backend)
 
 
     def test_automatic_access_pattern_detection (self):
@@ -353,14 +373,14 @@ class SWTest (CopyTest):
         self.add_expected_offset ('self.Du', None)
         self.add_expected_offset ('self.Dv', None)
         self.add_expected_offset ('out_H',   None)
-        self.add_expected_offset ('out_H',   [-1,1,-1,1])
         self.add_expected_offset ('out_U',   None)
-        self.add_expected_offset ('out_U',   [-1,1,-1,1])
         self.add_expected_offset ('out_V',   None)
-        self.add_expected_offset ('out_V',   [-1,1,-1,1])
+        self.add_expected_offset ('in_H',   [-1,1,-1,1])
+        self.add_expected_offset ('in_U',   [-1,1,-1,1])
+        self.add_expected_offset ('in_V',   [-1,1,-1,1])
 
         for backend in BACKENDS:
-            self.stencil.backend = backend
+            self.stencil.set_backend (backend)
             self._run ( )
             self.automatic_access_pattern_detection (self.stencil)
 
@@ -390,7 +410,7 @@ class SWTest (CopyTest):
         # need this program to create the animation
         #
         if which ('ffmpeg'):
-            self.stencil.backend = 'c++'
+            self.stencil.set_backend ('c++')
 
             plt.switch_backend ('agg')
 
@@ -436,7 +456,7 @@ class SWTest (CopyTest):
                        fps=48,
                        extra_args=['-vcodec', 'libx264'])
         else:
-            print ("skipping")
+            self.skipTest ("No ffmpeg detected")
 
 
     def test_minimum_halo_detection (self):
@@ -448,6 +468,225 @@ class SWTest (CopyTest):
         super ( ).test_python_results (out_param   = 'out_H',
                                        result_file = 'sw_001.npy')
 
+
+    def test_get_interior_points_K_static (self):
+        super ( ).test_get_interior_points_K_static (self.out_H)
+
+
+    def test_get_interior_points_K_object (self):
+        super ( ).test_get_interior_points_K_object (self.out_H)
+
+
+    def test_get_interior_points_IJ_static (self):
+        super ( ).test_get_interior_points_IJ_static (self.out_H)
+
+
+    def test_get_interior_points_IJ_object (self):
+        super ( ).test_get_interior_points_IJ_object (self.out_H)
+
+
+
+class LocalSW (MultiStageStencil):
+    def __init__ (self, domain):
+        super ( ).__init__ ( )
+        #
+        # constants to callibrate the system - working with (24, 24, 0) and +0.1 droplet
+        #
+        #self.bl     = 0.2
+        #self.dt     = 0.001
+        #self.growth = 0.5
+        self.bl      = 0.2
+        self.growth  = 1.2
+        self.dt      = 0.05
+
+        #
+        # temporary data fields
+        #
+        self.Hd   = np.zeros (domain)
+        self.Ud   = np.zeros (domain)
+        self.Vd   = np.zeros (domain)
+        self.Hx   = np.zeros (domain)
+        self.Ux   = np.zeros (domain)
+        self.Vx   = np.zeros (domain)
+        self.Hy   = np.zeros (domain)
+        self.Uy   = np.zeros (domain)
+        self.Vy   = np.zeros (domain)
+
+
+    def stage_momentum (self, in_M, out_Md, out_Mx, out_My):
+        for p in self.get_interior_points (in_M):
+            L = in_M[p + (-1,0,0)]
+            R = in_M[p + (1,0,0)]
+            T = in_M[p + (0,1,0)]
+            B = in_M[p + (0,-1,0)]
+
+            out_Mx[p] = R - L
+            out_My[p] = T - B
+
+            out_Md[p] = in_M[p] * (1.0 - self.bl) + self.bl * (0.25 * (L
+                                                                       + R
+                                                                       + T
+                                                                       + B))
+
+
+    @Stencil.kernel
+    def kernel (self, in_H, in_U, in_V, out_H, out_U, out_V):
+        #
+        # momentum calculation for each field
+        #
+        self.stage_momentum (in_M  = in_U,
+                             out_Md = self.Ud,
+                             out_Mx = self.Ux,
+                             out_My = self.Uy)
+
+        self.stage_momentum (in_M  = in_V,
+                             out_Md = self.Vd,
+                             out_Mx = self.Vx,
+                             out_My = self.Vy)
+
+        self.stage_momentum (in_M  = in_H,
+                             out_Md = self.Hd,
+                             out_Mx = self.Hx,
+                             out_My = self.Hy)
+        #
+        # dynamics and momentum combined
+        #
+        for p in self.get_interior_points (out_H):
+            Dh = -self.Ud[p] * self.Hx[p] - self.Vd[p] * self.Hy[p] - self.Hd[p] * (self.Ux[p] + self.Vy[p])
+            Du = -self.Ud[p] * self.Ux[p] - self.Vd[p] * self.Uy[p] - self.growth * self.Hx[p]
+            Dv = -self.Ud[p] * self.Vx[p] - self.Vd[p] * self.Vy[p] - self.growth * self.Hy[p]
+            #
+            # take first-order Euler step
+            #
+            out_H[p] = self.Hd[p] + self.dt * Dh
+            out_U[p] = self.Ud[p] + self.dt * Du
+            out_V[p] = self.Vd[p] + self.dt * Dv
+
+
+
+class LocalSWTest (SWTest):
+    def setUp (self):
+        super ( ).setUp ( )
+
+        self.temps  = ('self.Hd',
+                       'self.Ud',
+                       'self.Vd',
+                       'self.Hx',
+                       'self.Ux',
+                       'self.Vx',
+                       'self.Hy',
+                       'self.Uy',
+                       'self.Vy')
+
+        self.stencil = LocalSW (self.domain)
+        self.stencil.set_halo ( (1, 1, 1, 1) )
+        self.stencil.set_k_direction ('forward')
+
+
+    def test_data_dependency_detection (self, expected_deps=None, backend='c++'):
+        if expected_deps is None:
+            expected_deps = [('self.Hx', 'in_H'),
+                             ('self.Hy', 'in_H'),
+                             ('self.Hd', 'in_H'),
+                             ('self.Ux', 'in_U'),
+                             ('self.Uy', 'in_U'),
+                             ('self.Ud', 'in_U'),
+                             ('self.Vx', 'in_V'),
+                             ('self.Vy', 'in_V'),
+                             ('self.Vd', 'in_V'),
+                             ('out_H', 'self.Hd'),
+                             ('out_H', 'self.Ud'),
+                             ('out_H', 'self.Hx'),
+                             ('out_H', 'self.Vd'),
+                             ('out_H', 'self.Hy'),
+                             ('out_H', 'self.Ux'),
+                             ('out_H', 'self.Vy'),
+                             ('out_U', 'self.Ud'),
+                             ('out_U', 'self.Ud'),
+                             ('out_U', 'self.Ux'),
+                             ('out_U', 'self.Vd'),
+                             ('out_U', 'self.Uy'),
+                             ('out_U', 'self.Hx'),
+                             ('out_V', 'self.Vd'),
+                             ('out_V', 'self.Ud'),
+                             ('out_V', 'self.Vx'),
+                             ('out_V', 'self.Vy'),
+                             ('out_V', 'self.Hy')]
+        super ( ).test_data_dependency_detection (expected_deps=expected_deps,
+                                                  backend=backend)
+
+
+    def test_automatic_access_pattern_detection (self):
+        from gridtools import BACKENDS
+
+        #
+        # fields and their ranges
+        #
+        self.add_expected_offset ('in_Hd',   None)
+        self.add_expected_offset ('in_Ud',   None)
+        self.add_expected_offset ('in_Vd',   None)
+        self.add_expected_offset ('in_Hx',   None)
+        self.add_expected_offset ('in_Ux',   None)
+        self.add_expected_offset ('in_Vx',   None)
+        self.add_expected_offset ('in_Hy',   None)
+        self.add_expected_offset ('in_Uy',   None)
+        self.add_expected_offset ('in_Vy',   None)
+        self.add_expected_offset ('L',  None)
+        self.add_expected_offset ('L',  None)
+        self.add_expected_offset ('L',  None)
+        self.add_expected_offset ('R',  None)
+        self.add_expected_offset ('R',  None)
+        self.add_expected_offset ('R',  None)
+        self.add_expected_offset ('T',  None)
+        self.add_expected_offset ('T',  None)
+        self.add_expected_offset ('T',  None)
+        self.add_expected_offset ('B',  None)
+        self.add_expected_offset ('B',  None)
+        self.add_expected_offset ('B',  None)
+        self.add_expected_offset ('self.Hd', None)
+        self.add_expected_offset ('self.Hd', None)
+        self.add_expected_offset ('self.Hd', None)
+        self.add_expected_offset ('self.Ud', None)
+        self.add_expected_offset ('self.Ud', None)
+        self.add_expected_offset ('self.Ud', None)
+        self.add_expected_offset ('self.Ud', None)
+        self.add_expected_offset ('self.Ud', None)
+        self.add_expected_offset ('self.Vd', None)
+        self.add_expected_offset ('self.Vd', None)
+        self.add_expected_offset ('self.Vd', None)
+        self.add_expected_offset ('self.Vd', None)
+        self.add_expected_offset ('self.Vd', None)
+        self.add_expected_offset ('self.Hx', None)
+        self.add_expected_offset ('self.Hx', None)
+        self.add_expected_offset ('self.Hx', None)
+        self.add_expected_offset ('self.Hd', None)
+        self.add_expected_offset ('self.Hd', None)
+        self.add_expected_offset ('self.Ux', None)
+        self.add_expected_offset ('self.Ux', None)
+        self.add_expected_offset ('self.Ux', None)
+        self.add_expected_offset ('self.Vx', None)
+        self.add_expected_offset ('self.Vx', None)
+        self.add_expected_offset ('self.Hy', None)
+        self.add_expected_offset ('self.Hy', None)
+        self.add_expected_offset ('self.Uy', None)
+        self.add_expected_offset ('self.Uy', None)
+        self.add_expected_offset ('self.Vy', None)
+        self.add_expected_offset ('self.Vy', None)
+        self.add_expected_offset ('self.Vy', None)
+        self.add_expected_offset ('Dh', None)
+        self.add_expected_offset ('Du', None)
+        self.add_expected_offset ('Dv', None)
+        self.add_expected_offset ('out_H',   None)
+        self.add_expected_offset ('out_U',   None)
+        self.add_expected_offset ('out_V',   None)
+        self.add_expected_offset ('in_H',   [-1,1,-1,1])
+        self.add_expected_offset ('in_U',   [-1,1,-1,1])
+        self.add_expected_offset ('in_V',   [-1,1,-1,1])
+
+        for backend in BACKENDS:
+            self.stencil.set_backend (backend)
+            self._run ( )
+            self.automatic_access_pattern_detection (self.stencil)
 
 
 
@@ -499,7 +738,7 @@ class ShallowWater2D (MultiStageStencil):
         ##zeros = np.zeros (shape[:-1])
         ##zeros[:drop.shape[0], :drop.shape[1]] = drop
         ##return zeros.reshape (zeros.shape[0],
-        ##                      zeros.shape[1], 
+        ##                      zeros.shape[1],
         ##                      1)
         #return drop.reshape ((drop.shape[0],
         #                      drop.shape[1],
@@ -532,7 +771,7 @@ class ShallowWater2D (MultiStageStencil):
         U[:,0] =  U[:,1]/2.0
         V[:,0] = -V[:,1]/2.0
 
-        H[:,self.domain[0]-2] =  H[:,self.domain[0]-1]  
+        H[:,self.domain[0]-2] =  H[:,self.domain[0]-1]
         U[:,self.domain[0]-2] =  U[:,self.domain[0]-1]/2.0
         V[:,self.domain[0]-2] = -V[:,self.domain[0]-1]/2.0
 
@@ -556,9 +795,9 @@ class ShallowWater2D (MultiStageStencil):
 
             # X momentum
             self.Ux[p]  = ( out_U[p + (1,1,0)] + out_U[p + (0,1,0)] ) / 2.0
-            self.Ux[p] -=  ( ( (out_U[p + (1,1,0)]*out_U[p + (1,1,0)]) / out_H[p + (1,1,0)] + 
+            self.Ux[p] -=  ( ( (out_U[p + (1,1,0)]*out_U[p + (1,1,0)]) / out_H[p + (1,1,0)] +
                                (out_H[p + (1,1,0)]*out_H[p + (1,1,0)]) * (self.g / 2.0) ) -
-                             ( (out_U[p + (0,1,0)]*out_U[p + (0,1,0)]) / out_H[p + (0,1,0)] + 
+                             ( (out_U[p + (0,1,0)]*out_U[p + (0,1,0)]) / out_H[p + (0,1,0)] +
                                (out_H[p + (0,1,0)]*out_H[p + (0,1,0)]) * (self.g / 2.0) )
                            ) * ( self.dt / (2*self.dx) )
 
@@ -586,13 +825,14 @@ class ShallowWater2D (MultiStageStencil):
 
             # Y momentum
             self.Vy[p]  = ( out_V[p + (1,1,0)] + out_V[p + (1,0,0)] ) / 2.0
-            self.Vy[p] -= ( (out_V[p + (1,1,0)] * out_V[p + (1,1,0)]) / out_H[p + (1,1,0)] + 
+            self.Vy[p] -= ( (out_V[p + (1,1,0)] * out_V[p + (1,1,0)]) / out_H[p + (1,1,0)] +
                             (out_H[p + (1,1,0)] * out_H[p + (1,1,0)]) * ( self.g / 2.0 ) -
-                            (out_V[p + (1,0,0)] * out_V[p + (1,0,0)]) / out_H[p + (1,0,0)] + 
+                            (out_V[p + (1,0,0)] * out_V[p + (1,0,0)]) / out_H[p + (1,0,0)] +
                             (out_H[p + (1,0,0)] * out_H[p + (1,0,0)]) * ( self.g / 2.0 )
                           ) * ( self.dt / (2*self.dy) )
 
 
+    @Stencil.kernel
     def kernel (self, out_H, out_U, out_V):
         self.stage_first_x (out_H=out_H,
                             out_U=out_U,
@@ -610,12 +850,12 @@ class ShallowWater2D (MultiStageStencil):
             out_H[p] -= ( self.Vy[p + (-1,0,0)] - self.Vy[p + (-1,-1,0)] ) * (self.dt / self.dx)
 
             # X momentum
-            out_U[p] -= ( (self.Ux[p + (0,-1,0)]  * self.Ux[p + (0,-1,0)])  / self.Hx[p + (0,-1,0)] + 
+            out_U[p] -= ( (self.Ux[p + (0,-1,0)]  * self.Ux[p + (0,-1,0)])  / self.Hx[p + (0,-1,0)] +
                           (self.Hx[p + (0,-1,0)]  * self.Hx[p + (0,-1,0)])  * ( self.g / 2.0 ) -
-                          (self.Ux[p + (-1,-1,0)] * self.Ux[p + (-1,-1,0)]) / self.Hx[p + (-1,-1,0)] + 
+                          (self.Ux[p + (-1,-1,0)] * self.Ux[p + (-1,-1,0)]) / self.Hx[p + (-1,-1,0)] +
                           (self.Hx[p + (-1,-1,0)] * self.Hx[p + (-1,-1,0)]) * ( self.g / 2.0 )
-                        ) * ( self.dt / self.dx ) 
-            out_U[p] -= ( (self.Vy[p + (-1,0,0)]  * self.Uy[p + (-1,0,0)]  / self.Hy[p + (-1,0,0)]) - 
+                        ) * ( self.dt / self.dx )
+            out_U[p] -= ( (self.Vy[p + (-1,0,0)]  * self.Uy[p + (-1,0,0)]  / self.Hy[p + (-1,0,0)]) -
                           (self.Vy[p + (-1,-1,0)] * self.Uy[p + (-1,-1,0)] / self.Hy[p + (-1,-1,0)])
                         ) * ( self.dt / self.dy )
 
@@ -623,9 +863,9 @@ class ShallowWater2D (MultiStageStencil):
             out_V[p] -= ( (self.Ux[p + (0,-1,0)]  * self.Vx[p + (0,-1,0)]  / self.Hx[p + (0,-1,0)]) -
                           (self.Ux[p + (-1,-1,0)] * self.Vx[p + (-1,-1,0)] / self.Hx[p + (-1,-1,0)])
                         ) * ( self.dt / self.dx )
-            out_V[p] -= ( (self.Vy[p + (-1,0,0)]  * self.Vy[p + (-1,0,0)])  / self.Hy[p + (-1,0,0)] + 
+            out_V[p] -= ( (self.Vy[p + (-1,0,0)]  * self.Vy[p + (-1,0,0)])  / self.Hy[p + (-1,0,0)] +
                           (self.Hy[p + (-1,0,0)]  * self.Hy[p + (-1,0,0)])  * ( self.g / 2.0 ) -
-                          ( (self.Vy[p + (-1,-1,0)] * self.Vy[p + (-1,-1,0)]) / self.Hy[p + (-1,-1,0)] + 
+                          ( (self.Vy[p + (-1,-1,0)] * self.Vy[p + (-1,-1,0)]) / self.Hy[p + (-1,-1,0)] +
                             (self.Hy[p + (-1,-1,0)] * self.Hy[p + (-1,-1,0)]) * ( self.g / 2.0 ) )
-                        ) * ( self.dt / self.dy ) 
+                        ) * ( self.dt / self.dy )
 

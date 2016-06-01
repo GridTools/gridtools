@@ -10,6 +10,17 @@ from jinja2 import Environment, PackageLoader
 BACKENDS = ('python', 'c++', 'cuda')
 
 #
+# accepted k directions
+#
+K_DIRECTIONS = ('forward', 'backward')
+
+#
+# Name of the attribute that identifies the wrapper of a user-defined stencil
+# kernel
+#
+STENCIL_KERNEL_DECORATOR_LABEL = '__gridtools_stencil_kernel__'
+
+#
 # initialize the template renderer environment
 #
 logging.debug ("Initializing the template environment ...")

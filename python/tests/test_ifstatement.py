@@ -3,7 +3,11 @@ import logging
 
 import numpy as np
 
-from gridtools.stencil  import MultiStageStencil
+from nose.plugins.attrib import attr
+
+from gridtools.stencil  import Stencil, MultiStageStencil
+from tests.test_stencils import CopyTest
+
 
 
 class GameOfLife (MultiStageStencil):
@@ -18,9 +22,9 @@ class GameOfLife (MultiStageStencil):
     def __init__ (self, domain):
         super ( ).__init__ ( )
         self.counter = np.zeros (domain)
-        self.set_halo ( (1,1,1,1) )
 
 
+    @Stencil.kernel
     def kernel (self, out_X, in_X):
         for p in self.get_interior_points (out_X):
 
@@ -38,6 +42,86 @@ class GameOfLife (MultiStageStencil):
 
 
 
+class GameOfLifeTest (CopyTest):
+    """
+    A test case for the GameOfLife stencil defined above.-
+    """
+    def setUp (self):
+        super ( ).setUp ( )
+        logging.basicConfig (level=logging.INFO)
+        self.domain = (64, 64, 32)
+        self.params = ('out_X','in_X')
+
+        self.in_X = np.random.random_integers (10,
+                                               size=self.domain)
+        self.in_X = self.in_X.astype (np.float64)
+
+        self.out_X = np.copy (self.in_X)
+
+        self.stencil = GameOfLife (self.domain)
+        self.stencil.set_halo ( (1,1,1,1) )
+        self.stencil.set_k_direction ('forward')
+
+
+    @attr(lang='cuda')
+    def test_compare_python_cpp_and_cuda_results (self):
+        super ( ).test_compare_python_cpp_and_cuda_results ( )
+
+
+    def test_automatic_access_pattern_detection (self):
+        from gridtools import BACKENDS
+
+        #
+        # fields and their ranges
+        #
+        self.add_expected_offset ('in_X',  None)
+        self.add_expected_offset ('out_X', [-1,1,-1,1])
+        self.add_expected_offset ('self.counter', None)
+
+        for backend in BACKENDS:
+            self.stencil.backend = backend
+            self._run ( )
+            self.automatic_access_pattern_detection (self.stencil)
+
+
+    def test_data_dependency_detection (self, deps=None, backend='c++'):
+        expected_deps = [('self.counter','out_X')]
+        super ( ).test_data_dependency_detection (deps=expected_deps,
+                                                  backend=backend)
+
+
+    @attr(lang='cuda')
+    def test_data_dependency_detection_cuda (self):
+        self.test_data_dependency_detection (backend='cuda')
+
+
+    def test_minimum_halo_detection (self):
+        super ( ).test_minimum_halo_detection ([1, 1, 1, 1])
+
+
+    @unittest.skip("Not yet implemented")
+    @attr(lang='python')
+    def test_python_results (self):
+        pass
+
+
+    def test_get_interior_points_K_static (self):
+        super ( ).test_get_interior_points_K_static (self.out_X)
+
+
+    def test_get_interior_points_K_object (self):
+        super ( ).test_get_interior_points_K_object (self.out_X)
+
+
+    def test_get_interior_points_IJ_static (self):
+        super ( ).test_get_interior_points_IJ_static (self.out_X)
+
+
+    def test_get_interior_points_IJ_object (self):
+        super ( ).test_get_interior_points_IJ_object (self.out_X)
+
+
+
 class AdditionalIfStatement (MultiStageStencil):
     """
     # Additional tests of the if-statement, notably:
@@ -52,9 +136,9 @@ class AdditionalIfStatement (MultiStageStencil):
     def __init__ (self, domain):
         super ( ).__init__ ( )
         self.counter = np.zeros (domain)
-        self.set_halo ( (1,1,1,1) )
 
 
+    @Stencil.kernel
     def kernel (self, out_X, in_X):
         for p in self.get_interior_points (out_X):
             self.counter[p] = out_X[p + (1,0,0)]
@@ -79,141 +163,80 @@ class AdditionalIfStatement (MultiStageStencil):
 
 
 
-class IfStatementOpIsFailure (MultiStageStencil):
+class AdditionalIfStatementTest (CopyTest):
     """
-    Tests that use of 'is' operator currently raises an error.
+    A test case for the AdditionalIfStatement stencil defined above.-
     """
-    def __init__ (self, domain):
-        super ( ).__init__ ( )
-        self.set_halo ( (1,1,1,1) )
-
-
-    def kernel (self, out_X):
-        for p in self.get_interior_points (out_X):
-            if out_X[p] is out_X[p]:
-                out_X[p] = 0.0
-
-
-
-class IfStatementOpIsNotFailure (MultiStageStencil):
-    """
-    Tests that use of 'is not' operator currently raises an error.
-    """
-    def __init__ (self, domain):
-        super ( ).__init__ ( )
-        self.set_halo ( (1,1,1,1) )
-
-
-    def kernel (self, out_X):
-        for p in self.get_interior_points (out_X):
-            if out_X[p] is not out_X[p]:
-                out_X[p] = 0.0
-
-
-
-class IfStatementOpNotInFailure (MultiStageStencil):
-    """
-    Tests that use of 'not in' operator currently raises an error.
-    """
-    def __init__ (self, domain):
-        super ( ).__init__ ( )
-        self.set_halo ( (1,1,1,1) )
-
-
-    def kernel (self, out_X):
-        for p in self.get_interior_points (out_X):
-            if out_X[p] not in out_X[p]:
-                out_X[p] = 0.0
-
-
-
-class IfStatementOpInFailure (MultiStageStencil):
-    """
-    Tests that use of 'in' operator currently raises an error.
-    """
-    def __init__ (self, domain):
-        super ( ).__init__ ( )
-        self.set_halo ( (1,1,1,1) )
-
-
-    def kernel (self, out_X):
-        for p in self.get_interior_points (out_X):
-            if out_X[p] in out_X[p]:
-                out_X[p] = 0.0
-
-
-
-class IfStatementTest (unittest.TestCase):
-    """
-    A test case for the If-statement related stencils defined above.-
-    """
-    def _run (self, stencil):
-        kwargs = dict ( )
-        for p in self.params:
-            kwargs[p] = getattr (self, p)
-        stencil.run (**kwargs)
-
     def setUp (self):
         super ( ).setUp ( )
         logging.basicConfig (level=logging.INFO)
         self.domain = (64, 64, 32)
         self.params = ('out_X','in_X')
 
-
-        self.in_X = np.random.random_integers (10, 
-                                                 size=self.domain)
+        self.in_X = np.random.random_integers (10,
+                                               size=self.domain)
         self.in_X = self.in_X.astype (np.float64)
 
         self.out_X = np.copy (self.in_X)
 
-        self.stencil  = GameOfLife                 (self.domain)
-        self.stencil2 = AdditionalIfStatement      (self.domain)
-        self.stencil3 = IfStatementOpIsFailure     (self.domain)
-        self.stencil4 = IfStatementOpIsNotFailure  (self.domain)
-        self.stencil5 = IfStatementOpNotInFailure  (self.domain)
-        self.stencil6 = IfStatementOpInFailure     (self.domain)
+        self.stencil = AdditionalIfStatement (self.domain)
+        self.stencil.set_halo ( (0,1,0,0) )
+        self.stencil.set_k_direction ('forward')
 
 
-    def test_game_of_life (self):
-        from tests.test_stencils import CopyTest
-        ct         = CopyTest ( )
-        ct.stencil = self.stencil
-        ct.domain  = self.domain
-        ct.params  = self.params
-        ct.out_X   = self.out_X
-        ct.in_X    = self.in_X
-        ct.test_compare_python_cpp_and_cuda_results ( )
+    @attr(lang='cuda')
+    def test_compare_python_cpp_and_cuda_results (self):
+        super ( ).test_compare_python_cpp_and_cuda_results ( )
 
 
-    def test_additional_if_statement_tests (self):
-        from tests.test_stencils import CopyTest
-        ct         = CopyTest ( )
-        ct.stencil = self.stencil2
-        ct.domain  = self.domain
-        ct.params  = self.params
-        ct.out_X   = self.out_X
-        ct.in_X    = self.in_X
-        ct.test_compare_python_cpp_and_cuda_results ( )
+    def test_automatic_access_pattern_detection (self):
+        from gridtools import BACKENDS
 
-#    def test_op_is_raises_error (self):
-#        with self.assertRaises (NotImplementedError):
-#            self.stencil3.backend = 'c++'
-#            self._run (self.stencil3)
-#
-#
-#    def test_op_is_not_raises_error (self):
-#        with self.assertRaises (NotImplementedError):
-#            self.stencil4.backend = 'c++'
-#            self._run (self.stencil4)
-#
-#
-#    def test_op_not_in_raises_error (self):
-#        with self.assertRaises (NotImplementedError):
-#            self.stencil5.backend = 'c++'
-#            self._run (self.stencil5)
-#
-#
-#    def test_op_in_raises_error (self):
-#        with self.assertRaises (NotImplementedError):
-#            self.stencil6.backend = 'c++'
-#            self._run (self.stencil6)
+        #
+        # fields and their ranges
+        #
+        self.add_expected_offset ('in_X',  None)
+        self.add_expected_offset ('out_X', [0,1,0,0])
+        self.add_expected_offset ('self.counter', None)
+
+        for backend in BACKENDS:
+            self.stencil.backend = backend
+            self._run ( )
+            self.automatic_access_pattern_detection (self.stencil)
+
+
+    def test_data_dependency_detection (self, deps=None, backend='c++'):
+        expected_deps = [('self.counter', 'out_X')]
+        super ( ).test_data_dependency_detection (deps=expected_deps,
+                                                  backend=backend)
+
+
+    @attr(lang='cuda')
+    def test_data_dependency_detection_cuda (self):
+        self.test_data_dependency_detection (backend='cuda')
+
+
+    def test_minimum_halo_detection (self):
+        super ( ).test_minimum_halo_detection ([0, 1, 0, 0])
+
+
+    @unittest.skip("Not yet implemented")
+    @attr(lang='python')
+    def test_python_results (self):
+        pass
+
+
+    def test_get_interior_points_K_static (self):
+        super ( ).test_get_interior_points_K_static (self.out_X)
+
+
+    def test_get_interior_points_K_object (self):
+        super ( ).test_get_interior_points_K_object (self.out_X)
+
+
+    def test_get_interior_points_IJ_static (self):
+        super ( ).test_get_interior_points_IJ_static (self.out_X)
+
+
+    def test_get_interior_points_IJ_object (self):
+        super ( ).test_get_interior_points_IJ_object (self.out_X)

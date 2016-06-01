@@ -1,5 +1,5 @@
 #include <iostream>
-#include <gt_for_each/for_each.hpp>
+#include <boost/mpl/for_each.hpp>
 #include <boost/mpl/transform.hpp>
 #include "stencil-composition/interval.hpp"
 #include "stencil-composition/functor_do_methods.hpp"
@@ -11,24 +11,24 @@ using namespace gridtools;
 struct Functor0
 {
     template <typename TArguments>
-    static void Do(TArguments& args, interval<level<3,-1>, level<3,-1> >) {}
+    static void Do(TArguments const& args, interval<level<3,-1>, level<3,-1> >) {}
 };
 
 // test functor 1
 struct Functor1
 {
     template <typename TArguments>
-    static void Do(TArguments& args, interval<level<0,1>, level<2,-1> >) {}
+    static void Do(TArguments const& args, interval<level<0,1>, level<2,-1> >) {}
 };
 
 // test functor 2
 struct Functor2
 {
     template <typename TArguments>
-    static void Do(TArguments& args, interval<level<0,1>, level<1,-1> >) {}
+    static void Do(TArguments const& args, interval<level<0,1>, level<1,-1> >) {}
 
     template <typename TArguments>
-    static void Do(TArguments& args, interval<level<1,1>, level<3,-1> >) {}
+    static void Do(TArguments const& args, interval<level<1,1>, level<3,-1> >) {}
 };
 
 // helper printing the loop index pairs
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
     >::type FunctorDoMethods;
 
     std::cout << "Print the Functor0, Functor1 and Functor2 loop intervals:" << std::endl;
-    gridtools::for_each<
+    boost::mpl::for_each<
         compute_loop_intervals<
             FunctorDoMethods,
             AxisInterval
