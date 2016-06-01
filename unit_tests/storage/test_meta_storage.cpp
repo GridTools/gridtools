@@ -3,6 +3,7 @@
 #include <storage/storage.hpp>
 
 using namespace gridtools;
+using namespace enumtype;
 
 TEST(storage_info, test_interface) {
 #if defined(CXX11_ENABLED) && defined(NDEBUG)
@@ -163,7 +164,13 @@ TEST(storage_info, index) {
     //interface passing indices in an accessor
 
     typedef grid_traits_from_id<GRIDBACKEND>::null_extent_t extent_t;
-    ASSERT_TRUE((meta._index(meta.strides(), in_accessor< 0, extent_t, 4> (1,1,2,3).offsets()) == 6493));
+#ifdef STRUCTURED_GRIDS
+    typedef in_accessor< 0, extent_t, 4> accessor_t;
+#else
+    typedef in_accessor< 0, cells, extent_t, 4> accessor_t;
+#endif
+
+    ASSERT_TRUE((meta._index(meta.strides(), accessor_t (1,1,2,3).offsets()) == 6493));
 
 
 }
