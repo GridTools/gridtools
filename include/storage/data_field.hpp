@@ -116,10 +116,6 @@ namespace gridtools {
                 typename Storage::pointer_type tmp = storage_.template get< SnapshotFrom, DimFrom >();
                 storage_.template get< SnapshotFrom, DimFrom >() = storage_.template get< SnapshotTo, DimTo >();
                 storage_.template get< SnapshotTo, DimTo >() = tmp;
-                // if the storage is not located on the host we have to clone it
-                // to the device in order to update the structure.
-                if (!storage_.is_on_host())
-                    storage_.clone_to_device();
             }
         };
     };
