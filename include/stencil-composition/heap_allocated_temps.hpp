@@ -66,17 +66,18 @@ namespace gridtools {
                     GRIDTOOLS_STATIC_ASSERT(ElemType::is_temporary, "wrong type (not temporary)");
                     GRIDTOOLS_STATIC_ASSERT(
                         is_meta_storage< typename ElemType::storage_info_type >::value, "wrong metadata type");
-
-                    if (!m_metadata_set.template present< pointer< typename ElemType::storage_info_type const > >())
-                        // creates a metadata on the heap, passing on ownership
-                        m_metadata_set.insert(pointer< typename ElemType::storage_info_type const >(
-                            new typename ElemType::storage_info_type(m_tile_i, m_tile_j, m_tile_k)));
+                    
+                    typedef typename ElemType::storage_info_type meta_t;
 
                     // ElemType::info_string.c_str();
                     // calls the constructor of the storage
-                    e = new ElemType(
-                        *m_metadata_set.template get< pointer< const typename ElemType::storage_info_type > >(),
-                        "default tmp storage");
+                    meta_t meta_data(m_tile_i, m_tile_j, m_tile_k);
+                    e = new ElemType(meta_data, "default tmp storage");
+
+                    // insert new type in the map only if not present already
+                    if (!m_metadata_set.template present< pointer< typename ElemType::storage_info_type const > >())
+                        // get the meta_data pointer from the temporary storage and insert it into the metadata_set 
+                        m_metadata_set.insert(e->get_meta_data_pointer());
                 }
             };
 
@@ -148,14 +149,14 @@ namespace gridtools {
 
                     typedef typename ElemType::storage_info_type meta_t;
 
+                    // calls the constructor of the storage
+                    meta_t meta_data(m_offset_i, m_offset_j, m_offset_k, m_n_i_threads, m_n_j_threads);
+                    e = new ElemType(meta_data, "blocked tmp storage");
+
                     // insert new type in the map only if not present already
                     if (!m_metadata_set.template present< pointer< const meta_t > >())
-                        // creates a metadata on the heap, passing on ownership
-                        m_metadata_set.insert(pointer< meta_t const >(
-                            new meta_t(m_offset_i, m_offset_j, m_offset_k, m_n_i_threads, m_n_j_threads)));
-
-                    // calls the constructor of the storage
-                    e = new ElemType(*m_metadata_set.template get< pointer< const meta_t > >(), "blocked tmp storage");
+                        // get the meta_data pointer from the temporary storage and insert it into the metadata_set 
+                        m_metadata_set.insert(e->get_meta_data_pointer());
                 }
             };
 

@@ -50,6 +50,9 @@ namespace gridtools {
         T *get_pointer_to_use() { return m_cpu_p; }
 
         GT_FUNCTION
+        T *get_pointer_to_use() const { return m_cpu_p; }
+
+        GT_FUNCTION
         void reset(T *cpu_p) { m_cpu_p = cpu_p; }
 
         GT_FUNCTION

@@ -188,17 +188,12 @@ bool test_domain() {
     typedef gridtools::metadata_set<actual_metadata_set_t> actual_metadata_list_type;
     actual_metadata_list_type actual_metadata_list;
 
-    typedef boost::fusion::filter_view<typename boost::fusion::result_of::as_set<actual_metadata_set_t>::type,
-                                       boost::mpl::not_<gridtools::is_ptr_to_tmp<boost::mpl::_1> > > t_meta_view;
-
-    t_meta_view  meta_view(actual_metadata_list.sequence_view());
-
     boost::fusion::copy(domain.m_storage_pointers, actual_arg_list);
 
 #ifdef __CUDACC__
-    gridtools::setup_computation<gridtools::enumtype::Cuda>::apply( actual_arg_list, meta_view, domain );
+    gridtools::setup_computation<gridtools::enumtype::Cuda>::apply( actual_arg_list, actual_metadata_list, domain );
 #else
-    gridtools::setup_computation<gridtools::enumtype::Host>::apply( actual_arg_list, meta_view, domain ); //does nothing
+    gridtools::setup_computation<gridtools::enumtype::Host>::apply( actual_arg_list, actual_metadata_list, domain ); //does nothing
 #endif
 
 
@@ -225,9 +220,9 @@ bool test_domain() {
     boost::fusion::copy(domain.m_storage_pointers, actual_arg_list);
 
 #ifdef __CUDACC__
-    gridtools::setup_computation<gridtools::enumtype::Cuda>::apply( actual_arg_list, meta_view, domain );
+    gridtools::setup_computation<gridtools::enumtype::Cuda>::apply( actual_arg_list, actual_metadata_list, domain );
 #else
-    gridtools::setup_computation<gridtools::enumtype::Host>::apply( actual_arg_list, meta_view, domain ); //does nothing
+    gridtools::setup_computation<gridtools::enumtype::Host>::apply( actual_arg_list, actual_metadata_list, domain ); //does nothing
 #endif
 
     inner_args =

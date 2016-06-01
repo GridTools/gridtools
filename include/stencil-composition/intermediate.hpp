@@ -222,7 +222,10 @@ namespace gridtools {
                     storage_pointers, domain.m_original_pointers));
 
             boost::fusion::for_each(storage_pointers, update_pointer());
-            boost::fusion::for_each(meta_data_, update_pointer());
+
+            // following line is extracting the correct meta_data pointers
+            // from the previously handled/cloned storages.
+            boost::fusion::for_each(storage_pointers, get_storage_metadata_ptrs<MetaData>(meta_data_));
 
             return GT_NO_ERRORS;
         }
@@ -594,11 +597,7 @@ namespace gridtools {
         */
         virtual void steady() {
             if (is_storage_ready) {
-                // filter the non temporary meta storage pointers among the actual ones
-                typename boost::fusion::result_of::as_set< actual_metadata_set_t >::type meta_view(
-                    m_actual_metadata_list.sequence_view());
-
-                setup_computation< Backend::s_backend_id >::apply(m_actual_arg_list, meta_view, m_domain);
+                setup_computation< Backend::s_backend_id >::apply(m_actual_arg_list, m_actual_metadata_list, m_domain);
 #ifdef VERBOSE
                 printf("Setup computation\n");
 #endif
@@ -632,12 +631,6 @@ namespace gridtools {
                 view_type;
             view_type fview(m_actual_arg_list);
             boost::fusion::for_each(fview, _impl::delete_tmps());
-
-            // deleting the metadata objects
-            typedef boost::fusion::filter_view< typename actual_metadata_list_type::set_t,
-                is_ptr_to_tmp< boost::mpl::_1 > > view_type2;
-            view_type2 fview2(m_actual_metadata_list.sequence_view());
-            boost::fusion::for_each(fview2, delete_pointer());
         }
 
         /**

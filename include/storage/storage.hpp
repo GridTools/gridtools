@@ -52,7 +52,7 @@ namespace gridtools {
         static const ushort_t space_dimensions = RegularStorageType::space_dimensions;
         static const bool is_temporary = RegularStorageType::is_temporary;
         static void text() { std::cout << "text: no_storage_type_yet<" << RegularStorageType() << ">" << std::endl; }
-                void info(std::ostream & out_s) const { out_s << "No sorage type yet for storage type " << RegularStorageType() << "\n"; }
+        void info(std::ostream & out_s) const { out_s << "No sorage type yet for storage type " << RegularStorageType() << "\n"; }
     };
 
     template < typename T >
@@ -104,8 +104,8 @@ namespace gridtools {
                                               boost::mpl::void_ >::type >::type meta_data_ptr_t;
 
       private:
-        storage_ptr_t m_storage;
         meta_data_ptr_t m_meta_data;
+        storage_ptr_t m_storage;
         bool m_on_host;
         template < typename T >
         storage(T);
@@ -164,6 +164,14 @@ namespace gridtools {
             return *m_meta_data;
         }
 
+        pointer<storage_info_type const> get_meta_data_pointer() const {
+            return pointer<storage_info_type const>(m_meta_data.get_pointer_to_use());
+        }
+
+        pointer<storage_info_type const> get_meta_data_pointer() {
+            return pointer<storage_info_type const>(m_meta_data.get_pointer_to_use());
+        }
+
         pointer_type const &data() const {
             assert(m_on_host);
             return (*m_storage).data();
@@ -214,6 +222,11 @@ namespace gridtools {
             (*m_storage).print(s);
         }
 
+        void print_value(uint_t i, uint_t j, uint_t k) {
+            assert(m_on_host);
+            (*m_storage).print_value(i,j,k);
+        }
+
         char const *get_name() const {
             assert(m_on_host);
             return (*m_storage).get_name();
@@ -260,28 +273,28 @@ namespace gridtools {
         // forwarding constructor
         template < class... ExtraArgs >
         explicit storage(storage_info_type const &meta_data_, ExtraArgs const &... args)
-            : m_storage(new BaseStorage(meta_data_, args...), false), m_meta_data(&meta_data_, true), m_on_host(true) {}
+            : m_meta_data(new storage_info_type(meta_data_), false), m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), args...), false), m_on_host(true) {}
 #else // CXX11_ENABLED
 
         explicit storage(storage_info_type const &meta_data_, value_type const &init)
-            : m_storage(new BaseStorage(meta_data_, init), false), m_meta_data(&meta_data_, true), m_on_host(true) {}
+            : m_meta_data(new storage_info_type(meta_data_), false), m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), init), false), m_on_host(true) {}
 
         explicit storage(storage_info_type const &meta_data_, value_type const &init, const char *name)
-            : m_storage(new BaseStorage(meta_data_, init, name), false), m_meta_data(&meta_data_, true),
+            : m_meta_data(new storage_info_type(meta_data_), false), m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), init, name), false),
               m_on_host(true) {}
 
         template < typename Ret, typename T >
         explicit storage(storage_info_type const &meta_data_, Ret (*func)(T const &, T const &, T const &))
-            : m_storage(new BaseStorage(meta_data_, func), false), m_meta_data(&meta_data_, true), m_on_host(true) {}
+            : m_meta_data(new storage_info_type(meta_data_), false), m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), func), false), m_on_host(true) {}
 
         template < class FloatType >
         explicit storage(storage_info_type const &meta_data_, FloatType *arg)
-            : m_storage(new BaseStorage(meta_data_, (FloatType *)arg), false), m_meta_data(&meta_data_, true),
+            : m_meta_data(new storage_info_type(meta_data_), false), m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), (FloatType *)arg), false),
               m_on_host(true) {}
 
         template < class FloatType >
         explicit storage(storage_info_type const &meta_data_, FloatType *arg, const char *name)
-            : m_storage(new BaseStorage(meta_data_, (FloatType *)arg, name), false), m_meta_data(&meta_data_, true),
+            : m_meta_data(new storage_info_type(meta_data_), false), m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), (FloatType *)arg, name), false),
               m_on_host(true) {}
 
 #endif // CXX11_ENABLED
@@ -289,68 +302,68 @@ namespace gridtools {
         ~storage() {
             m_storage.free_it();
             m_meta_data.free_it();
-                }
+        }
 
-                /**@brief releasing the pointers to the data, and deleting them in case they need to be deleted */
-                void release() {
-                    assert(m_on_host);
-                    (*m_storage).release();
-                }
+        /**@brief releasing the pointers to the data, and deleting them in case they need to be deleted */
+        void release() {
+            assert(m_on_host);
+            (*m_storage).release();
+        }
 
-                BaseStorage *get_pointer_to_use() { return m_storage.get_pointer_to_use(); }
+        BaseStorage *get_pointer_to_use() { return m_storage.get_pointer_to_use(); }
 
-                explicit storage(storage_info_type const &meta_data_)
-                    : m_storage(new BaseStorage(meta_data_), false), m_meta_data(&meta_data_, true), m_on_host(true) {}
+        explicit storage(storage_info_type const &meta_data_)
+            : m_meta_data(new storage_info_type(meta_data_), false), m_storage(new BaseStorage(m_meta_data.get_pointer_to_use()), false), m_on_host(true) {}
 
-                template < typename UInt >
-                value_type const &operator[](UInt const &index_) const {
-                    assert(m_on_host && "The accessed storage was not copied back from the device yet.");
-                    return (*m_storage)[index_];
-                }
+        template < typename UInt >
+        value_type const &operator[](UInt const &index_) const {
+            assert(m_on_host && "The accessed storage was not copied back from the device yet.");
+            return (*m_storage)[index_];
+        }
 
 #ifdef CXX11_ENABLED
 
-                /**
-                 * explicitly disables the case in which the storage_info is passed as r- or x-value.
-                 */
-                template < typename... T >
-                storage(storage_info_type &&, T...) = delete;
+        /**
+         * explicitly disables the case in which the storage_info is passed as r- or x-value.
+         */
+        template < typename... T >
+        storage(storage_info_type &&, T...) = delete;
 
-                /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k)
-                 *  this api is callable from the host only. The function that is used to .
-                 */
-                template < typename... UInt >
-                value_type &operator()(UInt... dims) {
-                    assert(m_on_host && "The accessed storage was not copied back from the device yet.");
-                    return (*m_storage)(dims...);
-                }
+        /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k)
+         *  this api is callable from the host only. The function that is used to .
+         */
+        template < typename... UInt >
+        value_type &operator()(UInt... dims) {
+            assert(m_on_host && "The accessed storage was not copied back from the device yet.");
+            return (*m_storage)(dims...);
+        }
 
-                /** @brief returns (by const reference) the value of the data field at the coordinates (i, j, k)
-                 *  this api is callable from the host only. The function that is used to .
-                 */
-                template < typename... UInt >
-                value_type const &operator()(UInt const &... dims) const {
-                    assert(m_on_host && "The accessed storage was not copied back from the device yet.");
-                    return (*m_storage)(dims...);
-                }
+        /** @brief returns (by const reference) the value of the data field at the coordinates (i, j, k)
+         *  this api is callable from the host only. The function that is used to .
+         */
+        template < typename... UInt >
+        value_type const &operator()(UInt const &... dims) const {
+            assert(m_on_host && "The accessed storage was not copied back from the device yet.");
+            return (*m_storage)(dims...);
+        }
 
 #else // CXX11_ENABLED
 
-                /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k)
-                 *  this api is callable from the host only. The function that is used to .
-                 */
-                value_type &operator()(uint_t const &i, uint_t const &j, uint_t const &k) {
-                    assert(m_on_host && "The accessed storage was not copied back from the device yet.");
-                    return (*m_storage)(i, j, k);
-                }
+        /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k)
+         *  this api is callable from the host only. The function that is used to .
+         */
+        value_type &operator()(uint_t const &i, uint_t const &j, uint_t const &k) {
+            assert(m_on_host && "The accessed storage was not copied back from the device yet.");
+            return (*m_storage)(i, j, k);
+        }
 
-                /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k)
-                 *  this api is callable from the host only. The function that is used to .
-                 */
-                const value_type &operator()(uint_t const &i, uint_t const &j, uint_t const &k) const {
-                    assert(m_on_host && "The accessed storage was not copied back from the device yet.");
-                    return (*m_storage)(i, j, k);
-                }
+        /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k)
+         *  this api is callable from the host only. The function that is used to .
+         */
+        const value_type &operator()(uint_t const &i, uint_t const &j, uint_t const &k) const {
+            assert(m_on_host && "The accessed storage was not copied back from the device yet.");
+            return (*m_storage)(i, j, k);
+        }
 #endif
 
     }; // closing struct storage
