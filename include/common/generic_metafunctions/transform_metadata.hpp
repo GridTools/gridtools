@@ -1,7 +1,7 @@
 #pragma once
 
 namespace gridtools {
-#ifdef CXX11_ENABLED
+#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
     template < typename Pattern, typename Repl, typename Arg>
     struct subs {
         typedef typename boost::mpl::if_<
