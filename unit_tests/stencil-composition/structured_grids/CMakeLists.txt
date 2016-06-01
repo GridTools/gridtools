@@ -51,14 +51,6 @@ if ( ENABLE_CXX11 )
 
     gridtools_add_test(strgrid_stencil_tests ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/strgrid_stencil_tests")
 
-    add_executable(test_cycle_and_swap test_cycle_and_swap.cpp)
-    set_target_properties(test_cycle_and_swap PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
-    target_link_libraries(test_cycle_and_swap ${GTEST_BOTH_LIBRARIES} gcl -lpthread ${exe_LIBS})
-
-    add_executable(test_iterate_domain test_iterate_domain.cpp)
-    set_target_properties(test_iterate_domain PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
-    target_link_libraries(test_iterate_domain ${GTEST_BOTH_LIBRARIES} gcl -lpthread ${exe_LIBS})
-
 endif(ENABLE_CXX11)
 if(CUDA_FOUND)
     if(ENABLE_CXX11)
