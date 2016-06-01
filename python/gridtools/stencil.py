@@ -353,13 +353,16 @@ class Stencil (object):
         return self.name
 
 
-    def _plot_graph (self, G, axes=None):
+    def _plot_graph (self, G, axes=None, **kwargs):
         """
         Renders graph 'G' using 'matplotlib'.-
 
-        :param G:       The graph to plot
-        :param axes:    The Matplotlib axes on which the graph will be plotted.
-                        If no axes is specified, a new figure will be created.
+        :param G:        The graph to plot
+        :param axes:     The Matplotlib axes on which the graph will be plotted.
+                         If no axes is specified, a new figure will be created.
+        :param **kwargs: Optional keyword aruments that will be passed to
+                         networkx.draw_networkx()
+        :return:
         """
         import matplotlib.pyplot as plt
 
@@ -374,7 +377,8 @@ class Stencil (object):
         nx.draw_networkx (G,
                           pos=pos,
                           ax=axes,
-                          node_size=1500)
+                          node_size=1500,
+                          **kwargs)
 
 
     def build_data_dependency (self):
@@ -473,7 +477,7 @@ class Stencil (object):
             logging.error ("The passed Z field should be 2D")
 
 
-    def plot_data_dependency (self, graph=None):
+    def plot_data_dependency (self, graph=None, scope=None):
         """
         Renders a data-depencency graph using 'matplotlib'
         :param graph: the graph to render; it renders this stencil's data
@@ -482,7 +486,36 @@ class Stencil (object):
         """
         if graph is None:
             graph = self.get_data_dependency ( )
-        self._plot_graph (graph)
+        if scope is None:
+            scope = self.scope
+        #
+        # Assign node colors depending on symbol kind
+        #
+        node_color = ''
+        for n in graph.nodes():
+            if scope.is_parameter(n):
+                node_color += 'r'
+            elif scope.is_alias(n):
+                node_color += 'm'
+            elif scope.is_temporary(n):
+                node_color += 'g'
+            elif scope.is_constant(n):
+                node_color += 'y'
+            elif scope.is_local(n):
+                node_color += 'c'
+            else:
+                node_color += 'w'
+        #
+        # Display a legend with node colors
+        #
+#        import matplotlib.patches as mpatches
+#        par_patch = mpatches.Patch(color='r', label='Parameter')
+#        ali_patch = mpatches.Patch(color='m', label='Alias')
+#        tmp_patch = mpatches.Patch(color='g', label='Temporary')
+#        con_patch = mpatches.Patch(color='y', label='Constant')
+#        loc_patch = mpatches.Patch(color='c', label='Local')
+#        plt.legend(handles=[par_patch,ali_patch,tmp_patch,con_patch,loc_patch])
+        self._plot_graph (graph, node_color=node_color)
 
 
     def plot_stage_execution (self):
