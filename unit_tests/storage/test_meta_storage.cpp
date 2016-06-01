@@ -161,7 +161,9 @@ TEST(storage_info, index) {
     //interface passing indices in an array
     ASSERT_TRUE((meta._index(meta.strides(), array<uint_t, 4>{1,1,2,3})) == 6493);
     //interface passing indices in an accessor
-    ASSERT_TRUE((meta._index(meta.strides(), in_accessor< 0, extent<0,0,0,0,0,0>, 4> (1,1,2,3).offsets()) == 6493));
+
+    typedef grid_traits_from_id<GRIDBACKEND>::null_extent_t extent_t;
+    ASSERT_TRUE((meta._index(meta.strides(), in_accessor< 0, extent_t, 4> (1,1,2,3).offsets()) == 6493));
 
 
 }
