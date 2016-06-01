@@ -117,7 +117,7 @@ namespace positional_copy_stencil {
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in
         // order. (I don't particularly like this)
 
-        gridtools::domain_type< accessor_list > domain(boost::fusion::make_vector(&in, &out));
+        gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&in, &out));
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,

@@ -129,7 +129,7 @@ TEST(test_stencil_nested_on, run) {
         p_in_cells, p_in_edges, p_i_edges, p_c_edges, p_j_edges, p_k_edges, p_out_edges
     > accessor_list_t;
 
-    gridtools::domain_type<accessor_list_t> domain(boost::fusion::make_vector
+    gridtools::aggregator_type<accessor_list_t> domain(boost::fusion::make_vector
         (&in_cells, &in_edges, &i_edges, &c_edges, &j_edges, &k_edges, &out_edges) );
     array<uint_t,5> di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc -1, d1};
     array<uint_t,5> dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc -1, d2};

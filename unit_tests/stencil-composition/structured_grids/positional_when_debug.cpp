@@ -64,8 +64,8 @@ TEST(test_make_computation, positional_when_debug) {
     typedef boost::mpl::vector<p_in> accessor_list_t;
 
     /* canot use the assignment since with a single placeholder the wrong constructor is picked.
-       This is a TODO in domain_type.hpp */
-    domain_type<accessor_list_t> dm( boost::fusion::make_vector(&a_storage));
+       This is a TODO in aggregator_type.hpp */
+    aggregator_type<accessor_list_t> dm( boost::fusion::make_vector(&a_storage));
 #ifdef CXX11_ENABLED
     auto
 #else

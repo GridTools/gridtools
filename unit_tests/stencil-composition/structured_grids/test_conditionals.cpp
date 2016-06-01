@@ -63,7 +63,7 @@ namespace test_conditionals{
         typedef arg<0, storage_t > p_dummy;
 
         typedef boost::mpl::vector1<p_dummy> arg_list;
-        domain_type< arg_list > domain_(boost::fusion::make_vector(&dummy));
+        aggregator_type< arg_list > domain_(boost::fusion::make_vector(&dummy));
 
 #ifdef CXX11_ENABLED
         auto

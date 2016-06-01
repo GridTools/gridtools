@@ -72,7 +72,7 @@ TEST(test_local_domain, merge_mss_local_domains) {
     storage_buff_type buff(meta_kji,1.5,"buff");
     storage_type out(meta_ijk,1.5,"out");
 
-    gridtools::domain_type<accessor_list> domain((p_in() = in),  (p_buff() = buff), (p_out() = out) );
+    gridtools::aggregator_type<accessor_list> domain((p_in() = in),  (p_buff() = buff), (p_out() = out) );
 
     uint_t di[5] = {0, 0, 0, d1-1, d1};
     uint_t dj[5] = {0, 0, 0, d2-1, d2};
@@ -91,14 +91,14 @@ TEST(test_local_domain, merge_mss_local_domains) {
              gridtools::make_stage<local_domain_stencil::dummy_functor>(p_buff() ,p_out())
              )
          )>, boost::mpl::quote1<gridtools::is_amss_descriptor> >
-                          , gridtools::domain_type<accessor_list>
+                          , gridtools::aggregator_type<accessor_list>
                           , gridtools::grid<local_domain_stencil::axis>
                           , boost::fusion::set<>
                           , gridtools::notype
                           , false> intermediate_t;
 
     typedef intermediate_backend<intermediate_t>::type backend_t;
-    typedef intermediate_domain_type<intermediate_t>::type domain_t;
+    typedef intermediate_aggregator_type<intermediate_t>::type domain_t;
     typedef intermediate_mss_components_array<intermediate_t>::type mss_components_array_t;
 
     typedef mss_components_array_t::elements mss_elements_t;

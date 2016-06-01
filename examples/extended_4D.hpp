@@ -158,7 +158,7 @@ namespace assembly {
         storage_type f(meta_, (float_type)1.3, "f");
         storage_type result(meta_, (float_type)0., "result");
 
-        gridtools::domain_type< accessor_list > domain(boost::fusion::make_vector(&phi, &psi, &jac, &f, &result));
+        gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&phi, &psi, &jac, &f, &result));
         /**
            - Definition of the physical dimensions of the problem.
            The grid constructor takes the horizontal plane dimensions,

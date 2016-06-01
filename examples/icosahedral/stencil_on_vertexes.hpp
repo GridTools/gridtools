@@ -80,7 +80,7 @@ namespace sov {
             vector< p_in_vertexes, p_out_vertexes >
                 accessor_list_t;
 
-        gridtools::domain_type< accessor_list_t > domain(boost::fusion::make_vector(
+        gridtools::aggregator_type< accessor_list_t > domain(boost::fusion::make_vector(
             &in_vertexes, &out_vertexes));
         array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};

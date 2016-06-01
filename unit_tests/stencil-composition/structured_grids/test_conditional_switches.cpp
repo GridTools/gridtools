@@ -74,7 +74,7 @@ namespace test_conditional_switches{
         typedef arg<1, tmp_storage_t > p_dummy_tmp;
 
         typedef boost::mpl::vector2<p_dummy, p_dummy_tmp> arg_list;
-        domain_type< arg_list > domain_(boost::fusion::make_vector(&dummy));
+        aggregator_type< arg_list > domain_(boost::fusion::make_vector(&dummy));
 
         auto comp_ = make_computation< BACKEND >(
             domain_,

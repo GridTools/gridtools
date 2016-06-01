@@ -76,7 +76,7 @@ namespace test_cycle_and_swap {
         typedef arg< 0, field_t > p_i_data;
         typedef boost::mpl::vector< p_i_data > accessor_list;
 
-        domain_type< accessor_list > domain(boost::fusion::make_vector(&i_data));
+        aggregator_type< accessor_list > domain(boost::fusion::make_vector(&i_data));
 
         auto comp = gridtools::make_computation< gridtools::BACKEND >(
             domain, grid, gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor >(p_i_data())));
@@ -125,7 +125,7 @@ namespace test_cycle_and_swap {
         typedef arg< 0, field_t > p_i_data;
         typedef boost::mpl::vector< p_i_data > accessor_list;
 
-        domain_type< accessor_list > domain(boost::fusion::make_vector(&i_data));
+        aggregator_type< accessor_list > domain(boost::fusion::make_vector(&i_data));
 
         auto comp = gridtools::make_computation< gridtools::BACKEND >(
             domain, grid, gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor_avg >(p_i_data())));

@@ -34,7 +34,7 @@ namespace gridtools {
     };
 
     template < typename T >
-    struct intermediate_domain_type;
+    struct intermediate_aggregator_type;
 
     template < typename Backend,
         typename MssArray,
@@ -43,7 +43,7 @@ namespace gridtools {
         typename ConditionalsSet,
         typename ReductionType,
         bool IsStateful >
-    struct intermediate_domain_type<
+    struct intermediate_aggregator_type<
         intermediate< Backend, MssArray, DomainType, Grid, ConditionalsSet, ReductionType, IsStateful > > {
         typedef DomainType type;
     };

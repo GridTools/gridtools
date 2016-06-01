@@ -102,7 +102,7 @@ namespace copystencil_python {
         // order in which they appear scanning the placeholders in order.
         // (I don't particularly like this)
         //
-        gridtools::domain_type< accessor_list > domain(boost::fusion::make_vector(&in_data, &out_data));
+        gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&in_data, &out_data));
 
         //
         // definition of the physical dimensions of the problem.

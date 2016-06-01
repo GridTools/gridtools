@@ -140,16 +140,16 @@ TEST(Laplace, test) {
     typedef boost::mpl::vector<p_in, p_out> accessor_list;
 // [placeholders]
 
-// [domain_type]
+// [aggregator_type]
     /**
        - Construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
        It must be noted that the only fields to be passed to the constructor are the non-temporary.
        The order in which they have to be passed is the order in which they appear scanning the placeholders in order (i.e. the order in the accessor_list?). \todo (I don't particularly like this).
-       \note domain_type implements the CRTP pattern in order to do static polymorphism (?) Because all what is 'clonable to gpu' must derive from the CRTP base class.
+       \note aggregator_type implements the CRTP pattern in order to do static polymorphism (?) Because all what is 'clonable to gpu' must derive from the CRTP base class.
     */
-       gridtools::domain_type<accessor_list> domain
+       gridtools::aggregator_type<accessor_list> domain
         (boost::fusion::make_vector(&in, &out));
-// [domain_type]
+// [aggregator_type]
 
 // [grid]
        /**

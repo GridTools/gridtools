@@ -136,10 +136,10 @@ namespace horizontal_diffusion {
 // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I
 // don't particularly like this)
 #if defined(CXX11_ENABLED)
-        gridtools::domain_type< accessor_list > domain(
+        gridtools::aggregator_type< accessor_list > domain(
             (p_out() = out), (p_in() = in), (p_coeff() = coeff), (p_crlato() = crlato), (p_crlatu() = crlatu));
 #else
-        gridtools::domain_type< accessor_list > domain(boost::fusion::make_vector(&coeff, &in, &out, &crlato, &crlatu));
+        gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&coeff, &in, &out, &crlato, &crlatu));
 #endif
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,

@@ -46,7 +46,7 @@ namespace gridtools {
             typedef MetaList metadata_set_t;
 
             /**
-               @brief instantiate the \ref gridtools::domain_type for the temporary storages
+               @brief instantiate the \ref gridtools::aggregator_type for the temporary storages
             */
             struct instantiate_tmps {
                 uint_t m_tile_i; // tile along i
@@ -118,7 +118,7 @@ namespace gridtools {
 
             typedef backend< BackendId, GridId, enumtype::Block > backend_type;
             /**
-               @brief instantiate the \ref gridtools::domain_type for the temporary storages
+               @brief instantiate the \ref gridtools::aggregator_type for the temporary storages
             */
             struct instantiate_tmps {
                 typedef MetaList metadata_set_t;

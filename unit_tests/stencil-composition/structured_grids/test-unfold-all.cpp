@@ -44,7 +44,7 @@ TEST(unfold_all, test) {
     typedef arg< 1, storage_t > p1;
 
     typedef boost::mpl::vector2< p0, p1 > arg_list;
-    domain_type< arg_list > domain((p0() = s0), (p1() = s1));
+    aggregator_type< arg_list > domain((p0() = s0), (p1() = s1));
 
     auto mss1 =
         make_multistage(enumtype::execute< enumtype::forward >(),

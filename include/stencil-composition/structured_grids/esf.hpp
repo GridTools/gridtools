@@ -3,7 +3,7 @@
 #include <boost/type_traits/is_const.hpp>
 
 #include "accessor.hpp"
-#include "../domain_type.hpp"
+#include "../aggregator_type.hpp"
 #include "../../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../esf_fwd.hpp"
 #include "../esf_aux.hpp"

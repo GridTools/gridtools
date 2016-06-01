@@ -10,7 +10,7 @@
 #include <boost/mpl/set.hpp>
 #include <boost/mpl/has_key.hpp>
 
-#include "domain_type.hpp"
+#include "aggregator_type.hpp"
 #include "local_domain.hpp"
 #include "backend_traits_fwd.hpp"
 #include "mss_components.hpp"
@@ -41,7 +41,7 @@ namespace gridtools {
         bool IsStateful >
     struct mss_local_domain {
         GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), "Internal Error: invalid type");
-        GRIDTOOLS_STATIC_ASSERT((is_domain_type< DomainType >::value), "Internal Error: invalid type");
+        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), "Internal Error: invalid type");
 
         /**
          * Create a fusion::vector of domains for each functor

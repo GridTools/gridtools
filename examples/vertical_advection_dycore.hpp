@@ -220,14 +220,14 @@ namespace vertical_advection_dycore {
 // don't particularly like this)
 
 #ifdef CXX11_ENABLE
-        gridtools::domain_type< accessor_list > domain((p_utens_stage() = repository.utens_stage()),
+        gridtools::aggregator_type< accessor_list > domain((p_utens_stage() = repository.utens_stage()),
             (p_u_stage() = repository.u_stage()),
             (p_wcon() = repository.wcon()),
             (p_u_pos() = repository.u_pos()),
             (p_utens() = repository.utens()),
             (p_dtr_stage() = repository.dtr_stage()));
 #else
-        gridtools::domain_type< accessor_list > domain(boost::fusion::make_vector(&repository.utens_stage(),
+        gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&repository.utens_stage(),
             &repository.u_stage(),
             &repository.wcon(),
             &repository.u_pos(),

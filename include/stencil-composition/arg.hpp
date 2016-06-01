@@ -69,7 +69,7 @@ namespace gridtools {
         arg_storage_pair< arg< I, storage_type >, Storage2 > operator=(Storage2 &ref) {
             GRIDTOOLS_STATIC_ASSERT((boost::is_same< Storage2, storage_type >::value),
                 "there is a mismatch between the storage types used by the arg placeholders and the storages really "
-                "instantiated. Check that the placeholders you used when constructing the domain_type are in the "
+                "instantiated. Check that the placeholders you used when constructing the aggregator_type are in the "
                 "correctly assigned and that their type match the instantiated storages ones");
 
             return arg_storage_pair< arg< I, storage_type >, Storage2 >(&ref);
@@ -103,7 +103,7 @@ namespace gridtools {
         arg_storage_pair< arg< I, storage_type >, Storage2 > operator=(Storage2 &ref) {
             GRIDTOOLS_STATIC_ASSERT((boost::is_same< Storage2, storage_type >::value),
                 "there is a mismatch between the storage types used by the arg placeholders and the storages really "
-                "instantiated. Check that the placeholders you used when constructing the domain_type are in the "
+                "instantiated. Check that the placeholders you used when constructing the aggregator_type are in the "
                 "correctly assigned and that their type match the instantiated storages ones");
 
             return arg_storage_pair< arg< I, storage_type >, Storage2 >(&ref);

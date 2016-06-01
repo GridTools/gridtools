@@ -266,9 +266,9 @@ bool test(uint_t x, uint_t y, uint_t z)
     typedef boost::mpl::vector<p_temp, p_field1, p_field2, p_field3> accessor_list;
 
 #if defined( CXX11_ENABLED )
-    gridtools::domain_type<accessor_list> domain( (p_field1() = field1), (p_field2() = field2), (p_field3() = field3) );
+    gridtools::aggregator_type<accessor_list> domain( (p_field1() = field1), (p_field2() = field2), (p_field3() = field3) );
 #else
-    gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&field1, &field2, &field3));
+    gridtools::aggregator_type<accessor_list> domain(boost::fusion::make_vector(&field1, &field2, &field3));
 #endif
 
     uint_t di[5] = {halo_size, halo_size, halo_size, d1-halo_size-1, d1};

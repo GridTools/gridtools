@@ -137,7 +137,7 @@ namespace gridtools {
                 typedef typename boost::mpl::find_if< tmppairs, has_index_< index > >::type iter;
 
                 GRIDTOOLS_STATIC_ASSERT((!boost::is_same< iter, typename boost::mpl::end< tmppairs >::type >::value),
-                    "Could not find a temporary, defined in the user domain_type, in the list of storage types used in "
+                    "Could not find a temporary, defined in the user aggregator_type, in the list of storage types used in "
                     "all mss/esfs. \n"
                     " Check that all temporaries are actually used in at least one user functor");
 
@@ -214,7 +214,7 @@ namespace gridtools {
         static uint_t apply(ArgListType &storage_pointers, MetaData &meta_data_, DomainType &domain) {
 
             // TODO check the type of ArgListType and MetaData
-            GRIDTOOLS_STATIC_ASSERT(is_domain_type< DomainType >::value, "wrong domain type");
+            GRIDTOOLS_STATIC_ASSERT(is_aggregator_type< DomainType >::value, "wrong domain type");
 
             // copy pointers into the domain original pointers, except for the temporaries.
             boost::mpl::for_each< boost::mpl::range_c< int, 0, boost::mpl::size< ArgListType >::value > >(
@@ -237,7 +237,7 @@ namespace gridtools {
         static int_t apply(ArgListType const &storage_pointers, MetaData const &meta_data_, DomainType &domain) {
 
             // TODO check the type of ArgListType and MetaData
-            GRIDTOOLS_STATIC_ASSERT(is_domain_type< DomainType >::value, "wrong domain type");
+            GRIDTOOLS_STATIC_ASSERT(is_aggregator_type< DomainType >::value, "wrong domain type");
 
             return GT_NO_ERRORS;
         }
@@ -256,7 +256,7 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT(
             (is_meta_array_of< MssComponentsArray, is_mss_components >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_domain_type< DomainType >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), "Internal Error: wrong type");
 
         GRIDTOOLS_STATIC_ASSERT((is_metadata_set< ActualMetadataListType >::value), "Internal Error: wrong type");
 
@@ -316,7 +316,7 @@ namespace gridtools {
     struct create_actual_arg_list {
         // GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error:
         // wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_domain_type< DomainType >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), "Internal Error: wrong type");
 
         /**
          * Takes the domain list of storage pointer types and transform
@@ -431,7 +431,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(
             (is_meta_array_of< MssDescriptorArray, is_amss_descriptor >::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_domain_type< DomainType >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
         // GRIDTOOLS_STATIC_ASSERT((is_conditionals_set<ConditionalsSet>::value), "Internal Error: wrong type");
 
@@ -574,7 +574,7 @@ namespace gridtools {
             t_domain_meta_view domain_meta_view(domain.m_metadata_set.sequence_view());
             t_meta_view meta_view(m_actual_metadata_list.sequence_view());
 
-            // get the storage metadatas from the domain_type
+            // get the storage metadatas from the aggregator_type
             boost::fusion::copy(domain_meta_view, meta_view);
         }
         /**

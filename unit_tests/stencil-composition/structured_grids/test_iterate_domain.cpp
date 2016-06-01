@@ -62,7 +62,7 @@ namespace test_iterate_domain{
         typedef arg<2, field<storage_out_type, 2, 2, 2>::type > p_out;
         typedef boost::mpl::vector<p_in, p_buff, p_out> accessor_list;
 
-        gridtools::domain_type<accessor_list> domain((p_in() = in),  (p_buff() = buff), (p_out() = out) );
+        gridtools::aggregator_type<accessor_list> domain((p_in() = in),  (p_buff() = buff), (p_out() = out) );
 
         uint_t di[5] = {0, 0, 0, d1-1, d1};
         uint_t dj[5] = {0, 0, 0, d2-1, d2};

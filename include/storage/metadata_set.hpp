@@ -90,7 +90,7 @@ namespace gridtools {
 
     /** inserts an element in the set if it is not present
 
-        used for the metadata_set in the domain_type
+        used for the metadata_set in the aggregator_type
     */
     template < typename Sequence, typename Arg >
     struct insert_if_not_present {
@@ -98,7 +98,7 @@ namespace gridtools {
 #ifdef PEDANTIC // disabling in case of generic accessors
         GRIDTOOLS_STATIC_ASSERT(is_storage< Arg >::type::value,
             "if you are using generic accessors disable the pedantic mode. Otherwise most probably you used in the "
-            "domain_type constructor a storage type which is not supported.");
+            "aggregator_type constructor a storage type which is not supported.");
 #endif
         GRIDTOOLS_STATIC_ASSERT(is_metadata_set< Sequence >::type::value, "wrong type");
 

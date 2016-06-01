@@ -125,7 +125,7 @@ TEST_F(cache_stencil, ij_cache)
 {
     SetUp();
     typedef boost::mpl::vector3<p_in, p_out, p_buff> accessor_list;
-    gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&m_in, &m_out));
+    gridtools::aggregator_type<accessor_list> domain(boost::fusion::make_vector(&m_in, &m_out));
 
 #ifdef CXX11_ENABLED
     auto
@@ -192,7 +192,7 @@ TEST_F(cache_stencil, ij_cache_offset)
     }
 
     typedef boost::mpl::vector3<p_in, p_out, p_buff> accessor_list;
-    gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&m_in, &m_out));
+    gridtools::aggregator_type<accessor_list> domain(boost::fusion::make_vector(&m_in, &m_out));
 
 #ifdef CXX11_ENABLED
     auto
@@ -256,7 +256,7 @@ TEST_F(cache_stencil, multi_cache) {
     }
 
     typedef boost::mpl::vector5< p_in, p_out, p_buff, p_buff_2, p_buff_3 > accessor_list;
-    gridtools::domain_type< accessor_list > domain(boost::fusion::make_vector(&m_in, &m_out));
+    gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&m_in, &m_out));
 
 #ifdef CXX11_ENABLED
     auto

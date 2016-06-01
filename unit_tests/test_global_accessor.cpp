@@ -122,7 +122,7 @@ TEST(test_global_accessor, boundary_conditions) {
     typedef arg<0, storage_type> p_sol;
     typedef arg<1, boundary> p_bd;
 
-    domain_type<boost::mpl::vector<p_sol, p_bd> > domain ( boost::fusion::make_vector( &sol_, &bd_));
+    aggregator_type<boost::mpl::vector<p_sol, p_bd> > domain ( boost::fusion::make_vector( &sol_, &bd_));
 
 #ifdef CXX11_ENABLED
     auto

@@ -14,7 +14,7 @@
 #include "gtest/gtest.h"
 
 #include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/domain_type.hpp>
+#include <stencil-composition/aggregator_type.hpp>
 
 #ifdef CXX11_ENABLED
 
