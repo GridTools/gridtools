@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef VERBOSE
+#include <iostream>
+#endif
+
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/pair.hpp>
@@ -218,7 +222,10 @@ namespace gridtools {
                     storage_pointers, domain.m_original_pointers));
 
             boost::fusion::for_each(storage_pointers, update_pointer());
-            boost::fusion::for_each(meta_data_, update_pointer());
+
+            // following line is extracting the correct meta_data pointers
+            // from the previously handled/cloned storages.
+            boost::fusion::for_each(storage_pointers, get_storage_metadata_ptrs<MetaData>(meta_data_));
 
             return GT_NO_ERRORS;
         }
@@ -444,17 +451,15 @@ namespace gridtools {
         /* Second we need to associate an extent to each esf, so that
            we can associate loop bounds to the functors.
          */
-        typedef typename associate_extents_to_esfs< typename MssDescriptorArray::elements,
-            extent_map_t >::type extent_sizes_t;
+        typedef typename associate_extents_to_esfs< typename MssDescriptorArray::elements, extent_map_t >::type
+            extent_sizes_t;
 
         typedef typename boost::mpl::if_<
-            boost::mpl::is_sequence<
-                typename MssDescriptorArray::elements>
-            , typename boost::mpl::fold< typename MssDescriptorArray::elements,
-                                boost::mpl::false_,
-                                boost::mpl::or_< boost::mpl::_1, mss_descriptor_is_reduction< boost::mpl::_2 > > >::type
-            , boost::mpl::false_
-            >::type has_reduction_t;
+            boost::mpl::is_sequence< typename MssDescriptorArray::elements >,
+            typename boost::mpl::fold< typename MssDescriptorArray::elements,
+                boost::mpl::false_,
+                boost::mpl::or_< boost::mpl::_1, mss_descriptor_is_reduction< boost::mpl::_2 > > >::type,
+            boost::mpl::false_ >::type has_reduction_t;
 
         typedef reduction_data< MssDescriptorArray, has_reduction_t::value > reduction_data_t;
         typedef typename reduction_data_t::reduction_type_t reduction_type_t;
@@ -592,11 +597,7 @@ namespace gridtools {
         */
         virtual void steady() {
             if (is_storage_ready) {
-                // filter the non temporary meta storage pointers among the actual ones
-                typename boost::fusion::result_of::as_set< actual_metadata_set_t >::type meta_view(
-                    m_actual_metadata_list.sequence_view());
-
-                setup_computation< Backend::s_backend_id >::apply(m_actual_arg_list, meta_view, m_domain);
+                setup_computation< Backend::s_backend_id >::apply(m_actual_arg_list, m_actual_metadata_list, m_domain);
 #ifdef VERBOSE
                 printf("Setup computation\n");
 #endif
@@ -630,12 +631,6 @@ namespace gridtools {
                 view_type;
             view_type fview(m_actual_arg_list);
             boost::fusion::for_each(fview, _impl::delete_tmps());
-
-            // deleting the metadata objects
-            typedef boost::fusion::filter_view< typename actual_metadata_list_type::set_t,
-                is_ptr_to_tmp< boost::mpl::_1 > > view_type2;
-            view_type2 fview2(m_actual_metadata_list.sequence_view());
-            boost::fusion::for_each(fview2, delete_pointer());
         }
 
         /**
@@ -662,6 +657,8 @@ namespace gridtools {
         }
 
         virtual std::string print_meter() { return m_meter.to_string(); }
+        
+        virtual double get_meter() { return m_meter.total_time(); }
 
         mss_local_domain_list_t const &mss_local_domain_list() const { return m_mss_local_domain_list; }
     };

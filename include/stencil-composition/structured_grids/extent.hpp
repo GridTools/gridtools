@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iostream>
 #include <boost/mpl/min_max.hpp>
 #include <boost/mpl/plus.hpp>
 #include <boost/mpl/reverse_fold.hpp>

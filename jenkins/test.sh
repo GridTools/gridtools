@@ -35,7 +35,7 @@ if [ $? -ne 0 ] ; then
     exitError 4652 ${LINENO} "Output of test file not found"
 fi
 
-grep 'FAILED\|ERROR' test.out
+grep -i 'fail\|error\|[^a-zA-z]fault' test.out
 
 if [ $? -eq 0 ] ; then
     # echo output to stdout

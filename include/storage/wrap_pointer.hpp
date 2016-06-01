@@ -11,11 +11,11 @@ namespace gridtools {
 
     template < typename T, bool Array = true >
     struct wrap_pointer {
-        private:
-		template <typename V>
-		wrap_pointer(V);
+      private:
+        template < typename V >
+        wrap_pointer(V);
 
-	public:
+      public:
         // TODO: turn into value_type?
         typedef T pointee_t;
 
@@ -48,6 +48,9 @@ namespace gridtools {
 
         GT_FUNCTION
         T *get_pointer_to_use() { return m_cpu_p; }
+
+        GT_FUNCTION
+        T *get_pointer_to_use() const { return m_cpu_p; }
 
         GT_FUNCTION
         void reset(T *cpu_p) { m_cpu_p = cpu_p; }

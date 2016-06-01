@@ -41,4 +41,4 @@ namespace gridtools {
         typedef typename enclosing_extent< extent<>, extent<> >::type type;
     };
 
-} //namespace gridtools
+} // namespace gridtools

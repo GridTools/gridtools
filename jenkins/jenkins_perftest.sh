@@ -23,6 +23,9 @@ while true; do
     esac
 done
 
+#setting default compiler to gcc
+export COMPILER="gcc"
+
 if [[ -z ${TARGET} || -z ${STD} || -z ${PREC} ]]; then
     echo "Error: some arguments are not set"
     exit 1

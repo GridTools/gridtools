@@ -5,9 +5,6 @@
 #define BOOST_NO_CXX11_RVALUE_REFERENCES
 #endif
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
 #include <boost/mpl/greater.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/vector_c.hpp>
