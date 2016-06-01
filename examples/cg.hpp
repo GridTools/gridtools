@@ -3,6 +3,9 @@
 //disable pedantic mode for the global accessor
 #define PEDANTIC_DISABLED
 
+#define REL_TOL
+#define MY_VERBOSE
+
 #include <gridtools.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 #include <stencil-composition/backend.hpp>
@@ -498,7 +501,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
     MPI_Allreduce(&rr, &rr_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
     double rr_init = sqrt(rr_global); //initial residual
 
-    #ifdef VERBOSE
+    #ifdef MY_VERBOSE
     if (PID == 0) {
         #ifdef REL_TOL
         std::cout << "Iteration 0: [residual] " << sqrt(rr_global)/rr_init << std::endl << std::endl;
@@ -764,7 +767,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
                 } 
 
         boost::timer::cpu_times lapse_time_precondition = time_precondition.elapsed();
-        #ifdef VERBOSE
+        #ifdef MY_VERBOSE
         if (PID == 0)
         {
             std::cout << "Iteration " << iter << ": [Pardiso]" << boost::timer::format(lapse_time_precondition);
@@ -832,7 +835,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
         residual =  sqrt(rr_global);
         #endif
 
-        #ifdef VERBOSE
+        #ifdef MY_VERBOSE
         if (PID == 0)
         {
             std::cout << "Iteration " << iter << ": [time]" << boost::timer::format(lapse_time_iteration);
@@ -848,7 +851,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
 
     boost::timer::cpu_times lapse_time = time.elapsed();
 
-    #ifndef VERBOSE
+    #ifndef MY_VERBOSE
     if (PID == 0) {
         std::cout << "Iteration " << iter << ": [residual] " << residual << std::endl << std::endl;
     }

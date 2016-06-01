@@ -3,6 +3,9 @@
 //disable pedantic mode for the global accessor
 #define PEDANTIC_DISABLED
 
+#define REL_TOL
+#define MY_VERBOSE
+
 #include <gridtools.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 #include <stencil-composition/backend.hpp>
@@ -482,6 +485,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
     MPI_Allreduce(&rr, &rr_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
     double rr_init = sqrt(rr_global); //initial residual
 
+    #ifdef MY_VERBOSE
     if (PID == 0) {
         #ifdef REL_TOL
         std::cout << "Iteration 0: [residual] " << sqrt(rr_global)/rr_init << std::endl << std::endl;
@@ -489,6 +493,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
         std::cout << "Iteration 0: [residual] " << rr_init << std::endl << std::endl;
         #endif
     }
+    #endif
 
     //#pragma omp barrier
 
@@ -507,7 +512,11 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
     /**
         Perform iterations of the CG
     */
-    for(int iter=1; iter <= TIME_STEPS; iter++) {
+
+    int iter;
+    double residual;
+
+    for(iter=1; iter <= TIME_STEPS; iter++) {
 
         // construction of the domains for the steps of CG
         gridtools::domain_type<accessor_list_step0> domain_step0
@@ -761,18 +770,19 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
 
         boost::timer::cpu_times lapse_time_iteration = time_iteration.elapsed();
 
-        double residual;
         #ifdef REL_TOL
         residual =  sqrt(rr_global)/rr_init;
         #else
         residual =  sqrt(rr_global);
         #endif
 
+        #ifdef MY_VERBOSE
         if (PID == 0)
         {
             std::cout << "Iteration " << iter << ": [time]" << boost::timer::format(lapse_time_iteration);
             std::cout << "Iteration " << iter << ": [residual] " << residual << std::endl << std::endl;
         }
+        #endif
 
         // Convergence test
         if (residual < EPS)
@@ -780,6 +790,12 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
     }
 
     boost::timer::cpu_times lapse_time = time.elapsed();
+
+    #ifndef MY_VERBOSE
+    if (PID == 0) {
+        std::cout << "Iteration " << iter << ": [residual] " << residual << std::endl << std::endl;
+    }
+    #endif
 
     if (gridtools::PID == 0){
         std::cout << std::endl << "TOTAL TIME: " << boost::timer::format(lapse_time);
