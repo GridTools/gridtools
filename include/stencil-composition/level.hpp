@@ -1,7 +1,5 @@
 #pragma once
 
-#include <iostream>
-
 #include <boost/config.hpp>
 #include <boost/static_assert.hpp>
 #include <boost/mpl/range_c.hpp>
