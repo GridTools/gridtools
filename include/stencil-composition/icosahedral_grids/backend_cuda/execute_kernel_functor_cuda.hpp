@@ -285,7 +285,7 @@ namespace gridtools {
 
                 // re-create the run functor arguments, replacing the processing elements block size
                 // with the corresponding, recently computed, block size
-#ifdef CXX11_ENABLED
+#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
                 typedef typename transform_meta_data< RunFunctorArguments,
                     typename RunFunctorArguments::processing_elements_block_size_t,
                     cuda_block_size_t >::type run_functor_arguments_cuda_t;
