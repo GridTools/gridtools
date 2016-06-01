@@ -402,7 +402,11 @@ class Stencil (object):
     def identify_stages_IO (self):
         """
         Tries to identify input and output data fields for every stage of the
-        stencil
+        stencil.
+
+        This method should be called after Stencil.generate_code(), because
+        during code generation all data dependencies and aliases are resolved
+        in all stages' scopes.
         :return:
         """
         for stg in self.stages:
@@ -438,6 +442,15 @@ class Stencil (object):
         """
         if graph is None:
             graph = self.get_data_dependency ( )
+        self._plot_graph (graph)
+
+
+    def plot_stage_execution (self):
+        """
+        Renders a stage execution graph using 'matplotlib'
+        :return:
+        """
+        graph = self.scope.stage_execution
         self._plot_graph (graph)
 
 
