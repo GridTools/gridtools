@@ -10,6 +10,7 @@
 
 namespace gridtools {
 
+#ifdef CXX11_ENABLED
     namespace _impl {
         template < ushort_t Idx, typename VariadicArgs, typename First, typename Super >
         struct return_helper {
@@ -42,9 +43,8 @@ namespace gridtools {
 
         GT_FUNCTION constexpr ElementType operator()() { return m_elem; }
 
-        /**@brief returns the offset at a specific index Idx*/
+        /**@brief returns the element at a specific index Idx*/
         template < ushort_t Idx >
-        /**@brief returns the offset array*/
         GT_FUNCTION constexpr typename tuple_elements_t::template get_elem< Idx >::type get() const {
 
             typedef _impl::return_helper< Idx, tuple_elements_t, ElementType, super > helper;
@@ -93,5 +93,5 @@ namespace gridtools {
     tuple< Args... > make_tuple(Args... args) {
         return tuple< Args... >(args...);
     }
-
+#endif
 } // namespace gridtools

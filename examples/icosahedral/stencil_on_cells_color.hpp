@@ -40,7 +40,6 @@ namespace socc {
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-            typedef typename icgrid::get_grid_topology<Evaluation>::type grid_topology_t;
             auto ff = [](const double _in, const double _res) -> double { return -_in + _res; };
 
             eval(out()) = eval(on_cells(ff, 0.0, in()));

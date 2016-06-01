@@ -89,10 +89,14 @@ inline double omp_get_wtime() { return 0; }
 // in debug mode.
 // If CONSTEXPR is used, the result will not be constexpr in debug mode, therefore unittests that
 // assume (for example those inserting result values into a templated type) so should not be compiled in DEBUG.
-#ifdef NDEBUG
-#define CONSTEXPR constexpr
+#ifdef CXX11_ENABLED
+  #ifdef NDEBUG
+    #define CONSTEXPR constexpr
+  #else
+    #define CONSTEXPR
+  #endif
 #else
-#define CONSTEXPR
+  #define CONSTEXPR
 #endif
 
 #include <boost/mpl/integral_c.hpp>

@@ -47,8 +47,6 @@ namespace sov {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        typedef gridtools::layout_map< 2, 1, 0 > layout_t;
-
         using cell_storage_type = typename backend_t::storage_t< icosahedral_topology_t::vertexes, double >;
 
         const uint_t halo_nc = 1;

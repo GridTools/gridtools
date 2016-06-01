@@ -3,6 +3,8 @@
 #include "common/array.hpp"
 #include "common/generic_metafunctions/variadic_typedef.hpp"
 
+#ifdef NDEBUG
+
 template < int Idx >
 struct get_component {
 
@@ -59,3 +61,5 @@ TEST(integer_sequence, apply_lambda) {
 
     ASSERT_TRUE(true);
 }
+
+#endif

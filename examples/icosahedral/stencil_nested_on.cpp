@@ -78,8 +78,6 @@ using namespace nested_test;
 
 TEST(test_stencil_nested_on, run) {
 
-    typedef gridtools::layout_map<2,1,0> layout_t;
-
     using cell_storage_type = typename backend_t::storage_t<icosahedral_topology_t::cells, double>;
     using edge_storage_type = typename backend_t::storage_t<icosahedral_topology_t::edges, double>;
 

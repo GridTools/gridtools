@@ -1,9 +1,8 @@
-
 include_directories( ../../include/common ) ## Library header files
 
-FILE(GLOB_RECURSE INC_ALL "../../include/common/*.hpp")
+FILE(GLOB_RECURSE INC_ALL "../../include/common/*.hpp *.hpp")
 
-SET(COMMON_UNITTEST_SOURCES meta_array_test.cpp atomic_functions_test.cpp ${INC_ALL})
+SET(COMMON_UNITTEST_SOURCES meta_array_test.cpp atomic_functions_test.cpp test_layout_map.cpp test_offset_tuple.cpp ${INC_ALL})
 
 if(ENABLE_CXX11)
     SET(COMMON_UNITTEST_SOURCES ${COMMON_UNITTEST_SOURCES} test_array.cpp test_aggregate.cpp explode_array_test.cpp test_repeat_template.cpp test_tuple.cpp)
@@ -20,7 +19,7 @@ target_link_libraries(common_tests ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS}
 gridtools_add_test( tests.common_tests ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/common_tests")
 
 if (CUDA_FOUND)
-    cuda_add_executable(common_tests_cuda atomic_functions_test.cu)
+    cuda_add_executable(common_tests_cuda atomic_functions_test.cu test_offset_tuple.cu test_layout_map.cu test_tuple.cu)
     gridtools_add_test(tests.common_tests_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/common_tests_cuda")
     target_link_libraries(common_tests_cuda ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
 

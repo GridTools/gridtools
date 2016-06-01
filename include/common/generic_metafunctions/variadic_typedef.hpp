@@ -3,6 +3,7 @@
 #include "../host_device.hpp"
 
 namespace gridtools {
+#ifdef CXX11_ENABLED
 
     template < typename First, typename... Args >
     struct variadic_typedef;
@@ -32,6 +33,7 @@ namespace gridtools {
         // metafunction that returns a type of a variadic pack by index
         template < ushort_t Idx >
         struct get_elem {
+            GRIDTOOLS_STATIC_ASSERT((Idx <= sizeof...(Args)), "Out of bound access in variadic pack");
             typedef typename impl_::template get_elem< Idx, First, Args... >::type type;
         };
     };
@@ -43,8 +45,10 @@ namespace gridtools {
     template < int Idx >
     struct get_from_variadic_pack {
         template < typename First, typename... Accessors >
-        GT_FUNCTION static constexpr typename variadic_typedef< First, Accessors... >::template get_elem< Idx >::type
+        GT_FUNCTION static CONSTEXPR typename variadic_typedef< First, Accessors... >::template get_elem< Idx >::type
         apply(First first, Accessors... args) {
+            GRIDTOOLS_STATIC_ASSERT((Idx <= sizeof...(Accessors)), "Out of bound access in variadic pack");
+
             return get_from_variadic_pack< Idx - 1 >::apply(args...);
         }
     };
@@ -57,4 +61,5 @@ namespace gridtools {
             return first;
         }
     };
-}
+#endif
+} //namespace gridtools

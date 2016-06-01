@@ -560,7 +560,7 @@ namespace gridtools {
 
             const int_t pointer_offset =
                 metadata_->index(m_grid_position) +
-                metadata_->_index(strides().template get< metadata_index_t::value >(), accessor);
+                metadata_->_index(strides().template get< metadata_index_t::value >(), accessor.offsets());
 
             return *(real_storage_pointer + pointer_offset);
         }

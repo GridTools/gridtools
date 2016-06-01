@@ -3,6 +3,7 @@
 #include <storage/storage.hpp>
 
 using namespace gridtools;
+using namespace enumtype;
 
 TEST(storage_info, test_interface) {
 #if defined(CXX11_ENABLED) && defined(NDEBUG)
@@ -144,6 +145,34 @@ TEST(storage_info, meta_storage_extender) {
     ASSERT_TRUE((extended_meta.template dim< 2 >() == 54));
     ASSERT_TRUE((extended_meta.template dim< 3 >() == 5));
     ASSERT_TRUE((extended_meta.template dim< 4 >() == 10));
+}
+
+TEST(storage_info, index) {
+
+    typedef meta_storage_base< 0, layout_map< 0, 1, 2, 3 >, false > meta_storage1_t;
+
+    typedef meta_storage_aligned< meta_storage1_t, aligned< 0 >, halo< 0, 0, 0, 0 > > meta_storage_aligned_t;
+
+    typedef meta_storage< meta_storage_aligned_t > meta_storage2_t;
+
+    meta_storage_aligned_t meta(34, 23, 54, 5);
+
+    //interface passing unpacked indices
+    ASSERT_TRUE((meta._index(meta.strides(), 1,1,2,3) == 6493));
+    //interface passing indices in an array
+    ASSERT_TRUE((meta._index(meta.strides(), array<uint_t, 4>{1,1,2,3})) == 6493);
+    //interface passing indices in an accessor
+
+    typedef grid_traits_from_id<GRIDBACKEND>::null_extent_t extent_t;
+#ifdef STRUCTURED_GRIDS
+    typedef in_accessor< 0, extent_t, 4> accessor_t;
+#else
+    typedef in_accessor< 0, cells, extent_t, 4> accessor_t;
+#endif
+
+    ASSERT_TRUE((meta._index(meta.strides(), accessor_t (1,1,2,3).offsets()) == 6493));
+
+
 }
 
 #endif
