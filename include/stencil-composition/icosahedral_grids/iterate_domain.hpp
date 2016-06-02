@@ -342,7 +342,6 @@ namespace gridtools {
                 template < typename Neighbors, typename IterateDomain, typename... Accessors >
                 GT_FUNCTION static ValueType apply(
                     Neighbors const &neighbors, IterateDomain const &iterate_domain, Accessors... args_) {
-
                     return iterate_domain._evaluate(get_from_variadic_pack< Idx >::apply(args_...), neighbors);
                 }
             };
@@ -613,11 +612,10 @@ namespace gridtools {
                 boost::fusion::at< metadata_index_t >(m_local_domain.m_local_metadata);
 
             using location_type_t = typename accessor_t::location_type;
-
             // control your instincts: changing the following
             // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
             const int_t pointer_offset = (m_index[metadata_index_t::value]) +
-                                         metadata_->_index(strides().template get< metadata_index_t::value >(), position_offset);
+                                         metadata_->template _indexl<layout_map<0,1,2,3> >(strides().template get< metadata_index_t::value >(), position_offset);
 
             return get_raw_value(accessor_t(),
                 (data_pointer())[current_storage< (accessor_t::index_type::value == 0),

@@ -712,6 +712,7 @@ namespace gridtools {
         using cells = location_type< 0, 2 >;
         using edges = location_type< 1, 3 >;
         using vertexes = location_type< 2, 1 >;
+        using layout_map_t = typename Backend::layout_map_t;
 
         template < typename LocationType >
         using meta_storage_t = typename Backend::template storage_info_t< LocationType >;
