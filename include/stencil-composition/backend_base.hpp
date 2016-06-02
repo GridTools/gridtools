@@ -17,6 +17,7 @@
 
 #include "common/pair.hpp"
 #include "accessor.hpp"
+#include "global_parameter.hpp"
 #include "stencil-composition/domain_type.hpp"
 #include "stencil-composition/mss_metafunctions.hpp"
 #include "stencil-composition/mss_local_domain.hpp"
