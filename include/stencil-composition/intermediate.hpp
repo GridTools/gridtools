@@ -545,39 +545,10 @@ namespace gridtools {
             typename reduction_data_t::reduction_type_t reduction_initial_value = 0)
             : m_domain(domain), m_grid(grid), m_meter("NoName"), m_conditionals_set(conditionals_),
               m_reduction_data(reduction_initial_value) {
-            // Each map key is a pair of indices in the axis, value is the corresponding method interval.
 
-            // Extract the extents from functors to determine iteration spaces bounds
+            copy_domain_storage_pointers();
+            copy_domain_metadata_pointers();
 
-            // For each functor collect the minimum enclosing box of the extents for the arguments
-
-            // filter the non temporary storages among the storage pointers in the domain
-            typedef boost::fusion::filter_view< typename DomainType::arg_list, is_not_tmp_storage< boost::mpl::_1 > >
-                t_domain_view;
-
-            // filter the non temporary storages among the placeholders passed to the intermediate
-            typedef boost::fusion::filter_view< actual_arg_list_type, is_not_tmp_storage< boost::mpl::_1 > >
-                t_args_view;
-
-            t_domain_view domain_view(domain.m_storage_pointers);
-            t_args_view args_view(m_actual_arg_list);
-
-            boost::fusion::copy(domain_view, args_view);
-
-            // filter the non temporary meta storages among the storage pointers in the domain
-            typedef boost::fusion::filter_view< typename DomainType::metadata_ptr_list,
-                boost::mpl::not_< is_ptr_to_tmp< boost::mpl::_1 > > > t_domain_meta_view;
-
-            // filter the non temporary meta storages among the placeholders passed to the intermediate
-            typedef boost::fusion::filter_view<
-                typename boost::fusion::result_of::as_set< actual_metadata_set_t >::type,
-                boost::mpl::not_< is_ptr_to_tmp< boost::mpl::_1 > > > t_meta_view;
-
-            t_domain_meta_view domain_meta_view(domain.m_metadata_set.sequence_view());
-            t_meta_view meta_view(m_actual_metadata_list.sequence_view());
-
-            // get the storage metadatas from the domain_type
-            boost::fusion::copy(domain_meta_view, meta_view);
         }
         /**
            @brief This method allocates on the heap the temporary variables.
@@ -666,6 +637,54 @@ namespace gridtools {
         virtual std::string print_meter() { return m_meter.to_string(); }
 
         mss_local_domain_list_t const &mss_local_domain_list() const { return m_mss_local_domain_list; }
+
+        /**
+            @brief save a copy of the storeage pointers contained in the domain_type inside the intermediate class
+
+            It filters out the temporaries, which are handled internally by the library
+        */
+        void copy_domain_storage_pointers(){
+            typedef boost::fusion::filter_view< typename DomainType::arg_list, is_not_tmp_storage< boost::mpl::_1 > >
+                t_domain_view;
+
+            typedef boost::fusion::filter_view< actual_arg_list_type, is_not_tmp_storage< boost::mpl::_1 > >
+                t_args_view;
+            t_domain_view domain_view(m_domain.m_storage_pointers);
+            t_args_view args_view(m_actual_arg_list);
+            boost::fusion::copy(domain_view, args_view);
+        }
+
+        /**
+            @brief save a copy of the storage info pointers contained in the domain_type inside the intermediate class
+        */
+        void copy_domain_metadata_pointers(){
+            // filter the non temporary meta storages among the storage pointers in the domain
+            typedef boost::fusion::filter_view< typename DomainType::metadata_ptr_list,
+                boost::mpl::not_< is_ptr_to_tmp< boost::mpl::_1 > > > t_domain_meta_view;
+
+            // filter the non temporary meta storages among the placeholders passed to the intermediate
+            typedef boost::fusion::filter_view<
+                typename boost::fusion::result_of::as_set< actual_metadata_set_t >::type,
+                boost::mpl::not_< is_ptr_to_tmp< boost::mpl::_1 > > > t_meta_view;
+
+            t_domain_meta_view domain_meta_view(m_domain.m_metadata_set.sequence_view());
+            t_meta_view meta_view(m_actual_metadata_list.sequence_view());
+
+            // get the storage metadatas from the domain_type
+            boost::fusion::copy(domain_meta_view, meta_view);
+        }
+
+        /**
+           @brief Method to reassign the storage pointers in the domain_type
+
+           @param args the arguments are pairs with the form (placeholder() = storage)
+           see @ref gridtools::test_domain_reassign for reference
+         */
+        template <typename ... Args, typename ... Storage>
+        void reassign(arg_storage_pair<Args, Storage> ... args){
+            m_domain.reassign(args ...);
+            copy_domain_storage_pointers();
+        }
     };
 
 } // namespace gridtools

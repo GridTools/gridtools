@@ -1,5 +1,5 @@
 #pragma once
-// //\todo this struct becomes redundant when the auto keyword is used
+//\todo this struct becomes redundant when the auto keyword is used
 namespace gridtools {
     template < typename ReductionType = int >
     struct computation {

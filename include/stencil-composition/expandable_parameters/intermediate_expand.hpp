@@ -162,6 +162,17 @@ namespace gridtools{
         }
 
         /**
+           @brief Method to reassign the storage pointers in the domain_type
+
+           @param args the arguments are pairs with the form (placeholder() = storage)
+           see @ref gridtools::test_domain_reassign for reference
+         */
+        template <typename ... Args, typename ... Storage>
+        void reassign(arg_storage_pair<Args, Storage> ... args){
+            m_intermediate->reassign(args ...);
+            m_intermediate_extra->reassign(args ...);
+        }
+        /**
            @brief run the execution
 
            This method performs a run for the computation on each chunck of expandable parameters.

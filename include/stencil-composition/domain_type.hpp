@@ -483,6 +483,21 @@ namespace gridtools {
             typedef typename boost::mpl::at<arg_list_mpl, typename T::index_type>::type::value_type type;
         };
 
+#ifdef CXX11_ENABLED
+        template < typename... Pair >
+        void reassign(Pair ... pairs_)
+        {
+
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair<Pair>::value ...), "wrong type");
+            GRIDTOOLS_STATIC_ASSERT((sizeof...(Pair) > 0),
+                                    "the assign_pointers must be called with at least one argument."
+                                    " otherwise what are you calling it for?");
+            // NOTE: the following assertion assumes there StorageArgs has length at leas 1
+            // GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair< StorageArgs >::value...), "wrong type");
+            assign_pointers(m_metadata_set, pairs_...);
+        }
+#endif
+
     };
 
     template < typename domain >
