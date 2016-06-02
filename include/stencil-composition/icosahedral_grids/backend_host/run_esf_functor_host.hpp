@@ -60,18 +60,19 @@ namespace gridtools {
         GT_FUNCTION void call_user_functor(
             typename boost::disable_if< typename EsfArguments::is_reduction_t, int >::type = 0) const {
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
-            typedef typename EsfArguments::functor_t functor_t;
+
+            typedef typename EsfArguments::esf_t esf_t;
+            typedef typename esf_t::template esf_function<run_functor_arguments_t::color_t::color_t::value> functor_t;
 
             using n_colors_t = typename EsfArguments::esf_t::location_type::n_colors;
 
-            typedef typename run_functor_arguments_t::color_t oo;
             typedef typename get_trivial_iterate_domain_remapper< iterate_domain_t,
                 typename EsfArguments::esf_t,
                 typename run_functor_arguments_t::color_t >::type iterate_domain_remapper_t;
 
             iterate_domain_remapper_t iterate_domain_remapper(this->m_iterate_domain);
 
-            functor_t::f_type::Do(iterate_domain_remapper, IntervalType());
+            functor_t::Do(iterate_domain_remapper, IntervalType());
         }
 
         /*
@@ -83,11 +84,12 @@ namespace gridtools {
         template < typename IntervalType, typename EsfArguments >
         GT_FUNCTION void call_user_functor(
             typename boost::enable_if< typename EsfArguments::is_reduction_t, int >::type = 0) const {
-            typedef typename EsfArguments::reduction_data_t::bin_op_t bin_op_t;
-            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
-            typedef typename EsfArguments::functor_t functor_t;
-            this->m_iterate_domain.set_reduction_value(bin_op_t()(this->m_iterate_domain.reduction_value(),
-                functor_t::f_type::Do(this->m_iterate_domain, IntervalType())));
+            GRIDTOOLS_STATIC_ASSERT((EsfArguments::is_reduction_t::value), "Reductions not supported at the moment for icosahedral grids");
+//            typedef typename EsfArguments::reduction_data_t::bin_op_t bin_op_t;
+//            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
+//            typedef typename EsfArguments::functor_t functor_t;
+//            this->m_iterate_domain.set_reduction_value(bin_op_t()(this->m_iterate_domain.reduction_value(),
+//                functor_t::f_type::Do(this->m_iterate_domain, IntervalType())));
         }
     };
 }

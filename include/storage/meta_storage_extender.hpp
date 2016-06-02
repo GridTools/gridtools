@@ -73,7 +73,8 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_meta_storage< MetaStorage >::value), "Use with a MetaStorage type only");
             typedef typename meta_storage_extender_impl< MetaStorage, 1 >::type type;
 
-            auto dims = other.unaligned_dims();
+            //TODO update with unaligned dims
+            auto dims = other.dims();
             auto ext_dim = dims.append_dim(extradim_length);
             return type(ext_dim);
         }
