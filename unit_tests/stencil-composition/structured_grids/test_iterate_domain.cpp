@@ -71,24 +71,14 @@ namespace test_iterate_domain{
         grid.value_list[0] = 0;
         grid.value_list[1] = d3-1;
 
-        typedef intermediate< gridtools::backend< Host, GRIDBACKEND, Naive >,
-            gridtools::meta_array< boost::mpl::vector< decltype(gridtools::make_mss // mss_descriptor
-                                       (enumtype::execute< enumtype::forward >(),
-                                           gridtools::make_esf< dummy_functor >(p_in(), p_buff(), p_out()))) >,
-                                  boost::mpl::quote1< is_computation_token > >,
-            decltype(domain),
-            decltype(grid),
-            boost::fusion::set<>,
-            notype,
-            false > intermediate_t;
-
-        std::shared_ptr< intermediate_t > computation_ = std::static_pointer_cast< intermediate_t >(
-            make_computation< gridtools::backend< Host, GRIDBACKEND, Naive > >(
+        auto mss_ = gridtools::make_mss // mss_descriptor
+            (enumtype::execute< enumtype::forward >(),
+             gridtools::make_esf< dummy_functor >(p_in(), p_buff(), p_out()));
+        auto computation_ =
+            make_computation_impl<false, gridtools::backend< Host, GRIDBACKEND, Naive > >(
                 domain,
                 grid,
-                gridtools::make_mss // mss_descriptor
-                (enumtype::execute< enumtype::forward >(),
-                    gridtools::make_esf< dummy_functor >(p_in(), p_buff(), p_out()))));
+                mss_);
 
         typedef decltype(gridtools::make_esf<dummy_functor>(p_in() ,p_buff(), p_out())) esf_t;
 

@@ -275,27 +275,33 @@ namespace test_expandable_parameters{
         comp_->run();
         comp_->finalize();
 
-        array< array< uint_t, 2 >, 3 > halos{{{0,0}, {0,0}, {0,0}}};
-        for(auto i=0; i<list_in_.size(); ++i){
-            verifier verif_(1e-13);
-            result_ = result_ & verif_.verify(grid_, *list_in_[i], *list_out_[i], halos);
-        }
+        bool success = true;
+        for (uint_t l = 0; l < list_in_.size(); ++l)
+            for (uint_t i = 0; i < d1; ++i)
+                for (uint_t j = 0; j < d2; ++j)
+                    for (uint_t k = 0; k < d3; ++k) {
+                        if ((*list_in_[l])(i, j, k) != (*list_out_[l])(i, j, k)) {
+                            std::cout << "error in " << i << ", " << j << ", " << k << ": "
+                                      << "in = " << (*list_in_[l])(i, j, k) << ", out = " << (*list_out_[l])(i, j, k) << std::endl;
+                            success = false;
+                        }
+                    }
 
 
-        // auto comp_cached_ = make_computation<BACKEND>(
-        //     expand_factor<5>(), domain_, grid_,
-        //         make_mss(
-        //             enumtype::execute<enumtype::forward>()
-        //             , define_caches(cache< IJ, local >(p_list_tmp())),
-        //             , make_esf<functor_exp>(p_list_tmp(), p_list_in())
-        //             , make_esf<functor_exp>(p_list_out(), p_list_tmp())
-        //         )
-        //     );
+        auto comp_cached_ = make_computation<BACKEND>(
+            expand_factor<5>(), domain_, grid_,
+                make_mss(
+                    enumtype::execute<enumtype::forward>()
+                    , define_caches(cache< IJ, local >(p_list_tmp()))
+                    , make_esf<functor_exp>(p_list_tmp(), p_list_in())
+                    , make_esf<functor_exp>(p_list_out(), p_list_tmp())
+                )
+            );
 
-        // comp_cached_->ready();
-        // comp_cached_->steady();
-        // comp_cached_->run();
-        // comp_cached_->finalize();
+        comp_cached_->ready();
+        comp_cached_->steady();
+        comp_cached_->run();
+        comp_cached_->finalize();
 
         // array< array< uint_t, 2 >, 3 > halos{{{0,0}, {0,0}, {0,0}}};
         // for(auto i=0; i<list_in_.size(); ++i){

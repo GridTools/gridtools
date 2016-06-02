@@ -76,7 +76,7 @@ namespace gridtools {
                     // calls the constructor of the storage
                     e = new ElemType(
                         *m_metadata_set.template get< pointer< const typename ElemType::storage_info_type > >(),
-                        "default tmp storage");
+                        "default tmp storage", true /*do_allocate*/);
                 }
             };
 
