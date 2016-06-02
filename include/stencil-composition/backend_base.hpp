@@ -143,8 +143,8 @@ namespace gridtools {
                                                                     typename MetaDataType::layout,
                                                                     false,
                                                                     typename MetaDataType::halo_t,
-                                                                    typename MetaDataType::alignment_t>::type,
-                false>::type type;
+                                                                    typename MetaDataType::alignment_t>::type
+            >::type type;
         };
 
 #ifdef CXX11_ENABLED
@@ -211,8 +211,8 @@ namespace gridtools {
                                                                             typename MetaDataType::layout,
                                                                             true,
                                                                             typename MetaDataType::halo_t,
-                                                                            typename MetaDataType::alignment_t >::type,
-                true >::type temp_storage_t;
+                                                                            typename MetaDataType::alignment_t >::type
+            >::type temp_storage_t;
 
           public:
             typedef no_storage_type_yet< temp_storage_t > type;
