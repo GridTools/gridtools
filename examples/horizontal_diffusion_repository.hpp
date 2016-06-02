@@ -54,16 +54,21 @@ namespace horizontal_diffusion {
         using storage_type = storage_tr::storage_type< gridtools::float_type, storage_info_ijk_t >;
         using ij_storage_type = storage_tr::storage_type< gridtools::float_type, storage_info_ij_t >;
         using j_storage_type = storage_tr::storage_type< gridtools::float_type, storage_info_j_t >;
+
+        using scalar_storage_type = storage_tr::temporary_storage_type< gridtools::float_type, storage_info_scalar_t >;
+        using tmp_storage_type = storage_tr::temporary_storage_type< gridtools::float_type, storage_info_ijk_t >;
+        using tmp_scalar_storage_type = storage_tr::temporary_storage_type< gridtools::float_type, storage_info_scalar_t >;
 #else
         typedef storage_tr::storage_type< gridtools::float_type, storage_info_ijk_t >::type storage_type;
         typedef storage_tr::storage_type< gridtools::float_type, storage_info_ij_t >::type ij_storage_type;
         typedef storage_tr::storage_type< gridtools::float_type, storage_info_j_t >::type j_storage_type;	
-#endif
+
         typedef storage_tr::temporary_storage_type< gridtools::float_type, storage_info_scalar_t >::type
             scalar_storage_type;
         typedef storage_tr::temporary_storage_type< gridtools::float_type, storage_info_ijk_t >::type tmp_storage_type;
         typedef storage_tr::temporary_storage_type< gridtools::float_type, storage_info_scalar_t >::type
             tmp_scalar_storage_type;
+#endif
 
         storage_info_ijk_t m_storage_info_ijk;
         storage_info_j_t m_storage_info_j;
