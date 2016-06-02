@@ -30,7 +30,7 @@ namespace gridtools {
                 type;
     };
 
-    template < typename IterateDomain, typename EsfArguments, typename EsfLocationType, typename Functor, typename IntervalType >
+    template < typename IterateDomain, typename EsfArguments, typename EsfLocationType, typename IntervalType >
     struct color_functor {
         GRIDTOOLS_STATIC_ASSERT((is_location_type<EsfLocationType>::value), "Error");
       private:
@@ -46,10 +46,13 @@ namespace gridtools {
             typedef typename get_iterate_domain_remapper< IterateDomain,
                 typename EsfArguments::esf_args_map_t, EsfLocationType, Index::value >::type iterate_domain_remapper_t;
 
+            typedef typename EsfArguments::esf_t esf_t;
+            typedef typename esf_t::template esf_function<Index::value> functor_t;
+
             iterate_domain_remapper_t iterate_domain_remapper(m_iterate_domain);
 
             // call the user functor at the core of the block
-            Functor::f_type::Do(iterate_domain_remapper, IntervalType());
+            functor_t::Do(iterate_domain_remapper, IntervalType());
             (m_iterate_domain)
                 .template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value, static_uint< 1 > >();
         }
@@ -130,7 +133,8 @@ namespace gridtools {
 
             iterate_domain_remapper_t iterate_domain_remapper(m_iterate_domain);
 
-            typedef typename EsfArguments::functor_t functor_t;
+            typedef typename EsfArguments::esf_t esf_t;
+            typedef typename esf_t::template esf_function<color_t::value> functor_t;
 
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
 
@@ -138,7 +142,7 @@ namespace gridtools {
             (m_iterate_domain)
                 .template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value, color_t >();
 
-            functor_t::f_type::Do(iterate_domain_remapper, IntervalType());
+            functor_t::Do(iterate_domain_remapper, IntervalType());
             (m_iterate_domain)
                 .template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
                     static_int< -color_t::value > >();
@@ -152,14 +156,13 @@ namespace gridtools {
                 0) const {
 
             typedef typename esf_get_location_type< typename EsfArguments::esf_t >::type location_type_t;
-            typedef typename EsfArguments::functor_t functor_t;
 
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
 
             typedef typename esf_color_range< typename EsfArguments::esf_t >::type color_range_t;
 
             boost::mpl::for_each <
-                color_range_t>(color_functor< iterate_domain_t, EsfArguments, location_type_t, functor_t, IntervalType >(
+                color_range_t>(color_functor< iterate_domain_t, EsfArguments, location_type_t, IntervalType >(
                     m_iterate_domain));
 
             using neg_n_colors_t = static_uint< -location_type_t::n_colors::value >;
