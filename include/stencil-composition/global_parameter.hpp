@@ -28,8 +28,13 @@ struct global_parameter {
 #endif
     storage_ptr_t m_storage;
     typedef MetaData storage_info_type;
+
+//TODO: find a better solution and do not store the meta info object below. 
+//it should be owned by wrap/hybrid_pointer. nvcc does not compile this class 
+//if it contains a destructor that would handle the proper pointer cleanup ops.
+    const MetaData md_obj;
     meta_data_ptr_t m_meta_data;
-    global_parameter(D* this_d, MetaData const& meta_data) : m_storage(this_d, true), m_meta_data(new MetaData(meta_data), false) {}
+    global_parameter(D* this_d, MetaData const& meta_data) : m_storage(this_d, true), md_obj(meta_data), m_meta_data(&md_obj, true) {}
 
     GT_FUNCTION
     D *get_pointer_to_use() { return m_storage.get_pointer_to_use(); }
