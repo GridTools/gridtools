@@ -35,6 +35,7 @@ namespace soeov {
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
     typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
+    template<uint_t Color>
     struct test_on_edges_functor {
         typedef in_accessor< 0, icosahedral_topology_t::cells, extent< 1 > > cell_area;
         typedef inout_accessor< 1, icosahedral_topology_t::cells, 5 > weight_edges;

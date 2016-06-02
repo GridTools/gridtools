@@ -33,29 +33,21 @@ namespace socc {
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
     typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
-    struct on_cells_downward_functor {
+    template<uint_t Color>
+    struct on_cells_color_functor {
         typedef in_accessor< 0, icosahedral_topology_t::cells, extent< 1 > > in;
         typedef inout_accessor< 1, icosahedral_topology_t::cells > out;
         typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-            auto ff = [](const double _in, const double _res) -> double { return -_in + _res; };
+            auto mf = [](const double _in, const double _res) -> double { return -_in + _res; };
+            auto sf = [](const double _in, const double _res) -> double { return _in + _res; };
 
-            eval(out()) = eval(on_cells(ff, 0.0, in()));
-        }
-    };
-
-    struct on_cells_upward_functor {
-        typedef in_accessor< 0, icosahedral_topology_t::cells, extent< 1 > > in;
-        typedef inout_accessor< 1, icosahedral_topology_t::cells > out;
-        typedef boost::mpl::vector< in, out > arg_list;
-
-        template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-            auto ff = [](const double _in, const double _res) -> double { return _in + _res; };
-
-            eval(out()) = eval(on_cells(ff, 0.0, in()));
+            if(Color==downward_triangle)
+                eval(out()) = eval(on_cells(mf, 0.0, in()));
+            else
+                eval(out()) = eval(on_cells(sf, 0.0, in()));
         }
     };
 
@@ -107,14 +99,10 @@ namespace socc {
             grid_,
             gridtools::make_mss // mss_descriptor
             (execute< forward >(),
-                gridtools::make_cesf< downward_triangle,
-                    on_cells_downward_functor,
+                gridtools::make_esf< on_cells_color_functor,
                     icosahedral_topology_t,
-                    icosahedral_topology_t::cells >(p_in_cells(), p_out_cells()),
-                gridtools::make_cesf< upward_triangle,
-                    on_cells_upward_functor,
-                    icosahedral_topology_t,
-                    icosahedral_topology_t::cells >(p_in_cells(), p_out_cells())));
+                    icosahedral_topology_t::cells >(p_in_cells(), p_out_cells())
+                ));
 
         stencil_->ready();
         stencil_->steady();

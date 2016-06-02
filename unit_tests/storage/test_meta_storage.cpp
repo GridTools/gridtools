@@ -33,17 +33,17 @@ TEST(storage_info, test_interface) {
     constexpr gridtools::meta_storage_aligned<gridtools::meta_storage_base<0,gridtools::layout_map<2,1,0>,false>, align_t, halo_t> meta_aligned_3 {11, 12, 13};
 
     //check unaligned dimensions with either templated method or method that takes an argument
-    GRIDTOOLS_STATIC_ASSERT((meta_aligned_1.unaligned_dims<0>()==11), "error");
-    GRIDTOOLS_STATIC_ASSERT((meta_aligned_1.unaligned_dims<1>()==12), "error");
-    GRIDTOOLS_STATIC_ASSERT((meta_aligned_1.unaligned_dims<2>()==13), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_1.unaligned_dim<0>()==11), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_1.unaligned_dim<1>()==12), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_1.unaligned_dim<2>()==13), "error");
 
-    GRIDTOOLS_STATIC_ASSERT((meta_aligned_2.unaligned_dims(0)==11), "error");
-    GRIDTOOLS_STATIC_ASSERT((meta_aligned_2.unaligned_dims(1)==12), "error");
-    GRIDTOOLS_STATIC_ASSERT((meta_aligned_2.unaligned_dims(2)==13), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_2.unaligned_dim(0)==11), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_2.unaligned_dim(1)==12), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_2.unaligned_dim(2)==13), "error");
 
-    GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.unaligned_dims<0>()==11), "error");
-    GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.unaligned_dims<1>()==12), "error");
-    GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.unaligned_dims<2>()==13), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.unaligned_dim<0>()==11), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.unaligned_dim<1>()==12), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.unaligned_dim<2>()==13), "error");
 
     //check aligned dimensions with either templated method or method that takes an argument
     GRIDTOOLS_STATIC_ASSERT((meta_aligned_1.dim<0>()==11), "error");
