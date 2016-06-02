@@ -215,10 +215,7 @@ namespace gridtools {
                 true >::type temp_storage_t;
 
           public:
-            typedef typename boost::mpl::if_<
-                typename backend_traits_t::template requires_temporary_redundant_halos< s_strategy_id >::type,
-                no_storage_type_yet< temp_storage_t >,
-                temp_storage_t >::type type;
+            typedef no_storage_type_yet< temp_storage_t > type;
         };
 
         /**
