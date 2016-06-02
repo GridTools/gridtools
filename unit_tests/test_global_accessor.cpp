@@ -6,9 +6,6 @@
 using namespace gridtools;
 using namespace enumtype;
 
-
-
-
 typedef interval<level<0,-1>, level<1,-1> > x_interval;
 typedef interval<level<0,-2>, level<1,1> > axis;
 #ifdef __CUDACC__
