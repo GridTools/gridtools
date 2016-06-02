@@ -54,4 +54,20 @@ namespace gridtools {
                              boost::is_same< typename Esf1::grid_t, typename Esf2::grid_t >::value > type;
     };
 
+    struct extract_esf_functor {
+        template < typename Esf >
+        struct apply {
+            GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Error");
+
+            typedef typename Esf::template esf_function<0> type;
+        };
+    };
+
+    template<typename Esf>
+    struct esf_arg_list
+    {
+        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Error");
+        typedef typename Esf::template esf_function<0>::arg_list type;
+    };
+
 } // namespace gridtools

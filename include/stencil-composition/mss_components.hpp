@@ -43,7 +43,7 @@ namespace gridtools {
          * typename linear_esf is a list of all the esf nodes in the multi-stage descriptor.
          * functors_list is a list of all the functors of all the esf nodes in the multi-stage descriptor.
          */
-        typedef typename boost::mpl::transform< linear_esf_t, _impl::extract_functor >::type functors_seq_t;
+        typedef typename boost::mpl::transform< linear_esf_t, extract_esf_functor >::type functors_seq_t;
 
         /*
           @brief attaching an integer index to each functor
