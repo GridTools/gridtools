@@ -323,6 +323,11 @@ class Stencil (object):
         # symbols gathered after analyzing the stencil code are kept here
         #
         self.scope            = StencilScope ( )
+        #
+        # Splitters dictionary for this stencil: given a slice index, returns
+        # the corresponfding splitter number
+        #
+        self.splitters        = dict ( )
 
 
     def __copy__ (self, memo):
@@ -436,6 +441,31 @@ class Stencil (object):
         #
         for stg in self.stages:
             stg.generate_code ( )
+
+
+    def generate_splitters (self):
+        """
+        Generates splitters data for this stencil from slicing information
+        contained in each stage's vertical regions
+        :return:
+        """
+        #
+        # Gather slice indexes from all vertical regions
+        #
+        slice_indexes = set ( )
+        for stg in self.stages:
+            slice_indexes |= stg.find_slices_idx (self.scope)
+        #
+        # Populate splitters dictionary
+        #
+        for i, idx in enumerate (slice_indexes):
+            self.splitters[idx] = i
+        #
+        # Save splitter data in each region
+        #
+        for stg in self.stages:
+            stg.add_splitters (self.splitters)
+
 
 
     def get_data_dependency (self):

@@ -109,6 +109,10 @@ class StencilCompiler ( ):
                 stencil.scope.build_execution_path       (stencil.name)
                 stencil.scope.check_stage_execution_path ( )
                 #
+                # Generate GridTools splitters data
+                #
+                stencil.generate_splitters ( )
+                #
                 # print out the discovered symbols if in DEBUG mode
                 #
                 if __debug__:

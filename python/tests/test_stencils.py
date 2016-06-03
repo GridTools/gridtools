@@ -992,7 +992,7 @@ class VerticalRegions (MultiStageStencil):
         self.domain = domain
 
     def stage_laplace0 (self, out_data, in_data):
-        for p in self.get_interior_points (out_data[:,:,self.domain[2]-1:]):
+        for p in self.get_interior_points (out_data[:,:,:]):
             out_data[p] = -4.0 * in_data[p] + (
                           in_data[p + (1,0,0)]  + in_data[p + (0,1,0)] +
                           in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
@@ -1048,6 +1048,10 @@ class VerticalRegionsTest (LaplaceTest):
         if min_halo is None:
             min_halo = [0, 0, 0, 0]
         super ( ).test_minimum_halo_detection (min_halo)
+
+    def test_splitters (self):
+        self._run ( )
+        self.assertEqual (self.stencil.splitters, {0: 0, 32: 1})
 
 
 

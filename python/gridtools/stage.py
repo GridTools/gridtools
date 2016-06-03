@@ -535,7 +535,15 @@ class VerticalRegion ( ):
         self.end_splitter   = None
 
 
-    def find_slice_idx (self, scope):
+    def add_splitters (self, splitters):
+        """
+        Add GridTools splitter values for this region
+        """
+        self.start_splitter = splitters[self.start_k]
+        self.end_splitter = splitters[self.end_k]
+
+
+    def find_slice_idx (self, scope, stencil_scope):
         """
         Find slice indexes from the information
         contained in the slice nodes and array_name
@@ -548,15 +556,16 @@ class VerticalRegion ( ):
         array_sym = scope[self.array_name]
         if scope.is_alias (array_sym):
             array_sym = array_sym.value
+        array_sym = stencil_scope[array_sym.value]
         #
         # Use sliced array shape to find indexes if no slicing limits were given
         #
         if self.slice_start_node is None:
             self.start_k = 0
         if self.slice_end_node is None:
-            self.end_k = array_sym.shape[2]
+            self.end_k = array_sym.value.shape[2]
 
-        return set(self.start_k, self.end_k)
+        return set([self.start_k, self.end_k])
 
 
 
@@ -619,6 +628,14 @@ class Stage ( ):
         return self.name
 
 
+    def add_splitters (self, splitters):
+        """
+        Adds splitters values to this stage's vertical regions
+        """
+        for vr in self.vertical_regions:
+            vr.add_splitters (splitters)
+
+
     def add_vertical_region (self, array_name, slice_start_node, slice_end_node):
         """
         Adds a vertical region to this stage
@@ -640,6 +657,17 @@ class Stage ( ):
         :return:
         """
         self.body.generate_code ( )
+
+
+    def find_slices_idx (self, stencil_scope):
+        """
+        Find slice indexes for each vertical region
+        :return:
+        """
+        stg_slice_indexes = set ( )
+        for vr in self.vertical_regions:
+            stg_slice_indexes |= vr.find_slice_idx (self.scope, stencil_scope)
+        return stg_slice_indexes
 
 
     def get_data_dependency (self):
