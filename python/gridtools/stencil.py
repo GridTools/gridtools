@@ -447,30 +447,29 @@ class Stencil (object):
         """
         Generates splitters data for this stencil from slicing information
         contained in each stage's vertical regions
+
         :return:
         """
         #
         # Gather slice indexes from all vertical regions
         #
-        slice_indexes = set ( )
+        slice_indexes = list ( )
         for stg in self.stages:
-            slice_indexes |= stg.find_slices_idx (self.scope)
+            for vr in stg.find_slices_idx (self.scope):
+                slice_indexes.append (vr[0])
+                slice_indexes.append (vr[1])
         #
         # Populate splitters dictionary
         #
-        for i, idx in enumerate (slice_indexes):
+        for i, idx in enumerate (sorted (slice_indexes)):
             self.splitters[idx] = i
-        #
-        # Save splitter data in each region
-        #
-        for stg in self.stages:
-            stg.add_splitters (self.splitters)
-
 
 
     def get_data_dependency (self):
         """
         Return the data dependency graph for this stencil's scope
+
+        :return:
         """
         return self.scope.data_dependency
 
