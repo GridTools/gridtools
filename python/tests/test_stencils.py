@@ -181,7 +181,7 @@ class CopyTest (AccessPatternDetectionTest):
             #
             for k in params_py.keys ( ):
                 diff  = np.isclose(params_py[k], params_cxx[k], atol=1e-11)
-                ndiff = np.count_nonzero (np.logical_not (diff))
+                ndiff += np.count_nonzero (np.logical_not (diff))
         print ("%s ndiff: %d" % ('c++', ndiff))
         self.assertEqual (ndiff, 0)
 
@@ -214,7 +214,7 @@ class CopyTest (AccessPatternDetectionTest):
             #
             for k in params_py.keys ( ):
                 diff  = np.isclose(params_py[k], params_cxx[k], atol=1e-11)
-                ndiff = np.count_nonzero (np.logical_not (diff))
+                ndiff += np.count_nonzero (np.logical_not (diff))
         print ("%s ndiff: %d" % ('cuda', ndiff))
         self.assertEqual (ndiff, 0)
 
@@ -699,8 +699,8 @@ class LaplaceTest (CopyTest):
         self.params = ('out_data', 'in_data')
         self.temps  = ( )
 
-        self.out_data = np.zeros (self.domain)
-        self.in_data  = np.zeros (self.domain)
+        self.out_data = np.zeros (self.domain, order='F')
+        self.in_data  = np.zeros (self.domain, order='F')
         for i in range (self.domain[0]):
             for j in range (self.domain[1]):
                 for k in range (self.domain[2]):
@@ -980,6 +980,76 @@ class HorizontalDiffusionTest (CopyTest):
         if data_field is None:
             data_field = self.out_data
         super ( ).test_get_interior_points_IJ_object (data_field)
+
+
+class VerticalRegions (MultiStageStencil):
+    """
+    A stencil using a Laplacian-like operator with different vertical regions
+    """
+    def __init__ (self, domain):
+        super ( ).__init__ ( )
+
+        self.domain = domain
+
+    def stage_laplace0 (self, out_data, in_data):
+        for p in self.get_interior_points (out_data[:,:,self.domain[2]-1:]):
+            out_data[p] = -4.0 * in_data[p] + (
+                          in_data[p + (1,0,0)]  + in_data[p + (0,1,0)] +
+                          in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
+#
+#    def stage_laplace1 (self, out_data, in_data):
+#        for p in self.get_interior_points (out_data[:,:,10:]):
+#            out_data[p] = -4.0 * in_data[p] + (
+#                          in_data[p + (1,0,0)]  + in_data[p + (0,1,0)] +
+#                          in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
+#
+#    def stage_laplace2 (self, out_data, in_data):
+#        for p in self.get_interior_points (out_data[:,:,:]):
+#            out_data[p] = -4.0 * in_data[p] + (
+#                          in_data[p + (1,0,0)]  + in_data[p + (0,1,0)] +
+#                          in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
+
+
+    @Stencil.kernel
+    def kernel (self, out_data, in_data):
+        self.stage_laplace0 (out_data = out_data,
+                            in_data = in_data)
+#        self.stage_laplace1 (out_data = out_data,
+#                            in_data = in_data)
+#        self.stage_laplace2 (out_data = out_data,
+#                            in_data = in_data)
+
+
+
+class VerticalRegionsTest (LaplaceTest):
+    """
+    Test fixture for the VerticalRegions stencil defined above
+    """
+    def setUp (self):
+        super ( ).setUp ( )
+#
+#        self.domain = (64, 64, 32)
+#        self.params = ('out_data', 'in_data')
+#        self.temps  = ( )
+#
+#        self.out_data = np.zeros (self.domain)
+#        self.in_data  = np.zeros (self.domain)
+#        for i in range (self.domain[0]):
+#            for j in range (self.domain[1]):
+#                for k in range (self.domain[2]):
+#                    self.in_data[i,j,k] = i**3 + j
+
+        self.stencil = VerticalRegions (self.domain)
+        self.stencil.set_halo ( (1, 1, 1, 1) )
+        self.stencil.set_k_direction ("forward")
+
+
+    def test_minimum_halo_detection (self, min_halo=None):
+        if min_halo is None:
+            min_halo = [0, 0, 0, 0]
+        super ( ).test_minimum_halo_detection (min_halo)
+
+
 
 
 
