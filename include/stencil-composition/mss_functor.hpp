@@ -190,16 +190,16 @@ namespace gridtools {
 
                 NOTE: this could be avoided if our systax at the user level was different, i.e. instead of having
                   make_mss(
-                     make_esf( esf_0),
-                     make_esf( esf_1),
+                     make_stage( esf_0),
+                     make_stage( esf_1),
                      make_independent(esf_2, esf_3, esf_4, esf_5));
 
                   we had e.g.
 
                   make_mss(
-                     make_esf( esf_0 ),
-                     make_esf( esf_1 ),
-                     make_esf( esf_2 ),
+                     make_stage( esf_0 ),
+                     make_stage( esf_1 ),
+                     make_stage( esf_2 ),
                      make_independent(esf_3, esf_4, esf_5));
 
                      (which is less intuitive though)

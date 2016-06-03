@@ -129,7 +129,7 @@ namespace reduction {
 #endif
             sum_red_ = make_computation< gridtools::BACKEND >(domain,
                 grid,
-                make_mss(execute< forward >(), make_esf< desf >(p_in(), p_out())),
+                make_multistage(execute< forward >(), make_stage< desf >(p_in(), p_out())),
                 make_reduction< sum_red, binop::sum >((float_type)(0.0), p_out()));
 
         sum_red_->ready();
@@ -163,7 +163,7 @@ namespace reduction {
 #endif
             prod_red_ = make_computation< gridtools::BACKEND >(domain,
                 grid,
-                make_mss(execute< forward >(), make_esf< desf >(p_in(), p_out())),
+                make_multistage(execute< forward >(), make_stage< desf >(p_in(), p_out())),
                 make_reduction< sum_red, binop::prod >((float_type)(1.0), p_out()));
 
         prod_red_->ready();

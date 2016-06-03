@@ -48,7 +48,7 @@ namespace gridtools {
     struct esf_descriptor {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< ArgArray, is_arg >::value),
             "wrong types for the list of parameter placeholders\n"
-            "check the make_esf syntax");
+            "check the make_stage syntax");
 
       public:
         typedef ESF esf_function;

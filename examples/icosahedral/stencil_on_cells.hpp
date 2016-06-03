@@ -90,9 +90,9 @@ namespace soc {
         auto stencil_ = gridtools::make_computation< backend_t >(
             domain,
             grid_,
-            gridtools::make_mss // mss_descriptor
+            gridtools::make_multistage // mss_descriptor
             (execute< forward >(),
-                gridtools::make_esf< test_on_cells_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
+                gridtools::make_stage< test_on_cells_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
                     p_in_cells(), p_out_cells())));
         stencil_->ready();
         stencil_->steady();

@@ -165,9 +165,9 @@ namespace aligned_copy_stencil {
             copy = gridtools::make_computation< gridtools::BACKEND >(
                 domain,
                 grid,
-                gridtools::make_mss // mss_descriptor
+                gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
-                    gridtools::make_esf< copy_functor >(p_in() // esf_descriptor
+                    gridtools::make_stage< copy_functor >(p_in() // esf_descriptor
                         ,
                         p_out())));
 

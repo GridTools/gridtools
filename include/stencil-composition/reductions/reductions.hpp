@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../esf.hpp"
-#include "../make_esf.hpp"
+#include "../make_stage.hpp"
 #ifdef CXX11_ENABLE
 #include "make_reduction_cxx11.hpp"
 #else

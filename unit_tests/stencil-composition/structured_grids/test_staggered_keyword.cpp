@@ -73,10 +73,10 @@ bool test(){
         gridtools::make_computation<gridtools::BACKEND>
         (
             domain, grid,
-            gridtools::make_mss
+            gridtools::make_multistage
             (
                 execute<forward>(),
-                gridtools::make_esf<functor, staggered<5,5,5,5> >(p_i_data(), p_j_data())
+                gridtools::make_stage<functor, staggered<5,5,5,5> >(p_i_data(), p_j_data())
                 )
             );
 

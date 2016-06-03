@@ -92,9 +92,9 @@ namespace sov {
         auto stencil_ =
             gridtools::make_computation< backend_t >(domain,
                 grid_,
-                gridtools::make_mss // mss_descriptor
+                gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
-                                                         gridtools::make_esf< test_on_vertexes_functor,
+                                                         gridtools::make_stage< test_on_vertexes_functor,
                                                              icosahedral_topology_t,
                                                              icosahedral_topology_t::vertexes >(p_in_vertexes(),
                                                              p_out_vertexes()

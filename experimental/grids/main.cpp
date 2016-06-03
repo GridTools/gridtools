@@ -206,7 +206,7 @@ int main() {
     std::cout << "#############################################################################################################################################################" << std::endl;
 
     {
-        auto x = make_esf<stencil_on_cells, trapezoid_2D, trapezoid_2D::cells>
+        auto x = make_stage<stencil_on_cells, trapezoid_2D, trapezoid_2D::cells>
             (out_cells(), in_cells(), out_edges(), in_edges());
 
 
@@ -247,7 +247,7 @@ int main() {
     std::cout << "#############################################################################################################################################################" << std::endl;
 
     {
-        auto x = make_esf<stencil_on_edges, trapezoid_2D, trapezoid_2D::edges>
+        auto x = make_stage<stencil_on_edges, trapezoid_2D, trapezoid_2D::edges>
             (out_cells(), out_cells(), out_edges(), in_edges());
 
         iterate_domain<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
@@ -282,7 +282,7 @@ int main() {
     std::cout << "#############################################################################################################################################################" << std::endl;
 
     {
-        auto x = make_esf<stencil_on_vertexes, trapezoid_2D, trapezoid_2D::vertexes>
+        auto x = make_stage<stencil_on_vertexes, trapezoid_2D, trapezoid_2D::vertexes>
             (out_vertexes(), in_vertexes());
 
 
@@ -321,7 +321,7 @@ int main() {
     std::cout << "#############################################################################################################################################################" << std::endl;
 
     {
-        auto x = make_esf<nested_stencil, trapezoid_2D, trapezoid_2D::cells>
+        auto x = make_stage<nested_stencil, trapezoid_2D, trapezoid_2D::cells>
             (out_cells(), in_cells(), out_edges(), in_edges());
 
         iterate_domain<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,

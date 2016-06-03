@@ -193,10 +193,10 @@ TEST(Laplace, test) {
        laplace = make_computation<gridtools::BACKEND>
         (
          domain, grid,
-         make_mss //! \todo all the arguments in the call to make_mss are actually dummy.
+         make_multistage //! \todo all the arguments in the call to make_multistage are actually dummy.
          (
           execute<forward>(),//!\todo parameter used only for overloading purpose?
-          make_esf<lap_function>(p_out(), p_in())//!  \todo elementary stencil function, also here the arguments are dummy.
+          make_stage<lap_function>(p_out(), p_in())//!  \todo elementary stencil function, also here the arguments are dummy.
           )
          );
 // [computation]

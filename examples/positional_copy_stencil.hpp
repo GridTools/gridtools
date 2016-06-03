@@ -142,9 +142,9 @@ namespace positional_copy_stencil {
             init = gridtools::make_positional_computation< gridtools::BACKEND >(
                 domain,
                 grid,
-                gridtools::make_mss // mss_descriptor
+                gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
-                    gridtools::make_esf< init_functor< _value_ > >(p_in(), p_out() // esf_descriptor
+                    gridtools::make_stage< init_functor< _value_ > >(p_in(), p_out() // esf_descriptor
                         )));
 
         init->ready();
@@ -177,9 +177,9 @@ namespace positional_copy_stencil {
             copy = gridtools::make_computation< gridtools::BACKEND >(
                 domain,
                 grid,
-                gridtools::make_mss // mss_descriptor
+                gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
-                    gridtools::make_esf< copy_functor >(p_in() // esf_descriptor
+                    gridtools::make_stage< copy_functor >(p_in() // esf_descriptor
                         ,
                         p_out())));
 

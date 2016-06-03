@@ -122,14 +122,14 @@ typedef arg< 8, storage_type > in1;
 typedef arg< 9, storage_type > in2;
 typedef arg< 10, storage_type > in3;
 int main() {
-    typedef decltype(make_esf< functor0 >(in0(), in1(), in2(), o0())) functor0__;
-    typedef decltype(make_esf< functor1 >(in3(), o1(), in0(), o0())) functor1__;
-    typedef decltype(make_esf< functor2 >(o0(), o1(), o2())) functor2__;
-    typedef decltype(make_esf< functor3 >(in1(), in2(), o3(), o2())) functor3__;
-    typedef decltype(make_esf< functor4 >(o0(), o1(), o3(), o4())) functor4__;
-    typedef decltype(make_esf< functor5 >(in3(), o4(), in0(), o5())) functor5__;
-    typedef decltype(make_esf< functor6 >(o6(), o5(), in1(), in2())) functor6__;
-    typedef decltype(make_mss(execute< forward >(),
+    typedef decltype(make_stage< functor0 >(in0(), in1(), in2(), o0())) functor0__;
+    typedef decltype(make_stage< functor1 >(in3(), o1(), in0(), o0())) functor1__;
+    typedef decltype(make_stage< functor2 >(o0(), o1(), o2())) functor2__;
+    typedef decltype(make_stage< functor3 >(in1(), in2(), o3(), o2())) functor3__;
+    typedef decltype(make_stage< functor4 >(o0(), o1(), o3(), o4())) functor4__;
+    typedef decltype(make_stage< functor5 >(in3(), o4(), in0(), o5())) functor5__;
+    typedef decltype(make_stage< functor6 >(o6(), o5(), in1(), in2())) functor6__;
+    typedef decltype(make_multistage(execute< forward >(),
         functor0__(),
         functor1__(),
         functor2__(),

@@ -40,8 +40,8 @@ typedef arg<2, storage_type> p_out;
 typedef arg<1, storage_type> p_buff;
 typedef arg<3, storage_type> p_notin;
 
-typedef decltype(gridtools::make_esf<functor1>(p_in() ,p_buff()) ) esf1_t;
-typedef decltype(gridtools::make_esf<functor1>(p_buff(), p_out()) ) esf2_t;
+typedef decltype(gridtools::make_stage<functor1>(p_in() ,p_buff()) ) esf1_t;
+typedef decltype(gridtools::make_stage<functor1>(p_buff(), p_out()) ) esf2_t;
 
 typedef boost::mpl::vector2<esf1_t, esf2_t> esf_sequence_t;
 

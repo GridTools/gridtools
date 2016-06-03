@@ -475,8 +475,8 @@ namespace shallow_water {
             grid,
             make_mss // mss_descriptor
             (execute< forward >(),
-                make_independent(make_esf< flux_x >(p_tmpx(), p_sol()), make_esf< flux_y >(p_tmpy(), p_sol())),
-                make_esf< final_step >(p_tmpx(), p_tmpy(), p_sol())));
+                make_independent(make_stage< flux_x >(p_tmpx(), p_sol()), make_stage< flux_y >(p_tmpy(), p_sol())),
+                make_stage< final_step >(p_tmpx(), p_tmpy(), p_sol())));
         //! [computation]
 
         //! [setup]

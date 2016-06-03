@@ -41,7 +41,7 @@ namespace gridtools {
             "wrong set of mss parameters passed to make_mss construct.\n"
             "Check that arguments passed are either :\n"
             " * caches from define_caches(...) construct or\n"
-            " * esf descriptors from make_esf(...) or make_independent(...)");
+            " * esf descriptors from make_stage(...) or make_independent(...)");
         template < typename T >
         struct is_sequence_of_caches {
             typedef typename is_sequence_of< T, is_cache >::type type;
@@ -75,7 +75,7 @@ namespace gridtools {
             "wrong set of mss parameters passed to make_mss construct.\n"
             "Check that arguments passed are either :\n"
             " * caches from define_caches(...) construct or\n"
-            " * esf descriptors from make_esf(...) or make_independent(...)");
+            " * esf descriptors from make_stage(...) or make_independent(...)");
         typedef
             typename boost::mpl::copy_if< MssParameterSequence, boost::mpl::quote1< is_esf_descriptor > >::type type;
     };

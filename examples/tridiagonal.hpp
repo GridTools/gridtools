@@ -220,14 +220,14 @@ namespace tridiagonal {
             solver = gridtools::make_computation< gridtools::BACKEND >(
                 domain,
                 grid,
-                gridtools::make_mss // mss_descriptor
+                gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
-                    gridtools::make_esf< forward_thomas >(
+                    gridtools::make_stage< forward_thomas >(
                         p_out(), p_inf(), p_diag(), p_sup(), p_rhs()) // esf_descriptor
                     ),
-                gridtools::make_mss // mss_descriptor
+                gridtools::make_multistage // mss_descriptor
                 (execute< backward >(),
-                    gridtools::make_esf< backward_thomas >(
+                    gridtools::make_stage< backward_thomas >(
                         p_out(), p_inf(), p_diag(), p_sup(), p_rhs()) // esf_descriptor
                     ));
 
