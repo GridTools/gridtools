@@ -28,12 +28,10 @@ typedef backend_t::storage_info< 0, layout_map< 0, 1, 2 > > meta_t;
 typedef backend_t::storage_type< float_type, meta_t >::type storage_type;
 
 
-MAKE_GLOBAL_PARAMETER(boundary,
-
+struct boundary : global_parameter<boundary> {
     GT_FUNCTION
     double value() const {return 10.;}
-
-);
+};
 
 struct functor{
     typedef accessor<0, enumtype::inout, extent<0,0,0,0> > sol;
@@ -54,7 +52,7 @@ TEST(test_global_accessor, boundary_conditions) {
 
     sol_.initialize(2.);
 
-    boundary<meta_t> bd_(meta_);
+    boundary bd_;
 
     halo_descriptor di=halo_descriptor(0,1,1,9,10);
     halo_descriptor dj=halo_descriptor(0,1,1,1,2);
@@ -63,7 +61,7 @@ TEST(test_global_accessor, boundary_conditions) {
     coords_bc.value_list[1] = 1;
 
     typedef arg<0, storage_type> p_sol;
-    typedef arg<1, boundary<meta_t> > p_bd;
+    typedef arg<1, boundary > p_bd;
 
     domain_type<boost::mpl::vector<p_sol, p_bd> > domain ( boost::fusion::make_vector( &sol_, &bd_));
 

@@ -12,6 +12,10 @@
 
 namespace gridtools {
 
+    // forward decl to global parameter
+    template <typename D>
+    struct global_parameter;
+
     /**
      * @brief The storage_holds_data_field struct
      * determines if the storage class is holding a data field type of storage
@@ -75,7 +79,7 @@ namespace gridtools {
         : public is_actual_storage< typename BaseType::basic_type * > {};
 
     template < typename T >
-    struct is_any_storage : is_storage< T > {};
+    struct is_any_storage : boost::mpl::or_< is_storage< T >, boost::is_base_of<global_parameter< T >, T> > {};
 
     template < typename T >
     struct is_any_storage< no_storage_type_yet< T > > : boost::mpl::true_ {};
@@ -149,9 +153,12 @@ namespace gridtools {
         get_storage_metadata_ptrs(U& ms) : metadata_set(ms) {}
 
         template <typename T>
-        void operator()(T &st) const {
+        void operator()(T &st, typename boost::disable_if<boost::is_base_of<global_parameter<typename T::value_type>,typename T::value_type> >::type *a = 0) const {
             GRIDTOOLS_STATIC_ASSERT(is_any_storage<typename T::value_type>::value, "passed object is not of type pointer<storage>");
             metadata_set.insert(st->get_meta_data_pointer());
         }
+
+        template <typename T>
+        void operator()(T &st, typename boost::enable_if<boost::is_base_of<global_parameter<typename T::value_type>,typename T::value_type> >::type *a = 0) const {}
     };
 }
