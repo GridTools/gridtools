@@ -17,17 +17,17 @@ class StageBody (ast.NodeVisitor):
 
     def __init__ (self, stage_name, nodes, scope, stencil_scope):
         """
-        Constructs a functor body object
+        Constructs a stage body object
         :param stage_name:    name of the stage this body belongs to
-        :param nodes:         an AST-node list representing the body of this 
-                              functor
-        :param scope:         the symbols scope of this functor
-        :param stencil_scope: the enclosing scope of symbols that are visible 
+        :param nodes:         an AST-node list representing the body of this
+                              stage
+        :param scope:         the symbols scope of this stage
+        :param stencil_scope: the enclosing scope of symbols that are visible
                               to this stage
         :raise TypeError:     if nodes is not iterable
         """
         self.stage_name    = stage_name
-        self.scope         = scope 
+        self.scope         = scope
         self.stencil_scope = stencil_scope
         try:
             if len (nodes) > 0:
@@ -509,6 +509,57 @@ class StageScope (Scope):
 
 
 
+class VerticalRegion ( ):
+    """
+    Represents a vertical region (an interval in the k direction) on which a
+    Stage can operate
+    """
+    def __init__ (self, array_name, slice_start_node=None, slice_end_node=None):
+        """
+        Constructs a new VerticalRegion
+        :param array_name:          a string representing the name of the array
+                                    being sliced
+        :param slice_start_node:    an AST Slice node containing the starting
+                                    value of the region
+        :param slice_end_node:      an AST Slice node containing the starting
+                                    value of the region
+        """
+        self.array_name       = array_name
+        self.slice_start_node = slice_start_node
+        self.slice_end_node   = slice_end_node
+
+        self.start_k = None
+        self.end_k   = None
+
+        self.start_splitter = None
+        self.end_splitter   = None
+
+
+    def find_slice_idx (self, scope):
+        """
+        Find slice indexes from the information
+        contained in the slice nodes and array_name
+        :param scope:   The scope of the stage this region belongs to
+        """
+        #
+        # retrieve the symbol of the array being sliced, resolving alias if
+        # necessary
+        #
+        array_sym = scope[self.array_name]
+        if scope.is_alias (array_sym):
+            array_sym = array_sym.value
+        #
+        # Use sliced array shape to find indexes if no slicing limits were given
+        #
+        if self.slice_start_node is None:
+            self.start_k = 0
+        if self.slice_end_node is None:
+            self.end_k = array_sym.shape[2]
+
+        return set(self.start_k, self.end_k)
+
+
+
 class Stage ( ):
     """
     Represents a stage inside a stencil.-
@@ -541,6 +592,10 @@ class Stage ( ):
         #
         self._independent  = False
         #
+        # The list of vertical regions for this stage
+        #
+        self.vertical_regions = []
+        #
         # the root AST node of the for-loop representing this stage
         #
         if isinstance (node, ast.For):
@@ -562,6 +617,21 @@ class Stage ( ):
 
     def __repr__ (self):
         return self.name
+
+
+    def add_vertical_region (self, array_name, slice_start_node, slice_end_node):
+        """
+        Adds a vertical region to this stage
+        :param slice_start_node:    an AST Slice node containing the starting
+                                    value of the region
+        :param slice_end_node:      an AST Slice node containing the starting
+                                    value of the region
+        :param array_name:          a string representing the name of the array
+                                    being sliced
+        :return:
+        """
+        region = VerticalRegion (array_name, slice_start_node, slice_end_node)
+        self.vertical_regions.append (region)
 
 
     def generate_code (self):
