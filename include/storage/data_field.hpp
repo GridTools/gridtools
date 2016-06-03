@@ -114,6 +114,7 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT(is_data_field< Storage >::value,
                     "\"swap\" can only be called with instances of type \"data_field\" ");
                 typename Storage::pointer_type tmp = storage_.template get< SnapshotFrom, DimFrom >();
+                tmp.set_externally_managed(false);
                 storage_.template get< SnapshotFrom, DimFrom >() = storage_.template get< SnapshotTo, DimTo >();
                 storage_.template get< SnapshotTo, DimTo >() = tmp;
             }

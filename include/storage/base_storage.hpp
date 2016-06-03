@@ -71,8 +71,9 @@ namespace gridtools {
          * It is a template parameter in order to match float, double, etc...
          */
         base_storage(MetaData const *meta_data_, value_type const &init, char const *s = "default initialized storage")
-            : is_set(true), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
+            : is_set(false), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
             allocate();
+            assert(is_set && "allocation failed.");
             initialize(init, 1);
         }
 
@@ -83,8 +84,9 @@ namespace gridtools {
         base_storage(MetaData const *meta_data_,
             Ret (*func)(T const &, T const &, T const &),
             char const *s = "storage initialized with lambda")
-            : is_set(true), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
+            : is_set(false), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
             allocate();
+            assert(is_set && "allocation failed.");
             initialize(func, 1);
         }
 
@@ -97,11 +99,12 @@ namespace gridtools {
          */
         template < typename FloatType >
         explicit base_storage(MetaData const *meta_data_, FloatType *ptr, char const *s = "externally managed storage")
-            : is_set(true), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
+            : is_set(false), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
             m_fields[0] = pointer_type(ptr, true);
             if (FieldDimension > 1) {
                 allocate(FieldDimension, 1, true);
             }
+            is_set = true;
         }
 
         /**@brief destructor: frees the pointers to the data fields which are not managed outside */
@@ -132,6 +135,7 @@ namespace gridtools {
         /**@brief allocating memory for the data */
         void allocate(
             ushort_t const &dims = FieldDimension, ushort_t const &offset = 0, bool externally_managed = false) {
+            assert(!is_set && "this storage is already allocated.");
             assert(dims > offset);
             assert(dims <= field_dimensions);
             is_set = true;
