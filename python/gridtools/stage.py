@@ -530,44 +530,78 @@ class VerticalRegion ( ):
         self.slice_start_node = slice_start_node
         self.slice_end_node   = slice_end_node
 
-        self.start_k = None
-        self.end_k   = None
-
         self.start_splitter = None
         self.end_splitter   = None
 
 
-    def add_splitters (self, splitters):
+    def set_splitter (self, start_idx, end_idx):
         """
-        Add GridTools splitter values for this region
+        Sets the splitter values for this region as defined in the GridTools
+        backend
+
+        :param start_idx:   An index marking the beggining of this splitter,
+        :param end_idx:     an index marking the end of this splitter.-
         """
-        self.start_splitter = splitters[self.start_k]
-        self.end_splitter = splitters[self.end_k]
+        if start_idx < 0:
+            raise ValueError ("Cannot use a negative index in vertical region")
+        else:
+            self.start_splitter = start_idx
+
+        if end_idx < 0:
+            raise ValueError ("Cannot use a negative index in vertical region")
+        elif end_idx < start_idx:
+            raise ValueError ("End index in vertical region is smaller that its start counterpart")
+        else:
+            self.end_splitter = end_idx
 
 
     def find_slice_idx (self, scope, stencil_scope):
         """
         Find slice indexes from the information
         contained in the slice nodes and array_name
-        :param scope:   The scope of the stage this region belongs to
+
+        :param scope:         The scope of the stage this region belongs to
+        :param stencil_scope: The scope of the stencil this stage belongs to
         """
         #
-        # retrieve the symbol of the array being sliced, resolving alias if
-        # necessary
+        # retrieve the symbol of the sliced array, resolving alias if necessary
         #
         array_sym = scope[self.array_name]
         if scope.is_alias (array_sym):
             array_sym = array_sym.value
         array_sym = stencil_scope[array_sym.value]
+
         #
-        # Use sliced array shape to find indexes if no slicing limits were given
+        # set indexes based on the given slicing limits
         #
         if self.slice_start_node is None:
-            self.start_k = 0
-        if self.slice_end_node is None:
-            self.end_k = array_sym.value.shape[2]
+            #
+            # set initial index if no slicing limit was given
+            #
+            start_k = 0
+        elif isinstance (self.slice_start_node, ast.Num):
+            start_k = int (self.slice_start_node.n)
+        else:
+            raise NotImplementedError ("Only constants are accepted when slicing fields")
 
-        return set([self.start_k, self.end_k])
+        if self.slice_end_node is None:
+            #
+            # set final index if no slicing limit was given
+            #
+            end_k = array_sym.value.shape[2]
+        elif isinstance (self.slice_end_node, ast.Num):
+            end_k = int (self.slice_end_node.n)
+        else:
+            raise NotImplementedError ("Only constants are accepted when slicing fields")
+
+        #
+        # check the indexes are within the field bounds
+        #
+        if (start_k > array_sym.value.shape[2] or
+            end_k   > array_sym.value.shape[2]):
+            raise ValueError ("Slicing for field '%s' is out of bounds" % array_sym)
+
+        return (start_k, end_k)
 
 
 
@@ -578,6 +612,7 @@ class Stage ( ):
     def __init__ (self, name, node, stencil_scope):
         """
         Constructs a new StencilStage
+
         :param name:          a name to uniquely identify this stage
         :param node:          the For AST node of the comprehention from which
                               this stage is constructed
@@ -630,14 +665,6 @@ class Stage ( ):
         return self.name
 
 
-    def add_splitters (self, splitters):
-        """
-        Adds splitters values to this stage's vertical regions
-        """
-        for vr in self.vertical_regions:
-            vr.add_splitters (splitters)
-
-
     def add_vertical_region (self, array_name, slice_start_node, slice_end_node):
         """
         Adds a vertical region to this stage
@@ -661,6 +688,7 @@ class Stage ( ):
     def generate_code (self):
         """
         Generates the C++ code of this stage
+
         :return:
         """
         self.body.generate_code ( )
@@ -668,12 +696,33 @@ class Stage ( ):
 
     def find_slices_idx (self, stencil_scope):
         """
-        Find slice indexes for each vertical region
+        Find slice indexes for each vertical region of this stage
+
+        :param stencil_scope: The symbol scope of the stencil this stage
+                              belongs to
         :return:
         """
-        stg_slice_indexes = set ( )
+        stg_slice_indexes = list ( )
         for vr in self.vertical_regions:
-            stg_slice_indexes |= vr.find_slice_idx (self.scope, stencil_scope)
+            vr_slice = vr.find_slice_idx (self.scope,
+                                          stencil_scope)
+            stg_slice_indexes.append (vr_slice)
+        #
+        # make sure the vertical regions do not overlap
+        #
+        stg_slice_indexes = sorted (stg_slice_indexes)
+        for i in range (len (stg_slice_indexes) - 1):
+            (start_k, end_k) = stg_slice_indexes[i]
+            if end_k >= stg_slice_indexes[i + 1][0]:
+                raise ValueError ("Vertical regions overlap within stage '%s'" % self.name)
+        #
+        # save the splitters for each vertical region
+        #
+        assert (len (self.vertical_regions) == len (stg_slice_indexes))
+        for i in range (len (self.vertical_regions)):
+            vr.set_splitter (stg_slice_indexes[i][0],
+                             stg_slice_indexes[i][1])
+
         return stg_slice_indexes
 
 
@@ -744,7 +793,15 @@ class Stage ( ):
         #
         # have to rebuild the stage-execution graph
         #
-#        self.stencil_scope.build_execution_path ( )
+        #self.stencil_scope.build_execution_path ( )
+
+
+    def set_splitters (self, splitters):
+        """
+        Sets the splitter values to this stage's vertical regions.-
+        """
+        for vr in self.vertical_regions:
+            vr.set_splitters (splitters)
 
 
     def translate (self):
