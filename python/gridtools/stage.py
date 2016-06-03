@@ -514,9 +514,10 @@ class VerticalRegion ( ):
     Represents a vertical region (an interval in the k direction) on which a
     Stage can operate
     """
-    def __init__ (self, array_name, slice_start_node=None, slice_end_node=None):
+    def __init__ (self, name, array_name, slice_start_node=None, slice_end_node=None):
         """
         Constructs a new VerticalRegion
+        :param name:                name of this vertical region
         :param array_name:          a string representing the name of the array
                                     being sliced
         :param slice_start_node:    an AST Slice node containing the starting
@@ -524,6 +525,7 @@ class VerticalRegion ( ):
         :param slice_end_node:      an AST Slice node containing the starting
                                     value of the region
         """
+        self.name             = name
         self.array_name       = array_name
         self.slice_start_node = slice_start_node
         self.slice_end_node   = slice_end_node
@@ -647,8 +649,13 @@ class Stage ( ):
                                     being sliced
         :return:
         """
-        region = VerticalRegion (array_name, slice_start_node, slice_end_node)
+        vr_name = '%s_VR_%03d' % (self.name, len (self.vertical_regions))
+        region = VerticalRegion (vr_name,
+                                 array_name,
+                                 slice_start_node,
+                                 slice_end_node)
         self.vertical_regions.append (region)
+        logging.debug ("Vertical Region '%s' created" % vr_name)
 
 
     def generate_code (self):
