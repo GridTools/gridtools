@@ -988,56 +988,55 @@ class VerticalRegions (MultiStageStencil):
     """
     def __init__ (self, domain):
         super ( ).__init__ ( )
-
         self.domain = domain
 
+
     def stage_laplace0 (self, out_data, in_data):
-        for p in self.get_interior_points (out_data[:,:,:]):
+        for p in self.get_interior_points (out_data[:,:,0:4]):
             out_data[p] = -4.0 * in_data[p] + (
                           in_data[p + (1,0,0)]  + in_data[p + (0,1,0)] +
                           in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
-#
-#    def stage_laplace1 (self, out_data, in_data):
-#        for p in self.get_interior_points (out_data[:,:,10:]):
-#            out_data[p] = -4.0 * in_data[p] + (
-#                          in_data[p + (1,0,0)]  + in_data[p + (0,1,0)] +
-#                          in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
-#
-#    def stage_laplace2 (self, out_data, in_data):
-#        for p in self.get_interior_points (out_data[:,:,:]):
-#            out_data[p] = -4.0 * in_data[p] + (
-#                          in_data[p + (1,0,0)]  + in_data[p + (0,1,0)] +
-#                          in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
+
+
+    def stage_laplace1 (self, out_data, in_data):
+        for p in self.get_interior_points (out_data[:,:,3:5]):
+            out_data[p] = -4.0 * in_data[p] + (
+                          in_data[p + (1,0,0)]  + in_data[p + (0,1,0)] +
+                          in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
+
+
+    def stage_laplace2 (self, out_data, in_data):
+        for p in self.get_interior_points (out_data[:,:,6:]):
+            out_data[p] = -4.0 * in_data[p] + (
+                          in_data[p + (1,0,0)]  + in_data[p + (0,1,0)] +
+                          in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
 
 
     @Stencil.kernel
     def kernel (self, out_data, in_data):
         self.stage_laplace0 (out_data = out_data,
                             in_data = in_data)
-#        self.stage_laplace1 (out_data = out_data,
-#                            in_data = in_data)
-#        self.stage_laplace2 (out_data = out_data,
-#                            in_data = in_data)
+        self.stage_laplace1 (out_data = out_data,
+                            in_data = in_data)
+        self.stage_laplace2 (out_data = out_data,
+                            in_data = in_data)
 
 
 
 class VerticalRegionsTest (LaplaceTest):
     """
     Test fixture for the VerticalRegions stencil defined above
+
+    TODO: Add tests for:
+            - overlapping vertical regions within the same stage,
+            - negative slicing at the beggining or end,
+            - positive slicing at the beggining with field overflow,
+            - positive slicing at the end with field overflow,
+            - using a variable/attribute instead of a constant when slicing.
+
     """
     def setUp (self):
         super ( ).setUp ( )
-#
-#        self.domain = (64, 64, 32)
-#        self.params = ('out_data', 'in_data')
-#        self.temps  = ( )
-#
-#        self.out_data = np.zeros (self.domain)
-#        self.in_data  = np.zeros (self.domain)
-#        for i in range (self.domain[0]):
-#            for j in range (self.domain[1]):
-#                for k in range (self.domain[2]):
-#                    self.in_data[i,j,k] = i**3 + j
 
         self.stencil = VerticalRegions (self.domain)
         self.stencil.set_halo ( (1, 1, 1, 1) )
@@ -1049,11 +1048,12 @@ class VerticalRegionsTest (LaplaceTest):
             min_halo = [0, 0, 0, 0]
         super ( ).test_minimum_halo_detection (min_halo)
 
+
     def test_splitters (self):
         self._run ( )
-        self.assertEqual (self.stencil.splitters, {0: 0, 32: 1})
-
-
+        self.assertEqual (self.stencil.splitters, 
+                          #{0: 0, 2: 1, 3: 2, 5: 3, 6: 4, 32: 5})
+                          {0: 0, 3: 1, 4: 2, 5: 3, 6: 4, 32: 5})
 
 
 

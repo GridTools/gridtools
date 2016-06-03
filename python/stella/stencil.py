@@ -119,7 +119,9 @@ class FastWavesUV (MultiStageStencil):
 
 
     def stage_ppgradcor_at_flat_limit (self, ppgradcor, wgtfac, ppuv):
+        #
         # compute ppgradcor at k = self.flat_limit
+        #
         for p in self.get_interior_points (
                 ppgradcor[:,:,self.flat_limit:self.flat_limit+1],
                 ghost_cell=[0,1,0,1]):
@@ -127,7 +129,9 @@ class FastWavesUV (MultiStageStencil):
 
 
     def stage_ppgradcor_over_flat_limit (self, ppgradcor, wgtfac, ppuv):
+        #
         # compute ppgradcor at k > self.flat_limit
+        #
         for p in self.get_interior_points (
                 ppgradcor[:,:,self.flat_limit+1:],
                 ghost_cell=[0,1,0,1]):
