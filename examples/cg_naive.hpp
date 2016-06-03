@@ -294,9 +294,9 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
     pattern_type he(pattern_type::grid_type::period_type(false, false, false), GCL_WORLD, &dimensions);
 
     // 3D distributed storage
-    array<ushort_t, 3> padding{1,1,0}; // global halo, 1-Dirichlet, 0-Neumann
+    array<ushort_t, 3> padding{1,1,1}; // global halo, 1-Dirichlet, 0-Neumann
     array<ushort_t, 3> halo{1,1,1}; // number of layers to communicate to neighboring processes
-    typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > >, pattern_type::grid_type> partitioner_t;
+    typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<2,1,0> > >, pattern_type::grid_type> partitioner_t;
     partitioner_t part(he.comm(), halo, padding);
     parallel_storage_info<metadata_t, partitioner_t> meta_(part, d1, d2, d3);
     auto metadata_=meta_.get_metadata();
@@ -309,6 +309,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
     gridtools::grid<axis, partitioner_t> coords3d7pt(part, meta_);
     coords3d7pt.value_list[0] = 1; //specifying index of the splitter<0,-1>
     coords3d7pt.value_list[1] = d3; //specifying index of the splitter<1,-1>
+
 
     //--------------------------------------------------------------------------
     // Definition of the actual data fields that are used for input/output
