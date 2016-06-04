@@ -16,6 +16,16 @@ namespace gridtools {
     template <typename D>
     struct global_parameter;
 
+    template <typename T>
+    struct get_basic_type {
+         typedef typename T::basic_type type;
+    };
+
+    template <typename T>
+    struct get_basic_type< global_parameter<T> > {
+        typedef typename global_parameter<T>::wrapped_type type;
+    };
+
     /**
      * @brief The storage_holds_data_field struct
      * determines if the storage class is holding a data field type of storage
@@ -53,7 +63,7 @@ namespace gridtools {
     // Decorator is e.g. of type storage
     template < typename BaseType, template < typename T > class Decorator >
     struct is_actual_storage< pointer< Decorator< BaseType > > >
-        : public is_actual_storage< pointer< typename BaseType::basic_type > > {};
+        : public is_actual_storage< pointer< typename get_basic_type< Decorator< BaseType > >::type > > {};
 
 #ifdef CXX11_ENABLED
     // Decorator is e.g. a data_field
@@ -79,7 +89,7 @@ namespace gridtools {
         : public is_actual_storage< typename BaseType::basic_type * > {};
 
     template < typename T >
-    struct is_any_storage : boost::mpl::or_< is_storage< T >, boost::is_base_of<global_parameter< T >, T> > {};
+    struct is_any_storage : boost::mpl::or_< is_storage< T >, boost::is_base_of< T, global_parameter< T > > > {};
 
     template < typename T >
     struct is_any_storage< no_storage_type_yet< T > > : boost::mpl::true_ {};
@@ -153,12 +163,12 @@ namespace gridtools {
         get_storage_metadata_ptrs(U& ms) : metadata_set(ms) {}
 
         template <typename T>
-        void operator()(T &st, typename boost::disable_if<boost::is_base_of<global_parameter<typename T::value_type>,typename T::value_type> >::type *a = 0) const {
+        void operator()(T &st, typename boost::disable_if< boost::is_base_of< typename T::value_type, global_parameter<typename T::value_type> > >::type *a = 0) const {
             GRIDTOOLS_STATIC_ASSERT(is_any_storage<typename T::value_type>::value, "passed object is not of type pointer<storage>");
             metadata_set.insert(st->get_meta_data_pointer());
         }
 
         template <typename T>
-        void operator()(T &st, typename boost::enable_if<boost::is_base_of<global_parameter<typename T::value_type>,typename T::value_type> >::type *a = 0) const {}
+        void operator()(T &st, typename boost::enable_if< boost::is_base_of< typename T::value_type, global_parameter<typename T::value_type> > >::type *a = 0) const {}
     };
 }

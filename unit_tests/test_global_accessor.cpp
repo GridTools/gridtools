@@ -27,8 +27,12 @@ typedef backend_t::storage_info< 0, layout_map< 0, 1, 2 > > meta_t;
 #endif
 typedef backend_t::storage_type< float_type, meta_t >::type storage_type;
 
+struct boundary {
 
-struct boundary : global_parameter<boundary> {
+    int int_value;
+
+    boundary(int ival) : int_value(ival) { }
+
     GT_FUNCTION
     double value() const {return 10.;}
 };
@@ -42,7 +46,7 @@ struct functor{
     template <typename Evaluation>
     GT_FUNCTION
     static void Do(Evaluation const & eval, x_interval) {
-        eval(sol())+=eval(bd()).value();
+        eval(sol())+=eval(bd()).value() + eval(bd()).int_value;
     }
 };
 
@@ -52,7 +56,8 @@ TEST(test_global_accessor, boundary_conditions) {
 
     sol_.initialize(2.);
 
-    boundary bd_;
+    boundary bd(20);
+    global_parameter<boundary> bd_(bd);
 
     halo_descriptor di=halo_descriptor(0,1,1,9,10);
     halo_descriptor dj=halo_descriptor(0,1,1,1,2);
@@ -61,7 +66,7 @@ TEST(test_global_accessor, boundary_conditions) {
     coords_bc.value_list[1] = 1;
 
     typedef arg<0, storage_type> p_sol;
-    typedef arg<1, boundary > p_bd;
+    typedef arg<1, global_parameter<boundary> > p_bd;
 
     domain_type<boost::mpl::vector<p_sol, p_bd> > domain ( boost::fusion::make_vector( &sol_, &bd_));
 
@@ -94,8 +99,10 @@ TEST(test_global_accessor, boundary_conditions) {
             for (int k=0; k<10; ++k)
             {
                 double value=2.;
-                if( i>0 && j==1 && k<2)
+                if( i>0 && j==1 && k<2) {
                     value += 10.;
+                    value += 20;
+                }
                 if(sol_(i,j,k) != value)
                 {
                     result=false;
