@@ -17,14 +17,10 @@ namespace gridtools {
     struct global_parameter;
 
     template <typename T>
-    struct get_basic_type {
-         typedef typename T::basic_type type;
-    };
+    struct is_global_parameter : boost::mpl::false_ { };
 
     template <typename T>
-    struct get_basic_type< global_parameter<T> > {
-        typedef typename global_parameter<T>::wrapped_type type;
-    };
+    struct is_global_parameter< global_parameter<T> > : boost::mpl::true_ { };
 
     /**
      * @brief The storage_holds_data_field struct
@@ -63,7 +59,11 @@ namespace gridtools {
     // Decorator is e.g. of type storage
     template < typename BaseType, template < typename T > class Decorator >
     struct is_actual_storage< pointer< Decorator< BaseType > > >
-        : public is_actual_storage< pointer< typename get_basic_type< Decorator< BaseType > >::type > > {};
+        : public is_actual_storage< pointer< typename BaseType::basic_type > > {};
+
+    template < typename BaseType >
+    struct is_actual_storage< pointer< global_parameter< BaseType > > >
+        : public is_actual_storage< pointer< BaseType > > {};
 
 #ifdef CXX11_ENABLED
     // Decorator is e.g. a data_field
@@ -89,7 +89,7 @@ namespace gridtools {
         : public is_actual_storage< typename BaseType::basic_type * > {};
 
     template < typename T >
-    struct is_any_storage : boost::mpl::or_< is_storage< T >, boost::is_base_of< T, global_parameter< T > > > {};
+    struct is_any_storage : is_storage< T > {};
 
     template < typename T >
     struct is_any_storage< no_storage_type_yet< T > > : boost::mpl::true_ {};
@@ -163,12 +163,12 @@ namespace gridtools {
         get_storage_metadata_ptrs(U& ms) : metadata_set(ms) {}
 
         template <typename T>
-        void operator()(T &st, typename boost::disable_if< boost::is_base_of< typename T::value_type, global_parameter<typename T::value_type> > >::type *a = 0) const {
+        void operator()(T &st, typename boost::disable_if< is_global_parameter<typename T::value_type> >::type *a = 0) const {
             GRIDTOOLS_STATIC_ASSERT(is_any_storage<typename T::value_type>::value, "passed object is not of type pointer<storage>");
             metadata_set.insert(st->get_meta_data_pointer());
         }
 
         template <typename T>
-        void operator()(T &st, typename boost::enable_if< boost::is_base_of< typename T::value_type, global_parameter<typename T::value_type> > >::type *a = 0) const {}
+        void operator()(T &st, typename boost::enable_if< is_global_parameter<typename T::value_type> >::type *a = 0) const {}
     };
 }

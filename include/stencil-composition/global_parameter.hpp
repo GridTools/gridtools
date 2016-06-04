@@ -55,4 +55,7 @@ struct global_parameter : T {
     }
 };
 
+template <typename T>
+struct is_any_storage<global_parameter<T> > : boost::mpl::true_ {};
+
 } // namespace gridtools
