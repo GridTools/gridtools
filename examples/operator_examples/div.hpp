@@ -16,7 +16,7 @@ namespace operator_examples {
 
     struct div_prep_functor {
         typedef in_accessor<0, icosahedral_topology_t::edges, extent<1> > edge_length;
-        typedef in_accessor<1, icosahedral_topology_t::cells, extent<1> > cell_area;
+        typedef inout_accessor<1, icosahedral_topology_t::cells> cell_area;
         typedef in_accessor<2, icosahedral_topology_t::cells, extent<1>, 5 > orientation_of_normal;
         typedef inout_accessor<3, icosahedral_topology_t::cells, 5 > weights;
         typedef boost::mpl::vector<edge_length, cell_area, orientation_of_normal, weights> arg_list;
@@ -35,6 +35,7 @@ namespace operator_examples {
                 eval(weights(edge + e)) += eval(orientation_of_normal(edge + e)) * eval(edge_length(neighbor_offset)) / eval(cell_area());
                 e++;
             }
+            eval(cell_area()) = 1.0 / eval(cell_area());
         }
 
     };
@@ -104,7 +105,7 @@ namespace operator_examples {
         {
             auto ff = [](const double _in1, const double _in2, const double _res) -> double { return _in1 * _in2 + _res; };
 
-            eval(out_cells()) = eval(on_edges(ff, 0.0, in_edges(), edge_length())) / eval(cell_area());
+            eval(out_cells()) = eval(on_edges(ff, 0.0, in_edges(), edge_length())) * eval(cell_area());
         }
     };
 
@@ -121,7 +122,7 @@ namespace operator_examples {
         {
             auto ff = [](const double _in1, const double _in2, const double _res) -> double { return _in1 * _in2 + _res; };
 
-            eval(out_cells()) = -eval(on_edges(ff, 0.0, in_edges(), edge_length())) / eval(cell_area());
+            eval(out_cells()) = -eval(on_edges(ff, 0.0, in_edges(), edge_length())) * eval(cell_area());
         }
     };
 
@@ -173,8 +174,8 @@ namespace operator_examples {
             typedef typename icgrid::get_grid_topology< Evaluation >::type grid_topology_t;
             constexpr auto neighbors_offsets = from<edges>::to<cells>::with_color<static_int<color> >::offsets();
 
-            eval(out_cells(neighbors_offsets[0])) /= eval(cell_area(neighbors_offsets[0]));
-            eval(out_cells(neighbors_offsets[1])) /= eval(cell_area(neighbors_offsets[1]));
+            eval(out_cells(neighbors_offsets[0])) *= eval(cell_area(neighbors_offsets[0]));
+            eval(out_cells(neighbors_offsets[1])) *= eval(cell_area(neighbors_offsets[1]));
         }
     };
 
