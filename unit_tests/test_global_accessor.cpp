@@ -58,7 +58,7 @@ TEST(test_global_accessor, boundary_conditions) {
 
     boundary bd(20);
 #ifdef CXX11_ENABLED
-    auto bd_ = make_global_parameter(boundary(20));
+    auto bd_ = make_global_parameter(bd);
     typedef arg<1, decltype(bd_) > p_bd;
     GRIDTOOLS_STATIC_ASSERT(gridtools::is_global_parameter< decltype(bd_) >::value, "is_global_parameter check failed");
 #else
@@ -78,6 +78,7 @@ TEST(test_global_accessor, boundary_conditions) {
 
     domain_type<boost::mpl::vector<p_sol, p_bd> > domain ( boost::fusion::make_vector( &sol_, &bd_));
 
+/*****RUN 1 WITH bd int_value set to 20****/
 #ifdef CXX11_ENABLED
     auto
 #else
@@ -116,6 +117,39 @@ TEST(test_global_accessor, boundary_conditions) {
                     result=false;
                 }
             }
+
+/*****RUN 2 WITH bd int_value set to 30****/
+    bd.int_value = 30;
+    sol_.initialize(2.);
+    bc_eval = make_computation< backend_t >
+        (
+            domain, coords_bc
+            , make_mss
+            (
+                execute<forward>(),
+                make_esf<functor>(p_sol(), p_bd()))
+            );
+
+    bc_eval->ready();
+    bc_eval->steady();
+    bc_eval->run();
+    bc_eval->finalize();
+
+    for (int i=0; i<10; ++i)
+        for (int j=0; j<10; ++j)
+            for (int k=0; k<10; ++k)
+            {
+                double value=2.;
+                if( i>0 && j==1 && k<2) {
+                    value += 10.;
+                    value += 30;
+                }
+                if(sol_(i,j,k) != value)
+                {
+                    result=false;
+                }
+            }
+
 
     EXPECT_TRUE(result);
 }

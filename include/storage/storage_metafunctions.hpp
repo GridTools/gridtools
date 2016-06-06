@@ -24,6 +24,9 @@ namespace gridtools {
     template <typename T>
     struct is_global_parameter< global_parameter<T> > : boost::mpl::true_ { };
 
+    template <typename T>
+    struct is_global_parameter< pointer< global_parameter<T> > > : boost::mpl::true_ { };
+
     /**
      * @brief The storage_holds_data_field struct
      * determines if the storage class is holding a data field type of storage
@@ -178,6 +181,6 @@ namespace gridtools {
         /** @brief overload for the case that the "storage" is a global_parameter. Skip the element in this case.
          */
         template <typename T>
-        void operator()(T &st, typename boost::enable_if< is_global_parameter<typename T::value_type> >::type *a = 0) const {}
+        void operator()(T &st, typename boost::enable_if< is_global_parameter<typename T::value_type> >::type *a = 0) const { }
     };
 }

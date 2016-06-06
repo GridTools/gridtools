@@ -33,8 +33,13 @@ struct global_parameter : T {
     typedef wrap_pointer< this_type, false > storage_ptr_t;
 #endif
     storage_ptr_t m_storage;
+    T const& t_ref;
 
-    global_parameter(T const& t) : T(t), m_storage(static_cast<this_type*>(this), true) {}
+    global_parameter(T const& t) : T(t), m_storage(static_cast<this_type*>(this), true), t_ref(t) {}
+
+    this_type const& operator=(this_type const& other) {
+        return other;
+    }
 
     GT_FUNCTION
     this_type *get_pointer_to_use() { return m_storage.get_pointer_to_use(); }
@@ -53,6 +58,12 @@ struct global_parameter : T {
     void clone_to_device() {
         m_storage.update_gpu();
     }
+
+    GT_FUNCTION
+    void update_values() {
+        *(static_cast<T*>(this)) = this_type(t_ref);
+        m_storage = storage_ptr_t(static_cast<this_type*>(this), true);
+    }
 };
 
 template <typename T>
@@ -62,9 +73,16 @@ struct is_any_storage<global_parameter<T> > : boost::mpl::true_ {};
 /**@brief function that can be used to create a global_parameter instance.
 */
 template<typename T>
-global_parameter<T> make_global_parameter(T&& t) {
-    return global_parameter<T>(std::forward<T>(t));
+global_parameter<T> make_global_parameter(T const& t) {
+    return global_parameter<T>(t);
 }
 #endif // CXX11_ENABLED
+
+struct update_global_param_values {
+    template < typename Elem >
+    GT_FUNCTION void operator()(Elem &elem) const {
+        elem->update_values();
+    }
+};
 
 } // namespace gridtools
