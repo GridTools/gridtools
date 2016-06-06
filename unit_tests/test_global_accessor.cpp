@@ -57,7 +57,16 @@ TEST(test_global_accessor, boundary_conditions) {
     sol_.initialize(2.);
 
     boundary bd(20);
+#ifdef CXX11_ENABLED
+    auto bd_ = make_global_parameter(boundary(20));
+    typedef arg<1, decltype(bd_) > p_bd;
+    GRIDTOOLS_STATIC_ASSERT(gridtools::is_global_parameter< decltype(bd_) >::value, "is_global_parameter check failed");
+#else
     global_parameter<boundary> bd_(bd);
+    typedef arg<1, global_parameter<boundary> > p_bd;
+    GRIDTOOLS_STATIC_ASSERT(gridtools::is_global_parameter< global_parameter<boundary> >::value, "is_global_parameter check failed");
+#endif
+    GRIDTOOLS_STATIC_ASSERT(!gridtools::is_global_parameter< storage_type >::value, "is_global_parameter check failed");
 
     halo_descriptor di=halo_descriptor(0,1,1,9,10);
     halo_descriptor dj=halo_descriptor(0,1,1,1,2);
@@ -66,7 +75,6 @@ TEST(test_global_accessor, boundary_conditions) {
     coords_bc.value_list[1] = 1;
 
     typedef arg<0, storage_type> p_sol;
-    typedef arg<1, global_parameter<boundary> > p_bd;
 
     domain_type<boost::mpl::vector<p_sol, p_bd> > domain ( boost::fusion::make_vector( &sol_, &bd_));
 

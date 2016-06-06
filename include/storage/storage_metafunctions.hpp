@@ -16,6 +16,8 @@ namespace gridtools {
     template <typename D>
     struct global_parameter;
 
+    /**@brief metafunction to check if a given type is a global parameter
+    */
     template <typename T>
     struct is_global_parameter : boost::mpl::false_ { };
 
@@ -117,7 +119,7 @@ namespace gridtools {
         typedef pointer< typename T::value_type::basic_type > type;
     };
 
-    /* @brief metafunction that takes a pointer<storage<T>> type and returns a pointer<storage<T>::storage_ptr_t> type
+    /** @brief metafunction that takes a pointer<storage<T>> type and returns a pointer<storage<T>::storage_ptr_t> type
      */
     template < typename T >
     struct get_user_storage_ptrs_t {
@@ -133,8 +135,9 @@ namespace gridtools {
         typedef pointer< storage_ptr_ty > type;
     };
 
-    /* @brief metafunction class that is used to transform a fusion vector of pointer<storage<T>> into a
-     * pointer<storage<T>::storage_ptr_t> vector */
+    /** @brief metafunction class that is used to transform a fusion vector of pointer<storage<T>> into a
+     *  pointer<storage<T>::storage_ptr_t> vector
+     */
     struct get_user_storage_ptrs {
         template < typename T >
         struct result;
@@ -156,18 +159,24 @@ namespace gridtools {
         }
     };
 
+    /** @brief metafunction class that is used to extract metadata pointers from a fusion vector of pointer<storage<T>>
+     */
     template <typename U>
     struct get_storage_metadata_ptrs {
         U& metadata_set;
         GRIDTOOLS_STATIC_ASSERT(is_metadata_set<U>::value, "passed type is not a metadata_set");
         get_storage_metadata_ptrs(U& ms) : metadata_set(ms) {}
 
+        /** @brief overload for the case that the "storage" is a global_parameter. Skip the element in this case.
+         */
         template <typename T>
         void operator()(T &st, typename boost::disable_if< is_global_parameter<typename T::value_type> >::type *a = 0) const {
-            GRIDTOOLS_STATIC_ASSERT(is_any_storage<typename T::value_type>::value, "passed object is not of type pointer<storage>");
+            GRIDTOOLS_STATIC_ASSERT(is_any_storage<typename T::value_type>::value, "passed object is neither a pointer<storage<T>> nor a pointer<global_parameter<T>>");
             metadata_set.insert(st->get_meta_data_pointer());
         }
 
+        /** @brief overload for the case that the "storage" is a global_parameter. Skip the element in this case.
+         */
         template <typename T>
         void operator()(T &st, typename boost::enable_if< is_global_parameter<typename T::value_type> >::type *a = 0) const {}
     };

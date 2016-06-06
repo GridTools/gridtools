@@ -34,7 +34,7 @@ struct global_parameter : T {
 #endif
     storage_ptr_t m_storage;
 
-    global_parameter(T& t) : T(t), m_storage(static_cast<this_type*>(this), true) {}
+    global_parameter(T const& t) : T(t), m_storage(static_cast<this_type*>(this), true) {}
 
     GT_FUNCTION
     this_type *get_pointer_to_use() { return m_storage.get_pointer_to_use(); }
@@ -57,5 +57,14 @@ struct global_parameter : T {
 
 template <typename T>
 struct is_any_storage<global_parameter<T> > : boost::mpl::true_ {};
+
+#ifdef CXX11_ENABLED
+/**@brief function that can be used to create a global_parameter instance.
+*/
+template<typename T>
+global_parameter<T> make_global_parameter(T&& t) {
+    return global_parameter<T>(std::forward<T>(t));
+}
+#endif // CXX11_ENABLED
 
 } // namespace gridtools
