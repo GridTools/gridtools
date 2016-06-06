@@ -2,6 +2,7 @@
 
 \usepackage{listings}
 \lstset{language=C++,basicstyle=\footnotesize\ttfamily,breaklines=true}
+\usepackage{booktabs}
 
 % Setup appearance:
 
@@ -180,6 +181,27 @@ GT_FUNCTION static void Do(Evaluation const &eval, x_interval)
   $\rightarrow$ fix neighbour order
 \end{frame}
 
+\begin{frame}[fragile]{A grad}
+  \[\text{grad}_n(\varrho)_l = \frac{\varrho_{i(l,2)}-\varrho_{i(l,1)}}{\hat{l}}\]
+
+  \begin{lstlisting}[basicstyle=\scriptsize\ttfamily]
+typedef in_accessor<0, icosahedral_topology_t::cells, extent<1> > in_cells;
+typedef in_accessor<1, icosahedral_topology_t::edges, extent<1> > dual_edge_length;
+typedef inout_accessor<2, icosahedral_topology_t::edges> out_edges;
+
+template<typename Evaluation>
+GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+    auto neighbors_offsets =
+      connectivity<edges, cells>::offsets(eval.position()[1]);
+
+    eval(out_edges()) =
+      ( eval(in_cells(neighbors_offsets[0])) -
+        eval(in_cells(neighbors_offsets[1]))
+      ) / eval(dual_edge_length());
+}
+  \end{lstlisting}
+\end{frame}
+
 \begin{frame}[fragile]{Neighbors order}
   \begin{figure}[htbp]
   \centering
@@ -225,37 +247,109 @@ GT_FUNCTION static void Do(Evaluation const &eval, x_interval)
   We also set rules for neighbors of vertexes. Helpful for a curl.
 \end{frame}
 
-\begin{frame}[fragile]{A grad}
-  \[\text{grad}_n(\varrho)_l = \frac{\varrho_{i(l,2)}-\varrho_{i(l,1)}}{\hat{l}}\]
+\begin{frame}{Evaluation}
+  $\text{div}(v)_i = \frac{1}{A_i}\sum\limits_{l\in \mathcal{E}(i)}v_{n_l}(N_l \cdot n_{i,l})l$
+  \begin{itemize}
+    \item weights:$\text{div}(v)_i = \sum\limits_{l\in \mathcal{E}(i)}w_{i,l}v_{n_l}$
+    \item flow convention: $\text{div}(\bm{v})_i = \frac{1}{A_i}\sum\limits_{l\in\mathcal{E}(i)}v_{n_l}l$
+    \item over edges:
+    \begin{align}
+      \text{div}(\bm{v})_{\varkappa(l,j)} &\leftarrow \text{div}(\bm{v})_{\varkappa(l,j)} \pm v_{n_l}l \quad j=1,2\\
+      \text{div}(\bm{v})_{\varkappa(l,j)} &\leftarrow \text{div}(\bm{v})_{\varkappa(l,j)} / A_{\varkappa(l,j)}\quad j = 1,2
+    \end{align}
+  \end{itemize}
 
-  \begin{lstlisting}[basicstyle=\scriptsize\ttfamily]
-typedef in_accessor<0, icosahedral_topology_t::cells, extent<1> > in_cells;
-typedef in_accessor<1, icosahedral_topology_t::edges, extent<1> > dual_edge_length;
-typedef inout_accessor<2, icosahedral_topology_t::edges> out_edges;
-
-template<typename Evaluation>
-GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-    auto neighbors_offsets =
-      connectivity<edges, cells>::offsets(eval.position()[1]);
-
-    eval(out_edges()) =
-      ( eval(in_cells(neighbors_offsets[0])) -
-        eval(in_cells(neighbors_offsets[1]))
-      ) / eval(dual_edge_length());
-}
-  \end{lstlisting}
+  \begin{table}[htbp]
+  \centering
+  \begin{tabular}{lll}
+  \toprule
+  Approach & Primal location & Operation on primal location\\
+  \midrule
+  weights & Cells & 6 read, 1 write, 3 mult, 3 plus\\
+  flow convention & Cells & 7 read, 1 write, 4 mult, 3 plus\\
+  over edges & Edges & 4 read, 2 write, 1 mult, 2 plus\\
+  && + 4 read, 2 write, 2 mult\\
+  \bottomrule
+  \end{tabular}
+  \end{table}
+  \[n_{cell}:n_{edge} = 2:3\]
 \end{frame}
 
 \begin{frame}{Evaluation}
+  \begin{footnotesize}
+  \begin{table}[htbp]
+  \centering
+  \begin{tabular}{llll|lll}
+  \toprule
+  & \multicolumn {3}{c}{CPU (10 times)} & \multicolumn {3}{c}{GPU (100 times)}\\
+  \cmidrule {2-7}
+  Approach & R02B05 & R02B06 & R02B07 & R02B05 & R02B06 & R02B07\\
+  \midrule
+  weights & 0.06777 & 0.3174& 1.247 & 0.03529& 0.07045& 0.2834\\
+  flow convention & 0.08640 & 0.4236& 1.631 & 0.02927& 0.06547& 0.3110\\
+  over edges & 0.1010 & 0.4821& 1.907 & 0.05403& 0.1015& 0.3934\\
+  \bottomrule
+  \end{tabular}
+  \caption{performance numbers on kesch, one patch of the global grid, klevel=50}
+  \end{table}
+\end{footnotesize}
 \end{frame}
 
-\begin{frame}{Syntactic sugar}
+\begin{frame}[fragile]{Syntactic sugar}
+  \begin{lstlisting}[basicstyle=\scriptsize\ttfamily]
+// on_edges
+auto ff = [](const double _in1, const double _in2, const double _res) -> double { return _in1 * _in2 + _res; };
+eval(out_cells()) = eval(on_edges(ff, 0.0, in_edges(), edge_length()));
+
+// but with five dimension fields
+using edge_of_cells_dim = dimension< 5 >;
+edge_of_cells_dim::Index edge;
+auto neighbors_offsets = connectivity< cells , edges >::offsets(eval.position()[1]);
+
+eval(out_cells()) = 0.;
+ushort_t e=0;
+for (auto neighbor_offset : neighbors_offsets) {
+    eval(out_cells()) += eval(in_edges(neighbor_offset)) * eval(weights(edge+e));
+    e++;
+}
+
+// extend on_edges
+using edge_of_cells_dim = dimension< 5 >;
+auto ff = ...;
+eval(out_cells()) = eval(on_edges(ff, 0.0, in_edges(), weights(edge_of_cells_dim)));
+  \end{lstlisting}
+
+\end{frame}
+
+\begin{frame}[fragile]{Syntactic sugar}
+  \begin{lstlisting}[basicstyle=\scriptsize\ttfamily]
+// grad
+auto neighbors_offsets =
+  connectivity<edges, cells>::offsets(eval.position()[1]);
+
+eval(out_edges()) =
+  ( eval(in_cells(neighbors_offsets[0])) -
+    eval(in_cells(neighbors_offsets[1]))
+  ) / eval(dual_edge_length());
+
+// proposal
+eval(out_edges()) = eval(on_cells(reduction_functor, 0.0, in_cells(), {1,  -1})) / eval(dual_edge_length());
+  \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Syntactic sugar}
+  But topology exposure is still necessary:
+  \[\text{div}(\bm{v})_{\varkappa(l,j)} \pm = v_{n_l}l \quad j=1,2\]
+  \begin{lstlisting}
+    double t{eval(in_edges()) * eval(edge_length())};
+    eval(out_cells(neighbors_offsets[0])) -= t;
+    eval(out_cells(neighbors_offsets[1])) += t;
+  \end{lstlisting}
 \end{frame}
 
 \begin{frame}{Next}
   \begin{itemize}
     \item Roofline model
-    \item Evaluate on GPU
     \item Mass flux divergence:
       \begin{equation*}
         \text{div}(\bm{v}\Delta p)_{i, k}=\frac{1}{A_i} \sum\limits_{l\in\mathcal{E}(i)}v_{n_l,k}\Delta\breve{p}_{l,k}(\bm{N}_l\cdot\bm{n}_{i,l})l
