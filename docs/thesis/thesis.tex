@@ -116,13 +116,18 @@ because on upward cells $\bm{N}_l$ and $\bm{n}_{i,l}$ are of the same direction 
 
 The first two approaches are primarily based on cells. However, since two cells share an edge, we are computing $v_{n_l}l$ twice for each $l$. The third approach aims to avoid this by iterating primarily on edges.
 \begin{gather}
-  \text{div}(\bm{v})_i \leftarrow 0 \quad \text{for all }i \\
+  % \text{div}(\bm{v})_i \leftarrow 0 \quad \text{for all }i \\
   \begin{split}
     \label{div2}
     \text{div}(\bm{v})_{\varkappa(l,0)} &\leftarrow \text{div}(\bm{v})_{\varkappa(l,0)} + v_{n_l}l\\
     \text{div}(\bm{v})_{\varkappa(l,1)} &\leftarrow \text{div}(\bm{v})_{\varkappa(l,1)} - v_{n_l}l
   \end{split}\\
-  \text{div}(\bm{v})_i \leftarrow \text{div}(\bm{v})_i / A_i \quad \text{for all }i
+  \begin{split}
+    \label{div2}
+    \text{div}(\bm{v})_{\varkappa(l,0)} &\leftarrow \text{div}(\bm{v})_{\varkappa(l,0)} / A_{\varkappa(l,0)}\\
+    \text{div}(\bm{v})_{\varkappa(l,1)} &\leftarrow \text{div}(\bm{v})_{\varkappa(l,1)} / A_{\varkappa(l,1)}
+  \end{split}
+  % \text{div}(\bm{v})_i \leftarrow \text{div}(\bm{v})_i / A_i \quad \text{for all }i
 \end{gather}
 Here \cref{div2} is primarily on edges, and assumes the convention that cell neighbors of an edge follow the direction of the $N_l$, as well as the normal orientation convention.
 
@@ -134,7 +139,7 @@ Approach & Primal location & Operation on primal location\\
 \midrule
 weights & Cells & 6 read, 1 write, 3 mult, 3 plus\\
 2 & Cells & 7 read, 1 write, 4 mult, 3 plus\\
-3 & Edges & 4 read, 2 write, 1 mult, 2 plus + 1 read,1 write, 1 mult\\
+3 & Edges & 4 read, 2 write, 1 mult, 2 plus + 2 read, 2 write, 2 mult\\
 \bottomrule
 \end{tabular}
 \end{table}
