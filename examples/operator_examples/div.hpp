@@ -19,6 +19,7 @@ namespace operator_examples {
         typedef inout_accessor<1, icosahedral_topology_t::cells> cell_area;
         typedef in_accessor<2, icosahedral_topology_t::cells, extent<1>, 5 > orientation_of_normal;
         typedef inout_accessor<3, icosahedral_topology_t::cells, 5 > weights;
+
         typedef boost::mpl::vector<edge_length, cell_area, orientation_of_normal, weights> arg_list;
 
         template<typename Evaluation>
@@ -37,7 +38,27 @@ namespace operator_examples {
             }
             eval(cell_area()) = 1.0 / eval(cell_area());
         }
+    };
 
+    struct div_prep_functor_on_edges {
+        typedef in_accessor<0, icosahedral_topology_t::edges, extent<1> > edge_length;
+        typedef in_accessor<1, icosahedral_topology_t::cells> cell_area;
+        typedef inout_accessor<2, icosahedral_topology_t::edges, 5 > l_over_A;
+
+        typedef boost::mpl::vector<edge_length, cell_area, l_over_A> arg_list;
+
+        template<typename Evaluation>
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval)
+        {
+            typedef typename icgrid::get_grid_topology< Evaluation >::type grid_topology_t;
+            auto neighbors_offsets = connectivity< edges , cells >::offsets(eval.position()[1]);
+
+            using cell_of_edge_dim = dimension< 5 >;
+            cell_of_edge_dim::Index cell;
+
+            eval(l_over_A(cell + 0)) = eval(cell_area(neighbors_offsets[0])) * eval(edge_length());
+            eval(l_over_A(cell + 1)) = eval(cell_area(neighbors_offsets[1])) * eval(edge_length());
+        }
     };
 
     struct div_functor {
@@ -129,9 +150,9 @@ namespace operator_examples {
     template <int color>
     struct div_functor_over_edges {
         typedef in_accessor<0, icosahedral_topology_t::edges, extent<1> > in_edges;
-        typedef in_accessor<1, icosahedral_topology_t::edges, extent<1> > edge_length;
+        typedef in_accessor<1, icosahedral_topology_t::edges, extent<1>, 5 > l_over_A;
         typedef inout_accessor<2, icosahedral_topology_t::cells> out_cells;
-        typedef boost::mpl::vector<in_edges, edge_length, out_cells> arg_list;
+        typedef boost::mpl::vector<in_edges, l_over_A, out_cells> arg_list;
 
         template<typename Evaluation>
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval)
@@ -139,18 +160,20 @@ namespace operator_examples {
             typedef typename icgrid::get_grid_topology< Evaluation >::type grid_topology_t;
             constexpr auto neighbors_offsets = from<edges>::to<cells>::with_color<static_int<color> >::offsets();
 
-            double t{eval(in_edges()) * eval(edge_length())};
-            eval(out_cells(neighbors_offsets[0])) -= t;
-            eval(out_cells(neighbors_offsets[1])) += t;
+            using cell_of_edge_dim = dimension< 5 >;
+            cell_of_edge_dim::Index cell;
+
+            eval(out_cells(neighbors_offsets[0])) -= eval(in_edges()) * eval(l_over_A(cell + 0));
+            eval(out_cells(neighbors_offsets[1])) += eval(in_edges()) * eval(l_over_A(cell + 1));
         }
     };
 
     template <>
     struct div_functor_over_edges<0> {
         typedef in_accessor<0, icosahedral_topology_t::edges, extent<1> > in_edges;
-        typedef in_accessor<1, icosahedral_topology_t::edges, extent<1> > edge_length;
+        typedef in_accessor<1, icosahedral_topology_t::edges, extent<1>, 5 > l_over_A;
         typedef inout_accessor<2, icosahedral_topology_t::cells> out_cells;
-        typedef boost::mpl::vector<in_edges, edge_length, out_cells> arg_list;
+        typedef boost::mpl::vector<in_edges, l_over_A, out_cells> arg_list;
 
         template<typename Evaluation>
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval)
@@ -158,9 +181,11 @@ namespace operator_examples {
             typedef typename icgrid::get_grid_topology< Evaluation >::type grid_topology_t;
             constexpr auto neighbors_offsets = from<edges>::to<cells>::with_color<static_int<0> >::offsets();
 
-            double t{eval(in_edges()) * eval(edge_length())};
-            eval(out_cells(neighbors_offsets[0])) = t;
-            eval(out_cells(neighbors_offsets[1])) = t;
+            using cell_of_edge_dim = dimension< 5 >;
+            cell_of_edge_dim::Index cell;
+
+            eval(out_cells(neighbors_offsets[0])) = -eval(in_edges()) * eval(l_over_A(cell + 0));
+            eval(out_cells(neighbors_offsets[1])) = eval(in_edges()) * eval(l_over_A(cell + 1));
         }
     };
 
@@ -222,22 +247,28 @@ namespace operator_examples {
         auto& weights_meta = repository.edges_of_cells_meta();
         edges_of_cells_storage_type div_weights(weights_meta, "weights");
 
+        auto cells_of_edges_meta = meta_storage_extender()(in_edges.meta_data(), 2);
+        using cells_of_edges_storage_type = typename backend_t::storage_type< double, decltype(cells_of_edges_meta) >::type;
+        cells_of_edges_storage_type l_over_A(cells_of_edges_meta, "l_over_A");
+
         out_cells.initialize(0.0);
         div_weights.initialize(0.0);
+        l_over_A.initialize(0.0);
 
         typedef arg<0, edge_storage_type> p_edge_length;
         typedef arg<1, cell_storage_type> p_cell_area;
         typedef arg<2, edges_of_cells_storage_type> p_orientation_of_normal;
         typedef arg<3, edges_of_cells_storage_type> p_div_weights;
+        typedef arg<4, cells_of_edges_storage_type> p_l_over_A;
 
-        typedef arg<4, edge_storage_type> p_in_edges;
-        typedef arg<5, cell_storage_type> p_out_cells;
+        typedef arg<5, edge_storage_type> p_in_edges;
+        typedef arg<6, cell_storage_type> p_out_cells;
 
-        typedef boost::mpl::vector< p_edge_length, p_cell_area, p_orientation_of_normal, p_div_weights, p_in_edges, p_out_cells>
+        typedef boost::mpl::vector< p_edge_length, p_cell_area, p_orientation_of_normal, p_div_weights, p_l_over_A, p_in_edges, p_out_cells>
             accessor_list_t;
 
         gridtools::domain_type<accessor_list_t> domain(
-            boost::fusion::make_vector(&edge_length, &cell_area, &orientation_of_normal, &div_weights, &in_edges, &out_cells));
+            boost::fusion::make_vector(&edge_length, &cell_area, &orientation_of_normal, &div_weights, &l_over_A, &in_edges, &out_cells));
 
         auto stencil_prep = gridtools::make_computation<backend_t>(
             domain,
@@ -245,7 +276,9 @@ namespace operator_examples {
             gridtools::make_mss // mss_descriptor
                 (execute<forward>(),
                  gridtools::make_esf<div_prep_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(
-                         p_edge_length(), p_cell_area(), p_orientation_of_normal(), p_div_weights())
+                         p_edge_length(), p_cell_area(), p_orientation_of_normal(), p_div_weights()),
+                 gridtools::make_esf<div_prep_functor_on_edges, icosahedral_topology_t, icosahedral_topology_t::edges>(
+                         p_edge_length(), p_cell_area(), p_l_over_A())
                 )
         );
         stencil_prep->ready();
@@ -257,6 +290,7 @@ namespace operator_examples {
         edge_length.d2h_update();
         cell_area.d2h_update();
         div_weights.d2h_update();
+        l_over_A.d2h_update();
 #endif
 
         /*
@@ -373,17 +407,11 @@ namespace operator_examples {
                 gridtools::make_mss // mss_descriptor
                         (execute<forward>(),
                          gridtools::make_cesf<0, div_functor_over_edges<0>, icosahedral_topology_t, icosahedral_topology_t::edges>(
-                                 p_in_edges(), p_edge_length(), p_out_cells()),
+                                 p_in_edges(), p_l_over_A(), p_out_cells()),
                          gridtools::make_cesf<1, div_functor_over_edges<1>, icosahedral_topology_t, icosahedral_topology_t::edges>(
-                                 p_in_edges(), p_edge_length(), p_out_cells()),
+                                 p_in_edges(), p_l_over_A(), p_out_cells()),
                          gridtools::make_cesf<2, div_functor_over_edges<2>, icosahedral_topology_t, icosahedral_topology_t::edges>(
-                                 p_in_edges(), p_edge_length(), p_out_cells()),
-                         gridtools::make_cesf<0, divide_by_field<0>, icosahedral_topology_t, icosahedral_topology_t::edges >(
-                                 p_cell_area(), p_out_cells())
-//                         gridtools::make_cesf<0, divide_by_field<1>, icosahedral_topology_t, icosahedral_topology_t::edges >(
-//                                 p_cell_area(), p_out_cells()),
-//                         gridtools::make_cesf<0, divide_by_field<2>, icosahedral_topology_t, icosahedral_topology_t::edges >(
-//                                 p_cell_area(), p_out_cells())
+                                 p_in_edges(), p_l_over_A(), p_out_cells())
                         )
         );
         stencil_div_over_edges->ready();
@@ -392,12 +420,11 @@ namespace operator_examples {
 
 #ifdef __CUDACC__
         in_edges.d2h_update();
-        edge_length.d2h_update();
-        cell_area.d2h_update();
+        l_over_A.d2h_update();
         out_cells.d2h_update();
 #endif
 
-        // TODO: this does not validate because the divide_by_field functor runs only on edges with color 0
+        // TODO: this does not validate in bottom left cell
 //        result = result && ver.verify(grid_, ref_cells, out_cells, halos);
 
 #ifdef BENCHMARK
