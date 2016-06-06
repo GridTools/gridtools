@@ -89,11 +89,31 @@ namespace operator_examples {
         }
     };
 
+    struct div_functor_flow_convention {
+        typedef in_accessor<0, icosahedral_topology_t::edges, extent<1> > in_edges;
+        typedef in_accessor<1, icosahedral_topology_t::edges, extent<1> > edge_length;
+        typedef in_accessor<2, icosahedral_topology_t::cells, extent<1> > cell_area;
+        typedef inout_accessor<3, icosahedral_topology_t::cells> out_cells;
+        typedef boost::mpl::vector<in_edges, edge_length, cell_area, out_cells> arg_list;
+
+        template<typename Evaluation>
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval)
+        {
+            auto ff = [](const double _in1, const double _in2, const double _res) -> double { return _in1 * _in2 + _res; };
+
+            if (eval.position()[1] == 0)
+                eval(out_cells()) = eval(on_edges(ff, 0.0, in_edges(), edge_length())) * eval(cell_area());
+            else
+                eval(out_cells()) = -eval(on_edges(ff, 0.0, in_edges(), edge_length())) * eval(cell_area());
+
+        }
+    };
+
     template <int color>
-    struct div_functor_flow_convention;
+    struct div_functor_flow_convention_cesf;
 
     template <>
-    struct div_functor_flow_convention<0>{
+    struct div_functor_flow_convention_cesf<0>{
         typedef in_accessor<0, icosahedral_topology_t::edges, extent<1> > in_edges;
         typedef in_accessor<1, icosahedral_topology_t::edges, extent<1> > edge_length;
         typedef in_accessor<2, icosahedral_topology_t::cells, extent<1> > cell_area;
@@ -110,7 +130,7 @@ namespace operator_examples {
     };
 
     template <>
-    struct div_functor_flow_convention<1>{
+    struct div_functor_flow_convention_cesf<1>{
         typedef in_accessor<0, icosahedral_topology_t::edges, extent<1> > in_edges;
         typedef in_accessor<1, icosahedral_topology_t::edges, extent<1> > edge_length;
         typedef in_accessor<2, icosahedral_topology_t::cells, extent<1> > cell_area;
@@ -335,9 +355,7 @@ namespace operator_examples {
                 grid_,
                 gridtools::make_mss // mss_descriptor
                         (execute<forward>(),
-                         gridtools::make_cesf<0, div_functor_flow_convention<0>, icosahedral_topology_t, icosahedral_topology_t::cells>(
-                                 p_in_edges(), p_edge_length(), p_cell_area(), p_out_cells()),
-                         gridtools::make_cesf<1, div_functor_flow_convention<1>, icosahedral_topology_t, icosahedral_topology_t::cells>(
+                         gridtools::make_esf<div_functor_flow_convention, icosahedral_topology_t, icosahedral_topology_t::cells>(
                                  p_in_edges(), p_edge_length(), p_cell_area(), p_out_cells())
                         )
         );
@@ -351,7 +369,6 @@ namespace operator_examples {
         cell_area.d2h_update();
         out_cells.d2h_update();
 #endif
-
         result = result && ver.verify(grid_, ref_cells, out_cells, halos);
 
 #ifdef BENCHMARK
@@ -361,6 +378,44 @@ namespace operator_examples {
         }
         stencil_flow_convention->finalize();
         std::cout << "flow convention: "<< stencil_flow_convention->print_meter() << std::endl;
+#endif
+
+
+        /*
+         * stencil of div flow convention cesf
+         */
+
+        auto stencil_flow_convention_cesf = gridtools::make_computation<backend_t>(
+                domain,
+                grid_,
+                gridtools::make_mss // mss_descriptor
+                        (execute<forward>(),
+                         gridtools::make_cesf<0, div_functor_flow_convention_cesf<0>, icosahedral_topology_t, icosahedral_topology_t::cells>(
+                                 p_in_edges(), p_edge_length(), p_cell_area(), p_out_cells()),
+                         gridtools::make_cesf<1, div_functor_flow_convention_cesf<1>, icosahedral_topology_t, icosahedral_topology_t::cells>(
+                                 p_in_edges(), p_edge_length(), p_cell_area(), p_out_cells())
+                        )
+        );
+        stencil_flow_convention_cesf->ready();
+        stencil_flow_convention_cesf->steady();
+        stencil_flow_convention_cesf->run();
+
+#ifdef __CUDACC__
+        in_edges.d2h_update();
+        edge_length.d2h_update();
+        cell_area.d2h_update();
+        out_cells.d2h_update();
+#endif
+
+        result = result && ver.verify(grid_, ref_cells, out_cells, halos);
+
+#ifdef BENCHMARK
+        for (uint_t t = 1; t < t_steps; ++t)
+        {
+            stencil_flow_convention_cesf->run();
+        }
+        stencil_flow_convention_cesf->finalize();
+        std::cout << "flow convention cesf: "<< stencil_flow_convention_cesf->print_meter() << std::endl;
 #endif
 
         /*
@@ -380,10 +435,6 @@ namespace operator_examples {
                                  p_in_edges(), p_edge_length(), p_out_cells()),
                          gridtools::make_cesf<0, divide_by_field<0>, icosahedral_topology_t, icosahedral_topology_t::edges >(
                                  p_cell_area(), p_out_cells())
-//                         gridtools::make_cesf<0, divide_by_field<1>, icosahedral_topology_t, icosahedral_topology_t::edges >(
-//                                 p_cell_area(), p_out_cells()),
-//                         gridtools::make_cesf<0, divide_by_field<2>, icosahedral_topology_t, icosahedral_topology_t::edges >(
-//                                 p_cell_area(), p_out_cells())
                         )
         );
         stencil_div_over_edges->ready();
