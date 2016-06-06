@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/defs.hpp"
+#include "../common/defs.hpp"
 #include "./empty_extent.hpp"
 
 namespace gridtools {

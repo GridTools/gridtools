@@ -17,6 +17,7 @@
 
 #include "common/pair.hpp"
 #include "accessor.hpp"
+#include "global_parameter.hpp"
 #include "stencil-composition/domain_type.hpp"
 #include "stencil-composition/mss_metafunctions.hpp"
 #include "stencil-composition/mss_local_domain.hpp"
@@ -143,8 +144,8 @@ namespace gridtools {
                                                                     typename MetaDataType::layout,
                                                                     false,
                                                                     typename MetaDataType::halo_t,
-                                                                    typename MetaDataType::alignment_t>::type,
-                false>::type type;
+                                                                    typename MetaDataType::alignment_t>::type
+            >::type type;
         };
 
 #ifdef CXX11_ENABLED
@@ -211,14 +212,11 @@ namespace gridtools {
                                                                             typename MetaDataType::layout,
                                                                             true,
                                                                             typename MetaDataType::halo_t,
-                                                                            typename MetaDataType::alignment_t >::type,
-                true >::type temp_storage_t;
+                                                                            typename MetaDataType::alignment_t >::type
+            >::type temp_storage_t;
 
           public:
-            typedef typename boost::mpl::if_<
-                typename backend_traits_t::template requires_temporary_redundant_halos< s_strategy_id >::type,
-                no_storage_type_yet< temp_storage_t >,
-                temp_storage_t >::type type;
+            typedef no_storage_type_yet< temp_storage_t > type;
         };
 
         /**

@@ -41,6 +41,7 @@
 #include "./reductions/reduction_data.hpp"
 #include "./amss_descriptor.hpp"
 #include "./compute_extents_metafunctions.hpp"
+#include "./global_parameter.hpp"
 
 /**
  * @file
@@ -581,9 +582,17 @@ namespace gridtools {
            @brief This method allocates on the heap the temporary variables.
            Calls heap_allocated_temps::prepare_temporaries(...).
            It allocates the memory for the list of extents defined in the temporary placeholders.
+           Further it takes care of updating the global_parameters
         */
         virtual void ready() {
             Backend::template prepare_temporaries(m_actual_arg_list, m_actual_metadata_list, m_grid);
+            // filter out global parameters
+            typedef boost::fusion::filter_view< actual_arg_list_type, is_global_parameter< boost::mpl::_1 > >
+                t_global_param_view;
+            t_global_param_view global_param_view(m_actual_arg_list);
+            // update global parameters
+            boost::fusion::for_each(global_param_view, update_global_param_values());
+            // mark as ready
             is_storage_ready = true;
         }
         /**
@@ -657,7 +666,7 @@ namespace gridtools {
         }
 
         virtual std::string print_meter() { return m_meter.to_string(); }
-        
+
         virtual double get_meter() { return m_meter.total_time(); }
 
         mss_local_domain_list_t const &mss_local_domain_list() const { return m_mss_local_domain_list; }
