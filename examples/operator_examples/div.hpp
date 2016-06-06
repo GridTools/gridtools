@@ -88,7 +88,11 @@ namespace operator_examples {
         }
     };
 
-    struct div_functor_flow_convention {
+    template <int color>
+    struct div_functor_flow_convention;
+
+    template <>
+    struct div_functor_flow_convention<0>{
         typedef in_accessor<0, icosahedral_topology_t::edges, extent<1> > in_edges;
         typedef in_accessor<1, icosahedral_topology_t::edges, extent<1> > edge_length;
         typedef in_accessor<2, icosahedral_topology_t::cells, extent<1> > cell_area;
@@ -100,25 +104,24 @@ namespace operator_examples {
         {
             auto ff = [](const double _in1, const double _in2, const double _res) -> double { return _in1 * _in2 + _res; };
 
-            double t{0.};
-            t = eval(on_edges(ff, 0.0, in_edges(), edge_length())) / eval(cell_area());
-            if (eval.position()[1] == 1)
-                t = -t;
-            eval(out_cells()) = t;
+            eval(out_cells()) = eval(on_edges(ff, 0.0, in_edges(), edge_length())) / eval(cell_area());
         }
     };
 
-    template <int color>
-    struct set_zero_cells {
-        typedef inout_accessor<0, icosahedral_topology_t::cells> out_cells;
-        typedef boost::mpl::vector<out_cells> arg_list;
-        template<typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-            typedef typename icgrid::get_grid_topology< Evaluation >::type grid_topology_t;
-            constexpr auto neighbors_offsets = from<edges>::to<cells>::with_color<static_int<color> >::offsets();
+    template <>
+    struct div_functor_flow_convention<1>{
+        typedef in_accessor<0, icosahedral_topology_t::edges, extent<1> > in_edges;
+        typedef in_accessor<1, icosahedral_topology_t::edges, extent<1> > edge_length;
+        typedef in_accessor<2, icosahedral_topology_t::cells, extent<1> > cell_area;
+        typedef inout_accessor<3, icosahedral_topology_t::cells> out_cells;
+        typedef boost::mpl::vector<in_edges, edge_length, cell_area, out_cells> arg_list;
 
-            eval(out_cells(neighbors_offsets[0])) = 0.;
-            eval(out_cells(neighbors_offsets[1])) = 0.;
+        template<typename Evaluation>
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval)
+        {
+            auto ff = [](const double _in1, const double _in2, const double _res) -> double { return _in1 * _in2 + _res; };
+
+            eval(out_cells()) = -eval(on_edges(ff, 0.0, in_edges(), edge_length())) / eval(cell_area());
         }
     };
 
@@ -138,6 +141,25 @@ namespace operator_examples {
             double t{eval(in_edges()) * eval(edge_length())};
             eval(out_cells(neighbors_offsets[0])) -= t;
             eval(out_cells(neighbors_offsets[1])) += t;
+        }
+    };
+
+    template <>
+    struct div_functor_over_edges<0> {
+        typedef in_accessor<0, icosahedral_topology_t::edges, extent<1> > in_edges;
+        typedef in_accessor<1, icosahedral_topology_t::edges, extent<1> > edge_length;
+        typedef inout_accessor<2, icosahedral_topology_t::cells> out_cells;
+        typedef boost::mpl::vector<in_edges, edge_length, out_cells> arg_list;
+
+        template<typename Evaluation>
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval)
+        {
+            typedef typename icgrid::get_grid_topology< Evaluation >::type grid_topology_t;
+            constexpr auto neighbors_offsets = from<edges>::to<cells>::with_color<static_int<0> >::offsets();
+
+            double t{eval(in_edges()) * eval(edge_length())};
+            eval(out_cells(neighbors_offsets[0])) = t;
+            eval(out_cells(neighbors_offsets[1])) = t;
         }
     };
 
@@ -312,7 +334,9 @@ namespace operator_examples {
                 grid_,
                 gridtools::make_mss // mss_descriptor
                         (execute<forward>(),
-                         gridtools::make_esf<div_functor_flow_convention, icosahedral_topology_t, icosahedral_topology_t::cells>(
+                         gridtools::make_cesf<0, div_functor_flow_convention<0>, icosahedral_topology_t, icosahedral_topology_t::cells>(
+                                 p_in_edges(), p_edge_length(), p_cell_area(), p_out_cells()),
+                         gridtools::make_cesf<1, div_functor_flow_convention<1>, icosahedral_topology_t, icosahedral_topology_t::cells>(
                                  p_in_edges(), p_edge_length(), p_cell_area(), p_out_cells())
                         )
         );
@@ -347,15 +371,17 @@ namespace operator_examples {
                 grid_,
                 gridtools::make_mss // mss_descriptor
                         (execute<forward>(),
-//                         gridtools::make_cesf<0, set_zero_cells<0>, icosahedral_topology_t, icosahedral_topology_t::cells>(
-//                                 p_out_cells()),
                          gridtools::make_cesf<0, div_functor_over_edges<0>, icosahedral_topology_t, icosahedral_topology_t::edges>(
                                  p_in_edges(), p_edge_length(), p_out_cells()),
                          gridtools::make_cesf<1, div_functor_over_edges<1>, icosahedral_topology_t, icosahedral_topology_t::edges>(
                                  p_in_edges(), p_edge_length(), p_out_cells()),
                          gridtools::make_cesf<2, div_functor_over_edges<2>, icosahedral_topology_t, icosahedral_topology_t::edges>(
-                                 p_in_edges(), p_edge_length(), p_out_cells())
-//                         gridtools::make_cesf<0, divide_by_field<0>, icosahedral_topology_t, icosahedral_topology_t::cells >(
+                                 p_in_edges(), p_edge_length(), p_out_cells()),
+                         gridtools::make_cesf<0, divide_by_field<0>, icosahedral_topology_t, icosahedral_topology_t::edges >(
+                                 p_cell_area(), p_out_cells())
+//                         gridtools::make_cesf<0, divide_by_field<1>, icosahedral_topology_t, icosahedral_topology_t::edges >(
+//                                 p_cell_area(), p_out_cells()),
+//                         gridtools::make_cesf<0, divide_by_field<2>, icosahedral_topology_t, icosahedral_topology_t::edges >(
 //                                 p_cell_area(), p_out_cells())
                         )
         );
@@ -370,7 +396,7 @@ namespace operator_examples {
         out_cells.d2h_update();
 #endif
 
-        // TODO: why does it not validate?
+        // TODO: this does not validate because the divide_by_field functor runs only on edges with color 0
 //        result = result && ver.verify(grid_, ref_cells, out_cells, halos);
 
 #ifdef BENCHMARK
