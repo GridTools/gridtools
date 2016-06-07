@@ -117,7 +117,7 @@ namespace gridtools {
     template < typename T >
     struct get_user_storage_base_t {
         GRIDTOOLS_STATIC_ASSERT((is_pointer< T >::value), "the passed type is not a pointer type");
-        GRIDTOOLS_STATIC_ASSERT((is_any_storage< typename T::value_type >::value),
+        GRIDTOOLS_STATIC_ASSERT((is_any_storage< typename T::value_type >::value || is_global_parameter< typename T::value_type >::value),
             "the passed pointer type does not contain a storage type");
         typedef pointer< typename T::value_type::basic_type > type;
     };
@@ -130,7 +130,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_pointer< ty >::value), "the passed type is not a pointer type");
         typedef typename ty::value_type storage_ty;
         GRIDTOOLS_STATIC_ASSERT(
-            (is_any_storage< storage_ty >::value), "the passed pointer type does not contain a storage type");
+            (is_any_storage< storage_ty >::value || is_global_parameter< storage_ty >::value), "the passed pointer type does neither contain a storage- nor a global_parameter-type");
         typedef typename storage_ty::storage_ptr_t storage_ptr_ty;
         GRIDTOOLS_STATIC_ASSERT(
             (is_hybrid_pointer< storage_ptr_ty >::value || is_wrap_pointer< storage_ptr_ty >::value),

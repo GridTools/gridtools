@@ -591,7 +591,7 @@ namespace gridtools {
                 t_global_param_view;
             t_global_param_view global_param_view(m_actual_arg_list);
             // update global parameters
-            boost::fusion::for_each(global_param_view, update_global_param_values());
+            boost::fusion::for_each(global_param_view, update_global_param_data());
             // mark as ready
             is_storage_ready = true;
         }

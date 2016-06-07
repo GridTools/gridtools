@@ -33,9 +33,9 @@ struct global_parameter : T {
     typedef wrap_pointer< this_type, false > storage_ptr_t;
 #endif
     storage_ptr_t m_storage;
-    T const& t_ref;
+    T const& m_ref;
 
-    global_parameter(T const& t) : T(t), m_storage(static_cast<this_type*>(this), true), t_ref(t) {}
+    global_parameter(T const& t) : T(t), m_storage(static_cast<this_type*>(this), true), m_ref(t) {}
 
     this_type const& operator=(this_type const& other) {
         return other;
@@ -60,14 +60,20 @@ struct global_parameter : T {
     }
 
     GT_FUNCTION
-    void update_values() {
-        *(static_cast<T*>(this)) = this_type(t_ref);
+    void update_data() {
+        *(static_cast<T*>(this)) = this_type(m_ref);
         m_storage = storage_ptr_t(static_cast<this_type*>(this), true);
     }
 };
 
-template <typename T>
-struct is_any_storage<global_parameter<T> > : boost::mpl::true_ {};
+/**@brief functor that is used to call global_parameter<T>::update_data().
+*/
+struct update_global_param_data {
+    template < typename Elem >
+    GT_FUNCTION void operator()(Elem &elem) const {
+        elem->update_data();
+    }
+};
 
 #ifdef CXX11_ENABLED
 /**@brief function that can be used to create a global_parameter instance.
@@ -77,12 +83,5 @@ global_parameter<T> make_global_parameter(T const& t) {
     return global_parameter<T>(t);
 }
 #endif // CXX11_ENABLED
-
-struct update_global_param_values {
-    template < typename Elem >
-    GT_FUNCTION void operator()(Elem &elem) const {
-        elem->update_values();
-    }
-};
 
 } // namespace gridtools
