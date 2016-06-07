@@ -192,7 +192,9 @@ class StencilCompiler ( ):
 
             with open (path.join (self.src_dir, self.stg_hdr_file), 'w') as stg_hdl:
                 stages = JinjaEnv.get_template ("stages.h")
-                stg_hdl.write (stages.render (stage_src=stg_src))
+                stg_hdl.write (stages.render (stage_src = stg_src,
+                                              stages    = list (stencil.stages),
+                                              splitters = stencil.splitters))
             with open (path.join (self.src_dir, self.cpp_file), 'w') as cpp_hdl:
                 cpp_hdl.write (cpp_src)
             with open (path.join (self.src_dir, self.make_file), 'w') as make_hdl:
@@ -344,7 +346,8 @@ class StencilCompiler ( ):
                             temps                 = temps,
                             params_temps          = params + temps,
                             stages                = stgs,
-                            independent_stage_idx = ind_stg_idx),
+                            independent_stage_idx = ind_stg_idx,
+                            splitters             = stencil.splitters),
                 make.render (stencils = [s for s in self.stencils.values ( ) if s.get_backend ( ) in ['c++', 'cuda']],
                              compiler = self))
 

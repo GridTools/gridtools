@@ -48,8 +48,12 @@ extern "C"
 //
 // definition of the special regions in the vertical (k) direction
 //
-typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
-typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
+{% for stg in stages[stencil_name] -%}
+{% for vr in stg.vertical_regions -%}
+typedef gridtools::interval<level<{{ splitters[vr.start_splitter] }},-1>, level<{{ splitters[vr.end_splitter] }},-2> > {{ vr.name }};
+{% endfor -%}
+{% endfor -%}
+typedef gridtools::interval<level<0,-2>, level<{{ splitters|length-1 }},1> > axis;
 
 
 
@@ -138,21 +142,23 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
     //
     uint_t di_{{ loop.index0 }}[5] = { {{ s.get_halo()[0] }},
                      {{ s.get_halo()[1] }},
-                     {{ s.get_halo()[1] }},
-                     d1-{{ s.get_halo()[0] }}-1,
+                     {{ s.get_halo()[0] }},
+                     d1-{{ s.get_halo()[1] }}-1,
                      d1 };
     uint_t dj_{{ loop.index0 }}[5] = { {{ s.get_halo()[2] }},
                      {{ s.get_halo()[3] }},
-                     {{ s.get_halo()[3] }},
-                     d2-{{ s.get_halo()[2] }}-1,
+                     {{ s.get_halo()[2] }},
+                     d2-{{ s.get_halo()[3] }}-1,
                      d2 };
 
     //
     // the vertical dimension of the problem is a property of this object
     //
     gridtools::grid<axis> grid_{{ loop.index0 }}(di_{{ loop.index0 }}, dj_{{ loop.index0 }});
-    grid_{{ loop.index0 }}.value_list[0] = 0;
-    grid_{{ loop.index0 }}.value_list[1] = d3-1;
+    {% set grid_id = loop.index0 -%}
+    {% for spl in splitters|dictsort -%}
+    grid_{{ grid_id}}.value_list[{{ spl[1] }}] = {{ spl[0] }};
+    {% endfor -%}
 
     //
     // Here we do a lot of stuff
@@ -251,7 +257,7 @@ int main (int argc, char **argv)
     }
 
     // execution
-    run (dim1, dim2, dim3,
+    run_{{ stencil_name }} (dim1, dim2, dim3,
           {%- for p in params %}
           {{ p.name }}_buff
               {%- if not loop.last -%}

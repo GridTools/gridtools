@@ -19,8 +19,12 @@ using namespace gridtools;
 //
 // definition of the special regions in the vertical (k) direction
 //
-typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
-typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
+{% for stg in stages -%}
+{% for vr in stg.vertical_regions -%}
+typedef gridtools::interval<level<{{ splitters[vr.start_splitter] }},-1>, level<{{ splitters[vr.end_splitter] }},-2> > {{ vr.name }};
+{% endfor -%}
+{% endfor -%}
+typedef gridtools::interval<level<0,-2>, level<{{ splitters|length-1 }},1> > axis;
 
 //
 // the definition of the operators that compose a multistage stencil
@@ -28,4 +32,3 @@ typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 // in Python, which use the 'kernel' function as a starting point
 //
 {{ stage_src }}
-
