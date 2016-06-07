@@ -414,6 +414,9 @@ class StencilInspector (ast.NodeVisitor):
         """
         if isinstance (node.args[0], ast.Name):
             return (node.args[0].id, None, None)
+        elif isinstance (node.args[0], ast.Attribute):
+            array_name = node.args[0].value.id + '.' + node.args[0].attr
+            return (array_name, None, None)
         elif isinstance (node.args[0], ast.Subscript):
             if name_suffix is None:
                 raise RuntimeError ("The use of slicing to define \

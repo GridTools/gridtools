@@ -569,7 +569,18 @@ class VerticalRegion ( ):
         array_sym = scope[self.array_name]
         if scope.is_alias (array_sym):
             array_sym = array_sym.value
-        array_sym = stencil_scope[array_sym.value]
+        #
+        # If the stage is defined through a function, the array symbol value
+        # will contain the stencil scope symbol, that we have to dereference
+        # one more time to get the actual array.
+        # Otherwise, if the stage is defined through a for loop in the kernel,
+        # array_sym already contains the numerical array, and no lookup in the
+        # stencil scope has to be performed
+        #
+        if isinstance (array_sym, str):
+            array_sym = stencil_scope[array_sym]
+        elif not isinstance (array_sym.value, np.ndarray):
+            array_sym = stencil_scope[array_sym.value]
 
         #
         # set indexes based on the given slicing limits

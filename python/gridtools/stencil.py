@@ -459,9 +459,13 @@ class Stencil (object):
                 slice_indexes.append (vr[0])
                 slice_indexes.append (vr[1])
         #
+        # Remove duplicates and sort slice indexes list
+        #
+        slice_indexes = sorted (set (slice_indexes))
+        #
         # Populate splitters dictionary
         #
-        for i, idx in enumerate (sorted (slice_indexes)):
+        for i, idx in enumerate (slice_indexes):
             self.splitters[idx] = i
 
 
