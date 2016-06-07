@@ -45,19 +45,18 @@
                         "cxx03": {
                             "thread": {
                                 "256x256x80": {
-                                    "rms": 4.121488404286339e-06,
-                                    "time": 0.030672
+                                    "rms": 1.7260037337412842e-05,
+                                    "time": 0.023536400000000002
                                 },
                                 "128x128x80": {
-                                    "rms": 1.2507429791927973e-05,
-                                    "time": 0.00822688
+                                    "rms": 1.3385760538168469e-05,
+                                    "time": 0.006192576666666667
                                 }
                             }
                         }
                     }
                 },
                 "exec": "build/interface1",
-                "stella_filter": "--gtest_filter=HoriDiffBenchmark.4Stages",
                 "cpu": {
                     "double": {
                         "cxx11": {
@@ -271,7 +270,8 @@
                             }
                         }
                     }
-                }
+                },
+                "stella_filter": "--gtest_filter=HoriDiffBenchmark.4Stages"
             },
             "copy_stencil": {
                 "gpu": {
@@ -317,19 +317,18 @@
                         "cxx03": {
                             "thread": {
                                 "256x256x80": {
-                                    "rms": 4.951962132626126e-05,
-                                    "time": 0.005778633333333332
+                                    "rms": 5.909619903801536e-06,
+                                    "time": 0.003091486666666667
                                 },
                                 "128x128x80": {
-                                    "rms": 4.877547197789739e-06,
-                                    "time": 0.0017304
+                                    "rms": 1.6464257133650397e-06,
+                                    "time": 0.0008839466666666667
                                 }
                             }
                         }
                     }
                 },
                 "exec": "build/copy_stencil",
-                "stella_filter": "--gtest_filter=BasicBenchmarks.copyStencilTest",
                 "cpu": {
                     "double": {
                         "cxx11": {
@@ -543,7 +542,8 @@
                             }
                         }
                     }
-                }
+                },
+                "stella_filter": "--gtest_filter=BasicBenchmarks.copyStencilTest"
             },
             "vertical_advection": {
                 "gpu": {
@@ -589,19 +589,18 @@
                         "cxx03": {
                             "thread": {
                                 "256x256x80": {
-                                    "rms": 6.059666901980998e-05,
-                                    "time": 0.06152686666666667
+                                    "rms": 2.5312813326821965e-05,
+                                    "time": 0.026072933333333336
                                 },
                                 "128x128x80": {
-                                    "rms": 3.7142368739158347e-06,
-                                    "time": 0.0143378
+                                    "rms": 2.7216552697665302e-08,
+                                    "time": 0.006785026666666666
                                 }
                             }
                         }
                     }
                 },
                 "exec": "build/vertical_advection_dycore",
-                "stella_filter": "--gtest_filter=VerticalAdvectionBenchmark.U",
                 "cpu": {
                     "double": {
                         "cxx11": {
@@ -815,7 +814,8 @@
                             }
                         }
                     }
-                }
+                },
+                "stella_filter": "--gtest_filter=VerticalAdvectionBenchmark.U"
             }
         }
     },
