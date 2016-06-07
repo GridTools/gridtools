@@ -346,11 +346,38 @@ class StageBody (ast.NodeVisitor):
         symbol = None
 
         #
-        # looking for the symbol name in this order forces
-        # correct symbol name shadowing
+        # first look for the symbol within this stage's scope
         #
         if name in self.scope:
             symbol = self.scope[name]
+            #
+            # resolve aliases before trying to inline
+            #
+            if self.scope.is_alias (name):
+                if symbol.value in self.stencil_scope:
+                    aliased = self.stencil_scope[symbol.value]
+                else:
+                    raise NameError ("Could not dereference alias '%s'" % name)
+                self.scope.add_parameter (aliased.name,
+                                          aliased.value,
+                                          read_only=symbol.read_only)
+                return aliased.name
+            #
+            # If symbol is a local variable, inline its value only if it is a
+            # scalar integer or floating point number in a Load context
+            #
+            if self.scope.is_local (name):
+               if (isinstance (symbol.value, int)
+                   or isinstance (symbol.value, float )):
+                       if isinstance (node.ctx, ast.Load):
+                           return symbol.value
+                       else:
+                           return name
+               else:
+                   return name
+        #
+        # then within the enclosing scope, so to enforce correct scope shadowing
+        #
         elif name in self.stencil_scope:
             symbol = self.stencil_scope[name]
             #
@@ -373,33 +400,6 @@ class StageBody (ast.NodeVisitor):
         else:
             raise NameError ("Unknown symbol '%s' in stage '%s'"
                              % (name, self.stage_name))
-        #
-        # resolve aliases before trying to inline
-        #
-        if self.scope.is_alias (name):
-            if symbol.value in self.scope:
-                aliased = self.scope[symbol.value]
-            elif symbol.value in self.stencil_scope:
-                aliased = self.stencil_scope[symbol.value]
-            else:
-                raise NameError ("Could not dereference alias '%s'" % name)
-            self.scope.add_parameter (aliased.name,
-                                      aliased.value,
-                                      read_only=symbol.read_only)
-            return aliased.name
-        #
-        # If symbol is a local variable, inline its value only if it is a scalar
-        # integer or floating point number in a Load context
-        #
-        if self.scope.is_local (name):
-            if (isinstance (symbol.value, int)
-                or isinstance (symbol.value, float )):
-                    if isinstance (node.ctx, ast.Load):
-                        return symbol.value
-                    else:
-                        return name
-            else:
-                return name
         #
         # try to inline the value of this symbol
         #
@@ -826,4 +826,4 @@ class Stage ( ):
         params      = list (self.scope.get_parameters ( ))
 
         return stage_tpl.render (stage=self,
-                                   params=params)
+                                 params=params)
