@@ -4,6 +4,7 @@
 \usepackage{listings}
 \usepackage[scale=0.75]{geometry}
 \usepackage{cleveref}
+\usepackage{booktabs}
 
 \lstset{language=C++,basicstyle=\footnotesize\ttfamily,breaklines=true}
 
@@ -106,28 +107,187 @@ A most straightforward approach to compute this operator is
 \end{equation}
 where $w_{i,l} = \frac{1}{A_i}(\bm{N}_l\cdot\bm{n}_{i,l})l$ is the weight for div and should be computed at the initialization phase.
 
+\begin{lstlisting}
+struct div_functor_weights {
+    typedef in_accessor<0, icosahedral_topology_t::edges, extent<1> > in_edges;
+    typedef in_accessor<1, icosahedral_topology_t::cells, extent<1>, 5 > weights;
+    typedef inout_accessor<2, icosahedral_topology_t::cells> out_cells;
+    typedef boost::mpl::vector<in_edges, weights, out_cells> arg_list;
+
+    template<typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation const &eval, x_interval)
+    {
+        typedef typename icgrid::get_grid_topology< Evaluation >::type grid_topology_t;
+
+        using edge_of_cells_dim = dimension< 5 >;
+        edge_of_cells_dim::Index edge;
+
+        double t{0.};
+        auto neighbors_offsets = connectivity< cells , edges >::offsets(eval.position()[1]);
+        ushort_t e=0;
+        for (auto neighbor_offset : neighbors_offsets) {
+            t += eval(in_edges(neighbor_offset)) * eval(weights(edge+e));
+            e++;
+        }
+        eval(out_cells()) = t;
+    }
+};
+\end{lstlisting}
+
 The second approach takes into consideration the convention of normal orientation for downward and upward cells. The divergence operator is thus given by
 \begin{align}
   \text{div}(\bm{v})_i& = \frac{1}{A_i}\sum\limits_{l\in\mathcal{E}(i)}v_{n_l}l \quad \text{for upward cells} \\
   \text{div}(\bm{v})_i& = -\frac{1}{A_i}\sum\limits_{l\in\mathcal{E}(i)}v_{n_l}l \quad \text{for downward cells}
 \end{align}
-because on upward cells $\bm{N}_l$ and $\bm{n}_{i,l}$ are of the same direction whereas on downward cells they are of opposite directions. We have one more division comparing to \cref{div1}.
+because on upward cells $\bm{N}_l$ and $\bm{n}_{i,l}$ are of the same direction whereas on downward cells they are of opposite directions. We have one more division/multiplication comparing to \cref{div1}.
+
+\begin{lstlisting}
+template <int color>
+struct div_functor_flow_convention;
+
+template <>
+struct div_functor_flow_convention<0>{
+    typedef in_accessor<0, icosahedral_topology_t::edges, extent<1> > in_edges;
+    typedef in_accessor<1, icosahedral_topology_t::edges, extent<1> > edge_length;
+    typedef in_accessor<2, icosahedral_topology_t::cells, extent<1> > cell_area;
+    typedef inout_accessor<3, icosahedral_topology_t::cells> out_cells;
+    typedef boost::mpl::vector<in_edges, edge_length, cell_area, out_cells> arg_list;
+
+    template<typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation const &eval, x_interval)
+    {
+        auto ff = [](const double _in1, const double _in2, const double _res) -> double { return _in1 * _in2 + _res; };
+
+        eval(out_cells()) = eval(on_edges(ff, 0.0, in_edges(), edge_length())) * eval(cell_area());
+    }
+};
+
+template <>
+struct div_functor_flow_convention<1>{
+    typedef in_accessor<0, icosahedral_topology_t::edges, extent<1> > in_edges;
+    typedef in_accessor<1, icosahedral_topology_t::edges, extent<1> > edge_length;
+    typedef in_accessor<2, icosahedral_topology_t::cells, extent<1> > cell_area;
+    typedef inout_accessor<3, icosahedral_topology_t::cells> out_cells;
+    typedef boost::mpl::vector<in_edges, edge_length, cell_area, out_cells> arg_list;
+
+    template<typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation const &eval, x_interval)
+    {
+        auto ff = [](const double _in1, const double _in2, const double _res) -> double { return _in1 * _in2 + _res; };
+
+        eval(out_cells()) = -eval(on_edges(ff, 0.0, in_edges(), edge_length())) * eval(cell_area());
+    }
+};
+
+\end{lstlisting}
 
 The first two approaches are primarily based on cells. However, since two cells share an edge, we are computing $v_{n_l}l$ twice for each $l$. The third approach aims to avoid this by iterating primarily on edges.
 \begin{gather}
-  \text{div}(\bm{v})_i \leftarrow 0 \quad \text{for all }i \\
+  % \text{div}(\bm{v})_i \leftarrow 0 \quad \text{for all }i \\
   \begin{split}
     \label{div2}
     \text{div}(\bm{v})_{\varkappa(l,0)} &\leftarrow \text{div}(\bm{v})_{\varkappa(l,0)} + v_{n_l}l\\
     \text{div}(\bm{v})_{\varkappa(l,1)} &\leftarrow \text{div}(\bm{v})_{\varkappa(l,1)} - v_{n_l}l
   \end{split}\\
-  \text{div}(\bm{v})_i \leftarrow \text{div}(\bm{v})_i / A_i \quad \text{for all }i
+  \begin{split}
+    \label{div3}
+    \text{div}(\bm{v})_{\varkappa(l,0)} &\leftarrow \text{div}(\bm{v})_{\varkappa(l,0)} / A_{\varkappa(l,0)}\\
+    \text{div}(\bm{v})_{\varkappa(l,1)} &\leftarrow \text{div}(\bm{v})_{\varkappa(l,1)} / A_{\varkappa(l,1)}
+  \end{split}
+  % \text{div}(\bm{v})_i \leftarrow \text{div}(\bm{v})_i / A_i \quad \text{for all }i
 \end{gather}
-Here \cref{div2} is primarily on edges, and assumes the convention that cell neighbors of an edge follow the direction of the $N_l$, as well as the normal orientation convention.
+Here \cref{div2} and \cref{div3} is primarily on edges, and assumes the convention that cell neighbors of an edge follow the direction of the $N_l$, as well as the normal orientation convention.
+
+\begin{lstlisting}
+template <int color>
+struct div_functor_over_edges {
+    typedef in_accessor<0, icosahedral_topology_t::edges, extent<1> > in_edges;
+    typedef in_accessor<1, icosahedral_topology_t::edges, extent<1> > edge_length;
+    typedef inout_accessor<2, icosahedral_topology_t::cells> out_cells;
+    typedef boost::mpl::vector<in_edges, edge_length, out_cells> arg_list;
+
+    template<typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation const &eval, x_interval)
+    {
+        typedef typename icgrid::get_grid_topology< Evaluation >::type grid_topology_t;
+        constexpr auto neighbors_offsets = from<edges>::to<cells>::with_color<static_int<color> >::offsets();
+
+        double t{eval(in_edges()) * eval(edge_length())};
+        eval(out_cells(neighbors_offsets[0])) -= t;
+        eval(out_cells(neighbors_offsets[1])) += t;
+    }
+};
+
+template <>
+struct div_functor_over_edges<0> {
+    typedef in_accessor<0, icosahedral_topology_t::edges, extent<1> > in_edges;
+    typedef in_accessor<1, icosahedral_topology_t::edges, extent<1> > edge_length;
+    typedef inout_accessor<2, icosahedral_topology_t::cells> out_cells;
+    typedef boost::mpl::vector<in_edges, edge_length, out_cells> arg_list;
+
+    template<typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation const &eval, x_interval)
+    {
+        typedef typename icgrid::get_grid_topology< Evaluation >::type grid_topology_t;
+        constexpr auto neighbors_offsets = from<edges>::to<cells>::with_color<static_int<0> >::offsets();
+
+        double t{eval(in_edges()) * eval(edge_length())};
+        eval(out_cells(neighbors_offsets[0])) = t;
+        eval(out_cells(neighbors_offsets[1])) = t;
+    }
+};
+
+template <int color>
+struct divide_by_field {
+    typedef in_accessor<0, icosahedral_topology_t::cells, extent<0> > cell_area;
+    typedef inout_accessor<1, icosahedral_topology_t::cells> out_cells;
+    typedef boost::mpl::vector<cell_area, out_cells> arg_list;
+    template<typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        typedef typename icgrid::get_grid_topology< Evaluation >::type grid_topology_t;
+        constexpr auto neighbors_offsets = from<edges>::to<cells>::with_color<static_int<color> >::offsets();
+
+        eval(out_cells(neighbors_offsets[0])) *= eval(cell_area(neighbors_offsets[0]));
+        eval(out_cells(neighbors_offsets[1])) *= eval(cell_area(neighbors_offsets[1]));
+    }
+};
+\end{lstlisting}
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{lll}
+\toprule
+Approach & Primal location & Operation on primal location\\
+\midrule
+weights & Cells & 6 read, 1 write, 3 mult, 3 plus\\
+flow convention & Cells & 7 read, 1 write, 4 mult, 3 plus\\
+over edges & Edges & 4 read, 2 write, 1 mult, 2 plus + 2 read, 2 write, 2 mult\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{llll|lll}
+\toprule
+& \multicolumn {3}{c}{CPU (10 times)} & \multicolumn {3}{c}{GPU (100 times)}\\
+\cmidrule {2-7}
+Approach & R02B05 & R02B06 & R02B07 & R02B05 & R02B06 & R02B07\\
+\midrule
+weights & 0.0677755 & 0.317447& 1.24704 & 0.0352957& 0.0704592& 0.283425\\
+flow convention & 0.0864071 & 0.423643& 1.63169 & 0.0292716& 0.0654719& 0.311095\\
+over edges & 0.101011 & 0.482151& 1.90736 & 0.0540372& 0.101532& 0.393472\\
+\bottomrule
+\end{tabular}
+\caption{performance numbers on kesch}
+\end{table}
 
 \subsection{grad}
 The discrete gradient operator is given by
 \begin{equation}
   \text{grad}_n(\varrho)_l:=\frac{\varrho_{i(l,2)}-\varrho_{i(l,1)}}{\hat{l}}
 \end{equation}
+
+Without the flow convention
+
 \end{document}
