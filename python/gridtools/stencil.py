@@ -78,26 +78,51 @@ class Stencil (object):
             raise TypeError ("Calling 'get_interior_points' without a NumPy array")
         else:
             #
+            # If data_field is a sliced array, we have to get the offsets in
+            # order to properly generate the interior point coordinates.
+            # The base property will tell if its memory comes from some other
+            # object.
+            # If so, we use the NumPy Array Interface to get pointers to the
+            # first data elements of both data_field and its base array.
+            # For detalied information, please see
+            # http://docs.scipy.org/doc/numpy-1.10.1/reference/arrays.interface.html#__array_interface__
+            # Using these pointers with data_field's byte strides along each
+            # dimension and some old-fashioned matrix-indexing arithmetic, we
+            # can finally obtain the slice offsets.
+            #
+            i_off, j_off, k_off = (0, 0, 0)
+            if data_field.base is not None:
+                ptr_offset = (data_field.__array_interface__['data'][0]
+                              -data_field.base.__array_interface__['data'][0])
+                if data_field.flags['C_CONTIGUOUS']:
+                    i_off, mod = divmod (ptr_offset, data_field.strides[0])
+                    j_off, mod = divmod (mod, data_field.strides[1])
+                    k_off, mod = divmod (mod, data_field.strides[2])
+                else:
+                    k_off, mod = divmod (ptr_offset, data_field.strides[2])
+                    j_off, mod = divmod (mod, data_field.strides[1])
+                    i_off, mod = divmod (mod, data_field.strides[0])
+            #
             # calculate 'i','j','k' iteration boundaries
-            # based on 'halo' and field-access patterns
+            # based on slice offsets, 'halo' and field-access patterns
             #
             i_dim, j_dim, k_dim = data_field.shape
 
-            start_i = 0     + halo[0] + ghost_cell[0]
-            end_i   = i_dim - halo[1] + ghost_cell[1]
-            start_j = 0     + halo[2] + ghost_cell[2]
-            end_j   = j_dim - halo[3] + ghost_cell[3]
+            start_i = i_off + 0     + halo[0] + ghost_cell[0]
+            end_i   = i_off + i_dim - halo[1] + ghost_cell[1]
+            start_j = j_off + 0     + halo[2] + ghost_cell[2]
+            end_j   = j_off + j_dim - halo[3] + ghost_cell[3]
 
             #
             # calculate 'k' iteration boundaries based 'k_direction'
             #
             if k_direction == 'forward':
-                start_k = 0
-                end_k   = k_dim
+                start_k = k_off + 0
+                end_k   = k_off + k_dim
                 inc_k   = 1
             elif k_direction == 'backward':
-                start_k = k_dim - 1
-                end_k   = -1
+                start_k = k_off + k_dim - 1
+                end_k   = k_off - 1
                 inc_k   = -1
             else:
                 logging.warning ("Ignoring unknown K direction '%s'" % k_direction)
