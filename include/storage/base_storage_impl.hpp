@@ -59,11 +59,12 @@ namespace gridtools {
             /**interface with an array of coordinates as argument
                \param strides the strides
                \param indices the array of coordinates
-            */ template < typename IntType, typename StridesVector >
+            */
+            template < typename IntType, typename StridesVector >
             GT_FUNCTION static constexpr int_t apply(StridesVector const &RESTRICT strides_, IntType *indices_) {
                 return strides_[space_dimensions - Id] *
-                           Layout::template find_val< space_dimensions - Id, int, 0 >(indices_) +
-                       compute_offset< Id - 1, Layout >::apply(strides_, indices_);
+                    Layout::template find_val< space_dimensions - Id, int, 0 >(indices_) +
+                    compute_offset< Id - 1, Layout >::apply(strides_, indices_);
             }
 
 #ifdef CXX11_ENABLED

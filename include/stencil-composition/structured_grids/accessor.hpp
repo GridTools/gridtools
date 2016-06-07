@@ -110,7 +110,12 @@ namespace gridtools {
 #endif
     };
 
-#if defined(CXX11_ENABLED) && !defined(CUDA_CXX11_BUG_1) && !defined(__INTEL_COMPILER)
+#ifdef CXX11_ENABLED
+    /** Trick to make nvcc understand that the accessor is a constant expression*/
+    template <typename Pair>
+    constexpr dimension<Pair::first> get_dim(){
+        return dimension<Pair::first>{Pair::second};
+    }
 
     /**@brief same as accessor but mixing run-time offsets with compile-time ones
 
@@ -120,41 +125,65 @@ namespace gridtools {
        queried dimension is not found it looks up in the dynamic dimensions. Note that this
        lookup is anyway done at compile time, i.e. the get() method returns in constant time.
      */
-    template < typename ArgType, typename... Pair >
+    template < typename ArgType, typename ... Pair >
     struct accessor_mixed {
 
-        typedef accessor_mixed< ArgType, Pair... > type;
+        typedef accessor_mixed< ArgType, Pair ... > type;
         static const ushort_t n_dim = ArgType::n_dim;
         typedef typename ArgType::base_t base_t;
         typedef typename ArgType::index_type index_type;
+        typedef accessor_base< ArgType::index_type::value,
+                                        ArgType::intend_t::value,
+                                        typename ArgType::extent_t,
+                                        ArgType::n_dim > accessor_t;
 
-      private:
-        static constexpr accessor_base< ArgType::index_type::value,
-            ArgType::intend_t::value,
-            typename ArgType::extent_t,
-            ArgType::n_dim > s_args_constexpr{dimension< Pair::first >{Pair::second}...};
+    // private:
+        // static const constexpr dimension< Pair1::first> p1_{Pair1::second};
+        // static const constexpr dimension< Pair2::first > p2_{Pair2::second};
+        static const constexpr accessor_t s_args_constexpr{get_dim<Pair>()...};
 
-        accessor_base< ArgType::index_type::value,
-            ArgType::intend_t::value,
-            typename ArgType::extent_t,
-            ArgType::n_dim > m_args_runtime;
-        typedef boost::mpl::vector< static_int< n_dim - Pair::first >... > coordinates;
+        accessor_t m_args_runtime;
+
+        typedef boost::mpl::vector< static_int< n_dim - Pair::first> ... > coordinates;
 
       public:
-        template < typename... ArgsRuntime >
+        template < typename... ArgsRuntime,
+                   typename T = typename boost::enable_if_c<
+                         accumulate(logical_and()
+                                    , boost::mpl::or_<
+                                    boost::is_integral<ArgsRuntime>
+                                    , is_dimension<ArgsRuntime>
+                                    >::type::value ... ) >::type >
         GT_FUNCTION constexpr accessor_mixed(ArgsRuntime const &... args)
             : m_args_runtime(args...) {}
+
+        template < uint_t ID,
+        enumtype::intend Intend,
+        typename Extent ,
+        ushort_t Number  >
+        GT_FUNCTION constexpr accessor_mixed(accessor_base<ID, Intend, Extent, Number > const & arg_)
+            : m_args_runtime(arg_) {}
+
+        template <typename OtherAcc>
+        GT_FUNCTION constexpr accessor_mixed(accessor_mixed<OtherAcc, Pair ...> && other_)
+            : m_args_runtime(other_.m_args_runtime) {}
+
+        template <typename OtherAcc>
+        GT_FUNCTION constexpr accessor_mixed(accessor_mixed<OtherAcc, Pair ...> const& other_)
+            : m_args_runtime(other_.m_args_runtime) {}
 
         /**@brief returns the offset at a specific index Idx
 
            this is the constexpr version of the get() method (e.g. can be used as template parameter).
          */
         template < short_t Idx >
-        GT_FUNCTION static constexpr uint_t const get_constexpr() {
+        GT_FUNCTION static constexpr int_t get_constexpr() {
+ #ifndef __CUDACC__
             GRIDTOOLS_STATIC_ASSERT(Idx < s_args_constexpr.n_dim, "the idx must be smaller than the arg dimension");
             GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "the idx must be larger than 0");
             GRIDTOOLS_STATIC_ASSERT(s_args_constexpr.template get< Idx >() >= 0,
                 "there is a negative offset. If you did this on purpose recompile with the PEDANTIC_DISABLED flag on.");
+#endif
             return s_args_constexpr.template get< Idx >();
         }
 
@@ -163,7 +192,7 @@ namespace gridtools {
            the lookup for the index Idx is done at compile time, i.e. this method returns in constant time
          */
         template < short_t Idx >
-        GT_FUNCTION constexpr const int_t get() const {
+        GT_FUNCTION constexpr int_t get() const {
             return boost::is_same< typename boost::mpl::find< coordinates, static_int< Idx > >::type,
                        typename boost::mpl::end< coordinates >::type >::type::value
                        ? m_args_runtime.template get< Idx >()
@@ -171,11 +200,11 @@ namespace gridtools {
         }
     };
 
-    template < typename ArgType, typename... Pair >
-    constexpr accessor_base< ArgType::index_type::value,
+    template < typename ArgType, typename ... Pair >
+    constexpr  accessor_base< ArgType::index_type::value,
         ArgType::intend_t::value,
         typename ArgType::extent_t,
-        ArgType::n_dim > accessor_mixed< ArgType, Pair... >::s_args_constexpr;
+                                   ArgType::n_dim > accessor_mixed< ArgType, Pair ... >::s_args_constexpr;
 
     /**
        @brief this struct allows the specification of SOME of the arguments before instantiating the offset_tuple.
@@ -246,7 +275,7 @@ the dimension is chosen
         // store the list of offsets which are already known on an array
         int_t m_knowns[sizeof...(Known)];
     };
-#endif
+#endif //CXX11_ENABLED
 
 #ifdef CXX11_ENABLED
     template < uint_t ID, typename Extent = extent< 0, 0, 0, 0, 0, 0 >, ushort_t Number = 3 >

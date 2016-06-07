@@ -701,13 +701,14 @@ If you are not using generic accessors then you are using an unsupported storage
     template < typename Accessor, typename IterateDomainArguments >
     struct accessor_return_type_impl {
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), "Wrong type");
+        typedef typename boost::remove_reference<Accessor>::type acc_t;
 
-        typedef typename boost::mpl::eval_if< boost::mpl::or_<  is_accessor< Accessor >
-                                                             , is_vector_accessor<Accessor> >,
-            get_arg_value_type_from_accessor< Accessor, IterateDomainArguments >,
+        typedef typename boost::mpl::eval_if< boost::mpl::or_<  is_accessor< acc_t >
+                                                             , is_vector_accessor< acc_t > >,
+            get_arg_value_type_from_accessor< acc_t, IterateDomainArguments >,
             boost::mpl::identity< boost::mpl::void_ > >::type accessor_value_type;
 
-        typedef typename boost::mpl::if_< is_accessor_readonly< Accessor >,
+        typedef typename boost::mpl::if_< is_accessor_readonly< acc_t >,
             typename boost::add_const< accessor_value_type >::type,
             typename boost::add_reference< accessor_value_type >::type RESTRICT >::type type;
     };

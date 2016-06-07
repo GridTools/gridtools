@@ -24,6 +24,7 @@ namespace gridtools{
     struct expandable_parameters : field<Storage, Size>::type {
 
         typedef typename field<Storage, Size>::type super;
+        typedef typename super::traits traits;
         typedef Storage basic_type;
         using super::data_field;
 
@@ -63,7 +64,7 @@ namespace gridtools{
         void set(std::vector<pointer<Storage2> > const& other, ushort_t const& offset){
 
             // GRIDTOOLS_STATIC_ASSERT((OtherSize >= Size), "Cannot assign pointers from a smaller storage");
-            for(ushort_t i; i<this->field_dimensions; ++i)
+            for(ushort_t i=0; i<this->field_dimensions; ++i)
                 if(offset+i < other.size())
                 {
                     this->m_fields[i] = other.at(offset+i)->fields()[0];
@@ -92,7 +93,7 @@ namespace gridtools{
         expandable_parameters(expandable_parameters<Storage, OtherSize> const& other){
 
             GRIDTOOLS_STATIC_ASSERT((OtherSize >= Size), "Cannot assign pointers from a smaller storage");
-            for(ushort_t i; i<Size; ++i)
+            for(ushort_t i=0; i<Size; ++i)
                 this->m_fields[i]=other.fields()[i];
         }
 

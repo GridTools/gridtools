@@ -9,7 +9,7 @@
 #include "cache_storage_metafunctions.hpp"
 
 namespace gridtools {
-#ifdef CXX11_ENABLED
+#ifdef CUDA8
     template <typename T, typename U>
     struct get_storage_accessor;
 
@@ -41,7 +41,8 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(is_storage<typename Storage::value_type>::value, "wrong type");
         typedef typename Storage::value_type::basic_type storage_t;
 
-        typedef typename _impl::generate_layout_map<typename make_gt_integer_sequence<uint_t, sizeof...(Tiles)+((storage_t::field_dimensions>1)?1:0)>::type >::type  layout_t;
+        typedef typename _impl::generate_layout_map<typename make_gt_integer_sequence<uint_t, sizeof...(Tiles) +2/*FD*/
+            >::type >::type  layout_t;
 
         GT_FUNCTION
         explicit constexpr cache_storage() {}
@@ -51,39 +52,32 @@ namespace gridtools {
         // static constexpr const meta_t m_value=meta_t{};
 
         GT_FUNCTION
-        static const constexpr uint_t size(){
+        static constexpr uint_t size(){
             return meta_t{}.size();
         }
 
         template < typename Accessor >
-        GT_FUNCTION Value &RESTRICT at(array< int, 2 > const &thread_pos, Accessor && accessor_) {
-
+        GT_FUNCTION Value &RESTRICT at(array< int, 2 > const &thread_pos, Accessor const& accessor_) {
             constexpr const meta_t m_value;
 
-            using accessor_t = typename boost::remove_reference<Accessor>::type;
+            using accessor_t = typename boost::remove_const<typename boost::remove_reference<Accessor>::type>::type;
             GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor_t >::value), "Error type is not accessor tuple");
 
             using iminus = typename std::tuple_element<0, minus_t>::type;
             using jminus = typename std::tuple_element<1, minus_t>::type;
 
-            //manually aligning the storage
-            accessor_.template increment<accessor_t::n_dim - 2>(thread_pos[1]-jminus::value); //incremen
-            accessor_.template increment<accessor_t::n_dim - 1>(thread_pos[0]-iminus::value); //increment the second accessor
-
             assert((m_value.index(accessor_) < size()));
             assert((m_value.index(accessor_) >= 0));
 
-            return m_values[m_value.index(accessor_)];
+            // manually aligning the storage
+            const uint_t extra_=(thread_pos[0]-iminus::value)*m_value.template strides<0>()
+                +(thread_pos[1]-jminus::value)*m_value.template strides<1>() + m_value.index( accessor_ );
+            return m_values[extra_];
         }
 
       private:
 
-#ifdef CUDA8 //constexpr bug fixed in cuda 8
         Value m_values[size()];
-#else
-        Value m_values[_impl::compute_size<minus_t, plus_t, tiles_t>::value*storage_t::field_dimensions];
-#endif
-
     };
 
 #else

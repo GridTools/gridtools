@@ -60,33 +60,14 @@ namespace gridtools{
         //rvalue
         template < uint_t ACC_ID, enumtype::intend Intent, typename Extent, uint_t Size >
         GT_FUNCTION
-        typename super::iterate_domain_t::template accessor_return_type< accessor<ACC_ID, Intent, Extent, Size> >::type operator()(vector_accessor<ACC_ID, Intent, Extent, Size> && arg) const
+        typename super::iterate_domain_t::template accessor_return_type< accessor<ACC_ID, Intent, Extent, Size> >::type operator()(vector_accessor<ACC_ID, Intent, Extent, Size> const& arg) const
         {
             typedef typename super::template accessor_return_type< accessor<ACC_ID, Intent, Extent, Size> >::type return_t;
             //check that if the storage is written the accessor is inout
 
             GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, "wrong type");
-            arg.template set<0>(ID);
-
-            return super::operator()((accessor<ACC_ID, Intent, Extent, Size>) arg);
-        }
-
-
-        /**
-           @brief set the offset in the storage_list and forward to the base class
-
-           This version is identical to the previous one, but it accepts an lvalue as argument.
-
-           \param arg the vector accessor
-         */
-        //lvalue
-        template < uint_t ID, enumtype::intend Intent, typename Extent, uint_t Size >
-        GT_FUNCTION
-        typename super::iterate_domain_t::template accessor_return_type< vector_accessor<ID, Intent, Extent, Size> >::type operator()(vector_accessor<ID, Intent, Extent, Size> & arg) const
-        {
-            GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, "wrong type");
-            arg.template set<0>(ID);
-            return super::operator()((accessor<ID, Intent, Extent, Size>) arg);
+            const typename alias<accessor<ACC_ID, Intent, Extent, Size>, dimension<Size-1>  >::template set<ID> tmp_(arg);
+            return super::operator()(tmp_);
         }
 
 #else //CXX11_ENABLED

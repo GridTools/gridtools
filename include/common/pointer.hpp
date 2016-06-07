@@ -116,7 +116,8 @@ namespace gridtools {
 
         template < typename U >
         void operator()(U t) const {
-            delete t.get();
+            if(t.get())
+                delete t.get();
         }
     };
 }

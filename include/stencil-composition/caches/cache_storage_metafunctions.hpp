@@ -26,7 +26,7 @@ namespace gridtools{
             typedef meta_storage_cache<Layout,
                                        P1::value-M1::value+T1::value, P2::value-M2::value+T2::value, //first 2 dimensions are special (the block)
                                        ( (Plus::value - Minus::value) >0 ? (Tiles::value - Minus::value + Plus::value) : 1) ...
-                , Storage::field_dimensions> type;
+                , Storage::field_dimensions, 1> type;
 
         };
 
@@ -34,11 +34,11 @@ namespace gridtools{
         struct generate_layout_map;
 
         /**@class automatically generates the layout map for the cache storage. By default
-           i and j have the largest stride. The stride 1 is in the field dimension.
+           i and j have the smallest stride. The largest stride is in the field dimension. This reduces bank conflicts.
          */
         template <uint_t ... Id>
         struct generate_layout_map<gt_integer_sequence<uint_t, Id ...> >{
-            typedef layout_map<Id ...> type;
+            typedef layout_map<(sizeof...(Id) - Id - 1) ...> type;
         };
 
         template<typename Minus, typename Plus, typename Tiles >

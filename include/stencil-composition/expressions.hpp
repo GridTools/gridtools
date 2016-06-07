@@ -94,7 +94,8 @@ namespace gridtools {
 
         template < typename Arg1, typename Arg2 >
         using no_accessor_types = typename boost::mpl::not_<
-            typename boost::mpl::or_< is_accessor< Arg1 >, is_accessor< Arg2 > >::type >::type;
+            typename boost::mpl::or_< boost::mpl::or_<is_accessor< Arg1 >, is_vector_accessor< Arg1 > >
+                                      , boost::mpl::or_<is_accessor< Arg2 >, is_vector_accessor< Arg2 > > >::type >::type;
 
         template < typename Arg1, typename Arg2 >
         using no_expr_nor_accessor_types =

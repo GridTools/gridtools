@@ -524,13 +524,7 @@ namespace gridtools {
         template < typename Accessor >
         GT_FUNCTION typename boost::enable_if< typename cache_access_accessor< Accessor, all_caches_t >::type,
             typename accessor_return_type< Accessor >::type >::type
-        operator()(Accessor
-#ifdef CXX11_ENABLED
-                             &&
-#else
-                             const&
-#endif
-                   accessor_) const {
+        operator()(Accessor const& accessor_) const {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
             return static_cast< IterateDomainImpl const * >(this)
@@ -552,14 +546,31 @@ namespace gridtools {
                 typename accessor_return_type< Accessor >::type >::type
             operator()(Accessor const &accessor) const;
 
-#if defined(CXX11_ENABLED) && !defined(__CUDACC__) && !defined(__INTEL_COMPILER) // nvcc compiler bug
+#if defined(CXX11_ENABLED) && !defined(CUDA_CXX11_BUG_1) && !defined(__INTEL_COMPILER) // nvcc compiler bug
         /** @brief method called in the Do methods of the functors.
 
             Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of
            data fields with the same dimension and memory layout)*/
         template < typename Accessor, typename... Pairs >
-        GT_FUNCTION typename accessor_return_type< Accessor >::type operator()(
-            accessor_mixed< Accessor, Pairs... > const &accessor) const;
+        GT_FUNCTION
+        typename boost::enable_if< typename cache_access_accessor< Accessor, all_caches_t >::type,
+                                   typename accessor_return_type< Accessor >::type >::type
+         operator()(accessor_mixed< Accessor, Pairs... > const& accessor_) const{
+
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
+            return static_cast< IterateDomainImpl const * >(this)
+                ->template get_cache_value_impl< typename accessor_return_type< Accessor >::type >(accessor_);
+
+        }
+
+
+        template < typename Accessor, typename... Pairs >
+        GT_FUNCTION
+        typename boost::disable_if< typename cache_access_accessor< Accessor, all_caches_t >::type,
+                                   typename accessor_return_type< Accessor >::type >::type
+         operator()(
+            accessor_mixed< Accessor, Pairs... > const& accessor) const;
 
 #endif
 
@@ -844,16 +855,18 @@ namespace gridtools {
     }
 
 #if defined(CXX11_ENABLED)
-#if !defined(__CUDACC__) && !defined(__INTEL_COMPILER) // nvcc compiler bug
+#if !defined(CUDA_CXX11_BUG_1) && !defined(__INTEL_COMPILER) // nvcc compiler bug
     /** @brief method called in the Do methods of the functors.
 
         Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of data
        fields with the same dimension and memory layout)*/
     template < typename IterateDomainImpl >
     template < typename Accessor, typename... Pairs >
-    GT_FUNCTION typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type
+        GT_FUNCTION
+    typename boost::disable_if< typename iterate_domain< IterateDomainImpl >::template cache_access_accessor< Accessor, typename iterate_domain< IterateDomainImpl >::all_caches_t >::type,
+                                typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type >::type
         iterate_domain< IterateDomainImpl >::
-        operator()(accessor_mixed< Accessor, Pairs... > const &accessor) const {
+        operator()(accessor_mixed< Accessor, Pairs... > const& accessor_) const {
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 
@@ -879,8 +892,9 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((Accessor::type::n_dim <= metadata_t::space_dimensions + 1) ||
                                     (accessor_mixed_t::template get_constexpr< 1 >() >= 0),
             "offset specified for the dimension corresponding to the number of snapshots must be non negative");
-        GRIDTOOLS_STATIC_ASSERT(
-            (storage_t::traits::n_width > 0), "did you define a field dimension with 0 snapshots??");
+        // typedef typename static_int<storage_t::traits::n_width>::type::fuck fuck;
+        GRIDTOOLS_STATIC_ASSERT((storage_t::traits::n_width > 0), "did you define a field dimension with 0 snapshots??");
+
         // dimension access out of bounds
         GRIDTOOLS_STATIC_ASSERT((accessor_mixed_t::template get_constexpr< 0 >() < storage_t::traits::n_dimensions) ||
                                     Accessor::type::n_dim <= metadata_t::space_dimensions + 1,
@@ -891,24 +905,25 @@ namespace gridtools {
             (accessor_mixed_t::template get_constexpr< 1 >() <
                 _impl::access< storage_t::n_width - (accessor_mixed_t::template get_constexpr< 0 >()) - 1,
                     typename storage_t::traits >::type::n_width),
-            "trying to get a snapshot out of bound");
+            "trying to get a snapshot out of bound.");
 
         return get_value(
-            accessor,
+            accessor_,
             (data_pointer())[ // static if
                 (Accessor::type::n_dim <= metadata_t::space_dimensions + 1
                         ?                                                 // static if
                         accessor_mixed_t::template get_constexpr< 0 >()   // offset for the current snapshot
-                        : accessor_mixed_t::template get_constexpr< 1 >() // offset for the current snapshot
-                              // hypotheses : storage offsets are known at compile-time
-                              +
-                              compute_storage_offset< typename storage_t::traits,
-                                  accessor_mixed_t::template get_constexpr< 0 >(),
-                                  storage_t::traits::n_dimensions -
-                                      1 >::value // stride of the current dimension inside the vector of storages
+                 :  accessor_mixed_t::template get_constexpr< 1 >() // offset for the current snapshot
+                 // hypotheses : storage offsets are known at compile-time
+                 +
+                 compute_storage_offset< typename storage_t::traits,
+                 accessor_mixed_t::template get_constexpr< 0 >(),
+                 storage_t::traits::n_dimensions -
+                 1 >::value // stride of the current dimension inside the vector of storages
                     )                            //+ the offset of the other extra dimension
                 +
-                current_storage< (Accessor::index_type::value == 0), local_domain_t, typename Accessor::type >::value]);
+                current_storage< (Accessor::index_type::value == 0), local_domain_t, typename Accessor::type >::value
+                ]);
     }
 #endif
 

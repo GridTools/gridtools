@@ -682,6 +682,9 @@ namespace gridtools {
          */
         template <typename ... Args, typename ... Storage>
         void reassign(arg_storage_pair<Args, Storage> ... args){
+
+            GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(), is_storage<Storage>::value ... ), "wrong storage type in a call to reassign");
+            GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(), is_arg<Args>::value ... ), "wrong storage type in a call to reassign");
             m_domain.reassign(args ...);
             copy_domain_storage_pointers();
         }
