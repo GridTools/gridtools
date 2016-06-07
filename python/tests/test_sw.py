@@ -385,11 +385,6 @@ class SWTest (CopyTest):
             self.automatic_access_pattern_detection (self.stencil)
 
 
-    @attr (lang='cuda')
-    def test_compare_python_cpp_and_cuda_results (self):
-        super ( ).test_compare_python_cpp_and_cuda_results ( )
-
-
     def test_ghost_cell_pattern (self):
         expected_patterns = [ [0,0,0,0],
                               [0,0,0,0],

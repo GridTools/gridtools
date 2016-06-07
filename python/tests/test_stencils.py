@@ -52,7 +52,6 @@ class AccessPatternDetectionTest (unittest.TestCase):
 
 
 
-
 class Copy (MultiStageStencil):
     """
     Definition of a simple copy stencil, as in 'examples/copy_stencil.h'.-
@@ -182,6 +181,17 @@ class CopyTest (AccessPatternDetectionTest):
             for k in params_py.keys ( ):
                 diff  = np.isclose(params_py[k], params_cxx[k], atol=1e-11)
                 ndiff += np.count_nonzero (np.logical_not (diff))
+
+        #
+        # Print statements for debugging purposes
+        #
+#        for i in range(self.domain[0]):
+#            for j in range(self.domain[1]):
+#                for k in range(self.domain[2]):
+#                    print ("PY  (%d,%d,%d) \t%.5f \t%.5f" % (i,j,k,params_py['in_X'][i,j,k],
+#                           params_py['out_X'][i,j,k]) )
+#                    print ("CPP (%d,%d,%d) \t%.5f \t%.5f" % (i,j,k,params_cxx['in_X'][i,j,k],
+#                           params_cxx['out_X'][i,j,k]) )
         print ("%s ndiff: %d" % ('c++', ndiff))
         self.assertEqual (ndiff, 0)
 
@@ -711,6 +721,13 @@ class LaplaceTest (CopyTest):
         self.stencil.set_k_direction ("forward")
 
 
+    def test_data_dependency_detection (self, expected_deps=None, backend='c++'):
+        if expected_deps is None:
+            expected_deps = [('out_data', 'in_data')]
+        super ( ).test_data_dependency_detection (deps=expected_deps,
+                                                  backend=backend)
+
+
     def test_automatic_access_pattern_detection (self):
         from gridtools import BACKENDS
         #
@@ -878,9 +895,9 @@ class HorizontalDiffusionTest (CopyTest):
                        'self.fli',
                        'self.flj')
 
-        self.out_data = np.zeros (self.domain)
-        self.in_wgt   = np.ones  (self.domain)
-        self.in_data  = np.zeros (self.domain)
+        self.out_data = np.zeros (self.domain, order='F')
+        self.in_wgt   = np.ones  (self.domain, order='F')
+        self.in_data  = np.zeros (self.domain, order='F')
 
         for i in range (self.domain[0]):
             for j in range (self.domain[1]):
@@ -982,6 +999,7 @@ class HorizontalDiffusionTest (CopyTest):
         super ( ).test_get_interior_points_IJ_object (data_field)
 
 
+
 class VerticalRegions (MultiStageStencil):
     """
     A stencil using a Laplacian-like operator with different vertical regions
@@ -999,26 +1017,26 @@ class VerticalRegions (MultiStageStencil):
 
 
     def stage_laplace1 (self, out_data, in_data):
-        for p in self.get_interior_points (out_data[:,:,3:5]):
-            out_data[p] = -4.0 * in_data[p] + (
+        for p in self.get_interior_points (out_data[:,:,3:8]):
+            out_data[p] = -6.0 * in_data[p] + (
                           in_data[p + (1,0,0)]  + in_data[p + (0,1,0)] +
                           in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
 
 
     def stage_laplace2 (self, out_data, in_data):
         for p in self.get_interior_points (out_data[:,:,6:]):
-            out_data[p] = -4.0 * in_data[p] + (
+            out_data[p] = -8.0 * in_data[p] + (
                           in_data[p + (1,0,0)]  + in_data[p + (0,1,0)] +
                           in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
 
 
     @Stencil.kernel
-    def kernel (self, out_data, in_data):
-        self.stage_laplace0 (out_data = out_data,
+    def kernel (self, out_data0, out_data1, out_data2, in_data):
+        self.stage_laplace0 (out_data = out_data0,
                             in_data = in_data)
-        self.stage_laplace1 (out_data = out_data,
+        self.stage_laplace1 (out_data = out_data1,
                             in_data = in_data)
-        self.stage_laplace2 (out_data = out_data,
+        self.stage_laplace2 (out_data = out_data2,
                             in_data = in_data)
 
 
@@ -1038,22 +1056,80 @@ class VerticalRegionsTest (LaplaceTest):
     def setUp (self):
         super ( ).setUp ( )
 
+        self.params = ('out_data0',
+                       'out_data1',
+                       'out_data2',
+                       'in_data')
+
+        self.out_data0 = np.zeros (self.domain, order='F')
+        self.out_data1 = np.zeros (self.domain, order='F')
+        self.out_data2 = np.zeros (self.domain, order='F')
+
         self.stencil = VerticalRegions (self.domain)
         self.stencil.set_halo ( (1, 1, 1, 1) )
         self.stencil.set_k_direction ("forward")
 
 
+    def test_data_dependency_detection (self, expected_deps=None, backend='c++'):
+        if expected_deps is None:
+            expected_deps = [('out_data0', 'in_data'),
+                             ('out_data1', 'in_data'),
+                             ('out_data2', 'in_data')]
+        super ( ).test_data_dependency_detection (expected_deps=expected_deps,
+                                                  backend=backend)
+
+
+    def test_automatic_access_pattern_detection (self):
+        from gridtools import BACKENDS
+        #
+        # fields and their ranges
+        #
+        self.add_expected_offset ('in_data', None)
+        self.add_expected_offset ('in_data', None)
+        self.add_expected_offset ('in_data', None)
+        self.add_expected_offset ('in_data',  [-1,1,-1,1])
+        self.add_expected_offset ('in_data',  [-1,1,-1,1])
+        self.add_expected_offset ('in_data',  [-1,1,-1,1])
+        self.add_expected_offset ('out_data0', None)
+        self.add_expected_offset ('out_data1', None)
+        self.add_expected_offset ('out_data2', None)
+
+        for backend in BACKENDS:
+            self.stencil.set_backend (backend)
+            self._run ( )
+            self.automatic_access_pattern_detection (self.stencil)
+
+
+    def test_ghost_cell_pattern (self, expected_patterns=None, backend='c++'):
+        if expected_patterns is None:
+            expected_patterns = [ [0,0,0,0],
+                                  [0,0,0,0],
+                                  [0,0,0,0] ]
+        super ( ).test_ghost_cell_pattern (expected_patterns,
+                                           backend=backend)
+
+
     def test_minimum_halo_detection (self, min_halo=None):
         if min_halo is None:
-            min_halo = [0, 0, 0, 0]
+            min_halo = [1, 1, 1, 1]
         super ( ).test_minimum_halo_detection (min_halo)
+
+
+    @unittest.skip("Not yet implemented")
+    @attr(lang='python')
+    def test_python_results (self):
+        pass
 
 
     def test_splitters (self):
         self._run ( )
-        self.assertEqual (self.stencil.splitters, 
+        self.assertEqual (self.stencil.splitters,
                           #{0: 0, 2: 1, 3: 2, 5: 3, 6: 4, 32: 5})
-                          {0: 0, 3: 1, 4: 2, 5: 3, 6: 4, 32: 5})
+                          {0: 0, 3: 1, 4: 2, 6: 3, 8: 4, 32: 5})
+#        for stg in self.stencil.stages:
+#            for vr in stg.vertical_regions:
+#                self.assertEqual (vr.start_splitter, self.stencil.splitters[vr.start_splitter])
+#                self.assertEqual (vr.end_splitter, self.stencil.splitters[vr.start_splitter])
 
 
 
@@ -1257,11 +1333,29 @@ class ChildStencilTest (unittest.TestCase):
     def setUp (self):
         logging.basicConfig (level=logging.INFO)
 
+        self.domain = (64, 64, 32)
+        self.params = ('out_cpy', 'in_cpy')
+        self.temps  = ( )
+
+        self.out_cpy = np.zeros (self.domain,
+                                 dtype=np.float64,
+                                 order='F')
+        #
+        # workaround because of a bug in the power (**) implemention of NumPy
+        #
+        self.in_cpy = np.random.random_integers (10,
+                                                 size=self.domain)
+        self.in_cpy = self.in_cpy.astype (np.float64)
+        self.in_cpy = np.asfortranarray (self.in_cpy)
+
 
     def _test_child_constructor_call_success (self, stencil):
         from gridtools.stencil import Stencil
 
-        Stencil.compiler.analyze (stencil)
+        kwargs = dict ( )
+        for p in self.params:
+            kwargs[p] = getattr (self, p)
+        Stencil.compiler.analyze (stencil, **kwargs)
 
 
     def test_child_constructor_calls_parent_constructor_and_nothing_else (self):

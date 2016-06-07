@@ -63,11 +63,6 @@ class GameOfLifeTest (CopyTest):
         self.stencil.set_k_direction ('forward')
 
 
-    @attr(lang='cuda')
-    def test_compare_python_cpp_and_cuda_results (self):
-        super ( ).test_compare_python_cpp_and_cuda_results ( )
-
-
     def test_automatic_access_pattern_detection (self):
         from gridtools import BACKENDS
 
@@ -182,11 +177,6 @@ class AdditionalIfStatementTest (CopyTest):
         self.stencil = AdditionalIfStatement (self.domain)
         self.stencil.set_halo ( (0,1,0,0) )
         self.stencil.set_k_direction ('forward')
-
-
-    @attr(lang='cuda')
-    def test_compare_python_cpp_and_cuda_results (self):
-        super ( ).test_compare_python_cpp_and_cuda_results ( )
 
 
     def test_automatic_access_pattern_detection (self):
