@@ -123,7 +123,8 @@ class FastWavesUV (MultiStageStencil):
         # compute ppgradcor at k = self.flat_limit
         #
         for p in self.get_interior_points (
-                ppgradcor[:,:,self.flat_limit:self.flat_limit+1],
+                #ppgradcor[:,:,self.flat_limit:self.flat_limit+1],
+                ppgradcor[:,:,11:12],
                 ghost_cell=[0,1,0,1]):
             ppgradcor[p] = wgtfac[p]*ppuv[p] + (1.0 - wgtfac[p]) * ppuv[p + (0,0,-1)]
 
@@ -133,7 +134,8 @@ class FastWavesUV (MultiStageStencil):
         # compute ppgradcor at k > self.flat_limit
         #
         for p in self.get_interior_points (
-                ppgradcor[:,:,self.flat_limit+1:],
+#                ppgradcor[:,:,self.flat_limit+1:],
+                ppgradcor[:,:,12:],
                 ghost_cell=[0,1,0,1]):
             ppgradcor[p] = wgtfac[p]*ppuv[p] + (1.0 - wgtfac[p]) * ppuv[p + (0,0,-1)]
             ppgradcor[p + (0,0,-1)] = ppgradcor[p] - ppgradcor[p + (0,0,-1)]
@@ -141,7 +143,8 @@ class FastWavesUV (MultiStageStencil):
 
     def stage_xrhsx (self, xrhsx, fx, rho, ppuv, utens_stage):
         for p in self.get_interior_points (
-                xrhsx[:,:,self.domain[2]-1:],
+#                xrhsx[:,:,self.domain[2]-1:],
+                xrhsx[:,:,7:],
                 ghost_cell=[-1,0,0,1]):
             xrhsx[p] = -fx[p] / (0.5*(rho[p] +rho[p + (1,0,0)])) * \
                        (ppuv[p + (1,0,0)] - ppuv[p]) + utens_stage[p]
@@ -150,6 +153,7 @@ class FastWavesUV (MultiStageStencil):
     def stage_xrhsy (self, xrhsy, rho, ppuv, vtens_stage):
         for p in self.get_interior_points (
                 xrhsy[:,:,self.domain[2]-1:],
+                xrhsy[:,:,7:],
                 ghost_cell=[0,1,0,1]):
             xrhsy[p] = -self.edadlat / (0.5*(rho[p + (0,1,0)] + rho[p])) * \
                        (ppuv[p + (0,1,0)]-ppuv[p]) + vtens_stage[p]
@@ -157,7 +161,8 @@ class FastWavesUV (MultiStageStencil):
 
     def stage_xrhsz (self, xrhsz, rho0, rho, cwp, p0, ppuv, wbbctens_stage):
         for p in self.get_interior_points (
-                xrhsz[:,:,self.domain[2]-1:],
+#                xrhsz[:,:,self.domain[2]-1:],
+                xrhsz[:,:,7:],
                 ghost_cell=[0,1,0,1]):
             xrhsz[p] = rho0[p] / rho[p] * self.gravity * \
                        (1.0 - cwp[p] * (p0[p] + ppuv[p])) + \
@@ -166,14 +171,16 @@ class FastWavesUV (MultiStageStencil):
 
     def stage_ppgrad_at_flat_limit (self, ppgradu, ppgradv, ppuv, ppgradcor, hhl):
         # k < self.flat_limit
-        for p in self.get_interior_points (ppgradu[:,:,:self.flat_limit]):
+#        for p in self.get_interior_points (ppgradu[:,:,:self.flat_limit]):
+        for p in self.get_interior_points (ppgradu[:,:,:11]):
             ppgradu[p] = ppuv[p + (1,0,0)] - ppuv[p]
             ppgradv[p] = ppuv[p + (0,1,0)] - ppuv[p]
 
 
     def stage_ppgrad_over_flat_limit (self, ppgradu, ppgradv, ppuv, ppgradcor, hhl):
         # k >= self.flat_limit
-        for p in self.get_interior_points (ppgradu[:,:,self.flat_limit:]):
+#        for p in self.get_interior_points (ppgradu[:,:,self.flat_limit:]):
+        for p in self.get_interior_points (ppgradu[:,:,11:]):
             ppgradu[p] = (ppuv[p + (1,0,0)]-ppuv[p]) + (ppgradcor[p + (1,0,0)] + ppgradcor[p])* 0.5 * ((hhl[p + (0,0,1)] + hhl[p]) - (hhl[p + (1,0,1)]+hhl[p + (1,0,0)])) / ((hhl[p + (0,0,1)] - hhl[p]) + (hhl[p + (1,0,1)] - hhl[p + (1,0,0)]))
             ppgradv[p] = (ppuv[p + (0,1,0)]-ppuv[p]) + (ppgradcor[p + (0,1,0)] + ppgradcor[p])* 0.5 * ((hhl[p + (0,0,1)] + hhl[p]) - (hhl[p + (0,1,1)]+hhl[p + (0,1,0)])) / ((hhl[p + (0,0,1)] - hhl[p]) + (hhl[p + (0,1,1)] - hhl[p + (0,1,0)]))
 
