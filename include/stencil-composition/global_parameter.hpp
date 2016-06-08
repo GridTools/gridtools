@@ -56,7 +56,14 @@ struct global_parameter : T {
 
     GT_FUNCTION
     void clone_to_device() {
+#ifdef _USE_GPU_
         m_storage.update_gpu();
+#endif
+    }
+
+    GT_FUNCTION
+    void clone_from_device() {
+        assert(false && "it makes no sense to clone a global_parameter from the device to the host");
     }
 
     GT_FUNCTION
@@ -64,6 +71,18 @@ struct global_parameter : T {
         *(static_cast<T*>(this)) = this_type(m_ref);
         m_storage = storage_ptr_t(static_cast<this_type*>(this), true);
     }
+
+    GT_FUNCTION
+    void d2h_update() {
+        assert(false && "it makes no sense to clone a global_parameter from the device to the host");
+    }
+
+    GT_FUNCTION
+    void h2d_update() {
+        update_data();
+        clone_from_device();
+    }
+    
 };
 
 /**@brief functor that is used to call global_parameter<T>::update_data().
