@@ -40,6 +40,7 @@ namespace adv_prepare_tracers{
 
     bool test(uint_t d1, uint_t d2, uint_t d3){
 
+#ifdef CUDA8
 
 #ifdef CUDA_EXAMPLE
         typedef layout_map<2,1,0> layout_t;
@@ -83,6 +84,7 @@ namespace adv_prepare_tracers{
         comp_->steady();
         comp_->run();
         comp_->finalize();
+#endif // CUDA8
         return true;
     }
 }
