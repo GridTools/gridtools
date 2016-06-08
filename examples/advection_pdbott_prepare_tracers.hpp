@@ -1,6 +1,4 @@
 #pragma once
-#define CUDA8
-#undef CUDA_CXX11_BUG_1
 
 #include <stencil-composition/stencil-composition.hpp>
 

@@ -373,7 +373,7 @@ namespace gridtools {
         GT_FUNCTION
             typename boost::disable_if< typename accessor_holds_data_field< Accessor >::type, void * RESTRICT >::type
             get_data_pointer(Accessor const& accessor) const {
-            using acc_t = typename boost::remove_const<typename boost::remove_reference<Accessor >::type>::type;
+            typedef typename boost::remove_const<typename boost::remove_reference<Accessor >::type>::type acc_t;
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< acc_t >::value), "Using EVAL is only allowed for an accessor type");
             return (data_pointer())
@@ -546,7 +546,7 @@ namespace gridtools {
                 typename accessor_return_type< Accessor >::type >::type
             operator()(Accessor const &accessor) const;
 
-#if defined(CXX11_ENABLED) && !defined(CUDA_CXX11_BUG_1) && !defined(__INTEL_COMPILER) // nvcc compiler bug
+#ifdef CUDA8
         /** @brief method called in the Do methods of the functors.
 
             Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of
@@ -855,7 +855,7 @@ namespace gridtools {
     }
 
 #if defined(CXX11_ENABLED)
-#if !defined(CUDA_CXX11_BUG_1) && !defined(__INTEL_COMPILER) // nvcc compiler bug
+#ifdef CUDA8 // nvcc compiler bug
     /** @brief method called in the Do methods of the functors.
 
         Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of data

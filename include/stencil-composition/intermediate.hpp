@@ -674,6 +674,7 @@ namespace gridtools {
             boost::fusion::copy(domain_meta_view, meta_view);
         }
 
+#ifdef CXX11_ENABLED
         /**
            @brief Method to reassign the storage pointers in the domain_type
 
@@ -688,6 +689,7 @@ namespace gridtools {
             m_domain.reassign(args ...);
             copy_domain_storage_pointers();
         }
+#endif
     };
 
 } // namespace gridtools

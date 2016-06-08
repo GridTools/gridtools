@@ -50,10 +50,19 @@ namespace gridtools {
 
 #endif
 
+        //specialization to skip the cases in which Id>Layout::length
+        template < ushort_t Id, typename Layout, bool Cond=(Id<=Layout::length) >
+        struct compute_offset;
+
+        template < ushort_t Id, typename Layout >
+        struct compute_offset<Id, Layout, false> : compute_offset<Id-1, Layout, (Id-1<=Layout::length)>
+        {
+            GRIDTOOLS_STATIC_ASSERT(Layout::length, "you should not get here. If you know what you are doing remove this assert.");
+        };
         /**@brief struct to compute the total offset (the sum of the i,j,k indices times their respective strides)
  */
         template < ushort_t Id, typename Layout >
-        struct compute_offset {
+        struct compute_offset<Id, Layout, true> {
             static const ushort_t space_dimensions = Layout::length;
 
             /**interface with an array of coordinates as argument
@@ -94,7 +103,7 @@ namespace gridtools {
         /**@brief stops the recursion
          */
         template < typename Layout >
-        struct compute_offset< 1, Layout > {
+        struct compute_offset< 1, Layout, true > {
             static const ushort_t space_dimensions = Layout::length;
 
             template < typename IntType, typename StridesVector >

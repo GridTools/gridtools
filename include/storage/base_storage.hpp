@@ -61,10 +61,14 @@ namespace gridtools {
         typename RegularStorageType::pointer_type* fields(){
             assert(false);
         }
+
+#ifdef CXX11_ENABLED
         template <typename ... Args>
         void set(Args ...){
             assert(false);
         }
+#endif
+
         void clone_to_device(){
             assert(false);
         }

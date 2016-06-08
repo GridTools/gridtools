@@ -5,8 +5,11 @@
 #include "../block_size.hpp"
 #include "../extent.hpp"
 #include "../offset_tuple.hpp"
+
+#ifdef CUDA8
 #include "meta_storage_cache.hpp"
 #include "cache_storage_metafunctions.hpp"
+#endif
 
 namespace gridtools {
 #ifdef CUDA8
@@ -41,7 +44,8 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(is_storage<typename Storage::value_type>::value, "wrong type");
         typedef typename Storage::value_type::basic_type storage_t;
 
-        typedef typename _impl::generate_layout_map<typename make_gt_integer_sequence<uint_t, sizeof...(Tiles) +2/*FD*/
+        typedef typename _impl::generate_layout_map<typename make_gt_integer_sequence<uint_t, sizeof...(Tiles)
+            + 2/*FD*/
             >::type >::type  layout_t;
 
         GT_FUNCTION
@@ -114,18 +118,18 @@ namespace gridtools {
 
         template < typename Offset >
         GT_FUNCTION Value &RESTRICT at(array< int, 2 > const &thread_pos, Offset const &offset) {
-            GRIDTOOLS_STATIC_ASSERT((is_offset_tuple< Offset >::value), "Error type is not offset tuple");
-            assert(index(thread_pos, offset) < storage_size_t::value);
-            assert(index(thread_pos, offset) >= 0);
+            GRIDTOOLS_STATIC_ASSERT((is_offset_tuple< typename Offset::tuple_t >::value), "Error type is not offset tuple");
+            assert(index(thread_pos, offset.offsets()) < storage_size_t::value);
+            assert(index(thread_pos, offset.offsets()) >= 0);
 
-            return m_values[index(thread_pos, offset)];
+            return m_values[index(thread_pos, offset.offsets())];
         }
 
       private:
         template < typename Offset >
         GT_FUNCTION int_t index(array< int, 2 > const &thread_pos, Offset const &offset) {
             return (thread_pos[0] + offset.template get< Offset::n_args - 1 >() - iminus::value) * i_stride_t::value +
-                   (thread_pos[1] + offset.template get< Offset::n_args - 2 >() - jminus::value) * j_stride_t::value;
+                (thread_pos[1] + offset.template get< Offset::n_args - 2 >() - jminus::value) * j_stride_t::value;
         }
 
         Value m_values[storage_size_t::value];

@@ -68,9 +68,10 @@ namespace gridtools {
         typedef static_uint< I > index_type;
         typedef enumtype::enum_type< enumtype::intend, Intend > intend_t;
         typedef Extend extent_t;
+        typedef offset_tuple< n_dim, n_dim > tuple_t;
 
       private:
-        offset_tuple< n_dim, n_dim > m_offsets;
+        tuple_t m_offsets;
 
       public:
         /**@brief Default constructor
@@ -113,7 +114,7 @@ namespace gridtools {
    This allows to specify the extra arguments out of order. Note that 'dimension' is a
    language keyword used at the interface level.
 */
-#if defined(CXX11_ENABLED) && (!defined(__CUDACC__) || defined(CUDA8)) // cuda<8 messing up
+#if defined(CUDA8) // cuda<8 messing up
         template < typename First, typename... Whatever
                    , typename T= typename boost::enable_if_c<
                          accumulate(logical_and()
@@ -161,23 +162,24 @@ namespace gridtools {
         template < short_t Idx >
         GT_FUNCTION
         int_t constexpr get() const {
-            GRIDTOOLS_STATIC_ASSERT(Idx <= n_dim, "requested accessor index larger than the available dimensions");
-            GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
+            GRIDTOOLS_STATIC_ASSERT(Idx<0 || Idx <= n_dim, "requested accessor index larger than the available dimensions");
+            // the assert below is triggered when the accessor has a lower dimensionality than the layout
+            // GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
             return m_offsets.template get< Idx >();
         }
 
         template < short_t Idx >
         GT_FUNCTION void set(uint_t offset_) {
-            GRIDTOOLS_STATIC_ASSERT(Idx <= n_dim, "requested accessor index larger than the available dimensions");
             GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
+            GRIDTOOLS_STATIC_ASSERT(Idx<0 || Idx <= n_dim, "requested accessor index larger than the available dimensions");
             m_offsets.template set< Idx >(offset_);
         }
 
         GT_FUNCTION
-        offset_tuple< n_dim, n_dim > &offsets() { return m_offsets; }
+        tuple_t &offsets() { return m_offsets; }
 
         GT_FUNCTION
-        constexpr const offset_tuple< n_dim, n_dim > &offsets() const { return m_offsets; }
+        constexpr const tuple_t &offsets() const { return m_offsets; }
 
         template <ushort_t Idx>
         GT_FUNCTION

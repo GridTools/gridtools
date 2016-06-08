@@ -235,7 +235,7 @@ namespace gridtools {
                 typedef block_size< block_size_t::i_size_t::value,
                     (block_size_t::j_size_t::value - maximum_extent_t::jminus::value + maximum_extent_t::jplus::value +
                                         (maximum_extent_t::iminus::value != 0 ? 1 : 0) +
-                                        (maximum_extent_t::iplus::value != 0 ? 1 : 0)) > cuda_block_size_t;
+                     (maximum_extent_t::iplus::value != 0 ? 1 : 0)) > cuda_block_size_t;
 
                 // number of grid points that a cuda block covers
                 const uint_t ntx = block_size_t::i_size_t::value;

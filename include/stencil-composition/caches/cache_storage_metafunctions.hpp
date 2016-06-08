@@ -1,5 +1,7 @@
 #pragma once
+#ifdef CUDA8 // CXX11_ENABLED in case of CPU
 #include <tuple>
+#endif
 #include "../../common/generic_metafunctions/accumulate.hpp"
 /**
    @file metafunctions used in the cache_storage class

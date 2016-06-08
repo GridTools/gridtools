@@ -110,7 +110,7 @@ namespace gridtools {
 #endif
     };
 
-#ifdef CXX11_ENABLED
+#ifdef CUDA8 // (i.e. CXX11_ENABLED for cpu)
     /** Trick to make nvcc understand that the accessor is a constant expression*/
     template <typename Pair>
     constexpr dimension<Pair::first> get_dim(){
@@ -275,7 +275,7 @@ the dimension is chosen
         // store the list of offsets which are already known on an array
         int_t m_knowns[sizeof...(Known)];
     };
-#endif //CXX11_ENABLED
+#endif //CUDA8 (i.e. CXX11_ENABLED for cpu)
 
 #ifdef CXX11_ENABLED
     template < uint_t ID, typename Extent = extent< 0, 0, 0, 0, 0, 0 >, ushort_t Number = 3 >

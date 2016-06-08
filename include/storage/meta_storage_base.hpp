@@ -377,6 +377,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
 
         template < typename OffsetTuple >
         GT_FUNCTION constexpr int_t _index(OffsetTuple const &tuple) const {
+            GRIDTOOLS_STATIC_ASSERT((space_dimensions <= layout::length), "something is very wrong");
             return _impl::compute_offset< space_dimensions, layout >::apply(strides(), tuple);
         }
 

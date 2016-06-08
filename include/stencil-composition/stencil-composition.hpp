@@ -11,6 +11,8 @@
 #ifdef CXX11_ENABLED
 #include "../storage/expandable_parameters.hpp"
 #include "expandable_parameters/make_computation_expandable.hpp"
+#else
+#include "expandable_parameters/specializations.hpp"
 #endif
 
 #ifndef STRUCTURED_GRIDS

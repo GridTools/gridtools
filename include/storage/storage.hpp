@@ -102,17 +102,16 @@ namespace gridtools {
             : super(meta_data_, args...), m_device_storage_info(&meta_data_), m_on_host(true) {}
 #else // CXX11_ENABLED
 
-        template < typename T >
-        explicit storage(typename basic_type::storage_info_type const &meta_data_, T const &arg1)
-            : super(meta_data_, arg1), m_device_storage_info(&meta_data_), m_on_host(true) {}
+        explicit storage(typename basic_type::storage_info_type const &meta_data_, const char* s="default uninitialized storage", bool do_allocate=true)
+            : super(meta_data_, s, do_allocate), m_device_storage_info(&meta_data_), m_on_host(true) {}
 
-        template < class T, class U >
-        explicit storage(typename basic_type::storage_info_type const &meta_data_, T const &arg1, U const &arg2)
-            : super(meta_data_, (value_type)arg1, arg2), m_device_storage_info(&meta_data_), m_on_host(true) {}
+        template < class T >
+        explicit storage(typename basic_type::storage_info_type const &meta_data_, T const &arg1, char const *s="default initialized storage")
+            : super(meta_data_, (value_type)arg1, s), m_device_storage_info(&meta_data_), m_on_host(true) {}
 
-        template < class T, class U >
-        explicit storage(typename basic_type::storage_info_type const &meta_data_, T *arg1, U const &arg2)
-            : super(meta_data_, (value_type)*arg1, arg2), m_device_storage_info(&meta_data_), m_on_host(true) {}
+        template < class T >
+        explicit storage(typename basic_type::storage_info_type const &meta_data_, T *arg1, char const *s = "externally managed storage")
+            : super(meta_data_, (value_type)*arg1, s), m_device_storage_info(&meta_data_), m_on_host(true) {}
 
 #endif // CXX11_ENABLED
 

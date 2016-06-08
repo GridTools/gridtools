@@ -11,9 +11,9 @@ namespace gridtools{
         typedef typename T::value_type::storage_info_type::index_type type;
     };
 
+#ifdef CXX11_ENABLED
     template < typename Sequence, typename Arg >
     struct insert_if_not_present<Sequence, std::vector<pointer<Arg> > > : insert_if_not_present<Sequence, Arg> {
-
         using insert_if_not_present<Sequence, Arg>::insert_if_not_present;
     };
 
@@ -34,6 +34,7 @@ namespace gridtools{
 
     template < typename T >
     struct is_any_storage< std::vector< T > > : is_any_storage< T > {};
+#endif
 
     template < uint_t ID, typename T, typename Condition >
     struct is_plchldr_to_temp< arg< ID, T, Condition> > : public is_temporary_storage<T> {
@@ -43,11 +44,12 @@ namespace gridtools{
     struct is_plchldr_to_temp< arg< ID, T> > : public is_temporary_storage<T> {
     };
 
-
+#ifdef CXX11_ENABLED
     template < typename T, uint_t ID>
     struct is_actual_storage< pointer< expandable_parameters< T, ID > > > : public boost::mpl::bool_< !T::is_temporary > {};
 
     template < typename T, ushort_t Dim >
     struct is_temporary_storage<  expandable_parameters< T, Dim > > : public boost::mpl::bool_< T::is_temporary > {};
+#endif
 
 }//namespace gridtools

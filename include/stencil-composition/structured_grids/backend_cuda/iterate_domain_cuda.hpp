@@ -211,7 +211,7 @@ namespace gridtools {
                              const&
 #endif
                              accessor_) const {
-            using acc_t= typename boost::remove_const< typename boost::remove_reference<Accessor >::type >::type;
+            typedef typename  boost::remove_const< typename boost::remove_reference<Accessor >::type >::type acc_t;
             GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), "Wrong type");
 
             //        assert(m_pshared_iterate_domain);

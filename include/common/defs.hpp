@@ -1,9 +1,5 @@
 #pragma once
 
-#ifdef __CUDACC__
-#define CUDA_CXX11_BUG_1 // bug present in CUDA 7.5 and below
-#endif
-
 #if __cplusplus > 199711L
 #ifndef CXX11_DISABLE
 #define CXX11_ENABLED
@@ -12,6 +8,16 @@
 #endif
 #else
 #define CXX11_DISABLED
+#endif
+
+#if defined(CXX11_ENABLED)
+#if !defined(__CUDACC__)
+#define CUDA8
+#else
+#if (CUDA_VERSION > 75)
+#define CUDA8
+#endif
+#endif
 #endif
 
 #if !defined(FUSION_MAX_VECTOR_SIZE)
