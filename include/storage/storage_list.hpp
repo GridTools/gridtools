@@ -13,7 +13,7 @@ namespace gridtools {
     struct storage_list : public Storage {
 
         typedef storage_list traits;
-        static const uint_t n_dimensions=1;
+        static const uint_t n_dimensions = 1;
         template < typename PT, typename MD, ushort_t FD >
         using type_tt = storage_list< typename Storage::template type_tt< PT, MD, FD >, ExtraWidth >;
 

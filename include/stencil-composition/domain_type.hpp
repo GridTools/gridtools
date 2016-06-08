@@ -211,9 +211,9 @@ namespace gridtools {
             domain_type((p1=storage_1), (p2=storage_2), (p3=storage_3));
             \endverbatim
         */
-#ifndef __CUDACC__ //nvcc compiler bug with double pack expansion
-        template < typename... Storage, typename ... Args >
-        domain_type(arg_storage_pair<Args, Storage> ... args)
+#ifndef __CUDACC__ // nvcc compiler bug with double pack expansion
+        template < typename... Storage, typename... Args >
+        domain_type(arg_storage_pair< Args, Storage >... args)
             : m_storage_pointers(), m_metadata_set() {
 
             GRIDTOOLS_STATIC_ASSERT((sizeof...(Storage) > 0),
@@ -225,10 +225,10 @@ namespace gridtools {
         }
 #else
         template < typename... Pair >
-        domain_type(Pair ... pairs_)
+        domain_type(Pair... pairs_)
             : m_storage_pointers(), m_metadata_set() {
 
-            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair<Pair>::value ...), "wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair< Pair >::value...), "wrong type");
             GRIDTOOLS_STATIC_ASSERT((sizeof...(Pair) > 0),
                 "Computations with no storages are not supported. "
                 "Add at least one storage to the domain_type "
@@ -272,13 +272,13 @@ namespace gridtools {
                     insert_if_not_present< Sequence, Arg >(m_sequence, *arg_), empty());
             }
 
-        /** @brief operator registering the storage info object, given a raw pointer
+            /** @brief operator registering the storage info object, given a raw pointer
 
-            specialization for the case in which the storage is a std::vector of storages sharing
-            the same storage info
-         */
+                specialization for the case in which the storage is a std::vector of storages sharing
+                the same storage info
+             */
             template < typename Arg >
-            void operator()(std::vector<pointer<Arg> > const *arg_) const {
+            void operator()(std::vector< pointer< Arg > > const *arg_) const {
                 // filter out the arguments which are not of storage type (and thus do not have an associated metadata)
                 static_if< is_actual_storage< pointer< Arg > >::type::value >::eval(
                     insert_if_not_present< Sequence, Arg >(m_sequence, *(*arg_)[0]), empty());
@@ -291,13 +291,12 @@ namespace gridtools {
                 filters out the arguments which are not of storage type (and thus do not have an associated metadata)
              */
             template < typename Arg >
-            void operator()(pointer<Arg> const& arg_) const {
+            void operator()(pointer< Arg > const &arg_) const {
                 // filter out the arguments which are not of storage type (and thus do not have an associated metadata)
-                if(arg_.get()) // otherwise it's no_storage_type_yet
+                if (arg_.get()) // otherwise it's no_storage_type_yet
                     static_if< is_actual_storage< pointer< Arg > >::type::value >::eval(
                         insert_if_not_present< Sequence, Arg >(m_sequence, *arg_), empty());
             }
-
 
             /** @brief operator registering the storage info object, given a raw pointer
 
@@ -305,34 +304,34 @@ namespace gridtools {
                 the same storage info
             */
             template < typename Arg >
-            void operator()(pointer<std::vector<pointer<Arg> > > const& arg_) const {
+            void operator()(pointer< std::vector< pointer< Arg > > > const &arg_) const {
                 // filter out the arguments which are not of storage type (and thus do not have an associated metadata)
-                if(arg_.get()) // otherwise it's no_storage_type_yet
+                if (arg_.get()) // otherwise it's no_storage_type_yet
                     static_if< is_actual_storage< pointer< Arg > >::type::value >::eval(
                         insert_if_not_present< Sequence, Arg >(m_sequence, (*arg_)[0]), empty());
             }
 
-            template < typename Arg , uint_t Size>
-            void operator()(pointer<expandable_parameters<Arg, Size> > const& arg_) const {
+            template < typename Arg, uint_t Size >
+            void operator()(pointer< expandable_parameters< Arg, Size > > const &arg_) const {
                 // filter out the arguments which are not of storage type (and thus do not have an associated metadata)
-                if(arg_.get()) // otherwise it's no_storage_type_yet
+                if (arg_.get()) // otherwise it's no_storage_type_yet
                     static_if< is_actual_storage< pointer< Arg > >::type::value >::eval(
-                        insert_if_not_present< Sequence, expandable_parameters<Arg, Size> >(m_sequence, *arg_), empty());
+                        insert_if_not_present< Sequence, expandable_parameters< Arg, Size > >(m_sequence, *arg_),
+                        empty());
             }
 #endif
-
         };
 
-        /**@brief Constructor from boost::fusion::vector of raw pointers
-         * @tparam RealStorage fusion::vector of raw pointers to storages sorted with increasing indices of the placeholders
-         * @param real_storage The actual fusion::vector with the values
-         TODO: when I have only one placeholder and C++11 enabled this constructor is erroneously picked
-         */
+/**@brief Constructor from boost::fusion::vector of raw pointers
+ * @tparam RealStorage fusion::vector of raw pointers to storages sorted with increasing indices of the placeholders
+ * @param real_storage The actual fusion::vector with the values
+ TODO: when I have only one placeholder and C++11 enabled this constructor is erroneously picked
+ */
 #ifdef CXX11_ENALBED
-        template < template <typename ...> class Vector, typename ... Storages>
-        explicit domain_type(Vector<Storages* ...> const &real_storage_)
+        template < template < typename... > class Vector, typename... Storages >
+        explicit domain_type(Vector< Storages *... > const &real_storage_)
 #else
-        template < typename RealStorage>
+        template < typename RealStorage >
         explicit domain_type(RealStorage const &real_storage_)
 #endif
             : m_storage_pointers(), m_metadata_set() {
@@ -390,16 +389,16 @@ namespace gridtools {
             boost::fusion::copy(real_storage_, original_fview);
         }
 
-        //constructor used from whithin expandable parameters
-#ifdef CXX11_ENABLED //because of std::enable_if
+// constructor used from whithin expandable parameters
+#ifdef CXX11_ENABLED // because of std::enable_if
 
         /**@brief Constructor from boost::fusion::vector of gridools::pointer
          * @tparam RealStorage fusion::vector of gridtools::pointers to storages
          * @param real_storage The actual fusion::vector with the values
          TODO: when I have only one placeholder and C++11 enabled this constructor is erroneously picked
          */
-        template < template <typename ...> class Vector,  typename ... Storages>
-        explicit domain_type(Vector<pointer<Storages> ... > const &storage_pointers_)
+        template < template < typename... > class Vector, typename... Storages >
+        explicit domain_type(Vector< pointer< Storages >... > const &storage_pointers_)
             : m_storage_pointers(storage_pointers_), m_metadata_set() {
 
             boost::fusion::copy(storage_pointers_, m_original_pointers);
@@ -463,41 +462,40 @@ namespace gridtools {
            @brief given the placeholder type returns the corresponding storage gtidtools::pointer by reference
          */
         template < typename StoragePlaceholder >
-        typename boost::mpl::at<arg_list, typename StoragePlaceholder::index_type>::type& storage_pointer() {
-            return boost::fusion::at<typename StoragePlaceholder::index_type>(m_storage_pointers);
+        typename boost::mpl::at< arg_list, typename StoragePlaceholder::index_type >::type &storage_pointer() {
+            return boost::fusion::at< typename StoragePlaceholder::index_type >(m_storage_pointers);
         }
 
         /**
            @brief given the placeholder type returns the corresponding storage gridtools::pointer by const ref
          */
         template < typename StoragePlaceholder >
-        typename boost::mpl::at<arg_list, typename StoragePlaceholder::index_type>::type const& storage_pointer() const {
-            return boost::fusion::at<typename StoragePlaceholder::index_type>(m_storage_pointers);
+        typename boost::mpl::at< arg_list, typename StoragePlaceholder::index_type >::type const &
+        storage_pointer() const {
+            return boost::fusion::at< typename StoragePlaceholder::index_type >(m_storage_pointers);
         }
 
         /**
            @brief metafunction returning the storage type given the placeholder type
          */
-        template<typename T>
-        struct storage_type{
-            typedef typename boost::mpl::at<arg_list_mpl, typename T::index_type>::type::value_type type;
+        template < typename T >
+        struct storage_type {
+            typedef typename boost::mpl::at< arg_list_mpl, typename T::index_type >::type::value_type type;
         };
 
 #ifdef CXX11_ENABLED
         template < typename... Pair >
-        void reassign(Pair ... pairs_)
-        {
+        void reassign(Pair... pairs_) {
 
-            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair<Pair>::value ...), "wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair< Pair >::value...), "wrong type");
             GRIDTOOLS_STATIC_ASSERT((sizeof...(Pair) > 0),
-                                    "the assign_pointers must be called with at least one argument."
-                                    " otherwise what are you calling it for?");
+                "the assign_pointers must be called with at least one argument."
+                " otherwise what are you calling it for?");
             // NOTE: the following assertion assumes there StorageArgs has length at leas 1
             // GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair< StorageArgs >::value...), "wrong type");
             assign_pointers(m_metadata_set, pairs_...);
         }
 #endif
-
     };
 
     template < typename domain >
@@ -508,18 +506,18 @@ namespace gridtools {
 
 #ifdef CXX11_ENABLED
 
-    template<uint_t ... Indices, typename ... Storages>
-    domain_type<boost::mpl::vector<arg<Indices, Storages> ... > > instantiate_domain_type(gt_integer_sequence<uint_t, Indices ...> seq_, Storages& ... storages_){
-        auto dom_ = domain_type<boost::mpl::vector<arg<Indices, Storages> ... > >(boost::fusion::make_vector(&storages_ ... ));
+    template < uint_t... Indices, typename... Storages >
+    domain_type< boost::mpl::vector< arg< Indices, Storages >... > > instantiate_domain_type(
+        gt_integer_sequence< uint_t, Indices... > seq_, Storages &... storages_) {
+        auto dom_ =
+            domain_type< boost::mpl::vector< arg< Indices, Storages >... > >(boost::fusion::make_vector(&storages_...));
         return dom_;
     }
 
-
-    template<typename ... Storage>
-    auto make_domain_type( Storage & ... storages_)
-        -> decltype(instantiate_domain_type(make_gt_integer_sequence<uint_t, sizeof...(Storage)>(), storages_ ...))
-    {
-        return instantiate_domain_type(make_gt_integer_sequence<uint_t, sizeof...(Storage)>(), storages_ ...);
+    template < typename... Storage >
+    auto make_domain_type(Storage &... storages_)
+        -> decltype(instantiate_domain_type(make_gt_integer_sequence< uint_t, sizeof...(Storage) >(), storages_...)) {
+        return instantiate_domain_type(make_gt_integer_sequence< uint_t, sizeof...(Storage) >(), storages_...);
     }
 
 #endif

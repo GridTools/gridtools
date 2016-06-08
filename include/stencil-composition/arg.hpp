@@ -95,7 +95,7 @@ namespace gridtools {
 
 // location type is only used by other grids, supported only for cxx11
 #ifdef CXX11_ENABLED
-        typedef typename get_location_type<Storage>::type location_type;
+        typedef typename get_location_type< Storage >::type location_type;
 #endif
 
         template < typename Storage2 >

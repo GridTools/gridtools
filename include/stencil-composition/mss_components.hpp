@@ -62,8 +62,8 @@ namespace gridtools {
             boost::mpl::range_c< ushort_t, 0, boost::mpl::size< functors_seq_t >::value >,
             boost::mpl::vector0<>,
             boost::mpl::push_back< boost::mpl::_1,
-                                   functor_id_pair< boost::mpl::_2, boost::mpl::at< functors_seq_t, boost::mpl::_2 >, RepeatFunctor > > >::type
-            functors_list_t;
+                functor_id_pair< boost::mpl::_2, boost::mpl::at< functors_seq_t, boost::mpl::_2 >, RepeatFunctor > > >::
+            type functors_list_t;
 
         typedef ExtentSizes extent_sizes_t;
         typedef typename MssDescriptor::cache_sequence_t cache_sequence_t;

@@ -92,7 +92,7 @@ namespace gridtools {
         }
 
         void free_it() {
-            if(m_gpu_p) // if the pointers are not allocated do nothing
+            if (m_gpu_p) // if the pointers are not allocated do nothing
             {
                 // assert(m_gpu_p); // check for double free
                 cudaFree(m_gpu_p);
@@ -220,10 +220,10 @@ namespace gridtools {
         int get_size() { return m_size; }
 
         GT_FUNCTION
-        void set_on_device() { m_up_to_date=false; }
+        void set_on_device() { m_up_to_date = false; }
 
         GT_FUNCTION
-        void set_on_host() { m_up_to_date=true; }
+        void set_on_host() { m_up_to_date = true; }
 
         GT_FUNCTION
         bool on_host() const { return m_up_to_date; }

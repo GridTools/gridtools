@@ -33,7 +33,8 @@ namespace gridtools {
             typedef typename EsfArguments::functor_t functor_t;
 
             // GRIDTOOLS_STATIC_ASSERT(functor_t::repeat_t::value>0, "internal error");
-            _impl::call_repeated<functor_t::repeat_t::value, functor_t, iterate_domain_t, IntervalType>::Do(this->m_iterate_domain);
+            _impl::call_repeated< functor_t::repeat_t::value, functor_t, iterate_domain_t, IntervalType >::Do(
+                this->m_iterate_domain);
         }
 
         /*

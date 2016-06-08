@@ -3,9 +3,9 @@
 
 /** @file iterate_domain for expandable parameters*/
 
-namespace gridtools{
+namespace gridtools {
 
-    template <typename T>
+    template < typename T >
     struct is_iterate_domain;
 
     /**
@@ -21,66 +21,68 @@ namespace gridtools{
        \tparam IterateDomain base iterate_domain class. Might be e.g. iterate_domain_host or iterate_domain_cuda
        \tparam Value the current position in the storage list
      */
-    template <typename IterateDomain, ushort_t Value>
+    template < typename IterateDomain, ushort_t Value >
     struct iterate_domain_expandable_parameters : public IterateDomain {
 
 #ifdef CUDA8
-        GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<IterateDomain>::value, "wrong type");
-        static const ushort_t ID=Value-1;
+        GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< IterateDomain >::value, "wrong type");
+        static const ushort_t ID = Value - 1;
         typedef IterateDomain super;
         typedef IterateDomain iterate_domain_t;
 
-        //user protections
-        template <typename ... T>
-        GT_FUNCTION
-        iterate_domain_expandable_parameters( T const& ... other_)
-            : super(other_ ...)
-        {
+        // user protections
+        template < typename... T >
+        GT_FUNCTION iterate_domain_expandable_parameters(T const &... other_)
+            : super(other_...) {
             GRIDTOOLS_STATIC_ASSERT((sizeof...(T)), "The eval() is called with the wrong arguments");
         }
 
-        template <typename T, ushort_t Val>
-        GT_FUNCTION
-        iterate_domain_expandable_parameters(iterate_domain_expandable_parameters<T,Val> const& other_)
-            : super(other_)
-        {
-            GRIDTOOLS_STATIC_ASSERT((sizeof(T)), "The \'eval\' argument to the Do() method gets copied somewhere! You have to pass it by reference.");
+        template < typename T, ushort_t Val >
+        GT_FUNCTION iterate_domain_expandable_parameters(iterate_domain_expandable_parameters< T, Val > const &other_)
+            : super(other_) {
+            GRIDTOOLS_STATIC_ASSERT((sizeof(T)),
+                "The \'eval\' argument to the Do() method gets copied somewhere! You have to pass it by reference.");
         }
 
         using super::operator();
 
-            /**
-           @brief set the offset in the storage_list and forward to the base class
+        /**
+       @brief set the offset in the storage_list and forward to the base class
 
-           when the vector_accessor is passed to the iterate_domain we know we are accessing an
-           expandable parameters list. Accepts rvalue arguments (accessors constructed in-place)
+       when the vector_accessor is passed to the iterate_domain we know we are accessing an
+       expandable parameters list. Accepts rvalue arguments (accessors constructed in-place)
 
-           \param arg the vector accessor
-         */
-        //rvalue
+       \param arg the vector accessor
+     */
+        // rvalue
         template < uint_t ACC_ID, enumtype::intend Intent, typename Extent, uint_t Size >
-        GT_FUNCTION
-        typename super::iterate_domain_t::template accessor_return_type< accessor<ACC_ID, Intent, Extent, Size> >::type operator()(vector_accessor<ACC_ID, Intent, Extent, Size> const& arg) const
-        {
-            typedef typename super::template accessor_return_type< accessor<ACC_ID, Intent, Extent, Size> >::type return_t;
-            //check that if the storage is written the accessor is inout
+        GT_FUNCTION typename super::iterate_domain_t::template accessor_return_type<
+            accessor< ACC_ID, Intent, Extent, Size > >::type
+        operator()(vector_accessor< ACC_ID, Intent, Extent, Size > const &arg) const {
+            typedef typename super::template accessor_return_type< accessor< ACC_ID, Intent, Extent, Size > >::type
+                return_t;
+            // check that if the storage is written the accessor is inout
 
-            GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, "wrong type");
-            const typename alias<accessor<ACC_ID, Intent, Extent, Size>, dimension<Size-1>  >::template set<ID> tmp_(arg);
+            GRIDTOOLS_STATIC_ASSERT(is_extent< Extent >::value, "wrong type");
+            const typename alias< accessor< ACC_ID, Intent, Extent, Size >, dimension< Size - 1 > >::template set< ID >
+                tmp_(arg);
             return super::operator()(tmp_);
         }
 
 #else // CUDA8
-        GRIDTOOLS_STATIC_ASSERT(Value, "You are using a expandable_parameters and compiling with C++03, or without setting the cuda version to a value >=8.0. switch to C++11 (-DENABLE_CXX11=ON), or compile with -DCUDA_VERSION=80");
+        GRIDTOOLS_STATIC_ASSERT(Value, "You are using a expandable_parameters and compiling with C++03, or without "
+                                       "setting the cuda version to a value >=8.0. switch to C++11 "
+                                       "(-DENABLE_CXX11=ON), or compile with -DCUDA_VERSION=80");
 #endif
     };
 
-    template<typename T>
-    struct is_iterate_domain_expandable_parameters : boost::mpl::false_{};
+    template < typename T >
+    struct is_iterate_domain_expandable_parameters : boost::mpl::false_ {};
 
-    template<typename T, ushort_t Val>
-    struct is_iterate_domain_expandable_parameters<iterate_domain_expandable_parameters<T, Val> >: boost::mpl::true_{};
+    template < typename T, ushort_t Val >
+    struct is_iterate_domain_expandable_parameters< iterate_domain_expandable_parameters< T, Val > >
+        : boost::mpl::true_ {};
 
-    template<typename T, ushort_t Val>
-    struct is_iterate_domain<iterate_domain_expandable_parameters<T, Val> >: boost::mpl::true_{};
+    template < typename T, ushort_t Val >
+    struct is_iterate_domain< iterate_domain_expandable_parameters< T, Val > > : boost::mpl::true_ {};
 }

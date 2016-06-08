@@ -18,8 +18,8 @@ typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_i
 typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1, 1> > axis;
 
 struct functor1 {
-    typedef accessor<0, enumtype::in > in;
-    typedef accessor<1, enumtype::inout > out;
+    typedef accessor< 0, enumtype::in > in;
+    typedef accessor< 1, enumtype::inout > out;
     typedef boost::mpl::vector<in,out> arg_list;
 
     template <typename Evaluation>
@@ -130,22 +130,18 @@ TEST_F(cache_stencil, ij_cache)
     auto
 #else
 #ifdef __CUDACC__
-    gridtools::stencil*
+    gridtools::stencil *
 #else
-    boost::shared_ptr<gridtools::stencil>
+    boost::shared_ptr< gridtools::stencil >
 #endif
 #endif
-    pstencil = make_computation<gridtools::BACKEND>
-    (
-        domain, m_grid,
-        make_mss // mss_descriptor
-        (
-            execute<forward>(),
-            define_caches(cache<IJ, local>(p_buff())),
-            make_esf<functor1>(p_in(), p_buff()),
-            make_esf<functor1>(p_buff(), p_out())
-        )
-    );
+        pstencil = make_computation< gridtools::BACKEND >(domain,
+            m_grid,
+            make_mss // mss_descriptor
+            (execute< forward >(),
+                                                              define_caches(cache< IJ, local >(p_buff())),
+                                                              make_esf< functor1 >(p_in(), p_buff()),
+                                                              make_esf< functor1 >(p_buff(), p_out())));
 
     pstencil->ready();
 
@@ -252,30 +248,28 @@ TEST_F(cache_stencil, multi_cache)
 	gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&m_in, &m_out));
 
 #ifdef CXX11_ENABLED
-	auto
+        auto
 #else
 #ifdef __CUDACC__
-	gridtools::stencil*
+        gridtools::stencil *
 #else
-	boost::shared_ptr<gridtools::stencil>
+        boost::shared_ptr< gridtools::stencil >
 #endif
 #endif
-		stencil = make_computation<gridtools::BACKEND>
-		(
-			domain, m_grid,
-			make_mss // mss_descriptor
-			(
-				execute<forward>(),
-				//test if define_caches works properly with multiple vectors of caches.
-				//in this toy example two vectors are passed (IJ cache vector for p_buff
-				//and p_buff_2, IJ cache vector for p_buff_3)
-				define_caches(cache<IJ, local>(p_buff(), p_buff_2()), cache<IJ, local>(p_buff_3())),
-				make_esf<functor3>(p_in(), p_buff()), // esf_descriptor
-				make_esf<functor3>(p_buff(), p_buff_2()), // esf_descriptor
-				make_esf<functor3>(p_buff_2(), p_buff_3()), // esf_descriptor
-				make_esf<functor3>(p_buff_3(), p_out()) // esf_descriptor
-			)
-		);
+            stencil = make_computation< gridtools::BACKEND >(
+                domain,
+                m_grid,
+                make_mss // mss_descriptor
+                (execute< forward >(),
+                    // test if define_caches works properly with multiple vectors of caches.
+                    // in this toy example two vectors are passed (IJ cache vector for p_buff
+                    // and p_buff_2, IJ cache vector for p_buff_3)
+                    define_caches(cache< IJ, local >(p_buff(), p_buff_2()), cache< IJ, local >(p_buff_3())),
+                    make_esf< functor3 >(p_in(), p_buff()),       // esf_descriptor
+                    make_esf< functor3 >(p_buff(), p_buff_2()),   // esf_descriptor
+                    make_esf< functor3 >(p_buff_2(), p_buff_3()), // esf_descriptor
+                    make_esf< functor3 >(p_buff_3(), p_out())     // esf_descriptor
+                    ));
 	stencil->ready();
 
 	stencil->steady();

@@ -41,10 +41,10 @@ namespace gridtools {
 
 #ifdef CXX11_ENABLED
         std::unique_ptr< std::vector< std::function< bool() > > > m_conditions; // generated conditions
-        std::unique_ptr< std::vector< T > > m_cases; // all possible cases (redundant)
+        std::unique_ptr< std::vector< T > > m_cases;                            // all possible cases (redundant)
 #else
         boost::scoped_ptr< std::vector< bool (*)() > > m_conditions; // generated conditions
-        boost::scoped_ptr< std::vector< T > > m_cases; // all possible cases (redundant)
+        boost::scoped_ptr< std::vector< T > > m_cases;               // all possible cases (redundant)
 #endif
         /**@brief enpty constructor*/
         constexpr switch_variable() // try to avoid this?
@@ -66,11 +66,7 @@ namespace gridtools {
             : m_value(c), m_conditions(new std::vector< BOOL_FUNC() >()), m_cases(new std::vector< T >()) {
         }
 
-        switch_variable(switch_variable const & other):
-            m_value(other.m_value)
-            , m_num_cases(other.m_num_cases)
-        {
-        }
+        switch_variable(switch_variable const &other) : m_value(other.m_value), m_num_cases(other.m_num_cases) {}
 
         ~switch_variable() {}
 

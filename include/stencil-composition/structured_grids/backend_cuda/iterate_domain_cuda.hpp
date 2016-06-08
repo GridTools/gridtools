@@ -8,7 +8,7 @@
 
 namespace gridtools {
 
-    template <typename T>
+    template < typename T >
     struct accessor_return_type;
 
     /**
@@ -27,7 +27,6 @@ namespace gridtools {
         typedef typename local_domain_t::esf_args local_domain_args_t;
 
       public:
-
         template < typename Accessor >
         struct accessor_return_type {
             typedef typename super::template accessor_return_type< Accessor >::type type;
@@ -202,16 +201,17 @@ namespace gridtools {
         */
         template < typename ReturnType, typename Accessor >
         GT_FUNCTION typename boost::disable_if<
-            boost::mpl::has_key< bypass_caches_set_t, static_uint< boost::remove_reference<Accessor>::type::index_type::value > >,
+            boost::mpl::has_key< bypass_caches_set_t,
+                static_uint< boost::remove_reference< Accessor >::type::index_type::value > >,
             ReturnType >::type
         get_cache_value_impl(Accessor
 #ifdef CXX11_ENABLED
-                             &&
+                &&
 #else
-                             const&
+            const &
 #endif
-                             accessor_) const {
-            typedef typename  boost::remove_const< typename boost::remove_reference<Accessor >::type >::type acc_t;
+                    accessor_) const {
+            typedef typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type acc_t;
             GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), "Wrong type");
 
             //        assert(m_pshared_iterate_domain);
@@ -227,15 +227,16 @@ namespace gridtools {
         */
         template < typename ReturnType, typename Accessor >
         GT_FUNCTION typename boost::enable_if<
-            boost::mpl::has_key< bypass_caches_set_t, static_uint< boost::remove_reference<Accessor>::type::index_type::value > >,
+            boost::mpl::has_key< bypass_caches_set_t,
+                static_uint< boost::remove_reference< Accessor >::type::index_type::value > >,
             ReturnType >::type
         get_cache_value_impl(Accessor
 #ifdef CXX11_ENABLED
-                             &&
+                &&
 #else
-                             const&
+            const &
 #endif
-                             accessor_) const {
+                    accessor_) const {
             GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Wrong type");
             return super::template get_value< Accessor, void * RESTRICT >(
                 accessor_, super::template get_data_pointer< Accessor >(accessor_));

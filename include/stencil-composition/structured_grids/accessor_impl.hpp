@@ -115,17 +115,14 @@ namespace gridtools {
    language keyword used at the interface level.
 */
 #if defined(CUDA8) // cuda<8 messing up
-        template < typename First, typename... Whatever
-                   , typename T= typename boost::enable_if_c<
-                         accumulate(logical_and()
-                                    , boost::mpl::or_<
-                                    boost::is_integral<Whatever>
-                                    , is_dimension<Whatever>
-                                    >::type::value ... ) >::type >
+        template < typename First,
+            typename... Whatever,
+            typename T = typename boost::enable_if_c< accumulate(logical_and(),
+                boost::mpl::or_< boost::is_integral< Whatever >, is_dimension< Whatever > >::type::value...) >::type >
 
         GT_FUNCTION constexpr accessor_base(First f, Whatever... x)
             : m_offsets(f, x...) {
-            GRIDTOOLS_STATIC_ASSERT(sizeof...(x) <= n_dim-1,
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(x) <= n_dim - 1,
                 "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions "
                 "of the storage. Check that you are not accessing a non existing dimension, or increase the dimension "
                 "D of the accessor (accessor<Id, extent, D>)");
@@ -160,9 +157,9 @@ namespace gridtools {
         }
 
         template < short_t Idx >
-        GT_FUNCTION
-        int_t constexpr get() const {
-            GRIDTOOLS_STATIC_ASSERT(Idx<0 || Idx <= n_dim, "requested accessor index larger than the available dimensions");
+        GT_FUNCTION int_t constexpr get() const {
+            GRIDTOOLS_STATIC_ASSERT(
+                Idx < 0 || Idx <= n_dim, "requested accessor index larger than the available dimensions");
             // the assert below is triggered when the accessor has a lower dimensionality than the layout
             // GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
             return m_offsets.template get< Idx >();
@@ -171,7 +168,8 @@ namespace gridtools {
         template < short_t Idx >
         GT_FUNCTION void set(uint_t offset_) {
             GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
-            GRIDTOOLS_STATIC_ASSERT(Idx<0 || Idx <= n_dim, "requested accessor index larger than the available dimensions");
+            GRIDTOOLS_STATIC_ASSERT(
+                Idx < 0 || Idx <= n_dim, "requested accessor index larger than the available dimensions");
             m_offsets.template set< Idx >(offset_);
         }
 
@@ -181,10 +179,10 @@ namespace gridtools {
         GT_FUNCTION
         constexpr const tuple_t &offsets() const { return m_offsets; }
 
-        template <ushort_t Idx>
-        GT_FUNCTION
-        void increment( int_t offset_ ) { m_offsets.template increment<Idx>(offset_); }
-
+        template < ushort_t Idx >
+        GT_FUNCTION void increment(int_t offset_) {
+            m_offsets.template increment< Idx >(offset_);
+        }
     };
 
     //################################################################################

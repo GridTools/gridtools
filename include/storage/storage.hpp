@@ -102,15 +102,21 @@ namespace gridtools {
             : super(meta_data_, args...), m_device_storage_info(&meta_data_), m_on_host(true) {}
 #else // CXX11_ENABLED
 
-        explicit storage(typename basic_type::storage_info_type const &meta_data_, const char* s="default uninitialized storage", bool do_allocate=true)
+        explicit storage(typename basic_type::storage_info_type const &meta_data_,
+            const char *s = "default uninitialized storage",
+            bool do_allocate = true)
             : super(meta_data_, s, do_allocate), m_device_storage_info(&meta_data_), m_on_host(true) {}
 
         template < class T >
-        explicit storage(typename basic_type::storage_info_type const &meta_data_, T const &arg1, char const *s="default initialized storage")
+        explicit storage(typename basic_type::storage_info_type const &meta_data_,
+            T const &arg1,
+            char const *s = "default initialized storage")
             : super(meta_data_, (value_type)arg1, s), m_device_storage_info(&meta_data_), m_on_host(true) {}
 
         template < class T >
-        explicit storage(typename basic_type::storage_info_type const &meta_data_, T *arg1, char const *s = "externally managed storage")
+        explicit storage(typename basic_type::storage_info_type const &meta_data_,
+            T *arg1,
+            char const *s = "externally managed storage")
             : super(meta_data_, (value_type)*arg1, s), m_device_storage_info(&meta_data_), m_on_host(true) {}
 
 #endif // CXX11_ENABLED
@@ -185,8 +191,7 @@ namespace gridtools {
 // assert(this->is_set);
 #else
 #ifndef NDEBUG
-            if (!metadata_ || !(metadata_->index(dims...) < metadata_->size()))
-            {
+            if (!metadata_ || !(metadata_->index(dims...) < metadata_->size())) {
                 printf("%d < %d\n", metadata_->index(dims...), metadata_->size());
                 exit(-1);
             }
@@ -401,16 +406,17 @@ namespace gridtools {
      */
     template < class Storage, uint_t First, uint_t... Number >
     struct field {
-        GRIDTOOLS_STATIC_ASSERT(is_storage<Storage>::value, "wrong type");
+        GRIDTOOLS_STATIC_ASSERT(is_storage< Storage >::value, "wrong type");
         typedef typename reverse_pack< Number... >::template apply< field_reversed, Storage, First >::type::type type;
     };
 
-    template < class ... Storage, uint_t First, uint_t... Number >
-    struct field<data_field<Storage ...>, First, Number...> {
+    template < class... Storage, uint_t First, uint_t... Number >
+    struct field< data_field< Storage... >, First, Number... > {
         // GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(), is_storage<Storage>::value ...), "wrong type");
-        typedef typename reverse_pack< Number... >::template apply< field_reversed, typename data_field<Storage ...>::basic_type, First >::type::type type;
+        typedef typename reverse_pack< Number... >::template apply< field_reversed,
+            typename data_field< Storage... >::basic_type,
+            First >::type::type type;
     };
-
 
 #endif
 

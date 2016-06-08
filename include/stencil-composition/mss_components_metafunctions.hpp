@@ -11,8 +11,8 @@ namespace gridtools {
     struct mss_components_is_reduction;
 
     template < typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor >
-    struct mss_components_is_reduction< mss_components< MssDescriptor, ExtentSizes , RepeatFunctor> > : MssDescriptor::is_reduction_t {
-    };
+    struct mss_components_is_reduction< mss_components< MssDescriptor, ExtentSizes, RepeatFunctor > >
+        : MssDescriptor::is_reduction_t {};
 
     // TODOCOSUNA unittest this
     /**
@@ -98,13 +98,13 @@ namespace gridtools {
                                     boost::mpl::size< extent_sizes_unrolled_t >::value),
             "wrong size of the arg_type vector defined inside at least one of the user functions");
 
-        typedef meta_array<
-            typename boost::mpl::fold<
-                boost::mpl::range_c< int, 0, boost::mpl::size< extent_sizes_unrolled_t >::value >,
-                boost::mpl::vector0<>,
-                boost::mpl::push_back< boost::mpl::_1,
-                    mss_components< boost::mpl::at< typename mss_array_t::elements, boost::mpl::_2 >,
-                                           boost::mpl::at< extent_sizes_unrolled_t, boost::mpl::_2 >, RepeatFunctor > > >::type,
+        typedef meta_array< typename boost::mpl::fold<
+                                boost::mpl::range_c< int, 0, boost::mpl::size< extent_sizes_unrolled_t >::value >,
+                                boost::mpl::vector0<>,
+                                boost::mpl::push_back< boost::mpl::_1,
+                                    mss_components< boost::mpl::at< typename mss_array_t::elements, boost::mpl::_2 >,
+                                                           boost::mpl::at< extent_sizes_unrolled_t, boost::mpl::_2 >,
+                                                           RepeatFunctor > > >::type,
             boost::mpl::quote1< is_mss_components > > type;
     };
 
@@ -118,26 +118,29 @@ namespace gridtools {
      * @tparam extent_sizes sequence of sequence of extents
      */
     template < enumtype::platform BackendId,
-               typename MssDescriptorArray1,
-               typename MssDescriptorArray2,
-               typename Predicate,
-               typename Condition,
-               typename ExtentSizes1,
-               typename ExtentSizes2,
-               typename RepeatFunctor>
+        typename MssDescriptorArray1,
+        typename MssDescriptorArray2,
+        typename Predicate,
+        typename Condition,
+        typename ExtentSizes1,
+        typename ExtentSizes2,
+        typename RepeatFunctor >
     struct build_mss_components_array< BackendId,
         meta_array< condition< MssDescriptorArray1, MssDescriptorArray2, Condition >, Predicate >,
-        condition< ExtentSizes1, ExtentSizes2, Condition >, RepeatFunctor > {
+        condition< ExtentSizes1, ExtentSizes2, Condition >,
+        RepeatFunctor > {
         // typedef typename pair<
         //     typename build_mss_components_array<BackendId, MssDescriptorArray1, ExtentSizes>::type
         //     , typename build_mss_components_array<BackendId, MssDescriptorArray1, ExtentSizes>::type >
         // ::type type;
         typedef condition< typename build_mss_components_array< BackendId,
                                meta_array< MssDescriptorArray1, Predicate >,
-                               ExtentSizes1 , RepeatFunctor>::type,
+                               ExtentSizes1,
+                               RepeatFunctor >::type,
             typename build_mss_components_array< BackendId,
                                meta_array< MssDescriptorArray2, Predicate >,
-                               ExtentSizes2, RepeatFunctor >::type,
+                               ExtentSizes2,
+                               RepeatFunctor >::type,
             Condition > type;
     };
 

@@ -18,11 +18,11 @@ namespace gridtools {
     struct is_accessor< global_accessor< ID, Intend > > : boost::mpl::true_ {};
 
 #ifdef CUDA8
-    template < typename ArgType>
+    template < typename ArgType >
     struct is_accessor_mixed;
 
     template < typename... Types >
-    struct is_accessor_mixed< accessor_mixed< Types ... > > : boost::mpl::true_ {};
+    struct is_accessor_mixed< accessor_mixed< Types... > > : boost::mpl::true_ {};
 
     template < typename ArgType, typename... Pair >
     struct is_accessor< accessor_mixed< ArgType, Pair... > > : boost::mpl::true_ {};
@@ -61,12 +61,12 @@ namespace gridtools {
     };
 
 #ifdef CUDA8
-    template < typename Accessor, typename ArgsMap, typename ... Pairs >
-    struct remap_accessor_type< accessor_mixed< Accessor, Pairs ... >, ArgsMap > {
+    template < typename Accessor, typename ArgsMap, typename... Pairs >
+    struct remap_accessor_type< accessor_mixed< Accessor, Pairs... >, ArgsMap > {
 
-        typedef typename remap_accessor_type<Accessor, ArgsMap>::index_type_t index_type_t;
+        typedef typename remap_accessor_type< Accessor, ArgsMap >::index_type_t index_type_t;
 
-        typedef accessor_mixed< typename remap_accessor_type<Accessor, ArgsMap>::type, Pairs ... > type;
+        typedef accessor_mixed< typename remap_accessor_type< Accessor, ArgsMap >::type, Pairs... > type;
     };
 #endif
 

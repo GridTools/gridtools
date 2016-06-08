@@ -40,7 +40,7 @@ namespace gridtools {
         typedef typename type::iterator_type iterator_type;
         typedef typename type::value_type value_type;
 
-        //consistency with STL:
+        // consistency with STL:
         typedef iterator_type iterator;
         typedef const_iterator_type const_iterator;
 
@@ -49,29 +49,19 @@ namespace gridtools {
         static void text() { std::cout << "text: no_storage_type_yet<" << RegularStorageType() << ">" << std::endl; }
         // std::string name() {return std::string("no_storage_yet NAMEname");}
         void info() const { std::cout << "No sorage type yet for storage type " << RegularStorageType() << std::endl; }
-        typename RegularStorageType::storage_info_type const& meta_data(){
-            assert(false);
-        }
-        void set_on_device(){
-            assert(false);
-        }
-        void d2h_update(){
-            assert(false);
-        }
-        typename RegularStorageType::pointer_type* fields(){
-            assert(false);
-        }
+        typename RegularStorageType::storage_info_type const &meta_data() { assert(false); }
+        void set_on_device() { assert(false); }
+        void d2h_update() { assert(false); }
+        typename RegularStorageType::pointer_type *fields() { assert(false); }
 
 #ifdef CXX11_ENABLED
-        template <typename ... Args>
-        void set(Args ...){
+        template < typename... Args >
+        void set(Args...) {
             assert(false);
         }
 #endif
 
-        void clone_to_device(){
-            assert(false);
-        }
+        void clone_to_device() { assert(false); }
     };
 
     template < typename T >
@@ -323,7 +313,7 @@ and possibly the method 'copy_data_to_gpu' which are used when cloning the class
 
         /**@brief get the name of the current field*/
         GT_FUNCTION
-        char const * get_name() const { return m_name; }
+        char const *get_name() const { return m_name; }
 
         static void text() { std::cout << BOOST_CURRENT_FUNCTION << std::endl; }
 
@@ -468,8 +458,8 @@ and possibly the method 'copy_data_to_gpu' which are used when cloning the class
          */
         void clone_to_device() {}
 
-        void set_externally_managed(bool val_){
-            for (ushort_t i=0; i<field_dimensions; ++i){
+        void set_externally_managed(bool val_) {
+            for (ushort_t i = 0; i < field_dimensions; ++i) {
                 m_fields[i].set_externally_managed(val_);
             }
         }

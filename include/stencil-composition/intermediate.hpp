@@ -121,7 +121,7 @@ namespace gridtools {
             struct is_temp : public boost::false_type {};
 
             template < typename T >
-            struct is_temp< no_storage_type_yet< T > > : public is_temporary_storage<T> {};
+            struct is_temp< no_storage_type_yet< T > > : public is_temporary_storage< T > {};
 
             template < bool is_temp, typename Storage, typename tmppairs, typename index >
             struct get_the_type;
@@ -440,14 +440,13 @@ namespace gridtools {
      *  @brief structure collecting helper metafunctions
      */
     template < typename Backend,
-               typename MssDescriptorArray,
-               typename DomainType,
-               typename Grid,
-               typename ConditionalsSet,
+        typename MssDescriptorArray,
+        typename DomainType,
+        typename Grid,
+        typename ConditionalsSet,
         typename ReductionType,
-               bool IsStateful,
-               ushort_t RepeatFunctor=1
-               >
+        bool IsStateful,
+        ushort_t RepeatFunctor = 1 >
     struct intermediate : public computation< ReductionType > {
 
         GRIDTOOLS_STATIC_ASSERT(
@@ -465,13 +464,11 @@ namespace gridtools {
             typename compute_extent_sizes< typename MssDescriptorArray::elements, backend_ids_t >::type extent_sizes_t;
 
         typedef typename boost::mpl::if_<
-            boost::mpl::is_sequence<
-                typename MssDescriptorArray::elements>
-            , typename boost::mpl::fold< typename MssDescriptorArray::elements,
-                                boost::mpl::false_,
-                                boost::mpl::or_< boost::mpl::_1, mss_descriptor_is_reduction< boost::mpl::_2 > > >::type
-            , boost::mpl::false_
-            >::type has_reduction_t;
+            boost::mpl::is_sequence< typename MssDescriptorArray::elements >,
+            typename boost::mpl::fold< typename MssDescriptorArray::elements,
+                boost::mpl::false_,
+                boost::mpl::or_< boost::mpl::_1, mss_descriptor_is_reduction< boost::mpl::_2 > > >::type,
+            boost::mpl::false_ >::type has_reduction_t;
 
         typedef reduction_data< MssDescriptorArray, has_reduction_t::value > reduction_data_t;
         typedef typename reduction_data_t::reduction_type_t reduction_type_t;
@@ -479,9 +476,9 @@ namespace gridtools {
             "Error deducing the reduction. Check that if there is a reduction, this appears in the last mss");
 
         typedef typename build_mss_components_array< backend_id< Backend >::value,
-                                                     MssDescriptorArray,
-                                                     extent_sizes_t ,
-                                                     static_int<RepeatFunctor> /*repeat_fuctor*/ >::type mss_components_array_t;
+            MssDescriptorArray,
+            extent_sizes_t,
+            static_int< RepeatFunctor > /*repeat_fuctor*/ >::type mss_components_array_t;
 
         typedef typename create_actual_arg_list< Backend, DomainType, mss_components_array_t, float_type >::type
             actual_arg_list_type;
@@ -548,7 +545,6 @@ namespace gridtools {
 
             copy_domain_storage_pointers();
             copy_domain_metadata_pointers();
-
         }
         /**
            @brief This method allocates on the heap the temporary variables.
@@ -643,7 +639,7 @@ namespace gridtools {
 
             It filters out the temporaries, which are handled internally by the library
         */
-        void copy_domain_storage_pointers(){
+        void copy_domain_storage_pointers() {
             typedef boost::fusion::filter_view< typename DomainType::arg_list, is_not_tmp_storage< boost::mpl::_1 > >
                 t_domain_view;
 
@@ -657,7 +653,7 @@ namespace gridtools {
         /**
             @brief save a copy of the storage info pointers contained in the domain_type inside the intermediate class
         */
-        void copy_domain_metadata_pointers(){
+        void copy_domain_metadata_pointers() {
             // filter the non temporary meta storages among the storage pointers in the domain
             typedef boost::fusion::filter_view< typename DomainType::metadata_ptr_list,
                 boost::mpl::not_< is_ptr_to_tmp< boost::mpl::_1 > > > t_domain_meta_view;
@@ -681,12 +677,14 @@ namespace gridtools {
            @param args the arguments are pairs with the form (placeholder() = storage)
            see @ref gridtools::test_domain_reassign for reference
          */
-        template <typename ... Args, typename ... Storage>
-        void reassign(arg_storage_pair<Args, Storage> ... args){
+        template < typename... Args, typename... Storage >
+        void reassign(arg_storage_pair< Args, Storage >... args) {
 
-            GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(), is_storage<Storage>::value ... ), "wrong storage type in a call to reassign");
-            GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(), is_arg<Args>::value ... ), "wrong storage type in a call to reassign");
-            m_domain.reassign(args ...);
+            GRIDTOOLS_STATIC_ASSERT(
+                accumulate(logical_and(), is_storage< Storage >::value...), "wrong storage type in a call to reassign");
+            GRIDTOOLS_STATIC_ASSERT(
+                accumulate(logical_and(), is_arg< Args >::value...), "wrong storage type in a call to reassign");
+            m_domain.reassign(args...);
             copy_domain_storage_pointers();
         }
 #endif

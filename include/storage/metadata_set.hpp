@@ -9,7 +9,7 @@
 
 namespace gridtools {
 
-    template <typename T>
+    template < typename T >
     struct is_any_storage;
 
     /**
@@ -120,5 +120,4 @@ namespace gridtools {
                 m_seq.insert(pointer< const typename Arg::storage_info_type >(&(m_arg.meta_data())));
         }
     };
-
 }

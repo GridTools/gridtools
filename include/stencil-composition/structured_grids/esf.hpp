@@ -73,7 +73,8 @@ namespace gridtools {
         // GRIDTOOLS_STATIC_ASSERT(has_arg_list< esf_function >::type::value,
         //     "The type arg_list was not found in a user functor definition. All user functors must have a type alias "
         //     "called \'arg_list\', which is an MPL vector containing the list of accessors defined in the functor "
-        //     "(NOTE: the \'global_accessor\' types are excluded from this list). Example: \n\n using v1=accessor<0>; \n "
+        //     "(NOTE: the \'global_accessor\' types are excluded from this list). Example: \n\n using v1=accessor<0>;
+        //     \n "
         //     "using v2=generic_accessor<1, enumtype::in>; \n using v3=accessor<2>; \n using "
         //     "arg_list=boost::mpl::vector<v1, v3>;");
         // checking that all the placeholders have a different index

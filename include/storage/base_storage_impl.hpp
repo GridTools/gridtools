@@ -50,19 +50,19 @@ namespace gridtools {
 
 #endif
 
-        //specialization to skip the cases in which Id>Layout::length
-        template < ushort_t Id, typename Layout, bool Cond=(Id<=Layout::length) >
+        // specialization to skip the cases in which Id>Layout::length
+        template < ushort_t Id, typename Layout, bool Cond = (Id <= Layout::length) >
         struct compute_offset;
 
         template < ushort_t Id, typename Layout >
-        struct compute_offset<Id, Layout, false> : compute_offset<Id-1, Layout, (Id-1<=Layout::length)>
-        {
-            GRIDTOOLS_STATIC_ASSERT(Layout::length, "you should not get here. If you know what you are doing remove this assert.");
+        struct compute_offset< Id, Layout, false > : compute_offset< Id - 1, Layout, (Id - 1 <= Layout::length) > {
+            GRIDTOOLS_STATIC_ASSERT(
+                Layout::length, "you should not get here. If you know what you are doing remove this assert.");
         };
         /**@brief struct to compute the total offset (the sum of the i,j,k indices times their respective strides)
  */
         template < ushort_t Id, typename Layout >
-        struct compute_offset<Id, Layout, true> {
+        struct compute_offset< Id, Layout, true > {
             static const ushort_t space_dimensions = Layout::length;
 
             /**interface with an array of coordinates as argument
@@ -72,8 +72,8 @@ namespace gridtools {
             template < typename IntType, typename StridesVector >
             GT_FUNCTION static constexpr int_t apply(StridesVector const &RESTRICT strides_, IntType *indices_) {
                 return strides_[space_dimensions - Id] *
-                    Layout::template find_val< space_dimensions - Id, int, 0 >(indices_) +
-                    compute_offset< Id - 1, Layout >::apply(strides_, indices_);
+                           Layout::template find_val< space_dimensions - Id, int, 0 >(indices_) +
+                       compute_offset< Id - 1, Layout >::apply(strides_, indices_);
             }
 
 #ifdef CXX11_ENABLED

@@ -111,7 +111,7 @@ namespace gridtools {
         template < typename MetaDataType >
         GT_FUNCTION_WARNING void operator()(pointer< const MetaDataType > &s) const {
 
-            GRIDTOOLS_STATIC_ASSERT((is_meta_storage<MetaDataType>::value), "type error");
+            GRIDTOOLS_STATIC_ASSERT((is_meta_storage< MetaDataType >::value), "type error");
             if (s.get()) {
                 s->clone_to_device();
             }

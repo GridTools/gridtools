@@ -61,13 +61,13 @@ namespace gridtools {
             template < typename Accessor >
             using accessor_return_type = typename iterate_domain_t::template accessor_return_type<
                 typename remap_accessor_type< Accessor, esf_args_map_t >::type >;
-#else //CXX11_ENABLED
+#else // CXX11_ENABLED
             template < typename Accessor >
             struct accessor_return_type {
                 typedef typename iterate_domain_t::template accessor_return_typ_impl<
                     typename remap_accessor_type< Accessor, esf_args_map_t >::type >::type type;
             };
-#endif //CXX11_ENABLED
+#endif // CXX11_ENABLED
 
             GT_FUNCTION
             explicit iterate_domain_remapper_base(const iterate_domain_t &iterate_domain)
@@ -80,85 +80,85 @@ namespace gridtools {
             template < typename Accessor >
             GT_FUNCTION
 #ifdef CXX11_ENABLED
-            auto
-            operator()(Accessor const & arg) const
-            -> decltype(m_iterate_domain(typename remap_accessor_type< Accessor, esf_args_map_t >::type(arg)))
-#else //CXX11_ENABLED
-            typename iterate_domain_t::template accessor_return_type<
-                typename remap_accessor_type< Accessor, esf_args_map_t >::type >::type
-            operator()(Accessor const &arg) const
-#endif //CXX11_ENABLED
-        {
-            typedef typename remap_accessor_type< Accessor, esf_args_map_t >::type remap_accessor_t;
-            const remap_accessor_t tmp_(arg);
-            return m_iterate_domain(tmp_);
-        }
+                auto
+                operator()(Accessor const &arg) const
+                -> decltype(m_iterate_domain(typename remap_accessor_type< Accessor, esf_args_map_t >::type(arg)))
+#else // CXX11_ENABLED
+                typename iterate_domain_t::template accessor_return_type<
+                    typename remap_accessor_type< Accessor, esf_args_map_t >::type >::type
+                operator()(Accessor const &arg) const
+#endif // CXX11_ENABLED
+            {
+                typedef typename remap_accessor_type< Accessor, esf_args_map_t >::type remap_accessor_t;
+                const remap_accessor_t tmp_(arg);
+                return m_iterate_domain(tmp_);
+            }
 
-#ifdef CUDA8 //i.e. CXX11_ENABLED on host
+#ifdef CUDA8 // i.e. CXX11_ENABLED on host
             /** shifting the IDs of the placeholders and forwarding to the iterate_domain () operator*/
-            template < typename Accessor, typename ... Pairs >
-            GT_FUNCTION
-            auto
-            operator()(accessor_mixed<Accessor, Pairs ...> const& arg) const
-            -> decltype(m_iterate_domain(accessor_mixed<typename remap_accessor_type< Accessor, esf_args_map_t >::type, Pairs ... >(arg)))
+            template < typename Accessor, typename... Pairs >
+            GT_FUNCTION auto operator()(accessor_mixed< Accessor, Pairs... > const &arg) const
+                -> decltype(m_iterate_domain(
+                    accessor_mixed< typename remap_accessor_type< Accessor, esf_args_map_t >::type, Pairs... >(arg))) {
+                typedef accessor_mixed< typename remap_accessor_type< Accessor, esf_args_map_t >::type, Pairs... >
+                    remap_accessor_t;
+                // const remap_accessor_t tmp_(arg);
+                return m_iterate_domain(remap_accessor_t(arg));
+            }
+#endif // CUDA8
+        };
+
+        /**
+         * @class iterate_domain_remapper
+         * default iterate domain remapper when positional information is not required
+         * @param IterateDomain iterate domain
+         * @param EsfArgsMap map from ESF arguments to iterate domain position of args.
+         */
+        template < typename IterateDomain, typename EsfArgsMap >
+        class iterate_domain_remapper
+            : public iterate_domain_remapper_base< iterate_domain_remapper< IterateDomain, EsfArgsMap > > // CRTP
         {
-            typedef accessor_mixed<typename remap_accessor_type< Accessor, esf_args_map_t >::type, Pairs ... > remap_accessor_t;
-            // const remap_accessor_t tmp_(arg);
-            return m_iterate_domain(remap_accessor_t(arg));
-        }
-#endif //CUDA8
-    };
+            DISALLOW_COPY_AND_ASSIGN(iterate_domain_remapper);
 
-    /**
-     * @class iterate_domain_remapper
-     * default iterate domain remapper when positional information is not required
-     * @param IterateDomain iterate domain
-     * @param EsfArgsMap map from ESF arguments to iterate domain position of args.
-     */
-    template < typename IterateDomain, typename EsfArgsMap >
-    class iterate_domain_remapper
-        : public iterate_domain_remapper_base< iterate_domain_remapper< IterateDomain, EsfArgsMap > > // CRTP
-    {
-        DISALLOW_COPY_AND_ASSIGN(iterate_domain_remapper);
+          public:
+            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), "Internal Error: wrong type");
+            typedef iterate_domain_remapper_base< iterate_domain_remapper< IterateDomain, EsfArgsMap > > super;
 
-      public:
+            GT_FUNCTION
+            explicit iterate_domain_remapper(const IterateDomain &iterate_domain) : super(iterate_domain) {}
+        };
 
-        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), "Internal Error: wrong type");
-        typedef iterate_domain_remapper_base< iterate_domain_remapper< IterateDomain, EsfArgsMap > > super;
+        /**
+         * @class positional_iterate__domain_remapper
+         * iterate domain remapper when positional information is required
+         * @param IterateDomain iterate domain
+         * @param EsfArgsMap map from ESF arguments to iterate domain position of args.
+         */
+        template < typename IterateDomain, typename EsfArgsMap >
+        class positional_iterate_domain_remapper
+            : public iterate_domain_remapper_base<
+                  positional_iterate_domain_remapper< IterateDomain, EsfArgsMap > > // CRTP
+        {
+            DISALLOW_COPY_AND_ASSIGN(positional_iterate_domain_remapper);
 
-        GT_FUNCTION
-        explicit iterate_domain_remapper(const IterateDomain &iterate_domain) : super(iterate_domain) {}
-    };
+          public:
+            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), "Internal Error: wrong type");
+            typedef iterate_domain_remapper_base< positional_iterate_domain_remapper< IterateDomain, EsfArgsMap > >
+                super;
 
-    /**
-     * @class positional_iterate__domain_remapper
-     * iterate domain remapper when positional information is required
-     * @param IterateDomain iterate domain
-     * @param EsfArgsMap map from ESF arguments to iterate domain position of args.
-     */
-    template < typename IterateDomain, typename EsfArgsMap >
-    class positional_iterate_domain_remapper
-        : public iterate_domain_remapper_base< positional_iterate_domain_remapper< IterateDomain, EsfArgsMap > > // CRTP
-    {
-        DISALLOW_COPY_AND_ASSIGN(positional_iterate_domain_remapper);
+            GT_FUNCTION
+            explicit positional_iterate_domain_remapper(const IterateDomain &iterate_domain) : super(iterate_domain) {}
 
-      public:
-        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), "Internal Error: wrong type");
-        typedef iterate_domain_remapper_base< positional_iterate_domain_remapper< IterateDomain, EsfArgsMap > > super;
+            GT_FUNCTION
+            uint_t i() const { return this->m_iterate_domain.i(); }
 
-        GT_FUNCTION
-        explicit positional_iterate_domain_remapper(const IterateDomain &iterate_domain) : super(iterate_domain) {}
+            GT_FUNCTION
+            uint_t j() const { return this->m_iterate_domain.j(); }
 
-        GT_FUNCTION
-        uint_t i() const { return this->m_iterate_domain.i(); }
-
-        GT_FUNCTION
-        uint_t j() const { return this->m_iterate_domain.j(); }
-
-        GT_FUNCTION
-        uint_t k() const { return this->m_iterate_domain.k(); }
-    };
-    }//namespace strgrid
+            GT_FUNCTION
+            uint_t k() const { return this->m_iterate_domain.k(); }
+        };
+    } // namespace strgrid
 
     /** Metafunction to query an iterate domain if it's positional. Specialization for
         iterate_domain_remapper

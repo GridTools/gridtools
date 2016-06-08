@@ -3,9 +3,9 @@
 
 /** @file iterate_domain for expandable parameters*/
 
-namespace gridtools{
+namespace gridtools {
 
-    template <typename T>
+    template < typename T >
     struct is_iterate_domain;
 
     /**
@@ -21,12 +21,12 @@ namespace gridtools{
        \tparam IterateDomain base iterate_domain class. Might be e.g. iterate_domain_host or iterate_domain_cuda
        \tparam Value the current position in the storage list
      */
-    template <typename IterateDomain, ushort_t Value>
+    template < typename IterateDomain, ushort_t Value >
     struct iterate_domain_expandable_parameters : public IterateDomain {
 
 #ifdef CXX11_ENABLED
-        GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<IterateDomain>::value, "wrong type");
-        static const ushort_t ID=Value-1;
+        GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< IterateDomain >::value, "wrong type");
+        static const ushort_t ID = Value - 1;
         typedef IterateDomain super;
         typedef IterateDomain iterate_domain_t;
 
@@ -39,17 +39,16 @@ namespace gridtools{
 
            \param arg the vector accessor
          */
-        //rvalue
+        // rvalue
         template < uint_t ACC_ID, enumtype::intend Intent, typename LocationType, typename Extent >
-        GT_FUNCTION
-        typename super::iterate_domain_t::template accessor_return_type< accessor<ACC_ID, Intent, LocationType, Extent> >::type operator()(vector_accessor<ACC_ID, Intent, LocationType, Extent> && arg) const
-        {
-            GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, "wrong type");
-            arg.template set<0>(ID);
+        GT_FUNCTION typename super::iterate_domain_t::template accessor_return_type<
+            accessor< ACC_ID, Intent, LocationType, Extent > >::type
+        operator()(vector_accessor< ACC_ID, Intent, LocationType, Extent > &&arg) const {
+            GRIDTOOLS_STATIC_ASSERT(is_extent< Extent >::value, "wrong type");
+            arg.template set< 0 >(ID);
 
-            return super::operator()((accessor<ACC_ID, Intent, LocationType, Extent>) arg);
+            return super::operator()((accessor< ACC_ID, Intent, LocationType, Extent >)arg);
         }
-
 
         /**
            @brief set the offset in the storage_list and forward to the base class
@@ -58,27 +57,29 @@ namespace gridtools{
 
            \param arg the vector accessor
          */
-        //lvalue
+        // lvalue
         template < uint_t ID, enumtype::intend Intent, typename LocationType, typename Extent >
-        GT_FUNCTION
-        typename super::iterate_domain_t::template accessor_return_type< vector_accessor<ID, Intent, LocationType, Extent> >::type operator()(vector_accessor<ID, Intent, LocationType, Extent> & arg) const
-        {
-            GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, "wrong type");
-            arg.template set<0>(ID);
-            return super::operator()((accessor<ID, Intent, LocationType, Extent>) arg);
+        GT_FUNCTION typename super::iterate_domain_t::template accessor_return_type<
+            vector_accessor< ID, Intent, LocationType, Extent > >::type
+        operator()(vector_accessor< ID, Intent, LocationType, Extent > &arg) const {
+            GRIDTOOLS_STATIC_ASSERT(is_extent< Extent >::value, "wrong type");
+            arg.template set< 0 >(ID);
+            return super::operator()((accessor< ID, Intent, LocationType, Extent >)arg);
         }
 
-#else //CXX11_ENABLED
-        GRIDTOOLS_STATIC_ASSERT(Value, "You are using a expandable_parameters and compiling with C++03, switch to C++11 (-DENABLE_CXX11=ON)");
+#else // CXX11_ENABLED
+        GRIDTOOLS_STATIC_ASSERT(Value,
+            "You are using a expandable_parameters and compiling with C++03, switch to C++11 (-DENABLE_CXX11=ON)");
 #endif
     };
 
-    template<typename T>
-    struct is_iterate_domain_expandable_parameters : boost::mpl::false_{};
+    template < typename T >
+    struct is_iterate_domain_expandable_parameters : boost::mpl::false_ {};
 
-    template<typename T, ushort_t Val>
-    struct is_iterate_domain_expandable_parameters<iterate_domain_expandable_parameters<T, Val> >: boost::mpl::true_{};
+    template < typename T, ushort_t Val >
+    struct is_iterate_domain_expandable_parameters< iterate_domain_expandable_parameters< T, Val > >
+        : boost::mpl::true_ {};
 
-    template<typename T, ushort_t Val>
-    struct is_iterate_domain<iterate_domain_expandable_parameters<T, Val> >: boost::mpl::true_{};
+    template < typename T, ushort_t Val >
+    struct is_iterate_domain< iterate_domain_expandable_parameters< T, Val > > : boost::mpl::true_ {};
 }

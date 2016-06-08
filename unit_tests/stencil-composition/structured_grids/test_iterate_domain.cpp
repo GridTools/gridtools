@@ -72,13 +72,9 @@ namespace test_iterate_domain{
         grid.value_list[1] = d3-1;
 
         auto mss_ = gridtools::make_mss // mss_descriptor
-            (enumtype::execute< enumtype::forward >(),
-             gridtools::make_esf< dummy_functor >(p_in(), p_buff(), p_out()));
+            (enumtype::execute< enumtype::forward >(), gridtools::make_esf< dummy_functor >(p_in(), p_buff(), p_out()));
         auto computation_ =
-            make_computation_impl<false, gridtools::backend< Host, GRIDBACKEND, Naive > >(
-                domain,
-                grid,
-                mss_);
+            make_computation_impl< false, gridtools::backend< Host, GRIDBACKEND, Naive > >(domain, grid, mss_);
 
         typedef decltype(gridtools::make_esf<dummy_functor>(p_in() ,p_buff(), p_out())) esf_t;
 

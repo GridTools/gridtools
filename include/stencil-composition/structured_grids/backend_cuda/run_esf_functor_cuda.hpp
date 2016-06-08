@@ -63,7 +63,8 @@ namespace gridtools {
             // is not a multiple of the block size
             if (m_iterate_domain.template is_thread_in_domain< extent_t >()) {
                 // call the user functor at the core of the block
-                _impl::call_repeated<functor_t::repeat_t::value, functor_t, iterate_domain_remapper_t, IntervalType>::Do(iterate_domain_remapper);
+                _impl::call_repeated< functor_t::repeat_t::value, functor_t, iterate_domain_remapper_t, IntervalType >::
+                    Do(iterate_domain_remapper);
             }
 
             // synchronize threads if not independent esf

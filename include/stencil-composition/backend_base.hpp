@@ -49,12 +49,7 @@ namespace gridtools {
 
            \tparam Temporaries is the vector of temporary placeholder types.
         */
-        template <
-            typename ValueType,
-            uint_t BI,
-            uint_t BJ,
-            typename StrategyTraits,
-            enumtype::platform BackendID >
+        template < typename ValueType, uint_t BI, uint_t BJ, typename StrategyTraits, enumtype::platform BackendID >
         struct get_storage_type {
             template < typename MapElem >
             struct apply {
@@ -333,9 +328,8 @@ namespace gridtools {
                 map_of_extents,
                 boost::mpl::vector<>,
                 typename boost::mpl::push_back< typename boost::mpl::_1,
-                                                typename _impl::
-                                                get_storage_type< ValueType, tileI, tileJ, strategy_traits_t, s_backend_id >::
-                                                template apply< boost::mpl::_2 > > >::type type;
+                    typename _impl::get_storage_type< ValueType, tileI, tileJ, strategy_traits_t, s_backend_id >::
+                        template apply< boost::mpl::_2 > > >::type type;
         };
 
         /**

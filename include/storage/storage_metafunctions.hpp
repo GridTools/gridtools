@@ -41,7 +41,7 @@ namespace gridtools {
     struct is_actual_storage< pointer< no_storage_type_yet< U > > > : public boost::false_type {};
 
     template < typename U >
-    struct is_temporary_storage< pointer<  U  > > : public is_temporary_storage<U> {};
+    struct is_temporary_storage< pointer< U > > : public is_temporary_storage< U > {};
 
     // Decorator is e.g. of type storage
     template < typename BaseType, template < typename T > class Decorator >
@@ -87,7 +87,7 @@ namespace gridtools {
     struct is_not_tmp_storage : boost::mpl::or_< is_actual_storage< T >, boost::mpl::not_< is_any_storage< T > > > {};
 
     template < typename T >
-    struct is_not_tmp_storage_pointer : is_not_tmp_storage<typename T::value_type> {};
+    struct is_not_tmp_storage_pointer : is_not_tmp_storage< typename T::value_type > {};
 
     template < typename T >
     struct storage_pointer_type {

@@ -24,8 +24,8 @@ namespace gridtools {
     };
 
     /** metafunction extracting the location type from the storage*/
-    template<typename T>
-    struct get_location_type{
+    template < typename T >
+    struct get_location_type {
         typedef typename T::storage_info_type::index_type type;
     };
 

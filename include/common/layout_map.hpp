@@ -15,7 +15,7 @@
 */
 namespace gridtools {
 
-    template<typename T>
+    template < typename T >
     struct is_vector_accessor;
 /**
    @struct
@@ -267,8 +267,7 @@ namespace gridtools {
         */
         template < ushort_t I, typename T, T DefaultVal, typename Accessor >
         GT_FUNCTION static constexpr T find_val(Accessor const &indices) {
-            GRIDTOOLS_STATIC_ASSERT(
-                (boost::mpl::or_<is_accessor< Accessor >, is_vector_accessor< Accessor > >::value),
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::or_< is_accessor< Accessor >, is_vector_accessor< Accessor > >::value),
                 "the find_val method must be used with tuples of an accessor type");
             return ((pos_< I >::value >= length)) ? DefaultVal
                                                   : indices.template get< Accessor::n_dim - pos_< I >::value - 1 >();
