@@ -166,6 +166,7 @@ namespace test_iterate_domain{
         *in.get<1,1>()=11.;
         *in.get<0,2>()=20.;
 
+#ifdef CUDA8
         assert(it_domain(alias<inout_accessor<0, extent<0,0,0,0>, 6>, dimension<5> >::set<0>())==0.);
         assert(it_domain(alias<inout_accessor<0, extent<0,0,0,0>, 6>, dimension<5> >::set<1>())==1.);
         assert(it_domain(alias<inout_accessor<0, extent<0,0,0,0>, 6>, dimension<5> >::set<2>())==2.);
@@ -281,6 +282,7 @@ namespace test_iterate_domain{
 
         assert(((float_type*)(out.get<1,1>()+new_index[0]+out.meta_data().strides<1>(out.meta_data().strides()))==
                 &it_domain(out_1(dimension<2>(1)))));
+#endif
 
         //check strides initialization
 
