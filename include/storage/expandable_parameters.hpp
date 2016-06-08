@@ -26,7 +26,7 @@ namespace gridtools{
         typedef typename field<Storage, Size>::type super;
         typedef typename super::traits traits;
         typedef Storage basic_type;
-        using super::data_field;
+        using typename super::data_field;
 
     public:
 
