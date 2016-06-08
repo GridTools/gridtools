@@ -101,9 +101,7 @@ TEST(test_global_accessor, boundary_conditions) {
     bc_eval->steady();
     bc_eval->run();
     // fetch data and check
-#ifdef __CUDACC__
     sol_.d2h_update();
-#endif
     bool result=true;
     for (int i=0; i<10; ++i)
         for (int j=0; j<10; ++j)
@@ -120,8 +118,11 @@ TEST(test_global_accessor, boundary_conditions) {
                 }
             }
 
+    // get the configuration object from the gpu
     // modify configuration object (boundary)
-    // and reinitialize and clone back the storage
+#ifdef __CUDACC__
+    bd_.d2h_update();
+#endif
     bd.int_value = 30;
 #ifdef __CUDACC__
     bd_.h2d_update();
@@ -129,6 +130,8 @@ TEST(test_global_accessor, boundary_conditions) {
     bd_.update_data();
 #endif
 
+    // get the storage object from the gpu
+    // modify storage object 
     sol_.initialize(2.);
 #ifdef __CUDACC__
     sol_.h2d_update();

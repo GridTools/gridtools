@@ -62,21 +62,32 @@ struct global_parameter : T {
     }
 
     GT_FUNCTION
-    void clone_from_device() { }
-
-    GT_FUNCTION
-    void update_data() {
-        *(static_cast<T*>(this)) = this_type(m_ref);
-        m_storage = storage_ptr_t(static_cast<this_type*>(this), true);
+    void clone_from_device() {         
+#ifdef _USE_GPU_
+        m_storage.update_cpu();
+#endif
     }
 
     GT_FUNCTION
-    void d2h_update() { }
+    void update_data() {
+	storage_ptr_t old_storage = m_storage; // contains gpu and cpu ptr
+        *(static_cast<T*>(this)) = this_type(m_ref); // self update
+	// cpu ptr stays the same, but gpu ptr is different
+	// and therefore we need to keep the old m_storage
+	// otherwise the changes cannot be cloned to the 
+	// same location on the gpu.
+	this->m_storage = old_storage;
+    }
+
+    GT_FUNCTION
+    void d2h_update() {
+        clone_from_device();
+    }
 
     GT_FUNCTION
     void h2d_update() {
         update_data();
-        clone_from_device();
+        clone_to_device();
     }
     
 };
