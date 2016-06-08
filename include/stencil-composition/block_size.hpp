@@ -16,14 +16,18 @@ namespace gridtools {
     template < typename T >
     struct is_block_size : boost::mpl::false_ {};
 
-    template < uint_t X, uint_t Y, uint_t Z
+    template < uint_t X, uint_t Y
 #ifdef CXX11_ENABLED
                , uint_t ... Rest
+#else
+               , uint_t Z
 #endif
                >
-    struct is_block_size< block_size< X, Y, Z
+    struct is_block_size< block_size< X, Y
 #ifdef CXX11_ENABLED
                                       , Rest ...
+#else
+                                      , Z
 #endif
                                       > > : boost::mpl::true_ {};
 } // namespace gridtools

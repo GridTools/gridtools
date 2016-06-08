@@ -24,7 +24,7 @@ namespace gridtools{
     template <typename IterateDomain, ushort_t Value>
     struct iterate_domain_expandable_parameters : public IterateDomain {
 
-#ifdef CXX11_ENABLED
+#ifdef CUDA8
         GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<IterateDomain>::value, "wrong type");
         static const ushort_t ID=Value-1;
         typedef IterateDomain super;
@@ -70,8 +70,8 @@ namespace gridtools{
             return super::operator()(tmp_);
         }
 
-#else //CXX11_ENABLED
-        GRIDTOOLS_STATIC_ASSERT(Value, "You are using a expandable_parameters and compiling with C++03, switch to C++11 (-DENABLE_CXX11=ON)");
+#else // CUDA8
+        GRIDTOOLS_STATIC_ASSERT(Value, "You are using a expandable_parameters and compiling with C++03, or without setting the cuda version to a value >=8.0. switch to C++11 (-DENABLE_CXX11=ON), or compile with -DCUDA_VERSION=80");
 #endif
     };
 
