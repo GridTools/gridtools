@@ -62,9 +62,7 @@ struct global_parameter : T {
     }
 
     GT_FUNCTION
-    void clone_from_device() {
-        assert(false && "it makes no sense to clone a global_parameter from the device to the host");
-    }
+    void clone_from_device() { }
 
     GT_FUNCTION
     void update_data() {
@@ -73,9 +71,7 @@ struct global_parameter : T {
     }
 
     GT_FUNCTION
-    void d2h_update() {
-        assert(false && "it makes no sense to clone a global_parameter from the device to the host");
-    }
+    void d2h_update() { }
 
     GT_FUNCTION
     void h2d_update() {
