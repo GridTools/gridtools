@@ -62,7 +62,7 @@ namespace gridtools {
             using accessor_return_type = typename iterate_domain_t::template accessor_return_type<
                 typename remap_accessor_type< Accessor, esf_args_map_t >::type >;
 #else //CXX11_ENABLED
-\            template < typename Accessor >
+            template < typename Accessor >
             struct accessor_return_type {
                 typedef typename iterate_domain_t::template accessor_return_typ_impl<
                     typename remap_accessor_type< Accessor, esf_args_map_t >::type >::type type;
