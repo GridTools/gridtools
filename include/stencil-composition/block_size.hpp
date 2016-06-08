@@ -1,9 +1,11 @@
 #pragma once
 
 namespace gridtools {
-    template < uint_t X, uint_t Y, uint_t Z=0
+    template < uint_t X, uint_t Y
 #ifdef CXX11_ENABLED
-, uint_t ... Rest=0
+, uint_t ... Rest
+#else
+, uint_t Z=0
 #endif
 >
     struct block_size {
