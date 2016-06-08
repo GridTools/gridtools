@@ -11,7 +11,6 @@ namespace gridtools {
     struct block_size {
         typedef boost::mpl::integral_c< int, X > i_size_t;
         typedef boost::mpl::integral_c< int, Y > j_size_t;
-        typedef boost::mpl::integral_c< int, Z > k_size_t;
     };
 
     template < typename T >

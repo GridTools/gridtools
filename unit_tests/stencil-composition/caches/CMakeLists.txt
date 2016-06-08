@@ -21,9 +21,6 @@ gridtools_add_test(test_cache_md ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/test_
 set_target_properties(test_cache_md PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
 target_link_libraries(test_cache_md ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
 
-cuda_add_executable(test_cache_md_cuda test_multidimensional_caches.cu)
-target_link_libraries(test_cache_md_cuda ${exe_LIBS})
-
 add_executable(cache_tests ${TEST_SOURCES})
 gridtools_add_test(tests.caches ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/cache_tests")
 
@@ -36,4 +33,8 @@ if(USE_GPU AND STRUCTURED_GRIDS)
     target_link_libraries(cache_tests_cuda ${exe_LIBS})
 
     gridtools_add_test(tests.caches_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/cache_tests_cuda")
+
+    cuda_add_executable(test_cache_md_cuda test_multidimensional_caches.cu)
+    target_link_libraries(test_cache_md_cuda ${exe_LIBS})
+
 endif(USE_GPU AND STRUCTURED_GRIDS)
