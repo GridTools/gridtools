@@ -226,7 +226,7 @@ namespace gridtools {
 
             // following line is extracting the correct meta_data pointers
             // from the previously handled/cloned storages.
-            boost::fusion::for_each(storage_pointers, get_storage_metadata_ptrs<MetaData>(meta_data_));
+            boost::fusion::for_each(storage_pointers, get_storage_metadata_ptrs< MetaData >(meta_data_));
 
             return GT_NO_ERRORS;
         }
@@ -591,7 +591,7 @@ namespace gridtools {
                 t_global_param_view;
             t_global_param_view global_param_view(m_actual_arg_list);
             // update global parameters
-            boost::fusion::for_each(global_param_view, update_global_param_values());
+            boost::fusion::for_each(global_param_view, update_global_param_data());
             // mark as ready
             is_storage_ready = true;
         }

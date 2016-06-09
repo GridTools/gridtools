@@ -66,7 +66,7 @@ namespace gridtools {
                     GRIDTOOLS_STATIC_ASSERT(ElemType::is_temporary, "wrong type (not temporary)");
                     GRIDTOOLS_STATIC_ASSERT(
                         is_meta_storage< typename ElemType::storage_info_type >::value, "wrong metadata type");
-                    
+
                     typedef typename ElemType::storage_info_type meta_t;
 
                     // ElemType::info_string.c_str();
@@ -76,7 +76,7 @@ namespace gridtools {
 
                     // insert new type in the map only if not present already
                     if (!m_metadata_set.template present< pointer< typename ElemType::storage_info_type const > >())
-                        // get the meta_data pointer from the temporary storage and insert it into the metadata_set 
+                        // get the meta_data pointer from the temporary storage and insert it into the metadata_set
                         m_metadata_set.insert(e->get_meta_data_pointer());
                 }
             };
@@ -155,7 +155,7 @@ namespace gridtools {
 
                     // insert new type in the map only if not present already
                     if (!m_metadata_set.template present< pointer< const meta_t > >())
-                        // get the meta_data pointer from the temporary storage and insert it into the metadata_set 
+                        // get the meta_data pointer from the temporary storage and insert it into the metadata_set
                         m_metadata_set.insert(e->get_meta_data_pointer());
                 }
             };

@@ -47,6 +47,5 @@ namespace gridtools {
             typedef meta_storage<
                 meta_storage_aligned< meta_storage_base< IndexType::value, Layout, Temp >, Alignment, Halo > > type;
         };
-
     };
 }

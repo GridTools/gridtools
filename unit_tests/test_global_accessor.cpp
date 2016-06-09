@@ -100,8 +100,8 @@ TEST(test_global_accessor, boundary_conditions) {
     bc_eval->ready();
     bc_eval->steady();
     bc_eval->run();
-    bc_eval->finalize();
-
+    // fetch data and check
+    sol_.d2h_update();
     bool result=true;
     for (int i=0; i<10; ++i)
         for (int j=0; j<10; ++j)
@@ -118,23 +118,30 @@ TEST(test_global_accessor, boundary_conditions) {
                 }
             }
 
-/*****RUN 2 WITH bd int_value set to 30****/
+    // get the configuration object from the gpu
+    // modify configuration object (boundary)
+#ifdef __CUDACC__
+    bd_.d2h_update();
+#endif
     bd.int_value = 30;
-    sol_.initialize(2.);
-    bc_eval = make_computation< backend_t >
-        (
-            domain, coords_bc
-            , make_mss
-            (
-                execute<forward>(),
-                make_esf<functor>(p_sol(), p_bd()))
-            );
+#ifdef __CUDACC__
+    bd_.h2d_update();
+#else
+    bd_.update_data();
+#endif
 
-    bc_eval->ready();
-    bc_eval->steady();
+    // get the storage object from the gpu
+    // modify storage object 
+    sol_.initialize(2.);
+#ifdef __CUDACC__
+    sol_.h2d_update();
+#endif
+
+    // run again and finalize
     bc_eval->run();
     bc_eval->finalize();
 
+    // check result of second run
     for (int i=0; i<10; ++i)
         for (int j=0; j<10; ++j)
             for (int k=0; k<10; ++k)

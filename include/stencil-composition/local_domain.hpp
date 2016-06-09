@@ -74,8 +74,7 @@ namespace gridtools {
              */
             template < typename Key >
             GT_FUNCTION_WARNING void operator()(Key &local_) const {
-                local_ =
-                    boost::fusion::at_key< Key >(m_actual);
+                local_ = boost::fusion::at_key< Key >(m_actual);
             }
         };
 
@@ -276,17 +275,15 @@ namespace gridtools {
             : m_local_args(other.m_local_args), m_local_metadata(other.m_local_metadata) {}
 
         template < typename T >
-        void info(T const &, std::ostream& out_s) const {
+        void info(T const &, std::ostream &out_s) const {
             T::info(out_s);
             out_s << "[" << boost::mpl::at_c< esf_args, T::index_type::value >::type::index_type::value << "] ";
         }
 
         struct show_local_args_info {
 
-            std::ostream & out_s;
-            show_local_args_info(std::ostream & out_s)
-                : out_s(out_s)
-            {}
+            std::ostream &out_s;
+            show_local_args_info(std::ostream &out_s) : out_s(out_s) {}
 
             template < typename T >
             void operator()(T const &e) const {
@@ -295,7 +292,7 @@ namespace gridtools {
         };
 
         GT_FUNCTION
-        void info(std::ostream& out_s) const {
+        void info(std::ostream &out_s) const {
             out_s << "        -----v SHOWING LOCAL ARGS BELOW HERE v-----\n";
             boost::fusion::for_each(m_local_args, show_local_args_info(out_s));
             out_s << "        -----^ SHOWING LOCAL ARGS ABOVE HERE ^-----\n";

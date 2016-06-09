@@ -177,9 +177,7 @@ namespace gridtools {
 
     */
     template < typename First, typename... StorageExtended >
-    struct data_field : public dimension_extension_traits< First,
-                            StorageExtended... >::type
-    {
+    struct data_field : public dimension_extension_traits< First, StorageExtended... >::type {
         template < typename PT, typename MD, ushort_t FD >
         using type_tt = data_field< typename First::template type_tt< PT, MD, FD >,
             typename StorageExtended::template type_tt< PT, MD, FD >... >;
