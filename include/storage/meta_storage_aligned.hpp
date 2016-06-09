@@ -179,9 +179,7 @@ namespace gridtools {
 
         /**@brief operator equals (same dimension size, etc.) */
         GT_FUNCTION
-        constexpr bool operator==(const meta_storage_aligned &other) const {
-            return super::operator==(other);
-        }
+        constexpr bool operator==(const meta_storage_aligned &other) const { return super::operator==(other); }
 
 #else
 
@@ -204,9 +202,7 @@ namespace gridtools {
 
         /**@brief operator equals (same dimension size, etc.) */
         GT_FUNCTION
-        bool operator==(const meta_storage_aligned &other) const {
-            return super::operator==(other);
-        }
+        bool operator==(const meta_storage_aligned &other) const { return super::operator==(other); }
 
 #endif
 
@@ -244,11 +240,14 @@ namespace gridtools {
 #endif
         // device copy constructor
         GT_FUNCTION
-        constexpr meta_storage_aligned(meta_storage_aligned const &other) : super(other)
+        constexpr meta_storage_aligned(meta_storage_aligned const &other)
+            : super(other)
 #ifdef CXX11_ENABLED
-          , m_unaligned_dims(other.m_unaligned_dims), m_unaligned_strides(other.m_unaligned_strides) 
+              ,
+              m_unaligned_dims(other.m_unaligned_dims), m_unaligned_strides(other.m_unaligned_strides)
 #endif
-        {}
+        {
+        }
 
         // empty constructor
         GT_FUNCTION

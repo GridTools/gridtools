@@ -13,19 +13,19 @@
 namespace gridtools {
 
     // forward decl to global parameter
-    template <typename D>
+    template < typename D >
     struct global_parameter;
 
     /**@brief metafunction to check if a given type is a global parameter
     */
-    template <typename T>
-    struct is_global_parameter : boost::mpl::false_ { };
+    template < typename T >
+    struct is_global_parameter : boost::mpl::false_ {};
 
-    template <typename T>
-    struct is_global_parameter< global_parameter<T> > : boost::mpl::true_ { };
+    template < typename T >
+    struct is_global_parameter< global_parameter< T > > : boost::mpl::true_ {};
 
-    template <typename T>
-    struct is_global_parameter< pointer< global_parameter<T> > > : boost::mpl::true_ { };
+    template < typename T >
+    struct is_global_parameter< pointer< global_parameter< T > > > : boost::mpl::true_ {};
 
     /**
      * @brief The storage_holds_data_field struct
@@ -117,7 +117,8 @@ namespace gridtools {
     template < typename T >
     struct get_user_storage_base_t {
         GRIDTOOLS_STATIC_ASSERT((is_pointer< T >::value), "the passed type is not a pointer type");
-        GRIDTOOLS_STATIC_ASSERT((is_any_storage< typename T::value_type >::value || is_global_parameter< typename T::value_type >::value),
+        GRIDTOOLS_STATIC_ASSERT(
+            (is_any_storage< typename T::value_type >::value || is_global_parameter< typename T::value_type >::value),
             "the passed pointer type does not contain a storage type");
         typedef pointer< typename T::value_type::basic_type > type;
     };
@@ -129,8 +130,8 @@ namespace gridtools {
         typedef typename boost::remove_reference< T >::type ty;
         GRIDTOOLS_STATIC_ASSERT((is_pointer< ty >::value), "the passed type is not a pointer type");
         typedef typename ty::value_type storage_ty;
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_any_storage< storage_ty >::value || is_global_parameter< storage_ty >::value), "the passed pointer type does neither contain a storage- nor a global_parameter-type");
+        GRIDTOOLS_STATIC_ASSERT((is_any_storage< storage_ty >::value || is_global_parameter< storage_ty >::value),
+            "the passed pointer type does neither contain a storage- nor a global_parameter-type");
         typedef typename storage_ty::storage_ptr_t storage_ptr_ty;
         GRIDTOOLS_STATIC_ASSERT(
             (is_hybrid_pointer< storage_ptr_ty >::value || is_wrap_pointer< storage_ptr_ty >::value),
@@ -164,23 +165,26 @@ namespace gridtools {
 
     /** @brief metafunction class that is used to extract metadata pointers from a fusion vector of pointer<storage<T>>
      */
-    template <typename U>
+    template < typename U >
     struct get_storage_metadata_ptrs {
-        U& metadata_set;
-        GRIDTOOLS_STATIC_ASSERT(is_metadata_set<U>::value, "passed type is not a metadata_set");
-        get_storage_metadata_ptrs(U& ms) : metadata_set(ms) {}
+        U &metadata_set;
+        GRIDTOOLS_STATIC_ASSERT(is_metadata_set< U >::value, "passed type is not a metadata_set");
+        get_storage_metadata_ptrs(U &ms) : metadata_set(ms) {}
 
         /** @brief overload for the case that the "storage" is a global_parameter. Skip the element in this case.
          */
-        template <typename T>
-        void operator()(T &st, typename boost::disable_if< is_global_parameter<typename T::value_type> >::type *a = 0) const {
-            GRIDTOOLS_STATIC_ASSERT(is_any_storage<typename T::value_type>::value, "passed object is neither a pointer<storage<T>> nor a pointer<global_parameter<T>>");
+        template < typename T >
+        void operator()(
+            T &st, typename boost::disable_if< is_global_parameter< typename T::value_type > >::type *a = 0) const {
+            GRIDTOOLS_STATIC_ASSERT(is_any_storage< typename T::value_type >::value,
+                "passed object is neither a pointer<storage<T>> nor a pointer<global_parameter<T>>");
             metadata_set.insert(st->get_meta_data_pointer());
         }
 
         /** @brief overload for the case that the "storage" is a global_parameter. Skip the element in this case.
          */
-        template <typename T>
-        void operator()(T &st, typename boost::enable_if< is_global_parameter<typename T::value_type> >::type *a = 0) const { }
+        template < typename T >
+        void operator()(
+            T &st, typename boost::enable_if< is_global_parameter< typename T::value_type > >::type *a = 0) const {}
     };
 }

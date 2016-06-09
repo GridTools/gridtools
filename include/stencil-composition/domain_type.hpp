@@ -334,7 +334,7 @@ namespace gridtools {
         }
 
         template < typename Index >
-        void storage_info(std::ostream & out_s) const {
+        void storage_info(std::ostream &out_s) const {
             out_s << Index::value << " -|-> " << (boost::fusion::at_c< Index >(m_metadata_set))->name() << " "
                   << (boost::fusion::at_c< Index >(m_metadata_set))->template dims< 0 >() << "x"
                   << (boost::fusion::at_c< Index >(m_metadata_set))->template dims< 1 >() << "x"

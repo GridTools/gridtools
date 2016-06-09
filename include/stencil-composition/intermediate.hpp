@@ -226,7 +226,7 @@ namespace gridtools {
 
             // following line is extracting the correct meta_data pointers
             // from the previously handled/cloned storages.
-            boost::fusion::for_each(storage_pointers, get_storage_metadata_ptrs<MetaData>(meta_data_));
+            boost::fusion::for_each(storage_pointers, get_storage_metadata_ptrs< MetaData >(meta_data_));
 
             return GT_NO_ERRORS;
         }

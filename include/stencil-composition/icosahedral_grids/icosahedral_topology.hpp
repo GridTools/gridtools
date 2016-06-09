@@ -587,9 +587,8 @@ namespace gridtools {
 
         const gridtools::array< uint_t, 2 > m_dims; // Sizes as cells in a multi-dimensional Cell array
 
-        using grid_meta_storages_t = boost::fusion::vector3< meta_storage_t< cells > ,
-            meta_storage_t< edges > ,
-            meta_storage_t< vertexes > >;
+        using grid_meta_storages_t =
+            boost::fusion::vector3< meta_storage_t< cells >, meta_storage_t< edges >, meta_storage_t< vertexes > >;
 
         grid_meta_storages_t m_virtual_storages;
 
@@ -615,11 +614,9 @@ namespace gridtools {
                       first_, vertexes::n_colors::value, second_ + 1, dims...})) {}
 
         __device__ icosahedral_topology(icosahedral_topology const &other)
-            : m_dims(other.m_dims),
-              m_virtual_storages(
-                  boost::fusion::at_c< cells::value >(other.m_virtual_storages),
-                  boost::fusion::at_c< edges::value >(other.m_virtual_storages),
-                  boost::fusion::at_c< vertexes::value >(other.m_virtual_storages)) {}
+            : m_dims(other.m_dims), m_virtual_storages(boost::fusion::at_c< cells::value >(other.m_virtual_storages),
+                                        boost::fusion::at_c< edges::value >(other.m_virtual_storages),
+                                        boost::fusion::at_c< vertexes::value >(other.m_virtual_storages)) {}
 
         GT_FUNCTION
         grid_meta_storages_t const &virtual_storages() const { return m_virtual_storages; }

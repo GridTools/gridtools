@@ -52,7 +52,9 @@ namespace gridtools {
         static const ushort_t space_dimensions = RegularStorageType::space_dimensions;
         static const bool is_temporary = RegularStorageType::is_temporary;
         static void text() { std::cout << "text: no_storage_type_yet<" << RegularStorageType() << ">" << std::endl; }
-        void info(std::ostream & out_s) const { out_s << "No sorage type yet for storage type " << RegularStorageType() << "\n"; }
+        void info(std::ostream &out_s) const {
+            out_s << "No sorage type yet for storage type " << RegularStorageType() << "\n";
+        }
     };
 
     template < typename T >
@@ -164,12 +166,12 @@ namespace gridtools {
             return *m_meta_data;
         }
 
-        pointer<storage_info_type const> get_meta_data_pointer() const {
-            return pointer<storage_info_type const>(m_meta_data.get_pointer_to_use());
+        pointer< storage_info_type const > get_meta_data_pointer() const {
+            return pointer< storage_info_type const >(m_meta_data.get_pointer_to_use());
         }
 
-        pointer<storage_info_type const> get_meta_data_pointer() {
-            return pointer<storage_info_type const>(m_meta_data.get_pointer_to_use());
+        pointer< storage_info_type const > get_meta_data_pointer() {
+            return pointer< storage_info_type const >(m_meta_data.get_pointer_to_use());
         }
 
         pointer_type const &data() const {
@@ -224,7 +226,7 @@ namespace gridtools {
 
         void print_value(uint_t i, uint_t j, uint_t k) {
             assert(m_on_host);
-            (*m_storage).print_value(i,j,k);
+            (*m_storage).print_value(i, j, k);
         }
 
         char const *get_name() const {
@@ -273,28 +275,32 @@ namespace gridtools {
         // forwarding constructor
         template < class... ExtraArgs >
         explicit storage(storage_info_type const &meta_data_, ExtraArgs const &... args)
-            : m_meta_data(new storage_info_type(meta_data_), false), m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), args...), false), m_on_host(true) {}
+            : m_meta_data(new storage_info_type(meta_data_), false),
+              m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), args...), false), m_on_host(true) {}
 #else // CXX11_ENABLED
 
         explicit storage(storage_info_type const &meta_data_, value_type const &init)
-            : m_meta_data(new storage_info_type(meta_data_), false), m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), init), false), m_on_host(true) {}
+            : m_meta_data(new storage_info_type(meta_data_), false),
+              m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), init), false), m_on_host(true) {}
 
         explicit storage(storage_info_type const &meta_data_, value_type const &init, const char *name)
-            : m_meta_data(new storage_info_type(meta_data_), false), m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), init, name), false),
-              m_on_host(true) {}
+            : m_meta_data(new storage_info_type(meta_data_), false),
+              m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), init, name), false), m_on_host(true) {}
 
         template < typename Ret, typename T >
         explicit storage(storage_info_type const &meta_data_, Ret (*func)(T const &, T const &, T const &))
-            : m_meta_data(new storage_info_type(meta_data_), false), m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), func), false), m_on_host(true) {}
+            : m_meta_data(new storage_info_type(meta_data_), false),
+              m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), func), false), m_on_host(true) {}
 
         template < class FloatType >
         explicit storage(storage_info_type const &meta_data_, FloatType *arg)
-            : m_meta_data(new storage_info_type(meta_data_), false), m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), (FloatType *)arg), false),
-              m_on_host(true) {}
+            : m_meta_data(new storage_info_type(meta_data_), false),
+              m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), (FloatType *)arg), false), m_on_host(true) {}
 
         template < class FloatType >
         explicit storage(storage_info_type const &meta_data_, FloatType *arg, const char *name)
-            : m_meta_data(new storage_info_type(meta_data_), false), m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), (FloatType *)arg, name), false),
+            : m_meta_data(new storage_info_type(meta_data_), false),
+              m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), (FloatType *)arg, name), false),
               m_on_host(true) {}
 
 #endif // CXX11_ENABLED
@@ -313,7 +319,8 @@ namespace gridtools {
         BaseStorage *get_pointer_to_use() { return m_storage.get_pointer_to_use(); }
 
         explicit storage(storage_info_type const &meta_data_)
-            : m_meta_data(new storage_info_type(meta_data_), false), m_storage(new BaseStorage(m_meta_data.get_pointer_to_use()), false), m_on_host(true) {}
+            : m_meta_data(new storage_info_type(meta_data_), false),
+              m_storage(new BaseStorage(m_meta_data.get_pointer_to_use()), false), m_on_host(true) {}
 
         template < typename UInt >
         value_type const &operator[](UInt const &index_) const {

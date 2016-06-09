@@ -75,7 +75,7 @@ namespace gridtools {
             return arg_storage_pair< arg< I, storage_type >, Storage2 >(&ref);
         }
 
-        static void info(std::ostream& out_s) {
+        static void info(std::ostream &out_s) {
 #ifdef VERBOSE
             out_s << "Arg on real storage with index " << I;
 #endif
@@ -109,7 +109,7 @@ namespace gridtools {
             return arg_storage_pair< arg< I, storage_type >, Storage2 >(&ref);
         }
 
-        static void info(std::ostream& out_s) {
+        static void info(std::ostream &out_s) {
 #ifdef VERBOSE
             out_s << "Arg on real storage with index " << I;
 #endif
