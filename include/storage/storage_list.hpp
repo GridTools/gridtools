@@ -33,7 +33,7 @@ namespace gridtools {
 
         /**@brief constructor*/
         template < typename... Args >
-        storage_list(typename basic_type::storage_info_type const &meta_data_, Args const &... args_)
+        storage_list(typename basic_type::storage_info_type const *meta_data_, Args const &... args_)
             : super(meta_data_, args_...) {}
 
         /**@brief destructor: frees the pointers to the data fields */
@@ -74,11 +74,11 @@ namespace gridtools {
 
         // default constructor
         template < typename... Args >
-        storage_list(typename basic_type::storage_info_type const &meta_data_, Args const &... args_)
+        storage_list(typename basic_type::storage_info_type const *meta_data_, Args const &... args_)
             : super(meta_data_, args_...) {}
 
         // default constructor
-        storage_list(typename basic_type::storage_info_type const &meta_data_) : super(meta_data_) {}
+        storage_list(typename basic_type::storage_info_type const *meta_data_) : super(meta_data_) {}
 
         /**@brief destructor: frees the pointers to the data fields */
         virtual ~storage_list() {}

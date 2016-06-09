@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iosfwd>
 #include "accessor.hpp"
 
 #include <gridtools.hpp>
@@ -63,10 +64,14 @@ namespace gridtools {
         };
 
         struct print_view_ {
+            std::ostream & out_s;
+            print_view_(std::ostream & out_s)
+                : out_s(out_s)
+            {}
+
             template < typename T >
             void operator()(T &t) const {
-                // int a = T();
-                t->info();
+                t->info(out_s);
             }
         };
 
@@ -76,6 +81,14 @@ namespace gridtools {
                 printf("PTR %x\n", s);
             }
         };
+
+        struct dt_print_pointer {
+            template < typename PType >
+            GT_FUNCTION_WARNING void operator()(PType const&s) const {
+                printf("Pointer Value %x\n", s.get());
+            }
+        };
+
     } // namespace _debug
 
     template < typename Storage, uint_t Size >
@@ -181,12 +194,12 @@ namespace gridtools {
                 typedef typename boost::is_same< T1, T2 >::type type;
             };
 
-            // specialization for base_storage
-            template < typename T1, typename T2, uint_t Size, ushort_t ID, typename Cond >
-            struct matching< arg< ID, std::vector< pointer< no_storage_type_yet< T1 > > >, Cond >,
-                arg< ID, no_storage_type_yet< expandable_parameters< T2, Size > >, Cond > > {
-                typedef typename boost::is_same< T1, T2 >::type type;
-            };
+            // // specialization for base_storage
+            // template < typename T1, typename T2, uint_t Size, ushort_t ID, typename Cond >
+            // struct matching< arg< ID, std::vector< pointer< no_storage_type_yet< T1 > > >, Cond >,
+            //                  arg< ID, no_storage_type_yet< expandable_parameters< T2, Size > >, Cond > > {
+            //     typedef typename boost::is_same< T1, T2 >::type type;
+            // };
 
             // specialization for storage
             template < typename T1, typename T2, uint_t Size, ushort_t ID, typename Cond >

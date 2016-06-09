@@ -9,26 +9,45 @@ Write my documentation!
 /** This class wraps a raw pointer*/
 namespace gridtools {
 
-    template < typename T >
+    template < typename T, bool Array = true >
     struct wrap_pointer {
+      private:
+        template < typename V >
+        wrap_pointer(V);
+
+      public:
         // TODO: turn into value_type?
         typedef T pointee_t;
 
-        // default constructor
+        /**
+           @brief access operator
+         */
         GT_FUNCTION
-        wrap_pointer(bool externally_managed = false) : m_cpu_p(NULL), m_externally_managed(externally_managed) {}
+        T *operator->() const {
+            assert(m_cpu_p);
+            return m_cpu_p;
+        }
 
         GT_FUNCTION
-        wrap_pointer(wrap_pointer const &other)
-            : m_cpu_p(other.m_cpu_p), m_externally_managed(other.m_externally_managed) {}
+        wrap_pointer() : m_cpu_p(NULL), m_externally_managed(false) {}
 
         GT_FUNCTION
-        wrap_pointer(T *p, uint_t size_, bool externally_managed)
-            : m_cpu_p(p), m_externally_managed(externally_managed) {}
+        wrap_pointer(wrap_pointer const &other) : m_cpu_p(other.m_cpu_p), m_externally_managed(true) {}
 
         GT_FUNCTION
-        wrap_pointer< T > &operator=(T &p) {
-            m_cpu_p = p;
+        wrap_pointer(uint_t size, bool externally_managed) : m_externally_managed(externally_managed) {
+            allocate_it(size);
+#ifdef VERBOSE
+            printf("CONSTRUCT pointer - %X %d\n", m_cpu_p, size);
+#endif
+        }
+
+        GT_FUNCTION
+        wrap_pointer(T *p, bool externally_managed) : m_cpu_p(p), m_externally_managed(externally_managed) {}
+
+        GT_FUNCTION
+        wrap_pointer< T > &operator=(T const &p) {
+            m_cpu_p = &p;
             m_externally_managed = true;
             return *this;
         }
@@ -37,10 +56,16 @@ namespace gridtools {
         pointee_t *get() const { return m_cpu_p; }
 
         GT_FUNCTION
+        T *get_pointer_to_use() { return m_cpu_p; }
+
+        GT_FUNCTION
+        T *get_pointer_to_use() const { return m_cpu_p; }
+
+        GT_FUNCTION
         void reset(T *cpu_p) { m_cpu_p = cpu_p; }
 
         GT_FUNCTION
-        bool set_externally_managed(bool externally_managed_) { m_externally_managed = externally_managed_; }
+        void set_externally_managed(bool externally_managed_) { m_externally_managed = externally_managed_; }
 
         GT_FUNCTION
         bool is_externally_managed() const { return m_externally_managed; }
@@ -67,15 +92,7 @@ namespace gridtools {
         void update_cpu() {} //\todo find a way to remove this method
 
         GT_FUNCTION
-        wrap_pointer(uint_t size, bool externally_managed = false) : m_externally_managed(externally_managed) {
-            allocate_it(size);
-#ifdef VERBOSE
-            printf("CONSTRUCT pointer - %X %d\n", m_cpu_p, size);
-#endif
-        }
-
-        GT_FUNCTION
-        void allocate_it(uint_t size) { m_cpu_p = new T[size]; }
+        void allocate_it(uint_t size) { m_cpu_p = (Array) ? new T[size] : new T; }
 
         void free_it() {
             if (m_cpu_p && !m_externally_managed) {
@@ -84,7 +101,9 @@ namespace gridtools {
                 std::cout << "deleting data pointer " << m_cpu_p << std::endl;
 #endif
 #endif
-                delete[] m_cpu_p;
+                // this conditional operator decides if it should call an
+                // array delete or a standard pointer delete operation.
+                (Array) ? delete[] m_cpu_p : delete m_cpu_p;
                 m_cpu_p = NULL;
             }
         }
@@ -126,25 +145,26 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        T* operator+(uint_t i) {
+        T *operator+(uint_t i) {
             assert(m_cpu_p);
             return &m_cpu_p[i];
         }
 
         GT_FUNCTION
-        T* const& operator+(uint_t i) const {
+        T *const &operator+(uint_t i) const {
             assert(m_cpu_p);
             return &m_cpu_p[i];
         }
 
         GT_FUNCTION
-        T *get_pointer_to_use() const { return m_cpu_p; }
+        T *get_cpu_p() { return m_cpu_p; }
 
         GT_FUNCTION
-        const T *get_m_cpu_p() { return m_cpu_p; };
+        T *get_gpu_p() { assert(false); }
 
       protected:
         T *m_cpu_p;
         bool m_externally_managed;
     };
+
 } // namespace gridtools

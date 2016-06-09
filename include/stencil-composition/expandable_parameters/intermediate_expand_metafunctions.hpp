@@ -53,13 +53,13 @@ namespace gridtools {
             template < typename T, typename ExpandFactor >
             struct apply {
                 typedef arg< get_index< T >::value,
-                    expandable_parameters< typename get_basic_storage< T >::type, ExpandFactor::value > > type;
+                             storage<expandable_parameters< typename get_basic_storage< T >::type, ExpandFactor::value> > > type;
             };
 
             template < typename T, typename ExpandFactor, uint_t ID >
             struct apply< arg< ID, std::vector< pointer< no_storage_type_yet< T > > > >, ExpandFactor > {
                 typedef arg< ID,
-                    no_storage_type_yet< expandable_parameters< typename T::basic_type, ExpandFactor::value > > > type;
+                             no_storage_type_yet<  storage<expandable_parameters<typename T::basic_type, ExpandFactor::value > > > > type;
             };
         };
 
@@ -68,7 +68,7 @@ namespace gridtools {
             template < typename T, typename ExpandFactor >
             struct apply {
                 typedef arg< get_index< T >::value,
-                    storage< expandable_parameters< typename get_basic_storage< T >::type, ExpandFactor::value > > >
+                             storage< expandable_parameters< typename get_basic_storage< T >::type, ExpandFactor::value > > >
                     type;
             };
 
@@ -76,7 +76,7 @@ namespace gridtools {
             struct apply< arg< ID, std::vector< pointer< no_storage_type_yet< T > > > >, ExpandFactor > {
                 typedef arg< ID,
                     no_storage_type_yet< storage<
-                        expandable_parameters< typename T::basic_type, ExpandFactor::value > > > > type;
+                                             expandable_parameters< typename T::basic_type, ExpandFactor::value> > > > type;
             };
         };
 
@@ -226,7 +226,7 @@ namespace gridtools {
                     pointer< std::vector< pointer< T > > > const &storage_ptr_ =
                         m_dom_from.template storage_pointer< arg< ID, std::vector< pointer< T > > > >();
 
-                    boost::fusion::at< static_ushort< ID > >(m_dom_to.m_storage_pointers)->set(*storage_ptr_, m_idx);
+                    (*(boost::fusion::at< static_ushort< ID > >(m_dom_to.m_storage_pointers)->storage_pointer())).set(*storage_ptr_, m_idx);
                     // update the device pointers (not copying the heavy data)
                     boost::fusion::at< static_ushort< ID > >(m_dom_to.m_storage_pointers)->clone_to_device();
                     // copy the heavy data (should be done by the steady)

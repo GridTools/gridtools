@@ -8,6 +8,7 @@ namespace gridtools {
         virtual void finalize() = 0;
         virtual ReductionType run() = 0;
         virtual std::string print_meter() = 0;
+        virtual double get_meter() = 0;
     };
 
 } // namespace gridtools

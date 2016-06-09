@@ -10,17 +10,20 @@ namespace gridtools {
 
     /**\todo Note that this struct will greatly simplify when the CUDA arch 3200 and inferior will be obsolete (the
      * "pointer_to_use" will then become useless, and the operators defined in the base class will be usable) */
-    template < typename T >
-    struct hybrid_pointer // : public wrap_pointer<T>
-        {
+    template < typename T, bool Array = true >
+    struct hybrid_pointer {
+      private:
+        template < typename V >
+        hybrid_pointer(V);
 
+      public:
         // typedef wrap_pointer<T> super;
-        typedef typename wrap_pointer< T >::pointee_t pointee_t;
+        typedef typename wrap_pointer< T, Array >::pointee_t pointee_t;
 
         GT_FUNCTION
         explicit hybrid_pointer()
-            : m_gpu_p(NULL), m_cpu_p((T *)NULL), m_pointer_to_use(NULL), m_size(0), m_allocated(false),
-              m_up_to_date(true) {
+            : m_gpu_p(NULL), m_cpu_p(static_cast< T * >(NULL), false), m_pointer_to_use(NULL), m_size(0),
+              m_allocated(false), m_up_to_date(true) {
 #ifdef VERBOSE
             printf("creating empty hybrid pointer %x \n", this);
 #endif
@@ -28,8 +31,14 @@ namespace gridtools {
 
         GT_FUNCTION
         explicit hybrid_pointer(T *p, uint_t size_, bool externally_managed)
-            : m_gpu_p(NULL), m_cpu_p(p, size_, externally_managed), m_pointer_to_use(p), m_size(size_),
-              m_allocated(false), m_up_to_date(true) {
+            : m_gpu_p(NULL), m_cpu_p(p, externally_managed), m_pointer_to_use(p), m_size(size_), m_allocated(false),
+              m_up_to_date(true) {
+            allocate_it(m_size);
+        }
+
+        explicit hybrid_pointer(T *p, bool externally_managed)
+            : m_gpu_p(NULL), m_cpu_p(p, externally_managed), m_pointer_to_use(p), m_size(1), m_allocated(false),
+              m_up_to_date(true) {
             allocate_it(m_size);
         }
 
@@ -41,7 +50,7 @@ namespace gridtools {
 
 #ifdef VERBOSE
             printf("allocating hybrid pointer %x \n", this);
-            printf(" - %X %X %X %d\n", this->m_cpu_p, m_gpu_p, m_pointer_to_use, m_size);
+            printf(" - %X %X %X %d\n", m_cpu_p.get(), m_gpu_p, m_pointer_to_use, m_size);
 #endif
         }
 
@@ -94,8 +103,8 @@ namespace gridtools {
         void free_it() {
             if (m_gpu_p) // if the pointers are not allocated do nothing
             {
-                // assert(m_gpu_p); // check for double free
-                cudaFree(m_gpu_p);
+                assert(m_gpu_p); // check for double free
+                cudaFree((void *)(m_gpu_p));
                 m_gpu_p = NULL;
                 m_cpu_p.free_it();
                 m_up_to_date = true;
@@ -113,7 +122,7 @@ namespace gridtools {
             out();
 #endif
             if (on_host()) { // do not copy if the last version is already on the device
-                cudaMemcpy(m_gpu_p, m_cpu_p.get(), m_size * sizeof(T), cudaMemcpyHostToDevice);
+                cudaMemcpy((void *)m_gpu_p, (void *)m_cpu_p.get(), m_size * sizeof(T), cudaMemcpyHostToDevice);
                 m_up_to_date = false;
                 m_pointer_to_use = m_gpu_p;
             }
@@ -125,7 +134,7 @@ namespace gridtools {
             out();
 #endif
             if (on_device()) {
-                cudaMemcpy(m_cpu_p.get(), m_gpu_p, m_size * sizeof(T), cudaMemcpyDeviceToHost);
+                cudaMemcpy((void *)m_cpu_p.get(), (void *)m_gpu_p, m_size * sizeof(T), cudaMemcpyDeviceToHost);
                 m_up_to_date = true;
                 m_pointer_to_use = m_cpu_p.get();
             }
@@ -174,6 +183,16 @@ namespace gridtools {
             return m_pointer_to_use[i];
         }
 
+        /**
+           @brief access operator
+         */
+        GT_FUNCTION
+        T *operator->() const {
+            assert(m_pointer_to_use);
+            return m_pointer_to_use;
+        }
+
+
         GT_FUNCTION
         T &operator*() {
             // assert(m_pointer_to_use);
@@ -212,6 +231,9 @@ namespace gridtools {
 
         GT_FUNCTION
         T *get_pointer_to_use() { return m_pointer_to_use; }
+
+        GT_FUNCTION
+        T *get_pointer_to_use() const { return m_pointer_to_use; }
 
         GT_FUNCTION
         pointee_t *get() const { return m_gpu_p; }
@@ -273,7 +295,7 @@ namespace gridtools {
         void reset(T *cpu_p) { m_cpu_p.reset(cpu_p); }
 
         GT_FUNCTION
-        bool set_externally_managed(bool externally_managed_) { m_cpu_p.set_externally_managed(externally_managed_); }
+        void set_externally_managed(bool externally_managed_) { m_cpu_p.set_externally_managed(externally_managed_); }
 
         GT_FUNCTION
         bool is_externally_managed() const { return m_cpu_p.is_externally_managed(); }
@@ -294,7 +316,7 @@ namespace gridtools {
         T *operator=(T *);
         hybrid_pointer(T *);
         T *m_gpu_p;
-        wrap_pointer< T > m_cpu_p;
+        wrap_pointer< T, Array > m_cpu_p;
         T *m_pointer_to_use;
         uint_t m_size;
         bool m_allocated;

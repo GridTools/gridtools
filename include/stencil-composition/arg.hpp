@@ -7,6 +7,8 @@
 */
 
 #pragma once
+
+#include <iosfwd>
 #include "storage/storage_metafunctions.hpp"
 #include "stencil-composition/arg_metafunctions_fwd.hpp"
 #include "arg_metafunctions.hpp"
@@ -74,9 +76,9 @@ namespace gridtools {
             return arg_storage_pair< arg< I, storage_type >, Storage2 >(&ref);
         }
 
-        static void info() {
+        static void info(std::ostream& out_s) {
 #ifdef VERBOSE
-            std::cout << "Arg on real storage with index " << I;
+            out_s << "Arg on real storage with index " << I;
 #endif
         }
     };
@@ -108,9 +110,9 @@ namespace gridtools {
             return arg_storage_pair< arg< I, storage_type >, Storage2 >(&ref);
         }
 
-        static void info() {
+        static void info(std::ostream& out_s) {
 #ifdef VERBOSE
-            std::cout << "Arg on real storage with index " << I;
+            out_s << "Arg on real storage with index " << I;
 #endif
         }
     };

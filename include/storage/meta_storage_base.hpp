@@ -1,8 +1,11 @@
 #pragma once
+
+#include <iosfwd>
 #include <boost/type_traits/is_unsigned.hpp>
 #include <boost/mpl/max_element.hpp>
 #include "base_storage_impl.hpp"
 #include "../common/array.hpp"
+#include "../common/array_addons.hpp"
 #include "../common/generic_metafunctions/all_integrals.hpp"
 #include "../common/explode_array.hpp"
 #include "../common/generic_metafunctions/is_variadic_pack_of.hpp"
@@ -18,7 +21,6 @@
     @brief class containing the meta storage information
 */
 namespace gridtools {
-
 
     /**
      * @brief Type to indicate that the type is not decided yet
@@ -234,7 +236,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
             : m_dims(other.m_dims), m_strides(other.m_strides) {}
 
         /** @brief prints debugging information */
-        void info() const { std::cout << dims< 0 >() << "x" << dims< 1 >() << "x" << dims< 2 >() << ", " << std::endl; }
+        void info(std::ostream& out_s) const { out_s << dims< 0 >() << "x" << dims< 1 >() << "x" << dims< 2 >() << " \n"; }
 
         /**@brief returns the size of the data field*/
         GT_FUNCTION
@@ -255,7 +257,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         /**@brief returns the storage strides
          */
         GT_FUNCTION
-        constexpr int_t const& strides(ushort_t i) const { return m_strides[i]; }
+        constexpr int_t const &strides(ushort_t i) const { return m_strides[i]; }
 
         /**@brief returns the storage strides
          */
@@ -283,10 +285,24 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         GT_FUNCTION int_t index(array< uint_t, S > const &a) const {
             return (int_t)explode< int_t, _impl_index >(a, *this);
         }
+
+        /**@brief operator equals (same dimension size, etc.) */
+        GT_FUNCTION
+        constexpr bool operator==(meta_storage_base const &other) const {
+            return (size() == other.size()) && (m_dims == other.m_dims)
+                && (m_strides == other.m_strides);
+        }
 #else
         /**@brief straightforward interface*/
         GT_FUNCTION
         int_t index(uint_t const &i, uint_t const &j, uint_t const &k) const { return _index(strides(), i, j, k); }
+
+        /**@brief operator equals (same dimension size, etc.) */
+        GT_FUNCTION
+        bool operator==(meta_storage_base const &other) const {
+            return (size() == other.size()) && (m_dims == other.m_dims)
+                && (m_strides == other.m_strides);
+        }
 #endif
 
         //####################################################
@@ -315,7 +331,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         */
         template < uint_t Coordinate, typename StridesVector >
         GT_FUNCTION static constexpr int_t strides(StridesVector const &RESTRICT strides_) {
-			return get_stride_helper<Coordinate, layout>(strides_);
+            return get_stride_helper< Coordinate, layout >(strides_);
         }
 
         /**@brief return the stride for a specific coordinate, given the vector of strides
@@ -327,7 +343,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         GT_FUNCTION constexpr int_t strides() const {
             // NOTE: we access the m_strides vector starting from 1, because m_strides[0] is the total storage
             // dimension.
-            return get_stride_helper<Coordinate, layout>(m_strides, 1);
+            return get_stride_helper< Coordinate, layout >(m_strides, 1);
         }
 
         /**@brief returning the index of the memory address corresponding to the specified (i,j,k) coordinates.

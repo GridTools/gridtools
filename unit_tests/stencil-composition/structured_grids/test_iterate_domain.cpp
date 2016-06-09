@@ -4,6 +4,7 @@
 #include "common/defs.hpp"
 #include "stencil-composition/stencil-composition.hpp"
 #include "stencil-composition/intermediate_metafunctions.hpp"
+#include "stencil-composition/structured_grids/accessor.hpp"
 
 namespace test_iterate_domain{
     using namespace gridtools;

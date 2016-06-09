@@ -49,7 +49,6 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((boost::fusion::result_of::has_key< set_t, T >::type::value),
                 "the type used for the lookup in the metadata set is not present in the set. Did you use the correct "
                 "type as meta storage?");
-            assert(!present< T >()); // must be uninitialized
             boost::fusion::at_key< T >(m_set) = new_instance;
         }
 
@@ -108,16 +107,20 @@ namespace gridtools {
 
       private:
         Sequence &m_seq;
-        Arg const &m_arg;
+        typedef typename Arg::storage_ptr_t arg_ptr_t;
+        pointer< const arg_ptr_t > m_arg_ptr;
 
       public:
         GT_FUNCTION
-        insert_if_not_present(Sequence &seq_, Arg const &arg_) : m_seq(seq_), m_arg(arg_) {}
+        insert_if_not_present(Sequence &seq_, Arg const &arg_) : m_seq(seq_), m_arg_ptr(arg_.get_storage_pointer()) {}
 
         GT_FUNCTION
         void operator()() const {
             if (!m_seq.template present< pointer< const typename Arg::storage_info_type > >())
-                m_seq.insert(pointer< const typename Arg::storage_info_type >(&(m_arg.meta_data())));
+                m_seq.insert(pointer< const typename Arg::storage_info_type >((**m_arg_ptr).meta_data()));
+            else
+                assert(*m_seq.template get< pointer< const typename Arg::storage_info_type > >() == *(**m_arg_ptr).meta_data() &&
+                    "the passed storages contain different meta data (e.g., different dimension) which is not valid.");
         }
     };
 }

@@ -33,4 +33,5 @@ TEST(ExpandableParameters, Test) {
         t = 1;
 
     ASSERT_TRUE(test_expandable_parameters::test(x, y, z, t));
+
 }

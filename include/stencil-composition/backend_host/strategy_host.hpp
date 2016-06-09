@@ -103,17 +103,7 @@ namespace gridtools {
 #endif
             GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::type::value, "wrong type");
 
-            typedef meta_storage_tmp<
-                meta_storage_aligned< meta_storage_base< Index::value, Layout, true >, Alignment, Halo >
-#ifdef CXX11_ENABLED
-                ,
-                Tiles...
-#else
-                ,
-                TileI,
-                TileJ
-#endif
-                > type;
+            typedef meta_storage< meta_storage_aligned< meta_storage_base< Index::value, Layout, true >, Alignment, Halo > > type;
         };
 
 /**
@@ -131,7 +121,7 @@ namespace gridtools {
 #else
             GRIDTOOLS_STATIC_ASSERT((is_tile< TileI >::value && is_tile< TileJ >::value), "wrong type for the tiles");
 #endif
-            typedef
+            typedef storage<
 #ifdef CXX11_ENABLED
                 typename Storage::template type_tt
 #else
@@ -149,7 +139,7 @@ namespace gridtools {
                         TileJ
 #endif
                         >::type,
-                    Storage::field_dimensions > type;
+                    Storage::field_dimensions > > type;
         };
     };
 
@@ -315,7 +305,7 @@ namespace gridtools {
 #else
             GRIDTOOLS_STATIC_ASSERT((is_tile< TileI >::value && is_tile< TileJ >::value), "wrong type for the tiles");
 #endif
-            typedef
+            typedef storage<
 #ifdef CXX11_ENABLED
                 typename Storage::template type_tt
 #else
@@ -332,7 +322,7 @@ namespace gridtools {
                         TileJ
 #endif
                         >::type,
-                    Storage::field_dimensions > type;
+                    Storage::field_dimensions > > type;
         };
     };
 

@@ -3,7 +3,6 @@
 #include "common/defs.hpp"
 #include <boost/lexical_cast.hpp>
 #include "../common/is_temporary_storage.hpp"
-#include <iostream>
 #include "../common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "../common/generic_metafunctions/all_integrals.hpp"
 

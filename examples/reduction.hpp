@@ -91,7 +91,7 @@ namespace reduction {
         for (uint_t i = 0; i < d1; ++i)
             for (uint_t j = 0; j < d2; ++j)
                 for (uint_t k = 0; k < d3; ++k) {
-                    in(i, j, k) = static_cast< float_type >((std::rand() % 100 + std::rand() % 100) * 0.005 + 0.51);
+                    in(i, j, k) = static_cast< float_type >((std::rand() % 100 + std::rand() % 100) * 0.002 + 0.51);
                     sum_ref += in(i, j, k);
                     prod_ref *= in(i, j, k);
                 }
@@ -130,7 +130,7 @@ namespace reduction {
             sum_red_ = make_computation< gridtools::BACKEND >(domain,
                 grid,
                 make_mss(execute< forward >(), make_esf< desf >(p_in(), p_out())),
-                make_reduction< sum_red, binop::sum >(0.0, p_out()));
+                make_reduction< sum_red, binop::sum >((float_type)(0.0), p_out()));
 
         sum_red_->ready();
         sum_red_->steady();
@@ -143,7 +143,6 @@ namespace reduction {
         precision = 1e-12;
 #endif
         bool success = compare_below_threshold(sum_ref, sum_redt, precision);
-
 #ifdef BENCHMARK
         for (uint_t t = 1; t < t_steps; ++t) {
             flusher.flush();
@@ -165,7 +164,7 @@ namespace reduction {
             prod_red_ = make_computation< gridtools::BACKEND >(domain,
                 grid,
                 make_mss(execute< forward >(), make_esf< desf >(p_in(), p_out())),
-                make_reduction< sum_red, binop::prod >(1.0, p_out()));
+                make_reduction< sum_red, binop::prod >((float_type)(1.0), p_out()));
 
         prod_red_->ready();
         prod_red_->steady();
@@ -173,7 +172,6 @@ namespace reduction {
         float_type prod_redt = prod_red_->run();
 
         success = success & compare_below_threshold(prod_ref, prod_redt, precision);
-
 #ifdef BENCHMARK
         for (uint_t t = 1; t < t_steps; ++t) {
             flusher.flush();

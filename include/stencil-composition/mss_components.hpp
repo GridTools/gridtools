@@ -3,6 +3,7 @@
 #include "reductions/reduction_descriptor.hpp"
 #include "esf_metafunctions.hpp"
 #include "mss_metafunctions.hpp"
+#include "./linearize_mss_functions.hpp"
 
 namespace gridtools {
 
@@ -25,7 +26,7 @@ namespace gridtools {
     template < typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor >
     struct mss_components {
         GRIDTOOLS_STATIC_ASSERT((is_computation_token< MssDescriptor >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< ExtentSizes, is_extent >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<ExtentSizes>::type::value==0 || is_sequence_of< ExtentSizes, is_extent >::value), "Internal Error: wrong type");
         typedef MssDescriptor mss_descriptor_t;
 
         typedef typename mss_descriptor_execution_engine< MssDescriptor >::type execution_engine_t;

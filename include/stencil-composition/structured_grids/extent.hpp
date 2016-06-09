@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iostream>
 #include <boost/mpl/min_max.hpp>
 #include <boost/mpl/plus.hpp>
 #include <boost/mpl/reverse_fold.hpp>
@@ -95,17 +94,29 @@ namespace gridtools {
     /**
      * Metafunction taking two extents and yielding a extent containing them
      */
-    template < typename Range1, typename Range2 >
+    template < typename Extent1, typename Extent2 >
     struct enclosing_extent {
-        BOOST_MPL_ASSERT((is_extent< Range1 >));
-        BOOST_MPL_ASSERT((is_extent< Range2 >));
+        BOOST_MPL_ASSERT((is_extent< Extent1 >));
+        BOOST_MPL_ASSERT((is_extent< Extent2 >));
 
-        typedef extent< boost::mpl::min< typename Range1::iminus, typename Range2::iminus >::type::value,
-            boost::mpl::max< typename Range1::iplus, typename Range2::iplus >::type::value,
-            boost::mpl::min< typename Range1::jminus, typename Range2::jminus >::type::value,
-            boost::mpl::max< typename Range1::jplus, typename Range2::jplus >::type::value,
-            boost::mpl::min< typename Range1::kminus, typename Range2::kminus >::type::value,
-            boost::mpl::max< typename Range1::kplus, typename Range2::kplus >::type::value > type;
+        typedef extent< boost::mpl::min< typename Extent1::iminus, typename Extent2::iminus >::type::value,
+            boost::mpl::max< typename Extent1::iplus, typename Extent2::iplus >::type::value,
+            boost::mpl::min< typename Extent1::jminus, typename Extent2::jminus >::type::value,
+            boost::mpl::max< typename Extent1::jplus, typename Extent2::jplus >::type::value,
+            boost::mpl::min< typename Extent1::kminus, typename Extent2::kminus >::type::value,
+            boost::mpl::max< typename Extent1::kplus, typename Extent2::kplus >::type::value > type;
+    };
+
+    // Specializations for the case in which a range is an mpl::void_, which is used when the extent is taken from an
+    // mpl::map
+    template < typename Extent >
+    struct enclosing_extent< Extent, boost::mpl::void_ > {
+        typedef Extent type;
+    };
+
+    template < typename Extent >
+    struct enclosing_extent< boost::mpl::void_, Extent > {
+        typedef Extent type;
     };
 
     /**
@@ -113,8 +124,8 @@ namespace gridtools {
      */
     template < typename Extent1, typename Extent2 >
     struct sum_extent {
-        BOOST_MPL_ASSERT((boost::mpl::or_< is_extent< Extent1 >, is_staggered< Extent1 > >));
-        BOOST_MPL_ASSERT((boost::mpl::or_< is_extent< Extent2 >, is_staggered< Extent1 > >));
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::or_< is_extent< Extent1 >, is_staggered< Extent1 > >::value), "");
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::or_< is_extent< Extent2 >, is_staggered< Extent2 > >::value), "");
 
         typedef extent< boost::mpl::plus< typename Extent1::iminus, typename Extent2::iminus >::type::value,
             boost::mpl::plus< typename Extent1::iplus, typename Extent2::iplus >::type::value,

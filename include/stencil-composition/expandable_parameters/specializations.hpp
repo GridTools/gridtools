@@ -45,11 +45,11 @@ namespace gridtools {
 
 #ifdef CXX11_ENABLED
     template < typename T, uint_t ID >
-    struct is_actual_storage< pointer< expandable_parameters< T, ID > > >
+    struct is_actual_storage< pointer< storage<expandable_parameters< T, ID > > > >
         : public boost::mpl::bool_< !T::is_temporary > {};
 
     template < typename T, ushort_t Dim >
-    struct is_temporary_storage< expandable_parameters< T, Dim > > : public boost::mpl::bool_< T::is_temporary > {};
+    struct is_temporary_storage< storage<expandable_parameters< T, Dim > > > : public boost::mpl::bool_< T::is_temporary > {};
 #endif
 
 } // namespace gridtools

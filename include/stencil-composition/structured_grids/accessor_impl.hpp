@@ -207,6 +207,39 @@ namespace gridtools {
     template < typename T >
     struct is_plchldr_to_temp : boost::mpl::false_ {};
 
+    // /**
+    //  * Struct to test if an argument (placeholder) is a temporary no_storage_type_yet - Specialization yielding true
+    //  */
+    // template < uint_t I, typename T, typename C >
+    // struct is_plchldr_to_temp< arg< I, no_storage_type_yet< T >, C > > : boost::true_type {};
+
+    // /**
+    //  * Struct to test if an argument is a placeholder to a temporary storage
+    //  */
+    // template < uint_t I, typename T, typename U, ushort_t Dim, typename C >
+    // struct is_plchldr_to_temp< arg< I, base_storage< T, U, Dim >, C > > : boost::mpl::bool_< U::is_temporary > {};
+
+    // /**
+    //  * Struct to test if an argument is a temporary
+    //  no_storage_type_yet - Specialization for a decorator of the
+    //  storage class, falls back on the original class type here the
+    //  decorator is the \ref gridtools::storage
+    // */
+    // template < uint_t I, typename BaseType, template < typename T > class Decorator, typename C >
+    // struct is_plchldr_to_temp< arg< I, Decorator< BaseType >, C > >
+    //     : is_plchldr_to_temp< arg< I, typename BaseType::basic_type, C > > {};
+
+    // template < uint_t I, typename BaseType, typename C >
+    // struct is_plchldr_to_temp< arg< I, storage< BaseType >, C > >
+    //     : is_plchldr_to_temp< arg< I, typename BaseType::basic_type, C > > {};
+
+    // template <typename T>
+    // struct global_parameter;
+
+    // template < uint_t I, typename BaseType, typename C >
+    // struct is_plchldr_to_temp< arg< I, global_parameter<BaseType>, C > >
+    //     : is_plchldr_to_temp< arg< I, typename global_parameter<BaseType>::wrapped_type, C > > {};
+
     /**
      * Printing type information for debug purposes
      * @param s The ostream

@@ -15,54 +15,55 @@
 #include "stencil-composition/esf.hpp"
 #include "common/generic_metafunctions/is_sequence_of.hpp"
 #include "stencil-composition/caches/cache_metafunctions.hpp"
+#include "esf_metafunctions.hpp"
 #include "mss.hpp"
 #include "reductions/reduction_descriptor.hpp"
 #include "computation_grammar.hpp"
 
 namespace gridtools {
 
-    /**
-       @brief constructs an mpl vector of esf, linearizig the mss tree.
+//     /**
+//        @brief constructs an mpl vector of esf, linearizig the mss tree.
 
-       Looping over all the esfs at compile time.
-       if found independent esfs, they are also included in the linearized vector with a nested fold.
+//        Looping over all the esfs at compile time.
+//        if found independent esfs, they are also included in the linearized vector with a nested fold.
 
-       NOTE: the nested make_independent calls get also linearized
-     */
-    template < typename AMssDescriptor >
-    struct mss_descriptor_linear_esf_sequence {
-        GRIDTOOLS_STATIC_ASSERT((is_computation_token< AMssDescriptor >::value), "Error");
+//        NOTE: the nested make_independent calls get also linearized
+//      */
+//     template < typename AMssDescriptor >
+//     struct mss_descriptor_linear_esf_sequence {
+//         GRIDTOOLS_STATIC_ASSERT((is_computation_token< AMssDescriptor >::value), "Error");
 
-        template < typename State, typename SubArray >
-        struct keep_scanning : keep_scanning_lambda< State, SubArray, boost::mpl::_2 > {};
+//         template < typename State, typename SubArray >
+//         struct keep_scanning : keep_scanning_lambda< State, SubArray, boost::mpl::_2 > {};
 
-        template < typename Array >
-        struct linearize_esf_array : linearize_esf_array_lambda< Array, boost::mpl::_2, keep_scanning > {};
+//         template < typename Array >
+//         struct linearize_esf_array : linearize_esf_array_lambda< Array, boost::mpl::_2, keep_scanning > {};
 
-        typedef typename linearize_esf_array< typename AMssDescriptor::esf_sequence_t >::type type;
-    };
+//         typedef typename linearize_esf_array< typename AMssDescriptor::esf_sequence_t >::type type;
+//     };
 
-    /**
-       @brief constructs an mpl vector of booleans, linearizing the mss tree and attachnig a true or false flag
-       depending wether the esf is independent or not
+//     /**
+//        @brief constructs an mpl vector of booleans, linearizing the mss tree and attachnig a true or false flag
+//        depending wether the esf is independent or not
 
-       the code is very similar as in the metafunction above
-     */
-    template < typename T >
-    struct sequence_of_is_independent_esf;
+//        the code is very similar as in the metafunction above
+//      */
+//     template < typename T >
+//     struct sequence_of_is_independent_esf;
 
-    template < typename AMssDescriptor >
-    struct sequence_of_is_independent_esf {
-        GRIDTOOLS_STATIC_ASSERT((is_computation_token< AMssDescriptor >::value), "Error");
+//     template < typename AMssDescriptor >
+//     struct sequence_of_is_independent_esf {
+//         GRIDTOOLS_STATIC_ASSERT((is_computation_token< AMssDescriptor >::value), "Error");
 
-        template < typename State, typename SubArray >
-        struct keep_scanning : keep_scanning_lambda< State, SubArray, boost::mpl::true_ > {};
+//         template < typename State, typename SubArray >
+//         struct keep_scanning : keep_scanning_lambda< State, SubArray, boost::mpl::true_ > {};
 
-        template < typename Array >
-        struct linearize_esf_array : linearize_esf_array_lambda< Array, boost::mpl::false_, keep_scanning > {};
+//         template < typename Array >
+//         struct linearize_esf_array : linearize_esf_array_lambda< Array, boost::mpl::false_, keep_scanning > {};
 
-        typedef typename linearize_esf_array< typename AMssDescriptor::esf_sequence_t >::type type;
-    };
+//         typedef typename linearize_esf_array< typename AMssDescriptor::esf_sequence_t >::type type;
+//     };
 
     /**
      * @struct is_mss_parameter

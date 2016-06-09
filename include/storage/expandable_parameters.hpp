@@ -25,10 +25,13 @@ namespace gridtools {
 
         typedef typename field< Storage, Size >::type super;
         typedef typename super::traits traits;
-        typedef Storage basic_type;
+        typedef typename super::basic_type basic_type;
+        typedef typename super::pointer_type pointer_type;
+
         using typename super::data_field;
 
       public:
+
         template < typename PT, typename MD, ushort_t FD >
         using type_tt = expandable_parameters< typename super::template type_tt< PT, MD, Size >, Size >;
 
@@ -76,7 +79,7 @@ namespace gridtools {
         typename super::value_type &operator()(uint_t const &dim, UInt const &... idx) {
             assert(this->m_meta_data.index(idx...) < this->m_meta_data.size());
             assert(this->is_set);
-            return (this->m_fields[dim])[this->m_meta_data.index(idx...)];
+            return this->m_fields[this->m_meta_data.index(idx...)];
         }
 
         /**

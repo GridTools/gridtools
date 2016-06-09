@@ -147,6 +147,10 @@ namespace gridtools {
         typedef boost::mpl::vector< static_int< n_dim - Pair::first >... > coordinates;
 
       public:
+
+        GT_FUNCTION constexpr accessor_mixed()
+            : m_args_runtime() {}
+
         template < typename... ArgsRuntime,
             typename T = typename boost::enable_if_c< accumulate(logical_and(),
                 boost::mpl::or_< boost::is_integral< ArgsRuntime >, is_dimension< ArgsRuntime > >::type::value...) >::

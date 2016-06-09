@@ -498,6 +498,7 @@ namespace gridtools {
             // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
             ,
             const int_t pointer_offset) const {
+            assert(storage_pointer);
             return *(storage_pointer + pointer_offset);
         }
 
@@ -729,9 +730,11 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 
+        assert(storage_pointer);
         typename storage_t::value_type *RESTRICT real_storage_pointer =
             static_cast< typename storage_t::value_type * >(storage_pointer);
 
+        assert(real_storage_pointer);
         // getting information about the metadata
         typedef typename boost::mpl::at< metadata_map_t, typename storage_t::storage_info_type >::type metadata_index_t;
 
@@ -887,7 +890,6 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((Accessor::type::n_dim <= metadata_t::space_dimensions + 1) ||
                                     (accessor_mixed_t::template get_constexpr< 1 >() >= 0),
             "offset specified for the dimension corresponding to the number of snapshots must be non negative");
-        // typedef typename static_int<storage_t::traits::n_width>::type::fuck fuck;
         GRIDTOOLS_STATIC_ASSERT(
             (storage_t::traits::n_width > 0), "did you define a field dimension with 0 snapshots??");
 

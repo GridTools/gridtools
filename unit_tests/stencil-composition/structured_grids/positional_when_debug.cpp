@@ -32,7 +32,7 @@ namespace positional_when_debug_test{
 
 
     struct test_functor {
-        typedef gridtools::accessor<0> in;
+        typedef gridtools::accessor< 0, gridtools::enumtype::inout > in;
         typedef boost::mpl::vector1<in> arg_list;
 
         template <typename Evaluation>

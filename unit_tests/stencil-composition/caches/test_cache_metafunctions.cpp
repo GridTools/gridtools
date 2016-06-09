@@ -8,6 +8,7 @@
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include "common/defs.hpp"
+#include "stencil-composition/empty_extent.hpp"
 #include "stencil-composition/backend.hpp"
 #include "stencil-composition/caches/cache_metafunctions.hpp"
 #include "stencil-composition/interval.hpp"
@@ -44,10 +45,10 @@ typedef decltype(gridtools::make_esf<functor1>(p_buff(), p_out()) ) esf2_t;
 
 typedef boost::mpl::vector2<esf1_t, esf2_t> esf_sequence_t;
 
-typedef detail::cache_impl<IJ, p_in, fill> cache1_t;
-typedef detail::cache_impl<IJ, p_buff, fill> cache2_t;
-typedef detail::cache_impl<K, p_out, local> cache3_t;
-typedef detail::cache_impl<K, p_notin, local> cache4_t;
+typedef detail::cache_impl< IJ, p_in, fill > cache1_t;
+typedef detail::cache_impl< IJ, p_buff, fill > cache2_t;
+typedef detail::cache_impl< K, p_out, local > cache3_t;
+typedef detail::cache_impl< K, p_notin, local > cache4_t;
 typedef boost::mpl::vector4<cache1_t, cache2_t, cache3_t, cache4_t> caches_t;
 
 TEST(cache_metafunctions, cache_used_by_esfs)
