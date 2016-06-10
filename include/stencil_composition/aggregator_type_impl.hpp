@@ -64,10 +64,8 @@ namespace gridtools {
         };
 
         struct print_view_ {
-            std::ostream & out_s;
-            print_view_(std::ostream & out_s)
-                : out_s(out_s)
-            {}
+            std::ostream &out_s;
+            print_view_(std::ostream &out_s) : out_s(out_s) {}
 
             template < typename T >
             void operator()(T &t) const {
@@ -84,7 +82,7 @@ namespace gridtools {
 
         struct dt_print_pointer {
             template < typename PType >
-            GT_FUNCTION_WARNING void operator()(PType const&s) const {
+            GT_FUNCTION_WARNING void operator()(PType const &s) const {
                 printf("Pointer Value %x\n", s.get());
             }
         };

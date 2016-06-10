@@ -1,13 +1,15 @@
 #pragma once
 
 #include <gridtools.hpp>
-#include <storage/meta_storage.hpp>
+#include <storage/storage-facility.hpp>
 
 namespace horizontal_diffusion {
 
 #ifdef CUDA_EXAMPLE
-    typedef gridtools::backend< gridtools::enumtype::Cuda, gridtools::GRIDBACKEND, gridtools::enumtype::Block >
-        hd_backend;
+    typedef gridtools::backend< gridtools::enumtype::Cuda,
+        gridtools::GRIDBACKEND,
+        gridtools::enumtype::Block > hd_backend;
+    typedef gridtools::storage_traits< gridtools::enumtype::Cuda > storage_tr;
 #else
 #ifdef BACKEND_BLOCK
     typedef gridtools::backend< gridtools::enumtype::Host, gridtools::GRIDBACKEND, gridtools::enumtype::Block >
@@ -16,6 +18,7 @@ namespace horizontal_diffusion {
     typedef gridtools::backend< gridtools::enumtype::Host, gridtools::GRIDBACKEND, gridtools::enumtype::Naive >
         hd_backend;
 #endif
+    typedef gridtools::storage_traits< gridtools::enumtype::Host > storage_tr;
 #endif
 
     using gridtools::uint_t;
@@ -32,23 +35,38 @@ namespace horizontal_diffusion {
 #endif
 
     typedef gridtools::layout_map< -1, -1, -1 > layout_scalar;
-
-    typedef hd_backend::storage_info< 0, layout_ijk, gridtools::halo< 2, 0, 0 > > storage_info_ijk_t;
-    typedef hd_backend::storage_info< 1, layout_ij, gridtools::halo< 2, 0, 0 > > storage_info_ij_t;
-    typedef hd_backend::storage_info< 2, layout_j, gridtools::halo< 2, 0, 0 > > storage_info_j_t;
-    typedef hd_backend::storage_info< 3, layout_scalar, gridtools::halo< 2, 0, 0 > > storage_info_scalar_t;
-
+#ifdef CXX11_ENABLED
+    using storage_info_ijk_t = storage_tr::meta_storage_type< 0, layout_ijk, gridtools::halo< 2, 0, 0 > >;
+    using storage_info_ij_t =  storage_tr::meta_storage_type< 1, layout_ij, gridtools::halo< 2, 0, 0 > >;
+    using storage_info_j_t = storage_tr::meta_storage_type< 2, layout_j, gridtools::halo< 2, 0, 0 > >;
+    using storage_info_scalar_t = storage_tr::meta_storage_type< 3, layout_scalar, gridtools::halo< 2, 0, 0 > >;
+#else
+    typedef storage_tr::meta_storage_type< 0, layout_ijk, gridtools::halo< 2, 0, 0 > >::type storage_info_ijk_t;
+    typedef storage_tr::meta_storage_type< 1, layout_ij, gridtools::halo< 2, 0, 0 > >::type storage_info_ij_t;
+    typedef storage_tr::meta_storage_type< 2, layout_j, gridtools::halo< 2, 0, 0 > >::type storage_info_j_t;
+    typedef storage_tr::meta_storage_type< 3, layout_scalar, gridtools::halo< 2, 0, 0 > >::type storage_info_scalar_t;
+#endif
     class repository {
       public:
-        typedef hd_backend::storage_type< gridtools::float_type, storage_info_ijk_t >::type storage_type;
-        typedef hd_backend::storage_type< gridtools::float_type, storage_info_ij_t >::type ij_storage_type;
-        typedef hd_backend::storage_type< gridtools::float_type, storage_info_j_t >::type j_storage_type;
+#ifdef CXX11_ENABLED
+        using storage_type = storage_tr::storage_type< gridtools::float_type, storage_info_ijk_t >;
+        using ij_storage_type = storage_tr::storage_type< gridtools::float_type, storage_info_ij_t >;
+        using j_storage_type = storage_tr::storage_type< gridtools::float_type, storage_info_j_t >;
 
-        typedef hd_backend::temporary_storage_type< gridtools::float_type, storage_info_scalar_t >::type
+        using scalar_storage_type = storage_tr::temporary_storage_type< gridtools::float_type, storage_info_scalar_t >;
+        using tmp_storage_type = storage_tr::temporary_storage_type< gridtools::float_type, storage_info_ijk_t >;
+        using tmp_scalar_storage_type = storage_tr::temporary_storage_type< gridtools::float_type, storage_info_scalar_t >;
+#else
+        typedef storage_tr::storage_type< gridtools::float_type, storage_info_ijk_t >::type storage_type;
+        typedef storage_tr::storage_type< gridtools::float_type, storage_info_ij_t >::type ij_storage_type;
+        typedef storage_tr::storage_type< gridtools::float_type, storage_info_j_t >::type j_storage_type;
+
+        typedef storage_tr::temporary_storage_type< gridtools::float_type, storage_info_scalar_t >::type
             scalar_storage_type;
-        typedef hd_backend::temporary_storage_type< gridtools::float_type, storage_info_ijk_t >::type tmp_storage_type;
-        typedef hd_backend::temporary_storage_type< gridtools::float_type, storage_info_scalar_t >::type
+        typedef storage_tr::temporary_storage_type< gridtools::float_type, storage_info_ijk_t >::type tmp_storage_type;
+        typedef storage_tr::temporary_storage_type< gridtools::float_type, storage_info_scalar_t >::type
             tmp_scalar_storage_type;
+#endif
 
         storage_info_ijk_t m_storage_info_ijk;
         storage_info_j_t m_storage_info_j;

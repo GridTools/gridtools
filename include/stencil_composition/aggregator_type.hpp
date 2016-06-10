@@ -38,7 +38,7 @@
 namespace gridtools {
 
     namespace _impl {
-        // metafunction to extract the storage type from thepointer
+        // metafunction to extract the storage type from the pointer
         template < typename T, typename U >
         struct matches {
             typedef typename boost::is_same< typename T::value_type, U >::type type;
@@ -334,7 +334,7 @@ namespace gridtools {
         }
 
         template < typename Index >
-        void storage_info(std::ostream & out_s) const {
+        void storage_info(std::ostream &out_s) const {
             out_s << Index::value << " -|-> " << (boost::fusion::at_c< Index >(m_metadata_set))->name() << " "
                   << (boost::fusion::at_c< Index >(m_metadata_set))->template dims< 0 >() << "x"
                   << (boost::fusion::at_c< Index >(m_metadata_set))->template dims< 1 >() << "x"

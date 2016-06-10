@@ -19,7 +19,7 @@ namespace gridtools {
             typedef hybrid_pointer< T, true > type;
         };
 
-        template < typename ValueType, typename MetaData, bool Temp = false, short_t SpaceDim = 1 >
+        template < typename ValueType, typename MetaData, short_t SpaceDim = 1 >
         struct select_storage {
             GRIDTOOLS_STATIC_ASSERT(is_meta_storage< MetaData >::value, "wrong type for the storage_info");
             typedef storage< base_storage< typename pointer< ValueType >::type, MetaData, SpaceDim > > type;

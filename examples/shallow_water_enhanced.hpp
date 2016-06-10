@@ -1,5 +1,11 @@
 #pragma once
 // [includes]
+#include <iostream>
+#ifndef NDEBUG
+#ifndef __CUDACC__
+#include <fstream>
+#endif
+#endif
 #include <gridtools.hpp>
 #include <stencil_composition/make_computation.hpp>
 #include <storage/parallel_storage.hpp>

@@ -276,7 +276,7 @@ namespace gridtools {
         void reset(T *cpu_p) { m_cpu_p.reset(cpu_p); }
 
         GT_FUNCTION
-        bool set_externally_managed(bool externally_managed_) { m_cpu_p.set_externally_managed(externally_managed_); }
+        void set_externally_managed(bool externally_managed_) { m_cpu_p.set_externally_managed(externally_managed_); }
 
         GT_FUNCTION
         bool is_externally_managed() const { return m_cpu_p.is_externally_managed(); }

@@ -6,10 +6,10 @@ using namespace gridtools;
 TEST(storage_info, test_component) {
     typedef layout_map<0,1,2> layout;
 #ifdef CXX11_ENABLED
-    typedef storage_traits<enumtype::Host>::meta_storage_type<0, layout, false> meta_data_t;
+    typedef storage_traits<enumtype::Host>::meta_storage_type<0, layout> meta_data_t;
     typedef storage_traits<enumtype::Host>::storage_type<float, meta_data_t> storage_t;
 #else
-    typedef storage_traits<enumtype::Host>::meta_storage_type<0, layout, false>::type meta_data_t;
+    typedef storage_traits<enumtype::Host>::meta_storage_type<0, layout>::type meta_data_t;
     typedef storage_traits<enumtype::Host>::storage_type<float, meta_data_t>::type storage_t;
 #endif
     meta_data_t meta_obj(10,10,10);
@@ -151,7 +151,7 @@ TEST(storage_info, test_interface) {
     ASSERT_TRUE((storage.meta_data().unaligned_dims(2) == 13) && "error");
     ASSERT_TRUE((storage.meta_data().unaligned_strides(2) == 13) && "error");
     ASSERT_TRUE((storage.meta_data().unaligned_strides(1) == 13 * 12) && "error");
-    ASSERT_TRUE((storage.meta_data().unaligned_strides(0) == 13 * 12 * 11) && "error"); 
+    ASSERT_TRUE((storage.meta_data().unaligned_strides(0) == 13 * 12 * 11) && "error");
 #endif
 
 #endif

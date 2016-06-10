@@ -25,7 +25,7 @@ namespace gridtools {
         /**
            @brief storage type associated to the host backend
          */
-        template < typename ValueType, typename MetaData, bool Temp, short_t FieldDim = 1 >
+        template < typename ValueType, typename MetaData, short_t FieldDim = 1 >
         struct select_storage {
             GRIDTOOLS_STATIC_ASSERT((is_meta_storage< MetaData >::value), "wrong type for the storage_info");
             typedef storage< base_storage< typename pointer< ValueType >::type, MetaData, FieldDim > > type;
@@ -37,8 +37,6 @@ namespace gridtools {
 
         /**
            @brief storage info type associated to the host backend
-
-           the storage info type is meta_storage_base, which is not clonable to GPU.
          */
         template < typename IndexType, typename Layout, bool Temp, typename Halo, typename Alignment >
         struct select_meta_storage {
@@ -49,6 +47,5 @@ namespace gridtools {
             typedef meta_storage<
                 meta_storage_aligned< meta_storage_base< IndexType::value, Layout, Temp >, Alignment, Halo > > type;
         };
-
     };
 }

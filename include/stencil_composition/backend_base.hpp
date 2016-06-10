@@ -5,27 +5,28 @@
 #include <boost/mpl/reverse.hpp>
 
 #include "gridtools.hpp"
-#include "stencil_composition/heap_allocated_temps.hpp"
-#include "stencil_composition/backend_traits_fwd.hpp"
-#include "stencil_composition/run_functor_arguments.hpp"
+#include "./heap_allocated_temps.hpp"
+#include "./backend_traits_fwd.hpp"
+#include "./run_functor_arguments.hpp"
 
 #ifdef __CUDACC__
-#include "stencil_composition/backend_cuda/backend_cuda.hpp"
+#include "./backend_cuda/backend_cuda.hpp"
 #else
-#include "stencil_composition/backend_host/backend_host.hpp"
+#include "./backend_host/backend_host.hpp"
 #endif
 
-#include "common/pair.hpp"
-#include "accessor.hpp"
-#include "stencil_composition/aggregator_type.hpp"
-#include "stencil_composition/mss_metafunctions.hpp"
-#include "stencil_composition/mss_local_domain.hpp"
-#include "stencil_composition/mss.hpp"
-#include "stencil_composition/axis.hpp"
-#include "common/meta_array.hpp"
-#include "stencil_composition/tile.hpp"
+#include "../common/pair.hpp"
+#include "./accessor.hpp"
+#include "./global_parameter.hpp"
+#include "./aggregator_type.hpp"
+#include "./mss_metafunctions.hpp"
+#include "./mss_local_domain.hpp"
+#include "./mss.hpp"
+#include "./axis.hpp"
+#include "../common/meta_array.hpp"
+#include "./tile.hpp"
 #include "../storage/storage-facility.hpp"
-#include "conditionals/condition.hpp"
+#include "./conditionals/condition.hpp"
 
 /**
    @file
@@ -138,13 +139,14 @@ namespace gridtools {
 
         template < typename ValueType, typename MetaDataType >
         struct storage_type {
-            typedef typename storage_traits<BackendId>::storage_traits_aux::template select_storage<ValueType,
-                typename storage_traits<BackendId>::storage_traits_aux::template select_meta_storage< typename MetaDataType::index_type,
-                                                                    typename MetaDataType::layout,
-                                                                    false,
-                                                                    typename MetaDataType::halo_t,
-                                                                    typename MetaDataType::alignment_t>::type,
-                false>::type type;
+            typedef typename storage_traits< BackendId >::storage_traits_aux::template select_storage<
+                ValueType,
+                typename storage_traits< BackendId >::storage_traits_aux::template select_meta_storage<
+                    typename MetaDataType::index_type,
+                    typename MetaDataType::layout,
+                    false,
+                    typename MetaDataType::halo_t,
+                    typename MetaDataType::alignment_t >::type >::type type;
         };
 
 #ifdef CXX11_ENABLED
@@ -168,19 +170,19 @@ namespace gridtools {
         template < ushort_t Index,
             typename Layout,
             typename Halo = typename repeat_template_c< 0, Layout::length, halo >::type,
-            typename Alignment = typename storage_traits<BackendId>::storage_traits_aux::default_alignment::type >
-        using storage_info = typename storage_traits<BackendId>::storage_traits_aux::
+            typename Alignment = typename storage_traits< BackendId >::storage_traits_aux::default_alignment::type >
+        using storage_info = typename storage_traits< BackendId >::storage_traits_aux::
             template select_meta_storage< static_uint< Index >, Layout, false, Halo, Alignment >::type;
 
 #else
         template < ushort_t Index,
             typename Layout,
             typename Halo = halo< 0, 0, 0 >,
-            typename Alignment = typename storage_traits<BackendId>::storage_traits_aux::default_alignment::type >
+            typename Alignment = typename storage_traits< BackendId >::storage_traits_aux::default_alignment::type >
         struct storage_info
-            : public storage_traits<BackendId>::storage_traits_aux::
+            : public storage_traits< BackendId >::storage_traits_aux::
                   template select_meta_storage< static_uint< Index >, Layout, false, Halo, Alignment >::type {
-            typedef typename storage_traits<BackendId>::storage_traits_aux::
+            typedef typename storage_traits< BackendId >::storage_traits_aux::
                 template select_meta_storage< static_uint< Index >, Layout, false, Halo, Alignment >::type super;
 
             storage_info(uint_t const &d1, uint_t const &d2, uint_t const &d3) : super(d1, d2, d3) {}
@@ -206,19 +208,17 @@ namespace gridtools {
             /** temporary storage must have the same iterator type than the regular storage
              */
           private:
-            typedef typename storage_traits<BackendId>::storage_traits_aux::template select_storage< ValueType,
-                typename storage_traits<BackendId>::storage_traits_aux::template select_meta_storage< typename MetaDataType::index_type,
-                                                                            typename MetaDataType::layout,
-                                                                            true,
-                                                                            typename MetaDataType::halo_t,
-                                                                            typename MetaDataType::alignment_t >::type,
-                true >::type temp_storage_t;
+            typedef typename storage_traits< BackendId >::storage_traits_aux::template select_storage<
+                ValueType,
+                typename storage_traits< BackendId >::storage_traits_aux::template select_meta_storage<
+                    typename MetaDataType::index_type,
+                    typename MetaDataType::layout,
+                    true,
+                    typename MetaDataType::halo_t,
+                    typename MetaDataType::alignment_t >::type >::type temp_storage_t;
 
           public:
-            typedef typename boost::mpl::if_<
-                typename backend_traits_t::template requires_temporary_redundant_halos< s_strategy_id >::type,
-                no_storage_type_yet< temp_storage_t >,
-                temp_storage_t >::type type;
+            typedef no_storage_type_yet< temp_storage_t > type;
         };
 
         /**
@@ -370,10 +370,8 @@ namespace gridtools {
 
         template < typename ArgList, typename MetaList, typename Grid >
         static void prepare_temporaries(ArgList &arg_list_, MetaList &meta_list_, Grid const &grid) {
-            _impl::template prepare_temporaries_functor< ArgList,
-                MetaList,
-                Grid,
-                backend_ids_t>::prepare_temporaries((arg_list_), meta_list_, (grid));
+            _impl::template prepare_temporaries_functor< ArgList, MetaList, Grid, backend_ids_t >::prepare_temporaries(
+                (arg_list_), meta_list_, (grid));
         }
 
         /** Initial interface

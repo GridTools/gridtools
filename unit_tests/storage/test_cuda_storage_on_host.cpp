@@ -23,10 +23,10 @@ TEST(cuda_storage_on_host, test_storage_types) {
 #endif
 
 #ifdef CXX11_ENABLED
-	typedef storage_traits<BACKEND>::meta_storage_type<0, layout, false> meta_data_t;
+	typedef storage_traits<BACKEND>::meta_storage_type<0, layout> meta_data_t;
 	typedef storage_traits<BACKEND>::storage_type<float, meta_data_t> storage_t;
 #else
-	typedef storage_traits<BACKEND>::meta_storage_type<0, layout, false>::type meta_data_t;
+	typedef storage_traits<BACKEND>::meta_storage_type<0, layout>::type meta_data_t;
 	typedef storage_traits<BACKEND>::storage_type<float, meta_data_t>::type storage_t;
 #endif
 	meta_data_t meta_obj(10,10,10);
