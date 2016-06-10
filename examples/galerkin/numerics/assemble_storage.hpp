@@ -3,6 +3,7 @@
 // TODO: I am including this header because it contains storage_t definition, why not using separate headers for galerking related defs?
 #include "basis_functions.hpp"
 #include "../utils/indexing.hpp"
+#include <iostream>
 
 namespace gdl {
 
@@ -40,6 +41,14 @@ namespace gdl {
         {
             return GridSpecificRuleApplier::apply_impl(io_X1,io_x1,io_X2,io_x2);
         }
+
+        // TODO: unify
+        static inline bool apply(ushort_t& io_X1, ushort_t& io_x1)
+        {
+            return GridSpecificRuleApplier::apply_impl(io_X1,io_x1);
+        }
+
+
     };
 
     /**
@@ -91,7 +100,52 @@ namespace gdl {
 
             return true;
         }
+
     };
+
+    /**
+      @class Halo data storing structure
+
+          This structure stores the data concerning halo
+          structure in storage object allowing the correct
+          access of "real" data location and skipping the
+          halo ones
+
+     */
+    struct halo_data {
+
+        /**
+          @brief constructor
+          @param i_halo_size_x_full Total number of halo element in x (first) direction
+          @param i_halo_size_y_full Total number of halo element in y (second) direction
+          @param i_halo_size_z_full Total number of halo element in z (third) direction
+          @param i_halo_size_x_left Number of "left" (i.e., near the origin) halo element in x (first) direction
+          @param i_halo_size_y_left Number of "left" (i.e., near the origin) halo element in y (second) direction
+          @param i_halo_size_z_left Number of "left" (i.e., near the origin) halo element in z (third) direction
+         */
+        halo_data(uint_t i_halo_size_x_full = 0,
+                  uint_t i_halo_size_y_full = 0,
+                  uint_t i_halo_size_z_full = 0,
+                  uint_t i_halo_size_x_left = 0,
+                  uint_t i_halo_size_y_left = 0,
+                  uint_t i_halo_size_z_left = 0):
+                  m_halo_size_x_full(i_halo_size_x_full),
+                  m_halo_size_y_full(i_halo_size_y_full),
+                  m_halo_size_z_full(i_halo_size_z_full),
+                  m_halo_size_x_left(i_halo_size_x_left),
+                  m_halo_size_y_left(i_halo_size_y_left),
+                  m_halo_size_z_left(i_halo_size_z_left)
+        {}
+
+        // TODO: avoid usge of x,y,z?
+        const uint_t m_halo_size_x_full;
+        const uint_t m_halo_size_y_full;
+        const uint_t m_halo_size_z_full;
+        const uint_t m_halo_size_x_left;
+        const uint_t m_halo_size_y_left;
+        const uint_t m_halo_size_z_left;
+    };
+
 
     /**
       @class Global to local dof translation struct
@@ -121,6 +175,8 @@ namespace gdl {
         const uint_t m_total_dof1;
         const uint_t m_total_dof2;
 
+        const halo_data m_halo_data;
+
     public:
 
         /**
@@ -128,15 +184,18 @@ namespace gdl {
           @param i_grid_dim0 number of mesh elements in x direction
           @param i_grid_dim1 number of mesh elements in y direction
           @param i_grid_dim2 number of mesh elements in z direction
+          @param i_grid_dim2 number of mesh elements in z direction
+          @param i_halo_data storage halo data
          */
-        global_to_local_dof_translator(const uint_t i_grid_dim0, const uint_t i_grid_dim1, const uint_t i_grid_dim2):
-            m_grid_dim0(i_grid_dim0),
-            m_grid_dim1(i_grid_dim1),
-            m_grid_dim2(i_grid_dim2),
+        global_to_local_dof_translator(const uint_t i_grid_dim0, const uint_t i_grid_dim1, const uint_t i_grid_dim2, const halo_data& i_halo_data):
+            m_grid_dim0(i_grid_dim0 - i_halo_data.m_halo_size_x_full),
+            m_grid_dim1(i_grid_dim1 - i_halo_data.m_halo_size_y_full),
+            m_grid_dim2(i_grid_dim2 - i_halo_data.m_halo_size_z_full),
             // A +1 should be present here but then we would need (m_total_dof0 - 1) in the code below
             m_total_dof0(s_max_dof_index0*m_grid_dim0),
             m_total_dof1(s_max_dof_index1*m_grid_dim1),
-            m_total_dof2(s_max_dof_index2*m_grid_dim2)
+            m_total_dof2(s_max_dof_index2*m_grid_dim2),
+            m_halo_data(i_halo_data)
             {}
 
         /**
@@ -175,67 +234,67 @@ namespace gdl {
         {
             if(i_Id1<m_total_dof0)
             {
-                io_I1 = i_Id1/s_max_dof_index0;
+                io_I1 = i_Id1/s_max_dof_index0 + m_halo_data.m_halo_size_x_left;
                 io_i1 = i_Id1%s_max_dof_index0;
             }
             else
             {
-                io_I1 = m_grid_dim0-1;
+                io_I1 = m_grid_dim0 - 1 + m_halo_data.m_halo_size_x_left;
                 io_i1 = s_max_dof_index0;
             }
 
             if(i_Jd1<m_total_dof1)
             {
-                io_J1 = i_Jd1/s_max_dof_index1;
+                io_J1 = i_Jd1/s_max_dof_index1 + m_halo_data.m_halo_size_y_left;
                 io_j1 = i_Jd1%s_max_dof_index1;
             }
             else
             {
-                io_J1 = m_grid_dim1-1;
+                io_J1 = m_grid_dim1 - 1 + m_halo_data.m_halo_size_y_left;
                 io_j1 = s_max_dof_index1;
             }
 
             if(i_Kd1<m_total_dof2)
             {
-                io_K1 = i_Kd1/s_max_dof_index2;
+                io_K1 = i_Kd1/s_max_dof_index2 + m_halo_data.m_halo_size_z_left;
                 io_k1 = i_Kd1%s_max_dof_index2;
             }
             else
             {
-                io_K1 = m_grid_dim2-1;
+                io_K1 = m_grid_dim2 - 1 + m_halo_data.m_halo_size_z_left;
                 io_k1 = s_max_dof_index2;
             }
 
             if(i_Id2<m_total_dof0)
             {
-                io_I2 = i_Id2/s_max_dof_index0;
+                io_I2 = i_Id2/s_max_dof_index0 + m_halo_data.m_halo_size_x_left;
                 io_i2 = i_Id2%s_max_dof_index0;
             }
             else
             {
-                io_I2 = m_grid_dim0-1;
+                io_I2 = m_grid_dim0 - 1 + m_halo_data.m_halo_size_x_left;
                 io_i2 = s_max_dof_index0;
             }
 
             if(i_Jd2<m_total_dof1)
             {
-                io_J2 = i_Jd2/s_max_dof_index1;
+                io_J2 = i_Jd2/s_max_dof_index1 + m_halo_data.m_halo_size_y_left;
                 io_j2 = i_Jd2%s_max_dof_index1;
             }
             else
             {
-                io_J2 = m_grid_dim1-1;
+                io_J2 = m_grid_dim1 - 1 + m_halo_data.m_halo_size_y_left;
                 io_j2 = s_max_dof_index1;
             }
 
             if(i_Kd2<m_total_dof2)
             {
-                io_K2 = i_Kd2/s_max_dof_index2;
+                io_K2 = i_Kd2/s_max_dof_index2 + m_halo_data.m_halo_size_z_left;
                 io_k2 = i_Kd2%s_max_dof_index2;
             }
             else
             {
-                io_K2 = m_grid_dim2-1;
+                io_K2 = m_grid_dim2 - 1 + m_halo_data.m_halo_size_z_left;
                 io_k2 = s_max_dof_index2;
             }
 
@@ -258,7 +317,47 @@ namespace gdl {
             return true;
         }
 
+        // TODO: add comment and rename variables
+        bool apply(ushort_t i_Id1, ushort_t i_Jd1, ushort_t i_Kd1, ushort_t& io_I1, ushort_t& io_J1, ushort_t& io_K1, ushort_t& io_i1, ushort_t& io_j1, ushort_t& io_k1) const
+        {
+            if(i_Id1<m_total_dof0)
+            {
+                io_I1 = i_Id1/s_max_dof_index0 + m_halo_data.m_halo_size_x_left;
+                io_i1 = i_Id1%s_max_dof_index0;
+            }
+            else
+            {
+                io_I1 = m_grid_dim0 - 1 + m_halo_data.m_halo_size_x_left;
+                io_i1 = s_max_dof_index0;
+            }
+
+            if(i_Jd1<m_total_dof1)
+            {
+                io_J1 = i_Jd1/s_max_dof_index1 + m_halo_data.m_halo_size_y_left;
+                io_j1 = i_Jd1%s_max_dof_index1;
+            }
+            else
+            {
+                io_J1 = m_grid_dim1 - 1 + m_halo_data.m_halo_size_y_left;
+                io_j1 = s_max_dof_index1;
+            }
+
+            if(i_Kd1<m_total_dof2)
+            {
+                io_K1 = i_Kd1/s_max_dof_index2 + m_halo_data.m_halo_size_z_left;
+                io_k1 = i_Kd1%s_max_dof_index2;
+            }
+            else
+            {
+                io_K1 = m_grid_dim2 - 1 + m_halo_data.m_halo_size_z_left;
+                io_k1 = s_max_dof_index2;
+            }
+
+            return true;
+        }
+
     };
+
 
     /**
       @class FEM assemble focused storage
@@ -283,7 +382,7 @@ namespace gdl {
 
         using storage_metadata = MetaData;
         using base_storage_type = typename storage_t< MetaData >::basic_type;
-        using indexing_t = gt::meta_storage_base<__COUNTER__,gt::layout_map<2,1,0>,false>;
+        using indexing_t = gt::meta_storage_base<static_int<__COUNTER__>,gt::layout_map<2,1,0>,false>;
 
     private:
 
@@ -291,9 +390,11 @@ namespace gdl {
         // TODO: this should be a constrexpr
         const indexing_t m_indexing;
 
+        // TODO: why s_?
         const uint_t s_max_dof_2;
         const uint_t s_max_dof_1;
 
+        const halo_data m_halo_data;
 
     public:
 
@@ -302,13 +403,18 @@ namespace gdl {
 
               Input and template parameters correspond to those expected by storage_t constructor
          */
+        // TODO: should i_halo_data be included in storage_info or variadic data?
         template <typename ... ExtraArgs>
-        assemble_storage(const MetaData& i_storage_info, ExtraArgs const &... i_args):
+        assemble_storage(const MetaData& i_storage_info, const halo_data& i_halo_data, ExtraArgs const &... i_args):
                          base_storage_type(i_storage_info, i_args ...),
-                         m_local_dof(i_storage_info.template dims<0>(),i_storage_info.template dims<1>(),i_storage_info.template dims<2>()),
+                         m_local_dof(i_storage_info.template dims<0>(),
+                                     i_storage_info.template dims<1>(),
+                                     i_storage_info.template dims<2>(),
+                                     i_halo_data),
+                         m_halo_data(i_halo_data),
                          m_indexing(BasisCardinality0,BasisCardinality1,BasisCardinality2),
-                         s_max_dof_1((BasisCardinality0-1)*i_storage_info.template dims<0>()),
-                         s_max_dof_2((BasisCardinality1-1)*i_storage_info.template dims<1>())
+                         s_max_dof_1((BasisCardinality0-1)*(i_storage_info.template dims<0>()-i_halo_data.m_halo_size_x_full)),
+                         s_max_dof_2((BasisCardinality1-1)*(i_storage_info.template dims<1>()-i_halo_data.m_halo_size_y_full))
                          {}
 
 
@@ -348,6 +454,42 @@ namespace gdl {
             return 0;
         }
 
+        // TODO: unify with case above and add dimensional checks
+        float_type get_value(ushort_t i_Id1, ushort_t i_Jd1, ushort_t i_Kd1) //const
+        {
+            ushort_t I1;
+            ushort_t J1;
+            ushort_t K1;
+            ushort_t i1;
+            ushort_t j1;
+            ushort_t k1;
+
+//            std::cout<<"get value "<<i_Id1<<" "<<i_Jd1<<" "<<i_Kd1<<std::endl;
+
+            if(m_local_dof.apply(i_Id1,i_Jd1,i_Kd1,I1,J1,K1,i1,j1,k1))
+                return base_storage_type::operator()(I1,J1,K1,m_indexing.index(i1,j1,k1));
+
+            return 0;
+        }
+
+        // TODO: unify with case above and add dimensional checks
+        float_type& set_value(ushort_t i_Id1, ushort_t i_Jd1, ushort_t i_Kd1) //const
+        {
+            ushort_t I1;
+            ushort_t J1;
+            ushort_t K1;
+            ushort_t i1;
+            ushort_t j1;
+            ushort_t k1;
+
+//            std::cout<<"get value "<<i_Id1<<" "<<i_Jd1<<" "<<i_Kd1<<std::endl;
+
+            if(m_local_dof.apply(i_Id1,i_Jd1,i_Kd1,I1,J1,K1,i1,j1,k1))
+                return base_storage_type::operator()(I1,J1,K1,m_indexing.index(i1,j1,k1));
+
+            return 0;
+        }
+
         /**
           @brief global dof base data access method
           @param first dof
@@ -371,6 +513,32 @@ namespace gdl {
 
             return get_value(i1, j1, k1, i2, j2, k2);
         }
+
+        // TODO: unify with case above
+        float_type get_value(uint_t i_I) //const
+        {
+
+            const ushort_t k1 = i_I/((s_max_dof_1+1)*(s_max_dof_2+1));
+
+            const ushort_t j1 = (i_I%((s_max_dof_1+1)*(s_max_dof_2+1)))/(s_max_dof_1+1);
+
+            const ushort_t i1 = (i_I%((s_max_dof_1+1)*(s_max_dof_2+1)))%(s_max_dof_1+1);
+
+            return get_value(i1, j1, k1);
+        }
+
+        float_type& set_value(uint_t i_I) //const
+        {
+
+            const ushort_t k1 = i_I/((s_max_dof_1+1)*(s_max_dof_2+1));
+
+            const ushort_t j1 = (i_I%((s_max_dof_1+1)*(s_max_dof_2+1)))/(s_max_dof_1+1);
+
+            const ushort_t i1 = (i_I%((s_max_dof_1+1)*(s_max_dof_2+1)))%(s_max_dof_1+1);
+
+            return set_value(i1, j1, k1);
+        }
+
 
     };
 }
