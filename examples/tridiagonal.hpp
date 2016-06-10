@@ -2,10 +2,10 @@
 
 #include <gridtools.hpp>
 
-#include <stencil-composition/stencil-composition.hpp>
+#include <stencil_composition/stencil_composition.hpp>
 
-#include <stencil-composition/interval.hpp>
-#include <stencil-composition/make_computation.hpp>
+#include <stencil_composition/interval.hpp>
+#include <stencil_composition/make_computation.hpp>
 #include <tools/verifier.hpp>
 
 #ifdef USE_PAPI_WRAP

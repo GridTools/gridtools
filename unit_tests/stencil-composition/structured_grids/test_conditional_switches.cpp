@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
-#include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/conditionals/condition_pool.hpp>
+#include <stencil_composition/stencil_composition.hpp>
+#include <stencil_composition/conditionals/condition_pool.hpp>
 
 namespace test_conditional_switches{
     using namespace gridtools;

@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include <stencil-composition/stencil-composition.hpp>
+#include <stencil_composition/stencil_composition.hpp>
 
 struct functor {
     using a0 = gridtools::accessor< 0, gridtools::enumtype::inout >;

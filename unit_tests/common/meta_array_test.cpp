@@ -5,7 +5,7 @@
 #include <boost/type_traits/is_integral.hpp>
 #include <boost/mpl/vector/vector10.hpp>
 #include <boost/mpl/equal.hpp>
-#include <stencil-composition/stencil-composition.hpp>
+#include <stencil_composition/stencil_composition.hpp>
 #include "common/meta_array.hpp"
 
 template<typename T> struct is_integer : boost::mpl::false_{};

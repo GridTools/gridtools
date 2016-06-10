@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
-#include <stencil-composition/stencil-composition.hpp>
+#include <stencil_composition/stencil_composition.hpp>
 #include "tools/verifier.hpp"
 
 using namespace gridtools;

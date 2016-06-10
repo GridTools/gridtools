@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "stencil-composition/stencil-composition.hpp"
+#include "stencil_composition/stencil_composition.hpp"
 
 #ifdef __CUDACC__
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >

@@ -5,7 +5,7 @@
 #include <vector>
 #include <iostream>
 #include <common/defs.hpp>
-#include <stencil-composition/backend.hpp>
+#include <stencil_composition/backend.hpp>
 
 namespace gridtools {
     class neighbour_list {

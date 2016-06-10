@@ -1,9 +1,9 @@
 #include "gtest/gtest.h"
 
 // #include <boost/mpl/map/map10.hpp>
-#include <stencil-composition/structured_grids/accessor.hpp>
-#include <stencil-composition/structured_grids/accessor_metafunctions.hpp>
-// #include "stencil-composition/iterate_domain_remapper.hpp"
+#include <stencil_composition/structured_grids/accessor.hpp>
+#include <stencil_composition/structured_grids/accessor_metafunctions.hpp>
+// #include "stencil_composition/iterate_domain_remapper.hpp"
 
 TEST(accessor, is_accessor) {
     using namespace gridtools;

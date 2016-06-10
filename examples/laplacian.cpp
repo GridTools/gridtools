@@ -4,7 +4,7 @@
 #include <fstream>
 
 #include <gridtools.hpp>
-#include <stencil-composition/stencil-composition.hpp>
+#include <stencil_composition/stencil_composition.hpp>
 #include <tools/verifier.hpp>
 #include "Options.hpp"
 

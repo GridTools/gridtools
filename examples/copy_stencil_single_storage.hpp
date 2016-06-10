@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stencil-composition/stencil-composition.hpp>
+#include <stencil_composition/stencil_composition.hpp>
 
 /**
   @file

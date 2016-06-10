@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include <stencil-composition/make_computation.hpp>
+#include <stencil_composition/make_computation.hpp>
 
 
 TEST(storage_alignment, test_aligned) {

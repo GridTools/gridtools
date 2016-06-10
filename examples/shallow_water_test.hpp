@@ -6,7 +6,7 @@
 #include <boost/lambda/construct.hpp>
 #include <boost/fusion/include/make_vector.hpp>
 
-#include <stencil-composition/stencil-composition.hpp>
+#include <stencil_composition/stencil_composition.hpp>
 
 #ifdef CUDA_EXAMPLE
 #include <boundary-conditions/apply_gpu.hpp>

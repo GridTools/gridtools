@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include <stencil-composition/stencil-composition.hpp>
+#include <stencil_composition/stencil_composition.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
