@@ -71,7 +71,7 @@ namespace gridtools {
         bool is_externally_managed() const { return m_externally_managed; }
 
         GT_FUNCTION
-        virtual ~wrap_pointer() {
+        ~wrap_pointer() {
 #ifdef VERBOSE
 #ifndef __CUDACC__
             std::cout << "deleting wrap pointer " << this << std::endl;

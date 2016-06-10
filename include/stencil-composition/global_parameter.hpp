@@ -18,7 +18,7 @@ struct global_parameter : T {
     typedef global_parameter<T> this_type;
     typedef T wrapped_type;
     typedef this_type basic_type;
-    typedef this_type* iterator_type;
+    typedef this_type super;
     typedef this_type* iterator;
     typedef this_type value_type;
     static const ushort_t field_dimensions=1;

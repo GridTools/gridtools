@@ -129,7 +129,7 @@ namespace gridtools {
             template < typename U >
             struct apply {
                 GRIDTOOLS_STATIC_ASSERT((is_arg< U >::type::value), "wrong type");
-                typedef typename U::iterator_type type;
+                typedef typename U::iterator type;
             };
         };
 

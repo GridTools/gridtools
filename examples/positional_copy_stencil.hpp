@@ -34,7 +34,7 @@ namespace positional_copy_stencil {
     struct init_functor {
         typedef accessor< 0, enumtype::inout, extent<> > one;
         typedef accessor< 1, enumtype::inout, extent<> > two;
-        typedef boost::mpl::vector< one, two > arg_list;
+        typedef boost::mpl::vector2< one, two > arg_list;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
@@ -48,7 +48,7 @@ namespace positional_copy_stencil {
 
         typedef accessor< 0, enumtype::in, extent<>, 3 > in;
         typedef accessor< 1, enumtype::inout, extent<>, 3 > out;
-        typedef boost::mpl::vector< in, out > arg_list;
+        typedef boost::mpl::vector2< in, out > arg_list;
 
         /* static const auto expression=in(1,0,0)-out(); */
 
@@ -102,7 +102,7 @@ namespace positional_copy_stencil {
         typedef arg< 1, storage_type > p_out;
         // An array of placeholders to be passed to the domain
         // I'm using mpl::vector, but the final API should look slightly simpler
-        typedef boost::mpl::vector< p_in, p_out > accessor_list;
+        typedef boost::mpl::vector2< p_in, p_out > accessor_list;
 
         /* typedef arg<1, vec_field_type > p_out; */
 

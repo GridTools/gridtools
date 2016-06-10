@@ -157,12 +157,9 @@ namespace gridtools {
         typedef base_storage< PointerType, MetaData, FieldDimension > basic_type;
         typedef PointerType pointer_type;
         typedef typename pointer_type::pointee_t value_type;
-        typedef value_type *iterator_type;
-        typedef value_type const *const_iterator_type;
-
         // consistency with STL
-        typedef iterator_type iterator;
-        typedef const_iterator_type const_iterator;
+        typedef value_type *iterator;
+        typedef value_type const *const_iterator;
 
         typedef MetaData storage_info_type;
         typedef typename MetaData::layout layout;
@@ -355,7 +352,7 @@ namespace gridtools {
         // /** @brief returns the last memry address of the data field */
         /** @brief returns the last memory address of the data field */
         GT_FUNCTION
-        const_iterator_type max_addr() const { return &((m_fields[field_dimensions - 1])[m_meta_data->size()]); }
+        const_iterator max_addr() const { return &((m_fields[field_dimensions - 1])[m_meta_data->size()]); }
 
         /** @brief returns (by reference) the value of the data field at the index "index_" */
         template < typename UInt >
@@ -471,6 +468,7 @@ namespace gridtools {
         GT_FUNCTION
         pointer< const storage_info_type > meta_data() const { return m_meta_data; }
 
+        GT_FUNCTION
         void set_meta_data(const storage_info_type *st) { m_meta_data = st; }
         /**
            @brief API for compatibility with backends other than host
@@ -478,6 +476,7 @@ namespace gridtools {
          */
         void clone_to_device() {}
 
+        GT_FUNCTION
         void set_externally_managed(bool val_) {
             for (ushort_t i = 0; i < field_dimensions; ++i) {
                 m_fields[i].set_externally_managed(val_);

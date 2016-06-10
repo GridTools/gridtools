@@ -30,7 +30,7 @@ namespace copy_stencil {
     struct copy_functor {
 
         typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 4 > in;
-        typedef boost::mpl::vector< in > arg_list;
+        typedef boost::mpl::vector1< in > arg_list;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
@@ -82,7 +82,7 @@ namespace copy_stencil {
 
         typedef arg< 0, storage_type > p_in;
 
-        typedef boost::mpl::vector< p_in > accessor_list;
+        typedef boost::mpl::vector1< p_in > accessor_list;
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
         // that are used, temporary and not
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.

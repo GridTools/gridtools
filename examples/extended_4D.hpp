@@ -74,7 +74,7 @@ namespace assembly {
         typedef in_accessor< 2, extent<>, 4 > jac;
         typedef in_accessor< 3, extent<>, 6 > f;
         typedef inout_accessor< 4, extent<>, 6 > result;
-        typedef boost::mpl::vector< phi, psi, jac, f, result > arg_list;
+        typedef boost::mpl::vector5< phi, psi, jac, f, result > arg_list;
         using quad = dimension< 4 >;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
@@ -123,7 +123,7 @@ namespace assembly {
         typedef arg< 3, storage_type > p_f;
         typedef arg< 4, storage_type > p_result;
 
-        typedef boost::mpl::vector< p_phi, p_psi, p_jac, p_f, p_result > accessor_list;
+        typedef boost::mpl::vector5< p_phi, p_psi, p_jac, p_f, p_result > accessor_list;
 
         uint_t nbQuadPt = 2; // referenceFE_Type::nbQuadPt;
         uint_t b1 = 2;

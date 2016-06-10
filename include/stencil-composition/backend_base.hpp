@@ -323,7 +323,7 @@ namespace gridtools {
 
             typedef typename boost::mpl::fold<
                 map_of_extents,
-                boost::mpl::vector<>,
+                boost::mpl::vector0<>,
                 typename boost::mpl::push_back< typename boost::mpl::_1,
                     typename _impl::get_storage_type< ValueType, tileI, tileJ, strategy_traits_t, s_backend_id >::
                         template apply< boost::mpl::_2 > > >::type type;

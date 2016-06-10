@@ -3,7 +3,7 @@
 //i know that the following directive is super ugly,
 //but i need to check the private member fields of
 //the storage.
-#define private public
+#define protected public
 #include <common/defs.hpp>
 #include <storage/storage-facility.hpp>
 

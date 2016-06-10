@@ -18,7 +18,7 @@ namespace gridtools {
                 "Size of placeholder arguments passed to esf \n"
                 "    make_esf<functor>(arg1(), arg2()) )\n"
                 "does not match the list of arguments defined within the ESF, like\n"
-                "    typedef boost::mpl::vector<arg_in, arg_out> arg_list.");
+                "    typedef boost::mpl::vector2<arg_in, arg_out> arg_list.");
 #endif
             template < typename Accessor >
             struct _get_extent {

@@ -229,6 +229,8 @@ namespace gridtools {
                     (*(boost::fusion::at< static_ushort< ID > >(m_dom_to.m_storage_pointers)->storage_pointer())).set(*storage_ptr_, m_idx);
                     // update the device pointers (not copying the heavy data)
                     boost::fusion::at< static_ushort< ID > >(m_dom_to.m_storage_pointers)->clone_to_device();
+                    //reset the pointer to the host version, since they'll be accessed from the host
+                    boost::fusion::at< static_ushort< ID > >(m_dom_to.m_storage_pointers)->set_on_host();
                     // copy the heavy data (should be done by the steady)
                     // boost::fusion::at<static_ushort<ID> >(m_dom_to.m_storage_pointers)->h2d_update();
                 }

@@ -92,7 +92,7 @@ namespace soe {
         typedef arg< 4, edge_storage_type > p_j_edges;
         typedef arg< 5, edge_storage_type > p_k_edges;
 
-        typedef boost::mpl::vector< p_in_edges, p_out_edges, p_i_edges, p_c_edges, p_j_edges, p_k_edges >
+        typedef boost::mpl::vector6< p_in_edges, p_out_edges, p_i_edges, p_c_edges, p_j_edges, p_k_edges >
             accessor_list_t;
 
         gridtools::domain_type< accessor_list_t > domain(

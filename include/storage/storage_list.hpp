@@ -28,7 +28,7 @@ namespace gridtools {
 
         typedef typename super::basic_type basic_type;
         // typedef typename super::original_storage original_storage;
-        typedef typename super::iterator_type iterator_type;
+        typedef typename super::iterator iterator;
         typedef typename super::value_type value_type;
 
         /**@brief constructor*/

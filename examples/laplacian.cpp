@@ -47,7 +47,7 @@ struct lap_function {
     /**
        @brief MPL vector of the out and in types
     */
-    typedef boost::mpl::vector<out, in> arg_list;
+    typedef boost::mpl::vector2<out, in> arg_list;
 
     /**
        @brief Do method, overloaded. t_domain specifies the policy, x_lapl is a dummy argument here \todo should it be removed?
@@ -137,7 +137,7 @@ TEST(Laplace, test) {
        - Creation of an array of placeholders to be passed to the domain
        \todo I'm using mpl::vector, but the final API should look slightly simpler
     */
-    typedef boost::mpl::vector<p_in, p_out> accessor_list;
+    typedef boost::mpl::vector2<p_in, p_out> accessor_list;
 // [placeholders]
 
 // [domain_type]

@@ -36,13 +36,19 @@ namespace gridtools {
 
         template <ushort_t ID, typename Storage>
         struct apply<arg<ID, std::vector<pointer<storage<Storage> > > >>{
-            typedef arg<ID, storage<expandable_parameters<Storage, Size> > > type;
+            typedef arg<ID, storage<expandable_parameters<typename Storage::basic_type, Size> > > type;
         };
 
         template <ushort_t ID, typename Storage>
         struct apply<arg<ID, std::vector<pointer<no_storage_type_yet<storage<Storage> > > > > >{
-            typedef arg<ID, no_storage_type_yet<storage<expandable_parameters<Storage, Size> > > > type;
+            typedef arg<ID, no_storage_type_yet<storage<expandable_parameters<typename Storage::basic_type, Size> > > > type;
         };
+
+        template < typename Arg, typename Extent>
+        struct apply<boost::mpl::pair<Arg, Extent> >{
+            typedef boost::mpl::pair<typename apply<Arg>::type, Extent> type;
+        };
+
     };
 
     template <typename PlaceholderArray, uint_t Size>
@@ -81,7 +87,7 @@ namespace gridtools {
 
        \tparam PlaceholdersMap placeholders to extents map from where to start
      */
-    template < typename PlaceholdersMap >
+    template < typename PlaceholdersMap, uint_t RepeatFunctor >
     struct compute_extents_of {
 
         /**
@@ -108,6 +114,10 @@ namespace gridtools {
             struct work_on {
                 template < typename PlcRangePair, typename CurrentMap >
                 struct with {
+
+                    GRIDTOOLS_STATIC_ASSERT((boost::mpl::or_< is_extent< CurrentRange >, is_staggered< CurrentRange > >::value), "wrong type");
+                    GRIDTOOLS_STATIC_ASSERT((boost::mpl::or_< is_extent< typename PlcRangePair::second >, is_staggered< typename PlcRangePair::second > >::value), "wrong type");
+
                     typedef typename sum_extent< CurrentRange, typename PlcRangePair::second >::type candidate_extent;
                     typedef typename enclosing_extent< candidate_extent,
                         typename boost::mpl::at< CurrentMap, typename PlcRangePair::first >::type >::type extent;
@@ -123,6 +133,8 @@ namespace gridtools {
             struct for_each_output {
                 typedef typename boost::mpl::at< CurrentMap, typename Output::first >::type current_extent;
 
+                GRIDTOOLS_STATIC_ASSERT((is_extent< current_extent >::value), "wrong type");
+
                 typedef typename boost::mpl::fold< Inputs,
                     CurrentMap,
                     typename work_on< current_extent >::template with< boost::mpl::_2, boost::mpl::_1 > >::type
@@ -131,13 +143,15 @@ namespace gridtools {
 
             /** Update map recursively visit the ESFs to process their inputs and outputs
              */
-            template < typename ESFs, typename CurrentMap, int Elements >
+            template < typename ESFs, typename CurrentMap, int Elements>
             struct update_map {
                 typedef typename boost::mpl::at_c< ESFs, 0 >::type current_ESF;
                 typedef typename boost::mpl::pop_front< ESFs >::type rest_of_ESFs;
 
                 // First determine which are the outputs
-                typedef typename esf_get_w_per_functor< current_ESF, boost::true_type >::type outputs;
+                typedef typename esf_get_w_per_functor< current_ESF, boost::true_type >::type outputs_original;
+                // substitute the types for expandable parameters arg
+                typedef typename substitute_expandable_params<outputs_original, RepeatFunctor>::type outputs;
                 GRIDTOOLS_STATIC_ASSERT((check_all_extents_are< outputs, extent<> >::type::value),
                     "Extents of the outputs of ESFs are not all empty. All outputs must have empty extents");
 
@@ -149,12 +163,13 @@ namespace gridtools {
                 // needed. This makes sense since we are going in
                 // reverse orders, from the last to the first stage
                 // (esf).
+
                 typedef typename boost::mpl::fold< outputs,
                     CurrentMap,
                     for_each_output< boost::mpl::_2, inputs, boost::mpl::_1 > >::type new_map;
 
                 typedef
-                    typename update_map< rest_of_ESFs, new_map, boost::mpl::size< rest_of_ESFs >::type::value >::type
+                typename update_map< rest_of_ESFs, new_map, boost::mpl::size< rest_of_ESFs >::type::value >::type
                         type;
             };
 
@@ -188,7 +203,7 @@ namespace gridtools {
         \tparam GridTraits The traits of the grids
         \tparam Placeholders The placeholders used in the computation
      */
-    template < typename MssDescriptorArray, typename GridTraits, typename Placeholders >
+    template < typename MssDescriptorArray, typename GridTraits, typename Placeholders, uint_t RepeatFunctor >
     struct placeholder_to_extent_map {
 
       private:
@@ -209,35 +224,26 @@ namespace gridtools {
             typename GridTraits::template select_init_map_of_extents< Placeholders >::type initial_map_of_placeholders;
 
         // This is where the data-dependence analysis happens
-        template < typename CurrentMap, typename Mss >
+        template < typename CurrentMap, typename Mss>
         struct update_map {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_mss_descriptor< Mss >::value || is_reduction_descriptor< Mss >::value), "Internal Error");
 
-            typedef typename mss_compute_extent_sizes_t::template apply< CurrentMap, Mss >::type type;
+            typedef typename mss_compute_extent_sizes_t::template apply< CurrentMap, Mss, RepeatFunctor >::type type;
         };
 
         // The case of conditionals
         template < typename CurrentMap, typename Mss1, typename Mss2, typename Cond >
         struct update_map< CurrentMap, condition< Mss1, Mss2, Cond > > {
-            typedef typename mss_compute_extent_sizes_t::template apply< CurrentMap, Mss1 >::type FirstMap;
-            typedef typename mss_compute_extent_sizes_t::template apply< FirstMap, Mss2 >::type type;
+            typedef typename mss_compute_extent_sizes_t::template apply< CurrentMap, Mss1, RepeatFunctor >::type FirstMap;
+            typedef typename mss_compute_extent_sizes_t::template apply< FirstMap, Mss2, RepeatFunctor >::type type;
         };
-
-        struct extract_index {
-            template < typename I >
-            struct apply{
-                typedef typename I::index_type type;
-            };
-        };
-
-        // typedef typename boost::mpl::transform<MssDescriptorArray, extract_index>::type descriptor_index_array_t;
 
         // we need to iterate over the multistage computations in the computation and
         // update the map accordingly.
         typedef typename boost::mpl::fold< MssDescriptorArray,
-            initial_map_of_placeholders,
-            update_map< boost::mpl::_1, boost::mpl::_2 > >::type type;
+                                           initial_map_of_placeholders,
+                                           update_map< boost::mpl::_1, boost::mpl::_2 > >::type type;
     };
 
     namespace _impl {
@@ -298,6 +304,7 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), "Wrong type");
 
                 typedef typename esf_get_w_per_functor< Esf >::type w_plcs_original;
+                // substitute the types for expandable parameters arg
                 typedef typename substitute_expandable_params<w_plcs_original, RepeatFunctor>::type w_plcs;
                 typedef typename boost::mpl::at_c< w_plcs, 0 >::type first_out;
                 typedef typename boost::mpl::at< MapOfPlaceholders, first_out>::type extent;

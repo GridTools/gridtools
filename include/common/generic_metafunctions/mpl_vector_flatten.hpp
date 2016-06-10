@@ -22,6 +22,6 @@ namespace gridtools {
     template < class T >
     struct flatten {
         typedef
-            typename boost::mpl::fold< T, boost::mpl::vector<>, combine< boost::mpl::_2, boost::mpl::_1 > >::type type;
+            typename boost::mpl::fold< T, boost::mpl::vector0<>, combine< boost::mpl::_2, boost::mpl::_1 > >::type type;
     };
 }
