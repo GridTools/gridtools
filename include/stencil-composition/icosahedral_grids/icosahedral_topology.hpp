@@ -603,51 +603,20 @@ namespace gridtools {
         }
     };
 
-    template < typename SrcLocation, typename DesLocation >
-    struct connectivity;
+    template < typename SrcLocation, typename DestLocation, uint_t Color >
+    struct connectivity {
 
-    template < typename DestLocation >
-    struct connectivity< cells, DestLocation > {
-        GT_FUNCTION
-        static typename return_type< typename from< cells >::template to< DestLocation >, array< int_t, 4 > >::type
-        offsets(const uint_t color) {
-            if (color == 0) {
-                return from< cells >::template to< DestLocation >::template with_color< static_int< 0 > >::offsets();
-            } else if (color == 1) {
-                return from< cells >::template to< DestLocation >::template with_color< static_int< 1 > >::offsets();
-            } else {
-                assert(true);
-            }
-        }
-    };
+        GRIDTOOLS_STATIC_ASSERT((is_location_type<SrcLocation>::value), "Error: unknown src location type");
+        GRIDTOOLS_STATIC_ASSERT((is_location_type<DestLocation>::value), "Error: unknown dst location type");
 
-    template < typename DestLocation >
-    struct connectivity< edges, DestLocation > {
-        GT_FUNCTION
-        static typename return_type< typename from< edges >::template to< DestLocation >, array< int_t, 4 > >::type
-        offsets(const uint_t color) {
-            if (color == 0) {
-                return from< edges >::template to< DestLocation >::template with_color< static_int< 0 > >::offsets();
-            } else if (color == 1) {
-                return from< edges >::template to< DestLocation >::template with_color< static_int< 1 > >::offsets();
-            } else if (color == 2) {
-                return from< edges >::template to< DestLocation >::template with_color< static_int< 2 > >::offsets();
-            } else {
-                assert(true);
-            }
-        }
-    };
+        GRIDTOOLS_STATIC_ASSERT((!boost::is_same<SrcLocation, cells>::value || Color < 2), "Error: Color index beyond color length");
+        GRIDTOOLS_STATIC_ASSERT((!boost::is_same<SrcLocation, edges>::value || Color < 3), "Error: Color index beyond color length");
+        GRIDTOOLS_STATIC_ASSERT((!boost::is_same<SrcLocation, vertexes>::value || Color < 1), "Error: Color index beyond color length");
 
-    template < typename DestLocation >
-    struct connectivity< vertexes, DestLocation > {
         GT_FUNCTION
-        static typename return_type< typename from< vertexes >::template to< DestLocation >, array< int_t, 4 > >::type
-        offsets(const uint_t color) {
-            if (color == 0) {
-                return from< vertexes >::template to< DestLocation >::template with_color< static_int< 0 > >::offsets();
-            } else {
-                assert(true);
-            }
+        constexpr static typename return_type< typename from< SrcLocation >::template to< DestLocation >, array< int_t, 4 > >::type
+        offsets() {
+            return from< cells >::template to< DestLocation >::template with_color< static_int< Color > >::offsets();
         }
     };
 

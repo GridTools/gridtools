@@ -51,34 +51,14 @@ namespace smf {
             using edge_of_cell_dim = dimension< 5 >;
             edge_of_cell_dim::Index edge;
 
-#ifdef WITHCONSTEXPR
-            if (eval.position()[1] == 0) {
-                constexpr auto neighbors_offsets = from< cells >::to< cells >::with_color< static_int< 0 > >::offsets();
-                ushort_t e=0;
-                for (auto neighbor_offset : neighbors_offsets) {
-
-                    eval(weight_edges(edge+e)) = eval(cell_area(neighbor_offset)) / eval(cell_area());
-                    e++;
-                }
-            } else if (eval.position()[1] == 1) {
-                constexpr auto neighbors_offsets = from< cells >::to< cells >::with_color< static_int< 1 > >::offsets();
-                ushort_t e=0;
-                for (auto neighbor_offset : neighbors_offsets) {
-                    eval(weight_edges(edge+e)) = eval(cell_area(neighbor_offset)) / eval(cell_area());
-                    e++;
-                }
-            }
-#else
             //retrieve the array of neighbor offsets. This is an array with length 3 (number of neighbors).
-            auto neighbors_offsets = connectivity< cells, cells >::offsets(eval.position()[1]);
+            constexpr auto neighbors_offsets = connectivity< cells, cells, Color >::offsets();
             ushort_t e=0;
             // loop over all neighbours. Each iterator (neighbor_offset) is a position offset, i.e. an array with length 4
             for (auto neighbor_offset : neighbors_offsets) {
                 eval(weight_edges(edge+e)) = eval(cell_area(neighbor_offset)) / eval(cell_area());
                 e++;
             }
-#endif
-
         }
     };
 
