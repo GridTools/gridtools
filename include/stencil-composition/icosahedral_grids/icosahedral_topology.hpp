@@ -616,7 +616,7 @@ namespace gridtools {
         GT_FUNCTION
         constexpr static typename return_type< typename from< SrcLocation >::template to< DestLocation >, array< int_t, 4 > >::type
         offsets() {
-            return from< cells >::template to< DestLocation >::template with_color< static_int< Color > >::offsets();
+            return from< SrcLocation >::template to< DestLocation >::template with_color< static_int< Color > >::offsets();
         }
     };
 
