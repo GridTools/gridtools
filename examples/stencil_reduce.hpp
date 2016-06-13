@@ -137,7 +137,7 @@ struct boundary_conditions {
 /*******************************************************************************/
 /*******************************************************************************/
 
-bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
+bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, char *msg) {
 
     // Initialize MPI
     gridtools::GCL_Init();
@@ -202,7 +202,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     pattern_type he(pattern_type::grid_type::period_type(false, false, false), GCL_WORLD, &dimensions);
 
     // 3D distributed storage
-    array<ushort_t, 3> padding{1,1,0}; // global halo, 1-Dirichlet, 0-Neumann
+    array<ushort_t, 3> padding{1,1,1}; // global halo, 1-Dirichlet, 0-Neumann
     array<ushort_t, 3> halo{1,1,1}; // number of layers to communicate to neighboring processes
     typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<0,1,2> > >, pattern_type::grid_type> partitioner_t;
     partitioner_t part(he.comm(), halo, padding);
@@ -221,7 +221,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     //--------------------------------------------------------------------------
     // Definition of the actual data fields that are used for input/output
 
-    storage_type x     (metadata_, 1., "Solution vector t");
+    storage_type x     (metadata_, 0.000001, "Solution vector t");
     storage_type Ax    (metadata_, 0., "Vector Ax at time t");
 
     // Pointers to data-fields are swapped at each time-iteration
@@ -250,6 +250,19 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     //             //x(i,j,k) = 10000*(I+i) +  100*(J+j) + K+k;
     //         }
 
+    // Apply boundary conditions
+    gridtools::array<gridtools::halo_descriptor, 3> halos;
+    halos[0] = meta_.template get_halo_descriptor<0>();
+    halos[1] = meta_.template get_halo_descriptor<1>();
+    halos[2] = meta_.template get_halo_descriptor<2>();
+
+    typename gridtools::boundary_apply
+        <boundary_conditions<parallel_storage_info<metadata_t, partitioner_t>>, typename gridtools::bitmap_predicate>
+        (halos,
+         boundary_conditions<parallel_storage_info<metadata_t, partitioner_t>>(meta_, h),
+         gridtools::bitmap_predicate(part.boundary())
+        ).apply(*ptr_x);
+
     //--------------------------------------------------------------------------
     // Definition of placeholders. The order of them reflect the order the user
     // will deal with them especially the non-temporary ones, in the construction
@@ -272,6 +285,9 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     // Start timer
     boost::timer::cpu_times lapse_time_run = {0,0,0};
     boost::timer::cpu_timer time;
+
+    double product_local;
+    double product_global;
 
     /**
         Perform iterations of the stencil
@@ -304,22 +320,6 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
                 make_reduction< reduction_functor, binop::sum >(0.0, p_Ax()) // sum(r'.*r)
             );
 
-        // Apply boundary conditions
-        gridtools::array<gridtools::halo_descriptor, 3> halos;
-        halos[0] = meta_.template get_halo_descriptor<0>();
-        halos[1] = meta_.template get_halo_descriptor<1>();
-        halos[2] = meta_.template get_halo_descriptor<2>();
-
-        typename gridtools::boundary_apply
-            <boundary_conditions<parallel_storage_info<metadata_t, partitioner_t>>, typename gridtools::bitmap_predicate>
-            (halos,
-             boundary_conditions<parallel_storage_info<metadata_t, partitioner_t>>(meta_, h),
-             gridtools::bitmap_predicate(part.boundary())
-            ).apply(*ptr_x);
-
-        double product_local;
-        double product_global;
-
         // Prepare and run single step of CG computation
         stencil->ready();
         stencil->steady();
@@ -335,7 +335,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         }
         #endif
 
-        //communicate halos //TODO - what about halo exchange before first computation? is it done automatically by partitioner?
+        //communicate halos
         std::vector<pointer_type::pointee_t*> vec(1);
         vec[0]=ptr_xNew->data().get();
 
@@ -360,20 +360,22 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         std::cout << "TIME SPENT IN RUN STAGE:" << boost::timer::format(lapse_time_run);
         std::cout << "d3point7 MFLOPS: " << MFLOPS(7,d1,d2,d3,TIME_STEPS,lapse_time_run.wall) << std::endl; //TODO: multiple processes??
         std::cout << "d3point7 MLUPs: " << MLUPS(d1,d2,d3,TIME_STEPS,lapse_time_run.wall) << std::endl << std::endl;
+
+        std::cout << "Reduction result is " << product_global << std::endl;
     }
 
-#ifdef DEBUG
+#ifndef DEBUG
     {
         std::stringstream ss;
         ss << PID;
-        std::string filename = "x" + ss.str() + ".txt";
+        std::string filename = "x" + ss.str() + "_" + msg + ".txt";
         std::ofstream file(filename.c_str());
         ptr_x->print(file);
     }
     {
         std::stringstream ss;
         ss << PID;
-        std::string filename = "xNew" + ss.str() + ".txt";
+        std::string filename = "xNew" + ss.str() + "_" + msg + ".txt";
         std::ofstream file(filename.c_str());
         ptr_xNew->print(file);
     }
