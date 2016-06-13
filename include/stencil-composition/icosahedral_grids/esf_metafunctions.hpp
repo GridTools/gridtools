@@ -1,5 +1,8 @@
 #pragma once
 #include <boost/mpl/equal.hpp>
+#include <boost/mpl/range_c.hpp>
+#include <boost/mpl/fold.hpp>
+#include <boost/mpl/set/set0.hpp>
 #include "../../common/generic_metafunctions/is_there_in_sequence_if.hpp"
 
 namespace gridtools {
@@ -66,7 +69,21 @@ namespace gridtools {
     template<typename Esf>
     struct esf_arg_list
     {
+        template<typename Set, typename Item>
+        struct insert_arglist
+        {
+            typedef typename boost::mpl::insert<Set, typename Esf::template esf_function<Item::value>::arg_list >::type type;
+        };
+
         GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Error");
+
+        typedef typename boost::mpl::fold<
+            boost::mpl::range_c<uint_t, 0, Esf::location_type::n_colors::value>,
+            boost::mpl::set0<>,
+            insert_arglist<boost::mpl::_1, boost::mpl::_2>
+        >::type checkset;
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<checkset>::value==1), "Multiple Color specializations of the same ESF must contain the same arg list");
+
         typedef typename Esf::template esf_function<0>::arg_list type;
     };
 
