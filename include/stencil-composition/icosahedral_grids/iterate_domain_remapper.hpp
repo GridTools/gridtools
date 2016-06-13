@@ -189,15 +189,14 @@ namespace gridtools {
 
         template < typename Map, typename Item >
         struct insert_ {
-            GRIDTOOLS_STATIC_ASSERT((is_arg<Item>::value), "Error");
             typedef
                 typename boost::mpl::insert< Map,
-                    boost::mpl::pair< boost::mpl::integral_c< int, Item::index_type::value >,
-                                                 boost::mpl::integral_c< int, Item::index_type::value > > >::type
+                    boost::mpl::pair< boost::mpl::integral_c< int, Item::value >,
+                                      boost::mpl::integral_c< int, Item::value > > >::type
                     type;
         };
 
-        typedef typename boost::mpl::fold< typename Esf::args_t,
+        typedef typename boost::mpl::fold< boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename Esf::args_t>::value>,
             boost::mpl::map0<>,
             insert_< boost::mpl::_1, boost::mpl::_2 > >::type trivial_args_map_t;
 
