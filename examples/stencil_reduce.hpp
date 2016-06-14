@@ -22,11 +22,10 @@ inline double MFLOPS(int numops, double X, double Y, double Z, double NT, double
 inline double MLUPS(double X, double Y, double Z, double NT, double t) { return X*Y*Z*NT*1000.0/t; }
 
 /*
-  @file This file shows an implementation of Conjugate Gradient solver.
-
-  7-point constant-coefficient isotropic stencil in three dimensions, with symmetry
-  is used to implement matrix-free matrix-vector product. The matrix has a constant
-  structure arising from finite element discretization.
+  @file This file shows an implementation of 7-point
+  constant-coefficient isotropic stencil in three dimensions,
+  with symmetry. The reduction operator is applied on the domain
+  after the stencil operator.
 
   Regular domain x in 0..1 is discretized, the step size h = 1/(n+1)
  */
@@ -146,17 +145,11 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, char *msg) {
     // Boundary is added as extra layer to each dimension
     uint_t d1 = xdim;
     uint_t d2 = ydim;
-    uint_t d3 = zdim; //TODO boundary layer
+    uint_t d3 = zdim;
     uint_t TIME_STEPS = nt;
 
-    // Enforce square domain
-    // if (!(xdim==ydim && ydim==zdim)) {
-    //     if (PID==0) printf("Please run with dimensions X=Y=Z\n");
-    //     return false;
-    // }
-
     // Step size, add +2 for boundary layer
-    double h = 1./(d1+2+1);//TODO boundary layer
+    double h = 1./(d1+2+1);
     double h2 = h*h;
 
     if (PID == 0){
@@ -238,10 +231,6 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, char *msg) {
     size_t J = meta_.get_low_bound(1);
     size_t K = meta_.get_low_bound(2);
 
-    // Partitioning info
-    //std::cout << "I #" << PID << ": " << meta_.get_low_bound(0) << " - " << meta_.get_up_bound(0) << std::endl;
-    //std::cout << "J #" << PID << ": " << meta_.get_low_bound(1) << " - " << meta_.get_up_bound(1) << std::endl;
-
     // Initialize the RHS vector domain
     // for (uint_t i=0; i<metadata_.template dims<0>(); ++i)
     //     for (uint_t j=0; j<metadata_.template dims<1>(); ++j)
@@ -267,8 +256,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, char *msg) {
     // Definition of placeholders. The order of them reflect the order the user
     // will deal with them especially the non-temporary ones, in the construction
     // of the domain
-    typedef arg<0, storage_type > p_Ax;  //residual
-    typedef arg<1, storage_type > p_x;  //rhs
+    typedef arg<0, storage_type > p_Ax;
+    typedef arg<1, storage_type > p_x;
 
     // An array of placeholders to be passed to the domain
     typedef boost::mpl::vector<p_Ax,
@@ -358,13 +347,13 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, char *msg) {
     if (gridtools::PID == 0){
         std::cout << std::endl << "TOTAL TIME: " << boost::timer::format(lapse_time);
         std::cout << "TIME SPENT IN RUN STAGE:" << boost::timer::format(lapse_time_run);
-        std::cout << "d3point7 MFLOPS: " << MFLOPS(7,d1,d2,d3,TIME_STEPS,lapse_time_run.wall) << std::endl; //TODO: multiple processes??
+        std::cout << "d3point7 MFLOPS: " << MFLOPS(7,d1,d2,d3,TIME_STEPS,lapse_time_run.wall) << std::endl;
         std::cout << "d3point7 MLUPs: " << MLUPS(d1,d2,d3,TIME_STEPS,lapse_time_run.wall) << std::endl << std::endl;
 
         std::cout << "Reduction result is " << product_global << std::endl;
     }
 
-#ifndef DEBUG
+#ifdef DEBUG
     {
         std::stringstream ss;
         ss << PID;
@@ -384,6 +373,6 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, char *msg) {
 
     gridtools::GCL_Finalize();
 
-    return true;
+    return 0;
     }
 }
