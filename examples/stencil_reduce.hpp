@@ -72,26 +72,6 @@ struct d3point7{
 };
 
 /** @brief
-    Performs element-wise multiplication of the elements from the input grids
-
-    @param a Source vector.
-    @param b Source vector.
-    @return Element-wise product out = a*b
-*/
-struct product_functor{
-    typedef accessor<0, enumtype::inout, extent<0,0,0,0> > out;
-    typedef accessor<1, enumtype::in, extent<0,0,0,0> > a;
-    typedef accessor<2, enumtype::in, extent<0,0,0,0> > b;
-    typedef boost::mpl::vector<out, a, b> arg_list;
-
-    template <typename Domain>
-    GT_FUNCTION
-    static void Do(Domain const & dom, x_interval) {
-        dom(out{}) = dom(a{}) * dom(b{});
-    }
-};
-
-/** @brief
     Provides access to elements of the grid
 
     @param in Source vector
