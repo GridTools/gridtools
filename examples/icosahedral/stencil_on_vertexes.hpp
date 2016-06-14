@@ -77,7 +77,7 @@ namespace sov {
         typedef arg< 1, cell_storage_type > p_out_vertexes;
 
         typedef boost::mpl::
-            vector2< p_in_vertexes, p_out_vertexes >
+            vector< p_in_vertexes, p_out_vertexes >
                 accessor_list_t;
 
         gridtools::domain_type< accessor_list_t > domain(boost::fusion::make_vector(

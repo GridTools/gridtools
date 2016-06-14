@@ -28,7 +28,7 @@ namespace soc {
     struct test_on_cells_functor {
         typedef in_accessor< 0, icosahedral_topology_t::cells, extent< 1 > > in;
         typedef inout_accessor< 1, icosahedral_topology_t::cells > out;
-        typedef boost::mpl::vector2< in, out > arg_list;
+        typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
@@ -77,7 +77,7 @@ namespace soc {
         typedef arg< 0, cell_storage_type > p_in_cells;
         typedef arg< 1, cell_storage_type > p_out_cells;
 
-        typedef boost::mpl::vector2< p_in_cells, p_out_cells > accessor_list_t;
+        typedef boost::mpl::vector< p_in_cells, p_out_cells > accessor_list_t;
 
         gridtools::domain_type< accessor_list_t > domain(boost::fusion::make_vector(&in_cells, &out_cells));
         array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};

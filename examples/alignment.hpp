@@ -71,7 +71,7 @@ namespace aligned_copy_stencil {
 
         typedef accessor< 0, enumtype::in, extent< 0, 0, 0, 0 >, 3 > in;
         typedef accessor< 1, enumtype::inout, extent< 0, 0, 0, 0 >, 3 > out;
-        typedef boost::mpl::vector2< in, out > arg_list;
+        typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
@@ -120,7 +120,7 @@ namespace aligned_copy_stencil {
         typedef arg< 0, storage_type > p_in;
         typedef arg< 1, storage_type > p_out;
 
-        typedef boost::mpl::vector2< p_in, p_out > accessor_list;
+        typedef boost::mpl::vector< p_in, p_out > accessor_list;
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
         // that are used, temporary and not
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.

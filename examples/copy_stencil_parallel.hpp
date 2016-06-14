@@ -30,7 +30,7 @@ namespace copy_stencil {
     struct copy_functor {
         typedef accessor< 0, enumtype::in > in;
         typedef accessor< 1, enumtype::inout > out;
-        typedef boost::mpl::vector2< in, out > arg_list;
+        typedef boost::mpl::vector< in, out > arg_list;
         /* static const auto expression=in(1,0,0)-out(); */
 
         template < typename Evaluation >
@@ -86,7 +86,7 @@ namespace copy_stencil {
         typedef arg< 1, storage_type > p_out;
         // An array of placeholders to be passed to the domain
         // I'm using mpl::vector, but the final API should look slightly simpler
-        typedef boost::mpl::vector2< p_in, p_out > accessor_list;
+        typedef boost::mpl::vector< p_in, p_out > accessor_list;
         /* typedef arg<1, vec_storage_type > p_out; */
         // Definition of the actual data fields that are used for input/output
         //#ifdef CXX11_ENABLED

@@ -34,8 +34,6 @@ typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
 Contains the stencil operators that compose the multistage stencil in this test
 */
 struct lap_function {
-    static const int n_args = 2; //!< public compile-time constant, \todo apparently useless?
-
     /**
        @brief placeholder for the output field, index 0. accessor contains a vector of 3 offsets and defines a plus method summing values to the offsets
     */
@@ -47,7 +45,7 @@ struct lap_function {
     /**
        @brief MPL vector of the out and in types
     */
-    typedef boost::mpl::vector2<out, in> arg_list;
+    typedef boost::mpl::vector<out, in> arg_list;
 
     /**
        @brief Do method, overloaded. t_domain specifies the policy, x_lapl is a dummy argument here \todo should it be removed?
@@ -56,9 +54,10 @@ struct lap_function {
     GT_FUNCTION
     static void Do(t_domain const & dom, x_lap) {
 
-        dom(out()) = 4*dom(in()) -
+        dom(out()) = 4*dom(in())-
             (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
-             dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)));
+             dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)))
+            ;
 
     }
 };
@@ -104,7 +103,7 @@ TEST(Laplace, test) {
 // [backend]
 
 // [layout_map]
-    typedef gridtools::layout_map<0,1,2> layout_t;
+    typedef gridtools::layout_map<2,1,0> layout_t;
 // [layout_map]
 
 // [storage_type]
@@ -137,7 +136,7 @@ TEST(Laplace, test) {
        - Creation of an array of placeholders to be passed to the domain
        \todo I'm using mpl::vector, but the final API should look slightly simpler
     */
-    typedef boost::mpl::vector2<p_in, p_out> accessor_list;
+    typedef boost::mpl::vector<p_in, p_out> accessor_list;
 // [placeholders]
 
 // [domain_type]
@@ -157,12 +156,12 @@ TEST(Laplace, test) {
           The grid constructor takes the horizontal plane dimensions,
           while the vertical ones are set according the the axis property soon after
        */
-       uint_t di[5] = {halo_size, halo_size, halo_size, d1-halo_size, d1};
-       uint_t dj[5] = {halo_size, halo_size, halo_size, d2-halo_size, d2};
+       uint_t di[5] = {halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
+       uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
 
        gridtools::grid<axis> grid(di,dj);
        grid.value_list[0] = 0;
-       grid.value_list[1] = d3;
+       grid.value_list[1] = d3-1;
 // [grid]
 
 // [computation]
@@ -226,11 +225,11 @@ TEST(Laplace, test) {
 
     // [generate reference]
 
-    storage_type ref(metadata_, -1., "ref");
+    storage_type ref(metadata_, -7.3., "ref");
 
-    for(size_t i=2; i != d1-2; ++i) {
-        for(size_t j=2; j != d2-2; ++j) {
-            for(size_t k=0; k != d3; ++k) {
+    for(uint_t i=halo_size; i != d1-halo_size; ++i) {
+        for(uint_t j=halo_size; j != d2-halo_size; ++j) {
+            for(uint_t k=0; k != d3; ++k) {
                 ref(i,j,k) = 4*in(i,j,k) -
                         (in(i+1,j,k) + in(i,j+1,k) +
                          in(i-1, j, k) + in(i,j-1,k));
@@ -245,7 +244,7 @@ TEST(Laplace, test) {
     verifier verif(1e-12);
 #endif
     array<array<uint_t, 2>, 3> halos{{ {halo_size,halo_size}, {halo_size,halo_size}, {halo_size,halo_size} }};
-    bool result = verif.verify(grid, out, ref, halos);
+    bool result = verif.verify(grid, ref, out, halos);
 #else
 #if FLOAT_PRECISION == 4
     verifier verif(1e-6, halo_size);

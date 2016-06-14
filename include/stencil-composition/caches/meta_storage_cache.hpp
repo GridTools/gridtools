@@ -36,6 +36,10 @@ namespace gridtools {
             return m_value._index(arg_);
         }
 
+        /** @BRIEF returning the index given the accessor
+
+            Specialization for accessor_mixed
+        */
         template < typename Accessor, typename... Pairs >
         GT_FUNCTION constexpr int_t index(accessor_mixed< Accessor, Pairs... > const &arg_) const {
             return m_value._index(arg_);

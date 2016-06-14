@@ -44,7 +44,7 @@ namespace shallow_water {
         //#if  !((defined(__GNUC__)) && (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 9))
         using tmp = arg_extend< accessor< 0, extent< -1, 1, -1, 1 > >, 2 >::type;
         using sol = arg_extend< accessor< 1, extent< -1, 1, -1, 1 > >, 2 >::type;
-        using arg_list = boost::mpl::vector2< tmp, sol >;
+        using arg_list = boost::mpl::vector< tmp, sol >;
         using step = dimension< 3 >;
         using comp = dimension< 4 >;
         //#endif
@@ -89,7 +89,7 @@ namespace shallow_water {
         // shielding the base class aliases
         typedef arg_extend< accessor< 0, extent< -1, 1, -1, 1 > >, 2 >::type tmp;
         typedef arg_extend< accessor< 1, extent< -1, 1, -1, 1 > >, 2 >::type sol;
-        typedef boost::mpl::vector2< tmp, sol > arg_list;
+        typedef boost::mpl::vector< tmp, sol > arg_list;
         typedef dimension< 3 > step;
         typedef dimension< 4 > comp;
 #endif

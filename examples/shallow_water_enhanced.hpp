@@ -192,7 +192,7 @@ namespace shallow_water {
             tmpy; /** (output) is the flux at the bottom edge of the cell */
         typedef accessor< 1, enumtype::in, extent< 0, 0, 0, -1 >, 5 >
             sol; /** (input) is the solution at the cell center, computed at the previous time level */
-        using arg_list = boost::mpl::vector2< tmpy, sol >;
+        using arg_list = boost::mpl::vector< tmpy, sol >;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
@@ -245,7 +245,7 @@ namespace shallow_water {
             tmpy; /** (input) is the flux at the bottom edge of the cell */
         typedef accessor< 2, enumtype::inout, extent< 0, 0, 0, 0 >, 5 >
             sol; /** (output) is the solution at the cell center, computed at the previous time level */
-        typedef boost::mpl::vector3< tmpx, tmpy, sol > arg_list;
+        typedef boost::mpl::vector< tmpx, tmpy, sol > arg_list;
         static uint_t current_time;
 
         //########## FINAL STEP #############
@@ -384,7 +384,7 @@ namespace shallow_water {
         // typedef arg<0, sol_type > p_tmpx;
         // typedef arg<1, sol_type > p_tmpy;
         typedef arg< 2, sol_type > p_sol;
-        typedef boost::mpl::vector3< p_tmpx, p_tmpy, p_sol > accessor_list;
+        typedef boost::mpl::vector< p_tmpx, p_tmpy, p_sol > accessor_list;
         //! [args]
 
         //! [proc_grid_dims]

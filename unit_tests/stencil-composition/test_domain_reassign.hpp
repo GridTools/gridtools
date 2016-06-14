@@ -49,13 +49,13 @@ namespace domain_reassign {
 
     void handle_error(int_t) { std::cout << "error" << std::endl; }
 
-    bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps) {
+    bool test() {
 
         cache_flusher flusher(cache_flusher_size);
 
-        uint_t d1 = x;
-        uint_t d2 = y;
-        uint_t d3 = z;
+        uint_t d1 = 32;
+        uint_t d2 = 32;
+        uint_t d3 = 32;
 
 #ifdef __CUDACC__
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >

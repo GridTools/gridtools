@@ -71,8 +71,10 @@ namespace gridtools {
             using iminus = typename std::tuple_element< 0, minus_t >::type;
             using jminus = typename std::tuple_element< 1, minus_t >::type;
 
-            assert((m_value.index(accessor_) < size()));
-            assert((m_value.index(accessor_) >= 0));
+            // const typename alias< accessor< Accessor::index_type::value, Intent, Extent, Size >, dimension< Size - 1 > >::template set< ID >
+            //     tmp_(arg);
+            assert((m_value.index(accessor_) - iminus::value * m_value.template strides< 0 >() - jminus::value * m_value.template strides< 1 >())< size());
+            assert((m_value.index(accessor_) - iminus::value * m_value.template strides< 0 >() - jminus::value * m_value.template strides< 1 >() >= 0));
 
             // manually aligning the storage
             const uint_t extra_ = (thread_pos[0] - iminus::value) * m_value.template strides< 0 >() +
