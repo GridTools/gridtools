@@ -337,18 +337,17 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, char *msg) {
     {
         std::stringstream ss;
         ss << PID;
-        std::string filename = "x" + ss.str() + "_" + msg + ".txt";
+        std::string filename = "x"  + ss.str() + ".txt";
         std::ofstream file(filename.c_str());
         ptr_x->print(file);
     }
     {
         std::stringstream ss;
         ss << PID;
-        std::string filename = "xNew" + ss.str() + "_" + msg + ".txt";
+        std::string filename = "xNew" + ss.str() + ".txt";
         std::ofstream file(filename.c_str());
         ptr_xNew->print(file);
     }
-
 #endif
 
     gridtools::GCL_Finalize();
