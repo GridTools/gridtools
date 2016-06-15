@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #include <boost/type_traits/is_same.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/range_c.hpp>
@@ -7,10 +22,10 @@
 #include <boost/mpl/for_each.hpp>
 #include <iostream>
 #include "common/host_device.hpp"
-#include "stencil-composition/interval.hpp"
-#include "stencil-composition/loopintervals.hpp"
-#include "stencil-composition/functor_do_methods.hpp"
-#include "stencil-composition/functor_do_method_lookup_maps.hpp"
+#include "stencil_composition/interval.hpp"
+#include "stencil_composition/loopintervals.hpp"
+#include "stencil_composition/functor_do_methods.hpp"
+#include "stencil_composition/functor_do_method_lookup_maps.hpp"
 
 using namespace gridtools;
 

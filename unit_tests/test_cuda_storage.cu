@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <cuda_runtime.h>
-#include <stencil-composition/stencil-composition.hpp>
+#include <stencil_composition/stencil_composition.hpp>
 
 using gridtools::uint_t;
 using gridtools::int_t;

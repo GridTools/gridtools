@@ -1,7 +1,22 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #include "gtest/gtest.h"
 #include <boost/shared_ptr.hpp>
-#include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/reductions/reductions.hpp>
+#include <stencil_composition/stencil_composition.hpp>
+#include <stencil_composition/reductions/reductions.hpp>
 #include "cache_flusher.hpp"
 #include "defs.hpp"
 #include "tools/verifier.hpp"
@@ -105,7 +120,7 @@ namespace reduction {
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in
         // order. (I don't particularly like this)
-        gridtools::domain_type< accessor_list > domain(boost::fusion::make_vector(&in, &out));
+        gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&in, &out));
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
@@ -129,7 +144,7 @@ namespace reduction {
 #endif
             sum_red_ = make_computation< gridtools::BACKEND >(domain,
                 grid,
-                make_mss(execute< forward >(), make_esf< desf >(p_in(), p_out())),
+                make_multistage(execute< forward >(), make_stage< desf >(p_in(), p_out())),
                 make_reduction< sum_red, binop::sum >((float_type)(0.0), p_out()));
 
         sum_red_->ready();
@@ -163,7 +178,7 @@ namespace reduction {
 #endif
             prod_red_ = make_computation< gridtools::BACKEND >(domain,
                 grid,
-                make_mss(execute< forward >(), make_esf< desf >(p_in(), p_out())),
+                make_multistage(execute< forward >(), make_stage< desf >(p_in(), p_out())),
                 make_reduction< sum_red, binop::prod >((float_type)(1.0), p_out()));
 
         prod_red_->ready();

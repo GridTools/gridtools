@@ -1,10 +1,25 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #include "gtest/gtest.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <fstream>
 
 #include <gridtools.hpp>
-#include <stencil-composition/stencil-composition.hpp>
+#include <stencil_composition/stencil_composition.hpp>
 #include <tools/verifier.hpp>
 #include "Options.hpp"
 
@@ -140,16 +155,16 @@ TEST(Laplace, test) {
     typedef boost::mpl::vector<p_in, p_out> accessor_list;
 // [placeholders]
 
-// [domain_type]
+// [aggregator_type]
     /**
        - Construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
        It must be noted that the only fields to be passed to the constructor are the non-temporary.
        The order in which they have to be passed is the order in which they appear scanning the placeholders in order (i.e. the order in the accessor_list?). \todo (I don't particularly like this).
-       \note domain_type implements the CRTP pattern in order to do static polymorphism (?) Because all what is 'clonable to gpu' must derive from the CRTP base class.
+       \note aggregator_type implements the CRTP pattern in order to do static polymorphism (?) Because all what is 'clonable to gpu' must derive from the CRTP base class.
     */
-       gridtools::domain_type<accessor_list> domain
+       gridtools::aggregator_type<accessor_list> domain
         (boost::fusion::make_vector(&in, &out));
-// [domain_type]
+// [aggregator_type]
 
 // [grid]
        /**
@@ -193,10 +208,10 @@ TEST(Laplace, test) {
        laplace = make_computation<gridtools::BACKEND>
         (
          domain, grid,
-         make_mss //! \todo all the arguments in the call to make_mss are actually dummy.
+         make_multistage //! \todo all the arguments in the call to make_multistage are actually dummy.
          (
           execute<forward>(),//!\todo parameter used only for overloading purpose?
-          make_esf<lap_function>(p_out(), p_in())//!  \todo elementary stencil function, also here the arguments are dummy.
+          make_stage<lap_function>(p_out(), p_in())//!  \todo elementary stencil function, also here the arguments are dummy.
           )
          );
 // [computation]

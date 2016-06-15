@@ -1,4 +1,19 @@
 /*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+/*
  * test_computation.cpp
  *
  *  Created on: Mar 9, 2015
@@ -18,10 +33,10 @@
 
 #include "gtest/gtest.h"
 
-#include <stencil-composition/stencil-composition.hpp>
-#include "stencil-composition/backend.hpp"
-#include "stencil-composition/make_computation.hpp"
-#include "stencil-composition/make_stencils.hpp"
+#include <stencil_composition/stencil_composition.hpp>
+#include "stencil_composition/backend.hpp"
+#include "stencil_composition/make_computation.hpp"
+#include "stencil_composition/make_stencils.hpp"
 
 
 namespace positional_when_debug_test{
@@ -64,8 +79,8 @@ TEST(test_make_computation, positional_when_debug) {
     typedef boost::mpl::vector<p_in> accessor_list_t;
 
     /* canot use the assignment since with a single placeholder the wrong constructor is picked.
-       This is a TODO in domain_type.hpp */
-    domain_type<accessor_list_t> dm( boost::fusion::make_vector(&a_storage));
+       This is a TODO in aggregator_type.hpp */
+    aggregator_type<accessor_list_t> dm( boost::fusion::make_vector(&a_storage));
 #ifdef CXX11_ENABLED
     auto
 #else
@@ -79,10 +94,10 @@ TEST(test_make_computation, positional_when_debug) {
         (
          dm,
          positional_when_debug_test::grid_t({0,0,0,0,0}, {0,0,0,0,0}),
-         make_mss // mss_descriptor
+         make_multistage // mss_descriptor
          (
           execute<forward>(),
-          make_esf<positional_when_debug_test::test_functor>(p_in())
+          make_stage<positional_when_debug_test::test_functor>(p_in())
           )
          );
 
