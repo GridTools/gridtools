@@ -114,12 +114,9 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT(is_data_field< Storage >::value,
                     "\"swap\" can only be called with instances of type \"data_field\" ");
                 typename Storage::pointer_type tmp = storage_.template get< SnapshotFrom, DimFrom >();
+                tmp.set_externally_managed(false);
                 storage_.template get< SnapshotFrom, DimFrom >() = storage_.template get< SnapshotTo, DimTo >();
                 storage_.template get< SnapshotTo, DimTo >() = tmp;
-                // if the storage is not located on the host we have to clone it
-                // to the device in order to update the structure.
-                if (!storage_.is_on_host())
-                    storage_.clone_to_device();
             }
         };
     };
@@ -180,9 +177,7 @@ namespace gridtools {
 
     */
     template < typename First, typename... StorageExtended >
-    struct data_field : public dimension_extension_traits< First,
-                            StorageExtended... >::type /*, clonable_to_gpu<data_field<First, StorageExtended ... > >*/
-    {
+    struct data_field : public dimension_extension_traits< First, StorageExtended... >::type {
         template < typename PT, typename MD, ushort_t FD >
         using type_tt = data_field< typename First::template type_tt< PT, MD, FD >,
             typename StorageExtended::template type_tt< PT, MD, FD >... >;
@@ -196,7 +191,7 @@ namespace gridtools {
 
         /**@brief default constructor*/
         template < typename... ExtraArgs >
-        data_field(typename basic_type::storage_info_type const &meta_data_, ExtraArgs const &... args_)
+        data_field(typename basic_type::storage_info_type const *meta_data_, ExtraArgs const &... args_)
             : super(meta_data_, args_...) {}
 
         /**@brief device copy constructor*/

@@ -39,7 +39,7 @@ struct lap_function {
     /**
        @brief placeholder for the output field, index 0. accessor contains a vector of 3 offsets and defines a plus method summing values to the offsets
     */
-    typedef accessor<0, enumtype::inout, extent<-1, 1, -1, 1>, 3 > out;
+    typedef accessor< 0, enumtype::inout, extent<>, 3 > out;
 /**
        @brief  placeholder for the input field, index 1
     */

@@ -156,7 +156,6 @@ bool basic() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    meta_.clone_to_device();
     in.h2d_update();
     in.clone_to_device();
 
@@ -269,7 +268,6 @@ bool predicate() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    meta_.clone_to_device();
     in.h2d_update();
     in.clone_to_device();
 
@@ -383,7 +381,6 @@ bool twosurfaces() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    meta_.clone_to_device();
     in.h2d_update();
     in.clone_to_device();
 
@@ -498,7 +495,6 @@ bool usingzero_1() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    meta_.clone_to_device();
     in.h2d_update();
     in.clone_to_device();
 
@@ -614,7 +610,6 @@ bool usingzero_2() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    meta_.clone_to_device();
     in.h2d_update();
     out.h2d_update();
     in.clone_to_device();
@@ -755,7 +750,6 @@ bool usingvalue_2() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    meta_.clone_to_device();
     in.h2d_update();
     out.h2d_update();
     in.clone_to_device();
@@ -897,7 +891,6 @@ bool usingcopy_3() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    meta_.clone_to_device();
     one.h2d_update();
     one.clone_to_device();
     two.h2d_update();

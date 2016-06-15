@@ -8,6 +8,7 @@
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include "common/defs.hpp"
+#include "stencil-composition/empty_extent.hpp"
 #include "stencil-composition/backend.hpp"
 #include "stencil-composition/caches/cache_metafunctions.hpp"
 #include "stencil-composition/interval.hpp"
@@ -110,7 +111,7 @@ TEST(cache_metafunctions, get_cache_storage_tuple)
         extent<0,0,0,0>,
         enclosing_extent<boost::mpl::_1, boost::mpl::_2>
     >::type max_extent_t;
-  
+
     typedef gridtools::interval<gridtools::level<0,-2>, gridtools::level<1,1> > axis;
 
     typedef iterate_domain_arguments< backend_ids< Cuda, GRIDBACKEND, Block >,

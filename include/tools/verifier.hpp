@@ -33,7 +33,7 @@ namespace gridtools {
 
         template < typename Grid >
         bool operator()(Grid const &grid_, array< uint_t, NCoord > const &pos) {
-            typename StorageType::storage_info_type const& meta = m_exp_field.meta_data();
+            typename StorageType::storage_info_type const &meta = m_exp_field.meta_data();
 
             const gridtools::uint_t size = meta.template dims< NDim - 1 >();
             bool verified = true;
@@ -73,7 +73,7 @@ namespace gridtools {
         bool operator()(Grid const &grid_, array< uint_t, NCoord > const &pos) {
             bool verified = true;
             if (pos[2] < grid_.value_at_top()) {
-                typename StorageType::storage_info_type const& meta = m_exp_field.meta_data();
+                typename StorageType::storage_info_type const &meta = m_exp_field.meta_data();
 
                 typename StorageType::value_type expected = m_exp_field.fields()[m_field_id][meta.index(pos)];
                 typename StorageType::value_type actual = m_actual_field.fields()[m_field_id][meta.index(pos)];
@@ -102,7 +102,7 @@ namespace gridtools {
         uint_t field_id,
         array< array< uint_t, 2 >, StorageType::space_dimensions > halos,
         double precision) {
-        typename StorageType::storage_info_type const& meta = exp_field.meta_data();
+        typename StorageType::storage_info_type const &meta = exp_field.meta_data();
 
         const gridtools::uint_t size = meta.template dims< NDim - 1 >();
         bool verified = true;
@@ -191,7 +191,7 @@ namespace gridtools {
             // assert(field1.template dims<0>() == field2.template dims<0>());
             // assert(field1.template dims<1>() == field2.template dims<1>());
             // assert(field1.template dims<2>() == field2.template dims<2>());
-            typename storage_type::storage_info_type const& meta = field1.meta_data();
+            typename storage_type::storage_info_type const &meta = field1.meta_data();
 
             const gridtools::uint_t idim = meta.template dims< 0 >();
             const gridtools::uint_t jdim = meta.template dims< 1 >();

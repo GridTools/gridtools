@@ -106,7 +106,7 @@ namespace gridtools {
                     mss_components< boost::mpl::at< typename mss_array_t::elements, boost::mpl::_2 >,
                                            boost::mpl::at< extent_sizes_unrolled_t, boost::mpl::_2 > > > >::type,
             boost::mpl::quote1< is_mss_components > > type;
-    };
+    }; // struct build_mss_components_array
 
     /**
      * @brief metafunction that builds a pair of arrays of mss components, to be handled at runtime
@@ -138,7 +138,7 @@ namespace gridtools {
                                meta_array< MssDescriptorArray2, Predicate >,
                                ExtentSizes2 >::type,
             Condition > type;
-    };
+    }; // build_mss_components_array
 
     /**
      * @brief metafunction that computes the mss functor do methods

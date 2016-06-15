@@ -7,14 +7,6 @@ gridtools_add_test(test.FunctorDoMethodLookupMaps ${TEST_SCRIPT} "${CMAKE_BINARY
 #add_executable(LoopIntervals LoopIntervals.cpp)
 #gridtools_add_test(test.LoopIntervals ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/LoopIntervals")
 
-if ( ENABLE_CXX11 AND STRUCTURED_GRIDS)
-    add_executable(test-independent test-independent.cpp)
-    set_target_properties(test-independent PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
-    target_link_libraries(test-independent ${exe_LIBS})
-    gridtools_add_test(tests.test_independent ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/test-independent")
-
-endif()
-
 set(COMMON_TESTS
     test_domain_indices.cpp
     boundary_conditions_test.cpp
@@ -25,12 +17,6 @@ if(STRUCTURED_GRIDS)
 endif(STRUCTURED_GRIDS)
 
 add_executable(tests ${COMMON_TESTS})
-
-if(STRUCTURED_GRIDS)
-add_executable(test_global_accessor test_global_accessor.cpp)
-set_target_properties(test_global_accessor PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
-target_link_libraries(test_global_accessor ${GTEST_BOTH_LIBRARIES} gcl -lpthread ${exe_LIBS})
-endif(STRUCTURED_GRIDS)
 
 # include boost
 include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )

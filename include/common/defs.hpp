@@ -154,7 +154,7 @@ namespace gridtools {
     } // namespace enumtype
 
 #ifdef STRUCTURED_GRIDS
-#define GRIDBACKEND structured
+#define GRIDBACKEND enumtype::structured
 #else
 #define GRIDBACKEND icosahedral
 #endif

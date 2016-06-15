@@ -17,13 +17,12 @@ cp ${JENKINSPATH}/submit.${myhost}.slurm ${JENKINSPATH}/submit.${myhost}.slurm.t
 slurm_script="${JENKINSPATH}/submit.${myhost}.slurm.test"
 
 if [ $myhost == "greina" ]; then
-    cmd="srun --gres=gpu:1 --ntasks=1 -u  bash ./run_tests.sh "
+    cmd="srun --gres=gpu:1 --ntasks=1 -u  bash ${JENKINSPATH}/../build/run_tests.sh "
 elif [ $myhost == "kesch" ]; then
-    cmd="srun --ntasks=1 -K -u bash ./run_tests.sh"
+    cmd="srun --ntasks=1 -K -u bash ${JENKINSPATH}/../build/run_tests.sh"
 elif [ $myhost == "daint" ]; then
-    cmd="aprun -B bash ./run_tests.sh"
+    cmd="aprun -B bash ${JENKINSPATH}/../build/run_tests.sh"
 fi
-
 echo "replacing in ${slurm_script} command by ${cmd}"
 /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm_script}
 
@@ -35,7 +34,7 @@ if [ $? -ne 0 ] ; then
     exitError 4652 ${LINENO} "Output of test file not found"
 fi
 
-grep 'FAILED\|ERROR' test.out
+grep -i 'fail\|error\|[^a-zA-z]fault' test.out
 
 if [ $? -eq 0 ] ; then
     # echo output to stdout

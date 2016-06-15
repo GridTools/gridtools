@@ -23,7 +23,7 @@ namespace test_staggered_keyword{
         static uint_t ok_i;
         static uint_t ok_j;
 
-        typedef accessor<0> p_i;
+        typedef accessor< 0, gridtools::enumtype::inout > p_i;
         typedef accessor<1> p_j;
         typedef boost::mpl::vector<p_i,p_j> arg_list;
         template <typename Evaluation>
@@ -48,8 +48,7 @@ bool test(){
     meta_t meta_((uint_t) 30,(uint_t) 20, (uint_t) 1);
     storage_type i_data (meta_);
     storage_type j_data (meta_);
-    i_data.allocate();
-    j_data.allocate();
+
 
     auto lam_i = [](uint_t const &i_, uint_t const &j_, uint_t const &k_) -> uint_t { return i_; };
     auto lam_j = [](uint_t const &i_, uint_t const &j_, uint_t const &k_) -> uint_t { return j_; };
@@ -84,6 +83,7 @@ bool test(){
     comp->ready();
     comp->steady();
     comp->run();
+
     return (functor::ok_i&&functor::ok_j);
 }
 } //namespace test_staggered_keyword

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iosfwd>
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/fold.hpp>
 #include <boost/mpl/sort.hpp>
@@ -73,12 +74,7 @@ namespace gridtools {
              */
             template < typename Key >
             GT_FUNCTION_WARNING void operator()(Key &local_) const {
-                local_ =
-#ifdef __CUDACC__ // ugly ifdef. TODO: way to remove it?
-                    (typename Key::value_type *)boost::fusion::at_key< Key >(m_actual)->gpu_object_ptr;
-#else
-                    boost::fusion::at_key< Key >(m_actual);
-#endif
+                local_ = boost::fusion::at_key< Key >(m_actual);
             }
         };
 
@@ -279,23 +275,27 @@ namespace gridtools {
             : m_local_args(other.m_local_args), m_local_metadata(other.m_local_metadata) {}
 
         template < typename T >
-        void info(T const &) const {
-            T::info();
-            std::cout << "[" << boost::mpl::at_c< esf_args, T::index_type::value >::type::index_type::value << "] ";
+        void info(T const &, std::ostream &out_s) const {
+            T::info(out_s);
+            out_s << "[" << boost::mpl::at_c< esf_args, T::index_type::value >::type::index_type::value << "] ";
         }
 
         struct show_local_args_info {
+
+            std::ostream &out_s;
+            show_local_args_info(std::ostream &out_s) : out_s(out_s) {}
+
             template < typename T >
             void operator()(T const &e) const {
-                e->info();
+                e->info(out_s);
             }
         };
 
         GT_FUNCTION
-        void info() const {
-            std::cout << "        -----v SHOWING LOCAL ARGS BELOW HERE v-----" << std::endl;
-            boost::fusion::for_each(m_local_args, show_local_args_info());
-            std::cout << "        -----^ SHOWING LOCAL ARGS ABOVE HERE ^-----" << std::endl;
+        void info(std::ostream &out_s) const {
+            out_s << "        -----v SHOWING LOCAL ARGS BELOW HERE v-----\n";
+            boost::fusion::for_each(m_local_args, show_local_args_info(out_s));
+            out_s << "        -----^ SHOWING LOCAL ARGS ABOVE HERE ^-----\n";
         }
     };
 

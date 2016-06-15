@@ -7,6 +7,8 @@
 #include "stencil-composition/make_computation.hpp"
 #include "stencil-composition/stencil.hpp"
 #include "stencil-composition/axis.hpp"
+#include "stencil-composition/grid.hpp"
+#include "stencil-composition/grid_traits.hpp"
 
 #ifndef STRUCTURED_GRIDS
 #include "stencil-composition/icosahedral_grids/grid.hpp"

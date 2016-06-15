@@ -37,7 +37,9 @@ namespace gridtools {
 
         template < typename T1, typename T2, typename Tag >
         struct reduction_helper< condition< T1, T2, Tag > > {
-            typedef condition< T1,T2,Tag > cond_t;
+
+            typedef condition< T1, T2, Tag > cond_t;
+
             typedef notype reduction_type_t;
             static notype extract_initial_value(cond_t) { return 0; }
         };
