@@ -455,9 +455,9 @@ namespace gridtools {
         void set_on_device() {
             for (uint_t i = 0; i < field_dimensions; ++i)
                 (*m_storage).fields_view()[i].set_on_device();
-            m_storage.set_on_device();
-            m_meta_data.set_on_device();
-            m_on_host=false;
+            // m_storage.set_on_device();
+            // m_meta_data.set_on_device();
+            // m_on_host=false;
         }
 
         GT_FUNCTION
