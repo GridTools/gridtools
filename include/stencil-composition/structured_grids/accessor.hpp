@@ -135,12 +135,9 @@ namespace gridtools {
         typedef offset_tuple_mixed<coordinates, ArgType::n_dim, Pair... > offset_tuple_mixed_t;
         const offset_tuple_mixed_t m_offsets;
 
-        static constexpr offset_tuple<n_dim, n_dim> s_static_offset_tuple{
-            dimension< Pair::first >{Pair::second}...};
-
       public:
         template < typename... ArgsRuntime >
-        GT_FUNCTION constexpr accessor_mixed(ArgsRuntime ... args)
+        GT_FUNCTION constexpr accessor_mixed(const ArgsRuntime ... args)
             : m_offsets(args...) {}
 
         /**@brief returns the offset at a specific index Idx

@@ -283,20 +283,19 @@ namespace gridtools {
      */
     template < typename Coordinates, int_t NDim, typename... DimensionPairs >
     struct offset_tuple_mixed {
+        static const int_t n_dim = NDim;
+
         typedef offset_tuple< NDim, NDim > offset_tuple_t;
 
       private:
-        offset_tuple_t m_dynamic_offset_tuple;
+        const offset_tuple_t m_dynamic_offset_tuple;
         // compile time offset tuple
-        static constexpr int a{2};
-        static constexpr offset_tuple_t s2_static_offset_tuple{dimension< 2 >{3}};
-
         static constexpr offset_tuple_t s_static_offset_tuple{
             dimension< DimensionPairs::first >{DimensionPairs::second}...};
 
       public:
         template < typename... ArgsRuntime >
-        GT_FUNCTION constexpr offset_tuple_mixed(ArgsRuntime const &... args)
+        GT_FUNCTION constexpr offset_tuple_mixed(const ArgsRuntime ... args)
             : m_dynamic_offset_tuple(args...) {}
 
         template < short_t Idx >
