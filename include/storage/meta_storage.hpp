@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #pragma once
 
 #include "../common/gpu_clone.hpp"
@@ -59,9 +74,7 @@ namespace gridtools {
             : super(args...) {}
 
         /**@brief operator equals (same dimension size, etc.) */
-        constexpr bool operator==(const meta_storage& other) const {
-            return super::operator==(other);
-        }
+        constexpr bool operator==(const meta_storage &other) const { return super::operator==(other); }
 
         constexpr meta_storage(array< uint_t, space_dimensions > const &a) : super(a) {}
 #else
@@ -84,9 +97,7 @@ namespace gridtools {
             : super(initial_offset_i, initial_offset_j, dim3, n_i_threads, n_j_threads) {}
 
         /**@brief operator equals (same dimension size, etc.) */
-        bool operator==(const meta_storage& other) const {
-            return super::operator==(other);
-        }
+        bool operator==(const meta_storage &other) const { return super::operator==(other); }
 
 #endif
 

@@ -1,7 +1,22 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #pragma once
 #include <gridtools.hpp>
 
-#include <stencil-composition/stencil-composition.hpp>
+#include <stencil_composition/stencil_composition.hpp>
 #include "vertical_advection_repository.hpp"
 #include <tools/verifier.hpp>
 
@@ -220,14 +235,14 @@ namespace vertical_advection_dycore {
 // don't particularly like this)
 
 #ifdef CXX11_ENABLE
-        gridtools::domain_type< accessor_list > domain((p_utens_stage() = repository.utens_stage()),
+        gridtools::aggregator_type< accessor_list > domain((p_utens_stage() = repository.utens_stage()),
             (p_u_stage() = repository.u_stage()),
             (p_wcon() = repository.wcon()),
             (p_u_pos() = repository.u_pos()),
             (p_utens() = repository.utens()),
             (p_dtr_stage() = repository.dtr_stage()));
 #else
-        gridtools::domain_type< accessor_list > domain(boost::fusion::make_vector(&repository.utens_stage(),
+        gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&repository.utens_stage(),
             &repository.u_stage(),
             &repository.wcon(),
             &repository.u_pos(),
@@ -259,9 +274,9 @@ namespace vertical_advection_dycore {
             vertical_advection = gridtools::make_computation< vertical_advection::va_backend >(
                 domain,
                 grid,
-                gridtools::make_mss // mss_descriptor
+                gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
-                    gridtools::make_esf< u_forward_function< double > >(p_utens_stage(),
+                    gridtools::make_stage< u_forward_function< double > >(p_utens_stage(),
                         p_wcon(),
                         p_u_stage(),
                         p_u_pos(),
@@ -272,8 +287,8 @@ namespace vertical_advection_dycore {
                         p_ccol(),
                         p_dcol()) // esf_descriptor
                     ),
-                gridtools::make_mss(execute< backward >(),
-                    gridtools::make_esf< u_backward_function< double > >(
+                gridtools::make_multistage(execute< backward >(),
+                    gridtools::make_stage< u_backward_function< double > >(
                                         p_utens_stage(), p_u_pos(), p_dtr_stage(), p_ccol(), p_dcol(), p_data_col())));
 
         vertical_advection->ready();

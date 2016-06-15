@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #pragma once
 
 #include <iosfwd>
@@ -236,7 +251,9 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
             : m_dims(other.m_dims), m_strides(other.m_strides) {}
 
         /** @brief prints debugging information */
-        void info(std::ostream& out_s) const { out_s << dims< 0 >() << "x" << dims< 1 >() << "x" << dims< 2 >() << " \n"; }
+        void info(std::ostream &out_s) const {
+            out_s << dims< 0 >() << "x" << dims< 1 >() << "x" << dims< 2 >() << " \n";
+        }
 
         /**@brief returns the size of the data field*/
         GT_FUNCTION
@@ -289,8 +306,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         /**@brief operator equals (same dimension size, etc.) */
         GT_FUNCTION
         constexpr bool operator==(meta_storage_base const &other) const {
-            return (size() == other.size()) && (m_dims == other.m_dims)
-                && (m_strides == other.m_strides);
+            return (size() == other.size()) && (m_dims == other.m_dims) && (m_strides == other.m_strides);
         }
 #else
         /**@brief straightforward interface*/
@@ -300,8 +316,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         /**@brief operator equals (same dimension size, etc.) */
         GT_FUNCTION
         bool operator==(meta_storage_base const &other) const {
-            return (size() == other.size()) && (m_dims == other.m_dims)
-                && (m_strides == other.m_strides);
+            return (size() == other.size()) && (m_dims == other.m_dims) && (m_strides == other.m_strides);
         }
 #endif
 

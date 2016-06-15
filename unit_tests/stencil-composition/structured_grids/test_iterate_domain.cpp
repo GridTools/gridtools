@@ -1,9 +1,24 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #define PEDANTIC_DISABLED // too stringent for this test
 #include "gtest/gtest.h"
 #include <iostream>
 #include "common/defs.hpp"
-#include "stencil-composition/stencil-composition.hpp"
-#include "stencil-composition/intermediate_metafunctions.hpp"
+#include "stencil_composition/stencil_composition.hpp"
+#include "stencil_composition/intermediate_metafunctions.hpp"
 #include "stencil-composition/structured_grids/accessor.hpp"
 
 namespace test_iterate_domain{
@@ -63,7 +78,7 @@ namespace test_iterate_domain{
         typedef arg<2, field<storage_out_type, 2, 2, 2>::type > p_out;
         typedef boost::mpl::vector<p_in, p_buff, p_out> accessor_list;
 
-        gridtools::domain_type<accessor_list> domain((p_in() = in),  (p_buff() = buff), (p_out() = out) );
+        gridtools::aggregator_type<accessor_list> domain((p_in() = in),  (p_buff() = buff), (p_out() = out) );
 
         uint_t di[5] = {0, 0, 0, d1-1, d1};
         uint_t dj[5] = {0, 0, 0, d2-1, d2};
@@ -72,12 +87,12 @@ namespace test_iterate_domain{
         grid.value_list[0] = 0;
         grid.value_list[1] = d3-1;
 
-        auto mss_ = gridtools::make_mss // mss_descriptor
-            (enumtype::execute< enumtype::forward >(), gridtools::make_esf< dummy_functor >(p_in(), p_buff(), p_out()));
+        auto mss_ = gridtools::make_multistage // mss_descriptor
+            (enumtype::execute< enumtype::forward >(), gridtools::make_stage< dummy_functor >(p_in(), p_buff(), p_out()));
         auto computation_ =
             make_computation_impl< false, gridtools::backend< Host, GRIDBACKEND, Naive > >(domain, grid, mss_);
 
-        typedef decltype(gridtools::make_esf<dummy_functor>(p_in() ,p_buff(), p_out())) esf_t;
+        typedef decltype(gridtools::make_stage<dummy_functor>(p_in() ,p_buff(), p_out())) esf_t;
 
         computation_->ready();
         computation_->steady();

@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #pragma once
 #include "../common/array.hpp"
 #include "../common/pointer.hpp"
@@ -12,134 +27,6 @@
 
 namespace gridtools {
 
-    // template < typename T >
-//     struct is_storage;
-
-//     template < typename RegularMetaStorageType >
-//     struct no_meta_storage_type_yet;
-
-//     /**
-//      * @brief Type to indicate that the type is not decided yet
-//      */
-//     template < typename RegularStorageType >
-//     struct no_storage_type_yet {
-
-// #ifdef CXX11_ENABLED
-//         template < typename PT, typename MD, ushort_t FD >
-//         using type_tt = typename RegularStorageType::template type_tt< PT, MD, FD >;
-// #endif
-
-//         typedef RegularStorageType type;
-//         typedef no_meta_storage_type_yet< typename RegularStorageType::storage_info_type > storage_info_type;
-//         typedef typename type::layout layout;
-//         typedef typename type::const_iterator_type const_iterator_type;
-//         typedef typename type::basic_type basic_type;
-//         typedef typename type::pointer_type pointer_type;
-//         static const ushort_t n_width = basic_type::n_width;
-//         static const ushort_t field_dimensions = basic_type::field_dimensions;
-//         typedef void storage_type;
-//         typedef typename type::iterator_type iterator_type;
-//         typedef typename type::value_type value_type;
-
-//         // consistency with STL:
-//         typedef iterator_type iterator;
-//         typedef const_iterator_type const_iterator;
-
-//         static const ushort_t space_dimensions = RegularStorageType::space_dimensions;
-//         static const bool is_temporary = RegularStorageType::is_temporary;
-//         static void text() { std::cout << "text: no_storage_type_yet<" << RegularStorageType() << ">" << std::endl; }
-//         // std::string name() {return std::string("no_storage_yet NAMEname");}
-//         void info() const { std::cout << "No sorage type yet for storage type " << RegularStorageType() << std::endl; }
-//         typename RegularStorageType::storage_info_type const &meta_data() { assert(false); }
-//         void set_on_device() { assert(false); }
-//         void d2h_update() { assert(false); }
-//         typename RegularStorageType::pointer_type *fields() { assert(false); }
-
-// #ifdef CXX11_ENABLED
-//         template < typename... Args >
-//         void set(Args...) {
-//             assert(false);
-//         }
-// #endif
-
-//         void clone_to_device() { assert(false); }
-//     };
-
-//     template < typename T >
-//     struct is_no_storage_type_yet : boost::mpl::false_ {};
-
-//     template < typename RegularStorageType >
-//     struct is_no_storage_type_yet< no_storage_type_yet< RegularStorageType > > : boost::mpl::true_ {};
-
-//     /**
-//        @brief stream operator, for debugging purpose
-//     */
-//     template < typename RST >
-//     std::ostream &operator<<(std::ostream &s, no_storage_type_yet< RST >) {
-//         return s << "no_storage_type_yet<" << RST() << ">";
-//     }
-
-//     /**
-//        \anchor descr_storage
-//        @brief main class for the basic storage
-
-//        We define here an important naming convention. We call:
-
-//        - the storages (or storage snapshots): are contiguous chunks of memory, accessed by 3 (by default, but not
-// necessarily) indexes.
-//        These structures are univocally defined by 3 (by default) integers. These are currently 2 strides and the total
-// size of the chunks. Note that (in 3D) the relation between these quantities
-//        (\f$stride_1\f$, \f$stride_2\f$ and \f$size\f$) and the dimensions x, y and z can be (depending on the storage
-// layout chosen)
-//        \f[
-//        size=x*y*z \;;\;
-//        stride_2=x*y \;;\;
-//        stride_1=x .
-//        \f]
-//        The quantities \f$size\f$, \f$stride_2\f$ and \f$stride_1\f$ are arranged respectively in m_strides[0],
-// m_strides[1], m_strides[2].
-//        - the \ref gridtools::storage_list "storage list": is a list of pointers (or snapshots) to storages. The
-// snapshots are arranged on a 1D array. The \ref gridtools::accessor "accessor" class is
-//        responsible of computing the correct offests (relative to the given dimension) and address the storages
-// correctly.
-//        - the \ref gridtools::data_field "data field": is a collection of storage lists, and can contain one or more
-// storage lists of different sizes. It can be seen as a vector of vectors of storage pointers.
-//        (e.g. if the time T is the current dimension, 3 snapshots can be the fields at t, t+1, t+2)
-
-//        The base_storage class has a 1-1 relation with the storage concept, while the subclasses extend the concept of
-// storage to the structure represented in the ASCII picture below.
-
-//        NOTE: the constraint of the snapshots accessed by the same data field are the following:
-//        - the memory layout (strides, space dimensions) is one for all the snapshots, and all the snapshots
-//        share the same iteration point
-// \verbatim
-// ############### 2D Storage ################
-// #                    ___________\         #
-// #                      time     /         #
-// #                  | |*|*|*|*|*|*|        #
-// # space, pressure  | |*|*|*|              #
-// #    energy,...    v |*|*|*|*|*|          #
-// #                                         #
-// #                     ^ ^ ^ ^ ^ ^         #
-// #                     | | | | | |         #
-// #                      snapshots          #
-// #                                         #
-// ############### 2D Storage ################
-// \endverbatim
-
-//        The final storage which is effectly instantiated must be "clonable to the GPU", i.e. it must derive from the
-// clonable_to_gpu struct.
-//        This is achieved by using multiple inheritance.
-
-//        NOTE CUDA: It is important when subclassing from a storage object to reimplement the __device__ copy constructor,
-// and possibly the method 'copy_data_to_gpu' which are used when cloning the class to the CUDA device.
-
-//        The base_storage class contains one snapshot. It univocally defines
-//        the access pattern with three integers: the total storage sizes and
-//        the two strides different from one.
-//     */
-
-//     template < typename T >
     template < typename T >
     struct is_meta_storage;
 
@@ -332,24 +219,6 @@ namespace gridtools {
 
         static void text() { std::cout << BOOST_CURRENT_FUNCTION << std::endl; }
 
-        // /** @brief update the GPU pointer */
-        // void h2d_update() {
-        //     for (uint_t i = 0; i < field_dimensions; ++i)
-        //         m_fields[i].update_gpu();
-        // }
-
-        // void set_on_device() {
-        //     for (uint_t i = 0; i < field_dimensions; ++i)
-        //         m_fields[i].set_on_device();
-        // }
-
-        // /** @brief updates the CPU pointer */
-        // void d2h_update() {
-        //     for (uint_t i = 0; i < field_dimensions; ++i)
-        //         m_fields[i].update_cpu();
-        // }
-
-        // /** @brief returns the last memry address of the data field */
         /** @brief returns the last memory address of the data field */
         GT_FUNCTION
         const_iterator max_addr() const { return &((m_fields[field_dimensions - 1])[m_meta_data->size()]); }

@@ -1,11 +1,26 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #include <boost/mpl/equal.hpp>
 #include <boost/shared_ptr.hpp>
 
 #include "gtest/gtest.h"
 
 #include "common/defs.hpp"
-#include "stencil-composition/stencil-composition.hpp"
-#include "stencil-composition/make_computation.hpp"
+#include "stencil_composition/stencil_composition.hpp"
+#include "stencil_composition/make_computation.hpp"
 #include "tools/verifier.hpp"
 
 namespace test_cache_stencil {
@@ -125,7 +140,7 @@ TEST_F(cache_stencil, ij_cache)
 {
     SetUp();
     typedef boost::mpl::vector3<p_in, p_out, p_buff> accessor_list;
-    gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&m_in, &m_out));
+    gridtools::aggregator_type<accessor_list> domain(boost::fusion::make_vector(&m_in, &m_out));
 
 #ifdef CXX11_ENABLED
     auto
@@ -136,13 +151,14 @@ TEST_F(cache_stencil, ij_cache)
     boost::shared_ptr< gridtools::stencil >
 #endif
 #endif
-        pstencil = make_computation< gridtools::BACKEND >(domain,
-            m_grid,
-            make_mss // mss_descriptor
-            (execute< forward >(),
-                                                              define_caches(cache< IJ, local >(p_buff())),
-                                                              make_esf< functor1 >(p_in(), p_buff()),
-                                                              make_esf< functor1 >(p_buff(), p_out())));
+        pstencil = make_computation< gridtools::BACKEND >
+        (domain,
+         m_grid,
+         make_multistage // mss_descriptor
+         (execute< forward >(),
+          define_caches(cache< IJ, local >(p_buff())),
+          make_stage< functor1 >(p_in(), p_buff()),
+          make_stage< functor1 >(p_buff(), p_out())));
 
     pstencil->ready();
 
@@ -191,7 +207,7 @@ TEST_F(cache_stencil, ij_cache_offset)
     }
 
     typedef boost::mpl::vector3<p_in, p_out, p_buff> accessor_list;
-    gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&m_in, &m_out));
+    gridtools::aggregator_type<accessor_list> domain(boost::fusion::make_vector(&m_in, &m_out));
 
 #ifdef CXX11_ENABLED
     auto
@@ -204,11 +220,11 @@ TEST_F(cache_stencil, ij_cache_offset)
 #endif
         pstencil = make_computation< gridtools::BACKEND >(domain,
             m_grid,
-            make_mss // mss_descriptor
+            make_multistage // mss_descriptor
             (execute< forward >(),
                                                               define_caches(cache< IJ, local >(p_buff())),
-                                                              make_esf< functor1 >(p_in(), p_buff()), // esf_descriptor
-                                                              make_esf< functor2 >(p_buff(), p_out()) // esf_descriptor
+                                                              make_stage< functor1 >(p_in(), p_buff()), // esf_descriptor
+                                                              make_stage< functor2 >(p_buff(), p_out()) // esf_descriptor
                                                               ));
 
     pstencil->ready();
@@ -255,38 +271,38 @@ TEST_F(cache_stencil, multi_cache) {
     }
 
     typedef boost::mpl::vector5< p_in, p_out, p_buff, p_buff_2, p_buff_3 > accessor_list;
-    gridtools::domain_type< accessor_list > domain(boost::fusion::make_vector(&m_in, &m_out));
+    gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&m_in, &m_out));
 
 #ifdef CXX11_ENABLED
-        auto
+    auto
 #else
 #ifdef __CUDACC__
-        gridtools::stencil *
+    gridtools::stencil *
 #else
-        boost::shared_ptr< gridtools::stencil >
+    boost::shared_ptr< gridtools::stencil >
 #endif
 #endif
-            stencil = make_computation< gridtools::BACKEND >(
-                domain,
-                m_grid,
-                make_mss // mss_descriptor
-                (execute< forward >(),
-                    // test if define_caches works properly with multiple vectors of caches.
-                    // in this toy example two vectors are passed (IJ cache vector for p_buff
-                    // and p_buff_2, IJ cache vector for p_buff_3)
-                    define_caches(cache< IJ, local >(p_buff(), p_buff_2()), cache< IJ, local >(p_buff_3())),
-                    make_esf< functor3 >(p_in(), p_buff()),       // esf_descriptor
-                    make_esf< functor3 >(p_buff(), p_buff_2()),   // esf_descriptor
-                    make_esf< functor3 >(p_buff_2(), p_buff_3()), // esf_descriptor
-                    make_esf< functor3 >(p_buff_3(), p_out())     // esf_descriptor
-                    ));
-	stencil->ready();
+        stencil = make_computation< gridtools::BACKEND >(
+            domain,
+            m_grid,
+            make_multistage // mss_descriptor
+            (execute< forward >(),
+                // test if define_caches works properly with multiple vectors of caches.
+                // in this toy example two vectors are passed (IJ cache vector for p_buff
+                // and p_buff_2, IJ cache vector for p_buff_3)
+                define_caches(cache< IJ, local >(p_buff(), p_buff_2()), cache< IJ, local >(p_buff_3())),
+                make_stage< functor3 >(p_in(), p_buff()),       // esf_descriptor
+                make_stage< functor3 >(p_buff(), p_buff_2()),   // esf_descriptor
+                make_stage< functor3 >(p_buff_2(), p_buff_3()), // esf_descriptor
+                make_stage< functor3 >(p_buff_3(), p_out())     // esf_descriptor
+                ));
+    stencil->ready();
 
-	stencil->steady();
+    stencil->steady();
 
-	stencil->run();
+    stencil->run();
 
-	stencil->finalize();
+    stencil->finalize();
 
 #ifdef __CUDACC__
     m_out.d2h_update();

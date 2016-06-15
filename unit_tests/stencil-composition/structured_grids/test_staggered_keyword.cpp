@@ -1,5 +1,20 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #include "gtest/gtest.h"
-#include "stencil-composition/stencil-composition.hpp"
+#include "stencil_composition/stencil_composition.hpp"
 
 #ifdef __CUDACC__
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
@@ -67,15 +82,15 @@ bool test(){
     typedef arg<1,storage_type> p_j_data;
     typedef boost::mpl::vector<p_i_data, p_j_data> accessor_list;
 
-    domain_type<accessor_list> domain(boost::fusion::make_vector (&i_data, &j_data));
+    aggregator_type<accessor_list> domain(boost::fusion::make_vector (&i_data, &j_data));
     auto comp =
         gridtools::make_computation<gridtools::BACKEND>
         (
             domain, grid,
-            gridtools::make_mss
+            gridtools::make_multistage
             (
                 execute<forward>(),
-                gridtools::make_esf<functor, staggered<5,5,5,5> >(p_i_data(), p_j_data())
+                gridtools::make_stage<functor, staggered<5,5,5,5> >(p_i_data(), p_j_data())
                 )
             );
 

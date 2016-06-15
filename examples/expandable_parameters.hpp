@@ -199,7 +199,7 @@ namespace test_expandable_parameters {
             p_6_tmp,
             p_7_tmp > args_t;
 
-        domain_type< args_t > domain_(boost::fusion::make_vector(&storage1,
+        aggregator_type< args_t > domain_(boost::fusion::make_vector(&storage1,
             &storage2,
             &storage3,
             &storage4,
@@ -219,10 +219,10 @@ namespace test_expandable_parameters {
         auto comp_ = make_computation< BACKEND >(
             domain_,
             grid_,
-            make_mss(enumtype::execute< enumtype::forward >(),
+            make_multistage(enumtype::execute< enumtype::forward >(),
                 define_caches(cache< IJ, local >(
                     p_0_tmp(), p_1_tmp(), p_2_tmp(), p_3_tmp(), p_4_tmp(), p_5_tmp(), p_6_tmp(), p_7_tmp())),
-                make_esf< functor_single_kernel >(p_0_tmp(),
+                make_stage< functor_single_kernel >(p_0_tmp(),
                          p_1_tmp(),
                          p_2_tmp(),
                          p_3_tmp(),
@@ -238,7 +238,7 @@ namespace test_expandable_parameters {
                          p_5_in(),
                          p_6_in(),
                          p_7_in()),
-                make_esf< functor_single_kernel >(p_0_out(),
+                make_stage< functor_single_kernel >(p_0_out(),
                          p_1_out(),
                          p_2_out(),
                          p_3_out(),
@@ -268,14 +268,14 @@ namespace test_expandable_parameters {
 
         typedef boost::mpl::vector< p_out, p_in, p_tmp > args_t;
 
-        domain_type< args_t > domain_((p_out() = *list_out_[0]), (p_in() = *list_in_[0]));
+        aggregator_type< args_t > domain_((p_out() = *list_out_[0]), (p_in() = *list_in_[0]));
 
         auto comp_ = make_computation< BACKEND >(domain_,
             grid_,
-            make_mss(enumtype::execute< enumtype::forward >(),
+            make_multistage(enumtype::execute< enumtype::forward >(),
                                                      define_caches(cache< IJ, local >(p_tmp())),
-                                                     make_esf< functor_exp >(p_tmp(), p_in()),
-                                                     make_esf< functor_exp >(p_out(), p_tmp())));
+                                                     make_stage< functor_exp >(p_tmp(), p_in()),
+                                                     make_stage< functor_exp >(p_out(), p_tmp())));
 
         for (uint_t i = 0; i < list_in_.size(); ++i) {
             comp_->ready();
@@ -294,15 +294,15 @@ namespace test_expandable_parameters {
 
         typedef boost::mpl::vector< p_list_out, p_list_in, p_list_tmp > args_t;
 
-        domain_type< args_t > domain_(boost::fusion::make_vector(&list_out_, &list_in_));
+        aggregator_type< args_t > domain_(boost::fusion::make_vector(&list_out_, &list_in_));
 
         auto comp_ = make_computation< BACKEND >(expand_factor< 3 >(),
             domain_,
             grid_,
-            make_mss(enumtype::execute< enumtype::forward >(),
+            make_multistage(enumtype::execute< enumtype::forward >(),
                                                      define_caches(cache< IJ, local >(p_list_tmp())),
-                                                     make_esf< functor_exp >(p_list_tmp(), p_list_in()),
-                                                     make_esf< functor_exp >(p_list_out(), p_list_tmp())));
+                                                     make_stage< functor_exp >(p_list_tmp(), p_list_in()),
+                                                     make_stage< functor_exp >(p_list_out(), p_list_tmp())));
 
         comp_->ready();
         comp_->steady();

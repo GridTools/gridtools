@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include <stencil-composition/stencil-composition.hpp>
+#include <stencil_composition/stencil_composition.hpp>
 
 namespace test_storage_info_gpu_using{
 

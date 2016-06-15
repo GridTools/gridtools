@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #pragma once
 #include "storage_list.hpp"
 #ifdef CXX11_ENABLED
@@ -177,9 +192,7 @@ namespace gridtools {
 
     */
     template < typename First, typename... StorageExtended >
-    struct data_field : public dimension_extension_traits< First,
-                            StorageExtended... >::type
-    {
+    struct data_field : public dimension_extension_traits< First, StorageExtended... >::type {
         template < typename PT, typename MD, ushort_t FD >
         using type_tt = data_field< typename First::template type_tt< PT, MD, FD >,
             typename StorageExtended::template type_tt< PT, MD, FD >... >;

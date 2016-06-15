@@ -1,5 +1,20 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #pragma once
-#include <stencil-composition/stencil-composition.hpp>
+#include <stencil_composition/stencil_composition.hpp>
 #include "../../examples/cache_flusher.hpp"
 #include "../../examples/defs.hpp"
 
@@ -70,7 +85,7 @@ namespace domain_reassign {
         typedef BACKEND::storage_info< __COUNTER__, layout_t > meta_data_t;
         typedef BACKEND::storage_type< float_type, meta_data_t >::type storage_t;
 
-        meta_data_t meta_data_(x, y, z);
+        meta_data_t meta_data_(d1, d2, d3);
 
         // Definition of the actual data fields that are used for input/output
         typedef storage_t storage_type;
@@ -94,7 +109,7 @@ namespace domain_reassign {
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in
         // order. (I don't particularly like this)
-        gridtools::domain_type< accessor_list > domain((p_in() = in), (p_out() = out));
+        gridtools::aggregator_type< accessor_list > domain((p_in() = in), (p_out() = out));
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
@@ -120,9 +135,9 @@ namespace domain_reassign {
         auto copy = gridtools::make_computation< gridtools::BACKEND >(
             domain,
             grid,
-            gridtools::make_mss // mss_descriptor
+            gridtools::make_multistage // mss_descriptor
             (execute< forward >(),
-                gridtools::make_esf< test_functor >(p_in() // esf_descriptor
+                gridtools::make_stage< test_functor >(p_in() // esf_descriptor
                     ,
                     p_out())));
 

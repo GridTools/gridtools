@@ -1,6 +1,21 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
-#include <stencil-composition/stencil-composition.hpp>
+#include <stencil_composition/stencil_composition.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
@@ -122,14 +137,14 @@ typedef arg< 8, storage_type > in1;
 typedef arg< 9, storage_type > in2;
 typedef arg< 10, storage_type > in3;
 int main() {
-    typedef decltype(make_esf< functor0 >(in0(), in1(), in2(), o0())) functor0__;
-    typedef decltype(make_esf< functor1 >(in3(), o1(), in0(), o0())) functor1__;
-    typedef decltype(make_esf< functor2 >(o0(), o1(), o2())) functor2__;
-    typedef decltype(make_esf< functor3 >(in1(), in2(), o3(), o2())) functor3__;
-    typedef decltype(make_esf< functor4 >(o0(), o1(), o3(), o4())) functor4__;
-    typedef decltype(make_esf< functor5 >(in3(), o4(), in0(), o5())) functor5__;
-    typedef decltype(make_esf< functor6 >(o6(), o5(), in1(), in2())) functor6__;
-    typedef decltype(make_mss(execute< forward >(),
+    typedef decltype(make_stage< functor0 >(in0(), in1(), in2(), o0())) functor0__;
+    typedef decltype(make_stage< functor1 >(in3(), o1(), in0(), o0())) functor1__;
+    typedef decltype(make_stage< functor2 >(o0(), o1(), o2())) functor2__;
+    typedef decltype(make_stage< functor3 >(in1(), in2(), o3(), o2())) functor3__;
+    typedef decltype(make_stage< functor4 >(o0(), o1(), o3(), o4())) functor4__;
+    typedef decltype(make_stage< functor5 >(in3(), o4(), in0(), o5())) functor5__;
+    typedef decltype(make_stage< functor6 >(o6(), o5(), in1(), in2())) functor6__;
+    typedef decltype(make_multistage(execute< forward >(),
         functor0__(),
         functor1__(),
         functor2__(),
@@ -139,7 +154,7 @@ int main() {
         functor6__())) mss_t;
     typedef boost::mpl::vector< o0, o1, o2, o3, o4, o5, o6, in0, in1, in2, in3 > placeholders;
 
-    typedef compute_extents_of< init_map_of_extents< placeholders >::type, 1 >::for_mss< mss_t >::type final_map;
+    typedef compute_extents_of< init_map_of_extents< placeholders >::type >::for_mss< mss_t >::type final_map;
     std::cout << "FINAL" << std::endl;
     boost::mpl::for_each< final_map >(print_r());
 
