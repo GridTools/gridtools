@@ -356,22 +356,6 @@ namespace gridtools {
             : m_meta_data(new storage_info_type(meta_data_), false), m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), args...), false), m_on_host(true) {}
 #else // CXX11_ENABLED
 
-        // explicit storage(typename basic_type::storage_info_type const &meta_data_,
-        //     const char *s = "default uninitialized storage",
-        //     bool do_allocate = true)
-        //     : super(meta_data_, s, do_allocate), m_device_storage_info(&meta_data_), m_on_host(true) {}
-
-        // template < class T >
-        // explicit storage(typename basic_type::storage_info_type const &meta_data_,
-        //     T const &arg1,
-        //     char const *s = "default initialized storage")
-        //     : super(meta_data_, (value_type)arg1, s), m_device_storage_info(&meta_data_), m_on_host(true) {}
-
-        // template < class T >
-        // explicit storage(typename basic_type::storage_info_type const &meta_data_,
-        //     T *arg1,
-        //     char const *s = "externally managed storage")
-        //     : super(meta_data_, (value_type)*arg1, s), m_device_storage_info(&meta_data_), m_on_host(true) {}
         explicit storage(storage_info_type const &meta_data_, value_type const &init, bool do_allocate=true)
             : m_meta_data(new storage_info_type(meta_data_), false), m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), init, do_allocate), false), m_on_host(true) {}
 
@@ -414,25 +398,6 @@ namespace gridtools {
         explicit storage(storage_info_type const &meta_data_)
             : m_meta_data(new storage_info_type(meta_data_), false), m_storage(new BaseStorage(m_meta_data.get_pointer_to_use()), false), m_on_host(true) {}
 
-//             this api is callable from the device if the associated storage_info has been previously cloned to the device
-//          */
-//         template < typename... UInt >
-//         GT_FUNCTION value_type &operator()(UInt const &... dims) {
-// // failure here means that you didn't call clone_to_device on the storage_info yet
-// #ifdef __CUDA_ARCH__
-//             assert(!m_on_host);
-// #else  //__CUDA_ARCH__
-// #ifndef NDEBUG
-//             if (!m_on_host)
-//                 exit(-1);
-//             if (!m_device_storage_info)
-//                 exit(-2);
-// #endif
-// // assert(m_on_host);
-// // assert(m_device_storage_info);
-// #endif //__CUDA_ARCH__
-
-//             return access_data_impl(m_device_storage_info, dims...);
         template < typename UInt >
         GT_FUNCTION
         value_type const &operator[](UInt const &index_) const {
@@ -445,24 +410,6 @@ namespace gridtools {
         /**
          * explicitly disables the case in which the storage_info is passed as r- or x-value.
          */
-//         template < typename... UInt >
-//         GT_FUNCTION value_type const &operator()(UInt const &... dims) const {
-// // failure here means that you didn't call clone_to_device on the storage_info yet
-// #ifdef __CUDA_ARCH__
-//             assert(!m_on_host);
-// #else  //__CUDA_ARCH__
-// #ifndef NDEBUG
-//             if (!m_on_host)
-//                 exit(-1);
-//             if (!m_device_storage_info)
-//                 exit(-2);
-// #endif
-// // assert(m_on_host);
-// // assert(m_device_storage_info);
-// #endif //__CUDA_ARCH__
-
-//             return access_data_impl(m_device_storage_info, dims...);
-//         }
         template < typename... T >
         storage(storage_info_type &&, T...) = delete;
 
@@ -470,21 +417,6 @@ namespace gridtools {
          *  this api is callable from the host only. The function that is used to .
          */
         template < typename... UInt >
-//         GT_FUNCTION value_type &access_data_impl(storage_info_type const *metadata_, UInt const &... dims) {
-// #ifdef __CUDA_ARCH__
-// // assert(metadata_ && metadata_->index(dims...) < metadata_->size());
-// // assert(this->is_set);
-// #else
-// #ifndef NDEBUG
-//             if (!metadata_ || !(metadata_->index(dims...) < metadata_->size())) {
-//                 printf("%d < %d\n", metadata_->index(dims...), metadata_->size());
-//                 exit(-1);
-//             }
-//             if (!this->is_set)
-//                 exit(-2);
-// #endif
-// #endif
-//             return (this->m_fields[0])[metadata_->index(dims...)];
         GT_FUNCTION
         value_type &operator()(UInt... dims) {
             assert(m_on_host && "The accessed storage was not copied back from the device yet.");
@@ -495,19 +427,6 @@ namespace gridtools {
          *  this api is callable from the host only. The function that is used to .
          */
         template < typename... UInt >
-//         GT_FUNCTION value_type const &access_data_impl(storage_info_type const *metadata_, UInt const &... dims) const {
-// #ifdef __CUDA_ARCH__
-//             assert(metadata_ && metadata_->index(dims...) < metadata_->size());
-//             assert(this->is_set);
-// #else
-// #ifndef NDEBUG
-//             if (!metadata_ || !(metadata_->index(dims...) < metadata_->size()))
-//                 exit(-1);
-//             if (!this->is_set)
-//                 exit(-2);
-// #endif
-// #endif
-//             return (this->m_fields[0])[metadata_->index(dims...)];
         GT_FUNCTION
         value_type const &operator()(UInt const &... dims) const {
             assert(m_on_host && "The accessed storage was not copied back from the device yet.");
@@ -521,109 +440,34 @@ namespace gridtools {
          */
         GT_FUNCTION
         value_type &operator()(uint_t const &i, uint_t const &j, uint_t const &k) {
-// #ifdef __CUDA_ARCH__
-//             assert(!m_on_host);
-// #else  //__CUDA_ARCH__
-//             // assert(m_on_host);
-// #ifndef NDEBUG
-//             if (!m_on_host)
-//                 exit(-1);
-//             if (!m_device_storage_info)
-//                 exit(-2);
-// #endif
-// #endif //__CUDA_ARCH__
-
-//             return access_data_impl(m_device_storage_info, i, j, k);
             assert(m_on_host && "The accessed storage was not copied back from the device yet.");
             return (*m_storage)(i, j, k);
         }
 
-//         /**
-//             @brief returns (by const reference) the value of the data field at the coordinates (i, j, k)
-
-//             this api is callable from the device if the associated storage_info has been previously cloned to the device
-//         */
-//         GT_FUNCTION
-//         value_type const &operator()(uint_t const &i, uint_t const &j, uint_t const &k) const {
-
-// // failure here means that you didn't call clone_to_device on the storage_info yet
-// #ifdef __CUDA_ARCH__
-//             assert(!m_on_host);
-// #else  // __CUDA_ARCH__
-//             // assert(m_on_host);
-// #ifndef NDEBUG
-//             if (!m_on_host)
-//                 exit(-1);
-//             if (!m_device_storage_info)
-//                 exit(-2);
-// #endif
-// #endif //__CUDA_ARCH__
-
-//             return access_data_impl(m_device_storage_info, i, j, k);
-//         }
-
-//       private:
-        /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k)
-         *  this api is callable from the host only. The function that is used to .
-         */
-//         GT_FUNCTION
-//         value_type &access_data_impl(
-//             storage_info_type const *metadata_, uint_t const &i, uint_t const &j, uint_t const &k) {
-// #ifdef __CUDA_ARCH__
-//             assert(metadata_ && metadata_->index(i, j, k) < metadata_->size());
-//             assert(this->is_set);
-// #else
-// #ifndef NDEBUG
-//             if (!metadata_ || !(metadata_->index(i, j, k) < metadata_->size()))
-//                 exit(-1);
-//             if (!this->is_set)
-//                 exit(-2);
-// #endif
-// #endif
-//             return (this->m_fields[0])[metadata_->index(i, j, k)];
         GT_FUNCTION
         const value_type &operator()(uint_t const &i, uint_t const &j, uint_t const &k) const {
             assert(m_on_host && "The accessed storage was not copied back from the device yet.");
             return (*m_storage)(i, j, k);
         }
-
-//         /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k)
-
-//             This interface is not exposed to the user, it gets called from storage.hpp
-//         */
-//         GT_FUNCTION
-//         value_type const &access_data_impl(
-//             storage_info_type const *metadata_, uint_t const &i, uint_t const &j, uint_t const &k) const {
-
-// #ifdef __CUDA_ARCH__
-//             assert(metadata_ && metadata_->index(i, j, k) < metadata_->size());
-//             assert(this->is_set);
-// #else
-// #ifndef NDEBUG
-//             if (!metadata_ || !(metadata_->index(i, j, k) < metadata_->size()))
-//                 exit(-1);
-//             if (!this->is_set)
-//                 exit(-2);
-// #endif
 #endif
 
         GT_FUNCTION
         void set_on_device() {
             for (uint_t i = 0; i < field_dimensions; ++i)
                 (*m_storage).fields_view()[i].set_on_device();
-            // m_storage.set_on_device();
-            // m_meta_data.set_on_device();
-            // m_on_host=false;
+            m_storage.set_on_device();
+            m_meta_data.set_on_device();
+            m_on_host=false;
         }
 
-        // GT_FUNCTION
-        // void set_on_host() {
-        //     m_storage.set_on_host();
-        //     for (uint_t i = 0; i < field_dimensions; ++i)
-        //         (*m_storage).fields_view()[i].set_on_host();
-        //     m_meta_data.set_on_host();
-        //     m_on_host=true;
-        // }
+        GT_FUNCTION
+        void set_on_host() {
+            m_storage.set_on_host();
+            for (uint_t i = 0; i < field_dimensions; ++i)
+                (*m_storage).fields_view()[i].set_on_host();
+            m_meta_data.set_on_host();
+            m_on_host=true;
+        }
 
     }; // closing struct storage
 

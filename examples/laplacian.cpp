@@ -240,7 +240,7 @@ TEST(Laplace, test) {
 
     // [generate reference]
 
-    storage_type ref(metadata_, -7.3., "ref");
+    storage_type ref(metadata_, -7.3, "ref");
 
     for(uint_t i=halo_size; i != d1-halo_size; ++i) {
         for(uint_t j=halo_size; j != d2-halo_size; ++j) {

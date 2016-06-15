@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stencil-composition/stencil-composition.hpp>
+#include <stencil_composition/stencil_composition.hpp>
 
 #ifdef __CUDACC__
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
@@ -68,13 +68,13 @@ namespace adv_prepare_tracers {
         typedef arg< 2, storage_t > p_rho;
         typedef boost::mpl::vector< p_list_out, p_list_in, p_rho > args_t;
 
-        domain_type< args_t > domain_(boost::fusion::make_vector(&list_out_, &list_in_, &rho));
+        aggregator_type< args_t > domain_(boost::fusion::make_vector(&list_out_, &list_in_, &rho));
 
         auto comp_ = make_computation< BACKEND >(expand_factor< 20 >(),
             domain_,
             grid_,
-            make_mss(enumtype::execute< enumtype::forward >(),
-                                                     make_esf< prepare_tracers >(p_list_out(), p_list_in(), p_rho())));
+            make_multistage(enumtype::execute< enumtype::forward >(),
+                                                     make_stage< prepare_tracers >(p_list_out(), p_list_in(), p_rho())));
 
         comp_->ready();
         comp_->steady();

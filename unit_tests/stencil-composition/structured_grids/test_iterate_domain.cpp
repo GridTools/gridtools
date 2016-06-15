@@ -19,7 +19,7 @@
 #include "common/defs.hpp"
 #include "stencil_composition/stencil_composition.hpp"
 #include "stencil_composition/intermediate_metafunctions.hpp"
-#include "stencil-composition/structured_grids/accessor.hpp"
+#include "stencil_composition/structured_grids/accessor.hpp"
 
 namespace test_iterate_domain{
     using namespace gridtools;

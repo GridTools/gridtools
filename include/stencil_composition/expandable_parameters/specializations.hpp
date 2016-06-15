@@ -37,12 +37,6 @@ namespace gridtools {
     struct is_any_storage< std::vector< T > > : is_any_storage< T > {};
 #endif
 
-    template < uint_t ID, typename T, typename Condition >
-    struct is_plchldr_to_temp< arg< ID, T, Condition > > : public is_temporary_storage< T > {};
-
-    template < uint_t ID, typename T >
-    struct is_plchldr_to_temp< arg< ID, T > > : public is_temporary_storage< T > {};
-
 #ifdef CXX11_ENABLED
     template < typename T, uint_t ID >
     struct is_actual_storage< pointer< storage<expandable_parameters< T, ID > > > >

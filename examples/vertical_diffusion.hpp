@@ -1,6 +1,6 @@
 #pragma once
-#include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/structured_grids/call_interfaces.hpp>
+#include <stencil_composition/stencil_composition.hpp>
+#include <stencil_composition/structured_grids/call_interfaces.hpp>
 #include "tridiagonal.hpp"
 
 namespace vertical_diffusion {
@@ -313,7 +313,7 @@ namespace vertical_diffusion {
         typedef arg< 16, storage_bottomFactor_t > p_bottomFactor;
         typedef arg< 17, storage_bottomFactor_t > p_out;
 
-        auto domain_ = make_domain_type(storage_data_,
+        auto domain_ = make_aggregator_type(storage_data_,
             storage_datatens_,
             storage_data_nnow_,
             storage_sqrtgrhors_,
@@ -342,8 +342,8 @@ namespace vertical_diffusion {
         auto comp_ = make_computation< BACKEND >(expand_factor< 1 >(),
             domain_,
             grid_,
-            make_mss(execute< forward >(),
-                                                     make_esf< vertical_diffusion_stages >(p_data(),
+            make_multistage(execute< forward >(),
+                                                     make_stage< vertical_diffusion_stages >(p_data(),
                                                          p_datatens(),
                                                          p_data_nnow(),
                                                          p_sqrtgrhors(),
