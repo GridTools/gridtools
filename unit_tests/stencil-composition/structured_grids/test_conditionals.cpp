@@ -1,6 +1,21 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #include "gtest/gtest.h"
-#include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/conditionals/condition_pool.hpp>
+#include <stencil_composition/stencil_composition.hpp>
+#include <stencil_composition/conditionals/condition_pool.hpp>
 
 namespace test_conditionals{
     using namespace gridtools;
@@ -63,7 +78,7 @@ namespace test_conditionals{
         typedef arg<0, storage_t > p_dummy;
 
         typedef boost::mpl::vector1<p_dummy> arg_list;
-        domain_type< arg_list > domain_(boost::fusion::make_vector(&dummy));
+        aggregator_type< arg_list > domain_(boost::fusion::make_vector(&dummy));
 
 #ifdef CXX11_ENABLED
         auto
@@ -74,16 +89,16 @@ namespace test_conditionals{
                 domain_, grid_,
                 if_(cond
                     ,
-                    make_mss(
+                    make_multistage(
                         enumtype::execute<enumtype::forward>()
-                        , make_esf<functor<0> >( p_dummy() ))
+                        , make_stage<functor<0> >( p_dummy() ))
                     , if_( cond2
-                           , make_mss(
+                           , make_multistage(
                                enumtype::execute<enumtype::forward>()
-                               , make_esf<functor<1> >( p_dummy() ))
-                           , make_mss(
+                               , make_stage<functor<1> >( p_dummy() ))
+                           , make_multistage(
                                enumtype::execute<enumtype::forward>()
-                               , make_esf<functor<2> >( p_dummy() ))
+                               , make_stage<functor<2> >( p_dummy() ))
                         )
                     )
                 );

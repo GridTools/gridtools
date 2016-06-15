@@ -1,4 +1,19 @@
 /*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+/*
  * File:   test_domain.cpp
  * Author: mbianco
  *
@@ -17,7 +32,7 @@
 #include <boost/fusion/include/make_vector.hpp>
 #include <boost/mpl/vector.hpp>
 
-#include <stencil-composition/stencil-composition.hpp>
+#include <stencil_composition/stencil_composition.hpp>
 
 using gridtools::uint_t;
 using gridtools::int_t;
@@ -150,7 +165,7 @@ bool test_domain() {
     // // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-    gridtools::domain_type<accessor_list> domain
+    gridtools::aggregator_type<accessor_list> domain
         (boost::fusion::make_vector(&coeff, &in, &out /*,&fly, &flx*/));
 
     typedef boost::mpl::vector<
