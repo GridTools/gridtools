@@ -231,7 +231,7 @@ namespace gridtools {
             push_front< dimension >(field);
         }
 
-        /**@biref sets the given storage as the nth snapshot of a specific field dimension
+        /**@brief sets the given storage as the nth snapshot of a specific field dimension
 
            @tparam field_dim the given field dimenisons
            @tparam snapshot the snapshot of dimension field_dim to be set
@@ -245,7 +245,7 @@ namespace gridtools {
             super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields + snapshot] = field;
         }
 
-        /**@biref sets the given storage as the nth snapshot of a specific field dimension and initialize the storage
+        /**@brief sets the given storage as the nth snapshot of a specific field dimension and initialize the storage
            with an input constant value
 
            @tparam field_dim the given field dimenisons
@@ -262,7 +262,7 @@ namespace gridtools {
                 (super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields + snapshot])[i] = val;
         }
 
-        /**@biref sets the given storage as the nth snapshot of a specific field dimension and initialize the storage
+        /**@brief sets the given storage as the nth snapshot of a specific field dimension and initialize the storage
            with an input lambda function
            TODO: this should be merged with the boundary conditions code (repetition)
 
@@ -283,7 +283,7 @@ namespace gridtools {
                                          snapshot])[this->m_meta_data->index(i, j, k)] = lambda(i, j, k);
         }
 
-        /**@biref gets the given storage as the nth snapshot of a specific field dimension
+        /**@brief gets the given storage as the nth snapshot of a specific field dimension
 
            @tparam field_dim the given field dimenisons
            @tparam snapshot the snapshot of dimension field_dim to be set
@@ -316,7 +316,7 @@ namespace gridtools {
             return *super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields + snapshot];
         }
 
-        /**@biref gets a given value at the given field i,j,k coordinates
+        /**@brief gets a given value at the given field i,j,k coordinates
 
            @tparam field_dim the given field dimenisons
            @tparam snapshot the snapshot (relative to the dimension field_dim) to be acessed
@@ -332,7 +332,7 @@ namespace gridtools {
             return super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields + snapshot][this->m_meta_data->index(args...)];
         }
 
-        /**@biref gets a given value at the given field i,j,k coordinates
+        /**@brief gets a given value at the given field i,j,k coordinates
 
            same as the previous one, but returning a constant reference
         */
@@ -344,7 +344,7 @@ namespace gridtools {
             return super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields + snapshot][this->m_meta_data->index(args...)];
         }
 
-        /**@biref ODE advancing for a single dimension
+        /**@brief ODE advancing for a single dimension
 
            it advances the supposed finite difference scheme of one step for a specific field dimension
            @tparam dimension the dimension to be advanced
@@ -359,7 +359,7 @@ namespace gridtools {
             super::advance(indexFrom, indexTo);
         }
 
-        /**@biref ODE advancing for all dimension
+        /**@brief ODE advancing for all dimension
 
            shifts the rings of solutions of one position,
            it advances the finite difference scheme of one step for all field dimensions.
