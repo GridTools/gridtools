@@ -57,6 +57,7 @@
                     }
                 },
                 "exec": "build/interface1",
+                "stella_filter": "--gtest_filter=HoriDiffBenchmark.4Stages",
                 "cpu": {
                     "double": {
                         "cxx11": {
@@ -270,8 +271,7 @@
                             }
                         }
                     }
-                },
-                "stella_filter": "--gtest_filter=HoriDiffBenchmark.4Stages"
+                }
             },
             "copy_stencil": {
                 "gpu": {
@@ -329,6 +329,7 @@
                     }
                 },
                 "exec": "build/copy_stencil",
+                "stella_filter": "--gtest_filter=BasicBenchmarks.copyStencilTest",
                 "cpu": {
                     "double": {
                         "cxx11": {
@@ -542,8 +543,7 @@
                             }
                         }
                     }
-                },
-                "stella_filter": "--gtest_filter=BasicBenchmarks.copyStencilTest"
+                }
             },
             "vertical_advection": {
                 "gpu": {
@@ -601,6 +601,7 @@
                     }
                 },
                 "exec": "build/vertical_advection_dycore",
+                "stella_filter": "--gtest_filter=VerticalAdvectionBenchmark.U",
                 "cpu": {
                     "double": {
                         "cxx11": {
@@ -814,8 +815,7 @@
                             }
                         }
                     }
-                },
-                "stella_filter": "--gtest_filter=VerticalAdvectionBenchmark.U"
+                }
             }
         }
     },
@@ -839,12 +839,12 @@
                         "cxx03": {
                             "thread": {
                                 "256x256x80": {
-                                    "rms": 2.1399186554287483e-05,
-                                    "time": 0.026973666666666663
+                                    "rms": 1.2045315671646885e-05,
+                                    "time": 0.031831366666666666
                                 },
                                 "128x128x80": {
-                                    "rms": 4.1111744739861994e-06,
-                                    "time": 0.0069693000000000003
+                                    "rms": 3.6004513708803201e-05,
+                                    "time": 0.0083135266666666662
                                 }
                             }
                         }
@@ -897,12 +897,12 @@
                         "cxx03": {
                             "thread": {
                                 "256x256x80": {
-                                    "rms": 9.7693128762505112e-06,
-                                    "time": 0.005465566666666667
+                                    "rms": 3.8569773235103701e-06,
+                                    "time": 0.0054623033333333322
                                 },
                                 "128x128x80": {
-                                    "rms": 6.8149296890478999e-06,
-                                    "time": 0.0014907199999999998
+                                    "rms": 0.00011755446636756497,
+                                    "time": 0.0016200833333333334
                                 }
                             }
                         }
@@ -955,12 +955,12 @@
                         "cxx03": {
                             "thread": {
                                 "256x256x80": {
-                                    "rms": 6.0387495639657784e-05,
-                                    "time": 0.063056366666666683
+                                    "rms": 9.1866247378492671e-06,
+                                    "time": 0.062703966666666666
                                 },
                                 "128x128x80": {
-                                    "rms": 7.245279433816052e-06,
-                                    "time": 0.014309166666666666
+                                    "rms": 2.9841693428266997e-05,
+                                    "time": 0.014308899999999999
                                 }
                             }
                         }
