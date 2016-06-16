@@ -37,8 +37,11 @@ void test_offset_tuple(bool *result) {
     }
 
 
+#ifndef __CUDACC__
+
     typedef offset_tuple_mixed<boost::mpl::vector< static_int<1>, static_int<2> >, 3, pair_<1, 8>, pair_<2,7> > offset_tuple_mixed_t;
-#ifdef CXX11_ENABLED
+
+#ifdef CXX11_ENABLED 
     constexpr offset_tuple_mixed_t offset(11,12,13);
     GRIDTOOLS_STATIC_ASSERT(( static_uint< offset.template get<2>() >::value == 8), "ERROR");
     GRIDTOOLS_STATIC_ASSERT(( static_uint< offset.template get<1>() >::value == 7), "ERROR");
@@ -48,5 +51,6 @@ void test_offset_tuple(bool *result) {
     assert(offset.template get<2>() >::value == 8);
     assert(offset.template get<1>() >::value == 7);
     assert(offset.template get<0>() >::value == 13);
+#endif
 #endif
 }
