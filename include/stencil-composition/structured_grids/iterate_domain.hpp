@@ -864,7 +864,7 @@ namespace gridtools {
         //(3 space dim + 2 extra= 5, which gives n_dim==4)
         GRIDTOOLS_STATIC_ASSERT(
             N_DATA_POINTERS > 0, "the total number of snapshots must be larger than 0 in each functor");
-        GRIDTOOLS_STATIC_ASSERT(accessor.template get< 0 >() >= 0,
+        GRIDTOOLS_STATIC_ASSERT(accessor.template get_constexpr< 0 >() >= 0,
             "offset specified for the dimension corresponding to the number of field components/snapshots must be non "
             "negative");
 
@@ -879,7 +879,7 @@ namespace gridtools {
         // snapshot access out of bounds        
         GTASSERT(
             (accessor.template get< 1 >() <
-                _impl::access< storage_t::n_width - (accessor.template get< 0 >()) - 1,
+                _impl::access< storage_t::n_width - (accessor.template get_constexpr< 0 >()) - 1,
                     typename storage_t::traits >::type::n_width));
 
         return get_value(
@@ -892,7 +892,7 @@ namespace gridtools {
                               // hypotheses : storage offsets are known at compile-time
                               +
                               compute_storage_offset< typename storage_t::traits,
-                                  accessor.template get< 0 >(),
+                                  accessor.template get_constexpr< 0 >(),
                                   storage_t::traits::n_dimensions -
                                       1 >::value // stride of the current dimension inside the vector of storages
                     )                            //+ the offset of the other extra dimension
