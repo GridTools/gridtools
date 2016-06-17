@@ -5,21 +5,19 @@ using namespace gridtools;
 using namespace enumtype;
 
 typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
+typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
-struct TensionShearFunction
-{
-    using T_sqr_s  = inout_accessor<0>;
-    using S_sqr_uv = inout_accessor<1>;
+struct TensionShearFunction {
+    using T_sqr_s = inout_accessor< 0 >;
+    using S_sqr_uv = inout_accessor< 1 >;
 
-    using u_in = in_accessor<2, extent<-1, 0,  0, 1>>;
-    using v_in = in_accessor<3, extent< 0, 1, -1, 0>>;
+    using u_in = in_accessor< 2, extent< -1, 0, 0, 1 > >;
+    using v_in = in_accessor< 3, extent< 0, 1, -1, 0 > >;
 
-    using arg_list = boost::mpl::vector<T_sqr_s, S_sqr_uv, u_in, v_in>;
+    using arg_list = boost::mpl::vector< T_sqr_s, S_sqr_uv, u_in, v_in >;
 
-    template <typename Evaluation>
-    GT_FUNCTION static void Do(const Evaluation& eval, x_interval)
-    { }
+    template < typename Evaluation >
+    GT_FUNCTION static void Do(const Evaluation &eval, x_interval) {}
 };
 
 /**
@@ -32,22 +30,17 @@ struct TensionShearFunction
  * Refrence:
  *  - STELLA: dycore/HorizontalDiffusionSmagorinsky.cpp
  */
-struct SmagCoeffFunction
-{
-    using smag_u = inout_accessor<0>;
-    using smag_v = inout_accessor<1>;
+struct SmagCoeffFunction {
+    using smag_u = inout_accessor< 0 >;
+    using smag_v = inout_accessor< 1 >;
 
-    using T_sqr_s  = in_accessor<2, extent<0, 1, 0, 1>>;
-    using S_sqr_uv = in_accessor<3, extent<-1, 0, -1, 0>>;
+    using T_sqr_s = in_accessor< 2, extent< 0, 1, 0, 1 > >;
+    using S_sqr_uv = in_accessor< 3, extent< -1, 0, -1, 0 > >;
 
-    using arg_list = boost::mpl::vector<smag_u,
-                                        smag_v,
-                                        T_sqr_s,
-                                        S_sqr_uv>;
+    using arg_list = boost::mpl::vector< smag_u, smag_v, T_sqr_s, S_sqr_uv >;
 
-    template <typename Evaluation>
-    GT_FUNCTION static void Do(const Evaluation& eval, x_interval)
-    {  }
+    template < typename Evaluation >
+    GT_FUNCTION static void Do(const Evaluation &eval, x_interval) {}
 };
 
 /**
@@ -58,38 +51,30 @@ struct SmagCoeffFunction
  * Refrence:
  *  - STELLA: dycore/HorizontalDiffusionSmagorinsky.cpp
  */
-struct SmagUpdateFunction
-{
-    using u_out = inout_accessor<0>;
-    using v_out = inout_accessor<1>;
+struct SmagUpdateFunction {
+    using u_out = inout_accessor< 0 >;
+    using v_out = inout_accessor< 1 >;
 
-    using u_in  = in_accessor<2, extent<-1, 1, -1, 1>>;
-    using v_in = in_accessor<3, extent<-1, 1, -1, 1>>;
-    using smag_u = in_accessor<4>;
-    using smag_v = in_accessor<5>;
+    using u_in = in_accessor< 2, extent< -1, 1, -1, 1 > >;
+    using v_in = in_accessor< 3, extent< -1, 1, -1, 1 > >;
+    using smag_u = in_accessor< 4 >;
+    using smag_v = in_accessor< 5 >;
 
-    using arg_list = boost::mpl::vector<u_out,
-                                        v_out,
-                                        u_in,
-                                        v_in,
-                                        smag_u,
-                                        smag_v>;
+    using arg_list = boost::mpl::vector< u_out, v_out, u_in, v_in, smag_u, smag_v >;
 
-    template <typename Evaluation>
-    GT_FUNCTION static void Do(const Evaluation& eval, x_interval)
-    { }
+    template < typename Evaluation >
+    GT_FUNCTION static void Do(const Evaluation &eval, x_interval) {}
 };
 
 #ifdef __CUDACC__
-#define BACKEND backend<enumtype::Cuda,GRIDBACKEND, enumtype::Block >
+#define BACKEND backend< enumtype::Cuda, GRIDBACKEND, enumtype::Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend<enumtype::Host,GRIDBACKEND, enumtype::Block >
+#define BACKEND backend< enumtype::Host, GRIDBACKEND, enumtype::Block >
 #else
-#define BACKEND backend<enumtype::Host,GRIDBACKEND, enumtype::Naive >
+#define BACKEND backend< enumtype::Host, GRIDBACKEND, enumtype::Naive >
 #endif
 #endif
-
 
 TEST(multiple_outputs, compute_extents) {
     typedef layout_map< 2, 1, 0 > layout_t;
@@ -100,18 +85,18 @@ TEST(multiple_outputs, compute_extents) {
     storage_info_type meta_data_(10, 10, 10);
     storage_type dummy(meta_data_, 0., "dummy");
 
-    using T_sqr_s  = arg<0, tmp_storage_type>;
-    using S_sqr_uv = arg<1, tmp_storage_type>;
-    using smag_u   = arg<2, tmp_storage_type>;
-    using smag_v   = arg<3, tmp_storage_type>;
+    using T_sqr_s = arg< 0, tmp_storage_type >;
+    using S_sqr_uv = arg< 1, tmp_storage_type >;
+    using smag_u = arg< 2, tmp_storage_type >;
+    using smag_v = arg< 3, tmp_storage_type >;
 
     // Output fields
-    using u_out = arg<4, storage_type>;
-    using v_out = arg<5, storage_type>;
+    using u_out = arg< 4, storage_type >;
+    using v_out = arg< 5, storage_type >;
 
     // Input fields
-    using u_in = arg<6, storage_type>;
-    using v_in = arg<7, storage_type>;
+    using u_in = arg< 6, storage_type >;
+    using v_in = arg< 7, storage_type >;
 
     using arg_list = boost::mpl::vector<
         // Temporaries
@@ -126,40 +111,24 @@ TEST(multiple_outputs, compute_extents) {
 
         // Input fields
         u_in,
-        v_in>;
+        v_in >;
 
     domain_type< arg_list > domain(boost::fusion::make_vector(&dummy, &dummy, &dummy, &dummy));
 
     uint_t di[5] = {2, 2, 0, 7, 10};
     uint_t dj[5] = {2, 2, 0, 7, 10};
-    grid<axis> grid_(di,dj);
+    grid< axis > grid_(di, dj);
 
     grid_.value_list[0] = 0;
     grid_.value_list[1] = 9;
 
-
-    auto computation = make_computation<BACKEND>
-        (
-         domain, grid_,
-         make_mss
-         (
-          execute<forward>(),
-          make_esf<TensionShearFunction>(T_sqr_s(),
-                                         S_sqr_uv(),
-                                         u_in(),
-                                         v_in()),
-          make_esf<SmagCoeffFunction>(smag_u(),
-                                      smag_v(),
-                                      T_sqr_s(),
-                                      S_sqr_uv()),
-          make_esf<SmagUpdateFunction>(u_out(),
-                                       v_out(),
-                                       u_in(),
-                                       v_in(),
-                                       smag_u(),
-                                       smag_v())
-          )
-         );
+    auto computation = make_computation< BACKEND >(
+        domain,
+        grid_,
+        make_mss(execute< forward >(),
+            make_esf< TensionShearFunction >(T_sqr_s(), S_sqr_uv(), u_in(), v_in()),
+            make_esf< SmagCoeffFunction >(smag_u(), smag_v(), T_sqr_s(), S_sqr_uv()),
+            make_esf< SmagUpdateFunction >(u_out(), v_out(), u_in(), v_in(), smag_u(), smag_v())));
 
     EXPECT_TRUE(true);
 }
