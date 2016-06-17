@@ -108,16 +108,10 @@ namespace gridtools {
             */
             template <typename Extents>
             struct min_enclosing_extents_of_outputs {
-
-                template <typename CurrentStatus, typename CurrentExt>
-                struct min_enc {
-                    typedef typename enclosing_extent<CurrentStatus, CurrentExt>::type type;
-                };
-
                 typedef typename boost::mpl::fold<
                     Extents,
                     extent<>,
-                    min_enc<boost::mpl::_1, boost::mpl::_2>
+                    enclosing_extent<boost::mpl::_1, boost::mpl::_2>
                     >::type type;
             };
 
@@ -135,7 +129,8 @@ namespace gridtools {
             struct update_map_for_multiple_outputs {
                 template <typename TheMap, typename ThePair>
                 struct update_value {
-                    typedef typename boost::mpl::insert<TheMap, boost::mpl::pair<typename ThePair::first, NewExtent> >::type type;
+                    typedef typename boost::mpl::erase_key<TheMap, typename ThePair::first >::type _Map;
+                    typedef typename boost::mpl::insert<_Map, boost::mpl::pair<typename ThePair::first, NewExtent> >::type type;
                 };
 
                 typedef typename boost::mpl::fold<
@@ -159,23 +154,15 @@ namespace gridtools {
             template <typename Map, typename OutputPairs>
             struct extract_output_extents {
                 template <typename ThePair>
-                struct fuckfuck {
-                    typedef typename boost::mpl::at<Map, typename ThePair::second>::type type;
+                struct _find_from_second {
+                    typedef typename boost::mpl::at<Map, typename ThePair::first>::type type;
                 };
 
                 typedef typename boost::mpl::fold<
                     OutputPairs,
                     boost::mpl::vector0<>,
-                    boost::mpl::push_back<boost::mpl::_1, fuckfuck<boost::mpl::_2> >
+                    boost::mpl::push_back<boost::mpl::_1, _find_from_second<boost::mpl::_2> >
                     >::type type;
-            };
-
-            template <typename NewExtent>
-            struct substitute_extent {
-                template <typename Pair>
-                struct apply {
-                    typedef typename boost::mpl::pair<typename Pair::first, NewExtent> type;
-                };
             };
 
             /** Update map recursively visit the ESFs to process their inputs and outputs
@@ -205,6 +192,14 @@ namespace gridtools {
 
                 // Now update the map with the new outputs extents
                 typedef typename update_map_for_multiple_outputs<mee_outputs, outputs, CurrentMap>::type NewCurrentMap;
+
+                template <typename NewExtent>
+                struct substitute_extent {
+                    template <typename Pair>
+                    struct apply {
+                        typedef typename boost::mpl::pair<typename Pair::first, NewExtent> type;
+                    };
+                };
 
                 // Now the outputs themselves need to get updated before the next map update
                 typedef typename boost::mpl::transform<
