@@ -31,6 +31,11 @@ endif()
     target_link_libraries(test_conditionals ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
     gridtools_add_test(test_conditionals ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/test_conditionals")
 
+    add_executable(test_multiple_output_stencils test_multiple_output_stencils.cpp)
+    set_target_properties(test_multiple_output_stencils PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+    target_link_libraries(test_multiple_output_stencils ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
+    gridtools_add_test(test_multiple_output_stencils ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/test_conditionals")
+
 if ( ENABLE_CXX11 )
 
     add_executable(test_conditional_switches test_conditional_switches.cpp)

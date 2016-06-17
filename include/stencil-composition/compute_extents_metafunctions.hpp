@@ -101,6 +101,83 @@ namespace gridtools {
                     type; // the new map
             };
 
+            /** Compute the minimum enclosing extents of the list of
+                extents provided
+
+                \tparam Extents Sequence of extents
+            */
+            template <typename Extents>
+            struct min_enclosing_extents_of_outputs {
+
+                template <typename CurrentStatus, typename CurrentExt>
+                struct min_enc {
+                    typedef typename enclosing_extent<CurrentStatus, CurrentExt>::type type;
+                };
+
+                typedef typename boost::mpl::fold<
+                    Extents,
+                    extent<>,
+                    min_enc<boost::mpl::_1, boost::mpl::_2>
+                    >::type type;
+            };
+
+            /**
+               Given the map between placeholders and extents, this
+               metafunction produce another map in which the
+               placeholders in Outputs::first are updated with the
+               extent in NewExtent.
+
+               \tparam NewExtent The new extent to insert into the map
+               \tparam Outputs Sequence of pairs of Outputs and extents
+               \tparam OrigialMap The map to be updated
+             */
+            template <typename NewExtent, typename Outputs, typename OriginalMap>
+            struct update_map_for_multiple_outputs {
+                template <typename TheMap, typename ThePair>
+                struct update_value {
+                    typedef typename boost::mpl::insert<TheMap, boost::mpl::pair<typename ThePair::first, NewExtent> >::type type;
+                };
+
+                typedef typename boost::mpl::fold<
+                    Outputs,
+                    OriginalMap,
+                    update_value<boost::mpl::_1, boost::mpl::_2>
+                    >::type type;
+
+            };
+
+            /**
+               From the pairs <placeholders, extents> we need to
+               extract the extents corresponding to placeholders in
+               the map.
+
+               \tparam Map The map with the extents to extract
+
+               \tparam OutputPairs the sequence of pairs from which to
+               extract the keys to search in the map
+            */
+            template <typename Map, typename OutputPairs>
+            struct extract_output_extents {
+                template <typename ThePair>
+                struct fuckfuck {
+                    typedef typename boost::mpl::at<Map, typename ThePair::second>::type type;
+                };
+
+                typedef typename boost::mpl::fold<
+                    OutputPairs,
+                    boost::mpl::vector0<>,
+                    boost::mpl::push_back<boost::mpl::_1, fuckfuck<boost::mpl::_2> >
+                    >::type type;
+            };
+
+            template <typename NewExtent>
+            struct substitute_extent {
+                template <typename Pair>
+                struct apply {
+                    typedef typename boost::mpl::pair<typename Pair::first, NewExtent> type;
+                };
+            };
+
             /** Update map recursively visit the ESFs to process their inputs and outputs
              */
             template < typename ESFs, typename CurrentMap, int Elements >
@@ -113,6 +190,28 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((check_all_extents_are< outputs, extent<> >::type::value),
                     "Extents of the outputs of ESFs are not all empty. All outputs must have empty extents");
 
+                // We need to check the map here: if the outputs of a
+                // single function has different extents in the map we
+                // need to update the map with the minimum enclosig
+                // extents of those, so that all the subsequent
+                // dependencies could be satisfied.
+
+                // First we need to extract the output extents from
+                // the map
+                typedef typename extract_output_extents<CurrentMap, outputs>::type out_extents;
+
+                // Now we need to get the new extent to be put in the map
+                typedef typename min_enclosing_extents_of_outputs<out_extents>::type mee_outputs;
+
+                // Now update the map with the new outputs extents
+                typedef typename update_map_for_multiple_outputs<mee_outputs, outputs, CurrentMap>::type NewCurrentMap;
+
+                // Now the outputs themselves need to get updated before the next map update
+                typedef typename boost::mpl::transform<
+                    outputs,
+                    substitute_extent<mee_outputs>
+                    >::type updated_outputs;
+
                 // Then determine the inputs
                 typedef typename esf_get_r_per_functor< current_ESF, boost::true_type >::type inputs;
 
@@ -121,7 +220,7 @@ namespace gridtools {
                 // needed. This makes sense since we are going in
                 // reverse orders, from the last to the first stage
                 // (esf).
-                typedef typename boost::mpl::fold< outputs,
+                typedef typename boost::mpl::fold< updated_outputs,
                     CurrentMap,
                     for_each_output< boost::mpl::_2, inputs, boost::mpl::_1 > >::type new_map;
 
