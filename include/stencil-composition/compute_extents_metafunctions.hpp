@@ -221,7 +221,7 @@ namespace gridtools {
                 // reverse orders, from the last to the first stage
                 // (esf).
                 typedef typename boost::mpl::fold< updated_outputs,
-                    CurrentMap,
+                    NewCurrentMap,
                     for_each_output< boost::mpl::_2, inputs, boost::mpl::_1 > >::type new_map;
 
                 typedef
