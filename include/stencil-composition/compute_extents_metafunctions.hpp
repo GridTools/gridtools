@@ -105,12 +105,12 @@ namespace gridtools {
              */
             template < typename ESFs, typename CurrentMap, int Elements >
             struct update_map {
+                GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ESFs, is_esf_descriptor>::value), "Error");
                 typedef typename boost::mpl::at_c< ESFs, 0 >::type current_ESF;
                 typedef typename boost::mpl::pop_front< ESFs >::type rest_of_ESFs;
 
                 // First determine which are the outputs
                 typedef typename esf_get_w_per_functor< current_ESF, boost::true_type >::type outputs;
-
                 GRIDTOOLS_STATIC_ASSERT((check_all_extents_are< outputs, extent<> >::type::value),
                     "Extents of the outputs of ESFs are not all empty. All outputs must have empty extents");
 

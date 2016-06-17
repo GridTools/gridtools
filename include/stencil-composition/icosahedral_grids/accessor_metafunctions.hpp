@@ -15,7 +15,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Internal Error: wrong type");
     };
 
-    template < int ID, typename LocationType, typename Extent, ushort_t FieldDimensions >
+    template < uint_t ID, typename LocationType, typename Extent, ushort_t FieldDimensions >
     struct is_accessor_readonly< accessor< ID, enumtype::in, LocationType, Extent, FieldDimensions > > : boost::mpl::true_ {};
 
     /**
