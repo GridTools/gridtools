@@ -259,7 +259,6 @@ namespace gridtools {
                         // not know that they are still on the device
                         i->set_on_device();
                         i->d2h_update();
-                        i->set_on_host();
                     }
                 }
             }
