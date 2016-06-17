@@ -46,9 +46,9 @@ void test_offset_tuple(bool *result) {
     GRIDTOOLS_STATIC_ASSERT(( static_uint< offset.template get<1>() >::value == 7), "ERROR");
     GRIDTOOLS_STATIC_ASSERT(( static_uint< offset.template get<0>() >::value == 13), "ERROR");
 
-    assert(offset.template get<2>() >::value == 8);
-    assert(offset.template get<1>() >::value == 7);
-    assert(offset.template get<0>() >::value == 13);
+    assert(offset.template get<2>()  == 8);
+    assert(offset.template get<1>()  == 7);
+    assert(offset.template get<0>()  == 13);
 
 #endif
 }
