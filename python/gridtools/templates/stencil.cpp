@@ -18,7 +18,7 @@
  * the Python interface to the Gridtools library
  *
  */
-#include <stencil_composition/stencil_composition.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 #include "{{ fun_hdr_file }}"
 

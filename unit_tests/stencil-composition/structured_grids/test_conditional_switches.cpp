@@ -14,8 +14,8 @@
    limitations under the License.
 */
 #include "gtest/gtest.h"
-#include <stencil_composition/stencil_composition.hpp>
-#include <stencil_composition/conditionals/condition_pool.hpp>
+#include <stencil-composition/stencil-composition.hpp>
+#include <stencil-composition/conditionals/condition_pool.hpp>
 
 namespace test_conditional_switches{
     using namespace gridtools;

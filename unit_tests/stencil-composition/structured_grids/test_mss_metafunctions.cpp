@@ -15,10 +15,10 @@
 */
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
-// #include "stencil_composition/caches/cache_metafunctions.hpp"
-// #include "stencil_composition/caches/define_caches.hpp"
-// #include "stencil_composition/interval.hpp"
-#include <stencil_composition/stencil_composition.hpp>
+// #include "stencil-composition/caches/cache_metafunctions.hpp"
+// #include "stencil-composition/caches/define_caches.hpp"
+// #include "stencil-composition/interval.hpp"
+#include <stencil-composition/stencil-composition.hpp>
 
 
 using namespace gridtools;

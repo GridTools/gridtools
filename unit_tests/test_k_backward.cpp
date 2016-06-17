@@ -13,7 +13,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-#include <stencil_composition/execution_policy.hpp>
+#include <stencil-composition/execution_policy.hpp>
 using namespace gridtools;
 using namespace enumtype;
 

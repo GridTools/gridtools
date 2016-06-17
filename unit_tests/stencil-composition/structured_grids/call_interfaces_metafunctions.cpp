@@ -20,9 +20,9 @@
 
 #include "gtest/gtest.h"
 
-#include <stencil_composition/global_accessor.hpp>
-#include <stencil_composition/structured_grids/call_interfaces.hpp>
-#include <stencil_composition/structured_grids/call_interfaces_metafunctions.hpp>
+#include <stencil-composition/global_accessor.hpp>
+#include <stencil-composition/structured_grids/call_interfaces.hpp>
+#include <stencil-composition/structured_grids/call_interfaces_metafunctions.hpp>
 #include <type_traits>
 #include <tuple>
 

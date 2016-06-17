@@ -28,8 +28,8 @@
 
 #include "gtest/gtest.h"
 
-#include <stencil_composition/stencil_composition.hpp>
-#include <stencil_composition/aggregator_type.hpp>
+#include <stencil-composition/stencil-composition.hpp>
+#include <stencil-composition/aggregator_type.hpp>
 
 #ifdef CXX11_ENABLED
 

@@ -16,7 +16,7 @@
 #pragma once
 #include <gridtools.hpp>
 
-#include <stencil_composition/stencil_composition.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 #include "vertical_advection_repository.hpp"
 #include <tools/verifier.hpp>
 

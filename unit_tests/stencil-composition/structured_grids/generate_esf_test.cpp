@@ -26,7 +26,7 @@ struct prelude {
         std::string code;
         code += "#include \"gtest/gtest.h\"\n";
         code += "#include <boost/mpl/equal.hpp>\n";
-        code += "#include <stencil_composition/stencil_composition.hpp>\n";
+        code += "#include <stencil-composition/stencil-composition.hpp>\n";
         code += "\n";
         // code += "using namespace gridtools::enumtype;\n";
         // code += "using gridtools::accessor;\n";

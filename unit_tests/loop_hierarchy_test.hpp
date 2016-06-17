@@ -15,7 +15,7 @@
 */
 #pragma once
 
-#include <stencil_composition/loop_hierarchy.hpp>
+#include <stencil-composition/loop_hierarchy.hpp>
 #define VERBOSE 1
 
 namespace loop_test {

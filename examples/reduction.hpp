@@ -15,8 +15,8 @@
 */
 #include "gtest/gtest.h"
 #include <boost/shared_ptr.hpp>
-#include <stencil_composition/stencil_composition.hpp>
-#include <stencil_composition/reductions/reductions.hpp>
+#include <stencil-composition/stencil-composition.hpp>
+#include <stencil-composition/reductions/reductions.hpp>
 #include "cache_flusher.hpp"
 #include "defs.hpp"
 #include "tools/verifier.hpp"

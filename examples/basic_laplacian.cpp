@@ -14,7 +14,7 @@
    limitations under the License.
 */
 #include <gridtools.hpp>
-#include <stencil_composition/stencil_composition.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 int main_naive(int argc, char** argv) {
 

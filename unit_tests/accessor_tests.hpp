@@ -16,8 +16,8 @@
 /*@file */
 
 #include <gridtools.hpp>
-#include <stencil_composition/accessor.hpp>
-#include <stencil_composition/expressions.hpp>
+#include <stencil-composition/accessor.hpp>
+#include <stencil-composition/expressions.hpp>
 
 namespace interface {
     /** @brief simple interface

@@ -15,11 +15,11 @@
 */
 #pragma once
 
-#include <stencil_composition/stencil_composition.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 #include <storage/partitioner_trivial.hpp>
 #include <storage/parallel_storage.hpp>
-#include <stencil_composition/interval.hpp>
-#include <stencil_composition/make_computation.hpp>
+#include <stencil-composition/interval.hpp>
+#include <stencil-composition/make_computation.hpp>
 #include <communication/low-level/proc_grids_3D.hpp>
 
 #include <communication/halo_exchange.hpp>

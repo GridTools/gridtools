@@ -28,11 +28,11 @@
 
 #include "gtest/gtest.h"
 
-#include <stencil_composition/stencil_composition.hpp>
-#include "stencil_composition/backend.hpp"
-#include "stencil_composition/make_computation.hpp"
-#include "stencil_composition/make_stencils.hpp"
-#include "stencil_composition/reductions/reductions.hpp"
+#include <stencil-composition/stencil-composition.hpp>
+#include "stencil-composition/backend.hpp"
+#include "stencil-composition/make_computation.hpp"
+#include "stencil-composition/make_stencils.hpp"
+#include "stencil-composition/reductions/reductions.hpp"
 
 #ifdef CXX11_ENABLED
 
