@@ -140,9 +140,10 @@ namespace gridtools {
             if (!m_on_host)
                 return;
             // clone meta dato to device
-            m_meta_data.update_gpu();
+            m_meta_data.update_gpu(); // useless if meta data is constexpr
             // set the new meta data pointer in the storage
-            (*m_storage).set_meta_data(m_meta_data.get_pointer_to_use());
+            m_storage.set_on_host();
+            m_storage.get_cpu_p()->set_meta_data(m_meta_data.get_pointer_to_use());
             // m_storage.set_on_host();
             // m_storage.get_cpu_p()->set_meta_data(m_meta_data.get_pointer_to_use());
             // update the storage itself
@@ -155,7 +156,7 @@ namespace gridtools {
             if (m_on_host)
                 return;
             // clone meta dato to device
-            m_meta_data.update_cpu();
+            m_meta_data.set_on_host();
             // clone the storage itself from device
             m_storage.update_cpu();
             // set the new meta data pointer in the storage
@@ -164,11 +165,13 @@ namespace gridtools {
             (*m_storage).d2h_update();
             // clone_to_device();
             // // clone storage contents from device
-            // m_storage.set_on_host();
+            // set_on_host();
             // m_storage.get_cpu_p()->d2h_update();
             // m_meta_data.set_on_host();
             // set m_on_host to true
             m_on_host = true;
+            // make sure that all the pointers are on host
+            // set_on_host();
         }
 
         /** @brief clone storage + contents from gpu */
@@ -455,9 +458,9 @@ namespace gridtools {
         void set_on_device() {
             for (uint_t i = 0; i < field_dimensions; ++i)
                 (*m_storage).fields_view()[i].set_on_device();
-            // m_storage.set_on_device();
-            // m_meta_data.set_on_device();
-            // m_on_host=false;
+            m_storage.set_on_device();
+            m_meta_data.set_on_device();
+            m_on_host=false;
         }
 
         GT_FUNCTION

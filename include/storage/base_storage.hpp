@@ -121,7 +121,6 @@ namespace gridtools {
             if (FieldDimension > 1) {
                 allocate(FieldDimension, 1, true);
             }
-            is_set = true;
         }
 
         /**@brief destructor: frees the pointers to the data fields which are not managed outside */

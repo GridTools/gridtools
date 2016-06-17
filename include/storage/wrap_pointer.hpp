@@ -101,10 +101,10 @@ namespace gridtools {
         void set_on_host() {}
 
         GT_FUNCTION
-        void update_gpu() { assert(false); } //\todo find a way to remove this method
+        void update_gpu() { } //\todo find a way to remove this method
 
         GT_FUNCTION
-        void update_cpu() { assert(false); } //\todo find a way to remove this method
+        void update_cpu() { } //\todo find a way to remove this method
 
         GT_FUNCTION
         void allocate_it(uint_t size) { m_cpu_p = (Array) ? new T[size] : new T; }

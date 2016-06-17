@@ -255,10 +255,11 @@ namespace gridtools {
                 if (ptr.get()) { // if it's a temporary it might have been freed already
                     for (auto &&i : *ptr) {
                         // hard-setting the on_device flag for the hybrid_pointers:
-                        // since the storages used get created on-the-fly the original storages don
-                        // not knoe that they are still on the device
+                        // since the storages used get created on-the-fly the original storages do
+                        // not know that they are still on the device
                         i->set_on_device();
                         i->d2h_update();
+                        i->set_on_host();
                     }
                 }
             }
