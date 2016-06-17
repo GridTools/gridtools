@@ -163,6 +163,7 @@ void test_layout_find_val(bool* result)
                                         offset_tuple< 3, 3 >(7, 9, 11)) >::value == 666),
             "Error");
 
+    #ifndef __CUDACC__
         GRIDTOOLS_STATIC_ASSERT(
             (static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(array< uint_t, 3 >{7, 9, 11}) >::value ==
                 9),
@@ -179,6 +180,8 @@ void test_layout_find_val(bool* result)
             (static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(array< uint_t, 3 >{7, 9, 11}) >::value ==
                 666),
             "Error");
+    #endif
+
     #endif
 
         *result &= ((layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(7, 9, 11) == 9));
