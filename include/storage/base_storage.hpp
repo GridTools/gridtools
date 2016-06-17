@@ -36,7 +36,6 @@ namespace gridtools {
         static const bool is_temporary = storage_info_type::is_temporary;
         static const ushort_t n_width = 1;
         static const ushort_t space_dimensions = MetaData::space_dimensions;
-        typedef type basic_type;
         static const ushort_t field_dimensions = FieldDimension;
         // prohibit calls to copy ctor, copy assignment, and prohibit implicit conversions
       private:
@@ -183,9 +182,9 @@ namespace gridtools {
             assert(dims <= field_dimensions);
 
             for (ushort_t f = 0; f < dims; ++f)
-                for (uint_t i = 0; i < m_meta_data->template dims< 0 >(); ++i)
-                    for (uint_t j = 0; j < m_meta_data->template dims< 1 >(); ++j)
-                        for (uint_t k = 0; k < m_meta_data->template dims< 2 >(); ++k)
+                for (uint_t i = 0; i < m_meta_data->template dim< 0 >(); ++i)
+                    for (uint_t j = 0; j < m_meta_data->template dim< 1 >(); ++j)
+                        for (uint_t k = 0; k < m_meta_data->template dim< 2 >(); ++k)
                             (m_fields[f])[m_meta_data->index(i, j, k)] = func(i, j, k);
         }
 

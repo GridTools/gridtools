@@ -137,7 +137,3 @@ TEST(from_vertex_to_vertex, offsets_color0) {
     typedef static_int< offsets[0][0] > test_type;
     ASSERT_TRUE(test_type::value < 10);
 }
-
-INSTANTIATE_TEST_CASE_P(InstantiationName,
-                        ll_map_test,
-                        ::testing::Values(2, 5, 9));

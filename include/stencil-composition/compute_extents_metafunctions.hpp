@@ -110,6 +110,7 @@ namespace gridtools {
 
                 // First determine which are the outputs
                 typedef typename esf_get_w_per_functor< current_ESF, boost::true_type >::type outputs;
+
                 GRIDTOOLS_STATIC_ASSERT((check_all_extents_are< outputs, extent<> >::type::value),
                     "Extents of the outputs of ESFs are not all empty. All outputs must have empty extents");
 

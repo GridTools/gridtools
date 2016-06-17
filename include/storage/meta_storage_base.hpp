@@ -232,7 +232,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
 
         /** @brief prints debugging information */
         void info(std::ostream &out_s) const {
-            out_s << dims< 0 >() << "x" << dims< 1 >() << "x" << dims< 2 >() << " \n";
+            out_s << dim< 0 >() << "x" << dim< 1 >() << "x" << dim< 2 >() << " \n";
         }
 
         /**@brief returns the size of the data field*/

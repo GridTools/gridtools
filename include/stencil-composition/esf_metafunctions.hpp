@@ -86,7 +86,7 @@ namespace gridtools {
         struct apply {
             typedef typename boost::mpl::if_< is_arg< typename boost::mpl::at< typename Esf::args_t, Index >::type >,
                 typename boost::mpl::if_< typename is_accessor_readonly< typename boost::mpl::
-                                                  at< typename Esf::esf_function::arg_list, Index >::type >::type,
+                                                  at<typename esf_arg_list<Esf>::type, Index >::type >::type,
                                                   boost::false_type,
                                                   boost::true_type >::type,
                 boost::false_type >::type type;
