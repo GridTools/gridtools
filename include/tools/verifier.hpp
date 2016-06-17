@@ -193,9 +193,9 @@ namespace gridtools {
             // assert(field1.template dim<2>() == field2.template dim<2>());
             typename storage_type::storage_info_type const *meta = &field1.meta_data();
 
-            const gridtools::uint_t idim = meta.template dim< 0 >();
-            const gridtools::uint_t jdim = meta.template dim< 1 >();
-            const gridtools::uint_t kdim = meta.template dim< 2 >();
+            const gridtools::uint_t idim = meta->template dim< 0 >();
+            const gridtools::uint_t jdim = meta->template dim< 1 >();
+            const gridtools::uint_t kdim = meta->template dim< 2 >();
 
             bool verified = true;
 
