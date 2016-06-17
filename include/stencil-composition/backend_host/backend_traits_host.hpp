@@ -1,16 +1,17 @@
 #pragma once
 #include <boost/mpl/for_each.hpp>
-#include "stencil-composition/backend_traits_fwd.hpp"
+
+#include "../backend_traits_fwd.hpp"
 #include "run_esf_functor_host.hpp"
-#include "stencil-composition//block_size.hpp"
+#include "../block_size.hpp"
 #include "iterate_domain_host.hpp"
 #include "strategy_host.hpp"
 #include "empty_iterate_domain_cache.hpp"
 
 #ifdef ENABLE_METERS
-#include "stencil-composition/backend_host/timer_host.hpp"
+#include "timer_host.hpp"
 #else
-#include "stencil-composition/timer_dummy.hpp"
+#include "../timer_dummy.hpp"
 #endif
 
 /**@file
@@ -24,48 +25,12 @@ namespace gridtools {
     }
 
     /**forward declaration*/
-    template < typename T >
+    template < typename T, bool Array >
     struct wrap_pointer;
 
     /**Traits struct, containing the types which are specific for the host backend*/
     template <>
     struct backend_traits_from_id< enumtype::Host > {
-
-        /**
-           @brief pointer type associated to the host backend
-         */
-        template < typename T >
-        struct pointer {
-            typedef wrap_pointer< T > type;
-        };
-
-        /**
-           @brief storage type associated to the host backend
-         */
-        template < typename ValueType, typename MetaData, bool Temp, short_t FieldDim = 1 >
-        struct storage_traits {
-            GRIDTOOLS_STATIC_ASSERT((is_meta_storage< MetaData >::value), "wrong type for the storage_info");
-            typedef base_storage< typename pointer< ValueType >::type, MetaData, FieldDim > storage_t;
-        };
-
-        struct default_alignment {
-            typedef aligned< 0 > type;
-        };
-
-        /**
-           @brief storage info type associated to the host backend
-
-           the storage info type is meta_storage_base, which is not clonable to GPU.
-         */
-        template < typename IndexType, typename Layout, bool Temp, typename Halo, typename Alignment >
-        struct meta_storage_traits {
-            GRIDTOOLS_STATIC_ASSERT((is_layout_map< Layout >::value), "wrong type for the storage_info");
-            GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::type::value, "wrong type");
-            GRIDTOOLS_STATIC_ASSERT(is_aligned< Alignment >::type::value, "wrong type");
-
-            typedef meta_storage<
-                meta_storage_aligned< meta_storage_base< IndexType::value, Layout, Temp >, Alignment, Halo > > type;
-        };
 
         template < typename Arguments >
         struct execute_traits {

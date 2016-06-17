@@ -37,10 +37,10 @@ namespace gridtools {
         return new (reinterpret_cast< void * >(p)) DerivedType(*obj);
     }
 
-    /** This class provides methods to copy to and from GPU objects whose data memeners
-        are references to other data memebers of the same objects, and other cases in which
+    /** This class provides methods to copy to and from GPU objects whose data members
+        are references to other data members of the same objects, and other cases in which
         the copy constructor needs to do more than a memcpy. The case in which the object
-        contains pointes to heap allocated memory have to be worked out differently.
+        contains pointers to heap allocated memory have to be worked out differently.
 
         A class should publicly derive from this class passing itself as template argument.
         At this point an object of the derived class can call clone_to_device() and

@@ -35,6 +35,15 @@ namespace gridtools {
             }
         };
 
+        template < typename T1, typename T2, typename Tag >
+        struct reduction_helper< condition< T1, T2, Tag > > {
+
+            typedef condition< T1, T2, Tag > cond_t;
+
+            typedef notype reduction_type_t;
+            static notype extract_initial_value(cond_t) { return 0; }
+        };
+
         template < typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence >
         struct reduction_helper< mss_descriptor< ExecutionEngine, EsfDescrSequence, CacheSequence > > {
             typedef mss_descriptor< ExecutionEngine, EsfDescrSequence, CacheSequence > mss_t;

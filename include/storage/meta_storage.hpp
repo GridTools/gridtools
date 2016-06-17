@@ -29,14 +29,13 @@
 namespace gridtools {
 
     template < typename BaseStorage >
-    struct meta_storage : public BaseStorage, clonable_to_gpu< meta_storage< BaseStorage > > {
+    struct meta_storage : public BaseStorage {
 
         static const bool is_temporary = BaseStorage::is_temporary;
         typedef BaseStorage super;
         typedef typename BaseStorage::basic_type basic_type;
         typedef typename BaseStorage::index_type index_type;
         typedef meta_storage< BaseStorage > original_storage;
-        typedef clonable_to_gpu< meta_storage< BaseStorage > > gpu_clone;
 
         using super::space_dimensions;
 
@@ -44,7 +43,7 @@ namespace gridtools {
 
             forwarding to the base class
         */
-        __device__ meta_storage(meta_storage< BaseStorage > const &other) : super(other) {}
+        GT_FUNCTION meta_storage(meta_storage< BaseStorage > const &other) : super(other) {}
 
 #if defined(CXX11_ENABLED)
         /** @brief ctor
@@ -58,6 +57,9 @@ namespace gridtools {
                 bool >::type >
         meta_storage(IntTypes... args)
             : super(args...) {}
+
+        /**@brief operator equals (same dimension size, etc.) */
+        constexpr bool operator==(const meta_storage &other) const { return super::operator==(other); }
 
         constexpr meta_storage(array< uint_t, space_dimensions > const &a) : super(a) {}
 #else
@@ -78,6 +80,10 @@ namespace gridtools {
             uint_t const &n_i_threads,
             uint_t const &n_j_threads)
             : super(initial_offset_i, initial_offset_j, dim3, n_i_threads, n_j_threads) {}
+
+        /**@brief operator equals (same dimension size, etc.) */
+        bool operator==(const meta_storage &other) const { return super::operator==(other); }
+
 #endif
 
 #ifndef __CUDACC__

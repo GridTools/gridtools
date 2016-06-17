@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iosfwd>
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/fold.hpp>
 #include <boost/mpl/sort.hpp>
@@ -23,16 +24,16 @@ namespace gridtools {
 
     namespace local_domain_aux {
 
-        template < typename IndicesList, typename ArgList, typename LocalList >
+        template < typename IndicesList, typename ArgPtrList, typename LocalList >
         struct assign_storage_pointers {
 
-            ArgList const &m_arg_list;
+            ArgPtrList const &m_arg_list;
             LocalList &m_local_list;
 
             GT_FUNCTION_WARNING
-            assign_storage_pointers(ArgList const &arg_list_, LocalList &local_list_)
+            assign_storage_pointers(ArgPtrList const &arg_list_, LocalList &local_list_)
                 : m_arg_list(arg_list_), m_local_list(local_list_) {
-                GRIDTOOLS_STATIC_ASSERT((is_sequence_of< ArgList, is_pointer >::value), "wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_sequence_of< ArgPtrList, is_pointer >::value), "wrong type");
                 GRIDTOOLS_STATIC_ASSERT((is_sequence_of< LocalList, is_pointer >::value), "wrong type");
             }
 
@@ -43,12 +44,7 @@ namespace gridtools {
                     typename boost::mpl::at< IndicesList, Id >::type >::type::index_type index_t;
 
                 boost::fusion::at_c< Id::value >(m_local_list) =
-
-#ifdef __CUDACC__ // ugly ifdef. TODO: way to remove it?
-                    boost::fusion::at_c< index_t::value >(m_arg_list)->gpu_object_ptr;
-#else
-                    boost::fusion::at_c< index_t::value >(m_arg_list);
-#endif
+                    boost::fusion::at_c< index_t::value >(m_arg_list)->get_pointer_to_use();
             }
         };
 
@@ -78,12 +74,7 @@ namespace gridtools {
              */
             template < typename Key >
             GT_FUNCTION_WARNING void operator()(Key &local_) const {
-                local_ =
-#ifdef __CUDACC__ // ugly ifdef. TODO: way to remove it?
-                    (typename Key::value_type *)boost::fusion::at_key< Key >(m_actual)->gpu_object_ptr;
-#else
-                    boost::fusion::at_key< Key >(m_actual);
-#endif
+                local_ = boost::fusion::at_key< Key >(m_actual);
             }
         };
 
@@ -263,8 +254,8 @@ namespace gridtools {
            it assigns the local (i.e. of the current esf) storages/metadatas, from the corresponent
            global (i.e. of the whole computation) values.
         */
-        template < typename ActualArgs, typename ActualMetaData >
-        GT_FUNCTION void init(ActualArgs const &actual_args_, ActualMetaData const &actual_metadata_) {
+        template < typename ActualArgsPtr, typename ActualMetaData >
+        GT_FUNCTION void init(ActualArgsPtr const &actual_args_ptr_, ActualMetaData const &actual_metadata_) {
 
             GRIDTOOLS_STATIC_ASSERT(
                 (boost::mpl::size< domain_indices_t >::type::value == boost::mpl::size< local_args_type >::type::value),
@@ -272,8 +263,8 @@ namespace gridtools {
 
             typedef static_uint< boost::mpl::size< domain_indices_t >::type::value > size_type;
             boost::mpl::for_each< boost::mpl::range_c< uint_t, 0, size_type::value > >(
-                local_domain_aux::assign_storage_pointers< domain_indices_t, ActualArgs, local_args_type >(
-                    actual_args_, m_local_args));
+                local_domain_aux::assign_storage_pointers< domain_indices_t, ActualArgsPtr, local_args_type >(
+                    actual_args_ptr_, m_local_args));
 
             // assigns the metadata for all the components of m_local_metadata (global to local)
             boost::fusion::for_each(m_local_metadata,
@@ -284,23 +275,27 @@ namespace gridtools {
             : m_local_args(other.m_local_args), m_local_metadata(other.m_local_metadata) {}
 
         template < typename T >
-        void info(T const &) const {
-            T::info();
-            std::cout << "[" << boost::mpl::at_c< esf_args, T::index_type::value >::type::index_type::value << "] ";
+        void info(T const &, std::ostream &out_s) const {
+            T::info(out_s);
+            out_s << "[" << boost::mpl::at_c< esf_args, T::index_type::value >::type::index_type::value << "] ";
         }
 
         struct show_local_args_info {
+
+            std::ostream &out_s;
+            show_local_args_info(std::ostream &out_s) : out_s(out_s) {}
+
             template < typename T >
             void operator()(T const &e) const {
-                e->info();
+                e->info(out_s);
             }
         };
 
         GT_FUNCTION
-        void info() const {
-            std::cout << "        -----v SHOWING LOCAL ARGS BELOW HERE v-----" << std::endl;
-            boost::fusion::for_each(m_local_args, show_local_args_info());
-            std::cout << "        -----^ SHOWING LOCAL ARGS ABOVE HERE ^-----" << std::endl;
+        void info(std::ostream &out_s) const {
+            out_s << "        -----v SHOWING LOCAL ARGS BELOW HERE v-----\n";
+            boost::fusion::for_each(m_local_args, show_local_args_info(out_s));
+            out_s << "        -----^ SHOWING LOCAL ARGS ABOVE HERE ^-----\n";
         }
     };
 

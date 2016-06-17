@@ -1,5 +1,11 @@
 #pragma once
 // [includes]
+#include <iostream>
+#ifndef NDEBUG
+#ifndef __CUDACC__
+#include <fstream>
+#endif
+#endif
 #include <gridtools.hpp>
 #include <stencil-composition/make_computation.hpp>
 #include <storage/parallel_storage.hpp>
@@ -123,7 +129,7 @@ namespace shallow_water {
     struct flux_x : public functor_traits {
 
         //! [accessor]
-        typedef accessor< 1, enumtype::inout, extent< 0, -1, 0, 0 >, 5 >
+        typedef accessor< 1, enumtype::in, extent< 0, -1, 0, 0 >, 5 >
             sol; /** (input) is the solution at the cell center, computed at the previous time level */
         //! [accessor]
         typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 5 >
@@ -133,22 +139,23 @@ namespace shallow_water {
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
 
+            const float_type &tl = 2.;
 #ifdef CUDA_CXX11_BUG_1
             comp::Index c;
             x::Index i;
             //! [expression]
             eval(tmpx()) =
-                eval((sol(i - 0) + sol(i - 1)) / 2. - (sol(c + 1) - sol(c + 1, i - 1)) * (dt() / (2 * dx())));
+                eval((sol(i - 0) + sol(i - 1)) / tl - (sol(c + 1) - sol(c + 1, i - 1)) * (dt() / (2 * dx())));
             // ! [expression]
 
             eval(tmpx(comp(1))) =
-                eval((sol(comp(1)) + sol(comp(1), i - 1)) / 2. -
-                     ((pow< 2 >(sol(comp(1))) / sol(i - 0) + pow< 2 >(sol(i - 0)) * g() / 2.) -
-                         (pow< 2 >(sol(comp(1), i - 1)) / sol(i - 1) + pow< 2 >(sol(i - 1)) * (g() / 2.))) *
-                         (dt() / (2. * dx())));
+                eval((sol(comp(1)) + sol(comp(1), i - 1)) / tl -
+                     ((pow< 2 >(sol(comp(1))) / sol(i - 0) + pow< 2 >(sol(i - 0)) * g() / tl) -
+                         (pow< 2 >(sol(comp(1), i - 1)) / sol(i - 1) + pow< 2 >(sol(i - 1)) * (g() / tl))) *
+                         (dt() / (tl * dx())));
 
             eval(tmpx(comp(2))) = eval(
-                (sol(comp(2)) + sol(comp(2), i - 1)) / 2. -
+                (sol(comp(2)) + sol(comp(2), i - 1)) / tl -
                 (sol(comp(1)) * sol(comp(2)) / sol(i - 0) - sol(comp(1), i - 1) * sol(comp(2), i - 1) / sol(i - 1)) *
                     (dt() / (2 * dx())));
 
@@ -163,16 +170,16 @@ namespace shallow_water {
             using v = alias< sol, comp >::set< 2 >;
 
             //! [expression]
-            eval(hx()) = eval((h() + h(i - 1)) / 2. - (u() - u(i - 1)) * (dt() / (2 * dx())));
+            eval(hx()) = eval((h() + h(i - 1)) / tl - (u() - u(i - 1)) * (dt() / (2 * dx())));
             //! [expression]
 
-            eval(ux()) = eval((u() + u(i - 1)) / 2. -
-                              ((pow< 2 >(u()) / h() + pow< 2 >(h()) * g() / 2.) -
-                                  (pow< 2 >(u(i - 1)) / h(i - 1) + pow< 2 >(h(i - 1)) * (g() / 2.))) *
-                                  (dt() / (2. * dx())));
+            eval(ux()) = eval((u() + u(i - 1)) / tl -
+                              ((pow< 2 >(u()) / h() + pow< 2 >(h()) * g() / tl) -
+                                  (pow< 2 >(u(i - 1)) / h(i - 1) + pow< 2 >(h(i - 1)) * (g() / tl))) *
+                                  (dt() / (tl * dx())));
 
             eval(vx()) =
-                eval((v() + v(i - 1)) / 2. - (u() * v() / h() - u(i - 1) * v(i - 1) / h(i - 1)) * (dt() / (2 * dx())));
+                eval((v() + v(i - 1)) / tl - (u() * v() / h() - u(i - 1) * v(i - 1) / h(i - 1)) * (dt() / (2 * dx())));
 #endif
         }
     };
@@ -183,28 +190,29 @@ namespace shallow_water {
 
         typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 5 >
             tmpy; /** (output) is the flux at the bottom edge of the cell */
-        typedef accessor< 1, enumtype::inout, extent< 0, 0, 0, -1 >, 5 >
+        typedef accessor< 1, enumtype::in, extent< 0, 0, 0, -1 >, 5 >
             sol; /** (input) is the solution at the cell center, computed at the previous time level */
         using arg_list = boost::mpl::vector< tmpy, sol >;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
 
+            const float_type &tl = 2.;
 #ifdef CUDA_CXX11_BUG_1
 
             eval(tmpy()) =
-                eval((sol(i - 0) + sol(j - 1)) / 2. - (sol(comp(2)) - sol(comp(2), j - 1)) * (dt() / (2 * dy())));
+                eval((sol(i - 0) + sol(j - 1)) / tl - (sol(comp(2)) - sol(comp(2), j - 1)) * (dt() / (2 * dy())));
 
             eval(tmpy(comp(1))) = eval(
-                (sol(comp(1)) + sol(comp(1), j - 1)) / 2. -
+                (sol(comp(1)) + sol(comp(1), j - 1)) / tl -
                 (sol(comp(2)) * sol(comp(1)) / sol(i - 0) - sol(comp(2), j - 1) * sol(comp(1), j - 1) / sol(j - 1)) *
                     (dt() / (2 * dy())));
 
             eval(tmpy(comp(2))) =
-                eval((sol(comp(2)) + sol(comp(2), j - 1)) / 2. -
-                     ((pow< 2 >(sol(comp(2))) / sol(i - 0) + pow< 2 >(sol(i - 0)) * g() / 2.) -
-                         (pow< 2 >(sol(comp(2), j - 1)) / sol(j - 1) + pow< 2 >(sol(j - 1)) * (g() / 2.))) *
-                         (dt() / (2. * dy())));
+                eval((sol(comp(2)) + sol(comp(2), j - 1)) / tl -
+                     ((pow< 2 >(sol(comp(2))) / sol(i - 0) + pow< 2 >(sol(i - 0)) * g() / tl) -
+                         (pow< 2 >(sol(comp(2), j - 1)) / sol(j - 1) + pow< 2 >(sol(j - 1)) * (g() / tl))) *
+                         (dt() / (tl * dy())));
 
 #else
             using h = alias< sol, comp >::set< 0 >;
@@ -214,15 +222,15 @@ namespace shallow_water {
             using v = alias< sol, comp >::set< 2 >;
             using vy = alias< tmpy, comp >::set< 2 >;
 
-            eval(hy()) = eval((h() + h(j - 1)) / 2. - (v() - v(j - 1)) * (dt() / (2 * dy())));
+            eval(hy()) = eval((h() + h(j - 1)) / tl - (v() - v(j - 1)) * (dt() / (2 * dy())));
 
             eval(uy()) =
-                eval((u() + u(j - 1)) / 2. - (v() * u() / h() - v(j - 1) * u(j - 1) / h(j - 1)) * (dt() / (2 * dy())));
+                eval((u() + u(j - 1)) / tl - (v() * u() / h() - v(j - 1) * u(j - 1) / h(j - 1)) * (dt() / (2 * dy())));
 
-            eval(vy()) = eval((v() + v(j - 1)) / 2. -
-                              ((pow< 2 >(v()) / h() + pow< 2 >(h()) * g() / 2.) -
-                                  (pow< 2 >(v(j - 1)) / h(j - 1) + pow< 2 >(h(j - 1)) * (g() / 2.))) *
-                                  (dt() / (2. * dy())));
+            eval(vy()) = eval((v() + v(j - 1)) / tl -
+                              ((pow< 2 >(v()) / h() + pow< 2 >(h()) * g() / tl) -
+                                  (pow< 2 >(v(j - 1)) / h(j - 1) + pow< 2 >(h(j - 1)) * (g() / tl))) *
+                                  (dt() / (tl * dy())));
 #endif
         }
     };
@@ -231,9 +239,9 @@ namespace shallow_water {
     // [final_step]
     struct final_step : public functor_traits {
 
-        typedef accessor< 0, enumtype::inout, extent< 0, 1, 0, 1 >, 5 >
+        typedef accessor< 0, enumtype::in, extent< 0, 1, 0, 1 >, 5 >
             tmpx; /** (input) is the flux at the left edge of the cell */
-        typedef accessor< 1, enumtype::inout, extent< 0, 1, 0, 1 >, 5 >
+        typedef accessor< 1, enumtype::in, extent< 0, 1, 0, 1 >, 5 >
             tmpy; /** (input) is the flux at the bottom edge of the cell */
         typedef accessor< 2, enumtype::inout, extent< 0, 0, 0, 0 >, 5 >
             sol; /** (output) is the solution at the cell center, computed at the previous time level */
@@ -247,7 +255,7 @@ namespace shallow_water {
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-
+            const float_type &tl = 2.;
 #ifdef CUDA_CXX11_BUG_1
 
             eval(sol()) = eval(sol(i - 0) - (tmpx(comp(1), i + 1) - tmpx(comp(1))) * (dt() / dx()) -
@@ -255,8 +263,8 @@ namespace shallow_water {
 
             eval(sol(comp(1))) =
                 eval(sol(comp(1)) -
-                     (pow< 2 >(tmpx(comp(1), i + 1)) / tmpx(i + 1) + tmpx(i + 1) * tmpx(i + 1) * ((g() / 2.)) -
-                         (pow< 2 >(tmpx(comp(1))) / tmpx(i - 0) + pow< 2 >(tmpx(i - 0)) * ((g() / 2.)))) *
+                     (pow< 2 >(tmpx(comp(1), i + 1)) / tmpx(i + 1) + tmpx(i + 1) * tmpx(i + 1) * ((g() / tl)) -
+                         (pow< 2 >(tmpx(comp(1))) / tmpx(i - 0) + pow< 2 >(tmpx(i - 0)) * ((g() / tl)))) *
                          ((dt() / dx())) -
                      (tmpy(comp(2), j + 1) * tmpy(comp(1), j + 1) / tmpy(j + 1) -
                          tmpy(comp(2)) * tmpy(comp(1)) / tmpy(i - 0)) *
@@ -267,8 +275,8 @@ namespace shallow_water {
                      (tmpx(comp(1), i + 1) * tmpx(comp(2), i + 1) / tmpx(i + 1) -
                          (tmpx(comp(1)) * tmpx(comp(2))) / tmpx(i - 0)) *
                          ((dt() / dx())) -
-                     (pow< 2 >(tmpy(comp(2), j + 1)) / tmpy(j + 1) + pow< 2 >(tmpy(j + 1)) * ((g() / 2.)) -
-                         (pow< 2 >(tmpy(comp(2))) / tmpy(i - 0) + pow< 2 >(tmpy(i - 0)) * ((g() / 2.)))) *
+                     (pow< 2 >(tmpy(comp(2), j + 1)) / tmpy(j + 1) + pow< 2 >(tmpy(j + 1)) * ((g() / tl)) -
+                         (pow< 2 >(tmpy(comp(2))) / tmpy(i - 0) + pow< 2 >(tmpy(i - 0)) * ((g() / tl)))) *
                          ((dt() / dy())));
 
 #else
@@ -285,15 +293,15 @@ namespace shallow_water {
             eval(sol()) = eval(sol() - (ux(i + 1) - ux()) * (dt() / dx()) - (vy(j + 1) - vy()) * (dt() / dy()));
 
             eval(sol(comp(1))) = eval(sol(comp(1)) -
-                                      (pow< 2 >(ux(i + 1)) / hx(i + 1) + hx(i + 1) * hx(i + 1) * ((g() / 2.)) -
-                                          (pow< 2 >(ux()) / hx() + pow< 2 >(hx()) * ((g() / 2.)))) *
+                                      (pow< 2 >(ux(i + 1)) / hx(i + 1) + hx(i + 1) * hx(i + 1) * ((g() / tl)) -
+                                          (pow< 2 >(ux()) / hx() + pow< 2 >(hx()) * ((g() / tl)))) *
                                           ((dt() / dx())) -
                                       (vy(j + 1) * uy(j + 1) / hy(j + 1) - vy() * uy() / hy()) * (dt() / dy()));
 
             eval(sol(comp(2))) =
                 eval(sol(comp(2)) - (ux(i + 1) * vx(i + 1) / hx(i + 1) - (ux() * vx()) / hx()) * ((dt() / dx())) -
-                     (pow< 2 >(vy(j + 1)) / hy(j + 1) + pow< 2 >(hy(j + 1)) * ((g() / 2.)) -
-                         (pow< 2 >(vy()) / hy() + pow< 2 >(hy()) * ((g() / 2.)))) *
+                     (pow< 2 >(vy(j + 1)) / hy(j + 1) + pow< 2 >(hy(j + 1)) * ((g() / tl)) -
+                         (pow< 2 >(vy()) / hy() + pow< 2 >(hy()) * ((g() / tl)))) *
                          ((dt() / dy())));
 #endif
         }

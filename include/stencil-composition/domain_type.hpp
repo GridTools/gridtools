@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iosfwd>
 #include <boost/fusion/include/as_vector.hpp>
 #include <boost/fusion/container/vector/convert.hpp>
 #include <boost/fusion/container/vector.hpp>
@@ -37,7 +38,7 @@
 namespace gridtools {
 
     namespace _impl {
-        // metafunction to extract the storage type from thepointer
+        // metafunction to extract the storage type from the pointer
         template < typename T, typename U >
         struct matches {
             typedef typename boost::is_same< typename T::value_type, U >::type type;
@@ -309,7 +310,7 @@ namespace gridtools {
 
 #ifdef VERBOSE
             std::cout << "\nThese are the view values" << boost::fusion::size(fview) << std::endl;
-            boost::fusion::for_each(m_storage_pointers, _debug::print_pointer());
+            boost::fusion::for_each(m_storage_pointers, _debug::dt_print_pointer());
 #endif
             view_type original_fview(m_original_pointers);
             boost::fusion::copy(real_storage_, original_fview);
@@ -323,7 +324,6 @@ namespace gridtools {
             : m_storage_pointers(other.m_storage_pointers), m_original_pointers(other.m_original_pointers),
               m_metadata_set(other.m_metadata_set) {}
 
-#ifndef NDEBUG
         GT_FUNCTION
         void info() {
             printf("domain_type: Storage pointers\n");
@@ -332,17 +332,16 @@ namespace gridtools {
             boost::fusion::for_each(m_original_pointers, _debug::print_domain_info());
             printf("domain_type: End info\n");
         }
-#endif
 
         template < typename Index >
-        void storage_info() const {
-            std::cout << Index::value << " -|-> " << (boost::fusion::at_c< Index >(m_metadata_set))->name() << " "
-                      << (boost::fusion::at_c< Index >(m_metadata_set))->template dim< 0 >() << "x"
-                      << (boost::fusion::at_c< Index >(m_metadata_set))->template dim< 1 >() << "x"
-                      << (boost::fusion::at_c< Index >(m_metadata_set))->template dim< 2 >() << ", "
-                      << (boost::fusion::at_c< Index >(m_metadata_set))->strides(0) << "x"
-                      << (boost::fusion::at_c< Index >(m_metadata_set))->strides(1) << "x"
-                      << (boost::fusion::at_c< Index >(m_metadata_set))->strides(2) << ", " << std::endl;
+        void storage_info(std::ostream &out_s) const {
+            out_s << Index::value << " -|-> " << (boost::fusion::at_c< Index >(m_metadata_set))->name() << " "
+                  << (boost::fusion::at_c< Index >(m_metadata_set))->template dims< 0 >() << "x"
+                  << (boost::fusion::at_c< Index >(m_metadata_set))->template dims< 1 >() << "x"
+                  << (boost::fusion::at_c< Index >(m_metadata_set))->template dims< 2 >() << ", "
+                  << (boost::fusion::at_c< Index >(m_metadata_set))->strides(0) << "x"
+                  << (boost::fusion::at_c< Index >(m_metadata_set))->strides(1) << "x"
+                  << (boost::fusion::at_c< Index >(m_metadata_set))->strides(2) << ", \n";
         }
 
         /** @brief copy the pointers from the device to the host

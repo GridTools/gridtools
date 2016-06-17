@@ -205,6 +205,13 @@ namespace gridtools {
     struct is_plchldr_to_temp< arg< I, storage< BaseType >, C > >
         : is_plchldr_to_temp< arg< I, typename BaseType::basic_type, C > > {};
 
+    template < typename T >
+    struct global_parameter;
+
+    template < uint_t I, typename BaseType, typename C >
+    struct is_plchldr_to_temp< arg< I, global_parameter< BaseType >, C > >
+        : is_plchldr_to_temp< arg< I, typename global_parameter< BaseType >::wrapped_type, C > > {};
+
     /**
      * Printing type information for debug purposes
      * @param s The ostream

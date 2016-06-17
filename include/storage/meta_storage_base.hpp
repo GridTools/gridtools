@@ -1,8 +1,11 @@
 #pragma once
+
+#include <iosfwd>
 #include <boost/type_traits/is_unsigned.hpp>
 #include <boost/mpl/max_element.hpp>
 #include "base_storage_impl.hpp"
 #include "../common/array.hpp"
+#include "../common/array_addons.hpp"
 #include "../common/generic_metafunctions/all_integrals.hpp"
 #include "../common/explode_array.hpp"
 #include "../common/generic_metafunctions/is_variadic_pack_of.hpp"
@@ -228,7 +231,9 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
             : m_dims(other.m_dims), m_strides(other.m_strides) {}
 
         /** @brief prints debugging information */
-        void info() const { std::cout << dim< 0 >() << "x" << dim< 1 >() << "x" << dim< 2 >() << ", " << std::endl; }
+        void info(std::ostream &out_s) const {
+            out_s << dims< 0 >() << "x" << dims< 1 >() << "x" << dims< 2 >() << " \n";
+        }
 
         /**@brief returns the size of the data field*/
         GT_FUNCTION
@@ -280,10 +285,22 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         GT_FUNCTION int_t index(array< uint_t, S > a) const {
             return (int_t)explode< int_t, _impl_index >(a, *this);
         }
+
+        /**@brief operator equals (same dimension size, etc.) */
+        GT_FUNCTION
+        constexpr bool operator==(meta_storage_base const &other) const {
+            return (size() == other.size()) && (m_dims == other.m_dims) && (m_strides == other.m_strides);
+        }
 #else
         /**@brief straightforward interface*/
         GT_FUNCTION
         int_t index(uint_t const &i, uint_t const &j, uint_t const &k) const { return _index(strides(), i, j, k); }
+
+        /**@brief operator equals (same dimension size, etc.) */
+        GT_FUNCTION
+        bool operator==(meta_storage_base const &other) const {
+            return (size() == other.size()) && (m_dims == other.m_dims) && (m_strides == other.m_strides);
+        }
 #endif
 
         //####################################################

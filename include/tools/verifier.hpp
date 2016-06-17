@@ -33,9 +33,9 @@ namespace gridtools {
 
         template < typename Grid >
         bool operator()(Grid const &grid_, array< uint_t, NCoord > const &pos) {
-            typename StorageType::storage_info_type const *meta = &m_exp_field.meta_data();
+            typename StorageType::storage_info_type const &meta = m_exp_field.meta_data();
 
-            const gridtools::uint_t size = meta->template dim< NDim - 1 >();
+            const gridtools::uint_t size = meta.template dim< NDim - 1 >();
             bool verified = true;
 
             verify_helper< NDim - 1, NCoord + 1, StorageType > next_loop(
@@ -73,10 +73,10 @@ namespace gridtools {
         bool operator()(Grid const &grid_, array< uint_t, NCoord > const &pos) {
             bool verified = true;
             if (pos[2] < grid_.value_at_top()) {
-                typename StorageType::storage_info_type const *meta = &m_exp_field.meta_data();
+                typename StorageType::storage_info_type const &meta = m_exp_field.meta_data();
 
-                typename StorageType::value_type expected = m_exp_field.fields()[m_field_id][meta->index(pos)];
-                typename StorageType::value_type actual = m_actual_field.fields()[m_field_id][meta->index(pos)];
+                typename StorageType::value_type expected = m_exp_field.fields()[m_field_id][meta.index(pos)];
+                typename StorageType::value_type actual = m_actual_field.fields()[m_field_id][meta.index(pos)];
                 if (!compare_below_threshold(expected, actual, m_precision)) {
                     std::cout << "Error in field dimension " << m_field_id << " and position " << pos
                               << " ; expected : " << expected << " ; actual : " << actual << "  "
@@ -102,9 +102,9 @@ namespace gridtools {
         uint_t field_id,
         array< array< uint_t, 2 >, StorageType::space_dimensions > halos,
         double precision) {
-        typename StorageType::storage_info_type const *meta = &exp_field.meta_data();
+        typename StorageType::storage_info_type const &meta = exp_field.meta_data();
 
-        const gridtools::uint_t size = meta->template dim< NDim - 1 >();
+        const gridtools::uint_t size = meta.template dim< NDim - 1 >();
         bool verified = true;
         verify_helper< NDim - 1, 1, StorageType > next_loop(exp_field, actual_field, field_id, halos, precision);
 
@@ -132,7 +132,6 @@ namespace gridtools {
             StorageType const &field1,
             StorageType const &field2,
             const array< array< uint_t, 2 >, StorageType::space_dimensions > halos) {
-            typename StorageType::storage_info_type const *meta = &field1.meta_data();
 
             bool verified = true;
 
@@ -194,9 +193,9 @@ namespace gridtools {
             // assert(field1.template dim<2>() == field2.template dim<2>());
             typename storage_type::storage_info_type const *meta = &field1.meta_data();
 
-            const gridtools::uint_t idim = meta->template dim< 0 >();
-            const gridtools::uint_t jdim = meta->template dim< 1 >();
-            const gridtools::uint_t kdim = meta->template dim< 2 >();
+            const gridtools::uint_t idim = meta.template dim< 0 >();
+            const gridtools::uint_t jdim = meta.template dim< 1 >();
+            const gridtools::uint_t kdim = meta.template dim< 2 >();
 
             bool verified = true;
 
@@ -204,8 +203,8 @@ namespace gridtools {
                 for (gridtools::uint_t i = m_halo_size; i < idim - m_halo_size; ++i) {
                     for (gridtools::uint_t j = m_halo_size; j < jdim - m_halo_size; ++j) {
                         for (gridtools::uint_t k = 0; k < grid_.value_at_top(); ++k) {
-                            typename storage_type::value_type expected = field1.fields()[f][meta->index(i, j, k)];
-                            typename storage_type::value_type actual = field2.fields()[f][meta->index(i, j, k)];
+                            typename storage_type::value_type expected = field1.fields()[f][meta.index(i, j, k)];
+                            typename storage_type::value_type actual = field2.fields()[f][meta.index(i, j, k)];
 
                             if (!compare_below_threashold(expected, actual)) {
                                 std::cout << "Error in position " << i << " " << j << " " << k

@@ -22,14 +22,16 @@ function help {
    echo "-z      force build                           "
    echo "-i      build for icosahedral grids           "
    echo "-d      do not clean build                    "
+   echo "-v      compile in VERBOSE mode               "
    exit 1
 }
 
 INITPATH=$PWD
 BASEPATH_SCRIPT=$(dirname "${0}")
 FORCE_BUILD=OFF
+VERBOSE_RUN="OFF"
 
-while getopts "h:b:t:f:c:l:pzmsid" opt; do
+while getopts "h:b:t:f:c:l:pzmsidv" opt; do
     case "$opt" in
     h|\?)
         help
@@ -56,6 +58,8 @@ while getopts "h:b:t:f:c:l:pzmsid" opt; do
     d) DONOTCLEAN="ON"
         ;;
     l) export COMPILER=$OPTARG
+        ;;
+    v) VERBOSE_RUN="ON"
         ;;
     esac
 done
@@ -105,7 +109,7 @@ else
 fi
 echo "USE_GPU=$USE_GPU"
 
-if [[ "$REAL_TYPE" == "float" ]]; then
+if [[ "$FLOAT_TYPE" == "float" ]]; then
     SINGLE_PRECISION=ON
 else
     SINGLE_PRECISION=OFF
@@ -148,7 +152,7 @@ elif [[ ${COMPILER} == "clang" ]] ; then
        echo "Clang not supported with nvcc"
        exit_if_error 334
     fi
-else 
+else
     echo "COMPILER ${COMPILER} not supported"
     exit_if_error 333
 fi
@@ -186,12 +190,14 @@ cmake \
 -DPYTHON_INSTALL_PREFIX:STRING="${VENV_PATH}" \
 -DENABLE_PERFORMANCE_METERS:BOOL=ON \
 -DSTRUCTURED_GRIDS:BOOL=${STRUCTURED_GRIDS} \
+-DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+-DVERBOSE=$VERBOSE_RUN \
  ../
 
 exit_if_error $?
 
-#number of trials for compilation. We add this here because sometime intermediate links of nvcc are missing 
-#some object files, probably related to parallel make compilation, but we dont know yet how to solve this. 
+#number of trials for compilation. We add this here because sometime intermediate links of nvcc are missing
+#some object files, probably related to parallel make compilation, but we dont know yet how to solve this.
 #Workaround here is to try multiple times the compilation step
 num_make_rep=2
 
@@ -199,7 +205,7 @@ error_code=0
 log_file="/tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}_${RANDOM}.log"
 if [[ "$SILENT_BUILD" == "ON" ]]; then
     echo "Log file ${log_file}"
-    for i in `seq 1 $num_make_rep`; 
+    for i in `seq 1 $num_make_rep`;
     do
       echo "COMPILATION # ${i}"
       make -j5  >& ${log_file};

@@ -5,10 +5,11 @@
 #include <omp.h>
 #endif
 
-#include "stencil-composition/execution_policy.hpp"
-#include "stencil-composition/heap_allocated_temps.hpp"
-#include "stencil-composition/iteration_policy.hpp"
-#include "stencil-composition/backend_fwd.hpp"
-#include "stencil-composition/backend_host/backend_traits_host.hpp"
-#include "stencil-composition/loop_hierarchy.hpp"
-#include "stencil-composition/backend_host/strategy_host.hpp"
+#include "../execution_policy.hpp"
+#include "../heap_allocated_temps.hpp"
+#include "../iteration_policy.hpp"
+#include "../backend_fwd.hpp"
+#include "../../storage/storage-facility.hpp"
+#include "backend_traits_host.hpp"
+#include "../loop_hierarchy.hpp"
+#include "strategy_host.hpp"

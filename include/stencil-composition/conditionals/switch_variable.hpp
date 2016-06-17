@@ -1,3 +1,4 @@
+
 #pragma once
 #ifdef CXX11_ENABLED
 #include <memory>
@@ -10,7 +11,6 @@
 /**@file*/
 
 namespace gridtools {
-
     /**
        @brief defines a variable which is used in the @ref gridtools::switch_ statement
 
@@ -29,8 +29,11 @@ namespace gridtools {
      */
     template < uint_t Tag, typename T >
     class switch_variable {
-
-        T m_value;
+#ifdef CXX11_ENABLED
+        std::function< T() > m_value;
+#else
+        T (*m_value)();
+#endif
         uint_t m_num_cases;
 
       public:
@@ -38,47 +41,51 @@ namespace gridtools {
         static const uint_t index_value = index_t::value;
 
 #ifdef CXX11_ENABLED
-        std::unique_ptr< std::vector< short_t > > m_conditions; // generated conditions
-        std::unique_ptr< std::vector< T > > m_cases;            // all possible cases (redundant)
+        std::unique_ptr< std::vector< std::function< bool() > > > m_conditions; // generated conditions
+        std::unique_ptr< std::vector< T > > m_cases;                            // all possible cases (redundant)
 #else
-        boost::scoped_ptr< std::vector< short_t > > m_conditions; // generated conditions
-        boost::scoped_ptr< std::vector< T > > m_cases;            // all possible cases (redundant)
+        boost::scoped_ptr< std::vector< bool (*)() > > m_conditions; // generated conditions
+        boost::scoped_ptr< std::vector< T > > m_cases;               // all possible cases (redundant)
 #endif
         /**@brief enpty constructor*/
         constexpr switch_variable() // try to avoid this?
             : m_value(),
-              m_conditions(new std::vector< short_t >()),
+              m_conditions(new std::vector< BOOL_FUNC() >()),
               m_cases(std::vector< T >()) {}
 
         /**@brief constructor
 
            @param c the value assigned for the comparisons
          */
-        constexpr switch_variable(T const &c)
-            : m_value(c), m_conditions(new std::vector< short_t >()), m_cases(new std::vector< T >()) {}
+        constexpr switch_variable(
+#ifdef CXX11_ENABLED
+            std::function< T() > c
+#else
+            T (*c)()
+#endif
+            )
+            : m_value(c), m_conditions(new std::vector< BOOL_FUNC() >()), m_cases(new std::vector< T >()) {
+        }
+
+        switch_variable(switch_variable const &other) : m_value(other.m_value), m_num_cases(other.m_num_cases) {}
 
         ~switch_variable() {}
 
         /**@brief API to insert a condition*/
-        void push_back_condition(short_t c) { m_conditions->push_back((short_t)c); }
+        void push_back_condition(BOOL_FUNC(c)) { m_conditions->push_back(c); }
         /**@brief API to insert a case value*/
         void push_back_case(T c) { m_cases->push_back(c); }
         /**@brief returns by non const reference the std::vector of condiitons*/
-        std::vector< short_t > &conditions() { return *m_conditions; }
+        std::vector< BOOL_FUNC() > &conditions() { return *m_conditions; }
         /**@brief returns by non const reference the std::vector of cases*/
         std::vector< T > &cases() { return *m_cases; }
         /**@brief returns the number of cases for the switch associated to this variable*/
         uint_t num_conditions() { return m_conditions->size(); }
 
+#ifdef CXX11_ENABLED
         /**@brief returns the value of the switch_variable*/
-        constexpr T value() const { return m_value; }
-
-        void operator=(switch_variable const &other) { reset_conditional(*this, other.value()); }
-
-        void operator=(short_t other) { reset_conditional(*this, other); }
-
-      private:
-        switch_variable(switch_variable const &);
+        constexpr std::function< T() > value() const { return m_value; }
+#endif
     };
 
     template < typename T >

@@ -39,7 +39,7 @@ struct lap_function {
     /**
        @brief placeholder for the output field, index 0. accessor contains a vector of 3 offsets and defines a plus method summing values to the offsets
     */
-    typedef accessor<0, enumtype::inout, extent<-1, 1, -1, 1>, 3 > out;
+    typedef accessor< 0, enumtype::inout, extent<>, 3 > out;
 /**
        @brief  placeholder for the input field, index 1
     */
@@ -239,11 +239,19 @@ TEST(Laplace, test) {
     }
 
 #ifdef CXX11_ENABLED
-    verifier verif(1e-13);
+#if FLOAT_PRECISION == 4
+    verifier verif(1e-6);
+#else
+    verifier verif(1e-12);
+#endif
     array<array<uint_t, 2>, 3> halos{{ {halo_size,halo_size}, {halo_size,halo_size}, {halo_size,halo_size} }};
     bool result = verif.verify(grid, out, ref, halos);
 #else
-    verifier verif(1e-13, halo_size);
+#if FLOAT_PRECISION == 4
+    verifier verif(1e-6, halo_size);
+#else
+    verifier verif(1e-12, halo_size);
+#endif
     bool result = verif.verify(grid, out, ref);
 #endif
 

@@ -3,6 +3,7 @@
 #include <boost/config.hpp>
 #include <boost/mpl/void.hpp>
 #include "yesno.hpp"
+#include "interval.hpp"
 
 namespace gridtools {
     /**

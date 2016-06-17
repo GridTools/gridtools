@@ -84,7 +84,13 @@ namespace test_cycle_and_swap {
         comp->ready();
         comp->steady();
         comp->run();
+#ifdef __CUDACC__
+        i_data.d2h_update();
+#endif
         swap< 0, 0 >::with< 1, 0 >::apply(i_data);
+#ifdef __CUDACC__
+        i_data.h2d_update();
+#endif
         comp->run();
         comp->finalize();
 
@@ -154,7 +160,13 @@ namespace test_cycle_and_swap {
         comp->ready();
         comp->steady();
         comp->run();
+#ifdef __CUDACC__
+        i_data.d2h_update();
+#endif
         swap< 0, 0 >::with< 1, 0 >::apply(i_data);
+#ifdef __CUDACC__
+        i_data.h2d_update();
+#endif
 
         // note that the second run will do wrong computations at the first line of the 2D domain of the coordinates,
         // because the first line of
@@ -163,7 +175,11 @@ namespace test_cycle_and_swap {
         comp->run();
         comp->finalize();
 
-        verifier verif(1e-13);
+#if FLOAT_PRECISION == 4
+        verifier verif(1e-6);
+#else
+        verifier verif(1e-12);
+#endif
         array< array< uint_t, 2 >, 3 > halos{
             {{halo_size + 1, halo_size + 1}, {halo_size + 1, halo_size + 1}, {halo_size + 1, halo_size + 1}}};
         return verif.verify(grid, reference, i_data, halos);

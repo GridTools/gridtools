@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iosfwd>
 #include "accessor.hpp"
 
 #include <gridtools.hpp>
@@ -63,10 +64,12 @@ namespace gridtools {
         };
 
         struct print_view_ {
+            std::ostream &out_s;
+            print_view_(std::ostream &out_s) : out_s(out_s) {}
+
             template < typename T >
             void operator()(T &t) const {
-                // int a = T();
-                t->info();
+                t->info(out_s);
             }
         };
 
@@ -76,6 +79,14 @@ namespace gridtools {
                 printf("PTR %x\n", s);
             }
         };
+
+        struct dt_print_pointer {
+            template < typename PType >
+            GT_FUNCTION_WARNING void operator()(PType const &s) const {
+                printf("Pointer Value %x\n", s.get());
+            }
+        };
+
     } // namespace _debug
 
     namespace _impl {

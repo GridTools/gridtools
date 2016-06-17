@@ -7,7 +7,7 @@
 #include "../common/meta_array.hpp"
 #include "caches/cache_metafunctions.hpp"
 #include "independent_esf.hpp"
-#include "stencil-composition/sfinae.hpp"
+// #include "stencil-composition/sfinae.hpp"
 
 /**
 @file
@@ -23,7 +23,7 @@ namespace gridtools {
            can be used to return the extent_type only when it is present, without giving compilation
            errors in case it is not defined.
          */
-        HAS_TYPE_SFINAE(extent_type, has_extent_type, get_extent_type)
+        // HAS_TYPE_SFINAE(extent_type, has_extent_type, get_extent_type)
     }
 
     template < typename Mss1, typename Mss2, typename Tag >
@@ -75,31 +75,6 @@ namespace gridtools {
     struct mss_descriptor_is_reduction< mss_descriptor< ExecutionEngine, EsfDescrSequence, CacheSequence > > {
         typedef static_bool< false > type;
     };
-
-    /**
-       @brief pushes an element in a vector based on the fact that an ESF is independent or not
-
-       Helper metafunction, used by other metafunctions
-     */
-    template < typename State, typename SubArray, typename VectorComponent >
-    struct keep_scanning_lambda
-        : boost::mpl::fold< typename SubArray::esf_list,
-              State,
-              boost::mpl::if_< is_independent< boost::mpl::_2 >,
-                                keep_scanning_lambda< boost::mpl::_1, boost::mpl::_2, VectorComponent >,
-                                boost::mpl::push_back< boost::mpl::_1, VectorComponent > > > {};
-
-    /**
-       @brief linearizes the ESF tree and returns a vector
-
-       Helper metafunction, used by other metafunctions
-     */
-    template < typename Array, typename Argument, template < typename, typename > class KeepScanning >
-    struct linearize_esf_array_lambda : boost::mpl::fold< Array,
-                                            boost::mpl::vector0<>,
-                                            boost::mpl::if_< is_independent< boost::mpl::_2 >,
-                                                              KeepScanning< boost::mpl::_1, boost::mpl::_2 >,
-                                                              boost::mpl::push_back< boost::mpl::_1, Argument > > > {};
 
     template < typename Mss >
     struct mss_descriptor_execution_engine {};

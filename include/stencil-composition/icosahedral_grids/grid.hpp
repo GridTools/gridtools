@@ -22,8 +22,7 @@ namespace gridtools {
         explicit grid(GridTopology &grid_topology, const array< uint_t, 5 > &i, const array< uint_t, 5 > &j)
             : grid_cg< Axis >(i, j), m_grid_topology(grid_topology) {}
 
-        __device__ grid(grid const &other)
-            : grid_cg< Axis >(other), m_grid_topology(other.m_grid_topology) {}
+        __device__ grid(grid const &other) : grid_cg< Axis >(other), m_grid_topology(other.m_grid_topology) {}
 
         GT_FUNCTION
         GridTopology const &grid_topology() const { return m_grid_topology; }

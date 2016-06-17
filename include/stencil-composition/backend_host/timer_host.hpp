@@ -23,7 +23,11 @@ namespace gridtools {
         /**
         * Start the stop watch
         */
-        void start_impl() { startTime_ = omp_get_wtime(); }
+        void start_impl() {
+#if defined(_OPENMP)
+            startTime_ = omp_get_wtime();
+#endif
+        }
 
         /**
         * Pause the stop watch

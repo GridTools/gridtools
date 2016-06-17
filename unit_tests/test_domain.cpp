@@ -98,13 +98,11 @@ bool the_same(One const& storage1, Two const& storage2) {
 bool test_domain() {
 
 #ifdef __CUDACC__
-    typedef gridtools::backend< gridtools::enumtype::Cuda,
-        gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Naive > backend_t;
+    typedef gridtools::backend< gridtools::enumtype::Cuda, gridtools::GRIDBACKEND, gridtools::enumtype::Naive >
+        backend_t;
 #else
-    typedef gridtools::backend< gridtools::enumtype::Host,
-        gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Naive > backend_t;
+    typedef gridtools::backend< gridtools::enumtype::Host, gridtools::GRIDBACKEND, gridtools::enumtype::Naive >
+        backend_t;
 #endif
     typedef typename backend_t::storage_type<double, backend_t::storage_info<0,gridtools::layout_map<0,1,2> > >::type storage_type;
 
@@ -145,6 +143,9 @@ bool test_domain() {
     // // An array of placeholders to be passed to the domain
     // // I'm using mpl::vector, but the final API should look slightly simpler
     typedef boost::mpl::vector</*p_lap, p_flx, p_fly*/ p_coeff, p_in, p_out> accessor_list;
+    typedef boost::mpl::vector< gridtools::arg< 0, typename storage_type::basic_type >,
+        gridtools::arg< 1, typename storage_type::basic_type >,
+        gridtools::arg< 2, typename storage_type::basic_type > > inner_accessor_list;
 
     // // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // // It must be noted that the only fields to be passed to the constructor are the non-temporary.
@@ -158,7 +159,15 @@ bool test_domain() {
         gridtools::_impl::select_storage<accessor_list, boost::mpl::na>::template apply<gridtools::static_int<2> >::type
     > mpl_accessor_list;
 
+    typedef boost::mpl::vector< gridtools::_impl::select_storage< inner_accessor_list,
+                                    boost::mpl::na >::template apply< gridtools::static_int< 0 > >::type,
+        gridtools::_impl::select_storage< inner_accessor_list,
+                                    boost::mpl::na >::template apply< gridtools::static_int< 1 > >::type,
+        gridtools::_impl::select_storage< inner_accessor_list, boost::mpl::na >::template apply<
+                                    gridtools::static_int< 2 > >::type > mpl_accessor_inner_list;
+
     typedef typename boost::fusion::result_of::as_vector<mpl_accessor_list>::type actual_arg_list_type;
+    typedef typename boost::fusion::result_of::as_vector< mpl_accessor_inner_list >::type actual_arg_list_inner_type;
 
     actual_arg_list_type actual_arg_list;
 
@@ -179,33 +188,22 @@ bool test_domain() {
     typedef gridtools::metadata_set<actual_metadata_set_t> actual_metadata_list_type;
     actual_metadata_list_type actual_metadata_list;
 
-    typedef boost::fusion::filter_view<typename boost::fusion::result_of::as_set<actual_metadata_set_t>::type,
-                                       boost::mpl::not_<gridtools::is_ptr_to_tmp<boost::mpl::_1> > > t_meta_view;
-
-    t_meta_view  meta_view(actual_metadata_list.sequence_view());
-
-
     boost::fusion::copy(domain.m_storage_pointers, actual_arg_list);
 
 #ifdef __CUDACC__
-    gridtools::setup_computation<gridtools::enumtype::Cuda>::apply( actual_arg_list, meta_view, domain );
+    gridtools::setup_computation<gridtools::enumtype::Cuda>::apply( actual_arg_list, actual_metadata_list, domain );
 #else
-    gridtools::setup_computation<gridtools::enumtype::Host>::apply( actual_arg_list, meta_view, domain ); //does nothing
+    gridtools::setup_computation<gridtools::enumtype::Host>::apply( actual_arg_list, actual_metadata_list, domain ); //does nothing
 #endif
 
-    actual_arg_list_type* arg_list_device_ptr;
-    cudaMalloc(&arg_list_device_ptr, sizeof(actual_arg_list_type));
-    cudaMemcpy(arg_list_device_ptr, &actual_arg_list , sizeof(actual_arg_list_type), cudaMemcpyHostToDevice);
-
-    actual_metadata_list_type* metadata_list_device_ptr;
-    cudaMalloc(&metadata_list_device_ptr, sizeof(actual_metadata_list_type));
-    cudaMemcpy(metadata_list_device_ptr, &actual_metadata_list , sizeof(actual_metadata_list_type), cudaMemcpyHostToDevice);
 
 #ifndef NDEBUG
     printf("\n\nFROM GPU\n\n");
 #endif
+    actual_arg_list_inner_type inner_args =
+        boost::fusion::make_vector(coeff.get_pointer_to_use(), in.get_pointer_to_use(), out.get_pointer_to_use());
     // clang-format off
-    print_values<<<1,1>>>(arg_list_device_ptr/*domain.gpu_object_ptr*/);
+    print_values<<<1,1>>>(&inner_args);
     // clang-format on
 #ifdef __CUDACC__
     cudaDeviceSynchronize();
@@ -222,18 +220,19 @@ bool test_domain() {
     boost::fusion::copy(domain.m_storage_pointers, actual_arg_list);
 
 #ifdef __CUDACC__
-    gridtools::setup_computation<gridtools::enumtype::Cuda>::apply( actual_arg_list, meta_view, domain );
+    gridtools::setup_computation<gridtools::enumtype::Cuda>::apply( actual_arg_list, actual_metadata_list, domain );
 #else
-    gridtools::setup_computation<gridtools::enumtype::Host>::apply( actual_arg_list, meta_view, domain ); //does nothing
+    gridtools::setup_computation<gridtools::enumtype::Host>::apply( actual_arg_list, actual_metadata_list, domain ); //does nothing
 #endif
 
-    cudaMemcpy(arg_list_device_ptr, &actual_arg_list , sizeof(actual_arg_list_type), cudaMemcpyHostToDevice);
+    inner_args =
+        boost::fusion::make_vector(coeff.get_pointer_to_use(), in.get_pointer_to_use(), out.get_pointer_to_use());
 
 #ifndef NDEBUG
     printf("\n\nFROM GPU\n\n");
 #endif
     // clang-format off
-    print_values<<<1,1>>>(arg_list_device_ptr);
+    print_values<<<1,1>>>(&inner_args);
     // clang-format on
 #ifdef __CUDACC__
     cudaDeviceSynchronize();
@@ -248,14 +247,12 @@ bool test_domain() {
     in.d2h_update();
     out.d2h_update();
 
-    cudaFree(arg_list_device_ptr);
-
-    out_value()(make_pointer(host_in));
-    out_value()(make_pointer(host_in));
-    out_value()(make_pointer(host_out));
-    out_value()(make_pointer(host_out));
-    out_value()(make_pointer(host_coeff));
-    out_value()(make_pointer(host_coeff));
+    out_value()(make_pointer(*host_in.get_pointer_to_use()));
+    out_value()(make_pointer(*host_in.get_pointer_to_use()));
+    out_value()(make_pointer(*host_out.get_pointer_to_use()));
+    out_value()(make_pointer(*host_out.get_pointer_to_use()));
+    out_value()(make_pointer(*host_coeff.get_pointer_to_use()));
+    out_value()(make_pointer(*host_coeff.get_pointer_to_use()));
 
     bool failed = false;
     failed |= !the_same(in, host_in);

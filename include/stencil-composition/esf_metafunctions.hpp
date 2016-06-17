@@ -86,7 +86,7 @@ namespace gridtools {
         struct apply {
             typedef typename boost::mpl::if_< is_arg< typename boost::mpl::at< typename Esf::args_t, Index >::type >,
                 typename boost::mpl::if_< typename is_accessor_readonly< typename boost::mpl::
-                                                  at< typename esf_arg_list<Esf>::type, Index >::type >::type,
+                                                  at< typename Esf::esf_function::arg_list, Index >::type >::type,
                                                   boost::false_type,
                                                   boost::true_type >::type,
                 boost::false_type >::type type;
@@ -245,7 +245,45 @@ namespace gridtools {
             boost::mpl::insert< boost::mpl::_1, arg_index< boost::mpl::_2 > > >::type type;
     };
 
+    /*
+      Given an array of pairs (placeholder, extent) checks if all
+      extents are the same and equal to the extent passed in
+     */
+    template < typename VectorOfPairs, typename Extent >
+    struct check_all_extents_are {
+        template < typename Pair >
+        struct _check {
+            typedef typename boost::is_same< typename Pair::second, Extent >::type type;
+        };
+
+        typedef typename is_sequence_of< VectorOfPairs, _check >::type type;
+    };
+
     template < typename T >
     struct is_esf_descriptor< independent_esf< T > > : boost::mpl::true_ {};
+
+    // Takes a list of esfs and independent_esf and produces a list of esfs, with the independent unwrapped
+    template < typename ESFList >
+    struct unwrap_independent {
+
+        GRIDTOOLS_STATIC_ASSERT(
+            (is_sequence_of< ESFList, is_esf_descriptor >::value), "Error: ESFList must be a list of ESFs");
+
+        template < typename CurrentList, typename CurrentElement >
+        struct populate {
+            typedef typename boost::mpl::push_back< CurrentList, CurrentElement >::type type;
+        };
+
+        template < typename CurrentList, typename IndependentList >
+        struct populate< CurrentList, independent_esf< IndependentList > > {
+            typedef typename boost::mpl::fold< IndependentList,
+                CurrentList,
+                populate< boost::mpl::_1, boost::mpl::_2 > >::type type;
+        };
+
+        typedef typename boost::mpl::fold< ESFList,
+            boost::mpl::vector0<>,
+            populate< boost::mpl::_1, boost::mpl::_2 > >::type type;
+    }; // struct unwrap_independent
 
 } // namespace gridtools

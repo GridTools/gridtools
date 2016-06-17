@@ -51,8 +51,7 @@ namespace gridtools {
 #else
         typedef HaloType< align_all< Alignment::value, Halo1 >::value - Halo1,
             align_all< Alignment::value, Halo2 >::value - Halo2,
-            align_all< Alignment::value, Halo3 >::value - Halo3 >
-            padding_t; // paddings
+            align_all< Alignment::value, Halo3 >::value - Halo3 > padding_t; // paddings
         typedef HaloType< Halo1, Halo2, Halo3 > halo_t;
 #endif
 
@@ -177,6 +176,11 @@ namespace gridtools {
             /**this call zips 2 variadic packs*/
             return index_(typename make_gt_integer_sequence< ushort_t, sizeof...(Halo) >::type(), first_, args_...);
         }
+
+        /**@brief operator equals (same dimension size, etc.) */
+        GT_FUNCTION
+        constexpr bool operator==(const meta_storage_aligned &other) const { return super::operator==(other); }
+
 #else
 
         /* applying 'align' to the integer sequence from 1 to space_dimensions.
@@ -195,6 +199,10 @@ namespace gridtools {
                 j + cond< 1 >::template get< 1 >(),
                 k + cond< 2 >::template get< 2 >());
         }
+
+        /**@brief operator equals (same dimension size, etc.) */
+        GT_FUNCTION
+        bool operator==(const meta_storage_aligned &other) const { return super::operator==(other); }
 
 #endif
 
@@ -231,13 +239,21 @@ namespace gridtools {
         GT_FUNCTION constexpr int_t unaligned_strides() const {
             // NOTE: we access the m_strides vector starting from 1, because m_strides[0] is the total storage
             // dimension.
-            return MetaStorageBase::template get_stride_helper<Coordinate, typename MetaStorageBase::layout>(m_unaligned_strides, 1);
+            return MetaStorageBase::template get_stride_helper< Coordinate, typename MetaStorageBase::layout >(
+                m_unaligned_strides, 1);
         }
 
 #endif
         // device copy constructor
         GT_FUNCTION
-        constexpr meta_storage_aligned(meta_storage_aligned const &other) : super(other) {}
+        constexpr meta_storage_aligned(meta_storage_aligned const &other)
+            : super(other)
+#ifdef CXX11_ENABLED
+              ,
+              m_unaligned_dims(other.m_unaligned_dims), m_unaligned_strides(other.m_unaligned_strides)
+#endif
+        {
+        }
 
         // empty constructor
         GT_FUNCTION
