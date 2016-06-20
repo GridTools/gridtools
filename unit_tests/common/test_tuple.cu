@@ -1,6 +1,8 @@
 #include "gtest/gtest.h"
 #include "test_tuple.hpp"
 
+#ifdef CXX11_ENABLED
+
 __global__
 void test_tuple_kernel(bool* result)
 {
@@ -19,3 +21,5 @@ TEST(tuple, test_elements) {
     cudaMemcpy(&result, resultDevice, sizeof(bool), cudaMemcpyDeviceToHost);
     ASSERT_TRUE(result);
 }
+
+#endif
