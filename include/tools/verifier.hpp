@@ -203,8 +203,8 @@ namespace gridtools {
                 for (gridtools::uint_t i = m_halo_size; i < idim - m_halo_size; ++i) {
                     for (gridtools::uint_t j = m_halo_size; j < jdim - m_halo_size; ++j) {
                         for (gridtools::uint_t k = 0; k < grid_.value_at_top(); ++k) {
-                            typename storage_type::value_type expected = field1.fields()[f][meta.index(i, j, k)];
-                            typename storage_type::value_type actual = field2.fields()[f][meta.index(i, j, k)];
+                            typename storage_type::value_type expected = field1.fields()[f][meta->index(i, j, k)];
+                            typename storage_type::value_type actual = field2.fields()[f][meta->index(i, j, k)];
 
                             if (!compare_below_threashold(expected, actual)) {
                                 std::cout << "Error in position " << i << " " << j << " " << k
