@@ -194,7 +194,7 @@ void test_layout_find_val(bool* result)
 
 #ifdef CXX11_ENABLED
         // TODO: the find_val method does not return default value with cxx03
-        *result &= ((layout_map< 2, 0, 1 >::find_val< 5, int, 666 >(offset_tuple< 3, 3 >(7, 9, 11)) == 666));
+        *result &= ((layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(offset_tuple< 3, 3 >(7, 9, 11)) == 666));
         *result &= ((layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(array< uint_t, 3 >{7, 9, 11}) == 9));
         *result &= ((layout_map< 2, 0, 1 >::find_val< 1, int, 666 >(array< uint_t, 3 >{7, 9, 11}) == 11));
         *result &= ((layout_map< 2, 0, 1 >::find_val< 2, int, 666 >(array< uint_t, 3 >{7, 9, 11}) == 7));
