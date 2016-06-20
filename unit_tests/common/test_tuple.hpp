@@ -2,6 +2,8 @@
 #include "common/defs.hpp"
 #include "common/tuple.hpp"
 
+
+#ifdef CXX11_ENABLED
 GT_FUNCTION
 void test_tuple_elements(bool *result)
 {
@@ -10,9 +12,7 @@ void test_tuple_elements(bool *result)
     *result = true;
     constexpr tuple<int_t, short_t, uint_t> tup(-3,4,10);
 
-#ifdef CXX11_ENABLED
     GRIDTOOLS_STATIC_ASSERT((static_int<tup.get<0>()>::value == -3), "ERROR");
-#endif
 
 #if defined(CXX11_ENABLED) && !defined(__CUDACC__)
 
@@ -27,3 +27,5 @@ void test_tuple_elements(bool *result)
     *result &= ((tup.get<2>() == 10));
 
 }
+
+#endif
