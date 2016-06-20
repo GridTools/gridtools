@@ -11,7 +11,7 @@ GT_FUNCTION
 void test_offset_tuple(bool *result) {
     using namespace gridtools;
     *result = true;
-#if defined(NDEBUG) && defined(CXX11_ENABLED)
+#if defined(NDEBUG) && defined(CXX11_ENABLED) && !defined(__CUDACC__)
     {
     constexpr array<int_t, 4> pos{2,5,8,-6};
     constexpr offset_tuple<4,4> offsets(0, pos);
