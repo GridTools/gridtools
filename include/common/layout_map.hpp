@@ -68,6 +68,11 @@ namespace gridtools {
         static constexpr ushort_t length = sizeof...(Args);
         static const constexpr short_t layout_vector[sizeof...(Args)] = {Args...};
         typedef boost::mpl::vector_c< short_t, Args... > layout_vector_t;
+
+
+        //ctr
+        constexpr layout_map(){}
+
         /* BOOST_STATIC_ASSERT(s); */
 
         /** This function returns the value in the map that is stored at

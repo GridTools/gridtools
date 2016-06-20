@@ -14,15 +14,15 @@ namespace gridtools {
     namespace _impl {
         template < ushort_t Idx, typename VariadicArgs, typename First, typename Super >
         struct return_helper {
-            GT_FUNCTION constexpr typename VariadicArgs::template get_elem< Idx >::type operator()(
-                const First f, const Super x) {
+            GT_FUNCTION constexpr typename VariadicArgs::template get_elem< Idx >::type operator() (
+                const First f, const Super x) const {
                 return x.template get< Idx - 1 >();
             }
         };
 
         template < typename VariadicArgs, typename First, typename Super >
         struct return_helper< 0, VariadicArgs, First, Super > {
-            GT_FUNCTION constexpr First operator()(const First f, const Super x) { return f; }
+            GT_FUNCTION constexpr First operator()(const First f, const Super x) const { return f; }
         };
     }
 
@@ -41,7 +41,7 @@ namespace gridtools {
         // ctr
         GT_FUNCTION constexpr tuple(const ElementType t, OtherElements const... x) : super(x...), m_elem(t) {}
 
-        GT_FUNCTION constexpr ElementType operator()() { return m_elem; }
+        GT_FUNCTION constexpr ElementType operator()() const { return m_elem; }
 
         /**@brief returns the element at a specific index Idx*/
         template < ushort_t Idx >
@@ -70,7 +70,7 @@ namespace gridtools {
 
         GT_FUNCTION constexpr tuple(const ElementType t) : m_elem(t) {}
 
-        GT_FUNCTION constexpr ElementType operator()() { return m_elem; }
+        GT_FUNCTION constexpr ElementType operator()() const { return m_elem; }
 
         /**@brief returns the offset at a specific index Idx*/
         template < ushort_t Idx >
