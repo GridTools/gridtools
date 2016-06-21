@@ -23,6 +23,7 @@ function help {
    echo "-i      build for icosahedral grids           "
    echo "-d      do not clean build                    "
    echo "-v      compile in VERBOSE mode               "
+   echo "-q      queue for testing                     "
    exit 1
 }
 
@@ -31,7 +32,7 @@ BASEPATH_SCRIPT=$(dirname "${0}")
 FORCE_BUILD=OFF
 VERBOSE_RUN="OFF"
 
-while getopts "h:b:t:f:c:l:pzmsidv" opt; do
+while getopts "h:b:t:f:c:l:pzmsidvq:" opt; do
     case "$opt" in
     h|\?)
         help
@@ -60,6 +61,8 @@ while getopts "h:b:t:f:c:l:pzmsidv" opt; do
     l) export COMPILER=$OPTARG
         ;;
     v) VERBOSE_RUN="ON"
+        ;;
+    q) QUEUE=$OPTARG
         ;;
     esac
 done
@@ -232,7 +235,13 @@ fi
 
 exit_if_error ${error_code}
 
-bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh
+queue_str=""
+if [[ ${QUEUE} ]] ; then
+  queue_str="-q ${QUEUE}"
+fi
+
+
+bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh ${queue_str}
 
 exit_if_error $?
 

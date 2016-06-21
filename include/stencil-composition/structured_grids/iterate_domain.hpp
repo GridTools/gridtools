@@ -550,7 +550,7 @@ namespace gridtools {
            data fields with the same dimension and memory layout)*/
         template < typename Accessor, typename... Pairs >
         GT_FUNCTION typename accessor_return_type< Accessor >::type operator()(
-            accessor_mixed< Accessor, Pairs... > const &accessor) const;
+            accessor_mixed< Accessor, Pairs... > const accessor) const;
 
 #endif
 
@@ -732,7 +732,7 @@ namespace gridtools {
         GTASSERT(
             metadata_->size() > m_index[ // Accessor::index_type::value
                                     metadata_index_t::value] +
-                                    metadata_->_index(strides().template get< metadata_index_t::value >(), accessor));
+                                    metadata_->_index(strides().template get< metadata_index_t::value >(), accessor.offsets()));
 
         // the following assert fails when an out of bound access is observed,
         // i.e. when some offset is negative and either one of
@@ -745,13 +745,13 @@ namespace gridtools {
         // std::cout<<"Storage Index: "<<Accessor::index_type::value<<" + "<<(boost::fusion::at<typename
         // Accessor::index_type>(local_domain.local_args))->_index(arg.template n<Accessor::n_dim>())<<std::endl;
         GTASSERT((int_t)(m_index[metadata_index_t::value]) +
-                     metadata_->_index(strides().template get< metadata_index_t::value >(), accessor) >=
+                     metadata_->_index(strides().template get< metadata_index_t::value >(), accessor.offsets()) >=
                  0);
 
         // control your instincts: changing the following
         // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
         const int_t pointer_offset = (m_index[metadata_index_t::value]) +
-                                     metadata_->_index(strides().template get< metadata_index_t::value >(), accessor);
+                                     metadata_->_index(strides().template get< metadata_index_t::value >(), accessor.offsets());
 
         return static_cast< const IterateDomainImpl * >(this)
             ->template get_value_impl<
@@ -844,7 +844,7 @@ namespace gridtools {
     template < typename Accessor, typename... Pairs >
     GT_FUNCTION typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type
         iterate_domain< IterateDomainImpl >::
-        operator()(accessor_mixed< Accessor, Pairs... > const &accessor) const {
+        operator()(accessor_mixed< Accessor, Pairs... > const accessor) const {
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 
@@ -864,37 +864,35 @@ namespace gridtools {
         //(3 space dim + 2 extra= 5, which gives n_dim==4)
         GRIDTOOLS_STATIC_ASSERT(
             N_DATA_POINTERS > 0, "the total number of snapshots must be larger than 0 in each functor");
-        GRIDTOOLS_STATIC_ASSERT(accessor_mixed_t::template get_constexpr< 0 >() >= 0,
+        GRIDTOOLS_STATIC_ASSERT(accessor.template get_constexpr< 0 >() >= 0,
             "offset specified for the dimension corresponding to the number of field components/snapshots must be non "
             "negative");
-        GRIDTOOLS_STATIC_ASSERT((Accessor::type::n_dim <= metadata_t::space_dimensions + 1) ||
-                                    (accessor_mixed_t::template get_constexpr< 1 >() >= 0),
-            "offset specified for the dimension corresponding to the number of snapshots must be non negative");
+
+        // "offset specified for the dimension corresponding to the number of snapshots must be non negative");
+        GTASSERT((Accessor::type::n_dim <= metadata_t::space_dimensions + 1) || (accessor.template get< 1 >() >= 0));
         GRIDTOOLS_STATIC_ASSERT(
             (storage_t::traits::n_width > 0), "did you define a field dimension with 0 snapshots??");
-        // dimension access out of bounds
-        GRIDTOOLS_STATIC_ASSERT((accessor_mixed_t::template get_constexpr< 0 >() < storage_t::traits::n_dimensions) ||
-                                    Accessor::type::n_dim <= metadata_t::space_dimensions + 1,
-            "field dimension access out of bounds");
+        // "field dimension access out of bounds"
+        GTASSERT((accessor.template get< 0 >() < storage_t::traits::n_dimensions) ||
+                                    Accessor::type::n_dim <= metadata_t::space_dimensions + 1);
 
-        // snapshot access out of bounds
-        GRIDTOOLS_STATIC_ASSERT(
-            (accessor_mixed_t::template get_constexpr< 1 >() <
-                _impl::access< storage_t::n_width - (accessor_mixed_t::template get_constexpr< 0 >()) - 1,
-                    typename storage_t::traits >::type::n_width),
-            "trying to get a snapshot out of bound");
+        // snapshot access out of bounds        
+        GTASSERT(
+            (accessor.template get< 1 >() <
+                _impl::access< storage_t::n_width - (accessor.template get_constexpr< 0 >()) - 1,
+                    typename storage_t::traits >::type::n_width));
 
         return get_value(
             accessor,
             (data_pointer())[ // static if
                 (Accessor::type::n_dim <= metadata_t::space_dimensions + 1
                         ?                                                 // static if
-                        accessor_mixed_t::template get_constexpr< 0 >()   // offset for the current snapshot
-                        : accessor_mixed_t::template get_constexpr< 1 >() // offset for the current snapshot
+                        accessor.template get< 0 >()   // offset for the current snapshot
+                        : accessor.template get< 1 >() // offset for the current snapshot
                               // hypotheses : storage offsets are known at compile-time
                               +
                               compute_storage_offset< typename storage_t::traits,
-                                  accessor_mixed_t::template get_constexpr< 0 >(),
+                                  accessor.template get_constexpr< 0 >(),
                                   storage_t::traits::n_dimensions -
                                       1 >::value // stride of the current dimension inside the vector of storages
                     )                            //+ the offset of the other extra dimension
@@ -928,9 +926,9 @@ namespace gridtools {
 
         // error checks
         GTASSERT(metadata_->size() >
-                 metadata_->_index(strides().template get< metadata_index_t::value >(), expr.first_operand));
+                 metadata_->_index(strides().template get< metadata_index_t::value >(), expr.first_operand.offsets()));
 
-        GTASSERT(metadata_->_index(strides().template get< metadata_index_t::value >(), expr.first_operand) >= 0);
+        GTASSERT(metadata_->_index(strides().template get< metadata_index_t::value >(), expr.first_operand.offsets()) >= 0);
 
         GRIDTOOLS_STATIC_ASSERT((Accessor::n_dim <= storage_t::storage_info_type::space_dimensions),
             "access out of bound in the storage placeholder (accessor). increase the number of dimensions when "
@@ -942,7 +940,7 @@ namespace gridtools {
 
         // returning the value without adding the m_index
         return *(real_storage_pointer +
-                 metadata_->_index(strides().template get< metadata_index_t::value >(), expr.first_operand));
+                 metadata_->_index(strides().template get< metadata_index_t::value >(), expr.first_operand.offsets()));
     }
 #endif // ifndef CXX11_ENABLED
 

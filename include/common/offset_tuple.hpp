@@ -1,8 +1,14 @@
 #pragma once
+#include <boost/mpl/or.hpp>
+#include <boost/mpl/fold.hpp>
+#include <boost/mpl/find.hpp>
 #include "common/defs.hpp"
 #include "stencil-composition/dimension_defs.hpp"
-#include "common/generic_metafunctions/logical_and.hpp"
+#include "common/generic_metafunctions/logical_ops.hpp"
+#include "common/generic_metafunctions/variadic_to_vector.hpp"
+#include "../common/generic_metafunctions/accumulate.hpp"
 #include "common/generic_metafunctions/is_variadic_pack_of.hpp"
+#include "../common/array.hpp"
 
 namespace gridtools {
 
@@ -72,6 +78,18 @@ namespace gridtools {
     }
 #endif
 
+    namespace _impl {
+#ifdef CXX11_ENABLED
+        template < typename... GenericElements >
+        struct contains_array {
+            typedef typename boost::mpl::fold<
+                typename variadic_to_vector< typename is_array< GenericElements >::type... >::type,
+                boost::mpl::false_,
+                boost::mpl::or_< boost::mpl::_1, boost::mpl::_2 > >::type type;
+        };
+#endif
+    }
+
     //################################################################################
     //                              Multidimensional Fields
     //################################################################################
@@ -104,14 +122,23 @@ namespace gridtools {
         typedef offset_tuple< Index - 1, NDim > super;
         static const short_t n_args = super::n_args + 1;
 
+        GT_FUNCTION CONSTEXPR offset_tuple(const uint_t pos, array< int_t, NDim > const &offsets)
+            : super(pos + 1, offsets), m_offset(offsets[pos]) {
+#ifndef NDEBUG
+            GTASSERT(pos < NDim);
+#endif
+        }
 #ifdef CXX11_ENABLED
 
         /**@brief constructor taking an integer as the first argument, and then other optional arguments.
-           The integer gets assigned to the current extra dimension and the other arguments are passed to the base class
+           The integer gets assigned to the current extra dimension and the other arguments are passed to the base
+           class
            (in order to get assigned to the other dimensions).
            When this constructor is used all the arguments have to be specified and passed to the function call in
            order. No check is done on the order*/
-        template < typename... GenericElements >
+        template < typename... GenericElements,
+            typename =
+                typename boost::disable_if< typename _impl::contains_array< GenericElements... >::type, bool >::type >
         GT_FUNCTION constexpr offset_tuple(int const t, GenericElements const... x)
             : super(x...), m_offset(t) {}
 
@@ -124,12 +151,12 @@ namespace gridtools {
             : super(t, x...), m_offset(initialize< super::n_dim - n_args + 1 >(t, x...)) {}
 #else
         /**@brief constructor taking an integer as the first argument, and then other optional arguments.
-           The integer gets assigned to the current extra dimension and the other arguments are passed to the base class
+           The integer gets assigned to the current extra dimension and the other arguments are passed to the base
+           class
            (in order to get assigned to the other dimensions).
            When this constructor is used all the arguments have to be specified and passed to the function call in
            order. No check is done on the order*/
-        GT_FUNCTION
-        offset_tuple(int const i, int const j, int const k) : super(j, k), m_offset(i) {}
+        GT_FUNCTION offset_tuple(int const i, int const j, int const k) : super(j, k), m_offset(i) {}
         GT_FUNCTION
         offset_tuple(int const i, int const j) : super(j), m_offset(i) {}
         GT_FUNCTION
@@ -197,8 +224,16 @@ namespace gridtools {
     struct offset_tuple< 0, NDim > {
         static const int_t n_dim = NDim;
 
+        GT_FUNCTION CONSTEXPR offset_tuple(const uint_t pos, array< int_t, NDim > const &offsets) {
+#ifndef NDEBUG
+            assert(pos == NDim);
+#endif
+        }
+
 #ifdef CXX11_ENABLED
-        template < typename... GenericElements >
+        template < typename... GenericElements,
+            typename =
+                typename boost::disable_if< typename _impl::contains_array< GenericElements... >::type, bool >::type >
         GT_FUNCTION constexpr offset_tuple(GenericElements... x) {
             GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension< GenericElements >::type::value...),
                 "wrong type for the argument of an offset_tuple");
@@ -236,4 +271,49 @@ namespace gridtools {
 
     template < int_t Index, int_t NDim >
     struct is_offset_tuple< offset_tuple< Index, NDim > > : boost::mpl::true_ {};
+
+#if defined(CXX11_ENABLED) && !defined(CUDA_CXX11_BUG_1) && !defined(__INTEL_COMPILER)
+
+    /**
+     * This provides equivalent functionality than offset_tuple, but when some dimension offsets
+     * are provided as compile time information
+     * @tparam Coordinates vector of integers marking the dimensions provided at compile time
+     * @tparam NDim number of dimensions of the offset_tuple
+     * @tparam DimensionPairs variadic of pairs (dimension, value) provided at compile time
+     */
+    template < typename Coordinates, int_t NDim, typename... DimensionPairs >
+    struct offset_tuple_mixed {
+        static const int_t n_dim = NDim;
+
+        typedef offset_tuple< NDim, NDim > offset_tuple_t;
+
+      private:
+        const offset_tuple_t m_dynamic_offset_tuple;
+        // compile time offset tuple
+        static constexpr offset_tuple_t s_static_offset_tuple{
+            dimension< DimensionPairs::first >{DimensionPairs::second}...};
+
+      public:
+        template < typename... ArgsRuntime >
+        GT_FUNCTION constexpr offset_tuple_mixed(const ArgsRuntime ... args)
+            : m_dynamic_offset_tuple(args...) {}
+
+        template < short_t Idx >
+        GT_FUNCTION constexpr int_t get() const {
+            // we dispatch the getter to the static or dynamic depending on wether the dimension has been captured
+            // compile time
+            // (in the list of coordinates)
+            return boost::is_same< typename boost::mpl::find< Coordinates, static_int< Idx > >::type,
+                       typename boost::mpl::end< Coordinates >::type >::type::value
+                       ? m_dynamic_offset_tuple.template get< Idx >()
+                       : s_static_offset_tuple.template get< Idx >();
+        }
+    };
+
+    template < typename Coordinates, int_t NDim, typename... Pair >
+    constexpr const offset_tuple< NDim, NDim > offset_tuple_mixed< Coordinates, NDim, Pair... >::s_static_offset_tuple;
+
+    template < typename Coordinates, int_t NDim, typename... DimensionPairs >
+    struct is_offset_tuple< offset_tuple_mixed< Coordinates, NDim, DimensionPairs... > > : boost::mpl::true_ {};
+#endif
 } // namespace gridtools

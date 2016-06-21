@@ -1,7 +1,8 @@
 
 if( ENABLE_CXX11 )
-      SET(STENCIL_OTHERGRIDS_UNITTEST_SOURCES test_from_to_mapping.cpp test_make_computation.cpp test_copy_stencil.cpp test_extract_location.cpp test_read_write_esf.cpp
-#         test_nested_on
+  SET(STENCIL_OTHERGRIDS_UNITTEST_SOURCES 
+  test_connectivity.cpp 
+  test_from_to_mapping.cpp test_make_computation.cpp test_copy_stencil.cpp test_extract_location.cpp 
          ${INC_ALL})
 
   ### Executables
@@ -15,7 +16,6 @@ endif( ENABLE_CXX11 )
 
 if(USE_GPU)
     set(CUDA_SOURCES test_copy_stencil.cu)
-#test_stencil_on_cells.cu)
     cuda_add_executable(icgrid_stencil_tests_gpu ${CUDA_SOURCES})
     target_link_libraries(icgrid_stencil_tests_gpu ${exe_LIBS})
 
