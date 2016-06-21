@@ -206,6 +206,42 @@ namespace gridtools {
            @brief functor used to assign the next chunk of storage pointers
         */
         template < typename DomainFrom, typename DomainTo >
+        struct prepare_expandable_params {
+
+          private:
+            DomainFrom const &m_dom_from;
+            DomainTo &m_dom_to;
+            uint_t const &m_idx;
+
+        public:
+            prepare_expandable_params(DomainFrom const &dom_from_, DomainTo &dom_to_, uint_t const &i_)
+                : m_dom_from(dom_from_), m_dom_to(dom_to_), m_idx(i_) {}
+
+            template < ushort_t ID, typename T >
+            void operator()(arg< ID, std::vector< pointer< T > > >) {
+
+                if (!is_temporary_storage<
+                        typename boost::mpl::at_c< typename DomainTo::arg_list_mpl, ID >::type >::value) {
+                    // the vector of pointers
+                    pointer< std::vector< pointer< T > > > const &storage_ptr_ =
+                        m_dom_from.template storage_pointer< arg< ID, std::vector< pointer< T > > > >();
+
+                    (*(boost::fusion::at< static_ushort< ID > >(m_dom_to.m_storage_pointers)->storage_pointer())).set(*storage_ptr_, m_idx);
+                    // update the device pointers (not copying the heavy data)
+                    boost::fusion::at< static_ushort< ID > >(m_dom_to.m_storage_pointers)->clone_to_device();
+                    //reset the pointer to the host version, since they'll be accessed from the host
+                    // boost::fusion::at< static_ushort< ID > >(m_dom_to.m_storage_pointers)->set_on_host( );
+                    // copy the heavy data (should be done by the steady)
+                    // boost::fusion::at<static_ushort<ID> >(m_dom_to.m_storage_pointers)->h2d_update();
+                }
+            }
+        };
+
+
+        /**
+           @brief functor used to assign the next chunk of storage pointers
+        */
+        template < typename DomainFrom, typename DomainTo >
         struct assign_expandable_params {
 
           private:
@@ -224,15 +260,11 @@ namespace gridtools {
                         typename boost::mpl::at_c< typename DomainTo::arg_list_mpl, ID >::type >::value) {
                     // the vector of pointers
                     pointer< std::vector< pointer< T > > > const &storage_ptr_ =
-                        m_dom_from.template storage_pointer< arg< ID, std::vector< pointer< T > > > >();
+                        m_dom_from.template storage_pointer< arg< ID, std::vector< pointer< T > > > >( );
 
                     (*(boost::fusion::at< static_ushort< ID > >(m_dom_to.m_storage_pointers)->storage_pointer())).set(*storage_ptr_, m_idx);
-                    // update the device pointers (not copying the heavy data)
-                    boost::fusion::at< static_ushort< ID > >(m_dom_to.m_storage_pointers)->clone_to_device();
-                    //reset the pointer to the host version, since they'll be accessed from the host
-                    boost::fusion::at< static_ushort< ID > >(m_dom_to.m_storage_pointers)->set_on_host();
-                    // copy the heavy data (should be done by the steady)
-                    // boost::fusion::at<static_ushort<ID> >(m_dom_to.m_storage_pointers)->h2d_update();
+                    boost::fusion::at< static_ushort< ID > >(m_dom_to.m_storage_pointers)->h2d_update( );
+                    // boost::fusion::at< static_ushort< ID > >(m_dom_to.m_storage_pointers)->set_on_host( true );
                 }
             }
         };
@@ -251,14 +283,25 @@ namespace gridtools {
 
             template < ushort_t ID, typename T >
             void operator()(arg< ID, std::vector< pointer< T > > >) {
+            //     if (!is_temporary_storage<
+            //         typename boost::mpl::at_c< typename DomainTo::arg_list_mpl, ID >::type >::value) {
+            //         // the vector of pointers
+            //         pointer< std::vector< pointer< T > > > const &storage_ptr_ =
+            //             m_dom_from.template storage_pointer< arg< ID, std::vector< pointer< T > > > >();
+
+            //         (*(boost::fusion::at< static_ushort< ID > >(m_dom_to.m_storage_pointers)->storage_pointer())).set(*storage_ptr_, m_idx);
+            //     }
+
+
                 auto ptr = boost::fusion::at< static_ushort< ID > >(m_dom_from.m_storage_pointers);
                 if (ptr.get()) { // if it's a temporary it might have been freed already
                     for (auto &&i : *ptr) {
                         // hard-setting the on_device flag for the hybrid_pointers:
                         // since the storages used get created on-the-fly the original storages do
                         // not know that they are still on the device
-                        i->set_on_device();
+                        // i->set_on_device();
                         i->d2h_update();
+                        i->set_on_host( true );
                     }
                 }
             }

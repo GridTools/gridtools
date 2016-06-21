@@ -41,7 +41,6 @@ namespace test_expandable_parameters {
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-
             eval(parameters_out{}) = eval(parameters_in{});
         }
     };

@@ -112,6 +112,7 @@ namespace gridtools {
 #endif
 
             if (s.get()) {
+                //update pointer should not copy the data!!
                 copy_data_impl< StorageType >(s);
                 s->clone_to_device();
             }
@@ -133,10 +134,10 @@ namespace gridtools {
         }
 
       private:
-        // we do not copy data into the gpu in case of a generic accessor
-        template < typename StorageType >
-        GT_FUNCTION_WARNING void copy_data_impl(pointer< StorageType > &s,
-            typename boost::disable_if_c< is_storage< StorageType >::value >::type * = 0) const {}
+        // // we do not copy data into the gpu in case of a generic accessor
+        // template < typename StorageType >
+        // GT_FUNCTION_WARNING void copy_data_impl(pointer< StorageType > &s,
+        //     typename boost::disable_if_c< is_storage< StorageType >::value >::type * = 0) const {}
 
         // we do not copy data into the gpu in case of a temporary
         template < typename StorageType >
@@ -169,6 +170,7 @@ namespace gridtools {
             typename boost::enable_if_c< is_storage< StorageType >::value >::type * = 0,
             typename boost::disable_if_c< is_no_storage_type_yet< StorageType >::value >::type * = 0) const {
             arg->d2h_update();
+            arg->set_on_host( true );
         }
 
         template < typename StorageType >

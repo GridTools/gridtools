@@ -52,7 +52,7 @@ namespace gridtools {
             bool do_allocate_ = false)
             : super(meta_, name, do_allocate_ /*do not allocate*/) {}
 
-        __device__ expandable_parameters(expandable_parameters const &other) : super(other) {}
+        // __device__ expandable_parameters(expandable_parameters const &other) : super(other) {}
 
         /**
            @brief assign a chunk of the pointers array from a large storage list to a smaller one (i.e. this one).
@@ -68,6 +68,7 @@ namespace gridtools {
                 if (offset + i < other.size()) {
                     this->m_fields[i] = other.at(offset + i)->fields()[0];
                 }
+            this->is_set=true;
         }
 
         /**

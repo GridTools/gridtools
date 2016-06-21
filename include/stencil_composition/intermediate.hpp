@@ -623,13 +623,13 @@ namespace gridtools {
         virtual void finalize() {
             finalize_computation< Backend::s_backend_id >::apply(m_domain);
 
-            // DELETE the TEMPORARIES (a shared_ptr would be way better)
-            // NOTE: the descrutor of the copy_to_gpu stuff will automatically free the storage
-            // on the GPU
-            typedef boost::fusion::filter_view< actual_arg_list_type, is_temporary_storage< boost::mpl::_1 > >
-                view_type;
-            view_type fview(m_actual_arg_list);
-            boost::fusion::for_each(fview, _impl::delete_tmps());
+            // // DELETE the TEMPORARIES (a shared_ptr would be way better)
+            // // NOTE: the descrutor of the copy_to_gpu stuff will automatically free the storage
+            // // on the GPU
+            // typedef boost::fusion::filter_view< actual_arg_list_type, is_temporary_storage< boost::mpl::_1 > >
+            //     view_type;
+            // view_type fview(m_actual_arg_list);
+            // boost::fusion::for_each(fview, _impl::delete_tmps());
         }
 
         /**

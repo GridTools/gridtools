@@ -47,6 +47,7 @@ namespace test_conditional_switches{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
+            printf("%f   ", eval(p_dummy()));
             eval(p_dummy())+=Id;
         }
     };
@@ -165,12 +166,18 @@ namespace test_conditional_switches{
         comp_->run();
 #ifdef __CUDACC__
         dummy.d2h_update();
+        dummy.set_on_host( true );
 #endif
+        printf("\n resutl: ===>%f\n", dummy(0,0,0));
         result = result && (dummy(0,0,0)==842);
 
         p = false;
+#ifdef __CUDACC__
+        dummy.set_on_host( false );
+#endif
         comp_->run();
         comp_->finalize();
+        printf("\n result: =>>> %f\n", dummy(0,0,0));
         result = result && (dummy(0,0,0)==5662);
 
         return result;

@@ -14,10 +14,10 @@
    limitations under the License.
 */
 #pragma once
-#include "common/defs.hpp"
-#include "stencil_composition/dimension_defs.hpp"
-#include "common/generic_metafunctions/logical_and.hpp"
-#include "common/generic_metafunctions/is_variadic_pack_of.hpp"
+#include "../common/defs.hpp"
+#include "dimension.hpp"
+#include "../common/generic_metafunctions/logical_and.hpp"
+#include "../common/generic_metafunctions/is_variadic_pack_of.hpp"
 
 namespace gridtools {
 
