@@ -153,8 +153,8 @@ namespace gridtools {
 
         /** @brief clone storage + contents to gpu */
         void d2h_update() {
-            // if (m_on_host)
-            //     return;
+            if (m_on_host)
+                return;
             // no need to copy result back, just switch the pointers
             m_meta_data.set_on_host();
             // clone the storage itself from device
@@ -165,20 +165,13 @@ namespace gridtools {
             (*m_storage).set_meta_data(m_meta_data.get_pointer_to_use());
             // clone storage contents from device
             (*m_storage).d2h_update();
-            // clone_to_device();
-            // // clone storage contents from device
-            // set_on_host();
-            // m_storage.get_cpu_p()->d2h_update();
-            // m_meta_data.set_on_host();
-            // set m_on_host to true
-            // make sure that all the pointers are on host
-            // set_on_host();
+            m_on_host = true;
         }
 
         /** @brief clone storage + contents from gpu */
         void h2d_update() {
-            // if (!m_on_host)
-            //     return;
+            if (!m_on_host)
+                return;
             // clone meta dato to device
             m_storage.set_on_host();
             m_meta_data.update_gpu();
@@ -187,7 +180,6 @@ namespace gridtools {
             (*m_storage).set_meta_data(m_meta_data.get_cpu_p());
             // clone storage contents to device
             (*m_storage).h2d_update();
-            // clone_to_device();
             // clone the storage itself to device
             m_storage.update_gpu();
             // set m_on_host to false
@@ -459,26 +451,17 @@ namespace gridtools {
 
         GT_FUNCTION
         void set_on_device() {
-            for (uint_t i = 0; i < field_dimensions; ++i)
-                (*m_storage).fields_view()[i].set_on_device();
-            m_storage.set_on_device();
-            m_meta_data.set_on_device();
             m_on_host=false;
         }
 
         GT_FUNCTION
-        void set_on_host(bool val_) {
-            // set m_on_host to false
-            m_on_host = val_;
+        void set_on_host() {
+            m_on_host=true;
         }
 
         GT_FUNCTION
-        void set_on_host() {
-            m_storage.set_on_host();
-            for (uint_t i = 0; i < field_dimensions; ++i)
-                (*m_storage).fields_view()[i].set_on_host();
-            m_meta_data.set_on_host();
-            m_on_host=true;
+        void set_externally_managed( bool val_ ) {
+            m_storage->set_externally_managed(val_);
         }
 
     }; // closing struct storage

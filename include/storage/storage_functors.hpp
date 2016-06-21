@@ -169,8 +169,7 @@ namespace gridtools {
         GT_FUNCTION void do_impl(pointer< StorageType > arg,
             typename boost::enable_if_c< is_storage< StorageType >::value >::type * = 0,
             typename boost::disable_if_c< is_no_storage_type_yet< StorageType >::value >::type * = 0) const {
-            arg->d2h_update();
-            arg->set_on_host( true );
+            arg->d2h_update( );
         }
 
         template < typename StorageType >

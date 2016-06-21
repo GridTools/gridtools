@@ -95,6 +95,7 @@ namespace gridtools {
             for (ushort_t i = 0; i < Size; ++i)
                 this->m_fields[i] = other.fields()[i];
         }
+
     };
 
     template < typename Storage, uint_t Size >
