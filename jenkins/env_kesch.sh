@@ -19,3 +19,4 @@ export BOOST_ROOT=/scratch/cosuna/software/boost_1_59_0/
 export BOOST_INCLUDE=/scratch/cosuna/software/boost_1_59_0/include/
 export CUDA_ARCH=sm_37
 
+export DEFAULT_QUEUE=debug

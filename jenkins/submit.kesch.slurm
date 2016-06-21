@@ -5,7 +5,7 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --ntasks-per-socket=1
 #SBATCH --output=test.out
-#SBATCH --partition=debug
+#SBATCH --partition=<QUEUE>
 #SBATCH --time=00:30:00
 #SBATCH --gres=gpu:1
 #SBATCH --distribution block:block

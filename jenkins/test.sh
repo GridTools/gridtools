@@ -1,9 +1,24 @@
 #!/bin/bash -f
 
+while getopts "q:" opt; do
+    case "$opt" in
+    q) QUEUE=$OPTARG
+        ;;
+    esac
+done
+
 JENKINSPATH=${0%/*}
 source ${JENKINSPATH}/tools.sh
 source ${JENKINSPATH}/machine_env.sh
 maxsleep=7200
+
+if [[ -z ${DEFAULT_QUEUE} ]]; then
+    exitError 3485 ${LINENO} "Default queue not set" 
+fi
+
+if [[ -z ${QUEUE} ]]; then
+    QUEUE=${DEFAULT_QUEUE}
+fi
 
 test -e test.out
 if [ $? -eq 0 ] ; then
@@ -25,6 +40,8 @@ elif [ $myhost == "daint" ]; then
 fi
 echo "replacing in ${slurm_script} command by ${cmd}"
 /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm_script}
+
+/bin/sed -i 's|<QUEUE>|'"${QUEUE}"'|g' ${slurm_script}
 
 bash ${JENKINSPATH}/monitorjobid `sbatch ${slurm_script} | gawk '{print $4}'` $maxsleep
 

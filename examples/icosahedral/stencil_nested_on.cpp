@@ -9,19 +9,29 @@ using namespace enumtype;
 
 namespace nested_test{
 
-    using backend_t = ::gridtools::backend<Host, Naive >;
+#ifdef __CUDACC__
+    using backend_t = ::gridtools::backend<Cuda, GRIDBACKEND, Block >;
+#else
+#ifdef BACKEND_BLOCK
+    using backend_t = ::gridtools::backend<Host, GRIDBACKEND, Block >;
+#else
+    using backend_t = ::gridtools::backend<Host, GRIDBACKEND, Naive >;
+#endif
+#endif
+
+
     using icosahedral_topology_t = ::gridtools::icosahedral_topology<backend_t>;
 
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
     struct nested_stencil {
-        typedef in_accessor<0, icosahedral_topology_t::cells, radius<2>> in_cells;
-        typedef in_accessor<1, icosahedral_topology_t::edges, radius<1>> in_edges;
-        typedef in_accessor<2, icosahedral_topology_t::edges, radius<1> > ipos;
-        typedef in_accessor<3, icosahedral_topology_t::edges, radius<1> > cpos;
-        typedef in_accessor<4, icosahedral_topology_t::edges, radius<1> > jpos;
-        typedef in_accessor<5, icosahedral_topology_t::edges, radius<1> > kpos;
+        typedef in_accessor<0, icosahedral_topology_t::cells, extent<2>> in_cells;
+        typedef in_accessor<1, icosahedral_topology_t::edges, extent<1>> in_edges;
+        typedef in_accessor<2, icosahedral_topology_t::edges, extent<1> > ipos;
+        typedef in_accessor<3, icosahedral_topology_t::edges, extent<1> > cpos;
+        typedef in_accessor<4, icosahedral_topology_t::edges, extent<1> > jpos;
+        typedef in_accessor<5, icosahedral_topology_t::edges, extent<1> > kpos;
         typedef inout_accessor<6, icosahedral_topology_t::edges> out_edges;
 
         typedef boost::mpl::vector<in_cells, in_edges, ipos, cpos, jpos, kpos, out_edges> arg_list;
@@ -67,8 +77,6 @@ namespace nested_test{
 using namespace nested_test;
 
 TEST(test_stencil_nested_on, run) {
-
-    typedef gridtools::layout_map<2,1,0> layout_t;
 
     using cell_storage_type = typename backend_t::storage_t<icosahedral_topology_t::cells, double>;
     using edge_storage_type = typename backend_t::storage_t<icosahedral_topology_t::edges, double>;
@@ -138,11 +146,7 @@ TEST(test_stencil_nested_on, run) {
     grid_.value_list[0] = 0;
     grid_.value_list[1] = d3-1;
 
-#ifdef __CUDACC__
-        gridtools::computation* copy =
-#else
-            boost::shared_ptr<gridtools::computation> copy =
-#endif
+            std::shared_ptr<gridtools::stencil> copy =
             gridtools::make_computation<backend_t >
             (
                 domain, grid_

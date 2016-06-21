@@ -105,6 +105,7 @@ namespace gridtools {
              */
             template < typename ESFs, typename CurrentMap, int Elements >
             struct update_map {
+                GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ESFs, is_esf_descriptor>::value), "Error");
                 typedef typename boost::mpl::at_c< ESFs, 0 >::type current_ESF;
                 typedef typename boost::mpl::pop_front< ESFs >::type rest_of_ESFs;
 

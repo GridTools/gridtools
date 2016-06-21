@@ -140,8 +140,6 @@ int main() {
     typedef boost::mpl::vector< o0, o1, o2, o3, o4, o5, o6, in0, in1, in2, in3 > placeholders;
 
     typedef compute_extents_of< init_map_of_extents< placeholders >::type >::for_mss< mss_t >::type final_map;
-    std::cout << "FINAL" << std::endl;
-    boost::mpl::for_each< final_map >(print_r());
 
     GRIDTOOLS_STATIC_ASSERT(
         (std::is_same< boost::mpl::at< final_map, o0 >::type, extent< -5, 11, -10, 10, -5, 13 > >::type::value),

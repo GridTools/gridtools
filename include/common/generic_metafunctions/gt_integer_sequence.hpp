@@ -55,7 +55,7 @@ namespace gridtools {
     template < typename UInt >
     struct apply_gt_integer_sequence {
         template < typename Container, template < UInt T > class Lambda, typename... ExtraTypes >
-        GT_FUNCTION static constexpr Container apply(ExtraTypes const &... args_) {
+        GT_FUNCTION static CONSTEXPR Container apply(ExtraTypes const &... args_) {
             GRIDTOOLS_STATIC_ASSERT((boost::is_same< Container, Container >::value),
                 "ERROR: apply_gt_integer_sequence only accepts a gt_integer_sequence type. Check the call");
             return Container(args_...);
@@ -90,8 +90,33 @@ namespace gridtools {
             template < UInt T > class Lambda,
             typename... ExtraTypes,
             typename boost::disable_if< typename is_aggregate< Container >::type, int >::type = 0 >
-        GT_FUNCTION static constexpr Container apply(ExtraTypes const &... args_) {
+        GT_FUNCTION static CONSTEXPR Container apply(ExtraTypes const &... args_) {
             return Container(Lambda< Indices >::apply(args_...)...);
+        }
+
+        /**
+           @brief applies a lambda function to the transformed argument pack.
+           The original argument pack provided by the user args_... is transformed by the apply method of the MetaFunctor
+           provided. The resulting argument pack is used to call the lambda.
+
+           The metafunctor applied is templated with an index which identifies the current argument. This allow
+           to define specialised behaviour of the functor for the specific arguments.
+
+           \tparam Lambda lambda function applied to the transformed argument pack
+           \tparam MetaFunctor functor that is transforming each of the arguments of the variadic pack
+           \tparam AdditionalArg additional argument passed to the lambda at the end of the pack
+           \tparam ExtraTypes variadic pack of arguments to be passed to the lambda
+         */
+        template <
+            typename ReturnType,
+            typename Lambda,
+            template < UInt T > class MetaFunctor,
+            typename AdditionalArg,
+            typename... ExtraTypes >
+        GT_FUNCTION static CONSTEXPR ReturnType apply_lambda(
+            Lambda lambda, AdditionalArg add_arg, ExtraTypes const &... args_)
+        {
+            return lambda(MetaFunctor< Indices >::apply(args_...)..., add_arg);
         }
 
         /**
@@ -101,7 +126,7 @@ namespace gridtools {
             template < UInt T > class Lambda,
             typename... ExtraTypes,
             typename boost::enable_if< typename is_aggregate< Container >::type, int >::type = 0 >
-        GT_FUNCTION static constexpr Container apply(ExtraTypes const &... args_) {
+        GT_FUNCTION static CONSTEXPR Container apply(ExtraTypes const &... args_) {
             return Container{Lambda< Indices >::apply(args_...)...};
         }
 
@@ -115,7 +140,7 @@ namespace gridtools {
           \param arg_ the input values, i.e. a variadic sequence.
         */
         template < typename Container, template < UInt T > class Lambda, typename... ExtraTypes >
-        GT_FUNCTION static constexpr Container apply_zipped(ExtraTypes const &... arg_) {
+        GT_FUNCTION static CONSTEXPR Container apply_zipped(ExtraTypes const &... arg_) {
             return Container(Lambda< Indices >::apply(arg_)...);
         }
 
@@ -138,7 +163,7 @@ namespace gridtools {
            @brief same as before, but with non-static lambda taking as first argument the index
         */
         template < typename Container, class Lambda, typename... ExtraTypes >
-        GT_FUNCTION static constexpr Container apply(Lambda lambda, ExtraTypes &... args_) {
+        GT_FUNCTION static CONSTEXPR Container apply(Lambda lambda, ExtraTypes &... args_) {
             return Container(lambda(Indices, args_...)...);
         }
     };

@@ -82,7 +82,7 @@ TEST(cache_metafunctions, extract_extents_for_caches)
         block_size<32,4>,
         block_size<32,4>,
         gridtools::grid<axis>,
-        false,
+        boost::mpl::false_,
         notype
     > iterate_domain_arguments_t;
 
@@ -111,7 +111,7 @@ TEST(cache_metafunctions, get_cache_storage_tuple)
         extent<0,0,0,0>,
         enclosing_extent<boost::mpl::_1, boost::mpl::_2>
     >::type max_extent_t;
-
+  
     typedef gridtools::interval<gridtools::level<0,-2>, gridtools::level<1,1> > axis;
 
     typedef iterate_domain_arguments< backend_ids< Cuda, GRIDBACKEND, Block >,
@@ -123,7 +123,7 @@ TEST(cache_metafunctions, get_cache_storage_tuple)
         block_size<32,4>,
         block_size<32,4>,
         gridtools::grid<axis>,
-        false,
+        boost::mpl::false_,
         notype
     > iterate_domain_arguments_t;
 

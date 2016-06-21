@@ -203,4 +203,16 @@ namespace gridtools {
     struct is_meta_storage< meta_storage_tmp< MetaStorageBase, TileI, TileJ > > : boost::mpl::true_ {};
 #endif
 
+    template < typename T >
+    struct is_meta_storage_tmp : boost::mpl::false_{};
+
+#ifdef CXX11_ENABLED
+    template < typename MetaStorageBase, typename... Tiles >
+    struct is_meta_storage_tmp< meta_storage_tmp< MetaStorageBase, Tiles... > > : boost::mpl::true_ {};
+#else
+    template < typename MetaStorageBase, typename TileI, typename TileJ >
+    struct is_meta_storage_tmp< meta_storage_tmp< MetaStorageBase, TileI, TileJ > > : boost::mpl::true_ {};
+#endif
+
+
 } // namespace gridtools

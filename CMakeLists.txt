@@ -147,7 +147,7 @@ set ( exe_LIBS ${exe_LIBS} ${Boost_LIBRARIES} )
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     set(exe_LIBS  ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
 else()
-    set(exe_LIBS ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
+    set(exe_LIBS -lpthread ${exe_LIBS} ${GTEST_BOTH_LIBRARIES})
 endif()
 
 if(OPENMP_FOUND)
