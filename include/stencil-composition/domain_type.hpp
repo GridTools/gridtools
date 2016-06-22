@@ -219,6 +219,16 @@ namespace gridtools {
                 "Computations with no storages are not supported. "
                 "Add at least one storage to the domain_type "
                 "definition.");
+
+            typedef boost::fusion::filter_view< arg_list, is_not_tmp_storage< boost::mpl::_1 > > view_type;
+
+            GRIDTOOLS_STATIC_ASSERT((boost::fusion::result_of::size< view_type >::type::value ==
+                                     sizeof...(StorageArgs)),
+                "The number of arguments specified when constructing the domain_type is not the same as the number of "
+                "placeholders "
+                "to non-temporary storages. Double check the temporary flag in the meta_storage types or add the necessary storages.");
+
+
             // NOTE: the following assertion assumes there StorageArgs has length at leas 1
             GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair< StorageArgs >::value...), "wrong type");
             assign_pointers(m_metadata_set, args...);
@@ -277,7 +287,7 @@ namespace gridtools {
                                         boost::mpl::size< RealStorage >::type::value,
                 "The number of arguments specified when constructing the domain_type is not the same as the number of "
                 "placeholders "
-                "to non-temporary storages. Double check the temporary flag in the meta_storage types.");
+                "to non-temporary storages. Double check the temporary flag in the meta_storage types or add the necessary storages.");
 
             // below few metafunctions only to protect the user from mismatched storages
             typedef typename boost::mpl::fold< arg_list_mpl,
