@@ -699,10 +699,12 @@ namespace gridtools {
         }
 
         /**
-          * function to extract the 4 indexes of all neighbours of current position, when the neighbours are not in the
-          * same location as the location type of the iteration space.
-          * @return an array (over neighbours) of an array (indices of position).
-          *     Dimension of the outer array depends on the number of neighbours of the location type
+          * function to extract the absolute index of all neighbours of current position. This is used to find position of
+          * neighbours when the neighbours are not in the
+          * same location as the location type of the iteration space (otherwise connectivity table providing 4D arrays position
+          * offsets is recommended, since they are compute at compile time)
+          * @return an array (over neighbours) of unsinged integers (indices of position).
+          *     Dimension of the array depends on the number of neighbours of the location type
           * @i indexes of current position in the iteration space
           */
         template < typename Location1, typename Location2, typename Color >
