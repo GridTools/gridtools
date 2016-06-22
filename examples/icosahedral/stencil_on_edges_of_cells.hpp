@@ -35,7 +35,7 @@ namespace soeov {
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
     typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
-    template<uint_t Color>
+    template < uint_t Color >
     struct test_on_edges_functor {
         typedef in_accessor< 0, icosahedral_topology_t::cells, extent< 1 > > cell_area;
         typedef inout_accessor< 1, icosahedral_topology_t::cells, 5 > weight_edges;
@@ -118,7 +118,7 @@ namespace soeov {
         weight_edges.d2h_update();
 #endif
 
-        //compute reference values
+        // compute reference values
         unstructured_grid ugrid(d1, d2, d3);
         for (uint_t i = halo_nc; i < d1 - halo_nc; ++i) {
             for (uint_t c = 0; c < icosahedral_topology_t::edges::n_colors::value; ++c) {

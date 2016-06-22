@@ -4,21 +4,21 @@
 using namespace gridtools;
 
 TEST(storage_info, test_component) {
-    typedef layout_map<0,1,2> layout;
+    typedef layout_map< 0, 1, 2 > layout;
 #ifdef CXX11_ENABLED
-    typedef storage_traits<enumtype::Host>::meta_storage_type<0, layout> meta_data_t;
-    typedef storage_traits<enumtype::Host>::storage_type<float, meta_data_t> storage_t;
+    typedef storage_traits< enumtype::Host >::meta_storage_type< 0, layout > meta_data_t;
+    typedef storage_traits< enumtype::Host >::storage_type< float, meta_data_t > storage_t;
 #else
-    typedef storage_traits<enumtype::Host>::meta_storage_type<0, layout>::type meta_data_t;
-    typedef storage_traits<enumtype::Host>::storage_type<float, meta_data_t>::type storage_t;
+    typedef storage_traits< enumtype::Host >::meta_storage_type< 0, layout >::type meta_data_t;
+    typedef storage_traits< enumtype::Host >::storage_type< float, meta_data_t >::type storage_t;
 #endif
-    meta_data_t meta_obj(10,10,10);
+    meta_data_t meta_obj(10, 10, 10);
     storage_t st_obj(meta_obj, "in");
 }
 
 TEST(storage_info, test_equality) {
-    typedef gridtools::layout_map<0,1,2> layout_t1;
-    typedef gridtools::meta_storage_base<0,layout_t1,false> meta_t1;
+    typedef gridtools::layout_map< 0, 1, 2 > layout_t1;
+    typedef gridtools::meta_storage_base< 0, layout_t1, false > meta_t1;
     meta_t1 m0(11, 12, 13);
     meta_t1 m1(11, 12, 13);
     meta_t1 m2(12, 123, 13);
@@ -32,10 +32,10 @@ TEST(storage_info, test_interface) {
     // unaligned meta_storage test cases
     typedef gridtools::layout_map<0,1,2,3> layout_t;
     constexpr gridtools::meta_storage_base<0,layout_t,false> meta_{11, 12, 13, 14};
-    GRIDTOOLS_STATIC_ASSERT((meta_.dim<0>()==11), "error");
-    GRIDTOOLS_STATIC_ASSERT((meta_.dim<1>()==12), "error");
-    GRIDTOOLS_STATIC_ASSERT((meta_.dim<2>()==13), "error");
-    GRIDTOOLS_STATIC_ASSERT((meta_.dim<3>()==14), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_.dim< 0 >() == 11), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_.dim< 1 >() == 12), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_.dim< 2 >() == 13), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_.dim< 3 >() == 14), "error");
 
     GRIDTOOLS_STATIC_ASSERT((meta_.strides(3)==14), "error");
     GRIDTOOLS_STATIC_ASSERT((meta_.strides(2)==14*13), "error");
@@ -117,9 +117,9 @@ TEST(storage_info, test_interface) {
 #else
     typedef gridtools::layout_map<0,1,2> layout_t;
     gridtools::meta_storage_base<0,layout_t,false> meta_(11, 12, 13);
-    ASSERT_TRUE((meta_.dim<0>()==11));
-    ASSERT_TRUE((meta_.dim<1>()==12));
-    ASSERT_TRUE((meta_.dim<2>()==13));
+    ASSERT_TRUE((meta_.dim< 0 >() == 11));
+    ASSERT_TRUE((meta_.dim< 1 >() == 12));
+    ASSERT_TRUE((meta_.dim< 2 >() == 13));
 
     ASSERT_TRUE((meta_.strides(2)==13));
     ASSERT_TRUE((meta_.strides(1)==13*12));

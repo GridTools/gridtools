@@ -14,7 +14,7 @@ namespace gridtools {
     namespace _impl {
         template < ushort_t Idx, typename VariadicArgs, typename First, typename Super >
         struct return_helper {
-            GT_FUNCTION constexpr typename VariadicArgs::template get_elem< Idx >::type operator() (
+            GT_FUNCTION constexpr typename VariadicArgs::template get_elem< Idx >::type operator()(
                 const First f, const Super x) const {
                 return x.template get< Idx - 1 >();
             }

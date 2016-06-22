@@ -64,7 +64,7 @@ namespace gridtools {
      */
     template < typename ValueType, typename DstLocationType, typename ReductionFunction, typename... MapFunction >
     struct on_neighbors {
-        GRIDTOOLS_STATIC_ASSERT((is_location_type<DstLocationType>::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_location_type< DstLocationType >::value), "Error");
 
         using maps_t = tuple< MapFunction... >;
         using reduction_function = ReductionFunction;
@@ -94,7 +94,7 @@ namespace gridtools {
         typename ReductionFunction,
         typename... MapFunction >
     class on_neighbors_impl {
-        GRIDTOOLS_STATIC_ASSERT((is_location_type<DstLocationType>::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_location_type< DstLocationType >::value), "Error");
 
         using maps_t = tuple< MapFunction... >;
         using reduction_function = ReductionFunction;
@@ -112,7 +112,8 @@ namespace gridtools {
             : m_reduction(l), m_value(v), m_maps(a...) {}
 
         GT_FUNCTION
-        constexpr on_neighbors_impl(on_neighbors<ValueType, DstLocationType, ReductionFunction, MapFunction...> const &on_neighbors)
+        constexpr on_neighbors_impl(
+            on_neighbors< ValueType, DstLocationType, ReductionFunction, MapFunction... > const &on_neighbors)
             : m_reduction(on_neighbors.m_reduction), m_value(on_neighbors.m_value), m_maps(on_neighbors.m_maps) {}
 
         GT_FUNCTION

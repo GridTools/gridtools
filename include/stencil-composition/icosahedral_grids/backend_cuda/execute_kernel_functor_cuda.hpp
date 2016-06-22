@@ -306,7 +306,7 @@ namespace gridtools {
                     typename RunFunctorArguments::execution_type_t,
                     typename RunFunctorArguments::is_reduction_t,
                     typename RunFunctorArguments::reduction_data_t,
-                    typename RunFunctorArguments::color_t> run_functor_arguments_cuda_t;
+                    typename RunFunctorArguments::color_t > run_functor_arguments_cuda_t;
 #endif
 
 #ifdef VERBOSE

@@ -15,16 +15,15 @@ namespace gridtools {
     struct extract_esf_functor {
         template < typename Esf >
         struct apply {
-            GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), "Error");
 
             typedef typename Esf::esf_function type;
         };
     };
 
-    template<typename Esf>
-    struct esf_arg_list
-    {
-        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Error");
+    template < typename Esf >
+    struct esf_arg_list {
+        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), "Error");
         typedef typename Esf::esf_function::arg_list type;
     };
 }

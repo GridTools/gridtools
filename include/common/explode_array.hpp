@@ -83,7 +83,6 @@ namespace gridtools {
         GT_FUNCTION static R expand(Inj &inj, tuple_t &&a, Us &&... args) {
             return expander_inj< K - 1, R, F, Inj, tuple_t >::expand(inj, a, a.template get< K - 1 >(), args...);
         }
-
     };
 
     template < class R, class F, typename Inj, typename... TupleArgs >
@@ -98,7 +97,6 @@ namespace gridtools {
         GT_FUNCTION static R expand(Inj &inj, tuple_t &&, Us... args) {
             return F::apply(inj, args...);
         }
-
     };
 
     template < typename ReturnType, typename Fn, typename Array >
@@ -118,7 +116,6 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_array< Array >::value || is_tuple< Array >::value), "Error: Wrong Type");
         return expander_inj< Array::n_dimensions, ReturnType, Fn, Inj, const Array & >::expand(inj, a);
     }
-
 }
 
 #endif

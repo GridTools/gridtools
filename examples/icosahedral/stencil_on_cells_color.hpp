@@ -1,8 +1,8 @@
 /*
  * This example demonstrates how to code operators that are specialized for
  * one color. Like that we can implement different equations for downward
- * and upward triangles. 
- * The example is making use of the syntax make_cesf 
+ * and upward triangles.
+ * The example is making use of the syntax make_cesf
  *
  */
 
@@ -33,7 +33,7 @@ namespace socc {
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
     typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
-    template<uint_t Color>
+    template < uint_t Color >
     struct on_cells_color_functor {
         typedef in_accessor< 0, icosahedral_topology_t::cells, extent< 1 > > in;
         typedef inout_accessor< 1, icosahedral_topology_t::cells > out;
@@ -44,7 +44,7 @@ namespace socc {
             auto mf = [](const double _in, const double _res) -> double { return -_in + _res; };
             auto sf = [](const double _in, const double _res) -> double { return _in + _res; };
 
-            if(Color==downward_triangle)
+            if (Color == downward_triangle)
                 eval(out()) = eval(on_cells(mf, 0.0, in()));
             else
                 eval(out()) = eval(on_cells(sf, 0.0, in()));
@@ -99,10 +99,8 @@ namespace socc {
             grid_,
             gridtools::make_mss // mss_descriptor
             (execute< forward >(),
-                gridtools::make_esf< on_cells_color_functor,
-                    icosahedral_topology_t,
-                    icosahedral_topology_t::cells >(p_in_cells(), p_out_cells())
-                ));
+                gridtools::make_esf< on_cells_color_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
+                    p_in_cells(), p_out_cells())));
 
         stencil_->ready();
         stencil_->steady();

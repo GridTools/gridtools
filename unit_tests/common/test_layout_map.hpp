@@ -5,8 +5,7 @@
 #include "common/layout_map.hpp"
 
 GT_FUNCTION
-void test_layout_accessors(bool* result)
-{
+void test_layout_accessors(bool *result) {
     using namespace gridtools;
 
     *result = true;
@@ -51,7 +50,6 @@ void test_layout_accessors(bool* result)
         GRIDTOOLS_STATIC_ASSERT((static_short< lm[3] >::value == 5), "Error");
     }
 #endif
-
 
     *result &= ((layout_map< 2 >::at< 0 >() == 2));
     *result &= ((layout_map< 1, 3 >::at< 0 >() == 1));
@@ -129,76 +127,73 @@ void test_layout_accessors(bool* result)
     *result &= ((gridtools::layout_map< 2, 0, 1 >::find< 0 >(a, b, c) == b));
     *result &= ((gridtools::layout_map< 2, 0, 1 >::find< 1 >(a, b, c) == c));
     *result &= ((gridtools::layout_map< 2, 0, 1 >::find< 2 >(a, b, c) == a));
-
 }
 
 GT_FUNCTION
-void test_layout_find_val(bool* result)
-{
+void test_layout_find_val(bool *result) {
     using namespace gridtools;
 
     *result = true;
 
-    ////// TESTING FIND_VAL
-
-    #ifdef CXX11_ENABLED
-        GRIDTOOLS_STATIC_ASSERT((gridtools::layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(7, 9, 11) == 9), "Error");
-        GRIDTOOLS_STATIC_ASSERT((gridtools::layout_map< 2, 0, 1 >::find_val< 1, int, 666 >(7, 9, 11) == 11), "Error");
-        GRIDTOOLS_STATIC_ASSERT((gridtools::layout_map< 2, 0, 1 >::find_val< 2, int, 666 >(7, 9, 11) == 7), "Error");
-        GRIDTOOLS_STATIC_ASSERT((gridtools::layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(7, 9, 11) == 666), "Error");
-
-        GRIDTOOLS_STATIC_ASSERT((static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(
-                                        offset_tuple< 3, 3 >(7, 9, 11)) >::value == 9),
-            "Error");
-
-        GRIDTOOLS_STATIC_ASSERT((static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 1, int, 666 >(
-                                        offset_tuple< 3, 3 >(7, 9, 11)) >::value == 11),
-            "Error");
-
-        GRIDTOOLS_STATIC_ASSERT((static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 2, int, 666 >(
-                                        offset_tuple< 3, 3 >(7, 9, 11)) >::value == 7),
-            "Error");
-
-        GRIDTOOLS_STATIC_ASSERT((static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(
-                                        offset_tuple< 3, 3 >(7, 9, 11)) >::value == 666),
-            "Error");
-
-    #ifndef __CUDACC__
-        GRIDTOOLS_STATIC_ASSERT(
-            (static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(array< uint_t, 3 >{7, 9, 11}) >::value ==
-                9),
-            "Error");
-        GRIDTOOLS_STATIC_ASSERT(
-            (static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 1, int, 666 >(array< uint_t, 3 >{7, 9, 11}) >::value ==
-                11),
-            "Error");
-        GRIDTOOLS_STATIC_ASSERT(
-            (static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 2, int, 666 >(array< uint_t, 3 >{7, 9, 11}) >::value ==
-                7),
-            "Error");
-        GRIDTOOLS_STATIC_ASSERT(
-            (static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(array< uint_t, 3 >{7, 9, 11}) >::value ==
-                666),
-            "Error");
-    #endif
-
-    #endif
-
-        *result &= ((layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(7, 9, 11) == 9));
-        *result &= ((layout_map< 2, 0, 1 >::find_val< 1, int, 666 >(7, 9, 11) == 11));
-        *result &= ((layout_map< 2, 0, 1 >::find_val< 2, int, 666 >(7, 9, 11) == 7));
-        *result &= ((layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(7, 9, 11) == 666));
-        *result &= ((layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(offset_tuple< 3, 3 >(7, 9, 11)) == 9));
-        *result &= ((layout_map< 2, 0, 1 >::find_val< 1, int, 666 >(offset_tuple< 3, 3 >(7, 9, 11)) == 11));
-        *result &= ((layout_map< 2, 0, 1 >::find_val< 2, int, 666 >(offset_tuple< 3, 3 >(7, 9, 11)) == 7));
+////// TESTING FIND_VAL
 
 #ifdef CXX11_ENABLED
-        // TODO: the find_val method does not return default value with cxx03
-        *result &= ((layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(offset_tuple< 3, 3 >(7, 9, 11)) == 666));
-        *result &= ((layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(array< uint_t, 3 >{7, 9, 11}) == 9));
-        *result &= ((layout_map< 2, 0, 1 >::find_val< 1, int, 666 >(array< uint_t, 3 >{7, 9, 11}) == 11));
-        *result &= ((layout_map< 2, 0, 1 >::find_val< 2, int, 666 >(array< uint_t, 3 >{7, 9, 11}) == 7));
-        *result &= ((layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(array< uint_t, 3 >{7, 9, 11}) == 666));
+    GRIDTOOLS_STATIC_ASSERT((gridtools::layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(7, 9, 11) == 9), "Error");
+    GRIDTOOLS_STATIC_ASSERT((gridtools::layout_map< 2, 0, 1 >::find_val< 1, int, 666 >(7, 9, 11) == 11), "Error");
+    GRIDTOOLS_STATIC_ASSERT((gridtools::layout_map< 2, 0, 1 >::find_val< 2, int, 666 >(7, 9, 11) == 7), "Error");
+    GRIDTOOLS_STATIC_ASSERT((gridtools::layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(7, 9, 11) == 666), "Error");
+
+    GRIDTOOLS_STATIC_ASSERT((static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(
+                                    offset_tuple< 3, 3 >(7, 9, 11)) >::value == 9),
+        "Error");
+
+    GRIDTOOLS_STATIC_ASSERT((static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 1, int, 666 >(
+                                    offset_tuple< 3, 3 >(7, 9, 11)) >::value == 11),
+        "Error");
+
+    GRIDTOOLS_STATIC_ASSERT((static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 2, int, 666 >(
+                                    offset_tuple< 3, 3 >(7, 9, 11)) >::value == 7),
+        "Error");
+
+    GRIDTOOLS_STATIC_ASSERT((static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(
+                                    offset_tuple< 3, 3 >(7, 9, 11)) >::value == 666),
+        "Error");
+
+#ifndef __CUDACC__
+    GRIDTOOLS_STATIC_ASSERT(
+        (static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(array< uint_t, 3 >{7, 9, 11}) >::value ==
+            9),
+        "Error");
+    GRIDTOOLS_STATIC_ASSERT(
+        (static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 1, int, 666 >(array< uint_t, 3 >{7, 9, 11}) >::value ==
+            11),
+        "Error");
+    GRIDTOOLS_STATIC_ASSERT(
+        (static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 2, int, 666 >(array< uint_t, 3 >{7, 9, 11}) >::value ==
+            7),
+        "Error");
+    GRIDTOOLS_STATIC_ASSERT(
+        (static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(array< uint_t, 3 >{7, 9, 11}) >::value ==
+            666),
+        "Error");
 #endif
 
+#endif
+
+    *result &= ((layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(7, 9, 11) == 9));
+    *result &= ((layout_map< 2, 0, 1 >::find_val< 1, int, 666 >(7, 9, 11) == 11));
+    *result &= ((layout_map< 2, 0, 1 >::find_val< 2, int, 666 >(7, 9, 11) == 7));
+    *result &= ((layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(7, 9, 11) == 666));
+    *result &= ((layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(offset_tuple< 3, 3 >(7, 9, 11)) == 9));
+    *result &= ((layout_map< 2, 0, 1 >::find_val< 1, int, 666 >(offset_tuple< 3, 3 >(7, 9, 11)) == 11));
+    *result &= ((layout_map< 2, 0, 1 >::find_val< 2, int, 666 >(offset_tuple< 3, 3 >(7, 9, 11)) == 7));
+
+#ifdef CXX11_ENABLED
+    // TODO: the find_val method does not return default value with cxx03
+    *result &= ((layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(offset_tuple< 3, 3 >(7, 9, 11)) == 666));
+    *result &= ((layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(array< uint_t, 3 >{7, 9, 11}) == 9));
+    *result &= ((layout_map< 2, 0, 1 >::find_val< 1, int, 666 >(array< uint_t, 3 >{7, 9, 11}) == 11));
+    *result &= ((layout_map< 2, 0, 1 >::find_val< 2, int, 666 >(array< uint_t, 3 >{7, 9, 11}) == 7));
+    *result &= ((layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(array< uint_t, 3 >{7, 9, 11}) == 666));
+#endif
 }

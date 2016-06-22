@@ -40,7 +40,7 @@ namespace smf {
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
     typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
-    template<uint_t Color>
+    template < uint_t Color >
     struct test_on_edges_functor {
         typedef in_accessor< 0, icosahedral_topology_t::cells, extent< 1 > > cell_area;
         typedef inout_accessor< 1, icosahedral_topology_t::cells, 5 > weight_edges;
@@ -51,12 +51,13 @@ namespace smf {
             using edge_of_cell_dim = dimension< 5 >;
             edge_of_cell_dim::Index edge;
 
-            //retrieve the array of neighbor offsets. This is an array with length 3 (number of neighbors).
+            // retrieve the array of neighbor offsets. This is an array with length 3 (number of neighbors).
             constexpr auto neighbors_offsets = connectivity< cells, cells, Color >::offsets();
-            ushort_t e=0;
-            // loop over all neighbours. Each iterator (neighbor_offset) is a position offset, i.e. an array with length 4
+            ushort_t e = 0;
+            // loop over all neighbours. Each iterator (neighbor_offset) is a position offset, i.e. an array with length
+            // 4
             for (auto neighbor_offset : neighbors_offsets) {
-                eval(weight_edges(edge+e)) = eval(cell_area(neighbor_offset)) / eval(cell_area());
+                eval(weight_edges(edge + e)) = eval(cell_area(neighbor_offset)) / eval(cell_area());
                 e++;
             }
         }
@@ -82,7 +83,7 @@ namespace smf {
         auto weight_edges_meta = meta_storage_extender()(cell_area.meta_data(), 3);
         using edges_of_cells_storage_type =
             typename backend_t::storage_type< double, decltype(weight_edges_meta) >::type;
-        //allocate the weight on edges of cells and the reference values
+        // allocate the weight on edges of cells and the reference values
         edges_of_cells_storage_type weight_edges(weight_edges_meta, "edges_of_cell");
         edges_of_cells_storage_type ref_weights(weight_edges_meta, "ref_edges_of_cell");
 
@@ -97,7 +98,7 @@ namespace smf {
                 }
             }
         }
-        //default initialize output and reference.
+        // default initialize output and reference.
         weight_edges.initialize(0.0);
         ref_weights.initialize(0.0);
 
@@ -140,12 +141,11 @@ namespace smf {
                         auto neighbours =
                             ugrid.neighbours_of< icosahedral_topology_t::cells, icosahedral_topology_t::cells >(
                                 {i, c, j, k});
-                        ushort_t e=0;
+                        ushort_t e = 0;
                         for (auto iter = neighbours.begin(); iter != neighbours.end(); ++iter) {
-                            ref_weights(i, c, j, k, e) = cell_area(*iter) / cell_area(i,c,j,k);
+                            ref_weights(i, c, j, k, e) = cell_area(*iter) / cell_area(i, c, j, k);
                             ++e;
                         }
-
                     }
                 }
             }

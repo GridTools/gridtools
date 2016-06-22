@@ -28,23 +28,21 @@ namespace gridtools {
          * @tparam EsfSequence sequence of esfs
          * @tparam Color color to be matched by the ESFs
          */
-        template<typename EsfSequence, typename Color>
-        struct esf_sequence_contains_color
-        {
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value), "Error");
-            GRIDTOOLS_STATIC_ASSERT((is_color_type<Color>::value), "Error");
+        template < typename EsfSequence, typename Color >
+        struct esf_sequence_contains_color {
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< EsfSequence, is_esf_descriptor >::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((is_color_type< Color >::value), "Error");
 
-            template<typename Esf>
-            struct esf_has_color_{
-                GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Error");
-                typedef static_bool<
-                    (boost::is_same< typename Esf::color_t::color_t, typename Color::color_t >::value ||
-                boost::is_same<typename Esf::color_t, nocolor>::value) > type;
+            template < typename Esf >
+            struct esf_has_color_ {
+                GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), "Error");
+                typedef static_bool< (
+                    boost::is_same< typename Esf::color_t::color_t, typename Color::color_t >::value ||
+                    boost::is_same< typename Esf::color_t, nocolor >::value) > type;
             };
 
-            typedef typename is_there_in_sequence_if<EsfSequence, esf_has_color_<boost::mpl::_> >::type type;
+            typedef typename is_there_in_sequence_if< EsfSequence, esf_has_color_< boost::mpl::_ > >::type type;
         };
-
     }
 
     template < typename Esf1, typename Esf2 >
@@ -60,31 +58,29 @@ namespace gridtools {
     struct extract_esf_functor {
         template < typename Esf >
         struct apply {
-            GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), "Error");
 
-            typedef typename Esf::template esf_function<0> type;
+            typedef typename Esf::template esf_function< 0 > type;
         };
     };
 
-    template<typename Esf>
-    struct esf_arg_list
-    {
-        template<typename Set, typename Item>
-        struct insert_arglist
-        {
-            typedef typename boost::mpl::insert<Set, typename Esf::template esf_function<Item::value>::arg_list >::type type;
+    template < typename Esf >
+    struct esf_arg_list {
+        template < typename Set, typename Item >
+        struct insert_arglist {
+            typedef typename boost::mpl::insert< Set,
+                typename Esf::template esf_function< Item::value >::arg_list >::type type;
         };
 
-        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), "Error");
 
-        typedef typename boost::mpl::fold<
-            boost::mpl::range_c<uint_t, 0, Esf::location_type::n_colors::value>,
+        typedef typename boost::mpl::fold< boost::mpl::range_c< uint_t, 0, Esf::location_type::n_colors::value >,
             boost::mpl::set0<>,
-            insert_arglist<boost::mpl::_1, boost::mpl::_2>
-        >::type checkset;
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<checkset>::value==1), "Multiple Color specializations of the same ESF must contain the same arg list");
+            insert_arglist< boost::mpl::_1, boost::mpl::_2 > >::type checkset;
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< checkset >::value == 1),
+            "Multiple Color specializations of the same ESF must contain the same arg list");
 
-        typedef typename Esf::template esf_function<0>::arg_list type;
+        typedef typename Esf::template esf_function< 0 >::arg_list type;
     };
 
 } // namespace gridtools

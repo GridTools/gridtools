@@ -32,22 +32,25 @@ namespace gridtools {
 
     template < typename IterateDomain, typename EsfArguments, typename EsfLocationType, typename IntervalType >
     struct color_functor {
-        GRIDTOOLS_STATIC_ASSERT((is_location_type<EsfLocationType>::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_location_type< EsfLocationType >::value), "Error");
+
       private:
-        IterateDomain & m_iterate_domain;
+        IterateDomain &m_iterate_domain;
 
       public:
         GT_FUNCTION
-        color_functor(IterateDomain & iterate_domain) : m_iterate_domain(iterate_domain) {}
+        color_functor(IterateDomain &iterate_domain) : m_iterate_domain(iterate_domain) {}
 
         template < typename Index >
         GT_FUNCTION void operator()(Index const &) {
 
             typedef typename get_iterate_domain_remapper< IterateDomain,
-                typename EsfArguments::esf_args_map_t, EsfLocationType, Index::value >::type iterate_domain_remapper_t;
+                typename EsfArguments::esf_args_map_t,
+                EsfLocationType,
+                Index::value >::type iterate_domain_remapper_t;
 
             typedef typename EsfArguments::esf_t esf_t;
-            typedef typename esf_t::template esf_function<Index::value> functor_t;
+            typedef typename esf_t::template esf_function< Index::value > functor_t;
 
             iterate_domain_remapper_t iterate_domain_remapper(m_iterate_domain);
 
@@ -109,7 +112,7 @@ namespace gridtools {
             // is not a multiple of the block size
             if (m_iterate_domain.template is_thread_in_domain< extent_t >()) {
                 // loop over colors excuting user funtor for each color
-                color_loop< IntervalType, EsfArguments>();
+                color_loop< IntervalType, EsfArguments >();
             }
 
             // synchronize threads if not independent esf
@@ -120,7 +123,7 @@ namespace gridtools {
       private:
         // specialization of the loop over colors when the user speficied the ESF with a specific color
         // Only that color gets executed
-        template < typename IntervalType, typename EsfArguments>
+        template < typename IntervalType, typename EsfArguments >
         __device__ void color_loop(
             typename boost::enable_if< typename esf_has_color< typename EsfArguments::esf_t >::type, int >::type =
                 0) const {
@@ -129,12 +132,14 @@ namespace gridtools {
             typedef typename esf_get_location_type< typename EsfArguments::esf_t >::type location_type_t;
 
             typedef typename get_iterate_domain_remapper< iterate_domain_t,
-                typename EsfArguments::esf_args_map_t, location_type_t, color_t::value >::type iterate_domain_remapper_t;
+                typename EsfArguments::esf_args_map_t,
+                location_type_t,
+                color_t::value >::type iterate_domain_remapper_t;
 
             iterate_domain_remapper_t iterate_domain_remapper(m_iterate_domain);
 
             typedef typename EsfArguments::esf_t esf_t;
-            typedef typename esf_t::template esf_function<color_t::value> functor_t;
+            typedef typename esf_t::template esf_function< color_t::value > functor_t;
 
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
 
@@ -161,9 +166,8 @@ namespace gridtools {
 
             typedef typename esf_color_range< typename EsfArguments::esf_t >::type color_range_t;
 
-            boost::mpl::for_each <
-                color_range_t>(color_functor< iterate_domain_t, EsfArguments, location_type_t, IntervalType >(
-                    m_iterate_domain));
+            boost::mpl::for_each< color_range_t >(
+                color_functor< iterate_domain_t, EsfArguments, location_type_t, IntervalType >(m_iterate_domain));
 
             using neg_n_colors_t = static_uint< -location_type_t::n_colors::value >;
             (m_iterate_domain)

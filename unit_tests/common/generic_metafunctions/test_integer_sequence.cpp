@@ -36,16 +36,15 @@ struct transform {
     GT_FUNCTION
     constexpr transform() {}
 
-    template <typename ...  Args >
-    GT_FUNCTION constexpr static int apply(Args... args)
-    {
-            return get_from_variadic_pack< Idx >::apply(args...) - Idx;
+    template < typename... Args >
+    GT_FUNCTION constexpr static int apply(Args... args) {
+        return get_from_variadic_pack< Idx >::apply(args...) - Idx;
     }
 };
 
 struct lambda {
     constexpr int operator()(const int i, const int j, const int k, const int l, const int add) {
-                return add*(i + j + k + l);
+        return add * (i + j + k + l);
     }
 };
 
@@ -57,7 +56,7 @@ TEST(integer_sequence, apply_lambda) {
 
     constexpr int result = seq::template apply_lambda< int, decltype(gather), transform >(gather, 17, 4, 6, 34, 5);
 
-    GRIDTOOLS_STATIC_ASSERT((static_int<result>::value == 731), "ERROR");
+    GRIDTOOLS_STATIC_ASSERT((static_int< result >::value == 731), "ERROR");
 
     ASSERT_TRUE(true);
 }

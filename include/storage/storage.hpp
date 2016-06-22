@@ -142,8 +142,8 @@ namespace gridtools {
             // clone storage contents from device
             (*m_storage).d2h_update();
             // set m_on_host to true
-                m_on_host = true;
-            }
+            m_on_host = true;
+        }
 
         /** @brief clone storage + contents from gpu */
         void h2d_update() {
@@ -161,10 +161,10 @@ namespace gridtools {
                 m_on_host = false;
             }
 
-        /* Following method are just forwarding methods to the base_storage. */
-        storage_info_type const &meta_data() const {
-            assert(m_on_host);
-            return *m_meta_data;
+            /* Following method are just forwarding methods to the base_storage. */
+            storage_info_type const &meta_data() const {
+                assert(m_on_host);
+                return *m_meta_data;
         }
 
         pointer< storage_info_type const > get_meta_data_pointer() const {

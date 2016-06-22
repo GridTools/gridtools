@@ -22,5 +22,4 @@ namespace gridtools {
             return x || y;
         }
     };
-
 }

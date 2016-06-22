@@ -25,7 +25,7 @@ namespace soneoc {
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
     typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
-    template<uint_t Color>
+    template < uint_t Color >
     struct test_on_edges_functor {
         typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 1 > > in;
         typedef inout_accessor< 1, icosahedral_topology_t::cells > out;
@@ -104,7 +104,6 @@ namespace soneoc {
         gridtools::grid< axis, icosahedral_topology_t > grid_(icosahedral_grid, di, dj);
         grid_.value_list[0] = 0;
         grid_.value_list[1] = d3 - 1;
-
 
         auto stencil_edges = gridtools::make_computation< backend_t >(
             domain_edges,

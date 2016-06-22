@@ -32,16 +32,17 @@ namespace soem {
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
     typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
-    template<uint_t Color>
+    template < uint_t Color >
     struct test_on_edges_functor {
         typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 1 > > in1;
         typedef in_accessor< 1, icosahedral_topology_t::edges, extent< 1 > > in2;
         typedef inout_accessor< 2, icosahedral_topology_t::edges > out;
-        typedef boost::mpl::vector< in1, in2, out> arg_list;
+        typedef boost::mpl::vector< in1, in2, out > arg_list;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-            auto ff = [](const double _in1, const double _in2, const double _res) -> double { return _in1+_in2*0.1 + _res; };
+            auto ff = [](
+                const double _in1, const double _in2, const double _res) -> double { return _in1 + _in2 * 0.1 + _res; };
 
             eval(out()) = eval(on_edges(ff, 0.0, in1(), in2()));
         }
@@ -72,7 +73,7 @@ namespace soem {
                         in_edges1(i, c, j, k) = (uint_t)in_edges1.meta_data().index(
                             array< uint_t, 4 >{(uint_t)i, (uint_t)c, (uint_t)j, (uint_t)k});
                         in_edges2(i, c, j, k) = (uint_t)in_edges2.meta_data().index(
-                            array< uint_t, 4 >{(uint_t)i/2, (uint_t)c, (uint_t)j/2, (uint_t)k/2});
+                            array< uint_t, 4 >{(uint_t)i / 2, (uint_t)c, (uint_t)j / 2, (uint_t)k / 2});
                     }
                 }
             }
@@ -84,8 +85,7 @@ namespace soem {
         typedef arg< 1, edge_storage_type > p_in_edges2;
         typedef arg< 2, edge_storage_type > p_out_edges;
 
-        typedef boost::mpl::vector< p_in_edges1, p_in_edges2, p_out_edges>
-            accessor_list_t;
+        typedef boost::mpl::vector< p_in_edges1, p_in_edges2, p_out_edges > accessor_list_t;
 
         gridtools::domain_type< accessor_list_t > domain(
             boost::fusion::make_vector(&in_edges1, &in_edges2, &out_edges));
@@ -121,7 +121,7 @@ namespace soem {
                             ugrid.neighbours_of< icosahedral_topology_t::edges, icosahedral_topology_t::edges >(
                                 {i, c, j, k});
                         for (auto iter = neighbours.begin(); iter != neighbours.end(); ++iter) {
-                            ref_edges(i, c, j, k) += in_edges1(*iter)+in_edges2(*iter)*0.1;
+                            ref_edges(i, c, j, k) += in_edges1(*iter) + in_edges2(*iter) * 0.1;
                         }
                     }
                 }
