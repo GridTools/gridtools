@@ -175,9 +175,9 @@ namespace gridtools {
             // clone meta dato to device
             m_storage.set_on_host();
             m_meta_data.update_gpu();
-            m_meta_data.set_on_host();
+            // m_meta_data.set_on_host();
             // set the new meta data pointer in the storage
-            (*m_storage).set_meta_data(m_meta_data.get_cpu_p());
+            (*m_storage).set_meta_data(m_meta_data.get_gpu_p());
             // clone storage contents to device
             (*m_storage).h2d_update();
             // clone the storage itself to device
@@ -248,6 +248,11 @@ namespace gridtools {
         GT_FUNCTION
         pointer< const storage_ptr_t > get_storage_pointer() const {
             return pointer< const storage_ptr_t >(&m_storage);
+        }
+
+        void print() {
+            assert(m_on_host);
+            (*m_storage).print();
         }
 
         template < typename T >

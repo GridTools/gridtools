@@ -137,10 +137,10 @@ namespace gridtools {
      */
 
     template < cache_type cacheType,
-        typename CacheSequence,
-        typename CacheExtendsMap,
-        typename BlockSize,
-        typename LocalDomain >
+               typename CacheSequence,
+               typename CacheExtendsMap,
+               typename BlockSize,
+               typename LocalDomain>
     struct get_cache_storage_tuple {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< CacheSequence, is_cache >::value), "Internal Error: Wrong Type");
         GRIDTOOLS_STATIC_ASSERT((is_block_size< BlockSize >::value), "Internal Error: Wrong Type");
@@ -161,8 +161,7 @@ namespace gridtools {
 
         template < typename Cache, typename Accessor >
         struct get_cache_storage {
-            typedef cache_storage< float_type,
-                BlockSize,
+            typedef cache_storage< BlockSize,
                 typename boost::mpl::at< CacheExtendsMap, Cache >::type,
                 Accessor > type;
         };
@@ -175,7 +174,7 @@ namespace gridtools {
                 boost::mpl::push_back< boost::mpl::_1,
                                      boost::mpl::pair< cache_to_index< boost::mpl::_2, LocalDomain >,
                                            get_cache_storage< boost::mpl::_2,
-                                                           get_storage< LocalDomain,
+                                                              get_storage< LocalDomain,
                                                                   cache_to_index< boost::mpl::_2, LocalDomain > > > > >,
                 boost::mpl::identity< boost::mpl::_1 > > >::type mpl_type;
 

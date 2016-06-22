@@ -61,6 +61,7 @@ namespace tridiagonal {
     typedef gridtools::interval< level< 0, -1 >, level< 0, -1 > > x_first;
     typedef gridtools::interval< level< 1, -1 >, level< 1, -1 > > x_last;
     typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
+    typedef dimension<3> z;
 
     struct forward_thomas {
         // four vectors: output, and the 3 diagonals

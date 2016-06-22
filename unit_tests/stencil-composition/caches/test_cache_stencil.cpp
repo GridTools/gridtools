@@ -104,7 +104,7 @@ protected:
     storage_type m_in, m_out;
 
     cache_stencil() :
-        m_halo_size(2), m_d1(32+m_halo_size), m_d2(32+m_halo_size), m_d3(6),
+        m_halo_size(1), m_d1(32+2*m_halo_size), m_d2(32+2*m_halo_size), m_d3(6),
 #ifdef CXX11_ENABLED
         m_di{m_halo_size, m_halo_size, m_halo_size, m_d1-m_halo_size-1, m_d1},
         m_dj{m_halo_size, m_halo_size, m_halo_size, m_d2-m_halo_size-1, m_d2},
@@ -168,9 +168,6 @@ TEST_F(cache_stencil, ij_cache)
 
     pstencil->finalize();
 
-#ifdef __CUDACC__
-    m_out.d2h_update();
-#endif
 #ifdef CXX11_ENABLED
 #if FLOAT_PRECISION == 4
     verifier verif(1e-6);
@@ -234,10 +231,6 @@ TEST_F(cache_stencil, ij_cache_offset)
     pstencil->run();
 
     pstencil->finalize();
-
-#ifdef __CUDACC__
-    m_out.d2h_update();
-#endif
 
 #ifdef CXX11_ENABLED
 #if FLOAT_PRECISION == 4
@@ -303,10 +296,6 @@ TEST_F(cache_stencil, multi_cache) {
     stencil->run();
 
     stencil->finalize();
-
-#ifdef __CUDACC__
-    m_out.d2h_update();
-#endif
 
 #ifdef CXX11_ENABLED
     verifier verif(1e-13);

@@ -43,8 +43,8 @@ namespace test_cycle_and_swap {
     struct functor_avg {
         typedef inout_accessor< 0, extent<>, 4 > p_data;
         typedef dimension< 4 > time;
-        static x::Index i;
-        static y::Index j;
+        static dimension< 1 >::Index i;
+        static dimension< 2 >::Index j;
 
         typedef decltype(i) i_t;
         typedef decltype(j) j_t;
