@@ -154,7 +154,7 @@ namespace gridtools{
         /**
            @brief functor used to assign the next chunk of storage pointers
         */
-        template < typename DomainFrom, typename DomainTo >
+        template < typename Backend, typename DomainFrom, typename DomainTo >
         struct assign_expandable_params {
 
           private:
@@ -178,8 +178,11 @@ namespace gridtools{
                     auto ptr_to_ = boost::fusion::at< static_ushort< ID > >(m_dom_to.m_storage_pointers);
 
                     (*(ptr_to_->storage_pointer())).set(*ptr_from_, m_idx);
-                    ptr_to_->set_on_host( );
-                    ptr_to_->h2d_update( );
+                    if(Backend::s_backend_id==enumtype::Cuda)
+                    {
+                        ptr_to_->set_on_host( );
+                        ptr_to_->h2d_update( );
+                    }
                 }
             }
         };
@@ -187,7 +190,7 @@ namespace gridtools{
         /**
            @brief functor used to assign the next chunk of storage pointers
         */
-        template < typename DomainFrom >
+        template < typename Backend, typename DomainFrom >
         struct finalize_expandable_params {
 
           private:
@@ -205,8 +208,12 @@ namespace gridtools{
                         // hard-setting the on_device flag for the hybrid_pointers:
                         // since the storages used get created on-the-fly the original storages do
                         // not know that they are still on the device
-                        i->set_on_device( );
-                        i->d2h_update();
+                        if(Backend::s_backend_id==enumtype::Cuda)
+                        {
+                            i->set_on_device( );
+                            i->storage_pointer()->set_on_device();
+                            i->d2h_update();
+                        }
                     }
                 }
             }

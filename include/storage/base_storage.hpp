@@ -140,6 +140,16 @@ namespace gridtools {
                 m_fields[i].update_cpu();
         }
 
+        void set_on_device() {
+            for (uint_t i = 0; i < field_dimensions; ++i)
+                m_fields[i].set_on_device();
+        }
+
+        void set_on_host() {
+            for (uint_t i = 0; i < field_dimensions; ++i)
+                m_fields[i].set_on_host();
+        }
+
 #ifdef CXX11_ENABLED
         /**
            explicitly disables the case in which the storage_info is passed by copy.
