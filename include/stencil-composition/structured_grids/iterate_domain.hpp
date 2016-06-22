@@ -887,12 +887,12 @@ namespace gridtools {
             (data_pointer())[ // static if
                 (Accessor::type::n_dim <= metadata_t::space_dimensions + 1
                         ?                                                 // static if
-                        accessor.template get< 0 >()   // offset for the current snapshot
-                        : accessor.template get< 1 >() // offset for the current snapshot
+                        accessor_mixed_t::template get_constexpr< 0 >()   // offset for the current snapshot
+                        : accessor_mixed_t::template get_constexpr< 1 >() // offset for the current snapshot
                               // hypotheses : storage offsets are known at compile-time
                               +
                               compute_storage_offset< typename storage_t::traits,
-                                  accessor.template get_constexpr< 0 >(),
+                                  accessor_mixed_t::template get_constexpr< 0 >(),
                                   storage_t::traits::n_dimensions -
                                       1 >::value // stride of the current dimension inside the vector of storages
                     )                            //+ the offset of the other extra dimension
