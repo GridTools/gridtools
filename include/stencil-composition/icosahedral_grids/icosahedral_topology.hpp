@@ -179,7 +179,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< cells >::to< cells >::with_color< static_int< 1 > > {
+    struct from< cells >::to< cells >::with_color< static_uint< 1 > > {
 
         template < typename ValueType >
         using return_t = typename return_type< from< cells >::to< cells >, ValueType >::type;
@@ -204,7 +204,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< cells >::to< cells >::with_color< static_int< 0 > > {
+    struct from< cells >::to< cells >::with_color< static_uint< 0 > > {
 
         template < typename ValueType >
         using return_t = typename return_type< from< cells >::to< cells >, ValueType >::type;
@@ -228,7 +228,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< vertexes >::to< vertexes >::with_color< static_int< 0 > > {
+    struct from< vertexes >::to< vertexes >::with_color< static_uint< 0 > > {
 
         template < typename ValueType >
         using return_t = typename return_type< from< vertexes >::to< vertexes >, ValueType >::type;
@@ -255,7 +255,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< edges >::to< edges >::with_color< static_int< 0 > > {
+    struct from< edges >::to< edges >::with_color< static_uint< 0 > > {
 
         template < typename ValueType >
         using return_t = typename return_type< from< edges >::to< edges >, ValueType >::type;
@@ -277,7 +277,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< edges >::to< edges >::with_color< static_int< 1 > > {
+    struct from< edges >::to< edges >::with_color< static_uint< 1 > > {
 
         template < typename ValueType >
         using return_t = typename return_type< from< edges >::to< edges >, ValueType >::type;
@@ -301,7 +301,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< edges >::to< edges >::with_color< static_int< 2 > > {
+    struct from< edges >::to< edges >::with_color< static_uint< 2 > > {
 
         template < typename ValueType >
         using return_t = typename return_type< from< edges >::to< edges >, ValueType >::type;
@@ -323,7 +323,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< cells >::to< edges >::with_color< static_int< 1 > > {
+    struct from< cells >::to< edges >::with_color< static_uint< 1 > > {
 
         template < typename ValueType = int_t >
         using return_t = typename return_type< from< cells >::to< edges >, ValueType >::type;
@@ -344,7 +344,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< cells >::to< edges >::with_color< static_int< 0 > > {
+    struct from< cells >::to< edges >::with_color< static_uint< 0 > > {
 
         template < typename ValueType >
         using return_t = typename return_type< from< cells >::to< edges >, ValueType >::type;
@@ -366,7 +366,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< cells >::to< vertexes >::with_color< static_int< 0 > > {
+    struct from< cells >::to< vertexes >::with_color< static_uint< 0 > > {
 
         template < typename ValueType >
         using return_t = typename return_type< from< cells >::to< vertexes >, ValueType >::type;
@@ -389,7 +389,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< cells >::to< vertexes >::with_color< static_int< 1 > > {
+    struct from< cells >::to< vertexes >::with_color< static_uint< 1 > > {
 
         template < typename ValueType >
         using return_t = typename return_type< from< cells >::to< vertexes >, ValueType >::type;
@@ -412,7 +412,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< edges >::to< cells >::with_color< static_int< 0 > > {
+    struct from< edges >::to< cells >::with_color< static_uint< 0 > > {
 
         template < typename ValueType >
         using return_t = typename return_type< from< edges >::to< cells >, ValueType >::type;
@@ -434,7 +434,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< edges >::to< cells >::with_color< static_int< 1 > > {
+    struct from< edges >::to< cells >::with_color< static_uint< 1 > > {
 
         template < typename ValueType >
         using return_t = typename return_type< from< edges >::to< cells >, ValueType >::type;
@@ -458,7 +458,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< edges >::to< cells >::with_color< static_int< 2 > > {
+    struct from< edges >::to< cells >::with_color< static_uint< 2 > > {
 
         template < typename ValueType >
         using return_t = typename return_type< from< edges >::to< cells >, ValueType >::type;
@@ -480,7 +480,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< edges >::to< vertexes >::with_color< static_int< 0 > > {
+    struct from< edges >::to< vertexes >::with_color< static_uint< 0 > > {
 
         template < typename ValueType >
         using return_t = typename return_type< from< edges >::to< vertexes >, ValueType >::type;
@@ -503,7 +503,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< edges >::to< vertexes >::with_color< static_int< 1 > > {
+    struct from< edges >::to< vertexes >::with_color< static_uint< 1 > > {
 
         template < typename ValueType >
         using return_t = typename return_type< from< edges >::to< vertexes >, ValueType >::type;
@@ -529,7 +529,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< edges >::to< vertexes >::with_color< static_int< 2 > > {
+    struct from< edges >::to< vertexes >::with_color< static_uint< 2 > > {
 
         template < typename ValueType >
         using return_t = typename return_type< from< edges >::to< vertexes >, ValueType >::type;
@@ -552,7 +552,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< vertexes >::to< cells >::with_color< static_int< 0 > > {
+    struct from< vertexes >::to< cells >::with_color< static_uint< 0 > > {
 
         template < typename ValueType >
         using return_t = typename return_type< from< vertexes >::to< cells >, ValueType >::type;
@@ -579,7 +579,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< vertexes >::to< edges >::with_color< static_int< 0 > > {
+    struct from< vertexes >::to< edges >::with_color< static_uint< 0 > > {
 
         template < typename ValueType >
         using return_t = typename return_type< from< vertexes >::to< edges >, ValueType >::type;
@@ -616,7 +616,7 @@ namespace gridtools {
         GT_FUNCTION
         constexpr static typename return_type< typename from< SrcLocation >::template to< DestLocation >, array< int_t, 4 > >::type
         offsets() {
-            return from< SrcLocation >::template to< DestLocation >::template with_color< static_int< Color > >::offsets();
+            return from< SrcLocation >::template to< DestLocation >::template with_color< static_uint< Color > >::offsets();
         }
     };
 
@@ -639,7 +639,7 @@ namespace gridtools {
             // Note: offsets have to be extracted here as a constexpr object instead of passed inline to the apply fn
             // Otherwise constexpr of the array is lost
             constexpr const auto offsets =
-                from< Location1 >::template to< Location2 >::template with_color< static_int< Color > >::offsets();
+                from< Location1 >::template to< Location2 >::template with_color< static_uint< Color > >::offsets();
 
             using seq = gridtools::apply_gt_integer_sequence<
                 typename gridtools::make_gt_integer_sequence< int, n_neighbors >::type >;
@@ -653,10 +653,12 @@ namespace gridtools {
     template < typename Backend >
     class icosahedral_topology : public clonable_to_gpu< icosahedral_topology< Backend > > {
       public:
+
         using cells = location_type< 0, 2 >;
         using edges = location_type< 1, 3 >;
         using vertexes = location_type< 2, 1 >;
         using layout_map_t = typename Backend::layout_map_t;
+        using type = icosahedral_topology<Backend>;
 
         template < typename LocationType >
         using meta_storage_t = typename Backend::template storage_info_t< LocationType >;
@@ -724,31 +726,34 @@ namespace gridtools {
             return boost::fusion::at_c< LocationType::value >(m_virtual_storages).index(i);
         }
 
-        template < typename Location1, typename Location2 >
-        struct return_type_indices {
-            typedef typename boost::mpl::if_< boost::is_same< Location1, Location2 >,
-                typename return_type< typename from< Location1 >::template to< Location2 >, array< int_t, 4 > >::type,
-                typename return_type< typename from< Location1 >::template to< Location2 >, uint_t >::type >::type type;
-        };
-
-        // methods returning the neighbors. Specializations according to the location type
-        // needed a way to implement static double dispatch
+        /**
+          * function to extract the 4 indexes of all neighbours of current position, when the neighbours are not in the
+          * same location as the location type of the iteration space.
+          * @return an array (over neighbours) of an array (indices of position).
+          *     Dimension of the outer array depends on the number of neighbours of the location type
+          * @i indexes of current position in the iteration space
+          */
         template < typename Location1, typename Location2, typename Color >
-        GT_FUNCTION typename return_type_indices< Location1, Location2 >::type ll_map_index(
+        GT_FUNCTION typename return_type< typename from< Location1 >::template to< Location2 >, uint_t >::type ll_map_index(
             Location1, Location2, Color, array< uint_t, 3 > const &i) const {
-            return connectivity_indexes< Location1, Location2, Color::value >::get_index(*this, i);
-        }
 
-        // methods returning the neighbors. Specializations according to the location type
-        // needed a way to implement static double dispatch
-        template < typename Location, typename Color >
-        GT_FUNCTION static typename return_type_indices< Location, Location >::type ll_map_index(
-            Location, Location, Color, array< uint_t, 3 > const &i) {
-            return connectivity_indexes< Location, Location, Color::value >::get_index(i);
+            using return_type_t = typename return_type< typename from< Location1 >::template to< Location2 >, uint_t >::type;
+
+            static const size_t n_neighbors = return_type_t::n_dimensions;
+
+                // Note: offsets have to be extracted here as a constexpr object instead of passed inline to the apply fn
+                // Otherwise constexpr of the array is lost
+                constexpr const auto offsets =
+                    from< Location1 >::template to< Location2 >::template with_color< Color >::offsets();
+
+                using seq = gridtools::apply_gt_integer_sequence<
+                    typename gridtools::make_gt_integer_sequence< int, n_neighbors >::type >;
+                return seq::template apply< return_type_t,
+                    get_connectivity_index< Location2, type, Color::value >::template get_element >(*this, i, offsets);
         }
 
         template < typename Location2 > // Works for cells or edges with same code
-        GT_FUNCTION typename return_type_indices< cells, Location2 >::type neighbors_indices_3(
+        GT_FUNCTION typename return_type< typename from< cells >::template to< Location2 >, uint_t >::type neighbors_indices_3(
             array< uint_t, 4 > const &i, cells, Location2) const {
             switch (i[1] % cells::n_colors::value) {
             case 0: {
@@ -759,13 +764,13 @@ namespace gridtools {
             }
             default: {
                 GTASSERT(false);
-                return typename return_type_indices< cells, Location2 >::type();
+                return typename return_type< typename from< cells >::template to< Location2 >, uint_t >::type();
             }
             }
         }
 
         template < typename Location2 > // Works for cells or edges with same code
-        GT_FUNCTION typename return_type_indices< edges, Location2 >::type neighbors_indices_3(
+        GT_FUNCTION typename return_type< typename from< edges >::template to< Location2 >, uint_t >::type neighbors_indices_3(
             array< uint_t, 4 > const &i, edges, Location2) const {
             switch (i[1] % edges::n_colors::value) {
             case 0: {
@@ -779,13 +784,13 @@ namespace gridtools {
             }
             default: {
                 GTASSERT(false);
-                return typename return_type_indices< edges, Location2 >::type();
+                return typename return_type< typename from< edges >::template to< Location2 >, uint_t >::type();
             }
             }
         }
 
         template < typename Location2 > // Works for cells or edges with same code
-        GT_FUNCTION typename return_type_indices< vertexes, Location2 >::type
+        GT_FUNCTION typename return_type< typename from< vertexes >::template to< Location2 >, uint_t >::type
         neighbors_indices_3(array< uint_t, 4 > const &i, vertexes, Location2) const {
             return ll_map_index(vertexes(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
         }

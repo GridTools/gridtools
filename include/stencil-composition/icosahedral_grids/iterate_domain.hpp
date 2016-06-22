@@ -461,7 +461,7 @@ namespace gridtools {
             // the neighbors are described as an array of {i,c,j,k} offsets wrt to current position, i.e. an array< array<uint_t, 4>,
             // NumNeighbors>
             constexpr
-                    auto neighbors = from< EsfLocationType >::template to< LocationTypeT>::template with_color< static_int< SrcColor::value > >::offsets();
+                    auto neighbors = from< EsfLocationType >::template to< LocationTypeT>::template with_color< static_uint< SrcColor::value > >::offsets();
 
             //TODO reuse the next code
             ValueType &result = onneighbors.value();
