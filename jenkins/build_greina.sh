@@ -24,6 +24,7 @@ function help {
    echo "-d      do not clean build                    "
    echo "-v      compile in VERBOSE mode               "
    echo "-q      queue for testing                     "
+   echo "-x      compiler version                      "
    exit 1
 }
 
@@ -31,8 +32,10 @@ INITPATH=$PWD
 BASEPATH_SCRIPT=$(dirname "${0}")
 FORCE_BUILD=OFF
 VERBOSE_RUN="OFF"
+VERSION="4.9"
 
-while getopts "h:b:t:f:c:l:pzmsidvq:" opt; do
+
+while getopts "h:b:t:f:c:l:pzmsidvq:x:" opt; do
     case "$opt" in
     h|\?)
         help
@@ -64,8 +67,15 @@ while getopts "h:b:t:f:c:l:pzmsidvq:" opt; do
         ;;
     q) QUEUE=$OPTARG
         ;;
+    x) VERSION=$OPTARG
+        ;;
     esac
 done
+
+if [[ "$VERSION"  != "4.9" ]] && [[ "$VERSION" != "5.3" ]]; then
+    echo "VERSION $VERSION not supported"
+    help
+fi
 
 if [[ "$BUILD_TYPE" != "debug" ]] && [[ "$BUILD_TYPE" != "release" ]]; then
    help
@@ -83,6 +93,10 @@ if [[ "$CXX_STD" != "cxx11" ]] && [[ "$CXX_STD" != "cxx03" ]]; then
    help
 fi
 
+if [[ "$TARGET"  == "gpu" ]] && [[ "$VERSION" != "4.9" ]]; then
+    echo "VERSION $VERSION not supported for gpu"
+    help
+fi
 
 echo $@
 
