@@ -123,11 +123,7 @@ namespace gridtools {
         static const short_t n_args = super::n_args + 1;
 
         GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, NDim > const &offsets)
-            : super(pos + 1, offsets), m_offset(offsets[pos]) {
-#ifndef NDEBUG
-            GTASSERT(pos < NDim);
-#endif
-        }
+            : super(pos + 1, offsets), m_offset(offsets[pos]) {}
 #ifdef CXX11_ENABLED
 
         /**@brief constructor taking an integer as the first argument, and then other optional arguments.
@@ -224,11 +220,7 @@ namespace gridtools {
     struct offset_tuple< 0, NDim > {
         static const int_t n_dim = NDim;
 
-        GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, NDim > const &offsets) {
-#ifndef NDEBUG
-            assert(pos == NDim);
-#endif
-        }
+        GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, NDim > const &offsets) {}
 
 #ifdef CXX11_ENABLED
         template < typename... GenericElements,
