@@ -491,7 +491,7 @@ namespace gridtools {
 
             // the neighbors are described as an array of absolute indices in the storage, i.e. an array<uint?t, NumNeighbors>
             const auto neighbors =
-                m_grid_topology.ll_map_index(location_type_t(), onneighbors.location(), SrcColor(), {current_position[0], current_position[2], current_position[3]});
+                m_grid_topology.connectivity_index(location_type_t(), onneighbors.location(), SrcColor(), {current_position[0], current_position[2], current_position[3]});
 
             ValueType &result = onneighbors.value();
 

@@ -620,34 +620,6 @@ namespace gridtools {
         }
     };
 
-    template < typename Location1, typename Location2, uint_t Color >
-    struct connectivity_indexes {
-        template < typename ValueType >
-        using return_t = typename return_type< typename from< Location1 >::template to< Location2 >, ValueType >::type;
-
-        static const size_t n_neighbors = return_t< array< uint_t, 4 > >::n_dimensions;
-
-        /**
-          * function to extract the 4 indexes of all neighbours of current position, when the neighbours are not in the
-          * same location as the location type of the iteration space.
-          * @return an array (over neighbours) of an array (indices of position).
-          *     Dimension of the outer array depends on the number of neighbours of the location type
-          * @i indexes of current position in the iteration space
-          */
-        template < typename GridTopology >
-        GT_FUNCTION static return_t< uint_t > get_index(GridTopology const &grid_topology, array< uint_t, 3 > const &i) {
-            // Note: offsets have to be extracted here as a constexpr object instead of passed inline to the apply fn
-            // Otherwise constexpr of the array is lost
-            constexpr const auto offsets =
-                from< Location1 >::template to< Location2 >::template with_color< static_uint< Color > >::offsets();
-
-            using seq = gridtools::apply_gt_integer_sequence<
-                typename gridtools::make_gt_integer_sequence< int, n_neighbors >::type >;
-            return seq::template apply< return_t< uint_t >,
-                get_connectivity_index< Location2, GridTopology, Color >::template get_element >(grid_topology, i, offsets);
-        }
-    };
-
     /**
     */
     template < typename Backend >
@@ -734,7 +706,7 @@ namespace gridtools {
           * @i indexes of current position in the iteration space
           */
         template < typename Location1, typename Location2, typename Color >
-        GT_FUNCTION typename return_type< typename from< Location1 >::template to< Location2 >, uint_t >::type ll_map_index(
+        GT_FUNCTION typename return_type< typename from< Location1 >::template to< Location2 >, uint_t >::type connectivity_index(
             Location1, Location2, Color, array< uint_t, 3 > const &i) const {
 
             using return_type_t = typename return_type< typename from< Location1 >::template to< Location2 >, uint_t >::type;
@@ -757,10 +729,10 @@ namespace gridtools {
             array< uint_t, 4 > const &i, cells, Location2) const {
             switch (i[1] % cells::n_colors::value) {
             case 0: {
-                return ll_map_index(cells(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
+                return connectivity_index(cells(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
             }
             case 1: {
-                return ll_map_index(cells(), Location2(), static_int< 1 >(), {i[0], i[2], i[3]});
+                return connectivity_index(cells(), Location2(), static_int< 1 >(), {i[0], i[2], i[3]});
             }
             default: {
                 GTASSERT(false);
@@ -774,13 +746,13 @@ namespace gridtools {
             array< uint_t, 4 > const &i, edges, Location2) const {
             switch (i[1] % edges::n_colors::value) {
             case 0: {
-                return ll_map_index(edges(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
+                return connectivity_index(edges(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
             }
             case 1: {
-                return ll_map_index(edges(), Location2(), static_int< 1 >(), {i[0], i[2], i[3]});
+                return connectivity_index(edges(), Location2(), static_int< 1 >(), {i[0], i[2], i[3]});
             }
             case 2: {
-                return ll_map_index(edges(), Location2(), static_int< 2 >(), {i[0], i[2], i[3]});
+                return connectivity_index(edges(), Location2(), static_int< 2 >(), {i[0], i[2], i[3]});
             }
             default: {
                 GTASSERT(false);
@@ -792,7 +764,7 @@ namespace gridtools {
         template < typename Location2 > // Works for cells or edges with same code
         GT_FUNCTION typename return_type< typename from< vertexes >::template to< Location2 >, uint_t >::type
         neighbors_indices_3(array< uint_t, 4 > const &i, vertexes, Location2) const {
-            return ll_map_index(vertexes(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
+            return connectivity_index(vertexes(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
         }
     };
 
