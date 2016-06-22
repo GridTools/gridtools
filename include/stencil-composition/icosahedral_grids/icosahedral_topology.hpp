@@ -119,10 +119,10 @@ namespace gridtools {
     template < typename T >
     struct is_grid_topology;
 
-    template < typename DestLocation, typename Grid, uint_t SourceColor >
+    template < typename DestLocation, typename GridTopology, uint_t SourceColor >
     struct get_connectivity_index {
 
-        GRIDTOOLS_STATIC_ASSERT((is_grid_topology< Grid >::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_grid_topology< GridTopology >::value), "Error");
         GRIDTOOLS_STATIC_ASSERT((is_location_type< DestLocation >::value), "Error");
 
         template < int Idx >
@@ -131,8 +131,8 @@ namespace gridtools {
             constexpr get_element() {}
 
             template < typename Offsets >
-            GT_FUNCTION static uint_t apply(Grid const &grid, array< uint_t, 3 > const &i, Offsets offsets) {
-                return boost::fusion::at_c< DestLocation::value >(grid.virtual_storages())
+            GT_FUNCTION static uint_t apply(GridTopology const &grid_topology, array< uint_t, 3 > const &i, Offsets offsets) {
+                return boost::fusion::at_c< DestLocation::value >(grid_topology.virtual_storages())
                     .index(get_connectivity_offset< SourceColor >::template get_element< Idx >::apply(i, offsets));
             }
         };
@@ -634,8 +634,8 @@ namespace gridtools {
           *     Dimension of the outer array depends on the number of neighbours of the location type
           * @i indexes of current position in the iteration space
           */
-        template < typename Grid >
-        GT_FUNCTION static return_t< uint_t > get_index(Grid const &grid, array< uint_t, 3 > const &i) {
+        template < typename GridTopology >
+        GT_FUNCTION static return_t< uint_t > get_index(GridTopology const &grid_topology, array< uint_t, 3 > const &i) {
             // Note: offsets have to be extracted here as a constexpr object instead of passed inline to the apply fn
             // Otherwise constexpr of the array is lost
             constexpr const auto offsets =
@@ -644,7 +644,7 @@ namespace gridtools {
             using seq = gridtools::apply_gt_integer_sequence<
                 typename gridtools::make_gt_integer_sequence< int, n_neighbors >::type >;
             return seq::template apply< return_t< uint_t >,
-                get_connectivity_index< Location2, Grid, Color >::template get_element >(grid, i, offsets);
+                get_connectivity_index< Location2, GridTopology, Color >::template get_element >(grid_topology, i, offsets);
         }
     };
 
