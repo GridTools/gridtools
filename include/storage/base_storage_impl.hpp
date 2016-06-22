@@ -83,7 +83,7 @@ namespace gridtools {
                \param indices tuple of coordinates
             */
             template < typename Offset, typename StridesVector >
-            GT_FUNCTION static CONSTEXPR int_t apply(StridesVector const &RESTRICT strides_,
+            GT_FUNCTION static constexpr int_t apply(StridesVector const &RESTRICT strides_,
                 Offset const &indices_,
                 typename boost::enable_if< typename is_tuple_or_array< Offset >::type, int >::type * = 0) {
                 return (int_t)strides_[space_dimensions - Id] *
@@ -115,7 +115,7 @@ namespace gridtools {
                \param indices tuple of coordinates
             */
             template < typename Offset, typename StridesVector >
-            GT_FUNCTION static CONSTEXPR int_t apply(StridesVector const &RESTRICT /*strides*/,
+            GT_FUNCTION static constexpr int_t apply(StridesVector const &RESTRICT /*strides*/,
                 Offset const &indices_,
                 typename boost::enable_if< typename is_tuple_or_array< Offset >::type, int >::type * = 0) {
                 return Layout::template find_val< space_dimensions - 1, int, 0 >(indices_);

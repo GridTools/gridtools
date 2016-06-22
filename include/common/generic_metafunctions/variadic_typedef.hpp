@@ -45,7 +45,7 @@ namespace gridtools {
     template < int Idx >
     struct get_from_variadic_pack {
         template < typename First, typename... Accessors >
-        GT_FUNCTION static CONSTEXPR typename variadic_typedef< First, Accessors... >::template get_elem< Idx >::type
+        GT_FUNCTION static constexpr typename variadic_typedef< First, Accessors... >::template get_elem< Idx >::type
         apply(First first, Accessors... args) {
             GRIDTOOLS_STATIC_ASSERT((Idx <= sizeof...(Accessors)), "Out of bound access in variadic pack");
 
