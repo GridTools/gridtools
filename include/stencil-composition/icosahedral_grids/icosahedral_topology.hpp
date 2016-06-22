@@ -107,11 +107,11 @@ namespace gridtools {
             constexpr get_element() {}
 
             template < typename Offsets >
-            GT_FUNCTION constexpr static array< uint_t, 4 > apply(array< uint_t, 3 > const &i, Offsets offsets) {
+            GT_FUNCTION constexpr static array< uint_t, 4 > apply(array< uint_t, 4 > const &i, Offsets offsets) {
                 return {i[0] + offsets[Idx][0],
                     SourceColor + offsets[Idx][1],
-                    i[1] + offsets[Idx][2],
-                    i[2] + offsets[Idx][3]};
+                    i[2] + offsets[Idx][2],
+                    i[3] + offsets[Idx][3]};
             }
         };
     };
@@ -132,7 +132,7 @@ namespace gridtools {
 
             template < typename Offsets >
             GT_FUNCTION static uint_t apply(
-                GridTopology const &grid_topology, array< uint_t, 3 > const &i, Offsets offsets) {
+                GridTopology const &grid_topology, array< uint_t, 4 > const &i, Offsets offsets) {
                 return boost::fusion::at_c< DestLocation::value >(grid_topology.virtual_storages())
                     .index(get_connectivity_offset< SourceColor >::template get_element< Idx >::apply(i, offsets));
             }
@@ -783,7 +783,7 @@ namespace gridtools {
           */
         template < typename Location1, typename Location2, typename Color >
         GT_FUNCTION typename return_type< typename from< Location1 >::template to< Location2 >, uint_t >::type
-            connectivity_index(Location1, Location2, Color, array< uint_t, 3 > const &i) const {
+            connectivity_index(Location1, Location2, Color, array< uint_t, 4 > const &i) const {
 
             using return_type_t =
                 typename return_type< typename from< Location1 >::template to< Location2 >, uint_t >::type;
@@ -807,10 +807,10 @@ namespace gridtools {
                 array< uint_t, 4 > const &i, cells, Location2) const {
             switch (i[1] % cells::n_colors::value) {
             case 0: {
-                return connectivity_index(cells(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
+                return connectivity_index(cells(), Location2(), static_int< 0 >(), i);
             }
             case 1: {
-                return connectivity_index(cells(), Location2(), static_int< 1 >(), {i[0], i[2], i[3]});
+                return connectivity_index(cells(), Location2(), static_int< 1 >(), i);
             }
             default: {
                 GTASSERT(false);
@@ -825,13 +825,13 @@ namespace gridtools {
                 array< uint_t, 4 > const &i, edges, Location2) const {
             switch (i[1] % edges::n_colors::value) {
             case 0: {
-                return connectivity_index(edges(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
+                return connectivity_index(edges(), Location2(), static_int< 0 >(), i);
             }
             case 1: {
-                return connectivity_index(edges(), Location2(), static_int< 1 >(), {i[0], i[2], i[3]});
+                return connectivity_index(edges(), Location2(), static_int< 1 >(), i);
             }
             case 2: {
-                return connectivity_index(edges(), Location2(), static_int< 2 >(), {i[0], i[2], i[3]});
+                return connectivity_index(edges(), Location2(), static_int< 2 >(), i);
             }
             default: {
                 GTASSERT(false);
@@ -843,7 +843,7 @@ namespace gridtools {
         template < typename Location2 > // Works for cells or edges with same code
         GT_FUNCTION typename return_type< typename from< vertexes >::template to< Location2 >, uint_t >::type
             neighbors_indices_3(array< uint_t, 4 > const &i, vertexes, Location2) const {
-            return connectivity_index(vertexes(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
+            return connectivity_index(vertexes(), Location2(), static_int< 0 >(), i);
         }
     };
 
