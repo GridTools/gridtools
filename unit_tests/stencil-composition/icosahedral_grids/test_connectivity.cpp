@@ -83,8 +83,8 @@ TEST_P(ll_map_index_test, edge_to_edge) {
 
     for (int i = 0; i < d3; i+=2) {
         // edge # 51
-//        ASSERT_TRUE(( grid.ll_map_index( edges(), edges(), gridtools::static_int<0>(), {(uint_t)2,(uint_t)3,(uint_t)i}),
-//                      array<uint_t, 4>{66*d3+i, 59*d3+i, 67*d3+i, 82*d3+i} ));
+//        ASSERT_TRUE(( same_elements(grid.ll_map_index( edges(), edges(), gridtools::static_int<0>(), {(uint_t)2,(uint_t)3,(uint_t)i}),
+//                      array<uint_t, 4>{66*d3+i, 59*d3+i, 67*d3+i, 82*d3+i}) ));
 //        // edge # 59
 //        ASSERT_TRUE(( grid.ll_map_index( edges(), edges(), gridtools::static_int<1>(), {(uint_t)2,(uint_t)3,(uint_t)i}),
 //                      array<uint_t, 4>{43*d3+i, 28*d3+i, 67*d3+i, 51*d3+i} ));

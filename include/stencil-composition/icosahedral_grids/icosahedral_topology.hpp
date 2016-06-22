@@ -648,31 +648,6 @@ namespace gridtools {
         }
     };
 
-    template < typename Location, uint_t Color >
-    struct connectivity_indexes< Location, Location, Color > {
-        template < typename ValueType >
-        using return_t = typename return_type< typename from< Location >::template to< Location >, ValueType >::type;
-
-        static const size_t n_neighbors = return_t< array< uint_t, 4 > >::n_dimensions;
-
-        /**
-          * function to extract the 4 indexes of all neighbours of current position, when the neighbours are in the same
-          * location as the location type of the iteration space.
-          * @return an array (over neighbours) of an array (indices of position).
-          *     Dimension of the outer array depends on the number of neighbours of the location type
-          * @i indexes of current position in the iteration space
-          */
-        GT_FUNCTION
-        static return_t< array< int_t, 4 > > get_index(array< uint_t, 3 > const &i) {
-
-            // Note: offsets have to be extracted here as a constexpr object instead of passed inline to the apply fn
-            // Otherwise constexpr of the array is lost
-            constexpr const auto offsets =
-                from< Location >::template to< Location >::template with_color< static_int< Color > >::offsets();
-            return offsets;
-        }
-    };
-
     /**
     */
     template < typename Backend >
