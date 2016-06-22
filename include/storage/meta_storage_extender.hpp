@@ -74,7 +74,7 @@ namespace gridtools {
             typedef typename meta_storage_extender_impl< MetaStorage, 1 >::type type;
 
             // TODO update with unaligned dims
-            auto dims = other.dims();
+            const array< uint_t, MetaStorage::space_dimensions > dims = other.dims();
             auto ext_dim = dims.append_dim(extradim_length);
             return type(ext_dim);
         }
