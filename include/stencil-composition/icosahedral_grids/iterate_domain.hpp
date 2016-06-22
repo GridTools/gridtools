@@ -297,10 +297,17 @@ namespace gridtools {
                 (data_pointer())[current_storage< (ID == 0), local_domain_t, typename accessor_t::type >::value]);
         }
 
-        template < typename ValueType, typename SrcColor, typename LocationTypeT, typename Reduction, typename MapF, typename... Arg0 >
-        GT_FUNCTION ValueType operator()(
-            on_neighbors_impl< ValueType, SrcColor, LocationTypeT, Reduction, map_function< MapF, LocationTypeT, Arg0... > >
-                onneighbors) const {
+        template < typename ValueType,
+            typename SrcColor,
+            typename LocationTypeT,
+            typename Reduction,
+            typename MapF,
+            typename... Arg0 >
+        GT_FUNCTION ValueType operator()(on_neighbors_impl< ValueType,
+            SrcColor,
+            LocationTypeT,
+            Reduction,
+            map_function< MapF, LocationTypeT, Arg0... > > onneighbors) const {
             auto current_position = m_grid_position;
 
             const auto neighbors =
@@ -426,44 +433,48 @@ namespace gridtools {
          * returns true if variadic pack is a pack of accessors and the location type of the neighbors is the same as
          * the location type of the ESF.
          */
-        template<typename NeighborsLocationType, typename EsfLocationType, typename ... Accessors>
-        struct accessors_on_same_color_neighbors
-        {
+        template < typename NeighborsLocationType, typename EsfLocationType, typename... Accessors >
+        struct accessors_on_same_color_neighbors {
             typedef typename boost::mpl::and_<
                 typename is_sequence_of< typename variadic_to_vector< Accessors... >::type, is_accessor >::type,
-                typename boost::is_same<NeighborsLocationType, EsfLocationType>::type
-            >::type type;
+                typename boost::is_same< NeighborsLocationType, EsfLocationType >::type >::type type;
         };
 
         /**
-         * returns true if variadic pack is a pack of accessors and the location type of the neighbors is not the same as
+         * returns true if variadic pack is a pack of accessors and the location type of the neighbors is not the same
+         * as
          * the location type of the ESF.
          */
-        template<typename NeighborsLocationType, typename EsfLocationType, typename ... Accessors>
-        struct accessors_on_different_color_neighbors
-        {
+        template < typename NeighborsLocationType, typename EsfLocationType, typename... Accessors >
+        struct accessors_on_different_color_neighbors {
             typedef typename boost::mpl::and_<
                 typename is_sequence_of< typename variadic_to_vector< Accessors... >::type, is_accessor >::type,
-                typename is_not_same<NeighborsLocationType, EsfLocationType>::type
-            >::type type;
+                typename is_not_same< NeighborsLocationType, EsfLocationType >::type >::type type;
         };
 
         // specialization of the () operator for on_neighbors operating on accessors
         // when the location type of the neighbors is the same as the location type of the ESF (iteration space)
         // In this case, dereference of accessors is done using relative offsets instead of absolute indexes
-        template < typename ValueType, typename SrcColor, typename LocationTypeT, typename Reduction, typename EsfLocationType, typename... Accessors >
+        template < typename ValueType,
+            typename SrcColor,
+            typename LocationTypeT,
+            typename Reduction,
+            typename EsfLocationType,
+            typename... Accessors >
         GT_FUNCTION typename boost::enable_if<
-            typename accessors_on_same_color_neighbors<LocationTypeT, EsfLocationType, Accessors...>::type,
+            typename accessors_on_same_color_neighbors< LocationTypeT, EsfLocationType, Accessors... >::type,
             ValueType >::type
-        operator()(EsfLocationType, on_neighbors_impl< ValueType, SrcColor, LocationTypeT, Reduction, Accessors... > onneighbors) const {
+        operator()(EsfLocationType,
+            on_neighbors_impl< ValueType, SrcColor, LocationTypeT, Reduction, Accessors... > onneighbors) const {
             auto current_position = m_grid_position;
 
-            // the neighbors are described as an array of {i,c,j,k} offsets wrt to current position, i.e. an array< array<uint_t, 4>,
+            // the neighbors are described as an array of {i,c,j,k} offsets wrt to current position, i.e. an array<
+            // array<uint_t, 4>,
             // NumNeighbors>
-            constexpr
-                    auto neighbors = from< EsfLocationType >::template to< LocationTypeT>::template with_color< static_uint< SrcColor::value > >::offsets();
+            constexpr auto neighbors = from< EsfLocationType >::template to< LocationTypeT >::template with_color<
+                static_uint< SrcColor::value > >::offsets();
 
-            //TODO reuse the next code
+            // TODO reuse the next code
             ValueType &result = onneighbors.value();
 
             for (int_t i = 0; i < neighbors.size(); ++i) {
@@ -480,18 +491,26 @@ namespace gridtools {
             return result;
         }
 
-
         // specialization of the () operator for on_neighbors operating on accessors
-        template < typename ValueType, typename SrcColor, typename LocationTypeT, typename Reduction, typename EsfLocationType, typename... Accessors >
+        template < typename ValueType,
+            typename SrcColor,
+            typename LocationTypeT,
+            typename Reduction,
+            typename EsfLocationType,
+            typename... Accessors >
         GT_FUNCTION typename boost::enable_if<
-            typename accessors_on_different_color_neighbors<LocationTypeT, EsfLocationType, Accessors...>::type,
+            typename accessors_on_different_color_neighbors< LocationTypeT, EsfLocationType, Accessors... >::type,
             ValueType >::type
-        operator()(EsfLocationType, on_neighbors_impl< ValueType, SrcColor, LocationTypeT, Reduction, Accessors... > onneighbors) const {
+        operator()(EsfLocationType,
+            on_neighbors_impl< ValueType, SrcColor, LocationTypeT, Reduction, Accessors... > onneighbors) const {
             auto current_position = m_grid_position;
 
-            // the neighbors are described as an array of absolute indices in the storage, i.e. an array<uint?t, NumNeighbors>
-            const auto neighbors =
-                m_grid_topology.connectivity_index(location_type_t(), onneighbors.location(), SrcColor(), {current_position[0], current_position[2], current_position[3]});
+            // the neighbors are described as an array of absolute indices in the storage, i.e. an array<uint?t,
+            // NumNeighbors>
+            const auto neighbors = m_grid_topology.connectivity_index(location_type_t(),
+                onneighbors.location(),
+                SrcColor(),
+                {current_position[0], current_position[2], current_position[3]});
 
             ValueType &result = onneighbors.value();
 
@@ -607,7 +626,8 @@ namespace gridtools {
             typedef typename get_storage_pointer_accessor< local_domain_t, accessor_t >::type storage_pointer_t;
 
             // getting information about the metadata
-            typedef typename boost::mpl::at< metadata_map_t, typename storage_t::storage_info_type >::type metadata_index_t;
+            typedef
+                typename boost::mpl::at< metadata_map_t, typename storage_t::storage_info_type >::type metadata_index_t;
 
             pointer< const typename storage_t::storage_info_type > const metadata_ =
                 boost::fusion::at< metadata_index_t >(m_local_domain.m_local_metadata);
@@ -616,7 +636,8 @@ namespace gridtools {
             // control your instincts: changing the following
             // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
             const int_t pointer_offset = (m_index[metadata_index_t::value]) +
-                                         metadata_->template _indexl<layout_map_t >(strides().template get< metadata_index_t::value >(), position_offset);
+                                         metadata_->template _indexl< layout_map_t >(
+                                             strides().template get< metadata_index_t::value >(), position_offset);
 
             return get_raw_value(accessor_t(),
                 (data_pointer())[current_storage< (accessor_t::index_type::value == 0),
@@ -663,9 +684,14 @@ namespace gridtools {
                 _evaluate(map.template argument< 0 >(), position), _evaluate(map.template argument< 1 >(), position));
         }
 
-        template < typename ValueType, typename SrcColor, typename LocationTypeT, typename Reduction, typename Map, typename IndexArray >
-        GT_FUNCTION ValueType _evaluate(
-            on_neighbors_impl< ValueType, SrcColor, LocationTypeT, Reduction, Map > onn, IndexArray const &position) const {
+        template < typename ValueType,
+            typename SrcColor,
+            typename LocationTypeT,
+            typename Reduction,
+            typename Map,
+            typename IndexArray >
+        GT_FUNCTION ValueType _evaluate(on_neighbors_impl< ValueType, SrcColor, LocationTypeT, Reduction, Map > onn,
+            IndexArray const &position) const {
 
             // TODO THIS IS WRONG HERE HARDCODED EDGES
             using tt = typename grid_topology_t::edges;

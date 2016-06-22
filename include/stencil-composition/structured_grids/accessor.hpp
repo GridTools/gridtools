@@ -132,19 +132,18 @@ namespace gridtools {
         // vector of dimensions defined at compiled time for the offsets
         typedef boost::mpl::vector< static_int< n_dim - Pair::first >... > coordinates;
 
-        typedef offset_tuple_mixed<coordinates, ArgType::n_dim, Pair... > offset_tuple_mixed_t;
+        typedef offset_tuple_mixed< coordinates, ArgType::n_dim, Pair... > offset_tuple_mixed_t;
 
-        typedef offset_tuple<ArgType::n_dim, ArgType::n_dim > offset_tuple_t;
+        typedef offset_tuple< ArgType::n_dim, ArgType::n_dim > offset_tuple_t;
 
         const offset_tuple_mixed_t m_offsets;
 
         // compile time offset tuple
-        static constexpr offset_tuple_t s_static_offset_tuple{
-            dimension< Pair::first >{Pair::second}...};
+        static constexpr offset_tuple_t s_static_offset_tuple{dimension< Pair::first >{Pair::second}...};
 
       public:
         template < typename... ArgsRuntime >
-        GT_FUNCTION constexpr accessor_mixed(const ArgsRuntime ... args)
+        GT_FUNCTION constexpr accessor_mixed(const ArgsRuntime... args)
             : m_offsets(args...) {}
 
         /**@brief returns the offset at a specific index Idx
@@ -152,25 +151,27 @@ namespace gridtools {
            the lookup for the index Idx is done at compile time, i.e. this method returns in constant time
          */
 
-        template<short_t Idx>
+        template < short_t Idx >
         GT_FUNCTION constexpr const int_t get() const {
-            return m_offsets.template get<Idx>();
+            return m_offsets.template get< Idx >();
         }
 
         template < short_t Idx >
         GT_FUNCTION static constexpr uint_t const get_constexpr() {
-             GRIDTOOLS_STATIC_ASSERT(Idx < s_static_offset_tuple.n_dim, "the idx must be smaller than the arg dimension");
-             GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "the idx must be larger than 0");
-             GRIDTOOLS_STATIC_ASSERT(s_static_offset_tuple.template get< Idx >() >= 0,
-                 "there is a negative offset. If you did this on purpose recompile with the PEDANTIC_DISABLED flag on.");
-             return s_static_offset_tuple.template get< Idx >();
+            GRIDTOOLS_STATIC_ASSERT(
+                Idx < s_static_offset_tuple.n_dim, "the idx must be smaller than the arg dimension");
+            GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "the idx must be larger than 0");
+            GRIDTOOLS_STATIC_ASSERT(s_static_offset_tuple.template get< Idx >() >= 0,
+                "there is a negative offset. If you did this on purpose recompile with the PEDANTIC_DISABLED flag on.");
+            return s_static_offset_tuple.template get< Idx >();
         }
 
-        GT_FUNCTION constexpr offset_tuple_mixed_t const & offsets() const { return m_offsets;}
+        GT_FUNCTION constexpr offset_tuple_mixed_t const &offsets() const { return m_offsets; }
     };
 
     template < typename ArgType, typename... Pair >
-    constexpr const offset_tuple< ArgType::n_dim, ArgType::n_dim> accessor_mixed< ArgType, Pair... >::s_static_offset_tuple;
+    constexpr const offset_tuple< ArgType::n_dim, ArgType::n_dim >
+        accessor_mixed< ArgType, Pair... >::s_static_offset_tuple;
 
     /**
        @brief this struct allows the specification of SOME of the arguments before instantiating the offset_tuple.

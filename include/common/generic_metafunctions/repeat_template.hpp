@@ -28,14 +28,13 @@ namespace gridtools {
         template < typename UInt, UInt C >
         struct expand_to_gt_integer_sequence< UInt, C, 1 > : gt_integer_sequence< UInt, C > {};
 
-        template < typename Seq, template < ushort_t... > class Lambda, ushort_t... InitialValues>
+        template < typename Seq, template < ushort_t... > class Lambda, ushort_t... InitialValues >
         struct expand_recursively;
 
         template < template < ushort_t... > class Lambda, ushort_t... Ints, ushort_t... InitialValues >
-        struct expand_recursively< gt_integer_sequence< ushort_t, Ints... >, Lambda, InitialValues...> {
+        struct expand_recursively< gt_integer_sequence< ushort_t, Ints... >, Lambda, InitialValues... > {
             typedef Lambda< InitialValues..., Ints... > type;
         };
-
     }
 
 #if defined(CXX11_ENABLED) && !defined(__CUDACC__)
@@ -102,13 +101,12 @@ namespace gridtools {
      * does not compile with CUDA due to nvcc bug). It assumes that the types of the template parameters of the Lambda
      * function are ushort_t.
      */
-    template < ushort_t Constant, ushort_t Length, template < ushort_t... T > class Lambda, ushort_t ... InitialValues >
+    template < ushort_t Constant, ushort_t Length, template < ushort_t... T > class Lambda, ushort_t... InitialValues >
     struct repeat_template_c {
         typedef typename _impl::expand_recursively<
             typename _impl::expand_to_gt_integer_sequence< ushort_t, Constant, Length >::type,
-            Lambda, InitialValues...>::type type;
+            Lambda,
+            InitialValues... >::type type;
     };
-
-
 
 } // namespace gridtools

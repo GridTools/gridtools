@@ -43,7 +43,8 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_block_size< ProcessingElementsBlockSize >::value), "Iternal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_block_size< PhysicalDomainBlockSize >::value), "Iternal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Iternal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((IsReduction::value == true || IsReduction::value == false), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT(
+            (IsReduction::value == true || IsReduction::value == false), "Internal Error: wrong type");
 
         typedef BackendIds backend_ids_t;
         typedef LocalDomain local_domain_t;
@@ -107,7 +108,7 @@ namespace gridtools {
                                    // "make_independent" construct
         typename Grid,             // the grid
         typename ExecutionEngine,  // the execution engine
-        typename IsReduction,          // boolean stating if the operation to be applied at mss is a reduction
+        typename IsReduction,      // boolean stating if the operation to be applied at mss is a reduction
         typename ReductionData,    // return type of functors of a mss: return type of reduction operations,
                                    //        otherwise void
         typename Color             // current color execution (not used for rectangular grids, or grids that dont have
@@ -123,8 +124,9 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(
             (is_sequence_of< EsfSequence, is_esf_descriptor >::value), "Internal Error: invalid type");
         GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), "Internal Error: invalid type");
-        GRIDTOOLS_STATIC_ASSERT((is_color_type<Color>::value), "Internal Error: invalid type");
-        GRIDTOOLS_STATIC_ASSERT((IsReduction::value == true || IsReduction::value == false), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_color_type< Color >::value), "Internal Error: invalid type");
+        GRIDTOOLS_STATIC_ASSERT(
+            (IsReduction::value == true || IsReduction::value == false), "Internal Error: wrong type");
 
         typedef BackendIds backend_ids_t;
         typedef ProcessingElementsBlockSize processing_elements_block_size_t;
@@ -181,7 +183,7 @@ namespace gridtools {
         typename ExecutionEngine,
         typename IsReduction,
         typename ReductionData,
-        typename Color>
+        typename Color >
     struct is_run_functor_arguments< run_functor_arguments< BackendIds,
         ProcessingElementsBlockSize,
         PhysicalDomainBlockSize,
@@ -198,7 +200,7 @@ namespace gridtools {
         ExecutionEngine,
         IsReduction,
         ReductionData,
-        Color> > : boost::mpl::true_ {};
+        Color > > : boost::mpl::true_ {};
 
     /**
      * @brief type that contains main metadata required to execute an ESF functor. This type will be passed to

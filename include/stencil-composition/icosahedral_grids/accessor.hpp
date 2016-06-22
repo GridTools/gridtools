@@ -23,7 +23,7 @@ namespace gridtools {
 
         typedef accessor_base< ID, Intend, Extent, FieldDimensions > super;
 
-        /**inheriting all constructors from offset_tuple*/
+/**inheriting all constructors from offset_tuple*/
 #ifndef __CUDACC__
         using super::accessor_base;
 #else
@@ -41,15 +41,15 @@ namespace gridtools {
 
         // copy ctor from an accessor with different ID
         template < uint_t OtherID >
-        GT_FUNCTION constexpr  accessor(const accessor< OtherID, Intend, LocationType, Extent, FieldDimensions > & other)
-            : super(static_cast<const accessor_base< OtherID, Intend, Extent, FieldDimensions > >(other)) {}
+        GT_FUNCTION constexpr accessor(const accessor< OtherID, Intend, LocationType, Extent, FieldDimensions > &other)
+            : super(static_cast< const accessor_base< OtherID, Intend, Extent, FieldDimensions > >(other)) {}
 
         GT_FUNCTION
-        constexpr explicit accessor(array<int_t, FieldDimensions> const & offsets) : super(offsets) {}
+        constexpr explicit accessor(array< int_t, FieldDimensions > const &offsets) : super(offsets) {}
 
         template < uint_t Idx >
-        GT_FUNCTION constexpr accessor(dimension< Idx > const &x) : super(x) {}
-
+        GT_FUNCTION constexpr accessor(dimension< Idx > const &x)
+            : super(x) {}
     };
 
     template < uint_t ID, typename LocationType, typename Extent = extent< 0 >, ushort_t FieldDimensions = 4 >

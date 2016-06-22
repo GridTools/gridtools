@@ -25,7 +25,7 @@
 #endif
 
 namespace gridtools {
- 
+
     /**
      * @brief wrapper class around a sequence of types. The goal of the class is to identify that a type is an array of
      * types that

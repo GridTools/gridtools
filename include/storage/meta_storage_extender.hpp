@@ -17,7 +17,7 @@ namespace gridtools {
     // specialization for a halo template parameter
     template < ushort_t NExtraDim, uint_t... Args >
     struct extend_aux_param< NExtraDim, halo< Args... > > {
-          typedef typename repeat_template_c< 0, NExtraDim, halo, Args... >::type type;
+        typedef typename repeat_template_c< 0, NExtraDim, halo, Args... >::type type;
     };
 
     template < typename T, ushort_t NExtraDim >
@@ -73,7 +73,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_meta_storage< MetaStorage >::value), "Use with a MetaStorage type only");
             typedef typename meta_storage_extender_impl< MetaStorage, 1 >::type type;
 
-            //TODO update with unaligned dims
+            // TODO update with unaligned dims
             auto dims = other.dims();
             auto ext_dim = dims.append_dim(extradim_length);
             return type(ext_dim);

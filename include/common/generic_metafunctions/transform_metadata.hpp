@@ -2,13 +2,9 @@
 
 namespace gridtools {
 #if defined(CXX11_ENABLED) && !defined(__CUDACC__)
-    template < typename Pattern, typename Repl, typename Arg>
+    template < typename Pattern, typename Repl, typename Arg >
     struct subs {
-        typedef typename boost::mpl::if_<
-            boost::is_same<Pattern, Arg>,
-            Repl,
-            Arg
-        >::type type;
+        typedef typename boost::mpl::if_< boost::is_same< Pattern, Arg >, Repl, Arg >::type type;
     };
 
     /**
@@ -28,7 +24,7 @@ namespace gridtools {
 
     template < template < typename... > class Metadata, typename... Args, typename Pattern, typename Repl >
     struct transform_meta_data< Metadata< Args... >, Pattern, Repl > {
-        typedef Metadata< typename subs< Pattern, Repl, Args>::type... > type;
+        typedef Metadata< typename subs< Pattern, Repl, Args >::type... > type;
     };
 #endif
 } // namespace gridtools

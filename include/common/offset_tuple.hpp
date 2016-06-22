@@ -287,7 +287,7 @@ namespace gridtools {
 
       public:
         template < typename... ArgsRuntime >
-        GT_FUNCTION constexpr offset_tuple_mixed(const ArgsRuntime ... args)
+        GT_FUNCTION constexpr offset_tuple_mixed(const ArgsRuntime... args)
             : m_dynamic_offset_tuple(args...) {}
 
         template < short_t Idx >

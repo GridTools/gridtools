@@ -108,10 +108,10 @@ namespace gridtools {
 
             template < typename Offsets >
             GT_FUNCTION constexpr static array< uint_t, 4 > apply(array< uint_t, 3 > const &i, Offsets offsets) {
-                return { i[0]+offsets[Idx][0],
-                    SourceColor+ offsets[Idx][1],
-                    i[1]+offsets[Idx][2],
-                    i[2]+offsets[Idx][3]};
+                return {i[0] + offsets[Idx][0],
+                    SourceColor + offsets[Idx][1],
+                    i[1] + offsets[Idx][2],
+                    i[2] + offsets[Idx][3]};
             }
         };
     };
@@ -131,7 +131,8 @@ namespace gridtools {
             constexpr get_element() {}
 
             template < typename Offsets >
-            GT_FUNCTION static uint_t apply(GridTopology const &grid_topology, array< uint_t, 3 > const &i, Offsets offsets) {
+            GT_FUNCTION static uint_t apply(
+                GridTopology const &grid_topology, array< uint_t, 3 > const &i, Offsets offsets) {
                 return boost::fusion::at_c< DestLocation::value >(grid_topology.virtual_storages())
                     .index(get_connectivity_offset< SourceColor >::template get_element< Idx >::apply(i, offsets));
             }
@@ -142,7 +143,8 @@ namespace gridtools {
      * Following specializations provide all information about the connectivity of the icosahedral/ocahedral grid
      * While ordering is arbitrary up to some extent, if must respect some rules that user expect, and that conform
      * part of an API. Rules are the following:
-     *   1. Flow variables on edges by convention are outward on downward cells (color 0) and inward on upward cells (color 1)
+     *   1. Flow variables on edges by convention are outward on downward cells (color 0) and inward on upward cells
+     * (color 1)
      *      as depicted below
      *
      *                             ^
@@ -169,7 +171,8 @@ namespace gridtools {
      *              \  /
      *               \/
      *
-     *   3. Cell neighbours of an edge, in the order 0 -> 1 follow the direction of the flow (N_t) on edges defined in 1.
+     *   3. Cell neighbours of an edge, in the order 0 -> 1 follow the direction of the flow (N_t) on edges defined in
+     * 1.
      *      This fixes the order of cell neighbors of an edge
      *
      *   4. Vertex neighbors of an edge, in the order 0 -> 1 defines a vector N_l which is perpendicular to N_t.
@@ -606,17 +609,22 @@ namespace gridtools {
     template < typename SrcLocation, typename DestLocation, uint_t Color >
     struct connectivity {
 
-        GRIDTOOLS_STATIC_ASSERT((is_location_type<SrcLocation>::value), "Error: unknown src location type");
-        GRIDTOOLS_STATIC_ASSERT((is_location_type<DestLocation>::value), "Error: unknown dst location type");
+        GRIDTOOLS_STATIC_ASSERT((is_location_type< SrcLocation >::value), "Error: unknown src location type");
+        GRIDTOOLS_STATIC_ASSERT((is_location_type< DestLocation >::value), "Error: unknown dst location type");
 
-        GRIDTOOLS_STATIC_ASSERT((!boost::is_same<SrcLocation, cells>::value || Color < 2), "Error: Color index beyond color length");
-        GRIDTOOLS_STATIC_ASSERT((!boost::is_same<SrcLocation, edges>::value || Color < 3), "Error: Color index beyond color length");
-        GRIDTOOLS_STATIC_ASSERT((!boost::is_same<SrcLocation, vertexes>::value || Color < 1), "Error: Color index beyond color length");
+        GRIDTOOLS_STATIC_ASSERT(
+            (!boost::is_same< SrcLocation, cells >::value || Color < 2), "Error: Color index beyond color length");
+        GRIDTOOLS_STATIC_ASSERT(
+            (!boost::is_same< SrcLocation, edges >::value || Color < 3), "Error: Color index beyond color length");
+        GRIDTOOLS_STATIC_ASSERT(
+            (!boost::is_same< SrcLocation, vertexes >::value || Color < 1), "Error: Color index beyond color length");
 
         GT_FUNCTION
-        constexpr static typename return_type< typename from< SrcLocation >::template to< DestLocation >, array< int_t, 4 > >::type
-        offsets() {
-            return from< SrcLocation >::template to< DestLocation >::template with_color< static_uint< Color > >::offsets();
+        constexpr static
+            typename return_type< typename from< SrcLocation >::template to< DestLocation >, array< int_t, 4 > >::type
+            offsets() {
+            return from< SrcLocation >::template to< DestLocation >::template with_color<
+                static_uint< Color > >::offsets();
         }
     };
 
@@ -625,12 +633,11 @@ namespace gridtools {
     template < typename Backend >
     class icosahedral_topology : public clonable_to_gpu< icosahedral_topology< Backend > > {
       public:
-
         using cells = location_type< 0, 2 >;
         using edges = location_type< 1, 3 >;
         using vertexes = location_type< 2, 1 >;
         using layout_map_t = typename Backend::layout_map_t;
-        using type = icosahedral_topology<Backend>;
+        using type = icosahedral_topology< Backend >;
 
         template < typename LocationType >
         using meta_storage_t = typename Backend::template storage_info_t< LocationType >;
@@ -699,19 +706,22 @@ namespace gridtools {
         }
 
         /**
-          * function to extract the absolute index of all neighbours of current position. This is used to find position of
+          * function to extract the absolute index of all neighbours of current position. This is used to find position
+         * of
           * neighbours when the neighbours are not in the
-          * same location as the location type of the iteration space (otherwise connectivity table providing 4D arrays position
+          * same location as the location type of the iteration space (otherwise connectivity table providing 4D arrays
+         * position
           * offsets is recommended, since they are compute at compile time)
           * @return an array (over neighbours) of unsinged integers (indices of position).
           *     Dimension of the array depends on the number of neighbours of the location type
           * @i indexes of current position in the iteration space
           */
         template < typename Location1, typename Location2, typename Color >
-        GT_FUNCTION typename return_type< typename from< Location1 >::template to< Location2 >, uint_t >::type connectivity_index(
-            Location1, Location2, Color, array< uint_t, 3 > const &i) const {
+        GT_FUNCTION typename return_type< typename from< Location1 >::template to< Location2 >, uint_t >::type
+            connectivity_index(Location1, Location2, Color, array< uint_t, 3 > const &i) const {
 
-            using return_type_t = typename return_type< typename from< Location1 >::template to< Location2 >, uint_t >::type;
+            using return_type_t =
+                typename return_type< typename from< Location1 >::template to< Location2 >, uint_t >::type;
 
             using n_neighbors_t = static_int< return_type_t::n_dimensions >;
 
@@ -727,8 +737,9 @@ namespace gridtools {
         }
 
         template < typename Location2 > // Works for cells or edges with same code
-        GT_FUNCTION typename return_type< typename from< cells >::template to< Location2 >, uint_t >::type neighbors_indices_3(
-            array< uint_t, 4 > const &i, cells, Location2) const {
+        GT_FUNCTION
+            typename return_type< typename from< cells >::template to< Location2 >, uint_t >::type neighbors_indices_3(
+                array< uint_t, 4 > const &i, cells, Location2) const {
             switch (i[1] % cells::n_colors::value) {
             case 0: {
                 return connectivity_index(cells(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
@@ -744,8 +755,9 @@ namespace gridtools {
         }
 
         template < typename Location2 > // Works for cells or edges with same code
-        GT_FUNCTION typename return_type< typename from< edges >::template to< Location2 >, uint_t >::type neighbors_indices_3(
-            array< uint_t, 4 > const &i, edges, Location2) const {
+        GT_FUNCTION
+            typename return_type< typename from< edges >::template to< Location2 >, uint_t >::type neighbors_indices_3(
+                array< uint_t, 4 > const &i, edges, Location2) const {
             switch (i[1] % edges::n_colors::value) {
             case 0: {
                 return connectivity_index(edges(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
@@ -765,7 +777,7 @@ namespace gridtools {
 
         template < typename Location2 > // Works for cells or edges with same code
         GT_FUNCTION typename return_type< typename from< vertexes >::template to< Location2 >, uint_t >::type
-        neighbors_indices_3(array< uint_t, 4 > const &i, vertexes, Location2) const {
+            neighbors_indices_3(array< uint_t, 4 > const &i, vertexes, Location2) const {
             return connectivity_index(vertexes(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
         }
     };

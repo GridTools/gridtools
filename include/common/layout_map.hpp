@@ -27,15 +27,13 @@ namespace gridtools {
     namespace _impl {
 
         template < int index >
-        GT_FUNCTION
-        constexpr static int __get(int i) {
+        GT_FUNCTION constexpr static int __get(int i) {
             return -1;
         }
 
         template < int index, int first, int... Vals >
-        GT_FUNCTION
-        constexpr static int __get(int i) {
-            return (i == index) ? first : __get<index+1, Vals...>(i);
+        GT_FUNCTION constexpr static int __get(int i) {
+            return (i == index) ? first : __get< index + 1, Vals... >(i);
         }
 
     } // namespace _impl
@@ -69,9 +67,8 @@ namespace gridtools {
         static const constexpr short_t layout_vector[sizeof...(Args)] = {Args...};
         typedef boost::mpl::vector_c< short_t, Args... > layout_vector_t;
 
-
-        //ctr
-        constexpr layout_map(){}
+        // ctr
+        constexpr layout_map() {}
 
         /* BOOST_STATIC_ASSERT(s); */
 
@@ -281,8 +278,7 @@ namespace gridtools {
 
         template < ushort_t I, typename T, T DefaultVal, typename Value, size_t D >
         GT_FUNCTION static constexpr T find_val(array< Value, D > const &indices) {
-            return ((pos_< I >::value >= length)) ? DefaultVal
-                                                  : indices[pos_< I >::value];
+            return ((pos_< I >::value >= length)) ? DefaultVal : indices[pos_< I >::value];
             // this calls arg_decorator::get
         }
 

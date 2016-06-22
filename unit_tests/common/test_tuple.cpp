@@ -7,4 +7,3 @@ TEST(tuple, test_tuple) {
 
     ASSERT_TRUE(result);
 }
-

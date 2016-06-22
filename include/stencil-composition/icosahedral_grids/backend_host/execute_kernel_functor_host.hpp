@@ -56,8 +56,8 @@ namespace gridtools {
 
             template < typename Index >
             void operator()(Index const &,
-                typename boost::enable_if< typename esf_sequence_contains_color< esf_sequence_t, color_type<Index::value> >::type >::type
-                    * = 0) const {
+                typename boost::enable_if< typename esf_sequence_contains_color< esf_sequence_t,
+                    color_type< Index::value > >::type >::type * = 0) const {
 
                 array_index_t memorized_index;
                 array_position_t memorized_position;
@@ -83,9 +83,10 @@ namespace gridtools {
             }
             template < typename Index >
             void operator()(Index const &,
-                typename boost::disable_if< typename esf_sequence_contains_color< esf_sequence_t, color_type<Index::value> >::type >::type
-                    * = 0) const {
-                // If there is no ESF in the sequence matching the color, we skip execution and simply increment the color iterator
+                typename boost::disable_if< typename esf_sequence_contains_color< esf_sequence_t,
+                    color_type< Index::value > >::type >::type * = 0) const {
+                // If there is no ESF in the sequence matching the color, we skip execution and simply increment the
+                // color iterator
                 m_it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
                     static_int< 1 > >();
             }

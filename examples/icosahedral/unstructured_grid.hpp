@@ -42,16 +42,16 @@ namespace gridtools {
 
         static const int ncolors = 2;
 
-    private:
-      array< uint_t, 4 > m_celldims;
-      array< uint_t, 4 > m_edgedims;
-      array< uint_t, 4 > m_vertexdims;
-      neighbour_list m_cell_to_cells;
-      neighbour_list m_cell_to_edges;
-      neighbour_list m_cell_to_vertexes;
-      neighbour_list m_edge_to_edges;
-      neighbour_list m_edge_to_cells;
-      neighbour_list m_vertex_to_vertexes;
+      private:
+        array< uint_t, 4 > m_celldims;
+        array< uint_t, 4 > m_edgedims;
+        array< uint_t, 4 > m_vertexdims;
+        neighbour_list m_cell_to_cells;
+        neighbour_list m_cell_to_edges;
+        neighbour_list m_cell_to_vertexes;
+        neighbour_list m_edge_to_edges;
+        neighbour_list m_edge_to_cells;
+        neighbour_list m_vertex_to_vertexes;
 
       public:
         explicit unstructured_grid(uint_t i, uint_t j, uint_t k)
@@ -72,13 +72,12 @@ namespace gridtools {
                         m_cell_to_cells.insert_neighbour({i, 1, j, k}, {i, 0, j, k});
                         m_cell_to_cells.insert_neighbour({i, 1, j, k}, {i, 0, j + 1, k});
 
-                        m_cell_to_edges.insert_neighbour({i,0,j,k},{i,1,j,k});
-                        m_cell_to_edges.insert_neighbour({i,0,j,k},{i,2,j,k});
-                        m_cell_to_edges.insert_neighbour({i,0,j,k},{i,0,j,k});
-                        m_cell_to_edges.insert_neighbour({i,1,j,k},{i+1,1,j,k});
-                        m_cell_to_edges.insert_neighbour({i,1,j,k},{i,2,j,k});
-                        m_cell_to_edges.insert_neighbour({i,1,j,k},{i,0,j+1,k});
-
+                        m_cell_to_edges.insert_neighbour({i, 0, j, k}, {i, 1, j, k});
+                        m_cell_to_edges.insert_neighbour({i, 0, j, k}, {i, 2, j, k});
+                        m_cell_to_edges.insert_neighbour({i, 0, j, k}, {i, 0, j, k});
+                        m_cell_to_edges.insert_neighbour({i, 1, j, k}, {i + 1, 1, j, k});
+                        m_cell_to_edges.insert_neighbour({i, 1, j, k}, {i, 2, j, k});
+                        m_cell_to_edges.insert_neighbour({i, 1, j, k}, {i, 0, j + 1, k});
                     }
                 }
             }

@@ -97,7 +97,7 @@ struct functor6 {
     GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
 };
 
-std::ostream& operator<<(std::ostream& s, functor0) { return s << "functor0"; }
+std::ostream &operator<<(std::ostream &s, functor0) { return s << "functor0"; }
 std::ostream &operator<<(std::ostream &s, functor1) { return s << "functor1"; }
 std::ostream &operator<<(std::ostream &s, functor2) { return s << "functor2"; }
 std::ostream &operator<<(std::ostream &s, functor3) { return s << "functor3"; }
@@ -110,7 +110,7 @@ typedef layout_map< 2, 1, 0 > layout_t;
 typedef BACKEND::storage_info< 0, layout_t > storage_info_type;
 typedef BACKEND::storage_type< float_type, storage_info_type >::type storage_type;
 
-typedef arg<0, storage_type> o0;
+typedef arg< 0, storage_type > o0;
 typedef arg< 1, storage_type > o1;
 typedef arg< 2, storage_type > o2;
 typedef arg< 3, storage_type > o3;
