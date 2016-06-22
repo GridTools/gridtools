@@ -869,18 +869,20 @@ namespace gridtools {
             "offset specified for the dimension corresponding to the number of field components/snapshots must be non "
             "negative");
 
-        // "offset specified for the dimension corresponding to the number of snapshots must be non negative");
-        GTASSERT((Accessor::type::n_dim <= metadata_t::space_dimensions + 1) || (accessor.template get< 1 >() >= 0));
+        // "offset specified for the dimension corresponding to the number of snapshots must be non negative"
+        GRIDTOOLS_STATIC_ASSERT(
+                    ((Accessor::type::n_dim <= metadata_t::space_dimensions + 1) || (accessor_mixed_t::template get_constexpr< 1 >() >= 0)),
+                    "offset specified for the dimension corresponding to the number of snapshots must be non negative");
         GRIDTOOLS_STATIC_ASSERT(
             (storage_t::traits::n_width > 0), "did you define a field dimension with 0 snapshots??");
         // "field dimension access out of bounds"
-        GTASSERT((accessor.template get< 0 >() < storage_t::traits::n_dimensions) ||
-                 Accessor::type::n_dim <= metadata_t::space_dimensions + 1);
+        GRIDTOOLS_STATIC_ASSERT(((accessor_mixed_t::template get_constexpr< 0 >() < storage_t::traits::n_dimensions) ||
+                 Accessor::type::n_dim <= metadata_t::space_dimensions + 1), "field dimension access out of bounds");
 
         // snapshot access out of bounds
-        GTASSERT((accessor.template get< 1 >() <
-                  _impl::access< storage_t::n_width - (accessor.template get_constexpr< 0 >()) - 1,
-                      typename storage_t::traits >::type::n_width));
+        GRIDTOOLS_STATIC_ASSERT((accessor_mixed_t::template get_constexpr< 1 >() <
+                  _impl::access< storage_t::n_width - (accessor_mixed_t::template get_constexpr< 0 >()) - 1,
+                      typename storage_t::traits >::type::n_width), "snapshot access out of bounds");
 
         return get_value(
             accessor,
