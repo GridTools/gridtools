@@ -713,17 +713,17 @@ namespace gridtools {
 
             using return_type_t = typename return_type< typename from< Location1 >::template to< Location2 >, uint_t >::type;
 
-            static const size_t n_neighbors = return_type_t::n_dimensions;
+            using n_neighbors_t = static_int< return_type_t::n_dimensions >;
 
-                // Note: offsets have to be extracted here as a constexpr object instead of passed inline to the apply fn
-                // Otherwise constexpr of the array is lost
-                constexpr const auto offsets =
-                    from< Location1 >::template to< Location2 >::template with_color< Color >::offsets();
+            // Note: offsets have to be extracted here as a constexpr object instead of passed inline to the apply fn
+            // Otherwise constexpr of the array is lost
+            constexpr const auto offsets =
+                from< Location1 >::template to< Location2 >::template with_color< Color >::offsets();
 
-                using seq = gridtools::apply_gt_integer_sequence<
-                    typename gridtools::make_gt_integer_sequence< int, n_neighbors >::type >;
-                return seq::template apply< return_type_t,
-                    get_connectivity_index< Location2, type, Color::value >::template get_element >(*this, i, offsets);
+            using seq = gridtools::apply_gt_integer_sequence<
+                typename gridtools::make_gt_integer_sequence< int, n_neighbors_t::value >::type >;
+            return seq::template apply< return_type_t,
+                get_connectivity_index< Location2, type, Color::value >::template get_element >(*this, i, offsets);
         }
 
         template < typename Location2 > // Works for cells or edges with same code
