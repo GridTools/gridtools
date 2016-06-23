@@ -80,8 +80,8 @@ class Stencil (object):
             #
             # If data_field is a sliced array, we have to get the offsets in
             # order to properly generate the interior point coordinates.
-            # The base property will tell if its memory comes from some other
-            # object.
+            # The 'base' property will tell if data_field's memory comes from
+            # another object.
             # If so, we use the NumPy Array Interface to get pointers to the
             # first data elements of both data_field and its base array.
             # For detalied information, please see
@@ -93,8 +93,14 @@ class Stencil (object):
             i_off, j_off, k_off = (0, 0, 0)
             if data_field.base is not None:
                 ptr_offset = (data_field.__array_interface__['data'][0]
-                              -data_field.base.__array_interface__['data'][0])
-                if data_field.flags['C_CONTIGUOUS']:
+                              - data_field.base.__array_interface__['data'][0])
+                #
+                # Check data ordering on base array, because if data_field is
+                # sliced on any of the first 2 dimensions it will not be
+                # C contiguous nor F contiguous, as data is not on a single
+                # contiguous segment
+                #
+                if data_field.base.flags['C_CONTIGUOUS']:
                     i_off, mod = divmod (ptr_offset, data_field.strides[0])
                     j_off, mod = divmod (mod, data_field.strides[1])
                     k_off, mod = divmod (mod, data_field.strides[2])
@@ -1243,4 +1249,3 @@ class CombinedStencil (Stencil):
                             independent_stages   = independent_stages),
                 make.render (stencil  = self,
                              compiler = self.compiler))
-
