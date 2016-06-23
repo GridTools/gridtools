@@ -8,8 +8,6 @@
 #include "accessor_tests.hpp"
 #include "loop_hierarchy_test.hpp"
 
-#include "communication/layout_map.cpp"
-
 TEST(testdomain, testindices) {
     EXPECT_EQ(test_domain_indices(), true);
 }
@@ -54,10 +52,6 @@ TEST(stencil, loop_hierarchy) {
 #undef TESTCLASS
 #define TESTCLASS stencil
 #include "stencil_tests.hpp"
-
-TEST(testcommon, layoutmap) {
-    EXPECT_EQ(test_layout_map(), true);
-}
 
 TEST(python, copy) {
     EXPECT_EQ(test_copystencil_python(), false);

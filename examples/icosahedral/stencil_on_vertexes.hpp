@@ -25,6 +25,7 @@ namespace sov {
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
     typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
+    template < uint_t Color >
     struct test_on_vertexes_functor {
         typedef in_accessor< 0, icosahedral_topology_t::vertexes, extent< 1 > > in;
         typedef inout_accessor< 1, icosahedral_topology_t::vertexes > out;
@@ -46,8 +47,6 @@ namespace sov {
         uint_t d1 = x;
         uint_t d2 = y;
         uint_t d3 = z;
-
-        typedef gridtools::layout_map< 2, 1, 0 > layout_t;
 
         using cell_storage_type = typename backend_t::storage_t< icosahedral_topology_t::vertexes, double >;
 
@@ -76,12 +75,9 @@ namespace sov {
         typedef arg< 0, cell_storage_type > p_in_vertexes;
         typedef arg< 1, cell_storage_type > p_out_vertexes;
 
-        typedef boost::mpl::
-            vector< p_in_vertexes, p_out_vertexes >
-                accessor_list_t;
+        typedef boost::mpl::vector< p_in_vertexes, p_out_vertexes > accessor_list_t;
 
-        gridtools::domain_type< accessor_list_t > domain(boost::fusion::make_vector(
-            &in_vertexes, &out_vertexes));
+        gridtools::domain_type< accessor_list_t > domain(boost::fusion::make_vector(&in_vertexes, &out_vertexes));
         array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
@@ -89,16 +85,14 @@ namespace sov {
         grid_.value_list[0] = 0;
         grid_.value_list[1] = d3 - 1;
 
-        auto stencil_ =
-            gridtools::make_computation< backend_t >(domain,
-                grid_,
-                gridtools::make_mss // mss_descriptor
-                (execute< forward >(),
-                                                         gridtools::make_esf< test_on_vertexes_functor,
-                                                             icosahedral_topology_t,
-                                                             icosahedral_topology_t::vertexes >(p_in_vertexes(),
-                                                             p_out_vertexes()
-                                                             )));
+        auto stencil_ = gridtools::make_computation< backend_t >(
+            domain,
+            grid_,
+            gridtools::make_mss // mss_descriptor
+            (execute< forward >(),
+                gridtools::make_esf< test_on_vertexes_functor,
+                    icosahedral_topology_t,
+                    icosahedral_topology_t::vertexes >(p_in_vertexes(), p_out_vertexes())));
         stencil_->ready();
         stencil_->steady();
         stencil_->run();

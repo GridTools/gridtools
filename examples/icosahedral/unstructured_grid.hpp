@@ -42,6 +42,17 @@ namespace gridtools {
 
         static const int ncolors = 2;
 
+      private:
+        array< uint_t, 4 > m_celldims;
+        array< uint_t, 4 > m_edgedims;
+        array< uint_t, 4 > m_vertexdims;
+        neighbour_list m_cell_to_cells;
+        neighbour_list m_cell_to_edges;
+        neighbour_list m_cell_to_vertexes;
+        neighbour_list m_edge_to_edges;
+        neighbour_list m_edge_to_cells;
+        neighbour_list m_vertex_to_vertexes;
+
       public:
         explicit unstructured_grid(uint_t i, uint_t j, uint_t k)
             : m_celldims{i, 2, j, k}, m_edgedims{i, 3, j, k}, m_vertexdims{i, 1, j + 1, k}, m_cell_to_cells(m_celldims),
@@ -54,12 +65,19 @@ namespace gridtools {
             for (uint_t k = 0; k < m_celldims[3]; ++k) {
                 for (uint_t i = 1; i < m_celldims[0] - 1; ++i) {
                     for (uint_t j = 1; j < m_celldims[2] - 1; ++j) {
-                        m_cell_to_cells.insert_neighbour({i, 0, j, k}, {i, 1, j - 1, k});
                         m_cell_to_cells.insert_neighbour({i, 0, j, k}, {i - 1, 1, j, k});
                         m_cell_to_cells.insert_neighbour({i, 0, j, k}, {i, 1, j, k});
-                        m_cell_to_cells.insert_neighbour({i, 1, j, k}, {i, 0, j, k});
+                        m_cell_to_cells.insert_neighbour({i, 0, j, k}, {i, 1, j - 1, k});
                         m_cell_to_cells.insert_neighbour({i, 1, j, k}, {i + 1, 0, j, k});
+                        m_cell_to_cells.insert_neighbour({i, 1, j, k}, {i, 0, j, k});
                         m_cell_to_cells.insert_neighbour({i, 1, j, k}, {i, 0, j + 1, k});
+
+                        m_cell_to_edges.insert_neighbour({i, 0, j, k}, {i, 1, j, k});
+                        m_cell_to_edges.insert_neighbour({i, 0, j, k}, {i, 2, j, k});
+                        m_cell_to_edges.insert_neighbour({i, 0, j, k}, {i, 0, j, k});
+                        m_cell_to_edges.insert_neighbour({i, 1, j, k}, {i + 1, 1, j, k});
+                        m_cell_to_edges.insert_neighbour({i, 1, j, k}, {i, 2, j, k});
+                        m_cell_to_edges.insert_neighbour({i, 1, j, k}, {i, 0, j + 1, k});
                     }
                 }
             }
@@ -108,17 +126,6 @@ namespace gridtools {
 
         template < typename LocationTypeFrom, typename LocationTypeTo >
         std::list< array< uint_t, 4 > > const &neighbours_of(array< uint_t, 4 > const &coords);
-
-      private:
-        array< uint_t, 4 > m_celldims;
-        array< uint_t, 4 > m_edgedims;
-        array< uint_t, 4 > m_vertexdims;
-        neighbour_list m_cell_to_cells;
-        neighbour_list m_cell_to_edges;
-        neighbour_list m_cell_to_vertexes;
-        neighbour_list m_edge_to_edges;
-        neighbour_list m_edge_to_cells;
-        neighbour_list m_vertex_to_vertexes;
     };
 
 } // namespace gridtools

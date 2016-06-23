@@ -1,6 +1,5 @@
 #include <iostream>
 #include <fstream>
-#include <boost/timer/timer.hpp>
 #include <gridtools.hpp>
 #include <common/defs.hpp>
 
@@ -76,7 +75,6 @@ int main_naive(int argc, char** argv) {
 
     print(out, d1, d2, d3, file_i);
 
-    boost::timer::cpu_timer time;
     for (uint_t i=2; i < d1-2; ++i) {
         for (uint_t j=2; j < d2-2; ++j) {
             for (uint_t k=0; k < d3; ++k) {
@@ -93,11 +91,8 @@ int main_naive(int argc, char** argv) {
             }
         }
     }
-    boost::timer::cpu_times lapse_time = time.elapsed();
 
     print(out, d1, d2, d3, file_o);
-
-    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
 
     delete[] in;
     delete[] out;
@@ -140,7 +135,6 @@ int main_naive_inc(int argc, char** argv) {
 
     print(out, d1, d2, d3, file_i);
 
-    boost::timer::cpu_timer time;
     for (uint_t i=2; i < d1-2; ++i) {
         for (uint_t j=2; j < d2-2; ++j) {
             double* po = out + offs_(i,j,0,d1,d2,d3);
@@ -169,11 +163,9 @@ int main_naive_inc(int argc, char** argv) {
             }
         }
     }
-    boost::timer::cpu_times lapse_time = time.elapsed();
 
     print(out, d1, d2, d3, file_o);
 
-    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
 
     delete[] in;
     delete[] out;
@@ -216,7 +208,6 @@ int main_block(int argc, char** argv) {
 
     print(out, d1, d2, d3, file_i);
 
-    boost::timer::cpu_timer time;
     uint_t BI = 4;
     uint_t BJ = 4;
 
@@ -333,11 +324,7 @@ int main_block(int argc, char** argv) {
     }
 
 
-    boost::timer::cpu_times lapse_time = time.elapsed();
-
     print(out, d1, d2, d3, file_o);
-
-    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
 
     return 0;
 }
@@ -378,7 +365,6 @@ int main_block_inc(int argc, char** argv) {
 
     print(out, d1, d2, d3, file_i);
 
-    boost::timer::cpu_timer time;
     uint_t BI = 4;
     uint_t BJ = 4;
 
@@ -531,11 +517,7 @@ int main_block_inc(int argc, char** argv) {
     }
 
 
-    boost::timer::cpu_times lapse_time = time.elapsed();
-
     print(out, d1, d2, d3, file_o);
-
-    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
 
     return 0;
 }

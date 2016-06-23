@@ -23,7 +23,7 @@ if( NOT GCL_ONLY )
   ### L2
   if( GCL_MPI )
     #CPU 2D MPI tests
-    foreach(srcfile test_descriptors_3D test_empty_descriptors_3D boolist ndloops layout_map)
+    foreach(srcfile test_descriptors_3D test_empty_descriptors_3D boolist ndloops)
       add_executable( ${srcfile} ../../unit_tests/communication/${srcfile}.cpp)
       add_dependencies(${srcfile} gcl)
       set_target_properties(${srcfile} PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} ${ADDITIONAL_CXX_FLAGS}")
