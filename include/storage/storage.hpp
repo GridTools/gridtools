@@ -13,6 +13,7 @@
 #include "../common/generic_metafunctions/reverse_pack.hpp"
 #include "../common/pointer_metafunctions.hpp"
 #endif
+#include "meta_storage_extender.hpp"
 
 /**
 @file
@@ -157,13 +158,13 @@ namespace gridtools {
             // clone the storage itself to device
             m_storage.update_gpu();
             // set m_on_host to false
-            m_on_host = false;
-        }
+                m_on_host = false;
+            }
 
-        /* Following method are just forwarding methods to the base_storage. */
-        storage_info_type const &meta_data() const {
-            assert(m_on_host);
-            return *m_meta_data;
+            /* Following method are just forwarding methods to the base_storage. */
+            storage_info_type const &meta_data() const {
+                assert(m_on_host);
+                return *m_meta_data;
         }
 
         pointer< storage_info_type const > get_meta_data_pointer() const {
@@ -332,7 +333,7 @@ namespace gridtools {
 
         /**
          * explicitly disables the case in which the storage_info is passed as r- or x-value.
-         */
+        */
         template < typename... T >
         storage(storage_info_type &&, T...) = delete;
 
@@ -384,9 +385,9 @@ namespace gridtools {
 
     /** @brief syntactic sugar for defining a data field
 
-            Given a storage type and the dimension number it generates the correct data field type
-            @tparam Storage the basic storage used
-            @tparam Number the number of snapshots in each dimension
+        Given a storage type and the dimension number it generates the correct data field type
+        @tparam Storage the basic storage used
+        @tparam Number the number of snapshots in each dimension
      */
     template < class Storage, uint_t... Number >
     struct field_reversed;
@@ -435,7 +436,7 @@ namespace gridtools {
 
        @tparam Storage the basic storage type shared by all the snapshots
        @tparam First  all the subsequent parameters define the dimensionality of the snapshot arrays
-            in all the data field dimensions
+        in all the data field dimensions
      */
     template < class Storage, uint_t First, uint_t... Number >
     struct field {

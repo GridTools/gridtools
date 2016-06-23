@@ -52,7 +52,7 @@ namespace interface {
 
         alias_t first(dimension< 8 >(23), z(-5));
 
-        GRIDTOOLS_STATIC_ASSERT(alias_t::get_constexpr< 14 >() == 4, "ERROR");
+        GRIDTOOLS_STATIC_ASSERT(first.get< 14 >() == 4, "ERROR");
         return first.get< 14 - 6 >() == 2 && first.get< 14 - 0 >() == 4 && first.get< 14 - 14 >() == -3 &&
                first.get< 14 - 7 >() == 23 && first.get< 14 - 2 >() == -5;
     }
