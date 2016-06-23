@@ -49,6 +49,14 @@
 #define DEPRECATED(func) func
 #endif
 
+#ifdef __GNUC__
+#define GT_FORCE_INLINE inline __attribute__((always_inline))
+#elif defined(_MSC_VER)
+#define GT_FORCE_INLINE inline __forceinline
+#else
+#define GT_FORCE_INLINE inline
+#endif
+
 /** Macro to enable additional checks that may catch some errors in user code
  */
 #ifndef PEDANTIC_DISABLED
