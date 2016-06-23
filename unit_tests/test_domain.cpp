@@ -191,9 +191,10 @@ bool test_domain() {
     boost::fusion::copy(domain.m_storage_pointers, actual_arg_list);
 
 #ifdef __CUDACC__
-    gridtools::setup_computation<gridtools::enumtype::Cuda>::apply( actual_arg_list, actual_metadata_list, domain );
+    gridtools::setup_computation< gridtools::enumtype::Cuda >::apply(actual_arg_list, actual_metadata_list, domain);
 #else
-    gridtools::setup_computation<gridtools::enumtype::Host>::apply( actual_arg_list, actual_metadata_list, domain ); //does nothing
+    gridtools::setup_computation< gridtools::enumtype::Host >::apply(
+        actual_arg_list, actual_metadata_list, domain); // does nothing
 #endif
 
 
@@ -220,9 +221,10 @@ bool test_domain() {
     boost::fusion::copy(domain.m_storage_pointers, actual_arg_list);
 
 #ifdef __CUDACC__
-    gridtools::setup_computation<gridtools::enumtype::Cuda>::apply( actual_arg_list, actual_metadata_list, domain );
+    gridtools::setup_computation< gridtools::enumtype::Cuda >::apply(actual_arg_list, actual_metadata_list, domain);
 #else
-    gridtools::setup_computation<gridtools::enumtype::Host>::apply( actual_arg_list, actual_metadata_list, domain ); //does nothing
+    gridtools::setup_computation< gridtools::enumtype::Host >::apply(
+        actual_arg_list, actual_metadata_list, domain); // does nothing
 #endif
 
     inner_args =

@@ -46,3 +46,4 @@ fi
 
 export CUDA_ARCH=sm_35
 
+export DEFAULT_QUEUE=k80

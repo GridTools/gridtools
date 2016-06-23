@@ -252,7 +252,13 @@ fi
 
 exit_if_error ${error_code}
 
-bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh
+queue_str=""
+if [[ ${QUEUE} ]] ; then
+  queue_str="-q ${QUEUE}"
+fi
+
+
+bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh ${queue_str}
 
 exit_if_error $?
 

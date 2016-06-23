@@ -95,6 +95,30 @@ namespace gridtools {
         }
 
         /**
+           @brief applies a lambda function to the transformed argument pack.
+           The original argument pack provided by the user args_... is transformed by the apply method of the
+           MetaFunctor
+           provided. The resulting argument pack is used to call the lambda.
+
+           The metafunctor applied is templated with an index which identifies the current argument. This allow
+           to define specialised behaviour of the functor for the specific arguments.
+
+           \tparam Lambda lambda function applied to the transformed argument pack
+           \tparam MetaFunctor functor that is transforming each of the arguments of the variadic pack
+           \tparam AdditionalArg additional argument passed to the lambda at the end of the pack
+           \tparam ExtraTypes variadic pack of arguments to be passed to the lambda
+         */
+        template < typename ReturnType,
+            typename Lambda,
+            template < UInt T > class MetaFunctor,
+            typename AdditionalArg,
+            typename... ExtraTypes >
+        GT_FUNCTION static constexpr ReturnType apply_lambda(
+            Lambda lambda, AdditionalArg add_arg, ExtraTypes const &... args_) {
+            return lambda(MetaFunctor< Indices >::apply(args_...)..., add_arg);
+        }
+
+        /**
            @brief duplicated interface for the case in which the container is an aggregator
          */
         template < typename Container,
