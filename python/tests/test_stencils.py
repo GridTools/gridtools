@@ -1039,11 +1039,7 @@ class VerticalRegionsTest (LaplaceTest):
 
     TODO: Add tests for:
             - overlapping vertical regions within the same stage (requires
-                support for multiple vertical regions within a stage),
-            - negative slicing at the beggining or end,
-            - positive slicing at the beggining with field overflow,
-            - positive slicing at the end with field overflow,
-            - using a variable/attribute instead of a constant when slicing.
+                support for multiple vertical regions within a stage)
 
     """
     def setUp (self):
