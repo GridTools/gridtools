@@ -20,6 +20,7 @@
 #include <boost/fusion/include/for_each.hpp>
 
 #include "../common/generic_metafunctions/static_if.hpp"
+#include "../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../common/generic_metafunctions/is_variadic_pack_of.hpp"
 #include "../common/generic_metafunctions/arg_comparator.hpp"
 #include "../common/gpu_clone.hpp"
@@ -28,9 +29,9 @@
 #include "../storage/storage_functors.hpp"
 #include "../storage/metadata_set.hpp"
 
-#include "domain_type_impl.hpp"
-#include "arg_metafunctions.hpp"
-#include "arg.hpp"
+#include "./domain_type_impl.hpp"
+#include "./arg_metafunctions.hpp"
+#include "./arg.hpp"
 
 /**@file
    @brief This file contains the global list of placeholders to the storages
@@ -220,6 +221,9 @@ namespace gridtools {
                 "Add at least one storage to the domain_type "
                 "definition.");
 
+            // NOTE: the following assertion assumes there StorageArgs has length at leas 1
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair< StorageArgs >::value...), "wrong type");
+
             typedef boost::fusion::filter_view< arg_list, is_not_tmp_storage< boost::mpl::_1 > > view_type;
 
             GRIDTOOLS_STATIC_ASSERT((boost::fusion::result_of::size< view_type >::type::value ==
@@ -229,8 +233,30 @@ namespace gridtools {
                 "to non-temporary storages. Double check the temporary flag in the meta_storage types or add the necessary storages.");
 
 
-            // NOTE: the following assertion assumes there StorageArgs has length at leas 1
-            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair< StorageArgs >::value...), "wrong type");
+            // So far we checked that the number of arguments provided
+            // match with the expected number of non-temporaries and
+            // that there is at least one argument (no-default
+            // constructor syntax). Now we need to check that all the
+            // placeholders used in the processes are valid. To do so
+            // we use a set. We insert arguments into a set so that we
+            // can identify if a certain argument type appears
+            // twice. (In the arg_storage_pair we check that the
+            // storage types are the same between the arg and the
+            // storage). This should be sufficient to prove that the
+            // argument list is valid. It is in principle possible
+            // that someone passes a placeholder to a temporary and
+            // associates it to a user-instantiated temporary pointer,
+            // but this is very complicated and I don't think we
+            // should check for this.
+            typedef typename variadic_to_vector<StorageArgs...>::type storages;
+            typedef typename boost::mpl::fold<
+                storages,
+                boost::mpl::set0<>,
+                boost::mpl::insert<boost::mpl::_1, boost::mpl::_2>
+                >::type counting_map;
+
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<counting_map>::type::value == sizeof...(StorageArgs)), "Some placeholders appears to be used more than once in the association between placeholders and storages");
+
             assign_pointers(m_metadata_set, args...);
         }
 #endif
