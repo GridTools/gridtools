@@ -1003,6 +1003,12 @@ class HorizontalDiffusionTest (CopyTest):
 class VerticalRegions (MultiStageStencil):
     """
     A stencil using a Laplacian-like operator with different vertical regions
+    Notable features:
+    * Vertical regions overlap between all stages: stencil splitter ordering is
+        not trivial
+    * stage_laplace3 has a vertical region corresponding with the end of
+        stage_laplace0 and the start of stage_laplace2: this will generate
+        duplicate splitters that have to be eliminated at stencil level
     """
     def __init__ (self, domain):
         super ( ).__init__ ( )
@@ -1030,13 +1036,22 @@ class VerticalRegions (MultiStageStencil):
                           in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
 
 
+    def stage_laplace3 (self, out_data, in_data):
+        for p in self.get_interior_points (out_data[:,:,4:8]):
+            out_data[p] = -10.0 * in_data[p] + (
+                          in_data[p + (1,0,0)]  + in_data[p + (0,1,0)] +
+                          in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
+
+
     @Stencil.kernel
-    def kernel (self, out_data0, out_data1, out_data2, in_data):
+    def kernel (self, out_data0, out_data1, out_data2, out_data3, in_data):
         self.stage_laplace0 (out_data = out_data0,
                             in_data = in_data)
         self.stage_laplace1 (out_data = out_data1,
                             in_data = in_data)
         self.stage_laplace2 (out_data = out_data2,
+                            in_data = in_data)
+        self.stage_laplace3 (out_data = out_data3,
                             in_data = in_data)
 
 
@@ -1046,7 +1061,8 @@ class VerticalRegionsTest (LaplaceTest):
     Test fixture for the VerticalRegions stencil defined above
 
     TODO: Add tests for:
-            - overlapping vertical regions within the same stage,
+            - overlapping vertical regions within the same stage (requires
+                support for multiple vertical regions within a stage),
             - negative slicing at the beggining or end,
             - positive slicing at the beggining with field overflow,
             - positive slicing at the end with field overflow,
@@ -1059,11 +1075,13 @@ class VerticalRegionsTest (LaplaceTest):
         self.params = ('out_data0',
                        'out_data1',
                        'out_data2',
+                       'out_data3',
                        'in_data')
 
         self.out_data0 = np.zeros (self.domain, order='F')
         self.out_data1 = np.zeros (self.domain, order='F')
         self.out_data2 = np.zeros (self.domain, order='F')
+        self.out_data3 = np.zeros (self.domain, order='F')
 
         self.stencil = VerticalRegions (self.domain)
         self.stencil.set_halo ( (1, 1, 1, 1) )
@@ -1074,7 +1092,8 @@ class VerticalRegionsTest (LaplaceTest):
         if expected_deps is None:
             expected_deps = [('out_data0', 'in_data'),
                              ('out_data1', 'in_data'),
-                             ('out_data2', 'in_data')]
+                             ('out_data2', 'in_data'),
+                             ('out_data3', 'in_data')]
         super ( ).test_data_dependency_detection (expected_deps=expected_deps,
                                                   backend=backend)
 
@@ -1087,12 +1106,15 @@ class VerticalRegionsTest (LaplaceTest):
         self.add_expected_offset ('in_data', None)
         self.add_expected_offset ('in_data', None)
         self.add_expected_offset ('in_data', None)
+        self.add_expected_offset ('in_data', None)
+        self.add_expected_offset ('in_data',  [-1,1,-1,1])
         self.add_expected_offset ('in_data',  [-1,1,-1,1])
         self.add_expected_offset ('in_data',  [-1,1,-1,1])
         self.add_expected_offset ('in_data',  [-1,1,-1,1])
         self.add_expected_offset ('out_data0', None)
         self.add_expected_offset ('out_data1', None)
         self.add_expected_offset ('out_data2', None)
+        self.add_expected_offset ('out_data3', None)
 
         for backend in BACKENDS:
             self.stencil.set_backend (backend)
@@ -1103,6 +1125,7 @@ class VerticalRegionsTest (LaplaceTest):
     def test_ghost_cell_pattern (self, expected_patterns=None, backend='c++'):
         if expected_patterns is None:
             expected_patterns = [ [0,0,0,0],
+                                  [0,0,0,0],
                                   [0,0,0,0],
                                   [0,0,0,0] ]
         super ( ).test_ghost_cell_pattern (expected_patterns,
@@ -1124,12 +1147,40 @@ class VerticalRegionsTest (LaplaceTest):
     def test_splitters (self):
         self._run ( )
         self.assertEqual (self.stencil.splitters,
-                          #{0: 0, 2: 1, 3: 2, 5: 3, 6: 4, 32: 5})
                           {0: 0, 3: 1, 4: 2, 6: 3, 8: 4, 32: 5})
-#        for stg in self.stencil.stages:
-#            for vr in stg.vertical_regions:
-#                self.assertEqual (vr.start_splitter, self.stencil.splitters[vr.start_splitter])
-#                self.assertEqual (vr.end_splitter, self.stencil.splitters[vr.start_splitter])
+
+
+    def test_vertical_regions (self):
+        self._run ( )
+        expected_vr = {'stage_laplace0': [0,4],
+                       'stage_laplace1': [3,8],
+                       'stage_laplace2': [6,32],
+                       'stage_laplace3': [4,8]}
+        #
+        # Iterate over stages, popping expected values from the dictionary
+        # A dict is required because stages is the result of a topological sort,
+        # so we don't know the order the stages will be presented to us.
+        #
+        for stg in self.stencil.stages:
+            #
+            # Check only the stage-specific part of the name string, as we don't
+            # know the name of the stencil and the number that will be prepended
+            # or appended to the name string at runtime
+            #
+            vr_key = None
+            for k in expected_vr.keys():
+                if k in stg.name:
+                    vr_key = k
+            #
+            # Check that VR edges correspond to expected ones
+            #
+            vr_edges = expected_vr.pop(vr_key)
+            self.assertEqual (stg.vertical_regions[0].start_splitter, vr_edges[0])
+            self.assertEqual (stg.vertical_regions[0].end_splitter, vr_edges[1])
+        #
+        # Check all expected vertical regions have been tested (dict is empty)
+        #
+        self.assertFalse (expected_vr)
 
 
 
