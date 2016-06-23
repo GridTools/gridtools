@@ -464,22 +464,6 @@ class SWTest (CopyTest):
                                        result_file = 'sw_001.npy')
 
 
-    def test_get_interior_points_K_static (self):
-        super ( ).test_get_interior_points_K_static (self.out_H)
-
-
-    def test_get_interior_points_K_object (self):
-        super ( ).test_get_interior_points_K_object (self.out_H)
-
-
-    def test_get_interior_points_IJ_static (self):
-        super ( ).test_get_interior_points_IJ_static (self.out_H)
-
-
-    def test_get_interior_points_IJ_object (self):
-        super ( ).test_get_interior_points_IJ_object (self.out_H)
-
-
 
 class LocalSW (MultiStageStencil):
     def __init__ (self, domain):
