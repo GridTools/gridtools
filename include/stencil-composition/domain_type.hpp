@@ -226,12 +226,12 @@ namespace gridtools {
 
             typedef boost::fusion::filter_view< arg_list, is_not_tmp_storage< boost::mpl::_1 > > view_type;
 
-            GRIDTOOLS_STATIC_ASSERT((boost::fusion::result_of::size< view_type >::type::value ==
-                                     sizeof...(StorageArgs)),
+            GRIDTOOLS_STATIC_ASSERT(
+                (boost::fusion::result_of::size< view_type >::type::value == sizeof...(StorageArgs)),
                 "The number of arguments specified when constructing the domain_type is not the same as the number of "
                 "placeholders "
-                "to non-temporary storages. Double check the temporary flag in the meta_storage types or add the necessary storages.");
-
+                "to non-temporary storages. Double check the temporary flag in the meta_storage types or add the "
+                "necessary storages.");
 
             // So far we checked that the number of arguments provided
             // match with the expected number of non-temporaries and
@@ -248,14 +248,14 @@ namespace gridtools {
             // associates it to a user-instantiated temporary pointer,
             // but this is very complicated and I don't think we
             // should check for this.
-            typedef typename variadic_to_vector<StorageArgs...>::type storages;
-            typedef typename boost::mpl::fold<
-                storages,
+            typedef typename variadic_to_vector< StorageArgs... >::type storages;
+            typedef typename boost::mpl::fold< storages,
                 boost::mpl::set0<>,
-                boost::mpl::insert<boost::mpl::_1, boost::mpl::_2>
-                >::type counting_map;
+                boost::mpl::insert< boost::mpl::_1, boost::mpl::_2 > >::type counting_map;
 
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<counting_map>::type::value == sizeof...(StorageArgs)), "Some placeholders appears to be used more than once in the association between placeholders and storages");
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< counting_map >::type::value == sizeof...(StorageArgs)),
+                "Some placeholders appears to be used more than once in the association between placeholders and "
+                "storages");
 
             assign_pointers(m_metadata_set, args...);
         }
@@ -313,7 +313,8 @@ namespace gridtools {
                                         boost::mpl::size< RealStorage >::type::value,
                 "The number of arguments specified when constructing the domain_type is not the same as the number of "
                 "placeholders "
-                "to non-temporary storages. Double check the temporary flag in the meta_storage types or add the necessary storages.");
+                "to non-temporary storages. Double check the temporary flag in the meta_storage types or add the "
+                "necessary storages.");
 
             // below few metafunctions only to protect the user from mismatched storages
             typedef typename boost::mpl::fold< arg_list_mpl,
