@@ -5,8 +5,6 @@ project( GRIDTOOLS )
 enable_language( CXX )
 enable_testing()
 
-set(CUDA_VERSION 75)
-add_definitions(-DCUDA_VERSION=${CUDA_VERSION})
 SET(SUPPRESS_MESSAGES "ON" CACHE BOOL "suppress compilation messages")
 if(SUPPRESS_MESSAGES)
     add_definitions(-DSUPPRESS_MESSAGES)
@@ -113,6 +111,9 @@ if( USE_GPU )
   SET(CUDA_SEPARABLE_COMPILATION ON)
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "${ADDITIONAL_NVCC_FLAGS}"
 "-arch=${CUDA_ARCH}" "-Xcudafe" "--diag_suppress=dupl_calling_convention" "-Xcudafe" "--diag_suppress=code_is_unreachable" "-Xcudafe" "--diag_suppress=implicit_return_from_non_void_function" "-Xcudafe" "--diag_suppress=calling_convention_not_allowed" "-Xcudafe" "--diag_suppress=conflicting_calling_conventions")
+
+  add_definitions(-DCUDA_VERSION=${CUDA_VERSION})
+
 else()
   set (CUDA_LIBRARIES "")
   set( CUDA_CXX11 " ")

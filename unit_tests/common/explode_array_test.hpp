@@ -2,6 +2,7 @@
 #include <common/tuple.hpp>
 #include <tools/verifier.hpp>
 
+#if !defined(__CUDACC__) || (CUDA_VERSION > 70)
 class PackChecker {
 
   public:
@@ -59,49 +60,56 @@ struct _impl_index_tuple {
         return me.check(args...);
     }
 };
+#endif
 
 using namespace gridtools;
 
 GT_FUNCTION
 static bool test_explode_static() {
-    constexpr array< int, 3 > a{35, 23, 9};
 #if !defined(__CUDACC__) || (CUDA_VERSION > 70)
+
+    constexpr array< int, 3 > a{35, 23, 9};
+
     GRIDTOOLS_STATIC_ASSERT((static_bool< explode< bool, PackChecker >(a) >::value == true), "ERROR");
-#endif
     return explode< bool, PackChecker >(a);
+#else
+    return true;
+#endif
 }
 
 GT_FUNCTION
 static bool test_explode_with_object() {
+#if !defined(__CUDACC__) || (CUDA_VERSION > 70)
     constexpr array< int, 3 > a{35, 23, 9};
     constexpr PackChecker checker;
-#if !defined(__CUDACC__) || (CUDA_VERSION > 70)
+
     GRIDTOOLS_STATIC_ASSERT((static_bool< explode< int, _impl_index >(a, checker) >::value == true), "ERROR");
-#endif
     return explode< int, _impl_index >(a, checker);
+#else
+    return true;
+#endif
 }
 
 GT_FUNCTION
 static bool test_explode_with_tuple() {
     bool result = true;
 
-#ifndef __CUDACC__
+#if !defined(__CUDACC__) || (CUDA_VERSION > 70)
     // constexpr check
     constexpr tuple< long, int, unsigned short > a_c(-353, 55, 9);
     GRIDTOOLS_STATIC_ASSERT((static_bool< explode< bool, TuplePackCheckerInt >(a_c) >::value == true), "ERROR");
     result = result && explode< bool, TuplePackCheckerInt >(a_c);
-#endif
     // with a double constexpr check is not possible
     tuple< int, float, unsigned short > a(-35, 23.3, 9);
     result = result && explode< bool, TuplePackChecker >(a);
+#endif
     return result;
 }
 
 GT_FUNCTION
 static bool test_explode_with_tuple_with_object() {
     bool result = true;
-#if !defined(__CUDACC__) || (CUDA_VERSION > 70)
-    dd
+#if !defined(__CUDACC__) || (CUDA_VERSION > 70) 
     // constexpr check
     constexpr tuple< long, int, unsigned short > a_c(-353, 55, 9);
     constexpr TuplePackCheckerInt checker_c;
