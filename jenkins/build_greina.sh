@@ -180,6 +180,11 @@ else
     STRUCTURED_GRIDS="OFF"
 fi
 
+if [[ -z ${CUDA_VERSION} ]]; then
+    echo "CUDA VERSION must be defined"
+    exit_if_error 444
+fi
+
 # echo "Printing ENV"
 # env
 
@@ -209,6 +214,7 @@ cmake \
 -DSTRUCTURED_GRIDS:BOOL=${STRUCTURED_GRIDS} \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 -DVERBOSE=$VERBOSE_RUN \
+-DCUDA_VERSION=${CUDA_VERSION}
  ../
 
 exit_if_error $?

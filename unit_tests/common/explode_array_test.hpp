@@ -65,7 +65,7 @@ using namespace gridtools;
 GT_FUNCTION
 static bool test_explode_static() {
     constexpr array< int, 3 > a{35, 23, 9};
-#ifndef __CUDACC__
+#if !defined(__CUDACC__) || (CUDA_VERSION > 70)
     GRIDTOOLS_STATIC_ASSERT((static_bool< explode< bool, PackChecker >(a) >::value == true), "ERROR");
 #endif
     return explode< bool, PackChecker >(a);
@@ -75,7 +75,7 @@ GT_FUNCTION
 static bool test_explode_with_object() {
     constexpr array< int, 3 > a{35, 23, 9};
     constexpr PackChecker checker;
-#ifndef __CUDACC__
+#if !defined(__CUDACC__) || (CUDA_VERSION > 70)
     GRIDTOOLS_STATIC_ASSERT((static_bool< explode< int, _impl_index >(a, checker) >::value == true), "ERROR");
 #endif
     return explode< int, _impl_index >(a, checker);
@@ -100,16 +100,17 @@ static bool test_explode_with_tuple() {
 GT_FUNCTION
 static bool test_explode_with_tuple_with_object() {
     bool result = true;
-#ifndef __CUDACC__
+#if !defined(__CUDACC__) || (CUDA_VERSION > 70)
+    dd
     // constexpr check
     constexpr tuple< long, int, unsigned short > a_c(-353, 55, 9);
     constexpr TuplePackCheckerInt checker_c;
     GRIDTOOLS_STATIC_ASSERT(
         (static_bool< explode< bool, _impl_index_tuple_int >(a_c, checker_c) >::value == true), "ERROR");
     result = result && explode< bool, _impl_index_tuple_int >(a_c, checker_c);
-#endif
     tuple< int, float, unsigned short > a(-35, 23.3, 9);
     TuplePackChecker checker;
     result = result && explode< bool, _impl_index_tuple >(a, checker);
+#endif
     return result;
 }

@@ -45,5 +45,5 @@ else
 fi
 
 export CUDA_ARCH=sm_35
-
+export CUDA_VERSION=75
 export DEFAULT_QUEUE=k80

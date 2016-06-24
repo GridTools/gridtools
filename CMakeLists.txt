@@ -5,6 +5,8 @@ project( GRIDTOOLS )
 enable_language( CXX )
 enable_testing()
 
+set(CUDA_VERSION 75)
+add_definitions(-DCUDA_VERSION=${CUDA_VERSION})
 SET(SUPPRESS_MESSAGES "ON" CACHE BOOL "suppress compilation messages")
 if(SUPPRESS_MESSAGES)
     add_definitions(-DSUPPRESS_MESSAGES)
