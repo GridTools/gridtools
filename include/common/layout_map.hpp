@@ -68,6 +68,7 @@ namespace gridtools {
         typedef boost::mpl::vector_c< short_t, Args... > layout_vector_t;
 
         // ctr
+        GT_FUNCTION
         constexpr layout_map() {}
 
         /* BOOST_STATIC_ASSERT(s); */
