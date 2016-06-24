@@ -79,7 +79,9 @@ using namespace gridtools;
 GT_FUNCTION
 static bool test_explode_static() {
     constexpr array<int, 3> a{35,23,9};
+#ifndef __CUDACC__
     GRIDTOOLS_STATIC_ASSERT(( static_bool<explode<bool, PackChecker>(a)>::value== true), "ERROR");
+#endif
     return explode<bool, PackChecker>(a);
 }
 
@@ -87,7 +89,9 @@ GT_FUNCTION
 static bool test_explode_with_object() {
     constexpr array<int, 3> a{35,23,9};
     constexpr PackChecker checker;
+#ifndef __CUDACC__
     GRIDTOOLS_STATIC_ASSERT(( static_bool<explode<int, _impl_index>(a, checker)>::value == true), "ERROR");
+#endif
     return explode<int, _impl_index>(a, checker);
 }
 
