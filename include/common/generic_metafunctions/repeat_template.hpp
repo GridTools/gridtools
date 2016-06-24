@@ -53,9 +53,14 @@ namespace gridtools {
 
        Usage example:
        I have a class template halo< .... >, and I want to fill it by repeating N times the same number H (represented
-       as an MPL type)
+       as an MPL type).
+       The following example
        \verbatim
-       repeat_template<static_short<H>, static_short<N>, halo>
+       repeat_template_v<static_short<5>, static_short<3>, short_t, halo, 4, 7, 8>
+       \endverbatim
+       will generate the type
+       \verbatim
+        halo<4, 7, 8, 5, 5, 5>
        \endverbatim
        Optionally a set of initial values to start filling the template class can be passed
      */
