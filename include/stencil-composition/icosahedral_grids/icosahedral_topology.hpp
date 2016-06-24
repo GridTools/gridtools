@@ -146,33 +146,31 @@ namespace gridtools {
      *   1. Flow variables on edges by convention are outward on downward cells (color 0) and inward on upward cells
      * (color 1)
      *      as depicted below
-     *    @verbatim
-     *                             ^
-     *                             |                   /\
-     *                        _____|____              /  \
-     *                        \        /             /    \
-     *                         \      /             /      \
-     *                     <----\    /---->        /-->  <--\
-     *                           \  /             /     ^    \
-     *                            \/             /______|_____\
-     *
-     *    @endverbatim
+     @verbatim
+              ^
+              |                   /\
+         _____|____              /  \
+         \        /             /    \
+          \      /             /      \
+      <----\    /---->        /-->  <--\
+            \  /             /     ^    \
+             \/             /______|_____\
+     @endverbatim
      *   2. Neighbor edges of a cell must follow the same convention than neighbor cells of a cell. I.e. the following
      *
-     *    @verbatim
-     *              /\
-     *             1  2
-     *            /_0__\
-     *
-     *     imposes
-     *          ____________
-     *          \    /\    /
-     *           \1 /  \2 /
-     *            \/____\/
-     *             \  0 /
-     *              \  /
-     *               \/
-     *    @endverbatim
+     @verbatim
+             /\
+            1  2
+           /_0__\
+       imposes
+          ____________
+          \    /\    /
+           \1 /  \2 /
+            \/____\/
+             \  0 /
+              \  /
+               \/
+     @endverbatim
      *
      *   3. Cell neighbours of an edge, in the order 0 -> 1 follow the direction of the flow (N_t) on edges defined in
      * 1.
@@ -193,16 +191,15 @@ namespace gridtools {
         /*
          * neighbors order
          *
-         *  @verbatim
-         *      ____________
-         *      \    /\    /
-         *       \1 /  \2 /
-         *        \/____\/
-         *         \  0 /
-         *          \  /
-         *           \/
-         *
-         *  @endverbatim
+         @verbatim
+           ____________
+           \    /\    /
+            \1 /  \2 /
+             \/____\/
+              \  0 /
+               \  /
+                \/
+         @endverbatim
          */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
@@ -221,16 +218,14 @@ namespace gridtools {
         /*
          * neighbors order
          *
-         * @verbatim
-         *
-         *        /\
-         *       /0 \
-         *      /____\
-         *     /\    /\
-         *    /2 \  /1 \
-         *   /____\/____\
-         *
-         * @endverbatim
+         @verbatim
+                 /\
+                /0 \
+               /____\
+              /\    /\
+             /2 \  /1 \
+            /____\/____\
+         @endverbatim
          */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
@@ -249,17 +244,17 @@ namespace gridtools {
         /*
          * neighbors order
          *
-         *  @verbatim
-         *
-         *          1____2
-         *         /\    /\
-         *        /  \  /  \
-         *       0____\/____3
-         *       \    /\    /
-         *        \  /  \  /
-         *         \5____4/
-         *
-         *  @endverbatim
+         @verbatim
+
+                1____2
+               /\    /\
+              /  \  /  \
+             0____\/____3
+             \    /\    /
+              \  /  \  /
+               \5____4/
+
+         @endverbatim
          */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
@@ -279,14 +274,14 @@ namespace gridtools {
         /*
          * neighbors order
          *
-         * @verbatim
-         *
-         *        __1___
-         *       /\    /
-         *      0  \  2
-         *     /_3__\/
-         *
-         * @endverbatim
+         @verbatim
+
+               __1___
+              /\    /
+             0  \  2
+            /_3__\/
+
+         @endverbatim
          */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
@@ -305,16 +300,16 @@ namespace gridtools {
         /*
          * neighbors order
          *
-         * @verbatim
-         *
-         *      /\
-         *     0  1
-         *    /____\
-         *    \    /
-         *     3  2
-         *      \/
-         *
-         * @endverbatim
+         @verbatim
+
+             /\
+            0  1
+           /____\
+           \    /
+            3  2
+             \/
+
+         @endverbatim
          */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
@@ -333,14 +328,14 @@ namespace gridtools {
         /*
          * neighbors order
          *
-         * @verbatim
-         *
-         *   __1___
-         *   \    /\
-         *    0  /  2
-         *     \/_3__\
-         *
-         * @endverbatim
+         @verbatim
+
+           __1___
+           \    /\
+            0  /  2
+             \/_3__\
+
+         @endverbatim
          */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
@@ -359,13 +354,13 @@ namespace gridtools {
         /*
          * neighbors order
          *
-         * @verbatim
-         *
-         *        /\
-         *       1  2
-         *      /_0__\
-         *
-         * @endverbatim
+         @verbatim
+
+              /\
+             1  2
+            /_0__\
+
+         @endverbatim
          */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
@@ -384,14 +379,14 @@ namespace gridtools {
         /*
          * neighbors order
          *
-         * @verbatim
-         *
-         *   __0___
-         *   \    /
-         *    2  1
-         *     \/
-         *
-         * @endverbatim
+         @verbatim
+
+           __0___
+           \    /
+            2  1
+             \/
+
+         @endverbatim
          */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
@@ -410,15 +405,15 @@ namespace gridtools {
         /*
          * neighbors order
          *
-         * @verbatim
-         *
-         *  1______2
-         *   \    /
-         *    \  /
-         *     \/
-         *     0
-         *
-         * @endverbatim
+         @verbatim
+
+          1______2
+           \    /
+            \  /
+             \/
+             0
+
+         @endverbatim
          */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
@@ -437,15 +432,15 @@ namespace gridtools {
         /*
          * neighbors order
          *
-         * @verbatim
-         *
-         *      0
-         *      /\
-         *     /  \
-         *    /____\
-         *   2      1
-         *
-         * @endverbatim
+         @verbatim
+
+              0
+              /\
+             /  \
+            /____\
+           2      1
+
+         @endverbatim
          */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
@@ -464,13 +459,13 @@ namespace gridtools {
         /*
          * neighbors order
          *
-         * @verbatim
-         *        ______
-         *       /\  1 /
-         *      /0 \  /
-         *     /____\/
-         *
-         * @endverbatim
+         @verbatim
+               ______
+              /\  1 /
+             /0 \  /
+            /____\/
+
+         @endverbatim
          */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
@@ -489,16 +484,16 @@ namespace gridtools {
         /*
          * neighbors order
          *
-         * @verbatim
-         *
-         *      /\
-         *     / 0\
-         *    /____\
-         *    \    /
-         *     \1 /
-         *      \/
-         *
-         * @endverbatim
+         @verbatim
+
+              /\
+             / 0\
+            /____\
+            \    /
+             \1 /
+              \/
+
+         @endverbatim
          */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
@@ -517,13 +512,13 @@ namespace gridtools {
         /*
          * neighbors order
          *
-         * @verbatim
-         *   ______
-         *   \ 1  /\
-         *    \  / 0\
-         *     \/____\
-         *
-         * @endverbatim
+         @verbatim
+           ______
+           \ 1  /\
+            \  / 0\
+             \/____\
+
+         @endverbatim
          */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
@@ -542,15 +537,15 @@ namespace gridtools {
         /*
          * neighbors order
          *
-         * @verbatim
-         *
-         *       1______
-         *       /\    /
-         *      /  \  /
-         *     /____\/
-         *           0
-         *
-         * @endverbatim
+         @verbatim
+
+              1______
+              /\    /
+             /  \  /
+            /____\/
+                  0
+
+         @endverbatim
          */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
@@ -569,16 +564,16 @@ namespace gridtools {
         /*
          * neighbors order
          *
-         * @verbatim
-         *
-         *      /\
-         *     /  \
-         *   0/____\1
-         *    \    /
-         *     \  /
-         *      \/
-         *
-         * @endverbatim
+         @verbatim
+
+              /\
+             /  \
+           0/____\1
+            \    /
+             \  /
+              \/
+
+         @endverbatim
          */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
@@ -597,15 +592,15 @@ namespace gridtools {
         /*
          * neighbors order
          *
-         * @verbatim
-         *
-         *   ______0
-         *   \    /\
-         *    \  /  \
-         *     \/____\
-         *     1
-         *
-         * @endverbatim
+         @verbatim
+
+           ______0
+           \    /\
+            \  /  \
+             \/____\
+             1
+
+         @endverbatim
          */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
@@ -624,16 +619,16 @@ namespace gridtools {
         /*
          * neighbors order
          *
-         * @verbatim
-         *          ______
-         *         /\ 1  /\
-         *        /0 \  / 2\
-         *       /____\/____\
-         *       \ 5  /\ 3  /
-         *        \  /4 \  /
-         *         \/____\/
-         *
-         * @endverbatim
+         @verbatim
+               ______
+              /\ 1  /\
+             /0 \  / 2\
+            /____\/____\
+            \ 5  /\ 3  /
+             \  /4 \  /
+              \/____\/
+
+         @endverbatim
          */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {
@@ -653,16 +648,16 @@ namespace gridtools {
         /*
          * neighbors order
          *
-         * @verbatim
-         *          ______
-         *         /\    /\
-         *        /  1  2  \
-         *       /__0_\/__3_\
-         *       \    /\    /
-         *        \  5  4  /
-         *         \/____\/
-         *
-         * @endverbatim
+         @verbatim
+               ______
+              /\    /\
+             /  1  2  \
+            /__0_\/__3_\
+            \    /\    /
+             \  5  4  /
+              \/____\/
+
+         @endverbatim
          */
         GT_FUNCTION
         constexpr static return_t< array< int_t, 4 > > offsets() {

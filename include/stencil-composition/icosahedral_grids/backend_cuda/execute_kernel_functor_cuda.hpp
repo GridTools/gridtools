@@ -1,5 +1,5 @@
 #pragma once
-#include "../../common/generic_metafunctions/transform_metadata.hpp"
+#include "../../common/generic_metafunctions/replace_template_arguments.hpp"
 #include "../../iteration_policy.hpp"
 #include "../../backend_traits_fwd.hpp"
 #include "stencil-composition/iterate_domain.hpp"
@@ -286,7 +286,7 @@ namespace gridtools {
                 // re-create the run functor arguments, replacing the processing elements block size
                 // with the corresponding, recently computed, block size
 #if defined(CXX11_ENABLED) && !defined(__CUDACC__)
-                typedef typename transform_meta_data< RunFunctorArguments,
+                typedef typename replace_template_arguments< RunFunctorArguments,
                     typename RunFunctorArguments::processing_elements_block_size_t,
                     cuda_block_size_t >::type run_functor_arguments_cuda_t;
 #else

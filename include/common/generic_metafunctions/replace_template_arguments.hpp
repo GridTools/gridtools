@@ -10,20 +10,20 @@ namespace gridtools {
     /**
      * metafunction used to replace types stored in a metadata class.
      * When a type (Metadata) is used as "metadata" to store a collection of types,
-     * transform_meta_data will substitute any type stored that equals a pattern (Pattern)
+     * replace_template_arguments will substitute any type stored that equals a pattern (Pattern)
      * with a new value type (Repl).
      *
      * Usage example:
      * boost::is_same<
-     *     typename transform_meta_data<wrap<int>, int, double>::type,
+     *     typename replace_template_arguments<wrap<int>, int, double>::type,
      *     wrap<double>
      * > :: value == true
      */
     template < typename Metadata, typename Pattern, typename Repl >
-    struct transform_meta_data;
+    struct replace_template_arguments;
 
     template < template < typename... > class Metadata, typename... Args, typename Pattern, typename Repl >
-    struct transform_meta_data< Metadata< Args... >, Pattern, Repl > {
+    struct replace_template_arguments< Metadata< Args... >, Pattern, Repl > {
         typedef Metadata< typename subs< Pattern, Repl, Args >::type... > type;
     };
 #endif

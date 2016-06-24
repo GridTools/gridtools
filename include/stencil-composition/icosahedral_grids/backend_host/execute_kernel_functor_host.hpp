@@ -1,7 +1,7 @@
 #pragma once
 #include <boost/utility/enable_if.hpp>
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
-#include "../../common/generic_metafunctions/transform_metadata.hpp"
+#include "../../common/generic_metafunctions/replace_template_arguments.hpp"
 #include "stencil-composition/backend_host/iterate_domain_host.hpp"
 #include "stencil-composition/icosahedral_grids/esf_metafunctions.hpp"
 #include "../../iteration_policy.hpp"
@@ -20,7 +20,7 @@ namespace gridtools {
         template < typename RunFunctorArguments, typename Index >
         struct colorize_run_functor_arguments {
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), "Error");
-            typedef typename transform_meta_data< RunFunctorArguments,
+            typedef typename replace_template_arguments< RunFunctorArguments,
                 typename RunFunctorArguments::color_t,
                 color_type< (uint_t)Index::value > >::type type;
         };
