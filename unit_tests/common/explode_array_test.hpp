@@ -97,7 +97,9 @@ static bool test_explode_with_tuple() {
 #if !defined(__CUDACC__) || (CUDA_VERSION > 70)
     // constexpr check
     constexpr tuple< long, int, unsigned short > a_c(-353, 55, 9);
+#if (CUDA_VERSION > 75)
     GRIDTOOLS_STATIC_ASSERT((static_bool< explode< bool, TuplePackCheckerInt >(a_c) >::value == true), "ERROR");
+#endif
     result = result && explode< bool, TuplePackCheckerInt >(a_c);
     // with a double constexpr check is not possible
     tuple< int, float, unsigned short > a(-35, 23.3, 9);
@@ -113,8 +115,10 @@ static bool test_explode_with_tuple_with_object() {
     // constexpr check
     constexpr tuple< long, int, unsigned short > a_c(-353, 55, 9);
     constexpr TuplePackCheckerInt checker_c;
+#if (CUDA_VERSION > 75)
     GRIDTOOLS_STATIC_ASSERT(
         (static_bool< explode< bool, _impl_index_tuple_int >(a_c, checker_c) >::value == true), "ERROR");
+#endif
     result = result && explode< bool, _impl_index_tuple_int >(a_c, checker_c);
     tuple< int, float, unsigned short > a(-35, 23.3, 9);
     TuplePackChecker checker;
