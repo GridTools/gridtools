@@ -138,10 +138,17 @@ namespace gridtools {
      * @tparam ExtraData extra data passed to the Fn::apply in addition to the expanded array, as first argument
      */
     template < typename ReturnType, typename Fn, typename Array, typename ExtraData >
+    GT_FUNCTION static constexpr auto explode(const Array &a, const ExtraData &extra_data) -> ReturnType const {
+        GRIDTOOLS_STATIC_ASSERT((is_array< Array >::value || is_tuple< Array >::value), "Error: Wrong Type");
+        return expander_inj< Array::n_dimensions, ReturnType, Fn, ExtraData, const Array & >::expand(extra_data, a);
+    }
+
+    template < typename ReturnType, typename Fn, typename Array, typename ExtraData >
     GT_FUNCTION static constexpr auto explode(const Array &a, ExtraData &extra_data) -> ReturnType {
         GRIDTOOLS_STATIC_ASSERT((is_array< Array >::value || is_tuple< Array >::value), "Error: Wrong Type");
         return expander_inj< Array::n_dimensions, ReturnType, Fn, ExtraData, const Array & >::expand(extra_data, a);
     }
+
 }
 
 #endif
