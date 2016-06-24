@@ -19,7 +19,7 @@ class TuplePackChecker {
   public:
     GT_FUNCTION
     static bool check(int i1, double i2, unsigned short i3) {
-        return i1 == -35 && gridtools::compare_below_threshold(i2, 23.3, 1 - 8) && i3 == 9;
+        return ((i1 == -35) && gridtools::compare_below_threshold(i2, 23.3, 1e-6) && (i3 == 9));
     }
 
     template < typename... UInt >
@@ -111,4 +111,5 @@ static bool test_explode_with_tuple_with_object() {
     tuple< int, float, unsigned short > a(-35, 23.3, 9);
     TuplePackChecker checker;
     result = result && explode< bool, _impl_index_tuple >(a, checker);
+    return result;
 }
