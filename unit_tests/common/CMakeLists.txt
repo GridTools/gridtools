@@ -19,7 +19,11 @@ target_link_libraries(common_tests ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS}
 gridtools_add_test( tests.common_tests ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/common_tests")
 
 if (CUDA_FOUND)
-    cuda_add_executable(common_tests_cuda atomic_functions_test.cu test_offset_tuple.cu test_layout_map.cu test_tuple.cu explode_array_test.cu)
+    set(COMMON_UNITTEST_SOURCES_CUDA atomic_functions_test.cu test_offset_tuple.cu test_layout_map.cu test_tuple.cu)
+    if(ENABLE_CXX11)
+        set(COMMON_UNITTEST_SOURCES_CUDA ${COMMON_UNITTEST_SOURCES_CUDA} explode_array_test.cu)
+    endif()
+    cuda_add_executable(common_tests_cuda ${COMMON_UNITTEST_SOURCES_CUDA})
     gridtools_add_test(tests.common_tests_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/common_tests_cuda")
     target_link_libraries(common_tests_cuda ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
 
