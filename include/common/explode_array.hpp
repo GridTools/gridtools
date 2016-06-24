@@ -93,11 +93,13 @@ namespace gridtools {
 
         template < class... Us >
         GT_FUNCTION static constexpr R expand(const ExtraData &extra_data, tuple_t &&a, Us &&... args) {
-            return expander_inj< K - 1, R, F, ExtraData, tuple_t >::expand(extra_data, a, a.template get< K - 1 >(), args...);
+            return expander_inj< K - 1, R, F, ExtraData, tuple_t >::expand(
+                extra_data, a, a.template get< K - 1 >(), args...);
         }
         template < class... Us >
         GT_FUNCTION static constexpr R expand(ExtraData &extra_data, tuple_t &&a, Us &&... args) {
-            return expander_inj< K - 1, R, F, ExtraData, tuple_t >::expand(extra_data, a, a.template get< K - 1 >(), args...);
+            return expander_inj< K - 1, R, F, ExtraData, tuple_t >::expand(
+                extra_data, a, a.template get< K - 1 >(), args...);
         }
     };
 
