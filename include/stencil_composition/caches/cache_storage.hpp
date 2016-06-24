@@ -21,19 +21,19 @@
 #include "../extent.hpp"
 #include "../offset_tuple.hpp"
 
-#ifdef CUDA8
+#ifdef CXX11_ENABLED
 #include "meta_storage_cache.hpp"
 #include "cache_storage_metafunctions.hpp"
 #endif
 
 namespace gridtools {
-#if defined( CUDA8 )
     template < typename T, typename U >
     struct get_storage_accessor;
 
     template < typename BlockSize, typename Extent, typename Storage >
     struct cache_storage;
 
+#ifdef CXX11_ENABLED
     /**
      * @struct cache_storage
      * simple storage class for storing caches. Current version is multidimensional, but allows the user only to cache
@@ -53,9 +53,9 @@ namespace gridtools {
     struct cache_storage< block_size< Tiles... >, extent< ExtentBounds... >, Storage > {
 
       public:
-        typedef typename unzip< std::tuple< static_short< ExtentBounds >... > >::first minus_t;
-        typedef typename unzip< std::tuple< static_short< ExtentBounds >... > >::second plus_t;
-        typedef std::tuple< static_int< Tiles >... > tiles_t;
+        typedef typename unzip< variadic_to_vector< static_short< ExtentBounds >... > >::first minus_t;
+        typedef typename unzip< variadic_to_vector< static_short< ExtentBounds >... > >::second plus_t;
+        typedef variadic_to_vector< static_int< Tiles >... > tiles_t;
 
         // Storage must be a gridtools::pointer to storage
         GRIDTOOLS_STATIC_ASSERT(is_pointer< Storage >::value, "wrong type");
@@ -82,11 +82,16 @@ namespace gridtools {
             using accessor_t = typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type;
             GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor_t >::value), "Error type is not accessor tuple");
 
-            using iminus = typename std::tuple_element< 0, minus_t >::type;
-            using jminus = typename std::tuple_element< 1, minus_t >::type;
+            typedef typename boost::mpl::at_c<typename minus_t::type, 0 >::type iminus;
+            typedef typename boost::mpl::at_c<typename minus_t::type, 1 >::type jminus;
 
             // const typename alias< accessor< Accessor::index_type::value, Intent, Extent, Size >, dimension< Size - 1 > >::template set< ID >
             //     tmp_(arg);
+
+#ifdef CUDA8
+            typedef static_int<m_value.template strides<0>()> check_constexpr_1;
+            typedef static_int<m_value.template strides<1>()> check_constexpr_2;
+#endif
 
             // manually aligning the storage
             const uint_t extra_ = (thread_pos[0] - iminus::value) * m_value.template strides< 0 >() +
@@ -100,10 +105,15 @@ namespace gridtools {
         }
 
       private:
+#if defined( CUDA8 )
         value_type m_values[ size() ];
+#else
+
+        value_type m_values[ _impl::compute_size<minus_t, plus_t, tiles_t>::value ];
+#endif
     };
 
-#else
+#else // CXX11_ENABLED
 
     /**
      * @struct cache_storage
@@ -159,6 +169,6 @@ namespace gridtools {
 
         value_type m_values[storage_size_t::value];
     };
-#endif
+#endif // CXX11_ENABLED
 
 } // namespace gridtools

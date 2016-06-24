@@ -24,7 +24,6 @@ namespace gridtools {
     template < typename IterateDomain, ushort_t Value >
     struct iterate_domain_expandable_parameters : public IterateDomain {
 
-#ifdef CUDA8
         GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< IterateDomain >::value, "wrong type");
         static const ushort_t ID = Value - 1;
         typedef IterateDomain super;
@@ -63,17 +62,20 @@ namespace gridtools {
                 return_t;
             // check that if the storage is written the accessor is inout
 
+#ifdef CUDA8
             GRIDTOOLS_STATIC_ASSERT(is_extent< Extent >::value, "wrong type");
             const typename alias< accessor< ACC_ID, Intent, Extent, Size >, dimension< Size - 1 > >::template set< ID >
                 tmp_(arg);
+#else
+            accessor< ACC_ID, Intent, Extent, Size >tmp_(arg);
+            tmp_.template set<1>(ID);
+#endif
             return super::operator()(tmp_);
         }
 
-#else // CUDA8
-        GRIDTOOLS_STATIC_ASSERT(Value, "You are using a expandable_parameters and compiling with C++03, or without "
-                                       "setting the cuda version to a value >=8.0. switch to C++11 "
-                                       "(-DENABLE_CXX11=ON), or compile with -DCUDA_VERSION=80");
-#endif
+        // GRIDTOOLS_STATIC_ASSERT(Value, "You are using a expandable_parameters and compiling with C++03, or without "
+        //                                "setting the cuda version to a value >=8.0. switch to C++11 "
+        //                                "(-DENABLE_CXX11=ON), or compile with -DCUDA_VERSION=80");
     };
 
     template < typename T >

@@ -1,14 +1,14 @@
 #pragma once
-#ifdef CUDA8 // CXX11_ENABLED in case of CPU
-#include <tuple>
-#endif
+#include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../../common/generic_metafunctions/accumulate.hpp"
 /**
    @file metafunctions used in the cache_storage class
 */
 
 namespace gridtools {
+
     namespace _impl {
+
 
         template < typename Layout, typename Plus, typename Minus, typename Tiles, typename Storage >
         struct compute_meta_storage;
@@ -34,9 +34,9 @@ namespace gridtools {
             typename... Tiles,
             typename Storage >
         struct compute_meta_storage< Layout,
-            std::tuple< P1, P2, Plus... >,
-            std::tuple< M1, M2, Minus... >,
-            std::tuple< T1, T2, Tiles... >,
+            variadic_to_vector< P1, P2, Plus... >,
+            variadic_to_vector< M1, M2, Minus... >,
+            variadic_to_vector< T1, T2, Tiles... >,
             Storage > {
 
             typedef meta_storage_cache< Layout,
@@ -55,7 +55,24 @@ namespace gridtools {
          */
         template < uint_t... Id >
         struct generate_layout_map< gt_integer_sequence< uint_t, Id... > > {
-            typedef layout_map< (sizeof...(Id)-Id - 1)... > type;
+#ifdef CUDA8
+            typedef layout_map< (sizeof...(Id) - Id - 1)... > type;
+#else
+            typedef typename boost::mpl::if_c<
+                sizeof...(Id)==2,
+                layout_map<1,0>,
+                typename boost::mpl::if_c<
+                    sizeof...(Id)==3,
+                    layout_map<2,1,0>,
+                    typename boost::mpl::if_c<
+                        sizeof...(Id)==4,
+                        layout_map<3,2,1,0>,
+                        typename boost::mpl::if_c<
+                            sizeof...(Id)==5,
+                            layout_map<4,3,2,1,0>,
+                            boost::mpl::false_
+                            >::type >::type >::type >::type type;
+#endif
         };
 
         template < typename Minus, typename Plus, typename Tiles >
@@ -63,7 +80,7 @@ namespace gridtools {
 
 #ifndef CUDA8
         template < typename... Minus, typename... Plus, typename... Tiles >
-        struct compute_size< std::tuple< Minus... >, std::tuple< Plus... >, std::tuple< Tiles... > > {
+        struct compute_size< variadic_to_vector< Minus... >, variadic_to_vector< Plus... >, variadic_to_vector< Tiles... > > {
             static constexpr auto value = accumulate(multiplies(), (Plus::value + Tiles::value - Minus::value)...);
         };
 #endif

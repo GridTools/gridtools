@@ -513,7 +513,9 @@ namespace gridtools {
             // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
             ,
             const int_t pointer_offset) const {
+#ifdef CUDA8
             assert(storage_pointer);
+#endif
             return *(storage_pointer + pointer_offset);
         }
 
@@ -745,11 +747,15 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 
+#ifdef CUDA8
         assert(storage_pointer);
+#endif
         typename storage_t::value_type *RESTRICT real_storage_pointer =
             static_cast< typename storage_t::value_type * >(storage_pointer);
 
+#ifdef CUDA8
         assert(real_storage_pointer);
+#endif
         // getting information about the metadata
         typedef typename boost::mpl::at< metadata_map_t, typename storage_t::storage_info_type >::type metadata_index_t;
 
