@@ -128,5 +128,31 @@ TEST(storage_info, test_interface) {
     ASSERT_TRUE((meta_.strides<2>(meta_.strides())==1));
     ASSERT_TRUE((meta_.strides<1>(meta_.strides())==13));
     ASSERT_TRUE((meta_.strides<0>(meta_.strides())==13*12));
-#endif
+
+#ifdef CXX11_ENABLED // this checks are performed in cxx11 mode (without ndebug)
+    // create simple aligned meta storage
+    typedef gridtools::halo< 0, 0, 0 > halo_t1;
+    typedef gridtools::aligned< 32 > align_t1;
+    gridtools::meta_storage_aligned<
+        gridtools::meta_storage_base< 0, gridtools::layout_map< 0, 1, 2 >, false >,
+        align_t1,
+        halo_t1 > meta_aligned_1nc(11, 12, 13);
+    // check if unaligned dims and strides are correct
+    ASSERT_TRUE((meta_aligned_1nc.unaligned_dim(0) == 11) && "error");
+    ASSERT_TRUE((meta_aligned_1nc.unaligned_dim(1) == 12) && "error");
+    ASSERT_TRUE((meta_aligned_1nc.unaligned_dim(2) == 13) && "error");
+    ASSERT_TRUE((meta_aligned_1nc.unaligned_strides(2) == 13) && "error");
+    ASSERT_TRUE((meta_aligned_1nc.unaligned_strides(1) == 13 * 12) && "error");
+    ASSERT_TRUE((meta_aligned_1nc.unaligned_strides(0) == 13 * 12 * 11) && "error");
+    //create a storage and pass meta_data
+    gridtools::storage<gridtools::base_storage<gridtools::wrap_pointer<float>, decltype(meta_aligned_1nc), 1> > storage(meta_aligned_1nc, -1.0f);
+    ASSERT_TRUE((storage.meta_data().unaligned_dim(0) == 11) && "error");
+    ASSERT_TRUE((storage.meta_data().unaligned_dim(1) == 12) && "error");
+    ASSERT_TRUE((storage.meta_data().unaligned_dim(2) == 13) && "error");
+    ASSERT_TRUE((storage.meta_data().unaligned_strides(2) == 13) && "error");
+    ASSERT_TRUE((storage.meta_data().unaligned_strides(1) == 13 * 12) && "error");
+    ASSERT_TRUE((storage.meta_data().unaligned_strides(0) == 13 * 12 * 11) && "error");
+#endif // CXX11_ENABLED
+
+#endif // defined(CXX11_ENABLED) && defined(NDEBUG)
 }

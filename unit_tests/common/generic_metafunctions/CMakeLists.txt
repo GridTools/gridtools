@@ -13,3 +13,13 @@ set_target_properties(generic_metafunctions PROPERTIES COMPILE_FLAGS ${ADDITIONA
 target_link_libraries(generic_metafunctions ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
 
 gridtools_add_test( tests.generic_metafunctions ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/generic_metafunctions")
+
+if (CUDA_FOUND)
+    if( ENABLE_CXX11 )
+        cuda_add_executable(generic_metafunctions_cuda test_accumulate.cu)
+        gridtools_add_test(tests.test_accumulate ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/common_tests_cuda")
+        target_link_libraries(generic_metafunctions_cuda ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
+        gridtools_add_test( generic_metafunctions_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/generic_metafunctions_cuda")
+    endif( ENABLE_CXX11 )
+endif()
+
