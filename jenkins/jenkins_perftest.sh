@@ -23,6 +23,11 @@ while true; do
     esac
 done
 
+if [[ -z ${DEFAULT_QUEUE} ]]; then
+    echo "Error: default queue not defined" 
+    exit 1
+fi
+QUEUE=${DEFAULT_QUEUE}
 #setting default compiler to gcc
 export COMPILER="gcc"
 
@@ -40,6 +45,7 @@ cp ${JENKINSPATH}/submit.${myhost}.slurm ${JENKINSPATH}/submit.${myhost}.slurm.t
 slurm_script="${JENKINSPATH}/submit.${myhost}.slurm.test"
 cmd="srun --gres=gpu:1 --ntasks=1 -u bash ${JENKINSPATH}/jenkins_perftest_exec.sh --target $TARGET --std $STD --prec $PREC ${PYTHON_STR} --jplan $JPLAN"
 /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm_script}
+/bin/sed -i 's|<QUEUE>|'"${QUEUE}"'|g' ${slurm_script}
 
 bash ${JENKINSPATH}/monitorjobid `sbatch ${slurm_script} | gawk '{print $4}'` $maxsleep
 grep -E 'Error in conf|FAILED|ERROR' test.out 
