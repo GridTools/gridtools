@@ -15,7 +15,7 @@
 */
 #include "gtest/gtest.h"
 
-#include <stencil_composition/stencil_composition.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 using namespace gridtools;
 

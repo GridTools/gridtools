@@ -15,7 +15,7 @@
 */
 #define BOOST_NO_CXX11_RVALUE_REFERENCES
 
-#include "stencil_composition/stencil_composition.hpp"
+#include "stencil-composition/stencil-composition.hpp"
 #include <boost/current_function.hpp>
 
 using namespace gridtools;

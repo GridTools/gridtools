@@ -22,10 +22,10 @@
 #include <boost/mpl/for_each.hpp>
 #include <iostream>
 #include "common/host_device.hpp"
-#include "stencil_composition/interval.hpp"
-#include "stencil_composition/loopintervals.hpp"
-#include "stencil_composition/functor_do_methods.hpp"
-#include "stencil_composition/functor_do_method_lookup_maps.hpp"
+#include "stencil-composition/interval.hpp"
+#include "stencil-composition/loopintervals.hpp"
+#include "stencil-composition/functor_do_methods.hpp"
+#include "stencil-composition/functor_do_method_lookup_maps.hpp"
 
 using namespace gridtools;
 

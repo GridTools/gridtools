@@ -14,7 +14,7 @@
    limitations under the License.
 */
 #pragma once
-#include <stencil_composition/stencil_composition.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 #include "../../examples/cache_flusher.hpp"
 #include "../../examples/defs.hpp"
 

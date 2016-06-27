@@ -15,13 +15,13 @@
 */
 
 #pragma once
-#include <stencil_composition/stencil_composition.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 #include <gridtools.hpp>
 #ifdef CUDA_EXAMPLE
-#include <stencil_composition/backend_cuda/backend_cuda.hpp>
+#include <stencil-composition/backend_cuda/backend_cuda.hpp>
 #else
-#include <stencil_composition/backend_host/backend_host.hpp>
+#include <stencil-composition/backend_host/backend_host.hpp>
 #endif
 
 #include <boost/timer/timer.hpp>

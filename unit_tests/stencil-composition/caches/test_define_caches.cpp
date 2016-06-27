@@ -20,8 +20,8 @@
 
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
-#include "stencil_composition/stencil_composition.hpp"
-#include "stencil_composition/caches/define_caches.hpp"
+#include "stencil-composition/stencil-composition.hpp"
+#include "stencil-composition/caches/define_caches.hpp"
 
 using namespace gridtools;
 using namespace enumtype;

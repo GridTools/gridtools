@@ -15,7 +15,7 @@
 */
 #include "gtest/gtest.h"
 #include <gridtools.hpp>
-#include <stencil_composition/stencil_composition.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 1, -1 > > x_interval;
 typedef gridtools::interval< gridtools::level< 0, -2 >, gridtools::level< 1, 1 > > axis;

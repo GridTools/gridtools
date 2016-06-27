@@ -22,10 +22,10 @@
 #endif
 #endif
 #include <gridtools.hpp>
-#include <stencil_composition/make_computation.hpp>
+#include <stencil-composition/make_computation.hpp>
 #include <storage/parallel_storage.hpp>
 #include <storage/partitioner_trivial.hpp>
-#include <stencil_composition/stencil_composition.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 #ifdef CUDA_EXAMPLE
 #include <boundary-conditions/apply_gpu.hpp>

@@ -14,7 +14,7 @@
    limitations under the License.
 */
 #include "gtest/gtest.h"
-#include <stencil_composition/make_computation.hpp>
+#include <stencil-composition/make_computation.hpp>
 
 
 TEST(storage_alignment, test_aligned) {

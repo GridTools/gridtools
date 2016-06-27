@@ -32,7 +32,7 @@
 #include <boost/fusion/include/make_vector.hpp>
 #include <boost/mpl/vector.hpp>
 
-#include <stencil_composition/stencil_composition.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 using gridtools::uint_t;
 using gridtools::int_t;

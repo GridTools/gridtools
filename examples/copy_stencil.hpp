@@ -15,7 +15,7 @@
 */
 #pragma once
 
-#include <stencil_composition/stencil_composition.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 #include "cache_flusher.hpp"
 #include "defs.hpp"
 

@@ -14,7 +14,7 @@
    limitations under the License.
 */
 #include "gtest/gtest.h"
-#include <stencil_composition/stencil_composition.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 struct functor {
     using a0 = gridtools::accessor< 0, gridtools::enumtype::inout >;

@@ -17,7 +17,7 @@
 
 #include <gridtools.hpp>
 
-#include "../stencil_composition/accessor_fwd.hpp"
+#include "../stencil-composition/accessor_fwd.hpp"
 #ifdef CXX11_ENABLED
 #include "generic_metafunctions/gt_get.hpp"
 #include "generic_metafunctions/is_variadic_pack_of.hpp"

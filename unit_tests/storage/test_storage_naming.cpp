@@ -17,7 +17,7 @@
 #include <iostream>
 #include <string>
 
-#include <stencil_composition/stencil_composition.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 using gridtools::level;
 using gridtools::accessor;

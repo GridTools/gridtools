@@ -14,12 +14,12 @@
    limitations under the License.
 */
 #include "gtest/gtest.h"
-#include <stencil_composition/stencil_composition.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 // #include <gridtools.hpp>
-// #include <stencil_composition/esf_metafunctions.hpp>
-// #include <stencil_composition/make_stage.hpp>
-// #include <stencil_composition/make_stencils.hpp>
-// #include <stencil_composition/accessor.hpp>
+// #include <stencil-composition/esf_metafunctions.hpp>
+// #include <stencil-composition/make_stage.hpp>
+// #include <stencil-composition/make_stencils.hpp>
+// #include <stencil-composition/accessor.hpp>
 
 struct functor {
     using a0 = gridtools::accessor< 0, gridtools::enumtype::inout >;

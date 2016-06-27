@@ -14,7 +14,7 @@
    limitations under the License.
 */
 #include "gtest/gtest.h"
-#include "stencil_composition/stencil_composition.hpp"
+#include "stencil-composition/stencil-composition.hpp"
 
 #ifdef __CUDACC__
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >

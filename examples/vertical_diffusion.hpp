@@ -1,6 +1,6 @@
 #pragma once
-#include <stencil_composition/stencil_composition.hpp>
-#include <stencil_composition/structured_grids/call_interfaces.hpp>
+#include <stencil-composition/stencil-composition.hpp>
+#include <stencil-composition/structured_grids/call_interfaces.hpp>
 #include "tridiagonal.hpp"
 
 namespace vertical_diffusion {

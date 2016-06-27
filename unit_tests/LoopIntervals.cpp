@@ -16,9 +16,9 @@
 #include <iostream>
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/transform.hpp>
-#include "stencil_composition/interval.hpp"
-#include "stencil_composition/functor_do_methods.hpp"
-#include "stencil_composition/loopintervals.hpp"
+#include "stencil-composition/interval.hpp"
+#include "stencil-composition/functor_do_methods.hpp"
+#include "stencil-composition/loopintervals.hpp"
 
 using namespace gridtools;
 
