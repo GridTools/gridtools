@@ -141,7 +141,7 @@ namespace gridtools{
                     pointer< std::vector< pointer< T > > > const & ptr_full_ =
                         m_dom_full.template storage_pointer< arg< ID, std::vector< pointer< T > > > >();
                     auto ptr_chunk_ = boost::fusion::at< static_ushort< ID > >(m_dom_chunk.m_storage_pointers);
-                    //reset the pointer to the host version, since they'll be accessed full the host
+                    //reset the pointer to the host version, since they'll be accessed from the host
                     (*(ptr_chunk_->storage_pointer())).set(*ptr_full_, m_idx);
                     ptr_chunk_->set_on_host();
                     // update the device pointers (TODO: should not copy the heavy data)

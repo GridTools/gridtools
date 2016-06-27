@@ -91,9 +91,11 @@ namespace gridtools {
 #ifdef CUDA8
             typedef static_int<m_value.template strides<0>()> check_constexpr_1;
             typedef static_int<m_value.template strides<1>()> check_constexpr_2;
+#else
+            assert((_impl::compute_size<minus_t, plus_t, tiles_t, storage_t>::value == size()));
 #endif
 
-            // manually aligning the storage
+                // manually aligning the storage
             const uint_t extra_ = (thread_pos[0] - iminus::value) * m_value.template strides< 0 >() +
                                   (thread_pos[1] - jminus::value) * m_value.template strides< 1 >() +
                                   m_value.index(accessor_);
@@ -109,7 +111,7 @@ namespace gridtools {
         value_type m_values[ size() ];
 #else
 
-        value_type m_values[ _impl::compute_size<minus_t, plus_t, tiles_t>::value ];
+        value_type m_values[ _impl::compute_size<minus_t, plus_t, tiles_t, storage_t>::value ];
 #endif
     };
 

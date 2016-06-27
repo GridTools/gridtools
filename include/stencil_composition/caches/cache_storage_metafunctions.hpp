@@ -75,13 +75,13 @@ namespace gridtools {
 #endif
         };
 
-        template < typename Minus, typename Plus, typename Tiles >
+#ifndef CUDA8
+        template < typename Minus, typename Plus, typename Tiles, typename Storage >
         struct compute_size;
 
-#ifndef CUDA8
-        template < typename... Minus, typename... Plus, typename... Tiles >
-        struct compute_size< variadic_to_vector< Minus... >, variadic_to_vector< Plus... >, variadic_to_vector< Tiles... > > {
-            static constexpr auto value = accumulate(multiplies(), (Plus::value + Tiles::value - Minus::value)...);
+        template < typename... Minus, typename... Plus, typename... Tiles, typename Storage >
+        struct compute_size< variadic_to_vector< Minus... >, variadic_to_vector< Plus... >, variadic_to_vector< Tiles... >, Storage > {
+            static constexpr auto value = accumulate(multiplies(), (Plus::value + Tiles::value - Minus::value)...)*Storage::field_dimensions;
         };
 #endif
 
