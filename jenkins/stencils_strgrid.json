@@ -13,7 +13,7 @@
         },
         "vertical_advection": {
             "stella_filter": "--gtest_filter=VerticalAdvectionBenchmark.U",
-            "halo": [0,0,0,0],
+            "halo": [3,3,3,3],
             "exec": "build/vertical_advection_dycore"
         }
     },

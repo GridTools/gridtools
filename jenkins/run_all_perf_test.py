@@ -71,7 +71,7 @@ if __name__ == "__main__":
         print(target, prec, std)
     
     
-        cmd='./jenkins_perftest.sh --target '+target+' --std '+std+' --prec '+prec+' --jplan '+jplan+' --outfile out_' +target+'_'+std+'_'+prec+'.log'
+        cmd='./jenkins_perftest.sh --target '+target+' --std '+std+' --prec '+prec+' --jplan '+jplan+' --outfile out_' +target+'_'+std+'_'+prec+'.log --json '+json_file
     
         print("Executing conf : " + target+","+prec+","+std)
         print(cmd)

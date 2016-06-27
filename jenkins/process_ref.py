@@ -34,7 +34,7 @@ try: subprocess.check_output
 except: subprocess.check_output = check_output
 
 
-def run_and_extract_times(executable, host, sizes, filter_=None, stella_format = None, verbosity=False):
+def run_and_extract_times(executable, host, sizes, halos, filter_=None, stella_format = None, verbosity=False):
 
     cmd = ". "+os.getcwd()+"/env_"+host+".sh; "
 
@@ -45,7 +45,8 @@ def run_and_extract_times(executable, host, sizes, filter_=None, stella_format =
         else:
             cmd = cmd + executable +' --ie ' + str(sizes[0]) + ' --je ' + str(sizes[1]) + ' --ke ' + str(sizes[2])
     else:
-        cmd = cmd + executable +' ' + str(sizes[0]) + ' ' + str(sizes[1]) + ' ' + str(sizes[2]) + ' 10'
+        print('passing my halos', halos)
+        cmd = cmd + executable +' ' + str(int(sizes[0])+int(halos[0])+int(halos[1])) + ' ' + str(int(sizes[1])+int(halos[2])+int(halos[3])) + ' ' + str(sizes[2]) + ' 10'
     if filter_:
         ## HACK STELLA TIMERS FOR CPU
         if not(stella_format and target == 'cpu'):
@@ -365,6 +366,7 @@ if __name__ == "__main__":
     stella_timers = {}
 
     for stencil_name in decode['stencils']:
+        halos=decode['stencils'][stencil_name]['halo']
         print('CHECKING :', stencil_name)
         skip=True
         for filter_stencil in filter_stencils:
@@ -389,11 +391,11 @@ if __name__ == "__main__":
                 sizes = data.split('x')
                 exp_time = domain_data[data]['time']
                 
-                timers_gridtools = run_and_extract_times(executable, host, sizes, verbosity=verbose)
+                timers_gridtools = run_and_extract_times(executable, host, sizes, halos, verbosity=verbose)
 
                 if stella_exec and stella_filter:
                     create_dict(stella_timers, [data, thread, stencil_name] )
-                    stella_timers[stencil_name][thread][data] = run_and_extract_times(stella_exec, host, sizes, stella_filter, stella_format=True, verbosity=verbose)
+                    stella_timers[stencil_name][thread][data] = run_and_extract_times(stella_exec, host, sizes, halos, stella_filter, stella_format=True, verbosity=verbose)
 
                 copy_ref['data'][host][stencil_name][target][prec][std][thread][data]['time'] = timers_gridtools[0]
                 copy_ref['data'][host][stencil_name][target][prec][std][thread][data]['rms'] = timers_gridtools[1]
