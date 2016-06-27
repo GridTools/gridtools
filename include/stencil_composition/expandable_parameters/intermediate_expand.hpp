@@ -260,8 +260,8 @@ namespace gridtools {
             if (m_size % ExpandFactor::value)
                 m_intermediate_remainder->finalize();
 
-            // // delete the storage structs (contain empty pointers, so not a big deal)
-            // boost::mpl::for_each<expandable_params_t>(_impl::delete_storage< typename aggregator_type< expand_arg_list >::arg_list >(m_domain_chunk->storage_pointers_view()));
+            // delete the storage structs (contain empty pointers, so not a big deal)
+            boost::mpl::for_each<expandable_params_t>(_impl::delete_storage< typename aggregator_type< expand_arg_list >::arg_list >(m_domain_chunk->storage_pointers_view()));
         }
     };
 }

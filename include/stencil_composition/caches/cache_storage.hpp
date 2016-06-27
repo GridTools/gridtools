@@ -85,9 +85,6 @@ namespace gridtools {
             typedef typename boost::mpl::at_c<typename minus_t::type, 0 >::type iminus;
             typedef typename boost::mpl::at_c<typename minus_t::type, 1 >::type jminus;
 
-            // const typename alias< accessor< Accessor::index_type::value, Intent, Extent, Size >, dimension< Size - 1 > >::template set< ID >
-            //     tmp_(arg);
-
 #ifdef CUDA8
             typedef static_int<m_value.template strides<0>()> check_constexpr_1;
             typedef static_int<m_value.template strides<1>()> check_constexpr_2;

@@ -106,9 +106,8 @@ namespace gridtools{
 
             template < typename T >
             void operator()(T) {
-                // setting the flag "externally_managed" in order to avoid that the storage pointers
-                // get deleted twice (once here and again when destructing the user-defined storage)
-                boost::fusion::at< typename T::index_type >(m_vec_to)->set_externally_managed(true);
+                // unset the storage, so that it does not try to release the pointers it contains
+                boost::fusion::at< typename T::index_type >(m_vec_to)->storage_pointer()->unset();
                 //filtering out temporary storages
                 if(!boost::fusion::at< typename T::index_type >(m_vec_to)->is_temporary){
                     delete_pointer deleter;

@@ -126,8 +126,7 @@ namespace gridtools {
         /**@brief destructor: frees the pointers to the data fields which are not managed outside */
         virtual ~base_storage() {
             delete[] m_name;
-            for (ushort_t i = 0; i < field_dimensions; ++i)
-                m_fields[i].free_it();
+            release();
         }
 
         void h2d_update() {
@@ -172,8 +171,11 @@ namespace gridtools {
 
         /**@brief releasing the pointers to the data, and deleting them in case they need to be deleted */
         void release() {
-            for (ushort_t i = 0; i < field_dimensions; ++i)
-                m_fields[i].free_it();
+            if(is_set){
+                for (ushort_t i = 0; i < field_dimensions; ++i)
+                    m_fields[i].free_it();
+                is_set=false;
+            }
         }
 
         /** @brief initializes with a constant value */
@@ -359,6 +361,11 @@ namespace gridtools {
             for (ushort_t i = 0; i < field_dimensions; ++i) {
                 m_fields[i].set_externally_managed(val_);
             }
+        }
+
+        GT_FUNCTION
+        void unset() {
+            is_set=false;
         }
     };
 
