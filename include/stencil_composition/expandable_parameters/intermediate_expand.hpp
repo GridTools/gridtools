@@ -56,7 +56,7 @@ namespace gridtools {
                 boost::mpl::_1,
                 boost::mpl::if_< _impl::is_expandable_arg< boost::mpl::_2 >,
                     typename _impl::create_arg< Backend::s_backend_id >::template apply< boost::mpl::_2, ExpandFactor >,
-                    boost::mpl::_2 > > >::type new_arg_list;
+                    boost::mpl::_2 > > >::type expand_arg_list;
 
         // create an mpl vector of @ref gridtools::arg, substituting the large
         // expandable parameters list with a chunk
@@ -67,19 +67,19 @@ namespace gridtools {
                 boost::mpl::_1,
                 boost::mpl::if_< _impl::is_expandable_arg< boost::mpl::_2 >,
                                  typename _impl::create_arg< Backend::s_backend_id >::template apply< boost::mpl::_2, expand_factor<1> >,
-                    boost::mpl::_2 > > >::type new_arg_list_extra;
+                    boost::mpl::_2 > > >::type expand_arg_list_remainder;
 
-        // generates an mpl::vector containing the storage types from the previous new_arg_list
-        typedef typename boost::mpl::fold< new_arg_list,
+        // generates an mpl::vector containing the storage types from the previous expand_arg_list
+        typedef typename boost::mpl::fold< expand_arg_list,
             boost::mpl::vector0<>,
             boost::mpl::push_back< boost::mpl::_1, pointer< _impl::get_storage< boost::mpl::_2 > > > >::type
-            new_storage_list;
+        expand_storage_list;
 
-        // generates an mpl::vector containing the storage types from the previous new_arg_list
-        typedef typename boost::mpl::fold< new_arg_list_extra,
+        // generates an mpl::vector containing the storage types from the previous expand_arg_list
+        typedef typename boost::mpl::fold< expand_arg_list_remainder,
             boost::mpl::vector0<>,
             boost::mpl::push_back< boost::mpl::_1, pointer< _impl::get_storage< boost::mpl::_2 > > > >::type
-            new_storage_list_extra;
+            expand_storage_list_remainder;
 
         // generates an mpl::vector of the original (large) expandable parameters storage types
         typedef typename boost::mpl::fold< typename DomainType::placeholders_t,
@@ -93,7 +93,7 @@ namespace gridtools {
         // typedef to the intermediate type associated with the vector length of ExpandFactor::value
         typedef intermediate< Backend,
             MssDescriptorArray,
-            aggregator_type< new_arg_list >,
+            aggregator_type< expand_arg_list >,
             Grid,
             ConditionalsSet,
             ReductionType,
@@ -103,25 +103,25 @@ namespace gridtools {
         // typedef to the intermediate type associated with the vector length of s_size%ExpandFactor::value
         typedef intermediate< Backend,
             MssDescriptorArray,
-            aggregator_type< new_arg_list_extra >,
+            aggregator_type< expand_arg_list_remainder >,
             Grid,
             ConditionalsSet,
             ReductionType,
             IsStateful,
-            1 > intermediate_extra_t;
+            1 > intermediate_remainder_t;
 
       private:
         // private members
-        DomainType const &m_domain_from;
-        std::unique_ptr< aggregator_type< new_arg_list > > m_domain_to;
-        std::unique_ptr< aggregator_type< new_arg_list_extra > > m_domain_to_extra;
+        DomainType const &m_domain_full;
+        std::unique_ptr< aggregator_type< expand_arg_list > > m_domain_chunk;
+        std::unique_ptr< aggregator_type< expand_arg_list_remainder > > m_domain_chunk_remainder;
         std::unique_ptr< intermediate_t > m_intermediate;
-        std::unique_ptr< intermediate_extra_t > m_intermediate_extra;
+        std::unique_ptr< intermediate_remainder_t > m_intermediate_remainder;
         ushort_t m_size;
 
       public:
-        typedef typename boost::fusion::result_of::as_vector< new_storage_list >::type vec_t;
-        typedef typename boost::fusion::result_of::as_vector< new_storage_list_extra >::type vec_extra_t;
+        typedef typename boost::fusion::result_of::as_vector< expand_storage_list >::type expand_vec_t;
+        typedef typename boost::fusion::result_of::as_vector< expand_storage_list_remainder >::type vec_remainder_t;
 
         // public methods
 
@@ -132,16 +132,16 @@ namespace gridtools {
            dimension given by  @ref gridtools::expand_factor
          */
         intermediate_expand(DomainType &domain, Grid const &grid, ConditionalsSet conditionals_)
-            : m_domain_from(domain), m_domain_to(), m_domain_to_extra(), m_intermediate(), m_intermediate_extra(), m_size(0) {
+            : m_domain_full(domain), m_domain_chunk(), m_domain_chunk_remainder(), m_intermediate(), m_intermediate_remainder(), m_size(0) {
 
             // fusion vector of storage lists
-            vec_t vec;
-            vec_extra_t vec_extra;
+            expand_vec_t expand_vec;
+            vec_remainder_t vec_remainder;
 
             // initialize the storage list objects, whithout allocating the storage for the data snapshots
             // has 2 different overloads for the expandable parameters and the normal args.
             boost::mpl::for_each< typename DomainType::placeholders_t >(
-                _impl::initialize_storage< DomainType, vec_t >(domain, vec));
+                _impl::initialize_storage< DomainType, expand_vec_t >(domain, expand_vec));
 
             auto const &storage_ptr_ =
                 boost::fusion::at< typename boost::mpl::at_c< expandable_params_t, 0 >::type::index_type >(
@@ -152,14 +152,14 @@ namespace gridtools {
             // check (in DEBUG mode) that all the expandable parameter lists have the same size
             boost::mpl::for_each< expandable_params_t >(_impl::check_length< DomainType >(domain, m_size));
 
-            m_domain_to.reset(new aggregator_type< new_arg_list >(vec));
-            m_intermediate.reset(new intermediate_t(*m_domain_to, grid, conditionals_));
+            m_domain_chunk.reset(new aggregator_type< expand_arg_list >(expand_vec));
+            m_intermediate.reset(new intermediate_t(*m_domain_chunk, grid, conditionals_));
             if (m_size % ExpandFactor::value){
                 boost::mpl::for_each< typename DomainType::placeholders_t >(
-                    _impl::initialize_storage< DomainType, vec_extra_t >(domain, vec_extra));
+                    _impl::initialize_storage< DomainType, vec_remainder_t >(domain, vec_remainder));
 
-                m_domain_to_extra.reset(new aggregator_type< new_arg_list_extra >(vec_extra));
-                m_intermediate_extra.reset(new intermediate_extra_t(*m_domain_to_extra, grid, conditionals_));
+                m_domain_chunk_remainder.reset(new aggregator_type< expand_arg_list_remainder >(vec_remainder));
+                m_intermediate_remainder.reset(new intermediate_remainder_t(*m_domain_chunk_remainder, grid, conditionals_));
             }
         }
 
@@ -172,7 +172,7 @@ namespace gridtools {
         template < typename... Args, typename... Storage >
         void reassign(arg_storage_pair< Args, Storage >... args) {
             m_intermediate->reassign(args...);
-            m_intermediate_extra->reassign(args...);
+            m_intermediate_remainder->reassign(args...);
         }
         /**
            @brief run the execution
@@ -183,35 +183,35 @@ namespace gridtools {
            iterations, if the number of parameters is not multiple of the expand factor, the remaining
            chunck of storage pointers is consumed.
          */
-        virtual auto run() -> decltype(m_intermediate_extra->run()) {
-            GRIDTOOLS_STATIC_ASSERT((boost::is_same< decltype(m_intermediate_extra->run()), notype >::value),
-                "Reduction is not alloewd with expandable parameters");
+        virtual auto run() -> decltype(m_intermediate_remainder->run()) {
+            GRIDTOOLS_STATIC_ASSERT((boost::is_same< decltype(m_intermediate_remainder->run()), notype >::value),
+                "Reduction is not allowed with expandable parameters");
             // the expand factor must be smaller than the total size of the expandable parameters list
             assert(m_size >= ExpandFactor::value);
 
             for (uint_t i = 0; i < m_size - m_size % ExpandFactor::value; i += ExpandFactor::value) {
 
                 boost::mpl::for_each< expandable_params_t >(
-                    _impl::assign_expandable_params< Backend, DomainType, aggregator_type< new_arg_list > >(
-                        m_domain_from, *m_domain_to, i));
+                    _impl::assign_expandable_params< Backend, DomainType, aggregator_type< expand_arg_list > >(
+                        m_domain_full, *m_domain_chunk, i));
                 m_intermediate->run();
             }
             for (uint_t i = 0; i < m_size % ExpandFactor::value; ++i) {
                 boost::mpl::for_each< expandable_params_t >(
-                    _impl::assign_expandable_params< Backend, DomainType, aggregator_type< new_arg_list_extra > >(
-                        m_domain_from, *m_domain_to_extra, m_size - m_size % ExpandFactor::value + i));
-                m_intermediate_extra->run();
+                    _impl::assign_expandable_params< Backend, DomainType, aggregator_type< expand_arg_list_remainder > >(
+                        m_domain_full, *m_domain_chunk_remainder, m_size - m_size % ExpandFactor::value + i));
+                m_intermediate_remainder->run();
             }
         }
 
         /**
            @brief forwards to the m_intermediate member
 
-           does not take into account the extra kernel executed when the number of parameters is
+           does not take into account the remainder kernel executed when the number of parameters is
            not multiple of the expand factor
          */
         virtual std::string print_meter() { return m_intermediate->print_meter(); }
-        virtual double get_meter() { return m_intermediate->get_meter()+m_intermediate_extra->get_meter(); }
+        virtual double get_meter() { return m_intermediate->get_meter()+m_intermediate_remainder->get_meter(); }
 
         /**
            @brief forward the call to the members
@@ -221,16 +221,16 @@ namespace gridtools {
             for (uint_t i = 0; i < m_size - m_size % ExpandFactor::value; i += ExpandFactor::value) {
 
                 boost::mpl::for_each< expandable_params_t >(
-                    _impl::prepare_expandable_params< DomainType, aggregator_type< new_arg_list > >(
-                        m_domain_from, *m_domain_to, i));
+                    _impl::prepare_expandable_params< DomainType, aggregator_type< expand_arg_list > >(
+                        m_domain_full, *m_domain_chunk, i));
                 // new_domain_.get<ExpandFactor::arg_t>()->assign_pointers(domain.get<ExpandFactor::arg_t>(), i);
                 m_intermediate->ready();
             }
             for (uint_t i = 0; i < m_size % ExpandFactor::value; ++i) {
                 boost::mpl::for_each< expandable_params_t >(
-                    _impl::prepare_expandable_params< DomainType, aggregator_type< new_arg_list_extra > >(
-                        m_domain_from, *m_domain_to_extra, m_size - m_size % ExpandFactor::value + i));
-                m_intermediate_extra->ready();
+                    _impl::prepare_expandable_params< DomainType, aggregator_type< expand_arg_list_remainder > >(
+                        m_domain_full, *m_domain_chunk_remainder, m_size - m_size % ExpandFactor::value + i));
+                m_intermediate_remainder->ready();
             }
         }
 
@@ -242,15 +242,15 @@ namespace gridtools {
             for (uint_t i = 0; i < m_size - m_size % ExpandFactor::value; i += ExpandFactor::value) {
 
                 boost::mpl::for_each< expandable_params_t >(
-                    _impl::assign_expandable_params< Backend, DomainType, aggregator_type< new_arg_list > >(
-                        m_domain_from, *m_domain_to, i));
+                    _impl::assign_expandable_params< Backend, DomainType, aggregator_type< expand_arg_list > >(
+                        m_domain_full, *m_domain_chunk, i));
                 m_intermediate->steady();
             }
             for (uint_t i = 0; i < m_size % ExpandFactor::value; ++i) {
                 boost::mpl::for_each< expandable_params_t >(
-                    _impl::assign_expandable_params< Backend, DomainType, aggregator_type< new_arg_list_extra > >(
-                        m_domain_from, *m_domain_to_extra, m_size - m_size % ExpandFactor::value + i));
-                m_intermediate_extra->steady();
+                    _impl::assign_expandable_params< Backend, DomainType, aggregator_type< expand_arg_list_remainder > >(
+                        m_domain_full, *m_domain_chunk_remainder, m_size - m_size % ExpandFactor::value + i));
+                m_intermediate_remainder->steady();
             }
         }
 
@@ -259,17 +259,17 @@ namespace gridtools {
          */
         virtual void finalize() {
             // copy pointers back
-            boost::mpl::for_each< expandable_params_t >(_impl::finalize_expandable_params< Backend, DomainType >(m_domain_from));
+            boost::mpl::for_each< expandable_params_t >(_impl::finalize_expandable_params< Backend, DomainType >(m_domain_full));
 
             // free the space for temporaries and storage_info
             m_intermediate->finalize();
 
             // free the space for temporaries and storage_info
             if (m_size % ExpandFactor::value)
-                m_intermediate_extra->finalize();
+                m_intermediate_remainder->finalize();
 
             // // delete the storage structs (contain empty pointers, so not a big deal)
-            // boost::mpl::for_each<expandable_params_t>(_impl::delete_storage< typename aggregator_type< new_arg_list >::arg_list >(m_domain_to->storage_pointers_view()));
+            // boost::mpl::for_each<expandable_params_t>(_impl::delete_storage< typename aggregator_type< expand_arg_list >::arg_list >(m_domain_chunk->storage_pointers_view()));
         }
     };
 }

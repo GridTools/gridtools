@@ -41,12 +41,6 @@ namespace adv_prepare_tracers {
 
 #ifdef CUDA8
 
-#ifdef CUDA_EXAMPLE
-        typedef layout_map< 2, 1, 0 > layout_t;
-#else
-        typedef layout_map< 0, 1, 2 > layout_t;
-#endif
-
         typedef BACKEND::storage_info< 23, layout_t > meta_data_t;
         typedef typename field< BACKEND::storage_type< float_type, meta_data_t >::type, 1 >::type storage_t;
 

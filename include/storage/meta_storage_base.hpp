@@ -196,14 +196,6 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
  by defining the storage type using another layout_map.");
             GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(boost::is_integral< IntTypes >::type::value...),
                 "Error: Dimensions of metastorage must be specified as integer types. ");
-
-            // assert this
-            // accumulate(logical_and(), (dims_>0) ...);
-
-            // #ifndef NDEBUG
-            //             auto check = [](int a) { return a > 0; };
-            //             variadic_assert(check, (int)dims_...);
-            // #endif
         }
 #else //__CUDACC__ nvcc does not get it: checks only the first argument
         template < class... IntTypes,

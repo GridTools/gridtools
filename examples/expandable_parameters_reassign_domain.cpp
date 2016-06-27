@@ -27,13 +27,8 @@ namespace test_expandable_parameters {
 
     struct functor_exp {
 
-#ifdef REASSIGN_DOMAIN
         typedef accessor< 0, enumtype::inout > parameters_out;
         typedef accessor< 1, enumtype::in > parameters_in;
-#else
-        typedef vector_accessor< 0, enumtype::inout > parameters_out;
-        typedef vector_accessor< 1, enumtype::in > parameters_in;
-#endif
         // typedef accessor<2, enumtype::in> scalar;
 
         typedef boost::mpl::vector< parameters_out, parameters_in //, scalar
@@ -44,6 +39,7 @@ namespace test_expandable_parameters {
             eval(parameters_out{}) = eval(parameters_in{});
         }
     };
+
 
     bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t) {
 
@@ -92,25 +88,28 @@ namespace test_expandable_parameters {
         grid_.value_list[1] = d3 - 1;
 
 
-        typedef arg< 0, std::vector< pointer< storage_t > > > p_list_out;
-        typedef arg< 1, std::vector< pointer< storage_t > > > p_list_in;
-        typedef arg< 2, std::vector< pointer< tmp_storage_t > > > p_list_tmp;
+        typedef arg< 0, storage_t > p_out;
+        typedef arg< 1, storage_t > p_in;
+        typedef arg< 2, tmp_storage_t > p_tmp;
 
-        typedef boost::mpl::vector< p_list_out, p_list_in, p_list_tmp > args_t;
+        typedef boost::mpl::vector< p_out, p_in, p_tmp > args_t;
 
-        aggregator_type< args_t > domain_(boost::fusion::make_vector(&list_out_, &list_in_));
+        aggregator_type< args_t > domain_((p_out() = *list_out_[0]), (p_in() = *list_in_[0]));
 
-        auto comp_ = make_computation< BACKEND >(expand_factor< 3 >(),
-            domain_,
+        auto comp_ = make_computation< BACKEND >(domain_,
             grid_,
             make_multistage(enumtype::execute< enumtype::forward >(),
-                            define_caches(cache< IJ, local >(p_list_tmp())),
-                                                     make_stage< functor_exp >(p_list_tmp(), p_list_in()),
-                                                     make_stage< functor_exp >(p_list_out(), p_list_tmp())));
+                                                     define_caches(cache< IJ, local >(p_tmp())),
+                                                     make_stage< functor_exp >(p_tmp(), p_in()),
+                                                     make_stage< functor_exp >(p_out(), p_tmp())));
 
-        comp_->ready();
-        comp_->steady();
-        comp_->run();
+        for (uint_t i = 0; i < list_in_.size(); ++i) {
+            comp_->ready();
+            comp_->reassign((p_in() = *list_in_[i]), (p_out() = *list_out_[i]));
+            comp_->steady();
+            comp_->run();
+            finalize_computation< BACKEND::s_backend_id >::apply(domain_);
+        }
         comp_->finalize();
 
         bool success = true;

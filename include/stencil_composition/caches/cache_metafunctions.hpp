@@ -152,7 +152,7 @@ namespace gridtools {
         template < typename LocDom, typename Index >
         struct get_storage {
             GRIDTOOLS_STATIC_ASSERT(is_local_domain<LocDom>::value, "wrong type");
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename LocDom::mpl_storages>::value < Index::value), "accessing a storage which is not in the list");
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename LocDom::mpl_storages>::value > Index::value), "accessing a storage which is not in the list");
             typedef typename boost::mpl::at< typename LocDom::mpl_storages, Index >::type type;
         };
 

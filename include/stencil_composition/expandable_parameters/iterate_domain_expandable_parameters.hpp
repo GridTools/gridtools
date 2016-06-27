@@ -19,13 +19,13 @@ namespace gridtools {
        access the storage list at the correct offset.
 
        \tparam IterateDomain base iterate_domain class. Might be e.g. iterate_domain_host or iterate_domain_cuda
-       \tparam Value the current position in the storage list
+       \tparam Position the current position in the expandable parameters list
      */
-    template < typename IterateDomain, ushort_t Value >
+    template < typename IterateDomain, ushort_t Position >
     struct iterate_domain_expandable_parameters : public IterateDomain {
 
         GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< IterateDomain >::value, "wrong type");
-        static const ushort_t ID = Value - 1;
+        static const ushort_t ID = Position - 1;
         typedef IterateDomain super;
         typedef IterateDomain iterate_domain_t;
 
@@ -72,10 +72,6 @@ namespace gridtools {
 #endif
             return super::operator()(tmp_);
         }
-
-        // GRIDTOOLS_STATIC_ASSERT(Value, "You are using a expandable_parameters and compiling with C++03, or without "
-        //                                "setting the cuda version to a value >=8.0. switch to C++11 "
-        //                                "(-DENABLE_CXX11=ON), or compile with -DCUDA_VERSION=80");
     };
 
     template < typename T >
