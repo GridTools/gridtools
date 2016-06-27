@@ -15,8 +15,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("json_ref", help="filename containing the stencils json report")
     parser.add_argument('--updates',nargs='+', type=str, help='list of update json reports. Each update a particular node')
+    parser.add_argument('-v', action='store_false',  help='verbose')
 
     args = parser.parse_args()
+
+    verbose=True
+    if args.v:
+        verbose=False
 
     f = open(args.json_ref,'r')
     decode = json.load(f)
@@ -44,9 +49,11 @@ if __name__ == "__main__":
     copy_ref = copy.deepcopy(decode)
     stella_timers = {}
 
-    for ahost in decode:
+    data_decoded=decode['data']
+
+    for ahost in data_decoded:
         if ahost != host: continue
-        for stencil in decode[ahost]['stencils'].items():
+        for stencil in data_decoded[ahost].items():
             for target in stencil[1].items():
                 if target[0] != "gpu" and target[0] != "cpu": continue
                 for prec in target[1].items():
@@ -57,16 +64,17 @@ if __name__ == "__main__":
                                 differ = False
                                 cnt=0
                                 for update in update_reports:
-                                    update_time = update[ahost]['stencils'][stencil[0]][target[0]][prec[0]][std[0]][thread[0]][domain[0]]["time"]
-                                    update_rms = update[ahost]['stencils'][stencil[0]][target[0]][prec[0]][std[0]][thread[0]][domain[0]]["rms"]
+                                    update_time = update['data'][ahost][stencil[0]][target[0]][prec[0]][std[0]][thread[0]][domain[0]]["time"]
+                                    update_rms = update['data'][ahost][stencil[0]][target[0]][prec[0]][std[0]][thread[0]][domain[0]]["rms"]
                                     if update_time != ref_time :
                                         if differ:
                                             print("Error: multiple update reports modify the same token of metrics")
                                             sys.exit(1)
                                         differ = True
-                                        print("Found update for :"+stencil[0]+","+target[0]+","+prec[0]+","+std[0]+","+thread[0]+","+domain[0]+ " in report "+args.updates[cnt])
-                                        copy_ref[ahost]['stencils'][stencil[0]][target[0]][prec[0]][std[0]][thread[0]][domain[0]]["time"] = update_time
-                                        copy_ref[ahost]['stencils'][stencil[0]][target[0]][prec[0]][std[0]][thread[0]][domain[0]]["rms"] = update_rms
+                                        if verbose:
+                                            print("Found update for :"+stencil[0]+","+target[0]+","+prec[0]+","+std[0]+","+thread[0]+","+domain[0]+ " in report "+args.updates[cnt])
+                                        copy_ref['data'][ahost][stencil[0]][target[0]][prec[0]][std[0]][thread[0]][domain[0]]["time"] = update_time
+                                        copy_ref['data'][ahost][stencil[0]][target[0]][prec[0]][std[0]][thread[0]][domain[0]]["rms"] = update_rms
                                     cnt=cnt+1
 
     merged_filename = "stencils.json.merge"
