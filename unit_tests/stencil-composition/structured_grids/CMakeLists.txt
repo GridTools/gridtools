@@ -68,9 +68,11 @@ if(CUDA_FOUND)
   set_target_properties(test_conditionals_cuda PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
   target_link_libraries(test_conditionals_cuda ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
 
+if(CUDA_VERSION_MAJOR>7)
     cuda_add_executable(test_conditional_switches_cuda test_conditional_switches.cu)
     set_target_properties(test_conditional_switches_cuda PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
     target_link_libraries(test_conditional_switches_cuda ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
     gridtools_add_test(test_conditional_switches_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/test_conditional_switches_cuda")
+endif(CUDA_VERSION_MAJOR>7)
 
 endif()
