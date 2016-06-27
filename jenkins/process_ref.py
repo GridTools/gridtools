@@ -382,7 +382,9 @@ if __name__ == "__main__":
         stencil_data = decode['data'][host][stencil_name]
         executable = gridtools_path+'/'+stencil_conf['exec']+'_'+target_suff
 
-        stella_filter = stencil_conf['stella_filter']
+        stella_filter = None
+        if stencil_conf.has_key('stella_filter'):
+            stella_filter = stencil_conf['stella_filter']
  
         print(stencil_name, stencil_data)
         for thread in stencil_data[target][prec][std]: 

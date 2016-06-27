@@ -31,8 +31,9 @@ if __name__ == "__main__":
     else:
         jplan=args.jplan[0]
 
-    if jplan != 'GridTools' and jplan != 'GridTools_strgrid_PR':
-        parser.error('--jplan must be GridTools | GridTools_strgrid_PR')
+    plan_options=['GridTools','GridTools_strgrid_PR', 'GridTools_icgrid_PR']
+    if jplan not in plan_options:
+        parser.error('--jplan must be in', plan_options)
 
     if not args.gtype:
         parser.error('--gtype must be specified')
