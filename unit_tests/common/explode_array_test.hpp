@@ -6,6 +6,9 @@
 class PackChecker {
 
   public:
+
+    constexpr PackChecker(){}
+
     GT_FUNCTION
     static constexpr bool check(int i1, int i2, int i3) { return i1 == 35 && i2 == 23 && i3 == 9; }
 
@@ -18,6 +21,7 @@ class PackChecker {
 class TuplePackChecker {
 
   public:
+    constexpr TuplePackChecker(){}
     GT_FUNCTION
     static bool check(int i1, double i2, unsigned short i3) {
         return ((i1 == -35) && gridtools::compare_below_threshold(i2, 23.3, 1e-6) && (i3 == 9));
@@ -31,6 +35,8 @@ class TuplePackChecker {
 
 class TuplePackCheckerInt {
   public:
+    constexpr TuplePackCheckerInt(){}
+
     GT_FUNCTION
     static constexpr bool check(long i1, int i2, unsigned short i3) { return i1 == -353 && i2 == 55 && i3 == 9; }
 
@@ -41,6 +47,8 @@ class TuplePackCheckerInt {
 };
 
 struct _impl_index {
+    constexpr _impl_index(){}
+
     template < typename... UInt >
     GT_FUNCTION static constexpr bool apply(const PackChecker &me, UInt... args) {
         return me.check(args...);
@@ -48,6 +56,8 @@ struct _impl_index {
 };
 
 struct _impl_index_tuple_int {
+    constexpr _impl_index_tuple_int(){}
+
     template < typename... UInt >
     GT_FUNCTION static constexpr bool apply(const TuplePackCheckerInt &me, UInt... args) {
         return me.check(args...);
@@ -55,6 +65,8 @@ struct _impl_index_tuple_int {
 };
 
 struct _impl_index_tuple {
+    constexpr _impl_index_tuple(){}
+
     template < typename... UInt >
     GT_FUNCTION static constexpr bool apply(const TuplePackChecker &me, UInt... args) {
         return me.check(args...);
