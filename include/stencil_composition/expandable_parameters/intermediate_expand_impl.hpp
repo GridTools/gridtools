@@ -7,13 +7,13 @@ namespace gridtools{
         template < typename T, typename Vec, ushort_t ID >
         struct new_storage< T, Vec, ID, true > {
 
-            template < typename DomFrom >
+            template < typename DomFull >
             static typename boost::remove_reference<
                 typename boost::fusion::result_of::at< Vec, static_ushort< ID > >::type >::type::value_type *
-            apply(DomFrom const &dom_from_) {
+            apply(DomFull const &dom_full_) {
                 return new typename boost::remove_reference<
                     typename boost::fusion::result_of::at< Vec, static_ushort< ID > >::type >::type::
-                    value_type(dom_from_.template storage_pointer< arg< ID, std::vector< pointer< T > > > >()
+                    value_type(dom_full_.template storage_pointer< arg< ID, std::vector< pointer< T > > > >()
                                    ->at(0)
                                    ->meta_data(),
                         "expandable params",
@@ -25,27 +25,27 @@ namespace gridtools{
         template < typename T, typename Vec, ushort_t ID >
         struct new_storage< T, Vec, ID, false > {
 
-            template < typename DomFrom >
+            template < typename DomFull >
             static typename boost::remove_reference<
                 typename boost::fusion::result_of::at< Vec, static_ushort< ID > >::type >::type::value_type *
-            apply(DomFrom const &) {
+            apply(DomFull const &) {
                 return nullptr;
             }
         };
 
         /**
-           @brief functor used to initialize the storage in a boost::fusion::vector from an
+           @brief functor used to initialize the storage in a boost::fusion::vector full an
            instance of gridtools::domain_type
         */
-        template < typename DomainFrom, typename Vec >
+        template < typename DomainFull, typename Vec >
         struct initialize_storage {
 
           private:
-            DomainFrom const &m_dom_from;
+            DomainFull const &m_dom_full;
             Vec &m_vec_to;
 
           public:
-            initialize_storage(DomainFrom const &dom_from_, Vec &vec_to_) : m_dom_from(dom_from_), m_vec_to(vec_to_) {}
+            initialize_storage(DomainFull const &dom_full_, Vec &vec_to_) : m_dom_full(dom_full_), m_vec_to(vec_to_) {}
 
             /**
                @brief initialize the storage vector, specialization for the expandable args
@@ -57,8 +57,8 @@ namespace gridtools{
                     Vec,
                     ID,
                     !boost::remove_reference< decltype(
-                        m_dom_from.template storage_pointer< arg< ID, std::vector< pointer< T > > > >()->at(
-                            0)) >::type::value_type::is_temporary >::apply(m_dom_from);
+                        m_dom_full.template storage_pointer< arg< ID, std::vector< pointer< T > > > >()->at(
+                            0)) >::type::value_type::is_temporary >::apply(m_dom_full);
             }
 
             /**
@@ -68,7 +68,7 @@ namespace gridtools{
             void operator()(arg< ID, Storage >) {
                 // copy the gridtools pointer
                 boost::fusion::at< static_ushort< ID > >(m_vec_to) =
-                    m_dom_from.template storage_pointer< arg< ID, Storage > >();
+                    m_dom_full.template storage_pointer< arg< ID, Storage > >();
             }
         };
 
@@ -120,32 +120,32 @@ namespace gridtools{
         /**
            @brief functor used to assign the next chunk of storage pointers
         */
-        template < typename DomainFrom, typename DomainTo >
+        template < typename DomainFull, typename DomainChunk >
         struct prepare_expandable_params {
 
           private:
-            DomainFrom const &m_dom_from;
-            DomainTo &m_dom_to;
+            DomainFull const &m_dom_full;
+            DomainChunk &m_dom_chunk;
             uint_t const &m_idx;
 
         public:
-            prepare_expandable_params(DomainFrom const &dom_from_, DomainTo &dom_to_, uint_t const &i_)
-                : m_dom_from(dom_from_), m_dom_to(dom_to_), m_idx(i_) {}
+            prepare_expandable_params(DomainFull const &dom_full_, DomainChunk &dom_chunk_, uint_t const &i_)
+                : m_dom_full(dom_full_), m_dom_chunk(dom_chunk_), m_idx(i_) {}
 
             template < ushort_t ID, typename T >
             void operator()(arg< ID, std::vector< pointer< T > > >) {
 
                 if (!is_temporary_storage<
-                        typename boost::mpl::at_c< typename DomainTo::arg_list_mpl, ID >::type >::value) {
+                        typename boost::mpl::at_c< typename DomainChunk::arg_list_mpl, ID >::type >::value) {
                     // the vector of pointers
-                    pointer< std::vector< pointer< T > > > const & ptr_from_ =
-                        m_dom_from.template storage_pointer< arg< ID, std::vector< pointer< T > > > >();
-                    auto ptr_to_ = boost::fusion::at< static_ushort< ID > >(m_dom_to.m_storage_pointers);
-                    //reset the pointer to the host version, since they'll be accessed from the host
-                    (*(ptr_to_->storage_pointer())).set(*ptr_from_, m_idx);
-                    ptr_to_->set_on_host();
+                    pointer< std::vector< pointer< T > > > const & ptr_full_ =
+                        m_dom_full.template storage_pointer< arg< ID, std::vector< pointer< T > > > >();
+                    auto ptr_chunk_ = boost::fusion::at< static_ushort< ID > >(m_dom_chunk.m_storage_pointers);
+                    //reset the pointer to the host version, since they'll be accessed full the host
+                    (*(ptr_chunk_->storage_pointer())).set(*ptr_full_, m_idx);
+                    ptr_chunk_->set_on_host();
                     // update the device pointers (TODO: should not copy the heavy data)
-                    ptr_to_->clone_to_device();
+                    ptr_chunk_->clone_to_device();
                 }
             }
         };
@@ -154,34 +154,34 @@ namespace gridtools{
         /**
            @brief functor used to assign the next chunk of storage pointers
         */
-        template < typename Backend, typename DomainFrom, typename DomainTo >
+        template < typename Backend, typename DomainFull, typename DomainChunk >
         struct assign_expandable_params {
 
           private:
-            DomainFrom const &m_dom_from;
-            DomainTo &m_dom_to;
+            DomainFull const &m_dom_full;
+            DomainChunk &m_dom_chunk;
             uint_t const &m_idx;
 
           public:
-            assign_expandable_params(DomainFrom const &dom_from_, DomainTo &dom_to_, uint_t const &i_)
-                : m_dom_from(dom_from_), m_dom_to(dom_to_), m_idx(i_) {}
+            assign_expandable_params(DomainFull const &dom_full_, DomainChunk &dom_chunk_, uint_t const &i_)
+                : m_dom_full(dom_full_), m_dom_chunk(dom_chunk_), m_idx(i_) {}
 
             template < ushort_t ID, typename T >
             void operator()(arg< ID, std::vector< pointer< T > > >) {
 
                 if (!is_temporary_storage<
-                        typename boost::mpl::at_c< typename DomainTo::arg_list_mpl, ID >::type >::value) {
+                        typename boost::mpl::at_c< typename DomainChunk::arg_list_mpl, ID >::type >::value) {
                     // the vector of pointers
-                    pointer< std::vector< pointer< T > > > const &ptr_from_ =
-                        m_dom_from.template storage_pointer< arg< ID, std::vector< pointer< T > > > >( );
+                    pointer< std::vector< pointer< T > > > const &ptr_full_ =
+                        m_dom_full.template storage_pointer< arg< ID, std::vector< pointer< T > > > >( );
 
-                    auto ptr_to_ = boost::fusion::at< static_ushort< ID > >(m_dom_to.m_storage_pointers);
+                    auto ptr_chunk_ = boost::fusion::at< static_ushort< ID > >(m_dom_chunk.m_storage_pointers);
 
-                    (*(ptr_to_->storage_pointer())).set(*ptr_from_, m_idx);
+                    (*(ptr_chunk_->storage_pointer())).set(*ptr_full_, m_idx);
                     if(Backend::s_backend_id==enumtype::Cuda)
                     {
-                        ptr_to_->set_on_host( );
-                        ptr_to_->h2d_update( );
+                        ptr_chunk_->set_on_host( );
+                        ptr_chunk_->h2d_update( );
                     }
                 }
             }
@@ -190,19 +190,19 @@ namespace gridtools{
         /**
            @brief functor used to assign the next chunk of storage pointers
         */
-        template < typename Backend, typename DomainFrom >
+        template < typename Backend, typename DomainFull >
         struct finalize_expandable_params {
 
           private:
-            DomainFrom const &m_dom_from;
+            DomainFull const &m_dom_full;
 
           public:
-            finalize_expandable_params(DomainFrom const &dom_from_) : m_dom_from(dom_from_) {}
+            finalize_expandable_params(DomainFull const &dom_full_) : m_dom_full(dom_full_) {}
 
             template < ushort_t ID, typename T >
             void operator()(arg< ID, std::vector< pointer< T > > >) {
 
-                auto ptr = boost::fusion::at< static_ushort< ID > >(m_dom_from.m_storage_pointers);
+                auto ptr = boost::fusion::at< static_ushort< ID > >(m_dom_full.m_storage_pointers);
                 if (ptr.get()) { // if it's a temporary it might have been freed already
                     for (auto &&i : *ptr) {
                         // hard-setting the on_device flag for the hybrid_pointers:
