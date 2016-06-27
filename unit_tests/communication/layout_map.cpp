@@ -173,9 +173,11 @@ bool test_layout_map () {
     return success;
 }
 
-
-#ifndef SILENT_RUN
 int main() {
-    return test_layout_map();
+    bool success = test_layout_map();
+    if(!success) {
+        std::cout << "TEST FAILED\n";
+        exit(-1);
+    }
+    return 0;
 }
-#endif

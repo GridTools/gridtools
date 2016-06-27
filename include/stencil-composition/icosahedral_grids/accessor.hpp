@@ -1,5 +1,6 @@
 #pragma once
 #include "extent.hpp"
+#include "location_type.hpp"
 
 namespace gridtools {
     /**

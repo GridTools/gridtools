@@ -66,7 +66,9 @@ int main() {
 
   if (pass)
     std::cout << "PASSED\n";
-  else
+  else {
     std::cout << "FAILED\n";
+    exit(-1);
+  }
   return 0;
 }

@@ -1,6 +1,6 @@
 
 #include "gtest/gtest.h"
-#include "defs.hpp"
+#include "common/defs.hpp"
 #include "common/generic_metafunctions/is_not_same.hpp"
 
 using namespace gridtools;

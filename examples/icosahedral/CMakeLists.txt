@@ -4,14 +4,15 @@ list( APPEND SRCFILES #laplace
 set( GTEST_FILES ../Options.hpp ../Options.cpp unstructured_grid.cpp)
 
 add_definitions("-DBENCHMARK")
+set(exe_LIBS libgtest libgtest_main "${exe_LIBS}" )
 
 foreach(srcfile IN LISTS SRCFILES )
     add_executable(${srcfile}_naive   ${srcfile}.cpp ${GTEST_FILES})
     add_executable(${srcfile}_block   ${srcfile}.cpp ${GTEST_FILES})
     set_target_properties(${srcfile}_block
       PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
-    set_target_properties(${srcfile}_naive PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
-    set_target_properties(${srcfile}_block PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+    set_target_properties(${srcfile}_naive PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
+    set_target_properties(${srcfile}_block PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
     target_link_libraries(${srcfile}_naive ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS})
     target_link_libraries(${srcfile}_block ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS})
 
@@ -24,7 +25,7 @@ endforeach(srcfile)
 if(CUDA_FOUND)
     foreach(srcfile IN LISTS SRCFILES MPISRCFILES )
          cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu ${GTEST_FILES})
-         set_target_properties(${srcfile}_cuda PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+         set_target_properties(${srcfile}_cuda PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
          target_link_libraries(${srcfile}_cuda ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} )
 
          if( ${srcfile} STREQUAL "stencil_on_vertexes") 

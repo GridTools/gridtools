@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 namespace gridtools {
 
     template < typename MssDescriptorArray, bool HasReduction >
