@@ -47,6 +47,7 @@ if __name__ == "__main__":
     else:
         json_file = 'stencils_strgrid.json'
 
+    json_file_out = json_file+'.out'
     targets=('gpu','cpu')
     precs=('float','double')
     stds=('cxx03','cxx11')
@@ -82,7 +83,7 @@ if __name__ == "__main__":
         if not os.path.isdir(outdir):
             print("Output directory: "+outdir+" not found")
             sys.exit(1)
-        out_jsonfile=outdir+"/stencils.json.out"
+        out_jsonfile=outdir+'/'+json_file_out
         if not os.path.isfile(out_jsonfile):
             print("Output json data: "+ out_jsonfile+" not found")
             sys.exit(1)
@@ -91,13 +92,12 @@ if __name__ == "__main__":
         print('Merging.................')
         cmd_merge='python merge_updates.py '+json_file+' --updates '+out_jsonfile
         print(cmd_merge) 
-        mergeout=subprocess.Popen(cmd_merge, shell=True, stdout=subprocess.PIPE)
-        print(mergeout.returncode, mergeout.stdout)
-        if mergeout.returncode:
-            print("Error merging updates")
-            sys.exit(1)
+        process=subprocess.Popen(cmd_merge, shell=True, stdout=subprocess.PIPE)
+        stdout = process.communicate()
+        print(stdout)
         shutil.copyfile('stencils.json.merge', json_file)
-    
+        print('Finish merging')
+ 
     f = open(json_file,'r')
     decode = json.load(f)
     

@@ -5,6 +5,8 @@ import os
 import copy
 import socket
 import re
+import sys
+import os.path
 
 """
 """
@@ -22,6 +24,10 @@ if __name__ == "__main__":
     verbose=True
     if args.v:
         verbose=False
+
+    if not os.path.isfile(args.json_ref):
+        print('FILE '+args.json_ref+' does not exist')
+        sys.exit(1)
 
     f = open(args.json_ref,'r')
     decode = json.load(f)
