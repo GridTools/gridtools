@@ -154,12 +154,12 @@ class CopyTest (AccessPatternDetectionTest):
 
 
     @attr(lang='c++')
-    def test_compare_python_and_cpp_results (self):
+    def test_compare_python_and_cpp_results (self, backend='c++'):
         import copy
 
         ndiff                  = 0
         stencil_native         = copy.deepcopy (self.stencil)
-        stencil_native.set_backend ('c++')
+        stencil_native.set_backend (backend)
 
         #
         # data fields - Py and C++ sets
@@ -182,41 +182,13 @@ class CopyTest (AccessPatternDetectionTest):
             for k in params_py.keys ( ):
                 diff  = np.isclose(params_py[k], params_cxx[k], atol=1e-11)
                 ndiff = np.count_nonzero (np.logical_not (diff))
-        print ("%s ndiff: %d" % ('c++', ndiff))
+        print ("%s ndiff: %d" % (backend, ndiff))
         self.assertEqual (ndiff, 0)
 
 
     @attr(lang='cuda')
     def test_compare_python_and_cuda_results (self):
-        import copy
-
-        ndiff                  = 0
-        stencil_native         = copy.deepcopy (self.stencil)
-        stencil_native.set_backend ('cuda')
-
-        #
-        # data fields - Py and C++ sets
-        #
-        params_py  = dict ( )
-        params_cxx = dict ( )
-        for p in self.params:
-            params_py[p]  = np.random.rand (*self.domain)
-            params_cxx[p] = np.copy (params_py[p])
-        #
-        # apply both stencils 10 times and compare the results
-        # using an error threshold
-        #
-        for i in range (10):
-            self.stencil.run   (**params_py)
-            stencil_native.run (**params_cxx)
-            #
-            # compare field contents
-            #
-            for k in params_py.keys ( ):
-                diff  = np.isclose(params_py[k], params_cxx[k], atol=1e-11)
-                ndiff = np.count_nonzero (np.logical_not (diff))
-        print ("%s ndiff: %d" % ('cuda', ndiff))
-        self.assertEqual (ndiff, 0)
+        self.test_compare_python_and_cpp_results (backend='cuda')
 
 
     def test_ghost_cell_pattern (self, expected_patterns=None, backend='c++'):

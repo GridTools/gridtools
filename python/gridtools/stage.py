@@ -532,7 +532,7 @@ class Stage ( ):
         return self.scope.data_dependency
 
 
-    def identify_IO (self):
+    def identify_IO_fields (self):
         """
         Tries to identify input and output data fields for this stage
         :return:
@@ -564,7 +564,7 @@ class Stage ( ):
         for node in data_dep.nodes_with_selfloops():
 #            self.inputs.append(node)
 #            self.outputs.append(node)
-            raise ValueError ("Assigning a non-local data filed to itself is not allowed.")
+            raise ValueError ("Assigning a non-local data field to itself is not allowed.")
         logging.debug('\tStage scope Input data: %s' % self.inputs)
         logging.debug('\tStage scope Output data: %s' % self.outputs)
         #

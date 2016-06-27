@@ -399,7 +399,7 @@ class Stencil (object):
         return self.scope.data_dependency
 
 
-    def identify_stages_IO (self):
+    def identify_IO_stages (self):
         """
         Tries to identify input and output data fields for every stage of the
         stencil.
@@ -410,7 +410,7 @@ class Stencil (object):
         :return:
         """
         for stg in self.stages:
-            stg.identify_IO ( )
+            stg.identify_IO_fields ( )
 
 
     def plot_3d (self, Z):
@@ -601,7 +601,7 @@ class MultiStageStencil (Stencil):
             #
             # run the selected backend version
             #
-            logging.debug ("Executing '%s' in %s mode ..." % (self.name,
+            logging.info ("Executing '%s' in %s mode ..." % (self.name,
                                                              backend.upper ( )))
             if backend == 'c++' or backend == 'cuda':
                 Stencil.compiler.run_native (self, **kwargs)
@@ -1099,4 +1099,3 @@ class CombinedStencil (Stencil):
                             independent_stages   = independent_stages),
                 make.render (stencil  = self,
                              compiler = self.compiler))
-
