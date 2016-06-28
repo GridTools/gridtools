@@ -74,7 +74,8 @@ else
     OUTFILE=test.out
 fi
 
-bash ${JENKINSPATH}/monitorjobid `sbatch ${slurm_script} | gawk '{print $4}'` $maxsleep
+
+bash ${JENKINSPATH}/monitorjobid `export CUDA_AUTO_BOOST=0; export GCLOCK=875; sbatch ${slurm_script} | gawk '{print $4}'` $maxsleep
 grep -E 'Error in conf|FAILED|ERROR' ${OUTFILE}
 
 
