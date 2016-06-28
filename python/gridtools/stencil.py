@@ -477,11 +477,16 @@ class Stencil (object):
             logging.error ("The passed Z field should be 2D")
 
 
-    def plot_data_dependency (self, graph=None, scope=None):
+    def plot_data_dependency (self, graph=None, scope=None, show_legend=False):
         """
         Renders a data-depencency graph using 'matplotlib'
+
         :param graph: the graph to render; it renders this stencil's data
                       dependency graph if None given
+        :param scope: the scope that will be queried to determine the kind of
+                      the symbols in the graph
+        :param show_legend: boolean flag to display the legend, explaining the
+                            node colors
         :return:
         """
         if graph is None:
@@ -508,14 +513,25 @@ class Stencil (object):
         #
         # Display a legend with node colors
         #
-#        import matplotlib.patches as mpatches
-#        par_patch = mpatches.Patch(color='r', label='Parameter')
-#        ali_patch = mpatches.Patch(color='m', label='Alias')
-#        tmp_patch = mpatches.Patch(color='g', label='Temporary')
-#        con_patch = mpatches.Patch(color='y', label='Constant')
-#        loc_patch = mpatches.Patch(color='c', label='Local')
-#        plt.legend(handles=[par_patch,ali_patch,tmp_patch,con_patch,loc_patch])
-        self._plot_graph (graph, node_color=node_color)
+        if show_legend:
+            from gridtools import plt
+            import matplotlib.patches as mpatches
+
+            fig, ax = plt.subplots (1, 1)
+
+            par_patch = mpatches.Patch(facecolor='r', edgecolor='k', label='Parameter')
+            ali_patch = mpatches.Patch(facecolor='m', edgecolor='k', label='Alias')
+            tmp_patch = mpatches.Patch(facecolor='g', edgecolor='k', label='Temporary')
+            con_patch = mpatches.Patch(facecolor='y', edgecolor='k', label='Constant')
+            loc_patch = mpatches.Patch(facecolor='c', edgecolor='k', label='Local')
+            unk_patch = mpatches.Patch(facecolor='w', edgecolor='k', label='Unknown')
+
+            ax.legend(handles=[par_patch,ali_patch,tmp_patch,
+                               con_patch,loc_patch,unk_patch])
+        else:
+            ax = None
+
+        self._plot_graph (graph, axes=ax, node_color=node_color)
 
 
     def plot_stage_execution (self):
