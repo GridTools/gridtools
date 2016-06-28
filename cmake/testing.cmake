@@ -14,7 +14,7 @@ include(ExternalProject)
 # Download and install GoogleTest
 ExternalProject_Add(
     gtest
-    URL https://googletest.googlecode.com/files/gtest-1.7.0.zip
+    URL http://googletest.googlecode.com/files/gtest-1.7.0.zip
     PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gtest
     # forward toolchain
     CMAKE_ARGS 
@@ -46,7 +46,7 @@ include_directories("${source_dir}/include")
 # Download and install GoogleMock
 ExternalProject_Add(
     gmock
-    URL https://googlemock.googlecode.com/files/gmock-1.7.0.zip
+    URL http://googlemock.googlecode.com/files/gmock-1.7.0.zip
     PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gmock
     # forward toolchain
     CMAKE_ARGS 
