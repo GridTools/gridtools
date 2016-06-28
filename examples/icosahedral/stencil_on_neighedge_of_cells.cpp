@@ -19,6 +19,10 @@ int main(int argc, char **argv) {
     if (argc == 5) {
         Options::getInstance().m_size[3] = atoi(argv[4]);
     }
+    if (argc == 6) {
+        if((std::string(argv[5]) == "-d"))
+            Options::getInstance().m_verify = false;
+    }
 
     return RUN_ALL_TESTS();
 }
@@ -28,8 +32,10 @@ TEST(StencilOnCells, Test) {
     uint_t y = Options::getInstance().m_size[1];
     uint_t z = Options::getInstance().m_size[2];
     uint_t t = Options::getInstance().m_size[3];
+    bool verify = Options::getInstance().m_verify;
+
     if (t == 0)
         t = 1;
 
-    ASSERT_TRUE(soneoc::test(x, y, z, t));
+    ASSERT_TRUE(soneoc::test(x, y, z, t, verify));
 }

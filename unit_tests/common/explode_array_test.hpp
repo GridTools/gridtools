@@ -101,7 +101,6 @@ GT_FUNCTION
 static bool test_explode_with_tuple_with_object() {
     bool result = true;
 #if !defined(__CUDACC__) || (CUDA_VERSION > 70)
-    dd
     // constexpr check
     constexpr tuple< long, int, unsigned short > a_c(-353, 55, 9);
     constexpr TuplePackCheckerInt checker_c;

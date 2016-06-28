@@ -48,7 +48,7 @@ namespace soem {
         }
     };
 
-    bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps) {
+    bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps, bool verify) {
 
         uint_t d1 = x;
         uint_t d2 = y;
@@ -112,27 +112,29 @@ namespace soem {
         in_edges1.d2h_update();
         in_edges2.d2h_update();
 #endif
-        unstructured_grid ugrid(d1, d2, d3);
-        for (uint_t i = halo_nc; i < d1 - halo_nc; ++i) {
-            for (uint_t c = 0; c < icosahedral_topology_t::edges::n_colors::value; ++c) {
-                for (uint_t j = halo_mc; j < d2 - halo_mc; ++j) {
-                    for (uint_t k = 0; k < d3; ++k) {
-                        auto neighbours =
-                            ugrid.neighbours_of< icosahedral_topology_t::edges, icosahedral_topology_t::edges >(
-                                {i, c, j, k});
-                        for (auto iter = neighbours.begin(); iter != neighbours.end(); ++iter) {
-                            ref_edges(i, c, j, k) += in_edges1(*iter) + in_edges2(*iter) * 0.1;
+        bool result = true;
+        if (verify) {
+            unstructured_grid ugrid(d1, d2, d3);
+            for (uint_t i = halo_nc; i < d1 - halo_nc; ++i) {
+                for (uint_t c = 0; c < icosahedral_topology_t::edges::n_colors::value; ++c) {
+                    for (uint_t j = halo_mc; j < d2 - halo_mc; ++j) {
+                        for (uint_t k = 0; k < d3; ++k) {
+                            auto neighbours =
+                                ugrid.neighbours_of< icosahedral_topology_t::edges, icosahedral_topology_t::edges >(
+                                    {i, c, j, k});
+                            for (auto iter = neighbours.begin(); iter != neighbours.end(); ++iter) {
+                                ref_edges(i, c, j, k) += in_edges1(*iter) + in_edges2(*iter) * 0.1;
+                            }
                         }
                     }
                 }
             }
+
+            verifier ver(1e-10);
+
+            array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
+            result = ver.verify(grid_, ref_edges, out_edges, halos);
         }
-
-        verifier ver(1e-10);
-
-        array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
-        bool result = ver.verify(grid_, ref_edges, out_edges, halos);
-
 #ifdef BENCHMARK
         for (uint_t t = 1; t < t_steps; ++t) {
             stencil_->run();

@@ -63,7 +63,7 @@ namespace smf {
         }
     };
 
-    bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps) {
+    bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps, bool verify) {
 
         uint_t d1 = x;
         uint_t d2 = y;
@@ -131,31 +131,34 @@ namespace smf {
         weight_edges.d2h_update();
 #endif
 
-        // compute the reference values of the weights on edges of cells
-        unstructured_grid ugrid(d1, d2, d3);
-        for (uint_t i = halo_nc; i < d1 - halo_nc; ++i) {
-            for (uint_t c = 0; c < icosahedral_topology_t::edges::n_colors::value; ++c) {
-                for (uint_t j = halo_mc; j < d2 - halo_mc; ++j) {
-                    for (uint_t k = 0; k < d3; ++k) {
+        bool result=true;
+        if (verify) {
+            // compute the reference values of the weights on edges of cells
+            unstructured_grid ugrid(d1, d2, d3);
+            for (uint_t i = halo_nc; i < d1 - halo_nc; ++i) {
+                for (uint_t c = 0; c < icosahedral_topology_t::edges::n_colors::value; ++c) {
+                    for (uint_t j = halo_mc; j < d2 - halo_mc; ++j) {
+                        for (uint_t k = 0; k < d3; ++k) {
 
-                        auto neighbours =
-                            ugrid.neighbours_of< icosahedral_topology_t::cells, icosahedral_topology_t::cells >(
-                                {i, c, j, k});
-                        ushort_t e = 0;
-                        for (auto iter = neighbours.begin(); iter != neighbours.end(); ++iter) {
-                            ref_weights(i, c, j, k, e) = cell_area(*iter) / cell_area(i, c, j, k);
-                            ++e;
+                            auto neighbours =
+                                ugrid.neighbours_of< icosahedral_topology_t::cells, icosahedral_topology_t::cells >(
+                                    {i, c, j, k});
+                            ushort_t e = 0;
+                            for (auto iter = neighbours.begin(); iter != neighbours.end(); ++iter) {
+                                ref_weights(i, c, j, k, e) = cell_area(*iter) / cell_area(i, c, j, k);
+                                ++e;
+                            }
                         }
                     }
                 }
             }
+
+            verifier ver(1e-10);
+
+            array< array< uint_t, 2 >, 5 > halos = {
+                {{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}, {0, 0}}};
+            result = ver.verify(grid_, ref_weights, weight_edges, halos);
         }
-
-        verifier ver(1e-10);
-
-        array< array< uint_t, 2 >, 5 > halos = {
-            {{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}, {0, 0}}};
-        bool result = ver.verify(grid_, ref_weights, weight_edges, halos);
 
 #ifdef BENCHMARK
         for (uint_t t = 1; t < t_steps; ++t) {
