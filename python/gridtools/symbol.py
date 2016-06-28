@@ -498,7 +498,7 @@ class StencilScope (Scope):
                     logging.warning ("Parameter '%s' is not a NumPy array" % k)
 
 
-    def check_data_dependency (self):
+    def check_self_dependent_fields (self):
         """
         Verifies that the stencil's data dependencies comply with Gridtools'
         rules. For more information, see

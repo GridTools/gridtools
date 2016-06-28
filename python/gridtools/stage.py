@@ -575,7 +575,7 @@ class Stage ( ):
         return self.scope.data_dependency
 
 
-    def identify_IO (self):
+    def identify_IO_fields (self):
         """
         Tries to identify input and output data fields for this stage
         :return:
@@ -632,10 +632,6 @@ class Stage ( ):
     @independent.setter
     def independent (self, value):
         self._independent = bool (value)
-        #
-        # have to rebuild the stage-execution graph
-        #
-#        self.stencil_scope.build_execution_path ( )
 
 
     def translate (self):

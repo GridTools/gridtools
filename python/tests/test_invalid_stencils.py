@@ -325,3 +325,102 @@ class IfStatementsOpInTest (IfStatementsOpIsTest):
         super ( ).setUp ( )
 
         self.stencil = IfStatementOpInFailure (self.domain)
+
+
+
+class SelfDependHD (MultiStageStencil):
+    """
+    A stencil featuring data self-dependency, derived from HorizontalDiffusion
+    """
+    def __init__ (self, domain):
+        super ( ).__init__ ( )
+        #
+        # temporary data fields to share data among the different stages
+        #
+        self.lap = np.zeros (domain)
+        self.fli = np.zeros (domain)
+        self.flj = np.zeros (domain)
+
+
+    def stage_laplace (self, out_lap, in_data):
+        for p in self.get_interior_points (out_lap,
+                                          ghost_cell=[-1,1,-1,1]):
+           out_lap[p] = -4.0 * in_data[p] +  (
+                         in_data[p + (-1,0,0)] + in_data[p + (1,0,0)] +
+                         in_data[p + (0,-1,0)] + in_data[p + (0,1,0)] )
+
+
+    def stage_flux_i (self, out_fli, in_data):
+        for p in self.get_interior_points (out_fli,
+                                           ghost_cell=[-1,0,-1,0]):
+            out_fli[p] = in_data[p + (1,0,0)] - in_data[p]
+
+
+    def stage_flux_j (self, out_flj, in_data):
+        for p in self.get_interior_points (out_flj,
+                                           ghost_cell=[-1,0,-1,0]):
+            out_flj[p] = in_data[p + (0,1,0)] - in_data[p]
+
+
+    @Stencil.kernel
+    def kernel (self, out_data, in_data, in_wgt):
+        #
+        # Laplace
+        #
+        self.stage_laplace (out_lap=self.lap,
+                           in_data=in_data)
+        #
+        # the fluxes are independent, because they depend on 'self.lap'
+        #
+        self.stage_flux_i (out_fli = self.fli,
+                           in_data  = self.lap)
+        self.stage_flux_j (out_flj = self.flj,
+                           in_data  = self.lap)
+
+        for p in self.get_interior_points (self.fli,ghost_cell=[-1,0,-1,0]):
+           #
+           # Data field self-assignment
+           # fli = fli + flj
+           #
+           self.fli[p] = (self.fli[p + (-1,0,0)] - self.fli[p] +
+                          self.flj[p + (0,-1,0)] - self.flj[p] )
+
+        for p in self.get_interior_points (out_data):
+            #
+            # Last stage
+            #
+            out_data[p] = in_wgt[p] * (
+                          self.fli[p + (-1,0,0)] - self.fli[p] +
+                          self.flj[p + (0,-1,0)] - self.flj[p] )
+
+
+
+class SelfDependHDTest (IfStatementsOpIsTest):
+    """
+    A test case for the SelfDependHD stencil defined above, reusing the
+    HorizontalDiffusion test case.-
+    """
+    def setUp (self):
+        super ( ).setUp ( )
+
+        self.domain = (64, 64, 32)
+        self.params = ('out_data',
+                       'in_data',
+                       'in_wgt')
+        self.temps  = ('self.lap',
+                       'self.fli',
+                       'self.flj')
+
+        self.out_data = np.zeros (self.domain)
+        self.in_wgt   = np.ones  (self.domain)
+        self.in_data  = np.zeros (self.domain)
+
+        for i in range (self.domain[0]):
+            for j in range (self.domain[1]):
+                for k in range (self.domain[2]):
+                    self.in_data[i,j,k] = i**5 + j
+
+        self.stencil = SelfDependHD (self.domain)
+        self.stencil.set_halo ( (2, 2, 2, 2) )
+        self.stencil.set_k_direction ("forward")
+        self.error = ValueError

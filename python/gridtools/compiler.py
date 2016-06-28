@@ -100,12 +100,12 @@ class StencilCompiler ( ):
                 #
                 # build and check stencil data dependency graph
                 #
-                stencil.build_data_dependency       ( )
-                stencil.scope.check_data_dependency ( )
+                stencil.build_data_dependency             ( )
+                stencil.scope.check_self_dependent_fields ( )
                 #
                 # build the stage-execution path
                 #
-                stencil.identify_stages_IO               ( )
+                stencil.identify_IO_stages               ( )
                 stencil.scope.build_execution_path       (stencil.name)
                 stencil.scope.check_stage_execution_path ( )
                 #
