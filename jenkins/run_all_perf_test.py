@@ -77,7 +77,8 @@ if __name__ == "__main__":
         gitrev_out.wait()
         commit_hash = hash_
         print(hash_)
-    
+   
+    processes=[] 
     for target, prec, std in product(targets, precs, stds):
         print(target, prec, std)
     
@@ -86,9 +87,12 @@ if __name__ == "__main__":
     
         print("Executing conf : " + target+","+prec+","+std)
         print(cmd)
-        process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+        processes.append( subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE) )
+
+    for process in processes:
         stdout = process.communicate()
     
+    for target, prec, std in product(targets, precs, stds):
         outdir=build_outdir(gtype,target,prec,std)
         if not os.path.isdir(outdir):
             print("Output directory: "+outdir+" not found")
@@ -102,7 +106,7 @@ if __name__ == "__main__":
         print('Merging.................')
         cmd_merge='python merge_updates.py '+json_file+' --updates '+out_jsonfile
         print(cmd_merge) 
-        process=subprocess.Popen(cmd_merge, shell=True, stdout=subprocess.PIPE)
+        process = subprocess.Popen(cmd_merge, shell=True, stdout=subprocess.PIPE)
         stdout = process.communicate()
         print(stdout)
         shutil.copyfile('stencils.json.merge', json_file)
