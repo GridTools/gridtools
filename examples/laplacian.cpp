@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #include "gtest/gtest.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,12 +49,10 @@ typedef gridtools::interval<level<0,-2>, level<1,3> > axis;
 Contains the stencil operators that compose the multistage stencil in this test
 */
 struct lap_function {
-    static const int n_args = 2; //!< public compile-time constant, \todo apparently useless?
-
     /**
        @brief placeholder for the output field, index 0. accessor contains a vector of 3 offsets and defines a plus method summing values to the offsets
     */
-    typedef accessor<0, enumtype::inout, extent<-1, 1, -1, 1>, 3 > out;
+    typedef accessor< 0, enumtype::inout, extent<>, 3 > out;
 /**
        @brief  placeholder for the input field, index 1
     */
@@ -56,9 +69,10 @@ struct lap_function {
     GT_FUNCTION
     static void Do(t_domain const & dom, x_lap) {
 
-        dom(out()) = 4*dom(in()) -
+        dom(out()) = 4*dom(in())-
             (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
-             dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)));
+             dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)))
+            ;
 
     }
 };
@@ -93,18 +107,18 @@ TEST(Laplace, test) {
 
 // [backend]
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Block>
+#define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend<Host, Block>
+#define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
-#define BACKEND backend<Host, Naive>
+#define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
 // [backend]
 
 // [layout_map]
-    typedef gridtools::layout_map<0,1,2> layout_t;
+    typedef gridtools::layout_map<2,1,0> layout_t;
 // [layout_map]
 
 // [storage_type]
@@ -140,16 +154,16 @@ TEST(Laplace, test) {
     typedef boost::mpl::vector<p_in, p_out> accessor_list;
 // [placeholders]
 
-// [domain_type]
+// [aggregator_type]
     /**
        - Construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
        It must be noted that the only fields to be passed to the constructor are the non-temporary.
        The order in which they have to be passed is the order in which they appear scanning the placeholders in order (i.e. the order in the accessor_list?). \todo (I don't particularly like this).
-       \note domain_type implements the CRTP pattern in order to do static polymorphism (?) Because all what is 'clonable to gpu' must derive from the CRTP base class.
+       \note aggregator_type implements the CRTP pattern in order to do static polymorphism (?) Because all what is 'clonable to gpu' must derive from the CRTP base class.
     */
-       gridtools::domain_type<accessor_list> domain
+       gridtools::aggregator_type<accessor_list> domain
         (boost::fusion::make_vector(&in, &out));
-// [domain_type]
+// [aggregator_type]
 
 // [grid]
        /**
@@ -157,12 +171,12 @@ TEST(Laplace, test) {
           The grid constructor takes the horizontal plane dimensions,
           while the vertical ones are set according the the axis property soon after
        */
-       uint_t di[5] = {halo_size, halo_size, halo_size, d1-halo_size, d1};
-       uint_t dj[5] = {halo_size, halo_size, halo_size, d2-halo_size, d2};
+       uint_t di[5] = {halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
+       uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
 
        gridtools::grid<axis> grid(di,dj);
        grid.value_list[0] = 0;
-       grid.value_list[1] = d3;
+       grid.value_list[1] = d3-1;
 // [grid]
 
 // [computation]
@@ -185,18 +199,18 @@ TEST(Laplace, test) {
        auto
 #else
 #ifdef __CUDACC__
-       computation*
+    stencil*
 #else
-       boost::shared_ptr<gridtools::computation>
+    boost::shared_ptr<gridtools::stencil>
 #endif
 #endif
        laplace = make_computation<gridtools::BACKEND>
         (
          domain, grid,
-         make_mss //! \todo all the arguments in the call to make_mss are actually dummy.
+         make_multistage //! \todo all the arguments in the call to make_multistage are actually dummy.
          (
           execute<forward>(),//!\todo parameter used only for overloading purpose?
-          make_esf<lap_function>(p_out(), p_in())//!  \todo elementary stencil function, also here the arguments are dummy.
+          make_stage<lap_function>(p_out(), p_in())//!  \todo elementary stencil function, also here the arguments are dummy.
           )
          );
 // [computation]
@@ -226,11 +240,11 @@ TEST(Laplace, test) {
 
     // [generate reference]
 
-    storage_type ref(metadata_, -1., "ref");
+    storage_type ref(metadata_, -7.3, "ref");
 
-    for(size_t i=2; i != d1-2; ++i) {
-        for(size_t j=2; j != d2-2; ++j) {
-            for(size_t k=0; k != d3; ++k) {
+    for(uint_t i=halo_size; i != d1-halo_size; ++i) {
+        for(uint_t j=halo_size; j != d2-halo_size; ++j) {
+            for(uint_t k=0; k != d3; ++k) {
                 ref(i,j,k) = 4*in(i,j,k) -
                         (in(i+1,j,k) + in(i,j+1,k) +
                          in(i-1, j, k) + in(i,j-1,k));
@@ -239,11 +253,19 @@ TEST(Laplace, test) {
     }
 
 #ifdef CXX11_ENABLED
-    verifier verif(1e-13);
-    array<array<uint_t, 2>, 3> halos{{ {halo_size,halo_size}, {halo_size,halo_size}, {halo_size,halo_size} }};
-    bool result = verif.verify(grid, out, ref, halos);
+#if FLOAT_PRECISION == 4
+    verifier verif(1e-6);
 #else
-    verifier verif(1e-13, halo_size);
+    verifier verif(1e-12);
+#endif
+    array<array<uint_t, 2>, 3> halos{{ {halo_size,halo_size}, {halo_size,halo_size}, {halo_size,halo_size} }};
+    bool result = verif.verify(grid, ref, out, halos);
+#else
+#if FLOAT_PRECISION == 4
+    verifier verif(1e-6, halo_size);
+#else
+    verifier verif(1e-12, halo_size);
+#endif
     bool result = verif.verify(grid, out, ref);
 #endif
 

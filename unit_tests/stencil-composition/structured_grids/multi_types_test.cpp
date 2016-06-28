@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #include <gridtools.hpp>
 #include <storage/meta_storage.hpp>
 #include <stencil-composition/stencil-composition.hpp>
@@ -53,12 +68,12 @@ using namespace expressions;
 #endif
 
 #ifdef CUDA_EXAMPLE
-typedef gridtools::backend<gridtools::enumtype::Cuda, gridtools::enumtype::Block > the_backend;
+typedef gridtools::backend< gridtools::enumtype::Cuda, GRIDBACKEND, gridtools::enumtype::Block > the_backend;
 #else
 #ifdef BACKEND_BLOCK
-typedef gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Block > the_backend;
+typedef gridtools::backend< gridtools::enumtype::Host, GRIDBACKEND, gridtools::enumtype::Block > the_backend;
 #else
-typedef gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::Naive > the_backend;
+typedef gridtools::backend< gridtools::enumtype::Host, GRIDBACKEND, gridtools::enumtype::Naive > the_backend;
 #endif
 #endif
 
@@ -266,9 +281,9 @@ bool test(uint_t x, uint_t y, uint_t z)
     typedef boost::mpl::vector<p_temp, p_field1, p_field2, p_field3> accessor_list;
 
 #if defined( CXX11_ENABLED )
-    gridtools::domain_type<accessor_list> domain( (p_field1() = field1), (p_field2() = field2), (p_field3() = field3) );
+    gridtools::aggregator_type<accessor_list> domain( (p_field1() = field1), (p_field2() = field2), (p_field3() = field3) );
 #else
-    gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&field1, &field2, &field3));
+    gridtools::aggregator_type<accessor_list> domain(boost::fusion::make_vector(&field1, &field2, &field3));
 #endif
 
     uint_t di[5] = {halo_size, halo_size, halo_size, d1-halo_size-1, d1};
@@ -282,25 +297,25 @@ bool test(uint_t x, uint_t y, uint_t z)
 auto
 #else
 #ifdef __CUDACC__
-    gridtools::computation*
+    gridtools::stencil*
 #else
-        boost::shared_ptr<gridtools::computation>
+        boost::shared_ptr<gridtools::stencil>
 #endif
 #endif
     test_computation = gridtools::make_computation<the_backend>
         (
             domain, grid,
-            gridtools::make_mss // mss_descriptor
+            gridtools::make_multistage // mss_descriptor
             (
                 execute<forward>(),
-                gridtools::make_esf<function1>(p_temp(), p_field1()),
-                gridtools::make_esf<function2>(p_field2(), p_field1(), p_temp())
+                gridtools::make_stage<function1>(p_temp(), p_field1()),
+                gridtools::make_stage<function2>(p_field2(), p_field1(), p_temp())
             ),
-            gridtools::make_mss // mss_descriptor
+            gridtools::make_multistage // mss_descriptor
             (
                 execute<backward>(),
-                gridtools::make_esf<function1>(p_temp(), p_field1()),
-                gridtools::make_esf<function3>(p_field3(), p_temp(), p_field1())
+                gridtools::make_stage<function1>(p_temp(), p_field1()),
+                gridtools::make_stage<function3>(p_field3(), p_temp(), p_field1())
             )
         );
 

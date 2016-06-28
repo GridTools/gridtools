@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #pragma once
 
 #include <boost/static_assert.hpp>
@@ -12,33 +27,29 @@ namespace gridtools {
      * @struct Interval
      * Structure defining a closed interval on an axis given two levels
      */
-    template<
-        typename TFromLevel,
-        typename TToLevel>
-    struct interval
-    {
+    template < typename TFromLevel, typename TToLevel >
+    struct interval {
         // HACK allow implicit conversion from the from level to any interval starting with the from level
         // (due to this trick we can search all do method overloads starting at a given from position)
         GT_FUNCTION
-        interval() {};
+        interval(){};
 
         GT_FUNCTION
-        interval(TFromLevel) {};
+        interval(TFromLevel){};
 
-      static void static_info(){
-          printf("level \"from\": splitter %d, offset %d \n", TFromLevel::Splitter::value, TFromLevel::Offset::value);
-          printf("level \"to\": splitter %d, offset %d \n", TToLevel::Splitter::value, TToLevel::Offset::value);
-      }
+        static void static_info() {
+            printf("level \"from\": splitter %d, offset %d \n", TFromLevel::Splitter::value, TFromLevel::Offset::value);
+            printf("level \"to\": splitter %d, offset %d \n", TToLevel::Splitter::value, TToLevel::Offset::value);
+        }
         // check the parameters are of type level
-        GRIDTOOLS_STATIC_ASSERT(is_level<TFromLevel>::value, "check the first template parameter is of type level");
-        GRIDTOOLS_STATIC_ASSERT(is_level<TToLevel>::value, "check the second template parameter is of type level");
+        GRIDTOOLS_STATIC_ASSERT(is_level< TFromLevel >::value, "check the first template parameter is of type level");
+        GRIDTOOLS_STATIC_ASSERT(is_level< TToLevel >::value, "check the second template parameter is of type level");
 
         // check the from level is lower or equal to the to level
-        GRIDTOOLS_STATIC_ASSERT(
-                            (TFromLevel::Splitter::value < TToLevel::Splitter::value) ||
-                            (TFromLevel::Splitter::value == TToLevel::Splitter::value && TFromLevel::Offset::value <= TToLevel::Offset::value),
-                            "check the from level is lower or equal to the to level"
-            );
+        GRIDTOOLS_STATIC_ASSERT((TFromLevel::Splitter::value < TToLevel::Splitter::value) ||
+                                    (TFromLevel::Splitter::value == TToLevel::Splitter::value &&
+                                        TFromLevel::Offset::value <= TToLevel::Offset::value),
+            "check the from level is lower or equal to the to level");
 
         // define the from and to splitter indexes
         typedef TFromLevel FromLevel;
@@ -49,50 +60,38 @@ namespace gridtools {
      * @struct is_interval
      * Trait returning true it the template parameter is an interval
      */
-    template<typename T>
+    template < typename T >
     struct is_interval : boost::mpl::false_ {};
 
-    template<
-        typename TFromLevel,
-        typename TToLevel>
-    struct is_interval<interval<TFromLevel, TToLevel> > : boost::mpl::true_ {};
+    template < typename TFromLevel, typename TToLevel >
+    struct is_interval< interval< TFromLevel, TToLevel > > : boost::mpl::true_ {};
 
     /**
      * @struct interval_from_index
      * Meta function returning the interval from level index
      */
-    template<typename TInterval>
+    template < typename TInterval >
     struct interval_from_index;
 
-    template<
-        typename TFromLevel,
-        typename TToLevel>
-    struct interval_from_index<interval<TFromLevel, TToLevel> > : level_to_index<TFromLevel> {};
+    template < typename TFromLevel, typename TToLevel >
+    struct interval_from_index< interval< TFromLevel, TToLevel > > : level_to_index< TFromLevel > {};
 
     /**
      * @struct interval_to_index
      * Meta function returning the interval to level index
      */
-    template<typename TInterval>
+    template < typename TInterval >
     struct interval_to_index;
 
-    template<
-        typename TFromLevel,
-        typename TToLevel>
-    struct interval_to_index<interval<TFromLevel, TToLevel> > : level_to_index<TToLevel> {};
+    template < typename TFromLevel, typename TToLevel >
+    struct interval_to_index< interval< TFromLevel, TToLevel > > : level_to_index< TToLevel > {};
 
     /**
      * @struct make_interval
      * Meta function computing an interval given a from and a to level index
      */
-    template<
-        typename TFromIndex,
-        typename ToIndex>
-    struct make_interval
-    {
-        typedef interval<
-            typename index_to_level<TFromIndex>::type,
-            typename index_to_level<ToIndex>::type
-            > type;
+    template < typename TFromIndex, typename ToIndex >
+    struct make_interval {
+        typedef interval< typename index_to_level< TFromIndex >::type, typename index_to_level< ToIndex >::type > type;
     };
 } // namespace gridtools

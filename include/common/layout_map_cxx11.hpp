@@ -11,10 +11,8 @@
 #include "../common/defs.hpp"
 #include "../common/array.hpp"
 #include "stencil-composition/accessor_fwd.hpp"
-#ifdef CXX11_ENABLED
 #include "generic_metafunctions/gt_get.hpp"
 #include "common/generic_metafunctions/is_variadic_pack_of.hpp"
-#endif
 #include "generic_metafunctions/gt_expand.hpp"
 #include "generic_metafunctions/accumulate.hpp"
 #include "generic_metafunctions/gt_get.hpp"
@@ -35,8 +33,6 @@ namespace gridtools {
    @brief Used as template argument in the storage.
    In particular in the \ref gridtools::base_storage class it regulate memory access order, defined at compile-time, by leaving the interface unchanged.
 */
-#if defined(CXX11_ENABLED)
-
     namespace _impl {
 
         template <int index>
@@ -325,10 +321,7 @@ namespace gridtools {
         GT_FUNCTION
         static constexpr T find_val(Accessor const& indices) {
 
-// #ifdef PEDANTIC // this check is valid only if we use standard accessors (not data_field accessors)
-//             GRIDTOOLS_STATIC_ASSERT(length >= Accessor::n_dim, "pedantic check: an accessor's dimension is larger than the corresponding storage space dimension");
-// #endif
-            GRIDTOOLS_STATIC_ASSERT(length <= Accessor::n_dim, "pedantic check: an accessor's dimension is smaller than the corresponding storage space dimension");
+            // GRIDTOOLS_STATIC_ASSERT( length<=2 || length <= Accessor::n_dim, "pedantic check: an accessor's dimension is smaller than the corresponding storage space dimension");
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "the find_val method is used with tuples of type other than accessor");
             GRIDTOOLS_STATIC_ASSERT((Accessor::n_dim-pos_<I>::value-1>=0), "write a message here");
             return ((pos_<I>::value >= length)) ?
@@ -432,8 +425,6 @@ namespace gridtools {
     struct sub_map{
         typedef typename gt_expand<typename Map::layout_vector_t, layout_map, Pre, Post>::type type;
     };
-#endif // (defined(CXX11_ENABLED)
-
 
     template <typename LM>
     struct reverse_map;

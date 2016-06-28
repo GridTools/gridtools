@@ -22,5 +22,7 @@ export CUDA_AUTO_BOOST=0
 export GCLOCK=875
 export G2G=1
 
+echo "RUNNING IN NODE ${HOSTNAME}"
+
 <CMD>
 

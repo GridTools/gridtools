@@ -1,15 +1,56 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #include "gtest/gtest.h"
-#include <stencil-composition/stencil-composition.hpp>
+#include <common/defs.hpp>
+#include <storage/storage-facility.hpp>
 
 using namespace gridtools;
 
+TEST(storage_info, test_component) {
+    typedef layout_map<0,1,2> layout;
+#ifdef CXX11_ENABLED
+    typedef storage_traits<enumtype::Host>::meta_storage_type<0, layout> meta_data_t;
+    typedef storage_traits<enumtype::Host>::storage_type<float, meta_data_t> storage_t;
+#else
+    typedef storage_traits<enumtype::Host>::meta_storage_type<0, layout>::type meta_data_t;
+    typedef storage_traits<enumtype::Host>::storage_type<float, meta_data_t>::type storage_t;
+#endif
+    meta_data_t meta_obj(10,10,10);
+    storage_t st_obj(meta_obj, "in");
+}
+
+TEST(storage_info, test_equality) {
+    typedef gridtools::layout_map<0,1,2> layout_t1;
+    typedef gridtools::meta_storage_base<static_int<0>,layout_t1,false> meta_t1;
+    meta_t1 m0(11, 12, 13);
+    meta_t1 m1(11, 12, 13);
+    meta_t1 m2(12, 123, 13);
+    ASSERT_TRUE((m0 == m1) && "storage info equality test failed!");
+    ASSERT_TRUE((m1 == m0) && "storage info equality test failed!");
+    ASSERT_TRUE(!(m2 == m0) && "storage info equality test failed!");
+}
+
 TEST(storage_info, test_interface) {
     typedef gridtools::layout_map<0,1,2,3,4> layout_t;
-#if defined(CXX11_ENABLED) && defined(NDEBUG)
+#if defined(CXX11_ENABLED)
+    typedef typename gridtools::meta_storage_base<static_int<0>,layout_t,false> meta_t;
 #ifndef __CUDACC__
-    constexpr gridtools::meta_storage_base<static_int<0>,layout_t,false> meta_{11u, 12u, 13u, 14u, 15u};
+    constexpr meta_t meta_{11u, 12u, 13u, 14u, 15u};
 #else
-    constexpr gridtools::meta_storage_base<static_int<0>,layout_t,false> meta_{gridtools::static_uint<11>(), gridtools::static_uint<12>(), gridtools::static_uint<13>(), gridtools::static_uint<14>(), gridtools::static_uint<15>()};
+    constexpr meta_t meta_{gridtools::static_uint<11>{}, gridtools::static_uint<12>{}, gridtools::static_uint<13>{}, gridtools::static_uint<14>{}, gridtools::static_uint<15>{}};
 #endif
 
     GRIDTOOLS_STATIC_ASSERT((meta_.dims<0>()==11), "error");
@@ -22,30 +63,127 @@ TEST(storage_info, test_interface) {
     GRIDTOOLS_STATIC_ASSERT((meta_.strides(2)==15*14*13), "error");
     GRIDTOOLS_STATIC_ASSERT((meta_.strides(1)==15*14*13*12), "error");
     GRIDTOOLS_STATIC_ASSERT((meta_.strides(0)==15*14*13*12*11), "error");
-    GRIDTOOLS_STATIC_ASSERT((meta_.strides<4>(meta_.strides())==1), "error");
-    GRIDTOOLS_STATIC_ASSERT((meta_.strides<3>(meta_.strides())==15), "error");
-    GRIDTOOLS_STATIC_ASSERT((meta_.strides<2>(meta_.strides())==15*14), "error");
-    GRIDTOOLS_STATIC_ASSERT((meta_.strides<1>(meta_.strides())==15*14*13), "error");
-    GRIDTOOLS_STATIC_ASSERT((meta_.strides<0>(meta_.strides())==15*14*13*12), "error");
 
-    GRIDTOOLS_STATIC_ASSERT((meta_.strides<3>()==1), "error");
-    GRIDTOOLS_STATIC_ASSERT((meta_.strides<2>()==14), "error");
-    GRIDTOOLS_STATIC_ASSERT((meta_.strides<1>()==14*13), "error");
-    GRIDTOOLS_STATIC_ASSERT((meta_.strides<0>()==14*13*12), "error");
-#else // CXX11_ENABLED && defined(NDEBUG)
+    GRIDTOOLS_STATIC_ASSERT((meta_t::strides<4>(meta_.strides())==1), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_t::strides<3>(meta_.strides())==15), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_t::strides<2>(meta_.strides())==15*14), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_t::strides<1>(meta_.strides())==15*14*13), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_t::strides<0>(meta_.strides())==15*14*13*12), "error");
 
-    gridtools::meta_storage_base<static_int<0>,layout_t,false> meta_(11u, 12u, 13u, 14u, 15u);
+    GRIDTOOLS_STATIC_ASSERT((meta_.strides<4>()==1), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_.strides<3>()==15), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_.strides<2>()==15*14), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_.strides<1>()==15*14*13), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_.strides<0>()==15*14*13*12), "error");
 
-    ASSERT_TRUE((meta_.dims<0>()==(uint_t)11));
-    ASSERT_TRUE((meta_.dims<1>()==(uint_t)12));
-    ASSERT_TRUE((meta_.dims<2>()==(uint_t)13));
+    // aligned meta_storage test cases
+    using halo_t = gridtools::halo< 0, 0, 0 >;
+    using align_t = gridtools::aligned< 32 >;
+#ifndef __CUDACC__
+    constexpr gridtools::meta_storage_aligned<
+        gridtools::meta_storage_base< static_int<0>, gridtools::layout_map< 0, 1, 2 >, false >,
+        align_t,
+        halo_t > meta_aligned_1{11, 12, 13};
+    constexpr gridtools::meta_storage_aligned<
+        gridtools::meta_storage_base< static_int<0>, gridtools::layout_map< 0, 2, 1 >, false >,
+        align_t,
+        halo_t > meta_aligned_2{11, 12, 13};
+    constexpr gridtools::meta_storage_aligned<
+        gridtools::meta_storage_base< static_int<0>, gridtools::layout_map< 2, 1, 0 >, false >,
+        align_t,
+        halo_t > meta_aligned_3{11, 12, 13};
 
-    ASSERT_TRUE((meta_.strides(4)==15));
-    ASSERT_TRUE((meta_.strides(3)==15*14));
-    ASSERT_TRUE((meta_.strides(2)==15*14*13));
+    // check unaligned dimensions with either templated method or method that takes an argument
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_1.unaligned_dims< 0 >() == 11), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_1.unaligned_dims< 1 >() == 12), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_1.unaligned_dims< 2 >() == 13), "error");
 
-    ASSERT_TRUE((meta_.strides<4>(meta_.strides())==1));
-    ASSERT_TRUE((meta_.strides<3>(meta_.strides())==15));
-    ASSERT_TRUE((meta_.strides<2>(meta_.strides())==15*14));
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_2.unaligned_dims(0) == 11), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_2.unaligned_dims(1) == 12), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_2.unaligned_dims(2) == 13), "error");
+
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.unaligned_dims< 0 >() == 11), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.unaligned_dims< 1 >() == 12), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.unaligned_dims< 2 >() == 13), "error");
+
+    // check aligned dimensions with either templated method or method that takes an argument
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_1.dims< 0 >() == 11), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_1.dims< 1 >() == 12), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_1.dims< 2 >() == 32), "error");
+
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_2.dims(0) == 11), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_2.dims(1) == 32), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_2.dims(2) == 13), "error");
+
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.dims< 0 >() == 32), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.dims< 1 >() == 12), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.dims< 2 >() == 13), "error");
+
+    // check unaligned strides with either templated method or method that takes an argument
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_1.unaligned_strides(2) == 13), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_1.unaligned_strides(1) == 13 * 12), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_1.unaligned_strides(0) == 13 * 12 * 11), "error");
+
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_2.unaligned_strides< 2 >() == 12), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_2.unaligned_strides< 1 >() == 1), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_2.unaligned_strides< 0 >() == 12 * 13), "error");
+
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.unaligned_strides(2) == 11), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.unaligned_strides(1) == 11 * 12), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.unaligned_strides(0) == 11 * 12 * 13), "error");
+
+    // check unaligned strides with either templated method or method that takes an argument
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_1.strides(2) == 32), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_1.strides(1) == 32 * 12), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_1.strides(0) == 32 * 12 * 11), "error");
+
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_2.strides< 2 >() == 32), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_2.strides< 1 >() == 1), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_2.strides< 0 >() == 32 * 13), "error");
+
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.strides(2) == 32), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.strides(1) == 32 * 12), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.strides(0) == 32 * 12 * 13), "error");
+#endif
+#else
+    typedef gridtools::layout_map<0,1,2> layout_t;
+    gridtools::meta_storage_base<static_int<0>,layout_t,false> meta_(11, 12, 13);
+    ASSERT_TRUE((meta_.dims<0>()==11));
+    ASSERT_TRUE((meta_.dims<1>()==12));
+    ASSERT_TRUE((meta_.dims<2>()==13));
+
+    ASSERT_TRUE((meta_.strides(2)==13));
+    ASSERT_TRUE((meta_.strides(1)==13*12));
+    ASSERT_TRUE((meta_.strides(0)==13*12*11));
+
+    ASSERT_TRUE((meta_.strides<2>(meta_.strides())==1));
+    ASSERT_TRUE((meta_.strides<1>(meta_.strides())==13));
+    ASSERT_TRUE((meta_.strides<0>(meta_.strides())==13*12));
+
+#ifdef CXX11_ENABLED // this checks are performed in cxx11 mode (without ndebug)
+    // create simple aligned meta storage
+    typedef gridtools::halo< 0, 0, 0 > halo_t1;
+    typedef gridtools::aligned< 32 > align_t1;
+    gridtools::meta_storage_aligned<
+        gridtools::meta_storage_base< static_int<0>, gridtools::layout_map< 0, 1, 2 >, false >,
+        align_t1,
+        halo_t1 > meta_aligned_1nc(11, 12, 13);
+    // check if unaligned dims and strides are correct
+    ASSERT_TRUE((meta_aligned_1nc.unaligned_dims(0) == 11) && "error");
+    ASSERT_TRUE((meta_aligned_1nc.unaligned_dims(1) == 12) && "error");
+    ASSERT_TRUE((meta_aligned_1nc.unaligned_dims(2) == 13) && "error");
+    ASSERT_TRUE((meta_aligned_1nc.unaligned_strides(2) == 13) && "error");
+    ASSERT_TRUE((meta_aligned_1nc.unaligned_strides(1) == 13 * 12) && "error");
+    ASSERT_TRUE((meta_aligned_1nc.unaligned_strides(0) == 13 * 12 * 11) && "error");
+    //create a storage and pass meta_data
+    gridtools::storage<gridtools::base_storage<gridtools::wrap_pointer<float>, decltype(meta_aligned_1nc), 1> > storage(meta_aligned_1nc, -1.0f);
+    ASSERT_TRUE((storage.meta_data().unaligned_dims(0) == 11) && "error");
+    ASSERT_TRUE((storage.meta_data().unaligned_dims(1) == 12) && "error");
+    ASSERT_TRUE((storage.meta_data().unaligned_dims(2) == 13) && "error");
+    ASSERT_TRUE((storage.meta_data().unaligned_strides(2) == 13) && "error");
+    ASSERT_TRUE((storage.meta_data().unaligned_strides(1) == 13 * 12) && "error");
+    ASSERT_TRUE((storage.meta_data().unaligned_strides(0) == 13 * 12 * 11) && "error");
+#endif
+
 #endif
 }

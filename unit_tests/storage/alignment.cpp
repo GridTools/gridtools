@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #include "gtest/gtest.h"
 #include <stencil-composition/make_computation.hpp>
 
@@ -6,16 +21,27 @@ TEST(storage_alignment, test_aligned) {
     using namespace gridtools;
     using namespace enumtype;
 
+#ifdef STRUCTURED_GRIDS
+    static const grid_type grid_id = structured;
+#else
+    static const grid_type grid_id = icosahedral;
+#endif
+
 #ifdef __CUDACC__
     static const platform Backend=Cuda;
 #else
     static const platform Backend=Host;
 #endif
 
+    typedef gridtools::backend< Backend, grid_id, Block > backend_t;
+
     //define three storage types, with different layouts
-    typedef gridtools::backend<Backend, Block>::storage_info<0, gridtools::layout_map<2,1,0>, gridtools::halo<1,2,3>, aligned<32> > meta_gpu1_t;
-    typedef gridtools::backend<Backend, Block>::storage_info<0, gridtools::layout_map<0,2,1>, gridtools::halo<1,2,3>, aligned<32> > meta_gpu2_t;
-    typedef gridtools::backend<Backend, Block>::storage_info<0, gridtools::layout_map<1,0,2>, gridtools::halo<1,2,3>, aligned<32> > meta_gpu3_t;
+    typedef backend_t::storage_info< 0, gridtools::layout_map< 2, 1, 0 >, gridtools::halo< 1, 2, 3 >, aligned< 32 > >
+        meta_gpu1_t;
+    typedef backend_t::storage_info< 0, gridtools::layout_map< 0, 2, 1 >, gridtools::halo< 1, 2, 3 >, aligned< 32 > >
+        meta_gpu2_t;
+    typedef backend_t::storage_info< 0, gridtools::layout_map< 1, 0, 2 >, gridtools::halo< 1, 2, 3 >, aligned< 32 > >
+        meta_gpu3_t;
 
     meta_gpu1_t m1(1,32,63);
 
@@ -29,9 +55,9 @@ TEST(storage_alignment, test_aligned) {
     ASSERT_TRUE((m3.dims<2>()==96));
 
     //define three temporary storage types, with different layouts
-    typedef gridtools::backend<Backend, Block>::temporary_storage_type< int, meta_gpu1_t>::type tmp_storage1_t;
-    typedef gridtools::backend<Backend, Block>::temporary_storage_type< int, meta_gpu2_t>::type tmp_storage2_t;
-    typedef gridtools::backend<Backend, Block>::temporary_storage_type< int, meta_gpu3_t>::type tmp_storage3_t;
+    typedef backend_t::temporary_storage_type< int, meta_gpu1_t >::type tmp_storage1_t;
+    typedef backend_t::temporary_storage_type< int, meta_gpu2_t >::type tmp_storage2_t;
+    typedef backend_t::temporary_storage_type< int, meta_gpu3_t >::type tmp_storage3_t;
 
     typedef meta_storage_tmp< typename tmp_storage1_t::type::basic_type::storage_info_type, tile<32, 1, 1>, tile<32, 1, 1> > tmp_meta_gpu1_t;
     typedef meta_storage_tmp< typename tmp_storage2_t::type::basic_type::storage_info_type, tile<32, 1, 1>, tile<32, 1, 1> > tmp_meta_gpu2_t;

@@ -1,4 +1,19 @@
 /*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+/*
  * test_local_domain.cpp
  *
  *  Created on: Apr 9, 2015
@@ -31,7 +46,7 @@ namespace local_domain_stencil{
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct dummy_functor {
-        typedef accessor<0> in;
+        typedef accessor< 0, gridtools::enumtype::inout > in;
         typedef accessor<1> out;
         typedef boost::mpl::vector<in,out> arg_list;
 
@@ -52,10 +67,10 @@ TEST(test_local_domain, merge_mss_local_domains) {
 
     typedef layout_map<2,1,0> layout_ijk_t;
     typedef layout_map<0,1,2> layout_kji_t;
-    typedef backend<Host, Naive >::storage_info<0, layout_ijk_t> meta_ijk_t;
-    typedef backend<Host, Naive >::storage_info<0, layout_kji_t> meta_kji_t;
-    typedef backend<Host, Naive >::storage_type<float_type, meta_ijk_t >::type storage_type;
-    typedef backend<Host, Naive >::storage_type<float_type, meta_kji_t >::type storage_buff_type;
+    typedef backend< Host, GRIDBACKEND, Naive >::storage_info< 0, layout_ijk_t > meta_ijk_t;
+    typedef backend< Host, GRIDBACKEND, Naive >::storage_info< 0, layout_kji_t > meta_kji_t;
+    typedef backend< Host, GRIDBACKEND, Naive >::storage_type< float_type, meta_ijk_t >::type storage_type;
+    typedef backend< Host, GRIDBACKEND, Naive >::storage_type< float_type, meta_kji_t >::type storage_buff_type;
 
     typedef arg<0, storage_type> p_in;
     typedef arg<1, storage_buff_type> p_buff;
@@ -72,7 +87,7 @@ TEST(test_local_domain, merge_mss_local_domains) {
     storage_buff_type buff(meta_kji,1.5,"buff");
     storage_type out(meta_ijk,1.5,"out");
 
-    gridtools::domain_type<accessor_list> domain((p_in() = in),  (p_buff() = buff), (p_out() = out) );
+    gridtools::aggregator_type<accessor_list> domain((p_in() = in),  (p_buff() = buff), (p_out() = out) );
 
     uint_t di[5] = {0, 0, 0, d1-1, d1};
     uint_t dj[5] = {0, 0, 0, d2-1, d2};
@@ -81,22 +96,24 @@ TEST(test_local_domain, merge_mss_local_domains) {
     grid.value_list[0] = 0;
     grid.value_list[1] = d3-1;
 
-    typedef intermediate<gridtools::backend<Host, Naive >
-                         , meta_array<boost::mpl::vector<decltype(
-        gridtools::make_mss // mss_descriptor
-        (
-            execute<forward>(),
-            gridtools::make_esf<local_domain_stencil::dummy_functor>(p_in() ,p_buff()),
-            gridtools::make_esf<local_domain_stencil::dummy_functor>(p_buff() ,p_out())
-            )
-        )>, boost::mpl::quote1<gridtools::is_mss_descriptor> >
-                         , gridtools::domain_type<accessor_list>
-                         , gridtools::grid<local_domain_stencil::axis>
-                         , boost::fusion::set<>
-                         , false> intermediate_t;
+
+    typedef intermediate<gridtools::backend<Host, GRIDBACKEND, Naive >
+                          , meta_array<boost::mpl::vector<decltype(
+         gridtools::make_multistage // mss_descriptor
+         (
+             execute<forward>(),
+             gridtools::make_stage<local_domain_stencil::dummy_functor>(p_in() ,p_buff()),
+             gridtools::make_stage<local_domain_stencil::dummy_functor>(p_buff() ,p_out())
+             )
+         )>, boost::mpl::quote1<gridtools::is_computation_token> >
+                          , gridtools::aggregator_type<accessor_list>
+                          , gridtools::grid<local_domain_stencil::axis>
+                          , boost::fusion::set<>
+                          , gridtools::notype
+                          , false> intermediate_t;
 
     typedef intermediate_backend<intermediate_t>::type backend_t;
-    typedef intermediate_domain_type<intermediate_t>::type domain_t;
+    typedef intermediate_aggregator_type<intermediate_t>::type domain_t;
     typedef intermediate_mss_components_array<intermediate_t>::type mss_components_array_t;
 
     typedef mss_components_array_t::elements mss_elements_t;

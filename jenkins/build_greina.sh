@@ -15,18 +15,23 @@ function help {
    echo "-t      target                   [gpu|cpu]"
    echo "-f      floating point precision [float|double]"
    echo "-c      cxx standard             [cxx11|cxx03]"
+   echo "-l      compiler                 [gnu|clang]  "
    echo "-p      activate python                       "
    echo "-m      activate mpi                          "
    echo "-s      activate a silent build               "
-   echo "-f      force build                           "
+   echo "-z      force build                           "
    echo "-i      build for icosahedral grids           "
+   echo "-d      do not clean build                    "
+   echo "-v      compile in VERBOSE mode               "
    exit 1
 }
 
 INITPATH=$PWD
 BASEPATH_SCRIPT=$(dirname "${0}")
+FORCE_BUILD=OFF
+VERBOSE_RUN="OFF"
 
-while getopts "h:b:t:f:c:pzmsi" opt; do
+while getopts "h:b:t:f:c:l:pzmsidv" opt; do
     case "$opt" in
     h|\?)
         help
@@ -49,6 +54,12 @@ while getopts "h:b:t:f:c:pzmsi" opt; do
     z) FORCE_BUILD="ON"
         ;;
     i) ICOSAHEDRAL_GRID="ON"
+        ;;
+    d) DONOTCLEAN="ON"
+        ;;
+    l) export COMPILER=$OPTARG
+        ;;
+    v) VERBOSE_RUN="ON"
         ;;
     esac
 done
@@ -74,9 +85,14 @@ echo $@
 
 source ${BASEPATH_SCRIPT}/machine_env.sh
 source ${BASEPATH_SCRIPT}/env_${myhost}.sh
-if [ $FORCE_BUILD == "ON" ]; then
-    rm -rf build
+if [ "x$FORCE_BUILD" == "xON" ]; then
+    echo Deleting all
+    test -e build
+    if [ $? -ne 0 ] ; then
+        rm -rf build
+    fi
 fi
+
 mkdir -p build;
 cd build;
 
@@ -93,7 +109,7 @@ else
 fi
 echo "USE_GPU=$USE_GPU"
 
-if [[ "$REAL_TYPE" == "float" ]]; then
+if [[ "$FLOAT_TYPE" == "float" ]]; then
     SINGLE_PRECISION=ON
 else
     SINGLE_PRECISION=OFF
@@ -128,7 +144,18 @@ WHERE_=`pwd`
 
 export JENKINS_COMMUNICATION_TESTS=1
 
-HOST_COMPILER=`which g++`
+if [[ ${COMPILER} == "gcc" ]] ; then
+    HOST_COMPILER=`which g++`
+elif [[ ${COMPILER} == "clang" ]] ; then
+    HOST_COMPILER=`which clang++`
+    if [[ ${USE_GPU} == "ON" ]]; then
+       echo "Clang not supported with nvcc"
+       exit_if_error 334
+    fi
+else
+    echo "COMPILER ${COMPILER} not supported"
+    exit_if_error 333
+fi
 
 if [[ -z ${ICOSAHEDRAL_GRID} ]]; then
     STRUCTURED_GRIDS="ON"
@@ -136,8 +163,8 @@ else
     STRUCTURED_GRIDS="OFF"
 fi
 
-echo "Printing ENV"
-env
+# echo "Printing ENV"
+# env
 
 cmake \
 -DBoost_NO_BOOST_CMAKE="true" \
@@ -163,23 +190,47 @@ cmake \
 -DPYTHON_INSTALL_PREFIX:STRING="${VENV_PATH}" \
 -DENABLE_PERFORMANCE_METERS:BOOL=ON \
 -DSTRUCTURED_GRIDS:BOOL=${STRUCTURED_GRIDS} \
+-DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+-DVERBOSE=$VERBOSE_RUN \
  ../
 
 exit_if_error $?
 
-log_file="/tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}.log"
-echo "Log file /tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}.log"
+#number of trials for compilation. We add this here because sometime intermediate links of nvcc are missing
+#some object files, probably related to parallel make compilation, but we dont know yet how to solve this.
+#Workaround here is to try multiple times the compilation step
+num_make_rep=2
+
+error_code=0
+log_file="/tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}_${RANDOM}.log"
 if [[ "$SILENT_BUILD" == "ON" ]]; then
-    make -j5  >& ${log_file};
-    error_code=$?
+    echo "Log file ${log_file}"
+    for i in `seq 1 $num_make_rep`;
+    do
+      echo "COMPILATION # ${i}"
+      make -j5  >& ${log_file};
+      error_code=$?
+      if [ ${error_code} -eq 0 ]; then
+          break # Skip the make repetitions
+      fi
+    done
+
     if [ ${error_code} -ne 0 ]; then
         cat ${log_file};
-        exit_if_error ${error_code}
     fi
 else
     make -j10
-    exit_if_error $?
+    error_code=$?
 fi
+
+if [[ -z ${DONOTCLEAN} ]]; then
+    test -e ${log_file}
+    if [ $? -eq 0 ] ; then
+       rm ${log_file}
+    fi
+fi
+
+exit_if_error ${error_code}
 
 bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh
 

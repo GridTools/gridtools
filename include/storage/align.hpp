@@ -1,5 +1,20 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #pragma once
-namespace gridtools{
+namespace gridtools {
 
     /**
        @brief returns the padding to be added at the end of a specific dimension
@@ -7,57 +22,57 @@ namespace gridtools{
        used internally in the library to allocate the storages. By default only the stride 1 dimension is padded.
        The stride 1 dimension is identified at compile-time given the layout-map.
      */
-    template <ushort_t Alignment, typename LayoutMap>
-    struct align{
+    template < ushort_t Alignment, typename LayoutMap >
+    struct align {
 
-        //the stride is one when the value in the layout vector is the highest
-        template <uint_t Coordinate>
-        struct has_stride_one{
-            static const bool value = (LayoutMap::template at_<Coordinate>::value == vec_max<typename LayoutMap::layout_vector_t>::value
-                );
-            typedef typename boost::mpl::bool_<value>::type type;
+        // the stride is one when the value in the layout vector is the highest
+        template < uint_t Coordinate >
+        struct has_stride_one {
+            static const bool value =
+                (LayoutMap::template at_< Coordinate >::value == vec_max< typename LayoutMap::layout_vector_t >::value);
+            typedef typename boost::mpl::bool_< value >::type type;
         };
 
         //     NOTE: nvcc does not understand that the functor below can be a constant expression
         /** applies the alignment to run-time values*/
-        template<uint_t Coordinate, uint_t Halo, uint_t Padding>
-        struct do_align{
+        template < uint_t Coordinate, uint_t Halo, uint_t Padding >
+        struct do_align {
 
             GT_FUNCTION
-            static constexpr
-            uint_t apply(uint_t const& dimension){
+            static constexpr uint_t apply(uint_t const &dimension) {
 
-                typedef static_uint<Halo+Padding> offset;
+                typedef static_uint< Halo + Padding > offset;
 
-                //the stride is one when the value in the layout vector is the highest
-                return (Alignment && ((dimension+offset::value)%Alignment) && has_stride_one<Coordinate>::value)
-                    ? dimension+offset::value+Alignment-((dimension+offset::value)%Alignment)
-                    : dimension+offset::value;
+                // the stride is one when the value in the layout vector is the highest
+                return (Alignment && ((dimension + offset::value) % Alignment) && has_stride_one< Coordinate >::value)
+                           ? dimension + offset::value + Alignment - ((dimension + offset::value) % Alignment)
+                           : dimension + offset::value;
             }
         };
-
-
     };
 
     /**@brief apply alignment to all coordinates regardless of the layout_map*/
-    template <ushort_t Alignment, ushort_t Dimension>
-    struct align_all{
-        static const uint_t value = (Alignment && (Dimension%Alignment)) ? (Dimension+Alignment-(Dimension%Alignment)) : Dimension;
+    template < ushort_t Alignment, ushort_t Dimension >
+    struct align_all {
+        static const uint_t value =
+            Alignment
+                ? (Alignment && (Dimension % Alignment)) ? (Dimension + Alignment - (Dimension % Alignment)) : Dimension
+                : Dimension;
     };
 
     /** @brief wrapper around the alignment boundary
 
         This class defines a keyword to be used when defining the storage
      */
-    template<ushort_t Boundary>
-    struct aligned{
-        static const ushort_t value=Boundary;
+    template < ushort_t Boundary >
+    struct aligned {
+        static const ushort_t value = Boundary;
     };
 
-    template<typename T>
-    struct is_aligned : boost::mpl::false_{};
+    template < typename T >
+    struct is_aligned : boost::mpl::false_ {};
 
-    template<ushort_t T>
-    struct is_aligned<aligned<T> > : boost::mpl::true_ {};
+    template < ushort_t T >
+    struct is_aligned< aligned< T > > : boost::mpl::true_ {};
 
-}//namespace gridtools
+} // namespace gridtools
