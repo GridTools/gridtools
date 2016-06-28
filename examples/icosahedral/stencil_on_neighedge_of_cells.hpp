@@ -103,6 +103,7 @@ namespace soneoc {
 
 #ifdef __CUDACC__
         out_cells.d2h_update();
+        in_edges.d2h_update();
 #endif
 
         bool result = true;
