@@ -187,7 +187,6 @@ fi
 
 # echo "Printing ENV"
 # env
-
 cmake \
 -DBoost_NO_BOOST_CMAKE="true" \
 -DCUDA_NVCC_FLAGS:STRING="--relaxed-constexpr" \
@@ -214,7 +213,7 @@ cmake \
 -DSTRUCTURED_GRIDS:BOOL=${STRUCTURED_GRIDS} \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 -DVERBOSE=$VERBOSE_RUN \
--DCUDA_VERSION=${CUDA_VERSION}
+-DCUDA_VERSION=${CUDA_VERSION} \
  ../
 
 exit_if_error $?

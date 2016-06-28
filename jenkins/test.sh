@@ -41,8 +41,8 @@ elif [ $myhost == "daint" ]; then
 fi
 echo "replacing in ${slurm_script} command by ${cmd}"
 /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm_script}
-
 /bin/sed -i 's|<QUEUE>|'"${QUEUE}"'|g' ${slurm_script}
+/bin/sed -i 's|<CPUSPERTASK>|'"1"'|g' ${slurm_script}
 
 bash ${JENKINSPATH}/monitorjobid `sbatch ${slurm_script} | gawk '{print $4}'` $maxsleep
 

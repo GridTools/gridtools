@@ -8,8 +8,16 @@
 #SBATCH --partition=<QUEUE>
 #SBATCH --time=00:30:00
 #SBATCH --gres=gpu:1
+#SBATCH --cpus-per-task=<CPUSPERTASK>
 
 echo $LD_LIBRARY_PATH
+
+# set environmental parameters
+export OMP_NUM_THREADS=<CPUSPERTASK>
+if [[ <CPUSPERTASK> ]]; then
+    last=$((<CPUSPERTASK>-1))
+    export GOMP_CPU_AFFINITY=`seq 0 $last`
+fi
 
 # set environmental parameters
 export OMP_NUM_THREADS=1
