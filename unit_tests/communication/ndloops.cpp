@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
   dimensions[3] = 5;
   std::cout << gridtools::access_to<4>()(indices, dimensions) << "\n";
 
-  int N=atoi(argv[1]);
+  int N=3; //TODO: atoi(argv[1]);
 
   gridtools::array<gridtools::bounds,4> ab;
 //   ab[0].imin=2;
