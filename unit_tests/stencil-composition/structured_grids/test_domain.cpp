@@ -67,7 +67,9 @@ struct out_value_ {
 };
 
 template <typename StoragePtrs>
+#ifdef __CUDACC__
 __global__
+#endif
 void print_values(StoragePtrs const* storage_pointers) {
     boost::fusion::for_each(*storage_pointers, out_value());
 }
