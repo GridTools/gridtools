@@ -15,7 +15,7 @@ echo $LD_LIBRARY_PATH
 
 # set environmental parameters
 export OMP_NUM_THREADS=<CPUSPERTASK>
-if [[ <CPUSPERTASK> ]]; then
+if [[ <CPUSPERTASK> > 1 ]]; then
     last=$((<CPUSPERTASK>-1))
     export GOMP_CPU_AFFINITY=`seq 0 $last`
 fi
