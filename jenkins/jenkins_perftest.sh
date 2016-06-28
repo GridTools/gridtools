@@ -75,6 +75,8 @@ else
 fi
 
 
+export CUDA_AUTO_BOOST=0; export GCLOCK=875;
+
 bash ${JENKINSPATH}/monitorjobid `export CUDA_AUTO_BOOST=0; export GCLOCK=875; sbatch ${slurm_script} | gawk '{print $4}'` $maxsleep
 
 rm ${slurm_script}
