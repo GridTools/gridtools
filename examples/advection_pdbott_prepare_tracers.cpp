@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
     return RUN_ALL_TESTS();
 }
 
-TEST(vertical_diffusion, test) {
+TEST(advection_pdbott_prepare_tracers, test) {
     gridtools::uint_t x = Options::getInstance().m_size[0];
     gridtools::uint_t y = Options::getInstance().m_size[1];
     gridtools::uint_t z = Options::getInstance().m_size[2];

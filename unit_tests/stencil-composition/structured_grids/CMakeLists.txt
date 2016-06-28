@@ -1,4 +1,4 @@
-FILE(GLOB_RECURSE INC_ALL "../../include/stencil-composition/*.hpp" "../../include/stencil-composition/structured_grids/*.hpp")
+FILE(GLOB_RECURSE INC_ALL "../../include/stencil-composition/[a-z|A-Z|0-9]*.hpp" "../../include/stencil-composition/structured_grids/[a-z|A-Z|0-9]*.hpp")
 
 if( ENABLE_CXX11 )
 

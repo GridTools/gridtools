@@ -219,7 +219,8 @@ namespace gridtools {
         virtual void ready() {
 
             m_intermediate->ready();
-            m_intermediate_remainder->ready();
+            if(m_size % ExpandFactor::value)
+                m_intermediate_remainder->ready();
         }
 
         /**

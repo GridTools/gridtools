@@ -1,4 +1,4 @@
-FILE(GLOB_RECURSE INC_ALL "../../include/stencil-composition/*.hpp")
+FILE(GLOB_RECURSE INC_ALL "../../include/stencil-composition/[a-z|A-Z|0-9]*.hpp")
 
 SET(STENCIL_COMPOSITION_UNITTEST_SOURCES ${INC_ALL})
 if ( ENABLE_CXX11 )
