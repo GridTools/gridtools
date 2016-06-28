@@ -1,9 +1,9 @@
 #include <iostream>
 #include <fstream>
-#include <boost/timer/timer.hpp>
 #include <gridtools.hpp>
 #include <common/defs.hpp>
-
+#include <cstdio>
+#include <ctime>
 #define offs_(i,j,k,n,m,l) ((i)*(m)*(l)+(j)*(l)+(k))
 
 using gridtools::uint_t;
@@ -76,7 +76,10 @@ int main_naive(int argc, char** argv) {
 
     print(out, d1, d2, d3, file_i);
 
-    boost::timer::cpu_timer time;
+    std::clock_t start;
+    long double duration;
+    start = std::clock();
+
     for (uint_t i=2; i < d1-2; ++i) {
         for (uint_t j=2; j < d2-2; ++j) {
             for (uint_t k=0; k < d3; ++k) {
@@ -93,11 +96,10 @@ int main_naive(int argc, char** argv) {
             }
         }
     }
-    boost::timer::cpu_times lapse_time = time.elapsed();
-
+    duration = ( std::clock() - start ) / (long double) CLOCKS_PER_SEC;
     print(out, d1, d2, d3, file_o);
 
-    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
+    std::cout << "TIME " << duration << std::endl;
 
     delete[] in;
     delete[] out;
@@ -140,7 +142,10 @@ int main_naive_inc(int argc, char** argv) {
 
     print(out, d1, d2, d3, file_i);
 
-    boost::timer::cpu_timer time;
+    std::clock_t start;
+    long double duration;
+    start = std::clock();
+
     for (uint_t i=2; i < d1-2; ++i) {
         for (uint_t j=2; j < d2-2; ++j) {
             double* po = out + offs_(i,j,0,d1,d2,d3);
@@ -169,11 +174,11 @@ int main_naive_inc(int argc, char** argv) {
             }
         }
     }
-    boost::timer::cpu_times lapse_time = time.elapsed();
+    duration = ( std::clock() - start ) / (long double) CLOCKS_PER_SEC;
 
     print(out, d1, d2, d3, file_o);
 
-    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
+    std::cout << "TIME " << duration << std::endl;
 
     delete[] in;
     delete[] out;
@@ -216,7 +221,10 @@ int main_block(int argc, char** argv) {
 
     print(out, d1, d2, d3, file_i);
 
-    boost::timer::cpu_timer time;
+    std::clock_t start;
+    long double duration;
+    start = std::clock();
+
     uint_t BI = 4;
     uint_t BJ = 4;
 
@@ -332,12 +340,11 @@ int main_block(int argc, char** argv) {
         }
     }
 
-
-    boost::timer::cpu_times lapse_time = time.elapsed();
+    duration = ( std::clock() - start ) / (long double) CLOCKS_PER_SEC;
 
     print(out, d1, d2, d3, file_o);
 
-    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
+    std::cout << "TIME " << duration << std::endl;
 
     return 0;
 }
@@ -378,7 +385,10 @@ int main_block_inc(int argc, char** argv) {
 
     print(out, d1, d2, d3, file_i);
 
-    boost::timer::cpu_timer time;
+    std::clock_t start;
+    long double duration;
+    start = std::clock();
+    
     uint_t BI = 4;
     uint_t BJ = 4;
 
@@ -530,12 +540,11 @@ int main_block_inc(int argc, char** argv) {
         }
     }
 
-
-    boost::timer::cpu_times lapse_time = time.elapsed();
+    duration = ( std::clock() - start ) / (long double) CLOCKS_PER_SEC;
 
     print(out, d1, d2, d3, file_o);
 
-    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
+    std::cout << "TIME " << duration << std::endl;
 
     return 0;
 }
