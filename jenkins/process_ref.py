@@ -254,13 +254,14 @@ def create_dict(adict, props):
     create_dict(adict[current_prop], props)
 
 class Config:
-    def __init__(self, target, prec, std, update, check):
+    def __init__(self, grid_type, target, prec, std, update, check):
+        self.grid_type_ = grid_type
         self.target_ = target
         self.prec_ = prec
         self.std_ = std
         self.update_ = update
         self.check_ = check
-        self.output_dir_ = self.target_+"_"+self.prec_+"_"+self.std_
+        self.output_dir_ = self.grid_type_+'_'+self.target_+"_"+self.prec_+"_"+self.std_
 
 """
 """
@@ -280,7 +281,7 @@ if __name__ == "__main__":
     parser.add_argument('--plot', action='store_true', help='plot the comparison timings')
     parser.add_argument('--stella_path', nargs=1, type=str, help='path to stella installation dir')
     parser.add_argument('-v',action='store_true', help='verbosity')
-
+    parser.add_argument('--gtype', nargs=1, type=str, help='grid type')
 
     filter_stencils = [] 
     args = parser.parse_args()
@@ -303,6 +304,13 @@ if __name__ == "__main__":
     if args.stella_path:
         stella_path = args.stella_path[0]
     gridtools_path = args.p[0]
+
+    if not args.gtype:
+        parser.error('--gtype must be specified')
+    else:
+        grid_type = args.gtype[0]
+        if grid_type not in ['icgrid', 'strgrid']: 
+            parser.error('--gtype must be [icgrid, strgrid]')
 
     if stella_path and not os.path.exists(stella_path):
         parser.error('STELLA build path '+stella_path+' does not exists')
@@ -354,7 +362,7 @@ if __name__ == "__main__":
     elif re.match('kesch', host):
         host='kesch'
 
-    config = Config(target,prec,std, update, check)
+    config = Config(grid_type, target,prec,std, update, check)
 
     f = open(args.json_file,'r')
     decode = json.load(f)

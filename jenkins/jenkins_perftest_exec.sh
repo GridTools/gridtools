@@ -5,7 +5,7 @@ source ${JENKINSPATH}/machine_env.sh
 
 source ${JENKINSPATH}/env_perftest_${myhost}.sh
 
-TEMP=`getopt -o h --long target:,std:,prec:,jplan:,python:,json: \
+TEMP=`getopt -o h --long target:,std:,prec:,jplan:,python:,json:,gtype: \
              -n 'jenkins_perftest' -- "$@"`
 
 eval set -- "$TEMP"
@@ -18,6 +18,7 @@ while true; do
         --jplan) JPLAN=$2; shift 2;;
         --python) PYTHON_OPT=$2; shift 2;;
         --json) JSON_FILE=$2; shift 2;;
+        --gtype) GTYPE=$2; shift 2;;
         -- ) shift; break ;;
         * ) break ;;
     esac
@@ -38,6 +39,10 @@ if [[ -z ${JSON_FILE} ]]; then
     echo "--json must be specified"
     exit 1
 fi
+if [[ -z ${GTYPE} ]]; then
+    echo "Grid Type --gtype must be specified"
+    exit 1
+fi
 
 if [[ ${JPLAN} == "GridTools" ]]; then
   GPATH="${GRIDTOOLS_BUILD_PATH}/${JPLAN}/build_type/release/compiler/gcc/label/${myhost}/mpi/MPI/"
@@ -52,7 +57,7 @@ export GPATH=${GPATH}/real_type/$PREC/std/$STD/target/$TARGET/build
 export STELLA_PATH=${STELLA_BUILD_PATH}/stella/trunk/release_$PREC/bin/
 
 cd ${JENKINSPATH}/
-cmd="python process_ref.py -p $GPATH --target $TARGET --std $STD --prec $PREC -c -u ${JSON_FILE} --stella_path $STELLA_PATH -v --plot"
+cmd="python process_ref.py -p $GPATH --target $TARGET --std $STD --prec $PREC -c -u ${JSON_FILE} --stella_path $STELLA_PATH --gtype ${GTYPE} -v --plot"
 echo "$cmd"
 $cmd
 

@@ -18,12 +18,15 @@ def build_path(host, jplan, target, prec, std):
 
     return path
 
+def build_outdir(gtype, target,prec,std):
+    return gtype+'_'+target+'_'+prec+'_'+std
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--jplan',nargs=1, type=str, help='JENKINS plan')
     parser.add_argument('--gtype', nargs=1, type=str, help='Grid Type') 
+    parser.add_argument('--std',nargs=1, type=str, help='list of stds to run')
 
     args = parser.parse_args()
     if not args.jplan:
@@ -48,11 +51,17 @@ if __name__ == "__main__":
     else:
         json_file = 'stencils_strgrid.json'
 
+    if args.std:
+        stds=args.std[0].split(',')
+    else:
+        stds=('cxx03','cxx11')
+
     json_file_out = json_file+'.out'
     targets=('gpu','cpu')
     precs=('float','double')
-    stds=('cxx03','cxx11')
     
+    print('Running for confs: ', stds, targets, precs)
+
     commit_hash=None
     for target, prec, std in product(targets, precs, stds):
         path=build_path("kesch",jplan, target, prec, std)
@@ -73,14 +82,14 @@ if __name__ == "__main__":
         print(target, prec, std)
     
     
-        cmd='./jenkins_perftest.sh --target '+target+' --std '+std+' --prec '+prec+' --jplan '+jplan+' --outfile out_' +target+'_'+std+'_'+prec+'.log --json '+json_file
+        cmd='./jenkins_perftest.sh --target '+target+' --std '+std+' --prec '+prec+' --jplan '+jplan+' --outfile out_' +target+'_'+std+'_'+prec+'.log --json '+json_file +' --gtype '+gtype
     
         print("Executing conf : " + target+","+prec+","+std)
         print(cmd)
         process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
         stdout = process.communicate()
     
-        outdir=target+"_"+prec+"_"+std
+        outdir=build_outdir(gtype,target,prec,std)
         if not os.path.isdir(outdir):
             print("Output directory: "+outdir+" not found")
             sys.exit(1)
@@ -113,7 +122,7 @@ if __name__ == "__main__":
     for target, prec, std in product(targets, precs, stds):
         print('Copying to PROJECTS...')
         
-        outdir=target+"_"+prec+"_"+std
+        outdir=build_outdir(gtype, target,prec,std)
         dst_dir='/project/c01/GridTools/perf_data/'+jplan
         if not os.path.exists(dst_dir+'/'+outdir):
             os.makedirs(dst_dir+'/'+outdir)

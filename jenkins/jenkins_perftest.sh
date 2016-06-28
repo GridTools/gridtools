@@ -6,7 +6,7 @@ source ${JENKINSPATH}/env_perftest_${myhost}.sh
 source ${JENKINSPATH}/tools.sh
 echo ${JENKINSPATH}
 
-TEMP=`getopt -o h --long target:,std:,prec:,jplan:,python:,outfile:,json: \
+TEMP=`getopt -o h --long target:,std:,prec:,jplan:,python:,outfile:,json:,gtype: \
              -n 'jenkins_perftest' -- "$@"`
 
 eval set -- "$TEMP"
@@ -20,6 +20,7 @@ while true; do
         --python) PYTHON_OPT=$2; shift 2;;
         --outfile) OUTFILE=$2; shift 2;;
         --json) JSON_FILE=$2; shift 2;;
+        --gtype) GTYPE=$2; shift 2;;
         -- ) shift; break ;;
         * ) break ;;
     esac
@@ -41,7 +42,10 @@ if [[ -z ${JSON_FILE} ]]; then
     echo "--json must be specified"
     exit 1
 fi
-
+if [[ -z ${GTYPE} ]]; then
+    echo "Grid Type --gtype must be specified"
+    exit 1
+fi
 maxsleep=7200
 
 if [[ -n "${PYTHON_OPT}" ]]; then
@@ -50,7 +54,7 @@ fi
 
 cp ${JENKINSPATH}/submit.${myhost}.slurm ${JENKINSPATH}/submit.${myhost}.slurm.test
 slurm_script="${JENKINSPATH}/submit.${myhost}.slurm.test"
-cmd="srun --gres=gpu:1 --ntasks=1 -u bash ${JENKINSPATH}/jenkins_perftest_exec.sh --target $TARGET --std $STD --prec $PREC ${PYTHON_STR} --jplan $JPLAN --json ${JSON_FILE}"
+cmd="srun --gres=gpu:1 --ntasks=1 -u bash ${JENKINSPATH}/jenkins_perftest_exec.sh --target $TARGET --std $STD --prec $PREC ${PYTHON_STR} --jplan $JPLAN --json ${JSON_FILE} --gtype ${GTYPE}"
 /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm_script}
 /bin/sed -i 's|<QUEUE>|'"${QUEUE}"'|g' ${slurm_script}
 
