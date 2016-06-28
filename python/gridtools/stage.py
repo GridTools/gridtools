@@ -589,10 +589,6 @@ class Stage ( ):
     @independent.setter
     def independent (self, value):
         self._independent = bool (value)
-        #
-        # have to rebuild the stage-execution graph
-        #
-#        self.stencil_scope.build_execution_path ( )
 
 
     def translate (self):

@@ -8,7 +8,7 @@ from functools import wraps
 
 from gridtools.symbol   import StencilScope
 from gridtools.compiler import StencilCompiler
-from gridtools.utils import Utilities
+from gridtools.utils    import Utilities
 
 
 
@@ -361,7 +361,7 @@ class Stencil (object):
         :param axes:    The Matplotlib axes on which the graph will be plotted.
                         If no axes is specified, a new figure will be created.
         """
-        import matplotlib.pyplot as plt
+        from gridtools import plt
 
         pos = nx.spring_layout (G)
 
