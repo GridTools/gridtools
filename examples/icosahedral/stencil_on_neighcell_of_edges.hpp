@@ -100,6 +100,7 @@ namespace soncoe {
 
 #ifdef __CUDACC__
         out_edges.d2h_update();
+        in_cells.d2h_update();
 #endif
 
         bool result = true;

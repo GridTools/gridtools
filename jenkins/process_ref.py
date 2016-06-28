@@ -46,7 +46,7 @@ def run_and_extract_times(executable, host, sizes, halos, filter_=None, stella_f
             cmd = cmd + executable +' --ie ' + str(sizes[0]) + ' --je ' + str(sizes[1]) + ' --ke ' + str(sizes[2])
     else:
         print('passing my halos', halos)
-        cmd = cmd + executable +' ' + str(int(sizes[0])+int(halos[0])+int(halos[1])) + ' ' + str(int(sizes[1])+int(halos[2])+int(halos[3])) + ' ' + str(sizes[2]) + ' 10'
+        cmd = cmd + executable +' ' + str(int(sizes[0])+int(halos[0])+int(halos[1])) + ' ' + str(int(sizes[1])+int(halos[2])+int(halos[3])) + ' ' + str(sizes[2]) + ' 10 -d '
     if filter_:
         ## HACK STELLA TIMERS FOR CPU
         if not(stella_format and target == 'cpu'):
