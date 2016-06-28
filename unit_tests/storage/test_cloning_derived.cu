@@ -50,18 +50,18 @@ public:
 uint_t clone_derived_args::s_buffer_size = 0;
 
 int main(int argc, char** argv) {
+    uint_t buffer_size=128;
 
     if(argc < 2) {
-        printf("ERROR: must pass a buffer size.\n\tUsage: %s [buffer size]\n", argv[0]);
-        return EXIT_FAILURE;
-    }
-
-
-    char *pend = 0;
-    uint_t buffer_size = strtol(argv[1], &pend, 10);
-    if(buffer_size == 0 || pend == 0 || *pend != '\0' || errno == ERANGE) {
-        printf("ERROR: invalid buffer size.\n\tUsage: %s [buffer size]\n", argv[0]);
-        return EXIT_FAILURE;
+        printf("WARNING: you should pass a buffer size.\n\tUsage: %s [buffer size]\n", argv[0]);
+        printf("taking 128 as default.");
+    } else {
+        char *pend = 0;
+        buffer_size = strtol(argv[1], &pend, 10);
+        if(buffer_size == 0 || pend == 0 || *pend != '\0' || errno == ERANGE) {
+            printf("ERROR: invalid buffer size.\n\tUsage: %s [buffer size]\n", argv[0]);
+            return EXIT_FAILURE;
+        }
     }
 
     ::testing::InitGoogleTest (&argc, argv);

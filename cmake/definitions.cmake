@@ -39,6 +39,11 @@ else()
   find_package( Boost COMPONENTS timer system chrono REQUIRED )
 endif()
 
+if(Boost_FOUND)
+    include_directories(${Boost_INCLUDE_DIRS})
+    set(exe_LIBS "${Boost_LIBRARIES}" "${exe_LIBS}")
+endif()
+
 ## gnu coverage flag ##
 if(GNU_COVERAGE)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
