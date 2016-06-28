@@ -168,9 +168,8 @@ namespace vertical_advection_dycore {
         return s << "u_backward_function";
     }
 
-    bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t_steps) {
+    bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t_steps, bool verify) {
 
-        cache_flusher flusher(cache_flusher_size);
         const int halo_size = 3;
 
         typedef gridtools::layout_map< 0, 1, 2 > layout_ijk;
@@ -287,25 +286,29 @@ namespace vertical_advection_dycore {
         repository.update_cpu();
 #endif
 
+        bool result = true;
+        if (verify) {
 #ifdef CXX11_ENABLED
 #if FLOAT_PRECISION == 4
-        verifier verif(1e-6);
+            verifier verif(1e-6);
 #else
-        verifier verif(1e-12);
+            verifier verif(1e-12);
 #endif
-        array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
-        bool result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage(), halos);
+            array< array< uint_t, 2 >, 3 > halos{
+                {{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
+            result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage(), halos);
 #else
 #if FLOAT_PRECISION == 4
-        verifier verif(1e-6, halo_size);
+            verifier verif(1e-6, halo_size);
 #else
-        verifier verif(1e-12, halo_size);
+            verifier verif(1e-12, halo_size);
 #endif
-        bool result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage());
+            result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage());
 #endif
-
+        }
 #ifdef BENCHMARK
-        for (uint_t t = 1; t < t_steps; ++t) {
+        cache_flusher flusher(cache_flusher_size);
+        for (uint_t t = 0; t < t_steps; ++t) {
             flusher.flush();
             vertical_advection->run();
         }

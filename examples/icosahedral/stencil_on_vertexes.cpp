@@ -15,7 +15,6 @@ int main(int argc, char **argv) {
     for (int i = 0; i != 3; ++i) {
         Options::getInstance().m_size[i] = atoi(argv[i + 1]);
     }
-
     if (argc == 5) {
         Options::getInstance().m_size[3] = atoi(argv[4]);
     }
