@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
 
     if(argc < 2) {
         printf("WARNING: you should pass a buffer size.\n\tUsage: %s [buffer size]\n", argv[0]);
-        printf("taking 128 as default.");
+        printf("taking 128 as default.\n");
     } else {
         char *pend = 0;
         buffer_size = strtol(argv[1], &pend, 10);
