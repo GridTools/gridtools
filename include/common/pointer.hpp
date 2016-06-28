@@ -10,52 +10,54 @@ For the moment it just replaces a raw pointer
 
 */
 
-namespace gridtools{
+namespace gridtools {
 
     /**
        @brief class wrapping a raw pointer
     */
-    template<typename T>
-    struct pointer{
+    template < typename T >
+    struct pointer {
 
-    private:
-        T const* m_t;
-    public:
+      private:
+        T *m_t;
+
+      public:
         typedef T value_type;
 
         /**
            @brief default constructor
          */
         GT_FUNCTION
-        pointer(): m_t(0){}
+        pointer() : m_t(0) {}
 
         /**
            @brief construct from raw pointer
          */
-        template <typename U>
-        GT_FUNCTION
-        pointer(U const* t_): m_t(t_){}
+        template < typename U >
+        GT_FUNCTION pointer(U *t_)
+            : m_t(t_) {
+            assert(m_t);
+        }
 
         /**
            @brief assign operator
          */
-        template <typename U>
-        GT_FUNCTION
-        void operator = (U const* t_){
-            m_t=t_;
+        template < typename U >
+        GT_FUNCTION void operator=(U *t_) {
+            m_t = t_;
         }
 
         /**
            @brief returns the raw pointer (even if it's null)
         */
         GT_FUNCTION
-        T const* get() const {return m_t;}
+        T *get() const { return m_t; }
 
         /**
            @brief access operator
          */
         GT_FUNCTION
-        T const* operator -> () const {
+        T *operator->() const {
             assert(m_t);
             return m_t;
         }
@@ -64,39 +66,39 @@ namespace gridtools{
            @brief dereference operator
          */
         GT_FUNCTION
-        T const& operator * () const {
-            assert (m_t);
+        T &operator*() const {
+            assert(m_t);
             return *m_t;
         }
 
+        /**
+          @brief destroy pointer
+         */
+        GT_FUNCTION
+        void destroy() {
+            assert(m_t);
+            delete m_t;
+            m_t = NULL;
+        }
     };
 
-
+    template < typename T >
+    pointer< T > make_pointer(T &t) {
+        return pointer< T >(&t);
+    }
 
     /**@brief deleting the pointers
 
        NOTE: this is called in the finalize stage of the gridtools computation,
        to delete the instances of the storage_info class
      */
-    struct delete_pointer{
+    struct delete_pointer {
 
         delete_pointer() {}
 
-        template<typename U>
-        void operator()(U t) const{
+        template < typename U >
+        void operator()(U t) const {
             delete t.get();
         }
     };
-
-
-    /** \addtogroup specializations Specializations
-        Partial specializations
-        @{
-    */
-    template<typename T>
-    struct is_ptr_to_tmp : boost::mpl::false_{};
-
-    template<typename T>
-    struct is_ptr_to_tmp<pointer<const T> > : boost::mpl::bool_<T::is_temporary> {};
-    /**@}*/
 }

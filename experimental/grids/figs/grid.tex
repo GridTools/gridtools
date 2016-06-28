@@ -1,0 +1,29 @@
+    \begin{scope}[compute domain]
+    	%%% drawing the bottom compute boundary
+    	\draw ($(0.5, {0.5*sqrt(3)})$) -- ($(\rows,0)+ (-1.5, {0.5*sqrt(3)})$);
+    	%%% drawing the top compute boundary
+    	\draw ($(1.5-\rows*0.5, {(\rows-1)*0.5*sqrt(3)})$) -- ($(\rows*0.5,0)+ (-0.5, {(\rows-1)*0.5*sqrt(3)})$);
+    	%%% drawing the left compute boundary
+    	\draw ($(0.5, {0.5*sqrt(3)})$) -- ($(1.5-\rows*0.5, {(\rows-1)*0.5*sqrt(3)})$);
+    	%%% drawing the right compute boundary
+    	\draw ($(\rows,0)+ (-1.5, {0.5*sqrt(3)})$) -- ($(\rows*0.5,0)+ (-0.5, {(\rows-1)*0.5*sqrt(3)})$);
+    	
+    \end{scope}
+
+    \foreach \row in {0, 1, ...,\rows} {
+        \draw ($(-\row * 0.5 + 0,  0) + \row*(0, {0.5*sqrt(3)})$) -- ($(\rows,0)+(-\row * 0.5,0) + \row*(0, {0.5*sqrt(3)})$);
+      %  \draw ($\row*(1, 0)$) -- ($(\rows/2,{\rows/2*sqrt(3)})+\row*(0.5,{-0.5*sqrt(3)})$);
+      %  \draw ($\row*(1, 0)$) -- ($(0,0)+\row*(0.5,{0.5*sqrt(3)})$);
+    }
+    \foreach \row in {0, 1, ..., \rows} {
+        \draw ($\row*(1, 0)$) -- ($(\rows/2,{\rows/2*sqrt(3)})+\row*(0.5,{-0.5*sqrt(3)})$);
+    }
+    \foreach \row in {0, 1, ..., \rows} {
+        \draw ($\row*(-0.5, {0.5*sqrt(3)})$) -- ($(\rows/2,{\rows/2*sqrt(3)})+\row*(-1,0)$);
+    }
+    \foreach \row in {0, 1,...,\rows} {
+        \draw ($\row*(1, 0)$) -- ($\row*(1,0)+ \rows*(-0.5, {0.5*sqrt(3)})$);
+    }
+    \draw[->,black] (-6,8) -- (-2,8) node [midway, sloped, above] {j (\cols)};
+    \draw[->,black] (-6,8) -- (-4.4,4.5) node [midway, sloped, below] {i (\rows)};
+        

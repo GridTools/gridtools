@@ -29,4 +29,3 @@ TEST(PositionalCopyStencil, Test)
 
     ASSERT_TRUE(positional_copy_stencil::test(x, y, z));
 }
-

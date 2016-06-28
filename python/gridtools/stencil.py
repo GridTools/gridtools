@@ -8,7 +8,7 @@ from functools import wraps
 
 from gridtools.symbol   import StencilScope
 from gridtools.compiler import StencilCompiler
-from gridtools.utils import Utilities
+from gridtools.utils    import Utilities
 
 
 
@@ -353,20 +353,28 @@ class Stencil (object):
         return self.name
 
 
-    def _plot_graph (self, G):
+    def _plot_graph (self, G, axes=None):
         """
         Renders graph 'G' using 'matplotlib'.-
+
+        :param G:       The graph to plot
+        :param axes:    The Matplotlib axes on which the graph will be plotted.
+                        If no axes is specified, a new figure will be created.
         """
+        from gridtools import plt
 
         pos = nx.spring_layout (G)
-        nx.draw_networkx_nodes (G,
-                                node_size=1500,
-                                pos=pos)
-        nx.draw_networkx_edges (G,
-                                pos=pos,
-                                arrows=True)
-        nx.draw_networkx_labels (G,
-                                 pos=pos)
+
+        if axes is None:
+            #
+            # Create a new figure to host the plot
+            #
+            fig, axes = plt.subplots (1, 1)
+
+        nx.draw_networkx (G,
+                          pos=pos,
+                          ax=axes,
+                          node_size=1500)
 
 
     def generate_code (self):
@@ -382,6 +390,27 @@ class Stencil (object):
         for stg in self.stages:
             stg.generate_code           ( )
             self.scope.add_dependencies (stg.get_data_dependency ( ).edges ( ))
+
+
+    def get_data_dependency (self):
+        """
+        Return the data dependency graph for this stencil's scope
+        """
+        return self.scope.data_dependency
+
+
+    def identify_IO_stages (self):
+        """
+        Tries to identify input and output data fields for every stage of the
+        stencil.
+
+        This method should be called after Stencil.generate_code(), because
+        during code generation all data dependencies and aliases are resolved
+        in all stages' scopes.
+        :return:
+        """
+        for stg in self.stages:
+            stg.identify_IO_fields ( )
 
 
     def plot_3d (self, Z):
@@ -412,7 +441,16 @@ class Stencil (object):
         :return:
         """
         if graph is None:
-            graph = self.scope.data_dependency
+            graph = self.get_data_dependency ( )
+        self._plot_graph (graph)
+
+
+    def plot_stage_execution (self):
+        """
+        Renders a stage execution graph using 'matplotlib'
+        :return:
+        """
+        graph = self.scope.stage_execution
         self._plot_graph (graph)
 
 
@@ -1061,4 +1099,3 @@ class CombinedStencil (Stencil):
                             independent_stages   = independent_stages),
                 make.render (stencil  = self,
                              compiler = self.compiler))
-

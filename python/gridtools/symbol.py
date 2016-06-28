@@ -169,7 +169,6 @@ class Scope (object):
         #
         # a data-dependency graph
         #
-        #
         self.data_dependency = nx.DiGraph ( )
 
 
@@ -376,9 +375,9 @@ class Scope (object):
 
     def get_all (self, kinds=None):
         """
-        Returns all symbols in this scope sorted by name:
+        Returns a generator to all symbols in this scope sorted by name:
 
-            kinds   returns only symbol kinds contained in this list.-
+        :param kinds:   returns only symbol kinds contained in this list.-
         """
         sorted_names = sorted (self.symbol_table.keys ( ))
         if kinds is None:
@@ -473,6 +472,33 @@ class StencilScope (Scope):
                     logging.warning ("Parameter '%s' is not a NumPy array" % k)
 
 
+    def check_self_dependent_fields (self):
+        """
+        Verifies that the stencil's data dependencies comply with Gridtools'
+        rules. For more information, see
+        https://github.com/eth-cscs/gridtools/wiki/Data-Dependencies-Analysis-in-GridTools
+        :raises ValueError: if a data field depends on itself, either directly
+                            of indirectly
+        :returns:
+        """
+        #
+        # A data field is depending on itself if the intersection of its
+        # ancestors and it descendants is not empty. This means that a closed
+        # path exists within the graph.
+        # A self-dependency exists also if a data filed is assigned to itself
+        # inside a stage, but this case should already be covered when
+        # identifying stage IO.
+        #
+        # TODO: Only allow self-dependency if access extent is [0,0], complying
+        # with Gridtools' data dependency rules.
+        #
+        for node in self.data_dependency.nodes_iter():
+            closed_path = ( nx.ancestors(self.data_dependency, node)
+                            & nx.descendants(self.data_dependency, node) )
+            if closed_path:
+                raise ValueError ("A stencil data field cannot depend on itself.")
+
+
     def add_stage (self, node, prefix='', suffix=''):
         """
         Adds a Stage object to this stencil's scope
@@ -490,6 +516,8 @@ class StencilScope (Scope):
         stage_obj  = Stage (stage_name,
                             node,
                             self)
+        logging.debug ('Adding stage: %s' % stage_name)
+
         if stage_obj not in self.stage_execution:
             #
             # update the stage execution path
@@ -508,39 +536,69 @@ class StencilScope (Scope):
         return stage_obj
 
 
-    def build_execution_path (self):
+    def build_execution_path (self, stencil_name):
         """
         Analyzes the stages within this stencil scope and builds a graph
         representing their execution path
+
+        After the StencilInspector has finished its job, the StencilScope
+        contains a preliminary stage execution graph, formed by a linear chain
+        of stages in the order they were entered in the stencil kernel.
+
+        We can iteratively build the final and correct stage execution graph by
+        traversing the preliminary graph: for each node, we add it in the new
+        graph, and look if any input of the current node matches an output on
+        other nodes of the new graph. This assumes that IO identification for
+        all stages has already been carried out.
+
+        When introducing a node in the new execution graph, all the stages
+        already present in the graph are at the same or higher level with
+        respect of the current node (due to the order of the preliminary graph).
+        Thus, we automatically avoid a wrong link to a stage that should depend
+        on the introduced one (because no such stage is present in the graph).
+
+        To avoid duplicating connections, a given stage input is removed from the
+        available ones after a match is found from a postorder topological sort
+        of the new execution graph. The sort is executed in postorder to link to
+        the latest possible stage between those having the same output data
+        field.
+        TODO: Inform the user of this policy in the proper documentation.
+        :param stencil_name:    The name of the stencil owning this scope
         :return:
         """
-        leaves              = []
+        logging.debug("Building final stage execution path for stencil %s" %
+                      stencil_name)
         new_stage_execution = nx.DiGraph ( )
         for stg in nx.topological_sort (self.stage_execution):
-            new_stage_execution.add_node (stg)
-            if stg.independent:
+            new_stage_execution.add_node(stg)
+            #
+            # Create modifiable lists for stage input and output
+            #
+            stg_in = list(stg.inputs)
+            #
+            # Look for connections among nodes introduced in the new graph
+            # Use the reverse sort order to find the latest node with the
+            # desired output
+            #
+            for other in nx.topological_sort(new_stage_execution, reverse=True):
+                logging.debug('\tLooping other nodes: %s' % other.name)
                 #
-                # adding independent stage
+                # Skip self (obviously...)
                 #
-                if len (leaves) == 1:
-                    if not leaves[0].independent:
-                        new_stage_execution.add_edge (leaves[0], stg)
-                        leaves.clear ( )
-                    else:
-                        for pred in new_stage_execution.predecessors (leaves[0]):
-                            new_stage_execution.add_edge (pred, stg)
-                elif len (leaves) > 1:
-                    for l in leaves:
-                        assert (l.independent)
-            else:
-                #
-                # adding NON independent stage
-                #
-                if len (leaves) > 0:
-                    for l in leaves:
-                        new_stage_execution.add_edge (l, stg)
-                    leaves.clear ( )
-            leaves.append (stg)
+                if other is stg:
+                    continue
+                for i, data in enumerate(stg_in):
+                    if data in other.outputs:
+                        new_stage_execution.add_edge(other, stg)
+                        #
+                        # We have found a match for this input.
+                        # To avoid duplicate matches, possibly with earlier nodes
+                        # with the same outputs of "other", pop this stage input
+                        # from the temporary list
+                        #
+                        stg_in.pop(i)
+                        logging.debug('\t\tMatch found! Popping input data.' +
+                                      'New stg_in: %s' % stg_in)
         #
         # save the newly built execution path
         #
@@ -569,6 +627,7 @@ class StencilScope (Scope):
             logging.info ("The stage-execution path looks valid")
         else:
             raise ValueError ("The last stage of stencil '%s' cannot be independent" % stencil.name)
+
 
     def runtime_analysis (self, stencil, **kwargs):
         """
@@ -658,4 +717,3 @@ class StencilScope (Scope):
             if self.minimum_halo[idx] < 0:
                 self.minimum_halo[idx] *= -1
         logging.debug ("Minimum required halo is %s" % self.minimum_halo)
-

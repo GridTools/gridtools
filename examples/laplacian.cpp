@@ -4,9 +4,7 @@
 #include <fstream>
 
 #include <gridtools.hpp>
-#include <stencil-composition/backend.hpp>
-#include <stencil-composition/interval.hpp>
-#include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
 #include "Options.hpp"
 
@@ -14,12 +12,7 @@
   @brief  This file shows an implementation of the "laplace" stencil, similar to the one used in COSMO
 */
 // [namespaces]
-using gridtools::level;
-using gridtools::accessor;
-using gridtools::range;
-using gridtools::arg;
-using gridtools::uint_t;
-using gridtools::int_t;
+using namespace gridtools;
 // [namespaces]
 
 // [intervals]
@@ -46,11 +39,11 @@ struct lap_function {
     /**
        @brief placeholder for the output field, index 0. accessor contains a vector of 3 offsets and defines a plus method summing values to the offsets
     */
-    typedef accessor<0, range<-1, 1, -1, 1>, 3 > out;
+    typedef accessor< 0, enumtype::inout, extent<>, 3 > out;
 /**
        @brief  placeholder for the input field, index 1
     */
-    typedef const accessor<1, range<-1, 1, -1, 1>, 3 > in;
+    typedef accessor<1, enumtype::in, extent<-1, 1, -1, 1>, 3 > in;
     /**
        @brief MPL vector of the out and in types
     */
@@ -100,12 +93,12 @@ TEST(Laplace, test) {
 
 // [backend]
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Block>
+#define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend<Host, Block>
+#define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
-#define BACKEND backend<Host, Naive>
+#define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
 // [backend]
@@ -118,8 +111,8 @@ TEST(Laplace, test) {
     /**
        - definition of the storage type, depending on the BACKEND which is set as a macro. \todo find another strategy for the backend (policy pattern)?
     */
-    typedef storage_info<0, layout_t> storage_info_t;
-    typedef gridtools::BACKEND::storage_type<float_type, storage_info_t >::type storage_type;
+    typedef BACKEND::storage_info<0, layout_t> storage_info_t;
+    typedef BACKEND::storage_type<float_type, storage_info_t >::type storage_type;
 // [storage_type]
 
 // [storage_initialization]
@@ -158,19 +151,19 @@ TEST(Laplace, test) {
         (boost::fusion::make_vector(&in, &out));
 // [domain_type]
 
-// [coords]
+// [grid]
        /**
           - Definition of the physical dimensions of the problem.
-          The coordinates constructor takes the horizontal plane dimensions,
+          The grid constructor takes the horizontal plane dimensions,
           while the vertical ones are set according the the axis property soon after
        */
        uint_t di[5] = {halo_size, halo_size, halo_size, d1-halo_size, d1};
        uint_t dj[5] = {halo_size, halo_size, halo_size, d2-halo_size, d2};
 
-       gridtools::coordinates<axis> coords(di,dj);
-       coords.value_list[0] = 0;
-       coords.value_list[1] = d3;
-// [coords]
+       gridtools::grid<axis> grid(di,dj);
+       grid.value_list[0] = 0;
+       grid.value_list[1] = d3;
+// [grid]
 
 // [computation]
        /*!
@@ -185,29 +178,33 @@ TEST(Laplace, test) {
 
          3) The actual domain dimensions
 
-         \note in reality this call does nothing at runtime (besides assigning the runtime variables domain and coords), it only calls the constructor of the intermediate struct which is empty. the work done at compile time is documented in the \ref gridtools::intermediate "intermediate" class.
+         \note in reality this call does nothing at runtime (besides assigning the runtime variables domain and grid), it only calls the constructor of the intermediate struct which is empty. the work done at compile time is documented in the \ref gridtools::intermediate "intermediate" class.
          \todo why is this function even called? It just needs to be compiled, in order to get the return type (use a typedef).
        */
-
-#ifdef __CUDACC__
-    computation* laplace =
+#ifdef CXX11_ENABLED
+       auto
 #else
-    boost::shared_ptr<gridtools::computation> laplace =
+#ifdef __CUDACC__
+    stencil*
+#else
+    boost::shared_ptr<gridtools::stencil>
 #endif
-      make_computation<gridtools::BACKEND>
+#endif
+       laplace = make_computation<gridtools::BACKEND>
         (
+         domain, grid,
          make_mss //! \todo all the arguments in the call to make_mss are actually dummy.
          (
           execute<forward>(),//!\todo parameter used only for overloading purpose?
           make_esf<lap_function>(p_out(), p_in())//!  \todo elementary stencil function, also here the arguments are dummy.
-          ),
-         domain, coords);
+          )
+         );
 // [computation]
 
 // [ready_steady_run_finalize]
 /**
    @brief This method allocates on the heap the temporary variables
-   this method calls heap_allocated_temps::prepare_temporaries(...). It allocates the memory for the list of ranges defined in the temporary placeholders (none).
+   this method calls heap_allocated_temps::prepare_temporaries(...). It allocates the memory for the list of extents defined in the temporary placeholders (none).
  */
     laplace->ready();
 
@@ -218,16 +215,10 @@ TEST(Laplace, test) {
  */
     laplace->steady();
 
-#ifndef CUDA_EXAMPLE
-    boost::timer::cpu_timer time;
-#endif
 /**
    Call to gridtools::intermediate::run, which calls Backend::run, does the actual stencil operations on the backend.
  */
     laplace->run();
-#ifndef CUDA_EXAMPLE
-    boost::timer::cpu_times lapse_time = time.elapsed();
-#endif
 
     laplace->finalize();
 
@@ -247,8 +238,22 @@ TEST(Laplace, test) {
         }
     }
 
-    verifier verif(1e-9, halo_size);
-    bool result = verif.verify(out, ref);
+#ifdef CXX11_ENABLED
+#if FLOAT_PRECISION == 4
+    verifier verif(1e-6);
+#else
+    verifier verif(1e-12);
+#endif
+    array<array<uint_t, 2>, 3> halos{{ {halo_size,halo_size}, {halo_size,halo_size}, {halo_size,halo_size} }};
+    bool result = verif.verify(grid, out, ref, halos);
+#else
+#if FLOAT_PRECISION == 4
+    verifier verif(1e-6, halo_size);
+#else
+    verifier verif(1e-12, halo_size);
+#endif
+    bool result = verif.verify(grid, out, ref);
+#endif
 
 #ifdef BENCHMARK
         std::cout << laplace->print_meter() << std::endl;

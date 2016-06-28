@@ -60,6 +60,20 @@ class StageBody (ast.NodeVisitor):
                                            rsymbol)
 
 
+    def _boolean_operator (self, op):
+        """
+        Returns the sign representation of an arithmetic operation.-
+        """
+        if isinstance (op, ast.And):
+            sign = '&&'
+        elif isinstance (op, ast.Or):
+            sign = '||'
+        else:
+            sign = None
+            raise RuntimeError("Cannot translate '%s'" % str (op))
+        return sign
+
+
     def _sign_operator (self, op):
         """
         Returns the sign representation of an arithmetic operation.-
@@ -142,6 +156,7 @@ class StageBody (ast.NodeVisitor):
                 #source_line    = src_lines[correct_lineno].strip (' ')
                 raise type(e)
 
+
     def visit_CompOp(self, node):
         op = "None"
         if (isinstance (node, ast.Eq)):
@@ -170,6 +185,7 @@ class StageBody (ast.NodeVisitor):
             raise NotImplementedError ("Translation of Python 'NotIn' is not currently supported.")
         return op
 
+
     def visit_Compare(self, node):
         ret_value = "%s" % self.visit(node.left)
         for cmpop in node.ops:
@@ -180,18 +196,6 @@ class StageBody (ast.NodeVisitor):
 
         return ret_value
 
-    def _boolean_operator (self, op):
-        """
-        Returns the sign representation of an arithmetic operation.-
-        """
-        if isinstance (op, ast.And):
-            sign = '&&'
-        elif isinstance (op, ast.Or):
-            sign = '||'
-        else:
-            sign = None
-            raise RuntimeError("Cannot translate '%s'" % str (op))
-        return sign
 
     def visit_BoolOp(self, node):
         ret_value = ""
@@ -481,7 +485,13 @@ class Stage ( ):
         #
         self.ghost_cell    = None
         #
-        # whether this stage is executed independently from other stages
+        # Input and output data fields for this stage
+        #
+        self.inputs        = None
+        self.outputs       = None
+        #
+        # whether this stage could be executed in parallel with other stages
+        # inside the stencil (see HorizontalDiffusion test for fluxes I and J)
         #
         self._independent  = False
         #
@@ -516,7 +526,59 @@ class Stage ( ):
 
 
     def get_data_dependency (self):
+        """
+        Return the data dependency graph for this stages's scope
+        """
         return self.scope.data_dependency
+
+
+    def identify_IO_fields (self):
+        """
+        Tries to identify input and output data fields for this stage
+        :return:
+        """
+        #
+        # Look for IO using stage's data dependencies
+        #
+        logging.debug('Probing IO for Stage: %s' % self.name)
+        self.outputs = []
+        self.inputs = []
+        data_dep = self.get_data_dependency()
+        for node in data_dep.nodes_iter():
+            #
+            # Output data have no predecessors
+            #
+            if not data_dep.predecessors(node.name):
+                self.outputs.append(node)
+            #
+            # Input nodes have no successors
+            #
+            if not data_dep.successors(node.name):
+                self.inputs.append(node)
+        #
+        # Non-local self-looping nodes are not allowed
+        # TODO: Only allow self-assignment if access extent is [0,0], complying
+        # with Gridtools' data dependency rules. For more information, see
+        # https://github.com/eth-cscs/gridtools/wiki/Data-Dependencies-Analysis-in-GridTools
+        #
+        for node in data_dep.nodes_with_selfloops():
+#            self.inputs.append(node)
+#            self.outputs.append(node)
+            raise ValueError ("Assigning a non-local data field to itself is not allowed.")
+        logging.debug('\tStage scope Input data: %s' % self.inputs)
+        logging.debug('\tStage scope Output data: %s' % self.outputs)
+        #
+        # Resolve aliases at stencil scope, substituting the alias with the
+        # corresponding symbol, that can be found inside the symbol table!
+        #
+        for i, data in enumerate(self.inputs):
+            if data.kind == 'alias':
+                self.inputs[i] = self.scope.symbol_table[data.value]
+        for i, data in enumerate(self.outputs):
+            if data.kind == 'alias':
+                self.outputs[i] = self.scope.symbol_table[data.value]
+        logging.debug('\tStencil scope Input data: %s' % self.inputs)
+        logging.debug('\tStencil scope Output data: %s' % self.outputs)
 
 
     @property
@@ -527,10 +589,6 @@ class Stage ( ):
     @independent.setter
     def independent (self, value):
         self._independent = bool (value)
-        #
-        # have to rebuild the stage-execution graph
-        #
-        self.stencil_scope.build_execution_path ( )
 
 
     def translate (self):
@@ -545,4 +603,3 @@ class Stage ( ):
 
         return stage_tpl.render (stage=self,
                                    params=params)
-

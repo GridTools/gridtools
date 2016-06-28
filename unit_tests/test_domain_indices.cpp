@@ -1,16 +1,7 @@
 #define BOOST_NO_CXX11_RVALUE_REFERENCES
 
-#include "stencil-composition/make_computation.hpp"
+#include "stencil-composition/stencil-composition.hpp"
 #include <boost/current_function.hpp>
-
-// #ifdef CUDA_EXAMPLE
-// #include "stencil-composition/backend_cuda.hpp"
-// #else
-// #include "stencil-composition/backend_naive.hpp"
-// #endif
-
-#include <boost/fusion/include/nview.hpp>
-#include <boost/fusion/include/make_vector.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
@@ -48,15 +39,18 @@ struct print_plchld {
 
 bool test_domain_indices() {
 
-    typedef gridtools::backend<enumtype::Host,enumtype::Naive>::storage_type<float_type, storage_info<0,layout_map<0,1,2> > >::type storage_type;
-    typedef gridtools::backend<enumtype::Host,enumtype::Naive>::temporary_storage_type<float_type, storage_info<0,layout_map<0,1,2> > >::type tmp_storage_type;
-
+    typedef backend< enumtype::Host, GRIDBACKEND, enumtype::Naive >::storage_type< float_type,
+        backend< enumtype::Host, GRIDBACKEND, enumtype::Naive >::storage_info< 0, layout_map< 0, 1, 2 > > >::type
+        storage_type;
+    typedef backend< enumtype::Host, GRIDBACKEND, enumtype::Naive >::temporary_storage_type< float_type,
+        backend< enumtype::Host, GRIDBACKEND, enumtype::Naive >::storage_info< 0, layout_map< 0, 1, 2 > > >::type
+        tmp_storage_type;
 
     uint_t d1 = 10;
     uint_t d2 = 10;
     uint_t d3 = 10;
 
-    storage_info<0, layout_map<0,1,2> > meta_(d1,d2,d3);
+    backend< enumtype::Host, GRIDBACKEND, enumtype::Naive >::storage_info< 0, layout_map< 0, 1, 2 > > meta_(d1, d2, d3);
     storage_type in(meta_,-1., "in");
     storage_type out(meta_,-7.3, "out");
     storage_type coeff(meta_,8., "coeff");

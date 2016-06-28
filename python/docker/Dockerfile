@@ -38,7 +38,6 @@ RUN pip3 install virtualenv
 
 # user and locale configuration
 RUN useradd docker                                                  && \
-    echo "ALL            ALL = (ALL) NOPASSWD: ALL" >> /etc/sudoers && \
     cp /usr/share/zoneinfo/Europe/Zurich /etc/localtime             && \
     dpkg-reconfigure locales
 
@@ -53,15 +52,25 @@ RUN  chmod 700  $HOME/.ssh                       && \
      mkdir      /var/run/sshd                    && \
      chmod 0755 /var/run/sshd
 
-# change ownership to non-root user
-RUN chown --recursive docker:docker $HOME
+# install Boost Libs
+ENV BOOST_ROOT /usr/local
+RUN echo "BOOST_ROOT=/usr/local" >> $HOME/.profile
+RUN wget -q -O boost_1_58_0.tar.gz 'http://downloads.sourceforge.net/project/boost/boost/1.58.0/boost_1_58_0.tar.gz?use_mirror=kent' && \
+    tar xzvf boost_1_58_0.tar.gz                                                 && \
+    cd boost_1_58_0                                                              && \
+    ./bootstrap.sh --with-libraries=timer,system,chrono --exec-prefix=/usr/local && \
+    ./b2 -j4 cxxflags="-std=c++11" install                                       && \
+    echo "$BOOST_ROOT/lib" >> /etc/ld.so.conf.d/boost-1.58.0.conf                && \
+    ldconfig -v                                                                  && \
+    cd ..                                                                        && \
+    rm -rf boost_1_58_0.tar.gz boost_1_58_0
 
 # configure CUDA
 USER docker
 RUN  echo "CUDATOOLKIT_HOME=/usr/local/cuda" >> $HOME/.profile
 
 # include GridTools source
-ADD gridtools_ccd7860 gridtools
+ADD gridtools.tar.gz gridtools
 RUN echo "GRIDTOOLS_ROOT=$HOME/gridtools" >> $HOME/.profile
 
 # install gridtools4py requirements inside a virtual environment
@@ -121,14 +130,15 @@ RUN wget -q -O boost_1_58_0.tar.gz 'http://downloads.sourceforge.net/project/boo
 
 # remove unused packages
 RUN apt-get remove --purge -y libfreetype6-dev  \
+                              liblapack-dev     \
                               libpng12-dev      \
                               libxft-dev        \
                               libzip-dev        \
                               libzmq-dev        \
                               python3-dev       \
                               qt-sdk            \
-                              xterm
-RUN apt-get autoremove -y
+                              xterm                 && \
+    apt-get autoremove -y
 
 # change ownership to non-root user
 RUN chown --recursive docker:docker $HOME

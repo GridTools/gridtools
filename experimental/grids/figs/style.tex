@@ -1,0 +1,62 @@
+\newcommand*\rows{8}
+\newcommand*\cols{8}
+
+\FPeval{\rowsminusone}{clip(\rows-1)}
+\FPeval{\rowsplusone}{clip(\rows+1)}
+
+\tikzset{edges left/.style={
+    every path/.style={
+      draw=white,
+      double distance=1pt,
+      line width=2pt,
+      double=red,
+    },
+    every node/.style={
+      color=red
+    }
+  },
+  edges top/.style={
+    every path/.style={
+      draw=white,
+      double distance=1pt,
+      line width=2pt,
+      double=blue,
+    },
+    every node/.style={
+      color=blue
+    }
+  },
+  edges right/.style={
+    every path/.style={
+      draw=white,
+      double distance=1pt,
+      line width=2pt,
+      double=green,
+    },
+    every node/.style={
+      color=green
+    }
+  },
+  cells m/.style={
+  	every path/.style={
+  		draw=white,
+  		double distance=1pt,
+  		line width=2pt,
+  		double=blue,
+  	},
+  	every node/.style={
+  		color=blue
+ 	}
+  },
+  compute domain/.style={
+    every path/.style={
+      draw=black,
+      double distance=0.04cm,
+      line width=1pt,
+      double=white,
+    },
+    every node/.style={
+      color=black
+    }
+  }
+}

@@ -95,12 +95,14 @@ class StencilCompiler ( ):
                 #
                 # ... and by including runtime information
                 #
-                stencil.scope.runtime_analysis (stencil, **kwargs)
-                stencil.generate_code          ( )
+                stencil.scope.runtime_analysis            (stencil, **kwargs)
+                stencil.generate_code                     ( )
+                stencil.scope.check_self_dependent_fields ( )
                 #
                 # build the stage-execution path
                 #
-                stencil.scope.build_execution_path       ( )
+                stencil.identify_IO_stages               ( )
+                stencil.scope.build_execution_path       (stencil.name)
                 stencil.scope.check_stage_execution_path ( )
                 #
                 # print out the discovered symbols if in DEBUG mode
@@ -509,7 +511,7 @@ class StencilInspector (ast.NodeVisitor):
             # initialize the state variables
             #
             self.inspected_stencil = stencil
-            self.stage_defs      = list ( )
+            self.stage_defs        = list ( )
             st                     = self.inspected_stencil
 
             if st.scope.py_src is None:
@@ -692,7 +694,6 @@ class StencilInspector (ast.NodeVisitor):
                     stage = st.scope.add_stage (node,
                                                 prefix=st.name.lower ( ),
                                                 suffix=name_suffix)
-                    stage.independent = True
 
         return stage
 
