@@ -3,6 +3,7 @@
 #include <stencil-composition/stencil-composition.hpp>
 #include "tools/verifier.hpp"
 #include "unstructured_grid.hpp"
+#include "../benchmarker.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
@@ -129,14 +130,9 @@ namespace soneoc {
             result = ver.verify(grid_, ref_on_edges, out_cells, halos);
         }
 #ifdef BENCHMARK
-        for (uint_t t = 1; t < t_steps; ++t) {
-            stencil_edges->run();
-        }
-        stencil_edges->finalize();
-        std::cout << stencil_edges->print_meter() << std::endl;
-
+        benchmarker::run(stencil_edges, t_steps);
 #endif
-
+        stencil_edges->finalize();
         return result;
     }
 

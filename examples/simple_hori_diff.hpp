@@ -2,14 +2,9 @@
 
 #include <stencil-composition/stencil-composition.hpp>
 #include "horizontal_diffusion_repository.hpp"
-#include "cache_flusher.hpp"
 #include "defs.hpp"
 #include <tools/verifier.hpp>
-
-#ifdef USE_PAPI_WRAP
-#include <papi_wrap.hpp>
-#include <papi.hpp>
-#endif
+#include "benchmarker.hpp"
 
 /**
   @file
@@ -196,15 +191,9 @@ namespace shorizontal_diffusion {
 #endif
         }
 #ifdef BENCHMARK
-        cache_flusher flusher(cache_flusher_size);
-
-        for (uint_t t = 0; t < t_steps; ++t) {
-            flusher.flush();
-            simple_hori_diff->run();
-        }
-        simple_hori_diff->finalize();
-        std::cout << simple_hori_diff->print_meter() << std::endl;
+        benchmarker::run(simple_hori_diff, t_steps);
 #endif
+        simple_hori_diff->finalize();
 
         return result; /// lapse_time.wall<5000000 &&
     }

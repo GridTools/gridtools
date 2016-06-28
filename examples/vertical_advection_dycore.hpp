@@ -4,9 +4,8 @@
 #include <stencil-composition/stencil-composition.hpp>
 #include "vertical_advection_repository.hpp"
 #include <tools/verifier.hpp>
-
-#include "cache_flusher.hpp"
 #include "defs.hpp"
+#include "benchmarker.hpp"
 
 /*
   This file shows an implementation of the "vertical advection" stencil used in COSMO for U field
@@ -307,14 +306,9 @@ namespace vertical_advection_dycore {
 #endif
         }
 #ifdef BENCHMARK
-        cache_flusher flusher(cache_flusher_size);
-        for (uint_t t = 0; t < t_steps; ++t) {
-            flusher.flush();
-            vertical_advection->run();
-        }
-        vertical_advection->finalize();
-        std::cout << vertical_advection->print_meter() << std::endl;
+        benchmarker::run(vertical_advection, t_steps);
 #endif
+        vertical_advection->finalize();
 
         return result;
     }

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <stencil-composition/stencil-composition.hpp>
-#include "cache_flusher.hpp"
 #include "defs.hpp"
+#include "benchmarker.hpp"
 
 /**
   @file
@@ -157,14 +157,9 @@ namespace copy_stencil {
             }
         }
 #ifdef BENCHMARK
-        cache_flusher flusher(cache_flusher_size);
-        for (uint_t t = 0; t < t_steps; ++t) {
-            flusher.flush();
-            copy->run();
-        }
-        copy->finalize();
-        std::cout << copy->print_meter() << std::endl;
+        benchmarker::run(copy, t_steps);
 #endif
+        copy->finalize();
 
         return success;
     }

@@ -2,14 +2,9 @@
 
 #include <stencil-composition/stencil-composition.hpp>
 #include "horizontal_diffusion_repository.hpp"
-#include "./cache_flusher.hpp"
 #include "./defs.hpp"
 #include <tools/verifier.hpp>
-
-#ifdef USE_PAPI_WRAP
-#include <papi_wrap.hpp>
-#include <papi.hpp>
-#endif
+#include "benchmarker.hpp"
 
 /**
   @file
@@ -242,19 +237,9 @@ namespace horizontal_diffusion {
         }
 
 #ifdef BENCHMARK
-        cache_flusher flusher(cache_flusher_size);
-        horizontal_diffusion->reset_meter();
-
-        for (uint_t t = 0; t < t_steps; ++t) {
-            flusher.flush();
-            horizontal_diffusion->run();
-        }
+        benchmarker::run(horizontal_diffusion, t_steps);
 #endif
-
         horizontal_diffusion->finalize();
-#ifdef BENCHMARK
-        std::cout << horizontal_diffusion->print_meter() << std::endl;
-#endif
 
         return result;
     }
