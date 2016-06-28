@@ -52,8 +52,8 @@ if [[ -n "${PYTHON_OPT}" ]]; then
     PYTHON_STR="--python ${PYTHON_OPT}"
 fi
 
-cp ${JENKINSPATH}/submit.${myhost}.slurm ${JENKINSPATH}/submit.${myhost}.slurm.test
-slurm_script="${JENKINSPATH}/submit.${myhost}.slurm.test"
+slurm_script="${JENKINSPATH}/submit.${myhost}.slurm.test.${RANDOM}"
+cp ${JENKINSPATH}/submit.${myhost}.slurm ${slurm_script}
 cmd="srun --gres=gpu:1 --ntasks=1 -u bash ${JENKINSPATH}/jenkins_perftest_exec.sh --target $TARGET --std $STD --prec $PREC ${PYTHON_STR} --jplan $JPLAN --json ${JSON_FILE} --gtype ${GTYPE}"
 /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm_script}
 /bin/sed -i 's|<QUEUE>|'"${QUEUE}"'|g' ${slurm_script}
@@ -76,9 +76,10 @@ fi
 
 
 bash ${JENKINSPATH}/monitorjobid `export CUDA_AUTO_BOOST=0; export GCLOCK=875; sbatch ${slurm_script} | gawk '{print $4}'` $maxsleep
+
+rm ${slurm_script}
+
 grep -E 'Error in conf|FAILED|ERROR' ${OUTFILE}
-
-
 if [ $? -eq 0 ] ; then
     # echo output to stdout
     test -f ${OUTFILE} || exitError 6550 ${LINENO} "batch job output file missing"
