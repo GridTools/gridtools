@@ -150,12 +150,12 @@ namespace gridtools {
             printf("update cpu ");
             out();
 #endif
-            // if (on_device()) {
+            if (on_device()) {
                 cudaError_t err = cudaMemcpy((void *)m_cpu_p.get(), (void *)m_gpu_p, m_size * sizeof(T), cudaMemcpyDeviceToHost);
                 assert(err == cudaSuccess);
                 m_up_to_date = true;
                 m_pointer_to_use = m_cpu_p.get();
-            // }
+            }
         }
 
         void set(pointee_t const &value, uint_t const &index) {

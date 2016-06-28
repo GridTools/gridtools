@@ -457,6 +457,9 @@ namespace gridtools {
         GT_FUNCTION
         void set_on_device() {
             m_on_host=false;
+            m_storage->set_on_device();
+            m_storage.set_on_device();
+            m_meta_data.set_on_device();
         }
 
         GT_FUNCTION
