@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
         Options::getInstance().m_size[i] = atoi(argv[i + 1]);
     }
 
-    if (argc == 5) {
+    if (argc > 4) {
         Options::getInstance().m_size[3] = atoi(argv[4]);
     }
 
