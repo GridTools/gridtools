@@ -65,10 +65,12 @@ TEST(storage_info, test_interface) {
     GRIDTOOLS_STATIC_ASSERT((meta_.strides(0)==15*14*13*12*11), "error");
 
     GRIDTOOLS_STATIC_ASSERT((meta_t::strides<4>(meta_.strides())==1), "error");
+#ifndef __CUDACC__
     GRIDTOOLS_STATIC_ASSERT((meta_t::strides<3>(meta_.strides())==15), "error");
     GRIDTOOLS_STATIC_ASSERT((meta_t::strides<2>(meta_.strides())==15*14), "error");
     GRIDTOOLS_STATIC_ASSERT((meta_t::strides<1>(meta_.strides())==15*14*13), "error");
     GRIDTOOLS_STATIC_ASSERT((meta_t::strides<0>(meta_.strides())==15*14*13*12), "error");
+#endif
 
     GRIDTOOLS_STATIC_ASSERT((meta_.strides<4>()==1), "error");
     GRIDTOOLS_STATIC_ASSERT((meta_.strides<3>()==15), "error");

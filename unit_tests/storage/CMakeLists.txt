@@ -3,7 +3,7 @@ include_directories( ../../include/storage ) ## Library header files
 
 FILE(GLOB_RECURSE INC_ALL "../../include/storage/[^.]*.hpp")
 
-SET(STORAGE_UNITTEST_SOURCES test_meta_storage test_data_fields test_meta_storage test_storage_naming ${INC_ALL})
+SET(STORAGE_UNITTEST_SOURCES test_data_fields test_meta_storage test_storage_naming ${INC_ALL})
 
 ### Executables
 #CPU tests
