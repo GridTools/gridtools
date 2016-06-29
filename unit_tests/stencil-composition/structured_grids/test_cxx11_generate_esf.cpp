@@ -79,6 +79,7 @@ struct range {
         jp = o.jp;
         km = o.km;
         kp = o.kp;
+        return *this;
     }
 
     std::string out() const {
@@ -488,6 +489,5 @@ int main() {
     program += "}\n";
 
     std::cout << program << std::endl;
-
     return 0;
 }
