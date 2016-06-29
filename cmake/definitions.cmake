@@ -70,11 +70,10 @@ endif()
 if( USE_GPU )
   message(STATUS "Using GPU")
   find_package(CUDA REQUIRED)
+  set(CUDA_PROPAGATE_HOST_FLAGS OFF)
   if( ${CUDA_VERSION} VERSION_GREATER "6.0")
       if (NOT ENABLE_CXX11 )
           set(CUDA_NVCC_FLAGS "-DCXX11_DISABLE" "${CUDA_NVCC_FLAGS}")
-      else()
-          set(CUDA_NVCC_FLAGS "--std=c++11" "${CUDA_NVCC_FLAGS}")
       endif()
   else()
       message(STATUS "CUDA 6.0 or lower does not support C++11 (disabling)")
@@ -240,3 +239,7 @@ if (ENABLE_PYTHON)
     endif(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
 endif(ENABLE_PYTHON)
 
+# cuda compilation should have the same 
+# flags as gcc/clang compilation, just forward
+# them.
+set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "${CMAKE_CXX_FLAGS}")
