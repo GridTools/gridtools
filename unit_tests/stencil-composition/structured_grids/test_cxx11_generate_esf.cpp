@@ -118,7 +118,7 @@ struct generate_functor {
     generate_functor(std::string const& name,
                      int n_args,
                      int index_of_output,
-                     RandG &gen)
+                     RandG gen)
         : m_name(name)
         , m_n_args(n_args)
         , m_index_of_output(index_of_output)
@@ -136,7 +136,7 @@ struct generate_functor {
 
 
     template <typename RandGen>
-    void generate_ranges(RandGen &gen) {
+    void generate_ranges(RandGen gen) {
         std::uniform_int_distribution<> out_gen(0, 3);
 
         for (int i = 0; i < m_n_args; ++i) {
