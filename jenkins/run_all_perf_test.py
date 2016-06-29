@@ -91,7 +91,9 @@ if __name__ == "__main__":
 
     for process in processes:
         stdout = process.communicate()
-    
+   
+
+    out_jsonfiles=[] 
     for target, prec, std in product(targets, precs, stds):
         outdir=build_outdir(gtype,target,prec,std)
         if not os.path.isdir(outdir):
@@ -101,16 +103,16 @@ if __name__ == "__main__":
         if not os.path.isfile(out_jsonfile):
             print("Output json data: "+ out_jsonfile+" not found")
             sys.exit(1)
+        out_jsonfiles.append(out_jsonfile)
     
-    
-        print('Merging.................')
-        cmd_merge='python merge_updates.py '+json_file+' --updates '+out_jsonfile
-        print(cmd_merge) 
-        process = subprocess.Popen(cmd_merge, shell=True, stdout=subprocess.PIPE)
-        stdout = process.communicate()
-        print(stdout)
-        shutil.copyfile('stencils.json.merge', json_file)
-        print('Finish merging')
+    print('Merging.................')
+    cmd_merge='python merge_updates.py '+json_file+' --updates '+' '.join(out_jsonfiles)
+    print(cmd_merge) 
+    process = subprocess.Popen(cmd_merge, shell=True, stdout=subprocess.PIPE)
+    stdout = process.communicate()
+    print(stdout)
+    shutil.copyfile('stencils.json.merge', json_file)
+    print('Finish merging')
  
     f = open(json_file,'r')
     decode = json.load(f)
