@@ -1,4 +1,20 @@
 /*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
+/*
  * This example demonstrates how to code operators that are specialized for
  * one color. Like that we can implement different equations for downward
  * and upward triangles.
@@ -87,7 +103,7 @@ namespace socc {
 
         typedef boost::mpl::vector< p_in_cells, p_out_cells > accessor_list_t;
 
-        gridtools::domain_type< accessor_list_t > domain(boost::fusion::make_vector(&in_cells, &out_cells));
+        gridtools::aggregator_type< accessor_list_t > domain(boost::fusion::make_vector(&in_cells, &out_cells));
         array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
@@ -98,9 +114,9 @@ namespace socc {
         auto stencil_ = gridtools::make_computation< backend_t >(
             domain,
             grid_,
-            gridtools::make_mss // mss_descriptor
+            gridtools::make_multistage // mss_descriptor
             (execute< forward >(),
-                gridtools::make_esf< on_cells_color_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
+                gridtools::make_stage< on_cells_color_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
                     p_in_cells(), p_out_cells())));
 
         stencil_->ready();

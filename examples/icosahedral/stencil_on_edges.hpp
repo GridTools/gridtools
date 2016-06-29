@@ -136,11 +136,10 @@ namespace soe {
             }
         }
 
-            verifier ver(1e-10);
+        verifier ver(1e-10);
 
-            array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
-            result = ver.verify(grid_, ref_edges, out_edges, halos);
-        }
+        array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
+        result = ver.verify(grid_, ref_edges, out_edges, halos);
 
 #ifdef BENCHMARK
         benchmarker::run(stencil_, t_steps);

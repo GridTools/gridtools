@@ -94,7 +94,7 @@ namespace soc {
 
         typedef boost::mpl::vector< p_in_cells, p_out_cells > accessor_list_cells_t;
 
-        gridtools::domain_type< accessor_list_cells_t > domain_cells(boost::fusion::make_vector(&in_cells, &out_cells));
+        gridtools::aggregator_type< accessor_list_cells_t > domain_cells(boost::fusion::make_vector(&in_cells, &out_cells));
 
         array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
