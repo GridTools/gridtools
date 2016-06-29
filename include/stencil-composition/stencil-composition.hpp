@@ -2,7 +2,7 @@
 
 #include "intermediate_metafunctions.hpp"
 #include "stencil-composition/esf.hpp"
-#include "stencil-composition/make_esf.hpp"
+#include "stencil-composition/make_stage.hpp"
 #include "stencil-composition/make_stencils.hpp"
 #include "stencil-composition/make_computation.hpp"
 #include "stencil-composition/stencil.hpp"

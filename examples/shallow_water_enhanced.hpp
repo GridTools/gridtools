@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #pragma once
 // [includes]
 #include <iostream>
@@ -461,10 +476,10 @@ namespace shallow_water {
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in
         // order. (I don't particularly like this)
-        //! [domain_type]
-        domain_type< accessor_list > domain(boost::fusion::make_vector( //&tmpx, &tmpy,
+        //! [aggregator_type]
+        aggregator_type< accessor_list > domain(boost::fusion::make_vector( //&tmpx, &tmpy,
             &sol));
-        //! [domain_type]
+        //! [aggregator_type]
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
@@ -481,8 +496,8 @@ namespace shallow_water {
             grid,
             make_mss // mss_descriptor
             (execute< forward >(),
-                make_independent(make_esf< flux_x >(p_tmpx(), p_sol()), make_esf< flux_y >(p_tmpy(), p_sol())),
-                make_esf< final_step >(p_tmpx(), p_tmpy(), p_sol())));
+                make_independent(make_stage< flux_x >(p_tmpx(), p_sol()), make_stage< flux_y >(p_tmpy(), p_sol())),
+                make_stage< final_step >(p_tmpx(), p_tmpy(), p_sol())));
         //! [computation]
 
         //! [setup]

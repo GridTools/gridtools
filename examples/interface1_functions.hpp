@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #pragma once
 
 //#include <gridtools.hpp>
@@ -219,9 +234,9 @@ namespace horizontal_diffusion_functions {
 // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I
 // don't particularly like this)
 #if defined(CXX11_ENABLED) && !defined(CUDA_EXAMPLE)
-        gridtools::domain_type< accessor_list > domain_((p_out() = out), (p_in() = in), (p_coeff() = coeff));
+        gridtools::aggregator_type< accessor_list > domain_((p_out() = out), (p_in() = in), (p_coeff() = coeff));
 #else
-        gridtools::domain_type< accessor_list > domain_(boost::fusion::make_vector(&coeff, &in, &out));
+        gridtools::aggregator_type< accessor_list > domain_(boost::fusion::make_vector(&coeff, &in, &out));
 #endif
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
@@ -246,14 +261,14 @@ namespace horizontal_diffusion_functions {
             horizontal_diffusion = gridtools::make_computation< gridtools::BACKEND >(
                 domain_,
                 grid_,
-                gridtools::make_mss // mss_descriptor
+                gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
                     define_caches(cache< IJ, local >(p_flx(), p_fly())),
-                    // gridtools::make_esf<lap_function>(p_lap(), p_in()), // esf_descriptor
+                    // gridtools::make_stage<lap_function>(p_lap(), p_in()), // esf_descriptor
                     gridtools::make_independent // independent_esf
-                    (gridtools::make_esf< flx_function >(p_flx(), p_in()),
-                        gridtools::make_esf< fly_function >(p_fly(), p_in())),
-                    gridtools::make_esf< out_function >(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));
+                    (gridtools::make_stage< flx_function >(p_flx(), p_in()),
+                        gridtools::make_stage< fly_function >(p_fly(), p_in())),
+                    gridtools::make_stage< out_function >(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));
 
         horizontal_diffusion->ready();
 

@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #pragma once
 
 #include <stencil-composition/stencil-composition.hpp>
@@ -117,7 +132,7 @@ namespace positional_copy_stencil {
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in
         // order. (I don't particularly like this)
 
-        gridtools::domain_type< accessor_list > domain(boost::fusion::make_vector(&in, &out));
+        gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&in, &out));
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
@@ -142,9 +157,9 @@ namespace positional_copy_stencil {
             init = gridtools::make_positional_computation< gridtools::BACKEND >(
                 domain,
                 grid,
-                gridtools::make_mss // mss_descriptor
+                gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
-                    gridtools::make_esf< init_functor< _value_ > >(p_in(), p_out() // esf_descriptor
+                    gridtools::make_stage< init_functor< _value_ > >(p_in(), p_out() // esf_descriptor
                         )));
 
         init->ready();
@@ -177,9 +192,9 @@ namespace positional_copy_stencil {
             copy = gridtools::make_computation< gridtools::BACKEND >(
                 domain,
                 grid,
-                gridtools::make_mss // mss_descriptor
+                gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
-                    gridtools::make_esf< copy_functor >(p_in() // esf_descriptor
+                    gridtools::make_stage< copy_functor >(p_in() // esf_descriptor
                         ,
                         p_out())));
 

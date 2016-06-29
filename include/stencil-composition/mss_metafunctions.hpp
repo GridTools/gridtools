@@ -1,4 +1,19 @@
 /*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+/*
  * loop_interval.h
  *
  *  Created on: Feb 17, 2015
@@ -41,7 +56,7 @@ namespace gridtools {
             "wrong set of mss parameters passed to make_mss construct.\n"
             "Check that arguments passed are either :\n"
             " * caches from define_caches(...) construct or\n"
-            " * esf descriptors from make_esf(...) or make_independent(...)");
+            " * esf descriptors from make_stage(...) or make_independent(...)");
         template < typename T >
         struct is_sequence_of_caches {
             typedef typename is_sequence_of< T, is_cache >::type type;
@@ -75,7 +90,7 @@ namespace gridtools {
             "wrong set of mss parameters passed to make_mss construct.\n"
             "Check that arguments passed are either :\n"
             " * caches from define_caches(...) construct or\n"
-            " * esf descriptors from make_esf(...) or make_independent(...)");
+            " * esf descriptors from make_stage(...) or make_independent(...)");
         typedef
             typename boost::mpl::copy_if< MssParameterSequence, boost::mpl::quote1< is_esf_descriptor > >::type type;
     };

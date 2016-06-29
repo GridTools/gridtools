@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #pragma once
 // disabling pedantic mode because I want to use a 2D layout map
 //(to test the case in which the 3rd dimension is not k)
@@ -76,10 +91,10 @@ namespace test_cycle_and_swap {
         typedef arg< 0, field_t > p_i_data;
         typedef boost::mpl::vector< p_i_data > accessor_list;
 
-        domain_type< accessor_list > domain(boost::fusion::make_vector(&i_data));
+        aggregator_type< accessor_list > domain(boost::fusion::make_vector(&i_data));
 
         auto comp = gridtools::make_computation< gridtools::BACKEND >(
-            domain, grid, gridtools::make_mss(execute< forward >(), gridtools::make_esf< functor >(p_i_data())));
+            domain, grid, gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor >(p_i_data())));
 
         comp->ready();
         comp->steady();
@@ -125,10 +140,10 @@ namespace test_cycle_and_swap {
         typedef arg< 0, field_t > p_i_data;
         typedef boost::mpl::vector< p_i_data > accessor_list;
 
-        domain_type< accessor_list > domain(boost::fusion::make_vector(&i_data));
+        aggregator_type< accessor_list > domain(boost::fusion::make_vector(&i_data));
 
         auto comp = gridtools::make_computation< gridtools::BACKEND >(
-            domain, grid, gridtools::make_mss(execute< forward >(), gridtools::make_esf< functor_avg >(p_i_data())));
+            domain, grid, gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor_avg >(p_i_data())));
 
         // fill the input (snapshot 0) with some initial data
         for (uint_t i = 0; i < d1; ++i) {

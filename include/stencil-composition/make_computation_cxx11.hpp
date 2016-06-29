@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #pragma once
 #include <memory>
 
@@ -32,7 +47,7 @@ namespace gridtools {
     make_computation_impl(Domain &domain, const Grid &grid, Mss... args_) {
 
         GRIDTOOLS_STATIC_ASSERT(
-            (is_domain_type< Domain >::value), "syntax error in make_computation: invalid domain type");
+            (is_aggregator_type< Domain >::value), "syntax error in make_computation: invalid domain type");
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "syntax error in make_computation: invalid grid type");
         GRIDTOOLS_STATIC_ASSERT((accumulate(logical_and(), is_computation_token< Mss >::value...)),
             "syntax error in make_computation: invalid token");

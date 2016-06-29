@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #pragma once
 
 #include <boost/mpl/filter_view.hpp>
@@ -5,28 +20,28 @@
 #include <boost/mpl/reverse.hpp>
 
 #include "gridtools.hpp"
-#include "stencil-composition/heap_allocated_temps.hpp"
-#include "stencil-composition/backend_traits_fwd.hpp"
-#include "stencil-composition/run_functor_arguments.hpp"
+#include "./heap_allocated_temps.hpp"
+#include "./backend_traits_fwd.hpp"
+#include "./run_functor_arguments.hpp"
 
 #ifdef __CUDACC__
-#include "stencil-composition/backend_cuda/backend_cuda.hpp"
+#include "./backend_cuda/backend_cuda.hpp"
 #else
-#include "stencil-composition/backend_host/backend_host.hpp"
+#include "./backend_host/backend_host.hpp"
 #endif
 
-#include "common/pair.hpp"
-#include "accessor.hpp"
-#include "global_parameter.hpp"
-#include "stencil-composition/domain_type.hpp"
-#include "stencil-composition/mss_metafunctions.hpp"
-#include "stencil-composition/mss_local_domain.hpp"
-#include "stencil-composition/mss.hpp"
-#include "stencil-composition/axis.hpp"
-#include "common/meta_array.hpp"
-#include "stencil-composition/tile.hpp"
+#include "../common/pair.hpp"
+#include "./accessor.hpp"
+#include "./global_parameter.hpp"
+#include "./aggregator_type.hpp"
+#include "./mss_metafunctions.hpp"
+#include "./mss_local_domain.hpp"
+#include "./mss.hpp"
+#include "./axis.hpp"
+#include "../common/meta_array.hpp"
+#include "./tile.hpp"
 #include "../storage/storage-facility.hpp"
-#include "conditionals/condition.hpp"
+#include "./conditionals/condition.hpp"
 
 /**
    @file
@@ -230,7 +245,7 @@ namespace gridtools {
          */
         template < typename Domain, typename MssComponents >
         struct obtain_map_extents_temporaries_mss {
-            GRIDTOOLS_STATIC_ASSERT((is_domain_type< Domain >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Domain >::value), "Internal Error: wrong type");
             GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), "Internal Error: wrong type");
             typedef typename MssComponents::extent_sizes_t ExtendSizes;
 
@@ -280,7 +295,7 @@ namespace gridtools {
         struct obtain_map_extents_temporaries_mss_array {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_meta_array_of< MssComponentsArray, is_mss_components >::value), "Internal Error: wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_domain_type< Domain >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Domain >::value), "Internal Error: wrong type");
 
             typedef
                 typename boost::mpl::fold< typename MssComponentsArray::elements,
@@ -292,7 +307,7 @@ namespace gridtools {
 
         template < typename Domain, typename MssArray1, typename MssArray2, typename Cond >
         struct obtain_map_extents_temporaries_mss_array< Domain, condition< MssArray1, MssArray2, Cond > > {
-            GRIDTOOLS_STATIC_ASSERT((is_domain_type< Domain >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Domain >::value), "Internal Error: wrong type");
 
             typedef typename obtain_map_extents_temporaries_mss_array< Domain, MssArray1 >::type type1;
             typedef typename obtain_map_extents_temporaries_mss_array< Domain, MssArray2 >::type type2;
@@ -314,7 +329,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_condition< MssComponentsArray >::value ||
                                         is_meta_array_of< MssComponentsArray, is_mss_components >::value),
                 "Internal Error: wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_domain_type< Domain >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Domain >::value), "Internal Error: wrong type");
 
             typedef typename backend_traits_t::template get_block_size< StrategyId >::type block_size_t;
 
