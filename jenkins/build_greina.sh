@@ -34,10 +34,6 @@ FORCE_BUILD=OFF
 VERBOSE_RUN="OFF"
 VERSION="4.9"
 
-<<<<<<< HEAD
-
-=======
->>>>>>> master
 while getopts "h:b:t:f:c:l:pzmsidvq:x:" opt; do
     case "$opt" in
     h|\?)
