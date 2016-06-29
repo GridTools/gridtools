@@ -22,7 +22,7 @@ else
 fi
 
 module load slurm
-module load CUDA/7.5.18
+module load cuda80/8.0.27
 module load /users/mbianco/my_modules/cmake-3.5.1
 module load /users/mbianco/my_modules/boost-1.59
 #module load python/3.4.3
