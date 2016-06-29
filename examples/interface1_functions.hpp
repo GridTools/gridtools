@@ -171,7 +171,7 @@ namespace horizontal_diffusion_functions {
 
     void handle_error(int) { std::cout << "error" << std::endl; }
 
-    bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps) {
+    bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps, bool verify) {
 
         uint_t d1 = x;
         uint_t d2 = y;
@@ -261,28 +261,28 @@ namespace horizontal_diffusion_functions {
 
         cache_flusher flusher(cache_flusher_size);
 
-        for (uint_t t = 0; t < t_steps; ++t) {
-            flusher.flush();
-            horizontal_diffusion->run();
-        }
+        horizontal_diffusion->run();
 
 #ifdef __CUDACC__
         repository.update_cpu();
 #endif
 
+        bool result = true;
+        if (verify) {
 #if FLOAT_PRECISION == 4
-        verifier verif(1e-6);
+            verifier verif(1e-6);
 #else
-        verifier verif(1e-12);
+            verifier verif(1e-12);
 #endif
 
 #ifdef CXX11_ENABLED
-        array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
-        bool result = verif.verify(grid_, repository.out_ref(), repository.out(), halos);
+            array< array< uint_t, 2 >, 3 > halos{
+                {{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
+            bool result = verif.verify(grid_, repository.out_ref(), repository.out(), halos);
 #else
-        bool result = verif.verify(repository.out_ref(), repository.out());
+            result = verif.verify(repository.out_ref(), repository.out());
 #endif
-
+        }
         if (!result) {
             std::cout << "ERROR" << std::endl;
         }

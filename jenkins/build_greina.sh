@@ -34,6 +34,10 @@ FORCE_BUILD=OFF
 VERBOSE_RUN="OFF"
 VERSION="4.9"
 
+<<<<<<< HEAD
+
+=======
+>>>>>>> master
 while getopts "h:b:t:f:c:l:pzmsidvq:x:" opt; do
     case "$opt" in
     h|\?)
@@ -179,9 +183,13 @@ else
     STRUCTURED_GRIDS="OFF"
 fi
 
+if [[ -z ${CUDA_VERSION} ]]; then
+    echo "CUDA VERSION must be defined"
+    exit_if_error 444
+fi
+
 # echo "Printing ENV"
 # env
-
 cmake \
 -DBoost_NO_BOOST_CMAKE="true" \
 -DCUDA_NVCC_FLAGS:STRING="--relaxed-constexpr" \
@@ -208,6 +216,7 @@ cmake \
 -DSTRUCTURED_GRIDS:BOOL=${STRUCTURED_GRIDS} \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 -DVERBOSE=$VERBOSE_RUN \
+-DCUDA_VERSION=${CUDA_VERSION} \
  ../
 
 exit_if_error $?
@@ -252,7 +261,13 @@ fi
 
 exit_if_error ${error_code}
 
-bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh
+queue_str=""
+if [[ ${QUEUE} ]] ; then
+  queue_str="-q ${QUEUE}"
+fi
+
+
+bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh ${queue_str}
 
 exit_if_error $?
 

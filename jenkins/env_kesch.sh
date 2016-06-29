@@ -1,4 +1,4 @@
-#/bin/sh
+#/bin/bash
 
 module load PrgEnv-gnu
 #we need a decent cmake version in order to pass the HOST_COMPILER to nvcc
@@ -18,4 +18,5 @@ export GTEST_INC=/scratch/cosuna/software/gtest-1.7.0/include
 export BOOST_ROOT=/scratch/cosuna/software/boost_1_59_0/
 export BOOST_INCLUDE=/scratch/cosuna/software/boost_1_59_0/include/
 export CUDA_ARCH=sm_37
-
+export CUDA_VERSION=70
+export DEFAULT_QUEUE=debug

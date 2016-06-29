@@ -2,14 +2,9 @@
 
 #include <stencil-composition/stencil-composition.hpp>
 #include "horizontal_diffusion_repository.hpp"
-#include "cache_flusher.hpp"
 #include "defs.hpp"
 #include <tools/verifier.hpp>
-
-#ifdef USE_PAPI_WRAP
-#include <papi_wrap.hpp>
-#include <papi.hpp>
-#endif
+#include "benchmarker.hpp"
 
 /**
   @file
@@ -30,7 +25,7 @@ using namespace enumtype;
 using namespace expressions;
 #endif
 
-namespace horizontal_diffusion {
+namespace shorizontal_diffusion {
     // This is the definition of the special regions in the "vertical" direction
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_lap;
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_flx;
@@ -83,9 +78,7 @@ namespace horizontal_diffusion {
     std::ostream &operator<<(std::ostream &s, wlap_function const) { return s << "wlap_function"; }
     std::ostream &operator<<(std::ostream &s, divflux_function const) { return s << "flx_function"; }
 
-    bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps) {
-
-        cache_flusher flusher(cache_flusher_size);
+    bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps, bool verify) {
 
         uint_t d1 = x;
         uint_t d2 = y;
@@ -171,45 +164,36 @@ namespace horizontal_diffusion {
                     gridtools::make_esf< divflux_function >(p_out(), p_in(), p_lap(), p_crlato(), p_coeff())));
 
         simple_hori_diff->ready();
-
         simple_hori_diff->steady();
 
-        for (uint_t t = 0; t < t_steps; ++t) {
-            flusher.flush();
-            simple_hori_diff->run();
-        }
+        simple_hori_diff->run();
 
         repository.update_cpu();
 
+        bool result = true;
+        if (verify) {
 #ifdef CXX11_ENABLED
 #if FLOAT_PRECISION == 4
-        verifier verif(1e-6);
+            verifier verif(1e-6);
 #else
-        verifier verif(1e-12);
+            verifier verif(1e-12);
 #endif
-        array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
-        bool result = verif.verify(grid, repository.out_ref(), repository.out(), halos);
+            array< array< uint_t, 2 >, 3 > halos{
+                {{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
+            result = verif.verify(grid, repository.out_ref(), repository.out(), halos);
 #else
 #if FLOAT_PRECISION == 4
-        verifier verif(1e-6, halo_size);
+            verifier verif(1e-6, halo_size);
 #else
-        verifier verif(1e-12, halo_size);
+            verifier verif(1e-12, halo_size);
 #endif
-        bool result = verif.verify(grid, repository.out_ref(), repository.out());
+            result = verif.verify(grid, repository.out_ref(), repository.out());
 #endif
-
-        if (!result) {
-            std::cout << "ERROR" << std::endl;
         }
-
 #ifdef BENCHMARK
-        for (uint_t t = 1; t < t_steps; ++t) {
-            flusher.flush();
-            simple_hori_diff->run();
-        }
-        simple_hori_diff->finalize();
-        std::cout << simple_hori_diff->print_meter() << std::endl;
+        benchmarker::run(simple_hori_diff, t_steps);
 #endif
+        simple_hori_diff->finalize();
 
         return result; /// lapse_time.wall<5000000 &&
     }

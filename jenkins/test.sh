@@ -1,14 +1,30 @@
 #!/bin/bash -f
 
+while getopts "q:" opt; do
+    case "$opt" in
+    q) QUEUE=$OPTARG
+        ;;
+    esac
+done
+
 JENKINSPATH=${0%/*}
 source ${JENKINSPATH}/tools.sh
 source ${JENKINSPATH}/machine_env.sh
 maxsleep=7200
 
-test -e test.out
+if [[ -z ${DEFAULT_QUEUE} ]]; then
+    exitError 3485 ${LINENO} "Default queue not set" 
+fi
+
+if [[ -z ${QUEUE} ]]; then
+    QUEUE=${DEFAULT_QUEUE}
+fi
+
+testfile=${JENKINSPATH}/../build/test.out
+test -e ${testfile}
 if [ $? -eq 0 ] ; then
     echo Deleting previus test results
-    rm test.out
+    rm ${testfile}
 fi
 
 echo source ${JENKINSPATH}/env_${myhost}.sh
@@ -25,22 +41,24 @@ elif [ $myhost == "daint" ]; then
 fi
 echo "replacing in ${slurm_script} command by ${cmd}"
 /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm_script}
+/bin/sed -i 's|<QUEUE>|'"${QUEUE}"'|g' ${slurm_script}
+/bin/sed -i 's|<CPUSPERTASK>|'"1"'|g' ${slurm_script}
 
 bash ${JENKINSPATH}/monitorjobid `sbatch ${slurm_script} | gawk '{print $4}'` $maxsleep
 
-test -e test.out
+test -e ${testfile}
 if [ $? -ne 0 ] ; then
     # abort
     exitError 4652 ${LINENO} "Output of test file not found"
 fi
 
-grep -i 'fail\|error\|[^a-zA-z]fault' test.out
+grep -i 'fail\|error\|[^a-zA-z]fault' ${testfile}
 
 if [ $? -eq 0 ] ; then
     # echo output to stdout
-    test -f test.out || exitError 6550 ${LINENO} "batch job output file missing"
+    test -f ${testfile} || exitError 6550 ${LINENO} "batch job output file missing"
     echo "=== test.out BEGIN ==="
-    cat test.out | /bin/sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g"
+    cat ${testfile} | /bin/sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g"
     echo "=== test.out END ==="
     # abort
     exitError 4654 ${LINENO} "problem with unittests for test data detected"

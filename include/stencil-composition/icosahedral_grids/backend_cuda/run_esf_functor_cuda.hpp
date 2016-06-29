@@ -5,6 +5,62 @@
 #include "../iterate_domain_remapper.hpp"
 
 namespace gridtools {
+
+    template < typename Esf >
+    struct esf_has_color {
+        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), "Error");
+        typedef typename boost::mpl::not_< typename boost::is_same< typename Esf::color_t, nocolor >::type >::type type;
+        static const bool value = type::value;
+    };
+
+    template < typename Esf >
+    struct esf_color_range {
+        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), "Error");
+        template < typename Esf_ >
+        struct build_range_ {
+            typedef boost::mpl::range_c< uint_t, Esf_::color_t::color_t::value, Esf_::color_t::color_t::value > type;
+        };
+        template < typename Esf_ >
+        struct build_full_range_ {
+            typedef boost::mpl::range_c< uint_t, 0, esf_get_location_type< Esf_ >::type::n_colors::value > type;
+        };
+
+        typedef
+            typename boost::mpl::eval_if< esf_has_color< Esf >, build_range_< Esf >, build_full_range_< Esf > >::type
+                type;
+    };
+
+    template < typename IterateDomain, typename EsfArguments, typename EsfLocationType, typename IntervalType >
+    struct color_functor {
+        GRIDTOOLS_STATIC_ASSERT((is_location_type< EsfLocationType >::value), "Error");
+
+      private:
+        IterateDomain &m_iterate_domain;
+
+      public:
+        GT_FUNCTION
+        color_functor(IterateDomain &iterate_domain) : m_iterate_domain(iterate_domain) {}
+
+        template < typename Index >
+        GT_FUNCTION void operator()(Index const &) {
+
+            typedef typename get_iterate_domain_remapper< IterateDomain,
+                typename EsfArguments::esf_args_map_t,
+                EsfLocationType,
+                Index::value >::type iterate_domain_remapper_t;
+
+            typedef typename EsfArguments::esf_t esf_t;
+            typedef typename esf_t::template esf_function< Index::value > functor_t;
+
+            iterate_domain_remapper_t iterate_domain_remapper(m_iterate_domain);
+
+            // call the user functor at the core of the block
+            functor_t::Do(iterate_domain_remapper, IntervalType());
+            (m_iterate_domain)
+                .template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value, static_uint< 1 > >();
+        }
+    };
+
     /*
      * @brief main functor that executes (for CUDA) the user functor of an ESF
      * @tparam RunFunctorArguments run functor arguments
@@ -48,14 +104,6 @@ namespace gridtools {
         template < typename IntervalType, typename EsfArguments >
         __device__ void do_impl() const {
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
-            typedef typename esf_get_location_type< typename EsfArguments::esf_t >::type location_type_t;
-
-            // instantiate the iterate domain remapper, that will map the calls to arguments to their actual
-            // position in the iterate domain
-            typedef typename get_iterate_domain_remapper< iterate_domain_t,
-                typename EsfArguments::esf_args_map_t >::type iterate_domain_remapper_t;
-
-            iterate_domain_remapper_t iterate_domain_remapper(m_iterate_domain);
 
             typedef typename EsfArguments::functor_t functor_t;
             typedef typename EsfArguments::extent_t extent_t;
@@ -63,17 +111,8 @@ namespace gridtools {
             // a grid point at the core of the block can be out of extent (for last blocks) if domain of computations
             // is not a multiple of the block size
             if (m_iterate_domain.template is_thread_in_domain< extent_t >()) {
-                for (uint_t ccnt = 0; ccnt < location_type_t::n_colors::value; ++ccnt) {
-                    // call the user functor at the core of the block
-                    functor_t::f_type::Do(iterate_domain_remapper, IntervalType());
-                    (m_iterate_domain)
-                        .template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
-                            static_uint< 1 > >();
-                }
-                using neg_n_colors_t = static_uint< -location_type_t::n_colors::value >;
-                (m_iterate_domain)
-                    .template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
-                        neg_n_colors_t >();
+                // loop over colors excuting user funtor for each color
+                color_loop< IntervalType, EsfArguments >();
             }
 
             // synchronize threads if not independent esf
@@ -82,110 +121,57 @@ namespace gridtools {
         }
 
       private:
-        /*
-         * @brief executes the extra grid points associated with each CUDA thread.
-         * This extra grid points can be located at the IMinus or IPlus halos or be one of
-         * the last J positions in the core of the block
-         * @tparam MultipleGridPointsPerWarp boolean template parameter that determines whether a CUDA
-         *         thread has to execute more than one grid point (in case of false, the implementation
-         *         of this function is empty)
-         * @tparam IntervalType type of the interval
-         * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
-         * @tparam IterateDomainEvaluator an iterate domain remapper that wraps an iterate domain
-         */
-        template < typename MultipleGridPointsPerWarp,
-            typename IntervalType,
-            typename EsfArguments,
-            typename IterateDomainEvaluator >
-        __device__ void execute_extra_work(const IterateDomainEvaluator &iterate_domain_remapper,
-            typename boost::disable_if< MultipleGridPointsPerWarp, int >::type = 0) const {}
+        // specialization of the loop over colors when the user speficied the ESF with a specific color
+        // Only that color gets executed
+        template < typename IntervalType, typename EsfArguments >
+        __device__ void color_loop(
+            typename boost::enable_if< typename esf_has_color< typename EsfArguments::esf_t >::type, int >::type =
+                0) const {
 
-        /*
-         * @brief executes the extra grid points associated with each CUDA thread.
-         * This extra grid points can be located at the IMinus or IPlus halos or be one of
-         * the last J positions in the core of the block
-         * @tparam MultipleGridPointsPerWarp boolean template parameter that determines whether a CUDA
-         *         thread has to execute more than one grid point (in case of false, the implementation
-         *         of this function is empty)
-         * @tparam IntervalType type of the interval
-         * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
-         * @tparam IterateDomainEvaluator an iterate domain remapper that wraps an iterate domain
-         */
-        template < typename MultipleGridPointsPerWarp,
-            typename IntervalType,
-            typename EsfArguments,
-            typename IterateDomainEvaluator >
-        __device__ void execute_extra_work(const IterateDomainEvaluator &iterate_domain_remapper,
-            typename boost::enable_if< MultipleGridPointsPerWarp, int >::type = 0) const {
-            typedef typename EsfArguments::functor_t functor_t;
-            typedef typename EsfArguments::extent_t extent_t;
+            typedef typename EsfArguments::esf_t::color_t::color_t color_t;
+            typedef typename esf_get_location_type< typename EsfArguments::esf_t >::type location_type_t;
 
-            // if the warps need to compute more grid points than the core of the block
-            if (multiple_grid_points_per_warp_t::value) {
-                // JMinus  halo
-                if (extent_t::jminus::value != 0 && ((int)threadIdx.y < -extent_t::jminus::value)) {
-                    if (m_iterate_domain.is_thread_in_domain_x()) {
-                        (m_iterate_domain).increment< 1 >(extent_t::jminus::value);
-                        functor_t::Do(iterate_domain_remapper, IntervalType());
-                        (m_iterate_domain).increment< 1 >(-extent_t::jminus::value);
-                    }
-                }
-                // JPlus halo
-                else if (extent_t::jplus::value != 0 &&
-                         ((int)threadIdx.y < -extent_t::jminus::value + extent_t::jplus::value)) {
-                    if (m_iterate_domain.is_thread_in_domain_x()) {
-                        const int joffset = extent_t::jminus::value + (int)m_iterate_domain.block_size_j();
+            typedef typename get_iterate_domain_remapper< iterate_domain_t,
+                typename EsfArguments::esf_args_map_t,
+                location_type_t,
+                color_t::value >::type iterate_domain_remapper_t;
 
-                        (m_iterate_domain).increment< 1 >(joffset);
-                        functor_t::Do(iterate_domain_remapper, IntervalType());
-                        (m_iterate_domain).increment< 1 >(-joffset);
-                    }
-                }
-                // IMinus halo
-                else if (extent_t::iminus::value != 0 &&
-                         ((int)threadIdx.y < -extent_t::jminus::value + extent_t::jplus::value + 1)) {
-                    const int ioffset = -m_iterate_domain.thread_position_x() -
-                                        (m_iterate_domain.thread_position_x() % (-extent_t::iminus::value)) - 1;
-                    const int joffset = -m_iterate_domain.thread_position_y() +
-                                        (m_iterate_domain.thread_position_x() / (-extent_t::iminus::value));
+            iterate_domain_remapper_t iterate_domain_remapper(m_iterate_domain);
 
-                    if (m_iterate_domain.is_thread_in_domain_y(joffset)) {
-                        (m_iterate_domain).increment< 0 >(ioffset);
-                        (m_iterate_domain).increment< 1 >(joffset);
-                        functor_t::Do(iterate_domain_remapper, IntervalType());
-                        (m_iterate_domain).increment< 0 >(-ioffset);
-                        (m_iterate_domain).increment< 1 >(-joffset);
-                    }
-                }
-                // IPlus halo
-                else if (extent_t::iplus::value != 0 &&
-                         ((int)threadIdx.y < -extent_t::jminus::value + extent_t::jplus::value +
-                                                 (extent_t::iminus::value != 0 ? 1 : 0) + 1)) {
-                    const int ioffset = -m_iterate_domain.thread_position_x() + m_iterate_domain.block_size_i() +
-                                        ((int)threadIdx.x % (extent_t::iplus::value));
-                    const int joffset =
-                        -m_iterate_domain.thread_position_y() + ((int)threadIdx.x / (extent_t::iplus::value));
+            typedef typename EsfArguments::esf_t esf_t;
+            typedef typename esf_t::template esf_function< color_t::value > functor_t;
 
-                    if (m_iterate_domain.is_thread_in_domain_y(joffset)) {
-                        (m_iterate_domain).increment< 0 >(ioffset);
-                        (m_iterate_domain).increment< 1 >(joffset);
-                        functor_t::Do(iterate_domain_remapper, IntervalType());
-                        (m_iterate_domain).increment< 0 >(-ioffset);
-                        (m_iterate_domain).increment< 1 >(-joffset);
-                    }
-                }
-                // the remaining warps will compute extra work at the core of the block
-                else {
-                    const int joffset = (int)blockDim.y + extent_t::jminus::value - extent_t::jplus::value -
-                                        (extent_t::iminus::value != 0 ? 1 : 0) - (extent_t::iplus::value != 0 ? 1 : 0);
+            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
 
-                    if (m_iterate_domain.is_thread_in_domain(0, joffset)) {
-                        (m_iterate_domain).increment< 1 >(joffset);
-                        functor_t::Do(iterate_domain_remapper, IntervalType());
-                        (m_iterate_domain).increment< 1 >(-joffset);
-                    }
-                }
-            }
+            // TODO we could identify if previous ESF was in the same color and avoid this iterator operations
+            (m_iterate_domain)
+                .template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value, color_t >();
+
+            functor_t::Do(iterate_domain_remapper, IntervalType());
+            (m_iterate_domain)
+                .template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
+                    static_int< -color_t::value > >();
+        }
+
+        // specialization of the loop over colors when the ESF does not specify any particular color.
+        // A loop over all colors is performed.
+        template < typename IntervalType, typename EsfArguments >
+        __device__ void color_loop(
+            typename boost::disable_if< typename esf_has_color< typename EsfArguments::esf_t >::type, int >::type =
+                0) const {
+
+            typedef typename esf_get_location_type< typename EsfArguments::esf_t >::type location_type_t;
+
+            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
+
+            typedef typename esf_color_range< typename EsfArguments::esf_t >::type color_range_t;
+
+            boost::mpl::for_each< color_range_t >(
+                color_functor< iterate_domain_t, EsfArguments, location_type_t, IntervalType >(m_iterate_domain));
+
+            using neg_n_colors_t = static_uint< -location_type_t::n_colors::value >;
+            (m_iterate_domain)
+                .template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value, neg_n_colors_t >();
         }
     };
 }

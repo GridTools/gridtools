@@ -22,7 +22,7 @@ else
 fi
 
 module load slurm
-module load cuda70/toolkit/7.0.28
+module load CUDA/7.5.18
 module load /users/mbianco/my_modules/cmake-3.5.1
 module load /users/mbianco/my_modules/boost-1.59
 #module load python/3.4.3
@@ -45,4 +45,5 @@ else
 fi
 
 export CUDA_ARCH=sm_35
-
+export CUDA_VERSION=75
+export DEFAULT_QUEUE=k80
