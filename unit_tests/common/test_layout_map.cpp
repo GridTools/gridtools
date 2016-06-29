@@ -12,6 +12,5 @@ TEST(layout_map, accessors) {
 TEST(layout_map, find_val) {
     bool result = true;
     test_layout_find_val(&result);
-
-    ASSERT_TRUE(&result);
+    ASSERT_TRUE(result);
 }

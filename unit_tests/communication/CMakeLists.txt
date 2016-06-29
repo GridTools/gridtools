@@ -15,7 +15,7 @@ if( NOT GCL_ONLY )
         endforeach()
 
         # 2D MPI tests
-        foreach(srcfile descriptors_3D empty_descriptors_3D boolist ndloops layout_map)
+        foreach(srcfile descriptors_3D empty_descriptors_3D boolist ndloops)
             set(filename "${srcfile}.cpp")
             add_custom_host_test(${srcfile} ${filename} ${ccflags} ${ldflags})
         endforeach()
