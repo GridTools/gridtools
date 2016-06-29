@@ -100,7 +100,6 @@ int main_naive(int argc, char** argv) {
     print(out, d1, d2, d3, file_o);
 
     std::cout << "TIME " << duration << std::endl;
-
     delete[] in;
     delete[] out;
 

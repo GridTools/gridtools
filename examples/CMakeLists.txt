@@ -2,6 +2,7 @@ if(NOT STRUCTURED_GRIDS)
     add_subdirectory(icosahedral)
 else()
 
+  FILE(GLOB_RECURSE INC_ALL "*.hpp")
   list( APPEND SRCFILES interface1 simple_hori_diff boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore alignment)
   list( APPEND X86_SRCFILES reduction)
 
@@ -17,8 +18,8 @@ else()
   set(exe_LIBS libgtest libgtest_main "${exe_LIBS}" )
 
   foreach(srcfile IN LISTS SRCFILES X86_SRCFILES)
-    add_executable(${srcfile}_naive   ${srcfile}.cpp ${GTEST_FILES})
-    add_executable(${srcfile}_block   ${srcfile}.cpp ${GTEST_FILES})
+    add_executable(${srcfile}_naive   ${srcfile}.cpp ${GTEST_FILES} ${INC_ALL})
+    add_executable(${srcfile}_block   ${srcfile}.cpp ${GTEST_FILES} ${INC_ALL})
     set_target_properties(${srcfile}_block
       PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
     set_target_properties(${srcfile}_naive PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})

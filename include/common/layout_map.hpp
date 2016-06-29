@@ -2,7 +2,8 @@
 
 #include <gridtools.hpp>
 
-#include "../stencil-composition/accessor_fwd.hpp"
+#include "generic_metafunctions/all_integrals.hpp"
+#include "offset_tuple.hpp"
 #ifdef CXX11_ENABLED
 #include "generic_metafunctions/gt_get.hpp"
 #include "generic_metafunctions/is_variadic_pack_of.hpp"
@@ -26,17 +27,13 @@ namespace gridtools {
     namespace _impl {
 
         template < int index >
-        static int __get(int i) {
+        GT_FUNCTION constexpr static int __get(int i) {
             return -1;
         }
 
         template < int index, int first, int... Vals >
-        static int __get(int i) {
-            if (i == index) {
-                return first;
-            } else {
-                return __get< index + 1, Vals... >(i);
-            }
+        GT_FUNCTION constexpr static int __get(int i) {
+            return (i == index) ? first : __get< index + 1, Vals... >(i);
         }
 
     } // namespace _impl
@@ -63,11 +60,17 @@ namespace gridtools {
        etc.
        \endcode
     */
+
     template < short_t... Args >
     struct layout_map {
         static constexpr ushort_t length = sizeof...(Args);
         static const constexpr short_t layout_vector[sizeof...(Args)] = {Args...};
         typedef boost::mpl::vector_c< short_t, Args... > layout_vector_t;
+
+        // ctr
+        GT_FUNCTION
+        constexpr layout_map() {}
+
         /* BOOST_STATIC_ASSERT(s); */
 
         /** This function returns the value in the map that is stored at
@@ -128,7 +131,7 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        short_t constexpr operator[](ushort_t i) const { return _impl::__get< 0, Args... >(i); }
+        constexpr short_t operator[](ushort_t i) const { return _impl::__get< 0, Args... >(i); }
 
         struct transform_in_type {
             template < ushort_t T >
@@ -222,7 +225,7 @@ namespace gridtools {
             T DefaultVal,
             typename... Indices,
             typename First,
-            typename boost::enable_if< boost::is_integral< T >, int >::type = 0 >
+            typename Dummy = all_integers< First, Indices... > >
         GT_FUNCTION static constexpr T find_val(First const &first, Indices const &... indices) {
             static_assert(sizeof...(Indices) <= length, "Too many arguments");
             // lazy template instantiation
@@ -263,12 +266,20 @@ namespace gridtools {
             \tparam[in] Indices List of argument where to return the found value
             \param[in] indices List of values (length must be equal to the length of the layout_map length)
         */
-        template < ushort_t I, typename T, T DefaultVal, typename Accessor >
-        GT_FUNCTION static constexpr T find_val(Accessor const &indices) {
-            GRIDTOOLS_STATIC_ASSERT(
-                is_accessor< Accessor >::value, "the find_val method is used with tuples of arg_type type");
+        template < ushort_t I,
+            typename T,
+            T DefaultVal,
+            typename OffsetTuple,
+            typename boost::enable_if< typename is_offset_tuple< OffsetTuple >::type, int >::type = 0 >
+        GT_FUNCTION static constexpr T find_val(OffsetTuple const &indices) {
             return ((pos_< I >::value >= length)) ? DefaultVal
-                                                  : indices.template get< Accessor::n_dim - pos_< I >::value - 1 >();
+                                                  : indices.template get< OffsetTuple::n_dim - pos_< I >::value - 1 >();
+            // this calls arg_decorator::get
+        }
+
+        template < ushort_t I, typename T, T DefaultVal, typename Value, size_t D >
+        GT_FUNCTION static constexpr T find_val(array< Value, D > const &indices) {
+            return ((pos_< I >::value >= length)) ? DefaultVal : indices[pos_< I >::value];
             // this calls arg_decorator::get
         }
 
@@ -355,7 +366,7 @@ namespace gridtools {
     template < short_t... Args >
     struct is_layout_map< layout_map< Args... > > : boost::mpl::true_ {};
 
-#else // (defined(CXX11_ENABLED) && !defined(__CUDACC__))
+#else // defined(CXX11_ENABLED)
 
     namespace _impl {
         template < ushort_t I >

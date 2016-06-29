@@ -84,8 +84,18 @@ namespace interface {
 TEST(accessortest, trivial) {
     EXPECT_EQ(interface::test_trivial(), true);
 }
+
 TEST(accessortest, alternative) {
     EXPECT_EQ(interface::test_alternative1(), true);
+}
+
+TEST(accessortest, is_accessor) {
+    using namespace gridtools;
+    GRIDTOOLS_STATIC_ASSERT((is_accessor<accessor<6, enumtype::inout, extent<3,4,4,5> > >::value) == true, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor< 2, enumtype::in > >::value) == true, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor<int>::value) == false, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor<double&>::value) == false, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor<double const&>::value) == false, "");
 }
 
 #ifdef CXX11_ENABLED

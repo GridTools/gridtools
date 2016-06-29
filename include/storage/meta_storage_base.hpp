@@ -10,6 +10,7 @@
 #include "../common/explode_array.hpp"
 #include "../common/generic_metafunctions/is_variadic_pack_of.hpp"
 #include "../common/generic_metafunctions/variadic_assert.hpp"
+#include "../common/offset_metafunctions.hpp"
 
 /**
    @file
@@ -230,9 +231,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
             : m_dims(other.m_dims), m_strides(other.m_strides) {}
 
         /** @brief prints debugging information */
-        void info(std::ostream &out_s) const {
-            out_s << dims< 0 >() << "x" << dims< 1 >() << "x" << dims< 2 >() << " \n";
-        }
+        void info(std::ostream &out_s) const { out_s << dim< 0 >() << "x" << dim< 1 >() << "x" << dim< 2 >() << " \n"; }
 
         /**@brief returns the size of the data field*/
         GT_FUNCTION
@@ -241,14 +240,17 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         }
 
         /** @brief returns the dimension fo the field along I*/
+        GT_FUNCTION constexpr array< uint_t, space_dimensions > dims() const { return m_dims; }
+
+        /** @brief returns the dimension fo the field along I*/
         template < ushort_t I >
-        GT_FUNCTION constexpr uint_t dims() const {
+        GT_FUNCTION constexpr uint_t dim() const {
             return m_dims[I];
         }
 
         /** @brief returns the dimension fo the field along I*/
         GT_FUNCTION
-        constexpr uint_t dims(const ushort_t I) const { return m_dims[I]; }
+        constexpr uint_t dim(const ushort_t I) const { return m_dims[I]; }
 
         /**@brief returns the storage strides
          */
@@ -357,7 +359,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
 
            This method must be called with integral type parameters, and the result will be a positive integer.
         */
-        template < typename StridesVector, typename... UInt >
+        template < typename StridesVector, typename... UInt, typename Dummy = all_integers< UInt... > >
         GT_FUNCTION constexpr static int_t _index(StridesVector const &RESTRICT strides_, UInt const &... dims) {
             GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(), boost::is_integral< UInt >::type::value...),
                 "you have to pass in arguments of uint_t type");
@@ -374,9 +376,17 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
 
            This method returns signed integers of type int_t (used e.g. in iterate_domain)
         */
-        template < typename OffsetTuple, typename StridesVector >
-        GT_FUNCTION static constexpr int_t _index(StridesVector const &RESTRICT strides_, OffsetTuple const &tuple) {
-            return _impl::compute_offset< space_dimensions, layout >::apply(strides_, tuple);
+        template < typename Offset, typename StridesVector >
+        GT_FUNCTION static constexpr int_t _index(StridesVector const &RESTRICT strides_,
+            Offset const &offset,
+            typename boost::enable_if< typename is_tuple_or_array< Offset >::type, int >::type * = 0) {
+            return _impl::compute_offset< space_dimensions, layout >::apply(strides_, offset);
+        }
+
+        template < typename LayoutT, typename StridesVector >
+        GT_FUNCTION static constexpr int_t _indexl(
+            StridesVector const &RESTRICT strides_, array< int_t, space_dimensions > const &offsets) {
+            return _impl::compute_offset< space_dimensions, LayoutT >::apply(strides_, offsets);
         }
 
         template < typename OffsetTuple >
