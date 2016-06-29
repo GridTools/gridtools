@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
     }
 
     if (argc == 6) {
-        if((std::string(argv[5]) == "-d"))
+        if ((std::string(argv[5]) == "-d"))
             Options::getInstance().m_verify = false;
     }
 

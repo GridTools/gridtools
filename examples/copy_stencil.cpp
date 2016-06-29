@@ -17,12 +17,12 @@ int main(int argc, char** argv)
         Options::getInstance().m_size[i] = atoi(argv[i+1]);
     }
 
-    if(argc > 4) {
+    if (argc > 4) {
         Options::getInstance().m_size[3] = atoi(argv[4]);
     }
 
     if (argc == 6) {
-        if((std::string(argv[5]) == "-d"))
+        if ((std::string(argv[5]) == "-d"))
             Options::getInstance().m_verify = false;
     }
 
@@ -39,6 +39,6 @@ TEST(CopyStencil, Test)
     bool verify = Options::getInstance().m_verify;
 
     if(t==0) t=1;
-  
+
     ASSERT_TRUE(copy_stencil::test(x, y, z, t, verify));
 }

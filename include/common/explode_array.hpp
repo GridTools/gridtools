@@ -148,7 +148,6 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_array< Array >::value || is_tuple< Array >::value), "Error: Wrong Type");
         return expander_inj< Array::n_dimensions, ReturnType, Fn, ExtraData, const Array & >::expand(extra_data, a);
     }
-
 }
 
 #endif

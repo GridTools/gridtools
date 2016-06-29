@@ -13,7 +13,7 @@ class Options /* singleton */
         for (int i = 0; i < 4; ++i) {
             m_size[i] = 0;
         }
-        m_verify=true;
+        m_verify = true;
     }
     Options(const Options &) {}
     ~Options() {}

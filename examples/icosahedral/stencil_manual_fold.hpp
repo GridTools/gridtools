@@ -132,7 +132,7 @@ namespace smf {
         weight_edges.d2h_update();
 #endif
 
-        bool result=true;
+        bool result = true;
         if (verify) {
             // compute the reference values of the weights on edges of cells
             unstructured_grid ugrid(d1, d2, d3);
