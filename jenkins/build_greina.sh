@@ -34,7 +34,10 @@ FORCE_BUILD=OFF
 VERBOSE_RUN="OFF"
 VERSION="4.9"
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> master
 while getopts "h:b:t:f:c:l:pzmsidvq:x:" opt; do
     case "$opt" in
     h|\?)
@@ -230,7 +233,11 @@ if [[ "$SILENT_BUILD" == "ON" ]]; then
     for i in `seq 1 $num_make_rep`;
     do
       echo "COMPILATION # ${i}"
-      make -j5  >& ${log_file};
+      if [ ${i} -eq ${num_make_rep} ]; then
+          make  >& ${log_file};
+      else
+          make -j5  >& ${log_file};
+      fi
       error_code=$?
       if [ ${error_code} -eq 0 ]; then
           break # Skip the make repetitions
