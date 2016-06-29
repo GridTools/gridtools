@@ -120,7 +120,7 @@ TEST(test_stencil_nested_on, run) {
     typedef boost::mpl::vector< p_in_cells, p_in_edges, p_i_edges, p_c_edges, p_j_edges, p_k_edges, p_out_edges >
         accessor_list_t;
 
-    gridtools::domain_type< accessor_list_t > domain(
+    gridtools::aggregator_type< accessor_list_t > domain(
         boost::fusion::make_vector(&in_cells, &in_edges, &i_edges, &c_edges, &j_edges, &k_edges, &out_edges));
     array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
     array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
@@ -132,9 +132,9 @@ TEST(test_stencil_nested_on, run) {
     std::shared_ptr< gridtools::stencil > copy = gridtools::make_computation< backend_t >(
         domain,
         grid_,
-        gridtools::make_mss // mss_descriptor
+        gridtools::make_multistage // mss_descriptor
         (execute< forward >(),
-            gridtools::make_esf< nested_stencil, icosahedral_topology_t, icosahedral_topology_t::cells >(
+            gridtools::make_stage< nested_stencil, icosahedral_topology_t, icosahedral_topology_t::cells >(
                 p_in_cells(), p_in_edges(), p_i_edges(), p_c_edges(), p_j_edges(), p_k_edges(), p_out_edges())));
     copy->ready();
     copy->steady();

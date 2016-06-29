@@ -338,7 +338,7 @@ namespace shallow_water {
             auto shallow_water_stencil = gridtools::make_computation< gridtools::BACKEND, layout_t >(
                 domain,
                 grid,
-                gridtools::make_mss // mss_descriptor
+                gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
                     gridtools::make_stage< initial_step >(p_tmp(), p_sol()),
                     gridtools::make_stage< final_step >(p_tmp(), p_sol())));
