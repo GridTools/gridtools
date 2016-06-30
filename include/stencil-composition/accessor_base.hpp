@@ -27,7 +27,7 @@
 #include "storage/storage.hpp"
 #include "storage/storage_metafunctions.hpp"
 
-#include "../common/offset_tuple.hpp"
+#include "../common/offset_tuple_mixed.hpp"
 #include "stencil-composition/extent.hpp"
 
 #ifdef CXX11_ENABLED

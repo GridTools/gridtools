@@ -128,11 +128,6 @@ namespace gridtools {
     };
 
 #ifdef CUDA8 // (i.e. CXX11_ENABLED for cpu)
-    /** Trick to make nvcc understand that the accessor is a constant expression*/
-    template < typename Pair >
-    constexpr dimension< Pair::first > get_dim() {
-        return dimension< Pair::first >{Pair::second};
-    }
 
     /**@brief same as accessor but mixing run-time offsets with compile-time ones
 
@@ -142,83 +137,6 @@ namespace gridtools {
        queried dimension is not found it looks up in the dynamic dimensions. Note that this
        lookup is anyway done at compile time, i.e. the get() method returns in constant time.
      */
-    template < typename ArgType, typename... Pair >
-    struct offset_tuple_mixed {
-
-        GRIDTOOLS_STATIC_ASSERT(is_offset_tuple<ArgType>::value, "wrong type");
-        typedef offset_tuple_mixed< ArgType, Pair... > type;
-        static const ushort_t n_dim = ArgType::n_dim;
-
-        typedef ArgType offset_tuple_t;
-
-        // private:
-        // static const constexpr dimension< Pair1::first> p1_{Pair1::second};
-        // static const constexpr dimension< Pair2::first > p2_{Pair2::second};
-        static const constexpr offset_tuple_t s_args_constexpr{get_dim< Pair >()...};
-
-        offset_tuple_t m_args_runtime;
-
-        typedef boost::mpl::vector< static_int< n_dim - Pair::first >... > coordinates;
-
-      public:
-
-        GT_FUNCTION constexpr offset_tuple_mixed()
-            : m_args_runtime() {}
-
-        template < typename... ArgsRuntime,
-            typename T = typename boost::enable_if_c< accumulate(logical_and(),
-                boost::mpl::or_< boost::is_integral< ArgsRuntime >, is_dimension< ArgsRuntime > >::type::value...) >::
-                type >
-        GT_FUNCTION constexpr offset_tuple_mixed(ArgsRuntime const &... args)
-            : m_args_runtime(args...) {}
-
-        template < typename OffsetTuple, typename T = typename boost::enable_if_c<is_offset_tuple<OffsetTuple>::value>::type >
-        GT_FUNCTION constexpr offset_tuple_mixed(OffsetTuple const & arg_)
-            : m_args_runtime(arg_) {
-        }
-
-        template < typename OtherAcc >
-        GT_FUNCTION constexpr offset_tuple_mixed(offset_tuple_mixed< OtherAcc, Pair... > &&other_)
-            : m_args_runtime(other_.m_args_runtime) {}
-
-        template < typename OtherAcc >
-        GT_FUNCTION constexpr offset_tuple_mixed(offset_tuple_mixed< OtherAcc, Pair... > const &other_)
-            : m_args_runtime(other_.m_args_runtime) {}
-
-        /**@brief returns the offset at a specific index Idx
-
-           the lookup for the index Idx is done at compile time, i.e. this method returns in constant time
-         */
-        template < short_t Idx >
-        GT_FUNCTION static constexpr int_t get_constexpr() {
-#ifndef __CUDACC__
-            GRIDTOOLS_STATIC_ASSERT(Idx < s_args_constexpr.n_dim, "the idx must be smaller than the arg dimension");
-            GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "the idx must be larger than 0");
-            GRIDTOOLS_STATIC_ASSERT(s_args_constexpr.template get< Idx >() >= 0,
-                "there is a negative offset. If you did this on purpose recompile with the PEDANTIC_DISABLED flag on.");
-#endif
-            return s_args_constexpr.template get< Idx >();
-        }
-
-        /**@brief returns the offset at a specific index Idx
-
-           the lookup for the index Idx is done at compile time, i.e. this method returns in constant time
-         */
-        template < short_t Idx >
-        GT_FUNCTION constexpr int_t get() const {
-            return boost::is_same< typename boost::mpl::find< coordinates, static_int< Idx > >::type,
-                       typename boost::mpl::end< coordinates >::type >::type::value
-                       ? m_args_runtime.template get< Idx >()
-                       : s_args_constexpr.template get< Idx >();
-        }
-    };
-
-    template <typename ... T>
-    struct is_offset_tuple<offset_tuple_mixed<T ...> > : boost::mpl::true_ {};
-
-    template < typename ArgType, typename... Pair >
-    constexpr typename offset_tuple_mixed< ArgType, Pair... >::offset_tuple_t offset_tuple_mixed< ArgType, Pair... >::s_args_constexpr;
-
     template < typename ArgType, typename... Pair >
     struct accessor_mixed : public offset_tuple_mixed<typename ArgType::offset_tuple_t, Pair ...> {
         typedef typename ArgType::index_type index_type;
