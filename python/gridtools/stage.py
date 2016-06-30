@@ -386,7 +386,8 @@ class StageBody (ast.NodeVisitor):
             return aliased.name
         #
         # If symbol is a local variable, inline its value only if it is a scalar
-        # integer or floating point number in a Load context
+        # integer or floating point number in a Load context (i.e., it is an
+        # rvalue in the current expression)
         #
         if self.scope.is_local (name):
             if (isinstance (symbol.value, int)
