@@ -1,7 +1,22 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #define PEDANTIC_DISABLED
 
 #include "gtest/gtest.h"
-#include "stencil-composition/stencil-composition.hpp"
+#include <stencil-composition/stencil-composition.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
@@ -73,7 +88,7 @@ TEST(test_global_accessor, boundary_conditions) {
 
     typedef arg<0, storage_type> p_sol;
 
-    domain_type<boost::mpl::vector<p_sol, p_bd> > domain ( boost::fusion::make_vector( &sol_, &bd_));
+    aggregator_type<boost::mpl::vector<p_sol, p_bd> > domain ( boost::fusion::make_vector( &sol_, &bd_));
 
 /*****RUN 1 WITH bd int_value set to 20****/
 #ifdef CXX11_ENABLED
@@ -88,10 +103,10 @@ TEST(test_global_accessor, boundary_conditions) {
         bc_eval = make_computation< backend_t >
         (
             domain, coords_bc
-            , make_mss
+            , make_multistage
             (
                 execute<forward>(),
-                make_esf<functor>(p_sol(), p_bd()))
+                make_stage<functor>(p_sol(), p_bd()))
             );
 
     bc_eval->ready();

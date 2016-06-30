@@ -1,4 +1,19 @@
 /*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+/*
  * test_cache_metafunctions.cpp
  *
  *  Created on: Jul 17, 2015
@@ -40,8 +55,8 @@ typedef arg<2, storage_type> p_out;
 typedef arg<1, storage_type> p_buff;
 typedef arg<3, storage_type> p_notin;
 
-typedef decltype(gridtools::make_esf<functor1>(p_in() ,p_buff()) ) esf1_t;
-typedef decltype(gridtools::make_esf<functor1>(p_buff(), p_out()) ) esf2_t;
+typedef decltype(gridtools::make_stage<functor1>(p_in() ,p_buff()) ) esf1_t;
+typedef decltype(gridtools::make_stage<functor1>(p_buff(), p_out()) ) esf2_t;
 
 typedef boost::mpl::vector2<esf1_t, esf2_t> esf_sequence_t;
 

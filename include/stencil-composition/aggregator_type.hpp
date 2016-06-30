@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #pragma once
 
 #include <iosfwd>
@@ -28,7 +43,7 @@
 #include "../storage/storage_functors.hpp"
 #include "../storage/metadata_set.hpp"
 
-#include "domain_type_impl.hpp"
+#include "aggregator_type_impl.hpp"
 #include "arg_metafunctions.hpp"
 #include "arg.hpp"
 
@@ -62,15 +77,15 @@ namespace gridtools {
     */
 
     template < typename Placeholders >
-    struct domain_type : public clonable_to_gpu< domain_type< Placeholders > > {
+    struct aggregator_type : public clonable_to_gpu< aggregator_type< Placeholders > > {
 
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< Placeholders >::type::value > 0),
-            "The domain_type must be constructed with at least one storage placeholder. If you don't use any storage "
+            "The aggregator_type must be constructed with at least one storage placeholder. If you don't use any storage "
             "you are probably trying to do something which is not a stencil operation, aren't you?");
         typedef typename boost::mpl::sort< Placeholders, arg_comparator >::type placeholders_t;
 
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< placeholders_t, is_arg >::type::value), "wrong type:\
- the domain_type template argument must be an MPL vector of placeholders (arg<...>)");
+ the aggregator_type template argument must be an MPL vector of placeholders (arg<...>)");
 
       private:
         BOOST_STATIC_CONSTANT(uint_t, len = boost::mpl::size< placeholders_t >::type::value);
@@ -203,21 +218,21 @@ namespace gridtools {
       public:
 #if defined(CXX11_ENABLED)
         /** @brief variadic constructor
-            construct the domain_type given an arbitrary number of placeholders to the non-temporary
+            construct the aggregator_type given an arbitrary number of placeholders to the non-temporary
             storages passed as arguments.
 
             USAGE EXAMPLE:
             \verbatim
-            domain_type((p1=storage_1), (p2=storage_2), (p3=storage_3));
+            aggregator_type((p1=storage_1), (p2=storage_2), (p3=storage_3));
             \endverbatim
         */
         template < typename... StorageArgs >
-        domain_type(StorageArgs... args)
+        aggregator_type(StorageArgs... args)
             : m_storage_pointers(), m_metadata_set() {
 
             GRIDTOOLS_STATIC_ASSERT((sizeof...(StorageArgs) > 0),
                 "Computations with no storages are not supported. "
-                "Add at least one storage to the domain_type "
+                "Add at least one storage to the aggregator_type "
                 "definition.");
             // NOTE: the following assertion assumes there StorageArgs has length at leas 1
             GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair< StorageArgs >::value...), "wrong type");
@@ -260,14 +275,14 @@ namespace gridtools {
          TODO: when I have only one placeholder and C++11 enabled this constructor is erroneously picked
          */
         template < typename RealStorage >
-        explicit domain_type(RealStorage const &real_storage_)
+        explicit aggregator_type(RealStorage const &real_storage_)
             : m_storage_pointers(), m_metadata_set() {
 
             // TODO: how to check the assertion below?
             // #ifdef CXX11_ENABLED
             //             GRIDTOOLS_STATIC_ASSERT(is_fusion_vector<RealStorage>::value, "the argument passed to the
             //             domain type constructor must be a fusion vector, or a pair (placeholder = storage), see the
-            //             domain_type constructors");
+            //             aggregator_type constructors");
             // #endif
 
             typedef boost::fusion::filter_view< arg_list, is_not_tmp_storage< boost::mpl::_1 > > view_type;
@@ -275,7 +290,7 @@ namespace gridtools {
             view_type fview(m_storage_pointers);
             GRIDTOOLS_STATIC_ASSERT(boost::fusion::result_of::size< view_type >::type::value ==
                                         boost::mpl::size< RealStorage >::type::value,
-                "The number of arguments specified when constructing the domain_type is not the same as the number of "
+                "The number of arguments specified when constructing the aggregator_type is not the same as the number of "
                 "placeholders "
                 "to non-temporary storages. Double check the temporary flag in the meta_storage types.");
 
@@ -295,9 +310,9 @@ namespace gridtools {
                     boost::mpl::_1 > >::type::type storages_matching;
 
             GRIDTOOLS_STATIC_ASSERT(storages_matching::value,
-                "Error in the definition of the domain_type. The storage type associated to one of the \'arg\' types "
+                "Error in the definition of the aggregator_type. The storage type associated to one of the \'arg\' types "
                 "is not the correct one. Check that the storage_type used when defining each \'arg\' matches the "
-                "corresponding storage passed as run-time argument of the domain_type constructor");
+                "corresponding storage passed as run-time argument of the aggregator_type constructor");
 
             // NOTE: an error in the line below could mean that the storage type
             // associated to the arg is not the
@@ -320,17 +335,17 @@ namespace gridtools {
          *
          * @param The object to copy. Typically this will be *this
          */
-        __device__ explicit domain_type(domain_type const &other)
+        __device__ explicit aggregator_type(aggregator_type const &other)
             : m_storage_pointers(other.m_storage_pointers), m_original_pointers(other.m_original_pointers),
               m_metadata_set(other.m_metadata_set) {}
 
         GT_FUNCTION
         void info() {
-            printf("domain_type: Storage pointers\n");
+            printf("aggregator_type: Storage pointers\n");
             boost::fusion::for_each(m_storage_pointers, _debug::print_domain_info());
-            printf("domain_type: Original pointers\n");
+            printf("aggregator_type: Original pointers\n");
             boost::fusion::for_each(m_original_pointers, _debug::print_domain_info());
-            printf("domain_type: End info\n");
+            printf("aggregator_type: End info\n");
         }
 
         template < typename Index >
@@ -365,9 +380,9 @@ namespace gridtools {
     };
 
     template < typename domain >
-    struct is_domain_type : boost::mpl::false_ {};
+    struct is_aggregator_type : boost::mpl::false_ {};
 
     template < typename Placeholders >
-    struct is_domain_type< domain_type< Placeholders > > : boost::mpl::true_ {};
+    struct is_aggregator_type< aggregator_type< Placeholders > > : boost::mpl::true_ {};
 
 } // namespace gridtools

@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #include "gtest/gtest.h"
 #include <gridtools.hpp>
 #include <stencil-composition/stencil-composition.hpp>
@@ -43,25 +58,25 @@ TEST(unfold_all, test) {
     typedef arg< 1, storage_t > p1;
 
     typedef boost::mpl::vector2< p0, p1 > arg_list;
-    domain_type< arg_list > domain((p0() = s0), (p1() = s1));
+    aggregator_type< arg_list > domain((p0() = s0), (p1() = s1));
 
     auto mss1 =
-        make_mss(enumtype::execute< enumtype::forward >(),
-            make_esf< functor< 0 > >(p0(), p1()),
-            make_esf< functor< 1 > >(p0(), p1()),
-            make_esf< functor< 2 > >(p0(), p1()),
-            make_independent(make_esf< functor< 3 > >(p0(), p1()),
-                     make_esf< functor< 4 > >(p0(), p1()),
-                     make_independent(make_esf< functor< 5 > >(p0(), p1()), make_esf< functor< 6 > >(p0(), p1()))));
+        make_multistage(enumtype::execute< enumtype::forward >(),
+            make_stage< functor< 0 > >(p0(), p1()),
+            make_stage< functor< 1 > >(p0(), p1()),
+            make_stage< functor< 2 > >(p0(), p1()),
+            make_independent(make_stage< functor< 3 > >(p0(), p1()),
+                     make_stage< functor< 4 > >(p0(), p1()),
+                     make_independent(make_stage< functor< 5 > >(p0(), p1()), make_stage< functor< 6 > >(p0(), p1()))));
 
     auto mss2 =
-        make_mss(enumtype::execute< enumtype::forward >(),
-            make_esf< functor< 7 > >(p0(), p1()),
-            make_esf< functor< 8 > >(p0(), p1()),
-            make_esf< functor< 9 > >(p0(), p1()),
-            make_independent(make_esf< functor< 10 > >(p0(), p1()),
-                     make_esf< functor< 11 > >(p0(), p1()),
-                     make_independent(make_esf< functor< 12 > >(p0(), p1()), make_esf< functor< 13 > >(p0(), p1()))));
+        make_multistage(enumtype::execute< enumtype::forward >(),
+            make_stage< functor< 7 > >(p0(), p1()),
+            make_stage< functor< 8 > >(p0(), p1()),
+            make_stage< functor< 9 > >(p0(), p1()),
+            make_independent(make_stage< functor< 10 > >(p0(), p1()),
+                     make_stage< functor< 11 > >(p0(), p1()),
+                     make_independent(make_stage< functor< 12 > >(p0(), p1()), make_stage< functor< 13 > >(p0(), p1()))));
 
     auto comp = make_computation< BACKEND >(domain, grid, if_(cond, mss1, mss2));
 }

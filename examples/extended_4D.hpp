@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #pragma once
 
 #include <stencil-composition/stencil-composition.hpp>
@@ -158,7 +173,7 @@ namespace assembly {
         storage_type f(meta_, (float_type)1.3, "f");
         storage_type result(meta_, (float_type)0., "result");
 
-        gridtools::domain_type< accessor_list > domain(boost::fusion::make_vector(&phi, &psi, &jac, &f, &result));
+        gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&phi, &psi, &jac, &f, &result));
         /**
            - Definition of the physical dimensions of the problem.
            The grid constructor takes the horizontal plane dimensions,
@@ -182,9 +197,9 @@ namespace assembly {
             fe_comp = make_computation< gridtools::BACKEND >(
                 domain,
                 grid,
-                make_mss               //! \todo all the arguments in the call to make_mss are actually dummy.
+                make_multistage               //! \todo all the arguments in the call to make_mss are actually dummy.
                 (execute< forward >(), //!\todo parameter used only for overloading purpose?
-                    make_esf< integration >(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
+                    make_stage< integration >(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
 
         fe_comp->ready();
         fe_comp->steady();

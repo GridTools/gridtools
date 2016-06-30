@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #pragma once
 
 #include "common/generic_metafunctions/variadic_to_vector.hpp"
@@ -35,13 +50,13 @@ namespace gridtools {
      */
 
     template < typename ESF, typename... ExtraArgs >
-    esf_descriptor< ESF, boost::mpl::vector< ExtraArgs... > > make_esf(ExtraArgs &&... /*args_*/) {
+    esf_descriptor< ESF, boost::mpl::vector< ExtraArgs... > > make_stage(ExtraArgs &&... /*args_*/) {
         GRIDTOOLS_STATIC_ASSERT((accumulate(logical_and(), is_arg< ExtraArgs >::value...)), "Malformed make_esf");
         return esf_descriptor< ESF, boost::mpl::vector< ExtraArgs... > >();
     }
 
     template < typename ESF, typename Staggering, typename... ExtraArgs >
-    esf_descriptor< ESF, boost::mpl::vector< ExtraArgs... >, Staggering > make_esf(ExtraArgs &&... args_) {
+    esf_descriptor< ESF, boost::mpl::vector< ExtraArgs... >, Staggering > make_stage(ExtraArgs &&... args_) {
         GRIDTOOLS_STATIC_ASSERT((accumulate(logical_and(), is_arg< ExtraArgs >::value...)), "Malformed make_esf");
         return esf_descriptor< ESF, boost::mpl::vector< ExtraArgs... >, Staggering >();
     }

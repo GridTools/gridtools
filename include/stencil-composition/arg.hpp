@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 /**
    @file
    @brief File containing the definition of the placeholders used to address the storage from whithin the functors.
@@ -69,7 +84,7 @@ namespace gridtools {
         arg_storage_pair< arg< I, storage_type >, Storage2 > operator=(Storage2 &ref) {
             GRIDTOOLS_STATIC_ASSERT((boost::is_same< Storage2, storage_type >::value),
                 "there is a mismatch between the storage types used by the arg placeholders and the storages really "
-                "instantiated. Check that the placeholders you used when constructing the domain_type are in the "
+                "instantiated. Check that the placeholders you used when constructing the aggregator_type are in the "
                 "correctly assigned and that their type match the instantiated storages ones");
 
             return arg_storage_pair< arg< I, storage_type >, Storage2 >(&ref);
@@ -103,7 +118,7 @@ namespace gridtools {
         arg_storage_pair< arg< I, storage_type >, Storage2 > operator=(Storage2 &ref) {
             GRIDTOOLS_STATIC_ASSERT((boost::is_same< Storage2, storage_type >::value),
                 "there is a mismatch between the storage types used by the arg placeholders and the storages really "
-                "instantiated. Check that the placeholders you used when constructing the domain_type are in the "
+                "instantiated. Check that the placeholders you used when constructing the aggregator_type are in the "
                 "correctly assigned and that their type match the instantiated storages ones");
 
             return arg_storage_pair< arg< I, storage_type >, Storage2 >(&ref);

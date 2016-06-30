@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #pragma once
 #include <boost/fusion/include/as_set.hpp>
 #include "common/generic_metafunctions/is_sequence_of.hpp"
@@ -90,7 +105,7 @@ namespace gridtools {
 
     /** inserts an element in the set if it is not present
 
-        used for the metadata_set in the domain_type
+        used for the metadata_set in the aggregator_type
     */
     template < typename Sequence, typename Arg >
     struct insert_if_not_present {
@@ -98,7 +113,7 @@ namespace gridtools {
 #ifdef PEDANTIC // disabling in case of generic accessors
         GRIDTOOLS_STATIC_ASSERT(is_storage< Arg >::type::value,
             "if you are using generic accessors disable the pedantic mode. Otherwise most probably you used in the "
-            "domain_type constructor a storage type which is not supported.");
+            "aggregator_type constructor a storage type which is not supported.");
 #endif
         GRIDTOOLS_STATIC_ASSERT(is_metadata_set< Sequence >::type::value, "wrong type");
 

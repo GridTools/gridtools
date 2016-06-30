@@ -35,7 +35,7 @@ Definition of the storage placeholders
 \snippet laplacian.cpp placeholders
 
 Connecting placeholders and storage pointers
-\snippet laplacian.cpp domain_type
+\snippet laplacian.cpp aggregator_type
 
 Selecting the IterationSpace
 \snippet laplacian.cpp coords

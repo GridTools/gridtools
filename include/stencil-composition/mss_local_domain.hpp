@@ -1,4 +1,19 @@
 /*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+/*
  * mss_local_domain.h
  *
  *  Created on: Feb 18, 2015
@@ -10,7 +25,7 @@
 #include <boost/mpl/set.hpp>
 #include <boost/mpl/has_key.hpp>
 
-#include "domain_type.hpp"
+#include "aggregator_type.hpp"
 #include "local_domain.hpp"
 #include "backend_traits_fwd.hpp"
 #include "mss_components.hpp"
@@ -41,7 +56,7 @@ namespace gridtools {
         bool IsStateful >
     struct mss_local_domain {
         GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), "Internal Error: invalid type");
-        GRIDTOOLS_STATIC_ASSERT((is_domain_type< DomainType >::value), "Internal Error: invalid type");
+        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), "Internal Error: invalid type");
 
         /**
          * Create a fusion::vector of domains for each functor
