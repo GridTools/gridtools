@@ -95,8 +95,12 @@ class StencilCompiler ( ):
                 #
                 # ... and by including runtime information
                 #
-                stencil.scope.runtime_analysis            (stencil, **kwargs)
-                stencil.generate_code                     ( )
+                stencil.scope.runtime_analysis      (stencil, **kwargs)
+                stencil.generate_code               ( )
+                #
+                # build and check stencil data dependency graph
+                #
+                stencil.build_data_dependency             ( )
                 stencil.scope.check_self_dependent_fields ( )
                 #
                 # build the stage-execution path

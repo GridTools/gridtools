@@ -23,6 +23,7 @@
 ##    http://www.amath.washington.edu/~dgeorge/tsunamimodeling.html
 ##    http://www.amath.washington.edu/~claw/applications/shallow/www
 ##
+import unittest
 import numpy as np
 
 from nose.plugins.attrib import attr
@@ -150,15 +151,12 @@ class SWTest (CopyTest):
         self.stencil.set_halo ( (1, 1, 1, 1) )
         self.stencil.set_k_direction ('forward')
 
-        self.out_H  = np.zeros (self.domain)
+        self.out_H  = np.zeros (self.domain, order='F')
         self.out_H += 0.000001
-        self.out_U  = np.zeros (self.domain)
+        self.out_U  = np.zeros (self.domain, order='F')
         self.out_U += 0.000001
-        self.out_V  = np.zeros (self.domain)
+        self.out_V  = np.zeros (self.domain, order='F')
         self.out_V += 0.000001
-        self.out_Hd = np.zeros (self.domain)
-        self.out_Ud = np.zeros (self.domain)
-        self.out_Vd = np.zeros (self.domain)
 
         self.droplet (self.out_H)
 
@@ -261,54 +259,55 @@ class SWTest (CopyTest):
                 self.qt_app.exec_ ( )
 
 
-    def test_data_dependency_detection (self, deps=None, backend='c++'):
-        expected_deps = [('self.L',  'in_H'),
-                         ('self.R',  'in_H'),
-                         ('self.T',  'in_H'),
-                         ('self.B',  'in_H'),
-                         ('self.L',  'in_U'),
-                         ('self.R',  'in_U'),
-                         ('self.T',  'in_U'),
-                         ('self.B',  'in_U'),
-                         ('self.L',  'in_V'),
-                         ('self.R',  'in_V'),
-                         ('self.T',  'in_V'),
-                         ('self.B',  'in_V'),
-                         ('self.Hx', 'self.R'),
-                         ('self.Hx', 'self.L'),
-                         ('self.Ux', 'self.R'),
-                         ('self.Ux', 'self.L'),
-                         ('self.Vx', 'self.R'),
-                         ('self.Vx', 'self.L'),
-                         ('self.Hy', 'self.T'),
-                         ('self.Hy', 'self.B'),
-                         ('self.Uy', 'self.T'),
-                         ('self.Uy', 'self.B'),
-                         ('self.Vy', 'self.T'),
-                         ('self.Vy', 'self.B'),
-                         ('self.Hd', 'in_H'),
-                         ('self.Hd', 'self.L'),
-                         ('self.Hd', 'self.R'),
-                         ('self.Hd', 'self.T'),
-                         ('self.Hd', 'self.B'),
-                         ('self.Ud', 'in_U'),
-                         ('self.Ud', 'self.L'),
-                         ('self.Ud', 'self.R'),
-                         ('self.Ud', 'self.T'),
-                         ('self.Ud', 'self.B'),
-                         ('self.Vd', 'in_V'),
-                         ('self.Vd', 'self.L'),
-                         ('self.Vd', 'self.R'),
-                         ('self.Vd', 'self.T'),
-                         ('self.Vd', 'self.B'),
-                         ('self.Vd', 'self.B'),
-                         ('self.Vd', 'self.B'),
-                         ('out_H', 'self.Hd'),
-                         ('out_H', 'self.Dh'),
-                         ('out_U', 'self.Ud'),
-                         ('out_U', 'self.Du'),
-                         ('out_V', 'self.Vd'),
-                         ('out_V', 'self.Dv')]
+    def test_data_dependency_detection (self, expected_deps=None, backend='c++'):
+        if expected_deps is None:
+            expected_deps = [('self.L',  'in_H'),
+                             ('self.R',  'in_H'),
+                             ('self.T',  'in_H'),
+                             ('self.B',  'in_H'),
+                             ('self.L',  'in_U'),
+                             ('self.R',  'in_U'),
+                             ('self.T',  'in_U'),
+                             ('self.B',  'in_U'),
+                             ('self.L',  'in_V'),
+                             ('self.R',  'in_V'),
+                             ('self.T',  'in_V'),
+                             ('self.B',  'in_V'),
+                             ('self.Hx', 'self.R'),
+                             ('self.Hx', 'self.L'),
+                             ('self.Ux', 'self.R'),
+                             ('self.Ux', 'self.L'),
+                             ('self.Vx', 'self.R'),
+                             ('self.Vx', 'self.L'),
+                             ('self.Hy', 'self.T'),
+                             ('self.Hy', 'self.B'),
+                             ('self.Uy', 'self.T'),
+                             ('self.Uy', 'self.B'),
+                             ('self.Vy', 'self.T'),
+                             ('self.Vy', 'self.B'),
+                             ('self.Hd', 'in_H'),
+                             ('self.Hd', 'self.L'),
+                             ('self.Hd', 'self.R'),
+                             ('self.Hd', 'self.T'),
+                             ('self.Hd', 'self.B'),
+                             ('self.Ud', 'in_U'),
+                             ('self.Ud', 'self.L'),
+                             ('self.Ud', 'self.R'),
+                             ('self.Ud', 'self.T'),
+                             ('self.Ud', 'self.B'),
+                             ('self.Vd', 'in_V'),
+                             ('self.Vd', 'self.L'),
+                             ('self.Vd', 'self.R'),
+                             ('self.Vd', 'self.T'),
+                             ('self.Vd', 'self.B'),
+                             ('self.Vd', 'self.B'),
+                             ('self.Vd', 'self.B'),
+                             ('out_H', 'self.Hd'),
+                             ('out_H', 'self.Dh'),
+                             ('out_U', 'self.Ud'),
+                             ('out_U', 'self.Du'),
+                             ('out_V', 'self.Vd'),
+                             ('out_V', 'self.Dv')]
         super ( ).test_data_dependency_detection (deps=expected_deps,
                                                   backend=backend)
 
@@ -484,6 +483,210 @@ class SWTest (CopyTest):
 
     def test_get_interior_points_IJ_object (self):
         super ( ).test_get_interior_points_IJ_object (self.out_H)
+
+
+
+class LocalSW (MultiStageStencil):
+    def __init__ (self, domain):
+        super ( ).__init__ ( )
+        #
+        # constants to callibrate the system - working with (24, 24, 0) and +0.1 droplet
+        #
+        #self.bl     = 0.2
+        #self.dt     = 0.001
+        #self.growth = 0.5
+        self.bl      = 0.2
+        self.growth  = 1.2
+        self.dt      = 0.05
+
+        #
+        # temporary data fields
+        #
+        self.Hd   = np.zeros (domain)
+        self.Ud   = np.zeros (domain)
+        self.Vd   = np.zeros (domain)
+        self.Hx   = np.zeros (domain)
+        self.Ux   = np.zeros (domain)
+        self.Vx   = np.zeros (domain)
+        self.Hy   = np.zeros (domain)
+        self.Uy   = np.zeros (domain)
+        self.Vy   = np.zeros (domain)
+
+
+    def stage_momentum (self, in_M, out_Md, out_Mx, out_My):
+        for p in self.get_interior_points (in_M):
+            L = in_M[p + (-1,0,0)]
+            R = in_M[p + (1,0,0)]
+            T = in_M[p + (0,1,0)]
+            B = in_M[p + (0,-1,0)]
+
+            out_Mx[p] = R - L
+            out_My[p] = T - B
+
+            out_Md[p] = in_M[p] * (1.0 - self.bl) + self.bl * (0.25 * (L
+                                                                       + R
+                                                                       + T
+                                                                       + B))
+
+
+    @Stencil.kernel
+    def kernel (self, in_H, in_U, in_V, out_H, out_U, out_V):
+        #
+        # momentum calculation for each field
+        #
+        self.stage_momentum (in_M  = in_U,
+                             out_Md = self.Ud,
+                             out_Mx = self.Ux,
+                             out_My = self.Uy)
+
+        self.stage_momentum (in_M  = in_V,
+                             out_Md = self.Vd,
+                             out_Mx = self.Vx,
+                             out_My = self.Vy)
+
+        self.stage_momentum (in_M  = in_H,
+                             out_Md = self.Hd,
+                             out_Mx = self.Hx,
+                             out_My = self.Hy)
+        #
+        # dynamics and momentum combined
+        #
+        for p in self.get_interior_points (out_H):
+            Dh = -self.Ud[p] * self.Hx[p] - self.Vd[p] * self.Hy[p] - self.Hd[p] * (self.Ux[p] + self.Vy[p])
+            Du = -self.Ud[p] * self.Ux[p] - self.Vd[p] * self.Uy[p] - self.growth * self.Hx[p]
+            Dv = -self.Ud[p] * self.Vx[p] - self.Vd[p] * self.Vy[p] - self.growth * self.Hy[p]
+            #
+            # take first-order Euler step
+            #
+            out_H[p] = self.Hd[p] + self.dt * Dh
+            out_U[p] = self.Ud[p] + self.dt * Du
+            out_V[p] = self.Vd[p] + self.dt * Dv
+
+
+
+class LocalSWTest (SWTest):
+    def setUp (self):
+        super ( ).setUp ( )
+
+        self.temps  = ('self.Hd',
+                       'self.Ud',
+                       'self.Vd',
+                       'self.Hx',
+                       'self.Ux',
+                       'self.Vx',
+                       'self.Hy',
+                       'self.Uy',
+                       'self.Vy')
+
+        self.stencil = LocalSW (self.domain)
+        self.stencil.set_halo ( (1, 1, 1, 1) )
+        self.stencil.set_k_direction ('forward')
+
+
+    def test_data_dependency_detection (self, expected_deps=None, backend='c++'):
+        if expected_deps is None:
+            expected_deps = [('self.Hx', 'in_H'),
+                             ('self.Hy', 'in_H'),
+                             ('self.Hd', 'in_H'),
+                             ('self.Ux', 'in_U'),
+                             ('self.Uy', 'in_U'),
+                             ('self.Ud', 'in_U'),
+                             ('self.Vx', 'in_V'),
+                             ('self.Vy', 'in_V'),
+                             ('self.Vd', 'in_V'),
+                             ('out_H', 'self.Hd'),
+                             ('out_H', 'self.Ud'),
+                             ('out_H', 'self.Hx'),
+                             ('out_H', 'self.Vd'),
+                             ('out_H', 'self.Hy'),
+                             ('out_H', 'self.Ux'),
+                             ('out_H', 'self.Vy'),
+                             ('out_U', 'self.Ud'),
+                             ('out_U', 'self.Ud'),
+                             ('out_U', 'self.Ux'),
+                             ('out_U', 'self.Vd'),
+                             ('out_U', 'self.Uy'),
+                             ('out_U', 'self.Hx'),
+                             ('out_V', 'self.Vd'),
+                             ('out_V', 'self.Ud'),
+                             ('out_V', 'self.Vx'),
+                             ('out_V', 'self.Vy'),
+                             ('out_V', 'self.Hy')]
+        super ( ).test_data_dependency_detection (expected_deps=expected_deps,
+                                                  backend=backend)
+
+
+    def test_automatic_access_pattern_detection (self):
+        from gridtools import BACKENDS
+
+        #
+        # fields and their ranges
+        #
+        self.add_expected_offset ('in_Hd',   None)
+        self.add_expected_offset ('in_Ud',   None)
+        self.add_expected_offset ('in_Vd',   None)
+        self.add_expected_offset ('in_Hx',   None)
+        self.add_expected_offset ('in_Ux',   None)
+        self.add_expected_offset ('in_Vx',   None)
+        self.add_expected_offset ('in_Hy',   None)
+        self.add_expected_offset ('in_Uy',   None)
+        self.add_expected_offset ('in_Vy',   None)
+        self.add_expected_offset ('L',  None)
+        self.add_expected_offset ('L',  None)
+        self.add_expected_offset ('L',  None)
+        self.add_expected_offset ('R',  None)
+        self.add_expected_offset ('R',  None)
+        self.add_expected_offset ('R',  None)
+        self.add_expected_offset ('T',  None)
+        self.add_expected_offset ('T',  None)
+        self.add_expected_offset ('T',  None)
+        self.add_expected_offset ('B',  None)
+        self.add_expected_offset ('B',  None)
+        self.add_expected_offset ('B',  None)
+        self.add_expected_offset ('self.Hd', None)
+        self.add_expected_offset ('self.Hd', None)
+        self.add_expected_offset ('self.Hd', None)
+        self.add_expected_offset ('self.Ud', None)
+        self.add_expected_offset ('self.Ud', None)
+        self.add_expected_offset ('self.Ud', None)
+        self.add_expected_offset ('self.Ud', None)
+        self.add_expected_offset ('self.Ud', None)
+        self.add_expected_offset ('self.Vd', None)
+        self.add_expected_offset ('self.Vd', None)
+        self.add_expected_offset ('self.Vd', None)
+        self.add_expected_offset ('self.Vd', None)
+        self.add_expected_offset ('self.Vd', None)
+        self.add_expected_offset ('self.Hx', None)
+        self.add_expected_offset ('self.Hx', None)
+        self.add_expected_offset ('self.Hx', None)
+        self.add_expected_offset ('self.Hd', None)
+        self.add_expected_offset ('self.Hd', None)
+        self.add_expected_offset ('self.Ux', None)
+        self.add_expected_offset ('self.Ux', None)
+        self.add_expected_offset ('self.Ux', None)
+        self.add_expected_offset ('self.Vx', None)
+        self.add_expected_offset ('self.Vx', None)
+        self.add_expected_offset ('self.Hy', None)
+        self.add_expected_offset ('self.Hy', None)
+        self.add_expected_offset ('self.Uy', None)
+        self.add_expected_offset ('self.Uy', None)
+        self.add_expected_offset ('self.Vy', None)
+        self.add_expected_offset ('self.Vy', None)
+        self.add_expected_offset ('self.Vy', None)
+        self.add_expected_offset ('Dh', None)
+        self.add_expected_offset ('Du', None)
+        self.add_expected_offset ('Dv', None)
+        self.add_expected_offset ('out_H',   None)
+        self.add_expected_offset ('out_U',   None)
+        self.add_expected_offset ('out_V',   None)
+        self.add_expected_offset ('in_H',   [-1,1,-1,1])
+        self.add_expected_offset ('in_U',   [-1,1,-1,1])
+        self.add_expected_offset ('in_V',   [-1,1,-1,1])
+
+        for backend in BACKENDS:
+            self.stencil.set_backend (backend)
+            self._run ( )
+            self.automatic_access_pattern_detection (self.stencil)
 
 
 

@@ -735,6 +735,55 @@ class LaplaceTest (CopyTest):
 
 
 
+class LocalLaplace (MultiStageStencil):
+    """
+    A Laplacian operator, as the one used in COSMO.-
+    """
+    def __init__ (self):
+        super ( ).__init__ ( )
+
+
+    @Stencil.kernel
+    def kernel (self, out_data, in_data):
+        """
+        Stencil's entry point.-
+        """
+        for p in self.get_interior_points (out_data):
+            out_value   = -4.0 * in_data[p] + (
+                          in_data[p + (1,0,0)]  + in_data[p + (0,1,0)] +
+                          in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
+            out_data[p] = out_value
+
+
+
+class LocalLaplaceTest (LaplaceTest):
+    """
+    Testing the LocalLaplace stencil.-
+    """
+    def setUp (self):
+        super ( ).setUp ( )
+
+        self.stencil = LocalLaplace ( )
+        self.stencil.set_halo ( (1, 1, 1, 1) )
+        self.stencil.set_k_direction ("forward")
+
+
+    def test_automatic_access_pattern_detection (self):
+        from gridtools import BACKENDS
+        #
+        # fields and their ranges
+        #
+        self.add_expected_offset ('in_data',  [-1,1,-1,1])
+        self.add_expected_offset ('out_value', None)
+        self.add_expected_offset ('out_data', None)
+
+        for backend in BACKENDS:
+            self.stencil.set_backend (backend)
+            self._run ( )
+            self.automatic_access_pattern_detection (self.stencil)
+
+
+
 class HorizontalDiffusion (MultiStageStencil):
     def __init__ (self, domain):
         super ( ).__init__ ( )

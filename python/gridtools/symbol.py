@@ -31,7 +31,12 @@ class Symbol (object):
         # replaced by a value. This may happen by inlining them after using
         # runtime resolution
         #
-        'const')
+        'const',
+        #
+        # the 'local' kind indicates a data field that exists only within a stage
+        #
+        'local'
+        )
 
 
     def __init__ (self, name, kind, value=None):
@@ -188,10 +193,10 @@ class Scope (object):
 
     def add_alias (self, name, known_symbol_name):
         """
-        Adds a alias to another known symbol:
-
-            name                name of this symbol alias;
-            known_symbol_name   name of the known symbol this alias refers to.-
+        Adds a alias to another known symbol
+        :param name:                name of this symbol alias;
+        :param known_symbol_name:   name of the known symbol this alias refers to.-
+        :raise ValueError:          if the alias does not point to a known symbol
         """
         if known_symbol_name is not None:
             self.add_symbol (Symbol (name,
@@ -200,15 +205,15 @@ class Scope (object):
             logging.debug ("Alias '%s' refers to '%s'" % (name,
                                                           known_symbol_name))
         else:
-            raise ValueError ("Aliases should point to known symbols")
+            raise ValueError ("Alias '%s' does not point to any known symbol"
+                              % name)
 
 
     def add_constant (self, name, value=None):
         """
-        Adds a constant this scope:
-
-            name    name of this constant;
-            value   its value.-
+        Adds a constant this scope
+        :param name:    name of this constant;
+        :param value:   its value.-
         """
         if value:
             try:
@@ -268,13 +273,27 @@ class Scope (object):
                 self.add_dependency (new_dep[0], new_dep[1])
 
 
+    def add_local (self, name, value=None):
+        """
+        Adds a local variable to this scope
+        :param name:        the name of the local variable
+        :param value:       value of the variable
+        """
+        self.add_symbol (Symbol (name, 'local', value))
+        if value is None:
+            logging.debug ("Local variable '%s' is None" % name)
+        else:
+            logging.debug ("Local variable '%s' has value %s" % (name, value))
+
+
+
     def add_parameter (self, name, value=None, read_only=True):
         """
-        Adds a parameter data field to this scope:
-
-            name        the name of the parameter;
-            value       its value;
-            read_only   whether the parameter is read-only (default).-
+        Adds a parameter data field to this scope
+        :param name:        the name of the parameter
+        :param value:       its value
+        :param read_only:   whether the parameter is read-only (default)
+        :return:
         """
         if name not in self:
             self.add_symbol (Symbol (name, 'param', value))
@@ -319,7 +338,7 @@ class Scope (object):
 
     def add_symbol (self, symbol):
         """
-        Adds or updated the received symbol in this scope
+        Adds or updates the received symbol in this scope
         :param symbol: the Symbol object to add or update
         :return:
         """
@@ -347,21 +366,28 @@ class Scope (object):
 
     def is_alias (self, name):
         """
-        Returns True is symbol with 'name' is an alias.-
+        Returns True if symbol with 'name' is an alias.-
         """
-        return name in [a.name for a in self.get_all ( ) if a.kind == 'alias']
+        return name in [a.name for a in self.get_all (['alias'])]
 
 
     def is_constant (self, name):
         """
         Returns True if symbol with 'name' is a constant.-
         """
-        return name in [t.name for t in self.get_constants ( )]
+        return name in [c.name for c in self.get_constants ( )]
+
+
+    def is_local (self, name):
+        """
+        Returns True if symbol 'name' is a local variable
+        """
+        return name in [l.name for l in self.get_all (['local'])]
 
 
     def is_parameter (self, name):
         """
-        Returns True is symbol 'name' is a parameter in this scope.-
+        Returns True if symbol 'name' is a parameter in this scope.-
         """
         return name in [p.name for p in self.get_parameters ( )]
 

@@ -353,13 +353,16 @@ class Stencil (object):
         return self.name
 
 
-    def _plot_graph (self, G, axes=None):
+    def _plot_graph (self, G, axes=None, **kwargs):
         """
         Renders graph 'G' using 'matplotlib'.-
 
-        :param G:       The graph to plot
-        :param axes:    The Matplotlib axes on which the graph will be plotted.
-                        If no axes is specified, a new figure will be created.
+        :param G:        The graph to plot
+        :param axes:     A Matplotlib Axes object on which the graph will be plotted.
+                         If no object is specified, a new figure will be created.
+        :param **kwargs: Optional keyword arguments that will be passed to
+                         networkx.draw_networkx()
+        :return:
         """
         from gridtools import plt
 
@@ -374,7 +377,50 @@ class Stencil (object):
         nx.draw_networkx (G,
                           pos=pos,
                           ax=axes,
-                          node_size=1500)
+                          node_size=1500,
+                          **kwargs)
+
+
+    def build_data_dependency (self):
+        """
+        Build a data dependency graph among this stencil's data fields.
+
+        Stencil scope data dependency is obtained by aggregating each stage
+        dependencies and resolving aliases.
+        This method should be called after Stencil.generate_code(), when all
+        data dependencies are known at stage scope.
+
+        Dependencies involving stage local variables (which are not known at
+        stencil scope) are processed by removing the local symbol node and
+        creating edges between all predecessors and successors of the node.
+        Be aware that this may generate false dependencies when the same local
+        variable is reassigned and involved in the computation of two logically
+        unrelated data fields!!
+        :return:
+        """
+        for stg in self.stages:
+            #
+            # Create a copy of stage data dependency to avoid altering the
+            # original
+            #
+            stgdd = nx.DiGraph (stg.get_data_dependency ( ))
+            for node in stg.get_data_dependency ( ).nodes_iter ( ):
+                new_edges = []
+                if stg.scope.is_local (node):
+                    #
+                    # If node represents a local symbol, create direct edges
+                    # between all its predecessors and all its successors and
+                    # remove the node
+                    #
+                    for pred in stgdd.predecessors (node):
+                        for succ in stgdd.successors (node):
+                            new_edges.append ((pred, succ))
+                    stgdd.remove_node (node)
+                    stgdd.add_edges_from (new_edges)
+            #
+            # Add dependencies without local symbols to the stencil's scope
+            #
+            self.scope.add_dependencies (stgdd.edges ( ))
 
 
     def generate_code (self):
@@ -384,12 +430,10 @@ class Stencil (object):
         :return:
         """
         #
-        # generate the code of *all* stages in this stencil,
-        # building a data-dependency graph among their data fields
+        # generate the code of *all* stages in this stencil
         #
         for stg in self.stages:
-            stg.generate_code           ( )
-            self.scope.add_dependencies (stg.get_data_dependency ( ).edges ( ))
+            stg.generate_code ( )
 
 
     def get_data_dependency (self):
@@ -433,16 +477,61 @@ class Stencil (object):
             logging.error ("The passed Z field should be 2D")
 
 
-    def plot_data_dependency (self, graph=None):
+    def plot_data_dependency (self, graph=None, scope=None, show_legend=False):
         """
         Renders a data-depencency graph using 'matplotlib'
+
         :param graph: the graph to render; it renders this stencil's data
                       dependency graph if None given
+        :param scope: the scope that will be queried to determine the kind of
+                      the symbols in the graph
+        :param show_legend: boolean flag to display the legend, explaining the
+                            node colors
         :return:
         """
         if graph is None:
             graph = self.get_data_dependency ( )
-        self._plot_graph (graph)
+        if scope is None:
+            scope = self.scope
+        #
+        # Assign node colors depending on symbol kind
+        #
+        node_color = ''
+        for n in graph.nodes():
+            if scope.is_parameter(n):
+                node_color += 'r'
+            elif scope.is_alias(n):
+                node_color += 'm'
+            elif scope.is_temporary(n):
+                node_color += 'g'
+            elif scope.is_constant(n):
+                node_color += 'y'
+            elif scope.is_local(n):
+                node_color += 'c'
+            else:
+                node_color += 'w'
+        #
+        # Display a legend with node colors
+        #
+        if show_legend:
+            from gridtools import plt
+            import matplotlib.patches as mpatches
+
+            fig, ax = plt.subplots (1, 1)
+
+            par_patch = mpatches.Patch(facecolor='r', edgecolor='k', label='Parameter')
+            ali_patch = mpatches.Patch(facecolor='m', edgecolor='k', label='Alias')
+            tmp_patch = mpatches.Patch(facecolor='g', edgecolor='k', label='Temporary')
+            con_patch = mpatches.Patch(facecolor='y', edgecolor='k', label='Constant')
+            loc_patch = mpatches.Patch(facecolor='c', edgecolor='k', label='Local')
+            unk_patch = mpatches.Patch(facecolor='w', edgecolor='k', label='Unknown')
+
+            ax.legend(handles=[par_patch,ali_patch,tmp_patch,
+                               con_patch,loc_patch,unk_patch])
+        else:
+            ax = None
+
+        self._plot_graph (graph, axes=ax, node_color=node_color)
 
 
     def plot_stage_execution (self):

@@ -58,6 +58,18 @@ class StageBody (ast.NodeVisitor):
             for rsymbol in rvalues:
                 self.scope.add_dependency (lsymbol,
                                            rsymbol)
+            #
+            # When assigning to a local variable, if rvalue is a scalar, assign
+            # its numerical value to the local symbol, otherwise set the
+            # symbol value as None.
+            # Setting the value to None won't break things because a local
+            # symbol value is inlined only if it is a number.
+            #
+            if self.scope.is_local (lsymbol.name):
+                if isinstance (rval_node, ast.Num):
+                    self.scope.add_local (lsymbol.name, rval_node.n)
+                else:
+                    self.scope.add_local (lsymbol.name)
 
 
     def _boolean_operator (self, op):
@@ -227,8 +239,19 @@ class StageBody (ast.NodeVisitor):
         Generates code from an Assignment node, i.e., expr = expr.-
         """
         for tgt in node.targets:
-            ret_value = "%s = %s" % (self.visit (tgt),          # lvalue
-                                     self.visit (node.value))   # rvalue
+            lvalue = self.visit (tgt)
+            rvalue = self.visit (node.value)
+            #
+            # Declare type for first assignment of local variable
+            #
+            if self.scope.is_local (lvalue) and self.scope[lvalue].value is None:
+                lvalue_type = "double"
+                lvalue  =  lvalue_type + " " + lvalue
+            #
+            # Create assignment string
+            #
+            ret_value = "%s = %s" % (lvalue,
+                                     rvalue)
             self._analyze_assignment (tgt,
                                       node.value)
         return ret_value
@@ -338,6 +361,16 @@ class StageBody (ast.NodeVisitor):
             self.scope.add_parameter (name,
                                       symbol.value,
                                       read_only=symbol.read_only)
+        #
+        # Name is not in any known scope: check context to see if we are storing
+        # a new local variable
+        #
+        elif isinstance (node.ctx, ast.Store):
+            #
+            # Value will be resolved by the function visiting the assignment
+            #
+            self.scope.add_local (name)
+            return name
         else:
             raise NameError ("Unkown symbol '%s' in stage" % name)
         #
@@ -354,6 +387,20 @@ class StageBody (ast.NodeVisitor):
                                       aliased.value,
                                       read_only=symbol.read_only)
             return aliased.name
+        #
+        # If symbol is a local variable, inline its value only if it is a scalar
+        # integer or floating point number in a Load context (i.e., it is an
+        # rvalue in the current expression)
+        #
+        if self.scope.is_local (name):
+            if (isinstance (symbol.value, int)
+                or isinstance (symbol.value, float )):
+                    if isinstance (node.ctx, ast.Load):
+                        return symbol.value
+                    else:
+                        return name
+            else:
+                return name
         #
         # try to inline the value of this symbol
         #
@@ -548,12 +595,12 @@ class Stage ( ):
             #
             # Output data have no predecessors
             #
-            if not data_dep.predecessors(node.name):
+            if not data_dep.predecessors(node.name) and not self.scope.is_local(node):
                 self.outputs.append(node)
             #
             # Input nodes have no successors
             #
-            if not data_dep.successors(node.name):
+            if not data_dep.successors(node.name) and not self.scope.is_local(node):
                 self.inputs.append(node)
         #
         # Non-local self-looping nodes are not allowed
