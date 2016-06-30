@@ -358,9 +358,9 @@ class Stencil (object):
         Renders graph 'G' using 'matplotlib'.-
 
         :param G:        The graph to plot
-        :param axes:     The Matplotlib axes on which the graph will be plotted.
-                         If no axes is specified, a new figure will be created.
-        :param **kwargs: Optional keyword aruments that will be passed to
+        :param axes:     A Matplotlib Axes object on which the graph will be plotted.
+                         If no object is specified, a new figure will be created.
+        :param **kwargs: Optional keyword arguments that will be passed to
                          networkx.draw_networkx()
         :return:
         """
