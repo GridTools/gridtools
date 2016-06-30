@@ -211,6 +211,15 @@ namespace gridtools {
            not multiple of the expand factor
          */
         virtual std::string print_meter() { return m_intermediate->print_meter(); }
+
+        /**
+           @brief forwards to the m_intermediate and m_intermediate_remainder members
+         */
+        virtual void reset_meter() {
+            m_intermediate->reset_meter();
+            m_intermediate_remainder->reset_meter();
+        }
+
         virtual double get_meter() { return m_intermediate->get_meter()+m_intermediate_remainder->get_meter(); }
 
         /**

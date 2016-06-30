@@ -31,13 +31,6 @@
 namespace gridtools {
     namespace _impl {
 
-        struct extract_functor {
-            template < typename T >
-            struct apply {
-                typedef typename T::esf_function type;
-            };
-        };
-
         /**@brief Macro defining a sfinae metafunction
 
            defines a metafunction has_extent_type, which returns true if its template argument

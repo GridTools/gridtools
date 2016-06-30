@@ -23,6 +23,8 @@ function help {
    echo "-i      build for icosahedral grids           "
    echo "-d      do not clean build                    "
    echo "-v      compile in VERBOSE mode               "
+   echo "-q      queue for testing                     "
+   echo "-x      compiler version                      "
    exit 1
 }
 
@@ -30,8 +32,9 @@ INITPATH=$PWD
 BASEPATH_SCRIPT=$(dirname "${0}")
 FORCE_BUILD=OFF
 VERBOSE_RUN="OFF"
+VERSION="4.9"
 
-while getopts "h:b:t:f:c:l:pzmsidv" opt; do
+while getopts "h:b:t:f:c:l:pzmsidvq:x:" opt; do
     case "$opt" in
     h|\?)
         help
@@ -61,8 +64,17 @@ while getopts "h:b:t:f:c:l:pzmsidv" opt; do
         ;;
     v) VERBOSE_RUN="ON"
         ;;
+    q) QUEUE=$OPTARG
+        ;;
+    x) VERSION=$OPTARG
+        ;;
     esac
 done
+
+if [[ "$VERSION"  != "4.9" ]] && [[ "$VERSION" != "5.3" ]]; then
+    echo "VERSION $VERSION not supported"
+    help
+fi
 
 if [[ "$BUILD_TYPE" != "debug" ]] && [[ "$BUILD_TYPE" != "release" ]]; then
    help
@@ -80,6 +92,10 @@ if [[ "$CXX_STD" != "cxx11" ]] && [[ "$CXX_STD" != "cxx03" ]]; then
    help
 fi
 
+if [[ "$TARGET"  == "gpu" ]] && [[ "$VERSION" != "4.9" ]]; then
+    echo "VERSION $VERSION not supported for gpu"
+    help
+fi
 
 echo $@
 
@@ -163,9 +179,13 @@ else
     STRUCTURED_GRIDS="OFF"
 fi
 
+if [[ -z ${CUDA_VERSION} ]]; then
+    echo "CUDA VERSION must be defined"
+    exit_if_error 444
+fi
+
 # echo "Printing ENV"
 # env
-
 cmake \
 -DBoost_NO_BOOST_CMAKE="true" \
 -DCUDA_NVCC_FLAGS:STRING="--relaxed-constexpr" \
@@ -192,6 +212,7 @@ cmake \
 -DSTRUCTURED_GRIDS:BOOL=${STRUCTURED_GRIDS} \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 -DVERBOSE=$VERBOSE_RUN \
+-DCUDA_VERSION=${CUDA_VERSION} \
  ../
 
 exit_if_error $?
@@ -208,7 +229,11 @@ if [[ "$SILENT_BUILD" == "ON" ]]; then
     for i in `seq 1 $num_make_rep`;
     do
       echo "COMPILATION # ${i}"
-      make -j5  >& ${log_file};
+      if [ ${i} -eq ${num_make_rep} ]; then
+          make  >& ${log_file};
+      else
+          make -j5  >& ${log_file};
+      fi
       error_code=$?
       if [ ${error_code} -eq 0 ]; then
           break # Skip the make repetitions
@@ -232,7 +257,13 @@ fi
 
 exit_if_error ${error_code}
 
-bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh
+queue_str=""
+if [[ ${QUEUE} ]] ; then
+  queue_str="-q ${QUEUE}"
+fi
+
+
+bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh ${queue_str}
 
 exit_if_error $?
 

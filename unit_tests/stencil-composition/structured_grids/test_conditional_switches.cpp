@@ -36,33 +36,33 @@ namespace test_conditional_switches{
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
-    template<uint_t Id >
-    struct functor1{
+    template < uint_t Id >
+    struct functor1 {
 
         typedef accessor<0, enumtype::inout> p_dummy;
-        typedef accessor<1, enumtype::inout> p_dummy_tmp;
+        typedef accessor< 1, enumtype::inout > p_dummy_tmp;
 
         typedef boost::mpl::vector2<p_dummy, p_dummy_tmp> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            eval(p_dummy())+=Id;
+            eval(p_dummy()) += Id;
         }
     };
 
-    template<uint_t Id >
-    struct functor2{
+    template < uint_t Id >
+    struct functor2 {
 
         typedef accessor<0, enumtype::inout> p_dummy;
-        typedef accessor<1, enumtype::in> p_dummy_tmp;
+        typedef accessor< 1, enumtype::in > p_dummy_tmp;
 
         typedef boost::mpl::vector2<p_dummy, p_dummy_tmp> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            eval(p_dummy())+=Id;
+            eval(p_dummy()) += Id;
         }
     };
 

@@ -20,6 +20,7 @@
 #include "../common/is_temporary_storage.hpp"
 #include "../common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "../common/generic_metafunctions/all_integrals.hpp"
+#include "../common/offset_metafunctions.hpp"
 
 namespace gridtools {
     namespace _impl {
@@ -87,7 +88,7 @@ namespace gridtools {
                \param strides the strides
                \param indices comma-separated list of coordinates
             */
-            template < typename StridesVector, typename... Int >
+            template < typename StridesVector, typename... Int, typename Dummy = all_integers< Int... > >
             GT_FUNCTION static constexpr int_t apply(StridesVector const &RESTRICT strides_, Int const &... indices_) {
                 return strides_[space_dimensions - Id] *
                            Layout::template find_val< space_dimensions - Id, int, 0 >(indices_...) +
@@ -98,8 +99,10 @@ namespace gridtools {
                \param strides the strides
                \param indices tuple of coordinates
             */
-            template < typename Tuple, typename StridesVector >
-            GT_FUNCTION static constexpr int_t apply(StridesVector const &RESTRICT strides_, Tuple const &indices_) {
+            template < typename Offset, typename StridesVector >
+            GT_FUNCTION static constexpr int_t apply(StridesVector const &RESTRICT strides_,
+                Offset const &indices_,
+                typename boost::enable_if< typename is_tuple_or_array< Offset >::type, int >::type * = 0) {
                 return (int_t)strides_[space_dimensions - Id] *
                            Layout::template find_val< space_dimensions - Id, uint_t, 0 >(indices_) +
                        compute_offset< Id - 1, Layout >::apply(strides_, indices_);
@@ -118,7 +121,7 @@ namespace gridtools {
             }
 
 #ifdef CXX11_ENABLED
-            template < typename StridesVector, typename... IntType >
+            template < typename StridesVector, typename... IntType, typename Dummy = all_integers< IntType... > >
             GT_FUNCTION static constexpr int_t apply(
                 StridesVector const &RESTRICT /*strides*/, IntType const &... indices_) {
                 return Layout::template find_val< space_dimensions - 1, int, 0 >(indices_...);
@@ -128,8 +131,10 @@ namespace gridtools {
                \param strides the strides
                \param indices tuple of coordinates
             */
-            template < typename Tuple, typename StridesVector >
-            GT_FUNCTION static constexpr int_t apply(StridesVector const &RESTRICT /*strides*/, Tuple const &indices_) {
+            template < typename Offset, typename StridesVector >
+            GT_FUNCTION static constexpr int_t apply(StridesVector const &RESTRICT /*strides*/,
+                Offset const &indices_,
+                typename boost::enable_if< typename is_tuple_or_array< Offset >::type, int >::type * = 0) {
                 return Layout::template find_val< space_dimensions - 1, int, 0 >(indices_);
             }
         };

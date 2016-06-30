@@ -21,9 +21,8 @@
 namespace horizontal_diffusion {
 
 #ifdef CUDA_EXAMPLE
-    typedef gridtools::backend< gridtools::enumtype::Cuda,
-        gridtools::GRIDBACKEND,
-        gridtools::enumtype::Block > hd_backend;
+    typedef gridtools::backend< gridtools::enumtype::Cuda, gridtools::GRIDBACKEND, gridtools::enumtype::Block >
+        hd_backend;
     typedef gridtools::storage_traits< gridtools::enumtype::Cuda > storage_tr;
 #else
 #ifdef BACKEND_BLOCK
@@ -52,7 +51,7 @@ namespace horizontal_diffusion {
     typedef gridtools::layout_map< -1, -1, -1 > layout_scalar;
 #ifdef CXX11_ENABLED
     using storage_info_ijk_t = storage_tr::meta_storage_type< 0, layout_ijk, gridtools::halo< 2, 0, 0 > >;
-    using storage_info_ij_t =  storage_tr::meta_storage_type< 1, layout_ij, gridtools::halo< 2, 0, 0 > >;
+    using storage_info_ij_t = storage_tr::meta_storage_type< 1, layout_ij, gridtools::halo< 2, 0, 0 > >;
     using storage_info_j_t = storage_tr::meta_storage_type< 2, layout_j, gridtools::halo< 2, 0, 0 > >;
     using storage_info_scalar_t = storage_tr::meta_storage_type< 3, layout_scalar, gridtools::halo< 2, 0, 0 > >;
 #else
@@ -70,7 +69,8 @@ namespace horizontal_diffusion {
 
         using scalar_storage_type = storage_tr::temporary_storage_type< gridtools::float_type, storage_info_scalar_t >;
         using tmp_storage_type = storage_tr::temporary_storage_type< gridtools::float_type, storage_info_ijk_t >;
-        using tmp_scalar_storage_type = storage_tr::temporary_storage_type< gridtools::float_type, storage_info_scalar_t >;
+        using tmp_scalar_storage_type =
+            storage_tr::temporary_storage_type< gridtools::float_type, storage_info_scalar_t >;
 #else
         typedef storage_tr::storage_type< gridtools::float_type, storage_info_ijk_t >::type storage_type;
         typedef storage_tr::storage_type< gridtools::float_type, storage_info_ij_t >::type ij_storage_type;

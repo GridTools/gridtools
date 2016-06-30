@@ -14,7 +14,7 @@
    limitations under the License.
 */
 #pragma once
-#include "./accessor_impl.hpp"
+#include "../accessor_base.hpp"
 #include "../arg.hpp"
 #include "../dimension.hpp"
 /**
@@ -65,6 +65,8 @@ namespace gridtools {
     struct accessor : public accessor_base< ID, Intend, Extent, Number > {
         typedef accessor_base< ID, Intend, Extent, Number > super;
         typedef typename super::index_type index_type;
+        typedef typename super::offset_tuple_t offset_tuple_t;
+
 #ifdef CXX11_ENABLED
 
         GT_FUNCTION
@@ -141,53 +143,51 @@ namespace gridtools {
        lookup is anyway done at compile time, i.e. the get() method returns in constant time.
      */
     template < typename ArgType, typename... Pair >
-    struct accessor_mixed {
+    struct offset_tuple_mixed {
 
-        typedef accessor_mixed< ArgType, Pair... > type;
+        GRIDTOOLS_STATIC_ASSERT(is_offset_tuple<ArgType>::value, "wrong type");
+        typedef offset_tuple_mixed< ArgType, Pair... > type;
         static const ushort_t n_dim = ArgType::n_dim;
-        typedef typename ArgType::base_t base_t;
-        typedef typename ArgType::index_type index_type;
-        typedef accessor_base< ArgType::index_type::value,
-            ArgType::intend_t::value,
-            typename ArgType::extent_t,
-            ArgType::n_dim > accessor_t;
+
+        typedef ArgType offset_tuple_t;
 
         // private:
         // static const constexpr dimension< Pair1::first> p1_{Pair1::second};
         // static const constexpr dimension< Pair2::first > p2_{Pair2::second};
-        static const constexpr accessor_t s_args_constexpr{get_dim< Pair >()...};
+        static const constexpr offset_tuple_t s_args_constexpr{get_dim< Pair >()...};
 
-        accessor_t m_args_runtime;
+        offset_tuple_t m_args_runtime;
 
         typedef boost::mpl::vector< static_int< n_dim - Pair::first >... > coordinates;
 
       public:
 
-        GT_FUNCTION constexpr accessor_mixed()
+        GT_FUNCTION constexpr offset_tuple_mixed()
             : m_args_runtime() {}
 
         template < typename... ArgsRuntime,
             typename T = typename boost::enable_if_c< accumulate(logical_and(),
                 boost::mpl::or_< boost::is_integral< ArgsRuntime >, is_dimension< ArgsRuntime > >::type::value...) >::
                 type >
-        GT_FUNCTION constexpr accessor_mixed(ArgsRuntime const &... args)
+        GT_FUNCTION constexpr offset_tuple_mixed(ArgsRuntime const &... args)
             : m_args_runtime(args...) {}
 
-        template < uint_t ID, enumtype::intend Intend, typename Extent, ushort_t Number >
-        GT_FUNCTION constexpr accessor_mixed(accessor_base< ID, Intend, Extent, Number > const &arg_)
-            : m_args_runtime(arg_) {}
+        template < typename OffsetTuple, typename T = typename boost::enable_if_c<is_offset_tuple<OffsetTuple>::value>::type >
+        GT_FUNCTION constexpr offset_tuple_mixed(OffsetTuple const & arg_)
+            : m_args_runtime(arg_) {
+        }
 
         template < typename OtherAcc >
-        GT_FUNCTION constexpr accessor_mixed(accessor_mixed< OtherAcc, Pair... > &&other_)
+        GT_FUNCTION constexpr offset_tuple_mixed(offset_tuple_mixed< OtherAcc, Pair... > &&other_)
             : m_args_runtime(other_.m_args_runtime) {}
 
         template < typename OtherAcc >
-        GT_FUNCTION constexpr accessor_mixed(accessor_mixed< OtherAcc, Pair... > const &other_)
+        GT_FUNCTION constexpr offset_tuple_mixed(offset_tuple_mixed< OtherAcc, Pair... > const &other_)
             : m_args_runtime(other_.m_args_runtime) {}
 
         /**@brief returns the offset at a specific index Idx
 
-           this is the constexpr version of the get() method (e.g. can be used as template parameter).
+           the lookup for the index Idx is done at compile time, i.e. this method returns in constant time
          */
         template < short_t Idx >
         GT_FUNCTION static constexpr int_t get_constexpr() {
@@ -213,11 +213,32 @@ namespace gridtools {
         }
     };
 
+    template <typename ... T>
+    struct is_offset_tuple<offset_tuple_mixed<T ...> > : boost::mpl::true_ {};
+
     template < typename ArgType, typename... Pair >
-    constexpr accessor_base< ArgType::index_type::value,
-        ArgType::intend_t::value,
-        typename ArgType::extent_t,
-        ArgType::n_dim > accessor_mixed< ArgType, Pair... >::s_args_constexpr;
+    constexpr typename offset_tuple_mixed< ArgType, Pair... >::offset_tuple_t offset_tuple_mixed< ArgType, Pair... >::s_args_constexpr;
+
+    template < typename ArgType, typename... Pair >
+    struct accessor_mixed : public offset_tuple_mixed<typename ArgType::offset_tuple_t, Pair ...> {
+        typedef typename ArgType::index_type index_type;
+        typedef typename ArgType::base_t base_t;
+
+        using super = offset_tuple_mixed<typename ArgType::offset_tuple_t, Pair ...>;
+
+        /**inheriting all constructors from offset_tuple*/
+        using super::offset_tuple_mixed;
+
+#ifdef __CUDACC__
+        template <typename ... T>
+        GT_FUNCTION
+        constexpr accessor_mixed(T const& ... t_):super(t_ ...){}
+#endif
+
+        GT_FUNCTION
+        constexpr const super& offsets() const { return *this; }
+
+    };
 
     /**
        @brief this struct allows the specification of SOME of the arguments before instantiating the offset_tuple.

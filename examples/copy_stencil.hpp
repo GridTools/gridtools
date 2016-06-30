@@ -16,8 +16,8 @@
 #pragma once
 
 #include <stencil-composition/stencil-composition.hpp>
-#include "cache_flusher.hpp"
 #include "defs.hpp"
+#include "benchmarker.hpp"
 
 /**
   @file
@@ -65,9 +65,7 @@ namespace copy_stencil {
 
     void handle_error(int_t) { std::cout << "error" << std::endl; }
 
-    bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps) {
-
-        cache_flusher flusher(cache_flusher_size);
+    bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps, bool verify) {
 
         uint_t d1 = x;
         uint_t d2 = y;
@@ -160,24 +158,23 @@ namespace copy_stencil {
 #endif
 
         bool success = true;
-        for (uint_t i = 0; i < d1; ++i)
-            for (uint_t j = 0; j < d2; ++j)
-                for (uint_t k = 0; k < d3; ++k) {
-                    if (in(i, j, k) != out(i, j, k)) {
-                        std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                                  << "in = " << in(i, j, k) << ", out = " << out(i, j, k) << std::endl;
-                        success = false;
+        if (verify) {
+            for (uint_t i = 0; i < d1; ++i) {
+                for (uint_t j = 0; j < d2; ++j) {
+                    for (uint_t k = 0; k < d3; ++k) {
+                        if (in(i, j, k) != out(i, j, k)) {
+                            std::cout << "error in " << i << ", " << j << ", " << k << ": "
+                                      << "in = " << in(i, j, k) << ", out = " << out(i, j, k) << std::endl;
+                            success = false;
+                        }
                     }
                 }
-
-#ifdef BENCHMARK
-        for (uint_t t = 1; t < t_steps; ++t) {
-            flusher.flush();
-            copy->run();
+            }
         }
-        copy->finalize();
-        std::cout << copy->print_meter() << std::endl;
+#ifdef BENCHMARK
+        benchmarker::run(copy, t_steps);
 #endif
+        copy->finalize();
 
         return success;
     }

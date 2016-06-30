@@ -53,6 +53,7 @@ namespace gridtools {
 
         using typename base_t::backend_traits_t;
         using typename base_t::strategy_traits_t;
+        using layout_map_t = typename icgrid::grid_traits_arch< base_t::s_backend_id >::layout_map_t;
 
         // TODO storage and meta_storage have to be moved to backend_traits_from_id, that has to be templated with grid
         template < typename LocationType >

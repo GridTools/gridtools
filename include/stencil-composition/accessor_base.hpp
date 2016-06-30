@@ -27,7 +27,7 @@
 #include "storage/storage.hpp"
 #include "storage/storage_metafunctions.hpp"
 
-#include "stencil-composition/offset_tuple.hpp"
+#include "../common/offset_tuple.hpp"
 #include "stencil-composition/extent.hpp"
 
 #ifdef CXX11_ENABLED
@@ -83,10 +83,10 @@ namespace gridtools {
         typedef static_uint< I > index_type;
         typedef enumtype::enum_type< enumtype::intend, Intend > intend_t;
         typedef Extend extent_t;
-        typedef offset_tuple< n_dim, n_dim > tuple_t;
+        typedef offset_tuple<n_dim, n_dim> offset_tuple_t;
 
       private:
-        tuple_t m_offsets;
+        offset_tuple_t m_offsets;
 
       public:
         /**@brief Default constructor
@@ -95,6 +95,9 @@ namespace gridtools {
            couldn't reproduce it on a small test).*/
         GT_FUNCTION
         constexpr explicit accessor_base() : m_offsets() {}
+
+        GT_FUNCTION
+        constexpr explicit accessor_base(array< int_t, Dim > const &offsets) : m_offsets(0, offsets) {}
 
 #if defined(CXX11_ENABLED) && !defined(__CUDACC__)
         // move ctor
@@ -189,10 +192,10 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        tuple_t &offsets() { return m_offsets; }
+        offset_tuple_t &offsets() { return m_offsets; }
 
         GT_FUNCTION
-        constexpr const tuple_t &offsets() const { return m_offsets; }
+        constexpr const offset_tuple_t &offsets() const { return m_offsets; }
 
         template < ushort_t Idx >
         GT_FUNCTION void increment(int_t offset_) {

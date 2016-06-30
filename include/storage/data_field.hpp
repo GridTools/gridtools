@@ -294,9 +294,9 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((snapshot < _impl::access< n_width - (field_dim)-1, traits >::type::n_width),
                 "trying to set a snapshot out of bound");
             GRIDTOOLS_STATIC_ASSERT((field_dim < traits::n_dimensions), "trying to set a fielddimension out of bound");
-            for (uint_t i = 0; i < this->m_meta_data->template dims< 0 >(); ++i)
-                for (uint_t j = 0; j < this->m_meta_data->template dims< 1 >(); ++j)
-                    for (uint_t k = 0; k < this->m_meta_data->template dims< 2 >(); ++k)
+            for (uint_t i = 0; i < this->m_meta_data->template dim< 0 >(); ++i)
+                for (uint_t j = 0; j < this->m_meta_data->template dim< 1 >(); ++j)
+                    for (uint_t k = 0; k < this->m_meta_data->template dim< 2 >(); ++k)
                         (super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields +
                                          snapshot])[this->m_meta_data->index(i, j, k)] = lambda(i, j, k);
         }

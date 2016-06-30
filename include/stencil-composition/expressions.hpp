@@ -17,6 +17,7 @@
 #include "common/defs.hpp"
 #include "common/string_c.hpp"
 #include "common/gt_math.hpp"
+#include "accessor_fwd.hpp"
 
 /**@file
    @brief Expression templates definition.

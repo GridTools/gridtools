@@ -7,7 +7,7 @@ namespace gridtools {
     template < typename Layout, uint_t... Dims >
     struct meta_storage_cache {
 
-        typedef meta_storage_base< static_int<0>, Layout, false > meta_storage_t;
+        typedef meta_storage_base< 0, Layout, false > meta_storage_t;
 
       private:
         const meta_storage_t m_value;
@@ -33,7 +33,7 @@ namespace gridtools {
 
         template < typename Accessor >
         GT_FUNCTION constexpr int_t index(Accessor const &arg_) const {
-            return m_value._index(arg_);
+            return m_value._index(arg_.offsets());
         }
 
     };

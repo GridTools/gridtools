@@ -28,6 +28,7 @@
 #include "../common/generic_metafunctions/reverse_pack.hpp"
 #include "../common/pointer_metafunctions.hpp"
 #endif
+#include "meta_storage_extender.hpp"
 
 /**
 @file

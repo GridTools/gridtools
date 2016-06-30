@@ -210,9 +210,9 @@ namespace gridtools {
             assert(dims <= field_dimensions);
 
             for (ushort_t f = 0; f < dims; ++f)
-                for (uint_t i = 0; i < m_meta_data->template dims< 0 >(); ++i)
-                    for (uint_t j = 0; j < m_meta_data->template dims< 1 >(); ++j)
-                        for (uint_t k = 0; k < m_meta_data->template dims< 2 >(); ++k)
+                for (uint_t i = 0; i < m_meta_data->template dim< 0 >(); ++i)
+                    for (uint_t j = 0; j < m_meta_data->template dim< 1 >(); ++j)
+                        for (uint_t k = 0; k < m_meta_data->template dim< 2 >(); ++k)
                             (m_fields[f])[m_meta_data->index(i, j, k)] = func(i, j, k);
         }
 
@@ -305,12 +305,12 @@ namespace gridtools {
             ushort_t MI = 12;
             ushort_t MJ = 12;
             ushort_t MK = 12;
-            for (uint_t i = 0; i < m_meta_data->template dims< 0 >();
-                 i += std::max((uint_t)1, m_meta_data->template dims< 0 >() / MI)) {
-                for (uint_t j = 0; j < m_meta_data->template dims< 1 >();
-                     j += std::max((uint_t)1, m_meta_data->template dims< 1 >() / MJ)) {
-                    for (uint_t k = 0; k < m_meta_data->template dims< 2 >();
-                         k += std::max((uint_t)1, m_meta_data->template dims< 1 >() / MK)) {
+            for (uint_t i = 0; i < m_meta_data->template dim< 0 >();
+                 i += std::max((uint_t)1, m_meta_data->template dim< 0 >() / MI)) {
+                for (uint_t j = 0; j < m_meta_data->template dim< 1 >();
+                     j += std::max((uint_t)1, m_meta_data->template dim< 1 >() / MJ)) {
+                    for (uint_t k = 0; k < m_meta_data->template dim< 2 >();
+                         k += std::max((uint_t)1, m_meta_data->template dim< 1 >() / MK)) {
                         stream << "["
                                // << i << ","
                                // << j << ","

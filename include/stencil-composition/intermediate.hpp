@@ -659,6 +659,7 @@ namespace gridtools {
 
         virtual double get_meter() { return m_meter.total_time(); }
 
+        virtual void reset_meter() { m_meter.reset(); }
         mss_local_domain_list_t const &mss_local_domain_list() const { return m_mss_local_domain_list; }
 
         /**

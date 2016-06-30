@@ -24,6 +24,7 @@ namespace gridtools {
         virtual ReductionType run() = 0;
         virtual std::string print_meter() = 0;
         virtual double get_meter() = 0;
+        virtual void reset_meter() = 0;
     };
 
 } // namespace gridtools

@@ -110,13 +110,11 @@ namespace test_iterate_domain{
                 boost::mpl::vector1< extent< 0, 0, 0, 0 > >,
                 extent< 0, 0, 0, 0 >,
                 boost::mpl::vector0<>,
-                block_size<32,4>,
-                block_size<32,4>,
-                gridtools::grid<axis>,
-                false,
-                notype
-                >
-            > it_domain_t;
+                block_size< 32, 4 >,
+                block_size< 32, 4 >,
+                gridtools::grid< axis >,
+                boost::mpl::false_,
+                notype > > it_domain_t;
 
         mss_local_domain1_t mss_local_domain1=boost::fusion::at_c<0>(computation_->mss_local_domain_list());
         auto local_domain1=boost::fusion::at_c<0>(mss_local_domain1.local_domain_list);
