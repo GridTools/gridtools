@@ -62,13 +62,16 @@ class StageBody (ast.NodeVisitor):
                                            rsymbol)
             #
             # When assigning to a local variable, if rvalue is a scalar, assign
-            # its value to the lsymbol, otherwise set lsymbol value to rvalues
+            # its numerical value to the local symbol, otherwise set the
+            # symbol value as None.
+            # Setting the value to None won't break things because a local
+            # symbol value is inlined only if it is a number.
             #
             if self.scope.is_local (lsymbol.name):
                 if isinstance (rval_node, ast.Num):
                     self.scope.add_local (lsymbol.name, rval_node.n)
                 else:
-                    self.scope.add_local (lsymbol.name, rvalues)
+                    self.scope.add_local (lsymbol.name)
 
 
     def _boolean_operator (self, op):
@@ -742,7 +745,7 @@ class Stage ( ):
         return self.scope.data_dependency
 
 
-    def identify_IO (self):
+    def identify_IO_fields (self):
         """
         Tries to identify input and output data fields for this stage
         :return:
@@ -799,6 +802,7 @@ class Stage ( ):
     @independent.setter
     def independent (self, value):
         self._independent = bool (value)
+<<<<<<< HEAD
         #
         # have to rebuild the stage-execution graph
         #
@@ -811,6 +815,8 @@ class Stage ( ):
         """
         for vr in self.vertical_regions:
             vr.set_splitters (splitters)
+=======
+>>>>>>> origin/python
 
 
     def translate (self):

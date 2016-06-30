@@ -8,7 +8,7 @@ from functools import wraps
 
 from gridtools.symbol   import StencilScope
 from gridtools.compiler import StencilCompiler
-from gridtools.utils import Utilities
+from gridtools.utils    import Utilities
 
 
 
@@ -394,13 +394,13 @@ class Stencil (object):
         Renders graph 'G' using 'matplotlib'.-
 
         :param G:        The graph to plot
-        :param axes:     The Matplotlib axes on which the graph will be plotted.
-                         If no axes is specified, a new figure will be created.
-        :param **kwargs: Optional keyword aruments that will be passed to
+        :param axes:     A Matplotlib Axes object on which the graph will be plotted.
+                         If no object is specified, a new figure will be created.
+        :param **kwargs: Optional keyword arguments that will be passed to
                          networkx.draw_networkx()
         :return:
         """
-        import matplotlib.pyplot as plt
+        from gridtools import plt
 
         pos = nx.spring_layout (G)
 
@@ -509,7 +509,7 @@ class Stencil (object):
         return self.scope.data_dependency
 
 
-    def identify_stages_IO (self):
+    def identify_IO_stages (self):
         """
         Tries to identify input and output data fields for every stage of the
         stencil.
@@ -520,7 +520,7 @@ class Stencil (object):
         :return:
         """
         for stg in self.stages:
-            stg.identify_IO ( )
+            stg.identify_IO_fields ( )
 
 
     def plot_3d (self, Z):
@@ -543,7 +543,8 @@ class Stencil (object):
             logging.error ("The passed Z field should be 2D")
 
 
-    def plot_data_dependency (self, graph=None, scope=None, outfile=None):
+    def plot_data_dependency (self, graph=None, scope=None, show_legend=False,
+    						  outfile=None):
         """
         Renders a data-depencency graph using 'matplotlib'.
         Graph nodes are colored based on their kind according to the following
@@ -554,10 +555,13 @@ class Stencil (object):
         * Yellow: Constants
         * Cyan: Locals
         * White: Symbol kind could not be determined
+        
         :param graph:   the graph to render; it renders this stencil's data
                         dependency graph if None given
         :param scope:   the scope in which to look for symbols. If None, the
                         the stencil's scope will be used
+        :param show_legend: boolean flag to display the legend, explaining the
+                            node colors
         :param outfile: the name of the file in which to save the plot
         :return:
         """
@@ -585,14 +589,25 @@ class Stencil (object):
         #
         # Display a legend with node colors
         #
-#        import matplotlib.patches as mpatches
-#        par_patch = mpatches.Patch(color='r', label='Parameter')
-#        ali_patch = mpatches.Patch(color='m', label='Alias')
-#        tmp_patch = mpatches.Patch(color='g', label='Temporary')
-#        con_patch = mpatches.Patch(color='y', label='Constant')
-#        loc_patch = mpatches.Patch(color='c', label='Local')
-#        plt.legend(handles=[par_patch,ali_patch,tmp_patch,con_patch,loc_patch])
-        self._plot_graph (graph, outfile=outfile, node_color=node_color)
+        if show_legend:
+            from gridtools import plt
+            import matplotlib.patches as mpatches
+
+            fig, ax = plt.subplots (1, 1)
+
+            par_patch = mpatches.Patch(facecolor='r', edgecolor='k', label='Parameter')
+            ali_patch = mpatches.Patch(facecolor='m', edgecolor='k', label='Alias')
+            tmp_patch = mpatches.Patch(facecolor='g', edgecolor='k', label='Temporary')
+            con_patch = mpatches.Patch(facecolor='y', edgecolor='k', label='Constant')
+            loc_patch = mpatches.Patch(facecolor='c', edgecolor='k', label='Local')
+            unk_patch = mpatches.Patch(facecolor='w', edgecolor='k', label='Unknown')
+
+            ax.legend(handles=[par_patch,ali_patch,tmp_patch,
+                               con_patch,loc_patch,unk_patch])
+        else:
+            ax = None
+
+        self._plot_graph (graph, axes=ax, node_color=node_color)
 
 
     def plot_stage_execution (self):
@@ -751,7 +766,7 @@ class MultiStageStencil (Stencil):
             #
             # run the selected backend version
             #
-            logging.debug ("Executing '%s' in %s mode ..." % (self.name,
+            logging.info ("Executing '%s' in %s mode ..." % (self.name,
                                                              backend.upper ( )))
             if backend == 'c++' or backend == 'cuda':
                 Stencil.compiler.run_native (self, **kwargs)
