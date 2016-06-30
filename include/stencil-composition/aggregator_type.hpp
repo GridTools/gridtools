@@ -128,10 +128,10 @@ namespace gridtools {
         typedef typename check_holes::raw_index_list index_list;
         typedef typename check_holes::index_set index_set;
 
-        // actual check if the user specified placeholder arguments with the same index
-        GRIDTOOLS_STATIC_ASSERT((len == boost::mpl::size< index_set >::type::value),
-            "you specified two different placeholders with the same index, which is not allowed. check the arg "
-            "defiintions.");
+
+        //actual check if the user specified placeholder arguments with the same index
+        GRIDTOOLS_STATIC_ASSERT((len <= boost::mpl::size<index_set>::type::value ), "you specified two different placeholders with the same index, which is not allowed. check the arg defiintions.");
+        GRIDTOOLS_STATIC_ASSERT((len >= boost::mpl::size<index_set>::type::value ), "something strange is happening.");
 
         /**
            @brief MPL vector of storage pointers
