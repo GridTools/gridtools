@@ -112,7 +112,7 @@ struct functor6 {
     GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
 };
 
-std::ostream& operator<<(std::ostream& s, functor0) { return s << "functor0"; }
+std::ostream &operator<<(std::ostream &s, functor0) { return s << "functor0"; }
 std::ostream &operator<<(std::ostream &s, functor1) { return s << "functor1"; }
 std::ostream &operator<<(std::ostream &s, functor2) { return s << "functor2"; }
 std::ostream &operator<<(std::ostream &s, functor3) { return s << "functor3"; }
@@ -125,7 +125,7 @@ typedef layout_map< 2, 1, 0 > layout_t;
 typedef BACKEND::storage_info< 0, layout_t > storage_info_type;
 typedef BACKEND::storage_type< float_type, storage_info_type >::type storage_type;
 
-typedef arg<0, storage_type> o0;
+typedef arg< 0, storage_type > o0;
 typedef arg< 1, storage_type > o1;
 typedef arg< 2, storage_type > o2;
 typedef arg< 3, storage_type > o3;
@@ -155,8 +155,6 @@ int main() {
     typedef boost::mpl::vector< o0, o1, o2, o3, o4, o5, o6, in0, in1, in2, in3 > placeholders;
 
     typedef compute_extents_of< init_map_of_extents< placeholders >::type, 1 >::for_mss< mss_t >::type final_map;
-    std::cout << "FINAL" << std::endl;
-    boost::mpl::for_each< final_map >(print_r());
 
     GRIDTOOLS_STATIC_ASSERT(
         (std::is_same< boost::mpl::at< final_map, o0 >::type, extent< -5, 11, -10, 10, -5, 13 > >::type::value),

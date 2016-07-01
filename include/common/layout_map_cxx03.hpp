@@ -1,5 +1,4 @@
-#ifndef _LAYOUT_MAP_H_
-#define _LAYOUT_MAP_H_
+#pragma once
 
 #include <gridtools.hpp>
 #include <boost/static_assert.hpp>
@@ -635,7 +634,3 @@ namespace gridtools {
     };
 
 } // namespace gridtools
-
-
-
-#endif

@@ -64,7 +64,6 @@ bool test(){
     storage_type i_data (meta_);
     storage_type j_data (meta_);
 
-
     auto lam_i = [](uint_t const &i_, uint_t const &j_, uint_t const &k_) -> uint_t { return i_; };
     auto lam_j = [](uint_t const &i_, uint_t const &j_, uint_t const &k_) -> uint_t { return j_; };
 

@@ -19,7 +19,7 @@
 #include "../../common/array.hpp"
 #include "../block_size.hpp"
 #include "../extent.hpp"
-#include "../offset_tuple.hpp"
+#include "../../common/offset_tuple.hpp"
 
 #ifdef CXX11_ENABLED
 #include "meta_storage_cache.hpp"

@@ -129,9 +129,9 @@ namespace copy_stencil {
         printf("halo set up\n");
 #endif
 
-        for (uint_t i = 0; i < metadata_.template dims< 0 >(); ++i)
-            for (uint_t j = 0; j < metadata_.template dims< 1 >(); ++j)
-                for (uint_t k = 0; k < metadata_.template dims< 2 >(); ++k) {
+        for (uint_t i = 0; i < metadata_.template dim< 0 >(); ++i)
+            for (uint_t j = 0; j < metadata_.template dim< 1 >(); ++j)
+                for (uint_t k = 0; k < metadata_.template dim< 2 >(); ++k) {
                     in(i, j, k) = (i + j + k) * (gridtools::PID + 1);
                 }
 
@@ -173,7 +173,7 @@ namespace copy_stencil {
             copy = gridtools::make_computation< gridtools::BACKEND >(
                 domain,
                 grid,
-                gridtools::make_mss // mss_descriptor
+                gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
                     gridtools::make_stage< copy_functor >(p_in() // esf_descriptor
                         ,

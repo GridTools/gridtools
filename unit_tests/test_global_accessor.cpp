@@ -28,13 +28,9 @@ typedef backend< Cuda, structured, Block > backend_t;
 #ifdef CXX11_ENABLED
 typedef backend_t::storage_info< 0, layout_map< 0, 1, 2 > > meta_t;
 #else
-typedef meta_storage<
-  meta_storage_aligned<
-    meta_storage_base<0U, layout_map<0, 1, 2>, false, int, int>,
-    aligned<32>,
-    halo<0,0,0>
-  >
-> meta_t;
+typedef meta_storage< meta_storage_aligned< meta_storage_base< 0U, layout_map< 0, 1, 2 >, false, int, int >,
+    aligned< 32 >,
+    halo< 0, 0, 0 > > > meta_t;
 #endif
 #else
 typedef backend< Host, structured, Naive > backend_t;
@@ -46,7 +42,7 @@ struct boundary {
 
     int int_value;
 
-    boundary(int ival) : int_value(ival) { }
+    boundary(int ival) : int_value(ival) {}
 
     GT_FUNCTION
     double value() const {return 10.;}
@@ -61,7 +57,7 @@ struct functor{
     template <typename Evaluation>
     GT_FUNCTION
     static void Do(Evaluation const & eval, x_interval) {
-        eval(sol())+=eval(bd()).value() + eval(bd()).int_value;
+        eval(sol()) += eval(bd()).value() + eval(bd()).int_value;
     }
 };
 
@@ -74,12 +70,13 @@ TEST(test_global_accessor, boundary_conditions) {
     boundary bd(20);
 #ifdef CXX11_ENABLED
     auto bd_ = make_global_parameter(bd);
-    typedef arg<1, decltype(bd_) > p_bd;
+    typedef arg< 1, decltype(bd_) > p_bd;
     GRIDTOOLS_STATIC_ASSERT(gridtools::is_global_parameter< decltype(bd_) >::value, "is_global_parameter check failed");
 #else
-    global_parameter<boundary> bd_(bd);
-    typedef arg<1, global_parameter<boundary> > p_bd;
-    GRIDTOOLS_STATIC_ASSERT(gridtools::is_global_parameter< global_parameter<boundary> >::value, "is_global_parameter check failed");
+    global_parameter< boundary > bd_(bd);
+    typedef arg< 1, global_parameter< boundary > > p_bd;
+    GRIDTOOLS_STATIC_ASSERT(
+        gridtools::is_global_parameter< global_parameter< boundary > >::value, "is_global_parameter check failed");
 #endif
     GRIDTOOLS_STATIC_ASSERT(!gridtools::is_global_parameter< storage_type >::value, "is_global_parameter check failed");
 
@@ -117,24 +114,22 @@ TEST(test_global_accessor, boundary_conditions) {
     bc_eval->run();
     // fetch data and check
     sol_.d2h_update();
-    bool result=true;
-    for (int i=0; i<10; ++i)
-        for (int j=0; j<10; ++j)
-            for (int k=0; k<10; ++k)
-            {
-                double value=2.;
-                if( i>0 && j==1 && k<2) {
+    bool result = true;
+    for (int i = 0; i < 10; ++i)
+        for (int j = 0; j < 10; ++j)
+            for (int k = 0; k < 10; ++k) {
+                double value = 2.;
+                if (i > 0 && j == 1 && k < 2) {
                     value += 10.;
                     value += 20;
                 }
-                if(sol_(i,j,k) != value)
-                {
-                    result=false;
+                if (sol_(i, j, k) != value) {
+                    result = false;
                 }
             }
 
-    // get the configuration object from the gpu
-    // modify configuration object (boundary)
+// get the configuration object from the gpu
+// modify configuration object (boundary)
 #ifdef __CUDACC__
     bd_.d2h_update();
 #endif
@@ -162,7 +157,7 @@ TEST(test_global_accessor, boundary_conditions) {
             for (int k=0; k<10; ++k)
             {
                 double value=2.;
-                if( i>0 && j==1 && k<2) {
+                if (i > 0 && j == 1 && k < 2) {
                     value += 10.;
                     value += 30;
                 }
@@ -171,7 +166,6 @@ TEST(test_global_accessor, boundary_conditions) {
                     result=false;
                 }
             }
-
 
     EXPECT_TRUE(result);
 }

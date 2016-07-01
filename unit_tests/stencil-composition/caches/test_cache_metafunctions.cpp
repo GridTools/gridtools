@@ -97,7 +97,7 @@ TEST(cache_metafunctions, extract_extents_for_caches)
         block_size< 32, 4, 1 >,
         block_size< 32, 4, 1 >,
         gridtools::grid< axis >,
-        false,
+        boost::mpl::false_,
         notype > iterate_domain_arguments_t;
 
     typedef extract_extents_for_caches<iterate_domain_arguments_t>::type extents_map_t;
@@ -137,7 +137,7 @@ TEST(cache_metafunctions, get_cache_storage_tuple)
         block_size< 32, 4, 1 >,
         block_size< 32, 4, 1 >,
         gridtools::grid< axis >,
-        false,
+        boost::mpl::false_,
         notype > iterate_domain_arguments_t;
 
     typedef extract_extents_for_caches<iterate_domain_arguments_t>::type extents_map_t;

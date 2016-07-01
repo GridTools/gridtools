@@ -15,7 +15,7 @@
 */
 #pragma once
 #include <boost/mpl/at.hpp>
-#include "logical_and.hpp"
+#include "logical_ops.hpp"
 
 /**@file @brief implementation of a compile-time accumulator and max
 

@@ -33,8 +33,7 @@ struct functor {
 
 #define BACKEND backend< enumtype::Host, GRIDBACKEND, enumtype::Naive >
 
-bool predicate() { return false;}
-
+bool predicate() { return false; }
 
 TEST(unfold_all, test) {
 

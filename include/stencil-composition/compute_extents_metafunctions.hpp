@@ -160,6 +160,7 @@ namespace gridtools {
              */
             template < typename ESFs, typename CurrentMap, int Elements >
             struct update_map {
+                GRIDTOOLS_STATIC_ASSERT((is_sequence_of< ESFs, is_esf_descriptor >::value), "Error");
                 typedef typename boost::mpl::at_c< ESFs, 0 >::type current_ESF;
                 typedef typename boost::mpl::pop_front< ESFs >::type rest_of_ESFs;
 
@@ -322,10 +323,12 @@ namespace gridtools {
                 typedef typename substitute_expandable_params<w_plcs_original, RepeatFunctor>::type w_plcs;
                 typedef typename boost::mpl::at_c< w_plcs, 0 >::type first_out;
                 typedef typename boost::mpl::at< MapOfPlaceholders, first_out >::type extent;
-// TODO recover
-//                GRIDTOOLS_STATIC_ASSERT((_impl::_check_extents_on_outputs< MapOfPlaceholders, w_plcs, extent >::value),
-//                    "The output of the ESF do not have all the save extents, so it is not possible to select the "
-//                    "extent for the whole ESF.");
+                // TODO recover
+                //                GRIDTOOLS_STATIC_ASSERT((_impl::_check_extents_on_outputs< MapOfPlaceholders, w_plcs,
+                //                extent >::value),
+                //                    "The output of the ESF do not have all the save extents, so it is not possible to
+                //                    select the "
+                //                    "extent for the whole ESF.");
 
                 typedef extent type;
             };
@@ -357,10 +360,12 @@ namespace gridtools {
                 typedef typename boost::mpl::at_c< w_plcs, 0 >::type first_out;
                 typedef typename boost::mpl::at< MapOfPlaceholders, first_out >::type extent;
 
-// TODO recover
-//                GRIDTOOLS_STATIC_ASSERT((_impl::_check_extents_on_outputs< MapOfPlaceholders, w_plcs, extent >::value),
-//                    "The output of the ESF do not have all the save extents, so it is not possible to select the "
-//                    "extent for the whole ESF.");
+                // TODO recover
+                //                GRIDTOOLS_STATIC_ASSERT((_impl::_check_extents_on_outputs< MapOfPlaceholders, w_plcs,
+                //                extent >::value),
+                //                    "The output of the ESF do not have all the save extents, so it is not possible to
+                //                    select the "
+                //                    "extent for the whole ESF.");
 
                 typedef extent type;
             };

@@ -31,6 +31,7 @@
 #include <boost/mpl/front.hpp>
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/fold.hpp>
+#include "../common/defs.hpp"
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
 #ifdef CXX11_ENABLED
 #include "meta_array_generator.hpp"

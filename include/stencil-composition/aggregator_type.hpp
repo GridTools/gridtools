@@ -128,10 +128,10 @@ namespace gridtools {
         typedef typename check_holes::raw_index_list index_list;
         typedef typename check_holes::index_set index_set;
 
-        // actual check if the user specified placeholder arguments with the same index
-        GRIDTOOLS_STATIC_ASSERT((len == boost::mpl::size< index_set >::type::value),
-            "you specified two different placeholders with the same index, which is not allowed. check the arg "
-            "defiintions.");
+
+        //actual check if the user specified placeholder arguments with the same index
+        GRIDTOOLS_STATIC_ASSERT((len <= boost::mpl::size<index_set>::type::value ), "you specified two different placeholders with the same index, which is not allowed. check the arg defiintions.");
+        GRIDTOOLS_STATIC_ASSERT((len >= boost::mpl::size<index_set>::type::value ), "something strange is happening.");
 
         /**
            @brief MPL vector of storage pointers
@@ -445,9 +445,9 @@ namespace gridtools {
         template < typename Index >
         void storage_info(std::ostream &out_s) const {
             out_s << Index::value << " -|-> " << (boost::fusion::at_c< Index >(m_metadata_set))->name() << " "
-                  << (boost::fusion::at_c< Index >(m_metadata_set))->template dims< 0 >() << "x"
-                  << (boost::fusion::at_c< Index >(m_metadata_set))->template dims< 1 >() << "x"
-                  << (boost::fusion::at_c< Index >(m_metadata_set))->template dims< 2 >() << ", "
+                  << (boost::fusion::at_c< Index >(m_metadata_set))->template dim< 0 >() << "x"
+                  << (boost::fusion::at_c< Index >(m_metadata_set))->template dim< 1 >() << "x"
+                  << (boost::fusion::at_c< Index >(m_metadata_set))->template dim< 2 >() << ", "
                   << (boost::fusion::at_c< Index >(m_metadata_set))->strides(0) << "x"
                   << (boost::fusion::at_c< Index >(m_metadata_set))->strides(1) << "x"
                   << (boost::fusion::at_c< Index >(m_metadata_set))->strides(2) << ", \n";

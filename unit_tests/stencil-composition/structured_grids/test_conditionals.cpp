@@ -22,12 +22,12 @@ namespace test_conditionals{
 
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<enumtype::Cuda,GRIDBACKEND, enumtype::Block >
+#define BACKEND backend< enumtype::Cuda, GRIDBACKEND, enumtype::Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend<enumtype::Host,GRIDBACKEND, enumtype::Block >
+#define BACKEND backend< enumtype::Host, GRIDBACKEND, enumtype::Block >
 #else
-#define BACKEND backend<enumtype::Host,GRIDBACKEND, enumtype::Naive >
+#define BACKEND backend< enumtype::Host, GRIDBACKEND, enumtype::Naive >
 #endif
 #endif
 
@@ -85,23 +85,14 @@ namespace test_conditionals{
 #else
         boost::shared_ptr< gridtools::stencil >
 #endif
-            comp_ = make_computation < BACKEND > (
-                domain_, grid_,
-                if_(cond
-                    ,
-                    make_multistage(
-                        enumtype::execute<enumtype::forward>()
-                        , make_stage<functor<0> >( p_dummy() ))
-                    , if_( cond2
-                           , make_multistage(
-                               enumtype::execute<enumtype::forward>()
-                               , make_stage<functor<1> >( p_dummy() ))
-                           , make_multistage(
-                               enumtype::execute<enumtype::forward>()
-                               , make_stage<functor<2> >( p_dummy() ))
-                        )
-                    )
-                );
+            comp_ = make_computation< BACKEND >(
+                domain_,
+                grid_,
+                if_(cond,
+                    make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor< 0 > >(p_dummy())),
+                    if_(cond2,
+                        make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor< 1 > >(p_dummy())),
+                        make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor< 2 > >(p_dummy())))));
 
         bool result=true;
         comp_->ready();

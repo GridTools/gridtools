@@ -17,6 +17,8 @@
 
 #include "../global_accessor.hpp"
 #include "./accessor.hpp"
+#include "./accessor_mixed.hpp"
+#include "../expressions/expressions.hpp"
 
 namespace gridtools {
 
@@ -110,7 +112,7 @@ namespace gridtools {
     template < typename ArgsMap, template < typename... > class Expression, typename... Arguments >
     struct remap_accessor_type< Expression< Arguments... >,
         ArgsMap,
-        typename boost::enable_if< typename is_expr< Expression< Arguments... > >::type, void >::type > {
+                                typename boost::enable_if< typename is_expr< Expression< Arguments... > >::type, void >::type > {
         // Expression is an expression of accessors (e.g. expr_sum<T1, T2>,
         // where T1 and T2 are two accessors).
         // Here we traverse the expression AST down to the leaves, and we assert if

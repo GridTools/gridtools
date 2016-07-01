@@ -17,12 +17,12 @@ namespace test_multidimensional_caches {
 
         static constexpr cache_storage_t::meta_t m_;
 
-        GRIDTOOLS_STATIC_ASSERT(m_.value().dims(0) == 10, "error");
-        GRIDTOOLS_STATIC_ASSERT(m_.value().dims(1) == 7, "error");
-        GRIDTOOLS_STATIC_ASSERT(m_.value().dims(2) == 6, "error");
-        GRIDTOOLS_STATIC_ASSERT(m_.value().dims(3) == 1, "error");
-        GRIDTOOLS_STATIC_ASSERT(m_.value().dims(4) == 7, "error");
-        GRIDTOOLS_STATIC_ASSERT(m_.value().dims(5) == 4, "error");
+        GRIDTOOLS_STATIC_ASSERT(m_.value().dim(0) == 10, "error");
+        GRIDTOOLS_STATIC_ASSERT(m_.value().dim(1) == 7, "error");
+        GRIDTOOLS_STATIC_ASSERT(m_.value().dim(2) == 6, "error");
+        GRIDTOOLS_STATIC_ASSERT(m_.value().dim(3) == 1, "error");
+        GRIDTOOLS_STATIC_ASSERT(m_.value().dim(4) == 7, "error");
+        GRIDTOOLS_STATIC_ASSERT(m_.value().dim(5) == 4, "error");
 
         GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(1, 0, 0, 0, 0, 0)) == 1, "error");
         GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(2, 0, 0, 0, 0, 0)) == 2, "error");

@@ -65,7 +65,7 @@ namespace gridtools {
 #ifdef CUDA8
             GRIDTOOLS_STATIC_ASSERT(is_extent< Extent >::value, "wrong type");
             const typename alias< accessor< ACC_ID, Intent, Extent, Size >, dimension< Size - 1 > >::template set< ID >
-                tmp_(arg);
+                tmp_(arg.offsets());
 #else
             accessor< ACC_ID, Intent, Extent, Size >tmp_(arg);
             tmp_.template set<1>(ID);

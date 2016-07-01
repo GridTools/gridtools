@@ -26,4 +26,19 @@ namespace gridtools {
         typedef static_bool< boost::is_same< typename Esf1::esf_function, typename Esf2::esf_function >::value &&
                              boost::mpl::equal< typename Esf1::args_t, typename Esf2::args_t >::value > type;
     };
+
+    struct extract_esf_functor {
+        template < typename Esf >
+        struct apply {
+            GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), "Error");
+
+            typedef typename Esf::esf_function type;
+        };
+    };
+
+    template < typename Esf >
+    struct esf_arg_list {
+        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), "Error");
+        typedef typename Esf::esf_function::arg_list type;
+    };
 }

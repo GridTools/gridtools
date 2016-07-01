@@ -33,7 +33,7 @@ namespace gridtools {
 
         template < typename Accessor >
         GT_FUNCTION constexpr int_t index(Accessor const &arg_) const {
-            return m_value._index(arg_);
+            return m_value._index(arg_.offsets());
         }
 
     };

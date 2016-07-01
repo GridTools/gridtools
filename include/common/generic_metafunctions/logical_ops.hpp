@@ -14,6 +14,7 @@
    limitations under the License.
 */
 #pragma once
+#include "../host_device.hpp"
 
 namespace gridtools {
 
@@ -24,6 +25,16 @@ namespace gridtools {
         template < typename T >
         GT_FUNCTION constexpr T operator()(const T &x, const T &y) const {
             return x && y;
+        }
+    };
+
+    /**@brief operation to be used inside the accumulator*/
+    struct logical_or {
+        GT_FUNCTION
+        constexpr logical_or() {}
+        template < typename T >
+        GT_FUNCTION constexpr T operator()(const T &x, const T &y) const {
+            return x || y;
         }
     };
 }

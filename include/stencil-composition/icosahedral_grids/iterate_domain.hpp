@@ -16,8 +16,15 @@
 #pragma once
 #include "location_type.hpp"
 #include <type_traits>
+#include <boost/type_traits/remove_reference.hpp>
+#include "common/generic_metafunctions/is_not_same.hpp"
 #include "common/generic_metafunctions/apply_to_sequence.hpp"
 #include "common/generic_metafunctions/vector_to_set.hpp"
+#include "common/generic_metafunctions/variadic_to_vector.hpp"
+#include "common/generic_metafunctions/variadic_typedef.hpp"
+#include "common/array.hpp"
+#include "../../common/explode_array.hpp"
+#include "common/generic_metafunctions/remove_restrict_reference.hpp"
 #include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
 #include "stencil-composition/total_storages.hpp"
 #include "stencil-composition/iterate_domain_aux.hpp"
@@ -48,6 +55,8 @@ namespace gridtools {
     // template <typename PlcVector, typename GridType, typename LocationType>
     template < typename IterateDomainImpl >
     struct iterate_domain {
+        typedef iterate_domain< IterateDomainImpl > type;
+
         typedef typename iterate_domain_impl_arguments< IterateDomainImpl >::type iterate_domain_arguments_t;
         typedef typename iterate_domain_arguments_t::local_domain_t local_domain_t;
 
@@ -55,6 +64,7 @@ namespace gridtools {
 
         typedef typename iterate_domain_arguments_t::backend_ids_t backend_ids_t;
         typedef typename iterate_domain_arguments_t::grid_t::grid_topology_t grid_topology_t;
+        typedef typename grid_topology_t::layout_map_t layout_map_t;
         typedef typename iterate_domain_arguments_t::esf_sequence_t esf_sequence_t;
         typedef typename extract_location_type< esf_sequence_t >::type location_type_t;
 
@@ -106,6 +116,15 @@ namespace gridtools {
         template < typename Accessor >
         struct accessor_return_type {
             typedef typename accessor_return_type_impl< Accessor, iterate_domain_arguments_t >::type type;
+        };
+
+        template < typename T >
+        struct map_return_type;
+
+        template < typename MapF, typename LT, typename Arg0, typename... Args >
+        struct map_return_type< map_function< MapF, LT, Arg0, Args... > > {
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< Arg0 >::value), "Error");
+            typedef typename remove_restrict_reference< typename accessor_return_type< Arg0 >::type >::type type;
         };
 
         typedef typename compute_readonly_args_indices< typename iterate_domain_arguments_t::esf_sequence_t >::type
@@ -256,6 +275,9 @@ namespace gridtools {
             }
         }
 
+        GT_FUNCTION
+        array< uint_t, 4 > const &position() const { return m_grid_position; }
+
         /**@brief getter for the index array */
         GT_FUNCTION
         void get_position(array< uint_t, 4 > &position) const { position = m_grid_position; }
@@ -278,52 +300,255 @@ namespace gridtools {
         GT_FUNCTION
         void set_position(array< uint_t, 4 > const &position) { m_grid_position = position; }
 
-        template < uint_t ID, enumtype::intend intend, typename LocationType, typename Extent >
-        GT_FUNCTION typename accessor_return_type< accessor< ID, intend, LocationType, Extent > >::type operator()(
-            accessor< ID, intend, LocationType, Extent > const &accessor_) const {
-            typedef accessor< ID, intend, LocationType, Extent > accessor_t;
+        template < uint_t ID,
+            enumtype::intend intend,
+            typename LocationType,
+            typename Extent,
+            ushort_t FieldDimensions >
+        GT_FUNCTION typename accessor_return_type< accessor< ID, intend, LocationType, Extent, FieldDimensions > >::type
+        operator()(accessor< ID, intend, LocationType, Extent, FieldDimensions > const &accessor_) const {
+            typedef accessor< ID, intend, LocationType, Extent, FieldDimensions > accessor_t;
             return get_value(accessor_,
                 (data_pointer())[current_storage< (ID == 0), local_domain_t, typename accessor_t::type >::value]);
         }
 
-        template < typename ValueType, typename LocationTypeT, typename Reduction, typename MapF, typename... Arg0 >
-        GT_FUNCTION double operator()(
-            on_neighbors_impl< ValueType, LocationTypeT, Reduction, map_function< MapF, LocationTypeT, Arg0... > >
-                onneighbors) const {
+        template < typename ValueType,
+            typename SrcColor,
+            typename LocationTypeT,
+            typename Reduction,
+            typename MapF,
+            typename... Arg0 >
+        GT_FUNCTION ValueType operator()(on_neighbors_impl< ValueType,
+            SrcColor,
+            LocationTypeT,
+            Reduction,
+            map_function< MapF, LocationTypeT, Arg0... > > onneighbors) const {
             auto current_position = m_grid_position;
 
             const auto neighbors =
-                grid_topology_t::neighbors_indices_3(current_position, location_type_t(), onneighbors.location());
-            double result = onneighbors.value();
+                m_grid_topology.neighbors_indices_3(current_position, location_type_t(), onneighbors.location());
+            ValueType result = onneighbors.value();
 
             for (int i = 0; i < neighbors.size(); ++i) {
-                result = onneighbors.reduction()(_evaluate(onneighbors.map(), neighbors[i]), result);
+                result = onneighbors.reduction()(_evaluate(onneighbors.template map< 0 >(), neighbors[i]), result);
             }
 
             return result;
         }
 
-        template < typename ValueType, typename LocationTypeT, typename Reduction, uint_t I, typename L, int_t R >
-        GT_FUNCTION double operator()(
-            on_neighbors_impl< ValueType, LocationTypeT, Reduction, accessor< I, enumtype::in, L, extent< R > > >
-                onneighbors) const {
+        /**
+         * helper to dereference the value (using an iterate domain) of an accessor
+         * (specified with an Index from within a variadic pack of Accessors). It is meant to be used as
+         * a functor of a apply_gt_integer_sequence, where the Index is provided from the integer sequence
+         * @tparam ValueType value type of the computation
+         */
+        template < typename ValueType >
+        struct it_domain_evaluator {
+
+            /**
+             * @tparam Idx index being processed from within an apply_gt_integer_sequence
+             */
+            template < int Idx >
+            struct apply_t {
+
+                GT_FUNCTION
+                constexpr apply_t() {}
+
+                /**
+                 * @tparam Neighbors type locates the position of a neighbor element in the grid. If can be:
+                 *     * a quad of values indicating the {i,c,j,k} positions or
+                 *     * an integer indicating the absolute index in the storage
+                 * @tparam IterateDomain is an iterate domain
+                 * @tparam Accessors variadic pack of accessors being processed by the apply_gt_integer_sequence
+                 *     and to be evaluated by the iterate domain
+                 */
+                template < typename Neighbors, typename IterateDomain, typename... Accessors >
+                GT_FUNCTION static ValueType apply(
+                    Neighbors const &neighbors, IterateDomain const &iterate_domain, Accessors... args_) {
+                    return iterate_domain._evaluate(get_from_variadic_pack< Idx >::apply(args_...), neighbors);
+                }
+            };
+        };
+
+        /**
+         * data structure that holds data needed by the reduce_tuple functor
+         * @tparam ValueType value type of the computation
+         * @tparam NeighborsArray type locates the position of a neighbor element in the grid. If can be:
+         *     * a quad of values indicating the {i,c,j,k} positions or
+         *     * an integer indicating the absolute index in the storage
+         * @tparam Reduction this is the user lambda specified to expand the on_XXX keyword
+         * @tparam IterateDomain is an iterate domain
+         */
+        template < typename ValueType, typename NeighborsArray, typename Reduction, typename IterateDomain >
+        struct reduce_tuple_data_holder {
+            Reduction const &m_reduction;
+            NeighborsArray const &m_neighbors;
+            IterateDomain const &m_iterate_domain;
+            ValueType &m_result;
+
+          public:
+            GT_FUNCTION
+            reduce_tuple_data_holder(Reduction const &reduction,
+                NeighborsArray const &neighbors,
+                ValueType &result,
+                IterateDomain const &iterate_domain)
+                : m_reduction(reduction), m_neighbors(neighbors), m_result(result), m_iterate_domain(iterate_domain) {}
+        };
+
+        /**
+         * functor used to expand all the accessors arguments stored in a tuple of a on_neighbors structured.
+         * The functor will process all the accessors (i.e. dereference their values of the storages given an neighbors
+         * offset)
+         * and call the user lambda
+         * @tparam ValueType value type of the computation
+         * @tparam NeighborsArray type locates the position of a neighbor element in the grid. If can be:
+         *     * a quad of values indicating the {i,c,j,k} positions or
+         *     * an integer indicating the absolute index in the storage
+         * @tparam Reduction this is the user lambda specified to expand the on_XXX keyword
+         * @tparam IterateDomain is an iterate domain
+         */
+        template < typename ValueType, typename NeighborsArray, typename Reduction, typename IterateDomain >
+        struct reduce_tuple {
+
+            GRIDTOOLS_STATIC_ASSERT(
+                (boost::is_same<
+                     typename boost::remove_const< typename boost::remove_reference< NeighborsArray >::type >::type,
+                     unsigned int >::value ||
+                    is_array< typename boost::remove_const<
+                        typename boost::remove_reference< NeighborsArray >::type >::type >::value),
+                "Error");
+
+            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), "Error");
+
+            typedef reduce_tuple_data_holder< ValueType, NeighborsArray, Reduction, IterateDomain >
+                reduce_tuple_holder_t;
+
+            template < typename... Accessors >
+            GT_FUNCTION static void apply(reduce_tuple_holder_t &reducer, Accessors... args) {
+                // we need to call the user functor (Reduction(arg1, arg2, ..., result) )
+                // However we can make here a direct call, since we first need to dereference the address of each
+                // Accessor
+                // given the array with position of the neighbor being accessed (reducer.m_neighbors)
+                // We make use of the apply_gt_integer_sequence in order to operate on each element of the variadic
+                // pack,
+                // dereference its address (it_domain_evaluator) and gather back all the arguments while calling the
+                // user lambda
+                // (Reduction)
+                using seq =
+                    apply_gt_integer_sequence< typename make_gt_integer_sequence< int, sizeof...(Accessors) >::type >;
+
+                reducer.m_result = seq::template apply_lambda< ValueType,
+                    Reduction,
+                    it_domain_evaluator< ValueType >::template apply_t >(
+                    reducer.m_reduction, reducer.m_result, reducer.m_neighbors, reducer.m_iterate_domain, args...);
+            }
+        };
+
+        /**
+         * returns true if variadic pack is a pack of accessors and the location type of the neighbors is the same as
+         * the location type of the ESF.
+         */
+        template < typename NeighborsLocationType, typename EsfLocationType, typename... Accessors >
+        struct accessors_on_same_color_neighbors {
+            typedef typename boost::mpl::and_<
+                typename is_sequence_of< typename variadic_to_vector< Accessors... >::type, is_accessor >::type,
+                typename boost::is_same< NeighborsLocationType, EsfLocationType >::type >::type type;
+        };
+
+        /**
+         * returns true if variadic pack is a pack of accessors and the location type of the neighbors is not the same
+         * as
+         * the location type of the ESF.
+         */
+        template < typename NeighborsLocationType, typename EsfLocationType, typename... Accessors >
+        struct accessors_on_different_color_neighbors {
+            typedef typename boost::mpl::and_<
+                typename is_sequence_of< typename variadic_to_vector< Accessors... >::type, is_accessor >::type,
+                typename is_not_same< NeighborsLocationType, EsfLocationType >::type >::type type;
+        };
+
+        // specialization of the () operator for on_neighbors operating on accessors
+        // when the location type of the neighbors is the same as the location type of the ESF (iteration space)
+        // In this case, dereference of accessors is done using relative offsets instead of absolute indexes
+        template < typename ValueType,
+            typename SrcColor,
+            typename LocationTypeT,
+            typename Reduction,
+            typename EsfLocationType,
+            typename... Accessors >
+        GT_FUNCTION typename boost::enable_if<
+            typename accessors_on_same_color_neighbors< LocationTypeT, EsfLocationType, Accessors... >::type,
+            ValueType >::type
+        operator()(EsfLocationType,
+            on_neighbors_impl< ValueType, SrcColor, LocationTypeT, Reduction, Accessors... > onneighbors) const {
             auto current_position = m_grid_position;
 
-            const auto neighbors =
-                grid_topology_t::neighbors_indices_3(current_position, location_type_t(), onneighbors.location());
-            double result = onneighbors.value();
+            // the neighbors are described as an array of {i,c,j,k} offsets wrt to current position, i.e. an array<
+            // array<uint_t, 4>,
+            // NumNeighbors>
+            constexpr auto neighbors = from< EsfLocationType >::template to< LocationTypeT >::template with_color<
+                static_uint< SrcColor::value > >::offsets();
+
+            // TODO reuse the next code
+            ValueType &result = onneighbors.value();
 
             for (int_t i = 0; i < neighbors.size(); ++i) {
-                result = onneighbors.reduction()(_evaluate(onneighbors.map(), neighbors[i]), result);
+
+                typedef decltype(neighbors[i]) neighbors_array_t;
+                reduce_tuple_data_holder< ValueType, neighbors_array_t, Reduction, type > red(
+                    onneighbors.reduction(), neighbors[i], result, *this);
+                // since the on_neighbors store a tuple of accessors (in maps() ), we should explode the tuple,
+                // so that each element of the tuple is passed as an argument of the user lambda
+                // (which happens in the reduce_tuple).
+                explode< void, reduce_tuple< ValueType, neighbors_array_t, Reduction, type > >(onneighbors.maps(), red);
             }
 
             return result;
         }
 
-        /**@brief returns the value of the memory at the given address, plus the offset specified by the arg placeholder
+        // specialization of the () operator for on_neighbors operating on accessors
+        template < typename ValueType,
+            typename SrcColor,
+            typename LocationTypeT,
+            typename Reduction,
+            typename EsfLocationType,
+            typename... Accessors >
+        GT_FUNCTION typename boost::enable_if<
+            typename accessors_on_different_color_neighbors< LocationTypeT, EsfLocationType, Accessors... >::type,
+            ValueType >::type
+        operator()(EsfLocationType,
+            on_neighbors_impl< ValueType, SrcColor, LocationTypeT, Reduction, Accessors... > onneighbors) const {
+            auto current_position = m_grid_position;
+
+            // the neighbors are described as an array of absolute indices in the storage, i.e. an array<uint?t,
+            // NumNeighbors>
+            const auto neighbors = m_grid_topology.connectivity_index(location_type_t(),
+                onneighbors.location(),
+                SrcColor(),
+                {current_position[0], current_position[2], current_position[3]});
+
+            ValueType &result = onneighbors.value();
+
+            for (int_t i = 0; i < neighbors.size(); ++i) {
+
+                typedef decltype(neighbors[i]) neighbors_array_t;
+                reduce_tuple_data_holder< ValueType, neighbors_array_t, Reduction, type > red(
+                    onneighbors.reduction(), neighbors[i], result, *this);
+                // since the on_neighbors store a tuple of accessors (in maps() ), we should explode the tuple,
+                // so that each element of the tuple is passed as an argument of the user lambda
+                // (which happens in the reduce_tuple).
+                explode< void, reduce_tuple< ValueType, neighbors_array_t, Reduction, type > >(onneighbors.maps(), red);
+            }
+
+            return result;
+        }
+
+        /**@brief returns the value of the memory at the given address, plus the offset specified by the arg
+           placeholder
            \param arg placeholder containing the storage ID and the offsets
            \param storage_pointer pointer to the first element of the specific data field used
         */
+        // TODO This should be merged with structured grids
         template < typename Accessor, typename StoragePointer >
         GT_FUNCTION typename accessor_return_type< Accessor >::type get_value(
             Accessor const &accessor, StoragePointer &RESTRICT storage_pointer) const {
@@ -363,10 +588,15 @@ namespace gridtools {
             // If you are running a parallel simulation another common reason for this to happen is
             // the definition of an halo region which is too small in one direction
             // std::cout<<"Storage Index: "<<Accessor::index_type::value<<" + "<<(boost::fusion::at<typename
-            // Accessor::index_type>(local_domain.local_args))->_index(arg.template n<Accessor::n_dim>())<<std::endl;
+            // Accessor::index_type>(local_domain.local_args))->_index(arg.template
+            // n<Accessor::n_dim>())<<std::endl;
             assert((int_t)(metadata_->index(m_grid_position)) >= 0);
 
-            return *(real_storage_pointer + metadata_->index(m_grid_position));
+            const int_t pointer_offset =
+                metadata_->index(m_grid_position) +
+                metadata_->_index(strides().template get< metadata_index_t::value >(), accessor.offsets());
+
+            return *(real_storage_pointer + pointer_offset);
         }
 
         template < typename Accessor, typename StoragePointer >
@@ -388,12 +618,62 @@ namespace gridtools {
             return *(real_storage_pointer + offset);
         }
 
-        // TODO return the right value, instead of double
-        template < uint_t ID, enumtype::intend Intend, typename LocationType, typename Extent, typename IndexArray >
-        GT_FUNCTION double _evaluate(accessor< ID, Intend, LocationType, Extent >, IndexArray const &position) const {
-            using accessor_t = accessor< ID, Intend, LocationType, Extent >;
+        /**
+         * It dereferences the value of an accessor given its 4d (i,c,j,k) position_offset
+         */
+        template < uint_t ID,
+            enumtype::intend Intend,
+            typename LocationType,
+            typename Extent,
+            ushort_t FieldDimensions >
+        GT_FUNCTION typename std::remove_reference<
+            typename accessor_return_type< accessor< ID, Intend, LocationType, Extent, FieldDimensions > >::type >::type
+            _evaluate(accessor< ID, Intend, LocationType, Extent, FieldDimensions >,
+                array< int_t, 4 > const &position_offset) const {
+            GRIDTOOLS_STATIC_ASSERT((LocationType::value == location_type_t::value), "error");
+
+            using accessor_t = accessor< ID, Intend, LocationType, Extent, FieldDimensions >;
+
+            // getting information about the storage
+            typedef typename accessor_t::index_type index_t;
+
+            typedef typename local_domain_t::template get_storage< index_t >::type::value_type storage_t;
+            typedef typename get_storage_pointer_accessor< local_domain_t, accessor_t >::type storage_pointer_t;
+
+            // getting information about the metadata
+            typedef
+                typename boost::mpl::at< metadata_map_t, typename storage_t::storage_info_type >::type metadata_index_t;
+
+            pointer< const typename storage_t::storage_info_type > const metadata_ =
+                boost::fusion::at< metadata_index_t >(m_local_domain.m_local_metadata);
+
             using location_type_t = typename accessor_t::location_type;
-            int offset = m_grid_topology.ll_offset(position, location_type_t());
+            // control your instincts: changing the following
+            // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
+            const int_t pointer_offset = (m_index[metadata_index_t::value]) +
+                                         metadata_->template _indexl< layout_map_t >(
+                                             strides().template get< metadata_index_t::value >(), position_offset);
+
+            return get_raw_value(accessor_t(),
+                (data_pointer())[current_storage< (accessor_t::index_type::value == 0),
+                    local_domain_t,
+                    typename accessor_t::type >::value],
+                pointer_offset);
+        }
+
+        /**
+         * It dereferences the value of an accessor given its absolute offset
+         */
+        template < uint_t ID,
+            enumtype::intend Intend,
+            typename LocationType,
+            typename Extent,
+            ushort_t FieldDimensions >
+        GT_FUNCTION typename std::remove_reference<
+            typename accessor_return_type< accessor< ID, Intend, LocationType, Extent, FieldDimensions > >::type >::type
+        _evaluate(accessor< ID, Intend, LocationType, Extent, FieldDimensions >, const uint_t offset) const {
+            using accessor_t = accessor< ID, Intend, LocationType, Extent, FieldDimensions >;
+            using location_type_t = typename accessor_t::location_type;
 
             return get_raw_value(accessor_t(),
                 (data_pointer())[current_storage< (accessor_t::index_type::value == 0),
@@ -403,27 +683,38 @@ namespace gridtools {
         }
 
         template < typename MapF, typename LT, typename Arg0, typename IndexArray >
-        GT_FUNCTION double _evaluate(map_function< MapF, LT, Arg0 > const &map, IndexArray const &position) const {
+        GT_FUNCTION typename map_return_type< map_function< MapF, LT, Arg0 > >::type _evaluate(
+            map_function< MapF, LT, Arg0 > const &map, IndexArray const &position) const {
             int offset = m_grid_topology.ll_offset(position, map.location());
             return map.function()(_evaluate(map.template argument< 0 >(), position));
         }
 
         template < typename MapF, typename LT, typename Arg0, typename Arg1, typename IndexArray >
-        GT_FUNCTION double _evaluate(
+        GT_FUNCTION typename map_return_type< map_function< MapF, LT, Arg0, Arg1 > >::type _evaluate(
             map_function< MapF, LT, Arg0, Arg1 > const &map, IndexArray const &position) const {
             int offset = m_grid_topology.ll_offset(position, map.location());
+            _evaluate(map.template argument< 1 >(), position);
+
             return map.function()(
                 _evaluate(map.template argument< 0 >(), position), _evaluate(map.template argument< 1 >(), position));
         }
-        template < typename ValueType, typename LocationTypeT, typename Reduction, typename Map, typename IndexArray >
-        GT_FUNCTION double _evaluate(
-            on_neighbors_impl< ValueType, LocationTypeT, Reduction, Map > onn, IndexArray const &position) const {
+
+        template < typename ValueType,
+            typename SrcColor,
+            typename LocationTypeT,
+            typename Reduction,
+            typename Map,
+            typename IndexArray >
+        GT_FUNCTION ValueType _evaluate(on_neighbors_impl< ValueType, SrcColor, LocationTypeT, Reduction, Map > onn,
+            IndexArray const &position) const {
+
+            // TODO THIS IS WRONG HERE HARDCODED EDGES
             using tt = typename grid_topology_t::edges;
-            const auto neighbors = grid_topology_t::neighbors_indices_3(position, tt(), onn.location());
-            double result = onn.value();
+            const auto neighbors = m_grid_topology.neighbors_indices_3(position, tt(), onn.location());
+            ValueType result = onn.value();
 
             for (int i = 0; i < neighbors.size(); ++i) {
-                result = onn.reduction()(_evaluate(onn.map(), neighbors[i]), result);
+                result = onn.reduction()(_evaluate(onn.template map< 0 >(), neighbors[i]), result);
             }
 
             return result;

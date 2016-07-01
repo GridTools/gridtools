@@ -18,6 +18,7 @@
 #include <stencil-composition/stencil-composition.hpp>
 #include "tools/verifier.hpp"
 #include "unstructured_grid.hpp"
+#include "../benchmarker.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
@@ -40,6 +41,7 @@ namespace sov {
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
     typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
+    template < uint_t Color >
     struct test_on_vertexes_functor {
         typedef in_accessor< 0, icosahedral_topology_t::vertexes, extent< 1 > > in;
         typedef inout_accessor< 1, icosahedral_topology_t::vertexes > out;
@@ -56,13 +58,11 @@ namespace sov {
         }
     };
 
-    bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps) {
+    bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps, bool verify) {
 
         uint_t d1 = x;
         uint_t d2 = y;
         uint_t d3 = z;
-
-        typedef gridtools::layout_map< 2, 1, 0 > layout_t;
 
         using cell_storage_type = typename backend_t::storage_t< icosahedral_topology_t::vertexes, double >;
 
@@ -91,9 +91,7 @@ namespace sov {
         typedef arg< 0, cell_storage_type > p_in_vertexes;
         typedef arg< 1, cell_storage_type > p_out_vertexes;
 
-        typedef boost::mpl::
-            vector< p_in_vertexes, p_out_vertexes >
-                accessor_list_t;
+        typedef boost::mpl::vector< p_in_vertexes, p_out_vertexes > accessor_list_t;
 
         gridtools::aggregator_type< accessor_list_t > domain(boost::fusion::make_vector(
             &in_vertexes, &out_vertexes));
@@ -123,35 +121,32 @@ namespace sov {
         in_vertexes.d2h_update();
 #endif
 
-        unstructured_grid ugrid(d1, d2, d3);
-        for (uint_t i = halo_nc; i < d1 - halo_nc; ++i) {
-            for (uint_t c = 0; c < icosahedral_topology_t::vertexes::n_colors::value; ++c) {
-                for (uint_t j = halo_mc; j < d2 - halo_mc + 1; ++j) {
-                    for (uint_t k = 0; k < d3; ++k) {
-                        auto neighbours =
-                            ugrid.neighbours_of< icosahedral_topology_t::vertexes, icosahedral_topology_t::vertexes >(
-                                {i, c, j, k});
-                        for (auto iter = neighbours.begin(); iter != neighbours.end(); ++iter) {
-                            ref_vertexes(i, c, j, k) += in_vertexes(*iter);
+        bool result = true;
+        if (verify) {
+            unstructured_grid ugrid(d1, d2, d3);
+            for (uint_t i = halo_nc; i < d1 - halo_nc; ++i) {
+                for (uint_t c = 0; c < icosahedral_topology_t::vertexes::n_colors::value; ++c) {
+                    for (uint_t j = halo_mc; j < d2 - halo_mc + 1; ++j) {
+                        for (uint_t k = 0; k < d3; ++k) {
+                            auto neighbours = ugrid.neighbours_of< icosahedral_topology_t::vertexes,
+                                icosahedral_topology_t::vertexes >({i, c, j, k});
+                            for (auto iter = neighbours.begin(); iter != neighbours.end(); ++iter) {
+                                ref_vertexes(i, c, j, k) += in_vertexes(*iter);
+                            }
                         }
                     }
                 }
             }
+
+            verifier ver(1e-10);
+
+            array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
+            bool result = ver.verify(grid_, ref_vertexes, out_vertexes, halos);
         }
-
-        verifier ver(1e-10);
-
-        array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
-        bool result = ver.verify(grid_, ref_vertexes, out_vertexes, halos);
-
 #ifdef BENCHMARK
-        for (uint_t t = 1; t < t_steps; ++t) {
-            stencil_->run();
-        }
-        stencil_->finalize();
-        std::cout << stencil_->print_meter() << std::endl;
+        benchmarker::run(stencil_, t_steps);
 #endif
-
+        stencil_->finalize();
         return result;
     }
 
