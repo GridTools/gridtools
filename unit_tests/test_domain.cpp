@@ -220,7 +220,7 @@ bool test_domain() {
         boost::fusion::make_vector(coeff.get_pointer_to_use(), in.get_pointer_to_use(), out.get_pointer_to_use());
     // clang-format off
     print_values< <<1,1> >>(&inner_args);
-// clang-format on
+    // clang-format on
 #ifdef __CUDACC__
     cudaDeviceSynchronize();
 #endif
@@ -250,7 +250,7 @@ bool test_domain() {
 #endif
     // clang-format off
     print_values< <<1,1> >>(&inner_args);
-// clang-format on
+    // clang-format on
 #ifdef __CUDACC__
     cudaDeviceSynchronize();
 #endif
