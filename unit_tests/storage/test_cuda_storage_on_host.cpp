@@ -47,17 +47,17 @@ TEST(cuda_storage_on_host, test_storage_types) {
 #endif
     meta_data_t meta_obj(10, 10, 10);
     storage_t st_obj(meta_obj, "in");
-// #ifdef __CUDACC__
-// 	GRIDTOOLS_STATIC_ASSERT((boost::is_same<meta_data_t, meta_storage< meta_storage_aligned< meta_storage_base< static_int<0>
-//                                  , layout, false >, aligned<32>, halo<0,0,0> > > >::value), "type is wrong");
-// 	GRIDTOOLS_STATIC_ASSERT((boost::is_same<storage_t, storage< base_storage< hybrid_pointer< float >
-//                                  , meta_data_t, 1 > > >::value), "type is wrong");
-// #else
-// 	GRIDTOOLS_STATIC_ASSERT((boost::is_same<meta_data_t, meta_storage< meta_storage_aligned< meta_storage_base< static_int<0>, layout, false >
-//                                  , aligned<0>, halo<0,0,0> > > >::value), "type is wrong");
-// 	GRIDTOOLS_STATIC_ASSERT((boost::is_same<storage_t, storage< base_storage< wrap_pointer< float >
-//                                  , meta_data_t, 1 > > >::value), "type is wrong");
-// #endif
+#ifdef __CUDACC__
+	GRIDTOOLS_STATIC_ASSERT((boost::is_same<meta_data_t, meta_storage< meta_storage_aligned< meta_storage_base< static_uint<0>
+                                 , layout, false >, aligned<32>, halo<0,0,0> > > >::value), "type is wrong");
+	GRIDTOOLS_STATIC_ASSERT((boost::is_same<storage_t, storage< base_storage< hybrid_pointer< float >
+                                 , meta_data_t, 1 > > >::value), "type is wrong");
+#else
+	GRIDTOOLS_STATIC_ASSERT((boost::is_same<meta_data_t, meta_storage< meta_storage_aligned< meta_storage_base< static_uint<0>, layout, false >
+                                 , aligned<0>, halo<0,0,0> > > >::value), "type is wrong");
+	GRIDTOOLS_STATIC_ASSERT((boost::is_same<storage_t, storage< base_storage< wrap_pointer< float >
+                                 , meta_data_t, 1 > > >::value), "type is wrong");
+#endif
 }
 
 TEST(cuda_storage_on_host, test_storage) {
