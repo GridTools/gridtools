@@ -32,10 +32,11 @@ namespace gridtools {
 
 template < typename T, typename U, size_t D >
 bool same_elements(gridtools::array< T, D > const &a, gridtools::array< U, D > const &b) {
-    //shortcut
-    if(a.size() != b.size()) return false;
+    // shortcut
+    if (a.size() != b.size())
+        return false;
 
-    //sort and check for equivalence
+    // sort and check for equivalence
     gridtools::array< T, D > a0 = a;
     gridtools::array< U, D > b0 = b;
     std::sort(a0.begin(), a0.end());

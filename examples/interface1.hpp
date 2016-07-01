@@ -216,7 +216,7 @@ namespace horizontal_diffusion {
                 (execute< forward >(),
                     define_caches(cache< IJ, local >(p_lap(), p_flx(), p_fly())),
                     gridtools::make_stage< lap_function >(p_lap(), p_in()), // esf_descriptor
-                    gridtools::make_independent                           // independent_esf
+                    gridtools::make_independent                             // independent_esf
                     (gridtools::make_stage< flx_function >(p_flx(), p_in(), p_lap()),
                         gridtools::make_stage< fly_function >(p_fly(), p_in(), p_lap())),
                     gridtools::make_stage< out_function >(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));
@@ -234,20 +234,20 @@ namespace horizontal_diffusion {
         if (verify) {
 #ifdef CXX11_ENABLED
 #if FLOAT_PRECISION == 4
-        verifier verif(1e-6);
+            verifier verif(1e-6);
 #else
-        verifier verif(1e-12);
+            verifier verif(1e-12);
 #endif
             array< array< uint_t, 2 >, 3 > halos{
                 {{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
             result = verif.verify(grid, repository.out_ref(), repository.out(), halos);
 #else
 #if FLOAT_PRECISION == 4
-        verifier verif(1e-6, halo_size);
+                verifier verif(1e-6, halo_size);
 #else
-        verifier verif(1e-12, halo_size);
+                verifier verif(1e-12, halo_size);
 #endif
-            result = verif.verify(grid, repository.out_ref(), repository.out());
+                result = verif.verify(grid, repository.out_ref(), repository.out());
 #endif
         }
 

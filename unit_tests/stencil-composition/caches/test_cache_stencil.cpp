@@ -103,20 +103,16 @@ protected:
     typename storage_type::storage_info_type m_meta;
     storage_type m_in, m_out;
 
-    cache_stencil() :
-        m_halo_size(1), m_d1(32+2*m_halo_size), m_d2(32+2*m_halo_size), m_d3(6),
+    cache_stencil()
+        : m_halo_size(1), m_d1(32 + 2 * m_halo_size), m_d2(32 + 2 * m_halo_size), m_d3(6),
 #ifdef CXX11_ENABLED
-        m_di{m_halo_size, m_halo_size, m_halo_size, m_d1-m_halo_size-1, m_d1},
-        m_dj{m_halo_size, m_halo_size, m_halo_size, m_d2-m_halo_size-1, m_d2},
+          m_di{m_halo_size, m_halo_size, m_halo_size, m_d1 - m_halo_size - 1, m_d1},
+          m_dj{m_halo_size, m_halo_size, m_halo_size, m_d2 - m_halo_size - 1, m_d2},
 #else
-        m_di(m_halo_size, m_halo_size, m_halo_size, m_d1-m_halo_size-1, m_d1),
-        m_dj(m_halo_size, m_halo_size, m_halo_size, m_d2-m_halo_size-1, m_d2),
+          m_di(m_halo_size, m_halo_size, m_halo_size, m_d1 - m_halo_size - 1, m_d1),
+          m_dj(m_halo_size, m_halo_size, m_halo_size, m_d2 - m_halo_size - 1, m_d2),
 #endif
-        m_grid(m_di, m_dj),
-        m_meta(m_d1, m_d2, m_d3),
-        m_in(m_meta, 0., "in"),
-        m_out(m_meta, 0., "out")
-    {
+          m_grid(m_di, m_dj), m_meta(m_d1, m_d2, m_d3), m_in(m_meta, 0., "in"), m_out(m_meta, 0., "out") {
         m_grid.value_list[0] = 0;
         m_grid.value_list[1] = m_d3-1;
     }
@@ -140,7 +136,7 @@ TEST_F(cache_stencil, ij_cache)
 {
     SetUp();
     typedef boost::mpl::vector3<p_in, p_out, p_buff> accessor_list;
-    gridtools::aggregator_type<accessor_list> domain(boost::fusion::make_vector(&m_in, &m_out));
+    gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&m_in, &m_out));
 
 #ifdef CXX11_ENABLED
     auto
@@ -151,14 +147,13 @@ TEST_F(cache_stencil, ij_cache)
     boost::shared_ptr< gridtools::stencil >
 #endif
 #endif
-        pstencil = make_computation< gridtools::BACKEND >
-        (domain,
-         m_grid,
-         make_multistage // mss_descriptor
-         (execute< forward >(),
-          define_caches(cache< IJ, local >(p_buff())),
-          make_stage< functor1 >(p_in(), p_buff()),
-          make_stage< functor1 >(p_buff(), p_out())));
+        pstencil = make_computation< gridtools::BACKEND >(domain,
+            m_grid,
+            make_multistage // mss_descriptor
+            (execute< forward >(),
+                                                              define_caches(cache< IJ, local >(p_buff())),
+                                                              make_stage< functor1 >(p_in(), p_buff()),
+                                                              make_stage< functor1 >(p_buff(), p_out())));
 
     pstencil->ready();
 
@@ -204,7 +199,7 @@ TEST_F(cache_stencil, ij_cache_offset)
     }
 
     typedef boost::mpl::vector3<p_in, p_out, p_buff> accessor_list;
-    gridtools::aggregator_type<accessor_list> domain(boost::fusion::make_vector(&m_in, &m_out));
+    gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&m_in, &m_out));
 
 #ifdef CXX11_ENABLED
     auto
@@ -215,14 +210,15 @@ TEST_F(cache_stencil, ij_cache_offset)
     boost::shared_ptr< gridtools::stencil >
 #endif
 #endif
-        pstencil = make_computation< gridtools::BACKEND >(domain,
-            m_grid,
-            make_multistage // mss_descriptor
-            (execute< forward >(),
-                                                              define_caches(cache< IJ, local >(p_buff())),
-                                                              make_stage< functor1 >(p_in(), p_buff()), // esf_descriptor
-                                                              make_stage< functor2 >(p_buff(), p_out()) // esf_descriptor
-                                                              ));
+        pstencil =
+            make_computation< gridtools::BACKEND >(domain,
+                m_grid,
+                make_multistage // mss_descriptor
+                (execute< forward >(),
+                                                       define_caches(cache< IJ, local >(p_buff())),
+                                                       make_stage< functor1 >(p_in(), p_buff()), // esf_descriptor
+                                                       make_stage< functor2 >(p_buff(), p_out()) // esf_descriptor
+                                                       ));
 
     pstencil->ready();
 

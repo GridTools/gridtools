@@ -37,12 +37,15 @@ namespace gridtools {
      * All derived metadata is computed in this class
      * @tparam MssDescriptor the mss descriptor
      * @tparam ExtentSizes the extent sizes of all the ESFs in this mss
-     * @tparam RepeatFunctor the length of the chunks for expandable parameters, see @ref gridtools::expandable_parameters
+     * @tparam RepeatFunctor the length of the chunks for expandable parameters, see @ref
+     * gridtools::expandable_parameters
      */
     template < typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor >
     struct mss_components {
         GRIDTOOLS_STATIC_ASSERT((is_computation_token< MssDescriptor >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<ExtentSizes>::type::value==0 || is_sequence_of< ExtentSizes, is_extent >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT(
+            (boost::mpl::size< ExtentSizes >::type::value == 0 || is_sequence_of< ExtentSizes, is_extent >::value),
+            "Internal Error: wrong type");
         typedef MssDescriptor mss_descriptor_t;
 
         typedef typename mss_descriptor_execution_engine< MssDescriptor >::type execution_engine_t;

@@ -35,6 +35,5 @@ namespace gridtools {
         GT_FUNCTION constexpr int_t index(Accessor const &arg_) const {
             return m_value._index(arg_.offsets());
         }
-
     };
 } // namespace gridtools

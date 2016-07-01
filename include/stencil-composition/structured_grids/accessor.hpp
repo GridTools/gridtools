@@ -138,24 +138,23 @@ namespace gridtools {
        lookup is anyway done at compile time, i.e. the get() method returns in constant time.
      */
     template < typename ArgType, typename... Pair >
-    struct accessor_mixed : public offset_tuple_mixed<typename ArgType::offset_tuple_t, Pair ...> {
+    struct accessor_mixed : public offset_tuple_mixed< typename ArgType::offset_tuple_t, Pair... > {
         typedef typename ArgType::index_type index_type;
         typedef typename ArgType::base_t base_t;
 
-        using super = offset_tuple_mixed<typename ArgType::offset_tuple_t, Pair ...>;
+        using super = offset_tuple_mixed< typename ArgType::offset_tuple_t, Pair... >;
 
         /**inheriting all constructors from offset_tuple*/
         using super::offset_tuple_mixed;
 
 #ifdef __CUDACC__
-        template <typename ... T>
-        GT_FUNCTION
-        constexpr accessor_mixed(T const& ... t_):super(t_ ...){}
+        template < typename... T >
+        GT_FUNCTION constexpr accessor_mixed(T const &... t_)
+            : super(t_...) {}
 #endif
 
         GT_FUNCTION
-        constexpr const super& offsets() const { return *this; }
-
+        constexpr const super &offsets() const { return *this; }
     };
 
     /**

@@ -285,7 +285,7 @@ namespace gridtools {
         */
         template < ushort_t I, typename T, T DefaultVal, typename OffsetTuple >
         GT_FUNCTION static constexpr T find_val(OffsetTuple const &indices) {
-            GRIDTOOLS_STATIC_ASSERT(( is_offset_tuple< OffsetTuple >::value),
+            GRIDTOOLS_STATIC_ASSERT((is_offset_tuple< OffsetTuple >::value),
                 "the find_val method must be used with tuples of offset_tuple type");
             return ((pos_< I >::value >= length)) ? DefaultVal
                                                   : indices.template get< OffsetTuple::n_dim - pos_< I >::value - 1 >();

@@ -188,30 +188,19 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
 #endif
     {% set inside_independent_block = False %}
 
-    comp_{{ s.name|lower }} =
-      gridtools::make_computation<gridtools::BACKEND>
-      (
-          domain, grid_{{ loop.index0 }},
-            gridtools::make_mss
-            (
-                execute<{{ s.k_direction }}>(),
-                {% for f in functors[s.name] -%}
-                    {% if f.independent and not inside_independent_block -%}
-                        gridtools::make_independent (
-                        {% set inside_independent_block = True -%}
-                    {% endif -%}
-                    {% if not f.independent and inside_independent_block -%}
-                        ),
-                        {% set inside_independent_block = False -%}
-                    {% endif -%}
-                    gridtools::make_stage<{{ f.name }}>(
-                       {{- f.scope.get_parameters ( )|join_with_prefix ('p_', attribute='name')|join ('(), ')|replace('.', '_') }}() )
-                       {%- if not (loop.index0 in independent_funct_idx or loop.last) -%}
-                       ,
-                       {%- endif %}
-                {% endfor -%}
-            )
-      );
+    comp_{{s.name | lower}} = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid_{{loop.index0}},
+        gridtools::make_mss(
+            execute< {{s.k_direction}} >(),
+            { % for f in functors[s.name] - % } {
+                % if f.independent and not inside_independent_block - %
+            } gridtools::make_independent({ % set inside_independent_block = True - % } {
+                % endif - % } { % if not f.independent and inside_independent_block - % }),
+            { % set inside_independent_block = False - % } { % endif - % } gridtools::make_stage< {{f.name}} >(
+                {{-f.scope.get_parameters() | join_with_prefix('p_', attribute = 'name') | join('(), ') |
+                    replace('.', '_')}}()) { % -if not(loop.index0 in independent_funct_idx or loop.last) - % },
+            { % -endif % } { % endfor - % }));
     {% endfor %}
 
     //

@@ -92,7 +92,7 @@ TEST(test_copy_stencil, run) {
 
     typedef boost::mpl::vector<p_in_cells, p_out_cells> accessor_list_t;
 
-    gridtools::aggregator_type<accessor_list_t> domain(boost::fusion::make_vector(&in_cells, &out_cells) );
+    gridtools::aggregator_type< accessor_list_t > domain(boost::fusion::make_vector(&in_cells, &out_cells));
     array<uint_t,5> di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc -1, d1};
     array<uint_t,5> dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc -1, d2};
 
@@ -109,16 +109,13 @@ TEST(test_copy_stencil, run) {
     boost::shared_ptr< gridtools::stencil >
 #endif
 #endif
-            copy = gridtools::make_computation<backend_t >
-            (
-                domain, grid_,
-                gridtools::make_multistage // mss_descriptor
-                (
-                    execute<forward>(),
-                    gridtools::make_stage<test_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(
-                        p_in_cells(), p_out_cells() )
-                )
-            );
+        copy = gridtools::make_computation< backend_t >(
+            domain,
+            grid_,
+            gridtools::make_multistage // mss_descriptor
+            (execute< forward >(),
+                gridtools::make_stage< test_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
+                    p_in_cells(), p_out_cells())));
     copy->ready();
     copy->steady();
     copy->run();

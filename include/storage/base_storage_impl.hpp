@@ -65,7 +65,6 @@ namespace gridtools {
 
 #endif
 
-
         /**@brief struct to compute the total offset (the sum of the i,j,k indices times their respective strides)
          */
         template < ushort_t Id, typename Layout >
@@ -112,7 +111,7 @@ namespace gridtools {
         /**@brief stops the recursion
          */
         template < typename Layout >
-        struct compute_offset< 1, Layout> {
+        struct compute_offset< 1, Layout > {
             static const ushort_t space_dimensions = Layout::length;
 
             template < typename IntType, typename StridesVector >

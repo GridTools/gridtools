@@ -112,7 +112,7 @@ namespace gridtools {
 #endif
 
             if (s.get()) {
-                //update pointer should not copy the data!!
+                // update pointer should not copy the data!!
                 copy_data_impl< StorageType >(s);
                 s->clone_to_device();
             }
@@ -169,7 +169,7 @@ namespace gridtools {
         GT_FUNCTION void do_impl(pointer< StorageType > arg,
             typename boost::enable_if_c< is_storage< StorageType >::value >::type * = 0,
             typename boost::disable_if_c< is_no_storage_type_yet< StorageType >::value >::type * = 0) const {
-            arg->d2h_update( );
+            arg->d2h_update();
         }
 
         template < typename StorageType >

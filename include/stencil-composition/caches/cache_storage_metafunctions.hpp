@@ -9,7 +9,6 @@ namespace gridtools {
 
     namespace _impl {
 
-
         template < typename Layout, typename Plus, typename Minus, typename Tiles, typename Storage >
         struct compute_meta_storage;
 
@@ -56,22 +55,18 @@ namespace gridtools {
         template < uint_t... Id >
         struct generate_layout_map< gt_integer_sequence< uint_t, Id... > > {
 #ifdef CUDA8
-            typedef layout_map< (sizeof...(Id) - Id - 1)... > type;
+            typedef layout_map< (sizeof...(Id)-Id - 1)... > type;
 #else
             typedef typename boost::mpl::if_c<
-                sizeof...(Id)==2,
-                layout_map<1,0>,
-                typename boost::mpl::if_c<
-                    sizeof...(Id)==3,
-                    layout_map<2,1,0>,
-                    typename boost::mpl::if_c<
-                        sizeof...(Id)==4,
-                        layout_map<3,2,1,0>,
-                        typename boost::mpl::if_c<
-                            sizeof...(Id)==5,
-                            layout_map<4,3,2,1,0>,
-                            boost::mpl::false_
-                            >::type >::type >::type >::type type;
+                sizeof...(Id) == 2,
+                layout_map< 1, 0 >,
+                typename boost::mpl::if_c< sizeof...(Id) == 3,
+                    layout_map< 2, 1, 0 >,
+                    typename boost::mpl::if_c< sizeof...(Id) == 4,
+                                               layout_map< 3, 2, 1, 0 >,
+                                               typename boost::mpl::if_c< sizeof...(Id) == 5,
+                                                   layout_map< 4, 3, 2, 1, 0 >,
+                                                   boost::mpl::false_ >::type >::type >::type >::type type;
 #endif
         };
 
@@ -80,8 +75,12 @@ namespace gridtools {
         struct compute_size;
 
         template < typename... Minus, typename... Plus, typename... Tiles, typename Storage >
-        struct compute_size< variadic_to_vector< Minus... >, variadic_to_vector< Plus... >, variadic_to_vector< Tiles... >, Storage > {
-            static constexpr auto value = accumulate(multiplies(), (Plus::value + Tiles::value - Minus::value)...)*Storage::field_dimensions;
+        struct compute_size< variadic_to_vector< Minus... >,
+            variadic_to_vector< Plus... >,
+            variadic_to_vector< Tiles... >,
+            Storage > {
+            static constexpr auto value =
+                accumulate(multiplies(), (Plus::value + Tiles::value - Minus::value)...) * Storage::field_dimensions;
         };
 #endif
 

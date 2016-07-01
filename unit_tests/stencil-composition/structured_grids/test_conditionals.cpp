@@ -91,8 +91,10 @@ namespace test_conditionals{
                 if_(cond,
                     make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor< 0 > >(p_dummy())),
                     if_(cond2,
-                        make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor< 1 > >(p_dummy())),
-                        make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor< 2 > >(p_dummy())))));
+                        make_multistage(
+                            enumtype::execute< enumtype::forward >(), make_stage< functor< 1 > >(p_dummy())),
+                        make_multistage(
+                            enumtype::execute< enumtype::forward >(), make_stage< functor< 2 > >(p_dummy())))));
 
         bool result=true;
         comp_->ready();

@@ -69,7 +69,7 @@ namespace vertical_diffusion {
 #ifdef __CUDACC__
             eval(bcol()) = eval(zdtr()) + eval(kh()) * eval(sqrtgrhors()) * eval(a1t()) +
                            eval(vdtch()) * eval(sqrtgrhors()) * eval(a1tsurf());
-            eval(acol()) = -eval(kh()) * eval(sqrtgrhors()) * eval(a1t()); // acolCenter;
+            eval(acol()) = -eval(kh()) * eval(sqrtgrhors()) * eval(a1t());        // acolCenter;
             eval(ccol()) = -eval(vdtch()) * eval(sqrtgrhors()) * eval(a1tsurf()); // ccolCenter;
 
             eval(dcol()) = eval(data()) * eval(zdtr()) + eval(datatens()) +
@@ -82,7 +82,7 @@ namespace vertical_diffusion {
 #else
             //                            acolCenter              ccolCenter
             eval(bcol()) = eval(zdtr() + kh() * sqrtgrhors() * a1t() + vdtch() * sqrtgrhors() * a1tsurf());
-            eval(acol()) = -eval(kh() * sqrtgrhors() * a1t()); // acolCenter;
+            eval(acol()) = -eval(kh() * sqrtgrhors() * a1t());        // acolCenter;
             eval(ccol()) = -eval(vdtch() * sqrtgrhors() * a1tsurf()); // ccolCenter;
             eval(dcol()) = eval(data() * zdtr() + datatens() +
                                 kh() * sqrtgrhors() * a2t() // as

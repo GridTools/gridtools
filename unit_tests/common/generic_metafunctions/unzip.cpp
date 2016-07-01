@@ -21,8 +21,10 @@ using namespace gridtools;
 
 TEST(unzip, do_unzip) {
 
-    typedef std::tuple<int, float, double, char, bool, short> list_t;
-    //verifying that the information is actually compile-time known and that it's correct
-    static_assert( std::is_same<std::tuple<int, double, bool>, typename unzip<list_t>::first >::value, "error on first argument" );
-    static_assert( std::is_same<std::tuple<float, char, short>, typename unzip<list_t>::second >::value, "error on second argument" );
+    typedef std::tuple< int, float, double, char, bool, short > list_t;
+    // verifying that the information is actually compile-time known and that it's correct
+    static_assert(std::is_same< std::tuple< int, double, bool >, typename unzip< list_t >::first >::value,
+        "error on first argument");
+    static_assert(std::is_same< std::tuple< float, char, short >, typename unzip< list_t >::second >::value,
+        "error on second argument");
 }

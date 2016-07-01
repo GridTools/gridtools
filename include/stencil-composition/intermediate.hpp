@@ -65,7 +65,6 @@
 
 namespace gridtools {
 
-
     template < typename T >
     struct if_condition_extract_index_t;
 
@@ -153,7 +152,8 @@ namespace gridtools {
                 typedef typename boost::mpl::find_if< tmppairs, has_index_< index > >::type iter;
 
                 GRIDTOOLS_STATIC_ASSERT((!boost::is_same< iter, typename boost::mpl::end< tmppairs >::type >::value),
-                    "Could not find a temporary, defined in the user aggregator_type, in the list of storage types used in "
+                    "Could not find a temporary, defined in the user aggregator_type, in the list of storage types "
+                    "used in "
                     "all mss/esfs. \n"
                     " Check that all temporaries are actually used in at least one user functor");
 
@@ -443,8 +443,7 @@ namespace gridtools {
         typename ConditionalsSet,
         typename ReductionType,
         bool IsStateful,
-        uint_t RepeatFunctor = 1
-               >
+        uint_t RepeatFunctor = 1 >
     struct intermediate : public computation< ReductionType > {
 
         GRIDTOOLS_STATIC_ASSERT(
@@ -461,22 +460,24 @@ namespace gridtools {
 
         /**substituting the std::vector type in the args<> with a correspondent
            expandable_parameter placeholder*/
-        typedef typename substitute_expandable_params<typename DomainType::placeholders, RepeatFunctor>::type placeholders_t;
+        typedef typename substitute_expandable_params< typename DomainType::placeholders, RepeatFunctor >::type
+            placeholders_t;
 
         /* First we need to compute the association between placeholders and extents.
            This information is needed to allocate temporaries, and to provide the
            extent information to the user.
          */
         typedef typename placeholder_to_extent_map< typename MssDescriptorArray::elements,
-                                                    grid_traits_t,
-                                                    placeholders_t,
-                                                    RepeatFunctor>::type extent_map_t;
+            grid_traits_t,
+            placeholders_t,
+            RepeatFunctor >::type extent_map_t;
 
         /* Second we need to associate an extent to each esf, so that
            we can associate loop bounds to the functors.
          */
-        typedef typename associate_extents_to_esfs< typename MssDescriptorArray::elements, extent_map_t , RepeatFunctor>::type
-            extent_sizes_t;
+        typedef typename associate_extents_to_esfs< typename MssDescriptorArray::elements,
+            extent_map_t,
+            RepeatFunctor >::type extent_sizes_t;
 
         typedef typename boost::mpl::if_<
             boost::mpl::is_sequence< typename MssDescriptorArray::elements >,

@@ -211,7 +211,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
             dims_...
         }
 #else
-            m_dims( dims_ ...)
+              m_dims(dims_...)
 #endif
         , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout >::apply(dims_...)) {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes) == space_dimensions, "you tried to initialize\
@@ -406,7 +406,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
 
         template < typename OffsetTuple >
         GT_FUNCTION constexpr int_t _index(OffsetTuple const &tuple) const {
-            GRIDTOOLS_STATIC_ASSERT((is_offset_tuple<OffsetTuple>::value), "wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_offset_tuple< OffsetTuple >::value), "wrong type");
             GRIDTOOLS_STATIC_ASSERT((space_dimensions <= layout::length), "something is very wrong");
             return _impl::compute_offset< space_dimensions, layout >::apply(strides(), tuple);
         }

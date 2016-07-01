@@ -15,9 +15,9 @@
 */
 #include "gtest/gtest.h"
 
-//i know that the following directive is super ugly,
-//but i need to check the private member fields of
-//the storage.
+// i know that the following directive is super ugly,
+// but i need to check the private member fields of
+// the storage.
 #define protected public
 #include <common/defs.hpp>
 #include <storage/storage-facility.hpp>

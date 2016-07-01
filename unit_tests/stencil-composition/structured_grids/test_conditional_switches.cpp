@@ -128,10 +128,8 @@ namespace test_conditional_switches{
                             //                      p_dummy(), p_dummy_tmp()))),
                             case_(1,
                                     make_multistage(enumtype::execute< enumtype::forward >(),
-                                        make_stage< functor1< 2000 > >(
-                                                 p_dummy(), p_dummy_tmp()),
-                                        make_stage< functor2< 2000 > >(
-                                                 p_dummy(), p_dummy_tmp()))),
+                                        make_stage< functor1< 2000 > >(p_dummy(), p_dummy_tmp()),
+                                        make_stage< functor2< 2000 > >(p_dummy(), p_dummy_tmp()))),
                             default_(make_multistage(enumtype::execute< enumtype::forward >(),
                                 make_stage< functor1< 3000 > >(p_dummy(), p_dummy_tmp()),
                                 make_stage< functor2< 3000 > >(p_dummy(), p_dummy_tmp()))))),
@@ -170,8 +168,8 @@ namespace test_conditional_switches{
 
         p = false;
 #ifdef __CUDACC__
-        //this is necessary otherwise "finalize" will think that the copy device-to-host is not needed
-        dummy.set_on_device( );
+        // this is necessary otherwise "finalize" will think that the copy device-to-host is not needed
+        dummy.set_on_device();
 #endif
         comp_->run();
         comp_->finalize();

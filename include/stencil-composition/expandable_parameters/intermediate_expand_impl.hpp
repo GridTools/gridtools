@@ -1,5 +1,5 @@
-namespace gridtools{
-    namespace _impl{
+namespace gridtools {
+    namespace _impl {
         template < typename T, typename Vec, ushort_t ID, bool val >
         struct new_storage;
 
@@ -108,8 +108,8 @@ namespace gridtools{
             void operator()(T) {
                 // unset the storage, so that it does not try to release the pointers it contains
                 boost::fusion::at< typename T::index_type >(m_vec_to)->storage_pointer()->unset();
-                //filtering out temporary storages
-                if(!boost::fusion::at< typename T::index_type >(m_vec_to)->is_temporary){
+                // filtering out temporary storages
+                if (!boost::fusion::at< typename T::index_type >(m_vec_to)->is_temporary) {
                     delete_pointer deleter;
                     deleter(boost::fusion::at< typename T::index_type >(m_vec_to));
                 }
@@ -127,7 +127,7 @@ namespace gridtools{
             DomainChunk &m_dom_chunk;
             uint_t const &m_idx;
 
-        public:
+          public:
             prepare_expandable_params(DomainFull const &dom_full_, DomainChunk &dom_chunk_, uint_t const &i_)
                 : m_dom_full(dom_full_), m_dom_chunk(dom_chunk_), m_idx(i_) {}
 
@@ -137,10 +137,10 @@ namespace gridtools{
                 if (!is_temporary_storage<
                         typename boost::mpl::at_c< typename DomainChunk::arg_list_mpl, ID >::type >::value) {
                     // the vector of pointers
-                    pointer< std::vector< pointer< T > > > const & ptr_full_ =
+                    pointer< std::vector< pointer< T > > > const &ptr_full_ =
                         m_dom_full.template storage_pointer< arg< ID, std::vector< pointer< T > > > >();
                     auto ptr_chunk_ = boost::fusion::at< static_ushort< ID > >(m_dom_chunk.m_storage_pointers);
-                    //reset the pointer to the host version, since they'll be accessed from the host
+                    // reset the pointer to the host version, since they'll be accessed from the host
                     (*(ptr_chunk_->storage_pointer())).set(*ptr_full_, m_idx);
                     ptr_chunk_->set_on_host();
                     // update the device pointers (TODO: should not copy the heavy data)
@@ -148,7 +148,6 @@ namespace gridtools{
                 }
             }
         };
-
 
         /**
            @brief functor used to assign the next chunk of storage pointers
@@ -172,15 +171,14 @@ namespace gridtools{
                         typename boost::mpl::at_c< typename DomainChunk::arg_list_mpl, ID >::type >::value) {
                     // the vector of pointers
                     pointer< std::vector< pointer< T > > > const &ptr_full_ =
-                        m_dom_full.template storage_pointer< arg< ID, std::vector< pointer< T > > > >( );
+                        m_dom_full.template storage_pointer< arg< ID, std::vector< pointer< T > > > >();
 
                     auto ptr_chunk_ = boost::fusion::at< static_ushort< ID > >(m_dom_chunk.m_storage_pointers);
 
                     (*(ptr_chunk_->storage_pointer())).set(*ptr_full_, m_idx);
-                    if(Backend::s_backend_id==enumtype::Cuda)
-                    {
-                        ptr_chunk_->set_on_host( );
-                        ptr_chunk_->h2d_update( );
+                    if (Backend::s_backend_id == enumtype::Cuda) {
+                        ptr_chunk_->set_on_host();
+                        ptr_chunk_->h2d_update();
                     }
                 }
             }
@@ -207,9 +205,8 @@ namespace gridtools{
                         // hard-setting the on_device flag for the hybrid_pointers:
                         // since the storages used get created on-the-fly the original storages do
                         // not know that they are still on the device
-                        if(Backend::s_backend_id==enumtype::Cuda)
-                        {
-                            i->set_on_device( );
+                        if (Backend::s_backend_id == enumtype::Cuda) {
+                            i->set_on_device();
                             i->storage_pointer()->set_on_device();
                             i->d2h_update();
                         }
@@ -217,5 +214,5 @@ namespace gridtools{
                 }
             }
         };
-    }//namespace _impl
-}//namespace gridtools
+    } // namespace _impl
+} // namespace gridtools

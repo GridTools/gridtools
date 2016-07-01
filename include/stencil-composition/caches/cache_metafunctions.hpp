@@ -139,10 +139,10 @@ namespace gridtools {
      */
 
     template < cache_type cacheType,
-               typename CacheSequence,
-               typename CacheExtendsMap,
-               typename BlockSize,
-               typename LocalDomain>
+        typename CacheSequence,
+        typename CacheExtendsMap,
+        typename BlockSize,
+        typename LocalDomain >
     struct get_cache_storage_tuple {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< CacheSequence, is_cache >::value), "Internal Error: Wrong Type");
         GRIDTOOLS_STATIC_ASSERT((is_block_size< BlockSize >::value), "Internal Error: Wrong Type");
@@ -151,8 +151,9 @@ namespace gridtools {
         /** metafunction extracting the storage type corresponding to an index from the local_domain*/
         template < typename LocDom, typename Index >
         struct get_storage {
-            GRIDTOOLS_STATIC_ASSERT(is_local_domain<LocDom>::value, "wrong type");
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename LocDom::mpl_storages>::value > Index::value), "accessing a storage which is not in the list");
+            GRIDTOOLS_STATIC_ASSERT(is_local_domain< LocDom >::value, "wrong type");
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< typename LocDom::mpl_storages >::value > Index::value),
+                "accessing a storage which is not in the list");
             typedef typename boost::mpl::at< typename LocDom::mpl_storages, Index >::type type;
         };
 
@@ -165,13 +166,12 @@ namespace gridtools {
 
         template < typename Cache, typename StoragePtr >
         struct get_cache_storage {
-            GRIDTOOLS_STATIC_ASSERT(is_cache<Cache>::value, "wrong type");
-            GRIDTOOLS_STATIC_ASSERT(is_pointer<StoragePtr>::value, "wrong type");
-            GRIDTOOLS_STATIC_ASSERT(is_storage<typename StoragePtr::value_type>::value, "wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_cache< Cache >::value, "wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_pointer< StoragePtr >::value, "wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_storage< typename StoragePtr::value_type >::value, "wrong type");
 
-            typedef cache_storage< BlockSize,
-                typename boost::mpl::at< CacheExtendsMap, Cache >::type,
-                StoragePtr > type;
+            typedef cache_storage< BlockSize, typename boost::mpl::at< CacheExtendsMap, Cache >::type, StoragePtr >
+                type;
         };
 
         // first we build an mpl vector of pairs
@@ -182,7 +182,7 @@ namespace gridtools {
                 boost::mpl::push_back< boost::mpl::_1,
                                      boost::mpl::pair< cache_to_index< boost::mpl::_2, LocalDomain >,
                                            get_cache_storage< boost::mpl::_2,
-                                                              get_storage< LocalDomain,
+                                                           get_storage< LocalDomain,
                                                                   cache_to_index< boost::mpl::_2, LocalDomain > > > > >,
                 boost::mpl::identity< boost::mpl::_1 > > >::type mpl_type;
 
@@ -233,7 +233,7 @@ namespace gridtools {
     struct get_cache_set {
 
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< CacheSequence, is_cache >::value), "Internal Error: Wrong Type");
-        GRIDTOOLS_STATIC_ASSERT(is_local_domain<LocalDomain>::value, "wrong type");
+        GRIDTOOLS_STATIC_ASSERT(is_local_domain< LocalDomain >::value, "wrong type");
 
         typedef typename boost::mpl::fold< CacheSequence,
             boost::mpl::set0<>,

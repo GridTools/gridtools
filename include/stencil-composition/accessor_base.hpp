@@ -83,7 +83,7 @@ namespace gridtools {
         typedef static_uint< I > index_type;
         typedef enumtype::enum_type< enumtype::intend, Intend > intend_t;
         typedef Extend extent_t;
-        typedef offset_tuple<n_dim, n_dim> offset_tuple_t;
+        typedef offset_tuple< n_dim, n_dim > offset_tuple_t;
 
       private:
         offset_tuple_t m_offsets;

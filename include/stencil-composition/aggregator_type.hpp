@@ -81,7 +81,8 @@ namespace gridtools {
     struct aggregator_type : public clonable_to_gpu< aggregator_type< Placeholders > > {
 
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< Placeholders >::type::value > 0),
-            "The aggregator_type must be constructed with at least one storage placeholder. If you don't use any storage "
+            "The aggregator_type must be constructed with at least one storage placeholder. If you don't use any "
+            "storage "
             "you are probably trying to do something which is not a stencil operation, aren't you?");
         typedef typename boost::mpl::sort< Placeholders, arg_comparator >::type placeholders_t;
 
@@ -128,10 +129,11 @@ namespace gridtools {
         typedef typename check_holes::raw_index_list index_list;
         typedef typename check_holes::index_set index_set;
 
-
-        //actual check if the user specified placeholder arguments with the same index
-        GRIDTOOLS_STATIC_ASSERT((len <= boost::mpl::size<index_set>::type::value ), "you specified two different placeholders with the same index, which is not allowed. check the arg defiintions.");
-        GRIDTOOLS_STATIC_ASSERT((len >= boost::mpl::size<index_set>::type::value ), "something strange is happening.");
+        // actual check if the user specified placeholder arguments with the same index
+        GRIDTOOLS_STATIC_ASSERT((len <= boost::mpl::size< index_set >::type::value),
+            "you specified two different placeholders with the same index, which is not allowed. check the arg "
+            "defiintions.");
+        GRIDTOOLS_STATIC_ASSERT((len >= boost::mpl::size< index_set >::type::value), "something strange is happening.");
 
         /**
            @brief MPL vector of storage pointers
@@ -218,15 +220,15 @@ namespace gridtools {
 #endif
       public:
 #if defined(CXX11_ENABLED)
-        /** @brief variadic constructor
-            construct the aggregator_type given an arbitrary number of placeholders to the non-temporary
-            storages passed as arguments.
+/** @brief variadic constructor
+    construct the aggregator_type given an arbitrary number of placeholders to the non-temporary
+    storages passed as arguments.
 
-            USAGE EXAMPLE:
-            \verbatim
-            aggregator_type((p1=storage_1), (p2=storage_2), (p3=storage_3));
-            \endverbatim
-        */
+    USAGE EXAMPLE:
+    \verbatim
+    aggregator_type((p1=storage_1), (p2=storage_2), (p3=storage_3));
+    \endverbatim
+*/
 #ifndef __CUDACC__ // nvcc compiler bug with double pack expansion
         template < typename... Storage, typename... Args >
         aggregator_type(arg_storage_pair< Args, Storage >... args)
@@ -364,7 +366,8 @@ namespace gridtools {
             view_type fview(m_storage_pointers);
             GRIDTOOLS_STATIC_ASSERT(boost::fusion::result_of::size< view_type >::type::value ==
                                         boost::mpl::size< RealStorage >::type::value,
-                "The number of arguments specified when constructing the aggregator_type is not the same as the number of "
+                "The number of arguments specified when constructing the aggregator_type is not the same as the number "
+                "of "
                 "placeholders "
                 "to non-temporary storages. Double check the temporary flag in the meta_storage types.");
 
@@ -384,7 +387,8 @@ namespace gridtools {
                     boost::mpl::_1 > >::type::type storages_matching;
 
             GRIDTOOLS_STATIC_ASSERT(storages_matching::value,
-                "Error in the definition of the aggregator_type. The storage type associated to one of the \'arg\' types "
+                "Error in the definition of the aggregator_type. The storage type associated to one of the \'arg\' "
+                "types "
                 "is not the correct one. Check that the storage_type used when defining each \'arg\' matches the "
                 "corresponding storage passed as run-time argument of the aggregator_type constructor");
 
@@ -523,14 +527,14 @@ namespace gridtools {
     template < uint_t... Indices, typename... Storages >
     aggregator_type< boost::mpl::vector< arg< Indices, Storages >... > > instantiate_aggregator_type(
         gt_integer_sequence< uint_t, Indices... > seq_, Storages &... storages_) {
-        auto dom_ =
-            aggregator_type< boost::mpl::vector< arg< Indices, Storages >... > >(boost::fusion::make_vector(&storages_...));
+        auto dom_ = aggregator_type< boost::mpl::vector< arg< Indices, Storages >... > >(
+            boost::fusion::make_vector(&storages_...));
         return dom_;
     }
 
     template < typename... Storage >
-    auto make_aggregator_type(Storage &... storages_)
-        -> decltype(instantiate_aggregator_type(make_gt_integer_sequence< uint_t, sizeof...(Storage) >(), storages_...)) {
+    auto make_aggregator_type(Storage &... storages_) -> decltype(
+        instantiate_aggregator_type(make_gt_integer_sequence< uint_t, sizeof...(Storage) >(), storages_...)) {
         return instantiate_aggregator_type(make_gt_integer_sequence< uint_t, sizeof...(Storage) >(), storages_...);
     }
 

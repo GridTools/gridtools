@@ -10,6 +10,4 @@ int main(int argc, char **argv) {
     return RUN_ALL_TESTS();
 }
 
-TEST(ReassignDomain, Test) {
-    ASSERT_TRUE(domain_reassign::test());
-}
+TEST(ReassignDomain, Test) { ASSERT_TRUE(domain_reassign::test()); }

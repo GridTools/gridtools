@@ -64,11 +64,12 @@ namespace adv_prepare_tracers {
 
         aggregator_type< args_t > domain_(boost::fusion::make_vector(&list_out_, &list_in_, &rho));
 
-        auto comp_ = make_computation< BACKEND >(expand_factor< 20 >(),
-            domain_,
-            grid_,
-            make_multistage(enumtype::execute< enumtype::forward >(),
-                                                     make_stage< prepare_tracers >(p_list_out(), p_list_in(), p_rho())));
+        auto comp_ =
+            make_computation< BACKEND >(expand_factor< 20 >(),
+                domain_,
+                grid_,
+                make_multistage(enumtype::execute< enumtype::forward >(),
+                                            make_stage< prepare_tracers >(p_list_out(), p_list_in(), p_rho())));
 
         comp_->ready();
         comp_->steady();
