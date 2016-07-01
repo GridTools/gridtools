@@ -427,15 +427,19 @@ class CopyTest (AccessPatternDetectionTest):
         direction = choice (K_DIRECTIONS)
         #
         # Generate slice indexes for all 3 array dimensions
-        # We choose arbitrarily to limit the random numbers at 1/4th of the
-        # domain size
-        # Do not slice vertical direction if k<4 (happens in some tests,
+        # We choose arbitrarily to generate the random numbers only in an
+        # interval corresponding to 1/4th of the dimension size on both ends
+        # of each dimension.
+        # The integer floor division will result in no slicing applied if
+        # a dimension is smaller than 4 elements (happens in some tests,
         # ie Shallow Water)
         #
-        slices = (randint(0, self.domain[0]//4), randint(self.domain[0]//4, self.domain[0]),
-                  randint(0, self.domain[1]//4), randint(self.domain[1]//4, self.domain[1]),
-                  randint(0, self.domain[2]//4), randint(self.domain[2]//4, self.domain[2]))
-        #
+        quarter_i = self.domain[0]//4
+        quarter_j = self.domain[1]//4
+        quarter_k = self.domain[2]//4
+        slices = (randint(0, quarter_i), randint(self.domain[0]-quarter_i, self.domain[0]),
+                  randint(0, quarter_j), randint(self.domain[1]-quarter_j, self.domain[1]),
+                  randint(0, quarter_k), randint(self.domain[2]-quarter_k, self.domain[2]))
         #
         # Generate expected coordinates
         #
@@ -1085,10 +1089,14 @@ class VerticalRegionsTest (LaplaceTest):
 
     def test_vertical_regions (self):
         self._run ( )
-        expected_vr = {'stage_laplace0': [0,4],
-                       'stage_laplace1': [3,8],
-                       'stage_laplace2': [6,32],
-                       'stage_laplace3': [4,8]}
+        expected_k = {'stage_laplace0': [0,4],
+                      'stage_laplace1': [3,8],
+                      'stage_laplace2': [6,32],
+                      'stage_laplace3': [4,8]}
+        expected_spl = {'stage_laplace0': [0,2],
+                        'stage_laplace1': [1,4],
+                        'stage_laplace2': [3,5],
+                        'stage_laplace3': [2,4]}
         #
         # Iterate over stages, popping expected values from the dictionary
         # A dict is required because stages is the result of a topological sort,
@@ -1101,19 +1109,23 @@ class VerticalRegionsTest (LaplaceTest):
             # or appended to the name string at runtime
             #
             vr_key = None
-            for k in expected_vr.keys():
+            for k in expected_k.keys():
                 if k in stg.name:
                     vr_key = k
             #
-            # Check that VR edges correspond to expected ones
+            # Check that cell indexes and splitters correspond to expected ones
             #
-            vr_edges = expected_vr.pop(vr_key)
-            self.assertEqual (stg.vertical_regions[0].start_splitter, vr_edges[0])
-            self.assertEqual (stg.vertical_regions[0].end_splitter, vr_edges[1])
+            k_idx = expected_k.pop(vr_key)
+            split = expected_spl.pop(vr_key)
+            self.assertEqual (stg.vertical_regions[0].start_k, k_idx[0])
+            self.assertEqual (stg.vertical_regions[0].end_k,   k_idx[1])
+            self.assertEqual (stg.vertical_regions[0].start_splitter, split[0])
+            self.assertEqual (stg.vertical_regions[0].end_splitter,   split[1])
         #
-        # Check all expected vertical regions have been tested (dict is empty)
+        # Check all expected vertical regions have been tested (dicts are empty)
         #
-        self.assertFalse (expected_vr)
+        self.assertFalse (expected_k)
+        self.assertFalse (expected_spl)
 
 
 
