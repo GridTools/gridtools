@@ -91,7 +91,6 @@ namespace test_expandable_parameters {
         grid_.value_list[0] = 0;
         grid_.value_list[1] = d3 - 1;
 
-
         typedef arg< 0, std::vector< pointer< storage_t > > > p_list_out;
         typedef arg< 1, std::vector< pointer< storage_t > > > p_list_in;
         typedef arg< 2, std::vector< pointer< tmp_storage_t > > > p_list_tmp;
@@ -104,7 +103,7 @@ namespace test_expandable_parameters {
             domain_,
             grid_,
             make_multistage(enumtype::execute< enumtype::forward >(),
-                            define_caches(cache< IJ, local >(p_list_tmp())),
+                                                     define_caches(cache< IJ, local >(p_list_tmp())),
                                                      make_stage< functor_exp >(p_list_tmp(), p_list_in()),
                                                      make_stage< functor_exp >(p_list_out(), p_list_tmp())));
 

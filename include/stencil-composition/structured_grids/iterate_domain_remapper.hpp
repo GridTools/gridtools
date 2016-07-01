@@ -76,7 +76,7 @@ namespace gridtools {
             template < typename Accessor >
             using accessor_return_type = typename iterate_domain_t::template accessor_return_type<
                 typename remap_accessor_type< Accessor, esf_args_map_t >::type >;
-#else // CXX11_ENABLED
+#else  // CXX11_ENABLED
             template < typename Accessor >
             struct accessor_return_type {
                 typedef typename iterate_domain_t::template accessor_return_typ_impl<
@@ -98,7 +98,7 @@ namespace gridtools {
                 auto
                 operator()(Accessor const &arg) const
                 -> decltype(m_iterate_domain(typename remap_accessor_type< Accessor, esf_args_map_t >::type(arg)))
-#else // CXX11_ENABLED
+#else  // CXX11_ENABLED
                 typename iterate_domain_t::template accessor_return_type<
                     typename remap_accessor_type< Accessor, esf_args_map_t >::type >::type
                 operator()(Accessor const &arg) const
@@ -127,14 +127,11 @@ namespace gridtools {
                Useful to determine the loop bounds, when looping over a dimension from whithin a kernel
                NOTE: shifting the IDs of the placeholders and forwarding to the iterate_domain () operator
             */
-            template<ushort_t Coordinate, typename Accessor>
-            GT_FUNCTION
-            uint_t get_storage_dims(Accessor acc_) const
-            {
-                typedef typename remap_accessor_type<Accessor, esf_args_map_t>::type remap_accessor_t;
-                return m_iterate_domain.get_storage_dims<Coordinate>(remap_accessor_t(acc_));
+            template < ushort_t Coordinate, typename Accessor >
+            GT_FUNCTION uint_t get_storage_dims(Accessor acc_) const {
+                typedef typename remap_accessor_type< Accessor, esf_args_map_t >::type remap_accessor_t;
+                return m_iterate_domain.get_storage_dims< Coordinate >(remap_accessor_t(acc_));
             }
-
         };
 
         /**

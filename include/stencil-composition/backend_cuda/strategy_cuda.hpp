@@ -97,17 +97,16 @@ namespace gridtools {
 #endif
             GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::type::value, "wrong type");
 
-            typedef meta_storage<
-                meta_storage_tmp< meta_storage_aligned< meta_storage_base< Index, Layout, true >,
-                                      Alignment, // alignment boundary
-                                      Halo >,
+            typedef meta_storage< meta_storage_tmp< meta_storage_aligned< meta_storage_base< Index, Layout, true >,
+                                                        Alignment, // alignment boundary
+                                                        Halo >,
 #ifdef CXX11_ENABLED
-                    Tiles...
+                Tiles...
 #else
-                    TileI,
-                    TileJ
+                TileI,
+                TileJ
 #endif
-                    > > type;
+                > > type;
         };
 
 /**

@@ -122,7 +122,6 @@ namespace test_expandable_parameters {
         grid_.value_list[0] = 0;
         grid_.value_list[1] = d3 - 1;
 
-
         typedef arg< 0, storage_t > p_0_out;
         typedef arg< 1, storage_t > p_1_out;
         typedef arg< 2, storage_t > p_2_out;
@@ -199,37 +198,37 @@ namespace test_expandable_parameters {
                 define_caches(cache< IJ, local >(
                     p_0_tmp(), p_1_tmp(), p_2_tmp(), p_3_tmp(), p_4_tmp(), p_5_tmp(), p_6_tmp(), p_7_tmp())),
                 make_stage< functor_single_kernel >(p_0_tmp(),
-                         p_1_tmp(),
-                         p_2_tmp(),
-                         p_3_tmp(),
-                         p_4_tmp(),
-                         p_5_tmp(),
-                         p_6_tmp(),
-                         p_7_tmp(),
-                         p_0_in(),
-                         p_1_in(),
-                         p_2_in(),
-                         p_3_in(),
-                         p_4_in(),
-                         p_5_in(),
-                         p_6_in(),
-                         p_7_in()),
+                                p_1_tmp(),
+                                p_2_tmp(),
+                                p_3_tmp(),
+                                p_4_tmp(),
+                                p_5_tmp(),
+                                p_6_tmp(),
+                                p_7_tmp(),
+                                p_0_in(),
+                                p_1_in(),
+                                p_2_in(),
+                                p_3_in(),
+                                p_4_in(),
+                                p_5_in(),
+                                p_6_in(),
+                                p_7_in()),
                 make_stage< functor_single_kernel >(p_0_out(),
-                         p_1_out(),
-                         p_2_out(),
-                         p_3_out(),
-                         p_4_out(),
-                         p_5_out(),
-                         p_6_out(),
-                         p_7_out(),
-                         p_0_tmp(),
-                         p_1_tmp(),
-                         p_2_tmp(),
-                         p_3_tmp(),
-                         p_4_tmp(),
-                         p_5_tmp(),
-                         p_6_tmp(),
-                         p_7_tmp())));
+                                p_1_out(),
+                                p_2_out(),
+                                p_3_out(),
+                                p_4_out(),
+                                p_5_out(),
+                                p_6_out(),
+                                p_7_out(),
+                                p_0_tmp(),
+                                p_1_tmp(),
+                                p_2_tmp(),
+                                p_3_tmp(),
+                                p_4_tmp(),
+                                p_5_tmp(),
+                                p_6_tmp(),
+                                p_7_tmp())));
 
         comp_->ready();
         comp_->steady();

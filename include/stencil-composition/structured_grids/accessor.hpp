@@ -84,7 +84,8 @@ namespace gridtools {
         template < typename... ForwardedArgs >
         GT_FUNCTION constexpr accessor(ForwardedArgs... x)
             : super(x...) {
-            GRIDTOOLS_STATIC_ASSERT( (sizeof...(ForwardedArgs) <= Number), "too many arguments for an accessor. Check that the accessor dimension is valid." );
+            GRIDTOOLS_STATIC_ASSERT((sizeof...(ForwardedArgs) <= Number),
+                "too many arguments for an accessor. Check that the accessor dimension is valid.");
         }
 
         // move ctor

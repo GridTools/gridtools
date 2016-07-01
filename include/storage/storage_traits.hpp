@@ -42,7 +42,7 @@ namespace gridtools {
             typedef no_storage_type_yet< storage_type > type;
         };
 
-        // convenience structs that unwrap the inner storage and meta_storage type
+// convenience structs that unwrap the inner storage and meta_storage type
 #ifdef CXX11_ENABLED
         template < typename ValueType, typename MetaData >
         using storage_type = typename storage_traits_aux::template select_storage< ValueType, MetaData >::type;

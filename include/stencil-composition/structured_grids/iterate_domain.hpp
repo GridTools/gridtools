@@ -510,22 +510,21 @@ namespace gridtools {
 
            Useful to determine the loop bounds, when looping over a dimension from whithin a kernel
          */
-        template<ushort_t Coordinate, typename Accessor>
-        GT_FUNCTION
-        uint_t get_storage_dims(Accessor ) const
-        {
+        template < ushort_t Coordinate, typename Accessor >
+        GT_FUNCTION uint_t get_storage_dims(Accessor) const {
 
-            using storage_type = typename boost::remove_pointer<typename boost::mpl::at<typename local_domain_t::mpl_storages, typename Accessor::index_type>::type>::type::value_type;
-            //getting information about the metadata
-            typedef typename boost::mpl::at
-                <metadata_map_t, typename storage_type::meta_data_t >::type metadata_index_t;
+            using storage_type =
+                typename boost::remove_pointer< typename boost::mpl::at< typename local_domain_t::mpl_storages,
+                    typename Accessor::index_type >::type >::type::value_type;
+            // getting information about the metadata
+            typedef
+                typename boost::mpl::at< metadata_map_t, typename storage_type::meta_data_t >::type metadata_index_t;
 
-            pointer<const typename storage_type::meta_data_t> const metadata_ = boost::fusion::at
-                < metadata_index_t >(local_domain.m_local_metadata);
+            pointer< const typename storage_type::meta_data_t > const metadata_ =
+                boost::fusion::at< metadata_index_t >(local_domain.m_local_metadata);
 
-            return metadata_->template dims<Coordinate>();
+            return metadata_->template dims< Coordinate >();
         }
-
 
         /** @brief return a the value in gmem pointed to by an accessor
         */
@@ -556,21 +555,20 @@ namespace gridtools {
             operator()(Accessor const &accessor) const {
 
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
-            GRIDTOOLS_STATIC_ASSERT((Accessor::n_dim>2), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
+            GRIDTOOLS_STATIC_ASSERT(
+                (Accessor::n_dim > 2), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
             return get_value(accessor, get_data_pointer(accessor));
         }
 
-        template<typename Accessor>
-        GT_FUNCTION
-        typename boost::enable_if<
-            typename cache_access_accessor<Accessor, all_caches_t>::type,
-            typename accessor_return_type<Accessor>::type
-        >::type
-        operator()(Accessor const& accessor_) const {
+        template < typename Accessor >
+        GT_FUNCTION typename boost::enable_if< typename cache_access_accessor< Accessor, all_caches_t >::type,
+            typename accessor_return_type< Accessor >::type >::type
+        operator()(Accessor const &accessor_) const {
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
-            GRIDTOOLS_STATIC_ASSERT((Accessor::n_dim>2), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
-            return static_cast<IterateDomainImpl const *>(this)->template
-                    get_cache_value_impl<typename accessor_return_type<Accessor>::type> (accessor_);
+            GRIDTOOLS_STATIC_ASSERT(
+                (Accessor::n_dim > 2), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
+            return static_cast< IterateDomainImpl const * >(this)
+                ->template get_cache_value_impl< typename accessor_return_type< Accessor >::type >(accessor_);
         }
 
         /** @brief method called in the Do methods of the functors.
@@ -609,23 +607,25 @@ namespace gridtools {
             typename accessor_return_type< Accessor >::type >::type
         operator()(accessor_mixed< Accessor, Pairs... > const &accessor) const;
 
-
-        template < typename Accessor, typename ... Pairs>
+        template < typename Accessor, typename... Pairs >
         GT_FUNCTION
-        typename boost::enable_if<
-            typename mem_access_with_standard_accessor<Accessor, all_caches_t>::type,
-            typename accessor_return_type<Accessor>::type
-        >::type
-        operator()(accessor_mixed<Accessor, Pairs ... > const& accessor) const{
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
-            GRIDTOOLS_STATIC_ASSERT((Accessor::n_dim>2), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
+            typename boost::enable_if< typename mem_access_with_standard_accessor< Accessor, all_caches_t >::type,
+                typename accessor_return_type< Accessor >::type >::type
+            operator()(accessor_mixed< Accessor, Pairs... > const &accessor) const {
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
+            GRIDTOOLS_STATIC_ASSERT(
+                (Accessor::n_dim > 2), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
 
             typedef typename Accessor::index_type index_t;
             typedef typename local_domain_t::template get_storage< index_t >::type::value_type storage_t;
-            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim<=storage_t::space_dimensions, "requested accessor index lower than zero. Check that when you define the accessor you specify the dimenisons which you actually access. e.g. suppose that a storage linked to the accessor ```in``` has 5 dimensions, and thus can be called with in(Dimensions<5>(-1)). Calling in(Dimensions<6>(-1)) brings you here.");
+            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim <= storage_t::space_dimensions,
+                "requested accessor index lower than zero. Check that when you define the accessor you specify the "
+                "dimenisons which you actually access. e.g. suppose that a storage linked to the accessor ```in``` has "
+                "5 dimensions, and thus can be called with in(Dimensions<5>(-1)). Calling in(Dimensions<6>(-1)) brings "
+                "you here.");
 
             return get_value(accessor, get_data_pointer(accessor));
-
         }
 
 #endif
@@ -641,22 +641,23 @@ namespace gridtools {
             expr_direct_access< Accessor > const &accessor, StoragePointer const &RESTRICT storage_pointer) const;
 
         /** @brief method called in the Do methods of the functors. */
-        template <typename ... Arguments, template<typename ... Args> class Expression
-                  , typename boost::enable_if< is_expr<Expression<Arguments ... > > , int >::type=0
-                  >
-        GT_FUNCTION
-        auto operator() (Expression<Arguments ... > const& arg)  const ->decltype(expressions::evaluation::value(*this, arg))
-        {
+        template < typename... Arguments,
+            template < typename... Args > class Expression,
+            typename boost::enable_if< is_expr< Expression< Arguments... > >, int >::type = 0 >
+        GT_FUNCTION auto operator()(Expression< Arguments... > const &arg) const
+            -> decltype(expressions::evaluation::value(*this, arg)) {
             //arg.to_string();
             return expressions::evaluation::value((*this), arg);
         }
 
         /** @brief method called in the Do methods of the functors.
             partial specializations for double (or float)*/
-        template <typename Argument, template<typename Arg1, typename Arg2> class Expression, typename FloatType
-                  , typename boost::enable_if<typename boost::is_floating_point<FloatType>::type, int >::type=0 >
-        GT_FUNCTION
-        auto operator() (Expression<Argument, FloatType> const& arg) const ->decltype(expressions::evaluation::value(*this, arg)) {
+        template < typename Argument,
+            template < typename Arg1, typename Arg2 > class Expression,
+            typename FloatType,
+            typename boost::enable_if< typename boost::is_floating_point< FloatType >::type, int >::type = 0 >
+        GT_FUNCTION auto operator()(Expression< Argument, FloatType > const &arg) const
+            -> decltype(expressions::evaluation::value(*this, arg)) {
             GRIDTOOLS_STATIC_ASSERT((is_expr<Expression<Argument, FloatType> >::value), "invalid expression");
             return expressions::evaluation::value((*this), arg);
         }
@@ -664,18 +665,20 @@ namespace gridtools {
         /** @brief method called in the Do methods of the functors.
             partial specializations for int. Here we do not use the typedef int_t, because otherwise the interface would be polluted with casting
             (the user would have to cast all the numbers (-1, 0, 1, 2 .... ) to int_t before using them in the expression)*/
-        template <typename Argument, template<typename Arg1, typename Arg2> class Expression, typename IntType
-                  , typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 >
-        GT_FUNCTION
-        auto operator() (Expression<Argument, IntType> const& arg) const ->decltype(expressions::evaluation::value_int((*this), arg)) {
+        template < typename Argument,
+            template < typename Arg1, typename Arg2 > class Expression,
+            typename IntType,
+            typename boost::enable_if< typename boost::is_integral< IntType >::type, int >::type = 0 >
+        GT_FUNCTION auto operator()(Expression< Argument, IntType > const &arg) const
+            -> decltype(expressions::evaluation::value_int((*this), arg)) {
 
             GRIDTOOLS_STATIC_ASSERT((is_expr<Expression<Argument, IntType> >::value), "invalid expression");
             return expressions::evaluation::value_int((*this), arg);
         }
 
-        template <typename Argument, template<typename Arg1, int Arg2> class Expression, int exponent >
-        GT_FUNCTION
-        auto operator() (Expression<Argument, exponent> const& arg) const ->decltype(expressions::evaluation::value_int((*this), arg)) {
+        template < typename Argument, template < typename Arg1, int Arg2 > class Expression, int exponent >
+        GT_FUNCTION auto operator()(Expression< Argument, exponent > const &arg) const
+            -> decltype(expressions::evaluation::value_int((*this), arg)) {
 
             GRIDTOOLS_STATIC_ASSERT((is_expr<Expression<Argument, exponent> >::value), "invalid expression");
             return expressions::evaluation::value_int((*this), arg);
@@ -809,7 +812,7 @@ namespace gridtools {
         // or maybe you did a mistake when specifying the ranges in the placehoders definition
         GTASSERT(metadata_->size() >
                  m_index[ // Accessor::index_type::value
-                                    metadata_index_t::value] +
+                     metadata_index_t::value] +
                      metadata_->_index(strides().template get< metadata_index_t::value >(), accessor.offsets()));
 
         // the following assert fails when an out of bound access is observed,
@@ -854,7 +857,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 
 #ifdef PEDANTIC // storages may have less than 3 dimensions in non pedantic mode
-        GRIDTOOLS_STATIC_ASSERT((Accessor::n_dim>4), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
+        GRIDTOOLS_STATIC_ASSERT((Accessor::n_dim > 4), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
 #endif
 
         //getting information about the storage
@@ -898,7 +901,11 @@ namespace gridtools {
         GTASSERT((Accessor::type::n_dim <= metadata_t::space_dimensions + 1) ||
                  accessor.template get< 0 >() < storage_t::traits::n_dimensions);
 
-        GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim<=storage_t::space_dimensions+2, "requested accessor index lower than zero. Check that when you define the accessor you specify the dimenisons which you actually access. e.g. suppose that a storage linked to the accessor ```in``` has 5 dimensions, and thus can be called with in(Dimensions<5>(-1)). Calling in(Dimensions<6>(-1)) brings you here.");
+        GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim <= storage_t::space_dimensions + 2,
+            "requested accessor index lower than zero. Check that when you define the accessor you specify the "
+            "dimenisons which you actually access. e.g. suppose that a storage linked to the accessor ```in``` has 5 "
+            "dimensions, and thus can be called with in(Dimensions<5>(-1)). Calling in(Dimensions<6>(-1)) brings you "
+            "here.");
 
         return get_value(accessor,
             (data_pointer())[(Accessor::type::n_dim <= metadata_t::space_dimensions + 1
@@ -941,7 +948,8 @@ namespace gridtools {
 
         typedef typename local_domain_t::template get_storage< index_t >::type::value_type storage_t;
 
-        GRIDTOOLS_STATIC_ASSERT(is_data_field<storage_t>::value || is_expandable_parameters<storage_t>::value, "Internal error, wrong type of storage: should be a data_field");
+        GRIDTOOLS_STATIC_ASSERT(is_data_field< storage_t >::value || is_expandable_parameters< storage_t >::value,
+            "Internal error, wrong type of storage: should be a data_field");
 
         typedef accessor_mixed<Accessor, Pairs ... > accessor_mixed_t;
         using metadata_t = typename storage_t::storage_info_type;
@@ -976,7 +984,11 @@ namespace gridtools {
                     typename storage_t::traits >::type::n_width),
             "snapshot access out of bounds");
 
-        GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim<=storage_t::space_dimensions+2, "requested accessor index lower than zero. Check that when you define the accessor you specify the dimenisons which you actually access. e.g. suppose that a storage linked to the accessor ```in``` has 5 dimensions, and thus can be called with in(Dimensions<5>(-1)). Calling in(Dimensions<6>(-1)) brings you here.");
+        GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim <= storage_t::space_dimensions + 2,
+            "requested accessor index lower than zero. Check that when you define the accessor you specify the "
+            "dimenisons which you actually access. e.g. suppose that a storage linked to the accessor ```in``` has 5 "
+            "dimensions, and thus can be called with in(Dimensions<5>(-1)). Calling in(Dimensions<6>(-1)) brings you "
+            "here.");
 
         return get_value(
             accessor_,

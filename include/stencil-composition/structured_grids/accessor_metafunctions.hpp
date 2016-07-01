@@ -31,8 +31,8 @@ namespace gridtools {
     template < ushort_t ID, enumtype::intend Intend, typename Extend, ushort_t Number >
     struct is_accessor< accessor_base< ID, Intend, Extend, Number > > : boost::mpl::true_ {};
 
-    template<typename T>
-    struct is_accessor<const T> : is_accessor<T>{};
+    template < typename T >
+    struct is_accessor< const T > : is_accessor< T > {};
 
     template < ushort_t ID, enumtype::intend Intend >
     struct is_accessor< global_accessor< ID, Intend > > : boost::mpl::true_ {};
@@ -112,7 +112,7 @@ namespace gridtools {
     template < typename ArgsMap, template < typename... > class Expression, typename... Arguments >
     struct remap_accessor_type< Expression< Arguments... >,
         ArgsMap,
-                                typename boost::enable_if< typename is_expr< Expression< Arguments... > >::type, void >::type > {
+        typename boost::enable_if< typename is_expr< Expression< Arguments... > >::type, void >::type > {
         // Expression is an expression of accessors (e.g. expr_sum<T1, T2>,
         // where T1 and T2 are two accessors).
         // Here we traverse the expression AST down to the leaves, and we assert if

@@ -45,13 +45,13 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        explicit hybrid_pointer(T *p, uint_t size_, bool externally_managed=false)
+        explicit hybrid_pointer(T *p, uint_t size_, bool externally_managed = false)
             : m_gpu_p(NULL), m_cpu_p(p, externally_managed), m_pointer_to_use(p), m_size(size_), m_allocated(false),
               m_up_to_date(true) {
             allocate_it(m_size);
         }
 
-        explicit hybrid_pointer(T *p, bool externally_managed=false)
+        explicit hybrid_pointer(T *p, bool externally_managed = false)
             : m_gpu_p(NULL), m_cpu_p(p, externally_managed), m_pointer_to_use(p), m_size(1), m_allocated(false),
               m_up_to_date(true) {
             allocate_it(m_size);
@@ -69,7 +69,7 @@ namespace gridtools {
 #endif
     }
 
-        // copy constructor passes on the ownership
+    // copy constructor passes on the ownership
         GT_FUNCTION
         hybrid_pointer(hybrid_pointer const &other)
             : m_gpu_p(other.m_gpu_p), m_cpu_p(other.m_cpu_p)
@@ -123,8 +123,8 @@ namespace gridtools {
                 assert(err == cudaSuccess);
                 m_gpu_p = NULL;
             m_cpu_p.free_it();
-                m_up_to_date = true;
-                m_pointer_to_use = NULL;
+            m_up_to_date = true;
+            m_pointer_to_use = NULL;
 
 #ifdef VERBOSE
             printf("freeing hybrid pointer %x \n", this);
@@ -138,7 +138,8 @@ namespace gridtools {
             out();
 #endif
             if (on_host()) { // do not copy if the last version is already on the device
-                cudaError_t err = cudaMemcpy((void *)m_gpu_p, (void *)m_cpu_p.get(), m_size * sizeof(T), cudaMemcpyHostToDevice);
+                cudaError_t err =
+                    cudaMemcpy((void *)m_gpu_p, (void *)m_cpu_p.get(), m_size * sizeof(T), cudaMemcpyHostToDevice);
                 assert(err == cudaSuccess);
                 m_up_to_date = false;
                 m_pointer_to_use = m_gpu_p;
@@ -151,7 +152,8 @@ namespace gridtools {
             out();
 #endif
             if (on_device()) {
-                cudaError_t err = cudaMemcpy((void *)m_cpu_p.get(), (void *)m_gpu_p, m_size * sizeof(T), cudaMemcpyDeviceToHost);
+                cudaError_t err =
+                    cudaMemcpy((void *)m_cpu_p.get(), (void *)m_gpu_p, m_size * sizeof(T), cudaMemcpyDeviceToHost);
                 assert(err == cudaSuccess);
                 m_up_to_date = true;
                 m_pointer_to_use = m_cpu_p.get();
@@ -160,7 +162,8 @@ namespace gridtools {
 
         void set(pointee_t const &value, uint_t const &index) {
             if (on_host()) { // do not copy if the last version is already on the device
-                cudaError_t err=cudaMemcpy(&m_pointer_to_use[index], &value, sizeof(pointee_t), cudaMemcpyHostToDevice);
+                cudaError_t err =
+                    cudaMemcpy(&m_pointer_to_use[index], &value, sizeof(pointee_t), cudaMemcpyHostToDevice);
                 assert(err == cudaSuccess);
                 m_up_to_date = false;
                 m_pointer_to_use = m_gpu_p;
@@ -210,7 +213,6 @@ namespace gridtools {
             assert(m_pointer_to_use);
             return m_pointer_to_use;
         }
-
 
         GT_FUNCTION
         T &operator*() {
@@ -263,13 +265,13 @@ namespace gridtools {
         GT_FUNCTION
         void set_on_device() {
             m_up_to_date = false;
-            m_pointer_to_use=m_gpu_p;
+            m_pointer_to_use = m_gpu_p;
         }
 
         GT_FUNCTION
         void set_on_host() {
             m_up_to_date = true;
-            m_pointer_to_use=m_cpu_p;
+            m_pointer_to_use = m_cpu_p;
         }
 
         GT_FUNCTION
@@ -287,31 +289,31 @@ namespace gridtools {
 
             {
                 T *tmp = m_gpu_p;
-            m_gpu_p = other.m_gpu_p;
+                m_gpu_p = other.m_gpu_p;
                 other.m_gpu_p = tmp;
             }
 
             {
                 T *tmp2 = m_pointer_to_use;
-            m_pointer_to_use = other.m_pointer_to_use;
+                m_pointer_to_use = other.m_pointer_to_use;
                 other.m_pointer_to_use = tmp2;
             }
 
             {
                 uint_t tmp_size = m_size;
-            m_size = other.m_size;
+                m_size = other.m_size;
                 other.m_size = tmp_size;
             }
 
             {
                 bool tmp_allocated = m_allocated;
-            m_allocated = other.m_allocated;
+                m_allocated = other.m_allocated;
                 other.m_allocated = tmp_allocated;
             }
 
             {
                 bool tmp_up_to_date = m_up_to_date;
-            m_up_to_date = other.m_up_to_date;
+                m_up_to_date = other.m_up_to_date;
                 other.m_up_to_date = tmp_up_to_date;
             }
         }
@@ -338,11 +340,11 @@ namespace gridtools {
 
     private:
         /** disable equal operator and constructor from raw pointer*/
-        T *operator=(T *);
-        hybrid_pointer(T *);
-        T *m_gpu_p;
-        wrap_pointer< T, Array > m_cpu_p;
-        T *m_pointer_to_use;
+      T *operator=(T *);
+      hybrid_pointer(T *);
+      T *m_gpu_p;
+      wrap_pointer< T, Array > m_cpu_p;
+      T *m_pointer_to_use;
         uint_t m_size;
         bool m_allocated;
         bool m_up_to_date;

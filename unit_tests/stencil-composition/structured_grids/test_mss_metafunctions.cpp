@@ -57,8 +57,8 @@ TEST(mss_metafunctions, extract_mss_caches_and_esfs)
     typename storage_type::storage_info_type meta_(10, 10, 10);
     storage_type in(meta_, 1.0, "in"), out(meta_, 1.0, "out");
 
-    typedef decltype(make_stage<functor1>(p_in(), p_buff())) esf1_t;
-    typedef decltype(make_stage<functor1>(p_buff(), p_out())) esf2_t;
+    typedef decltype(make_stage< functor1 >(p_in(), p_buff())) esf1_t;
+    typedef decltype(make_stage< functor1 >(p_buff(), p_out())) esf2_t;
 
     typedef decltype(make_multistage // mss_descriptor
         (execute< forward >(),

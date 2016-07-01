@@ -40,7 +40,6 @@ namespace test_expandable_parameters {
         }
     };
 
-
     bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t) {
 
 #ifdef CUDA_EXAMPLE
@@ -86,7 +85,6 @@ namespace test_expandable_parameters {
         gridtools::grid< axis > grid_(di, dj);
         grid_.value_list[0] = 0;
         grid_.value_list[1] = d3 - 1;
-
 
         typedef arg< 0, storage_t > p_out;
         typedef arg< 1, storage_t > p_in;

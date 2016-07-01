@@ -64,8 +64,8 @@ namespace gridtools {
         typedef typename storage_t::value_type value_type;
 
         typedef
-        typename _impl::generate_layout_map< typename make_gt_integer_sequence< uint_t, sizeof...(Tiles) + 2 /*FD*/
-            >::type >::type layout_t;
+            typename _impl::generate_layout_map< typename make_gt_integer_sequence< uint_t, sizeof...(Tiles) + 2 /*FD*/
+                >::type >::type layout_t;
 
         GT_FUNCTION
         explicit constexpr cache_storage() {}
@@ -82,17 +82,17 @@ namespace gridtools {
             using accessor_t = typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type;
             GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor_t >::value), "Error type is not accessor tuple");
 
-            typedef typename boost::mpl::at_c<typename minus_t::type, 0 >::type iminus;
-            typedef typename boost::mpl::at_c<typename minus_t::type, 1 >::type jminus;
+            typedef typename boost::mpl::at_c< typename minus_t::type, 0 >::type iminus;
+            typedef typename boost::mpl::at_c< typename minus_t::type, 1 >::type jminus;
 
 #ifdef CUDA8
-            typedef static_int<m_value.template strides<0>()> check_constexpr_1;
-            typedef static_int<m_value.template strides<1>()> check_constexpr_2;
+            typedef static_int< m_value.template strides< 0 >() > check_constexpr_1;
+            typedef static_int< m_value.template strides< 1 >() > check_constexpr_2;
 #else
-            assert((_impl::compute_size<minus_t, plus_t, tiles_t, storage_t>::value == size()));
+            assert((_impl::compute_size< minus_t, plus_t, tiles_t, storage_t >::value == size()));
 #endif
 
-                // manually aligning the storage
+            // manually aligning the storage
             const uint_t extra_ = (thread_pos[0] - iminus::value) * m_value.template strides< 0 >() +
                                   (thread_pos[1] - jminus::value) * m_value.template strides< 1 >() +
                                   m_value.index(accessor_);
@@ -104,15 +104,15 @@ namespace gridtools {
         }
 
       private:
-#if defined( CUDA8 )
-        value_type m_values[ size() ];
+#if defined(CUDA8)
+        value_type m_values[size()];
 #else
 
-        value_type m_values[ _impl::compute_size<minus_t, plus_t, tiles_t, storage_t>::value ];
+        value_type m_values[_impl::compute_size< minus_t, plus_t, tiles_t, storage_t >::value];
 #endif
     };
 
-#else // CXX11_ENABLED
+#else  // CXX11_ENABLED
 
     /**
      * @struct cache_storage
@@ -159,7 +159,6 @@ namespace gridtools {
         }
 
       private:
-
         template < typename Offset >
         GT_FUNCTION int_t index(array< int, 2 > const &thread_pos, Offset const &offset) {
             return (thread_pos[0] + offset.template get< Offset::n_args - 1 >() - iminus::value) * i_stride_t::value +

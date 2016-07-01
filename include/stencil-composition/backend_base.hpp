@@ -127,7 +127,9 @@ namespace gridtools {
     struct backend_base {
 
 #ifdef __CUDACC__
-        GRIDTOOLS_STATIC_ASSERT(BackendId==enumtype::Cuda, "Beware: you are compiling with nvcc, and most probably want to use the cuda backend, but the backend you are instantiating is another one!!");
+        GRIDTOOLS_STATIC_ASSERT(BackendId == enumtype::Cuda, "Beware: you are compiling with nvcc, and most probably "
+                                                             "want to use the cuda backend, but the backend you are "
+                                                             "instantiating is another one!!");
 #endif
 
         typedef backend_base< BackendId, GridId, StrategyId > this_type;
@@ -380,10 +382,8 @@ namespace gridtools {
 
         template < typename ArgList, typename MetaList, typename Grid >
         static void prepare_temporaries(ArgList &arg_list_, MetaList &meta_list_, Grid const &grid) {
-            _impl::template prepare_temporaries_functor< ArgList,
-                MetaList,
-                Grid,
-                backend_ids_t>::prepare_temporaries((arg_list_), meta_list_, (grid));
+            _impl::template prepare_temporaries_functor< ArgList, MetaList, Grid, backend_ids_t >::prepare_temporaries(
+                (arg_list_), meta_list_, (grid));
         }
 
         /** Initial interface

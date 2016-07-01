@@ -27,7 +27,8 @@ namespace gridtools {
     /*!
        \fn mss_descriptor<...> make_esf(ExecutionEngine, esf1, esf2, ...)
        \brief Function to create a Multistage Stencil that can then be executed
-       \param esf{i}  i-th Elementary Stencil Function created with make_esf or a list specified as independent ESFs created with make independent
+       \param esf{i}  i-th Elementary Stencil Function created with make_esf or a list specified as independent ESFs
+       created with make independent
 
        Use this function to create a multi-stage stencil computation
      */
@@ -50,9 +51,11 @@ namespace gridtools {
        \fn independent_esf<...> make_independent(esf1, esf2, ...)
        \brief Function to create a list of independent Elementary Styencil Functions
 
-       \param esf{i}  (must be i>=2) The max{i} Elementary Stencil Functions in the argument list will be treated as independent
+       \param esf{i}  (must be i>=2) The max{i} Elementary Stencil Functions in the argument list will be treated as
+       independent
 
-       Function to create a list of independent Elementary Styencil Functions. This is used to let the library compute tight bounds on blocks to be used by backends
+       Function to create a list of independent Elementary Styencil Functions. This is used to let the library compute
+       tight bounds on blocks to be used by backends
      */
     template < typename... EsfDescr >
     independent_esf< boost::mpl::vector< EsfDescr... > > make_independent(EsfDescr &&...) {

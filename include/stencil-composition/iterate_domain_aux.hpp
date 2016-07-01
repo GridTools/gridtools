@@ -192,13 +192,13 @@ namespace gridtools {
         typedef typename StoragePtr::value_type storage_type;
 #ifdef PEDANTIC
         GRIDTOOLS_STATIC_ASSERT((is_any_iterate_domain_storage< storage_type >::value),
-                                "If you are using generic accessors disable the pedantic mode. \n\
+            "If you are using generic accessors disable the pedantic mode. \n\
 If you are not using generic accessors then you are using an unsupported storage type ");
 #endif
 
     private:
-        DataPointerArray &RESTRICT m_data_pointer_array;
-        pointer< storage_type > m_storage;
+      DataPointerArray &RESTRICT m_data_pointer_array;
+      pointer< storage_type > m_storage;
         const uint_t m_offset;
 
     public:
@@ -280,7 +280,7 @@ If you are not using generic accessors then you are using an unsupported storage
             typedef typename boost::mpl::first< Pair >::type metadata_t;
 
             GRIDTOOLS_STATIC_ASSERT((ID::value < boost::fusion::result_of::size< MetaStorageSequence >::value),
-                                    "Accessing an index out of bound in fusion tuple");
+                "Accessing an index out of bound in fusion tuple");
             boost::fusion::at_c< ID::value >(m_storages)
                 ->template increment< Coordinate >(
                     m_increment, &m_index_array[ID::value], m_strides_cached.template get< ID::value >());
@@ -369,13 +369,12 @@ If you are not using generic accessors then you are using an unsupported storage
     template < uint_t Coordinate, typename Strides, typename MetaStorageSequence, typename ArrayIndex >
     struct initialize_index_functor {
     private:
-        GRIDTOOLS_STATIC_ASSERT((is_strides_cached< Strides >::value), "internal error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_sequence_of< MetaStorageSequence, is_pointer >::value), "internal error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_array_of< ArrayIndex, int >::value), "internal error: wrong type");
+      GRIDTOOLS_STATIC_ASSERT((is_strides_cached< Strides >::value), "internal error: wrong type");
+      GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MetaStorageSequence, is_pointer >::value), "internal error: wrong type");
+      GRIDTOOLS_STATIC_ASSERT((is_array_of< ArrayIndex, int >::value), "internal error: wrong type");
 
-        Strides &RESTRICT m_strides;
-        MetaStorageSequence const &RESTRICT m_storages;
+      Strides &RESTRICT m_strides;
+      MetaStorageSequence const &RESTRICT m_storages;
         const int_t m_initial_pos;
         const uint_t m_block;
         ArrayIndex &RESTRICT m_index_array;
@@ -394,14 +393,14 @@ If you are not using generic accessors then you are using an unsupported storage
             const uint_t block,
             ArrayIndex &RESTRICT index_array)
             : m_strides(strides), m_storages(storages), m_initial_pos(initial_pos), m_block(block),
-            m_index_array(index_array) {}
+              m_index_array(index_array) {}
 
         template < typename Pair >
         GT_FUNCTION void operator()(Pair const &) const {
 
             typedef typename boost::mpl::second< Pair >::type id_t;
             GRIDTOOLS_STATIC_ASSERT((id_t::value < boost::fusion::result_of::size< MetaStorageSequence >::value),
-                                    "Accessing an index out of bound in fusion tuple");
+                "Accessing an index out of bound in fusion tuple");
 
             boost::fusion::at< id_t >(m_storages)
                 ->template initialize< Coordinate >(
@@ -442,9 +441,9 @@ If you are not using generic accessors then you are using an unsupported storage
 #endif
 
     private:
-        DataPointerArray &RESTRICT m_data_pointer_array;
-        StorageSequence const &RESTRICT m_storages;
-        MetaStorageSequence const &RESTRICT m_meta_storages;
+      DataPointerArray &RESTRICT m_data_pointer_array;
+      StorageSequence const &RESTRICT m_storages;
+      MetaStorageSequence const &RESTRICT m_meta_storages;
         const int_t m_EU_id_i;
         const int_t m_EU_id_j;
         assign_storage_functor();
@@ -478,7 +477,7 @@ If you are not using generic accessors then you are using an unsupported storage
         GT_FUNCTION void operator()(ID const &,
             typename boost::enable_if< typename any_supported_accessor_t< ID >::type, int >::type dummy = 0) const {
             GRIDTOOLS_STATIC_ASSERT((ID::value < boost::fusion::result_of::size< StorageSequence >::value),
-                                    "Accessing an index out of bound in fusion tuple");
+                "Accessing an index out of bound in fusion tuple");
 
             typedef typename boost::mpl::at< StorageSequence, ID >::type storage_ptr_type;
             typedef typename storage_ptr_type::value_type storage_type;
@@ -491,7 +490,7 @@ If you are not using generic accessors then you are using an unsupported storage
 
             // if the following fails, the ID is larger than the number of storage types
             GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size< StorageSequence >::value,
-                                    "the ID is larger than the number of storage types");
+                "the ID is larger than the number of storage types");
 
             boost::mpl::for_each< typename reversed_range< ushort_t, 0, storage_type::field_dimensions >::type >(
                 assign_raw_data_functor< total_storages< StorageSequence, ID::value >::value,
@@ -511,7 +510,7 @@ If you are not using generic accessors then you are using an unsupported storage
         GT_FUNCTION void operator()(ID const &,
             typename boost::disable_if< typename any_supported_accessor_t< ID >::type, int >::type dummy = 0) const {
             GRIDTOOLS_STATIC_ASSERT((ID::value < boost::fusion::result_of::size< StorageSequence >::value),
-                                    "Accessing an index out of bound in fusion tuple");
+                "Accessing an index out of bound in fusion tuple");
 
             typedef typename boost::remove_reference< typename boost::mpl::at< StorageSequence, ID >::type >::type
                 storage_ptr_type;
@@ -519,7 +518,7 @@ If you are not using generic accessors then you are using an unsupported storage
 
             // if the following fails, the ID is larger than the number of storage types
             GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size< StorageSequence >::value,
-                                    "the ID is larger than the number of storage types");
+                "the ID is larger than the number of storage types");
 
             boost::mpl::for_each< typename reversed_range< ushort_t, 0, storage_type::field_dimensions >::type >(
                 assign_raw_data_functor< total_storages< StorageSequence, ID::value >::value,
@@ -543,10 +542,10 @@ If you are not using generic accessors then you are using an unsupported storage
         GRIDTOOLS_STATIC_ASSERT((is_block_size< PEBlockSize >::value), "Error: wrong type");
 
     private:
-        // while the strides are uint_t type in the storage metadata,
-        // we stored them as int in the strides cached object in order to force vectorization
-        int_t *RESTRICT m_left;
-        const int_t *RESTRICT m_right;
+      // while the strides are uint_t type in the storage metadata,
+      // we stored them as int in the strides cached object in order to force vectorization
+      int_t *RESTRICT m_left;
+      const int_t *RESTRICT m_right;
 
     public:
         GT_FUNCTION
@@ -580,8 +579,8 @@ If you are not using generic accessors then you are using an unsupported storage
         GRIDTOOLS_STATIC_ASSERT((is_strides_cached< StridesCached >::value), "internal error: wrong type");
 
     private:
-        StridesCached &RESTRICT m_strides;
-        const MetaStorageSequence &RESTRICT m_storages;
+      StridesCached &RESTRICT m_strides;
+      const MetaStorageSequence &RESTRICT m_storages;
         assign_strides_functor();
 
     public:
@@ -597,7 +596,7 @@ If you are not using generic accessors then you are using an unsupported storage
         GT_FUNCTION void operator()(Pair const &) const {
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::second< Pair >::type::value <
                                         boost::fusion::result_of::size< MetaStorageSequence >::value),
-                                    "Accessing an index out of bound in fusion tuple");
+                "Accessing an index out of bound in fusion tuple");
 
             typedef typename boost::mpl::second< Pair >::type ID;
 

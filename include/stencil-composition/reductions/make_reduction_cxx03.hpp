@@ -41,7 +41,7 @@ namespace gridtools {
                        BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(n)) <                                  \
                            BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), ParType) > > > > (initial_value);          \
     };
-// clang-format on
+    // clang-format on
     BOOST_PP_REPEAT(GT_MAX_MSS, _RED_DESCR, _)
 
 #undef _RED_DESCR

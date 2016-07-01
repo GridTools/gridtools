@@ -91,61 +91,46 @@ namespace gridtools {
 
        Helper metafunction, used by other metafunctions
     */
-    template <typename State, typename SubArray, typename VectorComponent>
+    template < typename State, typename SubArray, typename VectorComponent >
     struct keep_scanning_lambda
-        : boost::mpl::fold<
-        typename SubArray::esf_list,
-        State,
-        boost::mpl::if_<
-            is_independent<boost::mpl::_2>,
-            keep_scanning_lambda<boost::mpl::_1, boost::mpl::_2, VectorComponent>,
-            boost::mpl::push_back<boost::mpl::_1, VectorComponent >
-            >
-        >
-    {};
+        : boost::mpl::fold< typename SubArray::esf_list,
+              State,
+              boost::mpl::if_< is_independent< boost::mpl::_2 >,
+                                keep_scanning_lambda< boost::mpl::_1, boost::mpl::_2, VectorComponent >,
+                                boost::mpl::push_back< boost::mpl::_1, VectorComponent > > > {};
 
     /**
        @brief linearizes the ESF tree and returns a vector
 
        Helper metafunction, used by other metafunctions
     */
-    template <typename Array, typename Argument, template<typename, typename> class KeepScanning>
-    struct linearize_esf_array_lambda : boost::mpl::fold<
-        Array,
-        boost::mpl::vector0<>,
-        boost::mpl::if_<
-            is_independent<boost::mpl::_2>,
-            KeepScanning<boost::mpl::_1, boost::mpl::_2>,
-            boost::mpl::push_back<boost::mpl::_1, Argument >
-            >
-        >{};
-
+    template < typename Array, typename Argument, template < typename, typename > class KeepScanning >
+    struct linearize_esf_array_lambda : boost::mpl::fold< Array,
+                                            boost::mpl::vector0<>,
+                                            boost::mpl::if_< is_independent< boost::mpl::_2 >,
+                                                              KeepScanning< boost::mpl::_1, boost::mpl::_2 >,
+                                                              boost::mpl::push_back< boost::mpl::_1, Argument > > > {};
 
     /**
-       @brief constructs an mpl vector of booleans, linearizing the mss tree and attachnig a true or false flag depending wether the esf is independent or not
+       @brief constructs an mpl vector of booleans, linearizing the mss tree and attachnig a true or false flag
+       depending wether the esf is independent or not
 
        the code is very similar as in the metafunction above
     */
-    template<typename T>
+    template < typename T >
     struct sequence_of_is_independent_esf;
 
-    template <typename ExecutionEngine,
-              typename EsfDescrSequence,
-              typename CacheSequence>
-    struct sequence_of_is_independent_esf<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> >
-    {
+    template < typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence >
+    struct sequence_of_is_independent_esf< mss_descriptor< ExecutionEngine, EsfDescrSequence, CacheSequence > > {
 
-        template <typename State, typename SubArray>
-        struct keep_scanning : keep_scanning_lambda<State, SubArray, boost::mpl::true_>
-        {};
+        template < typename State, typename SubArray >
+        struct keep_scanning : keep_scanning_lambda< State, SubArray, boost::mpl::true_ > {};
 
-        template <typename Array>
-        struct linearize_esf_array : linearize_esf_array_lambda<Array, boost::mpl::false_, keep_scanning> {};
+        template < typename Array >
+        struct linearize_esf_array : linearize_esf_array_lambda< Array, boost::mpl::false_, keep_scanning > {};
 
-        typedef typename linearize_esf_array<EsfDescrSequence>::type type;
+        typedef typename linearize_esf_array< EsfDescrSequence >::type type;
     };
-
-
 
     // /**
     //    @brief constructs an mpl vector of booleans, linearizing the mss tree and attachnig a true or false flag
@@ -158,7 +143,8 @@ namespace gridtools {
 
     // template < typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence >
     // struct sequence_of_is_independent_esf< mss_descriptor< ExecutionEngine, EsfDescrSequence, CacheSequence > > {
-    //     typedef typename _impl::linearize_esf_array< EsfDescrSequence, boost::false_type, boost::true_type >::type type;
+    //     typedef typename _impl::linearize_esf_array< EsfDescrSequence, boost::false_type, boost::true_type >::type
+    //     type;
     // };
 
     template < typename ReductionType, typename BinOp, typename EsfDescrSequence >

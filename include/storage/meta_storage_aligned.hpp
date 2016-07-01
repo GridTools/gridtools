@@ -126,7 +126,7 @@ namespace gridtools {
 */
 #ifdef CXX11_ENABLED
 #ifndef __CUDACC__
-        template < typename ... IntTypes ,typename Dummy = all_integers< IntTypes... > >
+        template < typename... IntTypes, typename Dummy = all_integers< IntTypes... > >
         GT_FUNCTION constexpr meta_storage_aligned(IntTypes... dims_)
             : super(apply_gt_integer_sequence< typename make_gt_integer_sequence< uint_t,
                       sizeof...(IntTypes) >::type >::template apply_zipped< super, lambda_t >(dims_...)),
@@ -137,17 +137,16 @@ namespace gridtools {
                 "stride container size is not matching number of given dimensions");
         }
 #else
-        template < class First, class... IntTypes
-            ,
-            typename Dummy = typename boost::enable_if_c<
-                boost::is_integral<First>::type::value, bool >::type>
-                   GT_FUNCTION constexpr meta_storage_aligned(First f_, IntTypes... dims_)
+        template < class First,
+            class... IntTypes,
+            typename Dummy = typename boost::enable_if_c< boost::is_integral< First >::type::value, bool >::type >
+        GT_FUNCTION constexpr meta_storage_aligned(First f_, IntTypes... dims_)
             : super(apply_gt_integer_sequence< typename make_gt_integer_sequence< uint_t,
-                    sizeof...(IntTypes)+1 >::type >::template apply_zipped< super, lambda_t >(f_, dims_...)),
-            m_unaligned_dims{(uint_t) f_, (uint_t)dims_...},
+                      sizeof...(IntTypes) + 1 >::type >::template apply_zipped< super, lambda_t >(f_, dims_...)),
+              m_unaligned_dims{(uint_t)f_, (uint_t)dims_...},
               m_unaligned_strides(_impl::assign_all_strides< (short_t)(MetaStorageBase::space_dimensions),
-                                  typename MetaStorageBase::layout >::apply((uint_t) f_, (uint_t)dims_...)) {
-            static_assert(MetaStorageBase::space_dimensions == sizeof...(dims_)+1,
+                  typename MetaStorageBase::layout >::apply((uint_t)f_, (uint_t)dims_...)) {
+            static_assert(MetaStorageBase::space_dimensions == sizeof...(dims_) + 1,
                 "stride container size is not matching number of given dimensions");
         }
 #endif
@@ -167,8 +166,8 @@ namespace gridtools {
            forwarding to the constructor below
          */
         GT_FUNCTION constexpr meta_storage_aligned(array< uint_t, super::space_dimensions > const &dims_)
-            : meta_storage_aligned(dims_, typename make_gt_integer_sequence< ushort_t, super::space_dimensions >::type()) {  }
-
+            : meta_storage_aligned(
+                  dims_, typename make_gt_integer_sequence< ushort_t, super::space_dimensions >::type()) {}
 
         /**@brief Constructor taking an array with the storage dimensions
 

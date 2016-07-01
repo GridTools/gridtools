@@ -28,9 +28,8 @@ namespace gridtools {
         typename Grid,
         typename ConditionalsSet,
         typename ReductionType,
-               bool IsStateful,
-               uint_t RepeatFunctor
-               >
+        bool IsStateful,
+        uint_t RepeatFunctor >
     struct is_intermediate<
         intermediate< Backend, MssArray, DomainType, Grid, ConditionalsSet, ReductionType, IsStateful, RepeatFunctor > >
         : boost::mpl::true_ {};
@@ -45,9 +44,15 @@ namespace gridtools {
         typename ConditionalsSet,
         typename ReductionType,
         bool IsStateful,
-               uint_t RepeatFunctor >
-    struct intermediate_backend<
-        intermediate< Backend, MssArray, DomainType, Grid, ConditionalsSet, ReductionType, IsStateful, RepeatFunctor > > {
+        uint_t RepeatFunctor >
+    struct intermediate_backend< intermediate< Backend,
+        MssArray,
+        DomainType,
+        Grid,
+        ConditionalsSet,
+        ReductionType,
+        IsStateful,
+        RepeatFunctor > > {
         typedef Backend type;
     };
 
@@ -61,9 +66,15 @@ namespace gridtools {
         typename ConditionalsSet,
         typename ReductionType,
         bool IsStateful,
-               uint_t RepeatFunctor >
-    struct intermediate_aggregator_type<
-        intermediate< Backend, MssArray, DomainType, Grid, ConditionalsSet, ReductionType, IsStateful, RepeatFunctor > > {
+        uint_t RepeatFunctor >
+    struct intermediate_aggregator_type< intermediate< Backend,
+        MssArray,
+        DomainType,
+        Grid,
+        ConditionalsSet,
+        ReductionType,
+        IsStateful,
+        RepeatFunctor > > {
         typedef DomainType type;
     };
 
@@ -77,9 +88,15 @@ namespace gridtools {
         typename ConditionalsSet,
         typename ReductionType,
         bool IsStateful,
-               uint_t RepeatFunctor >
-    struct intermediate_mss_array<
-        intermediate< Backend, MssArray, DomainType, Grid, ConditionalsSet, ReductionType, IsStateful, RepeatFunctor > > {
+        uint_t RepeatFunctor >
+    struct intermediate_mss_array< intermediate< Backend,
+        MssArray,
+        DomainType,
+        Grid,
+        ConditionalsSet,
+        ReductionType,
+        IsStateful,
+        RepeatFunctor > > {
         typedef MssArray type;
     };
 
@@ -108,9 +125,15 @@ namespace gridtools {
         typename ConditionalsSet,
         typename ReductionType,
         bool IsStateful,
-               uint_t RepeatFunctor >
-    struct intermediate_is_stateful<
-        intermediate< Backend, MssArray, DomainType, Grid, ConditionalsSet, ReductionType, IsStateful, RepeatFunctor > > {
+        uint_t RepeatFunctor >
+    struct intermediate_is_stateful< intermediate< Backend,
+        MssArray,
+        DomainType,
+        Grid,
+        ConditionalsSet,
+        ReductionType,
+        IsStateful,
+        RepeatFunctor > > {
         typedef boost::mpl::bool_< IsStateful > type;
     };
 

@@ -179,7 +179,7 @@ namespace gridtools {
         template<typename Container, class Lambda, typename ... ExtraTypes>
         GT_FUNCTION
         static constexpr Container apply(Lambda lambda, ExtraTypes& ... args_ ){
-            return Container{lambda(Indices, args_...) ...} ;
+            return Container{lambda(Indices, args_...)...};
         }
     };
 

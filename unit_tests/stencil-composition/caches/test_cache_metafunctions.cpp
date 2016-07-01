@@ -55,8 +55,8 @@ typedef arg<2, storage_type> p_out;
 typedef arg<1, storage_type> p_buff;
 typedef arg<3, storage_type> p_notin;
 
-typedef decltype(gridtools::make_stage<functor1>(p_in() ,p_buff()) ) esf1_t;
-typedef decltype(gridtools::make_stage<functor1>(p_buff(), p_out()) ) esf2_t;
+typedef decltype(gridtools::make_stage< functor1 >(p_in(), p_buff())) esf1_t;
+typedef decltype(gridtools::make_stage< functor1 >(p_buff(), p_out())) esf2_t;
 
 typedef boost::mpl::vector2<esf1_t, esf2_t> esf_sequence_t;
 
@@ -149,15 +149,14 @@ TEST(cache_metafunctions, get_cache_storage_tuple)
     // therefore we convert into an mpl map and do all the metaprogramming operations on that map
     typedef fusion_map_to_mpl_map<cache_storage_tuple_t>::type cache_storage_mpl_map_t;
 
-    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal< cache_storage_tuple_t,
-                                boost::fusion::map< boost::fusion::pair< p_in::index_type,
-                             cache_storage<
-                             block_size< 32, 4, 1 >,
-                             extent< -1, 2, -2, 1 >,
-                             pointer< storage_type > > >,
-                             boost::fusion::pair< p_buff::index_type,
-                             cache_storage<       block_size< 32, 4, 1 >,
-                             extent< -2, 2, -3, 2 >,
-                             pointer< storage_type > > > > >::value),
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::mpl::equal<
+            cache_storage_tuple_t,
+            boost::fusion::map<
+                boost::fusion::pair< p_in::index_type,
+                    cache_storage< block_size< 32, 4, 1 >, extent< -1, 2, -2, 1 >, pointer< storage_type > > >,
+                boost::fusion::pair< p_buff::index_type,
+                    cache_storage< block_size< 32, 4, 1 >, extent< -2, 2, -3, 2 >, pointer< storage_type > > > > >::
+                value),
         "ERROR");
 }

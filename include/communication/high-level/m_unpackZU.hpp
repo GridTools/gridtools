@@ -143,7 +143,7 @@ void m_unpackZU(array_t const &d_data_array,
     for (int i = 0; i < niter; i++) {
         // the actual kernel launch
         // clang-format off
-      m_unpackZUKernel<<<blocks, threads, 0, ZU_stream>>>(d_data_array[i], d_msgbufTab_r, d_msgsize_r, halo_d, nx, ny,
+      m_unpackZUKernel< <<blocks, threads, 0, ZU_stream> >>(d_data_array[i], d_msgbufTab_r, d_msgsize_r, halo_d, nx, ny,
                                                           (halo[0].begin()-halo[0].minus())
                                                           + (halo[1].begin()-halo[1].minus())*halo[0].total_length()
                                                           + (halo[2].end()+1)*halo[0].total_length() *halo[1].total_length(), i );

@@ -149,7 +149,7 @@ void m_packYU_generic(array_t const &fields, typename array_t::value_type::value
         if (nbx != 0 && nby != 0 && nbz != 0) {
             // the actual kernel launch
             // clang-format off
-        m_packYUKernel_generic<<<blocks, threads, 0, YU_stream>>>
+        m_packYUKernel_generic< <<blocks, threads, 0, YU_stream> >>
         (fields[i].ptr,
          reinterpret_cast<typename array_t::value_type::value_type**>(d_msgbufTab),
          wrap_argument(d_msgsize+27*i),

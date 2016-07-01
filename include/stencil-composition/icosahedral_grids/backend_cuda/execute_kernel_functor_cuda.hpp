@@ -298,8 +298,8 @@ namespace gridtools {
 
                 dim3 blocks(nbx, nby, nbz);
 
-                // re-create the run functor arguments, replacing the processing elements block size
-                // with the corresponding, recently computed, block size
+// re-create the run functor arguments, replacing the processing elements block size
+// with the corresponding, recently computed, block size
 #if defined(CXX11_ENABLED) && !defined(__CUDACC__)
                 typedef typename replace_template_arguments< RunFunctorArguments,
                     typename RunFunctorArguments::processing_elements_block_size_t,
@@ -331,7 +331,7 @@ namespace gridtools {
 #endif
 
                 _impl_iccuda::do_it_on_gpu< run_functor_arguments_cuda_t,
-                    local_domain_t ><<< blocks, threads >>> //<<<nbx*nby, ntx*nty>>>
+                    local_domain_t >< < < blocks, threads > > > //<<<nbx*nby, ntx*nty>>>
                     (local_domain_gp, grid_gp, m_grid.i_low_bound(), m_grid.j_low_bound(), (nx), (ny));
 
                 // TODOCOSUNA we do not need this. It will block the host, and we want to continue doing other stuff

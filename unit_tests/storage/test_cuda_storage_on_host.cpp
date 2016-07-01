@@ -15,9 +15,9 @@
 */
 #include "gtest/gtest.h"
 
-//i know that the following directive is super ugly,
-//but i need to check the private member fields of
-//the storage.
+// i know that the following directive is super ugly,
+// but i need to check the private member fields of
+// the storage.
 #define protected public
 #include <common/defs.hpp>
 #include <storage/storage-facility.hpp>
@@ -48,26 +48,38 @@ TEST(cuda_storage_on_host, test_storage_types) {
     meta_data_t meta_obj(10, 10, 10);
     storage_t st_obj(meta_obj, "in");
 #ifdef __CUDACC__
-	GRIDTOOLS_STATIC_ASSERT((boost::is_same<meta_data_t, meta_storage< meta_storage_aligned< meta_storage_base< static_uint<0>
-                                 , layout, false >, aligned<32>, halo<0,0,0> > > >::value), "type is wrong");
-	GRIDTOOLS_STATIC_ASSERT((boost::is_same<storage_t, storage< base_storage< hybrid_pointer< float >
-                                 , meta_data_t, 1 > > >::value), "type is wrong");
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::is_same< meta_data_t,
+            meta_storage< meta_storage_aligned< meta_storage_base< static_uint< 0 >, layout, false >,
+                aligned< 32 >,
+                halo< 0, 0, 0 > > > >::value),
+        "type is wrong");
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::is_same< storage_t, storage< base_storage< hybrid_pointer< float >, meta_data_t, 1 > > >::value),
+        "type is wrong");
 #else
-	GRIDTOOLS_STATIC_ASSERT((boost::is_same<meta_data_t, meta_storage< meta_storage_aligned< meta_storage_base< static_uint<0>, layout, false >
-                                 , aligned<0>, halo<0,0,0> > > >::value), "type is wrong");
-	GRIDTOOLS_STATIC_ASSERT((boost::is_same<storage_t, storage< base_storage< wrap_pointer< float >
-                                 , meta_data_t, 1 > > >::value), "type is wrong");
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::is_same< meta_data_t,
+            meta_storage< meta_storage_aligned< meta_storage_base< static_uint< 0 >, layout, false >,
+                aligned< 0 >,
+                halo< 0, 0, 0 > > > >::value),
+        "type is wrong");
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::is_same< storage_t, storage< base_storage< wrap_pointer< float >, meta_data_t, 1 > > >::value),
+        "type is wrong");
 #endif
 }
 
 TEST(cuda_storage_on_host, test_storage) {
-	using namespace gridtools;
-	using namespace enumtype;
-	// some typedefs to create a storage.
-	// either a host backend storage or a
-	// cuda backend storage.
-	typedef gridtools::layout_map< 0, 1, 2 > layout_t;
-	typedef meta_storage<meta_storage_aligned< meta_storage_base<static_int<0>, layout_t, false>, aligned< 32 >, halo< 0, 0, 0 > > > meta_data_t;
+    using namespace gridtools;
+    using namespace enumtype;
+    // some typedefs to create a storage.
+    // either a host backend storage or a
+    // cuda backend storage.
+    typedef gridtools::layout_map< 0, 1, 2 > layout_t;
+    typedef meta_storage<
+        meta_storage_aligned< meta_storage_base< static_int< 0 >, layout_t, false >, aligned< 32 >, halo< 0, 0, 0 > > >
+        meta_data_t;
 #ifdef _USE_GPU_
     typedef base_storage< hybrid_pointer< double >, meta_data_t, 1 > base_st;
 #else

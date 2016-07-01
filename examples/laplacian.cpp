@@ -69,11 +69,7 @@ struct lap_function {
     GT_FUNCTION
     static void Do(t_domain const & dom, x_lap) {
 
-        dom(out()) = 4*dom(in())-
-            (dom(in( 1, 0, 0)) + dom(in( 0, 1, 0)) +
-             dom(in(-1, 0, 0)) + dom(in( 0,-1, 0)))
-            ;
-
+        dom(out()) = 4 * dom(in()) - (dom(in(1, 0, 0)) + dom(in(0, 1, 0)) + dom(in(-1, 0, 0)) + dom(in(0, -1, 0)));
     }
 };
 
@@ -118,7 +114,7 @@ TEST(Laplace, test) {
 // [backend]
 
 // [layout_map]
-    typedef gridtools::layout_map<2,1,0> layout_t;
+typedef gridtools::layout_map< 2, 1, 0 > layout_t;
 // [layout_map]
 
 // [storage_type]
@@ -154,16 +150,18 @@ TEST(Laplace, test) {
     typedef boost::mpl::vector<p_in, p_out> accessor_list;
 // [placeholders]
 
-// [aggregator_type]
+    // [aggregator_type]
     /**
-       - Construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
+       - Construction of the domain. The domain is the physical domain of the problem, with all the physical fields that
+       are used, temporary and not
        It must be noted that the only fields to be passed to the constructor are the non-temporary.
-       The order in which they have to be passed is the order in which they appear scanning the placeholders in order (i.e. the order in the accessor_list?). \todo (I don't particularly like this).
-       \note aggregator_type implements the CRTP pattern in order to do static polymorphism (?) Because all what is 'clonable to gpu' must derive from the CRTP base class.
+       The order in which they have to be passed is the order in which they appear scanning the placeholders in order
+       (i.e. the order in the accessor_list?). \todo (I don't particularly like this).
+       \note aggregator_type implements the CRTP pattern in order to do static polymorphism (?) Because all what is
+       'clonable to gpu' must derive from the CRTP base class.
     */
-       gridtools::aggregator_type<accessor_list> domain
-        (boost::fusion::make_vector(&in, &out));
-// [aggregator_type]
+    gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&in, &out));
+    // [aggregator_type]
 
 // [grid]
        /**
@@ -171,12 +169,12 @@ TEST(Laplace, test) {
           The grid constructor takes the horizontal plane dimensions,
           while the vertical ones are set according the the axis property soon after
        */
-       uint_t di[5] = {halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
-       uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
+    uint_t di[5] = {halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
+    uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
 
        gridtools::grid<axis> grid(di,dj);
        grid.value_list[0] = 0;
-       grid.value_list[1] = d3-1;
+       grid.value_list[1] = d3 - 1;
 // [grid]
 
 // [computation]
@@ -196,23 +194,22 @@ TEST(Laplace, test) {
          \todo why is this function even called? It just needs to be compiled, in order to get the return type (use a typedef).
        */
 #ifdef CXX11_ENABLED
-       auto
+    auto
 #else
 #ifdef __CUDACC__
-    stencil*
+    stencil *
 #else
-    boost::shared_ptr<gridtools::stencil>
+    boost::shared_ptr< gridtools::stencil >
 #endif
 #endif
-       laplace = make_computation<gridtools::BACKEND>
-        (
-         domain, grid,
-         make_multistage //! \todo all the arguments in the call to make_multistage are actually dummy.
-         (
-          execute<forward>(),//!\todo parameter used only for overloading purpose?
-          make_stage<lap_function>(p_out(), p_in())//!  \todo elementary stencil function, also here the arguments are dummy.
-          )
-         );
+        laplace = make_computation< gridtools::BACKEND >(
+            domain,
+            grid,
+            make_multistage        //! \todo all the arguments in the call to make_multistage are actually dummy.
+            (execute< forward >(), //!\todo parameter used only for overloading purpose?
+                make_stage< lap_function >(
+                    p_out(), p_in()) //!  \todo elementary stencil function, also here the arguments are dummy.
+                ));
 // [computation]
 
 // [ready_steady_run_finalize]
@@ -242,9 +239,9 @@ TEST(Laplace, test) {
 
     storage_type ref(metadata_, -7.3, "ref");
 
-    for(uint_t i=halo_size; i != d1-halo_size; ++i) {
-        for(uint_t j=halo_size; j != d2-halo_size; ++j) {
-            for(uint_t k=0; k != d3; ++k) {
+    for (uint_t i = halo_size; i != d1 - halo_size; ++i) {
+        for (uint_t j = halo_size; j != d2 - halo_size; ++j) {
+            for (uint_t k = 0; k != d3; ++k) {
                 ref(i,j,k) = 4*in(i,j,k) -
                         (in(i+1,j,k) + in(i,j+1,k) +
                          in(i-1, j, k) + in(i,j-1,k));

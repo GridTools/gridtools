@@ -79,7 +79,7 @@ namespace gridtools {
         typedef static_uint< I > index_type;
         typedef enumtype::enum_type< enumtype::intend, Intend > intend_t;
         typedef Extend extent_t;
-        typedef offset_tuple<n_dim, n_dim> offset_tuple_t;
+        typedef offset_tuple< n_dim, n_dim > offset_tuple_t;
 
       private:
         offset_tuple_t m_offsets;
@@ -117,37 +117,39 @@ namespace gridtools {
 
         // ctor with one argument have to provide specific arguments in order to avoid ambiguous instantiation
         // by the compiler
-        template<uint_t Idx>
-        GT_FUNCTION
-        constexpr accessor_base (dimension<Idx> const& x ): m_offsets(x) {
+        template < uint_t Idx >
+        GT_FUNCTION constexpr accessor_base(dimension< Idx > const &x)
+            : m_offsets(x) {
             GRIDTOOLS_STATIC_ASSERT((Idx <= n_dim), "too high dimension accessor");
         }
 
         GT_FUNCTION
-        constexpr accessor_base (const int_t x ): m_offsets(x) {}
+        constexpr accessor_base(const int_t x) : m_offsets(x) {}
 
-
-        /**@brief constructor taking the dimension class as argument.
-           This allows to specify the extra arguments out of order. Note that 'dimension' is a
-           language keyword used at the interface level.
-        */
-#if defined( CUDA8 ) // cuda<8 messing up
-        template <typename... Whatever, typename Dummy=all_integers<Whatever ...> >
-        GT_FUNCTION
-        constexpr accessor_base ( Whatever... x) : m_offsets( x...)
-        {
-            GRIDTOOLS_STATIC_ASSERT(sizeof...(x)<=n_dim, "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions of the storage. Check that you are not accessing a non existing dimension, or increase the dimension D of the accessor (accessor<Id, extent, D>)");
+/**@brief constructor taking the dimension class as argument.
+   This allows to specify the extra arguments out of order. Note that 'dimension' is a
+   language keyword used at the interface level.
+*/
+#if defined(CUDA8) // cuda<8 messing up
+        template < typename... Whatever, typename Dummy = all_integers< Whatever... > >
+        GT_FUNCTION constexpr accessor_base(Whatever... x)
+            : m_offsets(x...) {
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(x) <= n_dim,
+                "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions "
+                "of the storage. Check that you are not accessing a non existing dimension, or increase the dimension "
+                "D of the accessor (accessor<Id, extent, D>)");
         }
 
         template < typename First,
             typename... Whatever,
-            typename T = typename boost::enable_if_c< accumulate(logical_and(),
-                                                                 is_dimension< First >::type::value,
-                                                                 is_dimension< Whatever >::type::value...) >::type >
+            typename T = typename boost::enable_if_c< accumulate(
+                logical_and(), is_dimension< First >::type::value, is_dimension< Whatever >::type::value...) >::type >
 
         GT_FUNCTION constexpr accessor_base(First f, Whatever... x)
             : m_offsets(f, x...) {
-            GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(), (First::direction <= n_dim), (Whatever::direction <= n_dim) ...), "trying to access a too high dimension for accessor");
+            GRIDTOOLS_STATIC_ASSERT(
+                accumulate(logical_and(), (First::direction <= n_dim), (Whatever::direction <= n_dim)...),
+                "trying to access a too high dimension for accessor");
             GRIDTOOLS_STATIC_ASSERT(sizeof...(x) <= n_dim - 1,
                 "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions "
                 "of the storage. Check that you are not accessing a non existing dimension, or increase the dimension "
@@ -184,7 +186,9 @@ namespace gridtools {
 
         template < short_t Idx >
         GT_FUNCTION int_t constexpr get() const {
-            GRIDTOOLS_STATIC_ASSERT(Idx<0 || Idx<=n_dim, "requested accessor index larger than the available dimensions. Maybe you made a mistake when setting the accessor dimensionality?");
+            GRIDTOOLS_STATIC_ASSERT(Idx < 0 || Idx <= n_dim, "requested accessor index larger than the available "
+                                                             "dimensions. Maybe you made a mistake when setting the "
+                                                             "accessor dimensionality?");
             return m_offsets.template get< Idx >();
         }
 

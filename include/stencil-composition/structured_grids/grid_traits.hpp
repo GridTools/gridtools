@@ -33,7 +33,8 @@ namespace gridtools {
         struct select_mss_compute_extent_sizes {
             template < typename PlaceholdersMap, typename Mss, uint_t RepeatFunctor >
             struct apply {
-                typedef typename compute_extents_of< PlaceholdersMap, RepeatFunctor >::template for_mss< Mss >::type type;
+                typedef
+                    typename compute_extents_of< PlaceholdersMap, RepeatFunctor >::template for_mss< Mss >::type type;
             };
         };
 

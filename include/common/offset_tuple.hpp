@@ -34,8 +34,8 @@ namespace gridtools {
     */
     template < ushort_t N, typename X >
     GT_FUNCTION constexpr int_t initialize(X x) {
-    GRIDTOOLS_STATIC_ASSERT(is_dimension<X>::value,
-                            "you passed an integer to the accessor instead of an instance of ```dimension<>```.");
+        GRIDTOOLS_STATIC_ASSERT(is_dimension< X >::value,
+            "you passed an integer to the accessor instead of an instance of ```dimension<>```.");
         return (X::direction == N ? x.value : 0);
     }
 
@@ -48,8 +48,8 @@ namespace gridtools {
     */
     template < ushort_t N, typename X, typename... Rest >
     GT_FUNCTION constexpr int_t initialize(X x, Rest... rest) {
-    GRIDTOOLS_STATIC_ASSERT(is_dimension<X>::value,
-                            "you passed an integer to the accessor instead of an instance of ```dimension<>```.");
+        GRIDTOOLS_STATIC_ASSERT(is_dimension< X >::value,
+            "you passed an integer to the accessor instead of an instance of ```dimension<>```.");
         return X::direction == N ? x.value : initialize< N >(rest...);
     }
 #else
@@ -155,8 +155,7 @@ namespace gridtools {
             typename =
                 typename boost::disable_if< typename _impl::contains_array< GenericElements... >::type, bool >::type >
         GT_FUNCTION constexpr offset_tuple(int const t, GenericElements const... x)
-            : super(x...), m_offset(t) {
-        }
+            : super(x...), m_offset(t) {}
 
         /**@brief constructor taking the dimension class as argument.
            This allows to specify the extra arguments out of order. Note that 'dimension' is a
@@ -165,7 +164,8 @@ namespace gridtools {
         template < ushort_t Idx, typename... GenericElements >
         GT_FUNCTION constexpr offset_tuple(dimension< Idx > const t, GenericElements const... x)
             : super(t, x...), m_offset(initialize< super::n_dim - n_args + 1 >(t, x...)) {
-            GRIDTOOLS_STATIC_ASSERT( (Index <= n_dim ), "overflow in offset_tuple. Check that the accessor dimension is valid." );
+            GRIDTOOLS_STATIC_ASSERT(
+                (Index <= n_dim), "overflow in offset_tuple. Check that the accessor dimension is valid.");
         }
 
         /**@brief constructor taking the dimension::Index class as argument.
@@ -173,9 +173,11 @@ namespace gridtools {
            language keyword used at the interface level.
         */
         template < ushort_t Idx, typename... GenericElements >
-            GT_FUNCTION constexpr offset_tuple(typename dimension< Idx >::Index const t, GenericElements const... x)
-            : super(dimension<Idx>(0), x...), m_offset(initialize< super::n_dim - n_args + 1 >(dimension<Idx>(0), x...)) {
-            GRIDTOOLS_STATIC_ASSERT( (Index <= n_dim ), "overflow in offset_tuple. Check that the accessor dimension is valid." );
+        GT_FUNCTION constexpr offset_tuple(typename dimension< Idx >::Index const t, GenericElements const... x)
+            : super(dimension< Idx >(0), x...),
+              m_offset(initialize< super::n_dim - n_args + 1 >(dimension< Idx >(0), x...)) {
+            GRIDTOOLS_STATIC_ASSERT(
+                (Index <= n_dim), "overflow in offset_tuple. Check that the accessor dimension is valid.");
         }
 #else
         /**@brief constructor taking an integer as the first argument, and then other optional arguments.

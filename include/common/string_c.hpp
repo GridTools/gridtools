@@ -58,26 +58,23 @@ namespace gridtools {
         static void apply() { Callable::apply(Known...); }
     };
 
-
     /** apply the given operator to all strings recursively*/
-    template<typename First, typename ... Strings>
+    template < typename First, typename... Strings >
     struct concatenate {
 
         GT_FUNCTION
         static void apply (  ) {
             First::to_string::apply();
-            concatenate<Strings...>::apply();
+            concatenate< Strings... >::apply();
         }
     };
 
     /** apply the given operator to all strings recursively*/
-    template<typename String>
-    struct concatenate<String> {
+    template < typename String >
+    struct concatenate< String > {
 
         GT_FUNCTION
-        static void apply (  ) {
-            String::to_string::apply();
-        }
+        static void apply() { String::to_string::apply(); }
     };
 
     /**@brief struct to recursively print all the strings contained in the gridtools::string template arguments*/

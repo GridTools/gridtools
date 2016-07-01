@@ -101,10 +101,10 @@ namespace gridtools {
         void set_on_host() {}
 
         GT_FUNCTION
-        void update_gpu() { } //\todo find a way to remove this method
+        void update_gpu() {} //\todo find a way to remove this method
 
         GT_FUNCTION
-        void update_cpu() { } //\todo find a way to remove this method
+        void update_cpu() {} //\todo find a way to remove this method
 
         GT_FUNCTION
         void allocate_it(uint_t size) { m_cpu_p = (Array) ? new T[size] : new T; }
@@ -171,30 +171,30 @@ namespace gridtools {
             return &m_cpu_p[i];
         }
 
-    /**
-       @brief swapping two pointers
-    */
-    GT_FUNCTION
-    void swap(wrap_pointer& other){
+        /**
+           @brief swapping two pointers
+        */
+        GT_FUNCTION
+        void swap(wrap_pointer &other) {
 
-        T* tmp = m_cpu_p;
-        m_cpu_p = other.m_cpu_p;
-        other.m_cpu_p = tmp;
+            T *tmp = m_cpu_p;
+            m_cpu_p = other.m_cpu_p;
+            other.m_cpu_p = tmp;
 
-        bool tmp_bool = m_externally_managed;
-        m_externally_managed = other.m_externally_managed;
-        other.m_externally_managed = tmp_bool;
+            bool tmp_bool = m_externally_managed;
+            m_externally_managed = other.m_externally_managed;
+            other.m_externally_managed = tmp_bool;
     }
 
-        GT_FUNCTION
-        T *get_cpu_p() { return m_cpu_p; }
+    GT_FUNCTION
+    T *get_cpu_p() { return m_cpu_p; }
 
-        GT_FUNCTION
-        T *get_gpu_p() { assert(false); }
+    GT_FUNCTION
+    T *get_gpu_p() { assert(false); }
 
-      protected:
-        T *m_cpu_p;
-        bool m_externally_managed;
+  protected:
+    T *m_cpu_p;
+    bool m_externally_managed;
     };
 
 } // namespace gridtools

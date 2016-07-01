@@ -32,19 +32,20 @@
 */
 namespace gridtools {
 
-    //fwd decl
+    // fwd decl
     template < typename T >
     struct is_vector_accessor;
 
-    template <typename T>
+    template < typename T >
     struct is_layout_map;
 
-/**
-   @struct
-   @brief Used as template argument in the storage.
-   In particular in the \ref gridtools::base_storage class it regulate memory access order, defined at compile-time, by
-   leaving the interface unchanged.
-*/
+    /**
+       @struct
+       @brief Used as template argument in the storage.
+       In particular in the \ref gridtools::base_storage class it regulate memory access order, defined at compile-time,
+       by
+       leaving the interface unchanged.
+    */
     namespace _impl {
 
         template < int index >
@@ -87,15 +88,14 @@ namespace gridtools {
         static const constexpr short_t layout_vector[sizeof...(Args)] = {Args...};
         typedef boost::mpl::vector_c< short_t, Args... > layout_vector_t;
 
-        template <class Layout >
-        struct append{
+        template < class Layout >
+        struct append {
 
-            GRIDTOOLS_STATIC_ASSERT( is_layout_map<Layout>::value, "internal error" );
+            GRIDTOOLS_STATIC_ASSERT(is_layout_map< Layout >::value, "internal error");
 
-            typedef typename boost::mpl::fold<
-                typename Layout::layout_vector_t,
-                layout_map<Args ... >,
-                layout_map<Args ..., boost::mpl::plus<boost::mpl::_2, static_ushort<length> >::value > >::type type;
+            typedef typename boost::mpl::fold< typename Layout::layout_vector_t,
+                layout_map< Args... >,
+                layout_map< Args..., boost::mpl::plus< boost::mpl::_2, static_ushort< length > >::value > >::type type;
         };
 
         /** This function returns the value in the map that is stored at
@@ -104,20 +104,18 @@ namespace gridtools {
 
             \tparam I The index to be queried
         */
-        template <ushort_t I>
-        GT_FUNCTION
-        static constexpr short_t at() {
-            BOOST_STATIC_ASSERT( I<length );
-            return layout_vector[ I ];
+        template < ushort_t I >
+        GT_FUNCTION static constexpr short_t at() {
+            BOOST_STATIC_ASSERT(I < length);
+            return layout_vector[I];
         }
 
-
-        template <typename T>
+        template < typename T >
         struct remove_refref;
 
-        template <typename T>
-        struct remove_refref<T&&> {
-            using type=T;
+        template < typename T >
+        struct remove_refref< T && > {
+            using type = T;
         };
 
 #ifndef __CUDACC__
@@ -201,16 +199,15 @@ namespace gridtools {
            (e.g. using boost::mpl::eval_if) is not taken, it is also not compiled.
            The following struct defines a subclass with a templated method which returns a given element in a tuple.
         */
-        template<ushort_t I, typename Int>
-        struct tied_type
-        {
-            struct type{
-                template<typename ... Indices>
-                GT_FUNCTION
-                static constexpr const Int value(Indices const& ... indices){
-                    GRIDTOOLS_STATIC_ASSERT((accumulate(logical_and(), boost::is_integral<Indices>::type::value ...)), "wrong type");
-                    return gt_get< pos_<I>::value>::apply( indices ...);
-                    //std::get< pos_<I>::value >(std::make_tuple(indices...));
+        template < ushort_t I, typename Int >
+        struct tied_type {
+            struct type {
+                template < typename... Indices >
+                GT_FUNCTION static constexpr const Int value(Indices const &... indices) {
+                    GRIDTOOLS_STATIC_ASSERT(
+                        (accumulate(logical_and(), boost::is_integral< Indices >::type::value...)), "wrong type");
+                    return gt_get< pos_< I >::value >::apply(indices...);
+                    // std::get< pos_<I>::value >(std::make_tuple(indices...));
                 }
             };
         };
@@ -277,7 +274,7 @@ namespace gridtools {
         */
         template < ushort_t I, typename T, T DefaultVal, typename Indices >
         GT_FUNCTION static constexpr Indices find_val(Indices const *indices) {
-            GRIDTOOLS_STATIC_ASSERT((boost::is_integral<Indices>::type::value), "wrong type");
+            GRIDTOOLS_STATIC_ASSERT((boost::is_integral< Indices >::type::value), "wrong type");
             return (pos_< I >::value >= length) ? DefaultVal : indices[pos_< I >::value];
         }
 
@@ -299,7 +296,7 @@ namespace gridtools {
         */
         template < ushort_t I, typename T, T DefaultVal, typename OffsetTuple >
         GT_FUNCTION static constexpr T find_val(OffsetTuple const &indices) {
-            GRIDTOOLS_STATIC_ASSERT(( is_offset_tuple< OffsetTuple >::value),
+            GRIDTOOLS_STATIC_ASSERT((is_offset_tuple< OffsetTuple >::value),
                 "the find_val method must be used with tuples of offset_tuple type");
             return ((pos_< I >::value >= length)) ? DefaultVal
                                                   : indices.template get< OffsetTuple::n_dim - pos_< I >::value - 1 >();
@@ -381,25 +378,25 @@ namespace gridtools {
                 static constexpr ushort_t value = ~ushort_t();
             };
 
-            static constexpr ushort_t value = _find_pos<0, boost::mpl::at_c<layout_vector_t, 0>::type::value == I>::value;
-
+            static constexpr ushort_t value =
+                _find_pos< 0, boost::mpl::at_c< layout_vector_t, 0 >::type::value == I >::value;
         };
-
     };
 
-    template<short_t ... Args>
-    template <ushort_t I>
-    const short_t layout_map<Args...>::at_<I>::value;
+    template < short_t... Args >
+    template < ushort_t I >
+    const short_t layout_map< Args... >::at_< I >::value;
 
-    template <short_t ... Args>
-    constexpr const short_t layout_map<Args ... >::layout_vector[sizeof...(Args)];
+    template < short_t... Args >
+    constexpr const short_t layout_map< Args... >::layout_vector[sizeof...(Args)];
 
-
-    template <typename layout> struct is_layout_map : boost::mpl::false_{};
-    template <short_t ... Args> struct is_layout_map<layout_map<Args...> > : boost::mpl::true_{};
+    template < typename layout >
+    struct is_layout_map : boost::mpl::false_ {};
+    template < short_t... Args >
+    struct is_layout_map< layout_map< Args... > > : boost::mpl::true_ {};
 
     template < typename Map, ushort_t Pre, ushort_t Post >
-    struct sub_map{
-        typedef typename gt_expand<typename Map::layout_vector_t, layout_map, Pre, Post>::type type;
+    struct sub_map {
+        typedef typename gt_expand< typename Map::layout_vector_t, layout_map, Pre, Post >::type type;
     };
 } // namespace gridtools

@@ -41,36 +41,34 @@ namespace gridtools {
 
     /**substituting the std::vector type in the args<> with a correspondent
        expandable_parameter placeholder*/
-    template <uint_t Size>
-    struct substitute_expandable_param{
+    template < uint_t Size >
+    struct substitute_expandable_param {
 
-        template <typename Placeholder>
-        struct apply{
+        template < typename Placeholder >
+        struct apply {
             typedef Placeholder type;
         };
 
-        template <ushort_t ID, typename Storage>
-        struct apply<arg<ID, std::vector<pointer<storage<Storage> > > >>{
-            typedef arg<ID, storage<expandable_parameters<typename Storage::basic_type, Size> > > type;
+        template < ushort_t ID, typename Storage >
+        struct apply< arg< ID, std::vector< pointer< storage< Storage > > > > > {
+            typedef arg< ID, storage< expandable_parameters< typename Storage::basic_type, Size > > > type;
         };
 
-        template <ushort_t ID, typename Storage>
-        struct apply<arg<ID, std::vector<pointer<no_storage_type_yet<storage<Storage> > > > > >{
-            typedef arg<ID, no_storage_type_yet<storage<expandable_parameters<typename Storage::basic_type, Size> > > > type;
+        template < ushort_t ID, typename Storage >
+        struct apply< arg< ID, std::vector< pointer< no_storage_type_yet< storage< Storage > > > > > > {
+            typedef arg< ID,
+                no_storage_type_yet< storage< expandable_parameters< typename Storage::basic_type, Size > > > > type;
         };
 
-        template < typename Arg, typename Extent>
-        struct apply<boost::mpl::pair<Arg, Extent> >{
-            typedef boost::mpl::pair<typename apply<Arg>::type, Extent> type;
+        template < typename Arg, typename Extent >
+        struct apply< boost::mpl::pair< Arg, Extent > > {
+            typedef boost::mpl::pair< typename apply< Arg >::type, Extent > type;
         };
-
     };
 
-    template <typename PlaceholderArray, uint_t Size>
+    template < typename PlaceholderArray, uint_t Size >
     struct substitute_expandable_params {
-        typedef typename boost::mpl::transform< PlaceholderArray
-                                                , substitute_expandable_param<Size>
-                                                >::type type;
+        typedef typename boost::mpl::transform< PlaceholderArray, substitute_expandable_param< Size > >::type type;
     };
 
     /** This funciton initializes the map between placeholders and extents by
@@ -130,8 +128,12 @@ namespace gridtools {
                 template < typename PlcRangePair, typename CurrentMap >
                 struct with {
 
-                    GRIDTOOLS_STATIC_ASSERT((boost::mpl::or_< is_extent< CurrentRange >, is_staggered< CurrentRange > >::value), "wrong type");
-                    GRIDTOOLS_STATIC_ASSERT((boost::mpl::or_< is_extent< typename PlcRangePair::second >, is_staggered< typename PlcRangePair::second > >::value), "wrong type");
+                    GRIDTOOLS_STATIC_ASSERT(
+                        (boost::mpl::or_< is_extent< CurrentRange >, is_staggered< CurrentRange > >::value),
+                        "wrong type");
+                    GRIDTOOLS_STATIC_ASSERT((boost::mpl::or_< is_extent< typename PlcRangePair::second >,
+                                                is_staggered< typename PlcRangePair::second > >::value),
+                        "wrong type");
 
                     typedef typename sum_extent< CurrentRange, typename PlcRangePair::second >::type candidate_extent;
                     typedef typename enclosing_extent< candidate_extent,
@@ -167,7 +169,7 @@ namespace gridtools {
                 // First determine which are the outputs
                 typedef typename esf_get_w_per_functor< current_ESF, boost::true_type >::type outputs_original;
                 // substitute the types for expandable parameters arg
-                typedef typename substitute_expandable_params<outputs_original, RepeatFunctor>::type outputs;
+                typedef typename substitute_expandable_params< outputs_original, RepeatFunctor >::type outputs;
                 GRIDTOOLS_STATIC_ASSERT((check_all_extents_are< outputs, extent<> >::type::value),
                     "Extents of the outputs of ESFs are not all empty. All outputs must have empty extents");
 
@@ -250,7 +252,8 @@ namespace gridtools {
         // The case of conditionals
         template < typename CurrentMap, typename Mss1, typename Mss2, typename Cond >
         struct update_map< CurrentMap, condition< Mss1, Mss2, Cond > > {
-            typedef typename mss_compute_extent_sizes_t::template apply< CurrentMap, Mss1, RepeatFunctor >::type FirstMap;
+            typedef
+                typename mss_compute_extent_sizes_t::template apply< CurrentMap, Mss1, RepeatFunctor >::type FirstMap;
             typedef typename mss_compute_extent_sizes_t::template apply< FirstMap, Mss2, RepeatFunctor >::type type;
         };
 
@@ -287,7 +290,9 @@ namespace gridtools {
 
        \tparam MssDescriptorArrayElements The ::elements in a MSS descriptor
        \tparam ExtentsMap Map between placeholders and extents that will be then associated to stencil operators
-       \tparam RepeatFunctor stating how many times the user function should be repeated (when using expandable parameters). This argument is used to substitute the user types (std::vector of storages) with expandable parameters when necessary.
+       \tparam RepeatFunctor stating how many times the user function should be repeated (when using expandable
+       parameters). This argument is used to substitute the user types (std::vector of storages) with expandable
+       parameters when necessary.
      */
     template < typename MssDescriptorArrayElements, typename ExtentsMap, uint_t RepeatFunctor >
     struct associate_extents_to_esfs {
@@ -320,7 +325,7 @@ namespace gridtools {
 
                 typedef typename esf_get_w_per_functor< Esf >::type w_plcs_original;
                 // substitute the types for expandable parameters arg
-                typedef typename substitute_expandable_params<w_plcs_original, RepeatFunctor>::type w_plcs;
+                typedef typename substitute_expandable_params< w_plcs_original, RepeatFunctor >::type w_plcs;
                 typedef typename boost::mpl::at_c< w_plcs, 0 >::type first_out;
                 typedef typename boost::mpl::at< MapOfPlaceholders, first_out >::type extent;
                 // TODO recover
@@ -356,7 +361,7 @@ namespace gridtools {
             template < typename Esf >
             struct get_extent_for {
                 typedef typename esf_args< Esf >::type w_plcs_original;
-                typedef typename substitute_expandable_params<w_plcs_original, RepeatFunctor>::type w_plcs;
+                typedef typename substitute_expandable_params< w_plcs_original, RepeatFunctor >::type w_plcs;
                 typedef typename boost::mpl::at_c< w_plcs, 0 >::type first_out;
                 typedef typename boost::mpl::at< MapOfPlaceholders, first_out >::type extent;
 

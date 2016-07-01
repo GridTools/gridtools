@@ -21,7 +21,7 @@
 #include "layout_map_cxx03.hpp"
 #endif
 
-namespace gridtools{
+namespace gridtools {
     template <typename LM>
     struct reverse_map;
 
@@ -103,4 +103,4 @@ namespace gridtools{
     struct default_layout_map<4> {
         typedef layout_map<0,1,2,3> type;
     };
-}//namespace gridtools
+} // namespace gridtools

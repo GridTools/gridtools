@@ -30,7 +30,7 @@
         dim3 blocks(nbx, nby, nbz);                                                                              \
                                                                                                                  \
         if (nbx != 0 && nby != 0 && nbz != 0) {                                                                  \
-            m_packZUKernel_generic<<< blocks, threads, 0, ZU_stream >>>(field##n.ptr,                        \
+            m_packZUKernel_generic< < < blocks, threads, 0, ZU_stream > > >(field##n.ptr,                        \
                 reinterpret_cast< typename FOTF_T##n::value_type ** >(d_msgbufTab),                              \
                 wrap_argument(d_msgsize + 27 * n),                                                               \
                 *(reinterpret_cast< const gridtools::array< gridtools::halo_descriptor, 3 > * >(&field##n)),     \

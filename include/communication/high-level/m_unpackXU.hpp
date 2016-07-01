@@ -125,7 +125,7 @@ void m_unpackXU(array_t const &d_data_array,
 
         // the actual kernel launch
         // clang-format off
-      m_unpackXUKernel<<<blocks, threads, 0, XU_stream>>>(d_data_array[i], d_msgbufTab_r, d_msgsize_r, halo_d, ny, nz,
+      m_unpackXUKernel< <<blocks, threads, 0, XU_stream> >>(d_data_array[i], d_msgbufTab_r, d_msgsize_r, halo_d, ny, nz,
                                                           (halo[0].end()+1)
                                                           + (halo[1].begin())*halo[0].total_length()
                                                           + (halo[2].begin())*halo[0].total_length() *halo[1].total_length(), i);

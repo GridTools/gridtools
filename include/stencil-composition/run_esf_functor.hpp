@@ -108,7 +108,7 @@ namespace gridtools {
                     (boost::mpl::size< esf_args_map_t >::value ==
                         boost::mpl::size<
                             typename boost::mpl::at< run_functor_list_t, Index >::type::f_type::arg_list >::value),
-                                         "GRIDTOOLS ERROR:\n\
+                    "GRIDTOOLS ERROR:\n\
 	            check that the number of placeholders passed to the elementary stencil function\n \
 	            (constructed during the computation) is the same as the number of arguments referenced\n \
 	            in the functor definition (in the high level interface). This means that we cannot\n \
@@ -121,6 +121,6 @@ namespace gridtools {
         }
 
     protected:
-        iterate_domain_t &m_iterate_domain;
+      iterate_domain_t &m_iterate_domain;
     };
 } // namespace gridtools

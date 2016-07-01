@@ -171,10 +171,10 @@ namespace gridtools {
 
         /**@brief releasing the pointers to the data, and deleting them in case they need to be deleted */
         void release() {
-            if(is_set){
+            if (is_set) {
                 for (ushort_t i = 0; i < field_dimensions; ++i)
                     m_fields[i].free_it();
-                is_set=false;
+                is_set = false;
             }
         }
 
@@ -210,8 +210,8 @@ namespace gridtools {
            and the same storage_info.
          */
         GT_FUNCTION
-        void swap_pointers(base_storage& other){
-            for(ushort_t i=0; i<field_dimensions; ++i)
+        void swap_pointers(base_storage &other) {
+            for (ushort_t i = 0; i < field_dimensions; ++i)
                 m_fields[i].swap(other.m_fields[i]);
         }
 
@@ -382,9 +382,7 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        void unset() {
-            is_set=false;
-        }
+        void unset() { is_set = false; }
     };
 
     /** \addtogroup specializations Specializations

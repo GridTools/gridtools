@@ -165,14 +165,14 @@ bool test_domain() {
     // // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-    gridtools::aggregator_type<accessor_list> domain
-        (boost::fusion::make_vector(&coeff, &in, &out /*,&fly, &flx*/));
+    gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&coeff, &in, &out /*,&fly, &flx*/));
 
-    typedef boost::mpl::vector<
-        gridtools::_impl::select_storage<accessor_list, boost::mpl::na>::template apply<gridtools::static_int<0> >::type,
-        gridtools::_impl::select_storage<accessor_list, boost::mpl::na>::template apply<gridtools::static_int<1> >::type,
-        gridtools::_impl::select_storage<accessor_list, boost::mpl::na>::template apply<gridtools::static_int<2> >::type
-    > mpl_accessor_list;
+    typedef boost::mpl::vector< gridtools::_impl::select_storage< accessor_list,
+                                    boost::mpl::na >::template apply< gridtools::static_int< 0 > >::type,
+        gridtools::_impl::select_storage< accessor_list,
+                                    boost::mpl::na >::template apply< gridtools::static_int< 1 > >::type,
+        gridtools::_impl::select_storage< accessor_list, boost::mpl::na >::template apply<
+                                    gridtools::static_int< 2 > >::type > mpl_accessor_list;
 
     typedef boost::mpl::vector< gridtools::_impl::select_storage< inner_accessor_list,
                                     boost::mpl::na >::template apply< gridtools::static_int< 0 > >::type,
@@ -219,8 +219,8 @@ bool test_domain() {
     actual_arg_list_inner_type inner_args =
         boost::fusion::make_vector(coeff.get_pointer_to_use(), in.get_pointer_to_use(), out.get_pointer_to_use());
     // clang-format off
-    print_values<<<1,1>>>(&inner_args);
-    // clang-format on
+    print_values< <<1,1> >>(&inner_args);
+// clang-format on
 #ifdef __CUDACC__
     cudaDeviceSynchronize();
 #endif
@@ -249,8 +249,8 @@ bool test_domain() {
     printf("\n\nFROM GPU\n\n");
 #endif
     // clang-format off
-    print_values<<<1,1>>>(&inner_args);
-    // clang-format on
+    print_values< <<1,1> >>(&inner_args);
+// clang-format on
 #ifdef __CUDACC__
     cudaDeviceSynchronize();
 #endif

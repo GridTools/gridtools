@@ -78,7 +78,7 @@ namespace test_iterate_domain{
         typedef arg<2, field<storage_out_type, 2, 2, 2>::type > p_out;
         typedef boost::mpl::vector<p_in, p_buff, p_out> accessor_list;
 
-        gridtools::aggregator_type<accessor_list> domain((p_in() = in),  (p_buff() = buff), (p_out() = out) );
+        gridtools::aggregator_type< accessor_list > domain((p_in() = in), (p_buff() = buff), (p_out() = out));
 
         uint_t di[5] = {0, 0, 0, d1-1, d1};
         uint_t dj[5] = {0, 0, 0, d2-1, d2};
@@ -88,11 +88,12 @@ namespace test_iterate_domain{
         grid.value_list[1] = d3-1;
 
         auto mss_ = gridtools::make_multistage // mss_descriptor
-            (enumtype::execute< enumtype::forward >(), gridtools::make_stage< dummy_functor >(p_in(), p_buff(), p_out()));
+            (enumtype::execute< enumtype::forward >(),
+                gridtools::make_stage< dummy_functor >(p_in(), p_buff(), p_out()));
         auto computation_ =
             make_computation_impl< false, gridtools::backend< Host, GRIDBACKEND, Naive > >(domain, grid, mss_);
 
-        typedef decltype(gridtools::make_stage<dummy_functor>(p_in() ,p_buff(), p_out())) esf_t;
+        typedef decltype(gridtools::make_stage< dummy_functor >(p_in(), p_buff(), p_out())) esf_t;
 
         computation_->ready();
         computation_->steady();
@@ -116,7 +117,7 @@ namespace test_iterate_domain{
                 boost::mpl::false_,
                 notype > > it_domain_t;
 
-        mss_local_domain1_t mss_local_domain1=boost::fusion::at_c<0>(computation_->mss_local_domain_list());
+        mss_local_domain1_t mss_local_domain1 = boost::fusion::at_c< 0 >(computation_->mss_local_domain_list());
         auto local_domain1=boost::fusion::at_c<0>(mss_local_domain1.local_domain_list);
         it_domain_t it_domain(local_domain1, 0);
 

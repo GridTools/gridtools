@@ -70,8 +70,9 @@ namespace gridtools {
     template <typename Placeholders>
     struct domain_type : public clonable_to_gpu<domain_type<Placeholders> > {
 
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<Placeholders>::type::value>0),
-                                "The domain_type must be constructed with at least one storage placeholder. If you don't use any storage you are probably trying to do something which is not a stencil operation, aren't you?");
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< Placeholders >::type::value > 0),
+            "The domain_type must be constructed with at least one storage placeholder. If you don't use any storage "
+            "you are probably trying to do something which is not a stencil operation, aren't you?");
         typedef typename boost::mpl::sort<Placeholders, arg_comparator >::type placeholders_t;
 
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<placeholders_t, is_arg>::type::value), "wrong type:\
@@ -126,8 +127,10 @@ namespace gridtools {
 
 
         //actual check if the user specified placeholder arguments with the same index
-        GRIDTOOLS_STATIC_ASSERT((len <= boost::mpl::size<index_set>::type::value ), "you specified two different placeholders with the same index, which is not allowed. check the arg defiintions.");
-        GRIDTOOLS_STATIC_ASSERT((len >= boost::mpl::size<index_set>::type::value ), "something strange is happening.");
+        GRIDTOOLS_STATIC_ASSERT((len <= boost::mpl::size< index_set >::type::value),
+            "you specified two different placeholders with the same index, which is not allowed. check the arg "
+            "defiintions.");
+        GRIDTOOLS_STATIC_ASSERT((len >= boost::mpl::size< index_set >::type::value), "something strange is happening.");
 
         /**
            @brief MPL vector of storage pointers
@@ -230,8 +233,10 @@ namespace gridtools {
             , m_metadata_set()
         {
 
-            GRIDTOOLS_STATIC_ASSERT((sizeof ... (StorageArgs)>0), "Computations with no storages are not supported. Add at least one storage to the domain_type definition.");
-            //NOTE: the following assertion assumes there StorageArgs has length at leas 1
+            GRIDTOOLS_STATIC_ASSERT((sizeof...(StorageArgs) > 0), "Computations with no storages are not supported. "
+                                                                  "Add at least one storage to the domain_type "
+                                                                  "definition.");
+            // NOTE: the following assertion assumes there StorageArgs has length at leas 1
             GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair<StorageArgs>::value ...), "wrong type");
             assign_pointers(m_metadata_set, args...);
         }
@@ -283,10 +288,12 @@ namespace gridtools {
             , m_metadata_set()
         {
 
-            //TODO: how to check the assertion below?
-// #ifdef CXX11_ENABLED
-//             GRIDTOOLS_STATIC_ASSERT(is_fusion_vector<RealStorage>::value, "the argument passed to the domain type constructor must be a fusion vector, or a pair (placeholder = storage), see the domain_type constructors");
-// #endif
+            // TODO: how to check the assertion below?
+            // #ifdef CXX11_ENABLED
+            //             GRIDTOOLS_STATIC_ASSERT(is_fusion_vector<RealStorage>::value, "the argument passed to the
+            //             domain type constructor must be a fusion vector, or a pair (placeholder = storage), see the
+            //             domain_type constructors");
+            // #endif
 
             typedef boost::fusion::filter_view
                 <arg_list,
@@ -342,13 +349,9 @@ namespace gridtools {
          *
          * @param The object to copy. Typically this will be *this
          */
-        __device__ __host__
-        domain_type(domain_type const& other)
-            : m_storage_pointers(other.m_storage_pointers)
-            , m_original_pointers(other.m_original_pointers)
-            , m_metadata_set(other.m_metadata_set)
-        { }
-
+        __device__ __host__ domain_type(domain_type const &other)
+            : m_storage_pointers(other.m_storage_pointers), m_original_pointers(other.m_original_pointers),
+              m_metadata_set(other.m_metadata_set) {}
 
 #ifndef NDEBUG
         GT_FUNCTION

@@ -31,7 +31,6 @@ namespace gridtools {
         using typename super::data_field;
 
       public:
-
         template < typename PT, typename MD, ushort_t FD >
         using type_tt = expandable_parameters< typename super::template type_tt< PT, MD, Size >, Size >;
 
@@ -68,7 +67,7 @@ namespace gridtools {
                 if (offset + i < other.size()) {
                     this->m_fields[i] = other.at(offset + i)->fields()[0];
                 }
-            this->is_set=true;
+            this->is_set = true;
         }
 
         /**
@@ -95,7 +94,6 @@ namespace gridtools {
             for (ushort_t i = 0; i < Size; ++i)
                 this->m_fields[i] = other.fields()[i];
         }
-
     };
 
     template < typename Storage, uint_t Size >
