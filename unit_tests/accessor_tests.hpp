@@ -17,7 +17,9 @@
 
 #include <gridtools.hpp>
 #include <stencil-composition/accessor.hpp>
+#ifdef CXX11_ENABLED
 #include <stencil-composition/expressions.hpp>
+#endif
 
 namespace interface {
     /** @brief simple interface

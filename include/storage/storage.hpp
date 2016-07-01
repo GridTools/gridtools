@@ -362,14 +362,18 @@ namespace gridtools {
               m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), args...), false), m_on_host(true) {}
 #else // CXX11_ENABLED
 
-        explicit storage(storage_info_type const &meta_data_, value_type const &init, bool do_allocate = true)
+        explicit storage(storage_info_type const &meta_data_, const char* name_, bool do_allocate)
             : m_meta_data(new storage_info_type(meta_data_), false),
-              m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), init, do_allocate), false), m_on_host(true) {}
+              m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), name_, do_allocate), false), m_on_host(true) {}
+
+        explicit storage(storage_info_type const &meta_data_, value_type const &init)
+            : m_meta_data(new storage_info_type(meta_data_), false),
+              m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), init, "default storage"), false), m_on_host(true) {}
 
         explicit storage(
-            storage_info_type const &meta_data_, value_type const &init, const char *name, bool do_allocate)
+            storage_info_type const &meta_data_, value_type const &init, const char *name)
             : m_meta_data(new storage_info_type(meta_data_), false),
-              m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), init, name, do_allocate), false),
+              m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), init, name), false),
               m_on_host(true) {}
 
         template < typename Ret, typename T >

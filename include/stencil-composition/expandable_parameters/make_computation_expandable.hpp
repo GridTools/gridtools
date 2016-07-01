@@ -1,4 +1,9 @@
 #pragma once
+
+#ifndef CXX11_ENABLED
+#error("this file must be included only when c++11 is supported (i.e. ENABLE_CXX11=ON)")
+#endif
+
 #include <memory>
 
 #include "specializations.hpp"

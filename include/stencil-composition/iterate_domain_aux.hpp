@@ -22,10 +22,11 @@
 #include <boost/utility/enable_if.hpp>
 #include <boost/mpl/modulus.hpp>
 #include <boost/mpl/for_each.hpp>
+#ifdef CXX11_ENABLED
 #include "expressions.hpp"
-#include "stencil-composition/accessor.hpp"
-#include "common/meta_array.hpp"
-#include "common/array.hpp"
+#endif
+#include "../common/meta_array.hpp"
+#include "../common/array.hpp"
 #include "common/generic_metafunctions/static_if.hpp"
 #include "common/generic_metafunctions/reversed_range.hpp"
 #include "stencil-composition/total_storages.hpp"

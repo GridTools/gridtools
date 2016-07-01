@@ -144,14 +144,12 @@ namespace gridtools {
         typedef typename Storage::value_type::basic_type storage_t;
         typedef typename storage_t::value_type value_type;
 
-        typedef static_uint< 34 * 10 > storage_size_t;
-
         explicit cache_storage() {}
 
         template < typename Offset >
         GT_FUNCTION value_type &RESTRICT at(array< int, 2 > const &thread_pos, Offset const &offset) {
             GRIDTOOLS_STATIC_ASSERT(
-                (is_offset_tuple< typename Offset::tuple_t >::value), "Error type is not offset tuple");
+                (is_offset_tuple< typename Offset::offset_tuple_t >::value), "Error type is not offset tuple");
             assert(index(thread_pos, offset.offsets()) < storage_size_t::value);
             assert(index(thread_pos, offset.offsets()) >= 0);
 

@@ -21,7 +21,6 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/has_key.hpp>
 #include <boost/mpl/vector.hpp>
-#include "stencil-composition/expressions.hpp"
 #ifndef CXX11_ENABLED
 #include <boost/typeof/typeof.hpp>
 #endif
@@ -32,6 +31,9 @@
 #include "stencil-composition/iterate_domain_aux.hpp"
 #include "../reductions/iterate_domain_reduction.hpp"
 #include "../iterate_domain_fwd.hpp"
+#ifdef CXX11_ENABLED
+#include "../../storage/expandable_parameters.hpp"
+#endif
 
 /**@file
    @brief file handling the access to the storage.
