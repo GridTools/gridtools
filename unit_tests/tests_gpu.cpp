@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #define CUDA_EXAMPLE
 
 #include "gtest/gtest.h"
@@ -32,34 +47,34 @@ TEST(testgpuclone, testgpuclone) {
     EXPECT_EQ(gpu_clone_test::test_gpu_clone(), true);
 }
 
-// //the access to the storage metadata map is to be implemented for the boundary conditions
-// TEST(boundaryconditions, basic) {
-//     EXPECT_EQ(basic(), true);
-// }
+//the access to the storage metadata map is to be implemented for the boundary conditions
+TEST(boundaryconditions, basic) {
+    EXPECT_EQ(basic(), true);
+}
 
-// TEST(boundaryconditions, predicate) {
-//     EXPECT_EQ(predicate(), true);
-// }
+TEST(boundaryconditions, predicate) {
+    EXPECT_EQ(predicate(), true);
+}
 
-// TEST(boundaryconditions, twosurfaces) {
-//     EXPECT_EQ(twosurfaces(), true);
-// }
+TEST(boundaryconditions, twosurfaces) {
+    EXPECT_EQ(twosurfaces(), true);
+}
 
-// TEST(boundaryconditions, usingzero1) {
-//     EXPECT_EQ(usingzero_1(), true);
-// }
+TEST(boundaryconditions, usingzero1) {
+    EXPECT_EQ(usingzero_1(), true);
+}
 
-// TEST(boundaryconditions, usingzero2) {
-//     EXPECT_EQ(usingzero_2(), true);
-// }
+TEST(boundaryconditions, usingzero2) {
+    EXPECT_EQ(usingzero_2(), true);
+}
 
-// TEST(boundaryconditions, usingvalue2) {
-//     EXPECT_EQ(usingvalue_2(), true);
-// }
+TEST(boundaryconditions, usingvalue2) {
+    EXPECT_EQ(usingvalue_2(), true);
+}
 
-// TEST(boundaryconditions, usingcopy3) {
-//     EXPECT_EQ(usingcopy_3(), true);
-// }
+TEST(boundaryconditions, usingcopy3) {
+    EXPECT_EQ(usingcopy_3(), true);
+}
 
 TEST(testgpuclone, testcloningstuff) {
     EXPECT_EQ(cloningstuff_test::test_cloningstuff(), true);

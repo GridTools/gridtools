@@ -1,83 +1,78 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #pragma once
 
 #include <sstream>
 #include <string>
 
-namespace gridtools{
-
-/**
-* @class Timer
-* Measures total elapsed time between all start and stop calls
-*/
-template<typename TimerImpl>
-class timer
-{
-    DISALLOW_COPY_AND_ASSIGN(timer);
-protected:
-    __host__
-    timer(std::string name)
-    {
-        m_name = name;
-        reset();
-    }
-    __host__
-    ~timer() {}
-
-public:
+namespace gridtools {
 
     /**
-    * Reset counters
+    * @class Timer
+    * Measures total elapsed time between all start and stop calls
     */
-    __host__
-    void reset()
-    {
-        m_total_time = 0.0;
-        static_cast<TimerImpl*>(this)->reset_impl();
-    }
+    template < typename TimerImpl >
+    class timer {
+        DISALLOW_COPY_AND_ASSIGN(timer);
 
-    /**
-    * Start the stop watch
-    */
-    __host__
-    void start()
-    {
-        static_cast<TimerImpl*>(this)->start_impl();
-    }
+      protected:
+        __host__ timer(std::string name) {
+            m_name = name;
+            reset();
+        }
+        __host__ ~timer() {}
 
-    /**
-    * Pause the stop watch
-    */
-    __host__
-    void pause()
-    {
-        m_total_time += static_cast<TimerImpl*>(this)->pause_impl();
-    }
+      public:
+        /**
+        * Reset counters
+        */
+        __host__ void reset() {
+            m_total_time = 0.0;
+            static_cast< TimerImpl * >(this)->reset_impl();
+        }
 
-    /**
-    * @return total elapsed time [s]
-    */
-    __host__
-    double total_time() const
-    {
-        return m_total_time;
-    }
+        /**
+        * Start the stop watch
+        */
+        __host__ void start() { static_cast< TimerImpl * >(this)->start_impl(); }
 
-    /**
-    * @return total elapsed time [s] as string
-    */
-    __host__
-    std::string to_string() const
-    {
-        std::ostringstream out;
-        if(m_total_time < 0)
-            out << "\t[s]\t" << m_name << "NO_TIMES_AVAILABLE";
-        else
-            out << m_name << "\t[s]\t" << m_total_time;
-        return out.str();
-    }
+        /**
+        * Pause the stop watch
+        */
+        __host__ void pause() { m_total_time += static_cast< TimerImpl * >(this)->pause_impl(); }
 
-private:
-    std::string m_name;
-    double m_total_time;
-};
+        /**
+        * @return total elapsed time [s]
+        */
+        __host__ double total_time() const { return m_total_time; }
+
+        /**
+        * @return total elapsed time [s] as string
+        */
+        __host__ std::string to_string() const {
+            std::ostringstream out;
+            if (m_total_time < 0)
+                out << "\t[s]\t" << m_name << "NO_TIMES_AVAILABLE";
+            else
+                out << m_name << "\t[s]\t" << m_total_time;
+            return out.str();
+        }
+
+      private:
+        std::string m_name;
+        double m_total_time;
+    };
 }

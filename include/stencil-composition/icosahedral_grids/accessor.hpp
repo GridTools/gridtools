@@ -1,45 +1,82 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #pragma once
-#include "radius.hpp"
+#include "extent.hpp"
+#include "../accessor_base.hpp"
 
 namespace gridtools {
     /**
-   This is the type of the accessors accessed by a stencil functor.
-   It's a pretty minima implementation.
- */
-    template <int I, typename LocationType>
-    struct accessor {
-        GRIDTOOLS_STATIC_ASSERT((is_location_type<LocationType>::value), "Error: wrong type");
-        using this_type = accessor<I, LocationType>;
-        using type = accessor<I, LocationType>;
+    * This is the type of the accessors accessed by a stencil functor.
+    * It's a pretty minima implementation.
+    */
+    template < uint_t ID,
+        enumtype::intend Intend,
+        typename LocationType,
+        typename Extent = extent< 0 >,
+        ushort_t FieldDimensions = 4 >
+    struct accessor : public accessor_base< ID, Intend, Extent, FieldDimensions > {
+        GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), "Error: wrong type");
+        using type = accessor< ID, Intend, LocationType, Extent, FieldDimensions >;
         using location_type = LocationType;
-        static const int value = I;
-        using index_type = static_int<I>;
+        static const uint_t value = ID;
+        using index_type = static_uint< ID >;
+        using extent_t = Extent;
+        location_type location() const { return location_type(); }
 
-        location_type location() const {
-            return location_type();
-        }
+        typedef accessor_base< ID, Intend, Extent, FieldDimensions > super;
+
+/**inheriting all constructors from offset_tuple*/
+#ifndef __CUDACC__
+        using super::accessor_base;
+#else
+        // move ctor
+        GT_FUNCTION
+        constexpr accessor(type &&other) : super(std::move(other)) {}
+
+        // copy ctor
+        GT_FUNCTION
+        constexpr accessor(type const &other) : super(other) {}
+#endif
+
+        GT_FUNCTION
+        constexpr accessor() : super() {}
+
+        // copy ctor from an accessor with different ID
+        template < uint_t OtherID >
+        GT_FUNCTION constexpr accessor(const accessor< OtherID, Intend, LocationType, Extent, FieldDimensions > &other)
+            : super(static_cast< const accessor_base< OtherID, Intend, Extent, FieldDimensions > >(other)) {}
+
+        GT_FUNCTION
+        constexpr explicit accessor(array< int_t, FieldDimensions > const &offsets) : super(offsets) {}
+
+        template < uint_t Idx >
+        GT_FUNCTION constexpr accessor(dimension< Idx > const &x)
+            : super(x) {}
     };
 
-    template <int I, typename LocationType, typename Radius=radius<0> >
-    struct ro_accessor : public accessor<I, LocationType> {
-        using radius_type = Radius;
-        using type = ro_accessor<I, LocationType, Radius>;
+    template < uint_t ID, typename LocationType, typename Extent = extent< 0 >, ushort_t FieldDimensions = 4 >
+    using in_accessor = accessor< ID, enumtype::in, LocationType, Extent, FieldDimensions >;
 
-    };
+    template < uint_t ID, typename LocationType, ushort_t FieldDimensions = 4 >
+    using inout_accessor = accessor< ID, enumtype::inout, LocationType, extent< 0 >, FieldDimensions >;
 
-    template<typename T>
-    struct is_accessor : boost::mpl::false_{};
+    template < typename T >
+    struct is_accessor : boost::mpl::false_ {};
 
-    template <int ID, typename LocationType>
-    struct is_accessor<accessor<ID, LocationType> > : boost::mpl::true_{};
+    template < uint_t ID, enumtype::intend Intend, typename LocationType, typename Extent, ushort_t FieldDimensions >
+    struct is_accessor< accessor< ID, Intend, LocationType, Extent, FieldDimensions > > : boost::mpl::true_ {};
 
-    template <int ID, typename LocationType, typename Radius>
-    struct is_accessor<ro_accessor<ID, LocationType, Radius> > : boost::mpl::true_{};
-
-    /**
- * Struct to test if an argument is a temporary
- */
-    //TODO for the moment we dont support temporaries
-    template <typename T>
-    struct is_plchldr_to_temp : boost::mpl::false_{};
-} //namespace gridtools
+} // namespace gridtools

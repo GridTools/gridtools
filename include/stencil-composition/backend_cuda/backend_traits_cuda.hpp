@@ -1,72 +1,54 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #pragma once
 #include <boost/mpl/for_each.hpp>
-#include "stencil-composition/backend_traits_fwd.hpp"
-#include "execute_kernel_functor_cuda.hpp"
+
+#include "../backend_traits_fwd.hpp"
 #include "run_esf_functor_cuda.hpp"
 #include "../block_size.hpp"
 #include "iterate_domain_cuda.hpp"
 #include "strategy_cuda.hpp"
 
 #ifdef ENABLE_METERS
-  #include "stencil-composition/backend_cuda/timer_cuda.hpp"
+#include "timer_cuda.hpp"
 #else
-  #include "stencil-composition/timer_dummy.hpp"
+#include "../timer_dummy.hpp"
 #endif
-
 
 /**@file
 @brief type definitions and structures specific for the CUDA backend*/
-namespace gridtools{
+namespace gridtools {
 
     /**forward declaration*/
-    namespace _impl_cuda{
-        template <typename Arguments>
+    namespace _impl_cuda {
+        template < typename Arguments >
         struct run_functor_cuda;
     }
 
     /**forward declaration*/
-    template<typename T>
+    template < typename T, bool Array >
     struct hybrid_pointer;
 
     /** @brief traits struct defining the types which are specific to the CUDA backend*/
-    template<>
-    struct backend_traits_from_id< enumtype::Cuda >
-    {
+    template <>
+    struct backend_traits_from_id< enumtype::Cuda > {
 
-        template <typename T>
-        struct pointer
-        {
-            typedef hybrid_pointer<T> type;
-        };
-
-        template <typename ValueType, typename MetaData, bool Temp=false, short_t SpaceDim=1 >
-        struct storage_traits
-        {
-            GRIDTOOLS_STATIC_ASSERT(is_meta_storage<MetaData>::value, "wrong type for the storage_info");
-            typedef storage< base_storage<typename pointer<ValueType>::type, MetaData, SpaceDim> > storage_t;
-        };
-
-        struct default_alignment{
-            typedef aligned<32> type;
-        };
-
-        /**
-           @brief storage info type associated to the cuda backend
-
-           the storage info type is meta_storage, which is clonable to GPU.
-         */
-        template <typename IndexType, typename Layout, bool Temp, typename Halo, typename Alignment >
-        struct meta_storage_traits{
-            GRIDTOOLS_STATIC_ASSERT(is_aligned<Alignment>::type::value,"wrong type");
-            GRIDTOOLS_STATIC_ASSERT(is_halo<Halo>::type::value,"wrong type");
-            // GRIDTOOLS_STATIC_ASSERT((is_layout<Layout>::value), "wrong type for the storage_info");
-            typedef meta_storage<meta_storage_aligned<meta_storage_base<IndexType::value, Layout, Temp>, Alignment, Halo> > type;
-        };
-
-        template <typename Arguments>
-        struct execute_traits
-        {
-            typedef _impl_cuda::run_functor_cuda<Arguments> run_functor_t;
+        template < typename Arguments >
+        struct execute_traits {
+            typedef _impl_cuda::run_functor_cuda< Arguments > run_functor_t;
         };
 
         /** This is the function used by the specific backend to inform the
@@ -75,9 +57,9 @@ namespace gridtools{
             in the CUDA backend), in a 2D grid of threads.
         */
         static uint_t n_i_pes(const uint_t i_size) {
-            typedef typename strategy_from_id_cuda<enumtype::Block>::block_size_t block_size_t;
+            typedef typename strategy_from_id_cuda< enumtype::Block >::block_size_t block_size_t;
             return (i_size + block_size_t::i_size_t::value) / block_size_t::i_size_t::value;
-       }
+        }
 
         /** This is the function used by the specific backend to inform the
             generic backend and the temporary storage allocator how to
@@ -85,7 +67,7 @@ namespace gridtools{
             in the CUDA backend), in a 2D grid of threads.
         */
         static uint_t n_j_pes(const uint_t j_size) {
-            typedef typename strategy_from_id_cuda<enumtype::Block>::block_size_t block_size_t;
+            typedef typename strategy_from_id_cuda< enumtype::Block >::block_size_t block_size_t;
             return (j_size + block_size_t::j_size_t::value) / block_size_t::j_size_t::value;
         }
 
@@ -94,72 +76,76 @@ namespace gridtools{
          *  In the case of CUDA, a processing element is equivalent to a CUDA block
          */
         GT_FUNCTION
-        static uint_t processing_element_i() {
-            return blockIdx.x;
-        }
+        static uint_t processing_element_i() { return blockIdx.x; }
 
         /** This is the function used by the specific backend
          *  that determines the j coordinate of a processing element.
          *  In the case of CUDA, a processing element is equivalent to a CUDA block
          */
         GT_FUNCTION
-        static uint_t processing_element_j() {
-            return blockIdx.y;
-        }
+        static uint_t processing_element_j() { return blockIdx.y; }
 
         /**
            @brief assigns the two given values using the given thread Id whithin the block
         */
-        template <uint_t Id>
+        template < uint_t Id, typename BlockSize >
         struct once_per_block {
-            template<typename Left, typename Right>
-            GT_FUNCTION
-            static void assign(Left& l, Right const& r){
-                //TODOCOSUNA if there are more ID than threads in a block????
-                if(threadIdx.x==Id)
-                    {
-                        l=(Left)r;
-                    }
+            GRIDTOOLS_STATIC_ASSERT((is_block_size< BlockSize >::value), "Error: wrong type");
+
+            template < typename Left, typename Right >
+            GT_FUNCTION static void assign(Left &l, Right const &r) {
+                assert(blockDim.z == 1);
+                const uint_t pe_elem = threadIdx.y * BlockSize::i_size_t::value + threadIdx.x;
+                if (Id % (BlockSize::i_size_t::value * BlockSize::j_size_t::value) == pe_elem) {
+                    l = (Left)r;
+                }
             }
         };
 
         /**
          * @brief main execution of a mss.
          * @tparam RunFunctorArgs run functor arguments
-         * @tparam StrategyId id of the strategy (ignored for the CUDA backend as for the moment there is only one way
-         *     scheduling the work)
          */
-        template<typename RunFunctorArgs, enumtype::strategy StrategyId>
-        struct mss_loop
-        {
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), "Internal Error: wrong type");
-            template<typename LocalDomain, typename Grid>
-            static void run(LocalDomain& local_domain, const Grid& grid, const uint_t bi, const uint_t bj)
-            {
-                GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), "Internal Error: wrong type");
-                GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "Internal Error: wrong type");
+        template < typename RunFunctorArgs >
+        struct mss_loop {
+            typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
 
-                execute_kernel_functor_cuda<RunFunctorArgs>(local_domain, grid, bi, bj)();
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), "Internal Error: wrong type");
+            template < typename LocalDomain, typename Grid, typename ReductionData >
+            static void run(LocalDomain &local_domain,
+                const Grid &grid,
+                ReductionData &reduction_data,
+                const uint_t bi,
+                const uint_t bj) {
+                GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), "Internal Error: wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
+
+                typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
+                typedef
+                    typename grid_traits_t::template with_arch< backend_ids_t::s_backend_id >::type arch_grid_traits_t;
+
+                typedef typename arch_grid_traits_t::template kernel_functor_executor< RunFunctorArgs >::type
+                    kernel_functor_executor_t;
+                kernel_functor_executor_t(local_domain, grid, bi, bj)();
             }
         };
 
         /**
          * @brief determines whether ESFs should be fused in one single kernel execution or not for this backend.
          */
-        struct mss_fuse_esfs_strategy
-        {
-            typedef boost::mpl::bool_<true> type;
-            BOOST_STATIC_CONSTANT(bool, value=(type::value));
+        struct mss_fuse_esfs_strategy {
+            typedef boost::mpl::bool_< true > type;
+            BOOST_STATIC_CONSTANT(bool, value = (type::value));
         };
 
         // high level metafunction that contains the run_esf_functor corresponding to this backend
-        typedef boost::mpl::quote2<run_esf_functor_cuda> run_esf_functor_h_t;
+        typedef boost::mpl::quote2< run_esf_functor_cuda > run_esf_functor_h_t;
 
         // metafunction that contains the strategy from id metafunction corresponding to this backend
-        template<enumtype::strategy StrategyId>
-        struct select_strategy
-        {
-            typedef strategy_from_id_cuda<StrategyId> type;
+        template < typename BackendIds >
+        struct select_strategy {
+            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Error");
+            typedef strategy_from_id_cuda< BackendIds::s_strategy_id > type;
         };
 
         /*
@@ -168,21 +154,19 @@ namespace gridtools{
          * @tparam StrategyId the strategy id
          * @return always true for CUDA
          */
-        template<enumtype::strategy StrategyId>
-        struct requires_temporary_redundant_halos
-        {
-            GRIDTOOLS_STATIC_ASSERT((StrategyId==enumtype::Block), "Internal Error: wrong type");
+        template < enumtype::strategy StrategyId >
+        struct requires_temporary_redundant_halos {
+            GRIDTOOLS_STATIC_ASSERT((StrategyId == enumtype::Block), "Internal Error: wrong type");
             typedef boost::mpl::true_ type;
         };
 
         /**
          * @brief metafunction that returns the block size
          */
-        template<enumtype::strategy StrategyId>
+        template < enumtype::strategy StrategyId >
         struct get_block_size {
-            GRIDTOOLS_STATIC_ASSERT(StrategyId == enumtype::Block,
-                                    "For CUDA backend only Block strategy is supported");
-            typedef typename strategy_from_id_cuda<StrategyId>::block_size_t type;
+            GRIDTOOLS_STATIC_ASSERT(StrategyId == enumtype::Block, "For CUDA backend only Block strategy is supported");
+            typedef typename strategy_from_id_cuda< StrategyId >::block_size_t type;
         };
 
         /**
@@ -191,33 +175,36 @@ namespace gridtools{
          * @tparam IterateDomainArguments the iterate domain arguments
          * @return the iterate domain type for this backend
          */
-        template <typename IterateDomainArguments>
+        template < typename IterateDomainArguments >
         struct select_iterate_domain {
-            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), "Internal Error: wrong type");
-            //indirection in order to avoid instantiation of both types of the eval_if
-            template<typename _IterateDomainArguments>
-            struct select_positional_iterate_domain
-            {
-                typedef iterate_domain_cuda<positional_iterate_domain, _IterateDomainArguments> type;
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_iterate_domain_arguments< IterateDomainArguments >::value), "Internal Error: wrong type");
+            // indirection in order to avoid instantiation of both types of the eval_if
+            template < typename _IterateDomainArguments >
+            struct select_positional_iterate_domain {
+// TODO to do this properly this should belong to a arch_grid_trait (i.e. a trait dispatching types depending
+// on the comp architecture and the grid.
+#ifdef STRUCTURED_GRIDS
+                typedef iterate_domain_cuda< positional_iterate_domain, _IterateDomainArguments > type;
+#else
+                typedef iterate_domain_cuda< iterate_domain, _IterateDomainArguments > type;
+#endif
             };
 
-            template<typename _IterateDomainArguments>
-            struct select_basic_iterate_domain
-            {
-                typedef iterate_domain_cuda<iterate_domain, _IterateDomainArguments> type;
+            template < typename _IterateDomainArguments >
+            struct select_basic_iterate_domain {
+                typedef iterate_domain_cuda< iterate_domain, _IterateDomainArguments > type;
             };
 
             typedef typename boost::mpl::eval_if<
-                local_domain_is_stateful<typename IterateDomainArguments::local_domain_t>,
-                select_positional_iterate_domain<IterateDomainArguments>,
-                select_basic_iterate_domain<IterateDomainArguments>
-            >::type type;
+                local_domain_is_stateful< typename IterateDomainArguments::local_domain_t >,
+                select_positional_iterate_domain< IterateDomainArguments >,
+                select_basic_iterate_domain< IterateDomainArguments > >::type type;
         };
 
-        template<typename IterateDomainArguments>
-        struct select_iterate_domain_cache
-        {
-            typedef iterate_domain_cache<IterateDomainArguments> type;
+        template < typename IterateDomainArguments >
+        struct select_iterate_domain_cache {
+            typedef iterate_domain_cache< IterateDomainArguments > type;
         };
 
 #ifdef ENABLE_METERS
@@ -227,4 +214,4 @@ namespace gridtools{
 #endif
     };
 
-}//namespace gridtools
+} // namespace gridtools

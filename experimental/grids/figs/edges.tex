@@ -1,5 +1,6 @@
 \documentclass{article}
 \usepackage{tikz}
+\usetikzlibrary{calc} 
 \usepackage[nomessages]{fp}
 
 \begin{document}
@@ -10,7 +11,7 @@
 
 \begin{tikzpicture}
     \input{grid}
-    
+
     \foreach \row in {0, 1,...,\rowsminusone} {
         \foreach \col in {0, 1,..., \rowsminusone} {
           \begin{scope}[edges left]

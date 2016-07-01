@@ -1,0 +1,211 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+#include <gridtools.hpp>
+#include <common/defs.hpp>
+
+#ifdef CXX11_ENABLED
+
+#include "gtest/gtest.h"
+
+#include <stencil-composition/global_accessor.hpp>
+#include <stencil-composition/structured_grids/call_interfaces.hpp>
+#include <stencil-composition/structured_grids/call_interfaces_metafunctions.hpp>
+#include <type_traits>
+#include <tuple>
+
+struct pretent_aggregator {
+    using value_type = double;
+
+    template <typename Accessor>
+    struct accessor_return_type {
+        using type = double;
+    };
+
+    template <gridtools::uint_t I, gridtools::enumtype::intend Intent,
+              typename Range, gridtools::ushort_t N>
+    constexpr
+    value_type operator()(gridtools::accessor<I,Intent, Range, N> ) const {
+        return static_cast<value_type>(I+1000);
+    }
+};
+
+namespace gridtools {
+template <>
+struct is_iterate_domain<pretent_aggregator> {
+    static const bool value = true;
+};
+}
+
+struct pretent_function {
+    typedef gridtools::accessor<0,  gridtools::enumtype::in> a0;
+    typedef gridtools::accessor<1,  gridtools::enumtype::inout> a1;
+    typedef gridtools::accessor<2,  gridtools::enumtype::in> a2;
+    typedef gridtools::accessor<3,  gridtools::enumtype::inout> a3;
+
+    template <typename Eval>
+    static void Do(Eval const& eval) {
+        eval(a1()) += eval(a0());
+        eval(a3()) += eval(a2());
+    }
+};
+
+template <typename... Args>
+void complex_test(Args &... args)
+{
+    using namespace gridtools;
+
+    using packtype =  typename _impl::package_args<Args...>::type;
+
+    GRIDTOOLS_STATIC_ASSERT((std::is_same<typename std::tuple_element<0, std::tuple<Args...>>::type,
+                             typename boost::mpl::at_c<packtype, 0>::type>::value), "0");
+    GRIDTOOLS_STATIC_ASSERT((std::is_same<typename _impl::wrap_reference
+                             <typename std::tuple_element<1, std::tuple<Args...>>::type>,
+                             typename boost::mpl::at_c<packtype, 1>::type>::value), "1");
+    GRIDTOOLS_STATIC_ASSERT((std::is_same<typename std::tuple_element<2, std::tuple<Args...>>::type,
+                             typename boost::mpl::at_c<packtype, 2>::type>::value), "2");
+    GRIDTOOLS_STATIC_ASSERT((std::is_same<typename _impl::wrap_reference
+                             <typename std::tuple_element<3, std::tuple<Args...>>::type>,
+                             typename boost::mpl::at_c<packtype, 3>::type>::value), "3");
+
+    typedef _impl::function_aggregator_procedure<
+        pretent_aggregator,
+        0,0,0,
+        packtype
+        > f_aggregator_t;
+
+    GRIDTOOLS_STATIC_ASSERT((_impl::contains_value<
+                             typename f_aggregator_t::non_accessor_indices,
+                             boost::mpl::integral_c<int, 3>
+                             >::type::value), "Contains 3");
+
+    GRIDTOOLS_STATIC_ASSERT((_impl::contains_value<
+                             typename f_aggregator_t::non_accessor_indices,
+                             boost::mpl::integral_c<int, 1>
+                             >::type::value), "Contains 1");
+
+    GRIDTOOLS_STATIC_ASSERT((not _impl::contains_value<
+                             typename f_aggregator_t::non_accessor_indices,
+                             boost::mpl::integral_c<int, 0>
+                             >::type::value), "Contains 0");
+
+    GRIDTOOLS_STATIC_ASSERT((not _impl::contains_value<
+                             typename f_aggregator_t::non_accessor_indices,
+                             boost::mpl::integral_c<int, 2>
+                             >::type::value), "Contains 2");
+
+    auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
+
+    pretent_function::Do
+        (
+         f_aggregator_t
+         (
+          pretent_aggregator(),
+          y
+          )
+         );
+
+}
+
+
+TEST(call_interfaces_metafunctions, compile_time_basic_tests) {
+    using namespace gridtools;
+
+    unsigned int v = 666;
+    auto x = _impl::make_wrap(v);
+
+    GRIDTOOLS_STATIC_ASSERT((std::is_same<decltype(x), _impl::wrap_reference<unsigned int>>::value), "");
+
+    x.value() = 999;
+    EXPECT_TRUE(x.value() == 999);
+
+    accessor<0, enumtype::in, extent<1,1,1,1>> a0;
+    accessor<1, enumtype::inout> a2;
+    float a1 = 3.14;
+    int a3 = 666;
+
+    using pack =  _impl::package_args<decltype(a0),
+                                      decltype(a1),
+                                      decltype(a2),
+                                      decltype(a3)>::type;
+
+    GRIDTOOLS_STATIC_ASSERT((std::is_same<decltype(a0), boost::mpl::at_c<pack, 0>::type>::value), "1");
+    GRIDTOOLS_STATIC_ASSERT((std::is_same<_impl::wrap_reference<decltype(a1)>, boost::mpl::at_c<pack, 1>::type>::value), "2");
+    GRIDTOOLS_STATIC_ASSERT((std::is_same<decltype(a2), boost::mpl::at_c<pack, 2>::type>::value), "3");
+    GRIDTOOLS_STATIC_ASSERT((std::is_same<_impl::wrap_reference<decltype(a3)>, boost::mpl::at_c<pack, 3>::type>::value), "4");
+
+}
+
+TEST(call_interfaces_metafunctions, call_pretent_procedure) {
+    using namespace gridtools;
+
+    accessor<0, enumtype::in, extent<1,1,1,1>> a0;
+    accessor<1, enumtype::inout> a2;
+    double a1 = 3.14;
+    double a3 = 666;
+
+    complex_test(a0, a1, a2, a3);
+
+    EXPECT_TRUE(a1 == 1003.14);
+    EXPECT_TRUE(a3 == 1667);
+}
+
+
+struct actual_function {
+    typedef gridtools::accessor<0,  gridtools::enumtype::in> a0;
+    typedef gridtools::accessor<1,  gridtools::enumtype::inout> a1;
+    typedef gridtools::accessor<2,  gridtools::enumtype::in> a2;
+
+    typedef boost::mpl::vector<a0,a1,a2> arg_list;
+
+};
+
+struct another_function {
+    typedef gridtools::accessor<0, gridtools::enumtype::inout> out;
+    typedef gridtools::accessor<1, gridtools::enumtype::in, gridtools::extent<-1, 1, -1, 1> > in;
+
+    typedef boost::mpl::vector<out, in> arg_list;
+};
+
+struct non_function_swap {
+    typedef gridtools::accessor<1, gridtools::enumtype::inout> out;
+    typedef gridtools::accessor<0, gridtools::enumtype::inout> in;
+
+    typedef boost::mpl::vector<in, out> arg_list;
+};
+
+struct another_non_function {
+
+    typedef gridtools::accessor<0, gridtools::enumtype::inout> out;
+    typedef gridtools::accessor<1, gridtools::enumtype::in, gridtools::extent<0, 1, 0, 0> > in;
+    typedef gridtools::accessor<2, gridtools::enumtype::inout> lap;
+
+    typedef boost::mpl::vector<out, in, lap> arg_list;
+};
+
+TEST(call_interfaces_metafunctions, check_if_function) {
+    GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::can_be_a_function<actual_function>::value == true), "");
+    GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::_get_index_of_first_non_const<actual_function>::value == 1), "");
+
+    GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::can_be_a_function<another_function>::value == true), "");
+    GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::_get_index_of_first_non_const<another_function>::value == 0), "");
+
+    GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::can_be_a_function<non_function_swap>::value == false), "");
+    GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::_get_index_of_first_non_const<non_function_swap>::value == 0), "");
+
+    GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::can_be_a_function<another_non_function>::value == false), "");
+    GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::_get_index_of_first_non_const<another_non_function>::value == 0), "");
+}
+#endif

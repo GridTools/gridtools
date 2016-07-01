@@ -10,17 +10,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
-#include "common/gpu_clone.hpp"
-#include "storage/hybrid_pointer.hpp"
-#include "stencil-composition/backend.hpp"
-#include "common/layout_map.hpp"
-#include "common/defs.hpp"
-#include "stencil-composition/backend.hpp"
+#include <cuda_runtime.h>
+#include <stencil-composition/stencil-composition.hpp>
 
 using gridtools::uint_t;
 using gridtools::int_t;
 
-#ifdef __CUDACC__
 template <typename T, typename U>
 __global__
 void add_on_gpu(U* meta, T * ptr, uint_t d1, uint_t d2, uint_t d3) {
@@ -32,20 +27,19 @@ void add_on_gpu(U* meta, T * ptr, uint_t d1, uint_t d2, uint_t d3) {
         }
     }
 }
-#endif
 
 using namespace gridtools;
 using namespace enumtype;
 bool test_cuda_storage() {
 
-    typedef backend<Cuda, Block > backend_t;
+    typedef backend<Cuda, GRIDBACKEND, Block > backend_t;
     typedef backend_t::storage_type<float_type, backend_t::storage_info<0,layout_map<0,1,2> > > ::type storage_type;
 
     uint_t d1 = 3;
     uint_t d2 = 3;
     uint_t d3 = 3;
 
-    typename storage_type::meta_data_t meta_(d1,d2,d3);
+    typename storage_type::storage_info_type meta_(d1,d2,d3);
     storage_type data(meta_, -1., "data"); //allocate on GPU
 
     for (uint_t i = 0; i < d1; ++i) {
@@ -68,11 +62,12 @@ bool test_cuda_storage() {
 
     data.h2d_update(); //copy to GPU
     data.clone_to_device();
-    meta_.clone_to_device();//copy meta information to the GPU
-#ifdef __CUDACC__
-    add_on_gpu<<<1,1>>>(meta_.gpu_object_ptr, data.gpu_object_ptr, d1, d2, d3);
+
+    // clang-format off
+    add_on_gpu<<<1,1>>>(data.get_meta_data_pointer().get(), data.get_pointer_to_use(), d1, d2, d3);
+    // clang-format on
     cudaDeviceSynchronize();
-#endif
+
     data.d2h_update();
 
     bool same = true;

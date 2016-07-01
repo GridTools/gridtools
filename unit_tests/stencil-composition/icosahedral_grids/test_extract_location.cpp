@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #include "gtest/gtest.h"
 
 #include <stencil-composition/stencil-composition.hpp>
@@ -7,14 +22,15 @@ using namespace enumtype;
 
 namespace el_test{
 
-    using backend_t = ::gridtools::backend<Host, Naive >;
+    using backend_t = ::gridtools::backend< Host, icosahedral, Naive >;
     using icosahedral_topology_t = ::gridtools::icosahedral_topology<backend_t>;
 
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
 
+    template < uint_t Color >
     struct test_functor {
-        typedef ro_accessor<0, icosahedral_topology_t::cells, radius<1> > in;
+        typedef in_accessor< 0, icosahedral_topology_t::cells, extent< 1 > > in;
         typedef boost::mpl::vector<in> arg_list;
 
         template <typename Evaluation>
@@ -31,16 +47,16 @@ TEST(extract_location, test) {
     typedef arg<0, cell_storage_type> p_in_cells;
     typedef arg<1, cell_storage_type> p_out_cells;
 
-    auto esf1 = gridtools::make_esf<test_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(
+    auto esf1 = gridtools::make_stage<test_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(
         p_in_cells() );
 
-    auto esf2 = gridtools::make_esf<test_functor, icosahedral_topology_t, icosahedral_topology_t::vertexes>(
+    auto esf2 = gridtools::make_stage<test_functor, icosahedral_topology_t, icosahedral_topology_t::vertexes>(
         p_in_cells() );
 
-    auto esf3 = gridtools::make_esf<test_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(
+    auto esf3 = gridtools::make_stage<test_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(
         p_out_cells() );
 
-    auto esf4 = gridtools::make_esf<test_functor, icosahedral_topology_t, icosahedral_topology_t::vertexes>(
+    auto esf4 = gridtools::make_stage<test_functor, icosahedral_topology_t, icosahedral_topology_t::vertexes>(
         p_in_cells() );
 
     using esf1_t = decltype(esf1);

@@ -28,6 +28,9 @@
 #include "common/generic_metafunctions/static_if.hpp"
 #include "common/generic_metafunctions/is_variadic_pack_of.hpp"
 #include "common/generic_metafunctions/arg_comparator.hpp"
+#ifdef CXX11_ENABLED
+#include "common/generic_metafunctions/is_fusion_vector.hpp"
+#endif
 #include "domain_type_impl.hpp"
 #include "../storage/metadata_set.hpp"
 #include "stencil-composition/arg_metafunctions.hpp"
@@ -67,6 +70,8 @@ namespace gridtools {
     template <typename Placeholders>
     struct domain_type : public clonable_to_gpu<domain_type<Placeholders> > {
 
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<Placeholders>::type::value>0),
+                                "The domain_type must be constructed with at least one storage placeholder. If you don't use any storage you are probably trying to do something which is not a stencil operation, aren't you?");
         typedef typename boost::mpl::sort<Placeholders, arg_comparator >::type placeholders_t;
 
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<placeholders_t, is_arg>::type::value), "wrong type:\
@@ -121,7 +126,8 @@ namespace gridtools {
 
 
         //actual check if the user specified placeholder arguments with the same index
-        GRIDTOOLS_STATIC_ASSERT((len == boost::mpl::size<index_set>::type::value ), "you specified two different placeholders with the same index, which is not allowed. check the arg defiintions.");
+        GRIDTOOLS_STATIC_ASSERT((len <= boost::mpl::size<index_set>::type::value ), "you specified two different placeholders with the same index, which is not allowed. check the arg defiintions.");
+        GRIDTOOLS_STATIC_ASSERT((len >= boost::mpl::size<index_set>::type::value ), "something strange is happening.");
 
         /**
            @brief MPL vector of storage pointers
@@ -187,8 +193,8 @@ namespace gridtools {
             boost::fusion::at<typename ArgStoragePair0::arg_type::index_type>(m_storage_pointers) = arg0.ptr;
             //storing the value of the pointers in a 'backup' fusion vector
             boost::fusion::at<typename ArgStoragePair0::arg_type::index_type>(m_original_pointers) = arg0.ptr;
-            if (!sequence_.template present<pointer<const typename ArgStoragePair0::storage_type::meta_data_t> >())
-                sequence_.insert(pointer<const typename ArgStoragePair0::storage_type::meta_data_t>(&(arg0.ptr->meta_data())));
+            if (!sequence_.template present<pointer<const typename ArgStoragePair0::storage_type::storage_info_type> >())
+                sequence_.insert(pointer<const typename ArgStoragePair0::storage_type::storage_info_type>(&(arg0.ptr->meta_data())));
             assign_pointers(sequence_, other_args...);
         }
 
@@ -223,6 +229,9 @@ namespace gridtools {
             : m_storage_pointers()
             , m_metadata_set()
         {
+
+            GRIDTOOLS_STATIC_ASSERT((sizeof ... (StorageArgs)>0), "Computations with no storages are not supported. Add at least one storage to the domain_type definition.");
+            //NOTE: the following assertion assumes there StorageArgs has length at leas 1
             GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair<StorageArgs>::value ...), "wrong type");
             assign_pointers(m_metadata_set, args...);
         }
@@ -273,15 +282,20 @@ namespace gridtools {
             : m_storage_pointers()
             , m_metadata_set()
         {
+
+            //TODO: how to check the assertion below?
+// #ifdef CXX11_ENABLED
+//             GRIDTOOLS_STATIC_ASSERT(is_fusion_vector<RealStorage>::value, "the argument passed to the domain type constructor must be a fusion vector, or a pair (placeholder = storage), see the domain_type constructors");
+// #endif
+
             typedef boost::fusion::filter_view
                 <arg_list,
                  is_not_tmp_storage<boost::mpl::_1> > view_type;
 
             view_type fview(m_storage_pointers);
-
             GRIDTOOLS_STATIC_ASSERT( boost::fusion::result_of::size<view_type>::type::value == boost::mpl::size<RealStorage>::type::value,
-                "The number of arguments specified when constructing the domain_type is not the same as the number of placeholders "
-                "to non-temporary storages. Double check the temporary flag in the meta_storage types.");
+               "The number of arguments specified when constructing the domain_type is not the same as the number of placeholders "
+               "to non-temporary storages. Double check the temporary flag in the meta_storage types.");
 
             //below few metafunctions only to protect the user from mismatched storages
             typedef typename boost::mpl::fold<
@@ -315,8 +329,10 @@ namespace gridtools {
             boost::fusion::for_each(real_storage_, assign_metadata_set<metadata_set_t >(m_metadata_set));
 
 #ifdef VERBOSE
+#ifndef NDEBUG
             std::cout << "\nThese are the view values" << boost::fusion::size(fview) << std::endl;
             boost::fusion::for_each(m_storage_pointers, _debug::print_pointer());
+#endif
 #endif
             view_type original_fview(m_original_pointers);
             boost::fusion::copy(real_storage_, original_fview);
@@ -326,12 +342,13 @@ namespace gridtools {
          *
          * @param The object to copy. Typically this will be *this
          */
-        __device__
-        explicit domain_type(domain_type const& other)
+        __device__ __host__
+        domain_type(domain_type const& other)
             : m_storage_pointers(other.m_storage_pointers)
             , m_original_pointers(other.m_original_pointers)
             , m_metadata_set(other.m_metadata_set)
         { }
+
 
 #ifndef NDEBUG
         GT_FUNCTION

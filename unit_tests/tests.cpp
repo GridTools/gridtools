@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #include "gtest/gtest.h"
 
 #define SILENT_RUN
@@ -7,8 +22,6 @@
 #include "external_ptr_test/CopyStencil.hpp"
 #include "accessor_tests.hpp"
 #include "loop_hierarchy_test.hpp"
-
-#include "communication/layout_map.cpp"
 
 TEST(testdomain, testindices) {
     EXPECT_EQ(test_domain_indices(), true);
@@ -54,10 +67,6 @@ TEST(stencil, loop_hierarchy) {
 #undef TESTCLASS
 #define TESTCLASS stencil
 #include "stencil_tests.hpp"
-
-TEST(testcommon, layoutmap) {
-    EXPECT_EQ(test_layout_map(), true);
-}
 
 TEST(python, copy) {
     EXPECT_EQ(test_copystencil_python(), false);

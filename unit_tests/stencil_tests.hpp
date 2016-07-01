@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #pragma once
 
 #ifndef __Size0
@@ -13,73 +28,109 @@
 #endif
 
 TEST(TESTCLASS, copies3D) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<0,1,2> , gridtools::layout_map<0,1,2> >(__Size0, __Size1, __Size2)), true);
+    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< 0, 1, 2 >, gridtools::layout_map< 0, 1, 2 > >(
+                  __Size0, __Size1, __Size2)),
+        true);
 }
 
 TEST(TESTCLASS, copies3Dtranspose) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<2,1,0> , gridtools::layout_map<0,1,2> >(__Size0, __Size1, __Size2)), true);
+    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< 2, 1, 0 >, gridtools::layout_map< 0, 1, 2 > >(
+                  __Size0, __Size1, __Size2)),
+        true);
 }
 
 TEST(TESTCLASS, copies2Dij) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<0,1,-1> , gridtools::layout_map<0,1,2> >(__Size0, __Size1, __Size2)), true);
+    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< 0, 1, -1 >, gridtools::layout_map< 0, 1, 2 > >(
+                  __Size0, __Size1, __Size2)),
+        true);
 }
 
 TEST(TESTCLASS, copies2Dik) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<0,-1,1> , gridtools::layout_map<0,1,2> >(__Size0, __Size1, __Size2)), true);
+    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< 0, -1, 1 >, gridtools::layout_map< 0, 1, 2 > >(
+                  __Size0, __Size1, __Size2)),
+        true);
 }
 
 TEST(TESTCLASS, copies2Djk) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<-1,0,1> , gridtools::layout_map<0,1,2> >(__Size0, __Size1, __Size2)), true);
+    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< -1, 0, 1 >, gridtools::layout_map< 0, 1, 2 > >(
+                  __Size0, __Size1, __Size2)),
+        true);
 }
 
 TEST(TESTCLASS, copies2Di) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<0,-1,-1> , gridtools::layout_map<0,1,2> >(__Size0, __Size1, __Size2)), true);
+    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< 0, -1, -1 >, gridtools::layout_map< 0, 1, 2 > >(
+                  __Size0, __Size1, __Size2)),
+        true);
 }
 
 TEST(TESTCLASS, copies2Dj) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<-1,0,-1> , gridtools::layout_map<0,1,2> >(__Size0, __Size1, __Size2)), true);
+    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< -1, 0, -1 >, gridtools::layout_map< 0, 1, 2 > >(
+                  __Size0, __Size1, __Size2)),
+        true);
 }
 
 TEST(TESTCLASS, copies2Dk) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<-1,-1,0> , gridtools::layout_map<0,1,2> >(__Size0, __Size1, __Size2)), true);
+    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< -1, -1, 0 >, gridtools::layout_map< 0, 1, 2 > >(
+                  __Size0, __Size1, __Size2)),
+        true);
 }
 
 TEST(TESTCLASS, copies2DScalar) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<-1,-1,-1> , gridtools::layout_map<0,1,2> >(__Size0, __Size1, __Size2)), true);
+    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< -1, -1, -1 >, gridtools::layout_map< 0, 1, 2 > >(
+                  __Size0, __Size1, __Size2)),
+        true);
 }
 
 TEST(TESTCLASS, copies3DDst) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<0,1,2> , gridtools::layout_map<2,0,1> >(__Size0, __Size1, __Size2)), true);
+    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< 0, 1, 2 >, gridtools::layout_map< 2, 0, 1 > >(
+                  __Size0, __Size1, __Size2)),
+        true);
 }
 
 TEST(TESTCLASS, copies3DtransposeDst) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<2,1,0> , gridtools::layout_map<2,0,1> >(__Size0, __Size1, __Size2)), true);
+    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< 2, 1, 0 >, gridtools::layout_map< 2, 0, 1 > >(
+                  __Size0, __Size1, __Size2)),
+        true);
 }
 
 TEST(TESTCLASS, copies2DijDst) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<1,0,-1> , gridtools::layout_map<2,0,1> >(__Size0, __Size1, __Size2)), true);
+    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< 1, 0, -1 >, gridtools::layout_map< 2, 0, 1 > >(
+                  __Size0, __Size1, __Size2)),
+        true);
 }
 
 TEST(TESTCLASS, copies2DikDst) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<1,-1,0> , gridtools::layout_map<2,0,1> >(__Size0, __Size1, __Size2)), true);
+    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< 1, -1, 0 >, gridtools::layout_map< 2, 0, 1 > >(
+                  __Size0, __Size1, __Size2)),
+        true);
 }
 
 TEST(TESTCLASS, copies2DjkDst) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<-1,1,0> , gridtools::layout_map<2,0,1> >(__Size0, __Size1, __Size2)), true);
+    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< -1, 1, 0 >, gridtools::layout_map< 2, 0, 1 > >(
+                  __Size0, __Size1, __Size2)),
+        true);
 }
 
 TEST(TESTCLASS, copies2DiDst) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<0,-1,-1> , gridtools::layout_map<2,0,1> >(__Size0, __Size1, __Size2)), true);
+    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< 0, -1, -1 >, gridtools::layout_map< 2, 0, 1 > >(
+                  __Size0, __Size1, __Size2)),
+        true);
 }
 
 TEST(TESTCLASS, copies2DjDst) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<-1,0,-1> , gridtools::layout_map<2,0,1> >(__Size0, __Size1, __Size2)), true);
+    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< -1, 0, -1 >, gridtools::layout_map< 2, 0, 1 > >(
+                  __Size0, __Size1, __Size2)),
+        true);
 }
 
 TEST(TESTCLASS, copies2DkDst) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<-1,-1,0> , gridtools::layout_map<2,0,1> >(__Size0, __Size1, __Size2)), true);
+    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< -1, -1, 0 >, gridtools::layout_map< 2, 0, 1 > >(
+                  __Size0, __Size1, __Size2)),
+        true);
 }
 
 TEST(TESTCLASS, copies2DScalarDst) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<-1,-1,-1> , gridtools::layout_map<2,0,1> >(__Size0, __Size1, __Size2)), true);
+    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< -1, -1, -1 >, gridtools::layout_map< 2, 0, 1 > >(
+                  __Size0, __Size1, __Size2)),
+        true);
 }

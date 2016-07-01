@@ -14,26 +14,13 @@ namespace gridtools {
        arguments (actually, placeholders to arguments)
      */
 
-    /*!
-       \fn mss_descriptor<...> make_esf(ExecutionEngine, esf1, esf2, ...)
-       \brief Function to create a Multistage Stencil that can then be executed
-       \param esf{i}  i-th Elementary Stencil Function created with make_esf or a list specified as independent ESFs created with make independent
-
-       Use this function to create a multi-stage stencil computation
-     */
-
-    /*!
-       \fn independent_esf<...> make_independent(esf1, esf2, ...)
-       \brief Function to create a list of independent Elementary Styencil Functions
-
-       \param esf{i}  (must be i>=2) The max{i} Elementary Stencil Functions in the argument list will be treated as independent
-
-       Function to create a list of independent Elementary Styencil Functions. This is used to let the library compute tight bounds on blocks to be used by backends
-     */
-
     template <typename ESF, typename ... ExtraArgs>
     esf_descriptor<ESF, boost::mpl::vector<ExtraArgs ...> >
     make_esf( ExtraArgs&& ... /*args_*/){
+#ifdef PEDANTIC // not valid for generic accessors (which is an exotic feature though)
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename ESF::arg_list>::type::value >= sizeof...(ExtraArgs)), "number of arugmantes declared for an ESF is larger than the placeholders passed to make_esf");
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename ESF::arg_list>::type::value <= sizeof...(ExtraArgs)), "number of arugmantes declared for an ESF is smaller than the placeholders passed to make_esf");
+#endif
         return esf_descriptor<ESF, boost::mpl::vector<ExtraArgs ...> >();
     }
 
