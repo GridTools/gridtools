@@ -238,7 +238,7 @@ namespace gridtools {
                 "Computations with no storages are not supported. "
                 "Add at least one storage to the aggregator_type "
                 "definition.");
-            // NOTE: the following assertion assumes there StorageArgs has length at leas 1
+
             assign_pointers(m_metadata_set, args...);
         }
 #else
