@@ -78,26 +78,57 @@ class Stencil (object):
             raise TypeError ("Calling 'get_interior_points' without a NumPy array")
         else:
             #
+            # If data_field is a sliced array, we have to get the offsets in
+            # order to properly generate the interior point coordinates.
+            # The 'base' property will tell if data_field's memory comes from
+            # another object.
+            # If so, we use the NumPy Array Interface to get pointers to the
+            # first data elements of both data_field and its base array.
+            # For detalied information, please see
+            # http://docs.scipy.org/doc/numpy-1.10.1/reference/arrays.interface.html#__array_interface__
+            # Using these pointers with data_field's byte strides along each
+            # dimension and some old-fashioned matrix-indexing arithmetic, we
+            # can finally obtain the slice offsets.
+            #
+            i_off, j_off, k_off = (0, 0, 0)
+            if data_field.base is not None:
+                ptr_offset = (data_field.__array_interface__['data'][0]
+                              - data_field.base.__array_interface__['data'][0])
+                #
+                # Check data ordering on base array, because if data_field is
+                # sliced on any of the first 2 dimensions it will not be
+                # C contiguous nor F contiguous, as data is not on a single
+                # contiguous segment
+                #
+                if data_field.base.flags['C_CONTIGUOUS']:
+                    i_off, mod = divmod (ptr_offset, data_field.strides[0])
+                    j_off, mod = divmod (mod, data_field.strides[1])
+                    k_off, mod = divmod (mod, data_field.strides[2])
+                else:
+                    k_off, mod = divmod (ptr_offset, data_field.strides[2])
+                    j_off, mod = divmod (mod, data_field.strides[1])
+                    i_off, mod = divmod (mod, data_field.strides[0])
+            #
             # calculate 'i','j','k' iteration boundaries
-            # based on 'halo' and field-access patterns
+            # based on slice offsets, 'halo' and field-access patterns
             #
             i_dim, j_dim, k_dim = data_field.shape
 
-            start_i = 0     + halo[0] + ghost_cell[0]
-            end_i   = i_dim - halo[1] + ghost_cell[1]
-            start_j = 0     + halo[2] + ghost_cell[2]
-            end_j   = j_dim - halo[3] + ghost_cell[3]
+            start_i = i_off + 0     + halo[0] + ghost_cell[0]
+            end_i   = i_off + i_dim - halo[1] + ghost_cell[1]
+            start_j = j_off + 0     + halo[2] + ghost_cell[2]
+            end_j   = j_off + j_dim - halo[3] + ghost_cell[3]
 
             #
             # calculate 'k' iteration boundaries based 'k_direction'
             #
             if k_direction == 'forward':
-                start_k = 0
-                end_k   = k_dim
+                start_k = k_off + 0
+                end_k   = k_off + k_dim
                 inc_k   = 1
             elif k_direction == 'backward':
-                start_k = k_dim - 1
-                end_k   = -1
+                start_k = k_off + k_dim - 1
+                end_k   = k_off - 1
                 inc_k   = -1
             else:
                 logging.warning ("Ignoring unknown K direction '%s'" % k_direction)
@@ -323,6 +354,11 @@ class Stencil (object):
         # symbols gathered after analyzing the stencil code are kept here
         #
         self.scope            = StencilScope ( )
+        #
+        # Splitters dictionary for this stencil: given a slice index, returns
+        # the corresponfding splitter number
+        #
+        self.splitters        = dict ( )
 
 
     def __copy__ (self, memo):
@@ -353,7 +389,7 @@ class Stencil (object):
         return self.name
 
 
-    def _plot_graph (self, G, axes=None, **kwargs):
+    def _plot_graph (self, G, axes=None, outfile=None, **kwargs):
         """
         Renders graph 'G' using 'matplotlib'.-
 
@@ -379,6 +415,8 @@ class Stencil (object):
                           ax=axes,
                           node_size=1500,
                           **kwargs)
+        if outfile:
+            plt.savefig(outfile)
 
 
     def build_data_dependency (self):
@@ -436,9 +474,42 @@ class Stencil (object):
             stg.generate_code ( )
 
 
+    def generate_splitters (self):
+        """
+        Generates splitters data for this stencil from slicing information
+        contained in each stage's vertical regions
+
+        :return:
+        """
+        #
+        # Gather slice indexes from all vertical regions
+        #
+        slice_indexes = list ( )
+        for stg in self.stages:
+            for vr in stg.find_slice_indexes (self.scope):
+                slice_indexes.append (vr[0])
+                slice_indexes.append (vr[1])
+        #
+        # Remove duplicates and sort slice indexes list
+        #
+        slice_indexes = sorted (set (slice_indexes))
+        #
+        # Populate splitters dictionary
+        #
+        for i, idx in enumerate (slice_indexes):
+            self.splitters[idx] = i
+        #
+        # Save splitter data in each vertical region
+        #
+        for stg in self.stages:
+            stg.set_splitters (self.splitters)
+
+
     def get_data_dependency (self):
         """
         Return the data dependency graph for this stencil's scope
+
+        :return:
         """
         return self.scope.data_dependency
 
@@ -477,16 +548,26 @@ class Stencil (object):
             logging.error ("The passed Z field should be 2D")
 
 
-    def plot_data_dependency (self, graph=None, scope=None, show_legend=False):
+    def plot_data_dependency (self, graph=None, scope=None, show_legend=False,
+    						  outfile=None):
         """
-        Renders a data-depencency graph using 'matplotlib'
+        Renders a data-depencency graph using 'matplotlib'.
+        Graph nodes are colored based on their kind according to the following
+        rule:
+        * Red: Parameters
+        * Magenta: Aliases
+        * Green: Temporaries
+        * Yellow: Constants
+        * Cyan: Locals
+        * White: Symbol kind could not be determined
 
-        :param graph: the graph to render; it renders this stencil's data
-                      dependency graph if None given
-        :param scope: the scope that will be queried to determine the kind of
-                      the symbols in the graph
+        :param graph:   the graph to render; it renders this stencil's data
+                        dependency graph if None given
+        :param scope:   the scope in which to look for symbols. If None, the
+                        the stencil's scope will be used
         :param show_legend: boolean flag to display the legend, explaining the
                             node colors
+        :param outfile: the name of the file in which to save the plot
         :return:
         """
         if graph is None:
@@ -1015,18 +1096,18 @@ class CombinedStencil (Stencil):
         return ret_value
 
 
-    def plot_data_graph (self):
+    def plot_data_graph (self, outfile=None):
         """
         Renders the data graph using 'matplotlib'.-
         """
-        self._plot_graph (self.data_graph)
+        self._plot_graph (self.data_graph, outfile)
 
 
-    def plot_execution_graph (self):
+    def plot_execution_graph (self, outfile=None):
         """
         Renders the execution graph using 'matplotlib'.-
         """
-        self._plot_graph (self.execution_graph)
+        self._plot_graph (self.execution_graph, outfile)
 
 
     def resolve (self, **kwargs):

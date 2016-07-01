@@ -52,7 +52,6 @@ class AccessPatternDetectionTest (unittest.TestCase):
 
 
 
-
 class Copy (MultiStageStencil):
     """
     Definition of a simple copy stencil, as in 'examples/copy_stencil.h'.-
@@ -70,7 +69,7 @@ class Copy (MultiStageStencil):
         # iterate over the points, excluding halo ones
         #
         for p in self.get_interior_points (out_cpy):
-              out_cpy[p] = in_cpy[p]
+            out_cpy[p] = in_cpy[p]
 
 
 
@@ -157,6 +156,7 @@ class CopyTest (AccessPatternDetectionTest):
     def test_compare_python_and_cpp_results (self, backend='c++'):
         import copy
 
+        nruns                  = 5
         ndiff                  = 0
         stencil_native         = copy.deepcopy (self.stencil)
         stencil_native.set_backend (backend)
@@ -173,7 +173,7 @@ class CopyTest (AccessPatternDetectionTest):
         # apply both stencils 10 times and compare the results
         # using an error threshold
         #
-        for i in range (5):
+        for i in range (nruns):
             self.stencil.run   (**params_py)
             stencil_native.run (**params_cxx)
             #
@@ -181,8 +181,19 @@ class CopyTest (AccessPatternDetectionTest):
             #
             for k in params_py.keys ( ):
                 diff  = np.isclose(params_py[k], params_cxx[k], atol=1e-11)
-                ndiff = np.count_nonzero (np.logical_not (diff))
+                ndiff += np.count_nonzero (np.logical_not (diff))
+        #
+        # Print statements for debugging purposes
+        #
+#        for i in range(self.domain[0]):
+#            for j in range(self.domain[1]):
+#                for k in range(self.domain[2]):
+#                    print ("PY  (%d,%d,%d) \t%.5f \t%.5f" % (i,j,k,
+#                           params_py['in_X'][i,j,k], params_py['out_X'][i,j,k]) )
+#                    print ("%s (%d,%d,%d) \t%.5f \t%.5f" % (backend,i,j,k,
+#                           params_cxx['in_X'][i,j,k],params_cxx['out_X'][i,j,k]) )
         print ("%s ndiff: %d" % (backend, ndiff))
+        print ("%d runs. Avg ndiff per run: %g." % (nruns, ndiff/nruns))
         self.assertEqual (ndiff, 0)
 
 
@@ -405,106 +416,122 @@ class CopyTest (AccessPatternDetectionTest):
         self.assertEqual (self.stencil.get_k_direction ( ), direction)
 
 
-    def test_get_interior_points_K_static (self, data_field=None):
+    def test_interior_points_generator (self):
         from gridtools import K_DIRECTIONS
         from random import randint, choice
+        from itertools import product
+
+        data_field = np.zeros(self.domain)
 
         halo = (randint(0,10), randint(0,10), randint(0,10), randint(0,10))
-        direction = choice(K_DIRECTIONS)
+        direction = choice (K_DIRECTIONS)
+        #
+        # Generate slice indexes for all 3 array dimensions
+        # We choose arbitrarily to generate the random numbers only in an
+        # interval corresponding to 1/4th of the dimension size on both ends
+        # of each dimension.
+        # The integer floor division will result in no slicing applied if
+        # a dimension is smaller than 4 elements (happens in some tests,
+        # ie Shallow Water)
+        #
+        quarter_i = self.domain[0]//4
+        quarter_j = self.domain[1]//4
+        quarter_k = self.domain[2]//4
+        slices = (randint(0, quarter_i), randint(self.domain[0]-quarter_i, self.domain[0]),
+                  randint(0, quarter_j), randint(self.domain[1]-quarter_j, self.domain[1]),
+                  randint(0, quarter_k), randint(self.domain[2]-quarter_k, self.domain[2]))
+        #
+        # Generate expected coordinates
+        #
+        i_range = range (halo[0]+slices[0], slices[1]-halo[1])
+        j_range = range (halo[2]+slices[2], slices[3]-halo[3])
+        if direction == 'forward':
+            k_range = range (slices[4], slices[5])
+        else:
+            k_range = range (slices[5]-1, slices[4]-1, -1)
+
+        ijk_vals = list (product (i_range, j_range, k_range))
+        #
+        # Slice data field
+        #
+        sliced_field = data_field[slices[0]:slices[1],
+                                  slices[2]:slices[3],
+                                  slices[4]:slices[5]]
+        #
+        # Retrieve coordinates from function
+        #
+        interior_pts = list (Stencil._interior_points_generator (sliced_field,
+                                                                 ghost_cell=[0,0,0,0],
+                                                                 halo=halo,
+                                                                 k_direction=direction))
+
+        self.assertTrue (all ([x==y for (x,y) in zip(ijk_vals, interior_pts)]))
+
+
+    def test_get_interior_points_static (self):
+        from gridtools import K_DIRECTIONS
+        from random import randint, choice
+        from itertools import product
+
+        data_field = np.zeros(self.domain)
+
+        halo = (randint(0,10), randint(0,10), randint(0,10), randint(0,10))
+        direction = choice (K_DIRECTIONS)
         Stencil.set_halo (halo)
         Stencil.set_k_direction (direction)
+        #
+        # Generate expected coordinates
+        #
+        i_range = range (halo[0], self.domain[0]-halo[1])
+        j_range = range (halo[2], self.domain[1]-halo[3])
+        if direction == 'forward':
+            k_range = range (self.domain[2])
+        else:
+            k_range = range (self.domain[2]-1, -1, -1)
 
-        if data_field is None:
-            data_field = self.out_cpy
+        ijk_vals = list (product (i_range, j_range, k_range))
+        #
+        # Retrieve coordinates from function
+        #
+        interior_pts = list (Stencil.get_interior_points (data_field))
 
-        k_vals = [k for k in range(0, self.domain[2])]
-        if direction == 'backward':
-            k_vals.reverse()
-        k_vals = k_vals * (self.domain[0] - halo[0] - halo[1])
-        k_vals = k_vals * (self.domain[1] - halo[2] - halo[3])
-
-        interior_pts = [k for (i,j,k) in Stencil.get_interior_points (data_field)]
-
-        self.assertTrue ( all ([x==y for (x,y) in zip(k_vals, interior_pts)]) )
+        self.assertTrue (all ([x==y for (x,y) in zip(ijk_vals, interior_pts)]))
 
 
-    def test_get_interior_points_K_object (self, data_field=None):
+    def test_get_interior_points_object (self):
         from gridtools import K_DIRECTIONS
         from random import randint, choice
+        from itertools import product
 
-        Stencil.set_halo ( (randint(0,10), randint(0,10), randint(0,10), randint(0,10)) )
-        Stencil.set_k_direction ( choice(K_DIRECTIONS) )
-
-        halo = (randint(0,10), randint(0,10), randint(0,10), randint(0,10))
-        direction = choice(K_DIRECTIONS)
-        self.stencil.set_halo (halo)
-        self.stencil.set_k_direction (direction)
-
-        if data_field is None:
-            data_field = self.out_cpy
-
-        k_vals = [k for k in range(0, self.domain[2])]
-        if direction == 'backward':
-            k_vals.reverse()
-        k_vals = k_vals * (self.domain[0] - halo[0] - halo[1])
-        k_vals = k_vals * (self.domain[1] - halo[2] - halo[3])
-
-        interior_pts = [k for (i,j,k) in self.stencil.get_interior_points (data_field)]
-
-        self.assertTrue ( all ([x==y for (x,y) in zip(k_vals, interior_pts)]) )
-
-
-    def test_get_interior_points_IJ_static (self, data_field=None):
-        from gridtools import K_DIRECTIONS
-        from random import randint, choice
-        from itertools import product, chain
-
-        halo = (randint(0,10), randint(0,10), randint(0,10), randint(0,10))
-        Stencil.set_halo (halo)
-        Stencil.set_k_direction ( choice(K_DIRECTIONS) )
-
-        if data_field is None:
-            data_field = self.out_cpy
-
-        ij_vals = [[ij]*self.domain[2] for ij in
-                   list (product (range(halo[0], self.domain[0]-halo[1]),
-                         range(halo[2], self.domain[1]-halo[3]))) ]
-
-        ij_vals = [ij for ij in chain.from_iterable(ij_vals)]
-
-        interior_pts = [(i,j) for (i,j,k) in Stencil.get_interior_points (data_field)]
-
-        self.assertTrue (all ([x==y for (x,y) in zip(ij_vals, interior_pts)]) )
-
-
-    def test_get_interior_points_IJ_object (self, data_field=None):
-        from gridtools import K_DIRECTIONS
-        from random import randint, choice
-        from itertools import product, chain
+        data_field = np.zeros(self.domain)
 
         Stencil.set_halo ( (randint(0,10), randint(0,10), randint(0,10), randint(0,10)) )
         Stencil.set_k_direction ( choice(K_DIRECTIONS) )
 
         halo = ( randint(0,10), randint(0,10), randint(0,10), randint(0,10) )
+        direction = choice (K_DIRECTIONS)
         self.stencil.set_halo (halo)
-        self.stencil.set_k_direction ( choice(K_DIRECTIONS) )
+        self.stencil.set_k_direction (direction)
+        #
+        # Generate expected coordinates
+        #
+        i_range = range (halo[0], self.domain[0]-halo[1])
+        j_range = range (halo[2], self.domain[1]-halo[3])
+        if direction == 'forward':
+            k_range = range (self.domain[2])
+        else:
+            k_range = range(self.domain[2]-1, -1, -1)
 
-        if data_field is None:
-            data_field = self.out_cpy
+        ijk_vals = list (product (i_range, j_range, k_range))
+        #
+        # Retrieve coordinates from function
+        #
+        interior_pts = list (self.stencil.get_interior_points (data_field))
 
-        ij_vals = [[ij]*self.domain[2] for ij in
-                   list (product (range(halo[0], self.domain[0]-halo[1]),
-                         range(halo[2], self.domain[1]-halo[3]))) ]
-
-        ij_vals = [ij for ij in chain.from_iterable(ij_vals)]
-
-        interior_pts = [(i,j) for (i,j,k) in self.stencil.get_interior_points (data_field)]
-
-        self.assertTrue (all ([x==y for (x,y) in zip(ij_vals, interior_pts)]) )
+        self.assertTrue (all ([x==y for (x,y) in zip(ijk_vals, interior_pts)]) )
 
 
-    @attr(lang='cuda')
-    def test_cuda_fortran_array_conversion (self):
+    def test_enforce_optimal_array (self):
         #
         # Convert arrays to C order
         #
@@ -671,8 +698,8 @@ class LaplaceTest (CopyTest):
         self.params = ('out_data', 'in_data')
         self.temps  = ( )
 
-        self.out_data = np.zeros (self.domain)
-        self.in_data  = np.zeros (self.domain)
+        self.out_data = np.zeros (self.domain, order='F')
+        self.in_data  = np.zeros (self.domain, order='F')
         for i in range (self.domain[0]):
             for j in range (self.domain[1]):
                 for k in range (self.domain[2]):
@@ -681,6 +708,13 @@ class LaplaceTest (CopyTest):
         self.stencil = Laplace ( )
         self.stencil.set_halo ( (1, 1, 1, 1) )
         self.stencil.set_k_direction ("forward")
+
+
+    def test_data_dependency_detection (self, expected_deps=None, backend='c++'):
+        if expected_deps is None:
+            expected_deps = [('out_data', 'in_data')]
+        super ( ).test_data_dependency_detection (deps=expected_deps,
+                                                  backend=backend)
 
 
     def test_automatic_access_pattern_detection (self):
@@ -708,30 +742,6 @@ class LaplaceTest (CopyTest):
         self.out_data = np.random.rand (*self.domain)
         super ( ).test_python_results (out_param='out_data',
                                        result_file='laplace_result.npy')
-
-
-    def test_get_interior_points_K_static (self, data_field=None):
-        if data_field is None:
-            data_field = self.out_data
-        super ( ).test_get_interior_points_K_static (data_field)
-
-
-    def test_get_interior_points_K_object (self, data_field=None):
-        if data_field is None:
-            data_field = self.out_data
-        super ( ).test_get_interior_points_K_object (data_field)
-
-
-    def test_get_interior_points_IJ_static (self, data_field=None):
-        if data_field is None:
-            data_field = self.out_data
-        super ( ).test_get_interior_points_IJ_static (data_field)
-
-
-    def test_get_interior_points_IJ_object (self, data_field=None):
-        if data_field is None:
-            data_field = self.out_data
-        super ( ).test_get_interior_points_IJ_object (data_field)
 
 
 
@@ -850,9 +860,9 @@ class HorizontalDiffusionTest (CopyTest):
                        'self.fli',
                        'self.flj')
 
-        self.out_data = np.zeros (self.domain)
-        self.in_wgt   = np.ones  (self.domain)
-        self.in_data  = np.zeros (self.domain)
+        self.out_data = np.zeros (self.domain, order='F')
+        self.in_wgt   = np.ones  (self.domain, order='F')
+        self.in_data  = np.zeros (self.domain, order='F')
 
         for i in range (self.domain[0]):
             for j in range (self.domain[1]):
@@ -930,28 +940,192 @@ class HorizontalDiffusionTest (CopyTest):
                                        result_file='horizontaldiffusion_result.npy')
 
 
-    def test_get_interior_points_K_static (self, data_field=None):
-        if data_field is None:
-            data_field = self.out_data
-        super ( ).test_get_interior_points_K_static (data_field)
+
+class VerticalRegions (MultiStageStencil):
+    """
+    A stencil using a Laplacian-like operator with different vertical regions
+    Notable features:
+    * Vertical regions overlap between all stages: stencil splitter ordering is
+        not trivial
+    * stage_laplace3 has a vertical region corresponding with the end of
+        stage_laplace0 and the start of stage_laplace2: this will generate
+        duplicate splitters that have to be eliminated at stencil level
+    """
+    def __init__ (self, domain):
+        super ( ).__init__ ( )
+        self.domain = domain
 
 
-    def test_get_interior_points_K_object (self, data_field=None):
-        if data_field is None:
-            data_field = self.out_data
-        super ( ).test_get_interior_points_K_object (data_field)
+    def stage_laplace0 (self, out_data, in_data):
+        for p in self.get_interior_points (out_data[:,:,0:4]):
+            out_data[p] = -4.0 * in_data[p] + (
+                          in_data[p + (1,0,0)]  + in_data[p + (0,1,0)] +
+                          in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
 
 
-    def test_get_interior_points_IJ_static (self, data_field=None):
-        if data_field is None:
-            data_field = self.out_data
-        super ( ).test_get_interior_points_IJ_static (data_field)
+    def stage_laplace1 (self, out_data, in_data):
+        for p in self.get_interior_points (out_data[:,:,3:8]):
+            out_data[p] = -6.0 * in_data[p] + (
+                          in_data[p + (1,0,0)]  + in_data[p + (0,1,0)] +
+                          in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
 
 
-    def test_get_interior_points_IJ_object (self, data_field=None):
-        if data_field is None:
-            data_field = self.out_data
-        super ( ).test_get_interior_points_IJ_object (data_field)
+    def stage_laplace2 (self, out_data, in_data):
+        for p in self.get_interior_points (out_data[:,:,6:]):
+            out_data[p] = -8.0 * in_data[p] + (
+                          in_data[p + (1,0,0)]  + in_data[p + (0,1,0)] +
+                          in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
+
+
+    def stage_laplace3 (self, out_data, in_data):
+        for p in self.get_interior_points (out_data[:,:,4:8]):
+            out_data[p] = -10.0 * in_data[p] + (
+                          in_data[p + (1,0,0)]  + in_data[p + (0,1,0)] +
+                          in_data[p + (-1,0,0)] + in_data[p + (0,-1,0)] )
+
+
+    @Stencil.kernel
+    def kernel (self, out_data0, out_data1, out_data2, out_data3, in_data):
+        self.stage_laplace0 (out_data = out_data0,
+                            in_data = in_data)
+        self.stage_laplace1 (out_data = out_data1,
+                            in_data = in_data)
+        self.stage_laplace2 (out_data = out_data2,
+                            in_data = in_data)
+        self.stage_laplace3 (out_data = out_data3,
+                            in_data = in_data)
+
+
+
+class VerticalRegionsTest (LaplaceTest):
+    """
+    Test fixture for the VerticalRegions stencil defined above
+
+    TODO: Add tests for:
+            - overlapping vertical regions within the same stage (requires
+                support for multiple vertical regions within a stage)
+
+    """
+    def setUp (self):
+        super ( ).setUp ( )
+
+        self.params = ('out_data0',
+                       'out_data1',
+                       'out_data2',
+                       'out_data3',
+                       'in_data')
+
+        self.out_data0 = np.zeros (self.domain, order='F')
+        self.out_data1 = np.zeros (self.domain, order='F')
+        self.out_data2 = np.zeros (self.domain, order='F')
+        self.out_data3 = np.zeros (self.domain, order='F')
+
+        self.stencil = VerticalRegions (self.domain)
+        self.stencil.set_halo ( (1, 1, 1, 1) )
+        self.stencil.set_k_direction ("forward")
+
+
+    def test_data_dependency_detection (self, expected_deps=None, backend='c++'):
+        if expected_deps is None:
+            expected_deps = [('out_data0', 'in_data'),
+                             ('out_data1', 'in_data'),
+                             ('out_data2', 'in_data'),
+                             ('out_data3', 'in_data')]
+        super ( ).test_data_dependency_detection (expected_deps=expected_deps,
+                                                  backend=backend)
+
+
+    def test_automatic_access_pattern_detection (self):
+        from gridtools import BACKENDS
+        #
+        # fields and their ranges
+        #
+        self.add_expected_offset ('in_data', None)
+        self.add_expected_offset ('in_data', None)
+        self.add_expected_offset ('in_data', None)
+        self.add_expected_offset ('in_data', None)
+        self.add_expected_offset ('in_data',  [-1,1,-1,1])
+        self.add_expected_offset ('in_data',  [-1,1,-1,1])
+        self.add_expected_offset ('in_data',  [-1,1,-1,1])
+        self.add_expected_offset ('in_data',  [-1,1,-1,1])
+        self.add_expected_offset ('out_data0', None)
+        self.add_expected_offset ('out_data1', None)
+        self.add_expected_offset ('out_data2', None)
+        self.add_expected_offset ('out_data3', None)
+
+        for backend in BACKENDS:
+            self.stencil.set_backend (backend)
+            self._run ( )
+            self.automatic_access_pattern_detection (self.stencil)
+
+
+    def test_ghost_cell_pattern (self, expected_patterns=None, backend='c++'):
+        if expected_patterns is None:
+            expected_patterns = [ [0,0,0,0],
+                                  [0,0,0,0],
+                                  [0,0,0,0],
+                                  [0,0,0,0] ]
+        super ( ).test_ghost_cell_pattern (expected_patterns,
+                                           backend=backend)
+
+
+    def test_minimum_halo_detection (self, min_halo=None):
+        if min_halo is None:
+            min_halo = [1, 1, 1, 1]
+        super ( ).test_minimum_halo_detection (min_halo)
+
+
+    @unittest.skip("Not yet implemented")
+    @attr(lang='python')
+    def test_python_results (self):
+        pass
+
+
+    def test_splitters (self):
+        self._run ( )
+        self.assertEqual (self.stencil.splitters,
+                          {0: 0, 3: 1, 4: 2, 6: 3, 8: 4, 32: 5})
+
+
+    def test_vertical_regions (self):
+        self._run ( )
+        expected_k = {'stage_laplace0': [0,4],
+                      'stage_laplace1': [3,8],
+                      'stage_laplace2': [6,32],
+                      'stage_laplace3': [4,8]}
+        expected_spl = {'stage_laplace0': [0,2],
+                        'stage_laplace1': [1,4],
+                        'stage_laplace2': [3,5],
+                        'stage_laplace3': [2,4]}
+        #
+        # Iterate over stages, popping expected values from the dictionary
+        # A dict is required because stages is the result of a topological sort,
+        # so we don't know the order the stages will be presented to us.
+        #
+        for stg in self.stencil.stages:
+            #
+            # Check only the stage-specific part of the name string, as we don't
+            # know the name of the stencil and the number that will be prepended
+            # or appended to the name string at runtime
+            #
+            vr_key = None
+            for k in expected_k.keys():
+                if k in stg.name:
+                    vr_key = k
+            #
+            # Check that cell indexes and splitters correspond to expected ones
+            #
+            k_idx = expected_k.pop(vr_key)
+            split = expected_spl.pop(vr_key)
+            self.assertEqual (stg.vertical_regions[0].start_k, k_idx[0])
+            self.assertEqual (stg.vertical_regions[0].end_k,   k_idx[1])
+            self.assertEqual (stg.vertical_regions[0].start_splitter, split[0])
+            self.assertEqual (stg.vertical_regions[0].end_splitter,   split[1])
+        #
+        # Check all expected vertical regions have been tested (dicts are empty)
+        #
+        self.assertFalse (expected_k)
+        self.assertFalse (expected_spl)
 
 
 
@@ -1155,11 +1329,29 @@ class ChildStencilTest (unittest.TestCase):
     def setUp (self):
         logging.basicConfig (level=logging.INFO)
 
+        self.domain = (64, 64, 32)
+        self.params = ('out_cpy', 'in_cpy')
+        self.temps  = ( )
+
+        self.out_cpy = np.zeros (self.domain,
+                                 dtype=np.float64,
+                                 order='F')
+        #
+        # workaround because of a bug in the power (**) implemention of NumPy
+        #
+        self.in_cpy = np.random.random_integers (10,
+                                                 size=self.domain)
+        self.in_cpy = self.in_cpy.astype (np.float64)
+        self.in_cpy = np.asfortranarray (self.in_cpy)
+
 
     def _test_child_constructor_call_success (self, stencil):
         from gridtools.stencil import Stencil
 
-        Stencil.compiler.analyze (stencil)
+        kwargs = dict ( )
+        for p in self.params:
+            kwargs[p] = getattr (self, p)
+        Stencil.compiler.analyze (stencil, **kwargs)
 
 
     def test_child_constructor_calls_parent_constructor_and_nothing_else (self):

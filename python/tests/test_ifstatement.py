@@ -63,11 +63,6 @@ class GameOfLifeTest (CopyTest):
         self.stencil.set_k_direction ('forward')
 
 
-    @attr(lang='cuda')
-    def test_compare_python_cpp_and_cuda_results (self):
-        super ( ).test_compare_python_cpp_and_cuda_results ( )
-
-
     def test_automatic_access_pattern_detection (self):
         from gridtools import BACKENDS
 
@@ -103,22 +98,6 @@ class GameOfLifeTest (CopyTest):
     @attr(lang='python')
     def test_python_results (self):
         pass
-
-
-    def test_get_interior_points_K_static (self):
-        super ( ).test_get_interior_points_K_static (self.out_X)
-
-
-    def test_get_interior_points_K_object (self):
-        super ( ).test_get_interior_points_K_object (self.out_X)
-
-
-    def test_get_interior_points_IJ_static (self):
-        super ( ).test_get_interior_points_IJ_static (self.out_X)
-
-
-    def test_get_interior_points_IJ_object (self):
-        super ( ).test_get_interior_points_IJ_object (self.out_X)
 
 
 
@@ -184,11 +163,6 @@ class AdditionalIfStatementTest (CopyTest):
         self.stencil.set_k_direction ('forward')
 
 
-    @attr(lang='cuda')
-    def test_compare_python_cpp_and_cuda_results (self):
-        super ( ).test_compare_python_cpp_and_cuda_results ( )
-
-
     def test_automatic_access_pattern_detection (self):
         from gridtools import BACKENDS
 
@@ -224,19 +198,3 @@ class AdditionalIfStatementTest (CopyTest):
     @attr(lang='python')
     def test_python_results (self):
         pass
-
-
-    def test_get_interior_points_K_static (self):
-        super ( ).test_get_interior_points_K_static (self.out_X)
-
-
-    def test_get_interior_points_K_object (self):
-        super ( ).test_get_interior_points_K_object (self.out_X)
-
-
-    def test_get_interior_points_IJ_static (self):
-        super ( ).test_get_interior_points_IJ_static (self.out_X)
-
-
-    def test_get_interior_points_IJ_object (self):
-        super ( ).test_get_interior_points_IJ_object (self.out_X)

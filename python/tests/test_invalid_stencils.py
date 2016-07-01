@@ -210,7 +210,7 @@ class IfStatementOpIsFailure (MultiStageStencil):
     """
     Tests that use of 'is' operator currently raises an error.
     """
-    def __init__ (self, domain):
+    def __init__ (self):
         super ( ).__init__ ( )
         self.set_halo ( (1,1,1,1) )
 
@@ -227,7 +227,7 @@ class IfStatementOpIsNotFailure (MultiStageStencil):
     """
     Tests that use of 'is not' operator currently raises an error.
     """
-    def __init__ (self, domain):
+    def __init__ (self):
         super ( ).__init__ ( )
         self.set_halo ( (1,1,1,1) )
 
@@ -244,7 +244,7 @@ class IfStatementOpNotInFailure (MultiStageStencil):
     """
     Tests that use of 'not in' operator currently raises an error.
     """
-    def __init__ (self, domain):
+    def __init__ (self):
         super ( ).__init__ ( )
         self.set_halo ( (1,1,1,1) )
 
@@ -261,7 +261,7 @@ class IfStatementOpInFailure (MultiStageStencil):
     """
     Tests that use of 'in' operator currently raises an error.
     """
-    def __init__ (self, domain):
+    def __init__ (self):
         super ( ).__init__ ( )
         self.set_halo ( (1,1,1,1) )
 
@@ -290,7 +290,7 @@ class IfStatementsOpIsTest (NoKernelTest):
 
         self.out_X = np.copy (self.in_X)
 
-        self.stencil = IfStatementOpIsFailure (self.domain)
+        self.stencil = IfStatementOpIsFailure ( )
         self.error = NotImplementedError
 
 
@@ -302,7 +302,7 @@ class IfStatementsOpIsNotTest (IfStatementsOpIsTest):
     def setUp (self):
         super ( ).setUp ( )
 
-        self.stencil = IfStatementOpIsNotFailure (self.domain)
+        self.stencil = IfStatementOpIsNotFailure ( )
 
 
 
@@ -313,7 +313,7 @@ class IfStatementsOpNotInTest (IfStatementsOpIsTest):
     def setUp (self):
         super ( ).setUp ( )
 
-        self.stencil = IfStatementOpNotInFailure (self.domain)
+        self.stencil = IfStatementOpNotInFailure ( )
 
 
 
@@ -324,7 +324,7 @@ class IfStatementsOpInTest (IfStatementsOpIsTest):
     def setUp (self):
         super ( ).setUp ( )
 
-        self.stencil = IfStatementOpInFailure (self.domain)
+        self.stencil = IfStatementOpInFailure ( )
 
 
 
@@ -424,3 +424,363 @@ class SelfDependHDTest (IfStatementsOpIsTest):
         self.stencil.set_halo ( (2, 2, 2, 2) )
         self.stencil.set_k_direction ("forward")
         self.error = ValueError
+
+
+class VRForLoopStage (MultiStageStencil):
+    """
+    Tests that using get_interior_points() with slicing inside a for-loop defined
+    stage raises an error.
+    """
+    def __init__ (self):
+        super ( ).__init__ ( )
+        self.set_halo ( (1,1,1,1) )
+
+
+    @Stencil.kernel
+    def kernel (self, out_X):
+        for p in self.get_interior_points (out_X[:,:,10:25]):
+            out_X[p] = 1.0
+
+
+
+class VRForLoopStageTest (IfStatementsOpIsTest):
+    """
+    A test case for the Vertical Regions related stencil
+    defined above.-
+    """
+    def setUp (self):
+        super ( ).setUp ( )
+
+        self.stencil = VRForLoopStage ( )
+        self.error = RuntimeError
+
+
+
+class VR2DSlice (MultiStageStencil):
+    """
+    Tests that using get_interior_points() with slicing on less than 3 dimensions
+    raises an error.
+    """
+    def __init__ (self):
+        super ( ).__init__ ( )
+        self.set_halo ( (1,1,1,1) )
+
+
+    def stage_1 (self, out_X):
+        for p in self.get_interior_points (out_X[:,:]):
+            out_X[p] = 1.0
+
+
+    @Stencil.kernel
+    def kernel (self, out_X):
+        self.stage_1 (out_X = out_X)
+
+
+
+class VR2DSliceTest (IfStatementsOpIsTest):
+    """
+    A test case for the Vertical Regions related stencil defined above.-
+    """
+    def setUp (self):
+        super ( ).setUp ( )
+
+        self.stencil = VR2DSlice ( )
+        self.error = ValueError
+
+
+
+class VRSingleIndex (MultiStageStencil):
+    """
+    Tests that using get_interior_points() with single-index slicing
+    raises an error.
+    """
+    def __init__ (self):
+        super ( ).__init__ ( )
+        self.set_halo ( (1,1,1,1) )
+
+
+    def stage_1 (self, out_X):
+        for p in self.get_interior_points (out_X[:,:,10]):
+            out_X[p] = 1.0
+
+
+    @Stencil.kernel
+    def kernel (self, out_X):
+        self.stage_1 (out_X = out_X)
+
+
+
+class VRSingleIndexTest (IfStatementsOpIsTest):
+    """
+    A test case for the Vertical Regions related stencil defined above.-
+    """
+    def setUp (self):
+        super ( ).setUp ( )
+
+        self.stencil = VRSingleIndex ( )
+        self.error = ValueError
+
+
+
+class VRISlice (MultiStageStencil):
+    """
+    Tests that using get_interior_points() with slicing on i direction
+    raises an error.
+    """
+    def __init__ (self):
+        super ( ).__init__ ( )
+        self.set_halo ( (1,1,1,1) )
+
+
+    def stage_1 (self, out_X):
+        for p in self.get_interior_points (out_X[5:,:,:]):
+            out_X[p] = 1.0
+
+
+    @Stencil.kernel
+    def kernel (self, out_X):
+        self.stage_1 (out_X = out_X)
+
+
+
+class VRISliceTest (IfStatementsOpIsTest):
+    """
+    A test case for the Vertical Regions related stencil defined above.-
+    """
+    def setUp (self):
+        super ( ).setUp ( )
+
+        self.stencil = VRISlice ( )
+        self.error = ValueError
+
+
+
+class VRJSlice (MultiStageStencil):
+    """
+    Tests that using get_interior_points() with slicing on j direction
+    raises an error.
+    """
+    def __init__ (self):
+        super ( ).__init__ ( )
+        self.set_halo ( (1,1,1,1) )
+
+
+    def stage_1 (self, out_X):
+        for p in self.get_interior_points (out_X[:,:17,:]):
+            out_X[p] = 1.0
+
+
+    @Stencil.kernel
+    def kernel (self, out_X):
+        self.stage_1 (out_X = out_X)
+
+
+
+class VRJSliceTest (IfStatementsOpIsTest):
+    """
+    A test case for the Vertical Regions related stencil defined above.-
+    """
+    def setUp (self):
+        super ( ).setUp ( )
+
+        self.stencil = VRJSlice ( )
+        self.error = ValueError
+
+
+
+class VRNegativeSliceIndex (MultiStageStencil):
+    """
+    Tests that using get_interior_points() with slicing on k direction and a
+    negative index raises an error.
+    """
+    def __init__ (self):
+        super ( ).__init__ ( )
+        self.set_halo ( (1,1,1,1) )
+
+
+    def stage_1 (self, out_X):
+        for p in self.get_interior_points (out_X[:,:,:-2]):
+            out_X[p] = 1.0
+
+
+    @Stencil.kernel
+    def kernel (self, out_X):
+        self.stage_1 (out_X = out_X)
+
+
+
+class VRNegativeSliceIndexTest (IfStatementsOpIsTest):
+    """
+    A test case for the Vertical Regions related stencil defined above.-
+    """
+    def setUp (self):
+        super ( ).setUp ( )
+
+        self.stencil = VRNegativeSliceIndex ( )
+        self.error = NotImplementedError
+
+
+
+class VRSliceStepsK (MultiStageStencil):
+    """
+    Tests that using get_interior_points() with slicing steps
+    raises an error.
+    """
+    def __init__ (self):
+        super ( ).__init__ ( )
+        self.set_halo ( (1,1,1,1) )
+
+
+    def stage_1 (self, out_X):
+        for p in self.get_interior_points (out_X[:,:,8:16:2]):
+            out_X[p] = 1.0
+
+
+    @Stencil.kernel
+    def kernel (self, out_X):
+        self.stage_1 (out_X = out_X)
+
+
+
+class VRSliceStepsKTest (IfStatementsOpIsTest):
+    """
+    A test case for the Vertical Regions related stencil defined above.-
+    """
+    def setUp (self):
+        super ( ).setUp ( )
+
+        self.stencil = VRSliceStepsK ( )
+        self.error = ValueError
+
+
+
+class VRSliceStepsJ (MultiStageStencil):
+    """
+    Tests that using get_interior_points() with slicing steps
+    raises an error.
+    """
+    def __init__ (self):
+        super ( ).__init__ ( )
+        self.set_halo ( (1,1,1,1) )
+
+
+    def stage_1 (self, out_X):
+        for p in self.get_interior_points (out_X[:,::2,:]):
+            out_X[p] = 1.0
+
+
+    @Stencil.kernel
+    def kernel (self, out_X):
+        self.stage_1 (out_X = out_X)
+
+
+
+class VRSliceStepsJTest (IfStatementsOpIsTest):
+    """
+    A test case for the Vertical Regions related stencil defined above.-
+    """
+    def setUp (self):
+        super ( ).setUp ( )
+
+        self.stencil = VRSliceStepsJ ( )
+        self.error = ValueError
+
+
+
+class VRSliceStartOverflow (MultiStageStencil):
+    """
+    Tests that using get_interior_points() with slicing index overflow at start
+    raises an error.
+    """
+    def __init__ (self):
+        super ( ).__init__ ( )
+        self.set_halo ( (1,1,1,1) )
+
+
+    def stage_1 (self, out_X):
+        for p in self.get_interior_points (out_X[:,:,35:]):
+            out_X[p] = 1.0
+
+
+    @Stencil.kernel
+    def kernel (self, out_X):
+        self.stage_1 (out_X = out_X)
+
+
+
+class VRSliceStartOverflowTest (IfStatementsOpIsTest):
+    """
+    A test case for the Vertical Regions related stencil defined above.-
+    """
+    def setUp (self):
+        super ( ).setUp ( )
+
+        self.stencil = VRSliceStartOverflow ( )
+        self.error = ValueError
+
+
+
+class VRSliceEndOverflow (MultiStageStencil):
+    """
+    Tests that using get_interior_points() with slicing index overflow at end
+    raises an error.
+    """
+    def __init__ (self):
+        super ( ).__init__ ( )
+        self.set_halo ( (1,1,1,1) )
+
+
+    def stage_1 (self, out_X):
+        for p in self.get_interior_points (out_X[:,:,12:36]):
+            out_X[p] = 1.0
+
+
+    @Stencil.kernel
+    def kernel (self, out_X):
+        self.stage_1 (out_X = out_X)
+
+
+
+class VRSliceEndOverflowTest (IfStatementsOpIsTest):
+    """
+    A test case for the Vertical Regions related stencil defined above.-
+    """
+    def setUp (self):
+        super ( ).setUp ( )
+
+        self.stencil = VRSliceEndOverflow ( )
+        self.error = ValueError
+
+
+
+class VRNonNumSliceIndex (MultiStageStencil):
+    """
+    Tests that using get_interior_points() with slicing and non-numerical index
+    raises an error.
+    """
+    def __init__ (self):
+        super ( ).__init__ ( )
+        self.set_halo ( (1,1,1,1) )
+
+
+    def stage_1 (self, out_X):
+        top = 30
+        for p in self.get_interior_points (out_X[:,:,12:top]):
+            out_X[p] = 1.0
+
+
+    @Stencil.kernel
+    def kernel (self, out_X):
+        self.stage_1 (out_X = out_X)
+
+
+
+class VRNonNumSliceIndexTest (IfStatementsOpIsTest):
+    """
+    A test case for the Vertical Regions related stencil defined above.-
+    """
+    def setUp (self):
+        super ( ).setUp ( )
+
+        self.stencil = VRNonNumSliceIndex ( )
+        self.error = NotImplementedError

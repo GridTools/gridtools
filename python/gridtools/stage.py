@@ -15,9 +15,10 @@ class StageBody (ast.NodeVisitor):
     """
     symbol_inspector = SymbolInspector ( )
 
-    def __init__ (self, nodes, scope, stencil_scope):
+    def __init__ (self, stage_name, nodes, scope, stencil_scope):
         """
         Constructs a stage body object
+        :param stage_name:    name of the stage this body belongs to
         :param nodes:         an AST-node list representing the body of this
                               stage
         :param scope:         the symbols scope of this stage
@@ -25,6 +26,7 @@ class StageBody (ast.NodeVisitor):
                               to this stage
         :raise TypeError:     if nodes is not iterable
         """
+        self.stage_name    = stage_name
         self.scope         = scope
         self.stencil_scope = stencil_scope
         try:
@@ -347,11 +349,38 @@ class StageBody (ast.NodeVisitor):
         symbol = None
 
         #
-        # looking for the symbol name in this order forces
-        # correct symbol name shadowing
+        # first look for the symbol within this stage's scope
         #
         if name in self.scope:
             symbol = self.scope[name]
+            #
+            # resolve aliases before trying to inline
+            #
+            if self.scope.is_alias (name):
+                if symbol.value in self.stencil_scope:
+                    aliased = self.stencil_scope[symbol.value]
+                else:
+                    raise NameError ("Could not dereference alias '%s'" % name)
+                self.scope.add_parameter (aliased.name,
+                                          aliased.value,
+                                          read_only=symbol.read_only)
+                return aliased.name
+            #
+            # If symbol is a local variable, inline its value only if it is a
+            # scalar integer or floating point number in a Load context
+            #
+            if self.scope.is_local (name):
+               if (isinstance (symbol.value, int)
+                   or isinstance (symbol.value, float )):
+                       if isinstance (node.ctx, ast.Load):
+                           return symbol.value
+                       else:
+                           return name
+               else:
+                   return name
+        #
+        # then within the enclosing scope, so to enforce correct scope shadowing
+        #
         elif name in self.stencil_scope:
             symbol = self.stencil_scope[name]
             #
@@ -372,35 +401,8 @@ class StageBody (ast.NodeVisitor):
             self.scope.add_local (name)
             return name
         else:
-            raise NameError ("Unkown symbol '%s' in stage" % name)
-        #
-        # resolve aliases before trying to inline
-        #
-        if self.scope.is_alias (name):
-            if symbol.value in self.scope:
-                aliased = self.scope[symbol.value]
-            elif symbol.value in self.stencil_scope:
-                aliased = self.stencil_scope[symbol.value]
-            else:
-                raise NameError ("Could not dereference alias '%s'" % name)
-            self.scope.add_parameter (aliased.name,
-                                      aliased.value,
-                                      read_only=symbol.read_only)
-            return aliased.name
-        #
-        # If symbol is a local variable, inline its value only if it is a scalar
-        # integer or floating point number in a Load context (i.e., it is an
-        # rvalue in the current expression)
-        #
-        if self.scope.is_local (name):
-            if (isinstance (symbol.value, int)
-                or isinstance (symbol.value, float )):
-                    if isinstance (node.ctx, ast.Load):
-                        return symbol.value
-                    else:
-                        return name
-            else:
-                return name
+            raise NameError ("Unknown symbol '%s' in stage '%s'"
+                             % (name, self.stage_name))
         #
         # try to inline the value of this symbol
         #
@@ -510,6 +512,123 @@ class StageScope (Scope):
 
 
 
+class VerticalRegion ( ):
+    """
+    Represents a vertical region (an interval in the k direction) on which a
+    Stage can operate
+    """
+    def __init__ (self, name, array_name, slice_start_node=None, slice_end_node=None):
+        """
+        Constructs a new VerticalRegion
+        :param name:                name of this vertical region
+        :param array_name:          a string representing the name of the array
+                                    being sliced
+        :param slice_start_node:    an AST Slice node containing the starting
+                                    value of the region
+        :param slice_end_node:      an AST Slice node containing the starting
+                                    value of the region
+        """
+        self.name             = name
+        self.array_name       = array_name
+        self.slice_start_node = slice_start_node
+        self.slice_end_node   = slice_end_node
+        #
+        # Cell indexes marking the beginning and the end of the vertical region
+        #
+        self.start_k = None
+        self.end_k   = None
+        #
+        # Indexes of the splitters (from the dict mantained by the stencil)
+        # for this vertical region.
+        #
+        self.start_splitter = None
+        self.end_splitter   = None
+
+
+    def set_splitters (self, splitters):
+        """
+        Sets the splitter values for this region as defined in the GridTools
+        backend
+
+        :param splitters:   A dictionary containing splitter values for the
+                            stencil. The dict keys are the cell indexes in the k
+                            direction where the splitters are located. The dict
+                            values are the ordinal indices of the splitters.
+        """
+        self.start_splitter = splitters[self.start_k]
+        self.end_splitter = splitters[self.end_k]
+
+
+    def find_slice_indexes (self, scope, stencil_scope):
+        """
+        Find slice indexes from the information
+        contained in the slice nodes and array_name
+
+        :param scope:         The scope of the stage this region belongs to
+        :param stencil_scope: The scope of the stencil this stage belongs to
+        """
+        #
+        # retrieve the symbol of the sliced array, resolving alias if necessary
+        #
+        array_sym = scope[self.array_name]
+        if scope.is_alias (array_sym):
+            #
+            # If the stage is defined through a function, the array symbol value
+            # will be an alias to a stencil scope symbol; we have to resolve the
+            # alias to get the actual array
+            # Otherwise, if the stage is defined through a for loop in the kernel,
+            # array_sym's value already contains the numerical array, and no
+            # lookup in the stencil scope symbol has to be performed.
+            # Remember that the stage scope also contains the stencil-level
+            # symbols that correspond to aliases! This means that we don't need
+            # the stencil scope object to get to the underlying numerical array.
+            #
+            array_sym = scope[array_sym.value]
+        #
+        # set indexes based on the given slicing limits
+        #
+        if self.slice_start_node is None:
+            #
+            # set initial index if no slicing limit was given
+            #
+            start_idx = 0
+        elif isinstance (self.slice_start_node, ast.Num):
+            start_idx = int (self.slice_start_node.n)
+        else:
+            raise NotImplementedError ("Only constants are accepted when slicing fields")
+
+        if self.slice_end_node is None:
+            #
+            # set final index if no slicing limit was given
+            #
+            end_idx = array_sym.value.shape[2]
+        elif isinstance (self.slice_end_node, ast.Num):
+            end_idx = int (self.slice_end_node.n)
+        else:
+            raise NotImplementedError ("Only constants are accepted when slicing fields")
+        #
+        # check the indexes are within the field bounds and in correct order
+        #
+        if (start_idx > array_sym.value.shape[2] or
+            end_idx   > array_sym.value.shape[2]):
+            raise ValueError ("Slicing for field '%s' is out of bounds" % array_sym)
+
+        if start_idx < 0 or end_idx < 0:
+            raise ValueError ("Cannot use a negative index in vertical region '%s'"
+                              % self.name)
+        else:
+            self.start_k = start_idx
+
+        if end_idx < start_idx:
+            raise ValueError (("End index in vertical region '%s'" % self.name)
+                              + "is smaller than its start counterpart" )
+        else:
+            self.end_k = end_idx
+
+        return (self.start_k, self.end_k)
+
+
+
 class Stage ( ):
     """
     Represents a stage inside a stencil.-
@@ -517,6 +636,7 @@ class Stage ( ):
     def __init__ (self, name, node, stencil_scope):
         """
         Constructs a new StencilStage
+
         :param name:          a name to uniquely identify this stage
         :param node:          the For AST node of the comprehention from which
                               this stage is constructed
@@ -542,6 +662,10 @@ class Stage ( ):
         #
         self._independent  = False
         #
+        # The list of vertical regions for this stage
+        #
+        self.vertical_regions = []
+        #
         # the root AST node of the for-loop representing this stage
         #
         if isinstance (node, ast.For):
@@ -551,7 +675,8 @@ class Stage ( ):
         #
         # the body of this stage
         #
-        self.body = StageBody (self.node.body,
+        self.body = StageBody (self.name,
+                               self.node.body,
                                self.scope,
                                self.stencil_scope)
 
@@ -564,12 +689,63 @@ class Stage ( ):
         return self.name
 
 
+    def add_vertical_region (self, array_name, slice_start_node, slice_end_node):
+        """
+        Adds a vertical region to this stage
+        :param slice_start_node:    an AST Slice node containing the starting
+                                    value of the region
+        :param slice_end_node:      an AST Slice node containing the starting
+                                    value of the region
+        :param array_name:          a string representing the name of the array
+                                    being sliced
+        :return:
+        """
+        vr_name = '%s_VR_%03d' % (self.name, len (self.vertical_regions))
+        region = VerticalRegion (vr_name,
+                                 array_name,
+                                 slice_start_node,
+                                 slice_end_node)
+        self.vertical_regions.append (region)
+        logging.debug ("Vertical Region '%s' created" % vr_name)
+
+
     def generate_code (self):
         """
         Generates the C++ code of this stage
+
         :return:
         """
         self.body.generate_code ( )
+
+
+    def find_slice_indexes (self, stencil_scope):
+        """
+        Find slice indexes for each vertical region of this stage
+
+        :param stencil_scope: The symbol scope of the stencil this stage
+                              belongs to
+        :return:
+        """
+        stg_slice_indexes = list ( )
+        for vr in self.vertical_regions:
+            vr_slice = vr.find_slice_indexes (self.scope,
+                                              stencil_scope)
+            stg_slice_indexes.append (vr_slice)
+        #
+        # make sure the vertical regions do not overlap
+        #
+        stg_slice_indexes = sorted (stg_slice_indexes)
+        for i in range (len (stg_slice_indexes) - 1):
+            (start_k, end_k) = stg_slice_indexes[i]
+            if end_k >= stg_slice_indexes[i + 1][0]:
+                raise ValueError ("Vertical regions overlap within stage '%s'"
+                                  % self.name)
+        #
+        # save the splitters for each vertical region
+        #
+        assert (len (self.vertical_regions) == len (stg_slice_indexes))
+
+        return stg_slice_indexes
 
 
     def get_data_dependency (self):
@@ -638,6 +814,19 @@ class Stage ( ):
         self._independent = bool (value)
 
 
+    def set_splitters (self, splitters):
+        """
+        Sets the splitters values for this stage's vertical regions
+
+        :param splitters:   A dictionary containing splitter values for the
+                            stencil. The dict keys are the cell indexes in the k
+                            direction where the splitters are located. The dict
+                            values are the ordinal indices of the splitters.
+        """
+        for vr in self.vertical_regions:
+            vr.set_splitters (splitters)
+
+
     def translate (self):
         """
         Translates this stage to C++, using the gridtools interface, returning
@@ -649,4 +838,4 @@ class Stage ( ):
         params      = list (self.scope.get_parameters ( ))
 
         return stage_tpl.render (stage=self,
-                                   params=params)
+                                 params=params)

@@ -109,6 +109,10 @@ class StencilCompiler ( ):
                 stencil.scope.build_execution_path       (stencil.name)
                 stencil.scope.check_stage_execution_path ( )
                 #
+                # Generate GridTools splitters data
+                #
+                stencil.generate_splitters ( )
+                #
                 # print out the discovered symbols if in DEBUG mode
                 #
                 if __debug__:
@@ -188,7 +192,9 @@ class StencilCompiler ( ):
 
             with open (path.join (self.src_dir, self.stg_hdr_file), 'w') as stg_hdl:
                 stages = JinjaEnv.get_template ("stages.h")
-                stg_hdl.write (stages.render (stage_src=stg_src))
+                stg_hdl.write (stages.render (stage_src = stg_src,
+                                              stages    = list (stencil.stages),
+                                              splitters = stencil.splitters))
             with open (path.join (self.src_dir, self.cpp_file), 'w') as cpp_hdl:
                 cpp_hdl.write (cpp_src)
             with open (path.join (self.src_dir, self.make_file), 'w') as make_hdl:
@@ -340,7 +346,8 @@ class StencilCompiler ( ):
                             temps                 = temps,
                             params_temps          = params + temps,
                             stages                = stgs,
-                            independent_stage_idx = ind_stg_idx),
+                            independent_stage_idx = ind_stg_idx,
+                            splitters             = stencil.splitters),
                 make.render (stencils = [s for s in self.stencils.values ( ) if s.get_backend ( ) in ['c++', 'cuda']],
                              compiler = self))
 
@@ -395,6 +402,51 @@ class StencilInspector (ast.NodeVisitor):
                 read_only = n.arg.startswith ('in_')
                 self.inspected_stencil.scope.add_parameter (n.arg,
                                                             read_only=read_only)
+
+
+    def _analyze_vertical_region (self, node, name_suffix=None):
+        """
+        Analyze and validate the first argument to 'get_interior_points'
+        function to define a stage vertical region
+        :param node:    the AST node corresponding to the 'get_interior_points'
+                        function call
+        :param name_suffix: name suffix for the stage
+        """
+        if isinstance (node.args[0], ast.Name):
+            return (node.args[0].id, None, None)
+        elif isinstance (node.args[0], ast.Attribute):
+            array_name = node.args[0].value.id + '.' + node.args[0].attr
+            return (array_name, None, None)
+        elif isinstance (node.args[0], ast.Subscript):
+            if name_suffix is None:
+                raise RuntimeError ("The use of slicing to define \
+                    vertical regions is possible only inside stages \
+                    defined with a function.")
+            region_slice = node.args[0].slice
+            if (isinstance (region_slice, ast.Slice)
+                or len(region_slice.dims) != 3 ):
+                raise ValueError ("Vertical region slicing must have 3 \
+                                   dimensions.")
+            if not all ([isinstance (sl, ast.Slice) for sl in region_slice.dims]):
+                raise ValueError ("Using single indexes in vertical region \
+                                   slicing is not allowed.")
+            if (region_slice.dims[0].lower is not None
+                or region_slice.dims[0].upper is not None
+                or region_slice.dims[0].step  is not None
+                or region_slice.dims[1].lower is not None
+                or region_slice.dims[1].upper is not None
+                or region_slice.dims[1].step  is not None):
+                raise ValueError ("Using partial slices or slice steps in \
+                                       i or j directions is not allowed.")
+            if region_slice.dims[2].step is not None:
+                raise ValueError ("Using a step for k direction slicing is not \
+                                   allowed.")
+            #
+            # If we reached this point, slicing should be ok...
+            #
+            vr_start = region_slice.dims[2].lower
+            vr_end   = region_slice.dims[2].upper
+            return (node.args[0].value.id, vr_start, vr_end)
 
 
     def _check_kernel_decorator (self, node):
@@ -698,6 +750,12 @@ class StencilInspector (ast.NodeVisitor):
                     stage = st.scope.add_stage (node,
                                                 prefix=st.name.lower ( ),
                                                 suffix=name_suffix)
+                #
+                # Analyze and validate vertical region
+                #
+                array_name, vr_start, vr_end = self._analyze_vertical_region (call,
+                                                                              name_suffix)
+                stage.add_vertical_region (array_name, vr_start, vr_end)
 
         return stage
 

@@ -6,7 +6,7 @@ struct {{ stage.name }}
     // the arguments of this functor
     //
     static const int n_args = {{ params|length }};
-    
+
     {% for p in params -%}
     typedef accessor<{{ loop.index0 }}, {% if p.read_only -%}
                                             enumtype::in
@@ -26,7 +26,7 @@ struct {{ stage.name }}
     //
     template <typename Evaluation>
     GT_FUNCTION
-    static void Do(Evaluation const & eval, x_interval)
+    static void Do(Evaluation const & eval, {{ stage.vertical_regions[0].name }})
     {
         {{ stage.body.cpp_src }}
     }
@@ -36,7 +36,7 @@ struct {{ stage.name }}
 //
 // the following operator is provided for debugging purposes
 //
-std::ostream& operator<<(std::ostream& s, {{ stage.name }} const) 
+std::ostream& operator<<(std::ostream& s, {{ stage.name }} const)
 {
     return s << "{{ stage.name }}";
 }

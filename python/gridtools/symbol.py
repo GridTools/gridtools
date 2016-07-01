@@ -301,7 +301,6 @@ class Scope (object):
         self[name].read_only = read_only
         if value is not None:
             self[name].value = value
-        if value is not None:
             if isinstance (value, np.ndarray):
                 logging.debug ("Parameter '%s' has dimension %s" % (name,
                                                                    value.shape))
