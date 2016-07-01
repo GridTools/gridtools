@@ -22,7 +22,7 @@ namespace gridtools {
         // check in a sequence of AMss that if there is reduction, it is placed at the end
         template < typename AMssSeq >
         struct check_mss_seq {
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< AMssSeq, is_amss_descriptor >::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< AMssSeq, is_computation_token >::value), "Error");
             typedef
                 typename boost::mpl::find_if< AMssSeq, is_reduction_descriptor< boost::mpl::_ > >::type check_iter_t;
 

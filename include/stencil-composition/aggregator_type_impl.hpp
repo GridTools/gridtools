@@ -104,6 +104,9 @@ namespace gridtools {
 
     } // namespace _debug
 
+    template < typename Storage, uint_t Size >
+    struct expandable_parameters;
+
     namespace _impl {
         struct l_get_type {
             template < typename U, typename Dummy = void >
@@ -139,7 +142,7 @@ namespace gridtools {
             template < typename U >
             struct apply {
                 GRIDTOOLS_STATIC_ASSERT((is_arg< U >::type::value), "wrong type");
-                typedef typename U::iterator_type type;
+                typedef typename U::iterator type;
             };
         };
 
@@ -198,6 +201,34 @@ namespace gridtools {
             };
         };
 
+        namespace {
+            template < typename T1, typename T2 >
+            struct matching {
+                typedef typename boost::is_same< T1, T2 >::type type;
+            };
+
+            // // specialization for base_storage
+            // template < typename T1, typename T2, uint_t Size, ushort_t ID, typename Cond >
+            // struct matching< arg< ID, std::vector< pointer< no_storage_type_yet< T1 > > >, Cond >,
+            //                  arg< ID, no_storage_type_yet< expandable_parameters< T2, Size > >, Cond > > {
+            //     typedef typename boost::is_same< T1, T2 >::type type;
+            // };
+
+            // specialization for storage
+            template < typename T1, typename T2, uint_t Size, ushort_t ID, typename Cond >
+            struct matching< arg< ID, std::vector< pointer< no_storage_type_yet< storage< T1 > > > >, Cond >,
+                arg< ID, no_storage_type_yet< storage< expandable_parameters< T2, Size > > >, Cond > > {
+                typedef typename boost::is_same< T1, T2 >::type type;
+            };
+
+            template < typename T1, typename T2 >
+            struct contains {
+                typedef typename boost::mpl::fold< T1,
+                    boost::mpl::false_,
+                    boost::mpl::or_< boost::mpl::_1, matching< boost::mpl::_2, T2 > > >::type type;
+            };
+        } // namespace
+
         /**
          * @brief metafunction that computes the list of extents associated to each functor.
          * It assumes the temporary is written only by one esf.
@@ -213,7 +244,7 @@ namespace gridtools {
             struct is_temp_there {
                 template < typename TempsInEsf >
                 struct apply {
-                    typedef typename boost::mpl::contains< TempsInEsf, TTemp >::type type;
+                    typedef typename contains< TempsInEsf, TTemp >::type type;
                 };
             };
 
@@ -221,7 +252,7 @@ namespace gridtools {
                 typename is_temp_there< Temp >::template apply< boost::mpl::_ > >::type iter;
 
             typedef typename boost::mpl::if_<
-                boost::is_same< iter, typename boost::mpl::end< TempsPerFunctor >::type >,
+                typename boost::is_same< iter, typename boost::mpl::end< TempsPerFunctor >::type >::type,
                 TMap,
                 typename boost::mpl::insert< TMap,
                     boost::mpl::pair< Temp, typename boost::mpl::at< ExtendSizes, typename iter::pos >::type > >::
@@ -256,7 +287,7 @@ namespace gridtools {
         template < typename ListOfPlaceHolders >
         struct extract_temporaries {
             typedef typename boost::mpl::fold< ListOfPlaceHolders,
-                boost::mpl::vector<>,
+                boost::mpl::vector0<>,
                 boost::mpl::if_< is_plchldr_to_temp< boost::mpl::_2 >,
                                                    boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 >,
                                                    boost::mpl::_1 > >::type type;

@@ -221,9 +221,8 @@ int main() {
     std::cout << "#############################################################################################################################################################" << std::endl;
 
     {
-        auto x = make_stage<stencil_on_cells, trapezoid_2D, trapezoid_2D::cells>
-            (out_cells(), in_cells(), out_edges(), in_edges());
-
+        auto x = make_stage< stencil_on_cells, trapezoid_2D, trapezoid_2D::cells >(
+            out_cells(), in_cells(), out_edges(), in_edges());
 
         auto ptrs = boost::fusion::vector<cell_storage_type*,
                                           cell_storage_type*,
@@ -262,8 +261,8 @@ int main() {
     std::cout << "#############################################################################################################################################################" << std::endl;
 
     {
-        auto x = make_stage<stencil_on_edges, trapezoid_2D, trapezoid_2D::edges>
-            (out_cells(), out_cells(), out_edges(), in_edges());
+        auto x = make_stage< stencil_on_edges, trapezoid_2D, trapezoid_2D::edges >(
+            out_cells(), out_cells(), out_edges(), in_edges());
 
         iterate_domain<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
                       trapezoid_2D, trapezoid_2D::cells> acc
@@ -297,9 +296,7 @@ int main() {
     std::cout << "#############################################################################################################################################################" << std::endl;
 
     {
-        auto x = make_stage<stencil_on_vertexes, trapezoid_2D, trapezoid_2D::vertexes>
-            (out_vertexes(), in_vertexes());
-
+        auto x = make_stage< stencil_on_vertexes, trapezoid_2D, trapezoid_2D::vertexes >(out_vertexes(), in_vertexes());
 
         auto ptrs = boost::fusion::vector<vertex_storage_type*,
                                           vertex_storage_type*>
@@ -336,8 +333,8 @@ int main() {
     std::cout << "#############################################################################################################################################################" << std::endl;
 
     {
-        auto x = make_stage<nested_stencil, trapezoid_2D, trapezoid_2D::cells>
-            (out_cells(), in_cells(), out_edges(), in_edges());
+        auto x = make_stage< nested_stencil, trapezoid_2D, trapezoid_2D::cells >(
+            out_cells(), in_cells(), out_edges(), in_edges());
 
         iterate_domain<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
                       trapezoid_2D, trapezoid_2D::cells> acc

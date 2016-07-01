@@ -55,9 +55,10 @@ namespace gridtools {
     };
 
     template < ushort_t Index, typename Layout, bool IsTemporary, ushort_t NExtraDim >
-    struct meta_storage_extender_impl< meta_storage_base< Index, Layout, IsTemporary >, NExtraDim > {
-        typedef meta_storage_base< Index, typename meta_storage_extender_impl< Layout, NExtraDim >::type, IsTemporary >
-            type;
+    struct meta_storage_extender_impl< meta_storage_base< static_int< Index >, Layout, IsTemporary >, NExtraDim > {
+        typedef meta_storage_base< static_int< Index >,
+            typename meta_storage_extender_impl< Layout, NExtraDim >::type,
+            IsTemporary > type;
     };
 
     /**

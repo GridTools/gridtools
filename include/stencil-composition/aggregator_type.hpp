@@ -33,6 +33,7 @@
 #include <boost/mpl/range_c.hpp>
 #include <boost/fusion/view/filter_view.hpp>
 #include <boost/fusion/include/for_each.hpp>
+#include <boost/fusion/mpl.hpp>
 
 #include "../common/generic_metafunctions/static_if.hpp"
 #include "../common/generic_metafunctions/is_variadic_pack_of.hpp"
@@ -80,7 +81,8 @@ namespace gridtools {
     struct aggregator_type : public clonable_to_gpu< aggregator_type< Placeholders > > {
 
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< Placeholders >::type::value > 0),
-            "The aggregator_type must be constructed with at least one storage placeholder. If you don't use any storage "
+            "The aggregator_type must be constructed with at least one storage placeholder. If you don't use any "
+            "storage "
             "you are probably trying to do something which is not a stencil operation, aren't you?");
         typedef typename boost::mpl::sort< Placeholders, arg_comparator >::type placeholders_t;
 
@@ -92,7 +94,7 @@ namespace gridtools {
 
         // filter out the metadatas which are the same
         typedef typename boost::mpl::fold< placeholders_t,
-            boost::mpl::set<> // check if the argument is a storage placeholder before extracting the metadata
+            boost::mpl::set0<> // check if the argument is a storage placeholder before extracting the metadata
             ,
             boost::mpl::if_< is_storage_arg< boost::mpl::_2 >,
                                                boost::mpl::insert< boost::mpl::_1, arg2metadata< boost::mpl::_2 > >,
@@ -128,9 +130,10 @@ namespace gridtools {
         typedef typename check_holes::index_set index_set;
 
         // actual check if the user specified placeholder arguments with the same index
-        GRIDTOOLS_STATIC_ASSERT((len == boost::mpl::size< index_set >::type::value),
+        GRIDTOOLS_STATIC_ASSERT((len <= boost::mpl::size< index_set >::type::value),
             "you specified two different placeholders with the same index, which is not allowed. check the arg "
             "defiintions.");
+        GRIDTOOLS_STATIC_ASSERT((len >= boost::mpl::size< index_set >::type::value), "something strange is happening.");
 
         /**
            @brief MPL vector of storage pointers
@@ -217,27 +220,42 @@ namespace gridtools {
 #endif
       public:
 #if defined(CXX11_ENABLED)
-        /** @brief variadic constructor
-            construct the aggregator_type given an arbitrary number of placeholders to the non-temporary
-            storages passed as arguments.
+/** @brief variadic constructor
+    construct the aggregator_type given an arbitrary number of placeholders to the non-temporary
+    storages passed as arguments.
 
-            USAGE EXAMPLE:
-            \verbatim
-            aggregator_type((p1=storage_1), (p2=storage_2), (p3=storage_3));
-            \endverbatim
-        */
-        template < typename... StorageArgs >
-        aggregator_type(StorageArgs... args)
+    USAGE EXAMPLE:
+    \verbatim
+    aggregator_type((p1=storage_1), (p2=storage_2), (p3=storage_3));
+    \endverbatim
+*/
+#ifndef __CUDACC__ // nvcc compiler bug with double pack expansion
+        template < typename... Storage, typename... Args >
+        aggregator_type(arg_storage_pair< Args, Storage >... args)
             : m_storage_pointers(), m_metadata_set() {
 
-            GRIDTOOLS_STATIC_ASSERT((sizeof...(StorageArgs) > 0),
+            GRIDTOOLS_STATIC_ASSERT((sizeof...(Storage) > 0),
+                "Computations with no storages are not supported. "
+                "Add at least one storage to the aggregator_type "
+                "definition.");
+
+            assign_pointers(m_metadata_set, args...);
+        }
+#else
+        template < typename... Pair >
+        aggregator_type(Pair... pairs_)
+            : m_storage_pointers(), m_metadata_set() {
+
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair< Pair >::value...), "wrong type");
+            GRIDTOOLS_STATIC_ASSERT((sizeof...(Pair) > 0),
                 "Computations with no storages are not supported. "
                 "Add at least one storage to the aggregator_type "
                 "definition.");
             // NOTE: the following assertion assumes there StorageArgs has length at leas 1
-            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair< StorageArgs >::value...), "wrong type");
-            assign_pointers(m_metadata_set, args...);
+            // GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair< StorageArgs >::value...), "wrong type");
+            assign_pointers(m_metadata_set, pairs_...);
         }
+#endif
 #endif
 
         /**empty functor*/
@@ -261,21 +279,79 @@ namespace gridtools {
           public:
             assign_metadata_set(Sequence &sequence_) : m_sequence(sequence_) {}
 
+            /** @brief operator inserting a storage raw pointer
+
+                filters out the arguments which are not of storage type (and thus do not have an associated metadata)
+             */
             template < typename Arg >
             void operator()(Arg const *arg_) const {
                 // filter out the arguments which are not of storage type (and thus do not have an associated metadata)
                 static_if< is_actual_storage< pointer< Arg > >::type::value >::eval(
                     insert_if_not_present< Sequence, Arg >(m_sequence, *arg_), empty());
             }
+
+            /** @brief operator registering the storage info object, given a raw pointer
+
+                specialization for the case in which the storage is a std::vector of storages sharing
+                the same storage info
+             */
+            template < typename Arg >
+            void operator()(std::vector< pointer< Arg > > const *arg_) const {
+                // filter out the arguments which are not of storage type (and thus do not have an associated metadata)
+                static_if< is_actual_storage< pointer< Arg > >::type::value >::eval(
+                    insert_if_not_present< Sequence, Arg >(m_sequence, *(*arg_)[0]), empty());
+            }
+
+#ifdef CXX11_ENABLED
+
+            /** @brief operator geristering the storage info object given a storage gridtools::pointer
+
+                filters out the arguments which are not of storage type (and thus do not have an associated metadata)
+             */
+            template < typename Arg >
+            void operator()(pointer< Arg > const &arg_) const {
+                // filter out the arguments which are not of storage type (and thus do not have an associated metadata)
+                if (arg_.get()) // otherwise it's no_storage_type_yet
+                    static_if< is_actual_storage< pointer< Arg > >::type::value >::eval(
+                        insert_if_not_present< Sequence, Arg >(m_sequence, *arg_), empty());
+            }
+
+            /** @brief operator registering the storage info object, given a raw pointer
+
+                specialization for the case in which the storage is a std::vector of storages sharing
+                the same storage info
+            */
+            template < typename Arg >
+            void operator()(pointer< std::vector< pointer< Arg > > > const &arg_) const {
+                // filter out the arguments which are not of storage type (and thus do not have an associated metadata)
+                if (arg_.get()) // otherwise it's no_storage_type_yet
+                    static_if< is_actual_storage< pointer< Arg > >::type::value >::eval(
+                        insert_if_not_present< Sequence, Arg >(m_sequence, (*arg_)[0]), empty());
+            }
+
+            template < typename Arg, uint_t Size >
+            void operator()(pointer< expandable_parameters< Arg, Size > > const &arg_) const {
+                // filter out the arguments which are not of storage type (and thus do not have an associated metadata)
+                if (arg_.get()) // otherwise it's no_storage_type_yet
+                    static_if< is_actual_storage< pointer< Arg > >::type::value >::eval(
+                        insert_if_not_present< Sequence, expandable_parameters< Arg, Size > >(m_sequence, *arg_),
+                        empty());
+            }
+#endif
         };
 
-        /**@brief Constructor from boost::fusion::vector
-         * @tparam RealStorage fusion::vector of pointers to storages sorted with increasing indices of the placeholders
-         * @param real_storage The actual fusion::vector with the values
-         TODO: when I have only one placeholder and C++11 enabled this constructor is erroneously picked
-         */
+/**@brief Constructor from boost::fusion::vector of raw pointers
+ * @tparam RealStorage fusion::vector of raw pointers to storages sorted with increasing indices of the placeholders
+ * @param real_storage The actual fusion::vector with the values
+ TODO: when I have only one placeholder and C++11 enabled this constructor is erroneously picked
+ */
+#ifdef CXX11_ENALBED
+        template < template < typename... > class Vector, typename... Storages >
+        explicit aggregator_type(Vector< Storages *... > const &real_storage_)
+#else
         template < typename RealStorage >
         explicit aggregator_type(RealStorage const &real_storage_)
+#endif
             : m_storage_pointers(), m_metadata_set() {
 
             // TODO: how to check the assertion below?
@@ -290,7 +366,8 @@ namespace gridtools {
             view_type fview(m_storage_pointers);
             GRIDTOOLS_STATIC_ASSERT(boost::fusion::result_of::size< view_type >::type::value ==
                                         boost::mpl::size< RealStorage >::type::value,
-                "The number of arguments specified when constructing the aggregator_type is not the same as the number of "
+                "The number of arguments specified when constructing the aggregator_type is not the same as the number "
+                "of "
                 "placeholders "
                 "to non-temporary storages. Double check the temporary flag in the meta_storage types.");
 
@@ -310,7 +387,8 @@ namespace gridtools {
                     boost::mpl::_1 > >::type::type storages_matching;
 
             GRIDTOOLS_STATIC_ASSERT(storages_matching::value,
-                "Error in the definition of the aggregator_type. The storage type associated to one of the \'arg\' types "
+                "Error in the definition of the aggregator_type. The storage type associated to one of the \'arg\' "
+                "types "
                 "is not the correct one. Check that the storage_type used when defining each \'arg\' matches the "
                 "corresponding storage passed as run-time argument of the aggregator_type constructor");
 
@@ -331,11 +409,31 @@ namespace gridtools {
             boost::fusion::copy(real_storage_, original_fview);
         }
 
+// constructor used from whithin expandable parameters
+#ifdef CXX11_ENABLED // because of std::enable_if
+
+        /**@brief Constructor from boost::fusion::vector of gridools::pointer
+         * @tparam RealStorage fusion::vector of gridtools::pointers to storages
+         * @param real_storage The actual fusion::vector with the values
+         TODO: when I have only one placeholder and C++11 enabled this constructor is erroneously picked
+         */
+        template < template < typename... > class Vector, typename... Storages >
+        explicit aggregator_type(Vector< pointer< Storages >... > const &storage_pointers_)
+            : m_storage_pointers(storage_pointers_), m_metadata_set() {
+
+            boost::fusion::copy(storage_pointers_, m_original_pointers);
+
+            // copy of the metadata into m_metadata_set
+            boost::fusion::for_each(storage_pointers_, assign_metadata_set< metadata_set_t >(m_metadata_set));
+        }
+#endif
+
         /** Copy constructor to be used when cloning to GPU
          *
          * @param The object to copy. Typically this will be *this
          */
-        __device__ explicit aggregator_type(aggregator_type const &other)
+        GT_FUNCTION
+        aggregator_type(aggregator_type const &other)
             : m_storage_pointers(other.m_storage_pointers), m_original_pointers(other.m_original_pointers),
               m_metadata_set(other.m_metadata_set) {}
 
@@ -377,6 +475,45 @@ namespace gridtools {
            @brief returning by non-const reference the storage pointers
         */
         arg_list &storage_pointers_view() { return m_storage_pointers; }
+
+        /**
+           @brief given the placeholder type returns the corresponding storage gtidtools::pointer by reference
+         */
+        template < typename StoragePlaceholder >
+        typename boost::mpl::at< arg_list, typename StoragePlaceholder::index_type >::type &storage_pointer() {
+            return boost::fusion::at< typename StoragePlaceholder::index_type >(m_storage_pointers);
+        }
+
+        /**
+           @brief given the placeholder type returns the corresponding storage gridtools::pointer by const ref
+         */
+        template < typename StoragePlaceholder >
+        typename boost::mpl::at< arg_list, typename StoragePlaceholder::index_type >::type const &
+        storage_pointer() const {
+            return boost::fusion::at< typename StoragePlaceholder::index_type >(m_storage_pointers);
+        }
+
+        /**
+           @brief metafunction returning the storage type given the placeholder type
+         */
+        template < typename T >
+        struct storage_type {
+            typedef typename boost::mpl::at< arg_list_mpl, typename T::index_type >::type::value_type type;
+        };
+
+#ifdef CXX11_ENABLED
+        template < typename... Pair >
+        void reassign(Pair... pairs_) {
+
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair< Pair >::value...), "wrong type");
+            GRIDTOOLS_STATIC_ASSERT((sizeof...(Pair) > 0),
+                "the assign_pointers must be called with at least one argument."
+                " otherwise what are you calling it for?");
+            // NOTE: the following assertion assumes there StorageArgs has length at leas 1
+            // GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair< StorageArgs >::value...), "wrong type");
+            assign_pointers(m_metadata_set, pairs_...);
+        }
+#endif
     };
 
     template < typename domain >
@@ -384,5 +521,23 @@ namespace gridtools {
 
     template < typename Placeholders >
     struct is_aggregator_type< aggregator_type< Placeholders > > : boost::mpl::true_ {};
+
+#ifdef CXX11_ENABLED
+
+    template < uint_t... Indices, typename... Storages >
+    aggregator_type< boost::mpl::vector< arg< Indices, Storages >... > > instantiate_aggregator_type(
+        gt_integer_sequence< uint_t, Indices... > seq_, Storages &... storages_) {
+        auto dom_ = aggregator_type< boost::mpl::vector< arg< Indices, Storages >... > >(
+            boost::fusion::make_vector(&storages_...));
+        return dom_;
+    }
+
+    template < typename... Storage >
+    auto make_aggregator_type(Storage &... storages_) -> decltype(
+        instantiate_aggregator_type(make_gt_integer_sequence< uint_t, sizeof...(Storage) >(), storages_...)) {
+        return instantiate_aggregator_type(make_gt_integer_sequence< uint_t, sizeof...(Storage) >(), storages_...);
+    }
+
+#endif
 
 } // namespace gridtools

@@ -17,6 +17,10 @@
 
 #include "../global_accessor.hpp"
 #include "./accessor.hpp"
+#include "./accessor_mixed.hpp"
+#ifdef CXX11_ENABLED
+#include "../expressions/expressions.hpp"
+#endif
 
 namespace gridtools {
 
@@ -26,10 +30,22 @@ namespace gridtools {
     template < ushort_t ID, enumtype::intend Intend, typename Extend, ushort_t Number >
     struct is_accessor< accessor< ID, Intend, Extend, Number > > : boost::mpl::true_ {};
 
+    template < ushort_t ID, enumtype::intend Intend, typename Extend, ushort_t Number >
+    struct is_accessor< accessor_base< ID, Intend, Extend, Number > > : boost::mpl::true_ {};
+
+    template < typename T >
+    struct is_accessor< const T > : is_accessor< T > {};
+
     template < ushort_t ID, enumtype::intend Intend >
     struct is_accessor< global_accessor< ID, Intend > > : boost::mpl::true_ {};
 
-#if defined(CXX11_ENABLED) && !defined(__CUDACC__) && !defined(__INTEL_COMPILER)
+#ifdef CUDA8
+    template < typename ArgType >
+    struct is_accessor_mixed;
+
+    template < typename... Types >
+    struct is_accessor_mixed< accessor_mixed< Types... > > : boost::mpl::true_ {};
+
     template < typename ArgType, typename... Pair >
     struct is_accessor< accessor_mixed< ArgType, Pair... > > : boost::mpl::true_ {};
 #endif
@@ -66,6 +82,16 @@ namespace gridtools {
         typedef accessor< boost::mpl::at< ArgsMap, index_type_t >::type::value, Intend, Extend, Number > type;
     };
 
+#ifdef CUDA8
+    template < typename Accessor, typename ArgsMap, typename... Pairs >
+    struct remap_accessor_type< accessor_mixed< Accessor, Pairs... >, ArgsMap > {
+
+        typedef typename remap_accessor_type< Accessor, ArgsMap >::index_type_t index_type_t;
+
+        typedef accessor_mixed< typename remap_accessor_type< Accessor, ArgsMap >::type, Pairs... > type;
+    };
+#endif
+
     template < ushort_t ID, enumtype::intend Intend, typename ArgsMap >
     struct remap_accessor_type< global_accessor< ID, Intend >, ArgsMap > {
         typedef global_accessor< ID, Intend > accessor_t;
@@ -99,15 +125,6 @@ namespace gridtools {
         typedef Expression< typename remap_accessor_type< Arguments, ArgsMap >::type... > type;
     };
 
-    // Workaround needed to prevent nvcc to instantiate the struct in enable_ifs
-    template < typename ArgsMap, template < typename... > class Expression, typename... Arguments >
-    struct remap_accessor_type< Expression< Arguments... >,
-        ArgsMap,
-        typename boost::disable_if< typename is_expr< Expression< Arguments... > >::type, void >::type > {
-        // Workaround needed to prevent nvcc to instantiate the struct in enable_ifs
-        typedef boost::mpl::void_ type;
-    };
-
     template < typename ArgsMap >
     struct remap_accessor_type< float_type, ArgsMap > {
         // when a leaf is a float don't do anything
@@ -126,7 +143,7 @@ namespace gridtools {
     template < typename Accessor >
     struct is_accessor_readonly : boost::mpl::false_ {};
 
-#if defined(CXX11_ENABLED) && !defined(CUDA_CXX11_BUG_1) && !defined(__INTEL_COMPILER)
+#ifdef CUDA8
     template < typename Accessor, typename... Pair >
     struct is_accessor_readonly< accessor_mixed< Accessor, Pair... > > : is_accessor_readonly< Accessor > {};
 #endif

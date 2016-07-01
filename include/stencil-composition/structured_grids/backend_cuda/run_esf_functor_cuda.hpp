@@ -78,119 +78,13 @@ namespace gridtools {
             // is not a multiple of the block size
             if (m_iterate_domain.template is_thread_in_domain< extent_t >()) {
                 // call the user functor at the core of the block
-                functor_t::f_type::Do(iterate_domain_remapper, IntervalType());
+                _impl::call_repeated< functor_t::repeat_t::value, functor_t, iterate_domain_remapper_t, IntervalType >::
+                    Do(iterate_domain_remapper);
             }
 
             // synchronize threads if not independent esf
             if (!boost::mpl::at< typename EsfArguments::async_esf_map_t, functor_t >::type::value)
                 __syncthreads();
-        }
-
-      private:
-        /*
-         * @brief executes the extra grid points associated with each CUDA thread.
-         * This extra grid points can be located at the IMinus or IPlus halos or be one of
-         * the last J positions in the core of the block
-         * @tparam MultipleGridPointsPerWarp boolean template parameter that determines whether a CUDA
-         *         thread has to execute more than one grid point (in case of false, the implementation
-         *         of this function is empty)
-         * @tparam IntervalType type of the interval
-         * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
-         * @tparam IterateDomainEvaluator an iterate domain remapper that wraps an iterate domain
-         */
-        template < typename MultipleGridPointsPerWarp,
-            typename IntervalType,
-            typename EsfArguments,
-            typename IterateDomainEvaluator >
-        __device__ void execute_extra_work(const IterateDomainEvaluator &iterate_domain_remapper,
-            typename boost::disable_if< MultipleGridPointsPerWarp, int >::type = 0) const {}
-
-        /*
-         * @brief executes the extra grid points associated with each CUDA thread.
-         * This extra grid points can be located at the IMinus or IPlus halos or be one of
-         * the last J positions in the core of the block
-         * @tparam MultipleGridPointsPerWarp boolean template parameter that determines whether a CUDA
-         *         thread has to execute more than one grid point (in case of false, the implementation
-         *         of this function is empty)
-         * @tparam IntervalType type of the interval
-         * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
-         * @tparam IterateDomainEvaluator an iterate domain remapper that wraps an iterate domain
-         */
-        template < typename MultipleGridPointsPerWarp,
-            typename IntervalType,
-            typename EsfArguments,
-            typename IterateDomainEvaluator >
-        __device__ void execute_extra_work(const IterateDomainEvaluator &iterate_domain_remapper,
-            typename boost::enable_if< MultipleGridPointsPerWarp, int >::type = 0) const {
-            typedef typename EsfArguments::functor_t functor_t;
-            typedef typename EsfArguments::extent_t extent_t;
-
-            // if the warps need to compute more grid points than the core of the block
-            if (multiple_grid_points_per_warp_t::value) {
-                // JMinus  halo
-                if (extent_t::jminus::value != 0 && ((int)threadIdx.y < -extent_t::jminus::value)) {
-                    if (m_iterate_domain.is_thread_in_domain_x()) {
-                        (m_iterate_domain).increment< 1 >(extent_t::jminus::value);
-                        functor_t::Do(iterate_domain_remapper, IntervalType());
-                        (m_iterate_domain).increment< 1 >(-extent_t::jminus::value);
-                    }
-                }
-                // JPlus halo
-                else if (extent_t::jplus::value != 0 &&
-                         ((int)threadIdx.y < -extent_t::jminus::value + extent_t::jplus::value)) {
-                    if (m_iterate_domain.is_thread_in_domain_x()) {
-                        const int joffset = extent_t::jminus::value + (int)m_iterate_domain.block_size_j();
-
-                        (m_iterate_domain).increment< 1 >(joffset);
-                        functor_t::Do(iterate_domain_remapper, IntervalType());
-                        (m_iterate_domain).increment< 1 >(-joffset);
-                    }
-                }
-                // IMinus halo
-                else if (extent_t::iminus::value != 0 &&
-                         ((int)threadIdx.y < -extent_t::jminus::value + extent_t::jplus::value + 1)) {
-                    const int ioffset = -m_iterate_domain.thread_position_x() -
-                                        (m_iterate_domain.thread_position_x() % (-extent_t::iminus::value)) - 1;
-                    const int joffset = -m_iterate_domain.thread_position_y() +
-                                        (m_iterate_domain.thread_position_x() / (-extent_t::iminus::value));
-
-                    if (m_iterate_domain.is_thread_in_domain_y(joffset)) {
-                        (m_iterate_domain).increment< 0 >(ioffset);
-                        (m_iterate_domain).increment< 1 >(joffset);
-                        functor_t::Do(iterate_domain_remapper, IntervalType());
-                        (m_iterate_domain).increment< 0 >(-ioffset);
-                        (m_iterate_domain).increment< 1 >(-joffset);
-                    }
-                }
-                // IPlus halo
-                else if (extent_t::iplus::value != 0 &&
-                         ((int)threadIdx.y < -extent_t::jminus::value + extent_t::jplus::value +
-                                                 (extent_t::iminus::value != 0 ? 1 : 0) + 1)) {
-                    const int ioffset = -m_iterate_domain.thread_position_x() + m_iterate_domain.block_size_i() +
-                                        ((int)threadIdx.x % (extent_t::iplus::value));
-                    const int joffset =
-                        -m_iterate_domain.thread_position_y() + ((int)threadIdx.x / (extent_t::iplus::value));
-
-                    if (m_iterate_domain.is_thread_in_domain_y(joffset)) {
-                        (m_iterate_domain).increment< 0 >(ioffset);
-                        (m_iterate_domain).increment< 1 >(joffset);
-                        functor_t::Do(iterate_domain_remapper, IntervalType());
-                        (m_iterate_domain).increment< 0 >(-ioffset);
-                        (m_iterate_domain).increment< 1 >(-joffset);
-                    }
-                }
-                // the remaining warps will compute extra work at the core of the block
-                else {
-                    const int joffset = (int)blockDim.y + extent_t::jminus::value - extent_t::jplus::value -
-                                        (extent_t::iminus::value != 0 ? 1 : 0) - (extent_t::iplus::value != 0 ? 1 : 0);
-
-                    if (m_iterate_domain.is_thread_in_domain(0, joffset)) {
-                        (m_iterate_domain).increment< 1 >(joffset);
-                        functor_t::Do(iterate_domain_remapper, IntervalType());
-                        (m_iterate_domain).increment< 1 >(-joffset);
-                    }
-                }
-            }
         }
     };
 }

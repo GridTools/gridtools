@@ -28,6 +28,13 @@
 namespace gridtools {
 
 // clang-format off
+    /*!
+       \fn mss_descriptor<...> make_esf(ExecutionEngine, esf1, esf2, ...)
+       \brief Function to create a Multistage Stencil that can then be executed
+       \param esf{i}  i-th Elementary Stencil Function created with make_esf or a list specified as independent ESFs created with make independent
+
+       Use this function to create a multi-stage stencil computation
+     */
 #define _MAKE_MSS(z, ITN, nil)                                                                                \
     template < typename ExecutionEngine, BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), typename EsfDescr) >         \
     mss_descriptor< ExecutionEngine,                                                                          \
@@ -47,6 +54,14 @@ namespace gridtools {
     BOOST_PP_REPEAT(GT_MAX_ARGS, _MAKE_MSS, _)
 #undef _MAKE_MSS
 
+    /*!
+       \fn independent_esf<...> make_independent(esf1, esf2, ...)
+       \brief Function to create a list of independent Elementary Styencil Functions
+
+       \param esf{i}  (must be i>=2) The max{i} Elementary Stencil Functions in the argument list will be treated as independent
+
+       Function to create a list of independent Elementary Styencil Functions. This is used to let the library compute tight bounds on blocks to be used by backends
+     */
 #define _MAKE_INDEPENDENT(z, ITN, nil)                                                                               \
     template < typename EsfDescr, BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(ITN), typename EsfDescr) >                       \
         independent_esf< BOOST_PP_CAT(boost::mpl::vector, BOOST_PP_INC(BOOST_PP_INC(ITN))) < EsfDescr,               \

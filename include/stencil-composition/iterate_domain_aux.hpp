@@ -22,10 +22,11 @@
 #include <boost/utility/enable_if.hpp>
 #include <boost/mpl/modulus.hpp>
 #include <boost/mpl/for_each.hpp>
-#include "expressions.hpp"
-#include "stencil-composition/accessor.hpp"
-#include "common/meta_array.hpp"
-#include "common/array.hpp"
+#ifdef CXX11_ENABLED
+#include "expressions/expressions.hpp"
+#endif
+#include "../common/meta_array.hpp"
+#include "../common/array.hpp"
 #include "common/generic_metafunctions/static_if.hpp"
 #include "common/generic_metafunctions/reversed_range.hpp"
 #include "stencil-composition/total_storages.hpp"
@@ -118,7 +119,7 @@ namespace gridtools {
             return static_if< (Idx == ID) >::apply(m_data, super::template get< Idx >());
         }
 
-      private:
+    private:
         data_array_t m_data;
         strides_cached(strides_cached const &);
     };
@@ -152,7 +153,7 @@ namespace gridtools {
             return m_data;
         }
 
-      private:
+    private:
         data_array_t m_data;
         strides_cached(strides_cached const &);
     };
@@ -197,12 +198,12 @@ namespace gridtools {
 If you are not using generic accessors then you are using an unsupported storage type ");
 #endif
 
-      private:
-        DataPointerArray &RESTRICT m_data_pointer_array;
-        pointer< storage_type > m_storage;
+    private:
+      DataPointerArray &RESTRICT m_data_pointer_array;
+      pointer< storage_type > m_storage;
         const uint_t m_offset;
 
-      public:
+    public:
         GT_FUNCTION
         assign_raw_data_functor(assign_raw_data_functor const &other)
             : m_data_pointer_array(other.m_data_pointer_array), m_storage(other.m_storage), m_offset(other.m_offset) {}
@@ -219,7 +220,7 @@ If you are not using generic accessors then you are using an unsupported storage
             impl< ID, storage_type >();
         }
 
-      private:
+    private:
         assign_raw_data_functor();
 
         // implementation of the assignment of the data pointer in case the storage is a temporary storage
@@ -292,7 +293,7 @@ If you are not using generic accessors then you are using an unsupported storage
             : m_storages(other.m_storages), m_increment(other.m_increment), m_index_array(other.m_index_array),
               m_strides_cached(other.m_strides_cached){};
 
-      private:
+    private:
         increment_index_functor();
 
         MetaStorageSequence const &m_storages;
@@ -336,7 +337,7 @@ If you are not using generic accessors then you are using an unsupported storage
             set_index_recur< ID - 1 >::set(index, out);
         }
 
-      private:
+    private:
         set_index_recur();
         set_index_recur(set_index_recur const &);
     };
@@ -369,20 +370,19 @@ If you are not using generic accessors then you are using an unsupported storage
      */
     template < uint_t Coordinate, typename Strides, typename MetaStorageSequence, typename ArrayIndex >
     struct initialize_index_functor {
-      private:
-        GRIDTOOLS_STATIC_ASSERT((is_strides_cached< Strides >::value), "internal error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_sequence_of< MetaStorageSequence, is_pointer >::value), "internal error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_array_of< ArrayIndex, int >::value), "internal error: wrong type");
+    private:
+      GRIDTOOLS_STATIC_ASSERT((is_strides_cached< Strides >::value), "internal error: wrong type");
+      GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MetaStorageSequence, is_pointer >::value), "internal error: wrong type");
+      GRIDTOOLS_STATIC_ASSERT((is_array_of< ArrayIndex, int >::value), "internal error: wrong type");
 
-        Strides &RESTRICT m_strides;
-        MetaStorageSequence const &RESTRICT m_storages;
+      Strides &RESTRICT m_strides;
+      MetaStorageSequence const &RESTRICT m_storages;
         const int_t m_initial_pos;
         const uint_t m_block;
         ArrayIndex &RESTRICT m_index_array;
         initialize_index_functor();
 
-      public:
+    public:
         GT_FUNCTION
         initialize_index_functor(initialize_index_functor const &other)
             : m_strides(other.m_strides), m_storages(other.m_storages), m_initial_pos(other.m_initial_pos),
@@ -442,15 +442,15 @@ If you are not using generic accessors then you are using an unsupported storage
             "then you are using an unsupported storage type ");
 #endif
 
-      private:
-        DataPointerArray &RESTRICT m_data_pointer_array;
-        StorageSequence const &RESTRICT m_storages;
-        MetaStorageSequence const &RESTRICT m_meta_storages;
+    private:
+      DataPointerArray &RESTRICT m_data_pointer_array;
+      StorageSequence const &RESTRICT m_storages;
+      MetaStorageSequence const &RESTRICT m_meta_storages;
         const int_t m_EU_id_i;
         const int_t m_EU_id_j;
         assign_storage_functor();
 
-      public:
+    public:
         GT_FUNCTION
         assign_storage_functor(assign_storage_functor const &other)
             : m_data_pointer_array(other.m_data_pointer_array), m_storages(other.m_storages),
@@ -543,13 +543,13 @@ If you are not using generic accessors then you are using an unsupported storage
     struct assign_strides_inner_functor {
         GRIDTOOLS_STATIC_ASSERT((is_block_size< PEBlockSize >::value), "Error: wrong type");
 
-      private:
-        // while the strides are uint_t type in the storage metadata,
-        // we stored them as int in the strides cached object in order to force vectorization
-        int_t *RESTRICT m_left;
-        const int_t *RESTRICT m_right;
+    private:
+      // while the strides are uint_t type in the storage metadata,
+      // we stored them as int in the strides cached object in order to force vectorization
+      int_t *RESTRICT m_left;
+      const int_t *RESTRICT m_right;
 
-      public:
+    public:
         GT_FUNCTION
         assign_strides_inner_functor(int_t *RESTRICT l, const int_t *RESTRICT r) : m_left(l), m_right(r) {}
 
@@ -580,12 +580,12 @@ If you are not using generic accessors then you are using an unsupported storage
 
         GRIDTOOLS_STATIC_ASSERT((is_strides_cached< StridesCached >::value), "internal error: wrong type");
 
-      private:
-        StridesCached &RESTRICT m_strides;
-        const MetaStorageSequence &RESTRICT m_storages;
+    private:
+      StridesCached &RESTRICT m_strides;
+      const MetaStorageSequence &RESTRICT m_storages;
         assign_strides_functor();
 
-      public:
+    public:
         GT_FUNCTION
         assign_strides_functor(assign_strides_functor const &other)
             : m_strides(other.m_strides), m_storages(other.m_storages) {}
@@ -669,6 +669,16 @@ If you are not using generic accessors then you are using an unsupported storage
             typename get_storage_accessor< LocalDomain, Accessor >::type::value_type::value_type >::type type;
     };
 
+    template < typename T >
+    struct get_storage_type {
+        typedef T type;
+    };
+
+    template < typename T >
+    struct get_storage_type< std::vector< pointer< T > > > {
+        typedef T type;
+    };
+
     /**
      * metafunction that retrieves the arg type associated with an accessor
      */
@@ -684,7 +694,8 @@ If you are not using generic accessors then you are using an unsupported storage
     struct get_arg_value_type_from_accessor {
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), "Wrong type");
 
-        typedef typename get_arg_from_accessor< Accessor, IterateDomainArguments >::type::value_type type;
+        typedef typename get_storage_type< typename get_arg_from_accessor< Accessor,
+            IterateDomainArguments >::type::storage_type >::type::value_type type;
     };
 
     /**
@@ -704,14 +715,15 @@ If you are not using generic accessors then you are using an unsupported storage
      * metafunction that computes the return type of all operator() of an accessor
      */
     template < typename Accessor, typename IterateDomainArguments >
-    struct accessor_return_type {
+    struct accessor_return_type_impl {
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), "Wrong type");
+        typedef typename boost::remove_reference< Accessor >::type acc_t;
 
-        typedef typename boost::mpl::eval_if< is_accessor< Accessor >,
-            get_arg_value_type_from_accessor< Accessor, IterateDomainArguments >,
+        typedef typename boost::mpl::eval_if< boost::mpl::or_< is_accessor< acc_t >, is_vector_accessor< acc_t > >,
+            get_arg_value_type_from_accessor< acc_t, IterateDomainArguments >,
             boost::mpl::identity< boost::mpl::void_ > >::type accessor_value_type;
 
-        typedef typename boost::mpl::if_< is_accessor_readonly< Accessor >,
+        typedef typename boost::mpl::if_< is_accessor_readonly< acc_t >,
             typename boost::add_const< accessor_value_type >::type,
             typename boost::add_reference< accessor_value_type >::type RESTRICT >::type type;
     };

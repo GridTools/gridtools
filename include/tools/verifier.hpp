@@ -117,6 +117,7 @@ namespace gridtools {
         uint_t field_id,
         array< array< uint_t, 2 >, StorageType::space_dimensions > halos,
         double precision) {
+        assert(exp_field.is_on_host());
         typename StorageType::storage_info_type const &meta = exp_field.meta_data();
 
         const gridtools::uint_t size = meta.template dim< NDim - 1 >();

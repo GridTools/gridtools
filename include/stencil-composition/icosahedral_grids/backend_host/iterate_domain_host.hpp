@@ -36,6 +36,7 @@ namespace gridtools {
         typedef IterateDomainBase< iterate_domain_host< IterateDomainBase, IterateDomainArguments > > super;
 
       public:
+        typedef iterate_domain_host iterate_domain_t;
         typedef typename super::data_pointer_array_t data_pointer_array_t;
         typedef typename super::strides_cached_t strides_cached_t;
         typedef typename super::local_domain_t local_domain_t;

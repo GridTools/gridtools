@@ -130,10 +130,10 @@ namespace gridtools {
     struct is_meta_storage< no_meta_storage_type_yet< Storage > > : is_meta_storage< Storage > {};
 
 #ifdef CXX11_ENABLED
-    template < ushort_t Index, typename Layout, bool IsTemporary, typename... Whatever >
+    template < typename Index, typename Layout, bool IsTemporary, typename... Whatever >
     struct is_meta_storage< meta_storage_base< Index, Layout, IsTemporary, Whatever... > > : boost::mpl::true_ {};
 #else
-    template < ushort_t Index, typename Layout, bool IsTemporary, typename TileI, typename TileJ >
+    template < typename Index, typename Layout, bool IsTemporary, typename TileI, typename TileJ >
     struct is_meta_storage< meta_storage_base< Index, Layout, IsTemporary, TileI, TileJ > > : boost::mpl::true_ {};
 #endif
 

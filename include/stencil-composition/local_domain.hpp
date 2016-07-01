@@ -181,7 +181,7 @@ namespace gridtools {
 
         //! creates a vector of placeholders associated with a linear range
         typedef typename boost::mpl::fold< the_range,
-            boost::mpl::vector<>,
+            boost::mpl::vector0<>,
             boost::mpl::push_back< boost::mpl::_1, boost::mpl::at< esf_args, boost::mpl::_2 > > >::type
             domain_indices_t;
 
@@ -191,14 +191,13 @@ namespace gridtools {
         /** creates a vector of storage types from the StoragePointers sequence */
         typedef typename boost::mpl::fold<
             domain_indices_t,
-            boost::mpl::vector<>,
+            boost::mpl::vector0<>,
             boost::mpl::push_back< boost::mpl::_1,
                 typename local_domain_aux::extract_types< StoragePointers >::template apply< boost::mpl::_2 > > >::type
             mpl_storages;
-
         /** creates a vector of storage types from the StoragePointers sequence */
         typedef typename boost::mpl::fold< domain_indices_t,
-            boost::mpl::vector<>,
+            boost::mpl::vector0<>,
             boost::mpl::push_back< boost::mpl::_1,
                                                typename local_domain_aux::extract_actual_types< StoragePointers >::
                                                    template apply< boost::mpl::_2 > > >::type mpl_actual_storages;

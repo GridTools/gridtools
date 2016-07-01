@@ -298,8 +298,8 @@ namespace gridtools {
 
                 dim3 blocks(nbx, nby, nbz);
 
-                // re-create the run functor arguments, replacing the processing elements block size
-                // with the corresponding, recently computed, block size
+// re-create the run functor arguments, replacing the processing elements block size
+// with the corresponding, recently computed, block size
 #if defined(CXX11_ENABLED) && !defined(__CUDACC__)
                 typedef typename replace_template_arguments< RunFunctorArguments,
                     typename RunFunctorArguments::processing_elements_block_size_t,

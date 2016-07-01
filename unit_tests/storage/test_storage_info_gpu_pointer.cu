@@ -5,7 +5,7 @@ namespace test_storage_info_gpu_using{
 
     using namespace gridtools;
     typedef layout_map<0,1,2> layout_t;
-    typedef meta_storage<meta_storage_base<0,layout_t,false> > meta_t;
+    typedef meta_storage<meta_storage_base<static_int<0>,layout_t,false> > meta_t;
     typedef storage<base_storage<hybrid_pointer<double>, meta_t> > storage_t;
 
     template<typename T>

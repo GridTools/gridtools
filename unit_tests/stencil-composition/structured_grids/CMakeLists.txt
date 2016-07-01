@@ -1,6 +1,7 @@
-FILE(GLOB_RECURSE INC_ALL "../../include/stencil-composition/*.hpp" "../../include/stencil-composition/structured_grids/*.hpp")
+FILE(GLOB_RECURSE INC_ALL "../../include/stencil-composition/[a-z|A-Z|0-9]*.hpp" "../../include/stencil-composition/structured_grids/[a-z|A-Z|0-9]*.hpp")
 
 if( ENABLE_CXX11 )
+
         foreach( variation CALL OFFSETS PROCEDURES PROCEDURES_OFFSETS )
             string(TOLOWER ${variation} var_suffix)
             add_executable(multi_types_block_${var_suffix} multi_types_test.cpp)
@@ -61,4 +62,17 @@ if(CUDA_FOUND)
         target_link_libraries(strgrid_stencil_tests_cuda ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
         gridtools_add_test(strgrid_stencil_tests_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/strgrid_stencil_tests_cuda")
     endif()
+
+  cuda_add_executable(test_conditionals_cuda test_conditionals.cu ${GTEST_FILES})
+  gridtools_add_test(test_conditionals_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/test_conditionals_cuda")
+  set_target_properties(test_conditionals_cuda PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+  target_link_libraries(test_conditionals_cuda ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
+
+if(CUDA_VERSION_MAJOR>7)
+    cuda_add_executable(test_conditional_switches_cuda test_conditional_switches.cu)
+    set_target_properties(test_conditional_switches_cuda PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+    target_link_libraries(test_conditional_switches_cuda ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
+    gridtools_add_test(test_conditional_switches_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/test_conditional_switches_cuda")
+endif(CUDA_VERSION_MAJOR>7)
+
 endif()

@@ -80,26 +80,20 @@ TEST(test_make_computation, positional_when_debug) {
 
     /* canot use the assignment since with a single placeholder the wrong constructor is picked.
        This is a TODO in aggregator_type.hpp */
-    aggregator_type<accessor_list_t> dm( boost::fusion::make_vector(&a_storage));
+    aggregator_type< accessor_list_t > dm(boost::fusion::make_vector(&a_storage));
 #ifdef CXX11_ENABLED
     auto
 #else
 #ifdef __CUDACC__
-    computation*
+    computation *
 #else
-    boost::shared_ptr<gridtools::computation>
+    boost::shared_ptr< gridtools::computation >
 #endif
 #endif
-        test_computation = make_computation<BACKEND>
-        (
-         dm,
-         positional_when_debug_test::grid_t({0,0,0,0,0}, {0,0,0,0,0}),
-         make_multistage // mss_descriptor
-         (
-          execute<forward>(),
-          make_stage<positional_when_debug_test::test_functor>(p_in())
-          )
-         );
+        test_computation = make_computation< BACKEND >(dm,
+            positional_when_debug_test::grid_t({0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}),
+            make_multistage // mss_descriptor
+            (execute< forward >(), make_stage< positional_when_debug_test::test_functor >(p_in())));
 
     EXPECT_TRUE(true);
 }

@@ -14,8 +14,7 @@
    limitations under the License.
 */
 #pragma once
-#include "../common/defs.hpp"
-#include "../common/layout_map.hpp"
+#include "../gridtools.hpp"
 #include "halo.hpp"
 
 #include "storage_traits_cuda.hpp"

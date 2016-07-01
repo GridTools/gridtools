@@ -17,7 +17,7 @@
 #include <stencil-composition/stencil-composition.hpp>
 #include <stencil-composition/conditionals/condition_pool.hpp>
 
-namespace test_conditional_switches{
+namespace test_conditional_switches {
     using namespace gridtools;
     using namespace enumtype;
 
@@ -33,20 +33,19 @@ namespace test_conditional_switches{
 #endif
 #endif
 
-    typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
-    typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
+    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
+    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
     template < uint_t Id >
     struct functor1 {
 
-        typedef accessor<0, enumtype::inout> p_dummy;
+        typedef accessor< 0, enumtype::inout > p_dummy;
         typedef accessor< 1, enumtype::inout > p_dummy_tmp;
 
-        typedef boost::mpl::vector2<p_dummy, p_dummy_tmp> arg_list;
+        typedef boost::mpl::vector2< p_dummy, p_dummy_tmp > arg_list;
 
-        template <typename Evaluation>
-        GT_FUNCTION
-        static void Do(Evaluation const & eval, x_interval) {
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
             eval(p_dummy()) += Id;
         }
     };
@@ -54,41 +53,40 @@ namespace test_conditional_switches{
     template < uint_t Id >
     struct functor2 {
 
-        typedef accessor<0, enumtype::inout> p_dummy;
+        typedef accessor< 0, enumtype::inout > p_dummy;
         typedef accessor< 1, enumtype::in > p_dummy_tmp;
 
-        typedef boost::mpl::vector2<p_dummy, p_dummy_tmp> arg_list;
+        typedef boost::mpl::vector2< p_dummy, p_dummy_tmp > arg_list;
 
-        template <typename Evaluation>
-        GT_FUNCTION
-        static void Do(Evaluation const & eval, x_interval) {
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
             eval(p_dummy()) += Id;
         }
     };
 
-    bool test(){
+    bool test() {
 
         bool p = true;
         auto cond_ = new_switch_variable([&p]() { return p ? 0 : 5; });
         auto nested_cond_ = new_switch_variable([]() { return 1; });
         auto other_cond_ = new_switch_variable([&p]() { return p ? 1 : 2; });
 
-        grid<axis> grid_({0,0,0,6,7},{0,0,0,6,7});
+        grid< axis > grid_({0, 0, 0, 6, 7}, {0, 0, 0, 6, 7});
         grid_.value_list[0] = 0;
         grid_.value_list[1] = 7;
 
-        typedef gridtools::layout_map<2,1,0> layout_t;//stride 1 on i
-        typedef BACKEND::storage_info<__COUNTER__, layout_t> meta_data_t;
-        typedef BACKEND::storage_info<__COUNTER__, layout_t> tmp_meta_data_t;
-        typedef BACKEND::storage_type<float_type, meta_data_t >::type storage_t;
-        typedef BACKEND::temporary_storage_type<float_type, tmp_meta_data_t >::type tmp_storage_t;
+        typedef gridtools::layout_map< 2, 1, 0 > layout_t; // stride 1 on i
+        typedef BACKEND::storage_info< __COUNTER__, layout_t > meta_data_t;
+        typedef BACKEND::storage_info< __COUNTER__, layout_t > tmp_meta_data_t;
+        typedef BACKEND::storage_type< float_type, meta_data_t >::type storage_t;
+        typedef BACKEND::temporary_storage_type< float_type, tmp_meta_data_t >::type tmp_storage_t;
 
-        meta_data_t meta_data_(8,8,8);
+        meta_data_t meta_data_(8, 8, 8);
         storage_t dummy(meta_data_, 0., "dummy");
-        typedef arg<0, storage_t > p_dummy;
-        typedef arg<1, tmp_storage_t > p_dummy_tmp;
+        typedef arg< 0, storage_t > p_dummy;
+        typedef arg< 1, tmp_storage_t > p_dummy_tmp;
 
-        typedef boost::mpl::vector2<p_dummy, p_dummy_tmp> arg_list;
+        typedef boost::mpl::vector2< p_dummy, p_dummy_tmp > arg_list;
         aggregator_type< arg_list > domain_(boost::fusion::make_vector(&dummy));
 
         auto comp_ = make_computation< BACKEND >(
@@ -102,43 +100,41 @@ namespace test_conditional_switches{
                         make_multistage(enumtype::execute< enumtype::forward >(),
                             make_stage< functor1< 1 > >(p_dummy(), p_dummy_tmp()),
                             make_stage< functor2< 1 > >(p_dummy(), p_dummy_tmp()))),
-                case_(1,
-                        make_multistage(enumtype::execute< enumtype::forward >(),
-                            make_stage< functor1< 2 > >(p_dummy(), p_dummy_tmp()),
-                            make_stage< functor2< 2 > >(p_dummy(), p_dummy_tmp()))),
-                case_(2,
-                        make_multistage(enumtype::execute< enumtype::forward >(),
-                            make_stage< functor1< 3 > >(p_dummy(), p_dummy_tmp()),
-                            make_stage< functor2< 3 > >(p_dummy(), p_dummy_tmp()))),
-                case_(3,
-                        make_multistage(enumtype::execute< enumtype::forward >(),
-                            make_stage< functor1< 4 > >(p_dummy(), p_dummy_tmp()),
-                            make_stage< functor2< 4 > >(p_dummy(), p_dummy_tmp()))),
-                case_(4,
-                        make_multistage(enumtype::execute< enumtype::forward >(),
-                            make_stage< functor1< 5 > >(p_dummy(), p_dummy_tmp()),
-                            make_stage< functor2< 5 > >(p_dummy(), p_dummy_tmp()))),
+                // case_(1,
+                //         make_multistage(enumtype::execute< enumtype::forward >(),
+                //             make_stage< functor1< 2 > >(p_dummy(), p_dummy_tmp()),
+                //             make_stage< functor2< 2 > >(p_dummy(), p_dummy_tmp()))),
+                // case_(2,
+                //         make_multistage(enumtype::execute< enumtype::forward >(),
+                //             make_stage< functor1< 3 > >(p_dummy(), p_dummy_tmp()),
+                //             make_stage< functor2< 3 > >(p_dummy(), p_dummy_tmp()))),
+                // case_(3,
+                //         make_multistage(enumtype::execute< enumtype::forward >(),
+                //             make_stage< functor1< 4 > >(p_dummy(), p_dummy_tmp()),
+                //             make_stage< functor2< 4 > >(p_dummy(), p_dummy_tmp()))),
+                // case_(4,
+                //         make_multistage(enumtype::execute< enumtype::forward >(),
+                //             make_stage< functor1< 5 > >(p_dummy(), p_dummy_tmp()),
+                //             make_stage< functor2< 5 > >(p_dummy(), p_dummy_tmp()))),
                 case_(5,
                         switch_(nested_cond_,
-                            case_(2,
-                                    make_multistage(enumtype::execute< enumtype::forward >(),
-                                        make_stage< functor1< 1000 > >(
-                                                 p_dummy(), p_dummy_tmp()),
-                                        make_stage< functor2< 1000 > >(
-                                                 p_dummy(), p_dummy_tmp()))),
+                            // case_(2,
+                            //         make_multistage(enumtype::execute< enumtype::forward >(),
+                            //             make_stage< functor1< 1000 > >(
+                            //                      p_dummy(), p_dummy_tmp()),
+                            //             make_stage< functor2< 1000 > >(
+                            //                      p_dummy(), p_dummy_tmp()))),
                             case_(1,
                                     make_multistage(enumtype::execute< enumtype::forward >(),
-                                        make_stage< functor1< 2000 > >(
-                                                 p_dummy(), p_dummy_tmp()),
-                                        make_stage< functor2< 2000 > >(
-                                                 p_dummy(), p_dummy_tmp()))),
+                                        make_stage< functor1< 2000 > >(p_dummy(), p_dummy_tmp()),
+                                        make_stage< functor2< 2000 > >(p_dummy(), p_dummy_tmp()))),
                             default_(make_multistage(enumtype::execute< enumtype::forward >(),
                                 make_stage< functor1< 3000 > >(p_dummy(), p_dummy_tmp()),
                                 make_stage< functor2< 3000 > >(p_dummy(), p_dummy_tmp()))))),
-                case_(6,
-                        make_multistage(enumtype::execute< enumtype::forward >(),
-                            make_stage< functor1< 6 > >(p_dummy(), p_dummy_tmp()),
-                            make_stage< functor2< 6 > >(p_dummy(), p_dummy_tmp()))),
+                // case_(6,
+                //         make_multistage(enumtype::execute< enumtype::forward >(),
+                //             make_stage< functor1< 6 > >(p_dummy(), p_dummy_tmp()),
+                //             make_stage< functor2< 6 > >(p_dummy(), p_dummy_tmp()))),
                 default_(make_multistage(enumtype::execute< enumtype::forward >(),
                     make_stage< functor1< 7 > >(p_dummy(), p_dummy_tmp()),
                     make_stage< functor2< 7 > >(p_dummy(), p_dummy_tmp())))),
@@ -158,7 +154,7 @@ namespace test_conditional_switches{
                 make_stage< functor1< 400 > >(p_dummy(), p_dummy_tmp()),
                 make_stage< functor2< 400 > >(p_dummy(), p_dummy_tmp())));
 
-        bool result=true;
+        bool result = true;
 
         comp_->ready();
         comp_->steady();
@@ -166,17 +162,19 @@ namespace test_conditional_switches{
 #ifdef __CUDACC__
         dummy.d2h_update();
 #endif
-        result = result && (dummy(0,0,0)==842);
+        result = result && (dummy(0, 0, 0) == 842);
 
         p = false;
+#ifdef __CUDACC__
+        // this is necessary otherwise "finalize" will think that the copy device-to-host is not needed
+        dummy.set_on_device();
+#endif
         comp_->run();
         comp_->finalize();
-        result = result && (dummy(0,0,0)==5662);
+        result = result && (dummy(0, 0, 0) == 5662);
 
         return result;
     }
-}//namespace test_conditional
+} // namespace test_conditional
 
-TEST(stencil_composition, conditional_switch){
-    EXPECT_TRUE(test_conditional_switches::test());
-}
+TEST(stencil_composition, conditional_switch) { EXPECT_TRUE(test_conditional_switches::test()); }

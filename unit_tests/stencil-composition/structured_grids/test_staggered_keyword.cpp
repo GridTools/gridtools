@@ -81,18 +81,12 @@ bool test(){
     typedef arg<1,storage_type> p_j_data;
     typedef boost::mpl::vector<p_i_data, p_j_data> accessor_list;
 
-    aggregator_type<accessor_list> domain(boost::fusion::make_vector (&i_data, &j_data));
-    auto comp =
-        gridtools::make_computation<gridtools::BACKEND>
-        (
-            domain, grid,
-            gridtools::make_multistage
-            (
-                execute<forward>(),
-                gridtools::make_stage<functor, staggered<5,5,5,5> >(p_i_data(), p_j_data())
-                )
-            );
-
+    aggregator_type< accessor_list > domain(boost::fusion::make_vector(&i_data, &j_data));
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(
+            execute< forward >(), gridtools::make_stage< functor, staggered< 5, 5, 5, 5 > >(p_i_data(), p_j_data())));
 
     comp->ready();
     comp->steady();

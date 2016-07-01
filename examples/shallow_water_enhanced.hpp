@@ -149,7 +149,7 @@ namespace shallow_water {
         //! [accessor]
         typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 5 >
             tmpx; /** (output) is the flux computed on the left edge of the cell */
-        using arg_list = boost::mpl::vector< tmpx, sol >;
+        using arg_list = boost::mpl::vector2< tmpx, sol >;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {

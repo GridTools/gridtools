@@ -18,7 +18,6 @@
 #ifdef CXX11_ENABLED
 #include <memory>
 #else
-#include <vector>
 #include <boost/scoped_ptr.hpp>
 #endif
 #include "condition.hpp"

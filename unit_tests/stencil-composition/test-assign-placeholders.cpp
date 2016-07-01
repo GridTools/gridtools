@@ -70,7 +70,7 @@ TEST(assign_placeholders, test) {
     // printf("in    (4) pointer: %x\n", &in);
     // printf("out   (5) pointer: %x\n", &out);
 
-    gridtools::aggregator_type<accessor_list> domain( boost::fusion::make_vector(&coeff, &in, &out) );
+    gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&coeff, &in, &out));
 
     ASSERT_TRUE((boost::fusion::at_c<3>(domain.storage_pointers_view()).get() == &coeff ) &&
                 (boost::fusion::at_c<4>(domain.storage_pointers_view()).get() == &in) &&

@@ -39,6 +39,7 @@ namespace gridtools {
     class shared_iterate_domain {
         GRIDTOOLS_STATIC_ASSERT((is_strides_cached< StridesType >::value), "Internal Error: wrong type");
         DISALLOW_COPY_AND_ASSIGN(shared_iterate_domain);
+        // TODO: protect IJCachesTuple
 
       private:
         DataPointerArray m_data_pointer;

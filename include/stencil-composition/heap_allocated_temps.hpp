@@ -87,7 +87,7 @@ namespace gridtools {
                     // ElemType::info_string.c_str();
                     // calls the constructor of the storage
                     meta_t meta_data(m_tile_i, m_tile_j, m_tile_k);
-                    e = new ElemType(meta_data, "default tmp storage");
+                    e = new ElemType(meta_data, "default tmp storage", true /*do_allocate*/);
 
                     // insert new type in the map only if not present already
                     if (!m_metadata_set.template present< pointer< typename ElemType::storage_info_type const > >())
@@ -166,7 +166,7 @@ namespace gridtools {
 
                     // calls the constructor of the storage
                     meta_t meta_data(m_offset_i, m_offset_j, m_offset_k, m_n_i_threads, m_n_j_threads);
-                    e = new ElemType(meta_data, "blocked tmp storage");
+                    e = new ElemType(meta_data, "blocked tmp storage", true /*do_allocate*/);
 
                     // insert new type in the map only if not present already
                     if (!m_metadata_set.template present< pointer< const meta_t > >())

@@ -93,9 +93,9 @@ namespace assembly {
         using quad = dimension< 4 >;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-            x::Index i;
-            y::Index j;
-            z::Index k;
+            dimension< 1 >::Index i;
+            dimension< 2 >::Index j;
+            dimension< 3 >::Index k;
             dimension< 4 >::Index di;
             dimension< 5 >::Index dj;
             dimension< 6 >::Index dk;
@@ -197,7 +197,7 @@ namespace assembly {
             fe_comp = make_computation< gridtools::BACKEND >(
                 domain,
                 grid,
-                make_multistage               //! \todo all the arguments in the call to make_mss are actually dummy.
+                make_multistage        //! \todo all the arguments in the call to make_mss are actually dummy.
                 (execute< forward >(), //!\todo parameter used only for overloading purpose?
                     make_stage< integration >(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
 

@@ -27,13 +27,14 @@ namespace gridtools {
         struct make_arg_with_extent_map {
 
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of< Placeholders, is_arg >::value), "Internal Error: wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< Accessors, is_accessor >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_sequence_of< Accessors, is_any_accessor >::value), "Internal Error: wrong type");
 #ifdef PEDANTIC // with global accessors this assertion fails (since they are not in the Accessors)
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< Placeholders >::value == boost::mpl::size< Accessors >::value),
                 "Size of placeholder arguments passed to esf \n"
                 "    make_stage<functor>(arg1(), arg2()) )\n"
                 "does not match the list of arguments defined within the ESF, like\n"
-                "    typedef boost::mpl::vector<arg_in, arg_out> arg_list.");
+                "    typedef boost::mpl::vector2<arg_in, arg_out> arg_list.");
 #endif
             template < typename Accessor >
             struct _get_extent {

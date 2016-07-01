@@ -31,7 +31,7 @@ namespace gridtools {
     template <>
     struct strategy_from_id_host< enumtype::Naive > {
         // default block size for Naive strategy
-        typedef block_size< 0, 0 > block_size_t;
+        typedef block_size< 0, 0, 0 > block_size_t;
         static const uint_t BI = block_size_t::i_size_t::value;
         static const uint_t BJ = block_size_t::j_size_t::value;
         static const uint_t BK = 0;
@@ -118,8 +118,8 @@ namespace gridtools {
 #endif
             GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::type::value, "wrong type");
 
-            typedef meta_storage<
-                meta_storage_aligned< meta_storage_base< Index::value, Layout, true >, Alignment, Halo > > type;
+            typedef meta_storage< meta_storage_aligned< meta_storage_base< Index, Layout, true >, Alignment, Halo > >
+                type;
         };
 
 /**
@@ -166,7 +166,7 @@ namespace gridtools {
     template <>
     struct strategy_from_id_host< enumtype::Block > {
         // default block size for Block strategy
-        typedef block_size< GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J > block_size_t;
+        typedef block_size< GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J, 1 > block_size_t;
 
         static const uint_t BI = block_size_t::i_size_t::value;
         static const uint_t BJ = block_size_t::j_size_t::value;
@@ -294,7 +294,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::type::value, "wrong type");
 
             typedef meta_storage_tmp<
-                meta_storage_aligned< meta_storage_base< Index::value, Layout, true >, aligned< 0 >, Halo >
+                meta_storage_aligned< meta_storage_base< Index, Layout, true >, aligned< 0 >, Halo >
 #ifdef CXX11_ENABLED
                 ,
                 Tiles...

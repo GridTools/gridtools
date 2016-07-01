@@ -63,7 +63,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(
                 is_iterate_domain< CallerAggregator >::value, "The first argument must be an iterate_domain");
             CallerAggregator const &m_caller_aggregator;
-            ReturnType * __restrict__ m_result;
+            ReturnType *__restrict__ m_result;
 
             GT_FUNCTION
             function_aggregator(CallerAggregator const &caller_aggregator, ReturnType &result)
@@ -114,9 +114,9 @@ namespace gridtools {
                 typename FloatType,
                 typename boost::enable_if< typename boost::is_floating_point< FloatType >::type, int >::type = 0 >
             GT_FUNCTION constexpr auto operator()(Expression< Accessor, FloatType > const &arg) const
-                -> decltype(evaluation::value_scalar(*this, arg)) {
-                // TODO RENAME ACCESSOR,is not an accessor but an expression, and add an assertion for type
-                return evaluation::value_scalar((*this), arg);
+                -> decltype(evaluation::value(*this, arg)) {
+                //TODO RENAME ACCESSOR,is not an accessor but an expression, and add an assertion for type
+                return evaluation::value((*this), arg);
             }
         };
 
@@ -154,7 +154,7 @@ namespace gridtools {
 
             typedef typename boost::fusion::result_of::as_vector< PassedAccessors >::type accessors_list_t;
             CallerAggregator const &m_caller_aggregator;
-            ReturnType * __restrict__ m_result;
+            ReturnType *__restrict__ m_result;
             accessors_list_t const &m_accessors_list;
 
             GT_FUNCTION

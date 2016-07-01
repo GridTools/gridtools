@@ -23,6 +23,9 @@
 
 namespace gridtools {
 
+    template < typename T >
+    struct accessor_return_type;
+
     /**
      * @brief iterate domain class for the CUDA backend
      */
@@ -39,16 +42,17 @@ namespace gridtools {
         typedef typename local_domain_t::esf_args local_domain_args_t;
 
       public:
+        template < typename Accessor >
+        struct accessor_return_type {
+            typedef typename super::template accessor_return_type< Accessor >::type type;
+        };
+
         /**
          * metafunction that computes the return type of all operator() of an accessor.
          *
          * If the temaplate argument is not an accessor ::type is mpl::void_
          *
          */
-        template < typename Accessor >
-        struct accessor_return_type {
-            typedef typename super::template accessor_return_type< Accessor >::type type;
-        };
 
         typedef typename super::data_pointer_array_t data_pointer_array_t;
         typedef typename super::strides_cached_t strides_cached_t;
@@ -212,16 +216,25 @@ namespace gridtools {
         */
         template < typename ReturnType, typename Accessor >
         GT_FUNCTION typename boost::disable_if<
-            boost::mpl::has_key< bypass_caches_set_t, static_uint< Accessor::index_type::value > >,
+            boost::mpl::has_key< bypass_caches_set_t,
+                static_uint< boost::remove_reference< Accessor >::type::index_type::value > >,
             ReturnType >::type
-        get_cache_value_impl(Accessor const &_accessor) const {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Wrong type");
+        get_cache_value_impl(Accessor
+#ifdef CXX11_ENABLED
+                &&
+#else
+            const &
+#endif
+                    accessor_) const {
+            typedef typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type acc_t;
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), "Wrong type");
+
             //        assert(m_pshared_iterate_domain);
             // retrieve the ij cache from the fusion tuple and access the element required give the current thread
             // position within
             // the block and the offsets of the accessor
-            return m_pshared_iterate_domain->template get_ij_cache< static_uint< Accessor::index_type::value > >().at(
-                m_thread_pos, _accessor.offsets());
+            return m_pshared_iterate_domain->template get_ij_cache< static_uint< acc_t::index_type::value > >().at(
+                m_thread_pos, accessor_);
         }
 
         /** @brief return a value that was cached
@@ -229,12 +242,19 @@ namespace gridtools {
         */
         template < typename ReturnType, typename Accessor >
         GT_FUNCTION typename boost::enable_if<
-            boost::mpl::has_key< bypass_caches_set_t, static_uint< Accessor::index_type::value > >,
+            boost::mpl::has_key< bypass_caches_set_t,
+                static_uint< boost::remove_reference< Accessor >::type::index_type::value > >,
             ReturnType >::type
-        get_cache_value_impl(Accessor const &_accessor) const {
+        get_cache_value_impl(Accessor
+#ifdef CXX11_ENABLED
+                &&
+#else
+            const &
+#endif
+                    accessor_) const {
             GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Wrong type");
             return super::template get_value< Accessor, void * RESTRICT >(
-                _accessor, super::template get_data_pointer< Accessor >(_accessor));
+                accessor_, super::template get_data_pointer< Accessor >(accessor_));
         }
 
         /** @brief return a the value in memory pointed to by an accessor

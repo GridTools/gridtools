@@ -25,12 +25,12 @@
 
 
 #ifdef __CUDACC__
-#define BACKEND backend<Cuda, GRIDBACKEND, Block >
+#define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend<Host, GRIDBACKEND, Block >
+#define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
-#define BACKEND backend<Host, GRIDBACKEND, Naive >
+#define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
 
@@ -181,37 +181,26 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
     auto
 #else
 #ifdef __CUDACC__
-    gridtools::stencil*
+    gridtools::stencil *
 #else
-    boost::shared_ptr<gridtools::stencil>
+    boost::shared_ptr< gridtools::stencil >
 #endif
 #endif
     {% set inside_independent_block = False %}
 
-    comp_{{ s.name|lower }} =
-      gridtools::make_computation<gridtools::BACKEND>
-      (
-          domain, grid_{{ loop.index0 }},
-            gridtools::make_mss
-            (
-                execute<{{ s.k_direction }}>(),
-                {% for f in functors[s.name] -%}
-                    {% if f.independent and not inside_independent_block -%}
-                        gridtools::make_independent (
-                        {% set inside_independent_block = True -%}
-                    {% endif -%}
-                    {% if not f.independent and inside_independent_block -%}
-                        ),
-                        {% set inside_independent_block = False -%}
-                    {% endif -%}
-                    gridtools::make_stage<{{ f.name }}>(
-                       {{- f.scope.get_parameters ( )|join_with_prefix ('p_', attribute='name')|join ('(), ')|replace('.', '_') }}() )
-                       {%- if not (loop.index0 in independent_funct_idx or loop.last) -%}
-                       ,
-                       {%- endif %}
-                {% endfor -%}
-            )
-      );
+    comp_{{s.name | lower}} = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid_{{loop.index0}},
+        gridtools::make_mss(
+            execute< {{s.k_direction}} >(),
+            { % for f in functors[s.name] - % } {
+                % if f.independent and not inside_independent_block - %
+            } gridtools::make_independent({ % set inside_independent_block = True - % } {
+                % endif - % } { % if not f.independent and inside_independent_block - % }),
+            { % set inside_independent_block = False - % } { % endif - % } gridtools::make_stage< {{f.name}} >(
+                {{-f.scope.get_parameters() | join_with_prefix('p_', attribute = 'name') | join('(), ') |
+                    replace('.', '_')}}()) { % -if not(loop.index0 in independent_funct_idx or loop.last) - % },
+            { % -endif % } { % endfor - % }));
     {% endfor %}
 
     //

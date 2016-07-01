@@ -38,4 +38,10 @@ namespace gridtools {
         typedef typename arg2storage< T >::type::storage_info_type type;
     };
 
+    /** metafunction extracting the location type from the storage*/
+    template < typename T >
+    struct get_location_type {
+        typedef typename T::storage_info_type::index_type type;
+    };
+
 } // namespace gridtools
