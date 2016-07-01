@@ -20,7 +20,7 @@ namespace gridtools {
             uint_t tsteps) {
             cache_flusher flusher(cache_flusher_size);
             // we run a first time the stencil, since if there is data allocation before by other codes, the first run of the stencil
-            // is very slow (we dont know why). The flusher should make sure we flush the cache 
+            // is very slow (we dont know why). The flusher should make sure we flush the cache
             stencil->run();
             flusher.flush();
 
