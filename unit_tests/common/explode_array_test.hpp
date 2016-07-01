@@ -2,7 +2,7 @@
 #include <common/tuple.hpp>
 #include <tools/verifier.hpp>
 
-#if !defined(__CUDACC__) || (CUDA_VERSION > 70)
+#if !defined(__CUDACC__) || (CUDA_VERSION_MAJOR >= 7 && CUDA_VERSION_MINOR>=5)
 class PackChecker {
 
   public:
@@ -77,7 +77,7 @@ using namespace gridtools;
 
 GT_FUNCTION
 static bool test_explode_static() {
-#if !defined(__CUDACC__) || (CUDA_VERSION > 70)
+#if !defined(__CUDACC__) || (CUDA_VERSION_MAJOR >= 7 && CUDA_VERSION_MINOR>=5)
 
     constexpr array< int, 3 > a{35, 23, 9};
 
@@ -90,7 +90,7 @@ static bool test_explode_static() {
 
 GT_FUNCTION
 static bool test_explode_with_object() {
-#if !defined(__CUDACC__) || (CUDA_VERSION > 70)
+#if !defined(__CUDACC__) || (CUDA_VERSION_MAJOR >= 7 && CUDA_VERSION_MINOR>=5)
     constexpr array< int, 3 > a{35, 23, 9};
     constexpr PackChecker checker;
 
@@ -105,10 +105,10 @@ GT_FUNCTION
 static bool test_explode_with_tuple() {
     bool result = true;
 
-#if !defined(__CUDACC__) || (CUDA_VERSION > 70)
+#if !defined(__CUDACC__) || (CUDA_VERSION_MAJOR >= 7 && CUDA_VERSION_MINOR>=5)
     // constexpr check
     constexpr tuple< long, int, unsigned short > a_c(-353, 55, 9);
-#if (CUDA_VERSION > 75)
+#if (CUDA_VERSION_MAJOR > 7)
     GRIDTOOLS_STATIC_ASSERT((static_bool< explode< bool, TuplePackCheckerInt >(a_c) >::value == true), "ERROR");
 #endif
     result = result && explode< bool, TuplePackCheckerInt >(a_c);
@@ -122,11 +122,11 @@ static bool test_explode_with_tuple() {
 GT_FUNCTION
 static bool test_explode_with_tuple_with_object() {
     bool result = true;
-#if !defined(__CUDACC__) || (CUDA_VERSION > 70)
+#if !defined(__CUDACC__) || (CUDA_VERSION_MAJOR >= 7 && CUDA_VERSION_MINOR>=5)
     // constexpr check
     constexpr tuple< long, int, unsigned short > a_c(-353, 55, 9);
     constexpr TuplePackCheckerInt checker_c;
-#if (CUDA_VERSION > 75)
+#if (CUDA_VERSION_MAJOR > 7)
     GRIDTOOLS_STATIC_ASSERT(
         (static_bool< explode< bool, _impl_index_tuple_int >(a_c, checker_c) >::value == true), "ERROR");
 #endif
