@@ -532,33 +532,34 @@ class VerticalRegion ( ):
         self.array_name       = array_name
         self.slice_start_node = slice_start_node
         self.slice_end_node   = slice_end_node
-
+        #
+        # Cell indexes marking the beginning and the end of the vertical region
+        #
+        self.start_k = None
+        self.end_k   = None
+        #
+        # Indexes of the splitters (from the dict mantained by the stencil)
+        # for this vertical region.
+        #
         self.start_splitter = None
         self.end_splitter   = None
 
 
-    def set_splitter (self, start_idx, end_idx):
+    def set_splitters (self, splitters):
         """
         Sets the splitter values for this region as defined in the GridTools
         backend
 
-        :param start_idx:   An index marking the beggining of this splitter,
-        :param end_idx:     an index marking the end of this splitter.-
+        :param splitters:   A dictionary containing splitter values for the
+                            stencil. The dict keys are the cell indexes in the k
+                            direction where the splitters are located. The dict
+                            values are the ordinal indices of the splitters.
         """
-        if start_idx < 0:
-            raise ValueError ("Cannot use a negative index in vertical region")
-        else:
-            self.start_splitter = start_idx
-
-        if end_idx < 0:
-            raise ValueError ("Cannot use a negative index in vertical region")
-        elif end_idx < start_idx:
-            raise ValueError ("End index in vertical region is smaller that its start counterpart")
-        else:
-            self.end_splitter = end_idx
+        self.start_splitter = splitters[self.start_k]
+        self.end_splitter = splitters[self.end_k]
 
 
-    def find_slice_idx (self, scope, stencil_scope):
+    def find_slice_indexes (self, scope, stencil_scope):
         """
         Find slice indexes from the information
         contained in the slice nodes and array_name
@@ -590,9 +591,9 @@ class VerticalRegion ( ):
             #
             # set initial index if no slicing limit was given
             #
-            start_k = 0
+            start_idx = 0
         elif isinstance (self.slice_start_node, ast.Num):
-            start_k = int (self.slice_start_node.n)
+            start_idx = int (self.slice_start_node.n)
         else:
             raise NotImplementedError ("Only constants are accepted when slicing fields")
 
@@ -600,20 +601,31 @@ class VerticalRegion ( ):
             #
             # set final index if no slicing limit was given
             #
-            end_k = array_sym.value.shape[2]
+            end_idx = array_sym.value.shape[2]
         elif isinstance (self.slice_end_node, ast.Num):
-            end_k = int (self.slice_end_node.n)
+            end_idx = int (self.slice_end_node.n)
         else:
             raise NotImplementedError ("Only constants are accepted when slicing fields")
-
         #
-        # check the indexes are within the field bounds
+        # check the indexes are within the field bounds and in correct order
         #
-        if (start_k > array_sym.value.shape[2] or
-            end_k   > array_sym.value.shape[2]):
+        if (start_idx > array_sym.value.shape[2] or
+            end_idx   > array_sym.value.shape[2]):
             raise ValueError ("Slicing for field '%s' is out of bounds" % array_sym)
 
-        return (start_k, end_k)
+        if start_idx < 0 or end_idx < 0:
+            raise ValueError ("Cannot use a negative index in vertical region '%s'"
+                              % self.name)
+        else:
+            self.start_k = start_idx
+
+        if end_idx < start_idx:
+            raise ValueError (("End index in vertical region '%s'" % self.name)
+                              + "is smaller than its start counterpart" )
+        else:
+            self.end_k = end_idx
+
+        return (self.start_k, self.end_k)
 
 
 
@@ -706,7 +718,7 @@ class Stage ( ):
         self.body.generate_code ( )
 
 
-    def find_slices_idx (self, stencil_scope):
+    def find_slice_indexes (self, stencil_scope):
         """
         Find slice indexes for each vertical region of this stage
 
@@ -716,8 +728,8 @@ class Stage ( ):
         """
         stg_slice_indexes = list ( )
         for vr in self.vertical_regions:
-            vr_slice = vr.find_slice_idx (self.scope,
-                                          stencil_scope)
+            vr_slice = vr.find_slice_indexes (self.scope,
+                                              stencil_scope)
             stg_slice_indexes.append (vr_slice)
         #
         # make sure the vertical regions do not overlap
@@ -726,14 +738,12 @@ class Stage ( ):
         for i in range (len (stg_slice_indexes) - 1):
             (start_k, end_k) = stg_slice_indexes[i]
             if end_k >= stg_slice_indexes[i + 1][0]:
-                raise ValueError ("Vertical regions overlap within stage '%s'" % self.name)
+                raise ValueError ("Vertical regions overlap within stage '%s'"
+                                  % self.name)
         #
         # save the splitters for each vertical region
         #
         assert (len (self.vertical_regions) == len (stg_slice_indexes))
-        for i in range (len (self.vertical_regions)):
-            vr.set_splitter (stg_slice_indexes[i][0],
-                             stg_slice_indexes[i][1])
 
         return stg_slice_indexes
 
@@ -802,21 +812,19 @@ class Stage ( ):
     @independent.setter
     def independent (self, value):
         self._independent = bool (value)
-<<<<<<< HEAD
-        #
-        # have to rebuild the stage-execution graph
-        #
-        #self.stencil_scope.build_execution_path ( )
 
 
     def set_splitters (self, splitters):
         """
-        Sets the splitter values to this stage's vertical regions.-
+        Sets the splitters values for this stage's vertical regions
+
+        :param splitters:   A dictionary containing splitter values for the
+                            stencil. The dict keys are the cell indexes in the k
+                            direction where the splitters are located. The dict
+                            values are the ordinal indices of the splitters.
         """
         for vr in self.vertical_regions:
             vr.set_splitters (splitters)
-=======
->>>>>>> origin/python
 
 
     def translate (self):

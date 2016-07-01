@@ -486,7 +486,7 @@ class Stencil (object):
         #
         slice_indexes = list ( )
         for stg in self.stages:
-            for vr in stg.find_slices_idx (self.scope):
+            for vr in stg.find_slice_indexes (self.scope):
                 slice_indexes.append (vr[0])
                 slice_indexes.append (vr[1])
         #
@@ -498,6 +498,11 @@ class Stencil (object):
         #
         for i, idx in enumerate (slice_indexes):
             self.splitters[idx] = i
+        #
+        # Save splitter data in each vertical region
+        #
+        for stg in self.stages:
+            stg.set_splitters (self.splitters)
 
 
     def get_data_dependency (self):
@@ -555,7 +560,7 @@ class Stencil (object):
         * Yellow: Constants
         * Cyan: Locals
         * White: Symbol kind could not be determined
-        
+
         :param graph:   the graph to render; it renders this stencil's data
                         dependency graph if None given
         :param scope:   the scope in which to look for symbols. If None, the

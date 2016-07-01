@@ -21,7 +21,7 @@ using namespace gridtools;
 //
 {% for stg in stages -%}
 {% for vr in stg.vertical_regions -%}
-typedef gridtools::interval<level<{{ splitters[vr.start_splitter] }},-1>, level<{{ splitters[vr.end_splitter] }},-2> > {{ vr.name }};
+typedef gridtools::interval<level<{{ vr.start_splitter }},-1>, level<{{ vr.end_splitter }},-2> > {{ vr.name }};
 {% endfor -%}
 {% endfor -%}
 typedef gridtools::interval<level<0,-2>, level<{{ splitters|length-1 }},1> > axis;
