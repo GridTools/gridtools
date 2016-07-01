@@ -1,4 +1,5 @@
 #pragma once
+#include "../accessor_fwd.hpp"
 /** @file vector accessor */
 
 namespace gridtools {
