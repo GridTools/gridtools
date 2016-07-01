@@ -140,7 +140,7 @@ void m_unpackYL(array_t const &d_data_array,
 
         // the actual kernel launch
         // clang-format off
-      m_unpackYLKernel< <<blocks, threads, 0, YL_stream> >>(d_data_array[i], d_msgbufTab_r, d_msgsize_r, halo_d, nx, nz,
+      m_unpackYLKernel<<<blocks, threads, 0, YL_stream>>>(d_data_array[i], d_msgbufTab_r, d_msgsize_r, halo_d, nx, nz,
                                                           (halo[0].begin()-halo[0].minus())
                                                           + (halo[1].begin()-halo[1].minus())*halo[0].total_length()
                                                           + (halo[2].begin())*halo[0].total_length() *halo[1].total_length(), i);

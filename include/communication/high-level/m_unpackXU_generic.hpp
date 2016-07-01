@@ -126,7 +126,7 @@ void m_unpackXU_generic(
         if (nbx != 0 && nby != 0 && nbz != 0) {
             // the actual kernel launch
             // clang-format off
-        m_unpackXUKernel_generic< <<blocks, threads> >>
+        m_unpackXUKernel_generic<<<blocks, threads>>>
         (fields[i].ptr,
          reinterpret_cast<typename array_t::value_type::value_type**>(d_msgbufTab_r),
          wrap_argument(d_msgsize_r+27*i),
