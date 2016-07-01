@@ -126,6 +126,7 @@ namespace gridtools {
         GT_FUNCTION
         constexpr meta_storage_base() {}
 
+#ifdef CXX11_ENABLED
 #ifndef __CUDACC__
         template < class... IntTypes, typename Dummy = all_integers< IntTypes... > >
         GT_FUNCTION void setup(IntTypes const &... dims_) {
@@ -140,33 +141,17 @@ namespace gridtools {
                 bool >::type // nvcc does not get it
             >
         GT_FUNCTION void setup(First first_, IntTypes const &... dims_) {
-#ifdef CXX11_ENABLED
             m_dims = array< uint_t, space_dimensions >{first_, dims_...};
-#else
-            m_dims = array< uint_t, space_dimensions >(first_, dims_...);
-#endif
             m_strides = array< int_t, space_dimensions >(
                 _impl::assign_all_strides< (short_t)(space_dimensions), layout >::apply(first_, dims_...));
         }
 #endif //__CUDACC__
 
-#ifdef CXX11_ENABLED
         GT_FUNCTION
         constexpr meta_storage_base(array< uint_t, space_dimensions > const &a)
             : m_dims(a), m_strides(explode< array< int_t, (short_t)(space_dimensions) >,
                              _impl::assign_all_strides< (short_t)(space_dimensions), layout > >(a)) {}
-#else
-        // TODO This is a bug, we should generate a constructor for array of dimensions space_dimensions
-        GT_FUNCTION
-        meta_storage_base(array< uint_t, 3 > const &a) : m_dims(a) {
-            m_strides[0] = (((layout::template at_< 0 >::value < 0) ? 1 : m_dims[0]) *
-                            ((layout::template at_< 1 >::value < 0) ? 1 : m_dims[1]) *
-                            ((layout::template at_< 2 >::value < 0) ? 1 : m_dims[2]));
-            m_strides[1] = ((m_strides[0] <= 1) ? 0 : layout::template find_val< 2, uint_t, 1 >(m_dims) *
-                                                          layout::template find_val< 1, uint_t, 1 >(m_dims));
-            m_strides[2] = ((m_strides[1] <= 1) ? 0 : layout::template find_val< 2, uint_t, 1 >(m_dims));
-        }
-#endif // CXX11
+
 // variadic constexpr constructor
 
 /**@brief generic multidimensional constructor given the space dimensions
@@ -210,13 +195,9 @@ namespace gridtools {
                 bool >::type >
         GT_FUNCTION constexpr meta_storage_base(IntTypes... dims_)
             :
-#ifdef CXX11_ENABLED
-              m_dims {
+            m_dims {
             dims_...
         }
-#else
-            m_dims( dims_ ...)
-#endif
         , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout >::apply(dims_...)) {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes) >= space_dimensions, "you tried to initialize\
  a storage with a number of integer arguments smaller than its number of dimensions. \
@@ -231,8 +212,6 @@ namespace gridtools {
         }
 
 #endif //__CUDACC__
-
-#ifdef CXX11_ENABLED
 
 #ifndef __CUDACC__
         /**
@@ -255,6 +234,7 @@ namespace gridtools {
                      "Error: Dimensions of metastorage must be specified as integer types. "
                 );
         }
+
 #else  //__CUDACC__
 
         template < typename First,
@@ -275,7 +255,19 @@ namespace gridtools {
                 "Error: Dimensions of metastorage must be specified as integer types. ");
         }
 #endif //__CUDACC__
-#else  // CXX11_ENABLED
+#else // CXX11_ENABLED
+        // TODO This is a bug, we should generate a constructor for array of dimensions space_dimensions
+        GRIDTOOLS_STATIC_ASSERT((space_dimensions == 3), "multidimensional storages are available only when C++11 is ON");
+        GT_FUNCTION
+        meta_storage_base(array< uint_t, 3 > const &a) : m_dims(a) {
+            m_strides[0] = (((layout::template at_< 0 >::value < 0) ? 1 : m_dims[0]) *
+                            ((layout::template at_< 1 >::value < 0) ? 1 : m_dims[1]) *
+                            ((layout::template at_< 2 >::value < 0) ? 1 : m_dims[2]));
+            m_strides[1] = ((m_strides[0] <= 1) ? 0 : layout::template find_val< 2, uint_t, 1 >(m_dims) *
+                                                          layout::template find_val< 1, uint_t, 1 >(m_dims));
+            m_strides[2] = ((m_strides[1] <= 1) ? 0 : layout::template find_val< 2, uint_t, 1 >(m_dims));
+        }
+
         // non variadic non constexpr constructor
         GT_FUNCTION
         meta_storage_base(uint_t const &d1, uint_t const &d2, uint_t const &d3) : m_dims(d1, d2, d3) {

@@ -219,7 +219,7 @@ bool test_domain() {
     actual_arg_list_inner_type inner_args =
         boost::fusion::make_vector(coeff.get_pointer_to_use(), in.get_pointer_to_use(), out.get_pointer_to_use());
     // clang-format off
-    print_values< <<1,1> >>(&inner_args);
+    print_values<<<1,1>>>(&inner_args);
     // clang-format on
 #ifdef __CUDACC__
     cudaDeviceSynchronize();
@@ -249,7 +249,7 @@ bool test_domain() {
     printf("\n\nFROM GPU\n\n");
 #endif
     // clang-format off
-    print_values< <<1,1> >>(&inner_args);
+    print_values<<<1,1>>>(&inner_args);
     // clang-format on
 #ifdef __CUDACC__
     cudaDeviceSynchronize();

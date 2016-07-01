@@ -21,7 +21,6 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/has_key.hpp>
 #include <boost/mpl/vector.hpp>
-#include "../expressions/expressions.hpp"
 #ifndef CXX11_ENABLED
 #include <boost/typeof/typeof.hpp>
 #endif
@@ -32,7 +31,9 @@
 #include "stencil-composition/iterate_domain_aux.hpp"
 #include "../reductions/iterate_domain_reduction.hpp"
 #include "../iterate_domain_fwd.hpp"
+#ifdef CXX11_ENABLED
 #include "../../storage/expandable_parameters.hpp"
+#endif
 
 /**@file
    @brief file handling the access to the storage.
@@ -504,7 +505,6 @@ namespace gridtools {
 
             return get_value(accessor, get_data_pointer(accessor));
         }
-#endif
 
         /**@brief returns the dimension of the storage corresponding to the given accessor
 
@@ -518,13 +518,14 @@ namespace gridtools {
                     typename Accessor::index_type >::type >::type::value_type;
             // getting information about the metadata
             typedef
-                typename boost::mpl::at< metadata_map_t, typename storage_type::meta_data_t >::type metadata_index_t;
+                typename boost::mpl::at< metadata_map_t, typename storage_type::storage_info_type >::type metadata_index_t;
 
-            pointer< const typename storage_type::meta_data_t > const metadata_ =
+            pointer< const typename storage_type::storage_info_type > const metadata_ =
                 boost::fusion::at< metadata_index_t >(local_domain.m_local_metadata);
 
             return metadata_->template dims< Coordinate >();
         }
+#endif
 
         /** @brief return a the value in gmem pointed to by an accessor
         */

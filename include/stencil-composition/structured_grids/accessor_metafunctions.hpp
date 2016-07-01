@@ -18,7 +18,9 @@
 #include "../global_accessor.hpp"
 #include "./accessor.hpp"
 #include "./accessor_mixed.hpp"
+#ifdef CXX11_ENABLED
 #include "../expressions/expressions.hpp"
+#endif
 
 namespace gridtools {
 

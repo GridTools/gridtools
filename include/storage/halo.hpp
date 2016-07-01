@@ -15,7 +15,9 @@
 */
 #pragma once
 #include "../common/generic_metafunctions/static_if.hpp"
+#ifdef CXX11_ENABLED
 #include "../common/generic_metafunctions/gt_get.hpp"
+#endif
 
 namespace gridtools {
 

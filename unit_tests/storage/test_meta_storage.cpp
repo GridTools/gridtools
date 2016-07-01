@@ -44,8 +44,8 @@ TEST(storage_info, test_equality) {
 }
 
 TEST(storage_info, test_interface) {
-    typedef gridtools::layout_map< 0, 1, 2, 3, 4 > layout_t;
 #if defined(CXX11_ENABLED)
+    typedef gridtools::layout_map< 0, 1, 2, 3, 4 > layout_t;
     typedef typename gridtools::meta_storage_base< static_int< 0 >, layout_t, false > meta_t;
 #ifndef __CUDACC__
     constexpr meta_t meta_{11u, 12u, 13u, 14u, 15u};
@@ -149,8 +149,8 @@ TEST(storage_info, test_interface) {
     GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.strides(2) == 32), "error");
     GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.strides(1) == 32 * 12), "error");
     GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.strides(0) == 32 * 12 * 13), "error");
-#endif
-#else
+#endif // !__CUDACC__
+#else // CXX11_ENABLED
     typedef gridtools::layout_map<0,1,2> layout_t;
     gridtools::meta_storage_base< static_int< 0 >, layout_t, false > meta_(11, 12, 13);
     ASSERT_TRUE((meta_.dim< 0 >() == 11));
@@ -164,8 +164,9 @@ TEST(storage_info, test_interface) {
     ASSERT_TRUE((meta_.strides<2>(meta_.strides())==1));
     ASSERT_TRUE((meta_.strides<1>(meta_.strides())==13));
     ASSERT_TRUE((meta_.strides<0>(meta_.strides())==13*12));
+#endif
 
-#ifdef CXX11_ENABLED // this checks are performed in cxx11 mode (without ndebug)
+#ifdef CXX11_ENABLED // this checks are performed in cxx11 mode
     // create simple aligned meta storage
     typedef gridtools::halo< 0, 0, 0 > halo_t1;
     typedef gridtools::aligned< 32 > align_t1;
@@ -189,7 +190,5 @@ TEST(storage_info, test_interface) {
     ASSERT_TRUE((storage.meta_data().unaligned_strides(2) == 13) && "error");
     ASSERT_TRUE((storage.meta_data().unaligned_strides(1) == 13 * 12) && "error");
     ASSERT_TRUE((storage.meta_data().unaligned_strides(0) == 13 * 12 * 11) && "error");
-#endif               // CXX11_ENABLED
-
-#endif // defined(CXX11_ENABLED) && defined(NDEBUG)
+#endif // CXX11_ENABLED
 }

@@ -16,6 +16,9 @@
 #include "gtest/gtest.h"
 #include <stencil-composition/stencil-composition.hpp>
 #include <stencil-composition/conditionals/condition_pool.hpp>
+#ifndef CXX11_ENABLED
+#include <boost/shared_ptr.hpp>
+#endif
 
 namespace test_conditionals {
     using namespace gridtools;
@@ -81,7 +84,11 @@ namespace test_conditionals {
 #ifdef CXX11_ENABLED
         auto
 #else
+#ifdef __CUDACC__
+        gridtools::stencil*
+#else
         boost::shared_ptr< gridtools::stencil >
+#endif
 #endif
             comp_ = make_computation< BACKEND >(
                 domain_,

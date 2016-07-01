@@ -122,6 +122,7 @@ namespace gridtools {
             }
 #endif // CUDA8
 
+#ifdef CXX11_ENABLED
             /**@brief returns the dimension of the storage corresponding to the given accessor
 
                Useful to determine the loop bounds, when looping over a dimension from whithin a kernel
@@ -132,6 +133,7 @@ namespace gridtools {
                 typedef typename remap_accessor_type< Accessor, esf_args_map_t >::type remap_accessor_t;
                 return m_iterate_domain.get_storage_dims< Coordinate >(remap_accessor_t(acc_));
             }
+#endif
         };
 
         /**
