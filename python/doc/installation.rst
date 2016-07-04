@@ -22,7 +22,7 @@ Vagrant can be used to quickly setup a portable development environment.
   notebook, e.g.::
 
     $> source venv/bin/activate
-    (venv) $> cd /vagrant/python
+    (venv) $> cd /vagrant/python/samples/
     (venv) $> ipython notebook PASC16.ipynb
 
 * To shutdown Vagrant, logout of the `ssh` session and issue ``vagrant halt``.
