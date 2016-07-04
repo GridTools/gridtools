@@ -190,9 +190,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
                 bool >::type >
         GT_FUNCTION constexpr meta_storage_base(IntTypes... dims_)
             :
-            m_dims {
-            dims_...
-        }
+            m_dims {(uint_t) dims_ ...}
         , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout >::apply(dims_...)) {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes) >= space_dimensions, "you tried to initialize\
  a storage with a number of integer arguments smaller than its number of dimensions. \
