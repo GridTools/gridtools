@@ -176,7 +176,7 @@ namespace gridtools {
                     auto ptr_chunk_ = boost::fusion::at< static_ushort< ID > >(m_dom_chunk.m_storage_pointers);
 
 #ifndef NDEBUG
-                    if(!ptr_chunk_.get() || !ptr_full.get()){
+                    if(!ptr_chunk_.get() || !ptr_full_.get()){
                         printf("The storage pointer is already null. Did you call finalize too early?");
                         assert(false);
                     }
