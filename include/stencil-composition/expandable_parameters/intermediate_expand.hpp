@@ -222,7 +222,7 @@ namespace gridtools {
                 m_intermediate_remainder->reset_meter();
         }
 
-        virtual double get_meter() { return m_intermediate->get_meter() + m_intermediate_remainder->get_meter(); }
+        virtual double get_meter() { return m_intermediate->get_meter() + (m_size % ExpandFactor::value) ? m_intermediate_remainder->get_meter() : 0.; }
 
         /**
            @brief forward the call to the members
