@@ -30,7 +30,15 @@ namespace gridtools {
                 flusher.flush();
                 stencil->run();
             }
-            std::cout << stencil->print_meter() << std::endl;
+
+            double time = stencil->get_meter();
+            std::ostringstream out;
+            if (time < 0)
+                out << "\t[s]\t" << "NoName" << "NO_TIMES_AVAILABLE";
+            else
+                out << "NoName" << "\t[s]\t" << time;
+
+            std::cout << out.str() << std::endl;
         }
     };
 }
