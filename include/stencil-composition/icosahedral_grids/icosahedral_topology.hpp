@@ -766,7 +766,7 @@ namespace gridtools {
                       first_, edges::n_colors::value, second_, dims...}),
                   // here we assume by convention that the dual grid (vertexes) have one more grid point
                   meta_storage_t< vertexes >(array< uint_t, meta_storage_t< vertexes >::space_dimensions >{
-                      first_, vertexes::n_colors::value, second_ + 1, dims...})) {}
+                      first_, vertexes::n_colors::value, second_, dims...})) {}
 
         __device__ icosahedral_topology(icosahedral_topology const &other)
             : m_dims(other.m_dims), m_virtual_storages(boost::fusion::at_c< cells::value >(other.m_virtual_storages),
