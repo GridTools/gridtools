@@ -740,7 +740,7 @@ namespace gridtools {
         template < typename LocationType, typename ValueType >
         using storage_t = typename Backend::template storage_t< LocationType, ValueType >;
 
-        const gridtools::array< uint_t, 2 > m_dims; // Sizes as cells in a multi-dimensional Cell array
+        const array< uint_t, 3 > m_dims; // Sizes as cells in a multi-dimensional Cell array
 
         using grid_meta_storages_t =
             boost::fusion::vector3< meta_storage_t< cells >, meta_storage_t< edges >, meta_storage_t< vertexes > >;
@@ -758,15 +758,15 @@ namespace gridtools {
 
       public:
         template < typename... UInt >
-        GT_FUNCTION icosahedral_topology(uint_t first_, uint_t second_, UInt... dims)
-            : m_dims{second_, first_},
+        GT_FUNCTION icosahedral_topology(uint_t idim, uint_t jdim, uint_t kdim)
+            : m_dims{idim, jdim, kdim},
               m_virtual_storages(meta_storage_t< cells >(array< uint_t, meta_storage_t< cells >::space_dimensions >{
-                                     first_, cells::n_colors::value, second_, dims...}),
+                                     idim, cells::n_colors::value, jdim, kdim}),
                   meta_storage_t< edges >(array< uint_t, meta_storage_t< edges >::space_dimensions >{
-                      first_, edges::n_colors::value, second_, dims...}),
+                    idim, edges::n_colors::value, jdim, kdim}),
                   // here we assume by convention that the dual grid (vertexes) have one more grid point
                   meta_storage_t< vertexes >(array< uint_t, meta_storage_t< vertexes >::space_dimensions >{
-                      first_, vertexes::n_colors::value, second_ + 1, dims...})) {}
+                      idim, vertexes::n_colors::value, jdim, kdim})) {}
 
         __device__ icosahedral_topology(icosahedral_topology const &other)
             : m_dims(other.m_dims), m_virtual_storages(boost::fusion::at_c< cells::value >(other.m_virtual_storages),
