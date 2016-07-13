@@ -78,15 +78,13 @@ namespace gridtools {
             Grid const &m_grid;
             gridtools::array< const uint_t, 2 > const &m_first_pos;
             gridtools::array< const uint_t, 2 > const &m_loop_size;
-            const uint_t m_addon;
 
           public:
             color_execution_functor(IterateDomain &it_domain,
                 Grid const &grid,
                 gridtools::array< const uint_t, 2 > const &first_pos,
-                gridtools::array< const uint_t, 2 > const &loop_size,
-                const uint_t addon)
-                : m_it_domain(it_domain), m_grid(grid), m_first_pos(first_pos), m_loop_size(loop_size), m_addon(addon) {
+                gridtools::array< const uint_t, 2 > const &loop_size)
+                : m_it_domain(it_domain), m_grid(grid), m_first_pos(first_pos), m_loop_size(loop_size) {
             }
 
             template < typename Index >
@@ -97,7 +95,7 @@ namespace gridtools {
                 array_index_t memorized_index;
                 array_position_t memorized_position;
 
-                for (uint_t j = m_first_pos[1]; j <= m_first_pos[1] + m_loop_size[1] + m_addon; ++j) {
+                for (uint_t j = m_first_pos[1]; j <= m_first_pos[1] + m_loop_size[1]; ++j) {
                     m_it_domain.get_index(memorized_index);
                     m_it_domain.get_position(memorized_position);
 
@@ -112,7 +110,7 @@ namespace gridtools {
                         static_int< 1 > >();
                 }
                 m_it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value >(
-                    -(m_loop_size[1] + 1 + m_addon));
+                    -(m_loop_size[1] + 1));
                 m_it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
                     static_int< 1 > >();
             }
@@ -230,17 +228,10 @@ namespace gridtools {
                 it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_k_t::value >(
                     m_grid.template value_at< typename iteration_policy_t::from >());
 
-                int addon = 0;
-                // the iterate domain over vertexes has one more grid point
-                // TODO specify the loop bounds from the grid_tolopogy to avoid this hack here
-                if (location_type_t::value == grid_topology_t::vertexes::value) {
-                    addon++;
-                }
-
                 for (uint_t i = m_first_pos[0]; i <= m_first_pos[0] + m_loop_size[0]; ++i) {
                     boost::mpl::for_each< boost::mpl::range_c< uint_t, 0, n_colors_t::value > >(
                         color_execution_functor< RunFunctorArguments, iterate_domain_t, grid_t >(
-                            it_domain, m_grid, m_first_pos, m_loop_size, addon));
+                            it_domain, m_grid, m_first_pos, m_loop_size));
 
                     it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
                         static_int< -((int_t)n_colors_t::value) > >();
