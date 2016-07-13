@@ -81,7 +81,7 @@ namespace soeov {
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
             using edge_of_cell_dim = dimension< 5 >;
-            edge_of_cell_dim::Index edge;
+            edge_of_cell_dim edge;
 
             // we loop over the 3 edges of a cell, and compute and store a value
             for (uint_t i = 0; i < 3; ++i) {

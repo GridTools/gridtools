@@ -64,9 +64,12 @@ namespace interface {
 
     bool test_alternative2() {
 
-        constexpr x::Index i;
-        constexpr dimension< 4 >::Index t;
-        constexpr accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 4 > first(i - 5, t + 2, dimension< 3 >(8));
+        constexpr x i;
+        constexpr y j;
+        constexpr z k;
+
+        constexpr dimension< 4 > t;
+        constexpr accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 4 > first(i - 5, j, dimension< 3 >(8), t + 2);
 
         GRIDTOOLS_STATIC_ASSERT(first.get< 3 - 0 >() == -5, "ERROR");
         return first.get< 3 - 0 >() == -5 && first.get< 3 - 1 >() == 0 && first.get< 3 - 2 >() == 8 &&
