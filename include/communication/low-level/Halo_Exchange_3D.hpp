@@ -241,9 +241,8 @@ namespace gridtools {
             int size(int I, int J, int K) const { return m_size[translate()(I, J, K)]; }
         };
 
-        template < int I, int J, int K >
         struct TAG {
-            static const int value = (K + 1) * 9 + (I + 1) * 3 + J + 1;
+            static const int value(int I, int J, int K) { return (K + 1) * 9 + (I + 1) * 3 + J + 1; }
         };
 
         struct request_t {
@@ -278,11 +277,15 @@ namespace gridtools {
 
         template < int I, int J, int K >
         void post_receive() {
+            return post_receive(I, J, K);
+        }
+
+        void post_receive(int I, int J, int K) {
             if (m_recv_buffers.size(I, J, K)) {
 #ifndef NDEBUG
                 std::cout << "@" << gridtools::PID << "@ IRECV (" << I << "," << J << "," << K << ") "
-                          << " P " << m_proc_grid.template proc< I, J, K >() << " - "
-                          << " T " << TAG< -I, -J, -K >::value << " - "
+                          << " P " << m_proc_grid.proc(I, J, K) << " - "
+                          << " T " << TAG::value(-I, -J, -K) << " - "
                           << " R " << translate()(-I, -J, -K) << " - "
                           << " Amount " << m_recv_buffers.size(I, J, K) << "\n";
 #endif
@@ -297,24 +300,24 @@ namespace gridtools {
                 MPI_Irecv(static_cast< char * >(m_host_recv_buffers.buffer(I, J, K)),
                     m_recv_buffers.size(I, J, K),
                     MPI_CHAR,
-                    m_proc_grid.template proc< I, J, K >(),
-                    TAG< -I, -J, -K >::value,
+                    m_proc_grid.proc(I, J, K),
+                    TAG::value(-I, -J, -K),
                     get_communicator(m_proc_grid),
                     &request(-I, -J, -K));
 #else
                 MPI_Irecv(static_cast< char * >(m_recv_buffers.buffer(I, J, K)),
                     m_recv_buffers.size(I, J, K),
                     MPI_CHAR,
-                    m_proc_grid.template proc< I, J, K >(),
-                    TAG< -I, -J, -K >::value,
+                    m_proc_grid.proc(I, J, K),
+                    TAG::value(-I, -J, -K),
                     get_communicator(m_proc_grid),
                     &request(-I, -J, -K));
 #endif
 #ifdef GCL_TRACE
                 double end_time = MPI_Wtime();
                 stats_collector_3D.add_event(CommEvent(ce_receive,
-                    m_proc_grid.template proc< I, J, K >(),
-                    TAG< -I, -J, -K >::value,
+                    m_proc_grid.proc(I, J, K),
+                    TAG::value(-I, -J, -K),
                     m_recv_buffers.size(I, J, K),
                     begin_time,
                     end_time,
@@ -325,11 +328,15 @@ namespace gridtools {
 
         template < int I, int J, int K >
         void perform_isend() {
+            return perform_isend(I, J, K);
+        }
+
+        void perform_isend(int I, int J, int K) {
             if (m_send_buffers.size(I, J, K)) {
 #ifndef NDEBUG
                 std::cout << "@" << gridtools::PID << "@ ISEND (" << I << "," << J << "," << K << ") "
-                          << " P " << m_proc_grid.template proc< I, J, K >() << " - "
-                          << " T " << TAG< I, J, K >::value << " - "
+                          << " P " << m_proc_grid.proc(I, J, K) << " - "
+                          << " T " << TAG::value(I, J, K) << " - "
                           << " R " << translate()(I, J, K) << " - "
                           << " Amount " << m_send_buffers.size(I, J, K) << "\n";
 #endif
@@ -350,16 +357,16 @@ namespace gridtools {
                 MPI_Isend(static_cast< char * >(m_host_send_buffers.buffer(I, J, K)),
                     m_send_buffers.size(I, J, K),
                     MPI_CHAR,
-                    m_proc_grid.template proc< I, J, K >(),
-                    TAG< I, J, K >::value,
+                    m_proc_grid.proc(I, J, K),
+                    TAG::value(I, J, K),
                     get_communicator(m_proc_grid),
                     &send_request(I, J, K));
 #else
                 MPI_Isend(static_cast< char * >(m_send_buffers.buffer(I, J, K)),
                     m_send_buffers.size(I, J, K),
                     MPI_CHAR,
-                    m_proc_grid.template proc< I, J, K >(),
-                    TAG< I, J, K >::value,
+                    m_proc_grid.proc(I, J, K),
+                    TAG::value(I, J, K),
                     get_communicator(m_proc_grid),
                     &send_request(I, J, K));
 #endif
@@ -367,8 +374,8 @@ namespace gridtools {
 #ifdef GCL_TRACE
                 double end_time = MPI_Wtime();
                 stats_collector_3D.add_event(CommEvent(ce_send,
-                    m_proc_grid.template proc< I, J, K >(),
-                    TAG< I, J, K >::value,
+                    m_proc_grid.proc(I, J, K),
+                    TAG::value(I, J, K),
                     m_send_buffers.size(I, J, K),
                     begin_time,
                     end_time,
@@ -390,9 +397,7 @@ namespace gridtools {
 #ifdef GCL_TRACE
                             double end_time = MPI_Wtime();
                             stats_collector_3D.add_event(CommEvent(ce_send_wait,
-                                // m_proc_grid.template proc<I,J,K>(),
                                 m_proc_grid.proc(i, j, k),
-                                // TAG<I,J,K>::value,
                                 -1,
                                 m_send_buffers.size(i, j, k),
                                 begin_time,
@@ -405,6 +410,10 @@ namespace gridtools {
 
         template < int I, int J, int K >
         void wait() {
+            return wait(I, J, K);
+        }
+
+        void wait(int I, int J, int K) {
             if (m_recv_buffers.size(I, J, K)) {
 #ifndef NDEBUG
                 std::cout << "@" << gridtools::PID << "@ WAIT  (" << I << "," << J << "," << K << ") "
@@ -428,8 +437,8 @@ namespace gridtools {
 #ifdef GCL_TRACE
                 double end_time = MPI_Wtime();
                 stats_collector_3D.add_event(CommEvent(ce_receive_wait,
-                    m_proc_grid.template proc< I, J, K >(),
-                    TAG< -I, -J, -K >::value,
+                    m_proc_grid.proc(I, J, K),
+                    TAG::value(-I, -J, -K),
                     m_recv_buffers.size(I, J, K),
                     begin_time,
                     end_time,
@@ -745,7 +754,7 @@ namespace gridtools {
         int recv_size(int I, int J, int K) const { return m_recv_buffers.size(I, J, K); }
 
         /** When called this function executes the communication pattern,
-            that is, send all the send-buffers to the correspondinf
+            that is, send all the send-buffers to the corresponding
             receive-buffers. When the function returns the data in receive
             buffers can be safely accessed.
          */
@@ -754,243 +763,7 @@ namespace gridtools {
             wait();
         }
 
-        void post_receives() {
-            /* Posting receives face -1
-             */
-            if (m_proc_grid.template proc< 1, 0, -1 >() != -1) {
-                post_receive< 1, 0, -1 >();
-            }
-
-            if (m_proc_grid.template proc< -1, 0, -1 >() != -1) {
-                post_receive< -1, 0, -1 >();
-            }
-
-            if (m_proc_grid.template proc< 0, 1, -1 >() != -1) {
-                post_receive< 0, 1, -1 >();
-            }
-
-            if (m_proc_grid.template proc< 0, -1, -1 >() != -1) {
-                post_receive< 0, -1, -1 >();
-            }
-
-            /* Posting receives FOR CORNERS face -1
-             */
-            if (m_proc_grid.template proc< 1, 1, -1 >() != -1) {
-                post_receive< 1, 1, -1 >();
-            }
-
-            if (m_proc_grid.template proc< -1, -1, -1 >() != -1) {
-                post_receive< -1, -1, -1 >();
-            }
-
-            if (m_proc_grid.template proc< 1, -1, -1 >() != -1) {
-                post_receive< 1, -1, -1 >();
-            }
-
-            if (m_proc_grid.template proc< -1, 1, -1 >() != -1) {
-                post_receive< -1, 1, -1 >();
-            }
-
-            if (m_proc_grid.template proc< 0, 0, -1 >() != -1) {
-                post_receive< 0, 0, -1 >();
-            }
-
-            /* Posting receives face 0
-             */
-            if (m_proc_grid.template proc< 1, 0, 0 >() != -1) {
-                post_receive< 1, 0, 0 >();
-            }
-
-            if (m_proc_grid.template proc< -1, 0, 0 >() != -1) {
-                post_receive< -1, 0, 0 >();
-            }
-
-            if (m_proc_grid.template proc< 0, 1, 0 >() != -1) {
-                post_receive< 0, 1, 0 >();
-            }
-
-            if (m_proc_grid.template proc< 0, -1, 0 >() != -1) {
-                post_receive< 0, -1, 0 >();
-            }
-
-            /* Posting receives FOR CORNERS face 0
-             */
-            if (m_proc_grid.template proc< 1, 1, 0 >() != -1) {
-                post_receive< 1, 1, 0 >();
-            }
-
-            if (m_proc_grid.template proc< -1, -1, 0 >() != -1) {
-                post_receive< -1, -1, 0 >();
-            }
-
-            if (m_proc_grid.template proc< 1, -1, 0 >() != -1) {
-                post_receive< 1, -1, 0 >();
-            }
-
-            if (m_proc_grid.template proc< -1, 1, 0 >() != -1) {
-                post_receive< -1, 1, 0 >();
-            }
-
-            /* Posting receives face 1
-             */
-            if (m_proc_grid.template proc< 1, 0, 1 >() != -1) {
-                post_receive< 1, 0, 1 >();
-            }
-
-            if (m_proc_grid.template proc< -1, 0, 1 >() != -1) {
-                post_receive< -1, 0, 1 >();
-            }
-
-            if (m_proc_grid.template proc< 0, 1, 1 >() != -1) {
-                post_receive< 0, 1, 1 >();
-            }
-
-            if (m_proc_grid.template proc< 0, -1, 1 >() != -1) {
-                post_receive< 0, -1, 1 >();
-            }
-
-            /* Posting receives FOR CORNERS face 1
-             */
-            if (m_proc_grid.template proc< 1, 1, 1 >() != -1) {
-                post_receive< 1, 1, 1 >();
-            }
-
-            if (m_proc_grid.template proc< -1, -1, 1 >() != -1) {
-                post_receive< -1, -1, 1 >();
-            }
-
-            if (m_proc_grid.template proc< 1, -1, 1 >() != -1) {
-                post_receive< 1, -1, 1 >();
-            }
-
-            if (m_proc_grid.template proc< -1, 1, 1 >() != -1) {
-                post_receive< -1, 1, 1 >();
-            }
-
-            if (m_proc_grid.template proc< 0, 0, 1 >() != -1) {
-                post_receive< 0, 0, 1 >();
-            }
-        }
-
-        void do_sends() {
-            /* Sending data face -1
-             */
-            if (m_proc_grid.template proc< -1, 0, -1 >() != -1) {
-                perform_isend< -1, 0, -1 >();
-            }
-
-            if (m_proc_grid.template proc< 1, 0, -1 >() != -1) {
-                perform_isend< 1, 0, -1 >();
-            }
-
-            if (m_proc_grid.template proc< 0, -1, -1 >() != -1) {
-                perform_isend< 0, -1, -1 >();
-            }
-
-            if (m_proc_grid.template proc< 0, 1, -1 >() != -1) {
-                perform_isend< 0, 1, -1 >();
-            }
-
-            /* Sending data CORNERS
-             */
-            if (m_proc_grid.template proc< -1, -1, -1 >() != -1) {
-                perform_isend< -1, -1, -1 >();
-            }
-
-            if (m_proc_grid.template proc< 1, 1, -1 >() != -1) {
-                perform_isend< 1, 1, -1 >();
-            }
-
-            if (m_proc_grid.template proc< 1, -1, -1 >() != -1) {
-                perform_isend< 1, -1, -1 >();
-            }
-
-            if (m_proc_grid.template proc< -1, 1, -1 >() != -1) {
-                perform_isend< -1, 1, -1 >();
-            }
-
-            if (m_proc_grid.template proc< 0, 0, -1 >() != -1) {
-                perform_isend< 0, 0, -1 >();
-            }
-
-            /* Sending data face 0
-             */
-            if (m_proc_grid.template proc< -1, 0, 0 >() != -1) {
-                perform_isend< -1, 0, 0 >();
-            }
-
-            if (m_proc_grid.template proc< 1, 0, 0 >() != -1) {
-                perform_isend< 1, 0, 0 >();
-            }
-
-            if (m_proc_grid.template proc< 0, -1, 0 >() != -1) {
-                perform_isend< 0, -1, 0 >();
-            }
-
-            if (m_proc_grid.template proc< 0, 1, 0 >() != -1) {
-                perform_isend< 0, 1, 0 >();
-            }
-
-            /* Sending data CORNERS
-             */
-            if (m_proc_grid.template proc< -1, -1, 0 >() != -1) {
-                perform_isend< -1, -1, 0 >();
-            }
-
-            if (m_proc_grid.template proc< 1, 1, 0 >() != -1) {
-                perform_isend< 1, 1, 0 >();
-            }
-
-            if (m_proc_grid.template proc< 1, -1, 0 >() != -1) {
-                perform_isend< 1, -1, 0 >();
-            }
-
-            if (m_proc_grid.template proc< -1, 1, 0 >() != -1) {
-                perform_isend< -1, 1, 0 >();
-            }
-
-            /* Sending data face 1
-             */
-            if (m_proc_grid.template proc< -1, 0, 1 >() != -1) {
-                perform_isend< -1, 0, 1 >();
-            }
-
-            if (m_proc_grid.template proc< 1, 0, 1 >() != -1) {
-                perform_isend< 1, 0, 1 >();
-            }
-
-            if (m_proc_grid.template proc< 0, -1, 1 >() != -1) {
-                perform_isend< 0, -1, 1 >();
-            }
-
-            if (m_proc_grid.template proc< 0, 1, 1 >() != -1) {
-                perform_isend< 0, 1, 1 >();
-            }
-
-            /* Sending data CORNERS
-             */
-            if (m_proc_grid.template proc< -1, -1, 1 >() != -1) {
-                perform_isend< -1, -1, 1 >();
-            }
-
-            if (m_proc_grid.template proc< 1, 1, 1 >() != -1) {
-                perform_isend< 1, 1, 1 >();
-            }
-
-            if (m_proc_grid.template proc< 1, -1, 1 >() != -1) {
-                perform_isend< 1, -1, 1 >();
-            }
-
-            if (m_proc_grid.template proc< -1, 1, 1 >() != -1) {
-                perform_isend< -1, 1, 1 >();
-            }
-
-            if (m_proc_grid.template proc< 0, 0, 1 >() != -1) {
-                perform_isend< 0, 0, 1 >();
-            }
-        }
-
-        /** When called this function initiate the data exchabge. When the
+        /** When called this function initiate the data exchange. When the
             function returns the data has to be considered already to be
             transfered. Buffers should not be considered safe to access
             until the wait() function returns.
@@ -1011,126 +784,105 @@ namespace gridtools {
                SOUTH/IPLUS
             */
 
-            post_receives();
+            /* order of neighbors for sends and receives, all processes use the same order */
+            static int ord[26][3] = {/* faces */
+                {0, 0, -1},
+                {-1, 0, 0},
+                {1, 0, 0},
+                {0, -1, 0},
+                {0, 1, 0},
+                {0, 0, 1},
+                /* lines */
+                {1, 0, -1},
+                {-1, 0, -1},
+                {0, 1, -1},
+                {0, -1, -1},
+                {1, 1, 0},
+                {-1, -1, 0},
+                {1, -1, 0},
+                {-1, 1, 0},
+                {1, 0, 1},
+                {-1, 0, 1},
+                {0, 1, 1},
+                {0, -1, 1},
+                /* corner points */
+                {1, 1, -1},
+                {-1, -1, -1},
+                {1, -1, -1},
+                {-1, 1, -1},
+                {1, 1, 1},
+                {-1, -1, 1},
+                {1, -1, 1},
+                {-1, 1, 1}};
+
+            /* Posting receives
+            */
+            for (int l = 0; l < 26; l++) {
+                int i = ord[l][0];
+                int j = ord[l][1];
+                int k = ord[l][2];
+                if (m_proc_grid.proc(i, j, k) != -1) {
+                    post_receive(i, j, k);
+                }
+            }
 
             // UNCOMMENT THIS IF A DEADLOCK APPEARS BECAUSE SENDS HAS TO FOLLOW RECEIVES (TRUE IN SOME PLATFORMS)
             // MPI_Barrier(GSL_WORLD);
 
-            do_sends();
+            /* Doing sends
+            */
+            for (int l = 0; l < 26; l++) {
+                int i = ord[l][0];
+                int j = ord[l][1];
+                int k = ord[l][2];
+                if (m_proc_grid.proc(i, j, k) != -1) {
+                    perform_isend(i, j, k);
+                }
+            }
         }
 
         void wait() {
 
             wait_for_sends();
 
-            /* Actual receives face -1
-             */
-            if (m_proc_grid.template proc< 1, 0, -1 >() != -1) {
-                wait< 1, 0, -1 >();
-            }
+            /* order of neighbors for doing the waits, all processes use the same order */
+            static int ord[26][3] = {/* faces */
+                {0, 0, -1},
+                {-1, 0, 0},
+                {1, 0, 0},
+                {0, -1, 0},
+                {0, 1, 0},
+                {0, 0, 1},
+                /* lines */
+                {1, 0, -1},
+                {-1, 0, -1},
+                {0, 1, -1},
+                {0, -1, -1},
+                {1, 1, 0},
+                {-1, -1, 0},
+                {1, -1, 0},
+                {-1, 1, 0},
+                {1, 0, 1},
+                {-1, 0, 1},
+                {0, 1, 1},
+                {0, -1, 1},
+                /* corner points */
+                {1, 1, -1},
+                {-1, -1, -1},
+                {1, -1, -1},
+                {-1, 1, -1},
+                {1, 1, 1},
+                {-1, -1, 1},
+                {1, -1, 1},
+                {-1, 1, 1}};
 
-            if (m_proc_grid.template proc< -1, 0, -1 >() != -1) {
-                wait< -1, 0, -1 >();
-            }
-
-            if (m_proc_grid.template proc< 0, 1, -1 >() != -1) {
-                wait< 0, 1, -1 >();
-            }
-
-            if (m_proc_grid.template proc< 0, -1, -1 >() != -1) {
-                wait< 0, -1, -1 >();
-            }
-
-            if (m_proc_grid.template proc< 1, 1, -1 >() != -1) {
-                wait< 1, 1, -1 >();
-            }
-
-            if (m_proc_grid.template proc< -1, -1, -1 >() != -1) {
-                wait< -1, -1, -1 >();
-            }
-
-            if (m_proc_grid.template proc< -1, 1, -1 >() != -1) {
-                wait< -1, 1, -1 >();
-            }
-
-            if (m_proc_grid.template proc< 1, -1, -1 >() != -1) {
-                wait< 1, -1, -1 >();
-            }
-
-            if (m_proc_grid.template proc< 0, 0, -1 >() != -1) {
-                wait< 0, 0, -1 >();
-            }
-
-            /* Actual receives face 0
-             */
-            if (m_proc_grid.template proc< 1, 0, 0 >() != -1) {
-                wait< 1, 0, 0 >();
-            }
-
-            if (m_proc_grid.template proc< -1, 0, 0 >() != -1) {
-                wait< -1, 0, 0 >();
-            }
-
-            if (m_proc_grid.template proc< 0, 1, 0 >() != -1) {
-                wait< 0, 1, 0 >();
-            }
-
-            if (m_proc_grid.template proc< 0, -1, 0 >() != -1) {
-                wait< 0, -1, 0 >();
-            }
-
-            if (m_proc_grid.template proc< 1, 1, 0 >() != -1) {
-                wait< 1, 1, 0 >();
-            }
-
-            if (m_proc_grid.template proc< -1, -1, 0 >() != -1) {
-                wait< -1, -1, 0 >();
-            }
-
-            if (m_proc_grid.template proc< -1, 1, 0 >() != -1) {
-                wait< -1, 1, 0 >();
-            }
-
-            if (m_proc_grid.template proc< 1, -1, 0 >() != -1) {
-                wait< 1, -1, 0 >();
-            }
-
-            /* Actual receives face -1
-             */
-            if (m_proc_grid.template proc< 1, 0, 1 >() != -1) {
-                wait< 1, 0, 1 >();
-            }
-
-            if (m_proc_grid.template proc< -1, 0, 1 >() != -1) {
-                wait< -1, 0, 1 >();
-            }
-
-            if (m_proc_grid.template proc< 0, 1, 1 >() != -1) {
-                wait< 0, 1, 1 >();
-            }
-
-            if (m_proc_grid.template proc< 0, -1, 1 >() != -1) {
-                wait< 0, -1, 1 >();
-            }
-
-            if (m_proc_grid.template proc< 1, 1, 1 >() != -1) {
-                wait< 1, 1, 1 >();
-            }
-
-            if (m_proc_grid.template proc< -1, -1, 1 >() != -1) {
-                wait< -1, -1, 1 >();
-            }
-
-            if (m_proc_grid.template proc< -1, 1, 1 >() != -1) {
-                wait< -1, 1, 1 >();
-            }
-
-            if (m_proc_grid.template proc< 1, -1, 1 >() != -1) {
-                wait< 1, -1, 1 >();
-            }
-
-            if (m_proc_grid.template proc< 0, 0, 1 >() != -1) {
-                wait< 0, 0, 1 >();
+            for (int l = 0; l < 26; l++) {
+                int i = ord[l][0];
+                int j = ord[l][1];
+                int k = ord[l][2];
+                if (m_proc_grid.proc(i, j, k) != -1) {
+                    wait(i, j, k);
+                }
             }
 
             // MPI_Barrier(gridtools::GCL_WORLD);
