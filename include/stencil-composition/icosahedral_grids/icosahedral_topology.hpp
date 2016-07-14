@@ -62,6 +62,7 @@
 #include <boost/mpl/vector.hpp>
 #include "location_type.hpp"
 #include "common/array_addons.hpp"
+#include "common/selector.hpp"
 
 namespace gridtools {
 
@@ -779,6 +780,14 @@ namespace gridtools {
         // TODOMEETING move semantic
         template < typename LocationType, typename ValueType >
         GT_FUNCTION storage_t< LocationType, double > make_storage(char const *name) const {
+            return storage_t< LocationType, ValueType >(
+                boost::fusion::at_c< LocationType::value >(m_virtual_storages), name);
+        }
+
+        template < typename LocationType, typename ValueType, typename DimSelector >
+        GT_FUNCTION storage_t< LocationType, double > make_storage2(char const *name) const {
+            GRIDTOOLS_STATIC_ASSERT((is_selector<DimSelector>::value), "Error");
+//            using meta_storage_t =
             return storage_t< LocationType, ValueType >(
                 boost::fusion::at_c< LocationType::value >(m_virtual_storages), name);
         }

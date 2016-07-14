@@ -22,6 +22,7 @@ namespace operators {
 
     class repository {
       public:
+        using layout_3d_t = backend_t::select_layout< selector<1,1,1,-1> >;
         using icosahedral_topology_t = ::gridtools::icosahedral_topology< backend_t >;
         using edge_storage_type = typename backend_t::storage_t< icosahedral_topology_t::edges, double >;
         using cell_storage_type = typename backend_t::storage_t< icosahedral_topology_t::cells, double >;

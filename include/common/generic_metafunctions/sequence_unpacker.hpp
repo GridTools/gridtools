@@ -34,39 +34,34 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-
-#include "storage/storage.hpp"
-#include "storage/meta_storage.hpp"
-#include "location_type.hpp"
-#include "stencil-composition/backend_base.hpp"
-#include "storage/wrap_pointer.hpp"
-#include "icosahedral_grid_traits.hpp"
-#include "common/selector.hpp"
+#include <boost/mpl/at.hpp>
+#include <boost/mpl/size.hpp>
+#include <boost/mpl/eval_if.hpp>
+#include <boost/mpl/pop_front.hpp>
+#include "../defs.hpp"
+#include "variadic_typedef.hpp"
 
 namespace gridtools {
+    template < typename Seq, typename... Args >
+    struct sequence_unpacker {
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< Seq >::value > 0 || sizeof...(Args) > 0), "Error");
 
-    /**
-       The backend is, as usual, declaring what the storage types are
-     */
-    template < enumtype::platform BackendId, enumtype::strategy StrategyType >
-    struct backend< BackendId, enumtype::icosahedral, StrategyType >
-        : public backend_base< BackendId, enumtype::icosahedral, StrategyType > {
-      public:
+        template < typename Seq_ >
+        struct rec_unpack {
+            typedef typename sequence_unpacker< typename boost::mpl::pop_front< Seq_ >::type,
+                Args...,
+                typename boost::mpl::at_c< Seq_, 0 >::type
+            >::type type;
+        };
 
-        typedef backend_base< BackendId, enumtype::icosahedral, StrategyType > base_t;
+        template < typename... Args_ >
+        struct get_variadic_args {
+            using type = variadic_typedef< Args... >;
+        };
 
-        using typename base_t::backend_traits_t;
-        using typename base_t::strategy_traits_t;
-        using layout_map_t = typename icgrid::grid_traits_arch< base_t::s_backend_id >::layout_map_t;
-
-
-        template<typename DimSelector>
-        using select_layout = typename filter_layout<layout_map_t, DimSelector>::type;
-
-        template < typename LocationType, typename LayoutMap = typename icgrid::grid_traits_arch< base_t::s_backend_id >::layout_map_t >
-        using storage_info_t = typename base_t::template storage_info< LocationType::value, LayoutMap>;
-
-        template < typename LocationType, typename ValueType >
-        using storage_t = typename base_t::template storage_type< ValueType, storage_info_t< LocationType > >::type;
+        typedef typename boost::mpl::eval_if_c< (boost::mpl::size< Seq >::value > 0),
+            rec_unpack< Seq >,
+            get_variadic_args< Args... > >::type type;
     };
+
 } // namespace gridtools

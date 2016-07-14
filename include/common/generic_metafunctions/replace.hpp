@@ -33,40 +33,23 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
 
-#include "storage/storage.hpp"
-#include "storage/meta_storage.hpp"
-#include "location_type.hpp"
-#include "stencil-composition/backend_base.hpp"
-#include "storage/wrap_pointer.hpp"
-#include "icosahedral_grid_traits.hpp"
-#include "common/selector.hpp"
+#pragma once
+#include <boost/mpl/advance.hpp>
+#include <boost/mpl/insert.hpp>
+#include <boost/mpl/erase.hpp>
 
 namespace gridtools {
+    template < typename Seq_, typename Pos, typename Elem >
+    struct replace {
+        typedef typename boost::mpl::advance< typename boost::mpl::begin< Seq_ >::type,
+            boost::mpl::int_< Pos::value > >::type iter_t;
+        typedef typename boost::mpl::insert< Seq_, iter_t, Elem >::type inserted_seq;
 
-    /**
-       The backend is, as usual, declaring what the storage types are
-     */
-    template < enumtype::platform BackendId, enumtype::strategy StrategyType >
-    struct backend< BackendId, enumtype::icosahedral, StrategyType >
-        : public backend_base< BackendId, enumtype::icosahedral, StrategyType > {
-      public:
+        typedef typename boost::mpl::advance< typename boost::mpl::begin< inserted_seq >::type,
+            boost::mpl::int_< Pos::value + 1 > >::type iter2_t;
 
-        typedef backend_base< BackendId, enumtype::icosahedral, StrategyType > base_t;
-
-        using typename base_t::backend_traits_t;
-        using typename base_t::strategy_traits_t;
-        using layout_map_t = typename icgrid::grid_traits_arch< base_t::s_backend_id >::layout_map_t;
-
-
-        template<typename DimSelector>
-        using select_layout = typename filter_layout<layout_map_t, DimSelector>::type;
-
-        template < typename LocationType, typename LayoutMap = typename icgrid::grid_traits_arch< base_t::s_backend_id >::layout_map_t >
-        using storage_info_t = typename base_t::template storage_info< LocationType::value, LayoutMap>;
-
-        template < typename LocationType, typename ValueType >
-        using storage_t = typename base_t::template storage_type< ValueType, storage_info_t< LocationType > >::type;
+        typedef typename boost::mpl::erase< inserted_seq, iter2_t >::type type;
     };
-} // namespace gridtools
+
+} // gridtools

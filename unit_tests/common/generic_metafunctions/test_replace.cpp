@@ -33,40 +33,26 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
+#include "gtest/gtest.h"
+#include <boost/mpl/equal.hpp>
+#include <boost/mpl/vector/vector10.hpp>
+#include "common/defs.hpp"
+#include <common/generic_metafunctions/replace.hpp>
 
-#include "storage/storage.hpp"
-#include "storage/meta_storage.hpp"
-#include "location_type.hpp"
-#include "stencil-composition/backend_base.hpp"
-#include "storage/wrap_pointer.hpp"
-#include "icosahedral_grid_traits.hpp"
-#include "common/selector.hpp"
+using namespace gridtools;
 
-namespace gridtools {
+TEST(test_replace, test) {
+    GRIDTOOLS_STATIC_ASSERT((
+        boost::mpl::equal<
+            replace< boost::mpl::vector4<int, double, char, long>, static_uint<3>, float>::type,
+            boost::mpl::vector4<int, double, char, float>
+        >::value), "Error");
 
-    /**
-       The backend is, as usual, declaring what the storage types are
-     */
-    template < enumtype::platform BackendId, enumtype::strategy StrategyType >
-    struct backend< BackendId, enumtype::icosahedral, StrategyType >
-        : public backend_base< BackendId, enumtype::icosahedral, StrategyType > {
-      public:
+    GRIDTOOLS_STATIC_ASSERT((
+        boost::mpl::equal<
+            replace< boost::mpl::vector4<int, double, char, long>, static_uint<2>, float>::type,
+            boost::mpl::vector4<int, double, float, long>
+        >::value), "Error");
 
-        typedef backend_base< BackendId, enumtype::icosahedral, StrategyType > base_t;
-
-        using typename base_t::backend_traits_t;
-        using typename base_t::strategy_traits_t;
-        using layout_map_t = typename icgrid::grid_traits_arch< base_t::s_backend_id >::layout_map_t;
-
-
-        template<typename DimSelector>
-        using select_layout = typename filter_layout<layout_map_t, DimSelector>::type;
-
-        template < typename LocationType, typename LayoutMap = typename icgrid::grid_traits_arch< base_t::s_backend_id >::layout_map_t >
-        using storage_info_t = typename base_t::template storage_info< LocationType::value, LayoutMap>;
-
-        template < typename LocationType, typename ValueType >
-        using storage_t = typename base_t::template storage_type< ValueType, storage_info_t< LocationType > >::type;
-    };
-} // namespace gridtools
+    ASSERT_TRUE(true);
+}
