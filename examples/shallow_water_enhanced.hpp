@@ -109,8 +109,8 @@ namespace shallow_water {
         static float_type g() { return 9.81; }
 
         //! [index]
-        static x::Index i;
-        static y::Index j;
+        static x i;
+        static y j;
         //! [index]
 
         typedef decltype(i) i_t;
@@ -176,8 +176,8 @@ namespace shallow_water {
 
             const float_type &tl = 2.;
 #ifdef CUDA_CXX11_BUG_1
-            comp::Index c;
-            x::Index i;
+            comp c;
+            x i;
             //! [expression]
             eval(tmpx()) =
                 eval((sol(i - 0) + sol(i - 1)) / tl - (sol(c + 1) - sol(c + 1, i - 1)) * (dt() / (2 * dx())));
