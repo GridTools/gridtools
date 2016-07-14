@@ -424,6 +424,18 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
                               p_a,
                               p_b> accessor_list_alpha;
 
+    // variables for dot product reductions
+    double rTr;
+    double rTr_global;
+
+    double rTrnew;
+    double rTrnew_global;
+
+    double dTAd; 
+    double dTAd_global;
+
+    double rTr_init; //initial residual, sqrt(rTr_global)
+
     /*
       Here we do lot of stuff
       1) We pass to the intermediate representation ::run function the description
@@ -464,8 +476,6 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
          gridtools::bitmap_predicate(part.boundary())
         ).apply(x, d, xNew, dNew);
 
-    //MPI_Barrier(GCL_WORLD);
-    //#pragma omp barrier
 
     // Set addition parameter to -1 (subtraction): r = b + alpha A x
     double minus = -1;
@@ -475,28 +485,21 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
     CG_init->ready();
     CG_init->steady();
     boost::timer::cpu_timer time_runInit;
-    double rr = CG_init->run();
+    rTr = CG_init->run();
     lapse_time_run = lapse_time_run + time_runInit.elapsed();
     CG_init->finalize();
-
-    //MPI_Barrier(GCL_WORLD);
-    //#pragma omp barrier
-
-    double rr_global;
-    MPI_Allreduce(&rr, &rr_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-    double rr_init = sqrt(rr_global); //initial residual
+    MPI_Allreduce(&rTr, &rTr_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    rTr_init = sqrt(rTr_global); //initial residual
 
     #ifdef MY_VERBOSE
     if (PID == 0) {
         #ifdef REL_TOL
-        std::cout << "Iteration 0: [residual] " << sqrt(rr_global)/rr_init << std::endl << std::endl;
+        std::cout << "Iteration 0: [residual] " << sqrt(rTr_global)/rTr_init << std::endl << std::endl;
         #else
-        std::cout << "Iteration 0: [residual] " << rr_init << std::endl << std::endl;
+        std::cout << "Iteration 0: [residual] " << rTr_init << std::endl << std::endl;
         #endif
     }
     #endif
-
-    //#pragma omp barrier
 
     //communicate halos
     std::vector<pointer_type::pointee_t*> vec(1);
@@ -507,8 +510,6 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
     he.unpack(vec);
 
     MPI_Barrier(GCL_WORLD);
-
-    double rTr_old; //used to remember value of global reduction between iterations
 
     /**
         Perform iterations of the CG
@@ -568,7 +569,6 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
                 )
             );
 
-
         auto CG_step2 = gridtools::make_computation<gridtools::BACKEND>
             (
                 domain_step2, coords3d7pt,
@@ -597,19 +597,6 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
                 )
             );
 
-        auto stencil_alpha_nom = make_computation< gridtools::BACKEND >
-            (
-                domain_alpha_nominator, coords3d7pt,
-                gridtools::make_mss
-                (
-                    execute< forward >(),
-                    make_esf<product_functor>(p_out(),
-                                              p_a(),
-                                              p_b()) // r_T * r
-                ),
-                make_reduction< reduction_functor, binop::sum >(0.0, p_out()) // sum(r_T * r)
-            );
-
         auto stencil_alpha_denom = make_computation< gridtools::BACKEND >
             (
                 domain_alpha_denominator, coords3d7pt,
@@ -623,22 +610,6 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
                 make_reduction< reduction_functor, binop::sum >(0.0, p_out()) // sum(d_T * A * d)
             );
 
-            auto stencil_beta_nom = make_computation< gridtools::BACKEND >
-            (
-                domain_beta_nominator, coords3d7pt,
-                gridtools::make_mss
-                (
-                    execute< forward >(),
-                    make_esf<product_functor>(p_out(),
-                                              p_a(),
-                                              p_b()) // rNew_T * rNew
-                ),
-                make_reduction< reduction_functor, binop::sum >(0.0, p_out()) // sum(rNew_T * rNew)
-            );
-
-        //MPI_Barrier(GCL_WORLD);
-        //#pragma omp barrier
-
         boost::timer::cpu_timer time_iteration;
 
         // A * d
@@ -650,30 +621,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
         lapse_time_run = lapse_time_run + time_run0.elapsed();
         CG_step0->finalize();
 
-        //MPI_Barrier(GCL_WORLD);
-        //#pragma omp barrier
-
-        // Compute step size alpha
-        double rTr_global; //nominator
-        double rTr;
-        double dTAd; 
-        double dTAd_global;
-
-        if (iter == 1)
-        {
-            stencil_alpha_nom->ready();
-            stencil_alpha_nom->steady();
-            boost::timer::cpu_timer time_alphaNom;
-            rTr = stencil_alpha_nom->run(); // r_T * r (at time t)
-            lapse_time_run = lapse_time_run + time_alphaNom.elapsed();
-            stencil_alpha_nom->finalize();
-            MPI_Allreduce(&rTr, &rTr_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-        }
-        else
-        {
-            rTr_global = rTr_old; //reuse nominator from beta in previous time-step
-        }
-
+        // Denominator of alpha
         stencil_alpha_denom->ready();
         stencil_alpha_denom->steady();
         boost::timer::cpu_timer time_alphaDenom;
@@ -687,9 +635,6 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
         if (PID == 0) printf("Alpha = %f\n", rTr_global/dTAd_global);
         #endif
 
-        //MPI_Barrier(GCL_WORLD);
-        //#pragma omp barrier
-
         // x_(i+1) = x_i + alpha * d_i
         CG_step1->ready();
         CG_step1->steady();
@@ -698,41 +643,23 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
         lapse_time_run = lapse_time_run + time_run1.elapsed();
         CG_step1->finalize();
 
-        //MPI_Barrier(GCL_WORLD);
-        //#pragma omp barrier
-
         // r_(i+1) = r_i - alpha * Ad_i
         alpha.setValue(-1. * alpha.getValue());
         CG_step2->ready();
         CG_step2->steady();
         boost::timer::cpu_timer time_run2;
-        rr = CG_step2->run();
+        rTrnew = CG_step2->run();
         lapse_time_run = lapse_time_run + time_run2.elapsed();
         CG_step2->finalize();
-        MPI_Allreduce(&rr, &rr_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-
-        //#pragma omp barrier
-
-        double rTrnew;
-        double rTrnew_global;
+        MPI_Allreduce(&rTrnew, &rTrnew_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
         //compute Gram–Schmidt orthogonalization parameter beta
-        stencil_beta_nom->ready();
-        stencil_beta_nom->steady();
-        boost::timer::cpu_timer time_betaNom;
-        rTrnew = stencil_beta_nom->run(); // r_T * r (at time t+1) //TODO: reuse at next iteration in alpha
-        lapse_time_run = lapse_time_run + time_betaNom.elapsed();
-        stencil_beta_nom->finalize();
-        MPI_Allreduce(&rTrnew, &rTrnew_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-        rTr_old = rTrnew_global; //save value to reuse it in alpha
-
         beta.setValue(rTrnew_global/rTr_global); // reusing r_T*r from computation of alpha
         #ifdef DEBUG
         if (PID == 0) printf("Beta = %f\n", rTrnew_global/rTr_global);
         #endif
 
-        //MPI_Barrier(GCL_WORLD);
-        //#pragma omp barrier
+        rTr_global = rTrnew_global; //reuse nominator from beta in next time-step
 
         // d_(i+1) = r_(i+1) + beta * d_i
         CG_step3->ready();
@@ -741,9 +668,6 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
         CG_step3->run();
         lapse_time_run = lapse_time_run + time_run3.elapsed();
         CG_step3->finalize();
-
-        //MPI_Barrier(GCL_WORLD);
-        //#pragma omp barrier
 
         // Communicate halos
         std::vector<pointer_type::pointee_t*> vec(2);
@@ -755,7 +679,6 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
         he.unpack(vec);
 
         MPI_Barrier(GCL_WORLD);
-        //#pragma omp barrier
 
         // Swap input and output fields
         storage_type* swap;
@@ -772,9 +695,9 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
         boost::timer::cpu_times lapse_time_iteration = time_iteration.elapsed();
 
         #ifdef REL_TOL
-        residual =  sqrt(rr_global)/rr_init;
+        residual =  sqrt(rTrnew_global)/rTr_init;
         #else
-        residual =  sqrt(rr_global);
+        residual =  sqrt(rTrnew_global);
         #endif
 
         #ifdef MY_VERBOSE
@@ -805,20 +728,6 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
         std::cout << "d3point7 MLUPs: " << MLUPS(d1,d2,d3,nt,lapse_time_d3point7.wall) << std::endl << std::endl;
     }
 
-    // {
-    //     std::stringstream ss;
-    //     ss << PID;
-    //     std::string filename = "Ad" + ss.str() + ".txt";
-    //     std::ofstream file(filename.c_str());
-    //     Ad.print(file);
-    // }
-    // {
-    //     std::stringstream ss;
-    //     ss << PID;
-    //     std::string filename = "d" + ss.str() + ".txt";
-    //     std::ofstream file(filename.c_str());
-    //     d.print(file);
-    // }
 
 #ifdef DEBUG
     {
