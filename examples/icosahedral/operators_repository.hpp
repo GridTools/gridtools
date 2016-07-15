@@ -212,6 +212,7 @@ namespace ico_operators {
         vertex_storage_type &out_vertex() { return m_out_vertex; }
         vertex_storage_type &curl_u_ref() { return m_curl_u_ref; }
         vertex_2d_storage_type &dual_area() { return m_dual_area; }
+        cell_2d_storage_type &cell_area() { return m_cell_area; }
         vertex_2d_storage_type &dual_area_reciprocal() { return m_dual_area_reciprocal; }
 
         edge_2d_storage_type &edge_length() { return m_edge_length; }

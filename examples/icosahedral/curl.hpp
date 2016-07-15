@@ -95,7 +95,7 @@ namespace ico_operators {
             edge_orientation.d2h_update();
 #endif
         }
-/*
+
         {
             typedef arg<0, edge_storage_type> p_in_edges;
             typedef arg<1, edges_of_vertexes_storage_type> p_curl_weights;
@@ -137,7 +137,7 @@ namespace ico_operators {
             benchmarker::run(stencil_, t_steps);
 #endif
         }
-*/
+
         {
             typedef arg<0, edge_storage_type> p_in_edges;
             typedef arg<1, vertex_2d_storage_type> p_dual_area_reciprocal;

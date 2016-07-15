@@ -47,7 +47,7 @@ namespace ico_operators {
 
     template < uint_t Color >
     struct curl_prep_functor {
-        typedef inout_accessor< 0, icosahedral_topology_t::vertexes > dual_area_reciprocal;
+        typedef in_accessor< 0, icosahedral_topology_t::vertexes > dual_area_reciprocal;
         typedef in_accessor< 1, icosahedral_topology_t::edges, extent< 1 > > dual_edge_length;
         typedef inout_accessor< 2, icosahedral_topology_t::vertexes, 5 > weights;
         typedef in_accessor< 3, icosahedral_topology_t::vertexes, extent< 1 >, 5 > edge_orientation;
@@ -61,7 +61,7 @@ namespace ico_operators {
             constexpr auto neighbors_offsets = connectivity< vertexes, edges, Color >::offsets();
             ushort_t e = 0;
             for (auto neighbor_offset : neighbors_offsets) {
-                eval(weights(edge + e)) += eval(edge_orientation(edge + e)) * eval(dual_edge_length(neighbor_offset)) /
+                eval(weights(edge + e)) += eval(edge_orientation(edge + e)) * eval(dual_edge_length(neighbor_offset)) *
                                            eval(dual_area_reciprocal());
                 e++;
             }
