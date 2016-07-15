@@ -69,5 +69,9 @@ namespace gridtools {
             typename StorageInfo>
         using storage_t = typename base_t::template storage_type< ValueType, StorageInfo>::type;
 
+        template< typename ValueType,
+            typename StorageInfo>
+        using temporary_storage_t = typename base_t::template temporary_storage_type< ValueType, StorageInfo>::type;
+
     };
 } // namespace gridtools

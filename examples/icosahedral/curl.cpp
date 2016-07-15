@@ -73,5 +73,5 @@ TEST(Curl, Test) {
     if (t == 0)
         t = 1;
 
-    ASSERT_TRUE(curlex::test(x, y, z, t, verify));
+    ASSERT_TRUE(ico_operators::test(x, y, z, t, verify));
 }

@@ -751,6 +751,9 @@ namespace gridtools {
         using storage_t = typename Backend::template storage_t< ValueType, meta_storage_t<LocationType> >;
 
         template < typename LocationType, typename ValueType >
+        using temporary_storage_t = typename Backend::template temporary_storage_t< ValueType, meta_storage_t<LocationType> >;
+
+        template < typename LocationType, typename ValueType >
         using storage_2d_t = typename Backend::template storage_t< ValueType, meta_storage_2d_t<LocationType> >;
 
         const array< uint_t, 3 > m_dims; // Sizes as cells in a multi-dimensional Cell array

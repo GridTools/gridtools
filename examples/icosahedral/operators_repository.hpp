@@ -3,7 +3,7 @@
 #include "../icosahedral/unstructured_grid.hpp"
 #include <random>
 
-namespace operators {
+namespace ico_operators {
     using namespace gridtools;
     using namespace enumtype;
     using namespace expressions;
