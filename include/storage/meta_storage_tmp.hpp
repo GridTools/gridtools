@@ -35,6 +35,7 @@
 */
 #pragma once
 #include "meta_storage_base.hpp"
+#include "storage_grid_traits.hpp"
 
 /**
    @file
@@ -124,7 +125,13 @@ namespace gridtools {
             uint_t const &dim3,
             uint_t const &n_i_threads = 1,
             uint_t const &n_j_threads = 1)
+// HACK INTRODUCTING GRIDS IN STORAGE
+#ifdef STRUCTURED_GRIDS
             : super((tile_i + minus_i + plus_i) * n_i_threads, (tile_j + minus_j + plus_j) * n_j_threads, dim3)
+#else
+            : super((tile_i + minus_i + plus_i) * n_i_threads, 2, (tile_j + minus_j + plus_j) * n_j_threads, dim3)
+#endif
+
 #ifdef CXX11_ENABLED
               ,
               m_initial_offsets {
@@ -203,7 +210,9 @@ namespace gridtools {
             const int_t steps_, const uint_t block_, int_t *RESTRICT index_, StridesVector const &strides_) const {
 
             // no blocking along k
-            if (Coordinate != 2) {
+
+            // HACK INTRODUCTING GRIDS IN STORAGE
+            if (Coordinate != storage_grid_traits::dim_k_t::value) {
                 uint_t tile_ = Coordinate == 0 ? tile_i : tile_j;
                 BOOST_STATIC_ASSERT(layout::template at_< Coordinate >::value >= 0);
                 *index_ += (steps_ - block_ * tile_ - m_initial_offsets[Coordinate]) *

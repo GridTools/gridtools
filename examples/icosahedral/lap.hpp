@@ -187,7 +187,7 @@ namespace ico_operators {
         typedef arg<1, cell_storage_type> p_div_on_cells;
         typedef arg<2, edge_storage_type> p_grad_div;
         typedef arg<3, vertex_storage_type> p_curl_on_vertexes;
-        typedef arg<4, edge_storage_type> p_grad_curl;
+        typedef arg<4, tmp_edge_storage_type> p_grad_curl;
         typedef arg<5, edge_storage_type> p_out_edges;
         typedef arg<6, edges_of_vertexes_storage_type> p_curl_weights1;
         typedef arg<7, edges_of_cells_storage_type> p_div_weights1;
@@ -217,7 +217,7 @@ namespace ico_operators {
                         &div_on_cells,
                         &grad_div,
                         &curl_on_vertexes,
-                        &grad_curl,
+//                        &grad_curl,
                         &out_edges,
                         &curl_weights,
                         &div_weights,

@@ -71,4 +71,21 @@ namespace gridtools {
         typedef extent< Extent1::value + Extent2::value > type;
     };
 
+    template<typename Extent> struct extent_get_iminus{
+        GRIDTOOLS_STATIC_ASSERT((is_extent<Extent>::value), "Error");
+        static const int_t value = Extent::value;
+    };
+    template<typename Extent> struct extent_get_iplus{
+        GRIDTOOLS_STATIC_ASSERT((is_extent<Extent>::value), "Error");
+        static const int_t value = Extent::value;
+    };
+    template<typename Extent> struct extent_get_jminus{
+        GRIDTOOLS_STATIC_ASSERT((is_extent<Extent>::value), "Error");
+        static const int_t value = Extent::value;
+    };
+    template<typename Extent> struct extent_get_jplus{
+        GRIDTOOLS_STATIC_ASSERT((is_extent<Extent>::value), "Error");
+        static const int_t value = Extent::value;
+    };
+
 } // namespace gridtools
