@@ -36,8 +36,10 @@
 
 #pragma once
 
+#include <tools/verifier.hpp>
 #include "curl_functors.hpp"
 #include "div_functors.hpp"
+#include "grad_functors.hpp"
 #include "operators_repository.hpp"
 
 namespace ico_operators {
@@ -47,6 +49,7 @@ namespace ico_operators {
     typedef gridtools::interval<level<0, -2>, level<1, 1> >
             axis;
 
+    template<uint_t Color>
     struct lap_functor {
         typedef in_accessor<0, icosahedral_topology_t::edges, extent<1> > grad_div;
         typedef in_accessor<1, icosahedral_topology_t::edges, extent<1> > grad_curl;
@@ -79,6 +82,12 @@ namespace ico_operators {
         using edge_storage_type = repository::edge_storage_type;
         using cell_storage_type = repository::cell_storage_type;
         using vertex_storage_type = repository::vertex_storage_type;
+
+        using edge_2d_storage_type = repository::edge_2d_storage_type;
+        using cell_2d_storage_type = repository::cell_2d_storage_type;
+        using vertex_2d_storage_type = repository::vertex_2d_storage_type;
+
+        using tmp_edge_storage_type = repository::tmp_edge_storage_type;
         using edges_of_vertexes_storage_type = repository::edges_of_vertexes_storage_type;
         using edges_of_cells_storage_type = repository::edges_of_cells_storage_type;
 
@@ -94,19 +103,18 @@ namespace ico_operators {
         // for div
         auto &cell_area = repository.cell_area();
         auto &edge_length = repository.edge_length();
-        auto &div_weights_meta = repository.edges_of_cells_meta();
-        edges_of_cells_storage_type div_weights(div_weights_meta, "div_weights");
+        edges_of_cells_storage_type& div_weights = repository.div_weights();
         edges_of_cells_storage_type &orientation_of_normal = repository.orientation_of_normal();
 
         div_weights.initialize(0.0);
 
-        typedef arg<0, vertex_storage_type> p_dual_area;
-        typedef arg<1, edge_storage_type> p_dual_edge_length;
+        typedef arg<0, vertex_2d_storage_type> p_dual_area;
+        typedef arg<1, edge_2d_storage_type> p_dual_edge_length;
         typedef arg<2, edges_of_vertexes_storage_type> p_curl_weights;
         typedef arg<3, edges_of_vertexes_storage_type> p_edge_orientation;
 
-        typedef arg<4, cell_storage_type> p_cell_area;
-        typedef arg<5, edge_storage_type> p_edge_length;
+        typedef arg<4, cell_2d_storage_type> p_cell_area;
+        typedef arg<5, edge_2d_storage_type> p_edge_length;
         typedef arg<6, edges_of_cells_storage_type> p_div_weights;
         typedef arg<7, edges_of_cells_storage_type> p_orientation_of_normal;
 
@@ -184,9 +192,9 @@ namespace ico_operators {
         typedef arg<6, edges_of_vertexes_storage_type> p_curl_weights1;
         typedef arg<7, edges_of_cells_storage_type> p_div_weights1;
         typedef arg<8, edges_of_cells_storage_type> p_orientation_of_normal1;
-        typedef arg<9, edge_storage_type> p_dual_edge_length1;
+        typedef arg<9, edge_2d_storage_type> p_dual_edge_length1;
         typedef arg<10, edges_of_vertexes_storage_type> p_edge_orientation1;
-        typedef arg<11, edge_storage_type> p_edge_length1;
+        typedef arg<11, edge_2d_storage_type> p_edge_length1;
 
         typedef boost::mpl::vector<
                 p_in_edges,
@@ -228,14 +236,14 @@ namespace ico_operators {
                         make_stage<div_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(
                                 p_in_edges(), p_div_weights1(), p_div_on_cells()
                         ),
-                        make_stage<curl_functor, icosahedral_topology_t, icosahedral_topology_t::vertexes>(
+                        make_stage<curl_functor_weights, icosahedral_topology_t, icosahedral_topology_t::vertexes>(
                                 p_in_edges(), p_curl_weights1(), p_curl_on_vertexes()
                         ),
-                        make_stage<grad_n, icosahedral_topology_t, icosahedral_topology_t::cells>(
-                                p_div_on_cells(), p_orientation_of_normal1(), p_grad_div(), p_dual_edge_length1()
+                        make_stage<grad_n, icosahedral_topology_t, icosahedral_topology_t::edges>(
+                                p_div_on_cells(), p_orientation_of_normal1(), p_grad_div()
                         ),
-                        make_stage<grad_tau, icosahedral_topology_t, icosahedral_topology_t::vertexes>(
-                                p_curl_on_vertexes(), p_edge_orientation1(), p_grad_curl(), p_edge_length1()
+                        make_stage<grad_tau, icosahedral_topology_t, icosahedral_topology_t::edges>(
+                                p_curl_on_vertexes(), p_edge_orientation1(), p_grad_curl()
                         ),
                         make_stage<lap_functor, icosahedral_topology_t, icosahedral_topology_t::edges>(
                                 p_grad_div(), p_grad_curl(), p_out_edges()

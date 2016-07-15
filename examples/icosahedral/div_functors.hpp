@@ -69,5 +69,29 @@ namespace ico_operators {
          }
      };
 
+     template < uint_t Color >
+     struct div_prep_functor {
+         typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 1 > > edge_length;
+         typedef inout_accessor< 1, icosahedral_topology_t::cells > cell_area_reciprocal;
+         typedef in_accessor< 2, icosahedral_topology_t::cells, extent< 1 >, 5 > orientation_of_normal;
+         typedef inout_accessor< 3, icosahedral_topology_t::cells, 5 > weights;
+
+         typedef boost::mpl::vector< edge_length, cell_area_reciprocal, orientation_of_normal, weights > arg_list;
+
+         template < typename Evaluation >
+         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+             using edge_of_cell_dim = dimension< 5 >;
+             edge_of_cell_dim::Index edge;
+
+             constexpr auto neighbors_offsets = connectivity< cells, edges, Color >::offsets();
+             ushort_t e = 0;
+             for (auto neighbor_offset : neighbors_offsets) {
+                 eval(weights(edge + e)) +=
+                     eval(orientation_of_normal(edge + e)) * eval(edge_length(neighbor_offset)) * eval(cell_area_reciprocal());
+                 e++;
+             }
+         }
+     };
+
 }
 
