@@ -36,7 +36,8 @@
 
 #pragma once
 
-#include "operator_functors.hpp"
+#include "curl_functors.hpp"
+#include "div_functors.hpp"
 #include "operators_repository.hpp"
 
 namespace ico_operators {

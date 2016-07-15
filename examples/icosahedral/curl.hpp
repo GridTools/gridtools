@@ -7,7 +7,7 @@
 #include "operators_repository.hpp"
 #include "../benchmarker.hpp"
 #include "operator_defs.hpp"
-#include "operator_functors.hpp"
+#include "curl_functors.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
