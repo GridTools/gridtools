@@ -1,5 +1,5 @@
 list( APPEND SRCFILES #laplace 
-      stencil_on_cells stencil_on_cells_color stencil_on_edges stencil_on_edges_of_cells stencil_on_neighcell_of_edges stencil_on_neighedge_of_cells stencil_manual_fold stencil_on_vertexes stencil_on_edges_multiplefields curl)
+      stencil_on_cells stencil_on_cells_color stencil_on_edges stencil_on_edges_of_cells stencil_on_neighcell_of_edges stencil_on_neighedge_of_cells stencil_manual_fold stencil_on_vertexes stencil_on_edges_multiplefields curl lap)
 
 file(GLOB_RECURSE INC_ALL "[a-z]*.hpp")
 set( GTEST_FILES ../Options.hpp ../Options.cpp unstructured_grid.cpp)

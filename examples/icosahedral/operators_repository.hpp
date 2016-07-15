@@ -1,6 +1,43 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
+
 #pragma once
 
 #include "../icosahedral/unstructured_grid.hpp"
+#include "operator_defs.hpp"
 #include <random>
 
 namespace ico_operators {
@@ -8,32 +45,21 @@ namespace ico_operators {
     using namespace enumtype;
     using namespace expressions;
 
-#ifdef __CUDACC__
-#define BACKEND backend< gridtools::enumtype::Cuda, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >
-#else
-#define BACKEND backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Naive >
-#endif
-#endif
-
     using backend_t = BACKEND;
 
     class repository {
       public:
         using layout_2d_t = backend_t::select_layout< selector< 1, 1, 1, -1 > >;
-
-        using icosahedral_topology_t = ::gridtools::icosahedral_topology< backend_t >;
-
+        using cell_metastorage_2d_t = icosahedral_topology_t::meta_storage_2d_t< icosahedral_topology_t::cells >;
         using edge_metastorage_2d_t = icosahedral_topology_t::meta_storage_2d_t< icosahedral_topology_t::edges >;
         using vertex_metastorage_2d_t = icosahedral_topology_t::meta_storage_2d_t< icosahedral_topology_t::vertexes >;
 
-        using edge_storage_type = typename icosahedral_topology_t::storage_t< icosahedral_topology_t::edges, double >;
         using cell_storage_type = typename icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, double >;
+        using edge_storage_type = typename icosahedral_topology_t::storage_t< icosahedral_topology_t::edges, double >;
         using vertex_storage_type =
             typename icosahedral_topology_t::storage_t< icosahedral_topology_t::vertexes, double >;
 
+        using cell_2d_storage_type = typename backend_t::storage_t< double, cell_metastorage_2d_t >;
         using edge_2d_storage_type = typename backend_t::storage_t< double, edge_metastorage_2d_t >;
         using vertex_2d_storage_type = typename backend_t::storage_t< double, vertex_metastorage_2d_t >;
 
@@ -45,17 +71,23 @@ namespace ico_operators {
         vertex_storage_type m_curl_u_ref;
         vertex_2d_storage_type m_dual_area;
         vertex_2d_storage_type m_dual_area_reciprocal;
+        cell_2d_storage_type m_cell_area;
 
         decltype(meta_storage_extender()(m_dual_area.meta_data(), 6)) m_edges_of_vertexes_meta;
+        decltype(meta_storage_extender()(m_cell_area.meta_data(), 3)) m_edges_of_cells_meta;
 
       public:
         using edges_of_vertexes_storage_type =
             typename backend_t::storage_type< double, decltype(m_edges_of_vertexes_meta) >::type;
 
+        using edges_of_cells_storage_type =
+            typename backend_t::storage_type< double, decltype(m_edges_of_cells_meta) >::type;
+
       private:
         edge_2d_storage_type m_edge_length;
         edge_2d_storage_type m_dual_edge_length;
         edges_of_vertexes_storage_type m_edge_orientation;
+        edges_of_cells_storage_type m_orientation_of_normal;
 
       public:
         uint_t idim() { return m_idim; }
@@ -71,12 +103,16 @@ namespace ico_operators {
                   icosahedral_grid_.template make_storage< icosahedral_topology_t::vertexes, double >("curl_u_ref")),
               m_dual_area(
                   icosahedral_grid_.template make_2d_storage< icosahedral_topology_t::vertexes, double >("dual_area")),
+              m_cell_area(
+                  icosahedral_grid_.template make_2d_storage< icosahedral_topology_t::cells, double >("cell_area")),
               m_edge_length(
                   icosahedral_grid_.template make_2d_storage< icosahedral_topology_t::edges, double >("edge_length")),
               m_dual_edge_length(icosahedral_grid_.template make_2d_storage< icosahedral_topology_t::edges, double >(
                   "dual_edge_length")),
               m_edges_of_vertexes_meta(meta_storage_extender()(m_dual_area.meta_data(), 6)),
+              m_edges_of_cells_meta(meta_storage_extender()(m_cell_area.meta_data(), 3)),
               m_edge_orientation(m_edges_of_vertexes_meta, "edge_orientation"),
+              m_orientation_of_normal(m_edges_of_cells_meta, "orientation_of_normal"),
               m_dual_area_reciprocal(icosahedral_grid_.make_2d_storage< icosahedral_topology_t::vertexes, double >(
                   "dual_area_reciprocal")) {}
 
@@ -101,17 +137,30 @@ namespace ico_operators {
                 for (int c = 0; c < icosahedral_topology_t::vertexes::n_colors::value; ++c) {
                     for (int j = 0; j < m_jdim; ++j) {
                         m_dual_area(i, c, j, 0) = 1.1 + dis(gen);
+                        m_cell_area(i,c,j,0) = 2.53 + dis(gen);
                     }
                 }
             }
 
             // dual_area_reciprocal_
-            for (int i = 0; i < icosahedral_grid_.m_dims[0]; ++i) {
+            for (int i = 0; i < m_idim; ++i) {
                 for (int c = 0; c < icosahedral_topology_t::vertexes::n_colors::value; ++c) {
                     for (int j = 0; j < icosahedral_grid_.m_dims[1]; ++j) {
                         m_dual_area_reciprocal(i, c, j, 0) = 1. / m_dual_area(i, c, j, 0);
                     }
                 }
+            }
+
+            // orientation of normal
+            for (int i = 0; i < m_idim; ++i) {
+                    for (int j = 0; j < m_jdim; ++j) {
+                        for (uint_t k = 0; k < m_kdim; ++k) {
+                            for (uint_t e = 0; e < 3; ++e) {
+                                m_orientation_of_normal(i, 0, j, 0, e) = 1;
+                                m_orientation_of_normal(i, 1, j, 0, e) = -1;
+                            }
+                        }
+                    }
             }
 
             // edge orientation

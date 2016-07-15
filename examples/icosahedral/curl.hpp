@@ -1,6 +1,3 @@
-//
-// Created by Xiaolin Guo on 19.04.16.
-//
 #pragma once
 
 #include "gtest/gtest.h"
@@ -17,7 +14,7 @@ using namespace enumtype;
 
 namespace ico_operators {
 
-    bool test( uint_t x, uint_t y, uint_t z, uint_t t_steps, bool verify)
+    bool test_curl( uint_t x, uint_t y, uint_t z, uint_t t_steps, bool verify)
     {
 
         repository repository(x, y, z);

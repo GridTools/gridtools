@@ -1,4 +1,42 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
+
 #pragma once
+#include <common/defs.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 #include "operator_defs.hpp"
 
 namespace ico_operators {
@@ -6,8 +44,6 @@ namespace ico_operators {
     using namespace gridtools;
     using namespace enumtype;
     using namespace expressions;
-
-    using icosahedral_topology_t = repository::icosahedral_topology_t;
 
     template < uint_t Color >
     struct curl_prep_functor {
@@ -76,4 +112,27 @@ namespace ico_operators {
             eval(out_vertexes()) *= eval(dual_area_reciprocal());
         }
     };
+
+    template < uint_t Color >
+     struct div_functor {
+         typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 1 > > in_edges;
+         typedef in_accessor< 1, icosahedral_topology_t::cells, extent< 1 >, 5 > weights;
+         typedef inout_accessor< 2, icosahedral_topology_t::cells > out_cells;
+         typedef boost::mpl::vector< in_edges, weights, out_cells > arg_list;
+
+         template < typename Evaluation >
+         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+             using edge_of_cells_dim = dimension< 5 >;
+             edge_of_cells_dim::Index edge;
+
+             eval(out_cells()) = 0.;
+             constexpr auto neighbors_offsets = connectivity< cells, edges, Color >::offsets();
+             ushort_t e = 0;
+             for (auto neighbor_offset : neighbors_offsets) {
+                 eval(out_cells()) += eval(in_edges(neighbor_offset)) * eval(weights(edge + e));
+                 e++;
+             }
+         }
+     };
+
 }
