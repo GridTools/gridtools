@@ -52,21 +52,22 @@ namespace gridtools {
     struct backend< BackendId, enumtype::icosahedral, StrategyType >
         : public backend_base< BackendId, enumtype::icosahedral, StrategyType > {
       public:
-
         typedef backend_base< BackendId, enumtype::icosahedral, StrategyType > base_t;
 
         using typename base_t::backend_traits_t;
         using typename base_t::strategy_traits_t;
         using layout_map_t = typename icgrid::grid_traits_arch< base_t::s_backend_id >::layout_map_t;
 
+        template < typename DimSelector >
+        using select_layout = typename filter_layout< layout_map_t, DimSelector >::type;
 
-        template<typename DimSelector>
-        using select_layout = typename filter_layout<layout_map_t, DimSelector>::type;
+        template < uint_t Index,
+            typename LayoutMap >
+        using storage_info_t = typename base_t::template storage_info< Index, LayoutMap >;
 
-        template < typename LocationType, typename LayoutMap = typename icgrid::grid_traits_arch< base_t::s_backend_id >::layout_map_t >
-        using storage_info_t = typename base_t::template storage_info< LocationType::value, LayoutMap>;
+        template< typename ValueType,
+            typename StorageInfo>
+        using storage_t = typename base_t::template storage_type< ValueType, StorageInfo>::type;
 
-        template < typename LocationType, typename ValueType >
-        using storage_t = typename base_t::template storage_type< ValueType, storage_info_t< LocationType > >::type;
     };
 } // namespace gridtools

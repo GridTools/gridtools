@@ -151,9 +151,6 @@ namespace gridtools {
             readonly_args_indices_t;
 
       private:
-        GRIDTOOLS_STATIC_ASSERT((N_META_STORAGES <= grid_topology_t::n_locations::value),
-            "We can not have more meta storages"
-            "than location types. Data fields for other grids are not yet supported");
         local_domain_t const &m_local_domain;
         grid_topology_t const &m_grid_topology;
         typedef array< int_t, N_META_STORAGES > array_index_t;

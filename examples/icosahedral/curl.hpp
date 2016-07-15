@@ -25,11 +25,11 @@ namespace curlex {
 
     template < uint_t Color >
     struct curl_prep_functor {
-        typedef inout_accessor<0, icosahedral_topology_t::vertexes > dual_area;
+        typedef inout_accessor<0, icosahedral_topology_t::vertexes > dual_area_reciprocal;
         typedef in_accessor<1, icosahedral_topology_t::edges, extent<1> > dual_edge_length;
         typedef inout_accessor<2, icosahedral_topology_t::vertexes, 5 > weights;
         typedef in_accessor<3, icosahedral_topology_t::vertexes, extent<1>, 5 > edge_orientation;
-        typedef boost::mpl::vector<dual_area, dual_edge_length, weights, edge_orientation> arg_list;
+        typedef boost::mpl::vector<dual_area_reciprocal, dual_edge_length, weights, edge_orientation> arg_list;
 
         template<typename Evaluation>
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval)
@@ -38,12 +38,11 @@ namespace curlex {
             edge_of_vertex_dim::Index edge;
 
             constexpr auto neighbors_offsets = connectivity< vertexes, edges, Color >::offsets();
-//            ushort_t e=0;
-//            for (auto neighbor_offset : neighbors_offsets) {
-//                eval(weights(edge + e)) += eval(edge_orientation(edge + e)) * eval(dual_edge_length(neighbor_offset)) / eval(dual_area());
-//                e++;
-//            }
-            eval(dual_area()) = 1. / eval(dual_area());
+            ushort_t e=0;
+            for (auto neighbor_offset : neighbors_offsets) {
+                eval(weights(edge + e)) += eval(edge_orientation(edge + e)) * eval(dual_edge_length(neighbor_offset)) / eval(dual_area_reciprocal());
+                e++;
+            }
         }
     };
 
@@ -74,10 +73,10 @@ namespace curlex {
     template < uint_t Color >
     struct curl_functor_flow_convention {
         typedef in_accessor<0, icosahedral_topology_t::edges, extent<1> > in_edges;
-        typedef in_accessor<1, icosahedral_topology_t::vertexes, extent<1> > dual_area;
+        typedef in_accessor<1, icosahedral_topology_t::vertexes > dual_area_reciprocal;
         typedef in_accessor<2, icosahedral_topology_t::edges, extent<1> > dual_edge_length;
         typedef inout_accessor<3, icosahedral_topology_t::vertexes > out_vertexes;
-        typedef boost::mpl::vector<in_edges, dual_area, dual_edge_length, out_vertexes> arg_list;
+        typedef boost::mpl::vector<in_edges, dual_area_reciprocal, dual_edge_length, out_vertexes> arg_list;
 
         template<typename Evaluation>
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval)
@@ -89,7 +88,8 @@ namespace curlex {
                     + eval(in_edges(neighbor_offsets[3])) * eval(dual_edge_length(neighbor_offsets[3]))
                     - eval(in_edges(neighbor_offsets[4])) * eval(dual_edge_length(neighbor_offsets[4]))
                     + eval(in_edges(neighbor_offsets[5])) * eval(dual_edge_length(neighbor_offsets[5]));
-            eval(out_vertexes()) *= eval(dual_area());
+
+            eval(out_vertexes()) *= eval(dual_area_reciprocal());
         }
     };
 
@@ -114,14 +114,17 @@ namespace curlex {
         using edge_storage_type = operators::repository::edge_storage_type;
         using cell_storage_type = operators::repository::cell_storage_type;
         using vertex_storage_type = operators::repository::vertex_storage_type;
+        using vertex_2d_storage_type = operators::repository::vertex_2d_storage_type;
+        using edge_2d_storage_type = operators::repository::edge_2d_storage_type;
+
         using edges_of_vertexes_storage_type = operators::repository::edges_of_vertexes_storage_type;
 
         auto& in_edges = repository.u();
-        auto& dual_area = repository.dual_area();
+        auto& dual_area_reciprocal = repository.dual_area_reciprocal();
         auto& dual_edge_length = repository.dual_edge_length();
         auto& ref_vertexes = repository.curl_u_ref();
         auto& weights_meta = repository.edges_of_vertexes_meta();
-        auto out_vertexes = icosahedral_grid.make_storage<icosahedral_topology_t::vertexes, double>("out");
+        auto& out_vertexes = repository.out_vertex();
 
         edges_of_vertexes_storage_type curl_weights(weights_meta, "weights");
         edges_of_vertexes_storage_type &edge_orientation = repository.edge_orientation();
@@ -140,16 +143,16 @@ namespace curlex {
         bool result = true;
 
         {
-            typedef arg<0, vertex_storage_type> p_dual_area;
-            typedef arg<1, edge_storage_type> p_dual_edge_length;
+            typedef arg<0, vertex_2d_storage_type> p_dual_area_reciprocal;
+            typedef arg<1, edge_2d_storage_type> p_dual_edge_length;
             typedef arg<2, edges_of_vertexes_storage_type> p_curl_weights;
             typedef arg<3, edges_of_vertexes_storage_type> p_edge_orientation;
 
-            typedef boost::mpl::vector<p_dual_area, p_dual_edge_length, p_curl_weights, p_edge_orientation>
+            typedef boost::mpl::vector<p_dual_area_reciprocal, p_dual_edge_length, p_curl_weights, p_edge_orientation>
                     accessor_list_t;
 
             gridtools::aggregator_type<accessor_list_t> domain(
-                    boost::fusion::make_vector(&dual_area, &dual_edge_length, &curl_weights, &edge_orientation));
+                    boost::fusion::make_vector(&dual_area_reciprocal, &dual_edge_length, &curl_weights, &edge_orientation));
 
             auto stencil_ = gridtools::make_computation<backend_t>(
                     domain,
@@ -157,7 +160,7 @@ namespace curlex {
                     gridtools::make_multistage // mss_descriptor
                             (execute<forward>(),
                              gridtools::make_stage<curl_prep_functor, icosahedral_topology_t, icosahedral_topology_t::vertexes >(
-                                     p_dual_area(), p_dual_edge_length(), p_curl_weights(), p_edge_orientation())
+                                     p_dual_area_reciprocal(), p_dual_edge_length(), p_curl_weights(), p_edge_orientation())
                             )
             );
             stencil_->ready();
@@ -165,7 +168,7 @@ namespace curlex {
             stencil_->run();
 
 #ifdef __CUDACC__
-            dual_area.d2h_update();
+            dual_area_reciprocal.d2h_update();
             dual_edge_length.d2h_update();
             curl_weights.d2h_update();
             edge_orientation.d2h_update();
@@ -216,15 +219,15 @@ namespace curlex {
 */
         {
             typedef arg<0, edge_storage_type> p_in_edges;
-            typedef arg<1, vertex_storage_type> p_dual_area;
-            typedef arg<2, edge_storage_type> p_dual_edge_length;
+            typedef arg<1, vertex_2d_storage_type> p_dual_area_reciprocal;
+            typedef arg<2, edge_2d_storage_type> p_dual_edge_length;
             typedef arg<3, vertex_storage_type> p_out_vertexes;
 
-            typedef boost::mpl::vector<p_in_edges, p_dual_area, p_dual_edge_length, p_out_vertexes>
+            typedef boost::mpl::vector<p_in_edges, p_dual_area_reciprocal, p_dual_edge_length, p_out_vertexes>
                     accessor_list_t;
 
             gridtools::aggregator_type<accessor_list_t> domain(
-                    boost::fusion::make_vector(&in_edges, &dual_area, &dual_edge_length, &out_vertexes));
+                    boost::fusion::make_vector(&in_edges, &dual_area_reciprocal, &dual_edge_length, &out_vertexes));
 
             auto stencil_ = gridtools::make_computation<backend_t>(
                     domain,
@@ -232,7 +235,7 @@ namespace curlex {
                     gridtools::make_multistage // mss_descriptor
                             (execute<forward>(),
                              gridtools::make_stage<curl_functor_flow_convention, icosahedral_topology_t, icosahedral_topology_t::vertexes >(
-                                     p_in_edges(), p_dual_area(), p_dual_edge_length(), p_out_vertexes())
+                                     p_in_edges(), p_dual_area_reciprocal(), p_dual_edge_length(), p_out_vertexes())
                             )
             );
 
@@ -242,7 +245,7 @@ namespace curlex {
 
 #ifdef __CUDACC__
             in_edges.d2h_update();
-            dual_area.d2h_update();
+            dual_area_reciprocal.d2h_update();
             dual_edge_length.d2h_update();
             out_vertexes.d2h_update();
 #endif
