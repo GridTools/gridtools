@@ -67,6 +67,8 @@ else()
 endif()
 
 ## cuda support ##
+string(REPLACE "." "" CUDA_VERSION_ ${CUDA_VERSION})
+add_definitions(-DCUDA_VERSION=${CUDA_VERSION})
 if( USE_GPU )
   message(STATUS "Using GPU")
   find_package(CUDA REQUIRED)
