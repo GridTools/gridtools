@@ -203,6 +203,7 @@ namespace gridtools {
                     m_domain_full, *m_domain_chunk_remainder, m_size - m_size % ExpandFactor::value + i));
                 m_intermediate_remainder->run();
             }
+            return 0.; // reduction disabled
         }
 
         /**
