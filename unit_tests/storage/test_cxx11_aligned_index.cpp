@@ -11,7 +11,7 @@ typedef layout_map<1,0> layout;
 
 template <typename T>
 void print_me(T& storage, int splitter) {
-    auto size = storage.fields_view()->get_size();
+    unsigned size = storage.fields_view()->get_size();
     std::cout << "size: " << size << "\n" << std::endl;
     for(int i=0; i<size; ++i) {
         std::cout << (*storage.fields_view())[i] << " ";
