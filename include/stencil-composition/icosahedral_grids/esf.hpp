@@ -18,6 +18,7 @@
 #include "../arg.hpp"
 #include "../esf_fwd.hpp"
 #include "../icosahedral_grids/grid.hpp"
+#include "extent.hpp"
 #include "vector_accessor.hpp"
 #include "../esf_aux.hpp"
 #include "color.hpp"
