@@ -209,13 +209,22 @@ namespace gridtools {
         GT_FUNCTION void initialize(
             const int_t steps_, const uint_t block_, int_t *RESTRICT index_, StridesVector const &strides_) const {
 
-            // no blocking along k
+// no blocking along k
 
-            // HACK INTRODUCTING GRIDS IN STORAGE
+// HACK INTRODUCTING GRIDS IN STORAGE
+#ifdef STRUCTURED_GRIDS
             if (Coordinate != storage_grid_traits::dim_k_t::value) {
+#else
+            if (Coordinate != storage_grid_traits::dim_k_t::value && Coordinate != 1) {
+#endif
                 uint_t tile_ = Coordinate == 0 ? tile_i : tile_j;
                 BOOST_STATIC_ASSERT(layout::template at_< Coordinate >::value >= 0);
-                *index_ += (steps_ - block_ * tile_ - m_initial_offsets[Coordinate]) *
+                *index_ += (steps_ - block_ * tile_ -
+#ifdef STRUCTURED_GRIDS
+                               m_initial_offsets[Coordinate]) *
+#else
+                               m_initial_offsets[Coordinate==1 ? 2 : 0]) *
+#endif
                            basic_type::template strides< Coordinate >(strides_);
             } else {
                 super::template initialize< Coordinate >(steps_, block_, index_, strides_);

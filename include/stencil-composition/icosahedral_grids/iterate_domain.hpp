@@ -213,6 +213,7 @@ namespace gridtools {
         GT_FUNCTION void assign_storage_pointers() {
             const uint_t EU_id_i = BackendType::processing_element_i();
             const uint_t EU_id_j = BackendType::processing_element_j();
+
             boost::mpl::for_each< typename reversed_range< uint_t, 0, N_STORAGES >::type >(
                 assign_storage_functor< BackendType,
                     data_pointer_array_t,
@@ -589,12 +590,11 @@ namespace gridtools {
             pointer< const typename storage_type::storage_info_type > const metadata_ =
                 boost::fusion::at< metadata_index_t >(m_local_domain.m_local_metadata);
             // getting the value
-
             // the following assert fails when an out of bound access is observed, i.e. either one of
             // i+offset_i or j+offset_j or k+offset_k is too large.
             // Most probably this is due to you specifying a positive offset which is larger than expected,
             // or maybe you did a mistake when specifying the extents in the placehoders definition
-            assert(metadata_->size() > metadata_->index(m_grid_position));
+            assert((int)metadata_->size() > (m_index[metadata_index_t::value]));
 
             // the following assert fails when an out of bound access is observed,
             // i.e. when some offset is negative and either one of
@@ -610,9 +610,10 @@ namespace gridtools {
             assert((int_t)(metadata_->index(m_grid_position)) >= 0);
 
             const int_t pointer_offset =
-                metadata_->index(m_grid_position) +
+                (m_index[metadata_index_t::value]) +
                 metadata_->_index(strides().template get< metadata_index_t::value >(), accessor.offsets());
 
+            assert((int)metadata_->size() > pointer_offset);
             return *(real_storage_pointer + pointer_offset);
         }
 
@@ -632,6 +633,15 @@ namespace gridtools {
             typename storage_type::value_type *RESTRICT real_storage_pointer =
                 static_cast< typename storage_type::value_type * >(storage_pointer);
 
+#ifndef NDEBUG
+            typedef typename boost::mpl::at< metadata_map_t, typename storage_type::storage_info_type >::type
+                metadata_index_t;
+
+            pointer< const typename storage_type::storage_info_type > const metadata_ =
+                boost::fusion::at< metadata_index_t >(m_local_domain.m_local_metadata);
+
+            assert((int)metadata_->size() > offset);
+#endif
             return *(real_storage_pointer + offset);
         }
 

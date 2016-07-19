@@ -39,7 +39,6 @@
 #include "../block_size.hpp"
 #include "../extent.hpp"
 #include "../../common/offset_tuple.hpp"
-#include "../extent.hpp"
 
 namespace gridtools {
 
