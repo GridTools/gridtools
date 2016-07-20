@@ -95,8 +95,8 @@ class StencilCompiler ( ):
                 #
                 # ... and by including runtime information
                 #
-                stencil.scope.runtime_analysis      (stencil, **kwargs)
-                stencil.generate_code               ( )
+                stencil.scope.runtime_analysis (stencil, **kwargs)
+                stencil.generate_code          ( )
                 #
                 # build and check stencil data dependency graph
                 #
@@ -108,6 +108,12 @@ class StencilCompiler ( ):
                 stencil.identify_IO_stages               ( )
                 stencil.scope.build_execution_path       (stencil.name)
                 stencil.scope.check_stage_execution_path ( )
+                #
+                # Compute stencil's minimum halo
+                #
+                stencil.scope.compute_access_extents ( )
+                stencil.scope.compute_minimum_halo   ( )
+                stencil.scope.update_ghost_cell      ( )
                 #
                 # Generate GridTools splitters data
                 #
