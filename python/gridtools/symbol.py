@@ -86,10 +86,11 @@ class Symbol (object):
     def set_access_pattern (self, offset):
         """
         Sets or updates the access pattern of this symbol
+
         :param offset: the pattern is defined as (access offset in 'i',
                                                   access offset in 'j',
                                                   access offset in 'k')
-        :raise IndexError: if the access pattern
+        :raise IndexError: if the offset argument contains an invalid index
         :return:
         """
         try:
@@ -367,7 +368,7 @@ class Scope (object):
         """
         Returns True if symbol with 'name' is an alias.-
         """
-        return name in [a.name for a in self.get_all (['alias'])]
+        return name in [a.name for a in self.get_aliases ( )]
 
 
     def is_constant (self, name):
@@ -381,7 +382,7 @@ class Scope (object):
         """
         Returns True if symbol 'name' is a local variable
         """
-        return name in [l.name for l in self.get_all (['local'])]
+        return name in [l.name for l in self.get_locals ( )]
 
 
     def is_parameter (self, name):
@@ -414,11 +415,25 @@ class Scope (object):
                     yield self.symbol_table[n]
 
 
+    def get_aliases (self):
+        """
+        Returns a sorted list of all aliases in this scope.-
+        """
+        return self.get_all (['alias'])
+
+
     def get_constants (self):
         """
         Returns a sorted list of all constants in this scope.-
         """
         return self.get_all (['const'])
+
+
+    def get_locals (self):
+        """
+        Returns a sorted list of all local variables in this scope.-
+        """
+        return self.get_all (['local'])
 
 
     def get_parameters (self):
