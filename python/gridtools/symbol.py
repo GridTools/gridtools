@@ -512,6 +512,10 @@ class StencilScope (Scope):
         # the stencil's source code
         #
         self.py_src          = None
+        #
+        # kernel line number in the self.py_src code
+        #
+        self.kernel_lineno   = None
 
 
     def _resolve_params (self, stencil, **kwargs):
