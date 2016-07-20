@@ -498,17 +498,12 @@ class StageScope (Scope):
     Stage symbols are organized into scopes that represent code visibility
     blocks.-
     """
-    def get_ghost_cell (self):
-        """
-        Returns the ghost-cell pattern of this stage alone
-        :return: a 4-element list describing the ghost cell
-        """
-        ghost = [0,0,0,0]
-        for sym in self.get_all ( ):
-            if sym.access_pattern is not None:
-                for idx in range (len (sym.access_pattern)):
-                    ghost[idx] += sym.access_pattern[idx]
-        return ghost
+    def __init__ (self):
+        super ( ).__init__ ( )
+        #
+        # The ghost-cell pattern of this stage
+        #
+        self.ghost_cell = None
 
 
 

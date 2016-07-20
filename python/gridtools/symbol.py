@@ -926,46 +926,33 @@ class StencilScope (Scope):
         """
         Updates the ghost-cell access pattern of each stage of the stencil, the
         shape of which is based on the access patterns of their data fields
+
         :return:
         """
         all_stgs = nx.topological_sort (self.stage_execution,
                                         reverse=True)
-        #
-        # first, reset all ghost cells
-        #
         for stg in all_stgs:
-            stg.ghost_cell = None
-        #
-        # now start calculating them from the leaves ...
-        #
-        for stg in all_stgs:
-            if len (self.stage_execution.successors (stg)) == 0:
-                stg.ghost_cell = [0,0,0,0]
-        #
-        # ... towards the root
-        #
-        for stg in all_stgs:
-            if stg.ghost_cell is None:
-                succs = self.stage_execution.successors (stg)
-                assert (len (succs) > 0)
-                stg.ghost_cell = list (succs[0].ghost_cell)
-                for suc in succs:
-                    add_ghost = suc.scope.get_ghost_cell ( )
-                    for idx in range (len (stg.ghost_cell)):
-                        stg.ghost_cell[idx] += add_ghost[idx]
-        if __debug__:
-            for stg in all_stgs:
-                logging.debug ("Stage '%s' has ghost cell %s" % (stg.name,
-                                                                 stg.ghost_cell))
-        #
-        # calculate the minimum required halo
-        #
-        first_stg         = all_stgs[-1]
-        self.minimum_halo = list (first_stg.ghost_cell)
-        add_ghost         = first_stg.scope.get_ghost_cell ( )
-        for idx in range (len (self.minimum_halo)):
-            self.minimum_halo[idx] += add_ghost[idx]
-        for idx in range (len (self.minimum_halo)):
-            if self.minimum_halo[idx] < 0:
-                self.minimum_halo[idx] *= -1
-        logging.debug ("Minimum required halo is %s" % self.minimum_halo)
+            #
+            # Initialize the ghost cell
+            #
+            stg.ghost_cell  = [0,0,0,0]
+            #
+            # Stage ghost cell is the minimum enclosing extent of its output,
+            # where the output extent is the one at stencil scope
+            #
+            for out in stg.outputs:
+                out_ext = self.symbol_table[out.name].access_extent
+                if out_ext is None:
+                    out_ext  = [0,0,0,0]
+                stg.ghost_cell = self.minimum_enclosing_extent (stg.ghost_cell,
+                                                                out_ext)
+            #
+            # Convert all numbers in the ghost cell descriptor to positive,
+            # making it compliant to the same logic of the minimum halo
+            # descriptor
+            #
+            stg.ghost_cell[0] *= -1
+            stg.ghost_cell[2] *= -1
+
+            logging.debug ("Stage '%s' has ghost cell %s" % (stg.name,
+                                                             stg.ghost_cell))
