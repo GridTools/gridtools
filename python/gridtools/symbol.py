@@ -595,6 +595,7 @@ class StencilScope (Scope):
                       stencil_name)
         new_stage_execution = nx.DiGraph ( )
         for stg in nx.topological_sort (self.stage_execution):
+            logging.debug('Processing stage: %s' % stg.name)
             new_stage_execution.add_node(stg)
             #
             # Create modifiable lists for stage input and output
@@ -602,8 +603,8 @@ class StencilScope (Scope):
             stg_in = list(stg.inputs)
             #
             # Look for connections among nodes introduced in the new graph
-            # Use the reverse sort order to find the latest node with the
-            # desired output
+            # Use the reverse sort order to find the latest nodes with the
+            # desired output.
             #
             for other in nx.topological_sort(new_stage_execution, reverse=True):
                 logging.debug('\tLooping other nodes: %s' % other.name)
@@ -614,24 +615,27 @@ class StencilScope (Scope):
                     continue
                 for i, data in enumerate(stg_in):
                     if data in other.outputs:
-                        new_stage_execution.add_edge(other, stg)
                         #
                         # We have found a match for this input.
-                        # To avoid duplicate matches, possibly with earlier nodes
-                        # with the same outputs of "other", pop this stage input
-                        # from the temporary list
+                        # If the stage we are processing has no connections,
+                        # create a new edge
                         #
-                        stg_in.pop(i)
-                        logging.debug('\t\tMatch found! Popping input data.' +
-                                      'New stg_in: %s' % stg_in)
+                        logging.debug('\t\tMatch found!')
+                        if not new_stage_execution.predecessors (stg):
+                            new_stage_execution.add_edge(other, stg)
+                        #
+                        # Else, check that the "other" node is not an ancestor
+                        # of the processed stage. This avoids duplicate and wrong
+                        # connections between nodes.
+                        #
+                        else:
+                            for pred in new_stage_execution.predecessors (stg):
+                                if other not in nx.ancestors(new_stage_execution, pred):
+                                    new_stage_execution.add_edge(other, stg)
         #
         # save the newly built execution path
         #
         self.stage_execution = new_stage_execution
-        #
-        # ... and update the ghost-cell access pattern
-        #
-        self.update_ghost_cell ( )
 
 
     def check_stage_execution_path (self):
