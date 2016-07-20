@@ -565,20 +565,24 @@ class VerticalRegion ( ):
         #
         # retrieve the symbol of the sliced array, resolving alias if necessary
         #
-        array_sym = scope[self.array_name]
-        if scope.is_alias (array_sym):
-            #
-            # If the stage is defined through a function, the array symbol value
-            # will be an alias to a stencil scope symbol; we have to resolve the
-            # alias to get the actual array
-            # Otherwise, if the stage is defined through a for loop in the kernel,
-            # array_sym's value already contains the numerical array, and no
-            # lookup in the stencil scope symbol has to be performed.
-            # Remember that the stage scope also contains the stencil-level
-            # symbols that correspond to aliases! This means that we don't need
-            # the stencil scope object to get to the underlying numerical array.
-            #
-            array_sym = scope[array_sym.value]
+        try:
+            array_sym = scope[self.array_name]
+            if scope.is_alias (array_sym):
+                #
+                # If the stage is defined through a function, the array symbol value
+                # will be an alias to a stencil scope symbol; we have to resolve the
+                # alias to get the actual array
+                # Otherwise, if the stage is defined through a for loop in the kernel,
+                # array_sym's value already contains the numerical array, and no
+                # lookup in the stencil scope symbol has to be performed.
+                # Remember that the stage scope also contains the stencil-level
+                # symbols that correspond to aliases! This means that we don't need
+                # the stencil scope object to get to the underlying numerical array.
+                #
+                array_sym = scope[array_sym.value]
+        except KeyError:
+            raise KeyError ("Error while recovering array symbol %s for vertical region %s. Check the call to get_interior_points()."
+                            % (self.array_name, self.name))
         #
         # set indexes based on the given slicing limits
         #

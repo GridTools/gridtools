@@ -114,9 +114,9 @@ class Stencil (object):
             #
             i_dim, j_dim, k_dim = data_field.shape
 
-            start_i = i_off + 0     + halo[0] + ghost_cell[0]
+            start_i = i_off + 0     + halo[0] - ghost_cell[0]
             end_i   = i_off + i_dim - halo[1] + ghost_cell[1]
-            start_j = j_off + 0     + halo[2] + ghost_cell[2]
+            start_j = j_off + 0     + halo[2] - ghost_cell[2]
             end_j   = j_off + j_dim - halo[3] + ghost_cell[3]
 
             #
@@ -619,7 +619,7 @@ class Stencil (object):
 
 
     def plot_data_dependency (self, graph=None, scope=None, show_legend=False,
-    						  outfile=None):
+                              outfile=None):
         """
         Renders a data-depencency graph using 'matplotlib'.
         Graph nodes are colored based on their kind according to the following
