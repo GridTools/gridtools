@@ -31,6 +31,10 @@ from nose.plugins.attrib import attr
 from gridtools.stencil   import Stencil, MultiStageStencil
 from tests.test_stencils import CopyTest
 
+#
+# Prevent CopyTest test cases from running
+#
+CopyTest.__test__ = False
 
 
 
@@ -123,6 +127,9 @@ class SW (MultiStageStencil):
 
 
 class SWTest (CopyTest):
+    __test__ = True
+
+
     def setUp (self):
         super ( ).setUp ( )
 
@@ -386,10 +393,10 @@ class SWTest (CopyTest):
 
 
     def test_ghost_cell_pattern (self):
-        expected_patterns = [ [0,0,0,0],
-                              [0,0,0,0],
-                              [0,0,0,0],
-                              [0,0,0,0] ]
+        expected_patterns = {'stage_momentum_000':[0,0,0,0],
+                             'stage_momentum_001':[0,0,0,0],
+                             'stage_momentum_002':[0,0,0,0],
+                             'stage_003':     [0,0,0,0] }
         super ( ).test_ghost_cell_pattern (expected_patterns,
                                            backend='c++')
         super ( ).test_ghost_cell_pattern (expected_patterns,
@@ -544,6 +551,9 @@ class LocalSW (MultiStageStencil):
 
 
 class LocalSWTest (SWTest):
+    __test__ = True
+
+
     def setUp (self):
         super ( ).setUp ( )
 
@@ -847,4 +857,3 @@ class ShallowWater2D (MultiStageStencil):
                           ( (self.Vy[p + (-1,-1,0)] * self.Vy[p + (-1,-1,0)]) / self.Hy[p + (-1,-1,0)] +
                             (self.Hy[p + (-1,-1,0)] * self.Hy[p + (-1,-1,0)]) * ( self.g / 2.0 ) )
                         ) * ( self.dt / self.dy )
-

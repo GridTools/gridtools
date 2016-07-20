@@ -46,9 +46,8 @@ class AccessPatternDetectionTest (unittest.TestCase):
                         index = acc_ptn[p.name].index (sc[p.name].access_pattern)
                         acc_ptn[p.name].pop (index)
                     except KeyError:
-                        logging.error ("No access offsets given for field '%s'"
-                                       % p.name)
-                        self.assertTrue (False)
+                        self.fail ("No access offsets given for field '%s'"
+                                    % p.name)
 
 
 
@@ -185,13 +184,13 @@ class CopyTest (AccessPatternDetectionTest):
         #
         # Print statements for debugging purposes
         #
-#        for i in range(self.domain[0]):
-#            for j in range(self.domain[1]):
-#                for k in range(self.domain[2]):
-#                    print ("PY  (%d,%d,%d) \t%.5f \t%.5f" % (i,j,k,
-#                           params_py['in_X'][i,j,k], params_py['out_X'][i,j,k]) )
-#                    print ("%s (%d,%d,%d) \t%.5f \t%.5f" % (backend,i,j,k,
-#                           params_cxx['in_X'][i,j,k],params_cxx['out_X'][i,j,k]) )
+#         for i in range(self.domain[0]):
+#             for j in range(self.domain[1]):
+#                 for k in range(self.domain[2]):
+#                     print ("PY  (%d,%d,%d) \t%.5f \t%.5f" % (i,j,k,
+#                            params_py['in_X'][i,j,k], params_py['out_X'][i,j,k]) )
+#                     print ("%s (%d,%d,%d) \t%.5f \t%.5f" % (backend,i,j,k,
+#                            params_cxx['in_X'][i,j,k],params_cxx['out_X'][i,j,k]) )
         print ("%s ndiff: %d" % (backend, ndiff))
         print ("%d runs. Avg ndiff per run: %g." % (nruns, ndiff/nruns))
         self.assertEqual (ndiff, 0)
@@ -207,14 +206,18 @@ class CopyTest (AccessPatternDetectionTest):
         self._run ( )
 
         if expected_patterns is None:
-            expected_patterns = [ [0,0,0,0] ]
+            expected_patterns = { 'stage_000':[0,0,0,0] }
 
         self.assertEqual (len (self.stencil.stages), len (expected_patterns),
                           "Found %d stages, but %d ghost-cell patterns were given" %
                           (len (self.stencil.stages), len (expected_patterns)))
-        for idx in range (len (self.stencil.stages)):
-            self.assertEqual (self.stencil.stages[idx].ghost_cell,
-                              expected_patterns[idx])
+        for stg in self.stencil.stages:
+            #
+            # Extract the expected pattern for this stage from the dict
+            #
+            expected_pattern = [val for key,val in expected_patterns.items()
+                                if key in stg.name][0]
+            self.assertEqual (stg.ghost_cell, expected_pattern)
 
 
     def test_minimum_halo_detection (self, min_halo=[0,0,0,0]):
@@ -493,7 +496,8 @@ class CopyTest (AccessPatternDetectionTest):
         #
         # Retrieve coordinates from function
         #
-        interior_pts = list (Stencil.get_interior_points (data_field))
+        interior_pts = list (Stencil.get_interior_points (data_field,
+                                                          ghost_cell=[0,0,0,0]))
 
         self.assertTrue (all ([x==y for (x,y) in zip(ijk_vals, interior_pts)]))
 
@@ -526,7 +530,8 @@ class CopyTest (AccessPatternDetectionTest):
         #
         # Retrieve coordinates from function
         #
-        interior_pts = list (self.stencil.get_interior_points (data_field))
+        interior_pts = list (self.stencil.get_interior_points (data_field,
+                                                               ghost_cell=[0,0,0,0]))
 
         self.assertTrue (all ([x==y for (x,y) in zip(ijk_vals, interior_pts)]) )
 
@@ -806,14 +811,12 @@ class HorizontalDiffusion (MultiStageStencil):
 
 
     def stage_flux_i (self, out_fli, in_lap):
-        for p in self.get_interior_points (out_fli,
-                                           ghost_cell=[-1,0,-1,0]):
+        for p in self.get_interior_points (out_fli):
             out_fli[p] = in_lap[p + (1,0,0)] - in_lap[p]
 
 
     def stage_flux_j (self, out_flj, in_lap):
-        for p in self.get_interior_points (out_flj,
-                                           ghost_cell=[-1,0,-1,0]):
+        for p in self.get_interior_points (out_flj):
             out_flj[p] = in_lap[p + (0,1,0)] - in_lap[p]
 
 
@@ -822,8 +825,7 @@ class HorizontalDiffusion (MultiStageStencil):
         #
         # Laplace
         #
-        for p in self.get_interior_points (self.lap,
-                                           ghost_cell=[-1,1,-1,1]):
+        for p in self.get_interior_points (self.lap):
             self.lap[p] = -4.0 * in_data[p] +  (
                           in_data[p + (-1,0,0)] + in_data[p + (1,0,0)] +
                           in_data[p + (0,-1,0)] + in_data[p + (0,1,0)] )
@@ -915,10 +917,10 @@ class HorizontalDiffusionTest (CopyTest):
 
     def test_ghost_cell_pattern (self, expected_patterns=None, backend='c++'):
         if expected_patterns is None:
-            expected_patterns = [ [-1,1,-1,1],
-                                  [-1,0,-1,0],
-                                  [-1,0,-1,0],
-                                    [0,0,0,0] ]
+            expected_patterns = {'stage_000':   [1,1,1,1],
+                                 'stage_flux_i':[1,0,0,0],
+                                 'stage_flux_j':[0,0,1,0],
+                                 'stage_003':   [0,0,0,0] }
         super ( ).test_ghost_cell_pattern (expected_patterns,
                                            backend=backend)
 
@@ -1061,10 +1063,10 @@ class VerticalRegionsTest (LaplaceTest):
 
     def test_ghost_cell_pattern (self, expected_patterns=None, backend='c++'):
         if expected_patterns is None:
-            expected_patterns = [ [0,0,0,0],
-                                  [0,0,0,0],
-                                  [0,0,0,0],
-                                  [0,0,0,0] ]
+            expected_patterns = {'stage_laplace0':[0,0,0,0],
+                                 'stage_laplace1':[0,0,0,0],
+                                 'stage_laplace2':[0,0,0,0],
+                                 'stage_laplace3':[0,0,0,0] }
         super ( ).test_ghost_cell_pattern (expected_patterns,
                                            backend=backend)
 

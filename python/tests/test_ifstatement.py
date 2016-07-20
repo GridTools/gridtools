@@ -8,6 +8,11 @@ from nose.plugins.attrib import attr
 from gridtools.stencil  import Stencil, MultiStageStencil
 from tests.test_stencils import CopyTest
 
+#
+# Prevent CopyTest test cases from running
+#
+CopyTest.__test__ = False
+
 
 
 class GameOfLife (MultiStageStencil):
@@ -46,6 +51,9 @@ class GameOfLifeTest (CopyTest):
     """
     A test case for the GameOfLife stencil defined above.-
     """
+    __test__ = True
+
+
     def setUp (self):
         super ( ).setUp ( )
         logging.basicConfig (level=logging.INFO)
@@ -146,6 +154,9 @@ class AdditionalIfStatementTest (CopyTest):
     """
     A test case for the AdditionalIfStatement stencil defined above.-
     """
+    __test__ = True
+
+
     def setUp (self):
         super ( ).setUp ( )
         logging.basicConfig (level=logging.INFO)
