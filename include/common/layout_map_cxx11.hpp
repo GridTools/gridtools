@@ -298,6 +298,8 @@ namespace gridtools {
         GT_FUNCTION static constexpr T find_val(OffsetTuple const &indices) {
             GRIDTOOLS_STATIC_ASSERT((is_offset_tuple< OffsetTuple >::value),
                 "the find_val method must be used with tuples of offset_tuple type");
+            // GRIDTOOLS_STATIC_ASSERT(length <= OffsetTuple::n_dim, "pedantic check: an accessor's dimension is smaller than the corresponding storage space dimension. Check the functor definition, and the domain_type passed to the make_computation.");
+            // GRIDTOOLS_STATIC_ASSERT((OffsetTuple::n_dim-pos_<I>::value-1>=0), "write a message here");
             return ((pos_< I >::value >= length)) ? DefaultVal
                                                   : indices.template get< OffsetTuple::n_dim - pos_< I >::value - 1 >();
             // this calls accessor::get

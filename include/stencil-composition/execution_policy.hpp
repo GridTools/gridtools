@@ -65,10 +65,13 @@ namespace gridtools {
                 iterate_domain_t &iterate_domain_, typename RunFunctorArguments::grid_t const &grid)
                 : super(iterate_domain_, grid) {}
 
-            template < typename IterationPolicy, typename Interval >
-            GT_FUNCTION void k_loop(int_t from, int_t to) const {
-                typedef typename run_esf_functor_h_t::template apply< RunFunctorArguments, Interval >::type
-                    run_esf_functor_t;
+            template<typename IterationPolicy, typename Interval>
+            GT_FUNCTION
+            void k_loop(int_t from, int_t to) const {
+                // assert(from>=0); // PRETTY_FUNCTION issue
+                // assert(to>=0);
+                // assert(to>=from);
+                typedef typename run_esf_functor_h_t::template apply<RunFunctorArguments, Interval>::type run_esf_functor_t;
 
                 for (int_t k = from; k <= to; ++k, IterationPolicy::increment(super::m_domain)) {
                     boost::mpl::for_each< boost::mpl::range_c< int, 0, boost::mpl::size< functor_list_t >::value > >(

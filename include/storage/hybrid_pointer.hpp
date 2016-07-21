@@ -125,6 +125,7 @@ namespace gridtools {
             m_cpu_p.free_it();
             m_up_to_date = true;
             m_pointer_to_use = NULL;
+            m_allocated = false;
 
 #ifdef VERBOSE
             printf("freeing hybrid pointer %x \n", this);

@@ -39,6 +39,8 @@ namespace gridtools {
     struct arg_storage_pair {
 
         GRIDTOOLS_STATIC_ASSERT(is_arg< ArgType >::value, "wrong type");
+        GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename ArgType::storage_type, Storage>::value),
+                                "in the instantiation of the aggregator type a pair (plch() = storage) is not matched");
 
       private:
         // arg_storage_pair(arg_storage_pair const&);

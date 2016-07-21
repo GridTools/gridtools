@@ -114,8 +114,6 @@ namespace gridtools {
         typedef typename iterate_domain_cache_t::all_caches_t all_caches_t;
 
         GRIDTOOLS_STATIC_ASSERT((is_local_domain< local_domain_t >::value), "Internal Error: wrong type");
-        typedef typename boost::remove_pointer<
-            typename boost::mpl::at_c< typename local_domain_t::mpl_storages, 0 >::type >::type::value_type value_type;
 
         /**
          * metafunction that determines if a given accessor is associated with an placeholder holding a data field
@@ -513,15 +511,15 @@ namespace gridtools {
         template < ushort_t Coordinate, typename Accessor >
         GT_FUNCTION uint_t get_storage_dims(Accessor) const {
 
-            using storage_type =
-                typename boost::remove_pointer< typename boost::mpl::at< typename local_domain_t::mpl_storages,
-                    typename Accessor::index_type >::type >::type::value_type;
-            // getting information about the metadata
-            typedef
-                typename boost::mpl::at< metadata_map_t, typename storage_type::storage_info_type >::type metadata_index_t;
+            typedef typename Accessor::index_type index_t;
+            typedef typename local_domain_t::template get_storage<index_t>::type::value_type storage_t;
+            // using storage_type = typename boost::remove_pointer<typename boost::mpl::at<typename local_domain_t::mpl_storages, typename Accessor::index_type>::type>::type::value_type;
+            //getting information about the metadata
+            typedef typename boost::mpl::at
+                <metadata_map_t, typename storage_t::storage_info_type >::type metadata_index_t;
 
-            pointer< const typename storage_type::storage_info_type > const metadata_ =
-                boost::fusion::at< metadata_index_t >(local_domain.m_local_metadata);
+            pointer<const typename storage_t::storage_info_type> const metadata_ = boost::fusion::at
+                < metadata_index_t >(local_domain.m_local_metadata);
 
             return metadata_->template dims< Coordinate >();
         }
