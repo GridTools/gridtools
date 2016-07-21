@@ -513,7 +513,6 @@ namespace gridtools {
 
             typedef typename Accessor::index_type index_t;
             typedef typename local_domain_t::template get_storage<index_t>::type::value_type storage_t;
-            // using storage_type = typename boost::remove_pointer<typename boost::mpl::at<typename local_domain_t::mpl_storages, typename Accessor::index_type>::type>::type::value_type;
             //getting information about the metadata
             typedef typename boost::mpl::at
                 <metadata_map_t, typename storage_t::storage_info_type >::type metadata_index_t;
