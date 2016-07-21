@@ -63,7 +63,7 @@ namespace sov {
 
     template < uint_t Color >
     struct test_on_vertexes_functor {
-        typedef in_accessor< 0, icosahedral_topology_t::vertexes, extent< 1 > > in;
+        typedef in_accessor< 0, icosahedral_topology_t::vertexes, extent< -1,1,-1,1 > > in;
         typedef inout_accessor< 1, icosahedral_topology_t::vertexes > out;
         typedef boost::mpl::vector2< in, out > arg_list;
 
