@@ -131,7 +131,7 @@ namespace ico_operators {
                 for (int c = 0; c < icosahedral_topology_t::edges::n_colors::value; ++c) {
                     for (int j = 0; j < m_jdim; ++j) {
                         for (uint_t k = 0; k < m_kdim; ++k) {
-                            m_u(i, c, j, k) = 1000 * (1.0 + dis(gen));
+                            m_u(i, c, j, k) = 1000 * (1.0 + k*0.1*dis(gen));
                             m_edge_length(i, c, j, 0) = (2.95 + dis(gen));
                             m_dual_edge_length(i, c, j, 0) = (2.2 + dis(gen));
                         }
