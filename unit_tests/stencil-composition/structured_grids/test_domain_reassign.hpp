@@ -15,8 +15,6 @@
 */
 #pragma once
 #include <stencil-composition/stencil-composition.hpp>
-#include "../../examples/cache_flusher.hpp"
-#include "../../examples/defs.hpp"
 
 /**
   @file
@@ -65,8 +63,6 @@ namespace domain_reassign {
     void handle_error(int_t) { std::cout << "error" << std::endl; }
 
     bool test() {
-
-        cache_flusher flusher(cache_flusher_size);
 
         uint_t d1 = 32;
         uint_t d2 = 32;
