@@ -10,7 +10,7 @@ from gridtools.stencil  import Stencil, MultiStageStencil
 
 
 class FastWavesUV (MultiStageStencil):
-    def __init__ (self, domain):
+    def __init__ (self, domain, dt_small=10.0/3.0, dlat=0.02, flat_limit=11):
         super ( ).__init__ ( )
 
         # self.domain = domain
@@ -20,10 +20,10 @@ class FastWavesUV (MultiStageStencil):
         # Constants
         self.earth_radius = 6371.229e3
         self.gravity      = 9.80665
-        self.dt_small     = 10.0/3.0
-        self.dlat         = 0.02
+        self.dt_small     = dt_small
+        self.dlat         = dlat
         self.edadlat      = self.earth_radius / (self.dlat*np.pi / 180.0)
-        self.flat_limit   = 11
+        self.flat_limit   = flat_limit
 
         # # Fields to be further initialized
         # self.utens_stage = np.zeros (domain, dtype=np.float64)
