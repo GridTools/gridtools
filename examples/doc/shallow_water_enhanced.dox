@@ -190,7 +190,7 @@ We initialize the other components of the solution with 0.
 \snippet shallow_water_enhanced.hpp initialization
 
 The next line is a simple definition in which we must list all the non temporary storage pointers. They will then be matched with the corresponding placeholders defined previously.
-\snippet shallow_water_enhanced.hpp domain_type
+\snippet shallow_water_enhanced.h aggregator_type
 
 Then we need to instantiate a \ref gridtools::coordinates "coordinates" type, defining the iteration space in all dimensions for the current partition.
 In this case the iteration space is extracted from the parallel_storage

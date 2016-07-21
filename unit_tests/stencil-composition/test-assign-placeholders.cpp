@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #include "gtest/gtest.h"
 #include <gridtools.hpp>
 #include "stencil-composition/stencil-composition.hpp"
@@ -13,12 +28,12 @@ using namespace enumtype;
 TEST(assign_placeholders, test) {
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Block >
+#define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend<Host, Block >
+#define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
-#define BACKEND backend<Host, Naive >
+#define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
 
@@ -55,7 +70,7 @@ TEST(assign_placeholders, test) {
     // printf("in    (4) pointer: %x\n", &in);
     // printf("out   (5) pointer: %x\n", &out);
 
-    gridtools::domain_type<accessor_list> domain( boost::fusion::make_vector(&coeff, &in, &out) );
+    gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&coeff, &in, &out));
 
     ASSERT_TRUE((boost::fusion::at_c<3>(domain.storage_pointers_view()).get() == &coeff ) &&
                 (boost::fusion::at_c<4>(domain.storage_pointers_view()).get() == &in) &&

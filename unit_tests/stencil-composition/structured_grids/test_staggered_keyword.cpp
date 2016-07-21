@@ -1,13 +1,28 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #include "gtest/gtest.h"
 #include "stencil-composition/stencil-composition.hpp"
 
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Block >
+#ifdef __CUDACC__
+#define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend<Host, Block >
+#define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
-#define BACKEND backend<Host, Naive >
+#define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
 
@@ -23,7 +38,7 @@ namespace test_staggered_keyword{
         static uint_t ok_i;
         static uint_t ok_j;
 
-        typedef accessor<0> p_i;
+        typedef accessor< 0, gridtools::enumtype::inout > p_i;
         typedef accessor<1> p_j;
         typedef boost::mpl::vector<p_i,p_j> arg_list;
         template <typename Evaluation>
@@ -48,11 +63,12 @@ bool test(){
     meta_t meta_((uint_t) 30,(uint_t) 20, (uint_t) 1);
     storage_type i_data (meta_);
     storage_type j_data (meta_);
-    i_data.allocate();
-    j_data.allocate();
 
-    i_data.initialize([] (uint_t const& i_, uint_t const& j_, uint_t const& k_) -> uint_t {return i_;});
-    j_data.initialize([] (uint_t const& i_, uint_t const& j_, uint_t const& k_) -> uint_t {return j_;});
+    auto lam_i = [](uint_t const &i_, uint_t const &j_, uint_t const &k_) -> uint_t { return i_; };
+    auto lam_j = [](uint_t const &i_, uint_t const &j_, uint_t const &k_) -> uint_t { return j_; };
+
+    i_data.initialize(lam_i);
+    j_data.initialize(lam_j);
 
     uint_t di[5] = {0, 0, 5, 30-1, 30};
     uint_t dj[5] = {0, 0, 5, 20-1, 20};
@@ -65,22 +81,17 @@ bool test(){
     typedef arg<1,storage_type> p_j_data;
     typedef boost::mpl::vector<p_i_data, p_j_data> accessor_list;
 
-    domain_type<accessor_list> domain(boost::fusion::make_vector (&i_data, &j_data));
-    auto comp =
-        gridtools::make_computation<gridtools::BACKEND>
-        (
-            domain, grid,
-            gridtools::make_mss
-            (
-                execute<forward>(),
-                gridtools::make_esf<functor, staggered<5,5,5,5> >(p_i_data(), p_j_data())
-                )
-            );
-
+    aggregator_type< accessor_list > domain(boost::fusion::make_vector(&i_data, &j_data));
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(
+            execute< forward >(), gridtools::make_stage< functor, staggered< 5, 5, 5, 5 > >(p_i_data(), p_j_data())));
 
     comp->ready();
     comp->steady();
     comp->run();
+
     return (functor::ok_i&&functor::ok_j);
 }
 } //namespace test_staggered_keyword

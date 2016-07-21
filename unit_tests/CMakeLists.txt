@@ -1,19 +1,11 @@
 add_executable(FunctorDoMethodLookupMaps FunctorDoMethodLookupMaps.cpp)
 gridtools_add_test(test.FunctorDoMethodLookupMaps ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/FunctorDoMethodLookupMaps")
 
-add_executable(FunctorDoMethods FunctorDoMethods.cpp)
-gridtools_add_test(test.FunctorDoMethods ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/FunctorDoMethods")
+#add_executable(FunctorDoMethods FunctorDoMethods.cpp)
+#gridtools_add_test(test.FunctorDoMethods ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/FunctorDoMethods")
 
-add_executable(LoopIntervals LoopIntervals.cpp)
-gridtools_add_test(test.LoopIntervals ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/LoopIntervals")
-
-if ( ENABLE_CXX11 AND STRUCTURED_GRIDS)
-    add_executable(test-independent test-independent.cpp)
-    set_target_properties(test-independent PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
-    target_link_libraries(test-independent ${exe_LIBS})
-    gridtools_add_test(tests.test_independent ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/test-independent")
-
-endif()
+#add_executable(LoopIntervals LoopIntervals.cpp)
+#gridtools_add_test(test.LoopIntervals ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/LoopIntervals")
 
 set(COMMON_TESTS
     test_domain_indices.cpp
@@ -25,12 +17,6 @@ if(STRUCTURED_GRIDS)
 endif(STRUCTURED_GRIDS)
 
 add_executable(tests ${COMMON_TESTS})
-
-if(STRUCTURED_GRIDS)
-add_executable(test_global_accessor test_global_accessor.cpp)
-set_target_properties(test_global_accessor PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
-target_link_libraries(test_global_accessor ${GTEST_BOTH_LIBRARIES} gcl -lpthread ${exe_LIBS})
-endif(STRUCTURED_GRIDS)
 
 # include boost
 include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
@@ -47,18 +33,24 @@ endif()
 
 gridtools_add_test(test.tests ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/tests")
 
-
-if (CUDA_FOUND)
-    cuda_add_executable( tests_gpu
-      tests.cu
+if (CUDA_FOUND AND STRUCTURED_GRIDS)
+    set(GPU_SOURCES tests.cu
       test_domain.cu
       test_cuda_storage.cu
       test_hybrid_pointer.cu
       gpu_clone.cu
       cloningstuff.cu
-      boundary_conditions_test.cu
-      test_global_accessor.cu
+    )
+    if(STRUCTURED_GRIDS)
+      set(GPU_SOURCES ${GPU_SOURCES}
+        boundary_conditions_test.cu
+        test_global_accessor.cu
       )
+    endif(STRUCTURED_GRIDS)
+
+    cuda_add_executable( tests_gpu
+      ${GPU_SOURCES}
+    )
 
     gridtools_add_test(tests.tests_gpu ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/tests_gpu")
 
@@ -100,4 +92,5 @@ if(STRUCTURED_GRIDS)
 endif(STRUCTURED_GRIDS)
 add_subdirectory( common )
 add_subdirectory( stencil-composition )
+add_subdirectory( reductions )
 add_subdirectory( storage )

@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #include <gridtools.hpp>
 #include <common/halo_descriptor.hpp>
 
@@ -23,12 +38,12 @@ using namespace gridtools;
 using namespace enumtype;
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend<Cuda, Block>
+#define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend<Host, Block>
+#define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
-#define BACKEND backend<Host, Naive>
+#define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
 
@@ -104,8 +119,6 @@ int main(int argc, char** argv) {
     in.initialize(-1);
     storage_type out(meta_, "out");
     out.initialize(-7);
-    storage_type coeff(meta_, "coeff");
-    coeff.initialize(8);
 
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {
@@ -123,14 +136,10 @@ int main(int argc, char** argv) {
 
 #ifdef CUDA_EXAMPLE
     //TODO also metadata must be copied/used here
-    meta_.clone_to_device();
-    in.clone_to_device();
-    out.clone_to_device();
     in.h2d_update();
     out.h2d_update();
 
     gridtools::boundary_apply_gpu<direction_bc_input<uint_t> >(halos, direction_bc_input<uint_t>(2)).apply(in, out);
-
     in.d2h_update();
 #else
     gridtools::boundary_apply<direction_bc_input<uint_t> >(halos, direction_bc_input<uint_t>(2)).apply(in, out);

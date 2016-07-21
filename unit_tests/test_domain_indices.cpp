@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #define BOOST_NO_CXX11_RVALUE_REFERENCES
 
 #include "stencil-composition/stencil-composition.hpp"
@@ -39,15 +54,18 @@ struct print_plchld {
 
 bool test_domain_indices() {
 
-    typedef backend<enumtype::Host,enumtype::Naive>::storage_type<float_type, backend<enumtype::Host,enumtype::Naive>::storage_info<0,layout_map<0,1,2> > >::type storage_type;
-    typedef backend<enumtype::Host,enumtype::Naive>::temporary_storage_type<float_type, backend<enumtype::Host,enumtype::Naive>::storage_info<0,layout_map<0,1,2> > >::type tmp_storage_type;
-
+    typedef backend< enumtype::Host, GRIDBACKEND, enumtype::Naive >::storage_type< float_type,
+        backend< enumtype::Host, GRIDBACKEND, enumtype::Naive >::storage_info< 0, layout_map< 0, 1, 2 > > >::type
+        storage_type;
+    typedef backend< enumtype::Host, GRIDBACKEND, enumtype::Naive >::temporary_storage_type< float_type,
+        backend< enumtype::Host, GRIDBACKEND, enumtype::Naive >::storage_info< 0, layout_map< 0, 1, 2 > > >::type
+        tmp_storage_type;
 
     uint_t d1 = 10;
     uint_t d2 = 10;
     uint_t d3 = 10;
 
-    backend<enumtype::Host,enumtype::Naive>::storage_info<0, layout_map<0,1,2> > meta_(d1,d2,d3);
+    backend< enumtype::Host, GRIDBACKEND, enumtype::Naive >::storage_info< 0, layout_map< 0, 1, 2 > > meta_(d1, d2, d3);
     storage_type in(meta_,-1., "in");
     storage_type out(meta_,-7.3, "out");
     storage_type coeff(meta_,8., "coeff");
@@ -63,8 +81,7 @@ bool test_domain_indices() {
 
     typedef boost::mpl::vector<p_lap, p_flx, p_fly, p_coeff, p_in, p_out> accessor_list;
 
-    domain_type<accessor_list> domain
-       (boost::fusion::make_vector(&out, &in, &coeff /*,&fly, &flx*/));
+    aggregator_type< accessor_list > domain(boost::fusion::make_vector(&out, &in, &coeff /*,&fly, &flx*/));
 
     count = 0;
     result = true;
@@ -72,8 +89,7 @@ bool test_domain_indices() {
     print_plchld pfph;
     count = 0;
     result = true;
-    boost::mpl::for_each<domain_type<accessor_list>::placeholders>(pfph);
-
+    boost::mpl::for_each< aggregator_type< accessor_list >::placeholders >(pfph);
 
     return result;
 }

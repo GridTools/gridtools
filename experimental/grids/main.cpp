@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 using uint_t = unsigned int;
 using int_t = int;
 #include <iostream>
@@ -206,9 +221,8 @@ int main() {
     std::cout << "#############################################################################################################################################################" << std::endl;
 
     {
-        auto x = make_esf<stencil_on_cells, trapezoid_2D, trapezoid_2D::cells>
-            (out_cells(), in_cells(), out_edges(), in_edges());
-
+        auto x = make_stage< stencil_on_cells, trapezoid_2D, trapezoid_2D::cells >(
+            out_cells(), in_cells(), out_edges(), in_edges());
 
         auto ptrs = boost::fusion::vector<cell_storage_type*,
                                           cell_storage_type*,
@@ -247,8 +261,8 @@ int main() {
     std::cout << "#############################################################################################################################################################" << std::endl;
 
     {
-        auto x = make_esf<stencil_on_edges, trapezoid_2D, trapezoid_2D::edges>
-            (out_cells(), out_cells(), out_edges(), in_edges());
+        auto x = make_stage< stencil_on_edges, trapezoid_2D, trapezoid_2D::edges >(
+            out_cells(), out_cells(), out_edges(), in_edges());
 
         iterate_domain<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
                       trapezoid_2D, trapezoid_2D::cells> acc
@@ -282,9 +296,7 @@ int main() {
     std::cout << "#############################################################################################################################################################" << std::endl;
 
     {
-        auto x = make_esf<stencil_on_vertexes, trapezoid_2D, trapezoid_2D::vertexes>
-            (out_vertexes(), in_vertexes());
-
+        auto x = make_stage< stencil_on_vertexes, trapezoid_2D, trapezoid_2D::vertexes >(out_vertexes(), in_vertexes());
 
         auto ptrs = boost::fusion::vector<vertex_storage_type*,
                                           vertex_storage_type*>
@@ -321,8 +333,8 @@ int main() {
     std::cout << "#############################################################################################################################################################" << std::endl;
 
     {
-        auto x = make_esf<nested_stencil, trapezoid_2D, trapezoid_2D::cells>
-            (out_cells(), in_cells(), out_edges(), in_edges());
+        auto x = make_stage< nested_stencil, trapezoid_2D, trapezoid_2D::cells >(
+            out_cells(), in_cells(), out_edges(), in_edges());
 
         iterate_domain<boost::mpl::vector<in_cells, out_cells, out_edges, in_edges>,
                       trapezoid_2D, trapezoid_2D::cells> acc

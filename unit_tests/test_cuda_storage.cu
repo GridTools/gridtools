@@ -32,7 +32,7 @@ using namespace gridtools;
 using namespace enumtype;
 bool test_cuda_storage() {
 
-    typedef backend<Cuda, Block > backend_t;
+    typedef backend<Cuda, GRIDBACKEND, Block > backend_t;
     typedef backend_t::storage_type<float_type, backend_t::storage_info<0,layout_map<0,1,2> > > ::type storage_type;
 
     uint_t d1 = 3;
@@ -62,9 +62,10 @@ bool test_cuda_storage() {
 
     data.h2d_update(); //copy to GPU
     data.clone_to_device();
-    meta_.clone_to_device();//copy meta information to the GPU
 
-    add_on_gpu<<<1,1>>>(meta_.gpu_object_ptr, data.gpu_object_ptr, d1, d2, d3);
+    // clang-format off
+    add_on_gpu<<<1,1>>>(data.get_meta_data_pointer().get(), data.get_pointer_to_use(), d1, d2, d3);
+    // clang-format on
     cudaDeviceSynchronize();
 
     data.d2h_update();

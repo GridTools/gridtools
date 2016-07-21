@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #include <gridtools.hpp>
 #include "common/halo_descriptor.hpp"
 
@@ -28,12 +43,12 @@ using namespace gridtools;
 using namespace enumtype;
 
 #ifdef __CUDACC__
-#define BACKEND backend<Cuda, Block>
+#define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend<Host , Block>
+#define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
-#define BACKEND backend<Host, Naive >
+#define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
 
@@ -156,7 +171,6 @@ bool basic() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    meta_.clone_to_device();
     in.h2d_update();
     in.clone_to_device();
 
@@ -269,7 +283,6 @@ bool predicate() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    meta_.clone_to_device();
     in.h2d_update();
     in.clone_to_device();
 
@@ -383,7 +396,6 @@ bool twosurfaces() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    meta_.clone_to_device();
     in.h2d_update();
     in.clone_to_device();
 
@@ -483,7 +495,6 @@ bool usingzero_1() {
     gridtools::BACKEND::storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
     storage_type in(meta_, -1, "in");
 
-
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {
             for (uint_t k=0; k<d3; ++k) {
@@ -498,7 +509,6 @@ bool usingzero_1() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    meta_.clone_to_device();
     in.h2d_update();
     in.clone_to_device();
 
@@ -614,7 +624,6 @@ bool usingzero_2() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    meta_.clone_to_device();
     in.h2d_update();
     out.h2d_update();
     in.clone_to_device();
@@ -755,7 +764,6 @@ bool usingvalue_2() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    meta_.clone_to_device();
     in.h2d_update();
     out.h2d_update();
     in.clone_to_device();
@@ -897,7 +905,6 @@ bool usingcopy_3() {
     halos[2] = gridtools::halo_descriptor(1,1,1,d3-2,d3);
 
 #ifdef __CUDACC__
-    meta_.clone_to_device();
     one.h2d_update();
     one.clone_to_device();
     two.h2d_update();

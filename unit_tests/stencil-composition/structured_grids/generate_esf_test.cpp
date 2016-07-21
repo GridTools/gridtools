@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 GridTools Consortium
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 #include <iostream>
 #include <string>
 #include <vector>
@@ -9,25 +24,23 @@ struct prelude {
     std::string out() const {
 
         std::string code;
-        code += "#include \"common/defs.hpp\"\n";
         code += "#include \"gtest/gtest.h\"\n";
         code += "#include <boost/mpl/equal.hpp>\n";
-        code += "#include \"stencil-composition/backend.hpp\"\n";
-        code += "#include \"stencil-composition/caches/cache_metafunctions.hpp\"\n";
-        code += "#include \"stencil-composition/caches/define_caches.hpp\"\n";
-        code += "#include \"stencil-composition/interval.hpp\"\n";
-        code += "#include \"stencil-composition/make_computation.hpp\"\n";
+        code += "#include <stencil-composition/stencil-composition.hpp>\n";
         code += "\n";
-        code += "using namespace gridtools::enumtype;\n";
-        code += "using gridtools::accessor;\n";
-        code += "using gridtools::range;\n";
-        code += "using gridtools::layout_map;\n";
-        code += "using gridtools::float_type;\n";
-        code += "using gridtools::arg;\n";
-        code += "using gridtools::uint_t;\n";
-        code += "using gridtools::int_t;\n";
+        // code += "using namespace gridtools::enumtype;\n";
+        // code += "using gridtools::accessor;\n";
+        // code += "using gridtools::extent;\n";
+        // code += "using gridtools::layout_map;\n";
+        // code += "using gridtools::float_type;\n";
+        // code += "using gridtools::arg;\n";
+        // code += "using gridtools::uint_t;\n";
+        // code += "using gridtools::int_t;\n";
         code += "\n";
-        code += "typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_interval;\n";
+        code += "using namespace gridtools;\n";
+        code += "using namespace enumtype;\n";
+        code += "\n";
+        code += "typedef interval<level<0,-1>, level<1,-1> > x_interval;\n";
         code += "struct print_r {\n";
         code += "    template <typename T>\n";
         code += "    void operator()(T const& ) const {\n";
@@ -84,13 +97,8 @@ struct range {
     }
 
     std::string out() const {
-        std::string r = "range<"
-            + std::to_string(im) + ", "
-            + std::to_string(ip) + ", "
-            + std::to_string(jm) + ", "
-            + std::to_string(jp) + ", "
-            + std::to_string(km) + ", "
-            + std::to_string(kp) + ">";
+        std::string r = "extent<" + std::to_string(im) + ", " + std::to_string(ip) + ", " + std::to_string(jm) + ", " +
+                        std::to_string(jp) + ", " + std::to_string(km) + ", " + std::to_string(kp) + "> ";
         return r;
     }
 };
@@ -171,9 +179,10 @@ struct generate_functor {
 
         for (int i=0; i<m_n_args; ++i) {
             if (i==m_index_of_output) {
-                code += "    typedef accessor<" + std::to_string(i) + "> out;\n";
+                code += "    typedef accessor<" + std::to_string(i) + ", enumtype::inout> out;\n";
             } else {
-                code += "    typedef const accessor<" + std::to_string(i) + ", " + m_ranges[i].out() + "> in" + std::to_string(i) + ";\n";
+                code += "    typedef accessor<" + std::to_string(i) + ", enumtype::in, " + m_ranges[i].out() + "> in" +
+                        std::to_string(i) + ";\n";
             }
         }
         code += "\n    typedef boost::mpl::vector<"; //in,out> arg_list;
@@ -369,15 +378,11 @@ int main() {
     }
 
     // boilerplate
-    program += "#ifdef __CUDACC__\n";
-    program += "  #define BACKEND backend<Cuda, Block >\n";
-    program += "#else\n";
-    program += "  #define BACKEND backend<Host, Block >\n";
-    program += "#endif\n";
+    program += "#define BACKEND backend<Host, GRIDBACKEND, Block >\n";
     program += "\n";
-    program += "typedef layout_map<2,1,0> layout_ijk_t;\n";
-    program += "typedef gridtools::BACKEND::storage_type<float_type, layout_ijk_t >::type storage_type;\n";
-    program += "typedef gridtools::BACKEND::temporary_storage_type<float_type, layout_ijk_t >::type tmp_storage_type;\n";
+    program += "typedef layout_map<2,1,0> layout_t;\n";
+    program += "typedef BACKEND::storage_info<0, layout_t > storage_info_type;\n";
+    program += "typedef BACKEND::storage_type<float_type, storage_info_type >::type storage_type;\n";
     program += "\n";
     program += "\n";
 
@@ -408,7 +413,7 @@ int main() {
 
 
     for (int i = 0; i < functors.size(); ++i) {
-        program += "    typedef decltype(gridtools::make_esf<" + functors[i].name() + ">(";
+        program += "    typedef decltype(make_stage<" + functors[i].name() + ">(";
         for (int j = 0; j < names[i].size(); ++j) {
             program += names[i][j] + "()";
             if (j != names[i].size()-1) {
@@ -418,7 +423,7 @@ int main() {
         program += ")) " + functors[i].name() + "__;\n";
    }
 
-    program += "    typedef decltype( gridtools::make_mss\n";
+   program += "    typedef decltype( make_multistage\n";
     program += "        (\n";
     program += "            execute<forward>(),\n";
     for (int i = 0; i < functors.size(); ++i) {
@@ -433,7 +438,9 @@ int main() {
 
     program += "    " + list_of_plcs;
 
-    program += "\n    typedef gridtools::compute_ranges_of<placeholders>::for_mss<mss_t>::type final_map;\n";
+    program += "\n    typedef "
+               "strgrid::compute_extents_of<strgrid::init_map_of_extents<placeholders>::type>::for_mss<mss_t>::type "
+               "final_map;\n";
 
     program += "    std::cout << \"FINAL\" << std::endl;\n";
     program += "    boost::mpl::for_each<final_map>(print_r());\n\n";

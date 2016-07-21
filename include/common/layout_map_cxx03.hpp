@@ -1,5 +1,4 @@
-#ifndef _LAYOUT_MAP_H_
-#define _LAYOUT_MAP_H_
+#pragma once
 
 #include <gridtools.hpp>
 #include <boost/static_assert.hpp>
@@ -19,186 +18,170 @@
 */
 namespace gridtools {
 
-/**
-   @struct
-   @brief Used as template argument in the storage.
-   In particular in the \ref gridtools::base_storage class it regulate memory access order, defined at compile-time, by leaving the interface unchanged.
-*/
+    /**
+       @struct
+       @brief Used as template argument in the storage.
+       In particular in the \ref gridtools::base_storage class it regulate memory access order, defined at compile-time,
+       by leaving the interface unchanged.
+    */
 
     namespace _impl {
-        template <ushort_t I>
+        template < ushort_t I >
         struct select_s;
 
         template <>
-        struct select_s<0> {
-            template <typename T>
-            GT_FUNCTION
-            T& get(T & a) {
+        struct select_s< 0 > {
+            template < typename T >
+            GT_FUNCTION T &get(T &a) {
                 return a;
             }
 
-            template <typename T>
-            GT_FUNCTION
-            T& get(T & a, T & /*b*/) {
+            template < typename T >
+            GT_FUNCTION T &get(T &a, T & /*b*/) {
                 return a;
             }
 
-            template <typename T>
-            GT_FUNCTION
-            T& get(T & a, T & /*b*/, T & /*c*/) {
+            template < typename T >
+            GT_FUNCTION T &get(T &a, T & /*b*/, T & /*c*/) {
                 return a;
             }
 
-            template <typename T>
-            GT_FUNCTION
-            T& get(T & a, T & /*b*/, T & /*c*/, T & /*d*/) {
+            template < typename T >
+            GT_FUNCTION T &get(T &a, T & /*b*/, T & /*c*/, T & /*d*/) {
                 return a;
             }
         };
 
         template <>
-        struct select_s<1> {
-            template <typename T>
-            GT_FUNCTION
-            T& get(T & /*a*/, T & b) {
+        struct select_s< 1 > {
+            template < typename T >
+            GT_FUNCTION T &get(T & /*a*/, T &b) {
                 return b;
             }
 
-            template <typename T>
-            GT_FUNCTION
-            T& get(T & /*a*/, T & b, T & /*c*/) {
+            template < typename T >
+            GT_FUNCTION T &get(T & /*a*/, T &b, T & /*c*/) {
                 return b;
             }
 
-            template <typename T>
-            GT_FUNCTION
-            T& get(T & /*a*/, T & b, T & /*c*/, T & /*d*/) {
+            template < typename T >
+            GT_FUNCTION T &get(T & /*a*/, T &b, T & /*c*/, T & /*d*/) {
                 return b;
             }
         };
 
         template <>
-        struct select_s<2> {
-            template <typename T>
-            GT_FUNCTION
-            T& get(T & /*a*/, T & /*b*/, T & c) {
+        struct select_s< 2 > {
+            template < typename T >
+            GT_FUNCTION T &get(T & /*a*/, T & /*b*/, T &c) {
                 return c;
             }
 
-            template <typename T>
-            GT_FUNCTION
-            T& get(T & /*a*/, T & /*b*/, T & c, T & /*d*/) {
+            template < typename T >
+            GT_FUNCTION T &get(T & /*a*/, T & /*b*/, T &c, T & /*d*/) {
                 return c;
             }
         };
 
         template <>
-        struct select_s<3> {
-            template <typename T>
-            GT_FUNCTION
-            T& get(T & /*a*/, T & /*b*/, T & /*c*/, T & d) {
+        struct select_s< 3 > {
+            template < typename T >
+            GT_FUNCTION T &get(T & /*a*/, T & /*b*/, T & /*c*/, T &d) {
                 return d;
             }
         };
-
     }
 
-/**
-   @struct
-   @brief Used as template argument in the storage.
-   In particular in the \ref gridtools::base_storage class it regulate memory access order, defined at compile-time, by leaving the interface unchanged.
-*/
-    template <short_t, short_t=-2, short_t=-2, short_t=-2>
-        struct layout_map;
+    /**
+       @struct
+       @brief Used as template argument in the storage.
+       In particular in the \ref gridtools::base_storage class it regulate memory access order, defined at compile-time,
+       by leaving the interface unchanged.
+    */
+    template < short_t, short_t = -2, short_t = -2, short_t = -2 >
+    struct layout_map;
 
-    template <typename layout> struct is_layout_map : boost::mpl::false_{};
-    template <short_t t1, short_t t2, short_t t3, short_t t4> struct is_layout_map<layout_map<t1, t2, t3, t4> > : boost::mpl::true_{};
+    template < typename layout >
+    struct is_layout_map : boost::mpl::false_ {};
+    template < short_t t1, short_t t2, short_t t3, short_t t4 >
+    struct is_layout_map< layout_map< t1, t2, t3, t4 > > : boost::mpl::true_ {};
 
-    template <short_t I1>
-    struct layout_map<I1, -2, -2, -2> {
-        static const ushort_t length=1;
-        typedef boost::mpl::vector4_c<short_t, I1, -2, -2, -2> layout_vector_t;
+    template < short_t I1 >
+    struct layout_map< I1, -2, -2, -2 > {
+        static const ushort_t length = 1;
+        typedef boost::mpl::vector4_c< short_t, I1, -2, -2, -2 > layout_vector_t;
 
-        template <ushort_t I>
-            GT_FUNCTION
-            static short_t at() {
-            BOOST_STATIC_ASSERT( I<length );
-            return boost::mpl::at_c<layout_vector_t, I >::type::value;
+        template < ushort_t I >
+        GT_FUNCTION static short_t at() {
+            BOOST_STATIC_ASSERT(I < length);
+            return boost::mpl::at_c< layout_vector_t, I >::type::value;
         }
 
         GT_FUNCTION
-            short_t operator[](short_t i) {
-            assert( i<length );
+        short_t operator[](short_t i) {
+            assert(i < length);
             switch (i) {
             case 0:
-                return boost::mpl::at_c<layout_vector_t, 0 >::type::value;
+                return boost::mpl::at_c< layout_vector_t, 0 >::type::value;
             }
             return -1;
         }
 
-        template <ushort_t I, typename T>
-            GT_FUNCTION
-            static T select(T & a, T & b) {
-            return _impl::select_s<boost::mpl::at_c<layout_vector_t, I >::type::value>().get(a,b);
+        template < ushort_t I, typename T >
+        GT_FUNCTION static T select(T &a, T &b) {
+            return _impl::select_s< boost::mpl::at_c< layout_vector_t, I >::type::value >().get(a, b);
         }
 
-        template <ushort_t I, typename T>
-            GT_FUNCTION
-            static T& find(T & a) {
+        template < ushort_t I, typename T >
+        GT_FUNCTION static T &find(T &a) {
             return a;
         }
-
     };
 
-    template <short_t I1, short_t I2>
-    struct layout_map<I1, I2, -2, -2> {
-        static const ushort_t length=2;
-        typedef boost::mpl::vector4_c<short_t, I1, I2, -2, -2> layout_vector_t;
+    template < short_t I1, short_t I2 >
+    struct layout_map< I1, I2, -2, -2 > {
+        static const ushort_t length = 2;
+        typedef boost::mpl::vector4_c< short_t, I1, I2, -2, -2 > layout_vector_t;
 
-        template <ushort_t I>
-            GT_FUNCTION
-            static short_t at() {
-            BOOST_STATIC_ASSERT( I<length );
-            return boost::mpl::at_c<layout_vector_t, I >::type::value;
+        template < ushort_t I >
+        GT_FUNCTION static short_t at() {
+            BOOST_STATIC_ASSERT(I < length);
+            return boost::mpl::at_c< layout_vector_t, I >::type::value;
         }
 
         GT_FUNCTION
-            short_t operator[](short_t i) {
-            assert( i<length );
+        short_t operator[](short_t i) {
+            assert(i < length);
             switch (i) {
             case 0:
-                return boost::mpl::at_c<layout_vector_t, 0 >::type::value;
+                return boost::mpl::at_c< layout_vector_t, 0 >::type::value;
             case 1:
-                return boost::mpl::at_c<layout_vector_t, 1 >::type::value;
+                return boost::mpl::at_c< layout_vector_t, 1 >::type::value;
             }
             return -1;
         }
 
-        template <ushort_t I, typename T>
-            GT_FUNCTION
-            static T& select(T & a, T & b) {
-            return _impl::select_s<boost::mpl::at_c<layout_vector_t, I >::type::value>().get(a,b);
+        template < ushort_t I, typename T >
+        GT_FUNCTION static T &select(T &a, T &b) {
+            return _impl::select_s< boost::mpl::at_c< layout_vector_t, I >::type::value >().get(a, b);
         }
 
-        template <ushort_t I, typename T>
-            GT_FUNCTION
-            static T const& find(T const& a, T const& b) {
-            if (boost::mpl::at_c<layout_vector_t, 0 >::type::value == I) {
+        template < ushort_t I, typename T >
+        GT_FUNCTION static T const &find(T const &a, T const &b) {
+            if (boost::mpl::at_c< layout_vector_t, 0 >::type::value == I) {
                 return a;
             } else {
-                if (boost::mpl::at_c<layout_vector_t, 1 >::type::value == I) {
+                if (boost::mpl::at_c< layout_vector_t, 1 >::type::value == I) {
                     return b;
                 }
             }
         }
 
-        template <ushort_t I, typename T>
-            GT_FUNCTION
-            static uint_t find(const T* indices) {
-            BOOST_STATIC_ASSERT(I<length);
-            return find<I, T>(indices[0], indices[1]);
+        template < ushort_t I, typename T >
+        GT_FUNCTION static uint_t find(const T *indices) {
+            BOOST_STATIC_ASSERT(I < length);
+            return find< I, T >(indices[0], indices[1]);
         }
-
     };
 
     /**
@@ -223,50 +206,50 @@ namespace gridtools {
        etc.
        \endcode
     */
-    template <short_t I1, short_t I2, short_t I3>
-    struct layout_map<I1, I2, I3, -2> {
-        static  const short_t length=3;
-        typedef boost::mpl::vector4_c<short_t, I1, I2, I3, -2> layout_vector_t;
+    template < short_t I1, short_t I2, short_t I3 >
+    struct layout_map< I1, I2, I3, -2 > {
+        static const short_t length = 3;
+        typedef boost::mpl::vector4_c< short_t, I1, I2, I3, -2 > layout_vector_t;
 
-        template <short_t I>
-            struct at_ {
-            static const short_t value = boost::mpl::at_c<layout_vector_t, I >::type::value;
+        template < short_t I >
+        struct at_ {
+            static const short_t value = boost::mpl::at_c< layout_vector_t, I >::type::value;
         };
 
-        template <short_t I, short_t DefaultVal>
-            struct at_default {
-            static const short_t _value = boost::mpl::at_c<layout_vector_t, I >::type::value;
-            static const short_t value = (_value<0)?DefaultVal:_value;
+        template < short_t I, short_t DefaultVal >
+        struct at_default {
+            static const short_t _value = boost::mpl::at_c< layout_vector_t, I >::type::value;
+            static const short_t value = (_value < 0) ? DefaultVal : _value;
         };
 
         // Gives the position at which I is. e.g., I want to know which is the stride of i (0)?
-        //then if pos_<0> is 0, then the index i has stride 1, and so on ...
-        template <short_t I>
-            struct pos_ {
+        // then if pos_<0> is 0, then the index i has stride 1, and so on ...
+        template < short_t I >
+        struct pos_ {
 
-            template <short_t X, bool IsHere>
-            struct _find_pos
-            {
-                static const short_t value = _find_pos<X+1, boost::mpl::at_c<layout_vector_t, X+1 >::type::value == I>::value;
+            template < short_t X, bool IsHere >
+            struct _find_pos {
+                static const short_t value =
+                    _find_pos< X + 1, boost::mpl::at_c< layout_vector_t, X + 1 >::type::value == I >::value;
             };
 
-            template <short_t X>
-            struct _find_pos<X, true> {
+            template < short_t X >
+            struct _find_pos< X, true > {
                 static const short_t value = X;
             };
 
-            template <bool IsThere>
-            struct _find_pos<length+1, IsThere> {
-                static const short_t value = -2;//value_is_not_there___print_a_compiler_error value = X;
+            template < bool IsThere >
+            struct _find_pos< length + 1, IsThere > {
+                static const short_t value = -2; // value_is_not_there___print_a_compiler_error value = X;
             };
 
-            template <bool IsHere>
-            struct _find_pos<length, IsHere> {
+            template < bool IsHere >
+            struct _find_pos< length, IsHere > {
                 static const short_t value = -1;
             };
 
-            static const short_t value = _find_pos<0, boost::mpl::at_c<layout_vector_t, 0 >::type::value == I>::value;
-
+            static const short_t value =
+                _find_pos< 0, boost::mpl::at_c< layout_vector_t, 0 >::type::value == I >::value;
         };
 
         /** This function returns the value in the map that is stored at
@@ -275,23 +258,22 @@ namespace gridtools {
 
             \tparam I The index to be queried
         */
-        template <short_t I>
-            GT_FUNCTION
-            static short_t at() {
-            BOOST_STATIC_ASSERT( I<length );
-            return boost::mpl::at_c<layout_vector_t, I >::type::value;
+        template < short_t I >
+        GT_FUNCTION static short_t at() {
+            BOOST_STATIC_ASSERT(I < length);
+            return boost::mpl::at_c< layout_vector_t, I >::type::value;
         }
 
         GT_FUNCTION
-            short_t operator[](short_t i) {
-            assert( i<length );
+        short_t operator[](short_t i) {
+            assert(i < length);
             switch (i) {
             case 0:
-                return boost::mpl::at_c<layout_vector_t, 0 >::type::value;
+                return boost::mpl::at_c< layout_vector_t, 0 >::type::value;
             case 1:
-                return boost::mpl::at_c<layout_vector_t, 1 >::type::value;
+                return boost::mpl::at_c< layout_vector_t, 1 >::type::value;
             case 2:
-                return boost::mpl::at_c<layout_vector_t, 2 >::type::value;
+                return boost::mpl::at_c< layout_vector_t, 2 >::type::value;
             }
             return -1;
         }
@@ -309,10 +291,9 @@ namespace gridtools {
             \param[in] b Reference to the second value
             \param[in] c Reference to the third value
         */
-        template <short_t I, typename T>
-            GT_FUNCTION
-            static T& select(T & a, T & b, T & c) {
-            return _impl::select_s<boost::mpl::at_c<layout_vector_t, I >::type::value>().get(a,b,c);
+        template < short_t I, typename T >
+        GT_FUNCTION static T &select(T &a, T &b, T &c) {
+            return _impl::select_s< boost::mpl::at_c< layout_vector_t, I >::type::value >().get(a, b, c);
         }
 
         /** Given a tuple of values and a static index I, the function
@@ -328,16 +309,15 @@ namespace gridtools {
             \param[in] b Reference to the second value
             \param[in] c Reference to the third value
         */
-        template <short_t I, typename T>
-            GT_FUNCTION
-            static T& find(T & a, T & b, T & c) {
-            if (boost::mpl::at_c<layout_vector_t, 0 >::type::value == I) {
+        template < short_t I, typename T >
+        GT_FUNCTION static T &find(T &a, T &b, T &c) {
+            if (boost::mpl::at_c< layout_vector_t, 0 >::type::value == I) {
                 return a;
             } else {
-                if (boost::mpl::at_c<layout_vector_t, 1 >::type::value == I) {
+                if (boost::mpl::at_c< layout_vector_t, 1 >::type::value == I) {
                     return b;
                 } else {
-                    if (boost::mpl::at_c<layout_vector_t, 2 >::type::value == I) {
+                    if (boost::mpl::at_c< layout_vector_t, 2 >::type::value == I) {
                         return c;
                     }
                 }
@@ -345,7 +325,6 @@ namespace gridtools {
             assert(true);
             return a; // killing warnings by nvcc
         }
-
 
         /** Given a tuple of values and a static index I, the function
             returns the reference to the element whose position
@@ -362,16 +341,15 @@ namespace gridtools {
             \param[in] b Reference to the second value
             \param[in] c Reference to the third value
         */
-        template <short_t I, typename T>
-            GT_FUNCTION
-            static T const& find(T const& a, T const& b, T const& c) {
-            if (boost::mpl::at_c<layout_vector_t, 0 >::type::value == I) {
+        template < short_t I, typename T >
+        GT_FUNCTION static T const &find(T const &a, T const &b, T const &c) {
+            if (boost::mpl::at_c< layout_vector_t, 0 >::type::value == I) {
                 return a;
             } else {
-                if (boost::mpl::at_c<layout_vector_t, 1 >::type::value == I) {
+                if (boost::mpl::at_c< layout_vector_t, 1 >::type::value == I) {
                     return b;
                 } else {
-                    if (boost::mpl::at_c<layout_vector_t, 2 >::type::value == I) {
+                    if (boost::mpl::at_c< layout_vector_t, 2 >::type::value == I) {
                         return c;
                     }
                 }
@@ -392,12 +370,10 @@ namespace gridtools {
             \tparam I Index to be searched in the map
             \param[in] a Pointer to a region with the elements to match
         */
-        template <short_t I, typename T>
-            GT_FUNCTION
-            static T& find(T* a) {
-            return find<I>(a[0], a[1], a[2]);
+        template < short_t I, typename T >
+        GT_FUNCTION static T &find(T *a) {
+            return find< I >(a[0], a[1], a[2]);
         }
-
 
         /** Given a tuple of values and a static index I, the function
             returns the value of the element whose position
@@ -418,16 +394,15 @@ namespace gridtools {
             \param[in] b Reference to the second value
             \param[in] c Reference to the third value
         */
-        template <ushort_t I, typename T, T DefaultVal>
-            GT_FUNCTION
-            static T find_val(T const& a, T const& b, T const& c) {
-            if ((uint_t) boost::mpl::at_c<layout_vector_t, 0 >::type::value == I) {
+        template < ushort_t I, typename T, T DefaultVal >
+        GT_FUNCTION static T find_val(T const &a, T const &b, T const &c) {
+            if ((uint_t)boost::mpl::at_c< layout_vector_t, 0 >::type::value == I) {
                 return a;
             } else {
-                if ( (uint_t) boost::mpl::at_c<layout_vector_t, 1 >::type::value == I) {
+                if ((uint_t)boost::mpl::at_c< layout_vector_t, 1 >::type::value == I) {
                     return b;
                 } else {
-                    if ( (uint_t) boost::mpl::at_c<layout_vector_t, 2 >::type::value == I) {
+                    if ((uint_t)boost::mpl::at_c< layout_vector_t, 2 >::type::value == I) {
                         return c;
                     }
                 }
@@ -451,12 +426,10 @@ namespace gridtools {
             \tparam I Index to be searched in the map
             \param[in] a Pointer to a region with the elements to match
         */
-        template <ushort_t I, typename T, T DefaultVal>
-            GT_FUNCTION
-            static T find_val(T const* a) {
-            return find_val<I,T,DefaultVal>(a[0], a[1], a[2]);
+        template < ushort_t I, typename T, T DefaultVal >
+        GT_FUNCTION static T find_val(T const *a) {
+            return find_val< I, T, DefaultVal >(a[0], a[1], a[2]);
         }
-
 
         /** Given a tuple of values and a static index I, the function
             returns the value of the element whose position
@@ -476,70 +449,65 @@ namespace gridtools {
             \tparam[in] Indices List of argument where to return the found value
             \param[in] indices List of values (length must be equal to the length of the layout_map length)
         */
-        template <ushort_t I, typename T, T DefaultVal, typename Tuple>
-        GT_FUNCTION
-        static T find_val(Tuple const& indices) {
-            if ((pos_<I>::value >= length))
-            {
+        template < ushort_t I, typename T, T DefaultVal, typename Tuple >
+        GT_FUNCTION static T find_val(Tuple const &indices) {
+            if ((pos_< I >::value >= length)) {
                 return DefaultVal;
             } else {
-                assert( (int_t)Tuple::n_dim-(int_t)pos_<I>::value-1 >=0 );
-                // GRIDTOOLS_STATIC_ASSERT((Tuple::n_dim-pos_<I>::value-1) >= 0, "accessing a tuple of offsets with a negative index");
-                // GRIDTOOLS_STATIC_ASSERT((Tuple::n_dim-pos_<I>::value-1) < Tuple::n_dim, "accessing a tuple of offsets out of bounds");
-                return indices.template get<Tuple::n_dim-pos_<I>::value-1>();
+                assert((int_t)Tuple::n_dim - (int_t)pos_< I >::value - 1 >= 0);
+                // GRIDTOOLS_STATIC_ASSERT((Tuple::n_dim-pos_<I>::value-1) >= 0, "accessing a tuple of offsets with a
+                // negative index");
+                // GRIDTOOLS_STATIC_ASSERT((Tuple::n_dim-pos_<I>::value-1) < Tuple::n_dim, "accessing a tuple of offsets
+                // out of bounds");
+                return indices.template get< Tuple::n_dim - pos_< I >::value - 1 >();
             }
         }
-
-
     };
 
-    template <short_t I1, short_t I2, short_t I3, short_t I4>
+    template < short_t I1, short_t I2, short_t I3, short_t I4 >
     struct layout_map {
-        static const short_t length=4;
-        typedef boost::mpl::vector4_c<short_t, I1, I2, I3, I4> layout_vector_t;
+        static const short_t length = 4;
+        typedef boost::mpl::vector4_c< short_t, I1, I2, I3, I4 > layout_vector_t;
 
-        template <short_t I>
-        GT_FUNCTION
-        static short_t at() {
-            BOOST_STATIC_ASSERT( I<length );
-            return boost::mpl::at_c<layout_vector_t, I >::type::value;
+        template < short_t I >
+        GT_FUNCTION static short_t at() {
+            BOOST_STATIC_ASSERT(I < length);
+            return boost::mpl::at_c< layout_vector_t, I >::type::value;
         }
 
         GT_FUNCTION
         short_t operator[](short_t i) {
-            assert( i<length );
+            assert(i < length);
             switch (i) {
             case 0:
-                return boost::mpl::at_c<layout_vector_t, 0 >::type::value;
+                return boost::mpl::at_c< layout_vector_t, 0 >::type::value;
             case 1:
-                return boost::mpl::at_c<layout_vector_t, 1 >::type::value;
+                return boost::mpl::at_c< layout_vector_t, 1 >::type::value;
             case 2:
-                return boost::mpl::at_c<layout_vector_t, 2 >::type::value;
+                return boost::mpl::at_c< layout_vector_t, 2 >::type::value;
             case 3:
-                return boost::mpl::at_c<layout_vector_t, 3 >::type::value;
+                return boost::mpl::at_c< layout_vector_t, 3 >::type::value;
             }
             return -1;
         }
 
-        template <short_t I, typename T>
-        GT_FUNCTION
-        static T& select(T & a, T & b, T & c, T & d) {
-            return _impl::select_s<boost::mpl::at_c<layout_vector_t, I >::type::value>().get(a,b,c,d);
+        template < short_t I, typename T >
+        GT_FUNCTION static T &select(T &a, T &b, T &c, T &d) {
+            return _impl::select_s< boost::mpl::at_c< layout_vector_t, I >::type::value >().get(a, b, c, d);
         }
 
-        template <short_t I, typename T>
-        GT_FUNCTION
-        static T& find(T & a, T & b, T & c, T & d) {
-            if (boost::mpl::at_c<layout_vector_t, 0 >::type::value == I) {
+        template < short_t I, typename T >
+        GT_FUNCTION static T &find(T &a, T &b, T &c, T &d) {
+            if (boost::mpl::at_c< layout_vector_t, 0 >::type::value == I) {
                 return a;
             } else {
-                if (boost::mpl::at_c<layout_vector_t, 1 >::type::value == I) {
+                if (boost::mpl::at_c< layout_vector_t, 1 >::type::value == I) {
                     return b;
                 } else {
-                    if (boost::mpl::at_c<layout_vector_t, 2 >::type::value == I) {
+                    if (boost::mpl::at_c< layout_vector_t, 2 >::type::value == I) {
                         return c;
                     } else {
-                        if (boost::mpl::at_c<layout_vector_t, 3 >::type::value == I) {
+                        if (boost::mpl::at_c< layout_vector_t, 3 >::type::value == I) {
                             return c;
                         }
                     }
@@ -547,95 +515,5 @@ namespace gridtools {
             }
             return -1; // killing warnings by nvcc
         }
-
     };
-
-
-
-    template <typename LM>
-    struct reverse_map;
-
-    template <short_t I1, short_t I2>
-    struct reverse_map<layout_map<I1, I2> > {
-        typedef layout_map<I2,I1> type;
-    };
-
-    template <short_t I1, short_t I2, short_t I3>
-    struct reverse_map<layout_map<I1, I2,I3> > {
-        template <short_t I, short_t Dummy>
-        struct new_value;
-
-        template <short_t Dummy>
-        struct new_value<0, Dummy> {
-            static const short_t value = 2;
-        };
-
-        template <short_t Dummy>
-        struct new_value<1, Dummy> {
-            static const short_t value = 1;
-        };
-
-        template <short_t Dummy>
-        struct new_value<2, Dummy> {
-            static const short_t value = 0;
-        };
-
-        typedef layout_map<new_value<I1,0>::value, new_value<I2,0>::value, new_value<I3,0>::value > type;
-    };
-
-    template <typename DATALO, typename PROCLO>
-    struct layout_transform;
-
-    template <short_t I1, short_t I2, short_t P1, short_t P2>
-    struct layout_transform<layout_map<I1,I2>, layout_map<P1,P2> > {
-        typedef layout_map<I1,I2> L1;
-        typedef layout_map<P1,P2> L2;
-
-        static const short_t N1 = boost::mpl::at_c<typename L1::layout_vector_t, P1>::type::value;
-        static const short_t N2 = boost::mpl::at_c<typename L1::layout_vector_t, P2>::type::value;
-
-        typedef layout_map<N1,N2> type;
-
-    };
-
-    template <short_t I1, short_t I2, short_t I3, short_t P1, short_t P2, short_t P3>
-    struct layout_transform<layout_map<I1,I2,I3>, layout_map<P1,P2,P3> > {
-        typedef layout_map<I1,I2,I3> L1;
-        typedef layout_map<P1,P2,P3> L2;
-
-        static const short_t N1 = boost::mpl::at_c<typename L1::layout_vector_t, P1>::type::value;
-        static const short_t N2 = boost::mpl::at_c<typename L1::layout_vector_t, P2>::type::value;
-        static const short_t N3 = boost::mpl::at_c<typename L1::layout_vector_t, P3>::type::value;
-
-        typedef layout_map<N1,N2,N3> type;
-
-    };
-
-    template <short_t D>
-    struct default_layout_map;
-
-    template <>
-    struct default_layout_map<1> {
-        typedef layout_map<0> type;
-    };
-
-    template <>
-    struct default_layout_map<2> {
-        typedef layout_map<0,1> type;
-    };
-
-    template <>
-    struct default_layout_map<3> {
-        typedef layout_map<0,1,2> type;
-    };
-
-    template <>
-    struct default_layout_map<4> {
-        typedef layout_map<0,1,2,3> type;
-    };
-
 } // namespace gridtools
-
-
-
-#endif

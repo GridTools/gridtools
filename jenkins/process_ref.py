@@ -7,9 +7,14 @@ import math
 import os
 import socket
 import numpy as np
+import matplotlib
+matplotlib.use('SVG')
+from matplotlib import rc
 import matplotlib.pyplot as plt
 import copy
 import os.path
+import datetime
+import shutil
 
 def check_output(*popenargs, **kwargs):
     process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
@@ -21,7 +26,7 @@ def check_output(*popenargs, **kwargs):
             cmd = popenargs[0]
         error = subprocess.CalledProcessError(retcode, cmd)
         error.output = output
-        print 'Error in command -> ',output
+        print('Error in command -> ',output)
         raise error
     return output
 
@@ -29,20 +34,26 @@ try: subprocess.check_output
 except: subprocess.check_output = check_output
 
 
-def run_and_extract_times(executable, host, sizes, filter_=None, stella_format = None, verbosity=False):
+def run_and_extract_times(executable, host, sizes, halos, filter_=None, stella_format = None, verbosity=False):
 
-    cmd=''
     cmd = ". "+os.getcwd()+"/env_"+host+".sh; "
 
     if stella_format:
-        cmd = cmd + executable +' --ie ' + str(sizes[0]) + ' --je ' + str(sizes[1]) + ' --ke ' + str(sizes[2])
+        #HACK STELLA TIMERS FOR CPU
+        if target == 'cpu':
+            cmd = cmd + "echo NoName  [s]     0.0417387"
+        else:
+            cmd = cmd + executable +' --ie ' + str(sizes[0]) + ' --je ' + str(sizes[1]) + ' --ke ' + str(sizes[2])
     else:
-        cmd = cmd + executable +' ' + str(sizes[0]) + ' ' + str(sizes[1]) + ' ' + str(sizes[2]) + ' 10'
+        print('passing my halos', halos)
+        cmd = cmd + executable +' ' + str(int(sizes[0])+int(halos[0])+int(halos[1])) + ' ' + str(int(sizes[1])+int(halos[2])+int(halos[3])) + ' ' + str(sizes[2]) + ' 10 -d '
     if filter_:
-        cmd = cmd + ' ' + filter_
+        ## HACK STELLA TIMERS FOR CPU
+        if not(stella_format and target == 'cpu'):
+            cmd = cmd + ' ' + filter_
     if target == 'cpu':
         nthreads = re.sub('thread','',thread)
-        cmd = 'export OMP_NUM_THREADS='+nthreads+'; '+cmd
+        cmd = '#!/bin/bash\nexport OMP_NUM_THREADS='+nthreads+'; '+cmd
 
     avg_time = 0
 
@@ -65,7 +76,7 @@ def run_and_extract_times(executable, host, sizes, filter_=None, stella_format =
         except subprocess.CalledProcessError, e:
             sys.exit('Command called raised error:\n'+e.output)
 
-    avg_time = avg_time / 3.0
+    avg_time = avg_time / float(nrep)
     rms=0
     for t in times:
         rms = rms + (t-avg_time)*(t-avg_time)
@@ -74,11 +85,14 @@ def run_and_extract_times(executable, host, sizes, filter_=None, stella_format =
     return (avg_time,rms)
 
 class Plotter:
-    def __init__(self, reference_timers, gridtools_timers, stella_timers, config):
+    def __init__(self, reference_timers, gridtools_timers, stella_timers, config, branch_name):
         self.reference_timers_ = reference_timers
         self.gridtools_timers_ = gridtools_timers
         self.stella_timers_ = stella_timers
         self.config_ = config
+        self.branch_name_ = branch_name
+        self.perf_vs_stella_dir_ = self.config_.output_dir_ + "/perf_vs_stella"
+        self.perf_vs_reference_dir_ = self.config_.output_dir_ + "/perf_vs_reference"
 
         self.stella_avg_times_ = {}
         self.stella_err_ = {}
@@ -117,18 +131,41 @@ class Plotter:
         plt.ylabel('Stencil time (s)')
         plt.title(title)
         plt.xticks(index + bar_width*1.5, xtick_labels, rotation=90, fontsize='xx-small')
-        plt.legend()
+        plt.tick_params(axis='both', which='major', labelsize=10)
+        plt.tick_params(axis='both', which='minor', labelsize=6)
+        plt.legend(prop={'size':6})
 
         plt.tight_layout()
         plt.savefig(filename, format="svg")
-       
+      
+    def plot_titlepage(self, filename):
+       x,y = 0.1,0.4
+
+       fig = plt.figure()
+       ax = fig.add_subplot(111)
+       rc('font',**{'size':24 })
+       rc('text')
+       y += 0.3
+       ax.text(x,y,'Performance Results for Branch: ')
+       ax.text(x+0.05, y-0.2, self.branch_name_)
+       ax.text(x+0.05, y-0.4, str(datetime.datetime.now()))
+
+#       ax = plt.axes()
+       ax.xaxis.set_visible(False)
+       ax.yaxis.set_visible(False)
+       plt.savefig(filename, format="svg")
+
+
 
     def plot_results(self):
 
         self.extract_metrics()
 
-        if not os.path.exists("perf_vs_stella"):
-            os.makedirs("perf_vs_stella")
+        if not os.path.exists(self.config_.output_dir_):
+            os.makedirs(self.config_.output_dir_)
+
+        if not os.path.exists(self.perf_vs_stella_dir_):
+            os.makedirs(self.perf_vs_stella_dir_)
 
         for astencil in self.stella_avg_times_:
             for adomain in self.stella_avg_times_[astencil]:
@@ -140,10 +177,12 @@ class Plotter:
                 gridtools_err = self.gridtools_err_[astencil][adomain]
                 labels = self.labels_[astencil][adomain]
                 
-                self.plot("perf_vs_stella/plot_"+astencil+"_"+adomain+".svg", astencil, labels, stella_times, stella_err, "stella", gridtools_times, gridtools_err, "gridtools")
+                self.plot(self.perf_vs_stella_dir_+"/plot_"+astencil+"_"+adomain+".svg", astencil, labels, stella_times, stella_err, "stella", gridtools_times, gridtools_err, "gridtools")
 
-        if not os.path.exists("perf_vs_reference"):
-            os.makedirs("perf_vs_reference")
+        if not os.path.exists(self.perf_vs_reference_dir_):
+            os.makedirs(self.perf_vs_reference_dir_)
+
+        self.plot_titlepage(self.config_.output_dir_+"/aaa_titlepage.svg")
 
         for astencil in self.gridtools_avg_times_:
             for adomain in self.gridtools_avg_times_[astencil]:
@@ -155,7 +194,7 @@ class Plotter:
                 reference_err = self.reference_err_[astencil][adomain]
                 labels = self.labels_[astencil][adomain]
                 
-                self.plot("perf_vs_reference/plot_"+astencil+"_"+adomain+".svg", astencil + ' ' + adomain, labels, gridtools_times, gridtools_err, "gridtools", reference_times, reference_err, "reference")
+                self.plot(self.perf_vs_reference_dir_+"/plot_"+astencil+"_"+adomain+".svg", astencil + ' ' + adomain, labels, gridtools_times, gridtools_err, "gridtools", reference_times, reference_err, "reference")
 
     def stella_has_stencil(self, stencil_name):
         return self.stella_timers_.has_key(stencil_name)
@@ -215,12 +254,14 @@ def create_dict(adict, props):
     create_dict(adict[current_prop], props)
 
 class Config:
-    def __init__(self, target, prec, std, update, check):
+    def __init__(self, grid_type, target, prec, std, update, check):
+        self.grid_type_ = grid_type
         self.target_ = target
         self.prec_ = prec
         self.std_ = std
         self.update_ = update
         self.check_ = check
+        self.output_dir_ = self.grid_type_+'_'+self.target_+"_"+self.prec_+"_"+self.std_
 
 """
 """
@@ -240,7 +281,7 @@ if __name__ == "__main__":
     parser.add_argument('--plot', action='store_true', help='plot the comparison timings')
     parser.add_argument('--stella_path', nargs=1, type=str, help='path to stella installation dir')
     parser.add_argument('-v',action='store_true', help='verbosity')
-
+    parser.add_argument('--gtype', nargs=1, type=str, help='grid type')
 
     filter_stencils = [] 
     args = parser.parse_args()
@@ -263,6 +304,13 @@ if __name__ == "__main__":
     if args.stella_path:
         stella_path = args.stella_path[0]
     gridtools_path = args.p[0]
+
+    if not args.gtype:
+        parser.error('--gtype must be specified')
+    else:
+        grid_type = args.gtype[0]
+        if grid_type not in ['icgrid', 'strgrid']: 
+            parser.error('--gtype must be [icgrid, strgrid]')
 
     if stella_path and not os.path.exists(stella_path):
         parser.error('STELLA build path '+stella_path+' does not exists')
@@ -314,7 +362,7 @@ if __name__ == "__main__":
     elif re.match('kesch', host):
         host='kesch'
 
-    config = Config(target,prec,std, update, check)
+    config = Config(grid_type, target,prec,std, update, check)
 
     f = open(args.json_file,'r')
     decode = json.load(f)
@@ -325,7 +373,8 @@ if __name__ == "__main__":
     copy_ref = copy.deepcopy(decode)
     stella_timers = {}
 
-    for stencil_name in decode[host]['stencils']:
+    for stencil_name in decode['stencils']:
+        halos=decode['stencils'][stencil_name]['halo']
         print('CHECKING :', stencil_name)
         skip=True
         for filter_stencil in filter_stencils:
@@ -337,29 +386,33 @@ if __name__ == "__main__":
             print('Skipping ',stencil_name)
             continue
 
-        stencil_data = decode[host]['stencils'][stencil_name]
-        executable = gridtools_path+'/'+stencil_data['exec']+'_'+target_suff
+        stencil_conf = decode['stencils'][stencil_name]
+        stencil_data = decode['data'][host][stencil_name]
+        executable = gridtools_path+'/'+stencil_conf['exec']+'_'+target_suff
 
-        stella_filter = stencil_data['stella_filter']
-
+        stella_filter = None
+        if stencil_conf.has_key('stella_filter'):
+            stella_filter = stencil_conf['stella_filter']
+ 
+        print(stencil_name, stencil_data)
         for thread in stencil_data[target][prec][std]: 
             domain_data = stencil_data[target][prec][std][thread]
             for data in domain_data:
                 sizes = data.split('x')
                 exp_time = domain_data[data]['time']
                 
-                timers_gridtools = run_and_extract_times(executable, host, sizes, verbosity=verbose)
+                timers_gridtools = run_and_extract_times(executable, host, sizes, halos, verbosity=verbose)
 
                 if stella_exec and stella_filter:
                     create_dict(stella_timers, [data, thread, stencil_name] )
-                    stella_timers[stencil_name][thread][data] = run_and_extract_times(stella_exec, host, sizes, stella_filter, stella_format=True, verbosity=verbose)
+                    stella_timers[stencil_name][thread][data] = run_and_extract_times(stella_exec, host, sizes, halos, stella_filter, stella_format=True, verbosity=verbose)
 
-                copy_ref[host]['stencils'][stencil_name][target][prec][std][thread][data]['time'] = timers_gridtools[0]
-                copy_ref[host]['stencils'][stencil_name][target][prec][std][thread][data]['rms'] = timers_gridtools[1]
+                copy_ref['data'][host][stencil_name][target][prec][std][thread][data]['time'] = timers_gridtools[0]
+                copy_ref['data'][host][stencil_name][target][prec][std][thread][data]['rms'] = timers_gridtools[1]
 
                 error = math.fabs(float(timers_gridtools[0]) - float(exp_time)) / (float(exp_time)+1e-20)
                 if config.check_ and error > tolerance:
-                    print('Error in conf ['+data+','+prec+','+target+','+std+','+thread+'] : exp_time -> '+ str(exp_time) + '; comp time -> '+ 
+                    print('Error in conf ['+stencil_name+','+data+','+prec+','+target+','+std+','+thread+'] : exp_time -> '+ str(exp_time) + '; comp time -> '+ 
                         str(timers_gridtools[0])+'. Error = '+ str(error*100)+'%')
                     failed = True
 
@@ -369,15 +422,21 @@ if __name__ == "__main__":
         fw.write(json.dumps(copy_ref,  indent=4, separators=(',', ': ')) )
         fw.close()
         print("Updated reference file",outputfilename)
+        if not os.path.exists(config.output_dir_):
+            os.makedirs(config.output_dir_)
+
+        shutil.copyfile(outputfilename, config.output_dir_+"/"+outputfilename) 
 
     if do_plot:
-        plotter = Plotter(decode[host]['stencils'], copy_ref[host]['stencils'], stella_timers, config)
+        branch_name=subprocess.check_output('git branch --contains `git rev-parse HEAD` -r', stderr=subprocess.STDOUT, shell=True)
+        plotter = Plotter(decode['data'][host], copy_ref['data'][host], stella_timers, config, branch_name)
         plotter.plot_results()
 
     if not failed:
         print('[OK]')
     else:
         print('[FAILED]')
-    sys.exit(int(failed))
+
+    sys.exit(0)
 
 

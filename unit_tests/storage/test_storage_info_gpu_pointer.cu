@@ -5,7 +5,7 @@ namespace test_storage_info_gpu_using{
 
     using namespace gridtools;
     typedef layout_map<0,1,2> layout_t;
-    typedef meta_storage<meta_storage_base<0,layout_t,false> > meta_t;
+    typedef meta_storage<meta_storage_base<static_int<0>,layout_t,false> > meta_t;
     typedef storage<base_storage<hybrid_pointer<double>, meta_t> > storage_t;
 
     template<typename T>
@@ -24,12 +24,13 @@ namespace test_storage_info_gpu_using{
 
 TEST(storage_info, test_pointer) {
     meta_t meta_(11, 12, 13);
-    meta_.clone_to_device();
     storage_t st_(meta_, 5.);
     st_.h2d_update();
     st_.clone_to_device();
 
-    set<<<1,1>>>(st_.gpu_object_ptr);
+    // clang-format off
+    set<<<1,1>>>(st_.get_pointer_to_use());
+    // clang-format on
 
     st_.d2h_update();
     //st_.print();
