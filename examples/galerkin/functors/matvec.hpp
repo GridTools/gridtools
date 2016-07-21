@@ -2,55 +2,59 @@
 
 
 namespace gdl{
-namespace functors{
 
-    typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_interval;
+    namespace functors{
 
-    // [vecvec_binary_operators]
-    template <typename T>
-    struct sum_operator {
+        typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_interval;
 
-        inline static T eval(T const & i_a, T const & i_b) { return i_a+i_b; }
+        // [vec_binary_operators]
+        template <typename T>
+        struct sum_operator {
 
-    };
+            inline static T eval(T const & i_a, T const & i_b) { return i_a+i_b; }
 
-    template <typename T>
-    struct sub_operator {
+        };
 
-        inline static T eval(T const & i_a, T const & i_b) { return i_a-i_b; }
+        template <typename T>
+        struct sub_operator {
 
-    };
+            inline static T eval(T const & i_a, T const & i_b) { return i_a-i_b; }
 
-    template <typename T>
-    struct mult_operator {
+        };
 
-        inline static T eval(T const & i_a, T const & i_b) { return i_a*i_b; }
+        template <typename T>
+        struct mult_operator {
 
-    };
-    // [vecvec_binary_operators]
+            inline static T eval(T const & i_a, T const & i_b) { return i_a*i_b; }
+
+        };
+        // [vec_binary_operators]
 
 
+        // [vecvec]
+        // TODO: these element by element operations could be parallelized avoiding the functor loop
+        // Element-wise z = x op y where x, y and z are vectors of the same size
+        template <ushort_t Dim, class Operator>
+        struct vecvec;
 
-    // [vecvec]
-    // TODO: these element by element operations could be parallelized avoiding the functor loop
-    // Element-wise z = x op y
-    template <class Operator>
-    struct vecvec {
+        template <class Operator>
+        struct vecvec<4, Operator> {
 
-        using in1=gt::accessor<0, enumtype::in, gt::extent<> , 4> ;
-        using in2=gt::accessor<1, enumtype::in, gt::extent<> , 4> ;
-        using out=gt::accessor<2, enumtype::inout, gt::extent<> , 4> ;
-        using arg_list=boost::mpl::vector< in1, in2, out > ;
+            using in1=gt::accessor<0, enumtype::in, gt::extent<> , 4> ;
+            using in2=gt::accessor<1, enumtype::in, gt::extent<> , 4> ;
+            using out=gt::accessor<2, enumtype::inout, gt::extent<> , 4> ;
+            using arg_list=boost::mpl::vector< in1, in2, out > ;
 
-        template <typename Evaluation>
-        GT_FUNCTION
-        static void Do(Evaluation const & eval, x_interval) {
-            gt::dimension<4>::Index row;
-            uint_t const num_rows=eval.template get_storage_dims<3>(in1());
+            template <typename Evaluation>
+            GT_FUNCTION
+            static void Do(Evaluation const & eval, x_interval) {
+                gt::dimension<4>::Index row;
+                uint_t const num_rows=eval.get().template get_storage_dims<3>(in1());
 
-            // Loop over vector elements
-            for(uint_t i=0;i<num_rows;++i){
-                eval(out(row+i)) = Operator::eval(eval(in1(row+i)),eval(in2(row+i)));
+                // Loop over vector elements
+                for(uint_t i=0;i<num_rows;++i){
+                    eval(out(row+i)) = Operator::eval(eval(in1(row+i)),eval(in2(row+i)));
+                }
             }
         }
     };
@@ -79,7 +83,10 @@ namespace functors{
             {
                 for(short_t J=0; J<cardinality_j; J++)
                 {
-                    eval(out(row+I)) += eval(in2(row+I, col+J)*in1(row+J));
+                    for(short_t J=0; J<cardinality_j; J++)
+                    {
+                        eval(out(row+I)) += eval(in2(row+I, col+J)*in1(row+J));
+                    }
                 }
             }
         }
@@ -148,5 +155,5 @@ namespace functors{
     };
     // [matvec_bd]
 
-} //namespace functors
+    } //namespace functors
 } //namespace gdl

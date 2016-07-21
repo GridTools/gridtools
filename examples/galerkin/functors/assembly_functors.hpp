@@ -300,7 +300,7 @@ namespace gdl{
     template <typename Geometry>
     struct inv_impl<Geometry,3> : public inv<Geometry>
     {
-    	using super=inv<Geometry>;
+        using super=inv<Geometry>;
 
         using jac      = typename super::jac ;
         using jac_det  = typename super::jac_det ;
@@ -569,6 +569,7 @@ namespace gdl{
         }
     };
 
+    // TODO: debug only functor, to be deleted
     // TODO: this is a low performance temporary global assembly functor
     // Stencil points correspond to global dof pairs (P,Q)
     struct global_assemble {
@@ -626,13 +627,63 @@ namespace gdl{
         }
     };
 
+    // TODO: debug only functor, to be deleted
     // TODO: this is an updated version of the "global_assemble" functor without ifs and conditional branchings
     struct global_assemble_no_if {
 
-    	using in=gt::accessor<0, enumtype::in, gt::extent<0,0,0,0> , 5> ;
-    	using in_map=gt::accessor<1, enumtype::in, gt::extent<0,0,0> , 4>;
-    	using out=gt::accessor<2, enumtype::inout, gt::extent<0,0,0,0> , 5> ;
-    	using arg_list=boost::mpl::vector<in, in_map, out> ;
+          using in=gt::accessor<0, enumtype::in, gt::extent<0,0,0,0> , 5> ;
+          using in_map=gt::accessor<1, enumtype::in, gt::extent<0,0,0> , 4>;
+          using out=gt::accessor<2, enumtype::inout, gt::extent<0,0,0,0> , 3> ;
+          using arg_list=boost::mpl::vector<in, in_map, out> ;
+
+          template <typename Evaluation>
+          GT_FUNCTION
+          static void Do(Evaluation const & eval, x_interval) {
+
+              // Retrieve elements dof grid gt::dimensions and number of dofs per element
+              const uint_t d1=eval.get().template get_storage_dims<0>(in());
+              const uint_t d2=eval.get().template get_storage_dims<1>(in());
+              const uint_t d3=eval.get().template get_storage_dims<2>(in());
+              const uint_t basis_cardinality=eval.get().template get_storage_dims<3>(in());
+
+              // Retrieve global dof pair of current stencil point
+              // TODO: the computation is positional by default only in debug mode!
+              const u_int my_P = eval.i();
+              const u_int my_Q = eval.j()%eval.get().template get_storage_dims<0>(out());
+
+              // Loop over element dofs
+              for(u_int i=0;i<d1;++i)
+              {
+                  for(u_int j=0;j<d2;++j)
+                  {
+                      for(u_int k=0;k<d3;++k)
+                      {
+                          // Loop over single element dofs
+                          for(u_short l_dof1=0;l_dof1<basis_cardinality;++l_dof1)
+                          {
+                              // TODO: check next line
+                              const u_int P_fact(eval(!in_map(i,j,k,l_dof1))==my_P);
+                              for(u_short l_dof2=0;l_dof2<basis_cardinality;++l_dof2)
+                              {
+                                  // Current local dof pair corresponds to global dof
+                                  // stencil point, update global matrix
+                                  eval(out(0,0,0)) += (eval(!in_map(i,j,k,l_dof2))==my_Q)*P_fact*eval(!in(i,j,k,l_dof1,l_dof2));
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      };
+
+    // TODO: debug only functor, to be deleted
+    // TODO: vector (single dof indexed object) assemble functor
+    struct global_vector_assemble_no_if {
+
+        using in=gt::accessor<0, enumtype::in, gt::extent<0,0,0,0> , 4> ;
+        using in_map=gt::accessor<1, enumtype::in, gt::extent<0,0,0> , 4>;
+        using out=gt::accessor<2, enumtype::inout, gt::extent<0,0,0,0> , 3> ;
+        using arg_list=boost::mpl::vector<in, in_map, out> ;
 
         template <typename Evaluation>
         GT_FUNCTION
@@ -647,7 +698,6 @@ namespace gdl{
             // Retrieve global dof pair of current stencil point
             // TODO: the computation is positional by default only in debug mode!
             const u_int my_P = eval.i();
-            const u_int my_Q = eval.j()%eval.template get_storage_dims<0>(out());
 
             // Loop over element dofs
             for(u_int i=0;i<d1;++i)
@@ -659,14 +709,9 @@ namespace gdl{
                         // Loop over single element dofs
                         for(u_short l_dof1=0;l_dof1<basis_cardinality;++l_dof1)
                         {
-                            // TODO: check next line
-                            const u_int P_fact(eval(!in_map(i,j,k,l_dof1))==my_P);
-                            for(u_short l_dof2=0;l_dof2<basis_cardinality;++l_dof2)
-                            {
-                                // Current local dof pair corresponds to global dof
-                                // stencil point, update global matrix
-                                eval(out(0,0,0,0,0)) += (eval(!in_map(i,j,k,l_dof2))==my_Q)*P_fact*eval(!in(i,j,k,l_dof1,l_dof2));
-                            }
+                            // Current local dof corresponds to global dof
+                            // stencil point, update global vector
+                            eval(!out(my_P,0,0)) += (eval(!in_map(i,j,k,l_dof1))==my_P)*eval(!in(i,j,k,l_dof1));
                         }
                     }
                 }
@@ -674,9 +719,8 @@ namespace gdl{
         }
     };
 
-
     /**
-      @class hexahedron mesh matrix assemble functor
+      @class hexahedron mesh matrix (dof pair indexed object) assemble functor
       @tparam Number of single hexahedron dofs along x direction
       @tparam Number of single hexahedron dofs along y direction
       @tparam Number of single hexahedron dofs along z direction
@@ -685,9 +729,9 @@ namespace gdl{
       - dof number is the same along each element direction (total number of dofs pre element is n_dofs^3)
       - reference frame axes are defined as follows
 
-							z
+							    z
 						       /
-							-x
+							    -x
 						       |
 						       y
 
@@ -701,20 +745,20 @@ namespace gdl{
 						   |    |/
 						   2----3
 
-	(not represented internal dofs follow the same rule
+	(not represented internal dofs follow the same rule)
 
       - each hexahedron is responsible for the assemble of a set of contributions related to the dof pairs shared with the
 	adjacent hexaedrons in negative x,y and z direction (each hexahedron takes contribution from 7 adjacent hexahedrons).
 	Particularly, considering a single face the dofs are grouped as follows
 
 						F--B--B--B--G			------x
-						|	    |			|
+						|	        |			|
 						C--A--A--A--E			|
-						|	    |			y
+						|	        |			y
 						C--A--A--A--E
-						|	    |
+						|	        |
 						C--A--A--A--E
-						|	    |
+						|	        |
 						H--D--D--D--I
 
 	The assemble (gathering) is performed for heach hexahedron on the following dof group pairs (and their symmetric pair):
@@ -722,19 +766,19 @@ namespace gdl{
 	------------------------------------------------------------------------------
 		Loop_number	|	Group_pair		|	Number_contr
 	------------------------------------------------------------------------------
-		1 		|	(A,A)			|	2
-		2		|	(A,F+B+G)		|	2
-		3		|	(A,H+D+I)		|	2
-		4		|	(C,B+A+D+G+E+I)		|	2
-		5		|	(B,H+D+I)		|	2
-		6		|	(E,B+A+D)		|	2
-		7		|	(F,D+I)			|	2
-		8		|	(G,H+D)			|	2
-		9		|	(F,E)			|	2
-		10		|	(H,E)			|	2
-		11		|	(F,B+G)			|	4
-		12		|	(G,B)			|	4
-		13		|	(B,B)			|	4
+		1 		    |	(A,A)			|	2
+		2		    |	(A,F+B+G)		|	2
+		3		    |	(A,H+D+I)		|	2
+		4		    |	(C,B+A+D+G+E+I)	|	2
+		5		    |	(B,H+D+I)		|	2
+		6		    |	(E,B+A+D)		|	2
+		7		    |	(F,D+I)			|	2
+		8		    |	(G,H+D)			|	2
+		9		    |	(F,E)			|	2
+		10		    |	(H,E)			|	2
+		11		    |	(F,B+G)			|	4
+		12		    |	(G,B)			|	4
+		13		    |	(B,B)			|	4
 	------------------------------------------------------------------------------
 
 	The same calculation is performed for the faces on xz and xy planes. Moreover, a final "corner" dof pair is included in
@@ -1119,27 +1163,286 @@ namespace gdl{
 
         }
     };
+
+
+    /**
+      @class hexahedron mesh vector (single dof indexed object) assemble functor
+      @tparam Number of single hexahedron dofs along x direction
+      @tparam Number of single hexahedron dofs along y direction
+      @tparam Number of single hexahedron dofs along z direction
+
+      hypotheses:
+      - dof number is the same along each element direction (total number of dofs pre element is n_dofs^3)
+      - reference frame axes are defined as follows
+
+                                z
+                               /
+                                -x
+                               |
+                               y
+
+
+      - dofs are ordered in the input matrix according to the following rule
+
+                             4----5
+                            /    /|
+                           0----1 |
+                           |    | 7
+                           |    |/
+                           2----3
+
+    (not represented internal dofs follow the same rule)
+
+      - each hexahedron is responsible for the assemble of a set of contributions related to the dof shared with the
+    adjacent hexaedrons in negative x,y and z direction (each hexahedron takes contribution from 7 adjacent hexahedrons).
+    Particularly, considering a single face the dofs are grouped as follows
+
+                        F--B--B--B--G           ------x
+                        |           |           |
+                        C--A--A--A--E           |
+                        |           |           y
+                        C--A--A--A--E
+                        |           |
+                        C--A--A--A--E
+                        |           |
+                        H--D--D--D--I
+
+    The assemble (gathering) is performed for heach hexahedron on the following dof groups :
+
+    ------------------------------------------------------------------------------
+        Loop_number |   Group           |   Number_contr
+    ------------------------------------------------------------------------------
+        1           |   A               |   2
+        2           |   B+C             |   4
+        3           |   F               |   8
+    ------------------------------------------------------------------------------
+
+    The same calculation is performed for the faces on xz and xy planes.
+
+
+    As it can be seen some contributions are missing (e.g. E): those elements are included in the calculations of the adjacent
+    (in positive x/y/z direction) hexahedron.
+
+     */
+    // TODO: check todos and comments of previous functor
+    template <ushort_t N_DOF0, ushort_t N_DOF1, ushort_t N_DOF2>
+    struct hexahedron_vector_assemble {
+
+        using in=gt::accessor<0, enumtype::in, gt::extent<> , 4> ;
+        using out=gt::accessor<1, enumtype::inout, gt::extent<> , 4> ;
+        using arg_list=boost::mpl::vector<in, out> ;
+
+        template <typename Evaluation>
+        GT_FUNCTION
+        static void Do(Evaluation const & eval, x_interval) {
+            gt::dimension<1>::Index k;
+            gt::dimension<2>::Index j;
+            gt::dimension<3>::Index i;
+            gt::dimension<4>::Index dof;
+
+            constexpr gt::meta_storage_base<static_int<__COUNTER__>,gt::layout_map<2,1,0>,false> indexing{N_DOF0,N_DOF1,N_DOF2};
+
+            // 1 A
+            for(short_t I1=1; I1<indexing.template dims<0>()-1; I1++)
+                for(short_t J1=1; J1<indexing.template dims<1>()-1; J1++)
+                {
+
+                    eval(out(dof+indexing.index(I1,J1,0))) +=
+                            eval(in(i-1,dof+indexing.index(I1,J1,indexing.template dims<2>()-1)));
+
+                    eval(out(dof+indexing.index(J1,0,I1))) +=
+                            eval(in(j-1,dof+indexing.index(J1,indexing.template dims<1>()-1,I1)));
+
+                    eval(out(dof+indexing.index(0,I1,J1))) +=
+                            eval(in(k-1,dof+indexing.index(indexing.template dims<0>()-1,I1,J1)));
+
+                }
+
+            // 2 B
+            short_t J1=0;
+            for(short_t I1=1; I1<indexing.template dims<0>()-1; I1++)
+            {
+
+                eval(out(dof+indexing.index(I1,J1,0))) +=
+                        eval(in(i-1,dof+indexing.index(I1,J1,indexing.template dims<2>()-1))) +
+                        eval(in(j-1,dof+indexing.index(I1,indexing.template dims<1>()-1,0))) +
+                        eval(in(i-1,j-1,dof+indexing.index(I1,indexing.template dims<1>()-1,indexing.template dims<2>()-1)));
+
+
+                eval(out(dof+indexing.index(J1,0,I1))) +=
+                        eval(in(j-1,dof+indexing.index(J1,indexing.template dims<1>()-1,I1))) +
+                        eval(in(k-1,dof+indexing.index(indexing.template dims<0>()-1,0,I1))) +
+                        eval(in(j-1,k-1,dof+indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,I1)));
+
+
+                eval(out(dof+indexing.index(0,I1,J1))) +=
+                        eval(in(k-1,dof+indexing.index(indexing.template dims<0>()-1,I1,J1))) +
+                        eval(in(i-1,dof+indexing.index(0,I1,indexing.template dims<2>()-1))) +
+                        eval(in(i-1,k-1,dof+indexing.index(indexing.template dims<0>()-1,I1,indexing.template dims<2>()-1)));
+
+
+            }
+
+            // 3 F
+
+            eval(out(dof+0)) +=
+                eval(in(i-1,dof+indexing.index(0,0,indexing.template dims<2>()-1))) +
+                eval(in(j-1,dof+indexing.index(0,indexing.template dims<1>()-1,0))) +
+                eval(in(i-1,j-1,dof+indexing.index(0,indexing.template dims<1>()-1,indexing.template dims<2>()-1))) +
+                eval(in(k-1,dof+indexing.index(indexing.template dims<0>()-1,0,0))) +
+                eval(in(i-1,k-1,dof+indexing.index(indexing.template dims<0>()-1,0,indexing.template dims<2>()-1))) +
+                eval(in(j-1,k-1,dof+indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,0))) +
+                eval(in(i-1,j-1,k-1,dof+indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,indexing.template dims<2>()-1)));
+
+        }
+
+    };
+
+    /**
+      @class hexahedron mesh assebled vector (single dof indexed object) distribution functor
+
+          After the assemble operation performed by the hexahedron_vector_assemble functor,
+          or starting from an already assembled vector, this functor performs the copy of
+          the vector values corresponding to shared dof (with adjacent mesh elements) to
+          the storages of the adjacent element themselves. Same dof numbering rule described
+          for hexahedron_vector_assemble is used (see above).
+
+      @tparam Number of single hexahedron dofs along x direction
+      @tparam Number of single hexahedron dofs along y direction
+      @tparam Number of single hexahedron dofs along z direction
+
+     */
+    // TODO: check todos and comments of previous functor
+    // TODO: is this functor the same of uniform?
+    template <ushort_t N_DOF0, ushort_t N_DOF1, ushort_t N_DOF2>
+    struct hexahedron_vector_distribute {
+
+        using inout=gt::accessor<0, enumtype::inout, gt::extent<> , 4> ;
+        using arg_list=boost::mpl::vector<inout> ;
+
+        template <typename Evaluation>
+        GT_FUNCTION
+        static void Do(Evaluation const & eval, x_interval) {
+            gt::dimension<1>::Index k;
+            gt::dimension<2>::Index j;
+            gt::dimension<3>::Index i;
+            gt::dimension<4>::Index dof;
+
+            constexpr gt::meta_storage_base<static_int<__COUNTER__>,gt::layout_map<2,1,0>,false> indexing{N_DOF0,N_DOF1,N_DOF2};
+
+
+            // 1 A
+            for(short_t I1=1; I1<indexing.template dims<0>()-1; I1++)
+                for(short_t J1=1; J1<indexing.template dims<1>()-1; J1++)
+                {
+
+                    eval(inout(i-1,dof+indexing.index(I1,J1,indexing.template dims<2>()-1))) =
+                            eval(inout(dof+indexing.index(I1,J1,0)));
+
+                    eval(inout(j-1,dof+indexing.index(J1,indexing.template dims<1>()-1,I1))) =
+                            eval(inout(dof+indexing.index(J1,0,I1)));
+
+                    eval(inout(k-1,dof+indexing.index(indexing.template dims<0>()-1,I1,J1))) =
+                            eval(inout(dof+indexing.index(0,I1,J1)));
+                }
+
+            // 2 B
+            short_t J1=0;
+            for(short_t I1=1; I1<indexing.template dims<0>()-1; I1++)
+            {
+
+                eval(inout(i-1,dof+indexing.index(I1,J1,indexing.template dims<2>()-1))) =
+                        eval(inout(dof+indexing.index(I1,J1,0)));
+                eval(inout(j-1,dof+indexing.index(I1,indexing.template dims<1>()-1,0))) =
+                        eval(inout(dof+indexing.index(I1,J1,0)));
+                eval(inout(i-1,j-1,dof+indexing.index(I1,indexing.template dims<1>()-1,indexing.template dims<2>()-1))) =
+                        eval(inout(dof+indexing.index(I1,J1,0)));
+
+
+                eval(inout(j-1,dof+indexing.index(J1,indexing.template dims<1>()-1,I1))) =
+                        eval(inout(dof+indexing.index(J1,0,I1)));
+                eval(inout(k-1,dof+indexing.index(indexing.template dims<0>()-1,0,I1))) =
+                        eval(inout(dof+indexing.index(J1,0,I1)));
+                eval(inout(j-1,k-1,dof+indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,I1))) =
+                        eval(inout(dof+indexing.index(J1,0,I1)));
+
+
+                eval(inout(k-1,dof+indexing.index(indexing.template dims<0>()-1,I1,J1))) =
+                        eval(inout(dof+indexing.index(0,I1,J1)));
+                eval(inout(i-1,dof+indexing.index(0,I1,indexing.template dims<2>()-1))) =
+                        eval(inout(dof+indexing.index(0,I1,J1)));
+                eval(inout(i-1,k-1,dof+indexing.index(indexing.template dims<0>()-1,I1,indexing.template dims<2>()-1))) =
+                        eval(inout(dof+indexing.index(0,I1,J1)));
+
+
+            }
+
+            // 3 F
+            eval(inout(i-1,dof+indexing.index(0,0,indexing.template dims<2>()-1))) =
+                eval(inout(dof+0));
+
+            eval(inout(j-1,dof+indexing.index(0,indexing.template dims<1>()-1,0))) =
+                eval(inout(dof+0));
+
+            eval(inout(i-1,j-1,dof+indexing.index(0,indexing.template dims<1>()-1,indexing.template dims<2>()-1))) =
+                eval(inout(dof+0));
+
+            eval(inout(k-1,dof+indexing.index(indexing.template dims<0>()-1,0,0))) =
+                eval(inout(dof+0));
+
+            eval(inout(i-1,k-1,dof+indexing.index(indexing.template dims<0>()-1,0,indexing.template dims<2>()-1))) =
+                eval(inout(dof+0));
+
+            eval(inout(j-1,k-1,dof+indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,0))) =
+                eval(inout(dof+0));
+
+            eval(inout(i-1,j-1,k-1,dof+indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,indexing.template dims<2>()-1))) =
+                eval(inout(dof+0));
+        }
+
+    };
     // [assemble]
 
+    // TODO: delete and use storage operators instead?
+    /**
+     * @class Vector copy functor
+     */
+    template <uint_t N_DOF>
+    struct copy_vector {
+
+        using in=gt::accessor<0, enumtype::in, gt::extent<> , 4>;
+        using out=gt::accessor<1, enumtype::inout, gt::extent<> , 4> ;
+        using arg_list=boost::mpl::vector<in, out> ;
+
+        template <typename Evaluation>
+        GT_FUNCTION
+        static void Do(Evaluation const & eval, x_interval) {
+            gt::dimension<4>::Index dof;
+
+            for(uint_t i=0; i<N_DOF; i++)
+                 eval(out(dof+i)) = eval(in(dof+i));
+        }
+    };
+
     /* assigns a field to a constant value**/
-    //[zero]
-    template< ushort_t Dim, typename T, T Value>
+    //[assign]
+    template< ushort_t Dim, typename Value>
     struct assign;
 
-    template< typename T, T Value>
-    struct assign<3, T, Value>{
+    template<typename Value>
+    struct assign<3,Value> {
         typedef gt::accessor<0, enumtype::inout, gt::extent<0,0,0,0> , 3> field;
         typedef boost::mpl::vector< field > arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-                    eval(field())=Value;
+                    eval(field())=Value::value;
         }
     };
 
-    template< typename T, T Value>
-    struct assign<4,T,Value>{
+    template<typename Value>
+    struct assign<4,Value> {
         typedef gt::accessor<0, enumtype::inout, gt::extent<0,0,0,0> , 4> field;
         typedef boost::mpl::vector< field > arg_list;
 
@@ -1150,13 +1453,13 @@ namespace gdl{
             uint_t const num_=eval.template get_storage_dims<3>(field());
 
             for(short_t I=0; I<num_; I++)
-                eval(field(gt::dimension<4>(I)))=Value;
+                eval(field(gt::dimension<4>(I)))=Value::value;
         }
     };
 
-    template< typename T, T Value>
-    struct assign<5,T,Value>{
-        typedef gt::accessor<0, enumtype::inout, gt::extent<0,0,0,0> , 5> field;
+    template<typename Value>
+    struct assign<5,Value> {
+        typedef gt::accessor<0, enumtype::inout, gt::extent<0,0,0,0> , 4> field;
         typedef boost::mpl::vector< field > arg_list;
 
         template <typename Evaluation>
@@ -1168,10 +1471,10 @@ namespace gdl{
 
             for(short_t I=0; I<dim_1_; I++)
                 for(short_t J=0; J<dim_2_; J++)
-                    eval(field(gt::dimension<4>(I), gt::dimension<5>(J)))=Value;
+                    eval(field(gt::dimension<4>(I), gt::dimension<5>(J)))=Value::value;
         }
     };
-    //[zero]
+    //[assign]
 
     } // namespace functors
 }//namespace gdl

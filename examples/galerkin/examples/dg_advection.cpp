@@ -337,7 +337,7 @@ int main( int argc, char ** argv){
             // computing flux/discretize
 
             // initialize result=0
-            //, gt::make_esf< functors::assign<4,int,0> >( p_result() )
+            //, gt::make_esf< functors::assign<4,zero<int> >( p_result() )
             // compute the face normals: \f$ n=J*(\hat n) \f$
             , gt::make_esf<functors::compute_face_normals<as_bd::boundary_t> >(p_bd_jac(), p_ref_normals(), p_normals())
             // interpolate the normals \f$ n=\sum_i <n,\phi_i>\phi_i(x) \f$
@@ -410,7 +410,7 @@ int main( int argc, char ** argv){
             , gt::make_mss
             (
                 execute<forward>()
-                , gt::make_esf< functors::assign<4,int,0> >( it::p_result() )
+                , gt::make_esf< functors::assign<4, zero<int> > >( it::p_result() )
                 // add the advection term: result+=A*u
                 , gt::make_esf< functors::matvec>( it::p_advection(), it::p_u(),it::p_result() )
                 //compute the upwind flux
