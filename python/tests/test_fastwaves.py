@@ -112,7 +112,7 @@ class FastWavesUVTest (CopyTest):
         self.rho            = ser.load_field('rho', spin).squeeze()
         self.wgtfac         = ser.load_field('wgtfac', spin).squeeze()
 
-        #Reset domain
+        # Reset domain
         self.domain = self.u_pos.shape
 
         # Single plane stencil inputs
@@ -141,15 +141,11 @@ class FastWavesUVTest (CopyTest):
         self.fx = self.eddlat * self.acrlat0
         self.fx = np.tile(self.fx, (self.domain[0], self.domain[2], 1)).swapaxes(1, 2)
 
-        # Reference results from STELLA
-        self.ref_u = ser.load_field('u', spout).squeeze()
-        self.ref_v = ser.load_field('v', spout).squeeze()
+        # Initialize stencil outputs
+        self.out_u = np.zeros(self.domain, dtype=np.float64)
+        self.out_v = np.zeros(self.domain, dtype=np.float64)
 
-        # Stencil  outputs
-        self.out_u = np.copy (self.u_pos)
-        self.out_v = np.copy (self.v_pos)
-
-        # Reset stencil
+        # Reset stencil to use STELLA's data domain size
         self.stencil = FastWavesUV (self.domain)
         self.stencil.set_halo((3,3,3,3))
         self.stencil.set_k_direction('forward')
@@ -157,9 +153,15 @@ class FastWavesUVTest (CopyTest):
         # Run stencil
         self._run()
 
+        # Load STELLA reference results using a second serializer object
+        serstella = serializer('/home/alberto/Develop/StellaFastWavesUV', 'resultSTELLA', 'r')
+        sp_stella = serstella.savepoints[0]
+        self.stella_u = serstella.load_field('u', sp_stella).squeeze()
+        self.stella_v = serstella.load_field('v', sp_stella).squeeze()
+
         # Compare results
-        udiff = np.isclose(self.out_u, self.ref_u, atol=1e-11)
-        vdiff = np.isclose(self.out_v, self.ref_v, atol=1e-11)
+        udiff = np.isclose(self.out_u, self.stella_u, atol=1e-12)
+        vdiff = np.isclose(self.out_v, self.stella_v, atol=1e-12)
         num_udiff = np.count_nonzero(np.logical_not (udiff))
         num_vdiff = np.count_nonzero(np.logical_not (vdiff))
         print ("Num udiff:", num_udiff)
@@ -173,8 +175,8 @@ class FastWavesUVTest (CopyTest):
             print ("max vdiff:", np.max(reldiff_v))
             print ("stddev udiff:", np.std(reldiff_u))
             print ("stddev vdiff:", np.std(reldiff_v))
-        # self.assertEqual (num_udiff, 0)
-        # self.assertEqual (num_udiff, 0)
+        self.assertEqual (num_udiff, 0)
+        self.assertEqual (num_udiff, 0)
 
 
     def test_data_dependency_detection (self, deps=None, backend='python'):
