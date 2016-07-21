@@ -93,8 +93,88 @@ class FastWavesUVTest (CopyTest):
             self.v_pos[p] = 0.03 + 0.69*(2.+np.cos(np.pi*(x+y)) + \
                                         np.sin(2*np.pi*(x+y)))/4.0
 
-        # self.stencil.plot_data_dependency(graph=None,
-        #                                   outfile='fastwaves_dep.pdf')
+
+    def test_stella_results (self, backend='python'):
+        # Import savepoints from STELLA data using serialbox
+        from serialization import serializer, savepoint
+        ser = serializer('/home/alberto/Develop/FWdata/oldFW/', 'Field', 'r')
+        a = [sp for sp in ser.savepoints if 'FastWavesRK' in sp.name]
+        sp_const = ser.savepoints[0]
+        spin = a[6]
+        spout = a[7]
+
+        # 3D stencil inputs
+        self.u_pos          = ser.load_field('u', spin).squeeze()
+        self.v_pos          = ser.load_field('v', spin).squeeze()
+        self.utens_stage    = ser.load_field('suten', spin).squeeze()
+        self.vtens_stage    = ser.load_field('svten', spin).squeeze()
+        self.ppuv           = ser.load_field('zpi', spin).squeeze()
+        self.rho            = ser.load_field('rho', spin).squeeze()
+        self.wgtfac         = ser.load_field('wgtfac', spin).squeeze()
+
+        #Reset domain
+        self.domain = self.u_pos.shape
+
+        # Single plane stencil inputs
+        self.cwp            = np.zeros(self.domain, dtype=np.float64)
+        self.xdzdx          = np.zeros(self.domain, dtype=np.float64)
+        self.xdzdy          = np.zeros(self.domain, dtype=np.float64)
+        self.xlhsx          = np.zeros(self.domain, dtype=np.float64)
+        self.xlhsy          = np.zeros(self.domain, dtype=np.float64)
+        self.wbbctens_stage = np.zeros((self.domain[0],self.domain[1],self.domain[2]+1),
+                                       dtype=np.float64)
+
+        self.cwp[:,:,-1]            = ser.load_field('cwp', spin).squeeze()
+        self.xdzdx[:,:,-1]          = ser.load_field('xdzdx', spin).squeeze()
+        self.xdzdy[:,:,-1]          = ser.load_field('xdzdy', spin).squeeze()
+        self.xlhsx[:,:,-1]          = ser.load_field('xlhsx', spin).squeeze()
+        self.xlhsy[:,:,-1]          = ser.load_field('xlhsy', spin).squeeze()
+        self.wbbctens_stage[:,:,-1] = ser.load_field('wbbctens_stage', spin).squeeze()
+
+        # Constant field inputs
+        self.rho0 = ser.load_field('rho0', sp_const).squeeze()
+        self.p0   = ser.load_field('p0',   sp_const).squeeze()
+        self.hhl  = ser.load_field('hhl',  sp_const).squeeze()
+        self.acrlat0  = ser.load_field('acrlat',  sp_const).squeeze()[:,0]
+
+        self.eddlat = 180.0 / ser.metainfo['dlat'] / np.pi
+        self.fx = self.eddlat * self.acrlat0
+        self.fx = np.tile(self.fx, (self.domain[0], self.domain[2], 1)).swapaxes(1, 2)
+
+        # Reference results from STELLA
+        self.ref_u = ser.load_field('u', spout).squeeze()
+        self.ref_v = ser.load_field('v', spout).squeeze()
+
+        # Stencil  outputs
+        self.out_u = np.copy (self.u_pos)
+        self.out_v = np.copy (self.v_pos)
+
+        # Reset stencil
+        self.stencil = FastWavesUV (self.domain)
+        self.stencil.set_halo((3,3,3,3))
+        self.stencil.set_k_direction('forward')
+
+        # Run stencil
+        self._run()
+
+        # Compare results
+        udiff = np.isclose(self.out_u, self.ref_u, atol=1e-11)
+        vdiff = np.isclose(self.out_v, self.ref_v, atol=1e-11)
+        num_udiff = np.count_nonzero(np.logical_not (udiff))
+        num_vdiff = np.count_nonzero(np.logical_not (vdiff))
+        print ("Num udiff:", num_udiff)
+        print ("Num vdiff:", num_vdiff)
+        if num_udiff or num_vdiff:
+            reldiff_u = (self.out_u - self.ref_u) / self.ref_u
+            reldiff_v = (self.out_v - self.ref_v) / self.ref_v
+            print ("mean udiff:", np.mean(reldiff_u))
+            print ("mean vdiff:", np.mean(reldiff_v))
+            print ("max udiff:", np.max(reldiff_u))
+            print ("max vdiff:", np.max(reldiff_v))
+            print ("stddev udiff:", np.std(reldiff_u))
+            print ("stddev vdiff:", np.std(reldiff_v))
+        # self.assertEqual (num_udiff, 0)
+        # self.assertEqual (num_udiff, 0)
 
 
     def test_data_dependency_detection (self, deps=None, backend='python'):
@@ -203,3 +283,8 @@ class FastWavesUVTest (CopyTest):
 
     def test_k_directions_cuda (self):
         pass
+
+if __name__ == '__main__':
+    t = FastWavesUVTest()
+    t.setUp()
+    t.test_stella_results()
