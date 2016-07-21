@@ -38,11 +38,11 @@ namespace gdl{
     template <typename MetaData>
     using storage_t = typename BACKEND::storage_type<float_type, MetaData >::type;
 
-    template<ushort_t ID, typename Layout>
-    using storage_info = typename BACKEND::storage_info<ID, Layout>;
+    template<ushort_t ID, typename Layout, typename Aligned=gt::aligned<1>>
+        using storage_info = typename BACKEND::storage_info<ID, Layout, typename gt::repeat_template_c<0, Layout::length, gt::halo>::type, Aligned>;
 
-    template<typename ID, typename Layout>
-    using storage_info_t = typename BACKEND::storage_info_t<ID, Layout>;
+    template<typename ID, typename Layout, typename Aligned=gt::aligned<1> >
+    using storage_info_t = typename BACKEND::storage_info_t<ID, Layout, typename gt::repeat_template_c<0, Layout::length, gt::halo>::type, Aligned >;
 
 //! [storage definition]
 //! [fe namespace]
@@ -66,14 +66,22 @@ namespace gdl{
         // POINTTYPE_SPECTRAL,
         // POINTTYPE_SPECTRAL_OPEN,
         // POINTTYPE_WARPBLEND
+        GT_FUNCTION
         static const constexpr enumtype::Basis& basis(){return m_basis;}
+        GT_FUNCTION
         static const constexpr uint_t& order(){return m_order;}
+        GT_FUNCTION
         static const constexpr enumtype::Shape& shape(){return m_shape;}
+        GT_FUNCTION
         static const constexpr int& space_dim(){return m_space_dim;}
+        GT_FUNCTION
         static const constexpr int& num_nodes(){return m_num_nodes;}
+        GT_FUNCTION
         static const constexpr int& basis_cardinality(){return m_basis_cardinality;}
 
-        private:
+#ifndef __CUDACC__ // strange error on th geetters
+    private:
+#endif
         static const enumtype::Basis m_basis=BasisType;
         static const uint_t m_order=Order;
         static const enumtype::Shape m_shape=ShapeType;

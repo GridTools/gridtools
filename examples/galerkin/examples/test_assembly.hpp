@@ -16,36 +16,36 @@ namespace intrepid{
         auto d3=assembly_.m_d3;
 
         // [reference & comparison]
-        FieldContainer<double> grad_at_cub_points(fe::basisCardinality, cub::numCubPoints(), fe::spaceDim);
+        FieldContainer<double> grad_at_cub_points(fe::basis_cardinality(), cub::numCubPoints(), fe::space_dim());
 
-        for (uint_t i=0; i<fe::basisCardinality; ++i)
+        for (uint_t i=0; i<fe::basis_cardinality(); ++i)
             for (uint_t j=0; j<cub::numCubPoints(); ++j)
-                for (int_t k=0; k<fe::spaceDim; ++k)
+                for (int_t k=0; k<fe::space_dim(); ++k)
                     grad_at_cub_points(i,j,k)=(fe_backend_.grad())(i,j,k);
 
         FieldContainer<double> cub_weights(cub::numCubPoints());
 
         for(uint_t i=0; i<cub::numCubPoints(); ++i)
         {
-            cub_weights(i)=fe_backend_.cub_weights()(i,0,0);
+            cub_weights(i)=fe_backend_.get_cub_weights()(i,0,0);
         }
 
-        FieldContainer<double> cub_points(cub::numCubPoints(), fe::spaceDim);
+        FieldContainer<double> cub_points(cub::numCubPoints(), fe::space_dim());
         for(uint_t i=0; i<cub::numCubPoints(); ++i)
         {
-            for(uint_t j=0; j<fe::spaceDim; ++j)
+            for(uint_t j=0; j<fe::space_dim(); ++j)
             {
-                cub_points(i,j)=fe_backend_.cub_points()(i,j,0);
+                cub_points(i,j)=fe_backend_.get_cub_points()(i,j,0);
             }
         }
 
-        FieldContainer<double> grid(d1*d2*d3, geo_map::basisCardinality, 3);
+        FieldContainer<double> grid(d1*d2*d3, geo_map::basis_cardinality(), 3);
 
         for (int i =0; i< d1; ++i)
             for (int j =0; j< d2; ++j)
                 for (int k =0; k< d3; ++k)
                 {
-                    for (int q=0; q<geo_map::basisCardinality; ++q)
+                    for (int q=0; q<geo_map::basis_cardinality(); ++q)
                     {
                         for (int d=0; d<3; ++d)
                         {//assign
@@ -54,7 +54,7 @@ namespace intrepid{
                     }
                 }
 
-        FieldContainer<double> jac((d1*d2*d3), cub::numCubPoints(), geo_map::spaceDim, geo_map::spaceDim);
+        FieldContainer<double> jac((d1*d2*d3), cub::numCubPoints(), geo_map::space_dim(), geo_map::space_dim());
         CellTools<double>::setJacobian(jac, cub_points, grid, geo_map::cell_t::value);
 
         auto epsilon=1e-15;
@@ -64,8 +64,8 @@ namespace intrepid{
                 for (int k =0; k< d3; ++k)
                     for (int q=0; q<cub::numCubPoints(); ++q)
                     {
-                        for (int dimx=0; dimx<geo_map::spaceDim; ++dimx)
-                            for (int dimy=0; dimy<geo_map::spaceDim; ++dimy)
+                        for (int dimx=0; dimx<geo_map::space_dim(); ++dimx)
+                            for (int dimy=0; dimy<geo_map::space_dim(); ++dimy)
                             {
                                 if(assembly_.get_jac()(i, j, k, q, dimx, dimy) > epsilon+ jac(i*d2*d3+j*d3+k, q, dimx, dimy)/*weighted_measure(i*d2*d3+j*d3+k, q)*/
                                    ||
@@ -114,7 +114,7 @@ namespace intrepid{
             }
         }
 
-        FieldContainer<double> jac_inv((d1*d2*d3), cub::numCubPoints(), geo_map::spaceDim, geo_map::spaceDim);
+        FieldContainer<double> jac_inv((d1*d2*d3), cub::numCubPoints(), geo_map::space_dim(), geo_map::space_dim());
         CellTools<double>::setJacobianInv(jac_inv, jac);
 
         for (int i =1; i< d1; ++i)
@@ -145,13 +145,13 @@ namespace intrepid{
         }
 
 
-        FieldContainer<double> transformed_grad_at_cub_points((d1*d2*d3), fe::basisCardinality, cub::numCubPoints(), fe::spaceDim);
+        FieldContainer<double> transformed_grad_at_cub_points((d1*d2*d3), fe::basis_cardinality(), cub::numCubPoints(), fe::space_dim());
         transformed_grad_at_cub_points.initialize(1.);
 
-        FieldContainer<double> weighted_transformed_grad_at_cub_points((d1*d2*d3), fe::basisCardinality, cub::numCubPoints(), fe::spaceDim);
+        FieldContainer<double> weighted_transformed_grad_at_cub_points((d1*d2*d3), fe::basis_cardinality(), cub::numCubPoints(), fe::space_dim());
         weighted_transformed_grad_at_cub_points.initialize(1.);
 
-        FieldContainer<double> stiffness_matrices((d1*d2*d3), fe::basisCardinality, fe::basisCardinality);
+        FieldContainer<double> stiffness_matrices((d1*d2*d3), fe::basis_cardinality(), fe::basis_cardinality());
 
         FunctionSpaceTools::HGRADtransformGRAD<double>(transformed_grad_at_cub_points,        // transform reference gradients into physical space
                                                        jac_inv,
@@ -175,8 +175,8 @@ namespace intrepid{
             {
                 for (int k =0; k< d3; ++k)
                 {
-                    for (int P_i =0; P_i< fe::basisCardinality; ++P_i)
-                        for (int Q_i =0; Q_i< fe::basisCardinality; ++Q_i)
+                    for (int P_i =0; P_i< fe::basis_cardinality(); ++P_i)
+                        for (int Q_i =0; Q_i< fe::basis_cardinality(); ++Q_i)
                         {
                         	if(stiffness_(i, j, k, P_i, Q_i) > epsilon+ stiffness_matrices(i*d2*d3+j*d3+k, P_i, Q_i)
                                ||
@@ -210,35 +210,35 @@ namespace intrepid{
             auto d3=assembly_.m_d3;
 
             // [reference & comparison]
-            FieldContainer<double> function_at_cub_points(fe::basisCardinality, cub::numCubPoints());
+            FieldContainer<double> function_at_cub_points(fe::basis_cardinality(), cub::numCubPoints());
 
-            for (uint_t i=0; i<fe::basisCardinality; ++i)
+            for (uint_t i=0; i<fe::basis_cardinality(); ++i)
                 for (uint_t j=0; j<cub::numCubPoints(); ++j)
-                	function_at_cub_points(i,j)=(*fe_backend_.m_phi_at_cub_points_s)(i,j,0);
+                    function_at_cub_points(i,j)=fe_backend_.val()(i,j,0);
 
             FieldContainer<double> cub_weights(cub::numCubPoints());
 
             for(uint_t i=0; i<cub::numCubPoints(); ++i)
             {
-                cub_weights(i)=fe_backend_.m_cub_weights_s(i,0,0);
+                cub_weights(i)=fe_backend_.get_cub_weights()(i,0,0);
             }
 
-            FieldContainer<double> cub_points(cub::numCubPoints(), fe::spaceDim);
+            FieldContainer<double> cub_points(cub::numCubPoints(), fe::space_dim());
             for(uint_t i=0; i<cub::numCubPoints(); ++i)
             {
-                for(uint_t j=0; j<fe::spaceDim; ++j)
+                for(uint_t j=0; j<fe::space_dim(); ++j)
                 {
-                    cub_points(i,j)=fe_backend_.m_cub_points_s(i,j,0);
+                    cub_points(i,j)=fe_backend_.get_cub_points()(i,j,0);
                 }
             }
 
-            FieldContainer<double> grid(d1*d2*d3, geo_map::basisCardinality, 3);
+            FieldContainer<double> grid(d1*d2*d3, geo_map::basis_cardinality(), 3);
 
             for (int i =0; i< d1; ++i)
                 for (int j =0; j< d2; ++j)
                     for (int k =0; k< d3; ++k)
                     {
-                        for (int q=0; q<geo_map::basisCardinality; ++q)
+                        for (int q=0; q<geo_map::basis_cardinality(); ++q)
                         {
                             for (int d=0; d<3; ++d)
                             {//assign
@@ -247,7 +247,7 @@ namespace intrepid{
                         }
                     }
 
-            FieldContainer<double> jac((d1*d2*d3), cub::numCubPoints(), geo_map::spaceDim, geo_map::spaceDim);
+            FieldContainer<double> jac((d1*d2*d3), cub::numCubPoints(), geo_map::space_dim(), geo_map::space_dim());
             CellTools<double>::setJacobian(jac, cub_points, grid, geo_map::cell_t::value);
 
             auto epsilon=1e-15;
@@ -257,8 +257,8 @@ namespace intrepid{
                     for (int k =0; k< d3; ++k)
                         for (int q=0; q<cub::numCubPoints(); ++q)
                         {
-                            for (int dimx=0; dimx<geo_map::spaceDim; ++dimx)
-                                for (int dimy=0; dimy<geo_map::spaceDim; ++dimy)
+                            for (int dimx=0; dimx<geo_map::space_dim(); ++dimx)
+                                for (int dimy=0; dimy<geo_map::space_dim(); ++dimy)
                                 {
                                     if(assembly_.get_jac()(i, j, k, q, dimx, dimy) > epsilon+ jac(i*d2*d3+j*d3+k, q, dimx, dimy)/*weighted_measure(i*d2*d3+j*d3+k, q)*/
                                        ||
@@ -312,7 +312,7 @@ namespace intrepid{
 
 
 
-            FieldContainer<double> weighted_function_at_cub_points((d1*d2*d3), fe::basisCardinality, cub::numCubPoints());
+            FieldContainer<double> weighted_function_at_cub_points((d1*d2*d3), fe::basis_cardinality(), cub::numCubPoints());
             weighted_function_at_cub_points.initialize(1.);
 
             FunctionSpaceTools::multiplyMeasure<double>(weighted_function_at_cub_points,  // multiply with weighted measure
@@ -321,14 +321,14 @@ namespace intrepid{
 
 
 
-            FieldContainer<double> function_at_cub_points_ext((d1*d2*d3),fe::basisCardinality, cub::numCubPoints());
+            FieldContainer<double> function_at_cub_points_ext((d1*d2*d3),fe::basis_cardinality(), cub::numCubPoints());
             for (int i =0; i< d1; ++i)
             {
                 for (int j =0; j< d2; ++j)
                 {
 		  for (int k =0; k< d3; ++k)
                     {
-                        for (int P_i =0; P_i< fe::basisCardinality; ++P_i)
+                        for (int P_i =0; P_i< fe::basis_cardinality(); ++P_i)
                         {
                             for (int q=0; q<cub::numCubPoints(); ++q)
                             {
@@ -339,7 +339,7 @@ namespace intrepid{
                 }
             }
 
-            FieldContainer<double> mass_matrices((d1*d2*d3), fe::basisCardinality, fe::basisCardinality);
+            FieldContainer<double> mass_matrices((d1*d2*d3), fe::basis_cardinality(), fe::basis_cardinality());
             FunctionSpaceTools::integrate<double>(mass_matrices,                             // compute mass matrices
 						  function_at_cub_points_ext,
 						  weighted_function_at_cub_points,
@@ -353,8 +353,8 @@ namespace intrepid{
                 {
                     for (int k =0; k< d3; ++k)
                     {
-                        for (int P_i =0; P_i< fe::basisCardinality; ++P_i)
-                            for (int Q_i =0; Q_i< fe::basisCardinality; ++Q_i)
+                        for (int P_i =0; P_i< fe::basis_cardinality(); ++P_i)
+                            for (int Q_i =0; Q_i< fe::basis_cardinality(); ++Q_i)
                             {
                             	if(mass_(i, j, k, P_i, Q_i) > epsilon+ mass_matrices((i-1)*d2*d3+(j-1)*d3+k, P_i, Q_i)
                                    ||

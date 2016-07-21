@@ -27,8 +27,8 @@ namespace functors{
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 
-            uint_t const num_cub_points=eval.get().template get_storage_dims<1>(psi());
-            uint_t const basis_cardinality=eval.get().template get_storage_dims<0>(psi());
+            uint_t const num_cub_points=eval.template get_storage_dims<1>(psi());
+            uint_t const basis_cardinality=eval.template get_storage_dims<0>(psi());
 
             //quadrature points dimension
             gt::dimension<4>::Index qp;
@@ -50,7 +50,7 @@ namespace functors{
 
                         //inner product of the gradients
                         inner_product=0.;
-                        for(short_t icoor=0; icoor< geo_t::fe::space_dim(); ++icoor)
+                        for(short_t icoor=0; icoor< 3/*geo_t::fe::space_dim()*/; ++icoor)
                         {
 
                             //A(k,l)=J_{i,j}*d_i(phi_k)*psi_l*a_j

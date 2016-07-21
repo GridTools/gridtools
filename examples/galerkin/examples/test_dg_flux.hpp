@@ -21,12 +21,12 @@ namespace gridtools{
             auto d3=assembly_base_.m_d3;
 
             // [reference & comparison]
-            FieldContainer<double> grad_at_cub_points(fe::basisCardinality, cub::numCubPoints(), fe::spaceDim);
+            FieldContainer<double> grad_at_cub_points(fe::basis_cardinality(), cub::numCubPoints(), fe::space_dim());
 
-            for (uint_t i=0; i<fe::basisCardinality; ++i)
+            for (uint_t i=0; i<fe::basis_cardinality(); ++i)
                 for (uint_t j=0; j<cub::numCubPoints(); ++j)
-                    for (int_t k=0; k<fe::spaceDim; ++k)
-                        grad_at_cub_points(i,j,k)=fe_backend_.m_grad_at_cub_points(i,j,k);
+                    for (int_t k=0; k<fe::space_dim(); ++k)
+                        grad_at_cub_points(i,j,k)=fe_backend_.m_grad_at_cub_points(i,j,k,0);
 
             FieldContainer<double> cub_weights(cub::numCubPoints());
 
@@ -37,13 +37,13 @@ namespace gridtools{
 
             auto cub_points=fe_backend_.m_rule.update_boundary_cub(1);
 
-            FieldContainer<double> grid(d1*d2*d3, geo_map::basisCardinality, 3);
+            FieldContainer<double> grid(d1*d2*d3, geo_map::basis_cardinality(), 3);
 
             for (int i =0; i< d1; ++i)
                 for (int j =0; j< d2; ++j)
                     for (int k =0; k< d3; ++k)
                     {
-                        for (int q=0; q<geo_map::basisCardinality; ++q)
+                        for (int q=0; q<geo_map::basis_cardinality(); ++q)
                         {
                             for (int d=0; d<3; ++d)
                             {//assign
@@ -52,32 +52,35 @@ namespace gridtools{
                         }
                     }
 
-            FieldContainer<double> jac((d1*d2*d3), cub::numCubPoints(), geo_map::spaceDim, geo_map::spaceDim);
+            FieldContainer<double> jac((d1*d2*d3), cub::numCubPoints(), geo_map::space_dim(), geo_map::space_dim());
             CellTools<double>::setJacobian(jac, cub_points, grid, geo_map::cell_t::value);
 
             auto epsilon=1e-15;
+
+            std::cout<<"check boundary jacobian"<<"\n";
 
             for (int i =1; i< d1; ++i)
                 for (int j =1; j< d2; ++j)
                     for (int k =0; k< d3; ++k)
                         for (int q=0; q<cub::numCubPoints(); ++q)
                         {
-                            for (int dimx=0; dimx<geo_map::spaceDim; ++dimx)
-                                for (int dimy=0; dimy<geo_map::spaceDim; ++dimy)
+                            for (int dimx=0; dimx<geo_map::space_dim(); ++dimx)
+                                for (int dimy=0; dimy<geo_map::space_dim(); ++dimy)
                                 {
-                                    if(assembly_.get_bd_jac()(i, j, k, q, dimx, dimy) > epsilon+ jac(i*d2*d3+j*d3+k, q, dimx, dimy)/*weighted_measure(i*d2*d3+j*d3+k, q)*/
+                                    if(assembly_.get_bd_jac()(i, j, k, q, dimx, dimy, 0) > epsilon+ jac(i*d2*d3+j*d3+k, q, dimx, dimy)/*weighted_measure(i*d2*d3+j*d3+k, q)*/
                                        ||
-                                       assembly_.get_bd_jac()(i, j, k, q, dimx, dimy) +epsilon < jac(i*d2*d3+j*d3+k, q, dimx, dimy)// weighted_measure(i*d2*d3+j*d3+k, q)
+                                       assembly_.get_bd_jac()(i, j, k, q, dimx, dimy, 0) +epsilon < jac(i*d2*d3+j*d3+k, q, dimx, dimy)// weighted_measure(i*d2*d3+j*d3+k, q)
                                         )
                                     {
                                         std::cout<<"error in i="<<i<<" j="<<j<<" k="<<k<<" q="<<q<<" dimx="<<dimx<<" dimy="<<dimy<<": "
-                                                 <<assembly_.get_bd_jac()(i, j, k, q, dimx, dimy)<<" != "
+                                                 <<assembly_.get_bd_jac()(i, j, k, q, dimx, dimy, 0)<<" != "
                                                  <<jac(i*d3*d2+j*d3+k, q, dimx, dimy)// weighted_measure(i*d2*d3+j*d3+k, q)
-                                                 <<std::endl;
+                                                 <<"\n";
                                         // assert(false);
                                     }
                                 }
                         }
+            std::cout<<"done\n";
 
 
 
@@ -99,22 +102,30 @@ namespace gridtools{
 
             //   Step 2.2.c: Face outer normals (relative to parent cell) are uTan x vTan:
             RealSpaceTools<double>::vecprod(worksetFaceN, worksetFaceTu, worksetFaceTv);
-
+            std::cout<<"check face normals"<<"\n";
             for (int i =1; i< d1; ++i)
                 for (int j =1; j< d2; ++j)
                     for (int k =0; k< d3; ++k)
                         for (int q=0; q<cub::numCubPoints(); ++q)
                         {
-                            for (int dimx=0; dimx<geo_map::spaceDim; ++dimx)
-                                if(worksetFaceN(i*d2*d3+j*d3+k, q, dimx) > epsilon + assembly_.get_normals()(i,j,k, q,dimx)
+                            double norm1_squared=assembly_.get_normals()(i,j,k, q,0, 0)*assembly_.get_normals()(i,j,k, q,0, 0)
+                                + assembly_.get_normals()(i,j,k, q,1, 0)*assembly_.get_normals()(i,j,k, q,1, 0)
+                                + assembly_.get_normals()(i,j,k, q,2, 0)*assembly_.get_normals()(i,j,k, q,2, 0);
+                            double norm2_squared=worksetFaceN(i*d2*d3+j*d3+k, q, 0)*worksetFaceN(i*d2*d3+j*d3+k, q, 0)
+                                +worksetFaceN(i*d2*d3+j*d3+k, q, 1)*worksetFaceN(i*d2*d3+j*d3+k, q, 1)
+                                +worksetFaceN(i*d2*d3+j*d3+k, q, 2)*worksetFaceN(i*d2*d3+j*d3+k, q, 2);
+
+                            for (int dimx=0; dimx<geo_map::space_dim(); ++dimx)
+                                if(worksetFaceN(i*d2*d3+j*d3+k, q, dimx)/sqrt(norm2_squared) > epsilon + assembly_.get_normals()(i,j,k, q,dimx, 0)/sqrt(norm1_squared)
                                    ||
-                                   worksetFaceN(i*d2*d3+j*d3+k, q, dimx) + epsilon < assembly_.get_normals()(i,j,k, q,dimx)
+                                   worksetFaceN(i*d2*d3+j*d3+k, q, dimx)/sqrt(norm2_squared) + epsilon < assembly_.get_normals()(i,j,k, q,dimx, 0)/sqrt(norm1_squared)
                                     )
                                     std::cout<<"error in i="<<i<<" j="<<j<<" k="<<k<<" q="<<q<<" "<<dimx<<": "
-                                             <<assembly_.get_normals()(i, j, k, q, dimx)<<" != "
-                                             <<worksetFaceN(i*d3*d2+j*d3+k, q, dimx)// weighted_measure(i*d2*d3+j*d3+k, q)
-                                             <<std::endl;
+                                             <<assembly_.get_normals()(i, j, k, q, dimx, 0)/sqrt(norm1_squared)<<" != "
+                                             <<worksetFaceN(i*d3*d2+j*d3+k, q, dimx)/sqrt(norm2_squared)// weighted_measure(i*d2*d3+j*d3+k, q)
+                                             <<"\n";
                         }
+            std::cout<<"done\n";
 
 
             FieldContainer<double> jac_det((d1*d2*d3), cub::numCubPoints());

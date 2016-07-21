@@ -15,22 +15,26 @@ public:
     {}
 
     template <typename Grid, typename Storage1, typename Storage2>
-    std::shared_ptr< gt::computation > compute(Grid const& grid_, Storage1 & bc_, Storage2 & tr_bc_){
+    #ifdef __CUDACC__
+    gt::computation*
+    #else
+    std::shared_ptr< gt::computation >
+    #endif
+    compute(Grid const& grid_, Storage1 & bc_, Storage2 & tr_bc_){
 
-    struct transform {
-        typedef  gt::arg<0, typename Assembler::storage_type >    p_jac_det;
-        typedef  gt::arg<1, typename Assembler::geometry_t::weights_storage_t >   p_weights;
-        typedef  gt::arg<2, typename Fe::basis_function_storage_t> p_phi;
-        typedef  gt::arg<3, Storage1 > p_bc;
-        typedef  gt::arg<4, Storage1 > p_in;
-        typedef  gt::arg<5, Storage2 > p_bc_integrated;
-    };
+        struct transform {
+            typedef  gt::arg<0, typename Assembler::storage_type >    p_jac_det;
+            typedef  gt::arg<1, typename Assembler::geometry_t::weights_storage_t >   p_weights;
+            typedef  gt::arg<2, typename Fe::basis_function_storage_t> p_phi;
+            typedef  gt::arg<3, Storage1 > p_bc;
+            typedef  gt::arg<4, Storage2 > p_bc_integrated;
+        };
 
         //adding an extra index at the end of the layout_map
         // using bc_storage_info_t=storage_info< __COUNTER__, gt::layout_map_union<Layout, gt::layout_map<0> > >;
         // using bc_storage_t = storage_t< bc_storage_info_t >;
 
-        typedef typename boost::mpl::vector< typename transform::p_jac_det, typename transform::p_weights, typename transform::p_phi, typename transform::p_bc, typename transform::p_in, typename transform::p_bc_integrated> mpl_list_transform_bc;
+        typedef typename boost::mpl::vector< typename transform::p_jac_det, typename transform::p_weights, typename transform::p_phi, typename transform::p_bc, typename transform::p_bc_integrated> mpl_list_transform_bc;
 
         gt::domain_type<mpl_list_transform_bc> domain_transform_bc(
             boost::fusion::make_vector(
@@ -38,26 +42,31 @@ public:
                 ,&m_assembler.fe_backend().cub_weights()
                 ,&m_fe.val()
                 ,&bc_
-                ,&bc_
                 ,&tr_bc_
                 ));
 
         auto transform_bc=gt::make_computation< BACKEND >(
-        domain_transform_bc, grid_
-        , gt::make_mss(
+            domain_transform_bc, grid_
+            , gt::make_mss(
             enumtype::execute<enumtype::forward>()
-            , gt::make_esf< BCFunctor >( typename transform::p_bc(), typename transform::p_in() )
+            , gt::make_esf< BCFunctor >( typename transform::p_bc(), typename transform::p_bc() )
             , gt::make_esf< functors::transform >( typename transform::p_jac_det(), typename transform::p_weights(), typename transform::p_phi(), typename transform::p_bc(), typename transform::p_bc_integrated() )
-            )
-        );
-    return transform_bc;
+                )
+            );
+        return transform_bc;
     }
 
 
 
 
     template <typename Grid, typename Storage1, typename Storage2, typename Storage3, typename Storage4, typename Storage5, typename Storage6>
-    std::shared_ptr< gt::computation > apply(Grid const& grid_, Storage1& tr_bc_, Storage2& result_, Storage3 & bd_beta_n_, Storage4& bd_mass_, Storage5& bd_mass_uv_, Storage6 & u_){
+
+    #ifdef __CUDACC__
+    gt::computation*
+    #else
+    std::shared_ptr< gt::computation >
+    #endif
+    apply(Grid const& grid_, Storage1& tr_bc_, Storage2& result_, Storage3 & bd_beta_n_, Storage4& bd_mass_, Storage5& bd_mass_uv_, Storage6 & u_){
 
 
         struct bc{

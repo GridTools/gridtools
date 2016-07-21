@@ -22,9 +22,9 @@ namespace gdl{
                 gt::dimension<5>::Index dim;
                 gt::dimension<6>::Index Mface;
 
-                const auto N_dofs=eval.get().template get_storage_dims<3>(out());
-                const auto N_faces=eval.get().template get_storage_dims<5>(int_normals());
-                const auto N_dims=eval.get().template get_storage_dims<4>(int_normals());
+                const auto N_dofs=eval.template get_storage_dims<3>(out());//N_DOFS
+                const auto N_faces=eval.template get_storage_dims<5>(int_normals());//6
+                const auto N_dims=eval.template get_storage_dims<4>(int_normals());//3
 
                 for (uint_t dof = 0; dof<N_dofs; ++dof)
                     for (uint_t k = 0; k<N_dofs; ++k)
@@ -33,10 +33,8 @@ namespace gdl{
                             float_type product = 0.;
                             for (uint_t d =0; d<N_dims; ++d)
                                 product += eval(beta(row+k, dim+d)
-                                               *int_normals(row+k, dim+d, Mface+f));
-                            eval(out(row+dof, face+f)) +=
-                                eval(bd_mass(row+dof, col+k, Mface+f)
-                                     *product );
+                                               * int_normals(row+k, dim+d, Mface+f));
+                            eval(out(row+dof, face+f)) += eval(bd_mass(row+dof, col+k, Mface+f))*product ;
                         }
 
 

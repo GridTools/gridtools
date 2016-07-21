@@ -6,6 +6,7 @@
 #include <Intrepid_CubatureTensor.hpp>
 
 #include "cell.hpp"
+#include "element_traits.hpp"
 
 namespace gdl{
 

@@ -34,12 +34,12 @@ namespace functors{
             gt::dimension<2>::Index j;
             gt::dimension<3>::Index k;
 
-            uint_t const num_cub_points=eval.get().template get_storage_dims<1>(dphi());
-            uint_t const basis_cardinality=eval.get().template get_storage_dims<0>(dphi());
-            uint_t const n_faces_=eval.get().template get_storage_dims<6>(jac());
+            uint_t const num_cub_points=eval.template get_storage_dims<1>(dphi());
+            uint_t const basis_cardinality=eval.template get_storage_dims<0>(dphi());
+            uint_t const n_faces_=eval.template get_storage_dims<6>(jac());
 
 #ifndef __CUDACC__
-            assert(num_cub_points==cub::numCubPoints());
+            assert(num_cub_points==eval.template get_storage_dims<1>(dphi()));
 #endif
 
             for(short_t face_=0; face_< n_faces_; ++face_)
@@ -85,7 +85,7 @@ namespace functors{
     //         dimension<5>::Index dimx;
     //         dimension<6>::Index dimy;
 
-    //         uint_t const num_cub_points=eval.get().get_storage_dims(jac())[3];
+    //         uint_t const num_cub_points=eval.get_storage_dims(jac())[3];
 
     //         //"projection" on the tangent space:
     //         //J_{ij} - n_i n_k J_kj + n_i n_j
@@ -145,9 +145,9 @@ namespace functors{
             gt::dimension<4>::Index dofI;
             gt::dimension<5>::Index dofJ;
 
-            uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac_det());
-            uint_t const basis_cardinality = eval.get().template get_storage_dims<0>(phi_trace());
-            uint_t const n_faces = eval.get().template get_storage_dims<4>(jac_det());
+            uint_t const num_cub_points=eval.template get_storage_dims<3>(jac_det());
+            uint_t const basis_cardinality = eval.template get_storage_dims<0>(phi_trace());
+            uint_t const n_faces = eval.template get_storage_dims<4>(jac_det());
 
 
             for(short_t face_=0; face_<n_faces; ++face_) // current dof
@@ -209,9 +209,9 @@ namespace functors{
             gt::dimension<4>::Index dofI;
             gt::dimension<5>::Index dofJ;
 
-            uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac_det());
-            uint_t const basis_cardinality = eval.get().template get_storage_dims<0>(phi_trace());
-            uint_t const n_faces = eval.get().template get_storage_dims<4>(jac_det());
+            uint_t const num_cub_points=eval.template get_storage_dims<3>(jac_det());
+            uint_t const basis_cardinality = eval.template get_storage_dims<0>(phi_trace());
+            uint_t const n_faces = eval.template get_storage_dims<4>(jac_det());
 
 
             for(short_t face_=0; face_<n_faces; ++face_) // current dof
@@ -269,8 +269,9 @@ namespace functors{
             gt::dimension<5>::Index dimx;
             gt::dimension<6>::Index dimy;
 
-            uint_t const num_faces=eval.get().template get_storage_dims<4>(jac_det());
-            uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac_det());
+            //HARDCODED
+            uint_t const num_faces=eval.template get_storage_dims<4>(jac_det());
+            uint_t const num_cub_points=eval.template get_storage_dims<3>(jac_det());
 
             for(short_t face_=0; face_< num_faces; ++face_)
             {
@@ -337,8 +338,8 @@ namespace functors{
     //         gt::dimension<5>::Index dimx;
     //         gt::dimension<6>::Index dimy;
 
-    //         uint_t const num_faces=eval.get().template get_storage_dims<4>(jac_det());
-    //         uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac_det());
+    //         uint_t const num_faces=eval.template get_storage_dims<4>(jac_det());
+    //         uint_t const num_cub_points=eval.template get_storage_dims<3>(jac_det());
 
     //         for(short_t face_=0; face_< num_faces; ++face_)
     //         {
@@ -397,11 +398,12 @@ namespace functors{
             gt::dimension<5>::Index dimI;
             gt::dimension<6>::Index dimJ;
             gt::dimension<7>::Index f;
-            uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac());
-            uint_t const num_faces=eval.get().template get_storage_dims<6>(jac());
+            uint_t const num_cub_points=eval.template get_storage_dims<3>(jac());
+            uint_t const num_faces=eval.template get_storage_dims<6>(jac());
 
             for(ushort_t face_=0; face_<num_faces; ++face_){
                 for(ushort_t q_=0; q_<num_cub_points; ++q_){
+                    //TODO: hardcoded 3
                     for(ushort_t i_=0; i_<3; ++i_){
                         double product = 0.;
                         for(ushort_t j_=0; j_<3; ++j_){
@@ -447,16 +449,22 @@ namespace functors{
             gt::dimension<5>::Index sdim;
             gt::dimension<6>::Index f;
 
-            uint_t const basis_cardinality=eval.get().template get_storage_dims<0>(phi_trace());
-            uint_t const num_cub_points=eval.get().template get_storage_dims<1>(phi_trace());
-            uint_t const num_faces=eval.get().template get_storage_dims<2>(phi_trace());
+            uint_t const basis_cardinality = eval.template get_storage_dims<0>(phi_trace());
+            uint_t const num_cub_points=eval.template get_storage_dims<1>(phi_trace());
+            uint_t const num_faces=eval.template get_storage_dims<2>(phi_trace());
+// #ifndef __CUDACC__
+//             std::cout<<eval.template get_storage_dims<1>(phi_trace())<<std::endl;
+//             assert(num_cub_points == eval.template get_storage_dims<1>(phi_trace()));
+// #endif
 
             for(ushort_t face_=0; face_<num_faces; ++face_){
                 for(ushort_t q_=0; q_<num_cub_points; ++q_){
-                    for(ushort_t i_=0; i_<3; ++i_){
+                    for(ushort_t i_=0; i_<2; ++i_){
                         for(ushort_t dof_=0; dof_<basis_cardinality; ++dof_){
 
-                            eval(out(dimI+dof_, sdim+i_, f+face_)) += eval(in(quad+q_, sdim+i_, f+face_)) * eval(!phi_trace(dof_,q_, face_)*jac_det(quad+q_, gt::dimension<5>(face_)) * !weights(q_));
+                            eval(out(dimI+dof_, sdim+i_, f+face_)) +=  eval(in(quad+q_, sdim+i_, f+face_) * !phi_trace(dof_,q_, face_)
+                                                                            * jac_det(quad+q_, gt::dimension<5>(face_)) *
+                                                                                      !weights(q_));
                         }
                     }
                 }
@@ -493,7 +501,7 @@ namespace functors{
     //         gt::dimension<5>::Index dimI;
     //         gt::dimension<6>::Index dimJ;
 
-    //         uint_t const num_cub_points=eval.get().get_storage_dims(jac())[3];
+    //         uint_t const num_cub_points=eval.get_storage_dims(jac())[3];
 
     //         array<double, 3> tg_u;
     //         array<double, 3> tg_v;

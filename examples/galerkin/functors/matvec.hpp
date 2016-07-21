@@ -46,7 +46,7 @@ namespace functors{
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
             gt::dimension<4>::Index row;
-            uint_t const num_rows=eval.get().template get_storage_dims<3>(in1());
+            uint_t const num_rows=eval.template get_storage_dims<3>(in1());
 
             // Loop over vector elements
             for(uint_t i=0;i<num_rows;++i){
@@ -71,8 +71,8 @@ namespace functors{
         static void Do(Evaluation const & eval, x_interval) {
             gt::dimension<4>::Index row;
             gt::dimension<5>::Index col;
-            uint_t const cardinality_i=eval.get().template get_storage_dims<3>(in2());
-            uint_t const cardinality_j=eval.get().template get_storage_dims<4>(in2());
+            uint_t const cardinality_i=eval.template get_storage_dims<3>(in2());
+            uint_t const cardinality_j=eval.template get_storage_dims<4>(in2());
 
             //for all dofs in a boundary face
             for(short_t I=0; I<cardinality_i; I++)
@@ -101,9 +101,9 @@ namespace functors{
             gt::dimension<5>::Index col;
             gt::dimension<6>::Index face;
 
-            uint_t const cardinality_i=eval.get().template get_storage_dims<3>(in2());
-            uint_t const cardinality_j=eval.get().template get_storage_dims<4>(in2());
-            uint_t const faces_=eval.get().template get_storage_dims<5>(in2());
+            uint_t const cardinality_i=eval.template get_storage_dims<3>(in2());
+            uint_t const cardinality_j=eval.template get_storage_dims<4>(in2());
+            uint_t const faces_=eval.template get_storage_dims<5>(in2());
 
             //for all dofs in a boundary face
             for(short_t I=0; I<cardinality_i; I++)
@@ -132,9 +132,9 @@ namespace functors{
             gt::dimension<5>::Index col;
             gt::dimension<6>::Index face;
 
-            uint_t const cardinality_i=eval.get().template get_storage_dims<3>(in2());
-            uint_t const cardinality_j=eval.get().template get_storage_dims<4>(in2());
-            uint_t const faces_=eval.get().template get_storage_dims<5>(in2());
+            uint_t const cardinality_i=eval.template get_storage_dims<3>(in2());
+            uint_t const cardinality_j=eval.template get_storage_dims<4>(in2());
+            uint_t const faces_=eval.template get_storage_dims<5>(in2());
 
             //for all dofs in a boundary face
             for(short_t I=0; I<cardinality_i; I++)

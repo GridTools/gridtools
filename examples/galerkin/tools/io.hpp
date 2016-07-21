@@ -1,6 +1,8 @@
 #pragma once
 #include <cstring>
+#ifndef __CUDACC__
 #include <memory>
+#endif
 #include <XdmfReader.hpp>
 #include <XdmfWriter.hpp>
 #include <XdmfDomain.hpp>
@@ -123,9 +125,9 @@ namespace gridtools{
             uint_t d3=storage_.meta_data().template dims<2>();
 
             //quad points or dofs?
-            uint_t np1=local_grid_info_.meta_data().template dims<0>();//n. local points along x
-            uint_t np2=local_grid_info_.meta_data().template dims<1>();//n. local points along y
-            uint_t np3=local_grid_info_.meta_data().template dims<2>();//n. local points along z
+            uint_t np1=local_grid_info_.template dims<0>();//n. local points along x
+            uint_t np2=local_grid_info_.template dims<1>();//n. local points along y
+            uint_t np3=local_grid_info_.template dims<2>();//n. local points along z
 
             uint_t first_dim = Storage::layout::template find_val<0, uint_t, 0>(d1, d2, d3);
 
@@ -364,9 +366,9 @@ namespace gridtools{
         auto d3=storage_.meta_data().template dims<2>();
         auto d4=storage_.meta_data().template dims<3>();
 
-        uint_t np1=local_grid_info_.meta_data().template dims<0>();//n. local points along x
-        uint_t np2=local_grid_info_.meta_data().template dims<1>();//n. local points along y
-        uint_t np3=local_grid_info_.meta_data().template dims<2>();//n. local points along z
+        uint_t np1=local_grid_info_.template dims<0>();//n. local points along x
+        uint_t np2=local_grid_info_.template dims<1>();//n. local points along y
+        uint_t np3=local_grid_info_.template dims<2>();//n. local points along z
 
         for(int_t k=0 ; k<d3 ; ++k)
         {

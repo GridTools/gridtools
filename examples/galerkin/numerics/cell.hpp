@@ -41,6 +41,15 @@ namespace gdl{
         using type=shards::Line<>;
     };
 
+    template <ushort_t Order, enumtype::Shape ShapeType>
+    struct cell{
+        static shards::CellTopology value;
+        static const enumtype::Shape shape=ShapeType;
+    };
+
+    template <ushort_t Order, enumtype::Shape ShapeType>
+    shards::CellTopology cell<Order, ShapeType>::value = shards::getCellTopologyData< typename shape_select<Order,ShapeType>::type >(); // cell type: hexahedron
+
 
     template <enumtype::Shape S>
     struct shape_property;
@@ -75,13 +84,45 @@ namespace gdl{
         };
     };
 
-
-    template <ushort_t Order, enumtype::Shape ShapeType>
-    struct cell{
-        static shards::CellTopology value;
-        static const enumtype::Shape shape=ShapeType;
+    template <>
+    struct shape_property<enumtype::Tetra>{
+        static const ushort_t dimension=3;
+        static const ushort_t n_sub_cells=4;
+        static const enumtype::Shape boundary=enumtype::Tri;
     };
 
-    template <ushort_t Order, enumtype::Shape ShapeType>
-    shards::CellTopology cell<Order, ShapeType>::value = shards::getCellTopologyData< typename shape_select<Order,ShapeType>::type >(); // cell type: hexahedron
+    template <>
+    struct shape_property<enumtype::Quad>{
+        static const ushort_t dimension=2;
+        static const ushort_t n_sub_cells=4;
+        static const enumtype::Shape boundary=enumtype::Line;
+    };
+
+    template <>
+    struct shape_property<enumtype::Tri>{
+        static const ushort_t dimension=2;
+        static const ushort_t n_sub_cells=3;
+        static const enumtype::Shape boundary=enumtype::Line;
+    };
+
+    template <>
+    struct shape_property<enumtype::Line>{
+        static const ushort_t dimension=1;
+        static const ushort_t n_sub_cells=2;
+        static const enumtype::Shape boundary=enumtype::Point;
+    };
+
+    template <>
+    struct shape_property<enumtype::Point>{
+        static const ushort_t dimension=0;
+    };
+
+    // const ushort_t shape_property<enumtype::Hexa>::dimension;
+
+    // const ushort_t shape_property<enumtype::Tetra>::dimension;
+
+    // const ushort_t shape_property<enumtype::Quad>::dimension;
+
+    // const ushort_t shape_property<enumtype::Tri>::dimension;
+
 } //namespace gridtools

@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __CUDACC__
+#include <boost/shared_ptr.hpp>
+#endif
+
 // [includes]
 #include <Intrepid_FunctionSpaceTools.hpp>
 #include <Intrepid_Types.hpp>
@@ -17,7 +21,13 @@
 
 namespace gdl{
 namespace intrepid{
-
+#ifdef __CUDACC__
+    typedef gt::layout_map<2,1,0> layout3_t;
+    typedef gt::layout_map<3,2,1,0> layout4_t;
+#else
+    typedef gt::layout_map<0,1,2> layout3_t;
+    typedef gt::layout_map<0,1,2,3> layout4_t;
+#endif
     /**
        @brief defining the finite element discretization
 
@@ -36,10 +46,11 @@ namespace intrepid{
         // [test]
         GRIDTOOLS_STATIC_ASSERT(fe::layout_t::template at_<0>::value < 3 && fe::layout_t::template at_<1>::value < 3 && fe::layout_t::template at_<2>::value < 3,
                                 "the first three numbers in the layout_map must be a permutation of {0,1,2}. ");
-        using weights_storage_t_info = storage_info_t< gt::pair<discretization<FE, Cub>, static_int<__COUNTER__> >, gt::layout_map<0,1,2> >;
-        using grad_storage_t_info = storage_info_t< gt::pair<discretization<FE, Cub>, static_int<__COUNTER__> >, gt::layout_map<0,1,2> >;
-        using basis_function_storage_t_info = storage_info_t<  gt::pair<discretization<FE, Cub>, static_int<__COUNTER__> >, gt::layout_map<0,1,2> >;
-        using cub_points_storage_t_info = storage_info_t< gt::pair<discretization<FE, Cub>, static_int<__COUNTER__> > ,gt::layout_map<0,1,2> >;
+        using weights_storage_t_info = storage_info_t< gt::pair<discretization<FE, Cub>, static_int<__COUNTER__> >, layout3_t >;
+        using grad_storage_t_info = storage_info_t< gt::pair<discretization<FE, Cub>, static_int<__COUNTER__> >, layout3_t >;
+        using basis_function_storage_t_info = storage_info_t<  gt::pair<discretization<FE, Cub>, static_int<__COUNTER__> >, layout3_t >;
+        using cub_points_storage_t_info = storage_info_t< gt::pair<discretization<FE, Cub>, static_int<__COUNTER__> > , layout3_t >;
+
         using weights_storage_t        = storage_t< weights_storage_t_info > ;
         using grad_storage_t           = storage_t< grad_storage_t_info > ;
         using basis_function_storage_t = storage_t< basis_function_storage_t_info > ;
@@ -70,7 +81,7 @@ namespace intrepid{
         weights_storage_t& cub_weights()
             {return m_cub_weights_s;}
 
-        weights_storage_t const& cub_weights() const
+        weights_storage_t const& get_cub_weights() const
             {return m_cub_weights_s;}
 
         grad_storage_t& grad()
@@ -258,7 +269,7 @@ namespace intrepid{
                                              , geo_map::basis()
                                              , shape_property<geo_map::shape()>::boundary>;
 
-        using local_grid_t_info = storage_info< __COUNTER__, gt::layout_map<0,1,2> >;
+        using local_grid_t_info = storage_info< __COUNTER__, layout3_t >;
         using local_grid_t = storage_t< local_grid_t_info >;
         local_grid_t_info  m_local_grid_s_info;
         local_grid_t  m_local_grid_s;
@@ -337,8 +348,8 @@ namespace intrepid{
     {
     public:
 
-        using weights_storage_t_info = storage_info< __COUNTER__,gt::layout_map<0,1,2> >;
-        using cub_points_storage_t_info = storage_info< __COUNTER__, gt::layout_map<0,1,2> >;
+        using weights_storage_t_info = storage_info< __COUNTER__,layout3_t >;
+        using cub_points_storage_t_info = storage_info< __COUNTER__, layout3_t >;
         using weights_storage_t        = storage_t< weights_storage_t_info > ;
         using cub_points_storage_t     = storage_t< cub_points_storage_t_info > ;
 
@@ -427,9 +438,9 @@ namespace intrepid{
         using cub = typename rule_t::bd_cub;
         using bd_geo_map=reference_element<geo_map::order(), geo_map::basis(), bd_shape>;
 
-        using grad_storage_t_info = storage_info< __COUNTER__,gt::layout_map<0,1,2,3> >;
-        using basis_function_storage_t_info = storage_info< __COUNTER__,gt::layout_map<0,1,2> >;
-        using tangent_storage_t_info = storage_info< __COUNTER__,gt::layout_map<0,1,2>>;
+        using grad_storage_t_info = storage_info< __COUNTER__,layout4_t >;
+        using basis_function_storage_t_info = storage_info< __COUNTER__,layout3_t >;
+        using tangent_storage_t_info = storage_info< __COUNTER__,layout3_t>;
 
         using grad_storage_t           = storage_t< grad_storage_t_info > ;
         using basis_function_storage_t = storage_t< basis_function_storage_t_info > ;

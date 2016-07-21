@@ -30,8 +30,8 @@ namespace functors{
             static void Do(Evaluation const & eval, x_interval) {
                 //quadrature points dimension
                 dimension<4>::Index qp;
-                uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac_det());
-                uint_t const basis_cardinality=eval.get().template get_storage_dims<0>(psi());
+                uint_t const num_cub_points=eval.template get_storage_dims<3>(jac_det());
+                uint_t const basis_cardinality=eval.template get_storage_dims<0>(psi());
 
 
 #ifndef __CUDACC__

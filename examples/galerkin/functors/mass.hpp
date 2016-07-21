@@ -19,30 +19,34 @@ namespace functors{
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 
-            uint_t const num_cub_points=eval.get().template get_storage_dims<1>(phi());
-            uint_t const basis_cardinality=eval.get().template get_storage_dims<0>(phi());
+            uint_t const num_cub_points = eval.template get_storage_dims<1>(phi());
+            uint_t const basis_cardinality = eval.template get_storage_dims<0>(phi());
 
             quad::Index qp;
             gt::dimension<5>::Index dimx;
             gt::dimension<6>::Index dimy;
+            gt::dimension<4>::Index dof_i;
+            gt::dimension<5>::Index dof_j;
             // static int_t dd=fe::hypercube_t::boundary_w_codim<2>::n_points::value;
+
+            // printf("cub points: %d\n", num_cub_points);
+            // printf("cardinality: %d\n", basis_cardinality);
 
             //projection of f on a (e.g.) P1 FE space ReferenceFESpace1:
             //loop on quadrature nodes, and on nodes of the P1 element (i,j,k) with i,j,k\in {0,1}
-            for(short_t P_i=0; P_i<basis_cardinality; ++P_i) // current dof
+            for(uint_t P_i=0; P_i<basis_cardinality; ++P_i) // current dof
             {
-                for(short_t Q_i=0; Q_i<basis_cardinality; ++Q_i)
+                for(uint_t Q_i=0; Q_i<basis_cardinality; ++Q_i)
                 {//other dofs whose basis function has nonzero support on the element
-                    // printf("entry (%d, %d): \n", P_i, Q_i);
-                    for(short_t q=0; q<num_cub_points; ++q){
+                    for(uint_t q=0; q<num_cub_points; ++q){
                         assert(eval(jac_det(qp+q)));
-                        eval(mass_t((uint_t)0,(uint_t)0,(uint_t)0,(uint_t)P_i,(uint_t)Q_i))  +=
+                        eval(mass_t(dof_i+P_i,dof_j+Q_i))  +=
                             eval(!phi(P_i,q,0)*(!psi(Q_i,q,0))*jac_det(qp+q)*!weights(q,0,0));
                         // printf("%f * %f *%f * %f +\n", eval(!phi(P_i,q,0)), eval(!psi(Q_i,q,0)), eval(jac_det(qp+q)), eval(!weights(q,0,0)));
                     }
-                    // printf("mass(%d, %d) = %f", P_i, Q_i, eval(mass_t((uint_t)0,(uint_t)0,(uint_t)0,(uint_t)P_i,(uint_t)Q_i)));
+                    // printf("mass(%d, %d) = %f\n", P_i, Q_i, eval(mass_t(dof_i+P_i, dof_j+Q_i)));
                     // printf("\n\n\n\n\n\n");
-                    assert( P_i!=Q_i || eval(mass_t((uint_t)0,(uint_t)0,(uint_t)0,(uint_t)P_i,(uint_t)Q_i)));
+                    assert( P_i!=Q_i || eval(mass_t(dof_i+P_i,dof_j+Q_i)));
                 }
             }
         }

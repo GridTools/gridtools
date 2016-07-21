@@ -1,6 +1,5 @@
-set(XDMF_ROOT "OFF" CACHE PATH "location of the xdmf library")
-
 #####################look for Xdmf library########################
+set(XDMF_ROOT "OFF" CACHE PATH "location of the xdmf library")
 if(ENABLE_XDMF)
   find_package(Xdmf REQUIRED HINTS ${XDMF_ROOT} "${CMAKE_SOURCE_DIR}/cmake/modules")
   if(XDMF_FOUND)
@@ -22,23 +21,7 @@ endif(ENABLE_XDMF)
 
 include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
 
-add_executable( stiffness examples/stiffness.cpp )
-add_executable( mass examples/mass.cpp )
-add_executable( mass_2D examples/mass_2D.cpp )
-add_executable( mass_IGA examples/mass_IGA.cpp )
-add_executable( dg_flux examples/dg_flux.cpp )
-add_executable( gather examples/gather.cpp )
-add_executable( dg_advection examples/dg_advection.cpp )
-add_executable( legendre examples/legendre.cpp )
-set_target_properties( stiffness PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} )
-set_target_properties( mass PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} )
-set_target_properties( mass_2D PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} )
-set_target_properties( mass_IGA PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} )
-set_target_properties( dg_flux PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} )
-set_target_properties( gather PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} )
-set_target_properties( dg_advection PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} )
-set_target_properties( legendre PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} )
-
+################### look for intrepid, teuchos, blas, lapack ############################
 set( ENABLE_INTREPID "OFF" CACHE BOOL "Enable support of finite elements discretization from the Intrepid library" )
 if(ENABLE_INTREPID)
 
@@ -103,25 +86,34 @@ if(ENABLE_INTREPID)
 
 endif(NOT INTREPID_LIB_DIR)
 endif(ENABLE_INTREPID)
+######################################################################
 
-target_link_libraries( stiffness ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS}  ${INTREPID_LIB}  ${SHARDS_LIB} ${TEUCHOS_NUMERICS_LIB} ${TEUCHOS_LIB} ${LAPACK_LIBRARIES}  ${LAPACK_LIBRARIES} ${BLAS_LIBS} )
-target_link_libraries( mass ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS} ${INTREPID_LIB} ${SHARDS_LIB} ${TEUCHOS_NUMERICS_LIB} ${TEUCHOS_LIB}  ${LAPACK_LIBRARIES} ${BLAS_LIBS})
-target_link_libraries( mass_2D ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS} ${INTREPID_LIB} ${SHARDS_LIB} ${TEUCHOS_NUMERICS_LIB} ${TEUCHOS_LIB}  ${LAPACK_LIBRARIES} ${BLAS_LIBS})
-target_link_libraries( mass_IGA ${exe_LIBS}   ${INTREPID_LIB} ${SHARDS_LIB} ${TEUCHOS_LIB}  ${LAPACK_LIBRARIES} ${BLAS_LIBS})
-target_link_libraries( dg_flux ${exe_LIBS}  ${INTREPID_LIB} ${SHARDS_LIB}  ${TEUCHOS_NUMERICS_LIB} ${TEUCHOS_LIB} ${LAPACK_LIBRARIES} ${BLAS_LIBS})
-target_link_libraries( gather ${exe_LIBS}  ${INTREPID_LIB} ${SHARDS_LIB} ${TEUCHOS_NUMERICS_LIB} ${TEUCHOS_LIB} ${LAPACK_LIBRARIES} ${BLAS_LIBS})
-target_link_libraries( dg_advection ${exe_LIBS}  ${INTREPID_LIB} ${SHARDS_LIB}  ${TEUCHOS_NUMERICS_LIB} ${TEUCHOS_LIB} ${LAPACK_LIBRARIES} ${BLAS_LIBS})
-target_link_libraries( legendre ${exe_LIBS}  ${INTREPID_LIB} ${SHARDS_LIB}  ${TEUCHOS_NUMERICS_LIB} ${TEUCHOS_LIB} ${LAPACK_LIBRARIES} ${BLAS_LIBS})
+######################## add the example executables #############
+list( APPEND EXAMPLES stiffness mass mass_2D mass_IGA dg_flux gather dg_advection legendre)
+foreach(example IN LISTS EXAMPLES)
+add_executable( ${example} examples/${example}.cpp )
+set_target_properties( ${example} PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} )
+target_link_libraries( ${example} ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS}  ${INTREPID_LIB}  ${SHARDS_LIB} ${TEUCHOS_NUMERICS_LIB} ${TEUCHOS_LIB} ${LAPACK_LIBRARIES}  ${LAPACK_LIBRARIES} ${BLAS_LIBS} )
+endforeach(example)
+##################################################################
+
+#TODO: remove this test?
+add_executable( legendre2 examples/legendre/legendre.cpp examples/legendre/main.cpp examples/legendre/mesh.cpp )
+set_target_properties( legendre2 PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} )
+target_link_libraries( legendre2 ${exe_LIBS}  ${INTREPID_LIB} ${SHARDS_LIB}  ${TEUCHOS_NUMERICS_LIB} ${TEUCHOS_LIB} ${LAPACK_LIBRARIES} ${BLAS_LIBS})
 
 if(CUDA_FOUND)
-cuda_add_executable( dg_flux_cuda examples/dg_flux.cu )
-target_link_libraries(dg_flux_cuda  ${exe_LIBS} ${INTREPID_LIB} ${SHARDS_LIB} ${TEUCHOS_NUMERICS_LIB}  ${TEUCHOS_LIB} ${LAPACK_LIBRARIES} )
+########################### add cuda executables #####################
+list( APPEND EXAMPLES_CUDA stiffness mass dg_flux dg_advection legendre mass_IGA)
+foreach(example IN LISTS EXAMPLES_CUDA)
+cuda_add_executable( ${example}_cuda examples/${example}.cu )
+target_link_libraries( ${example}_cuda ${exe_LIBS} ${INTREPID_LIB} ${SHARDS_LIB} ${TEUCHOS_NUMERICS_LIB} ${TEUCHOS_LIB} ${LAPACK_LIBRARIES} ${BLAS_LIBS} )
+endforeach(example)
+########################################################################################
 
-cuda_add_executable( dg_advection_cuda examples/dg_advection.cu )
-target_link_libraries(dg_advection_cuda  ${exe_LIBS} ${INTREPID_LIB} ${SHARDS_LIB} ${TEUCHOS_NUMERICS_LIB}  ${TEUCHOS_LIB} ${LAPACK_LIBRARIES} )
+cuda_add_executable( legendre2_cuda examples/legendre/compute_assembly.cu examples/legendre/compute_jacobian.cu examples/legendre/main.cu examples/legendre/legendre.cu examples/legendre/mesh.cu )
+target_link_libraries(legendre2_cuda ${exe_LIBS} ${INTREPID_LIB} ${SHARDS_LIB} ${TEUCHOS_NUMERICS_LIB} ${TEUCHOS_LIB} ${LAPACK_LIBRARIES} ${BLAS_LIBS} )
 
-cuda_add_executable( mass_IGA_cuda examples/mass_IGA.cu )
-target_link_libraries(mass_IGA_cuda  ${exe_LIBS} ${INTREPID_LIB} ${SHARDS_LIB} ${TEUCHOS_LIB} )
 endif(CUDA_FOUND)
 
 add_subdirectory( IGA )

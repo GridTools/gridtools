@@ -42,12 +42,10 @@ private:
     face_normals_type_info m_normals_info;
     storage_type_info m_bd_measure_info;
     /**overdimensioned. Reduce*/
-    bd_vector_storage_info_t m_flux_info;
 
     jacobian_type m_bd_jac;
     face_normals_type m_normals;
     storage_type m_bd_measure;
-    bd_vector_type m_flux;//flux (not necessary actually...)
 
 public:
 
@@ -55,14 +53,13 @@ public:
     jacobian_type & bd_jac()  {return m_bd_jac;}
     face_normals_type & normals()  {return m_normals;}
     storage_type & bd_measure()  { return m_bd_measure;}
-    bd_vector_type & flux()  { return m_flux;}
 
     jacobian_type const& get_bd_jac() const {return m_bd_jac;}
     face_normals_type const& get_normals() const {return m_normals;}
     storage_type const& get_bd_measure() const { return m_bd_measure;}
-    bd_vector_type const& get_flux() const { return m_flux;}
 
 
+    typename Boundary::tangent_storage_t & ref_normals() const {return m_bd_backend.ref_normals();}
     typename Boundary::tangent_storage_t const& get_ref_normals() const {return m_bd_backend.ref_normals();}
 
     bd_assembly( Boundary& bd_backend_,
@@ -72,11 +69,9 @@ public:
         , m_jac_info(d1, d2, d3, bd_cub::numCubPoints(), 3, 3, bd_backend_.n_boundaries())
         , m_normals_info(d1, d2, d3, bd_cub::numCubPoints(), 3, bd_backend_.n_boundaries())
         , m_bd_measure_info(d1, d2, d3, bd_cub::numCubPoints(), bd_backend_.n_boundaries())
-        , m_flux_info(d1,d2,d3,boundary_t::/*bd_*/geo_map::basis_cardinality())//TODO: should be smaller!
         , m_bd_jac(m_jac_info, 0., "bd jac")
         , m_normals(m_normals_info, 0., "normals")
         , m_bd_measure(m_bd_measure_info, 0., "bd measure")
-        , m_flux(m_flux_info, 0., "flux")
     {}
 
 };
@@ -101,8 +96,7 @@ public:
     typedef gt::arg<super::size+4, typename as_t::boundary_t::tangent_storage_t> p_ref_normals;
     typedef gt::arg<super::size+6, typename as_t::boundary_t::basis_function_storage_t> p_bd_phi;
     typedef gt::arg<super::size+7, typename as_t::boundary_t::grad_storage_t> p_bd_dphi;
-    typedef gt::arg<super::size+8, typename as_t::bd_vector_type> p_flux;
-    static const ushort_t size=super::size+9;
+    static const ushort_t size=super::size+8;
 
     // template <typename ... MPLList>
     // int domain( typename MPLList::storage_type & ...  storages_ )
@@ -127,7 +121,6 @@ public:
                     , p_ref_normals
                     , p_bd_phi
                     , p_bd_dphi
-                    , p_flux
                     , typename boost::remove_reference
                     <typename boost::remove_pointer<
                     MPLList>::type>::type ...
@@ -138,7 +131,6 @@ public:
                        , m_as.bd_backend().ref_normals()
                        , m_as.bd_backend().val()
                        , m_as.bd_backend().grad()
-                       , m_as.flux()
                        , storages_ ...
                         ))
     {
@@ -149,7 +141,6 @@ public:
                                         , p_ref_normals
                                         , p_bd_phi
                                         , p_bd_dphi
-                                        , p_flux
                                         , typename boost::remove_reference
                                         <typename boost::remove_pointer<
                                              MPLList>::type>::type ...
@@ -161,7 +152,6 @@ public:
               , m_as.bd_backend().ref_normals()
               , m_as.bd_backend().val()
               , m_as.bd_backend().grad()
-              , m_as.flux()
               , storages_ ...
                 );
     }

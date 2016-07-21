@@ -9,22 +9,30 @@
 using namespace gdl;
 using namespace enumtype;
 
-int main(){
+int main( int argc, char ** argv){
 
+    if(argc!=4) {
+        printf("usage: \n >> mass <d1> <d2> <d3>\n");
+        exit(-666);
+    }
 	//![definitions]
     //dimensions of the problem (in number of elements per dimension)
-    auto d1=8;
-    auto d2=8;
-    auto d3=1;
+    uint_t d1= atoi(argv[1]);
+    uint_t d2= atoi(argv[2]);
+    uint_t d3= atoi(argv[3]);
     //![definitions]
 
     //![definitions]
     //defining the assembler, based on the Intrepid definitions for the numerics
+#ifdef CUDA_EXAMPLE
+    using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<4,3> >;
+#else
     using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<3,4> >;
+#endif
     using matrix_type=storage_t< matrix_storage_info_t >;
-    using fe=reference_element<2, Lagrange, Hexa>;
-    using geo_map=reference_element<2, Lagrange, Hexa>;
-    using cub=cubature<fe::order+1, fe::shape>;
+    using fe=reference_element<3, Lagrange, Hexa>;
+    using geo_map=reference_element<1, Lagrange, Hexa>;
+    using cub=cubature<4, fe::shape()>;
     using geo_t = intrepid::geometry<geo_map, cub>;
     using discr_t = intrepid::discretization<fe, cub>;
     //![definitions]
@@ -40,7 +48,6 @@ int main(){
 #ifdef NDEBUG
     constexpr
 #endif
-        gt::meta_storage_base<static_int<__COUNTER__>,gt::layout_map<0,1,2>,false> indexing{3, 3, 1};
     gt::dimension<1>::Index i;
     gt::dimension<2>::Index j;
     gt::dimension<4>::Index row;
@@ -60,12 +67,12 @@ int main(){
         for (uint_t j=0; j<d2; j++)
             for (uint_t k=0; k<d3; k++)
             {
-                for (uint_t point=0; point<fe::basisCardinality; point++)
+                for (uint_t point=0; point<geo_map::basis_cardinality(); point++)
                 {
                     assembler_base.grid()( i,  j,  k,  point,  0)= (i + geo_.grid()(point, 0, 0));
                     assembler_base.grid()( i,  j,  k,  point,  1)= (j + geo_.grid()(point, 1, 0));
                     assembler_base.grid()( i,  j,  k,  point,  2)= (k + geo_.grid()(point, 2, 0));
-                    assembler_base.grid_map()(i,j,k,point)=0;//Global DOF // TODO: assign correct values
+                    // assembler_base.grid_map()(i,j,k,point)=0;//Global DOF // TODO: assign correct values
                 }
             }
     //![grid]
@@ -73,7 +80,7 @@ int main(){
 
     //![instantiation_mass]
     //defining the mass matrix: d1xd2xd3 elements
-    matrix_storage_info_t meta_(d1,d2,d3,fe::basisCardinality,fe::basisCardinality);
+    matrix_storage_info_t meta_(d1,d2,d3,fe::basis_cardinality(),fe::basis_cardinality());
     matrix_type mass_(meta_, 0., "mass");
     //![instantiation_mass]
 
@@ -114,12 +121,13 @@ int main(){
 
     //![computation]
     auto computation=gt::make_computation<BACKEND>
-        (make_mss(execute<forward>(),
-                  gt::make_esf<functors::update_jac<geo_t> >(p_grid_points(), p_dphi_geo(), p_jac()),
-                  gt::make_esf<functors::det< geo_t > >(p_jac(), p_jac_det()),
-                  gt::make_esf<functors::mass >(p_jac_det(), p_weights(), p_phi(), p_phi(), p_mass())),
-         domain,
-         coords);
+        (         domain,
+                  coords,
+                  make_mss(execute<forward>(),
+                           gt::make_esf<functors::update_jac<geo_t> >(p_grid_points(), p_dphi_geo(), p_jac()),
+                           gt::make_esf<functors::det< geo_t > >(p_jac(), p_jac_det()),
+                           gt::make_esf<functors::mass >(p_jac_det(), p_weights(), p_phi(), p_phi(), p_mass()))
+            );
 
 
     computation->ready();
@@ -127,7 +135,8 @@ int main(){
     computation->run();
     computation->finalize();
     //![computation]
-
-    // return test_mass(assembler_base, assembler, fe_, mass_)==true;
-    return true;
+#ifndef CUDA_EXAMPLE
+    std::cout << computation->print_meter() << std::endl;
+#endif
+    return test_mass(assembler_base, assembler, fe_, mass_)==true;
 }

@@ -1,7 +1,9 @@
 #pragma once
 #include "../IGA/RunTimeIGA/b_splines_rt.h"
 #include <boost/fusion/include/accumulate.hpp>
+#ifndef __CUDACC__
 #include <tuple>
+#endif
 #include "nest_loops.hpp"
 #include <common/generic_metafunctions/gt_integer_sequence.hpp>
 #include <common/generic_metafunctions/gt_get.hpp>

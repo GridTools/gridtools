@@ -35,11 +35,12 @@ namespace gdl{
             gt::dimension<2>::Index j;
             gt::dimension<3>::Index k;
 
-            uint_t const num_cub_points=eval.get().template get_storage_dims<1>(dphi());
-            uint_t const basis_cardinality=eval.get().template get_storage_dims<0>(dphi());
+            uint_t const num_cub_points=eval.template get_storage_dims<1>(dphi());
+            uint_t const basis_cardinality=eval.template get_storage_dims<0>(dphi());
 
 #ifndef __CUDACC__
             assert(num_cub_points==cub::numCubPoints());
+            assert(basis_cardinality==eval.template get_storage_dims<0>(dphi()));
 #endif
             //TODO dimensions should be generic
             for(short_t icoor=0; icoor< shape_property<Geometry::parent_shape>::dimension; ++icoor)
@@ -74,6 +75,7 @@ namespace gdl{
             using jac = gt::accessor<0, enumtype::in, gt::extent<0,0,0,0> , 6> const;
             using jac_det =  gt::accessor<1, enumtype::inout, gt::extent<0,0,0,0> , 4>;
             using arg_list= boost::mpl::vector< jac, jac_det > ;
+            using cub=typename Geometry::cub;
 
             template <typename Evaluation>
             GT_FUNCTION
@@ -82,9 +84,9 @@ namespace gdl{
                 gt::dimension<4>::Index qp;
                 gt::dimension<5>::Index dimx;
                 gt::dimension<6>::Index dimy;
-                uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac());
+                uint_t const num_cub_points=eval.template get_storage_dims<3>(jac());
 
-#ifdef __CUDACC__
+#ifndef __CUDACC__
                 assert(num_cub_points==cub::numCubPoints());
 #endif
 
@@ -172,6 +174,7 @@ namespace gdl{
         using jac      = typename super::jac ;
         using jac_det  = typename super::jac_det ;
         using jac_inv  = typename super::jac_inv ;
+        using cub=typename Geometry::cub;
 
         template <typename Evaluation>
         GT_FUNCTION
@@ -182,7 +185,7 @@ namespace gdl{
             using dimy=gt::dimension<6>;
             dimx::Index X;
             dimy::Index Y;
-            uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac());
+            uint_t const num_cub_points=eval.template get_storage_dims<3>(jac());
 
             typedef typename Geometry::cub cub;
             assert(num_cub_points==cub::numCubPoints());
@@ -248,6 +251,7 @@ namespace gdl{
         using jac      = typename super::jac ;
         using jac_det  = typename super::jac_det ;
         using jac_inv  = typename super::jac_inv ;
+        using cub=typename Geometry::cub;
 
         template <typename Evaluation>
         GT_FUNCTION
@@ -257,9 +261,9 @@ namespace gdl{
             using dimy=gt::dimension<6>;
             dimx::Index X;
             dimy::Index Y;
-            uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac());
+            uint_t const num_cub_points=eval.template get_storage_dims<3>(jac());
 
-#ifdef __CUDACC__
+#ifndef __CUDACC__
             assert(num_cub_points==cub::numCubPoints());
 #endif
 
@@ -301,6 +305,7 @@ namespace gdl{
         using jac      = typename super::jac ;
         using jac_det  = typename super::jac_det ;
         using jac_inv  = typename super::jac_inv ;
+        using cub=typename Geometry::cub;
 
         template <typename Evaluation>
         GT_FUNCTION
@@ -311,14 +316,13 @@ namespace gdl{
             using dimy=gt::dimension<6>;
             dimx::Index X;
             dimy::Index Y;
-            uint_t const num_cub_points=eval.get().template get_storage_dims<3>(jac());
+            uint_t const num_cub_points=eval.template get_storage_dims<3>(jac());
 
-
-            assert(num_cub_points==cub::numCubPoints());
-
+#ifndef __CUDACC__
+            assert(num_cub_points==cub::numCubPoints()); //PRETTY_FUNCTION issue
+#endif
             for(short_t q=0; q< num_cub_points; ++q)
             {
-
                 eval( jac_inv(qp+q) )           = eval( ( jac(qp+q, X+1, Y+1)*jac(qp+q, X+2,Y+2)) - jac(qp+q, X+2, Y+1)*jac(qp+q, X+1,Y+2)/jac_det(qp+q));
                 eval( jac_inv(X+1, qp+q) )      = eval( ( jac(qp+q, X+2, Y+1)*jac(qp+q, Y+2)) - jac(qp+q, Y+1)*jac(qp+q, X+2,Y+2)/jac_det(qp+q));
                 eval( jac_inv(X+2, qp+q) )      = eval( ( jac(qp+q, Y+1)*jac(qp+q, X+1,Y+2)) - jac(qp+q, X+1, Y+1)*jac(qp+q, Y+2)/jac_det(qp+q));
@@ -579,15 +583,15 @@ namespace gdl{
         static void Do(Evaluation const & eval, x_interval) {
 
         	// Retrieve elements dof grid gt::dimensions and number of dofs per element
-            const uint_t d1=eval.get().template get_storage_dims<0>(in());
-            const uint_t d2=eval.get().template get_storage_dims<1>(in());
-            const uint_t d3=eval.get().template get_storage_dims<2>(in());
-            const uint_t basis_cardinality=eval.get().template get_storage_dims<3>(in());
+            const uint_t d1=eval.template get_storage_dims<0>(in());
+            const uint_t d2=eval.template get_storage_dims<1>(in());
+            const uint_t d3=eval.template get_storage_dims<2>(in());
+            const uint_t basis_cardinality=eval.template get_storage_dims<3>(in());
 
             // Retrieve global dof pair of current stencil point
             // TODO: the computation is positional by default only in debug mode!
             const u_int my_P = eval.i();
-            const u_int my_Q = eval.j()%eval.get().template get_storage_dims<0>(out());
+            const u_int my_Q = eval.j()%eval.template get_storage_dims<0>(out());
 
             // Loop over element dofs
             for(u_int i=0;i<d1;++i)
@@ -635,15 +639,15 @@ namespace gdl{
         static void Do(Evaluation const & eval, x_interval) {
 
             // Retrieve elements dof grid gt::dimensions and number of dofs per element
-            const uint_t d1=eval.get().template get_storage_dims<0>(in());
-            const uint_t d2=eval.get().template get_storage_dims<1>(in());
-            const uint_t d3=eval.get().template get_storage_dims<2>(in());
-            const uint_t basis_cardinality=eval.get().template get_storage_dims<3>(in());
+            const uint_t d1=eval.template get_storage_dims<0>(in());
+            const uint_t d2=eval.template get_storage_dims<1>(in());
+            const uint_t d3=eval.template get_storage_dims<2>(in());
+            const uint_t basis_cardinality=eval.template get_storage_dims<3>(in());
 
             // Retrieve global dof pair of current stencil point
             // TODO: the computation is positional by default only in debug mode!
             const u_int my_P = eval.i();
-            const u_int my_Q = eval.j()%eval.get().template get_storage_dims<0>(out());
+            const u_int my_Q = eval.j()%eval.template get_storage_dims<0>(out());
 
             // Loop over element dofs
             for(u_int i=0;i<d1;++i)
@@ -1124,7 +1128,7 @@ namespace gdl{
 
     template< typename T, T Value>
     struct assign<3, T, Value>{
-        typedef gt::accessor<2, enumtype::inout, gt::extent<0,0,0,0> , 3> field;
+        typedef gt::accessor<0, enumtype::inout, gt::extent<0,0,0,0> , 3> field;
         typedef boost::mpl::vector< field > arg_list;
 
         template <typename Evaluation>
@@ -1143,7 +1147,7 @@ namespace gdl{
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 
-            uint_t const num_=eval.get().template get_storage_dims<3>(field());
+            uint_t const num_=eval.template get_storage_dims<3>(field());
 
             for(short_t I=0; I<num_; I++)
                 eval(field(gt::dimension<4>(I)))=Value;
@@ -1159,8 +1163,8 @@ namespace gdl{
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 
-            uint_t const dim_1_=eval.get().template get_storage_dims<3>(field());
-            uint_t const dim_2_=eval.get().template get_storage_dims<4>(field());
+            uint_t const dim_1_=eval.template get_storage_dims<3>(field());
+            uint_t const dim_2_=eval.template get_storage_dims<4>(field());
 
             for(short_t I=0; I<dim_1_; I++)
                 for(short_t J=0; J<dim_2_; J++)

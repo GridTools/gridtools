@@ -70,11 +70,11 @@ namespace gdl{
         static type instance(){return type();}
     };
 
-    template<ushort_t P>
-    struct basis_select<P, enumtype::Legendre, enumtype::Tetra>{
-        using type=legendre< 3, P >;
-        static type instance(){return type();}
-    };
+    // template<ushort_t P>
+    // struct basis_select<P, enumtype::Legendre, enumtype::Tetra>{
+    //     using type=legendre< 3, P >;
+    //     static type instance(){return type();}
+    // };
 
     template<ushort_t P>
     struct basis_select<P, enumtype::Legendre, enumtype::Quad>{
@@ -257,47 +257,6 @@ namespace gdl{
     // const constexpr array<float_type, 3>  shape_property<enumtype::Hexa>::tangent_v<26>::value;
 
 
-    template <>
-    struct shape_property<enumtype::Tetra>{
-        static const ushort_t dimension=3;
-        static const ushort_t n_sub_cells=4;
-        static const enumtype::Shape boundary=enumtype::Tri;
-    };
-
-    template <>
-    struct shape_property<enumtype::Quad>{
-        static const ushort_t dimension=2;
-        static const ushort_t n_sub_cells=4;
-        static const enumtype::Shape boundary=enumtype::Line;
-    };
-
-    template <>
-    struct shape_property<enumtype::Tri>{
-        static const ushort_t dimension=2;
-        static const ushort_t n_sub_cells=3;
-        static const enumtype::Shape boundary=enumtype::Line;
-    };
-
-    template <>
-    struct shape_property<enumtype::Line>{
-        static const ushort_t dimension=1;
-        static const ushort_t n_sub_cells=2;
-        static const enumtype::Shape boundary=enumtype::Point;
-    };
-
-    template <>
-    struct shape_property<enumtype::Point>{
-        static const ushort_t dimension=0;
-    };
-
-
-    const ushort_t shape_property<enumtype::Hexa>::dimension;
-
-    const ushort_t shape_property<enumtype::Tetra>::dimension;
-
-    const ushort_t shape_property<enumtype::Quad>::dimension;
-
-    const ushort_t shape_property<enumtype::Tri>::dimension;
 
     template <typename FE>
     struct boundary_shape;
