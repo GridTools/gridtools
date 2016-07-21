@@ -52,6 +52,13 @@ if ( ENABLE_CXX11 )
 
     gridtools_add_test(strgrid_stencil_tests ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/strgrid_stencil_tests")
 
+
+  add_executable(test_domain_reassign test_domain_reassign.cpp ${GTEST_FILES})
+  gridtools_add_test(test_domain_reassign ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/test_domain_reassign")
+
+  set_target_properties(test_domain_reassign PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+  target_link_libraries(test_domain_reassign ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
+
 endif(ENABLE_CXX11)
 if(CUDA_FOUND)
     if(ENABLE_CXX11)
@@ -74,12 +81,6 @@ if(CUDA_VERSION_MAJOR>7)
     target_link_libraries(test_conditional_switches_cuda ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
     gridtools_add_test(test_conditional_switches_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/test_conditional_switches_cuda")
 endif(CUDA_VERSION_MAJOR>7)
-
-  add_executable(test_domain_reassign test_domain_reassign.cpp ${GTEST_FILES})
-  gridtools_add_test(test_domain_reassign ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/test_domain_reassign")
-
-  set_target_properties(test_domain_reassign PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
-  target_link_libraries(test_domain_reassign ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
 
 if (CUDA_FOUND)
   cuda_add_executable(test_domain_reassign_cuda test_domain_reassign.cu ${GTEST_FILES})
