@@ -293,6 +293,11 @@ namespace test_iterate_domain{
 
         assert(((float_type*)(out.get<1,1>()+new_index[0]+out.meta_data().strides<1>(out.meta_data().strides()))==
                 &it_domain(out_1(dimension<2>(1)))));
+
+        //check runtime alias arguments
+        alias<accessor<2, enumtype::inout,extent<0,0,0,0>, 4>, dimension<3>, dimension<4> > acc_(1,1);
+        using acc_t = alias<accessor<2, enumtype::inout,extent<0,0,0,0>, 4>, dimension<3>, dimension<4> >::set<1,1>;
+        assert(&it_domain(acc_t(dimension<1>(1)))==&it_domain(acc_(dimension<1>(1))));
 #endif
 
         //check strides initialization

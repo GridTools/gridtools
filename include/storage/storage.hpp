@@ -105,6 +105,7 @@ namespace gridtools {
         using type_tt = typename BaseStorage::template type_tt< PT, MD, FD >;
 #endif
         typedef BaseStorage super;
+        typedef typename super::layout layout;
         typedef typename BaseStorage::basic_type basic_type;
         typedef storage< BaseStorage > this_type;
         typedef typename BaseStorage::storage_info_type storage_info_type;
