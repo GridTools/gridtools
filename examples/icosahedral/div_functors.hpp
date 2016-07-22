@@ -48,50 +48,191 @@ namespace ico_operators {
     using namespace expressions;
 
     template < uint_t Color >
-     struct div_functor {
+    struct div_prep_functor {
+        typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 1 > > edge_length;
+        typedef inout_accessor< 1, icosahedral_topology_t::cells > cell_area_reciprocal;
+        typedef in_accessor< 2, icosahedral_topology_t::cells, extent< 1 >, 5 > orientation_of_normal;
+        typedef inout_accessor< 3, icosahedral_topology_t::cells, 5 > weights;
+
+        typedef boost::mpl::vector< edge_length, cell_area_reciprocal, orientation_of_normal, weights > arg_list;
+
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            using edge_of_cell_dim = dimension< 5 >;
+            edge_of_cell_dim::Index edge;
+
+            constexpr auto neighbors_offsets = connectivity< cells, edges, Color >::offsets();
+            ushort_t e = 0;
+            for (auto neighbor_offset : neighbors_offsets) {
+                eval(weights(edge + e)) += eval(orientation_of_normal(edge + e)) * eval(edge_length(neighbor_offset)) *
+                                           eval(cell_area_reciprocal());
+                e++;
+            }
+        }
+    };
+
+    template < uint_t Color >
+    struct div_prep_functor_on_edges {
+        typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 1 > > edge_length;
+        typedef in_accessor< 1, icosahedral_topology_t::cells, extent< 1 > > cell_area_reciprocal;
+        typedef inout_accessor< 2, icosahedral_topology_t::edges, 5 > l_over_A;
+
+        typedef boost::mpl::vector< edge_length, cell_area_reciprocal, l_over_A > arg_list;
+
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            constexpr auto neighbors_offsets = connectivity< edges, cells, Color >::offsets();
+
+            using cell_of_edge_dim = dimension< 5 >;
+            cell_of_edge_dim::Index cell;
+
+            eval(l_over_A(cell + 0)) = eval(cell_area_reciprocal(neighbors_offsets[0])) * eval(edge_length());
+            eval(l_over_A(cell + 1)) = eval(cell_area_reciprocal(neighbors_offsets[1])) * eval(edge_length());
+        }
+    };
+
+    template < uint_t Color >
+    struct div_functor {
+        typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 1 > > in_edges;
+        typedef in_accessor< 1, icosahedral_topology_t::cells, extent< 1 >, 5 > weights;
+        typedef inout_accessor< 2, icosahedral_topology_t::cells > out_cells;
+        typedef boost::mpl::vector< in_edges, weights, out_cells > arg_list;
+
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            using edge_of_cells_dim = dimension< 5 >;
+            edge_of_cells_dim::Index edge;
+
+            eval(out_cells()) = 0.;
+            constexpr auto neighbors_offsets = connectivity< cells, edges, Color >::offsets();
+            ushort_t e = 0;
+            for (auto neighbor_offset : neighbors_offsets) {
+                eval(out_cells()) += eval(in_edges(neighbor_offset)) * eval(weights(edge + e));
+                e++;
+            }
+        }
+    };
+
+    template < uint_t Color >
+    struct div_functor_reduction_into_scalar {
+        typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 1 > > in_edges;
+        typedef in_accessor< 1, icosahedral_topology_t::cells, extent< 1 >, 5 > weights;
+        typedef inout_accessor< 2, icosahedral_topology_t::cells > out_cells;
+        typedef boost::mpl::vector< in_edges, weights, out_cells > arg_list;
+
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            using edge_of_cells_dim = dimension< 5 >;
+            edge_of_cells_dim::Index edge;
+
+            double t{0.};
+            constexpr auto neighbors_offsets = connectivity< cells, edges, Color >::offsets();
+            ushort_t e = 0;
+            for (auto neighbor_offset : neighbors_offsets) {
+                t += eval(in_edges(neighbor_offset)) * eval(weights(edge + e));
+                e++;
+            }
+            eval(out_cells()) = t;
+        }
+    };
+    template < uint_t Color >
+     struct div_functor_flow_convention {
          typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 1 > > in_edges;
-         typedef in_accessor< 1, icosahedral_topology_t::cells, extent< 1 >, 5 > weights;
-         typedef inout_accessor< 2, icosahedral_topology_t::cells > out_cells;
-         typedef boost::mpl::vector< in_edges, weights, out_cells > arg_list;
+         typedef in_accessor< 1, icosahedral_topology_t::edges, extent< 1 > > edge_length;
+         typedef in_accessor< 2, icosahedral_topology_t::cells, extent< 1 > > cell_area_reciprocal;
+         typedef inout_accessor< 3, icosahedral_topology_t::cells > out_cells;
+         typedef boost::mpl::vector< in_edges, edge_length, cell_area_reciprocal, out_cells > arg_list;
 
          template < typename Evaluation >
          GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-             using edge_of_cells_dim = dimension< 5 >;
-             edge_of_cells_dim::Index edge;
+             auto ff = [](
+                 const double _in1, const double _in2, const double _res) -> double { return _in1 * _in2 + _res; };
 
-             eval(out_cells()) = 0.;
-             constexpr auto neighbors_offsets = connectivity< cells, edges, Color >::offsets();
-             ushort_t e = 0;
-             for (auto neighbor_offset : neighbors_offsets) {
-                 eval(out_cells()) += eval(in_edges(neighbor_offset)) * eval(weights(edge + e));
-                 e++;
-             }
+             if (Color == 0)
+                 eval(out_cells()) = eval(on_edges(ff, 0.0, in_edges(), edge_length())) * eval(cell_area_reciprocal());
+             else
+                 eval(out_cells()) = -eval(on_edges(ff, 0.0, in_edges(), edge_length())) * eval(cell_area_reciprocal());
          }
      };
 
      template < uint_t Color >
-     struct div_prep_functor {
-         typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 1 > > edge_length;
-         typedef inout_accessor< 1, icosahedral_topology_t::cells > cell_area_reciprocal;
-         typedef in_accessor< 2, icosahedral_topology_t::cells, extent< 1 >, 5 > orientation_of_normal;
-         typedef inout_accessor< 3, icosahedral_topology_t::cells, 5 > weights;
-
-         typedef boost::mpl::vector< edge_length, cell_area_reciprocal, orientation_of_normal, weights > arg_list;
+     struct div_functor_over_edges {
+         typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 1 > > in_edges;
+         typedef in_accessor< 1, icosahedral_topology_t::edges, extent< 1 > > edge_length;
+         typedef inout_accessor< 2, icosahedral_topology_t::cells > out_cells;
+         typedef boost::mpl::vector< in_edges, edge_length, out_cells > arg_list;
 
          template < typename Evaluation >
-         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-             using edge_of_cell_dim = dimension< 5 >;
-             edge_of_cell_dim::Index edge;
+ #ifdef __CUDACC__
+         __device__
+ #endif
+         static void Do(Evaluation const &eval, x_interval) {
+             constexpr auto neighbors_offsets = connectivity< edges, cells, Color >::offsets();
 
-             constexpr auto neighbors_offsets = connectivity< cells, edges, Color >::offsets();
-             ushort_t e = 0;
-             for (auto neighbor_offset : neighbors_offsets) {
-                 eval(weights(edge + e)) +=
-                     eval(orientation_of_normal(edge + e)) * eval(edge_length(neighbor_offset)) * eval(cell_area_reciprocal());
-                 e++;
+             double t{eval(in_edges()) * eval(edge_length())};
+
+             if (Color == 0) {
+                 eval(out_cells(neighbors_offsets[0])) = -t;
+                 eval(out_cells(neighbors_offsets[1])) = t;
+             } else {
+                 eval(out_cells(neighbors_offsets[0])) -= t;
+                 eval(out_cells(neighbors_offsets[1])) += t;
              }
+
+ #ifdef __CUDACC__
+             __syncthreads();
+ #endif
          }
      };
+     template < uint_t Color >
+      struct divide_by_field {
+          typedef in_accessor< 0, icosahedral_topology_t::cells, extent< 0 > > cell_area_reciprocal;
+          typedef inout_accessor< 1, icosahedral_topology_t::cells > out_cells;
+          typedef boost::mpl::vector< cell_area_reciprocal, out_cells > arg_list;
+          template < typename Evaluation >
+          GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+              constexpr auto neighbors_offsets = connectivity< edges, cells, Color >::offsets();
+
+              if (Color == 0) {
+                  eval(out_cells(neighbors_offsets[0])) *= eval(cell_area_reciprocal(neighbors_offsets[0]));
+                  eval(out_cells(neighbors_offsets[1])) *= eval(cell_area_reciprocal(neighbors_offsets[1]));
+              }
+          }
+      };
+
+      using namespace gridtools;
+      using namespace enumtype;
+      using namespace expressions;
+
+      template < uint_t Color >
+      struct div_functor_over_edges_weights {
+          typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 1 > > in_edges;
+          typedef in_accessor< 1, icosahedral_topology_t::edges, extent< 1 >, 5 > l_over_A;
+          typedef inout_accessor< 2, icosahedral_topology_t::cells > out_cells;
+          typedef boost::mpl::vector< in_edges, l_over_A, out_cells > arg_list;
+
+          template < typename Evaluation >
+  #ifdef __CUDACC__
+          __device__
+  #endif
+          static void Do(Evaluation const &eval, x_interval) {
+              constexpr auto neighbors_offsets = connectivity< edges, cells, Color >::offsets();
+
+              using cell_of_edge_dim = dimension< 5 >;
+              cell_of_edge_dim::Index cell;
+
+              if (Color == 0) {
+                  eval(out_cells()) = eval(in_edges());
+                  eval(out_cells(neighbors_offsets[0])) = -eval(in_edges()) * eval(l_over_A(cell + 0));
+                  eval(out_cells(neighbors_offsets[1])) = eval(in_edges()) * eval(l_over_A(cell + 1));
+              } else {
+                  eval(out_cells(neighbors_offsets[0])) -= eval(in_edges()) * eval(l_over_A(cell + 0));
+                  eval(out_cells(neighbors_offsets[1])) += eval(in_edges()) * eval(l_over_A(cell + 1));
+              }
+  #ifdef __CUDACC__
+              __syncthreads();
+  #endif
+          }
+      };
 
 }
-
