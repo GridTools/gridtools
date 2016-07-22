@@ -66,7 +66,7 @@ fi
 #
 echo "Running Python tests ..."
 NOSE_CMD="nosetests -v -s ${NOSE_NO_GPU} tests.test_stencils tests.test_ifstatement \
-          tests.test_invalid_stencils tests.test_sw tests.test_gtdd"
+          #tests.test_invalid_stencils tests.test_sw tests.test_gtdd tests.test_fastwaves"
 eval "$NOSE_CMD"
 
 TEST_STATUS=$?

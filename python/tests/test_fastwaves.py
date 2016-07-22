@@ -183,6 +183,7 @@ class FastWavesUVTest (CopyTest):
         self.assertEqual (num_udiff, 0)
 
 
+    @unittest.skip("To be validated")
     def test_data_dependency_detection (self, deps=None, backend='python'):
         expected_deps = [('out_u', 'u_pos'),
                          ('out_u', 'xlhsx'),
@@ -230,63 +231,82 @@ class FastWavesUVTest (CopyTest):
         super ( ).test_data_dependency_detection (deps=expected_deps,
                                                   backend=backend)
 
-
+    @unittest.skip("To be implemented")
     def test_data_dependency_detection_cuda (self, deps=None, backend='cuda'):
         pass
 
 
+    @unittest.skip("To be implemented")
     def test_automatic_access_pattern_detection (self):
         pass
 
 
-    def test_compare_python_cpp_and_cuda_results (self):
+    @unittest.skip("To be implemented")
+    def test_compare_python_and_cpp_results (self):
         pass
 
 
+    @unittest.skip("To be implemented")
+    def test_compare_python_and_cuda_results (self):
+        pass
+
+
+    @unittest.skip("To be implemented")
     def test_ghost_cell_pattern (self, expected_patterns=None, backend='c++'):
         pass
 
 
+    @unittest.skip("To be implemented")
     def test_minimum_halo_detection (self, min_halo=[0,0,0,0]):
         pass
 
 
+    @unittest.skip("To be implemented")
     def test_symbol_discovery (self, backend='c++'):
         pass
 
 
+    @unittest.skip("To be implemented")
     def test_symbol_discovery_cuda (self):
         pass
 
 
+    @unittest.skip("To be implemented")
     def test_user_stencil_extends_multistagestencil (self):
         pass
 
 
+    @unittest.skip("To be implemented")
     def test_kernel_function (self):
         pass
 
 
+    @unittest.skip("To be implemented")
     def test_run_stencil_only_accepts_keyword_arguments (self):
         pass
 
 
+    @unittest.skip("To be implemented")
     def test_python_results (self, out_param=None, result_file=None):
         pass
 
 
+    @unittest.skip("To be implemented")
     def test_execution_performance_cpp (self, backend='c++'):
         pass
 
 
+    @unittest.skip("To be implemented")
     def test_execution_performance_cuda (self):
         pass
 
 
+    @unittest.skip("To be implemented")
     def test_k_directions (self, backend='c++'):
         pass
 
 
+    @unittest.skip("To be implemented")
     def test_k_directions_cuda (self):
         pass
 
