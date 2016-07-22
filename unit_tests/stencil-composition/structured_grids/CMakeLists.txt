@@ -39,6 +39,11 @@ if ( ENABLE_CXX11 )
     target_link_libraries(test_conditional_switches ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
     gridtools_add_test(test_conditional_switches ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/test_conditional_switches")
 
+    add_executable(test_iterate_domain test_iterate_domain.cpp)
+    set_target_properties(test_iterate_domain PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+    target_link_libraries(test_iterate_domain ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
+    gridtools_add_test(test_iterate_domain ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/test_iterate_domain")
+
     set(RECGRID_TESTS test_local_domain.cpp test_staggered_keyword.cpp test_make_computation.cpp test_cycle_and_swap.cpp test_iterate_domain.cpp test_mss_metafunctions.cpp call_interfaces_metafunctions.cpp test_esf_metafunctions.cpp  test_accessor.cpp positional_when_debug.cpp test-unfold-independent.cpp test-unfold-all.cpp test_read_write_esf.cpp )
 
     add_executable(strgrid_stencil_tests ${RECGRID_TESTS})

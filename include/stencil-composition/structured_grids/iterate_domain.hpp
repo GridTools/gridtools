@@ -509,7 +509,7 @@ namespace gridtools {
            Useful to determine the loop bounds, when looping over a dimension from whithin a kernel
          */
         template < ushort_t Coordinate, typename Accessor >
-        GT_FUNCTION uint_t get_storage_dims(Accessor) const {
+        GT_FUNCTION uint_t get_storage_dim(Accessor) const {
 
             typedef typename Accessor::index_type index_t;
             typedef typename local_domain_t::template get_storage<index_t>::type::value_type storage_t;
@@ -520,7 +520,7 @@ namespace gridtools {
             pointer<const typename storage_t::storage_info_type> const metadata_ = boost::fusion::at
                 < metadata_index_t >(local_domain.m_local_metadata);
 
-            return metadata_->template dims< Coordinate >();
+            return metadata_->template dim< Coordinate >();
         }
 #endif
 

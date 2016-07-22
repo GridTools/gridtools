@@ -75,10 +75,10 @@ the dimension is chosen
             "remove this assert.");
         GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension< Known >::value...), "wrong type");
 
-        template < int Arg1, int Arg2 >
+        template < int_t Arg1, int_t Arg2 >
         struct pair_ {
-            static const constexpr int first = Arg1;
-            static const constexpr int second = Arg2;
+            static const constexpr int_t first = Arg1;
+            static const constexpr int_t second = Arg2;
         };
 
         /**
@@ -94,7 +94,7 @@ the dimension is chosen
        \param args are the offsets which are already known*/
         template < typename... Args >
         GT_FUNCTION constexpr alias(Args /*&&*/... args)
-            : m_knowns{args...} {}
+            : m_knowns{(int_t) args...} {}
 
         typedef boost::mpl::vector< Known... > dim_vector;
 
