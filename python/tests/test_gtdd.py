@@ -85,7 +85,6 @@ class GridToolsDataDepsTest (CopyTest):
         self.d = np.zeros (self.domain)
         self.out_e = np.zeros (self.domain)
 
-        # print (self.in_b, self.in_c)
         self.stencil = GridToolsDataDeps (self.domain)
         self.stencil.set_halo ( (4,4,0,0) )
         self.stencil.set_k_direction ('forward')

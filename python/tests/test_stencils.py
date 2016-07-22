@@ -187,9 +187,9 @@ class CopyTest (AccessPatternDetectionTest):
 #         for i in range(self.domain[0]):
 #             for j in range(self.domain[1]):
 #                 for k in range(self.domain[2]):
-#                     print ("PY  (%d,%d,%d) \t%.5f \t%.5f" % (i,j,k,
+#                     logging.debug ("PY  (%d,%d,%d) \t%.5f \t%.5f" % (i,j,k,
 #                            params_py['in_X'][i,j,k], params_py['out_X'][i,j,k]) )
-#                     print ("%s (%d,%d,%d) \t%.5f \t%.5f" % (backend,i,j,k,
+#                     logging.debug ("%s (%d,%d,%d) \t%.5f \t%.5f" % (backend,i,j,k,
 #                            params_cxx['in_X'][i,j,k],params_cxx['out_X'][i,j,k]) )
         print ("%s ndiff: %d" % (backend, ndiff))
         print ("%d runs. Avg ndiff per run: %g." % (nruns, ndiff/nruns))
