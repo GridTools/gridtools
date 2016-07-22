@@ -95,8 +95,8 @@ class StencilCompiler ( ):
                 #
                 # ... and by including runtime information
                 #
-                stencil.scope.runtime_analysis      (stencil, **kwargs)
-                stencil.generate_code               ( )
+                stencil.scope.runtime_analysis (stencil, **kwargs)
+                stencil.generate_code          ( )
                 #
                 # build and check stencil data dependency graph
                 #
@@ -108,6 +108,12 @@ class StencilCompiler ( ):
                 stencil.identify_IO_stages               ( )
                 stencil.scope.build_execution_path       (stencil.name)
                 stencil.scope.check_stage_execution_path ( )
+                #
+                # Compute stencil's minimum halo
+                #
+                stencil.scope.compute_access_extents ( )
+                stencil.scope.compute_minimum_halo   ( )
+                stencil.scope.update_ghost_cell      ( )
                 #
                 # Generate GridTools splitters data
                 #
@@ -547,6 +553,17 @@ class StencilInspector (ast.NodeVisitor):
             raise AttributeError ("No kernel detected for stencil %s! Please \
                                   define a stencil entry point function."
                                   % self.inspected_stencil.__class__)
+        #
+        # Store the kernel line number in the extracted source
+        # The number is augmented by 1 because it will be used in comparisons
+        # with AST nodes line numbers, that are 1-indexed
+        #
+        lineno = [i for i,l in enumerate(src.split('\n'))
+                  if '@Stencil.kernel'in l][0] + 1
+        self.inspected_stencil.scope.kernel_lineno = lineno
+        #
+        # Return extracted source code
+        #
         return src
 
 

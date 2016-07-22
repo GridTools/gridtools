@@ -65,6 +65,22 @@ class Symbol (object):
         self.access_pattern = None
 
         #
+        # an access extent defines the total data extent that needs to be
+        # accessed for this symbol.
+        # If the symbol object belongs to a StencilScope, this is the extent
+        # required by the whole stencil.
+        # If the symbol object belongs to a StageScope, this is the extent
+        # required by the stage and considering all the stage successors.
+        # Data format is the same as for the access pattern:
+        #
+        #   (minimum negative index accessed in _i_,
+        #    maximum positive index accessed in _i_,
+        #    minimum negative index accessed in _j_,
+        #    maximum positive index accessed in _j_)
+        #
+        self.access_extent = None
+
+        #
         # a flag indicating whether this symbol is read-only
         #
         self.read_only      = True
@@ -86,10 +102,11 @@ class Symbol (object):
     def set_access_pattern (self, offset):
         """
         Sets or updates the access pattern of this symbol
+
         :param offset: the pattern is defined as (access offset in 'i',
                                                   access offset in 'j',
                                                   access offset in 'k')
-        :raise IndexError: if the access pattern
+        :raise IndexError: if the offset argument contains an invalid index
         :return:
         """
         try:
@@ -367,7 +384,7 @@ class Scope (object):
         """
         Returns True if symbol with 'name' is an alias.-
         """
-        return name in [a.name for a in self.get_all (['alias'])]
+        return name in [a.name for a in self.get_aliases ( )]
 
 
     def is_constant (self, name):
@@ -381,7 +398,7 @@ class Scope (object):
         """
         Returns True if symbol 'name' is a local variable
         """
-        return name in [l.name for l in self.get_all (['local'])]
+        return name in [l.name for l in self.get_locals ( )]
 
 
     def is_parameter (self, name):
@@ -414,11 +431,25 @@ class Scope (object):
                     yield self.symbol_table[n]
 
 
+    def get_aliases (self):
+        """
+        Returns a sorted list of all aliases in this scope.-
+        """
+        return self.get_all (['alias'])
+
+
     def get_constants (self):
         """
         Returns a sorted list of all constants in this scope.-
         """
         return self.get_all (['const'])
+
+
+    def get_locals (self):
+        """
+        Returns a sorted list of all local variables in this scope.-
+        """
+        return self.get_all (['local'])
 
 
     def get_parameters (self):
@@ -433,6 +464,21 @@ class Scope (object):
         Returns a sorted list of all temporary data fields at this scope.-
         """
         return self.get_all (['temp'])
+
+
+    def minimum_enclosing_extent (self, ext1, ext2):
+        """
+        Returns the minimum enclosing extent of two extents (i.e. intervals).
+        The data format is the same of halos and symbol access patterns.
+        """
+        mee = [None,None,None,None]
+
+        mee[0] = min (ext1[0], ext2[0])
+        mee[1] = max (ext1[1], ext2[1])
+        mee[2] = min (ext1[2], ext2[2])
+        mee[3] = max (ext1[3], ext2[3])
+
+        return mee
 
 
     def remove (self, name):
@@ -466,6 +512,10 @@ class StencilScope (Scope):
         # the stencil's source code
         #
         self.py_src          = None
+        #
+        # kernel line number in the self.py_src code
+        #
+        self.kernel_lineno   = None
 
 
     def _resolve_params (self, stencil, **kwargs):
@@ -595,6 +645,7 @@ class StencilScope (Scope):
                       stencil_name)
         new_stage_execution = nx.DiGraph ( )
         for stg in nx.topological_sort (self.stage_execution):
+            logging.debug('Processing stage: %s' % stg.name)
             new_stage_execution.add_node(stg)
             #
             # Create modifiable lists for stage input and output
@@ -602,8 +653,8 @@ class StencilScope (Scope):
             stg_in = list(stg.inputs)
             #
             # Look for connections among nodes introduced in the new graph
-            # Use the reverse sort order to find the latest node with the
-            # desired output
+            # Use the reverse sort order to find the latest nodes with the
+            # desired output.
             #
             for other in nx.topological_sort(new_stage_execution, reverse=True):
                 logging.debug('\tLooping other nodes: %s' % other.name)
@@ -614,24 +665,27 @@ class StencilScope (Scope):
                     continue
                 for i, data in enumerate(stg_in):
                     if data in other.outputs:
-                        new_stage_execution.add_edge(other, stg)
                         #
                         # We have found a match for this input.
-                        # To avoid duplicate matches, possibly with earlier nodes
-                        # with the same outputs of "other", pop this stage input
-                        # from the temporary list
+                        # If the stage we are processing has no connections,
+                        # create a new edge
                         #
-                        stg_in.pop(i)
-                        logging.debug('\t\tMatch found! Popping input data.' +
-                                      'New stg_in: %s' % stg_in)
+                        logging.debug('\t\tMatch found!')
+                        if not new_stage_execution.predecessors (stg):
+                            new_stage_execution.add_edge(other, stg)
+                        #
+                        # Else, check that the "other" node is not an ancestor
+                        # of the processed stage. This avoids duplicate and wrong
+                        # connections between nodes.
+                        #
+                        else:
+                            for pred in new_stage_execution.predecessors (stg):
+                                if other not in nx.ancestors(new_stage_execution, pred):
+                                    new_stage_execution.add_edge(other, stg)
         #
         # save the newly built execution path
         #
         self.stage_execution = new_stage_execution
-        #
-        # ... and update the ghost-cell access pattern
-        #
-        self.update_ghost_cell ( )
 
 
     def check_stage_execution_path (self):
@@ -695,50 +749,214 @@ class StencilScope (Scope):
                               **kwargs)
 
 
+    def compute_access_extents (self):
+        """
+        Compute the access extents of all parameters in each stage scope and at
+        stencil scope.
+
+        The algorithm starts from the leaves of the stage execution graph and
+        progressively refines the access extents by visiting stages with a
+        postorder traversal from each leaf.
+
+        When visiting a stage, the extent of a parameter is updated taking into
+        account its access pattern in that stage (access patterns are set during
+        code generation), its access extent in the successor stages (which in
+        turn represents the aggregation of all access extents for that symbol
+        starting from the leaves), and the access extent of the stage outputs that
+        depend on the parameter, if those outputs are accessed from a stage
+        succeeding the currently visited one.
+
+        Working on parameters assures that the same symbol can be found in
+        different stages using the same name, because parameters are first and
+        foremost stencil scope symbols, which are passed on to stages.
+
+        When all traversals have been completed, the access extents of
+        parameters from the stages are combined to yield
+        the access extents at stencil scope.
+        """
+        stages = nx.topological_sort (self.stage_execution,
+                                      reverse=True)
+        #
+        # Initialize access extents on leaf stages; create list of non-leaf stages
+        #
+        non_leaf_stages = []
+        for stg in stages:
+            #
+            # Leaf stages
+            #
+            if len (self.stage_execution.successors (stg)) == 0:
+                #
+                # Access extents are equal to access patterns in leaf stages
+                #
+                for par in stg.scope.get_parameters ( ):
+                    if par.access_pattern is not None:
+                        par.access_extent = list(par.access_pattern)
+            else:
+                non_leaf_stages.append (stg)
+
+        for stg in non_leaf_stages:
+            succs = self.stage_execution.successors (stg)
+            assert (len (succs) > 0)
+            for suc in succs:
+                #
+                # Loop over parameters
+                #
+                for par in stg.scope.get_parameters ( ):
+                    #
+                    # To compute the extent for this parameter we have to find
+                    # the minimum enclosing scope between the parameter's access
+                    # pattern in this stage and the sum of the access extent in
+                    # the successor plus the extent in the successor of any
+                    # symbol dependent on the current parameter. In short:
+                    #
+                    # extent = mee(access_pattern, extent_in_successor + dependant_symbol_extent_in_successor)
+                    #
+                    # First, initialize successor extent and the dependencies
+                    # extents...
+                    #
+                    successor_extent     = None
+                    dependencies_extents = []
+                    #
+                    # Get the extent of this parameter in the successor as a
+                    # numpy array
+                    #
+                    if suc.scope.is_parameter (par.name):
+                        suc_ext = suc.scope.symbol_table[par.name].access_extent
+                        if suc_ext is not None:
+                            successor_extent = np.array (suc_ext, dtype=np.int)
+                    for output in stg.outputs:
+                        if output == par:
+                            continue
+
+                        if output in stg.scope.data_dependency:
+                            dd_node = output
+                        else:
+                            #
+                            # Output is not in data depencency graph for
+                            # this stage. Look for its alias.
+                            #
+                            for alias in stg.scope.get_aliases ( ):
+                                if alias.value == output:
+                                    dd_node = alias
+                        #
+                        # If a stage output depends from the current parameter...
+                        #
+                        for des in nx.descendants (stg.scope.data_dependency, dd_node):
+                            if stg.scope.is_alias (des):
+                                des = stg.scope.symbol_table[des.value]
+                            if des.name == par.name:
+                                #
+                                # ...and if the output is an input of the successor...
+                                #
+                                if output.name in [i.name for i in suc.inputs]:
+                                    #
+                                    # ...get the access extent of the successor's input (finally!)
+                                    #
+                                    dep_ext = suc.scope.symbol_table[output.name].access_extent
+                                    if dep_ext is not None:
+                                        dependencies_extents.append (np.array (dep_ext, dtype=np.int))
+                                    else:
+                                        dependencies_extents.append (np.zeros (4, dtype=np.int))
+                    #
+                    # Verify we have all 3 elements necessary to compute the
+                    # minimum enclosing extent (mee). If we only some of them
+                    # are available, initialize the others to [0,0,0,0] so they
+                    # will be neutral elements in the operation.
+                    #
+                    mee_elements = [successor_extent,
+                                    par.access_pattern,
+                                    dependencies_extents]
+                    if any ([len(x)!=0 for x in mee_elements if x is not None]):
+                        if successor_extent is not None:
+                            mee = successor_extent
+                        else:
+                            mee = np.zeros (4, dtype=np.int)
+
+                        if par.access_pattern is not None:
+                            acc_patt = par.access_pattern
+                        else:
+                            acc_patt = np.zeros (4, dtype=np.int)
+
+                        if not dependencies_extents:
+                            dependencies_extents.append (np.zeros(4, dtype=np.int))
+                        #
+                        # Now we can find the minimum enclosing extent for the
+                        # parameter, starting from the extent in the successor
+                        #
+                        for dep_ext in dependencies_extents:
+                            mee = self.minimum_enclosing_extent (mee, dep_ext + acc_patt)
+                        #
+                        # Set the parameter access extent.
+                        # Do a minimum enclosing scope operation once again if
+                        # access extent has already been initialized.
+                        #
+                        if par.access_extent is None:
+                            par.access_extent = mee
+                        else:
+                            par.access_extent = self.minimum_enclosing_extent (par.access_extent,
+                                                                           mee)
+        #
+        # Aggregate stages' access extents at stencil scope
+        #
+        from itertools import chain
+        partemps = chain (self.get_parameters ( ), self.get_temporaries ( ))
+        for pt in partemps:
+            for stg in stages:
+                if stg.scope.is_parameter (pt.name):
+                    stage_ext = stg.scope.symbol_table[pt.name].access_extent
+                    if stage_ext is not None:
+                        if pt.access_extent is None:
+                            pt.access_extent = [0,0,0,0]
+                        pt.access_extent = self.minimum_enclosing_extent (pt.access_extent,
+                                                                          stage_ext)
+
+
+    def compute_minimum_halo (self):
+        """
+        Compute stencil's minimum halo by combining the access extents of stencil
+        parameters.
+        """
+        self.minimum_halo = [0,0,0,0]
+        for par in self.get_parameters ( ):
+            if par.access_extent is not None:
+                self.minimum_halo = self.minimum_enclosing_extent (self.minimum_halo,
+                                                                   par.access_extent)
+        self.minimum_halo[0] *= -1
+        self.minimum_halo[2] *= -1
+        logging.debug ("Minimum required halo is %s" % self.minimum_halo)
+
+
     def update_ghost_cell (self):
         """
         Updates the ghost-cell access pattern of each stage of the stencil, the
         shape of which is based on the access patterns of their data fields
+
         :return:
         """
         all_stgs = nx.topological_sort (self.stage_execution,
                                         reverse=True)
-        #
-        # first, reset all ghost cells
-        #
         for stg in all_stgs:
-            stg.ghost_cell = None
-        #
-        # now start calculating them from the leaves ...
-        #
-        for stg in all_stgs:
-            if len (self.stage_execution.successors (stg)) == 0:
-                stg.ghost_cell = [0,0,0,0]
-        #
-        # ... towards the root
-        #
-        for stg in all_stgs:
-            if stg.ghost_cell is None:
-                succs = self.stage_execution.successors (stg)
-                assert (len (succs) > 0)
-                stg.ghost_cell = list (succs[0].ghost_cell)
-                for suc in succs:
-                    add_ghost = suc.scope.get_ghost_cell ( )
-                    for idx in range (len (stg.ghost_cell)):
-                        stg.ghost_cell[idx] += add_ghost[idx]
-        if __debug__:
-            for stg in all_stgs:
-                logging.debug ("Stage '%s' has ghost cell %s" % (stg.name,
-                                                                 stg.ghost_cell))
-        #
-        # calculate the minimum required halo
-        #
-        first_stg         = all_stgs[-1]
-        self.minimum_halo = list (first_stg.ghost_cell)
-        add_ghost         = first_stg.scope.get_ghost_cell ( )
-        for idx in range (len (self.minimum_halo)):
-            self.minimum_halo[idx] += add_ghost[idx]
-        for idx in range (len (self.minimum_halo)):
-            if self.minimum_halo[idx] < 0:
-                self.minimum_halo[idx] *= -1
-        logging.debug ("Minimum required halo is %s" % self.minimum_halo)
+            #
+            # Initialize the ghost cell
+            #
+            stg.ghost_cell  = [0,0,0,0]
+            #
+            # Stage ghost cell is the minimum enclosing extent of its output,
+            # where the output extent is the one at stencil scope
+            #
+            for out in stg.outputs:
+                out_ext = self.symbol_table[out.name].access_extent
+                if out_ext is None:
+                    out_ext  = [0,0,0,0]
+                stg.ghost_cell = self.minimum_enclosing_extent (stg.ghost_cell,
+                                                                out_ext)
+            #
+            # Convert all numbers in the ghost cell descriptor to positive,
+            # making it compliant to the same logic of the minimum halo
+            # descriptor
+            #
+            stg.ghost_cell[0] *= -1
+            stg.ghost_cell[2] *= -1
+
+            logging.debug ("Stage '%s' has ghost cell %s" % (stg.name,
+                                                             stg.ghost_cell))

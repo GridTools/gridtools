@@ -114,9 +114,9 @@ class Stencil (object):
             #
             i_dim, j_dim, k_dim = data_field.shape
 
-            start_i = i_off + 0     + halo[0] + ghost_cell[0]
+            start_i = i_off + 0     + halo[0] - ghost_cell[0]
             end_i   = i_off + i_dim - halo[1] + ghost_cell[1]
-            start_j = j_off + 0     + halo[2] + ghost_cell[2]
+            start_j = j_off + 0     + halo[2] - ghost_cell[2]
             end_j   = j_off + j_dim - halo[3] + ghost_cell[3]
 
             #
@@ -165,6 +165,52 @@ class Stencil (object):
                 raise ValueError ("Invalid halo %s: definition for the negative halo should be zero or a positive integer" % str (halo))
         else:
             raise ValueError ("Invalid halo %s: it should contain four values" % str (halo))
+
+
+    @staticmethod
+    def _get_for_loop_stage (calling_func_name, parentframe, stencil_obj):
+        """
+        Tries to detect which stage defined with a for-loop is calling a
+        get_interior_points() function inside the stencil kernel
+
+        :param calling_func_name: The name of the function calling get_interior_points
+        :param parentframe:       The stack frame object above the stack frame
+                                  of the get_interior_points function
+        :param stencil_obj:       The stencil object currently running
+        :return:                  The stage object relative to the get_interior_points
+                                  call
+        """
+        from gridtools import STENCIL_KERNEL_DECORATOR_LABEL
+        calling_func = getattr (stencil_obj, calling_func_name)
+        if hasattr (calling_func, STENCIL_KERNEL_DECORATOR_LABEL):
+            #
+            # Find the line number of the call to get_interior_points()
+            # relative to the source code stored in the stencil scope.
+            # To do this, we take the line number of the call to
+            # get_interior_points in the caller frame, and subtract the line
+            # offset between the kernel decorator in the calling stack frame
+            # and the decorator in the py_src member of StencilScope.
+            #
+            stage_line = (parentframe.f_lineno
+                          - (parentframe.f_code.co_firstlineno
+                             - stencil_obj.scope.kernel_lineno))
+            #
+            # The resulting line number corresponds to the lineno property
+            # of the AST node contained in the Stage we are looking for
+            # (because the Stage AST node was generated from
+            # StencilScope.py_src)
+            #
+            for stg in stencil_obj.stages:
+                if stg.node.lineno == stage_line:
+                    calling_stage = stg
+                    break
+            return calling_stage
+        else:
+            #
+            # Not being called by a stage function or the kernel.
+            # Raise an error.
+            #
+            raise RuntimeError ("Calling get_interior_points() from outside the stencil kernel without specifying a ghost_cell argument.")
 
 
     @staticmethod
@@ -274,15 +320,45 @@ class Stencil (object):
 
 
     @staticmethod
-    def get_interior_points (data_field, ghost_cell=[0,0,0,0]):
+    def get_interior_points (data_field, ghost_cell=None):
         """
         Returns a generator over the 'data_field' without including the halo.
         Uses global Stencil settings for halo and k direction.
 
         :param data_field:      a NumPy array;
         :param ghost_cell:      access pattern for the current field, which depends
-                                on the following stencil stages.-
+                                on the following stencil stages.  If None is
+                                provided, the function will try to find the stage
+                                invoking it, and will obtain the ghost cell
+                                pattern from that stage-
         """
+        if ghost_cell is None:
+            import inspect
+            #
+            # Find the name of the calling stage function
+            #
+            stack = inspect.stack()
+            if len(stack) < 3:
+                raise RuntimeError ("Calling get_interior_points() from "+
+                                    "outside the stencil kernel without " +
+                                    "specifying a ghost_cell argument.")
+            parentframe = stack[1][0]
+            calling_func_name = parentframe.f_code.co_name
+            #
+            # Obtain a reference to the current stencil object by looking
+            # into the arguments of the kernel wrapper
+            #
+            wrapperframe = inspect.stack()[2][0]
+            stencil_obj = wrapperframe.f_locals['args'][0]
+            #
+            # Check if get_interior_points() is being called by the kernel
+            # to create a for-loop defined sage
+            #
+            calling_stage = Stencil._get_for_loop_stage(calling_func_name=calling_func_name,
+                                                        parentframe=parentframe,
+                                                        stencil_obj=stencil_obj)
+            ghost_cell = calling_stage.ghost_cell
+
         return Stencil._interior_points_generator (data_field,
                                                    ghost_cell=ghost_cell,
                                                    halo=Stencil.get_halo ( ),
@@ -514,6 +590,24 @@ class Stencil (object):
         return self.scope.data_dependency
 
 
+    def get_stage (self, name):
+        """
+        Returns the stage first stage object found containing the 'name'
+        argument string in its name
+
+        :raise KeyError: If a matching stage name could not be found
+        """
+        ret_val = None
+        for stg in self.stages:
+            if name in stg.name:
+                ret_val = stg
+                break
+        else:
+            raise KeyError("No stage found containing '%s' in its name in stencil %s"
+                            % (name, self.name))
+        return ret_val
+
+
     def identify_IO_stages (self):
         """
         Tries to identify input and output data fields for every stage of the
@@ -549,7 +643,7 @@ class Stencil (object):
 
 
     def plot_data_dependency (self, graph=None, scope=None, show_legend=False,
-    						  outfile=None):
+                              outfile=None):
         """
         Renders a data-depencency graph using 'matplotlib'.
         Graph nodes are colored based on their kind according to the following
@@ -712,16 +806,42 @@ class MultiStageStencil (Stencil):
         return ret_value
 
 
-    def get_interior_points (self, data_field, ghost_cell=[0,0,0,0]):
+    def get_interior_points (self, data_field, ghost_cell=None):
         """
         Returns a generator over the 'data_field' without including the halo.
         Uses stencil-specific values for halo and k direction, if they have
         been set. Otherwise, uses global Stencil settings.
 
         :param data_field:      a NumPy array;
-        :param ghost_cell:      access pattern for the current field, which depends
-                                on the following stencil stages.-
+        :param ghost_cell:      access pattern for the current field. If None is
+                                provided, the function will try to find the stage
+                                invoking it, and will obtain the ghost cell
+                                pattern from that stage
         """
+        if ghost_cell is None:
+            import inspect
+            #
+            # Find the name of the calling stage function
+            #
+            stack = inspect.stack()
+            parentframe = stack[1][0]
+            calling_func_name = parentframe.f_code.co_name
+            if "stage_" in calling_func_name:
+                #
+                # get_interior_points() is being called by a function defined
+                # stage. Get the ghost cell pattern from the stage object.
+                #
+                calling_stage = self.get_stage (calling_func_name)
+            else:
+                #
+                # Check if get_interior_points() is being called by the kernel
+                # to create a for-loop defined sage
+                #
+                calling_stage = Stencil._get_for_loop_stage(calling_func_name=calling_func_name,
+                                                            parentframe=parentframe,
+                                                            stencil_obj=self)
+            ghost_cell = calling_stage.ghost_cell
+
         return Stencil._interior_points_generator(data_field,
                                                   ghost_cell=ghost_cell,
                                                   halo=self.get_halo ( ),
