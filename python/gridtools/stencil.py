@@ -603,7 +603,7 @@ class Stencil (object):
                 ret_val = stg
                 break
         else:
-            raise KeyError("No stage found containing '%s' in its namein stencil %s"
+            raise KeyError("No stage found containing '%s' in its name in stencil %s"
                             % (name, self.name))
         return ret_val
 
