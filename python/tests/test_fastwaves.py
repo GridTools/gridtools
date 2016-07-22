@@ -27,8 +27,7 @@ class FastWavesUVTest (CopyTest):
 
     def setUp (self):
         super ( ).setUp( )
-        # self.domain = (128, 128, 64)
-        self.domain = (32, 32, 32)
+        self.domain = (32, 32, 80)
         self.params = ('u_pos',
                        'v_pos',
                        'out_u',
@@ -61,22 +60,22 @@ class FastWavesUVTest (CopyTest):
         self.stencil.set_k_direction('forward')
 
         # Stencil inputs
-        self.u_pos = np.random.random(self.domain) / 1e-4 # (self.domain, dtype=np.float64)
-        self.v_pos = np.random.random(self.domain) / 1e-4 # (self.domain, dtype=np.float64)
-        self.utens_stage = np.random.random(self.domain) / 1e-4 # (self.domain, dtype=np.float64)
-        self.vtens_stage = np.random.random(self.domain) / 1e-4 # (self.domain, dtype=np.float64)
-        self.ppuv      = np.random.random(self.domain) / 1e-4 # (self.domain, dtype=np.float64)
-        self.rho       = np.random.random(self.domain) / 1e-4 # (self.domain, dtype=np.float64)
-        self.rho0      = np.random.random(self.domain) / 1e-4 # (self.domain, dtype=np.float64)
-        self.p0        = np.random.random(self.domain) / 1e-4 # (self.domain, dtype=np.float64)
-        self.hhl       = np.random.random(self.domain) / 1e-4 # (self.domain, dtype=np.float64)
-        self.wgtfac    = np.random.random(self.domain) / 1e-4 # (self.domain, dtype=np.float64)
-        self.fx        = np.random.random(self.domain) / 1e-4 # (self.domain, dtype=np.float64)
-        self.cwp       = np.random.random(self.domain) / 1e-4 # (self.domain, dtype=np.float64)
-        self.xdzdx     = np.random.random(self.domain) / 1e-4 # (self.domain, dtype=np.float64)
-        self.xdzdy     = np.random.random(self.domain) / 1e-4 # (self.domain, dtype=np.float64)
-        self.xlhsx     = np.random.random(self.domain) / 1e-4 # (self.domain, dtype=np.float64)
-        self.xlhsy     = np.random.random(self.domain) / 1e-4 # (self.domain, dtype=np.float64)
+        self.u_pos = np.random.random(self.domain) / 1e-4
+        self.v_pos = np.random.random(self.domain) / 1e-4
+        self.utens_stage = np.random.random(self.domain) / 1e-4
+        self.vtens_stage = np.random.random(self.domain) / 1e-4
+        self.ppuv      = np.random.random(self.domain) / 1e-4
+        self.rho       = np.random.random(self.domain) / 1e-4
+        self.rho0      = np.random.random(self.domain) / 1e-4
+        self.p0        = np.random.random(self.domain) / 1e-4
+        self.hhl       = np.random.random(self.domain) / 1e-4
+        self.wgtfac    = np.random.random(self.domain) / 1e-4
+        self.fx        = np.random.random(self.domain) / 1e-4
+        self.cwp       = np.random.random(self.domain) / 1e-4
+        self.xdzdx     = np.random.random(self.domain) / 1e-4
+        self.xdzdy     = np.random.random(self.domain) / 1e-4
+        self.xlhsx     = np.random.random(self.domain) / 1e-4
+        self.xlhsy     = np.random.random(self.domain) / 1e-4
         self.wbbctens_stage = np.random.random ((self.domain[0],self.domain[1],self.domain[2]+1)) / 1e-4
 
         # Stencil outputs
@@ -95,49 +94,57 @@ class FastWavesUVTest (CopyTest):
 
 
     def test_stella_results (self, backend='python'):
-        # Import savepoints from STELLA data using serialbox
-        from serialization import serializer, savepoint
-        ser = serializer('/home/alberto/Develop/FWdata/oldFW/', 'Field', 'r')
-        a = [sp for sp in ser.savepoints if 'FastWavesRK' in sp.name]
-        sp_const = ser.savepoints[0]
-        spin = a[6]
-        spout = a[7]
+        # The following test is run with input data originally taken from
+        # /scratch/daint/jenkins/data/double/oldFW/
+        # Results are compared with data coming from a standalone version of
+        # the STELLA FastWavesUV benchmark stencil.
+        # All input and output reference results are packaged in a compressed
+        # NPZ archive.
+        #
+        # Reference output results were obtained with the following scalar
+        # constants values:
+        #
+        self.dt_small = 10.0 / 3.0
+        self.dlat = 0.02
+        self.flat_limit = 11
 
-        # 3D stencil inputs
-        self.u_pos          = ser.load_field('u', spin).squeeze()
-        self.v_pos          = ser.load_field('v', spin).squeeze()
-        self.utens_stage    = ser.load_field('suten', spin).squeeze()
-        self.vtens_stage    = ser.load_field('svten', spin).squeeze()
-        self.ppuv           = ser.load_field('zpi', spin).squeeze()
-        self.rho            = ser.load_field('rho', spin).squeeze()
-        self.wgtfac         = ser.load_field('wgtfac', spin).squeeze()
+        # Import data from NPZ compressed archive
+        import os
+        cur_dir = os.path.dirname (os.path.abspath (__file__))
+        filename = "%s/FWdata_compressed.npz" % cur_dir
+        with np.load(filename) as npz_data:
+            # 3D stencil inputs
+            self.u_pos       = npz_data['u_pos']
+            self.v_pos       = npz_data['v_pos']
+            self.utens_stage = npz_data['utens_stage']
+            self.vtens_stage = npz_data['vtens_stage']
+            self.ppuv        = npz_data['ppuv']
+            self.rho         = npz_data['rho']
+            self.wgtfac      = npz_data['wgtfac']
+
+            # Single plane stencil inputs
+            self.cwp            = npz_data['cwp']
+            self.xdzdx          = npz_data['xdzdx']
+            self.xdzdy          = npz_data['xdzdy']
+            self.xlhsx          = npz_data['xlhsx']
+            self.xlhsy          = npz_data['xlhsy']
+            self.wbbctens_stage = npz_data['wbbctens_stage']
+
+            # Constant field inputs
+            self.rho0    = npz_data['rho0']
+            self.p0      = npz_data['p0']
+            self.hhl     = npz_data['hhl']
+            self.acrlat0 = npz_data['acrlat0']
+
+            # STELLA reference results
+            self.ref_u = npz_data['ref_u']
+            self.ref_v = npz_data['ref_v']
 
         # Reset domain
         self.domain = self.u_pos.shape
 
-        # Single plane stencil inputs
-        self.cwp            = np.zeros(self.domain, dtype=np.float64)
-        self.xdzdx          = np.zeros(self.domain, dtype=np.float64)
-        self.xdzdy          = np.zeros(self.domain, dtype=np.float64)
-        self.xlhsx          = np.zeros(self.domain, dtype=np.float64)
-        self.xlhsy          = np.zeros(self.domain, dtype=np.float64)
-        self.wbbctens_stage = np.zeros((self.domain[0],self.domain[1],self.domain[2]+1),
-                                       dtype=np.float64)
-
-        self.cwp[:,:,-1]            = ser.load_field('cwp', spin).squeeze()
-        self.xdzdx[:,:,-1]          = ser.load_field('xdzdx', spin).squeeze()
-        self.xdzdy[:,:,-1]          = ser.load_field('xdzdy', spin).squeeze()
-        self.xlhsx[:,:,-1]          = ser.load_field('xlhsx', spin).squeeze()
-        self.xlhsy[:,:,-1]          = ser.load_field('xlhsy', spin).squeeze()
-        self.wbbctens_stage[:,:,-1] = ser.load_field('wbbctens_stage', spin).squeeze()
-
-        # Constant field inputs
-        self.rho0 = ser.load_field('rho0', sp_const).squeeze()
-        self.p0   = ser.load_field('p0',   sp_const).squeeze()
-        self.hhl  = ser.load_field('hhl',  sp_const).squeeze()
-        self.acrlat0  = ser.load_field('acrlat',  sp_const).squeeze()[:,0]
-
-        self.eddlat = 180.0 / ser.metainfo['dlat'] / np.pi
+        # Initialize fx input field (not included in NPZ archive for clarity)
+        self.eddlat = 180.0 / self.dlat / np.pi
         self.fx = self.eddlat * self.acrlat0
         self.fx = np.tile(self.fx, (self.domain[0], self.domain[2], 1)).swapaxes(1, 2)
 
@@ -146,22 +153,19 @@ class FastWavesUVTest (CopyTest):
         self.out_v = np.zeros(self.domain, dtype=np.float64)
 
         # Reset stencil to use STELLA's data domain size
-        self.stencil = FastWavesUV (self.domain)
+        self.stencil = FastWavesUV (domain=self.domain,
+                                    dt_small=self.dt_small,
+                                    dlat=self.dlat,
+                                    flat_limit=self.flat_limit)
         self.stencil.set_halo((3,3,3,3))
         self.stencil.set_k_direction('forward')
 
         # Run stencil
         self._run()
 
-        # Load STELLA reference results using a second serializer object
-        serstella = serializer('/home/alberto/Develop/StellaFastWavesUV', 'resultSTELLA', 'r')
-        sp_stella = serstella.savepoints[0]
-        self.stella_u = serstella.load_field('u', sp_stella).squeeze()
-        self.stella_v = serstella.load_field('v', sp_stella).squeeze()
-
         # Compare results
-        udiff = np.isclose(self.out_u, self.stella_u, atol=1e-12)
-        vdiff = np.isclose(self.out_v, self.stella_v, atol=1e-12)
+        udiff = np.isclose(self.out_u, self.ref_u, atol=1e-12)
+        vdiff = np.isclose(self.out_v, self.ref_v, atol=1e-12)
         num_udiff = np.count_nonzero(np.logical_not (udiff))
         num_vdiff = np.count_nonzero(np.logical_not (vdiff))
         print ("Num udiff:", num_udiff)
