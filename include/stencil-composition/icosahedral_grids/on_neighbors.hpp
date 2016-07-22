@@ -187,11 +187,11 @@ namespace gridtools {
         GT_FUNCTION constexpr maps_t maps() const { return m_maps; }
 
         GT_FUNCTION
-        on_neighbors_impl(on_neighbors_impl const &other)
+        constexpr on_neighbors_impl(on_neighbors_impl const &other)
             : m_reduction(other.m_reduction), m_value(other.m_value), m_maps(other.m_maps) {}
 
         GT_FUNCTION
-        dst_location_type location() const { return dst_location_type(); }
+        constexpr dst_location_type location() const { return dst_location_type(); }
     };
 
     template < typename T >
@@ -228,7 +228,7 @@ namespace gridtools {
 
     template < typename Reduction, typename ValueType, typename... Maps >
     GT_FUNCTION on_neighbors< ValueType, typename maps_get_location_type< Maps... >::type, Reduction, Maps... >
-    reduce_on_something(Reduction function, ValueType initial, Maps... mapf) {
+    constexpr reduce_on_something(Reduction function, ValueType initial, Maps... mapf) {
 
         GRIDTOOLS_STATIC_ASSERT((is_variadic_pack_of(is_map_argument< Maps >::type::value...)),
             "Error, on_xxx syntax can only accept accessor or other on_xxx constructs");
@@ -239,7 +239,7 @@ namespace gridtools {
 
     template < typename Reduction, typename ValueType, typename... Maps >
     GT_FUNCTION on_neighbors< ValueType, typename maps_get_location_type< Maps... >::type, Reduction, Maps... >
-    on_edges(Reduction function, ValueType initial, Maps... mapf) {
+    constexpr on_edges(Reduction function, ValueType initial, Maps... mapf) {
         GRIDTOOLS_STATIC_ASSERT((is_variadic_pack_of(is_map_argument< Maps >::type::value...)),
             "Error, on_xxx syntax can only accept accessor or other on_xxx constructs");
 
@@ -250,7 +250,7 @@ namespace gridtools {
 
     template < typename Reduction, typename ValueType, typename... Maps >
     GT_FUNCTION on_neighbors< ValueType, typename maps_get_location_type< Maps... >::type, Reduction, Maps... >
-    on_cells(Reduction function, ValueType initial, Maps... mapf) {
+    constexpr on_cells(Reduction function, ValueType initial, Maps... mapf) {
         GRIDTOOLS_STATIC_ASSERT((is_variadic_pack_of(is_map_argument< Maps >::type::value...)),
             "Error, on_xxx syntax can only accept accessor or other on_xxx constructs");
 
@@ -261,7 +261,7 @@ namespace gridtools {
 
     template < typename Reduction, typename ValueType, typename... Maps >
     GT_FUNCTION on_neighbors< ValueType, typename maps_get_location_type< Maps... >::type, Reduction, Maps... >
-    on_vertexes(Reduction function, ValueType initial, Maps... mapf) {
+    constexpr on_vertexes(Reduction function, ValueType initial, Maps... mapf) {
         GRIDTOOLS_STATIC_ASSERT((is_variadic_pack_of(is_map_argument< Maps >::type::value...)),
             "Error, on_xxx syntax can only accept accessor or other on_xxx constructs");
 
