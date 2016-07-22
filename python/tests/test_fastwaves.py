@@ -309,8 +309,3 @@ class FastWavesUVTest (CopyTest):
     @unittest.skip("To be implemented")
     def test_k_directions_cuda (self):
         pass
-
-if __name__ == '__main__':
-    t = FastWavesUVTest()
-    t.setUp()
-    t.test_stella_results()
