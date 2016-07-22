@@ -35,12 +35,12 @@ namespace gdl{
             gt::dimension<2>::Index j;
             gt::dimension<3>::Index k;
 
-            uint_t const num_cub_points=eval.template get_storage_dims<1>(dphi());
-            uint_t const basis_cardinality=eval.template get_storage_dims<0>(dphi());
+            uint_t const num_cub_points=eval.template get_storage_dim<1>(dphi());
+            uint_t const basis_cardinality=eval.template get_storage_dim<0>(dphi());
 
 #ifndef __CUDACC__
             assert(num_cub_points==cub::numCubPoints());
-            assert(basis_cardinality==eval.template get_storage_dims<0>(dphi()));
+            assert(basis_cardinality==eval.template get_storage_dim<0>(dphi()));
 #endif
             //TODO dimensions should be generic
             for(short_t icoor=0; icoor< shape_property<Geometry::parent_shape>::dimension; ++icoor)
@@ -84,7 +84,7 @@ namespace gdl{
                 gt::dimension<4>::Index qp;
                 gt::dimension<5>::Index dimx;
                 gt::dimension<6>::Index dimy;
-                uint_t const num_cub_points=eval.template get_storage_dims<3>(jac());
+                uint_t const num_cub_points=eval.template get_storage_dim<3>(jac());
 
 #ifndef __CUDACC__
                 assert(num_cub_points==cub::numCubPoints());
@@ -185,54 +185,44 @@ namespace gdl{
             using dimy=gt::dimension<6>;
             dimx::Index X;
             dimy::Index Y;
-            uint_t const num_cub_points=eval.template get_storage_dims<3>(jac());
+            uint_t const num_cub_points=eval.template get_storage_dim<3>(jac());
 
             typedef typename Geometry::cub cub;
             assert(num_cub_points==cub::numCubPoints());
 
-//! [aliases]
-            using a_=typename gt::alias<jac, dimy, dimx>::template set<0,0>;
-            using b_=typename gt::alias<jac, dimy, dimx>::template set<0,1>;
-            using c_=typename gt::alias<jac, dimy, dimx>::template set<0,2>;
-            using d_=typename gt::alias<jac, dimy, dimx>::template set<1,0>;
-            using e_=typename gt::alias<jac, dimy, dimx>::template set<1,1>;
-            using f_=typename gt::alias<jac, dimy, dimx>::template set<1,2>;
-            using g_=typename gt::alias<jac, dimy, dimx>::template set<2,0>;
-            using h_=typename gt::alias<jac, dimy, dimx>::template set<2,1>;
-            using i_=typename gt::alias<jac, dimy, dimx>::template set<2,2>;
-//! [aliases]
             // eval( jac(dimx+icoor, dimy+jcoor, qp+iter_quad) )=0.;
             for(short_t q=0; q< num_cub_points; ++q)
             {
-                gt::alias<a_, gt::dimension<4> > a(q);
-                gt::alias<b_, gt::dimension<4> > b(q);
-                gt::alias<c_, gt::dimension<4> > c(q);
-                gt::alias<d_, gt::dimension<4> > d(q);
-                gt::alias<e_, gt::dimension<4> > e(q);
-                gt::alias<f_, gt::dimension<4> > f(q);
-                gt::alias<g_, gt::dimension<4> > g(q);
-                gt::alias<h_, gt::dimension<4> > h(q);
-                gt::alias<i_, gt::dimension<4> > i(q);
 
-                assert(eval(a()) == eval(jac(qp+q)));
-                assert(eval(b()) == eval(jac(qp+q, X+1)));
-                assert(eval(c()) == eval(jac(qp+q, X+2)));
-                assert(eval(d()) == eval(jac(qp+q, Y+1)));
+                auto a=jac(gt::dimension<4>(q));
+                auto b=jac(dimx(1), gt::dimension<4>(q));
+                auto c=jac(dimx(2), gt::dimension<4>(q));
+                auto d=jac(dimy(1), gt::dimension<4>(q));
+                auto e=jac(dimy(1), dimx(1), gt::dimension<4>(q));
+                auto f=jac(dimy(1), dimx(2), gt::dimension<4>(q));
+                auto g=jac(dimy(2), gt::dimension<4>(q));
+                auto h=jac(dimy(2), dimx(1), gt::dimension<4>(q));
+                auto i=jac(dimy(2), dimx(2), gt::dimension<4>(q));
+
+                assert(eval(a) == eval(jac(qp+q)));
+                assert(eval(b) == eval(jac(qp+q, X+1)));
+                assert(eval(c) == eval(jac(qp+q, X+2)));
+                assert(eval(d) == eval(jac(qp+q, Y+1)));
 
                 //! std::cout << "JACOBIAN: "<<std::endl;
                 //! std::cout<<eval(a())<<" "<<eval(b())<<" "<<eval(c())<<std::endl;
                 //! std::cout<<eval(d())<<" "<<eval(e())<<" "<<eval(f())<<std::endl;
                 //! std::cout<<eval(g())<<" "<<eval(h())<<" "<<eval(i())<<std::endl;
 
-                eval( jac_inv(qp+q) )           = eval( ( e()*i() - f()*h())/jac_det(qp+q));
-                eval( jac_inv(X+1, qp+q) )      = eval( ( f()*g() - d()*i())/jac_det(qp+q));
-                eval( jac_inv(X+2, qp+q) )      = eval( ( d()*h() - e()*g())/jac_det(qp+q));
-                eval( jac_inv(Y+1, qp+q) )      = eval( ( c()*h() - b()*i())/jac_det(qp+q));
-                eval( jac_inv(Y+1, X+1, qp+q) ) = eval( ( a()*i() - c()*g())/jac_det(qp+q));
-                eval( jac_inv(Y+1, X+2, qp+q) ) = eval( ( b()*g() - a()*h())/jac_det(qp+q));
-                eval( jac_inv(Y+2, qp+q) )      = eval( ( b()*f() - c()*e())/jac_det(qp+q));
-                eval( jac_inv(Y+2, X+1, qp+q) ) = eval( ( c()*d() - a()*f())/jac_det(qp+q));
-                eval( jac_inv(Y+2, X+2, qp+q) ) = eval( ( a()*e() - b()*d())/jac_det(qp+q));
+                eval( jac_inv(qp+q) )           = eval( ( e*i - f*h)/jac_det(qp+q));
+                eval( jac_inv(X+1, qp+q) )      = eval( ( f*g - d*i)/jac_det(qp+q));
+                eval( jac_inv(X+2, qp+q) )      = eval( ( d*h - e*g)/jac_det(qp+q));
+                eval( jac_inv(Y+1, qp+q) )      = eval( ( c*h - b*i)/jac_det(qp+q));
+                eval( jac_inv(Y+1, X+1, qp+q) ) = eval( ( a*i - c*g)/jac_det(qp+q));
+                eval( jac_inv(Y+1, X+2, qp+q) ) = eval( ( b*g - a*h)/jac_det(qp+q));
+                eval( jac_inv(Y+2, qp+q) )      = eval( ( b*f - c*e)/jac_det(qp+q));
+                eval( jac_inv(Y+2, X+1, qp+q) ) = eval( ( c*d - a*f)/jac_det(qp+q));
+                eval( jac_inv(Y+2, X+2, qp+q) ) = eval( ( a*e - b*d)/jac_det(qp+q));
 
                 //! std::cout << "JACOBIAN INVERSE: "<<std::endl;
                 //! std::cout<<eval(jac_inv(qp+q))<<" "<<eval(jac_inv(qp+q, X+1))<<" "<<eval(jac_inv(qp+q, X+2))<<std::endl;
@@ -261,7 +251,7 @@ namespace gdl{
             using dimy=gt::dimension<6>;
             dimx::Index X;
             dimy::Index Y;
-            uint_t const num_cub_points=eval.template get_storage_dims<3>(jac());
+            uint_t const num_cub_points=eval.template get_storage_dim<3>(jac());
 
 #ifndef __CUDACC__
             assert(num_cub_points==cub::numCubPoints());
@@ -316,7 +306,7 @@ namespace gdl{
             using dimy=gt::dimension<6>;
             dimx::Index X;
             dimy::Index Y;
-            uint_t const num_cub_points=eval.template get_storage_dims<3>(jac());
+            uint_t const num_cub_points=eval.template get_storage_dim<3>(jac());
 
 #ifndef __CUDACC__
             assert(num_cub_points==cub::numCubPoints()); //PRETTY_FUNCTION issue
@@ -381,23 +371,23 @@ namespace gdl{
 
 #endif
 
-            uint_t N1 = indexing.template dims<0>()-1;
-            uint_t N2 = indexing.template dims<1>()-1;
-            uint_t N3 = indexing.template dims<2>()-1;
+            uint_t N1 = indexing.template dim<0>()-1;
+            uint_t N2 = indexing.template dim<1>()-1;
+            uint_t N3 = indexing.template dim<2>()-1;
 
             // for all dofs in a boundary face (supposing that the dofs per face are the same)
             // setting dofs internal to the faces
-            for(short_t I=1; I<indexing.template dims<0>()-1; I++)
-                for(short_t J=1; J<indexing.template dims<1>()-1; J++)
+            for(short_t I=1; I<indexing.template dim<0>()-1; I++)
+                for(short_t J=1; J<indexing.template dim<1>()-1; J++)
                 {
 
                     //for each (3) faces
                     auto dof_x=indexing.index(0, (int)I, (int)J);
-                    auto dof_xx=indexing.index(indexing.template dims<0>()-1, I, J);
+                    auto dof_xx=indexing.index(indexing.template dim<0>()-1, I, J);
                     auto dof_y=indexing.index(I, 0, J);
-                    auto dof_yy=indexing.index(I, indexing.template dims<1>()-1, J);
+                    auto dof_yy=indexing.index(I, indexing.template dim<1>()-1, J);
                     auto dof_z=indexing.index(I, J, 0);
-                    auto dof_zz=indexing.index(I, J, indexing.template dims<2>()-1);
+                    auto dof_zz=indexing.index(I, J, indexing.template dim<2>()-1);
 
                     // z=0 face
                     //sum the contribution from elem i-1 on the opposite face
@@ -521,21 +511,21 @@ namespace gdl{
                 gt::meta_storage_base<static_int<__COUNTER__>,gt::layout_map<2,1,0>,false> indexing{Geometry::geo_map::order+1, Geometry::geo_map::order+1, Geometry::geo_map::order+1};
 
 #endif
-            uint_t N1 = indexing.template dims<0>()-1;
-            uint_t N2 = indexing.template dims<1>()-1;
-            uint_t N3 = indexing.template dims<2>()-1;
+            uint_t N1 = indexing.template dim<0>()-1;
+            uint_t N2 = indexing.template dim<1>()-1;
+            uint_t N3 = indexing.template dim<2>()-1;
 
             //for all dofs in a boundary face (supposing that the dofs per face are the same)
-            for(short_t I=1; I<indexing.template dims<0>()-1; I++)
-                for(short_t J=1; J<indexing.template dims<1>()-1; J++)
+            for(short_t I=1; I<indexing.template dim<0>()-1; I++)
+                for(short_t J=1; J<indexing.template dim<1>()-1; J++)
                 {
                     //for each (3) faces
                     auto dof_x=indexing.index(0, (int)I, (int)J);
-                    auto dof_xx=indexing.index(indexing.template dims<0>()-1, I, J);
+                    auto dof_xx=indexing.index(indexing.template dim<0>()-1, I, J);
                     auto dof_y=indexing.index(I, 0, J);
-                    auto dof_yy=indexing.index(I, indexing.template dims<1>()-1, J);
+                    auto dof_yy=indexing.index(I, indexing.template dim<1>()-1, J);
                     auto dof_z=indexing.index(I, J, 0);
-                    auto dof_zz=indexing.index(I, J, indexing.template dims<2>()-1);
+                    auto dof_zz=indexing.index(I, J, indexing.template dim<2>()-1);
 
                     //replace the value from elem i-1 on the opposite face
                     eval(out(i-1, row+dof_xx)) = eval(in1(row+dof_x));
@@ -584,15 +574,15 @@ namespace gdl{
         static void Do(Evaluation const & eval, x_interval) {
 
         	// Retrieve elements dof grid gt::dimensions and number of dofs per element
-            const uint_t d1=eval.template get_storage_dims<0>(in());
-            const uint_t d2=eval.template get_storage_dims<1>(in());
-            const uint_t d3=eval.template get_storage_dims<2>(in());
-            const uint_t basis_cardinality=eval.template get_storage_dims<3>(in());
+            const uint_t d1=eval.template get_storage_dim<0>(in());
+            const uint_t d2=eval.template get_storage_dim<1>(in());
+            const uint_t d3=eval.template get_storage_dim<2>(in());
+            const uint_t basis_cardinality=eval.template get_storage_dim<3>(in());
 
             // Retrieve global dof pair of current stencil point
             // TODO: the computation is positional by default only in debug mode!
             const u_int my_P = eval.i();
-            const u_int my_Q = eval.j()%eval.template get_storage_dims<0>(out());
+            const u_int my_Q = eval.j()%eval.template get_storage_dim<0>(out());
 
             // Loop over element dofs
             for(u_int i=0;i<d1;++i)
@@ -641,15 +631,15 @@ namespace gdl{
           static void Do(Evaluation const & eval, x_interval) {
 
               // Retrieve elements dof grid gt::dimensions and number of dofs per element
-              const uint_t d1=eval.get().template get_storage_dims<0>(in());
-              const uint_t d2=eval.get().template get_storage_dims<1>(in());
-              const uint_t d3=eval.get().template get_storage_dims<2>(in());
-              const uint_t basis_cardinality=eval.get().template get_storage_dims<3>(in());
+              const uint_t d1=eval.get().template get_storage_dim<0>(in());
+              const uint_t d2=eval.get().template get_storage_dim<1>(in());
+              const uint_t d3=eval.get().template get_storage_dim<2>(in());
+              const uint_t basis_cardinality=eval.get().template get_storage_dim<3>(in());
 
               // Retrieve global dof pair of current stencil point
               // TODO: the computation is positional by default only in debug mode!
               const u_int my_P = eval.i();
-              const u_int my_Q = eval.j()%eval.get().template get_storage_dims<0>(out());
+              const u_int my_Q = eval.j()%eval.get().template get_storage_dim<0>(out());
 
               // Loop over element dofs
               for(u_int i=0;i<d1;++i)
@@ -690,10 +680,10 @@ namespace gdl{
         static void Do(Evaluation const & eval, x_interval) {
 
             // Retrieve elements dof grid gt::dimensions and number of dofs per element
-            const uint_t d1=eval.template get_storage_dims<0>(in());
-            const uint_t d2=eval.template get_storage_dims<1>(in());
-            const uint_t d3=eval.template get_storage_dims<2>(in());
-            const uint_t basis_cardinality=eval.template get_storage_dims<3>(in());
+            const uint_t d1=eval.template get_storage_dim<0>(in());
+            const uint_t d2=eval.template get_storage_dim<1>(in());
+            const uint_t d3=eval.template get_storage_dim<2>(in());
+            const uint_t basis_cardinality=eval.template get_storage_dim<3>(in());
 
             // Retrieve global dof pair of current stencil point
             // TODO: the computation is positional by default only in debug mode!
@@ -811,141 +801,141 @@ namespace gdl{
             constexpr gt::meta_storage_base<static_int<__COUNTER__>,gt::layout_map<2,1,0>,false> indexing{N_DOF0,N_DOF1,N_DOF2};
 
             // 1 (A,A)
-            for(short_t I1=1; I1<indexing.template dims<0>()-1; I1++)
-                for(short_t J1=1; J1<indexing.template dims<1>()-1; J1++)
-                    for(short_t I2=1; I2<indexing.template dims<0>()-1; I2++)
-                        for(short_t J2=1; J2<indexing.template dims<1>()-1; J2++)
+            for(short_t I1=1; I1<indexing.template dim<0>()-1; I1++)
+                for(short_t J1=1; J1<indexing.template dim<1>()-1; J1++)
+                    for(short_t I2=1; I2<indexing.template dim<0>()-1; I2++)
+                        for(short_t J2=1; J2<indexing.template dim<1>()-1; J2++)
                         {
 
                             eval(out(dof1+indexing.index(I1,J1,0),dof2+indexing.index(I2,J2,0))) +=
-                                    eval(in2(i-1,dof1+indexing.index(I1,J1,indexing.template dims<2>()-1),dof2+indexing.index(I2,J2,indexing.template dims<2>()-1)));
+                                    eval(in2(i-1,dof1+indexing.index(I1,J1,indexing.template dim<2>()-1),dof2+indexing.index(I2,J2,indexing.template dim<2>()-1)));
 
                             eval(out(dof1+indexing.index(J1,0,I1),dof2+indexing.index(J2,0,I2))) +=
-                                    eval(in2(j-1,dof1+indexing.index(J1,indexing.template dims<1>()-1,I1),dof2+indexing.index(J2,indexing.template dims<1>()-1,I2)));
+                                    eval(in2(j-1,dof1+indexing.index(J1,indexing.template dim<1>()-1,I1),dof2+indexing.index(J2,indexing.template dim<1>()-1,I2)));
 
                             eval(out(dof1+indexing.index(0,I1,J1),dof2+indexing.index(0,I2,J2))) +=
-                                    eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,I1,J1),dof2+indexing.index(indexing.template dims<0>()-1,I2,J2)));
+                                    eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,I1,J1),dof2+indexing.index(indexing.template dim<0>()-1,I2,J2)));
 
 
                         }
 
             // 2 (A,F+B+G)+(F+B+G,A)
             short_t J2=0;
-            for(short_t I1=1; I1<indexing.template dims<0>()-1; I1++)
-                for(short_t J1=1; J1<indexing.template dims<1>()-1; J1++)
-                    for(short_t I2=0; I2<indexing.template dims<0>(); I2++)
+            for(short_t I1=1; I1<indexing.template dim<0>()-1; I1++)
+                for(short_t J1=1; J1<indexing.template dim<1>()-1; J1++)
+                    for(short_t I2=0; I2<indexing.template dim<0>(); I2++)
                     {
 
                         eval(out(dof1+indexing.index(I1,J1,0),dof2+indexing.index(I2,J2,0))) +=
-                                eval(in2(i-1,dof1+indexing.index(I1,J1,indexing.template dims<2>()-1),dof2+indexing.index(I2,J2,indexing.template dims<2>()-1)));
+                                eval(in2(i-1,dof1+indexing.index(I1,J1,indexing.template dim<2>()-1),dof2+indexing.index(I2,J2,indexing.template dim<2>()-1)));
                         eval(out(dof1+indexing.index(I2,J2,0),dof2+indexing.index(I1,J1,0))) +=
-                                eval(in2(i-1,dof1+indexing.index(I2,J2,indexing.template dims<2>()-1),dof2+indexing.index(I1,J1,indexing.template dims<2>()-1)));
+                                eval(in2(i-1,dof1+indexing.index(I2,J2,indexing.template dim<2>()-1),dof2+indexing.index(I1,J1,indexing.template dim<2>()-1)));
 
                         eval(out(dof1+indexing.index(J1,0,I1),dof2+indexing.index(J2,0,I2))) +=
-                                eval(in2(j-1,dof1+indexing.index(J1,indexing.template dims<1>()-1,I1),dof2+indexing.index(J2,indexing.template dims<1>()-1,I2)));
+                                eval(in2(j-1,dof1+indexing.index(J1,indexing.template dim<1>()-1,I1),dof2+indexing.index(J2,indexing.template dim<1>()-1,I2)));
                         eval(out(dof1+indexing.index(J2,0,I2),dof2+indexing.index(J1,0,I1))) +=
-                                eval(in2(j-1,dof1+indexing.index(J2,indexing.template dims<1>()-1,I2),dof2+indexing.index(J1,indexing.template dims<1>()-1,I1)));
+                                eval(in2(j-1,dof1+indexing.index(J2,indexing.template dim<1>()-1,I2),dof2+indexing.index(J1,indexing.template dim<1>()-1,I1)));
 
                         eval(out(dof1+indexing.index(0,I1,J1),dof2+indexing.index(0,I2,J2))) +=
-                                eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,I1,J1),dof2+indexing.index(indexing.template dims<0>()-1,I2,J2)));
+                                eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,I1,J1),dof2+indexing.index(indexing.template dim<0>()-1,I2,J2)));
                         eval(out(dof1+indexing.index(0,I2,J2),dof2+indexing.index(0,I1,J1))) +=
-                                eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,I2,J2),dof2+indexing.index(indexing.template dims<0>()-1,I1,J1)));
+                                eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,I2,J2),dof2+indexing.index(indexing.template dim<0>()-1,I1,J1)));
 
                     }
 
             // 3 (A,H+D+I)+(H+D+I,A)
-            J2=indexing.template dims<1>()-1;
-            for(short_t I1=1; I1<indexing.template dims<0>()-1; I1++)
-                for(short_t J1=1; J1<indexing.template dims<1>()-1; J1++)
-                    for(short_t I2=0; I2<indexing.template dims<0>(); I2++)
+            J2=indexing.template dim<1>()-1;
+            for(short_t I1=1; I1<indexing.template dim<0>()-1; I1++)
+                for(short_t J1=1; J1<indexing.template dim<1>()-1; J1++)
+                    for(short_t I2=0; I2<indexing.template dim<0>(); I2++)
                     {
 
                         eval(out(dof1+indexing.index(I1,J1,0),dof2+indexing.index(I2,J2,0))) +=
-                                eval(in2(i-1,dof1+indexing.index(I1,J1,indexing.template dims<2>()-1),dof2+indexing.index(I2,J2,indexing.template dims<2>()-1)));
+                                eval(in2(i-1,dof1+indexing.index(I1,J1,indexing.template dim<2>()-1),dof2+indexing.index(I2,J2,indexing.template dim<2>()-1)));
                         eval(out(dof1+indexing.index(I2,J2,0),dof2+indexing.index(I1,J1,0))) +=
-                                eval(in2(i-1,dof1+indexing.index(I2,J2,indexing.template dims<2>()-1),dof2+indexing.index(I1,J1,indexing.template dims<2>()-1)));
+                                eval(in2(i-1,dof1+indexing.index(I2,J2,indexing.template dim<2>()-1),dof2+indexing.index(I1,J1,indexing.template dim<2>()-1)));
 
                         eval(out(dof1+indexing.index(J1,0,I1),dof2+indexing.index(J2,0,I2))) +=
-                                eval(in2(j-1,dof1+indexing.index(J1,indexing.template dims<1>()-1,I1),dof2+indexing.index(J2,indexing.template dims<1>()-1,I2)));
+                                eval(in2(j-1,dof1+indexing.index(J1,indexing.template dim<1>()-1,I1),dof2+indexing.index(J2,indexing.template dim<1>()-1,I2)));
                         eval(out(dof1+indexing.index(J2,0,I2),dof2+indexing.index(J1,0,I1))) +=
-                                eval(in2(j-1,dof1+indexing.index(J2,indexing.template dims<1>()-1,I2),dof2+indexing.index(J1,indexing.template dims<1>()-1,I1)));
+                                eval(in2(j-1,dof1+indexing.index(J2,indexing.template dim<1>()-1,I2),dof2+indexing.index(J1,indexing.template dim<1>()-1,I1)));
 
                         eval(out(dof1+indexing.index(0,I1,J1),dof2+indexing.index(0,I2,J2))) +=
-                                eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,I1,J1),dof2+indexing.index(indexing.template dims<0>()-1,I2,J2)));
+                                eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,I1,J1),dof2+indexing.index(indexing.template dim<0>()-1,I2,J2)));
                         eval(out(dof1+indexing.index(0,I2,J2),dof2+indexing.index(0,I1,J1))) +=
-                                eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,I2,J2),dof2+indexing.index(indexing.template dims<0>()-1,I1,J1)));
+                                eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,I2,J2),dof2+indexing.index(indexing.template dim<0>()-1,I1,J1)));
 
                     }
 
             // 4 (C,B+A+D+G+E+I)+(B+A+D+G+E+I,C)
             short_t I1=0;
-            for(short_t J1=1; J1<indexing.template dims<1>()-1; J1++)
-                for(short_t I2=1; I2<indexing.template dims<0>(); I2++)
-                    for(short_t J2=0; J2<indexing.template dims<1>(); J2++)
+            for(short_t J1=1; J1<indexing.template dim<1>()-1; J1++)
+                for(short_t I2=1; I2<indexing.template dim<0>(); I2++)
+                    for(short_t J2=0; J2<indexing.template dim<1>(); J2++)
                     {
 
                         eval(out(dof1+indexing.index(I1,J1,0),dof2+indexing.index(I2,J2,0))) +=
-                                eval(in2(i-1,dof1+indexing.index(I1,J1,indexing.template dims<2>()-1),dof2+indexing.index(I2,J2,indexing.template dims<2>()-1)));
+                                eval(in2(i-1,dof1+indexing.index(I1,J1,indexing.template dim<2>()-1),dof2+indexing.index(I2,J2,indexing.template dim<2>()-1)));
                         eval(out(dof1+indexing.index(I2,J2,0),dof2+indexing.index(I1,J1,0))) +=
-                                eval(in2(i-1,dof1+indexing.index(I2,J2,indexing.template dims<2>()-1),dof2+indexing.index(I1,J1,indexing.template dims<2>()-1)));
+                                eval(in2(i-1,dof1+indexing.index(I2,J2,indexing.template dim<2>()-1),dof2+indexing.index(I1,J1,indexing.template dim<2>()-1)));
 
                         eval(out(dof1+indexing.index(J1,0,I1),dof2+indexing.index(J2,0,I2))) +=
-                                eval(in2(j-1,dof1+indexing.index(J1,indexing.template dims<1>()-1,I1),dof2+indexing.index(J2,indexing.template dims<1>()-1,I2)));
+                                eval(in2(j-1,dof1+indexing.index(J1,indexing.template dim<1>()-1,I1),dof2+indexing.index(J2,indexing.template dim<1>()-1,I2)));
                         eval(out(dof1+indexing.index(J2,0,I2),dof2+indexing.index(J1,0,I1))) +=
-                                eval(in2(j-1,dof1+indexing.index(J2,indexing.template dims<1>()-1,I2),dof2+indexing.index(J1,indexing.template dims<1>()-1,I1)));
+                                eval(in2(j-1,dof1+indexing.index(J2,indexing.template dim<1>()-1,I2),dof2+indexing.index(J1,indexing.template dim<1>()-1,I1)));
 
                         eval(out(dof1+indexing.index(0,I1,J1),dof2+indexing.index(0,I2,J2))) +=
-                                eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,I1,J1),dof2+indexing.index(indexing.template dims<0>()-1,I2,J2)));
+                                eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,I1,J1),dof2+indexing.index(indexing.template dim<0>()-1,I2,J2)));
                         eval(out(dof1+indexing.index(0,I2,J2),dof2+indexing.index(0,I1,J1))) +=
-                                eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,I2,J2),dof2+indexing.index(indexing.template dims<0>()-1,I1,J1)));
+                                eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,I2,J2),dof2+indexing.index(indexing.template dim<0>()-1,I1,J1)));
 
                     }
 
             // 5 (B,H+D+I)+(H+D+I,B)
             short_t J1=0;
-            J2=indexing.template dims<1>() - 1;
-            for(short_t I1=1; I1<indexing.template dims<0>()-1; I1++)
-                for(short_t I2=0; I2<indexing.template dims<0>(); I2++)
+            J2=indexing.template dim<1>() - 1;
+            for(short_t I1=1; I1<indexing.template dim<0>()-1; I1++)
+                for(short_t I2=0; I2<indexing.template dim<0>(); I2++)
                 {
 
                     eval(out(dof1+indexing.index(I1,J1,0),dof2+indexing.index(I2,J2,0))) +=
-                            eval(in2(i-1,dof1+indexing.index(I1,J1,indexing.template dims<2>()-1),dof2+indexing.index(I2,J2,indexing.template dims<2>()-1)));
+                            eval(in2(i-1,dof1+indexing.index(I1,J1,indexing.template dim<2>()-1),dof2+indexing.index(I2,J2,indexing.template dim<2>()-1)));
                     eval(out(dof1+indexing.index(I2,J2,0),dof2+indexing.index(I1,J1,0))) +=
-                            eval(in2(i-1,dof1+indexing.index(I2,J2,indexing.template dims<2>()-1),dof2+indexing.index(I1,J1,indexing.template dims<2>()-1)));
+                            eval(in2(i-1,dof1+indexing.index(I2,J2,indexing.template dim<2>()-1),dof2+indexing.index(I1,J1,indexing.template dim<2>()-1)));
 
                     eval(out(dof1+indexing.index(J1,0,I1),dof2+indexing.index(J2,0,I2))) +=
-                            eval(in2(j-1,dof1+indexing.index(J1,indexing.template dims<1>()-1,I1),dof2+indexing.index(J2,indexing.template dims<1>()-1,I2)));
+                            eval(in2(j-1,dof1+indexing.index(J1,indexing.template dim<1>()-1,I1),dof2+indexing.index(J2,indexing.template dim<1>()-1,I2)));
                     eval(out(dof1+indexing.index(J2,0,I2),dof2+indexing.index(J1,0,I1))) +=
-                            eval(in2(j-1,dof1+indexing.index(J2,indexing.template dims<1>()-1,I2),dof2+indexing.index(J1,indexing.template dims<1>()-1,I1)));
+                            eval(in2(j-1,dof1+indexing.index(J2,indexing.template dim<1>()-1,I2),dof2+indexing.index(J1,indexing.template dim<1>()-1,I1)));
 
                     eval(out(dof1+indexing.index(0,I1,J1),dof2+indexing.index(0,I2,J2))) +=
-                            eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,I1,J1),dof2+indexing.index(indexing.template dims<0>()-1,I2,J2)));
+                            eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,I1,J1),dof2+indexing.index(indexing.template dim<0>()-1,I2,J2)));
                     eval(out(dof1+indexing.index(0,I2,J2),dof2+indexing.index(0,I1,J1))) +=
-                            eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,I2,J2),dof2+indexing.index(indexing.template dims<0>()-1,I1,J1)));
+                            eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,I2,J2),dof2+indexing.index(indexing.template dim<0>()-1,I1,J1)));
 
                 }
 
             // 6 (E,B+A+D)+(B+A+D,E)
-            I1=indexing.template dims<0>()-1;
-            for(short_t J1=1; J1<indexing.template dims<1>()-1; J1++)
-                for(short_t I2=1; I2<indexing.template dims<0>()-1; I2++)
-                    for(short_t J2=0; J2<indexing.template dims<1>(); J2++)
+            I1=indexing.template dim<0>()-1;
+            for(short_t J1=1; J1<indexing.template dim<1>()-1; J1++)
+                for(short_t I2=1; I2<indexing.template dim<0>()-1; I2++)
+                    for(short_t J2=0; J2<indexing.template dim<1>(); J2++)
                     {
 
                         eval(out(dof1+indexing.index(I1,J1,0),dof2+indexing.index(I2,J2,0))) +=
-                                eval(in2(i-1,dof1+indexing.index(I1,J1,indexing.template dims<2>()-1),dof2+indexing.index(I2,J2,indexing.template dims<2>()-1)));
+                                eval(in2(i-1,dof1+indexing.index(I1,J1,indexing.template dim<2>()-1),dof2+indexing.index(I2,J2,indexing.template dim<2>()-1)));
                         eval(out(dof1+indexing.index(I2,J2,0),dof2+indexing.index(I1,J1,0))) +=
-                                eval(in2(i-1,dof1+indexing.index(I2,J2,indexing.template dims<2>()-1),dof2+indexing.index(I1,J1,indexing.template dims<2>()-1)));
+                                eval(in2(i-1,dof1+indexing.index(I2,J2,indexing.template dim<2>()-1),dof2+indexing.index(I1,J1,indexing.template dim<2>()-1)));
 
                         eval(out(dof1+indexing.index(J1,0,I1),dof2+indexing.index(J2,0,I2))) +=
-                                eval(in2(j-1,dof1+indexing.index(J1,indexing.template dims<1>()-1,I1),dof2+indexing.index(J2,indexing.template dims<1>()-1,I2)));
+                                eval(in2(j-1,dof1+indexing.index(J1,indexing.template dim<1>()-1,I1),dof2+indexing.index(J2,indexing.template dim<1>()-1,I2)));
                         eval(out(dof1+indexing.index(J2,0,I2),dof2+indexing.index(J1,0,I1))) +=
-                                eval(in2(j-1,dof1+indexing.index(J2,indexing.template dims<1>()-1,I2),dof2+indexing.index(J1,indexing.template dims<1>()-1,I1)));
+                                eval(in2(j-1,dof1+indexing.index(J2,indexing.template dim<1>()-1,I2),dof2+indexing.index(J1,indexing.template dim<1>()-1,I1)));
 
                         eval(out(dof1+indexing.index(0,I1,J1),dof2+indexing.index(0,I2,J2))) +=
-                                eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,I1,J1),dof2+indexing.index(indexing.template dims<0>()-1,I2,J2)));
+                                eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,I1,J1),dof2+indexing.index(indexing.template dim<0>()-1,I2,J2)));
                         eval(out(dof1+indexing.index(0,I2,J2),dof2+indexing.index(0,I1,J1))) +=
-                                eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,I2,J2),dof2+indexing.index(indexing.template dims<0>()-1,I1,J1)));
+                                eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,I2,J2),dof2+indexing.index(indexing.template dim<0>()-1,I1,J1)));
                     }
 
 
@@ -953,96 +943,96 @@ namespace gdl{
             // 7 (F,D+I)+(D+I,F)
             I1=0;
             J1=0;
-            J2=indexing.template dims<1>() - 1;
-            for(short_t I2=1; I2<indexing.template dims<0>(); I2++)
+            J2=indexing.template dim<1>() - 1;
+            for(short_t I2=1; I2<indexing.template dim<0>(); I2++)
             {
 
                 eval(out(dof1+indexing.index(I1,J1,0),dof2+indexing.index(I2,J2,0))) +=
-                        eval(in2(i-1,dof1+indexing.index(I1,J1,indexing.template dims<2>()-1),dof2+indexing.index(I2,J2,indexing.template dims<2>()-1)));
+                        eval(in2(i-1,dof1+indexing.index(I1,J1,indexing.template dim<2>()-1),dof2+indexing.index(I2,J2,indexing.template dim<2>()-1)));
                 eval(out(dof1+indexing.index(I2,J2,0),dof2+indexing.index(I1,J1,0))) +=
-                        eval(in2(i-1,dof1+indexing.index(I2,J2,indexing.template dims<2>()-1),dof2+indexing.index(I1,J1,indexing.template dims<2>()-1)));
+                        eval(in2(i-1,dof1+indexing.index(I2,J2,indexing.template dim<2>()-1),dof2+indexing.index(I1,J1,indexing.template dim<2>()-1)));
 
                 eval(out(dof1+indexing.index(J1,0,I1),dof2+indexing.index(J2,0,I2))) +=
-                        eval(in2(j-1,dof1+indexing.index(J1,indexing.template dims<1>()-1,I1),dof2+indexing.index(J2,indexing.template dims<1>()-1,I2)));
+                        eval(in2(j-1,dof1+indexing.index(J1,indexing.template dim<1>()-1,I1),dof2+indexing.index(J2,indexing.template dim<1>()-1,I2)));
                 eval(out(dof1+indexing.index(J2,0,I2),dof2+indexing.index(J1,0,I1))) +=
-                        eval(in2(j-1,dof1+indexing.index(J2,indexing.template dims<1>()-1,I2),dof2+indexing.index(J1,indexing.template dims<1>()-1,I1)));
+                        eval(in2(j-1,dof1+indexing.index(J2,indexing.template dim<1>()-1,I2),dof2+indexing.index(J1,indexing.template dim<1>()-1,I1)));
 
                 eval(out(dof1+indexing.index(0,I1,J1),dof2+indexing.index(0,I2,J2))) +=
-                        eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,I1,J1),dof2+indexing.index(indexing.template dims<0>()-1,I2,J2)));
+                        eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,I1,J1),dof2+indexing.index(indexing.template dim<0>()-1,I2,J2)));
                 eval(out(dof1+indexing.index(0,I2,J2),dof2+indexing.index(0,I1,J1))) +=
-                        eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,I2,J2),dof2+indexing.index(indexing.template dims<0>()-1,I1,J1)));
+                        eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,I2,J2),dof2+indexing.index(indexing.template dim<0>()-1,I1,J1)));
 
             }
 
             // 8 (G,H+D)+(H+D,G)
-            I1=indexing.template dims<1>() - 1;
+            I1=indexing.template dim<1>() - 1;
             J1=0;
-            J2=indexing.template dims<1>() - 1;
-            for(short_t I2=0; I2<indexing.template dims<0>()-1; I2++)
+            J2=indexing.template dim<1>() - 1;
+            for(short_t I2=0; I2<indexing.template dim<0>()-1; I2++)
             {
 
                 eval(out(dof1+indexing.index(I1,J1,0),dof2+indexing.index(I2,J2,0))) +=
-                        eval(in2(i-1,dof1+indexing.index(I1,J1,indexing.template dims<2>()-1),dof2+indexing.index(I2,J2,indexing.template dims<2>()-1)));
+                        eval(in2(i-1,dof1+indexing.index(I1,J1,indexing.template dim<2>()-1),dof2+indexing.index(I2,J2,indexing.template dim<2>()-1)));
                 eval(out(dof1+indexing.index(I2,J2,0),dof2+indexing.index(I1,J1,0))) +=
-                        eval(in2(i-1,dof1+indexing.index(I2,J2,indexing.template dims<2>()-1),dof2+indexing.index(I1,J1,indexing.template dims<2>()-1)));
+                        eval(in2(i-1,dof1+indexing.index(I2,J2,indexing.template dim<2>()-1),dof2+indexing.index(I1,J1,indexing.template dim<2>()-1)));
 
                 eval(out(dof1+indexing.index(J1,0,I1),dof2+indexing.index(J2,0,I2))) +=
-                        eval(in2(j-1,dof1+indexing.index(J1,indexing.template dims<1>()-1,I1),dof2+indexing.index(J2,indexing.template dims<1>()-1,I2)));
+                        eval(in2(j-1,dof1+indexing.index(J1,indexing.template dim<1>()-1,I1),dof2+indexing.index(J2,indexing.template dim<1>()-1,I2)));
                 eval(out(dof1+indexing.index(J2,0,I2),dof2+indexing.index(J1,0,I1))) +=
-                        eval(in2(j-1,dof1+indexing.index(J2,indexing.template dims<1>()-1,I2),dof2+indexing.index(J1,indexing.template dims<1>()-1,I1)));
+                        eval(in2(j-1,dof1+indexing.index(J2,indexing.template dim<1>()-1,I2),dof2+indexing.index(J1,indexing.template dim<1>()-1,I1)));
 
                 eval(out(dof1+indexing.index(0,I1,J1),dof2+indexing.index(0,I2,J2))) +=
-                        eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,I1,J1),dof2+indexing.index(indexing.template dims<0>()-1,I2,J2)));
+                        eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,I1,J1),dof2+indexing.index(indexing.template dim<0>()-1,I2,J2)));
                 eval(out(dof1+indexing.index(0,I2,J2),dof2+indexing.index(0,I1,J1))) +=
-                        eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,I2,J2),dof2+indexing.index(indexing.template dims<0>()-1,I1,J1)));
+                        eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,I2,J2),dof2+indexing.index(indexing.template dim<0>()-1,I1,J1)));
 
             }
 
             // 9 (F,E)+(E,F)
             I1=0;
             J1=0;
-            short_t I2=indexing.template dims<0>()-1;
-            for(short_t J2=1; J2<indexing.template dims<1>()-1; J2++)
+            short_t I2=indexing.template dim<0>()-1;
+            for(short_t J2=1; J2<indexing.template dim<1>()-1; J2++)
             {
 
                 eval(out(dof1+indexing.index(I1,J1,0),dof2+indexing.index(I2,J2,0))) +=
-                        eval(in2(i-1,dof1+indexing.index(I1,J1,indexing.template dims<2>()-1),dof2+indexing.index(I2,J2,indexing.template dims<2>()-1)));
+                        eval(in2(i-1,dof1+indexing.index(I1,J1,indexing.template dim<2>()-1),dof2+indexing.index(I2,J2,indexing.template dim<2>()-1)));
                 eval(out(dof1+indexing.index(I2,J2,0),dof2+indexing.index(I1,J1,0))) +=
-                        eval(in2(i-1,dof1+indexing.index(I2,J2,indexing.template dims<2>()-1),dof2+indexing.index(I1,J1,indexing.template dims<2>()-1)));
+                        eval(in2(i-1,dof1+indexing.index(I2,J2,indexing.template dim<2>()-1),dof2+indexing.index(I1,J1,indexing.template dim<2>()-1)));
 
                 eval(out(dof1+indexing.index(J1,0,I1),dof2+indexing.index(J2,0,I2))) +=
-                        eval(in2(j-1,dof1+indexing.index(J1,indexing.template dims<1>()-1,I1),dof2+indexing.index(J2,indexing.template dims<1>()-1,I2)));
+                        eval(in2(j-1,dof1+indexing.index(J1,indexing.template dim<1>()-1,I1),dof2+indexing.index(J2,indexing.template dim<1>()-1,I2)));
                 eval(out(dof1+indexing.index(J2,0,I2),dof2+indexing.index(J1,0,I1))) +=
-                        eval(in2(j-1,dof1+indexing.index(J2,indexing.template dims<1>()-1,I2),dof2+indexing.index(J1,indexing.template dims<1>()-1,I1)));
+                        eval(in2(j-1,dof1+indexing.index(J2,indexing.template dim<1>()-1,I2),dof2+indexing.index(J1,indexing.template dim<1>()-1,I1)));
 
                 eval(out(dof1+indexing.index(0,I1,J1),dof2+indexing.index(0,I2,J2))) +=
-                        eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,I1,J1),dof2+indexing.index(indexing.template dims<0>()-1,I2,J2)));
+                        eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,I1,J1),dof2+indexing.index(indexing.template dim<0>()-1,I2,J2)));
                 eval(out(dof1+indexing.index(0,I2,J2),dof2+indexing.index(0,I1,J1))) +=
-                        eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,I2,J2),dof2+indexing.index(indexing.template dims<0>()-1,I1,J1)));
+                        eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,I2,J2),dof2+indexing.index(indexing.template dim<0>()-1,I1,J1)));
 
             }
 
             // 10 (H,E)+(E,H)
             I1=0;
-            J1=indexing.template dims<1>()-1;
-            I2=indexing.template dims<0>()-1;
-            for(short_t J2=1; J2<indexing.template dims<1>()-1; J2++)
+            J1=indexing.template dim<1>()-1;
+            I2=indexing.template dim<0>()-1;
+            for(short_t J2=1; J2<indexing.template dim<1>()-1; J2++)
             {
 
                 eval(out(dof1+indexing.index(I1,J1,0),dof2+indexing.index(I2,J2,0))) +=
-                        eval(in2(i-1,dof1+indexing.index(I1,J1,indexing.template dims<2>()-1),dof2+indexing.index(I2,J2,indexing.template dims<2>()-1)));
+                        eval(in2(i-1,dof1+indexing.index(I1,J1,indexing.template dim<2>()-1),dof2+indexing.index(I2,J2,indexing.template dim<2>()-1)));
                 eval(out(dof1+indexing.index(I2,J2,0),dof2+indexing.index(I1,J1,0))) +=
-                        eval(in2(i-1,dof1+indexing.index(I2,J2,indexing.template dims<2>()-1),dof2+indexing.index(I1,J1,indexing.template dims<2>()-1)));
+                        eval(in2(i-1,dof1+indexing.index(I2,J2,indexing.template dim<2>()-1),dof2+indexing.index(I1,J1,indexing.template dim<2>()-1)));
 
                 eval(out(dof1+indexing.index(J1,0,I1),dof2+indexing.index(J2,0,I2))) +=
-                        eval(in2(j-1,dof1+indexing.index(J1,indexing.template dims<1>()-1,I1),dof2+indexing.index(J2,indexing.template dims<1>()-1,I2)));
+                        eval(in2(j-1,dof1+indexing.index(J1,indexing.template dim<1>()-1,I1),dof2+indexing.index(J2,indexing.template dim<1>()-1,I2)));
                 eval(out(dof1+indexing.index(J2,0,I2),dof2+indexing.index(J1,0,I1))) +=
-                        eval(in2(j-1,dof1+indexing.index(J2,indexing.template dims<1>()-1,I2),dof2+indexing.index(J1,indexing.template dims<1>()-1,I1)));
+                        eval(in2(j-1,dof1+indexing.index(J2,indexing.template dim<1>()-1,I2),dof2+indexing.index(J1,indexing.template dim<1>()-1,I1)));
 
                 eval(out(dof1+indexing.index(0,I1,J1),dof2+indexing.index(0,I2,J2))) +=
-                        eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,I1,J1),dof2+indexing.index(indexing.template dims<0>()-1,I2,J2)));
+                        eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,I1,J1),dof2+indexing.index(indexing.template dim<0>()-1,I2,J2)));
                 eval(out(dof1+indexing.index(0,I2,J2),dof2+indexing.index(0,I1,J1))) +=
-                        eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,I2,J2),dof2+indexing.index(indexing.template dims<0>()-1,I1,J1)));
+                        eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,I2,J2),dof2+indexing.index(indexing.template dim<0>()-1,I1,J1)));
 
             }
 
@@ -1050,116 +1040,116 @@ namespace gdl{
             I1=0;
             J1=0;
             J2=0;
-            for(short_t I2=1; I2<indexing.template dims<0>(); I2++)
+            for(short_t I2=1; I2<indexing.template dim<0>(); I2++)
             {
 
                 eval(out(dof1+indexing.index(I1,J1,0),dof2+indexing.index(I2,J2,0))) +=
-                        eval(in2(i-1,dof1+indexing.index(I1,J1,indexing.template dims<2>()-1),dof2+indexing.index(I2,J2,indexing.template dims<2>()-1))) +
-                        eval(in2(j-1,dof1+indexing.index(I1,indexing.template dims<1>()-1,0),dof2+indexing.index(I2,indexing.template dims<1>()-1,0))) +
-                        eval(in2(i-1,j-1,dof1+indexing.index(I1,indexing.template dims<1>()-1,indexing.template dims<2>()-1),dof2+indexing.index(I2,indexing.template dims<1>()-1,indexing.template dims<2>()-1)));
+                        eval(in2(i-1,dof1+indexing.index(I1,J1,indexing.template dim<2>()-1),dof2+indexing.index(I2,J2,indexing.template dim<2>()-1))) +
+                        eval(in2(j-1,dof1+indexing.index(I1,indexing.template dim<1>()-1,0),dof2+indexing.index(I2,indexing.template dim<1>()-1,0))) +
+                        eval(in2(i-1,j-1,dof1+indexing.index(I1,indexing.template dim<1>()-1,indexing.template dim<2>()-1),dof2+indexing.index(I2,indexing.template dim<1>()-1,indexing.template dim<2>()-1)));
 
                 eval(out(dof1+indexing.index(I2,J2,0),dof2+indexing.index(I1,J1,0))) +=
-                        eval(in2(i-1,dof1+indexing.index(I2,J2,indexing.template dims<2>()-1),dof2+indexing.index(I1,J1,indexing.template dims<2>()-1))) +
-                        eval(in2(j-1,dof1+indexing.index(I2,indexing.template dims<1>()-1,0),dof2+indexing.index(I1,indexing.template dims<1>()-1,0))) +
-                        eval(in2(i-1,j-1,dof1+indexing.index(I2,indexing.template dims<1>()-1,indexing.template dims<2>()-1),dof2+indexing.index(I1,indexing.template dims<1>()-1,indexing.template dims<2>()-1)));
+                        eval(in2(i-1,dof1+indexing.index(I2,J2,indexing.template dim<2>()-1),dof2+indexing.index(I1,J1,indexing.template dim<2>()-1))) +
+                        eval(in2(j-1,dof1+indexing.index(I2,indexing.template dim<1>()-1,0),dof2+indexing.index(I1,indexing.template dim<1>()-1,0))) +
+                        eval(in2(i-1,j-1,dof1+indexing.index(I2,indexing.template dim<1>()-1,indexing.template dim<2>()-1),dof2+indexing.index(I1,indexing.template dim<1>()-1,indexing.template dim<2>()-1)));
 
                 eval(out(dof1+indexing.index(J1,0,I1),dof2+indexing.index(J2,0,I2))) +=
-                        eval(in2(j-1,dof1+indexing.index(J1,indexing.template dims<1>()-1,I1),dof2+indexing.index(J2,indexing.template dims<1>()-1,I2))) +
-                        eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,0,I1),dof2+indexing.index(indexing.template dims<0>()-1,0,I2))) +
-                        eval(in2(j-1,k-1,dof1+indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,I1),dof2+indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,I2)));
+                        eval(in2(j-1,dof1+indexing.index(J1,indexing.template dim<1>()-1,I1),dof2+indexing.index(J2,indexing.template dim<1>()-1,I2))) +
+                        eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,0,I1),dof2+indexing.index(indexing.template dim<0>()-1,0,I2))) +
+                        eval(in2(j-1,k-1,dof1+indexing.index(indexing.template dim<0>()-1,indexing.template dim<1>()-1,I1),dof2+indexing.index(indexing.template dim<0>()-1,indexing.template dim<1>()-1,I2)));
 
                 eval(out(dof1+indexing.index(J2,0,I2),dof2+indexing.index(J1,0,I1))) +=
-                        eval(in2(j-1,dof1+indexing.index(J2,indexing.template dims<1>()-1,I2),dof2+indexing.index(J1,indexing.template dims<1>()-1,I1))) +
-                        eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,0,I2),dof2+indexing.index(indexing.template dims<0>()-1,0,I1))) +
-                        eval(in2(j-1,k-1,dof1+indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,I2),dof2+indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,I1)));
+                        eval(in2(j-1,dof1+indexing.index(J2,indexing.template dim<1>()-1,I2),dof2+indexing.index(J1,indexing.template dim<1>()-1,I1))) +
+                        eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,0,I2),dof2+indexing.index(indexing.template dim<0>()-1,0,I1))) +
+                        eval(in2(j-1,k-1,dof1+indexing.index(indexing.template dim<0>()-1,indexing.template dim<1>()-1,I2),dof2+indexing.index(indexing.template dim<0>()-1,indexing.template dim<1>()-1,I1)));
 
                 eval(out(dof1+indexing.index(0,I1,J1),dof2+indexing.index(0,I2,J2))) +=
-                        eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,I1,J1),dof2+indexing.index(indexing.template dims<0>()-1,I2,J2))) +
-                        eval(in2(i-1,dof1+indexing.index(0,I1,indexing.template dims<2>()-1),dof2+indexing.index(0,I2,indexing.template dims<2>()-1))) +
-                        eval(in2(i-1,k-1,dof1+indexing.index(indexing.template dims<0>()-1,I1,indexing.template dims<2>()-1),dof2+indexing.index(indexing.template dims<0>()-1,I2,indexing.template dims<2>()-1)));
+                        eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,I1,J1),dof2+indexing.index(indexing.template dim<0>()-1,I2,J2))) +
+                        eval(in2(i-1,dof1+indexing.index(0,I1,indexing.template dim<2>()-1),dof2+indexing.index(0,I2,indexing.template dim<2>()-1))) +
+                        eval(in2(i-1,k-1,dof1+indexing.index(indexing.template dim<0>()-1,I1,indexing.template dim<2>()-1),dof2+indexing.index(indexing.template dim<0>()-1,I2,indexing.template dim<2>()-1)));
 
                 eval(out(dof1+indexing.index(0,I2,J2),dof2+indexing.index(0,I1,J1))) +=
-                        eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,I2,J2),dof2+indexing.index(indexing.template dims<0>()-1,I1,J1))) +
-                        eval(in2(i-1,dof1+indexing.index(0,I2,indexing.template dims<2>()-1),dof2+indexing.index(0,I1,indexing.template dims<2>()-1))) +
-                        eval(in2(i-1,k-1,dof1+indexing.index(indexing.template dims<0>()-1,I2,indexing.template dims<2>()-1),dof2+indexing.index(indexing.template dims<0>()-1,I1,indexing.template dims<2>()-1)));
+                        eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,I2,J2),dof2+indexing.index(indexing.template dim<0>()-1,I1,J1))) +
+                        eval(in2(i-1,dof1+indexing.index(0,I2,indexing.template dim<2>()-1),dof2+indexing.index(0,I1,indexing.template dim<2>()-1))) +
+                        eval(in2(i-1,k-1,dof1+indexing.index(indexing.template dim<0>()-1,I2,indexing.template dim<2>()-1),dof2+indexing.index(indexing.template dim<0>()-1,I1,indexing.template dim<2>()-1)));
 
 
             }
 
             // 12 (G,B)+(B,G)
-            I1=indexing.template dims<0>()-1;
+            I1=indexing.template dim<0>()-1;
             J1=0;
             J2=0;
-            for(short_t I2=1; I2<indexing.template dims<0>()-1; I2++)
+            for(short_t I2=1; I2<indexing.template dim<0>()-1; I2++)
             {
 
                 eval(out(dof1+indexing.index(I1,J1,0),dof2+indexing.index(I2,J2,0))) +=
-                        eval(in2(i-1,dof1+indexing.index(I1,J1,indexing.template dims<2>()-1),dof2+indexing.index(I2,J2,indexing.template dims<2>()-1))) +
-                        eval(in2(j-1,dof1+indexing.index(I1,indexing.template dims<1>()-1,0),dof2+indexing.index(I2,indexing.template dims<1>()-1,0))) +
-                        eval(in2(i-1,j-1,dof1+indexing.index(I1,indexing.template dims<1>()-1,indexing.template dims<2>()-1),dof2+indexing.index(I2,indexing.template dims<1>()-1,indexing.template dims<2>()-1)));
+                        eval(in2(i-1,dof1+indexing.index(I1,J1,indexing.template dim<2>()-1),dof2+indexing.index(I2,J2,indexing.template dim<2>()-1))) +
+                        eval(in2(j-1,dof1+indexing.index(I1,indexing.template dim<1>()-1,0),dof2+indexing.index(I2,indexing.template dim<1>()-1,0))) +
+                        eval(in2(i-1,j-1,dof1+indexing.index(I1,indexing.template dim<1>()-1,indexing.template dim<2>()-1),dof2+indexing.index(I2,indexing.template dim<1>()-1,indexing.template dim<2>()-1)));
 
                 eval(out(dof1+indexing.index(I2,J2,0),dof2+indexing.index(I1,J1,0))) +=
-                        eval(in2(i-1,dof1+indexing.index(I2,J2,indexing.template dims<2>()-1),dof2+indexing.index(I1,J1,indexing.template dims<2>()-1))) +
-                        eval(in2(j-1,dof1+indexing.index(I2,indexing.template dims<1>()-1,0),dof2+indexing.index(I1,indexing.template dims<1>()-1,0))) +
-                        eval(in2(i-1,j-1,dof1+indexing.index(I2,indexing.template dims<1>()-1,indexing.template dims<2>()-1),dof2+indexing.index(I1,indexing.template dims<1>()-1,indexing.template dims<2>()-1)));
+                        eval(in2(i-1,dof1+indexing.index(I2,J2,indexing.template dim<2>()-1),dof2+indexing.index(I1,J1,indexing.template dim<2>()-1))) +
+                        eval(in2(j-1,dof1+indexing.index(I2,indexing.template dim<1>()-1,0),dof2+indexing.index(I1,indexing.template dim<1>()-1,0))) +
+                        eval(in2(i-1,j-1,dof1+indexing.index(I2,indexing.template dim<1>()-1,indexing.template dim<2>()-1),dof2+indexing.index(I1,indexing.template dim<1>()-1,indexing.template dim<2>()-1)));
 
                 eval(out(dof1+indexing.index(J1,0,I1),dof2+indexing.index(J2,0,I2))) +=
-                        eval(in2(j-1,dof1+indexing.index(J1,indexing.template dims<1>()-1,I1),dof2+indexing.index(J2,indexing.template dims<1>()-1,I2))) +
-                        eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,0,I1),dof2+indexing.index(indexing.template dims<0>()-1,0,I2))) +
-                        eval(in2(j-1,k-1,dof1+indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,I1),dof2+indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,I2)));
+                        eval(in2(j-1,dof1+indexing.index(J1,indexing.template dim<1>()-1,I1),dof2+indexing.index(J2,indexing.template dim<1>()-1,I2))) +
+                        eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,0,I1),dof2+indexing.index(indexing.template dim<0>()-1,0,I2))) +
+                        eval(in2(j-1,k-1,dof1+indexing.index(indexing.template dim<0>()-1,indexing.template dim<1>()-1,I1),dof2+indexing.index(indexing.template dim<0>()-1,indexing.template dim<1>()-1,I2)));
 
                 eval(out(dof1+indexing.index(J2,0,I2),dof2+indexing.index(J1,0,I1))) +=
-                        eval(in2(j-1,dof1+indexing.index(J2,indexing.template dims<1>()-1,I2),dof2+indexing.index(J1,indexing.template dims<1>()-1,I1))) +
-                        eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,0,I2),dof2+indexing.index(indexing.template dims<0>()-1,0,I1))) +
-                        eval(in2(j-1,k-1,dof1+indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,I2),dof2+indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,I1)));
+                        eval(in2(j-1,dof1+indexing.index(J2,indexing.template dim<1>()-1,I2),dof2+indexing.index(J1,indexing.template dim<1>()-1,I1))) +
+                        eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,0,I2),dof2+indexing.index(indexing.template dim<0>()-1,0,I1))) +
+                        eval(in2(j-1,k-1,dof1+indexing.index(indexing.template dim<0>()-1,indexing.template dim<1>()-1,I2),dof2+indexing.index(indexing.template dim<0>()-1,indexing.template dim<1>()-1,I1)));
 
                 eval(out(dof1+indexing.index(0,I1,J1),dof2+indexing.index(0,I2,J2))) +=
-                        eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,I1,J1),dof2+indexing.index(indexing.template dims<0>()-1,I2,J2))) +
-                        eval(in2(i-1,dof1+indexing.index(0,I1,indexing.template dims<2>()-1),dof2+indexing.index(0,I2,indexing.template dims<2>()-1))) +
-                        eval(in2(i-1,k-1,dof1+indexing.index(indexing.template dims<0>()-1,I1,indexing.template dims<2>()-1),dof2+indexing.index(indexing.template dims<0>()-1,I2,indexing.template dims<2>()-1)));
+                        eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,I1,J1),dof2+indexing.index(indexing.template dim<0>()-1,I2,J2))) +
+                        eval(in2(i-1,dof1+indexing.index(0,I1,indexing.template dim<2>()-1),dof2+indexing.index(0,I2,indexing.template dim<2>()-1))) +
+                        eval(in2(i-1,k-1,dof1+indexing.index(indexing.template dim<0>()-1,I1,indexing.template dim<2>()-1),dof2+indexing.index(indexing.template dim<0>()-1,I2,indexing.template dim<2>()-1)));
 
                 eval(out(dof1+indexing.index(0,I2,J2),dof2+indexing.index(0,I1,J1))) +=
-                        eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,I2,J2),dof2+indexing.index(indexing.template dims<0>()-1,I1,J1))) +
-                        eval(in2(i-1,dof1+indexing.index(0,I2,indexing.template dims<2>()-1),dof2+indexing.index(0,I1,indexing.template dims<2>()-1))) +
-                        eval(in2(i-1,k-1,dof1+indexing.index(indexing.template dims<0>()-1,I2,indexing.template dims<2>()-1),dof2+indexing.index(indexing.template dims<0>()-1,I1,indexing.template dims<2>()-1)));
+                        eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,I2,J2),dof2+indexing.index(indexing.template dim<0>()-1,I1,J1))) +
+                        eval(in2(i-1,dof1+indexing.index(0,I2,indexing.template dim<2>()-1),dof2+indexing.index(0,I1,indexing.template dim<2>()-1))) +
+                        eval(in2(i-1,k-1,dof1+indexing.index(indexing.template dim<0>()-1,I2,indexing.template dim<2>()-1),dof2+indexing.index(indexing.template dim<0>()-1,I1,indexing.template dim<2>()-1)));
 
             }
 
             // 13 (B,B)
             J1=0;
             J2=0;
-            for(short_t I1=1; I1<indexing.template dims<0>()-1; I1++)
-                for(short_t I2=1; I2<indexing.template dims<0>()-1; I2++)
+            for(short_t I1=1; I1<indexing.template dim<0>()-1; I1++)
+                for(short_t I2=1; I2<indexing.template dim<0>()-1; I2++)
                 {
 
                     eval(out(dof1+indexing.index(I1,J1,0),dof2+indexing.index(I2,J2,0))) +=
-                            eval(in2(i-1,dof1+indexing.index(I1,J1,indexing.template dims<2>()-1),dof2+indexing.index(I2,J2,indexing.template dims<2>()-1))) +
-                            eval(in2(j-1,dof1+indexing.index(I1,indexing.template dims<1>()-1,0),dof2+indexing.index(I2,indexing.template dims<1>()-1,0))) +
-                            eval(in2(i-1,j-1,dof1+indexing.index(I1,indexing.template dims<1>()-1,indexing.template dims<2>()-1),dof2+indexing.index(I2,indexing.template dims<1>()-1,indexing.template dims<2>()-1)));
+                            eval(in2(i-1,dof1+indexing.index(I1,J1,indexing.template dim<2>()-1),dof2+indexing.index(I2,J2,indexing.template dim<2>()-1))) +
+                            eval(in2(j-1,dof1+indexing.index(I1,indexing.template dim<1>()-1,0),dof2+indexing.index(I2,indexing.template dim<1>()-1,0))) +
+                            eval(in2(i-1,j-1,dof1+indexing.index(I1,indexing.template dim<1>()-1,indexing.template dim<2>()-1),dof2+indexing.index(I2,indexing.template dim<1>()-1,indexing.template dim<2>()-1)));
 
                     eval(out(dof1+indexing.index(J1,0,I1),dof2+indexing.index(J2,0,I2))) +=
-                            eval(in2(j-1,dof1+indexing.index(J1,indexing.template dims<1>()-1,I1),dof2+indexing.index(J2,indexing.template dims<1>()-1,I2))) +
-                            eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,0,I1),dof2+indexing.index(indexing.template dims<0>()-1,0,I2))) +
-                            eval(in2(j-1,k-1,dof1+indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,I1),dof2+indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,I2)));
+                            eval(in2(j-1,dof1+indexing.index(J1,indexing.template dim<1>()-1,I1),dof2+indexing.index(J2,indexing.template dim<1>()-1,I2))) +
+                            eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,0,I1),dof2+indexing.index(indexing.template dim<0>()-1,0,I2))) +
+                            eval(in2(j-1,k-1,dof1+indexing.index(indexing.template dim<0>()-1,indexing.template dim<1>()-1,I1),dof2+indexing.index(indexing.template dim<0>()-1,indexing.template dim<1>()-1,I2)));
 
                     eval(out(dof1+indexing.index(0,I1,J1),dof2+indexing.index(0,I2,J2))) +=
-                            eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,I1,J1),dof2+indexing.index(indexing.template dims<0>()-1,I2,J2))) +
-                            eval(in2(i-1,dof1+indexing.index(0,I1,indexing.template dims<2>()-1),dof2+indexing.index(0,I2,indexing.template dims<2>()-1))) +
-                            eval(in2(i-1,k-1,dof1+indexing.index(indexing.template dims<0>()-1,I1,indexing.template dims<2>()-1),dof2+indexing.index(indexing.template dims<0>()-1,I2,indexing.template dims<2>()-1)));
+                            eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,I1,J1),dof2+indexing.index(indexing.template dim<0>()-1,I2,J2))) +
+                            eval(in2(i-1,dof1+indexing.index(0,I1,indexing.template dim<2>()-1),dof2+indexing.index(0,I2,indexing.template dim<2>()-1))) +
+                            eval(in2(i-1,k-1,dof1+indexing.index(indexing.template dim<0>()-1,I1,indexing.template dim<2>()-1),dof2+indexing.index(indexing.template dim<0>()-1,I2,indexing.template dim<2>()-1)));
 
                 }
 
             // 14 (F,F)
             eval(out(dof1+0,dof2+0)) +=
-                    eval(in2(i-1,dof1+indexing.index(0,0,indexing.template dims<2>()-1),dof2+indexing.index(0,0,indexing.template dims<2>()-1))) +
-                    eval(in2(j-1,dof1+indexing.index(0,indexing.template dims<1>()-1,0),dof2+indexing.index(0,indexing.template dims<1>()-1,0))) +
-                    eval(in2(i-1,j-1,dof1+indexing.index(0,indexing.template dims<1>()-1,indexing.template dims<2>()-1),dof2+indexing.index(0,indexing.template dims<1>()-1,indexing.template dims<2>()-1))) +
-                    eval(in2(k-1,dof1+indexing.index(indexing.template dims<0>()-1,0,0),dof2+indexing.index(indexing.template dims<0>()-1,0,0))) +
-                    eval(in2(i-1,k-1,dof1+indexing.index(indexing.template dims<0>()-1,0,indexing.template dims<2>()-1),dof2+indexing.index(indexing.template dims<0>()-1,0,indexing.template dims<2>()-1))) +
-                    eval(in2(j-1,k-1,dof1+indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,0),dof2+indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,0))) +
+                    eval(in2(i-1,dof1+indexing.index(0,0,indexing.template dim<2>()-1),dof2+indexing.index(0,0,indexing.template dim<2>()-1))) +
+                    eval(in2(j-1,dof1+indexing.index(0,indexing.template dim<1>()-1,0),dof2+indexing.index(0,indexing.template dim<1>()-1,0))) +
+                    eval(in2(i-1,j-1,dof1+indexing.index(0,indexing.template dim<1>()-1,indexing.template dim<2>()-1),dof2+indexing.index(0,indexing.template dim<1>()-1,indexing.template dim<2>()-1))) +
+                    eval(in2(k-1,dof1+indexing.index(indexing.template dim<0>()-1,0,0),dof2+indexing.index(indexing.template dim<0>()-1,0,0))) +
+                    eval(in2(i-1,k-1,dof1+indexing.index(indexing.template dim<0>()-1,0,indexing.template dim<2>()-1),dof2+indexing.index(indexing.template dim<0>()-1,0,indexing.template dim<2>()-1))) +
+                    eval(in2(j-1,k-1,dof1+indexing.index(indexing.template dim<0>()-1,indexing.template dim<1>()-1,0),dof2+indexing.index(indexing.template dim<0>()-1,indexing.template dim<1>()-1,0))) +
                     eval(in2(i-1,j-1,k-1,
-                             dof1+indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,indexing.template dims<2>()-1),
-                             dof2+indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,indexing.template dims<2>()-1)));
+                             dof1+indexing.index(indexing.template dim<0>()-1,indexing.template dim<1>()-1,indexing.template dim<2>()-1),
+                             dof2+indexing.index(indexing.template dim<0>()-1,indexing.template dim<1>()-1,indexing.template dim<2>()-1)));
 
         }
     };
@@ -1243,42 +1233,42 @@ namespace gdl{
             constexpr gt::meta_storage_base<static_int<__COUNTER__>,gt::layout_map<2,1,0>,false> indexing{N_DOF0,N_DOF1,N_DOF2};
 
             // 1 A
-            for(short_t I1=1; I1<indexing.template dims<0>()-1; I1++)
-                for(short_t J1=1; J1<indexing.template dims<1>()-1; J1++)
+            for(short_t I1=1; I1<indexing.template dim<0>()-1; I1++)
+                for(short_t J1=1; J1<indexing.template dim<1>()-1; J1++)
                 {
 
                     eval(out(dof+indexing.index(I1,J1,0))) +=
-                            eval(in(i-1,dof+indexing.index(I1,J1,indexing.template dims<2>()-1)));
+                            eval(in(i-1,dof+indexing.index(I1,J1,indexing.template dim<2>()-1)));
 
                     eval(out(dof+indexing.index(J1,0,I1))) +=
-                            eval(in(j-1,dof+indexing.index(J1,indexing.template dims<1>()-1,I1)));
+                            eval(in(j-1,dof+indexing.index(J1,indexing.template dim<1>()-1,I1)));
 
                     eval(out(dof+indexing.index(0,I1,J1))) +=
-                            eval(in(k-1,dof+indexing.index(indexing.template dims<0>()-1,I1,J1)));
+                            eval(in(k-1,dof+indexing.index(indexing.template dim<0>()-1,I1,J1)));
 
                 }
 
             // 2 B
             short_t J1=0;
-            for(short_t I1=1; I1<indexing.template dims<0>()-1; I1++)
+            for(short_t I1=1; I1<indexing.template dim<0>()-1; I1++)
             {
 
                 eval(out(dof+indexing.index(I1,J1,0))) +=
-                        eval(in(i-1,dof+indexing.index(I1,J1,indexing.template dims<2>()-1))) +
-                        eval(in(j-1,dof+indexing.index(I1,indexing.template dims<1>()-1,0))) +
-                        eval(in(i-1,j-1,dof+indexing.index(I1,indexing.template dims<1>()-1,indexing.template dims<2>()-1)));
+                        eval(in(i-1,dof+indexing.index(I1,J1,indexing.template dim<2>()-1))) +
+                        eval(in(j-1,dof+indexing.index(I1,indexing.template dim<1>()-1,0))) +
+                        eval(in(i-1,j-1,dof+indexing.index(I1,indexing.template dim<1>()-1,indexing.template dim<2>()-1)));
 
 
                 eval(out(dof+indexing.index(J1,0,I1))) +=
-                        eval(in(j-1,dof+indexing.index(J1,indexing.template dims<1>()-1,I1))) +
-                        eval(in(k-1,dof+indexing.index(indexing.template dims<0>()-1,0,I1))) +
-                        eval(in(j-1,k-1,dof+indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,I1)));
+                        eval(in(j-1,dof+indexing.index(J1,indexing.template dim<1>()-1,I1))) +
+                        eval(in(k-1,dof+indexing.index(indexing.template dim<0>()-1,0,I1))) +
+                        eval(in(j-1,k-1,dof+indexing.index(indexing.template dim<0>()-1,indexing.template dim<1>()-1,I1)));
 
 
                 eval(out(dof+indexing.index(0,I1,J1))) +=
-                        eval(in(k-1,dof+indexing.index(indexing.template dims<0>()-1,I1,J1))) +
-                        eval(in(i-1,dof+indexing.index(0,I1,indexing.template dims<2>()-1))) +
-                        eval(in(i-1,k-1,dof+indexing.index(indexing.template dims<0>()-1,I1,indexing.template dims<2>()-1)));
+                        eval(in(k-1,dof+indexing.index(indexing.template dim<0>()-1,I1,J1))) +
+                        eval(in(i-1,dof+indexing.index(0,I1,indexing.template dim<2>()-1))) +
+                        eval(in(i-1,k-1,dof+indexing.index(indexing.template dim<0>()-1,I1,indexing.template dim<2>()-1)));
 
 
             }
@@ -1286,13 +1276,13 @@ namespace gdl{
             // 3 F
 
             eval(out(dof+0)) +=
-                eval(in(i-1,dof+indexing.index(0,0,indexing.template dims<2>()-1))) +
-                eval(in(j-1,dof+indexing.index(0,indexing.template dims<1>()-1,0))) +
-                eval(in(i-1,j-1,dof+indexing.index(0,indexing.template dims<1>()-1,indexing.template dims<2>()-1))) +
-                eval(in(k-1,dof+indexing.index(indexing.template dims<0>()-1,0,0))) +
-                eval(in(i-1,k-1,dof+indexing.index(indexing.template dims<0>()-1,0,indexing.template dims<2>()-1))) +
-                eval(in(j-1,k-1,dof+indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,0))) +
-                eval(in(i-1,j-1,k-1,dof+indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,indexing.template dims<2>()-1)));
+                eval(in(i-1,dof+indexing.index(0,0,indexing.template dim<2>()-1))) +
+                eval(in(j-1,dof+indexing.index(0,indexing.template dim<1>()-1,0))) +
+                eval(in(i-1,j-1,dof+indexing.index(0,indexing.template dim<1>()-1,indexing.template dim<2>()-1))) +
+                eval(in(k-1,dof+indexing.index(indexing.template dim<0>()-1,0,0))) +
+                eval(in(i-1,k-1,dof+indexing.index(indexing.template dim<0>()-1,0,indexing.template dim<2>()-1))) +
+                eval(in(j-1,k-1,dof+indexing.index(indexing.template dim<0>()-1,indexing.template dim<1>()-1,0))) +
+                eval(in(i-1,j-1,k-1,dof+indexing.index(indexing.template dim<0>()-1,indexing.template dim<1>()-1,indexing.template dim<2>()-1)));
 
         }
 
@@ -1332,71 +1322,71 @@ namespace gdl{
 
 
             // 1 A
-            for(short_t I1=1; I1<indexing.template dims<0>()-1; I1++)
-                for(short_t J1=1; J1<indexing.template dims<1>()-1; J1++)
+            for(short_t I1=1; I1<indexing.template dim<0>()-1; I1++)
+                for(short_t J1=1; J1<indexing.template dim<1>()-1; J1++)
                 {
 
-                    eval(inout(i-1,dof+indexing.index(I1,J1,indexing.template dims<2>()-1))) =
+                    eval(inout(i-1,dof+indexing.index(I1,J1,indexing.template dim<2>()-1))) =
                             eval(inout(dof+indexing.index(I1,J1,0)));
 
-                    eval(inout(j-1,dof+indexing.index(J1,indexing.template dims<1>()-1,I1))) =
+                    eval(inout(j-1,dof+indexing.index(J1,indexing.template dim<1>()-1,I1))) =
                             eval(inout(dof+indexing.index(J1,0,I1)));
 
-                    eval(inout(k-1,dof+indexing.index(indexing.template dims<0>()-1,I1,J1))) =
+                    eval(inout(k-1,dof+indexing.index(indexing.template dim<0>()-1,I1,J1))) =
                             eval(inout(dof+indexing.index(0,I1,J1)));
                 }
 
             // 2 B
             short_t J1=0;
-            for(short_t I1=1; I1<indexing.template dims<0>()-1; I1++)
+            for(short_t I1=1; I1<indexing.template dim<0>()-1; I1++)
             {
 
-                eval(inout(i-1,dof+indexing.index(I1,J1,indexing.template dims<2>()-1))) =
+                eval(inout(i-1,dof+indexing.index(I1,J1,indexing.template dim<2>()-1))) =
                         eval(inout(dof+indexing.index(I1,J1,0)));
-                eval(inout(j-1,dof+indexing.index(I1,indexing.template dims<1>()-1,0))) =
+                eval(inout(j-1,dof+indexing.index(I1,indexing.template dim<1>()-1,0))) =
                         eval(inout(dof+indexing.index(I1,J1,0)));
-                eval(inout(i-1,j-1,dof+indexing.index(I1,indexing.template dims<1>()-1,indexing.template dims<2>()-1))) =
+                eval(inout(i-1,j-1,dof+indexing.index(I1,indexing.template dim<1>()-1,indexing.template dim<2>()-1))) =
                         eval(inout(dof+indexing.index(I1,J1,0)));
 
 
-                eval(inout(j-1,dof+indexing.index(J1,indexing.template dims<1>()-1,I1))) =
+                eval(inout(j-1,dof+indexing.index(J1,indexing.template dim<1>()-1,I1))) =
                         eval(inout(dof+indexing.index(J1,0,I1)));
-                eval(inout(k-1,dof+indexing.index(indexing.template dims<0>()-1,0,I1))) =
+                eval(inout(k-1,dof+indexing.index(indexing.template dim<0>()-1,0,I1))) =
                         eval(inout(dof+indexing.index(J1,0,I1)));
-                eval(inout(j-1,k-1,dof+indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,I1))) =
+                eval(inout(j-1,k-1,dof+indexing.index(indexing.template dim<0>()-1,indexing.template dim<1>()-1,I1))) =
                         eval(inout(dof+indexing.index(J1,0,I1)));
 
 
-                eval(inout(k-1,dof+indexing.index(indexing.template dims<0>()-1,I1,J1))) =
+                eval(inout(k-1,dof+indexing.index(indexing.template dim<0>()-1,I1,J1))) =
                         eval(inout(dof+indexing.index(0,I1,J1)));
-                eval(inout(i-1,dof+indexing.index(0,I1,indexing.template dims<2>()-1))) =
+                eval(inout(i-1,dof+indexing.index(0,I1,indexing.template dim<2>()-1))) =
                         eval(inout(dof+indexing.index(0,I1,J1)));
-                eval(inout(i-1,k-1,dof+indexing.index(indexing.template dims<0>()-1,I1,indexing.template dims<2>()-1))) =
+                eval(inout(i-1,k-1,dof+indexing.index(indexing.template dim<0>()-1,I1,indexing.template dim<2>()-1))) =
                         eval(inout(dof+indexing.index(0,I1,J1)));
 
 
             }
 
             // 3 F
-            eval(inout(i-1,dof+indexing.index(0,0,indexing.template dims<2>()-1))) =
+            eval(inout(i-1,dof+indexing.index(0,0,indexing.template dim<2>()-1))) =
                 eval(inout(dof+0));
 
-            eval(inout(j-1,dof+indexing.index(0,indexing.template dims<1>()-1,0))) =
+            eval(inout(j-1,dof+indexing.index(0,indexing.template dim<1>()-1,0))) =
                 eval(inout(dof+0));
 
-            eval(inout(i-1,j-1,dof+indexing.index(0,indexing.template dims<1>()-1,indexing.template dims<2>()-1))) =
+            eval(inout(i-1,j-1,dof+indexing.index(0,indexing.template dim<1>()-1,indexing.template dim<2>()-1))) =
                 eval(inout(dof+0));
 
-            eval(inout(k-1,dof+indexing.index(indexing.template dims<0>()-1,0,0))) =
+            eval(inout(k-1,dof+indexing.index(indexing.template dim<0>()-1,0,0))) =
                 eval(inout(dof+0));
 
-            eval(inout(i-1,k-1,dof+indexing.index(indexing.template dims<0>()-1,0,indexing.template dims<2>()-1))) =
+            eval(inout(i-1,k-1,dof+indexing.index(indexing.template dim<0>()-1,0,indexing.template dim<2>()-1))) =
                 eval(inout(dof+0));
 
-            eval(inout(j-1,k-1,dof+indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,0))) =
+            eval(inout(j-1,k-1,dof+indexing.index(indexing.template dim<0>()-1,indexing.template dim<1>()-1,0))) =
                 eval(inout(dof+0));
 
-            eval(inout(i-1,j-1,k-1,dof+indexing.index(indexing.template dims<0>()-1,indexing.template dims<1>()-1,indexing.template dims<2>()-1))) =
+            eval(inout(i-1,j-1,k-1,dof+indexing.index(indexing.template dim<0>()-1,indexing.template dim<1>()-1,indexing.template dim<2>()-1))) =
                 eval(inout(dof+0));
         }
 
@@ -1450,7 +1440,7 @@ namespace gdl{
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 
-            uint_t const num_=eval.template get_storage_dims<3>(field());
+            uint_t const num_=eval.template get_storage_dim<3>(field());
 
             for(short_t I=0; I<num_; I++)
                 eval(field(gt::dimension<4>(I)))=Value::value;
@@ -1466,8 +1456,8 @@ namespace gdl{
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 
-            uint_t const dim_1_=eval.template get_storage_dims<3>(field());
-            uint_t const dim_2_=eval.template get_storage_dims<4>(field());
+            uint_t const dim_1_=eval.template get_storage_dim<3>(field());
+            uint_t const dim_2_=eval.template get_storage_dim<4>(field());
 
             for(short_t I=0; I<dim_1_; I++)
                 for(short_t J=0; J<dim_2_; J++)

@@ -42,17 +42,17 @@ namespace functors{
 #endif
 
             //for all dofs in a boundary face (supposing that the dofs per face are the same)
-            for(short_t I=0; I<indexing.template dims<0>(); I++)
-                for(short_t J=0; J<indexing.template dims<1>(); J++)
+            for(short_t I=0; I<indexing.template dim<0>(); I++)
+                for(short_t J=0; J<indexing.template dim<1>(); J++)
                 {
 
                     //for each (3) faces
                     auto dof_x=indexing.index(0, (int)I, (int)J);
-                    auto dof_xx=indexing.index(indexing.template dims<0>()-1, I, J);
+                    auto dof_xx=indexing.index(indexing.template dim<0>()-1, I, J);
                     auto dof_y=indexing.index(I, 0, J);
-                    auto dof_yy=indexing.index(I, indexing.template dims<1>()-1, J);
+                    auto dof_yy=indexing.index(I, indexing.template dim<1>()-1, J);
                     auto dof_z=indexing.index(I, J, 0);
-                    auto dof_zz=indexing.index(I, J, indexing.template dims<2>()-1);
+                    auto dof_zz=indexing.index(I, J, indexing.template dim<2>()-1);
 
                     //average the contribution from elem i-1 on the opposite face
                     eval(out(row+dof_x)) += (eval(in1(row+dof_x)) + eval(in2(i-1, row+dof_xx)))/2.;
@@ -106,19 +106,19 @@ namespace functors{
 #endif
 
             //for all dofs in a boundary face (supposing that the dofs per face are the same)
-            for(short_t I=0; I<indexing.template dims<0>(); I++)
-                for(short_t J=0; J<indexing.template dims<1>(); J++)
+            for(short_t I=0; I<indexing.template dim<0>(); I++)
+                for(short_t J=0; J<indexing.template dim<1>(); J++)
                 {
 
                     //for each (3) faces
                     auto dof_x=indexing.index(0, (int)I, (int)J);
-                    auto dof_xx=indexing.index(indexing.template dims<0>()-1, I, J);
+                    auto dof_xx=indexing.index(indexing.template dim<0>()-1, I, J);
                     auto dof_y=indexing.index(I, 0, J);
-                    auto dof_yy=indexing.index(I, indexing.template dims<1>()-1, J);
+                    auto dof_yy=indexing.index(I, indexing.template dim<1>()-1, J);
                     auto dof_z=indexing.index(I, J, 0);
-                    auto dof_zz=indexing.index(I, J, indexing.template dims<2>()-1);
+                    auto dof_zz=indexing.index(I, J, indexing.template dim<2>()-1);
 
-                    const auto N=eval.template get_storage_dims<3>(in());
+                    const auto N=eval.template get_storage_dim<3>(in());
 
                     //initial value
                     auto c=eval(D(Flux()(in())));
@@ -170,7 +170,7 @@ namespace functors{
             gt::dimension<6>::Index Mface;
 
 
-            uint_t const n_dofs=eval.template get_storage_dims<4>(bd_mass_uu());//N_DOFS
+            uint_t const n_dofs=eval.template get_storage_dim<4>(bd_mass_uu());//N_DOFS
 
             // for all dofs in a boundary face (supposing that the dofs per face are the same)
             // NOTE: we only loop on the 3 faces touching (0,0,0)
@@ -354,7 +354,7 @@ namespace functors{
             gt::dimension<6>::Index Mface;
 
 
-            uint_t const n_dofs=eval.template get_storage_dims<4>(bd_mass_uu());//N_DOFS
+            uint_t const n_dofs=eval.template get_storage_dim<4>(bd_mass_uu());//N_DOFS
 
             // for all dofs in a boundary face (supposing that the dofs per face are the same)
             // NOTE: we only loop on the 3 faces touching (0,0,0)

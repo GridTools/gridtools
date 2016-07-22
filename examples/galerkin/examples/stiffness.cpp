@@ -113,7 +113,7 @@ int main( int argc, char ** argv){
                                > arg_list;
     //![placeholders]
 
-    gt::domain_type<arg_list> domain(
+    gt::aggregator_type<arg_list> domain(
         (p_grid_points() = assembler_base.grid())
         , (p_jac() = assembler.jac())
         , (p_weights() = assembler.fe_backend().cub_weights())
@@ -136,14 +136,14 @@ int main( int argc, char ** argv){
     //![computation]
     auto computation=gt::make_computation<BACKEND>(
         domain, coords,
-        make_mss
+        make_multistage
         (
             execute<forward>(),
-            gt::make_esf<functors::update_jac<geo_t> >( p_grid_points(), p_dphi(), p_jac())
+            gt::make_stage<functors::update_jac<geo_t> >( p_grid_points(), p_dphi(), p_jac())
             ,
-            gt::make_esf<functors::det<geo_t> >(p_jac(), p_jac_det())
-            , gt::make_esf<functors::inv<geo_t> >(p_jac(), p_jac_det(), p_jac_inv())
-            , gt::make_esf<functors::stiffness<fe, cub> >(p_jac_det(), p_jac_inv(), p_weights(), p_dphi(), p_dphi(), p_stiffness())//stiffness
+            gt::make_stage<functors::det<geo_t> >(p_jac(), p_jac_det())
+            , gt::make_stage<functors::inv<geo_t> >(p_jac(), p_jac_det(), p_jac_inv())
+            , gt::make_stage<functors::stiffness<fe, cub> >(p_jac_det(), p_jac_inv(), p_weights(), p_dphi(), p_dphi(), p_stiffness())//stiffness
             ));
 
     computation->ready();

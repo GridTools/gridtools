@@ -17,8 +17,8 @@ namespace functors{
         static void Do(Evaluation const & eval, x_interval) {
             gt::dimension<4>::Index dof;
 
-            uint_t const num_cub_points=eval.template get_storage_dims<1>(phi());
-            uint_t const basis_cardinality=eval.template get_storage_dims<0>(phi());
+            uint_t const num_cub_points=eval.template get_storage_dim<1>(phi());
+            uint_t const basis_cardinality=eval.template get_storage_dim<0>(phi());
             for(short_t q=0; q<num_cub_points; ++q){
                 eval(out(0,0,0,q))=0.;
             }
@@ -56,8 +56,8 @@ namespace functors{
             gt::dimension<4>::Index qp;
             gt::dimension<5>::Index dimx;
 
-            uint_t const num_cub_points=eval.template get_storage_dims<1>(phi());
-            uint_t const basis_cardinality=eval.template get_storage_dims<0>(phi());
+            uint_t const num_cub_points=eval.template get_storage_dim<1>(phi());
+            uint_t const basis_cardinality=eval.template get_storage_dim<0>(phi());
 
             for(short_t P_i=0; P_i<basis_cardinality; ++P_i) // current dof
             {
@@ -102,9 +102,9 @@ namespace functors{
             gt::dimension<4>::Index qp;
             gt::dimension<5>::Index dimx;
 
-            uint_t const num_cub_points=eval.template get_storage_dims<1>(phi());
-            uint_t const basis_cardinality=eval.template get_storage_dims<0>(phi());
-            uint_t const space_dim=eval.template get_storage_dims<4>(in());
+            uint_t const num_cub_points=eval.template get_storage_dim<1>(phi());
+            uint_t const basis_cardinality=eval.template get_storage_dim<0>(phi());
+            uint_t const space_dim=eval.template get_storage_dim<4>(in());
 
             for(short_t d=0; d<space_dim; ++d) // space dimension
             {
@@ -147,8 +147,8 @@ namespace functors{
             gt::dimension<4>::Index qp;
             gt::dimension<5>::Index dimx;
 
-            uint_t const num_cub_points=eval.template get_storage_dims<1>(phi());
-            uint_t const basis_cardinality=eval.template get_storage_dims<0>(phi());
+            uint_t const num_cub_points=eval.template get_storage_dim<1>(phi());
+            uint_t const basis_cardinality=eval.template get_storage_dim<0>(phi());
 
             for(short_t P_i=0; P_i<basis_cardinality; ++P_i) // current dof
             {

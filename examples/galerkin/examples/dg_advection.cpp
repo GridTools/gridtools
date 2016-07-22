@@ -11,12 +11,12 @@
 #define PEDANTIC_DISABLED
 #define HAVE_INTREPID_DEBUG
 
-#include "../tools/io.hpp"
 //! [assembly]
 #include "../numerics/bd_assembly.hpp"
 //! [assembly]
 #include "../numerics/tensor_product_element.hpp"
 #include "../functors/matvec.hpp"
+#include "../tools/io.hpp"
 
 /**
    @brief flux F(u)
@@ -45,7 +45,7 @@ namespace gdl{
         static void Do(Evaluation const & eval, x_interval) {
             gt::dimension<4>::Index I;
 
-            uint_t const n_dofs=eval.template get_storage_dims<3>(rhs());
+            uint_t const n_dofs=eval.template get_storage_dim<3>(rhs());
 
             for(uint_t i=0; i<n_dofs; ++i)
                 eval(res(I+i)) = eval( res(I+i) - Ax(I+i) + rhs(I+i));
@@ -138,7 +138,7 @@ int main( int argc, char ** argv){
     as assembler(geo_,d1,d2,d3);
     as_bd bd_assembler(bd_discr_,d1,d2,d3);
 
-    // using domain_tuple_t = domain_type_tuple<as_bd, as, as_base>;
+    // using domain_tuple_t = aggregator_type_tuple<as_bd, as, as_base>;
     // domain_tuple_t domain_tuple_ (bd_assembler, assembler, assembler_base);
     //![as_instantiation]
 
@@ -162,7 +162,7 @@ int main( int argc, char ** argv){
 
     meta_local_t meta_local_(edge_nodes, edge_nodes, edge_nodes);
 
-    gt::io_rectilinear<as_base::grid_type, meta_local_t> io_(assembler_base.grid(), meta_local_);
+    io_rectilinear<as_base::grid_type, meta_local_t> io_(assembler_base.grid(), meta_local_);
 
     //![instantiation_stiffness]
     //defining the advection matrix: d1xd2xd3 elements
@@ -268,7 +268,7 @@ int main( int argc, char ** argv){
 
     typedef typename boost::mpl::vector<p_grid_points, p_jac, p_weights, p_jac_det, p_jac_inv, p_phi, p_dphi, p_bd_jac, p_normals, p_bd_measure, p_bd_weights, p_ref_normals, p_bd_mass_uu, p_bd_mass_uv, p_bd_phi, p_bd_dphi, p_flux, p_u, p_result , p_mass, p_advection, p_beta, p_phi_discr, p_dphi_discr, p_beta_n, p_int_normals, p_unified_result> mpl_list;
 
-    gt::domain_type<mpl_list> domain(boost::fusion::make_vector(  &assembler_base.grid()
+    gt::aggregator_type<mpl_list> domain(boost::fusion::make_vector(  &assembler_base.grid()
                                                               , &assembler.jac()
                                                               , &assembler.fe_backend().cub_weights()
                                                               , &assembler.jac_det()
@@ -307,52 +307,52 @@ int main( int argc, char ** argv){
     //![computation]
     auto compute_assembly=gt::make_computation< BACKEND >(
         domain, coords,
-        gt::make_mss
+        gt::make_multistage
         (
             execute<forward>()
 
             // boundary fluxes
 
             //computes the jacobian in the boundary points of each element
-            , gt::make_esf<functors::update_bd_jac<as_bd::boundary_t, Hexa> >(p_grid_points(), p_bd_dphi(), p_bd_jac())
+            , gt::make_stage<functors::update_bd_jac<as_bd::boundary_t, Hexa> >(p_grid_points(), p_bd_dphi(), p_bd_jac())
             //computes the measure of the boundaries with codimension 1 (ok, faces)
-            , gt::make_esf<functors::measure<as_bd::boundary_t, 1> >(p_bd_jac(), p_bd_measure())
+            , gt::make_stage<functors::measure<as_bd::boundary_t, 1> >(p_bd_jac(), p_bd_measure())
             //computes the mass on the element boundaries
-            , gt::make_esf<functors::bd_mass<as_bd::boundary_t, as_bd::bd_cub> >(p_bd_measure(), p_bd_weights(), p_bd_phi(), p_bd_phi(), p_bd_mass_uu())
-            , gt::make_esf<functors::bd_mass_uv<as_bd::boundary_t, as_bd::bd_cub> >(p_bd_measure(), p_bd_weights(), p_bd_phi(), p_bd_phi(), p_bd_mass_uv())
+            , gt::make_stage<functors::bd_mass<as_bd::boundary_t, as_bd::bd_cub> >(p_bd_measure(), p_bd_weights(), p_bd_phi(), p_bd_phi(), p_bd_mass_uu())
+            , gt::make_stage<functors::bd_mass_uv<as_bd::boundary_t, as_bd::bd_cub> >(p_bd_measure(), p_bd_weights(), p_bd_phi(), p_bd_phi(), p_bd_mass_uv())
 
             // Internal element
 
             //compute the Jacobian matrix
-            , gt::make_esf<functors::update_jac<as::geometry_t, Hexa> >(p_grid_points(), p_dphi(), p_jac())
+            , gt::make_stage<functors::update_jac<as::geometry_t, Hexa> >(p_grid_points(), p_dphi(), p_jac())
             // compute the measure (det(J))
-            , gt::make_esf<functors::det<geo_t> >(p_jac(), p_jac_det())
+            , gt::make_stage<functors::det<geo_t> >(p_jac(), p_jac_det())
             // compute the mass matrix
-            , gt::make_esf< functors::mass >(p_jac_det(), p_weights(), p_phi_discr(), p_phi_discr(), p_mass()) //mass
+            , gt::make_stage< functors::mass >(p_jac_det(), p_weights(), p_phi_discr(), p_phi_discr(), p_mass()) //mass
             // compute the jacobian inverse
-            , gt::make_esf<functors::inv<geo_t> >(p_jac(), p_jac_det(), p_jac_inv())
+            , gt::make_stage<functors::inv<geo_t> >(p_jac(), p_jac_det(), p_jac_inv())
             // compute the advection matrix
-            , gt::make_esf<functors::advection< geo_t, cub > >(p_jac_det(), p_jac_inv(), p_weights(), p_beta(), p_dphi_discr(), p_phi_discr(), p_advection()) //advection
+            , gt::make_stage<functors::advection< geo_t, cub > >(p_jac_det(), p_jac_inv(), p_weights(), p_beta(), p_dphi_discr(), p_phi_discr(), p_advection()) //advection
 
             // computing flux/discretize
 
             // initialize result=0
-            //, gt::make_esf< functors::assign<4,zero<int> >( p_result() )
+            //, gt::make_stage< functors::assign<4,zero<int> >( p_result() )
             // compute the face normals: \f$ n=J*(\hat n) \f$
-            , gt::make_esf<functors::compute_face_normals<as_bd::boundary_t> >(p_bd_jac(), p_ref_normals(), p_normals())
+            , gt::make_stage<functors::compute_face_normals<as_bd::boundary_t> >(p_bd_jac(), p_ref_normals(), p_normals())
             // interpolate the normals \f$ n=\sum_i <n,\phi_i>\phi_i(x) \f$
-            , gt::make_esf<functors::bd_integrate<as_bd::boundary_t> >(p_bd_phi(), p_bd_measure(), p_bd_weights(), p_normals(), p_int_normals())
+            , gt::make_stage<functors::bd_integrate<as_bd::boundary_t> >(p_bd_phi(), p_bd_measure(), p_bd_weights(), p_normals(), p_int_normals())
             // project beta on the normal direction on the boundary \f$ \beta_n = M<\beta,n> \f$
             // note that beta is defined in the current space, so we take the scalar product with
             // the normals on the current configuration, i.e. \f$F\hat n\f$
-            , gt::make_esf<functors::project_on_boundary>(p_beta(), p_int_normals(), p_bd_mass_uu(), p_beta_n())
-            //, gt::make_esf<functors::upwind>(p_u(), p_beta_n(), p_bd_mass_uu(), p_bd_mass_uv(),  p_result())
+            , gt::make_stage<functors::project_on_boundary>(p_beta(), p_int_normals(), p_bd_mass_uu(), p_beta_n())
+            //, gt::make_stage<functors::upwind>(p_u(), p_beta_n(), p_bd_mass_uu(), p_bd_mass_uv(),  p_result())
 
             // Optional: assemble the result vector by summing the values on the element boundaries
-            // , gt::make_esf< functors::assemble<geo_t> >( p_result(), p_result() )
+            // , gt::make_stage< functors::assemble<geo_t> >( p_result(), p_result() )
             // for visualization: the result is replicated
-            // , gt::make_esf< functors::uniform<geo_t> >( p_result(), p_result() )
-            // , gt::make_esf< time_advance >(p_u(), p_result())
+            // , gt::make_stage< functors::uniform<geo_t> >( p_result(), p_result() )
+            // , gt::make_stage< time_advance >(p_u(), p_result())
             ));
 
     compute_assembly->ready();
@@ -395,7 +395,7 @@ int main( int argc, char ** argv){
 
     typedef typename boost::mpl::vector< it::p_bd_mass_uu, it::p_bd_mass_uv, it::p_u, it::p_result, it::p_mass, it::p_advection, it::p_beta_n, it::p_rhs > mpl_list_iteration;
 
-    gt::domain_type<mpl_list_iteration> domain_iteration(boost::fusion::make_vector( &bd_mass_
+    gt::aggregator_type<mpl_list_iteration> domain_iteration(boost::fusion::make_vector( &bd_mass_
                                                                                  , &bd_mass_uv_
                                                                                  , &u_
                                                                                  , &result_
@@ -407,12 +407,12 @@ int main( int argc, char ** argv){
 
     auto iteration=gt::make_computation< BACKEND >(
             domain_iteration, coords
-            , gt::make_mss
+            , gt::make_multistage
             (
                 execute<forward>()
-                , gt::make_esf< functors::assign<4, zero<int> > >( it::p_result() )
+                , gt::make_stage< functors::assign<4, zero<int> > >( it::p_result() )
                 // add the advection term: result+=A*u
-                , gt::make_esf< functors::matvec>( it::p_advection(), it::p_u(),it::p_result() )
+                , gt::make_stage< functors::matvec>( it::p_advection(), it::p_u(),it::p_result() )
                 //compute the upwind flux
                 //i.e.:
                 //if <beta,n> > 0
@@ -420,10 +420,10 @@ int main( int argc, char ** argv){
                 //if beta*n<0
                 // result= <beta,n> * [(u- * v-) - (u- * v+)]
                 // where + means "this element" and - "the neighbour"
-                , gt::make_esf< functors::upwind>(it::p_u(), it::p_beta_n(), it::p_bd_mass_uu(), it::p_bd_mass_uv(),  it::p_result())
+                , gt::make_stage< functors::upwind>(it::p_u(), it::p_beta_n(), it::p_bd_mass_uu(), it::p_bd_mass_uv(),  it::p_result())
                 // add the advection term (for time dependent problem): result+=A*u
-                //, gt::make_esf< functors::matvec>( it::p_u(), it::p_mass(), it::p_result() )
-                , gt::make_esf<residual>(it::p_rhs(), it::p_result(), it::p_u()) //updating u = u - (Ax-rhs)
+                //, gt::make_stage< functors::matvec>( it::p_u(), it::p_mass(), it::p_result() )
+                , gt::make_stage<residual>(it::p_rhs(), it::p_result(), it::p_u()) //updating u = u - (Ax-rhs)
                 )
         );
 
@@ -440,7 +440,7 @@ int main( int argc, char ** argv){
 
     typedef typename boost::mpl::vector< bc::p_bc, bc::p_result> mpl_list_bc;
 
-    gt::domain_type<mpl_list_bc> domain_bc(boost::fusion::make_vector(  &bc_
+    gt::aggregator_type<mpl_list_bc> domain_bc(boost::fusion::make_vector(  &bc_
                                                                    ,&u_
                                            ));
 
@@ -452,10 +452,10 @@ int main( int argc, char ** argv){
 
     auto apply_bc_x0=gt::make_computation< BACKEND >(
         domain_bc, coords_bc,
-        gt::make_mss
+        gt::make_multistage
         (
             execute<forward>()
-            , gt::make_esf< bc_functor >( bc::p_bc(), bc::p_result() )
+            , gt::make_stage< bc_functor >( bc::p_bc(), bc::p_result() )
             )
         );
 

@@ -407,14 +407,14 @@ namespace gdl {
         template <typename ... ExtraArgs>
         assemble_storage(const MetaData& i_storage_info, const halo_data& i_halo_data, ExtraArgs const &... i_args):
                          base_storage_type(i_storage_info, i_args ...),
-                         m_local_dof(i_storage_info.template dims<0>(),
-                                     i_storage_info.template dims<1>(),
-                                     i_storage_info.template dims<2>(),
+                         m_local_dof(i_storage_info.template dim<0>(),
+                                     i_storage_info.template dim<1>(),
+                                     i_storage_info.template dim<2>(),
                                      i_halo_data),
                          m_halo_data(i_halo_data),
                          m_indexing(BasisCardinality0,BasisCardinality1,BasisCardinality2),
-                         s_max_dof_1((BasisCardinality0-1)*(i_storage_info.template dims<0>()-i_halo_data.m_halo_size_x_full)),
-                         s_max_dof_2((BasisCardinality1-1)*(i_storage_info.template dims<1>()-i_halo_data.m_halo_size_y_full))
+                         s_max_dof_1((BasisCardinality0-1)*(i_storage_info.template dim<0>()-i_halo_data.m_halo_size_x_full)),
+                         s_max_dof_2((BasisCardinality1-1)*(i_storage_info.template dim<1>()-i_halo_data.m_halo_size_y_full))
                          {}
 
 

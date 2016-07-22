@@ -92,7 +92,7 @@ int main( int argc, char ** argv){
 
     typedef typename boost::mpl::vector< typename assemble::p_grid_points, typename assemble::p_jac, typename assemble::p_weights, typename assemble::p_jac_det, typename assemble::p_dphi> mpl_list_assemble;
 
-    gt::domain_type<mpl_list_assemble> domain_assemble_(boost::fusion::make_vector(  &assembler_base_.grid()
+    gt::aggregator_type<mpl_list_assemble> domain_assemble_(boost::fusion::make_vector(  &assembler_base_.grid()
                                                                                      , &assembler_.jac()
                                                                                      , &assembler_.cub_weights()
                                                                                      , &assembler_.jac_det()
@@ -102,12 +102,12 @@ int main( int argc, char ** argv){
 
     auto compute_assembly=gt::make_computation< BACKEND >(
         domain_assemble_, grid_
-        , gt::make_mss(
+        , gt::make_multistage(
             execute<forward>()
             //compute the Jacobian matrix
-            , gt::make_esf<functors::update_jac<as::geometry_t, Hexa> >(assemble::p_grid_points(), assemble::p_dphi(), assemble::p_jac())
+            , gt::make_stage<functors::update_jac<as::geometry_t, Hexa> >(assemble::p_grid_points(), assemble::p_dphi(), assemble::p_jac())
             // compute the measure (det(J))
-            , gt::make_esf<functors::det<geo_t> >(assemble::p_jac(), assemble::p_jac_det())
+            , gt::make_stage<functors::det<geo_t> >(assemble::p_jac(), assemble::p_jac_det())
             )
         );
 
@@ -126,7 +126,7 @@ int main( int argc, char ** argv){
 
     typedef typename boost::mpl::vector< typename transform::p_jac_det, typename transform::p_weights, typename transform::p_phi, typename transform::p_u, typename transform::p_u_interp> mpl_list_transform;
 
-    gt::domain_type<mpl_list_transform> domain_transform_(
+    gt::aggregator_type<mpl_list_transform> domain_transform_(
         boost::fusion::make_vector(
             &assembler_.jac_det()
             ,&assembler_.fe_backend().cub_weights()
@@ -137,9 +137,9 @@ int main( int argc, char ** argv){
 
     auto transform_=gt::make_computation< BACKEND >(
         domain_transform_, grid_
-        , gt::make_mss(
+        , gt::make_multistage(
             execute<enumtype::forward>()
-            , gt::make_esf< functors::transform >( typename transform::p_jac_det(), typename transform::p_weights(), typename transform::p_phi(), typename transform::p_u(), typename transform::p_u_interp() )
+            , gt::make_stage< functors::transform >( typename transform::p_jac_det(), typename transform::p_weights(), typename transform::p_phi(), typename transform::p_u(), typename transform::p_u_interp() )
             )
         );
 
@@ -183,7 +183,7 @@ int main( int argc, char ** argv){
 
     typedef typename boost::mpl::vector< counter_transform::p_phi, counter_transform::p_u_interpolated, counter_transform::p_weights, counter_transform::p_jac_det, counter_transform::p_u > mpl_list_interp;
 
-    gt::domain_type<mpl_list_interp> domain_interp_(boost::fusion::make_vector(
+    gt::aggregator_type<mpl_list_interp> domain_interp_(boost::fusion::make_vector(
                                                    &fe_.val()
                                                    ,&interp_u_
                                                    ,&assembler_.fe_backend().cub_weights()
@@ -193,9 +193,9 @@ int main( int argc, char ** argv){
 
     auto interpolation_=gt::make_computation< BACKEND >(
         domain_interp_, grid_
-        , gt::make_mss(
+        , gt::make_multistage(
             execute<forward>()
-            , gt::make_esf< functors::evaluate >( counter_transform::p_phi(), counter_transform::p_u_interpolated(), counter_transform::p_weights(), counter_transform::p_jac_det(),  counter_transform::p_u() )
+            , gt::make_stage< functors::evaluate >( counter_transform::p_phi(), counter_transform::p_u_interpolated(), counter_transform::p_weights(), counter_transform::p_jac_det(),  counter_transform::p_u() )
             )
         );
 

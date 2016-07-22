@@ -49,16 +49,15 @@ namespace gdl{
             GT_FUNCTION
             static void Do(Evaluation const & eval, x_interval) {
                 gt::dimension<4>::Index row;
-                uint_t const num_rows=eval.get().template get_storage_dims<3>(in1());
+                uint_t const num_rows=eval.get().template get_storage_dim<3>(in1());
 
                 // Loop over vector elements
                 for(uint_t i=0;i<num_rows;++i){
                     eval(out(row+i)) = Operator::eval(eval(in1(row+i)),eval(in2(row+i)));
                 }
             }
-        }
-    };
-    // [vecvec]
+        };
+        // [vecvec]
 
 
     // [matvec]
@@ -75,8 +74,8 @@ namespace gdl{
         static void Do(Evaluation const & eval, x_interval) {
             gt::dimension<4>::Index row;
             gt::dimension<5>::Index col;
-            uint_t const cardinality_i=eval.template get_storage_dims<3>(in2());
-            uint_t const cardinality_j=eval.template get_storage_dims<4>(in2());
+            uint_t const cardinality_i=eval.template get_storage_dim<3>(in2());
+            uint_t const cardinality_j=eval.template get_storage_dim<4>(in2());
 
             //for all dofs in a boundary face
             for(short_t I=0; I<cardinality_i; I++)
@@ -108,9 +107,9 @@ namespace gdl{
             gt::dimension<5>::Index col;
             gt::dimension<6>::Index face;
 
-            uint_t const cardinality_i=eval.template get_storage_dims<3>(in2());
-            uint_t const cardinality_j=eval.template get_storage_dims<4>(in2());
-            uint_t const faces_=eval.template get_storage_dims<5>(in2());
+            uint_t const cardinality_i=eval.template get_storage_dim<3>(in2());
+            uint_t const cardinality_j=eval.template get_storage_dim<4>(in2());
+            uint_t const faces_=eval.template get_storage_dim<5>(in2());
 
             //for all dofs in a boundary face
             for(short_t I=0; I<cardinality_i; I++)
@@ -130,7 +129,7 @@ namespace gdl{
         using in1=gt::accessor<0, enumtype::in, gt::extent<> , 5> const;
         using in2=gt::accessor<1, enumtype::in, gt::extent<> , 6> const;
         using out=gt::accessor<2, enumtype::inout, gt::extent<> , 5> ;
-        using arg_list=boost::mpl::vector< in2, in1, out > ;
+        using arg_list=boost::mpl::vector< in1, in2, out > ;
 
         template <typename Evaluation>
         GT_FUNCTION
@@ -139,9 +138,9 @@ namespace gdl{
             gt::dimension<5>::Index col;
             gt::dimension<6>::Index face;
 
-            uint_t const cardinality_i=eval.template get_storage_dims<3>(in2());
-            uint_t const cardinality_j=eval.template get_storage_dims<4>(in2());
-            uint_t const faces_=eval.template get_storage_dims<5>(in2());
+            uint_t const cardinality_i=eval.template get_storage_dim<3>(in2());
+            uint_t const cardinality_j=eval.template get_storage_dim<4>(in2());
+            uint_t const faces_=eval.template get_storage_dim<5>(in2());
 
             //for all dofs in a boundary face
             for(short_t I=0; I<cardinality_i; I++)

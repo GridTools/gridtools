@@ -19,7 +19,7 @@ namespace functors{
         using dphi    =gt::accessor<4, enumtype::in, gt::extent<0,0,0,0> , 3> const;
         using psi     =gt::accessor<5, enumtype::in, gt::extent<0,0,0,0> , 3> const;
         using adv     =gt::accessor<6, enumtype::inout, gt::extent<0,0,0,0> , 5> ;
-        using arg_list= boost::mpl::vector<jac_det, jac_inv, weights, beta, adv, dphi, psi> ;
+        using arg_list= boost::mpl::vector< jac_det, jac_inv, weights, beta, dphi, psi, adv > ;
         //![gt::accessors]
 
         //![Do_advection]
@@ -27,8 +27,8 @@ namespace functors{
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 
-            uint_t const num_cub_points=eval.template get_storage_dims<1>(psi());
-            uint_t const basis_cardinality=eval.template get_storage_dims<0>(psi());
+            uint_t const num_cub_points=eval.template get_storage_dim<1>(psi());
+            uint_t const basis_cardinality=eval.template get_storage_dim<0>(psi());
 
             //quadrature points dimension
             gt::dimension<4>::Index qp;

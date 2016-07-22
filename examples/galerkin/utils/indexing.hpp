@@ -24,7 +24,7 @@ namespace gdl {
         }
 
         template <uint_t DIR>
-        constexpr inline uint_t dims(void) {  return m_single_indexing.template dims<DIR>(); }
+        constexpr inline uint_t dims(void) {  return m_single_indexing.template dim<DIR>(); }
 
         constexpr static uint_t s_total_size{Size0*Size1*Size2};
 

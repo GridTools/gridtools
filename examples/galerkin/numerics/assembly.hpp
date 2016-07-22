@@ -93,17 +93,17 @@ const int_t assembly< GEO >::edge_points;
 
 
 template <typename Geometry, typename ... Rest>
-struct domain_type_tuple<assembly<Geometry>,  Rest ... > : domain_type_tuple< Rest ...> {
+struct aggregator_type_tuple<assembly<Geometry>,  Rest ... > : aggregator_type_tuple< Rest ...> {
 
 private:
-    using super = domain_type_tuple< Rest ...>;
+    using super = aggregator_type_tuple< Rest ...>;
     using as_t = assembly<Geometry>;
     as_t & m_as;
 
 public:
 
     template <typename ... Args>
-    domain_type_tuple(as_t & as_, Args & ... args_) : super(args_ ...), m_as(as_) {}
+    aggregator_type_tuple(as_t & as_, Args & ... args_) : super(args_ ...), m_as(as_) {}
 
     /**I have to define here the placeholders to the storages used: the temporary storages get internally managed, while
        non-temporary ones must be instantiated by the user. In this example all the storages are non-temporaries.*/
@@ -116,7 +116,7 @@ public:
     static const uint_t size=super::size+6;
 
     /**
-       @brief adds few extra placeholders<->storages items to the domain_type
+       @brief adds few extra placeholders<->storages items to the aggregator_type
      */
     template <typename ... MPLList>
     auto domain( typename boost::remove_reference
@@ -165,9 +165,9 @@ public:
     template<enumtype::Shape S>
     struct update_jac{
         auto static esf() ->
-            decltype(gt::make_esf<functors::update_jac<typename as_t::geometry_t , S> >(typename super::p_grid_points(), p_dphi(), p_jac()))
+            decltype(gt::make_stage<functors::update_jac<typename as_t::geometry_t , S> >(typename super::p_grid_points(), p_dphi(), p_jac()))
         {
-            return gt::make_esf<functors::update_jac<typename as_t::geometry_t , S> >(typename super::p_grid_points(), p_dphi(), p_jac());
+            return gt::make_stage<functors::update_jac<typename as_t::geometry_t , S> >(typename super::p_grid_points(), p_dphi(), p_jac());
         }
     };
 
@@ -176,9 +176,9 @@ public:
     struct mass{
         template <typename Phi, typename Mass>
         auto static esf(Phi, Mass) ->
-            decltype(gt::make_esf<functors::mass >(p_jac_det(), p_weights(), Phi(), Phi(), Mass()))
+            decltype(gt::make_stage<functors::mass >(p_jac_det(), p_weights(), Phi(), Phi(), Mass()))
         {
-            return gt::make_esf<functors::mass >(p_jac_det(), p_weights(), Phi(), Phi(), Mass());
+            return gt::make_stage<functors::mass >(p_jac_det(), p_weights(), Phi(), Phi(), Mass());
         }
     };
 
@@ -186,9 +186,9 @@ public:
     struct stiffness{
         template<typename DPhi, typename Stiff>
         auto static esf(DPhi, Stiff) ->
-            decltype(gt::make_esf<functors::stiffness<FE , Cubature> >(p_jac_det(), p_jac_inv(), p_weights(), DPhi(), DPhi(), Stiff()))
+            decltype(gt::make_stage<functors::stiffness<FE , Cubature> >(p_jac_det(), p_jac_inv(), p_weights(), DPhi(), DPhi(), Stiff()))
         {
-            return gt::make_esf<functors::stiffness<FE , Cubature> >(typename super::p_jac_det(), p_jac_inv(), p_weights(), DPhi(), DPhi(), Stiff());
+            return gt::make_stage<functors::stiffness<FE , Cubature> >(typename super::p_jac_det(), p_jac_inv(), p_weights(), DPhi(), DPhi(), Stiff());
         }
     };
 
@@ -196,10 +196,10 @@ public:
     struct advection{
         template<typename Beta, typename Phi, typename DPhi, typename Adv>
         auto static esf(Beta, Phi, DPhi, Adv) ->
-            decltype(gt::make_esf<functors::advection<FE , Cubature> >(p_jac_det(), p_jac_inv(), p_weights(), Beta(), DPhi(), Phi(), Adv()))
+            decltype(gt::make_stage<functors::advection<FE , Cubature> >(p_jac_det(), p_jac_inv(), p_weights(), Beta(), DPhi(), Phi(), Adv()))
         {
             //TODO check that the inverse is computed
-            return gt::make_esf<functors::advection<FE , Cubature> >(p_jac_det(), p_jac_inv(), p_weights(), Beta(), DPhi(), Phi(), Adv());
+            return gt::make_stage<functors::advection<FE , Cubature> >(p_jac_det(), p_jac_inv(), p_weights(), Beta(), DPhi(), Phi(), Adv());
         }
     };
 

@@ -33,7 +33,7 @@ namespace gdl {
             static void Do(Evaluation const & eval, x_interval) {
                 gt::dimension<4>::Index row;
                 constexpr gt::meta_storage_base<static_int<__COUNTER__>,gt::layout_map<2,1,0>,false> indexing{N_DOF0,N_DOF1,N_DOF2};
-                uint_t const num_rows=eval.get().template get_storage_dims<3>(in());
+                uint_t const num_rows=eval.get().template get_storage_dim<3>(in());
 
                 // Loop over vector elements
 
@@ -41,15 +41,15 @@ namespace gdl {
                 auto red_val = eval(in(row+0));
 
                 // 0 INTERNAL NON SHARED DOFS
-                for(short_t I1=1; I1<indexing.template dims<0>()-1; I1++)
-                    for(short_t J1=1; J1<indexing.template dims<1>()-1; J1++)
-                        for(short_t K1=1; K1<indexing.template dims<2>()-1; K1++)
+                for(short_t I1=1; I1<indexing.template dim<0>()-1; I1++)
+                    for(short_t J1=1; J1<indexing.template dim<1>()-1; J1++)
+                        for(short_t K1=1; K1<indexing.template dim<2>()-1; K1++)
                             red_val = Operator::eval(red_val,eval(in(row+indexing.index(I1,J1,K1))));
 
                 // TODO: in this case these loops have less sense wrt assemble case, merge them
                 // 1 A
-                for(short_t I1=1; I1<indexing.template dims<0>()-1; I1++)
-                    for(short_t J1=1; J1<indexing.template dims<1>()-1; J1++)
+                for(short_t I1=1; I1<indexing.template dim<0>()-1; I1++)
+                    for(short_t J1=1; J1<indexing.template dim<1>()-1; J1++)
                     {
                         red_val = Operator::eval(red_val,eval(in(row+indexing.index(I1,J1,0))));
 
@@ -60,7 +60,7 @@ namespace gdl {
 
                 // 2 B
                 short_t J1=0;
-                for(short_t I1=1; I1<indexing.template dims<0>()-1; I1++)
+                for(short_t I1=1; I1<indexing.template dim<0>()-1; I1++)
                 {
                     red_val = Operator::eval(red_val,eval(in(row+indexing.index(I1,J1,0))));
 

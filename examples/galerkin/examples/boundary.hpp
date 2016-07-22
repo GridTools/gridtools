@@ -16,9 +16,9 @@ public:
 
     template <typename Grid, typename Storage1, typename Storage2>
     #ifdef __CUDACC__
-    gt::computation*
+    gt::stencil*
     #else
-    std::shared_ptr< gt::computation >
+    std::shared_ptr< gt::stencil >
     #endif
     compute(Grid const& grid_, Storage1 & bc_, Storage2 & tr_bc_){
 
@@ -36,7 +36,7 @@ public:
 
         typedef typename boost::mpl::vector< typename transform::p_jac_det, typename transform::p_weights, typename transform::p_phi, typename transform::p_bc, typename transform::p_bc_integrated> mpl_list_transform_bc;
 
-        gt::domain_type<mpl_list_transform_bc> domain_transform_bc(
+        gt::aggregator_type<mpl_list_transform_bc> domain_transform_bc(
             boost::fusion::make_vector(
                 &m_assembler.jac_det()
                 ,&m_assembler.fe_backend().cub_weights()
@@ -47,10 +47,10 @@ public:
 
         auto transform_bc=gt::make_computation< BACKEND >(
             domain_transform_bc, grid_
-            , gt::make_mss(
+            , gt::make_multistage(
             enumtype::execute<enumtype::forward>()
-            , gt::make_esf< BCFunctor >( typename transform::p_bc(), typename transform::p_bc() )
-            , gt::make_esf< functors::transform >( typename transform::p_jac_det(), typename transform::p_weights(), typename transform::p_phi(), typename transform::p_bc(), typename transform::p_bc_integrated() )
+            , gt::make_stage< BCFunctor >( typename transform::p_bc(), typename transform::p_bc() )
+            , gt::make_stage< functors::transform >( typename transform::p_jac_det(), typename transform::p_weights(), typename transform::p_phi(), typename transform::p_bc(), typename transform::p_bc_integrated() )
                 )
             );
         return transform_bc;
@@ -62,9 +62,9 @@ public:
     template <typename Grid, typename Storage1, typename Storage2, typename Storage3, typename Storage4, typename Storage5, typename Storage6>
 
     #ifdef __CUDACC__
-    gt::computation*
+    gt::stencil*
     #else
-    std::shared_ptr< gt::computation >
+    std::shared_ptr< gt::stencil >
     #endif
     apply(Grid const& grid_, Storage1& tr_bc_, Storage2& result_, Storage3 & bd_beta_n_, Storage4& bd_mass_, Storage5& bd_mass_uv_, Storage6 & u_){
 
@@ -79,7 +79,7 @@ public:
 
         typedef typename boost::mpl::vector< typename bc::p_bc, typename bc::p_result, typename bc::p_beta_n, typename bc::p_bd_mass_uu, typename bc::p_bd_mass_uv> mpl_list_bc;
 
-        gt::domain_type<mpl_list_bc> domain_apply_bc(boost::fusion::make_vector(
+        gt::aggregator_type<mpl_list_bc> domain_apply_bc(boost::fusion::make_vector(
                                                          &tr_bc_
                                                          ,&result_
                                                          ,&bd_beta_n_
@@ -89,9 +89,9 @@ public:
 
         auto apply_bc=gt::make_computation< BACKEND >(
             domain_apply_bc, grid_
-            , gt::make_mss(
+            , gt::make_multistage(
                 enumtype::execute<enumtype::forward>()
-                , gt::make_esf< FluxFunctor >(typename bc::p_bc(), typename bc::p_beta_n(), typename bc::p_bd_mass_uu(), typename bc::p_bd_mass_uv(),  typename bc::p_result())
+                , gt::make_stage< FluxFunctor >(typename bc::p_bc(), typename bc::p_beta_n(), typename bc::p_bd_mass_uu(), typename bc::p_bd_mass_uv(),  typename bc::p_result())
                 )
             );
 

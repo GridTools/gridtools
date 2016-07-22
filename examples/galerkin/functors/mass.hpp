@@ -19,8 +19,8 @@ namespace functors{
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
 
-            uint_t const num_cub_points = eval.template get_storage_dims<1>(phi());
-            uint_t const basis_cardinality = eval.template get_storage_dims<0>(phi());
+            uint_t const num_cub_points = eval.template get_storage_dim<1>(phi());
+            uint_t const basis_cardinality = eval.template get_storage_dim<0>(phi());
 
             quad::Index qp;
             gt::dimension<5>::Index dimx;

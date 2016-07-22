@@ -30,8 +30,8 @@ namespace functors{
             static void Do(Evaluation const & eval, x_interval) {
                 //quadrature points dimension
                 dimension<4>::Index qp;
-                uint_t const num_cub_points=eval.template get_storage_dims<3>(jac_det());
-                uint_t const basis_cardinality=eval.template get_storage_dims<0>(psi());
+                uint_t const num_cub_points=eval.template get_storage_dim<3>(jac_det());
+                uint_t const basis_cardinality=eval.template get_storage_dim<0>(psi());
 
 
 #ifndef __CUDACC__
@@ -245,7 +245,7 @@ namespace functors{
         vector_storage_info_t meta_vec_(d1,d2,d3,fe3::basisCardinality);
         vector_type vector_(meta_vec_, 1.);
 
-        using domain_tuple_t = domain_type_tuple< as, as_base>;
+        using domain_tuple_t = aggregator_type_tuple< as, as_base>;
         domain_tuple_t domain_tuple_ (assembler, assembler_base);
         using dt = domain_tuple_t;
 
@@ -265,7 +265,7 @@ namespace functors{
                                                    , vector_
                                                     );
 #else
-        domain_type<boost::mpl::vector
+        aggregator_type<boost::mpl::vector
                     <dt::super::p_grid_points
                      ,dt::p_jac, dt::p_weights, dt::p_jac_det, dt::p_jac_inv,
                      p_mass , p_phi, p_dphi, p_vec> >
@@ -281,14 +281,14 @@ namespace functors{
         coords.value_list[1] = d3-1;
 
         auto computation=make_computation<gridtools::BACKEND>(
-            make_mss
+            make_multistage
             (
                 execute<forward>()
-                , make_esf<functors::update_jac<geo_t> >( dt::p_grid_points(), p_dphi(), dt::p_jac())
-                , make_esf<functors::det<geo_t> >(dt::p_jac(), dt::p_jac_det())
-                , make_esf<functors::mass<fe3, geo_cub> >(dt::p_jac_det(), dt::p_weights(), p_phi(), p_phi(), p_mass())
-                , make_esf<functors::matvec>(p_vec(), p_mass(), p_vec())//matrix vector product
-                //, make_esf<functors::jump_f<geo_t> >(p_vec(), p_vec())//compute the jump
+                , make_stage<functors::update_jac<geo_t> >( dt::p_grid_points(), p_dphi(), dt::p_jac())
+                , make_stage<functors::det<geo_t> >(dt::p_jac(), dt::p_jac_det())
+                , make_stage<functors::mass<fe3, geo_cub> >(dt::p_jac_det(), dt::p_weights(), p_phi(), p_phi(), p_mass())
+                , make_stage<functors::matvec>(p_vec(), p_mass(), p_vec())//matrix vector product
+                //, make_stage<functors::jump_f<geo_t> >(p_vec(), p_vec())//compute the jump
                 ), domain_, coords);
 
         computation->ready();

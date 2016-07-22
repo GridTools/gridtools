@@ -18,12 +18,12 @@ namespace gdl{
 
 //! [storage definition]
 #ifdef CUDA_EXAMPLE
-#define BACKEND gt::backend<gt::enumtype::Cuda, gt::enumtype::Block >
+#define BACKEND gt::backend<gt::enumtype::Cuda, GRIDBACKEND, gt::enumtype::Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND gt::backend<gt::enumtype::Host, gt::enumtype::Block >
+#define BACKEND gt::backend<gt::enumtype::Host, GRIDBACKEND, gt::enumtype::Block >
 #else
-#define BACKEND gt::backend<gt::enumtype::Host, gt::enumtype::Naive >
+#define BACKEND gt::backend<gt::enumtype::Host, GRIDBACKEND, gt::enumtype::Naive >
 #endif
 #endif
 
@@ -38,11 +38,12 @@ namespace gdl{
     template <typename MetaData>
     using storage_t = typename BACKEND::storage_type<float_type, MetaData >::type;
 
-    template<ushort_t ID, typename Layout, typename Aligned=gt::aligned<1>>
+    template<ushort_t ID, typename Layout, typename Aligned=gt::aligned<1> >
         using storage_info = typename BACKEND::storage_info<ID, Layout, typename gt::repeat_template_c<0, Layout::length, gt::halo>::type, Aligned>;
 
+    //these are the same for the moment
     template<typename ID, typename Layout, typename Aligned=gt::aligned<1> >
-    using storage_info_t = typename BACKEND::storage_info_t<ID, Layout, typename gt::repeat_template_c<0, Layout::length, gt::halo>::type, Aligned >;
+    using storage_info_t = typename gt::meta_storage<gt::meta_storage_aligned<gt::meta_storage_base<ID, Layout, false>, Aligned, typename gt::repeat_template_c<0, Layout::length, gt::halo>::type > >;
 
 //! [storage definition]
 //! [fe namespace]

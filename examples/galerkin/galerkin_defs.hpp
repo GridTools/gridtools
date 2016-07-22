@@ -6,9 +6,9 @@ namespace gdl{
 
     namespace enumtype{
         using namespace gt::enumtype;
-        // using gt::enumtype;
         enum Basis {Lagrange, BSplines, Legendre};
         enum Shape {Hexa, Tetra, Quad, Tri,  Line, Point};
+        enum io_grid_type {regular, rectilinear, unstructured};
     }
 
     using uint_t = gt::uint_t;

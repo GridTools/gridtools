@@ -34,9 +34,9 @@ namespace gdl{
 
         using jac_det=gt::accessor< 0, enumtype::in, gt::extent<0,0,0,0>, 5 >;
         using weights=gt::accessor< 1, enumtype::in, gt::extent<0,0,0,0>, 4 >;
-        using out=gt::accessor< 2, enumtype::inout, gt::extent<0,0,0,0>, 6 >;
-        using phi_trace=gt::accessor< 3, enumtype::in, gt::extent<0,0,0,0>, 3 >;
-        using psi_trace=gt::accessor< 4, enumtype::in, gt::extent<0,0,0,0>, 3 >;
+        using phi_trace=gt::accessor< 2, enumtype::in, gt::extent<0,0,0,0>, 3 >;
+        using psi_trace=gt::accessor< 3, enumtype::in, gt::extent<0,0,0,0>, 3 >;
+        using out=gt::accessor< 4, enumtype::inout, gt::extent<0,0,0,0>, 6 >;
         using arg_list=boost::mpl::vector<jac_det, weights, phi_trace, psi_trace, out> ;
 
         /** @brief compute the integral on the boundary of a field times the normals
@@ -51,8 +51,8 @@ namespace gdl{
             gt::dimension<4>::Index dofI;
             gt::dimension<5>::Index dofJ;
 
-            uint_t const num_cub_points=eval.template get_storage_dims<3>(jac_det());
-            uint_t const basis_cardinality = eval.template get_storage_dims<3>(phi_trace());
+            uint_t const num_cub_points=eval.template get_storage_dim<3>(jac_det());
+            uint_t const basis_cardinality = eval.template get_storage_dim<3>(phi_trace());
 
             //NOTE: missing the loop on the faces for this example
             //loop on the basis functions (interpolation in the quadrature point)
@@ -165,7 +165,7 @@ int main(){
     typedef boost::mpl::vector<p_bd_jac, p_normals, p_bd_measure, p_bd_weights, p_ref_normals, p_bd_phi, p_bd_dphi, p_grid_points, p_mass, p_bd_discr_dphi, p_bd_discr_phi, p_u, p_jump, p_flux, p_integrated_flux> arg_list;
 
     // appending the placeholders to the list of placeholders already in place
-    auto domain=gt::domain_type<arg_list>(
+    auto domain=gt::aggregator_type<arg_list>(
         (p_bd_jac()=assembler.bd_jac())
         , (p_normals()=assembler.normals())
         , (p_bd_measure()=assembler.bd_measure())
@@ -192,27 +192,27 @@ int main(){
     //![computation]
     auto computation=gt::make_computation< BACKEND >(
         domain, coords,
-        make_mss
+        make_multistage
         (
             execute<forward>()
             // evaluate the cell Jacobian matrix on the boundary (given the basis functions derivatives in those points)
-            , gt::make_esf<functors::update_bd_jac<bd_discr_t , enumtype::Hexa> >(p_grid_points(), p_bd_dphi(), p_bd_jac())
+            , gt::make_stage<functors::update_bd_jac<bd_discr_t , enumtype::Hexa> >(p_grid_points(), p_bd_dphi(), p_bd_jac())
             // compute the normals on the quad points from the jacobian above, transporting the normals from the reference configuration, unnecessary. (can be computed also as the cross product of the first 2 columns of J)
-            , gt::make_esf<functors::compute_face_normals<bd_discr_t> >(p_bd_jac(), p_ref_normals(), p_normals())
+            , gt::make_stage<functors::compute_face_normals<bd_discr_t> >(p_bd_jac(), p_ref_normals(), p_normals())
             // surface integral:
             // compute the measure for the surface integral
             //            |  / d(phi_x)/du   d(phi_x)/dv  1 \  |
             //   det(J) = | |  d(phi_y)/du   d(phi_y)/dv  1  | |
             //            |  \ d(phi_z)/du   d(phi_z)/dv  1 /  |
-            , gt::make_esf<functors::measure<bd_discr_t, 1> >(p_bd_jac(), p_bd_measure())
+            , gt::make_stage<functors::measure<bd_discr_t, 1> >(p_bd_jac(), p_bd_measure())
             // evaluate the mass matrix
-            , gt::make_esf<integration<fe, bd_cub_t::bd_cub> >(p_bd_measure(), p_bd_weights(), p_mass(), p_bd_discr_phi(), p_bd_discr_phi()) //mass
+            , gt::make_stage<integration<fe, bd_cub_t::bd_cub> >(p_bd_measure(), p_bd_weights(), p_bd_discr_phi(), p_bd_discr_phi(), p_mass()) //mass
             // compute the flux, this line defines the type of approximation we choose for DG
             // (e.g. upwind, centered, Lax-Wendroff and so on)
             // NOTE: if not linear we cannot implement it as a matrix
-            , gt::make_esf<functors::bassi_rebay<bd_discr_t> >(p_u(), p_u(), p_flux())
+            , gt::make_stage<functors::bassi_rebay<bd_discr_t> >(p_u(), p_u(), p_flux())
             // integrate the flux: mass*flux
-            , gt::make_esf< functors::matvec_BdxBdxBd >( p_flux(), p_mass(), p_integrated_flux() )
+            , gt::make_stage< functors::matvec_BdxBdxBd >( p_flux(), p_mass(), p_integrated_flux() )
             ));
 
     computation->ready();

@@ -8,13 +8,13 @@
 // [includes]
 
 // template <typename ... Args>
-// struct make_domain_type{
-//     typedef typename domain_type<boost::mpl::vector<Args ... > > type;
+// struct make_aggregator_type{
+//     typedef typename aggregator_type<boost::mpl::vector<Args ... > > type;
 // };
 
 // template<typename DomainArgs ..., typename PlaceHolders ...>
-// struct concatenate<make_domain_type<DomainArgs ...>, PlaceHolders ...>{
-//     typedef typename make_domain_type<DomainArgs ..., PlaceHolders ...> type;
+// struct concatenate<make_aggregator_type<DomainArgs ...>, PlaceHolders ...>{
+//     typedef typename make_aggregator_type<DomainArgs ..., PlaceHolders ...> type;
 // }
 
 
@@ -59,36 +59,36 @@ public:
 
 //struct definition
 template < typename ... Types >
-struct domain_type_tuple;
+struct aggregator_type_tuple;
 
 /**
     default case: just forwarding the args
     necessary in order to allow arbitrary order of the template arguments
  */
 template <>
-struct domain_type_tuple<>{
+struct aggregator_type_tuple<>{
 
     static const ushort_t size=0;
 
     template <typename ... MPLList>
-    gridtools::domain_type< boost::mpl::vector<MPLList ...> >
+    gridtools::aggregator_type< boost::mpl::vector<MPLList ...> >
     domain(typename MPLList::storage_type& ...  storages_ ){
-        return gt::domain_type<boost::mpl::vector< MPLList ...> >(boost::fusion::make_vector(&storages_ ...));
+        return gt::aggregator_type<boost::mpl::vector< MPLList ...> >(boost::fusion::make_vector(&storages_ ...));
     }
 
 };
 
 template < typename Geometry, typename ... Rest >
-struct domain_type_tuple<assembly_base<Geometry>, Rest ... > : domain_type_tuple<Rest ...> {
+struct aggregator_type_tuple<assembly_base<Geometry>, Rest ... > : aggregator_type_tuple<Rest ...> {
 
 private:
-    using super = domain_type_tuple< Rest ...>;
+    using super = aggregator_type_tuple< Rest ...>;
     using as_t = assembly_base<Geometry>;
     as_t & m_as;
 
 public:
 
-    domain_type_tuple(as_t & as_) : m_as(as_) {}
+    aggregator_type_tuple(as_t & as_) : m_as(as_) {}
 
     /**I have to define here the placeholders to the storages used: the temporary storages get internally managed, while
        non-temporary ones must be instantiated by the user. In this example all the storages are non-temporaries.*/
@@ -97,7 +97,7 @@ public:
     static const ushort_t size=1;
 
     template <typename ... MPLList>
-    gridtools::domain_type< boost::mpl::vector<p_grid_points
+    gridtools::aggregator_type< boost::mpl::vector<p_grid_points
                                                , typename boost::remove_reference
                                                <typename boost::remove_pointer<
                                                     MPLList>::type>::type ...> >

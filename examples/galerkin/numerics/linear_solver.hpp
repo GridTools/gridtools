@@ -129,16 +129,16 @@ namespace gdl {
             // Assemble related grid definition: this grid contains the "right" halo, for which the provided A matrix and b vector
             // are assumed to have values equal to zero (see struct comment). Calculation in the "right" halo are performed only to keep algorithm
             // uniformity wrt the computing thread.
-            auto mesh_coords_ass=gridtools::grid<axis>({1, 0, 1, i_b.meta_data().template dims<0>()-1, i_b.meta_data().template dims<0>()},
-                                                       {1, 0, 1, i_b.meta_data().template dims<1>()-1, i_b.meta_data().template dims<1>()});
+            auto mesh_coords_ass=gridtools::grid<axis>({1, 0, 1, i_b.meta_data().template dim<0>()-1, i_b.meta_data().template dims<0>()},
+                                                       {1, 0, 1, i_b.meta_data().template dim<1>()-1, i_b.meta_data().template dims<1>()});
             mesh_coords_ass.value_list[0] = 1;
-            mesh_coords_ass.value_list[1] = i_b.meta_data().template dims<2>()-1;
+            mesh_coords_ass.value_list[1] = i_b.meta_data().template dim<2>()-1;
 
             // Restricted grid definition: this grid does not contain any halo and is used for operations of non assemble-based type (see struct comment).
-            auto mesh_coords=gridtools::grid<axis>({1, 0, 1, i_b.meta_data().template dims<0>()-2, i_b.meta_data().template dims<0>()-1},
-                                                   {1, 0, 1, i_b.meta_data().template dims<1>()-2, i_b.meta_data().template dims<1>()-1});
+            auto mesh_coords=gridtools::grid<axis>({1, 0, 1, i_b.meta_data().template dim<0>()-2, i_b.meta_data().template dims<0>()-1},
+                                                   {1, 0, 1, i_b.meta_data().template dim<1>()-2, i_b.meta_data().template dims<1>()-1});
             mesh_coords.value_list[0] = 1;
-            mesh_coords.value_list[1] = i_b.meta_data().template dims<2>()-2;
+            mesh_coords.value_list[1] = i_b.meta_data().template dim<2>()-2;
 
 
             // Storage definition
@@ -224,13 +224,13 @@ namespace gdl {
             typedef gt::arg<12,VectorType_b> p_pAp_ass;
             typedef gt::arg<13,VectorType_b> p_pAp_red;
             typedef boost::mpl::vector<p_A, p_x_ass, p_b_test, p_i_b, p_b, p_r, p_r_ass, p_p_ass, p_r_mod_ass, p_r_mod_red_ass, p_Ap, p_Ap_ass, p_pAp_ass, p_pAp_red> start_accessor_list;
-            gridtools::domain_type<start_accessor_list> domain(boost::fusion::make_vector(&i_A, &io_x, &b_test, &i_b, &i_b, &r_ass, &r_ass, &p_ass, &r_mod_ass, &r_mod_red_ass, &Ap, &Ap_ass, &pAp_ass, &pAp_red));
+            gridtools::aggregator_type<start_accessor_list> domain(boost::fusion::make_vector(&i_A, &io_x, &b_test, &i_b, &i_b, &r_ass, &r_ass, &p_ass, &r_mod_ass, &r_mod_red_ass, &Ap, &Ap_ass, &pAp_ass, &pAp_red));
 
             auto compute_r=gridtools::make_computation<BACKEND>(domain,
                                                                 mesh_coords,
-                                                                gridtools::make_mss(gridtools::enumtype::execute<gridtools::enumtype::forward>(),
-                                                                                    gridtools::make_esf<functors::matvec>(p_A(),p_x_ass(),p_b_test()),
-                                                                                    gridtools::make_esf<functors::vecvec<4,functors::sub_operator<float_t> > >(p_b(),p_b_test(),p_r())
+                                                                gridtools::make_multistage(gridtools::enumtype::execute<gridtools::enumtype::forward>(),
+                                                                                    gridtools::make_stage<functors::matvec>(p_A(),p_x_ass(),p_b_test()),
+                                                                                    gridtools::make_stage<functors::vecvec<4,functors::sub_operator<float_t> > >(p_b(),p_b_test(),p_r())
                                                                 ));
 
 
@@ -248,12 +248,12 @@ namespace gdl {
             // TODO: search for storage copy functor
             compute_r=gridtools::make_computation<BACKEND>(domain,
                                                            mesh_coords_ass,
-                                                           gridtools::make_mss(gridtools::enumtype::execute<gridtools::enumtype::forward>(),
-                                                                               gridtools::make_esf<functors::hexahedron_vector_assemble<N_DOF0,N_DOF1,N_DOF2> >(p_r(),p_r_ass()),
-                                                                               gridtools::make_esf<functors::hexahedron_vector_distribute<N_DOF0,N_DOF1,N_DOF2> >(p_r_ass()),
-                                                                               gridtools::make_esf<functors::copy_vector<N_DOF0*N_DOF1*N_DOF2> >(p_r_ass(),p_p_ass()), // TODO: avoid this copy
-                                                                               gridtools::make_esf<functors::vecvec<4,functors::mult_operator<float_t> > >(p_p_ass(),p_r_ass(),p_r_mod_ass()),
-                                                                               gridtools::make_esf<functors::partial_hexahedron_assembled_reduction<N_DOF0,N_DOF1,N_DOF2,functors::sum_operator<float_t> > >(p_r_mod_ass(),p_r_mod_red_ass())
+                                                           gridtools::make_multistage(gridtools::enumtype::execute<gridtools::enumtype::forward>(),
+                                                                               gridtools::make_stage<functors::hexahedron_vector_assemble<N_DOF0,N_DOF1,N_DOF2> >(p_r(),p_r_ass()),
+                                                                               gridtools::make_stage<functors::hexahedron_vector_distribute<N_DOF0,N_DOF1,N_DOF2> >(p_r_ass()),
+                                                                               gridtools::make_stage<functors::copy_vector<N_DOF0*N_DOF1*N_DOF2> >(p_r_ass(),p_p_ass()), // TODO: avoid this copy
+                                                                               gridtools::make_stage<functors::vecvec<4,functors::mult_operator<float_t> > >(p_p_ass(),p_r_ass(),p_r_mod_ass()),
+                                                                               gridtools::make_stage<functors::partial_hexahedron_assembled_reduction<N_DOF0,N_DOF1,N_DOF2,functors::sum_operator<float_t> > >(p_r_mod_ass(),p_r_mod_red_ass())
                                                            ));
             compute_r->ready();
             compute_r->steady();
@@ -267,9 +267,9 @@ namespace gdl {
             // where the r*r product contribution of a single mesh element has
             // been accumulated
             float_t r_scal_mod = 0.;
-            for(uint_t i=1;i<i_b.meta_data().template dims<0>();++i)
-                for(uint_t j=1;j<i_b.meta_data().template dims<1>();++j)
-                    for(uint_t k=1;k<i_b.meta_data().template dims<2>();++k)
+            for(uint_t i=1;i<i_b.meta_data().template dim<0>();++i)
+                for(uint_t j=1;j<i_b.meta_data().template dim<1>();++j)
+                    for(uint_t k=1;k<i_b.meta_data().template dim<2>();++k)
                         r_scal_mod += r_mod_red_ass(i,j,k,0);
 
             ////////////////////////////////////////////
@@ -294,8 +294,8 @@ namespace gdl {
 
                 auto compute_pAp=gridtools::make_computation<BACKEND>(domain,
                                                                       mesh_coords,
-                                                                      gridtools::make_mss(gridtools::enumtype::execute<gridtools::enumtype::forward>(),
-                                                                                          gridtools::make_esf<functors::matvec>(p_A(),p_p_ass(),p_Ap())
+                                                                      gridtools::make_multistage(gridtools::enumtype::execute<gridtools::enumtype::forward>(),
+                                                                                          gridtools::make_stage<functors::matvec>(p_A(),p_p_ass(),p_Ap())
                                                                       ));
                 compute_pAp->ready();
                 compute_pAp->steady();
@@ -314,13 +314,13 @@ namespace gdl {
                 // synchronization check must be introduced in that case
                 compute_pAp=gridtools::make_computation<BACKEND>(domain,
                                                                  mesh_coords_ass,
-                                                                 gridtools::make_mss(gridtools::enumtype::execute<gridtools::enumtype::forward>(),
-                                                                                     gridtools::make_esf<functors::copy_vector<N_DOF0*N_DOF1*N_DOF2> >(p_Ap(),p_Ap_ass()),
-                                                                                     gridtools::make_esf<functors::hexahedron_vector_assemble<N_DOF0,N_DOF1,N_DOF2> >(p_Ap(),p_Ap_ass()),
-                                                                                     gridtools::make_esf<functors::hexahedron_vector_distribute<N_DOF0,N_DOF1,N_DOF2> >(p_Ap_ass()),
-                                                                                     gridtools::make_esf< functors::assign< 4,zero<float_t> > >(p_Ap()),
-                                                                                     gridtools::make_esf<functors::vecvec<4,functors::mult_operator<float_t> > >(p_p_ass(),p_Ap_ass(),p_pAp_ass()),
-                                                                                     gridtools::make_esf<functors::partial_hexahedron_assembled_reduction<N_DOF0,N_DOF1,N_DOF2,functors::sum_operator<float_t> > >(p_pAp_ass(),p_pAp_red())
+                                                                 gridtools::make_multistage(gridtools::enumtype::execute<gridtools::enumtype::forward>(),
+                                                                                     gridtools::make_stage<functors::copy_vector<N_DOF0*N_DOF1*N_DOF2> >(p_Ap(),p_Ap_ass()),
+                                                                                     gridtools::make_stage<functors::hexahedron_vector_assemble<N_DOF0,N_DOF1,N_DOF2> >(p_Ap(),p_Ap_ass()),
+                                                                                     gridtools::make_stage<functors::hexahedron_vector_distribute<N_DOF0,N_DOF1,N_DOF2> >(p_Ap_ass()),
+                                                                                     gridtools::make_stage< functors::assign< 4,zero<float_t> > >(p_Ap()),
+                                                                                     gridtools::make_stage<functors::vecvec<4,functors::mult_operator<float_t> > >(p_p_ass(),p_Ap_ass(),p_pAp_ass()),
+                                                                                     gridtools::make_stage<functors::partial_hexahedron_assembled_reduction<N_DOF0,N_DOF1,N_DOF2,functors::sum_operator<float_t> > >(p_pAp_ass(),p_pAp_red())
                                                                 ));
                 compute_pAp->ready();
                 compute_pAp->steady();
@@ -333,9 +333,9 @@ namespace gdl {
                 // where the pAp product contribution of a single mesh element has
                 // been accumulated
                 float_t pAp_scal = 0.;
-                for(uint_t i=1;i<i_b.meta_data().template dims<0>();++i)
-                    for(uint_t j=1;j<i_b.meta_data().template dims<1>();++j)
-                        for(uint_t k=1;k<i_b.meta_data().template dims<2>();++k)
+                for(uint_t i=1;i<i_b.meta_data().template dim<0>();++i)
+                    for(uint_t j=1;j<i_b.meta_data().template dim<1>();++j)
+                        for(uint_t k=1;k<i_b.meta_data().template dim<2>();++k)
                             pAp_scal += pAp_red(i,j,k,0);
 
 
@@ -345,10 +345,10 @@ namespace gdl {
                 const float_t alpha_scal(r_scal_mod/pAp_scal);
 
                 // TODO: temporary solution, use global_accessor
-                for(uint_t i=1;i<i_b.meta_data().template dims<0>();++i)
-                    for(uint_t j=1;j<i_b.meta_data().template dims<1>();++j)
-                        for(uint_t k=1;k<i_b.meta_data().template dims<2>();++k)
-                            for(uint_t l=0;l<i_b.meta_data().template dims<3>();++l)
+                for(uint_t i=1;i<i_b.meta_data().template dim<0>();++i)
+                    for(uint_t j=1;j<i_b.meta_data().template dim<1>();++j)
+                        for(uint_t k=1;k<i_b.meta_data().template dim<2>();++k)
+                            for(uint_t l=0;l<i_b.meta_data().template dim<3>();++l)
                                 alpha(i,j,k,l) = alpha_scal;
 
 
@@ -377,21 +377,21 @@ namespace gdl {
                 typedef gt::arg<13, VectorType_b> p_alphap_mod_ass_xupd;
                 typedef gt::arg<14, VectorType_b> p_alphap_mod_red_ass_xupd;
                 typedef boost::mpl::vector<p_p_ass_xupd, p_alpha_xupd, p_alphap_ass_xupd, p_alphap_ass_copy_xupd, p_x_ass_xupd, p_x_upd_ass_xupd, p_Ap_ass_xupd, p_alphaAp_ass_xupd, p_r_ass_xupd, p_r_upd_ass_xupd, p_r_upd_ass_copy_xupd, p_r_upd_mod_ass_xupd, p_r_upd_mod_red_ass_xupd, p_alphap_mod_ass_xupd, p_alphap_mod_red_ass_xupd> x_update_accessor_list;
-                gridtools::domain_type<x_update_accessor_list> x_update_domain(boost::fusion::make_vector(&p_ass, &alpha, &alphap_ass, &alphap_ass, &io_x, &io_x, &Ap_ass, &alphaAp_ass, &r_ass, &r_ass, &r_ass, &r_upd_mod_ass, &r_upd_mod_red_ass, &alphap_mod_ass, &alphap_mod_red_ass));
+                gridtools::aggregator_type<x_update_accessor_list> x_update_domain(boost::fusion::make_vector(&p_ass, &alpha, &alphap_ass, &alphap_ass, &io_x, &io_x, &Ap_ass, &alphaAp_ass, &r_ass, &r_ass, &r_ass, &r_upd_mod_ass, &r_upd_mod_red_ass, &alphap_mod_ass, &alphap_mod_red_ass));
 
 
 
                 auto compute_x_update=gridtools::make_computation<BACKEND>(x_update_domain,
                                                                            mesh_coords_ass,
-                                                                           gridtools::make_mss(gridtools::enumtype::execute<gridtools::enumtype::forward>(),
-                                                                                               gridtools::make_esf<functors::vecvec<4,functors::mult_operator<float_t> > >(p_p_ass_xupd(),p_alpha_xupd(),p_alphap_ass_xupd()),
-                                                                                               gridtools::make_esf<functors::vecvec<4,functors::sum_operator<float_t> > >(p_x_ass_xupd(),p_alphap_ass_xupd(),p_x_upd_ass_xupd()),
-                                                                                               gridtools::make_esf<functors::vecvec<4,functors::mult_operator<float_t> > >(p_Ap_ass_xupd(),p_alpha_xupd(),p_alphaAp_ass_xupd()),
-                                                                                               gridtools::make_esf<functors::vecvec<4,functors::sub_operator<float_t> > >(p_r_ass_xupd(),p_alphaAp_ass_xupd(),p_r_upd_ass_xupd()),
-                                                                                               gridtools::make_esf<functors::vecvec<4,functors::mult_operator<float_t> > >(p_r_upd_ass_xupd(),p_r_upd_ass_copy_xupd(),p_r_upd_mod_ass_xupd()),
-                                                                                               gridtools::make_esf<functors::vecvec<4,functors::mult_operator<float_t> > >(p_alphap_ass_xupd(),p_alphap_ass_copy_xupd(),p_alphap_mod_ass_xupd()),
-                                                                                               gridtools::make_esf<functors::partial_hexahedron_assembled_reduction<N_DOF0,N_DOF1,N_DOF2,functors::sum_operator<float_t> > >(p_r_upd_mod_ass_xupd(),p_r_upd_mod_red_ass_xupd()),
-                                                                                               gridtools::make_esf<functors::partial_hexahedron_assembled_reduction<N_DOF0,N_DOF1,N_DOF2,functors::sum_operator<float_t> > >(p_alphap_mod_ass_xupd(),p_alphap_mod_red_ass_xupd())
+                                                                           gridtools::make_multistage(gridtools::enumtype::execute<gridtools::enumtype::forward>(),
+                                                                                               gridtools::make_stage<functors::vecvec<4,functors::mult_operator<float_t> > >(p_p_ass_xupd(),p_alpha_xupd(),p_alphap_ass_xupd()),
+                                                                                               gridtools::make_stage<functors::vecvec<4,functors::sum_operator<float_t> > >(p_x_ass_xupd(),p_alphap_ass_xupd(),p_x_upd_ass_xupd()),
+                                                                                               gridtools::make_stage<functors::vecvec<4,functors::mult_operator<float_t> > >(p_Ap_ass_xupd(),p_alpha_xupd(),p_alphaAp_ass_xupd()),
+                                                                                               gridtools::make_stage<functors::vecvec<4,functors::sub_operator<float_t> > >(p_r_ass_xupd(),p_alphaAp_ass_xupd(),p_r_upd_ass_xupd()),
+                                                                                               gridtools::make_stage<functors::vecvec<4,functors::mult_operator<float_t> > >(p_r_upd_ass_xupd(),p_r_upd_ass_copy_xupd(),p_r_upd_mod_ass_xupd()),
+                                                                                               gridtools::make_stage<functors::vecvec<4,functors::mult_operator<float_t> > >(p_alphap_ass_xupd(),p_alphap_ass_copy_xupd(),p_alphap_mod_ass_xupd()),
+                                                                                               gridtools::make_stage<functors::partial_hexahedron_assembled_reduction<N_DOF0,N_DOF1,N_DOF2,functors::sum_operator<float_t> > >(p_r_upd_mod_ass_xupd(),p_r_upd_mod_red_ass_xupd()),
+                                                                                               gridtools::make_stage<functors::partial_hexahedron_assembled_reduction<N_DOF0,N_DOF1,N_DOF2,functors::sum_operator<float_t> > >(p_alphap_mod_ass_xupd(),p_alphap_mod_red_ass_xupd())
                                                                            ));
 
                 compute_x_update->ready();
@@ -406,18 +406,18 @@ namespace gdl {
                 // where the r'*r' product contribution of a single mesh element has
                 // been accmulated
                 float_t r_upd_scal_mod = 0.;
-                for(uint_t i=1;i<i_b.meta_data().template dims<0>();++i)
-                    for(uint_t j=1;j<i_b.meta_data().template dims<1>();++j)
-                        for(uint_t k=1;k<i_b.meta_data().template dims<2>();++k)
+                for(uint_t i=1;i<i_b.meta_data().template dim<0>();++i)
+                    for(uint_t j=1;j<i_b.meta_data().template dim<1>();++j)
+                        for(uint_t k=1;k<i_b.meta_data().template dim<2>();++k)
                             r_upd_scal_mod += r_upd_mod_red_ass(i,j,k,0);
 
                 // Sum over 0-th element of each mesh element alphap_mod_red_ass vector,
                 // where the (alpha*p)*(alpha*p) product contribution of a single mesh element has
                 // been accmulated
                 stability = 0.;
-                for(uint_t i=1;i<i_b.meta_data().template dims<0>();++i)
-                    for(uint_t j=1;j<i_b.meta_data().template dims<1>();++j)
-                        for(uint_t k=1;k<i_b.meta_data().template dims<2>();++k)
+                for(uint_t i=1;i<i_b.meta_data().template dim<0>();++i)
+                    for(uint_t j=1;j<i_b.meta_data().template dim<1>();++j)
+                        for(uint_t k=1;k<i_b.meta_data().template dim<2>();++k)
                             stability += alphap_mod_red_ass(i,j,k,0);
 
                 if(r_upd_scal_mod<i_error_threshold)
@@ -427,10 +427,10 @@ namespace gdl {
                 r_scal_mod = r_upd_scal_mod;
 
                 // TODO: temporary solution, use global_accessor
-                for(uint_t i=1;i<i_b.meta_data().template dims<0>();++i)
-                    for(uint_t j=1;j<i_b.meta_data().template dims<1>();++j)
-                        for(uint_t k=1;k<i_b.meta_data().template dims<2>();++k)
-                            for(uint_t l=0;l<i_b.meta_data().template dims<3>();++l)
+                for(uint_t i=1;i<i_b.meta_data().template dim<0>();++i)
+                    for(uint_t j=1;j<i_b.meta_data().template dim<1>();++j)
+                        for(uint_t k=1;k<i_b.meta_data().template dim<2>();++k)
+                            for(uint_t l=0;l<i_b.meta_data().template dim<3>();++l)
                                 beta(i,j,k,l) = beta_scal;
 
 
@@ -444,14 +444,14 @@ namespace gdl {
                 typedef gt::arg<2, VectorType_b> p_betap_ass_pupd;
                 typedef gt::arg<3, VectorType_b> p_r_upd_ass_pupd;
                 typedef boost::mpl::vector<p_p_ass_pupd, p_beta_pupd, p_betap_ass_pupd, p_r_upd_ass_pupd> p_update_accessor_list;
-                gridtools::domain_type<p_update_accessor_list> p_update_domain(boost::fusion::make_vector(&p_ass, &beta, &betap_ass, &r_ass));
+                gridtools::aggregator_type<p_update_accessor_list> p_update_domain(boost::fusion::make_vector(&p_ass, &beta, &betap_ass, &r_ass));
 
 
                 auto compute_p_update=gridtools::make_computation<BACKEND>(p_update_domain,
                                                                            mesh_coords_ass,
-                                                                           gridtools::make_mss(gridtools::enumtype::execute<gridtools::enumtype::forward>(),
-                                                                                               gridtools::make_esf<functors::vecvec<4,functors::mult_operator<float_t> > >(p_p_ass_pupd(),p_beta_pupd(),p_betap_ass_pupd()),
-                                                                                               gridtools::make_esf<functors::vecvec<4,functors::sum_operator<float_t> > >(p_r_upd_ass_pupd(),p_betap_ass_pupd(),p_p_ass_pupd())
+                                                                           gridtools::make_multistage(gridtools::enumtype::execute<gridtools::enumtype::forward>(),
+                                                                                               gridtools::make_stage<functors::vecvec<4,functors::mult_operator<float_t> > >(p_p_ass_pupd(),p_beta_pupd(),p_betap_ass_pupd()),
+                                                                                               gridtools::make_stage<functors::vecvec<4,functors::sum_operator<float_t> > >(p_r_upd_ass_pupd(),p_betap_ass_pupd(),p_p_ass_pupd())
                                                                            ));
                 compute_p_update->ready();
                 compute_p_update->steady();

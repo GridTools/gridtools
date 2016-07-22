@@ -82,12 +82,12 @@ int main()
 
     // Kernel backend definition
     #ifdef CUDA_EXAMPLE
-    #define BACKEND backend<gridtools::enumtype::Cuda,gridtools::enumtype:Block>
+    #define BACKEND backend<gridtools::enumtype::Cuda, GRIDBACKEND, gridtools::enumtype:Block>
     #else
     #ifdef BACKEND_BLOCK
-    #define BACKEND backend<gridtools::enumtype::Host,gridtools::enumtype::Block>
+    #define BACKEND backend<gridtools::enumtype::Host, GRIDBACKEND, gridtools::enumtype::Block>
     #else
-    #define BACKEND backend<gridtools::enumtype::Host,gridtools::enumtype::Naive>
+    #define BACKEND backend<gridtools::enumtype::Host, GRIDBACKEND, gridtools::enumtype::Naive>
     #endif
     #endif
 
@@ -123,7 +123,7 @@ int main()
     // make_vector function (same order!). It must be noted that the same strorage_type is used for real container
     // instances and placeholder templated argument. In their turns these storage type contains the infos about the
     // stored data type (e.g., float, etc) and memory layout
-    gridtools::domain_type<placeholder_list> domain(boost::fusion::make_vector(&csi, &bspline_basis_values));
+    gridtools::aggregator_type<placeholder_list> domain(boost::fusion::make_vector(&csi, &bspline_basis_values));
 
     // Domain (coordinates structure+halos) definition
     gridtools::uint_t csi_indexes[5] = {0, 0, 0, numPoints-1, numPoints}; // Knot (csi) domain direction definition
@@ -138,8 +138,8 @@ int main()
 #else
     boost::shared_ptr<gridtools::computation> bspline_basis_calculation =
 #endif
-    		gridtools::make_computation<gridtools::BACKEND>(gridtools::make_mss(gridtools::enumtype::execute<gridtools::enumtype::forward>(),
-    																	 gridtools::make_esf<bspline_basis_struct>(p_bspline_basis_values(),
+    		gridtools::make_computation<gridtools::BACKEND>(gridtools::make_multistage(gridtools::enumtype::execute<gridtools::enumtype::forward>(),
+    																	 gridtools::make_stage<bspline_basis_struct>(p_bspline_basis_values(),
     		  	  	  	  	  	  	  	  	  	  	  	  	  			 	 	 	 	 	    		     p_csi())),
 																		 domain,
 																		 coordinates);

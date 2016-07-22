@@ -101,7 +101,7 @@ int main( int argc, char ** argv){
 
     typedef boost::mpl::vector<p_grid_points, p_jac, p_weights, p_jac_det, p_jac_inv, p_phi_geo, p_dphi_geo, p_phi, p_mass> arg_list;
     // appending the placeholders to the list of placeholders already in place
-    gt::domain_type<arg_list> domain(
+    gt::aggregator_type<arg_list> domain(
 	boost::fusion::make_vector(   &assembler_base.grid()
 				      , &assembler.jac()
 				      , &assembler.fe_backend().cub_weights()
@@ -123,10 +123,10 @@ int main( int argc, char ** argv){
     auto computation=gt::make_computation<BACKEND>
         (         domain,
                   coords,
-                  make_mss(execute<forward>(),
-                           gt::make_esf<functors::update_jac<geo_t> >(p_grid_points(), p_dphi_geo(), p_jac()),
-                           gt::make_esf<functors::det< geo_t > >(p_jac(), p_jac_det()),
-                           gt::make_esf<functors::mass >(p_jac_det(), p_weights(), p_phi(), p_phi(), p_mass()))
+                  make_multistage(execute<forward>(),
+                           gt::make_stage<functors::update_jac<geo_t> >(p_grid_points(), p_dphi_geo(), p_jac()),
+                           gt::make_stage<functors::det< geo_t > >(p_jac(), p_jac_det()),
+                           gt::make_stage<functors::mass >(p_jac_det(), p_weights(), p_phi(), p_phi(), p_mass()))
             );
 
 

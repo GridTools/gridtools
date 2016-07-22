@@ -21,7 +21,7 @@
 #include <iostream>
 #include <fstream>
 
-namespace gridtools{
+namespace gdl{
 
     template<typename Derived>
     struct io_base;
@@ -69,7 +69,7 @@ namespace gridtools{
 
 
 
-    template<enumtype::grid_type>
+    template<enumtype::io_grid_type>
     struct create_grid;
 
     /**@brief creates a regular grid
@@ -81,9 +81,9 @@ namespace gridtools{
 
         template<typename Storage>
         static boost::shared_ptr<XdmfRegularGrid> instance(Storage const& storage_){
-            uint_t d1=storage_.meta_data().template dims<0>();
-            uint_t d2=storage_.meta_data().template dims<1>();
-            uint_t d3=storage_.meta_data().template dims<2>();
+            uint_t d1=storage_.meta_data().template dim<0>();
+            uint_t d2=storage_.meta_data().template dim<1>();
+            uint_t d3=storage_.meta_data().template dim<2>();
             uint_t first_dim = Storage::layout::template find_val<0, uint_t, 0>(d1, d2, d3);
             uint_t second_dim = Storage::layout::template find_val<1, uint_t, 0>(d1, d2, d3);
             uint_t third_dim = Storage::layout::template find_val<2, uint_t, 0>(d1, d2, d3);
@@ -120,14 +120,14 @@ namespace gridtools{
         template <typename Storage, typename LocalGrid>
         static boost::shared_ptr<XdmfRectilinearGrid> instance(Storage const& storage_, LocalGrid const& local_grid_info_){
 
-            uint_t d1=storage_.meta_data().template dims<0>();
-            uint_t d2=storage_.meta_data().template dims<1>();
-            uint_t d3=storage_.meta_data().template dims<2>();
+            uint_t d1=storage_.meta_data().template dim<0>();
+            uint_t d2=storage_.meta_data().template dim<1>();
+            uint_t d3=storage_.meta_data().template dim<2>();
 
             //quad points or dofs?
-            uint_t np1=local_grid_info_.template dims<0>();//n. local points along x
-            uint_t np2=local_grid_info_.template dims<1>();//n. local points along y
-            uint_t np3=local_grid_info_.template dims<2>();//n. local points along z
+            uint_t np1=local_grid_info_.template dim<0>();//n. local points along x
+            uint_t np2=local_grid_info_.template dim<1>();//n. local points along y
+            uint_t np3=local_grid_info_.template dim<2>();//n. local points along z
 
             uint_t first_dim = Storage::layout::template find_val<0, uint_t, 0>(d1, d2, d3);
 
@@ -171,7 +171,7 @@ namespace gridtools{
         }
     };
 
-    template<ushort_t CubDegree, enumtype::grid_type>
+    template<ushort_t CubDegree, enumtype::io_grid_type>
     struct create_grid_qpoints;
 
     /**@brief creates a rectilinear grid
@@ -184,9 +184,9 @@ namespace gridtools{
         template <typename Storage, typename Cubature>
         static boost::shared_ptr<XdmfRectilinearGrid> instance(Storage const& storage_, Cubature const& cub){
 
-            uint_t d1=storage_.meta_data().template dims<0>();
-            uint_t d2=storage_.meta_data().template dims<1>();
-            uint_t d3=storage_.meta_data().template dims<2>();
+            uint_t d1=storage_.meta_data().template dim<0>();
+            uint_t d2=storage_.meta_data().template dim<1>();
+            uint_t d3=storage_.meta_data().template dim<2>();
 
             //quad points: only valid for tensor products of course
             uint_t np1=CubDegree - 1;//n. local points along x
@@ -251,11 +251,11 @@ namespace gridtools{
 
         std::ofstream o_file;
         o_file.open(name);
-        auto d1=storage_.meta_data().template dims<0>();
-        auto d2=storage_.meta_data().template dims<1>();
-        auto d3=storage_.meta_data().template dims<2>();
-        auto d4=storage_.meta_data().template dims<3>();
-        auto d5 = storage_.meta_data().template dims<4>();
+        auto d1=storage_.meta_data().template dim<0>();
+        auto d2=storage_.meta_data().template dim<1>();
+        auto d3=storage_.meta_data().template dim<2>();
+        auto d4=storage_.meta_data().template dim<3>();
+        auto d5 = storage_.meta_data().template dim<4>();
 
         o_file<<"%%MatrixMarket matrix coordinate real general\n";
         o_file<<d1*d2*d3*d4<<" "<<d1*d2*d3*d5<<" "<<d1*d2*d3*d4*d5<<"\n";
@@ -291,10 +291,10 @@ namespace gridtools{
 
         std::ofstream o_file;
         o_file.open(name);
-        auto d1=storage_.meta_data().template dims<0>();
-        auto d2=storage_.meta_data().template dims<1>();
-        auto d3=storage_.meta_data().template dims<2>();
-        auto d4=storage_.meta_data().template dims<3>();
+        auto d1=storage_.meta_data().template dim<0>();
+        auto d2=storage_.meta_data().template dim<1>();
+        auto d3=storage_.meta_data().template dim<2>();
+        auto d4=storage_.meta_data().template dim<3>();
 
         for(int_t i=0 ; i<d1 ; ++i)
         {
@@ -322,17 +322,17 @@ namespace gridtools{
      */
     template <typename Storage, typename LocalGridInfo>
     void reindex_vec(Storage const& storage_, LocalGridInfo const& local_grid_info_, typename Storage::value_type * data_){
-        auto d1=storage_.meta_data().template dims<0>();
-        auto d2=storage_.meta_data().template dims<1>();
-        auto d3=storage_.meta_data().template dims<2>();
-        auto d4=storage_.meta_data().template dims<3>();
+        auto d1=storage_.meta_data().template dim<0>();
+        auto d2=storage_.meta_data().template dim<1>();
+        auto d3=storage_.meta_data().template dim<2>();
+        auto d4=storage_.meta_data().template dim<3>();
         auto d5=1;
         if(Storage::space_dimensions>=5)
-            d5 = storage_.meta_data().template dims<4>();//space dimension
+            d5 = storage_.meta_data().template dim<4>();//space dimension
 
-        uint_t np1=local_grid_info_.template dims<0>();//n. local points along x
-        uint_t np2=local_grid_info_.template dims<1>();//n. local points along y
-        uint_t np3=local_grid_info_.template dims<2>();//n. local points along z
+        uint_t np1=local_grid_info_.template dim<0>();//n. local points along x
+        uint_t np2=local_grid_info_.template dim<1>();//n. local points along y
+        uint_t np3=local_grid_info_.template dim<2>();//n. local points along z
 
         for(int_t k=0 ; k<d3 ; ++k)
         {
@@ -361,14 +361,14 @@ namespace gridtools{
 
     template <typename Storage, typename LocalGridInfo>
     void reindex(Storage const& storage_, LocalGridInfo const& local_grid_info_, typename Storage::value_type * data_){
-        auto d1=storage_.meta_data().template dims<0>();
-        auto d2=storage_.meta_data().template dims<1>();
-        auto d3=storage_.meta_data().template dims<2>();
-        auto d4=storage_.meta_data().template dims<3>();
+        auto d1=storage_.meta_data().template dim<0>();
+        auto d2=storage_.meta_data().template dim<1>();
+        auto d3=storage_.meta_data().template dim<2>();
+        auto d4=storage_.meta_data().template dim<3>();
 
-        uint_t np1=local_grid_info_.template dims<0>();//n. local points along x
-        uint_t np2=local_grid_info_.template dims<1>();//n. local points along y
-        uint_t np3=local_grid_info_.template dims<2>();//n. local points along z
+        uint_t np1=local_grid_info_.template dim<0>();//n. local points along x
+        uint_t np2=local_grid_info_.template dim<1>();//n. local points along y
+        uint_t np3=local_grid_info_.template dim<2>();//n. local points along z
 
         for(int_t k=0 ; k<d3 ; ++k)
         {
@@ -394,14 +394,14 @@ namespace gridtools{
 
     template <ushort_t CubDegree, typename Storage, typename Cubature>
     void reindex_on_qpoints(Storage const& storage_, Cubature const& cubature_, typename Storage::value_type * data_){
-        auto d1=storage_.meta_data().template dims<0>();
-        auto d2=storage_.meta_data().template dims<1>();
-        auto d3=storage_.meta_data().template dims<2>();
-        auto d4=storage_.meta_data().template dims<3>();
+        auto d1=storage_.meta_data().template dim<0>();
+        auto d2=storage_.meta_data().template dim<1>();
+        auto d3=storage_.meta_data().template dim<2>();
+        auto d4=storage_.meta_data().template dim<3>();
 
-        // uint_t np1=local_grid_info_.template dims<0>();//n. local points along x
-        // uint_t np2=local_grid_info_.template dims<1>();//n. local points along y
-        // uint_t np3=local_grid_info_.template dims<2>();//n. local points along z
+        // uint_t np1=local_grid_info_.template dim<0>();//n. local points along x
+        // uint_t np2=local_grid_info_.template dim<1>();//n. local points along y
+        // uint_t np3=local_grid_info_.template dim<2>();//n. local points along z
         uint_t np1=CubDegree - 1;//n. local points along x
         uint_t np2=CubDegree - 1;//n. local points along y
         uint_t np3=CubDegree - 1;//n. local points along z
@@ -430,17 +430,17 @@ namespace gridtools{
 
     template <ushort_t Face, typename Storage, typename LocalGridInfo>
     void reindex_on_face(Storage const& storage_, LocalGridInfo const& local_grid_info_, typename Storage::value_type * data_){
-        auto d1=storage_.meta_data().template dims<0>();
-        auto d2=storage_.meta_data().template dims<1>();
-        auto d3=storage_.meta_data().template dims<2>();
-        auto d4=8;//storage_.meta_data().template dims<3>();
+        auto d1=storage_.meta_data().template dim<0>();
+        auto d2=storage_.meta_data().template dim<1>();
+        auto d3=storage_.meta_data().template dim<2>();
+        auto d4=8;//storage_.meta_data().template dim<3>();
         auto d5=1;
         if(Storage::space_dimensions>=5)
-            d5 = storage_.meta_data().template dims<3>();//space dimension
+            d5 = storage_.meta_data().template dim<3>();//space dimension
 
-        uint_t np1=local_grid_info_.template dims<0>();//n. local points along x
-        uint_t np2=local_grid_info_.template dims<1>();//n. local points along y
-        uint_t np3=local_grid_info_.template dims<2>();//n. local points along z
+        uint_t np1=local_grid_info_.template dim<0>();//n. local points along x
+        uint_t np2=local_grid_info_.template dim<1>();//n. local points along y
+        uint_t np3=local_grid_info_.template dim<2>();//n. local points along z
 
         for(int_t k=0 ; k<d3 ; ++k)
         {
@@ -501,7 +501,7 @@ namespace gridtools{
             attr->setName(name_);
             attr->setCenter(XdmfAttributeCenter::Node());
             attr->setType(XdmfAttributeType::Scalar());
-            uint_t total_points = storage_.meta_data().template dims<2>()*storage_.meta_data().template dims<1>()*storage_.meta_data().template dims<0>();
+            uint_t total_points = storage_.meta_data().template dim<2>()*storage_.meta_data().template dims<1>()*storage_.meta_data().template dims<0>();
             attr->initialize(XdmfArrayType::Float64(), total_points);
             attr->insert(0, storage_.template access_value<static_int<FieldDim> >(), total_points);
             // The heavy data set name is determined by the writer if not set
@@ -577,11 +577,11 @@ namespace gridtools{
             attr0->setName(name_ + "face0");
             attr0->setCenter(XdmfAttributeCenter::Node());
             attr0->setType(XdmfAttributeType::Vector());
-            uint_t total_points = storage_.meta_data().template dims<0>()
-                *storage_.meta_data().template dims<1>()
-                *storage_.meta_data().template dims<2>()
+            uint_t total_points = storage_.meta_data().template dim<0>()
+                *storage_.meta_data().template dim<1>()
+                *storage_.meta_data().template dim<2>()
                 *8//dofs cardinality
-                *storage_.meta_data().template dims<3>();//n_dims
+                *storage_.meta_data().template dim<3>();//n_dims
             typename VecStorage::value_type data[total_points];
             reindex_on_face<0>(storage_, m_local_grid, data); // loops
 
@@ -699,11 +699,11 @@ namespace gridtools{
         //     attr0->setName(name_ + "face0");
         //     attr0->setCenter(XdmfAttributeCenter::Node());
         //     attr0->setType(XdmfAttributeType::Vector());
-        //     uint_t total_points = storage_.meta_data().template dims<0>()
-        //         *storage_.meta_data().template dims<1>()
-        //         *storage_.meta_data().template dims<2>()
+        //     uint_t total_points = storage_.meta_data().template dim<0>()
+        //         *storage_.meta_data().template dim<1>()
+        //         *storage_.meta_data().template dim<2>()
         //         *8//dofs cardinality
-        //         *storage_.meta_data().template dims<3>();//n_dims
+        //         *storage_.meta_data().template dim<3>();//n_dims
         //     typename VecStorage::value_type data[total_points];
         //     reindex_on_face<0>(storage_, m_local_cub, data); // loops
 
@@ -766,4 +766,4 @@ namespace gridtools{
     // }
 
 
-}//namespace gridtools
+}//namespace gdl

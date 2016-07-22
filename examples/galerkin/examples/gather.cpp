@@ -53,7 +53,7 @@ int main(){
 
     typedef boost::mpl::vector<p_in, p_out> list_t;
     // appending the placeholders to the list of placeholders already in place
-    auto domain=domain_type< list_t >(boost::fusion::make_vector(&in_, &out_) );
+    auto domain=aggregator_type< list_t >(boost::fusion::make_vector(&in_, &out_) );
     //![placeholders]
 
 
@@ -64,10 +64,10 @@ int main(){
 
     //![computation]
     auto computation=make_computation< gridtools::BACKEND >(
-        make_mss
+        make_multistage
         (
             execute<forward>()
-            , make_esf< functors::assemble< geo_t > >(p_in(), p_in(), p_out())
+            , make_stage< functors::assemble< geo_t > >(p_in(), p_in(), p_out())
             ), domain, coords);
 
     computation->ready();

@@ -95,7 +95,7 @@ int main( int argc, char ** argv){
 
     typedef typename boost::mpl::vector<p_grid_points, p_jac, p_weights, p_jac_det, p_jac_inv,  p_dphi, p_mass, p_phi_discr > mpl_list;
 
-    domain_type<mpl_list> domain(boost::fusion::make_vector(  &assembler_base.grid()
+    aggregator_type<mpl_list> domain(boost::fusion::make_vector(  &assembler_base.grid()
                                                               , &assembler.jac()
                                                               , &assembler.fe_backend().cub_weights()
                                                               , &assembler.jac_det()
@@ -115,16 +115,16 @@ int main( int argc, char ** argv){
     //![computation]
     auto compute_assembly=make_computation< BACKEND >(
         domain, coords,
-        make_mss
+        make_multistage
         (
             execute<forward>()
 
             //compute the Jacobian matrix
-            , make_esf<functors::update_jac<as::geometry_t, Hexa> >(p_grid_points(), p_dphi(), p_jac())
+            , make_stage<functors::update_jac<as::geometry_t, Hexa> >(p_grid_points(), p_dphi(), p_jac())
             // compute the measure (det(J))
-            , make_esf<functors::det<geo_t> >(p_jac(), p_jac_det())
+            , make_stage<functors::det<geo_t> >(p_jac(), p_jac_det())
             // compute the mass matrix
-            , make_esf< functors::mass >(p_jac_det(), p_weights(), p_phi_discr(), p_phi_discr(), p_mass()) //mass
+            , make_stage< functors::mass >(p_jac_det(), p_weights(), p_phi_discr(), p_phi_discr(), p_mass()) //mass
             ));
 
     compute_assembly->ready();
