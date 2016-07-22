@@ -552,6 +552,31 @@ int main( int argc, char ** argv){
             );
 
 
+
+    struct evaluate{
+
+        typedef  gt::arg<0, typename discr_t::basis_function_storage_t> p_phi;
+        typedef  gt::arg<1, scalar_type> p_result;
+        typedef  gt::arg<2, physical_scalar_storage_type
+                     > p_result_interpolated;
+        typedef  gt::arg<3, typename as::storage_type >    p_jac_det;
+        typedef  gt::arg<4, typename as::geometry_t::weights_storage_t >   p_weights;
+    };
+
+    physical_scalar_storage_info_t physical_scalar_storage_info_(d1,d2,d3,cub::numCubPoints());
+    physical_scalar_storage_type result_interpolated_(physical_scalar_storage_info_, 0., "interpolated result");
+
+    typedef typename boost::mpl::vector< evaluate::p_phi, evaluate::p_result, evaluate::p_result_interpolated, evaluate::p_jac_det, evaluate::p_weights> mpl_list_interp;
+
+    gt::aggregator_type<mpl_list_interp> domain_interp(boost::fusion::make_vector(
+                                                           &fe_.val()
+                                                           ,&result_
+                                                           ,&result_interpolated_
+                                                           ,&assembler.jac_det()
+                                                           ,&assembler.fe_backend().cub_weights()
+                                                           ));
+
+
     // auto coords_right=gt::grid<axis>({1u,0u,1u,d1-1u,d1},
     //         {d2-1u, 0u, d2-1u, (uint_t)d2-1u, (uint_t)d2});
     // coords_right.value_list[0] = 0;
@@ -642,28 +667,6 @@ int main( int argc, char ** argv){
 
     // spy(advection_, "advection.txt");
 
-    struct evaluate{
-
-        typedef  gt::arg<0, typename discr_t::basis_function_storage_t> p_phi;
-        typedef  gt::arg<1, scalar_type> p_result;
-        typedef  gt::arg<2, physical_scalar_storage_type
-                     > p_result_interpolated;
-        typedef  gt::arg<3, typename as::storage_type >    p_jac_det;
-        typedef  gt::arg<4, typename as::geometry_t::weights_storage_t >   p_weights;
-    };
-
-    physical_scalar_storage_info_t physical_scalar_storage_info_(d1,d2,d3,cub::numCubPoints());
-    physical_scalar_storage_type result_interpolated_(physical_scalar_storage_info_, 0., "interpolated result");
-
-    typedef typename boost::mpl::vector< evaluate::p_phi, evaluate::p_result, evaluate::p_result_interpolated, evaluate::p_jac_det, evaluate::p_weights> mpl_list_interp;
-
-    gt::aggregator_type<mpl_list_interp> domain_interp(boost::fusion::make_vector(
-                                                   &fe_.val()
-                                                   ,&result_
-                                                   ,&result_interpolated_
-                                                   ,&assembler.jac_det()
-                                                   ,&assembler.fe_backend().cub_weights()
-                        ));
 
     auto evaluation_=gt::make_computation< BACKEND >(
         domain_interp, coords
