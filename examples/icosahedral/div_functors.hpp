@@ -64,7 +64,7 @@ namespace ico_operators {
             constexpr auto neighbors_offsets = connectivity< cells, edges, Color >::offsets();
             ushort_t e = 0;
             for (auto neighbor_offset : neighbors_offsets) {
-                eval(weights(edge + e)) += eval(orientation_of_normal(edge + e)) * eval(edge_length(neighbor_offset)) *
+                eval(weights(edge + e)) = eval(orientation_of_normal(edge + e)) * eval(edge_length(neighbor_offset)) *
                                            eval(cell_area_reciprocal());
                 e++;
             }
@@ -135,6 +135,7 @@ namespace ico_operators {
             eval(out_cells()) = t;
         }
     };
+
     template < uint_t Color >
      struct div_functor_flow_convention {
          typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 1 > > in_edges;
@@ -154,6 +155,32 @@ namespace ico_operators {
                  eval(out_cells()) = -eval(on_edges(ff, 0.0, in_edges(), edge_length())) * eval(cell_area_reciprocal());
          }
      };
+
+     template < uint_t Color >
+      struct div_functor_flow_convention_connectivity {
+          typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 1 > > in_edges;
+          typedef in_accessor< 1, icosahedral_topology_t::edges, extent< 1 > > edge_length;
+          typedef in_accessor< 2, icosahedral_topology_t::cells, extent< 1 > > cell_area_reciprocal;
+          typedef inout_accessor< 3, icosahedral_topology_t::cells > out_cells;
+          typedef boost::mpl::vector< in_edges, edge_length, cell_area_reciprocal, out_cells > arg_list;
+
+          template < typename Evaluation >
+          GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+              auto ff = [](
+                  const double _in1, const double _in2, const double _res) -> double { return _in1 * _in2 + _res; };
+
+              double t{0.};
+              constexpr auto neighbors_offsets = connectivity< cells, edges, Color >::offsets();
+              for (auto neighbor_offset : neighbors_offsets) {
+                  t += eval(in_edges(neighbor_offset)) * eval(edge_length(neighbor_offset));
+              }
+
+              if (Color == 0)
+                  eval(out_cells()) = t * eval(cell_area_reciprocal());
+              else
+                  eval(out_cells()) = -t * eval(cell_area_reciprocal());
+          }
+      };
 
      template < uint_t Color >
      struct div_functor_over_edges {

@@ -278,7 +278,7 @@ namespace ico_operators {
             cell_area_reciprocal.d2h_update();
             out_cells.d2h_update();
 #endif
-            result = result && ver.verify(grid_, ref_cells, out_cells, halos);
+//            result = result && ver.verify(grid_, ref_cells, out_cells, halos);
 
 #ifdef BENCHMARK
             benchmarker::run(stencil_flow_convention, t_steps);
@@ -286,6 +286,48 @@ namespace ico_operators {
 #endif
             stencil_flow_convention->finalize();
         }
+
+        /*
+         * stencil of div flow convention
+         */
+        {
+            typedef arg< 0, edge_storage_type > p_in_edges;
+            typedef arg< 1, edge_2d_storage_type > p_edge_length;
+            typedef arg< 2, cell_2d_storage_type > p_cell_area_reciprocal;
+            typedef arg< 3, cell_storage_type > p_out_cells;
+
+            typedef boost::mpl::vector< p_in_edges, p_edge_length, p_cell_area_reciprocal, p_out_cells > accessor_list_t;
+
+            gridtools::aggregator_type< accessor_list_t > domain(
+                boost::fusion::make_vector(&in_edges, &edge_length, &cell_area_reciprocal, &out_cells));
+
+            auto stencil_flow_convention = gridtools::make_computation< backend_t >(
+                domain,
+                grid_,
+                gridtools::make_multistage // mss_descriptor
+                (execute< forward >(),
+                    gridtools::make_stage< div_functor_flow_convention_connectivity,
+                        icosahedral_topology_t,
+                        icosahedral_topology_t::cells >(p_in_edges(), p_edge_length(), p_cell_area_reciprocal(), p_out_cells())));
+            stencil_flow_convention->ready();
+            stencil_flow_convention->steady();
+            stencil_flow_convention->run();
+
+#ifdef __CUDACC__
+            in_edges.d2h_update();
+            edge_length.d2h_update();
+            cell_area_reciprocal.d2h_update();
+            out_cells.d2h_update();
+#endif
+            result = result && ver.verify(grid_, ref_cells, out_cells, halos);
+
+#ifdef BENCHMARK
+            benchmarker::run(stencil_flow_convention, t_steps);
+            std::cout << "flow convention connectivity: " << stencil_flow_convention->print_meter() << std::endl;
+#endif
+            stencil_flow_convention->finalize();
+        }
+
 
         {
             typedef arg< 0, edge_storage_type > p_in_edges;
