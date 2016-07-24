@@ -62,7 +62,7 @@ namespace ico_operators {
             constexpr auto neighbors_offsets = connectivity< vertexes, edges, Color >::offsets();
             ushort_t e = 0;
             for (auto neighbor_offset : neighbors_offsets) {
-                eval(weights(edge + e)) += eval(edge_orientation(edge + e)) * eval(dual_edge_length(neighbor_offset)) *
+                eval(weights(edge + e)) = eval(edge_orientation(edge + e)) * eval(dual_edge_length(neighbor_offset)) *
                                            eval(dual_area_reciprocal());
                 e++;
             }
@@ -84,6 +84,7 @@ namespace ico_operators {
             double t{0.};
             constexpr auto neighbors_offsets = connectivity< vertexes, edges, Color >::offsets();
             ushort_t e = 0;
+
             for (auto neighbor_offset : neighbors_offsets) {
                 t += eval(in_edges(neighbor_offset)) * eval(weights(edge + e));
                 e++;
