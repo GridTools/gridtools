@@ -540,10 +540,14 @@ namespace gridtools {
 
             // the neighbors are described as an array of absolute indices in the storage, i.e. an array<uint?t,
             // NumNeighbors>
-            const auto neighbors = m_grid_topology.connectivity_index(location_type_t(),
-                onneighbors.location(),
-                SrcColor(),
-                {current_position[0], current_position[2], current_position[3]});
+            constexpr auto neighbors =
+                connectivity< location_type_t, decltype(onneighbors.location()), SrcColor::value >::offsets();
+
+            //TODO use the index version instead?
+//            const auto neighbors = m_grid_topology.connectivity_index(location_type_t(),
+//                onneighbors.location(),
+//                SrcColor(),
+//                {current_position[0], current_position[2], current_position[3]});
 
             ValueType &result = onneighbors.value();
 
@@ -657,7 +661,6 @@ namespace gridtools {
             typename accessor_return_type< accessor< ID, Intend, LocationType, Extent, FieldDimensions > >::type >::type
             _evaluate(accessor< ID, Intend, LocationType, Extent, FieldDimensions >,
                 array< int_t, 4 > const &position_offset) const {
-            GRIDTOOLS_STATIC_ASSERT((LocationType::value == location_type_t::value), "error");
 
             using accessor_t = accessor< ID, Intend, LocationType, Extent, FieldDimensions >;
 

@@ -278,7 +278,7 @@ namespace ico_operators {
             cell_area_reciprocal.d2h_update();
             out_cells.d2h_update();
 #endif
-//            result = result && ver.verify(grid_, ref_cells, out_cells, halos);
+            result = result && ver.verify(grid_, ref_cells, out_cells, halos);
 
 #ifdef BENCHMARK
             benchmarker::run(stencil_flow_convention, t_steps);
