@@ -352,7 +352,7 @@ namespace ico_operators {
                                  icosahedral_topology_t::edges>(
                                          p_in_edges(), p_edge_length(), p_out_cells()),
                                  gridtools::make_stage<divide_by_field, icosahedral_topology_t,
-                                 icosahedral_topology_t::edges >(
+                                 icosahedral_topology_t::cells >(
                                          p_cell_area_reciprocal(), p_out_cells())
                                 )
                 );
@@ -368,7 +368,7 @@ namespace ico_operators {
         #endif
 
                 // TODO: this does not validate because the divide_by_field functor runs only on edges with color 0
-                //        result = result && ver.verify(grid_, ref_cells, out_cells, halos);
+                        result = result && ver.verify(grid_, ref_cells, out_cells, halos);
 
         #ifdef BENCHMARK
                 benchmarker::run(stencil_div_over_edges, t_steps);
@@ -412,7 +412,7 @@ namespace ico_operators {
         #endif
 
                 // TODO: this does not validate in bottom left cell
-        //        result = result && ver.verify(grid_, ref_cells, out_cells, halos);
+//                result = result && ver.verify(grid_, ref_cells, out_cells, halos);
 
         #ifdef BENCHMARK
                 benchmarker::run(stencil_div_over_edges_weights, t_steps);
