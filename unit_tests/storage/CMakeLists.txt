@@ -21,6 +21,9 @@ add_executable(pointer_metafunctions_test test_pointer_metafunctions.cpp)
 gridtools_add_test(tests.pointer_metafunctions ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/pointer_metafunctions_test")
 add_executable(storage_naming_test test_storage_naming.cpp)
 gridtools_add_test(tests.storage_naming ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/storage_naming_test")
+add_executable(test_extract_storage_from_field test_extract_storage_from_field.cpp)
+gridtools_add_test(tests.test_extract_storage_from_field ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/test_extract_storage_from_field")
+
 
 set_target_properties(storage_tests PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} LINKER_LANGUAGE CXX )
 set_target_properties(storage_info_test PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} LINKER_LANGUAGE CXX )
@@ -29,6 +32,7 @@ set_target_properties(cuda_storage_on_host_test PROPERTIES COMPILE_FLAGS ${ADDIT
 set_target_properties(storage_metafunctions_test PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} LINKER_LANGUAGE CXX )
 set_target_properties(pointer_metafunctions_test PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} LINKER_LANGUAGE CXX )
 set_target_properties(storage_naming_test PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} LINKER_LANGUAGE CXX )
+set_target_properties(test_extract_storage_from_field PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} LINKER_LANGUAGE CXX )
 
 target_link_libraries(storage_tests ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
 target_link_libraries(storage_info_test ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
@@ -37,6 +41,7 @@ target_link_libraries(cuda_storage_on_host_test ${GTEST_BOTH_LIBRARIES} -lpthrea
 target_link_libraries(storage_metafunctions_test ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
 target_link_libraries(pointer_metafunctions_test ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
 target_link_libraries(storage_naming_test ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
+target_link_libraries(test_extract_storage_from_field ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
 
 if( USE_GPU )
   gridtools_add_test(tests_gpu.storage_alignment ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/storage_alignment_test_cuda")

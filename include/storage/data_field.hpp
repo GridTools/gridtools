@@ -396,6 +396,23 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((field_dim < traits::n_dimensions), "trying to get a field_dimension out of bound");
             return get< snapshot, field_dim >()[this->m_meta_data->index(args...)];
         }
+
+        /**@biref returns a single storage containing one snapshot
+
+           The new storage does not take ownership of the data,
+           the data lifetime is the one of the data_field. NOTE: using this API
+           is quite dangerous if you modify the data, it might have unexpected side effects.
+           In the future we might want to only allow the user to export read-only storages.
+        */
+        template<short_t snapshot = 0, short_t field_dim = 0>
+        base_storage<pointer_type, typename basic_type::storage_info_type, 1> get_storage() const {
+
+            //trying to get a snapshot out of bound
+            assert((snapshot < _impl::access< n_width - (field_dim)-1, traits >::type::n_width));
+            //trying to get a field_dimension out of bound
+            assert((field_dim < traits::n_dimensions));
+            return base_storage<pointer_type, typename basic_type::storage_info_type, 1> (this->m_meta_data.get(), get< snapshot, field_dim >().get(), (std::string("storage extracted from ") + this->get_name()).c_str());
+        }
     };
 
     template < typename First, typename... StorageExtended >

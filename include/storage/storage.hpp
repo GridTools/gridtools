@@ -242,6 +242,12 @@ namespace gridtools {
             (*m_storage).allocate(dims, offset);
         }
 
+        template <ushort_t snapshot_, ushort_t dim_>
+        base_storage<pointer_type, typename basic_type::storage_info_type, 1> get_storage( ) {
+            GRIDTOOLS_STATIC_ASSERT(is_data_field<BaseStorage>::value, "error");
+            return m_storage->template get_storage<snapshot_, dim_>();
+        }
+
         GT_FUNCTION
         pointer< storage_ptr_t > get_storage_pointer() { return pointer< storage_ptr_t >(&m_storage); }
 
