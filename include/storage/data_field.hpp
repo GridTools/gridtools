@@ -407,9 +407,9 @@ namespace gridtools {
         template<short_t snapshot = 0, short_t field_dim = 0>
         base_storage<pointer_type, typename basic_type::storage_info_type, 1> get_storage() const {
 
-            //trying to get a snapshot out of bound
+            // trying to get a snapshot out of bound
             assert((snapshot < _impl::access< n_width - (field_dim)-1, traits >::type::n_width));
-            //trying to get a field_dimension out of bound
+            // trying to get a field_dimension out of bound
             assert((field_dim < traits::n_dimensions));
             return base_storage<pointer_type, typename basic_type::storage_info_type, 1> (this->m_meta_data.get(), get< snapshot, field_dim >().get(), (std::string("storage extracted from ") + this->get_name()).c_str());
         }
