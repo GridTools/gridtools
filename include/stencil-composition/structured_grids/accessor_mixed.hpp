@@ -32,6 +32,8 @@ namespace gridtools{
     struct accessor_mixed : public offset_tuple_mixed<typename ArgType::offset_tuple_t, Pair ...> {
         typedef typename ArgType::index_type index_type;
         typedef typename ArgType::base_t base_t;
+        typedef typename ArgType::offset_tuple_t offset_tuple_t;
+        typedef typename ArgType::extent_t extent_t;
 
         using super = offset_tuple_mixed<typename ArgType::offset_tuple_t, Pair ...>;
 
@@ -49,6 +51,20 @@ namespace gridtools{
         constexpr const super& offsets() const { return *this; }
 
     };
+
+    template < uint_t ID,
+               enumtype::intend Intend = enumtype::in,
+               typename Extent = extent< 0, 0, 0, 0, 0, 0 >,
+               ushort_t Number = 3 >
+    struct accessor : accessor_mixed<accessor_impl<ID, Intend, Extent, Number> >{
+        using accessor_mixed<accessor_impl<ID, Intend, Extent, Number> >::accessor_mixed;
+    };
+
+    template < uint_t ID, typename Extent = extent< 0, 0, 0, 0, 0, 0 >, ushort_t Number = 3 >
+    using in_accessor = accessor< ID, enumtype::in, Extent, Number >;
+
+    template < uint_t ID, typename Extent = extent< 0, 0, 0, 0, 0, 0 >, ushort_t Number = 3 >
+    using inout_accessor = accessor< ID, enumtype::inout, Extent, Number >;
 
     /**
        @brief this struct allows the specification of SOME of the arguments before instantiating the offset_tuple.

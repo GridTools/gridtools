@@ -208,7 +208,7 @@ namespace test_cycle_and_swap {
         typedef gridtools::layout_map< 0, 1 > layout_t;
         typedef gridtools::BACKEND::storage_info< 0, layout_t > meta_t;
         typedef gridtools::BACKEND::storage_type< uint_t, meta_t >::type storage_type;
-        typedef typename field< storage_type, 3,3,3 >::type field_t;
+        typedef typename field< storage_type, 3,3,4 >::type field_t;
 
         meta_t meta_(1u, 1u);
         field_t i_data(meta_, 0, "in");
@@ -221,6 +221,7 @@ namespace test_cycle_and_swap {
         i_data.get_value< 0, 2 >(0, 0) = 20;
         i_data.get_value< 1, 2 >(0, 0) = 21;
         i_data.get_value< 2, 2 >(0, 0) = 22;
+        i_data.get_value< 3, 2 >(0, 0) = 23;
 
         uint_t di[5] = {0, 0, 0, 0, 1};
         uint_t dj[5] = {0, 0, 0, 0, 1};
@@ -260,7 +261,8 @@ namespace test_cycle_and_swap {
                 && i_data.get_value< 2, 1 >(0, 0) == 11
                 && i_data.get_value< 0, 2 >(0, 0) == 21
                 && i_data.get_value< 1, 2 >(0, 0) == 22
-                && i_data.get_value< 2, 2 >(0, 0) == 20
+                && i_data.get_value< 2, 2 >(0, 0) == 23
+                && i_data.get_value< 3, 2 >(0, 0) == 20
             );
     }
 
