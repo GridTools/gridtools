@@ -511,6 +511,7 @@ namespace gridtools {
         template < ushort_t Coordinate, typename Accessor >
         GT_FUNCTION uint_t get_storage_dim(Accessor) const {
 
+            GRIDTOOLS_STATIC_ASSERT(is_accessor<Accessor>::value, "wrong type");
             typedef typename Accessor::index_type index_t;
             typedef typename local_domain_t::template get_storage<index_t>::type::value_type storage_t;
             //getting information about the metadata
@@ -629,6 +630,7 @@ namespace gridtools {
 #endif
 
 #ifdef CXX11_ENABLED
+
         /** @brief method called in the Do methods of the functors.
 
             specialization for the expr_direct_access<Accessor> placeholders (high level syntax: '@plch').
@@ -648,38 +650,12 @@ namespace gridtools {
             return expressions::evaluation::value((*this), arg);
         }
 
-        /** @brief method called in the Do methods of the functors.
-            partial specializations for double (or float)*/
-        template < typename Argument,
-            template < typename Arg1, typename Arg2 > class Expression,
-            typename FloatType,
-            typename boost::enable_if< typename boost::is_floating_point< FloatType >::type, int >::type = 0 >
-        GT_FUNCTION auto operator()(Expression< Argument, FloatType > const &arg) const
-            -> decltype(expressions::evaluation::value(*this, arg)) {
-            GRIDTOOLS_STATIC_ASSERT((is_expr<Expression<Argument, FloatType> >::value), "invalid expression");
+        template < typename Argument, template < typename Arg1, int Arg2 > class Expression, int int_argument >
+        GT_FUNCTION auto operator()(Expression< Argument, int_argument > const &arg) const
+            -> decltype(expressions::evaluation::value((*this), arg)) {
+
+            GRIDTOOLS_STATIC_ASSERT((is_expr<Expression<Argument, int_argument> >::value), "invalid expression");
             return expressions::evaluation::value((*this), arg);
-        }
-
-        /** @brief method called in the Do methods of the functors.
-            partial specializations for int. Here we do not use the typedef int_t, because otherwise the interface would be polluted with casting
-            (the user would have to cast all the numbers (-1, 0, 1, 2 .... ) to int_t before using them in the expression)*/
-        template < typename Argument,
-            template < typename Arg1, typename Arg2 > class Expression,
-            typename IntType,
-            typename boost::enable_if< typename boost::is_integral< IntType >::type, int >::type = 0 >
-        GT_FUNCTION auto operator()(Expression< Argument, IntType > const &arg) const
-            -> decltype(expressions::evaluation::value_int((*this), arg)) {
-
-            GRIDTOOLS_STATIC_ASSERT((is_expr<Expression<Argument, IntType> >::value), "invalid expression");
-            return expressions::evaluation::value_int((*this), arg);
-        }
-
-        template < typename Argument, template < typename Arg1, int Arg2 > class Expression, int exponent >
-        GT_FUNCTION auto operator()(Expression< Argument, exponent > const &arg) const
-            -> decltype(expressions::evaluation::value_int((*this), arg)) {
-
-            GRIDTOOLS_STATIC_ASSERT((is_expr<Expression<Argument, exponent> >::value), "invalid expression");
-            return expressions::evaluation::value_int((*this), arg);
         }
 
 #endif // CXX11_ENABLED

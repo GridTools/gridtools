@@ -23,7 +23,6 @@
 #include "expr_times.hpp"
 #include "expr_pow.hpp"
 #include "expr_divide.hpp"
-#include "expr_exp.hpp"
 #include "expr_direct_access.hpp"
 #include "expr_derivative.hpp"
 
@@ -33,7 +32,7 @@ namespace gridtools {
 
         template < int Exponent,
             typename FloatType,
-            typename boost::enable_if< typename boost::is_floating_point< FloatType >::type, int >::type = 0 >
+            typename boost::enable_if< typename boost::is_arithmetic< FloatType >::type, int >::type = 0 >
         GT_FUNCTION constexpr FloatType pow(FloatType arg1) {
             return gt_pow< Exponent >::apply(arg1);
         }

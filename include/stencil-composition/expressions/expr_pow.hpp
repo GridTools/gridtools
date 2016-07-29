@@ -3,9 +3,6 @@ namespace gridtools {
     /**@brief Expression computing the integral exponent of the first arguments
        for this expression the second argument is an integer (this might, and probably will, be relaxed if needed)
     */
-    // template <int Exponent, typename ArgType1>
-    // struct expr_exp : public unary_expr<ArgType1>{
-    //     typedef unary_expr<ArgType1> super;
     template < typename ArgType1, int Exponent >
     struct expr_pow : public unary_expr< ArgType1 > {
         typedef unary_expr< ArgType1 > super;
@@ -43,7 +40,7 @@ namespace gridtools {
         /** power expression*/
         template < int exponent,
             typename ArgType1,
-            typename boost::disable_if< typename boost::is_floating_point< ArgType1 >::type, int >::type = 0 >
+            typename boost::disable_if< typename boost::is_arithmetic< ArgType1 >::type, int >::type = 0 >
         GT_FUNCTION constexpr expr_pow< ArgType1, exponent > pow(ArgType1 arg1) {
             return expr_pow< ArgType1, exponent >(arg1);
         }
@@ -61,7 +58,7 @@ namespace gridtools {
                 typename ArgType1 /*typename IntType, IntType*/
                 ,
                 int exponent /*, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 */ >
-            GT_FUNCTION auto static constexpr value_int(
+            GT_FUNCTION auto static constexpr value(
                 IterateDomain const &it_domain, expr_pow< ArgType1, exponent > const &arg)
                 -> decltype(gt_pow< exponent >::apply(it_domain(arg.first_operand))) {
                 return gt_pow< exponent >::apply(it_domain(arg.first_operand));
