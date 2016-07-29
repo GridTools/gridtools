@@ -261,43 +261,53 @@ namespace test_iterate_domain{
         //check offsets for the space dimensions
         using in_1_1=alias<accessor<0, enumtype::inout,extent<0,0,0,0>, 6>, dimension<6>, dimension<5> >::set<1, 1>;
 
+        auto d1_ = in_1_1{dimension<1>{1}};
+        auto d2_ = in_1_1{dimension<2>{1}};
+        auto d3_ = in_1_1{dimension<3>{1}};
+        auto d4_ = in_1_1{dimension<4>{1}};
         assert(((float_type*)(in.get<1,1>().get()+new_index[2]+in.meta_data().strides<0>(in.meta_data().strides()))==
-                &it_domain(in_1_1(dimension<1>(1)))));
+                &it_domain(d1_)));
 
         assert(((float_type*)(in.get<1,1>()+new_index[2]+in.meta_data().strides<1>(in.meta_data().strides()))==
-                &it_domain(in_1_1(dimension<2>(1)))));
+                &it_domain(d2_)));
 
         assert(((float_type*)(in.get<1,1>()+new_index[2]+in.meta_data().strides<2>(in.meta_data().strides()))==
-                &it_domain(in_1_1(dimension<3>(1)))));
+                &it_domain(d3_)));
 
         assert(((float_type*)(in.get<1,1>()+new_index[2]+in.meta_data().strides<3>(in.meta_data().strides()))==
-                &it_domain(in_1_1(dimension<4>(1)))));
+                &it_domain(d4_)));
 
         //check offsets for the space dimensions
 
         using buff_1_1=alias<accessor<1, enumtype::inout,extent<0,0,0,0>, 5>, dimension<5>, dimension<4> >::set<1, 1>;
+        auto b1_ = buff_1_1{dimension<1>{1}};
+        auto b2_ = buff_1_1{dimension<2>{1}};
+        auto b3_ = buff_1_1{dimension<3>{1}};
 
         assert(((float_type*)(buff.get<1,1>().get()+new_index[1]+buff.meta_data().strides<0>(buff.meta_data().strides()))==
-                &it_domain(buff_1_1(dimension<1>(1)))));
+                &it_domain(b1_)));
 
         assert(((float_type*)(buff.get<1,1>()+new_index[1]+buff.meta_data().strides<1>(buff.meta_data().strides()))==
-                &it_domain(buff_1_1(dimension<2>(1)))));
+                &it_domain(b2_)));
 
         assert(((float_type*)(buff.get<1,1>()+new_index[1]+buff.meta_data().strides<2>(buff.meta_data().strides()))==
-                &it_domain(buff_1_1(dimension<3>(1)))));
-
+                &it_domain(b3_)));
         using out_1=alias<inout_accessor<2, extent<0,0,0,0>, 4>, dimension<4>, dimension<3> >::set<1, 1>;
 
+        auto c1_ = out_1{dimension<1>{1}};
+        auto c2_ = out_1{dimension<2>{1}};
+
         assert(((float_type*)(out.get<1,1>()+new_index[0]+out.meta_data().strides<0>(out.meta_data().strides()))==
-                &it_domain(out_1(dimension<1>(1)))));
+                &it_domain(c1_)));
 
         assert(((float_type*)(out.get<1,1>()+new_index[0]+out.meta_data().strides<1>(out.meta_data().strides()))==
-                &it_domain(out_1(dimension<2>(1)))));
+                &it_domain(c2_)));
 
         //check runtime alias arguments
         alias<accessor<2, enumtype::inout,extent<0,0,0,0>, 4>, dimension<3>, dimension<4> > acc_(1,1);
         using acc_t = alias<accessor<2, enumtype::inout,extent<0,0,0,0>, 4>, dimension<3>, dimension<4> >::set<1,1>;
         assert(&it_domain(acc_t(dimension<1>(1)))==&it_domain(acc_(dimension<1>(1))));
+
 #endif
 
         //check strides initialization

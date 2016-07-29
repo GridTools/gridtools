@@ -24,6 +24,8 @@ TEST(advection_pdbott_prepare_tracers, test) {
     gridtools::uint_t x = Options::getInstance().m_size[0];
     gridtools::uint_t y = Options::getInstance().m_size[1];
     gridtools::uint_t z = Options::getInstance().m_size[2];
+    gridtools::uint_t tsteps = Options::getInstance().m_size[3];
 
-    ASSERT_TRUE(adv_prepare_tracers::test(x, y, z));
+    if(tsteps==0) tsteps =1;
+    ASSERT_TRUE(adv_prepare_tracers::test(x, y, z, tsteps));
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stencil-composition/stencil-composition.hpp>
+#include "benchmarker.hpp"
 
 #ifdef __CUDACC__
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
@@ -37,9 +38,7 @@ namespace adv_prepare_tracers {
         }
     };
 
-    bool test(uint_t d1, uint_t d2, uint_t d3) {
-
-#ifdef CUDA8
+    bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t_steps) {
 
         typedef BACKEND::storage_info< 23, layout_t > meta_data_t;
         typedef typename field< BACKEND::storage_type< float_type, meta_data_t >::type, 1 >::type storage_t;
@@ -74,8 +73,12 @@ namespace adv_prepare_tracers {
         comp_->ready();
         comp_->steady();
         comp_->run();
+
+#ifdef BENCHMARK
+        benchmarker::run(comp_, t_steps);
+#endif
         comp_->finalize();
-#endif // CUDA8
+
         return true;
     }
 }

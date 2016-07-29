@@ -133,7 +133,6 @@ namespace gridtools {
 #endif
     };
 
-
 #ifdef CXX11_ENABLED
     template < uint_t ID, typename Extent = extent< 0, 0, 0, 0, 0, 0 >, ushort_t Number = 3 >
     using in_accessor = accessor< ID, enumtype::in, Extent, Number >;
