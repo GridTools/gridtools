@@ -336,9 +336,21 @@ class FastWavesUVTest (CopyTest):
         pass
 
 
-    @unittest.skip("To be implemented")
     def test_ghost_cell_pattern (self, expected_patterns=None, backend='c++'):
-        pass
+        if expected_patterns is None:
+            expected_patterns = {'stage_ppgradcor_init':[0,1,0,1],
+                                 'stage_ppgradcor_below_top':[0,1,0,1],
+                                 'stage_ppgradcor_at_top':[0,1,0,1],
+                                 'stage_xrhsx':[1,0,0,1],
+                                 'stage_xrhsy':[0,1,1,0],
+                                 'stage_xrhsz':[0,1,0,1],
+                                 'stage_ppgrad_at_flat_limit':[0,0,0,0],
+                                 'stage_ppgrad_over_flat_limit':[0,0,0,0],
+                                 'stage_uv':[0,0,0,0],
+                                 'stage_uv_boundary':[0,0,0,0],
+                                }
+        super ( ).test_ghost_cell_pattern (expected_patterns,
+                                           backend=backend)
 
 
     def test_minimum_halo_detection (self, min_halo=None):
