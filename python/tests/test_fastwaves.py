@@ -157,22 +157,24 @@ class FastWavesUVTest (CopyTest):
                                     dt_small=self.dt_small,
                                     dlat=self.dlat,
                                     flat_limit=self.flat_limit)
-        self.stencil.set_halo((3,3,3,3))
+        self.stencil.set_halo((1,1,1,1))
         self.stencil.set_k_direction('forward')
+        self.stencil.set_backend (backend)
 
         # Run stencil
         self._run()
 
         # Compare results
-        udiff = np.isclose(self.out_u, self.ref_u, atol=1e-12)
-        vdiff = np.isclose(self.out_v, self.ref_v, atol=1e-12)
+        udiff = np.isclose(self.out_u[3:-3,3:-3], self.ref_u[3:-3,3:-3], atol=1e-12)
+        vdiff = np.isclose(self.out_v[3:-3,3:-3], self.ref_v[3:-3,3:-3], atol=1e-12)
         num_udiff = np.count_nonzero(np.logical_not (udiff))
         num_vdiff = np.count_nonzero(np.logical_not (vdiff))
+
         print ("Num udiff:", num_udiff)
         print ("Num vdiff:", num_vdiff)
         if num_udiff or num_vdiff:
-            reldiff_u = (self.out_u - self.ref_u) / self.ref_u
-            reldiff_v = (self.out_v - self.ref_v) / self.ref_v
+            reldiff_u = np.abs(self.out_u[3:-3,3:-3] - self.ref_u[3:-3,3:-3]) / self.ref_u[3:-3,3:-3]
+            reldiff_v = np.abs(self.out_v[3:-3,3:-3] - self.ref_v[3:-3,3:-3]) / self.ref_v[3:-3,3:-3]
             print ("mean udiff:", np.mean(reldiff_u))
             print ("mean vdiff:", np.mean(reldiff_v))
             print ("max udiff:", np.max(reldiff_u))
@@ -180,11 +182,20 @@ class FastWavesUVTest (CopyTest):
             print ("stddev udiff:", np.std(reldiff_u))
             print ("stddev vdiff:", np.std(reldiff_v))
         self.assertEqual (num_udiff, 0)
-        self.assertEqual (num_udiff, 0)
+        self.assertEqual (num_vdiff, 0)
 
 
     @unittest.skip("To be validated")
-    def test_data_dependency_detection (self, deps=None, backend='python'):
+    def test_stella_results_cpp (self):
+        self.test_stella_results (backend='c++')
+
+
+    @unittest.skip("To be validated")
+    def test_stella_results_cuda (self):
+        self.test_stella_results (backend='cuda')
+
+
+    def test_data_dependency_detection (self, deps=None, backend='c++'):
         expected_deps = [('out_u', 'u_pos'),
                          ('out_u', 'xlhsx'),
                          ('out_u', 'xdzdx'),
@@ -193,7 +204,7 @@ class FastWavesUVTest (CopyTest):
                          ('out_u', 'self.xrhsy'),
                          ('out_u', 'self.xrhsz'),
                          ('out_u', 'utens_stage'),
-                         ('out_u', 'ppgradu'),
+                         ('out_u', 'self.ppgradu'),
                          ('out_u', 'fx'),
                          ('out_u', 'rho'),
                          ('out_v', 'v_pos'),
@@ -225,6 +236,9 @@ class FastWavesUVTest (CopyTest):
                          ('self.xrhsx', 'rho'),
                          ('self.xrhsx', 'ppuv'),
                          ('self.xrhsx', 'utens_stage'),
+                         ('self.ppgradcor_init', 'wgtfac'),
+                         ('self.ppgradcor_init', 'ppuv'),
+                         ('self.ppgradcor', 'self.ppgradcor_init'),
                          ('self.ppgradcor', 'wgtfac'),
                          ('self.ppgradcor', 'ppuv')]
 
@@ -232,13 +246,83 @@ class FastWavesUVTest (CopyTest):
                                                   backend=backend)
 
     @unittest.skip("To be implemented")
+    @attr(lang='cuda')
     def test_data_dependency_detection_cuda (self, deps=None, backend='cuda'):
         pass
 
 
-    @unittest.skip("To be implemented")
     def test_automatic_access_pattern_detection (self):
-        pass
+        from gridtools import BACKENDS
+        #
+        # fields and their ranges
+        #
+        self.add_expected_offset ('wgtfac',  None)
+        self.add_expected_offset ('wgtfac',  None)
+        self.add_expected_offset ('ppuv',  [0,0,0,0])
+        self.add_expected_offset ('ppuv',  [0,0,0,0])
+        self.add_expected_offset ('ppuv',  None)
+        self.add_expected_offset ('ppuv',  [0,1,0,0])
+        self.add_expected_offset ('ppuv',  [0,1,0,1])
+        self.add_expected_offset ('ppuv',  [0,0,0,1])
+        self.add_expected_offset ('ppuv',  [0,1,0,1])
+        self.add_expected_offset ('self.ppgradcor_init',  [0,0,0,0])
+        self.add_expected_offset ('self.ppgradcor_init',  None)
+        self.add_expected_offset ('self.ppgradcor',  None)
+        self.add_expected_offset ('self.ppgradcor',  None)
+        self.add_expected_offset ('self.ppgradcor',  [0,1,0,1])
+        self.add_expected_offset ('self.ppgradu',  None)
+        self.add_expected_offset ('self.ppgradu',  None)
+        self.add_expected_offset ('self.ppgradu',  None)
+        self.add_expected_offset ('self.ppgradv',  None)
+        self.add_expected_offset ('self.ppgradv',  None)
+        self.add_expected_offset ('self.ppgradv',  None)
+        self.add_expected_offset ('self.xrhsx', None)
+        self.add_expected_offset ('self.xrhsx', [-1,0,0,1])
+        self.add_expected_offset ('self.xrhsy', None)
+        self.add_expected_offset ('self.xrhsy', [0,1,-1,0])
+        self.add_expected_offset ('self.xrhsz', None)
+        self.add_expected_offset ('self.xrhsz', [0,1,0,1])
+        self.add_expected_offset ('xlhsx', None)
+        self.add_expected_offset ('xlhsy', None)
+        self.add_expected_offset ('xdzdx', [-1,0,0,1])
+        self.add_expected_offset ('xdzdy', [0,1,-1,0])
+        self.add_expected_offset ('fx',   None)
+        self.add_expected_offset ('fx',   None)
+        self.add_expected_offset ('rho0', None)
+        self.add_expected_offset ('rho', None)
+        self.add_expected_offset ('rho', [0,1,0,0])
+        self.add_expected_offset ('rho', [0,0,0,1])
+        self.add_expected_offset ('rho', [0,1,0,1])
+        self.add_expected_offset ('cwp',   None)
+        self.add_expected_offset ('p0',   None)
+        self.add_expected_offset ('hhl', [0,1,0,1])
+        self.add_expected_offset ('utens_stage', None)
+        self.add_expected_offset ('utens_stage', None)
+        self.add_expected_offset ('vtens_stage', None)
+        self.add_expected_offset ('vtens_stage', None)
+        self.add_expected_offset ('wbbctens_stage', [0,0,0,0])
+        self.add_expected_offset ('bott_u', None)
+        self.add_expected_offset ('bott_v', None)
+        self.add_expected_offset ('rhou', None)
+        self.add_expected_offset ('rhov', None)
+        self.add_expected_offset ('u_pos', None)
+        self.add_expected_offset ('u_pos', None)
+        self.add_expected_offset ('v_pos', None)
+        self.add_expected_offset ('v_pos', None)
+        self.add_expected_offset ('out_u', None)
+        self.add_expected_offset ('out_u', None)
+        self.add_expected_offset ('out_v', None)
+        self.add_expected_offset ('out_v', None)
+        self.add_expected_offset ('self.edadlat', None)
+        self.add_expected_offset ('self.edadlat', None)
+        self.add_expected_offset ('self.gravity', None)
+        self.add_expected_offset ('self.dt_small', None)
+        self.add_expected_offset ('self.dt_small', None)
+
+        for backend in BACKENDS:
+            self.stencil.set_backend (backend)
+            self._run ( )
+            self.automatic_access_pattern_detection (self.stencil)
 
 
     @unittest.skip("To be implemented")
@@ -247,6 +331,7 @@ class FastWavesUVTest (CopyTest):
 
 
     @unittest.skip("To be implemented")
+    @attr(lang='cuda')
     def test_compare_python_and_cuda_results (self):
         pass
 
@@ -256,34 +341,10 @@ class FastWavesUVTest (CopyTest):
         pass
 
 
-    @unittest.skip("To be implemented")
-    def test_minimum_halo_detection (self, min_halo=[0,0,0,0]):
-        pass
-
-
-    @unittest.skip("To be implemented")
-    def test_symbol_discovery (self, backend='c++'):
-        pass
-
-
-    @unittest.skip("To be implemented")
-    def test_symbol_discovery_cuda (self):
-        pass
-
-
-    @unittest.skip("To be implemented")
-    def test_user_stencil_extends_multistagestencil (self):
-        pass
-
-
-    @unittest.skip("To be implemented")
-    def test_kernel_function (self):
-        pass
-
-
-    @unittest.skip("To be implemented")
-    def test_run_stencil_only_accepts_keyword_arguments (self):
-        pass
+    def test_minimum_halo_detection (self, min_halo=None):
+        if min_halo is None:
+            min_halo = [1, 1, 1, 1]
+        super ( ).test_minimum_halo_detection (min_halo)
 
 
     @unittest.skip("To be implemented")
@@ -291,21 +352,7 @@ class FastWavesUVTest (CopyTest):
         pass
 
 
-    @unittest.skip("To be implemented")
-    def test_execution_performance_cpp (self, backend='c++'):
-        pass
-
-
-    @unittest.skip("To be implemented")
+    @unittest.skip("To be verified")
+    @attr(lang='cuda')
     def test_execution_performance_cuda (self):
-        pass
-
-
-    @unittest.skip("To be implemented")
-    def test_k_directions (self, backend='c++'):
-        pass
-
-
-    @unittest.skip("To be implemented")
-    def test_k_directions_cuda (self):
         pass
