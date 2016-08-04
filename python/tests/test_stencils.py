@@ -152,48 +152,65 @@ class CopyTest (AccessPatternDetectionTest):
 
 
     @attr(lang='c++')
-    def test_compare_python_and_cpp_results (self, backend='c++'):
+    def test_compare_python_and_cpp_results (self, params_shapes=None, nruns=5, backend='c++'):
         import copy
 
-        nruns                  = 5
         ndiff                  = 0
+        diff_detected          = False
         stencil_native         = copy.deepcopy (self.stencil)
         stencil_native.set_backend (backend)
-
-        #
-        # data fields - Py and C++ sets
-        #
-        params_py  = dict ( )
+        params_py = dict ( )
         params_cxx = dict ( )
-        for p in self.params:
-            params_py[p]  = np.random.rand (*self.domain)
-            params_cxx[p] = np.copy (params_py[p])
         #
-        # apply both stencils 10 times and compare the results
+        # Initalize parameters shape if not provided
+        #
+        if params_shapes is None:
+            params_shapes = dict ( )
+            for p in self.params:
+                params_shapes[p] = self.domain
+        #
+        # Apply both stencils 'nruns' times and compare the results
         # using an error threshold
         #
         for i in range (nruns):
+            #
+            # Generate random input data
+            #
+            for p in self.params:
+                params_py[p]  = np.random.random (params_shapes[p])
+                params_cxx[p] = np.copy (params_py[p])
+            #
+            # Run stencils
+            #
             self.stencil.run   (**params_py)
             stencil_native.run (**params_cxx)
             #
-            # compare field contents
+            # Compare field contents
             #
+            logging.debug("Checking data for run %d:" % i)
             for k in params_py.keys ( ):
-                diff  = np.isclose(params_py[k], params_cxx[k], atol=1e-11)
-                ndiff += np.count_nonzero (np.logical_not (diff))
+                diff  = np.isclose(params_py[k], params_cxx[k], atol=1e-12)
+                ndiff = np.count_nonzero (np.logical_not (diff))
+                if ndiff:
+                    logging.debug("\tDifferences detected for parameter '%s'" % k)
+                    reldiff = np.abs(params_py[k] - params_cxx[k]) / params_py[k]
+                    logging.debug("\t\tNumber of differences: %d" % ndiff)
+                    logging.debug("\t\tMax relative difference: %.7g" % np.max(reldiff))
+                    logging.debug("\t\tMean relative difference: %.7g" % np.mean(reldiff))
+                    logging.debug("\t\tRelative difference stddev: %.7g" % np.std(reldiff))
+                    diff_detected = True
         #
         # Print statements for debugging purposes
         #
-#         for i in range(self.domain[0]):
-#             for j in range(self.domain[1]):
-#                 for k in range(self.domain[2]):
-#                     logging.debug ("PY  (%d,%d,%d) \t%.5f \t%.5f" % (i,j,k,
-#                            params_py['in_X'][i,j,k], params_py['out_X'][i,j,k]) )
-#                     logging.debug ("%s (%d,%d,%d) \t%.5f \t%.5f" % (backend,i,j,k,
-#                            params_cxx['in_X'][i,j,k],params_cxx['out_X'][i,j,k]) )
-        print ("%s ndiff: %d" % (backend, ndiff))
-        print ("%d runs. Avg ndiff per run: %g." % (nruns, ndiff/nruns))
-        self.assertEqual (ndiff, 0)
+        # for i in range(self.domain[0]):
+        #     for j in range(self.domain[1]):
+        #         for k in range(self.domain[2]):
+        #             logging.debug ("PY  (%d,%d,%d) \t%.5f \t%.5f" % (i,j,k,
+        #                    params_py['in_X'][i,j,k], params_py['out_X'][i,j,k]) )
+        #             logging.debug ("%s (%d,%d,%d) \t%.5f \t%.5f" % (backend,i,j,k,
+        #                    params_cxx['in_X'][i,j,k],params_cxx['out_X'][i,j,k]) )
+
+        self.assertFalse (diff_detected)
 
 
     @attr(lang='cuda')
