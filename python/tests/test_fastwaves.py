@@ -55,28 +55,36 @@ class FastWavesUVTest (CopyTest):
                        'self.ppgradu',
                        'self.ppgradv')
 
-        self.stencil = FastWavesUV (self.domain)
+        # Create stencil
+        self.dt_small = 10.0 / 3.0
+        self.dlat = 0.02
+        self.flat_limit = 11
+        self.stencil = FastWavesUV (domain=self.domain,
+                                    dt_small=self.dt_small,
+                                    dlat=self.dlat,
+                                    flat_limit=self.flat_limit)
         self.stencil.set_halo((3,3,3,3))
         self.stencil.set_k_direction('forward')
+        self.stencil.set_backend ('python')
 
         # Stencil inputs
-        self.u_pos = np.random.random(self.domain) / 1e-4
-        self.v_pos = np.random.random(self.domain) / 1e-4
-        self.utens_stage = np.random.random(self.domain) / 1e-4
-        self.vtens_stage = np.random.random(self.domain) / 1e-4
-        self.ppuv      = np.random.random(self.domain) / 1e-4
-        self.rho       = np.random.random(self.domain) / 1e-4
-        self.rho0      = np.random.random(self.domain) / 1e-4
-        self.p0        = np.random.random(self.domain) / 1e-4
-        self.hhl       = np.random.random(self.domain) / 1e-4
-        self.wgtfac    = np.random.random(self.domain) / 1e-4
-        self.fx        = np.random.random(self.domain) / 1e-4
-        self.cwp       = np.random.random(self.domain) / 1e-4
-        self.xdzdx     = np.random.random(self.domain) / 1e-4
-        self.xdzdy     = np.random.random(self.domain) / 1e-4
-        self.xlhsx     = np.random.random(self.domain) / 1e-4
-        self.xlhsy     = np.random.random(self.domain) / 1e-4
-        self.wbbctens_stage = np.random.random ((self.domain[0],self.domain[1],self.domain[2]+1)) / 1e-4
+        self.u_pos = np.random.random(self.domain) / 1e2
+        self.v_pos = np.random.random(self.domain) / 1e2
+        self.utens_stage = np.random.random(self.domain) / 1e2
+        self.vtens_stage = np.random.random(self.domain) / 1e2
+        self.ppuv      = np.random.random(self.domain) / 1e2
+        self.rho       = np.random.random(self.domain) / 1e2
+        self.rho0      = np.random.random(self.domain) / 1e2
+        self.p0        = np.random.random(self.domain) / 1e2
+        self.hhl       = np.random.random(self.domain) / 1e2
+        self.wgtfac    = np.random.random(self.domain) / 1e2
+        self.fx        = np.random.random(self.domain) / 1e2
+        self.cwp       = np.random.random(self.domain) / 1e2
+        self.xdzdx     = np.random.random(self.domain) / 1e2
+        self.xdzdy     = np.random.random(self.domain) / 1e2
+        self.xlhsx     = np.random.random(self.domain) / 1e2
+        self.xlhsy     = np.random.random(self.domain) / 1e2
+        self.wbbctens_stage = np.random.random ((self.domain[0],self.domain[1],self.domain[2]+1)) / 1e2
 
         # Stencil outputs
         self.out_u = np.zeros (self.domain, dtype=np.float64)
@@ -157,32 +165,29 @@ class FastWavesUVTest (CopyTest):
                                     dt_small=self.dt_small,
                                     dlat=self.dlat,
                                     flat_limit=self.flat_limit)
-        self.stencil.set_halo((1,1,1,1))
+        self.stencil.set_halo((3,3,3,3))
         self.stencil.set_k_direction('forward')
         self.stencil.set_backend (backend)
 
         # Run stencil
         self._run()
 
-        # Compare results
-        udiff = np.isclose(self.out_u[3:-3,3:-3], self.ref_u[3:-3,3:-3], atol=1e-12)
-        vdiff = np.isclose(self.out_v[3:-3,3:-3], self.ref_v[3:-3,3:-3], atol=1e-12)
-        num_udiff = np.count_nonzero(np.logical_not (udiff))
-        num_vdiff = np.count_nonzero(np.logical_not (vdiff))
+        # Check results
+        diff_detected = False
+        for k in 'uv':
+            diff  = np.isclose(eval('self.out_%s'%k)[3:-3,3:-3], eval('self.ref_%s'%k)[3:-3,3:-3], atol=1e-12)
+            ndiff = np.count_nonzero (np.logical_not (diff))
+            if ndiff:
+                logging.debug("\tDifferences detected for parameter 'out_%s'" % k)
+                reldiff = (np.abs(eval('self.%s'%k)[3:-3,3:-3] - eval('self.ref_%s'%k)[3:-3,3:-3])
+                           / eval('self.ref_%s'%k)[3:-3,3:-3])
+                logging.debug("\t\tNumber of differences: %d" % ndiff)
+                logging.debug("\t\tMax relative difference: %.7g" % np.max(reldiff))
+                logging.debug("\t\tMean relative difference: %.7g" % np.mean(reldiff))
+                logging.debug("\t\tRelative difference stddev: %.7g" % np.std(reldiff))
+                diff_detected = True
 
-        print ("Num udiff:", num_udiff)
-        print ("Num vdiff:", num_vdiff)
-        if num_udiff or num_vdiff:
-            reldiff_u = np.abs(self.out_u[3:-3,3:-3] - self.ref_u[3:-3,3:-3]) / self.ref_u[3:-3,3:-3]
-            reldiff_v = np.abs(self.out_v[3:-3,3:-3] - self.ref_v[3:-3,3:-3]) / self.ref_v[3:-3,3:-3]
-            print ("mean udiff:", np.mean(reldiff_u))
-            print ("mean vdiff:", np.mean(reldiff_v))
-            print ("max udiff:", np.max(reldiff_u))
-            print ("max vdiff:", np.max(reldiff_v))
-            print ("stddev udiff:", np.std(reldiff_u))
-            print ("stddev vdiff:", np.std(reldiff_v))
-        self.assertEqual (num_udiff, 0)
-        self.assertEqual (num_vdiff, 0)
+        self.assertFalse (diff_detected)
 
 
     @unittest.skip("To be validated")
@@ -191,6 +196,7 @@ class FastWavesUVTest (CopyTest):
 
 
     @unittest.skip("To be validated")
+    @attr(lang='cuda')
     def test_stella_results_cuda (self):
         self.test_stella_results (backend='cuda')
 
@@ -325,15 +331,18 @@ class FastWavesUVTest (CopyTest):
             self.automatic_access_pattern_detection (self.stencil)
 
 
-    @unittest.skip("To be implemented")
-    def test_compare_python_and_cpp_results (self):
-        pass
+    def test_compare_python_and_cpp_results (self, backend='c++'):
+        params_shapes  = dict ( )
+        for p in self.params:
+            params_shapes[p]  = self.domain
+        params_shapes['wbbctens_stage'] = (self.domain[0],self.domain[1],(self.domain[2]+1))
+        super ( ).test_compare_python_and_cpp_results (params_shapes=params_shapes,
+                                                       backend=backend)
 
 
-    @unittest.skip("To be implemented")
     @attr(lang='cuda')
     def test_compare_python_and_cuda_results (self):
-        pass
+        self.test_compare_python_and_cpp_results (backend='cuda')
 
 
     def test_ghost_cell_pattern (self, expected_patterns=None, backend='c++'):
@@ -347,7 +356,7 @@ class FastWavesUVTest (CopyTest):
                                  'stage_ppgrad_at_flat_limit':[0,0,0,0],
                                  'stage_ppgrad_over_flat_limit':[0,0,0,0],
                                  'stage_uv':[0,0,0,0],
-                                 'stage_uv_boundary':[0,0,0,0],
+                                 'stage_uv_boundary':[0,0,0,0]
                                 }
         super ( ).test_ghost_cell_pattern (expected_patterns,
                                            backend=backend)
@@ -359,7 +368,7 @@ class FastWavesUVTest (CopyTest):
         super ( ).test_minimum_halo_detection (min_halo)
 
 
-    @unittest.skip("To be implemented")
+    @unittest.skip("Superseded by tests on STELLA results")
     def test_python_results (self, out_param=None, result_file=None):
         pass
 
