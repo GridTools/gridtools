@@ -161,7 +161,7 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
     // order in which they appear scanning the placeholders in order.
     // (I don't particularly like this)
     //
-    gridtools::domain_type<arg_type_list> domain (boost::fusion::make_vector (
+    gridtools::aggregator_type<arg_type_list> domain (boost::fusion::make_vector (
         {{- params|join_with_prefix('&', attribute='name')|join(', ') }}));
 
     {% for s in stencils %}
@@ -199,7 +199,7 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
     // Here we do a lot of stuff
     //
     // 1) we pass to the intermediate representation ::run function the
-    // description of the stencil, which is a multi-stage stencil (mss);
+    // description of the stencil, which is a multistage stencil;
     // 2) the logical physical domain with the fields to use;
     // 3) the actual domain dimensions
     //
@@ -218,7 +218,7 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
       gridtools::make_computation<gridtools::BACKEND>
       (
           domain, grid_{{ loop.index0 }},
-            gridtools::make_mss
+            gridtools::make_multistage
             (
                 execute<{{ s.get_k_direction() }}>(),
                 {% for f in stages[s.name] -%}
