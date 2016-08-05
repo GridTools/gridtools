@@ -14,7 +14,7 @@ int main(){
     std::cout<<"Mesh loading completed"<<std::endl;
     //![load_mesh]
 
-	//![definitions]
+    //![definitions]
     //dimensions of the problem (in number of elements per dimension)
     const u_int d1=1;
     const u_int d2=mesh.num_elements();
@@ -24,8 +24,8 @@ int main(){
 
     //![definitions]
     //defining the assembler, based on the Intrepid definitions for the numerics
-    using matrix_storage_info_t=storage_info<  __COUNTER__, layout_tt<3,4> >;
-    using global_mass_matrix_storage_info_t=storage_info<  __COUNTER__, layout_tt<3,4> >;
+    using matrix_storage_info_t=storage_info<  __COUNTER__, layout_tt<5> >;
+    using global_mass_matrix_storage_info_t=storage_info<  __COUNTER__, layout_tt<5> >;
     using matrix_type=storage_t< matrix_storage_info_t >;
     using global_mass_matrix_type=storage_t< global_mass_matrix_storage_info_t >;
     using fe=reference_element<1, Lagrange, Tri>;
@@ -87,17 +87,17 @@ int main(){
     //![placeholders]
 
     auto coords=grid<axis>({0, 0, 0, d1-1, d1},
-                            	  {0, 0, 0, d2-1, d2});
+                                  {0, 0, 0, d2-1, d2});
     coords.value_list[0] = 0;
     coords.value_list[1] = d3-1;
 
     //![computation]
     auto computation=make_computation<gridtools::BACKEND>(make_multistage(execute<forward>(),
-    															   make_stage<functors::update_jac<geo_t> >(dt::p_grid_points(), p_dphi(), dt::p_jac()),
-    															   make_stage<functors::det< geo_t > >(dt::p_jac(), dt::p_jac_det()),
-																   make_stage<functors::mass<fe, cub> >(dt::p_jac_det(), dt::p_weights(), p_phi(), p_phi(), p_mass())),
-														  domain,
-														  coords);
+                                                                          make_stage<functors::update_jac<geo_t> >(dt::p_grid_points(), p_dphi(), dt::p_jac()),
+                                                                          make_stage<functors::det< geo_t > >(dt::p_jac(), dt::p_jac_det()),
+                                                                          make_stage<functors::mass<fe, cub> >(dt::p_jac_det(), dt::p_weights(), p_phi(), p_phi(), p_mass())),
+                                                          domain,
+                                                          coords);
     computation->ready();
     computation->steady();
     computation->run();
@@ -107,15 +107,15 @@ int main(){
 
     //![assembly_computation]
     auto assembly_coords=grid<axis>({0, 0, 0, num_dofs-1, num_dofs},
-										   {0, 0, 0, num_dofs-1, num_dofs});
+        {0, 0, 0, num_dofs-1, num_dofs});
     assembly_coords.value_list[0] = 0;
     assembly_coords.value_list[1] = 0;
 
 
     auto assembly_computation=make_positional_computation<gridtools::BACKEND>(make_multistage(execute<forward>(),
-    															   make_stage<functors::global_assemble>(p_mass(),p_grid_map(),p_global_mass_gt())),
-														  domain,
-														  assembly_coords);
+                                                                                              make_stage<functors::global_assemble>(p_mass(),p_grid_map(),p_global_mass_gt())),
+                                                                              domain,
+                                                                              assembly_coords);
     assembly_computation->ready();
     assembly_computation->steady();
     assembly_computation->run();

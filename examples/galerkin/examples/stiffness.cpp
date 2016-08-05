@@ -27,11 +27,7 @@ int main( int argc, char ** argv){
 
     //![definitions]
     //defining the assembler, based on the Intrepid definitions for the numerics
-#ifdef CUDA_EXAMPLE
-    using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<4,3> >;
-#else
-    using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<3,4> >;
-#endif
+    using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<5> >;
     using matrix_type = storage_t< matrix_storage_info_t >;
     using fe = reference_element<1, Lagrange, Hexa>;
     using geo_map = reference_element<1, Lagrange, Hexa>;
@@ -140,8 +136,7 @@ int main( int argc, char ** argv){
         (
             execute<forward>(),
             gt::make_stage<functors::update_jac<geo_t> >( p_grid_points(), p_dphi(), p_jac())
-            ,
-            gt::make_stage<functors::det<geo_t> >(p_jac(), p_jac_det())
+            , gt::make_stage<functors::det<geo_t> >(p_jac(), p_jac_det())
             , gt::make_stage<functors::inv<geo_t> >(p_jac(), p_jac_det(), p_jac_inv())
             , gt::make_stage<functors::stiffness<fe, cub> >(p_jac_det(), p_jac_inv(), p_weights(), p_dphi(), p_dphi(), p_stiffness())//stiffness
             ));

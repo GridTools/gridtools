@@ -24,18 +24,24 @@ struct bd_assembly {
 
     // static const int_t n_faces=geo_map::hypercube_t::template n_boundary_w_dim<Boundary::spaceDim>::value;
     using boundary_t = Boundary;
-    using bd_cub=typename Boundary::cub;
+    using phi_t = typename boundary_t::basis_function_storage_t;
+    using dphi_t = typename boundary_t::grad_storage_t;
+    using weights_storage_t = typename boundary_t::weights_storage_t;
+    using tangent_storage_t = typename boundary_t::tangent_storage_t;
+    using basis_function_storage_t = typename boundary_t::basis_function_storage_t;
+    using grad_storage_t = typename boundary_t::grad_storage_t;
+    using bd_cub = typename Boundary::cub;
     // using super = assembly_base<Geometry>;
 
-    using face_normals_type_info=storage_info< __COUNTER__, layout_tt<3,4,5>>;
+    using face_normals_type_info=storage_info< __COUNTER__, layout_tt<6>>;
     using face_normals_type=storage_t< face_normals_type_info >;
-    using storage_type_info=storage_info< __COUNTER__, layout_tt<3,4> >;
+    using storage_type_info=storage_info< __COUNTER__, layout_tt<5> >;
     using storage_type=storage_t< storage_type_info >;
-    using jacobian_type_info=storage_info<__COUNTER__, layout_tt<3,4,5,6> >;
+    using jacobian_type_info=storage_info<__COUNTER__, layout_tt<7> >;
     using jacobian_type=storage_t< jacobian_type_info >;
-    using bd_vector_storage_info_t=storage_info< __COUNTER__, layout_tt<3> >;//TODO change: iterate on faces
+    using bd_vector_storage_info_t=storage_info< __COUNTER__, layout_tt<4> >;//TODO change: iterate on faces
     using bd_vector_type=storage_t< bd_vector_storage_info_t >;
-
+    using bd_cub_weights_t = typename boundary_t::weights_storage_t;
 private:
     boundary_t & m_bd_backend;
     jacobian_type_info m_jac_info;
@@ -59,8 +65,8 @@ public:
     storage_type const& get_bd_measure() const { return m_bd_measure;}
 
 
-    typename Boundary::tangent_storage_t & ref_normals() const {return m_bd_backend.ref_normals();}
-    typename Boundary::tangent_storage_t const& get_ref_normals() const {return m_bd_backend.ref_normals();}
+    tangent_storage_t & ref_normals() const {return m_bd_backend.ref_normals();}
+    tangent_storage_t const& get_ref_normals() const {return m_bd_backend.ref_normals();}
 
     bd_assembly( Boundary& bd_backend_,
              // Geometry& fe_backend_,
@@ -93,7 +99,7 @@ public:
     typedef gt::arg<super::size+1, typename as_t::face_normals_type >                   p_normals;
     typedef gt::arg<super::size+2, typename as_t::storage_type >        p_bd_measure;
     typedef gt::arg<super::size+3, typename as_t::boundary_t::weights_storage_t> p_bd_weights;
-    typedef gt::arg<super::size+4, typename as_t::boundary_t::tangent_storage_t> p_ref_normals;
+    typedef gt::arg<super::size+4, typename as_t::tangent_storage_t> p_ref_normals;
     typedef gt::arg<super::size+6, typename as_t::boundary_t::basis_function_storage_t> p_bd_phi;
     typedef gt::arg<super::size+7, typename as_t::boundary_t::grad_storage_t> p_bd_dphi;
     static const ushort_t size=super::size+8;

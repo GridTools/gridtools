@@ -22,8 +22,8 @@ int main(){
 
     //![definitions]
     //defining the assembler, based on the Intrepid definitions for the numerics
-    using matrix_storage_info_t=storage_info<  __COUNTER__, layout_tt<3,4> >;
-    using global_stiffness_matrix_storage_info_t=storage_info<  __COUNTER__, layout_tt<3,4> >;
+    using matrix_storage_info_t=storage_info<  __COUNTER__, layout_tt<5> >;
+    using global_stiffness_matrix_storage_info_t=storage_info<  __COUNTER__, layout_tt<5> >;
     using matrix_type=storage_t< matrix_storage_info_t >;
     using global_stiffness_matrix_type=storage_t< global_stiffness_matrix_storage_info_t >;
     using fe=reference_element<1, Lagrange, Tri>;

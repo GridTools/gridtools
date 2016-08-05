@@ -148,12 +148,12 @@ namespace functors{
 
      */
     struct upwind {
-        //extent -1,1,-1,1
+        //extent -1,0,-1,0 because we write on the left and write element boundary too
         using in=gt::accessor<0, enumtype::in, gt::extent<-1,0,-1,0> , 4>;
         using beta_n=gt::accessor<1, enumtype::in, gt::extent<> , 5>;
         using bd_mass_uu=gt::accessor<2, enumtype::in, gt::extent<> , 6>;
         using bd_mass_uv=gt::accessor<3, enumtype::in, gt::extent<> , 6>;
-        using out=gt::accessor<4, enumtype::inout, gt::extent<> , 4> ;
+        using out=gt::accessor<4, enumtype::inout, gt::extent<-1,0,-1,0> , 4> ;
         using arg_list=boost::mpl::vector<in, beta_n, bd_mass_uu, bd_mass_uv, out> ;
 
         template <typename Evaluation>
@@ -213,15 +213,9 @@ namespace functors{
                 /////////////////////////////////////
 #endif
 
-                uint_t stride_face_=
-                    face1_ == 0?2
-                    : face1_ == 3?1
-                    : face1_ == 4?4
-                    : 666;
-
-                short_t opposite_i = (face1_==1)?1:(face1_==3)?-1:0;
-                short_t opposite_j = (face1_==2)?1:(face1_==0)?-1:0;
-                short_t opposite_k = (face1_==5)?1:(face1_==4)?-1:0;
+                short_t opposite_i = (short_t)(face1_==1)?1:(face1_==3)?-1:0;
+                short_t opposite_j = (short_t)(face1_==2)?1:(face1_==0)?-1:0;
+                short_t opposite_k = (short_t)(face1_==5)?1:(face1_==4)?-1:0;
 
                 // hypothesis: if basis functions are localized n_dofs should be
                 // the #dofs on a face
@@ -233,19 +227,18 @@ namespace functors{
                         if (eval(beta_n(row+dof1_, face+face1_)) < -1e-15)
                         {
                             auto val = eval(
-                                in(opposite_i, opposite_j, opposite_k, dof2_ +stride_face_
-                                    )
-                                * bd_mass_uu(opposite_i, opposite_j, opposite_k, dof1_ +stride_face_
-                                             , dof2_ +stride_face_
-                                             , face_opposite_)
+                                // u- * v-
+                                in(opposite_i, opposite_j, opposite_k, dof2_)
+                                * bd_mass_uu(opposite_i, opposite_j, opposite_k, dof1_, dof2_, face_opposite_)
 #ifdef FOR_DEBUG
                                 * bn
 #else
                                 * beta_n(row+dof1_, face+face1_)
 #endif
                                 -
+                                // u- * v+
                                 in(0,0,0, dof2_)
-                                * bd_mass_uu(0,0,0, dof1_ +stride_face_, (dof2_), face1_)
+                                * bd_mass_uv(opposite_i, opposite_j, opposite_k, dof2_, dof1_, face_opposite_)
 #ifdef FOR_DEBUG
                                 * bn
 #else
@@ -255,7 +248,7 @@ namespace functors{
 
                             eval(out(row+dof1_)) += val;
                             //simple rule: always integrate on one face
-                            eval(out(opposite_i, opposite_j, opposite_k, dof1_ +stride_face_)) -= val;
+                            eval(out(opposite_i, opposite_j, opposite_k, dof1_)) -= val;
 
                             // auto tmp=eval(in(opposite_i, opposite_j, opposite_k, dof2_+stride_face_));
                             // auto tmp1=eval(bd_mass_uu(row+dof1_, col+(dof2_), Mface+face1_));
@@ -270,6 +263,7 @@ namespace functors{
                         { // inflow
 
                             auto val = eval(
+                                // u+ * v+
                                 in(row+dof2_)
                                 *bd_mass_uu(row+dof1_, col+dof2_, Mface+face1_)
 #ifdef FOR_DEBUG
@@ -278,8 +272,9 @@ namespace functors{
                                 * beta_n(row+dof1_, face+face1_)
 #endif
                                 -
-                                in(opposite_i, opposite_j, opposite_k, dof2_ +stride_face_)
-                                *bd_mass_uu(opposite_i, opposite_j, opposite_k, dof1_, dof2_, face_opposite_)
+                                // u+ * v-
+                                in(opposite_i, opposite_j, opposite_k, dof2_)
+                                *bd_mass_uv(0,0,0, dof1_, dof2_, face1_)
 #ifdef FOR_DEBUG
                                 * -bn
 #else
@@ -290,7 +285,7 @@ namespace functors{
                             eval(out(row+dof1_)) += val;
 
                             //simple rule: always integrate on one face
-                            eval(out(opposite_i, opposite_j, opposite_k, dof1_ +stride_face_)) -= val;
+                            eval(out(opposite_i, opposite_j, opposite_k, dof1_)) -= val;
                             //find a way to get the corresponding dof on the opposite face and you are done
                             //for x is simply "dof + 1", in general is "dof + stride_face_"
 //                             eval(out(opposite_i, opposite_j, opposite_k, dof1_+stride_face_)) += eval(
@@ -315,9 +310,9 @@ namespace functors{
                         }
                     }
                     //time discretization: TODO change
-#ifndef FOR_DEBUG
-                    eval(out(row+dof1_)) = eval(out(row+dof1_));
-#endif
+// #ifndef FOR_DEBUG
+//                     eval(out(row+dof1_)) = eval(out(row+dof1_));
+// #endif
                 }
             }
         }
@@ -390,7 +385,6 @@ namespace functors{
                     : face1_==5?4
                     : -666;
 
-
 #ifdef FOR_DEBUG
                 /////////FOR DEBUGGING//////////////
                 double bn=
@@ -412,9 +406,8 @@ namespace functors{
                 // the #dofs on a face
 
                 for(short_t dof1_=0; dof1_<n_dofs; dof1_++)
-                {//hypothesis: same #dofs on both faces
+                { //hypothesis: same #dofs on both faces
                     for(short_t dof2_=0; dof2_<n_dofs; dof2_++){
-
                         if (eval(beta_n(row+dof1_, face+face1_)) < -1e-15)
                         {
                             auto val = eval(
@@ -476,8 +469,8 @@ namespace functors{
 
                             eval(out(row+dof1_)) += val;
 
-//                             //simple rule: always integrate on one face
-                            // eval(out(opposite_i, opposite_j, opposite_k, dof1_// +stride_face_
+                            // simple rule: always integrate on one face
+                            // eval(out(opposite_i, opposite_j, opposite_k, dof1_// + stride_face_
                             //          )) -= val;
 
                             //find a way to get the corresponding dof on the opposite face and you are done

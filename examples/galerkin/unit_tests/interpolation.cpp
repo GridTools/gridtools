@@ -60,9 +60,9 @@ int main( int argc, char ** argv){
     //![placeholders]
     // defining the placeholder for the mass
 
-    using scalar_storage_info_t=storage_info< __COUNTER__, layout_tt<3> >;
+    using scalar_storage_info_t=storage_info< __COUNTER__, layout_tt<4> >;
     using scalar_type=storage_t< scalar_storage_info_t >;
-    using interp_scalar_storage_info_t=storage_info< __COUNTER__, layout_tt<3> >;
+    using interp_scalar_storage_info_t=storage_info< __COUNTER__, layout_tt<4> >;
     using interp_scalar_type = storage_t<interp_scalar_storage_info_t>;
     scalar_storage_info_t scalar_meta_(d1,d2,d3,cub::numCubPoints());
     interp_scalar_storage_info_t interp_scalar_meta_(d1,d2,d3,discr_map::basis_cardinality());

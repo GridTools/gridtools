@@ -24,11 +24,7 @@ template <typename Geometry>
 struct assembly_base{
 
     using geometry_t = Geometry;
-#ifdef __CUDACC__
-    using grid_type_info=storage_info< __COUNTER__, layout_tt<4,3>  >;
-#else
-    using grid_type_info=storage_info< __COUNTER__, layout_tt<3,4>  >;
-#endif
+    using grid_type_info=storage_info< __COUNTER__, layout_tt<5>  >;
     using grid_type=storage_t< grid_type_info >;
 
     using geo_map=typename Geometry::geo_map;

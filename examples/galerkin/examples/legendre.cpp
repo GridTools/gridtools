@@ -70,10 +70,10 @@ int main( int argc, char ** argv){
     using namespace gdl;
     using namespace gdl::enumtype;
     //defining the assembler, based on the Intrepid definitions for the numerics
-    using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<3,4> >;
+    using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<5> >;
     using matrix_type=storage_t< matrix_storage_info_t >;
 
-    using bd_matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<3,4,5> >; //last dimension is tha face
+    using bd_matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<6> >; //last dimension is tha face
     using bd_matrix_type=storage_t< bd_matrix_storage_info_t >;
 
     static const ushort_t order_geom=1;
@@ -165,10 +165,10 @@ int main( int argc, char ** argv){
     bd_matrix_storage_info_t bd_meta_(d1,d2,d3,discr_map::basis_cardinality(),discr_map::basis_cardinality(), 6/*faces*/);
     bd_matrix_type bd_mass_(bd_meta_, 0., "bd mass");
 
-    using scalar_storage_info_t=storage_info< __COUNTER__, layout_tt<3>>;//TODO change: iterate on faces
-    using vector_storage_info_t=storage_info< __COUNTER__, layout_tt<3,4>>;//TODO change: iterate on faces
-    using bd_scalar_storage_info_t=storage_info< __COUNTER__, layout_tt<3,4>>;//TODO change: iterate on faces
-    using bd_vector_storage_info_t=storage_info< __COUNTER__, layout_tt<3,4,5>>;//TODO change: iterate on faces
+    using scalar_storage_info_t=storage_info< __COUNTER__, layout_tt<4>>;//TODO change: iterate on faces
+    using vector_storage_info_t=storage_info< __COUNTER__, layout_tt<5>>;//TODO change: iterate on faces
+    using bd_scalar_storage_info_t=storage_info< __COUNTER__, layout_tt<5>>;//TODO change: iterate on faces
+    using bd_vector_storage_info_t=storage_info< __COUNTER__, layout_tt<6>>;//TODO change: iterate on faces
 
     using scalar_type=storage_t< scalar_storage_info_t >;
     using vector_type=storage_t< vector_storage_info_t >;
@@ -182,9 +182,9 @@ int main( int argc, char ** argv){
 
     scalar_type u_(scalar_meta_, 0., "u");//initial solution
 
-    using physical_scalar_storage_info_t = storage_info< __COUNTER__, layout_tt<3> >;
+    using physical_scalar_storage_info_t = storage_info< __COUNTER__, layout_tt<4> >;
     using physical_scalar_storage_type = storage_t<physical_scalar_storage_info_t>;
-    using physical_vec_storage_info_t =storage_info< __COUNTER__, layout_tt<3,4> >;
+    using physical_vec_storage_info_t =storage_info< __COUNTER__, layout_tt<5> >;
     using physical_vec_storage_type = storage_t<physical_vec_storage_info_t>;
 
     physical_vec_storage_info_t physical_vec_info_(d1,d2,d3,cub::numCubPoints(),3);

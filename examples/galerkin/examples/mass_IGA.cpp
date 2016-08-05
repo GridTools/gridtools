@@ -235,12 +235,12 @@ namespace functors{
 
         geo_.compute(Intrepid::OPERATOR_GRAD);
 
-        using matrix_storage_info_t=storage_info< __COUNTER__,  layout_tt<3,4> >;
+        using matrix_storage_info_t=storage_info< __COUNTER__,  layout_tt<5> >;
         using matrix_type=storage_t< matrix_storage_info_t >;
         matrix_storage_info_t meta_(d1,d2,d3,fe3::basisCardinality,fe3::basisCardinality);
         matrix_type mass_(meta_, 0.);
 
-        using vector_storage_info_t=storage_info< __COUNTER__,  layout_tt<3> >;
+        using vector_storage_info_t=storage_info< __COUNTER__,  layout_tt<4> >;
         using vector_type=storage_t< vector_storage_info_t >;
         vector_storage_info_t meta_vec_(d1,d2,d3,fe3::basisCardinality);
         vector_type vector_(meta_vec_, 1.);

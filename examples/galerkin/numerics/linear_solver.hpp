@@ -129,14 +129,14 @@ namespace gdl {
             // Assemble related grid definition: this grid contains the "right" halo, for which the provided A matrix and b vector
             // are assumed to have values equal to zero (see struct comment). Calculation in the "right" halo are performed only to keep algorithm
             // uniformity wrt the computing thread.
-            auto mesh_coords_ass=gridtools::grid<axis>({1, 0, 1, i_b.meta_data().template dim<0>()-1, i_b.meta_data().template dims<0>()},
-                                                       {1, 0, 1, i_b.meta_data().template dim<1>()-1, i_b.meta_data().template dims<1>()});
+            auto mesh_coords_ass=gridtools::grid<axis>({1, 0, 1, i_b.meta_data().template dim<0>()-1, i_b.meta_data().template dim<0>()},
+                                                       {1, 0, 1, i_b.meta_data().template dim<1>()-1, i_b.meta_data().template dim<1>()});
             mesh_coords_ass.value_list[0] = 1;
             mesh_coords_ass.value_list[1] = i_b.meta_data().template dim<2>()-1;
 
             // Restricted grid definition: this grid does not contain any halo and is used for operations of non assemble-based type (see struct comment).
-            auto mesh_coords=gridtools::grid<axis>({1, 0, 1, i_b.meta_data().template dim<0>()-2, i_b.meta_data().template dims<0>()-1},
-                                                   {1, 0, 1, i_b.meta_data().template dim<1>()-2, i_b.meta_data().template dims<1>()-1});
+            auto mesh_coords=gridtools::grid<axis>({1, 0, 1, i_b.meta_data().template dim<0>()-2, i_b.meta_data().template dim<0>()-1},
+                                                   {1, 0, 1, i_b.meta_data().template dim<1>()-2, i_b.meta_data().template dim<1>()-1});
             mesh_coords.value_list[0] = 1;
             mesh_coords.value_list[1] = i_b.meta_data().template dim<2>()-2;
 
@@ -238,6 +238,7 @@ namespace gdl {
             compute_r->steady();
             compute_r->run();
             compute_r->finalize();
+            compute_r.reset();
 
 
 
@@ -246,7 +247,7 @@ namespace gdl {
             // Set p = r
             //////////////////////////////////
             // TODO: search for storage copy functor
-            compute_r=gridtools::make_computation<BACKEND>(domain,
+            auto compute_r2=gridtools::make_computation<BACKEND>(domain,
                                                            mesh_coords_ass,
                                                            gridtools::make_multistage(gridtools::enumtype::execute<gridtools::enumtype::forward>(),
                                                                                gridtools::make_stage<functors::hexahedron_vector_assemble<N_DOF0,N_DOF1,N_DOF2> >(p_r(),p_r_ass()),
@@ -255,11 +256,11 @@ namespace gdl {
                                                                                gridtools::make_stage<functors::vecvec<4,functors::mult_operator<float_t> > >(p_p_ass(),p_r_ass(),p_r_mod_ass()),
                                                                                gridtools::make_stage<functors::partial_hexahedron_assembled_reduction<N_DOF0,N_DOF1,N_DOF2,functors::sum_operator<float_t> > >(p_r_mod_ass(),p_r_mod_red_ass())
                                                            ));
-            compute_r->ready();
-            compute_r->steady();
-            compute_r->run();
-            compute_r->finalize();
-
+            compute_r2->ready();
+            compute_r2->steady();
+            compute_r2->run();
+            compute_r2->finalize();
+            compute_r2.reset();
 
             // TODO: temporary solution, use Carlos' reduction or implement cuda
             // kernel merging with partial_hexahedron_assembled_reduction functor.
@@ -301,7 +302,7 @@ namespace gdl {
                 compute_pAp->steady();
                 compute_pAp->run();
                 compute_pAp->finalize();
-
+                compute_pAp.reset();
 
 
                 // TODO: these two steps for calculation of pAp are split because I am using two different grids,
@@ -312,7 +313,7 @@ namespace gdl {
 
                 // TODO: in principle p_Ap() to p_Ap_ass() assembly using 2 storages should be avoidable but I think that a
                 // synchronization check must be introduced in that case
-                compute_pAp=gridtools::make_computation<BACKEND>(domain,
+                auto compute_pAp2=gridtools::make_computation<BACKEND>(domain,
                                                                  mesh_coords_ass,
                                                                  gridtools::make_multistage(gridtools::enumtype::execute<gridtools::enumtype::forward>(),
                                                                                      gridtools::make_stage<functors::copy_vector<N_DOF0*N_DOF1*N_DOF2> >(p_Ap(),p_Ap_ass()),
@@ -322,10 +323,10 @@ namespace gdl {
                                                                                      gridtools::make_stage<functors::vecvec<4,functors::mult_operator<float_t> > >(p_p_ass(),p_Ap_ass(),p_pAp_ass()),
                                                                                      gridtools::make_stage<functors::partial_hexahedron_assembled_reduction<N_DOF0,N_DOF1,N_DOF2,functors::sum_operator<float_t> > >(p_pAp_ass(),p_pAp_red())
                                                                 ));
-                compute_pAp->ready();
-                compute_pAp->steady();
-                compute_pAp->run();
-                compute_pAp->finalize();
+                compute_pAp2->ready();
+                compute_pAp2->steady();
+                compute_pAp2->run();
+                compute_pAp2->finalize();
 
                 // TODO: temporary solution, use Carlos' reduction or implement cuda
                 // kernel merging with partial_hexahedron_assembled_reduction functor.

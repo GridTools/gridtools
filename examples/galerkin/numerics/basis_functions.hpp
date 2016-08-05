@@ -27,16 +27,31 @@ namespace gdl{
 #endif
 #endif
 
+    template<typename T>
+    struct create_layout;
+
+    template<ushort_t ... Id>
+    struct create_layout<gt::gt_integer_sequence<ushort_t, Id ...> >{
 #ifdef __CUDACC__
-    template<short_t ... Dims>
-    using layout_tt=gt::layout_map< Dims ... ,2,1,0 >;
+        using type = gt::layout_map<Id ...>;
 #else
-    template<short_t ... Dims>
-    using layout_tt=gt::layout_map< 0,1,2, Dims ... >;
+        using type = gt::layout_map<sizeof...(Id) - Id -1 ...>;
 #endif
+    };
+    namespace impl_{
+        template <ushort_t I>
+        struct layout_from_dim{
+            using layout_t = typename create_layout< typename gt::make_gt_integer_sequence<ushort_t, I>::type >::type;
+        };
+    }
+    template<ushort_t Dim>
+    using layout_tt = typename impl_::layout_from_dim< Dim >::layout_t;
 
     template <typename MetaData>
     using storage_t = typename BACKEND::storage_type<float_type, MetaData >::type;
+
+    template <typename MetaData>
+    using tmp_storage_t = typename BACKEND::temporary_storage_type<float_type, MetaData >::type;
 
     template<ushort_t ID, typename Layout, typename Aligned=gt::aligned<1> >
         using storage_info = typename BACKEND::storage_info<ID, Layout, typename gt::repeat_template_c<0, Layout::length, gt::halo>::type, Aligned>;
@@ -54,7 +69,7 @@ namespace gdl{
         typedef gt::layout_map<2,1,0> layout_t;
         typedef cell<Order, ShapeType> cell_t;
 
-        static const typename basis_select<Order, BasisType, ShapeType>::type
+        static const constexpr typename basis_select<Order, BasisType, ShapeType>::type
         hex_basis()                       // create hex basis
         {
             return basis_select<Order, BasisType, ShapeType>::instance();
@@ -80,7 +95,7 @@ namespace gdl{
         GT_FUNCTION
         static const constexpr int& basis_cardinality(){return m_basis_cardinality;}
 
-#ifndef __CUDACC__ // strange error on th geetters
+#ifndef __CUDACC__ // strange error on th getters
     private:
 #endif
         static const enumtype::Basis m_basis=BasisType;

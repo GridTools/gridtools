@@ -78,7 +78,7 @@ int main(){
     using namespace gdl;
     using namespace enumtype;
     //defining the assembler, based on the Intrepid definitions for the numerics
-    using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<3,4,5>>;
+    using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<6>>;
     using matrix_type=storage_t< matrix_storage_info_t >;
 
     using fe=reference_element<1, Lagrange, Hexa>;
@@ -133,7 +133,7 @@ int main(){
     matrix_storage_info_t meta_(d1,d2,d3,fe::basis_cardinality(),fe::basis_cardinality(), 1/*faces*/);
     matrix_type mass_(meta_, 0., "mass");
 
-    using vector_storage_info_t=storage_info< __COUNTER__, layout_tt<3,4> >;
+    using vector_storage_info_t=storage_info< __COUNTER__, layout_tt<5> >;
     using vector_type=storage_t< vector_storage_info_t >;
     vector_storage_info_t vec_meta_(d1,d2,d3,fe::basis_cardinality(), 1/*face*/);
     vector_type u_(vec_meta_, 2., "u");//initial solution

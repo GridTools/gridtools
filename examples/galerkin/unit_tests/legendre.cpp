@@ -29,7 +29,7 @@ int main( int argc, char ** argv){
     using namespace gdl;
     using namespace gdl::enumtype;
     //defining the assembler, based on the Intrepid definitions for the numerics
-    using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<3,4> >;
+    using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<5> >;
     using matrix_type=storage_t< matrix_storage_info_t >;
 
     static const ushort_t order_geom=1; //affine geometric maps

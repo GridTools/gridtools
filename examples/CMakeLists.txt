@@ -2,7 +2,7 @@ if(NOT STRUCTURED_GRIDS)
     add_subdirectory(icosahedral)
 else()
 
-  FILE(GLOB_RECURSE INC_ALL "*.hpp")
+  FILE(GLOB_RECURSE INC_ALL "[a-z]*.hpp")
   list( APPEND SRCFILES interface1 simple_hori_diff boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore alignment cubed_sphere)
   list( APPEND X86_SRCFILES reduction)
 
@@ -95,6 +95,5 @@ else()
     endif()
 
     add_subdirectory( communication )
-    add_subdirectory( galerkin )
   endif()
 endif(NOT STRUCTURED_GRIDS)

@@ -98,7 +98,7 @@ endforeach(example)
 ##################################################################
 
 #TODO: remove this test?
-add_executable( legendre2 examples/legendre/legendre.cpp examples/legendre/main.cpp examples/legendre/mesh.cpp )
+add_executable( legendre2 examples/legendre/legendre.cpp examples/legendre/main.cpp examples/legendre/mesh.cpp examples/legendre/compute_jacobian.cpp examples/legendre/compute_assembly.cpp)
 set_target_properties( legendre2 PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} )
 target_link_libraries( legendre2 ${exe_LIBS}  ${INTREPID_LIB} ${SHARDS_LIB}  ${TEUCHOS_NUMERICS_LIB} ${TEUCHOS_LIB} ${LAPACK_LIBRARIES} ${BLAS_LIBS})
 

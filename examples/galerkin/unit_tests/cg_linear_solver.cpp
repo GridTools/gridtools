@@ -56,19 +56,19 @@ int main() {
 
     //![storages]
     // Problem matrix
-    using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<3,4> >;
+    using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<5> >;
     using matrix_type=storage_t< matrix_storage_info_t >;
     matrix_storage_info_t A_(d1,d2,d3,d4,d4);
     matrix_type A(A_, 0.e0, "A");// This is the unassembled problem matrix
 
     // RHS vector
-    using rhs_vector_storage_info_t=storage_info< __COUNTER__, layout_tt<3> >;
+    using rhs_vector_storage_info_t=storage_info< __COUNTER__, layout_tt<4> >;
     using rhs_vector_type=storage_t< rhs_vector_storage_info_t >;
     rhs_vector_storage_info_t b_(d1,d2,d3,d4);
     rhs_vector_type b(b_, 0.e0, "b");// This is the unassembled right hand side vector
 
     // Unknowns vector
-    using unk_vector_storage_info_t=storage_info< __COUNTER__, layout_tt<3> >;
+    using unk_vector_storage_info_t=storage_info< __COUNTER__, layout_tt<4> >;
     using unk_vector_type = storage<assemble_storage< unk_vector_storage_info_t, dof_per_dim_0, dof_per_dim_1, dof_per_dim_2> >;
     unk_vector_storage_info_t x_(d1,d2,d3,d4);
     unk_vector_type x(x_, halo_data(2,2,2,1,1,1), 0.e0, "x");// This is the assembled unknowns vector
@@ -237,7 +237,7 @@ int main() {
     float_t cumulative_error=0;
     float_t max_relative_error=0;
     for(uint_t dof = 0;dof<n_dof;++dof) {
-        const float_t cg_x(x.get_value(dof));
+        const float_t cg_x(x.storage_pointer()->get_value(dof));
         float_t relative_error(cg_x-x_ext[dof]);
         cumulative_error += relative_error*relative_error;
         if(x_ext[dof]!=0){
@@ -285,7 +285,7 @@ int main() {
     x_vector.open("x_vector.dat");
     x_vector<<std::setprecision(10);
     for(uint_t dof1 = 0;dof1<n_dof;++dof1){
-        x_vector<<x.get_value(dof1)<<" ";
+        x_vector<<x.storage_pointer()->get_value(dof1)<<" ";
     }
     x_vector.close();
 

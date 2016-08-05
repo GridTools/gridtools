@@ -24,11 +24,7 @@ int main( int argc, char ** argv){
 
     //![definitions]
     //defining the assembler, based on the Intrepid definitions for the numerics
-#ifdef CUDA_EXAMPLE
-    using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<4,3> >;
-#else
-    using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<3,4> >;
-#endif
+    using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<5> >;
     using matrix_type=storage_t< matrix_storage_info_t >;
     using fe=reference_element<3, Lagrange, Hexa>;
     using geo_map=reference_element<1, Lagrange, Hexa>;

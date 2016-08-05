@@ -45,8 +45,8 @@ namespace gdl{
 
         int write(std::string const& filename){
 
-        shared_ptr<XdmfHDF5Writer> exampleHeavyWriter = XdmfHDF5Writer::New(filename+".h5", true /*replace*/ );
-        shared_ptr<XdmfWriter> exampleWriter = XdmfWriter::New(filename+".xmf", exampleHeavyWriter);
+            boost::shared_ptr<XdmfHDF5Writer> exampleHeavyWriter = XdmfHDF5Writer::New(filename+".h5", true /*replace*/ );
+            boost::shared_ptr<XdmfWriter> exampleWriter = XdmfWriter::New(filename+".xmf", exampleHeavyWriter);
 
         //exampleHeavyWriter->setFileSizeLimit(1);
 

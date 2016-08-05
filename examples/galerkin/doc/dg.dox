@@ -15,5 +15,4 @@ to compute the fluxes across the elements, e.g.
 
 The measure \f$ \tilde J \f$ is the norm of the cross product of the vectors tangent to the surface \f$ \partial \Omega_e \f$ on the current configuration,
 
-
 */

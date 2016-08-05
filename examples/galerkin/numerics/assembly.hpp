@@ -26,12 +26,12 @@ struct assembly  {
     using cub=typename Geometry::cub;
     using geo_map=typename Geometry::geo_map;
     using weights_storage_t = typename Geometry::weights_storage_t;
-    using basis_function_storage_t = typename geometry_t::basis_function_storage_t;
-    using grad_storage_t = typename geometry_t::grad_storage_t;
+    using phi_t = typename geometry_t::basis_function_storage_t;
+    using dphi_t = typename geometry_t::grad_storage_t;
     //                      dims  x y z  qp
     //                   strides  1 x xy xyz
-    using storage_type_info=storage_info<__COUNTER__, layout_tt<3> >;
-    using jacobian_type_info=storage_info<__COUNTER__, layout_tt<3,4,5> >;
+    using storage_type_info=storage_info<__COUNTER__, layout_tt<4> >;
+    using jacobian_type_info=storage_info<__COUNTER__, layout_tt<6> >;
 
     using storage_type=storage_t< storage_type_info >;
     using jacobian_type=storage_t< jacobian_type_info >;
