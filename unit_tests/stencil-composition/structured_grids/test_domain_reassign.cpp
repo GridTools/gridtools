@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 #include "test_domain_reassign.hpp"
-#include "../../examples/Options.hpp"
+#include "../../../examples/Options.hpp"
 
 int main(int argc, char **argv) {
 

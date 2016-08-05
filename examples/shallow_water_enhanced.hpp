@@ -89,8 +89,8 @@ namespace shallow_water {
         static float_type g() { return 9.81; }
 
         //! [index]
-        static x::Index i;
-        static y::Index j;
+        static dimension<1>::Index i;
+        static dimension<2>::Index j;
         //! [index]
 
         typedef decltype(i) i_t;
@@ -155,12 +155,12 @@ namespace shallow_water {
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
 
             const float_type &tl = 2.;
-#ifdef CUDA_CXX11_BUG_1
+#ifndef CUDA8
             comp::Index c;
-            x::Index i;
+            dimension<1>::Index i;
             //! [expression]
             eval(tmpx()) =
-                eval((sol(i - 0) + sol(i - 1)) / tl - (sol(c + 1) - sol(c + 1, i - 1)) * (dt() / (2 * dx())));
+                eval((sol(i - 0) + sol(i - 1)) / tl - (dt() / (2 * dx())) * (sol(c + 1) - sol(c + 1, i - 1)));
             // ! [expression]
 
             eval(tmpx(comp(1))) =
@@ -213,7 +213,7 @@ namespace shallow_water {
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
 
             const float_type &tl = 2.;
-#ifdef CUDA_CXX11_BUG_1
+#ifndef CUDA8
 
             eval(tmpy()) =
                 eval((sol(i - 0) + sol(j - 1)) / tl - (sol(comp(2)) - sol(comp(2), j - 1)) * (dt() / (2 * dy())));
@@ -271,7 +271,7 @@ namespace shallow_water {
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
             const float_type &tl = 2.;
-#ifdef CUDA_CXX11_BUG_1
+#ifndef CUDA8
 
             eval(sol()) = eval(sol(i - 0) - (tmpx(comp(1), i + 1) - tmpx(comp(1))) * (dt() / dx()) -
                                (tmpy(comp(2), j + 1) - tmpy(comp(2))) * (dt() / dy()));

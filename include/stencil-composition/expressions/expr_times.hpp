@@ -59,11 +59,22 @@ namespace gridtools {
             template < typename IterateDomain,
                 typename ArgType1,
                 typename FloatType,
-                typename boost::enable_if< typename boost::is_floating_point< FloatType >::type, int >::type = 0 >
+                typename boost::enable_if< typename boost::is_arithmetic< FloatType >::type, int >::type = 0 >
             GT_FUNCTION auto static constexpr value(
                 IterateDomain const &it_domain, expr_times< ArgType1, FloatType > const &arg)
                 -> decltype(it_domain(arg.first_operand) * arg.second_operand) {
                 return it_domain(arg.first_operand) * arg.second_operand;
+            }
+
+            /** multiply with scalar evaluation*/
+            template < typename IterateDomain,
+                typename FloatType,
+                typename ArgType2,
+                typename boost::enable_if< typename boost::is_arithmetic< FloatType >::type, int >::type = 0 >
+            GT_FUNCTION auto static constexpr value(
+                IterateDomain const &it_domain, expr_times< FloatType, ArgType2 > const &arg)
+                -> decltype(arg.first_operand * it_domain(arg.second_operand) ) {
+                return arg.first_operand * it_domain(arg.second_operand);
             }
 
             // automatic differentiation
@@ -77,15 +88,26 @@ namespace gridtools {
                                  arg.first_operand * expr_derivative< ArgType2 >(arg.second_operand));
             }
 
-            /** sum with scalar evaluation*/
+            /** multiply with scalar evaluation*/
             template < typename IterateDomain,
                 typename ArgType1,
                 typename FloatType,
-                typename boost::enable_if< typename boost::is_floating_point< FloatType >::type, int >::type = 0 >
+                typename boost::enable_if< typename boost::is_arithmetic< FloatType >::type, int >::type = 0 >
             GT_FUNCTION auto static constexpr value(
                 IterateDomain const &it_domain, expr_derivative< expr_times< ArgType1, FloatType > > const &arg)
-                -> decltype(it_domain(expr_derivative< ArgType1 >(arg.first_operand)) * it_domain(arg.second_operand)) {
+                -> decltype(it_domain(expr_derivative< ArgType1 >(arg.first_operand)) * arg.second_operand) {
                 return it_domain(expr_derivative< ArgType1 >(arg.first_operand) * arg.second_operand);
+            }
+
+            /** multiply a scalar evaluation*/
+            template < typename IterateDomain,
+                typename FloatType,
+                typename ArgType2,
+                typename boost::enable_if< typename boost::is_arithmetic< FloatType >::type, int >::type = 0 >
+            GT_FUNCTION auto static constexpr value(
+                IterateDomain const &it_domain, expr_derivative< expr_times< FloatType, ArgType2 > > const &arg)
+                -> decltype(it_domain(expr_derivative< ArgType2 >(arg.second_operand)) * arg.first_operand) {
+                return it_domain(expr_derivative< ArgType2 >(arg.second_operand) * arg.first_operand);
             }
 
         } // namespace evaluation

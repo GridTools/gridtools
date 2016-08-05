@@ -32,13 +32,16 @@ namespace gridtools{
     struct accessor_mixed : public offset_tuple_mixed<typename ArgType::offset_tuple_t, Pair ...> {
         typedef typename ArgType::index_type index_type;
         typedef typename ArgType::base_t base_t;
+        typedef typename ArgType::offset_tuple_t offset_tuple_t;
+        typedef typename ArgType::extent_t extent_t;
 
         using super = offset_tuple_mixed<typename ArgType::offset_tuple_t, Pair ...>;
 
         /**inheriting all constructors from offset_tuple*/
-        using super::offset_tuple_mixed;
+        using typename super::offset_tuple_mixed;
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined(__clang__)
+        // the protection for the arguments is done in offset_tuple constructors
         template <typename ... T>
         GT_FUNCTION
         constexpr accessor_mixed(T const& ... t_):super(t_ ...){}
@@ -48,6 +51,20 @@ namespace gridtools{
         constexpr const super& offsets() const { return *this; }
 
     };
+
+    template < uint_t ID,
+               enumtype::intend Intend = enumtype::in,
+               typename Extent = extent< 0, 0, 0, 0, 0, 0 >,
+               ushort_t Number = 3 >
+    struct accessor : accessor_mixed<accessor_impl<ID, Intend, Extent, Number> >{
+        using accessor_mixed<accessor_impl<ID, Intend, Extent, Number> >::accessor_mixed;
+    };
+
+    template < uint_t ID, typename Extent = extent< 0, 0, 0, 0, 0, 0 >, ushort_t Number = 3 >
+    using in_accessor = accessor< ID, enumtype::in, Extent, Number >;
+
+    template < uint_t ID, typename Extent = extent< 0, 0, 0, 0, 0, 0 >, ushort_t Number = 3 >
+    using inout_accessor = accessor< ID, enumtype::inout, Extent, Number >;
 
     /**
        @brief this struct allows the specification of SOME of the arguments before instantiating the offset_tuple.

@@ -393,7 +393,9 @@ if __name__ == "__main__":
         stella_filter = None
         if stencil_conf.has_key('stella_filter'):
             stella_filter = stencil_conf['stella_filter']
- 
+
+        if not stencil_data[target][prec].has_key(std):
+            continue
         print(stencil_name, stencil_data)
         for thread in stencil_data[target][prec][std]: 
             domain_data = stencil_data[target][prec][std][thread]

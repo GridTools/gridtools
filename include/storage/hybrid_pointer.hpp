@@ -165,7 +165,9 @@ namespace gridtools {
             if (on_host()) { // do not copy if the last version is already on the device
                 cudaError_t err =
                     cudaMemcpy(&m_pointer_to_use[index], &value, sizeof(pointee_t), cudaMemcpyHostToDevice);
+#ifndef __CUDACC__
                 assert(err == cudaSuccess);
+#endif
                 m_up_to_date = false;
                 m_pointer_to_use = m_gpu_p;
             }
@@ -211,7 +213,9 @@ namespace gridtools {
          */
         GT_FUNCTION
         T *operator->() const {
+#ifndef __CUDACC__
             assert(m_pointer_to_use);
+#endif
             return m_pointer_to_use;
         }
 
@@ -241,13 +245,17 @@ namespace gridtools {
 
         GT_FUNCTION
         T *get_gpu_p() {
+#ifndef __CUDACC__
             assert(on_device());
+#endif
             return m_gpu_p;
         };
 
         GT_FUNCTION
         T *get_cpu_p() {
+#ifndef __CUDACC__
             assert(on_host());
+#endif
             return this->m_cpu_p.get();
         };
 

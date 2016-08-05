@@ -20,10 +20,6 @@
 #include "../dimension.hpp"
 #include "../../common/generic_metafunctions/all_integrals.hpp"
 #include "../../common/generic_metafunctions/static_if.hpp"
-
-#ifdef CUDA8
-#include "accessor_cxx11.hpp"
-#else
 /**
    @file
 
@@ -69,15 +65,13 @@ namespace gridtools {
         enumtype::intend Intend = enumtype::in,
         typename Extent = extent< 0, 0, 0, 0, 0, 0 >,
         ushort_t Number = 3 >
-    struct accessor : public accessor_base< ID, Intend, Extent, Number > {
+    struct accessor_impl : public accessor_base< ID, Intend, Extent, Number > {
         typedef accessor_base< ID, Intend, Extent, Number > super;
         typedef typename super::index_type index_type;
         typedef typename super::offset_tuple_t offset_tuple_t;
 
-#ifdef CXX11_ENABLED
-
         GT_FUNCTION
-        constexpr accessor() : super() {}
+        constexpr accessor_impl() : super() {}
 
 #ifndef __CUDACC__
         /**inheriting all constructors from offset_tuple*/
@@ -86,7 +80,7 @@ namespace gridtools {
         /**@brief constructor forwarding all the arguments
         */
         template < typename... ForwardedArgs >
-        GT_FUNCTION constexpr accessor(ForwardedArgs... x)
+        GT_FUNCTION constexpr accessor_impl(ForwardedArgs... x)
             : super(x...) {
             GRIDTOOLS_STATIC_ASSERT((sizeof...(ForwardedArgs) <= Number),
                 "too many arguments for an accessor. Check that the accessor dimension is valid.");
@@ -94,56 +88,12 @@ namespace gridtools {
 
         // move ctor
         GT_FUNCTION
-        constexpr explicit accessor(accessor< ID, Intend, Extent, Number > &&other) : super(std::move(other)) {}
+        constexpr explicit accessor_impl(accessor_impl< ID, Intend, Extent, Number > &&other) : super(std::move(other)) {}
 
         // copy ctor
         GT_FUNCTION
-        constexpr accessor(accessor< ID, Intend, Extent, Number > const &other) : super(other) {}
+        constexpr accessor_impl(accessor_impl< ID, Intend, Extent, Number > const &other) : super(other) {}
 #endif
-#else
+   };
 
-        // copy ctor
-        GT_FUNCTION
-        constexpr explicit accessor(accessor< ID, Intend, Extent, Number > const &other) : super(other) {}
-
-        // copy ctor from an accessor with different ID
-        template < ushort_t OtherID >
-        GT_FUNCTION constexpr explicit accessor(const accessor< OtherID, Intend, Extent, Number > &other)
-            : super(static_cast< accessor_base< OtherID, Intend, Extent, Number > >(other)) {}
-
-        GT_FUNCTION
-        constexpr explicit accessor() : super() {}
-
-        /** @brief constructor forwarding all the arguments*/
-        template < typename X, typename Y, typename Z, typename T >
-        GT_FUNCTION constexpr accessor(X x, Y y, Z z, T t)
-            : super(x, y, z, t) {}
-
-        /** @brief constructor forwarding all the arguments*/
-        template < typename X, typename Y, typename Z >
-        GT_FUNCTION constexpr accessor(X x, Y y, Z z)
-            : super(x, y, z) {}
-
-        /** @brief constructor forwarding all the arguments*/
-        template < typename X >
-        GT_FUNCTION constexpr accessor(X x)
-            : super(x) {}
-
-        /** @brief constructor forwarding all the arguments*/
-        template < typename X, typename Y >
-        GT_FUNCTION constexpr accessor(X x, Y y)
-            : super(x, y) {}
-
-#endif
-    };
-
-#ifdef CXX11_ENABLED
-    template < uint_t ID, typename Extent = extent< 0, 0, 0, 0, 0, 0 >, ushort_t Number = 3 >
-    using in_accessor = accessor< ID, enumtype::in, Extent, Number >;
-
-    template < uint_t ID, typename Extent = extent< 0, 0, 0, 0, 0, 0 >, ushort_t Number = 3 >
-    using inout_accessor = accessor< ID, enumtype::inout, Extent, Number >;
-#endif
 } // namespace gridtools
-
-#endif //CUDA8
