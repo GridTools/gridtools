@@ -1,13 +1,49 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 
 #include <gridtools.hpp>
-#include <storage/meta_storage.hpp>
+#include <storage/storage-facility.hpp>
 
 namespace horizontal_diffusion {
 
 #ifdef CUDA_EXAMPLE
     typedef gridtools::backend< gridtools::enumtype::Cuda, gridtools::GRIDBACKEND, gridtools::enumtype::Block >
         hd_backend;
+    typedef gridtools::storage_traits< gridtools::enumtype::Cuda > storage_tr;
 #else
 #ifdef BACKEND_BLOCK
     typedef gridtools::backend< gridtools::enumtype::Host, gridtools::GRIDBACKEND, gridtools::enumtype::Block >
@@ -16,6 +52,7 @@ namespace horizontal_diffusion {
     typedef gridtools::backend< gridtools::enumtype::Host, gridtools::GRIDBACKEND, gridtools::enumtype::Naive >
         hd_backend;
 #endif
+    typedef gridtools::storage_traits< gridtools::enumtype::Host > storage_tr;
 #endif
 
     using gridtools::uint_t;
@@ -32,23 +69,39 @@ namespace horizontal_diffusion {
 #endif
 
     typedef gridtools::layout_map< -1, -1, -1 > layout_scalar;
-
-    typedef hd_backend::storage_info< 0, layout_ijk, gridtools::halo< 2, 0, 0 > > storage_info_ijk_t;
-    typedef hd_backend::storage_info< 1, layout_ij, gridtools::halo< 2, 0, 0 > > storage_info_ij_t;
-    typedef hd_backend::storage_info< 2, layout_j, gridtools::halo< 2, 0, 0 > > storage_info_j_t;
-    typedef hd_backend::storage_info< 3, layout_scalar, gridtools::halo< 2, 0, 0 > > storage_info_scalar_t;
-
+#ifdef CXX11_ENABLED
+    using storage_info_ijk_t = storage_tr::meta_storage_type< 0, layout_ijk, gridtools::halo< 2, 0, 0 > >;
+    using storage_info_ij_t = storage_tr::meta_storage_type< 1, layout_ij, gridtools::halo< 2, 0, 0 > >;
+    using storage_info_j_t = storage_tr::meta_storage_type< 2, layout_j, gridtools::halo< 2, 0, 0 > >;
+    using storage_info_scalar_t = storage_tr::meta_storage_type< 3, layout_scalar, gridtools::halo< 2, 0, 0 > >;
+#else
+    typedef storage_tr::meta_storage_type< 0, layout_ijk, gridtools::halo< 2, 0, 0 > >::type storage_info_ijk_t;
+    typedef storage_tr::meta_storage_type< 1, layout_ij, gridtools::halo< 2, 0, 0 > >::type storage_info_ij_t;
+    typedef storage_tr::meta_storage_type< 2, layout_j, gridtools::halo< 2, 0, 0 > >::type storage_info_j_t;
+    typedef storage_tr::meta_storage_type< 3, layout_scalar, gridtools::halo< 2, 0, 0 > >::type storage_info_scalar_t;
+#endif
     class repository {
       public:
-        typedef hd_backend::storage_type< gridtools::float_type, storage_info_ijk_t >::type storage_type;
-        typedef hd_backend::storage_type< gridtools::float_type, storage_info_ij_t >::type ij_storage_type;
-        typedef hd_backend::storage_type< gridtools::float_type, storage_info_j_t >::type j_storage_type;
+#ifdef CXX11_ENABLED
+        using storage_type = storage_tr::storage_type< gridtools::float_type, storage_info_ijk_t >;
+        using ij_storage_type = storage_tr::storage_type< gridtools::float_type, storage_info_ij_t >;
+        using j_storage_type = storage_tr::storage_type< gridtools::float_type, storage_info_j_t >;
 
-        typedef hd_backend::temporary_storage_type< gridtools::float_type, storage_info_scalar_t >::type
+        using scalar_storage_type = storage_tr::temporary_storage_type< gridtools::float_type, storage_info_scalar_t >;
+        using tmp_storage_type = storage_tr::temporary_storage_type< gridtools::float_type, storage_info_ijk_t >;
+        using tmp_scalar_storage_type =
+            storage_tr::temporary_storage_type< gridtools::float_type, storage_info_scalar_t >;
+#else
+        typedef storage_tr::storage_type< gridtools::float_type, storage_info_ijk_t >::type storage_type;
+        typedef storage_tr::storage_type< gridtools::float_type, storage_info_ij_t >::type ij_storage_type;
+        typedef storage_tr::storage_type< gridtools::float_type, storage_info_j_t >::type j_storage_type;
+
+        typedef storage_tr::temporary_storage_type< gridtools::float_type, storage_info_scalar_t >::type
             scalar_storage_type;
-        typedef hd_backend::temporary_storage_type< gridtools::float_type, storage_info_ijk_t >::type tmp_storage_type;
-        typedef hd_backend::temporary_storage_type< gridtools::float_type, storage_info_scalar_t >::type
+        typedef storage_tr::temporary_storage_type< gridtools::float_type, storage_info_ijk_t >::type tmp_storage_type;
+        typedef storage_tr::temporary_storage_type< gridtools::float_type, storage_info_scalar_t >::type
             tmp_scalar_storage_type;
+#endif
 
         storage_info_ijk_t m_storage_info_ijk;
         storage_info_j_t m_storage_info_j;

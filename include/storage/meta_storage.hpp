@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 
 #include "../common/gpu_clone.hpp"
@@ -29,14 +64,13 @@
 namespace gridtools {
 
     template < typename BaseStorage >
-    struct meta_storage : public BaseStorage, clonable_to_gpu< meta_storage< BaseStorage > > {
+    struct meta_storage : public BaseStorage {
 
         static const bool is_temporary = BaseStorage::is_temporary;
         typedef BaseStorage super;
         typedef typename BaseStorage::basic_type basic_type;
         typedef typename BaseStorage::index_type index_type;
         typedef meta_storage< BaseStorage > original_storage;
-        typedef clonable_to_gpu< meta_storage< BaseStorage > > gpu_clone;
 
         using super::space_dimensions;
 
@@ -44,7 +78,7 @@ namespace gridtools {
 
             forwarding to the base class
         */
-        __device__ meta_storage(meta_storage< BaseStorage > const &other) : super(other) {}
+        GT_FUNCTION meta_storage(meta_storage< BaseStorage > const &other) : super(other) {}
 
 #if defined(CXX11_ENABLED)
         /** @brief ctor
@@ -58,6 +92,9 @@ namespace gridtools {
                 bool >::type >
         meta_storage(IntTypes... args)
             : super(args...) {}
+
+        /**@brief operator equals (same dimension size, etc.) */
+        constexpr bool operator==(const meta_storage &other) const { return super::operator==(other); }
 
         constexpr meta_storage(array< uint_t, space_dimensions > const &a) : super(a) {}
 #else
@@ -78,6 +115,10 @@ namespace gridtools {
             uint_t const &n_i_threads,
             uint_t const &n_j_threads)
             : super(initial_offset_i, initial_offset_j, dim3, n_i_threads, n_j_threads) {}
+
+        /**@brief operator equals (same dimension size, etc.) */
+        bool operator==(const meta_storage &other) const { return super::operator==(other); }
+
 #endif
 
 #ifndef __CUDACC__

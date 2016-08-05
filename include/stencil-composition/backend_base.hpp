@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 
 #include <boost/mpl/filter_view.hpp>
@@ -5,28 +40,28 @@
 #include <boost/mpl/reverse.hpp>
 
 #include "gridtools.hpp"
-#include "stencil-composition/heap_allocated_temps.hpp"
-#include "stencil-composition/backend_traits_fwd.hpp"
-#include "stencil-composition/run_functor_arguments.hpp"
+#include "./heap_allocated_temps.hpp"
+#include "./backend_traits_fwd.hpp"
+#include "./run_functor_arguments.hpp"
 
 #ifdef __CUDACC__
-#include "stencil-composition/backend_cuda/backend_cuda.hpp"
+#include "./backend_cuda/backend_cuda.hpp"
 #else
-#include "stencil-composition/backend_host/backend_host.hpp"
+#include "./backend_host/backend_host.hpp"
 #endif
 
-#include "common/pair.hpp"
-#include "accessor.hpp"
-#include "stencil-composition/domain_type.hpp"
-#include "stencil-composition/mss_metafunctions.hpp"
-#include "stencil-composition/mss_local_domain.hpp"
-#include "stencil-composition/mss.hpp"
-#include "stencil-composition/axis.hpp"
-#include "common/meta_array.hpp"
-#include "stencil-composition/tile.hpp"
-#include "storage/meta_storage.hpp"
-#include "../storage/halo.hpp"
-#include "conditionals/condition.hpp"
+#include "../common/pair.hpp"
+#include "./accessor.hpp"
+#include "./global_parameter.hpp"
+#include "./aggregator_type.hpp"
+#include "./mss_metafunctions.hpp"
+#include "./mss_local_domain.hpp"
+#include "./mss.hpp"
+#include "./axis.hpp"
+#include "../common/meta_array.hpp"
+#include "./tile.hpp"
+#include "../storage/storage-facility.hpp"
+#include "./conditionals/condition.hpp"
 
 /**
    @file
@@ -139,13 +174,14 @@ namespace gridtools {
 
         template < typename ValueType, typename MetaDataType >
         struct storage_type {
-            typedef typename backend_traits_t::template storage_traits< ValueType,
-                typename backend_traits_t::template meta_storage_traits< typename MetaDataType::index_type,
-                                                                            typename MetaDataType::layout,
-                                                                            false,
-                                                                            typename MetaDataType::halo_t,
-                                                                            typename MetaDataType::alignment_t >::type,
-                false >::storage_t type;
+            typedef typename storage_traits< BackendId >::storage_traits_aux::template select_storage<
+                ValueType,
+                typename storage_traits< BackendId >::storage_traits_aux::template select_meta_storage<
+                    typename MetaDataType::index_type,
+                    typename MetaDataType::layout,
+                    false,
+                    typename MetaDataType::halo_t,
+                    typename MetaDataType::alignment_t >::type >::type type;
         };
 
 #ifdef CXX11_ENABLED
@@ -169,20 +205,20 @@ namespace gridtools {
         template < ushort_t Index,
             typename Layout,
             typename Halo = typename repeat_template_c< 0, Layout::length, halo >::type,
-            typename Alignment = typename backend_traits_t::default_alignment::type >
-        using storage_info = typename backend_traits_t::
-            template meta_storage_traits< static_uint< Index >, Layout, false, Halo, Alignment >::type;
+            typename Alignment = typename storage_traits< BackendId >::storage_traits_aux::default_alignment::type >
+        using storage_info = typename storage_traits< BackendId >::storage_traits_aux::
+            template select_meta_storage< static_uint< Index >, Layout, false, Halo, Alignment >::type;
 
 #else
         template < ushort_t Index,
             typename Layout,
             typename Halo = halo< 0, 0, 0 >,
-            typename Alignment = typename backend_traits_t::default_alignment::type >
+            typename Alignment = typename storage_traits< BackendId >::storage_traits_aux::default_alignment::type >
         struct storage_info
-            : public backend_traits_t::
-                  template meta_storage_traits< static_uint< Index >, Layout, false, Halo, Alignment >::type {
-            typedef typename backend_traits_t::
-                template meta_storage_traits< static_uint< Index >, Layout, false, Halo, Alignment >::type super;
+            : public storage_traits< BackendId >::storage_traits_aux::
+                  template select_meta_storage< static_uint< Index >, Layout, false, Halo, Alignment >::type {
+            typedef typename storage_traits< BackendId >::storage_traits_aux::
+                template select_meta_storage< static_uint< Index >, Layout, false, Halo, Alignment >::type super;
 
             storage_info(uint_t const &d1, uint_t const &d2, uint_t const &d3) : super(d1, d2, d3) {}
 
@@ -207,19 +243,17 @@ namespace gridtools {
             /** temporary storage must have the same iterator type than the regular storage
              */
           private:
-            typedef typename backend_traits_t::template storage_traits< ValueType,
-                typename backend_traits_t::template meta_storage_traits< typename MetaDataType::index_type,
-                                                                            typename MetaDataType::layout,
-                                                                            true,
-                                                                            typename MetaDataType::halo_t,
-                                                                            typename MetaDataType::alignment_t >::type,
-                true >::storage_t temp_storage_t;
+            typedef typename storage_traits< BackendId >::storage_traits_aux::template select_storage<
+                ValueType,
+                typename storage_traits< BackendId >::storage_traits_aux::template select_meta_storage<
+                    typename MetaDataType::index_type,
+                    typename MetaDataType::layout,
+                    true,
+                    typename MetaDataType::halo_t,
+                    typename MetaDataType::alignment_t >::type >::type temp_storage_t;
 
           public:
-            typedef typename boost::mpl::if_<
-                typename backend_traits_t::template requires_temporary_redundant_halos< s_strategy_id >::type,
-                no_storage_type_yet< temp_storage_t >,
-                temp_storage_t >::type type;
+            typedef no_storage_type_yet< temp_storage_t > type;
         };
 
         /**
@@ -231,7 +265,7 @@ namespace gridtools {
          */
         template < typename Domain, typename MssComponents >
         struct obtain_map_extents_temporaries_mss {
-            GRIDTOOLS_STATIC_ASSERT((is_domain_type< Domain >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Domain >::value), "Internal Error: wrong type");
             GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), "Internal Error: wrong type");
             typedef typename MssComponents::extent_sizes_t ExtendSizes;
 
@@ -281,7 +315,7 @@ namespace gridtools {
         struct obtain_map_extents_temporaries_mss_array {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_meta_array_of< MssComponentsArray, is_mss_components >::value), "Internal Error: wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_domain_type< Domain >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Domain >::value), "Internal Error: wrong type");
 
             typedef
                 typename boost::mpl::fold< typename MssComponentsArray::elements,
@@ -293,7 +327,7 @@ namespace gridtools {
 
         template < typename Domain, typename MssArray1, typename MssArray2, typename Cond >
         struct obtain_map_extents_temporaries_mss_array< Domain, condition< MssArray1, MssArray2, Cond > > {
-            GRIDTOOLS_STATIC_ASSERT((is_domain_type< Domain >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Domain >::value), "Internal Error: wrong type");
 
             typedef typename obtain_map_extents_temporaries_mss_array< Domain, MssArray1 >::type type1;
             typedef typename obtain_map_extents_temporaries_mss_array< Domain, MssArray2 >::type type2;
@@ -315,7 +349,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_condition< MssComponentsArray >::value ||
                                         is_meta_array_of< MssComponentsArray, is_mss_components >::value),
                 "Internal Error: wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_domain_type< Domain >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Domain >::value), "Internal Error: wrong type");
 
             typedef typename backend_traits_t::template get_block_size< StrategyId >::type block_size_t;
 
@@ -371,10 +405,8 @@ namespace gridtools {
 
         template < typename ArgList, typename MetaList, typename Grid >
         static void prepare_temporaries(ArgList &arg_list_, MetaList &meta_list_, Grid const &grid) {
-            _impl::template prepare_temporaries_functor< ArgList,
-                MetaList,
-                Grid,
-                backend_ids_t>::prepare_temporaries((arg_list_), meta_list_, (grid));
+            _impl::template prepare_temporaries_functor< ArgList, MetaList, Grid, backend_ids_t >::prepare_temporaries(
+                (arg_list_), meta_list_, (grid));
         }
 
         /** Initial interface

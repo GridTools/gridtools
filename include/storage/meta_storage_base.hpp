@@ -1,12 +1,51 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
+
+#include <iosfwd>
 #include <boost/type_traits/is_unsigned.hpp>
 #include <boost/mpl/max_element.hpp>
 #include "base_storage_impl.hpp"
 #include "../common/array.hpp"
+#include "../common/array_addons.hpp"
 #include "../common/generic_metafunctions/all_integrals.hpp"
 #include "../common/explode_array.hpp"
 #include "../common/generic_metafunctions/is_variadic_pack_of.hpp"
 #include "../common/generic_metafunctions/variadic_assert.hpp"
+#include "../common/offset_metafunctions.hpp"
 
 /**
    @file
@@ -227,7 +266,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
             : m_dims(other.m_dims), m_strides(other.m_strides) {}
 
         /** @brief prints debugging information */
-        void info() const { std::cout << dims< 0 >() << "x" << dims< 1 >() << "x" << dims< 2 >() << ", " << std::endl; }
+        void info(std::ostream &out_s) const { out_s << dim< 0 >() << "x" << dim< 1 >() << "x" << dim< 2 >() << " \n"; }
 
         /**@brief returns the size of the data field*/
         GT_FUNCTION
@@ -236,14 +275,17 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         }
 
         /** @brief returns the dimension fo the field along I*/
+        GT_FUNCTION constexpr array< uint_t, space_dimensions > dims() const { return m_dims; }
+
+        /** @brief returns the dimension fo the field along I*/
         template < ushort_t I >
-        GT_FUNCTION constexpr uint_t dims() const {
+        GT_FUNCTION constexpr uint_t dim() const {
             return m_dims[I];
         }
 
         /** @brief returns the dimension fo the field along I*/
         GT_FUNCTION
-        constexpr uint_t dims(const ushort_t I) const { return m_dims[I]; }
+        constexpr uint_t dim(const ushort_t I) const { return m_dims[I]; }
 
         /**@brief returns the storage strides
          */
@@ -276,10 +318,22 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         GT_FUNCTION int_t index(array< uint_t, S > a) const {
             return (int_t)explode< int_t, _impl_index >(a, *this);
         }
+
+        /**@brief operator equals (same dimension size, etc.) */
+        GT_FUNCTION
+        constexpr bool operator==(meta_storage_base const &other) const {
+            return (size() == other.size()) && (m_dims == other.m_dims) && (m_strides == other.m_strides);
+        }
 #else
         /**@brief straightforward interface*/
         GT_FUNCTION
         int_t index(uint_t const &i, uint_t const &j, uint_t const &k) const { return _index(strides(), i, j, k); }
+
+        /**@brief operator equals (same dimension size, etc.) */
+        GT_FUNCTION
+        bool operator==(meta_storage_base const &other) const {
+            return (size() == other.size()) && (m_dims == other.m_dims) && (m_strides == other.m_strides);
+        }
 #endif
 
         //####################################################
@@ -340,7 +394,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
 
            This method must be called with integral type parameters, and the result will be a positive integer.
         */
-        template < typename StridesVector, typename... UInt >
+        template < typename StridesVector, typename... UInt, typename Dummy = all_integers< UInt... > >
         GT_FUNCTION constexpr static int_t _index(StridesVector const &RESTRICT strides_, UInt const &... dims) {
             GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(), boost::is_integral< UInt >::type::value...),
                 "you have to pass in arguments of uint_t type");
@@ -357,9 +411,17 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
 
            This method returns signed integers of type int_t (used e.g. in iterate_domain)
         */
-        template < typename OffsetTuple, typename StridesVector >
-        GT_FUNCTION static constexpr int_t _index(StridesVector const &RESTRICT strides_, OffsetTuple const &tuple) {
-            return _impl::compute_offset< space_dimensions, layout >::apply(strides_, tuple);
+        template < typename Offset, typename StridesVector >
+        GT_FUNCTION static constexpr int_t _index(StridesVector const &RESTRICT strides_,
+            Offset const &offset,
+            typename boost::enable_if< typename is_tuple_or_array< Offset >::type, int >::type * = 0) {
+            return _impl::compute_offset< space_dimensions, layout >::apply(strides_, offset);
+        }
+
+        template < typename LayoutT, typename StridesVector >
+        GT_FUNCTION static constexpr int_t _indexl(
+            StridesVector const &RESTRICT strides_, array< int_t, space_dimensions > const &offsets) {
+            return _impl::compute_offset< space_dimensions, LayoutT >::apply(strides_, offsets);
         }
 
         template < typename OffsetTuple >

@@ -1,9 +1,45 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 #include "../../iteration_policy.hpp"
 #include "../../backend_traits_fwd.hpp"
 #include "stencil-composition/iterate_domain.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
-#include "common/gt_assert.hpp"
+#include "../../../common/gt_assert.hpp"
+#include "../../../common/generic_metafunctions/replace_template_arguments.hpp"
 
 namespace gridtools {
 
@@ -252,6 +288,11 @@ namespace gridtools {
 
                 // re-create the run functor arguments, replacing the processing elements block size
                 // with the corresponding, recently computed, block size
+#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
+                typedef typename replace_template_arguments< RunFunctorArguments,
+                    typename RunFunctorArguments::processing_elements_block_size_t,
+                    cuda_block_size_t >::type run_functor_arguments_cuda_t;
+#else
                 typedef run_functor_arguments< typename RunFunctorArguments::backend_ids_t,
                     cuda_block_size_t,
                     typename RunFunctorArguments::physical_domain_block_size_t,
@@ -266,8 +307,10 @@ namespace gridtools {
                     typename RunFunctorArguments::async_esf_map_t,
                     typename RunFunctorArguments::grid_t,
                     typename RunFunctorArguments::execution_type_t,
-                    RunFunctorArguments::is_reduction_t::value,
-                    typename RunFunctorArguments::reduction_data_t > run_functor_arguments_cuda_t;
+                    typename RunFunctorArguments::is_reduction_t,
+                    typename RunFunctorArguments::reduction_data_t,
+                    typename RunFunctorArguments::color_t > run_functor_arguments_cuda_t;
+#endif
 
 #ifdef VERBOSE
                 printf("ntx = %d, nty = %d, ntz = %d\n", ntx, nty, ntz);

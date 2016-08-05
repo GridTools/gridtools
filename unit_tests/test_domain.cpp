@@ -1,4 +1,39 @@
 /*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
+/*
  * File:   test_domain.cpp
  * Author: mbianco
  *
@@ -150,7 +185,7 @@ bool test_domain() {
     // // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
     // // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
-    gridtools::domain_type<accessor_list> domain
+    gridtools::aggregator_type<accessor_list> domain
         (boost::fusion::make_vector(&coeff, &in, &out /*,&fly, &flx*/));
 
     typedef boost::mpl::vector<
@@ -188,17 +223,13 @@ bool test_domain() {
     typedef gridtools::metadata_set<actual_metadata_set_t> actual_metadata_list_type;
     actual_metadata_list_type actual_metadata_list;
 
-    typedef boost::fusion::filter_view<typename boost::fusion::result_of::as_set<actual_metadata_set_t>::type,
-                                       boost::mpl::not_<gridtools::is_ptr_to_tmp<boost::mpl::_1> > > t_meta_view;
-
-    t_meta_view  meta_view(actual_metadata_list.sequence_view());
-
     boost::fusion::copy(domain.m_storage_pointers, actual_arg_list);
 
 #ifdef __CUDACC__
-    gridtools::setup_computation<gridtools::enumtype::Cuda>::apply( actual_arg_list, meta_view, domain );
+    gridtools::setup_computation< gridtools::enumtype::Cuda >::apply(actual_arg_list, actual_metadata_list, domain);
 #else
-    gridtools::setup_computation<gridtools::enumtype::Host>::apply( actual_arg_list, meta_view, domain ); //does nothing
+    gridtools::setup_computation< gridtools::enumtype::Host >::apply(
+        actual_arg_list, actual_metadata_list, domain); // does nothing
 #endif
 
 
@@ -225,9 +256,10 @@ bool test_domain() {
     boost::fusion::copy(domain.m_storage_pointers, actual_arg_list);
 
 #ifdef __CUDACC__
-    gridtools::setup_computation<gridtools::enumtype::Cuda>::apply( actual_arg_list, meta_view, domain );
+    gridtools::setup_computation< gridtools::enumtype::Cuda >::apply(actual_arg_list, actual_metadata_list, domain);
 #else
-    gridtools::setup_computation<gridtools::enumtype::Host>::apply( actual_arg_list, meta_view, domain ); //does nothing
+    gridtools::setup_computation< gridtools::enumtype::Host >::apply(
+        actual_arg_list, actual_metadata_list, domain); // does nothing
 #endif
 
     inner_args =

@@ -1,11 +1,46 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 #include <gridtools.hpp>
 #include "common/defs.hpp"
 #include <boost/lexical_cast.hpp>
 #include "../common/is_temporary_storage.hpp"
-#include <iostream>
 #include "../common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "../common/generic_metafunctions/all_integrals.hpp"
+#include "../common/offset_metafunctions.hpp"
 
 namespace gridtools {
     namespace _impl {
@@ -51,7 +86,7 @@ namespace gridtools {
 #endif
 
         /**@brief struct to compute the total offset (the sum of the i,j,k indices times their respective strides)
- */
+        */
         template < ushort_t Id, typename Layout >
         struct compute_offset {
             static const ushort_t space_dimensions = Layout::length;
@@ -71,7 +106,7 @@ namespace gridtools {
                \param strides the strides
                \param indices comma-separated list of coordinates
             */
-            template < typename StridesVector, typename... Int >
+            template < typename StridesVector, typename... Int, typename Dummy = all_integers< Int... > >
             GT_FUNCTION static constexpr int_t apply(StridesVector const &RESTRICT strides_, Int const &... indices_) {
                 return strides_[space_dimensions - Id] *
                            Layout::template find_val< space_dimensions - Id, int, 0 >(indices_...) +
@@ -82,8 +117,10 @@ namespace gridtools {
                \param strides the strides
                \param indices tuple of coordinates
             */
-            template < typename Tuple, typename StridesVector >
-            GT_FUNCTION static constexpr int_t apply(StridesVector const &RESTRICT strides_, Tuple const &indices_) {
+            template < typename Offset, typename StridesVector >
+            GT_FUNCTION static constexpr int_t apply(StridesVector const &RESTRICT strides_,
+                Offset const &indices_,
+                typename boost::enable_if< typename is_tuple_or_array< Offset >::type, int >::type * = 0) {
                 return (int_t)strides_[space_dimensions - Id] *
                            Layout::template find_val< space_dimensions - Id, uint_t, 0 >(indices_) +
                        compute_offset< Id - 1, Layout >::apply(strides_, indices_);
@@ -102,7 +139,7 @@ namespace gridtools {
             }
 
 #ifdef CXX11_ENABLED
-            template < typename StridesVector, typename... IntType >
+            template < typename StridesVector, typename... IntType, typename Dummy = all_integers< IntType... > >
             GT_FUNCTION static constexpr int_t apply(
                 StridesVector const &RESTRICT /*strides*/, IntType const &... indices_) {
                 return Layout::template find_val< space_dimensions - 1, int, 0 >(indices_...);
@@ -112,8 +149,10 @@ namespace gridtools {
                \param strides the strides
                \param indices tuple of coordinates
             */
-            template < typename Tuple, typename StridesVector >
-            GT_FUNCTION static constexpr int_t apply(StridesVector const &RESTRICT /*strides*/, Tuple const &indices_) {
+            template < typename Offset, typename StridesVector >
+            GT_FUNCTION static constexpr int_t apply(StridesVector const &RESTRICT /*strides*/,
+                Offset const &indices_,
+                typename boost::enable_if< typename is_tuple_or_array< Offset >::type, int >::type * = 0) {
                 return Layout::template find_val< space_dimensions - 1, int, 0 >(indices_);
             }
         };

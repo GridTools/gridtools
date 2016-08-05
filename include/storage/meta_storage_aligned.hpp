@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 #include "../common/generic_metafunctions/all_integrals.hpp"
 #include "align.hpp"
@@ -176,6 +211,11 @@ namespace gridtools {
             /**this call zips 2 variadic packs*/
             return index_(typename make_gt_integer_sequence< ushort_t, sizeof...(Halo) >::type(), first_, args_...);
         }
+
+        /**@brief operator equals (same dimension size, etc.) */
+        GT_FUNCTION
+        constexpr bool operator==(const meta_storage_aligned &other) const { return super::operator==(other); }
+
 #else
 
         /* applying 'align' to the integer sequence from 1 to space_dimensions.
@@ -195,20 +235,30 @@ namespace gridtools {
                 k + cond< 2 >::template get< 2 >());
         }
 
+        /**@brief operator equals (same dimension size, etc.) */
+        GT_FUNCTION
+        bool operator==(const meta_storage_aligned &other) const { return super::operator==(other); }
+
 #endif
 
 #ifdef CXX11_ENABLED
+        /** @brief returns the unaligned dimensions
+         */
+        GT_FUNCTION constexpr auto unaligned_dims() -> array< uint_t, MetaStorageBase::space_dimensions > const {
+            return m_unaligned_dims;
+        }
+
         /** @brief returns the dimension fo the field along I
          */
         template < ushort_t I >
-        GT_FUNCTION constexpr uint_t unaligned_dims() const {
+        GT_FUNCTION constexpr uint_t unaligned_dim() const {
             return m_unaligned_dims[I];
         }
 
         /** @brief returns the dimension fo the field along I
           */
         GT_FUNCTION
-        constexpr uint_t unaligned_dims(const ushort_t I) const { return m_unaligned_dims[I]; }
+        constexpr uint_t unaligned_dim(const ushort_t I) const { return m_unaligned_dims[I]; }
 
         /** @brief returns the storage strides
          */
@@ -231,7 +281,14 @@ namespace gridtools {
 #endif
         // device copy constructor
         GT_FUNCTION
-        constexpr meta_storage_aligned(meta_storage_aligned const &other) : super(other) {}
+        constexpr meta_storage_aligned(meta_storage_aligned const &other)
+            : super(other)
+#ifdef CXX11_ENABLED
+              ,
+              m_unaligned_dims(other.m_unaligned_dims), m_unaligned_strides(other.m_unaligned_strides)
+#endif
+        {
+        }
 
         // empty constructor
         GT_FUNCTION

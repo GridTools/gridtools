@@ -111,6 +111,10 @@ if( USE_GPU )
   SET(CUDA_SEPARABLE_COMPILATION ON)
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "${ADDITIONAL_NVCC_FLAGS}"
 "-arch=${CUDA_ARCH}" "-Xcudafe" "--diag_suppress=dupl_calling_convention" "-Xcudafe" "--diag_suppress=code_is_unreachable" "-Xcudafe" "--diag_suppress=implicit_return_from_non_void_function" "-Xcudafe" "--diag_suppress=calling_convention_not_allowed" "-Xcudafe" "--diag_suppress=conflicting_calling_conventions")
+
+  string(REPLACE "." "" CUDA_VERSION_ ${CUDA_VERSION})
+  add_definitions(-DCUDA_VERSION=${CUDA_VERSION_})
+
 else()
   set (CUDA_LIBRARIES "")
   set( CUDA_CXX11 " ")
@@ -147,7 +151,7 @@ set ( exe_LIBS ${exe_LIBS} ${Boost_LIBRARIES} )
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     set(exe_LIBS  ${GTEST_BOTH_LIBRARIES} ${exe_LIBS})
 else()
-    set(exe_LIBS ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
+    set(exe_LIBS -lpthread ${exe_LIBS} ${GTEST_BOTH_LIBRARIES})
 endif()
 
 if(OPENMP_FOUND)
