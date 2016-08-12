@@ -54,20 +54,6 @@
 
 namespace gridtools {
 
-    // TODO move this to the appropiate file
-    template < typename EsfSequence >
-    struct extract_location_type {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< EsfSequence, is_esf_descriptor >::value), "Error: wrong type");
-        typedef typename apply_to_sequence< EsfSequence, esf_get_location_type >::type location_type_seq_t;
-        typedef typename vector_to_set< location_type_seq_t >::type location_type_set_t;
-
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< location_type_set_t >::value == 1),
-            "Error: multiple ESFs were used with different location types."
-            " Currently all esf must be specified on the same location type. "
-            "Future releases will relax this restriction");
-        typedef typename boost::mpl::front< location_type_set_t >::type type;
-    };
-
     /**
        This class is basically the iterate domain. It contains the
        ways to access data and the implementation of iterating on neighbors.
@@ -86,7 +72,6 @@ namespace gridtools {
         typedef typename iterate_domain_arguments_t::grid_t::grid_topology_t grid_topology_t;
         typedef typename grid_topology_t::layout_map_t layout_map_t;
         typedef typename iterate_domain_arguments_t::esf_sequence_t esf_sequence_t;
-        typedef typename extract_location_type< esf_sequence_t >::type location_type_t;
 
         typedef typename local_domain_t::esf_args esf_args_t;
 
@@ -330,30 +315,6 @@ namespace gridtools {
                 (data_pointer())[current_storage< (ID == 0), local_domain_t, typename accessor_t::type >::value]);
         }
 
-        template < typename ValueType,
-            typename SrcColor,
-            typename LocationTypeT,
-            typename Reduction,
-            typename MapF,
-            typename... Arg0 >
-        GT_FUNCTION ValueType operator()(on_neighbors_impl< ValueType,
-            SrcColor,
-            LocationTypeT,
-            Reduction,
-            map_function< MapF, LocationTypeT, Arg0... > > onneighbors) const {
-            auto current_position = m_grid_position;
-
-            const auto neighbors =
-                m_grid_topology.neighbors_indices_3(current_position, location_type_t(), onneighbors.location());
-            ValueType result = onneighbors.value();
-
-            for (int i = 0; i < neighbors.size(); ++i) {
-                result = onneighbors.reduction()(_evaluate(onneighbors.template map< 0 >(), neighbors[i]), result);
-            }
-
-            return result;
-        }
-
         /**
          * helper to dereference the value (using an iterate domain) of an accessor
          * (specified with an Index from within a variadic pack of Accessors). It is meant to be used as
@@ -541,7 +502,7 @@ namespace gridtools {
             // the neighbors are described as an array of absolute indices in the storage, i.e. an array<uint?t,
             // NumNeighbors>
             constexpr auto neighbors =
-                connectivity< location_type_t, decltype(onneighbors.location()), SrcColor::value >::offsets();
+                connectivity< EsfLocationType, decltype(onneighbors.location()), SrcColor::value >::offsets();
 
             //TODO use the index version instead?
 //            const auto neighbors = m_grid_topology.connectivity_index(location_type_t(),
