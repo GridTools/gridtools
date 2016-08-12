@@ -69,6 +69,7 @@ namespace gridtools {
         typedef typename iterate_domain_arguments_t::processing_elements_block_size_t processing_elements_block_size_t;
 
         typedef typename iterate_domain_arguments_t::backend_ids_t backend_ids_t;
+
         typedef typename iterate_domain_arguments_t::grid_t::grid_topology_t grid_topology_t;
         typedef typename grid_topology_t::layout_map_t layout_map_t;
         typedef typename iterate_domain_arguments_t::esf_sequence_t esf_sequence_t;
@@ -79,6 +80,7 @@ namespace gridtools {
             iterate_domain_arguments_t >::type iterate_domain_cache_t;
 
         typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
+        typedef typename iterate_domain_cache_t::all_caches_t all_caches_t;
 
         GRIDTOOLS_STATIC_ASSERT((is_local_domain< local_domain_t >::value), "Internal Error: wrong type");
         typedef typename boost::remove_pointer<
@@ -134,6 +136,34 @@ namespace gridtools {
 
         typedef typename compute_readonly_args_indices< typename iterate_domain_arguments_t::esf_sequence_t >::type
             readonly_args_indices_t;
+
+        /**
+         * metafunction that determines if a given accessor is associated with an placeholder holding a data field
+         */
+        template < typename Accessor >
+        struct accessor_holds_data_field {
+            typedef typename aux::accessor_holds_data_field< Accessor, iterate_domain_arguments_t >::type type;
+        };
+
+        /**
+         * metafunction that determines if a given accessor is associated with an arg that is cached
+         */
+        template < typename Accessor >
+        struct cache_access_accessor {
+            typedef typename accessor_is_cached< Accessor, all_caches_t >::type type;
+        };
+
+        /**
+         * metafunction that determines if a given accessor is associated with an arg holding a
+         * standard field (i.e. not a data field)
+         * and the parameter refers to a storage in main memory (i.e. is not cached)
+         */
+        template < typename Accessor >
+        struct mem_access_with_standard_accessor {
+            typedef typename aux::mem_access_with_standard_accessor< Accessor,
+                all_caches_t,
+                iterate_domain_arguments_t >::type type;
+        };
 
       private:
         local_domain_t const &m_local_domain;
@@ -303,16 +333,39 @@ namespace gridtools {
         GT_FUNCTION
         void set_position(array< uint_t, 4 > const &position) { m_grid_position = position; }
 
-        template < uint_t ID,
-            enumtype::intend intend,
-            typename LocationType,
-            typename Extent,
-            ushort_t FieldDimensions >
-        GT_FUNCTION typename accessor_return_type< accessor< ID, intend, LocationType, Extent, FieldDimensions > >::type
-        operator()(accessor< ID, intend, LocationType, Extent, FieldDimensions > const &accessor_) const {
-            typedef accessor< ID, intend, LocationType, Extent, FieldDimensions > accessor_t;
-            return get_value(accessor_,
-                (data_pointer())[current_storage< (ID == 0), local_domain_t, typename accessor_t::type >::value]);
+        /** @brief method returning the data pointer of an accessor
+            specialization for the accessor placeholders for standard storages
+
+            this method is enabled only if the current placeholder dimension does not exceed the number of space
+           dimensions of the storage class.
+            I.e., if we are dealing with storages, not with storage lists or data fields (see concepts page for
+           definitions)
+        */
+        template < typename Accessor >
+        GT_FUNCTION
+            typename boost::disable_if< typename accessor_holds_data_field< Accessor >::type, void * RESTRICT >::type
+            get_data_pointer(Accessor const &accessor) const {
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
+            return (data_pointer())
+                [current_storage< (Accessor::index_type::value == 0), local_domain_t, typename Accessor::type >::value];
+        }
+
+        template < typename Accessor >
+        GT_FUNCTION typename boost::enable_if< typename cache_access_accessor< Accessor >::type,
+            typename accessor_return_type< Accessor >::type >::type
+        operator()(Accessor const &accessor) const {
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
+            return static_cast< IterateDomainImpl const * >(this)
+                ->template get_cache_value_impl< typename accessor_return_type< Accessor >::type >(accessor);
+        }
+
+        template < typename Accessor >
+        GT_FUNCTION typename boost::enable_if< typename mem_access_with_standard_accessor< Accessor >::type,
+            typename accessor_return_type< Accessor >::type >::type
+        operator()(Accessor const &accessor_) const {
+            return get_value(accessor_, get_data_pointer(accessor_));
         }
 
         /**
@@ -504,11 +557,11 @@ namespace gridtools {
             constexpr auto neighbors =
                 connectivity< EsfLocationType, decltype(onneighbors.location()), SrcColor::value >::offsets();
 
-            //TODO use the index version instead?
-//            const auto neighbors = m_grid_topology.connectivity_index(location_type_t(),
-//                onneighbors.location(),
-//                SrcColor(),
-//                {current_position[0], current_position[2], current_position[3]});
+            // TODO use the index version instead?
+            //            const auto neighbors = m_grid_topology.connectivity_index(location_type_t(),
+            //                onneighbors.location(),
+            //                SrcColor(),
+            //                {current_position[0], current_position[2], current_position[3]});
 
             ValueType &result = onneighbors.value();
 

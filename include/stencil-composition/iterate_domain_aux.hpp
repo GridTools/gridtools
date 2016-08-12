@@ -49,6 +49,7 @@
 #include "common/generic_metafunctions/static_if.hpp"
 #include "common/generic_metafunctions/reversed_range.hpp"
 #include "stencil-composition/total_storages.hpp"
+#include "arg_metafunctions.hpp"
 
 /**
    @file
@@ -736,4 +737,40 @@ If you are not using generic accessors then you are using an unsupported storage
             typename boost::add_reference< accessor_value_type >::type RESTRICT >::type type;
     };
 
+    namespace aux {
+        /**
+         * metafunction that determines if a given accessor is associated with an placeholder holding a data field
+         */
+        template < typename Accessor, typename IterateDomainArguments >
+        struct accessor_holds_data_field {
+            typedef typename boost::mpl::eval_if< is_accessor< Accessor >,
+                arg_holds_data_field_h< get_arg_from_accessor< Accessor, IterateDomainArguments > >,
+                boost::mpl::identity< boost::mpl::false_ > >::type type;
+        };
+
+        /**
+         * metafunction that determines if a given accessor is associated with an arg holding a data field
+         * and the parameter refers to a storage in main memory (i.e. is not cached)
+         */
+        template < typename Accessor, typename CachesMap, typename IterateDomainArguments >
+        struct mem_access_with_data_field_accessor {
+            typedef typename boost::mpl::and_<
+                typename boost::mpl::not_< typename accessor_is_cached< Accessor, CachesMap >::type >::type,
+                typename accessor_holds_data_field< Accessor, IterateDomainArguments >::type >::type type;
+        };
+
+        /**
+         * metafunction that determines if a given accessor is associated with an arg holding a
+         * standard field (i.e. not a data field)
+         * and the parameter refers to a storage in main memory (i.e. is not cached)
+         */
+        template < typename Accessor, typename CachesMap, typename IterateDomainArguments >
+        struct mem_access_with_standard_accessor {
+            typedef typename boost::mpl::and_<
+                typename boost::mpl::not_< typename accessor_is_cached< Accessor, CachesMap >::type >::type,
+                typename boost::mpl::not_<
+                    typename accessor_holds_data_field< Accessor, IterateDomainArguments >::type >::type >::type type;
+        };
+
+    } // namespace aux
 } // namespace gridtools

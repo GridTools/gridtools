@@ -107,9 +107,11 @@ namespace gridtools {
          */
         template < typename Extent >
         GT_FUNCTION bool is_thread_in_domain() const {
-            GRIDTOOLS_STATIC_ASSERT((is_extent<Extent>::value), "Error");
-            return (m_thread_pos[0] >= Extent::iminus::value && m_thread_pos[0] < ((int)m_block_size_i + Extent::iplus::value) &&
-                    m_thread_pos[1] >= Extent::jminus::value && m_thread_pos[1] < ((int)m_block_size_j + Extent::jplus::value));
+            GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), "Error");
+            return (m_thread_pos[0] >= Extent::iminus::value &&
+                    m_thread_pos[0] < ((int)m_block_size_i + Extent::iplus::value) &&
+                    m_thread_pos[1] >= Extent::jminus::value &&
+                    m_thread_pos[1] < ((int)m_block_size_j + Extent::jplus::value));
         }
 
         GT_FUNCTION
@@ -229,13 +231,12 @@ namespace gridtools {
             boost::mpl::has_key< bypass_caches_set_t, static_uint< Accessor::index_type::value > >,
             ReturnType >::type
         get_cache_value_impl(Accessor const &_accessor) const {
-            //        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
-            //        //        assert(m_pshared_iterate_domain);
-            //        // retrieve the ij cache from the fusion tuple and access the element required give the current
-            //        thread position within
-            //        // the block and the offsets of the accessor
-            //        return m_pshared_iterate_domain->template get_ij_cache<static_uint<Accessor::index_type::value>
-            //        >().at(m_thread_pos, _accessor.offsets());
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Wrong type");
+            //        assert(m_pshared_iterate_domain);
+            // retrieve the ij cache from the fusion tuple and access the element required give the current thread
+            // position within the block and the offsets of the accessor
+            return m_pshared_iterate_domain->template get_ij_cache< static_uint< Accessor::index_type::value > >().at(
+                m_thread_pos, _accessor.offsets());
         }
 
         /** @brief return a value that was cached
@@ -246,9 +247,9 @@ namespace gridtools {
             boost::mpl::has_key< bypass_caches_set_t, static_uint< Accessor::index_type::value > >,
             ReturnType >::type
         get_cache_value_impl(Accessor const &_accessor) const {
-            //        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Wrong type");
-            //        return super::template get_value<Accessor, void * RESTRICT> (_accessor,
-            //                    super::template get_data_pointer<Accessor>(_accessor));
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Wrong type");
+            return super::template get_value< Accessor, void * RESTRICT >(
+                _accessor, super::template get_data_pointer< Accessor >(_accessor));
         }
 
         /** @brief return a the value in memory pointed to by an accessor
