@@ -351,20 +351,20 @@ namespace gridtools {
                 [current_storage< (Accessor::index_type::value == 0), local_domain_t, typename Accessor::type >::value];
         }
 
-        template < typename Accessor >
+        template < uint_t Color, typename Accessor >
         GT_FUNCTION typename boost::enable_if< typename cache_access_accessor< Accessor >::type,
             typename accessor_return_type< Accessor >::type >::type
-        operator()(Accessor const &accessor) const {
+        operator()(static_uint<Color>, Accessor const &accessor) const {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
             return static_cast< IterateDomainImpl const * >(this)
-                ->template get_cache_value_impl< typename accessor_return_type< Accessor >::type >(accessor);
+                ->template get_cache_value_impl< Color, typename accessor_return_type< Accessor >::type >(accessor);
         }
 
-        template < typename Accessor >
+        template < uint_t Color, typename Accessor >
         GT_FUNCTION typename boost::enable_if< typename mem_access_with_standard_accessor< Accessor >::type,
             typename accessor_return_type< Accessor >::type >::type
-        operator()(Accessor const &accessor_) const {
+        operator()(static_uint<Color>, Accessor const &accessor_) const {
             return get_value(accessor_,
                 (data_pointer())[current_storage< (Accessor::index_type::value == 0),
                     local_domain_t,

@@ -156,10 +156,10 @@ namespace gridtools {
             template < typename Accessor >
             GT_FUNCTION
             auto operator()(Accessor const &arg) const
-                -> decltype(m_iterate_domain(typename remap_accessor_type< Accessor, esf_args_map_t >::type(arg)))
+                -> decltype(m_iterate_domain(color_t(), typename remap_accessor_type< Accessor, esf_args_map_t >::type(arg)))
             {
                 typedef typename remap_accessor_type< Accessor, esf_args_map_t >::type remap_accessor_t;
-                return m_iterate_domain(remap_accessor_t(arg));
+                return m_iterate_domain(color_t(), remap_accessor_t(arg));
             }
 
             template < typename ValueType, typename LocationTypeT, typename Reduction, typename... Accessors >

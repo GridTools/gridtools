@@ -65,25 +65,27 @@ namespace gridtools {
         typedef typename Extend::iplus iplus;
         typedef typename Extend::jplus jplus;
 
-        typedef static_uint< tile_i::value - iminus::value + iplus::value > j_stride_t;
         typedef static_uint< 1 > i_stride_t;
-        typedef static_uint< (tile_i::value - iminus::value + iplus::value) *
-                             (tile_j::value - jminus::value + jplus::value) * NColors> storage_size_t;
+        typedef static_uint< tile_i::value - iminus::value + iplus::value > c_stride_t;
+        typedef static_uint< c_stride_t::value * NColors > j_stride_t;
+        typedef static_uint< j_stride_t::value *
+                             (tile_j::value - jminus::value + jplus::value)> storage_size_t;
         explicit cache_storage() {}
 
-        template < typename Offset >
+        template < uint_t Color, typename Offset >
         GT_FUNCTION Value &RESTRICT at(array< int, 2 > const &thread_pos, Offset const &offset) {
             GRIDTOOLS_STATIC_ASSERT((is_offset_tuple< Offset >::value), "Error type is not offset tuple");
-            assert(index(thread_pos, offset) < storage_size_t::value);
-            assert(index(thread_pos, offset) >= 0);
+            assert(index<Color>(thread_pos, offset) < storage_size_t::value);
+            assert(index<Color>(thread_pos, offset) >= 0);
 
-            return m_values[index(thread_pos, offset)];
+            return m_values[index<Color>(thread_pos, offset)];
         }
 
       private:
-        template < typename Offset >
+        template < uint_t Color, typename Offset >
         GT_FUNCTION int_t index(array< int, 2 > const &thread_pos, Offset const &offset) {
             return (thread_pos[0] + offset.template get< Offset::n_args - 1 >() - iminus::value) * i_stride_t::value +
+                    Color*c_stride_t::value +
                    (thread_pos[1] + offset.template get< Offset::n_args - 2 >() - jminus::value) * j_stride_t::value;
         }
 

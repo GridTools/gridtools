@@ -226,7 +226,7 @@ namespace gridtools {
         /** @brief return a value that was cached
         * specialization where cache is not explicitly disabled by user
         */
-        template < typename ReturnType, typename Accessor >
+        template < uint_t Color, typename ReturnType, typename Accessor >
         GT_FUNCTION typename boost::disable_if<
             boost::mpl::has_key< bypass_caches_set_t, static_uint< Accessor::index_type::value > >,
             ReturnType >::type
@@ -235,7 +235,7 @@ namespace gridtools {
             //        assert(m_pshared_iterate_domain);
             // retrieve the ij cache from the fusion tuple and access the element required give the current thread
             // position within the block and the offsets of the accessor
-            return m_pshared_iterate_domain->template get_ij_cache< static_uint< Accessor::index_type::value > >().at(
+            return m_pshared_iterate_domain->template get_ij_cache< static_uint< Accessor::index_type::value > >().template at<Color>(
                 m_thread_pos, _accessor.offsets());
         }
 

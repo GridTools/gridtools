@@ -233,6 +233,7 @@ namespace ico_operators {
                 grid_,
                 gridtools::make_multistage(
                         execute<forward>(),
+                        define_caches(cache< IJ, local >(p_grad_div(), p_grad_curl())),
                         make_stage<div_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(
                                 p_in_edges(), p_div_weights1(), p_div_on_cells()
                         ),
