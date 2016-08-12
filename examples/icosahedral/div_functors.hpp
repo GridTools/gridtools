@@ -190,7 +190,12 @@ namespace ico_operators {
         typedef boost::mpl::vector< in_edges, edge_length, out_cells > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+#ifdef __CUDACC__
+        __device__
+#else
+        GT_FUNCTION 
+#endif
+        static void Do(Evaluation const &eval, x_interval) {
             constexpr auto neighbors_offsets = connectivity< edges, cells, Color >::offsets();
 
             double t{eval(in_edges()) * eval(edge_length())};
@@ -237,7 +242,12 @@ namespace ico_operators {
         typedef boost::mpl::vector< in_edges, l_over_A, out_cells > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+#ifdef __CUDACC__
+        __device__
+#else
+        GT_FUNCTION 
+#endif
+        static void Do(Evaluation const &eval, x_interval) {
             constexpr auto neighbors_offsets = connectivity< edges, cells, Color >::offsets();
 
             using cell_of_edge_dim = dimension< 5 >;
