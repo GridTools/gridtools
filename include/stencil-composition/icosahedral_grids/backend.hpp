@@ -37,7 +37,7 @@
 
 #include "storage/storage.hpp"
 #include "storage/meta_storage.hpp"
-#include "location_type.hpp"
+#include "../location_type.hpp"
 #include "stencil-composition/backend_base.hpp"
 #include "storage/wrap_pointer.hpp"
 #include "icosahedral_grid_traits.hpp"

@@ -46,6 +46,7 @@
 #include <iosfwd>
 #include "storage/storage_metafunctions.hpp"
 #include "stencil-composition/arg_metafunctions_fwd.hpp"
+#include "location_type.hpp"
 
 namespace gridtools {
 
@@ -129,10 +130,8 @@ namespace gridtools {
         typedef static_uint< I > index_type;
         typedef static_uint< I > index;
 
-// location type is only used by other grids, supported only for cxx11
-#ifdef CXX11_ENABLED
-        using location_type = typename Storage::storage_info_type::index_type;
-#endif
+        typedef
+            typename get_location_by_metastorage_index< Storage::storage_info_type::index_type::value >::type location_type;
 
         template < typename Storage2 >
         arg_storage_pair< arg< I, storage_type >, Storage2 > operator=(Storage2 &ref) {

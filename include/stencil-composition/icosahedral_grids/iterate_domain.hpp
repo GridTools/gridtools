@@ -34,7 +34,6 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "location_type.hpp"
 #include <type_traits>
 #include <boost/type_traits/remove_reference.hpp>
 #include "common/generic_metafunctions/is_not_same.hpp"
@@ -45,6 +44,7 @@
 #include "common/array.hpp"
 #include "../../common/explode_array.hpp"
 #include "common/generic_metafunctions/remove_restrict_reference.hpp"
+#include "../location_type.hpp"
 #include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
 #include "stencil-composition/total_storages.hpp"
 #include "stencil-composition/iterate_domain_aux.hpp"

@@ -175,6 +175,7 @@ namespace gridtools {
 
         template < typename Cache >
         struct get_cache_storage {
+            GRIDTOOLS_STATIC_ASSERT((is_cache<Cache>::value), "Error");
             typedef cache_storage< float_type, BlockSize, typename boost::mpl::at< CacheExtendsMap, Cache >::type >
                 type;
         };

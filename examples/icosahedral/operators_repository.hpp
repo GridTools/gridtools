@@ -103,24 +103,24 @@ namespace ico_operators {
 
         repository(const uint_t idim, const uint_t jdim, const uint_t kdim)
             : icosahedral_grid_(idim, jdim, kdim), m_idim(idim), m_jdim(jdim), m_kdim(kdim),
-              m_u(icosahedral_grid_.template make_storage< icosahedral_topology_t::edges, double >("u")),
+              m_u(icosahedral_grid_.make_storage< icosahedral_topology_t::edges, double >("u")),
               m_lap_u_ref(
-                  icosahedral_grid_.template make_storage< icosahedral_topology_t::edges, double >("lap_u_ref")),
+                  icosahedral_grid_.make_storage< icosahedral_topology_t::edges, double >("lap_u_ref")),
               m_out_vertex(
-                  icosahedral_grid_.template make_storage< icosahedral_topology_t::vertexes, double >("out_vertex")),
+                  icosahedral_grid_.make_storage< icosahedral_topology_t::vertexes, double >("out_vertex")),
               m_curl_u_ref(
-                  icosahedral_grid_.template make_storage< icosahedral_topology_t::vertexes, double >("curl_u_ref")),
+                  icosahedral_grid_.make_storage< icosahedral_topology_t::vertexes, double >("curl_u_ref")),
               m_div_u_ref(
-                  icosahedral_grid_.template make_storage< icosahedral_topology_t::cells, double >("div_u_ref")),
+                  icosahedral_grid_.make_storage< icosahedral_topology_t::cells, double >("div_u_ref")),
               m_dual_area(
-                  icosahedral_grid_.template make_2d_storage< icosahedral_topology_t::vertexes, double >("dual_area")),
+                  icosahedral_grid_.make_2d_storage< icosahedral_topology_t::vertexes, double >("dual_area")),
               m_cell_area(
-                  icosahedral_grid_.template make_2d_storage< icosahedral_topology_t::cells, double >("cell_area")),
+                  icosahedral_grid_.make_2d_storage< icosahedral_topology_t::cells, double >("cell_area")),
               m_cell_area_reciprocal(
-                  icosahedral_grid_.template make_2d_storage< icosahedral_topology_t::cells, double >("cell_area_reciprocal")),
+                  icosahedral_grid_.make_2d_storage< icosahedral_topology_t::cells, double >("cell_area_reciprocal")),
               m_edge_length(
-                  icosahedral_grid_.template make_2d_storage< icosahedral_topology_t::edges, double >("edge_length")),
-              m_dual_edge_length(icosahedral_grid_.template make_2d_storage< icosahedral_topology_t::edges, double >(
+                  icosahedral_grid_.make_2d_storage< icosahedral_topology_t::edges, double >("edge_length")),
+              m_dual_edge_length(icosahedral_grid_.make_2d_storage< icosahedral_topology_t::edges, double >(
                   "dual_edge_length")),
               m_edges_of_vertexes_meta(meta_storage_extender()(m_dual_area.meta_data(), 6)),
               m_edges_of_cells_meta(meta_storage_extender()(m_cell_area.meta_data(), 3)),

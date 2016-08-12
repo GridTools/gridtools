@@ -60,7 +60,7 @@
 #include <common/array.hpp>
 #include "../../common/gt_assert.hpp"
 #include <boost/mpl/vector.hpp>
-#include "location_type.hpp"
+#include "../location_type.hpp"
 #include "common/array_addons.hpp"
 #include "common/selector.hpp"
 
@@ -729,32 +729,34 @@ namespace gridtools {
     template < typename Backend >
     class icosahedral_topology : public clonable_to_gpu< icosahedral_topology< Backend > > {
       public:
-        static constexpr const uint_t library_indices_limit=1000;
-
         using layout_2d_t = typename Backend::template select_layout< selector< 1, 1, 1, -1 > >;
         using layout_t = typename Backend::layout_map_t;
 
-        using cells = location_type< 0, 2 >;
-        using edges = location_type< 1, 3 >;
-        using vertexes = location_type< 2, 1 >;
+        using cells = enumtype::cells;
+        using edges = enumtype::edges;
+        using vertexes = enumtype::vertexes;
         using layout_map_t = typename Backend::layout_map_t;
         using type = icosahedral_topology< Backend >;
 
-        //Beyond 1000 we reserve the storage indices for library purposes
+        // Beyond 1000 we reserve the storage indices for library purposes
         template < typename LocationType >
-        using meta_storage_t = typename Backend::template storage_info_t< LocationType::value+library_indices_limit, layout_t >;
+        using meta_storage_t =
+            typename Backend::template storage_info_t< LocationType::value + enumtype::metastorage_library_indices_limit, layout_t >;
 
         template < typename LocationType >
-        using meta_storage_2d_t = typename Backend::template storage_info_t< LocationType::value+library_indices_limit*2, layout_2d_t >;
+        using meta_storage_2d_t =
+            typename Backend::template storage_info_t< LocationType::value + enumtype::metastorage_library_indices_limit * 2,
+                layout_2d_t >;
 
         template < typename LocationType, typename ValueType >
-        using storage_t = typename Backend::template storage_t< ValueType, meta_storage_t<LocationType> >;
+        using storage_t = typename Backend::template storage_t< ValueType, meta_storage_t< LocationType > >;
 
         template < typename LocationType, typename ValueType >
-        using temporary_storage_t = typename Backend::template temporary_storage_t< ValueType, meta_storage_t<LocationType> >;
+        using temporary_storage_t =
+            typename Backend::template temporary_storage_t< ValueType, meta_storage_t< LocationType > >;
 
         template < typename LocationType, typename ValueType >
-        using storage_2d_t = typename Backend::template storage_t< ValueType, meta_storage_2d_t<LocationType> >;
+        using storage_2d_t = typename Backend::template storage_t< ValueType, meta_storage_2d_t< LocationType > >;
 
         const array< uint_t, 3 > m_dims; // Sizes as cells in a multi-dimensional Cell array
 
@@ -763,8 +765,9 @@ namespace gridtools {
 
         grid_meta_storages_t m_virtual_storages;
 
-        using grid_meta_storages_2d_t =
-            boost::fusion::vector3< meta_storage_2d_t< cells >, meta_storage_2d_t< edges >, meta_storage_2d_t< vertexes > >;
+        using grid_meta_storages_2d_t = boost::fusion::vector3< meta_storage_2d_t< cells >,
+            meta_storage_2d_t< edges >,
+            meta_storage_2d_t< vertexes > >;
 
         grid_meta_storages_2d_t m_virtual_storages_2d;
 
@@ -784,25 +787,26 @@ namespace gridtools {
               m_virtual_storages(meta_storage_t< cells >(array< uint_t, meta_storage_t< cells >::space_dimensions >{
                                      idim, cells::n_colors::value, jdim, kdim}),
                   meta_storage_t< edges >(array< uint_t, meta_storage_t< edges >::space_dimensions >{
-                    idim, edges::n_colors::value, jdim, kdim}),
+                      idim, edges::n_colors::value, jdim, kdim}),
                   // here we assume by convention that the dual grid (vertexes) have one more grid point
                   meta_storage_t< vertexes >(array< uint_t, meta_storage_t< vertexes >::space_dimensions >{
                       idim, vertexes::n_colors::value, jdim, kdim})),
-              m_virtual_storages_2d(meta_storage_2d_t< cells >(array< uint_t, meta_storage_2d_t< cells >::space_dimensions >{
-                                     idim, cells::n_colors::value, jdim, kdim}),
+              m_virtual_storages_2d(
+                  meta_storage_2d_t< cells >(array< uint_t, meta_storage_2d_t< cells >::space_dimensions >{
+                      idim, cells::n_colors::value, jdim, kdim}),
                   meta_storage_2d_t< edges >(array< uint_t, meta_storage_t< edges >::space_dimensions >{
-                    idim, edges::n_colors::value, jdim, kdim}),
+                      idim, edges::n_colors::value, jdim, kdim}),
                   // here we assume by convention that the dual grid (vertexes) have one more grid point
                   meta_storage_2d_t< vertexes >(array< uint_t, meta_storage_2d_t< vertexes >::space_dimensions >{
-                      idim, vertexes::n_colors::value, jdim, kdim})){}
+                      idim, vertexes::n_colors::value, jdim, kdim})) {}
 
         __device__ icosahedral_topology(icosahedral_topology const &other)
             : m_dims(other.m_dims), m_virtual_storages(boost::fusion::at_c< cells::value >(other.m_virtual_storages),
                                         boost::fusion::at_c< edges::value >(other.m_virtual_storages),
                                         boost::fusion::at_c< vertexes::value >(other.m_virtual_storages)),
               m_virtual_storages_2d(boost::fusion::at_c< cells::value >(other.m_virtual_storages_2d),
-                                                      boost::fusion::at_c< edges::value >(other.m_virtual_storages_2d),
-                                                      boost::fusion::at_c< vertexes::value >(other.m_virtual_storages_2d)){}
+                  boost::fusion::at_c< edges::value >(other.m_virtual_storages_2d),
+                  boost::fusion::at_c< vertexes::value >(other.m_virtual_storages_2d)) {}
 
         GT_FUNCTION
         grid_meta_storages_t const &virtual_storages() const { return m_virtual_storages; }
