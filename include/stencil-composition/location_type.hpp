@@ -41,7 +41,7 @@ namespace gridtools {
     template < int I, ushort_t NColors >
     struct location_type {
         static const int value = I;
-        using n_colors = static_ushort< NColors >; //! <- is the number of locations of this type
+        typedef static_ushort< NColors > n_colors; //! <- is the number of locations of this type
     };
 
     template < typename T >

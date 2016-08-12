@@ -52,7 +52,7 @@ namespace gridtools {
      * @tparam BlockSize physical domain block size
      * @tparam Extend extent
      */
-    template < typename Value, typename BlockSize, typename Extend >
+    template < typename Value, typename BlockSize, typename Extend, uint_t NColors >
     struct cache_storage {
 
         GRIDTOOLS_STATIC_ASSERT((is_block_size< BlockSize >::value), "Internal Error: wrong type");
@@ -68,7 +68,7 @@ namespace gridtools {
         typedef static_uint< tile_i::value - iminus::value + iplus::value > j_stride_t;
         typedef static_uint< 1 > i_stride_t;
         typedef static_uint< (tile_i::value - iminus::value + iplus::value) *
-                             (tile_j::value - jminus::value + jplus::value) > storage_size_t;
+                             (tile_j::value - jminus::value + jplus::value) * NColors> storage_size_t;
         explicit cache_storage() {}
 
         template < typename Offset >
