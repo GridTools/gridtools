@@ -365,7 +365,10 @@ namespace gridtools {
         GT_FUNCTION typename boost::enable_if< typename mem_access_with_standard_accessor< Accessor >::type,
             typename accessor_return_type< Accessor >::type >::type
         operator()(Accessor const &accessor_) const {
-            return get_value(accessor_, get_data_pointer(accessor_));
+            return get_value(accessor_,
+                (data_pointer())[current_storage< (Accessor::index_type::value == 0),
+                    local_domain_t,
+                    typename Accessor::type >::value]);
         }
 
         /**
