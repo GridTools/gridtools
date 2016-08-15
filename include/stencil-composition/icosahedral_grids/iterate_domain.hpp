@@ -582,6 +582,17 @@ namespace gridtools {
             return result;
         }
 
+        /** @brief return a the value in gmem pointed to by an accessor
+        */
+        template < typename ReturnType, typename StoragePointer >
+        GT_FUNCTION ReturnType get_gmem_value(StoragePointer RESTRICT &storage_pointer
+            // control your instincts: changing the following
+            // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
+            ,
+            const int_t pointer_offset) const {
+            return *(storage_pointer + pointer_offset);
+        }
+
         /**@brief returns the value of the memory at the given address, plus the offset specified by the arg
            placeholder
            \param arg placeholder containing the storage ID and the offsets
@@ -603,6 +614,8 @@ namespace gridtools {
             using storage_type = typename std::remove_reference< decltype(*storage_) >::type;
             typename storage_type::value_type *RESTRICT real_storage_pointer =
                 static_cast< typename storage_type::value_type * >(storage_pointer);
+
+            typedef typename get_storage_pointer_accessor< local_domain_t, Accessor >::type storage_pointer_t;
 
             // getting information about the metadata
             typedef typename boost::mpl::at< metadata_map_t, typename storage_type::storage_info_type >::type
@@ -635,7 +648,11 @@ namespace gridtools {
                 metadata_->_index(strides().template get< metadata_index_t::value >(), accessor.offsets());
 
             assert((int)metadata_->size() > pointer_offset);
-            return *(real_storage_pointer + pointer_offset);
+            return static_cast< const IterateDomainImpl * >(this)
+                ->template get_value_impl<
+                    typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type,
+                    Accessor,
+                    storage_pointer_t >(real_storage_pointer, pointer_offset);
         }
 
         template < typename Accessor, typename StoragePointer >
@@ -644,6 +661,8 @@ namespace gridtools {
 
             // getting information about the storage
             typedef typename Accessor::index_type index_t;
+
+            typedef typename get_storage_pointer_accessor< local_domain_t, Accessor >::type storage_pointer_t;
 
             auto const storage_ = boost::fusion::at< index_t >(m_local_domain.m_local_args);
 
@@ -663,7 +682,11 @@ namespace gridtools {
 
             assert((int)metadata_->size() > offset);
 #endif
-            return *(real_storage_pointer + offset);
+            return static_cast< const IterateDomainImpl * >(this)
+                ->template get_value_impl<
+                    typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type,
+                    Accessor,
+                    storage_pointer_t >(real_storage_pointer, offset);
         }
 
         /**
