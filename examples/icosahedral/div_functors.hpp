@@ -49,9 +49,9 @@ namespace ico_operators {
 
     template < uint_t Color >
     struct div_prep_functor {
-        typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 1 > > edge_length;
-        typedef inout_accessor< 1, icosahedral_topology_t::cells > cell_area_reciprocal;
-        typedef in_accessor< 2, icosahedral_topology_t::cells, extent< 1 >, 5 > orientation_of_normal;
+        typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 0, 1, 0, 1 > > edge_length;
+        typedef in_accessor< 1, icosahedral_topology_t::cells > cell_area_reciprocal;
+        typedef in_accessor< 2, icosahedral_topology_t::cells, extent< 0 >, 5 > orientation_of_normal;
         typedef inout_accessor< 3, icosahedral_topology_t::cells, 5 > weights;
 
         typedef boost::mpl::vector< edge_length, cell_area_reciprocal, orientation_of_normal, weights > arg_list;
@@ -73,8 +73,8 @@ namespace ico_operators {
 
     template < uint_t Color >
     struct div_prep_functor_on_edges {
-        typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 1 > > edge_length;
-        typedef in_accessor< 1, icosahedral_topology_t::cells, extent< 1 > > cell_area_reciprocal;
+        typedef in_accessor< 0, icosahedral_topology_t::edges > edge_length;
+        typedef in_accessor< 1, icosahedral_topology_t::cells, extent< -1, 0, -1, 0 > > cell_area_reciprocal;
         typedef inout_accessor< 2, icosahedral_topology_t::edges, 5 > l_over_A;
 
         typedef boost::mpl::vector< edge_length, cell_area_reciprocal, l_over_A > arg_list;
@@ -93,8 +93,8 @@ namespace ico_operators {
 
     template < uint_t Color >
     struct div_functor {
-        typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 1 > > in_edges;
-        typedef in_accessor< 1, icosahedral_topology_t::cells, extent< 1 >, 5 > weights;
+        typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 0, 1, 0, 1 > > in_edges;
+        typedef in_accessor< 1, icosahedral_topology_t::cells, extent< 0 >, 5 > weights;
         typedef inout_accessor< 2, icosahedral_topology_t::cells > out_cells;
         typedef boost::mpl::vector< in_edges, weights, out_cells > arg_list;
 
@@ -115,8 +115,8 @@ namespace ico_operators {
 
     template < uint_t Color >
     struct div_functor_reduction_into_scalar {
-        typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 1 > > in_edges;
-        typedef in_accessor< 1, icosahedral_topology_t::cells, extent< 1 >, 5 > weights;
+        typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 0, 1, 0, 1 > > in_edges;
+        typedef in_accessor< 1, icosahedral_topology_t::cells, extent< 0 >, 5 > weights;
         typedef inout_accessor< 2, icosahedral_topology_t::cells > out_cells;
         typedef boost::mpl::vector< in_edges, weights, out_cells > arg_list;
 
@@ -138,9 +138,9 @@ namespace ico_operators {
 
     template < uint_t Color >
     struct div_functor_flow_convention {
-        typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 1 > > in_edges;
-        typedef in_accessor< 1, icosahedral_topology_t::edges, extent< 1 > > edge_length;
-        typedef in_accessor< 2, icosahedral_topology_t::cells, extent< 1 > > cell_area_reciprocal;
+        typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 0, 1, 0, 1 > > in_edges;
+        typedef in_accessor< 1, icosahedral_topology_t::edges, extent< 0, 1, 0, 1 > > edge_length;
+        typedef in_accessor< 2, icosahedral_topology_t::cells, extent< 0 > > cell_area_reciprocal;
         typedef inout_accessor< 3, icosahedral_topology_t::cells > out_cells;
         typedef boost::mpl::vector< in_edges, edge_length, cell_area_reciprocal, out_cells > arg_list;
 
@@ -158,9 +158,9 @@ namespace ico_operators {
 
     template < uint_t Color >
     struct div_functor_flow_convention_connectivity {
-        typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 1 > > in_edges;
-        typedef in_accessor< 1, icosahedral_topology_t::edges, extent< 1 > > edge_length;
-        typedef in_accessor< 2, icosahedral_topology_t::cells, extent< 1 > > cell_area_reciprocal;
+        typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 0, 1, 0, 1 > > in_edges;
+        typedef in_accessor< 1, icosahedral_topology_t::edges, extent< 0, 1, 0, 1 > > edge_length;
+        typedef in_accessor< 2, icosahedral_topology_t::cells > cell_area_reciprocal;
         typedef inout_accessor< 3, icosahedral_topology_t::cells > out_cells;
         typedef boost::mpl::vector< in_edges, edge_length, cell_area_reciprocal, out_cells > arg_list;
 
@@ -184,8 +184,8 @@ namespace ico_operators {
 
     template < uint_t Color >
     struct div_functor_over_edges {
-        typedef in_accessor< 0, icosahedral_topology_t::edges > in_edges;
-        typedef in_accessor< 1, icosahedral_topology_t::edges > edge_length;
+        typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 0, 1, 0, 1 > > in_edges;
+        typedef in_accessor< 1, icosahedral_topology_t::edges, extent< 0, 1, 0, 1 > > edge_length;
         typedef inout_accessor< 2, icosahedral_topology_t::cells > out_cells;
         typedef boost::mpl::vector< in_edges, edge_length, out_cells > arg_list;
 
@@ -215,18 +215,22 @@ namespace ico_operators {
     };
     template < uint_t Color >
     struct divide_by_field {
-        typedef in_accessor< 0, icosahedral_topology_t::cells> cell_area_reciprocal;
-        typedef inout_accessor< 1, icosahedral_topology_t::cells > out_cells;
+        typedef in_accessor< 0, icosahedral_topology_t::cells, extent< -1, 0, -1, 0 > > cell_area_reciprocal;
+        // library protects out accessors with extent
+        //        typedef accessor< 1, enumtype::inout, icosahedral_topology_t::cells, extent< -1, 0, -1, 0 > >
+        //        out_cells;
+        typedef inout_accessor< 1, icosahedral_topology_t::cells> out_cells;
+
         typedef boost::mpl::vector< cell_area_reciprocal, out_cells > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
             constexpr auto neighbors_offsets = connectivity< edges, cells, Color >::offsets();
 
-                        eval(out_cells()) *= eval(cell_area_reciprocal());
-//            if (Color == 0) {
-//                eval(out_cells(neighbors_offsets[0])) *= eval(cell_area_reciprocal(neighbors_offsets[0]));
-//                eval(out_cells(neighbors_offsets[1])) *= eval(cell_area_reciprocal(neighbors_offsets[1]));
-//            }
+            eval(out_cells()) *= eval(cell_area_reciprocal());
+            if (Color == 0) {
+                eval(out_cells(neighbors_offsets[0])) *= eval(cell_area_reciprocal(neighbors_offsets[0]));
+                eval(out_cells(neighbors_offsets[1])) *= eval(cell_area_reciprocal(neighbors_offsets[1]));
+            }
         }
     };
 
@@ -236,8 +240,10 @@ namespace ico_operators {
 
     template < uint_t Color >
     struct div_functor_over_edges_weights {
-        typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 1 > > in_edges;
-        typedef in_accessor< 1, icosahedral_topology_t::edges, extent< 1 >, 5 > l_over_A;
+        typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 0 > > in_edges;
+        typedef in_accessor< 1, icosahedral_topology_t::edges, extent< 0 >, 5 > l_over_A;
+        // library protects out accessors with extent
+        //        typedef accessor< 2, enumtype::inout, icosahedral_topology_t::cells, extent<-1,0,-1,0> > out_cells;
         typedef inout_accessor< 2, icosahedral_topology_t::cells > out_cells;
         typedef boost::mpl::vector< in_edges, l_over_A, out_cells > arg_list;
 

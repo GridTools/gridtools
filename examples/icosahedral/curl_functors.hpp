@@ -95,9 +95,9 @@ namespace ico_operators {
 
     template < uint_t Color >
     struct curl_functor_flow_convention {
-        typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 1 > > in_edges;
+        typedef in_accessor< 0, icosahedral_topology_t::edges, extent< -1,0,-1,0 > > in_edges;
         typedef in_accessor< 1, icosahedral_topology_t::vertexes > dual_area_reciprocal;
-        typedef in_accessor< 2, icosahedral_topology_t::edges, extent< 1 > > dual_edge_length;
+        typedef in_accessor< 2, icosahedral_topology_t::edges, extent< -1,0,-1,0 > > dual_edge_length;
         typedef inout_accessor< 3, icosahedral_topology_t::vertexes > out_vertexes;
         typedef boost::mpl::vector< in_edges, dual_area_reciprocal, dual_edge_length, out_vertexes > arg_list;
 
