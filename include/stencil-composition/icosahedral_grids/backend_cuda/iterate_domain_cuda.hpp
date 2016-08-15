@@ -42,6 +42,7 @@
 #include "../../iterate_domain_metafunctions.hpp"
 #include "../../iterate_domain_impl_metafunctions.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
+#include "../grid_traits.hpp" 
 
 namespace gridtools {
 
@@ -178,24 +179,26 @@ namespace gridtools {
 
         template < ushort_t Coordinate, typename Execution >
         GT_FUNCTION void increment_impl() {
-            if (Coordinate != 0 && Coordinate != 1)
-                return;
-            m_thread_pos[Coordinate] += Execution::value;
+           if(Coordinate != grid_traits_from_id< enumtype::icosahedral >::dim_i_t::value && Coordinate != grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value ) return;
+
+           if (Coordinate == grid_traits_from_id< enumtype::icosahedral >::dim_i_t::value ) m_thread_pos[Coordinate] += Execution::value;
+           else if (Coordinate == grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value ) m_thread_pos[1] += Execution::value;
         }
 
         template < ushort_t Coordinate >
         GT_FUNCTION void increment_impl(const int_t steps) {
-            if (Coordinate != 0 && Coordinate != 1)
-                return;
-            m_thread_pos[Coordinate] += steps;
+           // TODO provide this return at compile time
+           if(Coordinate != grid_traits_from_id< enumtype::icosahedral >::dim_i_t::value && Coordinate != grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value ) return;
+           
+           if (Coordinate == grid_traits_from_id< enumtype::icosahedral >::dim_i_t::value ) m_thread_pos[0] += steps;
+           else if (Coordinate == grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value ) m_thread_pos[1] += steps;
         }
 
         template < ushort_t Coordinate >
         GT_FUNCTION void initialize_impl() {
-            if (Coordinate == 0)
-                m_thread_pos[Coordinate] = threadIdx.x;
-            else if (Coordinate == 1)
-                m_thread_pos[Coordinate] = threadIdx.y;
+
+            if (Coordinate == grid_traits_from_id< enumtype::icosahedral >::dim_i_t::value ) m_thread_pos[0] = threadIdx.x;
+            else if (Coordinate == grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value ) m_thread_pos[1] = threadIdx.y;
         }
 
         /** @brief metafunction that determines if an arg is pointing to a field which is read only by all ESFs

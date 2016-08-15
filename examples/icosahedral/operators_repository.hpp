@@ -272,8 +272,8 @@ namespace ico_operators {
 
       public:
         const uint_t m_idim, m_jdim, m_kdim;
-        const uint_t halo_nc = 1;
-        const uint_t halo_mc = 1;
+        const uint_t halo_nc = 2;
+        const uint_t halo_mc = 2;
         const uint_t halo_k = 0;
     };
 }
