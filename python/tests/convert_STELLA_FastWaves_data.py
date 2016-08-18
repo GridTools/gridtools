@@ -1,4 +1,4 @@
-#! python
+#! env python
 
 # This script imports data for the STELLA FastWaves stencil (saved using
 # SerialBox format) and converts it into a NPZ compressed archive.
@@ -9,15 +9,30 @@
 # Original data for testing the FastWaves GridTools4Py stencil against a
 # STELLA-coded stencil were taken from
 # /scratch/daint/jenkins/data/double/oldFW/
-#
-# TODO: Add command-line arguments for dataset folders and json file names
-#       (ie the serializer arguments)
-
+import sys
 import numpy as np
 from serialization import serializer, savepoint
 
+
+# Parse command line arguments
+args = sys.argv[1:]
+if len(args) != 5 or args[0] in ["-h","--help"]:
+    print("convert_STELLA_FastWaves_data.py expects 5 arguments:")
+    print("    1 - directory of SerialBox database for INPUT data")
+    print("    2 - name of .json organizer file for INPUT data")
+    print("    3 - directory of SerialBox database for REFERENCE RESULTS data")
+    print("    4 - name of .json organizer file for REFERENCE RESULTS data")
+    print("    5 - name of output archive")
+    sys.exit()
+
+input_dir = args[0]
+input_json_filename = args[1]
+results_dir = args[2]
+results_json_filename = args[3]
+outfile = args[4]
+
 # Import savepoints from STELLA data using SerialBox
-ser = serializer('/home/alberto/Develop/FWdata/oldFW/', 'Field', 'r')
+ser = serializer(input_dir, input_json_filename, 'r')
 a = [sp for sp in ser.savepoints if 'FastWavesRK' in sp.name]
 sp_const = ser.savepoints[0]
 spin = a[6]
@@ -42,7 +57,7 @@ xdzdy          = np.zeros(domain, dtype=np.float64)
 xlhsx          = np.zeros(domain, dtype=np.float64)
 xlhsy          = np.zeros(domain, dtype=np.float64)
 wbbctens_stage = np.zeros((domain[0],domain[1],domain[2]+1),
-                               dtype=np.float64)
+                          dtype=np.float64)
 
 cwp[:,:,-1]            = ser.load_field('cwp', spin).squeeze()
 xdzdx[:,:,-1]          = ser.load_field('xdzdx', spin).squeeze()
@@ -58,12 +73,12 @@ hhl  = ser.load_field('hhl',  sp_const).squeeze()
 acrlat0  = ser.load_field('acrlat',  sp_const).squeeze()[:,0]
 
 # Load STELLA reference results using a second serializer object
-serstella = serializer('/home/alberto/Develop/StellaFastWavesUV', 'resultSTELLA', 'r')
+serstella = serializer(results_dir, results_json_filename, 'r')
 sp_stella = serstella.savepoints[0]
 stella_u = serstella.load_field('u', sp_stella).squeeze()
 stella_v = serstella.load_field('v', sp_stella).squeeze()
 
-np.savez_compressed('FWdata_compressed',
+np.savez_compressed(outfile,
          u_pos=u_pos,
          v_pos=v_pos,
          utens_stage=utens_stage,
