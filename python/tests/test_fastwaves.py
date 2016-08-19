@@ -84,6 +84,8 @@ class FastWavesUVTest (CopyTest):
         self.xdzdy     = np.random.random(self.domain) / 1e2
         self.xlhsx     = np.random.random(self.domain) / 1e2
         self.xlhsy     = np.random.random(self.domain) / 1e2
+        # The wbbctens_stage parameter must have an additional layer of cells
+        # in the vertical direction
         self.wbbctens_stage = np.random.random ((self.domain[0],self.domain[1],self.domain[2]+1)) / 1e2
 
         # Stencil outputs
@@ -101,7 +103,7 @@ class FastWavesUVTest (CopyTest):
                                         np.sin(2*np.pi*(x+y)))/4.0
 
 
-    def test_stella_results (self, backend='python'):
+    def test_validate_results (self, backend='python'):
         # The following test is run with input data originally taken from
         # /scratch/daint/jenkins/data/double/oldFW/
         # Results are compared with data coming from a standalone version of
@@ -191,13 +193,13 @@ class FastWavesUVTest (CopyTest):
 
 
     @unittest.skip("To be validated")
-    def test_stella_results_cpp (self):
+    def test_validate_results_cpp (self):
         self.test_stella_results (backend='c++')
 
 
     @unittest.skip("To be validated")
     @attr(lang='cuda')
-    def test_stella_results_cuda (self):
+    def test_validate_results_cuda (self):
         self.test_stella_results (backend='cuda')
 
 
@@ -335,6 +337,8 @@ class FastWavesUVTest (CopyTest):
         params_shapes  = dict ( )
         for p in self.params:
             params_shapes[p]  = self.domain
+        # The wbbctens_stage parameter array must have an additional layer of cells
+        # in the vertical direction
         params_shapes['wbbctens_stage'] = (self.domain[0],self.domain[1],(self.domain[2]+1))
         super ( ).test_compare_python_and_cpp_results (params_shapes=params_shapes,
                                                        backend=backend)
@@ -368,7 +372,7 @@ class FastWavesUVTest (CopyTest):
         super ( ).test_minimum_halo_detection (min_halo)
 
 
-    @unittest.skip("Superseded by tests on STELLA results")
+    @unittest.skip("Replaced by test_validate_results_*")
     def test_python_results (self, out_param=None, result_file=None):
         pass
 
