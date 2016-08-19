@@ -63,27 +63,27 @@ class FastWavesUVTest (CopyTest):
                                     dt_small=self.dt_small,
                                     dlat=self.dlat,
                                     flat_limit=self.flat_limit)
-        self.stencil.set_halo((3,3,3,3))
-        self.stencil.set_k_direction('forward')
+        self.stencil.set_halo ((3,3,3,3))
+        self.stencil.set_k_direction ('forward')
         self.stencil.set_backend ('python')
 
         # Stencil inputs
-        self.u_pos = np.random.random(self.domain) / 1e2
-        self.v_pos = np.random.random(self.domain) / 1e2
-        self.utens_stage = np.random.random(self.domain) / 1e2
-        self.vtens_stage = np.random.random(self.domain) / 1e2
-        self.ppuv      = np.random.random(self.domain) / 1e2
-        self.rho       = np.random.random(self.domain) / 1e2
-        self.rho0      = np.random.random(self.domain) / 1e2
-        self.p0        = np.random.random(self.domain) / 1e2
-        self.hhl       = np.random.random(self.domain) / 1e2
-        self.wgtfac    = np.random.random(self.domain) / 1e2
-        self.fx        = np.random.random(self.domain) / 1e2
-        self.cwp       = np.random.random(self.domain) / 1e2
-        self.xdzdx     = np.random.random(self.domain) / 1e2
-        self.xdzdy     = np.random.random(self.domain) / 1e2
-        self.xlhsx     = np.random.random(self.domain) / 1e2
-        self.xlhsy     = np.random.random(self.domain) / 1e2
+        self.u_pos = np.random.random (self.domain) / 1e2
+        self.v_pos = np.random.random (self.domain) / 1e2
+        self.utens_stage = np.random.random (self.domain) / 1e2
+        self.vtens_stage = np.random.random (self.domain) / 1e2
+        self.ppuv      = np.random.random (self.domain) / 1e2
+        self.rho       = np.random.random (self.domain) / 1e2
+        self.rho0      = np.random.random (self.domain) / 1e2
+        self.p0        = np.random.random (self.domain) / 1e2
+        self.hhl       = np.random.random (self.domain) / 1e2
+        self.wgtfac    = np.random.random (self.domain) / 1e2
+        self.fx        = np.random.random (self.domain) / 1e2
+        self.cwp       = np.random.random (self.domain) / 1e2
+        self.xdzdx     = np.random.random (self.domain) / 1e2
+        self.xdzdy     = np.random.random (self.domain) / 1e2
+        self.xlhsx     = np.random.random (self.domain) / 1e2
+        self.xlhsy     = np.random.random (self.domain) / 1e2
         # The wbbctens_stage parameter must have an additional layer of cells
         # in the vertical direction
         self.wbbctens_stage = np.random.random ((self.domain[0],self.domain[1],self.domain[2]+1)) / 1e2
@@ -93,14 +93,14 @@ class FastWavesUVTest (CopyTest):
         self.out_v = np.zeros (self.domain, dtype=np.float64)
 
         dx, dy, dz = [ 1./i for i in self.domain ]
-        for p in Stencil.get_interior_points(self.u_pos,
-                                             ghost_cell=[0,0,0,0]):
+        for p in Stencil.get_interior_points (self.u_pos,
+                                              ghost_cell=[0,0,0,0]):
             x = dx*p[0]
             y = dy*p[1]
-            self.u_pos[p] = 0.01 + 0.19*(2.+np.cos(np.pi*(x+y)) + \
-                                        np.sin(2*np.pi*(x+y)))/4.0
-            self.v_pos[p] = 0.03 + 0.69*(2.+np.cos(np.pi*(x+y)) + \
-                                        np.sin(2*np.pi*(x+y)))/4.0
+            self.u_pos[p] = 0.01 + 0.19 * (2.+np.cos(np.pi*(x+y)) + \
+                                           np.sin(2*np.pi*(x+y)))/4.0
+            self.v_pos[p] = 0.03 + 0.69 * (2.+np.cos(np.pi*(x+y)) + \
+                                           np.sin(2*np.pi*(x+y)))/4.0
 
 
     def test_validate_results (self, backend='python'):
@@ -156,37 +156,37 @@ class FastWavesUVTest (CopyTest):
         # Initialize fx input field (not included in NPZ archive for clarity)
         self.eddlat = 180.0 / self.dlat / np.pi
         self.fx = self.eddlat * self.acrlat0
-        self.fx = np.tile(self.fx, (self.domain[0], self.domain[2], 1)).swapaxes(1, 2)
+        self.fx = np.tile (self.fx, (self.domain[0], self.domain[2], 1)).swapaxes(1, 2)
 
         # Initialize stencil outputs
-        self.out_u = np.zeros(self.domain, dtype=np.float64)
-        self.out_v = np.zeros(self.domain, dtype=np.float64)
+        self.out_u = np.zeros (self.domain, dtype=np.float64)
+        self.out_v = np.zeros (self.domain, dtype=np.float64)
 
         # Reset stencil to use STELLA's data domain size
         self.stencil = FastWavesUV (domain=self.domain,
                                     dt_small=self.dt_small,
                                     dlat=self.dlat,
                                     flat_limit=self.flat_limit)
-        self.stencil.set_halo((3,3,3,3))
-        self.stencil.set_k_direction('forward')
+        self.stencil.set_halo ((3,3,3,3))
+        self.stencil.set_k_direction ('forward')
         self.stencil.set_backend (backend)
 
         # Run stencil
-        self._run()
+        self._run ( )
 
         # Check results
         diff_detected = False
         for k in 'uv':
-            diff  = np.isclose(eval('self.out_%s'%k)[3:-3,3:-3], eval('self.ref_%s'%k)[3:-3,3:-3], atol=1e-12)
+            diff  = np.isclose (eval ('self.out_%s'%k)[3:-3,3:-3], eval ('self.ref_%s'%k)[3:-3,3:-3], atol=1e-12)
             ndiff = np.count_nonzero (np.logical_not (diff))
             if ndiff:
-                logging.debug("\tDifferences detected for parameter 'out_%s'" % k)
-                reldiff = (np.abs(eval('self.%s'%k)[3:-3,3:-3] - eval('self.ref_%s'%k)[3:-3,3:-3])
-                           / eval('self.ref_%s'%k)[3:-3,3:-3])
-                logging.debug("\t\tNumber of differences: %d" % ndiff)
-                logging.debug("\t\tMax relative difference: %.7g" % np.max(reldiff))
-                logging.debug("\t\tMean relative difference: %.7g" % np.mean(reldiff))
-                logging.debug("\t\tRelative difference stddev: %.7g" % np.std(reldiff))
+                logging.debug ("\tDifferences detected for parameter 'out_%s'" % k)
+                reldiff = (np.abs (eval ('self.%s'%k)[3:-3,3:-3] - eval ('self.ref_%s'%k)[3:-3,3:-3])
+                           / eval ('self.ref_%s'%k)[3:-3,3:-3])
+                logging.debug ("\t\tNumber of differences: %d" % ndiff)
+                logging.debug ("\t\tMax relative difference: %.7g" % np.max (reldiff))
+                logging.debug ("\t\tMean relative difference: %.7g" % np.mean (reldiff))
+                logging.debug ("\t\tRelative difference stddev: %.7g" % np.std (reldiff))
                 diff_detected = True
 
         self.assertFalse (diff_detected)
