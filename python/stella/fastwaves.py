@@ -36,7 +36,9 @@ class FastWavesUV (MultiStageStencil):
         # initialize ppgradcor values at k >= self.flat_limit
         #
         for p in self.get_interior_points (
-                #ppgradcor_init[:,:,self.flat_limit:],
+                # Original line to be restored when Vertical Regions will support
+                # names and operations inside slicing expressions:
+                # ppgradcor_init[:,:,self.flat_limit-1:],
                 ppgradcor_init[:,:,10:],
                 ghost_cell=[0,1,0,1]):
             ppgradcor_init[p] = wgtfac[p]*ppuv[p] + (1.0 - wgtfac[p]) * ppuv[p + (0,0,-1)]
@@ -47,7 +49,9 @@ class FastWavesUV (MultiStageStencil):
         # compute ppgradcor at k > self.flat_limit and k < top
         #
         for p in self.get_interior_points (
-#                ppgradcor[:,:,self.flat_limit:self.domain[2]-1],
+                # Original line to be restored when Vertical Regions will support
+                # names and operations inside slicing expressions:
+                # ppgradcor[:,:,self.flat_limit-1:self.domain[2]-1],
                 ppgradcor[:,:,10:79],
                 ghost_cell=[0,1,0,1]):
             ppgradcor[p] = ppgradcor_init[p + (0,0,1)] - ppgradcor_init[p]
@@ -58,7 +62,9 @@ class FastWavesUV (MultiStageStencil):
         # compute ppgradcor at k = top
         #
         for p in self.get_interior_points (
-#                ppgradcor[:,:,self.domain[2]-1:],
+                # Original line to be restored when Vertical Regions will support
+                # names and operations inside slicing expressions:
+                # ppgradcor[:,:,self.domain[2]-1:],
                 ppgradcor[:,:,79:],
                 ghost_cell=[0,1,0,1]):
             ppgradcor[p] = wgtfac[p]*ppuv[p] + (1.0 - wgtfac[p]) * ppuv[p + (0,0,-1)]
@@ -66,7 +72,9 @@ class FastWavesUV (MultiStageStencil):
 
     def stage_xrhsx (self, xrhsx, fx, rho, ppuv, utens_stage):
         for p in self.get_interior_points (
-#                xrhsx[:,:,self.domain[2]-1:],
+                # Original line to be restored when Vertical Regions will support
+                # names and operations inside slicing expressions:
+                # xrhsx[:,:,self.domain[2]-1:],
                 xrhsx[:,:,79:],
                 ghost_cell=[1,0,0,1]):
             xrhsx[p] = -fx[p] / (0.5*(rho[p] +rho[p + (1,0,0)])) * \
@@ -81,7 +89,9 @@ class FastWavesUV (MultiStageStencil):
 
     def stage_xrhsz (self, xrhsz, rho0, rho, cwp, p0, ppuv, wbbctens_stage):
         for p in self.get_interior_points (
-#                xrhsz[:,:,self.domain[2]-1:],
+                # Original line to be restored when Vertical Regions will support
+                # names and operations inside slicing expressions:
+                # xrhsz[:,:,self.domain[2]-1:],
                 xrhsz[:,:,79:],
                 ghost_cell=[0,1,0,1]):
             xrhsz[p] = rho0[p] / rho[p] * self.gravity * \
@@ -91,7 +101,10 @@ class FastWavesUV (MultiStageStencil):
 
     def stage_ppgrad_at_flat_limit (self, ppgradu, ppgradv, ppuv, ppgradcor, hhl):
         # k < self.flat_limit
-#        for p in self.get_interior_points (ppgradu[:,:,:self.flat_limit]):
+        #
+        # Original line to be restored when Vertical Regions will support
+        # names and operations inside slicing expressions:
+        #for p in self.get_interior_points (ppgradu[:,:,:self.flat_limit]):
         for p in self.get_interior_points (ppgradu[:,:,:11]):
             ppgradu[p] = ppuv[p + (1,0,0)] - ppuv[p]
             ppgradv[p] = ppuv[p + (0,1,0)] - ppuv[p]
@@ -99,7 +112,10 @@ class FastWavesUV (MultiStageStencil):
 
     def stage_ppgrad_over_flat_limit (self, ppgradu, ppgradv, ppuv, ppgradcor, hhl):
         # k >= self.flat_limit
-#        for p in self.get_interior_points (ppgradu[:,:,self.flat_limit:self.domain[2]-1]):
+        #
+        # Original line to be restored when Vertical Regions will support
+        # names and operations inside slicing expressions:
+        # for p in self.get_interior_points (ppgradu[:,:,self.flat_limit:self.domain[2]-1]):
         for p in self.get_interior_points (ppgradu[:,:,11:79]):
             ppgradu[p] = (ppuv[p + (1,0,0)]-ppuv[p]) + (ppgradcor[p + (1,0,0)] + ppgradcor[p])* 0.5 * ((hhl[p + (0,0,1)] + hhl[p]) - (hhl[p + (1,0,1)]+hhl[p + (1,0,0)])) / ((hhl[p + (0,0,1)] - hhl[p]) + (hhl[p + (1,0,1)] - hhl[p + (1,0,0)]))
             ppgradv[p] = (ppuv[p + (0,1,0)]-ppuv[p]) + (ppgradcor[p + (0,1,0)] + ppgradcor[p])* 0.5 * ((hhl[p + (0,0,1)] + hhl[p]) - (hhl[p + (0,1,1)]+hhl[p + (0,1,0)])) / ((hhl[p + (0,0,1)] - hhl[p]) + (hhl[p + (0,1,1)] - hhl[p + (0,1,0)]))
@@ -132,8 +148,9 @@ class FastWavesUV (MultiStageStencil):
                   xlhsx, xlhsy,
                   xdzdx, xdzdy,
                   xrhsx, xrhsy, xrhsz):
-
-#        for p in self.get_interior_points (u_out[:,:,self.domain[2]-1:]):
+        # Original line to be restored when Vertical Regions will support
+        # names and operations inside slicing expressions:
+        #for p in self.get_interior_points (u_out[:,:,self.domain[2]-1:]):
         for p in self.get_interior_points (u_out[:,:,79:]):
             bott_u = xlhsx[p] * xdzdx[p] * (0.5*(xrhsz[p + (1,0,0)]+xrhsz[p]) - xdzdx[p] * xrhsx[p] - 0.5*(0.5*(xdzdy[p + (1,-1,0)]+xdzdy[p + (1,0,0)]) + 0.5*(xdzdy[p + (0,-1,0)]+xdzdy[p])) * 0.5*(0.5*(xrhsy[p + (1,-1,0)]+xrhsy[p + (1,0,0)]) + 0.5*(xrhsy[p + (0,-1,0)]+xrhsy[p]))) + xrhsx[p]
             bott_v = xlhsy[p] * xdzdy[p] * (0.5*(xrhsz[p + (0,1,0)]+xrhsz[p]) - xdzdy[p] * xrhsy[p] - 0.5*(0.5*(xdzdx[p + (-1,1,0)]+xdzdx[p + (0,1,0)]) + 0.5*(xdzdx[p + (-1,0,0)]+xdzdx[p])) * 0.5*(0.5*(xrhsx[p + (-1,1,0)]+xrhsx[p + (0,1,0)]) + 0.5*(xrhsx[p + (-1,0,0)]+xrhsx[p]))) + xrhsy[p]
