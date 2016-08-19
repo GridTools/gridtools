@@ -1,5 +1,40 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
-#include "./accessor_impl.hpp"
+#include "../accessor_base.hpp"
 #include "../arg.hpp"
 #include "../dimension.hpp"
 /**
@@ -129,53 +164,49 @@ namespace gridtools {
         typedef typename ArgType::index_type index_type;
 
       private:
-        static constexpr accessor_base< ArgType::index_type::value,
-            ArgType::intend_t::value,
-            typename ArgType::extent_t,
-            ArgType::n_dim > s_args_constexpr{dimension< Pair::first >{Pair::second}...};
-
-        accessor_base< ArgType::index_type::value,
-            ArgType::intend_t::value,
-            typename ArgType::extent_t,
-            ArgType::n_dim > m_args_runtime;
+        // vector of dimensions defined at compiled time for the offsets
         typedef boost::mpl::vector< static_int< n_dim - Pair::first >... > coordinates;
+
+        typedef offset_tuple_mixed< coordinates, ArgType::n_dim, Pair... > offset_tuple_mixed_t;
+
+        typedef offset_tuple< ArgType::n_dim, ArgType::n_dim > offset_tuple_t;
+
+        const offset_tuple_mixed_t m_offsets;
+
+        // compile time offset tuple
+        static constexpr offset_tuple_t s_static_offset_tuple{dimension< Pair::first >{Pair::second}...};
 
       public:
         template < typename... ArgsRuntime >
-        GT_FUNCTION constexpr accessor_mixed(ArgsRuntime const &... args)
-            : m_args_runtime(args...) {}
-
-        /**@brief returns the offset at a specific index Idx
-
-           this is the constexpr version of the get() method (e.g. can be used as template parameter).
-         */
-        template < short_t Idx >
-        GT_FUNCTION static constexpr uint_t const get_constexpr() {
-            GRIDTOOLS_STATIC_ASSERT(Idx < s_args_constexpr.n_dim, "the idx must be smaller than the arg dimension");
-            GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "the idx must be larger than 0");
-            GRIDTOOLS_STATIC_ASSERT(s_args_constexpr.template get< Idx >() >= 0,
-                "there is a negative offset. If you did this on purpose recompile with the PEDANTIC_DISABLED flag on.");
-            return s_args_constexpr.template get< Idx >();
-        }
+        GT_FUNCTION constexpr accessor_mixed(const ArgsRuntime... args)
+            : m_offsets(args...) {}
 
         /**@brief returns the offset at a specific index Idx
 
            the lookup for the index Idx is done at compile time, i.e. this method returns in constant time
          */
+
         template < short_t Idx >
         GT_FUNCTION constexpr const int_t get() const {
-            return boost::is_same< typename boost::mpl::find< coordinates, static_int< Idx > >::type,
-                       typename boost::mpl::end< coordinates >::type >::type::value
-                       ? m_args_runtime.template get< Idx >()
-                       : s_args_constexpr.template get< Idx >();
+            return m_offsets.template get< Idx >();
         }
+
+        template < short_t Idx >
+        GT_FUNCTION static constexpr uint_t const get_constexpr() {
+            GRIDTOOLS_STATIC_ASSERT(
+                Idx < s_static_offset_tuple.n_dim, "the idx must be smaller than the arg dimension");
+            GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "the idx must be larger than 0");
+            GRIDTOOLS_STATIC_ASSERT(s_static_offset_tuple.template get< Idx >() >= 0,
+                "there is a negative offset. If you did this on purpose recompile with the PEDANTIC_DISABLED flag on.");
+            return s_static_offset_tuple.template get< Idx >();
+        }
+
+        GT_FUNCTION constexpr offset_tuple_mixed_t const &offsets() const { return m_offsets; }
     };
 
     template < typename ArgType, typename... Pair >
-    constexpr accessor_base< ArgType::index_type::value,
-        ArgType::intend_t::value,
-        typename ArgType::extent_t,
-        ArgType::n_dim > accessor_mixed< ArgType, Pair... >::s_args_constexpr;
+    constexpr const offset_tuple< ArgType::n_dim, ArgType::n_dim >
+        accessor_mixed< ArgType, Pair... >::s_static_offset_tuple;
 
     /**
        @brief this struct allows the specification of SOME of the arguments before instantiating the offset_tuple.

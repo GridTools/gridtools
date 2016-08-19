@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 #include <boost/fusion/include/as_set.hpp>
 #include "common/generic_metafunctions/is_sequence_of.hpp"
@@ -46,7 +81,6 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((boost::fusion::result_of::has_key< set_t, T >::type::value),
                 "the type used for the lookup in the metadata set is not present in the set. Did you use the correct "
                 "type as meta storage?");
-            assert(!present< T >()); // must be uninitialized
             boost::fusion::at_key< T >(m_set) = new_instance;
         }
 
@@ -91,7 +125,7 @@ namespace gridtools {
 
     /** inserts an element in the set if it is not present
 
-        used for the metadata_set in the domain_type
+        used for the metadata_set in the aggregator_type
     */
     template < typename Sequence, typename Arg >
     struct insert_if_not_present {
@@ -99,7 +133,7 @@ namespace gridtools {
 #ifdef PEDANTIC // disabling in case of generic accessors
         GRIDTOOLS_STATIC_ASSERT(is_storage< Arg >::type::value,
             "if you are using generic accessors disable the pedantic mode. Otherwise most probably you used in the "
-            "domain_type constructor a storage type which is not supported.");
+            "aggregator_type constructor a storage type which is not supported.");
 #endif
         GRIDTOOLS_STATIC_ASSERT(is_metadata_set< Sequence >::type::value, "wrong type");
 
@@ -116,6 +150,11 @@ namespace gridtools {
         void operator()() const {
             if (!m_seq.template present< pointer< const typename Arg::storage_info_type > >())
                 m_seq.insert(pointer< const typename Arg::storage_info_type >((**m_arg_ptr).meta_data()));
+            else
+                assert(
+                    *m_seq.template get< pointer< const typename Arg::storage_info_type > >() ==
+                        *(**m_arg_ptr).meta_data() &&
+                    "the passed storages contain different meta data (e.g., different dimension) which is not valid.");
         }
     };
 }

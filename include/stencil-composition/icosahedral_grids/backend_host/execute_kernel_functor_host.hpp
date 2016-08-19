@@ -1,4 +1,42 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
+#include <boost/utility/enable_if.hpp>
+#include "../../common/generic_metafunctions/variadic_to_vector.hpp"
+#include "../../common/generic_metafunctions/replace_template_arguments.hpp"
 #include "stencil-composition/backend_host/iterate_domain_host.hpp"
 #include "stencil-composition/icosahedral_grids/esf_metafunctions.hpp"
 #include "../../iteration_policy.hpp"
@@ -9,6 +47,85 @@ namespace gridtools {
 
     namespace icgrid {
 
+        /**
+         * metafunction that fills the color argument of a run functor argument metadata type
+         * @tparam RunFunctorArguments the run functor arguments being filled with a particular color
+         * @tparam Index unsigned int type with color
+         */
+        template < typename RunFunctorArguments, typename Index >
+        struct colorize_run_functor_arguments {
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), "Error");
+            typedef typename replace_template_arguments< RunFunctorArguments,
+                typename RunFunctorArguments::color_t,
+                color_type< (uint_t)Index::value > >::type type;
+        };
+
+        template < typename RunFunctorArguments, typename IterateDomain, typename Grid >
+        struct color_execution_functor {
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), "ERROR");
+            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), "ERROR");
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "ERROR");
+
+            typedef typename RunFunctorArguments::loop_intervals_t loop_intervals_t;
+            typedef typename RunFunctorArguments::execution_type_t execution_type_t;
+            typedef typename RunFunctorArguments::esf_sequence_t esf_sequence_t;
+
+            typedef array< int_t, IterateDomain::N_META_STORAGES > array_index_t;
+            typedef array< uint_t, 4 > array_position_t;
+
+          private:
+            IterateDomain &m_it_domain;
+            Grid const &m_grid;
+            gridtools::array< const uint_t, 2 > const &m_first_pos;
+            gridtools::array< const uint_t, 2 > const &m_loop_size;
+            const uint_t m_addon;
+
+          public:
+            color_execution_functor(IterateDomain &it_domain,
+                Grid const &grid,
+                gridtools::array< const uint_t, 2 > const &first_pos,
+                gridtools::array< const uint_t, 2 > const &loop_size,
+                const uint_t addon)
+                : m_it_domain(it_domain), m_grid(grid), m_first_pos(first_pos), m_loop_size(loop_size), m_addon(addon) {
+            }
+
+            template < typename Index >
+            void operator()(Index const &,
+                typename boost::enable_if< typename esf_sequence_contains_color< esf_sequence_t,
+                    color_type< Index::value > >::type >::type * = 0) const {
+
+                array_index_t memorized_index;
+                array_position_t memorized_position;
+
+                for (uint_t j = m_first_pos[1]; j <= m_first_pos[1] + m_loop_size[1] + m_addon; ++j) {
+                    m_it_domain.get_index(memorized_index);
+                    m_it_domain.get_position(memorized_position);
+
+                    // we fill the run_functor_arguments with the current color being processed
+                    typedef typename colorize_run_functor_arguments< RunFunctorArguments, Index >::type
+                        run_functor_arguments_t;
+                    boost::mpl::for_each< loop_intervals_t >(
+                        _impl::run_f_on_interval< execution_type_t, run_functor_arguments_t >(m_it_domain, m_grid));
+                    m_it_domain.set_index(memorized_index);
+                    m_it_domain.set_position(memorized_position);
+                    m_it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value,
+                        static_int< 1 > >();
+                }
+                m_it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value >(
+                    -(m_loop_size[1] + 1 + m_addon));
+                m_it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
+                    static_int< 1 > >();
+            }
+            template < typename Index >
+            void operator()(Index const &,
+                typename boost::disable_if< typename esf_sequence_contains_color< esf_sequence_t,
+                    color_type< Index::value > >::type >::type * = 0) const {
+                // If there is no ESF in the sequence matching the color, we skip execution and simply increment the
+                // color iterator
+                m_it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
+                    static_int< 1 > >();
+            }
+        };
         /**
         * @brief main functor that setups the CUDA kernel for a MSS and launchs it
         * @tparam RunFunctorArguments run functor argument type with the main configuration of the MSS
@@ -113,11 +230,6 @@ namespace gridtools {
                 it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_k_t::value >(
                     m_grid.template value_at< typename iteration_policy_t::from >());
 
-                typedef array< int_t, iterate_domain_t::N_META_STORAGES > array_index_t;
-                typedef array< uint_t, 4 > array_position_t;
-
-                array_index_t memorized_index;
-                array_position_t memorized_position;
                 int addon = 0;
                 // the iterate domain over vertexes has one more grid point
                 // TODO specify the loop bounds from the grid_tolopogy to avoid this hack here
@@ -126,25 +238,13 @@ namespace gridtools {
                 }
 
                 for (uint_t i = m_first_pos[0]; i <= m_first_pos[0] + m_loop_size[0]; ++i) {
-                    for (uint_t c = 0; c < n_colors_t::value; ++c) {
-                        for (uint_t j = m_first_pos[1]; j <= m_first_pos[1] + m_loop_size[1] + addon; ++j) {
-                            it_domain.get_index(memorized_index);
-                            it_domain.get_position(memorized_position);
+                    boost::mpl::for_each< boost::mpl::range_c< uint_t, 0, n_colors_t::value > >(
+                        color_execution_functor< RunFunctorArguments, iterate_domain_t, grid_t >(
+                            it_domain, m_grid, m_first_pos, m_loop_size, addon));
 
-                            boost::mpl::for_each< loop_intervals_t >(
-                                _impl::run_f_on_interval< execution_type_t, RunFunctorArguments >(it_domain, m_grid));
-                            it_domain.set_index(memorized_index);
-                            it_domain.set_position(memorized_position);
-                            it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value,
-                                static_int< 1 > >();
-                        }
-                        it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value >(
-                            -(m_loop_size[1] + 1 + addon));
-                        it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
-                            static_int< 1 > >();
-                    }
                     it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
                         static_int< -((int_t)n_colors_t::value) > >();
+
                     it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_i_t::value,
                         static_int< 1 > >();
                 }

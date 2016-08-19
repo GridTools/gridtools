@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 
 //#include <gridtools.hpp>
@@ -171,7 +206,7 @@ namespace horizontal_diffusion_functions {
 
     void handle_error(int) { std::cout << "error" << std::endl; }
 
-    bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps) {
+    bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps, bool verify) {
 
         uint_t d1 = x;
         uint_t d2 = y;
@@ -219,9 +254,9 @@ namespace horizontal_diffusion_functions {
 // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I
 // don't particularly like this)
 #if defined(CXX11_ENABLED) && !defined(CUDA_EXAMPLE)
-        gridtools::domain_type< accessor_list > domain_((p_out() = out), (p_in() = in), (p_coeff() = coeff));
+        gridtools::aggregator_type< accessor_list > domain_((p_out() = out), (p_in() = in), (p_coeff() = coeff));
 #else
-        gridtools::domain_type< accessor_list > domain_(boost::fusion::make_vector(&coeff, &in, &out));
+        gridtools::aggregator_type< accessor_list > domain_(boost::fusion::make_vector(&coeff, &in, &out));
 #endif
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
@@ -246,14 +281,14 @@ namespace horizontal_diffusion_functions {
             horizontal_diffusion = gridtools::make_computation< gridtools::BACKEND >(
                 domain_,
                 grid_,
-                gridtools::make_mss // mss_descriptor
+                gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
                     define_caches(cache< IJ, local >(p_flx(), p_fly())),
-                    // gridtools::make_esf<lap_function>(p_lap(), p_in()), // esf_descriptor
+                    // gridtools::make_stage<lap_function>(p_lap(), p_in()), // esf_descriptor
                     gridtools::make_independent // independent_esf
-                    (gridtools::make_esf< flx_function >(p_flx(), p_in()),
-                        gridtools::make_esf< fly_function >(p_fly(), p_in())),
-                    gridtools::make_esf< out_function >(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));
+                    (gridtools::make_stage< flx_function >(p_flx(), p_in()),
+                        gridtools::make_stage< fly_function >(p_fly(), p_in())),
+                    gridtools::make_stage< out_function >(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));
 
         horizontal_diffusion->ready();
 
@@ -261,28 +296,28 @@ namespace horizontal_diffusion_functions {
 
         cache_flusher flusher(cache_flusher_size);
 
-        for (uint_t t = 0; t < t_steps; ++t) {
-            flusher.flush();
-            horizontal_diffusion->run();
-        }
+        horizontal_diffusion->run();
 
 #ifdef __CUDACC__
         repository.update_cpu();
 #endif
 
+        bool result = true;
+        if (verify) {
 #if FLOAT_PRECISION == 4
-        verifier verif(1e-6);
+            verifier verif(1e-6);
 #else
-        verifier verif(1e-12);
+            verifier verif(1e-12);
 #endif
 
 #ifdef CXX11_ENABLED
-        array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
-        bool result = verif.verify(grid_, repository.out_ref(), repository.out(), halos);
+            array< array< uint_t, 2 >, 3 > halos{
+                {{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
+            bool result = verif.verify(grid_, repository.out_ref(), repository.out(), halos);
 #else
-        bool result = verif.verify(repository.out_ref(), repository.out());
+            result = verif.verify(repository.out_ref(), repository.out());
 #endif
-
+        }
         if (!result) {
             std::cout << "ERROR" << std::endl;
         }

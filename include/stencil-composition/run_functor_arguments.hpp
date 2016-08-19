@@ -1,4 +1,39 @@
 /*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
+/*
  * run_functor_arguments.h
  *
  *  Created on: Mar 5, 2015
@@ -19,6 +54,7 @@
 #include "grid_traits.hpp"
 #include "backend_ids.hpp"
 #include "reductions/reduction_data.hpp"
+#include "color.hpp"
 
 namespace gridtools {
 
@@ -31,7 +67,7 @@ namespace gridtools {
         typename ProcessingElementsBlockSize,
         typename PhysicalDomainBlockSize,
         typename Grid,
-        bool IsReduction,
+        typename IsReduction,
         typename FunctorReturnType >
     struct iterate_domain_arguments {
         GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Internal Error: wrong type");
@@ -42,6 +78,8 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_block_size< ProcessingElementsBlockSize >::value), "Iternal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_block_size< PhysicalDomainBlockSize >::value), "Iternal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Iternal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT(
+            (IsReduction::value == true || IsReduction::value == false), "Internal Error: wrong type");
 
         typedef BackendIds backend_ids_t;
         typedef LocalDomain local_domain_t;
@@ -52,8 +90,8 @@ namespace gridtools {
         typedef ProcessingElementsBlockSize processing_elements_block_size_t;
         typedef PhysicalDomainBlockSize physical_domain_block_size_t;
         typedef Grid grid_t;
-        static const bool s_is_reduction = IsReduction;
-        typedef static_bool< IsReduction > is_reduction_t;
+        static const bool s_is_reduction = IsReduction::value;
+        typedef IsReduction is_reduction_t;
         typedef FunctorReturnType functor_return_type_t;
     };
 
@@ -69,7 +107,7 @@ namespace gridtools {
         typename ProcessingElementsBlockSize,
         typename PhysicalDomainBlockSize,
         typename Grid,
-        bool IsReduction,
+        typename IsReduction,
         typename FunctorReturnType >
     struct is_iterate_domain_arguments< iterate_domain_arguments< BackendIds,
         LocalDomain,
@@ -105,9 +143,11 @@ namespace gridtools {
                                    // "make_independent" construct
         typename Grid,             // the grid
         typename ExecutionEngine,  // the execution engine
-        bool IsReduction,          // boolean stating if the operation to be applied at mss is a reduction
-        typename ReductionData     // return type of functors of a mss: return type of reduction operations,
+        typename IsReduction,      // boolean stating if the operation to be applied at mss is a reduction
+        typename ReductionData,    // return type of functors of a mss: return type of reduction operations,
                                    //        otherwise void
+        typename Color             // current color execution (not used for rectangular grids, or grids that dont have
+                                   // concept of a color
         >
     struct run_functor_arguments {
         GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Internal Error: invalid type");
@@ -119,6 +159,9 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(
             (is_sequence_of< EsfSequence, is_esf_descriptor >::value), "Internal Error: invalid type");
         GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), "Internal Error: invalid type");
+        GRIDTOOLS_STATIC_ASSERT((is_color_type< Color >::value), "Internal Error: invalid type");
+        GRIDTOOLS_STATIC_ASSERT(
+            (IsReduction::value == true || IsReduction::value == false), "Internal Error: wrong type");
 
         typedef BackendIds backend_ids_t;
         typedef ProcessingElementsBlockSize processing_elements_block_size_t;
@@ -150,9 +193,10 @@ namespace gridtools {
         typedef Grid grid_t;
         typedef ExecutionEngine execution_type_t;
         static const enumtype::strategy s_strategy_id = backend_ids_t::s_strategy_id;
-        static const bool s_is_reduction = IsReduction;
-        typedef static_bool< IsReduction > is_reduction_t;
+        static const bool s_is_reduction = IsReduction::value;
+        typedef IsReduction is_reduction_t;
         typedef ReductionData reduction_data_t;
+        typedef Color color_t;
     };
 
     template < typename T >
@@ -172,8 +216,9 @@ namespace gridtools {
         typename IsIndependentSequence,
         typename Grid,
         typename ExecutionEngine,
-        bool IsReduction,
-        typename ReductionData >
+        typename IsReduction,
+        typename ReductionData,
+        typename Color >
     struct is_run_functor_arguments< run_functor_arguments< BackendIds,
         ProcessingElementsBlockSize,
         PhysicalDomainBlockSize,
@@ -189,7 +234,8 @@ namespace gridtools {
         Grid,
         ExecutionEngine,
         IsReduction,
-        ReductionData > > : boost::mpl::true_ {};
+        ReductionData,
+        Color > > : boost::mpl::true_ {};
 
     /**
      * @brief type that contains main metadata required to execute an ESF functor. This type will be passed to

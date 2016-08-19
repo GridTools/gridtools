@@ -1,4 +1,43 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
+
+#ifdef VERBOSE
+#include <iostream>
+#endif
 
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/for_each.hpp>
@@ -37,6 +76,7 @@
 #include "./reductions/reduction_data.hpp"
 #include "./amss_descriptor.hpp"
 #include "./compute_extents_metafunctions.hpp"
+#include "./global_parameter.hpp"
 
 /**
  * @file
@@ -133,7 +173,7 @@ namespace gridtools {
                 typedef typename boost::mpl::find_if< tmppairs, has_index_< index > >::type iter;
 
                 GRIDTOOLS_STATIC_ASSERT((!boost::is_same< iter, typename boost::mpl::end< tmppairs >::type >::value),
-                    "Could not find a temporary, defined in the user domain_type, in the list of storage types used in "
+                    "Could not find a temporary, defined in the user aggregator_type, in the list of storage types used in "
                     "all mss/esfs. \n"
                     " Check that all temporaries are actually used in at least one user functor");
 
@@ -210,7 +250,7 @@ namespace gridtools {
         static uint_t apply(ArgListType &storage_pointers, MetaData &meta_data_, DomainType &domain) {
 
             // TODO check the type of ArgListType and MetaData
-            GRIDTOOLS_STATIC_ASSERT(is_domain_type< DomainType >::value, "wrong domain type");
+            GRIDTOOLS_STATIC_ASSERT(is_aggregator_type< DomainType >::value, "wrong domain type");
 
             // copy pointers into the domain original pointers, except for the temporaries.
             boost::mpl::for_each< boost::mpl::range_c< int, 0, boost::mpl::size< ArgListType >::value > >(
@@ -218,7 +258,10 @@ namespace gridtools {
                     storage_pointers, domain.m_original_pointers));
 
             boost::fusion::for_each(storage_pointers, update_pointer());
-            boost::fusion::for_each(meta_data_, update_pointer());
+
+            // following line is extracting the correct meta_data pointers
+            // from the previously handled/cloned storages.
+            boost::fusion::for_each(storage_pointers, get_storage_metadata_ptrs< MetaData >(meta_data_));
 
             return GT_NO_ERRORS;
         }
@@ -230,7 +273,7 @@ namespace gridtools {
         static int_t apply(ArgListType const &storage_pointers, MetaData const &meta_data_, DomainType &domain) {
 
             // TODO check the type of ArgListType and MetaData
-            GRIDTOOLS_STATIC_ASSERT(is_domain_type< DomainType >::value, "wrong domain type");
+            GRIDTOOLS_STATIC_ASSERT(is_aggregator_type< DomainType >::value, "wrong domain type");
 
             return GT_NO_ERRORS;
         }
@@ -249,7 +292,7 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT(
             (is_meta_array_of< MssComponentsArray, is_mss_components >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_domain_type< DomainType >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), "Internal Error: wrong type");
 
         GRIDTOOLS_STATIC_ASSERT((is_metadata_set< ActualMetadataListType >::value), "Internal Error: wrong type");
 
@@ -309,7 +352,7 @@ namespace gridtools {
     struct create_actual_arg_list {
         // GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error:
         // wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_domain_type< DomainType >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), "Internal Error: wrong type");
 
         /**
          * Takes the domain list of storage pointer types and transform
@@ -424,7 +467,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(
             (is_meta_array_of< MssDescriptorArray, is_amss_descriptor >::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_domain_type< DomainType >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
         // GRIDTOOLS_STATIC_ASSERT((is_conditionals_set<ConditionalsSet>::value), "Internal Error: wrong type");
 
@@ -444,17 +487,15 @@ namespace gridtools {
         /* Second we need to associate an extent to each esf, so that
            we can associate loop bounds to the functors.
          */
-        typedef typename associate_extents_to_esfs< typename MssDescriptorArray::elements,
-            extent_map_t >::type extent_sizes_t;
+        typedef typename associate_extents_to_esfs< typename MssDescriptorArray::elements, extent_map_t >::type
+            extent_sizes_t;
 
         typedef typename boost::mpl::if_<
-            boost::mpl::is_sequence<
-                typename MssDescriptorArray::elements>
-            , typename boost::mpl::fold< typename MssDescriptorArray::elements,
-                                boost::mpl::false_,
-                                boost::mpl::or_< boost::mpl::_1, mss_descriptor_is_reduction< boost::mpl::_2 > > >::type
-            , boost::mpl::false_
-            >::type has_reduction_t;
+            boost::mpl::is_sequence< typename MssDescriptorArray::elements >,
+            typename boost::mpl::fold< typename MssDescriptorArray::elements,
+                boost::mpl::false_,
+                boost::mpl::or_< boost::mpl::_1, mss_descriptor_is_reduction< boost::mpl::_2 > > >::type,
+            boost::mpl::false_ >::type has_reduction_t;
 
         typedef reduction_data< MssDescriptorArray, has_reduction_t::value > reduction_data_t;
         typedef typename reduction_data_t::reduction_type_t reduction_type_t;
@@ -569,16 +610,24 @@ namespace gridtools {
             t_domain_meta_view domain_meta_view(domain.m_metadata_set.sequence_view());
             t_meta_view meta_view(m_actual_metadata_list.sequence_view());
 
-            // get the storage metadatas from the domain_type
+            // get the storage metadatas from the aggregator_type
             boost::fusion::copy(domain_meta_view, meta_view);
         }
         /**
            @brief This method allocates on the heap the temporary variables.
            Calls heap_allocated_temps::prepare_temporaries(...).
            It allocates the memory for the list of extents defined in the temporary placeholders.
+           Further it takes care of updating the global_parameters
         */
         virtual void ready() {
             Backend::template prepare_temporaries(m_actual_arg_list, m_actual_metadata_list, m_grid);
+            // filter out global parameters
+            typedef boost::fusion::filter_view< actual_arg_list_type, is_global_parameter< boost::mpl::_1 > >
+                t_global_param_view;
+            t_global_param_view global_param_view(m_actual_arg_list);
+            // update global parameters
+            boost::fusion::for_each(global_param_view, update_global_param_data());
+            // mark as ready
             is_storage_ready = true;
         }
         /**
@@ -592,11 +641,7 @@ namespace gridtools {
         */
         virtual void steady() {
             if (is_storage_ready) {
-                // filter the non temporary meta storage pointers among the actual ones
-                typename boost::fusion::result_of::as_set< actual_metadata_set_t >::type meta_view(
-                    m_actual_metadata_list.sequence_view());
-
-                setup_computation< Backend::s_backend_id >::apply(m_actual_arg_list, meta_view, m_domain);
+                setup_computation< Backend::s_backend_id >::apply(m_actual_arg_list, m_actual_metadata_list, m_domain);
 #ifdef VERBOSE
                 printf("Setup computation\n");
 #endif
@@ -630,12 +675,6 @@ namespace gridtools {
                 view_type;
             view_type fview(m_actual_arg_list);
             boost::fusion::for_each(fview, _impl::delete_tmps());
-
-            // deleting the metadata objects
-            typedef boost::fusion::filter_view< typename actual_metadata_list_type::set_t,
-                is_ptr_to_tmp< boost::mpl::_1 > > view_type2;
-            view_type2 fview2(m_actual_metadata_list.sequence_view());
-            boost::fusion::for_each(fview2, delete_pointer());
         }
 
         /**
@@ -663,6 +702,9 @@ namespace gridtools {
 
         virtual std::string print_meter() { return m_meter.to_string(); }
 
+        virtual double get_meter() { return m_meter.total_time(); }
+
+        virtual void reset_meter() { m_meter.reset(); }
         mss_local_domain_list_t const &mss_local_domain_list() const { return m_mss_local_domain_list; }
     };
 

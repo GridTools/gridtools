@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 #include "storage_list.hpp"
 #ifdef CXX11_ENABLED
@@ -114,12 +149,9 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT(is_data_field< Storage >::value,
                     "\"swap\" can only be called with instances of type \"data_field\" ");
                 typename Storage::pointer_type tmp = storage_.template get< SnapshotFrom, DimFrom >();
+                tmp.set_externally_managed(false);
                 storage_.template get< SnapshotFrom, DimFrom >() = storage_.template get< SnapshotTo, DimTo >();
                 storage_.template get< SnapshotTo, DimTo >() = tmp;
-                // if the storage is not located on the host we have to clone it
-                // to the device in order to update the structure.
-                if (!storage_.is_on_host())
-                    storage_.clone_to_device();
             }
         };
     };
@@ -180,9 +212,7 @@ namespace gridtools {
 
     */
     template < typename First, typename... StorageExtended >
-    struct data_field : public dimension_extension_traits< First,
-                            StorageExtended... >::type /*, clonable_to_gpu<data_field<First, StorageExtended ... > >*/
-    {
+    struct data_field : public dimension_extension_traits< First, StorageExtended... >::type {
         template < typename PT, typename MD, ushort_t FD >
         using type_tt = data_field< typename First::template type_tt< PT, MD, FD >,
             typename StorageExtended::template type_tt< PT, MD, FD >... >;
@@ -196,7 +226,7 @@ namespace gridtools {
 
         /**@brief default constructor*/
         template < typename... ExtraArgs >
-        data_field(typename basic_type::storage_info_type const &meta_data_, ExtraArgs const &... args_)
+        data_field(typename basic_type::storage_info_type const *meta_data_, ExtraArgs const &... args_)
             : super(meta_data_, args_...) {}
 
         /**@brief device copy constructor*/
@@ -280,9 +310,9 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((snapshot < _impl::access< n_width - (field_dim)-1, traits >::type::n_width),
                 "trying to set a snapshot out of bound");
             GRIDTOOLS_STATIC_ASSERT((field_dim < traits::n_dimensions), "trying to set a fielddimension out of bound");
-            for (uint_t i = 0; i < this->m_meta_data->template dims< 0 >(); ++i)
-                for (uint_t j = 0; j < this->m_meta_data->template dims< 1 >(); ++j)
-                    for (uint_t k = 0; k < this->m_meta_data->template dims< 2 >(); ++k)
+            for (uint_t i = 0; i < this->m_meta_data->template dim< 0 >(); ++i)
+                for (uint_t j = 0; j < this->m_meta_data->template dim< 1 >(); ++j)
+                    for (uint_t k = 0; k < this->m_meta_data->template dim< 2 >(); ++k)
                         (super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields +
                                          snapshot])[this->m_meta_data->index(i, j, k)] = lambda(i, j, k);
         }

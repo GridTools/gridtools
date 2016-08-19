@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #include <boost/mpl/equal.hpp>
 #include <boost/shared_ptr.hpp>
 
@@ -125,7 +160,7 @@ TEST_F(cache_stencil, ij_cache)
 {
     SetUp();
     typedef boost::mpl::vector3<p_in, p_out, p_buff> accessor_list;
-    gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&m_in, &m_out));
+    gridtools::aggregator_type<accessor_list> domain(boost::fusion::make_vector(&m_in, &m_out));
 
 #ifdef CXX11_ENABLED
     auto
@@ -136,13 +171,14 @@ TEST_F(cache_stencil, ij_cache)
     boost::shared_ptr< gridtools::stencil >
 #endif
 #endif
-        pstencil = make_computation< gridtools::BACKEND >(domain,
-            m_grid,
-            make_mss // mss_descriptor
-            (execute< forward >(),
-                                                              define_caches(cache< IJ, local >(p_buff())),
-                                                              make_esf< functor1 >(p_in(), p_buff()),
-                                                              make_esf< functor1 >(p_buff(), p_out())));
+        pstencil = make_computation< gridtools::BACKEND >
+        (domain,
+         m_grid,
+         make_multistage // mss_descriptor
+         (execute< forward >(),
+          define_caches(cache< IJ, local >(p_buff())),
+          make_stage< functor1 >(p_in(), p_buff()),
+          make_stage< functor1 >(p_buff(), p_out())));
 
     pstencil->ready();
 
@@ -191,7 +227,7 @@ TEST_F(cache_stencil, ij_cache_offset)
     }
 
     typedef boost::mpl::vector3<p_in, p_out, p_buff> accessor_list;
-    gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&m_in, &m_out));
+    gridtools::aggregator_type<accessor_list> domain(boost::fusion::make_vector(&m_in, &m_out));
 
 #ifdef CXX11_ENABLED
     auto
@@ -204,11 +240,11 @@ TEST_F(cache_stencil, ij_cache_offset)
 #endif
         pstencil = make_computation< gridtools::BACKEND >(domain,
             m_grid,
-            make_mss // mss_descriptor
+            make_multistage // mss_descriptor
             (execute< forward >(),
                                                               define_caches(cache< IJ, local >(p_buff())),
-                                                              make_esf< functor1 >(p_in(), p_buff()), // esf_descriptor
-                                                              make_esf< functor2 >(p_buff(), p_out()) // esf_descriptor
+                                                              make_stage< functor1 >(p_in(), p_buff()), // esf_descriptor
+                                                              make_stage< functor2 >(p_buff(), p_out()) // esf_descriptor
                                                               ));
 
     pstencil->ready();
@@ -255,7 +291,7 @@ TEST_F(cache_stencil, multi_cache) {
     }
 
     typedef boost::mpl::vector5< p_in, p_out, p_buff, p_buff_2, p_buff_3 > accessor_list;
-    gridtools::domain_type< accessor_list > domain(boost::fusion::make_vector(&m_in, &m_out));
+    gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&m_in, &m_out));
 
 #ifdef CXX11_ENABLED
     auto
@@ -269,16 +305,16 @@ TEST_F(cache_stencil, multi_cache) {
         stencil = make_computation< gridtools::BACKEND >(
             domain,
             m_grid,
-            make_mss // mss_descriptor
+            make_multistage // mss_descriptor
             (execute< forward >(),
                 // test if define_caches works properly with multiple vectors of caches.
                 // in this toy example two vectors are passed (IJ cache vector for p_buff
                 // and p_buff_2, IJ cache vector for p_buff_3)
                 define_caches(cache< IJ, local >(p_buff(), p_buff_2()), cache< IJ, local >(p_buff_3())),
-                make_esf< functor3 >(p_in(), p_buff()),       // esf_descriptor
-                make_esf< functor3 >(p_buff(), p_buff_2()),   // esf_descriptor
-                make_esf< functor3 >(p_buff_2(), p_buff_3()), // esf_descriptor
-                make_esf< functor3 >(p_buff_3(), p_out())     // esf_descriptor
+                make_stage< functor3 >(p_in(), p_buff()),       // esf_descriptor
+                make_stage< functor3 >(p_buff(), p_buff_2()),   // esf_descriptor
+                make_stage< functor3 >(p_buff_2(), p_buff_3()), // esf_descriptor
+                make_stage< functor3 >(p_buff_3(), p_out())     // esf_descriptor
                 ));
     stencil->ready();
 

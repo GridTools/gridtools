@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #define PEDANTIC_DISABLED // too stringent for this test
 #include "gtest/gtest.h"
 #include <iostream>
@@ -62,7 +97,7 @@ namespace test_iterate_domain{
         typedef arg<2, field<storage_out_type, 2, 2, 2>::type > p_out;
         typedef boost::mpl::vector<p_in, p_buff, p_out> accessor_list;
 
-        gridtools::domain_type<accessor_list> domain((p_in() = in),  (p_buff() = buff), (p_out() = out) );
+        gridtools::aggregator_type<accessor_list> domain((p_in() = in),  (p_buff() = buff), (p_out() = out) );
 
         uint_t di[5] = {0, 0, 0, d1-1, d1};
         uint_t dj[5] = {0, 0, 0, d2-1, d2};
@@ -72,9 +107,9 @@ namespace test_iterate_domain{
         grid.value_list[1] = d3-1;
 
         typedef intermediate< gridtools::backend< Host, GRIDBACKEND, Naive >,
-            gridtools::meta_array< boost::mpl::vector< decltype(gridtools::make_mss // mss_descriptor
+            gridtools::meta_array< boost::mpl::vector< decltype(gridtools::make_multistage // mss_descriptor
                                        (enumtype::execute< enumtype::forward >(),
-                                           gridtools::make_esf< dummy_functor >(p_in(), p_buff(), p_out()))) >,
+                                           gridtools::make_stage< dummy_functor >(p_in(), p_buff(), p_out()))) >,
                                   boost::mpl::quote1< is_amss_descriptor > >,
             decltype(domain),
             decltype(grid),
@@ -86,11 +121,11 @@ namespace test_iterate_domain{
             make_computation< gridtools::backend< Host, GRIDBACKEND, Naive > >(
                 domain,
                 grid,
-                gridtools::make_mss // mss_descriptor
+                gridtools::make_multistage // mss_descriptor
                 (enumtype::execute< enumtype::forward >(),
-                    gridtools::make_esf< dummy_functor >(p_in(), p_buff(), p_out()))));
+                    gridtools::make_stage< dummy_functor >(p_in(), p_buff(), p_out()))));
 
-        typedef decltype(gridtools::make_esf<dummy_functor>(p_in() ,p_buff(), p_out())) esf_t;
+        typedef decltype(gridtools::make_stage<dummy_functor>(p_in() ,p_buff(), p_out())) esf_t;
 
         computation_->ready();
         computation_->steady();
@@ -108,13 +143,11 @@ namespace test_iterate_domain{
                 boost::mpl::vector1< extent< 0, 0, 0, 0 > >,
                 extent< 0, 0, 0, 0 >,
                 boost::mpl::vector0<>,
-                block_size<32,4>,
-                block_size<32,4>,
-                gridtools::grid<axis>,
-                false,
-                notype
-                >
-            > it_domain_t;
+                block_size< 32, 4 >,
+                block_size< 32, 4 >,
+                gridtools::grid< axis >,
+                boost::mpl::false_,
+                notype > > it_domain_t;
 
         mss_local_domain1_t mss_local_domain1=boost::fusion::at_c<0>(computation_->mss_local_domain_list());
         auto local_domain1=boost::fusion::at_c<0>(mss_local_domain1.local_domain_list);

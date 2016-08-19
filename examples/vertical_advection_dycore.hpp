@@ -1,12 +1,46 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 #include <gridtools.hpp>
 
 #include <stencil-composition/stencil-composition.hpp>
 #include "vertical_advection_repository.hpp"
 #include <tools/verifier.hpp>
-
-#include "cache_flusher.hpp"
 #include "defs.hpp"
+#include "benchmarker.hpp"
 
 /*
   This file shows an implementation of the "vertical advection" stencil used in COSMO for U field
@@ -168,9 +202,8 @@ namespace vertical_advection_dycore {
         return s << "u_backward_function";
     }
 
-    bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t_steps) {
+    bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t_steps, bool verify) {
 
-        cache_flusher flusher(cache_flusher_size);
         const int halo_size = 3;
 
         typedef gridtools::layout_map< 0, 1, 2 > layout_ijk;
@@ -220,14 +253,14 @@ namespace vertical_advection_dycore {
 // don't particularly like this)
 
 #ifdef CXX11_ENABLE
-        gridtools::domain_type< accessor_list > domain((p_utens_stage() = repository.utens_stage()),
+        gridtools::aggregator_type< accessor_list > domain((p_utens_stage() = repository.utens_stage()),
             (p_u_stage() = repository.u_stage()),
             (p_wcon() = repository.wcon()),
             (p_u_pos() = repository.u_pos()),
             (p_utens() = repository.utens()),
             (p_dtr_stage() = repository.dtr_stage()));
 #else
-        gridtools::domain_type< accessor_list > domain(boost::fusion::make_vector(&repository.utens_stage(),
+        gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&repository.utens_stage(),
             &repository.u_stage(),
             &repository.wcon(),
             &repository.u_pos(),
@@ -259,9 +292,9 @@ namespace vertical_advection_dycore {
             vertical_advection = gridtools::make_computation< vertical_advection::va_backend >(
                 domain,
                 grid,
-                gridtools::make_mss // mss_descriptor
+                gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
-                    gridtools::make_esf< u_forward_function< double > >(p_utens_stage(),
+                    gridtools::make_stage< u_forward_function< double > >(p_utens_stage(),
                         p_wcon(),
                         p_u_stage(),
                         p_u_pos(),
@@ -272,8 +305,8 @@ namespace vertical_advection_dycore {
                         p_ccol(),
                         p_dcol()) // esf_descriptor
                     ),
-                gridtools::make_mss(execute< backward >(),
-                    gridtools::make_esf< u_backward_function< double > >(
+                gridtools::make_multistage(execute< backward >(),
+                    gridtools::make_stage< u_backward_function< double > >(
                                         p_utens_stage(), p_u_pos(), p_dtr_stage(), p_ccol(), p_dcol(), p_data_col())));
 
         vertical_advection->ready();
@@ -287,31 +320,30 @@ namespace vertical_advection_dycore {
         repository.update_cpu();
 #endif
 
+        bool result = true;
+        if (verify) {
 #ifdef CXX11_ENABLED
 #if FLOAT_PRECISION == 4
-        verifier verif(1e-6);
+            verifier verif(1e-6);
 #else
-        verifier verif(1e-12);
+            verifier verif(1e-12);
 #endif
-        array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
-        bool result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage(), halos);
+            array< array< uint_t, 2 >, 3 > halos{
+                {{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
+            result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage(), halos);
 #else
 #if FLOAT_PRECISION == 4
-        verifier verif(1e-6, halo_size);
+            verifier verif(1e-6, halo_size);
 #else
-        verifier verif(1e-12, halo_size);
+            verifier verif(1e-12, halo_size);
 #endif
-        bool result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage());
+            result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage());
 #endif
-
-#ifdef BENCHMARK
-        for (uint_t t = 1; t < t_steps; ++t) {
-            flusher.flush();
-            vertical_advection->run();
         }
-        vertical_advection->finalize();
-        std::cout << vertical_advection->print_meter() << std::endl;
+#ifdef BENCHMARK
+        benchmarker::run(vertical_advection, t_steps);
 #endif
+        vertical_advection->finalize();
 
         return result;
     }

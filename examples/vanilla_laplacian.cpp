@@ -1,6 +1,40 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #include <iostream>
 #include <fstream>
-#include <boost/timer/timer.hpp>
 #include <gridtools.hpp>
 #include <common/defs.hpp>
 
@@ -76,7 +110,6 @@ int main_naive(int argc, char** argv) {
 
     print(out, d1, d2, d3, file_i);
 
-    boost::timer::cpu_timer time;
     for (uint_t i=2; i < d1-2; ++i) {
         for (uint_t j=2; j < d2-2; ++j) {
             for (uint_t k=0; k < d3; ++k) {
@@ -93,11 +126,8 @@ int main_naive(int argc, char** argv) {
             }
         }
     }
-    boost::timer::cpu_times lapse_time = time.elapsed();
 
     print(out, d1, d2, d3, file_o);
-
-    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
 
     delete[] in;
     delete[] out;
@@ -140,7 +170,6 @@ int main_naive_inc(int argc, char** argv) {
 
     print(out, d1, d2, d3, file_i);
 
-    boost::timer::cpu_timer time;
     for (uint_t i=2; i < d1-2; ++i) {
         for (uint_t j=2; j < d2-2; ++j) {
             double* po = out + offs_(i,j,0,d1,d2,d3);
@@ -169,11 +198,9 @@ int main_naive_inc(int argc, char** argv) {
             }
         }
     }
-    boost::timer::cpu_times lapse_time = time.elapsed();
 
     print(out, d1, d2, d3, file_o);
 
-    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
 
     delete[] in;
     delete[] out;
@@ -216,7 +243,6 @@ int main_block(int argc, char** argv) {
 
     print(out, d1, d2, d3, file_i);
 
-    boost::timer::cpu_timer time;
     uint_t BI = 4;
     uint_t BJ = 4;
 
@@ -333,11 +359,7 @@ int main_block(int argc, char** argv) {
     }
 
 
-    boost::timer::cpu_times lapse_time = time.elapsed();
-
     print(out, d1, d2, d3, file_o);
-
-    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
 
     return 0;
 }
@@ -378,7 +400,6 @@ int main_block_inc(int argc, char** argv) {
 
     print(out, d1, d2, d3, file_i);
 
-    boost::timer::cpu_timer time;
     uint_t BI = 4;
     uint_t BJ = 4;
 
@@ -531,11 +552,7 @@ int main_block_inc(int argc, char** argv) {
     }
 
 
-    boost::timer::cpu_times lapse_time = time.elapsed();
-
     print(out, d1, d2, d3, file_o);
-
-    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
 
     return 0;
 }

@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 #include "common/array.hpp"
 #include "common/array_addons.hpp"
@@ -8,7 +43,7 @@ namespace gridtools {
     class parallel_storage_info;
 
     template < typename value_type >
-    bool compare_below_threshold(value_type expected, value_type actual, double precision) {
+    GT_FUNCTION bool compare_below_threshold(value_type expected, value_type actual, double precision) {
         if (std::fabs(expected) < 1e-3 && std::fabs(actual) < 1e-3) {
             if (std::fabs(expected - actual) < precision)
                 return true;
@@ -33,9 +68,9 @@ namespace gridtools {
 
         template < typename Grid >
         bool operator()(Grid const &grid_, array< uint_t, NCoord > const &pos) {
-            typename StorageType::storage_info_type const& meta = m_exp_field.meta_data();
+            typename StorageType::storage_info_type const &meta = m_exp_field.meta_data();
 
-            const gridtools::uint_t size = meta.template dims< NDim - 1 >();
+            const gridtools::uint_t size = meta.template dim< NDim - 1 >();
             bool verified = true;
 
             verify_helper< NDim - 1, NCoord + 1, StorageType > next_loop(
@@ -73,7 +108,7 @@ namespace gridtools {
         bool operator()(Grid const &grid_, array< uint_t, NCoord > const &pos) {
             bool verified = true;
             if (pos[2] < grid_.value_at_top()) {
-                typename StorageType::storage_info_type const& meta = m_exp_field.meta_data();
+                typename StorageType::storage_info_type const &meta = m_exp_field.meta_data();
 
                 typename StorageType::value_type expected = m_exp_field.fields()[m_field_id][meta.index(pos)];
                 typename StorageType::value_type actual = m_actual_field.fields()[m_field_id][meta.index(pos)];
@@ -102,9 +137,9 @@ namespace gridtools {
         uint_t field_id,
         array< array< uint_t, 2 >, StorageType::space_dimensions > halos,
         double precision) {
-        typename StorageType::storage_info_type const& meta = exp_field.meta_data();
+        typename StorageType::storage_info_type const &meta = exp_field.meta_data();
 
-        const gridtools::uint_t size = meta.template dims< NDim - 1 >();
+        const gridtools::uint_t size = meta.template dim< NDim - 1 >();
         bool verified = true;
         verify_helper< NDim - 1, 1, StorageType > next_loop(exp_field, actual_field, field_id, halos, precision);
 
@@ -149,9 +184,9 @@ namespace gridtools {
             StorageType const &field2,
             const array< array< uint_t, 2 >, StorageType::space_dimensions > halos) {
 
-            const gridtools::uint_t idim = metadata_.get_metadata().template dims< 0 >();
-            const gridtools::uint_t jdim = metadata_.get_metadata().template dims< 1 >();
-            const gridtools::uint_t kdim = metadata_.get_metadata().template dims< 2 >();
+            const gridtools::uint_t idim = metadata_.get_metadata().template dim< 0 >();
+            const gridtools::uint_t jdim = metadata_.get_metadata().template dim< 1 >();
+            const gridtools::uint_t kdim = metadata_.get_metadata().template dim< 2 >();
 
             bool verified = true;
 
@@ -188,14 +223,14 @@ namespace gridtools {
 
         template < typename Grid, typename storage_type >
         bool verify(Grid const &grid_, storage_type const &field1, storage_type const &field2) const {
-            // assert(field1.template dims<0>() == field2.template dims<0>());
-            // assert(field1.template dims<1>() == field2.template dims<1>());
-            // assert(field1.template dims<2>() == field2.template dims<2>());
-            typename storage_type::storage_info_type const& meta = field1.meta_data();
+            // assert(field1.template dim<0>() == field2.template dim<0>());
+            // assert(field1.template dim<1>() == field2.template dim<1>());
+            // assert(field1.template dim<2>() == field2.template dim<2>());
+            typename storage_type::storage_info_type const *meta = &field1.meta_data();
 
-            const gridtools::uint_t idim = meta.template dims< 0 >();
-            const gridtools::uint_t jdim = meta.template dims< 1 >();
-            const gridtools::uint_t kdim = meta.template dims< 2 >();
+            const gridtools::uint_t idim = meta->template dim< 0 >();
+            const gridtools::uint_t jdim = meta->template dim< 1 >();
+            const gridtools::uint_t kdim = meta->template dim< 2 >();
 
             bool verified = true;
 
@@ -203,8 +238,8 @@ namespace gridtools {
                 for (gridtools::uint_t i = m_halo_size; i < idim - m_halo_size; ++i) {
                     for (gridtools::uint_t j = m_halo_size; j < jdim - m_halo_size; ++j) {
                         for (gridtools::uint_t k = 0; k < grid_.value_at_top(); ++k) {
-                            typename storage_type::value_type expected = field1.fields()[f][meta.index(i, j, k)];
-                            typename storage_type::value_type actual = field2.fields()[f][meta.index(i, j, k)];
+                            typename storage_type::value_type expected = field1.fields()[f][meta->index(i, j, k)];
+                            typename storage_type::value_type actual = field2.fields()[f][meta->index(i, j, k)];
 
                             if (!compare_below_threashold(expected, actual)) {
                                 std::cout << "Error in position " << i << " " << j << " " << k
@@ -225,9 +260,9 @@ namespace gridtools {
             StorageType const &field1,
             StorageType const &field2) {
 
-            const gridtools::uint_t idim = metadata_.get_metadata().template dims< 0 >();
-            const gridtools::uint_t jdim = metadata_.get_metadata().template dims< 1 >();
-            const gridtools::uint_t kdim = metadata_.get_metadata().template dims< 2 >();
+            const gridtools::uint_t idim = metadata_.get_metadata().template dim< 0 >();
+            const gridtools::uint_t jdim = metadata_.get_metadata().template dim< 1 >();
+            const gridtools::uint_t kdim = metadata_.get_metadata().template dim< 2 >();
 
             bool verified = true;
 

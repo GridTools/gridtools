@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <stencil-composition/stencil-composition.hpp>
@@ -97,7 +132,7 @@ struct functor6 {
     GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
 };
 
-std::ostream& operator<<(std::ostream& s, functor0) { return s << "functor0"; }
+std::ostream &operator<<(std::ostream &s, functor0) { return s << "functor0"; }
 std::ostream &operator<<(std::ostream &s, functor1) { return s << "functor1"; }
 std::ostream &operator<<(std::ostream &s, functor2) { return s << "functor2"; }
 std::ostream &operator<<(std::ostream &s, functor3) { return s << "functor3"; }
@@ -110,7 +145,7 @@ typedef layout_map< 2, 1, 0 > layout_t;
 typedef BACKEND::storage_info< 0, layout_t > storage_info_type;
 typedef BACKEND::storage_type< float_type, storage_info_type >::type storage_type;
 
-typedef arg<0, storage_type> o0;
+typedef arg< 0, storage_type > o0;
 typedef arg< 1, storage_type > o1;
 typedef arg< 2, storage_type > o2;
 typedef arg< 3, storage_type > o3;
@@ -122,14 +157,14 @@ typedef arg< 8, storage_type > in1;
 typedef arg< 9, storage_type > in2;
 typedef arg< 10, storage_type > in3;
 int main() {
-    typedef decltype(make_esf< functor0 >(in0(), in1(), in2(), o0())) functor0__;
-    typedef decltype(make_esf< functor1 >(in3(), o1(), in0(), o0())) functor1__;
-    typedef decltype(make_esf< functor2 >(o0(), o1(), o2())) functor2__;
-    typedef decltype(make_esf< functor3 >(in1(), in2(), o3(), o2())) functor3__;
-    typedef decltype(make_esf< functor4 >(o0(), o1(), o3(), o4())) functor4__;
-    typedef decltype(make_esf< functor5 >(in3(), o4(), in0(), o5())) functor5__;
-    typedef decltype(make_esf< functor6 >(o6(), o5(), in1(), in2())) functor6__;
-    typedef decltype(make_mss(execute< forward >(),
+    typedef decltype(make_stage< functor0 >(in0(), in1(), in2(), o0())) functor0__;
+    typedef decltype(make_stage< functor1 >(in3(), o1(), in0(), o0())) functor1__;
+    typedef decltype(make_stage< functor2 >(o0(), o1(), o2())) functor2__;
+    typedef decltype(make_stage< functor3 >(in1(), in2(), o3(), o2())) functor3__;
+    typedef decltype(make_stage< functor4 >(o0(), o1(), o3(), o4())) functor4__;
+    typedef decltype(make_stage< functor5 >(in3(), o4(), in0(), o5())) functor5__;
+    typedef decltype(make_stage< functor6 >(o6(), o5(), in1(), in2())) functor6__;
+    typedef decltype(make_multistage(execute< forward >(),
         functor0__(),
         functor1__(),
         functor2__(),
@@ -140,8 +175,6 @@ int main() {
     typedef boost::mpl::vector< o0, o1, o2, o3, o4, o5, o6, in0, in1, in2, in3 > placeholders;
 
     typedef compute_extents_of< init_map_of_extents< placeholders >::type >::for_mss< mss_t >::type final_map;
-    std::cout << "FINAL" << std::endl;
-    boost::mpl::for_each< final_map >(print_r());
 
     GRIDTOOLS_STATIC_ASSERT(
         (std::is_same< boost::mpl::at< final_map, o0 >::type, extent< -5, 11, -10, 10, -5, 13 > >::type::value),

@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 
 #include <functional>
@@ -92,6 +127,30 @@ namespace gridtools {
             typename boost::disable_if< typename is_aggregate< Container >::type, int >::type = 0 >
         GT_FUNCTION static constexpr Container apply(ExtraTypes const &... args_) {
             return Container(Lambda< Indices >::apply(args_...)...);
+        }
+
+        /**
+           @brief applies a lambda function to the transformed argument pack.
+           The original argument pack provided by the user args_... is transformed by the apply method of the
+           MetaFunctor
+           provided. The resulting argument pack is used to call the lambda.
+
+           The metafunctor applied is templated with an index which identifies the current argument. This allow
+           to define specialised behaviour of the functor for the specific arguments.
+
+           \tparam Lambda lambda function applied to the transformed argument pack
+           \tparam MetaFunctor functor that is transforming each of the arguments of the variadic pack
+           \tparam AdditionalArg additional argument passed to the lambda at the end of the pack
+           \tparam ExtraTypes variadic pack of arguments to be passed to the lambda
+         */
+        template < typename ReturnType,
+            typename Lambda,
+            template < UInt T > class MetaFunctor,
+            typename AdditionalArg,
+            typename... ExtraTypes >
+        GT_FUNCTION static constexpr ReturnType apply_lambda(
+            Lambda lambda, AdditionalArg add_arg, ExtraTypes const &... args_) {
+            return lambda(MetaFunctor< Indices >::apply(args_...)..., add_arg);
         }
 
         /**

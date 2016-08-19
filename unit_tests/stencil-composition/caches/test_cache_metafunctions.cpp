@@ -1,4 +1,39 @@
 /*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
+/*
  * test_cache_metafunctions.cpp
  *
  *  Created on: Jul 17, 2015
@@ -40,8 +75,8 @@ typedef arg<2, storage_type> p_out;
 typedef arg<1, storage_type> p_buff;
 typedef arg<3, storage_type> p_notin;
 
-typedef decltype(gridtools::make_esf<functor1>(p_in() ,p_buff()) ) esf1_t;
-typedef decltype(gridtools::make_esf<functor1>(p_buff(), p_out()) ) esf2_t;
+typedef decltype(gridtools::make_stage<functor1>(p_in() ,p_buff()) ) esf1_t;
+typedef decltype(gridtools::make_stage<functor1>(p_buff(), p_out()) ) esf2_t;
 
 typedef boost::mpl::vector2<esf1_t, esf2_t> esf_sequence_t;
 
@@ -79,12 +114,11 @@ TEST(cache_metafunctions, extract_extents_for_caches)
         extents_t,
         max_extent_t,
         caches_t,
-        block_size<32,4>,
-        block_size<32,4>,
-        gridtools::grid<axis>,
-        false,
-        notype
-    > iterate_domain_arguments_t;
+        block_size< 32, 4 >,
+        block_size< 32, 4 >,
+        gridtools::grid< axis >,
+        boost::mpl::false_,
+        notype > iterate_domain_arguments_t;
 
     typedef extract_extents_for_caches<iterate_domain_arguments_t>::type extents_map_t;
 
@@ -111,7 +145,7 @@ TEST(cache_metafunctions, get_cache_storage_tuple)
         extent<0,0,0,0>,
         enclosing_extent<boost::mpl::_1, boost::mpl::_2>
     >::type max_extent_t;
-
+  
     typedef gridtools::interval<gridtools::level<0,-2>, gridtools::level<1,1> > axis;
 
     typedef iterate_domain_arguments< backend_ids< Cuda, GRIDBACKEND, Block >,
@@ -120,12 +154,11 @@ TEST(cache_metafunctions, get_cache_storage_tuple)
         extents_t,
         max_extent_t,
         caches_t,
-        block_size<32,4>,
-        block_size<32,4>,
-        gridtools::grid<axis>,
-        false,
-        notype
-    > iterate_domain_arguments_t;
+        block_size< 32, 4 >,
+        block_size< 32, 4 >,
+        gridtools::grid< axis >,
+        boost::mpl::false_,
+        notype > iterate_domain_arguments_t;
 
     typedef extract_extents_for_caches<iterate_domain_arguments_t>::type extents_map_t;
 
