@@ -88,6 +88,12 @@ namespace gridtools {
         shared_iterate_domain_t *RESTRICT m_pshared_iterate_domain;
 
       public:
+
+        template < typename Accessor >
+        struct accessor_return_type {
+            typedef typename super::template accessor_return_type< Accessor >::type type;
+        };
+
         GT_FUNCTION
         explicit iterate_domain_cuda(local_domain_t const &local_domain,
             grid_topology_t const &grid_topology,
@@ -218,12 +224,20 @@ namespace gridtools {
         /**
         * @brief metafunction that determines if an accessor has to be read from texture memory
         */
+        /**
+        * @brief metafunction that determines if an accessor has to be read from texture memory
+        */
         template < typename Accessor >
         struct accessor_read_from_texture {
             GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Wrong type");
-            typedef typename boost::mpl::and_< typename accessor_points_to_readonly_arg< Accessor >::type,
-                typename boost::mpl::not_< typename boost::mpl::has_key< bypass_caches_set_t,
-                    static_uint< Accessor::index_type::value > >::type >::type >::type type;
+            typedef typename boost::mpl::and_<
+                typename boost::mpl::and_< typename accessor_points_to_readonly_arg< Accessor >::type,
+                    typename boost::mpl::not_< typename boost::mpl::has_key< bypass_caches_set_t,
+                        static_uint< Accessor::index_type::value > >::type // mpl::has_key
+                                               >::type                     // mpl::not,
+                    >::type,                                               // mpl::(inner)and_
+                typename boost::is_arithmetic< typename accessor_return_type< Accessor >::type >::type // is_arithmetic
+                >::type type;
         };
 
         /** @brief return a value that was cached
