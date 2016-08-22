@@ -50,18 +50,18 @@ namespace ico_operators {
     bool test_div( uint_t x, uint_t y, uint_t z, uint_t t_steps, bool verify)
     {
 
-        repository repository(x, y, z);
-        repository.init_fields();
-        repository.generate_reference();
+        repository repo(x, y, z);
+        repo.init_fields();
+        repo.generate_div_ref();
 
-        icosahedral_topology_t& icosahedral_grid = repository.icosahedral_grid();
-        uint_t d1 = repository.idim();
-        uint_t d2 = repository.jdim();
-        uint_t d3 = repository.kdim();
+        icosahedral_topology_t& icosahedral_grid = repo.icosahedral_grid();
+        uint_t d1 = repo.idim();
+        uint_t d2 = repo.jdim();
+        uint_t d3 = repo.kdim();
 
-        const uint_t halo_nc = repository.halo_nc;
-        const uint_t halo_mc = repository.halo_mc;
-        const uint_t halo_k = repository.halo_k;
+        const uint_t halo_nc = repo.halo_nc;
+        const uint_t halo_mc = repo.halo_mc;
+        const uint_t halo_k = repo.halo_k;
 
         typedef gridtools::layout_map<2, 1, 0> layout_t;
 
@@ -86,14 +86,14 @@ namespace ico_operators {
 
         array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
 
-        auto &in_edges = repository.u();
-        auto &cell_area_reciprocal = repository.cell_area_reciprocal();
-        edges_of_cells_storage_type &orientation_of_normal = repository.orientation_of_normal();
-        auto &edge_length = repository.edge_length();
-        auto &ref_cells = repository.div_u_ref();
+        auto &in_edges = repo.u();
+        auto &cell_area_reciprocal = repo.cell_area_reciprocal();
+        edges_of_cells_storage_type &orientation_of_normal = repo.orientation_of_normal();
+        auto &edge_length = repo.edge_length();
+        auto &ref_cells = repo.div_u_ref();
         auto out_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("out");
 
-        auto &weights_meta = repository.edges_of_cells_meta();
+        auto &weights_meta = repo.edges_of_cells_meta();
         edges_of_cells_storage_type div_weights(weights_meta, "weights");
 
         auto cells_of_edges_meta = meta_storage_extender()(in_edges.meta_data(), 2);

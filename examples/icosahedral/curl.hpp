@@ -17,18 +17,18 @@ namespace ico_operators {
     bool test_curl( uint_t x, uint_t y, uint_t z, uint_t t_steps, bool verify)
     {
 
-        repository repository(x, y, z);
-        repository.init_fields();
-        repository.generate_reference();
+        repository repo(x, y, z);
+        repo.init_fields();
+        repo.generate_curl_ref();
 
-        icosahedral_topology_t& icosahedral_grid = repository.icosahedral_grid();
-        uint_t d1 = repository.idim();
-        uint_t d2 = repository.jdim();
-        uint_t d3 = repository.kdim();
+        icosahedral_topology_t& icosahedral_grid = repo.icosahedral_grid();
+        uint_t d1 = repo.idim();
+        uint_t d2 = repo.jdim();
+        uint_t d3 = repo.kdim();
 
-        const uint_t halo_nc = repository.halo_nc;
-        const uint_t halo_mc = repository.halo_mc;
-        const uint_t halo_k = repository.halo_k;
+        const uint_t halo_nc = repo.halo_nc;
+        const uint_t halo_mc = repo.halo_mc;
+        const uint_t halo_k = repo.halo_k;
 
         typedef gridtools::layout_map<2, 1, 0> layout_t;
 
@@ -40,15 +40,15 @@ namespace ico_operators {
 
         using edges_of_vertexes_storage_type = repository::edges_of_vertexes_storage_type;
 
-        auto& in_edges = repository.u();
-        auto& dual_area_reciprocal = repository.dual_area_reciprocal();
-        auto& dual_edge_length = repository.dual_edge_length();
-        auto& ref_vertexes = repository.curl_u_ref();
-        auto& weights_meta = repository.edges_of_vertexes_meta();
-        auto& out_vertexes = repository.out_vertex();
+        auto& in_edges = repo.u();
+        auto& dual_area_reciprocal = repo.dual_area_reciprocal();
+        auto& dual_edge_length = repo.dual_edge_length();
+        auto& ref_vertexes = repo.curl_u_ref();
+        auto& weights_meta = repo.edges_of_vertexes_meta();
+        auto& out_vertexes = repo.out_vertex();
 
         edges_of_vertexes_storage_type curl_weights(weights_meta, "weights");
-        edges_of_vertexes_storage_type &edge_orientation = repository.edge_orientation();
+        edges_of_vertexes_storage_type &edge_orientation = repo.edge_orientation();
 
 
         out_vertexes.initialize(0.0);
