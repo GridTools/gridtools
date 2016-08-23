@@ -85,7 +85,7 @@ namespace gridtools {
         template < uint_t Color, typename Offset >
         GT_FUNCTION int_t index(array< int, 2 > const &thread_pos, Offset const &offset) {
             return (thread_pos[0] + offset.template get< Offset::n_args - 1 >() - iminus::value) * i_stride_t::value +
-                    Color*c_stride_t::value +
+                    (Color + offset.template get< Offset::n_args - 2 >())*c_stride_t::value +
 //HACK
 #ifdef STRUCTURED_GRIDS
                    (thread_pos[1] + offset.template get< Offset::n_args - 2 >() - jminus::value) * j_stride_t::value;
