@@ -76,8 +76,7 @@ START_TIME=$(date +%s)
 KILL_STRING=""
 echo "Running Python tests ..."
 for i in `seq 1 ${#NOSE_CMD[@]}`; do
-    eval "${NOSE_CMD[$i]} > /tmp/gt4py_test.log 2>&1 &"
-    mv /tmp/gt4py_test.log /tmp/gt4py_test-$!.log
+    eval "${NOSE_CMD[$i]} > /tmp/gt4py_test-tmp$i.log 2>&1 &"
     PIDS[$i]=$!
     KILL_STRING="$KILL_STRING kill ${PIDS[$i]};"
 done
@@ -94,6 +93,7 @@ trap "${KILL_STRING}" SIGINT
 for i in `seq 1 ${#PIDS[@]}`; do
     wait "${PIDS[$i]}"
     TEST_STATUS[$i]=$?
+    mv "/tmp/gt4py_test-tmp$i.log" "/tmp/gt4py_test-${PIDS[$i]}.log"
 done
 
 #
