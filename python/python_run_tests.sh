@@ -28,6 +28,7 @@ PYTHON_INSTALL_PREFIX=$2
 # remove files left from the previous runs which are older than two days
 #
 find /tmp -iname '__gridtools_*' -type d -ctime +2 -exec rm -rf {} \; > /dev/null 2>&1
+find /tmp -iname 'gt4py_test-*.log' -type f -ctime +2 -exec rm -rf {} \; > /dev/null 2>&1
 
 #
 # run interactively if no arguments given
@@ -68,14 +69,15 @@ NOSE_CMD[4]="nosetests -v -s ${NOSE_NO_GPU} tests.test_gtdd tests.test_invalid_s
 
 #
 # Run the tests using multiple background processes
-# The PID of each process is collected to check the return value and to
+# The PID of each process is collected to check the exit status and to
 # build a string with the kill commands for all processes
 #
+START_TIME=$(date +%s)
 KILL_STRING=""
 echo "Running Python tests ..."
-for i in `seq ${#NOSE_CMD[@]}`;
-do
-    eval "${NOSE_CMD[$i]} &"
+for i in `seq 1 ${#NOSE_CMD[@]}`; do
+    eval "${NOSE_CMD[$i]} > /tmp/gt4py_test.log 2>&1 &"
+    mv /tmp/gt4py_test.log /tmp/gt4py_test-$!.log
     PIDS[$i]=$!
     KILL_STRING="$KILL_STRING kill ${PIDS[$i]};"
 done
@@ -87,14 +89,18 @@ done
 trap "${KILL_STRING}" SIGINT
 
 #
-# Wait for processes to finish and increment status counter if any of them returns
-# non-zero
+# Wait for processes to finish and collect their exit statuses
 #
-TEST_STATUS=0
-for job in "${PIDS[@]}"
-do
-    wait $job || let "TEST_STATUS+=1"
+for i in `seq 1 ${#PIDS[@]}`; do
+    wait "${PIDS[$i]}"
+    TEST_STATUS[$i]=$?
 done
+
+#
+# Display running time
+#
+END_TIME=$(date +%s)
+echo "Ran tests in $(($END_TIME - $START_TIME)) seconds"
 
 #
 # Clear commands bound to the Interrupt Signal
@@ -102,9 +108,20 @@ done
 trap - SIGINT
 
 #
-# Check tests return value
+# Check tests exit statuses
 #
-if [ ${TEST_STATUS} == 0 ]; then
+ALL_OK=0
+for i in `seq 1 ${#PIDS[@]}`; do
+    if [ "${TEST_STATUS[$i]}" != 0 ]; then
+        echo "Errors detected in runnning ${NOSE_CMD[$i]}. See file gt4py_test-${PIDS[$i]}.log for details."
+        ALL_OK=1
+    fi
+done
+
+#
+# Exit from script
+#
+if [ ${ALL_OK} == 0 ]; then
     echo "All Python tests OK"
     if [ -n "${PYTHON_INSTALL_PREFIX}" ]; then
         deactivate
