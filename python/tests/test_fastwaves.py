@@ -194,13 +194,13 @@ class FastWavesUVTest (CopyTest):
 
     @unittest.skip("To be validated")
     def test_validate_results_cpp (self):
-        self.test_stella_results (backend='c++')
+        self.test_validate_results (backend='c++')
 
 
     @unittest.skip("To be validated")
     @attr(lang='cuda')
     def test_validate_results_cuda (self):
-        self.test_stella_results (backend='cuda')
+        self.test_validate_results (backend='cuda')
 
 
     def test_data_dependency_detection (self, deps=None, backend='c++'):
