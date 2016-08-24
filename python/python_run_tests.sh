@@ -110,18 +110,18 @@ trap - SIGINT
 #
 # Check tests exit statuses
 #
-ALL_OK=0
+ALL_OK="true"
 for i in `seq 1 ${#PIDS[@]}`; do
-    if [ "${TEST_STATUS[$i]}" != 0 ]; then
+    if [ "${TEST_STATUS[$i]}" != "0" ]; then
         echo "Errors detected in runnning ${NOSE_CMD[$i]}. See file gt4py_test-${PIDS[$i]}.log for details."
-        ALL_OK=1
+        ALL_OK="false"
     fi
 done
 
 #
 # Exit from script
 #
-if [ ${ALL_OK} == 0 ]; then
+if [ ${ALL_OK} == "true" ]; then
     echo "All Python tests OK"
     if [ -n "${PYTHON_INSTALL_PREFIX}" ]; then
         deactivate
