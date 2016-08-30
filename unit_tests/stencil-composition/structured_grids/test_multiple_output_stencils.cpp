@@ -113,7 +113,7 @@ TEST(multiple_outputs, compute_extents) {
         u_in,
         v_in >;
 
-    domain_type< arg_list > domain(boost::fusion::make_vector(&dummy, &dummy, &dummy, &dummy));
+    aggregator_type< arg_list > domain(boost::fusion::make_vector(&dummy, &dummy, &dummy, &dummy));
 
     uint_t di[5] = {2, 2, 0, 7, 10};
     uint_t dj[5] = {2, 2, 0, 7, 10};
@@ -125,10 +125,10 @@ TEST(multiple_outputs, compute_extents) {
     auto computation = make_computation< BACKEND >(
         domain,
         grid_,
-        make_mss(execute< forward >(),
-            make_esf< TensionShearFunction >(T_sqr_s(), S_sqr_uv(), u_in(), v_in()),
-            make_esf< SmagCoeffFunction >(smag_u(), smag_v(), T_sqr_s(), S_sqr_uv()),
-            make_esf< SmagUpdateFunction >(u_out(), v_out(), u_in(), v_in(), smag_u(), smag_v())));
+        make_multistage(execute< forward >(),
+            make_stage< TensionShearFunction >(T_sqr_s(), S_sqr_uv(), u_in(), v_in()),
+            make_stage< SmagCoeffFunction >(smag_u(), smag_v(), T_sqr_s(), S_sqr_uv()),
+            make_stage< SmagUpdateFunction >(u_out(), v_out(), u_in(), v_in(), smag_u(), smag_v())));
 
     EXPECT_TRUE(true);
 }
