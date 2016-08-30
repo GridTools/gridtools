@@ -26,20 +26,32 @@ namespace adv_prepare_tracers {
     typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
     struct prepare_tracers {
-        typedef  accessor< 0, inout > data0 ;
-        typedef  accessor< 1, inout >  data1 ;
-        typedef  accessor< 2, inout >  data2 ;
-        typedef  accessor< 3, inout >  data3 ;
-        typedef  accessor< 4, inout >  data4 ;
-        typedef  accessor< 5, inout >  data5 ;
-        typedef  accessor< 6, in >  data_nnow0 ;
-        typedef  accessor< 7, in >  data_nnow1 ;
-        typedef  accessor< 8, in >  data_nnow2 ;
-        typedef  accessor< 9, in >  data_nnow3 ;
-        typedef  accessor< 10, in >  data_nnow4 ;
-        typedef  accessor< 11, in >  data_nnow5 ;
-        typedef  accessor< 12, in >  rho ;
-        typedef boost::mpl::vector< data0, data1, data2, data3, data4, data5, data_nnow0, data_nnow1, data_nnow2, data_nnow3, data_nnow4, data_nnow5, rho > arg_list;
+        typedef accessor< 0, inout > data0;
+        typedef accessor< 1, inout > data1;
+        typedef accessor< 2, inout > data2;
+        typedef accessor< 3, inout > data3;
+        typedef accessor< 4, inout > data4;
+        typedef accessor< 5, inout > data5;
+        typedef accessor< 6, in > data_nnow0;
+        typedef accessor< 7, in > data_nnow1;
+        typedef accessor< 8, in > data_nnow2;
+        typedef accessor< 9, in > data_nnow3;
+        typedef accessor< 10, in > data_nnow4;
+        typedef accessor< 11, in > data_nnow5;
+        typedef accessor< 12, in > rho;
+        typedef boost::mpl::vector< data0,
+            data1,
+            data2,
+            data3,
+            data4,
+            data5,
+            data_nnow0,
+            data_nnow1,
+            data_nnow2,
+            data_nnow3,
+            data_nnow4,
+            data_nnow5,
+            rho > arg_list;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, interval_t) {
@@ -83,21 +95,44 @@ namespace adv_prepare_tracers {
         typedef arg< 10, storage_t > p_in4;
         typedef arg< 11, storage_t > p_in5;
         typedef arg< 12, storage_t > p_rho;
-        typedef boost::mpl::vector< p_out0,p_out1,p_out2,p_out3,p_out4,p_out5,p_in0,p_in1,p_in2,p_in3,p_in4,p_in5, p_rho > args_t;
+        typedef boost::mpl::
+            vector< p_out0, p_out1, p_out2, p_out3, p_out4, p_out5, p_in0, p_in1, p_in2, p_in3, p_in4, p_in5, p_rho >
+                args_t;
 
-        aggregator_type< args_t > domain_(boost::fusion::make_vector(&(*list_out_[0]),&(*list_out_[1]),&(*list_out_[2]),&(*list_out_[3]),&(*list_out_[4]),&(*list_out_[5])
-                                                                     , &(*list_in_[0]),&(*list_in_[1]),&(*list_in_[2]),&(*list_in_[3]),&(*list_in_[4]),&(*list_in_[5])
-                                                                     , &rho));
+        aggregator_type< args_t > domain_(boost::fusion::make_vector(&(*list_out_[0]),
+            &(*list_out_[1]),
+            &(*list_out_[2]),
+            &(*list_out_[3]),
+            &(*list_out_[4]),
+            &(*list_out_[5]),
+            &(*list_in_[0]),
+            &(*list_in_[1]),
+            &(*list_in_[2]),
+            &(*list_in_[3]),
+            &(*list_in_[4]),
+            &(*list_in_[5]),
+            &rho));
 #ifdef __CUDACC__
-        gridtools::stencil* comp_ =
+        gridtools::stencil *comp_ =
 #else
-            boost::shared_ptr<gridtools::stencil> comp_ =
+        boost::shared_ptr< gridtools::stencil > comp_ =
 #endif
-            make_computation< BACKEND >(
-                domain_,
+            make_computation< BACKEND >(domain_,
                 grid_,
                 make_multistage(enumtype::execute< enumtype::forward >(),
-                                            make_stage< prepare_tracers >(p_out0(),p_out1(),p_out2(),p_out3(),p_out4(),p_out5(), p_in0(),p_in1(),p_in2(),p_in3(),p_in4(),p_in5(), p_rho())));
+                                            make_stage< prepare_tracers >(p_out0(),
+                                                p_out1(),
+                                                p_out2(),
+                                                p_out3(),
+                                                p_out4(),
+                                                p_out5(),
+                                                p_in0(),
+                                                p_in1(),
+                                                p_in2(),
+                                                p_in3(),
+                                                p_in4(),
+                                                p_in5(),
+                                                p_rho())));
 
         comp_->ready();
         comp_->steady();

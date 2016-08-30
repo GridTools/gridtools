@@ -202,13 +202,12 @@ namespace test_cycle_and_swap {
         return verif.verify(grid, reference, i_data, halos);
     }
 
-
     bool test_cycle() {
 
         typedef gridtools::layout_map< 0, 1 > layout_t;
         typedef gridtools::BACKEND::storage_info< 0, layout_t > meta_t;
         typedef gridtools::BACKEND::storage_type< uint_t, meta_t >::type storage_type;
-        typedef typename field< storage_type, 3,3,3 >::type field_t;
+        typedef typename field< storage_type, 3, 3, 3 >::type field_t;
 
         meta_t meta_(1u, 1u);
         field_t i_data(meta_, 0, "in");
@@ -252,16 +251,10 @@ namespace test_cycle_and_swap {
         comp->run();
         comp->finalize();
 
-        return (i_data(0, 0) == 2
-                && i_data.get_value< 1, 0 >(0, 0) == 2
-                && i_data.get_value< 2, 0 >(0, 0) == 0
-                && i_data.get_value< 0, 1 >(0, 0) == 12
-                && i_data.get_value< 1, 1 >(0, 0) == 10
-                && i_data.get_value< 2, 1 >(0, 0) == 11
-                && i_data.get_value< 0, 2 >(0, 0) == 21
-                && i_data.get_value< 1, 2 >(0, 0) == 22
-                && i_data.get_value< 2, 2 >(0, 0) == 20
-            );
+        return (i_data(0, 0) == 2 && i_data.get_value< 1, 0 >(0, 0) == 2 && i_data.get_value< 2, 0 >(0, 0) == 0 &&
+                i_data.get_value< 0, 1 >(0, 0) == 12 && i_data.get_value< 1, 1 >(0, 0) == 10 &&
+                i_data.get_value< 2, 1 >(0, 0) == 11 && i_data.get_value< 0, 2 >(0, 0) == 21 &&
+                i_data.get_value< 1, 2 >(0, 0) == 22 && i_data.get_value< 2, 2 >(0, 0) == 20);
     }
 
 } // namespace test_cycle_and_swap

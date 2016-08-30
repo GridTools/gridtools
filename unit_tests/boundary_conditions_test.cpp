@@ -495,7 +495,6 @@ bool usingzero_1() {
     gridtools::BACKEND::storage_info<0,layout_map<0,1,2> > meta_(d1,d2,d3);
     storage_type in(meta_, -1, "in");
 
-
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {
             for (uint_t k=0; k<d3; ++k) {

@@ -234,8 +234,9 @@ TEST_F(cache_stencil, ij_cache_offset)
 #else
     verifier verif(1e-12);
 #endif
-    array<array<uint_t, 2>, 3> halos{{ {m_halo_size,m_halo_size}, {m_halo_size,m_halo_size}, {m_halo_size,m_halo_size} }};
-    ASSERT_TRUE(verif.verify(m_grid, ref, m_out, halos) );
+    array< array< uint_t, 2 >, 3 > halos{
+        {{m_halo_size, m_halo_size}, {m_halo_size, m_halo_size}, {m_halo_size, m_halo_size}}};
+    ASSERT_TRUE(verif.verify(m_grid, ref, m_out, halos));
 #else
 #if FLOAT_PRECISION == 4
     verifier verif(1e-6, m_halo_size);

@@ -28,7 +28,8 @@ typedef backend< Cuda, structured, Block > backend_t;
 // #ifdef CXX11_ENABLED
 typedef backend_t::storage_info< 0, layout_map< 0, 1, 2 > > meta_t;
 // #else
-// typedef meta_storage< meta_storage_aligned< meta_storage_base< static_uint<0>, layout_map< 0, 1, 2 >, false, int, int >,
+// typedef meta_storage< meta_storage_aligned< meta_storage_base< static_uint<0>, layout_map< 0, 1, 2 >, false, int, int
+// >,
 //     aligned< 32 >,
 //     halo< 0, 0, 0 > > > meta_t;
 // #endif
@@ -155,8 +156,7 @@ TEST(test_global_accessor, boundary_conditions) {
                     value += 10.;
                     value += 30;
                 }
-                if(sol_(i,j,k) != value)
-                {
+                if (sol_(i, j, k) != value) {
                     result=false;
                 }
             }

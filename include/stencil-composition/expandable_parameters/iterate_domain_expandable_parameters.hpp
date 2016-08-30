@@ -34,7 +34,7 @@ namespace gridtools {
         template < typename... T >
         GT_FUNCTION iterate_domain_expandable_parameters(T const &... other_)
             : super(other_...) {
-            GRIDTOOLS_STATIC_ASSERT((sizeof...(T)==1), "The eval() is called with the wrong arguments");
+            GRIDTOOLS_STATIC_ASSERT((sizeof...(T) == 1), "The eval() is called with the wrong arguments");
         }
 #endif
 
