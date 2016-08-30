@@ -63,21 +63,20 @@ namespace test_cycle_and_swap {
     struct functor_avg {
         typedef inout_accessor< 0, extent<>, 4 > p_data;
         typedef dimension< 4 > time;
-        static x i;
-        static y j;
-
-        typedef decltype(i) i_t;
-        typedef decltype(j) j_t;
 
         typedef boost::mpl::vector< p_data > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            x i;
+            y j;
+
+            typedef decltype(i) i_t;
+            typedef decltype(j) j_t;
+
             eval(p_data(time(1))) = (eval(p_data(i - 1)) + eval(p_data(i + 1))) * (float_t)0.5;
         }
     };
 
-    functor_avg::i_t functor_avg::i;
-    functor_avg::j_t functor_avg::j;
 
 #ifdef __CUDACC__
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
