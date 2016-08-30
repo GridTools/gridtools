@@ -29,12 +29,14 @@ namespace gridtools {
         typedef IterateDomain super;
         typedef IterateDomain iterate_domain_t;
 
+#ifdef CXX11_ENABLED
         // user protections
         template < typename... T >
         GT_FUNCTION iterate_domain_expandable_parameters(T const &... other_)
             : super(other_...) {
-            GRIDTOOLS_STATIC_ASSERT((sizeof...(T)), "The eval() is called with the wrong arguments");
+            GRIDTOOLS_STATIC_ASSERT((sizeof...(T)==1), "The eval() is called with the wrong arguments");
         }
+#endif
 
         template < typename T, ushort_t Val >
         GT_FUNCTION iterate_domain_expandable_parameters(iterate_domain_expandable_parameters< T, Val > const &other_)
