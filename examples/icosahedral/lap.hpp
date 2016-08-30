@@ -63,7 +63,8 @@ namespace ico_operators {
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
             constexpr auto neighbors_offsets_cell = connectivity< edges, cells, Color >::offsets();
 
-            double grad_n{
+
+           double grad_n{
                 (eval(in_cells(neighbors_offsets_cell[1])) - eval(in_cells(neighbors_offsets_cell[0]))) *
                                 eval(dual_edge_length_reciprocal())
             };
@@ -73,7 +74,7 @@ namespace ico_operators {
                 (eval(in_vertexes(neighbors_offsets_vertex[1])) - eval(in_vertexes(neighbors_offsets_vertex[0]))) *
                                 eval(edge_length_reciprocal())
             };
-
+ 
             eval(out_edges()) = grad_n - grad_tau;
 
         }
@@ -207,6 +208,7 @@ namespace ico_operators {
             edge_orientation.d2h_update();
 #endif
             stencil_->finalize();
+
         }
 
         /*
@@ -276,6 +278,8 @@ namespace ico_operators {
 
 #ifdef __CUDACC__
             in_edges.d2h_update();
+            dual_edge_length_reciprocal.d2h_update();
+            edge_length_reciprocal.d2h_update();
             out_edges.d2h_update();
 #endif
 
@@ -285,6 +289,7 @@ namespace ico_operators {
             std::cout << "lap weights: ";
             benchmarker::run(stencil_, t_steps);
 #endif
+
         }
 
         /*
@@ -342,7 +347,8 @@ namespace ico_operators {
                 grid_,
                 gridtools::make_multistage(
                     execute<forward>(),
-                    make_stage<div_functor_flow_convention, icosahedral_topology_t, icosahedral_topology_t::cells>(
+                    define_caches(cache< IJ, local >(p_div_on_cells(), p_curl_on_vertexes())),
+                    make_stage<div_functor_flow_convention_connectivity, icosahedral_topology_t, icosahedral_topology_t::cells>(
                         p_in_edges(), p_edge_length(), p_cell_area_reciprocal(), p_div_on_cells()
                     ),
                     make_stage<curl_functor_flow_convention, icosahedral_topology_t, icosahedral_topology_t::vertexes>(
