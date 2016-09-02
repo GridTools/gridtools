@@ -38,7 +38,8 @@ if ( ENABLE_CXX11 )
     target_link_libraries(test_conditional_switches ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
     gridtools_add_test(test_conditional_switches ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/test_conditional_switches")
 
-    set(RECGRID_TESTS test_local_domain.cpp test_staggered_keyword.cpp test_make_computation.cpp test_cycle_and_swap.cpp test_iterate_domain.cpp test_mss_metafunctions.cpp call_interfaces_metafunctions.cpp test_esf_metafunctions.cpp  test_accessor.cpp positional_when_debug.cpp test-unfold-independent.cpp test-unfold-all.cpp test_read_write_esf.cpp )
+# TODO: removed from test since it breaks gtest by defining its own main(): test_esf_metafunctions.cpp 
+    set(RECGRID_TESTS test_local_domain.cpp test_staggered_keyword.cpp test_make_computation.cpp test_cycle_and_swap.cpp test_iterate_domain.cpp test_mss_metafunctions.cpp call_interfaces_metafunctions.cpp test_accessor.cpp positional_when_debug.cpp test-unfold-independent.cpp test-unfold-all.cpp test_read_write_esf.cpp test_call_interfaces.cpp)
 
     add_executable(strgrid_stencil_tests ${RECGRID_TESTS})
     # include boost
