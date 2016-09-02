@@ -46,6 +46,17 @@ using namespace gridtools::enumtype;
 using namespace gridtools::expressions;
 
 namespace call_interface_functors {
+
+    // TODO this should go to a general helper class
+    template < typename storage_t, typename F >
+    static void fill(storage_t &&out, F f) {
+        for (uint_t k = 0; k < out.meta_data().dim(2); ++k)
+            for (uint_t i = 0; i < out.meta_data().dim(0); ++i)
+                for (uint_t j = 0; j < out.meta_data().dim(1); ++j) {
+                    out(i, j, k) = f(i, j, k);
+                }
+    }
+
     typedef interval< level< 0, -2 >, level< 1, 1 > > axis;
     typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
 
@@ -130,30 +141,15 @@ TEST_F(call_interface, call_to_copy_functor) {
         gridtools::make_multistage(
             execute< forward >(), gridtools::make_stage< call_interface_functors::call_functor >(p_in(), p_out())));
 
-    // fill input data TODO refactor
-    for (uint_t i = 0; i < d1; ++i) {
-        for (uint_t j = 0; j < d2; ++j) {
-            for (uint_t k = 0; k < d3; ++k) {
-                in(i, j, k) = i + j * 10 + k * 100;
-            }
-        }
-    }
-
-    // fill reference TODO refactor
-    for (uint_t i = 0; i < d1; ++i) {
-        for (uint_t j = 0; j < d2; ++j) {
-            for (uint_t k = 0; k < d3; ++k) {
-                reference(i, j, k) = i + j * 10 + k * 100;
-            }
-        }
-    }
+    call_interface_functors::fill(in, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
+    call_interface_functors::fill(reference, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
 
     // run stencil
     comp->ready();
     comp->steady();
     comp->run();
 #ifdef __CUDACC__
-    i_data.d2h_update();
+    out.d2h_update();
 #endif
 
     ASSERT_TRUE(verifier_.verify(grid, reference, out, verifier_halos));
