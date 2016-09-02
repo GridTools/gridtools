@@ -135,7 +135,7 @@ namespace test_cycle_and_swap {
 
         const uint_t d1 = 13;
         const uint_t d2 = 9;
-        const uint_t d3 = 3;
+        const uint_t d3 = 7;
 
         typedef gridtools::layout_map< 0, 1, 2 > layout_t;
         typedef gridtools::BACKEND::storage_info< 0, layout_t > meta_t;
