@@ -79,6 +79,36 @@ namespace call_interface_functors {
             eval(out()) = call< copy_functor, x_interval >::with(eval, in(), out());
         }
     };
+
+    struct call_nested_functor {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            eval(out()) = call< call_functor, x_interval >::with(eval, in(), out());
+        }
+    };
+
+    struct call_functor_with_offset {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            eval(out()) = call< copy_functor, x_interval >::at< 1, 1, 0 >::with(eval, in(), out());
+        }
+    };
+
+    struct call_nested_functor_with_offset {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            eval(out()) = call< call_functor_with_offset, x_interval >::with(eval, in(), out());
+        }
+    };
 }
 
 #ifdef __CUDACC__
@@ -143,6 +173,101 @@ TEST_F(call_interface, call_to_copy_functor) {
 
     call_interface_functors::fill(in, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
     call_interface_functors::fill(reference, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
+
+    // run stencil
+    comp->ready();
+    comp->steady();
+    comp->run();
+#ifdef __CUDACC__
+    out.d2h_update();
+#endif
+
+    ASSERT_TRUE(verifier_.verify(grid, reference, out, verifier_halos));
+}
+
+TEST_F(call_interface, call_to_copy_functor_with_offset) {
+    storage_type in(meta_, 0, "in");
+    storage_type out(meta_, -5, "out");
+    storage_type reference(meta_, -1, "reference");
+
+    typedef arg< 0, storage_type > p_in;
+    typedef arg< 1, storage_type > p_out;
+    typedef boost::mpl::vector< p_in, p_out > accessor_list;
+
+    aggregator_type< accessor_list > domain(boost::fusion::make_vector(&in, &out));
+
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_interface_functors::call_functor_with_offset >(p_in(), p_out())));
+
+    call_interface_functors::fill(in, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
+    call_interface_functors::fill(
+        reference, [](uint_t i, uint_t j, uint_t k) { return (i + 1) + (j + 1) * 10 + k * 100; });
+
+    // run stencil
+    comp->ready();
+    comp->steady();
+    comp->run();
+#ifdef __CUDACC__
+    out.d2h_update();
+#endif
+
+    ASSERT_TRUE(verifier_.verify(grid, reference, out, verifier_halos));
+}
+
+TEST_F(call_interface, nested_call_to_copy_functor) {
+    storage_type in(meta_, 0, "in");
+    storage_type out(meta_, -5, "out");
+    storage_type reference(meta_, -1, "reference");
+
+    typedef arg< 0, storage_type > p_in;
+    typedef arg< 1, storage_type > p_out;
+    typedef boost::mpl::vector< p_in, p_out > accessor_list;
+
+    aggregator_type< accessor_list > domain(boost::fusion::make_vector(&in, &out));
+
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_interface_functors::call_nested_functor >(p_in(), p_out())));
+
+    call_interface_functors::fill(in, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
+    call_interface_functors::fill(reference, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
+
+    // run stencil
+    comp->ready();
+    comp->steady();
+    comp->run();
+#ifdef __CUDACC__
+    out.d2h_update();
+#endif
+
+    ASSERT_TRUE(verifier_.verify(grid, reference, out, verifier_halos));
+}
+
+TEST_F(call_interface, nested_call_to_copy_functor_with_offset) {
+    storage_type in(meta_, 0, "in");
+    storage_type out(meta_, -5, "out");
+    storage_type reference(meta_, -1, "reference");
+
+    typedef arg< 0, storage_type > p_in;
+    typedef arg< 1, storage_type > p_out;
+    typedef boost::mpl::vector< p_in, p_out > accessor_list;
+
+    aggregator_type< accessor_list > domain(boost::fusion::make_vector(&in, &out));
+
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_interface_functors::call_nested_functor_with_offset >(p_in(), p_out())));
+
+    call_interface_functors::fill(in, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
+    call_interface_functors::fill(
+        reference, [](uint_t i, uint_t j, uint_t k) { return (i + 1) + (j + 1) * 10 + k * 100; });
 
     // run stencil
     comp->ready();
