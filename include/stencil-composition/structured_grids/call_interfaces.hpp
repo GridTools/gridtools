@@ -80,10 +80,12 @@ namespace gridtools {
             int OutArg >
         struct function_aggregator {
 
-            GRIDTOOLS_STATIC_ASSERT(
-                is_iterate_domain< CallerAggregator >::value, "The first argument must be an iterate_domain");
+//            GRIDTOOLS_STATIC_ASSERT(
+//                is_iterate_domain< CallerAggregator >::value, "The first argument must be an iterate_domain");
             CallerAggregator const &m_caller_aggregator;
             ReturnType * __restrict__ m_result;
+
+            typedef ReturnType accessor_return_type;
 
             GT_FUNCTION
             function_aggregator(CallerAggregator const &caller_aggregator, ReturnType &result)
@@ -299,8 +301,8 @@ namespace gridtools {
         GT_FUNCTION static typename get_result_type< Evaluator, Functor >::type with(
             Evaluator const &eval, Args const &...) {
 
-            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< Evaluator >::value,
-                "The first argument must be the Evaluator/Aggregator of the stencil operator.");
+//            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< Evaluator >::value,
+//                "The first argument must be the Evaluator/Aggregator of the stencil operator.");
             GRIDTOOLS_STATIC_ASSERT(_impl::can_be_a_function< Functor >::value,
                 "Trying to invoke stencil operator with more than one output as a function\n");
 
