@@ -608,12 +608,11 @@ namespace call_proc_interface_functors {
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
             double local_in = 1;
             double local_out = -1;
-            // TODO the following line is the behavior to test:
-            // optimize readability of this test to directly test this behavior
+
             call_proc< copy_functor, x_interval >::with(eval, local_in, local_out);
 
             if (local_out > 0.) {
-                call_proc< copy_twice_functor, x_interval >::with(eval, in(), out1(), out2());
+                eval(out1()) = eval(in());
             }
         }
     };
@@ -746,5 +745,4 @@ TEST_F(call_proc_interface, call_using_local_variables ) {
     execute_computation(comp);
 
     ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out1, verifier_halos));
-    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out2, verifier_halos));
 }
