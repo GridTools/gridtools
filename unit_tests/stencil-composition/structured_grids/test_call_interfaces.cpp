@@ -487,6 +487,16 @@ namespace call_proc_interface_functors {
     typedef interval< level< 0, -2 >, level< 1, 1 > > axis;
     typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
 
+    struct copy_functor {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            eval(out()) = eval(in());
+        }
+    };
+
     struct copy_twice_functor {
         typedef in_accessor< 0, extent<>, 3 > in;
         typedef inout_accessor< 1, extent<>, 3 > out1;
@@ -586,6 +596,25 @@ namespace call_proc_interface_functors {
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
             call_proc< call_with_offsets_copy_twice_functor, x_interval >::with_offsets(
                 eval, in(-1, -1, 0), out1(), out2());
+        }
+    };
+
+    struct call_with_local_variable {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out1;
+        typedef inout_accessor< 2, extent<>, 3 > out2;
+        typedef boost::mpl::vector< in, out1, out2 > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            double local_in = 1;
+            double local_out = -1;
+            // TODO the following line is the behavior to test:
+            // optimize readability of this test to directly test this behavior
+            call_proc< copy_functor, x_interval >::with(eval, local_in, local_out);
+
+            if (local_out > 0.) {
+                call_proc< copy_twice_functor, x_interval >::with(eval, in(), out1(), out2());
+            }
         }
     };
 }
@@ -696,6 +725,22 @@ TEST_F(call_proc_interface, call_with_offsets_to_call_with_offsets_to_copy_twice
             execute< forward >(),
             gridtools::make_stage<
                 call_proc_interface_functors::call_with_offsets_call_with_offsets_copy_twice_functor >(
+                p_in(), p_out1(), p_out2())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out1, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out2, verifier_halos));
+}
+
+TEST_F(call_proc_interface, call_using_local_variables ) {
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(
+            execute< forward >(),
+            gridtools::make_stage<
+                call_proc_interface_functors::call_with_local_variable >(
                 p_in(), p_out1(), p_out2())));
 
     execute_computation(comp);
