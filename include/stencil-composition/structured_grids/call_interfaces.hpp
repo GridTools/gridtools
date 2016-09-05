@@ -89,7 +89,7 @@ namespace gridtools {
 
             template < typename Accessor >
             struct accessor_return_type {
-                typedef typename CallerAggregator::template accessor_return_type<Accessor>::type type;
+                typedef typename CallerAggregator::template accessor_return_type< Accessor >::type type;
             };
 
             GT_FUNCTION
@@ -176,13 +176,20 @@ namespace gridtools {
             typename ReturnType,
             int OutArg >
         struct function_aggregator_offsets {
-            GRIDTOOLS_STATIC_ASSERT(
-                is_iterate_domain< CallerAggregator >::value, "The first argument must be an iterate_domain");
+            //            TODO
+            //            GRIDTOOLS_STATIC_ASSERT(
+            //                is_iterate_domain< CallerAggregator >::value, "The first argument must be an
+            //                iterate_domain");
 
             typedef typename boost::fusion::result_of::as_vector< PassedAccessors >::type accessors_list_t;
             CallerAggregator const &m_caller_aggregator;
             ReturnType * __restrict__ m_result;
             accessors_list_t const &m_accessors_list;
+
+            template < typename Accessor >
+            struct accessor_return_type {
+                typedef typename CallerAggregator::template accessor_return_type< Accessor >::type type;
+            };
 
             GT_FUNCTION
             constexpr function_aggregator_offsets(
@@ -278,8 +285,9 @@ namespace gridtools {
         GT_FUNCTION static typename get_result_type< Evaluator, Functor >::type with_offsets(
             Evaluator const &eval, Args const &... args) {
 
-            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< Evaluator >::value,
-                "The first argument must be the Evaluator/Aggregator of the stencil operator.");
+            //            TODO
+            //            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< Evaluator >::value,
+            //                "The first argument must be the Evaluator/Aggregator of the stencil operator.");
             GRIDTOOLS_STATIC_ASSERT(_impl::can_be_a_function< Functor >::value,
                 "Trying to invoke stencil operator with more than one output as a function\n");
 

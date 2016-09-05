@@ -90,6 +90,16 @@ namespace call_interface_functors {
         }
     };
 
+    struct call_with_offsets_copy_functor {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            eval(out()) = call< copy_functor, x_interval >::with_offsets(eval, in(1, 1, 0), out());
+        }
+    };
+
     struct call_call_copy_functor {
         typedef in_accessor< 0, extent<>, 3 > in;
         typedef inout_accessor< 1, extent<>, 3 > out;
@@ -107,6 +117,16 @@ namespace call_interface_functors {
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
             eval(out()) = call< call_at_copy_functor, x_interval >::with(eval, in(), out());
+        }
+    };
+
+    struct call_call_with_offsets_copy_functor {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            eval(out()) = call< call_with_offsets_copy_functor, x_interval >::with(eval, in(), out());
         }
     };
 
@@ -129,8 +149,17 @@ namespace call_interface_functors {
             eval(out()) = call< call_at_copy_functor, x_interval >::at< -1, -1, 0 >::with(eval, in(), out());
         }
     };
-}
 
+    struct call_with_offsets_call_at_copy_functor {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            eval(out()) = call< call_at_copy_functor, x_interval >::with_offsets(eval, in(-1, -1, 0), out());
+        }
+    };
+}
 
 class call_interface : public testing::Test {
   protected:
@@ -228,6 +257,18 @@ TEST_F(call_interface, call_at_to_copy_functor) {
     ASSERT_TRUE(verifier_.verify(grid, reference_shifted, out, verifier_halos));
 }
 
+TEST_F(call_interface, call_with_offsets_to_copy_functor) {
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_interface_functors::call_with_offsets_copy_functor >(p_in(), p_out())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, reference_shifted, out, verifier_halos));
+}
+
 TEST_F(call_interface, call_to_call_to_copy_functor) {
     auto comp = gridtools::make_computation< gridtools::BACKEND >(
         domain,
@@ -252,6 +293,18 @@ TEST_F(call_interface, call_to_call_at_to_copy_functor) {
     ASSERT_TRUE(verifier_.verify(grid, reference_shifted, out, verifier_halos));
 }
 
+TEST_F(call_interface, call_to_call_with_offsets_to_copy_functor) {
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_interface_functors::call_call_with_offsets_copy_functor >(p_in(), p_out())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, reference_shifted, out, verifier_halos));
+}
+
 TEST_F(call_interface, call_at_to_call_to_copy_functor) {
     auto comp = gridtools::make_computation< gridtools::BACKEND >(
         domain,
@@ -270,6 +323,18 @@ TEST_F(call_interface, call_at_to_call_at_to_copy_functor) {
         grid,
         gridtools::make_multistage(execute< forward >(),
             gridtools::make_stage< call_interface_functors::call_at_call_at_copy_functor >(p_in(), p_out())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out, verifier_halos));
+}
+
+TEST_F(call_interface, call_with_offsets_to_call_at_to_copy_functor) {
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_interface_functors::call_with_offsets_call_at_copy_functor >(p_in(), p_out())));
 
     execute_computation(comp);
 
