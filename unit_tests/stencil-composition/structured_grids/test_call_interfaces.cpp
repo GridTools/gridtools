@@ -100,6 +100,16 @@ namespace call_interface_functors {
         }
     };
 
+    struct call_at_with_offsets_copy_functor {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            eval(out()) = call< copy_functor, x_interval >::at< -1, -1, 0 >::with_offsets(eval, in(1, 1, 0), out());
+        }
+    };
+
     struct call_call_copy_functor {
         typedef in_accessor< 0, extent<>, 3 > in;
         typedef inout_accessor< 1, extent<>, 3 > out;
@@ -157,6 +167,26 @@ namespace call_interface_functors {
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
             eval(out()) = call< call_at_copy_functor, x_interval >::with_offsets(eval, in(-1, -1, 0), out());
+        }
+    };
+
+    struct call_at_call_with_offsets_copy_functor {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            eval(out()) = call< call_with_offsets_copy_functor, x_interval >::at< -1, -1, 0 >::with(eval, in(), out());
+        }
+    };
+
+    struct call_with_offsets_call_with_offsets_copy_functor {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            eval(out()) = call< call_with_offsets_copy_functor, x_interval >::with_offsets(eval, in(-1, -1, 0), out());
         }
     };
 }
@@ -269,6 +299,18 @@ TEST_F(call_interface, call_with_offsets_to_copy_functor) {
     ASSERT_TRUE(verifier_.verify(grid, reference_shifted, out, verifier_halos));
 }
 
+TEST_F(call_interface, call_at_with_offsets_to_copy_functor) {
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_interface_functors::call_at_with_offsets_copy_functor >(p_in(), p_out())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out, verifier_halos));
+}
+
 TEST_F(call_interface, call_to_call_to_copy_functor) {
     auto comp = gridtools::make_computation< gridtools::BACKEND >(
         domain,
@@ -339,4 +381,325 @@ TEST_F(call_interface, call_with_offsets_to_call_at_to_copy_functor) {
     execute_computation(comp);
 
     ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out, verifier_halos));
+}
+
+TEST_F(call_interface, call_at_to_call_with_offsets_to_copy_functor) {
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_interface_functors::call_at_call_with_offsets_copy_functor >(p_in(), p_out())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out, verifier_halos));
+}
+
+TEST_F(call_interface, call_with_offsets_to_call_with_offsets_to_copy_functor) {
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_interface_functors::call_with_offsets_call_with_offsets_copy_functor >(
+                                       p_in(), p_out())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out, verifier_halos));
+}
+
+class call_proc_interface : public testing::Test {
+  protected:
+#ifdef __CUDACC__
+#define BACKEND backend< Cuda, GRIDBACKEND, Block >
+#else
+#ifdef BACKEND_BLOCK
+#define BACKEND backend< Host, GRIDBACKEND, Block >
+#else
+#define BACKEND backend< Host, GRIDBACKEND, Naive >
+#endif
+#endif
+    const uint_t d1 = 13;
+    const uint_t d2 = 9;
+    const uint_t d3 = 7;
+    const uint_t halo_size = 1;
+
+    typedef gridtools::layout_map< 0, 1, 2 > layout_t;
+    typedef gridtools::BACKEND::storage_info< 0, layout_t > meta_t;
+    typedef gridtools::BACKEND::storage_type< uint_t, meta_t >::type storage_type;
+
+    meta_t meta_;
+
+    halo_descriptor di;
+    halo_descriptor dj;
+    gridtools::grid< call_interface_functors::axis > grid;
+
+    verifier verifier_;
+    array< array< uint_t, 2 >, 3 > verifier_halos;
+
+    storage_type in;
+    storage_type out1;
+    storage_type out2;
+    storage_type reference_unchanged;
+    storage_type reference_shifted;
+
+    typedef arg< 0, storage_type > p_in;
+    typedef arg< 1, storage_type > p_out1;
+    typedef arg< 2, storage_type > p_out2;
+    typedef boost::mpl::vector< p_in, p_out1, p_out2 > accessor_list;
+
+    aggregator_type< accessor_list > domain;
+
+    call_proc_interface()
+        : meta_(d1, d2, d3), di(halo_size, halo_size, halo_size, d1 - halo_size - 1, d1),
+          dj(halo_size, halo_size, halo_size, d2 - halo_size - 1, d2), grid(di, dj),
+#if FLOAT_PRECISION == 4
+          verifier_(1e-6),
+#else
+          verifier_(1e-12),
+#endif
+          verifier_halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}}, in(meta_, 0, "in"),
+          out1(meta_, -5, "out1"), out2(meta_, -5, "out2"), reference_unchanged(meta_, -1, "reference_unchanged"),
+          reference_shifted(meta_, -1, "reference shifted"), domain(boost::fusion::make_vector(&in, &out1, &out2)) {
+        grid.value_list[0] = 0;
+        grid.value_list[1] = d3 - 1;
+
+        call_interface_functors::fill(in, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
+        call_interface_functors::fill(
+            reference_unchanged, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
+        call_interface_functors::fill(
+            reference_shifted, [](uint_t i, uint_t j, uint_t k) { return (i + 1) + (j + 1) * 10 + k * 100; });
+    }
+
+    template < typename Computation >
+    void execute_computation(Computation &comp) {
+        comp->ready();
+        comp->steady();
+        comp->run();
+#ifdef __CUDACC__
+        out1.d2h_update();
+        out2.d2h_update();
+#endif
+    }
+};
+
+namespace call_proc_interface_functors {
+    typedef interval< level< 0, -2 >, level< 1, 1 > > axis;
+    typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
+
+    struct copy_twice_functor {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out1;
+        typedef inout_accessor< 2, extent<>, 3 > out2;
+        typedef boost::mpl::vector< in, out1, out2 > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            eval(out1()) = eval(in());
+            eval(out2()) = eval(in());
+        }
+    };
+
+    struct call_copy_twice_functor {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out1;
+        typedef inout_accessor< 2, extent<>, 3 > out2;
+        typedef boost::mpl::vector< in, out1, out2 > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            call_proc< copy_twice_functor, x_interval >::with(eval, in(), out1(), out2());
+        }
+    };
+
+    struct call_at_copy_twice_functor {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out1;
+        typedef inout_accessor< 2, extent<>, 3 > out2;
+        typedef boost::mpl::vector< in, out1, out2 > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            call_proc< copy_twice_functor, x_interval >::at< 1, 1, 0 >::with(eval, in(), out1(), out2());
+        }
+    };
+
+    struct call_with_offsets_copy_twice_functor {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out1;
+        typedef inout_accessor< 2, extent<>, 3 > out2;
+        typedef boost::mpl::vector< in, out1, out2 > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            call_proc< copy_twice_functor, x_interval >::with_offsets(eval, in(1, 1, 0), out1(), out2());
+        }
+    };
+
+    struct call_at_with_offsets_copy_twice_functor {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out1;
+        typedef inout_accessor< 2, extent<>, 3 > out2;
+        typedef boost::mpl::vector< in, out1, out2 > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            call_proc< copy_twice_functor, x_interval >::at< -1, -1, 0 >::with_offsets(
+                eval, in(1, 1, 0), out1(), out2());
+        }
+    };
+
+    struct call_call_copy_twice_functor {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out1;
+        typedef inout_accessor< 2, extent<>, 3 > out2;
+        typedef boost::mpl::vector< in, out1, out2 > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            call_proc< call_copy_twice_functor, x_interval >::with(eval, in(), out1(), out2());
+        }
+    };
+
+    struct call_at_call_copy_twice_functor {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out1;
+        typedef inout_accessor< 2, extent<>, 3 > out2;
+        typedef boost::mpl::vector< in, out1, out2 > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            call_proc< call_copy_twice_functor, x_interval >::at< 1, 1, 0 >::with(eval, in(), out1(), out2());
+        }
+    };
+
+    struct call_with_offsets_call_copy_twice_functor {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out1;
+        typedef inout_accessor< 2, extent<>, 3 > out2;
+        typedef boost::mpl::vector< in, out1, out2 > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            call_proc< call_copy_twice_functor, x_interval >::with_offsets(eval, in(1, 1, 0), out1(), out2());
+        }
+    };
+
+    struct call_with_offsets_call_with_offsets_copy_twice_functor {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out1;
+        typedef inout_accessor< 2, extent<>, 3 > out2;
+        typedef boost::mpl::vector< in, out1, out2 > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            call_proc< call_with_offsets_copy_twice_functor, x_interval >::with_offsets(
+                eval, in(-1, -1, 0), out1(), out2());
+        }
+    };
+}
+
+TEST_F(call_proc_interface, call_to_copy_twice_functor) {
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_proc_interface_functors::call_copy_twice_functor >(
+                                       p_in(), p_out1(), p_out2())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out1, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out2, verifier_halos));
+}
+
+// TEST_F(call_proc_interface, call_at_to_copy_twice_functor) {
+//    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+//        domain,
+//        grid,
+//        gridtools::make_multistage(execute< forward >(),
+//            gridtools::make_stage< call_proc_interface_functors::call_at_copy_twice_functor >(
+//                                       p_in(), p_out1(), p_out2())));
+//
+//    execute_computation(comp);
+//
+//    ASSERT_TRUE(verifier_.verify(grid, reference_shifted, out1, verifier_halos));
+//    ASSERT_TRUE(verifier_.verify(grid, reference_shifted, out2, verifier_halos));
+//}
+
+TEST_F(call_proc_interface, call_with_offsets_to_copy_twice_functor) {
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_proc_interface_functors::call_with_offsets_copy_twice_functor >(
+                                       p_in(), p_out1(), p_out2())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, reference_shifted, out1, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, reference_shifted, out2, verifier_halos));
+}
+
+// TEST_F(call_proc_interface, call_at_with_offsets_to_copy_twice_functor) {
+//    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+//        domain,
+//        grid,
+//        gridtools::make_multistage(execute< forward >(),
+//            gridtools::make_stage< call_proc_interface_functors::call_at_with_offsets_copy_twice_functor >(
+//                                       p_in(), p_out1(), p_out2())));
+//
+//    execute_computation(comp);
+//
+//    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out1, verifier_halos));
+//    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out2, verifier_halos));
+//}
+
+TEST_F(call_proc_interface, call_to_call_to_copy_twice_functor) {
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_proc_interface_functors::call_call_copy_twice_functor >(
+                                       p_in(), p_out1(), p_out2())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out1, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out2, verifier_halos));
+}
+
+// TEST_F(call_proc_interface, call_at_to_call_to_copy_twice_functor) {
+//    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+//        domain,
+//        grid,
+//        gridtools::make_multistage(execute< forward >(),
+//            gridtools::make_stage< call_proc_interface_functors::call_at_call_copy_twice_functor >(
+//                                       p_in(), p_out1(), p_out2())));
+//
+//    execute_computation(comp);
+//
+//    ASSERT_TRUE(verifier_.verify(grid, reference_shifted, out1, verifier_halos));
+//    ASSERT_TRUE(verifier_.verify(grid, reference_shifted, out2, verifier_halos));
+//}
+
+TEST_F(call_proc_interface, call_with_offsets_to_call_to_copy_twice_functor) {
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_proc_interface_functors::call_with_offsets_call_copy_twice_functor >(
+                                       p_in(), p_out1(), p_out2())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, reference_shifted, out1, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, reference_shifted, out2, verifier_halos));
+}
+
+TEST_F(call_proc_interface, call_with_offsets_to_call_with_offsets_to_copy_twice_functor) {
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(
+            execute< forward >(),
+            gridtools::make_stage<
+                call_proc_interface_functors::call_with_offsets_call_with_offsets_copy_twice_functor >(
+                p_in(), p_out1(), p_out2())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out1, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out2, verifier_halos));
 }

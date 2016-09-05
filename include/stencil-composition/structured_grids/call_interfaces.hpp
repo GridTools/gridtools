@@ -360,9 +360,10 @@ namespace gridtools {
         */
         template < typename CallerAggregator, int Offi, int Offj, int Offk, typename PassedArguments >
         struct function_aggregator_procedure_offsets {
-
-            GRIDTOOLS_STATIC_ASSERT(
-                is_iterate_domain< CallerAggregator >::value, "The first argument must be an iterate_domain");
+            // TODO
+            //            GRIDTOOLS_STATIC_ASSERT(
+            //                is_iterate_domain< CallerAggregator >::value, "The first argument must be an
+            //                iterate_domain");
 
             // Collect the indices of the arguments that are not accessors among
             // the PassedArguments
@@ -379,6 +380,11 @@ namespace gridtools {
 
             CallerAggregator const &m_caller_aggregator;
             accessors_list_t const &m_accessors_list;
+
+            template < typename Accessor >
+            struct accessor_return_type {
+                typedef typename CallerAggregator::template accessor_return_type< Accessor >::type type;
+            };
 
             GT_FUNCTION
             constexpr function_aggregator_procedure_offsets(
@@ -435,8 +441,10 @@ namespace gridtools {
         template < typename CallerAggregator, int Offi, int Offj, int Offk, typename PassedArguments >
         struct function_aggregator_procedure {
 
-            GRIDTOOLS_STATIC_ASSERT(
-                is_iterate_domain< CallerAggregator >::value, "The first argument must be an iterate_domain");
+            //            TODO
+            //            GRIDTOOLS_STATIC_ASSERT(
+            //                is_iterate_domain< CallerAggregator >::value, "The first argument must be an
+            //                iterate_domain");
 
             // Collect the indices of the arguments that are not accessors among
             // the PassedArguments
@@ -451,6 +459,11 @@ namespace gridtools {
 
             CallerAggregator const &m_caller_aggregator;
             accessors_list_t const &m_accessors_list;
+
+            template < typename Accessor >
+            struct accessor_return_type {
+                typedef typename CallerAggregator::template accessor_return_type< Accessor >::type type;
+            };
 
             GT_FUNCTION
             function_aggregator_procedure(CallerAggregator const &caller_aggregator, accessors_list_t const &list)
@@ -524,9 +537,9 @@ namespace gridtools {
          */
         template < typename Evaluator, typename... Args >
         GT_FUNCTION static void with(Evaluator const &eval, Args const &... args) {
-
-            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< Evaluator >::value,
-                "The first argument must be the Evaluator/Aggregator of the stencil operator.");
+            //            TODO
+            //            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< Evaluator >::value,
+            //                "The first argument must be the Evaluator/Aggregator of the stencil operator.");
 
             typedef _impl::function_aggregator_procedure< Evaluator,
                 Offi,
@@ -546,9 +559,9 @@ namespace gridtools {
          */
         template < typename Evaluator, typename... Args >
         GT_FUNCTION static void with_offsets(Evaluator const &eval, Args const &... args) {
-
-            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< Evaluator >::value,
-                "The first argument must be the Evaluator/Aggregator of the stencil operator.");
+            // TODO
+            //            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< Evaluator >::value,
+            //                "The first argument must be the Evaluator/Aggregator of the stencil operator.");
 
             typedef _impl::function_aggregator_procedure_offsets< Evaluator,
                 Offi,
