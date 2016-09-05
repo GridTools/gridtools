@@ -131,6 +131,9 @@ namespace call_interface_functors {
     };
 }
 
+
+class call_interface : public testing::Test {
+  protected:
 #ifdef __CUDACC__
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
@@ -140,9 +143,6 @@ namespace call_interface_functors {
 #define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
-
-class call_interface : public testing::Test {
-  protected:
     const uint_t d1 = 13;
     const uint_t d2 = 9;
     const uint_t d3 = 7;
@@ -160,6 +160,18 @@ class call_interface : public testing::Test {
 
     verifier verifier_;
     array< array< uint_t, 2 >, 3 > verifier_halos;
+
+    storage_type in;
+    storage_type out;
+    storage_type reference_unchanged;
+    storage_type reference_shifted;
+
+    typedef arg< 0, storage_type > p_in;
+    typedef arg< 1, storage_type > p_out;
+    typedef boost::mpl::vector< p_in, p_out > accessor_list;
+
+    aggregator_type< accessor_list > domain;
+
     call_interface()
         : meta_(d1, d2, d3), di(halo_size, halo_size, halo_size, d1 - halo_size - 1, d1),
           dj(halo_size, halo_size, halo_size, d2 - halo_size - 1, d2), grid(di, dj),
@@ -168,197 +180,98 @@ class call_interface : public testing::Test {
 #else
           verifier_(1e-12),
 #endif
-          verifier_halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}} {
+          verifier_halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}}, in(meta_, 0, "in"),
+          out(meta_, -5, "out"), reference_unchanged(meta_, -1, "reference_unchanged"),
+          reference_shifted(meta_, -1, "reference shifted"), domain(boost::fusion::make_vector(&in, &out)) {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
+
+        call_interface_functors::fill(in, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
+        call_interface_functors::fill(
+            reference_unchanged, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
+        call_interface_functors::fill(
+            reference_shifted, [](uint_t i, uint_t j, uint_t k) { return (i + 1) + (j + 1) * 10 + k * 100; });
+    }
+
+    template < typename Computation >
+    void execute_computation(Computation &comp) {
+        comp->ready();
+        comp->steady();
+        comp->run();
+#ifdef __CUDACC__
+        out.d2h_update();
+#endif
     }
 };
 
 TEST_F(call_interface, call_to_copy_functor) {
-    storage_type in(meta_, 0, "in");
-    storage_type out(meta_, -5, "out");
-    storage_type reference(meta_, -1, "reference");
-
-    typedef arg< 0, storage_type > p_in;
-    typedef arg< 1, storage_type > p_out;
-    typedef boost::mpl::vector< p_in, p_out > accessor_list;
-
-    aggregator_type< accessor_list > domain(boost::fusion::make_vector(&in, &out));
-
     auto comp = gridtools::make_computation< gridtools::BACKEND >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
             gridtools::make_stage< call_interface_functors::call_copy_functor >(p_in(), p_out())));
 
-    call_interface_functors::fill(in, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
-    call_interface_functors::fill(reference, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
+    execute_computation(comp);
 
-    // run stencil
-    comp->ready();
-    comp->steady();
-    comp->run();
-#ifdef __CUDACC__
-    out.d2h_update();
-#endif
-
-    ASSERT_TRUE(verifier_.verify(grid, reference, out, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out, verifier_halos));
 }
 
 TEST_F(call_interface, call_at_to_copy_functor) {
-    storage_type in(meta_, 0, "in");
-    storage_type out(meta_, -5, "out");
-    storage_type reference(meta_, -1, "reference");
-
-    typedef arg< 0, storage_type > p_in;
-    typedef arg< 1, storage_type > p_out;
-    typedef boost::mpl::vector< p_in, p_out > accessor_list;
-
-    aggregator_type< accessor_list > domain(boost::fusion::make_vector(&in, &out));
-
     auto comp = gridtools::make_computation< gridtools::BACKEND >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
             gridtools::make_stage< call_interface_functors::call_at_copy_functor >(p_in(), p_out())));
 
-    call_interface_functors::fill(in, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
-    call_interface_functors::fill(
-        reference, [](uint_t i, uint_t j, uint_t k) { return (i + 1) + (j + 1) * 10 + k * 100; });
+    execute_computation(comp);
 
-    // run stencil
-    comp->ready();
-    comp->steady();
-    comp->run();
-#ifdef __CUDACC__
-    out.d2h_update();
-#endif
-
-    ASSERT_TRUE(verifier_.verify(grid, reference, out, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, reference_shifted, out, verifier_halos));
 }
 
 TEST_F(call_interface, call_to_call_to_copy_functor) {
-    storage_type in(meta_, 0, "in");
-    storage_type out(meta_, -5, "out");
-    storage_type reference(meta_, -1, "reference");
-
-    typedef arg< 0, storage_type > p_in;
-    typedef arg< 1, storage_type > p_out;
-    typedef boost::mpl::vector< p_in, p_out > accessor_list;
-
-    aggregator_type< accessor_list > domain(boost::fusion::make_vector(&in, &out));
-
     auto comp = gridtools::make_computation< gridtools::BACKEND >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
             gridtools::make_stage< call_interface_functors::call_call_copy_functor >(p_in(), p_out())));
 
-    call_interface_functors::fill(in, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
-    call_interface_functors::fill(reference, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
+    execute_computation(comp);
 
-    // run stencil
-    comp->ready();
-    comp->steady();
-    comp->run();
-#ifdef __CUDACC__
-    out.d2h_update();
-#endif
-
-    ASSERT_TRUE(verifier_.verify(grid, reference, out, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out, verifier_halos));
 }
 
 TEST_F(call_interface, call_to_call_at_to_copy_functor) {
-    storage_type in(meta_, 0, "in");
-    storage_type out(meta_, -5, "out");
-    storage_type reference(meta_, -1, "reference");
-
-    typedef arg< 0, storage_type > p_in;
-    typedef arg< 1, storage_type > p_out;
-    typedef boost::mpl::vector< p_in, p_out > accessor_list;
-
-    aggregator_type< accessor_list > domain(boost::fusion::make_vector(&in, &out));
-
     auto comp = gridtools::make_computation< gridtools::BACKEND >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
             gridtools::make_stage< call_interface_functors::call_call_at_copy_functor >(p_in(), p_out())));
 
-    call_interface_functors::fill(in, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
-    call_interface_functors::fill(
-        reference, [](uint_t i, uint_t j, uint_t k) { return (i + 1) + (j + 1) * 10 + k * 100; });
+    execute_computation(comp);
 
-    // run stencil
-    comp->ready();
-    comp->steady();
-    comp->run();
-#ifdef __CUDACC__
-    out.d2h_update();
-#endif
-
-    ASSERT_TRUE(verifier_.verify(grid, reference, out, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, reference_shifted, out, verifier_halos));
 }
 
 TEST_F(call_interface, call_at_to_call_to_copy_functor) {
-    storage_type in(meta_, 0, "in");
-    storage_type out(meta_, -5, "out");
-    storage_type reference(meta_, -1, "reference");
-
-    typedef arg< 0, storage_type > p_in;
-    typedef arg< 1, storage_type > p_out;
-    typedef boost::mpl::vector< p_in, p_out > accessor_list;
-
-    aggregator_type< accessor_list > domain(boost::fusion::make_vector(&in, &out));
-
     auto comp = gridtools::make_computation< gridtools::BACKEND >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
             gridtools::make_stage< call_interface_functors::call_at_call_copy_functor >(p_in(), p_out())));
 
-    call_interface_functors::fill(in, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
-    call_interface_functors::fill(
-        reference, [](uint_t i, uint_t j, uint_t k) { return (i + 1) + (j + 1) * 10 + k * 100; });
+    execute_computation(comp);
 
-    // run stencil
-    comp->ready();
-    comp->steady();
-    comp->run();
-#ifdef __CUDACC__
-    out.d2h_update();
-#endif
-
-    ASSERT_TRUE(verifier_.verify(grid, reference, out, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, reference_shifted, out, verifier_halos));
 }
 
 TEST_F(call_interface, call_at_to_call_at_to_copy_functor) {
-    storage_type in(meta_, 0, "in");
-    storage_type out(meta_, -5, "out");
-    storage_type reference(meta_, -1, "reference");
-
-    typedef arg< 0, storage_type > p_in;
-    typedef arg< 1, storage_type > p_out;
-    typedef boost::mpl::vector< p_in, p_out > accessor_list;
-
-    aggregator_type< accessor_list > domain(boost::fusion::make_vector(&in, &out));
-
     auto comp = gridtools::make_computation< gridtools::BACKEND >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
             gridtools::make_stage< call_interface_functors::call_at_call_at_copy_functor >(p_in(), p_out())));
 
-    call_interface_functors::fill(in, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
-    call_interface_functors::fill(reference, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
+    execute_computation(comp);
 
-    // run stencil
-    comp->ready();
-    comp->steady();
-    comp->run();
-#ifdef __CUDACC__
-    out.d2h_update();
-#endif
-
-    ASSERT_TRUE(verifier_.verify(grid, reference, out, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out, verifier_halos));
 }
