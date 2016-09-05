@@ -70,7 +70,7 @@ namespace call_interface_functors {
         }
     };
 
-    struct call_functor {
+    struct call_copy_functor {
         typedef in_accessor< 0, extent<>, 3 > in;
         typedef inout_accessor< 1, extent<>, 3 > out;
         typedef boost::mpl::vector< in, out > arg_list;
@@ -80,17 +80,7 @@ namespace call_interface_functors {
         }
     };
 
-    struct call_nested_functor {
-        typedef in_accessor< 0, extent<>, 3 > in;
-        typedef inout_accessor< 1, extent<>, 3 > out;
-        typedef boost::mpl::vector< in, out > arg_list;
-        template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-            eval(out()) = call< call_functor, x_interval >::with(eval, in(), out());
-        }
-    };
-
-    struct call_functor_with_offset {
+    struct call_at_copy_functor {
         typedef in_accessor< 0, extent<>, 3 > in;
         typedef inout_accessor< 1, extent<>, 3 > out;
         typedef boost::mpl::vector< in, out > arg_list;
@@ -100,33 +90,43 @@ namespace call_interface_functors {
         }
     };
 
-    struct call_nested_functor_with_offset {
+    struct call_call_copy_functor {
         typedef in_accessor< 0, extent<>, 3 > in;
         typedef inout_accessor< 1, extent<>, 3 > out;
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-            eval(out()) = call< call_functor_with_offset, x_interval >::with(eval, in(), out());
+            eval(out()) = call< call_copy_functor, x_interval >::with(eval, in(), out());
         }
     };
 
-    struct call_with_offset_nested_functor {
+    struct call_call_at_copy_functor {
         typedef in_accessor< 0, extent<>, 3 > in;
         typedef inout_accessor< 1, extent<>, 3 > out;
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-            eval(out()) = call< call_functor, x_interval >::at< 1, 1, 0 >::with(eval, in(), out());
+            eval(out()) = call< call_at_copy_functor, x_interval >::with(eval, in(), out());
         }
     };
 
-    struct call_with_offset_nested_functor_with_offset {
+    struct call_at_call_copy_functor {
         typedef in_accessor< 0, extent<>, 3 > in;
         typedef inout_accessor< 1, extent<>, 3 > out;
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-            eval(out()) = call< call_functor_with_offset, x_interval >::at< -1, -1, 0 >::with(eval, in(), out());
+            eval(out()) = call< call_copy_functor, x_interval >::at< 1, 1, 0 >::with(eval, in(), out());
+        }
+    };
+
+    struct call_at_call_at_copy_functor {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            eval(out()) = call< call_at_copy_functor, x_interval >::at< -1, -1, 0 >::with(eval, in(), out());
         }
     };
 }
@@ -188,8 +188,8 @@ TEST_F(call_interface, call_to_copy_functor) {
     auto comp = gridtools::make_computation< gridtools::BACKEND >(
         domain,
         grid,
-        gridtools::make_multistage(
-            execute< forward >(), gridtools::make_stage< call_interface_functors::call_functor >(p_in(), p_out())));
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_interface_functors::call_copy_functor >(p_in(), p_out())));
 
     call_interface_functors::fill(in, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
     call_interface_functors::fill(reference, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
@@ -205,7 +205,7 @@ TEST_F(call_interface, call_to_copy_functor) {
     ASSERT_TRUE(verifier_.verify(grid, reference, out, verifier_halos));
 }
 
-TEST_F(call_interface, call_to_copy_functor_with_offset) {
+TEST_F(call_interface, call_at_to_copy_functor) {
     storage_type in(meta_, 0, "in");
     storage_type out(meta_, -5, "out");
     storage_type reference(meta_, -1, "reference");
@@ -220,7 +220,7 @@ TEST_F(call_interface, call_to_copy_functor_with_offset) {
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
-            gridtools::make_stage< call_interface_functors::call_functor_with_offset >(p_in(), p_out())));
+            gridtools::make_stage< call_interface_functors::call_at_copy_functor >(p_in(), p_out())));
 
     call_interface_functors::fill(in, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
     call_interface_functors::fill(
@@ -237,7 +237,7 @@ TEST_F(call_interface, call_to_copy_functor_with_offset) {
     ASSERT_TRUE(verifier_.verify(grid, reference, out, verifier_halos));
 }
 
-TEST_F(call_interface, nested_call_to_copy_functor) {
+TEST_F(call_interface, call_to_call_to_copy_functor) {
     storage_type in(meta_, 0, "in");
     storage_type out(meta_, -5, "out");
     storage_type reference(meta_, -1, "reference");
@@ -252,7 +252,7 @@ TEST_F(call_interface, nested_call_to_copy_functor) {
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
-            gridtools::make_stage< call_interface_functors::call_nested_functor >(p_in(), p_out())));
+            gridtools::make_stage< call_interface_functors::call_call_copy_functor >(p_in(), p_out())));
 
     call_interface_functors::fill(in, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
     call_interface_functors::fill(reference, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
@@ -268,7 +268,7 @@ TEST_F(call_interface, nested_call_to_copy_functor) {
     ASSERT_TRUE(verifier_.verify(grid, reference, out, verifier_halos));
 }
 
-TEST_F(call_interface, nested_call_to_copy_functor_with_offset) {
+TEST_F(call_interface, call_to_call_at_to_copy_functor) {
     storage_type in(meta_, 0, "in");
     storage_type out(meta_, -5, "out");
     storage_type reference(meta_, -1, "reference");
@@ -283,7 +283,7 @@ TEST_F(call_interface, nested_call_to_copy_functor_with_offset) {
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
-            gridtools::make_stage< call_interface_functors::call_nested_functor_with_offset >(p_in(), p_out())));
+            gridtools::make_stage< call_interface_functors::call_call_at_copy_functor >(p_in(), p_out())));
 
     call_interface_functors::fill(in, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
     call_interface_functors::fill(
@@ -300,7 +300,7 @@ TEST_F(call_interface, nested_call_to_copy_functor_with_offset) {
     ASSERT_TRUE(verifier_.verify(grid, reference, out, verifier_halos));
 }
 
-TEST_F(call_interface, with_offset_call_to_nested_copy_functor) {
+TEST_F(call_interface, call_at_to_call_to_copy_functor) {
     storage_type in(meta_, 0, "in");
     storage_type out(meta_, -5, "out");
     storage_type reference(meta_, -1, "reference");
@@ -315,7 +315,7 @@ TEST_F(call_interface, with_offset_call_to_nested_copy_functor) {
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
-            gridtools::make_stage< call_interface_functors::call_with_offset_nested_functor >(p_in(), p_out())));
+            gridtools::make_stage< call_interface_functors::call_at_call_copy_functor >(p_in(), p_out())));
 
     call_interface_functors::fill(in, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
     call_interface_functors::fill(
@@ -332,7 +332,7 @@ TEST_F(call_interface, with_offset_call_to_nested_copy_functor) {
     ASSERT_TRUE(verifier_.verify(grid, reference, out, verifier_halos));
 }
 
-TEST_F(call_interface, with_offset_call_to_nested_copy_functor_with_offset) {
+TEST_F(call_interface, call_at_to_call_at_to_copy_functor) {
     storage_type in(meta_, 0, "in");
     storage_type out(meta_, -5, "out");
     storage_type reference(meta_, -1, "reference");
@@ -347,11 +347,10 @@ TEST_F(call_interface, with_offset_call_to_nested_copy_functor_with_offset) {
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
-            gridtools::make_stage< call_interface_functors::call_with_offset_nested_functor_with_offset >(p_in(), p_out())));
+            gridtools::make_stage< call_interface_functors::call_at_call_at_copy_functor >(p_in(), p_out())));
 
     call_interface_functors::fill(in, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
-    call_interface_functors::fill(
-        reference, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
+    call_interface_functors::fill(reference, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
 
     // run stencil
     comp->ready();
