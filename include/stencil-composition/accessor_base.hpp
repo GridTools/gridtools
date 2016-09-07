@@ -163,7 +163,7 @@ namespace gridtools {
 #else
         template < typename X, typename Y, typename Z, typename T >
         GT_FUNCTION constexpr accessor_base(X x, Y y, Z z, T t)
-            : m_offsets(x, y, z, y) {}
+            : m_offsets(x, y, z, t) {}
 
         template < typename X, typename Y, typename Z >
         GT_FUNCTION constexpr accessor_base(X x, Y y, Z z)
