@@ -2411,7 +2411,7 @@
             "exec": "build/simple_hori_diff"
         },
         "advection_pd_bott": {
-            "stella_filter": "--gtest_filter=AdvectionPDBottPrepareTracersBenchmark.MultipleTracer",
+            "stella_filter": "--gtest_filter=AdvectionPDBottPrepareTracersBenchmark.MultipleTracers",
             "halo": [
                 0,
                 0,
