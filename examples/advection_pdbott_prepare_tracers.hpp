@@ -73,11 +73,11 @@ namespace adv_prepare_tracers {
         comp_->ready();
         comp_->steady();
         comp_->run();
-        comp_->finalize();
 
 #ifdef BENCHMARK
         benchmarker::run(comp_, t_steps);
 #endif
+        comp_->finalize();
 
         return true;
     }

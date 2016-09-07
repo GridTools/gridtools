@@ -157,9 +157,9 @@ namespace gridtools {
 #ifndef __CUDACC__
             assert(err == cudaSuccess);
 #endif
-                m_up_to_date = true;
-                m_pointer_to_use = m_cpu_p.get();
-                // }
+            m_up_to_date = true;
+            m_pointer_to_use = m_cpu_p.get();
+            // }
         }
 
         void set(pointee_t const &value, uint_t const &index) {

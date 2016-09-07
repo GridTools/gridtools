@@ -55,7 +55,7 @@ namespace gridtools {
         typename = typename std::enable_if< is_expand_factor< Expand >::value >::type >
     std::shared_ptr< computation< typename _impl::reduction_helper< Mss... >::reduction_type_t > > make_computation(
         Expand /**/, Domain &domain, const Grid &grid, Mss... args_) {
-        GRIDTOOLS_STATIC_ASSERT(is_expand_factor<Expand>::value, "type error");
+        GRIDTOOLS_STATIC_ASSERT(is_expand_factor< Expand >::value, "type error");
         return make_computation_expandable_impl< POSITIONAL_WHEN_DEBUGGING,
             Backend,
             typename _impl::reduction_helper< Mss... >::reduction_type_t >(Expand(), domain, grid, args_...);

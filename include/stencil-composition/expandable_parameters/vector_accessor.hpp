@@ -17,10 +17,7 @@ namespace gridtools {
        \tparam NDim dimensionality of the vector accessor: should be the storage space dimensions plus one (the vector
        field dimension)
     */
-    template < uint_t ID,
-        enumtype::intend Intent = enumtype::in,
-        typename Extent = extent< 0, 0, 0, 0, 0, 0 >,
-        ushort_t NDim = 5 >
+    template < uint_t ID, enumtype::intend Intent = enumtype::in, typename Extent = extent< 0 >, ushort_t NDim = 5 >
     struct vector_accessor : accessor< ID, Intent, Extent, NDim > {
 
 #ifdef CXX11_ENABLED

@@ -57,6 +57,15 @@ namespace gridtools {
     };
 
     template < typename T >
+    struct is_dimension_extension_traits : boost::mpl::false_ {};
+
+    template < typename... T >
+    struct is_dimension_extension_traits< dimension_extension_traits< T... > > : boost::mpl::true_ {};
+
+    template <>
+    struct is_dimension_extension_traits< dimension_extension_null > : boost::mpl::true_ {};
+
+    template < typename T >
     struct get_fields {
         using type = static_int< T::n_fields >;
     };
@@ -84,22 +93,32 @@ namespace gridtools {
         static const uint_t value = type::value;
     };
 
+    template < typename T >
+    struct is_data_field : public boost::mpl::false_ {};
+
     /** @brief metafunction to compute the number of snapshots present in the ID-th storage_list
         (storage_list::n_width)
     */
     template < typename Storage, uint_t Id, uint_t IdMax >
     struct compute_storage_list_width {
+        typedef typename Storage::super next_storage_t;
 
         GRIDTOOLS_STATIC_ASSERT(IdMax >= Id && Id >= 0, "Library internal error");
-        typedef typename boost::mpl::eval_if_c< IdMax - Id == 0,
-            get_width< Storage >,
-            get_width< compute_storage_list_width< typename Storage::super, Id + 1, IdMax > > >::type type;
+        GRIDTOOLS_STATIC_ASSERT(is_dimension_extension_traits< Storage >::value, "Library internal error");
+        typedef typename get_width<
+            typename compute_storage_list_width< next_storage_t, Id + 1, IdMax >::next_storage_t >::type type;
         static const uint_t value = type::value;
     };
 
-    template < typename T >
-    struct is_data_field : public boost::mpl::false_ {};
-
+    // recursion anchor
+    template < typename Storage, uint_t IdMax >
+    struct compute_storage_list_width< Storage, IdMax, IdMax > {
+        GRIDTOOLS_STATIC_ASSERT(IdMax >= 0, "Library internal error");
+        GRIDTOOLS_STATIC_ASSERT(is_dimension_extension_traits< Storage >::value, "Library internal error");
+        typedef Storage next_storage_t;
+        typedef typename get_width< Storage >::type type;
+        static const uint_t value = type::value;
+    };
     namespace impl_ {
         /**@brief syntactic sugar*/
         template < typename Storage, uint_t Id >
@@ -145,9 +164,11 @@ namespace gridtools {
 
        syntax:
        advance<2>()(storage_);
+
+       \tparam Dim the component to cycle
     */
     template < ushort_t Dim >
-    struct advance {
+    struct cycle {
 
         template < typename Storage >
         struct shift {
@@ -159,28 +180,44 @@ namespace gridtools {
 
             template < typename Id >
             void operator()(Id) {
-                std::cout << "ID: " << Id::value << std::endl;
-                m_storage.fields_view()[Id::value] = m_storage.fields_view()[Id::value - 1];
+                swap< Id::value - 1, Dim >::template with< Id::value, Dim >::apply(m_storage);
             }
         };
 
         template < typename Storage >
         static void apply(Storage &storage_) {
-            GRIDTOOLS_STATIC_ASSERT(is_data_field< Storage >::value,
+            GRIDTOOLS_STATIC_ASSERT(is_data_field< typename Storage::super >::value,
                 "\"advance\" can only be called with instanced of type \"data_field\" ");
-            // save last snapshot
-            typename Storage::pointer_type tmp =
-                storage_
-                    .fields_view()[impl_::width_t< Storage, Dim >::value + impl_::offset_t< Storage, Dim >::value - 1];
 
-            typedef typename reversed_range< ushort_t,
-                1 + impl_::offset_t< Storage, Dim >::value,
-                impl_::width_t< Storage, Dim >::value + impl_::offset_t< Storage, Dim >::value >::type range_t;
+            boost::mpl::for_each<
+                boost::mpl::range_c< ushort_t, 1, impl_::width_t< typename Storage::super, Dim >::value > >(
+                shift< Storage >(storage_));
+        }
+    };
 
-            boost::mpl::for_each< range_t >(shift< Storage >(storage_));
+    struct cycle_all {
 
-            // restore the first snapshot
-            storage_.fields_view()[impl_::offset_t< Storage, Dim >::value] = tmp;
+        template < typename Storage >
+        struct call_apply {
+        private:
+          Storage &m_storage;
+
+        public:
+          call_apply(Storage &storage_) : m_storage(storage_) {}
+
+          template < typename Id >
+          void operator()(Id) {
+              cycle< Id::value >::apply(m_storage);
+            }
+        };
+
+        template <typename Storage>
+        static void apply(Storage& storage_){
+            GRIDTOOLS_STATIC_ASSERT(is_data_field< typename Storage::super >::value,
+                "\"advance\" can only be called with instanced of type \"data_field\" ");
+            boost::mpl::for_each<
+                typename boost::mpl::range_c< ushort_t, 0, Storage::super::traits::n_dimensions >::type >(
+                call_apply< Storage >(storage_));
         }
     };
 
@@ -365,29 +402,6 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((field_dim < traits::n_dimensions), "trying to get a field_dimension out of bound");
             return get< snapshot, field_dim >()[this->m_meta_data->index(args...)];
         }
-
-        /**@biref ODE advancing for a single dimension
-
-           it advances the supposed finite difference scheme of one step for a specific field dimension
-           @tparam dimension the dimension to be advanced
-           @param offset the number of steps to advance
-        */
-        template < uint_t dimension = 1 >
-        GT_FUNCTION void advance() {
-            BOOST_STATIC_ASSERT(dimension < traits::n_dimensions);
-            uint_t const indexFrom = _impl::access< dimension, traits >::type::n_fields;
-            uint_t const indexTo = _impl::access< dimension - 1, traits >::type::n_fields;
-
-            super::advance(indexFrom, indexTo);
-        }
-
-        /**@biref ODE advancing for all dimension
-
-           shifts the rings of solutions of one position,
-           it advances the finite difference scheme of one step for all field dimensions.
-        */
-        GT_FUNCTION
-        void advance_all() { _impl::advance_recursive< n_width >::apply(const_cast< data_field * >(this)); }
     };
 
     template < typename First, typename... StorageExtended >

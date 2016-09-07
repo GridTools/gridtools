@@ -31,10 +31,10 @@ namespace gridtools {
         using typename super::data_field;
 
 #if defined(__clang__)
-        //protection is done in the base_storage constructors
-        template <typename ... Args>
-        GT_FUNCTION
-        expandable_parameters(Args ... args_):super(args_ ...){};
+        // protection is done in the base_storage constructors
+        template < typename... Args >
+        GT_FUNCTION expandable_parameters(Args... args_)
+            : super(args_...){};
 #endif
 
       public:

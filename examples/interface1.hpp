@@ -223,7 +223,7 @@ namespace horizontal_diffusion {
 
         horizontal_diffusion->ready();
         horizontal_diffusion->steady();
-            horizontal_diffusion->run();
+        horizontal_diffusion->run();
 
 #ifdef __CUDACC__
         repository.update_cpu();
@@ -243,11 +243,11 @@ namespace horizontal_diffusion {
             result = verif.verify(grid, repository.out_ref(), repository.out(), halos);
 #else
 #if FLOAT_PRECISION == 4
-                verifier verif(1e-6, halo_size);
+            verifier verif(1e-6, halo_size);
 #else
-                verifier verif(1e-12, halo_size);
+            verifier verif(1e-12, halo_size);
 #endif
-                result = verif.verify(grid, repository.out_ref(), repository.out());
+            result = verif.verify(grid, repository.out_ref(), repository.out());
 #endif
         }
 

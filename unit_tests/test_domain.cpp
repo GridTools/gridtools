@@ -167,11 +167,12 @@ bool test_domain() {
     // // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
     gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&coeff, &in, &out /*,&fly, &flx*/));
 
-    typedef boost::mpl::vector<
-        gridtools::_impl::select_storage<accessor_list, boost::mpl::na>::template apply<gridtools::static_int<0> >::type,
-        gridtools::_impl::select_storage<accessor_list, boost::mpl::na>::template apply<gridtools::static_int<1> >::type,
-        gridtools::_impl::select_storage<accessor_list, boost::mpl::na>::template apply<gridtools::static_int<2> >::type
-    > mpl_accessor_list;
+    typedef boost::mpl::vector< gridtools::_impl::select_storage< accessor_list,
+                                    boost::mpl::na >::template apply< gridtools::static_int< 0 > >::type,
+        gridtools::_impl::select_storage< accessor_list,
+                                    boost::mpl::na >::template apply< gridtools::static_int< 1 > >::type,
+        gridtools::_impl::select_storage< accessor_list, boost::mpl::na >::template apply<
+                                    gridtools::static_int< 2 > >::type > mpl_accessor_list;
 
     typedef boost::mpl::vector< gridtools::_impl::select_storage< inner_accessor_list,
                                     boost::mpl::na >::template apply< gridtools::static_int< 0 > >::type,

@@ -16,10 +16,12 @@ if ( ENABLE_CXX11 )
   endif(STRUCTURED_GRIDS)
 endif( ENABLE_CXX11 )
 
+if(STRUCTURED_GRIDS)
 add_executable(test_cache_md test_multidimensional_caches.cpp)
 gridtools_add_test(test_cache_md ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/test_cache_md")
 set_target_properties(test_cache_md PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
 target_link_libraries(test_cache_md ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
+endif(STRUCTURED_GRIDS)
 
 add_executable(cache_tests ${TEST_SOURCES})
 gridtools_add_test(tests.caches ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/cache_tests")

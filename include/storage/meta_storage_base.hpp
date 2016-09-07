@@ -189,9 +189,8 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
                     typename boost::mpl::at_c< boost::mpl::vector< IntTypes... >, 0 >::type >::type::value,
                 bool >::type >
         GT_FUNCTION constexpr meta_storage_base(IntTypes... dims_)
-            :
-            m_dims {(uint_t) dims_ ...}
-        , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout >::apply(dims_...)) {
+            : m_dims{(uint_t)dims_...},
+              m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout >::apply(dims_...)) {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes) >= space_dimensions, "you tried to initialize\
  a storage with a number of integer arguments smaller than its number of dimensions. \
  This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
@@ -246,9 +245,10 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
  by defining the storage type using another layout_map.");
         }
 #endif //__CUDACC__
-#else // CXX11_ENABLED
+#else  // CXX11_ENABLED
         // TODO This is a bug, we should generate a constructor for array of dimensions space_dimensions
-        GRIDTOOLS_STATIC_ASSERT((space_dimensions == 3), "multidimensional storages are available only when C++11 is ON");
+        GRIDTOOLS_STATIC_ASSERT(
+            (space_dimensions == 3), "multidimensional storages are available only when C++11 is ON");
         GT_FUNCTION
         meta_storage_base(array< uint_t, 3 > const &a) : m_dims(a) {
             m_strides[0] = (((layout::template at_< 0 >::value < 0) ? 1 : m_dims[0]) *
@@ -356,16 +356,14 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         //####################################################
 
         /**@brief helper code snippet to check if given vector coordinate is the maximum.*/
-        template <uint_t Coordinate, typename T, typename Container>
-        GT_FUNCTION static constexpr int_t get_stride_helper(Container const& cont, uint_t offset=0) {
-                typedef typename boost::mpl::deref<
-                        typename boost::mpl::max_element< typename T::layout_vector_t >::type
-                >::type max_type;
-                return ((max_type::value < 0)
-                            ? 0
-                            : ((Layout::template at_< Coordinate >::value == max_type::value)
-                                      ? 1
-                                      : ((cont[Layout::template at_< Coordinate >::value + offset]))));
+        template < uint_t Coordinate, typename T, typename Container >
+        GT_FUNCTION static constexpr int_t get_stride_helper(Container const &cont, uint_t offset = 0) {
+            typedef typename boost::mpl::deref<
+                typename boost::mpl::max_element< typename T::layout_vector_t >::type >::type max_type;
+            return (
+                (max_type::value < 0) ? 0 : ((Layout::template at_< Coordinate >::value == max_type::value)
+                                                    ? 1
+                                                    : ((cont[Layout::template at_< Coordinate >::value + offset]))));
         }
 
         /**@brief return the stride for a specific coordinate, given the vector of strides

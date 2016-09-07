@@ -175,6 +175,12 @@ namespace gridtools {
 
                     auto ptr_chunk_ = boost::fusion::at< static_ushort< ID > >(m_dom_chunk.m_storage_pointers);
 
+#ifndef NDEBUG
+                    if (!ptr_chunk_.get() || !ptr_full_.get()) {
+                        printf("The storage pointer is already null. Did you call finalize too early?");
+                        assert(false);
+                    }
+#endif
                     (*(ptr_chunk_->storage_pointer())).set(*ptr_full_, m_idx);
                     if (Backend::s_backend_id == enumtype::Cuda) {
                         ptr_chunk_->set_on_host();

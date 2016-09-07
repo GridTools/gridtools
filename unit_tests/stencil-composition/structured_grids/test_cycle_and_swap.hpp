@@ -202,4 +202,59 @@ namespace test_cycle_and_swap {
         return verif.verify(grid, reference, i_data, halos);
     }
 
+    bool test_cycle() {
+
+        typedef gridtools::layout_map< 0, 1 > layout_t;
+        typedef gridtools::BACKEND::storage_info< 0, layout_t > meta_t;
+        typedef gridtools::BACKEND::storage_type< uint_t, meta_t >::type storage_type;
+        typedef typename field< storage_type, 3, 3, 3 >::type field_t;
+
+        meta_t meta_(1u, 1u);
+        field_t i_data(meta_, 0, "in");
+        i_data.get_value< 0, 0 >(0, 0) = 0;
+        i_data.get_value< 1, 0 >(0, 0) = 1;
+        i_data.get_value< 2, 0 >(0, 0) = 2;
+        i_data.get_value< 0, 1 >(0, 0) = 10;
+        i_data.get_value< 1, 1 >(0, 0) = 11;
+        i_data.get_value< 2, 1 >(0, 0) = 12;
+        i_data.get_value< 0, 2 >(0, 0) = 20;
+        i_data.get_value< 1, 2 >(0, 0) = 21;
+        i_data.get_value< 2, 2 >(0, 0) = 22;
+
+        uint_t di[5] = {0, 0, 0, 0, 1};
+        uint_t dj[5] = {0, 0, 0, 0, 1};
+
+        gridtools::grid< axis > grid(di, dj);
+        grid.value_list[0] = 0;
+        grid.value_list[1] = 0;
+
+        typedef arg< 0, field_t > p_i_data;
+        typedef boost::mpl::vector< p_i_data > accessor_list;
+
+        aggregator_type< accessor_list > domain(boost::fusion::make_vector(&i_data));
+
+        auto comp = gridtools::make_computation< gridtools::BACKEND >(domain,
+            grid,
+            gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor >(p_i_data())));
+
+        comp->ready();
+        comp->steady();
+        comp->run();
+#ifdef __CUDACC__
+        i_data.d2h_update();
+#endif
+        cycle< 1 >::apply(i_data);
+        cycle_all::apply(i_data);
+#ifdef __CUDACC__
+        i_data.h2d_update();
+#endif
+        comp->run();
+        comp->finalize();
+
+        return (i_data(0, 0) == 2 && i_data.get_value< 1, 0 >(0, 0) == 2 && i_data.get_value< 2, 0 >(0, 0) == 0 &&
+                i_data.get_value< 0, 1 >(0, 0) == 12 && i_data.get_value< 1, 1 >(0, 0) == 10 &&
+                i_data.get_value< 2, 1 >(0, 0) == 11 && i_data.get_value< 0, 2 >(0, 0) == 21 &&
+                i_data.get_value< 1, 2 >(0, 0) == 22 && i_data.get_value< 2, 2 >(0, 0) == 20);
+    }
+
 } // namespace test_cycle_and_swap

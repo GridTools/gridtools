@@ -147,7 +147,7 @@ namespace gridtools {
         /**inheriting all constructors from offset_tuple*/
         using typename super::offset_tuple_mixed;
 
-#if defined( __CUDACC__ ) || defined(__clang__)
+#if defined(__CUDACC__) || defined(__clang__)
         // the protection for the arguments is done in offset_tuple constructors
         template < typename... T >
         GT_FUNCTION constexpr accessor_mixed(T const &... t_)
