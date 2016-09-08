@@ -108,17 +108,10 @@ namespace shallow_water {
         GT_FUNCTION
         static float_type g() { return 9.81; }
 
-        //! [index]
-        static x i;
-        static y j;
-        //! [index]
-
-        typedef decltype(i) i_t;
-        typedef decltype(j) j_t;
     };
-    functor_traits::i_t functor_traits::i;
-    functor_traits::j_t functor_traits::j;
-    // [functor_traits]
+
+    constexpr x i;
+    constexpr y j;
 
     template < uint_t Component = 0, uint_t Snapshot = 0 >
     struct bc_periodic : functor_traits {
