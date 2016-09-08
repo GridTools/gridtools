@@ -44,6 +44,73 @@
 
 namespace gridtools {
     namespace _impl {
+        template < typename CallerAggregator,
+            int Offi,
+            int Offj,
+            int Offk,
+            typename PassedAccessors,
+            typename ReturnType,
+            int OutArg >
+        struct function_aggregator;
+
+        template < typename CallerAggregator,
+            int Offi,
+            int Offj,
+            int Offk,
+            typename PassedAccessors,
+            typename ReturnType,
+            int OutArg >
+        struct function_aggregator_offsets;
+
+        template < typename CallerAggregator, int Offi, int Offj, int Offk, typename PassedArguments >
+        struct function_aggregator_procedure;
+
+        template < typename CallerAggregator, int Offi, int Offj, int Offk, typename PassedArguments >
+        struct function_aggregator_procedure_offsets;
+
+        template < typename T >
+        struct is_function_aggregator : boost::mpl::false_ {};
+
+        template < typename CallerAggregator,
+            int Offi,
+            int Offj,
+            int Offk,
+            typename PassedAccessors,
+            typename ReturnType,
+            int OutArg >
+        struct is_function_aggregator<
+            function_aggregator< CallerAggregator, Offi, Offj, Offk, PassedAccessors, ReturnType, OutArg > >
+            : boost::mpl::true_ {};
+
+        template < typename CallerAggregator,
+            int Offi,
+            int Offj,
+            int Offk,
+            typename PassedAccessors,
+            typename ReturnType,
+            int OutArg >
+        struct is_function_aggregator<
+            function_aggregator_offsets< CallerAggregator, Offi, Offj, Offk, PassedAccessors, ReturnType, OutArg > >
+            : boost::mpl::true_ {};
+
+        template < typename CallerAggregator,
+            int Offi,
+            int Offj,
+            int Offk,
+            typename PassedAccessors>
+        struct is_function_aggregator<
+            function_aggregator_procedure< CallerAggregator, Offi, Offj, Offk, PassedAccessors > > : boost::mpl::true_ {
+        };
+
+        template < typename CallerAggregator,
+            int Offi,
+            int Offj,
+            int Offk,
+            typename PassedAccessors>
+        struct is_function_aggregator<
+            function_aggregator_procedure_offsets< CallerAggregator, Offi, Offj, Offk, PassedAccessors > >
+            : boost::mpl::true_ {};
+
         /** Metafunction to compute the index of the first accessor in the
             list of accessors to be written.
         */
