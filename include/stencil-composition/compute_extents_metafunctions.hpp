@@ -39,7 +39,7 @@
 
 namespace gridtools {
 
-    template <typename Storage, uint_t>
+    template < typename Storage, uint_t >
     struct expandable_parameters;
 
     /**substituting the std::vector type in the args<> with a correspondent
@@ -131,11 +131,8 @@ namespace gridtools {
                 template < typename PlcRangePair, typename CurrentMap >
                 struct with {
 
-                    GRIDTOOLS_STATIC_ASSERT(
-                        (is_extent< CurrentRange >::value),
-                        "wrong type");
-                    GRIDTOOLS_STATIC_ASSERT((is_extent< typename PlcRangePair::second >::value),
-                        "wrong type");
+                    GRIDTOOLS_STATIC_ASSERT((is_extent< CurrentRange >::value), "wrong type");
+                    GRIDTOOLS_STATIC_ASSERT((is_extent< typename PlcRangePair::second >::value), "wrong type");
 
                     typedef typename sum_extent< CurrentRange, typename PlcRangePair::second >::type candidate_extent;
                     typedef typename enclosing_extent< candidate_extent,

@@ -194,9 +194,8 @@ namespace gridtools {
                     typename boost::mpl::at_c< boost::mpl::vector< IntTypes... >, 0 >::type >::type::value,
                 bool >::type >
         GT_FUNCTION constexpr meta_storage_base(IntTypes... dims_)
-            :
-            m_dims {(uint_t) dims_ ...}
-        , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout >::apply(dims_...)) {
+            : m_dims{(uint_t)dims_...},
+              m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout >::apply(dims_...)) {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes) >= space_dimensions, "you tried to initialize\
  a storage with a number of integer arguments smaller than its number of dimensions. \
  This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
@@ -253,9 +252,10 @@ namespace gridtools {
                 "Error: Dimensions of metastorage must be specified as integer types. ");
         }
 #endif //__CUDACC__
-#else // CXX11_ENABLED
+#else  // CXX11_ENABLED
         // TODO This is a bug, we should generate a constructor for array of dimensions space_dimensions
-        GRIDTOOLS_STATIC_ASSERT((space_dimensions == 3), "multidimensional storages are available only when C++11 is ON");
+        GRIDTOOLS_STATIC_ASSERT(
+            (space_dimensions == 3), "multidimensional storages are available only when C++11 is ON");
         GT_FUNCTION
         meta_storage_base(array< uint_t, 3 > const &a) : m_dims(a) {
             m_strides[0] = (((layout::template at_< 0 >::value < 0) ? 1 : m_dims[0]) *

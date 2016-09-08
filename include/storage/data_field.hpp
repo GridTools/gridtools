@@ -56,14 +56,14 @@ namespace gridtools {
         typedef dimension_extension_null super;
     };
 
-    template <typename T>
-    struct is_dimension_extension_traits : boost::mpl::false_{};
+    template < typename T >
+    struct is_dimension_extension_traits : boost::mpl::false_ {};
 
-    template <typename ... T>
-    struct is_dimension_extension_traits<dimension_extension_traits<T ...> > : boost::mpl::true_{};
+    template < typename... T >
+    struct is_dimension_extension_traits< dimension_extension_traits< T... > > : boost::mpl::true_ {};
 
     template <>
-    struct is_dimension_extension_traits<dimension_extension_null > : boost::mpl::true_{};
+    struct is_dimension_extension_traits< dimension_extension_null > : boost::mpl::true_ {};
 
     template < typename T >
     struct get_fields {
@@ -104,16 +104,17 @@ namespace gridtools {
         typedef typename Storage::super next_storage_t;
 
         GRIDTOOLS_STATIC_ASSERT(IdMax >= Id && Id >= 0, "Library internal error");
-        GRIDTOOLS_STATIC_ASSERT(is_dimension_extension_traits<Storage>::value, "Library internal error");
-        typedef typename get_width< typename compute_storage_list_width< next_storage_t, Id + 1, IdMax >::next_storage_t >::type type;
+        GRIDTOOLS_STATIC_ASSERT(is_dimension_extension_traits< Storage >::value, "Library internal error");
+        typedef typename get_width<
+            typename compute_storage_list_width< next_storage_t, Id + 1, IdMax >::next_storage_t >::type type;
         static const uint_t value = type::value;
     };
 
-    //recursion anchor
+    // recursion anchor
     template < typename Storage, uint_t IdMax >
-    struct compute_storage_list_width<Storage, IdMax, IdMax> {
+    struct compute_storage_list_width< Storage, IdMax, IdMax > {
         GRIDTOOLS_STATIC_ASSERT(IdMax >= 0, "Library internal error");
-        GRIDTOOLS_STATIC_ASSERT(is_dimension_extension_traits<Storage>::value, "Library internal error");
+        GRIDTOOLS_STATIC_ASSERT(is_dimension_extension_traits< Storage >::value, "Library internal error");
         typedef Storage next_storage_t;
         typedef typename get_width< Storage >::type type;
         static const uint_t value = type::value;
@@ -179,7 +180,7 @@ namespace gridtools {
 
             template < typename Id >
             void operator()(Id) {
-                swap<Id::value-1, Dim>::template with<Id::value, Dim>::apply(m_storage);
+                swap< Id::value - 1, Dim >::template with< Id::value, Dim >::apply(m_storage);
             }
         };
 
@@ -188,30 +189,35 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(is_data_field< typename Storage::super >::value,
                 "\"advance\" can only be called with instanced of type \"data_field\" ");
 
-            boost::mpl::for_each< boost::mpl::range_c<ushort_t, 1, impl_::width_t< typename Storage::super, Dim >::value> >(shift< Storage >(storage_));
+            boost::mpl::for_each<
+                boost::mpl::range_c< ushort_t, 1, impl_::width_t< typename Storage::super, Dim >::value > >(
+                shift< Storage >(storage_));
         }
     };
 
     struct cycle_all {
 
-        template <typename Storage>
-        struct call_apply{
+        template < typename Storage >
+        struct call_apply {
         private:
-            Storage& m_storage;
-        public:
-            call_apply(Storage& storage_) : m_storage(storage_){}
+          Storage &m_storage;
 
-            template <typename Id>
-            void operator()(Id){
-                cycle<Id::value>::apply(m_storage);
+        public:
+          call_apply(Storage &storage_) : m_storage(storage_) {}
+
+          template < typename Id >
+          void operator()(Id) {
+              cycle< Id::value >::apply(m_storage);
             }
         };
 
         template <typename Storage>
         static void apply(Storage& storage_){
             GRIDTOOLS_STATIC_ASSERT(is_data_field< typename Storage::super >::value,
-                                    "\"advance\" can only be called with instanced of type \"data_field\" ");
-            boost::mpl::for_each<typename boost::mpl::range_c<ushort_t, 0, Storage::super::traits::n_dimensions>::type>(call_apply<Storage>(storage_));
+                "\"advance\" can only be called with instanced of type \"data_field\" ");
+            boost::mpl::for_each<
+                typename boost::mpl::range_c< ushort_t, 0, Storage::super::traits::n_dimensions >::type >(
+                call_apply< Storage >(storage_));
         }
     };
 

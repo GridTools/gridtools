@@ -25,6 +25,4 @@ TEST(cycle_and_swap, 3D){
     EXPECT_TRUE(test_cycle_and_swap::test_3D());
 }
 
-TEST(cycle_and_swap, cycle){
-    EXPECT_TRUE(test_cycle_and_swap::test_cycle());
-}
+TEST(cycle_and_swap, cycle) { EXPECT_TRUE(test_cycle_and_swap::test_cycle()); }

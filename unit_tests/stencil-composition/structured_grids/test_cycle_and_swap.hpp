@@ -202,7 +202,6 @@ namespace test_cycle_and_swap {
         return verif.verify(grid, reference, i_data, halos);
     }
 
-
     bool test_cycle() {
 
         typedef gridtools::layout_map< 0, 1 > layout_t;
