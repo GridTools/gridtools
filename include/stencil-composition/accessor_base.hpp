@@ -151,9 +151,9 @@ namespace gridtools {
    This allows to specify the extra arguments out of order. Note that 'dimension' is a
    language keyword used at the interface level.
 */
-#if defined(CXX11_ENABLED) && !defined(__CUDACC__) // cuda messing up
-        template < typename... Whatever >
-        GT_FUNCTION constexpr accessor_base(Whatever... x)
+#if defined(CXX11_ENABLED)  && !defined(__CUDACC__) // cuda messing up
+        template < ushort_t ... Indices >
+        GT_FUNCTION constexpr accessor_base(dimension<Indices>... x)
             : m_offsets(x...) {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(x) <= n_dim,
                 "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions "
@@ -161,17 +161,26 @@ namespace gridtools {
                 "D of the accessor (accessor<Id, extent, D>)");
         }
 #else
-        template < typename X, typename Y, typename Z, typename T >
-        GT_FUNCTION constexpr accessor_base(X x, Y y, Z z, T t)
+        template < ushort_t X, ushort_t Y, ushort_t Z, ushort_t T, ushort_t U, ushort_t V >
+        GT_FUNCTION constexpr accessor_base(dimension<X> x, dimension<Y> y, dimension<Z> z, dimension<T> t, dimension<U> u, dimension<V> v)
+            : m_offsets(x, y, z, t,u, v) {}
+
+        template < ushort_t X, ushort_t Y, ushort_t Z, ushort_t T, ushort_t U >
+        GT_FUNCTION constexpr accessor_base(dimension<X> x, dimension<Y> y, dimension<Z> z, dimension<T> t, dimension<U> u)
+            : m_offsets(x, y, z, t,u) {}
+
+        template < ushort_t X, ushort_t Y, ushort_t Z, ushort_t T>
+        GT_FUNCTION constexpr accessor_base(dimension<X> x, dimension<Y> y, dimension<Z> z, dimension<T> t)
             : m_offsets(x, y, z, t) {}
 
-        template < typename X, typename Y, typename Z >
-        GT_FUNCTION constexpr accessor_base(X x, Y y, Z z)
+        template < ushort_t X, ushort_t Y, ushort_t Z>
+        GT_FUNCTION constexpr accessor_base(dimension<X> x, dimension<Y> y, dimension<Z> z)
             : m_offsets(x, y, z) {}
 
-        template < typename X, typename Y >
-        GT_FUNCTION constexpr accessor_base(X x, Y y)
+        template < ushort_t X, ushort_t Y>
+        GT_FUNCTION constexpr accessor_base(dimension<X> x, dimension<Y> y)
             : m_offsets(x, y) {}
+
 #endif
 
         static void info() { std::cout << "Arg_type storage with index " << I << " and extent " << Extend() << " "; }
