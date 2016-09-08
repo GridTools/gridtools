@@ -151,7 +151,7 @@ namespace gridtools {
    This allows to specify the extra arguments out of order. Note that 'dimension' is a
    language keyword used at the interface level.
 */
-#if defined(CXX11_ENABLED) && !defined(__CUDACC__) // cuda messing up
+#if defined(CXX11_ENABLED) 
         template < typename ... Indices >
         GT_FUNCTION constexpr accessor_base(Indices... x)
             : m_offsets(x...) {
