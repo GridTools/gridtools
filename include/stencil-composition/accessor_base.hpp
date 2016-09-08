@@ -152,8 +152,8 @@ namespace gridtools {
    language keyword used at the interface level.
 */
 #if defined(CXX11_ENABLED) && !defined(__CUDACC__) // cuda messing up
-        template < ushort_t... Indices >
-        GT_FUNCTION constexpr accessor_base(dimension< Indices >... x)
+        template < typename ... Indices >
+        GT_FUNCTION constexpr accessor_base(Indices... x)
             : m_offsets(x...) {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(x) <= n_dim,
                 "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions "
@@ -161,26 +161,26 @@ namespace gridtools {
                 "D of the accessor (accessor<Id, extent, D>)");
         }
 #else
-        template < ushort_t X, ushort_t Y, ushort_t Z, ushort_t T, ushort_t U, ushort_t V >
+        template < typename X, typename Y, typename Z, typename T, typename U, typename V >
         GT_FUNCTION constexpr accessor_base(
-            dimension< X > x, dimension< Y > y, dimension< Z > z, dimension< T > t, dimension< U > u, dimension< V > v)
+             X x,  Y y,  Z z,  T t,  U u,  V v)
             : m_offsets(x, y, z, t, u, v) {}
 
-        template < ushort_t X, ushort_t Y, ushort_t Z, ushort_t T, ushort_t U >
+        template < typename X, typename Y, typename Z, typename T, typename U >
         GT_FUNCTION constexpr accessor_base(
-            dimension< X > x, dimension< Y > y, dimension< Z > z, dimension< T > t, dimension< U > u)
+             X x,  Y y,  Z z,  T t,  U u)
             : m_offsets(x, y, z, t, u) {}
 
-        template < ushort_t X, ushort_t Y, ushort_t Z, ushort_t T >
-        GT_FUNCTION constexpr accessor_base(dimension< X > x, dimension< Y > y, dimension< Z > z, dimension< T > t)
+        template < typename X, typename Y, typename Z, typename T >
+        GT_FUNCTION constexpr accessor_base( X x,  Y y,  Z z,  T t)
             : m_offsets(x, y, z, t) {}
 
-        template < ushort_t X, ushort_t Y, ushort_t Z >
-        GT_FUNCTION constexpr accessor_base(dimension< X > x, dimension< Y > y, dimension< Z > z)
+        template < typename X, typename Y, typename Z >
+        GT_FUNCTION constexpr accessor_base( X x,  Y y,  Z z)
             : m_offsets(x, y, z) {}
 
-        template < ushort_t X, ushort_t Y >
-        GT_FUNCTION constexpr accessor_base(dimension< X > x, dimension< Y > y)
+        template < typename X, typename Y >
+        GT_FUNCTION constexpr accessor_base( X x,  Y y)
             : m_offsets(x, y) {}
 
 #endif
