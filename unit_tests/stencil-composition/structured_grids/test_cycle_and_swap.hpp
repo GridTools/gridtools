@@ -64,13 +64,12 @@ namespace test_cycle_and_swap {
         typedef inout_accessor< 0, extent<>, 4 > p_data;
         typedef dimension< 4 > time;
 
-        // TODO Check if this previous code with static (not defined in device) could work with CUDA8 
+        // TODO Check if this previous code with static (not defined in device) could work with CUDA8
         // static x i;
         // static y j;
 
         // typedef decltype(i) i_t;
         // typedef decltype(j) j_t;
-
 
         typedef boost::mpl::vector< p_data > arg_list;
         template < typename Evaluation >
@@ -85,10 +84,9 @@ namespace test_cycle_and_swap {
         }
     };
 
-// TODO Check if this previous code with static (not defined in device) could work with CUDA8 
+// TODO Check if this previous code with static (not defined in device) could work with CUDA8
 //    functor_avg::i_t functor_avg::i;
 //    functor_avg::j_t functor_avg::j;
-
 
 #ifdef __CUDACC__
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >

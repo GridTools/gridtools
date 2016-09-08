@@ -126,13 +126,13 @@ namespace gridtools {
 
             /** metafunction (split into two specializations) to check if a type is an mpl::pair of <placeholder,extent>
              */
-            template <typename T>
+            template < typename T >
             struct pair_arg_extent : boost::false_type {};
 
-            template <typename X, typename Y>
-            struct pair_arg_extent<boost::mpl::pair<X,Y> > {
-                 static const bool value = is_arg<X>::value && is_extent<Y>::value;
-                typedef boost::mpl::bool_<value> type;
+            template < typename X, typename Y >
+            struct pair_arg_extent< boost::mpl::pair< X, Y > > {
+                static const bool value = is_arg< X >::value && is_extent< Y >::value;
+                typedef boost::mpl::bool_< value > type;
             };
 
             /** Now we need to update the extent of a given output given the ones of the inputs.
@@ -173,7 +173,7 @@ namespace gridtools {
             struct update_map_for_multiple_outputs {
                 template < typename TheMap, typename ThePair >
                 struct update_value {
-                    GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Outputs, pair_arg_extent>::value), "wrong sequence");
+                    GRIDTOOLS_STATIC_ASSERT((is_sequence_of< Outputs, pair_arg_extent >::value), "wrong sequence");
 
                     // Erasure is needed - we know the key is there otherwise an error would have been catched earlier
                     typedef typename boost::mpl::erase_key< TheMap, typename ThePair::first >::type _Map;
@@ -199,7 +199,7 @@ namespace gridtools {
             template < typename Map, typename OutputPairs >
             struct extract_output_extents {
 
-                GRIDTOOLS_STATIC_ASSERT((is_sequence_of<OutputPairs, pair_arg_extent>::value), "wrong sequence");
+                GRIDTOOLS_STATIC_ASSERT((is_sequence_of< OutputPairs, pair_arg_extent >::value), "wrong sequence");
 
                 template < typename ThePair >
                 struct _find_from_second {
@@ -224,7 +224,7 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((check_all_extents_are< outputs, extent<> >::type::value),
                     "Extents of the outputs of ESFs are not all empty. All outputs must have empty extents");
 
-                GRIDTOOLS_STATIC_ASSERT((is_sequence_of<outputs, pair_arg_extent>::value), "wrong sequence");
+                GRIDTOOLS_STATIC_ASSERT((is_sequence_of< outputs, pair_arg_extent >::value), "wrong sequence");
 
                 // We need to check the map here: if the outputs of a
                 // single function has different extents in the map we
@@ -254,12 +254,12 @@ namespace gridtools {
 
                 // Now the outputs themselves need to get updated before the next map update
                 typedef
-                typename boost::mpl::transform< outputs, substitute_extent< mee_outputs > >::type updated_outputs;
+                    typename boost::mpl::transform< outputs, substitute_extent< mee_outputs > >::type updated_outputs;
 
                 // Then determine the inputs
                 typedef typename esf_get_r_per_functor< current_ESF, boost::true_type >::type inputs;
 
-                GRIDTOOLS_STATIC_ASSERT((is_sequence_of<inputs, pair_arg_extent>::value), "wrong sequence");
+                GRIDTOOLS_STATIC_ASSERT((is_sequence_of< inputs, pair_arg_extent >::value), "wrong sequence");
 
                 // Finally, for each output we need to update its
                 // extent based on the extents at which the inputs are
