@@ -127,21 +127,21 @@ namespace assembly {
                 for (short_t J = 0; J < 2; ++J)
                     for (short_t K = 0; K < 2; ++K) {
                         // check the initialization to 0
-                        assert(eval(result{di + I, dj + J, dk + K}) == 0.);
+                        assert(eval(result{i,j,k,di + I, dj + J, dk + K}) == 0.);
                         for (short_t q = 0; q < 2; ++q) {
                             eval(result{di + I, dj + J, dk + K,qp}) +=
-                                eval(!phi{i + I, j + J, k + K, qp + q} * !psi{i,j,k,qp + q} * jac{i,j,k,qp + q} * f{i,j,k,qp} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j,k,qp + q} * jac{qp + q} * f{di + 1,j,k,qp} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{j + 1, j,k,qp + q} * jac{qp + q} * f{i,dj + 1,k,qp} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{k + 1, j,k,qp + q} * jac{qp + q} * f{i,k,dk + 1,qp} +
+                                eval(!phi{i + I, j + J, k + K, qp + q} * !psi{i,j,k,qp + q} * jac{i,j,k,qp + q} * f{i,j,k,di,dj,dk} +
+                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j,k,qp + q} * jac{i,j,k,qp + q} * f{i,j,k,di + 1,dj,dk} +
+                                     !phi{i + I, j + J, k + K, qp + q} * !psi{j + 1, j,k,qp + q} * jac{i,j,k,qp + q} * f{i,j,k,di,dj + 1,dk} +
+                                     !phi{i + I, j + J, k + K, qp + q} * !psi{k + 1, j,k,qp + q} * jac{i,j,k,qp + q} * f{i,k,k,di,dj,dk + 1} +
                                      !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j + 1, k,qp + q} * jac{i,j,k,qp + q} *
-                                         f{di + 1, dj + 1,k,qp} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, k + 1, k,qp + q} * jac{i,j,k,qp + q} *
-                                         f{di + 1, j,dk + 1,qp} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{j + 1, k + 1, k,qp + q} * jac{i,j,k,qp + q} *
-                                         f{i,dj + 1, dk + 1,qp} +
+                                         f{i,j,k,di + 1, dj + 1,dk} +
+                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j, k + 1, qp + q} * jac{i,j,k,qp + q} *
+                                         f{i,j,k,di + 1, dj,dk + 1} +
+                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i, j + 1, k + 1, qp + q} * jac{i,j,k,qp + q} *
+                                         f{i,j,k,di, dj + 1, dk + 1} +
                                      !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j + 1, k + 1, qp + q} *
-                                         jac{i,j,k,qp + q} * f{di + 1, dj + 1, dk + 1,qp}) /
+                                         jac{i,j,k,qp + q} * f{i,j,k,di + 1, dj + 1, dk + 1}) /
                                 8;
                         }
                     }
