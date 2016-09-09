@@ -64,6 +64,7 @@ namespace gridtools {
     template < uint_t I, typename T, typename Cond >
     struct arg;
 
+#ifdef CXX11_ENABLED
     //metafunction that determines if a type is a valid accessor ctr argument
     template<typename T>
     struct is_accessor_ctr_args {
@@ -78,7 +79,7 @@ namespace gridtools {
     using all_accessor_ctr_args =
         typename boost::enable_if_c< accumulate(logical_and(), is_accessor_ctr_args< Types >::type::value...),
             bool >::type;
-
+#endif
 
     /**
      * @brief Type to be used in elementary stencil functions to specify argument mapping and extents
