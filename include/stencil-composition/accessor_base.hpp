@@ -53,6 +53,7 @@
 #ifdef CXX11_ENABLED
 #include "stencil-composition/expressions.hpp"
 #endif
+#include "dimension_fwd.hpp"
 
 namespace gridtools {
 
@@ -60,11 +61,24 @@ namespace gridtools {
     template < int_t Index, int_t NDim >
     struct offset_tuple;
 
-    template < ushort_t >
-    struct dimension;
-
     template < uint_t I, typename T, typename Cond >
     struct arg;
+
+    //metafunction that determines if a type is a valid accessor ctr argument
+    template<typename T>
+    struct is_accessor_ctr_args {
+        typedef typename boost::mpl::or_<
+            typename boost::is_integral<T>::type,
+            typename is_dimension<T>::type
+        >::type type;
+    };
+
+    //metafunction that determines if a variadic pack are valid accessor ctr arguments
+    template < typename... Types >
+    using all_accessor_ctr_args =
+        typename boost::enable_if_c< accumulate(logical_and(), is_accessor_ctr_args< Types >::type::value...),
+            bool >::type;
+
 
     /**
      * @brief Type to be used in elementary stencil functions to specify argument mapping and extents
@@ -138,21 +152,12 @@ namespace gridtools {
         GT_FUNCTION constexpr accessor_base(const accessor_base< OtherIndex, Intend, Extend, Dim > &other)
             : m_offsets(other.offsets()) {}
 
-        // ctor with one argument have to provide specific arguments in order to avoid ambiguous instantiation
-        // by the compiler
-        template < uint_t Idx >
-        GT_FUNCTION constexpr accessor_base(dimension< Idx > const &x)
-            : m_offsets(x) {}
-
-        GT_FUNCTION
-        constexpr accessor_base(const int_t x) : m_offsets(x) {}
-
 /**@brief constructor taking the dimension class as argument.
    This allows to specify the extra arguments out of order. Note that 'dimension' is a
    language keyword used at the interface level.
 */
 #if defined(CXX11_ENABLED) 
-        template < typename ... Indices >
+        template < typename ... Indices, typename Dummy = all_accessor_ctr_args<Indices...> >
         GT_FUNCTION constexpr accessor_base(Indices... x)
             : m_offsets(x...) {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(x) <= n_dim,
