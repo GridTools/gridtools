@@ -111,7 +111,7 @@ namespace gridtools {
             return super::operator()(tmp_);
         }
 
-
+#ifdef CXX11_ENABLED
         /** @brief method called in the Do methods of the functors. */
         template < typename... Arguments, template < typename... Args > class Expression >
         GT_FUNCTION auto operator()(Expression< Arguments... > const &arg) const
@@ -156,6 +156,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Argument, exponent > >::value), "invalid expression");
             return evaluation::value_int((*this), arg);
         }
+#endif
 
     };
 
