@@ -189,6 +189,12 @@ namespace gridtools {
         GT_FUNCTION constexpr accessor_base( X x,  Y y)
             : m_offsets(x, y) {}
 
+        template<ushort_t DimIndex>
+        GT_FUNCTION constexpr accessor_base( dimension<DimIndex> x) : m_offsets(x) {}
+   
+        GT_FUNCTION constexpr accessor_base( int_t x)
+            : m_offsets(x) {}
+
 #endif
 
         static void info() { std::cout << "Arg_type storage with index " << I << " and extent " << Extend() << " "; }
