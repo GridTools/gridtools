@@ -191,3 +191,79 @@ TEST(storage_info, test_interface) {
 
 #endif // defined(CXX11_ENABLED) && defined(NDEBUG)
 }
+
+// TODO This was lost at some point in history... need to recover
+//#ifdef CXX11_ENABLED
+//TEST(storage_info, meta_storage_extender) {
+
+//    GRIDTOOLS_STATIC_ASSERT((boost::is_same< meta_storage_extender_impl< layout_map< 0, 1, 2, 3 >, 1 >::type,
+//                                layout_map< 1, 2, 3, 4, 0 > >::value),
+//        "Error");
+
+//    GRIDTOOLS_STATIC_ASSERT((boost::is_same< meta_storage_extender_impl< layout_map< 3, 1, 2, 0 >, 1 >::type,
+//                                layout_map< 4, 2, 3, 1, 0 > >::value),
+//        "Error");
+
+//    typedef meta_storage_base< 0, layout_map< 0, 1, 2, 3 >, false > meta_storage1_t;
+//    typedef meta_storage_base< 0, layout_map< 1, 2, 3, 4, 0 >, false > meta_storage1_ext_t;
+
+//    GRIDTOOLS_STATIC_ASSERT(
+//        (boost::is_same< meta_storage_extender_impl< meta_storage1_t, 1 >::type, meta_storage1_ext_t >::value),
+//        "Error");
+
+//    typedef meta_storage_base< 0, layout_map< 3, 4, 5, 6, 0, 1, 2 >, false > meta_storage_multi_ext_t;
+
+//    GRIDTOOLS_STATIC_ASSERT(
+//        (boost::is_same< meta_storage_extender_impl< meta_storage1_t, 3 >::type, meta_storage_multi_ext_t >::value),
+//        "Error");
+
+//    typedef meta_storage_aligned< meta_storage1_t, aligned< 0 >, halo< 0, 0, 0, 0 > > meta_storage_aligned_t;
+//    typedef meta_storage_aligned< meta_storage1_ext_t, aligned< 0 >, halo< 0, 0, 0, 0, 0 > > meta_storage_aligned_ext_t;
+
+//    typedef meta_storage< meta_storage_aligned_t > meta_storage2_t;
+
+//    typedef meta_storage< meta_storage_aligned_ext_t > meta_storage2_ext_t;
+
+//    GRIDTOOLS_STATIC_ASSERT(
+//        (boost::is_same< meta_storage_extender_impl< meta_storage2_t, 1 >::type, meta_storage2_ext_t >::value),
+//        "Error");
+
+//    meta_storage_aligned_t meta(34, 23, 54, 5);
+//    auto extended_meta = meta_storage_extender()(meta, 10);
+
+//    ASSERT_TRUE((extended_meta.template dim< 0 >() == 34));
+//    ASSERT_TRUE((extended_meta.template dim< 1 >() == 23));
+//    ASSERT_TRUE((extended_meta.template dim< 2 >() == 54));
+//    ASSERT_TRUE((extended_meta.template dim< 3 >() == 5));
+//    ASSERT_TRUE((extended_meta.template dim< 4 >() == 10));
+//}
+
+//TEST(storage_info, index) {
+
+//    typedef meta_storage_base< 0, layout_map< 0, 1, 2, 3 >, false > meta_storage1_t;
+
+//    typedef meta_storage_aligned< meta_storage1_t, aligned< 0 >, halo< 0, 0, 0, 0 > > meta_storage_aligned_t;
+
+//    typedef meta_storage< meta_storage_aligned_t > meta_storage2_t;
+
+//    meta_storage_aligned_t meta(34, 23, 54, 5);
+
+//    //interface passing unpacked indices
+//    ASSERT_TRUE((meta._index(meta.strides(), 1,1,2,3) == 6493));
+//    //interface passing indices in an array
+//    ASSERT_TRUE((meta._index(meta.strides(), array<uint_t, 4>{1,1,2,3})) == 6493);
+//    //interface passing indices in an accessor
+
+//    typedef grid_traits_from_id<GRIDBACKEND>::null_extent_t extent_t;
+//#ifdef STRUCTURED_GRIDS
+//    typedef in_accessor< 0, extent_t, 4> accessor_t;
+//#else
+//    typedef in_accessor< 0, cells, extent_t, 4> accessor_t;
+//#endif
+
+//    ASSERT_TRUE((meta._index(meta.strides(), accessor_t (1,1,2,3).offsets()) == 6493));
+
+
+//}
+
+//#endif
