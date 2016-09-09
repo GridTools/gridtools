@@ -49,4 +49,4 @@ namespace gridtools {
             return first_;
         }
     };
-}
+} // namespace gridtools

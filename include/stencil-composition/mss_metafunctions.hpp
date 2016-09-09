@@ -53,7 +53,7 @@
 #include "esf_metafunctions.hpp"
 #include "mss.hpp"
 #include "reductions/reduction_descriptor.hpp"
-#include "amss_descriptor.hpp"
+#include "computation_grammar.hpp"
 
 namespace gridtools {
 

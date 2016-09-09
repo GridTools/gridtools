@@ -169,13 +169,13 @@ namespace shallow_water {
         //! [accessor]
         typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 5 >
             tmpx; /** (output) is the flux computed on the left edge of the cell */
-        using arg_list = boost::mpl::vector< tmpx, sol >;
+        using arg_list = boost::mpl::vector2< tmpx, sol >;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
 
             const float_type &tl = 2.;
-#ifdef CUDA_CXX11_BUG_1
+#ifndef CUDA8
             comp::Index c;
             x::Index i;
             //! [expression]
@@ -233,7 +233,7 @@ namespace shallow_water {
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
 
             const float_type &tl = 2.;
-#ifdef CUDA_CXX11_BUG_1
+#ifndef CUDA8
 
             eval(tmpy()) =
                 eval((sol(i - 0) + sol(j - 1)) / tl - (sol(comp(2)) - sol(comp(2), j - 1)) * (dt() / (2 * dy())));
@@ -291,7 +291,7 @@ namespace shallow_water {
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
             const float_type &tl = 2.;
-#ifdef CUDA_CXX11_BUG_1
+#ifndef CUDA8
 
             eval(sol()) = eval(sol(i - 0) - (tmpx(comp(1), i + 1) - tmpx(comp(1))) * (dt() / dx()) -
                                (tmpy(comp(2), j + 1) - tmpy(comp(2))) * (dt() / dy()));

@@ -85,6 +85,8 @@ namespace gridtools {
     struct accessor : public accessor_base< ID, Intend, Extent, Number > {
         typedef accessor_base< ID, Intend, Extent, Number > super;
         typedef typename super::index_type index_type;
+        typedef typename super::offset_tuple_t offset_tuple_t;
+
 #ifdef CXX11_ENABLED
 
         GT_FUNCTION
@@ -145,7 +147,7 @@ namespace gridtools {
 #endif
     };
 
-#if defined(CXX11_ENABLED) && !defined(CUDA_CXX11_BUG_1) && !defined(__INTEL_COMPILER)
+#ifdef CUDA8 // (i.e. CXX11_ENABLED for cpu)
 
     /**@brief same as accessor but mixing run-time offsets with compile-time ones
 
@@ -156,57 +158,25 @@ namespace gridtools {
        lookup is anyway done at compile time, i.e. the get() method returns in constant time.
      */
     template < typename ArgType, typename... Pair >
-    struct accessor_mixed {
-
-        typedef accessor_mixed< ArgType, Pair... > type;
-        static const ushort_t n_dim = ArgType::n_dim;
-        typedef typename ArgType::base_t base_t;
+    struct accessor_mixed : public offset_tuple_mixed< typename ArgType::offset_tuple_t, Pair... > {
         typedef typename ArgType::index_type index_type;
+        typedef typename ArgType::base_t base_t;
 
-      private:
-        // vector of dimensions defined at compiled time for the offsets
-        typedef boost::mpl::vector< static_int< n_dim - Pair::first >... > coordinates;
+        using super = offset_tuple_mixed< typename ArgType::offset_tuple_t, Pair... >;
 
-        typedef offset_tuple_mixed< coordinates, ArgType::n_dim, Pair... > offset_tuple_mixed_t;
+        /**inheriting all constructors from offset_tuple*/
+        using typename super::offset_tuple_mixed;
 
-        typedef offset_tuple< ArgType::n_dim, ArgType::n_dim > offset_tuple_t;
+#if defined(__CUDACC__) || defined(__clang__)
+        // the protection for the arguments is done in offset_tuple constructors
+        template < typename... T >
+        GT_FUNCTION constexpr accessor_mixed(T const &... t_)
+            : super(t_...) {}
+#endif
 
-        const offset_tuple_mixed_t m_offsets;
-
-        // compile time offset tuple
-        static constexpr offset_tuple_t s_static_offset_tuple{dimension< Pair::first >{Pair::second}...};
-
-      public:
-        template < typename... ArgsRuntime >
-        GT_FUNCTION constexpr accessor_mixed(const ArgsRuntime... args)
-            : m_offsets(args...) {}
-
-        /**@brief returns the offset at a specific index Idx
-
-           the lookup for the index Idx is done at compile time, i.e. this method returns in constant time
-         */
-
-        template < short_t Idx >
-        GT_FUNCTION constexpr const int_t get() const {
-            return m_offsets.template get< Idx >();
-        }
-
-        template < short_t Idx >
-        GT_FUNCTION static constexpr uint_t const get_constexpr() {
-            GRIDTOOLS_STATIC_ASSERT(
-                Idx < s_static_offset_tuple.n_dim, "the idx must be smaller than the arg dimension");
-            GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "the idx must be larger than 0");
-            GRIDTOOLS_STATIC_ASSERT(s_static_offset_tuple.template get< Idx >() >= 0,
-                "there is a negative offset. If you did this on purpose recompile with the PEDANTIC_DISABLED flag on.");
-            return s_static_offset_tuple.template get< Idx >();
-        }
-
-        GT_FUNCTION constexpr offset_tuple_mixed_t const &offsets() const { return m_offsets; }
+        GT_FUNCTION
+        constexpr const super &offsets() const { return *this; }
     };
-
-    template < typename ArgType, typename... Pair >
-    constexpr const offset_tuple< ArgType::n_dim, ArgType::n_dim >
-        accessor_mixed< ArgType, Pair... >::s_static_offset_tuple;
 
     /**
        @brief this struct allows the specification of SOME of the arguments before instantiating the offset_tuple.
@@ -277,7 +247,7 @@ the dimension is chosen
         // store the list of offsets which are already known on an array
         int_t m_knowns[sizeof...(Known)];
     };
-#endif
+#endif // CUDA8 (i.e. CXX11_ENABLED for cpu)
 
 #ifdef CXX11_ENABLED
     template < uint_t ID, typename Extent = extent< 0, 0, 0, 0, 0, 0 >, ushort_t Number = 3 >

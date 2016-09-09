@@ -45,13 +45,14 @@ typedef interval<level<0,-1>, level<1,-1> > x_interval;
 typedef interval<level<0,-2>, level<1,1> > axis;
 #ifdef __CUDACC__
 typedef backend< Cuda, structured, Block > backend_t;
-#ifdef CXX11_ENABLED
+// #ifdef CXX11_ENABLED
 typedef backend_t::storage_info< 0, layout_map< 0, 1, 2 > > meta_t;
-#else
-typedef meta_storage< meta_storage_aligned< meta_storage_base< 0U, layout_map< 0, 1, 2 >, false, int, int >,
-    aligned< 32 >,
-    halo< 0, 0, 0 > > > meta_t;
-#endif
+// #else
+// typedef meta_storage< meta_storage_aligned< meta_storage_base< static_uint<0>, layout_map< 0, 1, 2 >, false, int, int
+// >,
+//     aligned< 32 >,
+//     halo< 0, 0, 0 > > > meta_t;
+// #endif
 #else
 typedef backend< Host, structured, Naive > backend_t;
 typedef backend_t::storage_info< 0, layout_map< 0, 1, 2 > > meta_t;
@@ -108,26 +109,20 @@ TEST(test_global_accessor, boundary_conditions) {
 
     typedef arg<0, storage_type> p_sol;
 
-    aggregator_type<boost::mpl::vector<p_sol, p_bd> > domain ( boost::fusion::make_vector( &sol_, &bd_));
+    aggregator_type< boost::mpl::vector< p_sol, p_bd > > domain(boost::fusion::make_vector(&sol_, &bd_));
 
 /*****RUN 1 WITH bd int_value set to 20****/
 #ifdef CXX11_ENABLED
     auto
 #else
 #ifdef __CUDACC__
-    stencil*
+    stencil *
 #else
-        boost::shared_ptr<stencil>
+    boost::shared_ptr< stencil >
 #endif
 #endif
-        bc_eval = make_computation< backend_t >
-        (
-            domain, coords_bc
-            , make_multistage
-            (
-                execute<forward>(),
-                make_stage<functor>(p_sol(), p_bd()))
-            );
+        bc_eval = make_computation< backend_t >(
+            domain, coords_bc, make_multistage(execute< forward >(), make_stage< functor >(p_sol(), p_bd())));
 
     bc_eval->ready();
     bc_eval->steady();
@@ -181,8 +176,7 @@ TEST(test_global_accessor, boundary_conditions) {
                     value += 10.;
                     value += 30;
                 }
-                if(sol_(i,j,k) != value)
-                {
+                if (sol_(i, j, k) != value) {
                     result=false;
                 }
             }

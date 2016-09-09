@@ -54,7 +54,8 @@ namespace gridtools {
                 stencil,
             uint_t tsteps) {
             cache_flusher flusher(cache_flusher_size);
-            // we run a first time the stencil, since if there is data allocation before by other codes, the first run of the stencil
+            // we run a first time the stencil, since if there is data allocation before by other codes, the first run
+            // of the stencil
             // is very slow (we dont know why). The flusher should make sure we flush the cache
             stencil->run();
             flusher.flush();
@@ -64,7 +65,18 @@ namespace gridtools {
                 flusher.flush();
                 stencil->run();
             }
-            std::cout << stencil->print_meter() << std::endl;
+
+            double time = stencil->get_meter();
+            std::ostringstream out;
+            if (time < 0)
+                out << "\t[s]\t"
+                    << "NoName"
+                    << "NO_TIMES_AVAILABLE";
+            else
+                out << "NoName"
+                    << "\t[s]\t" << time;
+
+            std::cout << out.str() << std::endl;
         }
     };
 }

@@ -301,9 +301,10 @@ bool test(uint_t x, uint_t y, uint_t z)
     typedef boost::mpl::vector<p_temp, p_field1, p_field2, p_field3> accessor_list;
 
 #if defined( CXX11_ENABLED )
-    gridtools::aggregator_type<accessor_list> domain( (p_field1() = field1), (p_field2() = field2), (p_field3() = field3) );
+    gridtools::aggregator_type< accessor_list > domain(
+        (p_field1() = field1), (p_field2() = field2), (p_field3() = field3));
 #else
-    gridtools::aggregator_type<accessor_list> domain(boost::fusion::make_vector(&field1, &field2, &field3));
+    gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&field1, &field2, &field3));
 #endif
 
     uint_t di[5] = {halo_size, halo_size, halo_size, d1-halo_size-1, d1};
@@ -314,30 +315,25 @@ bool test(uint_t x, uint_t y, uint_t z)
     grid.value_list[1] = d3-1;
 
 #ifdef CXX11_ENABLED
-auto
+    auto
 #else
 #ifdef __CUDACC__
-    gridtools::stencil*
+    gridtools::stencil *
 #else
-        boost::shared_ptr<gridtools::stencil>
+    boost::shared_ptr< gridtools::stencil >
 #endif
 #endif
-    test_computation = gridtools::make_computation<the_backend>
-        (
-            domain, grid,
+        test_computation = gridtools::make_computation< the_backend >(
+            domain,
+            grid,
             gridtools::make_multistage // mss_descriptor
-            (
-                execute<forward>(),
-                gridtools::make_stage<function1>(p_temp(), p_field1()),
-                gridtools::make_stage<function2>(p_field2(), p_field1(), p_temp())
-            ),
+            (execute< forward >(),
+                gridtools::make_stage< function1 >(p_temp(), p_field1()),
+                gridtools::make_stage< function2 >(p_field2(), p_field1(), p_temp())),
             gridtools::make_multistage // mss_descriptor
-            (
-                execute<backward>(),
-                gridtools::make_stage<function1>(p_temp(), p_field1()),
-                gridtools::make_stage<function3>(p_field3(), p_temp(), p_field1())
-            )
-        );
+            (execute< backward >(),
+                gridtools::make_stage< function1 >(p_temp(), p_field1()),
+                gridtools::make_stage< function3 >(p_field3(), p_temp(), p_field1())));
 
     test_computation->ready();
 

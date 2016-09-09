@@ -37,7 +37,9 @@
 
 #include <gridtools.hpp>
 #include <stencil-composition/accessor.hpp>
+#ifdef CXX11_ENABLED
 #include <stencil-composition/expressions.hpp>
+#endif
 
 namespace interface {
     /** @brief simple interface
@@ -64,7 +66,7 @@ namespace interface {
 
     bool test_alternative2() {
 
-        constexpr x::Index i;
+        constexpr dimension< 1 >::Index i;
         constexpr dimension< 4 >::Index t;
         constexpr accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 4 > first(i - 5, t + 2, dimension< 3 >(8));
 
@@ -83,9 +85,9 @@ namespace interface {
         // mixing compile time and runtime values
         using t = dimension< 15 >;
         typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 15 > arg_t;
-        using alias_t = alias< arg_t, t, x, dimension< 7 > >::set< -3, 4, 2 >;
+        using alias_t = alias< arg_t, t, dimension< 1 >, dimension< 7 > >::set< -3, 4, 2 >;
 
-        alias_t first(dimension< 8 >(23), z(-5));
+        alias_t first(dimension< 8 >(23), dimension< 3 >(-5));
 
         GRIDTOOLS_STATIC_ASSERT(alias_t::get_constexpr< 14 >() == 4, "ERROR");
         return first.get< 14 - 6 >() == 2 && first.get< 14 - 0 >() == 4 && first.get< 14 - 14 >() == -3 &&
@@ -102,6 +104,8 @@ namespace interface {
 
         // mixing caompile time and runtime values
         using t = dimension< 15 >;
+        using x = dimension< 1 >;
+        using z = dimension< 3 >;
         typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 15 > arg_t;
         alias< arg_t, t > field1(-3); // records the offset -3 as dynamic values
         alias< arg_t, t > field2(-1); // records the offset -1 as static const

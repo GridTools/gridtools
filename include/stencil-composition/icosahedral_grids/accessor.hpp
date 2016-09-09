@@ -34,7 +34,6 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "extent.hpp"
 #include "../accessor_base.hpp"
 
 namespace gridtools {
@@ -83,7 +82,7 @@ namespace gridtools {
         constexpr explicit accessor(array< int_t, FieldDimensions > const &offsets) : super(offsets) {}
 
         template < uint_t Idx >
-        GT_FUNCTION constexpr accessor(dimension< Idx > const &x)
+        GT_FUNCTION constexpr accessor(dimension< Idx > x)
             : super(x) {}
     };
 

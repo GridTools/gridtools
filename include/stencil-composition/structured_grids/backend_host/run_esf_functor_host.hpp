@@ -66,7 +66,10 @@ namespace gridtools {
             typename boost::disable_if< typename EsfArguments::is_reduction_t, int >::type = 0) const {
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
             typedef typename EsfArguments::functor_t functor_t;
-            functor_t::f_type::Do(this->m_iterate_domain, IntervalType());
+
+            // GRIDTOOLS_STATIC_ASSERT(functor_t::repeat_t::value>0, "internal error");
+            _impl::call_repeated< functor_t::repeat_t::value, functor_t, iterate_domain_t, IntervalType >::Do(
+                this->m_iterate_domain);
         }
 
         /*
