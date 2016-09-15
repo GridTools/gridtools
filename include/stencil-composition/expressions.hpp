@@ -495,16 +495,15 @@ namespace gridtools {
     namespace expressions {
         /**Expressions defining the interface for specifiyng a given offset for a specified dimension
            \tparam Left: argument of type dimension<>, specifying the offset in the given direction*/
-        template < typename Left >
-        GT_FUNCTION constexpr Left operator+(Left d1, int const &offset) {
-            return Left(offset);
+        template < ushort_t Coordinate >
+        GT_FUNCTION constexpr dimension<Coordinate> operator+(dimension<Coordinate> d1, int const &offset) {
+            return dimension<Coordinate>(offset);
         }
 
-        template < typename Left >
-        GT_FUNCTION constexpr Left operator-(Left d1, int const &offset) {
-            return Left(-offset);
+        template < ushort_t Coordinate >
+        GT_FUNCTION constexpr dimension<Coordinate> operator-(dimension<Coordinate> d1, int const &offset) {
+            return dimension<Coordinate>(-offset);
         }
-
         /**@}*/
     } // namespace expressions
 
