@@ -3,11 +3,11 @@ if(NOT STRUCTURED_GRIDS)
 else()
 
   FILE(GLOB_RECURSE INC_ALL "*.hpp")
-  list( APPEND SRCFILES interface1 simple_hori_diff boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore alignment)
+  list( APPEND SRCFILES interface1 simple_hori_diff boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore alignment advection_pdbott_prepare_tracers)
   list( APPEND X86_SRCFILES reduction)
 
   if( ENABLE_CXX11)
-    list(APPEND SRCFILES  extended_4D  copy_stencil_single_storage)
+    list(APPEND SRCFILES  extended_4D  copy_stencil_single_storage  expandable_parameters expandable_parameters_single_kernel expandable_parameters_reassign_domain)
   endif()
 
   set( GTEST_FILES Options.hpp Options.cpp)
@@ -93,8 +93,7 @@ else()
           target_link_libraries(copy_stencil_parallel_cuda ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} )
         endif()
     endif()
-    
-    add_subdirectory( communication )
-  endif()  
-endif(NOT STRUCTURED_GRIDS)
 
+    add_subdirectory( communication )
+  endif()
+endif(NOT STRUCTURED_GRIDS)

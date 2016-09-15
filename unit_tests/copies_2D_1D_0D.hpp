@@ -202,7 +202,7 @@ namespace copy_stencils_3D_2D_1D_0D {
 #endif
             copy = gridtools::make_computation< gridtools::BACKEND >(domain,
                 grid_,
-                gridtools::make_multistage                                                         // mss_descriptor
+                gridtools::make_multistage                                                    // mss_descriptor
                 (execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out()) // esf_descriptor
                                                                          ));
 

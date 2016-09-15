@@ -64,8 +64,10 @@ namespace gridtools {
         typedef base_storage< PointerType, MetaData, FieldDimension > basic_type;
         typedef PointerType pointer_type;
         typedef typename pointer_type::pointee_t value_type;
-        typedef value_type *iterator_type;
-        typedef value_type const *const_iterator_type;
+        // consistency with STL
+        typedef value_type *iterator;
+        typedef value_type const *const_iterator;
+
         typedef MetaData storage_info_type;
         typedef typename MetaData::layout layout;
         static const bool is_temporary = storage_info_type::is_temporary;
@@ -139,14 +141,12 @@ namespace gridtools {
             if (FieldDimension > 1) {
                 allocate(FieldDimension, 1, true);
             }
-            is_set = true;
         }
 
         /**@brief destructor: frees the pointers to the data fields which are not managed outside */
         virtual ~base_storage() {
             delete[] m_name;
-            for (ushort_t i = 0; i < field_dimensions; ++i)
-                m_fields[i].free_it();
+            release();
         }
 
         void h2d_update() {
@@ -157,6 +157,16 @@ namespace gridtools {
         void d2h_update() {
             for (uint_t i = 0; i < field_dimensions; ++i)
                 m_fields[i].update_cpu();
+        }
+
+        void set_on_device() {
+            for (uint_t i = 0; i < field_dimensions; ++i)
+                m_fields[i].set_on_device();
+        }
+
+        void set_on_host() {
+            for (uint_t i = 0; i < field_dimensions; ++i)
+                m_fields[i].set_on_host();
         }
 
 #ifdef CXX11_ENABLED
@@ -181,8 +191,11 @@ namespace gridtools {
 
         /**@brief releasing the pointers to the data, and deleting them in case they need to be deleted */
         void release() {
-            for (ushort_t i = 0; i < field_dimensions; ++i)
-                m_fields[i].free_it();
+            if (is_set) {
+                for (ushort_t i = 0; i < field_dimensions; ++i)
+                    m_fields[i].free_it();
+                is_set = false;
+            }
         }
 
         /** @brief initializes with a constant value */
@@ -233,13 +246,13 @@ namespace gridtools {
 
         /**@brief get the name of the current field*/
         GT_FUNCTION
-        char const *const get_name() const { return m_name; }
+        char const *get_name() const { return m_name; }
 
         static void text() { std::cout << BOOST_CURRENT_FUNCTION << std::endl; }
 
         /** @brief returns the last memory address of the data field */
         GT_FUNCTION
-        const_iterator_type max_addr() const { return &((m_fields[field_dimensions - 1])[m_meta_data->size()]); }
+        const_iterator max_addr() const { return &((m_fields[field_dimensions - 1])[m_meta_data->size()]); }
 
         /** @brief returns (by reference) the value of the data field at the index "index_" */
         template < typename UInt >
@@ -355,13 +368,24 @@ namespace gridtools {
         GT_FUNCTION
         pointer< const storage_info_type > meta_data() const { return m_meta_data; }
 
+        GT_FUNCTION
         void set_meta_data(const storage_info_type *st) { m_meta_data = st; }
         /**
            @brief API for compatibility with backends other than host
            avoids the introduction of #ifdefs
          */
         void clone_to_device() {}
-    }; // closing struct base_storage
+
+        GT_FUNCTION
+        void set_externally_managed(bool val_) {
+            for (ushort_t i = 0; i < field_dimensions; ++i) {
+                m_fields[i].set_externally_managed(val_);
+            }
+        }
+
+        GT_FUNCTION
+        void unset() { is_set = false; }
+    };
 
     /** \addtogroup specializations Specializations
             Partial specializations

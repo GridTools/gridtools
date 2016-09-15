@@ -47,7 +47,7 @@
 #include "storage/storage.hpp"
 #include "storage/storage_metafunctions.hpp"
 
-#include "../common/offset_tuple.hpp"
+#include "../common/offset_tuple_mixed.hpp"
 #include "stencil-composition/extent.hpp"
 
 #ifdef CXX11_ENABLED
@@ -206,13 +206,31 @@ namespace gridtools {
 
         template < short_t Idx >
         GT_FUNCTION constexpr int_t get() const {
-            GRIDTOOLS_STATIC_ASSERT(Idx <= n_dim, "requested accessor index larger than the available dimensions");
-            GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
+            GRIDTOOLS_STATIC_ASSERT(
+                Idx < 0 || Idx <= n_dim, "requested accessor index larger than the available dimensions");
+            // the assert below is triggered when the accessor has a lower dimensionality than the layout
+            // GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
             return m_offsets.template get< Idx >();
         }
 
+        template < short_t Idx >
+        GT_FUNCTION void set(uint_t offset_) {
+            GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
+            GRIDTOOLS_STATIC_ASSERT(
+                Idx < 0 || Idx <= n_dim, "requested accessor index larger than the available dimensions");
+            m_offsets.template set< Idx >(offset_);
+        }
+
         GT_FUNCTION
-        constexpr const offset_tuple< n_dim, n_dim > &offsets() const { return m_offsets; }
+        offset_tuple_t &offsets() { return m_offsets; }
+
+        GT_FUNCTION
+        constexpr const offset_tuple_t &offsets() const { return m_offsets; }
+
+        template < ushort_t Idx >
+        GT_FUNCTION void increment(int_t offset_) {
+            m_offsets.template increment< Idx >(offset_);
+        }
     };
 
     //################################################################################
@@ -237,31 +255,8 @@ namespace gridtools {
     template < typename T >
     struct is_plchldr_to_temp : boost::mpl::false_ {};
 
-    /**
-     * Struct to test if an argument (placeholder) is a temporary no_storage_type_yet - Specialization yielding true
-     */
-    template < uint_t I, typename T, typename C >
-    struct is_plchldr_to_temp< arg< I, no_storage_type_yet< T >, C > > : boost::true_type {};
-
-    /**
-     * Struct to test if an argument is a placeholder to a temporary storage
-     */
-    template < uint_t I, typename T, typename U, ushort_t Dim, typename C >
-    struct is_plchldr_to_temp< arg< I, base_storage< T, U, Dim >, C > > : boost::mpl::bool_< U::is_temporary > {};
-
-    /**
-     * Struct to test if an argument is a temporary
-     no_storage_type_yet - Specialization for a decorator of the
-     storage class, falls back on the original class type here the
-     decorator is the \ref gridtools::storage
-    */
-    template < uint_t I, typename BaseType, template < typename T > class Decorator, typename C >
-    struct is_plchldr_to_temp< arg< I, Decorator< BaseType >, C > >
-        : is_plchldr_to_temp< arg< I, typename BaseType::basic_type, C > > {};
-
-    template < uint_t I, typename BaseType, typename C >
-    struct is_plchldr_to_temp< arg< I, storage< BaseType >, C > >
-        : is_plchldr_to_temp< arg< I, typename BaseType::basic_type, C > > {};
+    template < uint_t ID, typename T, typename Condition >
+    struct is_plchldr_to_temp< arg< ID, T, Condition > > : public is_temporary_storage< T > {};
 
     template < typename T >
     struct global_parameter;

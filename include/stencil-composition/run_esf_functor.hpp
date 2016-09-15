@@ -35,6 +35,11 @@
 */
 #pragma once
 #include <boost/mpl/at.hpp>
+#ifdef STRUCTURED_GRIDS
+#include "expandable_parameters/iterate_domain_expandable_parameters.hpp"
+#else
+#include "icosahedral_grids/iterate_domain_expandable_parameters.hpp"
+#endif
 #include "run_functor_arguments.hpp"
 
 namespace gridtools {
@@ -52,6 +57,27 @@ namespace gridtools {
         template < typename RunFunctorArguments, typename Interval, template < typename, typename > class Impl >
         struct run_esf_functor_interval< Impl< RunFunctorArguments, Interval > > {
             typedef Interval type;
+        };
+
+        template < ushort_t ID, typename Functor, typename IterateDomain, typename Interval >
+        struct call_repeated {
+          public:
+            GT_FUNCTION
+            static void Do(IterateDomain &it_domain_) {
+
+                Functor::f_type::Do(
+                    *static_cast< iterate_domain_expandable_parameters< IterateDomain, ID > * >(&it_domain_),
+                    Interval());
+
+                call_repeated< ID - 1, Functor, IterateDomain, Interval >::Do(it_domain_);
+            }
+        };
+
+        template < typename Functor, typename IterateDomain, typename Interval >
+        struct call_repeated< 0, Functor, IterateDomain, Interval > {
+          public:
+            GT_FUNCTION
+            static void Do(IterateDomain &it_domain_) {}
         };
     }
 

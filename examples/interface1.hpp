@@ -119,10 +119,10 @@ namespace horizontal_diffusion {
     struct out_function {
 
         typedef accessor< 0, enumtype::inout > out;
-        typedef accessor< 1 > in;
+        typedef accessor< 1, enumtype::in > in;
         typedef accessor< 2, enumtype::in, extent< -1, 0, 0, 0 > > flx;
         typedef accessor< 3, enumtype::in, extent< 0, 0, -1, 0 > > fly;
-        typedef accessor< 4 > coeff;
+        typedef accessor< 4, enumtype::in > coeff;
 
         typedef boost::mpl::vector< out, in, flx, fly, coeff > arg_list;
 
@@ -236,7 +236,7 @@ namespace horizontal_diffusion {
                 (execute< forward >(),
                     define_caches(cache< IJ, local >(p_lap(), p_flx(), p_fly())),
                     gridtools::make_stage< lap_function >(p_lap(), p_in()), // esf_descriptor
-                    gridtools::make_independent                           // independent_esf
+                    gridtools::make_independent                             // independent_esf
                     (gridtools::make_stage< flx_function >(p_flx(), p_in(), p_lap()),
                         gridtools::make_stage< fly_function >(p_fly(), p_in(), p_lap())),
                     gridtools::make_stage< out_function >(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));

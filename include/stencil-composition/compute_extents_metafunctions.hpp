@@ -59,6 +59,41 @@
 
 namespace gridtools {
 
+    template < typename Storage, uint_t >
+    struct expandable_parameters;
+
+    /**substituting the std::vector type in the args<> with a correspondent
+       expandable_parameter placeholder*/
+    template < uint_t Size >
+    struct substitute_expandable_param {
+
+        template < typename Placeholder >
+        struct apply {
+            typedef Placeholder type;
+        };
+
+        template < ushort_t ID, typename Storage >
+        struct apply< arg< ID, std::vector< pointer< storage< Storage > > > > > {
+            typedef arg< ID, storage< expandable_parameters< typename Storage::basic_type, Size > > > type;
+        };
+
+        template < ushort_t ID, typename Storage >
+        struct apply< arg< ID, std::vector< pointer< no_storage_type_yet< storage< Storage > > > > > > {
+            typedef arg< ID,
+                no_storage_type_yet< storage< expandable_parameters< typename Storage::basic_type, Size > > > > type;
+        };
+
+        template < typename Arg, typename Extent >
+        struct apply< boost::mpl::pair< Arg, Extent > > {
+            typedef boost::mpl::pair< typename apply< Arg >::type, Extent > type;
+        };
+    };
+
+    template < typename PlaceholderArray, uint_t Size >
+    struct substitute_expandable_params {
+        typedef typename boost::mpl::transform< PlaceholderArray, substitute_expandable_param< Size > >::type type;
+    };
+
     /** This funciton initializes the map between placeholders and extents by
         producing an mpl::map where the keys are the elements of PlaceholdersVector,
         while the values are all InitExtent.
@@ -88,7 +123,7 @@ namespace gridtools {
 
        \tparam PlaceholdersMap placeholders to extents map from where to start
      */
-    template < typename PlaceholdersMap >
+    template < typename PlaceholdersMap, uint_t RepeatFunctor >
     struct compute_extents_of {
 
         /**
@@ -115,6 +150,10 @@ namespace gridtools {
             struct work_on {
                 template < typename PlcRangePair, typename CurrentMap >
                 struct with {
+
+                    GRIDTOOLS_STATIC_ASSERT((is_extent< CurrentRange >::value), "wrong type");
+                    GRIDTOOLS_STATIC_ASSERT((is_extent< typename PlcRangePair::second >::value), "wrong type");
+
                     typedef typename sum_extent< CurrentRange, typename PlcRangePair::second >::type candidate_extent;
                     typedef typename enclosing_extent< candidate_extent,
                         typename boost::mpl::at< CurrentMap, typename PlcRangePair::first >::type >::type extent;
@@ -140,6 +179,8 @@ namespace gridtools {
             template < typename Output, typename Inputs, typename CurrentMap >
             struct for_each_output {
                 typedef typename boost::mpl::at< CurrentMap, typename Output::first >::type current_extent;
+
+                GRIDTOOLS_STATIC_ASSERT((is_extent< current_extent >::value), "wrong type");
 
                 typedef typename boost::mpl::fold< Inputs,
                     CurrentMap,
@@ -220,7 +261,9 @@ namespace gridtools {
                 typedef typename boost::mpl::pop_front< ESFs >::type rest_of_ESFs;
 
                 // First determine which are the outputs
-                typedef typename esf_get_w_per_functor< current_ESF, boost::true_type >::type outputs;
+                typedef typename esf_get_w_per_functor< current_ESF, boost::true_type >::type outputs_original;
+                // substitute the types for expandable parameters arg
+                typedef typename substitute_expandable_params< outputs_original, RepeatFunctor >::type outputs;
                 GRIDTOOLS_STATIC_ASSERT((check_all_extents_are< outputs, extent<> >::type::value),
                     "Extents of the outputs of ESFs are not all empty. All outputs must have empty extents");
 
@@ -305,7 +348,7 @@ namespace gridtools {
         \tparam GridTraits The traits of the grids
         \tparam Placeholders The placeholders used in the computation
      */
-    template < typename MssDescriptorArray, typename GridTraits, typename Placeholders >
+    template < typename MssDescriptorArray, typename GridTraits, typename Placeholders, uint_t RepeatFunctor >
     struct placeholder_to_extent_map {
 
       private:
@@ -331,14 +374,15 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_mss_descriptor< Mss >::value || is_reduction_descriptor< Mss >::value), "Internal Error");
 
-            typedef typename mss_compute_extent_sizes_t::template apply< CurrentMap, Mss >::type type;
+            typedef typename mss_compute_extent_sizes_t::template apply< CurrentMap, Mss, RepeatFunctor >::type type;
         };
 
         // The case of conditionals
         template < typename CurrentMap, typename Mss1, typename Mss2, typename Cond >
         struct update_map< CurrentMap, condition< Mss1, Mss2, Cond > > {
-            typedef typename mss_compute_extent_sizes_t::template apply< CurrentMap, Mss1 >::type FirstMap;
-            typedef typename mss_compute_extent_sizes_t::template apply< FirstMap, Mss2 >::type type;
+            typedef
+                typename mss_compute_extent_sizes_t::template apply< CurrentMap, Mss1, RepeatFunctor >::type FirstMap;
+            typedef typename mss_compute_extent_sizes_t::template apply< FirstMap, Mss2, RepeatFunctor >::type type;
         };
 
         // we need to iterate over the multistage computations in the computation and
@@ -374,8 +418,11 @@ namespace gridtools {
 
        \tparam MssDescriptorArrayElements The ::elements in a MSS descriptor
        \tparam ExtentsMap Map between placeholders and extents that will be then associated to stencil operators
+       \tparam RepeatFunctor stating how many times the user function should be repeated (when using expandable
+       parameters). This argument is used to substitute the user types (std::vector of storages) with expandable
+       parameters when necessary.
      */
-    template < typename MssDescriptorArrayElements, typename ExtentsMap >
+    template < typename MssDescriptorArrayElements, typename ExtentsMap, uint_t RepeatFunctor >
     struct associate_extents_to_esfs {
 
       private:
@@ -404,7 +451,9 @@ namespace gridtools {
 
                 GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), "Wrong type");
 
-                typedef typename esf_get_w_per_functor< Esf >::type w_plcs;
+                typedef typename esf_get_w_per_functor< Esf >::type w_plcs_original;
+                // substitute the types for expandable parameters arg
+                typedef typename substitute_expandable_params< w_plcs_original, RepeatFunctor >::type w_plcs;
                 typedef typename boost::mpl::at_c< w_plcs, 0 >::type first_out;
                 typedef typename boost::mpl::at< MapOfPlaceholders, first_out >::type extent;
                 // TODO recover
@@ -439,7 +488,8 @@ namespace gridtools {
 
             template < typename Esf >
             struct get_extent_for {
-                typedef typename esf_args< Esf >::type w_plcs;
+                typedef typename esf_args< Esf >::type w_plcs_original;
+                typedef typename substitute_expandable_params< w_plcs_original, RepeatFunctor >::type w_plcs;
                 typedef typename boost::mpl::at_c< w_plcs, 0 >::type first_out;
                 typedef typename boost::mpl::at< MapOfPlaceholders, first_out >::type extent;
 
@@ -466,10 +516,10 @@ namespace gridtools {
             type;
     };
 
-    template < typename Mss1, typename Mss2, typename Cond, typename ExtentsMap >
-    struct associate_extents_to_esfs< condition< Mss1, Mss2, Cond >, ExtentsMap > {
-        typedef typename associate_extents_to_esfs< Mss1, ExtentsMap >::type type1;
-        typedef typename associate_extents_to_esfs< Mss2, ExtentsMap >::type type2;
+    template < typename Mss1, typename Mss2, typename Cond, typename ExtentsMap, uint_t RepeatFunctor >
+    struct associate_extents_to_esfs< condition< Mss1, Mss2, Cond >, ExtentsMap, RepeatFunctor > {
+        typedef typename associate_extents_to_esfs< Mss1, ExtentsMap, RepeatFunctor >::type type1;
+        typedef typename associate_extents_to_esfs< Mss2, ExtentsMap, RepeatFunctor >::type type2;
         typedef condition< type1, type2, Cond > type;
     };
 
