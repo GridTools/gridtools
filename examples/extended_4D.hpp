@@ -113,13 +113,13 @@ namespace assembly {
         using quad = dimension< 4 >;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-            dimension< 1 >::Index i;
-            dimension< 2 >::Index j;
-            dimension< 3 >::Index k;
-            dimension< 4 >::Index di;
-            dimension< 5 >::Index dj;
-            dimension< 6 >::Index dk;
-            quad::Index qp;
+            x i;
+            y j;
+            z k;
+            dimension< 4 > di;
+            dimension< 5 > dj;
+            dimension< 6 > dk;
+            quad qp;
             // projection of f on a (e.g.) P1 FE space:
             // loop on quadrature nodes, and on nodes of the P1 element (i,j,k) with i,j,k\in {0,1}
             // computational complexity in the order of  {(I) x (J) x (K) x (i) x (j) x (k) x (nq)}
@@ -127,21 +127,25 @@ namespace assembly {
                 for (short_t J = 0; J < 2; ++J)
                     for (short_t K = 0; K < 2; ++K) {
                         // check the initialization to 0
-                        assert(eval(result{di + I, dj + J, dk + K}) == 0.);
+                        assert(eval(result{i, j, k, di + I, dj + J, dk + K}) == 0.);
                         for (short_t q = 0; q < 2; ++q) {
-                            eval(result{di + I, dj + J, dk + K}) +=
-                                eval(!phi{i + I, j + J, k + K, qp + q} * !psi{qp + q} * jac{qp + q} * f{} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, qp + q} * jac{qp + q} * f{di + 1} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{j + 1, qp + q} * jac{qp + q} * f{dj + 1} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{k + 1, qp + q} * jac{qp + q} * f{dk + 1} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j + 1, qp + q} * jac{qp + q} *
-                                         f{di + 1, dj + 1} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, k + 1, qp + q} * jac{qp + q} *
-                                         f{di + 1, dk + 1} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{j + 1, k + 1, qp + q} * jac{qp + q} *
-                                         f{dj + 1, dk + 1} +
+                            eval(result{di + I, dj + J, dk + K, qp}) +=
+                                eval(!phi{i + I, j + J, k + K, qp + q} * !psi{i, j, k, qp + q} * jac{i, j, k, qp + q} *
+                                         f{i, j, k, di, dj, dk} +
+                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j, k, qp + q} *
+                                         jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj, dk} +
+                                     !phi{i + I, j + J, k + K, qp + q} * !psi{j + 1, j, k, qp + q} *
+                                         jac{i, j, k, qp + q} * f{i, j, k, di, dj + 1, dk} +
+                                     !phi{i + I, j + J, k + K, qp + q} * !psi{k + 1, j, k, qp + q} *
+                                         jac{i, j, k, qp + q} * f{i, k, k, di, dj, dk + 1} +
+                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j + 1, k, qp + q} *
+                                         jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj + 1, dk} +
+                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j, k + 1, qp + q} *
+                                         jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj, dk + 1} +
+                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i, j + 1, k + 1, qp + q} *
+                                         jac{i, j, k, qp + q} * f{i, j, k, di, dj + 1, dk + 1} +
                                      !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j + 1, k + 1, qp + q} *
-                                         jac{qp + q} * f{di + 1, dj + 1, dk + 1}) /
+                                         jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj + 1, dk + 1}) /
                                 8;
                         }
                     }
@@ -217,7 +221,7 @@ namespace assembly {
             fe_comp = make_computation< gridtools::BACKEND >(
                 domain,
                 grid,
-                make_multistage        //! \todo all the arguments in the call to make_mss are actually dummy.
+                make_multistage               //! \todo all the arguments in the call to make_mss are actually dummy.
                 (execute< forward >(), //!\todo parameter used only for overloading purpose?
                     make_stage< integration >(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
 

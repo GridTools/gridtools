@@ -92,24 +92,9 @@ namespace gridtools {
         GT_FUNCTION
         constexpr accessor() : super() {}
 
-#ifndef __CUDACC__
         /**inheriting all constructors from offset_tuple*/
         using super::accessor_base;
-#else
-        /**@brief constructor forwarding all the arguments
-        */
-        template < typename... ForwardedArgs >
-        GT_FUNCTION constexpr accessor(ForwardedArgs... x)
-            : super(x...) {}
 
-        // move ctor
-        GT_FUNCTION
-        constexpr explicit accessor(accessor< ID, Intend, Extent, Number > &&other) : super(std::move(other)) {}
-
-        // copy ctor
-        GT_FUNCTION
-        constexpr accessor(accessor< ID, Intend, Extent, Number > const &other) : super(other) {}
-#endif
 #else
 
         // copy ctor

@@ -60,14 +60,11 @@ namespace test_cycle_and_swap {
         }
     };
 
+    constexpr x i;
+
     struct functor_avg {
         typedef inout_accessor< 0, extent<>, 4 > p_data;
         typedef dimension< 4 > time;
-        static dimension< 1 >::Index i;
-        static dimension< 2 >::Index j;
-
-        typedef decltype(i) i_t;
-        typedef decltype(j) j_t;
 
         typedef boost::mpl::vector< p_data > arg_list;
         template < typename Evaluation >
@@ -75,9 +72,6 @@ namespace test_cycle_and_swap {
             eval(p_data(time(1))) = (eval(p_data(i - 1)) + eval(p_data(i + 1))) * (float_t)0.5;
         }
     };
-
-    functor_avg::i_t functor_avg::i;
-    functor_avg::j_t functor_avg::j;
 
 #ifdef __CUDACC__
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
@@ -113,9 +107,8 @@ namespace test_cycle_and_swap {
 
         aggregator_type< accessor_list > domain(boost::fusion::make_vector(&i_data));
 
-        auto comp = gridtools::make_computation< gridtools::BACKEND >(domain,
-            grid,
-            gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor >(p_i_data())));
+        auto comp = gridtools::make_computation< gridtools::BACKEND >(
+            domain, grid, gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor >(p_i_data())));
 
         comp->ready();
         comp->steady();
@@ -163,9 +156,8 @@ namespace test_cycle_and_swap {
 
         aggregator_type< accessor_list > domain(boost::fusion::make_vector(&i_data));
 
-        auto comp = gridtools::make_computation< gridtools::BACKEND >(domain,
-            grid,
-            gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor_avg >(p_i_data())));
+        auto comp = gridtools::make_computation< gridtools::BACKEND >(
+            domain, grid, gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor_avg >(p_i_data())));
 
         // fill the input (snapshot 0) with some initial data
         for (uint_t i = 0; i < d1; ++i) {

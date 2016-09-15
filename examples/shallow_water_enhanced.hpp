@@ -108,17 +108,10 @@ namespace shallow_water {
         GT_FUNCTION
         static float_type g() { return 9.81; }
 
-        //! [index]
-        static x::Index i;
-        static y::Index j;
-        //! [index]
-
-        typedef decltype(i) i_t;
-        typedef decltype(j) j_t;
     };
-    functor_traits::i_t functor_traits::i;
-    functor_traits::j_t functor_traits::j;
-    // [functor_traits]
+
+    constexpr x i;
+    constexpr y j;
 
     template < uint_t Component = 0, uint_t Snapshot = 0 >
     struct bc_periodic : functor_traits {
@@ -176,8 +169,8 @@ namespace shallow_water {
 
             const float_type &tl = 2.;
 #ifndef CUDA8
-            comp::Index c;
-            x::Index i;
+            comp c;
+            x i;
             //! [expression]
             eval(tmpx()) =
                 eval((sol(i - 0) + sol(i - 1)) / tl - (sol(c + 1) - sol(c + 1, i - 1)) * (dt() / (2 * dx())));

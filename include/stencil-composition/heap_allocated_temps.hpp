@@ -130,7 +130,7 @@ namespace gridtools {
                     instantiate_tmps(metadata_,
                                             grid.direction_i().total_length(),
                                             grid.direction_j().total_length(),
-                                            grid.value_at_top() - grid.value_at_bottom() + 1));
+                                            grid.value_at_top() + 1));
             }
         };
 
@@ -208,7 +208,7 @@ namespace gridtools {
                     instantiate_tmps(metadata_,
                                             grid.i_low_bound(),
                                             grid.j_low_bound(),
-                                            grid.value_at_top() - grid.value_at_bottom() + 1,
+                                            grid.value_at_top() + 1,
                                             backend_type::n_i_pes()(grid.i_high_bound() - grid.i_low_bound()),
                                             backend_type::n_j_pes()(grid.j_high_bound() - grid.j_low_bound())));
             }
