@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 
 #ifdef VERBOSE
@@ -138,7 +173,7 @@ namespace gridtools {
                 typedef typename boost::mpl::find_if< tmppairs, has_index_< index > >::type iter;
 
                 GRIDTOOLS_STATIC_ASSERT((!boost::is_same< iter, typename boost::mpl::end< tmppairs >::type >::value),
-                    "Could not find a temporary, defined in the user domain_type, in the list of storage types used in "
+                    "Could not find a temporary, defined in the user aggregator_type, in the list of storage types used in "
                     "all mss/esfs. \n"
                     " Check that all temporaries are actually used in at least one user functor");
 
@@ -215,7 +250,7 @@ namespace gridtools {
         static uint_t apply(ArgListType &storage_pointers, MetaData &meta_data_, DomainType &domain) {
 
             // TODO check the type of ArgListType and MetaData
-            GRIDTOOLS_STATIC_ASSERT(is_domain_type< DomainType >::value, "wrong domain type");
+            GRIDTOOLS_STATIC_ASSERT(is_aggregator_type< DomainType >::value, "wrong domain type");
 
             // copy pointers into the domain original pointers, except for the temporaries.
             boost::mpl::for_each< boost::mpl::range_c< int, 0, boost::mpl::size< ArgListType >::value > >(
@@ -238,7 +273,7 @@ namespace gridtools {
         static int_t apply(ArgListType const &storage_pointers, MetaData const &meta_data_, DomainType &domain) {
 
             // TODO check the type of ArgListType and MetaData
-            GRIDTOOLS_STATIC_ASSERT(is_domain_type< DomainType >::value, "wrong domain type");
+            GRIDTOOLS_STATIC_ASSERT(is_aggregator_type< DomainType >::value, "wrong domain type");
 
             return GT_NO_ERRORS;
         }
@@ -257,7 +292,7 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT(
             (is_meta_array_of< MssComponentsArray, is_mss_components >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_domain_type< DomainType >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), "Internal Error: wrong type");
 
         GRIDTOOLS_STATIC_ASSERT((is_metadata_set< ActualMetadataListType >::value), "Internal Error: wrong type");
 
@@ -317,7 +352,7 @@ namespace gridtools {
     struct create_actual_arg_list {
         // GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error:
         // wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_domain_type< DomainType >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), "Internal Error: wrong type");
 
         /**
          * Takes the domain list of storage pointer types and transform
@@ -432,7 +467,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(
             (is_meta_array_of< MssDescriptorArray, is_amss_descriptor >::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_domain_type< DomainType >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
         // GRIDTOOLS_STATIC_ASSERT((is_conditionals_set<ConditionalsSet>::value), "Internal Error: wrong type");
 
@@ -575,7 +610,7 @@ namespace gridtools {
             t_domain_meta_view domain_meta_view(domain.m_metadata_set.sequence_view());
             t_meta_view meta_view(m_actual_metadata_list.sequence_view());
 
-            // get the storage metadatas from the domain_type
+            // get the storage metadatas from the aggregator_type
             boost::fusion::copy(domain_meta_view, meta_view);
         }
         /**
@@ -669,6 +704,7 @@ namespace gridtools {
 
         virtual double get_meter() { return m_meter.total_time(); }
 
+        virtual void reset_meter() { m_meter.reset(); }
         mss_local_domain_list_t const &mss_local_domain_list() const { return m_mss_local_domain_list; }
     };
 

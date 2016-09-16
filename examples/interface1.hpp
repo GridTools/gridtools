@@ -1,15 +1,45 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 
 #include <stencil-composition/stencil-composition.hpp>
 #include "horizontal_diffusion_repository.hpp"
-#include "./cache_flusher.hpp"
 #include "./defs.hpp"
 #include <tools/verifier.hpp>
-
-#ifdef USE_PAPI_WRAP
-#include <papi_wrap.hpp>
-#include <papi.hpp>
-#endif
+#include "benchmarker.hpp"
 
 /**
   @file
@@ -117,12 +147,7 @@ namespace horizontal_diffusion {
 
     void handle_error(int) { std::cout << "error" << std::endl; }
 
-    bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps) {
-
-#ifdef USE_PAPI_WRAP
-        int collector_init = pw_new_collector("Init");
-        int collector_execute = pw_new_collector("Execute");
-#endif
+    bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps, bool verify) {
 
         uint_t d1 = x;
         uint_t d2 = y;
@@ -171,9 +196,9 @@ namespace horizontal_diffusion {
 // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I
 // don't particularly like this)
 #if defined(CXX11_ENABLED)
-        gridtools::domain_type< accessor_list > domain((p_out() = out), (p_in() = in), (p_coeff() = coeff));
+        gridtools::aggregator_type< accessor_list > domain((p_out() = out), (p_in() = in), (p_coeff() = coeff));
 #else
-        gridtools::domain_type< accessor_list > domain(boost::fusion::make_vector(&coeff, &in, &out));
+        gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&coeff, &in, &out));
 #endif
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
@@ -185,28 +210,6 @@ namespace horizontal_diffusion {
         gridtools::grid< axis > grid(di, dj);
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
-
-#ifdef USE_PAPI
-        int event_set = PAPI_NULL;
-        int retval;
-        long long values[1] = {-1};
-
-        /* Initialize the PAPI library */
-        retval = PAPI_library_init(PAPI_VER_CURRENT);
-        if (retval != PAPI_VER_CURRENT) {
-            fprintf(stderr, "PAPI library init error!\n");
-            exit(1);
-        }
-
-        if (PAPI_create_eventset(&event_set) != PAPI_OK)
-            handle_error(1);
-        if (PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) // floating point operations
-            handle_error(1);
-#endif
-
-#ifdef USE_PAPI_WRAP
-        pw_start_collector(collector_init);
-#endif
 
 /*
   Here we do lot of stuff
@@ -229,90 +232,51 @@ namespace horizontal_diffusion {
             horizontal_diffusion = gridtools::make_computation< gridtools::BACKEND >(
                 domain,
                 grid,
-                gridtools::make_mss // mss_descriptor
+                gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
                     define_caches(cache< IJ, local >(p_lap(), p_flx(), p_fly())),
-                    gridtools::make_esf< lap_function >(p_lap(), p_in()), // esf_descriptor
+                    gridtools::make_stage< lap_function >(p_lap(), p_in()), // esf_descriptor
                     gridtools::make_independent                           // independent_esf
-                    (gridtools::make_esf< flx_function >(p_flx(), p_in(), p_lap()),
-                        gridtools::make_esf< fly_function >(p_fly(), p_in(), p_lap())),
-                    gridtools::make_esf< out_function >(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));
+                    (gridtools::make_stage< flx_function >(p_flx(), p_in(), p_lap()),
+                        gridtools::make_stage< fly_function >(p_fly(), p_in(), p_lap())),
+                    gridtools::make_stage< out_function >(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));
 
         horizontal_diffusion->ready();
-
         horizontal_diffusion->steady();
-
-#ifdef USE_PAPI_WRAP
-        pw_stop_collector(collector_init);
-#endif
-
-#ifdef USE_PAPI
-        if (PAPI_start(event_set) != PAPI_OK)
-            handle_error(1);
-#endif
-#ifdef USE_PAPI_WRAP
-        pw_start_collector(collector_execute);
-#endif
-        cache_flusher flusher(cache_flusher_size);
-
-        for (uint_t t = 0; t < t_steps; ++t) {
-            flusher.flush();
-            horizontal_diffusion->run();
-        }
-
-#ifdef USE_PAPI
-        double dummy = 0.5;
-        if (PAPI_read(event_set, values) != PAPI_OK)
-            handle_error(1);
-        printf("%f After reading the counters: %lld\n", dummy, values[0]);
-        PAPI_stop(event_set, values);
-#endif
-#ifdef USE_PAPI_WRAP
-        pw_stop_collector(collector_execute);
-#endif
+        horizontal_diffusion->run();
 
 #ifdef __CUDACC__
         repository.update_cpu();
 #endif
 
+        bool result = true;
+
+        if (verify) {
 #ifdef CXX11_ENABLED
 #if FLOAT_PRECISION == 4
-        verifier verif(1e-6);
+            verifier verif(1e-6);
 #else
-        verifier verif(1e-12);
+            verifier verif(1e-12);
 #endif
-        array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
-        bool result = verif.verify(grid, repository.out_ref(), repository.out(), halos);
+            array< array< uint_t, 2 >, 3 > halos{
+                {{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
+            result = verif.verify(grid, repository.out_ref(), repository.out(), halos);
 #else
 #if FLOAT_PRECISION == 4
-        verifier verif(1e-6, halo_size);
+            verifier verif(1e-6, halo_size);
 #else
-        verifier verif(1e-12, halo_size);
+            verifier verif(1e-12, halo_size);
 #endif
-        bool result = verif.verify(grid, repository.out_ref(), repository.out());
+            result = verif.verify(grid, repository.out_ref(), repository.out());
 #endif
-
-        if (!result) {
-            std::cout << "ERROR" << std::endl;
         }
 
 #ifdef BENCHMARK
-        for (uint_t t = 1; t < t_steps; ++t) {
-            flusher.flush();
-            horizontal_diffusion->run();
-        }
+        benchmarker::run(horizontal_diffusion, t_steps);
 #endif
-
         horizontal_diffusion->finalize();
-#ifdef BENCHMARK
-        std::cout << horizontal_diffusion->print_meter() << std::endl;
-#endif
 
-#ifdef USE_PAPI_WRAP
-        pw_print();
-#endif
-
-        return result; /// lapse_time.wall<5000000 &&
+        return result;
     }
 
 } // namespace horizontal_diffusion
