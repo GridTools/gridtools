@@ -24,6 +24,7 @@ endforeach(srcfile)
 
 if(CUDA_FOUND)
     foreach(srcfile IN LISTS SRCFILES MPISRCFILES )
+         set(CUDA_SEPARABLE_COMPILATION OFF)
          cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu ${GTEST_FILES})
          set_target_properties(${srcfile}_cuda PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
          target_link_libraries(${srcfile}_cuda ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} )

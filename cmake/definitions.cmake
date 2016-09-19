@@ -72,6 +72,7 @@ if( USE_GPU )
   find_package(CUDA REQUIRED)
   string(REPLACE "." "" CUDA_VERSION ${CUDA_VERSION})
   add_definitions(-DCUDA_VERSION=${CUDA_VERSION})
+  set(CUDA_SEPARABLE_COMPILATION OFF)
   set(CUDA_PROPAGATE_HOST_FLAGS OFF)
   if( ${CUDA_VERSION} VERSION_GREATER "60")
       if (NOT ENABLE_CXX11 )
@@ -244,4 +245,4 @@ endif(ENABLE_PYTHON)
 # cuda compilation should have the same 
 # flags as gcc/clang compilation, just forward
 # them.
-set(CUDA_NVCC_FLAGS "${CMAKE_CXX_FLAGS}" "${CUDA_NVCC_FLAGS}" )
+set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "${CMAKE_CXX_FLAGS}" )

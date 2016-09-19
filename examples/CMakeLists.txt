@@ -70,6 +70,7 @@ else()
     else()
 
         foreach(srcfile IN LISTS SRCFILES )
+             set(CUDA_SEPARABLE_COMPILATION OFF)
              cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu ${GTEST_FILES})
              target_link_libraries(${srcfile}_cuda ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} )
 

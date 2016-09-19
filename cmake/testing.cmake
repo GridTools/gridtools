@@ -150,6 +150,7 @@ function(fetch_gpu_tests subfolder)
             # set binary output name and dir
             set(exe ${CMAKE_CURRENT_BINARY_DIR}/${unit_test})
             # create the gpu test
+            set(CUDA_SEPARABLE_COMPILATION OFF)
             cuda_add_executable (${unit_test} ${test_source})
             set_target_properties(${unit_test} PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS} LINKER_LANGUAGE CXX )            
             target_link_libraries(${unit_test} ${exe_LIBS} libgtest libgtest_main libgmock)
@@ -189,6 +190,7 @@ function(add_custom_gpu_test name sources cc_flags ld_flags)
     # set binary output name and dir
     set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
     # create the test
+    set(CUDA_SEPARABLE_COMPILATION OFF)
     cuda_add_executable (${name} ${test_source})
     set(cflags ${CMAKE_CXX_FLAGS} ${cc_flags})
     set_target_properties(${name} PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS} "${cflags}" LINK_FLAGS "${ld_flags}" LINKER_LANGUAGE CXX )            
