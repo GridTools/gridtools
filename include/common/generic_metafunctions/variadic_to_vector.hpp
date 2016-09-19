@@ -57,12 +57,12 @@ namespace gridtools {
 
     template < class T >
     struct variadic_to_vector< T > {
-        typedef boost::mpl::vector< T > type;
+        typedef boost::mpl::vector1< T > type;
     };
 
     template <>
     struct variadic_to_vector<> {
-        typedef boost::mpl::vector<> type;
+        typedef boost::mpl::vector0<> type;
     };
 
 #endif

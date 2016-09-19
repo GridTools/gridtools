@@ -103,8 +103,7 @@ bool test_domain_indices() {
 
     typedef boost::mpl::vector<p_lap, p_flx, p_fly, p_coeff, p_in, p_out> accessor_list;
 
-    aggregator_type<accessor_list> domain
-       (boost::fusion::make_vector(&out, &in, &coeff /*,&fly, &flx*/));
+    aggregator_type< accessor_list > domain(boost::fusion::make_vector(&out, &in, &coeff /*,&fly, &flx*/));
 
     count = 0;
     result = true;
@@ -112,8 +111,7 @@ bool test_domain_indices() {
     print_plchld pfph;
     count = 0;
     result = true;
-    boost::mpl::for_each<aggregator_type<accessor_list>::placeholders>(pfph);
-
+    boost::mpl::for_each< aggregator_type< accessor_list >::placeholders >(pfph);
 
     return result;
 }

@@ -15,7 +15,7 @@ function help {
    echo "-t      target                   [gpu|cpu]"
    echo "-f      floating point precision [float|double]"
    echo "-c      cxx standard             [cxx11|cxx03]"
-   echo "-l      compiler                 [gnu|clang]  "
+   echo "-l      compiler                 [gcc|clang]  "
    echo "-p      activate python                       "
    echo "-m      activate mpi                          "
    echo "-s      activate a silent build               "

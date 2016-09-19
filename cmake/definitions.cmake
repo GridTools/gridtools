@@ -33,10 +33,10 @@ endif()
 ## get boost ##
 if(WIN32)
   # Auto-linking happens on Windows, so we don't need to specify specific components
-  find_package( Boost REQUIRED )
+  find_package( Boost 1.58 REQUIRED )
 else()
   # On other platforms, me must be specific about which libs are required
-  find_package( Boost COMPONENTS timer system chrono REQUIRED )
+  find_package( Boost 1.58 COMPONENTS timer system chrono REQUIRED )
 endif()
 
 if(Boost_FOUND)
@@ -244,4 +244,4 @@ endif(ENABLE_PYTHON)
 # cuda compilation should have the same 
 # flags as gcc/clang compilation, just forward
 # them.
-set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "${CMAKE_CXX_FLAGS}")
+set(CUDA_NVCC_FLAGS "${CMAKE_CXX_FLAGS}" "${CUDA_NVCC_FLAGS}" )

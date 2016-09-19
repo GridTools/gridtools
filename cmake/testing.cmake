@@ -14,7 +14,7 @@ include(ExternalProject)
 # Download and install GoogleTest
 ExternalProject_Add(
     gtest
-    URL http://googletest.googlecode.com/files/gtest-1.7.0.zip
+    URL http://pkgs.fedoraproject.org/repo/pkgs/gtest/gtest-1.7.0.zip/2d6ec8ccdf5c46b05ba54a9fd1d130d7/gtest-1.7.0.zip
     PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gtest
     # forward toolchain
     CMAKE_ARGS 
@@ -46,7 +46,7 @@ include_directories("${source_dir}/include")
 # Download and install GoogleMock
 ExternalProject_Add(
     gmock
-    URL http://googlemock.googlecode.com/files/gmock-1.7.0.zip
+    URL http://pkgs.fedoraproject.org/repo/pkgs/gmock/gmock-1.7.0.zip/073b984d8798ea1594f5e44d85b20d66/gmock-1.7.0.zip
     PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gmock
     # forward toolchain
     CMAKE_ARGS 

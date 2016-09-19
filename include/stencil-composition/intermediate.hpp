@@ -132,7 +132,6 @@ namespace gridtools {
             template < typename Elem >
             GT_FUNCTION void operator()(Elem &mss_local_domain_list_) const {
                 GRIDTOOLS_STATIC_ASSERT((is_mss_local_domain< Elem >::value), "Internal Error: wrong type");
-
                 boost::fusion::for_each(mss_local_domain_list_.local_domain_list,
                     _impl::instantiate_local_domain< ArgPtrList, MetaStorages, IsStateful >(
                                             m_arg_ptr_list, m_meta_storages));
@@ -163,7 +162,7 @@ namespace gridtools {
             struct is_temp : public boost::false_type {};
 
             template < typename T >
-            struct is_temp< no_storage_type_yet< T > > : public boost::true_type {};
+            struct is_temp< no_storage_type_yet< T > > : public is_temporary_storage< T > {};
 
             template < bool is_temp, typename Storage, typename tmppairs, typename index >
             struct get_the_type;
@@ -173,7 +172,8 @@ namespace gridtools {
                 typedef typename boost::mpl::find_if< tmppairs, has_index_< index > >::type iter;
 
                 GRIDTOOLS_STATIC_ASSERT((!boost::is_same< iter, typename boost::mpl::end< tmppairs >::type >::value),
-                    "Could not find a temporary, defined in the user aggregator_type, in the list of storage types used in "
+                    "Could not find a temporary, defined in the user aggregator_type, in the list of storage types "
+                    "used in "
                     "all mss/esfs. \n"
                     " Check that all temporaries are actually used in at least one user functor");
 
@@ -235,8 +235,8 @@ namespace gridtools {
     //\todo move inside the traits classes?
 
     /**
-       This functor calls h2d_update on all storages and meta storages, in order to
-       get the data prepared in the case of GPU execution.
+       This functor calls h2d_update and clone_to_device on all storages and meta storages, in order to
+       get the data and pointers prepared in the case of GPU execution.
 
        Returns 0 (GT_NO_ERRORS) on success
     */
@@ -462,10 +462,12 @@ namespace gridtools {
         typename Grid,
         typename ConditionalsSet,
         typename ReductionType,
-        bool IsStateful >
+        bool IsStateful,
+        uint_t RepeatFunctor = 1 >
     struct intermediate : public computation< ReductionType > {
+
         GRIDTOOLS_STATIC_ASSERT(
-            (is_meta_array_of< MssDescriptorArray, is_amss_descriptor >::value), "Internal Error: wrong type");
+            (is_meta_array_of< MssDescriptorArray, is_computation_token >::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
@@ -476,19 +478,26 @@ namespace gridtools {
         typedef typename Backend::backend_ids_t backend_ids_t;
         typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
 
+        /**substituting the std::vector type in the args<> with a correspondent
+           expandable_parameter placeholder*/
+        typedef typename substitute_expandable_params< typename DomainType::placeholders, RepeatFunctor >::type
+            placeholders_t;
+
         /* First we need to compute the association between placeholders and extents.
            This information is needed to allocate temporaries, and to provide the
            extent information to the user.
          */
         typedef typename placeholder_to_extent_map< typename MssDescriptorArray::elements,
             grid_traits_t,
-            typename DomainType::placeholders >::type extent_map_t;
+            placeholders_t,
+            RepeatFunctor >::type extent_map_t;
 
         /* Second we need to associate an extent to each esf, so that
            we can associate loop bounds to the functors.
          */
-        typedef typename associate_extents_to_esfs< typename MssDescriptorArray::elements, extent_map_t >::type
-            extent_sizes_t;
+        typedef typename associate_extents_to_esfs< typename MssDescriptorArray::elements,
+            extent_map_t,
+            RepeatFunctor >::type extent_sizes_t;
 
         typedef typename boost::mpl::if_<
             boost::mpl::is_sequence< typename MssDescriptorArray::elements >,
@@ -504,7 +513,8 @@ namespace gridtools {
 
         typedef typename build_mss_components_array< backend_id< Backend >::value,
             MssDescriptorArray,
-            extent_sizes_t >::type mss_components_array_t;
+            extent_sizes_t,
+            static_int< RepeatFunctor > /*repeat_fuctor*/ >::type mss_components_array_t;
 
         typedef typename create_actual_arg_list< Backend, DomainType, mss_components_array_t, float_type >::type
             actual_arg_list_type;
@@ -575,43 +585,9 @@ namespace gridtools {
             typename reduction_data_t::reduction_type_t reduction_initial_value = 0)
             : m_domain(domain), m_grid(grid), m_meter("NoName"), m_conditionals_set(conditionals_),
               m_reduction_data(reduction_initial_value) {
-            // Each map key is a pair of indices in the axis, value is the corresponding method interval.
 
-            // Extract the extents from functors to determine iteration spaces bounds
-
-            // For each functor collect the minimum enclosing box of the extents for the arguments
-
-            // filter the non temporary storages among the storage pointers in the domain
-            typedef boost::fusion::filter_view< typename DomainType::arg_list, is_not_tmp_storage< boost::mpl::_1 > >
-                t_domain_view;
-
-            // filter the non temporary storages among the placeholders passed to the intermediate
-            typedef boost::fusion::filter_view< actual_arg_list_type, is_not_tmp_storage< boost::mpl::_1 > >
-                t_args_view;
-
-            typedef typename boost::fusion::result_of::as_vector< t_domain_view >::type transform_res_t;
-            typedef boost::fusion::transform_view< transform_res_t, get_user_storage_ptrs >
-                t_extracted_user_storage_view;
-
-            t_domain_view domain_view(domain.m_storage_pointers);
-
-            t_args_view args_view(m_actual_arg_list);
-            boost::fusion::copy(domain_view, args_view);
-
-            // filter the non temporary meta storages among the storage pointers in the domain
-            typedef boost::fusion::filter_view< typename DomainType::metadata_ptr_list,
-                boost::mpl::not_< is_ptr_to_tmp< boost::mpl::_1 > > > t_domain_meta_view;
-
-            // filter the non temporary meta storages among the placeholders passed to the intermediate
-            typedef boost::fusion::filter_view<
-                typename boost::fusion::result_of::as_set< actual_metadata_set_t >::type,
-                boost::mpl::not_< is_ptr_to_tmp< boost::mpl::_1 > > > t_meta_view;
-
-            t_domain_meta_view domain_meta_view(domain.m_metadata_set.sequence_view());
-            t_meta_view meta_view(m_actual_metadata_list.sequence_view());
-
-            // get the storage metadatas from the aggregator_type
-            boost::fusion::copy(domain_meta_view, meta_view);
+            copy_domain_storage_pointers();
+            copy_domain_metadata_pointers();
         }
         /**
            @brief This method allocates on the heap the temporary variables.
@@ -706,6 +682,61 @@ namespace gridtools {
 
         virtual void reset_meter() { m_meter.reset(); }
         mss_local_domain_list_t const &mss_local_domain_list() const { return m_mss_local_domain_list; }
+
+        /**
+            @brief save a copy of the storeage pointers contained in the domain_type inside the intermediate class
+
+            It filters out the temporaries, which are handled internally by the library
+        */
+        void copy_domain_storage_pointers() {
+            typedef boost::fusion::filter_view< typename DomainType::arg_list, is_not_tmp_storage< boost::mpl::_1 > >
+                t_domain_view;
+
+            typedef boost::fusion::filter_view< actual_arg_list_type, is_not_tmp_storage< boost::mpl::_1 > >
+                t_args_view;
+            t_domain_view domain_view(m_domain.m_storage_pointers);
+            t_args_view args_view(m_actual_arg_list);
+            boost::fusion::copy(domain_view, args_view);
+        }
+
+        /**
+            @brief save a copy of the storage info pointers contained in the domain_type inside the intermediate class
+        */
+        void copy_domain_metadata_pointers() {
+            // filter the non temporary meta storages among the storage pointers in the domain
+            typedef boost::fusion::filter_view< typename DomainType::metadata_ptr_list,
+                boost::mpl::not_< is_ptr_to_tmp< boost::mpl::_1 > > > t_domain_meta_view;
+
+            // filter the non temporary meta storages among the placeholders passed to the intermediate
+            typedef boost::fusion::filter_view<
+                typename boost::fusion::result_of::as_set< actual_metadata_set_t >::type,
+                boost::mpl::not_< is_ptr_to_tmp< boost::mpl::_1 > > > t_meta_view;
+
+            t_domain_meta_view domain_meta_view(m_domain.m_metadata_set.sequence_view());
+            t_meta_view meta_view(m_actual_metadata_list.sequence_view());
+
+            // get the storage metadatas from the domain_type
+            boost::fusion::copy(domain_meta_view, meta_view);
+        }
+
+#ifdef CXX11_ENABLED
+        /**
+           @brief Method to reassign the storage pointers in the domain_type
+
+           @param args the arguments are pairs with the form (placeholder() = storage)
+           see @ref gridtools::test_domain_reassign for reference
+         */
+        template < typename... Args, typename... Storage >
+        void reassign(arg_storage_pair< Args, Storage >... args) {
+
+            GRIDTOOLS_STATIC_ASSERT(
+                accumulate(logical_and(), is_storage< Storage >::value...), "wrong storage type in a call to reassign");
+            GRIDTOOLS_STATIC_ASSERT(
+                accumulate(logical_and(), is_arg< Args >::value...), "wrong storage type in a call to reassign");
+            m_domain.reassign(args...);
+            copy_domain_storage_pointers();
+        }
+#endif
     };
 
 } // namespace gridtools

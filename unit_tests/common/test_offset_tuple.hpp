@@ -72,20 +72,18 @@ void test_offset_tuple(bool *result) {
     }
 
 #if !defined(__CUDACC__) && defined(CXX11_ENABLED)
+    typedef offset_tuple_mixed< offset_tuple< 3, 3 >,
+                                pair_< 1, 8 >,
+                                pair_< 2, 7 > > offset_tuple_mixed_t;
 
-    typedef offset_tuple_mixed< boost::mpl::vector< static_int< 1 >, static_int< 2 > >,
-        3,
-        pair_< 1, 8 >,
-        pair_< 2, 7 > > offset_tuple_mixed_t;
+    offset_tuple_mixed_t offset(11, 12, 13);
+    GRIDTOOLS_STATIC_ASSERT((static_uint< offset.template get_constexpr< 2 >() >::value == 8), "ER\
+ROR");
+    GRIDTOOLS_STATIC_ASSERT((static_uint< offset.template get_constexpr< 1 >() >::value == 7), "ER\
+ROR");
 
-    constexpr offset_tuple_mixed_t offset(11, 12, 13);
-    GRIDTOOLS_STATIC_ASSERT((static_uint< offset.template get< 2 >() >::value == 8), "ERROR");
-    GRIDTOOLS_STATIC_ASSERT((static_uint< offset.template get< 1 >() >::value == 7), "ERROR");
-    GRIDTOOLS_STATIC_ASSERT((static_uint< offset.template get< 0 >() >::value == 13), "ERROR");
-
-    assert(offset.template get< 2 >() == 8);
+    assert(offset.template get_constexpr< 2 >() == 8);
     assert(offset.template get< 1 >() == 7);
     assert(offset.template get< 0 >() == 13);
-
 #endif
 }

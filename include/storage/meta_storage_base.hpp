@@ -140,15 +140,16 @@ namespace gridtools {
         friend std::ostream &operator<<(std::ostream &, meta_storage_base< T, U, B, T1, T2 > const &);
 #endif
 
-#ifdef CXX11_ENABLED
         /**
            @brief empty constructor
         */
+        GT_FUNCTION
         constexpr meta_storage_base() {}
 
+#ifdef CXX11_ENABLED
 #ifndef __CUDACC__
         template < class... IntTypes, typename Dummy = all_integers< IntTypes... > >
-        void setup(IntTypes const &... dims_) {
+        GT_FUNCTION void setup(IntTypes const &... dims_) {
             m_dims = array< uint_t, space_dimensions >(dims_...);
             m_strides = array< int_t, space_dimensions >(
                 _impl::assign_all_strides< (short_t)(space_dimensions), layout >::apply(dims_...));
@@ -159,32 +160,18 @@ namespace gridtools {
             typename Dummy = typename boost::enable_if_c< boost::is_integral< First >::type::value,
                 bool >::type // nvcc does not get it
             >
-        void setup(First first_, IntTypes const &... dims_) {
-#ifdef CXX11_ENABLED
+        GT_FUNCTION void setup(First first_, IntTypes const &... dims_) {
             m_dims = array< uint_t, space_dimensions >{first_, dims_...};
-#else
-            m_dims = array< uint_t, space_dimensions >(first_, dims_...);
-#endif
             m_strides = array< int_t, space_dimensions >(
                 _impl::assign_all_strides< (short_t)(space_dimensions), layout >::apply(first_, dims_...));
         }
 #endif
 
-#ifdef CXX11_ENABLED
+        GT_FUNCTION
         constexpr meta_storage_base(array< uint_t, space_dimensions > const &a)
             : m_dims(a), m_strides(explode< array< int_t, (short_t)(space_dimensions) >,
                              _impl::assign_all_strides< (short_t)(space_dimensions), layout > >(a)) {}
-#else
-        // TODO This is a bug, we should generate a constructor for array of dimensions space_dimensions
-        meta_storage_base(array< uint_t, 3 > const &a) : m_dims(a) {
-            m_strides[0] = (((layout::template at_< 0 >::value < 0) ? 1 : m_dims[0]) *
-                            ((layout::template at_< 1 >::value < 0) ? 1 : m_dims[1]) *
-                            ((layout::template at_< 2 >::value < 0) ? 1 : m_dims[2]));
-            m_strides[1] = ((m_strides[0] <= 1) ? 0 : layout::template find_val< 2, uint_t, 1 >(m_dims) *
-                                                          layout::template find_val< 1, uint_t, 1 >(m_dims));
-            m_strides[2] = ((m_strides[1] <= 1) ? 0 : layout::template find_val< 2, uint_t, 1 >(m_dims));
-        }
-#endif
+
 // variadic constexpr constructor
 
 /**@brief generic multidimensional constructor given the space dimensions
@@ -201,12 +188,10 @@ namespace gridtools {
  */
 #ifndef __CUDACC__
         template < class... IntTypes, typename Dummy = all_integers< IntTypes... > >
-// we only use a constexpr in no debug mode, because we want to assert the sizes are uint in debug mode
-// constexpr does not allow code in the body
-#ifdef NDEBUG
-        constexpr
-#endif
-            meta_storage_base(IntTypes const &... dims_)
+        GT_FUNCTION
+            // we only use a constexpr in no debug mode, because we want to assert the sizes are uint in debug mode
+            // constexpr does not allow code in the body
+            constexpr meta_storage_base(IntTypes const &... dims_)
             : m_dims{(uint_t)dims_...},
               m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout >::apply((uint_t)dims_...)) {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes) == space_dimensions, "you tried to initialize\
@@ -216,10 +201,6 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
  by defining the storage type using another layout_map.");
             GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(boost::is_integral< IntTypes >::type::value...),
                 "Error: Dimensions of metastorage must be specified as integer types. ");
-#ifndef NDEBUG
-            auto check = [](int a) { return a > 0; };
-            variadic_assert(check, (int)dims_...);
-#endif
         }
 #else //__CUDACC__ nvcc does not get it: checks only the first argument
         template < class... IntTypes,
@@ -227,25 +208,79 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
                 boost::is_integral<
                     typename boost::mpl::at_c< boost::mpl::vector< IntTypes... >, 0 >::type >::type::value,
                 bool >::type >
-        constexpr meta_storage_base(IntTypes... dims_)
-            :
-#ifdef CXX11_ENABLED
-              m_dims {
-            dims_...
-        }
-#else
-            m_dims( dims_...)
-#endif
-        , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout >::apply(dims_...)) {
-            GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes) == space_dimensions, "you tried to initialize\
- a storage with a number of integer arguments different from its number of dimensions. \
-This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
+        GT_FUNCTION constexpr meta_storage_base(IntTypes... dims_)
+            : m_dims{(uint_t)dims_...},
+              m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout >::apply(dims_...)) {
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes) >= space_dimensions, "you tried to initialize\
+ a storage with a number of integer arguments smaller than its number of dimensions. \
+ This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
+ a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
+ by defining the storage type using another layout_map.");
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes) <= space_dimensions, "you tried to initialize\
+ a storage with a number of integer arguments larger than its number of dimensions. \
+ This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
  a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
  by defining the storage type using another layout_map.");
         }
-#endif
-#else // CXX11_ENABLED
+
+#endif //__CUDACC__
+
+#ifndef __CUDACC__
+        /**
+           @brief constructor taking the space dimensions as static integers
+
+           NOTE: this contructor is constexpr, i.e. the storage metadata information could be used
+           at compile-time (e.g. in template metafunctions)
+         */
+        template < typename... IntTypes, typename Dummy = all_static_integers< IntTypes... > >
+        constexpr meta_storage_base(IntTypes... dims_)
+            : m_dims{IntTypes::value...},
+              m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout >::apply(IntTypes()...)) {
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes) == space_dimensions, "you tried to initialize\
+ a storage with a number of integer arguments different from its number of dimensions. \
+ This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
+ a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
+ by defining the storage type using another layout_map.");
+                GRIDTOOLS_STATIC_ASSERT(
+                     is_variadic_pack_of(boost::is_integral<IntTypes>::type::value...),
+                     "Error: Dimensions of metastorage must be specified as integer types. "
+                );
+        }
+
+#else  //__CUDACC__
+
+        template < typename First,
+            typename... IntTypes,
+            typename Dummy = typename boost::enable_if_c< is_static_integral< First >::type::value,
+                bool >::type // nvcc does not get it
+            >
+        constexpr meta_storage_base(First first_, IntTypes... dims_)
+            : m_dims{First::value, IntTypes::value...},
+              m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout >::apply(
+                  First::value, IntTypes::value...)) {
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes) + 1 == space_dimensions, "you tried to initialize\
+ a storage with a number of integer arguments different from its number of dimensions. \
+ This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
+ a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
+ by defining the storage type using another layout_map.");
+        }
+#endif //__CUDACC__
+#else  // CXX11_ENABLED
+        // TODO This is a bug, we should generate a constructor for array of dimensions space_dimensions
+        GRIDTOOLS_STATIC_ASSERT(
+            (space_dimensions == 3), "multidimensional storages are available only when C++11 is ON");
+        GT_FUNCTION
+        meta_storage_base(array< uint_t, 3 > const &a) : m_dims(a) {
+            m_strides[0] = (((layout::template at_< 0 >::value < 0) ? 1 : m_dims[0]) *
+                            ((layout::template at_< 1 >::value < 0) ? 1 : m_dims[1]) *
+                            ((layout::template at_< 2 >::value < 0) ? 1 : m_dims[2]));
+            m_strides[1] = ((m_strides[0] <= 1) ? 0 : layout::template find_val< 2, uint_t, 1 >(m_dims) *
+                                                          layout::template find_val< 1, uint_t, 1 >(m_dims));
+            m_strides[2] = ((m_strides[1] <= 1) ? 0 : layout::template find_val< 2, uint_t, 1 >(m_dims));
+        }
+
         // non variadic non constexpr constructor
+        GT_FUNCTION
         meta_storage_base(uint_t const &d1, uint_t const &d2, uint_t const &d3) : m_dims(d1, d2, d3) {
             m_strides[0] =
                 (((layout::template at_< 0 >::value < 0) ? 1 : d1) * ((layout::template at_< 1 >::value < 0) ? 1 : d2) *
@@ -315,7 +350,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         };
 
         template < size_t S >
-        GT_FUNCTION int_t index(array< uint_t, S > a) const {
+        GT_FUNCTION int_t index(array< uint_t, S > const &a) const {
             return (int_t)explode< int_t, _impl_index >(a, *this);
         }
 
@@ -419,13 +454,15 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
         }
 
         template < typename LayoutT, typename StridesVector >
-        GT_FUNCTION static constexpr int_t _indexl(
+        GT_FUNCTION static constexpr int_t _index(
             StridesVector const &RESTRICT strides_, array< int_t, space_dimensions > const &offsets) {
             return _impl::compute_offset< space_dimensions, LayoutT >::apply(strides_, offsets);
         }
 
         template < typename OffsetTuple >
         GT_FUNCTION constexpr int_t _index(OffsetTuple const &tuple) const {
+            GRIDTOOLS_STATIC_ASSERT((is_offset_tuple< OffsetTuple >::value), "wrong type");
+            GRIDTOOLS_STATIC_ASSERT((space_dimensions <= layout::length), "something is very wrong");
             return _impl::compute_offset< space_dimensions, layout >::apply(strides(), tuple);
         }
 

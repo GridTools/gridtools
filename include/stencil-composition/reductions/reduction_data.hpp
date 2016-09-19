@@ -58,7 +58,7 @@ namespace gridtools {
     template < typename MssDescriptorArray >
     struct reduction_data< MssDescriptorArray, true > {
         GRIDTOOLS_STATIC_ASSERT(
-            (is_meta_array_of< MssDescriptorArray, is_amss_descriptor >::value), "Internal Error: wrong type");
+            (is_meta_array_of< MssDescriptorArray, is_computation_token >::value), "Internal Error: wrong type");
 
         typedef typename boost::mpl::fold< typename MssDescriptorArray::elements,
             boost::mpl::vector0<>,
