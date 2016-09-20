@@ -15,7 +15,7 @@ else()
   set (ADD_MPI_LIBS "")
 
   add_definitions("-DBENCHMARK")
-  set(exe_LIBS libgtest libgtest_main "${exe_LIBS}" )
+  set(exe_LIBS gtest gtest_main "${exe_LIBS}" )
 
   foreach(srcfile IN LISTS SRCFILES X86_SRCFILES)
     add_executable(${srcfile}_naive   ${srcfile}.cpp ${GTEST_FILES} ${INC_ALL})

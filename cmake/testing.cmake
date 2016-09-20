@@ -2,71 +2,9 @@ cmake_minimum_required(VERSION 2.8.8)
 enable_testing()
 
 ####################################################################################
-########################### GET GTEST AND GMOCK LIBRARY ############################ 
+########################### GET GTEST LIBRARY ############################ 
 ####################################################################################
-
-# We need thread support
-find_package(Threads REQUIRED)
-
-# Enable ExternalProject CMake module
-include(ExternalProject)
-
-# Download and install GoogleTest
-ExternalProject_Add(
-    gtest
-    URL http://pkgs.fedoraproject.org/repo/pkgs/gtest/gtest-1.7.0.zip/2d6ec8ccdf5c46b05ba54a9fd1d130d7/gtest-1.7.0.zip
-    PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gtest
-    # forward toolchain
-    CMAKE_ARGS 
-        -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_C_COMPILER_ARG1=${CMAKE_C_COMPILER_ARG1}
-        -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_CXX_COMPILER_ARG1=${CMAKE_CXX_COMPILER_ARG1}
-    # Disable install step
-    INSTALL_COMMAND ""
-)
-
-# Create a libgtest target to be used as a dependency by test programs
-add_library(libgtest IMPORTED STATIC GLOBAL)
-add_library(libgtest_main IMPORTED STATIC GLOBAL)
-add_dependencies(libgtest gtest)
-add_dependencies(libgtest_main gtest)
-
-# Set gtest properties
-ExternalProject_Get_Property(gtest source_dir binary_dir)
-set_target_properties(libgtest PROPERTIES
-    "IMPORTED_LOCATION" "${binary_dir}/libgtest.a"
-    "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
-)
-set_target_properties(libgtest_main PROPERTIES
-    "IMPORTED_LOCATION" "${binary_dir}/libgtest_main.a"
-    "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
-)
-
-include_directories("${source_dir}/include")
-
-# Download and install GoogleMock
-ExternalProject_Add(
-    gmock
-    URL http://pkgs.fedoraproject.org/repo/pkgs/gmock/gmock-1.7.0.zip/073b984d8798ea1594f5e44d85b20d66/gmock-1.7.0.zip
-    PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gmock
-    # forward toolchain
-    CMAKE_ARGS 
-        -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_C_COMPILER_ARG1=${CMAKE_C_COMPILER_ARG1}
-        -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_CXX_COMPILER_ARG1=${CMAKE_CXX_COMPILER_ARG1}
-    # Disable install step
-    INSTALL_COMMAND ""
-)
-
-# Create a libgmock target to be used as a dependency by test programs
-add_library(libgmock IMPORTED STATIC GLOBAL)
-add_dependencies(libgmock gmock)
-
-# Set gmock properties
-ExternalProject_Get_Property(gmock source_dir binary_dir)
-set_target_properties(libgmock PROPERTIES
-    "IMPORTED_LOCATION" "${binary_dir}/libgmock.a"
-    "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
-)
-include_directories("${source_dir}/include")
+add_subdirectory (${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest)
 
 ####################################################################################
 ######################### ADDITIONAL TEST MODULE FUNCTIONS ######################### 
@@ -106,7 +44,7 @@ function(fetch_host_tests subfolder)
         set(exe ${CMAKE_CURRENT_BINARY_DIR}/${unit_test})
         # create the test
         add_executable (${unit_test} ${test_source})
-        target_link_libraries(${unit_test} ${exe_LIBS} libgtest libgtest_main libgmock)
+        target_link_libraries(${unit_test} ${exe_LIBS} gtest gtest_main)
         add_test (NAME ${unit_test} COMMAND ${exe} )
         gridtools_add_test(${unit_test} ${TEST_SCRIPT} ${exe})        
         # message( "added test " ${unit_test} )         
@@ -153,7 +91,7 @@ function(fetch_gpu_tests subfolder)
             set(CUDA_SEPARABLE_COMPILATION OFF)
             cuda_add_executable (${unit_test} ${test_source})
             set_target_properties(${unit_test} PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS} LINKER_LANGUAGE CXX )            
-            target_link_libraries(${unit_test} ${exe_LIBS} libgtest libgtest_main libgmock)
+            target_link_libraries(${unit_test} ${exe_LIBS} gtest gtest_main)
             gridtools_add_test(${unit_test} ${TEST_SCRIPT} ${exe})
             # message( "added gpu test " ${unit_test} )         
         endforeach(test_source)
