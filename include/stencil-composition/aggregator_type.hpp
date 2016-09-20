@@ -250,52 +250,6 @@ namespace gridtools {
     aggregator_type((p1=storage_1), (p2=storage_2), (p3=storage_3));
     \endverbatim
 */
-// #ifndef __CUDACC__ // nvcc compiler bug with double pack expansion
-//         template < typename... Args, typename... Storages >
-//         aggregator_type(arg_storage_pair< Args, Storages >... args)
-//             : m_storage_pointers(), m_metadata_set() {
-
-//             GRIDTOOLS_STATIC_ASSERT((sizeof...(Storages) > 0),
-//                 "Computations with no storages are not supported. "
-//                 "Add at least one storage to the aggregator_type "
-//                 "definition.");
-
-//             typedef boost::fusion::filter_view< arg_list, is_not_tmp_storage< boost::mpl::_1 > > view_type;
-
-//             GRIDTOOLS_STATIC_ASSERT(
-//                 (boost::fusion::result_of::size< view_type >::type::value == sizeof...(Storages)),
-//                 "The number of arguments specified when constructing the domain_type is not the same as the number of "
-//                 "placeholders "
-//                 "to non-temporary storages. Double check the temporary flag in the meta_storage types or add the "
-//                 "necessary storages.");
-
-//             // So far we checked that the number of arguments provided
-//             // match with the expected number of non-temporaries and
-//             // that there is at least one argument (no-default
-//             // constructor syntax). Now we need to check that all the
-//             // placeholders used in the processes are valid. To do so
-//             // we use a set. We insert arguments into a set so that we
-//             // can identify if a certain argument type appears
-//             // twice. (In the arg_storage_pair we check that the
-//             // storage types are the same between the arg and the
-//             // storage). This should be sufficient to prove that the
-//             // argument list is valid. It is in principle possible
-//             // that someone passes a placeholder to a temporary and
-//             // associates it to a user-instantiated temporary pointer,
-//             // but this is very complicated and I don't think we
-//             // should check for this.
-//             typedef typename variadic_to_vector< Args... >::type v_args;
-//             typedef typename boost::mpl::fold< v_args,
-//                 boost::mpl::set0<>,
-//                 boost::mpl::insert< boost::mpl::_1, boost::mpl::_2 > >::type counting_map;
-
-//             GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< counting_map >::type::value == sizeof...(Storages)),
-//                 "Some placeholders appear to be used more than once in the association between placeholders and "
-//                 "storages");
-
-//             assign_pointers(m_metadata_set, args...);
-//         }
-// #else
         template < typename... Pairs >
         aggregator_type(Pairs... pairs_)
             : m_storage_pointers(), m_metadata_set() {
@@ -341,7 +295,6 @@ namespace gridtools {
 
             assign_pointers(m_metadata_set, pairs_...);
         }
-// #endif
 #endif
 
         /**empty functor*/
