@@ -40,14 +40,14 @@ else()
 endif()
 
 if(Boost_FOUND)
-    include_directories(${Boost_INCLUDE_DIRS})
+    include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
     set(exe_LIBS "${Boost_LIBRARIES}" "${exe_LIBS}")
 endif()
 
 ## gnu coverage flag ##
 if(GNU_COVERAGE)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
-set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -lgcov" )
+set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -lgcov")
 message (STATUS "Building executables for coverage tests")
 endif()
 
