@@ -164,6 +164,7 @@ if [[ ${COMPILER} == "gcc" ]] ; then
     HOST_COMPILER=`which g++`
 elif [[ ${COMPILER} == "clang" ]] ; then
     HOST_COMPILER=`which clang++`
+    ADDITIONAL_FLAGS="-ftemplate-depth=1024"
     if [[ ${USE_GPU} == "ON" ]]; then
        echo "Clang not supported with nvcc"
        exit_if_error 334
@@ -200,7 +201,7 @@ cmake \
 -DGNU_COVERAGE:BOOL=OFF \
 -DGCL_ONLY:BOOL=OFF \
 -DCMAKE_CXX_COMPILER="${HOST_COMPILER}" \
--DCMAKE_CXX_FLAGS:STRING="-I${MPI_HOME}/include" \
+-DCMAKE_CXX_FLAGS:STRING="-I${MPI_HOME}/include ${ADDITIONAL_FLAGS}" \
 -DCUDA_HOST_COMPILER:STRING="${HOST_COMPILER}" \
 -DUSE_MPI:BOOL=$USE_MPI \
 -DUSE_MPI_COMPILER:BOOL=$USE_MPI  \
