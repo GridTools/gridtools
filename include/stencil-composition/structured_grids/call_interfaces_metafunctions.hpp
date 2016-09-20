@@ -155,12 +155,12 @@ namespace gridtools {
             typedef
                 typename boost::mpl::if_c< is_accessor< thefirst >::value, thefirst, wrap_reference< thefirst > >::type
                     to_pack;
-            typedef boost::mpl::vector< to_pack > type;
+            typedef boost::mpl::vector1< to_pack > type;
         };
 
         template <>
         struct package_args<> {
-            typedef boost::mpl::vector<> type;
+            typedef boost::mpl::vector0<> type;
         };
 
         /** Maker to wrap an argument if it is not an accessor.

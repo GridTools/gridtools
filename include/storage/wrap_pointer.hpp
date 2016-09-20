@@ -54,6 +54,15 @@ namespace gridtools {
         // TODO: turn into value_type?
         typedef T pointee_t;
 
+        /**
+           @brief access operator
+         */
+        GT_FUNCTION
+        T *operator->() const {
+            assert(m_cpu_p);
+            return m_cpu_p;
+        }
+
         GT_FUNCTION
         wrap_pointer() : m_cpu_p(NULL), m_externally_managed(false) {}
 
@@ -97,7 +106,7 @@ namespace gridtools {
         bool is_externally_managed() const { return m_externally_managed; }
 
         GT_FUNCTION
-        virtual ~wrap_pointer() {
+        ~wrap_pointer() {
 #ifdef VERBOSE
 #ifndef __CUDACC__
             std::cout << "deleting wrap pointer " << this << std::endl;
@@ -106,10 +115,16 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        void update_gpu() { assert(false); } //\todo find a way to remove this method
+        void set_on_device() {}
 
         GT_FUNCTION
-        void update_cpu() { assert(false); } //\todo find a way to remove this method
+        void set_on_host() {}
+
+        GT_FUNCTION
+        void update_gpu() {} //\todo find a way to remove this method
+
+        GT_FUNCTION
+        void update_cpu() {} //\todo find a way to remove this method
 
         GT_FUNCTION
         void allocate_it(uint_t size) { m_cpu_p = (Array) ? new T[size] : new T; }

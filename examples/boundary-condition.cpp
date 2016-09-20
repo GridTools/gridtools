@@ -139,8 +139,6 @@ int main(int argc, char** argv) {
     in.initialize(-1);
     storage_type out(meta_, "out");
     out.initialize(-7);
-    storage_type coeff(meta_, "coeff");
-    coeff.initialize(8);
 
     for (uint_t i=0; i<d1; ++i) {
         for (uint_t j=0; j<d2; ++j) {
@@ -162,7 +160,6 @@ int main(int argc, char** argv) {
     out.h2d_update();
 
     gridtools::boundary_apply_gpu<direction_bc_input<uint_t> >(halos, direction_bc_input<uint_t>(2)).apply(in, out);
-
     in.d2h_update();
 #else
     gridtools::boundary_apply<direction_bc_input<uint_t> >(halos, direction_bc_input<uint_t>(2)).apply(in, out);

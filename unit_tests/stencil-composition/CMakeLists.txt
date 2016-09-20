@@ -1,8 +1,10 @@
-FILE(GLOB_RECURSE INC_ALL "../../include/stencil-composition/*.hpp")
+FILE(GLOB_RECURSE INC_ALL "../../include/stencil-composition/[a-z|A-Z|0-9]*.hpp")
 
 SET(STENCIL_COMPOSITION_UNITTEST_SOURCES ${INC_ALL})
 if ( ENABLE_CXX11 )
   SET(STENCIL_COMPOSITION_UNITTEST_SOURCES ${STENCIL_COMPOSITION_UNITTEST_SOURCES} test-assign-placeholders.cpp )
+
+  set( GTEST_FILES ${CMAKE_SOURCE_DIR}/examples/Options.hpp ${CMAKE_SOURCE_DIR}/examples/Options.cpp)
 
   ## moved here since there is only one test
   add_executable(stencil_composition_tests ${STENCIL_COMPOSITION_UNITTEST_SOURCES})
