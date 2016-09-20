@@ -5,6 +5,7 @@ enable_testing()
 ########################### GET GTEST LIBRARY ############################ 
 ####################################################################################
 add_subdirectory (${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/include)
 
 ####################################################################################
 ######################### ADDITIONAL TEST MODULE FUNCTIONS ######################### 
@@ -112,7 +113,7 @@ function(add_custom_host_test name sources cc_flags ld_flags)
     add_executable (${name} ${sources})
     set(cflags "${cc_flags} ${CMAKE_CXX_FLAGS}" )
     set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cflags}" LINK_FLAGS ${ld_flags} LINKER_LANGUAGE CXX )            
-    target_link_libraries(${name} ${exe_LIBS} libgtest libgtest_main libgmock)
+    target_link_libraries(${name} ${exe_LIBS} gtest gtest_main)
     add_test (NAME ${name} COMMAND ${exe} )
     gridtools_add_test(${name} ${TEST_SCRIPT} ${exe})
 endfunction(add_custom_host_test) 
@@ -132,6 +133,6 @@ function(add_custom_gpu_test name sources cc_flags ld_flags)
     cuda_add_executable (${name} ${test_source})
     set(cflags ${CMAKE_CXX_FLAGS} ${cc_flags})
     set_target_properties(${name} PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS} "${cflags}" LINK_FLAGS "${ld_flags}" LINKER_LANGUAGE CXX )            
-    target_link_libraries(${name} ${exe_LIBS} libgtest libgtest_main libgmock)
+    target_link_libraries(${name} ${exe_LIBS} gtest gtest_main)
     gridtools_add_test(${name} ${TEST_SCRIPT} ${exe})
 endfunction(add_custom_gpu_test) 
