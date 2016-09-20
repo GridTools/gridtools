@@ -59,6 +59,9 @@ namespace gridtools {
     struct arg_storage_pair {
 
         GRIDTOOLS_STATIC_ASSERT(is_arg< ArgType >::value, "wrong type");
+        GRIDTOOLS_STATIC_ASSERT((boost::is_same< typename ArgType::storage_type, Storage >::type::value),
+            "Storage type not compatible with placeholder storage type, when associating placeholder to actual "
+            "stogare");
 
       private:
         // arg_storage_pair(arg_storage_pair const&);
