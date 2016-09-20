@@ -56,6 +56,7 @@
 #include <boost/fusion/mpl.hpp>
 
 #include "../common/generic_metafunctions/static_if.hpp"
+#include "../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../common/generic_metafunctions/is_variadic_pack_of.hpp"
 #include "../common/generic_metafunctions/arg_comparator.hpp"
 #include "../common/gpu_clone.hpp"
@@ -249,33 +250,51 @@ namespace gridtools {
     aggregator_type((p1=storage_1), (p2=storage_2), (p3=storage_3));
     \endverbatim
 */
-#ifndef __CUDACC__ // nvcc compiler bug with double pack expansion
-        template < typename... Storage, typename... Args >
-        aggregator_type(arg_storage_pair< Args, Storage >... args)
+        template < typename... Pairs >
+        aggregator_type(Pairs... pairs_)
             : m_storage_pointers(), m_metadata_set() {
 
-            GRIDTOOLS_STATIC_ASSERT((sizeof...(Storage) > 0),
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair< Pairs >::value...), "wrong type");
+            GRIDTOOLS_STATIC_ASSERT((sizeof...(Pairs) > 0),
                 "Computations with no storages are not supported. "
                 "Add at least one storage to the aggregator_type "
                 "definition.");
-            // NOTE: the following assertion assumes there StorageArgs has length at leas 1
-            assign_pointers(m_metadata_set, args...);
-        }
-#else
-        template < typename... Pair >
-        aggregator_type(Pair... pairs_)
-            : m_storage_pointers(), m_metadata_set() {
 
-            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair< Pair >::value...), "wrong type");
-            GRIDTOOLS_STATIC_ASSERT((sizeof...(Pair) > 0),
-                "Computations with no storages are not supported. "
-                "Add at least one storage to the aggregator_type "
-                "definition.");
-            // NOTE: the following assertion assumes there StorageArgs has length at leas 1
-            // GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair< StorageArgs >::value...), "wrong type");
+            typedef boost::fusion::filter_view< arg_list, is_not_tmp_storage< boost::mpl::_1 > > view_type;
+
+            GRIDTOOLS_STATIC_ASSERT(
+                (boost::fusion::result_of::size< view_type >::type::value == sizeof...(Pairs)),
+                "The number of arguments specified when constructing the domain_type is not the same as the number of "
+                "placeholders "
+                "to non-temporary storages. Double check the temporary flag in the meta_storage types or add the "
+                "necessary storages.");
+
+            // So far we checked that the number of arguments provided
+            // match with the expected number of non-temporaries and
+            // that there is at least one argument (no-default
+            // constructor syntax). Now we need to check that all the
+            // placeholders used in the processes are valid. To do so
+            // we use a set. We insert arguments into a set so that we
+            // can identify if a certain argument type appears
+            // twice. (In the arg_storage_pair we check that the
+            // storage types are the same between the arg and the
+            // storage). This should be sufficient to prove that the
+            // argument list is valid. It is in principle possible
+            // that someone passes a placeholder to a temporary and
+            // associates it to a user-instantiated temporary pointer,
+            // but this is very complicated and I don't think we
+            // should check for this.
+            typedef typename variadic_to_vector<typename Pairs::arg_type... >::type v_args;
+            typedef typename boost::mpl::fold< v_args,
+                boost::mpl::set0<>,
+                boost::mpl::insert< boost::mpl::_1, boost::mpl::_2 > >::type counting_map;
+
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< counting_map >::type::value == sizeof...(Pairs)),
+                "Some placeholders appear to be used more than once in the association between placeholders and "
+                "storages");
+
             assign_pointers(m_metadata_set, pairs_...);
         }
-#endif
 #endif
 
         /**empty functor*/
@@ -389,7 +408,8 @@ namespace gridtools {
                 "The number of arguments specified when constructing the aggregator_type is not the same as the number "
                 "of "
                 "placeholders "
-                "to non-temporary storages. Double check the temporary flag in the meta_storage types.");
+                "to non-temporary storages. Double check the temporary flag in the meta_storage types or add the "
+                "necessary storages.");
 
             // below few metafunctions only to protect the user from mismatched storages
             typedef typename boost::mpl::fold< arg_list_mpl,
