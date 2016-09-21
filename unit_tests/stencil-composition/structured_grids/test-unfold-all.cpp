@@ -80,23 +80,23 @@ TEST(unfold_all, test) {
     typedef boost::mpl::vector2< p0, p1 > arg_list;
     aggregator_type< arg_list > domain((p0() = s0), (p1() = s1));
 
-    auto mss1 =
-        make_multistage(enumtype::execute< enumtype::forward >(),
-            make_stage< functor< 0 > >(p0(), p1()),
-            make_stage< functor< 1 > >(p0(), p1()),
-            make_stage< functor< 2 > >(p0(), p1()),
-            make_independent(make_stage< functor< 3 > >(p0(), p1()),
-                     make_stage< functor< 4 > >(p0(), p1()),
-                     make_independent(make_stage< functor< 5 > >(p0(), p1()), make_stage< functor< 6 > >(p0(), p1()))));
+    auto mss1 = make_multistage(
+        enumtype::execute< enumtype::forward >(),
+        make_stage< functor< 0 > >(p0(), p1()),
+        make_stage< functor< 1 > >(p0(), p1()),
+        make_stage< functor< 2 > >(p0(), p1()),
+        make_independent(make_stage< functor< 3 > >(p0(), p1()),
+            make_stage< functor< 4 > >(p0(), p1()),
+            make_independent(make_stage< functor< 5 > >(p0(), p1()), make_stage< functor< 6 > >(p0(), p1()))));
 
-    auto mss2 =
-        make_multistage(enumtype::execute< enumtype::forward >(),
-            make_stage< functor< 7 > >(p0(), p1()),
-            make_stage< functor< 8 > >(p0(), p1()),
-            make_stage< functor< 9 > >(p0(), p1()),
-            make_independent(make_stage< functor< 10 > >(p0(), p1()),
-                     make_stage< functor< 11 > >(p0(), p1()),
-                     make_independent(make_stage< functor< 12 > >(p0(), p1()), make_stage< functor< 13 > >(p0(), p1()))));
+    auto mss2 = make_multistage(
+        enumtype::execute< enumtype::forward >(),
+        make_stage< functor< 7 > >(p0(), p1()),
+        make_stage< functor< 8 > >(p0(), p1()),
+        make_stage< functor< 9 > >(p0(), p1()),
+        make_independent(make_stage< functor< 10 > >(p0(), p1()),
+            make_stage< functor< 11 > >(p0(), p1()),
+            make_independent(make_stage< functor< 12 > >(p0(), p1()), make_stage< functor< 13 > >(p0(), p1()))));
 
     auto comp = make_computation< BACKEND >(domain, grid, if_(cond, mss1, mss2));
 }

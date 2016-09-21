@@ -53,6 +53,8 @@
 */
 namespace gridtools {
 
+    template < typename T >
+    struct is_vector_accessor;
 /**
    @struct
    @brief Used as template argument in the storage.
@@ -303,12 +305,10 @@ namespace gridtools {
             \tparam[in] Indices List of argument where to return the found value
             \param[in] indices List of values (length must be equal to the length of the layout_map length)
         */
-        template < ushort_t I,
-            typename T,
-            T DefaultVal,
-            typename OffsetTuple,
-            typename boost::enable_if< typename is_offset_tuple< OffsetTuple >::type, int >::type = 0 >
+        template < ushort_t I, typename T, T DefaultVal, typename OffsetTuple >
         GT_FUNCTION static constexpr T find_val(OffsetTuple const &indices) {
+            GRIDTOOLS_STATIC_ASSERT((is_offset_tuple< OffsetTuple >::value),
+                "the find_val method must be used with tuples of offset_tuple type");
             return ((pos_< I >::value >= length)) ? DefaultVal
                                                   : indices.template get< OffsetTuple::n_dim - pos_< I >::value - 1 >();
             // this calls arg_decorator::get

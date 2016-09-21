@@ -305,9 +305,10 @@ namespace vertical_advection_dycore {
                         p_ccol(),
                         p_dcol()) // esf_descriptor
                     ),
-                gridtools::make_multistage(execute< backward >(),
+                gridtools::make_multistage(
+                    execute< backward >(),
                     gridtools::make_stage< u_backward_function< double > >(
-                                        p_utens_stage(), p_u_pos(), p_dtr_stage(), p_ccol(), p_dcol(), p_data_col())));
+                        p_utens_stage(), p_u_pos(), p_dtr_stage(), p_ccol(), p_dcol(), p_data_col())));
 
         vertical_advection->ready();
 

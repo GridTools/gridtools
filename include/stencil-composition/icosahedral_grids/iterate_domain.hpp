@@ -122,7 +122,7 @@ namespace gridtools {
          */
         template < typename Accessor >
         struct accessor_return_type {
-            typedef typename ::gridtools::accessor_return_type< Accessor, iterate_domain_arguments_t >::type type;
+            typedef typename accessor_return_type_impl< Accessor, iterate_domain_arguments_t >::type type;
         };
 
         template < typename T >
@@ -721,7 +721,7 @@ namespace gridtools {
             // control your instincts: changing the following
             // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
             const int_t pointer_offset = (m_index[metadata_index_t::value]) +
-                                         metadata_->template _indexl< layout_map_t >(
+                                         metadata_->template _index< layout_map_t >(
                                              strides().template get< metadata_index_t::value >(), position_offset);
 
             return get_raw_value(accessor_t(),

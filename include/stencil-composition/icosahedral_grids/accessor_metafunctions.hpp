@@ -36,7 +36,6 @@
 #pragma once
 
 #include "accessor.hpp"
-#include "on_neighbors.hpp"
 
 namespace gridtools {
 
@@ -65,11 +64,10 @@ namespace gridtools {
     template < uint_t ID,
         enumtype::intend Intend,
         typename LocationType,
-        typename Extend,
-        ushort_t Number,
+        typename Extent,
+        ushort_t FieldDimensions,
         typename ArgsMap >
-    struct remap_accessor_type< accessor< ID, Intend, LocationType, Extend, Number >, ArgsMap > {
-        typedef accessor< ID, Intend, LocationType, Extend, Number > accessor_t;
+    struct remap_accessor_type< accessor< ID, Intend, LocationType, Extent, FieldDimensions >, ArgsMap > {
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< ArgsMap >::value > 0), "Internal Error: wrong size");
         // check that the key type is an int (otherwise the later has_key would never find the key)
         GRIDTOOLS_STATIC_ASSERT(
@@ -82,8 +80,11 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_type_t >::value), "Internal Error");
 
-        typedef accessor< boost::mpl::at< ArgsMap, index_type_t >::type::value, Intend, LocationType, Extend, Number >
-            type;
+        typedef accessor< boost::mpl::at< ArgsMap, index_type_t >::type::value,
+            Intend,
+            LocationType,
+            Extent,
+            FieldDimensions > type;
     };
 
     template < ushort_t ID, enumtype::intend Intend, typename ArgsMap >

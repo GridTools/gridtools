@@ -84,7 +84,7 @@ namespace gridtools {
 #else
         typedef tile< Tile, Plus, Minus > TileJ;
         typedef meta_storage_tmp< MetaStorageBase, FirstTile, TileJ > this_type;
-        typedef typename boost::mpl::vector< FirstTile, TileJ > tiles_vector_t;
+        typedef typename boost::mpl::vector2< FirstTile, TileJ > tiles_vector_t;
 #endif
         typedef typename super::type basic_type;
         typedef typename super::layout layout;

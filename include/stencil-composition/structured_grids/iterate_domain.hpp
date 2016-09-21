@@ -52,6 +52,9 @@
 #include "stencil-composition/iterate_domain_aux.hpp"
 #include "../reductions/iterate_domain_reduction.hpp"
 #include "../iterate_domain_fwd.hpp"
+#ifdef CXX11_ENABLED
+#include "../../storage/expandable_parameters.hpp"
+#endif
 
 /**@file
    @brief file handling the access to the storage.
@@ -404,10 +407,10 @@ namespace gridtools {
         GT_FUNCTION
             typename boost::disable_if< typename accessor_holds_data_field< Accessor >::type, void * RESTRICT >::type
             get_data_pointer(Accessor const &accessor) const {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
+            typedef typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type acc_t;
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), "Using EVAL is only allowed for an accessor type");
             return (data_pointer())
-                [current_storage< (Accessor::index_type::value == 0), local_domain_t, typename Accessor::type >::value];
+                [current_storage< (acc_t::index_type::value == 0), local_domain_t, typename acc_t::type >::value];
         }
 
 #ifdef CXX11_ENABLED
@@ -529,6 +532,9 @@ namespace gridtools {
             // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
             ,
             const int_t pointer_offset) const {
+
+            GTASSERT(storage_pointer);
+
             return *(storage_pointer + pointer_offset);
         }
 
@@ -554,11 +560,11 @@ namespace gridtools {
         template < typename Accessor >
         GT_FUNCTION typename boost::enable_if< typename cache_access_accessor< Accessor >::type,
             typename accessor_return_type< Accessor >::type >::type
-        operator()(Accessor const &accessor) const {
+        operator()(Accessor const &accessor_) const {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
             return static_cast< IterateDomainImpl const * >(this)
-                ->template get_cache_value_impl< typename accessor_return_type< Accessor >::type >(accessor);
+                ->template get_cache_value_impl< typename accessor_return_type< Accessor >::type >(accessor_);
         }
 
         /** @brief method called in the Do methods of the functors.
@@ -576,14 +582,26 @@ namespace gridtools {
                 typename accessor_return_type< Accessor >::type >::type
             operator()(Accessor const &accessor) const;
 
-#if defined(CXX11_ENABLED) && !defined(__CUDACC__) && !defined(__INTEL_COMPILER) // nvcc compiler bug
+#ifdef CUDA8
         /** @brief method called in the Do methods of the functors.
 
             Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of
            data fields with the same dimension and memory layout)*/
         template < typename Accessor, typename... Pairs >
-        GT_FUNCTION typename accessor_return_type< Accessor >::type operator()(
-            accessor_mixed< Accessor, Pairs... > const accessor) const;
+        GT_FUNCTION typename boost::enable_if< typename cache_access_accessor< Accessor >::type,
+            typename accessor_return_type< Accessor >::type >::type
+        operator()(accessor_mixed< Accessor, Pairs... > const &accessor_) const {
+
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
+            return static_cast< IterateDomainImpl const * >(this)
+                ->template get_cache_value_impl< typename accessor_return_type< Accessor >::type >(accessor_);
+        }
+
+        template < typename Accessor, typename... Pairs >
+        GT_FUNCTION typename boost::disable_if< typename cache_access_accessor< Accessor >::type,
+            typename accessor_return_type< Accessor >::type >::type
+        operator()(accessor_mixed< Accessor, Pairs... > const &accessor) const;
 
 #endif
 
@@ -596,51 +614,6 @@ namespace gridtools {
         template < typename Accessor, typename StoragePointer >
         GT_FUNCTION typename accessor_return_type< Accessor >::type get_value(
             expr_direct_access< Accessor > const &accessor, StoragePointer const &RESTRICT storage_pointer) const;
-
-        /** @brief method called in the Do methods of the functors. */
-        template < typename... Arguments, template < typename... Args > class Expression >
-        GT_FUNCTION auto operator()(Expression< Arguments... > const &arg) const
-            -> decltype(evaluation::value(*this, arg)) {
-            // arg.to_string();
-            GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Arguments... > >::value), "invalid expression");
-            return evaluation::value((*this), arg);
-        }
-
-        /** @brief method called in the Do methods of the functors.
-            partial specializations for double (or float)*/
-        template < typename Argument,
-            template < typename Arg1, typename Arg2 > class Expression,
-            typename FloatType,
-            typename boost::enable_if< typename boost::is_floating_point< FloatType >::type, int >::type = 0 >
-        GT_FUNCTION auto operator()(Expression< Argument, FloatType > const &arg) const
-            -> decltype(evaluation::value_scalar(*this, arg)) {
-            GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Argument, FloatType > >::value), "invalid expression");
-            return evaluation::value_scalar((*this), arg);
-        }
-
-        /** @brief method called in the Do methods of the functors.
-            partial specializations for int. Here we do not use the typedef int_t, because otherwise the interface would
-           be polluted with casting
-            (the user would have to cast all the numbers (-1, 0, 1, 2 .... ) to int_t before using them in the
-           expression)*/
-        template < typename Argument,
-            template < typename Arg1, typename Arg2 > class Expression,
-            typename IntType,
-            typename boost::enable_if< typename boost::is_integral< IntType >::type, int >::type = 0 >
-        GT_FUNCTION auto operator()(Expression< Argument, IntType > const &arg) const
-            -> decltype(evaluation::value_int((*this), arg)) {
-
-            GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Argument, IntType > >::value), "invalid expression");
-            return evaluation::value_int((*this), arg);
-        }
-
-        template < typename Argument, template < typename Arg1, int Arg2 > class Expression, int exponent >
-        GT_FUNCTION auto operator()(Expression< Argument, exponent > const &arg) const
-            -> decltype(evaluation::value_int((*this), arg)) {
-
-            GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Argument, exponent > >::value), "invalid expression");
-            return evaluation::value_int((*this), arg);
-        }
 
 #endif // CXX11_ENABLED
     };
@@ -748,8 +721,12 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 
+        GTASSERT(storage_pointer);
+
         typename storage_t::value_type *RESTRICT real_storage_pointer =
             static_cast< typename storage_t::value_type * >(storage_pointer);
+
+        GTASSERT(real_storage_pointer);
 
         // getting information about the metadata
         typedef typename boost::mpl::at< metadata_map_t, typename storage_t::storage_info_type >::type metadata_index_t;
@@ -868,16 +845,18 @@ namespace gridtools {
     }
 
 #if defined(CXX11_ENABLED)
-#if !defined(__CUDACC__) && !defined(__INTEL_COMPILER) // nvcc compiler bug
+#ifdef CUDA8 // nvcc compiler bug
     /** @brief method called in the Do methods of the functors.
 
         Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of data
        fields with the same dimension and memory layout)*/
     template < typename IterateDomainImpl >
     template < typename Accessor, typename... Pairs >
-    GT_FUNCTION typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type
+    GT_FUNCTION typename boost::disable_if<
+        typename iterate_domain< IterateDomainImpl >::template cache_access_accessor< Accessor >::type,
+        typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type >::type
         iterate_domain< IterateDomainImpl >::
-        operator()(accessor_mixed< Accessor, Pairs... > const accessor) const {
+        operator()(accessor_mixed< Accessor, Pairs... > const &accessor_) const {
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 
@@ -897,7 +876,7 @@ namespace gridtools {
         //(3 space dim + 2 extra= 5, which gives n_dim==4)
         GRIDTOOLS_STATIC_ASSERT(
             N_DATA_POINTERS > 0, "the total number of snapshots must be larger than 0 in each functor");
-        GRIDTOOLS_STATIC_ASSERT(accessor.template get_constexpr< 0 >() >= 0,
+        GRIDTOOLS_STATIC_ASSERT(accessor_mixed_t::template get_constexpr< 0 >() >= 0,
             "offset specified for the dimension corresponding to the number of field components/snapshots must be non "
             "negative");
 
@@ -920,7 +899,7 @@ namespace gridtools {
             "snapshot access out of bounds");
 
         return get_value(
-            accessor,
+            accessor_,
             (data_pointer())[ // static if
                 (Accessor::type::n_dim <= metadata_t::space_dimensions + 1
                         ?                                                 // static if
