@@ -66,6 +66,8 @@
 
 #include "common/generic_metafunctions/is_there_in_sequence_if.hpp"
 
+#include "../accessor_fwd.hpp"
+
 namespace gridtools {
 
     /**

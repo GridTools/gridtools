@@ -168,10 +168,11 @@ namespace gridtools {
         explicit cache_storage() {}
 
         template < uint_t Color, typename Offset >
-        GT_FUNCTION Value &RESTRICT at(array< int, 2 > const &thread_pos, Offset const &offset) {
-            GRIDTOOLS_STATIC_ASSERT((is_offset_tuple< Offset >::value), "Error type is not offset tuple");
-            assert(index(thread_pos, offset) < storage_size_t::value);
-            assert(index(thread_pos, offset) >= 0);
+        GT_FUNCTION value_type &RESTRICT at(array< int, 2 > const &thread_pos, Offset const &offset) {
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_offset_tuple< typename Offset::offset_tuple_t >::value), "Error type is not offset tuple");
+            assert(index(thread_pos, offset.offsets()) < storage_size_t::value);
+            assert(index(thread_pos, offset.offsets()) >= 0);
 
             return m_values[index<Color>(thread_pos, offset.offsets())];
         }

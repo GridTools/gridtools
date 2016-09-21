@@ -250,7 +250,7 @@ namespace gridtools {
             // position within
             // the block and the offsets of the accessor
             return m_pshared_iterate_domain->template get_ij_cache< static_uint< acc_t::index_type::value > >().at<0>(
-                m_thread_pos, _accessor);
+                m_thread_pos, accessor_);
         }
 
         /** @brief return a value that was cached
