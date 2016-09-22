@@ -20,10 +20,7 @@ else()
   foreach(srcfile IN LISTS SRCFILES X86_SRCFILES)
     add_executable(${srcfile}_naive   ${srcfile}.cpp ${GTEST_FILES} ${INC_ALL})
     add_executable(${srcfile}_block   ${srcfile}.cpp ${GTEST_FILES} ${INC_ALL})
-    set_target_properties(${srcfile}_block
-      PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
-    set_target_properties(${srcfile}_naive PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
-    set_target_properties(${srcfile}_block PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
+    set_target_properties(${srcfile}_block PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
     target_link_libraries(${srcfile}_naive ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS})
     target_link_libraries(${srcfile}_block ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS})
 
