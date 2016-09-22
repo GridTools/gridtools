@@ -69,7 +69,7 @@ namespace loop_test {
         iterate_domain_ it_domain;
         functor fun;
 
-        gridtools::loop_hierarchy< array_t,
+        loop_hierarchy< array_t,
             loop_item< 1, int_t, 1 >,
             loop_item< 5, short_t, 1 >
 #ifdef CXX11_ENABLED
