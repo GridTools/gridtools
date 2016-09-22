@@ -96,7 +96,7 @@ namespace gridtools {
      * @tparam I Integer index (unique) of the data field to identify it
      * @tparam T The type of the storage used to store data
      */
-    template < uint_t I, typename Storage, typename Condition = bool >
+    template < uint_t I, typename Storage, typename is_temporary_storage = bool >
     struct arg {
         typedef Storage storage_type;
         typedef typename Storage::iterator iterator;
