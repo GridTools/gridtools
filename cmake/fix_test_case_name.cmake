@@ -1,3 +1,8 @@
+# This is used to generate a pretty target name out of a path
+# E.g., /some/folder/test_xy will become some_folder_test_xy
+# This is needed because otherwise it can happen that multiple 
+# targets with the same names are generated, and this is not legal
+
 function( fix_case_name output case_file )
     get_filename_component( case_dir ${case_file} DIRECTORY )
     get_filename_component( case_name ${case_file} NAME_WE )
