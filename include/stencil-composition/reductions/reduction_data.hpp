@@ -36,8 +36,6 @@
 #pragma once
 #include <vector>
 
-#include <vector>
-
 namespace gridtools {
 
     template < typename MssDescriptorArray, bool HasReduction >
