@@ -24,12 +24,6 @@ if(ENABLE_CXX11)
     add_definitions(-DBOOST_RESULT_OF_USE_TR1 -DBOOST_NO_CXX11_DECLTYPE)
 endif()
 
-## Not sure why it's desirable to specify the build directory, but it seems ##
-## to break testing with MSVC, so disabling it conditionally. ##
-#if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-#  set(EXECUTABLE_OUTPUT_PATH ${EXECUTABLE_OUTPUT_PATH} "${CMAKE_BINARY_DIR}/build")
-#endif()
-
 ## get boost ##
 if(WIN32)
   # Auto-linking happens on Windows, so we don't need to specify specific components
@@ -115,18 +109,8 @@ if(ENABLE_PERFORMANCE_METERS)
     add_definitions(-DENABLE_METERS)
 endif(ENABLE_PERFORMANCE_METERS)
 
-## set some project-wide MSVC compile flags ##
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-  add_definitions( -D_VARIADIC_MAX=10 )
-endif()
-
 set ( exe_LIBS ${exe_LIBS} ${Boost_LIBRARIES} )
-
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-    set(exe_LIBS  ${GTEST_LIBRARIES} ${exe_LIBS})
-else()
-    set(exe_LIBS ${GTEST_LIBRARIES} -lpthread ${exe_LIBS})
-endif()
+set ( exe_LIBS ${GTEST_LIBRARIES} -lpthread ${exe_LIBS} )
 
 ## papi wrapper ##
 if ( PAPI_WRAP_LIBRARY )
