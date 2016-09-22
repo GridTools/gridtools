@@ -37,8 +37,6 @@
 #include <fstream>
 #include <gridtools.hpp>
 #include <common/defs.hpp>
-#include <cstdio>
-#include <ctime>
 #define offs_(i,j,k,n,m,l) ((i)*(m)*(l)+(j)*(l)+(k))
 
 using gridtools::uint_t;
@@ -111,10 +109,6 @@ int main_naive(int argc, char** argv) {
 
     print(out, d1, d2, d3, file_i);
 
-    std::clock_t start;
-    long double duration;
-    start = std::clock();
-
     for (uint_t i=2; i < d1-2; ++i) {
         for (uint_t j=2; j < d2-2; ++j) {
             for (uint_t k=0; k < d3; ++k) {
@@ -131,10 +125,8 @@ int main_naive(int argc, char** argv) {
             }
         }
     }
-    duration = ( std::clock() - start ) / (long double) CLOCKS_PER_SEC;
     print(out, d1, d2, d3, file_o);
 
-    std::cout << "TIME " << duration << std::endl;
     delete[] in;
     delete[] out;
 
