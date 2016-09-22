@@ -185,7 +185,7 @@ namespace gridtools {
          */
         template < typename Accessor >
         struct accessor_return_type {
-            typedef typename ::gridtools::accessor_return_type< Accessor, iterate_domain_arguments_t >::type type;
+            typedef typename ::gridtools::accessor_return_type_impl< Accessor, iterate_domain_arguments_t >::type type;
         };
 
         typedef typename local_domain_t::storage_metadata_map metadata_map_t;

@@ -99,7 +99,7 @@ namespace gridtools {
     template < uint_t I, typename Storage, typename Condition = bool >
     struct arg {
         typedef Storage storage_type;
-        typedef typename Storage::iterator_type iterator_type;
+        typedef typename Storage::iterator iterator;
         typedef typename Storage::value_type value_type;
         typedef static_uint< I > index_type;
         typedef static_uint< I > index;
@@ -128,7 +128,7 @@ namespace gridtools {
     template < uint_t I, typename Storage >
     struct arg< I, Storage, typename boost::enable_if< typename is_any_storage< Storage >::type, bool >::type > {
         typedef Storage storage_type;
-        typedef typename Storage::iterator_type iterator_type;
+        typedef typename Storage::iterator iterator;
         typedef typename Storage::value_type value_type;
         typedef static_uint< I > index_type;
         typedef static_uint< I > index;
