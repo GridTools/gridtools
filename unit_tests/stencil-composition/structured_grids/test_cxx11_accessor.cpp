@@ -38,6 +38,7 @@
 
 #include "gridtools.hpp"
 #include "stencil-composition/accessor.hpp"
+#include "stencil-composition/structured_grids/accessor_metafunctions.hpp"
 #include "stencil-composition/expressions.hpp"
 #include "stencil-composition/expandable_parameters/vector_accessor.hpp"
 
@@ -120,6 +121,14 @@ namespace interface {
 } // namespace interface
 
 using namespace interface;
+
+TEST(Accessor, is_accessor) {
+    GRIDTOOLS_STATIC_ASSERT((is_accessor<accessor<6, enumtype::inout, extent<3,4,4,5> > >::value) == true, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor<accessor<2,  enumtype::in> >::value) == true, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor<int>::value) == false, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor<double&>::value) == false, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor<double const&>::value) == false, "");
+}
 
 TEST(Accessor, Trivial) {
     EXPECT_TRUE(test_trivial());
