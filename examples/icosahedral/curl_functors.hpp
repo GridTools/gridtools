@@ -57,7 +57,7 @@ namespace ico_operators {
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
             using edge_of_vertex_dim = dimension< 5 >;
-            edge_of_vertex_dim::Index edge;
+            edge_of_vertex_dim edge;
 
             constexpr auto neighbors_offsets = connectivity< vertexes, edges, Color >::offsets();
             ushort_t e = 0;
@@ -79,7 +79,7 @@ namespace ico_operators {
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
             using edge_of_vertex_dim = dimension< 5 >;
-            edge_of_vertex_dim::Index edge;
+            edge_of_vertex_dim edge;
 
             double t{0.};
             constexpr auto neighbors_offsets = connectivity< vertexes, edges, Color >::offsets();

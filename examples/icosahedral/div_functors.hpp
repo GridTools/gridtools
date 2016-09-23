@@ -59,7 +59,7 @@ namespace ico_operators {
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
             using edge_of_cell_dim = dimension< 5 >;
-            edge_of_cell_dim::Index edge;
+            edge_of_cell_dim edge;
 
             constexpr auto neighbors_offsets = connectivity< cells, edges, Color >::offsets();
             ushort_t e = 0;
@@ -84,7 +84,7 @@ namespace ico_operators {
             constexpr auto neighbors_offsets = connectivity< edges, cells, Color >::offsets();
 
             using cell_of_edge_dim = dimension< 5 >;
-            cell_of_edge_dim::Index cell;
+            cell_of_edge_dim cell;
 
             eval(l_over_A(cell + 0)) = eval(cell_area_reciprocal(neighbors_offsets[0])) * eval(edge_length());
             eval(l_over_A(cell + 1)) = eval(cell_area_reciprocal(neighbors_offsets[1])) * eval(edge_length());
@@ -101,7 +101,7 @@ namespace ico_operators {
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
             using edge_of_cells_dim = dimension< 5 >;
-            edge_of_cells_dim::Index edge;
+            edge_of_cells_dim edge;
 
             eval(out_cells()) = 0.;
             constexpr auto neighbors_offsets = connectivity< cells, edges, Color >::offsets();
@@ -123,7 +123,7 @@ namespace ico_operators {
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
             using edge_of_cells_dim = dimension< 5 >;
-            edge_of_cells_dim::Index edge;
+            edge_of_cells_dim edge;
 
             double t{0.};
             constexpr auto neighbors_offsets = connectivity< cells, edges, Color >::offsets();
@@ -257,7 +257,7 @@ namespace ico_operators {
             constexpr auto neighbors_offsets = connectivity< edges, cells, Color >::offsets();
 
             using cell_of_edge_dim = dimension< 5 >;
-            cell_of_edge_dim::Index cell;
+            cell_of_edge_dim cell;
 
             if (Color == 0) {
                 eval(out_cells()) = eval(in_edges());
