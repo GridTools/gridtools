@@ -110,7 +110,9 @@ namespace gridtools {
 #ifdef STRUCTURED_GRIDS
                     meta_t meta_data(m_tile_i, m_tile_j, m_tile_k);
 #else
-                    meta_t meta_data(m_tile_i, get_location_by_metastorage_index< meta_t::index_type::value>::type::value,
+                    meta_t meta_data(m_tile_i, 3,
+                                     //the metafunction below does not work for temporaries
+                                     //get_location_by_metastorage_index< meta_t::index_type::value>::type::value,
                                      m_tile_j, m_tile_k);
 #endif
                     e = new ElemType(meta_data, "default tmp storage", true /*do_allocate*/);
