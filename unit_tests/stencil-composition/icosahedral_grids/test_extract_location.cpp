@@ -62,7 +62,7 @@ namespace el_test{
 using namespace el_test;
 TEST(extract_location, test) {
 
-    using cell_storage_type = typename backend_t::storage_t<icosahedral_topology_t::cells, double>;
+    using cell_storage_type = typename icosahedral_topology_t::storage_t<icosahedral_topology_t::cells, double>;
 
     typedef arg<0, cell_storage_type> p_in_cells;
     typedef arg<1, cell_storage_type> p_out_cells;
