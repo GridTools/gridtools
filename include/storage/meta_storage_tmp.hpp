@@ -36,6 +36,7 @@
 #pragma once
 #include "meta_storage_base.hpp"
 #include "storage_grid_traits.hpp"
+#include "../stencil-composition/location_type.hpp"
 
 /**
    @file
@@ -129,7 +130,8 @@ namespace gridtools {
 #ifdef STRUCTURED_GRIDS
             : super((tile_i + minus_i + plus_i) * n_i_threads, (tile_j + minus_j + plus_j) * n_j_threads, dim3)
 #else
-            : super((tile_i + minus_i + plus_i) * n_i_threads, 3, (tile_j + minus_j + plus_j) * n_j_threads, dim3)
+            : super((tile_i + minus_i + plus_i) * n_i_threads,
+                    get_location_by_metastorage_index<super::index_type::value>::type::value, (tile_j + minus_j + plus_j) * n_j_threads, dim3)
 #endif
 
 #ifdef CXX11_ENABLED

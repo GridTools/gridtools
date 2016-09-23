@@ -106,7 +106,13 @@ namespace gridtools {
 
                     // ElemType::info_string.c_str();
                     // calls the constructor of the storage
+//HACK
+#ifdef STRUCTURED_GRIDS
                     meta_t meta_data(m_tile_i, m_tile_j, m_tile_k);
+#else
+                    meta_t meta_data(m_tile_i, get_location_by_metastorage_index< meta_t::index_type::value>::type::value,
+                                     m_tile_j, m_tile_k);
+#endif
                     e = new ElemType(meta_data, "default tmp storage", true /*do_allocate*/);
 
                     // insert new type in the map only if not present already
