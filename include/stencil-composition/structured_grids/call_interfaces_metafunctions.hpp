@@ -41,33 +41,10 @@
 #include <boost/type_traits/is_same.hpp>
 #include "../../common/defs.hpp"
 #include "./accessor_metafunctions.hpp"
+#include "./call_interfaces_fwd.hpp"
 
 namespace gridtools {
     namespace _impl {
-        template < typename CallerAggregator,
-            int Offi,
-            int Offj,
-            int Offk,
-            typename PassedAccessors,
-            typename ReturnType,
-            int OutArg >
-        struct function_aggregator;
-
-        template < typename CallerAggregator,
-            int Offi,
-            int Offj,
-            int Offk,
-            typename PassedAccessors,
-            typename ReturnType,
-            int OutArg >
-        struct function_aggregator_offsets;
-
-        template < typename CallerAggregator, int Offi, int Offj, int Offk, typename PassedArguments >
-        struct function_aggregator_procedure;
-
-        template < typename CallerAggregator, int Offi, int Offj, int Offk, typename PassedArguments >
-        struct function_aggregator_procedure_offsets;
-
         template < typename T >
         struct is_function_aggregator : boost::mpl::false_ {};
 
@@ -93,20 +70,12 @@ namespace gridtools {
             function_aggregator_offsets< CallerAggregator, Offi, Offj, Offk, PassedAccessors, ReturnType, OutArg > >
             : boost::mpl::true_ {};
 
-        template < typename CallerAggregator,
-            int Offi,
-            int Offj,
-            int Offk,
-            typename PassedAccessors>
+        template < typename CallerAggregator, int Offi, int Offj, int Offk, typename PassedAccessors >
         struct is_function_aggregator<
             function_aggregator_procedure< CallerAggregator, Offi, Offj, Offk, PassedAccessors > > : boost::mpl::true_ {
         };
 
-        template < typename CallerAggregator,
-            int Offi,
-            int Offj,
-            int Offk,
-            typename PassedAccessors>
+        template < typename CallerAggregator, int Offi, int Offj, int Offk, typename PassedAccessors >
         struct is_function_aggregator<
             function_aggregator_procedure_offsets< CallerAggregator, Offi, Offj, Offk, PassedAccessors > >
             : boost::mpl::true_ {};
