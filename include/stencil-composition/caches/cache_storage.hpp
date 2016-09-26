@@ -47,6 +47,7 @@
 #endif
 
 namespace gridtools {
+
     template < typename T, typename U >
     struct get_storage_accessor;
 

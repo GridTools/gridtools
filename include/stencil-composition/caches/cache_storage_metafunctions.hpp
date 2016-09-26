@@ -52,6 +52,36 @@ namespace gridtools {
                 1 > type;
         };
 
+        namespace impl {
+            template<ushort_t D>
+            struct get_layout_map_;
+
+            template<>
+            struct get_layout_map_<2> {
+                typedef layout_map< 1, 0 > type;
+            };
+
+            template<>
+            struct get_layout_map_<3> {
+                typedef layout_map< 2, 1, 0 > type;
+            };
+
+            template<>
+            struct get_layout_map_<4> {
+                typedef layout_map< 3, 2, 1, 0 > type;
+            };
+
+            template<>
+            struct get_layout_map_<5> {
+                typedef layout_map< 4, 3, 2, 1, 0 > type;
+            };
+
+            template<>
+            struct get_layout_map_<6> {
+                typedef layout_map< 5, 4, 3, 2, 1, 0 > type;
+            };
+        }
+
         template < typename T >
         struct generate_layout_map;
 
@@ -63,16 +93,7 @@ namespace gridtools {
 #ifdef CUDA8
             typedef layout_map< (sizeof...(Id)-Id - 1)... > type;
 #else
-            typedef typename boost::mpl::if_c<
-                sizeof...(Id) == 2,
-                layout_map< 1, 0 >,
-                typename boost::mpl::if_c< sizeof...(Id) == 3,
-                    layout_map< 2, 1, 0 >,
-                    typename boost::mpl::if_c< sizeof...(Id) == 4,
-                                               layout_map< 3, 2, 1, 0 >,
-                                               typename boost::mpl::if_c< sizeof...(Id) == 5,
-                                                   layout_map< 4, 3, 2, 1, 0 >,
-                                                   boost::mpl::false_ >::type >::type >::type >::type type;
+            typedef typename impl::get_layout_map_<sizeof...(Id)>::type type;
 #endif
         };
 
