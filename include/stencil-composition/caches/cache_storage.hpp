@@ -155,7 +155,7 @@ namespace gridtools {
      * @tparam BlockSize physical domain block size
      * @tparam Extend extent
      */
-    template < typename BlockSize, typename Extend, typename Storage, uint_t NColors >
+    template < typename BlockSize, typename Extend, uint_t NColors, typename Storage>
     struct cache_storage {
 
         GRIDTOOLS_STATIC_ASSERT((is_block_size< BlockSize >::value), "Internal Error: wrong type");
