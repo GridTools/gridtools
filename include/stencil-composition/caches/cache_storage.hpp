@@ -182,8 +182,8 @@ namespace gridtools {
         GT_FUNCTION value_type &RESTRICT at(array< int, 2 > const &thread_pos, Offset const &offset) {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_offset_tuple< typename Offset::offset_tuple_t >::value), "Error type is not offset tuple");
-            assert(index(thread_pos, offset.offsets()) < storage_size_t::value);
-            assert(index(thread_pos, offset.offsets()) >= 0);
+            assert(index<Color>(thread_pos, offset.offsets()) < storage_size_t::value);
+            assert(index<Color>(thread_pos, offset.offsets()) >= 0);
 
             return m_values[index<Color>(thread_pos, offset.offsets())];
         }
