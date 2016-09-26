@@ -38,6 +38,9 @@ if(Boost_FOUND)
     set(exe_LIBS "${Boost_LIBRARIES}" "${exe_LIBS}")
 endif()
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
+
 ## gnu coverage flag ##
 if(GNU_COVERAGE)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
@@ -68,11 +71,12 @@ if( USE_GPU )
   add_definitions(-DCUDA_VERSION_MAJOR=${CUDA_VERSION_MAJOR})
   string(REPLACE "." "" CUDA_VERSION ${CUDA_VERSION})
   add_definitions(-DCUDA_VERSION=${CUDA_VERSION})
-  set(CUDA_SEPARABLE_COMPILATION OFF)
-  set(CUDA_PROPAGATE_HOST_FLAGS OFF)
+  set(CUDA_PROPAGATE_HOST_FLAGS ON)
   if( ${CUDA_VERSION} VERSION_GREATER "60")
       if (NOT ENABLE_CXX11 )
           set(CUDA_NVCC_FLAGS "-DCXX11_DISABLE" "${CUDA_NVCC_FLAGS}")
+      else()
+          set(CUDA_NVCC_FLAGS "--std=c++11" "${CUDA_NVCC_FLAGS}") 
       endif()
   else()
       message(STATUS "CUDA 6.0 or lower does not support C++11 (disabling)")
@@ -80,13 +84,11 @@ if( USE_GPU )
       set(ENABLE_CXX11 "OFF" )
   endif()
   set( CUDA_ARCH "sm_35" CACHE STRING "Compute capability for CUDA" )
-  set( CUDA_SEPARABLE_COMPILATION ON)
   
   include_directories(SYSTEM ${CUDA_INCLUDE_DIRS})
   
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_USE_GPU_")
   set(exe_LIBS "${CUDA_CUDART_LIBRARY}" "${exe_LIBS}" )
-  set(CUDA_SEPARABLE_COMPILATION ON)
   # adding the additional nvcc flags
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-arch=${CUDA_ARCH}" "-Xcudafe" "--diag_suppress=dupl_calling_convention")
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-Xcudafe" "--diag_suppress=code_is_unreachable" "-Xcudafe")
@@ -111,6 +113,9 @@ if(ENABLE_PERFORMANCE_METERS)
     add_definitions(-DENABLE_METERS)
 endif(ENABLE_PERFORMANCE_METERS)
 
+# always use fopenmp and lpthread as cc/ld flags
+# be careful! deleting this flags impacts performance 
+# (even on single core and without pragmas).
 set ( exe_LIBS ${exe_LIBS} ${Boost_LIBRARIES} )
 set ( exe_LIBS ${GTEST_LIBRARIES} -lpthread ${exe_LIBS} )
 
@@ -227,8 +232,3 @@ if (ENABLE_PYTHON)
      endif(${PYTHON_VERSION_MAJOR} GREATER 2)
     endif(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
 endif(ENABLE_PYTHON)
-
-# cuda compilation should have the same 
-# flags as gcc/clang compilation, just forward
-# them.
-set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "${CMAKE_CXX_FLAGS}" )
