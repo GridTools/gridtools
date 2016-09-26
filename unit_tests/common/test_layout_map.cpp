@@ -47,12 +47,5 @@ TEST(layout_map, accessors) {
 TEST(layout_map, find_val) {
     bool result = true;
     test_layout_find_val(&result);
-
-    ASSERT_TRUE(result);
-}
-
-TEST(layout_map, filter_layout) {
-    bool result = true;
-    test_filter_layout(&result);
     ASSERT_TRUE(result);
 }

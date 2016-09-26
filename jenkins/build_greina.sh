@@ -15,7 +15,7 @@ function help {
    echo "-t      target                   [gpu|cpu]"
    echo "-f      floating point precision [float|double]"
    echo "-c      cxx standard             [cxx11|cxx03]"
-   echo "-l      compiler                 [gnu|clang]  "
+   echo "-l      compiler                 [gcc|clang]  "
    echo "-p      activate python                       "
    echo "-m      activate mpi                          "
    echo "-s      activate a silent build               "
@@ -164,6 +164,7 @@ if [[ ${COMPILER} == "gcc" ]] ; then
     HOST_COMPILER=`which g++`
 elif [[ ${COMPILER} == "clang" ]] ; then
     HOST_COMPILER=`which clang++`
+    ADDITIONAL_FLAGS="-ftemplate-depth=1024"
     if [[ ${USE_GPU} == "ON" ]]; then
        echo "Clang not supported with nvcc"
        exit_if_error 334
@@ -179,11 +180,6 @@ else
     STRUCTURED_GRIDS="OFF"
 fi
 
-if [[ -z ${CUDA_VERSION} ]]; then
-    echo "CUDA VERSION must be defined"
-    exit_if_error 444
-fi
-
 # echo "Printing ENV"
 # env
 cmake \
@@ -194,13 +190,10 @@ cmake \
 -DBUILD_SHARED_LIBS:BOOL=ON \
 -DGPU_ENABLED_FUSION:PATH=../fusion/include \
 -DUSE_GPU:BOOL=$USE_GPU \
--DGTEST_LIBRARY:STRING=${GTEST_LIB} \
--DGTEST_MAIN_LIBRARY:STRING=${GTEST_MAINLIB} \
--DGTEST_INCLUDE_DIR:PATH=${GTEST_INC} \
 -DGNU_COVERAGE:BOOL=OFF \
 -DGCL_ONLY:BOOL=OFF \
 -DCMAKE_CXX_COMPILER="${HOST_COMPILER}" \
--DCMAKE_CXX_FLAGS:STRING="-I${MPI_HOME}/include -ftemplate-depth=1024" \
+-DCMAKE_CXX_FLAGS:STRING="-I${MPI_HOME}/include ${ADDITIONAL_FLAGS}" \
 -DCUDA_HOST_COMPILER:STRING="${HOST_COMPILER}" \
 -DUSE_MPI:BOOL=$USE_MPI \
 -DUSE_MPI_COMPILER:BOOL=$USE_MPI  \
@@ -212,7 +205,6 @@ cmake \
 -DSTRUCTURED_GRIDS:BOOL=${STRUCTURED_GRIDS} \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 -DVERBOSE=$VERBOSE_RUN \
--DCUDA_VERSION=${CUDA_VERSION} \
  ../
 
 exit_if_error $?

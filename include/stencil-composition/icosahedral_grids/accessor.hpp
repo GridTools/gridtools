@@ -35,6 +35,7 @@
 */
 #pragma once
 #include "../extent.hpp"
+#include "location_type.hpp"
 #include "../accessor_base.hpp"
 
 namespace gridtools {

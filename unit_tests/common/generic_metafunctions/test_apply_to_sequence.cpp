@@ -35,7 +35,7 @@
 */
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
-#include "defs.hpp"
+#include "common/defs.hpp"
 #include "common/generic_metafunctions/apply_to_sequence.hpp"
 
 using namespace gridtools;
