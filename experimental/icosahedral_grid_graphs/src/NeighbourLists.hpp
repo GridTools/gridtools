@@ -126,7 +126,7 @@ void build_neighbour_list< 1, 6, 6 >(std::vector< std::list< int > > &neighbours
         }
         neighbours.push_back({firstCell - 1, firstCell + (triang_offset)}); // cell id 46
     }
-    neighbours.push_back({80, 96}); // cell id 95
+    neighbours.push_back({80, 96});  // cell id 95
     for (int i = 96; i < 110; ++i) { // cell ids [96-109]
         if (i % 2 == 0)
             neighbours.push_back({i - 1, i + 1, i + triang_offset});
@@ -138,7 +138,7 @@ void build_neighbour_list< 1, 6, 6 >(std::vector< std::list< int > > &neighbours
     neighbours.push_back({96, 113});      // cell id 111
     neighbours.push_back({});             // cell id 112
     neighbours.push_back({111, 98, 114}); // cell id 113
-    for (int i = 114; i < 124; ++i) { // cell ids [114-123]
+    for (int i = 114; i < 124; ++i) {     // cell ids [114-123]
         if (i % 2 == 0) {
             neighbours.push_back({i - 1, i + i});
         } else {
