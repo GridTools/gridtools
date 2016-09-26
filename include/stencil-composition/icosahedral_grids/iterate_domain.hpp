@@ -34,7 +34,6 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "location_type.hpp"
 #include <type_traits>
 #include <boost/type_traits/remove_reference.hpp>
 #include "common/generic_metafunctions/is_not_same.hpp"
@@ -45,6 +44,7 @@
 #include "common/array.hpp"
 #include "../../common/explode_array.hpp"
 #include "common/generic_metafunctions/remove_restrict_reference.hpp"
+#include "../location_type.hpp"
 #include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
 #include "stencil-composition/total_storages.hpp"
 #include "stencil-composition/iterate_domain_aux.hpp"
@@ -53,20 +53,6 @@
 #include "../iterate_domain_fwd.hpp"
 
 namespace gridtools {
-
-    // TODO move this to the appropiate file
-    template < typename EsfSequence >
-    struct extract_location_type {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< EsfSequence, is_esf_descriptor >::value), "Error: wrong type");
-        typedef typename apply_to_sequence< EsfSequence, esf_get_location_type >::type location_type_seq_t;
-        typedef typename vector_to_set< location_type_seq_t >::type location_type_set_t;
-
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< location_type_set_t >::value == 1),
-            "Error: multiple ESFs were used with different location types."
-            " Currently all esf must be specified on the same location type. "
-            "Future releases will relax this restriction");
-        typedef typename boost::mpl::front< location_type_set_t >::type type;
-    };
 
     /**
        This class is basically the iterate domain. It contains the
@@ -83,10 +69,10 @@ namespace gridtools {
         typedef typename iterate_domain_arguments_t::processing_elements_block_size_t processing_elements_block_size_t;
 
         typedef typename iterate_domain_arguments_t::backend_ids_t backend_ids_t;
+
         typedef typename iterate_domain_arguments_t::grid_t::grid_topology_t grid_topology_t;
         typedef typename grid_topology_t::layout_map_t layout_map_t;
         typedef typename iterate_domain_arguments_t::esf_sequence_t esf_sequence_t;
-        typedef typename extract_location_type< esf_sequence_t >::type location_type_t;
 
         typedef typename local_domain_t::esf_args esf_args_t;
 
@@ -94,6 +80,7 @@ namespace gridtools {
             iterate_domain_arguments_t >::type iterate_domain_cache_t;
 
         typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
+        typedef typename iterate_domain_cache_t::all_caches_t all_caches_t;
 
         GRIDTOOLS_STATIC_ASSERT((is_local_domain< local_domain_t >::value), "Internal Error: wrong type");
         typedef typename boost::remove_pointer<
@@ -150,10 +137,35 @@ namespace gridtools {
         typedef typename compute_readonly_args_indices< typename iterate_domain_arguments_t::esf_sequence_t >::type
             readonly_args_indices_t;
 
+        /**
+         * metafunction that determines if a given accessor is associated with an placeholder holding a data field
+         */
+        template < typename Accessor >
+        struct accessor_holds_data_field {
+            typedef typename aux::accessor_holds_data_field< Accessor, iterate_domain_arguments_t >::type type;
+        };
+
+        /**
+         * metafunction that determines if a given accessor is associated with an arg that is cached
+         */
+        template < typename Accessor >
+        struct cache_access_accessor {
+            typedef typename accessor_is_cached< Accessor, all_caches_t >::type type;
+        };
+
+        /**
+         * metafunction that determines if a given accessor is associated with an arg holding a
+         * standard field (i.e. not a data field)
+         * and the parameter refers to a storage in main memory (i.e. is not cached)
+         */
+        template < typename Accessor >
+        struct mem_access_with_standard_accessor {
+            typedef typename aux::mem_access_with_standard_accessor< Accessor,
+                all_caches_t,
+                iterate_domain_arguments_t >::type type;
+        };
+
       private:
-        GRIDTOOLS_STATIC_ASSERT((N_META_STORAGES <= grid_topology_t::n_locations::value),
-            "We can not have more meta storages"
-            "than location types. Data fields for other grids are not yet supported");
         local_domain_t const &m_local_domain;
         grid_topology_t const &m_grid_topology;
         typedef array< int_t, N_META_STORAGES > array_index_t;
@@ -216,6 +228,7 @@ namespace gridtools {
         GT_FUNCTION void assign_storage_pointers() {
             const uint_t EU_id_i = BackendType::processing_element_i();
             const uint_t EU_id_j = BackendType::processing_element_j();
+
             boost::mpl::for_each< typename reversed_range< uint_t, 0, N_STORAGES >::type >(
                 assign_storage_functor< BackendType,
                     data_pointer_array_t,
@@ -320,40 +333,42 @@ namespace gridtools {
         GT_FUNCTION
         void set_position(array< uint_t, 4 > const &position) { m_grid_position = position; }
 
-        template < uint_t ID,
-            enumtype::intend intend,
-            typename LocationType,
-            typename Extent,
-            ushort_t FieldDimensions >
-        GT_FUNCTION typename accessor_return_type< accessor< ID, intend, LocationType, Extent, FieldDimensions > >::type
-        operator()(accessor< ID, intend, LocationType, Extent, FieldDimensions > const &accessor_) const {
-            typedef accessor< ID, intend, LocationType, Extent, FieldDimensions > accessor_t;
-            return get_value(accessor_,
-                (data_pointer())[current_storage< (ID == 0), local_domain_t, typename accessor_t::type >::value]);
+        /** @brief method returning the data pointer of an accessor
+            specialization for the accessor placeholders for standard storages
+
+            this method is enabled only if the current placeholder dimension does not exceed the number of space
+           dimensions of the storage class.
+            I.e., if we are dealing with storages, not with storage lists or data fields (see concepts page for
+           definitions)
+        */
+        template < typename Accessor >
+        GT_FUNCTION
+            typename boost::disable_if< typename accessor_holds_data_field< Accessor >::type, void * RESTRICT >::type
+            get_data_pointer(Accessor const &accessor) const {
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
+            return (data_pointer())
+                [current_storage< (Accessor::index_type::value == 0), local_domain_t, typename Accessor::type >::value];
         }
 
-        template < typename ValueType,
-            typename SrcColor,
-            typename LocationTypeT,
-            typename Reduction,
-            typename MapF,
-            typename... Arg0 >
-        GT_FUNCTION ValueType operator()(on_neighbors_impl< ValueType,
-            SrcColor,
-            LocationTypeT,
-            Reduction,
-            map_function< MapF, LocationTypeT, Arg0... > > onneighbors) const {
-            auto current_position = m_grid_position;
+        template < uint_t Color, typename Accessor >
+        GT_FUNCTION typename boost::enable_if< typename cache_access_accessor< Accessor >::type,
+            typename accessor_return_type< Accessor >::type >::type
+        operator()(static_uint<Color>, Accessor const &accessor) const {
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
+            return static_cast< IterateDomainImpl const * >(this)
+                ->template get_cache_value_impl< Color, typename accessor_return_type< Accessor >::type >(accessor);
+        }
 
-            const auto neighbors =
-                m_grid_topology.neighbors_indices_3(current_position, location_type_t(), onneighbors.location());
-            ValueType result = onneighbors.value();
-
-            for (int i = 0; i < neighbors.size(); ++i) {
-                result = onneighbors.reduction()(_evaluate(onneighbors.template map< 0 >(), neighbors[i]), result);
-            }
-
-            return result;
+        template < uint_t Color, typename Accessor >
+        GT_FUNCTION typename boost::enable_if< typename mem_access_with_standard_accessor< Accessor >::type,
+            typename accessor_return_type< Accessor >::type >::type
+        operator()(static_uint<Color>, Accessor const &accessor_) const {
+            return get_value(accessor_,
+                (data_pointer())[current_storage< (Accessor::index_type::value == 0),
+                    local_domain_t,
+                    typename Accessor::type >::value]);
         }
 
         /**
@@ -542,10 +557,14 @@ namespace gridtools {
 
             // the neighbors are described as an array of absolute indices in the storage, i.e. an array<uint?t,
             // NumNeighbors>
-            const auto neighbors = m_grid_topology.connectivity_index(location_type_t(),
-                onneighbors.location(),
-                SrcColor(),
-                {current_position[0], current_position[2], current_position[3]});
+            constexpr auto neighbors =
+                connectivity< EsfLocationType, decltype(onneighbors.location()), SrcColor::value >::offsets();
+
+            // TODO use the index version instead?
+            //            const auto neighbors = m_grid_topology.connectivity_index(location_type_t(),
+            //                onneighbors.location(),
+            //                SrcColor(),
+            //                {current_position[0], current_position[2], current_position[3]});
 
             ValueType &result = onneighbors.value();
 
@@ -561,6 +580,17 @@ namespace gridtools {
             }
 
             return result;
+        }
+
+        /** @brief return a the value in gmem pointed to by an accessor
+        */
+        template < typename ReturnType, typename StoragePointer >
+        GT_FUNCTION ReturnType get_gmem_value(StoragePointer RESTRICT &storage_pointer
+            // control your instincts: changing the following
+            // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
+            ,
+            const int_t pointer_offset) const {
+            return *(storage_pointer + pointer_offset);
         }
 
         /**@brief returns the value of the memory at the given address, plus the offset specified by the arg
@@ -585,6 +615,8 @@ namespace gridtools {
             typename storage_type::value_type *RESTRICT real_storage_pointer =
                 static_cast< typename storage_type::value_type * >(storage_pointer);
 
+            typedef typename get_storage_pointer_accessor< local_domain_t, Accessor >::type storage_pointer_t;
+
             // getting information about the metadata
             typedef typename boost::mpl::at< metadata_map_t, typename storage_type::storage_info_type >::type
                 metadata_index_t;
@@ -592,12 +624,11 @@ namespace gridtools {
             pointer< const typename storage_type::storage_info_type > const metadata_ =
                 boost::fusion::at< metadata_index_t >(m_local_domain.m_local_metadata);
             // getting the value
-
             // the following assert fails when an out of bound access is observed, i.e. either one of
             // i+offset_i or j+offset_j or k+offset_k is too large.
             // Most probably this is due to you specifying a positive offset which is larger than expected,
             // or maybe you did a mistake when specifying the extents in the placehoders definition
-            assert(metadata_->size() > metadata_->index(m_grid_position));
+            assert((int)metadata_->size() > (m_index[metadata_index_t::value]));
 
             // the following assert fails when an out of bound access is observed,
             // i.e. when some offset is negative and either one of
@@ -613,10 +644,15 @@ namespace gridtools {
             assert((int_t)(metadata_->index(m_grid_position)) >= 0);
 
             const int_t pointer_offset =
-                metadata_->index(m_grid_position) +
+                (m_index[metadata_index_t::value]) +
                 metadata_->_index(strides().template get< metadata_index_t::value >(), accessor.offsets());
 
-            return *(real_storage_pointer + pointer_offset);
+            assert((int)metadata_->size() > pointer_offset);
+            return static_cast< const IterateDomainImpl * >(this)
+                ->template get_value_impl<
+                    typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type,
+                    Accessor,
+                    storage_pointer_t >(real_storage_pointer, pointer_offset);
         }
 
         template < typename Accessor, typename StoragePointer >
@@ -625,6 +661,8 @@ namespace gridtools {
 
             // getting information about the storage
             typedef typename Accessor::index_type index_t;
+
+            typedef typename get_storage_pointer_accessor< local_domain_t, Accessor >::type storage_pointer_t;
 
             auto const storage_ = boost::fusion::at< index_t >(m_local_domain.m_local_args);
 
@@ -635,7 +673,20 @@ namespace gridtools {
             typename storage_type::value_type *RESTRICT real_storage_pointer =
                 static_cast< typename storage_type::value_type * >(storage_pointer);
 
-            return *(real_storage_pointer + offset);
+#ifndef NDEBUG
+            typedef typename boost::mpl::at< metadata_map_t, typename storage_type::storage_info_type >::type
+                metadata_index_t;
+
+            pointer< const typename storage_type::storage_info_type > const metadata_ =
+                boost::fusion::at< metadata_index_t >(m_local_domain.m_local_metadata);
+
+            assert((int)metadata_->size() > offset);
+#endif
+            return static_cast< const IterateDomainImpl * >(this)
+                ->template get_value_impl<
+                    typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type,
+                    Accessor,
+                    storage_pointer_t >(real_storage_pointer, offset);
         }
 
         /**
@@ -650,7 +701,6 @@ namespace gridtools {
             typename accessor_return_type< accessor< ID, Intend, LocationType, Extent, FieldDimensions > >::type >::type
             _evaluate(accessor< ID, Intend, LocationType, Extent, FieldDimensions >,
                 array< int_t, 4 > const &position_offset) const {
-            GRIDTOOLS_STATIC_ASSERT((LocationType::value == location_type_t::value), "error");
 
             using accessor_t = accessor< ID, Intend, LocationType, Extent, FieldDimensions >;
 

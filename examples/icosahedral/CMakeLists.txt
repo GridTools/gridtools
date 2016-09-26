@@ -1,13 +1,14 @@
 list( APPEND SRCFILES #laplace 
-      stencil_on_cells stencil_on_cells_color stencil_on_edges stencil_on_edges_of_cells stencil_on_neighcell_of_edges stencil_on_neighedge_of_cells stencil_manual_fold stencil_on_vertexes stencil_on_edges_multiplefields)
+      stencil_on_cells stencil_on_cells_color stencil_on_edges stencil_on_edges_of_cells stencil_fused stencil_on_neighcell_of_edges stencil_on_neighedge_of_cells stencil_manual_fold stencil_on_vertexes stencil_on_edges_multiplefields curl div lap)
 
+file(GLOB_RECURSE INC_ALL "[a-z]*.hpp")
 set( GTEST_FILES ../Options.hpp ../Options.cpp unstructured_grid.cpp)
 
 add_definitions("-DBENCHMARK")
 
 foreach(srcfile IN LISTS SRCFILES )
-    add_executable(${srcfile}_naive   ${srcfile}.cpp ${GTEST_FILES})
-    add_executable(${srcfile}_block   ${srcfile}.cpp ${GTEST_FILES})
+    add_executable(${srcfile}_naive   ${srcfile}.cpp ${INC_ALL} ${GTEST_FILES})
+    add_executable(${srcfile}_block   ${srcfile}.cpp ${INC_ALL} ${GTEST_FILES})
     set_target_properties(${srcfile}_block
       PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
     set_target_properties(${srcfile}_naive PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})

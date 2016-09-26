@@ -63,7 +63,7 @@ namespace sov {
 
     template < uint_t Color >
     struct test_on_vertexes_functor {
-        typedef in_accessor< 0, icosahedral_topology_t::vertexes, extent< 1 > > in;
+        typedef in_accessor< 0, icosahedral_topology_t::vertexes, extent< -1,1,-1,1 > > in;
         typedef inout_accessor< 1, icosahedral_topology_t::vertexes > out;
         typedef boost::mpl::vector2< in, out > arg_list;
 
@@ -84,7 +84,7 @@ namespace sov {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        using cell_storage_type = typename backend_t::storage_t< icosahedral_topology_t::vertexes, double >;
+        using cell_storage_type = typename icosahedral_topology_t::storage_t< icosahedral_topology_t::vertexes, double >;
 
         const uint_t halo_nc = 1;
         const uint_t halo_mc = 1;
@@ -143,7 +143,7 @@ namespace sov {
             unstructured_grid ugrid(d1, d2, d3);
             for (uint_t i = halo_nc; i < d1 - halo_nc; ++i) {
                 for (uint_t c = 0; c < icosahedral_topology_t::vertexes::n_colors::value; ++c) {
-                    for (uint_t j = halo_mc; j < d2 - halo_mc + 1; ++j) {
+                    for (uint_t j = halo_mc; j < d2 - halo_mc; ++j) {
                         for (uint_t k = 0; k < d3; ++k) {
                             auto neighbours = ugrid.neighbours_of< icosahedral_topology_t::vertexes,
                                 icosahedral_topology_t::vertexes >({i, c, j, k});

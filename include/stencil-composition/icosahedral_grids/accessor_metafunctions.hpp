@@ -87,4 +87,62 @@ namespace gridtools {
             FieldDimensions > type;
     };
 
+    template < ushort_t ID, enumtype::intend Intend, typename ArgsMap >
+    struct remap_accessor_type< global_accessor< ID, Intend >, ArgsMap > {
+        typedef global_accessor< ID, Intend > accessor_t;
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< ArgsMap >::value > 0), "Internal Error: wrong size");
+        // check that the key type is an int (otherwise the later has_key would never find the key)
+        GRIDTOOLS_STATIC_ASSERT(
+            (boost::is_same<
+                typename boost::mpl::first< typename boost::mpl::front< ArgsMap >::type >::type::value_type,
+                int >::value),
+            "Internal Error");
+
+        typedef typename boost::mpl::integral_c< int, (int)ID > index_type_t;
+
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_type_t >::value), "Internal Error");
+
+        typedef global_accessor< boost::mpl::at< ArgsMap, index_type_t >::type::value, Intend > type;
+    };
+
+    //#ifdef CXX11_ENABLED
+    //    template < typename ArgsMap, template < typename... > class Expression, typename... Arguments >
+    //    struct remap_accessor_type< Expression< Arguments... >,
+    //        ArgsMap,
+    //        typename boost::enable_if< typename is_expr< Expression< Arguments... > >::type, void >::type > {
+    //        // Expression is an expression of accessors (e.g. expr_sum<T1, T2>,
+    //        // where T1 and T2 are two accessors).
+    //        // Here we traverse the expression AST down to the leaves, and we assert if
+    //        // the leaves are not accessor types.
+
+    //        // recursively remapping the template arguments,
+    //        // until the specialization above stops the recursion
+    //        typedef Expression< typename remap_accessor_type< Arguments, ArgsMap >::type... > type;
+    //    };
+
+    //    // Workaround needed to prevent nvcc to instantiate the struct in enable_ifs
+    //    template < typename ArgsMap, template < typename... > class Expression, typename... Arguments >
+    //    struct remap_accessor_type< Expression< Arguments... >,
+    //        ArgsMap,
+    //        typename boost::disable_if< typename is_expr< Expression< Arguments... > >::type, void >::type > {
+    //        // Workaround needed to prevent nvcc to instantiate the struct in enable_ifs
+    //        typedef boost::mpl::void_ type;
+    //    };
+
+    //    template < typename ArgsMap >
+    //    struct remap_accessor_type< float_type, ArgsMap > {
+    //        // when a leaf is a float don't do anything
+    //        typedef float_type type;
+    //    };
+
+    //    template < typename ArgsMap, template < typename Acc, int N > class Expression, typename Accessor, int Number
+    //    >
+    //    struct remap_accessor_type< Expression< Accessor, Number >, ArgsMap > {
+    //        // Specialization done to catch also the "pow" expression, for which a template argument is an
+    //        // integer (the exponent)
+    //        typedef Expression< typename remap_accessor_type< Accessor, ArgsMap >::type, Number > type;
+    //    };
+    //
+    //#endif
+
 } // namespace gridtools

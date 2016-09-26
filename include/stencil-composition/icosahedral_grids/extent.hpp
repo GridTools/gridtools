@@ -33,42 +33,59 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
+//#pragma once
 
-namespace gridtools {
+//namespace gridtools {
 
-    template < int_t R = 0 >
-    struct extent {
-        static const int_t value = R;
-    };
+//    template < int_t R = 0 >
+//    struct extent {
+//        static const int_t value = R;
+//    };
 
-    template < typename T >
-    struct is_extent : boost::mpl::false_ {};
+//    template < typename T >
+//    struct is_extent : boost::mpl::false_ {};
 
-    template < int R >
-    struct is_extent< extent< R > > : boost::mpl::true_ {};
+//    template < int R >
+//    struct is_extent< extent< R > > : boost::mpl::true_ {};
 
-    /**
-     * Metafunction taking two extents and yielding a extent containing them
-     */
-    template < typename Extent1, typename Extent2 >
-    struct enclosing_extent {
-        BOOST_MPL_ASSERT((is_extent< Extent1 >));
-        BOOST_MPL_ASSERT((is_extent< Extent2 >));
+//    /**
+//     * Metafunction taking two extents and yielding a extent containing them
+//     */
+//    template < typename Extent1, typename Extent2 >
+//    struct enclosing_extent {
+//        BOOST_MPL_ASSERT((is_extent< Extent1 >));
+//        BOOST_MPL_ASSERT((is_extent< Extent2 >));
 
-        typedef extent< boost::mpl::max< static_uint< Extent1::value >, static_uint< Extent2::value > >::type::value >
-            type;
-    };
+//        typedef extent< boost::mpl::max< static_uint< Extent1::value >, static_uint< Extent2::value > >::type::value >
+//            type;
+//    };
 
-    /**
-     * Metafunction to add two extents
-     */
-    template < typename Extent1, typename Extent2 >
-    struct sum_extent {
-        BOOST_MPL_ASSERT((is_extent< Extent1 >));
-        BOOST_MPL_ASSERT((is_extent< Extent2 >));
+//    /**
+//     * Metafunction to add two extents
+//     */
+//    template < typename Extent1, typename Extent2 >
+//    struct sum_extent {
+//        BOOST_MPL_ASSERT((is_extent< Extent1 >));
+//        BOOST_MPL_ASSERT((is_extent< Extent2 >));
 
-        typedef extent< Extent1::value + Extent2::value > type;
-    };
+//        typedef extent< Extent1::value + Extent2::value > type;
+//    };
 
-} // namespace gridtools
+//    template<typename Extent> struct extent_get_iminus{
+//        GRIDTOOLS_STATIC_ASSERT((is_extent<Extent>::value), "Error");
+//        static const int_t value = Extent::value;
+//    };
+//    template<typename Extent> struct extent_get_iplus{
+//        GRIDTOOLS_STATIC_ASSERT((is_extent<Extent>::value), "Error");
+//        static const int_t value = Extent::value;
+//    };
+//    template<typename Extent> struct extent_get_jminus{
+//        GRIDTOOLS_STATIC_ASSERT((is_extent<Extent>::value), "Error");
+//        static const int_t value = Extent::value;
+//    };
+//    template<typename Extent> struct extent_get_jplus{
+//        GRIDTOOLS_STATIC_ASSERT((is_extent<Extent>::value), "Error");
+//        static const int_t value = Extent::value;
+//    };
+
+//} // namespace gridtools

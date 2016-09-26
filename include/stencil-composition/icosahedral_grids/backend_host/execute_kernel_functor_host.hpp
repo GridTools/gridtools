@@ -60,11 +60,12 @@ namespace gridtools {
                 color_type< (uint_t)Index::value > >::type type;
         };
 
-        template < typename RunFunctorArguments, typename IterateDomain, typename Grid >
+        template < typename RunFunctorArguments, typename IterateDomain, typename Grid, typename Extent >
         struct color_execution_functor {
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), "ERROR");
             GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), "ERROR");
             GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "ERROR");
+            GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), "ERROR");
 
             typedef typename RunFunctorArguments::loop_intervals_t loop_intervals_t;
             typedef typename RunFunctorArguments::execution_type_t execution_type_t;
@@ -78,16 +79,13 @@ namespace gridtools {
             Grid const &m_grid;
             gridtools::array< const uint_t, 2 > const &m_first_pos;
             gridtools::array< const uint_t, 2 > const &m_loop_size;
-            const uint_t m_addon;
 
           public:
             color_execution_functor(IterateDomain &it_domain,
                 Grid const &grid,
                 gridtools::array< const uint_t, 2 > const &first_pos,
-                gridtools::array< const uint_t, 2 > const &loop_size,
-                const uint_t addon)
-                : m_it_domain(it_domain), m_grid(grid), m_first_pos(first_pos), m_loop_size(loop_size), m_addon(addon) {
-            }
+                gridtools::array< const uint_t, 2 > const &loop_size)
+                : m_it_domain(it_domain), m_grid(grid), m_first_pos(first_pos), m_loop_size(loop_size) {}
 
             template < typename Index >
             void operator()(Index const &,
@@ -97,7 +95,9 @@ namespace gridtools {
                 array_index_t memorized_index;
                 array_position_t memorized_position;
 
-                for (uint_t j = m_first_pos[1]; j <= m_first_pos[1] + m_loop_size[1] + m_addon; ++j) {
+                for (uint_t j = m_first_pos[1] + Extent::jminus::value;
+                     j <= m_first_pos[1] + m_loop_size[1] + Extent::jplus::value;
+                     ++j) {
                     m_it_domain.get_index(memorized_index);
                     m_it_domain.get_position(memorized_position);
 
@@ -112,7 +112,7 @@ namespace gridtools {
                         static_int< 1 > >();
                 }
                 m_it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value >(
-                    -(m_loop_size[1] + 1 + m_addon));
+                    -(m_loop_size[1] + 1 + (Extent::jplus::value - Extent::jminus::value)));
                 m_it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
                     static_int< 1 > >();
             }
@@ -157,7 +157,8 @@ namespace gridtools {
                 const uint_t block_idx_i,
                 const uint_t block_idx_j)
                 : m_local_domain(local_domain), m_grid(grid), m_first_pos{first_i, first_j},
-                  m_loop_size{loop_size_i, loop_size_j}, m_block_id{block_idx_i, block_idx_j} {}
+                  m_loop_size{loop_size_i, loop_size_j}, m_block_id{block_idx_i, block_idx_j} {
+            }
 
             // Naive strategy
             explicit execute_kernel_functor_host(
@@ -221,26 +222,21 @@ namespace gridtools {
                 //                it_domain.template initialize<0>(m_first_pos[0] + extent_t::iminus::value,
                 //                m_block_id[0]);
                 it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_i_t::value >(
-                    m_first_pos[0], m_block_id[0]);
+                    m_first_pos[0] + extent_t::iminus::value, m_block_id[0]);
 
                 // initialize color dim
                 it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value >(0);
                 it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value >(
-                    m_first_pos[1], m_block_id[1]);
+                    m_first_pos[1] + extent_t::jminus::value, m_block_id[1]);
                 it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_k_t::value >(
                     m_grid.template value_at< typename iteration_policy_t::from >());
 
-                int addon = 0;
-                // the iterate domain over vertexes has one more grid point
-                // TODO specify the loop bounds from the grid_tolopogy to avoid this hack here
-                if (location_type_t::value == grid_topology_t::vertexes::value) {
-                    addon++;
-                }
-
-                for (uint_t i = m_first_pos[0]; i <= m_first_pos[0] + m_loop_size[0]; ++i) {
+                for (uint_t i = m_first_pos[0] + extent_t::iminus::value;
+                     i <= m_first_pos[0] + m_loop_size[0] + extent_t::iplus::value;
+                     ++i) {
                     boost::mpl::for_each< boost::mpl::range_c< uint_t, 0, n_colors_t::value > >(
-                        color_execution_functor< RunFunctorArguments, iterate_domain_t, grid_t >(
-                            it_domain, m_grid, m_first_pos, m_loop_size, addon));
+                        color_execution_functor< RunFunctorArguments, iterate_domain_t, grid_t, extent_t >(
+                            it_domain, m_grid, m_first_pos, m_loop_size));
 
                     it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
                         static_int< -((int_t)n_colors_t::value) > >();
@@ -249,7 +245,7 @@ namespace gridtools {
                         static_int< 1 > >();
                 }
                 it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_i_t::value >(
-                    -(m_loop_size[0] + 1));
+                    -(m_loop_size[0] + 1 + (extent_t::iplus::value-extent_t::iminus::value)));
             }
 
           private:

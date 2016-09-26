@@ -43,10 +43,10 @@
 
 #pragma once
 
-#include "stencil-composition/arg_metafunctions_fwd.hpp"
 #include <iosfwd>
 #include "storage/storage_metafunctions.hpp"
-#include "arg_metafunctions.hpp"
+#include "stencil-composition/arg_metafunctions_fwd.hpp"
+#include "location_type.hpp"
 
 namespace gridtools {
 
@@ -96,7 +96,7 @@ namespace gridtools {
      * @tparam I Integer index (unique) of the data field to identify it
      * @tparam T The type of the storage used to store data
      */
-    template < uint_t I, typename Storage, typename Condition = bool >
+    template < uint_t I, typename Storage, typename is_temporary_storage = bool >
     struct arg {
         typedef Storage storage_type;
         typedef typename Storage::iterator iterator;
@@ -121,6 +121,20 @@ namespace gridtools {
         }
     };
 
+    template<typename Storage>
+    struct arg_get_storage_info {
+        GRIDTOOLS_STATIC_ASSERT((is_any_storage<Storage>::value), "Error");
+
+        typedef typename Storage::storage_info_type type;
+    };
+
+    template<typename Storage>
+    struct arg_get_storage_info<std::vector< pointer<Storage> > > {
+        GRIDTOOLS_STATIC_ASSERT((is_any_storage<Storage>::value), "Error");
+
+        typedef typename Storage::storage_info_type type;
+    };
+
     /**
      * This specialization is made for the standard storages (not user-defined)
      * which have to contain a storage_info type, and can define a location_type
@@ -132,11 +146,10 @@ namespace gridtools {
         typedef typename Storage::value_type value_type;
         typedef static_uint< I > index_type;
         typedef static_uint< I > index;
+        typedef typename arg_get_storage_info<Storage>::type storage_info_t;
 
-// location type is only used by other grids, supported only for cxx11
-#ifdef CXX11_ENABLED
-        typedef typename get_location_type< Storage >::type location_type;
-#endif
+        typedef
+            typename get_location_by_metastorage_index< storage_info_t::index_type::value >::type location_type;
 
         template < typename Storage2 >
         arg_storage_pair< arg< I, storage_type >, Storage2 > operator=(Storage2 &ref) {

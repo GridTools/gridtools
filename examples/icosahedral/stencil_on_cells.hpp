@@ -63,7 +63,7 @@ namespace soc {
 
     template < uint_t Color >
     struct test_on_cells_functor {
-        typedef in_accessor< 0, icosahedral_topology_t::cells, extent< 1 > > in;
+        typedef in_accessor< 0, icosahedral_topology_t::cells, extent< -1,1,-1,1 > > in;
         typedef inout_accessor< 1, icosahedral_topology_t::cells > out;
         typedef boost::mpl::vector< in, out > arg_list;
 
@@ -84,7 +84,7 @@ namespace soc {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        using cell_storage_type = typename backend_t::storage_t< icosahedral_topology_t::cells, double >;
+        using cell_storage_type = typename icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, double >;
 
         const uint_t halo_nc = 1;
         const uint_t halo_mc = 1;

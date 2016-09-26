@@ -76,9 +76,7 @@ using namespace cs_test;
 
 TEST(test_copy_stencil, run) {
 
-    typedef gridtools::layout_map<2,1,0> layout_t;
-
-    using cell_storage_type = typename backend_t::storage_t<icosahedral_topology_t::cells, double>;
+    using cell_storage_type = typename icosahedral_topology_t::storage_t<icosahedral_topology_t::cells, double>;
 
     const uint_t halo_nc = 1;
     const uint_t halo_mc = 2;

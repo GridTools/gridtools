@@ -192,6 +192,8 @@ namespace gridtools {
 #else
         static const unsigned int vector_width = 4;
 #endif
+        static const unsigned int metastorage_library_indices_limit = 1000;
+
 
     } // namespace enumtype
 

@@ -39,9 +39,10 @@
 #include "common/offset_tuple.hpp"
 #include "common/layout_map.hpp"
 
+using namespace gridtools;
+
 GT_FUNCTION
 void test_layout_accessors(bool *result) {
-    using namespace gridtools;
 
     *result = true;
 #ifdef CXX11_ENABLED
@@ -166,7 +167,6 @@ void test_layout_accessors(bool *result) {
 
 GT_FUNCTION
 void test_layout_find_val(bool *result) {
-    using namespace gridtools;
 
     *result = true;
 
@@ -230,5 +230,33 @@ void test_layout_find_val(bool *result) {
     *result &= ((layout_map< 2, 0, 1 >::find_val< 1, int, 666 >(array< uint_t, 3 >{7, 9, 11}) == 11));
     *result &= ((layout_map< 2, 0, 1 >::find_val< 2, int, 666 >(array< uint_t, 3 >{7, 9, 11}) == 7));
     *result &= ((layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(array< uint_t, 3 >{7, 9, 11}) == 666));
+#endif
+}
+
+GT_FUNCTION
+void test_filter_layout(bool *result) {
+    *result = true;
+#ifdef CXX11_ENABLED
+
+    GRIDTOOLS_STATIC_ASSERT((boost::is_same< filter_layout< layout_map< 3, 2, 1, 0 >, selector< 1, 1, -1, 1 > >::type,
+                                layout_map< 2, 1, -1, 0 > >::value),
+        "Error");
+    GRIDTOOLS_STATIC_ASSERT((boost::is_same< filter_layout< layout_map< 0,1,2,3 >, selector< 1, 1, -1, 1 > >::type,
+                                layout_map< 0, 1, -1, 2 > >::value),
+        "Error");
+
+    GRIDTOOLS_STATIC_ASSERT((boost::is_same< filter_layout< layout_map< 3, 2, 1, 0 >, selector< -1, 1, 1, 1 > >::type,
+                                layout_map< -1, 2, 1, 0 > >::value),
+        "Error");
+
+    GRIDTOOLS_STATIC_ASSERT((boost::is_same< filter_layout< layout_map< 3, 2, 1, 0 >, selector< -1, 1, 1, 1 > >::type,
+                                layout_map< -1, 2, 1, 0 > >::value),
+        "Error");
+    GRIDTOOLS_STATIC_ASSERT((boost::is_same< filter_layout< layout_map< 2, 3, 0, 1 >, selector< -1, 1, -1, 1 > >::type,
+                                layout_map< -1, 1, -1, 0 > >::value),
+        "Error");
+
+    typedef sequence_unpacker<boost::mpl::vector3<int, float, double> >::type ll;
+
 #endif
 }

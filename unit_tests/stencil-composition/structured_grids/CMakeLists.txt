@@ -27,7 +27,7 @@ if(CUDA_FOUND)
 endif()
 
 
-    add_executable(test_conditionals test_conditionals.cpp)
+    add_executable(test_conditionals test_conditionals.cpp ${INC_ALL})
     set_target_properties(test_conditionals PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
     target_link_libraries(test_conditionals ${GTEST_BOTH_LIBRARIES} -lpthread ${exe_LIBS})
     gridtools_add_test(test_conditionals ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/test_conditionals")

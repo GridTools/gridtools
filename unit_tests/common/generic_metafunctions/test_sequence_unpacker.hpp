@@ -33,23 +33,17 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-#include <common/string_c.hpp>
-namespace gridtools {
-    template < int I, ushort_t NColors >
-    struct location_type {
-        static const int value = I;
-        using n_colors = static_ushort< NColors >; //! <- is the number of locations of this type
-    };
+#include "gtest/gtest.h"
+#include "common/generic_metafunctions/sequence_unpacker.hpp"
 
-    template < typename T >
-    struct is_location_type : boost::mpl::false_ {};
+using namespace gridtools;
 
-    template < int I, ushort_t NColors >
-    struct is_location_type< location_type< I, NColors > > : boost::mpl::true_ {};
+void test_sequence_unpacker(bool *result) {
+    *result = true;
 
-    template < int I, ushort_t NColors >
-    std::ostream &operator<<(std::ostream &s, location_type< I, NColors >) {
-        return s << "location_type<" << I << "> with " << NColors << " colors";
-    }
-} // namespace gridtools
+    using test_type = boost::mpl::vector4< int, float, char, double >;
+
+    GRIDTOOLS_STATIC_ASSERT((boost::is_same< sequence_unpacker< test_type >::type,
+                                variadic_typedef< int, float, char, double > >::value),
+        "Error");
+}

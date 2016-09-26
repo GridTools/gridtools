@@ -106,22 +106,22 @@ TEST_P(connectivity_index_test, cell_to_vertex) {
         ASSERT_TRUE(
             (same_elements(grid.connectivity_index(
                                cells(), vertexes(), gridtools::static_uint< 0 >(), {(uint_t)3, (uint_t)2, (uint_t)i}),
-                array< uint_t, 3 >{29 * d3 + i, 30 * d3 + i, 38 * d3 + i})));
+                array< uint_t, 3 >{26 * d3 + i, 27 * d3 + i, 34 * d3 + i})));
         // cell # 58
         ASSERT_TRUE(
             (same_elements(grid.connectivity_index(
                                cells(), vertexes(), gridtools::static_uint< 1 >(), {(uint_t)3, (uint_t)2, (uint_t)i}),
-                array< uint_t, 3 >{38 * d3 + i, 30 * d3 + i, 39 * d3 + i})));
+                array< uint_t, 3 >{34 * d3 + i, 27 * d3 + i, 35 * d3 + i})));
         // cell # 35
         ASSERT_TRUE(
             (same_elements(grid.connectivity_index(
                                cells(), vertexes(), gridtools::static_uint< 0 >(), {(uint_t)2, (uint_t)3, (uint_t)i}),
-                array< uint_t, 3 >{21 * d3 + i, 22 * d3 + i, 30 * d3 + i})));
+                array< uint_t, 3 >{19 * d3 + i, 20 * d3 + i, 27 * d3 + i})));
         // cell # 45
         ASSERT_TRUE(
             (same_elements(grid.connectivity_index(
                                cells(), vertexes(), gridtools::static_uint< 1 >(), {(uint_t)2, (uint_t)5, (uint_t)i}),
-                array< uint_t, 3 >{24 * d3 + i, 32 * d3 + i, 33 * d3 + i})));
+                array< uint_t, 3 >{22 * d3 + i, 29 * d3 + i, 30 * d3 + i})));
     }
 }
 
@@ -200,34 +200,34 @@ TEST_P(connectivity_index_test, edge_to_vertex) {
         ASSERT_TRUE(
             (same_elements(grid.connectivity_index(
                                edges(), vertexes(), gridtools::static_uint< 0 >(), {(uint_t)2, (uint_t)3, (uint_t)i}),
-                array< uint_t, 2 >{21 * d3 + i, 30 * d3 + i})));
+                array< uint_t, 2 >{19 * d3 + i, 27 * d3 + i})));
 
         // edge # 59
         ASSERT_TRUE(
             (same_elements(grid.connectivity_index(
                                edges(), vertexes(), gridtools::static_uint< 1 >(), {(uint_t)2, (uint_t)3, (uint_t)i}),
-                array< uint_t, 2 >{21 * d3 + i, 22 * d3 + i})));
+                array< uint_t, 2 >{19 * d3 + i, 20 * d3 + i})));
         // edge # 67
         ASSERT_TRUE(
             (same_elements(grid.connectivity_index(
                                edges(), vertexes(), gridtools::static_uint< 2 >(), {(uint_t)2, (uint_t)3, (uint_t)i}),
-                array< uint_t, 2 >{22 * d3 + i, 30 * d3 + i})));
+                array< uint_t, 2 >{20 * d3 + i, 27 * d3 + i})));
 
         // edge # 123
         ASSERT_TRUE(
             (same_elements(grid.connectivity_index(
                                edges(), vertexes(), gridtools::static_uint< 0 >(), {(uint_t)5, (uint_t)3, (uint_t)i}),
-                array< uint_t, 2 >{48 * d3 + i, 57 * d3 + i})));
+                array< uint_t, 2 >{43 * d3 + i, 51 * d3 + i})));
         // edge # 131
         ASSERT_TRUE(
             (same_elements(grid.connectivity_index(
                                edges(), vertexes(), gridtools::static_uint< 1 >(), {(uint_t)5, (uint_t)3, (uint_t)i}),
-                array< uint_t, 2 >{48 * d3 + i, 49 * d3 + i})));
+                array< uint_t, 2 >{43 * d3 + i, 44 * d3 + i})));
         // edge # 139
         ASSERT_TRUE(
             (same_elements(grid.connectivity_index(
                                edges(), vertexes(), gridtools::static_uint< 2 >(), {(uint_t)5, (uint_t)3, (uint_t)i}),
-                array< uint_t, 2 >{49 * d3 + i, 57 * d3 + i})));
+                array< uint_t, 2 >{44 * d3 + i, 51 * d3 + i})));
     }
 }
 
@@ -240,17 +240,17 @@ TEST_P(connectivity_index_test, vertex_to_vertex) {
         ASSERT_TRUE((
             same_elements(grid.connectivity_index(
                               vertexes(), vertexes(), gridtools::static_uint< 0 >(), {(uint_t)2, (uint_t)3, (uint_t)i}),
-                array< uint_t, 6 >{20 * d3 + i, 12 * d3 + i, 13 * d3 + i, 22 * d3 + i, 30 * d3 + i, 29 * d3 + i})));
+                array< uint_t, 6 >{18 * d3 + i, 11 * d3 + i, 12 * d3 + i, 20 * d3 + i, 27 * d3 + i, 26 * d3 + i})));
         // vertex # 48
         ASSERT_TRUE((
             same_elements(grid.connectivity_index(
                               vertexes(), vertexes(), gridtools::static_uint< 0 >(), {(uint_t)5, (uint_t)3, (uint_t)i}),
-                array< uint_t, 6 >{39 * d3 + i, 40 * d3 + i, 49 * d3 + i, 57 * d3 + i, 56 * d3 + i, 47 * d3 + i})));
+                array< uint_t, 6 >{35 * d3 + i, 36 * d3 + i, 44 * d3 + i, 51 * d3 + i, 50 * d3 + i, 42 * d3 + i})));
         // vertex # 60
         ASSERT_TRUE((
             same_elements(grid.connectivity_index(
                               vertexes(), vertexes(), gridtools::static_uint< 0 >(), {(uint_t)6, (uint_t)6, (uint_t)i}),
-                array< uint_t, 6 >{59 * d3 + i, 51 * d3 + i, 52 * d3 + i, 61 * d3 + i, 69 * d3 + i, 68 * d3 + i})));
+                array< uint_t, 6 >{53 * d3 + i, 46 * d3 + i, 47 * d3 + i, 55 * d3 + i, 62 * d3 + i, 61 * d3 + i})));
     }
 }
 
