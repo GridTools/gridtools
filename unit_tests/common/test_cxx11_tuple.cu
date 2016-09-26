@@ -3,15 +3,11 @@
 
 #ifdef CXX11_ENABLED
 
-__global__
-void test_tuple_kernel(bool* result)
-{
-    test_tuple_elements(result);
-}
+__global__ void test_tuple_kernel(bool *result) { test_tuple_elements(result); }
 
 TEST(tuple, test_elements) {
     bool result;
-    bool* resultDevice;
+    bool *resultDevice;
     cudaMalloc(&resultDevice, sizeof(bool));
 
     // clang-format off

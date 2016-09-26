@@ -241,15 +241,15 @@ namespace gridtools {
 #endif
       public:
 #if defined(CXX11_ENABLED)
-/** @brief variadic constructor
-    construct the aggregator_type given an arbitrary number of placeholders to the non-temporary
-    storages passed as arguments.
+        /** @brief variadic constructor
+            construct the aggregator_type given an arbitrary number of placeholders to the non-temporary
+            storages passed as arguments.
 
-    USAGE EXAMPLE:
-    \verbatim
-    aggregator_type((p1=storage_1), (p2=storage_2), (p3=storage_3));
-    \endverbatim
-*/
+            USAGE EXAMPLE:
+            \verbatim
+            aggregator_type((p1=storage_1), (p2=storage_2), (p3=storage_3));
+            \endverbatim
+        */
         template < typename... Pairs >
         aggregator_type(Pairs... pairs_)
             : m_storage_pointers(), m_metadata_set() {
@@ -262,8 +262,7 @@ namespace gridtools {
 
             typedef boost::fusion::filter_view< arg_list, is_not_tmp_storage< boost::mpl::_1 > > view_type;
 
-            GRIDTOOLS_STATIC_ASSERT(
-                (boost::fusion::result_of::size< view_type >::type::value == sizeof...(Pairs)),
+            GRIDTOOLS_STATIC_ASSERT((boost::fusion::result_of::size< view_type >::type::value == sizeof...(Pairs)),
                 "The number of arguments specified when constructing the domain_type is not the same as the number of "
                 "placeholders "
                 "to non-temporary storages. Double check the temporary flag in the meta_storage types or add the "
@@ -284,7 +283,7 @@ namespace gridtools {
             // associates it to a user-instantiated temporary pointer,
             // but this is very complicated and I don't think we
             // should check for this.
-            typedef typename variadic_to_vector<typename Pairs::arg_type... >::type v_args;
+            typedef typename variadic_to_vector< typename Pairs::arg_type... >::type v_args;
             typedef typename boost::mpl::fold< v_args,
                 boost::mpl::set0<>,
                 boost::mpl::insert< boost::mpl::_1, boost::mpl::_2 > >::type counting_map;

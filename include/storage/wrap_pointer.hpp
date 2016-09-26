@@ -67,7 +67,8 @@ namespace gridtools {
         wrap_pointer() : m_cpu_p(NULL), m_externally_managed(false) {}
 
         GT_FUNCTION
-        wrap_pointer(wrap_pointer const &other) : m_cpu_p(other.m_cpu_p), m_externally_managed(true), m_size(other.m_size) {}
+        wrap_pointer(wrap_pointer const &other)
+            : m_cpu_p(other.m_cpu_p), m_externally_managed(true), m_size(other.m_size) {}
 
         GT_FUNCTION
         wrap_pointer(uint_t size, bool externally_managed) : m_externally_managed(externally_managed), m_size(size) {

@@ -9,40 +9,34 @@
 using gridtools::uint_t;
 using gridtools::int_t;
 
-struct A: gridtools::clonable_to_gpu<A> {
-    gridtools::hybrid_pointer<int> p;
+struct A : gridtools::clonable_to_gpu< A > {
+    gridtools::hybrid_pointer< int > p;
 
-    A(uint_t n)
-        : p(n)
-    {
+    A(uint_t n) : p(n) {
 #ifndef NDEBUG
         p.out();
 #endif
     }
 
-    __device__
-    A(A const& other)
-        : p(other.p)
-    {
+    __device__ A(A const &other) : p(other.p) {
 #ifndef NDEBUG
         p.out();
 #endif
     }
 };
 
-__global__
-void reverse(A* p, uint_t n) {
+__global__ void reverse(A *p, uint_t n) {
 #ifndef NDEBUG
-    if(p->p.on_host())
+    if (p->p.on_host())
         printf(" cpu_p %X ", p->p.get_cpu_p());
-    if(p->p.on_device())
+    if (p->p.on_device())
         printf(" gpu_p %X ", p->p.get_gpu_p());
     printf(" to_use %X ", p->p.get_pointer_to_use());
     printf(" siez %X ", p->p.get_size());
     printf("\n");
 #endif
     for (uint_t i = 0; i < p->p.get_size(); ++i)
-        p->p[i] = n-i;
+        p->p[i] = n - i;
 }
 
 bool test_hybrid_pointer() {
@@ -65,12 +59,10 @@ bool test_hybrid_pointer() {
 
     bool right = true;
     for (uint_t i = 0; i < n; ++i)
-        if (a.p[i] != n-i)
+        if (a.p[i] != n - i)
             right = false;
 
     return right;
 }
 
-TEST(test_hybrid_pointer, hybrid_pointer_on_gpu) {
-    EXPECT_EQ(test_hybrid_pointer(), true);
-}
+TEST(test_hybrid_pointer, hybrid_pointer_on_gpu) { EXPECT_EQ(test_hybrid_pointer(), true); }
