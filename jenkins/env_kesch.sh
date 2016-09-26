@@ -2,7 +2,7 @@
 
 module load PrgEnv-gnu
 #we need a decent cmake version in order to pass the HOST_COMPILER to nvcc
-module load cmake
+module load CMake/3.3.2 
 #module load python/3.4.3
 #module load boost/1.56_gcc4.8.4
 #module load mvapich2/gcc/64/2.0-gcc-4.8.2-cuda-6.0
