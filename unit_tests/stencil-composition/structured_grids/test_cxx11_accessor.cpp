@@ -40,7 +40,7 @@
 #include "stencil-composition/accessor.hpp"
 #include "stencil-composition/structured_grids/accessor_metafunctions.hpp"
 #include "stencil-composition/expressions.hpp"
-#include "stencil-composition/expandable_parameters/vector_accessor.hpp"
+#include "stencil-composition/vector_accessor.hpp"
 
 using namespace gridtools;
 
