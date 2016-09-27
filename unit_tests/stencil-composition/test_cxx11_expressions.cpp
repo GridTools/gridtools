@@ -54,16 +54,6 @@ namespace test_expressions_detail {
 
 class test_expressions : public testing::Test {
   protected:
-    // TODO this should go to a general helper class
-    template < typename storage_t, typename F >
-    static void fill(storage_t &&out, F f) {
-        for (uint_t k = 0; k < out.meta_data().dim(2); ++k)
-            for (uint_t i = 0; i < out.meta_data().dim(0); ++i)
-                for (uint_t j = 0; j < out.meta_data().dim(1); ++j) {
-                    out(i, j, k) = f(i, j, k);
-                }
-    }
-
 #ifdef __CUDACC__
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
@@ -80,7 +70,7 @@ class test_expressions : public testing::Test {
 
     typedef gridtools::layout_map< 0, 1, 2 > layout_t;
     typedef gridtools::BACKEND::storage_info< 0, layout_t > meta_t;
-    typedef gridtools::BACKEND::storage_type< uint_t, meta_t >::type storage_type;
+    typedef gridtools::BACKEND::storage_type< double, meta_t >::type storage_type;
 
     meta_t meta_;
 
@@ -151,7 +141,7 @@ class test_expressions : public testing::Test {
         }                                                                                           \
     };                                                                                              \
     TEST_F(test_expressions, NAME) {                                                                \
-        fill(reference, [](uint_t i, uint_t j, uint_t k) { return RESULT; });                       \
+        reference.initialize(RESULT);                                                               \
         auto comp = gridtools::make_computation< gridtools::BACKEND >(                              \
             domain,                                                                                 \
             grid,                                                                                   \
