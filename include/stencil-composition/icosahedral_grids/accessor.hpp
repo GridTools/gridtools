@@ -35,7 +35,7 @@
 */
 #pragma once
 #include "../extent.hpp"
-#include "location_type.hpp"
+#include "../location_type.hpp"
 #include "../accessor_base.hpp"
 
 namespace gridtools {
@@ -46,7 +46,7 @@ namespace gridtools {
     template < uint_t ID,
         enumtype::intend Intend,
         typename LocationType,
-        typename Extent = extent< 0,0,0,0,0,0>,
+        typename Extent = extent< 0, 0, 0, 0, 0, 0 >,
         ushort_t FieldDimensions = 4 >
     struct accessor : public accessor_base< ID, Intend, Extent, FieldDimensions > {
         GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), "Error: wrong type");
@@ -62,7 +62,7 @@ namespace gridtools {
         GT_FUNCTION
         constexpr accessor() : super() {}
 
-    /**inheriting all constructors from offset_tuple*/
+        /**inheriting all constructors from offset_tuple*/
         using super::accessor_base;
 
         GT_FUNCTION
