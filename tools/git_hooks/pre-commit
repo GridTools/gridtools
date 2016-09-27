@@ -71,9 +71,15 @@ canonicalize_filename () {
 
 # exit on error
 set -e
+
 # check whether the given file matches any of the set extensions
 matches_extension() {
-    local filename=$(basename "$1")
+    local skip_files=$1
+    local filename=$(basename "$2")
+
+    #early return if file is in list of files to skip
+    for ff in $skip_files; do [[ "$ff" == "$filename" ]] && return 1; done
+
     local extension=".${filename##*.}"
     local ext
 
@@ -86,6 +92,8 @@ if [[ "${CLANG_FORMAT_VERSION}" != "3.7" ]]; then
     echo "Clang format version ${CLANG_FORMAT_VERSION} not supported"
     exit 1
 fi
+
+list_files_to_skip=("define_caches_cxx03.hpp")
 
 # necessary check for initial commit
 if git rev-parse --verify HEAD >/dev/null 2>&1 ; then
@@ -114,7 +122,7 @@ git diff-index --cached --diff-filter=ACMR --name-only $against -- | while read 
 do
     # ignore file if we do check for file extensions and the file
     # does not match any of the extensions specified in $FILE_EXTS
-    if $PARSE_EXTS && ! matches_extension "$file"; then
+    if $PARSE_EXTS && ! matches_extension "${list_files_to_skip}" "$file"; then
         continue;
     fi
 
