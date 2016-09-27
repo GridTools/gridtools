@@ -41,7 +41,8 @@
 namespace gridtools {
 
     template < template < uint_t > class Functor, typename Grid, typename LocationType, typename... Args >
-    esf_descriptor< Functor, Grid, LocationType, nocolor, boost::mpl::vector< Args... > > make_stage(Args &&... /*args_*/) {
+    esf_descriptor< Functor, Grid, LocationType, nocolor, boost::mpl::vector< Args... > > make_stage(
+        Args &&... /*args_*/) {
         return esf_descriptor< Functor, Grid, LocationType, nocolor, boost::mpl::vector< Args... > >();
     }
 } // namespace gridtools

@@ -160,8 +160,8 @@ namespace shallow_water {
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-            // x::Index i;
-            // y::Index j;
+            // x i;
+            // y j;
 
             eval(/*tmp*/ out()) = 1.; // half_step  (eval, comp(1), x(1), y(1), dx());
             // eval(tmp(comp(1)))=1.;//half_step_u(eval, comp(1), x(1), y(1), dx());
@@ -188,11 +188,11 @@ namespace shallow_water {
             // notation: alias<tmp, comp, step>(0, 0) is ==> tmp(comp(0), step(0)).
             // Using a strategy to define some arguments beforehand
 
-            x::Index i;
-            y::Index j;
+            x i;
+            y j;
 #ifdef __CUDACC__
-            comp::Index c;
-            step::Index s;
+            comp c;
+            step s;
 
 // eval(sol()) = eval(sol()-
 //                    (tmp(c+1, i-1) - tmp(c+1, i-1, j-1))*(dt()/dx())-

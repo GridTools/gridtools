@@ -35,9 +35,11 @@
 */
 #pragma once
 #include "common/generic_metafunctions/is_sequence_of.hpp"
-#include "stencil-composition/arg.hpp"
-#include "stencil-composition/esf_fwd.hpp"
-#include "stencil-composition/icosahedral_grids/grid.hpp"
+#include "../arg.hpp"
+#include "../esf_fwd.hpp"
+#include "../icosahedral_grids/grid.hpp"
+#include "extent.hpp"
+#include "vector_accessor.hpp"
 #include "../esf_aux.hpp"
 #include "color.hpp"
 

@@ -116,7 +116,8 @@ namespace soneoc {
 
         typedef boost::mpl::vector< p_in_edges, p_out_cells > accessor_list_edges_t;
 
-        gridtools::aggregator_type< accessor_list_edges_t > domain_edges(boost::fusion::make_vector(&in_edges, &out_cells));
+        gridtools::aggregator_type< accessor_list_edges_t > domain_edges(
+            boost::fusion::make_vector(&in_edges, &out_cells));
 
         array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};

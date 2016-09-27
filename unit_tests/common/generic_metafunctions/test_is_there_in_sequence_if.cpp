@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
-#include "defs.hpp"
+#include "common/defs.hpp"
 #include "common/generic_metafunctions/is_there_in_sequence_if.hpp"
 
 using namespace gridtools;

@@ -86,7 +86,7 @@ namespace gridtools {
 #endif
 
         /**@brief struct to compute the total offset (the sum of the i,j,k indices times their respective strides)
-        */
+         */
         template < ushort_t Id, typename Layout >
         struct compute_offset {
             static const ushort_t space_dimensions = Layout::length;
@@ -94,7 +94,8 @@ namespace gridtools {
             /**interface with an array of coordinates as argument
                \param strides the strides
                \param indices the array of coordinates
-            */ template < typename IntType, typename StridesVector >
+            */
+            template < typename IntType, typename StridesVector >
             GT_FUNCTION static constexpr int_t apply(StridesVector const &RESTRICT strides_, IntType *indices_) {
                 return strides_[space_dimensions - Id] *
                            Layout::template find_val< space_dimensions - Id, int, 0 >(indices_) +

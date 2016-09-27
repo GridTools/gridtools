@@ -130,7 +130,8 @@ namespace gridtools {
 
         template < typename Arg1, typename Arg2 >
         using no_accessor_types = typename boost::mpl::not_<
-            typename boost::mpl::or_< is_accessor< Arg1 >, is_accessor< Arg2 > >::type >::type;
+            typename boost::mpl::or_< boost::mpl::or_< is_accessor< Arg1 >, is_vector_accessor< Arg1 > >,
+                boost::mpl::or_< is_accessor< Arg2 >, is_vector_accessor< Arg2 > > >::type >::type;
 
         template < typename Arg1, typename Arg2 >
         using no_expr_nor_accessor_types =
@@ -440,11 +441,9 @@ namespace gridtools {
         }
 
         /** minus expression*/
-        template < typename ArgType1, typename ArgType2 //,
-            // typename boost::disable_if<
-            //     no_expr_nor_accessor_types< ArgType1, ArgType2 >
-            //     , int >::type=0
-            >
+        template < typename ArgType1,
+            typename ArgType2,
+            typename boost::disable_if< no_expr_nor_accessor_types< ArgType1, ArgType2 >, int >::type = 0 >
         GT_FUNCTION constexpr expr_minus< ArgType1, ArgType2 > operator-(ArgType1 arg1, ArgType2 arg2) {
             return expr_minus< ArgType1, ArgType2 >(arg1, arg2);
         }
@@ -468,7 +467,7 @@ namespace gridtools {
         /** power expression*/
         template < int exponent,
             typename ArgType1,
-            typename boost::disable_if< typename boost::is_floating_point< ArgType1 >::type, int >::type = 0 >
+            typename boost::disable_if< typename no_accessor_types< ArgType1, ArgType1 >::type, int >::type = 0 >
         GT_FUNCTION constexpr expr_pow< ArgType1, exponent > pow(ArgType1 arg1) {
             return expr_pow< ArgType1, exponent >(arg1);
         }
@@ -495,17 +494,16 @@ namespace gridtools {
 #endif
     namespace expressions {
         /**Expressions defining the interface for specifiyng a given offset for a specified dimension
-           \tparam Left: argument of type dimension<>::Index, specifying the offset in the given direction*/
-        template < typename Left >
-        GT_FUNCTION constexpr typename Left::super operator+(Left d1, int const &offset) {
-            return typename Left::super(offset);
+           \tparam Left: argument of type dimension<>, specifying the offset in the given direction*/
+        template < ushort_t Coordinate >
+        GT_FUNCTION constexpr dimension<Coordinate> operator+(dimension<Coordinate> d1, int const &offset) {
+            return dimension<Coordinate>(offset);
         }
 
-        template < typename Left >
-        GT_FUNCTION constexpr typename Left::super operator-(Left d1, int const &offset) {
-            return typename Left::super(-offset);
+        template < ushort_t Coordinate >
+        GT_FUNCTION constexpr dimension<Coordinate> operator-(dimension<Coordinate> d1, int const &offset) {
+            return dimension<Coordinate>(-offset);
         }
-
         /**@}*/
     } // namespace expressions
 

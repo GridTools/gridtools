@@ -48,6 +48,9 @@ namespace gridtools {
     */
     template < ushort_t Coordinate >
     struct dimension {
+
+        GT_FUNCTION constexpr dimension() : value(0) {}
+
         template < typename IntType >
         GT_FUNCTION constexpr dimension(IntType val)
             : value
@@ -79,7 +82,7 @@ namespace gridtools {
            Clarifying example:
            defining
            \code{.cpp}
-           typedef dimension<5>::Index t;
+           typedef dimension<5> t;
            \endcode
            we can use thefollowing alias
            \code{.cpp}
@@ -87,16 +90,6 @@ namespace gridtools {
            \endcode
 
          */
-        struct Index {
-            GT_FUNCTION
-            constexpr Index() {}
-            GT_FUNCTION
-            constexpr Index(Index const &) {}
-            typedef dimension< Coordinate > super;
-        };
-
-      private:
-        dimension();
     };
 
     template < typename T >
