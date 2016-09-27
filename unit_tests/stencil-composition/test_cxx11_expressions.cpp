@@ -116,8 +116,6 @@ class test_expressions : public testing::Test {
           reference(meta_, -999., "reference"), domain(boost::fusion::make_vector(&val2, &val3, &out)) {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
-
-        fill(reference, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
     }
 
     template < typename Computation >
@@ -199,5 +197,4 @@ EXPRESSION_TEST(accessor_mult_double_minus_accessor, val3() * 3. - val2(), 7.)
 EXPRESSION_TEST(accessor_minus_double_mult_double, val3() - 2. * 0.5, 2.)
 EXPRESSION_TEST_DISABLED(accessor_plus_double_mult_accessor, val3() + 2. * val2(), 7.)
 
-EXPRESSION_TEST(pow_2_accessor, pow<2>(val3()), 9.)
-
+EXPRESSION_TEST(pow_2_accessor, pow< 2 >(val3()), 9.)
