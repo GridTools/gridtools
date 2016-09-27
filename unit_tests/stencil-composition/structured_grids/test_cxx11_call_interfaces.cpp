@@ -47,16 +47,6 @@ using namespace gridtools::expressions;
 
 namespace call_interface_functors {
 
-    // TODO this should go to a general helper class
-    template < typename storage_t, typename F >
-    static void fill(storage_t &&out, F f) {
-        for (uint_t k = 0; k < out.meta_data().dim(2); ++k)
-            for (uint_t i = 0; i < out.meta_data().dim(0); ++i)
-                for (uint_t j = 0; j < out.meta_data().dim(1); ++j) {
-                    out(i, j, k) = f(i, j, k);
-                }
-    }
-
     typedef interval< level< 0, -2 >, level< 1, 1 > > axis;
     typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
 
@@ -245,11 +235,11 @@ class call_interface : public testing::Test {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
 
-        call_interface_functors::fill(in, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
-        call_interface_functors::fill(
-            reference_unchanged, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
-        call_interface_functors::fill(
-            reference_shifted, [](uint_t i, uint_t j, uint_t k) { return (i + 1) + (j + 1) * 10 + k * 100; });
+        in.initialize([](const uint_t &i, const uint_t &j, const uint_t &k) { return i + j * 10 + k * 100; });
+        reference_unchanged.initialize(
+            [](const uint_t &i, const uint_t &j, const uint_t &k) { return i + j * 10 + k * 100; });
+        reference_shifted.initialize(
+            [](const uint_t &i, const uint_t &j, const uint_t &k) { return (i + 1) + (j + 1) * 10 + k * 100; });
     }
 
     template < typename Computation >
@@ -464,11 +454,11 @@ class call_proc_interface : public testing::Test {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
 
-        call_interface_functors::fill(in, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
-        call_interface_functors::fill(
-            reference_unchanged, [](uint_t i, uint_t j, uint_t k) { return i + j * 10 + k * 100; });
-        call_interface_functors::fill(
-            reference_shifted, [](uint_t i, uint_t j, uint_t k) { return (i + 1) + (j + 1) * 10 + k * 100; });
+        in.initialize([](const uint_t &i, const uint_t &j, const uint_t &k) { return i + j * 10 + k * 100; });
+        reference_unchanged.initialize(
+            [](const uint_t &i, const uint_t &j, const uint_t &k) { return i + j * 10 + k * 100; });
+        reference_shifted.initialize(
+            [](const uint_t &i, const uint_t &j, const uint_t &k) { return (i + 1) + (j + 1) * 10 + k * 100; });
     }
 
     template < typename Computation >
