@@ -157,7 +157,6 @@ namespace gridtools {
             return evaluation::value_int((*this), arg);
         }
 #endif
-
     };
 
     template < typename T >

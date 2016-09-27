@@ -61,8 +61,8 @@ namespace interface {
                first.get< 5 - 3 >() == 12 && first.get< 5 - 4 >() == 0 && first.get< 5 - 5 >() == -6;
     }
 
-/** @brief interface with out-of-order optional arguments, represented as matlab indices
- */
+    /** @brief interface with out-of-order optional arguments, represented as matlab indices
+     */
 
     using namespace expressions;
 
@@ -123,29 +123,19 @@ namespace interface {
 using namespace interface;
 
 TEST(Accessor, is_accessor) {
-    GRIDTOOLS_STATIC_ASSERT((is_accessor<accessor<6, enumtype::inout, extent<3,4,4,5> > >::value) == true, "");
-    GRIDTOOLS_STATIC_ASSERT((is_accessor<accessor<2,  enumtype::in> >::value) == true, "");
-    GRIDTOOLS_STATIC_ASSERT((is_accessor<int>::value) == false, "");
-    GRIDTOOLS_STATIC_ASSERT((is_accessor<double&>::value) == false, "");
-    GRIDTOOLS_STATIC_ASSERT((is_accessor<double const&>::value) == false, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor< 6, enumtype::inout, extent< 3, 4, 4, 5 > > >::value) == true, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor< 2, enumtype::in > >::value) == true, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor< int >::value) == false, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor< double & >::value) == false, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor< double const & >::value) == false, "");
 }
 
-TEST(Accessor, Trivial) {
-    EXPECT_TRUE(test_trivial());
-}
+TEST(Accessor, Trivial) { EXPECT_TRUE(test_trivial()); }
 
-TEST(Accessor, Alternative) {
-    EXPECT_TRUE(test_alternative1());
-}
+TEST(Accessor, Alternative) { EXPECT_TRUE(test_alternative1()); }
 
-TEST(Accessor, Cxx11Alternative) {
-    EXPECT_TRUE(test_alternative2());
-}
+TEST(Accessor, Cxx11Alternative) { EXPECT_TRUE(test_alternative2()); }
 
-TEST(Accessor, Cxx11DynamicAlias) {
-    EXPECT_TRUE(test_dynamic_alias());
-}
+TEST(Accessor, Cxx11DynamicAlias) { EXPECT_TRUE(test_dynamic_alias()); }
 
-TEST(Accessor, Cxx11StaticAlias) {
-    EXPECT_TRUE(test_static_alias());
-}
+TEST(Accessor, Cxx11StaticAlias) { EXPECT_TRUE(test_static_alias()); }

@@ -15,53 +15,36 @@ using gridtools::uint_t;
 using gridtools::int_t;
 
 namespace cloningstuff_test {
-    struct B: public gridtools::clonable_to_gpu<B> {
-        gridtools::hybrid_pointer<char> pointer_to_use;
+    struct B : public gridtools::clonable_to_gpu< B > {
+        gridtools::hybrid_pointer< char > pointer_to_use;
         uint_t size;
         uint_t &ref;
 
-        B(uint_t size) : size(size), ref(size), pointer_to_use(size) { }
+        B(uint_t size) : size(size), ref(size), pointer_to_use(size) {}
 
-        __host__ __device__
-        B(B const& other)
-            : pointer_to_use(other.pointer_to_use)
-            , size(other.size)
-            , ref(size)
-        {}
+        __host__ __device__ B(B const &other) : pointer_to_use(other.pointer_to_use), size(other.size), ref(size) {}
 
         ~B() {
-            //pointer_to_use.free_it();
+            // pointer_to_use.free_it();
         }
 
-        void update_gpu() {
-            pointer_to_use.update_gpu();
-        }
+        void update_gpu() { pointer_to_use.update_gpu(); }
 
-        void update_cpu() {
-            pointer_to_use.update_cpu();
-        }
-
+        void update_cpu() { pointer_to_use.update_cpu(); }
     };
 
-
-    struct A :public gridtools::clonable_to_gpu<A> {
+    struct A : public gridtools::clonable_to_gpu< A > {
         uint_t a;
         uint_t &b;
         B p;
 
         A(uint_t a, uint_t size) : a(a), b(a), p(size) {}
 
-        __host__ __device__
-        A(A const& other)
-            : a(other.a)
-            , b(a)
-            , p(other.p)
-        {}
+        __host__ __device__ A(A const &other) : a(other.a), b(a), p(other.p) {}
     };
 
 #ifdef __CUDACC__
-    __global__
-    void test(A* a) {
+    __global__ void test(A *a) {
         // printf(">%s<\n", (char*)(a->p.pointer_to_use));
         // printf("the reference in A %d\n", a->b);
 
@@ -99,7 +82,7 @@ namespace cloningstuff_test {
 
         a.p.update_cpu();
 
-        if (strcmp(static_cast<char*>(a.p.pointer_to_use), "The World will end ... now") != 0) {
+        if (strcmp(static_cast< char * >(a.p.pointer_to_use), "The World will end ... now") != 0) {
             std::cout << "here" << std::endl;
             result = false;
         }
@@ -111,6 +94,4 @@ namespace cloningstuff_test {
     }
 } // namespace cloningstuff_test
 
-TEST(test_gpu_clone, test_cloning_stuff) {
-    EXPECT_EQ(cloningstuff_test::test_cloningstuff(), true);
-}
+TEST(test_gpu_clone, test_cloning_stuff) { EXPECT_EQ(cloningstuff_test::test_cloningstuff(), true); }

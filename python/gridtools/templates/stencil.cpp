@@ -42,8 +42,6 @@
 
 #include "{{ fun_hdr_file }}"
 
-
-
 #ifdef __CUDACC__
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
@@ -54,8 +52,6 @@
 #endif
 #endif
 
-
-
 using gridtools::level;
 using gridtools::extent;
 using gridtools::arg;
@@ -63,90 +59,85 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
-
-
 //
 // function prototype called from Python (no mangling)
 //
-extern "C"
-{
-    void run_{{ stencil_name }} (uint_t dim1, uint_t dim2, uint_t dim3,
-                      {%- for p in params %}
-                      float_type *{{ p.name }}_buff
-                          {%- if not loop.last -%}
-                          ,
-                          {%- endif -%}
-                      {% endfor -%});
+extern "C" {
+void run_{{stencil_name}}(uint_t dim1,
+    uint_t dim2,
+    uint_t dim3,
+    { % -for p in params % } float_type * {
+        { p.name }
+    } _buff { % -if not loop.last - % },
+    { % -endif - % } { % endfor - % });
 }
-
 
 //
 // definition of the special regions in the vertical (k) direction
 //
-typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
-typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
+typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
+typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
-
-
-void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
-                      {%- for p in params %}
-                      float_type *{{ p.name }}_buff
-                          {%- if not loop.last -%}
-                          ,
-                          {%- endif -%}
-                      {% endfor -%})
-{
+void run_{{stencil_name}}(uint_t d1,
+    uint_t d2,
+    uint_t d3,
+    { % -for p in params % } float_type * {
+        { p.name }
+    } _buff { % -if not loop.last - % },
+    { % -endif - % } { % endfor - % }) {
     //
     // C-like memory layout
     //
-    typedef gridtools::layout_map<0,1,2> layout_t;
+    typedef gridtools::layout_map< 0, 1, 2 > layout_t;
 
     //
     // define the storage unit used by the backend
     //
-    typedef meta_storage<meta_storage_aligned<meta_storage_base<__COUNTER__, layout_t, false>, aligned<0>, halo<0,0,0> > > meta_data_t;
-    typedef gridtools::BACKEND::storage_type<float_type,
-                                             meta_data_t >::type storage_type;
+    typedef meta_storage<
+        meta_storage_aligned< meta_storage_base< __COUNTER__, layout_t, false >, aligned< 0 >, halo< 0, 0, 0 > > >
+        meta_data_t;
+    typedef gridtools::BACKEND::storage_type< float_type, meta_data_t >::type storage_type;
 
-    {% if temps %}
+    { % if temps % }
     //
     // define a special data type for the temporary, i.e., intermediate buffers
     //
-    typedef gridtools::BACKEND::temporary_storage_type<float_type,
-                                                       meta_data_t >::type tmp_storage_type;
-    {% endif -%}
+    typedef gridtools::BACKEND::temporary_storage_type< float_type, meta_data_t >::type tmp_storage_type;
+    { % endif - % }
 
-    {% if params %}
+    { % if params % }
     //
     // parameter data fields use the memory buffers received from NumPy arrays
     //
     typename storage_type::storage_info_type meta_(d1, d2, d3);
 
-    {% for p in params -%}
-    storage_type {{ p.name }} (meta_,
-                         (float_type *) {{ p.name }}_buff,
-                          "{{ p.name }}");
-    {% endfor %}
-    {% endif -%}
+    {% for p in params -%
+    }
+    storage_type{{p.name}}(meta_,
+        (float_type *) {
+            { p.name }
+        } _buff,
+        "{{ p.name }}");
+    { % endfor % }
+    { % endif - % }
 
     //
     // place-holder definition: their order matches the stencil parameters,
     // especially the non-temporary ones, during the construction of the domain
     //
-    {% for p in params_temps -%}
-    typedef arg<{{ loop.index0 }},
-        {%- if scope.is_temporary (p.name) -%}
-            tmp_storage_type>
-        {%- else -%}
-            storage_type>
-        {%- endif %} p_{{ p.name|replace('.', '_') }};
-    {% endfor %}
+    {% for p in params_temps -%
+    }
+    typedef arg < {{loop.index0}}, { % -if scope.is_temporary(p.name) - % }
+    tmp_storage_type > { % -else - % }
+    storage_type > { % -endif % }
+    p_{{p.name | replace('.', '_')}};
+    { % endfor % }
 
     //
     // an array of placeholders to be passed to the domain
     //
-    typedef boost::mpl::vector<
-        {{- params_temps|join_with_prefix ('p_', attribute='name')|join (', ')|replace('.', '_') }}> arg_type_list;
+    typedef boost::mpl::vector< {
+        {-params_temps | join_with_prefix('p_', attribute = 'name') | join(', ') | replace('.', '_')}} > arg_type_list;
 
     //
     // construction of the domain.
@@ -157,10 +148,11 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
     // order in which they appear scanning the placeholders in order.
     // (I don't particularly like this)
     //
-    gridtools::domain_type<arg_type_list> domain (boost::fusion::make_vector (
-        {{- params|join_with_prefix('&', attribute='name')|join(', ') }}));
+    gridtools::domain_type< arg_type_list > domain(
+        boost::fusion::make_vector({{-params | join_with_prefix('&', attribute = 'name') | join(', ')}}));
 
-    {% for s in stencils %}
+    {% for s in stencils %
+    }
     //
     // definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions, i.e.:
@@ -171,32 +163,30 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
     //   index of the last interior element,
     //   total number of elements in dimension }
     //
-    uint_t di_{{ loop.index0 }}[5] = { {{ s.halo[0] }},
-                     {{ s.halo[1] }},
-                     {{ s.halo[1] }},
-                     d1-{{ s.halo[0] }}-1,
-                     d1 };
-    uint_t dj_{{ loop.index0 }}[5] = { {{ s.halo[2] }},
-                     {{ s.halo[3] }},
-                     {{ s.halo[3] }},
-                     d2-{{ s.halo[2] }}-1,
-                     d2 };
+    uint_t di_ {
+        { loop.index0 }
+    }
+    [5] = {{{s.halo[0]}}, {{s.halo[1]}}, {{s.halo[1]}}, d1 - {{s.halo[0]}} - 1, d1};
+    uint_t dj_ {
+        { loop.index0 }
+    }
+    [5] = {{{s.halo[2]}}, {{s.halo[3]}}, {{s.halo[3]}}, d2 - {{s.halo[2]}} - 1, d2};
 
     //
     // the vertical dimension of the problem is a property of this object
     //
-    gridtools::grid<axis> grid_{{ loop.index0 }}(di_{{ loop.index0 }}, dj_{{ loop.index0 }});
-    grid_{{ loop.index0 }}.value_list[0] = 0;
-    grid_{{ loop.index0 }}.value_list[1] = d3-1;
+    gridtools::grid< axis > grid_{{loop.index0}}(di_{{loop.index0}}, dj_{{loop.index0}});
+    grid_{{loop.index0}}.value_list[0] = 0;
+    grid_{{loop.index0}}.value_list[1] = d3 - 1;
 
-    //
-    // Here we do a lot of stuff
-    //
-    // 1) we pass to the intermediate representation ::run function the
-    // description of the stencil, which is a multi-stage stencil (mss);
-    // 2) the logical physical domain with the fields to use;
-    // 3) the actual domain dimensions
-    //
+//
+// Here we do a lot of stuff
+//
+// 1) we pass to the intermediate representation ::run function the
+// description of the stencil, which is a multi-stage stencil (mss);
+// 2) the logical physical domain with the fields to use;
+// 3) the actual domain dimensions
+//
 #ifdef CXX11_ENABLED
     auto
 #else
@@ -206,7 +196,9 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
     boost::shared_ptr< gridtools::stencil >
 #endif
 #endif
-    {% set inside_independent_block = False %}
+    {
+        % set inside_independent_block = False %
+    }
 
     comp_{{s.name | lower}} = gridtools::make_computation< gridtools::BACKEND >(
         domain,
@@ -221,33 +213,46 @@ void run_{{ stencil_name }} (uint_t d1, uint_t d2, uint_t d3,
                 {{-f.scope.get_parameters() | join_with_prefix('p_', attribute = 'name') | join('(), ') |
                     replace('.', '_')}}()) { % -if not(loop.index0 in independent_funct_idx or loop.last) - % },
             { % -endif % } { % endfor - % }));
-    {% endfor %}
+    { % endfor % }
 
     //
     // preparation ...
     //
-    {% for s in stencils -%}
-    comp_{{ s.name|lower }}->ready();
-    {% endfor %}
-    {% for s in stencils -%}
-    comp_{{ s.name|lower }}->steady();
-    {% endfor %}
+    {% for s in stencils -%
+    }
+    comp_ {
+        { s.name | lower }
+    }
+    ->ready();
+    { % endfor % }
+    {% for s in stencils -%
+    }
+    comp_ {
+        { s.name | lower }
+    }
+    ->steady();
+    { % endfor % }
     //
     // ... and execution
     //
-    {% for s in stencils -%}
-    comp_{{ s.name|lower }}->run();
-    {% endfor %}
+    {% for s in stencils -%
+    }
+    comp_ {
+        { s.name | lower }
+    }
+    ->run();
+    { % endfor % }
     //
     // clean everything up
     //
-    {% for s in stencils -%}
-    comp_{{ s.name|lower }}->finalize();
-    {% endfor %}
+    {% for s in stencils -%
+    }
+    comp_ {
+        { s.name | lower }
+    }
+    ->finalize();
+    { % endfor % }
 }
-
-
-
 
 /**
  * A MAIN function for debugging purposes

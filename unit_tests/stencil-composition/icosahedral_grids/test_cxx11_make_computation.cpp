@@ -55,19 +55,18 @@
 
 using namespace gridtools;
 
-namespace make_computation_test{
+namespace make_computation_test {
 
-    typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
+    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
     using backend_t = backend< enumtype::Host, enumtype::icosahedral, enumtype::Block >;
-    using icosahedral_topology_t = gridtools::icosahedral_topology<backend_t>;
+    using icosahedral_topology_t = gridtools::icosahedral_topology< backend_t >;
 
     struct test_functor {
         using in = in_accessor< 0, icosahedral_topology_t::cells, extent< 1 > >;
-        using arg_list = boost::mpl::vector1<in>;
+        using arg_list = boost::mpl::vector1< in >;
 
-        template <typename Evaluation>
-        GT_FUNCTION
-        static void Do(Evaluation const & eval, x_interval) {}
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
     };
 }
 

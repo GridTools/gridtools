@@ -65,8 +65,7 @@ namespace cs_test{
         typedef boost::mpl::vector2<in, out> arg_list;
 
         template <typename Evaluation>
-        GT_FUNCTION
-        static void Do(Evaluation const & eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
             eval(out())= eval(in());
         }
     };
@@ -89,14 +88,10 @@ TEST(test_copy_stencil, run) {
     cell_storage_type in_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("in");
     cell_storage_type out_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("out");
 
-    for(int i=0; i < d1; ++i)
-    {
-        for(int c=0; c < 2; ++c)
-        {
-            for(int j=0; j < d2; ++j)
-            {
-                for(int k=0; k < d3; ++k)
-                {
+    for (int i = 0; i < d1; ++i) {
+        for (int c = 0; c < 2; ++c) {
+            for (int j = 0; j < d2; ++j) {
+                for (int k = 0; k < d3; ++k) {
                     in_cells(i,c,j,k) = i+c*100+j*10000+k*1000000;
                 }
             }

@@ -1,15 +1,11 @@
 #include "gtest/gtest.h"
 #include "test_offset_tuple.hpp"
 
-__global__
-void test_offset_kernel(bool* result)
-{
-    test_offset_tuple(result);
-}
+__global__ void test_offset_kernel(bool *result) { test_offset_tuple(result); }
 
 TEST(offset_tuple, test_offset_tuple) {
     bool result;
-    bool* resultDevice;
+    bool *resultDevice;
     cudaMalloc(&resultDevice, sizeof(bool));
 
     // clang-format off

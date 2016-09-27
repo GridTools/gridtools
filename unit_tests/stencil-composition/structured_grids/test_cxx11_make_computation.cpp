@@ -57,17 +57,16 @@
 
 using namespace gridtools;
 
-namespace make_computation_test{
+namespace make_computation_test {
 
-    typedef interval<level<0,-1>, level<1,-1> > x_interval;
+    typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
 
     struct test_functor {
         typedef accessor< 0 > in;
-        typedef boost::mpl::vector1<in> arg_list;
+        typedef boost::mpl::vector1< in > arg_list;
 
-        template <typename Evaluation>
-        GT_FUNCTION
-        static void Do(Evaluation const & eval, x_interval) {}
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
     };
 }
 

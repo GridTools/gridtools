@@ -88,6 +88,4 @@ namespace loop_test {
     }
 } // namespace loop_test
 
-TEST(loop_hierarchy_test, functionality_test) {
-    EXPECT_EQ(loop_test::test(), true);
-}
+TEST(loop_hierarchy_test, functionality_test) { EXPECT_EQ(loop_test::test(), true); }
