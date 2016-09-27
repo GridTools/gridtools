@@ -1,35 +1,23 @@
+# collect all tests in current folder
+fetch_host_tests(.)
+fetch_gpu_tests(.)
 
-include_directories( ../../include/communication/low-level/ ) ## Library header files
-include_directories( ../../include/communication/high-level ) ## Library header files
-### Executables
+# custom test cases 
 if( NOT GCL_ONLY )
-###   message("${HOST_SPECIFIC_OPTIONS}")
-###   message("${CMAKE_CXX_FLAGS}")
-###   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${HOST_SPECIFIC_OPTIONS}" )
-###   message("${CMAKE_CXX_FLAGS}")
-  ### L3
-  if( GCL_MPI )
-    #CPU 2D MPI tests
-    foreach(srcfile Halo_Exchange_test_3D proc_grid_3D_test)
-      add_executable( ${srcfile} ../../unit_tests/communication/${srcfile}.cpp)
-      add_dependencies(${srcfile} gcl)
-          set_target_properties(${srcfile} PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} ${ADDITIONAL_CXX_FLAGS}")
-      target_link_libraries(${srcfile} gcl ${Boost_LIBRARIES} ${MPI_ADDITIONAL_LIBS})
-      # TODO communication library tests
-      #add_test( test.${srcfile} ${CMAKE_BINARY_DIR}/unit_tests/build/${srcfile})
-    endforeach(srcfile)
-  endif()
+    if( GCL_MPI )
+        set(ccflags " ${HOST_SPECIFIC_OPTIONS}")
+        set(ldflags " ${MPI_ADDITIONAL_LIBS}")
 
-  ### L2
-  if( GCL_MPI )
-    #CPU 2D MPI tests
-    foreach(srcfile test_descriptors_3D test_empty_descriptors_3D boolist ndloops)
-      add_executable( ${srcfile} ../../unit_tests/communication/${srcfile}.cpp)
-      add_dependencies(${srcfile} gcl)
-      set_target_properties(${srcfile} PROPERTIES COMPILE_FLAGS "${HOST_SPECIFIC_OPTIONS} ${ADDITIONAL_CXX_FLAGS}")
-      target_link_libraries(${srcfile} gcl ${Boost_LIBRARIES} ${MPI_ADDITIONAL_LIBS})
-      # TODO communication library tests
-      #add_test( test.${srcfile} ${CMAKE_BINARY_DIR}/unit_tests/build/${srcfile})
-    endforeach(srcfile)
-  endif()
+        # 3D MPI tests
+        foreach(srcfile halo_exchange_3D proc_grid_3D)
+            set(filename "${srcfile}.cpp")
+            add_custom_host_test(${srcfile} ${filename} ${ccflags} ${ldflags})
+        endforeach()
+
+        # 2D MPI tests
+        foreach(srcfile descriptors_3D empty_descriptors_3D boolist ndloops)
+            set(filename "${srcfile}.cpp")
+            add_custom_host_test(${srcfile} ${filename} ${ccflags} ${ldflags})
+        endforeach()
+        endif()
 endif()
