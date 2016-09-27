@@ -249,7 +249,7 @@ namespace gridtools {
             // retrieve the ij cache from the fusion tuple and access the element required give the current thread
             // position within
             // the block and the offsets of the accessor
-            return m_pshared_iterate_domain->template get_ij_cache< static_uint< acc_t::index_type::value > >().at<0>(
+            return m_pshared_iterate_domain->template get_ij_cache< static_uint< acc_t::index_type::value > >().at< 0 >(
                 m_thread_pos, accessor_);
         }
 

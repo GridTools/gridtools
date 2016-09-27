@@ -56,14 +56,13 @@ namespace gridtools {
     }
 
     namespace enumtype {
-    typedef static_int< 0 > cells_index;
-    typedef static_int< 1 > edges_index;
-    typedef static_int< 2 > vertexes_index;
+        typedef static_int< 0 > cells_index;
+        typedef static_int< 1 > edges_index;
+        typedef static_int< 2 > vertexes_index;
 
-    typedef location_type< cells_index::value, 2 > cells;
-    typedef location_type< edges_index::value, 3 > edges;
-    typedef location_type< vertexes_index::value, 1 > vertexes;
-
+        typedef location_type< cells_index::value, 2 > cells;
+        typedef location_type< edges_index::value, 3 > edges;
+        typedef location_type< vertexes_index::value, 1 > vertexes;
     }
 
     template < uint_t Index >
@@ -72,30 +71,36 @@ namespace gridtools {
     };
 
     template <>
-    struct get_location_by_metastorage_index< enumtype::cells_index::value + enumtype::metastorage_library_indices_limit > {
+    struct get_location_by_metastorage_index< enumtype::cells_index::value +
+                                              enumtype::metastorage_library_indices_limit > {
         typedef enumtype::cells type;
     };
 
     template <>
-    struct get_location_by_metastorage_index< enumtype::cells_index::value + enumtype::metastorage_library_indices_limit * 2 > {
+    struct get_location_by_metastorage_index< enumtype::cells_index::value +
+                                              enumtype::metastorage_library_indices_limit * 2 > {
         typedef enumtype::cells type;
     };
 
     template <>
-    struct get_location_by_metastorage_index< enumtype::edges_index::value + enumtype::metastorage_library_indices_limit > {
+    struct get_location_by_metastorage_index< enumtype::edges_index::value +
+                                              enumtype::metastorage_library_indices_limit > {
         typedef enumtype::edges type;
     };
     template <>
-    struct get_location_by_metastorage_index< enumtype::edges_index::value + enumtype::metastorage_library_indices_limit * 2 > {
+    struct get_location_by_metastorage_index< enumtype::edges_index::value +
+                                              enumtype::metastorage_library_indices_limit * 2 > {
         typedef enumtype::edges type;
     };
 
     template <>
-    struct get_location_by_metastorage_index< enumtype::vertexes_index::value + enumtype::metastorage_library_indices_limit > {
+    struct get_location_by_metastorage_index< enumtype::vertexes_index::value +
+                                              enumtype::metastorage_library_indices_limit > {
         typedef enumtype::vertexes type;
     };
     template <>
-    struct get_location_by_metastorage_index< enumtype::vertexes_index::value + enumtype::metastorage_library_indices_limit * 2 > {
+    struct get_location_by_metastorage_index< enumtype::vertexes_index::value +
+                                              enumtype::metastorage_library_indices_limit * 2 > {
         typedef enumtype::vertexes type;
     };
 } // namespace gridtools

@@ -121,16 +121,16 @@ namespace gridtools {
         }
     };
 
-    template<typename Storage>
+    template < typename Storage >
     struct arg_get_storage_info {
-        GRIDTOOLS_STATIC_ASSERT((is_any_storage<Storage>::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_any_storage< Storage >::value), "Error");
 
         typedef typename Storage::storage_info_type type;
     };
 
-    template<typename Storage>
-    struct arg_get_storage_info<std::vector< pointer<Storage> > > {
-        GRIDTOOLS_STATIC_ASSERT((is_any_storage<Storage>::value), "Error");
+    template < typename Storage >
+    struct arg_get_storage_info< std::vector< pointer< Storage > > > {
+        GRIDTOOLS_STATIC_ASSERT((is_any_storage< Storage >::value), "Error");
 
         typedef typename Storage::storage_info_type type;
     };
@@ -146,10 +146,9 @@ namespace gridtools {
         typedef typename Storage::value_type value_type;
         typedef static_uint< I > index_type;
         typedef static_uint< I > index;
-        typedef typename arg_get_storage_info<Storage>::type storage_info_t;
+        typedef typename arg_get_storage_info< Storage >::type storage_info_t;
 
-        typedef
-            typename get_location_by_metastorage_index< storage_info_t::index_type::value >::type location_type;
+        typedef typename get_location_by_metastorage_index< storage_info_t::index_type::value >::type location_type;
 
         template < typename Storage2 >
         arg_storage_pair< arg< I, storage_type >, Storage2 > operator=(Storage2 &ref) {

@@ -43,7 +43,7 @@ void test_sequence_unpacker(bool *result) {
 
     using test_type = boost::mpl::vector4< int, float, char, double >;
 
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same< sequence_unpacker< test_type >::type,
-                                variadic_typedef< int, float, char, double > >::value),
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::is_same< sequence_unpacker< test_type >::type, variadic_typedef< int, float, char, double > >::value),
         "Error");
 }

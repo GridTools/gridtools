@@ -61,17 +61,13 @@ namespace gridtools {
         template < typename DimSelector >
         using select_layout = typename filter_layout< layout_map_t, DimSelector >::type;
 
-        template < uint_t Index,
-            typename LayoutMap >
+        template < uint_t Index, typename LayoutMap >
         using storage_info_t = typename base_t::template storage_info< Index, LayoutMap >;
 
-        template< typename ValueType,
-            typename StorageInfo>
-        using storage_t = typename base_t::template storage_type< ValueType, StorageInfo>::type;
+        template < typename ValueType, typename StorageInfo >
+        using storage_t = typename base_t::template storage_type< ValueType, StorageInfo >::type;
 
-        template< typename ValueType,
-            typename StorageInfo>
-        using temporary_storage_t = typename base_t::template temporary_storage_type< ValueType, StorageInfo>::type;
-
+        template < typename ValueType, typename StorageInfo >
+        using temporary_storage_t = typename base_t::template temporary_storage_type< ValueType, StorageInfo >::type;
     };
 } // namespace gridtools

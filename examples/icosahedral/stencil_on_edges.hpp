@@ -63,7 +63,7 @@ namespace soe {
 
     template < uint_t Color >
     struct test_on_edges_functor {
-        typedef in_accessor< 0, icosahedral_topology_t::edges, extent< -1,1,-1,1 > > in;
+        typedef in_accessor< 0, icosahedral_topology_t::edges, extent< -1, 1, -1, 1 > > in;
         typedef inout_accessor< 1, icosahedral_topology_t::edges > out;
         typedef boost::mpl::vector< in, out > arg_list;
 

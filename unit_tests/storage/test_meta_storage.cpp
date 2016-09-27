@@ -165,19 +165,19 @@ TEST(storage_info, test_interface) {
     GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.strides(0) == 32 * 12 * 13), "error");
 #endif // !__CUDACC__
 #else  // CXX11_ENABLED
-    typedef gridtools::layout_map<0,1,2> layout_t;
-    gridtools::meta_storage_base<0,layout_t,false> meta_(11, 12, 13);
+    typedef gridtools::layout_map< 0, 1, 2 > layout_t;
+    gridtools::meta_storage_base< 0, layout_t, false > meta_(11, 12, 13);
     ASSERT_TRUE((meta_.dim< 0 >() == 11));
     ASSERT_TRUE((meta_.dim< 1 >() == 12));
     ASSERT_TRUE((meta_.dim< 2 >() == 13));
 
-    ASSERT_TRUE((meta_.strides(2)==13));
-    ASSERT_TRUE((meta_.strides(1)==13*12));
-    ASSERT_TRUE((meta_.strides(0)==13*12*11));
+    ASSERT_TRUE((meta_.strides(2) == 13));
+    ASSERT_TRUE((meta_.strides(1) == 13 * 12));
+    ASSERT_TRUE((meta_.strides(0) == 13 * 12 * 11));
 
-    ASSERT_TRUE((meta_.strides<2>(meta_.strides())==1));
-    ASSERT_TRUE((meta_.strides<1>(meta_.strides())==13));
-    ASSERT_TRUE((meta_.strides<0>(meta_.strides())==13*12));
+    ASSERT_TRUE((meta_.strides< 2 >(meta_.strides()) == 1));
+    ASSERT_TRUE((meta_.strides< 1 >(meta_.strides()) == 13));
+    ASSERT_TRUE((meta_.strides< 0 >(meta_.strides()) == 13 * 12));
 #endif
 
 #ifdef CXX11_ENABLED // this checks are performed in cxx11 mode
@@ -208,7 +208,7 @@ TEST(storage_info, test_interface) {
 
 // TODO This was lost at some point in history... need to recover
 //#ifdef CXX11_ENABLED
-//TEST(storage_info, meta_storage_extender) {
+// TEST(storage_info, meta_storage_extender) {
 
 //    GRIDTOOLS_STATIC_ASSERT((boost::is_same< meta_storage_extender_impl< layout_map< 0, 1, 2, 3 >, 1 >::type,
 //                                layout_map< 1, 2, 3, 4, 0 > >::value),
@@ -232,7 +232,8 @@ TEST(storage_info, test_interface) {
 //        "Error");
 
 //    typedef meta_storage_aligned< meta_storage1_t, aligned< 0 >, halo< 0, 0, 0, 0 > > meta_storage_aligned_t;
-//    typedef meta_storage_aligned< meta_storage1_ext_t, aligned< 0 >, halo< 0, 0, 0, 0, 0 > > meta_storage_aligned_ext_t;
+//    typedef meta_storage_aligned< meta_storage1_ext_t, aligned< 0 >, halo< 0, 0, 0, 0, 0 > >
+//    meta_storage_aligned_ext_t;
 
 //    typedef meta_storage< meta_storage_aligned_t > meta_storage2_t;
 
@@ -252,7 +253,7 @@ TEST(storage_info, test_interface) {
 //    ASSERT_TRUE((extended_meta.template dim< 4 >() == 10));
 //}
 
-//TEST(storage_info, index) {
+// TEST(storage_info, index) {
 
 //    typedef meta_storage_base< 0, layout_map< 0, 1, 2, 3 >, false > meta_storage1_t;
 
@@ -276,7 +277,6 @@ TEST(storage_info, test_interface) {
 //#endif
 
 //    ASSERT_TRUE((meta._index(meta.strides(), accessor_t (1,1,2,3).offsets()) == 6493));
-
 
 //}
 

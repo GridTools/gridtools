@@ -108,8 +108,7 @@ namespace gridtools {
 #endif
         > {
 
-
-        GRIDTOOLS_STATIC_ASSERT((is_layout_map<Layout>::value), "ERROR");
+        GRIDTOOLS_STATIC_ASSERT((is_layout_map< Layout >::value), "ERROR");
 
         typedef meta_storage_base< Index,
             Layout,

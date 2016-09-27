@@ -42,17 +42,15 @@
 using namespace gridtools;
 
 TEST(test_replace, test) {
-    GRIDTOOLS_STATIC_ASSERT((
-        boost::mpl::equal<
-            replace< boost::mpl::vector4<int, double, char, long>, static_uint<3>, float>::type,
-            boost::mpl::vector4<int, double, char, float>
-        >::value), "Error");
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::mpl::equal< replace< boost::mpl::vector4< int, double, char, long >, static_uint< 3 >, float >::type,
+            boost::mpl::vector4< int, double, char, float > >::value),
+        "Error");
 
-    GRIDTOOLS_STATIC_ASSERT((
-        boost::mpl::equal<
-            replace< boost::mpl::vector4<int, double, char, long>, static_uint<2>, float>::type,
-            boost::mpl::vector4<int, double, float, long>
-        >::value), "Error");
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::mpl::equal< replace< boost::mpl::vector4< int, double, char, long >, static_uint< 2 >, float >::type,
+            boost::mpl::vector4< int, double, float, long > >::value),
+        "Error");
 
     ASSERT_TRUE(true);
 }

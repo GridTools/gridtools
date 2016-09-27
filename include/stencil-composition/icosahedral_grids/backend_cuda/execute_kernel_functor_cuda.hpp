@@ -120,8 +120,8 @@ namespace gridtools {
              */
             // jboundary_limit determines the number of warps required to execute (b,d,f)
             // TODO FUSING
-            const int jboundary_limit = block_size_t::j_size_t::value - max_extent_t::jminus::value
-                    + max_extent_t::jplus::value;
+            const int jboundary_limit =
+                block_size_t::j_size_t::value - max_extent_t::jminus::value + max_extent_t::jplus::value;
             // iminus_limit adds to jboundary_limit an additional warp for regions (a,h,e)
             const int iminus_limit = jboundary_limit + (max_extent_t::iminus::value < 0 ? 1 : 0);
             // iminus_limit adds to iminus_limit an additional warp for regions (c,i,g)
@@ -140,20 +140,17 @@ namespace gridtools {
             int j = max_extent_t::jminus::value - 1;
             int iblock = max_extent_t::iminus::value - 1;
             int jblock = max_extent_t::jminus::value - 1;
-            if(threadIdx.y < jboundary_limit)
-            {
+            if (threadIdx.y < jboundary_limit) {
                 i = blockIdx.x * block_size_t::i_size_t::value + threadIdx.x;
                 j = blockIdx.y * block_size_t::j_size_t::value + threadIdx.y + max_extent_t::jminus::value;
                 iblock = threadIdx.x;
                 jblock = threadIdx.y + max_extent_t::jminus::value;
-            }
-            else if(threadIdx.y < iminus_limit)
-            {
-                const int padded_boundary_ = padded_boundary<-max_extent_t::iminus::value>::value;
-                //we dedicate one warp to execute regions (a,h,e), so here we make sure we have enough threads
-                assert( (block_size_t::j_size_t::value - max_extent_t::jminus::value +
-                       max_extent_t::jplus::value)*padded_boundary_ <= enumtype::vector_width);
-
+            } else if (threadIdx.y < iminus_limit) {
+                const int padded_boundary_ = padded_boundary< -max_extent_t::iminus::value >::value;
+                // we dedicate one warp to execute regions (a,h,e), so here we make sure we have enough threads
+                assert((block_size_t::j_size_t::value - max_extent_t::jminus::value + max_extent_t::jplus::value) *
+                           padded_boundary_ <=
+                       enumtype::vector_width);
 
                 i = blockIdx.x * block_size_t::i_size_t::value - padded_boundary_ + threadIdx.x % padded_boundary_;
                 j = blockIdx.y * block_size_t::j_size_t::value + threadIdx.x / padded_boundary_ +
@@ -272,17 +269,13 @@ namespace gridtools {
                 // *  Otherwise each CUDA thread executes only one grid point.
                 // Based on the previous we compute the size of the CUDA block required.
                 typedef typename boost::mpl::fold< typename RunFunctorArguments::extent_sizes_t,
-                    extent< 0,0,0,0,0,0 >,
+                    extent< 0, 0, 0, 0, 0, 0 >,
                     enclosing_extent< boost::mpl::_1, boost::mpl::_2 > >::type maximum_extent_t;
 
-                typedef block_size<
-                         block_size_t::i_size_t::value,
-                         (block_size_t::j_size_t::value - maximum_extent_t::jminus::value +
-                         maximum_extent_t::jplus::value +
-                                (maximum_extent_t::iminus::value != 0 ? 1 : 0) + (maximum_extent_t::iplus::value
-                                != 0 ? 1 : 0)
-                         )
-                > cuda_block_size_t;
+                typedef block_size< block_size_t::i_size_t::value,
+                    (block_size_t::j_size_t::value - maximum_extent_t::jminus::value + maximum_extent_t::jplus::value +
+                                        (maximum_extent_t::iminus::value != 0 ? 1 : 0) +
+                                        (maximum_extent_t::iplus::value != 0 ? 1 : 0)) > cuda_block_size_t;
 
                 // number of grid points that a cuda block covers
                 const uint_t ntx = block_size_t::i_size_t::value;
@@ -297,8 +290,8 @@ namespace gridtools {
 
                 dim3 blocks(nbx, nby, nbz);
 
-                // re-create the run functor arguments, replacing the processing elements block size
-                // with the corresponding, recently computed, block size
+// re-create the run functor arguments, replacing the processing elements block size
+// with the corresponding, recently computed, block size
 #if defined(CXX11_ENABLED) && !defined(__CUDACC__)
                 typedef typename replace_template_arguments< RunFunctorArguments,
                     typename RunFunctorArguments::processing_elements_block_size_t,

@@ -102,7 +102,8 @@ namespace sf {
 
         using cell_storage_type = typename icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, double >;
         using edge_storage_type = typename icosahedral_topology_t::storage_t< icosahedral_topology_t::edges, double >;
-        using tmp_cell_storage_type = typename icosahedral_topology_t::temporary_storage_t< icosahedral_topology_t::cells, double >;
+        using tmp_cell_storage_type =
+            typename icosahedral_topology_t::temporary_storage_t< icosahedral_topology_t::cells, double >;
 
         const uint_t halo_nc = 2;
         const uint_t halo_mc = 2;
@@ -112,7 +113,8 @@ namespace sf {
         auto in_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("in_edge");
         auto out_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("out");
         auto ref_on_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("ref_on_cells");
-        auto ref_on_cells_tmp = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("ref_on_cells_tmp");
+        auto ref_on_cells_tmp =
+            icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("ref_on_cells_tmp");
 
         for (int i = 1; i < d1 - 1; ++i) {
             for (int c = 0; c < icosahedral_topology_t::edges::n_colors::value; ++c) {
@@ -135,8 +137,7 @@ namespace sf {
 
         typedef boost::mpl::vector< p_in_edges, p_tmp_cells, p_out_cells > accessor_list_cells_t;
 
-        gridtools::aggregator_type< accessor_list_cells_t > domain(
-            boost::fusion::make_vector(&in_edges, &out_cells));
+        gridtools::aggregator_type< accessor_list_cells_t > domain(boost::fusion::make_vector(&in_edges, &out_cells));
 
         array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
@@ -166,9 +167,9 @@ namespace sf {
         bool result = true;
         if (verify) {
             unstructured_grid ugrid(d1, d2, d3);
-            for (uint_t i = halo_nc-1; i < d1 - halo_nc+1; ++i) {
+            for (uint_t i = halo_nc - 1; i < d1 - halo_nc + 1; ++i) {
                 for (uint_t c = 0; c < icosahedral_topology_t::cells::n_colors::value; ++c) {
-                    for (uint_t j = halo_mc-1; j < d2 - halo_mc+1; ++j) {
+                    for (uint_t j = halo_mc - 1; j < d2 - halo_mc + 1; ++j) {
                         for (uint_t k = 0; k < d3; ++k) {
                             auto neighbours =
                                 ugrid.neighbours_of< icosahedral_topology_t::cells, icosahedral_topology_t::edges >(

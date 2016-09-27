@@ -49,9 +49,9 @@ namespace ico_operators {
     template < uint_t Color >
     struct curl_prep_functor {
         typedef in_accessor< 0, icosahedral_topology_t::vertexes > dual_area_reciprocal;
-        typedef in_accessor< 1, icosahedral_topology_t::edges, extent<-1,0,-1,0 > > dual_edge_length;
+        typedef in_accessor< 1, icosahedral_topology_t::edges, extent< -1, 0, -1, 0 > > dual_edge_length;
         typedef inout_accessor< 2, icosahedral_topology_t::vertexes, 5 > weights;
-        typedef in_accessor< 3, icosahedral_topology_t::vertexes, extent<0,0,0,0>, 5 > edge_orientation;
+        typedef in_accessor< 3, icosahedral_topology_t::vertexes, extent< 0, 0, 0, 0 >, 5 > edge_orientation;
         typedef boost::mpl::vector< dual_area_reciprocal, dual_edge_length, weights, edge_orientation > arg_list;
 
         template < typename Evaluation >
@@ -63,7 +63,7 @@ namespace ico_operators {
             ushort_t e = 0;
             for (auto neighbor_offset : neighbors_offsets) {
                 eval(weights(edge + e)) = eval(edge_orientation(edge + e)) * eval(dual_edge_length(neighbor_offset)) *
-                                           eval(dual_area_reciprocal());
+                                          eval(dual_area_reciprocal());
                 e++;
             }
         }
@@ -71,8 +71,8 @@ namespace ico_operators {
 
     template < uint_t Color >
     struct curl_functor_weights {
-        typedef in_accessor< 0, icosahedral_topology_t::edges, extent<-1,0,-1,0> > in_edges;
-        typedef in_accessor< 1, icosahedral_topology_t::vertexes, extent<0,0,0,0 >, 5 > weights;
+        typedef in_accessor< 0, icosahedral_topology_t::edges, extent< -1, 0, -1, 0 > > in_edges;
+        typedef in_accessor< 1, icosahedral_topology_t::vertexes, extent< 0, 0, 0, 0 >, 5 > weights;
         typedef inout_accessor< 2, icosahedral_topology_t::vertexes > out_vertexes;
         typedef boost::mpl::vector< in_edges, weights, out_vertexes > arg_list;
 
@@ -95,9 +95,9 @@ namespace ico_operators {
 
     template < uint_t Color >
     struct curl_functor_flow_convention {
-        typedef in_accessor< 0, icosahedral_topology_t::edges, extent< -1,0,-1,0 > > in_edges;
+        typedef in_accessor< 0, icosahedral_topology_t::edges, extent< -1, 0, -1, 0 > > in_edges;
         typedef in_accessor< 1, icosahedral_topology_t::vertexes > dual_area_reciprocal;
-        typedef in_accessor< 2, icosahedral_topology_t::edges, extent< -1,0,-1,0 > > dual_edge_length;
+        typedef in_accessor< 2, icosahedral_topology_t::edges, extent< -1, 0, -1, 0 > > dual_edge_length;
         typedef inout_accessor< 3, icosahedral_topology_t::vertexes > out_vertexes;
         typedef boost::mpl::vector< in_edges, dual_area_reciprocal, dual_edge_length, out_vertexes > arg_list;
 

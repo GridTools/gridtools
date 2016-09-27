@@ -193,9 +193,10 @@ namespace ico_operators {
 #ifdef __CUDACC__
         __device__
 #else
-        GT_FUNCTION 
+        GT_FUNCTION
 #endif
-        static void Do(Evaluation const &eval, x_interval) {
+            static void
+            Do(Evaluation const &eval, x_interval) {
             constexpr auto neighbors_offsets = connectivity< edges, cells, Color >::offsets();
 
             double t{eval(in_edges()) * eval(edge_length())};
@@ -219,7 +220,7 @@ namespace ico_operators {
         // library protects out accessors with extent
         //        typedef accessor< 1, enumtype::inout, icosahedral_topology_t::cells, extent< -1, 0, -1, 0 > >
         //        out_cells;
-        typedef inout_accessor< 1, icosahedral_topology_t::cells> out_cells;
+        typedef inout_accessor< 1, icosahedral_topology_t::cells > out_cells;
 
         typedef boost::mpl::vector< cell_area_reciprocal, out_cells > arg_list;
         template < typename Evaluation >
@@ -251,9 +252,10 @@ namespace ico_operators {
 #ifdef __CUDACC__
         __device__
 #else
-        GT_FUNCTION 
+        GT_FUNCTION
 #endif
-        static void Do(Evaluation const &eval, x_interval) {
+            static void
+            Do(Evaluation const &eval, x_interval) {
             constexpr auto neighbors_offsets = connectivity< edges, cells, Color >::offsets();
 
             using cell_of_edge_dim = dimension< 5 >;

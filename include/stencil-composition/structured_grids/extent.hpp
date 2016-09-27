@@ -172,22 +172,25 @@ namespace gridtools {
             boost::mpl::plus< typename Extent1::kplus, typename Extent2::kplus >::type::value > type;
     };
 
-    template<typename Extent> struct extent_get_iminus{
-        GRIDTOOLS_STATIC_ASSERT((is_extent<Extent>::value), "Error");
+    template < typename Extent >
+    struct extent_get_iminus {
+        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), "Error");
         static const int_t value = Extent::iminus::value;
     };
-    template<typename Extent> struct extent_get_iplus{
-        GRIDTOOLS_STATIC_ASSERT((is_extent<Extent>::value), "Error");
+    template < typename Extent >
+    struct extent_get_iplus {
+        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), "Error");
         static const int_t value = Extent::iplus::value;
     };
-    template<typename Extent> struct extent_get_jminus{
-        GRIDTOOLS_STATIC_ASSERT((is_extent<Extent>::value), "Error");
+    template < typename Extent >
+    struct extent_get_jminus {
+        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), "Error");
         static const int_t value = Extent::jminus::value;
     };
-    template<typename Extent> struct extent_get_jplus{
-        GRIDTOOLS_STATIC_ASSERT((is_extent<Extent>::value), "Error");
+    template < typename Extent >
+    struct extent_get_jplus {
+        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), "Error");
         static const int_t value = Extent::jplus::value;
     };
-
 
 } // namespace gridtools

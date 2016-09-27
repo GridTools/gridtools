@@ -157,8 +157,7 @@ namespace gridtools {
                 const uint_t block_idx_i,
                 const uint_t block_idx_j)
                 : m_local_domain(local_domain), m_grid(grid), m_first_pos{first_i, first_j},
-                  m_loop_size{loop_size_i, loop_size_j}, m_block_id{block_idx_i, block_idx_j} {
-            }
+                  m_loop_size{loop_size_i, loop_size_j}, m_block_id{block_idx_i, block_idx_j} {}
 
             // Naive strategy
             explicit execute_kernel_functor_host(
@@ -245,7 +244,7 @@ namespace gridtools {
                         static_int< 1 > >();
                 }
                 it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_i_t::value >(
-                    -(m_loop_size[0] + 1 + (extent_t::iplus::value-extent_t::iminus::value)));
+                    -(m_loop_size[0] + 1 + (extent_t::iplus::value - extent_t::iminus::value)));
             }
 
           private:

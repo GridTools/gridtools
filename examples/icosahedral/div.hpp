@@ -47,14 +47,13 @@ using namespace enumtype;
 
 namespace ico_operators {
 
-    bool test_div( uint_t x, uint_t y, uint_t z, uint_t t_steps, bool verify)
-    {
+    bool test_div(uint_t x, uint_t y, uint_t z, uint_t t_steps, bool verify) {
 
         repository repo(x, y, z);
         repo.init_fields();
         repo.generate_div_ref();
 
-        icosahedral_topology_t& icosahedral_grid = repo.icosahedral_grid();
+        icosahedral_topology_t &icosahedral_grid = repo.icosahedral_grid();
         uint_t d1 = repo.idim();
         uint_t d2 = repo.jdim();
         uint_t d3 = repo.kdim();
@@ -63,7 +62,7 @@ namespace ico_operators {
         const uint_t halo_mc = repo.halo_mc;
         const uint_t halo_k = repo.halo_k;
 
-        typedef gridtools::layout_map<2, 1, 0> layout_t;
+        typedef gridtools::layout_map< 2, 1, 0 > layout_t;
 
         using edge_storage_type = repository::edge_storage_type;
         using cell_storage_type = repository::cell_storage_type;
@@ -255,7 +254,8 @@ namespace ico_operators {
             typedef arg< 2, cell_2d_storage_type > p_cell_area_reciprocal;
             typedef arg< 3, cell_storage_type > p_out_cells;
 
-            typedef boost::mpl::vector< p_in_edges, p_edge_length, p_cell_area_reciprocal, p_out_cells > accessor_list_t;
+            typedef boost::mpl::vector< p_in_edges, p_edge_length, p_cell_area_reciprocal, p_out_cells >
+                accessor_list_t;
 
             gridtools::aggregator_type< accessor_list_t > domain(
                 boost::fusion::make_vector(&in_edges, &edge_length, &cell_area_reciprocal, &out_cells));
@@ -267,7 +267,8 @@ namespace ico_operators {
                 (execute< forward >(),
                     gridtools::make_stage< div_functor_flow_convention,
                         icosahedral_topology_t,
-                        icosahedral_topology_t::cells >(p_in_edges(), p_edge_length(), p_cell_area_reciprocal(), p_out_cells())));
+                        icosahedral_topology_t::cells >(
+                        p_in_edges(), p_edge_length(), p_cell_area_reciprocal(), p_out_cells())));
             stencil_flow_convention->ready();
             stencil_flow_convention->steady();
             stencil_flow_convention->run();
@@ -296,7 +297,8 @@ namespace ico_operators {
             typedef arg< 2, cell_2d_storage_type > p_cell_area_reciprocal;
             typedef arg< 3, cell_storage_type > p_out_cells;
 
-            typedef boost::mpl::vector< p_in_edges, p_edge_length, p_cell_area_reciprocal, p_out_cells > accessor_list_t;
+            typedef boost::mpl::vector< p_in_edges, p_edge_length, p_cell_area_reciprocal, p_out_cells >
+                accessor_list_t;
 
             gridtools::aggregator_type< accessor_list_t > domain(
                 boost::fusion::make_vector(&in_edges, &edge_length, &cell_area_reciprocal, &out_cells));
@@ -308,7 +310,8 @@ namespace ico_operators {
                 (execute< forward >(),
                     gridtools::make_stage< div_functor_flow_convention_connectivity,
                         icosahedral_topology_t,
-                        icosahedral_topology_t::cells >(p_in_edges(), p_edge_length(), p_cell_area_reciprocal(), p_out_cells())));
+                        icosahedral_topology_t::cells >(
+                        p_in_edges(), p_edge_length(), p_cell_area_reciprocal(), p_out_cells())));
             stencil_flow_convention->ready();
             stencil_flow_convention->steady();
             stencil_flow_convention->run();
@@ -328,53 +331,50 @@ namespace ico_operators {
             stencil_flow_convention->finalize();
         }
 
-
         {
             typedef arg< 0, edge_storage_type > p_in_edges;
             typedef arg< 1, edge_2d_storage_type > p_edge_length;
             typedef arg< 2, cell_2d_storage_type > p_cell_area_reciprocal;
             typedef arg< 3, cell_storage_type > p_out_cells;
 
-            typedef boost::mpl::vector< p_in_edges, p_edge_length, p_cell_area_reciprocal, p_out_cells > accessor_list_t;
+            typedef boost::mpl::vector< p_in_edges, p_edge_length, p_cell_area_reciprocal, p_out_cells >
+                accessor_list_t;
 
             gridtools::aggregator_type< accessor_list_t > domain(
                 boost::fusion::make_vector(&in_edges, &edge_length, &cell_area_reciprocal, &out_cells));
 
-                /*
-                 * stencil of over edge
-                 */
-                auto stencil_div_over_edges = gridtools::make_computation<backend_t>(
-                        domain,
-                        grid_,
-                        gridtools::make_multistage // mss_descriptor
-                                (execute<forward>(),
-                                 gridtools::make_stage<div_functor_over_edges, icosahedral_topology_t,
-                                 icosahedral_topology_t::edges>(
-                                         p_in_edges(), p_edge_length(), p_out_cells()),
-                                 gridtools::make_stage<divide_by_field, icosahedral_topology_t,
-                                 icosahedral_topology_t::cells >(
-                                         p_cell_area_reciprocal(), p_out_cells())
-                                )
-                );
-                stencil_div_over_edges->ready();
-                stencil_div_over_edges->steady();
-                stencil_div_over_edges->run();
+            /*
+             * stencil of over edge
+             */
+            auto stencil_div_over_edges = gridtools::make_computation< backend_t >(
+                domain,
+                grid_,
+                gridtools::make_multistage // mss_descriptor
+                (execute< forward >(),
+                    gridtools::make_stage< div_functor_over_edges,
+                        icosahedral_topology_t,
+                        icosahedral_topology_t::edges >(p_in_edges(), p_edge_length(), p_out_cells()),
+                    gridtools::make_stage< divide_by_field, icosahedral_topology_t, icosahedral_topology_t::cells >(
+                        p_cell_area_reciprocal(), p_out_cells())));
+            stencil_div_over_edges->ready();
+            stencil_div_over_edges->steady();
+            stencil_div_over_edges->run();
 
-        #ifdef __CUDACC__
-                in_edges.d2h_update();
-                edge_length.d2h_update();
-                cell_area_reciprocal.d2h_update();
-                out_cells.d2h_update();
-        #endif
+#ifdef __CUDACC__
+            in_edges.d2h_update();
+            edge_length.d2h_update();
+            cell_area_reciprocal.d2h_update();
+            out_cells.d2h_update();
+#endif
 
-                // TODO: this does not validate because the divide_by_field functor runs only on edges with color 0
+// TODO: this does not validate because the divide_by_field functor runs only on edges with color 0
 //                        result = result && ver.verify(grid_, ref_cells, out_cells, halos);
 
-        #ifdef BENCHMARK
+#ifdef BENCHMARK
 //                benchmarker::run(stencil_div_over_edges, t_steps);
 //                std::cout << "over edges: "<< stencil_div_over_edges->print_meter() << std::endl;
-        #endif
-                stencil_div_over_edges->finalize();
+#endif
+            stencil_div_over_edges->finalize();
         }
 
         {
@@ -387,38 +387,36 @@ namespace ico_operators {
             gridtools::aggregator_type< accessor_list_t > domain(
                 boost::fusion::make_vector(&in_edges, &l_over_A, &out_cells));
 
-                /*
-                 * stencil of over edge weights
-                 */
+            /*
+             * stencil of over edge weights
+             */
 
-                auto stencil_div_over_edges_weights = gridtools::make_computation<backend_t>(
-                        domain,
-                        grid_,
-                        gridtools::make_multistage // mss_descriptor
-                                (execute<forward>(),
-                                 gridtools::make_stage< div_functor_over_edges_weights, icosahedral_topology_t,
-                                 icosahedral_topology_t::edges>(
-                                         p_in_edges(), p_l_over_A(), p_out_cells())
-                                )
-                );
-                stencil_div_over_edges_weights->ready();
-                stencil_div_over_edges_weights->steady();
-                stencil_div_over_edges_weights->run();
+            auto stencil_div_over_edges_weights = gridtools::make_computation< backend_t >(
+                domain,
+                grid_,
+                gridtools::make_multistage // mss_descriptor
+                (execute< forward >(),
+                    gridtools::make_stage< div_functor_over_edges_weights,
+                        icosahedral_topology_t,
+                        icosahedral_topology_t::edges >(p_in_edges(), p_l_over_A(), p_out_cells())));
+            stencil_div_over_edges_weights->ready();
+            stencil_div_over_edges_weights->steady();
+            stencil_div_over_edges_weights->run();
 
-        #ifdef __CUDACC__
-                in_edges.d2h_update();
-                l_over_A.d2h_update();
-                out_cells.d2h_update();
-        #endif
+#ifdef __CUDACC__
+            in_edges.d2h_update();
+            l_over_A.d2h_update();
+            out_cells.d2h_update();
+#endif
 
-                // TODO: this does not validate in bottom left cell
+// TODO: this does not validate in bottom left cell
 //                result = result && ver.verify(grid_, ref_cells, out_cells, halos);
 
-        #ifdef BENCHMARK
-                benchmarker::run(stencil_div_over_edges_weights, t_steps);
-                std::cout << "over edges weights: "<< stencil_div_over_edges_weights->print_meter() << std::endl;
-        #endif
-                stencil_div_over_edges_weights->finalize();
+#ifdef BENCHMARK
+            benchmarker::run(stencil_div_over_edges_weights, t_steps);
+            std::cout << "over edges weights: " << stencil_div_over_edges_weights->print_meter() << std::endl;
+#endif
+            stencil_div_over_edges_weights->finalize();
         }
         return result;
     }

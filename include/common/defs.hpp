@@ -194,7 +194,6 @@ namespace gridtools {
 #endif
         static const unsigned int metastorage_library_indices_limit = 1000;
 
-
     } // namespace enumtype
 
 #ifdef STRUCTURED_GRIDS

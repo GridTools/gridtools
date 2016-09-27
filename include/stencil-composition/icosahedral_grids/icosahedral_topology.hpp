@@ -741,11 +741,14 @@ namespace gridtools {
         // Beyond 1000 we reserve the storage indices for library purposes
         template < typename LocationType >
         using meta_storage_t =
-            typename Backend::template storage_info_t< LocationType::value + enumtype::metastorage_library_indices_limit, layout_t >;
+            typename Backend::template storage_info_t< LocationType::value +
+                                                           enumtype::metastorage_library_indices_limit,
+                layout_t >;
 
         template < typename LocationType >
         using meta_storage_2d_t =
-            typename Backend::template storage_info_t< LocationType::value + enumtype::metastorage_library_indices_limit * 2,
+            typename Backend::template storage_info_t< LocationType::value +
+                                                           enumtype::metastorage_library_indices_limit * 2,
                 layout_2d_t >;
 
         template < typename LocationType, typename ValueType >

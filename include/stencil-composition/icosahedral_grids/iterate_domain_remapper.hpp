@@ -154,10 +154,8 @@ namespace gridtools {
 
             /** shifting the IDs of the placeholders and forwarding to the iterate_domain () operator*/
             template < typename Accessor >
-            GT_FUNCTION
-            auto operator()(Accessor const &arg) const
-                -> decltype(m_iterate_domain(color_t(), typename remap_accessor_type< Accessor, esf_args_map_t >::type(arg)))
-            {
+            GT_FUNCTION auto operator()(Accessor const &arg) const -> decltype(
+                m_iterate_domain(color_t(), typename remap_accessor_type< Accessor, esf_args_map_t >::type(arg))) {
                 typedef typename remap_accessor_type< Accessor, esf_args_map_t >::type remap_accessor_t;
                 return m_iterate_domain(color_t(), remap_accessor_t(arg));
             }

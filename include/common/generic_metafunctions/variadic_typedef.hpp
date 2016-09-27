@@ -66,9 +66,8 @@ namespace gridtools {
 
         template < typename Value, Value First, Value... Args >
         struct get_elem_c< 0, Value, First, Args... > {
-            typedef boost::mpl::integral_c<Value, First> type;
+            typedef boost::mpl::integral_c< Value, First > type;
         };
-
     }
 
     /**
@@ -85,7 +84,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((Idx <= sizeof...(Args)), "Out of bound access in variadic pack");
             typedef typename impl_::template get_elem< Idx, First, Args... >::type type;
         };
-        static constexpr ushort_t length = sizeof...(Args)+1;
+        static constexpr ushort_t length = sizeof...(Args) + 1;
     };
 
     /**
@@ -102,9 +101,8 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((Idx <= sizeof...(Args)), "Out of bound access in variadic pack");
             typedef typename impl_::template get_elem_c< Idx, Value, First, Args... >::type type;
         };
-        static constexpr ushort_t length = sizeof...(Args)+1;
+        static constexpr ushort_t length = sizeof...(Args) + 1;
     };
-
 
     /**
      * helper functor that returns a particular argument of a variadic pack by index

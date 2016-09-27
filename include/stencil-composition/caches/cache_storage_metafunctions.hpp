@@ -42,42 +42,42 @@ namespace gridtools {
 
             typedef meta_storage_cache< Layout,
                 P1::value - M1::value + T1::value,
-            //HACK
+// HACK
 #ifndef STRUCTURED_GRIDS
                 NColors,
 #endif
-            P2::value - M2::value + T2::value, // first 2 dimensions are special (the block)
+                P2::value - M2::value + T2::value, // first 2 dimensions are special (the block)
                 ((Plus::value - Minus::value) > 0 ? (Tiles::value - Minus::value + Plus::value) : 1)...,
                 Storage::field_dimensions,
                 1 > type;
         };
 
         namespace impl {
-            template<ushort_t D>
+            template < ushort_t D >
             struct get_layout_map_;
 
-            template<>
-            struct get_layout_map_<2> {
+            template <>
+            struct get_layout_map_< 2 > {
                 typedef layout_map< 1, 0 > type;
             };
 
-            template<>
-            struct get_layout_map_<3> {
+            template <>
+            struct get_layout_map_< 3 > {
                 typedef layout_map< 2, 1, 0 > type;
             };
 
-            template<>
-            struct get_layout_map_<4> {
+            template <>
+            struct get_layout_map_< 4 > {
                 typedef layout_map< 3, 2, 1, 0 > type;
             };
 
-            template<>
-            struct get_layout_map_<5> {
+            template <>
+            struct get_layout_map_< 5 > {
                 typedef layout_map< 4, 3, 2, 1, 0 > type;
             };
 
-            template<>
-            struct get_layout_map_<6> {
+            template <>
+            struct get_layout_map_< 6 > {
                 typedef layout_map< 5, 4, 3, 2, 1, 0 > type;
             };
         }
@@ -93,7 +93,7 @@ namespace gridtools {
 #ifdef CUDA8
             typedef layout_map< (sizeof...(Id)-Id - 1)... > type;
 #else
-            typedef typename impl::get_layout_map_<sizeof...(Id)>::type type;
+            typedef typename impl::get_layout_map_< sizeof...(Id) >::type type;
 #endif
         };
 

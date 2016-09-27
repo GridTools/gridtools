@@ -41,7 +41,7 @@
 using namespace gridtools;
 using namespace enumtype;
 
-namespace cs_test{
+namespace cs_test {
 
 #ifdef __CUDACC__
     using backend_t = ::gridtools::backend< Cuda, GRIDBACKEND, Block >;
@@ -53,20 +53,20 @@ namespace cs_test{
 #endif
 #endif
 
-    using icosahedral_topology_t = ::gridtools::icosahedral_topology<backend_t>;
+    using icosahedral_topology_t = ::gridtools::icosahedral_topology< backend_t >;
 
-    typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
-    typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
+    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
+    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
     template < uint_t Color >
     struct test_functor {
         typedef in_accessor< 0, icosahedral_topology_t::cells, extent< 1 > > in;
-        typedef inout_accessor<1, icosahedral_topology_t::cells> out;
-        typedef boost::mpl::vector2<in, out> arg_list;
+        typedef inout_accessor< 1, icosahedral_topology_t::cells > out;
+        typedef boost::mpl::vector2< in, out > arg_list;
 
-        template <typename Evaluation>
+        template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-            eval(out())= eval(in());
+            eval(out()) = eval(in());
         }
     };
 }
@@ -75,41 +75,41 @@ using namespace cs_test;
 
 TEST(test_copy_stencil, run) {
 
-    using cell_storage_type = typename icosahedral_topology_t::storage_t<icosahedral_topology_t::cells, double>;
+    using cell_storage_type = typename icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, double >;
 
     const uint_t halo_nc = 1;
     const uint_t halo_mc = 2;
     const uint_t halo_k = 0;
-    const uint_t d3=6+halo_k*2;
-    const uint_t d1=6+halo_nc*2;
-    const uint_t d2=12+halo_mc*2;
-    icosahedral_topology_t icosahedral_grid( d1, d2, d3 );
+    const uint_t d3 = 6 + halo_k * 2;
+    const uint_t d1 = 6 + halo_nc * 2;
+    const uint_t d2 = 12 + halo_mc * 2;
+    icosahedral_topology_t icosahedral_grid(d1, d2, d3);
 
-    cell_storage_type in_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("in");
-    cell_storage_type out_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("out");
+    cell_storage_type in_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("in");
+    cell_storage_type out_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("out");
 
     for (int i = 0; i < d1; ++i) {
         for (int c = 0; c < 2; ++c) {
             for (int j = 0; j < d2; ++j) {
                 for (int k = 0; k < d3; ++k) {
-                    in_cells(i,c,j,k) = i+c*100+j*10000+k*1000000;
+                    in_cells(i, c, j, k) = i + c * 100 + j * 10000 + k * 1000000;
                 }
             }
         }
     }
 
-    out_cells.initialize( 1.1 );
+    out_cells.initialize(1.1);
 
-    typedef arg<0, cell_storage_type> p_in_cells;
-    typedef arg<1, cell_storage_type> p_out_cells;
+    typedef arg< 0, cell_storage_type > p_in_cells;
+    typedef arg< 1, cell_storage_type > p_out_cells;
 
-    typedef boost::mpl::vector<p_in_cells, p_out_cells> accessor_list_t;
+    typedef boost::mpl::vector< p_in_cells, p_out_cells > accessor_list_t;
 
     gridtools::aggregator_type< accessor_list_t > domain(boost::fusion::make_vector(&in_cells, &out_cells));
-    array<uint_t,5> di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc -1, d1};
-    array<uint_t,5> dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc -1, d2};
+    array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
+    array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
-    gridtools::grid<axis, icosahedral_topology_t> grid_(icosahedral_grid, di, dj);
+    gridtools::grid< axis, icosahedral_topology_t > grid_(icosahedral_grid, di, dj);
     grid_.value_list[0] = halo_k;
     grid_.value_list[1] = d3 - 1 - halo_k;
 

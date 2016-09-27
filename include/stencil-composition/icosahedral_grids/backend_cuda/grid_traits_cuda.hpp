@@ -52,7 +52,6 @@ namespace gridtools {
             };
 
             typedef layout_map< 3, 2, 1, 0 > layout_map_t;
-
         };
     }
 }

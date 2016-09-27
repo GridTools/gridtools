@@ -241,7 +241,7 @@ void test_filter_layout(bool *result) {
     GRIDTOOLS_STATIC_ASSERT((boost::is_same< filter_layout< layout_map< 3, 2, 1, 0 >, selector< 1, 1, -1, 1 > >::type,
                                 layout_map< 2, 1, -1, 0 > >::value),
         "Error");
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same< filter_layout< layout_map< 0,1,2,3 >, selector< 1, 1, -1, 1 > >::type,
+    GRIDTOOLS_STATIC_ASSERT((boost::is_same< filter_layout< layout_map< 0, 1, 2, 3 >, selector< 1, 1, -1, 1 > >::type,
                                 layout_map< 0, 1, -1, 2 > >::value),
         "Error");
 
@@ -256,7 +256,7 @@ void test_filter_layout(bool *result) {
                                 layout_map< -1, 1, -1, 0 > >::value),
         "Error");
 
-    typedef sequence_unpacker<boost::mpl::vector3<int, float, double> >::type ll;
+    typedef sequence_unpacker< boost::mpl::vector3< int, float, double > >::type ll;
 
 #endif
 }

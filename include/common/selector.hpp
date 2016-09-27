@@ -39,24 +39,23 @@
 
 namespace gridtools {
 
-    template < int_t ... Int >
+    template < int_t... Int >
     struct selector {
-        typedef variadic_typedef_c<int_t, Int... > indices;
+        typedef variadic_typedef_c< int_t, Int... > indices;
         static constexpr ushort_t length = indices::length;
 
         template < ushort_t Idx >
         struct get_elem {
             GRIDTOOLS_STATIC_ASSERT((Idx <= sizeof...(Int)), "Out of bound access in variadic pack");
-            typedef typename indices::template get_elem< Idx>::type type;
+            typedef typename indices::template get_elem< Idx >::type type;
             static constexpr const int_t value = type::value;
         };
-
     };
 
     template < typename T >
     struct is_selector : boost::mpl::false_ {};
 
-    template < int_t ... Int >
+    template < int_t... Int >
     struct is_selector< selector< Int... > > : boost::mpl::true_ {};
 
 } // gridtools

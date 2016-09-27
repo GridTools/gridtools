@@ -54,5 +54,4 @@ namespace ico_operators {
     typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
     using icosahedral_topology_t = icosahedral_topology< backend_t >;
-
 }

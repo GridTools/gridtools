@@ -50,8 +50,7 @@ namespace gridtools {
         struct rec_unpack {
             typedef typename sequence_unpacker< typename boost::mpl::pop_front< Seq_ >::type,
                 Args...,
-                typename boost::mpl::at_c< Seq_, 0 >::type
-            >::type type;
+                typename boost::mpl::at_c< Seq_, 0 >::type >::type type;
         };
 
         template < typename... Args_ >

@@ -547,10 +547,9 @@ namespace gridtools {
            definitions)
         */
         template < typename Accessor >
-        GT_FUNCTION
-            typename boost::enable_if< typename mem_access_with_standard_accessor< Accessor >::type,
-                typename accessor_return_type< Accessor >::type >::type
-            operator()(Accessor const &accessor) const {
+        GT_FUNCTION typename boost::enable_if< typename mem_access_with_standard_accessor< Accessor >::type,
+            typename accessor_return_type< Accessor >::type >::type
+        operator()(Accessor const &accessor) const {
 
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
@@ -577,10 +576,9 @@ namespace gridtools {
             TODO: This and the above version will be eventually merged.
         */
         template < typename Accessor >
-        GT_FUNCTION
-            typename boost::enable_if< typename mem_access_with_data_field_accessor< Accessor >::type,
-                typename accessor_return_type< Accessor >::type >::type
-            operator()(Accessor const &accessor) const;
+        GT_FUNCTION typename boost::enable_if< typename mem_access_with_data_field_accessor< Accessor >::type,
+            typename accessor_return_type< Accessor >::type >::type
+        operator()(Accessor const &accessor) const;
 
 #ifdef CUDA8
         /** @brief method called in the Do methods of the functors.
@@ -777,7 +775,7 @@ namespace gridtools {
     template < typename IterateDomainImpl >
     template < typename Accessor >
     GT_FUNCTION typename boost::enable_if<
-        typename iterate_domain< IterateDomainImpl >::template mem_access_with_data_field_accessor< Accessor>::type,
+        typename iterate_domain< IterateDomainImpl >::template mem_access_with_data_field_accessor< Accessor >::type,
         typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type >::type
         iterate_domain< IterateDomainImpl >::
         operator()(Accessor const &accessor) const {
