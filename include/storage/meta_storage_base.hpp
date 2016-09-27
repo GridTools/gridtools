@@ -241,10 +241,8 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
  This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
  a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
  by defining the storage type using another layout_map.");
-                GRIDTOOLS_STATIC_ASSERT(
-                     is_variadic_pack_of(boost::is_integral<IntTypes>::type::value...),
-                     "Error: Dimensions of metastorage must be specified as integer types. "
-                );
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(boost::is_integral< IntTypes >::type::value...),
+                "Error: Dimensions of metastorage must be specified as integer types. ");
         }
 
 #else  //__CUDACC__

@@ -41,8 +41,8 @@
 using namespace gridtools;
 using namespace enumtype;
 
-typedef interval<level<0,-1>, level<1,-1> > x_interval;
-typedef interval<level<0,-2>, level<1,1> > axis;
+typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
+typedef interval< level< 0, -2 >, level< 1, 1 > > axis;
 #ifdef __CUDACC__
 typedef backend< Cuda, structured, Block > backend_t;
 // #ifdef CXX11_ENABLED
@@ -66,24 +66,23 @@ struct boundary {
     boundary(int ival) : int_value(ival) {}
 
     GT_FUNCTION
-    double value() const {return 10.;}
+    double value() const { return 10.; }
 };
 
-struct functor{
-    typedef accessor<0, enumtype::inout, extent<0,0,0,0> > sol;
+struct functor {
+    typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 > > sol;
     typedef global_accessor< 1, enumtype::inout > bd;
 
     typedef boost::mpl::vector< sol, bd > arg_list;
 
-    template <typename Evaluation>
-    GT_FUNCTION
-    static void Do(Evaluation const & eval, x_interval) {
+    template < typename Evaluation >
+    GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
         eval(sol()) += eval(bd()).value() + eval(bd()).int_value;
     }
 };
 
 TEST(test_global_accessor, boundary_conditions) {
-    meta_t meta_(10,10,10);
+    meta_t meta_(10, 10, 10);
     storage_type sol_(meta_, (float_type)0.);
 
     sol_.initialize(2.);
@@ -101,13 +100,13 @@ TEST(test_global_accessor, boundary_conditions) {
 #endif
     GRIDTOOLS_STATIC_ASSERT(!gridtools::is_global_parameter< storage_type >::value, "is_global_parameter check failed");
 
-    halo_descriptor di=halo_descriptor(0,1,1,9,10);
-    halo_descriptor dj=halo_descriptor(0,1,1,1,2);
-    grid<axis> coords_bc(di, dj);
+    halo_descriptor di = halo_descriptor(0, 1, 1, 9, 10);
+    halo_descriptor dj = halo_descriptor(0, 1, 1, 1, 2);
+    grid< axis > coords_bc(di, dj);
     coords_bc.value_list[0] = 0;
     coords_bc.value_list[1] = 1;
 
-    typedef arg<0, storage_type> p_sol;
+    typedef arg< 0, storage_type > p_sol;
 
     aggregator_type< boost::mpl::vector< p_sol, p_bd > > domain(boost::fusion::make_vector(&sol_, &bd_));
 
@@ -167,17 +166,16 @@ TEST(test_global_accessor, boundary_conditions) {
     bc_eval->finalize();
 
     // check result of second run
-    for (int i=0; i<10; ++i)
-        for (int j=0; j<10; ++j)
-            for (int k=0; k<10; ++k)
-            {
-                double value=2.;
+    for (int i = 0; i < 10; ++i)
+        for (int j = 0; j < 10; ++j)
+            for (int k = 0; k < 10; ++k) {
+                double value = 2.;
                 if (i > 0 && j == 1 && k < 2) {
                     value += 10.;
                     value += 30;
                 }
                 if (sol_(i, j, k) != value) {
-                    result=false;
+                    result = false;
                 }
             }
 

@@ -42,13 +42,13 @@ using namespace enumtype;
 
 typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
 struct print_r {
-    template <typename T>
-    void operator()(T const& ) const {
+    template < typename T >
+    void operator()(T const &) const {
         std::cout << typename T::first() << " " << typename T::second() << std::endl;
     }
 };
 
-struct functor0{
+struct functor0 {
     typedef accessor< 0, enumtype::in, extent< 0, 0, -1, 3, -2, 0 > > in0;
     typedef accessor< 1, enumtype::in, extent< -1, 1, 0, 2, -1, 2 > > in1;
     typedef accessor< 2, enumtype::in, extent< -3, 3, -1, 2, 0, 1 > > in2;
@@ -86,14 +86,13 @@ struct functor2 {
 struct functor3 {
     typedef accessor< 0, enumtype::in, extent< 0, 3, 0, 1, -2, 0 > > in0;
     typedef accessor< 1, enumtype::in, extent< -2, 3, 0, 2, -3, 1 > > in1;
-    typedef accessor<2, enumtype::inout> out;
+    typedef accessor< 2, enumtype::inout > out;
     typedef accessor< 3, enumtype::in, extent< -1, 3, -3, 0, -3, 2 > > in3;
 
-    typedef boost::mpl::vector<in0,in1,out,in3> arg_list;
+    typedef boost::mpl::vector< in0, in1, out, in3 > arg_list;
 
-    template <typename Evaluation>
-    GT_FUNCTION
-    static void Do(Evaluation const & eval, x_interval) {}
+    template < typename Evaluation >
+    GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
 };
 
 struct functor4 {

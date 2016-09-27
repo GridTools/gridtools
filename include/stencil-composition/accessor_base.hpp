@@ -65,16 +65,14 @@ namespace gridtools {
     struct arg;
 
 #ifdef CXX11_ENABLED
-    //metafunction that determines if a type is a valid accessor ctr argument
-    template<typename T>
+    // metafunction that determines if a type is a valid accessor ctr argument
+    template < typename T >
     struct is_accessor_ctr_args {
-        typedef typename boost::mpl::or_<
-            typename boost::is_integral<T>::type,
-            typename is_dimension<T>::type
-        >::type type;
+        typedef typename boost::mpl::or_< typename boost::is_integral< T >::type,
+            typename is_dimension< T >::type >::type type;
     };
 
-    //metafunction that determines if a variadic pack are valid accessor ctr arguments
+    // metafunction that determines if a variadic pack are valid accessor ctr arguments
     template < typename... Types >
     using all_accessor_ctr_args =
         typename boost::enable_if_c< accumulate(logical_and(), is_accessor_ctr_args< Types >::type::value...),
@@ -157,8 +155,8 @@ namespace gridtools {
    This allows to specify the extra arguments out of order. Note that 'dimension' is a
    language keyword used at the interface level.
 */
-#if defined(CXX11_ENABLED) 
-        template < typename ... Indices, typename Dummy = all_accessor_ctr_args<Indices...> >
+#if defined(CXX11_ENABLED)
+        template < typename... Indices, typename Dummy = all_accessor_ctr_args< Indices... > >
         GT_FUNCTION constexpr accessor_base(Indices... x)
             : m_offsets(x...) {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(x) <= n_dim,
@@ -168,32 +166,30 @@ namespace gridtools {
         }
 #else
         template < typename X, typename Y, typename Z, typename T, typename U, typename V >
-        GT_FUNCTION constexpr accessor_base(
-             X x,  Y y,  Z z,  T t,  U u,  V v)
+        GT_FUNCTION constexpr accessor_base(X x, Y y, Z z, T t, U u, V v)
             : m_offsets(x, y, z, t, u, v) {}
 
         template < typename X, typename Y, typename Z, typename T, typename U >
-        GT_FUNCTION constexpr accessor_base(
-             X x,  Y y,  Z z,  T t,  U u)
+        GT_FUNCTION constexpr accessor_base(X x, Y y, Z z, T t, U u)
             : m_offsets(x, y, z, t, u) {}
 
         template < typename X, typename Y, typename Z, typename T >
-        GT_FUNCTION constexpr accessor_base( X x,  Y y,  Z z,  T t)
+        GT_FUNCTION constexpr accessor_base(X x, Y y, Z z, T t)
             : m_offsets(x, y, z, t) {}
 
         template < typename X, typename Y, typename Z >
-        GT_FUNCTION constexpr accessor_base( X x,  Y y,  Z z)
+        GT_FUNCTION constexpr accessor_base(X x, Y y, Z z)
             : m_offsets(x, y, z) {}
 
         template < typename X, typename Y >
-        GT_FUNCTION constexpr accessor_base( X x,  Y y)
+        GT_FUNCTION constexpr accessor_base(X x, Y y)
             : m_offsets(x, y) {}
 
-        template<ushort_t DimIndex>
-        GT_FUNCTION constexpr accessor_base( dimension<DimIndex> x) : m_offsets(x) {}
-   
-        GT_FUNCTION constexpr accessor_base( int_t x)
+        template < ushort_t DimIndex >
+        GT_FUNCTION constexpr accessor_base(dimension< DimIndex > x)
             : m_offsets(x) {}
+
+        GT_FUNCTION constexpr accessor_base(int_t x) : m_offsets(x) {}
 
 #endif
 

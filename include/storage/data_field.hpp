@@ -219,20 +219,20 @@ namespace gridtools {
 
         template < typename Storage >
         struct call_apply {
-        private:
-          Storage &m_storage;
+          private:
+            Storage &m_storage;
 
-        public:
-          call_apply(Storage &storage_) : m_storage(storage_) {}
+          public:
+            call_apply(Storage &storage_) : m_storage(storage_) {}
 
-          template < typename Id >
-          void operator()(Id) {
-              cycle< Id::value >::apply(m_storage);
+            template < typename Id >
+            void operator()(Id) {
+                cycle< Id::value >::apply(m_storage);
             }
         };
 
-        template <typename Storage>
-        static void apply(Storage& storage_){
+        template < typename Storage >
+        static void apply(Storage &storage_) {
             GRIDTOOLS_STATIC_ASSERT(is_data_field< typename Storage::super >::value,
                 "\"advance\" can only be called with instanced of type \"data_field\" ");
             boost::mpl::for_each<
@@ -406,7 +406,8 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((snapshot < _impl::access< n_width - (field_dim)-1, traits >::type::n_width),
                 "trying to get a snapshot out of bound");
             GRIDTOOLS_STATIC_ASSERT((field_dim < traits::n_dimensions), "trying to get a field dimension out of bound");
-            return super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields + snapshot][this->m_meta_data->index(args...)];
+            return super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields +
+                                   snapshot][this->m_meta_data->index(args...)];
         }
 
         /**@brief gets a given value at the given field i,j,k coordinates
@@ -419,7 +420,8 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((snapshot < _impl::access< n_width - (field_dim)-1, traits >::type::n_width),
                 "trying to get a snapshot out of bound");
             GRIDTOOLS_STATIC_ASSERT((field_dim < traits::n_dimensions), "trying to get a field_dimension out of bound");
-            return super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields + snapshot][this->m_meta_data->index(args...)];
+            return super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields +
+                                   snapshot][this->m_meta_data->index(args...)];
         }
     };
 
