@@ -1,7 +1,12 @@
 list( APPEND SRCFILES #laplace 
       stencil_on_cells stencil_on_cells_color stencil_on_edges stencil_on_edges_of_cells stencil_fused stencil_on_neighcell_of_edges stencil_on_neighedge_of_cells stencil_manual_fold stencil_on_vertexes stencil_on_edges_multiplefields curl div lap)
 
-file(GLOB_RECURSE INC_ALL "[a-z]*.hpp")
+file(GLOB_RECURSE INC_ALL_ "[a-z]*.hpp")
+list ( APPEND INC_ALL ${INC_ALL_} )
+file(GLOB_RECURSE INC_ALL_ "../../include/[a-z|A-Z|0-9]*.hpp")
+list ( APPEND INC_ALL ${INC_ALL_} )
+
+
 set( GTEST_FILES ../Options.hpp ../Options.cpp unstructured_grid.cpp)
 
 add_definitions("-DBENCHMARK")
