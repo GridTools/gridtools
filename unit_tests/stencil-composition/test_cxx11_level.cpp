@@ -44,42 +44,46 @@ TEST(test_level, leq) {
     using lowerLevel = level< 0, -1 >;
     using greaterLevel = level< 1, 1 >;
 
-    bool is_leq = level_leq< lowerLevel, greaterLevel >::value;
-    ASSERT_TRUE(is_leq);
-
-    bool is_not_leq = level_leq< greaterLevel, lowerLevel >::value;
-    ASSERT_FALSE(is_not_leq);
+    ASSERT_TRUE((level_leq< lowerLevel, greaterLevel >::value));
+    ASSERT_FALSE((level_leq< greaterLevel, lowerLevel >::value));
 }
 
 TEST(test_level, leq_same_splitter) {
     using lowerLevel = level< 1, -1 >;
     using greaterLevel = level< 1, 1 >;
 
-    bool is_leq = level_leq< lowerLevel, greaterLevel >::value;
-    ASSERT_TRUE(is_leq);
-
-    bool is_not_leq = level_leq< greaterLevel, lowerLevel >::value;
-    ASSERT_FALSE(is_not_leq);
+    ASSERT_TRUE((level_leq< lowerLevel, greaterLevel >::value));
+    ASSERT_FALSE((level_leq< greaterLevel, lowerLevel >::value));
 }
 
 TEST(test_level, leq_equal_levels) {
     using level1 = level< 1, -1 >;
     using level2 = level1;
 
-    bool is_leq1 = level_leq< level1, level2 >::value;
-    ASSERT_TRUE(is_leq1);
+    ASSERT_TRUE((level_leq< level1, level2 >::value));
+    ASSERT_TRUE((level_leq< level2, level1 >::value));
+}
 
-    bool is_leq2 = level_leq< level2, level1 >::value;
-    ASSERT_TRUE(is_leq2);
+TEST(test_level, lt) {
+    using lowerLevel = level< 0, -1 >;
+    using greaterLevel = level< 1, 1 >;
+
+    ASSERT_TRUE((level_lt< lowerLevel, greaterLevel >::value));
+    ASSERT_FALSE((level_lt< greaterLevel, lowerLevel >::value));
+}
+
+TEST(test_level, lt_equal_levels) {
+    using level1 = level< 1, -1 >;
+    using level2 = level1;
+
+    ASSERT_FALSE((level_lt< level1, level2 >::value));
+    ASSERT_FALSE((level_lt< level2, level1 >::value));
 }
 
 TEST(test_level, geq) {
     using lowerLevel = level< 0, -1 >;
     using greaterLevel = level< 1, 1 >;
 
-    bool is_geq = level_geq< greaterLevel, lowerLevel >::value;
-    ASSERT_TRUE(is_geq);
-
-    bool is_not_geq = level_geq< lowerLevel, greaterLevel >::value;
-    ASSERT_FALSE(is_not_geq);
+    ASSERT_TRUE((level_geq< greaterLevel, lowerLevel >::value));
+    ASSERT_FALSE((level_geq< lowerLevel, greaterLevel >::value));
 }

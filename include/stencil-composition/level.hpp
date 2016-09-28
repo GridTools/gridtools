@@ -141,6 +141,19 @@ namespace gridtools {
         : boost::mpl::true_ {};
 
     /**
+     * @struct level_lt
+     * Meta function to compare two levels: left < right
+     */
+    template < typename TLevelLeft, typename TLevelRight, typename Enable = void >
+    struct level_lt : boost::mpl::false_ {};
+
+    template < typename TLevelLeft, typename TLevelRight >
+    struct level_lt< TLevelLeft,
+        TLevelRight,
+        typename std::enable_if< (level_to_index< TLevelLeft >::value < level_to_index< TLevelRight >::value) >::type >
+        : boost::mpl::true_ {};
+
+    /**
      * @struct level_geq
      * Meta function to compare two levels: left >= right
      */
@@ -151,6 +164,19 @@ namespace gridtools {
     struct level_geq< TLevelLeft,
         TLevelRight,
         typename std::enable_if< (level_to_index< TLevelLeft >::value >= level_to_index< TLevelRight >::value) >::type >
+        : boost::mpl::true_ {};
+
+    /**
+     * @struct level_gt
+     * Meta function to compare two levels: left > right
+     */
+    template < typename TLevelLeft, typename TLevelRight, typename Enable = void >
+    struct level_gt : boost::mpl::false_ {};
+
+    template < typename TLevelLeft, typename TLevelRight >
+    struct level_gt< TLevelLeft,
+        TLevelRight,
+        typename std::enable_if< (level_to_index< TLevelLeft >::value > level_to_index< TLevelRight >::value) >::type >
         : boost::mpl::true_ {};
 #endif
 
