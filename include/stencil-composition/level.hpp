@@ -41,6 +41,7 @@
 #include <boost/mpl/integral_c.hpp>
 #include <boost/mpl/bool.hpp>
 #include "common/defs.hpp"
+#include "level_metafunctions.hpp"
 
 namespace gridtools {
     // define the level offset limit
@@ -125,59 +126,4 @@ namespace gridtools {
     std::ostream &operator<<(std::ostream &s, level< F, T > const &) {
         return s << "(" << level< F, T >::Splitter::value << ", " << level< F, T >::Offset::value << ")";
     }
-
-#ifdef CXX11_ENABLED
-    /**
-     * @struct level_leq
-     * Meta function to compare two levels: left <= right
-     */
-    template < typename TLevelLeft, typename TLevelRight, typename Enable = void >
-    struct level_leq : boost::mpl::false_ {};
-
-    template < typename TLevelLeft, typename TLevelRight >
-    struct level_leq< TLevelLeft,
-        TLevelRight,
-        typename std::enable_if< (level_to_index< TLevelLeft >::value <= level_to_index< TLevelRight >::value) >::type >
-        : boost::mpl::true_ {};
-
-    /**
-     * @struct level_lt
-     * Meta function to compare two levels: left < right
-     */
-    template < typename TLevelLeft, typename TLevelRight, typename Enable = void >
-    struct level_lt : boost::mpl::false_ {};
-
-    template < typename TLevelLeft, typename TLevelRight >
-    struct level_lt< TLevelLeft,
-        TLevelRight,
-        typename std::enable_if< (level_to_index< TLevelLeft >::value < level_to_index< TLevelRight >::value) >::type >
-        : boost::mpl::true_ {};
-
-    /**
-     * @struct level_geq
-     * Meta function to compare two levels: left >= right
-     */
-    template < typename TLevelLeft, typename TLevelRight, typename Enable = void >
-    struct level_geq : boost::mpl::false_ {};
-
-    template < typename TLevelLeft, typename TLevelRight >
-    struct level_geq< TLevelLeft,
-        TLevelRight,
-        typename std::enable_if< (level_to_index< TLevelLeft >::value >= level_to_index< TLevelRight >::value) >::type >
-        : boost::mpl::true_ {};
-
-    /**
-     * @struct level_gt
-     * Meta function to compare two levels: left > right
-     */
-    template < typename TLevelLeft, typename TLevelRight, typename Enable = void >
-    struct level_gt : boost::mpl::false_ {};
-
-    template < typename TLevelLeft, typename TLevelRight >
-    struct level_gt< TLevelLeft,
-        TLevelRight,
-        typename std::enable_if< (level_to_index< TLevelLeft >::value > level_to_index< TLevelRight >::value) >::type >
-        : boost::mpl::true_ {};
-#endif
-
 } // namespace gridtools
