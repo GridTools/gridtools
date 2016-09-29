@@ -55,6 +55,21 @@ TEST(test_interval, join_interval_in_order) {
     ::testing::StaticAssertTypeEq< joined_interval::ToLevel, interval2::ToLevel >();
 }
 
+TEST(test_interval, join_interval_t) {
+    using level1 = level< 0, -1 >;
+    using level2 = level< 1, 1 >;
+    using level3 = level< 1, -1 >;
+    using level4 = level< 2, 1 >;
+
+    using interval1 = interval< level1, level2 >;
+    using interval2 = interval< level3, level4 >;
+
+    using joined_interval = join_interval_t< interval1, interval2 >;
+
+    ::testing::StaticAssertTypeEq< joined_interval::FromLevel, interval1::FromLevel >();
+    ::testing::StaticAssertTypeEq< joined_interval::ToLevel, interval2::ToLevel >();
+}
+
 // TEST(test_interval, join_interval_non_contiguous) {
 //    using level1 = level< 0, -1 >;
 //    using level2 = level< 1, -1 >;
@@ -153,6 +168,21 @@ TEST(test_make_axis, two_intervals_in_order) {
     using rightInterval = interval< level3, level4 >;
 
     using axis = make_axis< leftInterval, rightInterval >::type;
+
+    ASSERT_TRUE(check_interval< leftInterval >::is_strict_subset_of< axis >::value);
+    ASSERT_TRUE(check_interval< rightInterval >::is_strict_subset_of< axis >::value);
+}
+
+TEST(test_make_axis, make_axis_t) {
+    using level1 = level< 0, -1 >;
+    using level2 = level< 1, -2 >;
+    using level3 = level< 1, 1 >;
+    using level4 = level< 2, 1 >;
+
+    using leftInterval = interval< level1, level2 >;
+    using rightInterval = interval< level3, level4 >;
+
+    using axis = make_axis_t< leftInterval, rightInterval >;
 
     ASSERT_TRUE(check_interval< leftInterval >::is_strict_subset_of< axis >::value);
     ASSERT_TRUE(check_interval< rightInterval >::is_strict_subset_of< axis >::value);

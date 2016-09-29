@@ -180,6 +180,9 @@ namespace gridtools {
         typedef interval< typename TIntervalLeft::FromLevel, typename TIntervalRight::ToLevel > type;
     };
 
+    template < typename TIntervalLeft, typename TIntervalRight >
+    using join_interval_t = typename join_interval< TIntervalLeft, TIntervalRight >::type;
+
     template < typename... TIntervals >
     struct make_axis {
         using levels = boost::mpl::vector< typename TIntervals::FromLevel..., typename TIntervals::ToLevel... >;
@@ -203,5 +206,8 @@ namespace gridtools {
 
         typedef interval< left_axis_level, right_axis_level > type;
     };
+
+    template < typename... TIntervals >
+    using make_axis_t = typename make_axis< TIntervals... >::type;
 #endif
 } // namespace gridtools
