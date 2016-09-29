@@ -165,19 +165,19 @@ TEST(storage_info, test_interface) {
     GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.strides(0) == 32 * 12 * 13), "error");
 #endif // !__CUDACC__
 #else  // CXX11_ENABLED
-    typedef gridtools::layout_map<0,1,2> layout_t;
-    gridtools::meta_storage_base<0,layout_t,false> meta_(11, 12, 13);
+    typedef gridtools::layout_map< 0, 1, 2 > layout_t;
+    gridtools::meta_storage_base< 0, layout_t, false > meta_(11, 12, 13);
     ASSERT_TRUE((meta_.dim< 0 >() == 11));
     ASSERT_TRUE((meta_.dim< 1 >() == 12));
     ASSERT_TRUE((meta_.dim< 2 >() == 13));
 
-    ASSERT_TRUE((meta_.strides(2)==13));
-    ASSERT_TRUE((meta_.strides(1)==13*12));
-    ASSERT_TRUE((meta_.strides(0)==13*12*11));
+    ASSERT_TRUE((meta_.strides(2) == 13));
+    ASSERT_TRUE((meta_.strides(1) == 13 * 12));
+    ASSERT_TRUE((meta_.strides(0) == 13 * 12 * 11));
 
-    ASSERT_TRUE((meta_.strides<2>(meta_.strides())==1));
-    ASSERT_TRUE((meta_.strides<1>(meta_.strides())==13));
-    ASSERT_TRUE((meta_.strides<0>(meta_.strides())==13*12));
+    ASSERT_TRUE((meta_.strides< 2 >(meta_.strides()) == 1));
+    ASSERT_TRUE((meta_.strides< 1 >(meta_.strides()) == 13));
+    ASSERT_TRUE((meta_.strides< 0 >(meta_.strides()) == 13 * 12));
 #endif
 
 #ifdef CXX11_ENABLED // this checks are performed in cxx11 mode

@@ -35,6 +35,7 @@
 */
 #pragma once
 #include "extent.hpp"
+#include "location_type.hpp"
 #include "../accessor_base.hpp"
 
 namespace gridtools {
@@ -61,7 +62,7 @@ namespace gridtools {
         GT_FUNCTION
         constexpr accessor() : super() {}
 
-    /**inheriting all constructors from offset_tuple*/
+        /**inheriting all constructors from offset_tuple*/
         using super::accessor_base;
 
         GT_FUNCTION

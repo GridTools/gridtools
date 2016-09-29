@@ -219,20 +219,20 @@ namespace gridtools {
 
         template < typename Storage >
         struct call_apply {
-        private:
-          Storage &m_storage;
+          private:
+            Storage &m_storage;
 
-        public:
-          call_apply(Storage &storage_) : m_storage(storage_) {}
+          public:
+            call_apply(Storage &storage_) : m_storage(storage_) {}
 
-          template < typename Id >
-          void operator()(Id) {
-              cycle< Id::value >::apply(m_storage);
+            template < typename Id >
+            void operator()(Id) {
+                cycle< Id::value >::apply(m_storage);
             }
         };
 
-        template <typename Storage>
-        static void apply(Storage& storage_){
+        template < typename Storage >
+        static void apply(Storage &storage_) {
             GRIDTOOLS_STATIC_ASSERT(is_data_field< typename Storage::super >::value,
                 "\"advance\" can only be called with instanced of type \"data_field\" ");
             boost::mpl::for_each<
@@ -258,6 +258,7 @@ namespace gridtools {
         typedef typename dimension_extension_traits< First, StorageExtended... >::type super;
         typedef dimension_extension_traits< First, StorageExtended... > traits;
         typedef typename super::pointer_type pointer_type;
+        typedef typename super::value_type value_type;
         typedef typename super::basic_type basic_type;
         static const short_t n_width = sizeof...(StorageExtended) + 1;
 
@@ -303,7 +304,7 @@ namespace gridtools {
             push_front< dimension >(field);
         }
 
-        /**@biref sets the given storage as the nth snapshot of a specific field dimension
+        /**@brief sets the given storage as the nth snapshot of a specific field dimension
 
            @tparam field_dim the given field dimenisons
            @tparam snapshot the snapshot of dimension field_dim to be set
@@ -318,7 +319,7 @@ namespace gridtools {
             super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields + snapshot] = field;
         }
 
-        /**@biref sets the given storage as the nth snapshot of a specific field dimension and initialize the storage
+        /**@brief sets the given storage as the nth snapshot of a specific field dimension and initialize the storage
            with an input constant value
 
            @tparam field_dim the given field dimenisons
@@ -336,7 +337,7 @@ namespace gridtools {
                 (super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields + snapshot])[i] = val;
         }
 
-        /**@biref sets the given storage as the nth snapshot of a specific field dimension and initialize the storage
+        /**@brief sets the given storage as the nth snapshot of a specific field dimension and initialize the storage
            with an input lambda function
            TODO: this should be merged with the boundary conditions code (repetition)
 
@@ -358,14 +359,13 @@ namespace gridtools {
                                          snapshot])[this->m_meta_data->index(i, j, k)] = lambda(i, j, k);
         }
 
-        /**@biref gets the given storage as the nth snapshot of a specific field dimension
+        /**@brief gets the given storage as the nth snapshot of a specific field dimension
 
            @tparam field_dim the given field dimenisons
            @tparam snapshot the snapshot of dimension field_dim to be set
         */
         template < short_t snapshot = 0, short_t field_dim = 0 >
-        pointer_type &get() {
-
+        value_type &get() {
             GRIDTOOLS_STATIC_ASSERT((snapshot < _impl::access< n_width - (field_dim)-1, traits >::type::n_width),
                 "trying to get a snapshot out of bound");
             GRIDTOOLS_STATIC_ASSERT((field_dim < traits::n_dimensions), "trying to get a field dimension out of bound");
@@ -375,12 +375,11 @@ namespace gridtools {
                                         super::super::field_dimensions),
                 "nasty error");
 #endif
-            return super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields + snapshot];
+            return *super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields + snapshot];
         }
 
         template < short_t snapshot = 0, short_t field_dim = 0 >
-        pointer_type const &get() const {
-
+        value_type const &get() const {
             GRIDTOOLS_STATIC_ASSERT((snapshot < _impl::access< n_width - (field_dim)-1, traits >::type::n_width),
                 "trying to get a snapshot out of bound");
             GRIDTOOLS_STATIC_ASSERT((field_dim < traits::n_dimensions), "trying to get a field dimension out of bound");
@@ -390,10 +389,10 @@ namespace gridtools {
                                         super::super::field_dimensions),
                 "nasty error");
 #endif
-            return super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields + snapshot];
+            return *super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields + snapshot];
         }
 
-        /**@biref gets a given value at the given field i,j,k coordinates
+        /**@brief gets a given value at the given field i,j,k coordinates
 
            @tparam field_dim the given field dimenisons
            @tparam snapshot the snapshot (relative to the dimension field_dim) to be acessed
@@ -407,10 +406,11 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((snapshot < _impl::access< n_width - (field_dim)-1, traits >::type::n_width),
                 "trying to get a snapshot out of bound");
             GRIDTOOLS_STATIC_ASSERT((field_dim < traits::n_dimensions), "trying to get a field dimension out of bound");
-            return get< snapshot, field_dim >()[this->m_meta_data->index(args...)];
+            return super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields +
+                                   snapshot][this->m_meta_data->index(args...)];
         }
 
-        /**@biref gets a given value at the given field i,j,k coordinates
+        /**@brief gets a given value at the given field i,j,k coordinates
 
            same as the previous one, but returning a constant reference
         */
@@ -420,7 +420,8 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((snapshot < _impl::access< n_width - (field_dim)-1, traits >::type::n_width),
                 "trying to get a snapshot out of bound");
             GRIDTOOLS_STATIC_ASSERT((field_dim < traits::n_dimensions), "trying to get a field_dimension out of bound");
-            return get< snapshot, field_dim >()[this->m_meta_data->index(args...)];
+            return super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields +
+                                   snapshot][this->m_meta_data->index(args...)];
         }
     };
 

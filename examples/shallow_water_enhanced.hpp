@@ -107,7 +107,6 @@ namespace shallow_water {
         /**@brief gravity acceleration */
         GT_FUNCTION
         static float_type g() { return 9.81; }
-
     };
 
     constexpr x i;

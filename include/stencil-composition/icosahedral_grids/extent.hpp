@@ -35,6 +35,8 @@
 */
 #pragma once
 
+#include <boost/mpl/max.hpp>
+
 namespace gridtools {
 
     template < int_t R = 0 >

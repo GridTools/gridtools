@@ -107,8 +107,9 @@ namespace test_cycle_and_swap {
 
         aggregator_type< accessor_list > domain(boost::fusion::make_vector(&i_data));
 
-        auto comp = gridtools::make_computation< gridtools::BACKEND >(
-            domain, grid, gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor >(p_i_data())));
+        auto comp = gridtools::make_computation< gridtools::BACKEND >(domain,
+            grid,
+            gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor >(p_i_data())));
 
         comp->ready();
         comp->steady();
@@ -129,7 +130,7 @@ namespace test_cycle_and_swap {
 
         const uint_t d1 = 13;
         const uint_t d2 = 9;
-        const uint_t d3 = 3;
+        const uint_t d3 = 7;
 
         typedef gridtools::layout_map< 0, 1, 2 > layout_t;
         typedef gridtools::BACKEND::storage_info< 0, layout_t > meta_t;
@@ -156,8 +157,9 @@ namespace test_cycle_and_swap {
 
         aggregator_type< accessor_list > domain(boost::fusion::make_vector(&i_data));
 
-        auto comp = gridtools::make_computation< gridtools::BACKEND >(
-            domain, grid, gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor_avg >(p_i_data())));
+        auto comp = gridtools::make_computation< gridtools::BACKEND >(domain,
+            grid,
+            gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor_avg >(p_i_data())));
 
         // fill the input (snapshot 0) with some initial data
         for (uint_t i = 0; i < d1; ++i) {

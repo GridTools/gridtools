@@ -67,10 +67,11 @@ namespace gridtools {
         wrap_pointer() : m_cpu_p(NULL), m_externally_managed(false) {}
 
         GT_FUNCTION
-        wrap_pointer(wrap_pointer const &other) : m_cpu_p(other.m_cpu_p), m_externally_managed(true) {}
+        wrap_pointer(wrap_pointer const &other)
+            : m_cpu_p(other.m_cpu_p), m_externally_managed(true), m_size(other.m_size) {}
 
         GT_FUNCTION
-        wrap_pointer(uint_t size, bool externally_managed) : m_externally_managed(externally_managed) {
+        wrap_pointer(uint_t size, bool externally_managed) : m_externally_managed(externally_managed), m_size(size) {
             allocate_it(size);
 #ifdef VERBOSE
             printf("CONSTRUCT pointer - %X %d\n", m_cpu_p, size);
@@ -192,6 +193,9 @@ namespace gridtools {
         }
 
         GT_FUNCTION
+        int get_size() { return m_size; }
+
+        GT_FUNCTION
         T *get_cpu_p() { return m_cpu_p; }
 
         GT_FUNCTION
@@ -199,6 +203,7 @@ namespace gridtools {
 
       protected:
         T *m_cpu_p;
+        uint_t m_size;
         bool m_externally_managed;
     };
 
