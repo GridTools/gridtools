@@ -181,8 +181,6 @@ if(DOXYGEN_FOUND)
 endif()
 
 ## test script generator ## 
-file(WRITE ${TEST_SCRIPT} "#!/bin/sh\n")
-file(APPEND ${TEST_SCRIPT} "res=0\n")
 function(gridtools_add_test test_name test_script test_exec)
   file(APPEND ${test_script} "${test_exec}" " ${ARGN}" "\n")
   file(APPEND ${test_script} "res=$((res || $? ))\n")
