@@ -39,12 +39,6 @@ foreach( src_file ${sources} )
 endforeach(src_file)
 
 # ===============
-# write run_tests file
-# ===============
-file(WRITE ${TEST_SCRIPT} "#!/bin/sh\n")
-file(APPEND ${TEST_SCRIPT} "res=0\n")
-
-# ===============
 # add all cpp files in examples:
 # ===============
 add_subdirectory(examples)
@@ -55,7 +49,4 @@ add_subdirectory(examples)
 include (fix_test_case_name)
 add_subdirectory(unit_tests)
 
-file(APPEND ${TEST_SCRIPT} "exit $res\n")
-file(INSTALL ${TEST_SCRIPT} DESTINATION ${CMAKE_BINARY_DIR}/install
-   FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ
-)
+include (post_config_actions)
