@@ -49,4 +49,7 @@ add_subdirectory(examples)
 include (fix_test_case_name)
 add_subdirectory(unit_tests)
 
+# ===============
+# apply final actions
+# ===============
 include (post_config_actions)
