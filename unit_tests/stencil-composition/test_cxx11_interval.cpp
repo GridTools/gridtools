@@ -40,7 +40,8 @@
 
 using namespace gridtools;
 
-TEST(test_interval, join_interval_in_order) {
+class test_interval : public testing::Test {
+  protected:
     using level1 = level< 0, -1 >;
     using level2 = level< 1, 1 >;
     using level3 = level< 1, -1 >;
@@ -48,80 +49,59 @@ TEST(test_interval, join_interval_in_order) {
 
     using interval1 = interval< level1, level2 >;
     using interval2 = interval< level3, level4 >;
+};
 
+TEST_F(test_interval, join_interval_in_order) {
     using joined_interval = join_interval< interval1, interval2 >::type;
 
     ::testing::StaticAssertTypeEq< joined_interval::FromLevel, interval1::FromLevel >();
     ::testing::StaticAssertTypeEq< joined_interval::ToLevel, interval2::ToLevel >();
 }
 
-TEST(test_interval, join_interval_t) {
-    using level1 = level< 0, -1 >;
-    using level2 = level< 1, 1 >;
-    using level3 = level< 1, -1 >;
-    using level4 = level< 2, 1 >;
-
-    using interval1 = interval< level1, level2 >;
-    using interval2 = interval< level3, level4 >;
-
+TEST_F(test_interval, join_interval_t) {
     using joined_interval = join_interval_t< interval1, interval2 >;
 
     ::testing::StaticAssertTypeEq< joined_interval::FromLevel, interval1::FromLevel >();
     ::testing::StaticAssertTypeEq< joined_interval::ToLevel, interval2::ToLevel >();
 }
 
-// TEST(test_interval, join_interval_non_contiguous) {
-//    using level1 = level< 0, -1 >;
-//    using level2 = level< 1, -1 >;
-//    using level3 = level< 1, 2 >;
-//    using level4 = level< 2, 1 >;
-//
-//    using interval1 = interval< level1, level2 >;
-//    using interval2 = interval< level3, level4 >;
-//
-//    using joined_interval = join_interval< interval1, interval2 >::type;
-//
-//    ::testing::StaticAssertTypeEq< joined_interval::FromLevel, interval1::FromLevel >();
-//    ::testing::StaticAssertTypeEq< joined_interval::ToLevel, interval2::ToLevel >();
-//}
-
-TEST(test_interval, is_contiguous_non_intersecting) {
+TEST(test_join_interval_is_contiguous, non_intersecting) {
     using level1 = level< 0, -1 >;
     using level2 = level< 1, -1 >;
     using level3 = level< 1, 1 >;
     using level4 = level< 2, 1 >;
 
-    using leftInterval = interval< level1, level2 >;
-    using rightInterval = interval< level3, level4 >;
+    using left_interval = interval< level1, level2 >;
+    using right_interval = interval< level3, level4 >;
 
-    ASSERT_TRUE((join_interval_is_contiguous< leftInterval, rightInterval >::value));
+    ASSERT_TRUE((join_interval_is_contiguous< left_interval, right_interval >::value));
 }
 
-TEST(test_interval, is_contiguous_intersecting) {
+TEST(test_join_interval_is_contiguous, intersecting) {
     using level1 = level< 0, -1 >;
     using level2 = level< 2, -1 >;
     using level3 = level< 1, 1 >;
     using level4 = level< 2, 1 >;
 
-    using leftInterval = interval< level1, level2 >;
-    using rightInterval = interval< level3, level4 >;
+    using left_interval = interval< level1, level2 >;
+    using right_interval = interval< level3, level4 >;
 
-    ASSERT_TRUE((join_interval_is_contiguous< leftInterval, rightInterval >::value));
+    ASSERT_TRUE((join_interval_is_contiguous< left_interval, right_interval >::value));
 }
 
-TEST(test_interval, is_not_contiguous) {
+TEST(test_join_interval_is_contiguous, non_contiguous) {
     using level1 = level< 0, -1 >;
     using level2 = level< 1, -2 >;
     using level3 = level< 1, 1 >;
     using level4 = level< 2, 1 >;
 
-    using leftInterval = interval< level1, level2 >;
-    using rightInterval = interval< level3, level4 >;
+    using left_interval = interval< level1, level2 >;
+    using right_interval = interval< level3, level4 >;
 
-    ASSERT_FALSE((join_interval_is_contiguous< leftInterval, rightInterval >::value));
+    ASSERT_FALSE((join_interval_is_contiguous< left_interval, right_interval >::value));
 }
 
-TEST(test_interval, is_subset_of) {
+TEST(test_check_interval_is_subset_of, different_splitter) {
     using level1 = level< 0, -1 >;
     using level2 = level< 1, -1 >;
     using level3 = level< 1, 1 >;
@@ -134,7 +114,7 @@ TEST(test_interval, is_subset_of) {
     ASSERT_TRUE(check_interval< innerInterval >::is_subset_of< outerInterval >::value);
 }
 
-TEST(test_interval, is_subset_of_same_splitter) {
+TEST(test_check_interval_is_subset_of, same_splitter) {
     using level1 = level< 0, -2 >;
     using level2 = level< 0, -1 >;
     using level3 = level< 1, 1 >;
@@ -147,7 +127,7 @@ TEST(test_interval, is_subset_of_same_splitter) {
     ASSERT_TRUE(check_interval< innerInterval >::is_subset_of< outerInterval >::value);
 }
 
-TEST(test_interval, is_subset_of_with_equal_intervals) {
+TEST(test_check_interval_is_subset_of, equal_intervals) {
     using level1 = level< 0, -1 >;
     using level2 = level< 1, -1 >;
 
@@ -158,80 +138,44 @@ TEST(test_interval, is_subset_of_with_equal_intervals) {
     ASSERT_TRUE(check_interval< interval2 >::is_subset_of< interval1 >::value);
 }
 
-TEST(test_make_axis, two_intervals_in_order) {
-    using level1 = level< 0, -1 >;
-    using level2 = level< 1, -2 >;
-    using level3 = level< 1, 1 >;
-    using level4 = level< 2, 1 >;
-
-    using leftInterval = interval< level1, level2 >;
-    using rightInterval = interval< level3, level4 >;
-
-    using axis = make_axis< leftInterval, rightInterval >::type;
-
-    ASSERT_TRUE(check_interval< leftInterval >::is_strict_subset_of< axis >::value);
-    ASSERT_TRUE(check_interval< rightInterval >::is_strict_subset_of< axis >::value);
-}
-
-TEST(test_make_axis, make_axis_t) {
-    using level1 = level< 0, -1 >;
-    using level2 = level< 1, -2 >;
-    using level3 = level< 1, 1 >;
-    using level4 = level< 2, 1 >;
-
-    using leftInterval = interval< level1, level2 >;
-    using rightInterval = interval< level3, level4 >;
-
-    using axis = make_axis_t< leftInterval, rightInterval >;
-
-    ASSERT_TRUE(check_interval< leftInterval >::is_strict_subset_of< axis >::value);
-    ASSERT_TRUE(check_interval< rightInterval >::is_strict_subset_of< axis >::value);
-}
-
-TEST(test_make_axis, two_intervals_reverse_order) {
-    using level1 = level< 0, -1 >;
-    using level2 = level< 1, -2 >;
-    using level3 = level< 1, 1 >;
-    using level4 = level< 2, 1 >;
-
-    using leftInterval = interval< level1, level2 >;
-    using rightInterval = interval< level3, level4 >;
-
-    using axis = make_axis< rightInterval, leftInterval >::type;
-
-    ASSERT_TRUE(check_interval< leftInterval >::is_strict_subset_of< axis >::value);
-    ASSERT_TRUE(check_interval< rightInterval >::is_strict_subset_of< axis >::value);
-}
-
-TEST(test_make_axis, three_intervals) {
+class test_make_axis : public testing::Test {
+  protected:
     using level1 = level< 0, -1 >;
     using level2 = level< 1, -2 >;
     using level3 = level< 1, 1 >;
     using level4 = level< 2, 1 >;
     using level5 = level< 3, -1 >;
 
-    using interval1 = interval< level1, level2 >;
-    using interval2 = interval< level2, level5 >;
-    using interval3 = interval< level3, level4 >;
+    using left_interval = interval< level1, level2 >;
+    using right_interval = interval< level3, level4 >;
+    using interval3 = interval< level4, level5 >;
+};
 
-    using axis = make_axis< interval2, interval1, interval3 >::type;
+TEST_F(test_make_axis, two_intervals_in_order) {
+    using axis = make_axis< left_interval, right_interval >::type;
 
-    ASSERT_TRUE(check_interval< interval1 >::is_strict_subset_of< axis >::value);
-    ASSERT_TRUE(check_interval< interval2 >::is_strict_subset_of< axis >::value);
-    ASSERT_TRUE(check_interval< interval3 >::is_strict_subset_of< axis >::value);
+    ASSERT_TRUE(check_interval< left_interval >::is_strict_subset_of< axis >::value);
+    ASSERT_TRUE(check_interval< right_interval >::is_strict_subset_of< axis >::value);
 }
 
-// TEST(test_make_axis, interval_starting_at_index_0) {
-//    using level1 = level< 1, -3 >;
-//    using level2 = level< 1, -2 >;
-//    using level3 = level< 1, 1 >;
-//    using level4 = level< 2, 3 >;
-//
-//    using leftInterval = interval< level1, level2 >;
-//    using rightInterval = interval< level3, level4 >;
-//
-//    using axis = make_axis< leftInterval, rightInterval >::type;
-//
-//    ASSERT_TRUE(check_interval< leftInterval >::is_strict_subset_of< axis >::value);
-//    ASSERT_TRUE(check_interval< rightInterval >::is_strict_subset_of< axis >::value);
-//}
+TEST_F(test_make_axis, make_axis_t) {
+    using axis = make_axis_t< left_interval, right_interval >;
+
+    ASSERT_TRUE(check_interval< left_interval >::is_strict_subset_of< axis >::value);
+    ASSERT_TRUE(check_interval< right_interval >::is_strict_subset_of< axis >::value);
+}
+
+TEST_F(test_make_axis, two_intervals_reverse_order) {
+    using axis = make_axis< right_interval, left_interval >::type;
+
+    ASSERT_TRUE(check_interval< left_interval >::is_strict_subset_of< axis >::value);
+    ASSERT_TRUE(check_interval< right_interval >::is_strict_subset_of< axis >::value);
+}
+
+TEST_F(test_make_axis, three_intervals) {
+    using axis = make_axis< interval3, right_interval, left_interval >::type;
+
+    ASSERT_TRUE(check_interval< left_interval >::is_strict_subset_of< axis >::value);
+    ASSERT_TRUE(check_interval< right_interval >::is_strict_subset_of< axis >::value);
+    ASSERT_TRUE(check_interval< interval3 >::is_strict_subset_of< axis >::value);
+}
