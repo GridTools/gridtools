@@ -41,19 +41,19 @@
 using namespace gridtools;
 
 TEST(test_level, leq) {
-    using lowerLevel = level< 0, -1 >;
-    using greaterLevel = level< 1, 1 >;
+    using lower_level = level< 0, -1 >;
+    using greater_level = level< 1, 1 >;
 
-    ASSERT_TRUE((level_leq< lowerLevel, greaterLevel >::value));
-    ASSERT_FALSE((level_leq< greaterLevel, lowerLevel >::value));
+    ASSERT_TRUE((level_leq< lower_level, greater_level >::value));
+    ASSERT_FALSE((level_leq< greater_level, lower_level >::value));
 }
 
 TEST(test_level, leq_same_splitter) {
-    using lowerLevel = level< 1, -1 >;
-    using greaterLevel = level< 1, 1 >;
+    using lower_level = level< 1, -1 >;
+    using greater_level = level< 1, 1 >;
 
-    ASSERT_TRUE((level_leq< lowerLevel, greaterLevel >::value));
-    ASSERT_FALSE((level_leq< greaterLevel, lowerLevel >::value));
+    ASSERT_TRUE((level_leq< lower_level, greater_level >::value));
+    ASSERT_FALSE((level_leq< greater_level, lower_level >::value));
 }
 
 TEST(test_level, leq_equal_levels) {
@@ -65,11 +65,11 @@ TEST(test_level, leq_equal_levels) {
 }
 
 TEST(test_level, lt) {
-    using lowerLevel = level< 0, -1 >;
-    using greaterLevel = level< 1, 1 >;
+    using lower_level = level< 0, -1 >;
+    using greater_level = level< 1, 1 >;
 
-    ASSERT_TRUE((level_lt< lowerLevel, greaterLevel >::value));
-    ASSERT_FALSE((level_lt< greaterLevel, lowerLevel >::value));
+    ASSERT_TRUE((level_lt< lower_level, greater_level >::value));
+    ASSERT_FALSE((level_lt< greater_level, lower_level >::value));
 }
 
 TEST(test_level, lt_equal_levels) {
@@ -81,9 +81,9 @@ TEST(test_level, lt_equal_levels) {
 }
 
 TEST(test_level, geq) {
-    using lowerLevel = level< 0, -1 >;
-    using greaterLevel = level< 1, 1 >;
+    using lower_level = level< 0, -1 >;
+    using greater_level = level< 1, 1 >;
 
-    ASSERT_TRUE((level_geq< greaterLevel, lowerLevel >::value));
-    ASSERT_FALSE((level_geq< lowerLevel, greaterLevel >::value));
+    ASSERT_TRUE((level_geq< greater_level, lower_level >::value));
+    ASSERT_FALSE((level_geq< lower_level, greater_level >::value));
 }
