@@ -100,7 +100,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((join_interval_is_contiguous< TIntervalLeft, TIntervalRight >::value),
             "check that the intervals are contiguous");
 
-        typedef interval< typename TIntervalLeft::FromLevel, typename TIntervalRight::ToLevel > type;
+        using type = interval< typename TIntervalLeft::FromLevel, typename TIntervalRight::ToLevel >;
     };
 
     template < typename TIntervalLeft, typename TIntervalRight >
@@ -118,8 +118,8 @@ namespace gridtools {
         static const int left_index = level_to_index< smallest_level >::value - 1;
         static const int right_index = level_to_index< biggest_level >::value + 1;
 
-        typedef typename index_to_level< static_int< left_index > >::type left_axis_level;
-        typedef typename index_to_level< static_int< right_index > >::type right_axis_level;
+        using left_axis_level = typename index_to_level< static_int< left_index > >::type;
+        using right_axis_level = typename index_to_level< static_int< right_index > >::type;
 
         // user protection: make_axis will not add an additional splitter
         GRIDTOOLS_STATIC_ASSERT((left_axis_level::Splitter::value == smallest_level::Splitter::value),
@@ -127,7 +127,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((right_axis_level::Splitter::value == biggest_level::Splitter::value),
             "the highest level must not start at the biggest possible offset (solution: add an additional splitter)");
 
-        typedef interval< left_axis_level, right_axis_level > type;
+        using type = interval< left_axis_level, right_axis_level >;
     };
 
     template < typename... TIntervals >
