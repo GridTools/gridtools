@@ -57,7 +57,6 @@
 #include "./mss_metafunctions.hpp"
 #include "./mss_local_domain.hpp"
 #include "./mss.hpp"
-#include "./axis.hpp"
 #include "../common/meta_array.hpp"
 #include "./tile.hpp"
 #include "../storage/storage-facility.hpp"

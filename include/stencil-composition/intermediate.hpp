@@ -59,7 +59,6 @@
 #include "./loopintervals.hpp"
 #include "./functor_do_methods.hpp"
 #include "./functor_do_method_lookup_maps.hpp"
-#include "./axis.hpp"
 #include "./local_domain.hpp"
 #include "./computation.hpp"
 #include "./heap_allocated_temps.hpp"
