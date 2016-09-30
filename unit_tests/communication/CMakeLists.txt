@@ -9,10 +9,10 @@ if( NOT GCL_ONLY )
         set(ldflags " ${MPI_ADDITIONAL_LIBS}")
 
         # 3D MPI tests
-        foreach(srcfile halo_exchange_3D proc_grid_3D)
-            set(filename "${srcfile}.cpp")
-            add_custom_host_test(${srcfile} ${filename} ${ccflags} ${ldflags})
-        endforeach()
+#        foreach(srcfile halo_exchange_3D proc_grid_3D)
+#            set(filename "${srcfile}.cpp")
+#            add_custom_host_test(${srcfile} ${filename} ${ccflags} ${ldflags})
+#        endforeach()
 
         # 2D MPI tests
         foreach(srcfile descriptors_3D empty_descriptors_3D boolist ndloops)
