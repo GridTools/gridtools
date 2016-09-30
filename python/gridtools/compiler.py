@@ -19,9 +19,10 @@ class StencilCompiler ( ):
         #
         # a dictionary containing the defined stencils (k=id(stencil), v=stencil)
         #
-        self.stencils      = dict ( )
-        self.lib_file      = None
-        self.make_file     = "Makefile"
+        self.stencils       = dict ( )
+        self.valid_stencils = dict ( )
+        self.lib_file       = None
+        self.make_file      = "Makefile"
         #
         # these entities are automatically generated at compile time
         #
@@ -126,6 +127,11 @@ class StencilCompiler ( ):
                     stencil.scope.dump ( )
                     for stg in stencil.scope.stage_execution.nodes ( ):
                         stg.scope.dump ( )
+                #
+                # if we arrived to this point, the stencil has passed all
+                # analysis checks. Insert it into the valid stencils dict
+                #
+                self.register_valid (stencil)
             else:
                 logging.info ("Not repeating source-code analysis of stencil '%s'" %
                               stencil.name)
@@ -246,11 +252,7 @@ class StencilCompiler ( ):
 
         if issubclass (stencil.__class__, MultiStageStencil):
             #
-            # mark this stencil for recompilation ...
-            #
-            self.recompile ( )
-            #
-            # ... and add it to the registry if it is not there yet
+            # Add the stencil to the registry if it is not there yet
             #
             if stencil not in self:
                 #
@@ -263,6 +265,23 @@ class StencilCompiler ( ):
             return stencil.name
         else:
             raise TypeError ("Stencil should inherit from MultiStageStencil")
+
+
+    def register_valid (self, stencil):
+        """
+        Registers the received Stencil object as a valid stencil to run
+        :param stencil:   the stencil object to register
+        """
+        if stencil not in self.valid_stencils:
+            #
+            # mark this stencil for recompilation ...
+            #
+            self.recompile ( )
+            #
+            # Add to the dictionary
+            #
+            self.valid_stencils[id(stencil)] = stencil
+            logging.debug ("Stencil '%s' registered as valid with the Compiler" % stencil.name)
 
 
     def run_native (self, stencil, **kwargs):
@@ -354,7 +373,7 @@ class StencilCompiler ( ):
                             stages                = stgs,
                             independent_stage_idx = ind_stg_idx,
                             splitters             = stencil.splitters),
-                make.render (stencils = [s for s in self.stencils.values ( ) if s.get_backend ( ) in ['c++', 'cuda']],
+                make.render (stencils = [s for s in self.valid_stencils.values ( ) if s.get_backend ( ) in ['c++', 'cuda']],
                              compiler = self))
 
     def unregister (self, stencil):
@@ -367,6 +386,8 @@ class StencilCompiler ( ):
             # Remove this stencil from the compiler registry
             #
             del self.stencils[id(stencil)]
+            if id (stencil) in self.valid_stencils.keys ( ):
+                del self.valid_stencils[id(stencil)]
             logging.debug ("Stencil '%s' unregistered from the Compiler" % stencil.name)
         else:
             logging.warning("Trying to unregister Stencil '%s' that is not \

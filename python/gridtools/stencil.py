@@ -873,7 +873,6 @@ class MultiStageStencil (Stencil):
             Stencil.compiler.analyze (self, **kwargs)
         except Exception as e:
             logging.error("Error while analyzing code for stencil '%s'" % self.name)
-            Stencil.compiler.unregister (self)
             raise e
         else:
             #
