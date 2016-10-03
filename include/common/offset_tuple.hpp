@@ -38,6 +38,8 @@
 #include <boost/mpl/fold.hpp>
 #include <boost/mpl/find.hpp>
 #include "defs.hpp"
+#include "generic_metafunctions/accumulate.hpp"
+#include "generic_metafunctions/logical_ops.hpp"
 #include "../stencil-composition/dimension.hpp"
 #include "../stencil-composition/dimension_defs.hpp"
 #include "generic_metafunctions/logical_ops.hpp"
@@ -126,6 +128,13 @@ namespace gridtools {
 #endif
     }
 
+    // metafunction that determines if a variadic pack are valid accessor ctr arguments
+    template < typename... Types >
+    struct all_dimensions {
+        typedef typename boost::enable_if_c< accumulate(logical_and(), is_dimension< Types >::type::value...),
+            bool >::type type;
+    };
+
     //################################################################################
     //                              Multidimensional Fields
     //################################################################################
@@ -178,18 +187,12 @@ namespace gridtools {
            This allows to specify the extra arguments out of order. Note that 'dimension' is a
            language keyword used at the interface level.
         */
-        template < ushort_t Idx, typename... GenericElements >
-        GT_FUNCTION constexpr offset_tuple(dimension< Idx > const t, GenericElements const... x)
+        template < ushort_t Idx,
+            typename... GenericElements,
+            typename Dummy = typename all_dimensions< dimension< Idx >, GenericElements... >::type >
+        GT_FUNCTION constexpr offset_tuple(dimension< Idx > const t, GenericElements... x)
             : super(t, x...), m_offset(initialize< super::n_dim - n_args + 1 >(t, x...)) {}
 
-        /**@brief constructor taking the dimension::Index class as argument.
-           This allows to specify the extra arguments out of order. Note that 'dimension' is a
-           language keyword used at the interface level.
-        */
-        template < ushort_t Idx, typename... GenericElements >
-        GT_FUNCTION constexpr offset_tuple(typename dimension< Idx >::Index const t, GenericElements const... x)
-            : super(dimension< Idx >(0), x...),
-              m_offset(initialize< super::n_dim - n_args + 1 >(dimension< Idx >(0), x...)) {}
 #else
         /**@brief constructor taking an integer as the first argument, and then other optional arguments.
            The integer gets assigned to the current extra dimension and the other arguments are passed to the base
