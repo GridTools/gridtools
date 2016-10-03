@@ -119,7 +119,7 @@ endif(ENABLE_PERFORMANCE_METERS)
 # be careful! deleting this flags impacts performance 
 # (even on single core and without pragmas).
 set ( exe_LIBS ${exe_LIBS} ${Boost_LIBRARIES} )
-set ( exe_LIBS ${GTEST_LIBRARIES} -lpthread ${exe_LIBS} )
+set ( exe_LIBS -lpthread ${exe_LIBS} )
 
 ## papi wrapper ##
 if ( PAPI_WRAP_LIBRARY )

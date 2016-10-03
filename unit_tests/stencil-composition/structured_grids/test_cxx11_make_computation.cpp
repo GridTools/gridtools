@@ -53,8 +53,6 @@
 #include "stencil-composition/make_computation.hpp"
 #include "stencil-composition/make_stencils.hpp"
 
-#ifdef CXX11_ENABLED
-
 using namespace gridtools;
 
 namespace make_computation_test {
@@ -70,4 +68,4 @@ namespace make_computation_test {
     };
 }
 
-#endif
+TEST(MakeComputation, Basic) {}
