@@ -41,6 +41,7 @@ using namespace gridtools;
 using namespace gridtools::enumtype;
 
 TEST(storage, test_data_field) {
+#ifdef STRUCTURED_GRIDS
     typedef base_storage< wrap_pointer< int >, backend< Host, structured, Naive >::storage_info< 0, layout_map< 0, 1 > > >
         storage_t;
     backend< Host, structured, Naive >::storage_info< 0, layout_map< 0, 1 > > meta_(1, 1);
@@ -65,6 +66,6 @@ TEST(storage, test_data_field) {
     std::cout << "STORAGE VALUES BEFORE: " << datafield.get_value< 0, 2 >(0, 0) << " "
               << datafield.get_value< 1, 2 >(0, 0) << " " << datafield.get_value< 2, 2 >(0, 0) << " "
               << datafield.get_value< 3, 2 >(0, 0) << std::endl;
-
+#endif
     ASSERT_TRUE(true);
 }
