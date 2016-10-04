@@ -128,13 +128,6 @@ namespace gridtools {
 #endif
     }
 
-    // metafunction that determines if a variadic pack are valid accessor ctr arguments
-    template < typename... Types >
-    struct all_dimensions {
-        typedef typename boost::enable_if_c< accumulate(logical_and(), is_dimension< Types >::type::value...),
-            bool >::type type;
-    };
-
     //################################################################################
     //                              Multidimensional Fields
     //################################################################################
@@ -167,9 +160,14 @@ namespace gridtools {
         typedef offset_tuple< Index - 1, NDim > super;
         static const short_t n_args = super::n_args + 1;
 
+#ifdef CXX11_ENABLED
+
+        template < typename... Dimensions, typename Dummy = typename all_dimensions< Dimensions... >::type >
+        GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, NDim > const &offsets, Dimensions... d)
+            : super(pos + 1, offsets, d...), m_offset(offsets[pos] + initialize< super::n_dim - n_args >(d...)) {}
+
         GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, NDim > const &offsets)
             : super(pos + 1, offsets), m_offset(offsets[pos]) {}
-#ifdef CXX11_ENABLED
 
         /**@brief constructor taking an integer as the first argument, and then other optional arguments.
            The integer gets assigned to the current extra dimension and the other arguments are passed to the base
@@ -288,9 +286,11 @@ namespace gridtools {
     struct offset_tuple< 0, NDim > {
         static const int_t n_dim = NDim;
 
-        GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, NDim > const &offsets) {}
-
 #ifdef CXX11_ENABLED
+        template < typename... Dimensions,
+            typename Dummy = typename all_dimensions< dimension< 0 >, Dimensions... >::type >
+        GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, NDim > const &offsets, Dimensions... d) {}
+
         template < typename... GenericElements,
             typename =
                 typename boost::disable_if< typename _impl::contains_array< GenericElements... >::type, bool >::type >
