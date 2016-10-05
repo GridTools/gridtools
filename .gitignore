@@ -33,6 +33,7 @@ unit_tests/cmake_install.cmake
 
 /*
 !LICENSE
+!cmake
 !test_compilation.sh
 !CmakeLists.txt
 !README.md
