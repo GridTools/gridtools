@@ -34,6 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include <mpi.h>
+#include "gtest/gtest.h"
 #include <iostream>
 #include <communication/low-level/proc_grids_3D.hpp>
 #include <communication/low-level/Halo_Exchange_3D.hpp>
@@ -94,10 +95,7 @@ struct pgrid< T4 > {
     }
 };
 
-int main(int argc, char **argv) {
-
-    MPI_Init(&argc, &argv);
-    gridtools::GCL_Init(argc, argv);
+TEST(Communication, Halo_Exchange_3D) {
 
     // 6
     int iminus;
@@ -420,6 +418,5 @@ int main(int argc, char **argv) {
     }
 
     MPI_Barrier(gridtools::GCL_WORLD);
-    MPI_Finalize();
-    return !final;
+    EXPECT_TRUE(final);
 }
