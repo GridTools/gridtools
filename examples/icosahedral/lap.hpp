@@ -103,6 +103,9 @@ namespace ico_operators {
         using cell_2d_storage_type = repository::cell_2d_storage_type;
         using vertex_2d_storage_type = repository::vertex_2d_storage_type;
 
+        using vertexes_4d_storage_type = repository::vertexes_4d_storage_type;
+        using cells_4d_storage_type = repository::cells_4d_storage_type;
+
         using edges_of_cells_storage_type = repository::edges_of_cells_storage_type;
         using edges_of_vertexes_storage_type = repository::edges_of_vertexes_storage_type;
 
@@ -115,16 +118,18 @@ namespace ico_operators {
         auto &edge_length = repository.edge_length();
         // for div weights
         auto &orientation_of_normal = repository.orientation_of_normal();
-        auto &edges_of_cells_meta = repository.edges_of_cells_meta();
-        edges_of_cells_storage_type div_weights(edges_of_cells_meta, "div_weights");
+        auto div_weights =
+            icosahedral_grid.make_storage< icosahedral_topology_t::cells, double, selector< 1, 1, 1, 1, 1 > >(
+                "weights", 3);
 
         // for curl
         auto &dual_area_reciprocal = repository.dual_area_reciprocal();
         auto &dual_edge_length = repository.dual_edge_length();
         // for curl weights
         auto &edge_orientation = repository.edge_orientation();
-        auto &edges_of_vertexes_meta = repository.edges_of_vertexes_meta();
-        edges_of_vertexes_storage_type curl_weights(edges_of_vertexes_meta, "curl_weights");
+        vertexes_4d_storage_type curl_weights(
+            icosahedral_grid.make_storage< icosahedral_topology_t::vertexes, double, selector< 1, 1, 1, 1, 1 > >(
+                "curl_weights", 6));
 
         // for lap
         auto &dual_edge_length_reciprocal = repository.dual_edge_length_reciprocal();
@@ -147,12 +152,12 @@ namespace ico_operators {
             typedef arg< 0, edge_2d_storage_type > p_edge_length;
             typedef arg< 1, cell_2d_storage_type > p_cell_area_reciprocal;
             typedef arg< 2, edges_of_cells_storage_type > p_orientation_of_normal;
-            typedef arg< 3, edges_of_cells_storage_type > p_div_weights;
+            typedef arg< 3, cells_4d_storage_type > p_div_weights;
 
             // curl
             typedef arg< 4, vertex_2d_storage_type > p_dual_area_reciprocal;
             typedef arg< 5, edge_2d_storage_type > p_dual_edge_length;
-            typedef arg< 6, edges_of_vertexes_storage_type > p_curl_weights;
+            typedef arg< 6, vertexes_4d_storage_type > p_curl_weights;
             typedef arg< 7, edges_of_vertexes_storage_type > p_edge_orientation;
 
             typedef boost::mpl::vector< p_edge_length,
@@ -210,11 +215,11 @@ namespace ico_operators {
             typedef arg< 0, edge_storage_type > p_in_edges;
 
             // fields for div
-            typedef arg< 1, edges_of_cells_storage_type > p_div_weights;
+            typedef arg< 1, cells_4d_storage_type > p_div_weights;
             typedef arg< 2, tmp_cell_storage_type > p_div_on_cells;
 
             // fields for curl
-            typedef arg< 3, edges_of_vertexes_storage_type > p_curl_weights;
+            typedef arg< 3, vertexes_4d_storage_type > p_curl_weights;
             typedef arg< 4, tmp_vertex_storage_type > p_curl_on_vertexes;
 
             // fields for lap

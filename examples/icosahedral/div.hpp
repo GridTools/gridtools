@@ -74,6 +74,7 @@ namespace ico_operators {
         using vertexes_4d_storage_type = repository::vertexes_4d_storage_type;
         using cells_4d_storage_type = repository::cells_4d_storage_type;
         using edges_4d_storage_type = repository::edges_4d_storage_type;
+        using edges_of_cells_storage_type = repository::edges_of_cells_storage_type;
 
         array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
@@ -108,7 +109,7 @@ namespace ico_operators {
         {
             typedef arg< 0, edge_2d_storage_type > p_edge_length;
             typedef arg< 1, cell_2d_storage_type > p_cell_area_reciprocal;
-            typedef arg< 2, cells_4d_storage_type > p_orientation_of_normal;
+            typedef arg< 2, edges_of_cells_storage_type > p_orientation_of_normal;
             typedef arg< 3, cells_4d_storage_type > p_div_weights;
 
             typedef boost::mpl::vector< p_edge_length, p_cell_area_reciprocal, p_orientation_of_normal, p_div_weights >

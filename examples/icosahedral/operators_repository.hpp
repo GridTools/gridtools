@@ -73,6 +73,10 @@ namespace ico_operators {
             icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, double, selector< 1, 1, 1, 1, 1 > >;
         using edges_4d_storage_type =
             icosahedral_topology_t::storage_t< icosahedral_topology_t::edges, double, selector< 1, 1, 1, 1, 1 > >;
+        using edges_of_cells_storage_type =
+            icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, double, selector< 1, 1, 1, -1, 1 > >;
+        using edges_of_vertexes_storage_type =
+            icosahedral_topology_t::storage_t< icosahedral_topology_t::vertexes, double, selector< 1, 1, 1, -1, 1 > >;
 
       private:
         icosahedral_topology_t icosahedral_grid_;
@@ -96,8 +100,8 @@ namespace ico_operators {
 
         edge_2d_storage_type m_dual_edge_length;
         edge_2d_storage_type m_dual_edge_length_reciprocal;
-        vertexes_4d_storage_type m_edge_orientation;
-        cells_4d_storage_type m_orientation_of_normal;
+        edges_of_vertexes_storage_type m_edge_orientation;
+        edges_of_cells_storage_type m_orientation_of_normal;
 
       public:
         uint_t idim() { return m_idim; }
@@ -134,10 +138,11 @@ namespace ico_operators {
                   icosahedral_grid_.make_storage< icosahedral_topology_t::edges, double, selector< 1, 1, 1, -1 > >(
                       "dual_edge_length_reciprocal")),
               m_edge_orientation(
-                  icosahedral_grid_.make_storage< icosahedral_topology_t::vertexes, double, selector< 1, 1, 1, 1, 1 > >(
-                      "edge_orientation", 6)),
+                  icosahedral_grid_
+                      .make_storage< icosahedral_topology_t::vertexes, double, selector< 1, 1, 1, -1, 1 > >(
+                          "edge_orientation", 6)),
               m_orientation_of_normal(
-                  icosahedral_grid_.make_storage< icosahedral_topology_t::cells, double, selector< 1, 1, 1, 1, 1 > >(
+                  icosahedral_grid_.make_storage< icosahedral_topology_t::cells, double, selector< 1, 1, 1, -1, 1 > >(
                       "orientation_of_normal", 3)),
               m_div_weights(
                   icosahedral_grid_.make_storage< icosahedral_topology_t::cells, double, selector< 1, 1, 1, 1, 1 > >(
@@ -194,11 +199,9 @@ namespace ico_operators {
             // orientation of normal
             for (int i = 0; i < m_idim; ++i) {
                 for (int j = 0; j < m_jdim; ++j) {
-                    for (uint_t k = 0; k < m_kdim; ++k) {
-                        for (uint_t e = 0; e < 3; ++e) {
-                            m_orientation_of_normal(i, 0, j, 0, e) = 1;
-                            m_orientation_of_normal(i, 1, j, 0, e) = -1;
-                        }
+                    for (uint_t e = 0; e < 3; ++e) {
+                        m_orientation_of_normal(i, 0, j, 0, e) = 1;
+                        m_orientation_of_normal(i, 1, j, 0, e) = -1;
                     }
                 }
             }
@@ -338,8 +341,8 @@ namespace ico_operators {
         edge_2d_storage_type &dual_edge_length_reciprocal() { return m_dual_edge_length_reciprocal; }
         cells_4d_storage_type &div_weights() { return m_div_weights; }
 
-        vertexes_4d_storage_type &edge_orientation() { return m_edge_orientation; }
-        cells_4d_storage_type &orientation_of_normal() { return m_orientation_of_normal; }
+        edges_of_vertexes_storage_type &edge_orientation() { return m_edge_orientation; }
+        edges_of_cells_storage_type &orientation_of_normal() { return m_orientation_of_normal; }
 
       public:
         const uint_t m_idim, m_jdim, m_kdim;

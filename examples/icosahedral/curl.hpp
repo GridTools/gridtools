@@ -37,16 +37,18 @@ namespace ico_operators {
         using vertex_2d_storage_type = repository::vertex_2d_storage_type;
         using edge_2d_storage_type = repository::edge_2d_storage_type;
 
+        using vertexes_4d_storage_type = repository::vertexes_4d_storage_type;
         using edges_of_vertexes_storage_type = repository::edges_of_vertexes_storage_type;
 
         auto &in_edges = repo.u();
         auto &dual_area_reciprocal = repo.dual_area_reciprocal();
         auto &dual_edge_length = repo.dual_edge_length();
         auto &ref_vertexes = repo.curl_u_ref();
-        auto &weights_meta = repo.edges_of_vertexes_meta();
         auto &out_vertexes = repo.out_vertex();
 
-        edges_of_vertexes_storage_type curl_weights(weights_meta, "weights");
+        vertexes_4d_storage_type curl_weights(
+            icosahedral_grid.make_storage< icosahedral_topology_t::vertexes, double, selector< 1, 1, 1, 1, 1 > >(
+                "weights", 6));
         edges_of_vertexes_storage_type &edge_orientation = repo.edge_orientation();
 
         out_vertexes.initialize(0.0);
@@ -64,7 +66,7 @@ namespace ico_operators {
         {
             typedef arg< 0, vertex_2d_storage_type > p_dual_area_reciprocal;
             typedef arg< 1, edge_2d_storage_type > p_dual_edge_length;
-            typedef arg< 2, edges_of_vertexes_storage_type > p_curl_weights;
+            typedef arg< 2, vertexes_4d_storage_type > p_curl_weights;
             typedef arg< 3, edges_of_vertexes_storage_type > p_edge_orientation;
 
             typedef boost::mpl::vector< p_dual_area_reciprocal, p_dual_edge_length, p_curl_weights, p_edge_orientation >
@@ -96,7 +98,7 @@ namespace ico_operators {
 
         {
             typedef arg< 0, edge_storage_type > p_in_edges;
-            typedef arg< 1, edges_of_vertexes_storage_type > p_curl_weights;
+            typedef arg< 1, vertexes_4d_storage_type > p_curl_weights;
             typedef arg< 2, vertex_storage_type > p_out_vertexes;
 
             typedef boost::mpl::vector< p_in_edges, p_curl_weights, p_out_vertexes > accessor_list_t;
