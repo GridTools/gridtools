@@ -49,6 +49,7 @@
 
 #include "../common/offset_tuple_mixed.hpp"
 #include "stencil-composition/extent.hpp"
+#include "arg_fwd.hpp"
 
 #ifdef CXX11_ENABLED
 #include "stencil-composition/expressions.hpp"
@@ -60,9 +61,6 @@ namespace gridtools {
     // forward declaration
     template < int_t Index, int_t NDim >
     struct offset_tuple;
-
-    template < uint_t I, typename T, typename Cond >
-    struct arg;
 
 #ifdef CXX11_ENABLED
     // metafunction that determines if a type is a valid accessor ctr argument

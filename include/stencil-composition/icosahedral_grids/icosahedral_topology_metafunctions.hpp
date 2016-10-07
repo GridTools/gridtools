@@ -10,14 +10,16 @@
 namespace gridtools {
     namespace impl {
         template < uint_t Pos >
-        constexpr long long compute_uuid_selector() {
+        constexpr long long compute_uuid_selector(int cnt) {
             return 0;
         }
 
         template < uint_t Pos, typename... Int >
-        constexpr long long compute_uuid_selector(int val0, Int... val) {
-            return (val0 == 1) ? gt_pow< Pos >::apply((long long)2) + compute_uuid_selector< Pos + 1 >(val...)
-                               : compute_uuid_selector< Pos + 1 >(val...);
+        constexpr long long compute_uuid_selector(int cnt, int val0, Int... val) {
+            return (cnt == 4) ? 0 : ((val0 == 1)
+                                            ? gt_pow< Pos >::apply((long long)2) +
+                                                  compute_uuid_selector< Pos + 1 >(cnt + 1, val...)
+                                            : compute_uuid_selector< Pos + 1 >(cnt + 1, val...));
         }
 
         template < int_t LocationTypeIndex, typename Selector >
@@ -26,7 +28,7 @@ namespace gridtools {
         template < int_t LocationTypeIndex, int_t... Int >
         struct compute_uuid< LocationTypeIndex, selector< Int... > > {
             static constexpr ushort_t value =
-                enumtype::metastorage_library_indices_limit + LocationTypeIndex + compute_uuid_selector< 2 >(Int...);
+                enumtype::metastorage_library_indices_limit + LocationTypeIndex + compute_uuid_selector< 2 >(0, Int...);
         };
 
         template < typename UInt, typename LocationType >

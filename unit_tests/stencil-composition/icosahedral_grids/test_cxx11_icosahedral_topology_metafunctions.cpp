@@ -40,15 +40,24 @@
 using namespace gridtools;
 
 TEST(icosahedral_topology_metafunctions, selector_uuid) {
+    // 0(cells) + 4+8+ /*(16)*/ + 32
     GRIDTOOLS_STATIC_ASSERT((impl::compute_uuid< enumtype::cells::value, selector< 1, 1, -1, 1 > >::value ==
                                 enumtype::cells::value + 44 + enumtype::metastorage_library_indices_limit),
         "ERROR");
-    GRIDTOOLS_STATIC_ASSERT((impl::compute_uuid< enumtype::cells::value, selector< 1, 1, 1, 1, 1 > >::value ==
-                                enumtype::cells::value + 124 + enumtype::metastorage_library_indices_limit),
+
+    // 0(cells) + 4+8+ /*(16)*/ + 32 //the rest of dimensions are ignored
+    GRIDTOOLS_STATIC_ASSERT((impl::compute_uuid< enumtype::cells::value, selector< 1, 1, -1, 1, 1, 1 > >::value ==
+                                enumtype::cells::value + 44 + enumtype::metastorage_library_indices_limit),
         "ERROR");
 
+    // 0(cells) + 4+8+ /*(16)*/ + 32 //the rest of dimensions are ignored
+    GRIDTOOLS_STATIC_ASSERT((impl::compute_uuid< enumtype::cells::value, selector< 1, 1, 1, 1, 1 > >::value ==
+                                enumtype::cells::value + 60 + enumtype::metastorage_library_indices_limit),
+        "ERROR");
+
+    // 1(edges) + 4+/*8*/+ 16 + 32 //the rest of dimensions are ignored
     GRIDTOOLS_STATIC_ASSERT((impl::compute_uuid< enumtype::edges::value, selector< 1, -1, 1, 1, 1, 1 > >::value ==
-                                enumtype::edges::value + 244 + enumtype::metastorage_library_indices_limit),
+                                enumtype::edges::value + 52 + enumtype::metastorage_library_indices_limit),
         "ERROR");
 }
 

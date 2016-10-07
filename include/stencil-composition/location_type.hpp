@@ -65,42 +65,4 @@ namespace gridtools {
         typedef location_type< vertexes_index::value, 1 > vertexes;
     }
 
-    template < uint_t Index >
-    struct get_location_by_metastorage_index {
-        typedef location_type< -1, 1 > type;
-    };
-
-    template <>
-    struct get_location_by_metastorage_index< enumtype::cells_index::value +
-                                              enumtype::metastorage_library_indices_limit > {
-        typedef enumtype::cells type;
-    };
-
-    template <>
-    struct get_location_by_metastorage_index< enumtype::cells_index::value +
-                                              enumtype::metastorage_library_indices_limit * 2 > {
-        typedef enumtype::cells type;
-    };
-
-    template <>
-    struct get_location_by_metastorage_index< enumtype::edges_index::value +
-                                              enumtype::metastorage_library_indices_limit > {
-        typedef enumtype::edges type;
-    };
-    template <>
-    struct get_location_by_metastorage_index< enumtype::edges_index::value +
-                                              enumtype::metastorage_library_indices_limit * 2 > {
-        typedef enumtype::edges type;
-    };
-
-    template <>
-    struct get_location_by_metastorage_index< enumtype::vertexes_index::value +
-                                              enumtype::metastorage_library_indices_limit > {
-        typedef enumtype::vertexes type;
-    };
-    template <>
-    struct get_location_by_metastorage_index< enumtype::vertexes_index::value +
-                                              enumtype::metastorage_library_indices_limit * 2 > {
-        typedef enumtype::vertexes type;
-    };
 } // namespace gridtools

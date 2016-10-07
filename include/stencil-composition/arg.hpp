@@ -148,7 +148,8 @@ namespace gridtools {
         typedef static_uint< I > index;
         typedef typename arg_get_storage_info< Storage >::type storage_info_t;
 
-        typedef typename get_location_by_metastorage_index< storage_info_t::index_type::value >::type location_type;
+        //        typedef typename get_location_by_metastorage_index< storage_info_t::index_type::value >::type
+        //        location_type;
 
         template < typename Storage2 >
         arg_storage_pair< arg< I, storage_type >, Storage2 > operator=(Storage2 &ref) {
