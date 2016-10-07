@@ -653,7 +653,7 @@
         }
     },
     "comments": [
-        "first version of references for icosahedral grid"
+        "updated file paths due to cmake refactor"
     ],
     "stencils": {
         "stencil_on_edges_multiplefields": {
@@ -663,7 +663,7 @@
                 1,
                 1
             ],
-            "exec": "build/stencil_on_edges_multiplefields"
+            "exec": "examples/icosahedral/stencil_on_edges_multiplefields"
         },
         "stencil_on_cells": {
             "halo": [
@@ -672,7 +672,7 @@
                 1,
                 1
             ],
-            "exec": "build/stencil_on_cells"
+            "exec": "examples/icosahedral/stencil_on_cells"
         },
         "stencil_on_neighcell_of_edges": {
             "halo": [
@@ -681,7 +681,7 @@
                 1,
                 1
             ],
-            "exec": "build/stencil_on_neighcell_of_edges"
+            "exec": "examples/icosahedral/stencil_on_neighcell_of_edges"
         },
         "stencil_manual_fold": {
             "halo": [
@@ -690,7 +690,7 @@
                 1,
                 1
             ],
-            "exec": "build/stencil_manual_fold"
+            "exec": "examples/icosahedral/stencil_manual_fold"
         }
     }
 }
