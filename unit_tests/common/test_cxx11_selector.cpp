@@ -33,26 +33,18 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-#include "host_device.hpp"
+#include "gtest/gtest.h"
+#include "common/defs.hpp"
+#include "common/selector.hpp"
 
-namespace gridtools {
+using namespace gridtools;
 
-    /**@brief Class in substitution of std::gt_pow, not available in CUDA*/
-    template < uint_t Number >
-    struct gt_pow {
-        template < typename Value >
-        GT_FUNCTION static Value constexpr apply(Value const &v) {
-            return v * gt_pow< Number - 1 >::apply(v);
-        }
-    };
+TEST(selector, get_elem) {
+    static_assert((selector< 1, 1, -1, 1 >::get_elem< 0 >::value == 1), "ERROR");
+    static_assert((selector< 1, 1, -1, 1 >::get_elem< 2 >::value == -1), "ERROR");
+}
 
-    /**@brief Class in substitution of std::gt_pow, not available in CUDA*/
-    template <>
-    struct gt_pow< 0 > {
-        template < typename Value >
-        GT_FUNCTION static Value constexpr apply(Value const &v) {
-            return 1.;
-        }
-    };
-} // namespace gridtools
+TEST(selector, existingdim_length) {
+    static_assert((selector< 1, 1, -1, 1 >::existingdim_length == 3), "ERROR");
+    static_assert((selector< 1, -1, -1, -1 >::existingdim_length == 1), "ERROR");
+}

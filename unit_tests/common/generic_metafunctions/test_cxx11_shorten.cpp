@@ -33,26 +33,22 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-#include "host_device.hpp"
+#include "gtest/gtest.h"
+#include <common/defs.hpp>
+#include <common/generic_metafunctions/shorten.hpp>
 
-namespace gridtools {
+using namespace gridtools;
 
-    /**@brief Class in substitution of std::gt_pow, not available in CUDA*/
-    template < uint_t Number >
-    struct gt_pow {
-        template < typename Value >
-        GT_FUNCTION static Value constexpr apply(Value const &v) {
-            return v * gt_pow< Number - 1 >::apply(v);
-        }
-    };
+template < int_t... Vars >
+struct aex {};
 
-    /**@brief Class in substitution of std::gt_pow, not available in CUDA*/
-    template <>
-    struct gt_pow< 0 > {
-        template < typename Value >
-        GT_FUNCTION static Value constexpr apply(Value const &v) {
-            return 1.;
-        }
-    };
-} // namespace gridtools
+TEST(shorten, 4) {
+    static_assert(
+        (boost::is_same< shorten< int_t, aex< 3, 4, 5, 6, 8, 9 >, 3 >::type, aex< 3, 4, 5 > >::value), "ERROR");
+
+    static_assert((boost::is_same< shorten< int_t, aex< 3, 4, 5, 6, 8, 9 >, 1 >::type, aex< 3 > >::value), "ERROR");
+
+    static_assert(
+        (boost::is_same< shorten< int_t, aex< 3, 4, 5, 6, 8, 9 >, 6 >::type, aex< 3, 4, 5, 6, 8, 9 > >::value),
+        "ERROR");
+}

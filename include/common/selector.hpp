@@ -36,14 +36,24 @@
 
 #pragma once
 #include "generic_metafunctions/variadic_typedef.hpp"
+#include "gt_math.hpp"
 
 namespace gridtools {
 
+    namespace impl {
+        constexpr ushort_t compute_existing_dim() { return 0; }
+
+        template < typename... Int >
+        constexpr ushort_t compute_existing_dim(int d, Int... ds) {
+            return d == 1 ? 1 + compute_existing_dim(ds...) : compute_existing_dim(ds...);
+        }
+    }
     template < int_t... Int >
     struct selector {
         typedef variadic_typedef_c< int_t, Int... > indices;
         static constexpr ushort_t length = indices::length;
 
+        static constexpr ushort_t existingdim_length = impl::compute_existing_dim(Int...);
         template < ushort_t Idx >
         struct get_elem {
             GRIDTOOLS_STATIC_ASSERT((Idx <= sizeof...(Int)), "Out of bound access in variadic pack");

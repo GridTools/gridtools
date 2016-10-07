@@ -42,6 +42,8 @@
 #include "storage/wrap_pointer.hpp"
 #include "icosahedral_grid_traits.hpp"
 #include "common/selector.hpp"
+#include "../../common/generic_metafunctions/shorten.hpp"
+#include "../../common/layout_map_metafunctions.hpp"
 
 namespace gridtools {
 
@@ -59,8 +61,15 @@ namespace gridtools {
         using layout_map_t = typename icgrid::grid_traits_arch< base_t::s_backend_id >::layout_map_t;
 
         template < typename DimSelector >
-        using select_layout = typename filter_layout< layout_map_t, DimSelector >::type;
+        struct select_layout {
 
+            using dim_selector_4d_t = typename shorten< int_t, DimSelector, 4 >::type;
+            using filtered_layout = typename filter_layout< layout_map_t, dim_selector_4d_t >::type;
+
+            using type = typename boost::mpl::eval_if_c< (DimSelector::length > 4),
+                extend_layout_map< filtered_layout, DimSelector::length - 4 >,
+                boost::mpl::identity< filtered_layout > >::type;
+        };
         template < uint_t Index, typename LayoutMap >
         using storage_info_t = typename base_t::template storage_info< Index, LayoutMap >;
 

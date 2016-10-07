@@ -71,8 +71,9 @@ namespace ico_operators {
         using vertex_2d_storage_type = repository::vertex_2d_storage_type;
         using edge_2d_storage_type = repository::edge_2d_storage_type;
 
-        using edges_of_vertexes_storage_type = repository::edges_of_vertexes_storage_type;
-        using edges_of_cells_storage_type = repository::edges_of_cells_storage_type;
+        using vertexes_4d_storage_type = repository::vertexes_4d_storage_type;
+        using cells_4d_storage_type = repository::cells_4d_storage_type;
+        using edges_4d_storage_type = repository::edges_4d_storage_type;
 
         array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
@@ -87,18 +88,18 @@ namespace ico_operators {
 
         auto &in_edges = repo.u();
         auto &cell_area_reciprocal = repo.cell_area_reciprocal();
-        edges_of_cells_storage_type &orientation_of_normal = repo.orientation_of_normal();
+        auto &orientation_of_normal = repo.orientation_of_normal();
         auto &edge_length = repo.edge_length();
         auto &ref_cells = repo.div_u_ref();
         auto out_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("out");
 
-        auto &weights_meta = repo.edges_of_cells_meta();
-        edges_of_cells_storage_type div_weights(weights_meta, "weights");
+        auto div_weights =
+            icosahedral_grid.make_storage< icosahedral_topology_t::cells, double, selector< 1, 1, 1, 1, 1 > >(
+                "weights", 3);
 
-        auto cells_of_edges_meta = meta_storage_extender()(in_edges.meta_data(), 2);
-        using cells_of_edges_storage_type =
-            typename backend_t::storage_type< double, decltype(cells_of_edges_meta) >::type;
-        cells_of_edges_storage_type l_over_A(cells_of_edges_meta, "l_over_A");
+        auto l_over_A =
+            icosahedral_grid.make_storage< icosahedral_topology_t::edges, double, selector< 1, 1, 1, 1, 1 > >(
+                "l_over_A", 2);
 
         out_cells.initialize(0.0);
         div_weights.initialize(0.0);
@@ -107,8 +108,8 @@ namespace ico_operators {
         {
             typedef arg< 0, edge_2d_storage_type > p_edge_length;
             typedef arg< 1, cell_2d_storage_type > p_cell_area_reciprocal;
-            typedef arg< 2, edges_of_cells_storage_type > p_orientation_of_normal;
-            typedef arg< 3, edges_of_cells_storage_type > p_div_weights;
+            typedef arg< 2, cells_4d_storage_type > p_orientation_of_normal;
+            typedef arg< 3, cells_4d_storage_type > p_div_weights;
 
             typedef boost::mpl::vector< p_edge_length, p_cell_area_reciprocal, p_orientation_of_normal, p_div_weights >
                 accessor_list_t;
@@ -139,7 +140,7 @@ namespace ico_operators {
         {
             typedef arg< 0, edge_2d_storage_type > p_edge_length;
             typedef arg< 1, cell_2d_storage_type > p_cell_area_reciprocal;
-            typedef arg< 2, cells_of_edges_storage_type > p_l_over_A;
+            typedef arg< 2, edges_4d_storage_type > p_l_over_A;
 
             typedef boost::mpl::vector< p_edge_length, p_cell_area_reciprocal, p_l_over_A > accessor_list_t;
 
@@ -173,7 +174,7 @@ namespace ico_operators {
 
         {
             typedef arg< 0, edge_storage_type > p_in_edges;
-            typedef arg< 1, edges_of_cells_storage_type > p_div_weights;
+            typedef arg< 1, cells_4d_storage_type > p_div_weights;
             typedef arg< 2, cell_storage_type > p_out_cells;
 
             typedef boost::mpl::vector< p_in_edges, p_div_weights, p_out_cells > accessor_list_t;
@@ -211,7 +212,7 @@ namespace ico_operators {
          */
         {
             typedef arg< 0, edge_storage_type > p_in_edges;
-            typedef arg< 1, edges_of_cells_storage_type > p_div_weights;
+            typedef arg< 1, cells_4d_storage_type > p_div_weights;
             typedef arg< 2, cell_storage_type > p_out_cells;
 
             typedef boost::mpl::vector< p_in_edges, p_div_weights, p_out_cells > accessor_list_t;

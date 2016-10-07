@@ -38,9 +38,9 @@
 #include "../common/defs.hpp"
 
 namespace gridtools {
-    template < int I, ushort_t NColors >
+    template < int_t I, ushort_t NColors >
     struct location_type {
-        static const int value = I;
+        static const int_t value = I;
         typedef static_ushort< NColors > n_colors; //! <- is the number of locations of this type
     };
 

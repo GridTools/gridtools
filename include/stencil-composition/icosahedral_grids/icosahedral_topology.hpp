@@ -62,7 +62,12 @@
 #include <boost/mpl/vector.hpp>
 #include "../location_type.hpp"
 #include "common/array_addons.hpp"
+#include "common/gpu_clone.hpp"
 #include "common/selector.hpp"
+#include "../../common/generic_metafunctions/pack_get_elem.hpp"
+#include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
+
+#include "icosahedral_topology_metafunctions.hpp"
 
 namespace gridtools {
 
@@ -729,101 +734,60 @@ namespace gridtools {
     template < typename Backend >
     class icosahedral_topology : public clonable_to_gpu< icosahedral_topology< Backend > > {
       public:
-        using layout_2d_t = typename Backend::template select_layout< selector< 1, 1, 1, -1 > >;
-        using layout_t = typename Backend::layout_map_t;
-
         using cells = enumtype::cells;
         using edges = enumtype::edges;
         using vertexes = enumtype::vertexes;
         using layout_map_t = typename Backend::layout_map_t;
         using type = icosahedral_topology< Backend >;
 
-        // Beyond 1000 we reserve the storage indices for library purposes
-        template < typename LocationType >
+        template < typename Selector >
+        using layout_t = typename Backend::template select_layout< Selector >::type;
+
+        template < typename LocationType, typename Selector = selector< 1, 1, 1, 1 > >
         using meta_storage_t =
-            typename Backend::template storage_info_t< LocationType::value +
-                                                           enumtype::metastorage_library_indices_limit,
-                layout_t >;
+            typename Backend::template storage_info_t< impl::compute_uuid< LocationType::value, Selector >::value,
+                typename Backend::template select_layout< Selector >::type >;
 
-        template < typename LocationType >
-        using meta_storage_2d_t =
-            typename Backend::template storage_info_t< LocationType::value +
-                                                           enumtype::metastorage_library_indices_limit * 2,
-                layout_2d_t >;
+        template < typename LocationType, typename ValueType, typename Selector = selector< 1, 1, 1, 1 > >
+        using storage_t = typename Backend::template storage_t< ValueType, meta_storage_t< LocationType, Selector > >;
 
-        template < typename LocationType, typename ValueType >
-        using storage_t = typename Backend::template storage_t< ValueType, meta_storage_t< LocationType > >;
-
-        template < typename LocationType, typename ValueType >
+        template < typename LocationType, typename ValueType, typename Selector = selector< 1, 1, 1, 1 > >
         using temporary_storage_t =
-            typename Backend::template temporary_storage_t< ValueType, meta_storage_t< LocationType > >;
-
-        template < typename LocationType, typename ValueType >
-        using storage_2d_t = typename Backend::template storage_t< ValueType, meta_storage_2d_t< LocationType > >;
+            typename Backend::template temporary_storage_t< ValueType, meta_storage_t< LocationType, Selector > >;
 
         const array< uint_t, 3 > m_dims; // Sizes as cells in a multi-dimensional Cell array
 
-        using grid_meta_storages_t =
-            boost::fusion::vector3< meta_storage_t< cells >, meta_storage_t< edges >, meta_storage_t< vertexes > >;
-
-        grid_meta_storages_t m_virtual_storages;
-
-        using grid_meta_storages_2d_t = boost::fusion::vector3< meta_storage_2d_t< cells >,
-            meta_storage_2d_t< edges >,
-            meta_storage_2d_t< vertexes > >;
-
-        grid_meta_storages_2d_t m_virtual_storages_2d;
-
       public:
-        using n_locations = static_uint< boost::mpl::size< grid_meta_storages_t >::value >;
-        template < typename LocationType >
-        GT_FUNCTION uint_t size(LocationType location) {
-            return boost::fusion::at_c< LocationType::value >(m_virtual_storages).size();
-        }
-
         icosahedral_topology() = delete;
 
       public:
         template < typename... UInt >
         GT_FUNCTION icosahedral_topology(uint_t idim, uint_t jdim, uint_t kdim)
-            : m_dims{idim, jdim, kdim},
-              m_virtual_storages(meta_storage_t< cells >(array< uint_t, meta_storage_t< cells >::space_dimensions >{
-                                     idim, cells::n_colors::value, jdim, kdim}),
-                  meta_storage_t< edges >(array< uint_t, meta_storage_t< edges >::space_dimensions >{
-                      idim, edges::n_colors::value, jdim, kdim}),
-                  // here we assume by convention that the dual grid (vertexes) have one more grid point
-                  meta_storage_t< vertexes >(array< uint_t, meta_storage_t< vertexes >::space_dimensions >{
-                      idim, vertexes::n_colors::value, jdim, kdim})),
-              m_virtual_storages_2d(
-                  meta_storage_2d_t< cells >(array< uint_t, meta_storage_2d_t< cells >::space_dimensions >{
-                      idim, cells::n_colors::value, jdim, kdim}),
-                  meta_storage_2d_t< edges >(array< uint_t, meta_storage_t< edges >::space_dimensions >{
-                      idim, edges::n_colors::value, jdim, kdim}),
-                  // here we assume by convention that the dual grid (vertexes) have one more grid point
-                  meta_storage_2d_t< vertexes >(array< uint_t, meta_storage_2d_t< vertexes >::space_dimensions >{
-                      idim, vertexes::n_colors::value, jdim, kdim})) {}
+            : m_dims{idim, jdim, kdim} {}
 
-        __device__ icosahedral_topology(icosahedral_topology const &other)
-            : m_dims(other.m_dims), m_virtual_storages(boost::fusion::at_c< cells::value >(other.m_virtual_storages),
-                                        boost::fusion::at_c< edges::value >(other.m_virtual_storages),
-                                        boost::fusion::at_c< vertexes::value >(other.m_virtual_storages)),
-              m_virtual_storages_2d(boost::fusion::at_c< cells::value >(other.m_virtual_storages_2d),
-                  boost::fusion::at_c< edges::value >(other.m_virtual_storages_2d),
-                  boost::fusion::at_c< vertexes::value >(other.m_virtual_storages_2d)) {}
+        __device__ icosahedral_topology(icosahedral_topology const &other) : m_dims(other.m_dims) {}
 
-        GT_FUNCTION
-        grid_meta_storages_t const &virtual_storages() const { return m_virtual_storages; }
+        template < typename LocationType,
+            typename ValueType,
+            typename Selector = selector< 1, 1, 1, 1 >,
+            typename... IntTypes,
+            typename Dummy = all_integers< IntTypes... > >
+        GT_FUNCTION storage_t< LocationType, ValueType, Selector > make_storage(
+            char const *name, IntTypes... extra_dims) const {
+            GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), "ERROR: location type is wrong");
+            GRIDTOOLS_STATIC_ASSERT((is_selector< Selector >::value), "ERROR: dimension selector is wrong");
 
-        template < typename LocationType, typename ValueType >
-        GT_FUNCTION storage_t< LocationType, double > make_storage(char const *name) const {
-            return storage_t< LocationType, ValueType >(
-                boost::fusion::at_c< LocationType::value >(m_virtual_storages), name);
-        }
+            static_assert((Selector::length == sizeof...(IntTypes) + 4), "Error");
 
-        template < typename LocationType, typename ValueType >
-        GT_FUNCTION storage_2d_t< LocationType, double > make_2d_storage(char const *name) const {
-            return storage_2d_t< LocationType, ValueType >(
-                boost::fusion::at_c< LocationType::value >(m_virtual_storages_2d), name);
+            using meta_storage_type = meta_storage_t< LocationType, Selector >;
+            static_assert((Selector::length == meta_storage_type::space_dimensions), "Error");
+
+            array< uint_t, meta_storage_type::space_dimensions > metastorage_sizes =
+                impl::array_dim_initializers< uint_t, meta_storage_type::space_dimensions, LocationType, Selector >::
+                    apply(m_dims, extra_dims...);
+
+            auto ameta = meta_storage_type(metastorage_sizes);
+            return storage_t< LocationType, ValueType, Selector >(ameta, name);
         }
 
         template < typename LocationType >
@@ -838,10 +802,10 @@ namespace gridtools {
                 i[2]};
         }
 
-        template < typename LocationType >
-        GT_FUNCTION int_t ll_offset(array< uint_t, 4 > const &i, LocationType) const {
-            return boost::fusion::at_c< LocationType::value >(m_virtual_storages).index(i);
-        }
+        //        template < typename LocationType >
+        //        GT_FUNCTION int_t ll_offset(array< uint_t, 4 > const &i, LocationType) const {
+        //            return boost::fusion::at_c< LocationType::value >(m_virtual_storages).index(i);
+        //        }
 
         /**
           * function to extract the absolute index of all neighbours of current position. This is used to find position
@@ -863,7 +827,8 @@ namespace gridtools {
 
             using n_neighbors_t = static_int< return_type_t::n_dimensions >;
 
-            // Note: offsets have to be extracted here as a constexpr object instead of passed inline to the apply fn
+            // Note: offsets have to be extracted here as a constexpr object instead of passed inline to the
+            // apply fn
             // Otherwise constexpr of the array is lost
             constexpr const auto offsets =
                 from< Location1 >::template to< Location2 >::template with_color< Color >::offsets();
