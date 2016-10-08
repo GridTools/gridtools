@@ -769,26 +769,27 @@ namespace gridtools {
                 _evaluate(map.template argument< 0 >(), position), _evaluate(map.template argument< 1 >(), position));
         }
 
-        template < typename ValueType,
-            typename SrcColor,
-            typename LocationTypeT,
-            typename Reduction,
-            typename Map,
-            typename IndexArray >
-        GT_FUNCTION ValueType _evaluate(on_neighbors_impl< ValueType, SrcColor, LocationTypeT, Reduction, Map > onn,
-            IndexArray const &position) const {
+        //        template < typename ValueType,
+        //            typename SrcColor,
+        //            typename LocationTypeT,
+        //            typename Reduction,
+        //            typename Map,
+        //            typename IndexArray >
+        //        GT_FUNCTION ValueType _evaluate(on_neighbors_impl< ValueType, SrcColor, LocationTypeT, Reduction, Map
+        //        > onn,
+        //            IndexArray const &position) const {
 
-            // TODO THIS IS WRONG HERE HARDCODED EDGES
-            using tt = typename grid_topology_t::edges;
-            const auto neighbors = m_grid_topology.neighbors_indices_3(position, tt(), onn.location());
-            ValueType result = onn.value();
+        //            // TODO THIS IS WRONG HERE HARDCODED EDGES
+        //            using tt = typename grid_topology_t::edges;
+        //            const auto neighbors = m_grid_topology.neighbors_indices_3(position, tt(), onn.location());
+        //            ValueType result = onn.value();
 
-            for (int i = 0; i < neighbors.size(); ++i) {
-                result = onn.reduction()(_evaluate(onn.template map< 0 >(), neighbors[i]), result);
-            }
+        //            for (int i = 0; i < neighbors.size(); ++i) {
+        //                result = onn.reduction()(_evaluate(onn.template map< 0 >(), neighbors[i]), result);
+        //            }
 
-            return result;
-        }
+        //            return result;
+        //        }
     };
 
 } // namespace gridtools

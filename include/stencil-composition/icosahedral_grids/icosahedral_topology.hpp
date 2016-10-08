@@ -160,25 +160,26 @@ namespace gridtools {
     template < typename T >
     struct is_grid_topology;
 
-    template < typename DestLocation, typename GridTopology, uint_t SourceColor >
-    struct get_connectivity_index {
+    //    template < typename DestLocation, typename GridTopology, uint_t SourceColor >
+    //    struct get_connectivity_index {
 
-        GRIDTOOLS_STATIC_ASSERT((is_grid_topology< GridTopology >::value), "Error");
-        GRIDTOOLS_STATIC_ASSERT((is_location_type< DestLocation >::value), "Error");
+    //        GRIDTOOLS_STATIC_ASSERT((is_grid_topology< GridTopology >::value), "Error");
+    //        GRIDTOOLS_STATIC_ASSERT((is_location_type< DestLocation >::value), "Error");
 
-        template < int Idx >
-        struct get_element {
-            GT_FUNCTION
-            constexpr get_element() {}
+    //        template < int Idx >
+    //        struct get_element {
+    //            GT_FUNCTION
+    //            constexpr get_element() {}
 
-            template < typename Offsets >
-            GT_FUNCTION static uint_t apply(
-                GridTopology const &grid_topology, array< uint_t, 3 > const &i, Offsets offsets) {
-                return boost::fusion::at_c< DestLocation::value >(grid_topology.virtual_storages())
-                    .index(get_connectivity_offset< SourceColor >::template get_element< Idx >::apply(i, offsets));
-            }
-        };
-    };
+    //            template < typename Offsets >
+    //            GT_FUNCTION static uint_t apply(
+    //                GridTopology const &grid_topology, array< uint_t, 3 > const &i, Offsets offsets) {
+    //                return boost::fusion::at_c< DestLocation::value >(grid_topology.virtual_storages())
+    //                    .index(get_connectivity_offset< SourceColor >::template get_element< Idx >::apply(i,
+    //                    offsets));
+    //            }
+    //        };
+    //    };
 
     /**
      * Following specializations provide all information about the connectivity of the icosahedral/ocahedral grid
@@ -818,71 +819,76 @@ namespace gridtools {
           *     Dimension of the array depends on the number of neighbours of the location type
           * @i indexes of current position in the iteration space
           */
-        template < typename Location1, typename Location2, typename Color >
-        GT_FUNCTION typename return_type< typename from< Location1 >::template to< Location2 >, uint_t >::type
-            connectivity_index(Location1, Location2, Color, array< uint_t, 3 > const &i) const {
+        //        template < typename Location1, typename Location2, typename Color >
+        //        GT_FUNCTION typename return_type< typename from< Location1 >::template to< Location2 >, uint_t >::type
+        //            connectivity_index(Location1, Location2, Color, array< uint_t, 3 > const &i) const {
 
-            using return_type_t =
-                typename return_type< typename from< Location1 >::template to< Location2 >, uint_t >::type;
+        //            using return_type_t =
+        //                typename return_type< typename from< Location1 >::template to< Location2 >, uint_t >::type;
 
-            using n_neighbors_t = static_int< return_type_t::n_dimensions >;
+        //            using n_neighbors_t = static_int< return_type_t::n_dimensions >;
 
-            // Note: offsets have to be extracted here as a constexpr object instead of passed inline to the
-            // apply fn
-            // Otherwise constexpr of the array is lost
-            constexpr const auto offsets =
-                from< Location1 >::template to< Location2 >::template with_color< Color >::offsets();
+        //            // Note: offsets have to be extracted here as a constexpr object instead of passed inline to the
+        //            // apply fn
+        //            // Otherwise constexpr of the array is lost
+        //            constexpr const auto offsets =
+        //                from< Location1 >::template to< Location2 >::template with_color< Color >::offsets();
 
-            using seq = gridtools::apply_gt_integer_sequence<
-                typename gridtools::make_gt_integer_sequence< int, n_neighbors_t::value >::type >;
-            return seq::template apply< return_type_t,
-                get_connectivity_index< Location2, type, Color::value >::template get_element >(*this, i, offsets);
-        }
+        //            using seq = gridtools::apply_gt_integer_sequence<
+        //                typename gridtools::make_gt_integer_sequence< int, n_neighbors_t::value >::type >;
+        //            return seq::template apply< return_type_t,
+        //                get_connectivity_index< Location2, type, Color::value >::template get_element >(*this, i,
+        //                offsets);
+        //        }
 
-        template < typename Location2 > // Works for cells or edges with same code
-        GT_FUNCTION
-            typename return_type< typename from< cells >::template to< Location2 >, uint_t >::type neighbors_indices_3(
-                array< uint_t, 4 > const &i, cells, Location2) const {
-            switch (i[1] % cells::n_colors::value) {
-            case 0: {
-                return connectivity_index(cells(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
-            }
-            case 1: {
-                return connectivity_index(cells(), Location2(), static_int< 1 >(), {i[0], i[2], i[3]});
-            }
-            default: {
-                GTASSERT(false);
-                return typename return_type< typename from< cells >::template to< Location2 >, uint_t >::type();
-            }
-            }
-        }
+        //        template < typename Location2 > // Works for cells or edges with same code
+        //        GT_FUNCTION
+        //            typename return_type< typename from< cells >::template to< Location2 >, uint_t >::type
+        //            neighbors_indices_3(
+        //                array< uint_t, 4 > const &i, cells, Location2) const {
+        //            switch (i[1] % cells::n_colors::value) {
+        //            case 0: {
+        //                return connectivity_index(cells(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
+        //            }
+        //            case 1: {
+        //                return connectivity_index(cells(), Location2(), static_int< 1 >(), {i[0], i[2], i[3]});
+        //            }
+        //            default: {
+        //                GTASSERT(false);
+        //                return typename return_type< typename from< cells >::template to< Location2 >, uint_t
+        //                >::type();
+        //            }
+        //            }
+        //        }
 
-        template < typename Location2 > // Works for cells or edges with same code
-        GT_FUNCTION
-            typename return_type< typename from< edges >::template to< Location2 >, uint_t >::type neighbors_indices_3(
-                array< uint_t, 4 > const &i, edges, Location2) const {
-            switch (i[1] % edges::n_colors::value) {
-            case 0: {
-                return connectivity_index(edges(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
-            }
-            case 1: {
-                return connectivity_index(edges(), Location2(), static_int< 1 >(), {i[0], i[2], i[3]});
-            }
-            case 2: {
-                return connectivity_index(edges(), Location2(), static_int< 2 >(), {i[0], i[2], i[3]});
-            }
-            default: {
-                GTASSERT(false);
-                return typename return_type< typename from< edges >::template to< Location2 >, uint_t >::type();
-            }
-            }
-        }
+        //        template < typename Location2 > // Works for cells or edges with same code
+        //        GT_FUNCTION
+        //            typename return_type< typename from< edges >::template to< Location2 >, uint_t >::type
+        //            neighbors_indices_3(
+        //                array< uint_t, 4 > const &i, edges, Location2) const {
+        //            switch (i[1] % edges::n_colors::value) {
+        //            case 0: {
+        //                return connectivity_index(edges(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
+        //            }
+        //            case 1: {
+        //                return connectivity_index(edges(), Location2(), static_int< 1 >(), {i[0], i[2], i[3]});
+        //            }
+        //            case 2: {
+        //                return connectivity_index(edges(), Location2(), static_int< 2 >(), {i[0], i[2], i[3]});
+        //            }
+        //            default: {
+        //                GTASSERT(false);
+        //                return typename return_type< typename from< edges >::template to< Location2 >, uint_t
+        //                >::type();
+        //            }
+        //            }
+        //        }
 
-        template < typename Location2 > // Works for cells or edges with same code
-        GT_FUNCTION typename return_type< typename from< vertices >::template to< Location2 >, uint_t >::type
-            neighbors_indices_3(array< uint_t, 4 > const &i, vertices, Location2) const {
-            return connectivity_index(vertices(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
-        }
+        //        template < typename Location2 > // Works for cells or edges with same code
+        //        GT_FUNCTION typename return_type< typename from< vertices >::template to< Location2 >, uint_t >::type
+        //            neighbors_indices_3(array< uint_t, 4 > const &i, vertices, Location2) const {
+        //            return connectivity_index(vertices(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
+        //        }
     };
 
     template < typename T >

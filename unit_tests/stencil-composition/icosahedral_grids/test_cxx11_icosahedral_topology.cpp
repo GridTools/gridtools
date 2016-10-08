@@ -51,10 +51,6 @@ using namespace gridtools;
 #endif
 
 using icosahedral_topology_t = icosahedral_topology< BACKEND >;
-// template < typename T >
-// struct printu {
-//    BOOST_MPL_ASSERT_MSG((false), TTTTTTTTTTTTTTTT, (T));
-//};
 TEST(icosahedral_topology, layout) {
     using alayout_t = icosahedral_topology_t::layout_t< selector< 1, 1, 1, 1 > >;
 #ifdef __CUDACC__
