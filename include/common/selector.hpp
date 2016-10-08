@@ -37,6 +37,7 @@
 #pragma once
 #include "generic_metafunctions/variadic_typedef.hpp"
 #include "gt_math.hpp"
+#include "generic_metafunctions/is_variadic_pack_of.hpp"
 
 namespace gridtools {
 
@@ -47,9 +48,19 @@ namespace gridtools {
         constexpr ushort_t compute_existing_dim(int d, Int... ds) {
             return d == 1 ? 1 + compute_existing_dim(ds...) : compute_existing_dim(ds...);
         }
+        template < int_t Val >
+        struct is_one {
+            static constexpr bool value = ((Val == 1) || (Val == -1));
+        };
     }
+
+    /*
+     * metafunction use to selects certain positions in a variadic pack
+     * The variadic templates accept only 1 (select) or -1 (unselect)
+     */
     template < int_t... Int >
     struct selector {
+        static_assert((is_variadic_pack_of(impl::is_one< Int >::value...)), "ERROR");
         typedef variadic_typedef_c< int_t, Int... > indices;
         static constexpr ushort_t length = indices::length;
 
