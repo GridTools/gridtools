@@ -40,6 +40,10 @@
 #include <boost/mpl/erase.hpp>
 
 namespace gridtools {
+
+    /*
+     * Replace in a sequence the element in the given position by another element
+     */
     template < typename Seq_, typename Pos, typename Elem >
     struct replace {
         typedef typename boost::mpl::advance< typename boost::mpl::begin< Seq_ >::type,

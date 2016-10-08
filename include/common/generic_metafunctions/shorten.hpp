@@ -27,6 +27,13 @@ namespace gridtools {
         };
     }
 
+    /*
+     * Given a type with a set of variadic templates, returns the same type with only the
+     * first "Threshold" number of variadic templates. Threshold has to be smaller or equal than
+     * the number of variadic templates contained in the holder type
+     * Example of use:
+     *   shorten<int, vector<3,4,5>, 2> == vector<3,4>
+     */
     template < typename Value, typename VariadicHolder, uint_t Threshold >
     struct shorten;
 

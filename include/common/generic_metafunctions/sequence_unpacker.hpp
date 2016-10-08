@@ -42,6 +42,11 @@
 #include "variadic_typedef.hpp"
 
 namespace gridtools {
+
+    /*
+     * converts a mpl sequence of types into a variadic_typedef of a variadic pack of types
+     * Example sequence_unpacker< int,float >::type == variadic_typedef< int, float >
+     */
     template < typename Seq, typename... Args >
     struct sequence_unpacker {
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< Seq >::value > 0 || sizeof...(Args) > 0), "Error");

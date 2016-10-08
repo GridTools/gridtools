@@ -39,6 +39,6 @@
 using namespace gridtools;
 
 TEST(pack_get_elem, test) {
-    static_assert((pack_get_elem< 2 >::type::apply(3, 6, 7) == 7), "ERROR");
-    static_assert((pack_get_elem< 1 >::type::apply(-3, -6, 7) == -6), "ERROR");
+    static_assert((pack_get_elem< 2 >::apply(3, 6, 7) == 7), "ERROR");
+    static_assert((pack_get_elem< 1 >::apply(-3, -6, 7) == -6), "ERROR");
 }

@@ -5,6 +5,10 @@
 #ifdef CXX11_ENABLED
 namespace gridtools {
 
+    /*
+     * metafunction to filter out some of the dimensions of a layout map, determined by the DimSelector
+     * Example of use: filter_layout<layout_map<0,1,2,3>, selector<1,1,-1,1 > == layout_map<0,1,-1,2>
+     */
     template < typename Layout, typename DimSelector >
     struct filter_layout {
         GRIDTOOLS_STATIC_ASSERT((is_selector< DimSelector >::value), "Error");
@@ -74,6 +78,10 @@ namespace gridtools {
     template < typename LayoutMap, ushort_t NExtraDim >
     struct extend_layout_map;
 
+    /*
+     * metafunction to extend a layout_map with certain number of dimensions.
+     * Example of use: extend_layout_map< layout_map<0, 1, 3, 2>, 3> == layout_map<3, 4, 6, 5, 0, 1, 2>
+     */
     template < ushort_t NExtraDim, int_t... Args >
     struct extend_layout_map< layout_map< Args... >, NExtraDim > {
 
