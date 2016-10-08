@@ -47,12 +47,12 @@ namespace gridtools {
     namespace impl {
 
         template < uint_t Pos >
-        constexpr long long compute_uuid_selector(int cnt) {
+        GT_FUNCTION constexpr long long compute_uuid_selector(int cnt) {
             return 0;
         }
 
         template < uint_t Pos, typename... Int >
-        constexpr long long compute_uuid_selector(int cnt, int val0, Int... val) {
+        GT_FUNCTION constexpr long long compute_uuid_selector(int cnt, int val0, Int... val) {
             return (cnt == 4) ? 0 : ((val0 == 1)
                                             ? gt_pow< Pos >::apply((long long)2) +
                                                   compute_uuid_selector< Pos + 1 >(cnt + 1, val...)
@@ -111,7 +111,7 @@ namespace gridtools {
             static_assert((is_location_type< LocationType >::value), "Error: expected a location type");
 
             template < typename... ExtraInts >
-            static constexpr array< UInt, ArraySize > apply(
+            GT_FUNCTION static constexpr array< UInt, ArraySize > apply(
                 const array< uint_t, 3 > space_dims, ExtraInts... extra_dims) {
                 using seq = apply_gt_integer_sequence< typename make_gt_integer_sequence< int, ArraySize >::type >;
 

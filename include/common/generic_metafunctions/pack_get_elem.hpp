@@ -45,19 +45,19 @@ namespace gridtools {
     namespace impl {
 
         template < typename ReturnType, uint_t Idx >
-        constexpr ReturnType pack_get_elem_(uint pos) {
+        GT_FUNCTION constexpr ReturnType pack_get_elem_(uint pos) {
             return ReturnType();
         }
 
         template < typename ReturnType, uint_t Idx, typename First, typename... ElemTypes >
-        constexpr ReturnType pack_get_elem_(uint pos, First first, ElemTypes... elems) {
+        GT_FUNCTION constexpr ReturnType pack_get_elem_(uint pos, First first, ElemTypes... elems) {
             return (pos == Idx) ? first : pack_get_elem_< ReturnType, Idx >(pos + 1, elems...);
         }
 
         template < int_t Idx >
         struct pack_get_elem_null {
             template < typename... ElemTypes >
-            static constexpr int apply(ElemTypes... elems) {
+            GT_FUNCTION static constexpr int apply(ElemTypes... elems) {
                 return 0;
             }
         };
@@ -65,7 +65,7 @@ namespace gridtools {
         template < int_t Idx >
         struct pack_get_elem_elem {
             template < typename... ElemTypes >
-            static constexpr
+            GT_FUNCTION static constexpr
                 typename variadic_typedef< ElemTypes... >::template get_elem< Idx >::type apply(ElemTypes... elems) {
                 return pack_get_elem_< typename variadic_typedef< ElemTypes... >::template get_elem< Idx >::type, Idx >(
                     0, elems...);
